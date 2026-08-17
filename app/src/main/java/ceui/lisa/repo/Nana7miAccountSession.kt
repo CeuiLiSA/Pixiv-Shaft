@@ -1,15 +1,15 @@
 package ceui.lisa.repo
 
-import ceui.loxia.AccountResponse
 import ceui.loxia.Client
+import ceui.loxia.User
 import ceui.loxia.Nana7miPayload
 import ceui.loxia.Nana7miResult
 import ceui.loxia.fetchNana7mi
 import ceui.pixiv.actions.AccountOnlineReportOutbox
 import ceui.pixiv.login.InvalidRefreshTokenException
 import ceui.pixiv.login.PixivLogin
+import ceui.pixiv.login.PixivOAuthUser
 import ceui.pixiv.session.SessionManager
-import com.google.gson.Gson
 import io.reactivex.Observable
 import io.reactivex.exceptions.Exceptions
 import kotlinx.coroutines.CancellationException
@@ -242,9 +242,7 @@ internal class Nana7miAccountSession {
                 uid,
                 reason,
             )
-            // Detailed variant: the library's PixivOAuthResponse.user drops `is_premium`, and the
-            // membership this response reports is the only fresh signal that the account lapsed.
-            PixivLogin.refreshTokenBlockingDetailed(refreshToken)
+            PixivLogin.refreshTokenBlocking(refreshToken)
         } catch (ce: CancellationException) {
             throw ce
         } catch (error: Exception) {
@@ -275,27 +273,17 @@ internal class Nana7miAccountSession {
             "stage=refresh result=success account_uid=%d reason=%s expires_in_seconds=%d",
             uid,
             reason,
-            oauth.response.expiresIn,
+            oauth.expiresIn,
         )
-        // pixiv 的 token 响应里带着这个号「此刻」的 is_premium。以前这里把 stale.account 的 user 原样
-        // copy 过去，等于每次刷新都用一份陈旧的会员状态覆盖服务端、还顺带刷新了 updated_at ——
-        // 掉了会员的号会因此永远留在派发池里。
-        //
-        // 只把 is_premium 这一个字段覆盖掉：pixiv 这个响应的 user 比 [ceui.loxia.User] 窄
-        // （没有 pixiv_id / gender / comment 等），整份替换会把服务端已存的更全的信息削掉。
-        // 解析失败、id 对不上或字段缺失时一律保持原样，不拿不确定的数据动别人的号。
-        val freshPremium = runCatching {
-            OAUTH_GSON.fromJson(oauth.rawBody, AccountResponse::class.java)
-        }.getOrNull()?.user?.takeIf { it.id == uid }?.is_premium
+        // Held rather than inlined: the NotPremium branch further down tests this same value,
+        // and it must test `== false` (an explicit "not a member") rather than falsiness —
+        // a null here means pixiv said nothing and the account must stay in the pool.
+        val freshPremium = freshMembershipOf(oauth.user, uid)
         val refreshedAccount = stale.account.copy(
-            access_token = oauth.response.accessToken,
-            refresh_token = oauth.response.refreshToken,
-            expires_in = oauth.response.expiresIn,
-            user = if (freshPremium == null) {
-                stale.account.user
-            } else {
-                stale.account.user?.copy(is_premium = freshPremium)
-            },
+            access_token = oauth.accessToken,
+            refresh_token = oauth.refreshToken,
+            expires_in = oauth.expiresIn,
+            user = mergeMembership(stored = stale.account.user, fresh = freshPremium),
         )
         val updatedAt = System.currentTimeMillis()
         val refreshedPayload = stale.copy(
@@ -429,12 +417,6 @@ internal class Nana7miAccountSession {
         const val LOG_TAG = "sadadsdasdw2"
         const val VALID_MS = 55L * 60_000L
 
-        /**
-         * Pixiv's raw token response parses straight into [AccountResponse] (identical wire names).
-         * A local instance rather than `Shaft.sGson` — same plain `Gson()` configuration, but it
-         * keeps this path free of Application state so it stays reachable from JVM tests.
-         */
-        val OAUTH_GSON: Gson = Gson()
         const val PIXIV_OAUTH_ERROR = "Error occurred at the OAuth process"
         const val PIXIV_INVALID_REFRESH_TOKEN = "Invalid refresh token"
     }
@@ -557,3 +539,29 @@ internal class Nana7miSearchLease(
         const val LOG_TAG = "sadadsdasdw2"
     }
 }
+
+/**
+ * The membership a token refresh is allowed to speak for, or `null` when it
+ * cannot speak for this account at all.
+ *
+ * `uid` is guaranteed `> 0` by the caller, and pixiv-login reports `0` when
+ * pixiv omits or mangles the id, so the equality check doubles as a reject
+ * for responses that cannot be tied to the account being renewed.
+ */
+internal fun freshMembershipOf(user: PixivOAuthUser?, uid: Long): Boolean? =
+    user?.takeIf { it.id == uid }?.isPremium
+
+/**
+ * Folds a refresh response's membership into the stored account.
+ *
+ * Only `is_premium` is touched: pixiv's token-response user is narrower than
+ * [User] (no pixiv_id / gender / comment), so replacing it wholesale would
+ * shave off richer data the server already holds.
+ *
+ * [fresh] being `null` means pixiv said nothing about membership this time —
+ * it omits the field on some refresh responses — and "said nothing" must not
+ * be written down as "not a member", which would demote a paying account and
+ * drop it out of the lending pool. `null` therefore keeps [stored] verbatim.
+ */
+internal fun mergeMembership(stored: User?, fresh: Boolean?): User? =
+    if (fresh == null) stored else stored?.copy(is_premium = fresh)

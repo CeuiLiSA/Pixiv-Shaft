@@ -35,19 +35,9 @@ object PixivLogin {
      * - refresh_token 被吊销时抛 [InvalidRefreshTokenException]，调用方应触发登出。
      * - 其它失败抛 [RuntimeException]。
      */
-    fun refreshTokenBlocking(refreshToken: String): PixivOAuthResponse =
-        refreshTokenBlockingDetailed(refreshToken).response
-
-    /**
-     * 同步刷新 token，并把服务端返回的原始 JSON 一并交回。失败语义与 [refreshTokenBlocking] 一致。
-     *
-     * 借号搜索需要判断这个号「此刻」还是不是会员，而库的 [PixivOAuthResponse.user] 只保留
-     * id/name/account 三个字段，不含 `is_premium` —— 库文档也明确让需要更多字段的调用方自己拿
-     * [PixivOAuthResult.Success.rawBody] 反序列化成自己的模型。这条通道就是为此存在。
-     */
-    fun refreshTokenBlockingDetailed(refreshToken: String): PixivRefreshedToken {
+    fun refreshTokenBlocking(refreshToken: String): PixivOAuthResponse {
         return when (val result = client.refreshToken(refreshToken)) {
-            is PixivOAuthResult.Success -> PixivRefreshedToken(result.response, result.rawBody)
+            is PixivOAuthResult.Success -> result.response
             is PixivOAuthResult.Failure.ServerRejected -> {
                 if (result.httpCode == 400 && result.message.contains("Invalid refresh token")) {
                     throw InvalidRefreshTokenException(result.message)
@@ -85,12 +75,3 @@ object PixivLogin {
 }
 
 class InvalidRefreshTokenException(message: String) : RuntimeException(message)
-
-/**
- * [PixivLogin.refreshTokenBlockingDetailed] 的结果：库解析好的 [response]，外加服务端的原始
- * JSON [rawBody]（`user.is_premium` 这类库模型不透出的字段只能从这里取）。
- */
-data class PixivRefreshedToken(
-    val response: PixivOAuthResponse,
-    val rawBody: String,
-)
