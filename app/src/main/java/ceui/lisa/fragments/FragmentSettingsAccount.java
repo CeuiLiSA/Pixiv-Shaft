@@ -3,9 +3,9 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import ceui.pixiv.witstudio.dialog.WitSkinManager;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
@@ -76,21 +76,21 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
         });
 
         baseBind.loginOut.setOnClickListener(v -> {
-            QMUIDialog.CheckBoxMessageDialogBuilder builder = new QMUIDialog.CheckBoxMessageDialogBuilder(getActivity());
+            WitDialog.CheckBoxMessageDialogBuilder builder = new WitDialog.CheckBoxMessageDialogBuilder(getActivity());
             builder
                     .setTitle(getString(R.string.string_185))
                     .setMessage(getString(R.string.string_186))
                     .setChecked(true)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                    .addAction(getString(R.string.string_187), new QMUIDialogAction.ActionListener() {
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
+                    .addAction(getString(R.string.string_187), new WitDialogAction.ActionListener() {
                         @Override
-                        public void onClick(QMUIDialog dialog, int index) {
+                        public void onClick(WitDialog dialog, int index) {
                             dialog.dismiss();
                         }
                     })
-                    .addAction(R.string.login_out, new QMUIDialogAction.ActionListener() {
+                    .addAction(R.string.login_out, new WitDialogAction.ActionListener() {
                         @Override
-                        public void onClick(QMUIDialog dialog, int index) {
+                        public void onClick(WitDialog dialog, int index) {
                             Common.logOut(mContext, builder.isChecked());
                             mActivity.finish();
                             dialog.dismiss();

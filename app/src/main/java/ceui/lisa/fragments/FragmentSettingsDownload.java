@@ -6,8 +6,8 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.CompoundButton;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import ceui.pixiv.witstudio.dialog.WitSkinManager;
+import ceui.pixiv.witstudio.dialog.WitDialog;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
@@ -109,9 +109,9 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
             for (int i = 0; i < NOVEL_FORMAT_VALUES.length; i++) {
                 if (NOVEL_FORMAT_VALUES[i].equals(cur)) { checkedIdx = i; break; }
             }
-            new QMUIDialog.CheckableDialogBuilder(mActivity)
+            new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(checkedIdx)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(NOVEL_FORMAT_NAMES, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -155,9 +155,9 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
                     if (IMG_RES_VALUES[i].equals(cur)) { checkedIdx = i; break; }
                 }
             }
-            new QMUIDialog.CheckableDialogBuilder(mActivity)
+            new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(checkedIdx)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(IMG_RES_NAMES, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -183,9 +183,9 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         // H.264 一两 MB 还全彩,而且播放缓存里本来就压好了一份,保存基本是纯拷贝。
         refreshUgoiraSaveFormatRow();
         baseBind.ugoiraSaveFormatRela.setOnClickListener(v ->
-                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                new WitDialog.CheckableDialogBuilder(mActivity)
                         .setCheckedIndex(currentUgoiraSaveFormat())
-                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .setSkinManager(WitSkinManager.defaultInstance(mContext))
                         .addItems(ugoiraSaveFormatNames(), (dialog, which) -> {
                             Shaft.sSettings.setUgoiraSaveFormat(which);
                             Local.setSettings(Shaft.sSettings);
@@ -196,9 +196,9 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
 
         baseBind.overwritePolicyRela.setOnClickListener(v -> {
             OverwritePolicy cur = DownloadsRegistry.getStore().loadOrFallback().getDefaults().getOverwrite();
-            new QMUIDialog.CheckableDialogBuilder(mActivity)
+            new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(cur.ordinal())
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(POLICY_NAMES, (dialog, which) -> {
                         OverwritePolicy selected = POLICY_VALUES[which];
                         DownloadsRegistry.getStore().update(cfg ->
@@ -224,9 +224,9 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         // 存储位置（StorageChoice）—— 0 = Pictures, 1 = Downloads, 2 = SAF
         refreshStorageLabel();
         baseBind.storageChoiceRela.setOnClickListener(v ->
-                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                new WitDialog.CheckableDialogBuilder(mActivity)
                         .setCheckedIndex(currentStorageIndex())
-                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .setSkinManager(WitSkinManager.defaultInstance(mContext))
                         .addItems(storageNames(), (dialog, which) -> {
                             dialog.dismiss();
                             if (which == 0) {
@@ -263,9 +263,9 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         }
         baseBind.pageIndexRela.setOnClickListener(v -> {
             boolean from1 = DownloadsRegistry.getStore().loadOrFallback().getPageIndexFrom1();
-            new QMUIDialog.CheckableDialogBuilder(mActivity)
+            new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(from1 ? 1 : 0)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(PAGE_INDEX_NAMES, (dialog, which) -> {
                         boolean selected = which == 1;
                         DownloadsRegistry.getStore().update(cfg ->
@@ -344,9 +344,9 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         };
         baseBind.downloadLimitType.setText(DOWNLOAD_START_TYPE_NAMES[DownloadLimitTypeUtil.getCurrentStatusIndex()]);
         baseBind.downloadLimitType.setOnClickListener(v ->
-                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                new WitDialog.CheckableDialogBuilder(mActivity)
                         .setCheckedIndex(Shaft.sSettings.getDownloadLimitType())
-                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .setSkinManager(WitSkinManager.defaultInstance(mContext))
                         .addItems(DOWNLOAD_START_TYPE_NAMES, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -382,9 +382,9 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         baseBind.maxConcurrentDownloads.setOnClickListener(v -> {
             int current = Shaft.sSettings.getMaxConcurrentDownloads();
             if (current < 1) current = 1; if (current > 5) current = 5;
-            new QMUIDialog.CheckableDialogBuilder(mActivity)
+            new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(current - 1)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(CONCURRENCY_NAMES, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {

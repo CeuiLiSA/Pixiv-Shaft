@@ -15,9 +15,9 @@ import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
 
 import com.blankj.utilcode.util.FileUtils;
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import ceui.pixiv.witstudio.dialog.WitSkinManager;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,20 +55,20 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     protected void initData() {
         // 备份与还原
         baseBind.backupRela.setOnClickListener(v -> {
-            QMUIDialog.CheckBoxMessageDialogBuilder builder = new QMUIDialog.CheckBoxMessageDialogBuilder(getActivity());
+            WitDialog.CheckBoxMessageDialogBuilder builder = new WitDialog.CheckBoxMessageDialogBuilder(getActivity());
             builder
                     .setTitle(getString(R.string.string_420))
                     .setMessage(getString(R.string.string_423))
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                    .addAction(getString(R.string.string_187), new QMUIDialogAction.ActionListener() {
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
+                    .addAction(getString(R.string.string_187), new WitDialogAction.ActionListener() {
                         @Override
-                        public void onClick(QMUIDialog dialog, int index) {
+                        public void onClick(WitDialog dialog, int index) {
                             dialog.dismiss();
                         }
                     })
-                    .addAction(R.string.sure, new QMUIDialogAction.ActionListener() {
+                    .addAction(R.string.sure, new WitDialogAction.ActionListener() {
                         @Override
-                        public void onClick(QMUIDialog dialog, int index) {
+                        public void onClick(WitDialog dialog, int index) {
                             final boolean backupViewHistory = builder.isChecked();
                             // 走 fileWriter 流式导出:读库 + 序列化 + 落盘全在 IO 线程逐批直写文件,
                             // 不再在主线程把整张历史表 toJson 成巨型 String(大历史库 OOM/ANR,#981)。
@@ -115,19 +115,19 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
             String currentVer = (appliedVer != null && appliedVer > 0)
                     ? getString(R.string.moon_upload_current_version, appliedVer)
                     : "";
-            new QMUIDialog.MessageDialogBuilder(getActivity())
+            new WitDialog.MessageDialogBuilder(getActivity())
                     .setTitle(R.string.moon_upload_title)
                     .setMessage(getString(R.string.moon_upload_message) + currentVer)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                    .addAction(getString(R.string.string_187), new QMUIDialogAction.ActionListener() {
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
+                    .addAction(getString(R.string.string_187), new WitDialogAction.ActionListener() {
                         @Override
-                        public void onClick(QMUIDialog dialog, int index) {
+                        public void onClick(WitDialog dialog, int index) {
                             dialog.dismiss();
                         }
                     })
-                    .addAction(R.string.sure, new QMUIDialogAction.ActionListener() {
+                    .addAction(R.string.sure, new WitDialogAction.ActionListener() {
                         @Override
-                        public void onClick(QMUIDialog dialog, int index) {
+                        public void onClick(WitDialog dialog, int index) {
                             dialog.dismiss();
                             MoonSync.uploadToCloud(mActivity, uid);
                         }
@@ -292,19 +292,19 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) {
             return;
         }
-        new QMUIDialog.MessageDialogBuilder(getActivity())
+        new WitDialog.MessageDialogBuilder(getActivity())
                 .setTitle(R.string.restore_found_account_title)
                 .setMessage(R.string.restore_found_account_message)
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                .addAction(R.string.restore_switch_later, new QMUIDialogAction.ActionListener() {
+                .setSkinManager(WitSkinManager.defaultInstance(mContext))
+                .addAction(R.string.restore_switch_later, new WitDialogAction.ActionListener() {
                     @Override
-                    public void onClick(QMUIDialog dialog, int index) {
+                    public void onClick(WitDialog dialog, int index) {
                         dialog.dismiss();
                     }
                 })
-                .addAction(0, R.string.restore_switch_now, QMUIDialogAction.ACTION_PROP_POSITIVE, new QMUIDialogAction.ActionListener() {
+                .addAction(0, R.string.restore_switch_now, WitDialogAction.ACTION_PROP_POSITIVE, new WitDialogAction.ActionListener() {
                     @Override
-                    public void onClick(QMUIDialog dialog, int index) {
+                    public void onClick(WitDialog dialog, int index) {
                         dialog.dismiss();
                         target.getUser().setIs_login(true);
                         Local.saveUser(target);
@@ -383,12 +383,12 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
      */
     private void showClearBulkDownloadConfirmDialog() {
         if (getActivity() == null || getActivity().isFinishing() || getActivity().isDestroyed()) return;
-        new QMUIDialog.MessageDialogBuilder(getActivity())
+        new WitDialog.MessageDialogBuilder(getActivity())
                 .setTitle(R.string.clear_bulk_download_cache)
                 .setMessage(R.string.clear_bulk_download_cache_message)
-                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .setSkinManager(WitSkinManager.defaultInstance(mContext))
                 .addAction(R.string.cancel, (d, idx) -> d.dismiss())
-                .addAction(0, R.string.sure, QMUIDialogAction.ACTION_PROP_NEGATIVE, (d, idx) -> {
+                .addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_NEGATIVE, (d, idx) -> {
                     d.dismiss();
                     runBulkDownloadCacheWipe();
                 })

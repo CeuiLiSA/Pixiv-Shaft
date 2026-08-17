@@ -13,8 +13,8 @@ import android.widget.CompoundButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import ceui.pixiv.witstudio.dialog.WitSkinManager;
+import ceui.pixiv.witstudio.dialog.WitDialog;
 
 import java.util.Arrays;
 import java.util.Locale;
@@ -57,9 +57,9 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     THEME_MODES[1].toDisplayString(mContext),
                     THEME_MODES[2].toDisplayString(mContext)
             };
-            new QMUIDialog.CheckableDialogBuilder(mActivity)
+            new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(index)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(THEME_NAME, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -100,7 +100,7 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                 int idx = tags.indexOf(currentTag);
                 if (idx >= 0) checkedIndex = idx;
             }
-            new QMUIDialog.CheckableDialogBuilder(getActivity())
+            new WitDialog.CheckableDialogBuilder(getActivity())
                     .setCheckedIndex(checkedIndex)
                     .addItems(labels.toArray(new String[0]), (dialog, which) -> {
                         String tag = tags.get(which);
@@ -127,9 +127,9 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     getString(R.string.string_349, 4)
             };
             final int selectIndex = index;
-            new QMUIDialog.CheckableDialogBuilder(mActivity)
+            new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(selectIndex)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(LINE_COUNT, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -155,9 +155,9 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     getString(R.string.layout_linear)
             };
             int currentIndex = Shaft.sSettings.isUseStaggeredLayout() ? 0 : 1;
-            new QMUIDialog.CheckableDialogBuilder(mActivity)
+            new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(currentIndex)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(options, (dialog, which) -> {
                         if (which != currentIndex) {
                             Shaft.sSettings.setUseStaggeredLayout(which == 0);
@@ -206,9 +206,9 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             String currentValue = Shaft.sSettings.getNavigationInitPosition();
             final String current = !TextUtils.isEmpty(currentValue) ? currentValue : NavigationLocationHelper.TUIJIAN;
             final int index = Arrays.asList(OPTION_VALUES).indexOf(current);
-            new QMUIDialog.CheckableDialogBuilder(mActivity)
+            new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(index)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(OPTION_NAMES, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -235,9 +235,9 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     getString(R.string.string_347),
                     getString(R.string.string_348),
             };
-            new QMUIDialog.CheckableDialogBuilder(mActivity)
+            new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(index)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(ORDER_NAME, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -268,9 +268,9 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             int checked = Arrays.binarySearch(INTERVAL_MINUTES,
                     Shaft.sSettings.getWidgetRefreshIntervalMinutes());
             final int index = checked >= 0 ? checked : 1; // 非预设值按默认 30 分钟高亮
-            new QMUIDialog.CheckableDialogBuilder(mActivity)
+            new WitDialog.CheckableDialogBuilder(mActivity)
                     .setCheckedIndex(index)
-                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .setSkinManager(WitSkinManager.defaultInstance(mContext))
                     .addItems(INTERVAL_NAMES, (dialog, which) -> {
                         // 按值比较而不是按 index：存量值不是预设值时 index 回退高亮在
                         // 30 分钟，此时选 30 分钟仍然要落盘
