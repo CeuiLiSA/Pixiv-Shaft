@@ -108,6 +108,17 @@ interface PixshaftApi {
         @Body body: Nana7miRequest,
     ): Response<Nana7miResponse>
 
+    /**
+     * 这个号的借号额度用了多少（服务端 `src/account.js` 的两只桶）。
+     *
+     * 纯读接口：不借号、不动任何配额锚点——「打开用量页」不等于「开始用」，所以看多少次
+     * 都不会消耗额度。和 [fetchNana7miRaw] 同一个签名信封（uid 由拦截器签，不是身份凭证）。
+     */
+    @POST("v1/account/nana7mi/quota")
+    suspend fun fetchNana7miQuotaRaw(
+        @Body body: Nana7miRequest,
+    ): Response<Nana7miQuotaResponse>
+
     /** Quarantine the exact borrowed refresh token that Pixiv rejected. */
     @POST("v1/account/nana7mi/invalid")
     suspend fun invalidateNana7mi(
@@ -257,6 +268,76 @@ data class Nana7miSearchTelemetryBatchAck(
     val duplicate: Int = 0,
     val rejected: Int = 0,
 )
+
+/**
+ * 一只配额桶的当前状态。字段名和服务端 JSON 一致。
+ *
+ * 两只桶都是**固定桶**（服务端 `NANA7MI_BORROW_WINDOWS`）：到了 [resetsAt] 整份额度归零，
+ * 不是滑动窗口的「回一格」。所以文案该写「X 后重置」，不能写「X 后 +1 次」。
+ */
+data class Nana7miQuotaWindow(
+    /** `session`（5 小时）/ `weekly`（7 天）。新桶由服务端加，客户端照 [windowHours] 渲染即可。 */
+    val key: String = "",
+    /** 借号被这只桶拦下时 429 里的 `scope`，用来把拒绝原因对回具体某一行。 */
+    val scope: String = "",
+    val windowHours: Int = 0,
+    /**
+     * 已用「次数」，**是小数**：新搜索算 1 次，往下翻一页算 0.2 次（服务端
+     * `NANA7MI_COST_PAGE`）。所以这里不能声明成 Int —— Gson 拿 1.2 去填 Int 会直接抛，
+     * 整页变成「加载失败」。
+     */
+    val used: Double = 0.0,
+    val max: Int = 0,
+    /** null = 这只桶没启用（服务端设了 0），**不是** 0。0 才是「用完了」。 */
+    val remaining: Double? = null,
+    /** 整份额度回满的时刻（epoch ms）。null = 当前没有开着的桶，没有可倒计时的东西。 */
+    val resetsAt: Long? = null,
+)
+
+/**
+ * [serverTime] 是服务端此刻的时间。倒计时必须拿它当基准算，不能用设备时钟——两边差几分钟，
+ * 「还剩多久重置」就会明显不对，而用户手机的时间我们管不了。
+ */
+data class Nana7miQuotaResponse(
+    val uid: Long? = null,
+    val serverTime: Long? = null,
+    val quotas: List<Nana7miQuotaWindow> = emptyList(),
+)
+
+sealed class Nana7miQuotaResult {
+    /** [serverTime] 已经解析好，调用方直接拿它减 [Nana7miQuotaWindow.resetsAt]。 */
+    data class Success(
+        val quotas: List<Nana7miQuotaWindow>,
+        val serverTime: Long,
+    ) : Nana7miQuotaResult()
+
+    data class HttpFailure(val status: Int) : Nana7miQuotaResult()
+    data class NetworkFailure(val cause: java.io.IOException) : Nana7miQuotaResult()
+    data class InvalidResponse(val cause: Exception? = null) : Nana7miQuotaResult()
+}
+
+/**
+ * 安全版用量查询：取消照常向上抛，网络/HTTP/脏响应都变成显式结果值——和 [fetchNana7mi]
+ * 一个路子。这是个纯展示接口，任何一种失败都只该让页面显示「加载失败」，不该崩。
+ */
+suspend fun PixshaftApi.fetchNana7miQuota(uid: Long): Nana7miQuotaResult {
+    if (uid <= 0L) return Nana7miQuotaResult.InvalidResponse()
+    return try {
+        val response = fetchNana7miQuotaRaw(Nana7miRequest(uid))
+        if (!response.isSuccessful) return Nana7miQuotaResult.HttpFailure(response.code())
+        val body = response.body() ?: return Nana7miQuotaResult.InvalidResponse()
+        if (body.quotas.isEmpty()) return Nana7miQuotaResult.InvalidResponse()
+        // serverTime 缺失（老服务端）时退回本机时钟：倒计时可能偏一点，但整页还能看，
+        // 比因为少一个字段就把页面判成加载失败强。
+        Nana7miQuotaResult.Success(body.quotas, body.serverTime ?: System.currentTimeMillis())
+    } catch (ce: CancellationException) {
+        throw ce
+    } catch (io: java.io.IOException) {
+        Nana7miQuotaResult.NetworkFailure(io)
+    } catch (e: Exception) {
+        Nana7miQuotaResult.InvalidResponse(e)
+    }
+}
 
 data class Nana7miResponse(
     val uid: Long? = null,

@@ -2626,4 +2626,25 @@
     <string name="account_switch_switching">正在切換到 %1$s…</string>
     <string name="add_to_home_screen">新增至桌面</string>
     <string name="add_to_home_screen_failed">新增失敗，目前的桌面可能不支援</string>
+
+    <!-- 借号用量页（服务端两只配额桶的只读视图） -->
+    <string name="nana7mi_usage_title">使用情況</string>
+    <string name="nana7mi_usage_section">搜尋按熱度排序額度</string>
+    <string name="nana7mi_usage_window_session">目前時段</string>
+    <string name="nana7mi_usage_window_weekly">每週額度</string>
+    <string name="nana7mi_usage_window_generic">最近 %1$d 小時</string>
+    <string name="nana7mi_usage_used_percent">%1$d%%</string>
+    <string name="nana7mi_usage_used_label">已用</string>
+    <string name="nana7mi_usage_unlimited">不限</string>
+    <string name="nana7mi_usage_resets_in">%1$s後重置</string>
+    <string name="nana7mi_usage_dur_dh">%1$d 天 %2$d 小時</string>
+    <string name="nana7mi_usage_dur_hm">%1$d 小時 %2$d 分</string>
+    <string name="nana7mi_usage_dur_m">%1$d 分</string>
+    <string name="nana7mi_usage_not_started">尚未開始計時</string>
+    <string name="nana7mi_usage_resetting">即將重置</string>
+    <string name="nana7mi_usage_error">用量載入失敗</string>
+    <string name="nana7mi_usage_retry">點擊重試</string>
+    <string name="nana7mi_usage_login_required">登入後可查看用量</string>
+    <string name="nana7mi_usage_hint">按熱度排序的搜尋每發起一次算 1 次。兩檔額度都是固定時段：到了重置時刻整份恢復，不是用一次回一次。</string>
+    <string name="drawer_section_usage">搜尋按熱度排序</string>
 </resources>

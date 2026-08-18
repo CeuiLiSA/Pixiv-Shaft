@@ -2624,4 +2624,25 @@
     <string name="account_switch_switching">Переключение на %1$s…</string>
     <string name="add_to_home_screen">Добавить на главный экран</string>
     <string name="add_to_home_screen_failed">Не удалось добавить. Возможно, ваш лаунчер это не поддерживает.</string>
+
+    <!-- 借号用量页（服务端两只配额桶的只读视图） -->
+    <string name="nana7mi_usage_title">Использование</string>
+    <string name="nana7mi_usage_section">Лимиты поиска по популярности</string>
+    <string name="nana7mi_usage_window_session">Текущая сессия</string>
+    <string name="nana7mi_usage_window_weekly">Недельный лимит</string>
+    <string name="nana7mi_usage_window_generic">Последние %1$d ч</string>
+    <string name="nana7mi_usage_used_percent">%1$d%%</string>
+    <string name="nana7mi_usage_used_label">использовано</string>
+    <string name="nana7mi_usage_unlimited">Без лимита</string>
+    <string name="nana7mi_usage_resets_in">Сброс через %1$s</string>
+    <string name="nana7mi_usage_dur_dh">%1$d д %2$d ч</string>
+    <string name="nana7mi_usage_dur_hm">%1$d ч %2$d мин</string>
+    <string name="nana7mi_usage_dur_m">%1$d мин</string>
+    <string name="nana7mi_usage_not_started">Ещё не начато</string>
+    <string name="nana7mi_usage_resetting">Скоро сброс</string>
+    <string name="nana7mi_usage_error">Не удалось загрузить</string>
+    <string name="nana7mi_usage_retry">Нажмите, чтобы повторить</string>
+    <string name="nana7mi_usage_login_required">Войдите, чтобы увидеть использование</string>
+    <string name="nana7mi_usage_hint">Каждый поиск по популярности считается за один. Оба лимита действуют фиксированными периодами: в момент сброса весь объём возвращается сразу.</string>
+    <string name="drawer_section_usage">Поиск по популярности</string>
 </resources>

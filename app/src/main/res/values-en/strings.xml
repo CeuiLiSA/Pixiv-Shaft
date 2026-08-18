@@ -2624,4 +2624,25 @@
     <string name="account_switch_switching">Switching to %1$s…</string>
     <string name="add_to_home_screen">Add to home screen</string>
     <string name="add_to_home_screen_failed">Failed to add. Your launcher may not support this.</string>
+
+    <!-- 借号用量页（服务端两只配额桶的只读视图） -->
+    <string name="nana7mi_usage_title">Usage</string>
+    <string name="nana7mi_usage_section">Search-by-popularity limits</string>
+    <string name="nana7mi_usage_window_session">Current session</string>
+    <string name="nana7mi_usage_window_weekly">Weekly limit</string>
+    <string name="nana7mi_usage_window_generic">Last %1$d hours</string>
+    <string name="nana7mi_usage_used_percent">%1$d%%</string>
+    <string name="nana7mi_usage_used_label">used</string>
+    <string name="nana7mi_usage_unlimited">Unlimited</string>
+    <string name="nana7mi_usage_resets_in">Resets in %1$s</string>
+    <string name="nana7mi_usage_dur_dh">%1$dd %2$dh</string>
+    <string name="nana7mi_usage_dur_hm">%1$dh %2$dm</string>
+    <string name="nana7mi_usage_dur_m">%1$dm</string>
+    <string name="nana7mi_usage_not_started">Not started yet</string>
+    <string name="nana7mi_usage_resetting">Resetting now</string>
+    <string name="nana7mi_usage_error">Could not load usage</string>
+    <string name="nana7mi_usage_retry">Tap to retry</string>
+    <string name="nana7mi_usage_login_required">Log in to see your usage</string>
+    <string name="nana7mi_usage_hint">Every popularity-sorted search counts as one. Both limits are fixed periods: the whole allowance comes back at the reset time, not one search at a time.</string>
+    <string name="drawer_section_usage">Search by popularity</string>
 </resources>

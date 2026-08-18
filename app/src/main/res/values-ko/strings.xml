@@ -2624,4 +2624,25 @@
     <string name="account_switch_switching">%1$s(으)로 전환하는 중…</string>
     <string name="add_to_home_screen">홈 화면에 추가</string>
     <string name="add_to_home_screen_failed">추가하지 못했습니다. 사용 중인 런처가 지원하지 않을 수 있습니다.</string>
+
+    <!-- 借号用量页（服务端两只配额桶的只读视图） -->
+    <string name="nana7mi_usage_title">사용량</string>
+    <string name="nana7mi_usage_section">인기순 검색 한도</string>
+    <string name="nana7mi_usage_window_session">현재 세션</string>
+    <string name="nana7mi_usage_window_weekly">주간 한도</string>
+    <string name="nana7mi_usage_window_generic">최근 %1$d시간</string>
+    <string name="nana7mi_usage_used_percent">%1$d%%</string>
+    <string name="nana7mi_usage_used_label">사용</string>
+    <string name="nana7mi_usage_unlimited">무제한</string>
+    <string name="nana7mi_usage_resets_in">%1$s 후 초기화</string>
+    <string name="nana7mi_usage_dur_dh">%1$d일 %2$d시간</string>
+    <string name="nana7mi_usage_dur_hm">%1$d시간 %2$d분</string>
+    <string name="nana7mi_usage_dur_m">%1$d분</string>
+    <string name="nana7mi_usage_not_started">아직 시작되지 않음</string>
+    <string name="nana7mi_usage_resetting">곧 초기화</string>
+    <string name="nana7mi_usage_error">사용량을 불러오지 못했습니다</string>
+    <string name="nana7mi_usage_retry">탭하여 다시 시도</string>
+    <string name="nana7mi_usage_login_required">로그인하면 사용량을 볼 수 있습니다</string>
+    <string name="nana7mi_usage_hint">인기순 검색은 한 번마다 1회로 계산됩니다. 두 한도 모두 고정 기간이라 초기화 시각에 전체가 한 번에 복구됩니다.</string>
+    <string name="drawer_section_usage">인기순 검색</string>
 </resources>

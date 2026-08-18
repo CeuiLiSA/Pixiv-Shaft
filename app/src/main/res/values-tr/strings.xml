@@ -2624,4 +2624,25 @@
     <string name="account_switch_switching">%1$s hesabına geçiliyor…</string>
     <string name="add_to_home_screen">Ana ekrana ekle</string>
     <string name="add_to_home_screen_failed">Eklenemedi. Başlatıcınız bunu desteklemiyor olabilir.</string>
+
+    <!-- 借号用量页（服务端两只配额桶的只读视图） -->
+    <string name="nana7mi_usage_title">Kullanım</string>
+    <string name="nana7mi_usage_section">Popülerliğe göre arama limitleri</string>
+    <string name="nana7mi_usage_window_session">Mevcut oturum</string>
+    <string name="nana7mi_usage_window_weekly">Haftalık limit</string>
+    <string name="nana7mi_usage_window_generic">Son %1$d saat</string>
+    <string name="nana7mi_usage_used_percent">%1$d%%</string>
+    <string name="nana7mi_usage_used_label">kullanıldı</string>
+    <string name="nana7mi_usage_unlimited">Sınırsız</string>
+    <string name="nana7mi_usage_resets_in">%1$s sonra sıfırlanır</string>
+    <string name="nana7mi_usage_dur_dh">%1$d g %2$d sa</string>
+    <string name="nana7mi_usage_dur_hm">%1$d sa %2$d dk</string>
+    <string name="nana7mi_usage_dur_m">%1$d dk</string>
+    <string name="nana7mi_usage_not_started">Henüz başlamadı</string>
+    <string name="nana7mi_usage_resetting">Sıfırlanıyor</string>
+    <string name="nana7mi_usage_error">Kullanım yüklenemedi</string>
+    <string name="nana7mi_usage_retry">Yeniden denemek için dokunun</string>
+    <string name="nana7mi_usage_login_required">Kullanımı görmek için giriş yapın</string>
+    <string name="nana7mi_usage_hint">Popülerliğe göre yapılan her arama 1 kullanım sayılır. Her iki limit de sabit dönemlidir: sıfırlama anında hakkın tamamı bir defada geri gelir.</string>
+    <string name="drawer_section_usage">Popülerliğe göre arama</string>
 </resources>

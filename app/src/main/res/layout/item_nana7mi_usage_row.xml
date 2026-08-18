@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    一只配额桶（5 小时 / 每周）。版式取自 Claude Code 用量页，字号层级学 activity_user_v3
+    的读数块：数字大而粗且染色，标签压到 11sp 中性色跟在下面。
+
+    刻意**不显示绝对次数**（「4 / 40 次」那种）：配额的具体上限是服务端的运营参数，报出去
+    等于把它变成用户预期的一部分，之后再调就成了「砍额度」。百分比 + 重置时间已经回答了
+    用户真正要问的两件事——还能不能用、什么时候回满。Claude 那页也只给百分比。
+
+    背景由 WitRowStyle.rowBackground(index, total) 在代码里按位置挂上（MD3-E 分段行），
+    所以这里不设 background —— 设了会把分段圆角覆盖掉。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="2dp"
+    android:orientation="vertical"
+    android:paddingStart="18dp"
+    android:paddingTop="16dp"
+    android:paddingEnd="18dp"
+    android:paddingBottom="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- 二级：行的名字。bold 才压得住下面那行说明，但字号不跟读数抢 -->
+            <TextView
+                android:id="@+id/usage_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_1"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="当前时段" />
+
+            <!-- 三级：什么时候回满 -->
+            <TextView
+                android:id="@+id/usage_reset"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/v3_text_3"
+                android:textSize="12sp"
+                tools:text="4 小时 49 分后重置" />
+        </LinearLayout>
+
+        <!-- 一级：这一页唯一的读数。数字在上、标签在下，同 activity_user_v3 的关注/好P友块 -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:gravity="end"
+            android:orientation="vertical">
+
+            <!-- Montserrat Bold：同 activity_user_v3 的关注数/好P友数,数字读数在本仓库统一用它 -->
+            <TextView
+                android:id="@+id/usage_percent"
+                style="@style/textMontserratBold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                tools:text="10%" />
+
+            <TextView
+                android:id="@+id/usage_percent_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:text="@string/nana7mi_usage_used_label"
+                android:textColor="@color/v3_text_3"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/usage_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginTop="14dp"
+        android:max="100"
+        android:progressDrawable="@drawable/v3_progress_pill"
+        tools:progress="10" />
+</LinearLayout>

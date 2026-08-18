@@ -450,6 +450,14 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
                 // Play 版不带这类站外付费内容入口。
                 new DrawerEntry(R.id.nav_fanbox, R.string.fanbox_entry, !isLite),
         });
+
+        // 借号用量:服务端两只配额桶的只读视图,放在侧边栏最末 —— 它是「查自己用了多少」,
+        // 不属于上面任何一组功能入口。渠道口径跟着借号功能本身走(google flavor 整个借号
+        // 搜索都不出现),所以是 !isLite 而不是 experimentalAllowed:后者在 Lite debug 下
+        // 仍会放行,会给一个功能不存在的包留下查不到东西的入口。
+        addDrawerSection(sections, R.string.drawer_section_usage, new DrawerEntry[]{
+                new DrawerEntry(R.id.nav_nana7mi_usage, R.string.nana7mi_usage_title, !isLite),
+        });
     }
 
     /**
@@ -516,6 +524,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         } else if (id == R.id.nav_manage) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置");
+        } else if (id == R.id.nav_nana7mi_usage) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "借号用量");
         } else if (id == R.id.nav_prime_tags) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "PrimeTagsList");

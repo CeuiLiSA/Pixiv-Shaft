@@ -107,6 +107,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     boolean preferPreserve = intent.getBooleanExtra(Params.PREFER_PRESERVE, false);
                     return FragmentWebView.newInstance(title, url, preferPreserve);
                 }
+                case "借号用量":
+                    return new ceui.pixiv.ui.usage.Nana7miUsageFragment();
                 case "设置":
                     return new FragmentSettingsHub();
                 case "设置分类":

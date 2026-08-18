@@ -2624,4 +2624,25 @@
     <string name="account_switch_switching">%1$s に切り替えています…</string>
     <string name="add_to_home_screen">ホーム画面に追加</string>
     <string name="add_to_home_screen_failed">追加に失敗しました。お使いのランチャーが対応していない可能性があります。</string>
+
+    <!-- 借号用量页（服务端两只配额桶的只读视图） -->
+    <string name="nana7mi_usage_title">使用状況</string>
+    <string name="nana7mi_usage_section">人気順検索の上限</string>
+    <string name="nana7mi_usage_window_session">現在のセッション</string>
+    <string name="nana7mi_usage_window_weekly">週間上限</string>
+    <string name="nana7mi_usage_window_generic">直近 %1$d 時間</string>
+    <string name="nana7mi_usage_used_percent">%1$d%%</string>
+    <string name="nana7mi_usage_used_label">使用</string>
+    <string name="nana7mi_usage_unlimited">無制限</string>
+    <string name="nana7mi_usage_resets_in">%1$s後にリセット</string>
+    <string name="nana7mi_usage_dur_dh">%1$d 日 %2$d 時間</string>
+    <string name="nana7mi_usage_dur_hm">%1$d 時間 %2$d 分</string>
+    <string name="nana7mi_usage_dur_m">%1$d 分</string>
+    <string name="nana7mi_usage_not_started">まだ開始していません</string>
+    <string name="nana7mi_usage_resetting">まもなくリセット</string>
+    <string name="nana7mi_usage_error">使用状況を読み込めませんでした</string>
+    <string name="nana7mi_usage_retry">タップして再試行</string>
+    <string name="nana7mi_usage_login_required">ログインすると使用状況を確認できます</string>
+    <string name="nana7mi_usage_hint">人気順の検索は 1 回ごとに 1 回としてカウントされます。どちらの上限も固定期間で、リセット時刻に全量がまとめて戻ります。</string>
+    <string name="drawer_section_usage">人気順検索</string>
 </resources>

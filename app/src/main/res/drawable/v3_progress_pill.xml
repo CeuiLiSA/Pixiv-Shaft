@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    用量条 drawable —— 两端全圆的胶囊。
+
+    和 v3_progress_horizontal（下载 tab 用的 2dp 圆角）分开放，不是复制粘贴：那条是别的页面
+    在用的，改它会顺带动到下载列表。
+
+    进度层用 <scale> 而不是 <clip>：clip 是把画好的圆角矩形裁掉右边，裁面永远是平的，
+    进度越少越明显；scale 是按 level 重新按新宽度画这个 shape，所以任何百分比下左右两端
+    都还是圆的。radius 给足（100dp）让它在任何条高下都取到半高，就是纯圆端。
+
+    layer id 用 @android:id/background / @android:id/progress，好让外面设的
+    progressBackgroundTint / progressTint 直接作用到这两层；shape 里填纯白当基色。
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <corners android:radius="100dp" />
+            <solid android:color="@android:color/white" />
+        </shape>
+    </item>
+    <item android:id="@android:id/progress">
+        <scale
+            android:scaleGravity="start|center_vertical"
+            android:scaleWidth="100%">
+            <shape android:shape="rectangle">
+                <corners android:radius="100dp" />
+                <solid android:color="@android:color/white" />
+            </shape>
+        </scale>
+    </item>
+</layer-list>
