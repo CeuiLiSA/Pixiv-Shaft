@@ -7,7 +7,6 @@ import androidx.lifecycle.LiveData
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.ItemLoadingBinding
-import ceui.pixiv.chat.base.isNetworkClassError
 import ceui.pixiv.chat.base.toUserMessage
 import ceui.pixiv.utils.setOnClick
 import retrofit2.HttpException
@@ -35,7 +34,6 @@ fun ItemLoadingBinding.setUpHolderRefreshState(
         if (refreshState is RefreshState.LOADED) {
             progressCircular.hideProgress()
             loadingFrame.isVisible = false
-            emptyNetworkTestButton.isVisible = false
 
             if (refreshState.hasContent) {
                 emptyFrame.isVisible = false
@@ -46,7 +44,6 @@ fun ItemLoadingBinding.setUpHolderRefreshState(
             }
         } else if (refreshState is RefreshState.LOADING) {
             emptyFrame.isVisible = false
-            emptyNetworkTestButton.isVisible = false
             if (refreshState.refreshHint == RefreshHint.PullToRefresh) {
                 loadingFrame.isVisible = false
                 progressCircular.hideProgress()
@@ -61,17 +58,6 @@ fun ItemLoadingBinding.setUpHolderRefreshState(
             emptyFrame.isVisible = true
             emptyActionButton.text = context.getString(R.string.retry)
             emptyTitle.text = refreshState.exception.getHumanReadableMessage(context)
-            // 网络类错误（断网/超时/SSL）在错误文案下方补「去网络测试」入口，其余错误不显示
-            val isNetworkClass = refreshState.exception.isNetworkClassError()
-            emptyNetworkTestButton.isVisible = isNetworkClass
-            if (isNetworkClass) {
-                emptyNetworkTestButton.setOnClick { openNetworkTestPage(context) }
-            } else {
-                emptyNetworkTestButton.setOnClickListener(null)
-            }
-        } else {
-            // FETCHING_LATEST（有内容时的增量拉取中）不显示网络测试入口
-            emptyNetworkTestButton.isVisible = false
         }
     }
 }

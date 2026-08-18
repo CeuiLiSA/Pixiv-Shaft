@@ -1988,7 +1988,6 @@
     <string name="saf_perf_test_diag_raw_failed">[4] 순수 createFile 실패: %1$s %2$s</string>
     <string name="saf_perf_test_diag_conclusion">→ 단일 listFiles(root) %1$.1f ms · backend.replace %2$.1f ms · 순수 createFile %3$.1f ms. 차이는 backend 경로에서 반복되는 listFiles 비용입니다.</string>
     <string name="nav_network_test_entry">네트워크 테스트</string>
-    <string name="network_test_error_action">네트워크 테스트 실행</string>
     <string name="network_test_subtitle">연결 상태 · DNS 오염 · TLS 핸드셰이크 진단</string>
     <string name="network_test_run">테스트 시작</string>
     <string name="network_test_running">테스트 중…</string>

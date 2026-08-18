@@ -2203,7 +2203,6 @@
 
     <!-- 网络测试-->
     <string name="nav_network_test_entry">网络测试</string>
-    <string name="network_test_error_action">去网络测试</string>
     <string name="network_test_subtitle">连通性 · DNS 污染 · TLS 握手诊断</string>
     <string name="network_test_run">开始测试</string>
     <string name="network_test_running">测试中…</string>
