@@ -2268,6 +2268,10 @@
     <string name="refresh_token_dialog_hint">Вставьте сюда ваш refresh token</string>
     <string name="refresh_token_dialog_positive">Войти</string>
     <string name="refresh_token_invalid_toast">Недействительный или просроченный refresh token</string>
+    <string name="refresh_token_network_error_toast">Ошибка сети, проверьте подключение</string>
+    <string name="refresh_token_server_error_toast">Ошибка сервера, попробуйте позже</string>
+    <string name="refresh_token_success_toast">Вход выполнен успешно</string>
+    <string name="refresh_token_persist_error_toast">Не удалось сохранить данные аккаунта</string>
     <string name="email_backup_bound_title">Сохранено</string>
     <string name="email_backup_bound_email">Зашифрованная копия в %1$s</string>
     <string name="email_backup_bound_time">Дата копии: %1$s</string>

@@ -2268,6 +2268,10 @@
     <string name="refresh_token_dialog_hint">여기에 refresh token 을 붙여넣으세요</string>
     <string name="refresh_token_dialog_positive">로그인</string>
     <string name="refresh_token_invalid_toast">refresh token 이 유효하지 않거나 만료되었습니다</string>
+    <string name="refresh_token_network_error_toast">네트워크 오류입니다. 연결을 확인해 주세요</string>
+    <string name="refresh_token_server_error_toast">서버 오류입니다. 잠시 후 다시 시도해 주세요</string>
+    <string name="refresh_token_success_toast">로그인 성공</string>
+    <string name="refresh_token_persist_error_toast">계정 데이터 저장에 실패했습니다</string>
     <string name="email_backup_bound_title">백업됨</string>
     <string name="email_backup_bound_email">%1$s(으)로 암호화 백업됨</string>
     <string name="email_backup_bound_time">백업 시간 %1$s</string>

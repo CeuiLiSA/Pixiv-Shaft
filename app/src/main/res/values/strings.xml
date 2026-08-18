@@ -2523,6 +2523,10 @@
     <string name="refresh_token_dialog_hint">在此粘贴你的 refresh token</string>
     <string name="refresh_token_dialog_positive">登录</string>
     <string name="refresh_token_invalid_toast">refresh token 无效或已过期</string>
+    <string name="refresh_token_network_error_toast">网络异常，请检查连接后重试</string>
+    <string name="refresh_token_server_error_toast">服务器异常，请稍后重试</string>
+    <string name="refresh_token_success_toast">登录成功</string>
+    <string name="refresh_token_persist_error_toast">账户数据保存失败</string>
     <string name="email_backup_bound_title">已备份</string>
     <string name="email_backup_bound_email">已加密备份到 %1$s</string>
     <string name="email_backup_bound_time">备份时间 %1$s</string>

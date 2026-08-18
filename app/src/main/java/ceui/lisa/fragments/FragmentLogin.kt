@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.text.InputType
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.TextPaint
@@ -30,36 +31,34 @@ import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.database.AppDatabase
-import ceui.lisa.database.UserEntity
 import ceui.lisa.databinding.ActivityLoginBinding
 import ceui.lisa.databinding.ItemLanguageRowBinding
+import ceui.lisa.http.Retro
 import ceui.lisa.models.UserModel
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
+import ceui.loxia.MoonSync
 import ceui.pixiv.i18n.AppLocales
 import ceui.pixiv.login.PixivLogin
-import android.widget.EditText
-import android.widget.FrameLayout
-import android.text.InputType
-import androidx.appcompat.app.AlertDialog
-import ceui.lisa.http.Retro
 import ceui.pixiv.login.PixivOAuthConfig
-import ceui.loxia.MoonSync
 import ceui.pixiv.session.SessionManager
-import com.hjq.toast.Toaster
+import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import ceui.pixiv.witstudio.dialog.WitDialog.MessageDialogBuilder
+import com.hjq.toast.Toaster
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.util.Locale
 import kotlin.math.roundToInt
+import timber.log.Timber
 
 class LandingViewModel : ViewModel() {
     val isChecked = MutableLiveData(false)
@@ -83,7 +82,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     private var cycleIndex = 0
     private var greetingCycleJob: Job? = null
     private val rowChecks = mutableMapOf<String, View>()
-    private var refreshTokenDialog: AlertDialog? = null
+    private var refreshTokenDialog: WitDialog? = null
 
     // ── Lifecycle ──
 
@@ -516,61 +515,68 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     }
 
     private fun showRefreshTokenDialog() {
-        val editText = EditText(mContext).apply {
-            layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            hint = getString(R.string.refresh_token_dialog_hint)
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-            setSingleLine()
-        }
-        val container = FrameLayout(mContext).apply {
-            val pad = dp(16f)
-            setPadding(pad, pad / 2, pad, 0)
-            addView(editText)
-        }
-        refreshTokenDialog = AlertDialog.Builder(mContext)
-            .setTitle(getString(R.string.refresh_token_dialog_title))
-            .setView(container)
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(getString(R.string.refresh_token_dialog_positive)) { _, _ ->
-                val token = editText.text.toString().trim()
-                if (token.isNotEmpty()) loginWithRefreshToken(token)
-            }.show()
+        val builder = WitDialog.EditTextDialogBuilder(mContext)
+        builder.setTitle(getString(R.string.refresh_token_dialog_title))
+            .setPlaceholder(getString(R.string.refresh_token_dialog_hint))
+            .setInputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD)
+            .addAction(getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
+            .addAction(getString(R.string.refresh_token_dialog_positive)) { dialog, _ ->
+                val token = builder.editText.text.toString().trim()
+                if (token.isNotEmpty()) {
+                    dialog.dismiss()
+                    loginWithRefreshToken(token)
+                }
+            }
+        refreshTokenDialog = builder.create()
+        refreshTokenDialog?.show()
     }
 
     private fun loginWithRefreshToken(refreshToken: String) {
         viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val userModel = withContext(Dispatchers.IO) {
+            val response = try {
+                withContext(Dispatchers.IO) {
                     Retro.getAccountTokenApi().newRefreshToken(
                         PixivOAuthConfig.PIXIV_ANDROID.clientId,
                         PixivOAuthConfig.PIXIV_ANDROID.clientSecret,
                         "refresh_token", refreshToken, true
-                    ).execute().body()
+                    ).execute()
                 }
-                if (userModel?.user == null) {
-                    Common.showToast(getString(R.string.refresh_token_invalid_toast), 3)
+            } catch (e: IOException) {
+                // 断网 / 超时 / DNS → 网络文案，不要归因到 token
+                Common.showToast(getString(R.string.refresh_token_network_error_toast), 3)
+                return@launch
+            }
+            if (!response.isSuccessful) {
+                // 400/401 invalid_grant → token 无效；5xx → 服务端错误
+                val msg = if (response.code() in 500..599)
+                    R.string.refresh_token_server_error_toast
+                else R.string.refresh_token_invalid_toast
+                Common.showToast(getString(msg), 3)
+                return@launch
+            }
+            val userModel = response.body()
+            if (userModel?.user == null) {
+                Common.showToast(getString(R.string.refresh_token_invalid_toast), 3)
+                return@launch
+            }
+            userModel.user?.setIs_login(true)
+            try {
+                withContext(Dispatchers.IO) { Local.persistLoggedInUser(userModel) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "refresh-token login persistence failed")
+                // Session 已写（saveUser 成功）则用户已登录，Room 行缺失仅影响账户切换列表：
+                // 视为非致命，继续流程，避免半登录态卡在登录页
+                if (!SessionManager.isLoggedIn) {
+                    Common.showToast(getString(R.string.refresh_token_persist_error_toast), 3)
                     return@launch
                 }
-                userModel.user?.setIs_login(true)
-                Local.saveUser(userModel)
-                SessionManager.postUpdateSession(userModel)
-                val entity = UserEntity().apply {
-                    loginTime = System.currentTimeMillis()
-                    userID = userModel.user?.id ?: 0
-                    userGson = Shaft.sGson.toJson(Local.getUser())
-                }
-                AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(entity)
-                Common.showToast("登录成功", 2)
-                MoonSync.syncFromCloudOnLogin(mActivity, userModel.user?.id?.toLong() ?: 0L) {
-                    mActivity.finish()
-                    Common.restart()
-                }
-            } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                Common.showToast(getString(R.string.refresh_token_invalid_toast), 3)
+            }
+            Common.showToast(getString(R.string.refresh_token_success_toast), 2)
+            MoonSync.syncFromCloudOnLogin(mActivity, userModel.user?.id?.toLong() ?: 0L) {
+                mActivity.finish()
+                Common.restart()
             }
         }
     }
@@ -615,13 +621,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             Common.showToast("账号信息格式不正确，导入失败", 3)
             return
         }
-        Local.saveUser(exportUser)
-        UserEntity().apply {
-            loginTime = System.currentTimeMillis()
-            userID = exportUser.user.id
-            userGson = Shaft.sGson.toJson(Local.getUser())
-            AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(this)
-        }
+        Local.persistLoggedInUser(exportUser)
         Common.showToast("导入成功", 2)
         startActivity(Intent(mContext, MainActivity::class.java))
         mActivity.finish()
