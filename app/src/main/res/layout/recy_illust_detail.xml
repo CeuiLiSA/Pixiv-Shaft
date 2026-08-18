@@ -73,6 +73,10 @@
             android:layout_alignBottom="@+id/illust"
             android:visibility="gone">
 
+            <!-- 两个胶囊并排。行宽仍是 wrap_content(放得下就按自然宽居中,delta=0 不重测),
+                 放不下时靠 layout_weight 把超出量按权重摊给两边收缩,配合 label 的
+                 ellipsize 省略号收尾——否则超宽部分会被 FrameLayout 连背景带触摸区一起裁掉
+                 (en/ru/tr 在 360dp 窄屏或大字号下必现)。 -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -85,6 +89,7 @@
                     android:id="@+id/expand_pill"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:background="@drawable/bg_v3_expand_pill"
                     android:clickable="true"
                     android:focusable="true"
@@ -108,7 +113,9 @@
                         android:id="@+id/expand_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:ellipsize="end"
                         android:letterSpacing="0.02"
+                        android:maxLines="1"
                         android:textColor="#FFFFFF"
                         android:textSize="13sp"
                         android:textStyle="bold" />
@@ -119,6 +126,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
+                    android:layout_weight="1"
                     android:background="@drawable/bg_v3_expand_pill"
                     android:clickable="true"
                     android:focusable="true"
@@ -142,7 +150,9 @@
                         android:id="@+id/comic_reader_pill_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:ellipsize="end"
                         android:letterSpacing="0.02"
+                        android:maxLines="1"
                         android:text="@string/comic_reader_enter"
                         android:textColor="#FFFFFF"
                         android:textSize="13sp"
