@@ -3,9 +3,11 @@ package ceui.pixiv.login
 import android.net.Uri
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AppApiProxyInterceptor
+import ceui.lisa.http.AppApiTimeouts
 import ceui.lisa.http.CronetInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
+import java.util.concurrent.TimeUnit
 
 /**
  * Pixiv OAuth 入口，包了库 [PixivOAuthClient]。
@@ -55,7 +57,12 @@ object PixivLogin {
     }
 
     private fun buildClient(): PixivOAuthClient {
+        // OAuth 登录/刷新是 app-api 同一套超时（值=10s，收敛到 AppApiTimeouts）；
+        // 开启 PxveAPI 代理时改写后的 oauth 请求也走本 client，同样生效。
         val builder = OkHttpClient.Builder()
+            .connectTimeout(AppApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(AppApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(AppApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
         // App API 代理（PxveAPI 风格）与直连模式**共存**：代理拦截器挂在
         // CronetInterceptor 之前，只改写 oauth 请求到代理域名；改写后的域名不在

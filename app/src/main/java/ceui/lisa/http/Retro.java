@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.helper.LanguageHelper;
@@ -213,7 +214,12 @@ public class Retro {
     }
 
     public static OkHttpClient.Builder getLogClient() {
+        // AppApi / OAuth 刷新 / PxveAPI 代理共用这套超时（值仍为 10s，统一见 AppApiTimeouts）。
+        // 该 builder 也被 web/sign/resource 复用：它们原本就是 OkHttp 默认 10s，值不变。
         return new OkHttpClient.Builder()
+                .connectTimeout(AppApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(AppApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .writeTimeout(AppApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1));
     }
 

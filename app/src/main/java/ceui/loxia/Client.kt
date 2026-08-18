@@ -3,6 +3,7 @@ package ceui.loxia
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AppApiProxyInterceptor
+import ceui.lisa.http.AppApiTimeouts
 import ceui.lisa.http.CronetInterceptor
 import ceui.pixiv.shaftapi.ShaftHmac
 import okhttp3.Dns
@@ -131,6 +132,8 @@ class ClientManager {
 
         const val HEADER_AUTH = "authorization"
 
+        // 非 app-api 的 loxia 客户端（web / comic / fanbox / moon）仍用这个值；
+        // app-api 已统一收敛到 ceui.lisa.http.AppApiTimeouts，不再从这里取。
         const val REQUIEST_TIME = 10L
 
         const val TOKEN_ERROR_1 = "Error occurred at the OAuth process"
@@ -159,10 +162,12 @@ class ClientManager {
     }
 
     fun <T> createAPPAPI(service: Class<T>): T {
+        // app-api 超时收敛到 AppApiTimeouts（值=10s，与 REQUIEST_TIME 一致）；
+        // PxveAPI 代理开启时，AppApiProxyInterceptor 改写后的请求仍走本 client，同样生效。
         val okhttpClientBuilder = OkHttpClient.Builder()
-            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .connectTimeout(AppApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(AppApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(AppApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
         okhttpClientBuilder.addInterceptor(HeaderInterceptor())
