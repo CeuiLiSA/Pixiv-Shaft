@@ -25,6 +25,8 @@
 [<img src="https://img.shields.io/badge/GitHub-Releases-181717?style=for-the-badge&logo=github" alt="GitHub Releases">](https://github.com/CeuiLiSA/Pixiv-Shaft/releases/latest)
 &nbsp;&nbsp;
 [<img src="https://img.shields.io/badge/🌐_Website-pixshaft.com-7c5cff?style=for-the-badge" alt="Website">](https://pixshaft.com)
+&nbsp;&nbsp;
+[<img src="https://img.shields.io/badge/💗_Sponsor-爱发电-946ce6?style=for-the-badge" alt="Sponsor on Afdian">](https://afdian.com/a/pixshaft)
 
 <br>
 
@@ -203,6 +205,22 @@ Check out the [FAQ](./FAQ.md) for common questions and troubleshooting.
 For customizing where files go and how they're named, see the
 [Download path & filename guide](./DOWNLOAD.md).
 
+## Support the Project
+
+Shaft is free and open-source, built and maintained in spare time. If it has been
+useful to you, you can support continued development on **Afdian (爱发电)**:
+
+<div align="center">
+
+### 💗 [afdian.com/a/pixshaft](https://afdian.com/a/pixshaft)
+
+[<img src="https://img.shields.io/badge/爱发电-支持_Shaft-946ce6?style=for-the-badge" alt="Support Shaft on Afdian">](https://afdian.com/a/pixshaft)
+
+</div>
+
+Sponsorship is entirely optional — every feature of Shaft is, and will stay, free for
+everyone. Starring the repo, reporting bugs, and sending pull requests help just as much.
+
 ## License
 
 Pixiv-Shaft is licensed under the [GNU General Public License, version 2](./LICENSE).
@@ -216,6 +234,8 @@ The Telegram Android `SpoilerEffect2` renderer and shaders are derived from the 
 **If you find Shaft useful, consider giving it a star!**
 
 [![Star this repo](https://img.shields.io/badge/-Star%20this%20repo-f5c842?style=for-the-badge&logo=github&logoColor=black)](https://github.com/CeuiLiSA/Pixiv-Shaft)
+&nbsp;
+[![Sponsor on Afdian](https://img.shields.io/badge/-Sponsor%20on%20爱发电-946ce6?style=for-the-badge)](https://afdian.com/a/pixshaft)
 
 Made with love for the Pixiv community
 

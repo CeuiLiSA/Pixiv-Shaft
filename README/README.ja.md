@@ -70,6 +70,16 @@
 [FAQ](./FAQ.md)
 
 
+## 7. プロジェクトを支援する
+
+Shaft は無料のオープンソースで、余暇に開発・メンテナンスしています。役に立ったと感じたら、
+**Afdian（爱发电）** で開発を支援できます。
+
+### 💗 [afdian.com/a/pixshaft](https://afdian.com/a/pixshaft)
+
+支援は完全に任意です。Shaft のすべての機能は今後も無料のままです。
+スターを付ける、バグを報告する、プルリクエストを送る — どれも同じくらい助かります。
+
 ### ライセンス
 
 Pixiv-Shaft は [GNU General Public License, version 2](../LICENSE) の下で公開されています。
