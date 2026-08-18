@@ -2054,7 +2054,8 @@
     <string name="network_test_dns_resolve_failed">해석 실패: %1$s</string>
     <string name="network_test_dns_hit">✓ %1$s ∈ %2$s\n</string>
     <string name="network_test_dns_miss">✗ %1$s이(가) 알려진 범위에 없음\n</string>
-    <string name="network_test_dns_ipv6_skip">· %1$s (IPv6, 건너뜀)\n</string>
+    <string name="network_test_dns_ipv6_skip">· %1$s (IPv6 주소 발견, DNS 오염 확정)\n</string>
+    <string name="network_test_dns_ipv6_app_skip">· %1$s (IPv6, 건너뜀)\n</string>
     <string name="network_test_dns_fakeip">예약 주소가 반환됨(프록시 fake-ip 가능성): %1$s\nDNS 검사와 ping을 건너뛰고 핸드셰이크만 수행</string>
     <string name="network_test_dns_app_step">앱 내 해석 · HttpDns(DoH/직접) · %1$d개</string>
     <string name="network_test_dns_app_step_plain">앱 내 해석 · HttpDns</string>

@@ -2056,7 +2056,8 @@
     <string name="network_test_dns_resolve_failed">解析失敗: %1$s</string>
     <string name="network_test_dns_hit">✓ %1$s ∈ %2$s\n</string>
     <string name="network_test_dns_miss">✗ %1$s 不在任何已知段\n</string>
-    <string name="network_test_dns_ipv6_skip">· %1$s (IPv6, 跳過)\n</string>
+    <string name="network_test_dns_ipv6_skip">· %1$s（發現 IPv6 位址，實錘 DNS 被污染）\n</string>
+    <string name="network_test_dns_ipv6_app_skip">· %1$s (IPv6, 跳過)\n</string>
     <string name="network_test_dns_fakeip">返回保留位址（疑似代理 fake-ip）: %1$s\n跳過 DNS 校驗與 ping，僅測握手</string>
     <string name="network_test_dns_app_step">應用內解析 · HttpDns(DoH/直連) · %1$d 條</string>
     <string name="network_test_dns_app_step_plain">應用內解析 · HttpDns</string>
