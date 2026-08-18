@@ -89,6 +89,12 @@ public class TokenInterceptor implements Interceptor {
                 cached.setExpires_in(response.getExpiresIn());
                 if (cached.getUser() != null) {
                     cached.getUser().setIs_login(true);
+                    // 会员状态**不能**沿用这份 SharedPreferences 副本里的：它是登录那一刻
+                    // 写下来的，之后只有 SessionManager(MMKV) 那份会被资料同步修正，这份
+                    // 从此再没变过。照抄它上报，就是「会员过期了还报有会员 / 登录后买的会员
+                    // 一直报没有」的来源——前者让号留在借号池里，借到的人白花一次额度。
+                    cached.getUser().setIs_premium(SessionManager.INSTANCE.premiumForLegacyStore(
+                            response, cached.getUser().isIs_premium()));
                 }
                 long uid = cached.getUser() != null ? cached.getUserId() : 0L;
                 PixivActions.bindAccountOnline(uid, UserModelConverter.toAccountResponse(cached));
@@ -97,7 +103,8 @@ public class TokenInterceptor implements Interceptor {
                 SessionManager.INSTANCE.applyTokenRefresh(
                         response.getAccessToken(),
                         response.getRefreshToken(),
-                        response.getExpiresIn());
+                        response.getExpiresIn(),
+                        SessionManager.INSTANCE.freshPremiumOf(response));
             }
             return "Bearer " + response.getAccessToken();
         } catch (InvalidRefreshTokenException ex) {

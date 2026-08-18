@@ -8,6 +8,7 @@ import ceui.loxia.AccountResponse
 import ceui.loxia.BindOnlineReq
 import ceui.loxia.Client
 import ceui.loxia.Nana7miInvalidReq
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.websocket.AppNetworkMonitor
 import com.tencent.mmkv.MMKV
 import java.io.IOException
@@ -258,7 +259,17 @@ object AccountOnlineReportOutbox {
                 TYPE_ONLINE -> {
                     val account = operation.account
                         ?: throw PermanentReportException("missing AccountResponse")
-                    val ack = Client.pixshaft.bindOnline(BindOnlineReq(operation.uid, account))
+                    // 会员年龄在**发送这一刻**取：这个队列可以离线堆着，攒了半小时才发出去时
+                    // 「多久以前看到的」也确实是半小时。按 uid 查而不是「拿当前登录账号的」——
+                    // 借来的号也走这个队列，[SessionManager.premiumAgeMs] 对它返回 null，
+                    // 于是别人的号不会被借号方经自己代理刷出来的会员状态作证。
+                    val ack = Client.pixshaft.bindOnline(
+                        BindOnlineReq(
+                            operation.uid,
+                            account,
+                            SessionManager.premiumAgeMs(operation.uid),
+                        )
+                    )
                     if (!ack.ok || ack.uid != operation.uid) {
                         throw PermanentReportException("online report rejected")
                     }

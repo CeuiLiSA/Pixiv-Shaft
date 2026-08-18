@@ -13,9 +13,11 @@ import ceui.loxia.Client
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
+import ceui.lisa.repo.freshMembershipOf
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.login.InvalidRefreshTokenException
 import ceui.pixiv.login.PixivLogin
+import ceui.pixiv.login.PixivOAuthResponse
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.CancellationException
@@ -209,6 +211,41 @@ object SessionManager {
         }
     }
 
+    /**
+     * 上一次**真去 pixiv 读到**当前登录账号会员状态的时刻，以及那是哪个 uid。
+     *
+     * 走开机后的单调钟（同 [lastProfileSyncAt] 的理由）：这个值最终要变成上报里的
+     * `premiumAgeMs`，而墙钟被改或被 NTP 拨过之后算出来的时长会是负数甚至几天。
+     * `null` = 本进程还没读到过 —— 冷启到第一次前台同步之间就是这样，那期间上报不带年龄，
+     * 服务端按「未知」处理（不会因此掉出池子，只是被拒过的号得等下一次真读到才回得来）。
+     *
+     * 只记登录账号自己的：借来的号也会被上报，但那份会员状态是借号方经**自己配的
+     * PxveAPI 代理**刷出来的，不该拿它去替别人的号作证。
+     */
+    @Volatile
+    private var premiumObservedAtElapsed: Long? = null
+    @Volatile
+    private var premiumObservedUid: Long = 0L
+
+    /** 记下「刚从 pixiv 读到 [uid] 的会员状态」。只有真读到才调用，沿用旧值的路径不调。 */
+    private fun markPremiumObserved(uid: Long) {
+        if (uid <= 0L) return
+        premiumObservedUid = uid
+        premiumObservedAtElapsed = SystemClock.elapsedRealtime()
+    }
+
+    /**
+     * 距离上一次真读到 [uid] 的会员状态过了多久（毫秒），说不出来给 null。
+     *
+     * 给 [ceui.pixiv.actions.AccountOnlineReportOutbox] 在**发送那一刻**取值 —— 上报是
+     * 可离线堆积的，攒了半小时才发出去时，「多久以前看到的」也确实是半小时。
+     */
+    fun premiumAgeMs(uid: Long): Long? {
+        if (uid <= 0L || uid != premiumObservedUid) return null
+        val observedAt = premiumObservedAtElapsed ?: return null
+        return (SystemClock.elapsedRealtime() - observedAt).coerceAtLeast(0L)
+    }
+
     private val profileSyncScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private const val PROFILE_SYNC_COOLDOWN_MS = 10 * 60 * 1000L
     private const val PROFILE_SYNC_FAILURE_COOLDOWN_MS = 60 * 1000L
@@ -235,16 +272,27 @@ object SessionManager {
      * 合并结果和旧值一致时直接返回：这条路径每次回前台都会走一遍，无变化还落盘 + 发
      * LiveData，会让所有观察者（侧边栏、「我的」）白重绑一次。
      */
-    fun ingestFreshUser(fresh: User?, uid: Long) {
+    @JvmOverloads
+    fun ingestFreshUser(fresh: User?, uid: Long, premium: Boolean? = null) {
         if (fresh == null || !fresh.exist()) return
         val current = _loggedInAccount.value ?: return
         val old = current.user ?: return
         if (old.id != uid) return
-        val mergedUser = old.mergedWith(fresh)
+        // 读到了就记，哪怕值没变：服务端要的是「什么时候看的」，不是「什么时候变的」。
+        // 记在下面那条「无变化就返回」之前，否则一个一直是会员的号永远盖不上这个戳。
+        if (premium != null) markPremiumObserved(uid)
+        val mergedUser = old.mergedWith(fresh, premium)
         if (mergedUser == old) return
         val merged = current.copy(user = mergedUser)
         prefStore.putString(USER_KEY, gson.toJson(merged))
         _loggedInAccount.value = merged
+        if (mergedUser.is_premium != old.is_premium) {
+            // 会员状态变了就立刻上报，不等下一次 token 刷新（可能一小时后，也可能一直不来）。
+            // 借号池是按上报值派发的：会员过期后还挂在池子里，借号的人会白白花掉一次额度；
+            // 刚买了会员却报着没有，自己的号又白白进不了池子。这一条走到才发的，静默同步
+            // 无变化时会先在上面 return，不会变成每 10 分钟一次的定时上报。
+            PixivActions.bindAccountOnline(uid, merged)
+        }
     }
 
     /**
@@ -260,9 +308,9 @@ object SessionManager {
         if (!profileSyncInFlight.compareAndSet(false, true)) return
         profileSyncScope.launch {
             try {
-                val fresh = Client.appApi.getUserProfile(uid).user
+                val response = Client.appApi.getUserProfile(uid)
                 withContext(Dispatchers.Main) {
-                    ingestFreshUser(fresh, uid)
+                    ingestFreshUser(response.user, uid, response.profile?.is_premium)
                 }
                 lastProfileSyncAt = SystemClock.elapsedRealtime()
             } catch (ex: CancellationException) {
@@ -283,13 +331,23 @@ object SessionManager {
      * 非空且带默认值的字段（如 `gender` 默认 MALE）做不到这个区分，合进来等于拿默认值
      * 覆盖真实值，所以一律不动。
      */
-    private fun User.mergedWith(fresh: User): User = copy(
+    private fun User.mergedWith(fresh: User, premium: Boolean?): User = copy(
         account = fresh.account ?: account,
         name = fresh.name ?: name,
         pixiv_id = fresh.pixiv_id ?: pixiv_id,
         profile_image_urls = fresh.profile_image_urls ?: profile_image_urls,
         is_mail_authorized = fresh.is_mail_authorized ?: is_mail_authorized,
-        is_premium = fresh.is_premium ?: is_premium,
+        // 会员状态**只**认调用方显式传进来的那份，不从 [fresh] 里捡。
+        //
+        // 权威字段是 user/detail 同一份响应里的 `profile.is_premium`（[UserResponse.isPremium]
+        // 读的就是它），而 [fresh] 是那份响应的 `user` 对象。走 legacy Java 模型的调用方
+        // （UActivity / UserActivityV3 的「看的是自己」回写）把 UserBean 序列化再转过来，
+        // 那里的 is_premium 是**基本类型 boolean**，缺字段时恒为 false —— 顺手合进来就等于
+        // 用一个默认值把付费账号写成非会员，而上报出去会让它掉出借号池。
+        //
+        // 于是这里的规则很硬：会员状态只在调用方说「我这次真读到了」时才变。前台静默同步
+        // 和「我的」页都传 profile.is_premium，其余调用方一概动不了它。
+        is_premium = premium ?: is_premium,
         mail_address = fresh.mail_address ?: mail_address,
         x_restrict = fresh.x_restrict ?: x_restrict,
         comment = fresh.comment ?: comment,
@@ -330,7 +388,8 @@ object SessionManager {
                     applyTokenRefresh(
                         response.accessToken,
                         response.refreshToken,
-                        response.expiresIn
+                        response.expiresIn,
+                        freshPremiumOf(response),
                     )
                 }
                 response.accessToken
@@ -348,19 +407,65 @@ object SessionManager {
     }
 
     /**
-     * 只更新 tokens，保留既有的 UserModel metadata（mail/R18/is_premium 等）。
+     * 更新 tokens 并采纳本次 OAuth 响应说的会员状态，其余 metadata（mail/R18…）原样保留。
      * 用于 token 刷新完成后同步到 LiveData + 磁盘。
+     *
+     * [freshPremium] 为 null = pixiv 这次没提会员（部分刷新响应就是不带这个字段），
+     * 保留旧值；绝不能把「没说」写成「不是会员」，那会把一个付费号踢出借号池。
+     * 同一条判断见 [ceui.lisa.repo.mergeMembership]。
      */
-    fun applyTokenRefresh(accessToken: String, refreshToken: String, expiresIn: Int) {
+    @JvmOverloads
+    fun applyTokenRefresh(
+        accessToken: String,
+        refreshToken: String,
+        expiresIn: Int,
+        freshPremium: Boolean? = null,
+    ) {
         val existing = _loggedInAccount.value ?: AccountResponse()
         val updated = existing.copy(
             access_token = accessToken,
             refresh_token = refreshToken,
             expires_in = expiresIn,
+            user = if (freshPremium == null) existing.user
+            else existing.user?.copy(is_premium = freshPremium),
         )
+        if (freshPremium != null) markPremiumObserved(existing.user?.id ?: 0L)
         PixivActions.bindAccountOnline(existing.user?.id ?: 0L, updated)
         prefStore.putString(USER_KEY, gson.toJson(updated))
         _loggedInAccount.value = updated
+    }
+
+    /**
+     * 这次刷新响应能替**当前登录账号**说的会员状态，说不了就是 null。
+     *
+     * 判据复用借号那支的 [freshMembershipOf]（uid 对不上就不算数），两处是同一条规则：
+     * 一次 token 刷新只能替它自己指名的那个账号说话。给 Java 侧（TokenInterceptor）也用。
+     *
+     * 这里多一道 `uid > 0`：[freshMembershipOf] 的调用契约是「uid 已保证 > 0」，而
+     * [loggedInUid] 在未登录/会话还没加载完时就是 0，而 pixiv-login 在 pixiv 漏发 id 时
+     * 也填 0 —— 两个 0 会相等，等于拿一份认不出主人的响应去改会员状态。
+     */
+    fun freshPremiumOf(response: PixivOAuthResponse): Boolean? {
+        val uid = loggedInUid
+        return if (uid <= 0L) null else freshMembershipOf(response.user, uid)
+    }
+
+    /**
+     * TokenInterceptor 走旧的 [ceui.lisa.utils.Local] 副本落盘时该写进去的会员状态。
+     *
+     * 优先本次 OAuth 响应（pixiv 亲口说的）；它没说就取会话里那份 —— 会话的值由前台
+     * 静默同步按 `profile.is_premium` 维护，是全 app 唯一会跟着变的一份。SharedPreferences
+     * 里那份只在登录时写过一次，之后再没有任何东西改过它，拿它去上报就是这个 bug 的来源：
+     * 会员过期后一直报 true（号继续被借出去，借的人白花额度），登录后才买的会员一直报 false。
+     */
+    fun premiumForLegacyStore(
+        response: PixivOAuthResponse,
+        fallback: Boolean,
+    ): Boolean {
+        val fresh = freshPremiumOf(response)
+        // 只有 pixiv 这次真说了才算一次观测；退回会话/旧值的那两条路是沿用，不是新读到。
+        if (fresh != null) markPremiumObserved(loggedInUid)
+        return resolvePremiumForReport(fresh, loggedInUser?.is_premium, fallback)
     }
 
     fun getAccessToken(): String {
@@ -368,3 +473,16 @@ object SessionManager {
         return account.access_token ?: throw RuntimeException("access_token not exist")
     }
 }
+
+/**
+ * 上报该带哪个会员状态：pixiv 这次亲口说的 > 会话里那份 > 调用方手上的旧值。
+ *
+ * 顺序就是「谁的信息更新」的顺序，而不是「谁更方便拿到」。[stored] 排最后是因为它来自
+ * 登录时冻下来的那份 SharedPreferences 副本 —— 全 app 唯一一处从不更新的会员状态，
+ * 而借号池正是按上报值决定派不派发的。
+ */
+internal fun resolvePremiumForReport(
+    fresh: Boolean?,
+    session: Boolean?,
+    stored: Boolean,
+): Boolean = fresh ?: session ?: stored

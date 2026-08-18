@@ -71,9 +71,11 @@ class MeFragment : Fragment(R.layout.fragment_me) {
         if (uid == 0L) return
 
         viewLifecycleOwner.lifecycleScope.launch {
-            // 这次请求本身就带着自己的最新 user，顺手回写会话，头像/昵称一起更新
+            // 这次请求本身就带着自己的最新 user，顺手回写会话，头像/昵称一起更新。
+            // 会员状态单独从 profile 里传：那是它的权威位置，而 ingestFreshUser 只认显式
+            // 传进去的这一份（理由见那边的注释），不会自己从 user 对象里捡。
             val profile = runCatching { Client.appApi.getUserProfile(uid) }.getOrNull()
-            SessionManager.ingestFreshUser(profile?.user, uid)
+            SessionManager.ingestFreshUser(profile?.user, uid, profile?.profile?.is_premium)
             val bannerUrl = profile?.profile?.background_image_url
             if (!bannerUrl.isNullOrEmpty() && view != null) {
                 Glide.with(this@MeFragment)

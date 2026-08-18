@@ -184,8 +184,50 @@ data class PrimeTagIllustPage(
 data class AppConfigResponse(
     val uid: Long? = null,
     val nana7miSearchEnabled: Boolean? = null,
+    /**
+     * 这个 uid 的订阅档位。**只有带签名的请求才拿得到**（见 [Client] 里的签名拦截器）——
+     * 这条路由本身是公开的，档位却是「谁在付钱、付到哪天」，不能让任何人拿 uid 就查。
+     * 没带签名、未登录、或服务端查不到，都是 null；null 是「不知道」，不是「免费用户」。
+     */
+    val plan: Nana7miPlan? = null,
     val serverTime: Long? = null,
 )
+
+/**
+ * 服务端算额度时按的档位。
+ *
+ * 两组字段回答的是两个不同的问题，别混：
+ *  - [key] / [multiplier] / [expiresAt] —— **按什么计量**，和额度接口里的 `max` 永远一致；
+ *  - [owned] / [ownedExpiresAt] —— **他真的买了什么**。
+ *
+ * 试运营期间服务端会给所有人一个下限（`NANA7MI_PLAN_FLOOR`），这时没付过钱的人 [key]
+ * 也是 `max`，[source] 为 `trial`。**付费页要高亮哪一档看 [owned]**，拿 [key] 去高亮
+ * 会把一个没付钱的人显示成 Max 订户。
+ *
+ * 每个字段都可空：老服务端不带 = 没意见，照仓库既有约定处理，不能把 null 当成 free。
+ */
+data class Nana7miPlan(
+    /** `free` / `pro` / `max` —— 按什么计量。 */
+    val key: String? = null,
+    val label: String? = null,
+    val multiplier: Int? = null,
+    /** 计量档位的到期时间；试运营给的档没有到期日（运营开关），这里是 null。 */
+    val expiresAt: Long? = null,
+    /** `free` / `subscription` / `trial` —— 这一档是怎么来的。 */
+    val source: String? = null,
+    /** 他真的买了什么。判断升降档、付费页高亮都看这个。 */
+    val owned: String? = null,
+    /** 他买的那一档的到期时间。 */
+    val ownedExpiresAt: Long? = null,
+) {
+    /** 真金白银买过、且还在有效期内。试运营白给的不算。 */
+    val isPaid: Boolean
+        get() = owned != null && owned != PLAN_FREE
+}
+
+const val PLAN_FREE = "free"
+const val PLAN_PRO = "pro"
+const val PLAN_MAX = "max"
 
 data class EmailReq(val email: String)
 
@@ -197,9 +239,23 @@ data class BindConfirmReq(
     val account: AccountResponse,
 )
 
+/**
+ * @param premiumAgeMs 距离本机上一次**真去 pixiv 读**这个号的会员状态过了多久（毫秒），
+ *   读不出来就省略。服务端拿它减自己的钟，算出这份 is_premium 是什么时候看到的。
+ *
+ *   传时长而不是时间戳，是因为设备的墙钟不可信（同样的理由让服务端的额度窗口也不敢用
+ *   客户端时间）：一台钟快一天的手机报个绝对时间，会显得比任何证据都新。时长走开机后的
+ *   单调钟，改时区、NTP 校正、用户手动改表都不影响它。
+ *
+ *   服务端只在**这个号被借号方发现不是会员之后**才看这一项：那之后只有比那次拒绝更晚的
+ *   观测才能把号放回池子，光把同一份上报重发一遍不行——「登录时冻结的 is_premium 一遍遍
+ *   重报」正是这个 bug 的成因。老版本不带这个字段＝未知，不会因此掉出池子，只是被拒过的
+ *   号要等下一次真读到会员状态才回得来。
+ */
 data class BindOnlineReq(
     val uid: Long,
     val account: AccountResponse,
+    val premiumAgeMs: Long? = null,
 )
 
 data class BindConfirmAck(
@@ -301,6 +357,8 @@ data class Nana7miQuotaWindow(
 data class Nana7miQuotaResponse(
     val uid: Long? = null,
     val serverTime: Long? = null,
+    /** 和 [AppConfigResponse.plan] 同一个东西。这条路由本来就要签名，所以一直给得到。 */
+    val plan: Nana7miPlan? = null,
     val quotas: List<Nana7miQuotaWindow> = emptyList(),
 )
 
@@ -309,6 +367,8 @@ sealed class Nana7miQuotaResult {
     data class Success(
         val quotas: List<Nana7miQuotaWindow>,
         val serverTime: Long,
+        /** 服务端此刻认的档位。比冷启动缓存的那份新，用量页优先用它。 */
+        val plan: Nana7miPlan? = null,
     ) : Nana7miQuotaResult()
 
     data class HttpFailure(val status: Int) : Nana7miQuotaResult()
@@ -329,7 +389,11 @@ suspend fun PixshaftApi.fetchNana7miQuota(uid: Long): Nana7miQuotaResult {
         if (body.quotas.isEmpty()) return Nana7miQuotaResult.InvalidResponse()
         // serverTime 缺失（老服务端）时退回本机时钟：倒计时可能偏一点，但整页还能看，
         // 比因为少一个字段就把页面判成加载失败强。
-        Nana7miQuotaResult.Success(body.quotas, body.serverTime ?: System.currentTimeMillis())
+        Nana7miQuotaResult.Success(
+            body.quotas,
+            body.serverTime ?: System.currentTimeMillis(),
+            body.plan,
+        )
     } catch (ce: CancellationException) {
         throw ce
     } catch (io: java.io.IOException) {
