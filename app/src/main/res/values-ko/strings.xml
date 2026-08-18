@@ -2621,4 +2621,6 @@
     <string name="account_switch_action_copy_name">계정 이름 복사</string>
     <string name="account_switch_exported">로그인 정보를 클립보드에 복사했습니다</string>
     <string name="account_switch_switching">%1$s(으)로 전환하는 중…</string>
+    <string name="add_to_home_screen">홈 화면에 추가</string>
+    <string name="add_to_home_screen_failed">추가하지 못했습니다. 사용 중인 런처가 지원하지 않을 수 있습니다.</string>
 </resources>

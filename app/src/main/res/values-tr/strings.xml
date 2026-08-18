@@ -2621,4 +2621,6 @@
     <string name="account_switch_action_copy_name">Hesap adını kopyala</string>
     <string name="account_switch_exported">Giriş bilgileri panoya kopyalandı</string>
     <string name="account_switch_switching">%1$s hesabına geçiliyor…</string>
+    <string name="add_to_home_screen">Ana ekrana ekle</string>
+    <string name="add_to_home_screen_failed">Eklenemedi. Başlatıcınız bunu desteklemiyor olabilir.</string>
 </resources>

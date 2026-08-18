@@ -42,6 +42,7 @@ import ceui.loxia.WebUserDetail
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.realCoverUrl
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
+import ceui.pixiv.ui.user.UserShortcutHelper
 import ceui.pixiv.ui.user.UserTagSearchSheet
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -759,6 +760,11 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             val intent = Intent(this, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理") // route key
             startActivity(intent)
+        }
+        // issue #1027:把作者主页固定成桌面图标。桌面不支持时(部分三方 launcher)不摆这一项
+        if (UserShortcutHelper.isSupported(this)) {
+            labels.add(getString(R.string.add_to_home_screen))
+            actions.add { UserShortcutHelper.pin(this, data.user) }
         }
         if (!isSelf) {
             labels.add(

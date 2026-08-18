@@ -2621,4 +2621,6 @@
     <string name="account_switch_action_copy_name">Copy account name</string>
     <string name="account_switch_exported">Login data copied to clipboard</string>
     <string name="account_switch_switching">Switching to %1$s…</string>
+    <string name="add_to_home_screen">Add to home screen</string>
+    <string name="add_to_home_screen_failed">Failed to add. Your launcher may not support this.</string>
 </resources>

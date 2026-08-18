@@ -2621,4 +2621,6 @@
     <string name="account_switch_action_copy_name">Скопировать имя аккаунта</string>
     <string name="account_switch_exported">Данные входа скопированы в буфер обмена</string>
     <string name="account_switch_switching">Переключение на %1$s…</string>
+    <string name="add_to_home_screen">Добавить на главный экран</string>
+    <string name="add_to_home_screen_failed">Не удалось добавить. Возможно, ваш лаунчер это не поддерживает.</string>
 </resources>

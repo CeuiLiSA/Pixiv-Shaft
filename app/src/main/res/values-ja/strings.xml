@@ -2621,4 +2621,6 @@
     <string name="account_switch_action_copy_name">アカウント名をコピー</string>
     <string name="account_switch_exported">ログイン情報をクリップボードにコピーしました</string>
     <string name="account_switch_switching">%1$s に切り替えています…</string>
+    <string name="add_to_home_screen">ホーム画面に追加</string>
+    <string name="add_to_home_screen_failed">追加に失敗しました。お使いのランチャーが対応していない可能性があります。</string>
 </resources>

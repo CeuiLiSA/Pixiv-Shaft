@@ -37,6 +37,7 @@ import ceui.loxia.ProgressTextButton
 import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.user.UserShortcutHelper
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.github.ybq.android.spinkit.style.Wave
@@ -233,6 +234,11 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
                 val intent = Intent(mContext, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理")
                 startActivity(intent)
+            }
+            // issue #1027:把作者主页固定成桌面图标。桌面不支持时(部分三方 launcher)不摆这一项
+            if (UserShortcutHelper.isSupported(mContext)) {
+                labels.add(getString(R.string.add_to_home_screen))
+                actions.add { UserShortcutHelper.pin(this, data.user) }
             }
             if (!isSelf) {
                 labels.add(
