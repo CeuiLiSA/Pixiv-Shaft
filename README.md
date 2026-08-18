@@ -3,6 +3,7 @@
 [![build status](https://img.shields.io/github/actions/workflow/status/CeuiLiSA/Pixiv-Shaft/gradle.yml?branch=master)](https://github.com/CeuiLiSA/Pixiv-Shaft/actions)
 [![open issues](https://img.shields.io/github/issues/CeuiLiSA/Pixiv-Shaft?color=brightgreen)](https://github.com/CeuiLiSA/Pixiv-Shaft/issues?q=is%3Aopen+is%3Aissue)
 [![license](https://img.shields.io/github/license/CeuiLiSA/Pixiv-Shaft)](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/LICENSE)
+[![爱发电](https://img.shields.io/badge/💗_赞助-爱发电-946ce6)](https://afdian.com/a/pixshaft)
 
 [日本語(日文)](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/README/README.ja.md)
 
@@ -69,6 +70,17 @@
 
 [FAQ](./FAQ.md)
 
+
+## 7.支持项目
+
+Shaft 是免费开源项目，由业余时间开发和维护。如果它对你有帮助，可以在**爱发电**上支持后续开发：
+
+### 💗 [afdian.com/a/pixshaft](https://afdian.com/a/pixshaft)
+
+[![在爱发电支持 Shaft](https://img.shields.io/badge/爱发电-支持_Shaft-946ce6?style=for-the-badge)](https://afdian.com/a/pixshaft)
+
+赞助完全自愿 —— Shaft 的所有功能现在和以后都对所有人免费。点个 star、提 issue、发 PR，
+一样是支持。
 
 ### 开源许可
 
