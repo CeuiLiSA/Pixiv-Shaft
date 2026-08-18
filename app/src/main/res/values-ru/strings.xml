@@ -1559,6 +1559,7 @@
     <string name="comic_reader_long_press_open_advanced">Расширенный просмотр (ИИ / перевод)</string>
     <string name="comic_reader_total_minutes">Прочитано %1$d мин</string>
     <string name="comic_reader_enter">Читать мангу</string>
+    <string name="comic_reader_enter_illust">Открыть в читалке</string>
     <string name="bulk_menu_download_all">Скачать все работы</string>
     <string name="bulk_menu_download_all_desc">Потоковая загрузка, постоянная очередь и восстановление после перезапуска</string>
     <string name="bulk_user_menu_download_all_illust">Скачать все иллюстрации (добавить в очередь)</string>

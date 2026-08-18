@@ -1559,6 +1559,7 @@
     <string name="comic_reader_long_press_open_advanced">고급 보기 (AI / 번역)</string>
     <string name="comic_reader_total_minutes">총 %1$d 분 읽음</string>
     <string name="comic_reader_enter">만화 읽기</string>
+    <string name="comic_reader_enter_illust">뷰어로 보기</string>
     <string name="bulk_menu_download_all">모든 작품 다운로드</string>
     <string name="bulk_menu_download_all_desc">스트리밍 가져오기 + 영구 큐, 재시작 시 복구 가능</string>
     <string name="bulk_user_menu_download_all_illust">모든 일러스트 다운로드 (일괄 큐 추가)</string>

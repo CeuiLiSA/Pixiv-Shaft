@@ -1559,6 +1559,7 @@
     <string name="comic_reader_long_press_open_advanced">Gelişmiş görünüm (AI / çeviri)</string>
     <string name="comic_reader_total_minutes">%1$d dakika okundu</string>
     <string name="comic_reader_enter">Manga oku</string>
+    <string name="comic_reader_enter_illust">Okuyucuda aç</string>
     <string name="bulk_menu_download_all">Tüm eserleri indir</string>
     <string name="bulk_menu_download_all_desc">Akış halinde getirme + kalıcı kuyruk, yeniden başlatmaya dayanıklı</string>
     <string name="bulk_user_menu_download_all_illust">Tüm illüstrasyonları indir (toplu kuyruk)</string>

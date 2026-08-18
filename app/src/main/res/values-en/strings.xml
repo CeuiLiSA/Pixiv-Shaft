@@ -1559,6 +1559,7 @@
     <string name="comic_reader_long_press_open_advanced">Advanced view (AI / translation)</string>
     <string name="comic_reader_total_minutes">Read for %1$d min</string>
     <string name="comic_reader_enter">Read manga</string>
+    <string name="comic_reader_enter_illust">Open in reader</string>
     <string name="bulk_menu_download_all">Download all works</string>
     <string name="bulk_menu_download_all_desc">Streaming fetch + persistent queue, recoverable across restarts</string>
     <string name="bulk_user_menu_download_all_illust">Download all illustrations (queue all)</string>

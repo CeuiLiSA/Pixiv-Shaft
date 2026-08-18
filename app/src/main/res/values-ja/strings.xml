@@ -1559,6 +1559,7 @@
     <string name="comic_reader_long_press_open_advanced">詳細表示（AI / 翻訳）</string>
     <string name="comic_reader_total_minutes">%1$d 分間読書しました</string>
     <string name="comic_reader_enter">漫画を読む</string>
+    <string name="comic_reader_enter_illust">ビューアで読む</string>
     <string name="bulk_menu_download_all">すべての作品をダウンロード</string>
     <string name="bulk_menu_download_all_desc">ストリーミング取得 + 永続化キュー、再起動でも復元可能</string>
     <string name="bulk_user_menu_download_all_illust">イラストをすべてダウンロード（一括キュー）</string>

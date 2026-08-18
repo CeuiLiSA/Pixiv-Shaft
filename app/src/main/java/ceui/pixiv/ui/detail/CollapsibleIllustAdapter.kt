@@ -192,10 +192,14 @@ class CollapsibleIllustAdapter(
             R.string.v3_expand_all_pages_title, hiddenCount
         )
 
-        // Show comic reader pill for manga type
-        val isManga = "manga" == illust.type
-        comicPill.visibility = if (isManga && onComicReaderClick != null) View.VISIBLE else View.GONE
-        if (isManga) {
+        // 阅读器胶囊：多 P 插画同样适用(#1029),只是文案换成中性的「用阅读器看」——
+        // 阅读器内部对 type 没有任何假设,系列跳话在插画没系列时会自己 toast 提示。
+        // 注意只放宽胶囊,不放宽「点图进阅读器」:那条必须留着判 manga,否则 2P 插画
+        // 点大图又会被劫持进阅读器(#961)。
+        val hasReader = onComicReaderClick != null
+        comicPill.visibility = if (hasReader) View.VISIBLE else View.GONE
+        if (hasReader) {
+            views.comicPillLabel.setText(comicReaderEnterTextRes(illust))
             applyPillTouchFeedback(comicPill)
             comicPill.setOnClickListener { onComicReaderClick?.invoke() }
         }
@@ -239,6 +243,7 @@ class CollapsibleIllustAdapter(
         val expandPill: View,
         val expandLabel: TextView,
         val comicPill: View,
+        val comicPillLabel: TextView,
     )
 
     private fun overlayOf(holder: ViewHolder<RecyIllustDetailBinding>): OverlayViews? {
@@ -248,7 +253,8 @@ class CollapsibleIllustAdapter(
         val pill = root.findViewById<View>(R.id.expand_pill) ?: return null
         val label = root.findViewById<TextView>(R.id.expand_label) ?: return null
         val comicPill = root.findViewById<View>(R.id.comic_reader_pill) ?: return null
-        val views = OverlayViews(overlay, pill, label, comicPill)
+        val comicPillLabel = root.findViewById<TextView>(R.id.comic_reader_pill_label) ?: return null
+        val views = OverlayViews(overlay, pill, label, comicPill, comicPillLabel)
         root.setTag(TAG_OVERLAY, views)
         return views
     }
@@ -285,3 +291,9 @@ class CollapsibleIllustAdapter(
         private const val FADE_MS = 220L
     }
 }
+
+/**
+ * 进阅读器入口的文案:漫画说「阅读漫画」,多 P 插画说中性的「用阅读器看」(#1029)。
+ */
+private fun comicReaderEnterTextRes(illust: IllustsBean): Int =
+    if ("manga" == illust.type) R.string.comic_reader_enter else R.string.comic_reader_enter_illust

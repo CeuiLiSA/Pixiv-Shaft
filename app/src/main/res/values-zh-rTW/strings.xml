@@ -1561,6 +1561,7 @@
     <string name="comic_reader_long_press_open_advanced">進階檢視（AI / 翻譯）</string>
     <string name="comic_reader_total_minutes">已閱讀 %1$d 分鐘</string>
     <string name="comic_reader_enter">閱讀漫畫</string>
+    <string name="comic_reader_enter_illust">用閱讀器看</string>
     <string name="bulk_menu_download_all">下載全部作品</string>
     <string name="bulk_menu_download_all_desc">串流抓取 + 持久化佇列，可冷啟動恢復</string>
     <string name="bulk_user_menu_download_all_illust">下載全部插畫 (批次入隊)</string>

@@ -139,6 +139,7 @@
                         app:tint="#FFFFFF" />
 
                     <TextView
+                        android:id="@+id/comic_reader_pill_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:letterSpacing="0.02"
