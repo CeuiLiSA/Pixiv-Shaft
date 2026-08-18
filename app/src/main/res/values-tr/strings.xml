@@ -2644,6 +2644,16 @@
     <string name="nana7mi_usage_retry">Yeniden denemek için dokunun</string>
     <string name="nana7mi_usage_login_required">Kullanımı görmek için giriş yapın</string>
     <string name="nana7mi_usage_hint">Popülerliğe göre yapılan her arama 1 kullanım sayılır. Her iki limit de sabit dönemlidir: sıfırlama anında hakkın tamamı bir defada geri gelir.</string>
+    <string name="nana7mi_usage_cta_title">Daha fazla kullanım</string>
+    <string name="nana7mi_usage_plan_price">¥%1$d</string>
+    <string name="nana7mi_usage_plan_period">/ ay</string>
+    <string name="nana7mi_usage_plan_badge">Daha avantajlı</string>
+    <string name="nana7mi_usage_plan_5x_title">5x kota</string>
+    <string name="nana7mi_usage_plan_5x_desc">Günlük arama için fazlasıyla yeter</string>
+    <string name="nana7mi_usage_plan_20x_title">20x kota</string>
+    <string name="nana7mi_usage_plan_20x_desc">Yoğun kullanım için, gönlünüzce arayın</string>
+    <string name="nana7mi_usage_uid_label">Pixiv UID’im</string>
+    <string name="nana7mi_usage_uid_hint">Abone olurken teslimat adresi alanına bu UID’yi girin; yanlış girilirse kota hesabınıza tanımlanmaz.</string>
     <string name="drawer_section_usage">Popülerliğe göre arama</string>
     <string name="nana7mi_quota_snack_session">5 saatlik limit doldu, %1$s sonra yenilenir</string>
     <string name="nana7mi_quota_snack_weekly">Haftalık limit doldu, %1$s sonra yenilenir</string>

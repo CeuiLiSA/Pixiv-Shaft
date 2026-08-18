@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    一档订阅方案。右侧「价格在上、周期在下」是刻意抄上面配额行（item_nana7mi_usage_row）的
+    百分比 / 已用那一组：同一页里两处读数用同一种版式，眼睛不用重新学第二遍。
+
+    背景由 Fragment 按位置挂（分段行几何同 WitRowStyle：外角 20dp / 内角 5dp / 行间 2dp），
+    只是底色换成主题色 tonal 而不是中性的 wit_menu_bg —— 这一组是这页唯一的行动区，
+    比上面那些只读的行醒目一档。所以这里不设 background，设了会把分段圆角覆盖掉。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="2dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="18dp"
+    android:paddingTop="15dp"
+    android:paddingEnd="18dp"
+    android:paddingBottom="15dp">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/plan_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_1"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="20x 用量" />
+
+            <!-- 「更划算」：单价确实更低（¥4/x vs ¥2/x），不是随口贴的标签 -->
+            <TextView
+                android:id="@+id/plan_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:paddingStart="7dp"
+                android:paddingTop="1dp"
+                android:paddingEnd="7dp"
+                android:paddingBottom="2dp"
+                android:text="@string/nana7mi_usage_plan_badge"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/plan_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp"
+            tools:text="重度使用者，随便搜" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:gravity="end"
+        android:orientation="vertical">
+
+        <!-- Montserrat Bold：数字读数在本仓库统一用它，同配额行的百分比 -->
+        <TextView
+            android:id="@+id/plan_price"
+            style="@style/textMontserratBold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="19sp"
+            android:textStyle="bold"
+            tools:text="¥40" />
+
+        <TextView
+            android:id="@+id/plan_period"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:text="@string/nana7mi_usage_plan_period"
+            android:textColor="@color/v3_text_3"
+            android:textSize="11sp" />
+    </LinearLayout>
+</LinearLayout>

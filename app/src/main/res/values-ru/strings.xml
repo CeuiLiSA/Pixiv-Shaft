@@ -2644,6 +2644,16 @@
     <string name="nana7mi_usage_retry">Нажмите, чтобы повторить</string>
     <string name="nana7mi_usage_login_required">Войдите, чтобы увидеть использование</string>
     <string name="nana7mi_usage_hint">Каждый поиск по популярности считается за один. Оба лимита действуют фиксированными периодами: в момент сброса весь объём возвращается сразу.</string>
+    <string name="nana7mi_usage_cta_title">Больше лимита</string>
+    <string name="nana7mi_usage_plan_price">¥%1$d</string>
+    <string name="nana7mi_usage_plan_period">/ мес</string>
+    <string name="nana7mi_usage_plan_badge">Выгоднее</string>
+    <string name="nana7mi_usage_plan_5x_title">5x лимит</string>
+    <string name="nana7mi_usage_plan_5x_desc">Хватит для обычного поиска</string>
+    <string name="nana7mi_usage_plan_20x_title">20x лимит</string>
+    <string name="nana7mi_usage_plan_20x_desc">Для активных — ищите сколько угодно</string>
+    <string name="nana7mi_usage_uid_label">Мой Pixiv UID</string>
+    <string name="nana7mi_usage_uid_hint">Укажите этот UID в поле адреса доставки при оформлении подписки — с ошибкой лимит уйдёт не на ваш аккаунт.</string>
     <string name="drawer_section_usage">Поиск по популярности</string>
     <string name="nana7mi_quota_snack_session">5-часовой лимит исчерпан, восстановится через %1$s</string>
     <string name="nana7mi_quota_snack_weekly">Недельный лимит исчерпан, восстановится через %1$s</string>

@@ -2644,6 +2644,16 @@
     <string name="nana7mi_usage_retry">Tap to retry</string>
     <string name="nana7mi_usage_login_required">Log in to see your usage</string>
     <string name="nana7mi_usage_hint">Every popularity-sorted search counts as one. Both limits are fixed periods: the whole allowance comes back at the reset time, not one search at a time.</string>
+    <string name="nana7mi_usage_cta_title">Unlock more usage</string>
+    <string name="nana7mi_usage_plan_price">¥%1$d</string>
+    <string name="nana7mi_usage_plan_period">/ mo</string>
+    <string name="nana7mi_usage_plan_badge">Better value</string>
+    <string name="nana7mi_usage_plan_5x_title">5x usage</string>
+    <string name="nana7mi_usage_plan_5x_desc">Plenty for everyday searching</string>
+    <string name="nana7mi_usage_plan_20x_title">20x usage</string>
+    <string name="nana7mi_usage_plan_20x_desc">For heavy users — search freely</string>
+    <string name="nana7mi_usage_uid_label">My Pixiv UID</string>
+    <string name="nana7mi_usage_uid_hint">Enter this UID as the shipping address when subscribing — a wrong one sends the quota to someone else.</string>
     <string name="drawer_section_usage">Search by popularity</string>
     <string name="nana7mi_quota_snack_session">5-hour limit reached, back in %1$s</string>
     <string name="nana7mi_quota_snack_weekly">Weekly limit reached, back in %1$s</string>

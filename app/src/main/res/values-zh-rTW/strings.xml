@@ -2646,6 +2646,16 @@
     <string name="nana7mi_usage_retry">點擊重試</string>
     <string name="nana7mi_usage_login_required">登入後可查看用量</string>
     <string name="nana7mi_usage_hint">按熱度排序的搜尋每發起一次算 1 次。兩檔額度都是固定時段：到了重置時刻整份恢復，不是用一次回一次。</string>
+    <string name="nana7mi_usage_cta_title">解鎖更多用量</string>
+    <string name="nana7mi_usage_plan_price">¥%1$d</string>
+    <string name="nana7mi_usage_plan_period">/ 月</string>
+    <string name="nana7mi_usage_plan_badge">更划算</string>
+    <string name="nana7mi_usage_plan_5x_title">5x 用量</string>
+    <string name="nana7mi_usage_plan_5x_desc">日常搜尋足夠用</string>
+    <string name="nana7mi_usage_plan_20x_title">20x 用量</string>
+    <string name="nana7mi_usage_plan_20x_desc">重度使用者，隨便搜</string>
+    <string name="nana7mi_usage_uid_label">我的 Pixiv UID</string>
+    <string name="nana7mi_usage_uid_hint">訂閱時的「收貨地址」填這個 UID，填錯了額度發不到你帳號上。</string>
     <string name="drawer_section_usage">搜尋按熱度排序</string>
     <string name="nana7mi_quota_snack_session">五小時額度已用完，%1$s後恢復</string>
     <string name="nana7mi_quota_snack_weekly">本週額度已用完，%1$s後恢復</string>
