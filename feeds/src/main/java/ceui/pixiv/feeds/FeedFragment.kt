@@ -283,7 +283,8 @@ abstract class FeedFragment(
      * 空态下可选的动作按钮：`标题 to 点击动作`，返回 null 就只显示文案（默认）。
      *
      * 给那些「空是有原因、而且原因能一键去修」的页面用——光把原因写成一段话、再让用户自己
-     * 去菜单里翻入口，等于把人堵在死胡同。只在空态显示，错误态走框架统一的「点击重试」。
+     * 去菜单里翻入口，等于把人堵在死胡同。只在空态显示；全屏错误态由框架按
+     * [FeedHost.shouldSuggestNetworkTest] 决定是否显示「去网络测试」。
      */
     protected open val emptyStateAction: Pair<CharSequence, () -> Unit>?
         get() = null
@@ -491,8 +492,20 @@ abstract class FeedFragment(
         }
         binding.feedEmptyImage.isVisible = stateImage != 0
 
-        // 动作按钮只跟空态走：错误态已经有「点击重试」，加载态更没得点。
-        val action = if (state.showEmptyState) emptyStateAction else null
+        // 动作按钮：空态走页面自己的 action；网络类错误（断网/超时/SSL）在「点击重试」
+        // 下方补一个「去网络测试」入口，其余错误态保持纯「点击重试」，加载态更没得点。
+        val action = when {
+            state.showEmptyState -> emptyStateAction
+            state.showFullscreenError &&
+                FeedFramework.host.shouldSuggestNetworkTest(
+                    requireContext(),
+                    (state.refresh as LoadState.Error).throwable,
+                ) ->
+                getString(R.string.feed_state_go_network_test) to {
+                    FeedFramework.host.openNetworkTest(requireContext())
+                }
+            else -> null
+        }
         binding.feedStateAction.isVisible = action != null
         if (action != null) {
             binding.feedStateAction.text = action.first

@@ -3,4 +3,5 @@
     <string name="empty_list_1">Burası boş</string>
     <string name="list_load_failed_tap_retry">Yüklenemedi. Yeniden denemek için dokunun.</string>
     <string name="feed_error_tap_retry">Yeniden denemek için dokunun</string>
+    <string name="feed_state_go_network_test">Ağ testini çalıştır</string>
 </resources>
