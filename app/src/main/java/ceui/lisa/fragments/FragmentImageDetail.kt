@@ -10,7 +10,9 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import ceui.lisa.R
 import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.activities.ImageTranslationViewModel
@@ -34,7 +36,9 @@ import ceui.pixiv.ui.translate.MangaOcrModel
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.utils.setOnClick
 import com.github.panpf.sketch.loadImage
+import com.github.panpf.zoomimage.util.IntSizeCompat
 import com.github.panpf.zoomimage.util.OffsetCompat
+import com.github.panpf.zoomimage.util.isNotEmpty
 import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
 import com.github.panpf.zoomimage.zoom.GestureType
 import com.github.panpf.zoomimage.zoom.ReadMode
@@ -56,6 +60,23 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private var savedScale: Float? = null
     private var zoomedToMax: Boolean = false
     private var pendingGestureCheck: Boolean = false
+
+    /**
+     * 上一次 ZoomImage 的 contentSize，用来判断「底图是不是换成了另一个尺寸」。
+     *
+     * [savedScale] / [isScaleMax] / [zoomedToMax] 记的是**绝对**缩放倍率（= baseScale × userScale），
+     * 而 baseScale 由 contentSize 决定：large 占位（长边约 1200px）换成原图（数千 px）后，同一块可见
+     * 区域对应的绝对倍率会整体缩小好几倍，这几个记忆值当场失真。
+     *
+     * 以前换图会把 transform 弹回 fit，失真的记忆顶多浪费用户一次双击；开了
+     * `setKeepTransformWhenSameAspectRatioContentSizeChanged` 之后缩放被保留下来，下一次双击就会拿
+     * 新空间的 currentScale 去比旧空间几倍大的 [savedScale]，直接判成「该缩回去」把用户一路弹到
+     * minScale —— 正好毁掉这次改动想保住的东西。所以 contentSize 一变就清记忆。
+     *
+     * 只在「真的换了尺寸」时清：[BaseFragment] 复用 rootView 时 StateFlow 会重放同一个值，那时画面上的
+     * 缩放和记忆仍然对得上，不能清（理由见 [onDestroyView] 的注释）。
+     */
+    private var lastZoomContentSize: IntSizeCompat = IntSizeCompat.Zero
     private var imageDisposable: Disposable? = null
     // large 占位任务的观察句柄：原图就绪后摘掉，避免晚到的 large 回盖已显示的原图。
     private var largeDisposable: Disposable? = null
@@ -385,8 +406,31 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         baseBind.image.zoomable.setKeepTransformWhenSameAspectRatioContentSizeChanged(true)
     }
 
+    /** 清掉「缩到哪一档」的记忆，让下一次双击从当前倍率重新开始记。 */
+    private fun resetZoomLevelMemory() {
+        savedScale = null
+        zoomedToMax = false
+        isScaleMax = false
+        pendingGestureCheck = false
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // 换底图（large 占位 → 原图 / 译图）会改变 contentSize，双击缩放记的绝对倍率随之失真，
+        // 见 [lastZoomContentSize]。默认路径（ZoomImage 自带双击）没有这类记忆，不必挂这个观察。
+        if (Shaft.sSettings.isUseCustomDoubleTapZoom) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    baseBind.image.zoomable.contentSizeState.collect { size ->
+                        if (!size.isNotEmpty()) return@collect
+                        if (lastZoomContentSize.isNotEmpty() && size != lastZoomContentSize) {
+                            resetZoomLevelMemory()
+                        }
+                        lastZoomContentSize = size
+                    }
+                }
+            }
+        }
         loadImage()
         // 监听"翻译漫画"产出:VM 里出现本页 index 的译图就直接换图
         translationViewModel.translatedPaths.observe(viewLifecycleOwner) { map ->
