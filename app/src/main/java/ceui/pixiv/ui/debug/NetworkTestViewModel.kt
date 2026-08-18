@@ -47,10 +47,16 @@ import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
+/** 点分四段 IPv4 前缀（可后接 :port / 路径），用于把 IP 按「段」而不是按字符数脱敏。 */
+private val IPV4_PREFIX = Regex("""^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}""")
+
 /**
- * 代理地址脱敏：保留 scheme 和地址开头少量字符，后面统一替换为 ***。
+ * 代理地址脱敏：保留 scheme 和地址开头少量信息，后面统一替换为 ***。
  * 用于 PxveAPI 地址与自定义图片反代在 UI / 原始日志中的展示，避免泄露他人私有地址。
  * 例：https://your-proxy.domain → https://your***；https://192.168.10.109:3021 → https://192.168***
+ *
+ * IPv4 按**段**截断（保留前两段）而不是按字符数：按字符数截会随 IP 变短而越露越多，
+ * 极端情况（https://1.2.3.4:8080）能把整个公网 IP 原样漏出来，正好背离脱敏的目的。
  */
 internal fun maskProxyUrl(url: String): String {
     val trimmed = url.trim()
@@ -60,9 +66,14 @@ internal fun maskProxyUrl(url: String): String {
         else -> ""
     }
     val rest = if (scheme.isEmpty()) trimmed else trimmed.substring(scheme.length)
-    // IP 地址多留一点（保留前两段 192.168），域名保留前 4 个字符。
-    val visibleLen = if (rest.firstOrNull()?.isDigit() == true) 7 else 4
-    val visible = rest.take(visibleLen)
+    val ipv4 = IPV4_PREFIX.find(rest)
+    val visible = if (ipv4 != null) {
+        // IP：保留前两段（192.168 / 10.0），后两段与端口一律隐藏。
+        "${ipv4.groupValues[1]}.${ipv4.groupValues[2]}"
+    } else {
+        // 域名（含 IPv6 字面量）：保留前 4 个字符。
+        rest.take(4)
+    }
     return "$scheme$visible***"
 }
 
@@ -1082,7 +1093,10 @@ class NetworkTestViewModel : ViewModel() {
 
     /**
      * PxveAPI 代理开启时，验证代理的 /pixiv-app-api 与 /pixiv-oauth 两条转发路径有正确响应。
-     * 路径约定来自 [AppApiProxyInterceptor]：app-api → /pixiv-app-api，oauth → /pixiv-oauth。
+     * 探测 URL 一律由 [AppApiProxyInterceptor.rewrite] 生成 —— 和生产请求同一套拼接逻辑，
+     * 自己手拼 `root + "/pixiv-app-api"` 会绕开它的双前缀去重：用户把根地址按
+     * 「误填完整 PxveAPI 地址」的形态填成 https://proxy/pixiv-app-api（拦截器专门兼容、有单测
+     * 覆盖）时，手拼会多出一层前缀打成 404，把一个实际能用的配置诬告成代理异常。
      * 用真实子路径请求（而不是只打前缀）避免 Hono 通配路由对裸前缀返回 404 的误报。
      * 判定：200..499 且非 404 视为链路通（400/401/403 是无凭证时 Pixiv 的预期响应）；
      * 404 / 5xx / 连接失败视为代理异常，并把该目标置为失败。
@@ -1110,14 +1124,14 @@ class NetworkTestViewModel : ViewModel() {
                 idx,
                 appStepIdx,
                 client,
-                "$root/pixiv-app-api/v1/illust/ranking?mode=day",
+                AppApiProxyInterceptor.rewrite(APP_API_PROBE_URL.toHttpUrl(), root),
                 R.string.network_test_pxve_app_api_path,
             )
             val oauthOk = runPxveRequest(
                 idx,
                 oauthStepIdx,
                 client,
-                "$root/pixiv-oauth/auth/token",
+                AppApiProxyInterceptor.rewrite(OAUTH_PROBE_URL.toHttpUrl(), root),
                 R.string.network_test_pxve_oauth_path,
                 method = "POST",
             )
@@ -1144,10 +1158,16 @@ class NetworkTestViewModel : ViewModel() {
         idx: Int,
         stepIdx: Int,
         client: OkHttpClient,
-        url: String,
+        url: HttpUrl?,
         pathLabelRes: Int,
         method: String = "GET",
     ): Boolean {
+        if (url == null) {
+            // root 来自 normalizeBase，正常不可能拼不出来；真拼不出来就是地址非法，如实报错。
+            updateStep(idx, stepIdx, strRes(R.string.network_test_pxve_failed, "invalid proxy url"), StepStatus.FAIL)
+            log("PxveAPI ${strRes(pathLabelRes)}: 代理地址非法，无法拼出探测 URL")
+            return false
+        }
         val t0 = System.currentTimeMillis()
         try {
             val requestBuilder = Request.Builder().url(url)
@@ -1796,6 +1816,10 @@ class NetworkTestViewModel : ViewModel() {
     companion object {
         /** app 主 API 域名：它失败即总览判「网络不可用」，且否决「网络勉强可用」。 */
         private const val APP_API_HOST = "app-api.pixiv.net"
+
+        /** 转发路径探测用的原始 pixiv URL：交给 [AppApiProxyInterceptor.rewrite] 改写成代理地址。 */
+        private const val APP_API_PROBE_URL = "https://app-api.pixiv.net/v1/illust/ranking?mode=day"
+        private const val OAUTH_PROBE_URL = "https://oauth.secure.pixiv.net/auth/token"
 
         // 代理 fake-ip 模式返回的占位段：不可路由，命中即说明 DNS 被代理接管，测连通无意义。
         private val FAKE_IP_CIDRS = listOf(

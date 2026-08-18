@@ -62,11 +62,15 @@ public class AppApiProxyInterceptor implements Interceptor {
     /**
      * 将 app-api / oauth 请求改写为代理路径。纯函数，不依赖 Android 环境，便于单元测试。
      *
+     * <p>公开给网络测试页（NetworkTestViewModel）复用：探测转发路径时必须发**生产会发的那个
+     * URL**，自己手拼 {@code root + "/pixiv-app-api"} 会绕开下面的双前缀去重，把用户按
+     * 「误填完整 PxveAPI 地址」形态配好的、实际能用的代理误报成 404。</p>
+     *
      * @param original 原始请求 URL（app-api.pixiv.net 或 oauth.secure.pixiv.net）
      * @param proxy    用户配置的代理根地址（原始字符串）
      * @return 改写后的 URL；代理地址非法或为空时返回 null（调用方决定放行原请求）
      */
-    static HttpUrl rewrite(HttpUrl original, String proxy) {
+    public static HttpUrl rewrite(HttpUrl original, String proxy) {
         if (proxy == null || proxy.trim().isEmpty()) return null;
 
         final String prefix;
