@@ -23,6 +23,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import com.bumptech.glide.Glide
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,6 +34,15 @@ import kotlinx.coroutines.withContext
  * 桌面图标用作者头像（圆形裁剪），点击直达该作者主页。
  */
 object UserShortcutHelper {
+
+    /**
+     * 等头像的上限。Glide 那条 OkHttp 是 connectTimeout 15s + readTimeout 30s
+     * （Shaft#getOkHttpClient），拿它当上限的话:网络差时用户点完「添加到桌面」
+     * 要盯着没有任何变化的界面等几十秒才见到系统弹窗,只会以为功能坏了。
+     * 头像本身很小(170px),正常网络一秒内就回来;到点还没拿到就退回 App 图标,
+     * 先把弹窗给出去。
+     */
+    private const val AVATAR_TIMEOUT_SECONDS = 5L
 
     /**
      * 桌面是否支持固定快捷方式。部分第三方 launcher 和 API 26 以下的老桌面不支持，
@@ -106,7 +116,7 @@ object UserShortcutHelper {
                 .asBitmap()
                 .load(GlideUtil.getHead(user))
                 .submit(size, size)
-                .get()
+                .get(AVATAR_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         }.getOrNull()
         val circular = bitmap?.let { runCatching { toCircle(it, size) }.getOrNull() }
         return if (circular != null) {
