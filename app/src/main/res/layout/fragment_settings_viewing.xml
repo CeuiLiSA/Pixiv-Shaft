@@ -236,35 +236,37 @@
 
                 </RelativeLayout>
 
-                <RelativeLayout
-                    android:id="@+id/use_custom_double_tap_zoom_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_bottom">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/use_custom_double_tap_zoom" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/use_custom_double_tap_zoom"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
                 <LinearLayout
-                    android:id="@+id/use_custom_long_press_reset_group"
+                    android:id="@+id/double_tap_zoom_group"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
                     android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:id="@+id/double_tap_zoom_mode_rela"
+                        style="@style/M3SetRow"
+                        android:background="@drawable/wit_row_mid">
+
+                        <LinearLayout
+                            style="@style/M3SetTexts"
+                            android:layout_marginEnd="130dp">
+
+                            <TextView
+                                android:id="@+id/double_tap_zoom_mode_title"
+                                style="@style/M3SetTitle"
+                                android:text="@string/double_tap_zoom_mode_title" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/double_tap_zoom_mode_value"
+                            style="@style/M3SetValue" />
+
+                    </RelativeLayout>
 
                     <RelativeLayout
                         android:id="@+id/custom_zoom_scale_rela"
                         style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_top">
+                        android:background="@drawable/wit_row_mid">
 
                         <LinearLayout
                             style="@style/M3SetTexts"
@@ -317,31 +319,6 @@
                                 android:src="@android:drawable/ic_media_next" />
 
                         </LinearLayout>
-
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:id="@+id/use_custom_three_level_zoom_rela"
-                        style="@style/M3SetRow"
-                        android:background="@drawable/wit_row_mid">
-
-                        <LinearLayout style="@style/M3SetTexts">
-
-                            <TextView
-                                android:id="@+id/use_custom_three_level_zoom_title"
-                                style="@style/M3SetTitle"
-                                android:text="@string/use_three_level_zoom_title" />
-
-                            <TextView
-                                android:id="@+id/three_level_zoom_link"
-                                style="@style/M3SetDesc"
-                                android:text="@string/three_level_zoom_link_text"
-                                android:textColor="?attr/colorPrimary" />
-                        </LinearLayout>
-
-                        <androidx.appcompat.widget.SwitchCompat
-                            android:id="@+id/use_custom_three_level_zoom"
-                            style="@style/M3SetSwitch" />
 
                     </RelativeLayout>
 

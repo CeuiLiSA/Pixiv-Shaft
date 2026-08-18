@@ -2572,15 +2572,18 @@
     <string name="tag_popular_export_run">开始导出</string>
     <string name="tag_popular_export_running">导出中…</string>
     <string name="tag_popular_export_need_tag">请先输入 tag 名称</string>
-    <!-- 插画二级详情：自定义双击放大模式（PR#900） -->
-    <string name="use_custom_double_tap_zoom">插画二级大图使用双击增量/三级放大模式</string>
-    <string name="use_custom_long_press_reset">启用长按复原（推荐启用）</string>
-    <string name="use_custom_long_press_reset_link_text">放至最大后不会循环至最小</string>
+    <!-- 插画大图：双击缩放行为三选一（默认/三级/增量），长按复位独立常显 -->
+    <string name="double_tap_zoom_mode_title">插画大图双击缩放行为</string>
+    <string name="double_tap_zoom_mode_default">默认</string>
+    <string name="double_tap_zoom_mode_three_level">三级</string>
+    <string name="double_tap_zoom_mode_incremental">增量</string>
+    <string name="use_custom_long_press_reset">启用长按复原</string>
+    <string name="use_custom_long_press_reset_link_text">放至最大后不会循环至最小。配合增量使用最佳</string>
     <string name="double_tap_zoom_max_reached">已至最大，长按复原</string>
     <string name="double_tap_zoom_max_reached2">已至最大，再次双击将缩至最小</string>
     <!-- 插画二级详情：增量倍率调节 + 三级智能缩放（PR#901） -->
     <string name="custom_zoom_scale_title">缩放增量值</string>
-    <string name="custom_zoom_scale_link_text">默认1.8，数值不合理（过大或过小）会影响图片缩放体验</string>
+    <string name="custom_zoom_scale_link_text">默认1.8，仅增量模式生效；数值不合理（过大或过小）会影响图片缩放体验</string>
     <string name="custom_zoom_scale_decrease_desc">减少缩放增量</string>
     <string name="custom_zoom_scale_increase_desc">增加缩放增量</string>
     <string name="use_three_level_zoom_title">增量缩放改为三级智能缩放模式</string>

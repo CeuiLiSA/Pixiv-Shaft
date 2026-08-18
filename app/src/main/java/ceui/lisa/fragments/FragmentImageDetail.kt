@@ -23,6 +23,7 @@ import ceui.lisa.download.FileCreator
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Params
+import ceui.lisa.utils.Settings
 import ceui.lisa.view.DragDismissLayout
 import ceui.pixiv.download.RecordedPageProbe
 import ceui.pixiv.imageloader.Disposable
@@ -39,9 +40,11 @@ import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.util.IntSizeCompat
 import com.github.panpf.zoomimage.util.OffsetCompat
 import com.github.panpf.zoomimage.util.isNotEmpty
+import com.github.panpf.zoomimage.view.zoom.OnViewLongPressListener
 import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
 import com.github.panpf.zoomimage.zoom.GestureType
 import com.github.panpf.zoomimage.zoom.ReadMode
+import com.github.panpf.zoomimage.zoom.ScalesCalculator
 import com.hjq.toast.Toaster
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -57,21 +60,13 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private val translationViewModel by viewModels<ImageTranslationViewModel>(ownerProducer = { requireActivity() })
     private var isAnimated: Boolean = false
     private var isScaleMax: Boolean = false
-    private var savedScale: Float? = null
-    private var zoomedToMax: Boolean = false
-    private var pendingGestureCheck: Boolean = false
 
     /**
      * 上一次 ZoomImage 的 contentSize，用来判断「底图是不是换成了另一个尺寸」。
      *
-     * [savedScale] / [isScaleMax] / [zoomedToMax] 记的是**绝对**缩放倍率（= baseScale × userScale），
-     * 而 baseScale 由 contentSize 决定：large 占位（长边约 1200px）换成原图（数千 px）后，同一块可见
-     * 区域对应的绝对倍率会整体缩小好几倍，这几个记忆值当场失真。
-     *
-     * 以前换图会把 transform 弹回 fit，失真的记忆顶多浪费用户一次双击；开了
-     * `setKeepTransformWhenSameAspectRatioContentSizeChanged` 之后缩放被保留下来，下一次双击就会拿
-     * 新空间的 currentScale 去比旧空间几倍大的 [savedScale]，直接判成「该缩回去」把用户一路弹到
-     * minScale —— 正好毁掉这次改动想保住的东西。所以 contentSize 一变就清记忆。
+     * 增量模式用 [isScaleMax] 记忆「已到最大」；baseScale 由 contentSize 决定：large 占位
+     * （长边约 1200px）换成原图（数千 px）后，同一块可见区域对应的绝对倍率会整体缩小好几倍，
+     * 这个记忆值当场失真。所以 contentSize 一变就清记忆，避免下一次双击误判成「该缩回去」。
      *
      * 只在「真的换了尺寸」时清：[BaseFragment] 复用 rootView 时 StateFlow 会重放同一个值，那时画面上的
      * 缩放和记忆仍然对得上，不能清（理由见 [onDestroyView] 的注释）。
@@ -132,10 +127,10 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
      *
      * 而 [gestureDetector] 与本字段都挂在 fragment 实例上，[BaseFragment] 又缓存 rootView 跨 view 复用，
      * 所以滑回这一页时旧闩还在：onDoubleTap 的 `if (isAnimated) return` 与 onLongPress 的 `if (!isAnimated)`
-     * 双双短路，这一页的双击缩放和长按归位整场失效（仅 Settings.isUseCustomDoubleTapZoom 开启时这条路径生效）。
+     * 双双短路，这一页的双击缩放和长按归位整场失效（仅「增量」双击缩放行为时这条路径生效）。
      *
      * scope 一取消就不可能再有协程把它置回 true，这里复位是安全的。
-     * [savedScale] / [zoomedToMax] / [isScaleMax] 是「当前这张图缩到哪一档」的记忆，view 实例被复用、
+     * [isScaleMax] 是「当前这张图是否已到最大」的记忆，view 实例被复用、
      * 缩放状态也跟着留着，故意不动 —— 清了反而会和画面上真实的缩放对不上。
      */
     override fun onDestroyView() {
@@ -143,9 +138,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         super.onDestroyView()
     }
 
-    // PR#900：自定义双击「增量放大 + 长按归位」。
-    // 仅在 Settings.isUseCustomDoubleTapZoom 开启时才会被访问/初始化；
-    // 关闭时整条路径不参与，保持与未引入 PR 前完全一致的体验。
+    // 自定义双击手势（仅增量模式使用）：
+    // PR#900 的 scaleBy 增量放大 + 长按归位。
+    // 「默认」和「三级」都走库自带双击缩放，不经过这里。
     private val gestureDetector by lazy {
         GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
@@ -155,149 +150,41 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                 val zoomable = baseBind.image.zoomable
                 val contentPoint = zoomable.touchPointToContentPointF(OffsetCompat(e.x, e.y))
                 viewLifecycleOwner.lifecycleScope.launch {
-                    //三级智能推测
-                    if (Shaft.sSettings.isUseThreeLevelZoo) {
-                        val currentScale = zoomable.transformState.value.scaleX
+                    if (isScaleMax) {
+                        if (viewModel.isFullscreenMode.value == true) {
+                            viewModel.toggleFullscreen()
+                        }
                         val minScale = zoomable.minScaleState.value
+                        zoomable.scale(
+                            targetScale = minScale,
+                            centroidContentPointF = contentPoint,
+                            animated = true
+                        )
+                        isScaleMax = false
+                    } else {
+                        if (viewModel.isFullscreenMode.value == false) {
+                            viewModel.toggleFullscreen()
+                        }
+                        zoomable.scaleBy(
+                            addScale = Shaft.sSettings.customZoomAddScale,
+                            centroidContentPointF = contentPoint,
+                            animated = true
+                        )
+                        val afterScale = zoomable.transformState.value.scaleX
                         val maxScale = zoomable.maxScaleState.value
-                        val targetScale = currentScale * Shaft.sSettings.customZoomAddScale
-
-                        when {
-                            // ① 初始记录
-                            savedScale == null -> {
-                                if (viewModel.isFullscreenMode.value == false) {
+                        if (afterScale >= maxScale - MAX_SCALE_EPSILON) {
+                            if (Shaft.sSettings.isUseCustomLongPressReset) {
+                                Toaster.showShort(R.string.double_tap_zoom_max_reached)
+                                if (viewModel.isFullscreenMode.value == true) {
                                     viewModel.toggleFullscreen()
                                 }
-                                zoomable.scale(
-                                    targetScale = targetScale,
-                                    centroidContentPointF = contentPoint,
-                                    animated = true
-                                )
-                                savedScale = targetScale
-                                zoomedToMax = false
-                                pendingGestureCheck = false
-                            }
-
-                            // ② 处于待定期：上次从最大缩回了中间，现在根据手动缩放决定
-                            pendingGestureCheck -> {
-                                val saved = savedScale!!
-                                if (currentScale > saved) {
-                                    if (viewModel.isFullscreenMode.value == false) {
-                                        viewModel.toggleFullscreen()
-                                    }
-                                    // 用户手动放大了 → 放大到最大
-                                    zoomable.scale(
-                                        targetScale = maxScale,
-                                        centroidContentPointF = contentPoint,
-                                        animated = true
-                                    )
-                                    zoomedToMax = true
-                                } else {
-                                    if (viewModel.isFullscreenMode.value == false) {
-                                        viewModel.toggleFullscreen()
-                                    }
-                                    // 用户没放大或缩得更小 → 直接缩到最小并重置
-                                    zoomable.scale(
-                                        targetScale = minScale,
-                                        centroidContentPointF = contentPoint,
-                                        animated = true
-                                    )
-                                    savedScale = null
-                                    zoomedToMax = false
-                                }
-                                pendingGestureCheck = false
-                            }
-
-                            // ③ 还没到最大，且当前缩放 ≥ 记录的中间值 → 放大到最大
-                            !zoomedToMax && currentScale >= savedScale!! -> {
-                                if (viewModel.isFullscreenMode.value == false) {
-                                    viewModel.toggleFullscreen()
-                                }
-                                zoomable.scale(
-                                    targetScale = maxScale,
-                                    centroidContentPointF = contentPoint,
-                                    animated = true
-                                )
-                                zoomedToMax = true
-                            }
-
-                            // ④ 其余情况：缩回逻辑
-                            else -> {
-                                val saved = savedScale!!
-                                when {
-                                    // 等于最大，或介于中间和最大之间 → 缩回中间，并开启待定期
-                                    currentScale == maxScale || (currentScale < maxScale && currentScale > saved) -> {
-                                        if (viewModel.isFullscreenMode.value == false) {
-                                            viewModel.toggleFullscreen()
-                                        }
-                                        zoomable.scale(
-                                            targetScale = saved,
-                                            centroidContentPointF = contentPoint,
-                                            animated = true
-                                        )
-                                        zoomedToMax = false
-                                        pendingGestureCheck = true   // 等待用户手势
-                                        // savedScale 不变
-                                    }
-                                    // 当前缩放 ≤ 中间 → 缩回最小，完全重置
-                                    else -> {
-                                        if (viewModel.isFullscreenMode.value == true) {
-                                            viewModel.toggleFullscreen()
-                                        }
-                                        zoomable.scale(
-                                            targetScale = minScale,
-                                            centroidContentPointF = contentPoint,
-                                            animated = true
-                                        )
-                                        savedScale = null
-                                        zoomedToMax = false
-                                        pendingGestureCheck = false
-                                    }
-                                }
+                            } else {
+                                isScaleMax = true
+                                Toaster.showShort(R.string.double_tap_zoom_max_reached2)
                             }
                         }
-
-                        isAnimated = false
-
-
-                    } else {
-                        if (isScaleMax) {
-                            if (viewModel.isFullscreenMode.value == true) {
-                                viewModel.toggleFullscreen()
-                            }
-                            val minScale = zoomable.minScaleState.value
-                            zoomable.scale(
-                                targetScale = minScale,
-                                centroidContentPointF = contentPoint,
-                                animated = true
-                            )
-                            isScaleMax = false
-                            isAnimated = false
-                        } else {
-                            if (viewModel.isFullscreenMode.value == false) {
-                                viewModel.toggleFullscreen()
-                            }
-                            zoomable.scaleBy(
-                                addScale = Shaft.sSettings.customZoomAddScale,
-                                centroidContentPointF = contentPoint,
-                                animated = true
-                            )
-                            val afterScale = zoomable.transformState.value.scaleX
-                            val maxScale = zoomable.maxScaleState.value
-                            if (afterScale >= maxScale - MAX_SCALE_EPSILON) {
-                                if (Shaft.sSettings.isUseCustomLongPressReset) {
-                                    Toaster.showShort(R.string.double_tap_zoom_max_reached)
-                                    if (viewModel.isFullscreenMode.value == true) {
-                                        viewModel.toggleFullscreen()
-                                    }
-                                } else {
-                                    isScaleMax = true
-                                    Toaster.showShort(R.string.double_tap_zoom_max_reached2)
-                                }
-                            }
                     }
-                        isAnimated = false
-                    }
+                    isAnimated = false
                 }
                 return true
             }
@@ -317,9 +204,6 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                             animated = true
                         )
                         isScaleMax = false
-                        savedScale = null
-                        zoomedToMax = false
-                        pendingGestureCheck = false
                     }
                 }
             }
@@ -364,39 +248,38 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         if (Shaft.sSettings.isIllustDetailKeepScreenOn) {
             baseBind.root.keepScreenOn = true
         }
-        if (Shaft.sSettings.isUseCustomDoubleTapZoom) {
-            // PR#900 路径：禁用 ZoomImage 自带双击缩放，改走自家 GestureDetector
-            baseBind.image.zoomable.setDisabledGestureTypes(
-                baseBind.image.zoomable.disabledGestureTypesState.value or GestureType.DOUBLE_TAP_SCALE
-            )
-            // 单指交给 gestureDetector（双击/长按/单击），多指交回 ZoomImage（拖拽/双指缩放）
-            baseBind.image.setOnTouchListener { v, event ->
-                //还是要阻止可能存在误触打断到动画的
-                if (event.pointerCount == 1) {
-                    gestureDetector.onTouchEvent(event)
-                } else {
-                    // 多指（双指缩放/拖拽）：取消 gestureDetector 的待处理长按事件
-                    // 通过发送一个 ACTION_CANCEL 来阻止长按触发
-                    gestureDetector.onTouchEvent(
-                        MotionEvent.obtain(
-                            event.downTime,
-                            event.eventTime,
-                            MotionEvent.ACTION_CANCEL,
-                            event.x,
-                            event.y,
-                            event.metaState
-                        ).also { it.recycle() }
-                    )
-                    v.onTouchEvent(event)
+        when (Shaft.sSettings.getDoubleTapZoomMode()) {
+            Settings.DOUBLE_TAP_ZOOM_MODE_THREE_LEVEL -> {
+                // 三级继续走库原生 switchScale，只通过自定义 ScalesCalculator 修正 mediumScale，
+                // 避免库原生跳档逻辑在大间距时从最小档直接跳到最大档。
+                baseBind.image.zoomable.setThreeStepScale(true)
+                baseBind.image.zoomable.setScalesCalculator(NoSkipThreeStepScalesCalculator())
+                baseBind.image.onViewTapListener = OnViewTapListener { _, _ ->
+                    if (!isGestureTargetAlive) return@OnViewTapListener
+                    viewModel.toggleFullscreen()
                 }
+                setupLibraryLongPressReset()
             }
-        } else {
-            // 默认路径：onViewTapListener → setReadMode 的顺序与改前完全一致
-            baseBind.image.onViewTapListener = OnViewTapListener { _, _ ->
-                // 线上崩溃点：ZoomImage 的 onSingleTapConfirmed 经 Handler 延迟派发，
-                // 打到已 detach 的 fragment 上时 viewModel 会走 requireActivity() 抛 ISE。
-                if (!isGestureTargetAlive) return@OnViewTapListener
-                viewModel.toggleFullscreen()
+            Settings.DOUBLE_TAP_ZOOM_MODE_INCREMENTAL -> {
+                // PR#900 路径：禁用 ZoomImage 自带双击缩放，改走自家 GestureDetector
+                baseBind.image.zoomable.setThreeStepScale(false)
+                baseBind.image.zoomable.setScalesCalculator(ScalesCalculator.Dynamic)
+                baseBind.image.zoomable.setDisabledGestureTypes(
+                    baseBind.image.zoomable.disabledGestureTypesState.value or GestureType.DOUBLE_TAP_SCALE
+                )
+                setupCustomDoubleTapTouchListener()
+            }
+            else -> {
+                // 默认路径：onViewTapListener → setReadMode 的顺序与改前完全一致
+                baseBind.image.zoomable.setThreeStepScale(false)
+                baseBind.image.zoomable.setScalesCalculator(ScalesCalculator.Dynamic)
+                baseBind.image.onViewTapListener = OnViewTapListener { _, _ ->
+                    // 线上崩溃点：ZoomImage 的 onSingleTapConfirmed 经 Handler 延迟派发，
+                    // 打到已 detach 的 fragment 上时 viewModel 会走 requireActivity() 抛 ISE。
+                    if (!isGestureTargetAlive) return@OnViewTapListener
+                    viewModel.toggleFullscreen()
+                }
+                setupLibraryLongPressReset()
             }
         }
         // 长图阅读模式：自动填满宽度、从顶部开始，无需手动双击放大再滑动
@@ -406,19 +289,61 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         baseBind.image.zoomable.setKeepTransformWhenSameAspectRatioContentSizeChanged(true)
     }
 
-    /** 清掉「缩到哪一档」的记忆，让下一次双击从当前倍率重新开始记。 */
+    /** 增量模式自定义双击路径的触摸分发：单指交给 GestureDetector，多指交回 ZoomImage。 */
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupCustomDoubleTapTouchListener() {
+        baseBind.image.setOnTouchListener { v, event ->
+            // 还是要阻止可能存在误触打断到动画的
+            if (event.pointerCount == 1) {
+                gestureDetector.onTouchEvent(event)
+            } else {
+                // 多指（双指缩放/拖拽）：取消 gestureDetector 的待处理长按事件
+                // 通过发送一个 ACTION_CANCEL 来阻止长按触发
+                gestureDetector.onTouchEvent(
+                    MotionEvent.obtain(
+                        event.downTime,
+                        event.eventTime,
+                        MotionEvent.ACTION_CANCEL,
+                        event.x,
+                        event.y,
+                        event.metaState
+                    ).also { it.recycle() }
+                )
+                v.onTouchEvent(event)
+            }
+        }
+    }
+
+    /** 默认/三级共用：让库自带长按也支持「长按复原到最小」。 */
+    private fun setupLibraryLongPressReset() {
+        baseBind.image.onViewLongPressListener = OnViewLongPressListener { _, offset ->
+            if (isGestureTargetAlive && Shaft.sSettings.isUseCustomLongPressReset) {
+                val zoomable = baseBind.image.zoomable
+                val contentPoint = zoomable.touchPointToContentPointF(offset)
+                if (viewModel.isFullscreenMode.value == true) {
+                    viewModel.toggleFullscreen()
+                }
+                viewLifecycleOwner.lifecycleScope.launch {
+                    zoomable.scale(
+                        targetScale = zoomable.minScaleState.value,
+                        centroidContentPointF = contentPoint,
+                        animated = true
+                    )
+                }
+            }
+        }
+    }
+
+    /** 清掉「已到最大」的记忆，避免 contentSize 变化后增量双击误判。 */
     private fun resetZoomLevelMemory() {
-        savedScale = null
-        zoomedToMax = false
         isScaleMax = false
-        pendingGestureCheck = false
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // 换底图（large 占位 → 原图 / 译图）会改变 contentSize，双击缩放记的绝对倍率随之失真，
-        // 见 [lastZoomContentSize]。默认路径（ZoomImage 自带双击）没有这类记忆，不必挂这个观察。
-        if (Shaft.sSettings.isUseCustomDoubleTapZoom) {
+        // 换底图（large 占位 → 原图 / 译图）会改变 contentSize，增量模式记的绝对倍率随之失真，
+        // 见 [lastZoomContentSize]。默认/三级都走库自带双击，没有这类记忆，不必挂这个观察。
+        if (Shaft.sSettings.getDoubleTapZoomMode() == Settings.DOUBLE_TAP_ZOOM_MODE_INCREMENTAL) {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     baseBind.image.zoomable.contentSizeState.collect { size ->
