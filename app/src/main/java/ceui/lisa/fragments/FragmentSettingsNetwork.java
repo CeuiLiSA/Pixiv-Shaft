@@ -280,9 +280,10 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                     CharSequence text = builder.getEditText().getText();
                     String proxy = text == null ? "" : text.toString().trim();
                     // 校验交给拦截器的 normalizeBase（唯一事实源）：它接受裸域名并自动补 https，
-                    // 只拒绝显式 http:// 等非 https scheme、带 query/fragment、以及解析失败。
+                    // 只拒绝非法 scheme（debug 下显式 http:// 是放行的）、带 query/fragment、以及解析失败。
                     // 这里不再自己判 startsWith("https://")——那比 normalizeBase 严格，
-                    // 会把合法的裸域名（pxve.example.com）误拦掉。
+                    // 会把合法的裸域名（pxve.example.com）误拦掉；也不按 buildType 再开第二个口子，
+                    // 否则 debug 下填了真正非法的地址会被静默存下，用户以为代理生效了其实全程直连。
                     if (!TextUtils.isEmpty(proxy)
                             && AppApiProxyInterceptor.normalizeBase(proxy) == null) {
                         Common.showToast(getString(R.string.app_api_proxy_https_required), 2);

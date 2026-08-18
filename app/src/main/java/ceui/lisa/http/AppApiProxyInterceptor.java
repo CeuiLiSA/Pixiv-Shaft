@@ -2,6 +2,7 @@ package ceui.lisa.http;
 
 import java.io.IOException;
 
+import ceui.lisa.BuildConfig;
 import ceui.lisa.activities.Shaft;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
@@ -49,8 +50,8 @@ public class AppApiProxyInterceptor implements Interceptor {
 
         final HttpUrl newUrl = rewrite(url, proxy);
         if (newUrl == null) {
-            // 地址非法（非 https / 带 query / 解析失败）：不静默裸连，明确告警
-            Timber.w("AppApiProxyInterceptor: 代理地址非法已忽略（仅支持 https:// 且不含 query）: %s", proxy);
+            // 地址非法（scheme 不允许 / 带 query / 解析失败）：不静默裸连，明确告警
+            Timber.w("AppApiProxyInterceptor: 代理地址非法已忽略（需 https://，debug 另可显式 http://，且不含 query）: %s", proxy);
             return chain.proceed(request);
         }
 
@@ -61,11 +62,15 @@ public class AppApiProxyInterceptor implements Interceptor {
     /**
      * 将 app-api / oauth 请求改写为代理路径。纯函数，不依赖 Android 环境，便于单元测试。
      *
+     * <p>公开给网络测试页（NetworkTestViewModel）复用：探测转发路径时必须发**生产会发的那个
+     * URL**，自己手拼 {@code root + "/pixiv-app-api"} 会绕开下面的双前缀去重，把用户按
+     * 「误填完整 PxveAPI 地址」形态配好的、实际能用的代理误报成 404。</p>
+     *
      * @param original 原始请求 URL（app-api.pixiv.net 或 oauth.secure.pixiv.net）
      * @param proxy    用户配置的代理根地址（原始字符串）
      * @return 改写后的 URL；代理地址非法或为空时返回 null（调用方决定放行原请求）
      */
-    static HttpUrl rewrite(HttpUrl original, String proxy) {
+    public static HttpUrl rewrite(HttpUrl original, String proxy) {
         if (proxy == null || proxy.trim().isEmpty()) return null;
 
         final String prefix;
@@ -89,8 +94,10 @@ public class AppApiProxyInterceptor implements Interceptor {
         // 只用 base 的 scheme://host[:port] 作为根，路径部分单独规范化：
         // 用户可能误填完整 PxveAPI 地址（如 https://proxy/pixiv-app-api），
         // 去掉路径里已存在的同名前缀，避免拼出 /pixiv-app-api/pixiv-app-api 双前缀 404。
+        // 默认端口按 base 自身的 scheme 取：debug 下允许 http 代理后，恒用 https 的 443
+        // 会给 80 端口的 http 代理拼出多余的 ":80"，和网络测试页展示/探测的 URL 对不上。
         final String root = base.scheme() + "://" + base.host()
-                + (base.port() != HttpUrl.defaultPort("https") ? ":" + base.port() : "");
+                + (base.port() != HttpUrl.defaultPort(base.scheme()) ? ":" + base.port() : "");
         String basePath = base.encodedPath();
         while (basePath.endsWith("/")) {
             basePath = basePath.substring(0, basePath.length() - 1);
@@ -116,8 +123,11 @@ public class AppApiProxyInterceptor implements Interceptor {
      * （返回 null 即提示用户），避免 UI 侧另写一套判断跟这里的规则漂移。</p>
      *
      * <ul>
-     *   <li>强制 {@code https://}：显式写 {@code http://} 或其它 scheme 直接视为非法（返回 null），
-     *       避免 Authorization 令牌走明文；裸域名自动补 {@code https://} 前缀。</li>
+     *   <li>scheme：只接受 {@code https://}；其它 scheme 视为非法（返回 null），避免 Authorization
+     *       令牌走明文。Debug 构建额外放行**显式**写出的 {@code http://}（本地起代理调试用），
+     *       Release 一律拒绝。</li>
+     *   <li>裸域名（不带 scheme）**任何 buildType 下都补 {@code https://}**：明文只能是用户
+     *       显式写出来的选择，不由 buildType 替他决定。</li>
      *   <li>去掉末尾全部斜杠（含根路径 "/"，不止 1 个）。</li>
      *   <li>带 query / fragment 视为非法（代理根地址不应携带），避免拼出非法 URL。</li>
      *   <li>解析失败（非法字符等）返回 null。</li>
@@ -130,11 +140,15 @@ public class AppApiProxyInterceptor implements Interceptor {
         if (p.isEmpty()) return null;
 
         if (p.contains("://")) {
-            // 显式带 scheme：只接受 https
-            if (!p.startsWith("https://") && !p.startsWith("HTTPS://")) {
+            final boolean https = p.regionMatches(true, 0, "https://", 0, 8);
+            // Debug 构建额外放行**显式**写出的 http://（本地起代理调试用）；Release 只收 https。
+            final boolean debugHttp = BuildConfig.IS_DEBUG_MODE && p.regionMatches(true, 0, "http://", 0, 7);
+            if (!https && !debugHttp) {
                 return null;
             }
         } else {
+            // 裸域名一律补 https：这是绝大多数人填写代理的方式，明文只能是用户显式写出来的选择，
+            // 不能由 buildType 悄悄替他决定（否则 debug 包里 Authorization / refresh_token 走明文）。
             p = "https://" + p;
         }
 

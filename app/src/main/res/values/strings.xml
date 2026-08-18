@@ -2211,6 +2211,8 @@
     <string name="network_test_env_doh_off">安全 DNS 关</string>
     <string name="network_test_env_direct_on">直连开</string>
     <string name="network_test_env_direct_off">直连关</string>
+    <string name="network_test_env_proxy_on">使用PxveAPI · %1$s</string>
+    <string name="network_test_env_proxy_off">使用PxveAPI · 关</string>
     <string name="network_test_env_host_prefix">图片代理 · </string>
     <string name="network_test_empty_hint">点击下方「开始测试」运行网络诊断</string>
     <string name="network_test_section_targets">连通性诊断</string>
@@ -2240,6 +2242,7 @@
     <string name="network_test_overall_polluted_bypass_sub">本机 DNS 被污染，但已通过安全 DNS/直连绕过，握手正常</string>
     <string name="network_test_overall_unavailable">网络不可用</string>
     <string name="network_test_overall_unavailable_sub">主 API（app-api.pixiv.net）不可达，应用主要功能不可用</string>
+    <string name="network_test_overall_unavailable_sub_proxy">主 API（PxveAPI 代理 %1$s）不可达，应用主要功能不可用</string>
     <string name="network_test_image_unavailable">图片无法加载</string>
     <string name="network_test_pollution_dialog_title">⚠ 检测到 DNS 污染</string>
     <string name="network_test_fakeip_dialog_title">⚠️ 检测到假 IP</string>
@@ -2252,6 +2255,7 @@
 
     <!-- 目标卡副标题 -->
     <string name="network_test_target_sub_app_api">pixiv API · Cloudflare CDN</string>
+    <string name="network_test_target_sub_app_api_proxy">PxveAPI 代理 · %1$s</string>
     <string name="network_test_target_sub_web">网页端点 · Cloudflare CDN</string>
     <string name="network_test_target_sub_image_official">图片服务器 · Pixiv Japan</string>
     <string name="network_test_target_sub_image_proxy">图片服务器 · 反代 %1$s</string>
@@ -2327,6 +2331,20 @@
     <string name="network_test_web_ok">HTTP %1$d · %2$dms · 作品 #%3$d 已返回图片地址</string>
     <string name="network_test_web_degraded">HTTP %1$d · error=%2$s · 未拿到图片地址</string>
     <string name="network_test_web_failed">请求失败: %1$s</string>
+
+    <!-- PxveAPI 代理转发路径探测（仅开启 App API 代理时追加） -->
+    <string name="network_test_pxve_app_api_step">PxveAPI 转发 · /pixiv-app-api</string>
+    <string name="network_test_pxve_oauth_step">PxveAPI 转发 · /pixiv-oauth</string>
+    <string name="network_test_pxve_http_skip">跳过 HTTPS 握手</string>
+    <string name="network_test_pxve_http_skip_detail">Debug 模式允许 http 代理，仅验证 /pixiv-app-api 与 /pixiv-oauth 转发响应</string>
+    <string name="network_test_pxve_app_api_path">/pixiv-app-api</string>
+    <string name="network_test_pxve_oauth_path">/pixiv-oauth</string>
+    <string name="network_test_pxve_ok_2xx">可达 · %1$dms · HTTP %2$d（正常）</string>
+    <string name="network_test_pxve_ok_auth">可达 · %1$dms · HTTP %2$d（缺凭证的预期响应，转发链路通）</string>
+    <string name="network_test_pxve_ok_other">可达 · %1$dms · HTTP %2$d</string>
+    <string name="network_test_pxve_fail_status">异常 · %1$dms · HTTP %2$d</string>
+    <string name="network_test_pxve_not_found">不可达 · %1$dms · HTTP %2$d（代理未转发 %3$s 路径）</string>
+    <string name="network_test_pxve_failed">连接失败: %1$s</string>
 
     <!-- 图片下载探测（runImageDownloadPhase / downloadImageStep） -->
     <string name="network_test_dl_title">图片下载探测</string>

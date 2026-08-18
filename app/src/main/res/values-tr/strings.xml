@@ -1996,6 +1996,8 @@
     <string name="network_test_env_doh_off">Güvenli DNS kapalı</string>
     <string name="network_test_env_direct_on">Doğrudan bağlantı açık</string>
     <string name="network_test_env_direct_off">Doğrudan bağlantı kapalı</string>
+    <string name="network_test_env_proxy_on">PxveAPI kullanılıyor · %1$s</string>
+    <string name="network_test_env_proxy_off">PxveAPI kapalı</string>
     <string name="network_test_empty_hint">Ağ tanısını başlatmak için aşağıdaki &quot;Testi başlat&quot;a dokunun</string>
     <string name="network_test_section_targets">Bağlantı tanısı</string>
     <string name="network_test_section_illust">Eser API testi</string>
@@ -2029,8 +2031,10 @@
     <string name="network_test_overall_polluted_bypass_sub">Yerel DNS kirli, ancak güvenli DNS/doğrudan bağlantı ile atlandı; el sıkışma normal</string>
     <string name="network_test_overall_unavailable">Ağ kullanılamıyor</string>
     <string name="network_test_overall_unavailable_sub">Ana API (app-api.pixiv.net) erişilemez; temel özellikler çalışmıyor</string>
+    <string name="network_test_overall_unavailable_sub_proxy">Ana API (PxveAPI proxy %1$s) erişilemez; temel özellikler çalışmıyor</string>
     <string name="network_test_image_unavailable">Görseller yüklenemiyor</string>
     <string name="network_test_target_sub_app_api">pixiv API · Cloudflare CDN</string>
+    <string name="network_test_target_sub_app_api_proxy">PxveAPI proxy · %1$s</string>
     <string name="network_test_target_sub_web">Web uç noktası · Cloudflare CDN</string>
     <string name="network_test_target_sub_image_official">Görsel sunucusu · Pixiv Japan</string>
     <string name="network_test_target_sub_image_proxy">Görsel sunucusu · proxy %1$s</string>
@@ -2092,6 +2096,18 @@
     <string name="network_test_web_ok">HTTP %1$d · %2$dms · #%3$d çalışması görsel URL\'si döndü</string>
     <string name="network_test_web_degraded">HTTP %1$d · error=%2$s · görsel URL alınamadı</string>
     <string name="network_test_web_failed">İstek başarısız: %1$s</string>
+    <string name="network_test_pxve_app_api_step">PxveAPI iletimi · /pixiv-app-api</string>
+    <string name="network_test_pxve_oauth_step">PxveAPI iletimi · /pixiv-oauth</string>
+    <string name="network_test_pxve_http_skip">HTTPS el sıkışması atlanıyor</string>
+    <string name="network_test_pxve_http_skip_detail">Debug derlemeleri HTTP proxy kullanabilir; yalnızca /pixiv-app-api ve /pixiv-oauth iletim yanıtları denetlenir</string>
+    <string name="network_test_pxve_app_api_path">/pixiv-app-api</string>
+    <string name="network_test_pxve_oauth_path">/pixiv-oauth</string>
+    <string name="network_test_pxve_ok_2xx">Ulaşılabilir · %1$dms · HTTP %2$d (normal)</string>
+    <string name="network_test_pxve_ok_auth">Ulaşılabilir · %1$dms · HTTP %2$d (kimlik bilgisi olmadan beklenen yanıt, iletim yolu çalışıyor)</string>
+    <string name="network_test_pxve_ok_other">Ulaşılabilir · %1$dms · HTTP %2$d</string>
+    <string name="network_test_pxve_fail_status">Anormal · %1$dms · HTTP %2$d</string>
+    <string name="network_test_pxve_not_found">Ulaşılamıyor · %1$dms · HTTP %2$d (proxy %3$s yolunu iletmiyor)</string>
+    <string name="network_test_pxve_failed">Bağlantı başarısız: %1$s</string>
     <string name="network_test_dl_title">Görsel indirme testi</string>
     <string name="network_test_dl_sub">Örnek çalışma #%1$d · illüstrasyon + avatar</string>
     <string name="network_test_fetching">Alınıyor…</string>

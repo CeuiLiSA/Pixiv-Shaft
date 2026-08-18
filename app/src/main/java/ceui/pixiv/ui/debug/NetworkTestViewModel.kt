@@ -3,8 +3,10 @@ package ceui.pixiv.ui.debug
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
+import ceui.lisa.http.AppApiProxyInterceptor
 import ceui.lisa.http.CronetInterceptor
 import ceui.lisa.http.HttpDns
 import ceui.lisa.http.ImageHostManager
@@ -27,7 +29,10 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import okhttp3.ConnectionPool
 import okhttp3.Dns
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Protocol
 import okhttp3.Request
 import timber.log.Timber
@@ -41,6 +46,36 @@ import java.net.UnknownHostException
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
+
+/** 点分四段 IPv4 前缀（可后接 :port / 路径），用于把 IP 按「段」而不是按字符数脱敏。 */
+private val IPV4_PREFIX = Regex("""^(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}""")
+
+/**
+ * 代理地址脱敏：保留 scheme 和地址开头少量信息，后面统一替换为 ***。
+ * 用于 PxveAPI 地址与自定义图片反代在 UI / 原始日志中的展示，避免泄露他人私有地址。
+ * 例：https://your-proxy.domain → https://your***；https://192.168.10.109:3021 → https://192.168***
+ *
+ * IPv4 按**段**截断（保留前两段）而不是按字符数：按字符数截会随 IP 变短而越露越多，
+ * 极端情况（https://1.2.3.4:8080）能把整个公网 IP 原样漏出来，正好背离脱敏的目的。
+ */
+internal fun maskProxyUrl(url: String): String {
+    val trimmed = url.trim()
+    val scheme = when {
+        trimmed.startsWith("https://", ignoreCase = true) -> "https://"
+        trimmed.startsWith("http://", ignoreCase = true) -> "http://"
+        else -> ""
+    }
+    val rest = if (scheme.isEmpty()) trimmed else trimmed.substring(scheme.length)
+    val ipv4 = IPV4_PREFIX.find(rest)
+    val visible = if (ipv4 != null) {
+        // IP：保留前两段（192.168 / 10.0），后两段与端口一律隐藏。
+        "${ipv4.groupValues[1]}.${ipv4.groupValues[2]}"
+    } else {
+        // 域名（含 IPv6 字面量）：保留前 4 个字符。
+        rest.take(4)
+    }
+    return "$scheme$visible***"
+}
 
 /** 单条步骤的语义状态，决定圆点 / pill 的颜色（在 Fragment 里按状态染 v3 颜色）。 */
 enum class StepStatus { INFO, OK, WARN, FAIL, RUNNING, HIGH_LATENCY, EXTREME_LATENCY }
@@ -88,6 +123,9 @@ data class NetworkAlert(val titleRes: Int, val message: String)
  *   4. 直连开启时额外做 ICMP/echo 可达性（代理下无意义，故仅直连）
  *   5. HTTPS 握手：持续 5s 多次采样，给 min/avg/max/抖动 + TLS/协议信息
  *   · www.pixiv.net 握手后再发一次真实网页请求（/ajax/illust/{样例}），验证 web 端点可用
+ *   · 开启 PxveAPI 代理时，app-api 目标替换为用户填写的代理根地址，并追加
+ *     /pixiv-app-api 与 /pixiv-oauth 两条转发路径的响应探测（https 在握手成功后测；
+ *     Debug 模式允许 http 代理，跳过 HTTPS 握手直接测转发）
  *
  * 所有目标握手测完后追加「图片下载探测」：对样例作品的插画图 + 画师头像各下一张真图，
  * URL 先经 [ImageHostManager.rewrite] 重写 —— 与 Glide / Manager / Ugoira 同源，
@@ -121,6 +159,8 @@ class NetworkTestViewModel : ViewModel() {
 
     val dohEnabled: Boolean get() = Shaft.sSettings?.isUseSecureDns == true
     val directConnect: Boolean get() = Shaft.sSettings?.isDirectConnect == true
+    val proxyEnabled: Boolean get() = Shaft.sSettings?.isUseAppApiProxy == true
+    val proxyRoot: String? get() = Shaft.sSettings?.getAppApiProxy()?.let { AppApiProxyInterceptor.normalizeBase(it) }
 
     /** 一次性事件：检测到 DNS 污染 / fake-ip 时弹窗提醒（PR #894 的核心诉求）。 */
     private val _pollutionAlert = MutableSharedFlow<NetworkAlert>(extraBufferCapacity = 1)
@@ -142,7 +182,7 @@ class NetworkTestViewModel : ViewModel() {
     /** http 反代等跳过连通性的图片目标：卡片判定以图片下载探测为准（探测结束回写该卡状态）。 */
     private var imageCardRelyOnDownload = false
 
-    /** 本轮图片目标卡的标题（imageCfg.host），供下载阶段定位并回写该卡。 */
+    /** 本轮图片目标卡的标题（imageCfg.displayName ?: imageCfg.host），供下载阶段定位并回写该卡。 */
     private var imageTargetTitle: String? = null
 
     /** 本轮在途的 OkHttp 客户端；onCleared 时 cancelAll 中断阻塞中的 execute()，让测试尽快收尾。 */
@@ -154,6 +194,37 @@ class NetworkTestViewModel : ViewModel() {
         // 避免 VM 重建 / 重进页面时旧一轮还在跑、又并发开第二轮。
         activeClients.forEach { it.dispatcher.cancelAll() }
         super.onCleared()
+    }
+
+    /** PxveAPI 开启且地址合法时，用代理根地址替换 app-api.pixiv.net 目标；否则保持官方域名。 */
+    private fun buildAppApiConfig(): TargetConfig {
+        val ctx = Shaft.getContext()
+        val root = proxyRoot
+        if (root != null) {
+            val url = try {
+                root.toHttpUrl()
+            } catch (e: Exception) {
+                null
+            }
+            if (url != null) {
+                val defaultPort = if (url.scheme == "http") 80 else 443
+                val host = url.host + if (url.port != defaultPort) ":${url.port}" else ""
+                return TargetConfig(
+                    host = host,
+                    subtitle = ctx.getString(R.string.network_test_target_sub_app_api_proxy, maskProxyUrl(root)),
+                    cidrs = null,
+                    kind = TargetKind.APP_API,
+                    rootUrl = root,
+                    displayName = maskProxyUrl(root),
+                )
+            }
+        }
+        return TargetConfig(
+            host = APP_API_HOST,
+            subtitle = ctx.getString(R.string.network_test_target_sub_app_api),
+            cidrs = PIXIV_CIDRS,
+            kind = TargetKind.APP_API,
+        )
     }
 
     /** fake-ip 提示弹窗每轮测试只弹一次。 */
@@ -176,6 +247,10 @@ class NetworkTestViewModel : ViewModel() {
         val kind: TargetKind,
         /** 自定义反代为 http://（明文，非 https）：https 握手无法代表它，跳过连通性，以图片下载探测为准。 */
         val plainHttp: Boolean = false,
+        /** PxveAPI 代理根地址（https://host[/path]；Debug 下可为 http://host[/path]，无尾斜杠）；仅 APP_API 走代理时非空。 */
+        val rootUrl: String? = null,
+        /** 卡片标题展示名；缺省用 [host]。PxveAPI 场景展示完整根地址。 */
+        val displayName: String? = null,
     )
 
     private data class HandshakeResult(val ok: Boolean, val avgMs: Int, val maxMs: Int)
@@ -205,10 +280,15 @@ class NetworkTestViewModel : ViewModel() {
 
         val doh = dohEnabled
         val direct = directConnect
+        val appApiCfg = buildAppApiConfig()
+        val appApiTitle = appApiCfg.displayName ?: appApiCfg.host
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                log("环境: 安全 DNS(DoH) ${onOff(doh)} · 直连 ${onOff(direct)}")
+                log(
+                    "环境: 安全 DNS(DoH) ${onOff(doh)} · 直连 ${onOff(direct)} · " +
+                        "App API 代理 ${appApiCfg.rootUrl?.let { maskProxyUrl(it) } ?: onOff(proxyEnabled)}",
+                )
                 log("")
 
                 // 图片目标联动当前图片代理：反代模式下直接把目标域名换成反代域名来测。
@@ -219,12 +299,18 @@ class NetworkTestViewModel : ViewModel() {
                     ImageHostManager.getCustomHost().trim().startsWith("http://", ignoreCase = true)
                 imageCardRelyOnDownload = imagePlainHttp
                 val imageCfg = if (imageProxy != null) {
+                    val imageDisplay = if (ImageHostManager.getMode() == ImageHostManager.Mode.CUSTOM) {
+                        maskProxyUrl(imageProxy)
+                    } else {
+                        imageProxy
+                    }
                     TargetConfig(
                         imageProxy,
-                        Shaft.getContext().getString(R.string.network_test_target_sub_image_proxy, imageProxy),
+                        Shaft.getContext().getString(R.string.network_test_target_sub_image_proxy, imageDisplay),
                         null,
                         TargetKind.IMAGE,
                         plainHttp = imagePlainHttp,
+                        displayName = imageDisplay,
                     )
                 } else {
                     TargetConfig(
@@ -234,14 +320,10 @@ class NetworkTestViewModel : ViewModel() {
                         TargetKind.IMAGE,
                     )
                 }
-                imageTargetTitle = imageCfg.host
+                imageTargetTitle = imageCfg.displayName ?: imageCfg.host
+                val imageTitle = imageCfg.displayName ?: imageCfg.host
                 val configs = listOf(
-                    TargetConfig(
-                        APP_API_HOST,
-                        Shaft.getContext().getString(R.string.network_test_target_sub_app_api),
-                        PIXIV_CIDRS,
-                        TargetKind.APP_API,
-                    ),
+                    appApiCfg,
                     TargetConfig(
                         "www.pixiv.net",
                         Shaft.getContext().getString(R.string.network_test_target_sub_web),
@@ -259,11 +341,37 @@ class NetworkTestViewModel : ViewModel() {
                 val polluted = mutableListOf<String>()
                 val bypassOk = mutableListOf<Boolean>()
                 for (cfg in configs) {
-                    val idx = addTarget(TargetReport(cfg.host, cfg.subtitle))
-                    val (isPolluted, hsOk) = testTarget(idx, cfg, doh, direct)
-                    if (isPolluted) {
-                        polluted.add(cfg.host)
-                        bypassOk.add(hsOk)
+                    val idx = addTarget(TargetReport(cfg.displayName ?: cfg.host, cfg.subtitle))
+                    // Debug 模式允许 http PxveAPI：不测 HTTPS 握手，直接验证两条转发路径。
+                    val plainHttpProxy = cfg.kind == TargetKind.APP_API &&
+                        BuildConfig.IS_DEBUG_MODE &&
+                        cfg.rootUrl?.startsWith("http://", ignoreCase = true) == true
+                    if (plainHttpProxy) {
+                        log("PxveAPI 为 http（Debug），跳过 HTTPS 握手，只测转发路径")
+                        addStep(
+                            idx,
+                            TestStep(
+                                strRes(R.string.network_test_pxve_http_skip),
+                                strRes(R.string.network_test_pxve_http_skip_detail),
+                                StepStatus.INFO,
+                            ),
+                        )
+                        probePxveEndpoints(idx, cfg, direct)
+                        // http 代理没有握手步骤可判定状态；两条转发路径都通过时置为 OK。
+                        if (work[idx].status == TargetStatus.RUNNING) {
+                            setStatus(idx, TargetStatus.OK)
+                        }
+                    } else {
+                        val (isPolluted, hsOk) = testTarget(idx, cfg, doh, direct)
+                        // PxveAPI 代理开启时，额外验证 /pixiv-app-api 与 /pixiv-oauth 转发路径
+                        // 有正确响应（握手成功后才做；握手失败时卡片已 FAILED，无需重复报错）。
+                        if (cfg.kind == TargetKind.APP_API && cfg.rootUrl != null && hsOk) {
+                            probePxveEndpoints(idx, cfg, direct)
+                        }
+                        if (isPolluted) {
+                            polluted.add(cfg.host)
+                            bypassOk.add(hsOk)
+                        }
                     }
                     // 退出页面：每个目标测完检查一次取消，提前收尾、不再测下一个
                     // （阻塞段内取消不了，段间放行；onCleared 已 cancel 在途 Call 加速中断）。
@@ -287,17 +395,18 @@ class NetworkTestViewModel : ViewModel() {
                 val anyExtremeLatency = work.any { it.status == TargetStatus.EXTREME_LATENCY } ||
                     imageDownloadLatency == TargetStatus.EXTREME_LATENCY
                 val anyDegraded = work.any { it.status == TargetStatus.DEGRADED } || imageDownloadFailed
-                // app-api 是 app 的主 API：它失败（握手失败 / 污染且未绕过）＝网络不可用，
+                // app-api 是 app 的主 API（PxveAPI 开启时即代理目标）：它失败（握手失败 /
+                // 污染且未绕过 / 代理转发路径异常）＝网络不可用，
                 // 总览必须是红底「网络不可用」，且绝不能报「网络勉强可用」。
                 val appApiFailed = work.any {
-                    it.title == APP_API_HOST &&
+                    it.title == appApiTitle &&
                         (it.status == TargetStatus.FAILED || it.status == TargetStatus.POLLUTED)
                 }
                 // 图片服务器（官方 i.pximg.net 或当前反代域名）失败：卡片 pill 覆盖为红底
                 // 「图片无法加载」，顶部总览并列红底 pill，小字追加换图片代理的提示。
                 // 局部变量用 imageFailed，避免与成员属性 imageTargetFailed 重名遮蔽。
                 val imageFailed = work.any {
-                    it.title == imageCfg.host &&
+                    it.title == imageTitle &&
                         (it.status == TargetStatus.FAILED || it.status == TargetStatus.POLLUTED)
                 }
                 imageTargetFailed.postValue(imageFailed)
@@ -316,8 +425,8 @@ class NetworkTestViewModel : ViewModel() {
                     it.status == TargetStatus.HIGH_LATENCY || it.status == TargetStatus.EXTREME_LATENCY
                 }.map { it.title }
                 // 图片下载卡的延迟同样归到「图片代理慢」，小字给换图片代理的建议。
-                val imageHighLatency = latencyHosts.contains(imageCfg.host) || imageDownloadLatency != null
-                val otherHighLatency = latencyHosts.any { it != imageCfg.host }
+                val imageHighLatency = latencyHosts.contains(imageTitle) || imageDownloadLatency != null
+                val otherHighLatency = latencyHosts.any { it != imageTitle }
                 val ov = when {
                     appApiFailed -> OverallStatus.NETWORK_DOWN
                     polluted.isNotEmpty() -> OverallStatus.POLLUTED
@@ -331,8 +440,13 @@ class NetworkTestViewModel : ViewModel() {
                 val imageHint = ctx.getString(R.string.network_test_high_latency_sub_image)
                 val subText: String? = when {
                     ov == OverallStatus.NETWORK_DOWN -> {
-                        // 主 API 失败：小字说明主 API 不可达；图片服务器也失败时再追加换代理提示。
-                        var base = ctx.getString(R.string.network_test_overall_unavailable_sub)
+                        // 主 API 失败：小字说明主 API 不可达；PxveAPI 开启时指向代理地址；
+                        // 图片服务器也失败时再追加换代理提示。
+                        var base = if (appApiCfg.rootUrl != null) {
+                            ctx.getString(R.string.network_test_overall_unavailable_sub_proxy, maskProxyUrl(appApiCfg.rootUrl))
+                        } else {
+                            ctx.getString(R.string.network_test_overall_unavailable_sub)
+                        }
                         if (imageFailed) base += "\n$imageHint"
                         base
                     }
@@ -386,7 +500,7 @@ class NetworkTestViewModel : ViewModel() {
                 }
                 overallSub.postValue(subText)
                 // 图片服务器失败：卡片 pill 覆盖为红底「图片无法加载」（颜色仍按 FAILED/POLLUTED 取红）。
-                val imageIdx = work.indexOfFirst { it.title == imageCfg.host }
+                val imageIdx = work.indexOfFirst { it.title == imageTitle }
                 if (imageIdx >= 0 && imageFailed) {
                     work[imageIdx] = work[imageIdx].copy(
                         statusPillOverride = ctx.getString(R.string.network_test_image_unavailable),
@@ -423,9 +537,13 @@ class NetworkTestViewModel : ViewModel() {
         }
     }
 
-    /** @return (该目标本机 DNS 是否被判定为污染, 污染时握手是否成功——决定绕过是否生效)。 */
+    /**
+     * @return (该目标本机 DNS 是否被判定为污染, 握手是否成功)。
+     *   第二元素在污染时决定「绕过是否生效」，同时也是 PxveAPI 转发路径探测的前置条件，
+     *   所以每条 return 都要给出**真实**的握手结果，不能因为该分支不关心污染就恒填 false。
+     */
     private fun testTarget(idx: Int, cfg: TargetConfig, doh: Boolean, direct: Boolean): Pair<Boolean, Boolean> {
-        log("========== ${cfg.host} ==========")
+        log("========== ${cfg.displayName ?: cfg.host} ==========")
 
         // http 反代：握手客户端只走 HTTPS，无法代表明文反代（且 host 常带非 443 端口），
         // 直接跳过连通性 / 握手，卡片判定由 runImageDownloadPhase 以真实下载结果回写。
@@ -505,7 +623,9 @@ class NetworkTestViewModel : ViewModel() {
                 }
             }
             log("")
-            return false to false
+            // fake-ip 下不判污染（isPolluted=false，bypassOk 不消费第二元素），但握手结果要如实返回：
+            // Clash 等 fake-ip 环境正是自建 PxveAPI 的典型场景，恒填 false 会让转发路径探测整段不跑。
+            return false to hs.ok
         }
         log("DNS: " + sysAddrs.joinToString(", ") { it.hostAddress ?: "?" })
 
@@ -969,6 +1089,118 @@ class NetworkTestViewModel : ViewModel() {
         return ok
     }
 
+    // ---- PxveAPI 代理转发路径探测（仅开启代理时） ----
+
+    /**
+     * PxveAPI 代理开启时，验证代理的 /pixiv-app-api 与 /pixiv-oauth 两条转发路径有正确响应。
+     * 探测 URL 一律由 [AppApiProxyInterceptor.rewrite] 生成 —— 和生产请求同一套拼接逻辑，
+     * 自己手拼 `root + "/pixiv-app-api"` 会绕开它的双前缀去重：用户把根地址按
+     * 「误填完整 PxveAPI 地址」的形态填成 https://proxy/pixiv-app-api（拦截器专门兼容、有单测
+     * 覆盖）时，手拼会多出一层前缀打成 404，把一个实际能用的配置诬告成代理异常。
+     * 用真实子路径请求（而不是只打前缀）避免 Hono 通配路由对裸前缀返回 404 的误报。
+     * 判定：200..499 且非 404 视为链路通（400/401/403 是无凭证时 Pixiv 的预期响应）；
+     * 404 / 5xx / 连接失败视为代理异常，并把该目标置为失败。
+     * Debug 模式允许 http 代理：此时不测 HTTPS 握手，客户端也退回标准 HTTP，不走 Cronet。
+     */
+    private fun probePxveEndpoints(idx: Int, cfg: TargetConfig, direct: Boolean) {
+        val root = cfg.rootUrl ?: return
+        val plainHttp = root.startsWith("http://", ignoreCase = true)
+        val appStepIdx = work[idx].steps.size
+        addStep(
+            idx,
+            TestStep(strRes(R.string.network_test_pxve_app_api_step), strRes(R.string.network_test_requesting), StepStatus.RUNNING),
+        )
+        val oauthStepIdx = work[idx].steps.size
+        addStep(
+            idx,
+            TestStep(strRes(R.string.network_test_pxve_oauth_step), strRes(R.string.network_test_requesting), StepStatus.RUNNING),
+        )
+
+        var client: OkHttpClient? = null
+        try {
+            // http 代理只做明文请求验证，不套 Cronet/QUIC；https 代理继续复刻真实握手客户端。
+            client = buildHandshakeClient(cfg, null, if (plainHttp) false else direct, pin = false)
+            val appOk = runPxveRequest(
+                idx,
+                appStepIdx,
+                client,
+                AppApiProxyInterceptor.rewrite(APP_API_PROBE_URL.toHttpUrl(), root),
+                R.string.network_test_pxve_app_api_path,
+            )
+            val oauthOk = runPxveRequest(
+                idx,
+                oauthStepIdx,
+                client,
+                AppApiProxyInterceptor.rewrite(OAUTH_PROBE_URL.toHttpUrl(), root),
+                R.string.network_test_pxve_oauth_path,
+                method = "POST",
+            )
+            if (!appOk || !oauthOk) {
+                setStatus(idx, TargetStatus.FAILED)
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            val msg = e.javaClass.simpleName + (e.message?.let { ": $it" } ?: "")
+            updateStep(idx, appStepIdx, strRes(R.string.network_test_pxve_failed, msg), StepStatus.FAIL)
+            updateStep(idx, oauthStepIdx, strRes(R.string.network_test_pxve_failed, msg), StepStatus.FAIL)
+            log("PxveAPI 转发探测异常终止: $msg")
+            setStatus(idx, TargetStatus.FAILED)
+        } finally {
+            client?.let {
+                activeClients.remove(it)
+                it.connectionPool.evictAll()
+                it.dispatcher.executorService.shutdown()
+            }
+        }
+    }
+
+    private fun runPxveRequest(
+        idx: Int,
+        stepIdx: Int,
+        client: OkHttpClient,
+        url: HttpUrl?,
+        pathLabelRes: Int,
+        method: String = "GET",
+    ): Boolean {
+        if (url == null) {
+            // root 来自 normalizeBase，正常不可能拼不出来；真拼不出来就是地址非法，如实报错。
+            updateStep(idx, stepIdx, strRes(R.string.network_test_pxve_failed, "invalid proxy url"), StepStatus.FAIL)
+            log("PxveAPI ${strRes(pathLabelRes)}: 代理地址非法，无法拼出探测 URL")
+            return false
+        }
+        val t0 = System.currentTimeMillis()
+        try {
+            val requestBuilder = Request.Builder().url(url)
+            // /pixiv-oauth/auth/token 的真实语义是 POST；用 GET 会被部分后端直接 404，造成误报。
+            if (method == "POST") {
+                requestBuilder.post(ByteArray(0).toRequestBody())
+            } else {
+                requestBuilder.get()
+            }
+            client.newCall(requestBuilder.build()).execute().use { resp ->
+                val ms = System.currentTimeMillis() - t0
+                val code = resp.code
+                val ok = code in 200..499 && code != 404
+                val detail = when {
+                    code == 404 -> strRes(R.string.network_test_pxve_not_found, ms, code, strRes(pathLabelRes))
+                    code in 200..299 -> strRes(R.string.network_test_pxve_ok_2xx, ms, code)
+                    code == 400 || code == 401 || code == 403 -> strRes(R.string.network_test_pxve_ok_auth, ms, code)
+                    ok -> strRes(R.string.network_test_pxve_ok_other, ms, code)
+                    else -> strRes(R.string.network_test_pxve_fail_status, ms, code)
+                }
+                updateStep(idx, stepIdx, detail, if (ok) StepStatus.OK else StepStatus.FAIL)
+                log("PxveAPI ${strRes(pathLabelRes)}: $method HTTP $code · ${ms}ms")
+                return ok
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            val msg = e.javaClass.simpleName + (e.message?.let { ": $it" } ?: "")
+            updateStep(idx, stepIdx, strRes(R.string.network_test_pxve_failed, msg), StepStatus.FAIL)
+            log("PxveAPI ${strRes(pathLabelRes)} 连接失败: $msg")
+            return false
+        }
+    }
+
     // ---- 图片下载探测（插画 + 头像，联动图片加载代理）----
 
     /**
@@ -1160,6 +1392,8 @@ class NetworkTestViewModel : ViewModel() {
      *  @return (步骤, 是否下载缓慢)。 */
     private fun downloadImageStep(label: String, rawUrl: String, judgeSpeed: Boolean = true): Pair<TestStep, Boolean> {
         val realUrl = ImageHostManager.rewrite(rawUrl)
+        val customImageProxy = ImageHostManager.getMode() == ImageHostManager.Mode.CUSTOM
+        val displayRealUrl = if (customImageProxy) maskProxyUrl(realUrl) else realUrl
         val client = buildImageDownloadClient()
         val t0 = System.currentTimeMillis()
         var result: Pair<TestStep, Boolean>
@@ -1193,6 +1427,7 @@ class NetworkTestViewModel : ViewModel() {
                     val speedKBs = if (transferMs > 0) data.size * 1000L / transferMs / 1024 else -1L
                     val speedTxt = if (speedKBs >= 0) "${speedKBs}KB/s" else "-"
                     val host = realUrl.substringAfter("://").substringBefore('/')
+                    val displayHost = if (customImageProxy) maskProxyUrl(host) else host
                     val ok = code in 200..299 && format != null
 
                     // 「下载缓慢」按吞吐判，不按绝对毫秒：样例插画只有 ~39KB，新建连接的
@@ -1214,7 +1449,7 @@ class NetworkTestViewModel : ViewModel() {
                     val tagTxt = if (tags.isNotEmpty()) " · " + tags.joinToString(" · ") else ""
                     log(
                         "$label: HTTP $code · ${data.size}B · TTFB ${ttfb}ms · 传输 ${transferMs}ms · $speedTxt · $format$tagTxt · " +
-                            "$rawUrl -> $realUrl",
+                            "$rawUrl -> $displayRealUrl",
                     )
                     val st = when {
                         !ok -> StepStatus.FAIL
@@ -1224,13 +1459,13 @@ class NetworkTestViewModel : ViewModel() {
                         else -> StepStatus.OK
                     }
                     val detail = if (ok) {
-                        strRes(R.string.network_test_dl_detail_ok, code, sizeTxt, ttfb, transferMs, speedTxt, format, tagTxt, host)
+                        strRes(R.string.network_test_dl_detail_ok, code, sizeTxt, ttfb, transferMs, speedTxt, format, tagTxt, displayHost)
                     } else {
                         strRes(
                             R.string.network_test_dl_detail_fail,
                             code, sizeTxt, ms,
                             if (format != null) " · $format" else "",
-                            host,
+                            displayHost,
                         )
                     }
                     TestStep(label, detail, st) to slow
@@ -1356,7 +1591,7 @@ class NetworkTestViewModel : ViewModel() {
         ImageHostManager.Mode.PIXIV_NL -> strRes(R.string.network_test_route_nl)
         ImageHostManager.Mode.CUSTOM -> {
             val host = ImageHostManager.getCustomHost()
-            if (host.isEmpty()) strRes(R.string.network_test_route_custom_none) else strRes(R.string.network_test_route_custom, host)
+            if (host.isEmpty()) strRes(R.string.network_test_route_custom_none) else strRes(R.string.network_test_route_custom, maskProxyUrl(host))
         }
     }
 
@@ -1581,6 +1816,10 @@ class NetworkTestViewModel : ViewModel() {
     companion object {
         /** app 主 API 域名：它失败即总览判「网络不可用」，且否决「网络勉强可用」。 */
         private const val APP_API_HOST = "app-api.pixiv.net"
+
+        /** 转发路径探测用的原始 pixiv URL：交给 [AppApiProxyInterceptor.rewrite] 改写成代理地址。 */
+        private const val APP_API_PROBE_URL = "https://app-api.pixiv.net/v1/illust/ranking?mode=day"
+        private const val OAUTH_PROBE_URL = "https://oauth.secure.pixiv.net/auth/token"
 
         // 代理 fake-ip 模式返回的占位段：不可路由，命中即说明 DNS 被代理接管，测连通无意义。
         private val FAKE_IP_CIDRS = listOf(
