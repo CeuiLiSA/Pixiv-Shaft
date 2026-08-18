@@ -3,13 +3,12 @@ package ceui.lisa.http
 /**
  * App API / OAuth / PxveAPI 代理的超时统一入口（Java / Kotlin 共用）。
  *
- * 只做收敛，不改值：当前各调用点要么显式 10s，要么走 OkHttp 默认 10s，
- * 因此这里统一取 10s，行为与之前完全一致。
+ * 只做收敛：连接超时现收敛到 5s，读/写超时仍保持原来的 10s。
+ * 所有调用点统一从这里取值，避免散落硬编码。
  *
  * 这些值覆盖以下调用段：
- * - [Retro.getLogClient]：老栈 AppApi（app-api.pixiv.net）与 AccountTokenApi
- *   （oauth.secure.pixiv.net 刷新 token）共用同一个 OkHttp builder；
- *   该 builder 也用于 web/sign/resource，值为原 OkHttp 默认 10s，未变。
+ * - [Retro.buildRetrofit]：老栈 AppApi（app-api.pixiv.net）、AccountTokenApi
+ *   （oauth.secure.pixiv.net 刷新 token）与 SignApi 共用。
  * - [ceui.loxia.ClientManager.createAPPAPI]：新栈 app-api。
  * - [ceui.pixiv.login.PixivLogin.buildClient]：OAuth 登录交换 / refresh_token 刷新。
  * - 以上 client 开启 PxveAPI 代理时，[AppApiProxyInterceptor] 改写后的代理请求
@@ -17,8 +16,8 @@ package ceui.lisa.http
  */
 object AppApiTimeouts {
 
-    /** 连接超时（秒）。值 = 原 OkHttp 默认 10s / loxia REQUIEST_TIME 10s。 */
-    const val CONNECT_TIMEOUT_SECONDS = 10L
+    /** 连接超时（秒）。现收敛到5s。 */
+    const val CONNECT_TIMEOUT_SECONDS = 5L
 
     /** 读超时（秒）。值 = 原 OkHttp 默认 10s / loxia REQUIEST_TIME 10s。 */
     const val READ_TIMEOUT_SECONDS = 10L

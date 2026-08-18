@@ -131,6 +131,10 @@ public class Retro {
      */
     private static Retrofit buildRetrofit(String baseUrl, boolean directConnect) {
         OkHttpClient.Builder builder = getLogClient();
+        // AppApi / OAuth 刷新 / PxveAPI 代理共用 AppApiTimeouts。
+        builder.connectTimeout(AppApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(AppApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .writeTimeout(AppApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         try {
             builder.addInterceptor(chain -> {
                 Request original = chain.request();
@@ -175,6 +179,10 @@ public class Retro {
      */
     private static Retrofit buildWebRetrofit() {
         OkHttpClient.Builder builder = getLogClient();
+        // www.pixiv.net 网页 ajax 用独立 WebApiTimeouts，不跟 app-api 混用。
+        builder.connectTimeout(WebApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(WebApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .writeTimeout(WebApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         builder.addInterceptor(new ceui.loxia.WebHeaderInterceptor());
         applyDirectConnect(builder, true);
         HttpLoggingInterceptor l = new HttpLoggingInterceptor(message -> Timber.i(message));
@@ -214,12 +222,11 @@ public class Retro {
     }
 
     public static OkHttpClient.Builder getLogClient() {
-        // AppApi / OAuth 刷新 / PxveAPI 代理共用这套超时（值仍为 10s，统一见 AppApiTimeouts）。
-        // 该 builder 也被 web/sign/resource 复用：它们原本就是 OkHttp 默认 10s，值不变。
+        // 公共 builder：只放公共 DNS 与协议；各业务链路的超时由各自 Timeouts 类设置。
+        // app-api/oauth/www/comic 系统 DNS 只保留 IPv4（官方单 A 记录，IPv6 多为污染）；
+        // 其它 host（含 PxveAPI 代理域名）由 IPv4OnlyDns 原样放行。
         return new OkHttpClient.Builder()
-                .connectTimeout(AppApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .readTimeout(AppApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .writeTimeout(AppApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .dns(IPv4OnlyDns.INSTANCE)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1));
     }
 
