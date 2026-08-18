@@ -2518,6 +2518,11 @@
     <string name="email_backup_do_restore">恢复并登录</string>
     <string name="email_backup_settings_entry">账号备份到邮箱</string>
     <string name="email_backup_login_entry">已备份过？从邮箱恢复登录</string>
+    <string name="refresh_token_login_entry">使用 refresh token 登录</string>
+    <string name="refresh_token_dialog_title">使用 refresh token 登录</string>
+    <string name="refresh_token_dialog_hint">在此粘贴你的 refresh token</string>
+    <string name="refresh_token_dialog_positive">登录</string>
+    <string name="refresh_token_invalid_toast">refresh token 无效或已过期</string>
     <string name="email_backup_bound_title">已备份</string>
     <string name="email_backup_bound_email">已加密备份到 %1$s</string>
     <string name="email_backup_bound_time">备份时间 %1$s</string>

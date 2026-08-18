@@ -41,6 +41,14 @@ import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
 import ceui.pixiv.i18n.AppLocales
 import ceui.pixiv.login.PixivLogin
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.text.InputType
+import androidx.appcompat.app.AlertDialog
+import ceui.lisa.http.Retro
+import ceui.pixiv.login.PixivOAuthConfig
+import ceui.loxia.MoonSync
+import ceui.pixiv.session.SessionManager
 import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import ceui.pixiv.witstudio.dialog.WitDialog.MessageDialogBuilder
@@ -75,6 +83,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     private var cycleIndex = 0
     private var greetingCycleJob: Job? = null
     private val rowChecks = mutableMapOf<String, View>()
+    private var refreshTokenDialog: AlertDialog? = null
 
     // ── Lifecycle ──
 
@@ -130,6 +139,12 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     }
 
     override fun initData() {}
+
+    override fun onDestroyView() {
+        refreshTokenDialog?.dismiss()
+        refreshTokenDialog = null
+        super.onDestroyView()
+    }
 
     // ── Insets ──
 
@@ -410,6 +425,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         page.loginButton.text = getString(R.string.now_login)
         page.signButton.text = getString(R.string.now_sign)
         page.restoreFromEmail.text = getString(R.string.email_backup_login_entry)
+        page.useRefreshToken.text = getString(R.string.refresh_token_login_entry)
         // 协议链接里的 SpannableString 也是 inflate 时算的，要重塞 —— 内部 getString(...) 此刻
         // 已经走新 locale 了。
         setupTermsText(page.firstText)
@@ -484,11 +500,78 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             }
         }
 
+        // refresh token 登录：与邮箱恢复同属免 OAuth 网页的登录方式，lite 渠道同样不提供。
+        if (BuildConfig.IS_LITE) {
+            page.useRefreshToken.visibility = View.GONE
+        } else {
+            page.useRefreshToken.setOnClickListener { showRefreshTokenDialog() }
+        }
+
         setupTermsText(page.firstText)
 
         viewModel.isChecked.observe(viewLifecycleOwner) { page.checkboxOne.isSelected = it }
         page.checkboxOne.setOnClickListener {
             viewModel.isChecked.value = !(viewModel.isChecked.value ?: false)
+        }
+    }
+
+    private fun showRefreshTokenDialog() {
+        val editText = EditText(mContext).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            hint = getString(R.string.refresh_token_dialog_hint)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+            setSingleLine()
+        }
+        val container = FrameLayout(mContext).apply {
+            val pad = dp(16f)
+            setPadding(pad, pad / 2, pad, 0)
+            addView(editText)
+        }
+        refreshTokenDialog = AlertDialog.Builder(mContext)
+            .setTitle(getString(R.string.refresh_token_dialog_title))
+            .setView(container)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(getString(R.string.refresh_token_dialog_positive)) { _, _ ->
+                val token = editText.text.toString().trim()
+                if (token.isNotEmpty()) loginWithRefreshToken(token)
+            }.show()
+    }
+
+    private fun loginWithRefreshToken(refreshToken: String) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val userModel = withContext(Dispatchers.IO) {
+                    Retro.getAccountTokenApi().newRefreshToken(
+                        PixivOAuthConfig.PIXIV_ANDROID.getClientId(),
+                        PixivOAuthConfig.PIXIV_ANDROID.getClientSecret(),
+                        "refresh_token", refreshToken, true
+                    ).execute().body()
+                }
+                if (userModel?.user == null) {
+                    Common.showToast(getString(R.string.refresh_token_invalid_toast), 3)
+                    return@launch
+                }
+                userModel.user?.setIs_login(true)
+                Local.saveUser(userModel)
+                SessionManager.postUpdateSession(userModel)
+                val entity = UserEntity().apply {
+                    loginTime = System.currentTimeMillis()
+                    userID = userModel.user?.id ?: 0
+                    userGson = Shaft.sGson.toJson(Local.getUser())
+                }
+                AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(entity)
+                Common.showToast("登录成功", 2)
+                MoonSync.syncFromCloudOnLogin(mActivity, userModel.user?.id ?: 0L) {
+                    mActivity.finish()
+                    Common.restart()
+                }
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                Common.showToast(getString(R.string.refresh_token_invalid_toast), 3)
+            }
         }
     }
 

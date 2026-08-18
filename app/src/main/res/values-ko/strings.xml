@@ -2263,6 +2263,11 @@
     <string name="email_backup_do_restore">복원하고 로그인</string>
     <string name="email_backup_settings_entry">계정을 이메일에 백업</string>
     <string name="email_backup_login_entry">이미 백업했나요? 이메일에서 복원</string>
+    <string name="refresh_token_login_entry">refresh token 으로 로그인</string>
+    <string name="refresh_token_dialog_title">refresh token 으로 로그인</string>
+    <string name="refresh_token_dialog_hint">여기에 refresh token 을 붙여넣으세요</string>
+    <string name="refresh_token_dialog_positive">로그인</string>
+    <string name="refresh_token_invalid_toast">refresh token 이 유효하지 않거나 만료되었습니다</string>
     <string name="email_backup_bound_title">백업됨</string>
     <string name="email_backup_bound_email">%1$s(으)로 암호화 백업됨</string>
     <string name="email_backup_bound_time">백업 시간 %1$s</string>
