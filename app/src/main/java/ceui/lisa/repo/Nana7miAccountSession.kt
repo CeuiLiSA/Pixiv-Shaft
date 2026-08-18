@@ -5,6 +5,7 @@ import ceui.loxia.User
 import ceui.loxia.Nana7miPayload
 import ceui.loxia.Nana7miResult
 import ceui.loxia.fetchNana7mi
+import ceui.pixiv.ui.usage.Nana7miQuotaNotice
 import ceui.pixiv.actions.AccountOnlineReportOutbox
 import ceui.pixiv.login.InvalidRefreshTokenException
 import ceui.pixiv.login.PixivLogin
@@ -61,6 +62,11 @@ internal class Nana7miAccountSession {
         )
         val fetched = Client.pixshaft.fetchNana7mi(requesterUid)
         logFetchResult(requesterUid, fetched)
+        if (fetched is Nana7miResult.RateLimited) {
+            // 配额拒绝对用户是可见事实（结果会静默降级成热度预览），限流拒绝不是。
+            // 这里是插画和小说两个搜索仓库共用的唯一借号入口，报在这里就不用各报一遍。
+            Nana7miQuotaNotice.report(fetched)
+        }
         if (fetched is Nana7miResult.NotPremium) {
             // 服务端派发池只收 is_premium = 1，走到这里说明那一行的分类和 blob 对不上。把这份
             // AccountResponse 原样报回去，saveOnline 会按 blob 里的真实会员状态重新分类并停止派发。

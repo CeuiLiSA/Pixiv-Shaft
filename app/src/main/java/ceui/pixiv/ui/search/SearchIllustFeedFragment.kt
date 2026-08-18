@@ -19,6 +19,7 @@ import ceui.pixiv.ui.common.awaitFirstValue
 import io.reactivex.functions.Function
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
 
 /**
  * 搜索「插画/漫画」tab（feeds 框架版，替代 legacy FragmentSearchIllust + SearchIllustRepo + IAdapter）。
@@ -76,6 +77,8 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // 撞热度排序额度时结果会静默降级成预览，这条提示是用户唯一能知道原因的地方。
+        observeNana7miQuotaNotice()
         searchModel.nowGo.observe(viewLifecycleOwner) {
             // 普通查询仍只在「标签匹配」档响应（对齐 legacy）。命中本地策略时则所有
             // 分栏都必须刷新为空，避免切换 tab 后短暂看到上一次搜索留下的结果。

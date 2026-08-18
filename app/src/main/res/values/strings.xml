@@ -2901,4 +2901,7 @@
     <string name="nana7mi_usage_login_required">登录后可查看用量</string>
     <string name="nana7mi_usage_hint">按热度排序的搜索每发起一次算 1 次。两档额度都是固定时段：到了重置时刻整份恢复，不是用一次回一次。</string>
     <string name="drawer_section_usage">搜索按热度排序</string>
+    <string name="nana7mi_quota_snack_session">五小时额度已用完，%1$s后恢复</string>
+    <string name="nana7mi_quota_snack_weekly">本周额度已用完，%1$s后恢复</string>
+    <string name="nana7mi_quota_snack_action">查看用量</string>
 </resources>

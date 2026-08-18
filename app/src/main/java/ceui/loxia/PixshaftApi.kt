@@ -367,7 +367,24 @@ sealed class Nana7miResult {
      * dispatching it (`saveOnline` pauses dispatch for any report whose `is_premium` is not true).
      */
     data class NotPremium(val uid: Long, val account: AccountResponse) : Nana7miResult()
-    data class RateLimited(val retryAfterSeconds: Long?) : Nana7miResult()
+    /**
+     * 服务端拒了这次借号。两种来源，靠 [scope] 区分，客户端必须分得开：
+     *  - `uid_5h` / `uid_weekly` —— 配额桶满了，[resetsAt] 是整份额度回满的时刻，最长几小时到几天，
+     *    值得告诉用户；
+     *  - `global` / `ip` / `uid` —— 每分钟限流器，最多 60 秒，等一下就好，不该打扰用户。
+     *
+     * 全部可空：老服务端（或限流器那条路径）不带这些字段，缺了就当不知道，不能瞎猜。
+     */
+    data class RateLimited(
+        val retryAfterSeconds: Long?,
+        val scope: String? = null,
+        val resetsAt: Long? = null,
+        val serverTime: Long? = null,
+    ) : Nana7miResult() {
+
+        /** 是不是配额桶满（而不是每分钟限流）。只有这种才值得提示用户。 */
+        val isQuota: Boolean get() = scope == "uid_5h" || scope == "uid_weekly"
+    }
     data class HttpFailure(val status: Int) : Nana7miResult()
     data object InvalidRequest : Nana7miResult()
     data class NetworkFailure(val cause: java.io.IOException) : Nana7miResult()
@@ -378,15 +395,49 @@ sealed class Nana7miResult {
  * Safe Nana7mi call for business code. Cancellation still propagates, while
  * network, HTTP and malformed-payload failures become explicit result values.
  */
+/** 429 的响应体（服务端 `denyRate` 和配额拒绝共用这个形状，字段各有多寡）。 */
+private data class Nana7miRateLimitBody(
+    val scope: String? = null,
+    val retryAfterSeconds: Long? = null,
+    val serverTime: Long? = null,
+    val quotas: List<Nana7miQuotaWindow>? = null,
+)
+
+private val rateLimitGson by lazy { com.google.gson.Gson() }
+
+/**
+ * 429 的细节在 body 里，不在头里：`Retry-After` 只有秒数，说不出是哪一档卡住的，也说不出
+ * 什么时候回满。解析失败就退回只读头 —— 提示不出来是小事，把一次搜索搞崩是大事。
+ */
+private fun parseRateLimited(response: Response<Nana7miResponse>): Nana7miResult.RateLimited {
+    val headerRetry = response.headers()["Retry-After"]?.toLongOrNull()
+    val body = try {
+        response.errorBody()?.string()?.takeIf { it.isNotBlank() }?.let {
+            rateLimitGson.fromJson(it, Nana7miRateLimitBody::class.java)
+        }
+    } catch (ce: CancellationException) {
+        throw ce
+    } catch (e: Exception) {
+        null
+    } ?: return Nana7miResult.RateLimited(headerRetry)
+
+    // resetsAt 取被点名那一档的 —— 提示要说的是「这一档什么时候回满」，不是随便哪一档。
+    val resetsAt = body.quotas?.firstOrNull { it.scope == body.scope }?.resetsAt
+    return Nana7miResult.RateLimited(
+        retryAfterSeconds = body.retryAfterSeconds ?: headerRetry,
+        scope = body.scope,
+        resetsAt = resetsAt,
+        serverTime = body.serverTime,
+    )
+}
+
 suspend fun PixshaftApi.fetchNana7mi(uid: Long): Nana7miResult {
     if (uid <= 0L) return Nana7miResult.InvalidRequest
     return try {
         val response = fetchNana7miRaw(Nana7miRequest(uid))
         when (response.code()) {
             404 -> Nana7miResult.NoAccount
-            429 -> Nana7miResult.RateLimited(
-                response.headers()["Retry-After"]?.toLongOrNull(),
-            )
+            429 -> parseRateLimited(response)
             else -> {
                 if (!response.isSuccessful) return Nana7miResult.HttpFailure(response.code())
                 val body = response.body() ?: return Nana7miResult.InvalidResponse()

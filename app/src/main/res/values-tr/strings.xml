@@ -2645,4 +2645,7 @@
     <string name="nana7mi_usage_login_required">Kullanımı görmek için giriş yapın</string>
     <string name="nana7mi_usage_hint">Popülerliğe göre yapılan her arama 1 kullanım sayılır. Her iki limit de sabit dönemlidir: sıfırlama anında hakkın tamamı bir defada geri gelir.</string>
     <string name="drawer_section_usage">Popülerliğe göre arama</string>
+    <string name="nana7mi_quota_snack_session">5 saatlik limit doldu, %1$s sonra yenilenir</string>
+    <string name="nana7mi_quota_snack_weekly">Haftalık limit doldu, %1$s sonra yenilenir</string>
+    <string name="nana7mi_quota_snack_action">Kullanımı gör</string>
 </resources>

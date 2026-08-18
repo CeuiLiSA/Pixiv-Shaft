@@ -185,15 +185,10 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         val remainMs = resetsAt - serverTime
         if (remainMs <= 0L) return getString(R.string.nana7mi_usage_resetting)
 
-        val totalMinutes = (remainMs + 59_999L) / 60_000L // 向上取整：别显示「0 分后重置」
-        val days = totalMinutes / (24 * 60)
-        val hours = (totalMinutes % (24 * 60)) / 60
-        val minutes = totalMinutes % 60
-        val duration = when {
-            days > 0L -> getString(R.string.nana7mi_usage_dur_dh, days.toInt(), hours.toInt())
-            hours > 0L -> getString(R.string.nana7mi_usage_dur_hm, hours.toInt(), minutes.toInt())
-            else -> getString(R.string.nana7mi_usage_dur_m, minutes.toInt())
-        }
-        return getString(R.string.nana7mi_usage_resets_in, duration)
+        // 和额度提示 Snackbar 共用同一份格式化：同一段时间在两处不能有两种说法。
+        return getString(
+            R.string.nana7mi_usage_resets_in,
+            Nana7miQuotaFormat.duration(mContext, remainMs),
+        )
     }
 }

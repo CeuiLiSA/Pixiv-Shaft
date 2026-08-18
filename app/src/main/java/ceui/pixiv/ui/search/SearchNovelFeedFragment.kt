@@ -43,6 +43,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import io.reactivex.functions.Function
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
 
 /**
  * 搜索「小说」tab（feeds 框架版，替代 legacy FragmentSearchNovel + SearchNovelRepo + NAdapter）。
@@ -111,6 +112,8 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // 撞热度排序额度时结果会静默降级成预览，这条提示是用户唯一能知道原因的地方。
+        observeNana7miQuotaNotice()
         searchModel.nowGo.observe(viewLifecycleOwner) {
             // 命中本地策略时不受普通搜索类型限制：小说页也要清空旧结果。
             val shouldWithhold = SearchRiskPolicy.shouldWithhold(searchModel.keyword.value)

@@ -2645,4 +2645,7 @@
     <string name="nana7mi_usage_login_required">ログインすると使用状況を確認できます</string>
     <string name="nana7mi_usage_hint">人気順の検索は 1 回ごとに 1 回としてカウントされます。どちらの上限も固定期間で、リセット時刻に全量がまとめて戻ります。</string>
     <string name="drawer_section_usage">人気順検索</string>
+    <string name="nana7mi_quota_snack_session">5 時間の上限に達しました。%1$s後に回復</string>
+    <string name="nana7mi_quota_snack_weekly">週間上限に達しました。%1$s後に回復</string>
+    <string name="nana7mi_quota_snack_action">使用状況</string>
 </resources>

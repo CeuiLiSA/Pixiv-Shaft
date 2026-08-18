@@ -2645,4 +2645,7 @@
     <string name="nana7mi_usage_login_required">Log in to see your usage</string>
     <string name="nana7mi_usage_hint">Every popularity-sorted search counts as one. Both limits are fixed periods: the whole allowance comes back at the reset time, not one search at a time.</string>
     <string name="drawer_section_usage">Search by popularity</string>
+    <string name="nana7mi_quota_snack_session">5-hour limit reached, back in %1$s</string>
+    <string name="nana7mi_quota_snack_weekly">Weekly limit reached, back in %1$s</string>
+    <string name="nana7mi_quota_snack_action">View usage</string>
 </resources>

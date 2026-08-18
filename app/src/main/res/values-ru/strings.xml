@@ -2645,4 +2645,7 @@
     <string name="nana7mi_usage_login_required">Войдите, чтобы увидеть использование</string>
     <string name="nana7mi_usage_hint">Каждый поиск по популярности считается за один. Оба лимита действуют фиксированными периодами: в момент сброса весь объём возвращается сразу.</string>
     <string name="drawer_section_usage">Поиск по популярности</string>
+    <string name="nana7mi_quota_snack_session">5-часовой лимит исчерпан, восстановится через %1$s</string>
+    <string name="nana7mi_quota_snack_weekly">Недельный лимит исчерпан, восстановится через %1$s</string>
+    <string name="nana7mi_quota_snack_action">Использование</string>
 </resources>
