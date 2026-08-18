@@ -545,8 +545,8 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             try {
                 val userModel = withContext(Dispatchers.IO) {
                     Retro.getAccountTokenApi().newRefreshToken(
-                        PixivOAuthConfig.PIXIV_ANDROID.getClientId(),
-                        PixivOAuthConfig.PIXIV_ANDROID.getClientSecret(),
+                        PixivOAuthConfig.PIXIV_ANDROID.clientId,
+                        PixivOAuthConfig.PIXIV_ANDROID.clientSecret,
                         "refresh_token", refreshToken, true
                     ).execute().body()
                 }
@@ -564,7 +564,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                 }
                 AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(entity)
                 Common.showToast("登录成功", 2)
-                MoonSync.syncFromCloudOnLogin(mActivity, userModel.user?.id ?: 0L) {
+                MoonSync.syncFromCloudOnLogin(mActivity, userModel.user?.id?.toLong() ?: 0L) {
                     mActivity.finish()
                     Common.restart()
                 }
