@@ -1,5 +1,6 @@
 package ceui.lisa.http
 
+import ceui.lisa.BuildConfig
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -11,6 +12,10 @@ import org.junit.Test
  * 拦截器的核心逻辑（[AppApiProxyInterceptor.rewrite] / [AppApiProxyInterceptor.normalizeBase]）
  * 不依赖 Android 静态状态，直接对纯函数断言。覆盖审查关注的四类边界：
  * https 强制、尾斜杠/query 边界、误填完整 PxveAPI 地址的双前缀、非法地址回退。
+ *
+ * scheme 相关断言按 [BuildConfig.IS_DEBUG_MODE] 分叉：Debug 构建额外放行**显式**写出的
+ * `http://`（本地起代理调试用），Release 一律拒绝。**裸域名不参与这个分叉**——任何
+ * buildType 下都补 `https://`，明文只能是用户显式写出来的选择。
  */
 class AppApiProxyInterceptorTest {
 
@@ -22,13 +27,39 @@ class AppApiProxyInterceptorTest {
     }
 
     @Test
+    fun `裸域名在 Debug 构建下同样补 https 而不是 http`() {
+        // 回归：曾按 buildType 把裸域名默认成 http://，等于让 debug 包的 Authorization /
+        // refresh_token 静默走明文。明文必须是用户显式写 http:// 才发生。
+        assertEquals("https://pxve.example.com", normalize("pxve.example.com"))
+        assertEquals("https://192.168.10.109:3021", normalize("192.168.10.109:3021"))
+    }
+
+    @Test
     fun `已带 https 前缀原样保留`() {
         assertEquals("https://pxve.example.com", normalize("https://pxve.example.com"))
     }
 
     @Test
-    fun `显式 http 前缀被拒绝`() {
-        assertNull("http:// 明文传输令牌，必须拒绝", normalize("http://pxve.example.com"))
+    fun `显式 http 前缀 Release 拒绝 Debug 放行`() {
+        val actual = normalize("http://pxve.example.com")
+        if (BuildConfig.IS_DEBUG_MODE) {
+            assertEquals("Debug 允许显式 http 代理，方便本地调试", "http://pxve.example.com", actual)
+        } else {
+            assertNull("Release 下 http:// 明文传输令牌，必须拒绝", actual)
+        }
+    }
+
+    @Test
+    fun `Debug 下 http 代理的 80 端口不被写成显式冒号 80`() {
+        // 回归：root 端口曾恒按 https 的 443 比较，http 代理会多拼出 ":80"，
+        // 和网络测试页展示 / 探测的 URL 对不上。
+        if (!BuildConfig.IS_DEBUG_MODE) return
+        assertEquals("http://pxve.example.com", normalize("http://pxve.example.com"))
+        val original = "https://app-api.pixiv.net/v1/illust/detail?illust_id=1".toHttpUrl()
+        assertEquals(
+            "http://pxve.example.com/pixiv-app-api/v1/illust/detail?illust_id=1",
+            AppApiProxyInterceptor.rewrite(original, "http://pxve.example.com").toString(),
+        )
     }
 
     @Test
@@ -151,9 +182,17 @@ class AppApiProxyInterceptorTest {
     }
 
     @Test
-    fun `http 明文代理地址返回 null 而非改写`() {
+    fun `http 明文代理地址 Release 返回 null 而非改写`() {
         val original = "https://app-api.pixiv.net/v1/illust/detail?illust_id=1".toHttpUrl()
-        assertNull("http:// 必须被拒绝，避免令牌走明文", AppApiProxyInterceptor.rewrite(original, "http://pxve.example.com"))
+        val rewritten = AppApiProxyInterceptor.rewrite(original, "http://pxve.example.com")
+        if (BuildConfig.IS_DEBUG_MODE) {
+            assertEquals(
+                "http://pxve.example.com/pixiv-app-api/v1/illust/detail?illust_id=1",
+                rewritten.toString(),
+            )
+        } else {
+            assertNull("http:// 必须被拒绝，避免令牌走明文", rewritten)
+        }
     }
 
     @Test

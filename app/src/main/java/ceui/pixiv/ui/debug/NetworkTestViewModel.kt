@@ -526,7 +526,11 @@ class NetworkTestViewModel : ViewModel() {
         }
     }
 
-    /** @return (该目标本机 DNS 是否被判定为污染, 污染时握手是否成功——决定绕过是否生效)。 */
+    /**
+     * @return (该目标本机 DNS 是否被判定为污染, 握手是否成功)。
+     *   第二元素在污染时决定「绕过是否生效」，同时也是 PxveAPI 转发路径探测的前置条件，
+     *   所以每条 return 都要给出**真实**的握手结果，不能因为该分支不关心污染就恒填 false。
+     */
     private fun testTarget(idx: Int, cfg: TargetConfig, doh: Boolean, direct: Boolean): Pair<Boolean, Boolean> {
         log("========== ${cfg.displayName ?: cfg.host} ==========")
 
@@ -608,7 +612,9 @@ class NetworkTestViewModel : ViewModel() {
                 }
             }
             log("")
-            return false to false
+            // fake-ip 下不判污染（isPolluted=false，bypassOk 不消费第二元素），但握手结果要如实返回：
+            // Clash 等 fake-ip 环境正是自建 PxveAPI 的典型场景，恒填 false 会让转发路径探测整段不跑。
+            return false to hs.ok
         }
         log("DNS: " + sysAddrs.joinToString(", ") { it.hostAddress ?: "?" })
 
