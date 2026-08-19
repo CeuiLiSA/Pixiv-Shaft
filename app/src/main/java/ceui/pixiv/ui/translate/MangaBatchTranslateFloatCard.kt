@@ -1,20 +1,27 @@
 package ceui.pixiv.ui.translate
 
 import android.annotation.SuppressLint
+import android.graphics.Typeface
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.AbsoluteSizeSpan
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import ceui.lisa.R
 import ceui.lisa.activities.ImageTranslationViewModel
 import ceui.pixiv.utils.setOnClick
-import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlin.math.abs
 
 /**
  * 「翻译整部」(issue #925)的机内悬浮小窗控制器:绑定 `view_manga_batch_translate_float`,
- * 把 [ImageTranslationViewModel.BatchStatus] 渲染成「第 N/M 页 + 当前阶段 + 总进度条」,
+ * 把 [ImageTranslationViewModel.BatchStatus] 渲染成「第 N/M 页 + 当前阶段 + 逐页分段进度条 + 总百分比」,
  * 并让整张卡片在父布局内可拖动。
  *
  * 拖动与 DragDismissLayout 的配合:DOWN 时向祖先 requestDisallowInterceptTouchEvent,
@@ -26,42 +33,80 @@ class MangaBatchTranslateFloatCard(
     onCancel: () -> Unit,
     private val onDragging: (Boolean) -> Unit,
 ) {
-    private val title: TextView = root.findViewById(R.id.manga_batch_title)
     private val stage: TextView = root.findViewById(R.id.manga_batch_stage)
-    private val progress: LinearProgressIndicator = root.findViewById(R.id.manga_batch_progress)
+    private val counter: TextView = root.findViewById(R.id.manga_batch_counter)
+    private val percent: TextView = root.findViewById(R.id.manga_batch_percent)
+    private val strip: BatchPageStripView = root.findViewById(R.id.manga_batch_strip)
 
     init {
         root.findViewById<View>(R.id.manga_batch_cancel).setOnClick { onCancel() }
         installDrag()
     }
 
-    /** null → 淡出隐藏;非 null → 显示并刷新三件套。 */
+    /** 正在播退场动画(alpha→0 后收成 GONE);用它而不是 alpha<1 判断,因为进场前 320ms alpha 也 <1。 */
+    private var hiding = false
+
+    /** null → 缩小淡出隐藏;非 null → (首次)放大淡入并刷新计数 / 阶段 / 分段条 / 百分比。 */
     fun render(status: ImageTranslationViewModel.BatchStatus?) {
         if (status == null) {
-            if (root.visibility == View.VISIBLE) {
-                root.animate().alpha(0f).setDuration(200).withEndAction {
-                    root.visibility = View.GONE
-                }.start()
+            if (root.visibility == View.VISIBLE && !hiding) {
+                hiding = true
+                root.animate().cancel()
+                root.animate()
+                    .alpha(0f).scaleX(0.92f).scaleY(0.92f)
+                    .setDuration(220)
+                    .setInterpolator(AccelerateInterpolator())
+                    .withEndAction {
+                        hiding = false
+                        root.visibility = View.GONE
+                    }
+                    .start()
             }
             return
         }
         if (root.visibility != View.VISIBLE) {
+            root.animate().cancel()
             root.alpha = 0f
+            root.scaleX = 0.9f
+            root.scaleY = 0.9f
             root.visibility = View.VISIBLE
-            root.animate().alpha(1f).setDuration(200).start()
-        } else if (root.alpha < 1f) {
-            // 上一批刚结束的淡出还没播完又来新一批:掐掉淡出,别让卡片最终被 withEndAction 收成 GONE
+            root.animate()
+                .alpha(1f).scaleX(1f).scaleY(1f)
+                .setDuration(320)
+                .setInterpolator(OvershootInterpolator(1.1f))
+                .start()
+        } else if (hiding) {
+            // 上一批刚结束的退场还没播完又来新一批:掐掉退场,别让卡片最终被 withEndAction 收成 GONE。
+            // 进场动画进行中来的状态刷新(很常见,阶段切得快)不走这里,让进场自然播完。
+            hiding = false
             root.animate().cancel()
             root.alpha = 1f
+            root.scaleX = 1f
+            root.scaleY = 1f
         }
-        val ctx = root.context
         val current = (status.pageDone + 1).coerceAtMost(status.total)
-        title.text = ctx.getString(R.string.string_ai_manga_batch_progress_title, current, status.total)
+        counter.text = buildCounter(current, status.total)
         stage.text = status.stageText
-        // 总进度 = 已完成页 + 当前页内阶段占比;阶段没百分比时只算整页,条子不回退
-        val inPage = (status.stagePercent ?: 0) / 100f
-        val overall = ((status.pageDone + inPage) / status.total.coerceAtLeast(1) * 100).toInt().coerceIn(0, 100)
-        progress.setProgressCompat(overall, true)
+        val inPage = status.stagePercent?.let { it / 100f }
+        strip.setProgress(status.total, status.pageDone, inPage)
+        // 总进度 = 已完成页 + 当前页内阶段占比;阶段没百分比时只算整页,数字不回退
+        val overall = ((status.pageDone + (inPage ?: 0f)) / status.total.coerceAtLeast(1) * 100)
+            .toInt().coerceIn(0, 100)
+        percent.text = "$overall%"
+    }
+
+    /** 「3 / 12」:当前页 18sp 白色粗体,「/ 12」12sp 半透明,一眼先看到在第几页。 */
+    private fun buildCounter(current: Int, total: Int): CharSequence {
+        val head = current.toString()
+        val tail = " / $total"
+        return SpannableStringBuilder(head + tail).apply {
+            setSpan(AbsoluteSizeSpan(18, true), 0, head.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(StyleSpan(Typeface.BOLD), 0, head.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            setSpan(
+                ForegroundColorSpan(0x80FFFFFF.toInt()),
+                head.length, length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+            )
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")

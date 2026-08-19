@@ -738,7 +738,7 @@
     <string name="string_ai_manga_translate_inline">Translate Manga</string>
     <string name="string_ai_manga_translate_manual">Select &amp; Translate</string>
     <string name="string_ai_manga_translate_batch">Translate All Pages</string>
-    <string name="string_ai_manga_batch_progress_title">Translate all · page %1$d/%2$d</string>
+    <string name="string_ai_manga_batch_hint">Keep browsing while it runs · drag to move</string>
     <string name="string_ai_manga_batch_loading_image">Loading image…</string>
     <string name="string_ai_manga_batch_summary">All pages done: %1$d translated, %2$d without text, %3$d failed</string>
     <string name="string_ai_manga_batch_summary_skipped">%1$s (%2$d already translated, skipped)</string>

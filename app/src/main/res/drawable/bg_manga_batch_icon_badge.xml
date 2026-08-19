@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 小窗左上角的翻译图标底:AI 主渐变(紫 → 蓝,与 bg_upscale_start_button 同色)圆形 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:angle="135"
+        android:startColor="#6C5CE7"
+        android:centerColor="#5B6AE0"
+        android:endColor="#4FACFE" />
+</shape>

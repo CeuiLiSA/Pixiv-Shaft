@@ -1,23 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 「翻译整部」(issue #925)机内悬浮小窗:默认 GONE,整批任务跑起来才显示。
-     整卡可拖动(见 MangaBatchTranslateFloatCard),不拦截图片区域的触摸,用户可以边翻页边看进度。 -->
+     整卡可拖动(见 MangaBatchTranslateFloatCard),不拦截图片区域的触摸,用户可以边翻页边看进度。
+     视觉对齐 AI 功能的深靛蓝玻璃 + 紫蓝渐变语言(fragment_ai_upscale)。 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/manga_batch_float_root"
-    android:layout_width="232dp"
+    android:layout_width="268dp"
     android:layout_height="wrap_content"
     android:background="@drawable/bg_manga_batch_float_card"
     android:clickable="true"
-    android:elevation="6dp"
+    android:elevation="14dp"
     android:focusable="true"
     android:orientation="vertical"
     android:paddingStart="14dp"
-    android:paddingTop="10dp"
-    android:paddingEnd="6dp"
-    android:paddingBottom="12dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="14dp"
     android:visibility="gone"
     tools:visibility="visible">
+
+    <!-- 顶部抓手,提示整卡可拖 -->
+    <View
+        android:layout_width="28dp"
+        android:layout_height="3dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_manga_batch_grabber" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -25,60 +34,108 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
+        <FrameLayout
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:background="@drawable/bg_manga_batch_icon_badge"
+            android:elevation="2dp">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_baseline_translate_24"
+                app:tint="@android:color/white" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
             android:layout_marginEnd="8dp"
-            android:alpha="0.6"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_drag_handle_24"
-            app:tint="@android:color/white" />
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/string_ai_manga_translate_batch"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/manga_batch_stage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#99FFFFFF"
+                android:textSize="12sp"
+                tools:text="识别 4/20" />
+        </LinearLayout>
+
+        <!-- 「3 / 12」:当前页大号白,总页数小号灰,由代码 Spannable 拼 -->
+        <TextView
+            android:id="@+id/manga_batch_counter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:fontFamily="sans-serif-medium"
+            android:includeFontPadding="false"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            tools:text="3 / 12" />
+
+        <ImageView
+            android:id="@+id/manga_batch_cancel"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="@drawable/bg_manga_batch_cancel"
+            android:contentDescription="@string/action_cancel"
+            android:padding="7dp"
+            android:src="@drawable/ic_close_black_24dp"
+            app:tint="#CCFFFFFF" />
+
+    </LinearLayout>
+
+    <!-- 逐页分段进度条:已完成页实心渐变、当前页按阶段百分比填充并呼吸、未开始页暗;
+         页数多到分段看不清时自动退化成一根连续渐变条 -->
+    <ceui.pixiv.ui.translate.BatchPageStripView
+        android:id="@+id/manga_batch_strip"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_marginTop="14dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/manga_batch_title"
+            android:id="@+id/manga_batch_hint"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@android:color/white"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            tools:text="翻译整部 · 3/12 页" />
+            android:text="@string/string_ai_manga_batch_hint"
+            android:textColor="#66FFFFFF"
+            android:textSize="11sp" />
 
-        <ImageView
-            android:id="@+id/manga_batch_cancel"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/action_cancel"
-            android:padding="7dp"
-            android:src="@drawable/ic_close_black_24dp"
-            app:tint="#B3FFFFFF" />
-
+        <TextView
+            android:id="@+id/manga_batch_percent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="#9B8CF6"
+            android:textSize="11sp"
+            tools:text="42%" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/manga_batch_stage"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:layout_marginEnd="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textColor="#B3FFFFFF"
-        android:textSize="12sp"
-        tools:text="识别 4/20" />
-
-    <com.google.android.material.progressindicator.LinearProgressIndicator
-        android:id="@+id/manga_batch_progress"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        app:indicatorColor="#80CCFF"
-        app:trackColor="#33FFFFFF"
-        app:trackCornerRadius="2dp"
-        app:trackThickness="4dp" />
 
 </LinearLayout>
