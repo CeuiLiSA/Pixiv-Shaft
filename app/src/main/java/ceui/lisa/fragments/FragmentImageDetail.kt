@@ -314,8 +314,17 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         }
     }
 
-    /** 默认/三级共用：让库自带长按也支持「长按复原到最小」。 */
+    /**
+     * 默认/三级共用：让库自带长按也支持「长按复原到最小」。
+     *
+     * 开关关闭时必须**整个不挂**这个 listener，不能挂上去再在回调里判空跑：ZoomImage 的
+     * TouchHelper 只要发现 onViewLongPressListener 非 null，长按一触发就把 longPressExecuted
+     * 置 true，而 onGestureCallback / onEndCallback 都是 `if (longPressExecuted) return`——
+     * 于是「按住不动超过 500ms 再拖」这一整串手势的平移、双指缩放、抬手后的 fling / 回弹全被吞掉。
+     * 挂空回调等于给没开这个功能的人白白砍掉一种拖动方式。
+     */
     private fun setupLibraryLongPressReset() {
+        if (!Shaft.sSettings.isUseCustomLongPressReset) return
         baseBind.image.onViewLongPressListener = OnViewLongPressListener { _, offset ->
             if (isGestureTargetAlive && Shaft.sSettings.isUseCustomLongPressReset) {
                 val zoomable = baseBind.image.zoomable
