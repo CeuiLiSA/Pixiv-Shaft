@@ -166,7 +166,7 @@
     <string name="other_settings">其他</string>
     <string name="search_result_filter">搜尋結果收藏量篩選</string>
     <string name="search_popular_default">預設按熱度排序搜尋</string>
-    <string name="search_popular_default_desc">開啟：搜尋預設按熱度排，非會員借用額度，額度不夠時自動降為熱度預覽。關閉：預設從新到舊排，需要時在篩選裡手動選熱度，不白白消耗額度</string>
+    <string name="search_popular_default_desc">開啟：搜尋預設按熱度排序，額度用完時自動降為熱度預覽。關閉：預設從新到舊排序，需要時在篩選裡手動選熱度，平時不消耗額度</string>
     <string name="search_exit_confirm">搜尋結果退出二次確認</string>
     <string name="search_exit_confirm_desc">開啟後，在搜尋結果頁需在 2 秒內按兩次返回鍵才會退出，防止誤觸</string>
     <string name="novel_filter_section">小說列表自動封鎖</string>

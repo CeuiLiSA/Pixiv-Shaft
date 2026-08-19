@@ -166,7 +166,7 @@
     <string name="other_settings">Diğer</string>
     <string name="search_result_filter">Arama yaparken favori sayısına göre filtrele</string>
     <string name="search_popular_default">Aramaları varsayılan olarak popülerliğe göre sırala</string>
-    <string name="search_popular_default_desc">Açık: aramalar varsayılan olarak popülerliğe göre sıralanır; Premium olmayanlar ödünç kotayı harcar, kota bitince popülerlik önizlemesine düşer. Kapalı: varsayılan en yeniden başlar; popülerliği yalnızca gerektiğinde filtreden seçin</string>
+    <string name="search_popular_default_desc">Açık: aramalar varsayılan olarak popülerliğe göre sıralanır; kota bitince popülerlik önizlemesine düşer. Kapalı: varsayılan en yeniden başlar; popülerliği yalnızca gerektiğinde filtreden seçin, böylece kota kendiliğinden harcanmaz</string>
     <string name="search_exit_confirm">Arama sonuçlarından çıkarken onay iste</string>
     <string name="search_exit_confirm_desc">Etkinleştirildiğinde, arama sonuçları sayfasından çıkmak için 2 saniye içinde iki kez geri tuşuna basmanız gerekir; yanlışlıkla çıkış önlenir</string>
     <string name="novel_filter_section">Roman listesi otomatik filtresi</string>

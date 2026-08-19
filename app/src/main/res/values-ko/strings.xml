@@ -166,7 +166,7 @@
     <string name="other_settings">기타.</string>
     <string name="search_result_filter">검색 결과 저장량 선별</string>
     <string name="search_popular_default">검색 기본 정렬을 인기순으로</string>
-    <string name="search_popular_default_desc">켬: 검색이 기본으로 인기순이며, 비프리미엄은 대여 한도를 사용하고 부족하면 인기 미리보기로 자동 전환됩니다. 끔: 기본은 최신순이며 필요할 때만 필터에서 인기순을 선택하면 한도를 아낄 수 있습니다</string>
+    <string name="search_popular_default_desc">켬: 검색이 기본으로 인기순이며, 한도를 다 쓰면 인기 미리보기로 자동 전환됩니다. 끔: 기본은 최신순이며 필요할 때만 필터에서 인기순을 선택하므로 평소에는 한도를 쓰지 않습니다</string>
     <string name="search_exit_confirm">검색 결과 종료 확인</string>
     <string name="search_exit_confirm_desc">켜면 검색 결과 페이지에서 2초 안에 뒤로 가기를 두 번 눌러야 나가지며, 실수로 나가는 것을 방지합니다</string>
     <string name="novel_filter_section">소설 목록 자동 차단</string>

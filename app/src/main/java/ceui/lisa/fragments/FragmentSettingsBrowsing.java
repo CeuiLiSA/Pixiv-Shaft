@@ -20,6 +20,7 @@ import ceui.lisa.databinding.FragmentSettingsBrowsingBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.PixivSearchParamUtil;
+import ceui.pixiv.ui.search.SortType;
 import ceui.loxia.CloudHistoryConsent;
 import ceui.pixiv.session.SessionManager;
 
@@ -334,10 +335,15 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
     /** 代码回写开关期间为 true，让 OnCheckedChangeListener 认出这不是用户的手。 */
     private boolean syncingPopularSwitch = false;
 
-    /** 开关 = 「默认排序是不是热度」。只刷显示，不落盘。 */
+    /**
+     * 开关 = 「默认排序是不是热度」。只刷显示，不落盘。
+     *
+     * 先过 [SortType.sanitize]：老配置里可能还存着已下线的「机内自带热度排序」，运行时它就是
+     * 按热度（搜索和下面那行的显示都这么认），开关不能独自显示成关。
+     */
     private void bindSearchPopularDefaultSwitch() {
         boolean popular = PixivSearchParamUtil.POPULAR_SORT_VALUE.equals(
-                Shaft.sSettings.getSearchDefaultSortType());
+                SortType.INSTANCE.sanitize(Shaft.sSettings.getSearchDefaultSortType()));
         syncingPopularSwitch = true;
         baseBind.searchPopularDefault.setChecked(popular);
         syncingPopularSwitch = false;
