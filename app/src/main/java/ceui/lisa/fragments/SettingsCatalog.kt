@@ -134,10 +134,9 @@ object SettingsCatalog {
         add(Entry(VIEWING, "ugoira_auto_play_rela", R.string.ugoira_auto_play, keywords = "动图 自动播放 自动下载 播放 gif ugoira auto play download"))
         add(Entry(VIEWING, "keep_status_bar_when_view_image_rela", R.string.keep_status_bar_when_view_image, keywords = "状态栏 刘海 挖孔 全屏 沉浸 notch"))
         add(Entry(VIEWING, "illust_detail_keep_screen_on_rela", R.string.string_451, keywords = "常亮 息屏 熄屏 屏幕 keep screen on"))
-        add(Entry(VIEWING, "use_custom_double_tap_zoom_rela", R.string.use_custom_double_tap_zoom, keywords = "双击 放大 缩放 zoom"))
-        add(Entry(VIEWING, "custom_zoom_scale_rela", R.string.custom_zoom_scale_title, R.string.custom_zoom_scale_link_text, keywords = "缩放 增量 倍率 zoom scale"))
-        add(Entry(VIEWING, "use_custom_three_level_zoom_rela", R.string.use_three_level_zoom_title, R.string.three_level_zoom_link_text, keywords = "三级 缩放 智能 zoom"))
-        add(Entry(VIEWING, "use_custom_long_press_reset_rela", R.string.use_custom_long_press_reset, R.string.use_custom_long_press_reset_link_text, keywords = "长按 复位 还原 缩放 reset"))
+        add(Entry(VIEWING, "double_tap_zoom_mode_rela", R.string.double_tap_zoom_mode_title, keywords = "双击 放大 缩放 默认 三级 增量 智能 zoom"))
+        add(Entry(VIEWING, "custom_zoom_scale_rela", R.string.custom_zoom_scale_title, R.string.custom_zoom_scale_link_text, keywords = "缩放 增量 倍率 三级 zoom scale"))
+        add(Entry(VIEWING, "use_custom_long_press_reset_rela", R.string.use_custom_long_press_reset, R.string.use_custom_long_press_reset_link_text, keywords = "长按 复位 还原 复用 缩放 reset"))
 
         // 收藏与互动
         add(Entry(BOOKMARKS, "show_like_button_rela", R.string.string_335, keywords = "私密收藏 非公开 私人 private bookmark"))

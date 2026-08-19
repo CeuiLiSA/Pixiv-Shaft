@@ -23,6 +23,7 @@ import ceui.lisa.databinding.FragmentSettingsViewingBinding;
 import ceui.lisa.helper.PageTransformerHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.lisa.utils.Settings;
 
 /** 设置 · 看图与详情 */
 public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettingsViewingBinding> {
@@ -178,30 +179,38 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         baseBind.illustDetailKeepScreenOnRela.setOnClickListener(v ->
                 baseBind.illustDetailKeepScreenOn.performClick());
 
-        //插画二级详情：自定义双击放大模式（PR#900）
-        baseBind.useCustomLongPressResetGroup.setVisibility(
-                Shaft.sSettings.isUseCustomDoubleTapZoom() ? View.VISIBLE : View.GONE);
-        baseBind.useCustomDoubleTapZoom.setChecked(Shaft.sSettings.isUseCustomDoubleTapZoom());
-        baseBind.useCustomDoubleTapZoom.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Shaft.sSettings.setUseCustomDoubleTapZoom(isChecked);
-                Common.showToast(getString(R.string.string_428));
-                Local.setSettings(Shaft.sSettings);
-                ViewGroup customLongPressGroup = (ViewGroup) baseBind.useCustomLongPressResetGroup.getParent();
-                if (customLongPressGroup != null) {
-                    TransitionManager.beginDelayedTransition(customLongPressGroup, new AutoTransition());
-                }
-                baseBind.useCustomLongPressResetGroup.setVisibility(isChecked ? View.VISIBLE : View.GONE);
-            }
+        // 插画大图双击缩放行为：默认 / 三级 / 增量
+        updateDoubleTapZoomModeLabel();
+        baseBind.doubleTapZoomModeRela.setOnClickListener(v -> {
+            final int current = Shaft.sSettings.getDoubleTapZoomMode();
+            String[] doubleTapZoomModeNames = new String[]{
+                    getString(R.string.double_tap_zoom_mode_default),
+                    getString(R.string.double_tap_zoom_mode_three_level),
+                    getString(R.string.double_tap_zoom_mode_incremental),
+            };
+            new WitDialog.CheckableDialogBuilder(mActivity)
+                    .setCheckedIndex(current)
+                    .addItems(doubleTapZoomModeNames, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (which != current) {
+                                Shaft.sSettings.setDoubleTapZoomMode(which);
+                                Common.showToast(getString(R.string.string_428));
+                                Local.setSettings(Shaft.sSettings);
+                                // 参考直连开关：切换模式时「缩放增量」行插入/移出，长按复位行随之平滑下移/上移。
+                                ViewGroup parent = (ViewGroup) baseBind.doubleTapZoomGroup.getParent();
+                                if (parent != null) {
+                                    TransitionManager.beginDelayedTransition(parent, new AutoTransition());
+                                }
+                                updateDoubleTapZoomModeLabel();
+                            }
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
         });
-        baseBind.useCustomDoubleTapZoomRela.setOnClickListener(v ->
-                baseBind.useCustomDoubleTapZoom.performClick());
 
-        // 初始化缩放增量数值调节
-        setupCustomZoomScaleAdjust();
-
-        //长按复位
+        //长按复位：始终显示在双击缩放行为下方，默认关闭
         baseBind.useCustomLongPressReset.setChecked(Shaft.sSettings.isUseCustomLongPressReset());
         baseBind.useCustomLongPressReset.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -212,15 +221,8 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
             }
         });
 
-        baseBind.useCustomThreeLevelZoom.setChecked(Shaft.sSettings.isUseThreeLevelZoo());
-        baseBind.useCustomThreeLevelZoom.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Shaft.sSettings.setUseThreeLevelZoo(isChecked);
-                Common.showToast(getString(R.string.string_428));
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
+        // 初始化缩放增量数值调节
+        setupCustomZoomScaleAdjust();
     }
 
     private void updateArtworkV3FabOrderLabel() {
@@ -243,6 +245,31 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         baseBind.artworkV3FabOrderRela.setVisibility(visibility);
         baseBind.artworkV3FabOrderDivider.setVisibility(visibility);
         baseBind.artworkV3CommentJumpRela.setVisibility(visibility);
+    }
+
+    private void updateDoubleTapZoomModeLabel() {
+        int mode = Shaft.sSettings.getDoubleTapZoomMode();
+        int labelRes;
+        switch (mode) {
+            case Settings.DOUBLE_TAP_ZOOM_MODE_THREE_LEVEL:
+                labelRes = R.string.double_tap_zoom_mode_three_level;
+                break;
+            case Settings.DOUBLE_TAP_ZOOM_MODE_INCREMENTAL:
+                labelRes = R.string.double_tap_zoom_mode_incremental;
+                break;
+            default:
+                labelRes = R.string.double_tap_zoom_mode_default;
+                break;
+        }
+        baseBind.doubleTapZoomModeValue.setText(labelRes);
+        updateDoubleTapZoomDependentVisibility();
+    }
+
+    private void updateDoubleTapZoomDependentVisibility() {
+        boolean isIncremental = Shaft.sSettings.getDoubleTapZoomMode() == Settings.DOUBLE_TAP_ZOOM_MODE_INCREMENTAL;
+        // 参考直连开关的显隐方式：仅增量模式时「缩放增量」行插入在双击行为与长按复位之间，
+        // 把长按复位行向下挤压；默认/三级模式时隐藏该行，长按复位行直接跟在双击行为下方。
+        baseBind.customZoomScaleRela.setVisibility(isIncremental ? View.VISIBLE : View.GONE);
     }
 
     private void setupCustomZoomScaleAdjust() {

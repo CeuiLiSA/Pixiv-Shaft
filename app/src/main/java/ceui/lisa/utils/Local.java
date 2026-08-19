@@ -38,10 +38,16 @@ public class Local {
     public static Settings getSettings() {
         String settingsString = Shaft.sPreferences.getString(SETTINGS, "");
         Settings settings = Shaft.sGson.fromJson(settingsString, Settings.class);
+        if (settings != null) {
+            Settings.migrateLegacyDoubleTapZoom(settings);
+        }
         return settings == null ? new Settings() : settings;
     }
 
     public static void setSettings(Settings settings) {
+        if (settings != null) {
+            Settings.migrateLegacyDoubleTapZoom(settings);
+        }
         String settingsGson = Shaft.sGson.toJson(settings);
         SharedPreferences.Editor editor = Shaft.sPreferences.edit();
         editor.putString(SETTINGS, settingsGson);

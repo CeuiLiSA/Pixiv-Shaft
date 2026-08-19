@@ -1206,7 +1206,16 @@ public class Settings {
         this.autoRefreshHomeFeed = autoRefreshHomeFeed;
     }
 
-    // 插画二级详情：双击放大模式（false=ZoomImage 默认双击缩放，true=自定义增量双击+长按归位 PR#900）
+    // 插画大图双击缩放行为：
+    // 0=默认（ZoomImage 自带双击缩放），1=三级智能缩放，2=增量缩放。
+    public static final int DOUBLE_TAP_ZOOM_MODE_DEFAULT = 0;
+    public static final int DOUBLE_TAP_ZOOM_MODE_THREE_LEVEL = 1;
+    public static final int DOUBLE_TAP_ZOOM_MODE_INCREMENTAL = 2;
+
+    private int doubleTapZoomMode = DOUBLE_TAP_ZOOM_MODE_DEFAULT;
+
+    // 旧版字段（PR#900/901 的开关）。仅用于兼容旧备份/云端还原和旧版降级读取；
+    // 新代码统一走 doubleTapZoomMode，不再直接修改这两个字段。
     private boolean useCustomDoubleTapZoom = false;
 
     private float customZoomAddScale = 1.8f;
@@ -1215,28 +1224,89 @@ public class Settings {
 
     private boolean useThreeLevelZoo = false;
 
+    public int getDoubleTapZoomMode() {
+        if (doubleTapZoomMode < DOUBLE_TAP_ZOOM_MODE_DEFAULT ||
+                doubleTapZoomMode > DOUBLE_TAP_ZOOM_MODE_INCREMENTAL) {
+            return DOUBLE_TAP_ZOOM_MODE_DEFAULT;
+        }
+        return doubleTapZoomMode;
+    }
+
+    public void setDoubleTapZoomMode(int doubleTapZoomMode) {
+        if (doubleTapZoomMode < DOUBLE_TAP_ZOOM_MODE_DEFAULT ||
+                doubleTapZoomMode > DOUBLE_TAP_ZOOM_MODE_INCREMENTAL) {
+            this.doubleTapZoomMode = DOUBLE_TAP_ZOOM_MODE_DEFAULT;
+        } else {
+            this.doubleTapZoomMode = doubleTapZoomMode;
+        }
+        // 同步旧字段：新版本导出的备份里旧版开关仍然可用，降级回旧版时体验不丢。
+        this.useCustomDoubleTapZoom = this.doubleTapZoomMode != DOUBLE_TAP_ZOOM_MODE_DEFAULT;
+        this.useThreeLevelZoo = this.doubleTapZoomMode == DOUBLE_TAP_ZOOM_MODE_THREE_LEVEL;
+    }
+
+    @Deprecated
     public boolean isUseCustomDoubleTapZoom() {
         return useCustomDoubleTapZoom;
+    }
+
+    @Deprecated
+    public boolean isUseThreeLevelZoo() {
+        return useThreeLevelZoo;
+    }
+
+    @Deprecated
+    public void setUseCustomDoubleTapZoom(boolean useCustomDoubleTapZoom) {
+        this.useCustomDoubleTapZoom = useCustomDoubleTapZoom;
+        if (!useCustomDoubleTapZoom) {
+            this.doubleTapZoomMode = DOUBLE_TAP_ZOOM_MODE_DEFAULT;
+        } else if (this.doubleTapZoomMode == DOUBLE_TAP_ZOOM_MODE_DEFAULT) {
+            this.doubleTapZoomMode = this.useThreeLevelZoo
+                    ? DOUBLE_TAP_ZOOM_MODE_THREE_LEVEL
+                    : DOUBLE_TAP_ZOOM_MODE_INCREMENTAL;
+        }
+        this.useThreeLevelZoo = this.doubleTapZoomMode == DOUBLE_TAP_ZOOM_MODE_THREE_LEVEL;
+    }
+
+    @Deprecated
+    public void setUseThreeLevelZoo(boolean useThreeLevelZoo) {
+        this.useThreeLevelZoo = useThreeLevelZoo;
+        if (this.doubleTapZoomMode != DOUBLE_TAP_ZOOM_MODE_DEFAULT) {
+            this.doubleTapZoomMode = useThreeLevelZoo
+                    ? DOUBLE_TAP_ZOOM_MODE_THREE_LEVEL
+                    : DOUBLE_TAP_ZOOM_MODE_INCREMENTAL;
+        }
+        this.useCustomDoubleTapZoom = this.doubleTapZoomMode != DOUBLE_TAP_ZOOM_MODE_DEFAULT;
     }
 
     public boolean isUseCustomLongPressReset() {
         return useCustomLongPressReset;
     }
 
-    public boolean isUseThreeLevelZoo() {
-        return useThreeLevelZoo;
-    }
-
-    public void setUseCustomDoubleTapZoom(boolean useCustomDoubleTapZoom) {
-        this.useCustomDoubleTapZoom = useCustomDoubleTapZoom;
-    }
-
     public void setUseCustomLongPressReset(boolean useCustomLongPressReset) {
         this.useCustomLongPressReset = useCustomLongPressReset;
     }
 
-    public void setUseThreeLevelZoo(boolean useThreeLevelZoo) {
-        this.useThreeLevelZoo = useThreeLevelZoo;
+    /**
+     * 旧版设置/备份/云端还原迁移：把 PR#900/901 的两个开关映射到新的三选一模式。
+     * 新版 JSON 已有 doubleTapZoomMode 时保持原值，同时回填旧字段方便降级兼容。
+     */
+    public static void migrateLegacyDoubleTapZoom(Settings settings) {
+        if (settings == null) {
+            return;
+        }
+        int mode = settings.doubleTapZoomMode;
+        if (mode < DOUBLE_TAP_ZOOM_MODE_DEFAULT || mode > DOUBLE_TAP_ZOOM_MODE_INCREMENTAL) {
+            mode = DOUBLE_TAP_ZOOM_MODE_DEFAULT;
+        }
+        if (mode == DOUBLE_TAP_ZOOM_MODE_DEFAULT && settings.useCustomDoubleTapZoom) {
+            // 旧版 JSON 没有新字段：靠旧开关推导用户原来选的是增量还是三级。
+            mode = settings.useThreeLevelZoo
+                    ? DOUBLE_TAP_ZOOM_MODE_THREE_LEVEL
+                    : DOUBLE_TAP_ZOOM_MODE_INCREMENTAL;
+        }
+        settings.doubleTapZoomMode = mode;
+        settings.useCustomDoubleTapZoom = mode != DOUBLE_TAP_ZOOM_MODE_DEFAULT;
+        settings.useThreeLevelZoo = mode == DOUBLE_TAP_ZOOM_MODE_THREE_LEVEL;
     }
 
     // 插画V3详情页：下载按钮是否在左（true=左下载右收藏，false=左收藏右下载）
