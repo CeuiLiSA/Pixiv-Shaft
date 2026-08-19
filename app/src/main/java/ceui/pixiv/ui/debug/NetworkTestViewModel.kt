@@ -9,6 +9,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AppApiProxyInterceptor
 import ceui.lisa.http.CronetInterceptor
 import ceui.lisa.http.HttpDns
+import ceui.lisa.http.IPv4OnlyDns
 import ceui.lisa.http.ImageHostManager
 import ceui.lisa.http.PixivHeaders
 import ceui.lisa.http.RubySSLSocketFactory
@@ -99,36 +100,6 @@ internal fun nat64EmbeddedIpv4Candidates(addr: Inet6Address): List<String> {
     val b = addr.address
     if (b.size != 16) return emptyList()
     return NAT64_V4_OFFSETS.map { idx -> idx.joinToString(".") { (b[it].toInt() and 0xFF).toString() } }
-}
-
-/**
- * 网络测试页的 IPv4-only DNS（OkHttp [Dns]），做法抄自 PR #1036 的 IPv4OnlyDns。
- *
- * 当前测试流程大多会先把选定 IPv4 钉进 [buildHandshakeClient]（pinnedDns），所以这个
- * DNS 实际未必会走到；保留它作为防守：当未钉 IP（fake-ip / 代理 / Cronet 绕过等）时，
- * 仍对 app-api.pixiv.net / www.pixiv.net 过滤系统 DNS 返回的 IPv6，避免被污染的 IPv6
- * 拖出多余的 connect 尝试。
- *
- * 只过滤这两个官方 Pixiv 域名，其它域名（用户自建 PxveAPI 代理、图片反代等）原样放行
- * ——代理可能有合法 IPv6，不能一刀切。
- *
- * 安全回退：如果系统 DNS 只返回 IPv6（例如 IPv6-only/NAT64 环境），保留原结果，
- * 不让 OkHttp 拿到空地址列表而引入新的“无地址”语义。
- */
-private object PixivIpv4OnlyDns : Dns {
-
-    private val IPV4_ONLY_HOSTS = setOf(
-        "app-api.pixiv.net",
-        "www.pixiv.net",
-    )
-
-    override fun lookup(hostname: String): List<InetAddress> {
-        val all = Dns.SYSTEM.lookup(hostname)
-        if (hostname !in IPV4_ONLY_HOSTS) return all
-
-        val ipv4 = all.filterIsInstance<Inet4Address>()
-        return if (ipv4.isNotEmpty()) ipv4 else all
-    }
 }
 
 /** 单条步骤的语义状态，决定圆点 / pill 的颜色（在 Fragment 里按状态染 v3 颜色）。 */
@@ -934,7 +905,8 @@ class NetworkTestViewModel : ViewModel() {
      *   · APP_API / PIXSHAFT：H2+H1；直连开启时挂 [CronetInterceptor]（请求转 QUIC，绕 SNI 阻断）。
      *   · IMAGE：直连开启时无 SNI（[RubySSLSocketFactory]）+ 信任所有证书 + 关主机名校验 + 强制 HTTP/1.1。
      * 连接池 0 空闲 → 每次调用都重新握手；默认用 [pinnedDns] 把域名钉到本次选定的 IP；
-     * 未钉 IP（fake-ip / 代理 / Cronet 绕过）时用 [PixivIpv4OnlyDns] 过滤 Pixiv 两个域名的污染 IPv6。
+     * 未钉 IP（fake-ip / 代理 / Cronet 绕过）时用线上同一个 [IPv4OnlyDns] 过滤污染的 IPv6
+     * ——诊断页必须和线上客户端用同一份白名单，否则测出来的结论不等于用户实际的表现。
      * Cronet 路径除外，其走自身 host-resolver 规则，固定到 Cloudflare IP。fake-ip 模式传 pin=false 不钉 IP，
      * 交给系统 DNS + 代理接管路由。
      */
@@ -944,7 +916,7 @@ class NetworkTestViewModel : ViewModel() {
             .connectTimeout(5, TimeUnit.SECONDS)
             .readTimeout(5, TimeUnit.SECONDS)
             .writeTimeout(5, TimeUnit.SECONDS)
-            .dns(PixivIpv4OnlyDns)
+            .dns(IPv4OnlyDns)
         if (pin && ip != null) {
             val pinnedDns = object : Dns {
                 override fun lookup(hostname: String): List<InetAddress> = listOf(ip)
@@ -1463,7 +1435,7 @@ class NetworkTestViewModel : ViewModel() {
         val builder = OkHttpClient.Builder()
             .connectTimeout(3, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
-            .dns(PixivIpv4OnlyDns)
+            .dns(IPv4OnlyDns)
             .protocols(listOf(Protocol.HTTP_1_1))
             .addInterceptor(WebHeaderInterceptor())
         if (directConnect) addCronet(builder)
