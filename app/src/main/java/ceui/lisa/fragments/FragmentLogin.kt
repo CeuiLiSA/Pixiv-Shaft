@@ -23,10 +23,12 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewModelScope
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
@@ -39,7 +41,9 @@ import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
+import ceui.loxia.Event
 import ceui.loxia.MoonSync
+import ceui.loxia.observeEvent
 import ceui.pixiv.i18n.AppLocales
 import ceui.pixiv.login.PixivLogin
 import ceui.pixiv.login.PixivOAuthResult
@@ -59,8 +63,84 @@ import java.util.Locale
 import kotlin.math.roundToInt
 import timber.log.Timber
 
+/** refresh_token 登录的终局，由 [LandingViewModel] 发出、[FragmentLogin] 消费。 */
+sealed class RefreshTokenLoginOutcome {
+    /** 已换到 token 并落库完成，[uid] 供云端设置同步用。 */
+    data class Succeeded(val uid: Long) : RefreshTokenLoginOutcome()
+    data class Failed(@StringRes val messageRes: Int) : RefreshTokenLoginOutcome()
+}
+
 class LandingViewModel : ViewModel() {
     val isChecked = MutableLiveData(false)
+
+    private val _refreshTokenLoginEvent = MutableLiveData<Event<RefreshTokenLoginOutcome>>()
+    val refreshTokenLoginEvent: LiveData<Event<RefreshTokenLoginOutcome>> = _refreshTokenLoginEvent
+
+    private var refreshTokenLoginJob: Job? = null
+
+    /**
+     * 拿用户粘贴的 refresh_token 换登录态。
+     *
+     * 走 [PixivLogin]（OAuth 专用客户端）而不是 [ceui.lisa.http.Retro] 的 AccountTokenApi：
+     * 后者挂着 [ceui.lisa.http.TokenInterceptor]，token 无效时 pixiv 回的 400
+     * "Invalid refresh token" 会被它当成「当前会话过期」，直接 logout + 重启 App —— 在登录页
+     * 粘错一次 token 整个应用就被踢回主界面重来。OAuth 客户端本身不挂任何鉴权拦截器，
+     * 失败按 [PixivOAuthResult.Failure] 的子类型分流即可。
+     *
+     * 放 [viewModelScope] 而不是 Fragment 的 viewLifecycleOwner.lifecycleScope：登录页宿主
+     * TemplateActivity 没声明 configChanges，旋转 / 展开折叠屏 / 进分屏都会重建 View。挂在
+     * view 上的话，token 已经换到手甚至已经落库，协程却被取消 —— 用户没有任何提示地停在
+     * 登录页上，而 session 其实已经写进去了。结果用 [Event] 投递，重建后的 observer 照收。
+     */
+    fun startRefreshTokenLogin(refreshToken: String) {
+        if (refreshTokenLoginJob?.isActive == true) return
+        refreshTokenLoginJob = viewModelScope.launch {
+            val outcome = when (val result = PixivLogin.refreshTokenForLogin(refreshToken)) {
+                is PixivOAuthResult.Failure -> {
+                    Timber.w("refresh-token login failed: %s", result.message)
+                    RefreshTokenLoginOutcome.Failed(refreshTokenFailureToast(result))
+                }
+
+                is PixivOAuthResult.Success -> persistRefreshTokenLogin(result.rawBody)
+            }
+            _refreshTokenLoginEvent.value = Event(outcome)
+        }
+    }
+
+    private suspend fun persistRefreshTokenLogin(rawBody: String): RefreshTokenLoginOutcome {
+        // rawBody 而不是 result.response：落库要的是完整 user（R18 设置、邮箱验证态等），
+        // PixivOAuthResponse 只带最小档案。与 OutWakeActivity 的 OAuth 回调路径同款处理。
+        val userModel = runCatching {
+            Shaft.sGson.fromJson(rawBody, UserModel::class.java)
+        }.getOrNull()
+        val user = userModel?.user
+            ?: return RefreshTokenLoginOutcome.Failed(R.string.refresh_token_invalid_toast)
+        try {
+            withContext(Dispatchers.IO) { Local.persistLoggedInUser(userModel) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "refresh-token login persistence failed")
+            // Session 已写（saveUser 成功）则用户已登录，Room 行缺失仅影响账户切换列表：
+            // 视为非致命，继续流程，避免半登录态卡在登录页
+            if (!SessionManager.isLoggedIn) {
+                return RefreshTokenLoginOutcome.Failed(R.string.refresh_token_persist_error_toast)
+            }
+        }
+        return RefreshTokenLoginOutcome.Succeeded(user.id.toLong())
+    }
+}
+
+@StringRes
+private fun refreshTokenFailureToast(failure: PixivOAuthResult.Failure): Int = when (failure) {
+    // 断网 / 超时 / DNS → 网络文案，不要归因到 token
+    is PixivOAuthResult.Failure.NetworkError -> R.string.refresh_token_network_error_toast
+    is PixivOAuthResult.Failure.ServerRejected ->
+        if (failure.httpCode in 500..599) R.string.refresh_token_server_error_toast
+        // 400 invalid_grant / "Invalid refresh token" 都在这一支
+        else R.string.refresh_token_invalid_toast
+    // MissingCode / MissingVerifier 属于授权码流程，refresh 走不到，兜底当 token 无效
+    else -> R.string.refresh_token_invalid_toast
 }
 
 class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
@@ -82,7 +162,6 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     private var greetingCycleJob: Job? = null
     private val rowChecks = mutableMapOf<String, View>()
     private var refreshTokenDialog: WitDialog? = null
-    private var refreshTokenLoginRunning = false
 
     // ── Lifecycle ──
 
@@ -516,6 +595,8 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
 
         setupTermsText(page.firstText)
 
+        observeRefreshTokenLogin()
+
         viewModel.isChecked.observe(viewLifecycleOwner) { page.checkboxOne.isSelected = it }
         page.checkboxOne.setOnClickListener {
             viewModel.isChecked.value = !(viewModel.isChecked.value ?: false)
@@ -535,7 +616,8 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                 val token = builder.editText.text.toString().trim()
                 if (token.isNotEmpty()) {
                     dialog.dismiss()
-                    loginWithRefreshToken(token)
+                    Common.showToast(getString(R.string.trying_login), 2)
+                    viewModel.startRefreshTokenLogin(token)
                 }
             }
         refreshTokenDialog = builder.create()
@@ -543,76 +625,23 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     }
 
     /**
-     * 拿用户粘贴的 refresh_token 换登录态。
-     *
-     * 走 [PixivLogin]（OAuth 专用客户端）而不是 [ceui.lisa.http.Retro] 的 AccountTokenApi：
-     * 后者挂着 [ceui.lisa.http.TokenInterceptor]，token 无效时 pixiv 回的 400
-     * "Invalid refresh token" 会被它当成「当前会话过期」，直接 logout + 重启 App —— 在登录页
-     * 粘错一次 token 整个应用就被踢回主界面重来。OAuth 客户端本身不挂任何鉴权拦截器，
-     * 失败按 [PixivOAuthResult.Failure] 的子类型分流即可。
+     * 登录终局的收尾。挂 viewLifecycleOwner 只是为了不在没有 View 的时候碰 UI —— 登录本身
+     * 跑在 [LandingViewModel] 里，View 被重建也不会断，[Event] 会把结果交给新的 observer。
      */
-    private fun loginWithRefreshToken(refreshToken: String) {
-        if (refreshTokenLoginRunning) return
-        refreshTokenLoginRunning = true
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                Common.showToast(getString(R.string.trying_login), 2)
-                when (val result = PixivLogin.refreshTokenForLogin(refreshToken)) {
-                    is PixivOAuthResult.Failure -> {
-                        Timber.w("refresh-token login failed: %s", result.message)
-                        Common.showToast(getString(failureToast(result)), 3)
-                    }
+    private fun observeRefreshTokenLogin() {
+        viewModel.refreshTokenLoginEvent.observeEvent(viewLifecycleOwner) { outcome ->
+            when (outcome) {
+                is RefreshTokenLoginOutcome.Failed ->
+                    Common.showToast(getString(outcome.messageRes), 3)
 
-                    is PixivOAuthResult.Success -> {
-                        // rawBody 而不是 result.response：落库要的是完整 user（R18 设置、
-                        // 邮箱验证态等），PixivOAuthResponse 只带最小档案。与 OutWakeActivity
-                        // 的 OAuth 回调路径同款处理。
-                        val userModel = runCatching {
-                            Shaft.sGson.fromJson(result.rawBody, UserModel::class.java)
-                        }.getOrNull()
-                        if (userModel?.user == null) {
-                            Common.showToast(getString(R.string.refresh_token_invalid_toast), 3)
-                        } else {
-                            finishRefreshTokenLogin(userModel)
-                        }
+                is RefreshTokenLoginOutcome.Succeeded -> {
+                    Common.showToast(getString(R.string.refresh_token_success_toast), 2)
+                    MoonSync.syncFromCloudOnLogin(mActivity, outcome.uid) {
+                        mActivity.finish()
+                        Common.restart()
                     }
                 }
-            } finally {
-                refreshTokenLoginRunning = false
             }
-        }
-    }
-
-    @StringRes
-    private fun failureToast(failure: PixivOAuthResult.Failure): Int = when (failure) {
-        // 断网 / 超时 / DNS → 网络文案，不要归因到 token
-        is PixivOAuthResult.Failure.NetworkError -> R.string.refresh_token_network_error_toast
-        is PixivOAuthResult.Failure.ServerRejected ->
-            if (failure.httpCode in 500..599) R.string.refresh_token_server_error_toast
-            // 400 invalid_grant / "Invalid refresh token" 都在这一支
-            else R.string.refresh_token_invalid_toast
-        // MissingCode / MissingVerifier 属于授权码流程，refresh 走不到，兜底当 token 无效
-        else -> R.string.refresh_token_invalid_toast
-    }
-
-    private suspend fun finishRefreshTokenLogin(userModel: UserModel) {
-        try {
-            withContext(Dispatchers.IO) { Local.persistLoggedInUser(userModel) }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.e(e, "refresh-token login persistence failed")
-            // Session 已写（saveUser 成功）则用户已登录，Room 行缺失仅影响账户切换列表：
-            // 视为非致命，继续流程，避免半登录态卡在登录页
-            if (!SessionManager.isLoggedIn) {
-                Common.showToast(getString(R.string.refresh_token_persist_error_toast), 3)
-                return
-            }
-        }
-        Common.showToast(getString(R.string.refresh_token_success_toast), 2)
-        MoonSync.syncFromCloudOnLogin(mActivity, userModel.user?.id?.toLong() ?: 0L) {
-            mActivity.finish()
-            Common.restart()
         }
     }
 

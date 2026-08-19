@@ -58,8 +58,10 @@ public class Local {
      *  - the Room row is the account-switcher list (an account missing from it only
      *    affects switching, never the login state itself).
      *
-     * <p>Not a suspend function: callers are responsible for running it on an IO thread
-     * (e.g. {@code withContext(Dispatchers.IO)}).
+     * <p>Blocking: it writes SharedPreferences and inserts a Room row inline. The DB is
+     * built with {@code allowMainThreadQueries()}, so the legacy main-thread call sites
+     * (OAuth callback / clipboard import) do not throw; new callers should still hop to
+     * an IO thread (e.g. {@code withContext(Dispatchers.IO)}).
      *
      * <p>Failure semantics: if {@link #saveUser(UserModel)} fails the login is not
      * established; if only the Room insert fails the user is still logged in and the
