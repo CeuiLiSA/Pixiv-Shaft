@@ -365,7 +365,10 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
      */
     override fun onResume() {
         super.onResume()
-        if (everResumed) load() else everResumed = true
+        // 回来这一次是**静默刷新**：不转圈、失败也不换成错误页。从收银台回来看到整页先空白
+        // 再重画，读起来像页面崩了重开一次；而这时候屏幕上那份数据本来就还是对的，最多差
+        // 一次刚买的档位——真刷到了就地换掉，刷不到保持原样，没有一种情况值得把它清空。
+        if (everResumed) load(withSpinner = false) else everResumed = true
     }
 
     /**
@@ -431,14 +434,18 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         )
     }
 
-    private fun load() {
+    /**
+     * @param withSpinner 首次进入（和手动重试）要有加载态；[onResume] 的静默刷新不要——
+     *   它是在已经画好的内容上做替换，转圈和错误页都只会把用户看得好好的一屏拿走。
+     */
+    private fun load(withSpinner: Boolean = true) {
         val uid = SessionManager.loggedInUid
         if (uid <= 0L) {
             // 未登录不是「加载失败」：没有可重试的东西，所以这一态不给重试文案。
             showError(getString(R.string.nana7mi_usage_login_required), retryable = false)
             return
         }
-        showLoading()
+        if (withSpinner) showLoading()
         viewLifecycleOwner.lifecycleScope.launch {
             when (val result = Client.pixshaft.fetchNana7miQuota(uid)) {
                 is Nana7miQuotaResult.Success -> {
@@ -453,7 +460,9 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
                     }
                     render(result.quotas, result.serverTime)
                 }
-                else -> showError(getString(R.string.nana7mi_usage_error), retryable = true)
+                // 静默刷新失败就当没刷过：屏幕上那份数据还是有效的，把它换成错误页是在
+                // 拿走一份能用的东西去换一句「加载失败」。
+                else -> if (withSpinner) showError(getString(R.string.nana7mi_usage_error), retryable = true)
             }
         }
     }
