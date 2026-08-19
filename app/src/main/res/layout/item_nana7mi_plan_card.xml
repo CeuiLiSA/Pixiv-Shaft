@@ -10,8 +10,10 @@
       eyebrow（Pro / Max，小字distinct）→ 价格（整页最大的数字）→ 一句定位 → 分隔线
       → 卖点清单（代码里灌，因为条数按档位变）→ 按钮
 
-    背景、按钮底、分隔线的颜色全部在 Fragment 里从主题色派生（见 planCardBackground），
-    所以十档预设和自定义 HEX 都自动跟随 —— 这里不设 background，设了会盖掉圆角。
+    背景、按钮底、档位牌、分隔线的颜色全部在 Fragment 里从**该档的固定品牌色**派生
+    （见 Brand / planCardBackground）—— 5x 蓝转青、20x 金转橙，和爱发电上的方案封面同一套。
+    这里刻意不跟主题色走：用户是先在站外看到封面才进来买的，跟着主题变就认不出是同一件
+    商品了。所以这里不设 background，设了会盖掉圆角。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
@@ -60,6 +62,29 @@
             android:visibility="gone"
             tools:text="@string/nana7mi_usage_plan_badge"
             tools:visibility="visible" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- 档位名。右上角是这张卡的「身份牌」：眉标那行说的是买到什么（5X 用量），
+             这里说的是它叫什么（PRO / MAX）—— 服务端、后台、客服对话里用的都是这个词，
+             卡上不写，用户就没法把「我买的 5x」和别人口中的「Pro」对上。
+             底色和按钮同一个实心品牌色，一眼能认出这张卡属于哪一档。 -->
+        <TextView
+            android:id="@+id/plan_tier_pill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:letterSpacing="0.08"
+            android:paddingStart="10dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="4dp"
+            android:textAllCaps="true"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            tools:text="MAX" />
     </LinearLayout>
 
     <!-- 价格行：数字和「/ 月」按基线对齐（gravity=bottom），不是居中 —— 居中会让后缀

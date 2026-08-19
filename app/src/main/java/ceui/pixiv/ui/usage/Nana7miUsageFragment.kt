@@ -89,8 +89,8 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
                 descRes = R.string.nana7mi_usage_plan_5x_desc,
                 monthlyYuan = 20,
                 multiplier = 5,
-                brand = Brand(a1 = 0xFF5BB0FF.toInt(), a2 = 0xFF5FE6DC.toInt(),
-                    tint = 0xFF2E7BD6.toInt(), base = 0xFF0B1526.toInt()),
+                brand = Brand(a1 = 0xFF5BB0FF.toInt(), tint = 0xFF2E7BD6.toInt(),
+                    base = 0xFF0B1526.toInt()),
             ),
             Plan(
                 key = PLAN_MAX,
@@ -98,8 +98,8 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
                 descRes = R.string.nana7mi_usage_plan_20x_desc,
                 monthlyYuan = 40,
                 multiplier = 20,
-                brand = Brand(a1 = 0xFFFFC85C.toInt(), a2 = 0xFFFF8A3D.toInt(),
-                    tint = 0xFFC77A16.toInt(), base = 0xFF150E04.toInt()),
+                brand = Brand(a1 = 0xFFFFC85C.toInt(), tint = 0xFFC77A16.toInt(),
+                    base = 0xFF150E04.toInt()),
                 bestValue = true,
             ),
         )
@@ -124,13 +124,13 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
      * 在两处就是两个东西了。所以这里写死，只按日夜切换取哪一档色阶。
      *
      * 封面是深底设计，色值不能照搬到浅色界面上，所以按**角色**映射而不是按值搬：
-     *  - [a1]→[a2] 亮色渐变：给填充面（按钮），深浅两套主题下都够跳
-     *  - [tint] 中间调：给浅色主题下的文字，深底上的 [a1] 放到白底上会糊
-     *  - [base] 封面底色：反过来当亮色按钮上的**前景**，深字压亮底，两套主题都够对比
+     *  - [tint] 中间调：实心面（按钮、档位牌）和浅色主题下的文字。深底上的 [a1] 放到
+     *    白底上会糊，而 [tint] 配白字是仓库里实心按钮一贯的配法
+     *  - [a1] 亮调：只给深色主题下的文字
+     *  - [base] 封面底色：只用来派生水波和分隔线那几层低不透明度
      */
     private class Brand(
         @ColorInt val a1: Int,
-        @ColorInt val a2: Int,
         @ColorInt val tint: Int,
         @ColorInt val base: Int,
     ) {
@@ -235,6 +235,14 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
             text = getString(plan.titleRes)
             setTextColor(accent)
         }
+        card.findViewById<TextView>(R.id.plan_tier_pill).apply {
+            // 直接用服务端的档位 key 大写，不进 strings：PRO / MAX 是商品名，不是要翻译的
+            // 文案，而且这个词必须和服务端、后台、客服口径逐字一致——落到 7 份翻译里迟早会
+            // 有一份被改成别的说法。
+            text = plan.key.uppercase(Locale.ROOT)
+            background = pillBackground(plan.brand)
+            setTextColor(ContextCompat.getColor(mContext, R.color.always_white))
+        }
         card.findViewById<TextView>(R.id.plan_desc).text = when {
             // 已经买了这一档：卖点换成他真正关心的那件事——什么时候到期。
             current != null -> expiryText(current)
@@ -311,10 +319,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
             else -> getString(R.string.nana7mi_usage_plan_cta_choose, getString(plan.titleRes))
         }
         cta.background = ctaBackground(plan.brand)
-        // 前景用封面的底色（深蓝 / 深棕），不是白。按钮底是 a1→a2 的亮色渐变，白字压上去
-        // 在 #5FE6DC 和 #FFC85C 那两头都糊；深字压亮底两套主题下都稳，而且正好是封面
-        // 「深底 + 亮字」那套关系反过来用。
-        cta.setTextColor(plan.brand.base)
+        cta.setTextColor(ContextCompat.getColor(mContext, R.color.always_white))
         // 有一笔在飞时整组按钮都停用：两条下单链接同时开出去，用户会在浏览器里看到两个
         // 订单页，而其中一个是他已经不想要的那一档。
         cta.alpha = if (anyBusy && !busy) 0.4f else 1f
@@ -407,18 +412,26 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         return RippleDrawable(ColorStateList.valueOf(withAlpha(brand.tint, 0.20f)), fill, mask)
     }
 
+    /** 右上角档位牌的底：同按钮一样的实心品牌色，只是圆成胶囊。 */
+    private fun pillBackground(brand: Brand): GradientDrawable = GradientDrawable().apply {
+        cornerRadius = 999f * resources.displayMetrics.density
+        setColor(brand.tint)
+    }
+
     /**
-     * 按钮底：封面上那道 a1→a2 渐变，整页唯一一处实心填充 —— 它是这页唯一要人做的动作。
+     * 按钮底：实心品牌中间调，整页唯一一处实心填充 —— 它是这页唯一要人做的动作。
      *
-     * 渐变而不是纯色，是因为这两档在外面的物料上就是靠这道渐变认的（5x 蓝转青、20x 金转橙）。
+     * 用 [Brand.tint] 而不是封面上那截亮色：`#5FE6DC`、`#FFC85C` 那两头太亮，
+     * 白字压不住、深字又跳，而中间调配白字是仓库里实心按钮一贯的配法（见 pillPrimary）。
+     * 色相还是那两档各自的，蓝和金分得开，只是不再拉渐变。
      */
     private fun ctaBackground(brand: Brand): RippleDrawable {
         val density = resources.displayMetrics.density
         val radius = 14f * density
-        val fill = GradientDrawable(
-            GradientDrawable.Orientation.LEFT_RIGHT,
-            intArrayOf(brand.a1, brand.a2),
-        ).apply { cornerRadius = radius }
+        val fill = GradientDrawable().apply {
+            cornerRadius = radius
+            setColor(brand.tint)
+        }
         val mask = GradientDrawable().apply {
             cornerRadius = radius
             setColor(Color.WHITE)
