@@ -14,6 +14,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
@@ -88,6 +89,8 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
                 descRes = R.string.nana7mi_usage_plan_5x_desc,
                 monthlyYuan = 20,
                 multiplier = 5,
+                brand = Brand(a1 = 0xFF5BB0FF.toInt(), a2 = 0xFF5FE6DC.toInt(),
+                    tint = 0xFF2E7BD6.toInt(), base = 0xFF0B1526.toInt()),
             ),
             Plan(
                 key = PLAN_MAX,
@@ -95,6 +98,8 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
                 descRes = R.string.nana7mi_usage_plan_20x_desc,
                 monthlyYuan = 40,
                 multiplier = 20,
+                brand = Brand(a1 = 0xFFFFC85C.toInt(), a2 = 0xFFFF8A3D.toInt(),
+                    tint = 0xFFC77A16.toInt(), base = 0xFF150E04.toInt()),
                 bestValue = true,
             ),
         )
@@ -107,8 +112,31 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         @StringRes val descRes: Int,
         val monthlyYuan: Int,
         val multiplier: Int,
+        val brand: Brand,
         val bestValue: Boolean = false,
     )
+
+    /**
+     * 一档的固定品牌色，抄自订阅封面（pixshaft-covers/cover.html）——**不跟主题色走**。
+     *
+     * 这两档在爱发电的方案封面、商品图、对外物料上就是这两套颜色：5x 是蓝转青，20x 是
+     * 金转橙。用户是先在外面看到封面才进来买的，App 里的卡片要是跟着主题色变，同一档
+     * 在两处就是两个东西了。所以这里写死，只按日夜切换取哪一档色阶。
+     *
+     * 封面是深底设计，色值不能照搬到浅色界面上，所以按**角色**映射而不是按值搬：
+     *  - [a1]→[a2] 亮色渐变：给填充面（按钮），深浅两套主题下都够跳
+     *  - [tint] 中间调：给浅色主题下的文字，深底上的 [a1] 放到白底上会糊
+     *  - [base] 封面底色：反过来当亮色按钮上的**前景**，深字压亮底，两套主题都够对比
+     */
+    private class Brand(
+        @ColorInt val a1: Int,
+        @ColorInt val a2: Int,
+        @ColorInt val tint: Int,
+        @ColorInt val base: Int,
+    ) {
+        /** 文字用的强调色：浅色主题取中间调，深色主题取亮调。 */
+        @ColorInt fun text(isDark: Boolean): Int = if (isDark) a1 else tint
+    }
 
     /** 正在换下单链接的那一档。同时也是防连点：一次只允许一笔在飞。 */
     private var checkoutInFlight: String? = null
@@ -198,13 +226,14 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
 
     private fun bindPlan(card: View, plan: Plan, palette: V3Palette) {
         val current = this.plan?.takeIf { it.isPaid && it.owned == plan.key }
+        val accent = plan.brand.text(palette.isDark)
         // 已订阅的那一档整张卡描一道实边：一屏两张卡，得让「我在这一档上」一眼看出来，
         // 而不是靠读徽章上那四个字。
-        card.background = planCardBackground(palette, highlighted = current != null)
+        card.background = planCardBackground(plan.brand, highlighted = current != null)
 
         card.findViewById<TextView>(R.id.plan_title).apply {
             text = getString(plan.titleRes)
-            setTextColor(palette.textAccent)
+            setTextColor(accent)
         }
         card.findViewById<TextView>(R.id.plan_desc).text = when {
             // 已经买了这一档：卖点换成他真正关心的那件事——什么时候到期。
@@ -213,9 +242,11 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         }
         card.findViewById<TextView>(R.id.plan_price).apply {
             text = getString(R.string.nana7mi_usage_plan_price, plan.monthlyYuan)
-            setTextColor(palette.textAccent)
+            setTextColor(accent)
         }
-        card.findViewById<View>(R.id.plan_divider).setBackgroundColor(palette.cardHairline)
+        // 分隔线跟着品牌色走一档很淡的，用中性发丝线会在一张有色卡片上显脏。
+        card.findViewById<View>(R.id.plan_divider)
+            .setBackgroundColor(withAlpha(plan.brand.tint, 0.22f))
         card.findViewById<TextView>(R.id.plan_badge).apply {
             // 「当前方案」压过「更划算」：他已经在这一档上了，再劝他划算没有意义。
             val badge = when {
@@ -228,14 +259,19 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
             if (badge != null) {
                 background = GradientDrawable().apply {
                     cornerRadius = 999f * resources.displayMetrics.density
-                    setColor(palette.alpha20)
+                    setColor(withAlpha(plan.brand.tint, 0.18f))
                 }
-                setTextColor(palette.textAccent)
+                setTextColor(accent)
             }
         }
-        bindFeatures(card.findViewById(R.id.plan_features), plan, palette)
-        bindCta(card, plan, current != null, palette)
+        bindFeatures(card.findViewById(R.id.plan_features), plan, accent)
+        bindCta(card, plan, current != null)
     }
+
+    /** 同一个色相压到指定不透明度。品牌色只有四个定值，其余层次都从它们派生。 */
+    @ColorInt
+    private fun withAlpha(@ColorInt color: Int, fraction: Float): Int =
+        ColorUtils.setAlphaComponent(color, (255 * fraction).toInt().coerceIn(0, 255))
 
     /**
      * 卖点清单。三条都说得起：热度排序是这东西本身，倍率同时抬两只桶（服务端两档一起乘），
@@ -243,7 +279,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
      *
      * 倍率写「5×」而不是「25 次 / 5 小时」——绝对次数是运营参数，见 [PLANS] 上的注释。
      */
-    private fun bindFeatures(host: LinearLayout, plan: Plan, palette: V3Palette) {
+    private fun bindFeatures(host: LinearLayout, plan: Plan, @ColorInt accent: Int) {
         host.removeAllViews()
         val inflater = LayoutInflater.from(mContext)
         val lines = listOf(
@@ -253,7 +289,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         )
         lines.forEach { line ->
             val row = inflater.inflate(R.layout.item_nana7mi_plan_feature, host, false)
-            row.findViewById<TextView>(R.id.feature_check).setTextColor(palette.textAccent)
+            row.findViewById<TextView>(R.id.feature_check).setTextColor(accent)
             row.findViewById<TextView>(R.id.feature_text).text = line
             host.addView(row)
         }
@@ -265,7 +301,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
      *
      * 整张卡也可点，和按钮同一个动作：卡片这么大，要求用户精准命中底部那一条不合理。
      */
-    private fun bindCta(card: View, plan: Plan, isCurrent: Boolean, palette: V3Palette) {
+    private fun bindCta(card: View, plan: Plan, isCurrent: Boolean) {
         val cta = card.findViewById<TextView>(R.id.plan_cta)
         val busy = checkoutInFlight == plan.key
         val anyBusy = checkoutInFlight != null
@@ -274,11 +310,11 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
             isCurrent -> getString(R.string.nana7mi_usage_plan_cta_renew)
             else -> getString(R.string.nana7mi_usage_plan_cta_choose, getString(plan.titleRes))
         }
-        cta.background = ctaBackground(palette)
-        // 实心主题色底上的前景恒为白（同仓库里 pillPrimary 的用法，见 CommentComposer 的
-        // 发送键）。**不能用 floatingPillContent** —— 那个 token 是给「近白色胶囊底」配的，
-        // 浅色模式下它是压深过的主题色，压在实心主题色上就是蓝底蓝字，真机上几乎读不出来。
-        cta.setTextColor(ContextCompat.getColor(mContext, R.color.always_white))
+        cta.background = ctaBackground(plan.brand)
+        // 前景用封面的底色（深蓝 / 深棕），不是白。按钮底是 a1→a2 的亮色渐变，白字压上去
+        // 在 #5FE6DC 和 #FFC85C 那两头都糊；深字压亮底两套主题下都稳，而且正好是封面
+        // 「深底 + 亮字」那套关系反过来用。
+        cta.setTextColor(plan.brand.base)
         // 有一笔在飞时整组按钮都停用：两条下单链接同时开出去，用户会在浏览器里看到两个
         // 订单页，而其中一个是他已经不想要的那一档。
         cta.alpha = if (anyBusy && !busy) 0.4f else 1f
@@ -352,15 +388,15 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
      * 卡片底。已订阅的那一档描实边（alpha60），其余是发丝边 —— 差别要在余光里就成立，
      * 不能只靠读文字。
      */
-    private fun planCardBackground(palette: V3Palette, highlighted: Boolean): RippleDrawable {
+    private fun planCardBackground(brand: Brand, highlighted: Boolean): RippleDrawable {
         val density = resources.displayMetrics.density
         val radius = 20f * density
         val fill = GradientDrawable().apply {
             cornerRadius = radius
-            setColor(palette.alpha10)
+            setColor(withAlpha(brand.tint, 0.10f))
             setStroke(
                 ((if (highlighted) 1.5f else 1f) * density).toInt().coerceAtLeast(1),
-                if (highlighted) palette.alpha60 else palette.alpha30,
+                withAlpha(brand.tint, if (highlighted) 0.55f else 0.26f),
             )
         }
         // mask 决定 ripple 的形状：没有它水波会漫成方角，露出圆角外面
@@ -368,21 +404,26 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
             cornerRadius = radius
             setColor(Color.WHITE)
         }
-        return RippleDrawable(ColorStateList.valueOf(palette.alpha20), fill, mask)
+        return RippleDrawable(ColorStateList.valueOf(withAlpha(brand.tint, 0.20f)), fill, mask)
     }
 
-    /** 按钮底：实心主题色，整页唯一一处实心填充 —— 它是这页唯一要人做的动作。 */
-    private fun ctaBackground(palette: V3Palette): RippleDrawable {
+    /**
+     * 按钮底：封面上那道 a1→a2 渐变，整页唯一一处实心填充 —— 它是这页唯一要人做的动作。
+     *
+     * 渐变而不是纯色，是因为这两档在外面的物料上就是靠这道渐变认的（5x 蓝转青、20x 金转橙）。
+     */
+    private fun ctaBackground(brand: Brand): RippleDrawable {
         val density = resources.displayMetrics.density
-        val fill = GradientDrawable().apply {
-            cornerRadius = 14f * density
-            setColor(palette.primary)
-        }
+        val radius = 14f * density
+        val fill = GradientDrawable(
+            GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(brand.a1, brand.a2),
+        ).apply { cornerRadius = radius }
         val mask = GradientDrawable().apply {
-            cornerRadius = 14f * density
+            cornerRadius = radius
             setColor(Color.WHITE)
         }
-        return RippleDrawable(ColorStateList.valueOf(palette.alpha30), fill, mask)
+        return RippleDrawable(ColorStateList.valueOf(withAlpha(brand.base, 0.22f)), fill, mask)
     }
 
     /**
