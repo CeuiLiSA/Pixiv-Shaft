@@ -39,6 +39,7 @@ import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.Inet4Address
+import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -77,6 +78,59 @@ internal fun maskProxyUrl(url: String): String {
     return "$scheme$visible***"
 }
 
+/**
+ * RFC 6052 允许的六种前缀长度（/32 /40 /48 /56 /64 /96）下，被嵌入的 IPv4 各占哪几个字节。
+ * 非 /96 时第 8 字节是保留位，IPv4 被它拆到两侧。
+ */
+private val NAT64_V4_OFFSETS = listOf(
+    intArrayOf(4, 5, 6, 7),
+    intArrayOf(5, 6, 7, 9),
+    intArrayOf(6, 7, 9, 10),
+    intArrayOf(7, 9, 10, 11),
+    intArrayOf(9, 10, 11, 12),
+    intArrayOf(12, 13, 14, 15),
+)
+
+/**
+ * 按 [NAT64_V4_OFFSETS] 从 IPv6 里取出所有可能被嵌入的 IPv4（六种前缀长度各一个）。
+ * 只负责取，不判断合不合法——由调用方拿官方 CIDR 白名单去比对。
+ */
+internal fun nat64EmbeddedIpv4Candidates(addr: Inet6Address): List<String> {
+    val b = addr.address
+    if (b.size != 16) return emptyList()
+    return NAT64_V4_OFFSETS.map { idx -> idx.joinToString(".") { (b[it].toInt() and 0xFF).toString() } }
+}
+
+/**
+ * 网络测试页的 IPv4-only DNS（OkHttp [Dns]），做法抄自 PR #1036 的 IPv4OnlyDns。
+ *
+ * 当前测试流程大多会先把选定 IPv4 钉进 [buildHandshakeClient]（pinnedDns），所以这个
+ * DNS 实际未必会走到；保留它作为防守：当未钉 IP（fake-ip / 代理 / Cronet 绕过等）时，
+ * 仍对 app-api.pixiv.net / www.pixiv.net 过滤系统 DNS 返回的 IPv6，避免被污染的 IPv6
+ * 拖出多余的 connect 尝试。
+ *
+ * 只过滤这两个官方 Pixiv 域名，其它域名（用户自建 PxveAPI 代理、图片反代等）原样放行
+ * ——代理可能有合法 IPv6，不能一刀切。
+ *
+ * 安全回退：如果系统 DNS 只返回 IPv6（例如 IPv6-only/NAT64 环境），保留原结果，
+ * 不让 OkHttp 拿到空地址列表而引入新的“无地址”语义。
+ */
+private object PixivIpv4OnlyDns : Dns {
+
+    private val IPV4_ONLY_HOSTS = setOf(
+        "app-api.pixiv.net",
+        "www.pixiv.net",
+    )
+
+    override fun lookup(hostname: String): List<InetAddress> {
+        val all = Dns.SYSTEM.lookup(hostname)
+        if (hostname !in IPV4_ONLY_HOSTS) return all
+
+        val ipv4 = all.filterIsInstance<Inet4Address>()
+        return if (ipv4.isNotEmpty()) ipv4 else all
+    }
+}
+
 /** 单条步骤的语义状态，决定圆点 / pill 的颜色（在 Fragment 里按状态染 v3 颜色）。 */
 enum class StepStatus { INFO, OK, WARN, FAIL, RUNNING, HIGH_LATENCY, EXTREME_LATENCY }
 
@@ -86,6 +140,18 @@ data class TestStep(
     val detail: String? = null,
     val status: StepStatus = StepStatus.INFO,
 )
+
+/** 系统 DNS 的一次解析结果，统一拆好 IPv4 / IPv6 / fake-ip / 公网 IPv6，避免各处重复过滤。 */
+private data class SysDnsResult(
+    val all: List<InetAddress>,
+    val ipv4: List<Inet4Address>,
+    val ipv6: List<Inet6Address>,
+    val fakeIps: List<String>,
+    val publicIpv6: List<Inet6Address>,
+) {
+    val hasFakeIp: Boolean get() = fakeIps.isNotEmpty()
+    val hasPublicIpv6: Boolean get() = publicIpv6.isNotEmpty()
+}
 
 /**
  * 单个目标（域名）的整体判定，决定卡片右上角 pill。
@@ -586,20 +652,20 @@ class NetworkTestViewModel : ViewModel() {
             setStatus(idx, TargetStatus.FAILED)
             return false to false
         }
-        val ipv4 = sysAddrs.filterIsInstance<Inet4Address>()
+        val dns = analyzeSysDns(sysAddrs, cfg.cidrs)
+        val ipv4 = dns.ipv4
         // fake-ip 检测：代理接管 DNS 时返回保留地址。不取消目标——跳过 DNS/ping，仅测握手，
         // 且不再把解析出的 IP 喂给 OkHttp（让代理接管路由）。
-        val fakeIps = ipv4.mapNotNull { it.hostAddress }.filter { isFakeIp(it) }
-        if (fakeIps.isNotEmpty()) {
+        if (dns.hasFakeIp) {
             addStep(
                 idx,
                 TestStep(
                     strRes(R.string.network_test_dns_step),
-                    strRes(R.string.network_test_dns_fakeip, fakeIps.joinToString()),
+                    strRes(R.string.network_test_dns_fakeip, dns.fakeIps.joinToString()),
                     StepStatus.WARN,
                 ),
             )
-            log("检测到 fake-ip: ${fakeIps.joinToString()}，跳过 DNS/ping，仅测握手")
+            log("检测到 fake-ip: ${dns.fakeIps.joinToString()}，跳过 DNS/ping，仅测握手")
             fakeIpDetected = true
             val hs = httpsHandshakeSampled(idx, cfg, null, direct, fakeIp = true)
             // 握手走标准 TLS，成功即证书链有效；max/avg 超阈值判延迟异常。
@@ -627,38 +693,57 @@ class NetworkTestViewModel : ViewModel() {
             // Clash 等 fake-ip 环境正是自建 PxveAPI 的典型场景，恒填 false 会让转发路径探测整段不跑。
             return false to hs.ok
         }
-        log("DNS: " + sysAddrs.joinToString(", ") { it.hostAddress ?: "?" })
+        log("DNS: " + dns.all.joinToString(", ") { it.hostAddress ?: "?" })
 
-        var polluted = false
-        if (cfg.cidrs != null) {
+        // 没开 PxveAPI 时，官方 Pixiv 域名如果被系统 DNS 返回公网 IPv6，直接视为 DNS 污染。
+        // 只认公网 IPv6：fake-ip 给的非公网 IPv6 不走这条判定（仍由上面的 fake-ip / 代理逻辑处理）。
+        val pixivPublicIpv6 = !proxyEnabled && isPixivDomain(dnsHost) && dns.hasPublicIpv6
+        if (pixivPublicIpv6) {
+            log("官方 Pixiv 域名返回公网 IPv6，直接判 DNS 污染")
+        }
+        var polluted = pixivPublicIpv6
+
+        // 一次算好 IPv4 的 CIDR 命中与可用的 cleanV4，后续展示、握手、判定共用，避免重复过滤。
+        val cidrHits = cfg.cidrs?.let { cidrs ->
+            ipv4.map { a -> a to cidrs.firstOrNull { isIpInCidr(a.hostAddress ?: "", it) } }
+        }
+        val cleanV4 = if (cidrHits != null) cidrHits.filter { it.second != null }.map { it.first } else ipv4
+        val cleanCount = cleanV4.size
+
+        if (cidrHits != null) {
             val sb = StringBuilder()
-            var clean = 0
-            for (a in ipv4) {
+            for ((a, hit) in cidrHits) {
                 val ip = a.hostAddress ?: continue
-                val hit = cfg.cidrs.firstOrNull { isIpInCidr(ip, it) }
                 if (hit != null) {
-                    clean++
                     sb.append(strRes(R.string.network_test_dns_hit, ip, hit))
                 } else {
                     sb.append(strRes(R.string.network_test_dns_miss, ip))
                 }
             }
-            sysAddrs.filter { it !is Inet4Address }
-                .forEach { sb.append(strRes(R.string.network_test_dns_ipv6_skip, it.hostAddress)) }
-            polluted = ipv4.isNotEmpty() && clean == 0
+            // 文案跟着判定走：没判污染（开了 PxveAPI / 非官方 Pixiv 域名 / 非公网 IPv6）时仍是「跳过」，
+            // 否则卡片会出现「实锤被污染」配一个绿色 pill 的自相矛盾。
+            dns.ipv6.forEach { addr ->
+                val res = if (pixivPublicIpv6 && addr in dns.publicIpv6) {
+                    R.string.network_test_dns_ipv6_polluted
+                } else {
+                    R.string.network_test_dns_ipv6_skip
+                }
+                sb.append(strRes(res, addr.hostAddress))
+            }
+            polluted = (ipv4.isNotEmpty() && cleanCount == 0) || polluted
             val st = when {
-                ipv4.isEmpty() -> StepStatus.WARN
                 polluted -> StepStatus.FAIL
-                clean < ipv4.size -> StepStatus.WARN
+                ipv4.isEmpty() -> StepStatus.WARN
+                cleanCount < ipv4.size -> StepStatus.WARN
                 else -> StepStatus.OK
             }
-            addStep(idx, TestStep(strRes(R.string.network_test_dns_step_count, sysAddrs.size), sb.toString().trimEnd(), st))
+            addStep(idx, TestStep(strRes(R.string.network_test_dns_step_count, dns.all.size), sb.toString().trimEnd(), st))
         } else {
             addStep(
                 idx,
                 TestStep(
-                    strRes(R.string.network_test_dns_step_count, sysAddrs.size),
-                    sysAddrs.joinToString("\n") { strRes(R.string.network_test_dns_item, it.hostAddress) },
+                    strRes(R.string.network_test_dns_step_count, dns.all.size),
+                    dns.all.joinToString("\n") { strRes(R.string.network_test_dns_item, it.hostAddress) },
                     StepStatus.OK,
                 ),
             )
@@ -725,11 +810,6 @@ class NetworkTestViewModel : ViewModel() {
         }
 
         // 选用于后续连通性 / 握手的目标 IP：优先干净的系统解析，污染时退到应用内解析路径。
-        val cleanV4 = if (cfg.cidrs != null) {
-            ipv4.filter { a -> cfg.cidrs.any { isIpInCidr(a.hostAddress ?: "", it) } }
-        } else {
-            ipv4
-        }
         val targetIp: Inet4Address? = cleanV4.firstOrNull() ?: appIp
         if (targetIp == null) {
             // 直连 + Cronet 覆盖的域名（APP_API / WEB_API）：真实 app 直连时走
@@ -828,7 +908,7 @@ class NetworkTestViewModel : ViewModel() {
     }
 
     /** 仅直连模式做 —— 代理下测 ICMP 无意义（ICMP 会透过代理）。 */
-    private fun icmpPing(idx: Int, ip: InetAddress) {
+    private fun icmpPing(idx: Int, ip: Inet4Address) {
         val samples = mutableListOf<Long>()
         repeat(3) {
             try {
@@ -853,16 +933,18 @@ class NetworkTestViewModel : ViewModel() {
      * （见 [Client] 的 createAPPAPI / createPixshaftService 与 Shaft 图片 client）：
      *   · APP_API / PIXSHAFT：H2+H1；直连开启时挂 [CronetInterceptor]（请求转 QUIC，绕 SNI 阻断）。
      *   · IMAGE：直连开启时无 SNI（[RubySSLSocketFactory]）+ 信任所有证书 + 关主机名校验 + 强制 HTTP/1.1。
-     * 连接池 0 空闲 → 每次调用都重新握手；默认用 [pinnedDns] 把域名钉到本次选定的 IP（Cronet 路径除外，
-     * 其走自身 host-resolver 规则，固定到 Cloudflare IP）。fake-ip 模式传 pin=false 不钉 IP，
+     * 连接池 0 空闲 → 每次调用都重新握手；默认用 [pinnedDns] 把域名钉到本次选定的 IP；
+     * 未钉 IP（fake-ip / 代理 / Cronet 绕过）时用 [PixivIpv4OnlyDns] 过滤 Pixiv 两个域名的污染 IPv6。
+     * Cronet 路径除外，其走自身 host-resolver 规则，固定到 Cloudflare IP。fake-ip 模式传 pin=false 不钉 IP，
      * 交给系统 DNS + 代理接管路由。
      */
-    private fun buildHandshakeClient(cfg: TargetConfig, ip: InetAddress?, direct: Boolean, pin: Boolean = true): OkHttpClient {
+    private fun buildHandshakeClient(cfg: TargetConfig, ip: Inet4Address?, direct: Boolean, pin: Boolean = true): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectionPool(ConnectionPool(0, 1, TimeUnit.SECONDS))
             .connectTimeout(5, TimeUnit.SECONDS)
             .readTimeout(5, TimeUnit.SECONDS)
             .writeTimeout(5, TimeUnit.SECONDS)
+            .dns(PixivIpv4OnlyDns)
         if (pin && ip != null) {
             val pinnedDns = object : Dns {
                 override fun lookup(hostname: String): List<InetAddress> = listOf(ip)
@@ -923,7 +1005,7 @@ class NetworkTestViewModel : ViewModel() {
     private fun httpsHandshakeSampled(
         idx: Int,
         cfg: TargetConfig,
-        ip: InetAddress?,
+        ip: Inet4Address?,
         direct: Boolean,
         fakeIp: Boolean = false,
         bypassDns: Boolean = false,
@@ -1040,7 +1122,7 @@ class NetworkTestViewModel : ViewModel() {
      * 校验返回 error=false 且带图片地址；顺带把地址/作者 ID 存下来给图片下载阶段复用。
      * @return 是否成功拿到有效响应（失败只把目标降为 DEGRADED，不算握手失败）。
      */
-    private fun probeWebEndpoint(idx: Int, cfg: TargetConfig, ip: InetAddress, direct: Boolean): Boolean {
+    private fun probeWebEndpoint(idx: Int, cfg: TargetConfig, ip: Inet4Address, direct: Boolean): Boolean {
         val stepIdx = work[idx].steps.size
         addStep(
             idx,
@@ -1381,6 +1463,7 @@ class NetworkTestViewModel : ViewModel() {
         val builder = OkHttpClient.Builder()
             .connectTimeout(3, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
+            .dns(PixivIpv4OnlyDns)
             .protocols(listOf(Protocol.HTTP_1_1))
             .addInterceptor(WebHeaderInterceptor())
         if (directConnect) addCronet(builder)
@@ -1830,6 +1913,57 @@ class NetworkTestViewModel : ViewModel() {
         )
 
         private fun isFakeIp(ip: String): Boolean = FAKE_IP_CIDRS.any { isIpInCidr(ip, it) }
+
+        /** 是否官方 Pixiv 域名：只有这些域名在无代理时不该出现公网 IPv6。 */
+        private fun isPixivDomain(host: String): Boolean =
+            host == APP_API_HOST || host == "www.pixiv.net"
+
+        /**
+         * 是否 NAT64/DNS64 按该目标的官方 IPv4 合成出来的地址。
+         *
+         * IPv6-only 网络上 Android 解析器（netd）会按 RFC 7050 发现的前缀给只有 A 记录的域名
+         * 合成 AAAA。前缀常常是运营商自有的（NSP），落在全球单播段里，只认 64:ff9b::/96 挡不住。
+         * 改成看嵌入的 IPv4 本身：落在该目标的官方 CIDR 白名单里，就是正常合成而非污染
+         * ——被投毒的 IPv6 几乎不可能在 RFC 6052 的某个偏移上正好嵌一个合法官方 IPv4。
+         */
+        private fun isNat64Synthesized(addr: Inet6Address, cidrs: List<String>?): Boolean {
+            if (cidrs == null) return false
+            return nat64EmbeddedIpv4Candidates(addr).any { v4 -> cidrs.any { isIpInCidr(v4, it) } }
+        }
+
+        /**
+         * 是否公网 IPv6。
+         *
+         * 用于「官方 Pixiv 域名出现 IPv6 即视为 DNS 污染」的判断；先排除回环 / 链路本地 /
+         * 站点本地 / 组播 / ULA / 文档段 / NAT64 等非公网地址，避免 fake-ip 给的假 IPv6
+         * 被误判成污染。[cidrs] 为该目标的官方 IPv4 段，用来识别运营商前缀的 NAT64 合成地址。
+         */
+        private fun isPublicIpv6(addr: InetAddress, cidrs: List<String>?): Boolean {
+            if (addr !is Inet6Address) return false
+            if (addr.isAnyLocalAddress || addr.isLoopbackAddress ||
+                addr.isLinkLocalAddress || addr.isSiteLocalAddress || addr.isMulticastAddress
+            ) {
+                return false
+            }
+            if (isNat64Synthesized(addr, cidrs)) return false
+            val host = addr.hostAddress?.lowercase() ?: return false
+            return !host.startsWith("fc") && !host.startsWith("fd") &&
+                !host.startsWith("64:ff9b:") && !host.startsWith("2001:db8:") &&
+                !host.startsWith("::ffff:")
+        }
+
+        /** 一次解析系统 DNS 结果，统一拆出后面各步要用的字段。[cidrs] 为该目标的官方 IPv4 段。 */
+        private fun analyzeSysDns(addrs: List<InetAddress>, cidrs: List<String>?): SysDnsResult {
+            val ipv4 = addrs.filterIsInstance<Inet4Address>()
+            val ipv6 = addrs.filterIsInstance<Inet6Address>()
+            return SysDnsResult(
+                all = addrs,
+                ipv4 = ipv4,
+                ipv6 = ipv6,
+                fakeIps = ipv4.mapNotNull { it.hostAddress }.filter { isFakeIp(it) },
+                publicIpv6 = ipv6.filter { isPublicIpv6(it, cidrs) },
+            )
+        }
 
         /** 握手 avg 超过该阈值判定为「高延迟」。 */
         private const val HIGH_LATENCY_MS = 500

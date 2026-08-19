@@ -2055,6 +2055,7 @@
     <string name="network_test_dns_hit">✓ %1$s ∈ %2$s\n</string>
     <string name="network_test_dns_miss">✗ %1$s not in any known range\n</string>
     <string name="network_test_dns_ipv6_skip">· %1$s (IPv6, skipped)\n</string>
+    <string name="network_test_dns_ipv6_polluted">· %1$s (IPv6 address found; DNS is confirmed polluted)\n</string>
     <string name="network_test_dns_fakeip">Returned reserved address (possible proxy fake-ip): %1$s\nSkipping DNS check and ping; handshake only</string>
     <string name="network_test_dns_app_step">In-app resolution · HttpDns(DoH/direct) · %1$d results</string>
     <string name="network_test_dns_app_step_plain">In-app resolution · HttpDns</string>
