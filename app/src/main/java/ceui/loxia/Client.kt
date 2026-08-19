@@ -3,7 +3,10 @@ package ceui.loxia
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AppApiProxyInterceptor
+import ceui.lisa.http.AppApiTimeouts
 import ceui.lisa.http.CronetInterceptor
+import ceui.lisa.http.IPv4OnlyDns
+import ceui.lisa.http.WebApiTimeouts
 import ceui.pixiv.shaftapi.ShaftHmac
 import okhttp3.Dns
 import okhttp3.OkHttpClient
@@ -131,6 +134,8 @@ class ClientManager {
 
         const val HEADER_AUTH = "authorization"
 
+        // 非 app-api / 非网页 ajax 的 loxia 客户端（comic / fanbox / moon）仍用这个值；
+        // app-api 与 www 网页 ajax 已分别收敛到 AppApiTimeouts / WebApiTimeouts。
         const val REQUIEST_TIME = 10L
 
         const val TOKEN_ERROR_1 = "Error occurred at the OAuth process"
@@ -159,10 +164,13 @@ class ClientManager {
     }
 
     fun <T> createAPPAPI(service: Class<T>): T {
+        // app-api 超时收敛到 AppApiTimeouts；
+        // PxveAPI 代理开启时，AppApiProxyInterceptor 改写后的请求仍走本 client，同样生效。
         val okhttpClientBuilder = OkHttpClient.Builder()
-            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .connectTimeout(AppApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(AppApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(AppApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .dns(IPv4OnlyDns)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
         okhttpClientBuilder.addInterceptor(HeaderInterceptor())
@@ -182,10 +190,13 @@ class ClientManager {
     }
 
     fun <T> createWebAPIService(service: Class<T>): T {
+        // www.pixiv.net 网页 ajax 用独立 WebApiTimeouts，不跟 app-api 混用；
+        // 直连（Cronet）路径不改动，仍由 CronetInterceptor 自己处理。
         val httpBuilder = OkHttpClient.Builder()
-            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .connectTimeout(WebApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(WebApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(WebApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .dns(IPv4OnlyDns)
             .protocols(listOf(Protocol.HTTP_1_1))
 
         httpBuilder.addInterceptor(WebHeaderInterceptor())
@@ -260,10 +271,12 @@ class ClientManager {
      * comic.pixiv.net 和 app-api 一样在墙内不可达,必须跟着走直连。
      */
     fun <T> createComicService(service: Class<T>): T {
+        // comic.pixiv.net 也没有 IPv6 DNS 记录，同样用 IPv4OnlyDns 滤掉污染的 IPv6。
         val httpBuilder = OkHttpClient.Builder()
             .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+            .dns(IPv4OnlyDns)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
         httpBuilder.addInterceptor(HeaderInterceptor())

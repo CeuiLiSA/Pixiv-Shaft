@@ -2,11 +2,14 @@ package ceui.loxia
 
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.CronetInterceptor
+import ceui.lisa.http.IPv4OnlyDns
+import ceui.lisa.http.WebApiTimeouts
 import ceui.pixiv.session.SessionManager
 import com.tencent.mmkv.MMKV
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 
 /**
  * Fetches and caches the x-csrf-token required by Pixiv web POST APIs.
@@ -35,7 +38,15 @@ object CsrfTokenProvider {
      * Fetch a fresh token from the Pixiv homepage. Call from a background thread.
      */
     private fun buildClient(): OkHttpClient {
-        val builder = OkHttpClient.Builder().followRedirects(true)
+        // 打的是 www.pixiv.net，和 [ClientManager.createWebAPIService] 同一条链路，
+        // 超时与 IPv4-only DNS 也跟着它走：不然非直连下被污染的 IPv6 会让这次
+        // **阻塞式**兜底抓取先干等一轮，把调用它的网页 POST 一起拖住。
+        val builder = OkHttpClient.Builder()
+            .followRedirects(true)
+            .connectTimeout(WebApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(WebApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .writeTimeout(WebApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .dns(IPv4OnlyDns)
         // issue #959: 直连下 www.pixiv.net 同样打不通,token 兜底抓取必须走 Cronet,
         // 否则「拉黑」在没梯子时永远卡在「CSRF token 未就绪」。每次现建:直连开关随时可切。
         if (Shaft.sSettings?.isDirectConnect == true) {
