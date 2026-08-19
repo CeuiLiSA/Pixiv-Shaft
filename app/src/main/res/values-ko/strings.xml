@@ -2654,6 +2654,8 @@
     <string name="nana7mi_usage_used_percent">%1$d%%</string>
     <string name="nana7mi_usage_used_label">사용</string>
     <string name="nana7mi_usage_unlimited">무제한</string>
+    <string name="nana7mi_usage_premium_title">pixiv 프리미엄 회원</string>
+    <string name="nana7mi_usage_premium_desc">인기순 검색은 횟수 제한이 없으며 구독도 필요 없습니다</string>
     <string name="nana7mi_usage_resets_in">%1$s 후 초기화</string>
     <string name="nana7mi_usage_dur_dh">%1$d일 %2$d시간</string>
     <string name="nana7mi_usage_dur_hm">%1$d시간 %2$d분</string>

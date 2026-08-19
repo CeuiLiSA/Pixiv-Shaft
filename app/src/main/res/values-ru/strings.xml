@@ -2654,6 +2654,8 @@
     <string name="nana7mi_usage_used_percent">%1$d%%</string>
     <string name="nana7mi_usage_used_label">использовано</string>
     <string name="nana7mi_usage_unlimited">Без лимита</string>
+    <string name="nana7mi_usage_premium_title">Участник pixiv Premium</string>
+    <string name="nana7mi_usage_premium_desc">Сортировка по популярности без лимитов — подписка не нужна</string>
     <string name="nana7mi_usage_resets_in">Сброс через %1$s</string>
     <string name="nana7mi_usage_dur_dh">%1$d д %2$d ч</string>
     <string name="nana7mi_usage_dur_hm">%1$d ч %2$d мин</string>

@@ -629,6 +629,14 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
             showError(getString(R.string.nana7mi_usage_login_required), retryable = false)
             return
         }
+        if (SessionManager.isPremium) {
+            // pixiv 会员的热度排序走自己的账号（SearchIllustRepo / SearchNovelRepo 里
+            // isPremium 一律不借号），两只桶对他根本不会计数。这页于是不拉额度、不画进度条、
+            // 不摆订阅卡：画一根 0% 的条是在暗示他「用着用着会没」，卖他一份用不上的额度更糟。
+            baseBind.swipeRefresh.isRefreshing = false
+            renderPremium()
+            return
+        }
         if (withSpinner) showLoading()
         viewLifecycleOwner.lifecycleScope.launch { fetchAndRender(uid, withSpinner, pulled) }
     }
@@ -684,6 +692,46 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         }
     }
 
+    /**
+     * pixiv 会员版的这一页：一行「不限」，其余全收。
+     *
+     * 复用桶的那一行而不是另写一套布局——他看到的和别人看到的是同一页、同一种行，只是读数
+     * 是「不限」。订阅区、恢复购买、档位标签对他都是噪音，整块 gone；下拉刷新也关掉，没有
+     * 东西可刷，拽一下转个圈又收回去只会让人以为没刷成。
+     */
+    private fun renderPremium() {
+        baseBind.loading.visibility = View.GONE
+        baseBind.errorState.visibility = View.GONE
+        baseBind.swipeRefresh.visibility = View.VISIBLE
+        baseBind.swipeRefresh.isEnabled = false
+        baseBind.usagePlanLabel.visibility = View.GONE
+        baseBind.plansSectionTitle.visibility = View.GONE
+        baseBind.planRows.visibility = View.GONE
+        baseBind.claimEntry.visibility = View.GONE
+
+        val host = baseBind.usageRows
+        host.removeAllViews()
+        val row = LayoutInflater.from(mContext).inflate(R.layout.item_nana7mi_usage_row, host, false)
+        row.setBackgroundResource(WitRowStyle.rowBackground(0, 1))
+        row.findViewById<TextView>(R.id.usage_title).apply {
+            text = getString(R.string.nana7mi_usage_premium_title)
+            // 金色是本仓库里 pixiv Premium 的品牌语义（账号页徽章、头像环同一色），这一行说的
+            // 正是他的 pixiv 会员身份，所以用它；不跟主题色走。
+            setTextColor(ContextCompat.getColor(mContext, R.color.v3_gold))
+        }
+        row.findViewById<TextView>(R.id.usage_reset).text =
+            getString(R.string.nana7mi_usage_premium_desc)
+        row.findViewById<TextView>(R.id.usage_percent).apply {
+            text = getString(R.string.nana7mi_usage_unlimited)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f)
+            setTextColor(ContextCompat.getColor(mContext, R.color.v3_text_2))
+        }
+        row.findViewById<View>(R.id.usage_percent_label).visibility = View.GONE
+        row.findViewById<View>(R.id.usage_bar).visibility = View.GONE
+        host.addView(row)
+        WitRowStyle.applyThemedRowBg(host)
+    }
+
     private fun showLoading() {
         baseBind.loading.visibility = View.VISIBLE
         baseBind.swipeRefresh.visibility = View.GONE
@@ -703,6 +751,12 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         baseBind.loading.visibility = View.GONE
         baseBind.errorState.visibility = View.GONE
         baseBind.swipeRefresh.visibility = View.VISIBLE
+        // 和 [renderPremium] 对称：同一个实例可能先按会员画过一次（进页时是会员），之后静默同步
+        // 把会员态刷掉、onResume 重拉走到这里——那些被收起来的块得原样放回来。
+        baseBind.swipeRefresh.isEnabled = true
+        baseBind.plansSectionTitle.visibility = View.VISIBLE
+        baseBind.planRows.visibility = View.VISIBLE
+        baseBind.claimEntry.visibility = View.VISIBLE
 
         val host = baseBind.usageRows
         host.removeAllViews()

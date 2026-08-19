@@ -2656,6 +2656,8 @@
     <string name="nana7mi_usage_used_percent">%1$d%%</string>
     <string name="nana7mi_usage_used_label">已用</string>
     <string name="nana7mi_usage_unlimited">不限</string>
+    <string name="nana7mi_usage_premium_title">pixiv Premium 會員</string>
+    <string name="nana7mi_usage_premium_desc">熱門排序不限次數，也無需訂閱</string>
     <string name="nana7mi_usage_resets_in">%1$s後重置</string>
     <string name="nana7mi_usage_dur_dh">%1$d 天 %2$d 小時</string>
     <string name="nana7mi_usage_dur_hm">%1$d 小時 %2$d 分</string>

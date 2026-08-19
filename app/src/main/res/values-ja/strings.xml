@@ -2654,6 +2654,8 @@
     <string name="nana7mi_usage_used_percent">%1$d%%</string>
     <string name="nana7mi_usage_used_label">使用</string>
     <string name="nana7mi_usage_unlimited">無制限</string>
+    <string name="nana7mi_usage_premium_title">pixiv プレミアム会員</string>
+    <string name="nana7mi_usage_premium_desc">人気順検索は回数無制限、購読も不要です</string>
     <string name="nana7mi_usage_resets_in">%1$s後にリセット</string>
     <string name="nana7mi_usage_dur_dh">%1$d 日 %2$d 時間</string>
     <string name="nana7mi_usage_dur_hm">%1$d 時間 %2$d 分</string>

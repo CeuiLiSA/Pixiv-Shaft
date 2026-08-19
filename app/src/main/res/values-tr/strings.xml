@@ -2654,6 +2654,8 @@
     <string name="nana7mi_usage_used_percent">%1$d%%</string>
     <string name="nana7mi_usage_used_label">kullanıldı</string>
     <string name="nana7mi_usage_unlimited">Sınırsız</string>
+    <string name="nana7mi_usage_premium_title">pixiv Premium üyesi</string>
+    <string name="nana7mi_usage_premium_desc">Popülerliğe göre sıralama sınırsız — abonelik gerekmez</string>
     <string name="nana7mi_usage_resets_in">%1$s sonra sıfırlanır</string>
     <string name="nana7mi_usage_dur_dh">%1$d g %2$d sa</string>
     <string name="nana7mi_usage_dur_hm">%1$d sa %2$d dk</string>

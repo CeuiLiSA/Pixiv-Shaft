@@ -44,7 +44,6 @@ import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.lisa.utils.SearchTypeUtil;
 import ceui.lisa.viewmodel.SearchModel;
 import ceui.loxia.ObjectType;
-import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.search.SearchHintViewModel;
 import ceui.pixiv.ui.search.v3.SearchFilterV3BottomSheet;
 import ceui.pixiv.ui.search.v3.SearchFilterV3LegacyBridge;
@@ -57,7 +56,6 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     private SearchModel searchModel;
     private int index = 0;
     private int mPosition = 0;
-    private boolean isPremium = false;
     private long mExitTime;
     private final java.util.List<String> committedTags = new java.util.ArrayList<>();
     private SearchHintViewModel hintViewModel;
@@ -83,9 +81,6 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         hintViewModel = new ViewModelProvider(this).get(SearchHintViewModel.class);
         searchModel.getKeyword().setValue(keyWord);
         searchModel.getIsNovel().setValue(index == 1);
-
-        isPremium = SessionManager.INSTANCE.isPremium();
-        searchModel.getIsPremium().setValue(isPremium);
 
         // 首搜写历史：无论从哪儿带关键字进来（输入框搜索/提示词/热标签/详情页标签/发现/深链…），
         // 都在这唯一入口收口一次。首搜走 ensureLoaded 不发 nowGo，所以和下面的重搜 observer 不重复。

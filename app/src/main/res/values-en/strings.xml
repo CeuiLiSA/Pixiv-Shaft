@@ -2654,6 +2654,8 @@
     <string name="nana7mi_usage_used_percent">%1$d%%</string>
     <string name="nana7mi_usage_used_label">used</string>
     <string name="nana7mi_usage_unlimited">Unlimited</string>
+    <string name="nana7mi_usage_premium_title">pixiv Premium member</string>
+    <string name="nana7mi_usage_premium_desc">Popularity sort is unlimited — nothing to subscribe to</string>
     <string name="nana7mi_usage_resets_in">Resets in %1$s</string>
     <string name="nana7mi_usage_dur_dh">%1$dd %2$dh</string>
     <string name="nana7mi_usage_dur_hm">%1$dh %2$dm</string>

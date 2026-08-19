@@ -375,7 +375,10 @@ class SearchIllustRepo @JvmOverloads constructor(
         searchType = searchModel.searchType.value
         starSize = searchModel.starSize.value
         //isPopular = pop
-        isPremium = searchModel.isPremium.value
+        // 会员身份在发请求这一刻看 SessionManager（user/detail 的 profile.is_premium 静默同步
+        // 维护的那份），不吃搜索页打开时的快照：真会员一律用自己的号打官方 sort，绝不借号；
+        // 快照会让「进页后才同步到的会员」白借一次、「进页后才过期的会员」打 400。
+        isPremium = SessionManager.isPremium
         startDate = searchModel.startDate.value
         endDate = searchModel.endDate.value
         r18Restriction = searchModel.r18Restriction.value
