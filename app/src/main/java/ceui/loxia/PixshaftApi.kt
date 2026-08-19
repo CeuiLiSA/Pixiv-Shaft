@@ -1,6 +1,7 @@
 package ceui.loxia
 
 import com.google.gson.JsonElement
+import com.google.gson.JsonParser
 import kotlinx.coroutines.CancellationException
 import retrofit2.Response
 import retrofit2.http.Body
@@ -134,6 +135,18 @@ interface PixshaftApi {
     suspend fun afdianCheckout(
         @Body body: Nana7miCheckoutReq,
     ): Response<Nana7miCheckoutResp>
+
+    /**
+     * 拿订单号认领一笔在爱发电站内直接下的单（没走本页链接、身上没有身份令牌的那种）。
+     *
+     * 服务端拿订单号去爱发电回查、确认已付款且没被用过，才发到这个 uid 头上。订单号本身就是
+     * 凭证：27 位带时间戳，只能花一次。状态码分四种：404 没这单、409 已经有主/需要人工、
+     * 503 爱发电或写库暂时不行（可重试）、400 格式不对。
+     */
+    @POST("v1/account/afdian/claim")
+    suspend fun afdianClaim(
+        @Body body: Nana7miClaimReq,
+    ): Response<Nana7miClaimResp>
 
     /** Quarantine the exact borrowed refresh token that Pixiv rejected. */
     @POST("v1/account/nana7mi/invalid")
@@ -351,6 +364,70 @@ data class Nana7miCheckoutResp(
     val months: Int? = null,
     val uid: Long? = null,
 )
+
+data class Nana7miClaimReq(
+    val uid: Long,
+    val outTradeNo: String,
+)
+
+data class Nana7miClaimResp(
+    val ok: Boolean? = null,
+    val error: String? = null,
+    val plan: Nana7miPlan? = null,
+    val alreadyFulfilled: Boolean? = null,
+)
+
+/**
+ * 认领的结果，每一种都对应一句不同的话；只有 [Retry] 值得让用户再按一次。
+ */
+sealed class Nana7miClaimResult {
+    /** 到账了（或者这单本来就是他的、早就到账了）。[plan] 是服务端此刻认的档位。 */
+    data class Success(val plan: Nana7miPlan?) : Nana7miClaimResult()
+
+    /** 404：爱发电不认识这个单号。 */
+    data object NotFound : Nana7miClaimResult()
+
+    /** 409 already_claimed：这单已经归别人 / 已经花掉了。 */
+    data object Taken : Nana7miClaimResult()
+
+    /** 409 grant_refused：服务端知道这单是谁的但拒绝自动发（降级、¥0 单）—— 要人工。 */
+    data object Refused : Nana7miClaimResult()
+
+    /** 400：单号格式不对（或没登录）。 */
+    data object BadNumber : Nana7miClaimResult()
+
+    /** 503 / 网络：可以再试。 */
+    data class Retry(val cause: Exception? = null) : Nana7miClaimResult()
+}
+
+suspend fun PixshaftApi.claimAfdianOrder(uid: Long, outTradeNo: String): Nana7miClaimResult {
+    if (uid <= 0L) return Nana7miClaimResult.BadNumber
+    return try {
+        val response = afdianClaim(Nana7miClaimReq(uid, outTradeNo))
+        if (response.isSuccessful) {
+            return Nana7miClaimResult.Success(response.body()?.plan)
+        }
+        // 错误体是 JSON `{ error }`；拿不到就只按状态码分。
+        val error = runCatching {
+            response.errorBody()?.string()?.let { raw ->
+                JsonParser.parseString(raw).asJsonObject.get("error")?.asString
+            }
+        }.getOrNull()
+        when (response.code()) {
+            // 404 只有带着 `order_not_found` 才是「爱发电不认识这个单号」；别的 404（路由没
+            // 挂、边缘代理答的）是服务端的事，让用户「稍后再试」而不是去怀疑自己抄错了。
+            404 -> if (error == "order_not_found") Nana7miClaimResult.NotFound else Nana7miClaimResult.Retry()
+            409 -> if (error == "grant_refused") Nana7miClaimResult.Refused else Nana7miClaimResult.Taken
+            // 429 是每 uid 6 次/分钟的闸：连按几下就到了，说「稍后再试」是实话。
+            429, 503 -> Nana7miClaimResult.Retry()
+            else -> Nana7miClaimResult.BadNumber
+        }
+    } catch (ce: CancellationException) {
+        throw ce
+    } catch (e: Exception) {
+        Nana7miClaimResult.Retry(e)
+    }
+}
 
 data class Nana7miInvalidReq(
     val uid: Long,

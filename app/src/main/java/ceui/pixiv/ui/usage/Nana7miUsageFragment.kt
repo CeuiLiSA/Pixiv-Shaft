@@ -267,6 +267,18 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         plan = RemoteAppConfig.nana7miPlan
         bindPlanLabel()
         setupPlans(palette)
+        // 「已在爱发电付款但没到账？」—— 站内直接下的单没有身份，只能拿订单号来认领。
+        baseBind.claimEntry.setTextColor(palette.primary)
+        baseBind.claimEntry.setOnClickListener {
+            if (SessionManager.loggedInUid <= 0L) return@setOnClickListener
+            Nana7miClaimSheet().show(childFragmentManager, "nana7mi_claim")
+        }
+        childFragmentManager.setFragmentResultListener(
+            Nana7miClaimSheet.REQUEST_KEY, viewLifecycleOwner,
+        ) { _, _ ->
+            // 刚认领到账：档位和两只桶的 max 都变了，就地重拉一次。
+            load(withSpinner = false)
+        }
         load()
     }
 
@@ -309,6 +321,14 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
 
     private fun bindPlan(card: View, plan: Plan, palette: V3Palette) {
         val current = this.plan?.takeIf { it.isPaid && it.owned == plan.key }
+        // 他手里有一档**更高**的、还在有效期内。这一档的按钮必须停掉：服务端对「Max 用户买 Pro」
+        // 的处理是把订单扣成 held 等人工（降级不自动执行，见 pixshaft-api grantNana7miPlan），
+        // 也就是说他付了钱、什么都不会发生、这页会一直「等到账」。与其让他付完再等人，
+        // 不如在这里就不让点。等 Max 到期，这一档自然又能选了。
+        val belowOwned = this.plan
+            ?.takeIf { it.isPaid }
+            ?.ownedDisplay?.second
+            ?.let { ownedMultiplier -> ownedMultiplier > plan.multiplier } == true
         val accent = plan.brand.text(palette.isDark)
         // 已订阅的那一档整张卡描一道实边：一屏两张卡，得让「我在这一档上」一眼看出来，
         // 而不是靠读徽章上那四个字。
@@ -329,6 +349,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         card.findViewById<TextView>(R.id.plan_desc).text = when {
             // 已经买了这一档：卖点换成他真正关心的那件事——什么时候到期。
             current != null -> expiryText(current)
+            belowOwned -> getString(R.string.nana7mi_usage_plan_lower_desc)
             else -> getString(plan.descRes)
         }
         card.findViewById<TextView>(R.id.plan_price).apply {
@@ -356,7 +377,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
             }
         }
         bindFeatures(card.findViewById(R.id.plan_features), plan, accent)
-        bindCta(card, plan, current != null)
+        bindCta(card, plan, isCurrent = current != null, belowOwned = belowOwned)
     }
 
     /** 同一个色相压到指定不透明度。品牌色只有四个定值，其余层次都从它们派生。 */
@@ -392,25 +413,28 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
      *
      * 整张卡也可点，和按钮同一个动作：卡片这么大，要求用户精准命中底部那一条不合理。
      */
-    private fun bindCta(card: View, plan: Plan, isCurrent: Boolean) {
+    private fun bindCta(card: View, plan: Plan, isCurrent: Boolean, belowOwned: Boolean) {
         val cta = card.findViewById<TextView>(R.id.plan_cta)
         val busy = checkoutInFlight == plan.key
         val anyBusy = checkoutInFlight != null
         cta.text = when {
             busy -> getString(R.string.nana7mi_usage_plan_cta_loading)
             isCurrent -> getString(R.string.nana7mi_usage_plan_cta_renew)
+            belowOwned -> getString(R.string.nana7mi_usage_plan_cta_included)
             else -> getString(R.string.nana7mi_usage_plan_cta_choose, getString(plan.titleRes))
         }
         cta.background = ctaBackground(plan.brand)
         cta.setTextColor(ContextCompat.getColor(mContext, R.color.always_white))
         // 有一笔在飞时整组按钮都停用：两条下单链接同时开出去，用户会在浏览器里看到两个
-        // 订单页，而其中一个是他已经不想要的那一档。
-        cta.alpha = if (anyBusy && !busy) 0.4f else 1f
+        // 订单页，而其中一个是他已经不想要的那一档。比他现有档位低的那档也停用（见 bindPlan）。
+        val disabled = (anyBusy && !busy) || belowOwned
+        cta.alpha = if (disabled) 0.4f else 1f
         val click = View.OnClickListener { startCheckout(plan) }
-        cta.isEnabled = !anyBusy
-        cta.setOnClickListener(if (anyBusy) null else click)
-        card.isEnabled = !anyBusy
-        card.setOnClickListener(if (anyBusy) null else click)
+        val clickable = !anyBusy && !belowOwned
+        cta.isEnabled = clickable
+        cta.setOnClickListener(if (clickable) click else null)
+        card.isEnabled = clickable
+        card.setOnClickListener(if (clickable) click else null)
     }
 
     /**

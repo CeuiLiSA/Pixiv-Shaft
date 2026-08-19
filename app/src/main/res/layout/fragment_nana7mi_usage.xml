@@ -148,6 +148,24 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical" />
 
+                        <!--
+                            恢复购买入口。放在方案卡之下、当一行小字：它只为「先在爱发电付了款、
+                            没走本页链接」的人存在，正常从这页买的单会自动到账，用不着它 ——
+                            所以不能做成一颗和「选择」同级的按钮，那会让人以为买完还得再来一步。
+                        -->
+                        <TextView
+                            android:id="@+id/claim_entry"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:paddingStart="4dp"
+                            android:paddingTop="6dp"
+                            android:paddingEnd="4dp"
+                            android:paddingBottom="6dp"
+                            android:text="@string/nana7mi_usage_claim_entry"
+                            android:textSize="13sp" />
+
                     </LinearLayout>
                 </androidx.core.widget.NestedScrollView>
             </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
