@@ -193,6 +193,25 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                         .create()
                         .show());
 
+        // 默认按热度排序搜索 —— 下面「搜索结果排序方式」的开关视图，不另存一份状态：
+        // 开 = popular_desc，关 = date_desc。Free 用户的诉求是「平时别替我花借号额度，
+        // 需要时我自己在筛选里选热度」，那是一下开关的事；选了热度之后额度不够会自动
+        // 降到热度预览（SearchIllustRepo / SearchNovelRepo 里的 rate_limited 回落），这里不管。
+        // 两行互相回写：翻开关要刷新下面那行的值，在下面选了档也要刷新开关。
+        bindSearchPopularDefaultSwitch();
+        baseBind.searchPopularDefault.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (syncingPopularSwitch) return; // 代码回写（下面那行选完刷新）不重复落盘、不弹 toast
+            Shaft.sSettings.setSearchDefaultSortType(isChecked
+                    ? PixivSearchParamUtil.POPULAR_SORT_VALUE
+                    : PixivSearchParamUtil.SORT_TYPE_VALUE[0]); // date_desc
+            Common.showToast(getString(R.string.string_428), 2);
+            Local.setSettings(Shaft.sSettings);
+            baseBind.searchDefaultSortType.setText(
+                    PixivSearchParamUtil.getSortTypeName(Shaft.sSettings.getSearchDefaultSortType()));
+        });
+        baseBind.searchPopularDefaultRela.setOnClickListener(v ->
+                baseBind.searchPopularDefault.performClick());
+
         // 搜索结果默认排序方式
         final String searchDefaultSortType = Shaft.sSettings.getSearchDefaultSortType();
         baseBind.searchDefaultSortType.setText(PixivSearchParamUtil.getSortTypeName(searchDefaultSortType));
@@ -206,6 +225,7 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                                 Common.showToast(getString(R.string.string_428), 2);
                                 Local.setSettings(Shaft.sSettings);
                                 baseBind.searchDefaultSortType.setText(PixivSearchParamUtil.SORT_TYPE_NAME[which]);
+                                bindSearchPopularDefaultSwitch();
                                 dialog.dismiss();
                             }
                         })
@@ -309,5 +329,17 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         return value > 0
                 ? getString(R.string.novel_filter_chars, value)
                 : getString(R.string.novel_filter_unlimited);
+    }
+
+    /** 代码回写开关期间为 true，让 OnCheckedChangeListener 认出这不是用户的手。 */
+    private boolean syncingPopularSwitch = false;
+
+    /** 开关 = 「默认排序是不是热度」。只刷显示，不落盘。 */
+    private void bindSearchPopularDefaultSwitch() {
+        boolean popular = PixivSearchParamUtil.POPULAR_SORT_VALUE.equals(
+                Shaft.sSettings.getSearchDefaultSortType());
+        syncingPopularSwitch = true;
+        baseBind.searchPopularDefault.setChecked(popular);
+        syncingPopularSwitch = false;
     }
 }

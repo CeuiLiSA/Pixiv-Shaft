@@ -165,6 +165,8 @@
     <string name="slide_down_endless">show infinite Related works (possible duplication)</string>
     <string name="other_settings">other</string>
     <string name="search_result_filter">Filter by number of Bookmarkes when searching</string>
+    <string name="search_popular_default">Sort searches by popularity by default</string>
+    <string name="search_popular_default_desc">On: searches default to popularity; non-Premium users spend borrowed quota and fall back to the popularity preview when it runs out. Off: default to newest first, and pick popularity in the filter only when you need it</string>
     <string name="search_exit_confirm">Confirm before leaving search results</string>
     <string name="search_exit_confirm_desc">When enabled, you need to press back twice within 2 seconds to leave the search results page, preventing accidental exits</string>
     <string name="novel_filter_section">Novel list auto-filter</string>

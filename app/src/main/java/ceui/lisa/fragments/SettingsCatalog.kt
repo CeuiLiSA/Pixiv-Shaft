@@ -119,6 +119,8 @@ object SettingsCatalog {
         add(Entry(BROWSING, "novel_filter_max_text_length_rela", R.string.novel_filter_max_text_length, R.string.novel_filter_max_text_length_desc, keywords = "小说 字数 太长 过长 屏蔽 spam novel length"))
         add(Entry(BROWSING, "novel_filter_max_tag_name_length_rela", R.string.novel_filter_max_tag_name_length, R.string.novel_filter_max_tag_name_length_desc, keywords = "小说 标签 tag 超长 过长 屏蔽 广告 刷屏 spam"))
         add(Entry(BROWSING, "search_filter_rela", R.string.search_result_filter, keywords = "收藏量 热度 users入り 万users 筛选 bookmarks filter"))
+        // 别名按整串子串匹配，「热度排序」「借号」「额度」这些说法各铺一遍
+        add(Entry(BROWSING, "search_popular_default_rela", R.string.search_popular_default, R.string.search_popular_default_desc, keywords = "热度 热度排序 按热度 人气 人气排序 默认排序 借号 借用 额度 配额 省额度 留着 热度预览 预览 免费 free popular popularity sort quota borrow default"))
         add(Entry(BROWSING, "search_default_sort_type_rela", R.string.string_439, keywords = "排序 时间 热门 最新 最旧 sort order"))
         add(Entry(BROWSING, "search_exit_confirm_rela", R.string.search_exit_confirm, R.string.search_exit_confirm_desc, keywords = "退出 返回 误触 二次确认 确认退出 弹窗 back exit confirm"))
         add(Entry(BROWSING, "delete_star_illust_rela", R.string.delete_star_illust, keywords = "搜索 已收藏 过滤 去重"))

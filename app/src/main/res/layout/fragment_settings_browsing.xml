@@ -304,6 +304,34 @@
 
                 </RelativeLayout>
 
+                <!--
+                    「默认按热度排序搜索」是下面「搜索结果排序方式」的开关视图，不是第二份状态：
+                    开 = 默认 popular_desc，关 = 默认 date_desc。两行永远同步，见
+                    FragmentSettingsBrowsing。单独给一个开关，是因为 Free 用户要的是「平时别
+                    替我花额度、需要时我自己去筛选里选热度」——那是一下开关，不是翻一个三选一。
+                -->
+                <RelativeLayout
+                    android:id="@+id/search_popular_default_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/search_popular_default" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/search_popular_default_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/search_popular_default"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
                 <RelativeLayout
                     android:id="@+id/search_default_sort_type_rela"
                     style="@style/M3SetRow"
