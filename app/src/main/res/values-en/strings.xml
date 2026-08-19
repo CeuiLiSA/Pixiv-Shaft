@@ -2643,7 +2643,6 @@
     <string name="nana7mi_usage_error">Could not load usage</string>
     <string name="nana7mi_usage_retry">Tap to retry</string>
     <string name="nana7mi_usage_login_required">Log in to see your usage</string>
-    <string name="nana7mi_usage_hint">Every popularity-sorted search counts as one. Both limits are fixed periods: the whole allowance comes back at the reset time, not one search at a time.</string>
     <string name="nana7mi_usage_cta_title">Unlock more usage</string>
     <string name="nana7mi_usage_plan_price">¥%1$d</string>
     <string name="nana7mi_usage_plan_period">/ mo</string>
@@ -2666,7 +2665,6 @@
     <string name="nana7mi_usage_plan_unavailable">Subscriptions are unavailable right now</string>
     <string name="nana7mi_usage_plan_checkout_failed">Could not open checkout — please retry</string>
     <string name="nana7mi_usage_plan_no_browser">No browser found</string>
-    <string name="nana7mi_usage_uid_label">My Pixiv UID</string>
     <string name="drawer_section_usage">Search by popularity</string>
     <string name="nana7mi_quota_snack_session">5-hour limit reached, back in %1$s</string>
     <string name="nana7mi_quota_snack_weekly">Weekly limit reached, back in %1$s</string>

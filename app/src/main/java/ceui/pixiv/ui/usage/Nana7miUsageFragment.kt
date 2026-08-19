@@ -24,7 +24,6 @@ import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentNana7miUsageBinding
 import ceui.lisa.fragments.BaseFragment
-import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.Nana7miCheckoutClient
@@ -161,30 +160,10 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         baseBind.errorState.setOnClickListener { load() }
         val palette = V3Palette.from(mContext)
         baseBind.errorAction.setTextColor(palette.primary)
-        setupUidRow()
         plan = RemoteAppConfig.nana7miPlan
         bindPlanLabel()
         setupPlans(palette)
         load()
-    }
-
-    /**
-     * 自己的 UID —— 点一下即复制（[ClipBoardUtils] 自带「已复制」toast 和失败兜底）。
-     *
-     * 只在 initData 里读一次就够：这页整个生命周期都活在同一个登录态下，切号会把宿主
-     * Activity 一起重建。uid ≤ 0 的情况根本走不到这里 —— [load] 已经把整块内容换成
-     * 「登录后可查看用量」了。
-     */
-    private fun setupUidRow() {
-        val uid = SessionManager.loggedInUid
-        baseBind.uidValue.text = uid.toString()
-        baseBind.uidCopyIcon.imageTintList =
-            ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.v3_text_3))
-        baseBind.uidRow.setOnClickListener {
-            ClipBoardUtils.putTextIntoClipboard(mContext, uid.toString())
-        }
-        // 分段行的中性底同样要换成主题 tint —— XML 里挂的 wit_row_single 不会自己跟主题走
-        WitRowStyle.applyThemedRowBg(baseBind.uidRow)
     }
 
     /**

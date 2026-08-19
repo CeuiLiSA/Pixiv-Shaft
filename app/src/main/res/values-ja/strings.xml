@@ -2643,7 +2643,6 @@
     <string name="nana7mi_usage_error">使用状況を読み込めませんでした</string>
     <string name="nana7mi_usage_retry">タップして再試行</string>
     <string name="nana7mi_usage_login_required">ログインすると使用状況を確認できます</string>
-    <string name="nana7mi_usage_hint">人気順の検索は 1 回ごとに 1 回としてカウントされます。どちらの上限も固定期間で、リセット時刻に全量がまとめて戻ります。</string>
     <string name="nana7mi_usage_cta_title">さらに使えるようにする</string>
     <string name="nana7mi_usage_plan_price">¥%1$d</string>
     <string name="nana7mi_usage_plan_period">/ 月</string>
@@ -2666,7 +2665,6 @@
     <string name="nana7mi_usage_plan_unavailable">現在サブスクリプションをご利用いただけません</string>
     <string name="nana7mi_usage_plan_checkout_failed">決済ページを開けませんでした。再試行してください</string>
     <string name="nana7mi_usage_plan_no_browser">ブラウザが見つかりません</string>
-    <string name="nana7mi_usage_uid_label">自分の Pixiv UID</string>
     <string name="drawer_section_usage">人気順検索</string>
     <string name="nana7mi_quota_snack_session">5 時間の上限に達しました。%1$s後に回復</string>
     <string name="nana7mi_quota_snack_weekly">週間上限に達しました。%1$s後に回復</string>

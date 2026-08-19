@@ -106,75 +106,6 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical" />
 
-                    <TextView
-                        android:id="@+id/usage_hint"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
-                        android:lineSpacingExtra="3dp"
-                        android:paddingStart="4dp"
-                        android:paddingEnd="4dp"
-                        android:text="@string/nana7mi_usage_hint"
-                        android:textColor="@color/v3_text_3"
-                        android:textSize="12sp" />
-
-                    <!--
-                        自己的 pixiv UID。订阅页把「发货地址」当订单归属字段用（填错就发不到号上），
-                        而 UID 在 app 里其它地方都要翻到个人主页才看得到 —— 放在订阅入口正上方，
-                        点一下即复制，省得为了买个订阅在两个页面之间来回倒。
-
-                        背景直接用 wit_row_single（独行，四角 20dp），和上面两只配额桶同一套分段行语汇；
-                        主题 tint 同样要在 Fragment 里补一次 applyThemedRowBg，XML 挂不上。
-                    -->
-                    <LinearLayout
-                        android:id="@+id/uid_row"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
-                        android:background="@drawable/wit_row_single"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingStart="18dp"
-                        android:paddingTop="14dp"
-                        android:paddingEnd="16dp"
-                        android:paddingBottom="14dp">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="@string/nana7mi_usage_uid_label"
-                                android:textColor="@color/v3_text_3"
-                                android:textSize="12sp" />
-
-                            <!-- Montserrat Bold：数字读数在本仓库统一用它，同上面的百分比 -->
-                            <TextView
-                                android:id="@+id/uid_value"
-                                style="@style/textMontserratBold"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="18sp"
-                                tools:text="12345678" />
-                        </LinearLayout>
-
-                        <ImageView
-                            android:id="@+id/uid_copy_icon"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_marginStart="12dp"
-                            android:importantForAccessibility="no"
-                            android:src="@drawable/baseline_content_copy_24" />
-                    </LinearLayout>
-
                     <!--
                         订阅方案。放在额度读数和 UID **之下**：先让用户看见自己用到哪了、
                         手里有可复制的 UID，再谈解锁 —— 顶在读数上面就成了没有由头的广告。
@@ -200,12 +131,13 @@
                         android:textColor="@color/v3_text_2"
                         android:textSize="13sp" />
 
-                    <!-- 分段行宿主：一档方案一行，圆角和底色由 Fragment 按位置贴合 -->
+                    <!-- 卡片宿主：一档方案一张卡，底色和圆角由 Fragment 从品牌色派生 -->
                     <LinearLayout
                         android:id="@+id/plan_rows"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical" />
+
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
 

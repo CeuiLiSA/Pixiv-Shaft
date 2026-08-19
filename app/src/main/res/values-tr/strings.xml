@@ -2643,7 +2643,6 @@
     <string name="nana7mi_usage_error">Kullanım yüklenemedi</string>
     <string name="nana7mi_usage_retry">Yeniden denemek için dokunun</string>
     <string name="nana7mi_usage_login_required">Kullanımı görmek için giriş yapın</string>
-    <string name="nana7mi_usage_hint">Popülerliğe göre yapılan her arama 1 kullanım sayılır. Her iki limit de sabit dönemlidir: sıfırlama anında hakkın tamamı bir defada geri gelir.</string>
     <string name="nana7mi_usage_cta_title">Daha fazla kullanım</string>
     <string name="nana7mi_usage_plan_price">¥%1$d</string>
     <string name="nana7mi_usage_plan_period">/ ay</string>
@@ -2666,7 +2665,6 @@
     <string name="nana7mi_usage_plan_unavailable">Abonelik şu anda kullanılamıyor</string>
     <string name="nana7mi_usage_plan_checkout_failed">Ödeme sayfası açılamadı — tekrar deneyin</string>
     <string name="nana7mi_usage_plan_no_browser">Tarayıcı bulunamadı</string>
-    <string name="nana7mi_usage_uid_label">Pixiv UID’im</string>
     <string name="drawer_section_usage">Popülerliğe göre arama</string>
     <string name="nana7mi_quota_snack_session">5 saatlik limit doldu, %1$s sonra yenilenir</string>
     <string name="nana7mi_quota_snack_weekly">Haftalık limit doldu, %1$s sonra yenilenir</string>

@@ -2643,7 +2643,6 @@
     <string name="nana7mi_usage_error">사용량을 불러오지 못했습니다</string>
     <string name="nana7mi_usage_retry">탭하여 다시 시도</string>
     <string name="nana7mi_usage_login_required">로그인하면 사용량을 볼 수 있습니다</string>
-    <string name="nana7mi_usage_hint">인기순 검색은 한 번마다 1회로 계산됩니다. 두 한도 모두 고정 기간이라 초기화 시각에 전체가 한 번에 복구됩니다.</string>
     <string name="nana7mi_usage_cta_title">사용량 더 늘리기</string>
     <string name="nana7mi_usage_plan_price">¥%1$d</string>
     <string name="nana7mi_usage_plan_period">/ 월</string>
@@ -2666,7 +2665,6 @@
     <string name="nana7mi_usage_plan_unavailable">지금은 구독을 이용할 수 없습니다</string>
     <string name="nana7mi_usage_plan_checkout_failed">결제 페이지를 열지 못했습니다. 다시 시도해 주세요</string>
     <string name="nana7mi_usage_plan_no_browser">브라우저를 찾을 수 없습니다</string>
-    <string name="nana7mi_usage_uid_label">내 Pixiv UID</string>
     <string name="drawer_section_usage">인기순 검색</string>
     <string name="nana7mi_quota_snack_session">5시간 한도를 모두 사용했습니다. %1$s 후 복구</string>
     <string name="nana7mi_quota_snack_weekly">주간 한도를 모두 사용했습니다. %1$s 후 복구</string>
