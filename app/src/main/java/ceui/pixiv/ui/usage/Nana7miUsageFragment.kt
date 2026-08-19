@@ -1,10 +1,13 @@
 package ceui.pixiv.ui.usage
 
-import android.content.Intent
+import android.content.ActivityNotFoundException
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
+import android.net.Uri
+import android.os.Build
+import android.text.format.DateFormat
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -14,21 +17,31 @@ import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.lifecycle.lifecycleScope
+import ceui.lisa.BuildConfig
 import ceui.lisa.R
-import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentNana7miUsageBinding
 import ceui.lisa.fragments.BaseFragment
 import ceui.lisa.utils.ClipBoardUtils
-import ceui.lisa.utils.Params
+import ceui.lisa.utils.Common
 import ceui.loxia.Client
+import ceui.loxia.Nana7miCheckoutClient
+import ceui.loxia.Nana7miCheckoutResult
+import ceui.loxia.Nana7miPlan
 import ceui.loxia.Nana7miQuotaResult
 import ceui.loxia.Nana7miQuotaWindow
+import ceui.loxia.PLAN_MAX
+import ceui.loxia.PLAN_PRO
 import ceui.loxia.fetchNana7miQuota
+import ceui.loxia.requestAfdianCheckout
+import ceui.pixiv.config.RemoteAppConfig
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.WitRowStyle
 import kotlinx.coroutines.launch
+import java.util.Date
+import java.util.Locale
 
 /**
  * 借号用量页 —— 服务端两只配额桶（`src/account.js` 的 5 小时 / 每周）的只读视图。
@@ -52,37 +65,64 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         /** 进入警戒色阶的百分比。以下是主题色，从这里开始 黄 → 橙 → 红。 */
         const val WARN_FROM = 60
 
-        /** 订阅页。走内置浏览器，不外抛 —— 出了 app 就回不到这页的上下文了。 */
-        const val SUBSCRIBE_URL = "https://www.hedaoapp.com/yun/openmember?wid=6950"
+        /**
+         * 这一页在下单请求里的署名。服务端把它连同 App 版本、机型一起记进购买台账，
+         * 于是「主动翻到用量页来买」和「被额度挡住才来买」在后台是分得开的两件事。
+         */
+        const val CHECKOUT_ENTRY = "usage_page"
 
         /**
-         * 在售的档位，按价格从低到高。这份表要和订阅页上真实挂着的方案对齐 —— app 这边
-         * 只是把价格提前摆出来，收款还是网页那边按方案算的，两边不一致会当场翻车。
+         * 在售的档位，按价格从低到高。这份表要和爱发电上真实挂着的方案对齐 —— app 这边
+         * 只是把价格提前摆出来，收款和发货都以爱发电回来的订单为准，两边不一致会当场翻车。
          *
          * [Plan.bestValue] 不是随手贴的标签：20x 的单价是 ¥2/x，5x 是 ¥4/x，确实更划算。
          * 改价之后记得重算，别让这个徽章说谎。
+         *
+         * 卖点只说**倍率**，不说绝对次数 —— 和这页顶上那条规矩是同一条：上限是服务端可调的
+         * 运营参数，写进卖点就成了承诺，以后调小就变成「砍额度」。
          */
         val PLANS = listOf(
             Plan(
+                key = PLAN_PRO,
                 titleRes = R.string.nana7mi_usage_plan_5x_title,
                 descRes = R.string.nana7mi_usage_plan_5x_desc,
                 monthlyYuan = 20,
+                multiplier = 5,
             ),
             Plan(
+                key = PLAN_MAX,
                 titleRes = R.string.nana7mi_usage_plan_20x_title,
                 descRes = R.string.nana7mi_usage_plan_20x_desc,
                 monthlyYuan = 40,
+                multiplier = 20,
                 bestValue = true,
             ),
         )
     }
 
     private class Plan(
+        /** 服务端的档位 key，用来认出「这一行就是他买的那一档」。 */
+        val key: String,
         @StringRes val titleRes: Int,
         @StringRes val descRes: Int,
         val monthlyYuan: Int,
+        val multiplier: Int,
         val bestValue: Boolean = false,
     )
+
+    /** 正在换下单链接的那一档。同时也是防连点：一次只允许一笔在飞。 */
+    private var checkoutInFlight: String? = null
+
+    /** initData 那次加载不算「回到这页」，见 [onResume]。 */
+    private var everResumed = false
+
+    /**
+     * 当前档位。先用冷启动缓存的那份（第一帧就有答案），额度接口返回后换成服务端此刻认的。
+     *
+     * 认的是 [Nana7miPlan.owned]（他买了什么），不是 `key`（按什么计量）—— 试运营期间
+     * 服务端给所有人抬到 Max，拿 `key` 去高亮会把没付钱的人显示成 Max 订户。
+     */
+    private var plan: Nana7miPlan? = null
 
     override fun initLayout() {
         mLayoutID = R.layout.fragment_nana7mi_usage
@@ -94,6 +134,8 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         val palette = V3Palette.from(mContext)
         baseBind.errorAction.setTextColor(palette.primary)
         setupUidRow()
+        plan = RemoteAppConfig.nana7miPlan
+        bindPlanLabel()
         setupPlans(palette)
         load()
     }
@@ -118,39 +160,72 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
     }
 
     /**
-     * 底部订阅方案。版式规矩写在 layout 的注释里，这里只做两件运行时才能做的事：
-     * 按位置贴分段圆角、把底色/价格/徽章从主题色派生出来 —— 所以十档预设和自定义 HEX
-     * 都自动跟随，不需要为哪一档单独适配。
+     * 标题旁边的「当前方案 Max（20x）」。
      *
-     * 方案表是数据不是布局：以后加档、改价、改文案都只动 [PLANS] 一行，不用碰 XML。
-     * 每一档点开的都是同一个订阅页（那边按方案收款），app 这边只负责把价格摆在跳出之前。
+     * 说的是他**买的那一档**（[Nana7miPlan.ownedDisplay]）。计量档位在试运营期间会被服务端
+     * 抬高，拿那个来写「当前方案」等于告诉一个没付钱的人他买了 Max。
+     *
+     * 拿不到就整块 gone。空着一块，比写个假的让人误判自己订阅状态强。
+     */
+    private fun bindPlanLabel() {
+        val owned = plan?.ownedDisplay
+        baseBind.usagePlanLabel.apply {
+            if (owned == null) {
+                visibility = View.GONE
+            } else {
+                text = getString(R.string.nana7mi_usage_plan_label_current, owned.first, owned.second)
+                visibility = View.VISIBLE
+            }
+        }
+    }
+
+    /**
+     * 底部订阅区。按定价页排，不按设置项排 —— 版式理由写在 item_nana7mi_plan_card.xml 里。
+     *
+     * 这里只做运行时才能做的事：把卡片底、分隔线、按钮底从主题色派生出来，所以十档预设和
+     * 自定义 HEX 都自动跟随。方案表是数据不是布局：加档、改价、改文案只动 [PLANS]。
      */
     private fun setupPlans(palette: V3Palette) {
         val host = baseBind.planRows
         host.removeAllViews()
         val inflater = LayoutInflater.from(mContext)
-        PLANS.forEachIndexed { index, plan ->
-            val row = inflater.inflate(R.layout.item_nana7mi_plan_row, host, false)
-            row.background = planRowBackground(index, PLANS.size, palette)
-            bindPlan(row, plan, palette)
-            row.setOnClickListener { openSubscribePage() }
-            host.addView(row)
+        PLANS.forEach { plan ->
+            val card = inflater.inflate(R.layout.item_nana7mi_plan_card, host, false)
+            bindPlan(card, plan, palette)
+            host.addView(card)
         }
     }
 
-    private fun bindPlan(row: View, plan: Plan, palette: V3Palette) {
-        row.findViewById<TextView>(R.id.plan_title).text = getString(plan.titleRes)
-        row.findViewById<TextView>(R.id.plan_desc).text = getString(plan.descRes)
-        row.findViewById<TextView>(R.id.plan_price).apply {
-            // 价格是这一行的读数，和配额行的百分比同一档：数字在上、周期在下，染强调色
+    private fun bindPlan(card: View, plan: Plan, palette: V3Palette) {
+        val current = this.plan?.takeIf { it.isPaid && it.owned == plan.key }
+        // 已订阅的那一档整张卡描一道实边：一屏两张卡，得让「我在这一档上」一眼看出来，
+        // 而不是靠读徽章上那四个字。
+        card.background = planCardBackground(palette, highlighted = current != null)
+
+        card.findViewById<TextView>(R.id.plan_title).apply {
+            text = getString(plan.titleRes)
+            setTextColor(palette.textAccent)
+        }
+        card.findViewById<TextView>(R.id.plan_desc).text = when {
+            // 已经买了这一档：卖点换成他真正关心的那件事——什么时候到期。
+            current != null -> expiryText(current)
+            else -> getString(plan.descRes)
+        }
+        card.findViewById<TextView>(R.id.plan_price).apply {
             text = getString(R.string.nana7mi_usage_plan_price, plan.monthlyYuan)
             setTextColor(palette.textAccent)
         }
-        row.findViewById<TextView>(R.id.plan_badge).apply {
-            visibility = if (plan.bestValue) View.VISIBLE else View.GONE
-            if (plan.bestValue) {
-                // tagCountBg 那一档（alpha10）在这张 tonal 卡上会糊掉——底本来就是 alpha10，
-                // 徽章得再高一档才浮得出来
+        card.findViewById<View>(R.id.plan_divider).setBackgroundColor(palette.cardHairline)
+        card.findViewById<TextView>(R.id.plan_badge).apply {
+            // 「当前方案」压过「更划算」：他已经在这一档上了，再劝他划算没有意义。
+            val badge = when {
+                current != null -> getString(R.string.nana7mi_usage_plan_current)
+                plan.bestValue -> getString(R.string.nana7mi_usage_plan_badge)
+                else -> null
+            }
+            text = badge
+            visibility = if (badge != null) View.VISIBLE else View.GONE
+            if (badge != null) {
                 background = GradientDrawable().apply {
                     cornerRadius = 999f * resources.displayMetrics.density
                     setColor(palette.alpha20)
@@ -158,37 +233,166 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
                 setTextColor(palette.textAccent)
             }
         }
+        bindFeatures(card.findViewById(R.id.plan_features), plan, palette)
+        bindCta(card, plan, current != null, palette)
     }
 
     /**
-     * 分段行背景，几何同 [WitRowStyle]（外角 20dp / 内角 5dp），但底色是主题色 tonal 而非中性色，
-     * 所以没法直接复用 `wit_row_*` —— 那几个 drawable 的圆角是烤在 XML 里的，换底色得整套重画。
+     * 卖点清单。三条都说得起：热度排序是这东西本身，倍率同时抬两只桶（服务端两档一起乘），
+     * 到期自动回免费档也是真的（服务端没有任何东西会去续期，过期的记录当场读作 Free）。
+     *
+     * 倍率写「5×」而不是「25 次 / 5 小时」——绝对次数是运营参数，见 [PLANS] 上的注释。
      */
-    private fun planRowBackground(index: Int, total: Int, palette: V3Palette): RippleDrawable {
+    private fun bindFeatures(host: LinearLayout, plan: Plan, palette: V3Palette) {
+        host.removeAllViews()
+        val inflater = LayoutInflater.from(mContext)
+        val lines = listOf(
+            getString(R.string.nana7mi_usage_plan_feature_sort),
+            getString(R.string.nana7mi_usage_plan_feature_multiplier, plan.multiplier),
+            getString(R.string.nana7mi_usage_plan_feature_lapse),
+        )
+        lines.forEach { line ->
+            val row = inflater.inflate(R.layout.item_nana7mi_plan_feature, host, false)
+            row.findViewById<TextView>(R.id.feature_check).setTextColor(palette.textAccent)
+            row.findViewById<TextView>(R.id.feature_text).text = line
+            host.addView(row)
+        }
+    }
+
+    /**
+     * 卡片底部的整幅按钮。已订阅的那一档写「续费」——他点进来多半就是为了续，写「选择」
+     * 会让人以为是要换一档。
+     *
+     * 整张卡也可点，和按钮同一个动作：卡片这么大，要求用户精准命中底部那一条不合理。
+     */
+    private fun bindCta(card: View, plan: Plan, isCurrent: Boolean, palette: V3Palette) {
+        val cta = card.findViewById<TextView>(R.id.plan_cta)
+        val busy = checkoutInFlight == plan.key
+        val anyBusy = checkoutInFlight != null
+        cta.text = when {
+            busy -> getString(R.string.nana7mi_usage_plan_cta_loading)
+            isCurrent -> getString(R.string.nana7mi_usage_plan_cta_renew)
+            else -> getString(R.string.nana7mi_usage_plan_cta_choose, getString(plan.titleRes))
+        }
+        cta.background = ctaBackground(palette)
+        cta.setTextColor(palette.floatingPillContent)
+        // 有一笔在飞时整组按钮都停用：两条下单链接同时开出去，用户会在浏览器里看到两个
+        // 订单页，而其中一个是他已经不想要的那一档。
+        cta.alpha = if (anyBusy && !busy) 0.4f else 1f
+        val click = View.OnClickListener { startCheckout(plan) }
+        cta.isEnabled = !anyBusy
+        cta.setOnClickListener(if (anyBusy) null else click)
+        card.isEnabled = !anyBusy
+        card.setOnClickListener(if (anyBusy) null else click)
+    }
+
+    /**
+     * 换一条带身份的下单链接，然后交给浏览器。
+     *
+     * **必须走服务端换链接，不能在客户端拼爱发电的 URL。** 链接里那段签名令牌是「这单是谁买的」
+     * 的唯一凭据；少了它，订单回到服务端时没有身份，只能落进后台等人工认领，而用户那边是
+     * 付了钱却什么都没发生。所以换链接失败时就老实报错让他重试，绝不退回去开一个裸链接。
+     *
+     * 用 Custom Tab 而不是内置 WebView：付款要跳微信/支付宝，那是 app intent，普通 WebView
+     * 跟不过去，会停在一个永远转圈的收银台上。
+     */
+    private fun startCheckout(plan: Plan) {
+        if (checkoutInFlight != null) return
+        val uid = SessionManager.loggedInUid
+        if (uid <= 0L) return
+        checkoutInFlight = plan.key
+        setupPlans(V3Palette.from(mContext))
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = Client.pixshaft.requestAfdianCheckout(
+                uid = uid,
+                plan = plan.key,
+                client = Nana7miCheckoutClient(
+                    appVersion = BuildConfig.VERSION_NAME,
+                    versionCode = BuildConfig.VERSION_CODE,
+                    entry = CHECKOUT_ENTRY,
+                    device = Build.MODEL,
+                    locale = Locale.getDefault().toLanguageTag(),
+                    android = Build.VERSION.RELEASE,
+                ),
+            )
+            checkoutInFlight = null
+            setupPlans(V3Palette.from(mContext))
+            when (result) {
+                is Nana7miCheckoutResult.Success -> openCheckout(result.url)
+                Nana7miCheckoutResult.Unavailable ->
+                    Common.showToast(getString(R.string.nana7mi_usage_plan_unavailable))
+                is Nana7miCheckoutResult.Failure ->
+                    Common.showToast(getString(R.string.nana7mi_usage_plan_checkout_failed))
+            }
+        }
+    }
+
+    private fun openCheckout(url: String) {
+        try {
+            CustomTabsIntent.Builder().build().launchUrl(mContext, Uri.parse(url))
+        } catch (_: ActivityNotFoundException) {
+            Common.showToast(getString(R.string.nana7mi_usage_plan_no_browser))
+        }
+    }
+
+    /**
+     * 回到这页就重新拉一次 —— 刚从收银台回来的人，进来就该看到额度已经变了。
+     *
+     * 跳过第一次：[initData] 刚拉过，重复一次只是白打一个请求。
+     */
+    override fun onResume() {
+        super.onResume()
+        if (everResumed) load() else everResumed = true
+    }
+
+    /**
+     * 卡片底。已订阅的那一档描实边（alpha60），其余是发丝边 —— 差别要在余光里就成立，
+     * 不能只靠读文字。
+     */
+    private fun planCardBackground(palette: V3Palette, highlighted: Boolean): RippleDrawable {
         val density = resources.displayMetrics.density
-        val top = (if (index == 0) 20f else 5f) * density
-        val bottom = (if (index == total - 1) 20f else 5f) * density
-        // cornerRadii 是 8 个值：TL/TR/BR/BL 各一对 x、y
-        val radii = floatArrayOf(top, top, top, top, bottom, bottom, bottom, bottom)
+        val radius = 20f * density
         val fill = GradientDrawable().apply {
-            cornerRadii = radii
+            cornerRadius = radius
             setColor(palette.alpha10)
-            setStroke(density.toInt().coerceAtLeast(1), palette.alpha30)
+            setStroke(
+                ((if (highlighted) 1.5f else 1f) * density).toInt().coerceAtLeast(1),
+                if (highlighted) palette.alpha60 else palette.alpha30,
+            )
         }
         // mask 决定 ripple 的形状：没有它水波会漫成方角，露出圆角外面
         val mask = GradientDrawable().apply {
-            cornerRadii = radii
+            cornerRadius = radius
             setColor(Color.WHITE)
         }
         return RippleDrawable(ColorStateList.valueOf(palette.alpha20), fill, mask)
     }
 
-    private fun openSubscribePage() {
-        startActivity(Intent(mContext, TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-            putExtra(Params.URL, SUBSCRIBE_URL)
-            putExtra(Params.TITLE, getString(R.string.nana7mi_usage_cta_title))
-        })
+    /** 按钮底：实心主题色，整页唯一一处实心填充 —— 它是这页唯一要人做的动作。 */
+    private fun ctaBackground(palette: V3Palette): RippleDrawable {
+        val density = resources.displayMetrics.density
+        val fill = GradientDrawable().apply {
+            cornerRadius = 14f * density
+            setColor(palette.primary)
+        }
+        val mask = GradientDrawable().apply {
+            cornerRadius = 14f * density
+            setColor(Color.WHITE)
+        }
+        return RippleDrawable(ColorStateList.valueOf(palette.alpha30), fill, mask)
+    }
+
+    /**
+     * 「2026/09/18 到期」。只给日期不给时分：月付订阅的到期精确到分钟对用户没有意义，
+     * 反而让一行本来一眼扫过的信息变成要读的数字。
+     */
+    private fun expiryText(plan: Nana7miPlan): String {
+        val until = plan.ownedExpiresAt
+            ?: return getString(R.string.nana7mi_usage_plan_current_no_expiry)
+        return getString(
+            R.string.nana7mi_usage_plan_expires,
+            DateFormat.getDateFormat(mContext).format(Date(until)),
+        )
     }
 
     private fun load() {
@@ -201,7 +405,18 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         showLoading()
         viewLifecycleOwner.lifecycleScope.launch {
             when (val result = Client.pixshaft.fetchNana7miQuota(uid)) {
-                is Nana7miQuotaResult.Success -> render(result.quotas, result.serverTime)
+                is Nana7miQuotaResult.Success -> {
+                    // 服务端此刻认的档位比冷启动缓存的那份新——刚买完还没重启 app 的人，
+                    // 打开这页就该看到自己已经是订户了。
+                    result.plan?.let {
+                        plan = it
+                        bindPlanLabel()
+                        setupPlans(V3Palette.from(mContext))
+                        // 顺手把缓存刷新了：刚买完的人从这页退回去，侧边栏徽章就已经对了。
+                        RemoteAppConfig.updateNana7miPlan(uid, it)
+                    }
+                    render(result.quotas, result.serverTime)
+                }
                 else -> showError(getString(R.string.nana7mi_usage_error), retryable = true)
             }
         }

@@ -119,6 +119,22 @@ interface PixshaftApi {
         @Body body: Nana7miRequest,
     ): Response<Nana7miQuotaResponse>
 
+    /**
+     * 换一条爱发电下单链接，链接里已经带好了「这是谁买的」。
+     *
+     * 服务端把 uid 和档位做成一段签过名的令牌，塞进下单页的 `custom_order_id` 和留言里；
+     * 付完款，爱发电把订单推回服务端，令牌还在上面，套餐就自动发到这个 uid 头上。所以
+     * 客户端**不要**自己去拼爱发电的 URL —— 那样拼出来的单子没有身份，只能落到后台等人工。
+     *
+     * [Nana7miCheckoutReq.client] 只送服务端不可能知道的东西（哪个版本、从哪个界面点进来的、
+     * 什么机器）。档位、到期时间、两只桶的用量服务端自己有，它会在这一刻自己快照一份 ——
+     * 让客户端复述一遍只会多出一份会漂的事实。
+     */
+    @POST("v1/account/afdian/checkout")
+    suspend fun afdianCheckout(
+        @Body body: Nana7miCheckoutReq,
+    ): Response<Nana7miCheckoutResp>
+
     /** Quarantine the exact borrowed refresh token that Pixiv rejected. */
     @POST("v1/account/nana7mi/invalid")
     suspend fun invalidateNana7mi(
@@ -223,6 +239,43 @@ data class Nana7miPlan(
     /** 真金白银买过、且还在有效期内。试运营白给的不算。 */
     val isPaid: Boolean
         get() = owned != null && owned != PLAN_FREE
+
+    /**
+     * 侧边栏那颗徽章上印什么；免费、未知、以及**这个版本还不认识的新档位**都不印。
+     *
+     * 只认写死的两档而不是直接用服务端的 [label]：这串字要塞进侧边栏用户名旁边，服务端
+     * 哪天给个长名字就会把用户名挤没。不认识的新档位宁可不显示 —— 少一颗徽章是小事，
+     * 版式塌了是大事，而且「免费什么都不展示」本来就是默认行为。
+     */
+    val badgeLabel: String?
+        get() = when (owned) {
+            PLAN_PRO -> "PRO"
+            PLAN_MAX -> "MAX"
+            else -> null
+        }
+
+    /**
+     * 他**买的那一档**叫什么、是几倍。UI 上凡是说「当前方案」的地方都用它。
+     *
+     * [key]/[label]/[multiplier] 说的是「按什么计量」，试运营期间服务端会把所有人抬上去，
+     * 拿那组去写「当前方案」会告诉一个没付钱的人他买了 Max。
+     *
+     * 计量档位正好就是他买的那档时（也就是没有试运营抬高时），直接用服务端给的名字和倍率
+     * —— 服务端才是权威，客户端不该自己猜。只有两者不一致时才落到本地这张表上，它是为了
+     * 「试运营期间也要如实说出他买的是什么」而存在的，不是第二份真相。
+     */
+    val ownedDisplay: Pair<String, Int>?
+        get() {
+            if (owned != null && owned == key && label != null && multiplier != null) {
+                return label to multiplier
+            }
+            return when (owned) {
+                PLAN_FREE -> "Free" to 1
+                PLAN_PRO -> "Pro" to 5
+                PLAN_MAX -> "Max" to 20
+                else -> null
+            }
+        }
 }
 
 const val PLAN_FREE = "free"
@@ -269,6 +322,35 @@ data class BindOnlineAck(
 )
 
 data class Nana7miRequest(val uid: Long)
+
+/**
+ * @param months 只是下单页上月数选择器的预填值，不是承诺 —— 买家在爱发电那边还能改，
+ *   最后发几个月按订单回来的实际月数算。
+ */
+data class Nana7miCheckoutReq(
+    val uid: Long,
+    val plan: String,
+    val months: Int = 1,
+    val client: Nana7miCheckoutClient? = null,
+)
+
+/** 服务端不可能自己知道的那几样。全部可空：少一样也不该让下单失败。 */
+data class Nana7miCheckoutClient(
+    val appVersion: String? = null,
+    val versionCode: Int? = null,
+    /** 从哪个界面点进来的，例如 `usage_page`。用来分辨「主动来买」和「被额度挡住才来买」。 */
+    val entry: String? = null,
+    val device: String? = null,
+    val locale: String? = null,
+    val android: String? = null,
+)
+
+data class Nana7miCheckoutResp(
+    val url: String? = null,
+    val plan: String? = null,
+    val months: Int? = null,
+    val uid: Long? = null,
+)
 
 data class Nana7miInvalidReq(
     val uid: Long,
@@ -400,6 +482,45 @@ suspend fun PixshaftApi.fetchNana7miQuota(uid: Long): Nana7miQuotaResult {
         Nana7miQuotaResult.NetworkFailure(io)
     } catch (e: Exception) {
         Nana7miQuotaResult.InvalidResponse(e)
+    }
+}
+
+sealed class Nana7miCheckoutResult {
+    /** [url] 直接丢给浏览器就行，身份已经烤在里面了。 */
+    data class Success(val url: String) : Nana7miCheckoutResult()
+
+    /** 服务端还没配好爱发电（503），或者这一档暂时不卖。 */
+    data object Unavailable : Nana7miCheckoutResult()
+    data class Failure(val cause: Exception? = null) : Nana7miCheckoutResult()
+}
+
+/**
+ * 要一条带身份的下单链接。
+ *
+ * 失败一律降级成显式结果值：这条路径上任何一种失败都只该让按钮回弹并提示一句，绝不能
+ * 把用户从「我正想付钱」的那一刻踢进一个崩溃。
+ *
+ * **拿不到链接时不要退回去打开爱发电主页**。那种单子回来是没有身份的，只能落到后台
+ * 等人工认领 —— 用户付了钱却看不到额度变化，比让他等一会儿再试糟得多。
+ */
+suspend fun PixshaftApi.requestAfdianCheckout(
+    uid: Long,
+    plan: String,
+    months: Int = 1,
+    client: Nana7miCheckoutClient? = null,
+): Nana7miCheckoutResult {
+    if (uid <= 0L) return Nana7miCheckoutResult.Failure()
+    return try {
+        val response = afdianCheckout(Nana7miCheckoutReq(uid, plan, months, client))
+        if (response.code() == 503) return Nana7miCheckoutResult.Unavailable
+        if (!response.isSuccessful) return Nana7miCheckoutResult.Failure()
+        val url = response.body()?.url
+        if (url.isNullOrBlank()) Nana7miCheckoutResult.Failure()
+        else Nana7miCheckoutResult.Success(url)
+    } catch (ce: CancellationException) {
+        throw ce
+    } catch (e: Exception) {
+        Nana7miCheckoutResult.Failure(e)
     }
 }
 

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    一档订阅方案，按定价页而不是设置项来排。
+
+    上面的配额行是只读读数，密排是对的；这一块是整页唯一要人掏钱的地方，跟着一起密排
+    只会让它看起来也是一行「设置」。所以这里换成卡片：留白大一档、价格当主角、卖点竖着
+    列清楚、每张卡自己带一个整幅按钮 —— 看完一张卡就能决定，不用再回到别处找入口。
+
+    版式次序刻意是「先说这是什么，再说多少钱，最后说买了得到什么」：
+      eyebrow（Pro / Max，小字distinct）→ 价格（整页最大的数字）→ 一句定位 → 分隔线
+      → 卖点清单（代码里灌，因为条数按档位变）→ 按钮
+
+    背景、按钮底、分隔线的颜色全部在 Fragment 里从主题色派生（见 planCardBackground），
+    所以十档预设和自定义 HEX 都自动跟随 —— 这里不设 background，设了会盖掉圆角。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="12dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:paddingStart="22dp"
+    android:paddingTop="20dp"
+    android:paddingEnd="22dp"
+    android:paddingBottom="20dp">
+
+    <!-- eyebrow 行：档位名 + 徽章。字号压到 13sp 并加字距，是为了把视觉重量整个让给
+         下面的价格 —— 一张卡上只能有一个主角。 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/plan_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:letterSpacing="0.06"
+            android:maxLines="1"
+            android:textAllCaps="true"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="MAX" />
+
+        <TextView
+            android:id="@+id/plan_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:paddingStart="8dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="3dp"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="@string/nana7mi_usage_plan_badge"
+            tools:visibility="visible" />
+    </LinearLayout>
+
+    <!-- 价格行：数字和「/ 月」按基线对齐（gravity=bottom），不是居中 —— 居中会让后缀
+         浮在数字腰上，那是价目表最常见的一处塌陷。 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:baselineAligned="true"
+        android:gravity="bottom"
+        android:orientation="horizontal">
+
+        <!-- Montserrat Bold：数字读数在本仓库统一用它，同配额行的百分比 -->
+        <TextView
+            android:id="@+id/plan_price"
+            style="@style/textMontserratBold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:includeFontPadding="false"
+            android:textSize="38sp"
+            android:textStyle="bold"
+            tools:text="¥40" />
+
+        <TextView
+            android:id="@+id/plan_period"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginBottom="4dp"
+            android:text="@string/nana7mi_usage_plan_period"
+            android:textColor="@color/v3_text_3"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/plan_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@color/v3_text_3"
+        android:textSize="13sp"
+        tools:text="重度使用者，随便搜" />
+
+    <View
+        android:id="@+id/plan_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="18dp" />
+
+    <!-- 卖点清单。条数随档位变，所以在代码里灌（见 bindFeatures），XML 只留容器。 -->
+    <LinearLayout
+        android:id="@+id/plan_features"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:orientation="vertical" />
+
+    <!-- 整幅按钮。卡片本身也可点（和按钮同一个动作），但按钮必须在场：一张定价卡
+         没有明确的「就选它」，用户会去找而不是去点。 -->
+    <TextView
+        android:id="@+id/plan_cta"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:layout_marginTop="18dp"
+        android:gravity="center"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        tools:text="选择 Max" />
+</LinearLayout>

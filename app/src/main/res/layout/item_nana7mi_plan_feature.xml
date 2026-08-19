@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    卖点清单里的一条。勾用文字「✓」而不是 drawable：它得跟着主题色走，而一个 TextView
+    的 textColor 是这整页已经在用的那套着色办法，换成 vector 就要多一份 tint 逻辑。
+
+    勾用固定宽度而不是 marginEnd，是为了让多行文案的第二行和第一行的文字左边缘对齐 ——
+    对不齐的清单读起来会碎。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp">
+
+    <TextView
+        android:id="@+id/feature_check"
+        android:layout_width="20dp"
+        android:layout_height="wrap_content"
+        android:text="@string/nana7mi_usage_plan_feature_check"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/feature_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/v3_text_2"
+        android:textSize="13.5sp"
+        tools:text="每 5 小时 100 次热度搜索" />
+</LinearLayout>
