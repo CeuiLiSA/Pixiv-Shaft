@@ -7,6 +7,8 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
+import android.os.SystemClock
 import android.text.format.DateFormat
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -37,8 +39,12 @@ import ceui.loxia.fetchNana7miQuota
 import ceui.loxia.requestAfdianCheckout
 import ceui.pixiv.config.RemoteAppConfig
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.WitRowStyle
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.Locale
@@ -70,6 +76,36 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
          * 于是「主动翻到用量页来买」和「被额度挡住才来买」在后台是分得开的两件事。
          */
         const val CHECKOUT_ENTRY = "usage_page"
+
+        /** [onSaveInstanceState] 的键。只存「在飞的那笔单」，页面数据重建后重拉即可。 */
+        const val STATE_PENDING_SINCE = "pending_since"
+        const val STATE_PENDING_OWNED = "pending_owned"
+        const val STATE_PENDING_EXPIRES = "pending_expires"
+
+        /**
+         * 从收银台回来之后多久问一次服务端（见 [watchFulfilment]）。两档，不是一个定值。
+         *
+         * 到账几乎总是发生在头几十秒里：爱发电一推，服务端当场发货。所以前 [FULFILMENT_FAST_MS]
+         * 用 5 秒盯着——这一段的响应速度就是用户对「买完自动刷新」的全部感受。
+         *
+         * 过了这一段还没到，就不是「马上要来了」，而是推送迟到、要等服务端那个 5 分钟的兜底
+         * 轮询。这时候继续 5 秒一发只是在把一个纯读接口打成轮询：同样的等待时间，20 秒一次
+         * 和 5 秒一次对用户没有可感知的差别，请求数却差四倍。
+         */
+        const val FULFILMENT_POLL_FAST_MS = 5_000L
+        const val FULFILMENT_POLL_SLOW_MS = 20_000L
+
+        /** 多久之后从快档切到慢档。 */
+        const val FULFILMENT_FAST_MS = 30_000L
+
+        /**
+         * 最多等这么久。定成 5 分半是为了**盖住服务端那个 5 分钟的兜底轮询**——推送彻底没来
+         * 时，兜底轮询是发货的最后一条路，窗口比它短就等于保证等不到。
+         *
+         * 到点还没到账就说一句实话然后收手：这是个纯读接口上的轮询，必须有头。剩下的交给
+         * 下拉刷新。
+         */
+        const val FULFILMENT_WINDOW_MS = 5 * 60_000L + 30_000L
 
         /**
          * 在售的档位，按价格从低到高。这份表要和爱发电上真实挂着的方案对齐 —— app 这边
@@ -144,12 +180,76 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
     private var everResumed = false
 
     /**
+     * 刚开出去一笔单的时刻（[SystemClock.elapsedRealtime]，改系统时间不受影响）；0 = 没有在等的单。
+     *
+     * 发货不是同步的：爱发电把订单推回服务端才发货，这一跳通常几秒，推送迟到时要等服务端
+     * 那个 5 分钟的兜底轮询。也就是说「从收银台回来那一刻」拉到的档位**大概率还是旧的**，
+     * 只刷一次正好刷在空档上——这就是「买完回来页面没变」的由来。所以下过单之后改成
+     * 盯着看，见 [watchFulfilment]。
+     */
+    private var pendingSince = 0L
+
+    /**
+     * 下单前那一刻的订阅指纹（买的哪一档 + 到期时间）。和它不一样就说明这笔单到账了。
+     *
+     * **null = 还没有基线**，不是「基线是空的」。下单那一刻本地可能压根还不知道档位
+     * （冷启动缓存是空的、首次加载还没回来），这时候拿 null 当基线去比，服务端第一次
+     * 答的 `pro` 就已经和它不同了——一个老订户点开续费页、什么都没买，回来就会被告知
+     * 「订阅已到账」。所以没有基线时先拿第一次答复补上基线，从第二次起才开始比。
+     */
+    private var pendingPlan: Pair<String?, Long?>? = null
+
+    /** 正在盯的那个协程。只在本页可见时跑，[onPause] 就停。 */
+    private var fulfilmentWatch: Job? = null
+
+    /**
      * 当前档位。先用冷启动缓存的那份（第一帧就有答案），额度接口返回后换成服务端此刻认的。
      *
      * 认的是 [Nana7miPlan.owned]（他买了什么），不是 `key`（按什么计量）—— 试运营期间
      * 服务端给所有人抬到 Max，拿 `key` 去高亮会把没付钱的人显示成 Max 订户。
      */
     private var plan: Nana7miPlan? = null
+
+    /**
+     * 「有一笔单在飞」必须活过 Activity 重建。
+     *
+     * TemplateActivity 没有声明 configChanges，转个屏就是一次重建；而用户跳去微信付款
+     * 那几分钟里，本页被杀掉重建（转屏、深色模式、系统回收进程）一点都不稀奇。字段随之
+     * 清零的话，回来时 [pendingSince] 是 0、[everResumed] 是 false，于是既不盯也不刷——
+     * 正好退回成这次要修的那个 bug，而且是在它最容易发生的那条路径上。
+     *
+     * 存 [SystemClock.elapsedRealtime] 而不是墙钟：跨进程重建后它照样连续，重启后归零，
+     * 而重启本来就该让这笔「在飞的单」作废。
+     */
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        savedInstanceState?.let { saved ->
+            // 存进来的时刻要过一遍闸：不在 [0, 窗口) 里就当没有这笔单。挡两种情况——
+            // 中间重启过（elapsedRealtime 归零，差值成负数，那样的话窗口永远到不了，
+            // 会一直轮询下去），以及这份 state 本身已经放了比窗口还久。
+            val since = saved.getLong(STATE_PENDING_SINCE, 0L)
+            val waited = SystemClock.elapsedRealtime() - since
+            if (since > 0L && waited >= 0L && waited < FULFILMENT_WINDOW_MS) {
+                pendingSince = since
+                if (saved.containsKey(STATE_PENDING_OWNED) ||
+                    saved.containsKey(STATE_PENDING_EXPIRES)
+                ) {
+                    pendingPlan = saved.getString(STATE_PENDING_OWNED) to
+                            saved.getLong(STATE_PENDING_EXPIRES, 0L).takeIf { ms -> ms > 0L }
+                }
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (pendingSince <= 0L) return
+        outState.putLong(STATE_PENDING_SINCE, pendingSince)
+        pendingPlan?.let { (owned, expiresAt) ->
+            outState.putString(STATE_PENDING_OWNED, owned)
+            outState.putLong(STATE_PENDING_EXPIRES, expiresAt ?: 0L)
+        }
+    }
 
     override fun initLayout() {
         mLayoutID = R.layout.fragment_nana7mi_usage
@@ -158,6 +258,10 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
     override fun initData() {
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
         baseBind.errorState.setOnClickListener { load() }
+        // 下拉刷新：额度和档位都是服务端此刻的读数，用户想再确认一次时得有个手动的口子，
+        // 而不是只能退出去再进来。
+        baseBind.swipeRefresh.applyV3RefreshTheme()
+        baseBind.swipeRefresh.setOnRefreshListener { load(withSpinner = false, pulled = true) }
         val palette = V3Palette.from(mContext)
         baseBind.errorAction.setTextColor(palette.primary)
         plan = RemoteAppConfig.nana7miPlan
@@ -341,7 +445,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
             checkoutInFlight = null
             setupPlans(V3Palette.from(mContext))
             when (result) {
-                is Nana7miCheckoutResult.Success -> openCheckout(result.url)
+                is Nana7miCheckoutResult.Success -> if (openCheckout(result.url)) markPending()
                 Nana7miCheckoutResult.Unavailable ->
                     Common.showToast(getString(R.string.nana7mi_usage_plan_unavailable))
                 is Nana7miCheckoutResult.Failure ->
@@ -350,25 +454,78 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         }
     }
 
-    private fun openCheckout(url: String) {
-        try {
+    /** @return 收银台真的开出去了没有 —— 没开出去就没有「在等的单」可盯。 */
+    private fun openCheckout(url: String): Boolean {
+        return try {
             CustomTabsIntent.Builder().build().launchUrl(mContext, Uri.parse(url))
+            true
         } catch (_: ActivityNotFoundException) {
             Common.showToast(getString(R.string.nana7mi_usage_plan_no_browser))
+            false
         }
+    }
+
+    /** 记下「有一笔单在飞」和下单前的档位快照，回来之后拿它比对。 */
+    private fun markPending() {
+        pendingSince = SystemClock.elapsedRealtime()
+        // plan 为 null 时**不造一个假基线**（见 [pendingPlan]）：留空，让第一次答复来当基线。
+        pendingPlan = plan?.let { it.owned to it.ownedExpiresAt }
     }
 
     /**
      * 回到这页就重新拉一次 —— 刚从收银台回来的人，进来就该看到额度已经变了。
      *
      * 跳过第一次：[initData] 刚拉过，重复一次只是白打一个请求。
+     *
+     * ⚠️ 刚下过单的那一次**不能只拉一次**：发货是异步的（爱发电推回服务端才发货），
+     * 用户按返回键比那一跳快，只刷一次刷到的必然还是旧档位，页面于是看着像「买了没反应」。
+     * 那种情况走 [watchFulfilment]。
      */
     override fun onResume() {
         super.onResume()
         // 回来这一次是**静默刷新**：不转圈、失败也不换成错误页。从收银台回来看到整页先空白
         // 再重画，读起来像页面崩了重开一次；而这时候屏幕上那份数据本来就还是对的，最多差
         // 一次刚买的档位——真刷到了就地换掉，刷不到保持原样，没有一种情况值得把它清空。
-        if (everResumed) load(withSpinner = false) else everResumed = true
+        val firstResume = !everResumed
+        everResumed = true
+        // 有单在飞就一律盯着，**包括重建后的第一次 resume**：那一次 initData 只拉了一发，
+        // 而这笔单大概率还没到账。发货要等爱发电推回服务端，那一跳比用户按返回键慢。
+        if (pendingSince > 0L) {
+            watchFulfilment()
+            return
+        }
+        if (!firstResume) load(withSpinner = false)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 页面看不见了就别再轮询。[pendingSince] 留着，回来接着盯，窗口按总时长算。
+        fulfilmentWatch?.cancel()
+        fulfilmentWatch = null
+    }
+
+    /**
+     * 下过单之后盯着服务端，直到这笔单到账（或等超时）。
+     *
+     * 只在本页可见时跑，[FULFILMENT_WINDOW_MS] 封顶 —— 这是一个纯读接口上的轮询，
+     * 必须有头。等不到就说一句实话，剩下的交给下拉刷新。
+     */
+    private fun watchFulfilment() {
+        if (fulfilmentWatch?.isActive == true) return
+        fulfilmentWatch = viewLifecycleOwner.lifecycleScope.launch {
+            while (isActive && pendingSince > 0L) {
+                val uid = SessionManager.loggedInUid
+                if (uid <= 0L) break
+                if (fetchAndRender(uid, withSpinner = false, pulled = false)) break
+                val waited = SystemClock.elapsedRealtime() - pendingSince
+                if (waited >= FULFILMENT_WINDOW_MS) {
+                    pendingSince = 0L
+                    Common.showToast(getString(R.string.nana7mi_usage_plan_still_pending))
+                    break
+                }
+                delay(if (waited < FULFILMENT_FAST_MS) FULFILMENT_POLL_FAST_MS else FULFILMENT_POLL_SLOW_MS)
+            }
+        }
     }
 
     /**
@@ -435,47 +592,83 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
     }
 
     /**
-     * @param withSpinner 首次进入（和手动重试）要有加载态；[onResume] 的静默刷新不要——
-     *   它是在已经画好的内容上做替换，转圈和错误页都只会把用户看得好好的一屏拿走。
+     * @param withSpinner 首次进入（和手动重试）要有加载态；静默刷新和下拉刷新都不要——
+     *   它们是在已经画好的内容上做替换，转圈和错误页都只会把用户看得好好的一屏拿走。
+     * @param pulled 用户自己拽下来的。它和静默刷新的区别只在**失败时**：手动动作必须有
+     *   回音，否则圈一收、什么都没变，人分不清是刷过了没变化还是根本没刷成。
      */
-    private fun load(withSpinner: Boolean = true) {
+    private fun load(withSpinner: Boolean = true, pulled: Boolean = false) {
         val uid = SessionManager.loggedInUid
         if (uid <= 0L) {
+            baseBind.swipeRefresh.isRefreshing = false
             // 未登录不是「加载失败」：没有可重试的东西，所以这一态不给重试文案。
             showError(getString(R.string.nana7mi_usage_login_required), retryable = false)
             return
         }
         if (withSpinner) showLoading()
-        viewLifecycleOwner.lifecycleScope.launch {
-            when (val result = Client.pixshaft.fetchNana7miQuota(uid)) {
-                is Nana7miQuotaResult.Success -> {
-                    // 服务端此刻认的档位比冷启动缓存的那份新——刚买完还没重启 app 的人，
-                    // 打开这页就该看到自己已经是订户了。
-                    result.plan?.let {
-                        plan = it
-                        bindPlanLabel()
-                        setupPlans(V3Palette.from(mContext))
-                        // 顺手把缓存刷新了：刚买完的人从这页退回去，侧边栏徽章就已经对了。
-                        RemoteAppConfig.updateNana7miPlan(uid, it)
+        viewLifecycleOwner.lifecycleScope.launch { fetchAndRender(uid, withSpinner, pulled) }
+    }
+
+    /**
+     * 拉一次并就地重画。
+     *
+     * @return 在等的那笔单是不是这一次到账了 —— [watchFulfilment] 拿它决定还要不要接着盯。
+     */
+    private suspend fun fetchAndRender(uid: Long, withSpinner: Boolean, pulled: Boolean): Boolean {
+        val result = Client.pixshaft.fetchNana7miQuota(uid)
+        if (pulled) baseBind.swipeRefresh.isRefreshing = false
+        return when (result) {
+            is Nana7miQuotaResult.Success -> {
+                var landed = false
+                // 服务端此刻认的档位比冷启动缓存的那份新——刚买完还没重启 app 的人，
+                // 打开这页就该看到自己已经是订户了。
+                result.plan?.let {
+                    plan = it
+                    bindPlanLabel()
+                    setupPlans(V3Palette.from(mContext))
+                    // 顺手把缓存刷新了：刚买完的人从这页退回去，侧边栏徽章就已经对了。
+                    RemoteAppConfig.updateNana7miPlan(uid, it)
+                    if (pendingSince > 0L) {
+                        val now = it.owned to it.ownedExpiresAt
+                        val base = pendingPlan
+                        // 到账 = **已经是付费档** 且 和下单前那份不一样。两个条件缺一不可：
+                        //  - 光看 isPaid 会误报：一个老订户点开续费页什么都没买，回来第一次
+                        //    答复就是 pro，照样成立；
+                        //  - 光看「不一样」会漏判方向：过期掉档也是「不一样」，那不是到账。
+                        if (base == null) {
+                            pendingPlan = now
+                        } else if (it.isPaid && now != base) {
+                            pendingSince = 0L
+                            landed = true
+                            Common.showToast(getString(R.string.nana7mi_usage_plan_arrived))
+                        }
                     }
-                    render(result.quotas, result.serverTime)
                 }
-                // 静默刷新失败就当没刷过：屏幕上那份数据还是有效的，把它换成错误页是在
-                // 拿走一份能用的东西去换一句「加载失败」。
-                else -> if (withSpinner) showError(getString(R.string.nana7mi_usage_error), retryable = true)
+                render(result.quotas, result.serverTime)
+                landed
+            }
+            // 静默刷新失败就当没刷过：屏幕上那份数据还是有效的，把它换成错误页是在
+            // 拿走一份能用的东西去换一句「加载失败」。
+            else -> {
+                if (withSpinner) {
+                    showError(getString(R.string.nana7mi_usage_error), retryable = true)
+                } else if (pulled) {
+                    Common.showToast(getString(R.string.nana7mi_usage_refresh_failed))
+                }
+                false
             }
         }
     }
 
     private fun showLoading() {
         baseBind.loading.visibility = View.VISIBLE
-        baseBind.contentScroll.visibility = View.GONE
+        baseBind.swipeRefresh.visibility = View.GONE
         baseBind.errorState.visibility = View.GONE
     }
 
     private fun showError(message: String, retryable: Boolean) {
         baseBind.loading.visibility = View.GONE
-        baseBind.contentScroll.visibility = View.GONE
+        baseBind.swipeRefresh.visibility = View.GONE
         baseBind.errorState.visibility = View.VISIBLE
         baseBind.errorText.text = message
         baseBind.errorAction.visibility = if (retryable) View.VISIBLE else View.GONE
@@ -485,7 +678,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
     private fun render(quotas: List<Nana7miQuotaWindow>, serverTime: Long) {
         baseBind.loading.visibility = View.GONE
         baseBind.errorState.visibility = View.GONE
-        baseBind.contentScroll.visibility = View.VISIBLE
+        baseBind.swipeRefresh.visibility = View.VISIBLE
 
         val host = baseBind.usageRows
         host.removeAllViews()

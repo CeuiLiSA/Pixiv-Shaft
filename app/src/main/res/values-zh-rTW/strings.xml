@@ -2667,6 +2667,9 @@
     <string name="nana7mi_usage_plan_unavailable">訂閱暫時無法使用，稍後再試</string>
     <string name="nana7mi_usage_plan_checkout_failed">開啟付款頁失敗，請重試</string>
     <string name="nana7mi_usage_plan_no_browser">找不到瀏覽器</string>
+    <string name="nana7mi_usage_refresh_failed">重新整理失敗，請稍後再試</string>
+    <string name="nana7mi_usage_plan_arrived">訂閱已到帳</string>
+    <string name="nana7mi_usage_plan_still_pending">訂閱還沒到帳，稍後下拉重新整理看看</string>
     <string name="drawer_section_usage">搜尋按熱度排序</string>
     <string name="nana7mi_quota_snack_session">五小時額度已用完，%1$s後恢復</string>
     <string name="nana7mi_quota_snack_weekly">本週額度已用完，%1$s後恢復</string>

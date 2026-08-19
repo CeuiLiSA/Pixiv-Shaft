@@ -2665,6 +2665,9 @@
     <string name="nana7mi_usage_plan_unavailable">Abonelik şu anda kullanılamıyor</string>
     <string name="nana7mi_usage_plan_checkout_failed">Ödeme sayfası açılamadı — tekrar deneyin</string>
     <string name="nana7mi_usage_plan_no_browser">Tarayıcı bulunamadı</string>
+    <string name="nana7mi_usage_refresh_failed">Yenilenemedi, daha sonra tekrar deneyin</string>
+    <string name="nana7mi_usage_plan_arrived">Abonelik etkinleşti</string>
+    <string name="nana7mi_usage_plan_still_pending">Henüz etkinleşmedi — birazdan aşağı çekip yenileyin</string>
     <string name="drawer_section_usage">Popülerliğe göre arama</string>
     <string name="nana7mi_quota_snack_session">5 saatlik limit doldu, %1$s sonra yenilenir</string>
     <string name="nana7mi_quota_snack_weekly">Haftalık limit doldu, %1$s sonra yenilenir</string>

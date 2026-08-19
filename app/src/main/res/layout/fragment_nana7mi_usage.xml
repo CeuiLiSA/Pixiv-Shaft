@@ -37,109 +37,120 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <androidx.core.widget.NestedScrollView
-                android:id="@+id/content_scroll"
+            <!--
+                下拉刷新裹在内容外面而不是整个 FrameLayout 外面：加载态和错误态各有各的
+                交互（转圈不该能下拉，错误态整块点一下就是重试），套进来只会多出两条
+                「同一件事有两种做法」的路径。
+            -->
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/swipe_refresh"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingBottom="32dp"
-                android:scrollbars="none"
                 android:visibility="gone">
 
-                <LinearLayout
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/content_scroll"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingStart="16dp"
-                    android:paddingTop="16dp"
-                    android:paddingEnd="16dp">
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:paddingBottom="32dp"
+                    android:scrollbars="none">
 
-                    <!--
-                        Claude 用量页顶上那句「Plan usage limits  Max (5x)」的位置：左边说明
-                        额度是按谁算的，右边挂当前档位和倍率。
-
-                        档位就挂在标题旁边、进度条正上方，而不是塞进下面的订阅区 —— 那两根条
-                        画的就是这一档的额度，读数和它的量纲必须挨在一起；隔着半屏去猜「这条
-                        100% 是几次的 100%」正是这页原来缺的那句话。
-                    -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:baselineAligned="true"
-                        android:orientation="horizontal"
-                        android:paddingBottom="10dp"
-                        android:paddingStart="4dp">
+                        android:orientation="vertical"
+                        android:paddingStart="16dp"
+                        android:paddingTop="16dp"
+                        android:paddingEnd="16dp">
 
-                        <TextView
-                            android:id="@+id/usage_section_title"
-                            android:layout_width="wrap_content"
+                        <!--
+                            Claude 用量页顶上那句「Plan usage limits  Max (5x)」的位置：左边说明
+                            额度是按谁算的，右边挂当前档位和倍率。
+
+                            档位就挂在标题旁边、进度条正上方，而不是塞进下面的订阅区 —— 那两根条
+                            画的就是这一档的额度，读数和它的量纲必须挨在一起；隔着半屏去猜「这条
+                            100% 是几次的 100%」正是这页原来缺的那句话。
+                        -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/nana7mi_usage_section"
+                            android:baselineAligned="true"
+                            android:orientation="horizontal"
+                            android:paddingBottom="10dp"
+                            android:paddingStart="4dp">
+
+                            <TextView
+                                android:id="@+id/usage_section_title"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/nana7mi_usage_section"
+                                android:textColor="@color/v3_text_2"
+                                android:textSize="13sp" />
+
+                            <!--
+                                「Max (20x)」。用 Montserrat 是因为括号里是读数（倍率），和页面上
+                                其它数字读数同一套字；档位名本身是产品名，不翻译。
+                                拿不到档位就整个 gone —— 空着一块比写个假的「Free」强。
+                            -->
+                            <TextView
+                                android:id="@+id/usage_plan_label"
+                                style="@style/textMontserratBold"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:layout_weight="1"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp"
+                                android:visibility="gone"
+                                tools:text="Max (20x)"
+                                tools:visibility="visible" />
+                        </LinearLayout>
+
+                        <!-- 分段行宿主：两只桶各一行，圆角由 WitRowStyle 按位置贴合 -->
+                        <LinearLayout
+                            android:id="@+id/usage_rows"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical" />
+
+                        <!--
+                            订阅方案。放在额度读数和 UID **之下**：先让用户看见自己用到哪了、
+                            手里有可复制的 UID，再谈解锁 —— 顶在读数上面就成了没有由头的广告。
+
+                            两档并排列出而不是只放一个「去订阅」按钮，是为了把价格摆在跳出 app 之前
+                            （学 Claude 的套餐页）：用户在这页就能决定买哪档，网页只负责付款。
+
+                            版式还是本页的 MD3-E 分段行（外角 20dp / 内角 5dp / 行间 2dp），只把底色
+                            从中性的 wit_menu_bg 换成主题色 tonal —— 这一组是这页唯一的行动区，
+                            比上面那些只读的行醒目一档，但不至于变成一块广告牌。
+
+                            刻意不用 v3_premium_gold_* —— 金色在本仓库是 pixiv Premium 的品牌语义
+                            （头像环、徽章都用它），借给第三方订阅会让人以为买的是 pixiv 会员。
+                        -->
+                        <TextView
+                            android:id="@+id/plans_section_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="22dp"
+                            android:paddingBottom="10dp"
+                            android:paddingStart="4dp"
+                            android:text="@string/nana7mi_usage_cta_title"
                             android:textColor="@color/v3_text_2"
                             android:textSize="13sp" />
 
-                        <!--
-                            「Max (20x)」。用 Montserrat 是因为括号里是读数（倍率），和页面上
-                            其它数字读数同一套字；档位名本身是产品名，不翻译。
-                            拿不到档位就整个 gone —— 空着一块比写个假的「Free」强。
-                        -->
-                        <TextView
-                            android:id="@+id/usage_plan_label"
-                            style="@style/textMontserratBold"
-                            android:layout_width="0dp"
+                        <!-- 卡片宿主：一档方案一张卡，底色和圆角由 Fragment 从品牌色派生 -->
+                        <LinearLayout
+                            android:id="@+id/plan_rows"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="1"
-                            android:ellipsize="end"
-                            android:maxLines="1"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp"
-                            android:visibility="gone"
-                            tools:text="Max (20x)"
-                            tools:visibility="visible" />
+                            android:orientation="vertical" />
+
                     </LinearLayout>
-
-                    <!-- 分段行宿主：两只桶各一行，圆角由 WitRowStyle 按位置贴合 -->
-                    <LinearLayout
-                        android:id="@+id/usage_rows"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
-
-                    <!--
-                        订阅方案。放在额度读数和 UID **之下**：先让用户看见自己用到哪了、
-                        手里有可复制的 UID，再谈解锁 —— 顶在读数上面就成了没有由头的广告。
-
-                        两档并排列出而不是只放一个「去订阅」按钮，是为了把价格摆在跳出 app 之前
-                        （学 Claude 的套餐页）：用户在这页就能决定买哪档，网页只负责付款。
-
-                        版式还是本页的 MD3-E 分段行（外角 20dp / 内角 5dp / 行间 2dp），只把底色
-                        从中性的 wit_menu_bg 换成主题色 tonal —— 这一组是这页唯一的行动区，
-                        比上面那些只读的行醒目一档，但不至于变成一块广告牌。
-
-                        刻意不用 v3_premium_gold_* —— 金色在本仓库是 pixiv Premium 的品牌语义
-                        （头像环、徽章都用它），借给第三方订阅会让人以为买的是 pixiv 会员。
-                    -->
-                    <TextView
-                        android:id="@+id/plans_section_title"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="22dp"
-                        android:paddingBottom="10dp"
-                        android:paddingStart="4dp"
-                        android:text="@string/nana7mi_usage_cta_title"
-                        android:textColor="@color/v3_text_2"
-                        android:textSize="13sp" />
-
-                    <!-- 卡片宿主：一档方案一张卡，底色和圆角由 Fragment 从品牌色派生 -->
-                    <LinearLayout
-                        android:id="@+id/plan_rows"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical" />
-
-                </LinearLayout>
-            </androidx.core.widget.NestedScrollView>
+                </androidx.core.widget.NestedScrollView>
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
             <ProgressBar
                 android:id="@+id/loading"

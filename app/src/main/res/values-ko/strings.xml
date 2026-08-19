@@ -2665,6 +2665,9 @@
     <string name="nana7mi_usage_plan_unavailable">지금은 구독을 이용할 수 없습니다</string>
     <string name="nana7mi_usage_plan_checkout_failed">결제 페이지를 열지 못했습니다. 다시 시도해 주세요</string>
     <string name="nana7mi_usage_plan_no_browser">브라우저를 찾을 수 없습니다</string>
+    <string name="nana7mi_usage_refresh_failed">새로고침에 실패했습니다. 잠시 후 다시 시도하세요</string>
+    <string name="nana7mi_usage_plan_arrived">구독이 적용되었습니다</string>
+    <string name="nana7mi_usage_plan_still_pending">아직 적용되지 않았습니다. 잠시 후 당겨서 새로고침하세요</string>
     <string name="drawer_section_usage">인기순 검색</string>
     <string name="nana7mi_quota_snack_session">5시간 한도를 모두 사용했습니다. %1$s 후 복구</string>
     <string name="nana7mi_quota_snack_weekly">주간 한도를 모두 사용했습니다. %1$s 후 복구</string>

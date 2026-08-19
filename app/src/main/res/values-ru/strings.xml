@@ -2665,6 +2665,9 @@
     <string name="nana7mi_usage_plan_unavailable">Подписка сейчас недоступна</string>
     <string name="nana7mi_usage_plan_checkout_failed">Не удалось открыть оплату — попробуйте ещё раз</string>
     <string name="nana7mi_usage_plan_no_browser">Браузер не найден</string>
+    <string name="nana7mi_usage_refresh_failed">Не удалось обновить, попробуйте позже</string>
+    <string name="nana7mi_usage_plan_arrived">Подписка активирована</string>
+    <string name="nana7mi_usage_plan_still_pending">Подписка ещё не активна — потяните вниз чуть позже</string>
     <string name="drawer_section_usage">Поиск по популярности</string>
     <string name="nana7mi_quota_snack_session">5-часовой лимит исчерпан, восстановится через %1$s</string>
     <string name="nana7mi_quota_snack_weekly">Недельный лимит исчерпан, восстановится через %1$s</string>

@@ -2665,6 +2665,9 @@
     <string name="nana7mi_usage_plan_unavailable">Subscriptions are unavailable right now</string>
     <string name="nana7mi_usage_plan_checkout_failed">Could not open checkout — please retry</string>
     <string name="nana7mi_usage_plan_no_browser">No browser found</string>
+    <string name="nana7mi_usage_refresh_failed">Refresh failed, try again later</string>
+    <string name="nana7mi_usage_plan_arrived">Subscription activated</string>
+    <string name="nana7mi_usage_plan_still_pending">Not activated yet — pull down to refresh in a moment</string>
     <string name="drawer_section_usage">Search by popularity</string>
     <string name="nana7mi_quota_snack_session">5-hour limit reached, back in %1$s</string>
     <string name="nana7mi_quota_snack_weekly">Weekly limit reached, back in %1$s</string>
