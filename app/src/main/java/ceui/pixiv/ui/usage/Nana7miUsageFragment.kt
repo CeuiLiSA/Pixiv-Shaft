@@ -275,7 +275,10 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
             else -> getString(R.string.nana7mi_usage_plan_cta_choose, getString(plan.titleRes))
         }
         cta.background = ctaBackground(palette)
-        cta.setTextColor(palette.floatingPillContent)
+        // 实心主题色底上的前景恒为白（同仓库里 pillPrimary 的用法，见 CommentComposer 的
+        // 发送键）。**不能用 floatingPillContent** —— 那个 token 是给「近白色胶囊底」配的，
+        // 浅色模式下它是压深过的主题色，压在实心主题色上就是蓝底蓝字，真机上几乎读不出来。
+        cta.setTextColor(ContextCompat.getColor(mContext, R.color.always_white))
         // 有一笔在飞时整组按钮都停用：两条下单链接同时开出去，用户会在浏览器里看到两个
         // 订单页，而其中一个是他已经不想要的那一档。
         cta.alpha = if (anyBusy && !busy) 0.4f else 1f

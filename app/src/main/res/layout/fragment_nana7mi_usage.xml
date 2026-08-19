@@ -175,18 +175,6 @@
                             android:src="@drawable/baseline_content_copy_24" />
                     </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/uid_hint"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:lineSpacingExtra="3dp"
-                        android:paddingStart="4dp"
-                        android:paddingEnd="4dp"
-                        android:text="@string/nana7mi_usage_uid_hint"
-                        android:textColor="@color/v3_text_3"
-                        android:textSize="12sp" />
-
                     <!--
                         订阅方案。放在额度读数和 UID **之下**：先让用户看见自己用到哪了、
                         手里有可复制的 UID，再谈解锁 —— 顶在读数上面就成了没有由头的广告。

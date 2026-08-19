@@ -2667,7 +2667,6 @@
     <string name="nana7mi_usage_plan_checkout_failed">決済ページを開けませんでした。再試行してください</string>
     <string name="nana7mi_usage_plan_no_browser">ブラウザが見つかりません</string>
     <string name="nana7mi_usage_uid_label">自分の Pixiv UID</string>
-    <string name="nana7mi_usage_uid_hint">サブスク購入時の「お届け先」にこの UID を入力してください。間違えると枠が届きません。</string>
     <string name="drawer_section_usage">人気順検索</string>
     <string name="nana7mi_quota_snack_session">5 時間の上限に達しました。%1$s後に回復</string>
     <string name="nana7mi_quota_snack_weekly">週間上限に達しました。%1$s後に回復</string>

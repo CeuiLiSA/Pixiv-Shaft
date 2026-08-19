@@ -2667,7 +2667,6 @@
     <string name="nana7mi_usage_plan_checkout_failed">Ödeme sayfası açılamadı — tekrar deneyin</string>
     <string name="nana7mi_usage_plan_no_browser">Tarayıcı bulunamadı</string>
     <string name="nana7mi_usage_uid_label">Pixiv UID’im</string>
-    <string name="nana7mi_usage_uid_hint">Abone olurken teslimat adresi alanına bu UID’yi girin; yanlış girilirse kota hesabınıza tanımlanmaz.</string>
     <string name="drawer_section_usage">Popülerliğe göre arama</string>
     <string name="nana7mi_quota_snack_session">5 saatlik limit doldu, %1$s sonra yenilenir</string>
     <string name="nana7mi_quota_snack_weekly">Haftalık limit doldu, %1$s sonra yenilenir</string>

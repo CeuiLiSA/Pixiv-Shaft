@@ -2667,7 +2667,6 @@
     <string name="nana7mi_usage_plan_checkout_failed">Could not open checkout — please retry</string>
     <string name="nana7mi_usage_plan_no_browser">No browser found</string>
     <string name="nana7mi_usage_uid_label">My Pixiv UID</string>
-    <string name="nana7mi_usage_uid_hint">Enter this UID as the shipping address when subscribing — a wrong one sends the quota to someone else.</string>
     <string name="drawer_section_usage">Search by popularity</string>
     <string name="nana7mi_quota_snack_session">5-hour limit reached, back in %1$s</string>
     <string name="nana7mi_quota_snack_weekly">Weekly limit reached, back in %1$s</string>

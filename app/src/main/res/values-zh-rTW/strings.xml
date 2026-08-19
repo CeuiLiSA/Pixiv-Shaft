@@ -2669,7 +2669,6 @@
     <string name="nana7mi_usage_plan_checkout_failed">開啟付款頁失敗，請重試</string>
     <string name="nana7mi_usage_plan_no_browser">找不到瀏覽器</string>
     <string name="nana7mi_usage_uid_label">我的 Pixiv UID</string>
-    <string name="nana7mi_usage_uid_hint">訂閱時的「收貨地址」填這個 UID，填錯了額度發不到你帳號上。</string>
     <string name="drawer_section_usage">搜尋按熱度排序</string>
     <string name="nana7mi_quota_snack_session">五小時額度已用完，%1$s後恢復</string>
     <string name="nana7mi_quota_snack_weekly">本週額度已用完，%1$s後恢復</string>

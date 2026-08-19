@@ -2667,7 +2667,6 @@
     <string name="nana7mi_usage_plan_checkout_failed">Не удалось открыть оплату — попробуйте ещё раз</string>
     <string name="nana7mi_usage_plan_no_browser">Браузер не найден</string>
     <string name="nana7mi_usage_uid_label">Мой Pixiv UID</string>
-    <string name="nana7mi_usage_uid_hint">Укажите этот UID в поле адреса доставки при оформлении подписки — с ошибкой лимит уйдёт не на ваш аккаунт.</string>
     <string name="drawer_section_usage">Поиск по популярности</string>
     <string name="nana7mi_quota_snack_session">5-часовой лимит исчерпан, восстановится через %1$s</string>
     <string name="nana7mi_quota_snack_weekly">Недельный лимит исчерпан, восстановится через %1$s</string>

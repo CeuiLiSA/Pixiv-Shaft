@@ -2923,7 +2923,6 @@
     <string name="nana7mi_usage_plan_checkout_failed">打开支付页失败，请重试</string>
     <string name="nana7mi_usage_plan_no_browser">未找到浏览器</string>
     <string name="nana7mi_usage_uid_label">我的 Pixiv UID</string>
-    <string name="nana7mi_usage_uid_hint">订阅时的「发货地址」填这个 UID，填错了额度发不到你号上。</string>
     <string name="drawer_section_usage">搜索按热度排序</string>
     <string name="nana7mi_quota_snack_session">五小时额度已用完，%1$s后恢复</string>
     <string name="nana7mi_quota_snack_weekly">本周额度已用完，%1$s后恢复</string>
