@@ -738,7 +738,6 @@
     <string name="string_ai_manga_translate_inline">マンガ翻訳</string>
     <string name="string_ai_manga_translate_manual">範囲選択して翻訳</string>
     <string name="string_ai_manga_translate_batch">全ページを翻訳</string>
-    <string name="string_ai_manga_batch_hint">翻訳中もページ送り可 · ドラッグで移動</string>
     <string name="string_ai_manga_batch_loading_image">画像を読み込み中…</string>
     <string name="string_ai_manga_batch_summary">全ページ翻訳完了：%1$d ページ翻訳、%2$d ページ文字なし、%3$d ページ失敗</string>
     <string name="string_ai_manga_batch_summary_skipped">%1$s（%2$d ページは翻訳済みのためスキップ）</string>

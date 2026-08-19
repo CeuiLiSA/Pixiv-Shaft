@@ -86,15 +86,5 @@
 
         </FrameLayout>
 
-        <!-- 「翻译整部」悬浮小窗(issue #925):顶部留状态栏高度由 ImageDetailActivity 的 inset 监听设置,
-             之后用户可任意拖动;放在最后保证压在图片与底部胶囊之上 -->
-        <include
-            layout="@layout/view_manga_batch_translate_float"
-            android:layout_width="232dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="56dp" />
-
     </ceui.lisa.view.DragDismissLayout>
 </layout>

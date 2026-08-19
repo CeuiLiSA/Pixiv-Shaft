@@ -408,6 +408,10 @@ public class Shaft extends Application implements ServicesProvider {
         // ConcurrentHashMap，成本可忽略。
         appViewModel = new AppLevelViewModel(this);
 
+        // 「翻译整部」悬浮小窗(issue #925):每个 Activity 观察 app 级任务状态,有任务才 inflate。
+        // 必须在第一个 Activity 创建前注册,否则首屏收不到。
+        registerActivityLifecycleCallbacks(new ceui.pixiv.ui.translate.MangaBatchFloatInstaller());
+
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {

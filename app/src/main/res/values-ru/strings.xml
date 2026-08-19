@@ -738,7 +738,6 @@
     <string name="string_ai_manga_translate_inline">Перевести мангу</string>
     <string name="string_ai_manga_translate_manual">Выделить и перевести</string>
     <string name="string_ai_manga_translate_batch">Перевести все страницы</string>
-    <string name="string_ai_manga_batch_hint">Можно листать дальше · перетащите</string>
     <string name="string_ai_manga_batch_loading_image">Загрузка изображения…</string>
     <string name="string_ai_manga_batch_summary">Готово: переведено %1$d, без текста %2$d, ошибок %3$d</string>
     <string name="string_ai_manga_batch_summary_skipped">%1$s (%2$d уже переведено, пропущено)</string>

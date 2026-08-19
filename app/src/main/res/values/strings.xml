@@ -767,7 +767,6 @@
     <string name="string_ai_manga_translate_inline">翻译漫画</string>
     <string name="string_ai_manga_translate_manual">圈选翻译</string>
     <string name="string_ai_manga_translate_batch">翻译整部</string>
-    <string name="string_ai_manga_batch_hint">翻译期间可继续翻页 · 可拖动</string>
     <string name="string_ai_manga_batch_loading_image">加载图片…</string>
     <string name="string_ai_manga_batch_summary">整部翻译完成：%1$d 页已翻译，%2$d 页无文字，%3$d 页失败</string>
     <string name="string_ai_manga_batch_summary_skipped">%1$s（%2$d 页已有译图，跳过）</string>

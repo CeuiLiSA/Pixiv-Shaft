@@ -738,7 +738,6 @@
     <string name="string_ai_manga_translate_inline">만화 번역</string>
     <string name="string_ai_manga_translate_manual">영역 선택 번역</string>
     <string name="string_ai_manga_translate_batch">전체 페이지 번역</string>
-    <string name="string_ai_manga_batch_hint">번역 중에도 페이지 넘김 가능 · 드래그로 이동</string>
     <string name="string_ai_manga_batch_loading_image">이미지 불러오는 중…</string>
     <string name="string_ai_manga_batch_summary">전체 번역 완료: %1$d페이지 번역, %2$d페이지 문자 없음, %3$d페이지 실패</string>
     <string name="string_ai_manga_batch_summary_skipped">%1$s (%2$d페이지는 이미 번역되어 건너뜀)</string>

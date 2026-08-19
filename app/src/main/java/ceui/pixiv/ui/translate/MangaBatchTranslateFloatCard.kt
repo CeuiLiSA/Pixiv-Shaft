@@ -15,31 +15,36 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import ceui.lisa.R
-import ceui.lisa.activities.ImageTranslationViewModel
 import ceui.pixiv.utils.setOnClick
 import kotlin.math.abs
 
 /**
  * 「翻译整部」(issue #925)的机内悬浮小窗控制器:绑定 `view_manga_batch_translate_float`,
- * 把 [ImageTranslationViewModel.BatchStatus] 渲染成「第 N/M 页 + 当前阶段 + 逐页分段进度条 + 总百分比」,
+ * 把 [MangaBatchTranslateCenter.BatchStatus] 渲染成「第 N/M 页 + 当前阶段 + 逐页分段进度条 + 总百分比 + 作品名」,
  * 并让整张卡片在父布局内可拖动。
  *
- * 拖动与 DragDismissLayout 的配合:DOWN 时向祖先 requestDisallowInterceptTouchEvent,
- * 同时通过 [onDragging] 通知宿主 —— 宿主在 `canStartDismissDrag` 里据此返回 false,
- * DragDismissLayout 就不会在竖向越过 slop 时把手势抢去做下拉关闭。
+ * 卡片由 [MangaBatchFloatInstaller] 挂在每个 Activity 的 `android.R.id.content` 上,
+ * 和页面自己的布局是兄弟而非父子,所以 DOWN 时只需向祖先 requestDisallowInterceptTouchEvent,
+ * 不会有哪个页面级 ViewGroup 能把拖动手势抢走。
+ *
+ * @param onTap 点卡片本体(非拖动)
+ * @param onMoved 拖动结束后的 translation,宿主记住它让下一个 Activity 的卡片落在同一位置
  */
 class MangaBatchTranslateFloatCard(
     private val root: View,
     onCancel: () -> Unit,
-    private val onDragging: (Boolean) -> Unit,
+    onTap: () -> Unit,
+    private val onMoved: (tx: Float, ty: Float) -> Unit,
 ) {
     private val stage: TextView = root.findViewById(R.id.manga_batch_stage)
     private val counter: TextView = root.findViewById(R.id.manga_batch_counter)
     private val percent: TextView = root.findViewById(R.id.manga_batch_percent)
+    private val title: TextView = root.findViewById(R.id.manga_batch_title)
     private val strip: BatchPageStripView = root.findViewById(R.id.manga_batch_strip)
 
     init {
         root.findViewById<View>(R.id.manga_batch_cancel).setOnClick { onCancel() }
+        root.setOnClickListener { onTap() }
         installDrag()
     }
 
@@ -47,7 +52,7 @@ class MangaBatchTranslateFloatCard(
     private var hiding = false
 
     /** null → 缩小淡出隐藏;非 null → (首次)放大淡入并刷新计数 / 阶段 / 分段条 / 百分比。 */
-    fun render(status: ImageTranslationViewModel.BatchStatus?) {
+    fun render(status: MangaBatchTranslateCenter.BatchStatus?) {
         if (status == null) {
             if (root.visibility == View.VISIBLE && !hiding) {
                 hiding = true
@@ -87,6 +92,7 @@ class MangaBatchTranslateFloatCard(
         val current = (status.pageDone + 1).coerceAtMost(status.total)
         counter.text = buildCounter(current, status.total)
         stage.text = status.stageText
+        title.text = status.title
         val inPage = status.stagePercent?.let { it / 100f }
         strip.setProgress(status.total, status.pageDone, inPage)
         // 总进度 = 已完成页 + 当前页内阶段占比;阶段没百分比时只算整页,数字不回退
@@ -126,7 +132,6 @@ class MangaBatchTranslateFloatCard(
                     startTy = v.translationY
                     moved = false
                     v.parent?.requestDisallowInterceptTouchEvent(true)
-                    onDragging(true)
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
@@ -148,8 +153,8 @@ class MangaBatchTranslateFloatCard(
                     true
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    onDragging(false)
-                    if (ev.actionMasked == MotionEvent.ACTION_UP && !moved) v.performClick()
+                    if (moved) onMoved(v.translationX, v.translationY)
+                    else if (ev.actionMasked == MotionEvent.ACTION_UP) v.performClick()
                     true
                 }
                 else -> false

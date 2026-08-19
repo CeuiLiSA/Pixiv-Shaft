@@ -738,7 +738,6 @@
     <string name="string_ai_manga_translate_inline">Manga çevirisi</string>
     <string name="string_ai_manga_translate_manual">Seçerek çevir</string>
     <string name="string_ai_manga_translate_batch">Tüm sayfaları çevir</string>
-    <string name="string_ai_manga_batch_hint">Çeviri sürerken gezinebilirsiniz · sürükleyin</string>
     <string name="string_ai_manga_batch_loading_image">Görsel yükleniyor…</string>
     <string name="string_ai_manga_batch_summary">Tümü tamamlandı: %1$d çevrildi, %2$d metinsiz, %3$d başarısız</string>
     <string name="string_ai_manga_batch_summary_skipped">%1$s (%2$d zaten çevrilmişti, atlandı)</string>

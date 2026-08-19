@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 「翻译整部」(issue #925)机内悬浮小窗:默认 GONE,整批任务跑起来才显示。
-     整卡可拖动(见 MangaBatchTranslateFloatCard),不拦截图片区域的触摸,用户可以边翻页边看进度。
+<!-- 「翻译整部」(issue #925)机内悬浮小窗:由 MangaBatchFloatInstaller 挂到每个 Activity 的 content 上,
+     默认 GONE,整批任务跑起来才显示。整卡可拖动(见 MangaBatchTranslateFloatCard),只占自己那一小块,
+     不拦截其余区域的触摸,用户可以退出看图页去干别的,回来译图都在。
      视觉对齐 AI 功能的深靛蓝玻璃 + 紫蓝渐变语言(fragment_ai_upscale)。 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -118,15 +119,16 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/manga_batch_hint"
+            android:id="@+id/manga_batch_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="@string/string_ai_manga_batch_hint"
             android:textColor="#66FFFFFF"
-            android:textSize="11sp" />
+            android:textSize="11sp"
+            tools:text="「ネガティブ勇者と魔王軍幹部」３７話" />
 
         <TextView
             android:id="@+id/manga_batch_percent"

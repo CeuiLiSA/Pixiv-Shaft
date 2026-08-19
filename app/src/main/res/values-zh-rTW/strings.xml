@@ -740,7 +740,6 @@
     <string name="string_ai_manga_translate_inline">翻譯漫畫</string>
     <string name="string_ai_manga_translate_manual">圈選翻譯</string>
     <string name="string_ai_manga_translate_batch">翻譯整部</string>
-    <string name="string_ai_manga_batch_hint">翻譯期間可繼續翻頁 · 可拖曳</string>
     <string name="string_ai_manga_batch_loading_image">載入圖片…</string>
     <string name="string_ai_manga_batch_summary">整部翻譯完成：%1$d 頁已翻譯，%2$d 頁無文字，%3$d 頁失敗</string>
     <string name="string_ai_manga_batch_summary_skipped">%1$s（%2$d 頁已有譯圖，跳過）</string>
