@@ -2054,8 +2054,8 @@
     <string name="network_test_dns_resolve_failed">Ошибка разрешения: %1$s</string>
     <string name="network_test_dns_hit">✓ %1$s ∈ %2$s\n</string>
     <string name="network_test_dns_miss">✗ %1$s вне известных диапазонов\n</string>
-    <string name="network_test_dns_ipv6_skip">· %1$s (обнаружен IPv6, DNS точно загрязнён)\n</string>
-    <string name="network_test_dns_ipv6_app_skip">· %1$s (IPv6, пропуск)\n</string>
+    <string name="network_test_dns_ipv6_skip">· %1$s (IPv6, пропуск)\n</string>
+    <string name="network_test_dns_ipv6_polluted">· %1$s (обнаружен IPv6, DNS точно загрязнён)\n</string>
     <string name="network_test_dns_fakeip">Возвращён зарезервированный адрес (возможен fake-ip прокси): %1$s\nПроверка DNS и ping пропущены, только рукопожатие</string>
     <string name="network_test_dns_app_step">Разрешение в приложении · HttpDns(DoH/прямое) · %1$d записей</string>
     <string name="network_test_dns_app_step_plain">Разрешение в приложении · HttpDns</string>

@@ -79,6 +79,29 @@ internal fun maskProxyUrl(url: String): String {
 }
 
 /**
+ * RFC 6052 允许的六种前缀长度（/32 /40 /48 /56 /64 /96）下，被嵌入的 IPv4 各占哪几个字节。
+ * 非 /96 时第 8 字节是保留位，IPv4 被它拆到两侧。
+ */
+private val NAT64_V4_OFFSETS = listOf(
+    intArrayOf(4, 5, 6, 7),
+    intArrayOf(5, 6, 7, 9),
+    intArrayOf(6, 7, 9, 10),
+    intArrayOf(7, 9, 10, 11),
+    intArrayOf(9, 10, 11, 12),
+    intArrayOf(12, 13, 14, 15),
+)
+
+/**
+ * 按 [NAT64_V4_OFFSETS] 从 IPv6 里取出所有可能被嵌入的 IPv4（六种前缀长度各一个）。
+ * 只负责取，不判断合不合法——由调用方拿官方 CIDR 白名单去比对。
+ */
+internal fun nat64EmbeddedIpv4Candidates(addr: Inet6Address): List<String> {
+    val b = addr.address
+    if (b.size != 16) return emptyList()
+    return NAT64_V4_OFFSETS.map { idx -> idx.joinToString(".") { (b[it].toInt() and 0xFF).toString() } }
+}
+
+/**
  * 网络测试页的 IPv4-only DNS（OkHttp [Dns]），做法抄自 PR #1036 的 IPv4OnlyDns。
  *
  * 当前测试流程大多会先把选定 IPv4 钉进 [buildHandshakeClient]（pinnedDns），所以这个
@@ -629,7 +652,7 @@ class NetworkTestViewModel : ViewModel() {
             setStatus(idx, TargetStatus.FAILED)
             return false to false
         }
-        val dns = analyzeSysDns(sysAddrs)
+        val dns = analyzeSysDns(sysAddrs, cfg.cidrs)
         val ipv4 = dns.ipv4
         // fake-ip 检测：代理接管 DNS 时返回保留地址。不取消目标——跳过 DNS/ping，仅测握手，
         // 且不再把解析出的 IP 喂给 OkHttp（让代理接管路由）。
@@ -697,7 +720,16 @@ class NetworkTestViewModel : ViewModel() {
                     sb.append(strRes(R.string.network_test_dns_miss, ip))
                 }
             }
-            dns.ipv6.forEach { sb.append(strRes(R.string.network_test_dns_ipv6_skip, it.hostAddress)) }
+            // 文案跟着判定走：没判污染（开了 PxveAPI / 非官方 Pixiv 域名 / 非公网 IPv6）时仍是「跳过」，
+            // 否则卡片会出现「实锤被污染」配一个绿色 pill 的自相矛盾。
+            dns.ipv6.forEach { addr ->
+                val res = if (pixivPublicIpv6 && addr in dns.publicIpv6) {
+                    R.string.network_test_dns_ipv6_polluted
+                } else {
+                    R.string.network_test_dns_ipv6_skip
+                }
+                sb.append(strRes(res, addr.hostAddress))
+            }
             polluted = (ipv4.isNotEmpty() && cleanCount == 0) || polluted
             val st = when {
                 polluted -> StepStatus.FAIL
@@ -739,7 +771,7 @@ class NetworkTestViewModel : ViewModel() {
                     }
                 }
                 appAddrs.filter { it !is Inet4Address }
-                    .forEach { sb.append(strRes(R.string.network_test_dns_ipv6_app_skip, it.hostAddress)) }
+                    .forEach { sb.append(strRes(R.string.network_test_dns_ipv6_skip, it.hostAddress)) }
 
                 val appPolluted = appV4.isNotEmpty() && appClean == 0
                 val st = when {
@@ -1887,27 +1919,41 @@ class NetworkTestViewModel : ViewModel() {
             host == APP_API_HOST || host == "www.pixiv.net"
 
         /**
+         * 是否 NAT64/DNS64 按该目标的官方 IPv4 合成出来的地址。
+         *
+         * IPv6-only 网络上 Android 解析器（netd）会按 RFC 7050 发现的前缀给只有 A 记录的域名
+         * 合成 AAAA。前缀常常是运营商自有的（NSP），落在全球单播段里，只认 64:ff9b::/96 挡不住。
+         * 改成看嵌入的 IPv4 本身：落在该目标的官方 CIDR 白名单里，就是正常合成而非污染
+         * ——被投毒的 IPv6 几乎不可能在 RFC 6052 的某个偏移上正好嵌一个合法官方 IPv4。
+         */
+        private fun isNat64Synthesized(addr: Inet6Address, cidrs: List<String>?): Boolean {
+            if (cidrs == null) return false
+            return nat64EmbeddedIpv4Candidates(addr).any { v4 -> cidrs.any { isIpInCidr(v4, it) } }
+        }
+
+        /**
          * 是否公网 IPv6。
          *
          * 用于「官方 Pixiv 域名出现 IPv6 即视为 DNS 污染」的判断；先排除回环 / 链路本地 /
          * 站点本地 / 组播 / ULA / 文档段 / NAT64 等非公网地址，避免 fake-ip 给的假 IPv6
-         * 被误判成污染。
+         * 被误判成污染。[cidrs] 为该目标的官方 IPv4 段，用来识别运营商前缀的 NAT64 合成地址。
          */
-        private fun isPublicIpv6(addr: InetAddress): Boolean {
+        private fun isPublicIpv6(addr: InetAddress, cidrs: List<String>?): Boolean {
             if (addr !is Inet6Address) return false
             if (addr.isAnyLocalAddress || addr.isLoopbackAddress ||
                 addr.isLinkLocalAddress || addr.isSiteLocalAddress || addr.isMulticastAddress
             ) {
                 return false
             }
+            if (isNat64Synthesized(addr, cidrs)) return false
             val host = addr.hostAddress?.lowercase() ?: return false
             return !host.startsWith("fc") && !host.startsWith("fd") &&
                 !host.startsWith("64:ff9b:") && !host.startsWith("2001:db8:") &&
                 !host.startsWith("::ffff:")
         }
 
-        /** 一次解析系统 DNS 结果，统一拆出后面各步要用的字段。 */
-        private fun analyzeSysDns(addrs: List<InetAddress>): SysDnsResult {
+        /** 一次解析系统 DNS 结果，统一拆出后面各步要用的字段。[cidrs] 为该目标的官方 IPv4 段。 */
+        private fun analyzeSysDns(addrs: List<InetAddress>, cidrs: List<String>?): SysDnsResult {
             val ipv4 = addrs.filterIsInstance<Inet4Address>()
             val ipv6 = addrs.filterIsInstance<Inet6Address>()
             return SysDnsResult(
@@ -1915,7 +1961,7 @@ class NetworkTestViewModel : ViewModel() {
                 ipv4 = ipv4,
                 ipv6 = ipv6,
                 fakeIps = ipv4.mapNotNull { it.hostAddress }.filter { isFakeIp(it) },
-                publicIpv6 = ipv6.filter { isPublicIpv6(it) },
+                publicIpv6 = ipv6.filter { isPublicIpv6(it, cidrs) },
             )
         }
 

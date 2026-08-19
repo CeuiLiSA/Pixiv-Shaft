@@ -2279,8 +2279,8 @@
     <string name="network_test_dns_resolve_failed">解析失败: %1$s</string>
     <string name="network_test_dns_hit">✓ %1$s ∈ %2$s\n</string>
     <string name="network_test_dns_miss">✗ %1$s 不在任何已知段\n</string>
-    <string name="network_test_dns_ipv6_skip">· %1$s（发现 IPv6 地址，实锤 DNS 被污染）\n</string>
-    <string name="network_test_dns_ipv6_app_skip">· %1$s (IPv6, 跳过)\n</string>
+    <string name="network_test_dns_ipv6_skip">· %1$s (IPv6, 跳过)\n</string>
+    <string name="network_test_dns_ipv6_polluted">· %1$s（发现 IPv6 地址，实锤 DNS 被污染）\n</string>
     <string name="network_test_dns_fakeip">返回保留地址（疑似代理 fake-ip）: %1$s\n跳过 DNS 校验与 ping，仅测握手</string>
     <string name="network_test_dns_app_step">应用内解析 · HttpDns(DoH/直连) · %1$d 条</string>
     <string name="network_test_dns_app_step_plain">应用内解析 · HttpDns</string>

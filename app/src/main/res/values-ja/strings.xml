@@ -2054,8 +2054,8 @@
     <string name="network_test_dns_resolve_failed">解決失敗: %1$s</string>
     <string name="network_test_dns_hit">✓ %1$s ∈ %2$s\n</string>
     <string name="network_test_dns_miss">✗ %1$s は既知の範囲外\n</string>
-    <string name="network_test_dns_ipv6_skip">· %1$s（IPv6 アドレスを検出、DNS 汚染が確定）\n</string>
-    <string name="network_test_dns_ipv6_app_skip">· %1$s (IPv6, スキップ)\n</string>
+    <string name="network_test_dns_ipv6_skip">· %1$s (IPv6, スキップ)\n</string>
+    <string name="network_test_dns_ipv6_polluted">· %1$s（IPv6 アドレスを検出、DNS 汚染が確定）\n</string>
     <string name="network_test_dns_fakeip">予約アドレスが返されました（プロキシの fake-ip の可能性）: %1$s\nDNS チェックと ping をスキップし、ハンドシェイクのみ実施</string>
     <string name="network_test_dns_app_step">アプリ内解決 · HttpDns(DoH/直続) · %1$d 件</string>
     <string name="network_test_dns_app_step_plain">アプリ内解決 · HttpDns</string>

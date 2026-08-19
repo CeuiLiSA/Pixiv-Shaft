@@ -2054,8 +2054,8 @@
     <string name="network_test_dns_resolve_failed">Çözümleme başarısız: %1$s</string>
     <string name="network_test_dns_hit">✓ %1$s ∈ %2$s\n</string>
     <string name="network_test_dns_miss">✗ %1$s bilinen aralıklarda değil\n</string>
-    <string name="network_test_dns_ipv6_skip">· %1$s (IPv6 adresi bulundu, DNS kesin olarak kirli)\n</string>
-    <string name="network_test_dns_ipv6_app_skip">· %1$s (IPv6, atlandı)\n</string>
+    <string name="network_test_dns_ipv6_skip">· %1$s (IPv6, atlandı)\n</string>
+    <string name="network_test_dns_ipv6_polluted">· %1$s (IPv6 adresi bulundu, DNS kesin olarak kirli)\n</string>
     <string name="network_test_dns_fakeip">Ayrılmış adres döndü (proxy fake-ip olabilir): %1$s\nDNS kontrolü ve ping atlandı, yalnızca el sıkışma</string>
     <string name="network_test_dns_app_step">Uygulama içi çözümleme · HttpDns(DoH/doğrudan) · %1$d sonuç</string>
     <string name="network_test_dns_app_step_plain">Uygulama içi çözümleme · HttpDns</string>
