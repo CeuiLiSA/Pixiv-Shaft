@@ -737,6 +737,11 @@
     <string name="string_translate_model_loading">번역 모델 불러오는 중…</string>
     <string name="string_ai_manga_translate_inline">만화 번역</string>
     <string name="string_ai_manga_translate_manual">영역 선택 번역</string>
+    <string name="string_ai_manga_translate_batch">전체 페이지 번역</string>
+    <string name="string_ai_manga_batch_progress_title">전체 번역 · %1$d/%2$d 페이지</string>
+    <string name="string_ai_manga_batch_loading_image">이미지 불러오는 중…</string>
+    <string name="string_ai_manga_batch_summary">전체 번역 완료: %1$d페이지 번역, %2$d페이지 문자 없음, %3$d페이지 실패</string>
+    <string name="string_ai_manga_batch_summary_skipped">%1$s (%2$d페이지는 이미 번역되어 건너뜀)</string>
     <string name="string_ai_manga_translate_manual_hint">번역할 텍스트를 드래그하여 선택하세요</string>
     <string name="string_ai_manga_manual_recognizing">선택 영역 인식 중…</string>
     <string name="string_ai_manga_manual_too_small">선택 영역이 너무 작습니다. 다시 선택하세요</string>

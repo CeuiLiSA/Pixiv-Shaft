@@ -739,6 +739,11 @@
     <string name="string_translate_model_loading">正在載入翻譯模型…</string>
     <string name="string_ai_manga_translate_inline">翻譯漫畫</string>
     <string name="string_ai_manga_translate_manual">圈選翻譯</string>
+    <string name="string_ai_manga_translate_batch">翻譯整部</string>
+    <string name="string_ai_manga_batch_progress_title">翻譯整部 · 第 %1$d/%2$d 頁</string>
+    <string name="string_ai_manga_batch_loading_image">載入圖片…</string>
+    <string name="string_ai_manga_batch_summary">整部翻譯完成：%1$d 頁已翻譯，%2$d 頁無文字，%3$d 頁失敗</string>
+    <string name="string_ai_manga_batch_summary_skipped">%1$s（%2$d 頁已有譯圖，跳過）</string>
     <string name="string_ai_manga_translate_manual_hint">拖曳框選要翻譯的文字，放開即翻譯</string>
     <string name="string_ai_manga_manual_recognizing">辨識選取文字…</string>
     <string name="string_ai_manga_manual_too_small">選取範圍太小，請重新框選</string>

@@ -737,6 +737,11 @@
     <string name="string_translate_model_loading">Загрузка модели перевода…</string>
     <string name="string_ai_manga_translate_inline">Перевести мангу</string>
     <string name="string_ai_manga_translate_manual">Выделить и перевести</string>
+    <string name="string_ai_manga_translate_batch">Перевести все страницы</string>
+    <string name="string_ai_manga_batch_progress_title">Перевод всех · стр. %1$d/%2$d</string>
+    <string name="string_ai_manga_batch_loading_image">Загрузка изображения…</string>
+    <string name="string_ai_manga_batch_summary">Готово: переведено %1$d, без текста %2$d, ошибок %3$d</string>
+    <string name="string_ai_manga_batch_summary_skipped">%1$s (%2$d уже переведено, пропущено)</string>
     <string name="string_ai_manga_translate_manual_hint">Выделите текст для перевода</string>
     <string name="string_ai_manga_manual_recognizing">Распознаём выделенный текст…</string>
     <string name="string_ai_manga_manual_too_small">Выделение слишком маленькое, попробуйте ещё раз</string>

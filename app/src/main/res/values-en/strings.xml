@@ -737,6 +737,11 @@
     <string name="string_translate_model_loading">Loading translation model...</string>
     <string name="string_ai_manga_translate_inline">Translate Manga</string>
     <string name="string_ai_manga_translate_manual">Select &amp; Translate</string>
+    <string name="string_ai_manga_translate_batch">Translate All Pages</string>
+    <string name="string_ai_manga_batch_progress_title">Translate all · page %1$d/%2$d</string>
+    <string name="string_ai_manga_batch_loading_image">Loading image…</string>
+    <string name="string_ai_manga_batch_summary">All pages done: %1$d translated, %2$d without text, %3$d failed</string>
+    <string name="string_ai_manga_batch_summary_skipped">%1$s (%2$d already translated, skipped)</string>
     <string name="string_ai_manga_translate_manual_hint">Drag to select the text you want translated</string>
     <string name="string_ai_manga_manual_recognizing">Recognizing selected text…</string>
     <string name="string_ai_manga_manual_too_small">Selection too small, please draw again</string>

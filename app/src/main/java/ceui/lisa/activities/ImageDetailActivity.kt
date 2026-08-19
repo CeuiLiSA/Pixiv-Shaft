@@ -47,6 +47,7 @@ import ceui.pixiv.ui.translate.ComicTextDetectorModel
 import ceui.pixiv.ui.translate.ComicTextDetectorModelManager
 import ceui.pixiv.ui.translate.MangaOcrModel
 import ceui.pixiv.ui.translate.MangaOcrModelManager
+import ceui.pixiv.ui.translate.MangaBatchTranslateFloatCard
 import ceui.pixiv.ui.translate.MangaTranslatePrepSheet
 import ceui.pixiv.ui.upscale.BackgroundRemover
 import ceui.pixiv.ui.upscale.ModelPickerDialog
@@ -83,6 +84,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     var mIllustsBean: IllustsBean? = null
         private set
     private val translationViewModel by viewModels<ImageTranslationViewModel>()
+
+    /** 「翻译整部」悬浮小窗正在被拖动:此时 [DragDismissLayout] 不得抢手势去做下拉关闭。 */
+    private var batchFloatDragging = false
     private var localIllust: List<String>? = ArrayList()
     private var currentPage: TextView? = null
     private var downloadSingle: TextView? = null
@@ -118,6 +122,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     override fun initView() {
         observeTranslationStatus()
+        setupBatchFloatCard()
         val dataType = intent.getStringExtra("dataType")
         baseBind!!.viewPager.setPageTransformer(true, PageTransformerHelper.getCurrentTransformer())
         // issue #724: 个性化「看图时保留状态栏区域」开启时，给 ViewPager 顶部留出状态栏高度，
@@ -185,6 +190,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 }
                 actions += getString(R.string.string_ai_manga_translate_inline) to {
                     performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
+                }
+                if (illust.page_count > 1) {
+                    actions += getString(R.string.string_ai_manga_translate_batch) to {
+                        performAiMangaTranslateBatch(illust)
+                    }
                 }
                 actions += getString(R.string.string_ai_manga_translate_manual) to {
                     performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
@@ -335,7 +345,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         rootLayout.dragTargetView = baseBind!!.viewPager
         rootLayout.callback = object : DragDismissLayout.Callback {
             override fun canStartDismissDrag(direction: DragDismissLayout.Direction): Boolean =
-                currentImageFragment()?.canSwipeToDismiss(direction) ?: true
+                !batchFloatDragging && (currentImageFragment()?.canSwipeToDismiss(direction) ?: true)
 
             override fun onDismissDragUpdate(fraction: Float) =
                 transition.onDragProgress(fraction)
@@ -663,6 +673,55 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             }
             translationViewModel.start(applicationContext, file, pageIndex, ocrModel, ctdModel)
         }
+    }
+
+    /**
+     * AI 菜单「翻译整部」入口(issue #925):模型就绪检查与单页共用同一 prep sheet,通过后把
+     * 每一页的 original(缺则 large)url 按页序交给 VM 整批跑;进度走悬浮小窗而不是全屏遮罩,
+     * 用户可以边翻页边看译图陆续出来。
+     */
+    private fun performAiMangaTranslateBatch(illust: IllustsBean) {
+        val ocrModel = MangaOcrModel.MANGA_OCR_BASE
+        val ctdModel = ComicTextDetectorModel.CTD_BASE
+        val ocrReady = MangaOcrModelManager.isModelReady(this, ocrModel)
+        val ctdReady = ComicTextDetectorModelManager.isModelReady(this, ctdModel)
+        if (!ocrReady || !ctdReady) {
+            if (supportFragmentManager.findFragmentByTag(MangaTranslatePrepSheet.TAG) != null) return
+            val sheet = MangaTranslatePrepSheet()
+            sheet.setOnReady { performAiMangaTranslateBatch(illust) }
+            sheet.show(supportFragmentManager, MangaTranslatePrepSheet.TAG)
+            return
+        }
+        if (translationViewModel.running.value == true) {
+            Common.showToast(R.string.string_ai_translate_in_progress)
+            return
+        }
+        val urls = (0 until illust.page_count).map { page ->
+            IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
+                ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
+        }
+        translationViewModel.startBatch(applicationContext, urls, ocrModel, ctdModel)
+    }
+
+    /**
+     * 悬浮小窗装配:顶部让出状态栏,VM.batchStatus 单一来源驱动显隐与进度,
+     * 右上角 ✕ 直接走 [ImageTranslationViewModel.cancelActiveWorkflow](与返回键退出同一取消语义)。
+     */
+    private fun setupBatchFloatCard() {
+        val root = findViewById<View>(R.id.manga_batch_float_root) ?: return
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, windowInsets ->
+            val statusBarHeight = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            val lp = v.layoutParams as android.widget.RelativeLayout.LayoutParams
+            lp.topMargin = statusBarHeight + (8 * resources.displayMetrics.density).toInt()
+            v.layoutParams = lp
+            windowInsets
+        }
+        val card = MangaBatchTranslateFloatCard(
+            root,
+            onCancel = { translationViewModel.cancelActiveWorkflow() },
+            onDragging = { batchFloatDragging = it },
+        )
+        translationViewModel.batchStatus.observe(this) { card.render(it) }
     }
 
     /**

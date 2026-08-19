@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
 import ceui.lisa.utils.Common
 import ceui.loxia.asLiveData
+import ceui.pixiv.imageloader.ImageLoaderV3
 import ceui.pixiv.ui.translate.BubbleAreaFinder
 import ceui.pixiv.ui.translate.ComicTextDetector
 import ceui.pixiv.ui.translate.ComicTextDetectorModel
@@ -59,6 +60,22 @@ class ImageTranslationViewModel : ViewModel() {
 
     private val _status = MutableLiveData<Status?>(null)
     val status: LiveData<Status?> get() = _status.asLiveData()
+
+    /**
+     * 「翻译整部」进度,驱动页面上的悬浮小窗;null = 没有整批任务在跑。
+     * 与 [status] 互斥:整批跑的时候不盖全屏遮罩,用户可以继续翻页。
+     */
+    data class BatchStatus(
+        /** 已处理完的页数(含跳过),当前正在处理第 pageDone+1 页 */
+        val pageDone: Int,
+        val total: Int,
+        val stageText: String,
+        /** 当前页内阶段进度,null = indeterminate */
+        val stagePercent: Int? = null,
+    )
+
+    private val _batchStatus = MutableLiveData<BatchStatus?>(null)
+    val batchStatus: LiveData<BatchStatus?> get() = _batchStatus.asLiveData()
 
     private val _translatedPaths = MutableLiveData<Map<Int, String>>(emptyMap())
     val translatedPaths: LiveData<Map<Int, String>> get() = _translatedPaths.asLiveData()
@@ -141,7 +158,8 @@ class ImageTranslationViewModel : ViewModel() {
         val app = context.applicationContext
         pipelineJob = viewModelScope.launch {
             try {
-                runPipeline(app, imageFile, pageIndex, ocrModel, ctdModel)
+                val outcome = translatePage(app, imageFile, pageIndex, ocrModel, ctdModel) { _status.postValue(it) }
+                if (!cancelledByUser) reportSinglePageOutcome(outcome)
             } catch (e: CancellationException) {
                 // 页面/VM 销毁触发取消:必须重抛,不能当普通失败 toast,否则状态被吞。
                 // 兜底弹「翻译已取消」——cancelActiveWorkflow 没走到(如系统销毁)时,
@@ -165,90 +183,202 @@ class ImageTranslationViewModel : ViewModel() {
         return true
     }
 
-    private suspend fun runPipeline(
+    /** 单页模式:把 [PageOutcome] 翻成用户可见的 toast / 代理提示(行为与拆分前一致)。 */
+    private fun reportSinglePageOutcome(outcome: PageOutcome) {
+        when (outcome) {
+            PageOutcome.Done -> Unit
+            PageOutcome.ModelLoadFailed, PageOutcome.OcrFailed -> Common.showToast(R.string.string_ai_ocr_failed)
+            PageOutcome.OcrEmpty -> Common.showToast(R.string.string_ai_ocr_empty)
+            // 按引擎给明确提示(谷歌被墙 → 需要代理;AI → 真实错误),别让用户当 app bug
+            is PageOutcome.TranslateFailed -> promptTranslateFailedIfPossible(outcome.error)
+            PageOutcome.RenderFailed -> Common.showToast(R.string.string_ai_manga_translate_failed)
+        }
+    }
+
+    /**
+     * 「翻译整部」(issue #925):按页顺序把整部作品过一遍自动流水线。进度不走 [status]
+     * (那是全屏遮罩的单页语义),而是走 [batchStatus] 喂给页面上的悬浮小窗,用户期间可以
+     * 继续翻页看已出的译图。
+     *
+     * - 已有译图的页(之前单页翻过 / 圈选过)跳过,不重复烧额度
+     * - 单页「没字 / OCR 失败 / 回填失败」只计数,继续下一页
+     * - 翻译接口报错(代理不通、AI 配置错)多半是系统性的,直接中止整批并弹对应提示,
+     *   不拿后面每一页去撞同一个错
+     * - 取消语义与单页完全一致:[cancelActiveWorkflow] / [shouldConfirmAiExit] 照常生效
+     *
+     * @param pageUrls 下标即 pageIndex;null 表示该页没有可用 url,按失败计
+     */
+    fun startBatch(
+        context: Context,
+        pageUrls: List<String?>,
+        ocrModel: MangaOcrModel,
+        ctdModel: ComicTextDetectorModel,
+    ): Boolean {
+        if (_running.value == true) return false
+        _running.value = true
+        cancelledByUser = false
+        cancelToastShown = false
+        aiRequestSent = false
+        val app = context.applicationContext
+        pipelineJob = viewModelScope.launch {
+            try {
+                runBatch(app, pageUrls, ocrModel, ctdModel)
+            } catch (e: CancellationException) {
+                if (cancelledByUser) maybeToastCancelled()
+                throw e
+            } catch (e: Exception) {
+                if (cancelledByUser) {
+                    Timber.d(e, "ImageTranslationVM: batch error after user cancelled, ignored")
+                } else {
+                    Timber.e(e, "ImageTranslationVM: batch pipeline failed")
+                    Common.showToast(R.string.string_ai_manga_translate_failed)
+                }
+            } finally {
+                _batchStatus.postValue(null)
+                _running.postValue(false)
+                pipelineJob = null
+            }
+        }
+        return true
+    }
+
+    private suspend fun runBatch(
+        app: Context,
+        pageUrls: List<String?>,
+        ocrModel: MangaOcrModel,
+        ctdModel: ComicTextDetectorModel,
+    ) {
+        val total = pageUrls.size
+        var translated = 0
+        var empty = 0
+        var failed = 0
+        var skipped = 0
+        for (pageIndex in pageUrls.indices) {
+            val done = pageIndex
+            val post: (Status) -> Unit = { s ->
+                _batchStatus.postValue(BatchStatus(done, total, s.text, s.progressPercent))
+            }
+            if (_translatedPaths.value?.get(pageIndex)?.let { File(it).exists() } == true) {
+                skipped++
+                continue
+            }
+            post(Status(app.getString(R.string.string_ai_manga_batch_loading_image)))
+            val url = pageUrls[pageIndex]
+            val file = if (url == null) null else try {
+                ImageLoaderV3.obtain(url).awaitFile()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "ImageTranslationVM: batch page %d image load failed", pageIndex)
+                null
+            }
+            if (file == null) {
+                failed++
+                continue
+            }
+            when (val outcome = translatePage(app, file, pageIndex, ocrModel, ctdModel, post)) {
+                PageOutcome.Done -> translated++
+                PageOutcome.OcrEmpty -> empty++
+                PageOutcome.OcrFailed, PageOutcome.RenderFailed -> failed++
+                PageOutcome.ModelLoadFailed -> {
+                    if (!cancelledByUser) Common.showToast(R.string.string_ai_ocr_failed)
+                    return
+                }
+                is PageOutcome.TranslateFailed -> {
+                    if (!cancelledByUser) promptTranslateFailedIfPossible(outcome.error)
+                    return
+                }
+            }
+        }
+        Timber.d(
+            "ImageTranslationVM: batch finished total=%d translated=%d empty=%d failed=%d skipped=%d",
+            total, translated, empty, failed, skipped,
+        )
+        if (!cancelledByUser) {
+            var summary = app.getString(R.string.string_ai_manga_batch_summary, translated, empty, failed)
+            if (skipped > 0) {
+                summary = app.getString(R.string.string_ai_manga_batch_summary_skipped, summary, skipped)
+            }
+            Common.showToast(summary)
+        }
+    }
+
+    /** 一页自动流水线的结局,由单页 / 整部两种入口各自决定怎么提示用户。 */
+    private sealed class PageOutcome {
+        object Done : PageOutcome()
+        object ModelLoadFailed : PageOutcome()
+        object OcrFailed : PageOutcome()
+        object OcrEmpty : PageOutcome()
+        /** [error] 为 null = batch 走完了但一条没回(Google 多半是代理半通不通,per-item fallback 全失败) */
+        class TranslateFailed(val error: Exception?) : PageOutcome()
+        object RenderFailed : PageOutcome()
+    }
+
+    /**
+     * 一页的自动流水线:模型按需加载 → OCR → batch 翻译 → 回填 → [publishTranslated]。
+     * 阶段状态通过 [onStatus] 吐出,由调用方决定落到全屏遮罩还是悬浮小窗;
+     * 本函数自己不弹任何 toast,只返回 [PageOutcome]。取消(CancellationException)原样上抛。
+     */
+    private suspend fun translatePage(
         app: Context,
         imageFile: File,
         pageIndex: Int,
         ocrModel: MangaOcrModel,
         ctdModel: ComicTextDetectorModel,
-    ) {
+        onStatus: (Status) -> Unit,
+    ): PageOutcome {
         // 1. 模型按需加载
         if (!MangaOcrRecognizer.isLoaded || !ComicTextDetector.isLoaded) {
-            _status.postValue(Status(app.getString(R.string.string_ai_ocr_loading_model)))
+            onStatus(Status(app.getString(R.string.string_ai_ocr_loading_model)))
             val loaded = withContext(Dispatchers.IO) {
                 runCatching {
                     MangaOcrRecognizer.loadModel(app, ocrModel)
                     ComicTextDetector.loadModel(app, ctdModel)
                 }.onFailure { Timber.e(it, "loadModel failed") }.isSuccess
             }
-            if (!loaded) {
-                if (!cancelledByUser) Common.showToast(R.string.string_ai_ocr_failed)
-                return
-            }
+            if (!loaded) return PageOutcome.ModelLoadFailed
         }
 
         // 2. OCR
         val ocrResult = MangaOcr.recognize(app, imageFile) { stage, fraction ->
             val pct = if (fraction.isNaN()) null else (fraction * 100).toInt().coerceIn(0, 100)
-            _status.postValue(Status(stage, pct))
-        }
-        val regions = ocrResult?.regions
-        if (regions.isNullOrEmpty()) {
-            if (!cancelledByUser) {
-                Common.showToast(
-                    if (ocrResult == null) R.string.string_ai_ocr_failed
-                    else R.string.string_ai_ocr_empty
-                )
-            }
-            return
-        }
+            onStatus(Status(stage, pct))
+        } ?: return PageOutcome.OcrFailed
+        val regions = ocrResult.regions
+        if (regions.isEmpty()) return PageOutcome.OcrEmpty
 
         // 3. batch 翻译(Google web 或自定义 AI 引擎 #975)— 一次请求打包全部 region,
         //    中途没有有意义的进度,所以只 post 一个 indeterminate 状态盖住 HTTP 等待,不再每 chunk 闪 N/N
-        _status.postValue(Status(app.getString(R.string.ocr_translating)))
+        onStatus(Status(app.getString(R.string.ocr_translating)))
         val translations = mutableMapOf<Int, String>()
         try {
             currentTranslator().translateBatch(
                 inputs = regions.map { it.text },
                 outputLang = appTranslateTargetLang(),
                 onItem = { i, translated -> translations[i] = translated },
-                onPhase = { phase -> postTranslatePhase(app, phase) },
+                onPhase = { phase -> onStatus(translatePhaseStatus(app, phase)) },
                 onRequestSent = { aiRequestSent = true },
             )
         } catch (e: CancellationException) {
             // 离开页面/重新进入导致协程取消:重抛,别把「Job was cancelled」当真实错误弹给用户
             throw e
         } catch (e: Exception) {
-            // 按引擎给明确提示(谷歌被墙 → 需要代理;AI → 真实错误),别让用户当 app bug
-            if (cancelledByUser) {
-                // 页面已销毁:取消后晚到的真实错误不再弹提示,避免在别的页面误报
-                Timber.d(e, "ImageTranslationVM: translate error after user cancelled, ignored")
-            } else {
-                Timber.e(e, "translateBatch failed")
-                promptTranslateFailedIfPossible(e)
-            }
-            return
+            Timber.e(e, "translateBatch failed")
+            return PageOutcome.TranslateFailed(e)
         }
-        if (translations.isEmpty()) {
-            // batch 走完了但一条没回 — Google 多半是代理半通不通(per-item fallback 全失败)
-            if (!cancelledByUser) promptTranslateFailedIfPossible(null)
-            return
-        }
+        if (translations.isEmpty()) return PageOutcome.TranslateFailed(null)
 
         // 4. 回填
-        _status.postValue(Status(app.getString(R.string.ocr_writeback_running)))
+        onStatus(Status(app.getString(R.string.ocr_writeback_running)))
         val outFile = withContext(Dispatchers.IO) {
             runCatching {
                 renderTranslated(app, imageFile, pageIndex, regions, translations, ocrResult.textMask, ocrResult.ocrSample)
             }.onFailure { Timber.e(it, "renderTranslated failed") }.getOrNull()
-        }
-        if (outFile == null) {
-            if (!cancelledByUser) Common.showToast(R.string.string_ai_manga_translate_failed)
-            return
-        }
+        } ?: return PageOutcome.RenderFailed
 
         // 5. 发布新译图路径,并清掉同 page 的旧产物
         publishTranslated(pageIndex, outFile.absolutePath)
+        return PageOutcome.Done
     }
 
     /**
@@ -443,24 +573,21 @@ class ImageTranslationViewModel : ViewModel() {
             inputs = listOf(text),
             outputLang = appTranslateTargetLang(),
             onItem = { _, translated -> out = translated },
-            onPhase = { phase -> postTranslatePhase(app, phase) },
+            onPhase = { phase -> _status.postValue(translatePhaseStatus(app, phase)) },
             onRequestSent = { aiRequestSent = true },
         )
         return out
     }
 
     /** 流式阶段回调:思考中 → 「AI 思考中…」,开始出译文 → 回到「翻译中…」。 */
-    private fun postTranslatePhase(app: Context, phase: AiTranslatePhase) {
-        _status.postValue(
-            Status(
-                if (phase == AiTranslatePhase.THINKING) {
-                    app.getString(R.string.ai_translate_thinking)
-                } else {
-                    app.getString(R.string.ocr_translating)
-                }
-            )
+    private fun translatePhaseStatus(app: Context, phase: AiTranslatePhase): Status =
+        Status(
+            if (phase == AiTranslatePhase.THINKING) {
+                app.getString(R.string.ai_translate_thinking)
+            } else {
+                app.getString(R.string.ocr_translating)
+            }
         )
-    }
 
     /**
      * 在底图上擦掉选区原文(无 mask,走颜色阈值兜底)再把译文排进**用户框定的区域**,
