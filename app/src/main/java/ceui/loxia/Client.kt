@@ -213,18 +213,31 @@ class ClientManager {
             .readTimeout(8, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
-            // Sign ONLY the /v1/account/* endpoints (email-bound backup/restore)
-            // with X-Shaft-Sign = HMAC-SHA256(body, SHAFT_EVENTS_HMAC). History is
-            // intentionally unsigned. Empty secret (fork builds) → no header.
+            // X-Shaft-Sign = HMAC-SHA256(被签消息, SHAFT_EVENTS_HMAC)。签名规则集中在这里，
+            // 而不是散到各个 Retrofit 接口上：接口只声明「调什么」，不该顺带背着密码学。
+            //
+            //  - /v1/account/*：签**请求体**（邮箱备份/恢复、借号、遥测都在这条线上）
+            //  - /v1/config   ：GET 没有 body，服务端拿 **uid 本身**当被签消息。这条路由
+            //    是公开的，签名只决定要不要附带订阅档位（档位是「谁在付钱」，不能让任何人
+            //    拿一个公开 uid 就查到）。不签照样能用，只是拿不到 plan —— 未登录的冷启动
+            //    正是这种情况。
+            //
+            // 浏览历史一律不签。空密钥（fork 构建）→ 不加头。
             .addInterceptor { chain ->
                 val req = chain.request()
-                val body = req.body
                 val secret = BuildConfig.SHAFT_EVENTS_HMAC
-                if (body == null || secret.isEmpty() || !req.url.encodedPath.contains("/v1/account/")) {
+                val path = req.url.encodedPath
+                val message = when {
+                    secret.isEmpty() -> null
+                    path.contains("/v1/account/") ->
+                        req.body?.let { body -> Buffer().also { body.writeTo(it) }.readUtf8() }
+                    path.endsWith("/v1/config") -> req.url.queryParameter("uid")
+                    else -> null
+                }
+                if (message == null) {
                     chain.proceed(req)
                 } else {
-                    val buf = Buffer().also { body.writeTo(it) }
-                    val sig = ShaftHmac.signHex(buf.readUtf8(), secret)
+                    val sig = ShaftHmac.signHex(message, secret)
                     chain.proceed(req.newBuilder().header("X-Shaft-Sign", sig).build())
                 }
             }

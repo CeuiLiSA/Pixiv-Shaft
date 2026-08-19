@@ -54,16 +54,50 @@
                     android:paddingTop="16dp"
                     android:paddingEnd="16dp">
 
-                    <!-- Claude 用量页顶上那句「Plan usage limits」的位置：这里说明额度是按谁算的 -->
-                    <TextView
-                        android:id="@+id/usage_section_title"
+                    <!--
+                        Claude 用量页顶上那句「Plan usage limits  Max (5x)」的位置：左边说明
+                        额度是按谁算的，右边挂当前档位和倍率。
+
+                        档位就挂在标题旁边、进度条正上方，而不是塞进下面的订阅区 —— 那两根条
+                        画的就是这一档的额度，读数和它的量纲必须挨在一起；隔着半屏去猜「这条
+                        100% 是几次的 100%」正是这页原来缺的那句话。
+                    -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:baselineAligned="true"
+                        android:orientation="horizontal"
                         android:paddingBottom="10dp"
-                        android:paddingStart="4dp"
-                        android:text="@string/nana7mi_usage_section"
-                        android:textColor="@color/v3_text_2"
-                        android:textSize="13sp" />
+                        android:paddingStart="4dp">
+
+                        <TextView
+                            android:id="@+id/usage_section_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/nana7mi_usage_section"
+                            android:textColor="@color/v3_text_2"
+                            android:textSize="13sp" />
+
+                        <!--
+                            「Max (20x)」。用 Montserrat 是因为括号里是读数（倍率），和页面上
+                            其它数字读数同一套字；档位名本身是产品名，不翻译。
+                            拿不到档位就整个 gone —— 空着一块比写个假的「Free」强。
+                        -->
+                        <TextView
+                            android:id="@+id/usage_plan_label"
+                            style="@style/textMontserratBold"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp"
+                            android:visibility="gone"
+                            tools:text="Max (20x)"
+                            tools:visibility="visible" />
+                    </LinearLayout>
 
                     <!-- 分段行宿主：两只桶各一行，圆角由 WitRowStyle 按位置贴合 -->
                     <LinearLayout

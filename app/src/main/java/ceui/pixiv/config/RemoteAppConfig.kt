@@ -1,8 +1,12 @@
 package ceui.pixiv.config
 
 import android.os.SystemClock
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import ceui.loxia.AppConfigResponse
 import ceui.loxia.Client
+import ceui.loxia.Nana7miPlan
+import com.google.gson.Gson
 import ceui.pixiv.session.SessionManager
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.CancellationException
@@ -15,7 +19,7 @@ import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * 冷启动向 pixshaft-api 拉一次的基础配置（`GET /v1/config`），目前只有「借号搜索总开关」。
+ * 冷启动向 pixshaft-api 拉一次的基础配置（`GET /v1/config`）：借号搜索总开关 + 订阅档位。
  *
  * 存在的意义是让服务端能在不发版的前提下关掉一个客户端功能，所以设计上只守两条：
  *
@@ -47,6 +51,32 @@ object RemoteAppConfig {
     @Volatile
     private var nana7miSearch = DEFAULT_NANA7MI_SEARCH
 
+    /**
+     * 这个 uid 的订阅档位，null = 还不知道。
+     *
+     * 和上面那个开关的缓存规矩**不一样**，因为它不是开关：
+     *  - 开关拿不到就沿用旧值（网络抖动不该关掉用户正在用的功能）；
+     *  - 档位是会**到期**的，沿用一份过期的缓存就是在骗人。所以持久化的那份带着到期时间，
+     *    读出来先过一遍 [Nana7miPlan.ownedExpiresAt]，过期的直接当没有。
+     *
+     * 真正的读数还是以额度接口（`/v1/account/nana7mi/quota`）当场返回的为准，这里只负责让
+     * 冷启动的第一帧就有一个答案。
+     */
+    @Volatile
+    private var plan: Nana7miPlan? = null
+
+    private val planLive = MutableLiveData<Nana7miPlan?>()
+
+    /**
+     * 档位变化的通知口。
+     *
+     * 侧边栏徽章必须观察它，不能只在「账号变化」时绑一次：冷启动这次配置是**异步**回来的，
+     * 等它落地时账号那个 observer 早就跑完了 —— 首装的人于是永远看不到徽章，买了订阅的人
+     * 要等下一次冷启动。刚买完从用量页退回来那次回写也走这里。
+     */
+    val nana7miPlanLive: LiveData<Nana7miPlan?>
+        get() = planLive
+
     /** 最近一次成功拉取所用的 uid（0 = 未登录）；和当前登录态不一致就说明该重拉了。 */
     @Volatile
     private var fetchedForUid: Long? = null
@@ -74,6 +104,32 @@ object RemoteAppConfig {
             return nana7miSearch
         }
 
+    /**
+     * 当前登录账号的订阅档位；没拉到过、未登录、或缓存已过期都是 null。
+     *
+     * null 是「不知道」，**不是「免费用户」** —— 拿它去判断该不该显示付费入口没问题，
+     * 拿它去断言「这人没付钱」会冤枉刚装完还没拉到配置的订户。
+     */
+    val nana7miPlan: Nana7miPlan?
+        get() {
+            refreshIfStale()
+            return plan
+        }
+
+    /**
+     * 用一份更新的档位覆盖缓存。
+     *
+     * 额度接口（`/v1/account/nana7mi/quota`）每次都会捎回服务端此刻认的档位，比冷启动
+     * 拉的那份新。刚买完订阅的人第一件事就是去用量页看，回写一下，抽屉里的徽章立刻就对了，
+     * 不用等下一次冷启动。
+     *
+     * 只认当前登录账号的：切号后回来的旧响应不能盖到新账号头上。
+     */
+    fun updateNana7miPlan(uid: Long, incoming: Nana7miPlan?) {
+        if (!initialized.get() || uid != SessionManager.loggedInUid) return
+        applyPlan(uid, incoming)
+    }
+
     /** 冷启动调用一次。必须在 MMKV.initialize 和 SessionManager.initialize 之后。 */
     @JvmStatic
     fun init() {
@@ -95,6 +151,8 @@ object RemoteAppConfig {
         nana7miSearch = runCatching {
             store.getBoolean(cacheKey(uid), DEFAULT_NANA7MI_SEARCH)
         }.getOrDefault(DEFAULT_NANA7MI_SEARCH)
+        plan = loadCachedPlan(uid)
+        planLive.postValue(plan)
         valueForUid = uid
         Timber.tag(TAG).d(
             "loaded cached config uid=%d nana7mi_search_enabled=%s",
@@ -143,6 +201,7 @@ object RemoteAppConfig {
     private fun apply(uid: Long, response: AppConfigResponse) {
         fetchedForUid = uid
         failedForUid = null
+        applyPlan(uid, response.plan)
         val enabled = response.nana7miSearchEnabled
         if (enabled == null) {
             Timber.tag(TAG).d("server has no opinion on nana7mi search, keeping %s", nana7miSearch)
@@ -154,11 +213,46 @@ object RemoteAppConfig {
         Timber.tag(TAG).i("config applied uid=%d nana7mi_search_enabled=%s", uid, enabled)
     }
 
+    /**
+     * 档位单独走一条路：服务端**明确说了 null**（没签名 / 查不到）也要落地成 null，
+     * 不能像开关那样「没意见就保留旧值」—— 那会让一个已经撤销的订阅在缓存里活下去。
+     */
+    private fun applyPlan(uid: Long, incoming: Nana7miPlan?) {
+        plan = incoming?.takeIf { it.stillValid() }
+        // postValue：这里跑在 IO 线程上（配置是后台拉的），LiveData 只能从主线程 setValue。
+        planLive.postValue(plan)
+        runCatching {
+            if (plan == null) store.removeValueForKey(planKey(uid))
+            else store.putString(planKey(uid), gson.toJson(plan))
+        }
+        Timber.tag(TAG).i("plan applied uid=%d owned=%s source=%s", uid, plan?.owned, plan?.source)
+    }
+
+    private fun loadCachedPlan(uid: Long): Nana7miPlan? = runCatching {
+        store.getString(planKey(uid), null)
+            ?.let { gson.fromJson(it, Nana7miPlan::class.java) }
+            ?.takeIf { it.stillValid() }
+    }.getOrNull()
+
+    /**
+     * 缓存里那份还算不算数。只看**买的那一档**的到期时间：计量档位可能是试运营给的，
+     * 它没有到期日，跟着服务端走就行；而买的那一档过了期，本地就该忘掉它。
+     */
+    private fun Nana7miPlan.stillValid(): Boolean {
+        val until = ownedExpiresAt ?: return true
+        return until > System.currentTimeMillis()
+    }
+
     private fun cacheKey(uid: Long) = KEY_NANA7MI_SEARCH_PREFIX + uid
+
+    private fun planKey(uid: Long) = KEY_NANA7MI_PLAN_PREFIX + uid
+
+    private val gson by lazy { Gson() }
 
     private const val TAG = "RemoteAppConfig"
     private const val MMKV_ID = "remote-app-config-v1"
     private const val KEY_NANA7MI_SEARCH_PREFIX = "nana7mi_search_enabled_"
+    private const val KEY_NANA7MI_PLAN_PREFIX = "nana7mi_plan_"
     // 没拿到服务端许可之前不开：这是灰度中的功能，默认关比默认开安全。
     private const val DEFAULT_NANA7MI_SEARCH = false
     private const val RETRY_COOLDOWN_MS = 5 * 60 * 1000L

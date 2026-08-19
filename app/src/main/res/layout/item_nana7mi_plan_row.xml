@@ -54,10 +54,10 @@
                 android:paddingTop="1dp"
                 android:paddingEnd="7dp"
                 android:paddingBottom="2dp"
-                android:text="@string/nana7mi_usage_plan_badge"
                 android:textSize="10sp"
                 android:textStyle="bold"
                 android:visibility="gone"
+                tools:text="@string/nana7mi_usage_plan_badge"
                 tools:visibility="visible" />
         </LinearLayout>
 

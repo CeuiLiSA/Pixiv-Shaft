@@ -95,16 +95,52 @@
                             android:layout_toEndOf="@id/user_head"
                             android:orientation="vertical">
 
-                            <TextView
-                                android:id="@+id/user_name"
-                                style="@style/textMontserratSemiBold"
+                            <!--
+                                用户名 + 订阅徽章同排。名字用 0dp+weight 而不是 wrap_content：
+                                长名字要让给徽章收缩，而不是把徽章挤出可视区 —— 徽章才是这行
+                                新增的信息，名字截断了还有头像和邮箱在旁边认人。
+                            -->
+                            <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:ellipsize="end"
-                                android:maxLines="1"
-                                android:textColor="@color/v3_text_1"
-                                android:textSize="19sp"
-                                android:textStyle="bold" />
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/user_name"
+                                    style="@style/textMontserratSemiBold"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:ellipsize="end"
+                                    android:maxLines="1"
+                                    android:textColor="@color/v3_text_1"
+                                    android:textSize="19sp"
+                                    android:textStyle="bold" />
+
+                                <!--
+                                    订阅档位。免费/未登录/拉不到配置一律 gone —— 没订阅的人
+                                    侧边栏应该和以前一模一样，不该多出一块空白或一个「免费」。
+                                    描边药丸复用 badge_current，它吃 ?attr/colorPrimary，
+                                    十档预设主题和自定义 HEX 都自动跟随。
+                                -->
+                                <TextView
+                                    android:id="@+id/user_plan_badge"
+                                    style="@style/textMontserratBold"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="8dp"
+                                    android:background="@drawable/badge_current"
+                                    android:paddingStart="7dp"
+                                    android:paddingTop="1dp"
+                                    android:paddingEnd="7dp"
+                                    android:paddingBottom="2dp"
+                                    android:textColor="?attr/colorPrimary"
+                                    android:textSize="10sp"
+                                    android:visibility="gone"
+                                    tools:text="MAX"
+                                    tools:visibility="visible" />
+                            </LinearLayout>
 
                             <TextView
                                 android:id="@+id/user_email"

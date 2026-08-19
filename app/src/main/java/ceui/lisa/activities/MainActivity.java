@@ -60,6 +60,8 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.view.DrawerLayoutViewPager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import ceui.loxia.Nana7miPlan;
+import ceui.pixiv.config.RemoteAppConfig;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.navigation.DrawerIconCatalog;
 
@@ -151,6 +153,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         // 之后登录/切号/编辑资料/前台静默同步的每次写回都会自动重绑,不再需要
         // 手动 initDrawerHeader() 首绑 + Dev.refreshUser 在 onResume 补刷那一套。
         SessionManager.INSTANCE.getLoggedInAccount().observe(this, account -> initDrawerHeader());
+        // 订阅档位是冷启动异步拉回来的,落地时机比账号晚,所以单独观察一次;不然徽章要等
+        // 下一次冷启动才出现,首装的人则永远看不到。
+        RemoteAppConfig.INSTANCE.getNana7miPlanLive().observe(this, plan -> bindPlanBadge());
         baseBind.drawerHeader.setOnClickListener(v -> openMyUserPage());
         // 侧边栏头像单击进自己主页；长按仍是 R18 临时过滤开关
         baseBind.userHead.setOnClickListener(v -> openMyUserPage());
@@ -685,6 +690,29 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
             String mailAddress = SessionManager.INSTANCE.getMailAddress();
             baseBind.userEmail.setText(TextUtils.isEmpty(mailAddress) ?
                     mContext.getString(R.string.no_mail_address) : mailAddress);
+        }
+        bindPlanBadge();
+    }
+
+    /**
+     * 侧边栏的订阅徽章。免费用户什么都不显示 —— 没订阅的人这一栏应该和加这个功能之前
+     * 一模一样，不该多出一块空白或者一个「免费」标签。
+     *
+     * 读的是冷启动缓存的档位（{@link RemoteAppConfig}），所以抽屉第一次拉开就有答案，
+     * 不等网络。刚买完的人要么等下次冷启动、要么进一趟用量页 —— 那页会拿额度接口返回的
+     * 最新档位回写缓存，回来抽屉就更新了。
+     *
+     * 认的是「他买了什么」而不是「按什么计量」：试运营期间服务端把所有人抬到 Max，
+     * 拿计量档位去显示会给每个没付钱的人发一颗 MAX 徽章。
+     */
+    private void bindPlanBadge() {
+        Nana7miPlan plan = RemoteAppConfig.INSTANCE.getNana7miPlan();
+        String label = plan == null ? null : plan.getBadgeLabel();
+        if (label == null) {
+            baseBind.userPlanBadge.setVisibility(View.GONE);
+        } else {
+            baseBind.userPlanBadge.setText(label);
+            baseBind.userPlanBadge.setVisibility(View.VISIBLE);
         }
     }
 
