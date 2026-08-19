@@ -211,8 +211,17 @@ object SessionManager {
         }
     }
 
+    /** 一次观测：读到的是哪个号，以及那是开机后的第几毫秒。两个值必须同生共死。 */
+    private data class PremiumObservation(val uid: Long, val atElapsed: Long)
+
     /**
      * 上一次**真去 pixiv 读到**当前登录账号会员状态的时刻，以及那是哪个 uid。
+     *
+     * uid 和时刻合在**一个**引用里，而不是两个 @Volatile 字段：读方在 IO 线程
+     * （[premiumAgeMs] 由上报队列在发送那一刻调），写方在主线程，分开存的话
+     * 读完 uid 到读时刻之间插进一次**切账号后的观测**，就会把旧号的 uid 配上
+     * 新号的时刻，报出一个比任何真实观测都新的年龄 —— 而服务端正是拿「比那次
+     * 拒绝更新」当证据把号放回池子的。一起写、一起读，这个缝就不存在。
      *
      * 走开机后的单调钟（同 [lastProfileSyncAt] 的理由）：这个值最终要变成上报里的
      * `premiumAgeMs`，而墙钟被改或被 NTP 拨过之后算出来的时长会是负数甚至几天。
@@ -223,15 +232,12 @@ object SessionManager {
      * PxveAPI 代理**刷出来的，不该拿它去替别人的号作证。
      */
     @Volatile
-    private var premiumObservedAtElapsed: Long? = null
-    @Volatile
-    private var premiumObservedUid: Long = 0L
+    private var premiumObservation: PremiumObservation? = null
 
     /** 记下「刚从 pixiv 读到 [uid] 的会员状态」。只有真读到才调用，沿用旧值的路径不调。 */
     private fun markPremiumObserved(uid: Long) {
         if (uid <= 0L) return
-        premiumObservedUid = uid
-        premiumObservedAtElapsed = SystemClock.elapsedRealtime()
+        premiumObservation = PremiumObservation(uid, SystemClock.elapsedRealtime())
     }
 
     /**
@@ -241,9 +247,9 @@ object SessionManager {
      * 可离线堆积的，攒了半小时才发出去时，「多久以前看到的」也确实是半小时。
      */
     fun premiumAgeMs(uid: Long): Long? {
-        if (uid <= 0L || uid != premiumObservedUid) return null
-        val observedAt = premiumObservedAtElapsed ?: return null
-        return (SystemClock.elapsedRealtime() - observedAt).coerceAtLeast(0L)
+        val observed = premiumObservation ?: return null
+        if (uid <= 0L || uid != observed.uid) return null
+        return (SystemClock.elapsedRealtime() - observed.atElapsed).coerceAtLeast(0L)
     }
 
     private val profileSyncScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
