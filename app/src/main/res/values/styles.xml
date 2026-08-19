@@ -441,21 +441,6 @@
         <item name="fontFamily">@font/montserrat_extra_bold</item>
     </style>
 
-    <!-- 登录页的「入口链接」文字按钮：邮箱恢复 / refresh token 登录共用 -->
-    <style name="LoginEntryLink">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:alpha">0.85</item>
-        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
-        <item name="android:gravity">center</item>
-        <item name="android:paddingLeft">12dp</item>
-        <item name="android:paddingRight">12dp</item>
-        <item name="android:paddingTop">6dp</item>
-        <item name="android:paddingBottom">6dp</item>
-        <item name="android:textColor">@color/white</item>
-        <item name="android:textSize">13sp</item>
-    </style>
-
     <!-- ── 约稿方案详情页 (MD3-E) 分节样式;动态色(卡底/描边/强调)由 Fragment 用 V3Palette 注入 ── -->
     <style name="RequestDetailCard">
         <item name="android:layout_width">match_parent</item>

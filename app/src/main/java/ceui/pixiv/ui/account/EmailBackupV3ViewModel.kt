@@ -225,7 +225,9 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
     private suspend fun doRestore(st: UiState) {
         val resp = Client.pixshaft.restoreConfirm(RestoreConfirmReq(st.email, st.code))
         val account = resp.account
-        if (account?.access_token == null) {
+        // user 也要有：AccountResponse.user 是可空的，缺了就落不成一个能用的登录态，
+        // 得在这里报错，而不是让 persistLogin 静默跳过、最后重启到一个未登录的主界面。
+        if (account?.access_token == null || account.user == null) {
             showError("备份数据异常，无法恢复")
             return
         }

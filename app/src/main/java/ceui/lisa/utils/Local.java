@@ -66,7 +66,12 @@ public class Local {
      * failure is treated as non-fatal by the callers.
      */
     public static void persistLoggedInUser(UserModel userModel) {
-        if (userModel == null) return;
+        // user 缺失就不是一个能用的登录态：调用方必须先校验过再进来。这里不做静默补 0
+        // 落库（会往账户切换表塞一条 userID=0 的脏行），也不让它 NPE 崩在这里。
+        if (userModel == null || userModel.getUser() == null) {
+            Timber.w("persistLoggedInUser: no user in UserModel, skip");
+            return;
+        }
         userModel.getUser().setIs_login(true);
         saveUser(userModel); // internally calls SessionManager.postUpdateSession (single source of truth)
         UserEntity entity = new UserEntity();

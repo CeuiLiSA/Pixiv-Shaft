@@ -45,17 +45,18 @@
 
             <TextView
                 android:id="@+id/restore_from_email"
-                style="@style/LoginEntryLink"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="14dp"
-                android:text="@string/email_backup_login_entry" />
-
-            <TextView
-                android:id="@+id/use_refresh_token"
-                style="@style/LoginEntryLink"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="14dp"
-                android:text="@string/refresh_token_login_entry" />
+                android:alpha="0.85"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="@string/email_backup_login_entry"
+                android:textColor="@color/white"
+                android:textSize="13sp" />
 
             <LinearLayout
                 android:id="@+id/checkbox_one"

@@ -14,6 +14,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_refresh_token_login"
+        android:orderInCategory="100"
+        android:title="@string/refresh_token_login_entry"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_browser_login"
         android:orderInCategory="100"
         android:title="@string/action_browser_login"

@@ -16,6 +16,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -33,7 +34,6 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.ActivityLoginBinding
 import ceui.lisa.databinding.ItemLanguageRowBinding
-import ceui.lisa.http.Retro
 import ceui.lisa.models.UserModel
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
@@ -42,7 +42,7 @@ import ceui.lisa.utils.Params
 import ceui.loxia.MoonSync
 import ceui.pixiv.i18n.AppLocales
 import ceui.pixiv.login.PixivLogin
-import ceui.pixiv.login.PixivOAuthConfig
+import ceui.pixiv.login.PixivOAuthResult
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
@@ -55,7 +55,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.IOException
 import java.util.Locale
 import kotlin.math.roundToInt
 import timber.log.Timber
@@ -83,6 +82,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     private var greetingCycleJob: Job? = null
     private val rowChecks = mutableMapOf<String, View>()
     private var refreshTokenDialog: WitDialog? = null
+    private var refreshTokenLoginRunning = false
 
     // ── Lifecycle ──
 
@@ -174,7 +174,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     private fun setupToolbar() {
         // 登录页左上角返回选语言页（图标只在进入登录页后显示）
         baseBind.toolbar.setNavigationOnClickListener { backToLanguagePage() }
-        baseBind.toolbar.inflateMenu(R.menu.login_menu)
+        inflateToolbarMenu()
         baseBind.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_settings -> {
@@ -194,6 +194,11 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                     true
                 }
 
+                R.id.action_refresh_token_login -> {
+                    showRefreshTokenDialog()
+                    true
+                }
+
                 R.id.action_browser_login -> {
                     showBrowserPicker(PixivLogin.startLoginUrl())
                     true
@@ -207,6 +212,17 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                 else -> false
             }
         }
+    }
+
+    /**
+     * inflate overflow 菜单并按渠道剔项。两个 inflate 点（初始化 / 切语言后重建）都必须走这里，
+     * 否则 lite 渠道切一次语言就会把隐藏掉的项重新放出来。
+     */
+    private fun inflateToolbarMenu() {
+        baseBind.toolbar.inflateMenu(R.menu.login_menu)
+        // 与「从邮箱恢复」同样在 lite 渠道隐藏,理由见 setupLoginPage 里那段注释。
+        baseBind.toolbar.menu.findItem(R.id.action_refresh_token_login)?.isVisible =
+            !BuildConfig.IS_LITE
     }
 
     // ── Browser picker ──
@@ -424,7 +440,6 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         page.loginButton.text = getString(R.string.now_login)
         page.signButton.text = getString(R.string.now_sign)
         page.restoreFromEmail.text = getString(R.string.email_backup_login_entry)
-        page.useRefreshToken.text = getString(R.string.refresh_token_login_entry)
         // 协议链接里的 SpannableString 也是 inflate 时算的，要重塞 —— 内部 getString(...) 此刻
         // 已经走新 locale 了。
         setupTermsText(page.firstText)
@@ -433,7 +448,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         // 进 MenuItem 的，光改 Configuration 不会刷新。清空重 inflate；setOnMenuItemClickListener
         // 挂在 Toolbar 上而不是 MenuItem 上，不需要重绑。
         baseBind.toolbar.menu.clear()
-        baseBind.toolbar.inflateMenu(R.menu.login_menu)
+        inflateToolbarMenu()
     }
 
     private fun crossFadeLanguagePageToLoginPage() {
@@ -499,13 +514,6 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             }
         }
 
-        // refresh token 登录：与邮箱恢复同属免 OAuth 网页的登录方式，lite 渠道同样不提供。
-        if (BuildConfig.IS_LITE) {
-            page.useRefreshToken.visibility = View.GONE
-        } else {
-            page.useRefreshToken.setOnClickListener { showRefreshTokenDialog() }
-        }
-
         setupTermsText(page.firstText)
 
         viewModel.isChecked.observe(viewLifecycleOwner) { page.checkboxOne.isSelected = it }
@@ -515,6 +523,9 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     }
 
     private fun showRefreshTokenDialog() {
+        // 上一个还挂着就先收掉：refreshTokenDialog 只记得最后一个，被顶掉的那个
+        // 到 onDestroyView 没人 dismiss，就是一条 WindowLeaked。
+        refreshTokenDialog?.dismiss()
         val builder = WitDialog.EditTextDialogBuilder(mContext)
         builder.setTitle(getString(R.string.refresh_token_dialog_title))
             .setPlaceholder(getString(R.string.refresh_token_dialog_hint))
@@ -531,53 +542,77 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         refreshTokenDialog?.show()
     }
 
+    /**
+     * 拿用户粘贴的 refresh_token 换登录态。
+     *
+     * 走 [PixivLogin]（OAuth 专用客户端）而不是 [ceui.lisa.http.Retro] 的 AccountTokenApi：
+     * 后者挂着 [ceui.lisa.http.TokenInterceptor]，token 无效时 pixiv 回的 400
+     * "Invalid refresh token" 会被它当成「当前会话过期」，直接 logout + 重启 App —— 在登录页
+     * 粘错一次 token 整个应用就被踢回主界面重来。OAuth 客户端本身不挂任何鉴权拦截器，
+     * 失败按 [PixivOAuthResult.Failure] 的子类型分流即可。
+     */
     private fun loginWithRefreshToken(refreshToken: String) {
+        if (refreshTokenLoginRunning) return
+        refreshTokenLoginRunning = true
         viewLifecycleOwner.lifecycleScope.launch {
-            val response = try {
-                withContext(Dispatchers.IO) {
-                    Retro.getAccountTokenApi().newRefreshToken(
-                        PixivOAuthConfig.PIXIV_ANDROID.clientId,
-                        PixivOAuthConfig.PIXIV_ANDROID.clientSecret,
-                        "refresh_token", refreshToken, true
-                    ).execute()
-                }
-            } catch (e: IOException) {
-                // 断网 / 超时 / DNS → 网络文案，不要归因到 token
-                Common.showToast(getString(R.string.refresh_token_network_error_toast), 3)
-                return@launch
-            }
-            if (!response.isSuccessful) {
-                // 400/401 invalid_grant → token 无效；5xx → 服务端错误
-                val msg = if (response.code() in 500..599)
-                    R.string.refresh_token_server_error_toast
-                else R.string.refresh_token_invalid_toast
-                Common.showToast(getString(msg), 3)
-                return@launch
-            }
-            val userModel = response.body()
-            if (userModel?.user == null) {
-                Common.showToast(getString(R.string.refresh_token_invalid_toast), 3)
-                return@launch
-            }
-            userModel.user?.setIs_login(true)
             try {
-                withContext(Dispatchers.IO) { Local.persistLoggedInUser(userModel) }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Timber.e(e, "refresh-token login persistence failed")
-                // Session 已写（saveUser 成功）则用户已登录，Room 行缺失仅影响账户切换列表：
-                // 视为非致命，继续流程，避免半登录态卡在登录页
-                if (!SessionManager.isLoggedIn) {
-                    Common.showToast(getString(R.string.refresh_token_persist_error_toast), 3)
-                    return@launch
+                Common.showToast(getString(R.string.trying_login), 2)
+                when (val result = PixivLogin.refreshTokenForLogin(refreshToken)) {
+                    is PixivOAuthResult.Failure -> {
+                        Timber.w("refresh-token login failed: %s", result.message)
+                        Common.showToast(getString(failureToast(result)), 3)
+                    }
+
+                    is PixivOAuthResult.Success -> {
+                        // rawBody 而不是 result.response：落库要的是完整 user（R18 设置、
+                        // 邮箱验证态等），PixivOAuthResponse 只带最小档案。与 OutWakeActivity
+                        // 的 OAuth 回调路径同款处理。
+                        val userModel = runCatching {
+                            Shaft.sGson.fromJson(result.rawBody, UserModel::class.java)
+                        }.getOrNull()
+                        if (userModel?.user == null) {
+                            Common.showToast(getString(R.string.refresh_token_invalid_toast), 3)
+                        } else {
+                            finishRefreshTokenLogin(userModel)
+                        }
+                    }
                 }
+            } finally {
+                refreshTokenLoginRunning = false
             }
-            Common.showToast(getString(R.string.refresh_token_success_toast), 2)
-            MoonSync.syncFromCloudOnLogin(mActivity, userModel.user?.id?.toLong() ?: 0L) {
-                mActivity.finish()
-                Common.restart()
+        }
+    }
+
+    @StringRes
+    private fun failureToast(failure: PixivOAuthResult.Failure): Int = when (failure) {
+        // 断网 / 超时 / DNS → 网络文案，不要归因到 token
+        is PixivOAuthResult.Failure.NetworkError -> R.string.refresh_token_network_error_toast
+        is PixivOAuthResult.Failure.ServerRejected ->
+            if (failure.httpCode in 500..599) R.string.refresh_token_server_error_toast
+            // 400 invalid_grant / "Invalid refresh token" 都在这一支
+            else R.string.refresh_token_invalid_toast
+        // MissingCode / MissingVerifier 属于授权码流程，refresh 走不到，兜底当 token 无效
+        else -> R.string.refresh_token_invalid_toast
+    }
+
+    private suspend fun finishRefreshTokenLogin(userModel: UserModel) {
+        try {
+            withContext(Dispatchers.IO) { Local.persistLoggedInUser(userModel) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "refresh-token login persistence failed")
+            // Session 已写（saveUser 成功）则用户已登录，Room 行缺失仅影响账户切换列表：
+            // 视为非致命，继续流程，避免半登录态卡在登录页
+            if (!SessionManager.isLoggedIn) {
+                Common.showToast(getString(R.string.refresh_token_persist_error_toast), 3)
+                return
             }
+        }
+        Common.showToast(getString(R.string.refresh_token_success_toast), 2)
+        MoonSync.syncFromCloudOnLogin(mActivity, userModel.user?.id?.toLong() ?: 0L) {
+            mActivity.finish()
+            Common.restart()
         }
     }
 
