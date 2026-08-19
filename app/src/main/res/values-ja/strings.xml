@@ -2281,6 +2281,15 @@
     <string name="email_backup_do_restore">復元してログイン</string>
     <string name="email_backup_settings_entry">アカウントをメールにバックアップ</string>
     <string name="email_backup_login_entry">バックアップ済み？メールから復元</string>
+    <string name="refresh_token_login_entry">refresh token でログイン</string>
+    <string name="refresh_token_dialog_title">refresh token でログイン</string>
+    <string name="refresh_token_dialog_hint">refresh token を貼り付けてください</string>
+    <string name="refresh_token_dialog_positive">ログイン</string>
+    <string name="refresh_token_invalid_toast">refresh token が無効か期限切れです</string>
+    <string name="refresh_token_network_error_toast">ネットワークエラーです。接続を確認してください</string>
+    <string name="refresh_token_server_error_toast">サーバーエラーです。しばらくしてからもう一度お試しください</string>
+    <string name="refresh_token_success_toast">ログインに成功しました</string>
+    <string name="refresh_token_persist_error_toast">アカウントデータの保存に失敗しました</string>
     <string name="email_backup_bound_title">バックアップ済み</string>
     <string name="email_backup_bound_email">%1$s に暗号化バックアップ済み</string>
     <string name="email_backup_bound_time">バックアップ日時 %1$s</string>

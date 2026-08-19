@@ -2281,6 +2281,15 @@
     <string name="email_backup_do_restore">Geri yükle ve giriş yap</string>
     <string name="email_backup_settings_entry">Hesabı e-postaya yedekle</string>
     <string name="email_backup_login_entry">Yedeğin var mı? E-postadan geri yükle</string>
+    <string name="refresh_token_login_entry">Refresh token ile giriş yap</string>
+    <string name="refresh_token_dialog_title">Refresh token ile giriş yap</string>
+    <string name="refresh_token_dialog_hint">Refresh token\'ı buraya yapıştırın</string>
+    <string name="refresh_token_dialog_positive">Giriş yap</string>
+    <string name="refresh_token_invalid_toast">Geçersiz veya süresi dolmuş refresh token</string>
+    <string name="refresh_token_network_error_toast">Ağ hatası, lütfen bağlantınızı kontrol edin</string>
+    <string name="refresh_token_server_error_toast">Sunucu hatası, lütfen daha sonra tekrar deneyin</string>
+    <string name="refresh_token_success_toast">Giriş başarılı</string>
+    <string name="refresh_token_persist_error_toast">Hesap verileri kaydedilemedi</string>
     <string name="email_backup_bound_title">Yedeklendi</string>
     <string name="email_backup_bound_email">%1$s adresine şifreli yedek</string>
     <string name="email_backup_bound_time">Yedek tarihi %1$s</string>

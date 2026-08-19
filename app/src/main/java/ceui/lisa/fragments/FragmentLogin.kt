@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.text.InputType
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.TextPaint
@@ -15,23 +16,24 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.StringRes
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewModelScope
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.database.AppDatabase
-import ceui.lisa.database.UserEntity
 import ceui.lisa.databinding.ActivityLoginBinding
 import ceui.lisa.databinding.ItemLanguageRowBinding
 import ceui.lisa.models.UserModel
@@ -39,11 +41,18 @@ import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
+import ceui.loxia.Event
+import ceui.loxia.MoonSync
+import ceui.loxia.observeEvent
 import ceui.pixiv.i18n.AppLocales
 import ceui.pixiv.login.PixivLogin
-import com.hjq.toast.Toaster
+import ceui.pixiv.login.PixivOAuthResult
+import ceui.pixiv.session.SessionManager
+import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import ceui.pixiv.witstudio.dialog.WitDialog.MessageDialogBuilder
+import com.hjq.toast.Toaster
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -52,9 +61,86 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.math.roundToInt
+import timber.log.Timber
+
+/** refresh_token 登录的终局，由 [LandingViewModel] 发出、[FragmentLogin] 消费。 */
+sealed class RefreshTokenLoginOutcome {
+    /** 已换到 token 并落库完成，[uid] 供云端设置同步用。 */
+    data class Succeeded(val uid: Long) : RefreshTokenLoginOutcome()
+    data class Failed(@StringRes val messageRes: Int) : RefreshTokenLoginOutcome()
+}
 
 class LandingViewModel : ViewModel() {
     val isChecked = MutableLiveData(false)
+
+    private val _refreshTokenLoginEvent = MutableLiveData<Event<RefreshTokenLoginOutcome>>()
+    val refreshTokenLoginEvent: LiveData<Event<RefreshTokenLoginOutcome>> = _refreshTokenLoginEvent
+
+    private var refreshTokenLoginJob: Job? = null
+
+    /**
+     * 拿用户粘贴的 refresh_token 换登录态。
+     *
+     * 走 [PixivLogin]（OAuth 专用客户端）而不是 [ceui.lisa.http.Retro] 的 AccountTokenApi：
+     * 后者挂着 [ceui.lisa.http.TokenInterceptor]，token 无效时 pixiv 回的 400
+     * "Invalid refresh token" 会被它当成「当前会话过期」，直接 logout + 重启 App —— 在登录页
+     * 粘错一次 token 整个应用就被踢回主界面重来。OAuth 客户端本身不挂任何鉴权拦截器，
+     * 失败按 [PixivOAuthResult.Failure] 的子类型分流即可。
+     *
+     * 放 [viewModelScope] 而不是 Fragment 的 viewLifecycleOwner.lifecycleScope：登录页宿主
+     * TemplateActivity 没声明 configChanges，旋转 / 展开折叠屏 / 进分屏都会重建 View。挂在
+     * view 上的话，token 已经换到手甚至已经落库，协程却被取消 —— 用户没有任何提示地停在
+     * 登录页上，而 session 其实已经写进去了。结果用 [Event] 投递，重建后的 observer 照收。
+     */
+    fun startRefreshTokenLogin(refreshToken: String) {
+        if (refreshTokenLoginJob?.isActive == true) return
+        refreshTokenLoginJob = viewModelScope.launch {
+            val outcome = when (val result = PixivLogin.refreshTokenForLogin(refreshToken)) {
+                is PixivOAuthResult.Failure -> {
+                    Timber.w("refresh-token login failed: %s", result.message)
+                    RefreshTokenLoginOutcome.Failed(refreshTokenFailureToast(result))
+                }
+
+                is PixivOAuthResult.Success -> persistRefreshTokenLogin(result.rawBody)
+            }
+            _refreshTokenLoginEvent.value = Event(outcome)
+        }
+    }
+
+    private suspend fun persistRefreshTokenLogin(rawBody: String): RefreshTokenLoginOutcome {
+        // rawBody 而不是 result.response：落库要的是完整 user（R18 设置、邮箱验证态等），
+        // PixivOAuthResponse 只带最小档案。与 OutWakeActivity 的 OAuth 回调路径同款处理。
+        val userModel = runCatching {
+            Shaft.sGson.fromJson(rawBody, UserModel::class.java)
+        }.getOrNull()
+        val user = userModel?.user
+            ?: return RefreshTokenLoginOutcome.Failed(R.string.refresh_token_invalid_toast)
+        try {
+            withContext(Dispatchers.IO) { Local.persistLoggedInUser(userModel) }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "refresh-token login persistence failed")
+            // Session 已写（saveUser 成功）则用户已登录，Room 行缺失仅影响账户切换列表：
+            // 视为非致命，继续流程，避免半登录态卡在登录页
+            if (!SessionManager.isLoggedIn) {
+                return RefreshTokenLoginOutcome.Failed(R.string.refresh_token_persist_error_toast)
+            }
+        }
+        return RefreshTokenLoginOutcome.Succeeded(user.id.toLong())
+    }
+}
+
+@StringRes
+private fun refreshTokenFailureToast(failure: PixivOAuthResult.Failure): Int = when (failure) {
+    // 断网 / 超时 / DNS → 网络文案，不要归因到 token
+    is PixivOAuthResult.Failure.NetworkError -> R.string.refresh_token_network_error_toast
+    is PixivOAuthResult.Failure.ServerRejected ->
+        if (failure.httpCode in 500..599) R.string.refresh_token_server_error_toast
+        // 400 invalid_grant / "Invalid refresh token" 都在这一支
+        else R.string.refresh_token_invalid_toast
+    // MissingCode / MissingVerifier 属于授权码流程，refresh 走不到，兜底当 token 无效
+    else -> R.string.refresh_token_invalid_toast
 }
 
 class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
@@ -75,6 +161,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     private var cycleIndex = 0
     private var greetingCycleJob: Job? = null
     private val rowChecks = mutableMapOf<String, View>()
+    private var refreshTokenDialog: WitDialog? = null
 
     // ── Lifecycle ──
 
@@ -131,6 +218,12 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
 
     override fun initData() {}
 
+    override fun onDestroyView() {
+        refreshTokenDialog?.dismiss()
+        refreshTokenDialog = null
+        super.onDestroyView()
+    }
+
     // ── Insets ──
 
     private fun setupInsets() {
@@ -160,7 +253,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     private fun setupToolbar() {
         // 登录页左上角返回选语言页（图标只在进入登录页后显示）
         baseBind.toolbar.setNavigationOnClickListener { backToLanguagePage() }
-        baseBind.toolbar.inflateMenu(R.menu.login_menu)
+        inflateToolbarMenu()
         baseBind.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_settings -> {
@@ -180,6 +273,11 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                     true
                 }
 
+                R.id.action_refresh_token_login -> {
+                    showRefreshTokenDialog()
+                    true
+                }
+
                 R.id.action_browser_login -> {
                     showBrowserPicker(PixivLogin.startLoginUrl())
                     true
@@ -193,6 +291,17 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                 else -> false
             }
         }
+    }
+
+    /**
+     * inflate overflow 菜单并按渠道剔项。两个 inflate 点（初始化 / 切语言后重建）都必须走这里，
+     * 否则 lite 渠道切一次语言就会把隐藏掉的项重新放出来。
+     */
+    private fun inflateToolbarMenu() {
+        baseBind.toolbar.inflateMenu(R.menu.login_menu)
+        // 与「从邮箱恢复」同样在 lite 渠道隐藏,理由见 setupLoginPage 里那段注释。
+        baseBind.toolbar.menu.findItem(R.id.action_refresh_token_login)?.isVisible =
+            !BuildConfig.IS_LITE
     }
 
     // ── Browser picker ──
@@ -418,7 +527,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         // 进 MenuItem 的，光改 Configuration 不会刷新。清空重 inflate；setOnMenuItemClickListener
         // 挂在 Toolbar 上而不是 MenuItem 上，不需要重绑。
         baseBind.toolbar.menu.clear()
-        baseBind.toolbar.inflateMenu(R.menu.login_menu)
+        inflateToolbarMenu()
     }
 
     private fun crossFadeLanguagePageToLoginPage() {
@@ -486,9 +595,53 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
 
         setupTermsText(page.firstText)
 
+        observeRefreshTokenLogin()
+
         viewModel.isChecked.observe(viewLifecycleOwner) { page.checkboxOne.isSelected = it }
         page.checkboxOne.setOnClickListener {
             viewModel.isChecked.value = !(viewModel.isChecked.value ?: false)
+        }
+    }
+
+    private fun showRefreshTokenDialog() {
+        // 上一个还挂着就先收掉：refreshTokenDialog 只记得最后一个，被顶掉的那个
+        // 到 onDestroyView 没人 dismiss，就是一条 WindowLeaked。
+        refreshTokenDialog?.dismiss()
+        val builder = WitDialog.EditTextDialogBuilder(mContext)
+        builder.setTitle(getString(R.string.refresh_token_dialog_title))
+            .setPlaceholder(getString(R.string.refresh_token_dialog_hint))
+            .setInputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD)
+            .addAction(getString(R.string.cancel)) { dialog, _ -> dialog.dismiss() }
+            .addAction(getString(R.string.refresh_token_dialog_positive)) { dialog, _ ->
+                val token = builder.editText.text.toString().trim()
+                if (token.isNotEmpty()) {
+                    dialog.dismiss()
+                    Common.showToast(getString(R.string.trying_login), 2)
+                    viewModel.startRefreshTokenLogin(token)
+                }
+            }
+        refreshTokenDialog = builder.create()
+        refreshTokenDialog?.show()
+    }
+
+    /**
+     * 登录终局的收尾。挂 viewLifecycleOwner 只是为了不在没有 View 的时候碰 UI —— 登录本身
+     * 跑在 [LandingViewModel] 里，View 被重建也不会断，[Event] 会把结果交给新的 observer。
+     */
+    private fun observeRefreshTokenLogin() {
+        viewModel.refreshTokenLoginEvent.observeEvent(viewLifecycleOwner) { outcome ->
+            when (outcome) {
+                is RefreshTokenLoginOutcome.Failed ->
+                    Common.showToast(getString(outcome.messageRes), 3)
+
+                is RefreshTokenLoginOutcome.Succeeded -> {
+                    Common.showToast(getString(R.string.refresh_token_success_toast), 2)
+                    MoonSync.syncFromCloudOnLogin(mActivity, outcome.uid) {
+                        mActivity.finish()
+                        Common.restart()
+                    }
+                }
+            }
         }
     }
 
@@ -532,13 +685,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             Common.showToast("账号信息格式不正确，导入失败", 3)
             return
         }
-        Local.saveUser(exportUser)
-        UserEntity().apply {
-            loginTime = System.currentTimeMillis()
-            userID = exportUser.user.id
-            userGson = Shaft.sGson.toJson(Local.getUser())
-            AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(this)
-        }
+        Local.persistLoggedInUser(exportUser)
         Common.showToast("导入成功", 2)
         startActivity(Intent(mContext, MainActivity::class.java))
         mActivity.finish()

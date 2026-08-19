@@ -2281,6 +2281,15 @@
     <string name="email_backup_do_restore">Restore and sign in</string>
     <string name="email_backup_settings_entry">Back up account to email</string>
     <string name="email_backup_login_entry">Already backed up? Restore from email</string>
+    <string name="refresh_token_login_entry">Login with refresh token</string>
+    <string name="refresh_token_dialog_title">Login with refresh token</string>
+    <string name="refresh_token_dialog_hint">Paste your refresh token here</string>
+    <string name="refresh_token_dialog_positive">Login</string>
+    <string name="refresh_token_invalid_toast">Invalid or expired refresh token</string>
+    <string name="refresh_token_network_error_toast">Network error, please check your connection</string>
+    <string name="refresh_token_server_error_toast">Server error, please try again later</string>
+    <string name="refresh_token_success_toast">Login successful</string>
+    <string name="refresh_token_persist_error_toast">Failed to save account data</string>
     <string name="email_backup_bound_title">Backed up</string>
     <string name="email_backup_bound_email">Encrypted backup to %1$s</string>
     <string name="email_backup_bound_time">Backed up on %1$s</string>

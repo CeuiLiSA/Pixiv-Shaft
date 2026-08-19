@@ -2283,6 +2283,15 @@
     <string name="email_backup_do_restore">還原並登入</string>
     <string name="email_backup_settings_entry">帳號備份到電子郵件</string>
     <string name="email_backup_login_entry">已備份過？從電子郵件還原登入</string>
+    <string name="refresh_token_login_entry">使用 refresh token 登入</string>
+    <string name="refresh_token_dialog_title">使用 refresh token 登入</string>
+    <string name="refresh_token_dialog_hint">在此貼上你的 refresh token</string>
+    <string name="refresh_token_dialog_positive">登入</string>
+    <string name="refresh_token_invalid_toast">refresh token 無效或已過期</string>
+    <string name="refresh_token_network_error_toast">網路異常，請檢查連線後重試</string>
+    <string name="refresh_token_server_error_toast">伺服器異常，請稍後重試</string>
+    <string name="refresh_token_success_toast">登入成功</string>
+    <string name="refresh_token_persist_error_toast">帳戶資料儲存失敗</string>
     <string name="email_backup_bound_title">已備份</string>
     <string name="email_backup_bound_email">已加密備份到 %1$s</string>
     <string name="email_backup_bound_time">備份時間 %1$s</string>

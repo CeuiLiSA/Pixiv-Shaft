@@ -57,6 +57,21 @@ object PixivLogin {
         }
     }
 
+    /**
+     * 用 refresh_token 直接换一次登录态，返回原始 [PixivOAuthResult]。挂起版，协程取消时
+     * 底层请求一起取消。
+     *
+     * 与 [refreshTokenBlocking] 的分工：那个是「已登录会话续期」，只要 token 三件套；
+     * 这个是「拿一串 refresh_token 当账号密码登录」，需要 [PixivOAuthResult.Success.rawBody]
+     * 里的完整 user 字段落库，也需要按失败子类型分流文案，所以不吞成异常。
+     *
+     * **登录必须走这条链路，不能走 [ceui.lisa.http.Retro] 的 AccountTokenApi**：那个客户端挂了
+     * [ceui.lisa.http.TokenInterceptor]，token 无效时 pixiv 回 400 "Invalid refresh token"，
+     * 拦截器会当成「当前会话过期」直接 logout + 重启 App。
+     */
+    suspend fun refreshTokenForLogin(refreshToken: String): PixivOAuthResult =
+        client.refreshTokenSuspend(refreshToken)
+
     private fun buildClient(): PixivOAuthClient {
         // OAuth 登录/刷新是 app-api 同一套超时（收敛到 AppApiTimeouts）；
         // 开启 PxveAPI 代理时改写后的 oauth 请求也走本 client，同样生效。

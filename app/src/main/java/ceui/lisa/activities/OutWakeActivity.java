@@ -10,8 +10,6 @@ import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.models.UserModel;
@@ -242,16 +240,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                     Common.showLog(userModel.toString());
                                     Common.showToast("登录成功");
 
-                                    userModel.getUser().setIs_login(true);
-                                    Local.saveUser(userModel);
-                                    SessionManager.INSTANCE.updateSession(userModel);
-
-                                    UserEntity userEntity = new UserEntity();
-                                    userEntity.setLoginTime(System.currentTimeMillis());
-                                    userEntity.setUserID(userModel.getUser().getId());
-                                    userEntity.setUserGson(Shaft.sGson.toJson(Local.getUser()));
-
-                                    AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
+                                    Local.persistLoggedInUser(userModel);
 
                                     final UserModel loggedInUser = userModel;
                                     final Runnable proceedAfterMoonSync = () -> {

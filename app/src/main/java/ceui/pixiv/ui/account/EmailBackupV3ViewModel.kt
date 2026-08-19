@@ -4,9 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ceui.lisa.activities.Shaft
-import ceui.lisa.database.AppDatabase
-import ceui.lisa.database.UserEntity
 import ceui.lisa.models.UserModel
 import ceui.lisa.utils.Local
 import ceui.loxia.AccountResponse
@@ -228,7 +225,9 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
     private suspend fun doRestore(st: UiState) {
         val resp = Client.pixshaft.restoreConfirm(RestoreConfirmReq(st.email, st.code))
         val account = resp.account
-        if (account?.access_token == null) {
+        // user 也要有：AccountResponse.user 是可空的，缺了就落不成一个能用的登录态，
+        // 得在这里报错，而不是让 persistLogin 静默跳过、最后重启到一个未登录的主界面。
+        if (account?.access_token == null || account.user == null) {
             showError("备份数据异常，无法恢复")
             return
         }
@@ -248,18 +247,10 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
      */
     private fun persistLogin(account: AccountResponse) {
         val userModel = gson.fromJson(gson.toJson(account), UserModel::class.java)
-        userModel.user?.setIs_login(true)
-        Local.saveUser(userModel)
-        // postUpdateSession (postValue), NOT updateSession (setValue): we run on
+        // saveUser internally calls postUpdateSession (postValue): we run on
         // Dispatchers.IO and setValue off the main thread would throw. It writes
         // MMKV synchronously first, so the upcoming Common.restart() reads it back.
-        SessionManager.postUpdateSession(userModel)
-        val entity = UserEntity().apply {
-            loginTime = System.currentTimeMillis()
-            userID = userModel.user?.id ?: 0
-            userGson = Shaft.sGson.toJson(Local.getUser())
-        }
-        AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertUser(entity)
+        Local.persistLoggedInUser(userModel)
     }
 
     private fun onCodeSent(email: String) {
