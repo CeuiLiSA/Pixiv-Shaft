@@ -169,6 +169,8 @@
     <string name="search_popular_default_desc">On: searches default to popularity and fall back to the popularity preview once your quota runs out. Off: default to newest first and pick popularity in the filter only when you need it, so quota is not spent by default</string>
     <string name="search_exit_confirm">Confirm before leaving search results</string>
     <string name="search_exit_confirm_desc">When enabled, you need to press back twice within 2 seconds to leave the search results page, preventing accidental exits</string>
+    <string name="feed_back_to_top_fab">“Back to top” button on search results / artist pages</string>
+    <string name="feed_back_to_top_fab_desc">Shows a floating button at the bottom-right of search result and artist page lists: tap to scroll to top, long-press to scroll to top and refresh; hides while scrolling</string>
     <string name="novel_filter_section">Novel list auto-filter</string>
     <string name="novel_filter_min_text_length">Minimum novel length</string>
     <string name="novel_filter_min_text_length_desc">Hide novels shorter than this from novel lists. 0 disables.</string>

@@ -30,6 +30,7 @@ import ceui.lisa.utils.PixivOperate
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
+import ceui.pixiv.widgets.FeedBackToTopFab
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.lisa.viewmodel.UserViewModel
@@ -211,6 +212,9 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             }
         })
 
+        // 列表右下角「回顶」悬浮钮(issue #1040,设置里默认关):在建 pager 之前装,各 tab 的
+        // feeds 列表(含收藏 tab 嵌套的子列表)建好视图时自动挂上;回顶时连带展开折叠头
+        FeedBackToTopFab.installForHost(this, baseBind.appBar)
         setupViewPager()
         setupRefresh()
     }

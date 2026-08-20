@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  列表右下角「回顶」悬浮钮(issue #1040),由 FeedBackToTopFab 在运行时塞进 FeedFragment 的
+  feed_root(FrameLayout)里,layout_gravity / margin 在这里给。颜色只是深色默认值,
+  挂上去时按 V3Palette 重刷(同 view_v3_fab_bar 的做法);底距由 FeedBackToTopFab 按
+  导航栏 inset 动态补。
+-->
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/feed_back_to_top_fab"
+    android:layout_width="44dp"
+    android:layout_height="44dp"
+    android:layout_gravity="bottom|end"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="16dp"
+    android:background="@drawable/bg_v3_fab_bar"
+    android:contentDescription="@string/feed_back_to_top_fab"
+    android:elevation="12dp"
+    android:foreground="?attr/selectableItemBackgroundBorderless"
+    android:padding="8dp"
+    android:scaleType="fitCenter"
+    android:src="@drawable/ic_keyboard_arrow_up_black_24dp"
+    app:tint="@color/white" />

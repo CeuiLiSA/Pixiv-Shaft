@@ -169,6 +169,8 @@
     <string name="search_popular_default_desc">Açık: aramalar varsayılan olarak popülerliğe göre sıralanır; kota bitince popülerlik önizlemesine düşer. Kapalı: varsayılan en yeniden başlar; popülerliği yalnızca gerektiğinde filtreden seçin, böylece kota kendiliğinden harcanmaz</string>
     <string name="search_exit_confirm">Arama sonuçlarından çıkarken onay iste</string>
     <string name="search_exit_confirm_desc">Etkinleştirildiğinde, arama sonuçları sayfasından çıkmak için 2 saniye içinde iki kez geri tuşuna basmanız gerekir; yanlışlıkla çıkış önlenir</string>
+    <string name="feed_back_to_top_fab">Arama sonuçları / sanatçı sayfalarında “Başa dön” düğmesi</string>
+    <string name="feed_back_to_top_fab_desc">Etkinleştirildiğinde arama sonuçları ve sanatçı sayfası listelerinin sağ alt köşesinde kayan bir düğme gösterilir: dokununca başa döner, basılı tutunca başa dönüp yeniler; kaydırırken otomatik gizlenir</string>
     <string name="novel_filter_section">Roman listesi otomatik filtresi</string>
     <string name="novel_filter_min_text_length">En az roman uzunluğu</string>
     <string name="novel_filter_min_text_length_desc">Bu karakter sayısından kısa romanları roman listelerinde gizler. 0 kapatır.</string>

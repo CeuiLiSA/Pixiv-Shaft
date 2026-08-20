@@ -169,6 +169,8 @@
     <string name="search_popular_default_desc">켬: 검색이 기본으로 인기순이며, 한도를 다 쓰면 인기 미리보기로 자동 전환됩니다. 끔: 기본은 최신순이며 필요할 때만 필터에서 인기순을 선택하므로 평소에는 한도를 쓰지 않습니다</string>
     <string name="search_exit_confirm">검색 결과 종료 확인</string>
     <string name="search_exit_confirm_desc">켜면 검색 결과 페이지에서 2초 안에 뒤로 가기를 두 번 눌러야 나가지며, 실수로 나가는 것을 방지합니다</string>
+    <string name="feed_back_to_top_fab">검색 결과 / 작가 페이지 「맨 위로」 버튼</string>
+    <string name="feed_back_to_top_fab_desc">켜면 검색 결과와 작가 페이지 목록 오른쪽 아래에 플로팅 버튼을 표시합니다. 탭하면 맨 위로, 길게 누르면 맨 위로 이동 후 새로고침하며, 스크롤 중에는 자동으로 숨겨집니다</string>
     <string name="novel_filter_section">소설 목록 자동 차단</string>
     <string name="novel_filter_min_text_length">소설 본문 글자 수 하한</string>
     <string name="novel_filter_min_text_length_desc">본문이 이 글자 수보다 짧은 소설을 소설 목록에서 숨깁니다. 0이면 사용 안 함.</string>

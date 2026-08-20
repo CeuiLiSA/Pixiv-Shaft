@@ -375,6 +375,28 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/feed_back_to_top_fab_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/feed_back_to_top_fab" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/feed_back_to_top_fab_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/feed_back_to_top_fab"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/delete_star_illust_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_bottom">

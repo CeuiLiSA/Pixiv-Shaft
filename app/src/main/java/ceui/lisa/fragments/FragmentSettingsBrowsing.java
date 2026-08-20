@@ -246,6 +246,19 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         baseBind.searchExitConfirmRela.setOnClickListener(v ->
                 baseBind.searchExitConfirm.performClick());
 
+        // 搜索结果页 / 画师主页列表右下角「回顶」悬浮钮（issue #1040），默认关闭
+        baseBind.feedBackToTopFab.setChecked(Shaft.sSettings.isFeedBackToTopFab());
+        baseBind.feedBackToTopFab.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setFeedBackToTopFab(isChecked);
+                Common.showToast(getString(R.string.string_428), 2);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.feedBackToTopFabRela.setOnClickListener(v ->
+                baseBind.feedBackToTopFab.performClick());
+
         // 同义词词典功能总开关（issue #904），默认关闭。
         // 关闭时所有相关 UI（详情页匹配框/长按菜单项/管理页入口/自动导入/自动勾选）完全隐藏。
         baseBind.synonymDictEnable.setChecked(Shaft.sSettings.isSynonymDictEnabled());

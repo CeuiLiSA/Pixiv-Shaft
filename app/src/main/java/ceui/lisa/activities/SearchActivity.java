@@ -47,6 +47,7 @@ import ceui.loxia.ObjectType;
 import ceui.pixiv.ui.search.SearchHintViewModel;
 import ceui.pixiv.ui.search.v3.SearchFilterV3BottomSheet;
 import ceui.pixiv.ui.search.v3.SearchFilterV3LegacyBridge;
+import ceui.pixiv.widgets.FeedBackToTopFab;
 import io.reactivex.schedulers.Schedulers;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
@@ -117,6 +118,9 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
     @Override
     protected void initView() {
+        // 列表右下角「回顶」悬浮钮（issue #1040，设置里默认关）：在建 pager 之前装，
+        // 三个 tab 的 feeds 列表建好视图时自动挂上
+        FeedBackToTopFab.installForHost(this, baseBind.appBar);
         final String[] TITLES = new String[]{
                 getString(R.string.string_136),
                 getString(R.string.string_138),

@@ -296,6 +296,8 @@ public class Settings {
 
     private boolean searchExitConfirm = false; // 搜索结果页退出二次确认（issue #939），默认关闭
 
+    private boolean feedBackToTopFab = false; // 搜索结果页 / 画师主页列表右下角「回顶」悬浮钮（issue #1040），默认关闭
+
     private String navigationInitPosition = NavigationLocationHelper.TUIJIAN; // 主页底部导航栏初始化位置
 
 //    private boolean isDownloadOnlyUseWiFi = false; // 仅通过 Wifi 下载
@@ -954,6 +956,14 @@ public class Settings {
 
     public void setSearchExitConfirm(boolean searchExitConfirm) {
         this.searchExitConfirm = searchExitConfirm;
+    }
+
+    public boolean isFeedBackToTopFab() {
+        return feedBackToTopFab;
+    }
+
+    public void setFeedBackToTopFab(boolean feedBackToTopFab) {
+        this.feedBackToTopFab = feedBackToTopFab;
     }
 
     public int getSaveForSeparateAuthorStatus() {

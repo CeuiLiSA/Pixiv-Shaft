@@ -169,6 +169,8 @@
     <string name="search_popular_default_desc">オン：検索は既定で人気順。枠を使い切ると人気プレビューに自動で切り替わります。オフ：既定は新しい順。必要なときだけフィルターで人気順を選べば、普段は枠を消費しません</string>
     <string name="search_exit_confirm">検索結果ページの終了確認</string>
     <string name="search_exit_confirm_desc">オンにすると、検索結果ページでは2秒以内に戻る操作を2回しないと退出せず、誤操作を防ぎます</string>
+    <string name="feed_back_to_top_fab">検索結果・ユーザーページの「トップへ戻る」ボタン</string>
+    <string name="feed_back_to_top_fab_desc">オンにすると、検索結果とユーザーページのリスト右下にフローティングボタンを表示します。タップでトップへ、長押しでトップへ戻って更新。スクロール中は自動的に隠れます</string>
     <string name="novel_filter_section">小説リストの自動非表示</string>
     <string name="novel_filter_min_text_length">小説本文の文字数の下限</string>
     <string name="novel_filter_min_text_length_desc">本文がこの文字数より短い小説を小説リストに表示しません。0 で無効。</string>
