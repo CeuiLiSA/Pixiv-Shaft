@@ -83,6 +83,9 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
     private var _binding: DialogSearchFilterV3Binding? = null
     private val binding get() = _binding!!
 
+    /** bookmark picker 打开那一刻的档位快照——回调解 idx 用，防 options 中途到达造成错位。 */
+    private var bookmarkPresetsShown: List<BookmarkRangeSpec>? = null
+
     // 静态可枚举的 picker 候选；动态的（tool/genre/lang）由 VM.searchOptions 派生。
     //
     // 男性向 / 女性向人气两档是 pixiv 官方插画/漫画专属 + 仅 Premium 用户可用的排序
@@ -101,7 +104,6 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
                 add(SortType.POPULAR_FEMALE_DESC)
             }
         }
-    private val bookmarkList = BookmarkBucket.values().toList()
     private val keywordUsersList = KeywordUsersBucket.values().toList()
     // 长宽比候选；index 0 = "所有纵横比"（null），1.. = RatioPattern.values()[idx-1]
     private val ratioList = RatioPattern.values().toList()
@@ -215,7 +217,27 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         }
         fm.setFragmentResultListener(REQUEST_BOOKMARK, lifecycleOwner) { _, bundle ->
             val idx = bundle.getInt(SimplePickerSheet.KEY_IDX)
-            bookmarkList.getOrNull(idx)?.let { b -> updateFilter { it.copy(bookmarkBucket = b) } }
+            // labels 布局：0 = 不限；1..presets.size = 区间档；末位 = 指定点赞数（自定义输入）。
+            // 必须用 picker 打开那一刻的快照解 idx：/v1/search/options 可能在 picker 存续期间
+            // 才返回，现读会让「静态兜底档渲染、服务端档解码」错位（选 A 设成 B）。
+            // 快照只在 config change 后丢失，那时回落现读——窗口极小且档位通常一致。
+            val presets = bookmarkPresetsShown ?: bookmarkPresets()
+            when {
+                idx == 0 -> updateFilter { it.copy(bookmarkRange = null) }
+                idx <= presets.size -> presets.getOrNull(idx - 1)?.let { spec ->
+                    updateFilter { it.copy(bookmarkRange = spec) }
+                }
+                else -> showBookmarkCustomInput()
+            }
+        }
+        fm.setFragmentResultListener(REQUEST_BOOKMARK_CUSTOM, lifecycleOwner) { _, bundle ->
+            @Suppress("DEPRECATION")
+            val patch = bundle.getSerializable(NumberRangeInputSheet.KEY_PATCH)
+                as? NumberRangeInputSheet.Patch ?: return@setFragmentResultListener
+            updateFilter {
+                it.copy(bookmarkRange = if (patch.min == null && patch.max == null) null
+                    else BookmarkRangeSpec(patch.min, patch.max))
+            }
         }
         fm.setFragmentResultListener(REQUEST_KEYWORD_BOOKMARK, lifecycleOwner) { _, bundle ->
             val idx = bundle.getInt(SimplePickerSheet.KEY_IDX)
@@ -346,7 +368,7 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
                 contentTypeLabel(filter.contentType))
         }
         bindRow(binding.rowDuration, R.string.search_filter_v3_row_duration, durationSummary(filter))
-        bindRow(binding.rowBookmark, R.string.search_filter_v3_row_bookmark, bookmarkLabel(filter.bookmarkBucket))
+        bindRow(binding.rowBookmark, R.string.search_filter_v3_row_bookmark, bookmarkSummary(filter))
         bindRow(
             binding.rowKeywordBookmark,
             R.string.search_filter_v3_row_keyword_bookmark,
@@ -403,9 +425,28 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         SearchTarget.NovelKeyword        -> R.string.search_filter_v3_target_novel_keyword
     })
 
-    private fun bookmarkLabel(bucket: BookmarkBucket): String =
-        if (bucket == BookmarkBucket.None) getString(R.string.search_filter_v3_bookmark_unlimited_summary)
-        else getString(R.string.search_filter_v3_bookmark_min, bucket.min)
+    /**
+     * 收藏量区间候选档。优先用 /v1/search/options 下发的 `bookmark_ranges`（illust/novel 各一份，
+     * 官方 iOS 同源；`"*"/"*"` 的「不限」项拆出去当 picker 固定第 0 行）；还没拉到就用静态兜底。
+     */
+    private fun bookmarkPresets(): List<BookmarkRangeSpec> {
+        val resp = searchViewModel.searchOptions.value
+        val ranges = (if (isNovel) resp?.novel?.bookmarkRanges else resp?.illust?.bookmarkRanges)
+            .orEmpty()
+            .mapNotNull { it.toSpec() }
+        return ranges.ifEmpty { BookmarkRangeSpec.DEFAULT_PRESETS }
+    }
+
+    private fun bookmarkRangeLabel(spec: BookmarkRangeSpec): String = when {
+        spec.min != null && spec.max != null -> "${spec.min} ~ ${spec.max}"
+        spec.min != null -> getString(R.string.search_filter_v3_bookmark_min, spec.min)
+        spec.max != null -> "~ ${spec.max}"
+        else -> getString(R.string.search_filter_v3_bookmark_unlimited_summary)
+    }
+
+    private fun bookmarkSummary(filter: SearchFilterV3): String =
+        filter.bookmarkRange?.let(::bookmarkRangeLabel)
+            ?: getString(R.string.search_filter_v3_bookmark_unlimited_summary)
 
     private fun keywordBookmarkLabel(bucket: KeywordUsersBucket): String =
         if (bucket == KeywordUsersBucket.None) getString(R.string.search_filter_v3_keyword_bookmark_off_summary)
@@ -587,12 +628,33 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
     }
 
     private fun showBookmarkPicker() {
+        val presets = bookmarkPresets().also { bookmarkPresetsShown = it }
+        val labels = listOf(getString(R.string.search_filter_v3_bookmark_unlimited_summary)) +
+            presets.map(::bookmarkRangeLabel) +
+            getString(R.string.search_filter_v3_bookmark_custom)
+        val cur = currentFilter().bookmarkRange
+        // 命中不到任何预设档的非空区间只能来自「指定点赞数」→ 高亮末位自定义行
+        val selected = when {
+            cur == null -> 0
+            else -> presets.indexOf(cur).let { if (it >= 0) it + 1 else labels.lastIndex }
+        }
         showSimplePicker(
             REQUEST_BOOKMARK,
             getString(R.string.search_filter_v3_row_bookmark),
-            bookmarkList.map(::bookmarkLabel),
-            bookmarkList.indexOf(currentFilter().bookmarkBucket).coerceAtLeast(0),
+            labels,
+            selected,
         )
+    }
+
+    private fun showBookmarkCustomInput() {
+        val cur = currentFilter().bookmarkRange
+        NumberRangeInputSheet.newInstance(
+            REQUEST_BOOKMARK_CUSTOM,
+            getString(R.string.search_filter_v3_bookmark_custom),
+            "",   // 点赞数没有单位后缀
+            cur?.min,
+            cur?.max,
+        ).show(childFragmentManager, REQUEST_BOOKMARK_CUSTOM)
     }
 
     private fun showKeywordBookmarkPicker() {
@@ -823,6 +885,7 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         private const val REQUEST_TARGET   = "v3_filter_target"
         private const val REQUEST_SORT     = "v3_filter_sort"
         private const val REQUEST_BOOKMARK = "v3_filter_bookmark"
+        private const val REQUEST_BOOKMARK_CUSTOM = "v3_filter_bookmark_custom"
         private const val REQUEST_KEYWORD_BOOKMARK = "v3_filter_keyword_bookmark"
         private const val REQUEST_GENRE    = "v3_filter_genre"
         private const val REQUEST_LANG     = "v3_filter_lang"

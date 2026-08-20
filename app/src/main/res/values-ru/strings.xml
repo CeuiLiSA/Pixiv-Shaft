@@ -1798,6 +1798,7 @@
     <string name="search_filter_v3_target_novel_text">Текст</string>
     <string name="search_filter_v3_target_novel_keyword">Ключевое слово</string>
     <string name="search_filter_v3_bookmark_min">%d+</string>
+    <string name="search_filter_v3_bookmark_custom">Указать количество</string>
     <string name="search_filter_v3_duration_all">Любое время</string>
     <string name="search_filter_v3_duration_24h">За 24 часа</string>
     <string name="search_filter_v3_duration_week">За неделю</string>

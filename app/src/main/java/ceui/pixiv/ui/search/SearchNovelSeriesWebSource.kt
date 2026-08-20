@@ -72,6 +72,7 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
             startDate = params.startDate,
             endDate = params.endDate,
             bookmarkMin = params.bookmarkMin,
+            bookmarkMax = params.bookmarkMax,
             textLengthMin = params.textLengthMin,
             textLengthMax = params.textLengthMax,
             wordCountMin = params.wordCountMin,
@@ -189,6 +190,7 @@ internal data class WebNovelSearchParams(
     val startDate: String?,
     val endDate: String?,
     val bookmarkMin: Int?,
+    val bookmarkMax: Int?,
     val textLengthMin: Int?,
     val textLengthMax: Int?,
     val wordCountMin: Int?,
@@ -212,7 +214,7 @@ internal data class WebNovelSearchParams(
  * | sort=date_desc         | order=date_d    | popular_desc/popular_preview/机内热度 一律 popular_d |
  * | search_target          | s_mode          | 小说侧 `s_tc` 是**正文**，标签+标题合并是 `s_tag` |
  * | start_date / end_date  | scd / ecd       | 相对档位同样当场算 today−N |
- * | bookmark_num_min       | blt             | |
+ * | bookmark_num_min/max   | blt / bgt       | |
  * | text_length_* 等 3 组   | tlt/tgt·wlt/wgt·rlt/rgt | |
  * | lang                   | work_lang       | |
  * | search_ai_type=1       | ai_type=1       | 同义（实测 aiType==2 被剔除） |
@@ -246,8 +248,9 @@ internal fun buildWebNovelSearchParams(
     keywordSnapshot: String = searchModel.keyword.value.orEmpty(),
 ): WebNovelSearchParams {
     val bookmarkMin = searchModel.bookmarkMin.value?.takeIf { it > 0 }
+    val bookmarkMax = searchModel.bookmarkMax.value?.takeIf { it > 0 }
     // 与 app-api 路径同一条规则：走了官方 bookmark 参数就不再拼关键字后缀，避免双重收紧。
-    val suffix = if (bookmarkMin != null) "" else searchModel.starSize.value.orEmpty()
+    val suffix = if (bookmarkMin != null || bookmarkMax != null) "" else searchModel.starSize.value.orEmpty()
     val keyword = (keywordSnapshot + " " + suffix).trim()
 
     val (startDate, endDate) = resolveDateRange(searchModel)
@@ -282,6 +285,7 @@ internal fun buildWebNovelSearchParams(
         startDate = startDate,
         endDate = endDate,
         bookmarkMin = bookmarkMin,
+        bookmarkMax = bookmarkMax,
         textLengthMin = searchModel.textLengthMin.value,
         textLengthMax = searchModel.textLengthMax.value,
         wordCountMin = searchModel.wordCountMin.value,

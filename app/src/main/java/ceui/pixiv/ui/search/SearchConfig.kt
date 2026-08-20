@@ -13,6 +13,7 @@ data class SearchConfig(
 
     // V3 Filter — 全部走 pixiv 官方原生 query 参数，不再依赖 keyword hack。
     val bookmarkMin: Int? = null,
+    val bookmarkMax: Int? = null,
     val tool: String? = null,        // illust only
     val genre: Int? = null,          // novel only
     val lang: String? = null,

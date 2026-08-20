@@ -106,6 +106,18 @@ class WebNovelSearchParamsTest {
         assertEquals("原神", official.keyword)
         assertEquals(500, official.bookmarkMin)
 
+        // 只设了区间上限（「指定点赞数」只填 max）也算走官方参数，同样不再拼后缀
+        val maxOnly = buildWebNovelSearchParams(
+            model {
+                starSize.value = "1000users入り"
+                bookmarkMax.value = 999
+            },
+            excludeAi = false,
+        )
+        assertEquals("原神", maxOnly.keyword)
+        assertNull(maxOnly.bookmarkMin)
+        assertEquals(999, maxOnly.bookmarkMax)
+
         // bookmarkMin = 0 等于没设，参数不发
         assertNull(buildWebNovelSearchParams(model { bookmarkMin.value = 0 }, excludeAi = false).bookmarkMin)
     }

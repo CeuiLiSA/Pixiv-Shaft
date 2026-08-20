@@ -143,7 +143,7 @@ interface PixivWebApi {
      *
      * 参数名与 app-api 那套完全不同（对照见 [ceui.pixiv.ui.search.SearchNovelSeriesWebSource]）：
      * `s_mode` 小说侧的 `s_tc` 是**正文**（不是插画的标题简介），`scd/ecd` 是投稿期间，
-     * `blt` 是收藏数下限，`tlt/tgt`·`wlt/wgt`·`rlt/rgt` 分别是字数 / 单词数 / 阅读用时区间。
+     * `blt`/`bgt` 是收藏数下限/上限，`tlt/tgt`·`wlt/wgt`·`rlt/rgt` 分别是字数 / 单词数 / 阅读用时区间。
      *
      * 匿名（无网页 cookie）也能调通，但两处会降级：R-18 结果拿不到；`order=popular_d` 被服务端
      * 静默忽略（网页热门排序是会员专属，app 那条借号的路子在这里用不上——借来的是 app-api
@@ -161,6 +161,7 @@ interface PixivWebApi {
         @Query("scd") startDate: String? = null,
         @Query("ecd") endDate: String? = null,
         @Query("blt") bookmarkMin: Int? = null,
+        @Query("bgt") bookmarkMax: Int? = null,
         @Query("tlt") textLengthMin: Int? = null,
         @Query("tgt") textLengthMax: Int? = null,
         @Query("wlt") wordCountMin: Int? = null,

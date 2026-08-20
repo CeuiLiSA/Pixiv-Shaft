@@ -9,10 +9,11 @@ import ceui.pixiv.ui.search.SortType
  * 涵盖维度：
  *   1. sort                  — 排序（会员多两档男/女性向人气）
  *   2. searchTarget          — 匹配方式（illust 3 项 / novel 4 项）
- *   3. bookmarkBucket        — 收藏量起步值，走官方 `bookmark_num_min` query 参数
- *                              （popular 排序需要 premium 才生效）
+ *   3. bookmarkRange         — 收藏量区间（官方 iOS 同款：/v1/search/options 的 bookmark_ranges
+ *                              下发候选档），走官方 `bookmark_num_min` / `bookmark_num_max`
+ *                              query 参数（popular 排序需要 premium 才生效）
  *   4. keywordUsersBucket    — 旧版「Xusers入り」标签 hack：把档位作为关键字后缀拼到 query 里。
- *                              对非会员有效；与 bookmarkBucket 共存（独立维度，互不屏蔽）。
+ *                              对非会员有效；与 bookmarkRange 共存（独立维度，互不屏蔽）。
  *   5. tool                  — 绘画工具（仅 illust，从 /v1/search/options 拉）
  *   6. genre                 — 小说类型（仅 novel）
  *   7. lang                  — 语种
@@ -38,7 +39,7 @@ import ceui.pixiv.ui.search.SortType
 data class SearchFilterV3(
     val sort: String = SortType.POPULAR_DESC,
     val searchTarget: SearchTarget = SearchTarget.PartialMatchForTags,
-    val bookmarkBucket: BookmarkBucket = BookmarkBucket.None,
+    val bookmarkRange: BookmarkRangeSpec? = null,
     val keywordUsersBucket: KeywordUsersBucket = KeywordUsersBucket.None,
     val tool: String? = null,
     val genre: Int? = null,
@@ -73,7 +74,7 @@ data class SearchFilterV3(
          *   - sort：`getSearchDefaultSortType()`（默认 popular_desc「按热度」）
          *   - keywordUsersBucket：`getSearchFilter()`（"" / "1000users入り" 之类）—— 这条设置
          *     从老 FragmentFilter 起就是关键字后缀语义，所以落到 keyword 维度，不是 bookmark
-         *     query 维度。bookmarkBucket 维度走 query 参数，没有全局默认。
+         *     query 维度。bookmarkRange 维度走 query 参数，没有全局默认。
          *   - aiMode：`isDeleteAIIllust` → ExcludeAi / All（OnlyAi 是临时维度，不来自 settings）
          *
          * 用户的「activeCount」基线也跟着跑——例如全局已开 AI 屏蔽，sheet 打开「其他条件」
@@ -101,7 +102,7 @@ data class SearchFilterV3(
         var n = 0
         if (sort != SortType.POPULAR_DESC) n++
         if (searchTarget != SearchTarget.PartialMatchForTags) n++
-        if (bookmarkBucket != BookmarkBucket.None) n++
+        if (bookmarkRange != null) n++
         if (keywordUsersBucket != KeywordUsersBucket.None) n++
         if (!isNovel && tool != null) n++
         if (isNovel && genre != null) n++
@@ -156,30 +157,31 @@ enum class SearchTarget(val apiValue: String) {
 }
 
 /**
- * 收藏量预设——走官方 `bookmark_num_min` API 参数。会员 + popular 排序时服务端按此过滤；
- * 非会员当前 endpoint（popular-preview）忽略该参数，所以非会员请用 [KeywordUsersBucket]。
+ * 收藏量区间——走官方 `bookmark_num_min` / `bookmark_num_max` API 参数，与官方 iOS「喜欢！数」
+ * picker 同语义（闭区间；候选档由 /v1/search/options 的 `bookmark_ranges` 服务端下发）。
+ * min/max 任一为 null 表示该端不限；「所有点赞数」= 整个字段为 null。
+ * 会员 + popular 排序时服务端按此过滤；非会员当前 endpoint（popular-preview）忽略这组参数，
+ * 由 FilterMapper 客户端兜底（或改用 [KeywordUsersBucket]）。
  */
-enum class BookmarkBucket(val min: Int) {
-    None(0),
-    B100(100),
-    B500(500),
-    B1000(1000),
-    B2000(2000),
-    B5000(5000),
-    B7500(7500),
-    B10000(10000),
-    B20000(20000),
-    B30000(30000),
-    B50000(50000),
-    B100000(100000);
-
-    fun bookmarkMin(): Int? = if (min > 0) min else null
+data class BookmarkRangeSpec(val min: Int?, val max: Int?) {
+    companion object {
+        /** /v1/search/options 没拉到时的静态兜底档——iOS 8.7.3 抓包的服务端下发值（去掉「不限」项）。 */
+        val DEFAULT_PRESETS = listOf(
+            BookmarkRangeSpec(1000, null),
+            BookmarkRangeSpec(500, 999),
+            BookmarkRangeSpec(300, 499),
+            BookmarkRangeSpec(100, 299),
+            BookmarkRangeSpec(50, 99),
+            BookmarkRangeSpec(30, 49),
+            BookmarkRangeSpec(10, 29),
+        )
+    }
 }
 
 /**
  * 旧版「Xusers入り」标签 hack：把档位作为关键字后缀（如 `1000users入り`）拼到 query 里，
  * 命中 pixiv 自动打的桶标签——非会员也能用，对齐旧 [ceui.lisa.fragments.FragmentFilter]
- * 的 `ALL_SIZE_VALUE`。与 [BookmarkBucket] 独立，可同时设置。
+ * 的 `ALL_SIZE_VALUE`。与 [BookmarkRangeSpec] 独立，可同时设置。
  */
 enum class KeywordUsersBucket(val min: Int) {
     None(0),

@@ -1800,6 +1800,7 @@
     <string name="search_filter_v3_target_novel_text">內文</string>
     <string name="search_filter_v3_target_novel_keyword">關鍵字</string>
     <string name="search_filter_v3_bookmark_min">%d+</string>
+    <string name="search_filter_v3_bookmark_custom">指定讚數</string>
     <string name="search_filter_v3_duration_all">不限</string>
     <string name="search_filter_v3_duration_24h">24 小時內</string>
     <string name="search_filter_v3_duration_week">一週內</string>

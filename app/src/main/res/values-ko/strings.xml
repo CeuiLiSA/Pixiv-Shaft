@@ -1798,6 +1798,7 @@
     <string name="search_filter_v3_target_novel_text">본문</string>
     <string name="search_filter_v3_target_novel_keyword">키워드</string>
     <string name="search_filter_v3_bookmark_min">%d+</string>
+    <string name="search_filter_v3_bookmark_custom">좋아요 수 지정</string>
     <string name="search_filter_v3_duration_all">제한 없음</string>
     <string name="search_filter_v3_duration_24h">24시간 이내</string>
     <string name="search_filter_v3_duration_week">1주일 이내</string>

@@ -623,14 +623,16 @@ public class PixivOperate {
     }
 
     //筛选作品，只留下收藏数达到标准的作品
-    public static List<IllustsBean> getListWithStarSize(ListIllust response, int starSize) {
+    /** starSizeMax <= 0 表示上限不限（收藏量区间筛选只设了下限，或只有 users入り 关键字桶）。 */
+    public static List<IllustsBean> getListWithStarSize(ListIllust response, int starSize, int starSizeMax) {
         List<IllustsBean> result = new ArrayList<>();
         if (response == null || response.getList() == null || response.getList().size() == 0) {
             return result;
         }
 
         for (IllustsBean illustsBean : response.getList()) {
-            if (illustsBean.getTotal_bookmarks() >= starSize) {
+            int stars = illustsBean.getTotal_bookmarks();
+            if (stars >= starSize && (starSizeMax <= 0 || stars <= starSizeMax)) {
                 result.add(illustsBean);
             }
         }

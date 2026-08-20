@@ -1798,6 +1798,7 @@
     <string name="search_filter_v3_target_novel_text">本文</string>
     <string name="search_filter_v3_target_novel_keyword">キーワード</string>
     <string name="search_filter_v3_bookmark_min">%d+</string>
+    <string name="search_filter_v3_bookmark_custom">いいね！数を指定</string>
     <string name="search_filter_v3_duration_all">指定なし</string>
     <string name="search_filter_v3_duration_24h">24 時間以内</string>
     <string name="search_filter_v3_duration_week">1 週間以内</string>

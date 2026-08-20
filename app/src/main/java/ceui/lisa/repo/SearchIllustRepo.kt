@@ -33,6 +33,7 @@ class SearchIllustRepo @JvmOverloads constructor(
     // V3 filter 字段——legacy FragmentFilter 没用过；V3 sheet 经
     // SearchFilterV3LegacyBridge 写到 SearchModel，再透到 retrofit。
     private var bookmarkMin: Int? = null,
+    private var bookmarkMax: Int? = null,
     private var tool: String? = null,
     private var lang: String? = null,
     private var searchAiType: Int? = null,
@@ -73,10 +74,10 @@ class SearchIllustRepo @JvmOverloads constructor(
         // 不再寄生在这里——原来只有插画 tab 触发，小说/作者 tab 漏写。
 
         // 收藏量两条桶并存：
-        //  - bookmarkMin 走官方 `bookmark_num_min` query 参数（仅会员 popular 生效）
+        //  - bookmarkMin/Max 走官方 `bookmark_num_min/max` query 参数（仅会员 popular 生效）
         //  - starSize（"Xusers入り"）作为关键字后缀拼到 query 里（对非会员有效，命中 pixiv
         //    自动桶标签）
-        // 两者来自 V3 sheet 的两个独立维度（bookmarkBucket / keywordUsersBucket），用户可同时设置。
+        // 两者来自 V3 sheet 的两个独立维度（bookmarkRange / keywordUsersBucket），用户可同时设置。
         val keywordSuffix = if (TextUtils.isEmpty(starSize)) "" else " $starSize"
         // R18 三档不再拼 -R-18 / R-18 关键字（hack 匹配字面标签会让全年龄/R 混在一起）；
         // 改由 FilterMapper.setSearchR18Restriction 按真实 x_restrict 客户端过滤（见 update()）。
@@ -139,6 +140,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 effectiveEndDate,
                 effectiveSearchTarget,
                 bookmarkMin,
+                bookmarkMax,
                 tool,
                 lang,
                 searchAiType,
@@ -176,6 +178,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 effectiveEndDate,
                 effectiveSearchTarget,
                 bookmarkMin,
+                bookmarkMax,
                 tool,
                 lang,
                 searchAiType,
@@ -228,6 +231,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                                 effectiveEndDate,
                                 effectiveSearchTarget,
                                 bookmarkMin,
+                                bookmarkMax,
                                 tool,
                                 lang,
                                 searchAiType,
@@ -264,6 +268,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 effectiveEndDate,
                 effectiveSearchTarget,
                 bookmarkMin,
+                bookmarkMax,
                 tool,
                 lang,
                 searchAiType,
@@ -383,6 +388,7 @@ class SearchIllustRepo @JvmOverloads constructor(
         endDate = searchModel.endDate.value
         r18Restriction = searchModel.r18Restriction.value
         bookmarkMin = searchModel.bookmarkMin.value
+        bookmarkMax = searchModel.bookmarkMax.value
         tool = searchModel.tool.value
         lang = searchModel.lang.value
         ratioPattern = searchModel.ratioPattern.value
@@ -398,6 +404,9 @@ class SearchIllustRepo @JvmOverloads constructor(
         searchAiType = if (onlyAi) 0 else if (Shaft.sSettings.isDeleteAIIllust) 1 else 0
 
         this.filterMapper?.updateStarSizeLimit(this.getStarSizeLimit())
+        // 区间上限只有官方 query 一条来源（starSize 关键字桶没有上限语义）；
+        // popular-preview 忽略 bookmark 参数，客户端兜底让区间在非会员路径上也成立
+        this.filterMapper?.updateStarSizeMaxLimit(bookmarkMax ?: 0)
         // R18 三档（0=不限/1=仅安全/2=仅R-18）→ 客户端按 x_restrict 过滤
         this.filterMapper?.setSearchR18Restriction(r18Restriction ?: 0)
         this.filterMapper?.setSearchOnlyAi(onlyAi)

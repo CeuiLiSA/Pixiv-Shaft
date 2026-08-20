@@ -30,6 +30,7 @@ class SearchNovelRepo @JvmOverloads constructor(
     private var endDate: String?,
     private var r18Restriction: Int?,
     private var bookmarkMin: Int? = null,
+    private var bookmarkMax: Int? = null,
     private var genre: Int? = null,
     private var lang: String? = null,
     private var searchAiType: Int? = null,
@@ -71,7 +72,7 @@ class SearchNovelRepo @JvmOverloads constructor(
         val currentNana7miSession = Nana7miAccountSession()
         nana7miSession = currentNana7miSession
         nana7miTelemetry = null
-        val useBookmarkQuery = (bookmarkMin ?: 0) > 0
+        val useBookmarkQuery = (bookmarkMin ?: 0) > 0 || (bookmarkMax ?: 0) > 0
         val keywordSuffix = if (useBookmarkQuery) "" else when {
             TextUtils.isEmpty(starSize) -> ""
             else -> " $starSize"
@@ -150,6 +151,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                     effectiveEndDate,
                     target,
                     bookmarkMin,
+                    bookmarkMax,
                     genre,
                     lang,
                     searchAiType,
@@ -191,6 +193,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                     effectiveEndDate,
                     target,
                     bookmarkMin,
+                    bookmarkMax,
                     genre,
                     lang,
                     searchAiType,
@@ -246,6 +249,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                                     effectiveEndDate,
                                     target,
                                     bookmarkMin,
+                                    bookmarkMax,
                                     genre,
                                     lang,
                                     searchAiType,
@@ -286,6 +290,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                     effectiveEndDate,
                     target,
                     bookmarkMin,
+                    bookmarkMax,
                     genre,
                     lang,
                     searchAiType,
@@ -400,6 +405,7 @@ class SearchNovelRepo @JvmOverloads constructor(
         endDate = searchModel.endDate.value
         r18Restriction = searchModel.r18Restriction.value
         bookmarkMin = searchModel.bookmarkMin.value
+        bookmarkMax = searchModel.bookmarkMax.value
         genre = searchModel.genre.value
         lang = searchModel.lang.value
         // AI：屏蔽走全局 isDeleteAIIllust → search_ai_type=1；「仅看 AI」会话态（issue #909）→

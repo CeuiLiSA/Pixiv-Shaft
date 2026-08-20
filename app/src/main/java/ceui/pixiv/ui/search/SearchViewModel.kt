@@ -95,7 +95,7 @@ class SearchViewModel(initialKeyword: String) : ViewModel() {
      * - keyword：原始 tagList，不再追加任何 R18 后缀。R18 三档（全部/仅安全/仅R-18）改由
      *   [SearchConfig.r18Mode] 带到 DataSource，按作品真实 `x_restrict` 客户端过滤——旧版
      *   `-R-18` / `R-18` 关键字 hack 匹配字面标签，会让全年龄和 R 混在一起。
-     * - usersYori 留空：V3 走 bookmark_num_min API 参数，不再追加「Xusers入り」关键字
+     * - usersYori 留空：V3 走 bookmark_num_min/max API 参数，不再追加「Xusers入り」关键字
      */
     fun buildSearchConfig(@Suppress("UNUSED_PARAMETER") usersYori: Int?, objectType: String): SearchConfig {
         val isNovel = objectType == ObjectType.NOVEL
@@ -111,7 +111,8 @@ class SearchViewModel(initialKeyword: String) : ViewModel() {
             keyword = keyword,
             sort = filter.sort,
             search_target = filter.searchTarget.apiValue,
-            bookmarkMin = filter.bookmarkBucket.bookmarkMin(),
+            bookmarkMin = filter.bookmarkRange?.min,
+            bookmarkMax = filter.bookmarkRange?.max,
             tool = if (isNovel) null else filter.tool,
             genre = if (isNovel) filter.genre else null,
             lang = filter.lang,

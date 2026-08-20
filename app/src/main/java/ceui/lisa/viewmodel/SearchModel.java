@@ -40,6 +40,7 @@ public class SearchModel extends ViewModel {
 
     // ── V3 filter 维度 —— 老版 FragmentFilter 没暴露但 pixiv API 都吃 ──
     private final MutableLiveData<Integer> bookmarkMin = new MutableLiveData<>();
+    private final MutableLiveData<Integer> bookmarkMax = new MutableLiveData<>();
     private final MutableLiveData<String> tool = new MutableLiveData<>();
     private final MutableLiveData<Integer> genre = new MutableLiveData<>();
     private final MutableLiveData<String> lang = new MutableLiveData<>();
@@ -118,6 +119,10 @@ public class SearchModel extends ViewModel {
 
     public MutableLiveData<Integer> getBookmarkMin() {
         return bookmarkMin;
+    }
+
+    public MutableLiveData<Integer> getBookmarkMax() {
+        return bookmarkMax;
     }
 
     public MutableLiveData<String> getTool() {

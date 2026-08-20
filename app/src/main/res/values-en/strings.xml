@@ -1798,6 +1798,7 @@
     <string name="search_filter_v3_target_novel_text">Body text</string>
     <string name="search_filter_v3_target_novel_keyword">Keyword</string>
     <string name="search_filter_v3_bookmark_min">%d+</string>
+    <string name="search_filter_v3_bookmark_custom">Specify a count</string>
     <string name="search_filter_v3_duration_all">Any time</string>
     <string name="search_filter_v3_duration_24h">Last 24 hours</string>
     <string name="search_filter_v3_duration_week">Last week</string>

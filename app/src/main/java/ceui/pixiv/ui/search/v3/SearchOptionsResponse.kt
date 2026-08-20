@@ -30,6 +30,13 @@ data class BookmarkRange(
 ) {
     fun minInt(): Int? = min?.takeIf { it != "*" }?.toIntOrNull()
     fun maxInt(): Int? = max?.takeIf { it != "*" }?.toIntOrNull()
+
+    /** 转成 filter 层的区间；两端都不限（`"*"`/`"*"`，即官方列表里的「所有点赞数」项）返回 null。 */
+    fun toSpec(): BookmarkRangeSpec? {
+        val minValue = minInt()
+        val maxValue = maxInt()
+        return if (minValue == null && maxValue == null) null else BookmarkRangeSpec(minValue, maxValue)
+    }
 }
 
 data class ToolOptions(

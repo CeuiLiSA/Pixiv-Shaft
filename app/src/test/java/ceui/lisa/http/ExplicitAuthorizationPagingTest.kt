@@ -89,6 +89,7 @@ class ExplicitAuthorizationPagingTest {
             "2026-08-13",
             "partial_match_for_tags",
             100,
+            999,
             3,
             "zh-cn",
             1,
@@ -109,6 +110,7 @@ class ExplicitAuthorizationPagingTest {
         assertEquals("test word", request.requestUrl?.queryParameter("word"))
         assertEquals("popular_desc", request.requestUrl?.queryParameter("sort"))
         assertEquals("100", request.requestUrl?.queryParameter("bookmark_num_min"))
+        assertEquals("999", request.requestUrl?.queryParameter("bookmark_num_max"))
         assertEquals("3", request.requestUrl?.queryParameter("genre"))
         assertEquals("60", request.requestUrl?.queryParameter("reading_time_max"))
         assertEquals(0, response.novels?.size ?: 0)

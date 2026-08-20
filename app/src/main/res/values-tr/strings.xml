@@ -1798,6 +1798,7 @@
     <string name="search_filter_v3_target_novel_text">Metin</string>
     <string name="search_filter_v3_target_novel_keyword">Anahtar kelime</string>
     <string name="search_filter_v3_bookmark_min">%d+</string>
+    <string name="search_filter_v3_bookmark_custom">Sayı belirt</string>
     <string name="search_filter_v3_duration_all">Sınırsız</string>
     <string name="search_filter_v3_duration_24h">Son 24 saat</string>
     <string name="search_filter_v3_duration_week">Son 1 hafta</string>
