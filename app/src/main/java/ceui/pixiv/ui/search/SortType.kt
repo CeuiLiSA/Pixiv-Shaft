@@ -5,7 +5,8 @@ object SortType {
     const val DATE_DESC = "date_desc"
     const val DATE_ASC = "date_asc"
     const val POPULAR_DESC = "popular_desc"
-    // 仅 illust/manga + 会员；非会员选了也会被 [shouldUsePopularPreview] 兜底走 popular-preview
+    // 仅 illust/manga；非会员选了走借号（SearchIllustRepo.wantsPremiumOnlySort 与 popular_desc
+    // 同一条路由），借不到号再兜底 popular-preview
     const val POPULAR_MALE_DESC = "popular_male_desc"
     const val POPULAR_FEMALE_DESC = "popular_female_desc"
 
@@ -30,4 +31,17 @@ object SortType {
      * popular-preview / 借号，热度照样排得出来。
      */
     fun sanitize(sort: String?): String? = if (sort == TRENDING_BUILTIN) POPULAR_DESC else sort
+
+    /**
+     * novel 侧的 sort 归一：男/女性向人气是 illust/manga 专属档，novel 的 app-api 端点不识别。
+     * 但「搜索结果排序方式」是全局设置（设置页与 V3 筛选器共享同一字段），插画侧存了
+     * 男/女性向后，novel 的默认 sort / 共享 SearchModel.sortType 都可能带上它——发出去
+     * 是 400，非会员那条路还会先白借一个号。所以 novel 路径拿 sort 时一律过这层，
+     * 归一到语义最近的总热度。
+     */
+    @JvmStatic
+    fun novelSafe(sort: String?): String? = when (sort) {
+        POPULAR_MALE_DESC, POPULAR_FEMALE_DESC -> POPULAR_DESC
+        else -> sort
+    }
 }

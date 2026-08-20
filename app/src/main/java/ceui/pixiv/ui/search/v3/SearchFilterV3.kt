@@ -79,12 +79,16 @@ data class SearchFilterV3(
          *
          * 用户的「activeCount」基线也跟着跑——例如全局已开 AI 屏蔽，sheet 打开「其他条件」
          * 行就会显示「屏蔽 AI」徽标，不再误以为没改过。
+         *
+         * [forNovel]：novel 的 filter 基线要把设置里可能存着的男/女性向人气（illust 专属档）
+         * 归一成总热度——见 [SortType.novelSafe]。
          */
-        fun fromGlobalDefaults(): SearchFilterV3 {
+        fun fromGlobalDefaults(forNovel: Boolean = false): SearchFilterV3 {
             val s = Shaft.sSettings
             // sanitize：老配置里可能存着已下线的「机内自带热度排序」，归一到官方热度排序。
-            val sort = SortType.sanitize(s.searchDefaultSortType)?.takeIf { it.isNotEmpty() }
-                ?: SortType.POPULAR_DESC
+            val sort = (SortType.sanitize(s.searchDefaultSortType)?.takeIf { it.isNotEmpty() }
+                ?: SortType.POPULAR_DESC)
+                .let { if (forNovel) SortType.novelSafe(it)!! else it }
             val bucketMin = Regex("""\d+""").find(s.searchFilter.orEmpty())
                 ?.value?.toIntOrNull() ?: 0
             val keywordBucket = KeywordUsersBucket.values().firstOrNull { it.min == bucketMin }

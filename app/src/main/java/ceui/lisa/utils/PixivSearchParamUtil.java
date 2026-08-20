@@ -6,6 +6,7 @@ import java.util.Arrays;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.pixiv.ui.search.SortType;
 
 public class PixivSearchParamUtil {
 
@@ -21,7 +22,16 @@ public class PixivSearchParamUtil {
     // 「机内自带热度排序」(trending_builtin) 已下线——它读的是打包进 APK 的内置榜 assets，
     // 那份数据已经搬到 pixshaft-api 只服务 Prime 标签页。老配置里存过这个值的用户由
     // getSortTypeIndex 的 index<0 分支落回「按热度」，运行时由 SortType.sanitize 归一。
-    public static final String[] SORT_TYPE_VALUE = new String[]{"date_desc", "date_asc", POPULAR_SORT_VALUE};
+    // 档位与顺序对齐 V3 搜索筛选器的排序 picker（SearchFilterV3BottomSheet.sortList），
+    // 两边共享同一个 Settings.searchDefaultSortType 字段、互相联动。男/女性向是 illust
+    // 专属档，novel 路径读取时经 SortType.novelSafe 归一成总热度。
+    public static final String[] SORT_TYPE_VALUE = new String[]{
+            SortType.POPULAR_PREVIEW,
+            SortType.DATE_DESC,
+            SortType.DATE_ASC,
+            POPULAR_SORT_VALUE,
+            SortType.POPULAR_MALE_DESC,
+            SortType.POPULAR_FEMALE_DESC};
     // 注：R18 三档已改为客户端按 x_restrict 过滤（见 Mapper.setSearchR18Restriction），
     // 旧的 -R-18 / R-18 关键字 hack 表已删除——它匹配字面标签，会让全年龄和 R 混在一起。
 
@@ -50,10 +60,14 @@ public class PixivSearchParamUtil {
             resources.getString(R.string.string_375)
     };
 
+    // 文案与 V3 筛选器 sortLabel 同源（search_filter_v3_sort_*），顺序与 SORT_TYPE_VALUE 一一对应
     public static String[] SORT_TYPE_NAME = new String[]{
-            resources.getString(R.string.string_287),
-            resources.getString(R.string.string_288),
-            resources.getString(R.string.string_64_1)
+            resources.getString(R.string.search_filter_v3_sort_popular_preview),
+            resources.getString(R.string.search_filter_v3_sort_date_desc),
+            resources.getString(R.string.search_filter_v3_sort_date_asc),
+            resources.getString(R.string.search_filter_v3_sort_popular_desc),
+            resources.getString(R.string.search_filter_v3_sort_popular_male_desc),
+            resources.getString(R.string.search_filter_v3_sort_popular_female_desc)
     };
 
     public static final String[] R18_RESTRICTION_NAME = new String[]{
@@ -73,7 +87,8 @@ public class PixivSearchParamUtil {
 
     public static int getSortTypeIndex(String sortTypeValue){
         int index = Arrays.asList(SORT_TYPE_VALUE).indexOf(sortTypeValue);
-        return index < 0 ? 2 : index;
+        // 认不出的值（如已下线的 trending_builtin）落回「按热度」档
+        return index < 0 ? Arrays.asList(SORT_TYPE_VALUE).indexOf(POPULAR_SORT_VALUE) : index;
     }
 
     public static String getSortTypeName(String sortTypeValue){

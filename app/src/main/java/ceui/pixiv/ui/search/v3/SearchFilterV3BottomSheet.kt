@@ -11,11 +11,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.CellSearchFilterRowBinding
 import ceui.lisa.databinding.DialogSearchFilterV3Binding
+import ceui.lisa.utils.Local
 import ceui.loxia.Client
 import ceui.loxia.ObjectType
-import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.search.SearchRiskPolicy
 import ceui.pixiv.ui.search.SearchViewModel
 import ceui.pixiv.ui.search.SortType
@@ -88,18 +89,17 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
 
     // 静态可枚举的 picker 候选；动态的（tool/genre/lang）由 VM.searchOptions 派生。
     //
-    // 男性向 / 女性向人气两档是 pixiv 官方插画/漫画专属 + 仅 Premium 用户可用的排序
-    // （novel endpoint 不识别；非会员选了实际服务端也不接受，issue #575）。
-    // 所以仅在 illust/manga 模式且当前账号是 Premium 时才让两档出现在 picker 里。
-    // 兜底：非会员万一拿到了带有该 sort 的 filter（比如老 SearchModel 状态种回来），
-    // [shouldUsePopularPreview] 会把它路由到 popular-preview endpoint，不会 400。
+    // 男性向 / 女性向人气两档是 pixiv 官方插画/漫画专属排序（novel endpoint 不识别）。
+    // 会员之外的用户也可见可选：它们与 popular_desc 走同一条借号路由
+    // （[ceui.lisa.repo.SearchIllustRepo] 的 wantsPremiumOnlySort 三档同判），借不到号
+    // 自动回落 popular-preview，不会 400。
     private val sortList: List<String>
         get() = buildList {
             add(SortType.POPULAR_PREVIEW)
             add(SortType.DATE_DESC)
             add(SortType.DATE_ASC)
             add(SortType.POPULAR_DESC)
-            if (!isNovel && SessionManager.isPremium) {
+            if (!isNovel) {
                 add(SortType.POPULAR_MALE_DESC)
                 add(SortType.POPULAR_FEMALE_DESC)
             }
@@ -213,7 +213,16 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         }
         fm.setFragmentResultListener(REQUEST_SORT, lifecycleOwner) { _, bundle ->
             val idx = bundle.getInt(SimplePickerSheet.KEY_IDX)
-            sortList.getOrNull(idx)?.let { s -> updateFilter { it.copy(sort = s) } }
+            sortList.getOrNull(idx)?.let { s ->
+                updateFilter { it.copy(sort = s) }
+                // 排序与设置页「搜索结果排序方式」共享同一字段（Settings.searchDefaultSortType），
+                // 选了当场落盘，两边互相联动；novel 侧读取时经 SortType.novelSafe 归一，
+                // 不怕存进 illust 专属的男/女性向档。
+                if (Shaft.sSettings.searchDefaultSortType != s) {
+                    Shaft.sSettings.searchDefaultSortType = s
+                    Local.setSettings(Shaft.sSettings)
+                }
+            }
         }
         fm.setFragmentResultListener(REQUEST_BOOKMARK, lifecycleOwner) { _, bundle ->
             val idx = bundle.getInt(SimplePickerSheet.KEY_IDX)

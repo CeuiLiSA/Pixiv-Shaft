@@ -204,7 +204,7 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
             if (syncingPopularSwitch) return; // 代码回写（下面那行选完刷新）不重复落盘、不弹 toast
             Shaft.sSettings.setSearchDefaultSortType(isChecked
                     ? PixivSearchParamUtil.POPULAR_SORT_VALUE
-                    : PixivSearchParamUtil.SORT_TYPE_VALUE[0]); // date_desc
+                    : SortType.DATE_DESC);
             Common.showToast(getString(R.string.string_428), 2);
             Local.setSettings(Shaft.sSettings);
             baseBind.searchDefaultSortType.setText(
@@ -342,8 +342,12 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
      * 按热度（搜索和下面那行的显示都这么认），开关不能独自显示成关。
      */
     private void bindSearchPopularDefaultSwitch() {
-        boolean popular = PixivSearchParamUtil.POPULAR_SORT_VALUE.equals(
-                SortType.INSTANCE.sanitize(Shaft.sSettings.getSearchDefaultSortType()));
+        // 男/女性向人气与总热度同属「花借号额度的热度类」，开关一并算开；
+        // 用户翻关再翻开只会写回 popular_desc（开关是二值快捷方式，丢失方向档可接受）。
+        String sanitized = SortType.INSTANCE.sanitize(Shaft.sSettings.getSearchDefaultSortType());
+        boolean popular = PixivSearchParamUtil.POPULAR_SORT_VALUE.equals(sanitized)
+                || SortType.POPULAR_MALE_DESC.equals(sanitized)
+                || SortType.POPULAR_FEMALE_DESC.equals(sanitized);
         syncingPopularSwitch = true;
         baseBind.searchPopularDefault.setChecked(popular);
         syncingPopularSwitch = false;

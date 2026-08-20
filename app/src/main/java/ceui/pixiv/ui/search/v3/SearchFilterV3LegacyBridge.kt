@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import ceui.lisa.viewmodel.SearchModel
 import ceui.loxia.observeEvent
 import ceui.pixiv.ui.search.SearchViewModel
+import ceui.pixiv.ui.search.SortType
 import java.util.WeakHashMap
 
 /**
@@ -65,11 +66,12 @@ object SearchFilterV3LegacyBridge {
         // 把 sort/starSize/AI 三个全局偏好读进来；这里再用 SearchModel 的会话状态（用户在
         // 老 fragment 里改的）覆盖默认值。仅在 VM 还是「全局默认」状态时种一次，避免覆盖
         // 用户在 sheet 内的临时改动。
-        val baseline = SearchFilterV3.fromGlobalDefaults()
-        if (vm.illustFilter.value == baseline) {
+        // novel 的基线经过 novelSafe 归一（设置里可能存着 illust 专属的男/女性向人气），
+        // 与 SearchViewModel.novelFilter 的初始值保持同一构造，否则这里永远判不相等、seed 失效。
+        if (vm.illustFilter.value == SearchFilterV3.fromGlobalDefaults()) {
             vm.illustFilter.value = seedFromLegacy(searchModel, isNovel = false)
         }
-        if (vm.novelFilter.value == baseline) {
+        if (vm.novelFilter.value == SearchFilterV3.fromGlobalDefaults(forNovel = true)) {
             vm.novelFilter.value = seedFromLegacy(searchModel, isNovel = true)
         }
 
@@ -108,9 +110,12 @@ object SearchFilterV3LegacyBridge {
     private fun seedFromLegacy(searchModel: SearchModel, isNovel: Boolean): SearchFilterV3 {
         // baseline = Shaft.sSettings 三项偏好；下面任一字段在 SearchModel 里有值就 override，
         // 没值就回退到 baseline。SearchModel 全空 → 与 baseline 等价。
-        val baseline = SearchFilterV3.fromGlobalDefaults()
+        val baseline = SearchFilterV3.fromGlobalDefaults(forNovel = isNovel)
 
-        val sort = searchModel.sortType.value ?: baseline.sort
+        // SearchModel.sortType 是 illust/novel 共享单字段——插画侧写进去的男/女性向人气
+        // 不能种进 novel filter（novel 端点不识别），归一到总热度。
+        val sort = (searchModel.sortType.value ?: baseline.sort)
+            .let { if (isNovel) SortType.novelSafe(it)!! else it }
         val target = SearchTarget.values().firstOrNull { it.apiValue == searchModel.searchType.value }
             ?: baseline.searchTarget
 

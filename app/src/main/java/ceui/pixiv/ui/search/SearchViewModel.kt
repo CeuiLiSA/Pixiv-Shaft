@@ -27,7 +27,7 @@ class SearchViewModel(initialKeyword: String) : ViewModel() {
      * 不显示 AI 作品」三项，对齐老 [ceui.lisa.fragments.FragmentFilter] 行为。
      */
     val illustFilter = MutableLiveData(SearchFilterV3.fromGlobalDefaults())
-    val novelFilter = MutableLiveData(SearchFilterV3.fromGlobalDefaults())
+    val novelFilter = MutableLiveData(SearchFilterV3.fromGlobalDefaults(forNovel = true))
 
     /** /v1/search/options 的缓存——拉一次给 illust + novel 共用。 */
     val searchOptions = MutableLiveData<SearchOptionsResponse?>()
