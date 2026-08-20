@@ -573,11 +573,15 @@ public class Shaft extends Application implements ServicesProvider {
 
         // Nana7mi 搜索遥测使用独立的 ActionQueue 数据库和消费循环：同样具备落盘/重试，
         // 但服务端或遥测自身故障绝不能拖慢收藏、关注等用户业务动作。
-        step("Nana7miSearchTelemetry", () -> ceui.pixiv.actions.Nana7miSearchTelemetry.INSTANCE.init(this));
+        if (!ceui.lisa.BuildConfig.IS_LITE) {
+            step("Nana7miSearchTelemetry", () -> ceui.pixiv.actions.Nana7miSearchTelemetry.INSTANCE.init(this));
+        }
 
         // AccountResponse 上报使用独立的全局 outbox：它不属于当前登录用户，切账号或
         // 登出后也必须继续补报刚 refresh 出来的新 token。
-        step("AccountOnlineReportOutbox", () -> ceui.pixiv.actions.AccountOnlineReportOutbox.INSTANCE.init(this));
+        if (!ceui.lisa.BuildConfig.IS_LITE) {
+            step("AccountOnlineReportOutbox", () -> ceui.pixiv.actions.AccountOnlineReportOutbox.INSTANCE.init(this));
+        }
 
         // shaft-api-v2 chat WebSocket gateway. App-scoped — 一个 WebSocketManager
         // 全局复用,生命周期与进程一致(匿名协议没有"退登")。必须在

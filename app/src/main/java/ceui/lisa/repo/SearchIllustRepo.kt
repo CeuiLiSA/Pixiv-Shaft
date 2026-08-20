@@ -1,6 +1,7 @@
 package ceui.lisa.repo
 
 import android.text.TextUtils
+import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.FilterMapper
 import ceui.lisa.core.RemoteRepo
@@ -119,7 +120,7 @@ class SearchIllustRepo @JvmOverloads constructor(
         // 见 [SearchTarget.toQueryValue] 注释。
         val effectiveSearchTarget = SearchTarget.toQueryValue(searchType)
         val requesterUid = SessionManager.loggedInUid
-        val telemetry = when {
+        val telemetry = if (BuildConfig.IS_LITE) null else when {
             usePopularPreview -> Nana7miSearchTelemetry.start(
                 requesterUid = requesterUid,
                 contentType = Nana7miSearchTelemetry.ContentType.ILLUST,

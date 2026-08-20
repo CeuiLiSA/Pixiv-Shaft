@@ -52,10 +52,11 @@ class PixshaftAppConfigApiTest {
     fun `config call carries the caller uid and parses the switch`() = runBlocking {
         enqueue("""{"uid":123,"nana7miSearchEnabled":false,"serverTime":1786939077135}""")
 
-        val config = api.appConfig(123L)
+        val config = api.appConfig(123L, "github")
 
         val request = server.takeRequest()
         assertEquals("/v1/config?uid=123", request.path)
+        assertEquals("github", request.getHeader("X-Shaft-Flavor"))
         assertEquals("GET", request.method)
         assertEquals(123L, config.uid)
         assertEquals(false, config.nana7miSearchEnabled)
@@ -66,7 +67,7 @@ class PixshaftAppConfigApiTest {
     fun `a logged-out caller sends no uid at all`() = runBlocking {
         enqueue("""{"uid":null,"nana7miSearchEnabled":true,"serverTime":1}""")
 
-        api.appConfig(null)
+        api.appConfig(null, "github")
 
         assertEquals("/v1/config", server.takeRequest().path)
     }
@@ -75,7 +76,7 @@ class PixshaftAppConfigApiTest {
     fun `a switch the server does not mention stays null instead of false`() = runBlocking {
         enqueue("""{"uid":123,"serverTime":1786939077135}""")
 
-        val config = api.appConfig(123L)
+        val config = api.appConfig(123L, "github")
 
         assertNull(config.nana7miSearchEnabled)
     }
@@ -84,6 +85,19 @@ class PixshaftAppConfigApiTest {
     fun `an unknown field does not break parsing`() = runBlocking {
         enqueue("""{"uid":123,"nana7miSearchEnabled":true,"somethingNewer":{"a":1}}""")
 
-        assertEquals(true, api.appConfig(123L).nana7miSearchEnabled)
+        assertEquals(true, api.appConfig(123L, "github").nana7miSearchEnabled)
+    }
+
+    @Test
+    fun `a Lite caller explicitly marks the config request`() = runBlocking {
+        enqueue("""{"uid":123,"nana7miSearchEnabled":false,"plan":null,"serverTime":1}""")
+
+        val config = api.appConfig(123L, "google")
+
+        val request = server.takeRequest()
+        assertEquals("/v1/config?uid=123", request.path)
+        assertEquals("google", request.getHeader("X-Shaft-Flavor"))
+        assertEquals(false, config.nana7miSearchEnabled)
+        assertNull(config.plan)
     }
 }

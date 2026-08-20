@@ -7,6 +7,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -61,11 +62,16 @@ interface PixshaftApi {
     /**
      * 冷启动配置：客户端自己决定不了的开关（服务端 `src/app-config.js`）。
      *
-     * [uid] 是调用方自己的 pixiv uid，用来选灰度分桶（白名单/黑名单），不是身份凭证——
-     * 和 `/v1/account/nana7mi` 同一个约定，所以这条不签名。未登录传 null 直接不带该参数。
+     * [uid] 是调用方自己的 pixiv uid，用来选灰度分桶（白名单/黑名单），不是身份凭证。
+     * 未登录传 null 直接不带该参数。[flavor] 通过 Header 传 Gradle flavor（google/github），
+     * 不改变旧版 `/v1/config` 的 URL 契约。服务端对 google 恒定关闭借号搜索，并且不查询/
+     * 返回借号套餐。
      */
     @GET("v1/config")
-    suspend fun appConfig(@Query("uid") uid: Long?): AppConfigResponse
+    suspend fun appConfig(
+        @Query("uid") uid: Long?,
+        @Header("X-Shaft-Flavor") flavor: String,
+    ): AppConfigResponse
 
     /**
      * 一页「热度标签」精选插画。

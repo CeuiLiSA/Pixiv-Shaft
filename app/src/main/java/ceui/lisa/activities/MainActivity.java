@@ -460,9 +460,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         // 不属于上面任何一组功能入口。渠道口径跟着借号功能本身走(google flavor 整个借号
         // 搜索都不出现),所以是 !isLite 而不是 experimentalAllowed:后者在 Lite debug 下
         // 仍会放行,会给一个功能不存在的包留下查不到东西的入口。
-        addDrawerSection(sections, R.string.drawer_section_usage, new DrawerEntry[]{
-                new DrawerEntry(R.id.nav_nana7mi_usage, R.string.nana7mi_usage_title, !isLite),
-        });
+        if (!isLite) {
+            addDrawerSection(sections, R.string.drawer_section_usage, new DrawerEntry[]{
+                    new DrawerEntry(R.id.nav_nana7mi_usage, R.string.nana7mi_usage_title),
+            });
+        }
     }
 
     /**
@@ -706,6 +708,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
      * 拿计量档位去显示会给每个没付钱的人发一颗 MAX 徽章。
      */
     private void bindPlanBadge() {
+        if (ceui.lisa.BuildConfig.IS_LITE) {
+            baseBind.userPlanBadge.setVisibility(View.GONE);
+            return;
+        }
         Nana7miPlan plan = RemoteAppConfig.INSTANCE.getNana7miPlan();
         String label = plan == null ? null : plan.getBadgeLabel();
         if (label == null) {

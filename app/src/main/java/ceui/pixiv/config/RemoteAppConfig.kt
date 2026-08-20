@@ -3,6 +3,7 @@ package ceui.pixiv.config
 import android.os.SystemClock
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.lisa.BuildConfig
 import ceui.loxia.AppConfigResponse
 import ceui.loxia.Client
 import ceui.loxia.Nana7miPlan
@@ -100,6 +101,9 @@ object RemoteAppConfig {
      */
     val nana7miSearchEnabled: Boolean
         get() {
+            // Lite 是编译时硬隔离。即使旧缓存曾经写入 true、服务端配置错误或网络请求尚未
+            // 返回，也不能给 Google/Lite 包一个借号窗口。
+            if (BuildConfig.IS_LITE) return false
             refreshIfStale()
             return nana7miSearch
         }
@@ -112,6 +116,7 @@ object RemoteAppConfig {
      */
     val nana7miPlan: Nana7miPlan?
         get() {
+            if (BuildConfig.IS_LITE) return null
             refreshIfStale()
             return plan
         }
@@ -148,10 +153,14 @@ object RemoteAppConfig {
      */
     private fun loadCached(uid: Long) {
         if (valueForUid == uid) return
-        nana7miSearch = runCatching {
-            store.getBoolean(cacheKey(uid), DEFAULT_NANA7MI_SEARCH)
-        }.getOrDefault(DEFAULT_NANA7MI_SEARCH)
-        plan = loadCachedPlan(uid)
+        nana7miSearch = if (BuildConfig.IS_LITE) {
+            false
+        } else {
+            runCatching {
+                store.getBoolean(cacheKey(uid), DEFAULT_NANA7MI_SEARCH)
+            }.getOrDefault(DEFAULT_NANA7MI_SEARCH)
+        }
+        plan = if (BuildConfig.IS_LITE) null else loadCachedPlan(uid)
         planLive.postValue(plan)
         valueForUid = uid
         Timber.tag(TAG).d(
@@ -184,7 +193,13 @@ object RemoteAppConfig {
                 // 会话中途切了账号：先把新 uid 上次的答案顶上（一次 mmap 读），别让接下来这一
                 // 个网络往返期间继续用着上一个账号的许可。冷启动时 init 已经读过，这里是空转。
                 loadCached(uid)
-                apply(uid, Client.pixshaft.appConfig(uid.takeIf { it > 0L }))
+                apply(
+                    uid,
+                    Client.pixshaft.appConfig(
+                        uid.takeIf { it > 0L },
+                        BuildConfig.FLAVOR,
+                    ),
+                )
             } catch (ce: CancellationException) {
                 throw ce
             } catch (e: Exception) {
@@ -202,7 +217,7 @@ object RemoteAppConfig {
         fetchedForUid = uid
         failedForUid = null
         applyPlan(uid, response.plan)
-        val enabled = response.nana7miSearchEnabled
+        val enabled = if (BuildConfig.IS_LITE) false else response.nana7miSearchEnabled
         if (enabled == null) {
             Timber.tag(TAG).d("server has no opinion on nana7mi search, keeping %s", nana7miSearch)
             return
@@ -218,7 +233,7 @@ object RemoteAppConfig {
      * 不能像开关那样「没意见就保留旧值」—— 那会让一个已经撤销的订阅在缓存里活下去。
      */
     private fun applyPlan(uid: Long, incoming: Nana7miPlan?) {
-        plan = incoming?.takeIf { it.stillValid() }
+        plan = if (BuildConfig.IS_LITE) null else incoming?.takeIf { it.stillValid() }
         // postValue：这里跑在 IO 线程上（配置是后台拉的），LiveData 只能从主线程 setValue。
         planLive.postValue(plan)
         runCatching {

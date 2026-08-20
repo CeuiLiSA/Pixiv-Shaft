@@ -1,6 +1,7 @@
 package ceui.lisa.repo
 
 import android.text.TextUtils
+import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.Mapper
 import ceui.lisa.core.RemoteRepo
@@ -127,7 +128,7 @@ class SearchNovelRepo @JvmOverloads constructor(
             }
         }
         val requesterUid = SessionManager.loggedInUid
-        val telemetry = when {
+        val telemetry = if (BuildConfig.IS_LITE) null else when {
             usePopularPreview -> Nana7miSearchTelemetry.start(
                 requesterUid = requesterUid,
                 contentType = Nana7miSearchTelemetry.ContentType.NOVEL,

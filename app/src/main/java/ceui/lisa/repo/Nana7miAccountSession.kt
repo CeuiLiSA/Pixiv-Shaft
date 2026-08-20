@@ -1,5 +1,6 @@
 package ceui.lisa.repo
 
+import ceui.lisa.BuildConfig
 import ceui.loxia.Client
 import ceui.loxia.User
 import ceui.loxia.Nana7miPayload
@@ -55,6 +56,9 @@ internal class Nana7miAccountSession {
      * on the client and re-reported before it is returned to the search request.
      */
     suspend fun fetchReady(): Nana7miResult {
+        // Defense in depth: repository routing already disables borrowing in Lite, but keeping the
+        // network boundary closed prevents a future caller from accidentally bypassing that gate.
+        if (BuildConfig.IS_LITE) return Nana7miResult.NoAccount
         val requesterUid = SessionManager.loggedInUid
         Timber.tag(LOG_TAG).d(
             "stage=fetch event=request requester_uid=%d",
