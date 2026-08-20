@@ -72,13 +72,16 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
     private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
         override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-            val w = width.toFloat()
-            val third = w / 3f
-            if (e.x > third && e.x < w - third) {
-                onCenterTap?.invoke()
-                return true
+            // 纵向滚动没有左右翻页语义，整屏单击都呼出菜单——不是横向那套三分区
+            //（只留中间一竖条反直觉，#1038）。落在插画/跳转按钮上的点击让给它们自己的
+            // onClick，避免「打开大图的同时菜单也弹出来」。
+            val child = findChildViewUnder(e.x, e.y)
+            if (child != null) {
+                val holder = getChildViewHolder(child)
+                if (holder is ImageHolder || holder is JumpHolder) return false
             }
-            return false
+            onCenterTap?.invoke()
+            return true
         }
     })
 
@@ -104,6 +107,15 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         gestureDetector.onTouchEvent(ev)
         return super.dispatchTouchEvent(ev)
+    }
+
+    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        super.onLayout(changed, l, t, r, b)
+        // 每次布局完成后补报一次进度：初始那次 pushScrollProgressNow 走的是 post{}，
+        // 可能赶在首帧内容排版前执行（此时 scrollRange 还是 0），而部分机型上首次布局
+        // 不派发 onScrolled(0,0)——常驻进度就一直空着，直到用户手动滚动/呼出菜单
+        //（#1038）。fragment 侧 setText 前有等值去重，逐帧布局不会带来重复刷新。
+        reportScrollProgress()
     }
 
     // ---- Public API --------------------------------------------------------

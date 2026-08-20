@@ -757,7 +757,14 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 showBookmarksSheet()
             }
             item(getString(R.string.menu_save_position), R.drawable.ic_baseline_bookmark_24) {
-                viewModel.addBookmarkAtCurrentPage(readerView?.currentPageIndex() ?: 0)
+                // 纵向滚动模式没有 pagination（rv 从没排过版），按滚动位置的 charIndex 存；
+                // 横向翻页仍按当前页存（#1038：此前纵向下静默存不上、toast 却报已保存）。
+                val sv = scrollReaderView
+                if (sv != null && sv.visibility == View.VISIBLE) {
+                    viewModel.addBookmarkAtCharIndex(sv.currentCharIndex())
+                } else {
+                    viewModel.addBookmarkAtCurrentPage(readerView?.currentPageIndex() ?: 0)
+                }
                 Toaster.showShort(getString(R.string.msg_bookmark_saved))
             }
             // 追更 (加入/取消)：仅当前小说有所属系列时才挂条目，文案按当前

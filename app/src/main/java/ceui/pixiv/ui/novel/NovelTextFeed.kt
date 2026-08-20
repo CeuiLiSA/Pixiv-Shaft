@@ -25,6 +25,8 @@ import ceui.lisa.databinding.CellNovelTagsBinding
 import ceui.lisa.databinding.SectionV3RelatedHeaderBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
+import ceui.lisa.utils.PixivOperate
+import ceui.lisa.utils.SearchTypeUtil
 import ceui.lisa.utils.ShareIllust
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.loxia.Client
@@ -525,7 +527,18 @@ fun novelTagsRenderer(
     return feedRenderer(
         inflate = CellNovelTagsBinding::inflate,
         fullSpan = true,
-        create = { cell -> cell.binding.tagsFlow.searchIndex = 1 }, // novels tab in SearchActivity
+        create = { cell ->
+            cell.binding.tagsFlow.searchIndex = 1 // novels tab in SearchActivity
+            // 长按菜单补「固定/取消固定」，对齐插画详情（#1038）。与插画唯一的差异是
+            // 不构造 previewIllustsJson——那是插画强类型的封面预览，置顶标签页对没有
+            // 预览的记录会回退成关键词卡，语义正确。
+            cell.binding.tagsFlow.onPinTag = { name, _, newPinned ->
+                PixivOperate.insertPinnedSearchHistory(
+                    name, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD, newPinned,
+                )
+                Common.showToast(R.string.operate_success)
+            }
+        },
         recycle = { cell -> slots[cell]?.detach() },
     ) { cell ->
         val b = cell.binding

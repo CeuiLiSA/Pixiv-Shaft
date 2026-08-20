@@ -19,6 +19,7 @@ import ceui.pixiv.utils.letDrawBehindNavBar
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlin.math.roundToInt
 
 class ComicReaderSettingsSheet : BottomSheetDialogFragment() {
 
@@ -237,7 +238,9 @@ class ComicReaderSettingsSheet : BottomSheetDialogFragment() {
         labelText.text = label
         seekBar.max = steps
         val normalized = ((initial - min) / (max - min)).coerceIn(0f, 1f)
-        seekBar.progress = (normalized * steps).toInt()
+        // roundToInt 理由见 ReaderSettingsPanel.bindFloatSlider：截断会让 1.4 档存取
+        // 往返后掉回 1.3（#1038）。
+        seekBar.progress = (normalized * steps).roundToInt()
         fun currentValue(): Float = min + (seekBar.progress.toFloat() / steps) * (max - min)
         fun render() {
             val format = if (digits == 0) "%.0f" else "%.${digits}f"

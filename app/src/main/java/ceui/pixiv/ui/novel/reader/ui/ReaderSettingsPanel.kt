@@ -33,6 +33,7 @@ import ceui.pixiv.utils.letDrawBehindNavBar
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlin.math.roundToInt
 
 /**
  * BottomSheet panel exposing every live-tunable reader setting: typography,
@@ -262,7 +263,10 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         labelText.text = label
         seekBar.max = steps
         val normalized = ((initial - min) / (max - min)).coerceIn(0f, 1f)
-        seekBar.progress = (normalized * steps).toInt()
+        // roundToInt 而不是 toInt：currentValue() 存进 MMKV 的是 1.3999999… 这类
+        // 单精度近似值，回读换算 progress 得 3.9999…，截断会掉一档——用户设 1.4 行距，
+        // 下次打开面板变 1.3，再碰一下滑块就把 1.3 写回去了（#1038）。
+        seekBar.progress = (normalized * steps).roundToInt()
         fun currentValue(): Float = min + (seekBar.progress.toFloat() / steps) * (max - min)
         fun render() {
             val format = if (digits == 0) "%.0f" else "%.${digits}f"

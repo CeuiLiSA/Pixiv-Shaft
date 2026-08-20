@@ -566,6 +566,25 @@ class NovelReaderV3ViewModel(
         addPositionBookmark(page.charStart, pageIndex, preview)
     }
 
+    /**
+     * 纵向滚动模式的位置书签（#1038）：纵向下 rv 从没排过版、[_pagination] 恒 null，
+     * [addBookmarkAtCurrentPage] 会静默 return（而调用方 toast 已经报了「已保存」）。
+     * 纵向的位置真源是滚动位置的 charIndex，直接按它存；pageIndex 存 0 兜底——
+     * 书签列表优先显示 preview 文本（charIndex 起 80 字，此处必非空），跳转恢复
+     * 两种模式都走 charIndex，页码只是横向语义的展示补充。
+     */
+    fun addBookmarkAtCharIndex(charIndex: Int) {
+        val source = webNovel?.text.orEmpty()
+        if (source.isEmpty()) return
+        val start = charIndex.coerceIn(0, source.length)
+        val preview = source.substring(start, minOf(source.length, start + 80))
+            .replace('\n', ' ').trim()
+        val pageIndex = _pagination.value?.pages
+            ?.indexOfLast { it.charStart <= start }
+            ?.takeIf { it >= 0 } ?: 0
+        addPositionBookmark(start, pageIndex, preview)
+    }
+
     private fun repaginateIfReady() {
         val style = pendingStyle ?: return
         val geom = pendingGeometry ?: return
