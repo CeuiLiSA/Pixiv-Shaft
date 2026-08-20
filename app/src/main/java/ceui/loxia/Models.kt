@@ -1080,8 +1080,8 @@ data class NovelImages(
 
 @Parcelize
 data class SelfProfile(
-    val profile: User,
-    val user_state: KUserState
+    val profile: User = User(),
+    val user_state: KUserState = KUserState()
 ) : Parcelable
 
 @Parcelize
@@ -1094,6 +1094,7 @@ data class KUserState(
     val require_policy_agreement: Boolean = false,
     val no_login_method: Boolean = false,
     val is_user_restricted: Boolean = false,
+    val is_official_event_notifications_enabled: Boolean = false,
 ) : Parcelable
 
 @Parcelize

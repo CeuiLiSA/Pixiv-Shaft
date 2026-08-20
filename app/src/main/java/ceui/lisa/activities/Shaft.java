@@ -628,6 +628,11 @@ public class Shaft extends Application implements ServicesProvider {
             }).start();
         });
 
+        // 冷启动后拉一次 /v1/user/me/state（账号状态）。纯 fire-and-forget：只发一次、
+        // IO 线程、内部四重防线吞掉一切异常（见 SelfProfileWarmup）。安全顺序：必须在
+        // SessionManager.initialize 之后（onCreate 已同步做完），否则读不到登录态白发一次。
+        step("SelfProfileWarmup", ceui.pixiv.session.SelfProfileWarmup::trigger);
+
         // 同义词词典内置数据自动导入（issue #904）：启动 15 秒后后台静默导入，只导一次
         // （flag 记 MMKV 设备本地，不随 Settings 同步）。合并导入不覆盖用户已有词典。
         // 一次性去重清理（issue #905）：已导入旧版冗余词典的设备，清掉大小写重复/与目标同名的同义词。

@@ -302,6 +302,42 @@ object SessionManager {
     }
 
     /**
+     * 用一份**绝对权威**的会员状态强制上报一次。
+     *
+     * [uid] 是 self profile（`/v1/user/me/state`）响应里 `profile.user_id` —— 这份 [premium] 的
+     * **真正归属**。[premium] 是同一响应的 `profile.is_premium`，和 user/detail 的权威字段同源，
+     * 由冷启动预热 [ceui.pixiv.session.SelfProfileWarmup] 刚从 pixiv 真读到，age≈0。
+     *
+     * **绝不上报错值的三道闸**（这是本方法存在的全部理由，用户最怕的就是把 A 的会员状态安到 B 上）：
+     *  1. `uid <= 0` → 畸形响应（缺 user_id），直接不报；
+     *  2. `uid != loggedInUid` → self profile 请求在途时切了号，这份 premium 不属于当前会话，不报。
+     *     用响应自带的 user_id 而不是「当前登录 uid」正是为了这一步——后者会把 A 的 premium 报成 B 的；
+     *  3. `account.user.id != uid` → 再兜一层，会话账号必须就是这个 uid 才动。
+     * 三闸全过之后，上报体直接用 [premium] 覆盖 `is_premium`，不依赖 [ingestFreshUser] 是否真把权威值
+     * 写进了会话（它在 `fresh` 不 exist 时会提前 return），保证送出去的**永远**是这份权威值。
+     *
+     * 和 [ingestFreshUser] 的区别只有一处：那条**只在 is_premium 相对旧值变化时**才上报，服务于
+     * 日常静默同步；这里**无条件**报一次 —— 哪怕值没变，也要把一份 `premiumAgeMs≈0` 的新观测送上
+     * 去，好让曾被借号方误判过的号凭「更晚的真读」回到借号池（见 [ceui.loxia.BindOnlineReq.premiumAgeMs]）。
+     *
+     * [markPremiumObserved] 在校验通过后才调：否则会给一个并不属于当前号的观测打上 age 戳。
+     *
+     * 幂等：outbox 按 `TYPE_ONLINE:uid` 覆盖去重，即便 [ingestFreshUser] 因值变化也报了一次，
+     * 两条会并成同一条，不会重复发。必须在主线程调用（内部经 [ingestFreshUser] 更新 LiveData，
+     * 且读 [loggedInUid] 与切号的 setValue 同在主线程串行，不会读到半更新态）。
+     */
+    fun reportAuthoritativePremium(fresh: User?, uid: Long, premium: Boolean) {
+        if (uid <= 0L || uid != loggedInUid) return
+        markPremiumObserved(uid)
+        ingestFreshUser(fresh, uid, premium)
+        val account = _loggedInAccount.value ?: return
+        val user = account.user ?: return
+        if (user.id != uid) return
+        val authoritative = account.copy(user = user.copy(is_premium = premium))
+        PixivActions.bindAccountOnline(uid, authoritative)
+    }
+
+    /**
      * 前台静默同步：去抖 + 单飞 + 失败静默。头像/昵称在站外被修改后，
      * 回到前台会自动拉一次自己的 user/detail 并写回会话。
      */
