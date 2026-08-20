@@ -447,6 +447,11 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         val ctx = requireContext()
         val d = resources.displayMetrics.density
         val palette = chatPalette(ctx)
+        // The fragment instance can outlive its view (back stack / tablet panes);
+        // a fresh view always starts with the strip hidden, so resync the flag or
+        // showReplyBar() would early-return against a GONE view.
+        replyBarShown = false
+        binding.replyBar.visibility = View.GONE
         // Brand 8% tonal container + 15% hairline, 16dp — same family as the
         // in-bubble quote block (12dp) one step up the radius ladder.
         binding.replyBar.background = GradientDrawable().apply {

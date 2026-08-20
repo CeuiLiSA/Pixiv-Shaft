@@ -135,6 +135,10 @@ class ChatMessageAdapter(
             holder.flash(palette(rv.context))
         } else {
             pendingFlashKey = localKey
+            // One-shot with a deadline: if the caller's scroll doesn't bind this
+            // row within ~2s (user grabbed the list mid-scroll and went elsewhere),
+            // drop it — otherwise the row would flash out of nowhere minutes later.
+            rv.postDelayed({ if (pendingFlashKey == localKey) pendingFlashKey = null }, PENDING_FLASH_TTL_MS)
         }
         return true
     }
@@ -185,6 +189,10 @@ class ChatMessageAdapter(
             onLongClick?.invoke(item)
             true
         }
+        // The quote block is clickable (jump-to-original), so it owns touch events
+        // over its area — forward its long-press to the row, otherwise long-pressing
+        // on the quote of a reply bubble silently does nothing.
+        holder.quoteView.setOnLongClickListener { holder.itemView.performLongClick() }
         if (pendingFlashKey != null && pendingFlashKey == item.localKey) {
             pendingFlashKey = null
             holder.flash(palette)
@@ -206,7 +214,9 @@ class ChatMessageAdapter(
         private val tvMonogram: TextView? = itemView.findViewById(R.id.tv_monogram) // received anon
         private val tvName: TextView? = itemView.findViewById(R.id.tv_name)   // received only
         private val ivState: ImageView? = itemView.findViewById(R.id.iv_state) // sent only
-        private val quote: View = itemView.findViewById(R.id.quote)
+        /** Exposed so the adapter can forward long-presses on the (clickable) quote to the row. */
+        val quoteView: View = itemView.findViewById(R.id.quote)
+        private val quote: View get() = quoteView
         private val quoteBar: View = itemView.findViewById(R.id.quote_bar)
         private val tvQuoteName: TextView = itemView.findViewById(R.id.tv_quote_name)
         private val tvQuoteText: TextView = itemView.findViewById(R.id.tv_quote_text)
@@ -500,6 +510,7 @@ class ChatMessageAdapter(
         const val VIEW_TYPE_SENT = 0
         const val VIEW_TYPE_RECEIVED = 1
         private const val PAYLOAD_AVATAR = "avatar"
+        private const val PENDING_FLASH_TTL_MS = 2_000L
 
         /** Below this gap, consecutive messages share one time group. */
         private const val TIME_GROUP_GAP_MS = 5 * 60 * 1000L
