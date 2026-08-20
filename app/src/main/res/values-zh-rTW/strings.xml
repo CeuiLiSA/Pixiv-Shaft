@@ -879,6 +879,9 @@
     <string name="theme_nowUsing">（正在使用）</string>
     <string name="core_string_novel_marker">小說書籤</string>
     <string name="toast_download_result">下載完成 APP 內提示</string>
+    <string name="setting_auto_export_caption_title">插畫/漫畫下載時自動匯出簡介</string>
+    <string name="setting_auto_export_caption_length_title">簡介自動匯出需達</string>
+    <string name="setting_auto_export_caption_length_value">%d 字</string>
     <string name="setting_write_exif_tags_title">下載時把標籤寫進圖片</string>
     <string name="setting_write_exif_tags_desc">為下載的 JPEG 寫入 XMP 關鍵字(dc:subject),方便相簿 / 圖片管理軟體依標籤整理。僅 JPEG。</string>
     <string name="setting_silent_download_title">低調下載</string>
@@ -1350,6 +1353,7 @@
     <string name="download_path_bucket_ugoira">動圖（最終 GIF）</string>
     <string name="download_path_bucket_novel">小說</string>
     <string name="download_path_bucket_novel_series">小說系列 · 合併下載</string>
+    <string name="download_path_bucket_caption">簡介（插畫 / 漫畫）</string>
     <string name="download_path_quick_template_label">快捷範本（點一下直接套用）</string>
     <string name="download_path_quick_merge_default">預設</string>
     <string name="download_path_quick_merge_by_author">放作者目錄</string>

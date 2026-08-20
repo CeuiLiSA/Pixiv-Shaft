@@ -31,7 +31,7 @@ class DefaultTemplatesTest {
             val ext = when (bucket) {
                 Bucket.Illust, Bucket.TempCache -> "jpg"
                 Bucket.Ugoira -> "gif"
-                Bucket.Novel, Bucket.NovelSeries, Bucket.Log -> "txt"
+                Bucket.Novel, Bucket.NovelSeries, Bucket.Caption, Bucket.Log -> "txt"
                 Bucket.Backup -> "zip"
             }
             val rendered = compiled.render(META, ext)

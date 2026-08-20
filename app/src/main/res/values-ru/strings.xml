@@ -877,6 +877,9 @@
     <string name="theme_nowUsing">(используется)</string>
     <string name="core_string_novel_marker">Метки</string>
     <string name="toast_download_result">Показывать уведомление после завершения загрузки</string>
+    <string name="setting_auto_export_caption_title">Автоматически экспортировать описание при загрузке иллюстраций/манги</string>
+    <string name="setting_auto_export_caption_length_title">Мин. длина описания для экспорта</string>
+    <string name="setting_auto_export_caption_length_value">%d симв.</string>
     <string name="setting_write_exif_tags_title">Записывать теги в изображения при загрузке</string>
     <string name="setting_write_exif_tags_desc">Встраивать теги как ключевые слова XMP (dc:subject) в загружаемые JPEG, чтобы фотоприложения могли сортировать по тегам. Только JPEG.</string>
     <string name="setting_silent_download_title">Незаметная загрузка</string>
@@ -1348,6 +1351,7 @@
     <string name="download_path_bucket_ugoira">Ugoira (итоговый GIF)</string>
     <string name="download_path_bucket_novel">Роман</string>
     <string name="download_path_bucket_novel_series">Серия новелл · объединённая загрузка</string>
+    <string name="download_path_bucket_caption">Описание (иллюстрации / манга)</string>
     <string name="download_path_quick_template_label">Быстрые шаблоны (нажмите, чтобы применить)</string>
     <string name="download_path_quick_merge_default">По умолчанию</string>
     <string name="download_path_quick_merge_by_author">Папка автора</string>

@@ -877,6 +877,9 @@
     <string name="theme_nowUsing">(In use)</string>
     <string name="core_string_novel_marker">Markers</string>
     <string name="toast_download_result">Show an in-app notice when downloads complete</string>
+    <string name="setting_auto_export_caption_title">Auto-export caption when downloading illustration/manga</string>
+    <string name="setting_auto_export_caption_length_title">Minimum caption length to export</string>
+    <string name="setting_auto_export_caption_length_value">%d chars</string>
     <string name="setting_write_exif_tags_title">Write tags into images on download</string>
     <string name="setting_write_exif_tags_desc">Embed tags as XMP keywords (dc:subject) in downloaded JPEGs so photo apps can organize by tag. JPEG only.</string>
     <string name="setting_silent_download_title">Discreet download</string>
@@ -1348,6 +1351,7 @@
     <string name="download_path_bucket_ugoira">Ugoira (final GIF)</string>
     <string name="download_path_bucket_novel">Novel</string>
     <string name="download_path_bucket_novel_series">Novel series · merged download</string>
+    <string name="download_path_bucket_caption">Caption (illustration / manga)</string>
     <string name="download_path_quick_template_label">Quick templates (tap to apply)</string>
     <string name="download_path_quick_merge_default">Default</string>
     <string name="download_path_quick_merge_by_author">Author folder</string>

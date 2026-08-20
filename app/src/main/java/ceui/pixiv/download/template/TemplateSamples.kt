@@ -67,6 +67,7 @@ object TemplateSamples {
         Bucket.Ugoira      to "gif",
         Bucket.Novel       to "txt",
         Bucket.NovelSeries to "txt",
+        Bucket.Caption     to "txt",
         Bucket.Backup      to "zip",
         Bucket.Log         to "txt",
         Bucket.TempCache   to "bin",

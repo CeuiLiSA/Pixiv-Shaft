@@ -127,7 +127,7 @@ class NovelSeriesMergeTemplateTest {
         val cfg = DownloadConfig(
             defaults = BucketDefaults(template = "Illust/{id}.{ext}", storage = images),
         )
-        for (bucket in Bucket.entries - Bucket.NovelSeries - Bucket.TempCache) {
+        for (bucket in Bucket.entries - Bucket.NovelSeries - Bucket.Caption - Bucket.TempCache) {
             val resolved = cfg.resolve(bucket)
             assertEquals("bucket $bucket template", "Illust/{id}.{ext}", resolved.template)
             assertEquals("bucket $bucket storage", images, resolved.storage)

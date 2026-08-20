@@ -17,6 +17,7 @@ import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.db.queue.WorkType
 import ceui.pixiv.download.StageStore
+import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.download.maintenance.MediaStoreOrphanCleaner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -746,6 +747,9 @@ object QueueDownloadManager {
             "[QUEUE-CONSUMER] TAKE id=${row.id} illustId=${row.illustId} " +
                     "pageCount=$pageCount existing=${existing.size} retry=${row.retryCount}"
         )
+        // 只在首次拉入时导出简介：retry path（existing 非空）这条作品上一轮已经导出过，
+        // 再导一次在 Rename 策略下会多出一份 `xxx (1).txt`。
+        if (existing.isEmpty()) IllustCaptionExporter.export(bean)
         return true
     }
 

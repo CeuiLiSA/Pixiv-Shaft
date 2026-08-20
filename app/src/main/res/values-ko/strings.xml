@@ -877,6 +877,9 @@
     <string name="theme_nowUsing">(사용 중)</string>
     <string name="core_string_novel_marker">책갈피</string>
     <string name="toast_download_result">다운로드 완료 시 앱 내 알림 표시</string>
+    <string name="setting_auto_export_caption_title">일러스트/만화 다운로드 시 캡션 자동 내보내기</string>
+    <string name="setting_auto_export_caption_length_title">캡션 자동 내보내기 최소 글자 수</string>
+    <string name="setting_auto_export_caption_length_value">%d자</string>
     <string name="setting_write_exif_tags_title">다운로드 시 이미지에 태그 기록</string>
     <string name="setting_write_exif_tags_desc">다운로드한 JPEG에 XMP 키워드(dc:subject)로 태그를 넣어 사진 앱에서 태그로 정리할 수 있게 합니다. JPEG만 지원.</string>
     <string name="setting_silent_download_title">조용한 다운로드</string>
@@ -1348,6 +1351,7 @@
     <string name="download_path_bucket_ugoira">움직이는 이미지(최종 GIF)</string>
     <string name="download_path_bucket_novel">소설</string>
     <string name="download_path_bucket_novel_series">소설 시리즈 · 병합 다운로드</string>
+    <string name="download_path_bucket_caption">캡션 (일러스트 / 만화)</string>
     <string name="download_path_quick_template_label">빠른 템플릿 (탭하면 바로 적용)</string>
     <string name="download_path_quick_merge_default">기본값</string>
     <string name="download_path_quick_merge_by_author">작가 폴더</string>
