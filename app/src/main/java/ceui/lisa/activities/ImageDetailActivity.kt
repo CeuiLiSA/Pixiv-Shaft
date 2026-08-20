@@ -40,6 +40,7 @@ import ceui.pixiv.ui.detail.DownloadFab
 import ceui.pixiv.ui.detail.V3FabBarController
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.download.DownloadsRegistry
+import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.download.ExifKeywordWriter
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.imageloader.ImageLoaderV3
@@ -409,6 +410,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
                 ?: return@setOnClick
             lifecycleScope.launch {
+                IllustCaptionExporter.export(illust)
                 val ok = saveLoadedIllustPage(illust, page, imageUrl)
                 if (ok) {
                     Common.showToast(R.string.string_181)

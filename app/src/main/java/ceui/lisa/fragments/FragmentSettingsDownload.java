@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -329,6 +330,51 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         baseBind.silentDownloadRela.setOnClickListener(v ->
                 baseBind.silentDownload.performClick());
 
+        // 插画/漫画下载时自动导出简介（默认关）
+        baseBind.autoExportCaption.setChecked(Shaft.sSettings.isAutoExportIllustCaption());
+        refreshAutoExportCaptionLengthRow();
+        baseBind.autoExportCaptionLengthRela.setVisibility(
+                Shaft.sSettings.isAutoExportIllustCaption() ? View.VISIBLE : View.GONE);
+        baseBind.autoExportCaption.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setAutoExportIllustCaption(isChecked);
+                baseBind.autoExportCaptionLengthRela.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+                if (isChecked) refreshAutoExportCaptionLengthRow();
+                Common.showToast(getString(R.string.string_428));
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.autoExportCaptionRela.setOnClickListener(v ->
+                baseBind.autoExportCaption.performClick());
+
+        // 简介自动导出需达到的最少字数（最小 1）
+        baseBind.autoExportCaptionLengthRela.setOnClickListener(v -> {
+            WitDialog.EditTextDialogBuilder builder =
+                    new WitDialog.EditTextDialogBuilder(mContext);
+            int current = Math.max(Shaft.sSettings.getAutoExportCaptionMinLength(), 1);
+            builder.setTitle(getString(R.string.setting_auto_export_caption_length_title))
+                    .setDefaultText(String.valueOf(current))
+                    .setInputType(InputType.TYPE_CLASS_NUMBER)
+                    .addAction(android.R.string.cancel, (dialog, index) -> dialog.dismiss())
+                    .addAction(android.R.string.ok, (dialog, index) -> {
+                        CharSequence entered = builder.getEditText().getText();
+                        int parsed = 1;
+                        try {
+                            parsed = Integer.parseInt(entered == null ? "" : entered.toString().trim());
+                        } catch (NumberFormatException ignored) {
+                        }
+                        parsed = Math.max(parsed, 1);
+                        Shaft.sSettings.setAutoExportCaptionMinLength(parsed);
+                        Local.setSettings(Shaft.sSettings);
+                        refreshAutoExportCaptionLengthRow();
+                        Common.showToast(getString(R.string.string_428), 2);
+                        dialog.dismiss();
+                    })
+                    .create()
+                    .show();
+        });
+
         //下载限制类型
         final String[] DOWNLOAD_START_TYPE_NAMES = new String[]{
                 getString(DownloadLimitTypeUtil.DOWNLOAD_START_TYPE_IDS[0]),
@@ -454,6 +500,14 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         if (baseBind == null) return;
         baseBind.ugoiraSaveFormat.setText(ugoiraSaveFormatNames()[currentUgoiraSaveFormat()]);
         baseBind.ugoiraSaveFormat.setAlpha(1.0f);
+    }
+
+    /** 简介自动导出最少字数行的值列。 */
+    private void refreshAutoExportCaptionLengthRow() {
+        if (baseBind == null) return;
+        int value = Math.max(Shaft.sSettings.getAutoExportCaptionMinLength(), 1);
+        baseBind.autoExportCaptionLength.setText(
+                getString(R.string.setting_auto_export_caption_length_value, value));
     }
 
     /** aria2 远程下载入口行的状态文字：已启用时显示 RPC 地址，否则显示功能简介。 */

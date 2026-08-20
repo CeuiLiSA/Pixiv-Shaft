@@ -39,6 +39,7 @@ import ceui.lisa.models.ImageUrlsBean;
 import ceui.lisa.models.MetaPagesBean;
 import ceui.loxia.ObjectPool;
 import ceui.pixiv.download.DownloadsRegistry;
+import ceui.pixiv.download.IllustCaptionExporter;
 import ceui.pixiv.download.config.StorageChoice;
 import ceui.pixiv.ui.bulk.UgoiraEngine;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -83,6 +84,7 @@ public class IllustDownload {
                 return;
             }
             if (illust.getPage_count() == 1) {
+                IllustCaptionExporter.export(illust);
                 DownloadItem item = buildDownloadItem(illust, 0, imageResolution);
                 Common.showToast('1' + Shaft.getContext().getString(R.string.has_been_added));
                 Manager.get().addTask(item);
@@ -101,6 +103,7 @@ public class IllustDownload {
             return;
         }
         if (illust.getPage_count() == 1) {
+            IllustCaptionExporter.export(illust);
             DownloadItem item = buildDownloadItem(illust, 0, imageResolution);
             Common.showToast('1' + Shaft.getContext().getString(R.string.has_been_added));
             Manager.get().addTask(item);
@@ -113,6 +116,7 @@ public class IllustDownload {
                 // index!=0 时不合理
                 downloadIllustFirstPage(illust);
             } else {
+                IllustCaptionExporter.export(illust);
                 DownloadItem item = buildDownloadItem(illust, index);
                 Common.showToast('1' + Shaft.getContext().getString(R.string.has_been_added));
                 Manager.get().addTask(item);
@@ -129,6 +133,7 @@ public class IllustDownload {
             if (illust.getPage_count() == 1) {
                 downloadIllustFirstPage(illust, activity);
             } else {
+                IllustCaptionExporter.export(illust);
                 List<DownloadItem> tempList = new ArrayList<>();
                 for (int i = 0; i < illust.getPage_count(); i++) {
                     DownloadItem item = buildDownloadItem(illust, i, imageResolution);
@@ -157,6 +162,7 @@ public class IllustDownload {
         } else if (illust.getPage_count() == 1) {
             downloadIllustFirstPage(illust);
         } else {
+            IllustCaptionExporter.export(illust);
             List<DownloadItem> tempList = new ArrayList<>();
             for (int i = 0; i < illust.getPage_count(); i++) {
                 DownloadItem item = buildDownloadItem(illust, i);

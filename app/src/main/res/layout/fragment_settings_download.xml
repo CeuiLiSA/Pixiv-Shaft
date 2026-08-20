@@ -358,6 +358,45 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/auto_export_caption_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/setting_auto_export_caption_title" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/auto_export_caption"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/auto_export_caption_length_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/setting_auto_export_caption_length_title" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/auto_export_caption_length"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/silent_download_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_bottom">

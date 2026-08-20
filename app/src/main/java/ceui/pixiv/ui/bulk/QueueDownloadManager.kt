@@ -17,6 +17,7 @@ import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.db.queue.WorkType
 import ceui.pixiv.download.StageStore
+import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.download.maintenance.MediaStoreOrphanCleaner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -746,6 +747,7 @@ object QueueDownloadManager {
             "[QUEUE-CONSUMER] TAKE id=${row.id} illustId=${row.illustId} " +
                     "pageCount=$pageCount existing=${existing.size} retry=${row.retryCount}"
         )
+        IllustCaptionExporter.export(bean)
         return true
     }
 

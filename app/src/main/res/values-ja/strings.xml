@@ -877,6 +877,9 @@
     <string name="theme_nowUsing">（使用中）</string>
     <string name="core_string_novel_marker">しおり</string>
     <string name="toast_download_result">ダウンロード完了時に通知</string>
+    <string name="setting_auto_export_caption_title">イラスト/漫画ダウンロード時にキャプションを自動出力</string>
+    <string name="setting_auto_export_caption_length_title">キャプション自動出力の最低文字数</string>
+    <string name="setting_auto_export_caption_length_value">%d 文字</string>
     <string name="setting_write_exif_tags_title">ダウンロード時に画像へタグを書き込む</string>
     <string name="setting_write_exif_tags_desc">ダウンロードした JPEG に XMP キーワード(dc:subject)としてタグを埋め込み、写真アプリでタグ管理できるようにします。JPEG のみ。</string>
     <string name="setting_silent_download_title">目立たないダウンロード</string>
@@ -1348,6 +1351,7 @@
     <string name="download_path_bucket_ugoira">うごイラ（最終 GIF）</string>
     <string name="download_path_bucket_novel">小説</string>
     <string name="download_path_bucket_novel_series">小説シリーズ・まとめてダウンロード</string>
+    <string name="download_path_bucket_caption">キャプション（イラスト / 漫画）</string>
     <string name="download_path_quick_template_label">クイックテンプレート（タップで適用）</string>
     <string name="download_path_quick_merge_default">デフォルト</string>
     <string name="download_path_quick_merge_by_author">作者フォルダー</string>

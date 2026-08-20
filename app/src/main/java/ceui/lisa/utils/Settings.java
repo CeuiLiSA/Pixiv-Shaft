@@ -285,6 +285,10 @@ public class Settings {
 
     private boolean toastDownloadResult = true; // 默认提示下载结果
 
+    private boolean autoExportIllustCaption = false; // 插画/漫画下载时自动导出简介，默认关
+
+    private int autoExportCaptionMinLength = 1; // 简介自动导出需达到的最少字数，最小 1
+
     private transient boolean r18FilterTempEnableInitialed = false;
     private transient boolean r18FilterTempEnable = false; // 临时开启R18内容过滤
 
@@ -388,6 +392,22 @@ public class Settings {
 
     public void setToastDownloadResult(boolean toastDownloadResult) {
         this.toastDownloadResult = toastDownloadResult;
+    }
+
+    public boolean isAutoExportIllustCaption() {
+        return autoExportIllustCaption;
+    }
+
+    public void setAutoExportIllustCaption(boolean autoExportIllustCaption) {
+        this.autoExportIllustCaption = autoExportIllustCaption;
+    }
+
+    public int getAutoExportCaptionMinLength() {
+        return autoExportCaptionMinLength;
+    }
+
+    public void setAutoExportCaptionMinLength(int autoExportCaptionMinLength) {
+        this.autoExportCaptionMinLength = autoExportCaptionMinLength;
     }
 
     public int getDownloadWay() {

@@ -66,6 +66,8 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         Bucket.Novel  to R.string.download_path_bucket_novel,
         // 合并下载的合集单独一张卡：它的目录 / 文件名和单篇小说互不牵连（issue #964）。
         Bucket.NovelSeries to R.string.download_path_bucket_novel_series,
+        // 插画/漫画简介 txt 单独一张卡：默认目录不与图片混放。
+        Bucket.Caption to R.string.download_path_bucket_caption,
         Bucket.Backup to R.string.download_path_bucket_backup,
         Bucket.Log    to R.string.download_path_bucket_log,
     )

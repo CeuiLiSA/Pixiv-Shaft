@@ -12,6 +12,11 @@ enum class Bucket {
      * 钉死在小说模板渲染出的 `{series}/` 子目录里，希望能放作者目录）和文件名。
      */
     NovelSeries,
+
+    /**
+     * Caption txt exported when downloading illustration / manga.
+     */
+    Caption,
     Backup,
     Log,
     TempCache,

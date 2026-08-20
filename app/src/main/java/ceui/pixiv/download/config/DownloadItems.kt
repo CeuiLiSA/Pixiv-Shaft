@@ -88,6 +88,23 @@ object DownloadItems {
     fun ugoiraRelativePath(illust: IllustsBean, asMp4: Boolean): RelativePath =
         renderedPath(ugoira(illust, asMp4))
 
+    /**
+     * Full sanitized destination for an illustration/manga caption txt.
+     * Rendered through the active [Bucket.Caption] template (separate folder
+     * by default, not mixed with image files).
+     */
+    @JvmStatic
+    fun illustCaptionDestination(illust: IllustsBean): RelativePath =
+        renderedPath(illustCaptionItem(illust))
+
+    private fun illustCaptionItem(illust: IllustsBean): DownloadItem = DownloadItem(
+        bucket = Bucket.Caption,
+        ext = "txt",
+        mime = "text/plain",
+        sourceUrl = "",
+        meta = metaOf(illust, pageIndex = null),
+    )
+
     private fun renderedPath(item: DownloadItem): RelativePath {
         val config = DownloadsRegistry.store.loadOrFallback()
         val resolved = config.resolve(item.bucket)

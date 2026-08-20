@@ -33,6 +33,9 @@ object DefaultTemplates {
     // （不跟单篇小说的 legacy `ShaftNovels/` 混），也不再跟着小说模板渲染结果走，
     // 独立可改。
     const val NOVEL_SERIES = "Shaft/Novels/NovelSeries_{id}_Chapter_1~{chapters}_{series}.{ext}"
+
+    // Caption txt for illustration/manga: separate ShaftDescriptions/ folder.
+    const val CAPTION = "ShaftDescriptions/{title}_{id}.txt"
     const val BACKUP  = "Shaft/Backups/{created:yyyyMMdd_HHmmss}.zip"
     const val LOG     = "Shaft/Logs/{created:yyyyMMdd_HHmmss}.txt"
     const val TEMP    = "ugoira/{id}/{title} {id}.{ext}"
@@ -42,6 +45,7 @@ object DefaultTemplates {
         Bucket.Ugoira      to UGOIRA,
         Bucket.Novel       to NOVEL,
         Bucket.NovelSeries to NOVEL_SERIES,
+        Bucket.Caption     to CAPTION,
         Bucket.Backup      to BACKUP,
         Bucket.Log         to LOG,
         Bucket.TempCache   to TEMP,

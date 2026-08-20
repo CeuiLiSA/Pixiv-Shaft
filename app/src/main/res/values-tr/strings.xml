@@ -877,6 +877,9 @@
     <string name="theme_nowUsing">(Kullanılıyor)</string>
     <string name="core_string_novel_marker">Roman yer imi</string>
     <string name="toast_download_result">İndirme tamamlanınca uygulama içinde bildirim göster</string>
+    <string name="setting_auto_export_caption_title">İllüstrasyon/manga indirirken açıklamayı otomatik dışa aktar</string>
+    <string name="setting_auto_export_caption_length_title">Dışa aktarma için minimum açıklama uzunluğu</string>
+    <string name="setting_auto_export_caption_length_value">%d karakter</string>
     <string name="setting_write_exif_tags_title">İndirirken etiketleri görsele yaz</string>
     <string name="setting_write_exif_tags_desc">İndirilen JPEG\'lere etiketleri XMP anahtar kelimeleri (dc:subject) olarak gömer; böylece fotoğraf uygulamaları etikete göre düzenleyebilir. Yalnızca JPEG.</string>
     <string name="setting_silent_download_title">Sessiz indirme</string>
@@ -1348,6 +1351,7 @@
     <string name="download_path_bucket_ugoira">Ugoira (son GIF)</string>
     <string name="download_path_bucket_novel">Roman</string>
     <string name="download_path_bucket_novel_series">Roman serisi · birleşik indirme</string>
+    <string name="download_path_bucket_caption">Açıklama (illüstrasyon / manga)</string>
     <string name="download_path_quick_template_label">Hızlı şablonlar (dokununca uygulanır)</string>
     <string name="download_path_quick_merge_default">Varsayılan</string>
     <string name="download_path_quick_merge_by_author">Yazar klasörü</string>
