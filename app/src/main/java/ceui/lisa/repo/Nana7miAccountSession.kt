@@ -58,7 +58,7 @@ internal class Nana7miAccountSession {
     suspend fun fetchReady(): Nana7miResult {
         // Defense in depth: repository routing already disables borrowing in Lite, but keeping the
         // network boundary closed prevents a future caller from accidentally bypassing that gate.
-        if (BuildConfig.IS_LITE) return Nana7miResult.NoAccount
+        if (BuildConfig.IS_LITE) return Nana7miResult.DisabledForLite
         val requesterUid = SessionManager.loggedInUid
         Timber.tag(LOG_TAG).d(
             "stage=fetch event=request requester_uid=%d",
@@ -207,6 +207,7 @@ internal class Nana7miAccountSession {
 
     fun resultLabel(result: Nana7miResult): String = when (result) {
         is Nana7miResult.Success -> if (result.value.expired) "expired" else "success"
+        Nana7miResult.DisabledForLite -> "disabled_for_lite"
         Nana7miResult.NoAccount -> "no_account"
         is Nana7miResult.NotPremium -> "not_premium"
         is Nana7miResult.RateLimited -> "rate_limited"
@@ -382,6 +383,11 @@ internal class Nana7miAccountSession {
                     (result.value.expiresAt - now).coerceAtLeast(0L),
                 )
             }
+
+            Nana7miResult.DisabledForLite -> logger.d(
+                "stage=fetch result=disabled_for_lite requester_uid=%d",
+                requesterUid,
+            )
 
             Nana7miResult.NoAccount -> logger.w(
                 "stage=fetch result=no_account requester_uid=%d",

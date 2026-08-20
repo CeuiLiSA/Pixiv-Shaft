@@ -626,6 +626,11 @@ data class Nana7miPayload(
 
 sealed class Nana7miResult {
     data class Success(val value: Nana7miPayload) : Nana7miResult()
+
+    /** This app flavor does not participate in Nana7mi account borrowing. No request was made. */
+    data object DisabledForLite : Nana7miResult()
+
+    /** The server accepted the borrow request but currently has no account to dispatch. */
     data object NoAccount : Nana7miResult()
 
     /**

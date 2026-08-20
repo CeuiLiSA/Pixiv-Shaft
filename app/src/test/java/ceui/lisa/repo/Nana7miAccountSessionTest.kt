@@ -3,6 +3,7 @@ package ceui.lisa.repo
 import ceui.lisa.model.ListIllust
 import ceui.loxia.AccountResponse
 import ceui.loxia.Nana7miPayload
+import ceui.loxia.Nana7miResult
 import ceui.loxia.User
 import ceui.pixiv.login.PixivOAuthUser
 import io.reactivex.Observable
@@ -12,6 +13,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class Nana7miAccountSessionTest {
+
+    @Test
+    fun `disabled flavor is not reported as an empty account pool`() {
+        val session = Nana7miAccountSession()
+
+        assertEquals("disabled_for_lite", session.resultLabel(Nana7miResult.DisabledForLite))
+        assertEquals("no_account", session.resultLabel(Nana7miResult.NoAccount))
+    }
 
     @Test
     fun `renewal failure clears borrowed payload before preview fallback`() {
