@@ -869,4 +869,3 @@ object QueueDownloadManager {
     private const val TAG = "QueueDownloadManager"
 }
 
-// awaitFirstSafe 已迁到 BulkObjectFetcher.kt 内的 internal 扩展，本包共享。

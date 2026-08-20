@@ -5,6 +5,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.http.Retro
+import kotlinx.coroutines.runBlocking
 import ceui.lisa.models.IllustsBean
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager
@@ -115,25 +116,29 @@ object ProfileManager {
         val myUserId = SessionManager.loggedInUid.toInt()
 
         if (myUserId > 0) {
-            try {
-                Timber.d("$TAG buildProfile fetching remote bookmarks userId=$myUserId")
-                val resp = Retro.getAppApi().getUserLikeIllust(myUserId, "public").blockingFirst()
-                resp?.illusts?.let { remoteBookmarks.addAll(it) }
-                Timber.d("$TAG buildProfile remote bookmarks=${remoteBookmarks.size}")
-            } catch (e: Exception) {
-                Timber.w(e, "$TAG buildProfile remote bookmarks failed")
-            }
-
-            try {
-                Timber.d("$TAG buildProfile fetching remote following userId=$myUserId")
-                val resp = Retro.getAppApi().getFollowUser(myUserId, "public").blockingFirst()
-                resp?.list?.forEach { preview ->
-                    val uid = preview.user?.id?.toLong() ?: return@forEach
-                    if (uid > 0) remoteFollowedAuthorIds.add(uid)
+            // buildProfile 是 Shaft.java 在专用后台线程上的同步调用（Java 调不了 suspend），
+            // runBlocking 只是把 suspend 接口拉回同步语义，不占主线程。
+            runBlocking {
+                try {
+                    Timber.d("$TAG buildProfile fetching remote bookmarks userId=$myUserId")
+                    val resp = Retro.getAppApiSuspend().getUserLikeIllust(myUserId, "public")
+                    resp.illusts?.let { remoteBookmarks.addAll(it) }
+                    Timber.d("$TAG buildProfile remote bookmarks=${remoteBookmarks.size}")
+                } catch (e: Exception) {
+                    Timber.w(e, "$TAG buildProfile remote bookmarks failed")
                 }
-                Timber.d("$TAG buildProfile remote following=${remoteFollowedAuthorIds.size}")
-            } catch (e: Exception) {
-                Timber.w(e, "$TAG buildProfile remote following failed")
+
+                try {
+                    Timber.d("$TAG buildProfile fetching remote following userId=$myUserId")
+                    val resp = Retro.getAppApiSuspend().getFollowUser(myUserId, "public")
+                    resp.list?.forEach { preview ->
+                        val uid = preview.user?.id?.toLong() ?: return@forEach
+                        if (uid > 0) remoteFollowedAuthorIds.add(uid)
+                    }
+                    Timber.d("$TAG buildProfile remote following=${remoteFollowedAuthorIds.size}")
+                } catch (e: Exception) {
+                    Timber.w(e, "$TAG buildProfile remote following failed")
+                }
             }
         } else {
             Timber.d("$TAG buildProfile skip remote fetch: not logged in")

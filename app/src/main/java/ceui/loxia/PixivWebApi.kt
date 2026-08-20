@@ -34,6 +34,36 @@ interface PixivWebApi {
         @Path("illust_id") illust_id: Long,
     ): WebResponse<List<WebIllustPage>>
 
+    /**
+     * issue #569: 按 Tag 筛选某画师的插画/漫画作品。offset/limit 翻页,limit 固定 48 跟网页一致。
+     * sensitiveFilterMode=userSetting 跟随账号的敏感内容设置。
+     * category 取 "illusts" / "manga"(issue #996,两个端点响应完全同构,共用一个方法)。
+     */
+    @GET("/ajax/user/{userId}/{category}/tag")
+    suspend fun getUserIllustsByTag(
+        @Path("userId") userId: Long,
+        @Path("category") category: String,
+        @Query("tag") tag: String,
+        @Query("offset") offset: Int,
+        @Query("limit") limit: Int,
+        @Query("sensitiveFilterMode") sensitiveFilterMode: String = "userSetting",
+        @Query("lang") lang: String = "zh",
+    ): WebResponse<UserTagIllustBody>
+
+    /**
+     * issue #996: 按 Tag 筛选某作者的小说。翻页与敏感内容参数同上,
+     * works 是小说形状的精简对象(封面/字数/收藏数),见 [UserTagNovelBody]。
+     */
+    @GET("/ajax/user/{userId}/novels/tag")
+    suspend fun getUserNovelsByTag(
+        @Path("userId") userId: Long,
+        @Query("tag") tag: String,
+        @Query("offset") offset: Int,
+        @Query("limit") limit: Int,
+        @Query("sensitiveFilterMode") sensitiveFilterMode: String = "userSetting",
+        @Query("lang") lang: String = "zh",
+    ): WebResponse<UserTagNovelBody>
+
     @GET("/ajax/tags/frequent/illust")
     suspend fun getFrequentTags(
         @Query("ids[]") ids: List<Long>,

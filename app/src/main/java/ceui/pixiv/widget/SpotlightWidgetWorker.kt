@@ -48,9 +48,8 @@ class SpotlightWidgetWorker(
 
         val illust = try {
             withContext(Dispatchers.IO) {
-                Retro.getAppApi().getRecmdIllust(true)
-                    .blockingFirst()
-                    ?.illusts
+                Retro.getAppApiSuspend().getRecmdIllust(true)
+                    .illusts
                     ?.shuffled()
                     ?.firstOrNull { !it.isR18File && !it.isSensitive }
             }

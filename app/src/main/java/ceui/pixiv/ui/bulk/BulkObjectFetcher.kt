@@ -2,25 +2,19 @@ package ceui.pixiv.ui.bulk
 
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import ceui.lisa.models.IllustsBean
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.db.queue.WorkType
-import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.suspendCancellableCoroutine
 import timber.log.Timber
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /**
  * 细粒度 fetcher 事件：dialog 用它驱动 CLI 风格的实时 verbose 显示。
@@ -238,19 +232,6 @@ private suspend fun enqueueIllustPage(
 private fun abbrevUrl(url: String): String {
     if (url.length <= 64) return url
     return url.take(40) + "…" + url.takeLast(20)
-}
-
-// ───────────────────────── 内部 RxJava2 适配 ─────────────────────────
-
-/** RxJava2 -> suspend 单值（source 实现内部用）。 */
-internal suspend fun <T : Any> Observable<T>.awaitFirstSafe(): T = suspendCancellableCoroutine { cont ->
-    val disposable = subscribeOn(Schedulers.io())
-        .firstOrError()
-        .subscribe(
-            { cont.resume(it) },
-            { cont.resumeWithException(it) }
-        )
-    cont.invokeOnCancellation { disposable.dispose() }
 }
 
 internal fun ListIllust.toPageResult(): PageResult<IllustsBean> =

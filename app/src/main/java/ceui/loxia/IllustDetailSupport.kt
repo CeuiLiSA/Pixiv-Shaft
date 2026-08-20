@@ -8,18 +8,13 @@ import ceui.lisa.models.MetaPagesBean
 import ceui.lisa.models.MetaSinglePageBean
 import ceui.lisa.models.TagsBean
 import ceui.lisa.models.UserBean
-import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.net.URLDecoder
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /**
  * issue #569: 详情页渲染 / 下载所需的字段是否齐全。
@@ -54,7 +49,7 @@ fun IllustsBean.hasTrustedCaption(): Boolean {
  */
 suspend fun fetchFullIllustDetail(illustId: Long): IllustsBean? {
     val fresh = try {
-        Retro.getAppApi().getIllustByID(illustId).awaitFirstOrThrow().illust
+        Retro.getAppApiSuspend().getIllustByID(illustId).illust
     } catch (ce: CancellationException) {
         throw ce
     } catch (e: Exception) {
@@ -258,14 +253,3 @@ suspend fun fetchIllustPageDimensions(illustId: Long): List<IntArray>? {
         null
     }
 }
-
-private suspend fun <T : Any> Observable<T>.awaitFirstOrThrow(): T =
-    suspendCancellableCoroutine { cont ->
-        val disposable = subscribeOn(Schedulers.io())
-            .firstOrError()
-            .subscribe(
-                { if (cont.isActive) cont.resume(it) },
-                { if (cont.isActive) cont.resumeWithException(it) },
-            )
-        cont.invokeOnCancellation { disposable.dispose() }
-    }

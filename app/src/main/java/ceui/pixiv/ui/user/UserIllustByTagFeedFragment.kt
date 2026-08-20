@@ -6,13 +6,13 @@ import android.view.View
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
-import ceui.lisa.http.Retro
 import ceui.lisa.models.ImageUrlsBean
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.ProfileImageUrlsBean
 import ceui.lisa.models.TagsBean
 import ceui.lisa.models.UserBean
 import ceui.lisa.utils.Params
+import ceui.loxia.Client
 import ceui.loxia.UserTagIllust
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
@@ -21,7 +21,6 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
-import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import kotlinx.coroutines.Dispatchers
@@ -150,7 +149,7 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
 }
 
 /**
- * 按 Tag 筛选画师插画/漫画的数据源：网页 ajax（Rx → suspend via [awaitFirstValue]），offset 翻页。
+ * 按 Tag 筛选画师插画/漫画的数据源：网页 ajax（[Client.webApi]），offset 翻页。
  * 每页精简 work → IllustsBean → [IllustFeedItem.fromBean]（含全局内容过滤，对齐 legacy 基类 Mapper）。
  * 游标 = 下一页 offset（已加载条数）；works 空或已到 total 则停。零 Fragment 捕获。
  */
@@ -163,9 +162,8 @@ class UserIllustByTagFeedSource(
     // 游标就是下一页 offset（编码成 String，对齐 IllustFeedFragment 固定的 String 游标类型）。
     override suspend fun load(cursor: String?): FeedPage<String> {
         val offset = cursor?.toIntOrNull() ?: 0
-        val resp = Retro.getWebApi()
-            .getUserIllustsByTag(userId.toLong(), category, tag, offset, PAGE_SIZE, "userSetting", "zh")
-            .awaitFirstValue()
+        val resp = Client.webApi
+            .getUserIllustsByTag(userId.toLong(), category, tag, offset, PAGE_SIZE)
         // 网页 ajax 的业务错误(限流、参数非法、要求登录…)是 HTTP 200 + error:true + body:null。
         // 不认这一层的话 works 空、total 0，会被渲染成「筛出来 0 件」的空白页 —— 用户既看不到
         // 原因也点不到重试。抛出去交给 feeds 的错误态(issue #956)。

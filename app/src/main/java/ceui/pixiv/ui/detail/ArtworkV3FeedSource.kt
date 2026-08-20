@@ -18,15 +18,9 @@ import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.ui.common.IllustFeedItem
-import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /**
  * ArtworkV3 详情页的 feeds 数据源。零捕获:只持有 [illustId]。
@@ -181,23 +175,7 @@ internal suspend fun fetchAuthorWorks(
     excludeIllustId: Long,
 ): List<IllustsBean> = withContext(Dispatchers.IO) {
     Timber.tag(ARTWORK_LAZY_TAG).d("API 发出: 作者其他作品 userId=%d", userId)
-    val resp = Retro.getAppApi().getUserSubmitIllust(userId, "illust").awaitFirstOrThrow()
+    val resp = Retro.getAppApiSuspend().getUserSubmitIllust(userId, "illust")
     if (resp.illusts != null) Mapper<ListIllust>().apply(resp)
     resp.list?.filter { it.id != excludeIllustId.toInt() }?.take(10) ?: emptyList()
-}
-
-/** Rx2 Observable → suspend(取首个)。作者其他作品接口仍是 legacy Observable,这里桥一下。 */
-private suspend fun <T : Any> Observable<T>.awaitFirstOrThrow(): T = suspendCancellableCoroutine { cont ->
-    val disposable = subscribeOn(Schedulers.io())
-        .firstOrError()
-        .subscribe(
-            { if (cont.isActive) cont.resume(it) },
-            { error ->
-                if (cont.isActive) {
-                    if (error is CancellationException) cont.cancel(error)
-                    else cont.resumeWithException(error)
-                }
-            },
-        )
-    cont.invokeOnCancellation { disposable.dispose() }
 }

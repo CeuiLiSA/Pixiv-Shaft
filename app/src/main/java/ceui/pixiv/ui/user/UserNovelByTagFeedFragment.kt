@@ -6,8 +6,8 @@ import android.view.View
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
-import ceui.lisa.http.Retro
 import ceui.lisa.utils.Params
+import ceui.loxia.Client
 import ceui.loxia.ImageUrls
 import ceui.loxia.Novel
 import ceui.loxia.Series
@@ -20,7 +20,6 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.NovelFeedFragment
 import ceui.pixiv.ui.common.NovelFeedItem
-import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import kotlinx.coroutines.Dispatchers
@@ -108,7 +107,7 @@ class UserNovelByTagFeedFragment : NovelFeedFragment(R.layout.fragment_toolbar_f
 }
 
 /**
- * 按 Tag 筛选作者小说的数据源：网页 ajax（Rx → suspend via [awaitFirstValue]），offset 翻页。
+ * 按 Tag 筛选作者小说的数据源：网页 ajax（[Client.webApi]），offset 翻页。
  * 每页精简 work → loxia [Novel] → [NovelFeedItem.of]（含全局内容过滤）。
  * 游标 = 下一页 offset（已加载条数）；works 空或已到 total 则停。零 Fragment 捕获。
  */
@@ -119,9 +118,8 @@ class UserNovelByTagFeedSource(
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val offset = cursor?.toIntOrNull() ?: 0
-        val resp = Retro.getWebApi()
-            .getUserNovelsByTag(userId.toLong(), tag, offset, PAGE_SIZE, "userSetting", "zh")
-            .awaitFirstValue()
+        val resp = Client.webApi
+            .getUserNovelsByTag(userId.toLong(), tag, offset, PAGE_SIZE)
         // 网页 ajax 的业务错误是 HTTP 200 + error:true + body:null，同插画侧：
         // 抛出去交给 feeds 的错误态,别渲染成「筛出来 0 件」。
         if (resp.error == true) {

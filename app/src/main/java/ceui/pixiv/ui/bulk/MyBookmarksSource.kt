@@ -31,19 +31,13 @@ class MyBookmarksSource(
     override val endpointHint: String =
         "/v1/user/bookmarks/illust?restrict=$restrict" + (tag?.let { "&tag=$it" } ?: "")
 
-    override suspend fun firstPage(): PageResult<IllustsBean>? {
-        val api = Retro.getAppApi()
-        val resp = if (tag.isNullOrEmpty()) {
-            api.getUserLikeIllust(userId.toInt(), restrict).awaitFirstSafe()
-        } else {
-            api.getUserLikeIllust(userId.toInt(), restrict, tag).awaitFirstSafe()
-        }
-        return resp.toPageResult()
-    }
+    override suspend fun firstPage(): PageResult<IllustsBean>? =
+        Retro.getAppApiSuspend()
+            .getUserLikeIllust(userId.toInt(), restrict, tag?.takeIf { it.isNotEmpty() })
+            .toPageResult()
 
     override suspend fun nextPage(nextUrl: String): PageResult<IllustsBean>? =
-        Retro.getAppApi()
+        Retro.getAppApiSuspend()
             .getNextIllust(nextUrl)
-            .awaitFirstSafe()
             .toPageResult()
 }

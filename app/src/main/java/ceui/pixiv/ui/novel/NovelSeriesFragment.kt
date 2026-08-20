@@ -36,7 +36,6 @@ import ceui.pixiv.feeds.updateItems
 import ceui.pixiv.ui.bulk.FetchProgressDialog
 import ceui.pixiv.ui.common.NovelActionReceiver
 import ceui.pixiv.ui.common.NovelMultiSelectReceiver
-import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.ui.common.openNovelDetail
 import ceui.pixiv.ui.common.openUserActivity
 import ceui.pixiv.ui.common.toggleNovelBookmark
@@ -391,9 +390,8 @@ class NovelSeriesFragment :
             try {
                 val nowAdded = detail.watchlist_added == true
                 val seriesIdInt = detail.id.toInt()
-                val obs = if (nowAdded) Retro.getAppApi().postWatchlistNovelDelete(seriesIdInt)
-                    else Retro.getAppApi().postWatchlistNovelAdd(seriesIdInt)
-                obs.awaitFirstValue()
+                if (nowAdded) Retro.getAppApiSuspend().postWatchlistNovelDelete(seriesIdInt)
+                else Retro.getAppApiSuspend().postWatchlistNovelAdd(seriesIdInt)
                 feedViewModel.updateItems<NovelSeriesHeroFeedItem> {
                     it.copy(series = it.series.copy(watchlist_added = !nowAdded))
                 }

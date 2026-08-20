@@ -39,38 +39,16 @@ public class Retro {
         return get().create(AppApi.class);
     }
 
+    /**
+     * {@link AppApiSuspend}: 同一个 Retrofit 实例上的 suspend 接口，新代码（Kotlin 协程）用这个，
+     * 不要再对 {@link AppApi} 的 Observable 做 blockingFirst / awaitFirst 桥接。
+     */
+    public static AppApiSuspend getAppApiSuspend() {
+        return get().create(AppApiSuspend.class);
+    }
+
     public static LofterApi getLofterApi() {
         return get().create(LofterApi.class);
-    }
-
-    /**
-     * issue #569: www.pixiv.net 网页 ajax 的 RxJava 客户端。带 {@link ceui.loxia.WebHeaderInterceptor}
-     * 注入已同步的网页 cookie(没同步则匿名,公开作品仍可拿)。Retrofit/OkHttpClient 缓存为单例,
-     * 翻页时复用连接池(cookie 在拦截器里按请求实时读取,单例不影响其新鲜度)。
-     * <p>
-     * issue #956: 直连拦截器是在**构建时**按开关注入的,所以开关一变就得重建
-     * ({@link #resetWebApi()}),否则「按 tag 筛画师作品」这条只走网页 ajax 的链路要重启
-     * App 才吃到直连 —— 表现就是刚打开直连、点标签一直转圈到超时。
-     */
-    public static WebApi getWebApi() {
-        WebApi api = sWebApi;
-        if (api == null) {
-            synchronized (Retro.class) {
-                api = sWebApi;
-                if (api == null) {
-                    api = buildWebRetrofit().create(WebApi.class);
-                    sWebApi = api;
-                }
-            }
-        }
-        return api;
-    }
-
-    /** 直连开关变化后丢弃旧的网页客户端,下次取用时按新开关重建。 */
-    public static void resetWebApi() {
-        synchronized (Retro.class) {
-            sWebApi = null;
-        }
     }
 
     public static void refreshAppApi() {
@@ -172,34 +150,6 @@ public class Retro {
                 .baseUrl(baseUrl)
                 .build();
     }
-
-    /**
-     * issue #569: 网页 ajax 专用 Retrofit —— www.pixiv.net + cookie 注入 + RxJava 适配器。
-     * 不挂 app-api 的 Authorization/x-client-hash 那套(网页接口认 cookie 不认 OAuth)。
-     */
-    private static Retrofit buildWebRetrofit() {
-        OkHttpClient.Builder builder = getLogClient();
-        // www.pixiv.net 网页 ajax 用独立 WebApiTimeouts，不跟 app-api 混用。
-        builder.connectTimeout(WebApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .readTimeout(WebApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .writeTimeout(WebApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        builder.addInterceptor(new ceui.loxia.WebHeaderInterceptor());
-        applyDirectConnect(builder, true);
-        HttpLoggingInterceptor l = new HttpLoggingInterceptor(message -> Timber.i(message));
-        l.setLevel(HttpLoggingInterceptor.Level.BODY);
-        builder.addInterceptor(l);
-        OkHttpClient client = builder.build();
-        Gson gson = new GsonBuilder().setLenient().create();
-        return new Retrofit.Builder()
-                .client(client)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .baseUrl(ceui.loxia.ClientManager.WEB_API_HOST + "/")
-                .build();
-    }
-
-    // volatile:设置页线程写(resetWebApi),读者散在各个 UI/IO 协程里。
-    private static volatile WebApi sWebApi;
 
     private static Retrofit buildPlainRetrofit(String baseUrl) {
         OkHttpClient.Builder builder = getLogClient();

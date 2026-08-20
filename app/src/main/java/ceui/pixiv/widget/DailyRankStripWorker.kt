@@ -15,9 +15,8 @@ class DailyRankStripWorker(
     override val providerClass = DailyRankStripWidgetProvider::class.java
 
     override suspend fun fetchIllusts(): List<IllustsBean>? = withContext(Dispatchers.IO) {
-        Retro.getAppApi().getRank("day", null)
-            .blockingFirst()
-            ?.illusts
+        Retro.getAppApiSuspend().getRank("day", null)
+            .illusts
             ?.filter { !it.isR18File && !it.isSensitive }
             ?.take(3)
     }

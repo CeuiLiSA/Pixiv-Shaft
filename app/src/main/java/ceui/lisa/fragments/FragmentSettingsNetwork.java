@@ -59,9 +59,8 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                 baseBind.useSecureDnsGroup.setVisibility(isChecked ? View.VISIBLE : View.GONE);
                 if (changed) {
                     Retro.refreshAppApi();
-                    // issue #956: 网页 ajax 的 Rx 客户端也带直连拦截器，漏掉它的话
-                    // 「按 tag 筛画师作品」要重启 App 才吃到直连。
-                    Retro.resetWebApi();
+                    // issue #956: 网页 ajax 客户端（Client.webApi）也带直连拦截器，
+                    // reset() 里会一并重建，否则「按 tag 筛画师作品」要重启 App 才吃到直连。
                     Client.INSTANCE.reset();
                 }
             }
@@ -295,7 +294,7 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                     refreshAppApiProxySummary();
                     if (changed) {
                         // 挂载/卸载 AppApiProxyInterceptor 需要重建客户端（与直连开关同款）。
-                        // resetWebApi 不需要：网页 ajax 走 www.pixiv.net，不经这个代理。
+                        // 网页 ajax 走 www.pixiv.net 不经这个代理，但 Client.reset() 顺带重建无害。
                         Retro.refreshAppApi();
                         Client.INSTANCE.reset();
                         // PixivLogin.client 是 by lazy 单例，这里重建不了 —— 本次会话的

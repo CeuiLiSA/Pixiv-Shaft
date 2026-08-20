@@ -20,9 +20,6 @@ import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.Retro
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
@@ -133,7 +130,6 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
      */
     private var watchlistSeriesId: Long? = null
     private var watchlistAdded: Boolean = false
-    private val watchlistDisposables = CompositeDisposable()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -1075,7 +1071,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     // pixiv 原生 series header 有"追更"开关。这里把同一动作收进 reader 右下角
     // 「更多」(showReaderOverflowMenu) 菜单，避免常驻底栏挤占视图。状态来源 / API：
     //   - GET /v1/novel/series/{id}   → novel_series_detail.watchlist_added (初始态)
-    //   - POST /v1/novel/series/watchlist/add | delete (Retro Observable，RxJava2)
+    //   - POST /v1/novel/series/watchlist/add | delete
     // 进 reader 时预拉一次，菜单弹出时按 [watchlistAdded] 决定 item 文案；点击
     // 走乐观更新（状态先翻，失败回滚 + toast）。
 
@@ -1105,24 +1101,19 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         // 乐观更新：本地态先翻，失败再回滚。菜单是 popup，不需要更新 UI，
         // 只靠 toast 反馈结果。
         watchlistAdded = nextAdded
-        val obs = if (nextAdded) {
-            Retro.getAppApi().postWatchlistNovelAdd(seriesId.toInt())
-        } else {
-            Retro.getAppApi().postWatchlistNovelDelete(seriesId.toInt())
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                if (nextAdded) Retro.getAppApiSuspend().postWatchlistNovelAdd(seriesId.toInt())
+                else Retro.getAppApiSuspend().postWatchlistNovelDelete(seriesId.toInt())
+                Toaster.showShort(if (nextAdded) R.string.reader_watchlist_added_toast else R.string.reader_watchlist_removed_toast)
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (ex: Exception) {
+                Timber.e(ex, "toggleWatchlist failed")
+                watchlistAdded = !nextAdded
+                Toaster.showShort(R.string.reader_watchlist_toggle_failed)
+            }
         }
-        val d = obs.subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                {
-                    Toaster.showShort(if (nextAdded) R.string.reader_watchlist_added_toast else R.string.reader_watchlist_removed_toast)
-                },
-                { ex ->
-                    Timber.e(ex, "toggleWatchlist failed")
-                    watchlistAdded = !nextAdded
-                    Toaster.showShort(R.string.reader_watchlist_toggle_failed)
-                },
-            )
-        watchlistDisposables.add(d)
     }
 
     // ---- Selection actions --------------------------------------------------
@@ -1242,7 +1233,6 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         // fragment 上（Activity Embedding 下 fragment 比 view 活得久）。
         chrome?.onVisibilityChanged = null
         chrome = null
-        watchlistDisposables.clear()
     }
 
     private fun resolveNovelId(): Long {

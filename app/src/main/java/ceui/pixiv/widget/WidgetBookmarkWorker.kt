@@ -35,7 +35,7 @@ class WidgetBookmarkWorker(
         val starType = if (Shaft.sSettings.isPrivateStar) Params.TYPE_PRIVATE else Params.TYPE_PUBLIC
         return try {
             withContext(Dispatchers.IO) {
-                Retro.getAppApi().postLikeIllust(illustId, starType).blockingFirst()
+                Retro.getAppApiSuspend().postLikeIllust(illustId, starType)
             }
             Common.showToast(
                 context.getString(
