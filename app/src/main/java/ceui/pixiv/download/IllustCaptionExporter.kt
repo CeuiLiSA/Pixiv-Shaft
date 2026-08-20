@@ -5,6 +5,10 @@ import ceui.lisa.models.IllustsBean
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.ui.task.DownloadNovelTask
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -22,32 +26,49 @@ object IllustCaptionExporter {
     private val SUPPORTED_TYPES = setOf("illust", "manga")
 
     /**
-     * 导出一次作品简介。
+     * 落盘串行跑在 IO 线程：调用方多半是 UI 点击（[ceui.lisa.download.IllustDownload]
+     * 各入口）或 Main 协程，SAF 的 createFile / MediaStore 的 replace 都是多次 binder
+     * 往返，不能压在主线程上。限 1 并发是为了同一作品被连点两次时不会两条写同一
+     * 路径互相踩（Replace 策略下会一边删一边建）。
+     */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO.limitedParallelism(1))
+
+    /**
+     * 导出一次作品简介（异步、fire-and-forget）。
      *
      * 应在「下载这个作品」的入口调用一次，而不是每张 page 完成时调用。
-     *
-     * @return true 表示确实写入了；无简介 / 不支持的 type / 按覆盖策略跳过时返回 false。
+     * 开关关闭 / 无简介 / 不支持的 type / 字数不够时在调用线程上直接返回，不起协程。
      */
     @JvmStatic
-    fun export(illust: IllustsBean?): Boolean {
-        if (!Shaft.sSettings.isAutoExportIllustCaption) return false
-        if (illust == null) return false
-        if (illust.type !in SUPPORTED_TYPES) return false
+    fun export(illust: IllustsBean?) {
+        if (!Shaft.sSettings.isAutoExportIllustCaption) return
+        if (illust == null) return
+        if (illust.type !in SUPPORTED_TYPES) return
         val caption = DownloadNovelTask.replaceBrWithNewLine(illust.caption).trim()
-        if (caption.isBlank()) return false
-        val minLength = Shaft.sSettings.getAutoExportCaptionMinLength().coerceAtLeast(1)
-        if (caption.length < minLength) return false
+        if (caption.isBlank()) return
+        val minLength = Shaft.sSettings.autoExportCaptionMinLength.coerceAtLeast(1)
+        if (caption.length < minLength) return
 
-        return try {
+        scope.launch { write(illust, caption) }
+    }
+
+    private fun write(illust: IllustsBean, caption: String) {
+        try {
             val destination = DownloadItems.illustCaptionDestination(illust)
+            // openRaw 返回 null = Skip 策略且文件已存在，按策略跳过。
             val handle = DownloadsRegistry.downloads.openRaw(Bucket.Caption, destination, "text/plain")
-                ?: return false
-            handle.stream.use { it.write(buildContent(illust, caption).toByteArray(Charsets.UTF_8)) }
-            handle.onFinish()
-            true
+                ?: return
+            try {
+                handle.stream.use { it.write(buildContent(illust, caption).toByteArray(Charsets.UTF_8)) }
+                handle.onFinish()
+            } catch (t: Throwable) {
+                // 写一半失败要把 pending 行撤掉，否则 MediaStore 会留下 0 字节的
+                // `.pending-` 孤儿文件（同 ExportUtils.saveToDownloads 的处理）。
+                handle.onAbort()
+                throw t
+            }
         } catch (t: Throwable) {
             Timber.tag(TAG).w(t, "export caption failed illust=${illust.id}")
-            false
         }
     }
 
