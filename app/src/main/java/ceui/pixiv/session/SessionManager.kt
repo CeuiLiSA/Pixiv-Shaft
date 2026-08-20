@@ -10,7 +10,6 @@ import ceui.lisa.models.UserModel
 import ceui.lisa.utils.Common
 import ceui.loxia.AccountResponse
 import ceui.loxia.Client
-import ceui.loxia.Event
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
 import ceui.lisa.repo.freshMembershipOf
@@ -24,7 +23,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -34,21 +32,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 object SessionManager {
 
     private const val USER_KEY = "LoggedInUserJsonKey"
-    const val USE_NEW_UI_KEY = "use-v5-ui"
     const val COOKIE_KEY = "web-api-cookie-v2"
-    const val CONTENT_LANGUAGE_KEY = "content-language"
 
     private val _loggedInAccount = MutableLiveData<AccountResponse>()
     private val gson = Gson()
 
     val loggedInAccount: LiveData<AccountResponse> = _loggedInAccount
-
-    private val _newTokenEvent = MutableLiveData<Event<Long>>()
-    val newTokenEvent: LiveData<Event<Long>> = _newTokenEvent
-
-    fun testRenewAnim() {
-        _newTokenEvent.postValue(Event(System.currentTimeMillis()))
-    }
 
     private val prefStore: MMKV by lazy {
         MMKV.defaultMMKV()
@@ -422,7 +411,6 @@ object SessionManager {
 
         return runBlocking(Dispatchers.IO) {
             try {
-                _newTokenEvent.postValue(Event(System.currentTimeMillis()))
                 val refreshToken = _loggedInAccount.value?.refresh_token
                     ?: throw RuntimeException("refresh_token not exist")
                 val response = PixivLogin.refreshTokenBlocking(refreshToken)
