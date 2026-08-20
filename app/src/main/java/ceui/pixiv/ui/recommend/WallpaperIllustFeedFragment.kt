@@ -10,6 +10,7 @@ import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
+import ceui.pixiv.ui.common.FollowStateBackfill
 import ceui.pixiv.ui.common.IllustFeedItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -88,8 +89,10 @@ class WallpaperFeedSource(
                 return null
             } ?: return null
             bean.trendingScore = item.bookmark_count.toFloat()
-            bean.setIs_bookmarked(false)
-            return IllustFeedItem.fromBean(bean)
+            bean.isIs_bookmarked = false
+            bean.user?.isIs_followed = false
+            FollowStateBackfill.markIllustUntrusted(bean.id.toLong())
+            return IllustFeedItem.fromBean(bean, bookmarkStateUnknown = true)
         }
     }
 }

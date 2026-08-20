@@ -80,11 +80,26 @@ class IllustFeedDetailSync(
                 )
             }
         }
+        // 池里 full detail 落地后，把 bookmarkStateUnknown 的条目恢复为正常展示。
+        val poolRefreshReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                val id = intent?.getIntExtra(Params.ID, 0)?.toLong() ?: return
+                if (id <= 0L) return
+                feedViewModel.updateItems(IllustFeedItem::class.java) { item ->
+                    if (item.illust.id == id && item.bookmarkStateUnknown) {
+                        item.withPoolBookmarkState()
+                    } else {
+                        item
+                    }
+                }
+            }
+        }
 
         broadcastManager.registerReceiver(addDataReceiver, IntentFilter(Params.FRAGMENT_ADD_DATA))
         broadcastManager.registerReceiver(
             scrollReceiver, IntentFilter(Params.FRAGMENT_SCROLL_TO_POSITION)
         )
+        broadcastManager.registerReceiver(poolRefreshReceiver, IntentFilter(Params.ILLUST_POOL_REFRESHED))
 
         // 用 lifecycleScope 而不是 repeatOnLifecycle：广播到达时本页通常在详情页背后
         // （STOPPED），追加要照做，返回列表时数据已就位
@@ -117,6 +132,7 @@ class IllustFeedDetailSync(
             override fun onDestroy(owner: LifecycleOwner) {
                 broadcastManager.unregisterReceiver(addDataReceiver)
                 broadcastManager.unregisterReceiver(scrollReceiver)
+                broadcastManager.unregisterReceiver(poolRefreshReceiver)
                 addDataQueue.close()
             }
         })

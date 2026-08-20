@@ -292,6 +292,14 @@ class SearchNovelFeedSource(private val searchModel: SearchModel) : FeedSource<S
             r.initNextApi().awaitFirstValue()
         }
         val items = withContext(Dispatchers.Default) {
+            // 借号搜索返回的 is_bookmarked / user.is_followed 都是借来账号的，跟当前用户无关；
+            // 小说没有插画那套回补，直接清成 false，避免把他人收藏/关注态带进列表或后续详情。
+            if (r.isBorrowedResult) {
+                list.novels.orEmpty().forEach { bean ->
+                    bean.isIs_bookmarked = false
+                    bean.user?.isIs_followed = false
+                }
+            }
             @Suppress("UNCHECKED_CAST")
             val filtered = (r.mapper() as Function<ListNovel, ListNovel>).apply(list)
             // Mapper 已做完搜索专属过滤（R18 三态 / 仅看 AI），直接 bean→loxia Novel 建条目，不再过滤。

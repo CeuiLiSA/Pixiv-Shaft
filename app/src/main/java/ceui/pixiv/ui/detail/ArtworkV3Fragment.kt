@@ -27,6 +27,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.actions.FollowVisibility
+import ceui.pixiv.ui.common.FollowStateBackfill
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.lisa.adapters.IllustAdapter
@@ -280,6 +281,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             val authorId = illust.user?.id?.toLong() ?: return@observe
             attachArtistFollowObserver(authorId)
         }
+
+        // 自建源关注态回补的 loading 开关：开始/完成时刷新作者栏（转圈 <-> 正常按钮）。
+        artworkViewModel.followStateLoading.observe(viewLifecycleOwner) { refreshArtistFollowItem() }
 
         // issue #1023: 标签编辑 sheet 是 childFragmentManager 拉起来的(见 tagsRenderer),
         // 变更经 fragment result 回来而不是 lambda —— sheet 跨横屏会重建,回调必然失效。
@@ -715,12 +719,16 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     private fun refreshArtistFollowItem() {
         feedViewModel.updateItems<ArtworkArtistItem> { item ->
+            val loading = artworkViewModel.followStateLoading.value == true &&
+                FollowStateBackfill.isIllustUntrusted(item.illust.id.toLong())
             val followed = ArtworkArtistItem.resolveIsFollowed(item.illust)
             val private = ArtworkArtistItem.resolvePrivateFollow(item.illust)
-            if (item.isFollowed == followed && item.isPrivateFollow == private) {
+            if (item.isFollowed == followed && item.isPrivateFollow == private &&
+                item.followStateLoading == loading
+            ) {
                 item
             } else {
-                ArtworkArtistItem(item.illust, followed, private)
+                ArtworkArtistItem(item.illust, followed, private, loading)
             }
         }
     }

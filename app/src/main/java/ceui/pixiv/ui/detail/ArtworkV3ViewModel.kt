@@ -18,6 +18,7 @@ import ceui.loxia.fetchFullIllustDetail
 import ceui.loxia.fetchIllustPageDimensions
 import ceui.loxia.hasTrustedCaption
 import ceui.loxia.isFullDetail
+import ceui.pixiv.ui.common.FollowStateBackfill
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -57,6 +58,7 @@ class ArtworkV3ViewModel(
         _isBookmarked.value = bean.isIs_bookmarked
         ensurePageDimensions(bean)
         ensureTrustedCaption(bean)
+        ensureTrustedFollow(bean)
         if (downloadFabActive && waitingForInitialBean) {
             refreshDownloadFab()
         }
@@ -84,7 +86,10 @@ class ArtworkV3ViewModel(
     // ── caption 后台补拉(#960)──
 
     private var captionBackfillRequested = false
+    private var fullDetailFetchInFlight = false
     private var pageVisible = false
+    private val _followStateLoading = MutableLiveData(false)
+    val followStateLoading: LiveData<Boolean> = _followStateLoading
 
     /**
      * 「这一页被用户真正打开过」——由 Fragment 的 onResume 调,一次性闸门(不在 onPause 复位:
@@ -96,7 +101,10 @@ class ArtworkV3ViewModel(
      */
     fun onPageVisible() {
         pageVisible = true
-        illustBean?.let { ensureTrustedCaption(it) }
+        illustBean?.let { bean ->
+            ensureTrustedCaption(bean)
+            startFollowBackfill(bean)
+        }
     }
 
     /**
@@ -111,19 +119,97 @@ class ArtworkV3ViewModel(
      * 现在对齐 V2([ceui.lisa.fragments.FragmentIllustViewModel] 的 init):首屏照常用池里的 bean
      * 立刻渲染,detail 在后台拉;[fetchFullIllustDetail] 落池后由 Fragment 的 ObjectPool observer
      * 把简介块增量插回去(见 ArtworkV3Fragment.syncDescSection)。
-     *
-     * 只在「池里这条 bean 本来就够画首屏」时才补:[isFullDetail] 为 false 时数据源自己正在阻塞
-     * 拉 detail,那一次拉取顺带就把 caption 带回来了,这里再发一次就是重复请求。
-     *
-     * 命中率(真机实测):动态流 8 次补拉救回 4 条简介(pixiv 确实会掐动态流的 caption);推荐流
-     * 6 次全空——那些作品是**真没写简介**。所以这笔钱只花在「用户真的打开了、且这条确实缺简介」
-     * 的作品上([onPageVisible] 的闸门),每个作品至多一次(拉过即进 fullVersionKeys)。
      */
     private fun ensureTrustedCaption(bean: IllustsBean) {
         if (!pageVisible || captionBackfillRequested) return
         if (!bean.isFullDetail() || bean.hasTrustedCaption()) return
         captionBackfillRequested = true
-        viewModelScope.launch { fetchFullIllustDetail(illustId) }
+        ensureFullDetailBackfill()
+    }
+
+    // ── 自建源关注态回补（与 caption 补拉分开触发，共用 detail 在途闸门）──
+
+    private var followBackfillRequested = false
+
+    /**
+     * 观察池 bean 时先登记来源信任关系：
+     * - 自建源上报的 illust 在 [FollowStateBackfill] 里是 untrusted → 进入详情页后需要回补，先转圈；
+     * - 非自建源进入的同 ID 详情页 → 打日志（信任池），把该 illust 标记为可信池成员。
+     */
+    private fun ensureTrustedFollow(bean: IllustsBean) {
+        val illustId = bean.id.toLong()
+        if (FollowStateBackfill.isIllustUntrusted(illustId)) {
+            // 已在信任池的同 ID 不需要转圈，onPageVisible 会直接标记已确认。
+            if (!followBackfillRequested && !FollowStateBackfill.isIllustTrusted(illustId)) {
+                _followStateLoading.value = true
+            }
+        } else {
+            FollowStateBackfill.markIllustTrusted(illustId)
+            if (_followStateLoading.value == true) {
+                _followStateLoading.value = false
+            }
+            Timber.tag(FOLLOW_BACKFILL_TAG).d("信任池:  illust=%d", illustId)
+        }
+    }
+
+    /**
+     * 自建源进入详情页后的关注态回补：
+     * 1. 先查信任池——同 ID 详情页从非自建源进入过，直接拿池并标记已确认，不再发请求；
+     * 2. 未中信任池且未确认，再打 v1/illust/detail 拉真实状态，成功回池并标记已确认。
+     */
+    private fun startFollowBackfill(bean: IllustsBean) {
+        if (!pageVisible) return
+        val illustId = bean.id.toLong()
+        if (followBackfillRequested) {
+            // 自愈：如果已经确认过但 loading 没被置回，立刻收起“查询中”。
+            if (_followStateLoading.value == true && !FollowStateBackfill.isIllustUntrusted(illustId)) {
+                _followStateLoading.value = false
+            }
+            return
+        }
+        if (!FollowStateBackfill.isIllustUntrusted(illustId)) {
+            // 同 ID 已被其它入口确认过：不再需要回补，收起可能还亮着的转圈。
+            if (_followStateLoading.value == true) {
+                _followStateLoading.value = false
+            }
+            return
+        }
+        followBackfillRequested = true
+
+        if (FollowStateBackfill.isIllustTrusted(illustId) || ObjectPool.hasFullIllustVersion(illustId)) {
+            Timber.tag(FOLLOW_BACKFILL_TAG).d("信任池: illust=%d 直接使用池并标记已确认", illustId)
+            FollowStateBackfill.markIllustConfirmed(illustId)
+            _followStateLoading.value = false
+            return
+        }
+
+        _followStateLoading.value = true
+        ensureFullDetailBackfill()
+    }
+
+    /**
+     * caption 补拉与关注态回补共用同一个在途闸门：
+     * 自建源进入详情页时这两种情况都可能同时缺，避免并发打两个 v1/illust/detail。
+     */
+    private fun ensureFullDetailBackfill() {
+        if (fullDetailFetchInFlight) return
+        fullDetailFetchInFlight = true
+        viewModelScope.launch {
+            try {
+                val fresh = fetchFullIllustDetail(illustId)
+                if (FollowStateBackfill.isIllustUntrusted(illustId)) {
+                    if (fresh != null) {
+                        FollowStateBackfill.markIllustConfirmed(illustId)
+                        Timber.tag(FOLLOW_BACKFILL_TAG).d("关注态回补成功: illust=%d", illustId)
+                    } else {
+                        Timber.tag(FOLLOW_BACKFILL_TAG).w("关注态回补失败: illust=%d", illustId)
+                    }
+                }
+                _followStateLoading.value = false
+            } finally {
+                fullDetailFetchInFlight = false
+            }
+        }
     }
 
     // ── download FAB state machine ──
@@ -269,6 +355,10 @@ class ArtworkV3ViewModel(
                 recomputeFab()
             }
         }
+    }
+
+    companion object {
+        private const val FOLLOW_BACKFILL_TAG = "FollowState"
     }
 }
 

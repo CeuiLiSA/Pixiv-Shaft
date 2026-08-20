@@ -123,6 +123,7 @@ class ArtistRankFeedSource(
             // novels 给空列表：legacy 那句 setNovels(emptyList()) 是为了兜 UAdapter 在插画不足 3 张时
             // 读 getNovels().subList(...) 的 NPE；feeds 的用户卡只渲染 illusts（不足留空，见
             // UserFeedFragment），已无此坑，这里保持空列表只为与 legacy 语义一致（画师榜不出小说）。
+            // 画师榜是用户卡列表，不走插画详情页回补，无需登记 illust 待确认。
             return UserFeedItem(
                 UserPreview(
                     illusts = illusts,

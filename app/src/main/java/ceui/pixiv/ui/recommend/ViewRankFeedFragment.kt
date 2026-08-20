@@ -13,6 +13,7 @@ import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
+import ceui.pixiv.ui.common.FollowStateBackfill
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
@@ -89,10 +90,12 @@ class ViewRankFeedSource(
                 return null
             } ?: return null
             // 浏览量榜：pill 显浏览数（TrendingScoreFormat 支持 M，6457227→「6.5M」）；
-            // payload 里的收藏态是上报者的，清零让用户以自己名义收藏（对齐 legacy ViewRankRepo）。
+            // payload 里的收藏/关注态是上报者的，清零让用户以自己名义收藏/关注（对齐 legacy ViewRankRepo）。
             bean.trendingScore = item.view_count.toFloat()
-            bean.setIs_bookmarked(false)
-            return IllustFeedItem.fromBean(bean)
+            bean.isIs_bookmarked = false
+            bean.user?.isIs_followed = false
+            FollowStateBackfill.markIllustUntrusted(bean.id.toLong())
+            return IllustFeedItem.fromBean(bean, bookmarkStateUnknown = true)
         }
     }
 }

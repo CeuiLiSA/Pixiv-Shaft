@@ -14,6 +14,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
+import ceui.pixiv.ui.common.FollowStateBackfill
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.awaitFirstValue
 import io.reactivex.functions.Function
@@ -128,6 +129,17 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
 }
 
 /**
+ * 调试借号 UI 的临时方法（已关闭，提交保持关闭）：
+ * debug 下借号流程可能被服务端校验挡住，想用任意搜索结果（如热度预览）模拟借号 unknown 收藏态时，
+ * 恢复下面两行并把常量改为 true 即可：
+ *
+ *     private const val DEBUG_FORCE_BOOKMARK_STATE_UNKNOWN = true
+ *     val borrowed = r.isBorrowedResult || (BuildConfig.DEBUG && DEBUG_FORCE_BOOKMARK_STATE_UNKNOWN)
+ *
+ * 注意同时需要 import ceui.lisa.BuildConfig。
+ */
+
+/**
  * 搜索插画数据源：包裹 [SearchIllustRepo]。load(null) 前 `update(searchModel)` 重读最新参数 +
  * 配置 FilterMapper（R18 三态 / onlyAi / starSize）；load(cursor) 用 repo 翻页。过滤走 repo.mapper()
  * （FilterMapper，含 legacy 全部搜索过滤 + ObjectPool 合池，setValue 失败自动 postValue 兜底，off-main 安全）。
@@ -172,10 +184,20 @@ class SearchIllustFeedSource(private val searchModel: SearchModel) : FeedSource<
             api.awaitFirstValue()
         }
         val items = withContext(Dispatchers.Default) {
+            // 借号搜索返回的 is_bookmarked / user.is_followed 都是借来账号的，跟当前用户无关；
+            // 必须在 FilterMapper（会 ObjectPool.updateIllust 喂池）之前清掉并登记回补。
+            val borrowed = r.isBorrowedResult
+            if (borrowed) {
+                list.illusts.orEmpty().forEach { bean ->
+                    bean.isIs_bookmarked = false
+                    bean.user?.isIs_followed = false
+                    FollowStateBackfill.markIllustUntrusted(bean.id.toLong())
+                }
+            }
             @Suppress("UNCHECKED_CAST")
             val filtered = (r.mapper() as Function<ListIllust, ListIllust>).apply(list)
             // FilterMapper 已做完全部搜索专属过滤 → 直接建条目，不再过滤（否则仅看 AI 误删 AI）。
-            filtered.list.orEmpty().mapNotNull { IllustFeedItem.rawFromBean(it) }
+            filtered.list.orEmpty().mapNotNull { IllustFeedItem.rawFromBean(it, bookmarkStateUnknown = borrowed) }
         }
         return FeedPage(items, list.nextUrl?.takeIf { it.isNotEmpty() })
     }

@@ -142,14 +142,18 @@ class ArtworkArtistItem(
     // 可见性必须进 equals：从画师主页拿到「原来是私密关注」返回时,is_followed 没变,
     // 只有这个字段变了。不带上它 DiffUtil 就判定条目没动,作者栏会一直停在「已关注」。
     val isPrivateFollow: Boolean = resolvePrivateFollow(illust),
+    // 自建源进入详情页后、回补当前用户关注态完成前为 true：作者栏按钮转圈且不可点击。
+    val followStateLoading: Boolean = false,
 ) : FeedItem {
     override val feedKey: Any get() = "artwork_artist"
     override fun equals(other: Any?) =
         other is ArtworkArtistItem && other.illust === illust &&
-            other.isFollowed == isFollowed && other.isPrivateFollow == isPrivateFollow
+            other.isFollowed == isFollowed && other.isPrivateFollow == isPrivateFollow &&
+            other.followStateLoading == followStateLoading
 
     override fun hashCode() =
-        (System.identityHashCode(illust) * 31 + isFollowed.hashCode()) * 31 + isPrivateFollow.hashCode()
+        ((System.identityHashCode(illust) * 31 + isFollowed.hashCode()) * 31 + isPrivateFollow.hashCode()) * 31 +
+            followStateLoading.hashCode()
 
     companion object {
         // illust.user 只是快照。作者主页打开会 ObjectPool.updateUser 换掉池条目, illust.user 变孤儿。
@@ -463,19 +467,43 @@ internal fun ArtworkV3Fragment.artistRenderer() =
         b.artistHandle.setOnLongClickListener {
             Common.copy(ctx, b.artistHandle.text?.toString().orEmpty()); true
         }
-        illustGlide.load(GlideUtil.getUrl(user.profile_image_urls?.medium))
-            .error(R.drawable.no_profile)
-            .into(b.artistAvatar)
+        // 关注态重绑时头像 URL 没变就不要重发 Glide，避免“查询中”变关注时头像闪烁重载。
+        val avatarUrl = user.profile_image_urls?.medium
+        if (b.artistAvatar.tag != avatarUrl) {
+            b.artistAvatar.tag = avatarUrl
+            illustGlide.load(GlideUtil.getUrl(avatarUrl))
+                .error(R.drawable.no_profile)
+                .into(b.artistAvatar)
+        }
 
         applyTouchScale(b.artistCard)
 
-        bindArtistFollowState(b, user)
+        bindArtistFollowState(b, user, cell.item.followStateLoading)
         b.artistBio.isVisible = !user.comment.isNullOrBlank()
         if (b.artistBio.isVisible) b.artistBio.text = user.comment
     }
 
-private fun ArtworkV3Fragment.bindArtistFollowState(b: SectionV3ArtistBinding, user: UserBean) {
+private fun ArtworkV3Fragment.bindArtistFollowState(
+    b: SectionV3ArtistBinding,
+    user: UserBean,
+    followStateLoading: Boolean,
+) {
     val ctx = requireContext()
+    if (followStateLoading) {
+        // 回补完成前：显示“查询中”，不动颜色，同时不响应点击/长按。
+        b.followBtn.hideProgress()
+        b.followBtn.text = ctx.getString(R.string.follow_querying)
+        b.followBtn.isEnabled = false
+        b.followBtn.isClickable = false
+        b.followBtn.setOnClickListener(null)
+        b.followBtn.setOnLongClickListener(null)
+        b.followBtn.isLongClickable = false
+        return
+    }
+    b.followBtn.hideProgress()
+    b.followBtn.isEnabled = true
+    b.followBtn.isClickable = true
+    b.followBtn.isLongClickable = true
     val isFollowed = ObjectPool.get<UserBean>(user.id.toLong()).value?.isIs_followed
         ?: user.isIs_followed
     if (isFollowed) {

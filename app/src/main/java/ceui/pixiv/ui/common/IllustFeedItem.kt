@@ -15,7 +15,8 @@ val PAYLOAD_ILLUST_LIKE_CHANGED = Any()
  * 各插画卡 Renderer 的 changePayload 直接引用本函数。
  */
 fun illustLikeChangePayload(old: IllustFeedItem, new: IllustFeedItem): Any? {
-    return if (old.bean.trendingScore == new.bean.trendingScore &&
+    return if (old.bookmarkStateUnknown == new.bookmarkStateUnknown &&
+        old.bean.trendingScore == new.bean.trendingScore &&
         old.illust.copy(is_bookmarked = new.illust.is_bookmarked) == new.illust
     ) {
         PAYLOAD_ILLUST_LIKE_CHANGED
@@ -43,16 +44,20 @@ fun illustLikeChangePayload(old: IllustFeedItem, new: IllustFeedItem): Any? {
 class IllustFeedItem(
     val illust: Illust,
     val bean: IllustsBean,
+    /** 借号/自建等来源的收藏态被清洗成 false，且未回补：卡片不应展示/响应收藏爱心。 */
+    val bookmarkStateUnknown: Boolean = false,
 ) : FeedItem {
 
     override val feedKey: Any get() = illust.id
 
     override fun equals(other: Any?): Boolean {
         return other is IllustFeedItem && other.illust == illust &&
-                other.bean.trendingScore == bean.trendingScore
+                other.bean.trendingScore == bean.trendingScore &&
+                other.bookmarkStateUnknown == bookmarkStateUnknown
     }
 
-    override fun hashCode(): Int = illust.hashCode() * 31 + (bean.trendingScore?.hashCode() ?: 0)
+    override fun hashCode(): Int = illust.hashCode() * 31 + (bean.trendingScore?.hashCode() ?: 0) * 31 +
+            bookmarkStateUnknown.hashCode()
 
     /**
      * 收藏状态变更：把这次变更同步到本作品的**每一个共享表示**——
@@ -81,7 +86,21 @@ class IllustFeedItem(
         bean.setIs_bookmarked(liked)
         // 只同步作品本身：关注态没变，不必连 user 一起 merge
         ObjectPool.update(bean)
-        return IllustFeedItem(illust.copy(is_bookmarked = liked), bean)
+        // 用户对收藏态做了明确操作后，这条的收藏态就是已知的，不再按 unknown 隐藏。
+        return IllustFeedItem(illust.copy(is_bookmarked = liked), bean, bookmarkStateUnknown = false)
+    }
+
+    /**
+     * 池里已有明确（full detail 回源）收藏态时，把条目从“unknown 隐藏”恢复为正常展示。
+     * 只处理 [bookmarkStateUnknown] 的条目；普通条目原样返回。
+     */
+    fun withPoolBookmarkState(): IllustFeedItem {
+        if (!bookmarkStateUnknown) return this
+        val pooled = ObjectPool.get<IllustsBean>(illust.id).value ?: return this
+        if (!ObjectPool.hasFullIllustVersion(illust.id)) return this
+        val known = pooled.isIs_bookmarked
+        bean.setIs_bookmarked(known)
+        return IllustFeedItem(illust.copy(is_bookmarked = known), bean, bookmarkStateUnknown = false)
     }
 
     companion object {
@@ -120,12 +139,13 @@ class IllustFeedItem(
             skipR18Filter: Boolean = false,
             skipAiFilter: Boolean = false,
             skipMuteUserFilter: Boolean = false,
+            bookmarkStateUnknown: Boolean = false,
         ): IllustFeedItem? {
             if (bean == null || !passesContentFilters(bean, skipR18Filter, skipAiFilter, skipMuteUserFilter)) return null
             val illust = runCatching {
                 Shaft.sGson.fromJson(Shaft.sGson.toJsonTree(bean), Illust::class.java)
             }.getOrNull() ?: return null
-            return IllustFeedItem(illust, bean)
+            return IllustFeedItem(illust, bean, bookmarkStateUnknown)
         }
 
         /**
@@ -134,12 +154,12 @@ class IllustFeedItem(
          * 那里的搜索专属过滤（R18 三态 / 仅看 AI）feeds 侧不复刻，绝不能再走 [of]/[fromBean] 的
          * passesContentFilters（它在「仅看 AI」时会把 AI 作品误删，也会重复跑一遍过滤）。
          */
-        fun rawFromBean(bean: IllustsBean?): IllustFeedItem? {
+        fun rawFromBean(bean: IllustsBean?, bookmarkStateUnknown: Boolean = false): IllustFeedItem? {
             if (bean == null) return null
             val illust = runCatching {
                 Shaft.sGson.fromJson(Shaft.sGson.toJsonTree(bean), Illust::class.java)
             }.getOrNull() ?: return null
-            return IllustFeedItem(illust, bean)
+            return IllustFeedItem(illust, bean, bookmarkStateUnknown)
         }
 
         /**

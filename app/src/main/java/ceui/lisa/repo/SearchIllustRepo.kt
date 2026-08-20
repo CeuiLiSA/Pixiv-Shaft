@@ -61,6 +61,14 @@ class SearchIllustRepo @JvmOverloads constructor(
     @Volatile
     private var nana7miSession = Nana7miAccountSession()
 
+    /** 当前最近一页实际由哪条路由返回：true=借号官方搜索；false=预览/普通直连/空终止页。 */
+    @Volatile
+    private var lastResultBorrowed = false
+
+    /** 当前这一页是否由借号账号返回；借号结果里的收藏/关注态属于借来的号，不能信。 */
+    val isBorrowedResult: Boolean
+        get() = lastResultBorrowed
+
     @Volatile
     private var nana7miTelemetry: Nana7miSearchTelemetry.Flow? = null
 
@@ -161,6 +169,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 heightMax,
             )
                 .doOnNext { response ->
+                    lastResultBorrowed = false
                     Timber.tag(NANA7MI_LOG_TAG).d(
                         "stage=popular_preview result=success illust_count=%d has_next=%s",
                         response.illusts?.size ?: 0,
@@ -206,7 +215,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 widthMax,
                 heightMin,
                 heightMax,
-            )
+            ).doOnNext { lastResultBorrowed = false }
             return telemetry?.track(
                 source = source,
                 page = Nana7miSearchTelemetry.Page.FIRST,
@@ -288,7 +297,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                                 heightMin,
                                 heightMax,
                             )
-                        }
+                        }.doOnNext { lastResultBorrowed = true }
                         (telemetry?.track(
                             source = source,
                             page = Nana7miSearchTelemetry.Page.FIRST,
@@ -324,7 +333,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 widthMax,
                 heightMin,
                 heightMax,
-            )
+            ).doOnNext { lastResultBorrowed = false }
         }
         return telemetry?.observeFirst(result) ?: result
     }
@@ -352,7 +361,7 @@ class SearchIllustRepo @JvmOverloads constructor(
         return if (session.borrowedAccountLost) {
             endBorrowedPagination("already_lost")
         } else if (payload == null) {
-            val source = Retro.getAppApi().getNextIllust(nextPageUrl)
+            val source = Retro.getAppApi().getNextIllust(nextPageUrl).doOnNext { lastResultBorrowed = false }
             telemetry?.track(
                 source = source,
                 page = Nana7miSearchTelemetry.Page.NEXT,
@@ -373,7 +382,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                     },
                 ) { authorization ->
                     Retro.getAppApi().getNextIllustWithAuth(authorization, nextPageUrl)
-                }
+                }.doOnNext { lastResultBorrowed = true }
                 (telemetry?.track(
                     source = source,
                     page = Nana7miSearchTelemetry.Page.NEXT,

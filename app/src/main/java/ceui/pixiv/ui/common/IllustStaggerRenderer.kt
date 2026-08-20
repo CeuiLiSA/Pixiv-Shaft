@@ -16,6 +16,7 @@ import ceui.lisa.databinding.RecyIllustStaggerBinding
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
+import ceui.loxia.ObjectPool
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.ui.recommend.bindTrendingScore
@@ -100,6 +101,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
                 // 两下时第二下仍看到上一下之前的旧态，把「取消收藏」反转成「再收藏一次」——心不回白、
                 // 烟花重放、两条 toast、两次 addBookmark，取消这个操作直接丢失。
                 val tapped = cell.itemOrNull ?: return@setOnClick
+                if (tapped.isBookmarkStateUnknown()) return@setOnClick
                 val current = currentIllustItem(tapped.illust.id) ?: return@setOnClick
                 val willBookmark = current.illust.is_bookmarked != true
                 toggleLike(current)
@@ -124,6 +126,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             cell.binding.likeAnim.setFailureListener { }
             // 爱心长按 → 按标签收藏（对齐 IAdapter）
             cell.binding.likeButton.setOnLongClickListener {
+                if (cell.item.isBookmarkStateUnknown()) return@setOnLongClickListener false
                 val bean = cell.item.bean
                 SelectTagBottomSheet.show(
                     this@staggerIllustRenderer, bean.id, Params.TYPE_ILLUST, bean.tagNames,
@@ -159,7 +162,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             }
             if (known) {
                 if (payloads.any { it === PAYLOAD_ILLUST_LIKE_CHANGED }) {
-                    renderLikeState(cell.binding.likeButton, cell.item.illust.is_bookmarked == true)
+                    renderLikeState(cell.binding.likeButton, cell.item.resolvedBookmarked())
                 }
                 if (payloads.any { it === PAYLOAD_ILLUST_SPOILER_CHANGED }) {
                     val bean = cell.item.bean
@@ -175,7 +178,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
                         animate = true,
                     )
                     // 叠在图上的操作层跟着屏蔽态走。和全量绑定共用同一分支，两边永远一致
-                    applyIllustSpoilerMask(cell.binding, spoilered)
+                    applyIllustSpoilerMask(cell.binding, spoilered, cell.item.isBookmarkStateUnknown())
                 }
                 true
             } else {
@@ -213,9 +216,9 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
         cell.binding.trendingScore.bindTrendingScore(bean.trendingScore)
         // 全量绑定可能是复用的卡换了条目：上一条残留的爆发动画/缩放必须清干净
         resetLikeAnim(cell.binding)
-        renderLikeState(cell.binding.likeButton, cell.item.illust.is_bookmarked == true)
+        renderLikeState(cell.binding.likeButton, cell.item.resolvedBookmarked())
         // 放在最后：这一步会按屏蔽态覆盖上面那批角标行 / 爱心的可见性
-        applyIllustSpoilerMask(cell.binding, spoilered)
+        applyIllustSpoilerMask(cell.binding, spoilered, cell.item.isBookmarkStateUnknown())
     }
 
 /**
@@ -236,9 +239,10 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
 private fun IllustFeedFragment.applyIllustSpoilerMask(
     binding: RecyIllustStaggerBinding,
     masked: Boolean,
+    bookmarkStateUnknown: Boolean = false,
 ) {
     binding.badgeRow.isVisible = !masked
-    binding.likeButton.isVisible = !masked && !hideLikeButton
+    binding.likeButton.isVisible = !masked && !hideLikeButton && !bookmarkStateUnknown
     if (masked) {
         resetLikeAnim(binding)
     }
@@ -310,6 +314,18 @@ private fun IllustFeedFragment.loadIllustImage(
         .placeholder(ceui.pixiv.feeds.R.color.feed_skeleton_block)
         .transition(DrawableTransitionOptions.withCrossFade())
         .into(binding.illustImage)
+}
+
+/** 收藏态是否仍处于“不可信/未回补”：池里已有 full detail 的明确收藏态时不再隐藏。 */
+private fun IllustFeedItem.isBookmarkStateUnknown(): Boolean =
+    bookmarkStateUnknown && !ObjectPool.hasFullIllustVersion(illust.id)
+
+/** 收藏态展示值：unknown 但池里已回补时以池为准，否则用条目快照。 */
+private fun IllustFeedItem.resolvedBookmarked(): Boolean {
+    if (bookmarkStateUnknown && ObjectPool.hasFullIllustVersion(illust.id)) {
+        return ObjectPool.get<IllustsBean>(illust.id).value?.isIs_bookmarked == true
+    }
+    return illust.is_bookmarked == true
 }
 
 /** 未收藏 = 白色空心描边爱心，已收藏 = 红色实心爱心（图上永远配深色圆底座）。 */

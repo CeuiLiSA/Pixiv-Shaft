@@ -23,7 +23,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
@@ -78,7 +77,6 @@ import com.zhy.view.flowlayout.FlowLayout
 import com.zhy.view.flowlayout.TagAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
@@ -129,6 +127,9 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             updateUser(user)
             Common.showLog("updateUser invoke ${user.isIs_followed}")
         }
+        vm.followState.observe(viewLifecycleOwner) { currentUserBean()?.let { updateUser(it) } }
+        vm.followStateLoading.observe(viewLifecycleOwner) { currentUserBean()?.let { updateUser(it) } }
+        vm.followStateRefresh.observe(viewLifecycleOwner) { currentUserBean()?.let { updateUser(it) } }
         // 「怎么关的」不在 UserBean 里，变化时上面那条不会响 —— 同 V3 详情页，见 FollowVisibility.changes。
         FollowVisibility.changes.observe(viewLifecycleOwner) { changed ->
             if (changed == userId.toLong()) userLiveData.value?.let { updateUser(it) }
@@ -202,23 +203,46 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
     }
 
+    private fun currentUserBean(): UserBean? {
+        val bean = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong()).value ?: return null
+        val user = bean.user ?: return null
+        return ObjectPool.get<UserBean>(user.id.toLong()).value ?: user
+    }
+
     private fun updateUser(user: UserBean) {
-        if (user.isIs_followed) {
-            baseBind.follow.isVisible = false
-            baseBind.unfollow.isVisible = true
-            baseBind.unfollow.text = getString(followedLabelRes(user.id))
-            baseBind.unfollow.setOnClick {
-                unfollowUser(it, user.id)
-            }
-        } else {
+        if (vm.followState.value?.loading == true) {
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true
-            baseBind.follow.setOnClick {
-                followUser(it, user.id, PixivActions.defaultFollowRestrict())
-            }
-            baseBind.follow.setOnLongClickListener {
-                followUser((it as ProgressTextButton), user.id, Params.TYPE_PRIVATE)
-                true
+            // 真正的查询中：用 ProgressTextButton 自带的转圈进度态，同时禁用点击。
+            baseBind.follow.hideProgress()
+            baseBind.follow.showProgress()
+            baseBind.follow.isEnabled = false
+            baseBind.follow.setOnClickListener(null)
+            baseBind.follow.setOnLongClickListener(null)
+            baseBind.follow.isLongClickable = false
+        } else {
+            baseBind.follow.hideProgress()
+            baseBind.follow.isEnabled = true
+            baseBind.unfollow.isEnabled = true
+            val followed = user.isIs_followed
+            if (followed) {
+                baseBind.follow.isVisible = false
+                baseBind.unfollow.isVisible = true
+                baseBind.unfollow.text = getString(followedLabelRes(user.id))
+                baseBind.unfollow.setOnClick {
+                    unfollowUser(it, user.id)
+                }
+            } else {
+                baseBind.unfollow.isVisible = false
+                baseBind.follow.isVisible = true
+                baseBind.follow.text = getString(R.string.follow)
+                baseBind.follow.setOnClick {
+                    followUser(it, user.id, PixivActions.defaultFollowRestrict())
+                }
+                baseBind.follow.setOnLongClickListener {
+                    followUser((it as ProgressTextButton), user.id, Params.TYPE_PRIVATE)
+                    true
+                }
             }
         }
         baseBind.relaIllustBrief.setOnClick {
@@ -682,6 +706,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     override fun onResume() {
         super.onResume()
+        vm.onPageVisible()
         checkDownload()
     }
 

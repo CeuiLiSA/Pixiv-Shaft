@@ -1,5 +1,8 @@
 package ceui.loxia
 
+import android.content.Intent
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import ceui.lisa.activities.Shaft
 import ceui.lisa.http.Retro
 import ceui.lisa.interfaces.Callback
 import ceui.lisa.models.IllustsBean
@@ -8,6 +11,7 @@ import ceui.lisa.models.MetaPagesBean
 import ceui.lisa.models.MetaSinglePageBean
 import ceui.lisa.models.TagsBean
 import ceui.lisa.models.UserBean
+import ceui.lisa.utils.Params
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -66,6 +70,12 @@ suspend fun fetchFullIllustDetail(illustId: Long): IllustsBean? {
     }
     ObjectPool.update(usable, isFullVersion = true)
     usable.user?.let { ObjectPool.update(it) }
+    // 池里已有明确收藏态：通知插画列表把 bookmarkStateUnknown 的条目恢复为正常展示。
+    Shaft.getContext()?.let { ctx ->
+        LocalBroadcastManager.getInstance(ctx).sendBroadcast(
+            Intent(Params.ILLUST_POOL_REFRESHED).putExtra(Params.ID, illustId.toInt())
+        )
+    }
     return usable
 }
 

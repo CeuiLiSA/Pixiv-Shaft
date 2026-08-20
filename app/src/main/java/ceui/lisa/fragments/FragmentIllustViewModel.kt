@@ -17,6 +17,7 @@ import ceui.loxia.fetchFullIllustDetail
 import ceui.loxia.fetchIllustPageDimensions
 import ceui.loxia.hasTrustedCaption
 import ceui.loxia.isFullDetail
+import ceui.pixiv.ui.common.FollowStateBackfill
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,41 +26,47 @@ import timber.log.Timber
 /**
  * VM for the "new" illust detail page (FragmentIllust).
  *
- * Exists primarily to move the download-state probe (SAF existence + Room query)
- * off the main thread — on Android 11+ SAF queries per page add up fast, and for
- * multi-P works this was ANR'ing the detail screen on entry (issue #835).
+ * 关注态回补只在页面划入（onResume）后开始：
+ * - 非预载页：进入时立即开始；
+ * - 预载页：滑到该页后才开始，避免提前请求/提前进入“查询中”。
  */
 class FragmentIllustViewModel(private val illustId: Long) : ViewModel() {
 
     private val _hasDownload = MutableLiveData<Boolean>()
     val hasDownload: LiveData<Boolean> = _hasDownload
 
-    // ── 每页真实宽高(网页 ajax /ajax/illust/{id}/pages)──
-    // 与 ArtworkV3ViewModel 同一套:多 P 时提前拿到每页宽高,让顶部大图下载前就按真 ratio 摆准高度。
-    // Fragment 观察 [pageDimensions] 喂给 IllustAdapter.seedPageDimensions;缺 cookie/失败静默降级。
+    // ── 每页真实宽高 ──
     private val _pageDimensions = MutableLiveData<List<IntArray>>()
-
-    /** 每一 P 的 [width, height],按页序;拉不到则不发射(沿用解码后异步定高,不影响使用)。 */
     val pageDimensions: LiveData<List<IntArray>> = _pageDimensions
 
     private var pageDimsRequested = false
 
+    /** 关注态 UI 的主动状态：只承载“回补进行中”，关注值一律以 ObjectPool 的 UserBean 为准。 */
+    data class FollowUiState(val loading: Boolean)
+
+    private val _followState = MutableLiveData(FollowUiState(false))
+    val followState: LiveData<FollowUiState> = _followState
+
+    private val _followStateLoading = MutableLiveData(false)
+    val followStateLoading: LiveData<Boolean> = _followStateLoading
+
+    /** 回补完成后的主动刷新 tick：Fragment 观察到后立即用最新池数据重刷作者栏。 */
+    private val _followStateRefresh = MutableLiveData(0)
+    val followStateRefresh: LiveData<Int> = _followStateRefresh
+
+    private var followBackfillRequested = false
+    private var fullDetailFetchInFlight = false
+    private var pageVisible = false
+
     private val illustBeanLiveData = ObjectPool.get<IllustsBean>(illustId)
-    private val illustBeanObserver = Observer<IllustsBean> { bean -> ensurePageDimensions(bean) }
+    private val illustBeanObserver = Observer<IllustsBean> { bean ->
+        ensurePageDimensions(bean)
+        // 划入后如果池 bean 才到达/更新，也要能触发回补；未划入时不做任何预载回补。
+        if (pageVisible) startBackfills()
+    }
 
     init {
-        // issue #569: 从「按 Tag 筛选」等精简来源进来时,池里的 bean 缺分页图/原图。后台回 API 拉完整版,
-        // 整体覆盖 ObjectPool 后,FragmentIllust 的 illust observer 会带完整数据再次 fire、自动重建图片区。
-        // 拉取失败则保留现有(精简)数据 —— GlideUtil / IllustDownload 已加空值兜底,不会崩,降级显示封面。
-        viewModelScope.launch {
-            val cur = ObjectPool.get<IllustsBean>(illustId).value
-            // hasTrustedCaption:列表接口会不定期掐掉部分作品的 caption(#960),caption 为空
-            // 且没被 detail 确认过时也回源补拉,落池后 illust observer 自动重渲染简介。
-            if (cur == null || !cur.isFullDetail() || !cur.hasTrustedCaption()) {
-                fetchFullIllustDetail(illustId)
-            }
-        }
-        // 完整 bean 落地(page_count 可信)时触发一次每页宽高拉取。
+        // 回补不在 VM 创建时触发，统一由 Fragment.onResume（划入页面）调用 onPageVisible 后开始。
         illustBeanLiveData.observeForever(illustBeanObserver)
     }
 
@@ -67,13 +74,120 @@ class FragmentIllustViewModel(private val illustId: Long) : ViewModel() {
         illustBeanLiveData.removeObserver(illustBeanObserver)
     }
 
-    /** 多 P 首次拿到 bean 时拉一次每页真实宽高(单 P 无需、只拉一次)。缺 cookie/失败静默降级。 */
+    /** 多 P 首次拿到 bean 时拉一次每页真实宽高。 */
     private fun ensurePageDimensions(bean: IllustsBean) {
         if (pageDimsRequested || bean.page_count < 2) return
         pageDimsRequested = true
         viewModelScope.launch {
             fetchIllustPageDimensions(illustId)?.let { _pageDimensions.value = it }
         }
+    }
+
+    /** 把“回补进行中”状态主动推给 Fragment；关注值由池里的 UserBean 决定，VM 不缓存。 */
+    private fun publishFollowState(loading: Boolean) {
+        _followState.value = FollowUiState(loading)
+        _followStateLoading.value = loading
+    }
+
+    private fun ensureTrustedFollow(bean: IllustsBean) {
+        val illustId = bean.id.toLong()
+        if (FollowStateBackfill.isIllustUntrusted(illustId)) {
+            if (!followBackfillRequested && !FollowStateBackfill.isIllustTrusted(illustId)) {
+                publishFollowState(true)
+            }
+        } else {
+            FollowStateBackfill.markIllustTrusted(illustId)
+            if (_followStateLoading.value == true) {
+                publishFollowState(false)
+            }
+            Timber.tag("FollowState").d("信任池: 非自建源入口 illust=%d", illustId)
+        }
+    }
+
+    private fun startFollowBackfill(bean: IllustsBean) {
+        val illustId = bean.id.toLong()
+        if (followBackfillRequested) {
+            if (_followStateLoading.value == true && !FollowStateBackfill.isIllustUntrusted(illustId)) {
+                publishFollowState(false)
+            }
+            return
+        }
+        if (!FollowStateBackfill.isIllustUntrusted(illustId)) {
+            if (_followStateLoading.value == true) {
+                publishFollowState(false)
+            }
+            return
+        }
+        followBackfillRequested = true
+
+        if (FollowStateBackfill.isIllustTrusted(illustId) || ObjectPool.hasFullIllustVersion(illustId)) {
+            Timber.tag("FollowState").d("信任池: illust=%d 直接使用池并标记已确认", illustId)
+            FollowStateBackfill.markIllustConfirmed(illustId)
+            publishFollowState(false)
+            _followStateRefresh.value = (_followStateRefresh.value ?: 0) + 1
+            return
+        }
+
+        publishFollowState(true)
+        ensureFullDetailBackfill()
+    }
+
+    /**
+     * 统一的全量 detail 回补入口：caption/完整度补拉与关注态回补共用同一个在途闸门，
+     * 避免进入详情页时并发多个 v1/illust/detail 请求。
+     */
+    private fun ensureFullDetailBackfill() {
+        if (fullDetailFetchInFlight) return
+        fullDetailFetchInFlight = true
+        viewModelScope.launch {
+            try {
+                val fresh = fetchFullIllustDetail(illustId)
+                if (FollowStateBackfill.isIllustUntrusted(illustId)) {
+                    if (fresh != null) {
+                        FollowStateBackfill.markIllustConfirmed(illustId)
+                        publishFollowState(false)
+                        Timber.tag("FollowState").d("关注态回补成功: illust=%d", illustId)
+                    } else {
+                        publishFollowState(false)
+                        Timber.tag("FollowState").w("关注态回补失败: illust=%d", illustId)
+                    }
+                    _followStateRefresh.value = (_followStateRefresh.value ?: 0) + 1
+                } else if (_followStateLoading.value == true) {
+                    publishFollowState(false)
+                    _followStateRefresh.value = (_followStateRefresh.value ?: 0) + 1
+                }
+            } finally {
+                fullDetailFetchInFlight = false
+            }
+        }
+    }
+
+    private fun startBackfills() {
+        val bean = ObjectPool.get<IllustsBean>(illustId).value ?: return
+        val illustId = bean.id.toLong()
+
+        // caption/完整度需要回源时也在这里触发（与关注态共用同一在途闸门）。
+        if (!bean.isFullDetail() || !bean.hasTrustedCaption()) {
+            ensureFullDetailBackfill()
+        }
+
+        if (FollowStateBackfill.isIllustUntrusted(illustId)) {
+            if (!followBackfillRequested) {
+                ensureTrustedFollow(bean)
+                startFollowBackfill(bean)
+            } else if (_followStateLoading.value == true && !FollowStateBackfill.isIllustUntrusted(illustId)) {
+                publishFollowState(false)
+            }
+        } else {
+            FollowStateBackfill.markIllustTrusted(illustId)
+            publishFollowState(false)
+        }
+    }
+
+    /** 页面划入（onResume）时调用：非预载页立即开始，预载页滑到后才开始。 */
+    fun onPageVisible() {
+        pageVisible = true
+        startBackfills()
     }
 
     /** Kick off an async download-state refresh. Result lands on [hasDownload]. */
@@ -84,8 +198,6 @@ class FragmentIllustViewModel(private val illustId: Long) : ViewModel() {
                 val illust = ObjectPool.get<IllustsBean>(illustId).value
                     ?: return@launch
                 val hasLocalFile = Common.isIllustDownloaded(illust)
-                // hasDownloadRecord 走 v38 的 illustId 索引（O(log n)），不再扫 2GB illustGson blob；
-                // 存量回填未完成时才退回旧 LIKE 兜底。仍串行到单车道 dispatcher 兜底旧库/回填窗口期。
                 val hasRecord = if (hasLocalFile) false else withContext(downloadProbeDispatcher) {
                     AppDatabase
                         .getAppDatabase(appContext)

@@ -7,6 +7,7 @@ import ceui.lisa.network.ShaftApiV2Client
 import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
+import ceui.pixiv.ui.common.FollowStateBackfill
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.NovelFeedItem
 import kotlinx.coroutines.Dispatchers
@@ -114,10 +115,12 @@ private fun mapHotIllustItem(
         Timber.tag("HotWorks").w(e, "skip malformed illust bean id=${item.target_id}")
         return null
     } ?: return null
-    // 对齐 legacy TrendingWorksRepo/RecentWorksRepo：热度值装 pill、清上报者收藏态。
+    // 对齐 legacy TrendingWorksRepo/RecentWorksRepo：热度值装 pill、清上报者收藏/关注态。
     bean.trendingScore = item.hotScore(source)
-    bean.setIs_bookmarked(false)
-    return IllustFeedItem.fromBean(bean)
+    bean.isIs_bookmarked = false
+    bean.user?.isIs_followed = false
+    FollowStateBackfill.markIllustUntrusted(bean.id.toLong())
+    return IllustFeedItem.fromBean(bean, bookmarkStateUnknown = true)
 }
 
 private fun mapHotNovelItem(
@@ -132,5 +135,9 @@ private fun mapHotNovelItem(
         return null
     } ?: return null
     // 清上报者收藏态；热度分单独带进 NovelFeedItem（不是 Novel 的字段）。
-    return NovelFeedItem.of(novel.copy(is_bookmarked = false), item.hotScore(source))
+    // 小说详情不走插画关注态回补，不清 user.is_followed，也不登记 illust 待确认。
+    return NovelFeedItem.of(
+        novel.copy(is_bookmarked = false),
+        item.hotScore(source),
+    )
 }

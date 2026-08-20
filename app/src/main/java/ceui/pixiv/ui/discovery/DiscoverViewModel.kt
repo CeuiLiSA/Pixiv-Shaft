@@ -12,6 +12,7 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.lisa.repo.LatestIllustRepo
+import ceui.pixiv.ui.common.FollowStateBackfill
 import ceui.pixiv.ui.prime.PrimeTagIndexItem
 import com.blankj.utilcode.util.Utils
 import com.google.gson.Gson
@@ -69,7 +70,7 @@ class DiscoverViewModel : ViewModel() {
     /**
      * 一个 /discover 聚合请求,填两条 shaft-api-v2 货架(替掉之前 2 个独立请求)。
      * 失败整体静默塌陷:两条都发空 → 收起货架,不弹 toast(后台货架不打扰前台)。
-     * 每条 bean 的收藏态清成 false(payload 里是上报者的态,跟当前用户无关),user==null
+     * 每条 bean 的收藏/关注态清成 false(payload 里是上报者的态,跟当前用户无关),user==null
      * 的脏数据剔掉(RAdapter 直取 user.name / 头像,null 会 NPE)。
      */
     private fun loadDiscover() {
@@ -102,7 +103,9 @@ class DiscoverViewModel : ViewModel() {
                 try {
                     gson.fromJson(json, IllustsBean::class.java).apply {
                         trendingScore = scoreOf(item)
-                        setIs_bookmarked(false)
+                        isIs_bookmarked = false
+                        user?.isIs_followed = false
+                        FollowStateBackfill.markIllustUntrusted(id.toLong())
                     }
                 } catch (e: Throwable) {
                     null
