@@ -62,7 +62,7 @@ dependencies {
     // 若那次搬迁最终没发生，这三条应当一并删掉——留着会让本模块的依赖面
     // 看起来比实际大，也和「只认识 View、Dialog 和一个 ?attr/colorPrimary」的定位不符。
     api 'androidx.fragment:fragment-ktx:1.8.5'
-    api 'com.google.android.material:material:1.12.0'
+    api 'com.google.android.material:material:1.14.0'
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
 
     implementation 'androidx.core:core-ktx:1.13.1'

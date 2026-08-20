@@ -137,7 +137,7 @@
                         android:visibility="gone"
                         tools:visibility="visible">
 
-                        <com.google.android.material.progressindicator.CircularProgressIndicator
+                        <ceui.lisa.view.SeamlessCircularProgressIndicator
                             android:id="@+id/progress_ring"
                             android:layout_width="120dp"
                             android:layout_height="120dp"

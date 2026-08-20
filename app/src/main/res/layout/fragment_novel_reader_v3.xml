@@ -68,7 +68,7 @@
     <!-- 与插画一级/二级详情页的进度环样式统一(30dp/5dp 圆角 Material 环)。
          阅读器加载章节内容无字节级进度,故用不确定模式;indicatorColor 在
          applyLoadingTint() 里按当前阅读器主题着色,避免白底主题下不可见。 -->
-    <com.google.android.material.progressindicator.CircularProgressIndicator
+    <ceui.lisa.view.SeamlessCircularProgressIndicator
         android:id="@+id/reader_loading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

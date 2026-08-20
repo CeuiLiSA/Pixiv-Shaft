@@ -5,7 +5,7 @@
 
     <data />
 
-    <com.google.android.material.progressindicator.CircularProgressIndicator
+    <ceui.lisa.view.SeamlessCircularProgressIndicator
         android:id="@+id/donut_progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

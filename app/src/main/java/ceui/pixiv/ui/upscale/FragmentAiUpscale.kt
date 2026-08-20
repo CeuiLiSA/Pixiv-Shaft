@@ -18,7 +18,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.utils.Common
 import com.github.panpf.sketch.loadImage
-import com.google.android.material.progressindicator.CircularProgressIndicator
+import ceui.lisa.view.SeamlessCircularProgressIndicator
 import java.io.File
 import java.io.FileOutputStream
 
@@ -223,7 +223,7 @@ class FragmentAiUpscale : Fragment() {
         val doneState = rootView.findViewById<View>(R.id.ai_done_state)
         val viewCompare = rootView.findViewById<View>(R.id.ai_view_compare)
         val dismiss = rootView.findViewById<View>(R.id.ai_dismiss)
-        val progressRing = rootView.findViewById<CircularProgressIndicator>(R.id.ai_progress_ring)
+        val progressRing = rootView.findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring)
         val progressText = rootView.findViewById<TextView>(R.id.ai_progress_text)
         val statusText = rootView.findViewById<TextView>(R.id.ai_status_text)
         val etaText = rootView.findViewById<TextView>(R.id.ai_eta_text)

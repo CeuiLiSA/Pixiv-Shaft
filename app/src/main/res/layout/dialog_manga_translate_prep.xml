@@ -164,7 +164,7 @@
                         android:importantForAccessibility="no"
                         tools:src="@drawable/ic_file_download_done_24dp" />
 
-                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                    <ceui.lisa.view.SeamlessCircularProgressIndicator
                         android:id="@+id/ctd_status_spinner"
                         android:layout_width="22dp"
                         android:layout_height="22dp"
@@ -289,7 +289,7 @@
                         android:importantForAccessibility="no"
                         tools:src="@drawable/ic_file_download_done_24dp" />
 
-                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                    <ceui.lisa.view.SeamlessCircularProgressIndicator
                         android:id="@+id/ocr_status_spinner"
                         android:layout_width="22dp"
                         android:layout_height="22dp"

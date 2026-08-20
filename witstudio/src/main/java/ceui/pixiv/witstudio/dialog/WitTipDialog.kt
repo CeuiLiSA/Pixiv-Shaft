@@ -21,7 +21,7 @@ import ceui.pixiv.witstudio.theme.WitDisplay
  * **刻意砍掉 `setIconType` 和 `ICON_TYPE_*`**：10 处调用无一例外传的都是 `ICON_TYPE_LOADING`，
  * 保留就是在一个全新的 API 里留一个只有单分支的死枚举。成功/失败提示本项目用 toast，不用这个。
  *
- * 转圈用普通 [ProgressBar] 而不是 `CircularProgressIndicator`：后者要 M3 的 motion 属性，
+ * 转圈用普通 [ProgressBar] 而不是 Material 圆形进度控件：后者要 M3 的 motion 属性，
  * 在 phase 6 之前的 AppCompat 主题下会 inflate 崩溃，破坏并存期。
  */
 public class WitTipDialog @JvmOverloads constructor(

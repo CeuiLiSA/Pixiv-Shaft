@@ -15,7 +15,7 @@ import ceui.pixiv.ui.common.ModelImportController
 import ceui.pixiv.ui.common.ModelDownloadManager
 import ceui.pixiv.ui.search.v3.V3BottomSheetBase
 import ceui.pixiv.utils.setOnClick
-import com.google.android.material.progressindicator.CircularProgressIndicator
+import ceui.lisa.view.SeamlessCircularProgressIndicator
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -262,7 +262,7 @@ class MangaTranslatePrepSheet : V3BottomSheetBase() {
         val statusText: TextView
         val progress: LinearProgressIndicator
         val statusIcon: ImageView
-        val spinner: CircularProgressIndicator
+        val spinner: SeamlessCircularProgressIndicator
         val importLink: TextView
         val descRes: Int
         if (isCtd) {

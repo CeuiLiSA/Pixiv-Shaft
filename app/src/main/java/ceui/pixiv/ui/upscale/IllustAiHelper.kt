@@ -14,7 +14,7 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.imageloader.ImageLoaderV3
-import com.google.android.material.progressindicator.CircularProgressIndicator
+import ceui.lisa.view.SeamlessCircularProgressIndicator
 import kotlinx.coroutines.launch
 
 class IllustAiHelper(
@@ -32,7 +32,7 @@ class IllustAiHelper(
     private val doneState: View get() = rootView.findViewById(R.id.ai_done_state)
     private val viewCompare: View get() = rootView.findViewById(R.id.ai_view_compare)
     private val dismiss: View get() = rootView.findViewById(R.id.ai_dismiss)
-    private val progressRing: CircularProgressIndicator get() = rootView.findViewById(R.id.ai_progress_ring)
+    private val progressRing: SeamlessCircularProgressIndicator get() = rootView.findViewById(R.id.ai_progress_ring)
     private val progressText: TextView get() = rootView.findViewById(R.id.ai_progress_text)
     private val statusText: TextView get() = rootView.findViewById(R.id.ai_status_text)
     private val etaText: TextView get() = rootView.findViewById(R.id.ai_eta_text)

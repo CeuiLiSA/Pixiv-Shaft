@@ -12,7 +12,7 @@
 
     <!-- 与插画详情页的下载进度环样式统一(确定模式,由 ImageLoadState.percent 驱动)。
          indicatorColor 由适配器按黑/白底着色(白底用深灰),track 同色低透明度。 -->
-    <com.google.android.material.progressindicator.CircularProgressIndicator
+    <ceui.lisa.view.SeamlessCircularProgressIndicator
         android:id="@+id/progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

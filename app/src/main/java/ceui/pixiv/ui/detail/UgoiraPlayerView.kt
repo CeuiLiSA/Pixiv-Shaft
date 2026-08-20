@@ -20,7 +20,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.isVisible
 import ceui.pixiv.witstudio.theme.V3Palette
-import com.google.android.material.progressindicator.CircularProgressIndicator
+import ceui.lisa.view.SeamlessCircularProgressIndicator
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -85,12 +85,12 @@ class UgoiraPlayerView @JvmOverloads constructor(
     // 会重复做 ViewTree/lifecycle 查找，极端销毁时序下还可能命中已销毁 Activity。
     private val glide = Glide.with(context)
 
-    // 进度环复用 item_progress(与插画列表加载圈同款 donut 环,Material CircularProgressIndicator)。
+    // 进度环复用 item_progress(与插画列表加载圈同款 donut 环)。
     // determinate,靠 plain setProgress 直接跳到目标值,**不带进度变化的补间动画**(用户要求);
-    // 不再用 Material 1.14 的波浪条,库已降回 1.12。inflate 复用 item_progress.xml,样式(白色/30dp/
-    // 圆角轨道)与列表加载圈完全一致,不再重复写一份。
+    // 完整圆轨道通过 SeamlessCircularProgressIndicator 走 drawOval,规避 Material 1.14 的圆角接缝。
+    // inflate 复用 item_progress.xml,样式(白色/30dp/圆角轨道)与列表加载圈完全一致,不再重复写一份。
     private val progressBar = LayoutInflater.from(context)
-        .inflate(R.layout.item_progress, this, false) as CircularProgressIndicator
+        .inflate(R.layout.item_progress, this, false) as SeamlessCircularProgressIndicator
     private val captionText = TextView(context).apply {
         setTextColor(0xFFFFFFFF.toInt())
         textSize = 12f

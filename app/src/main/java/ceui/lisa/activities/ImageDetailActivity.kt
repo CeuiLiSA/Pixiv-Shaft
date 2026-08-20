@@ -61,7 +61,7 @@ import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import com.blankj.utilcode.util.BarUtils
-import com.google.android.material.progressindicator.CircularProgressIndicator
+import ceui.lisa.view.SeamlessCircularProgressIndicator
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
@@ -589,7 +589,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         val overlayRoot = findViewById<View>(R.id.ai_overlay_root) ?: return
         val loadingState = findViewById<View>(R.id.ai_loading_state)
         val doneState = findViewById<View>(R.id.ai_done_state)
-        val progressRing = findViewById<CircularProgressIndicator>(R.id.ai_progress_ring)
+        val progressRing = findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring)
         val progressText = findViewById<TextView>(R.id.ai_progress_text)
         val statusText = findViewById<TextView>(R.id.ai_status_text)
 
@@ -737,7 +737,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         translationViewModel.status.observe(this) { status ->
             val overlayRoot = findViewById<View>(R.id.ai_overlay_root) ?: return@observe
             val statusText = findViewById<TextView>(R.id.ai_status_text)
-            val progressRing = findViewById<CircularProgressIndicator>(R.id.ai_progress_ring)
+            val progressRing = findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring)
             val progressText = findViewById<TextView>(R.id.ai_progress_text)
 
             if (status == null) {
@@ -851,7 +851,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         val doneState = findViewById<View>(R.id.ai_done_state)
         val viewCompare = findViewById<View>(R.id.ai_view_compare)
         val dismiss = findViewById<View>(R.id.ai_dismiss)
-        val progressRing = findViewById<CircularProgressIndicator>(R.id.ai_progress_ring)
+        val progressRing = findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring)
         val progressText = findViewById<TextView>(R.id.ai_progress_text)
         val statusText = findViewById<TextView>(R.id.ai_status_text)
         val etaText = findViewById<TextView>(R.id.ai_eta_text)
