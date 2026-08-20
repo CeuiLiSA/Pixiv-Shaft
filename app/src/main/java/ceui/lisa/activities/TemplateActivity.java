@@ -606,7 +606,14 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
         // 返回键/返回手势:WebView 网页内历史后退 → 子 Fragment 返回栈 → 关闭本页。
         // targetSdk 35+ 后预测式返回默认开启,系统不再回调 onKeyDown / onBackPressed,
         // 必须用 OnBackPressedDispatcher 接管,否则这两条老逻辑全成死代码。
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+        //
+        // ⚠️ 故意不传 LifecycleOwner:这是全 Activity 的兜底,必须排在所有子 Fragment 的
+        // callback 之下。带 owner 注册只会在 Activity 的 ON_START 才真正入队,而 Activity
+        // 的 ON_START(ReportFragment.onActivityPostStarted)晚于 FragmentActivity.onStart()
+        // 里子 Fragment 的 dispatchStart(),结果兜底反而压在 Fragment callback 之上,
+        // 阅读器「返回先关搜索/收顶底栏」全被它截胡直接 finish —— issue #1004。
+        // 不带 owner 则在 onCreate 当场入队,永远垫底;dispatcher 随 Activity 销毁,不泄漏。
+        getOnBackPressedDispatcher().addCallback(new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
                 if (childFragment instanceof FragmentWebView
