@@ -96,9 +96,28 @@ class SearchNovelRepo @JvmOverloads constructor(
         // bucket 为空时回落到自定义起止日期
         val (effectiveStartDate, effectiveEndDate) = resolveDateRange()
 
-        // 默认档「标签部分一致」不传 search_target，让标题命中也能搜到（#906）——
-        // 见 [SearchTarget.toQueryValue] 注释。
-        val effectiveSearchTarget = SearchTarget.toQueryValue(searchType)
+        // 小说端点与插画不同：不传 search_target 时服务端按纯字面 keyword 匹配，
+        // 标签同义词/译名不展开（#1038——搜「원신」搜不到 tag「原神」的小说；插画端点
+        // 不传≡partial_match_for_tags，不受影响）。所以默认档「标签部分一致」这里
+        // **显式**传 partial_match_for_tags（官方 app / PiPixiv 同此），同义词展开回来；
+        // 首页 0 结果时再降级成不传重发一次，保住 #906 的纯标题命中（「淫神空间」
+        // 「命运的花道」这类关键字只在标题里的作品）。两个档位 curl A/B 实测互斥，
+        // 客户端只能这样两段式兼得。
+        val explicitSearchTarget = SearchTarget.toQueryValue(searchType)
+        val defaultTier = explicitSearchTarget == null
+        val effectiveSearchTarget = explicitSearchTarget
+            ?: SearchTarget.PartialMatchForTags.apiValue
+
+        // 默认档首页空结果 → 去掉 search_target 按 keyword 语义重发；显式档位不降级
+        //（用户点名要严格匹配语义，空了就是空了）。降级页的 next_url 会被 RemoteRepo
+        // 存走，翻页自然跟着 keyword 游标走，不会两种语义混页。
+        fun withTitleFallback(request: (String?) -> Observable<ListNovel>): Observable<ListNovel> {
+            val first = request(effectiveSearchTarget)
+            if (!defaultTier) return first
+            return first.flatMap { response ->
+                if (response.novels.isNullOrEmpty()) request(null) else Observable.just(response)
+            }
+        }
         val requesterUid = SessionManager.loggedInUid
         val telemetry = when {
             usePopularPreview -> Nana7miSearchTelemetry.start(
@@ -124,24 +143,26 @@ class SearchNovelRepo @JvmOverloads constructor(
                 "stage=route target=novel_popular_preview reason=%s",
                 reason,
             )
-            val source = Retro.getAppApi().popularNovelPreview(
-                assembledKeyword,
-                effectiveStartDate,
-                effectiveEndDate,
-                effectiveSearchTarget,
-                bookmarkMin,
-                genre,
-                lang,
-                searchAiType,
-                isOriginalOnly,
-                isReplaceableOnly,
-                textLengthMin,
-                textLengthMax,
-                wordCountMin,
-                wordCountMax,
-                readingTimeMin,
-                readingTimeMax,
-            )
+            val source = withTitleFallback { target ->
+                Retro.getAppApi().popularNovelPreview(
+                    assembledKeyword,
+                    effectiveStartDate,
+                    effectiveEndDate,
+                    target,
+                    bookmarkMin,
+                    genre,
+                    lang,
+                    searchAiType,
+                    isOriginalOnly,
+                    isReplaceableOnly,
+                    textLengthMin,
+                    textLengthMax,
+                    wordCountMin,
+                    wordCountMax,
+                    readingTimeMin,
+                    readingTimeMax,
+                )
+            }
                 .doOnNext { response ->
                     Timber.tag(NANA7MI_LOG_TAG).d(
                         "stage=novel_popular_preview result=success novel_count=%d has_next=%s",
@@ -163,24 +184,26 @@ class SearchNovelRepo @JvmOverloads constructor(
         }
 
         val result = if (usePopularPreview) {
-            val source = Retro.getAppApi().popularNovelPreview(
-                assembledKeyword,
-                effectiveStartDate,
-                effectiveEndDate,
-                effectiveSearchTarget,
-                bookmarkMin,
-                genre,
-                lang,
-                searchAiType,
-                isOriginalOnly,
-                isReplaceableOnly,
-                textLengthMin,
-                textLengthMax,
-                wordCountMin,
-                wordCountMax,
-                readingTimeMin,
-                readingTimeMax,
-            )
+            val source = withTitleFallback { target ->
+                Retro.getAppApi().popularNovelPreview(
+                    assembledKeyword,
+                    effectiveStartDate,
+                    effectiveEndDate,
+                    target,
+                    bookmarkMin,
+                    genre,
+                    lang,
+                    searchAiType,
+                    isOriginalOnly,
+                    isReplaceableOnly,
+                    textLengthMin,
+                    textLengthMax,
+                    wordCountMin,
+                    wordCountMax,
+                    readingTimeMin,
+                    readingTimeMax,
+                )
+            }
             telemetry?.track(
                 source = source,
                 page = Nana7miSearchTelemetry.Page.FIRST,
@@ -213,26 +236,29 @@ class SearchNovelRepo @JvmOverloads constructor(
                                         "has_next=${!response.nextUrl.isNullOrBlank()}"
                             },
                         ) { authorization ->
-                            Retro.getAppApi().searchNovelWithAuth(
-                                authorization,
-                                assembledKeyword,
-                                sortType,
-                                effectiveStartDate,
-                                effectiveEndDate,
-                                effectiveSearchTarget,
-                                bookmarkMin,
-                                genre,
-                                lang,
-                                searchAiType,
-                                isOriginalOnly,
-                                isReplaceableOnly,
-                                textLengthMin,
-                                textLengthMax,
-                                wordCountMin,
-                                wordCountMax,
-                                readingTimeMin,
-                                readingTimeMax,
-                            )
+                            // 降级重发复用同一份 authorization，不再走一次借号/续期。
+                            withTitleFallback { target ->
+                                Retro.getAppApi().searchNovelWithAuth(
+                                    authorization,
+                                    assembledKeyword,
+                                    sortType,
+                                    effectiveStartDate,
+                                    effectiveEndDate,
+                                    target,
+                                    bookmarkMin,
+                                    genre,
+                                    lang,
+                                    searchAiType,
+                                    isOriginalOnly,
+                                    isReplaceableOnly,
+                                    textLengthMin,
+                                    textLengthMax,
+                                    wordCountMin,
+                                    wordCountMax,
+                                    readingTimeMin,
+                                    readingTimeMax,
+                                )
+                            }
                         }
                         (telemetry?.track(
                             source = source,
@@ -252,25 +278,27 @@ class SearchNovelRepo @JvmOverloads constructor(
                 }
             }
         } else {
-            Retro.getAppApi().searchNovel(
-                assembledKeyword,
-                sortType,
-                effectiveStartDate,
-                effectiveEndDate,
-                effectiveSearchTarget,
-                bookmarkMin,
-                genre,
-                lang,
-                searchAiType,
-                isOriginalOnly,
-                isReplaceableOnly,
-                textLengthMin,
-                textLengthMax,
-                wordCountMin,
-                wordCountMax,
-                readingTimeMin,
-                readingTimeMax,
-            )
+            withTitleFallback { target ->
+                Retro.getAppApi().searchNovel(
+                    assembledKeyword,
+                    sortType,
+                    effectiveStartDate,
+                    effectiveEndDate,
+                    target,
+                    bookmarkMin,
+                    genre,
+                    lang,
+                    searchAiType,
+                    isOriginalOnly,
+                    isReplaceableOnly,
+                    textLengthMin,
+                    textLengthMax,
+                    wordCountMin,
+                    wordCountMax,
+                    readingTimeMin,
+                    readingTimeMax,
+                )
+            }
         }
         return telemetry?.observeFirst(result) ?: result
     }

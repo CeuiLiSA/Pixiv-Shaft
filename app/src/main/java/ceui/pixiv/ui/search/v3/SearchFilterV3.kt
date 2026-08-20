@@ -143,6 +143,11 @@ enum class SearchTarget(val apiValue: String) {
          * 不传时服务端把 tag 命中与标题/关键词命中合并返回（PixEz 默认即此行为）；纯 tag 搜索的
          * 结果集不受影响（实测 玄幻/百合/初音ミク 首页 ID 集合一致），只会多出标题命中。
          * 其余档位（标签完全一致/正文/关键词/标题简介）是用户显式选择，原样传。
+         *
+         * ⚠️ 以上「不传≡partial」只对 **illust 端点**成立。小说端点不传时退化成纯字面
+         * keyword 匹配、同义词/译名不展开（#1038），所以 [ceui.lisa.repo.SearchNovelRepo]
+         * 会把本方法返回的 null 再转回显式 partial_match_for_tags、并在首页空结果时降级
+         * 不传重发——改这里之前先看那边的 withTitleFallback。
          */
         @JvmStatic
         fun toQueryValue(apiValue: String?): String? =

@@ -9,6 +9,9 @@ import org.junit.Test
  * 默认档「标签部分一致」必须不传 search_target（返回 null）——显式传 partial_match_for_tags
  * 会让 pixiv 做严格 tag 匹配并忽略 merge_plain_keyword_results，关键字只出现在标题里的作品
  * （如「淫神空间」系列小说）就搜不到。其余档位是用户显式选择，必须原样透传。
+ *
+ * 注意：null 只是「toQueryValue 层」的语义。小说端点不传时同义词不展开（#1038），
+ * SearchNovelRepo 在默认档会把 null 转回显式 partial 并带空结果降级，见那边注释。
  */
 class SearchTargetQueryValueTest {
 
