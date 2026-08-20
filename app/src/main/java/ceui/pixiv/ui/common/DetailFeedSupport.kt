@@ -138,9 +138,10 @@ fun Fragment.toggleNovelBookmark(sender: ProgressIndicator, novelId: Long) {
 }
 
 // ── Rx2 Observable → suspend（项目不引 kotlinx-coroutines-rx2，统一收口这一份）──
-// 全项目仅剩的 Rx→协程桥：只给搜索页消费 legacy SearchIllustRepo/SearchNovelRepo 用
-// （那两个 repo 是带借号/遥测的 Rx 状态机，等它们协程化后本函数一并删除）。
-// 其余新代码一律直接走 Retro.getAppApiSuspend() / Client.webApi，不要再新增调用。
+// 全项目仅剩的 Rx→协程桥：只给「消费 legacy Rx repo（initApi()/initNextApi() 返回
+// Observable）」的 feeds 页用 —— 搜索两页 + BookedTag/SelectTag/LikeUsers/NovelMarkers/
+// UserNovelSeries/UserMangaSeries 等。这些 repo 全部协程化后本函数一并删除。
+// 直连 AppApi 端点的新代码一律走 Retro.getAppApiSuspend() / Client.webApi，不要再新增桥接。
 
 suspend fun <T : Any> Observable<T>.awaitFirstValue(): T = suspendCancellableCoroutine { cont ->
     val disposable = subscribeOn(Schedulers.io())

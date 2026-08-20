@@ -22,7 +22,6 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.updateItems
 import ceui.pixiv.ui.common.IllustCardActionReceiver
 import ceui.pixiv.ui.common.IllustIdActionReceiver
-import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.ui.common.openIllustsInViewer
 import ceui.pixiv.ui.common.toggleIllustBookmark
 import ceui.pixiv.ui.novel.NovelSeriesHeaderActionReceiver
@@ -131,12 +130,8 @@ class IllustSeriesFragment :
                 val detail = hero.series
                 val nowAdded = detail.watchlist_added == true
                 val seriesIdInt = detail.id.toInt()
-                val obs = if (nowAdded) {
-                    Retro.getAppApi().postWatchlistMangaDelete(seriesIdInt)
-                } else {
-                    Retro.getAppApi().postWatchlistMangaAdd(seriesIdInt)
-                }
-                obs.awaitFirstValue()
+                if (nowAdded) Retro.getAppApiSuspend().postWatchlistMangaDelete(seriesIdInt)
+                else Retro.getAppApiSuspend().postWatchlistMangaAdd(seriesIdInt)
                 // 本地翻转 watchlist_added 并重发 hero 条目触发重绑收藏 icon。
                 feedViewModel.updateItems<MangaHeroFeedItem> {
                     it.copy(series = it.series.copy(watchlist_added = !nowAdded))

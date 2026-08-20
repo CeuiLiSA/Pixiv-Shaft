@@ -77,4 +77,12 @@ interface AppApiSuspend {
     @FormUrlEncoded
     @POST("v1/watchlist/novel/delete")
     suspend fun postWatchlistNovelDelete(@Field("series_id") seriesId: Int): NullResponse
+
+    @FormUrlEncoded
+    @POST("v1/watchlist/manga/add")
+    suspend fun postWatchlistMangaAdd(@Field("series_id") seriesId: Int): NullResponse
+
+    @FormUrlEncoded
+    @POST("v1/watchlist/manga/delete")
+    suspend fun postWatchlistMangaDelete(@Field("series_id") seriesId: Int): NullResponse
 }
