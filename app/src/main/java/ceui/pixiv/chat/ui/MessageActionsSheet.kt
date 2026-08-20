@@ -3,6 +3,7 @@ package ceui.pixiv.chat.ui
 import android.os.Bundle
 import android.view.View
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.setFragmentResult
 import ceui.lisa.R
 import ceui.pixiv.chat.base.viewBinding
@@ -26,6 +27,10 @@ class MessageActionsSheet : BaseBottomSheetDialogFragment(R.layout.chat_sheet_me
         super.onViewCreated(view, savedInstanceState)
 
         binding.tvPreview.text = arguments?.getString(ARG_CONTENT).orEmpty()
+
+        // Reply is only offered for messages the server knows about
+        // (Delivered + has a client_msg_id) — see ChatListViewModel.canReplyTo.
+        binding.actionReply.isVisible = arguments?.getBoolean(ARG_CAN_REPLY, true) ?: true
 
         binding.actionCopy.setOnClickListener { finish(ACTION_COPY) }
         binding.actionReply.setOnClickListener { finish(ACTION_REPLY) }
@@ -51,10 +56,15 @@ class MessageActionsSheet : BaseBottomSheetDialogFragment(R.layout.chat_sheet_me
 
         private const val ARG_LOCAL_KEY = "localKey"
         private const val ARG_CONTENT = "content"
+        private const val ARG_CAN_REPLY = "canReply"
 
-        fun newInstance(localKey: String, content: String?): MessageActionsSheet =
+        fun newInstance(localKey: String, content: String?, canReply: Boolean = true): MessageActionsSheet =
             MessageActionsSheet().apply {
-                arguments = bundleOf(ARG_LOCAL_KEY to localKey, ARG_CONTENT to content)
+                arguments = bundleOf(
+                    ARG_LOCAL_KEY to localKey,
+                    ARG_CONTENT to content,
+                    ARG_CAN_REPLY to canReply,
+                )
             }
     }
 }

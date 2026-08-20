@@ -178,6 +178,20 @@ data class ChatHistoryItem(
     val text: String?,
     val illust_id: Long?,
     val ts: Long,
+    /** Present only when this message quotes another one; see [ChatHistoryReplyTo]. */
+    val reply_to: ChatHistoryReplyTo? = null,
+)
+
+/**
+ * `reply_to` snapshot on a `/chat/history` row — same shape as the WS frame's
+ * `reply_to` (see [ChatReplyRef]). `text == null` ⇒ the quoted original has
+ * been purged server-side; `display_name` is still derived from `uid`.
+ */
+data class ChatHistoryReplyTo(
+    val uid: Long,
+    val client_msg_id: String,
+    val display_name: String?,
+    val text: String?,
 )
 
 data class ChatProfileResponse(

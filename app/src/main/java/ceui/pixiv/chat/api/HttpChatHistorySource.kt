@@ -26,6 +26,7 @@ import javax.net.ssl.SSLException
  * - server's `room` (passed through this query) → [ChatMessageEntity.room]
  * - `display_name`  → [ChatMessageEntity.displayName]
  * - `text`, `illust_id`, `ts` → straight passthrough
+ * - `reply_to.{uid,client_msg_id,display_name,text}` → `replyTo*` columns (absent → all null)
  * - state           → [SendState.Delivered] (history is always already broadcast)
  */
 class HttpChatHistorySource(
@@ -82,6 +83,10 @@ class HttpChatHistorySource(
             illustId = item.illust_id,
             ts = item.ts,
             state = SendState.Delivered,
+            replyToUid = item.reply_to?.uid,
+            replyToCmid = item.reply_to?.client_msg_id,
+            replyToDisplayName = item.reply_to?.display_name,
+            replyToText = item.reply_to?.text,
         )
     }
 

@@ -14,7 +14,7 @@
         android:id="@+id/state_layout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/input_bar"
+        app:layout_constraintBottom_toTopOf="@id/composer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/app_bar_layout">
@@ -29,18 +29,97 @@
 
     </ceui.pixiv.chat.base.widget.StateLayout>
 
+    <!-- 输入区 = 引用条(回复某条消息时出现,默认 GONE)+ 输入行,共用一块 v3_menu_bg 表面,
+         引用条与输入行之间不画分割线,靠留白 + 引用条自己的 tonal 容器分层。 -->
+    <LinearLayout
+        android:id="@+id/composer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/v3_menu_bg"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@id/emoji_panel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- 引用条:左 3dp 品牌色强调条 + 「回复 xxx」+ 一行摘要 + 关闭。底 = 品牌色 8% tonal
+             容器 + 15% hairline、16dp 圆角(DemoChatListFragment 运行时铺,品牌色走
+             Shaft.getThemeColor,本页 M3 overlay 会遮蔽 colorPrimary)。 -->
+        <LinearLayout
+            android:id="@+id/reply_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="2dp"
+            android:paddingBottom="8dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <View
+                android:id="@+id/reply_bar_accent"
+                android:layout_width="3dp"
+                android:layout_height="match_parent"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_reply_bar_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:singleLine="true"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    tools:text="回复 某位画师" />
+
+                <TextView
+                    android:id="@+id/tv_reply_bar_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:singleLine="true"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="13sp"
+                    tools:text="被引用的那条消息内容…" />
+
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btn_reply_bar_close"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginStart="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/chat_reply_close"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_close_black_24dp"
+                app:tint="@color/v3_text_3" />
+
+        </LinearLayout>
+
     <LinearLayout
         android:id="@+id/input_bar"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingHorizontal="12dp"
-        android:paddingVertical="10dp"
-        android:background="@color/v3_menu_bg"
-        app:layout_constraintBottom_toTopOf="@id/emoji_panel"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        android:paddingVertical="10dp">
 
         <ImageButton
             android:id="@+id/btn_emoji"
@@ -98,6 +177,8 @@
 
     </LinearLayout>
 
+    </LinearLayout>
+
     <!-- 「N 条新消息」胶囊:向上翻历史时来新消息才浮现,点一下回到底部。 -->
     <TextView
         android:id="@+id/new_msg_pill"
@@ -120,7 +201,7 @@
         android:visibility="gone"
         app:drawableStartCompat="@drawable/ic_baseline_keyboard_arrow_down_24"
         app:drawableTint="@color/v3_text_1"
-        app:layout_constraintBottom_toTopOf="@id/input_bar"
+        app:layout_constraintBottom_toTopOf="@id/composer"
         app:layout_constraintEnd_toEndOf="parent"
         tools:text="3 条新消息"
         tools:visibility="visible" />

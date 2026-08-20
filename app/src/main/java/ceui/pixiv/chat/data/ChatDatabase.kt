@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
  * Dedicated Room database for chat messages, separate from [AppDatabase].
@@ -31,7 +33,11 @@ import androidx.room.RoomDatabase
     // columns added. fallbackToDestructiveMigration drops the old table on
     // the next open — chat had no real users on the old protocol so the
     // wipe is fine.
-    version = 2,
+    // v3 (2026-08-20): reply-to-message — four nullable columns
+    // (reply_to_uid / reply_to_cmid / reply_to_display_name / reply_to_text)
+    // added via MIGRATION_2_3 (ALTER TABLE ADD COLUMN), preserving the local
+    // cache and any optimistic Sending/Failed rows across the upgrade.
+    version = 3,
     exportSchema = true,
 )
 abstract class ChatDatabase : RoomDatabase() {
@@ -48,9 +54,22 @@ abstract class ChatDatabase : RoomDatabase() {
                     ChatDatabase::class.java,
                     "chat.db",
                 )
+                    .addMigrations(MIGRATION_2_3)
+                    // Safety net for any path MIGRATION_* doesn't cover (e.g. a
+                    // downgrade); chat is a cache, so dropping it is acceptable.
                     .fallbackToDestructiveMigration()
                     .build()
                     .also { instance = it }
             }
+
+        /** Additive reply-to columns; all nullable so existing rows need no backfill. */
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE chat_messages ADD COLUMN reply_to_uid INTEGER")
+                db.execSQL("ALTER TABLE chat_messages ADD COLUMN reply_to_cmid TEXT")
+                db.execSQL("ALTER TABLE chat_messages ADD COLUMN reply_to_display_name TEXT")
+                db.execSQL("ALTER TABLE chat_messages ADD COLUMN reply_to_text TEXT")
+            }
+        }
     }
 }

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 发出的消息 —— V3。竖向根:①时间分组胶囊(与收到气泡共用,居中,默认 GONE)
      ②气泡行(右对齐:气泡列 + 自己头像)。气泡底是主题色渐变,在 ChatMessageAdapter
-     运行时铺(圆角 drawable + 品牌色,右上角小尾巴)。气泡下方右下角:发送状态(失败红叹号)
-     + 发送时间。 -->
+     运行时铺(圆角 drawable + 品牌色,右上角小尾巴)。气泡内顶部可选引用块(quote,回复时显示)。
+     气泡下方右下角:发送状态(失败红叹号)+ 发送时间。 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -51,9 +51,72 @@
                 android:paddingHorizontal="14dp"
                 android:paddingVertical="9dp">
 
+                <!-- 引用块(回复某条消息时显示,默认 GONE):左侧 3dp 竖向强调条 + 被引用者昵称 +
+                     ≤2 行摘要。底色 / 强调色在 ChatMessageAdapter 运行时铺:发出气泡用白色半透明
+                     (压在品牌渐变上),收到气泡用品牌色 8% tonal 容器 + 15% hairline,
+                     12dp 圆角 —— 比 18dp 气泡收一档,读作「气泡里的一层」。点击跳回原消息。 -->
+                <LinearLayout
+                    android:id="@+id/quote"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="7dp"
+                    android:gravity="center_vertical"
+                    android:minWidth="156dp"
+                    android:orientation="horizontal"
+                    android:paddingStart="10dp"
+                    android:paddingTop="7dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="7dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <View
+                        android:id="@+id/quote_bar"
+                        android:layout_width="3dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="1dp"
+                        android:layout_marginBottom="1dp" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="9dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_quote_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:includeFontPadding="false"
+                            android:singleLine="true"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            tools:text="某位画师" />
+
+                        <TextView
+                            android:id="@+id/tv_quote_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:ellipsize="end"
+                            android:includeFontPadding="false"
+                            android:lineSpacingExtra="1dp"
+                            android:maxLines="2"
+                            android:textSize="13sp"
+                            tools:text="被引用的那条消息内容,最多两行,超出省略…" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <!-- match_parent(而非 wrap_content):LinearLayout 在 wrap_content 父里只有当
+                     **所有**子 View 都 match_parent 时才按各自真实测量宽取最大值;否则 quote 这种
+                     match_parent 子 View 的宽度不计入气泡宽,引用块会被压成一条。TextView 在
+                     AT_MOST 下仍按文本期望宽测量,所以短消息的气泡照样收紧。 -->
                 <TextView
                     android:id="@+id/tv_content"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:lineSpacingExtra="3dp"
                     android:textColor="@android:color/white"

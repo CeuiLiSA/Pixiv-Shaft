@@ -14,6 +14,27 @@ import timber.log.Timber
  * The legacy 64-hex `client_id` is gone (`switch from room-subscribe model
  * to uid-routing`).
  */
+/**
+ * Reference to (and, inbound, a snapshot of) a quoted message — the
+ * `reply_to` object on `msg` frames and `/history` rows.
+ *
+ * Identity is `(uid, clientMsgId)`: the only handle every message stably
+ * has on both ends (WS frames carry no server id), and equal to the quoted
+ * row's local `localKey`.
+ *
+ * Outbound (client → server) only [uid] + [clientMsgId] are sent; the server
+ * validates the target exists **in the same room** and fills
+ * [displayName] (author's current name) + [text] (≤200-char excerpt) on the
+ * broadcast and on history rows. [text] `null` on an inbound ref ⇒ the
+ * original was purged server-side — render as "原消息已不可用".
+ */
+data class ChatReplyRef(
+    val uid: Long,
+    val clientMsgId: String,
+    val displayName: String? = null,
+    val text: String? = null,
+)
+
 sealed interface ChatFrame {
 
     /**
@@ -31,7 +52,10 @@ sealed interface ChatFrame {
 
     /**
      * `{ "kind": "msg", "room", "uid", "display_name", "client_msg_id",
-     *    "text", "illust_id"?, "ts" }`
+     *    "text", "illust_id"?, "ts", "reply_to"? }`
+     *
+     * `reply_to` (optional) = [ChatReplyRef] snapshot of the quoted message
+     * when this message is a reply.
      *
      * Server populates `room` based on routing:
      *  - `"global"` for public broadcasts
@@ -50,6 +74,7 @@ sealed interface ChatFrame {
         val text: String?,
         val illustId: Long?,
         val ts: Long,
+        val replyTo: ChatReplyRef? = null,
     ) : ChatFrame
 
     /**
@@ -164,6 +189,7 @@ object ChatFrameDecoder {
                     text = obj.get("text")?.asStringOrNull(),
                     illustId = obj.get("illust_id")?.asLongOrNull(),
                     ts = ts,
+                    replyTo = obj.get("reply_to")?.let(::decodeReplyTo),
                 )
             }
             "err" -> ChatFrame.Err(
@@ -202,6 +228,25 @@ object ChatFrameDecoder {
         }
     }
 
+    /**
+     * `reply_to` object → [ChatReplyRef]. Requires `uid` + `client_msg_id`
+     * (without them the quote can't be anchored to anything); a malformed
+     * object degrades to `null` — the message still renders, just without its
+     * quote — rather than dead-lettering the whole frame.
+     */
+    private fun decodeReplyTo(el: com.google.gson.JsonElement): ChatReplyRef? {
+        if (!el.isJsonObject) return null
+        val o = el.asJsonObject
+        val uid = o.get("uid")?.asLongOrNull() ?: return null
+        val cmid = o.get("client_msg_id")?.asStringOrNull()?.takeIf { it.isNotEmpty() } ?: return null
+        return ChatReplyRef(
+            uid = uid,
+            clientMsgId = cmid,
+            displayName = o.get("display_name")?.asStringOrNull(),
+            text = o.get("text")?.asStringOrNull(),
+        )
+    }
+
     private fun com.google.gson.JsonElement.asStringOrNull(): String? = when {
         isJsonNull -> null
         isJsonPrimitive && asJsonPrimitive.isString -> asString
@@ -231,9 +276,18 @@ object ChatFrameEncoder {
 
     /**
      * Build a public-room `msg` frame:
-     * `{"kind":"msg","room":"global","client_msg_id":<id>,"text":<text>,"illust_id":<id?>}`
+     * `{"kind":"msg","room":"global","client_msg_id":<id>,"text":<text>,"illust_id":<id?>,"reply_to":{...}?}`
+     *
+     * [replyTo] (optional) quotes another message in the room — only its
+     * `uid` + `client_msg_id` go on the wire; the server resolves and
+     * snapshots the rest (see [ChatReplyRef]).
      */
-    fun msgGlobal(clientMsgId: String, text: String, illustId: Long? = null): String {
+    fun msgGlobal(
+        clientMsgId: String,
+        text: String,
+        illustId: Long? = null,
+        replyTo: ChatReplyRef? = null,
+    ): String {
         val esc = escapeJsonString(text)
         val idEsc = escapeJsonString(clientMsgId)
         return buildString {
@@ -243,6 +297,7 @@ object ChatFrameEncoder {
             append(esc)
             append('"')
             if (illustId != null) append(""","illust_id":""").append(illustId)
+            appendReplyTo(replyTo)
             append('}')
         }
     }
@@ -256,7 +311,13 @@ object ChatFrameEncoder {
      * and ACL is enforced by handshake-authed `self_uid`. Sending raw
      * numeric `room` is rejected as `err.code = "room_forbidden"`.
      */
-    fun msg1v1(toUid: Long, clientMsgId: String, text: String, illustId: Long? = null): String {
+    fun msg1v1(
+        toUid: Long,
+        clientMsgId: String,
+        text: String,
+        illustId: Long? = null,
+        replyTo: ChatReplyRef? = null,
+    ): String {
         val esc = escapeJsonString(text)
         val idEsc = escapeJsonString(clientMsgId)
         return buildString {
@@ -268,8 +329,19 @@ object ChatFrameEncoder {
             append(esc)
             append('"')
             if (illustId != null) append(""","illust_id":""").append(illustId)
+            appendReplyTo(replyTo)
             append('}')
         }
+    }
+
+    /** `,"reply_to":{"uid":<long>,"client_msg_id":"<id>"}` — or nothing when [ref] is null. */
+    private fun StringBuilder.appendReplyTo(ref: ChatReplyRef?) {
+        if (ref == null) return
+        append(""","reply_to":{"uid":""")
+        append(ref.uid)
+        append(""","client_msg_id":"""")
+        append(escapeJsonString(ref.clientMsgId))
+        append(""""}""")
     }
 
     /**
