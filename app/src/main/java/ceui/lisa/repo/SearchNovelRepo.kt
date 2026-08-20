@@ -89,9 +89,16 @@ class SearchNovelRepo @JvmOverloads constructor(
         val nana7miEnabled = RemoteAppConfig.nana7miSearchEnabled
         val wantsPremiumOnlySort =
             isPremium != true && sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE
+        // 喜欢数筛选（bookmark_num_min/max）同样是会员专属参数——非会员设了就借号让服务端
+        // 真过滤（与插画侧同一条规则）；显式「热度预览」除外（那档语义就是不花借号额度）。
+        // 真会员两个 wants 都为 false，一律用自己的号直发。
+        val wantsPremiumBookmarkFilter = isPremium != true && useBookmarkQuery
         val selectedPopularPreview = sortType == SortType.POPULAR_PREVIEW
         val usePopularPreview = selectedPopularPreview || (wantsPremiumOnlySort && !nana7miEnabled)
-        val notPremiumButWantToUsePopularSort = wantsPremiumOnlySort && nana7miEnabled
+        // 仅喜欢数筛选（date 排序）在借号被远程关掉时不能落 preview（排序会被偷换成热度预览），
+        // 落到下面 else 的普通直连
+        val useBorrowedOfficial = nana7miEnabled && !selectedPopularPreview &&
+                (wantsPremiumOnlySort || wantsPremiumBookmarkFilter)
 
         // 投稿期间相对档当场算 today−N(每次 initApi 都重算,跨午夜窗口自动跟随今天);
         // bucket 为空时回落到自定义起止日期
@@ -128,7 +135,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                 initialRoute = Nana7miSearchTelemetry.Route.PREVIEW_DIRECT,
                 initialReason = if (selectedPopularPreview) "selected_preview" else "remote_disabled",
             )
-            notPremiumButWantToUsePopularSort -> Nana7miSearchTelemetry.start(
+            useBorrowedOfficial -> Nana7miSearchTelemetry.start(
                 requesterUid = requesterUid,
                 contentType = Nana7miSearchTelemetry.ContentType.NOVEL,
                 query = assembledKeyword,
@@ -185,6 +192,46 @@ class SearchNovelRepo @JvmOverloads constructor(
             ) ?: source
         }
 
+        // 仅喜欢数筛选（date 排序）的借号失败回退：排序保真走普通官方搜索（sort 此时必为
+        // date_desc/date_asc，非会员发也合法），bookmark 参数被服务端忽略后无碍结果正确性。
+        fun fallbackPlain(reason: String): Observable<ListNovel> {
+            telemetry?.fallback(reason)
+            Timber.tag(NANA7MI_LOG_TAG).w(
+                "stage=route target=novel_plain_search reason=%s",
+                reason,
+            )
+            val source = withTitleFallback { target ->
+                Retro.getAppApi().searchNovel(
+                    assembledKeyword,
+                    sortType,
+                    effectiveStartDate,
+                    effectiveEndDate,
+                    target,
+                    bookmarkMin,
+                    bookmarkMax,
+                    genre,
+                    lang,
+                    searchAiType,
+                    isOriginalOnly,
+                    isReplaceableOnly,
+                    textLengthMin,
+                    textLengthMax,
+                    wordCountMin,
+                    wordCountMax,
+                    readingTimeMin,
+                    readingTimeMax,
+                )
+            }
+            return telemetry?.track(
+                source = source,
+                page = Nana7miSearchTelemetry.Page.FIRST,
+            ) ?: source
+        }
+
+        // 借号失败按诉求分流：热度类诉求回退热度预览；仅喜欢数筛选回退普通直连
+        fun fallbackAfterBorrowFailure(reason: String): Observable<ListNovel> =
+            if (wantsPremiumOnlySort) fallbackPreview(reason) else fallbackPlain(reason)
+
         val result = if (usePopularPreview) {
             val source = withTitleFallback { target ->
                 Retro.getAppApi().popularNovelPreview(
@@ -211,7 +258,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                 source = source,
                 page = Nana7miSearchTelemetry.Page.FIRST,
             ) ?: source
-        } else if (notPremiumButWantToUsePopularSort) {
+        } else if (useBorrowedOfficial) {
             Nana7miSearchSerial.run("novel_first") { lease ->
                 Timber.tag(NANA7MI_LOG_TAG).d(
                     "stage=novel_flow event=start requester_uid=%d sort=%s keyword_length=%d",
@@ -271,13 +318,13 @@ class SearchNovelRepo @JvmOverloads constructor(
                             borrowedUid = borrowed.uid,
                         ) ?: source).onErrorResumeNext { error: Throwable ->
                             if (isBorrowedAccountUnavailable(error)) {
-                                fallbackPreview("borrowed_refresh_failed")
+                                fallbackAfterBorrowFailure("borrowed_refresh_failed")
                             } else {
                                 Observable.error(error)
                             }
                         }
                     } else {
-                        fallbackPreview(currentNana7miSession.resultLabel(result))
+                        fallbackAfterBorrowFailure(currentNana7miSession.resultLabel(result))
                     }
                 }
             }
@@ -394,7 +441,9 @@ class SearchNovelRepo @JvmOverloads constructor(
         // 已下线的「机内自带热度排序」在这里就归一掉（老配置里可能还存着），下游一路
         // 只会看到 pixiv 认识的值——原样发出去是 400 Invalid value，而且 400 不是 OAuth
         // 错误，[isBorrowedAccountUnavailable] 也不成立，会既不回落 preview 又白借一个号。
-        sortType = SortType.sanitize(searchModel.sortType.value)
+        // 再过 novelSafe：SearchModel.sortType 与插画共享，插画侧的男/女性向人气（novel
+        // 端点不识别）归一到总热度。
+        sortType = SortType.novelSafe(SortType.sanitize(searchModel.sortType.value))
         searchType = searchModel.searchType.value
         starSize = searchModel.starSize.value
         // 会员身份在发请求这一刻看 SessionManager（user/detail 的 profile.is_premium 静默同步

@@ -94,13 +94,22 @@ class SearchIllustRepo @JvmOverloads constructor(
                         sortType == SortType.POPULAR_MALE_DESC ||
                         sortType == SortType.POPULAR_FEMALE_DESC
                 )
+        // 喜欢数筛选（bookmark_num_min/max）同样是会员专属参数——非会员拿自己的号发，
+        // 服务端静默忽略，只剩 FilterMapper 客户端兜底。设了就借号，让服务端真过滤；
+        // 显式选「热度预览」的除外（那档语义就是不花借号额度，bookmark 继续客户端兜底）。
+        // 真会员（isPremium==true）两个 wants 都为 false，一律用自己的号直发，绝不借号。
+        val wantsPremiumBookmarkFilter = isPremium != true &&
+                ((bookmarkMin ?: 0) > 0 || (bookmarkMax ?: 0) > 0)
         // 借号搜索可以被服务端远程关掉（pixshaft-api /v1/config）。关掉后非会员的人气排序
         // 退回借号上线前的行为——直接走 popular-preview。绝不能落到下面的 searchIllust：
         // 那是拿自己的非会员 token 打会员专属 sort，必然 400。
         val nana7miEnabled = RemoteAppConfig.nana7miSearchEnabled
         val selectedPopularPreview = sortType == SortType.POPULAR_PREVIEW
         val usePopularPreview = selectedPopularPreview || (wantsPremiumOnlySort && !nana7miEnabled)
-        val notPremiumButWantToUsePopularSort = wantsPremiumOnlySort && nana7miEnabled
+        // 仅喜欢数筛选（date 排序）在借号被远程关掉时**不能**落 preview——那会把排序偷换成
+        // 热度预览；落到下面 else 的普通直连，排序保真、bookmark 靠客户端兜底。
+        val useBorrowedOfficial = nana7miEnabled && !selectedPopularPreview &&
+                (wantsPremiumOnlySort || wantsPremiumBookmarkFilter)
 
         // 投稿期间相对档当场算 today−N（每次 initApi 都重算,跨午夜窗口自动跟随今天）;
         // bucket 为空时回落到自定义起止日期
@@ -118,7 +127,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 initialRoute = Nana7miSearchTelemetry.Route.PREVIEW_DIRECT,
                 initialReason = if (selectedPopularPreview) "selected_preview" else "remote_disabled",
             )
-            notPremiumButWantToUsePopularSort -> Nana7miSearchTelemetry.start(
+            useBorrowedOfficial -> Nana7miSearchTelemetry.start(
                 requesterUid = requesterUid,
                 contentType = Nana7miSearchTelemetry.ContentType.ILLUST,
                 query = assembledKeyword,
@@ -171,6 +180,43 @@ class SearchIllustRepo @JvmOverloads constructor(
             ) ?: source
         }
 
+        // 仅喜欢数筛选（date 排序）的借号失败回退：排序必须保真，不能换成热度预览——
+        // 用自己的号走普通官方搜索（sort 此时必为 date_desc/date_asc，非会员发也合法），
+        // bookmark 参数被服务端忽略后由 FilterMapper 客户端兜底。
+        fun fallbackPlain(reason: String): Observable<ListIllust> {
+            telemetry?.fallback(reason)
+            Timber.tag(NANA7MI_LOG_TAG).w(
+                "stage=route target=plain_search reason=%s",
+                reason,
+            )
+            val source = Retro.getAppApi().searchIllust(
+                assembledKeyword,
+                sortType,
+                effectiveStartDate,
+                effectiveEndDate,
+                effectiveSearchTarget,
+                bookmarkMin,
+                bookmarkMax,
+                tool,
+                lang,
+                searchAiType,
+                ratioPattern,
+                contentType,
+                widthMin,
+                widthMax,
+                heightMin,
+                heightMax,
+            )
+            return telemetry?.track(
+                source = source,
+                page = Nana7miSearchTelemetry.Page.FIRST,
+            ) ?: source
+        }
+
+        // 借号失败按诉求分流：热度类诉求回退热度预览（排序语义最近）；仅喜欢数筛选回退普通直连
+        fun fallbackAfterBorrowFailure(reason: String): Observable<ListIllust> =
+            if (wantsPremiumOnlySort) fallbackPreview(reason) else fallbackPlain(reason)
+
         val result = if (usePopularPreview) {
             val source = Retro.getAppApi().popularPreview(
                 assembledKeyword,
@@ -193,7 +239,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 source = source,
                 page = Nana7miSearchTelemetry.Page.FIRST,
             ) ?: source
-        } else if (notPremiumButWantToUsePopularSort) {
+        } else if (useBorrowedOfficial) {
             Nana7miSearchSerial.run("illust_first") { lease ->
                 Timber.tag(NANA7MI_LOG_TAG).d(
                     "stage=flow event=start requester_uid=%d sort=%s keyword_length=%d",
@@ -250,13 +296,13 @@ class SearchIllustRepo @JvmOverloads constructor(
                             borrowedUid = newNana7mi.uid,
                         ) ?: source).onErrorResumeNext { error: Throwable ->
                             if (isBorrowedAccountUnavailable(error)) {
-                                fallbackPreview("borrowed_refresh_failed")
+                                fallbackAfterBorrowFailure("borrowed_refresh_failed")
                             } else {
                                 Observable.error(error)
                             }
                         }
                     } else {
-                        fallbackPreview(currentNana7miSession.resultLabel(result))
+                        fallbackAfterBorrowFailure(currentNana7miSession.resultLabel(result))
                     }
                 }
             }
