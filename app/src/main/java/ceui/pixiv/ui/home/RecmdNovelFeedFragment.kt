@@ -15,7 +15,6 @@ import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.view.LinearItemHorizontalDecoration
-import ceui.lisa.view.LinearItemWithHeadDecoration
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedCell
@@ -56,12 +55,6 @@ class RecmdNovelFeedFragment : NovelFeedFragment() {
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
         return listOf(rankHeaderRenderer(), novelCardRenderer())
-    }
-
-    override fun onListReady(listView: RecyclerView) {
-        // 头部(排行榜预览)edge-to-edge、其余卡片四周 12dp:对齐 legacy LinearItemWithHeadDecoration
-        // 与插画推荐页(SpacesItemWithHeadDecoration)。不调 super(基类给全部套 12dp,会把头也缩进)。
-        listView.addItemDecoration(LinearItemWithHeadDecoration(12.ppppx))
     }
 
     /** 横向排行榜预览头（整行）。对齐 legacy NovelHeader：seeMore 进小说榜，点卡片开小说详情。 */

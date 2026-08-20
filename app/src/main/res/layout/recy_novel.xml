@@ -7,30 +7,33 @@
 
     </data>
 
-    <!-- 卡间距由列表的 LinearItemDecoration(12dp) 统一给,cell 本身不加 margin。 -->
-    <androidx.cardview.widget.CardView
+    <!-- 无界平铺（#1038）：不再套 CardView，条目 edge-to-edge、间距靠自身上下 padding，
+         列表不再加 LinearItemDecoration。封面缩小、标题放宽到 3 行、信息顶对齐自然下排
+         （对齐官方 app 的信息密度），标签流由绑定方去掉译名只留原文。 -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:foreground="?attr/selectableItemBackground"
-        app:cardBackgroundColor="@color/v3_bg"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="1.5dp">
+        android:foreground="?attr/selectableItemBackground">
 
+        <!-- padding 用四向拆开写:paddingHorizontal/Vertical 是 API 26+ 属性,minSdk 24
+             的 7.0/7.1 机器上会被静默忽略,条目直接顶满屏幕边。 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="14dp">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp">
 
-            <!-- 上半:封面(左,收藏数/字数叠在封面 align bottom) + 右侧标题·收藏按钮(首行) / 系列 / 作者·日期(贴封面底部) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
                 <androidx.cardview.widget.CardView
-                    android:layout_width="90dp"
-                    android:layout_height="134dp"
+                    android:layout_width="80dp"
+                    android:layout_height="119dp"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="0dp">
 
@@ -59,8 +62,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="top|end"
-                        android:layout_marginTop="6dp"
-                        android:layout_marginEnd="6dp"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginEnd="5dp"
                         android:background="@drawable/v3_novel_ai_badge_bg"
                         android:paddingHorizontal="5dp"
                         android:paddingVertical="2dp"
@@ -71,10 +74,10 @@
                         android:visibility="gone"
                         tools:visibility="visible" />
 
-                    <!-- 底部恒暗渐变蒙版:复用发现页图片卡同款 scrim,保证叠在封面上的白字在任意封面上都读得清(日夜通用)。 -->
+                    <!-- 底部恒暗渐变蒙版:保证叠在封面上的白字在任意封面上都读得清(日夜通用)。 -->
                     <View
                         android:layout_width="match_parent"
-                        android:layout_height="60dp"
+                        android:layout_height="52dp"
                         android:layout_gravity="bottom"
                         android:background="@drawable/bg_v3_card_scrim" />
 
@@ -85,10 +88,10 @@
                         android:layout_gravity="bottom|center_horizontal"
                         android:gravity="center_horizontal"
                         android:orientation="vertical"
-                        android:paddingHorizontal="6dp"
-                        android:paddingBottom="7dp">
+                        android:paddingHorizontal="5dp"
+                        android:paddingBottom="6dp">
 
-                        <!-- 主角数据:收藏数最重(13sp bold 纯白 + 红心) -->
+                        <!-- 主角数据:收藏数最重(12sp bold 纯白 + 红心) -->
                         <TextView
                             android:id="@+id/bookmark_count"
                             android:layout_width="wrap_content"
@@ -99,12 +102,12 @@
                             android:maxLines="1"
                             style="@style/textMontserratBold"
                             android:textColor="@android:color/white"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             app:drawableStartCompat="@drawable/ic_favorite_black_24dp"
                             app:drawableTint="#ff445b"
                             tools:text="8172" />
 
-                        <!-- 次级数据:字数收一档(11sp medium 78% 白),与收藏数拉开层级 -->
+                        <!-- 次级数据:字数收一档(10sp medium 78% 白),与收藏数拉开层级 -->
                         <TextView
                             android:id="@+id/how_many_word"
                             android:layout_width="wrap_content"
@@ -114,16 +117,17 @@
                             android:letterSpacing="0.02"
                             android:maxLines="1"
                             android:textColor="#C8FFFFFF"
-                            android:textSize="11sp"
+                            android:textSize="10sp"
                             tools:text="10842字" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- 高度锁定与封面一致,靠 Space 把作者/日期簇顶到封面底部,消灭右侧空白 -->
+                <!-- 右列自然高度、顶对齐:标题最多 3 行,系列 1 行,作者行紧随其后
+                    （不再锁死等于封面高——大字号下不会挤掉作者行）。 -->
                 <LinearLayout
                     android:layout_width="0dp"
-                    android:layout_height="134dp"
-                    android:layout_marginStart="14dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -142,10 +146,10 @@
                             android:layout_weight="1"
                             android:ellipsize="end"
                             android:letterSpacing="-0.02"
-                            android:lineSpacingMultiplier="0.98"
-                            android:maxLines="2"
+                            android:lineSpacingMultiplier="1.02"
+                            android:maxLines="3"
                             android:textColor="@color/v3_text_1"
-                            android:textSize="16sp"
+                            android:textSize="15sp"
                             android:textStyle="bold"
                             tools:text="死に戻ったら皆んな怒ってたから嘘ついた!" />
 
@@ -163,7 +167,7 @@
                             tools:tint="@color/has_bookmarked" />
                     </LinearLayout>
 
-                    <!-- 系列:强调色 + medium 字重,是全卡唯一常驻的彩色文本,打破灰阶单调 -->
+                    <!-- 系列:强调色 + medium 字重,是整条目唯一常驻的彩色文本,打破灰阶单调 -->
                     <TextView
                         android:id="@+id/series"
                         android:layout_width="match_parent"
@@ -171,29 +175,25 @@
                         android:layout_marginTop="3dp"
                         style="@style/textMontserratMedium"
                         android:ellipsize="end"
-                        android:maxLines="2"
+                        android:maxLines="1"
                         android:textColor="@color/v3_text_2"
                         android:textSize="12sp"
                         android:visibility="gone"
                         tools:text="系列: しにもどり"
                         tools:visibility="visible" />
 
-                    <Space
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1" />
-
-                    <!-- 贴封面底部:作者(左) ... 日期(右),日期与作者信息同一横向水平。 -->
+                    <!-- 作者(左) ... 日期(右),紧随标题/系列下方顶对齐排布。 -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
                         <de.hdodenhof.circleimageview.CircleImageView
                             android:id="@+id/user_head"
-                            android:layout_width="26dp"
-                            android:layout_height="26dp"
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
                             app:civ_border_color="@color/v3_surface_2"
                             app:civ_border_width="1dp" />
 
@@ -202,14 +202,14 @@
                             android:id="@+id/author"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
+                            android:layout_marginStart="7dp"
                             android:layout_marginEnd="8dp"
                             android:layout_weight="1"
                             android:ellipsize="end"
                             style="@style/textMontserratMedium"
                             android:maxLines="1"
                             android:textColor="@color/v3_text_2"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             tools:text="葵由" />
 
                         <!-- 日期是纯数字,用 Montserrat Regular 跟封面数据同族;保持最弱色阶。 -->
@@ -221,25 +221,23 @@
                             android:letterSpacing="0.02"
                             android:maxLines="1"
                             android:textColor="@color/v3_text_3"
-                            android:textSize="12sp"
+                            android:textSize="11sp"
                             tools:text="2026-03-09" />
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- 标签流:整卡满宽,紧凑 chip(比详情页小一号)。tag 数由绑定方(NovelFeedFragment 的
-                 小说卡 renderer)设的 maxTags
-                 折叠成「+N」(参考小说 V3 系列详情页 item),不再用 maxLine 把末尾 chip 硬切。
-                 关闭「显示标签」时喂空列表折叠。 -->
+            <!-- 标签流:满宽紧凑 chip,列表里只显示 tag 原文(译名进详情页看,#1038)。tag 数由
+                 绑定方设的 maxTags 折叠成「+N」。关闭「显示标签」时喂空列表折叠。 -->
             <ceui.pixiv.widgets.V3TagFlowView
                 android:id="@+id/novel_tag"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="10dp"
                 app:flexWrap="wrap" />
         </LinearLayout>
 
-        <!-- Telegram spoiler 粒子层（整卡遮盖式模糊）。盖满整卡、按卡圆角裁切；
+        <!-- Telegram spoiler 粒子层（整条目遮盖式模糊）。盖满整条目；平铺无圆角。
              renderer 绑定时按 NovelSpoilerStore 现读状态设 GONE/可见。 -->
         <ceui.pixiv.widget.SpoilerParticleView
             android:id="@+id/spoiler_particles"
@@ -247,6 +245,6 @@
             android:layout_height="match_parent"
             android:importantForAccessibility="no"
             android:visibility="gone"
-            app:spv_cornerRadius="20dp" />
-    </androidx.cardview.widget.CardView>
+            app:spv_cornerRadius="0dp" />
+    </FrameLayout>
 </layout>

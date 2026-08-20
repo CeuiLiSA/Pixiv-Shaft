@@ -355,14 +355,8 @@ private fun bindNovelCardTags(b: CellNovelV3Binding, novel: Novel, palette: V3Pa
     val maxTags = 6
     tags.take(maxTags).forEach { tag ->
         val tv = TextView(ctx).apply {
-            text = buildString {
-                append("# ")
-                append(tag.name ?: "")
-                if (!tag.translated_name.isNullOrBlank()) {
-                    append("  ")
-                    append(tag.translated_name)
-                }
-            }
+            // 列表条目只显示 tag 原文，译名进详情页看（#1038，与主力小说卡同口径）
+            text = "# ${tag.name ?: ""}"
             textSize = 11f
             setTextColor(palette.textTag)
             background = tagBg?.newDrawable()?.mutate()

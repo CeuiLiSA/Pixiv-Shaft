@@ -101,6 +101,20 @@ class V3TagFlowView @JvmOverloads constructor(
         }
 
     /**
+     * chip 是否在原文后追加译名。默认 true（详情页 / 搜索页保留「原文 译名」双语）。
+     * 列表条目关掉只留原文（#1038：带译名的 chip 一行放不下几个，把列表撑得老高）。
+     * 长按菜单里的「复制译名」不受影响——译名数据仍在，只是不上屏。
+     */
+    var showTranslation: Boolean = true
+        set(value) {
+            if (field != value) {
+                field = value
+                lastSignature = null
+                renderPairs(lastPairs)
+            }
+        }
+
+    /**
      * 是否给每个 chip 加 `# ` 前缀。默认 true（与详情页 / 搜索页一致）。列表卡片可关掉，
      * 只显示纯 tag 文本。仅影响本 view 实例，不动其他调用方。
      */
@@ -237,7 +251,7 @@ class V3TagFlowView @JvmOverloads constructor(
                 text = buildString {
                     if (showHashPrefix) append("# ")
                     append(name)
-                    if (!translated.isNullOrBlank()) {
+                    if (showTranslation && !translated.isNullOrBlank()) {
                         append("  "); append(translated)
                     }
                 }

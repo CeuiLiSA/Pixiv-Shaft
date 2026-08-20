@@ -186,7 +186,7 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
         val palette = V3Palette.from(ctx)
 
         seriesGlide.load(GlideUtil.getUrl(novel.coverUrl))
-            .override(90.ppppx, 134.ppppx)
+            .override(80.ppppx, 119.ppppx)
             .placeholder(R.color.v3_surface_2)
             .error(R.color.v3_surface_2)
             .transition(DrawableTransitionOptions.withCrossFade())
@@ -213,6 +213,7 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
         b.novelTag.compact = true
         b.novelTag.searchIndex = 1
         b.novelTag.showHashPrefix = false
+        b.novelTag.showTranslation = false
         b.novelTag.maxTags = if (Shaft.sSettings.isCollapseNovelCardTags()) 6 else -1
         b.novelTag.setTags(tags)
         b.novelTag.isVisible = tags.isNotEmpty()

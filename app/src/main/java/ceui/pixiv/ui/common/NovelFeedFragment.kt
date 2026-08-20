@@ -21,7 +21,6 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
-import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.pixiv.actions.PixivActions
@@ -75,7 +74,8 @@ private const val NOVEL_SPOILER_BLUR_SAMPLING = 3
  * - 点击语义：卡片开小说详情 / 封面看封面大图 / 头像·作者进画师页 / 系列进小说系列页 /
  *   爱心长按进「按标签收藏」；
  * - 收藏态只有 is_bookmarked / total_bookmarks 变时走局部重绑 payload，不重跑 Glide(对齐插画卡)；
- * - LinearLayoutManager 竖向列表（recy_novel 卡本身无 margin，靠 12dp LinearItemDecoration 分隔）。
+ * - LinearLayoutManager 竖向列表；条目是无界平铺（#1038），间距由 recy_novel 自身上下
+ *   padding 承担，不加 ItemDecoration。
  *
  * 卡片布局与全部交互语义源自 legacy `NAdapter`（迁移时逐条对齐）。**该类已随最后一个调用方
  * 一起删除**（见「NAdapter 三个页面全部迁 feeds」那次提交），要考古去 git 历史，别在工作区找。
@@ -105,10 +105,6 @@ abstract class NovelFeedFragment(
             transform = { item, liked -> item.withBookmarked(liked) },
         ).bind(requireContext(), viewLifecycleOwner)
         observeMuteRevision()
-    }
-
-    override fun onListReady(listView: RecyclerView) {
-        listView.addItemDecoration(LinearItemDecoration(12.ppppx))
     }
 
     /**
@@ -296,13 +292,14 @@ abstract class NovelFeedFragment(
         // AI 生成角标（novel_ai_type == 2，与 card/v3/history/detail 同口径）
         b.badgeAi.isVisible = novel.novel_ai_type == 2
 
-        // 标签流：尊重「显示标签」设置，关时喂空列表折叠。compact + 去 # 前缀，
-        // 「标签折叠」开关开启时超 6 个折叠成「+N」，关闭时 maxTags=-1 全量展示；
-        // searchIndex=1 让点击跳搜索页「小说」tab。
+        // 标签流：尊重「显示标签」设置，关时喂空列表折叠。compact + 去 # 前缀 + 不带译名
+        //（#1038：列表里只看原文，译名进详情页看），「标签折叠」开关开启时超 6 个折叠成
+        // 「+N」，关闭时 maxTags=-1 全量展示；searchIndex=1 让点击跳搜索页「小说」tab。
         val tags = if (showTags && Shaft.sSettings.isShowNovelCardTags()) novel.tags.orEmpty() else emptyList()
         b.novelTag.compact = true
         b.novelTag.searchIndex = 1
         b.novelTag.showHashPrefix = false
+        b.novelTag.showTranslation = false
         b.novelTag.maxTags = if (Shaft.sSettings.isCollapseNovelCardTags()) 6 else -1
         b.novelTag.setTags(tags)
         b.novelTag.isVisible = tags.isNotEmpty()
@@ -377,8 +374,8 @@ abstract class NovelFeedFragment(
      */
     private fun loadNovelCover(cover: ImageView, novel: Novel, spoilered: Boolean) {
         val url = GlideUtil.getUrl(novel.coverUrl)
-        val width = 90.ppppx
-        val height = 134.ppppx
+        val width = 80.ppppx
+        val height = 119.ppppx
         val requestKey = NovelImageRequestKey(url?.cacheKey, width, height, spoilered)
         if (cover.tag == requestKey) return
         cover.tag = requestKey
