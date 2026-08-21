@@ -2984,6 +2984,8 @@
     <string name="snapshot_empty">还没有离线快照\n在作品详情页菜单里选择「离线化」</string>
     <string name="snapshot_import">导入快照</string>
     <string name="snapshot_batch_export">批量导出</string>
+    <string name="snapshot_batch_delete">批量删除</string>
+    <string name="snapshot_batch_delete_confirm">确定删除选中的 %1$d 个快照吗？此操作不可恢复。</string>
     <string name="snapshot_selected_count">已选 %1$d 项</string>
     <string name="snapshot_export">导出</string>
     <string name="snapshot_delete">删除</string>

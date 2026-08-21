@@ -16,6 +16,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding
 import ceui.lisa.utils.Common
 import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -101,6 +102,10 @@ class SnapshotManagerFragment : Fragment() {
                     enterSelectionMode()
                     true
                 }
+                R.id.action_batch_delete -> {
+                    enterSelectionMode()
+                    true
+                }
                 R.id.action_cancel_selection -> {
                     exitSelectionMode()
                     true
@@ -112,6 +117,10 @@ class SnapshotManagerFragment : Fragment() {
                 }
                 R.id.action_export_selected -> {
                     exportSelected()
+                    true
+                }
+                R.id.action_delete_selected -> {
+                    confirmDeleteSelected()
                     true
                 }
                 else -> false
@@ -188,11 +197,34 @@ class SnapshotManagerFragment : Fragment() {
         binding.toolbarTitle.text = getString(R.string.snapshot_selected_count, count)
         val menu = binding.toolbar.menu
         menu.findItem(R.id.action_export_selected)?.isEnabled = count > 0
+        menu.findItem(R.id.action_delete_selected)?.isEnabled = count > 0
         val allSelected = tab.isAllSelected()
         menu.findItem(R.id.action_select_all_toggle)?.apply {
             setIcon(if (allSelected) R.drawable.ic_deselect_24 else R.drawable.ic_select_all_24)
             setTitle(if (allSelected) R.string.bulk_select_clear_all else R.string.bulk_select_select_all)
         }
+    }
+
+    private fun confirmDeleteSelected() {
+        val tab = activeSelectionTab ?: return
+        val items = tab.selectedSnapshots()
+        if (items.isEmpty()) return
+        WitDialog.MessageDialogBuilder(requireContext())
+            .setTitle(R.string.snapshot_batch_delete)
+            .setMessage(getString(R.string.snapshot_batch_delete_confirm, items.size))
+            .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+            .addAction(0, R.string.snapshot_delete, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
+                dialog.dismiss()
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        items.forEach { SnapshotRepository.delete(requireContext(), it.manifest.snapshotId) }
+                    }
+                    exitSelectionMode()
+                    reloadAllTabs()
+                    Common.showToast(getString(R.string.snapshot_delete_success))
+                }
+            }
+            .show()
     }
 
     private fun tintMenuIconsWhite() {
