@@ -384,21 +384,32 @@ object ShaftChatGateway {
      * 2048-UTF-16-unit cap and for generating a fresh
      * `clientMsgId` per call. This method makes no further validation
      * beyond non-empty text.
+     *
+     * [replyTo] (optional) quotes another message in the same room; only
+     * its `(uid, client_msg_id)` goes on the wire — the server validates
+     * the target and snapshots name + excerpt into the broadcast.
      */
-    fun send(toUid: Long?, clientMsgId: String, text: String, illustId: Long? = null): Boolean {
+    fun send(
+        toUid: Long?,
+        clientMsgId: String,
+        text: String,
+        illustId: Long? = null,
+        replyTo: ChatReplyRef? = null,
+    ): Boolean {
         if (text.isEmpty()) return false
         val frame = if (toUid == null) {
-            ChatFrameEncoder.msgGlobal(clientMsgId, text, illustId)
+            ChatFrameEncoder.msgGlobal(clientMsgId, text, illustId, replyTo)
         } else {
-            ChatFrameEncoder.msg1v1(toUid, clientMsgId, text, illustId)
+            ChatFrameEncoder.msg1v1(toUid, clientMsgId, text, illustId, replyTo)
         }
         val accepted = manager.send(frame)
         if (accepted) {
             Timber.tag(TAG).i(
-                "⇡ msg sent to=%s cmid=%s illust=%s text=%s",
+                "⇡ msg sent to=%s cmid=%s illust=%s replyTo=%s text=%s",
                 toUid?.toString() ?: "global",
                 clientMsgId,
                 illustId?.toString() ?: "-",
+                replyTo?.clientMsgId ?: "-",
                 text.take(80),
             )
         } else {

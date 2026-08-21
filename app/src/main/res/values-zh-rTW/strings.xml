@@ -2212,6 +2212,10 @@
     <string name="chat_action_delete">刪除</string>
     <string name="chat_action_forward">轉發</string>
     <string name="chat_action_reply">回覆</string>
+    <string name="chat_reply_bar_title">回覆 %1$s</string>
+    <string name="chat_reply_unavailable">原訊息已不可用</string>
+    <string name="chat_reply_original_not_loaded">原訊息不在已載入的紀錄裡</string>
+    <string name="chat_reply_close">取消回覆</string>
     <string name="chat_state_loading_default">載入中…</string>
     <string name="chat_state_error_default">發生錯誤</string>
     <string name="chat_state_empty_default">暫時沒有內容</string>

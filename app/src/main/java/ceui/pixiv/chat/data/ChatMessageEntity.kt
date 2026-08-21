@@ -74,7 +74,36 @@ data class ChatMessageEntity(
 
     /** Local lifecycle state — see [SendState]. */
     val state: SendState = SendState.Delivered,
+
+    // ── Reply-to (quoted message) ─────────────────────────────────────
+    // A message can quote one other message in the same room. The reference
+    // is the quoted message's `(uid, client_msg_id)` — the only identity
+    // every message stably has on both ends (WS frames carry no server id),
+    // and equal to the quoted row's own `localKey`, so "tap quote → jump to
+    // original" is a plain localKey lookup in the current list.
+    //
+    // `replyToDisplayName` / `replyToText` are the server's snapshot of the
+    // quoted message (author's current name + ≤200-char excerpt), delivered
+    // on both the WS frame and /history rows, so the bubble renders the
+    // quote even when the original isn't in the local store. `replyToText`
+    // null while `replyToCmid` is set ⇒ original was purged server-side
+    // ("原消息已不可用").
+
+    @ColumnInfo(name = "reply_to_uid")
+    val replyToUid: Long? = null,
+
+    @ColumnInfo(name = "reply_to_cmid")
+    val replyToCmid: String? = null,
+
+    @ColumnInfo(name = "reply_to_display_name")
+    val replyToDisplayName: String? = null,
+
+    @ColumnInfo(name = "reply_to_text")
+    val replyToText: String? = null,
 ) {
+    /** True when this message quotes another one (whether or not the original still exists). */
+    val isReply: Boolean get() = replyToCmid != null
+
     companion object {
         /** Synthesize a localKey from a server id when the row has no client_msg_id. */
         fun localKeyForServer(serverId: Long): String = "server:$serverId"

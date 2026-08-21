@@ -2210,6 +2210,10 @@
     <string name="chat_action_delete">Удалить</string>
     <string name="chat_action_forward">Переслать</string>
     <string name="chat_action_reply">Ответить</string>
+    <string name="chat_reply_bar_title">Ответ %1$s</string>
+    <string name="chat_reply_unavailable">Исходное сообщение недоступно</string>
+    <string name="chat_reply_original_not_loaded">Исходное сообщение ещё не загружено</string>
+    <string name="chat_reply_close">Отменить ответ</string>
     <string name="chat_state_loading_default">Загрузка…</string>
     <string name="chat_state_error_default">Что-то пошло не так</string>
     <string name="chat_state_empty_default">Здесь пока ничего нет</string>

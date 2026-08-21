@@ -2461,6 +2461,10 @@
     <string name="chat_action_delete">删除</string>
     <string name="chat_action_forward">转发</string>
     <string name="chat_action_reply">回复</string>
+    <string name="chat_reply_bar_title">回复 %1$s</string>
+    <string name="chat_reply_unavailable">原消息已不可用</string>
+    <string name="chat_reply_original_not_loaded">原消息不在已加载的记录里</string>
+    <string name="chat_reply_close">取消回复</string>
     <string name="chat_state_loading_default">加载中…</string>
     <string name="chat_state_error_default">出错了</string>
     <string name="chat_state_empty_default">暂时没有内容</string>

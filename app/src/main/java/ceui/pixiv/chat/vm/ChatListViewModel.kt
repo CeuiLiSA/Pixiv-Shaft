@@ -3,6 +3,7 @@ package ceui.pixiv.chat.vm
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.pixiv.chat.api.ChatFrame
+import ceui.pixiv.chat.api.ChatReplyRef
 import ceui.pixiv.chat.api.ChatThreadId
 import ceui.pixiv.chat.base.LoadReason
 import ceui.pixiv.chat.base.PageState
@@ -132,6 +133,15 @@ class ChatListViewModel(
     private val _peerTyping = MutableStateFlow(PeerTypingState.Idle)
     val peerTyping: StateFlow<PeerTypingState> = _peerTyping.asStateFlow()
 
+    /**
+     * The message the user is currently composing a reply to (long-press →
+     * 回复), or `null`. Lives in the VM so the composer's quote strip survives
+     * rotation / the fragment's view being recreated. Cleared on a successful
+     * dispatch in [sendText] or explicitly via [clearReplyTarget].
+     */
+    private val _replyTarget = MutableStateFlow<ChatMessageEntity?>(null)
+    val replyTarget: StateFlow<ChatMessageEntity?> = _replyTarget.asStateFlow()
+
     init {
         Timber.tag(TAG_PERF).d(
             "init: selfUid=%d toUid=%s room=%s pageSize=%d",
@@ -244,6 +254,11 @@ class ChatListViewModel(
             return false
         }
 
+        // Snapshot the reply target at dispatch time so a clear/re-pick while
+        // the frame is in flight can't change what this message quotes.
+        val quoted = _replyTarget.value?.takeIf { canReplyTo(it) }
+        val replyRef = quoted?.let { ChatReplyRef(uid = it.uid, clientMsgId = it.clientMsgId!!) }
+
         val clientMsgId = UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
         val optimistic = ChatMessageEntity(
@@ -257,6 +272,12 @@ class ChatListViewModel(
             illustId = illustId,
             ts = now,
             state = SendState.Sending,
+            // Optimistic quote from the local copy of the target; the echo
+            // overwrites it with the server's canonical snapshot.
+            replyToUid = quoted?.uid,
+            replyToCmid = quoted?.clientMsgId,
+            replyToDisplayName = quoted?.displayName,
+            replyToText = quoted?.text?.take(REPLY_PREVIEW_MAX),
         )
 
         // Optimistic UI first. windowSize++ so the new row doesn't push
@@ -279,7 +300,10 @@ class ChatListViewModel(
         // latency when the echo arrives.
         inFlightSends[clientMsgId] = System.nanoTime()
 
-        val accepted = sender.send(toUid = toUid, clientMsgId = clientMsgId, text = trimmed, illustId = illustId)
+        val accepted = sender.send(
+            toUid = toUid, clientMsgId = clientMsgId, text = trimmed,
+            illustId = illustId, replyTo = replyRef,
+        )
         if (!accepted) {
             inFlightSends.remove(clientMsgId)
             store.upsert(listOf(optimistic.copy(state = SendState.Failed)))
@@ -287,8 +311,29 @@ class ChatListViewModel(
                 "⇡ sendText WS REJECTED cmid=%s → state=Failed (no active session?)",
                 clientMsgId,
             )
+        } else if (quoted != null) {
+            // The reply went out — the composer strip has done its job.
+            _replyTarget.compareAndSet(quoted, null)
         }
         return accepted
+    }
+
+    /**
+     * Start composing a reply to [msg]. No-op (and logged) for rows that
+     * can't be quoted — see [canReplyTo]; the UI hides the action for those,
+     * this is the belt to its braces.
+     */
+    fun setReplyTarget(msg: ChatMessageEntity) {
+        if (!canReplyTo(msg)) {
+            Timber.tag(TAG).w("setReplyTarget: %s not replyable (state=%s cmid=%s)",
+                msg.localKey, msg.state, msg.clientMsgId ?: "-")
+            return
+        }
+        _replyTarget.value = msg
+    }
+
+    fun clearReplyTarget() {
+        _replyTarget.value = null
     }
 
     /**
@@ -571,6 +616,19 @@ class ChatListViewModel(
         /** doc §3.1 / §12. */
         const val MAX_TEXT_LENGTH = 2048
 
+        /** Server truncates the quoted excerpt to this many UTF-16 units; mirror it optimistically. */
+        private const val REPLY_PREVIEW_MAX = 200
+
+        /**
+         * A message can be quoted only once the server knows it: it needs a
+         * `client_msg_id` (legacy `server:<id>` rows have none) and must be
+         * [SendState.Delivered] — a Sending/Failed optimistic row may never
+         * reach the server, and the server rejects quotes of unknown messages
+         * with `reply_target_not_found`.
+         */
+        fun canReplyTo(msg: ChatMessageEntity): Boolean =
+            msg.clientMsgId != null && msg.state == SendState.Delivered
+
         /**
          * How often we re-send a `typing:start` frame while user keeps
          * typing. Server bucket is 10 frames / 10s; 4 s keeps us at 1/4 s
@@ -621,5 +679,11 @@ data class PeerTypingState(
  * a lambda that records calls.
  */
 fun interface WsMsgSender {
-    fun send(toUid: Long?, clientMsgId: String, text: String, illustId: Long?): Boolean
+    fun send(
+        toUid: Long?,
+        clientMsgId: String,
+        text: String,
+        illustId: Long?,
+        replyTo: ChatReplyRef?,
+    ): Boolean
 }

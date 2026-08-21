@@ -1,10 +1,12 @@
 package ceui.pixiv.chat.ui
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
+import android.view.animation.DecelerateInterpolator
 import android.text.method.LinkMovementMethod
 import android.text.util.Linkify
 import android.util.TypedValue
@@ -61,9 +63,18 @@ class ChatMessageAdapter(
     private val isGlobal: Boolean = false,
     private val onLongClick: ((ChatMessageEntity) -> Unit)? = null,
     private val onAvatarClick: ((uid: Long) -> Unit)? = null,
+    /** Tap on a bubble's quote block → the quoted message's `localKey` (= its client_msg_id). */
+    private val onQuoteClick: ((quotedLocalKey: String) -> Unit)? = null,
 ) : BaseListAdapter<ChatMessageEntity, ChatMessageAdapter.BubbleHolder>(
     diffCallback(keySelector = { it.localKey })
 ) {
+
+    /**
+     * localKey of a row that should flash-highlight the next time it is bound
+     * (set by [flashMessage] when the target isn't currently on screen — the
+     * scroll brings it in, the bind fires the flash). One-shot.
+     */
+    private var pendingFlashKey: String? = null
 
     /** Self avatar URL — set once the logged-in user's profile is known. */
     var selfAvatarUrl: String? = null
@@ -84,13 +95,7 @@ class ChatMessageAdapter(
     private var cachedPalette: V3Palette? = null
     private var nameColors: IntArray? = null
 
-    private fun palette(ctx: Context): V3Palette = cachedPalette ?: run {
-        val brand = runCatching { Color.parseColor(Shaft.getThemeColor()) }
-            .getOrDefault(ContextCompat.getColor(ctx, R.color.v3_purple))
-        val isDark = (ctx.resources.configuration.uiMode and
-            Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-        V3Palette(brand, isDark).also { cachedPalette = it }
-    }
+    private fun palette(ctx: Context): V3Palette = cachedPalette ?: chatPalette(ctx).also { cachedPalette = it }
 
     /** Curated group-chat name palette; picked per sender uid for legibility. */
     private fun nameColor(ctx: Context, uid: Long): Int {
@@ -112,6 +117,32 @@ class ChatMessageAdapter(
         }
     }
 
+    /** Position of the row with [localKey] in the current list, or -1. */
+    fun positionOf(localKey: String): Int = currentList.indexOfFirst { it.localKey == localKey }
+
+    /**
+     * Flash-highlight the row with [localKey] (jump-to-quoted-message feedback).
+     * If its holder is attached, flash it now; otherwise arm [pendingFlashKey]
+     * so the bind that happens when the caller scrolls it on screen flashes it.
+     * Returns `false` when the row isn't in the list at all.
+     */
+    fun flashMessage(localKey: String, rv: RecyclerView): Boolean {
+        val pos = positionOf(localKey)
+        if (pos < 0) return false
+        val holder = rv.findViewHolderForAdapterPosition(pos) as? BubbleHolder
+        if (holder != null) {
+            pendingFlashKey = null
+            holder.flash(palette(rv.context))
+        } else {
+            pendingFlashKey = localKey
+            // One-shot with a deadline: if the caller's scroll doesn't bind this
+            // row within ~2s (user grabbed the list mid-scroll and went elsewhere),
+            // drop it — otherwise the row would flash out of nowhere minutes later.
+            rv.postDelayed({ if (pendingFlashKey == localKey) pendingFlashKey = null }, PENDING_FLASH_TTL_MS)
+        }
+        return true
+    }
+
     override fun getDataItemViewType(item: ChatMessageEntity, position: Int): Int =
         if (item.uid == selfUid) VIEW_TYPE_SENT else VIEW_TYPE_RECEIVED
 
@@ -131,19 +162,40 @@ class ChatMessageAdapter(
         val pos = holder.bindingAdapterPosition
         val older = if (pos != RecyclerView.NO_POSITION) currentList.getOrNull(pos + 1) else null
         val ctx = holder.itemView.context
+        val palette = palette(ctx)
+        // Quote accent follows the *quoted author's* identity: their name colour
+        // in the public room (so the quote reads as "that person"), brand colour
+        // for self / 1v1. Sent bubbles ignore this and use white-on-gradient.
+        val quotedUid = item.replyToUid
+        val quoteAccent = if (quotedUid != null && isGlobal && quotedUid != selfUid) {
+            nameColor(ctx, quotedUid)
+        } else {
+            palette.primary
+        }
         holder.bind(
             msg = item,
             avatarUrl = avatarUrl,
             older = older,
             isGlobal = isGlobal,
-            palette = palette(ctx),
+            selfUid = selfUid,
+            palette = palette,
             nameColor = if (isGlobal && item.uid != selfUid) nameColor(ctx, item.uid) else 0,
+            quoteAccent = quoteAccent,
             onAvatarClick = onAvatarClick,
+            onQuoteClick = onQuoteClick,
         )
         holder.itemView.setOnLongClickListener { v ->
             v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             onLongClick?.invoke(item)
             true
+        }
+        // The quote block is clickable (jump-to-original), so it owns touch events
+        // over its area — forward its long-press to the row, otherwise long-pressing
+        // on the quote of a reply bubble silently does nothing.
+        holder.quoteView.setOnLongClickListener { holder.itemView.performLongClick() }
+        if (pendingFlashKey != null && pendingFlashKey == item.localKey) {
+            pendingFlashKey = null
+            holder.flash(palette)
         }
     }
 
@@ -162,26 +214,44 @@ class ChatMessageAdapter(
         private val tvMonogram: TextView? = itemView.findViewById(R.id.tv_monogram) // received anon
         private val tvName: TextView? = itemView.findViewById(R.id.tv_name)   // received only
         private val ivState: ImageView? = itemView.findViewById(R.id.iv_state) // sent only
+        /** Exposed so the adapter can forward long-presses on the (clickable) quote to the row. */
+        val quoteView: View = itemView.findViewById(R.id.quote)
+        private val quote: View get() = quoteView
+        private val quoteBar: View = itemView.findViewById(R.id.quote_bar)
+        private val tvQuoteName: TextView = itemView.findViewById(R.id.tv_quote_name)
+        private val tvQuoteText: TextView = itemView.findViewById(R.id.tv_quote_text)
+
+        private var flashAnimator: ValueAnimator? = null
 
         fun bind(
             msg: ChatMessageEntity,
             avatarUrl: String?,
             older: ChatMessageEntity?,
             isGlobal: Boolean,
+            selfUid: Long,
             palette: V3Palette,
             nameColor: Int,
+            quoteAccent: Int,
             onAvatarClick: ((uid: Long) -> Unit)?,
+            onQuoteClick: ((quotedLocalKey: String) -> Unit)?,
         ) {
             val ctx = itemView.context
             val d = ctx.resources.displayMetrics.density
             val text = msg.text.orEmpty()
 
+            // A recycled holder may still be mid-flash from a jump-to-quote.
+            cancelFlash()
+
             // Content: cap bubble width at ~70% of the screen (narrow phones →
             // tablets stay balanced), render pure-emoji messages jumbo & bubble-
             // less, and linkify URLs.
             tvContent.text = text
-            tvContent.maxWidth = (ctx.resources.displayMetrics.widthPixels * BUBBLE_WIDTH_RATIO).toInt()
-            val jumbo = isJumboEmoji(text)
+            val contentMax = (ctx.resources.displayMetrics.widthPixels * BUBBLE_WIDTH_RATIO).toInt()
+            tvContent.maxWidth = contentMax
+            // A quoted message forces the bubble chrome even for pure-emoji text —
+            // the quote block needs a surface to sit on.
+            val jumbo = !msg.isReply && isJumboEmoji(text)
+            bindQuote(msg, selfUid, palette, quoteAccent, contentMax, d, onQuoteClick)
             val hasLinks = !jumbo && LinkifyCompat.addLinks(tvContent, Linkify.WEB_URLS)
             if (hasLinks) {
                 tvContent.movementMethod = LinkMovementMethod.getInstance()
@@ -282,6 +352,129 @@ class ChatMessageAdapter(
             }
         }
 
+        /**
+         * Quote block at the top of the bubble when [msg] is a reply.
+         *
+         *  - Sent (gradient) bubble: white 22% tonal container, white bar, white
+         *    name, white 85% excerpt — everything stays on the brand gradient.
+         *  - Received bubble: [quoteAccent] 8% fill + 15% hairline (one step
+         *    lighter than the bubble's own surface), bar + name in the accent,
+         *    excerpt in `v3_text_2`.
+         *
+         * Corner radius 12dp — one step in from the 18dp bubble so it reads as
+         * a layer *inside* the bubble rather than a second bubble.
+         */
+        private fun bindQuote(
+            msg: ChatMessageEntity,
+            selfUid: Long,
+            palette: V3Palette,
+            quoteAccent: Int,
+            contentMax: Int,
+            d: Float,
+            onQuoteClick: ((quotedLocalKey: String) -> Unit)?,
+        ) {
+            val quotedKey = msg.replyToCmid
+            if (quotedKey == null) {
+                quote.visibility = View.GONE
+                quote.setOnClickListener(null)
+                return
+            }
+            val ctx = itemView.context
+            quote.visibility = View.VISIBLE
+
+            val name = when {
+                msg.replyToUid == selfUid -> ctx.getString(R.string.chat_self_label)
+                !msg.replyToDisplayName.isNullOrBlank() -> msg.replyToDisplayName
+                else -> "匿名_${msg.replyToUid}"   // server's anonymous-name convention
+            }
+            tvQuoteName.text = name
+            val excerpt = msg.replyToText
+            val unavailable = excerpt == null
+            tvQuoteText.text = if (unavailable) ctx.getString(R.string.chat_reply_unavailable)
+                               else excerpt!!.replace('\n', ' ')
+
+            // Keep the quote inside the bubble's width cap: 10+12 padding, 3 bar, 9 gap.
+            val innerMax = contentMax - (34 * d).toInt()
+            tvQuoteName.maxWidth = innerMax
+            tvQuoteText.maxWidth = innerMax
+
+            val radius = 12 * d
+            val fill: Int
+            val stroke: Int
+            val barColor: Int
+            val nameColor: Int
+            val textColor: Int
+            if (isSent) {
+                fill = 0x38FFFFFF
+                stroke = 0
+                barColor = Color.WHITE
+                nameColor = Color.WHITE
+                textColor = 0xD9FFFFFF.toInt()
+            } else {
+                fill = V3Palette.withAlpha(quoteAccent, if (palette.isDark) 0.14f else 0.08f)
+                stroke = V3Palette.withAlpha(quoteAccent, 0.15f)
+                barColor = quoteAccent
+                nameColor = quoteAccent
+                textColor = ContextCompat.getColor(ctx, R.color.v3_text_2)
+            }
+            val container = GradientDrawable().apply {
+                cornerRadius = radius
+                setColor(fill)
+                if (stroke != 0) setStroke(maxOf(1, (0.5f * d).toInt()), stroke)
+            }
+            // Ripple clipped to the rounded container so the tap reads as "this block".
+            val rippleColor = if (isSent) 0x33FFFFFF else V3Palette.withAlpha(quoteAccent, 0.16f)
+            quote.background = android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(rippleColor),
+                container,
+                GradientDrawable().apply { cornerRadius = radius; setColor(Color.WHITE) },
+            )
+            quoteBar.background = GradientDrawable().apply {
+                cornerRadius = 999f
+                setColor(barColor)
+            }
+            tvQuoteName.setTextColor(nameColor)
+            tvQuoteText.setTextColor(textColor)
+            tvQuoteText.alpha = if (unavailable) 0.7f else 1f
+
+            if (onQuoteClick != null && !unavailable) {
+                quote.isClickable = true
+                quote.setOnClickListener { onQuoteClick(quotedKey) }
+            } else {
+                quote.isClickable = false
+                quote.setOnClickListener(null)
+            }
+        }
+
+        /** Row-wide tonal flash (brand 18% → 0 over ~900ms) used by jump-to-quote. */
+        fun flash(palette: V3Palette) {
+            cancelFlash()
+            val color = V3Palette.withAlpha(palette.primary, 0.18f)
+            val bg = ColorDrawable(color)
+            itemView.background = bg
+            flashAnimator = ValueAnimator.ofInt(255, 0).apply {
+                duration = 900L
+                startDelay = 150L
+                interpolator = DecelerateInterpolator()
+                addUpdateListener { bg.alpha = it.animatedValue as Int }
+                doOnEndOrCancel { itemView.background = null; flashAnimator = null }
+                start()
+            }
+        }
+
+        private fun cancelFlash() {
+            flashAnimator?.cancel()
+            flashAnimator = null
+            itemView.background = null
+        }
+
+        private fun ValueAnimator.doOnEndOrCancel(block: () -> Unit) {
+            addListener(object : android.animation.AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: android.animation.Animator) = block()
+                override fun onAnimationCancel(animation: android.animation.Animator) = block()
+            })
+        }
+
         private fun bindAvatar(
             iv: ImageView,
             monogram: TextView?,
@@ -317,6 +510,7 @@ class ChatMessageAdapter(
         const val VIEW_TYPE_SENT = 0
         const val VIEW_TYPE_RECEIVED = 1
         private const val PAYLOAD_AVATAR = "avatar"
+        private const val PENDING_FLASH_TTL_MS = 2_000L
 
         /** Below this gap, consecutive messages share one time group. */
         private const val TIME_GROUP_GAP_MS = 5 * 60 * 1000L
@@ -408,4 +602,19 @@ class ChatMessageAdapter(
             }
         }
     }
+}
+
+/**
+ * The chat screen's V3 palette: brand colour from [Shaft.getThemeColor] (NOT
+ * `?attr/colorPrimary` — this screen overlays a full Material3 theme for its
+ * StateLayout, which shadows colorPrimary; see NavExt) + current night mode.
+ * Shared by the bubble adapter and the composer's reply strip so both paint
+ * the same accent.
+ */
+internal fun chatPalette(ctx: Context): V3Palette {
+    val brand = runCatching { Color.parseColor(Shaft.getThemeColor()) }
+        .getOrDefault(ContextCompat.getColor(ctx, R.color.v3_purple))
+    val isDark = (ctx.resources.configuration.uiMode and
+        Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+    return V3Palette(brand, isDark)
 }

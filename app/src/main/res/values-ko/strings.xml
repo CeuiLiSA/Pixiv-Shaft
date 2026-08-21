@@ -2210,6 +2210,10 @@
     <string name="chat_action_delete">삭제</string>
     <string name="chat_action_forward">전달</string>
     <string name="chat_action_reply">답장</string>
+    <string name="chat_reply_bar_title">%1$s에게 답장</string>
+    <string name="chat_reply_unavailable">원본 메시지를 사용할 수 없습니다</string>
+    <string name="chat_reply_original_not_loaded">원본 메시지가 아직 불러와지지 않았습니다</string>
+    <string name="chat_reply_close">답장 취소</string>
     <string name="chat_state_loading_default">로딩 중…</string>
     <string name="chat_state_error_default">오류가 발생했습니다</string>
     <string name="chat_state_empty_default">아직 아무것도 없습니다</string>

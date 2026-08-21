@@ -2210,6 +2210,10 @@
     <string name="chat_action_delete">削除</string>
     <string name="chat_action_forward">転送</string>
     <string name="chat_action_reply">返信</string>
+    <string name="chat_reply_bar_title">%1$s に返信</string>
+    <string name="chat_reply_unavailable">元のメッセージは利用できません</string>
+    <string name="chat_reply_original_not_loaded">元のメッセージは読み込まれていません</string>
+    <string name="chat_reply_close">返信をキャンセル</string>
     <string name="chat_state_loading_default">読み込み中…</string>
     <string name="chat_state_error_default">エラーが発生しました</string>
     <string name="chat_state_empty_default">まだ何もありません</string>

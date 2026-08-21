@@ -2210,6 +2210,10 @@
     <string name="chat_action_delete">Sil</string>
     <string name="chat_action_forward">İlet</string>
     <string name="chat_action_reply">Yanıtla</string>
+    <string name="chat_reply_bar_title">%1$s kişisine yanıt</string>
+    <string name="chat_reply_unavailable">Orijinal mesaj kullanılamıyor</string>
+    <string name="chat_reply_original_not_loaded">Orijinal mesaj henüz yüklenmedi</string>
+    <string name="chat_reply_close">Yanıtı iptal et</string>
     <string name="chat_state_loading_default">Yükleniyor…</string>
     <string name="chat_state_error_default">Bir hata oluştu</string>
     <string name="chat_state_empty_default">Henüz hiçbir şey yok</string>

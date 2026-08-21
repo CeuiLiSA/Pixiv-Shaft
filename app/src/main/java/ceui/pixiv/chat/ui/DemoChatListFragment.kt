@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.View
@@ -38,6 +39,7 @@ import ceui.pixiv.chat.api.HttpChatHistorySource
 import ceui.pixiv.chat.api.ShaftChatGateway
 import ceui.pixiv.chat.base.PagingFooterAdapter
 import ceui.pixiv.chat.base.launchSuspend
+import ceui.pixiv.chat.base.panel.BottomPanelCoordinator
 import ceui.pixiv.chat.base.panel.PanelHost
 import ceui.pixiv.chat.base.panel.attachBottomPanel
 import ceui.pixiv.chat.base.setupToolbar
@@ -47,6 +49,7 @@ import ceui.pixiv.chat.data.ChatDatabase
 import ceui.pixiv.chat.data.ChatMessageEntity
 import ceui.pixiv.chat.data.RoomChatMessageStore
 import ceui.pixiv.chat.vm.ChatListViewModel
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.websocket.WebSocketState
 import com.hjq.toast.Toaster
@@ -105,6 +108,12 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     private var chatAdapter: ChatMessageAdapter? = null
     private var scrollToBottomOnNextUpdate = false
 
+    /** Emoji ↔ keyboard coordinator; kept so "reply" can pop the keyboard through the same state machine. */
+    private var panelCoordinator: BottomPanelCoordinator? = null
+
+    /** Whether the composer's reply strip is currently shown (drives the show/hide animation). */
+    private var replyBarShown = false
+
     /** "N 条新消息" pill state — only shown when a new message lands while the
      *  user is scrolled up reading history. */
     private var newMsgCount = 0
@@ -161,7 +170,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         setupToolbar(title = initialTitle, showBack = true)
 
         // ── Bottom panel (emoji ↔ keyboard) ──────────────────────────
-        attachBottomPanel(
+        panelCoordinator = attachBottomPanel(
             host = object : PanelHost {
                 override val panelRoot get() = binding.root
                 override val panelView get() = binding.emojiPanel
@@ -181,6 +190,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
 
         // ── Input ────────────────────────────────────────────────────
         setupInput()
+        setupReplyBar()
 
         // ── RecyclerView ─────────────────────────────────────────────
         // Adapter compares msg.uid against selfUid for right-vs-left bubble.
@@ -191,6 +201,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             isGlobal = isGlobalRoom,
             onLongClick = { msg -> showMessageActions(msg) },
             onAvatarClick = { uid -> openUserProfile(uid) },
+            onQuoteClick = { quotedKey -> jumpToMessage(quotedKey) },
         ).also { this.chatAdapter = it }
         val footerAdapter = PagingFooterAdapter().apply {
             onRetry = { viewModel.retryPaging() }
@@ -255,6 +266,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             launch { observeFatalAuth() }
             launch { observeMarkRead() }
             launch { observePeerTyping() }
+            launch { observeReplyTarget() }
         }
     }
 
@@ -360,8 +372,11 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     // ── Message actions ─────────────────────────────────────────────────
 
     private fun showMessageActions(msg: ChatMessageEntity) {
-        MessageActionsSheet.newInstance(msg.localKey, msg.text)
-            .show(childFragmentManager, MessageActionsSheet.TAG)
+        MessageActionsSheet.newInstance(
+            localKey = msg.localKey,
+            content = msg.text,
+            canReply = ChatListViewModel.canReplyTo(msg),
+        ).show(childFragmentManager, MessageActionsSheet.TAG)
     }
 
     private fun setupMessageActionResult() {
@@ -377,9 +392,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     private fun handleMessageAction(action: String, localKey: String) {
         when (action) {
             MessageActionsSheet.ACTION_COPY -> copyMessage(localKey)
-            MessageActionsSheet.ACTION_REPLY -> {
-                Toaster.showShort("回复（TODO）")
-            }
+            MessageActionsSheet.ACTION_REPLY -> startReply(localKey)
             MessageActionsSheet.ACTION_FORWARD -> {
                 Toaster.showShort("转发（TODO）")
             }
@@ -415,6 +428,115 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             dao.deleteByLocalKey(localKey)
             Toaster.showShort("已删除")
         }
+    }
+
+    // ── Reply (quote) ───────────────────────────────────────────────────
+
+    /**
+     * Long-press → 回复: arm the VM's reply target (it owns the state so the
+     * strip survives rotation) and pop the keyboard so the user can type
+     * straight away. The strip itself is bound reactively in [observeReplyTarget].
+     */
+    private fun startReply(localKey: String) {
+        val msg = viewModel.messages.value.find { it.localKey == localKey } ?: return
+        viewModel.setReplyTarget(msg)
+        panelCoordinator?.switchToKeyboard() ?: binding.etInput.requestFocus()
+    }
+
+    private fun setupReplyBar() {
+        val ctx = requireContext()
+        val d = resources.displayMetrics.density
+        val palette = chatPalette(ctx)
+        // The fragment instance can outlive its view (back stack / tablet panes);
+        // a fresh view always starts with the strip hidden, so resync the flag or
+        // showReplyBar() would early-return against a GONE view.
+        replyBarShown = false
+        binding.replyBar.visibility = View.GONE
+        // Brand 8% tonal container + 15% hairline, 16dp — same family as the
+        // in-bubble quote block (12dp) one step up the radius ladder.
+        binding.replyBar.background = GradientDrawable().apply {
+            cornerRadius = 16 * d
+            setColor(V3Palette.withAlpha(palette.primary, if (palette.isDark) 0.14f else 0.08f))
+            setStroke(maxOf(1, (0.5f * d).toInt()), V3Palette.withAlpha(palette.primary, 0.15f))
+        }
+        binding.replyBarAccent.background = GradientDrawable().apply {
+            cornerRadius = 999f
+            setColor(palette.primary)
+        }
+        binding.tvReplyBarName.setTextColor(palette.textAccent)
+        binding.btnReplyBarClose.setOnClickListener {
+            it.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            viewModel.clearReplyTarget()
+        }
+    }
+
+    /** Bind the composer's quote strip to the VM's reply target (show / update / hide). */
+    private suspend fun observeReplyTarget() {
+        viewModel.replyTarget.collect { target ->
+            if (target == null) {
+                hideReplyBar()
+                return@collect
+            }
+            val name = when {
+                target.uid == SessionManager.loggedInUid -> getString(R.string.chat_self_label)
+                !target.displayName.isNullOrBlank() -> target.displayName
+                else -> "匿名_${target.uid}"
+            }
+            binding.tvReplyBarName.text = getString(R.string.chat_reply_bar_title, name)
+            binding.tvReplyBarText.text = target.text.orEmpty().replace('\n', ' ')
+            showReplyBar()
+        }
+    }
+
+    private fun showReplyBar() {
+        if (replyBarShown) return
+        replyBarShown = true
+        val d = resources.displayMetrics.density
+        binding.replyBar.apply {
+            animate().cancel()
+            alpha = 0f
+            translationY = 8 * d
+            visibility = View.VISIBLE
+            animate().alpha(1f).translationY(0f)
+                .setDuration(180L)
+                .setInterpolator(DecelerateInterpolator())
+                .start()
+        }
+    }
+
+    private fun hideReplyBar() {
+        if (!replyBarShown) {
+            binding.replyBar.visibility = View.GONE
+            return
+        }
+        replyBarShown = false
+        val d = resources.displayMetrics.density
+        binding.replyBar.apply {
+            animate().cancel()
+            animate().alpha(0f).translationY(6 * d)
+                .setDuration(140L)
+                .withEndAction {
+                    // The VM may have armed a new target during the fade.
+                    if (!replyBarShown) visibility = View.GONE
+                }
+                .start()
+        }
+    }
+
+    /**
+     * Tap on a quote → scroll to the original message and flash it. The
+     * quoted key is the original's localKey (= its client_msg_id); if it's
+     * older than what's loaded, say so rather than silently doing nothing.
+     */
+    private fun jumpToMessage(localKey: String) {
+        val adapter = chatAdapter ?: return
+        val rv = binding.recyclerView
+        if (!adapter.flashMessage(localKey, rv)) {
+            Toaster.showShort(getString(R.string.chat_reply_original_not_loaded))
+            return
+        }
+        val pos = adapter.positionOf(localKey)
+        if (pos >= 0) rv.smoothScrollToPosition(pos)
     }
 
     // ── Input bar ───────────────────────────────────────────────────────
@@ -575,6 +697,8 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             "bad_illust_id"         -> "插画 ID 无效"
             "bad_client_msg_id"     -> "消息标识无效"
             "frame_too_large"       -> "消息过大"
+            "bad_reply_to"          -> "回复目标无效"
+            "reply_target_not_found" -> "原消息已不存在,无法回复"
             else                    -> "发送失败,请稍后重试"
         }
     }

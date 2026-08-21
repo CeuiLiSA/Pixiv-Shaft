@@ -200,6 +200,12 @@ private fun deriveWsBase(httpBase: String): String =
 | `client_msg_id` | ✓ | `/^[A-Za-z0-9_-]{8,64}$/`,客户端生成的 UUID / ULID / nanoid |
 | `text` | ✓ | 1–2048 UTF-16 单元(emoji 算 2 单元),尾部 `\r\n` 服务端 strip |
 | `illust_id` | optional | 正整数 < 10^15,关联一个 pixiv 作品 |
+| `reply_to` | optional | `{"uid": <long>, "client_msg_id": "<id>"}` — 回复(引用)**本房间**里的另一条消息。`uid` 校验同 `to_uid`(严格数字 / canonical 十进制串),`client_msg_id` 同上方规则。服务端按 `(uid, client_msg_id)` 找到原消息并钉死 `room` 一致:找不到 / 跨房 → `err.reply_target_not_found`;形态错 → `err.bad_reply_to`。客户端只对 **Delivered 且有 client_msg_id** 的行提供「回复」 |
+
+回复示例:
+```json
+{"kind":"msg","room":"global","client_msg_id":"<UUID>","text":"同意","reply_to":{"uid":12345,"client_msg_id":"<原消息 UUID>"}}
+```
 
 整帧 ≤ **4096 UTF-16 单元**(ASCII ≈ 4 KB / 中文 ≈ 12 KB UTF-8)。超就 `err.frame_too_large`。
 
@@ -234,11 +240,18 @@ private fun deriveWsBase(httpBase: String): String =
   "client_msg_id": "<UUID>",    // ★ 客户端去重必读字段
   "text": "你好",
   "illust_id": 12345,           // optional
-  "ts": 1778740123502
+  "ts": 1778740123502,
+  "reply_to": {                 // optional — 这条是回复时才有
+    "uid": 12345,               //   被引用消息的作者 uid
+    "client_msg_id": "<UUID>",  //   被引用消息的 client_msg_id(= 客户端本地 localKey,可直接跳转)
+    "display_name": "lisa",     //   作者**当前**展示名(实时查,改名即生效)
+    "text": "原消息…"            //   原文前 200 UTF-16 单元;null = 原消息已过保留期被清理
+  }
 }
 ```
 
 **关键**:
+- **`reply_to` 是服务端下发的快照**:接收端不需要本地有那条原消息就能渲染引用块(新装 / 没翻到那么远的历史都一样)。`text:null` 渲染成「原消息已不可用」。点击引用块 → 按 `client_msg_id` 在本地列表里找原消息跳转,找不到就提示不在已加载记录里
 - **没有 server-issued `id`** —— DB autoincrement id 异步分配,广播时还没有。客户端用 `client_msg_id` 做对账锚点;真要拿 `id` 走 `/history`
 - **自己发的消息也走这条回来** —— UI 应当以这条为渲染源("回声 = 隐式 ACK"),不要双渲染 optimistic + 回声
 - **`room` 字段必看**:单 WS 多会话场景下,客户端按 `room` 分桶到对应聊天窗口
@@ -273,6 +286,8 @@ private fun deriveWsBase(httpBase: String): String =
 | `self_chat_not_allowed` | to_uid === self_uid | 不让用户给自己发(MVP 限制) |
 | `rate_limited` | 每连接 5 条/5s 令牌桶溢出 | 1s 内 disable 发送按钮 |
 | `global_send_disabled` | 管理员后台关闭了公共聊天室发言(只拦 `room:"global"`,1v1 不受影响) | toast `message` 字段文案;读历史仍可用,只是发不出去 |
+| `bad_reply_to` | `reply_to` 不是对象 / `uid` 或 `client_msg_id` 形态不合法 | 客户端 bug,记日志 |
+| `reply_target_not_found` | `reply_to` 指向的消息不存在,或不在目标房间(跨房引用一律按不存在处理,不泄露别房是否有这条) | 带 `message`(「原消息已不存在,无法回复」);标该行 Failed + toast。通常是回复了一条已过 30 天保留期的本地缓存消息 |
 
 #### `pong` — 响应客户端应用层 `ping`
 
@@ -494,13 +509,20 @@ Response:
       "display_name": "lisa",
       "text": "...",
       "illust_id": 123,                 // optional
-      "ts": 1778740123456
+      "ts": 1778740123456,
+      "reply_to": {                     // optional — 仅回复消息带;形态同 WS msg 帧
+        "uid": 12345,
+        "client_msg_id": "<UUID>",
+        "display_name": "lisa",         // 作者当前展示名
+        "text": "原消息…"                // ≤200 单元;null = 原消息已被清理
+      }
     }
   ]
 }
 ```
 
 - `items` 按 **ts 升序**(旧→新)
+- `reply_to` 由服务端读时自连接 `(uid, client_msg_id)` 填充(不是写入时的快照),所以被引用作者改名立即生效;原消息被保留期清理后 `text` 变 `null`,`display_name` 仍按 uid 派生。没引用的消息**省略**这个 key(不发 `null`)
 - 下一页 cursor:`before = items[0].id`
 - 空 = 到顶
 - `limit` 默认 50,上限 200
@@ -717,6 +739,7 @@ Android 模拟器走 `http://10.0.2.2:8080/`。
 - [ ] 单 WS / app 整个生命周期,**不要**进 1v1 才建连 / 退出 1v1 才断 —— sub/unsub 模型已被废弃
 - [ ] 客户端发送 `to_uid` 时**严格用 `Long`**(JSON 数字)或 `Long.toString()`(canonical decimal),**不要**让序列化器把 boxed Long 序成对象、把字符串带空格,会被 server `bad_to_uid` 拒
 - [ ] 收到 `onClose(1008, "replaced")` 时**不要走重连退避表** —— UI 显式提示"账号在其它设备登录",由用户决定是否切换回来
+- [ ] 回复:只对 `state=Delivered && clientMsgId != null` 的行提供「回复」;发送帧带 `reply_to:{uid,client_msg_id}`;optimistic 行用本地原消息内容先画引用块,回声到了再被服务端快照覆盖;`reply_target_not_found` 按普通 err 标 Failed
 
 ---
 

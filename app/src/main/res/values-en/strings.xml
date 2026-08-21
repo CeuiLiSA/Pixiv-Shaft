@@ -2210,6 +2210,10 @@
     <string name="chat_action_delete">Delete</string>
     <string name="chat_action_forward">Forward</string>
     <string name="chat_action_reply">Reply</string>
+    <string name="chat_reply_bar_title">Reply to %1$s</string>
+    <string name="chat_reply_unavailable">Original message unavailable</string>
+    <string name="chat_reply_original_not_loaded">Original message isn\u2019t loaded yet</string>
+    <string name="chat_reply_close">Cancel reply</string>
     <string name="chat_state_loading_default">Loading…</string>
     <string name="chat_state_error_default">Something went wrong</string>
     <string name="chat_state_empty_default">Nothing here yet</string>
