@@ -32,6 +32,18 @@
                 tools:src="@mipmap/ic_launcher" />
 
             <ImageView
+                android:id="@+id/selectCheck"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="top|start"
+                android:layout_margin="8dp"
+                android:contentDescription="@null"
+                android:padding="5dp"
+                android:src="@drawable/history_check_unselected"
+                android:visibility="gone"
+                tools:visibility="gone" />
+
+            <ImageView
                 android:id="@+id/deleteButton"
                 android:layout_width="30dp"
                 android:layout_height="30dp"

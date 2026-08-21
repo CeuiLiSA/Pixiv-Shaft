@@ -45,7 +45,12 @@ class SnapshotListFragment : Fragment() {
         onOpen = { openSnapshot(it) },
         onExport = { exportSnapshot(it) },
         onDelete = { confirmDelete(it) },
-    )
+    ).also { adapter ->
+        adapter.onSelectionToggle = { onSelectionCountChanged?.invoke(adapter.selectedIds.size) }
+    }
+
+    /** 选中数量变化回调，由宿主 Tabs 页驱动 selection toolbar。 */
+    var onSelectionCountChanged: ((Int) -> Unit)? = null
 
     private var pendingExportId: String? = null
 
@@ -95,6 +100,35 @@ class SnapshotListFragment : Fragment() {
             adapter.submitList(list)
             binding.emptyHint.isVisible = list.isEmpty()
         }
+    }
+
+    fun enterSelectionMode() {
+        if (adapter.currentList.isEmpty()) return
+        adapter.setSelectionMode(true)
+        onSelectionCountChanged?.invoke(0)
+    }
+
+    fun exitSelectionMode() {
+        adapter.setSelectionMode(false)
+        onSelectionCountChanged?.invoke(0)
+    }
+
+    fun selectedSnapshots(): List<SnapshotSummary> =
+        adapter.currentList.filter { it.manifest.snapshotId in adapter.selectedIds }
+
+    fun selectedCount(): Int = adapter.selectedIds.size
+
+    fun hasItems(): Boolean = adapter.currentList.isNotEmpty()
+
+    fun isAllSelected(): Boolean = adapter.isAllSelected()
+
+    fun toggleSelectAll() {
+        if (adapter.isAllSelected()) {
+            adapter.clearSelection()
+        } else {
+            adapter.selectAll()
+        }
+        onSelectionCountChanged?.invoke(adapter.selectedIds.size)
     }
 
     private fun openSnapshot(summary: SnapshotSummary) {
@@ -147,13 +181,59 @@ private class SnapshotAdapter(
     private val onDelete: (SnapshotSummary) -> Unit,
 ) : ListAdapter<SnapshotSummary, SnapshotViewHolder>(DIFF) {
 
+    var selectionMode: Boolean = false
+        private set
+
+    val selectedIds = linkedSetOf<String>()
+    var onSelectionToggle: ((SnapshotSummary) -> Unit)? = null
+
+    fun setSelectionMode(enabled: Boolean) {
+        if (selectionMode == enabled) return
+        selectionMode = enabled
+        if (!enabled) selectedIds.clear()
+        notifyDataSetChanged()
+    }
+
+    fun toggleSelection(summary: SnapshotSummary) {
+        if (!selectionMode) return
+        if (!selectedIds.add(summary.manifest.snapshotId)) {
+            selectedIds.remove(summary.manifest.snapshotId)
+        }
+        onSelectionToggle?.invoke(summary)
+        notifyDataSetChanged()
+    }
+
+    fun selectAll() {
+        if (!selectionMode) return
+        selectedIds.clear()
+        selectedIds.addAll(currentList.map { it.manifest.snapshotId })
+        notifyDataSetChanged()
+    }
+
+    fun clearSelection() {
+        selectedIds.clear()
+        notifyDataSetChanged()
+    }
+
+    fun isAllSelected(): Boolean =
+        currentList.isNotEmpty() && selectedIds.size == currentList.size
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SnapshotViewHolder {
         val binding = ItemSnapshotBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return SnapshotViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: SnapshotViewHolder, position: Int) {
-        holder.bind(getItem(position), onOpen, onExport, onDelete)
+        val summary = getItem(position)
+        holder.bind(
+            summary = summary,
+            onOpen = onOpen,
+            onExport = onExport,
+            onDelete = onDelete,
+            selectionMode = selectionMode,
+            selected = summary.manifest.snapshotId in selectedIds,
+            onToggleSelection = { toggleSelection(summary) },
+        )
     }
 
     companion object {
@@ -176,6 +256,9 @@ private class SnapshotViewHolder(
         onOpen: (SnapshotSummary) -> Unit,
         onExport: (SnapshotSummary) -> Unit,
         onDelete: (SnapshotSummary) -> Unit,
+        selectionMode: Boolean,
+        selected: Boolean,
+        onToggleSelection: () -> Unit,
     ) {
         val context = binding.root.context
         if (summary.coverFile != null) {
@@ -197,11 +280,22 @@ private class SnapshotViewHolder(
         binding.commentTag.isVisible = summary.manifest.includeComments
         binding.originalTag.isVisible = summary.manifest.includeOriginal
 
-        binding.root.setOnClickListener { onOpen(summary) }
-        binding.root.setOnLongClickListener {
-            onExport(summary)
-            true
+        binding.selectCheck.isVisible = selectionMode
+        binding.deleteButton.isVisible = !selectionMode
+        if (selectionMode) {
+            binding.selectCheck.setImageResource(
+                if (selected) R.drawable.ic_check_circle_black_24dp else R.drawable.history_check_unselected
+            )
+            binding.root.setOnClickListener { onToggleSelection() }
+            binding.root.setOnLongClickListener(null)
+            binding.deleteButton.setOnClickListener(null)
+        } else {
+            binding.root.setOnClickListener { onOpen(summary) }
+            binding.root.setOnLongClickListener {
+                onExport(summary)
+                true
+            }
+            binding.deleteButton.setOnClickListener { onDelete(summary) }
         }
-        binding.deleteButton.setOnClickListener { onDelete(summary) }
     }
 }

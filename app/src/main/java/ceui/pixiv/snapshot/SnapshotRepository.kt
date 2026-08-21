@@ -2,6 +2,7 @@ package ceui.pixiv.snapshot
 
 import android.content.Context
 import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
 import ceui.lisa.models.IllustsBean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -91,6 +92,27 @@ object SnapshotRepository {
             ?: throw SnapshotException("无法打开导出位置")
         out.use { SnapshotArchive.zipDirectory(snapshotDir, it) }
     }
+
+    /** 批量导出到 SAF 目录：在所选文件夹里为每个快照创建一个 .shaftsnap 文件。 */
+    suspend fun exportToDirectory(context: Context, snapshotId: String, treeUri: Uri) =
+        withContext(Dispatchers.IO) {
+            val snapshotDir = dir(context, snapshotId)
+            if (!snapshotDir.isDirectory) throw SnapshotException("快照不存在: $snapshotId")
+            val manifest = readManifest(context, snapshotId)
+                ?: throw SnapshotException("快照 manifest 损坏: $snapshotId")
+            val parent = DocumentFile.fromTreeUri(context, treeUri)
+                ?: throw SnapshotException("无法打开所选文件夹")
+            val safeTitle = manifest.title
+                ?.replace(Regex("[\\\\/:*?\"<>|]"), "_")
+                ?.takeIf { it.isNotBlank() }
+                ?: "snapshot"
+            val fileName = "${safeTitle}_${manifest.illustId}$SNAPSHOT_EXTENSION"
+            val file = parent.createFile("application/zip", fileName)
+                ?: throw SnapshotException("无法在所选文件夹创建 $fileName")
+            val out = context.contentResolver.openOutputStream(file.uri)
+                ?: throw SnapshotException("无法写入 $fileName")
+            out.use { SnapshotArchive.zipDirectory(snapshotDir, it) }
+        }
 
     suspend fun import(context: Context, uri: Uri): SnapshotManifest = withContext(Dispatchers.IO) {
         val tempZip = File(context.cacheDir, "snapshot_import_${System.currentTimeMillis()}$SNAPSHOT_EXTENSION")
