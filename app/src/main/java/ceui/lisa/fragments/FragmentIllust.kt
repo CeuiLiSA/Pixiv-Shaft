@@ -928,7 +928,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                         includeOriginal = includeOriginal,
                         onProgress = { message ->
                             mActivity.runOnUiThread {
-                                dialog.findViewById<TextView>(R.id.tv_loading_message)?.text = message
+                                dialog.findViewById<TextView>(R.id.loading_message)?.text = message
                             }
                         },
                     )
@@ -947,10 +947,10 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     private fun showSnapshotLoadingDialog(message: String): WitDialog {
         val dialog = WitDialog.CustomDialogBuilder(mContext)
-            .setLayout(R.layout.chat_view_state_loading)
+            .setLayout(R.layout.dialog_snapshot_loading)
             .setCancelable(false)
             .show()
-        dialog.findViewById<TextView>(R.id.tv_loading_message)?.text = message
+        dialog.findViewById<TextView>(R.id.loading_message)?.text = message
         return dialog
     }
     companion object {

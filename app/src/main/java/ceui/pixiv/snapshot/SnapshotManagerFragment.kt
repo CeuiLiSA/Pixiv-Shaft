@@ -238,10 +238,10 @@ class SnapshotManagerFragment : Fragment() {
 
     private fun showLoadingDialog(message: String): WitDialog {
         val dialog = WitDialog.CustomDialogBuilder(requireContext())
-            .setLayout(R.layout.chat_view_state_loading)
+            .setLayout(R.layout.dialog_snapshot_loading)
             .setCancelable(false)
             .show()
-        dialog.findViewById<TextView>(R.id.tv_loading_message)?.text = message
+        dialog.findViewById<TextView>(R.id.loading_message)?.text = message
         return dialog
     }
 

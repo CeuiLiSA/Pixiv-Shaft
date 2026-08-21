@@ -1187,7 +1187,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                         includeOriginal = includeOriginal,
                         onProgress = { message ->
                             requireActivity().runOnUiThread {
-                                dialog.findViewById<TextView>(R.id.tv_loading_message)?.text = message
+                                dialog.findViewById<TextView>(R.id.loading_message)?.text = message
                             }
                         },
                     )
@@ -1206,10 +1206,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     private fun showSnapshotLoadingDialog(message: String): WitDialog {
         val dialog = WitDialog.CustomDialogBuilder(requireContext())
-            .setLayout(R.layout.chat_view_state_loading)
+            .setLayout(R.layout.dialog_snapshot_loading)
             .setCancelable(false)
             .show()
-        dialog.findViewById<TextView>(R.id.tv_loading_message)?.text = message
+        dialog.findViewById<TextView>(R.id.loading_message)?.text = message
         return dialog
     }
 
