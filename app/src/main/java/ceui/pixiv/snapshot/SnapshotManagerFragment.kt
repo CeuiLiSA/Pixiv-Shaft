@@ -1,45 +1,30 @@
 package ceui.pixiv.snapshot
 
-import android.content.Intent
 import android.os.Bundle
-import android.text.format.Formatter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.databinding.FragmentSnapshotManagerBinding
-import ceui.lisa.databinding.ItemSnapshotBinding
+import ceui.lisa.databinding.ViewpagerWithTablayoutBinding
 import ceui.lisa.utils.Common
-import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
+/**
+ * 离线快照管理页：仿照 FragmentHistoryTabs，使用 viewpager_with_tablayout。
+ * Three tabs: 全部 | 插画 | 漫画，每个 tab 是双列瀑布流卡片。
+ */
 class SnapshotManagerFragment : Fragment() {
 
-    private var _binding: FragmentSnapshotManagerBinding? = null
+    private var _binding: ViewpagerWithTablayoutBinding? = null
     private val binding get() = checkNotNull(_binding)
-
-    private val adapter = SnapshotAdapter(
-        onOpen = { openSnapshot(it) },
-        onExport = { exportSnapshot(it) },
-        onDelete = { confirmDelete(it) },
-    )
-
-    private var pendingExportId: String? = null
 
     private val importLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -47,43 +32,43 @@ class SnapshotManagerFragment : Fragment() {
         if (uri != null) importSnapshot(uri)
     }
 
-    private val exportLauncher = registerForActivityResult(
-        ActivityResultContracts.CreateDocument("application/zip")
-    ) { uri ->
-        val id = pendingExportId ?: return@registerForActivityResult
-        if (uri != null) {
-            lifecycleScope.launch {
-                try {
-                    withContext(Dispatchers.IO) { SnapshotRepository.export(requireContext(), id, uri) }
-                    Common.showToast(getString(R.string.snapshot_export_success))
-                } catch (e: Exception) {
-                    Common.showToast(getString(R.string.snapshot_export_failed, e.message ?: ""))
-                }
-            }
-        }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View = FragmentSnapshotManagerBinding.inflate(inflater, container, false).also { _binding = it }.root
+    ): View = ViewpagerWithTablayoutBinding.inflate(inflater, container, false).also { _binding = it }.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
-        }
-        binding.snapshotList.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-        binding.snapshotList.itemAnimator = null
-        binding.snapshotList.adapter = adapter
-        binding.importButton.setOnClickListener {
-            importLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
-        }
-        reload()
-    }
 
-    override fun onResume() {
-        super.onResume()
-        reload()
+        binding.toolbar.title = " "
+        binding.toolbarTitle.text = getString(R.string.snapshot_manager_title)
+        binding.toolbar.setNavigationOnClickListener { requireActivity().finish() }
+
+        val tabs = listOf(
+            getString(R.string.string_390) to null,   // 全部
+            getString(R.string.type_illust) to "illust",
+            getString(R.string.type_manga) to "manga",
+        )
+        val fragments = tabs.map { (_, filter) -> SnapshotListFragment.newInstance(filter) }
+
+        binding.viewPager.adapter = object : FragmentPagerAdapter(
+            childFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
+        ) {
+            override fun getItem(position: Int): Fragment = fragments[position]
+            override fun getCount(): Int = tabs.size
+            override fun getPageTitle(position: Int): CharSequence = tabs[position].first
+        }
+        binding.tabLayout.setupWithViewPager(binding.viewPager)
+
+        binding.toolbar.inflateMenu(R.menu.menu_snapshot_manager)
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_import_snapshot -> {
+                    importLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     override fun onDestroyView() {
@@ -91,124 +76,25 @@ class SnapshotManagerFragment : Fragment() {
         _binding = null
     }
 
-    private fun reload() {
-        lifecycleScope.launch {
-            val list = withContext(Dispatchers.IO) { SnapshotRepository.list(requireContext()) }
-            if (_binding == null) return@launch
-            adapter.submitList(list)
-            binding.emptyHint.isVisible = list.isEmpty()
-        }
-    }
-
-    private fun openSnapshot(summary: SnapshotSummary) {
-        val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照查看")
-        intent.putExtra(ARG_SNAPSHOT_ID, summary.manifest.snapshotId)
-        startActivity(intent)
-    }
-
-    private fun exportSnapshot(summary: SnapshotSummary) {
-        pendingExportId = summary.manifest.snapshotId
-        val safeTitle = summary.manifest.title
-            ?.replace(Regex("[\\\\/:*?\"<>|]"), "_")
-            ?.takeIf { it.isNotBlank() }
-            ?: "snapshot"
-        exportLauncher.launch("${safeTitle}_${summary.manifest.illustId}$SNAPSHOT_EXTENSION")
-    }
-
-    private fun confirmDelete(summary: SnapshotSummary) {
-        AlertDialog.Builder(requireContext())
-            .setTitle(R.string.snapshot_delete)
-            .setMessage(getString(R.string.snapshot_delete_confirm, summary.manifest.title ?: summary.manifest.snapshotId))
-            .setNegativeButton(R.string.cancel, null)
-            .setPositiveButton(R.string.snapshot_delete) { _, _ ->
-                lifecycleScope.launch {
-                    val ok = withContext(Dispatchers.IO) { SnapshotRepository.delete(requireContext(), summary.manifest.snapshotId) }
-                    if (ok) Common.showToast(getString(R.string.snapshot_delete_success)) else Common.showToast(getString(R.string.snapshot_delete_failed))
-                    reload()
-                }
-            }
-            .show()
-    }
-
     private fun importSnapshot(uri: android.net.Uri) {
         lifecycleScope.launch {
             try {
                 val manifest = withContext(Dispatchers.IO) { SnapshotRepository.import(requireContext(), uri) }
                 Common.showToast(getString(R.string.snapshot_import_success, manifest.title ?: manifest.snapshotId))
-                reload()
+                reloadAllTabs()
             } catch (e: Exception) {
                 Common.showToast(getString(R.string.snapshot_import_failed, e.message ?: ""))
             }
         }
     }
 
+    private fun reloadAllTabs() {
+        childFragmentManager.fragments
+            .filterIsInstance<SnapshotListFragment>()
+            .forEach { it.reload() }
+    }
+
     companion object {
         const val ARG_SNAPSHOT_ID = "snapshotId"
-    }
-}
-
-private class SnapshotAdapter(
-    private val onOpen: (SnapshotSummary) -> Unit,
-    private val onExport: (SnapshotSummary) -> Unit,
-    private val onDelete: (SnapshotSummary) -> Unit,
-) : ListAdapter<SnapshotSummary, SnapshotViewHolder>(DIFF) {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SnapshotViewHolder {
-        val binding = ItemSnapshotBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return SnapshotViewHolder(binding)
-    }
-
-    override fun onBindViewHolder(holder: SnapshotViewHolder, position: Int) {
-        holder.bind(getItem(position), onOpen, onExport, onDelete)
-    }
-
-    companion object {
-        private val DIFF = object : DiffUtil.ItemCallback<SnapshotSummary>() {
-            override fun areItemsTheSame(oldItem: SnapshotSummary, newItem: SnapshotSummary): Boolean =
-                oldItem.manifest.snapshotId == newItem.manifest.snapshotId
-
-            override fun areContentsTheSame(oldItem: SnapshotSummary, newItem: SnapshotSummary): Boolean =
-                oldItem == newItem
-        }
-    }
-}
-
-private class SnapshotViewHolder(
-    private val binding: ItemSnapshotBinding,
-) : RecyclerView.ViewHolder(binding.root) {
-
-    fun bind(
-        summary: SnapshotSummary,
-        onOpen: (SnapshotSummary) -> Unit,
-        onExport: (SnapshotSummary) -> Unit,
-        onDelete: (SnapshotSummary) -> Unit,
-    ) {
-        val context = binding.root.context
-        if (summary.coverFile != null) {
-            Glide.with(binding.cover).load(summary.coverFile).into(binding.cover)
-        } else {
-            Glide.with(binding.cover).clear(binding.cover)
-        }
-        binding.title.text = summary.manifest.title ?: context.getString(R.string.snapshot_untitled)
-        binding.author.text = listOfNotNull(
-            summary.manifest.authorName,
-            "ID ${summary.manifest.authorId ?: summary.manifest.illustId}",
-        ).joinToString(" · ")
-        val time = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(summary.manifest.createdAt))
-        binding.time.text = context.getString(
-            R.string.snapshot_meta_format,
-            time,
-            Formatter.formatShortFileSize(context, summary.totalSize),
-        )
-        binding.commentTag.isVisible = summary.manifest.includeComments
-        binding.originalTag.isVisible = summary.manifest.includeOriginal
-
-        binding.root.setOnClickListener { onOpen(summary) }
-        binding.root.setOnLongClickListener {
-            onExport(summary)
-            true
-        }
-        binding.deleteButton.setOnClickListener { onDelete(summary) }
     }
 }
