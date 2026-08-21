@@ -73,6 +73,8 @@ class SnapshotViewerFragment : Fragment() {
     private fun render(data: SnapshotViewerData) {
         val context = requireContext()
         binding.title.text = data.illust.title ?: getString(R.string.snapshot_untitled)
+        binding.caption.isVisible = !data.illust.caption.isNullOrBlank()
+        binding.caption.text = data.illust.caption.orEmpty()
         binding.meta.text = buildMetaText(context, data)
         binding.tags.text = data.illust.tags
             ?.mapNotNull { it?.name }

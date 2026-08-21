@@ -34,7 +34,8 @@ object SnapshotValidator {
 
         if (manifest.includeComments) {
             val comments = readJson<SnapshotComments>(File(snapshotDir, SNAPSHOT_COMMENTS_JSON))
-            comments?.threads?.forEach { thread ->
+                ?: throw SnapshotException("快照声明包含评论，但缺少 comments.json")
+            comments.threads.forEach { thread ->
                 thread.comment.snapshotAvatarUrl()?.let { required += it }
                 thread.comment.snapshotStampUrl()?.let { required += it }
                 thread.replies.forEach { reply ->

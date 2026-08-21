@@ -42,6 +42,18 @@
                 android:textStyle="bold"
                 tools:text="离线快照标题" />
 
+            <TextView
+                android:id="@+id/caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/v3_text_1"
+                android:textIsSelectable="true"
+                android:textSize="14sp"
+                android:visibility="gone"
+                tools:text="这里是作品简介"
+                tools:visibility="visible" />
+
             <LinearLayout
                 android:id="@+id/imagesContainer"
                 android:layout_width="match_parent"
