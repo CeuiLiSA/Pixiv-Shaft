@@ -132,6 +132,7 @@ object SettingsCatalog {
         // 看图与详情（FAB 顺序行随 V3 开关显隐，紧贴 V3 行）
         add(Entry(VIEWING, "illust_detail_v3_rela", R.string.illust_detail_v3, keywords = "v3 沉浸式 详情页 新版 详情"))
         add(Entry(VIEWING, "artwork_v3_fab_order_rela", R.string.artwork_v3_fab_order_title, keywords = "按钮顺序 下载按钮 收藏按钮 左右 fab"))
+        add(Entry(VIEWING, "detail_panel_collapsed_rela", R.string.detail_panel_collapsed_default, R.string.detail_panel_collapsed_default_desc, keywords = "折叠 收起 默认折叠 默认收起 作品详情 作品档案 详情面板 档案 collapse fold details profile"))
         add(Entry(VIEWING, "novel_direct_reader_rela", R.string.novel_direct_reader, R.string.novel_direct_reader_desc, keywords = "小说 正文 阅读器 略过详情 跳过详情 直接阅读 novel reader skip detail"))
         add(Entry(VIEWING, "transform_type_rela", R.string.string_393, keywords = "翻页 动画 切页 过渡 特效 transformer"))
         add(Entry(VIEWING, "ugoira_rife_enable_rela", R.string.ugoira_rife_enable, R.string.ugoira_rife_enable_desc, keywords = "动图 补帧 插帧 rife 帧率 60fps 顺滑 丝滑 ugoira interpolation"))

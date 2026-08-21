@@ -190,6 +190,8 @@
     <string name="illust_detail_v3">Eser ayrıntıları için V3 sürükleyici arayüzünü kullan</string>
     <string name="novel_direct_reader">Roman listesinden doğrudan okuyucuya git</string>
     <string name="novel_direct_reader_desc">Ayrıntı sayfasını atlayıp romanı doğrudan okuyucuda açar; ayrıntıya okuyucunun sağ üstündeki \"Daha fazla\" menüsünden ulaşılabilir</string>
+    <string name="detail_panel_collapsed_default">\"Eser Detayları / Eser bilgisi\"ni varsayılan olarak daralt</string>
+    <string name="detail_panel_collapsed_default_desc">İllüstrasyon, manga ve roman sayfalarındaki ayrıntı paneli daraltılmış başlar; genişletmek için başlığa dokunun</string>
     <string name="user_detail">Profil sayfasında yeni tasarım</string>
     <string name="file_name_type">Dosya adlandırma biçimi</string>
     <string name="download_path">İndirme yolu</string>

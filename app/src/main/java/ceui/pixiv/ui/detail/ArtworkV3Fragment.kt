@@ -137,8 +137,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private var artistObservedUserId: Long = 0L
     private var muteObserved = false
 
-    /** 详情面板展开态归 Fragment(而非 cell tag):滚走再滚回不会被重绑重置(对齐 legacy VH 字段)。 */
-    internal var detailPanelExpanded = true
+    /** 详情面板展开态归 Fragment(而非 cell tag):滚走再滚回不会被重绑重置(对齐 legacy VH 字段)。初始值随设置(#1044)。 */
+    internal var detailPanelExpanded = !Shaft.sSettings.isDetailPanelCollapsedByDefault
 
     /** 超长简介展开态(#965):同上归 Fragment,默认折叠。 */
     internal var descExpanded = false

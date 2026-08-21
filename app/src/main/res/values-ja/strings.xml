@@ -190,6 +190,8 @@
     <string name="illust_detail_v3">作品詳細に V3 の没入型 UI を使用</string>
     <string name="novel_direct_reader">小説一覧のタップで本文へ直接移動</string>
     <string name="novel_direct_reader_desc">詳細ページを省略して本文を直接開きます。本文右上の「その他」メニューから詳細を開けます</string>
+    <string name="detail_panel_collapsed_default">「作品詳細 / 作品情報」をデフォルトで折りたたむ</string>
+    <string name="detail_panel_collapsed_default_desc">イラスト・マンガ・小説の詳細ページで詳細パネルを最初から折りたたみます。タイトルをタップで展開</string>
     <string name="user_detail">ユーザーページで新しいUIを使用</string>
     <string name="file_name_type">ファイル名の書式</string>
     <string name="download_path">ダウンロードするフォルダー</string>

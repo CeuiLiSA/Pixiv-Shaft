@@ -190,6 +190,8 @@
     <string name="illust_detail_v3">Use the V3 immersive artwork details page</string>
     <string name="novel_direct_reader">Open novel list items straight to the reader</string>
     <string name="novel_direct_reader_desc">Opens novels straight to the reader, skipping the detail page; the reader\'s top-right \"More\" menu can still open it</string>
+    <string name="detail_panel_collapsed_default">Collapse \"Artwork Details\" / \"Work profile\" by default</string>
+    <string name="detail_panel_collapsed_default_desc">The details panel on illustration/manga and novel pages starts collapsed; tap its title to expand</string>
     <string name="user_detail">Personal center use new UI</string>
     <string name="file_name_type">File naming format</string>
     <string name="download_path">Download path</string>

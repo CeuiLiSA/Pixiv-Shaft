@@ -221,6 +221,9 @@ public class Settings {
     //小说列表点击 item 直接进 V3 正文（略过详情页），默认关闭
     private boolean novelListDirectToReader = false;
 
+    //详情页「作品详情」(插画/漫画 V3)与「作品档案」(小说)面板默认折叠（#1044），默认展开
+    private boolean detailPanelCollapsedByDefault = false;
+
     /**
      * 小说列表自动屏蔽（issue #743）。三个阈值都是 0 = 关闭，只作用于小说列表，插画/漫画不受影响。
      * 判定见 {@link ceui.lisa.helper.IllustNovelFilter#judgeNovelSpam}。
@@ -645,6 +648,14 @@ public class Settings {
 
     public void setNovelListDirectToReader(boolean novelListDirectToReader) {
         this.novelListDirectToReader = novelListDirectToReader;
+    }
+
+    public boolean isDetailPanelCollapsedByDefault() {
+        return detailPanelCollapsedByDefault;
+    }
+
+    public void setDetailPanelCollapsedByDefault(boolean detailPanelCollapsedByDefault) {
+        this.detailPanelCollapsedByDefault = detailPanelCollapsedByDefault;
     }
 
     public boolean isViewHistoryAnimate() {

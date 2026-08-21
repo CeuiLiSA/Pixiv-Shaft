@@ -119,6 +119,28 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/detail_panel_collapsed_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/detail_panel_collapsed_default" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/detail_panel_collapsed_default_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/detail_panel_collapsed"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/novel_direct_reader_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_mid">

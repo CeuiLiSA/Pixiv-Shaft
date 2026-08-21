@@ -199,6 +199,8 @@
     <string name="illust_detail_v3">作品详情使用V3沉浸式界面</string>
     <string name="novel_direct_reader">小说列表点击直接进正文</string>
     <string name="novel_direct_reader_desc">略过小说详情页直接进正文；正文页右上角「更多」菜单里仍可打开详情</string>
+    <string name="detail_panel_collapsed_default">「作品详情 / 作品档案」默认折叠</string>
+    <string name="detail_panel_collapsed_default_desc">进入插画/漫画详情页和小说详情页时，详情面板默认收起，点标题可展开</string>
     <string name="user_detail">个人中心使用新界面</string>
     <string name="file_name_type">文件命名格式</string>
     <string name="download_path">下载路径</string>

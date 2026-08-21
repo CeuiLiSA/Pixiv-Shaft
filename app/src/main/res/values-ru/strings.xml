@@ -190,6 +190,8 @@
     <string name="illust_detail_v3">Использовать для страницы работы интерфейс V3 с эффектом погружения</string>
     <string name="novel_direct_reader">Открывать новеллы из списка сразу в читалке</string>
     <string name="novel_direct_reader_desc">Открывает новеллу сразу в читалке, минуя страницу сведений; открыть её можно из меню «Ещё» в правом верхнем углу читалки</string>
+    <string name="detail_panel_collapsed_default">Сворачивать «Сведения об иллюстрации / О произведении» по умолчанию</string>
+    <string name="detail_panel_collapsed_default_desc">Панель сведений на страницах иллюстраций, манги и новелл открывается свёрнутой; нажмите заголовок, чтобы развернуть</string>
     <string name="user_detail">Новый интерфейс профиля</string>
     <string name="file_name_type">Формат имени файла</string>
     <string name="download_path">Путь загрузки</string>

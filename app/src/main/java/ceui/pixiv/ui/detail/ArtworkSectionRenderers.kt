@@ -9,7 +9,6 @@ import android.text.method.LinkMovementMethod
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.text.HtmlCompat
@@ -509,24 +508,10 @@ internal fun ArtworkV3Fragment.detailPanelRenderer() =
             buildDetailChips(b, illust)
         }
         // 展开态归 Fragment 字段(滚走再滚回不重置);绑定时按当前态还原,不放动画。
-        b.detailGrid.isVisible = detailPanelExpanded
-        b.detailArrow.rotation = if (detailPanelExpanded) 0f else 180f
+        applyDetailPanelExpanded(b.detailGrid, b.detailArrow, detailPanelExpanded, animate = false)
         b.detailHeader.setOnClickListener {
-            val next = !detailPanelExpanded
-            detailPanelExpanded = next
-            val grid = b.detailGrid
-            val arrow = b.detailArrow
-            if (!next) {
-                grid.animate().alpha(0f).translationY(-12.ppppx.toFloat()).setDuration(250)
-                    .setInterpolator(DecelerateInterpolator(2f))
-                    .withEndAction { grid.isVisible = false; grid.translationY = 0f }.start()
-                arrow.animate().rotation(180f).setDuration(300).start()
-            } else {
-                grid.alpha = 0f; grid.translationY = -12.ppppx.toFloat(); grid.isVisible = true
-                grid.animate().alpha(1f).translationY(0f).setDuration(350)
-                    .setInterpolator(DecelerateInterpolator(2f)).start()
-                arrow.animate().rotation(0f).setDuration(300).start()
-            }
+            detailPanelExpanded = !detailPanelExpanded
+            applyDetailPanelExpanded(b.detailGrid, b.detailArrow, detailPanelExpanded, animate = true)
         }
     }
 

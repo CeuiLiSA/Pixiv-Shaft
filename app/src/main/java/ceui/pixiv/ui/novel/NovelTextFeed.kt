@@ -50,6 +50,7 @@ import ceui.pixiv.ui.common.bindOpenLinkChip
 import ceui.pixiv.ui.common.NovelActionReceiver
 import ceui.pixiv.ui.common.NovelFeedItem
 import ceui.pixiv.ui.detail.SeriesAuthorFeedItem
+import ceui.pixiv.ui.detail.applyDetailPanelExpanded
 import ceui.pixiv.ui.novel.reader.NovelTextCache
 import ceui.pixiv.ui.novel.reader.paginate.ContentParser
 import ceui.pixiv.ui.user.UserActionReceiver
@@ -392,10 +393,16 @@ fun novelProfileRenderer(
     lifecycleOwner: LifecycleOwner,
 ): FeedRenderer<NovelProfileFeedItem, CellNovelProfileBinding> {
     val slots = HashMap<FeedCell<*, *>, CellObserverSlot<Novel>>()
+    // 「作品档案」折叠态归本 renderer(= 本页面实例):滚走再滚回不重置;初始值随设置(#1044)。
+    var profileExpanded = !Shaft.sSettings.isDetailPanelCollapsedByDefault
     return feedRenderer(
         inflate = CellNovelProfileBinding::inflate,
         fullSpan = true,
         create = { cell ->
+            cell.binding.detailHeader.setOnClickListener {
+                profileExpanded = !profileExpanded
+                applyDetailPanelExpanded(cell.binding.infoChips, cell.binding.detailArrow, profileExpanded, animate = true)
+            }
             val wrap = cell.binding.statBookmarkWrap
             applyTouchScale(wrap)
             wrap.setOnClickListener {
@@ -415,6 +422,7 @@ fun novelProfileRenderer(
     ) { cell ->
         val b = cell.binding
         val fmt = NumberFormat.getInstance()
+        applyDetailPanelExpanded(b.infoChips, b.detailArrow, profileExpanded, animate = false)
 
         slots.getOrPut(cell) { CellObserverSlot(lifecycleOwner) }
             .rebind(ObjectPool.get<Novel>(cell.item.novelId)) { novel ->

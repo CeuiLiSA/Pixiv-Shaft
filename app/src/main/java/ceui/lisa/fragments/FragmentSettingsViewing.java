@@ -61,6 +61,18 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         });
         baseBind.novelDirectReaderRela.setOnClickListener(v -> baseBind.novelDirectReader.performClick());
 
+        // 详情页「作品详情 / 作品档案」面板默认折叠（#1044），默认关闭
+        baseBind.detailPanelCollapsed.setChecked(Shaft.sSettings.isDetailPanelCollapsedByDefault());
+        baseBind.detailPanelCollapsed.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setDetailPanelCollapsedByDefault(isChecked);
+                Common.showToast(getString(R.string.string_428));
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.detailPanelCollapsedRela.setOnClickListener(v -> baseBind.detailPanelCollapsed.performClick());
+
         // V3详情页 下载/收藏按钮顺序
         updateArtworkV3FabOrderLabel();
         baseBind.artworkV3FabOrderSelect.setOnClickListener(v -> {
