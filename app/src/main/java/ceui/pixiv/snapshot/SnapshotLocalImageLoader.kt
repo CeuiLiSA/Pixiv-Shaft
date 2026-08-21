@@ -39,8 +39,9 @@ class SnapshotAwareGlideUrlLoader(
             return remote.buildLoadData(model, width, height, options)
         }
         val (snapshotId, rel) = parsed
-        val file = File(SnapshotRepository.root(Shaft.getContext()), snapshotId).resolve(rel)
-        if (!file.isFile) return null
+        val file = runCatching {
+            safeResolve(SnapshotRepository.root(Shaft.getContext()), "$snapshotId/$rel")
+        }.getOrNull()?.takeIf { it.isFile } ?: return null
         return ModelLoader.LoadData(model, SnapshotLocalStreamFetcher(file))
     }
 

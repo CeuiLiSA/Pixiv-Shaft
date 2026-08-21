@@ -367,7 +367,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     private fun setupTitle(illust: IllustsBean) {
-        if (illust.series != null && !TextUtils.isEmpty(illust.series.title)) {
+        if (!isSnapshotMode && illust.series != null && !TextUtils.isEmpty(illust.series.title)) {
             val clickableSpan: ClickableSpan = object : ClickableSpan() {
                 override fun onClick(widget: View) {
                     val intent = Intent(mContext, TemplateActivity::class.java)

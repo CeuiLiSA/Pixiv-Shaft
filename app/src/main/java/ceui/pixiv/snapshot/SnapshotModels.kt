@@ -1,6 +1,7 @@
 package ceui.pixiv.snapshot
 
 import ceui.loxia.Comment
+import java.io.File
 
 const val SNAPSHOT_SCHEMA_VERSION = 1
 const val SNAPSHOT_EXTENSION = ".shaftsnap"
@@ -46,3 +47,25 @@ data class SnapshotCommentThread(
 )
 
 class SnapshotException(message: String, cause: Throwable? = null) : Exception(message, cause)
+
+private val SNAPSHOT_ID_REGEX = Regex("[A-Za-z0-9_-]+")
+
+/** 快照 ID 只允许 UUID 风格字符，防止外部 manifest 用 ../ 或空串做路径穿越。 */
+fun requireSnapshotId(snapshotId: String): String {
+    if (snapshotId.isBlank() || !SNAPSHOT_ID_REGEX.matches(snapshotId)) {
+        throw SnapshotException("非法快照 ID: $snapshotId")
+    }
+    return snapshotId
+}
+
+/** 在 baseDir 内安全解析相对路径，防 ../ 或绝对路径逃逸。 */
+fun safeResolve(baseDir: File, rel: String): File {
+    val base = baseDir.normalize().absoluteFile
+    val target = File(base, rel).normalize().absoluteFile
+    val basePath = base.absolutePath
+    val targetPath = target.absolutePath
+    if (targetPath != basePath && !targetPath.startsWith(basePath + File.separator)) {
+        throw SnapshotException("非法快照路径: $rel")
+    }
+    return target
+}

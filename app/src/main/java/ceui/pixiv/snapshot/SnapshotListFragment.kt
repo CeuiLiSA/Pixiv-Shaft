@@ -135,14 +135,25 @@ class SnapshotListFragment : Fragment() {
     }
 
     private fun openSnapshot(summary: SnapshotSummary) {
-        val intent = Intent(requireContext(), TemplateActivity::class.java)
-        if (Shaft.sSettings.isUseArtworkV3()) {
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照查看")
-        } else {
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照经典查看")
+        val snapshotId = summary.manifest.snapshotId
+        lifecycleScope.launch {
+            // 先确保内存缓存有完整快照数据，详情页/大图页直接同步消费，避免异步加载竞态。
+            withContext(Dispatchers.IO) {
+                if (SnapshotRuntimeCache.get(snapshotId) == null) {
+                    val data = SnapshotRepository.loadViewerData(requireContext(), snapshotId)
+                    SnapshotRuntimeCache.put(snapshotId, data)
+                }
+            }
+            if (_binding == null) return@launch
+            val intent = Intent(requireContext(), TemplateActivity::class.java)
+            if (Shaft.sSettings.isUseArtworkV3()) {
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照查看")
+            } else {
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照经典查看")
+            }
+            intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId)
+            startActivity(intent)
         }
-        intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, summary.manifest.snapshotId)
-        startActivity(intent)
     }
 
     private fun exportSnapshot(summary: SnapshotSummary) {

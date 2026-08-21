@@ -12,6 +12,7 @@ import java.io.File
 object SnapshotValidator {
 
     fun validate(snapshotDir: File, manifest: SnapshotManifest) {
+        requireSnapshotId(manifest.snapshotId)
         if (!File(snapshotDir, SNAPSHOT_MANIFEST).isFile) {
             throw SnapshotException("缺少 manifest.json")
         }
@@ -20,10 +21,13 @@ object SnapshotValidator {
         val assets = readJson<SnapshotAssets>(File(snapshotDir, SNAPSHOT_ASSETS_JSON))
             ?: SnapshotAssets()
 
-        val missingAssets = assets.assets.filterValues { rel -> !File(snapshotDir, rel).isFile }
+        manifest.coverPath?.let { rel -> safeResolve(snapshotDir, rel) }
+        val missingAssets = assets.assets.filterValues { rel ->
+            runCatching { safeResolve(snapshotDir, rel) }.getOrNull()?.isFile != true
+        }
         if (missingAssets.isNotEmpty()) {
             val sample = missingAssets.entries.take(5).joinToString { "${it.key} -> ${it.value}" }
-            throw SnapshotException("快照不完整：assets 指向不存在的文件。$sample")
+            throw SnapshotException("快照不完整：assets 指向不存在的文件或非法路径。$sample")
         }
 
         val required = linkedSetOf<String>()
@@ -45,7 +49,10 @@ object SnapshotValidator {
             }
         }
 
-        val unresolved = required.filter { url -> assets.assets[url] == null || !File(snapshotDir, assets.assets.getValue(url)).isFile }
+        val unresolved = required.filter { url ->
+            val rel = assets.assets[url] ?: return@filter true
+            runCatching { safeResolve(snapshotDir, rel) }.getOrNull()?.isFile != true
+        }
         if (unresolved.isNotEmpty()) {
             val sample = unresolved.take(5).joinToString("\n")
             throw SnapshotException("快照不完整：以下渲染所需资源缺失：\n$sample")

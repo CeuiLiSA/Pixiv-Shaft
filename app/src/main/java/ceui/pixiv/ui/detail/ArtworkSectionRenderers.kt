@@ -752,19 +752,23 @@ private fun ArtworkV3Fragment.renderCommentsPreview(
 
         cellB.root.setOnLongClickListener {
             val text = comment.comment
-            showV3Menu("PreviewCommentMenu") {
-                if (!text.isNullOrBlank()) {
-                    item(ctx.getString(R.string.string_173), R.drawable.baseline_content_copy_24) {
-                        ClipBoardUtils.putTextIntoClipboard(ctx, text)
+            if (isSnapshotMode) {
+                if (!text.isNullOrBlank()) ClipBoardUtils.putTextIntoClipboard(ctx, text)
+            } else {
+                showV3Menu("PreviewCommentMenu") {
+                    if (!text.isNullOrBlank()) {
+                        item(ctx.getString(R.string.string_173), R.drawable.baseline_content_copy_24) {
+                            ClipBoardUtils.putTextIntoClipboard(ctx, text)
+                        }
+                        item(ctx.getString(R.string.string_translate_caption), R.drawable.ic_baseline_translate_24) {
+                            translateComment(text)
+                        }
                     }
-                    item(ctx.getString(R.string.string_translate_caption), R.drawable.ic_baseline_translate_24) {
-                        translateComment(text)
+                    item(ctx.getString(R.string.string_174), R.drawable.ic_supervisor_account_black_24dp) {
+                        val intent = Intent(ctx, UActivity::class.java)
+                        intent.putExtra(Params.USER_ID, comment.user.id.toInt())
+                        ctx.startActivity(intent)
                     }
-                }
-                item(ctx.getString(R.string.string_174), R.drawable.ic_supervisor_account_black_24dp) {
-                    val intent = Intent(ctx, UActivity::class.java)
-                    intent.putExtra(Params.USER_ID, comment.user.id.toInt())
-                    ctx.startActivity(intent)
                 }
             }
             true

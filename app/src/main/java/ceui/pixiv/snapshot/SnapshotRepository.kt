@@ -26,7 +26,7 @@ data class SnapshotViewerData(
     fun resolve(url: String?): File? {
         if (url.isNullOrBlank()) return null
         val rel = assets[url] ?: return null
-        return File(snapshotDir, rel).takeIf { it.isFile }
+        return runCatching { safeResolve(snapshotDir, rel) }.getOrNull()?.takeIf { it.isFile }
     }
 }
 
@@ -40,7 +40,7 @@ object SnapshotRepository {
 
     fun root(context: Context): File = File(context.filesDir, SNAPSHOT_ROOT_DIR).apply { mkdirs() }
 
-    fun dir(context: Context, snapshotId: String): File = File(root(context), snapshotId)
+    fun dir(context: Context, snapshotId: String): File = File(root(context), requireSnapshotId(snapshotId))
 
     fun createSnapshotDir(context: Context, snapshotId: String): File {
         val target = dir(context, snapshotId)
@@ -55,9 +55,15 @@ object SnapshotRepository {
             ?.mapNotNull { snapshotDir ->
                 val manifest = SnapshotValidator.readJson<SnapshotManifest>(File(snapshotDir, SNAPSHOT_MANIFEST))
                     ?: return@mapNotNull null
-                val coverFile = manifest.coverPath?.let { File(snapshotDir, it).takeIf { f -> f.isFile } }
-                val fileCount = snapshotDir.walkTopDown().count { it.isFile }
-                val totalSize = snapshotDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
+                val coverFile = manifest.coverPath?.let { rel -> runCatching { safeResolve(snapshotDir, rel) }.getOrNull()?.takeIf { f -> f.isFile } }
+                var fileCount = 0
+                var totalSize = 0L
+                snapshotDir.walkTopDown().forEach { file ->
+                    if (file.isFile) {
+                        fileCount++
+                        totalSize += file.length()
+                    }
+                }
                 SnapshotSummary(manifest, fileCount, totalSize, coverFile)
             }
             ?.sortedByDescending { it.manifest.createdAt }
@@ -69,7 +75,9 @@ object SnapshotRepository {
 
     fun delete(context: Context, snapshotId: String): Boolean {
         val target = dir(context, snapshotId)
-        return if (target.isDirectory) target.deleteRecursively() else false
+        val ok = if (target.isDirectory) target.deleteRecursively() else false
+        if (ok) SnapshotRuntimeCache.remove(snapshotId)
+        return ok
     }
 
     fun loadViewerData(context: Context, snapshotId: String): SnapshotViewerData {
@@ -128,12 +136,26 @@ object SnapshotRepository {
             if (manifest.schemaVersion != SNAPSHOT_SCHEMA_VERSION) {
                 throw SnapshotException("不支持的快照版本: ${manifest.schemaVersion}")
             }
+            requireSnapshotId(manifest.snapshotId)
             SnapshotValidator.validate(staging, manifest)
             val target = dir(context, manifest.snapshotId)
-            target.deleteRecursively()
+            val backup = File(target.parentFile, "${target.name}.old_${System.currentTimeMillis()}")
+            if (target.exists()) {
+                if (!target.renameTo(backup)) {
+                    throw SnapshotException("无法替换已有快照: ${manifest.snapshotId}")
+                }
+            }
             target.mkdirs()
-            staging.copyRecursively(target, overwrite = true)
-            manifest
+            try {
+                staging.copyRecursively(target, overwrite = true)
+                backup.deleteRecursively()
+                SnapshotRuntimeCache.remove(manifest.snapshotId)
+                manifest
+            } catch (e: Exception) {
+                target.deleteRecursively()
+                if (backup.exists()) backup.renameTo(target)
+                throw e
+            }
         } finally {
             tempZip.delete()
             staging.deleteRecursively()

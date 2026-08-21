@@ -27,8 +27,9 @@ class SnapshotLocalFileLoader : ModelLoader<GlideUrl, File> {
     ): ModelLoader.LoadData<File>? {
         val parsed = parseSnapshotLocalUrl(model.toStringUrl()) ?: return null
         val (snapshotId, rel) = parsed
-        val file = File(SnapshotRepository.root(Shaft.getContext()), snapshotId).resolve(rel)
-        if (!file.isFile) return null
+        val file = runCatching {
+            safeResolve(SnapshotRepository.root(Shaft.getContext()), "$snapshotId/$rel")
+        }.getOrNull()?.takeIf { it.isFile } ?: return null
         return ModelLoader.LoadData(model, object : DataFetcher<File> {
             override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in File>) {
                 callback.onDataReady(file)
