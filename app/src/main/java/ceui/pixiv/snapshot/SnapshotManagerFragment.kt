@@ -306,6 +306,7 @@ class SnapshotManagerFragment : Fragment() {
                 if (dialog.isShowing) dialog.dismiss()
             }
             Common.showToast(getString(R.string.snapshot_import_multi_result, success, failed))
+            // 无论导入成功或失败，都重建双列列表，确保列表与磁盘状态一致。
             reloadAllTabs()
         }
     }

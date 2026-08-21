@@ -100,8 +100,11 @@ class SnapshotListFragment : Fragment() {
             val all = withContext(Dispatchers.IO) { SnapshotRepository.list(requireContext()) }
             val list = if (filter == null) all else all.filter { it.manifest.type == filter }
             if (_binding == null) return@launch
+            // 先清空再提交，强制双列瀑布流按新顺序重新布局，避免新卡被 Diff 塞进右列/旧列错位。
+            adapter.submitList(null)
             adapter.submitList(list)
             binding.emptyHint.isVisible = list.isEmpty()
+            binding.snapshotList.scrollToPosition(0)
         }
     }
 
