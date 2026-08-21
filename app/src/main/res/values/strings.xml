@@ -3006,6 +3006,7 @@
     <string name="snapshot_import_multi_result">导入完成：成功 %1$d 个，失败 %2$d 个</string>
     <string name="snapshot_import_failed">导入失败：%1$s</string>
     <string name="snapshot_export_success">已导出快照</string>
+    <string name="snapshot_exporting">正在导出快照…</string>
     <string name="snapshot_export_failed">导出失败：%1$s</string>
     <string name="snapshot_open_failed">打开快照失败：%1$s</string>
     <string name="snapshot_create">离线化</string>

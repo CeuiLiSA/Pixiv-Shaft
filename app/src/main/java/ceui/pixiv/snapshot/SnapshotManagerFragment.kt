@@ -41,6 +41,23 @@ class SnapshotManagerFragment : Fragment() {
         if (uri != null) exportSelectedToFolder(uri)
     }
 
+    private var pendingSingleExportId: String? = null
+    private val singleExportLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        val id = pendingSingleExportId ?: return@registerForActivityResult
+        if (uri != null) {
+            lifecycleScope.launch {
+                try {
+                    withContext(Dispatchers.IO) { SnapshotRepository.export(requireContext(), id, uri) }
+                    Common.showToast(getString(R.string.snapshot_export_success))
+                } catch (e: Exception) {
+                    Common.showToast(getString(R.string.snapshot_export_failed, e.message ?: ""))
+                }
+            }
+        }
+    }
+
     private var inSelectionMode = false
     private var activeSelectionTab: SnapshotListFragment? = null
 
@@ -186,14 +203,27 @@ class SnapshotManagerFragment : Fragment() {
 
     private fun exportSelected() {
         val tab = activeSelectionTab ?: return
-        if (tab.selectedCount() == 0) return
-        exportFolderLauncher.launch(null)
+        val items = tab.selectedSnapshots()
+        if (items.isEmpty()) return
+        if (items.size == 1) {
+            // 只选一个时保持原有 CreateDocument 单文件导出体验。
+            val summary = items.first()
+            pendingSingleExportId = summary.manifest.snapshotId
+            singleExportLauncher.launch(snapshotExportFileName(summary.manifest))
+        } else {
+            exportFolderLauncher.launch(null)
+        }
     }
 
     private fun exportSelectedToFolder(uri: android.net.Uri) {
         val tab = activeSelectionTab ?: return
         val items = tab.selectedSnapshots()
         if (items.isEmpty()) return
+        val dialog = ProgressDialog(requireContext()).apply {
+            setMessage(getString(R.string.snapshot_exporting))
+            setCancelable(false)
+            show()
+        }
         lifecycleScope.launch {
             try {
                 withContext(Dispatchers.IO) {
@@ -203,8 +233,18 @@ class SnapshotManagerFragment : Fragment() {
                 exitSelectionMode()
             } catch (e: Exception) {
                 Common.showToast(getString(R.string.snapshot_export_failed, e.message ?: ""))
+            } finally {
+                if (dialog.isShowing) dialog.dismiss()
             }
         }
+    }
+
+    private fun snapshotExportFileName(manifest: SnapshotManifest): String {
+        val safeTitle = manifest.title
+            ?.replace(Regex("[\\\\/:*?\"<>|]"), "_")
+            ?.takeIf { it.isNotBlank() }
+            ?: "snapshot"
+        return "${safeTitle}_${manifest.illustId}$SNAPSHOT_EXTENSION"
     }
 
     private fun importSnapshots(uris: List<android.net.Uri>) {
