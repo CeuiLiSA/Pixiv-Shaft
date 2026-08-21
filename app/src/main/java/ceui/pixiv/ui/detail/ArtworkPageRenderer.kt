@@ -62,6 +62,11 @@ internal fun ArtworkV3Fragment.artworkPageRenderer() =
         val adapter = ensurePageAdapter() ?: return@feedRenderer
         cell.itemView.setTag(R.id.tag_artwork_page_adapter, adapter)
         adapter.onBindViewHolder(ViewHolder(cell.binding), cell.item.pageIndex)
+        if (isSnapshotMode) {
+            // 快照只读：点大图/长按都不允许进入在线大图查看或下载，避免触发网络原图请求。
+            cell.itemView.setOnClickListener(null)
+            cell.itemView.setOnLongClickListener(null)
+        }
     }
 
 internal fun ArtworkV3Fragment.artworkUgoiraRenderer() =
