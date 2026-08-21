@@ -79,6 +79,7 @@ import ceui.pixiv.snapshot.SnapshotGenerator
 import ceui.pixiv.snapshot.localizeIllust
 import ceui.pixiv.snapshot.snapshotPageUrl
 import ceui.pixiv.snapshot.SnapshotManagerFragment
+import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -231,8 +232,15 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         _chromeBind = FragmentArtworkV3Binding.bind(view)
         _fabBarController = V3FabBarController(chromeBind.fabBar)
         if (isSnapshotMode) {
-            // 快照只读：不挂下载/收藏/评论输入/更多菜单，也不触发任何在线补拉。
-            chromeBind.fabBar.root.isVisible = false
+            // 快照只读：保留收藏/关注按钮用于展示“那一刻”的状态，但点击一律无动作。
+            chromeBind.fabBar.root.isVisible = true
+            chromeBind.fabBar.fabDownloadContainer.isVisible = false
+            chromeBind.fabBar.fabDivider.isVisible = false
+            chromeBind.fabBar.fabBookmark.setOnClickListener { /* 快照只读，不触发收藏 */ }
+            chromeBind.fabBar.fabBookmark.setOnLongClickListener { true }
+            fabBarController.applyPalette(palette)
+            val snapshotManifest = snapshotId?.let { SnapshotRepository.readManifest(requireContext(), it) }
+            fabBarController.setBookmarked(snapshotManifest?.isBookmarked ?: false)
             chromeBind.composerRoot.isVisible = false
             chromeBind.navMore.isVisible = false
             chromeBind.toolbar.setNavigationOnClickListener { requireActivity().finish() }

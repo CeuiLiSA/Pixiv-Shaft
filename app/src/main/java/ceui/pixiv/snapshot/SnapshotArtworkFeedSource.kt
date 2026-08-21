@@ -49,7 +49,7 @@ class SnapshotArtworkFeedSource(
         if (illust.series != null && !illust.series.title.isNullOrEmpty()) {
             list.add(ArtworkSeriesItem(illust))
         }
-        list.add(ArtworkArtistItem(illust))
+        list.add(ArtworkArtistItem(illust, isFollowed = data.manifest.isFollowed, isPrivateFollow = false))
         if (!illust.caption.isNullOrEmpty()) {
             list.add(ArtworkDescItem(illust.caption, illust.title.orEmpty()))
         }

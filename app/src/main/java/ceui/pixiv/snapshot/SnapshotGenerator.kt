@@ -103,6 +103,8 @@ object SnapshotGenerator {
                 type = bean.type ?: "illust",
                 includeComments = includeComments,
                 includeOriginal = includeOriginal,
+                isBookmarked = bean.isIs_bookmarked,
+                isFollowed = bean.user?.isIs_followed ?: false,
                 title = bean.title,
                 authorName = bean.user?.name,
                 authorId = bean.user?.id?.toLong(),

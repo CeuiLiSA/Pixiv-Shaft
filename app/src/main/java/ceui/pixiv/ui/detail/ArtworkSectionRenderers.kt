@@ -478,14 +478,31 @@ internal fun ArtworkV3Fragment.artistRenderer() =
 
         applyTouchScale(b.artistCard)
 
-        bindArtistFollowState(b, user)
-        if (isSnapshotMode) b.followBtn.isVisible = false
+        bindArtistFollowState(b, user, if (isSnapshotMode) cell.item.isFollowed else null)
         b.artistBio.isVisible = !user.comment.isNullOrBlank()
         if (b.artistBio.isVisible) b.artistBio.text = user.comment
     }
 
-private fun ArtworkV3Fragment.bindArtistFollowState(b: SectionV3ArtistBinding, user: UserBean) {
+private fun ArtworkV3Fragment.bindArtistFollowState(
+    b: SectionV3ArtistBinding,
+    user: UserBean,
+    isFollowedOverride: Boolean? = null,
+) {
     val ctx = requireContext()
+    if (isFollowedOverride != null) {
+        // 快照只读：显示快照那一刻的关注态，但点击不产生任何动作。
+        if (isFollowedOverride) {
+            b.followBtn.text = ctx.getString(R.string.user_followed)
+            palette.applyUnfollowBtn(b.followBtn)
+        } else {
+            b.followBtn.text = ctx.getString(R.string.follow)
+            palette.applyFollowBtn(b.followBtn)
+            b.followBtn.setTextColor(Color.WHITE)
+        }
+        b.followBtn.setOnClickListener(null)
+        b.followBtn.setOnLongClickListener(null)
+        return
+    }
     val isFollowed = ObjectPool.get<UserBean>(user.id.toLong()).value?.isIs_followed
         ?: user.isIs_followed
     if (isFollowed) {
