@@ -489,7 +489,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val adapter: IllustAdapter = if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count)) {
             val collapsible = CollapsibleIllustAdapter(
                 activity, this, illust, maxHeight, false,
-                onComicReaderClick = { /* 快照只读，不进入在线漫画阅读器 */ },
+                onComicReaderClick = null,
                 onExpandedChanged = { expanded -> onPagesExpandedChanged(expanded) },
             )
             chromeBind.collapsePill.setOnClickListener { collapsible.collapse() }
