@@ -236,8 +236,13 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             chromeBind.fabBar.root.isVisible = true
             chromeBind.fabBar.fabDownloadContainer.isVisible = false
             chromeBind.fabBar.fabDivider.isVisible = false
-            chromeBind.fabBar.fabBookmark.setOnClickListener { /* 快照只读，不触发收藏 */ }
-            chromeBind.fabBar.fabBookmark.setOnLongClickListener { true }
+            chromeBind.fabBar.fabBookmark.setOnClickListener {
+                Common.showToast(getString(R.string.snapshot_unsupported_toast))
+            }
+            chromeBind.fabBar.fabBookmark.setOnLongClickListener {
+                Common.showToast(getString(R.string.snapshot_unsupported_toast))
+                true
+            }
             fabBarController.applyPalette(palette)
             val snapshotManifest = snapshotId?.let { SnapshotRepository.readManifest(requireContext(), it) }
             fabBarController.setBookmarked(snapshotManifest?.isBookmarked ?: false)

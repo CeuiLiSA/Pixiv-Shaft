@@ -290,7 +290,10 @@ internal fun ArtworkV3Fragment.seriesRenderer() =
         b.seriesLabel.setTextColor(palette.seriesStripText)
         b.seriesChevron.setTextColor(palette.seriesStripText)
         b.root.setOnClickListener {
-            if (isSnapshotMode) return@setOnClickListener
+            if (isSnapshotMode) {
+                Common.showToast(ctx.getString(R.string.snapshot_unsupported_toast))
+                return@setOnClickListener
+            }
             val intent = Intent(ctx, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
             intent.putExtra(Params.MANGA_SERIES_ID, series.id)
@@ -390,7 +393,10 @@ internal fun ArtworkV3Fragment.statsRenderer() =
             val wrap = cell.binding.statBookmarkWrap
             applyTouchScale(wrap)
             wrap.setOnClickListener {
-                if (isSnapshotMode) return@setOnClickListener
+                if (isSnapshotMode) {
+                    Common.showToast(wrap.context.getString(R.string.snapshot_unsupported_toast))
+                    return@setOnClickListener
+                }
                 val illust = cell.item.illust
                 val ctx = wrap.context
                 ctx.startActivity(
@@ -460,7 +466,10 @@ internal fun ArtworkV3Fragment.artistRenderer() =
         b.artistHandle.text = "@${user.account ?: ""}"
 
         val openUser = View.OnClickListener {
-            if (isSnapshotMode) return@OnClickListener
+            if (isSnapshotMode) {
+                Common.showToast(ctx.getString(R.string.snapshot_unsupported_toast))
+                return@OnClickListener
+            }
             val intent = Intent(ctx, UActivity::class.java)
             intent.putExtra(Params.USER_ID, user.id)
             ctx.startActivity(intent)
@@ -499,8 +508,13 @@ private fun ArtworkV3Fragment.bindArtistFollowState(
             palette.applyFollowBtn(b.followBtn)
             b.followBtn.setTextColor(Color.WHITE)
         }
-        b.followBtn.setOnClickListener(null)
-        b.followBtn.setOnLongClickListener(null)
+        b.followBtn.setOnClickListener {
+            Common.showToast(ctx.getString(R.string.snapshot_unsupported_toast))
+        }
+        b.followBtn.setOnLongClickListener {
+            Common.showToast(ctx.getString(R.string.snapshot_unsupported_toast))
+            true
+        }
         return
     }
     val isFollowed = ObjectPool.get<UserBean>(user.id.toLong()).value?.isIs_followed
