@@ -544,7 +544,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 }
             }
             baseBind.illustTag.setOnTagClickListener { _, _, _ -> snapshotUnsupportedToast(); true }
-            baseBind.illustTag.setOnTagLongClickListener { _, _, _ -> snapshotUnsupportedToast(); true }
+            baseBind.illustTag.setOnTagLongClickListener { _, position, _ ->
+                val tagName = tags.getOrNull(position)?.name
+                if (!tagName.isNullOrEmpty()) Common.copy(mContext, tagName)
+                true
+            }
             return
         }
         if (tagSignature != renderedTagSignature) {

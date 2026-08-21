@@ -429,6 +429,12 @@ internal fun ArtworkV3Fragment.tagsRenderer() =
             b.tagsFlow.overflowActionText = null
             b.tagsFlow.onOverflowClick = null
             b.tagsFlow.onPinTag = null
+            b.tagsFlow.onTagClick = {
+                Common.showToast(getString(R.string.snapshot_unsupported_toast))
+            }
+            b.tagsFlow.onTagLongClick = { name ->
+                Common.copy(requireContext(), name)
+            }
         } else {
             b.tagsFlow.overflowActionIcon = R.drawable.ic_add_black_24dp
             b.tagsFlow.overflowActionText = getString(R.string.work_tag_edit_entry)
