@@ -12,8 +12,8 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
@@ -72,7 +72,8 @@ class SnapshotManagerFragment : Fragment() {
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        binding.snapshotList.layoutManager = LinearLayoutManager(requireContext())
+        binding.snapshotList.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        binding.snapshotList.itemAnimator = null
         binding.snapshotList.adapter = adapter
         binding.importButton.setOnClickListener {
             importLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
@@ -190,12 +191,12 @@ private class SnapshotViewHolder(
             Glide.with(binding.cover).clear(binding.cover)
         }
         binding.title.text = summary.manifest.title ?: context.getString(R.string.snapshot_untitled)
-        binding.subtitle.text = listOfNotNull(
+        binding.author.text = listOfNotNull(
             summary.manifest.authorName,
             "ID ${summary.manifest.authorId ?: summary.manifest.illustId}",
         ).joinToString(" · ")
         val time = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(summary.manifest.createdAt))
-        binding.meta.text = context.getString(
+        binding.time.text = context.getString(
             R.string.snapshot_meta_format,
             time,
             Formatter.formatShortFileSize(context, summary.totalSize),
@@ -204,7 +205,10 @@ private class SnapshotViewHolder(
         binding.originalTag.isVisible = summary.manifest.includeOriginal
 
         binding.root.setOnClickListener { onOpen(summary) }
-        binding.exportButton.setOnClickListener { onExport(summary) }
+        binding.root.setOnLongClickListener {
+            onExport(summary)
+            true
+        }
         binding.deleteButton.setOnClickListener { onDelete(summary) }
     }
 }

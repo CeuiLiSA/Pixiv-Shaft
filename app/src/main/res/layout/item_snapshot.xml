@@ -1,121 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    android:background="@drawable/bg_v3_card"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:padding="10dp">
-
-    <ImageView
-        android:id="@+id/cover"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
-        android:background="@color/v3_text_3"
-        android:contentDescription="@string/snapshot_cover"
-        android:scaleType="centerCrop"
-        tools:src="@mipmap/ic_launcher" />
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/v3_bg"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="1.5dp">
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_weight="1"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/title"
+        <FrameLayout
+            android:id="@+id/imageWrap"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textColor="@color/v3_text_1"
-            android:textSize="15sp"
-            tools:text="作品标题" />
+            android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/subtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textColor="@color/v3_text_2"
-            android:textSize="12sp"
-            tools:text="作者名 · ID 123456" />
+            <ImageView
+                android:id="@+id/cover"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:background="@color/v3_surface_2"
+                android:contentDescription="@string/snapshot_cover"
+                android:scaleType="centerCrop"
+                tools:src="@mipmap/ic_launcher" />
 
-        <TextView
-            android:id="@+id/meta"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textColor="@color/v3_text_3"
-            android:textSize="11sp"
-            tools:text="2025-01-01 12:00 · 1.2 MB" />
+            <ImageView
+                android:id="@+id/deleteButton"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="8dp"
+                android:background="@drawable/v3_nav_btn_bg"
+                android:contentDescription="@string/snapshot_delete"
+                android:padding="6dp"
+                android:src="@drawable/ic_delete_black_24dp"
+                app:tint="#CCFFFFFF" />
+        </FrameLayout>
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="12dp">
 
             <TextView
-                android:id="@+id/commentTag"
-                android:layout_width="wrap_content"
+                android:id="@+id/title"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_v3_pill"
-                android:paddingStart="6dp"
-                android:paddingTop="2dp"
-                android:paddingEnd="6dp"
-                android:paddingBottom="2dp"
-                android:text="@string/snapshot_badge_comments"
-                android:textColor="@color/v3_text_2"
-                android:textSize="10sp"
-                android:visibility="gone"
-                tools:visibility="visible" />
+                android:ellipsize="end"
+                android:letterSpacing="-0.02"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_1"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                tools:text="作品标题" />
 
             <TextView
-                android:id="@+id/originalTag"
+                android:id="@+id/author"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:background="@drawable/bg_v3_pill"
-                android:paddingStart="6dp"
-                android:paddingTop="2dp"
-                android:paddingEnd="6dp"
-                android:paddingBottom="2dp"
-                android:text="@string/snapshot_badge_original"
-                android:textColor="@color/v3_text_2"
-                android:textSize="10sp"
-                android:visibility="gone"
-                tools:visibility="visible" />
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_3"
+                android:textSize="11sp"
+                tools:text="作者名 · ID 123456" />
+
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:letterSpacing="0.06"
+                android:maxLines="1"
+                android:textAllCaps="true"
+                android:textColor="@color/v3_text_3"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                tools:text="2025-01-01 12:00 · 1.2 MB" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/commentTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_v3_pill"
+                    android:includeFontPadding="false"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:text="@string/snapshot_badge_comments"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="10sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/originalTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_v3_pill"
+                    android:includeFontPadding="false"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:text="@string/snapshot_badge_original"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="10sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/exportButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:padding="8dp"
-            android:text="@string/snapshot_export"
-            android:textColor="?attr/colorPrimary"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/deleteButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:padding="8dp"
-            android:text="@string/snapshot_delete"
-            android:textColor="?attr/colorError"
-            android:textSize="13sp" />
-    </LinearLayout>
-</LinearLayout>
+</androidx.cardview.widget.CardView>
