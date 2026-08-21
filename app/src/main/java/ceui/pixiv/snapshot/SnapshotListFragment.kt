@@ -19,6 +19,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentSnapshotListBinding
 import ceui.lisa.databinding.ItemSnapshotBinding
+import ceui.lisa.fragments.HistorySelectBadge
 import ceui.lisa.utils.Common
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
@@ -280,12 +281,8 @@ private class SnapshotViewHolder(
         binding.commentTag.isVisible = summary.manifest.includeComments
         binding.originalTag.isVisible = summary.manifest.includeOriginal
 
-        binding.selectCheck.isVisible = selectionMode
-        binding.deleteButton.isVisible = !selectionMode
+        HistorySelectBadge.bindSelection(binding.selectCheck, binding.deleteButton, selectionMode, selected)
         if (selectionMode) {
-            binding.selectCheck.setImageResource(
-                if (selected) R.drawable.ic_check_circle_black_24dp else R.drawable.history_check_unselected
-            )
             binding.root.setOnClickListener { onToggleSelection() }
             binding.root.setOnLongClickListener(null)
             binding.deleteButton.setOnClickListener(null)

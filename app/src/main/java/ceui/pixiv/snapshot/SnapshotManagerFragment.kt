@@ -71,6 +71,7 @@ class SnapshotManagerFragment : Fragment() {
         binding.tabLayout.setupWithViewPager(binding.viewPager)
 
         binding.toolbar.inflateMenu(R.menu.menu_snapshot_manager)
+        tintMenuIconsWhite()
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_import_snapshot -> {
@@ -143,6 +144,7 @@ class SnapshotManagerFragment : Fragment() {
         val menu = binding.toolbar.menu
         menu.setGroupVisible(R.id.group_normal, false)
         menu.setGroupVisible(R.id.group_selection, true)
+        tintMenuIconsWhite()
         binding.toolbar.navigationIcon =
             ContextCompat.getDrawable(requireContext(), R.drawable.ic_close_black_24dp)
                 ?.mutate()?.apply { setTint(Color.WHITE) }
@@ -154,6 +156,7 @@ class SnapshotManagerFragment : Fragment() {
         val menu = binding.toolbar.menu
         menu.setGroupVisible(R.id.group_selection, false)
         menu.setGroupVisible(R.id.group_normal, true)
+        tintMenuIconsWhite()
         binding.toolbarTitle.text = getString(R.string.snapshot_manager_title)
         binding.toolbar.navigationIcon =
             ContextCompat.getDrawable(requireContext(), R.drawable.ic_arrow_back_white_shadow)
@@ -170,6 +173,13 @@ class SnapshotManagerFragment : Fragment() {
         menu.findItem(R.id.action_select_all_toggle)?.apply {
             setIcon(if (allSelected) R.drawable.ic_deselect_24 else R.drawable.ic_select_all_24)
             setTitle(if (allSelected) R.string.bulk_select_clear_all else R.string.bulk_select_select_all)
+        }
+    }
+
+    private fun tintMenuIconsWhite() {
+        val menu = binding.toolbar.menu
+        for (i in 0 until menu.size()) {
+            menu.getItem(i)?.icon?.mutate()?.setTint(Color.WHITE)
         }
     }
 
