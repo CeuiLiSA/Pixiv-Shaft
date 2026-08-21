@@ -1,7 +1,6 @@
 package ceui.pixiv.ui.detail
 
 import android.content.BroadcastReceiver
-import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -10,6 +9,7 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -46,6 +46,7 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.ShareIllust
+import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.core.Mapper
 import ceui.loxia.ObjectPool
@@ -73,7 +74,6 @@ import ceui.pixiv.ui.upscale.ModelPickerDialog
 import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.snapshot.SnapshotArtworkFeedSource
 import ceui.pixiv.snapshot.SnapshotGenerator
 import ceui.pixiv.snapshot.localizeIllust
@@ -1155,19 +1155,20 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     }
 
     private fun showSnapshotDialog(illust: IllustsBean) {
-        val options = arrayOf(
-            getString(R.string.snapshot_include_comments),
-            getString(R.string.snapshot_include_original),
-        )
-        val checked = booleanArrayOf(false, Shaft.sSettings.isShowOriginalPreviewImage())
-        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle(R.string.snapshot_create)
-            .setMultiChoiceItems(options, checked) { _, which, isChecked -> checked[which] = isChecked }
-            .setPositiveButton(R.string.snapshot_ok) { _, _ ->
-                startSnapshotGeneration(illust, checked[0], checked[1])
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+        val builder = WitDialog.MultiCheckableDialogBuilder(requireContext())
+        builder.setTitle(R.string.snapshot_create)
+        builder.addItem(getString(R.string.snapshot_include_comments)) { _, _ -> }
+        builder.addItem(getString(R.string.snapshot_include_original)) { _, _ -> }
+        builder.setCheckedItems(if (Shaft.sSettings.isShowOriginalPreviewImage()) intArrayOf(1) else intArrayOf())
+        builder.addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+        builder.addAction(R.string.snapshot_ok) { dialog, _ ->
+            val checked = builder.checkedItemIndexes
+            val includeComments = checked.contains(0)
+            val includeOriginal = checked.contains(1)
+            dialog.dismiss()
+            startSnapshotGeneration(illust, includeComments, includeOriginal)
+        }
+        builder.show()
     }
 
     private fun startSnapshotGeneration(
@@ -1175,11 +1176,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         includeComments: Boolean,
         includeOriginal: Boolean,
     ) {
-        val dialog = ProgressDialog(requireContext()).apply {
-            setMessage(getString(R.string.snapshot_preparing))
-            setCancelable(false)
-            show()
-        }
+        val dialog = showSnapshotLoadingDialog(getString(R.string.snapshot_preparing))
         lifecycleScope.launch {
             try {
                 val manifest = withContext(Dispatchers.IO) {
@@ -1190,7 +1187,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                         includeOriginal = includeOriginal,
                         onProgress = { message ->
                             requireActivity().runOnUiThread {
-                                if (dialog.isShowing) dialog.setMessage(message)
+                                dialog.findViewById<TextView>(R.id.tv_loading_message)?.text = message
                             }
                         },
                     )
@@ -1205,6 +1202,15 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 Common.showToast(getString(R.string.snapshot_generate_failed, e.message ?: ""))
             }
         }
+    }
+
+    private fun showSnapshotLoadingDialog(message: String): WitDialog {
+        val dialog = WitDialog.CustomDialogBuilder(requireContext())
+            .setLayout(R.layout.chat_view_state_loading)
+            .setCancelable(false)
+            .show()
+        dialog.findViewById<TextView>(R.id.tv_loading_message)?.text = message
+        return dialog
     }
 
     /**

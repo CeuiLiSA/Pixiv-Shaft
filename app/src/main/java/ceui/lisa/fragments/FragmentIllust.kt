@@ -1,6 +1,5 @@
 package ceui.lisa.fragments
 
-import android.app.ProgressDialog
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
@@ -19,7 +18,6 @@ import android.view.View
 import android.view.View.OnLongClickListener
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -82,6 +80,7 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
+import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialog.CheckableDialogBuilder
 import ceui.pixiv.witstudio.dialog.WitDialog.MessageDialogBuilder
 import com.zhy.view.flowlayout.FlowLayout
@@ -897,19 +896,20 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     private fun showSnapshotDialog(illust: IllustsBean) {
-        val options = arrayOf(
-            getString(R.string.snapshot_include_comments),
-            getString(R.string.snapshot_include_original),
-        )
-        val checked = booleanArrayOf(false, Shaft.sSettings.isShowOriginalPreviewImage())
-        AlertDialog.Builder(mContext)
-            .setTitle(R.string.snapshot_create)
-            .setMultiChoiceItems(options, checked) { _, which, isChecked -> checked[which] = isChecked }
-            .setPositiveButton(R.string.snapshot_ok) { _, _ ->
-                startSnapshotGeneration(illust, checked[0], checked[1])
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+        val builder = WitDialog.MultiCheckableDialogBuilder(mContext)
+        builder.setTitle(R.string.snapshot_create)
+        builder.addItem(getString(R.string.snapshot_include_comments)) { _, _ -> }
+        builder.addItem(getString(R.string.snapshot_include_original)) { _, _ -> }
+        builder.setCheckedItems(if (Shaft.sSettings.isShowOriginalPreviewImage()) intArrayOf(1) else intArrayOf())
+        builder.addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+        builder.addAction(R.string.snapshot_ok) { dialog, _ ->
+            val checked = builder.checkedItemIndexes
+            val includeComments = checked.contains(0)
+            val includeOriginal = checked.contains(1)
+            dialog.dismiss()
+            startSnapshotGeneration(illust, includeComments, includeOriginal)
+        }
+        builder.show()
     }
 
     private fun startSnapshotGeneration(
@@ -917,11 +917,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         includeComments: Boolean,
         includeOriginal: Boolean,
     ) {
-        val dialog = ProgressDialog(mContext).apply {
-            setMessage(getString(R.string.snapshot_preparing))
-            setCancelable(false)
-            show()
-        }
+        val dialog = showSnapshotLoadingDialog(getString(R.string.snapshot_preparing))
         lifecycleScope.launch {
             try {
                 val manifest = withContext(Dispatchers.IO) {
@@ -932,7 +928,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                         includeOriginal = includeOriginal,
                         onProgress = { message ->
                             mActivity.runOnUiThread {
-                                if (dialog.isShowing) dialog.setMessage(message)
+                                dialog.findViewById<TextView>(R.id.tv_loading_message)?.text = message
                             }
                         },
                     )
@@ -947,6 +943,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 Common.showToast(getString(R.string.snapshot_generate_failed, e.message ?: ""))
             }
         }
+    }
+
+    private fun showSnapshotLoadingDialog(message: String): WitDialog {
+        val dialog = WitDialog.CustomDialogBuilder(mContext)
+            .setLayout(R.layout.chat_view_state_loading)
+            .setCancelable(false)
+            .show()
+        dialog.findViewById<TextView>(R.id.tv_loading_message)?.text = message
+        return dialog
     }
     companion object {
         @JvmStatic

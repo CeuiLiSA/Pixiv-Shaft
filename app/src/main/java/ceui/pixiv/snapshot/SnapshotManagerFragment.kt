@@ -1,8 +1,8 @@
 package ceui.pixiv.snapshot
 
-import android.app.ProgressDialog
 import android.graphics.Color
 import android.os.Bundle
+import android.widget.TextView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +15,7 @@ import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding
 import ceui.lisa.utils.Common
+import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -219,11 +220,7 @@ class SnapshotManagerFragment : Fragment() {
         val tab = activeSelectionTab ?: return
         val items = tab.selectedSnapshots()
         if (items.isEmpty()) return
-        val dialog = ProgressDialog(requireContext()).apply {
-            setMessage(getString(R.string.snapshot_exporting))
-            setCancelable(false)
-            show()
-        }
+        val dialog = showLoadingDialog(getString(R.string.snapshot_exporting))
         lifecycleScope.launch {
             try {
                 withContext(Dispatchers.IO) {
@@ -239,6 +236,15 @@ class SnapshotManagerFragment : Fragment() {
         }
     }
 
+    private fun showLoadingDialog(message: String): WitDialog {
+        val dialog = WitDialog.CustomDialogBuilder(requireContext())
+            .setLayout(R.layout.chat_view_state_loading)
+            .setCancelable(false)
+            .show()
+        dialog.findViewById<TextView>(R.id.tv_loading_message)?.text = message
+        return dialog
+    }
+
     private fun snapshotExportFileName(manifest: SnapshotManifest): String {
         val safeTitle = manifest.title
             ?.replace(Regex("[\\\\/:*?\"<>|]"), "_")
@@ -248,11 +254,7 @@ class SnapshotManagerFragment : Fragment() {
     }
 
     private fun importSnapshots(uris: List<android.net.Uri>) {
-        val dialog = ProgressDialog(requireContext()).apply {
-            setMessage(getString(R.string.snapshot_importing))
-            setCancelable(false)
-            show()
-        }
+        val dialog = showLoadingDialog(getString(R.string.snapshot_importing))
         lifecycleScope.launch {
             var success = 0
             var failed = 0

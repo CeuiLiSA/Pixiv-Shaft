@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -22,6 +21,8 @@ import ceui.lisa.databinding.FragmentSnapshotListBinding
 import ceui.lisa.databinding.ItemSnapshotBinding
 import ceui.lisa.fragments.HistorySelectBadge
 import ceui.lisa.utils.Common
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -154,11 +155,12 @@ class SnapshotListFragment : Fragment() {
     }
 
     private fun confirmDelete(summary: SnapshotSummary) {
-        AlertDialog.Builder(requireContext())
+        WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(R.string.snapshot_delete)
             .setMessage(getString(R.string.snapshot_delete_confirm, summary.manifest.title ?: summary.manifest.snapshotId))
-            .setNegativeButton(R.string.cancel, null)
-            .setPositiveButton(R.string.snapshot_delete) { _, _ ->
+            .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+            .addAction(0, R.string.snapshot_delete, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
+                dialog.dismiss()
                 lifecycleScope.launch {
                     val ok = withContext(Dispatchers.IO) { SnapshotRepository.delete(requireContext(), summary.manifest.snapshotId) }
                     if (ok) Common.showToast(getString(R.string.snapshot_delete_success)) else Common.showToast(getString(R.string.snapshot_delete_failed))
