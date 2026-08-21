@@ -3002,6 +3002,8 @@
     <string name="snapshot_delete_success">已删除快照</string>
     <string name="snapshot_delete_failed">删除快照失败</string>
     <string name="snapshot_import_success">已导入快照「%1$s」</string>
+    <string name="snapshot_importing">正在导入快照…</string>
+    <string name="snapshot_import_multi_result">导入完成：成功 %1$d 个，失败 %2$d 个</string>
     <string name="snapshot_import_failed">导入失败：%1$s</string>
     <string name="snapshot_export_success">已导出快照</string>
     <string name="snapshot_export_failed">导出失败：%1$s</string>

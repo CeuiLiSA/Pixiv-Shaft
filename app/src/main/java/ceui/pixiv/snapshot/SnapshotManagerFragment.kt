@@ -1,5 +1,6 @@
 package ceui.pixiv.snapshot
 
+import android.app.ProgressDialog
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -29,9 +30,9 @@ class SnapshotManagerFragment : Fragment() {
     private val binding get() = checkNotNull(_binding)
 
     private val importLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        if (uri != null) importSnapshot(uri)
+        ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        if (uris.isNotEmpty()) importSnapshots(uris)
     }
 
     private val exportFolderLauncher = registerForActivityResult(
@@ -206,15 +207,31 @@ class SnapshotManagerFragment : Fragment() {
         }
     }
 
-    private fun importSnapshot(uri: android.net.Uri) {
+    private fun importSnapshots(uris: List<android.net.Uri>) {
+        val dialog = ProgressDialog(requireContext()).apply {
+            setMessage(getString(R.string.snapshot_importing))
+            setCancelable(false)
+            show()
+        }
         lifecycleScope.launch {
+            var success = 0
+            var failed = 0
             try {
-                val manifest = withContext(Dispatchers.IO) { SnapshotRepository.import(requireContext(), uri) }
-                Common.showToast(getString(R.string.snapshot_import_success, manifest.title ?: manifest.snapshotId))
-                reloadAllTabs()
-            } catch (e: Exception) {
-                Common.showToast(getString(R.string.snapshot_import_failed, e.message ?: ""))
+                withContext(Dispatchers.IO) {
+                    uris.forEach { uri ->
+                        try {
+                            SnapshotRepository.import(requireContext(), uri)
+                            success++
+                        } catch (e: Exception) {
+                            failed++
+                        }
+                    }
+                }
+            } finally {
+                if (dialog.isShowing) dialog.dismiss()
             }
+            Common.showToast(getString(R.string.snapshot_import_multi_result, success, failed))
+            reloadAllTabs()
         }
     }
 
