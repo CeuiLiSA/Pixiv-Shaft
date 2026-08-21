@@ -564,7 +564,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             pill.alpha = 0f
             pill.visibility = View.VISIBLE
             pill.animate().alpha(1f).setDuration(220).start()
-            val pageCount = ObjectPool.get<IllustsBean>(illustId).value?.page_count ?: return
+            val pageCount = if (isSnapshotMode) {
+                snapshotId?.let { SnapshotRuntimeCache.get(it) }?.illust?.page_count ?: return
+            } else {
+                ObjectPool.get<IllustsBean>(illustId).value?.page_count ?: return
+            }
             feedViewModel.mutateItems { items ->
                 val existing = items.filterIsInstance<ArtworkPageItem>().mapTo(HashSet()) { it.pageIndex }
                 val toAdd = (1 until pageCount)
