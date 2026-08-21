@@ -245,13 +245,7 @@ class SnapshotManagerFragment : Fragment() {
         return dialog
     }
 
-    private fun snapshotExportFileName(manifest: SnapshotManifest): String {
-        val safeTitle = manifest.title
-            ?.replace(Regex("[\\\\/:*?\"<>|]"), "_")
-            ?.takeIf { it.isNotBlank() }
-            ?: "snapshot"
-        return "${safeTitle}_${manifest.illustId}$SNAPSHOT_EXTENSION"
-    }
+    private fun snapshotExportFileName(manifest: SnapshotManifest): String = manifest.safeExportFileName()
 
     private fun importSnapshots(uris: List<android.net.Uri>) {
         val dialog = showLoadingDialog(getString(R.string.snapshot_importing))

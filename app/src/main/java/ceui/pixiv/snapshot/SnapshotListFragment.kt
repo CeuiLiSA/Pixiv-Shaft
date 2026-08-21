@@ -158,11 +158,7 @@ class SnapshotListFragment : Fragment() {
 
     private fun exportSnapshot(summary: SnapshotSummary) {
         pendingExportId = summary.manifest.snapshotId
-        val safeTitle = summary.manifest.title
-            ?.replace(Regex("[\\\\/:*?\"<>|]"), "_")
-            ?.takeIf { it.isNotBlank() }
-            ?: "snapshot"
-        exportLauncher.launch("${safeTitle}_${summary.manifest.illustId}$SNAPSHOT_EXTENSION")
+        exportLauncher.launch(summary.manifest.safeExportFileName())
     }
 
     private fun confirmDelete(summary: SnapshotSummary) {

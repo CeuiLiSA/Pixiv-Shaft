@@ -4,11 +4,9 @@ import android.net.Uri
 import ceui.lisa.activities.Shaft
 import ceui.lisa.models.ImageUrlsBean
 import ceui.lisa.models.IllustsBean
-import ceui.lisa.models.MetaPagesBean
 import ceui.lisa.models.MetaSinglePageBean
 import ceui.lisa.models.ProfileImageUrlsBean
 import ceui.loxia.Comment
-import ceui.loxia.ImageUrls
 import java.io.File
 
 const val SNAPSHOT_LOCAL_SCHEME = "shaftsnap"

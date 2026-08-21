@@ -19,7 +19,9 @@ class SnapshotCommentsFeedSource(
     override suspend fun load(cursor: String?): FeedPage<String> {
         if (cursor != null) return FeedPage(emptyList(), null)
         val data = withContext(Dispatchers.IO) {
-            SnapshotRepository.loadViewerData(Shaft.getContext(), snapshotId)
+            SnapshotRuntimeCache.get(snapshotId)
+                ?: SnapshotRepository.loadViewerData(Shaft.getContext(), snapshotId)
+                    .also { SnapshotRuntimeCache.put(snapshotId, it) }
         }
         val items = data.comments?.threads?.map { thread ->
             CommentFeedItem(

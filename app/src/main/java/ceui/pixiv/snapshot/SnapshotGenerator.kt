@@ -78,9 +78,11 @@ object SnapshotGenerator {
                     SnapshotCommentThread(comment, replies)
                 }
                 onProgress("下载评论头像/表情")
+                val avatarRelByUrl = mutableMapOf<String, String>()
+                val stampRelByUrl = mutableMapOf<String, String>()
                 threads.forEach { thread ->
-                    downloadCommentAssets(appContext, thread.comment, snapshotDir, assets)
-                    thread.replies.forEach { downloadCommentAssets(appContext, it, snapshotDir, assets) }
+                    downloadCommentAssets(appContext, thread.comment, snapshotDir, assets, avatarRelByUrl, stampRelByUrl)
+                    thread.replies.forEach { downloadCommentAssets(appContext, it, snapshotDir, assets, avatarRelByUrl, stampRelByUrl) }
                 }
                 SnapshotComments(threads)
             } else {
@@ -125,15 +127,23 @@ object SnapshotGenerator {
         comment: Comment,
         snapshotDir: File,
         assets: MutableMap<String, String>,
+        avatarRelByUrl: MutableMap<String, String>,
+        stampRelByUrl: MutableMap<String, String>,
     ) {
         comment.snapshotAvatarUrl()?.let { url ->
-            val rel = "avatars/comment_${comment.id}${url.snapshotExtension()}"
-            copyUrlTo(context, url, File(snapshotDir, rel))
+            val rel = avatarRelByUrl.getOrPut(url) {
+                val newRel = "avatars/comment_${comment.id}${url.snapshotExtension()}"
+                copyUrlTo(context, url, File(snapshotDir, newRel))
+                newRel
+            }
             assets[url] = rel
         }
         comment.snapshotStampUrl()?.let { url ->
-            val rel = "stamps/${comment.id}${url.snapshotExtension()}"
-            copyUrlTo(context, url, File(snapshotDir, rel))
+            val rel = stampRelByUrl.getOrPut(url) {
+                val newRel = "stamps/${comment.id}${url.snapshotExtension()}"
+                copyUrlTo(context, url, File(snapshotDir, newRel))
+                newRel
+            }
             assets[url] = rel
         }
     }

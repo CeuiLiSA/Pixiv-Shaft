@@ -110,11 +110,7 @@ object SnapshotRepository {
                 ?: throw SnapshotException("快照 manifest 损坏: $snapshotId")
             val parent = DocumentFile.fromTreeUri(context, treeUri)
                 ?: throw SnapshotException("无法打开所选文件夹")
-            val safeTitle = manifest.title
-                ?.replace(Regex("[\\\\/:*?\"<>|]"), "_")
-                ?.takeIf { it.isNotBlank() }
-                ?: "snapshot"
-            val fileName = "${safeTitle}_${manifest.illustId}$SNAPSHOT_EXTENSION"
+            val fileName = manifest.safeExportFileName()
             val file = parent.createFile("application/zip", fileName)
                 ?: throw SnapshotException("无法在所选文件夹创建 $fileName")
             val out = context.contentResolver.openOutputStream(file.uri)

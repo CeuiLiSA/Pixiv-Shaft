@@ -48,6 +48,15 @@ data class SnapshotCommentThread(
 
 class SnapshotException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
+/** 导出文件名统一生成：标题_作品ID.shaftsnap，并清理非法文件名字符。 */
+fun SnapshotManifest.safeExportFileName(): String {
+    val safeTitle = title
+        ?.replace(Regex("[\\\\/:*?\"<>|]"), "_")
+        ?.takeIf { it.isNotBlank() }
+        ?: "snapshot"
+    return "${safeTitle}_${illustId}$SNAPSHOT_EXTENSION"
+}
+
 private val SNAPSHOT_ID_REGEX = Regex("[A-Za-z0-9_-]+")
 
 /** 快照 ID 只允许 UUID 风格字符，防止外部 manifest 用 ../ 或空串做路径穿越。 */
