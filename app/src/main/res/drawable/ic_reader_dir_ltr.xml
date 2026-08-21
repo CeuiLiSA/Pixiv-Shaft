@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+    <!-- Material "format_textdirection_l_to_r" — 段落 + 向右箭头，表示「从左到右翻页」。
+         issue #1042：底栏翻页方向按钮原先复用 ic_reader_series（和「系列」按钮一模一样、
+         又没有状态），用户误触就静默翻向，体感像「设置不记忆」。现在图标随 LTR/RTL 切换。 -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M9,10v5h2V4h2v11h2V4h2V2H9C6.79,2 5,3.79 5,6S6.79,10 9,10zM21,18l-3,-3v2H5v2h13v2L21,18z" />
+</vector>

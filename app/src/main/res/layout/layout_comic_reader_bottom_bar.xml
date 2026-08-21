@@ -90,7 +90,7 @@
             android:layout_weight="1"
             android:padding="10dp"
             android:scaleType="centerInside"
-            android:src="@drawable/ic_reader_series"
+            android:src="@drawable/ic_reader_dir_ltr"
             android:tint="#FFFFFF"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/comic_reader_direction" />
