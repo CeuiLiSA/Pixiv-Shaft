@@ -59,6 +59,7 @@ import ceui.pixiv.ui.upscale.UpscaleStatus
 import ceui.pixiv.ui.upscale.UpscaleTask
 import ceui.pixiv.ui.upscale.UpscaleTaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
@@ -261,9 +262,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 )
             }
         } else if (isSnapshotMode) {
-            // 快照大图：复用现有查看器，但只读本地快照文件，隐藏下载/收藏/AI 入口。
-            findViewById<View>(R.id.btn_ai_menu).visibility = View.GONE
-            findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
+            // 快照大图：复用现有查看器，只读本地快照文件，仅隐藏下载按钮。
             findViewById<View>(R.id.download_this_one).visibility = View.GONE
             currentPage = findViewById(R.id.current_page)
             index = intent.getIntExtra("index", 0)
@@ -407,6 +406,61 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             }
             override fun onPageScrollStateChanged(i: Int) = Unit
         })
+        setupSnapshotFabBar()
+        setupSnapshotAiMenu()
+    }
+
+    /** 快照大图只隐藏下载按钮，收藏按钮保留但只读。 */
+    private fun setupSnapshotFabBar() {
+        val fabBind = ViewV3FabBarBinding.bind(findViewById(R.id.fab_bar))
+        val fabBar = V3FabBarController(fabBind)
+        this.fabBar = fabBar
+        fabBar.applyPalette(V3Palette.from(this))
+        fabBar.attachBottomInsetMargin(findViewById(R.id.fab_bar_row))
+        fabBind.fabDownloadContainer.visibility = View.GONE
+        fabBind.fabDivider.visibility = View.GONE
+        fabBind.fabBookmark.setOnClickListener { /* 快照只读，不触发收藏 */ }
+        fabBind.fabBookmark.setOnLongClickListener { true }
+        fabBar.setBookmarked(mIllustsBean?.isIs_bookmarked ?: false)
+    }
+
+    /** 快照大图保留 AI 菜单（数据源为本地快照文件），不显示下载相关动作。 */
+    private fun setupSnapshotAiMenu() {
+        val illust = mIllustsBean ?: return
+        val btnAiMenu = findViewById<ImageView>(R.id.btn_ai_menu)
+        btnAiMenu.visibility = View.VISIBLE
+        btnAiMenu.setOnClickListener { anchor ->
+            val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
+            if (!illust.isGif) {
+                actions += getString(R.string.string_ai_upscale) to {
+                    ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
+                        performAiUpscale(illust, baseBind!!.viewPager.currentItem, model)
+                    }
+                }
+                actions += getString(R.string.string_ai_rembg) to {
+                    RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
+                        performAiRembg(illust, baseBind!!.viewPager.currentItem, model)
+                    }
+                }
+            }
+            actions += getString(R.string.string_ai_manga_translate_inline) to {
+                performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
+            }
+            if (illust.page_count > 1) {
+                actions += getString(R.string.string_ai_manga_translate_batch) to {
+                    performAiMangaTranslateBatch(illust)
+                }
+            }
+            actions += getString(R.string.string_ai_manga_translate_manual) to {
+                performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
+            }
+            actions += getString(R.string.string_set_wallpaper) to {
+                performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
+            }
+            WitMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _ ->
+                actions[index].second()
+            }
+        }
     }
     private fun setupViewerTransition(btnAi: View) {
         val rootLayout = baseBind!!.root as DragDismissLayout
