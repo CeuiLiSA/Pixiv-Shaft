@@ -393,7 +393,13 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     override fun onResume() {
         super.onResume()
-        if (isSnapshotMode) return
+        if (isSnapshotMode) {
+            // FeedSource 加载完成后用快照里的真实收藏态刷新只读心形按钮（兼容旧快照回落 illust.json）。
+            snapshotId?.let { SnapshotRuntimeCache.get(it) }?.let { data ->
+                fabBarController.setBookmarked(data.manifest.isBookmarked || data.illust.isIs_bookmarked)
+            }
+            return
+        }
         artworkViewModel.onPageVisible()
         artworkViewModel.refreshDownloadFab()
     }

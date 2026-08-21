@@ -49,7 +49,14 @@ class SnapshotArtworkFeedSource(
         if (illust.series != null && !illust.series.title.isNullOrEmpty()) {
             list.add(ArtworkSeriesItem(illust))
         }
-        list.add(ArtworkArtistItem(illust, isFollowed = data.manifest.isFollowed, isPrivateFollow = false))
+        list.add(
+            ArtworkArtistItem(
+                illust,
+                // 兼容旧快照：manifest 没写 isFollowed 时回落到 illust.json 里存的那一份。
+                isFollowed = data.manifest.isFollowed || data.illust.user?.isIs_followed ?: false,
+                isPrivateFollow = false,
+            )
+        )
         if (!illust.caption.isNullOrEmpty()) {
             list.add(ArtworkDescItem(illust.caption, illust.title.orEmpty()))
         }
