@@ -524,6 +524,19 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new NotificationViewMoreFragment();
                 case "公告分类":
                     return new InfoCategoryListFragment();
+                case "离线快照":
+                    return new ceui.pixiv.snapshot.SnapshotManagerFragment();
+                case "快照查看": {
+                    ceui.pixiv.snapshot.SnapshotViewerFragment viewer =
+                            new ceui.pixiv.snapshot.SnapshotViewerFragment();
+                    android.os.Bundle snapshotArgs = new android.os.Bundle();
+                    snapshotArgs.putString(
+                            ceui.pixiv.snapshot.SnapshotViewerFragment.ARG_SNAPSHOT_ID,
+                            intent.getStringExtra(
+                                    ceui.pixiv.snapshot.SnapshotViewerFragment.ARG_SNAPSHOT_ID));
+                    viewer.setArguments(snapshotArgs);
+                    return viewer;
+                }
                 default:
                     return new Fragment();
             }

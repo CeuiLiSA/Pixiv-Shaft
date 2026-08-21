@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.detail
 
 import android.content.BroadcastReceiver
+import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -72,8 +73,11 @@ import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.snapshot.SnapshotGenerator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -1023,6 +1027,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             item(getString(R.string.string_355_2), R.drawable.ic_baseline_launch_24) {
                 Common.copy(requireContext(), ShareIllust.URL_Head + illust.id)
             }
+            item(getString(R.string.snapshot_create), R.drawable.ic_baseline_get_app_24) {
+                showSnapshotDialog(illust)
+            }
             item(getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
                 MuteTagSheet.show(childFragmentManager, illust.tags, illust.user)
             }
@@ -1064,6 +1071,59 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     )
                     startActivity(intent)
                 }
+            }
+        }
+    }
+
+    private fun showSnapshotDialog(illust: IllustsBean) {
+        val options = arrayOf(
+            getString(R.string.snapshot_include_comments),
+            getString(R.string.snapshot_include_original),
+        )
+        val checked = booleanArrayOf(false, Shaft.sSettings.isShowOriginalPreviewImage())
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.snapshot_create)
+            .setMultiChoiceItems(options, checked) { _, which, isChecked -> checked[which] = isChecked }
+            .setPositiveButton(R.string.snapshot_ok) { _, _ ->
+                startSnapshotGeneration(illust, checked[0], checked[1])
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun startSnapshotGeneration(
+        illust: IllustsBean,
+        includeComments: Boolean,
+        includeOriginal: Boolean,
+    ) {
+        val dialog = ProgressDialog(requireContext()).apply {
+            setMessage(getString(R.string.snapshot_preparing))
+            setCancelable(false)
+            show()
+        }
+        lifecycleScope.launch {
+            try {
+                val manifest = withContext(Dispatchers.IO) {
+                    SnapshotGenerator.generate(
+                        context = requireContext().applicationContext,
+                        illust = illust,
+                        includeComments = includeComments,
+                        includeOriginal = includeOriginal,
+                        onProgress = { message ->
+                            requireActivity().runOnUiThread {
+                                if (dialog.isShowing) dialog.setMessage(message)
+                            }
+                        },
+                    )
+                }
+                dialog.dismiss()
+                Common.showToast(getString(R.string.snapshot_generate_success))
+            } catch (ce: kotlinx.coroutines.CancellationException) {
+                dialog.dismiss()
+                throw ce
+            } catch (e: Exception) {
+                dialog.dismiss()
+                Common.showToast(getString(R.string.snapshot_generate_failed, e.message ?: ""))
             }
         }
     }

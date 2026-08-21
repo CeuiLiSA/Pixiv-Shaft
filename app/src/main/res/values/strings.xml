@@ -2977,4 +2977,38 @@
     <string name="nana7mi_quota_snack_session">五小时额度已用完，%1$s后恢复</string>
     <string name="nana7mi_quota_snack_weekly">本周额度已用完，%1$s后恢复</string>
     <string name="nana7mi_quota_snack_action">查看用量</string>
+
+    <!-- 离线快照 v1 -->
+    <string name="snapshot_manager_title">离线快照</string>
+    <string name="snapshot_viewer_title">快照查看</string>
+    <string name="snapshot_empty">还没有离线快照\n在作品详情页菜单里选择「离线化」</string>
+    <string name="snapshot_import">导入快照</string>
+    <string name="snapshot_export">导出</string>
+    <string name="snapshot_delete">删除</string>
+    <string name="snapshot_cover">封面</string>
+    <string name="snapshot_author_avatar">作者头像</string>
+    <string name="snapshot_untitled">无标题</string>
+    <string name="snapshot_unknown_author">未知作者</string>
+    <string name="snapshot_author_id_format">ID %1$d</string>
+    <string name="snapshot_meta_format">%1$s · %2$s</string>
+    <string name="snapshot_views_format">浏览 %1$d</string>
+    <string name="snapshot_bookmarks_format">收藏 %1$d</string>
+    <string name="snapshot_badge_comments">含评论</string>
+    <string name="snapshot_badge_original">原图</string>
+    <string name="snapshot_comments_title">评论</string>
+    <string name="snapshot_delete_confirm">确定删除快照「%1$s」吗？此操作不可恢复。</string>
+    <string name="snapshot_delete_success">已删除快照</string>
+    <string name="snapshot_delete_failed">删除快照失败</string>
+    <string name="snapshot_import_success">已导入快照「%1$s」</string>
+    <string name="snapshot_import_failed">导入失败：%1$s</string>
+    <string name="snapshot_export_success">已导出快照</string>
+    <string name="snapshot_export_failed">导出失败：%1$s</string>
+    <string name="snapshot_open_failed">打开快照失败：%1$s</string>
+    <string name="snapshot_create">离线化</string>
+    <string name="snapshot_include_comments">包含评论</string>
+    <string name="snapshot_include_original">使用原图</string>
+    <string name="snapshot_ok">开始</string>
+    <string name="snapshot_preparing">准备离线快照…</string>
+    <string name="snapshot_generate_success">已生成离线快照</string>
+    <string name="snapshot_generate_failed">生成失败：%1$s</string>
 </resources>
