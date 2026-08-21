@@ -13,6 +13,7 @@ import com.bumptech.glide.module.AppGlideModule;
 import java.io.InputStream;
 
 import ceui.lisa.activities.Shaft;
+import ceui.pixiv.snapshot.SnapshotAwareGlideUrlLoader;
 
 @GlideModule
 @Excludes(com.bumptech.glide.integration.okhttp3.OkHttpLibraryGlideModule.class)
@@ -30,7 +31,7 @@ public class GlideConfiguration extends AppGlideModule {
         //用 LeakSafeOkHttpUrlLoader 而不是官方 OkHttpUrlLoader:官方 fetcher 在
         //「响应已到达、请求随后被取消」(列表快速滑动)时会遗弃打开的 response body,
         //刷屏 "A connection to https://i.pximg.net/ was leaked",详见该类注释。
-        registry.replace(GlideUrl.class, InputStream.class, new LeakSafeOkHttpUrlLoader.Factory(application.getOkHttpClient()));
+        registry.replace(GlideUrl.class, InputStream.class, new SnapshotAwareGlideUrlLoader.Factory(application.getOkHttpClient()));
     }
 
     @Override

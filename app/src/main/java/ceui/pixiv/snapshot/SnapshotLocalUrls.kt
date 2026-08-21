@@ -1,0 +1,98 @@
+package ceui.pixiv.snapshot
+
+import android.net.Uri
+import ceui.lisa.activities.Shaft
+import ceui.lisa.models.ImageUrlsBean
+import ceui.lisa.models.IllustsBean
+import ceui.lisa.models.MetaPagesBean
+import ceui.lisa.models.MetaSinglePageBean
+import ceui.lisa.models.ProfileImageUrlsBean
+import ceui.loxia.Comment
+import ceui.loxia.ImageUrls
+import java.io.File
+
+const val SNAPSHOT_LOCAL_SCHEME = "shaftsnap"
+
+/** 把 assets.json 里的相对路径编码成 Glide 可识别的本地快照 URL。 */
+fun snapshotLocalUrl(snapshotId: String, rel: String): String =
+    "$SNAPSHOT_LOCAL_SCHEME://$snapshotId/${rel.trimStart('/')}"
+
+/** 解析 `shaftsnap://<snapshotId>/<rel>`，非快照 URL 返回 null。 */
+fun parseSnapshotLocalUrl(url: String): Pair<String, String>? {
+    if (!url.startsWith("$SNAPSHOT_LOCAL_SCHEME://")) return null
+    val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return null
+    val snapshotId = uri.host ?: return null
+    val rel = uri.path?.trimStart('/') ?: return null
+    if (snapshotId.isEmpty() || rel.isEmpty()) return null
+    return snapshotId to rel
+}
+
+/**
+ * 把一份快照里的 IllustsBean 克隆并本地化：所有 assets.json 能映射到的图片 URL 都改成
+ * `shaftsnap://`。渲染层因此只走本地文件，绝不联网。
+ */
+fun SnapshotViewerData.localizeIllust(): IllustsBean {
+    val localized = Shaft.sGson.fromJson(Shaft.sGson.toJson(illust), IllustsBean::class.java)
+    localized.image_urls?.localize(snapshotDir, manifest.snapshotId, assets)
+    localized.meta_single_page?.localize(snapshotDir, manifest.snapshotId, assets)
+    localized.meta_pages?.forEach { page -> page.image_urls?.localize(snapshotDir, manifest.snapshotId, assets) }
+    localized.user?.profile_image_urls?.localize(snapshotDir, manifest.snapshotId, assets)
+    return localized
+}
+
+/** 把快照评论本地化：评论者头像和表情章 URL 改成 shaftsnap://。 */
+fun SnapshotViewerData.localizeComment(comment: Comment): Comment {
+    val localizedUser = comment.user.copy(
+        profile_image_urls = comment.user.profile_image_urls?.let { urls ->
+            urls.copy(
+                url = urls.url?.localizedPath(snapshotDir, manifest.snapshotId, assets),
+                large = urls.large?.localizedPath(snapshotDir, manifest.snapshotId, assets),
+                medium = urls.medium?.localizedPath(snapshotDir, manifest.snapshotId, assets),
+                original = urls.original?.localizedPath(snapshotDir, manifest.snapshotId, assets),
+                small = urls.small?.localizedPath(snapshotDir, manifest.snapshotId, assets),
+                square_medium = urls.square_medium?.localizedPath(snapshotDir, manifest.snapshotId, assets),
+                px_16x16 = urls.px_16x16?.localizedPath(snapshotDir, manifest.snapshotId, assets),
+                px_170x170 = urls.px_170x170?.localizedPath(snapshotDir, manifest.snapshotId, assets),
+                px_50x50 = urls.px_50x50?.localizedPath(snapshotDir, manifest.snapshotId, assets),
+            )
+        },
+    )
+    val localizedStamp = comment.stamp?.let { stamp ->
+        stamp.copy(stamp_url = stamp.stamp_url?.localizedPath(snapshotDir, manifest.snapshotId, assets))
+    }
+    return comment.copy(user = localizedUser, stamp = localizedStamp)
+}
+
+private fun ImageUrlsBean.localize(
+    snapshotDir: java.io.File,
+    snapshotId: String,
+    assets: Map<String, String>,
+) {
+    square_medium = square_medium?.localizedPath(snapshotDir, snapshotId, assets)
+    medium = medium?.localizedPath(snapshotDir, snapshotId, assets)
+    large = large?.localizedPath(snapshotDir, snapshotId, assets)
+    original = original?.localizedPath(snapshotDir, snapshotId, assets)
+    if (this is ProfileImageUrlsBean) {
+        px_16x16 = px_16x16?.localizedPath(snapshotDir, snapshotId, assets)
+        px_50x50 = px_50x50?.localizedPath(snapshotDir, snapshotId, assets)
+        px_170x170 = px_170x170?.localizedPath(snapshotDir, snapshotId, assets)
+    }
+}
+
+private fun MetaSinglePageBean.localize(
+    snapshotDir: java.io.File,
+    snapshotId: String,
+    assets: Map<String, String>,
+) {
+    original_image_url = original_image_url?.localizedPath(snapshotDir, snapshotId, assets)
+    original = original?.localizedPath(snapshotDir, snapshotId, assets)
+}
+
+private fun String.localizedPath(
+    snapshotDir: java.io.File,
+    snapshotId: String,
+    assets: Map<String, String>,
+): String? {
+    val rel = assets[this] ?: return this
+    return if (File(snapshotDir, rel).isFile) snapshotLocalUrl(snapshotId, rel) else this
+}

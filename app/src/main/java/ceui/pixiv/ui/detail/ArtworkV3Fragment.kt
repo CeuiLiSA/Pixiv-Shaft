@@ -5,6 +5,7 @@ import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
@@ -73,7 +74,12 @@ import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.snapshot.SnapshotArtworkFeedSource
 import ceui.pixiv.snapshot.SnapshotGenerator
+import ceui.pixiv.snapshot.localizeIllust
+import ceui.pixiv.snapshot.snapshotPageUrl
+import ceui.pixiv.snapshot.SnapshotManagerFragment
+import ceui.pixiv.snapshot.SnapshotRuntimeCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -94,14 +100,22 @@ import timber.log.Timber
  */
 class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
+    internal val snapshotId: String? get() = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
+
+    internal val isSnapshotMode: Boolean get() = snapshotId != null
+
     private val illustId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt("illust_id").toLong()
+        if (isSnapshotMode) 0L else requireArguments().getInt("illust_id").toLong()
     }
 
     override val feedViewModel by feedViewModels {
-        // 零捕获:只把 id 读进局部值交给长命 VM 持有的数据源,不钉 Fragment。
-        val id = requireArguments().getInt("illust_id").toLong()
-        ArtworkV3FeedSource(id)
+        // 零捕获:只把 id/快照 id 读进局部值交给长命 VM 持有的数据源,不钉 Fragment。
+        val snapshot = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
+        if (snapshot != null) {
+            SnapshotArtworkFeedSource(snapshot)
+        } else {
+            ArtworkV3FeedSource(requireArguments().getInt("illust_id").toLong())
+        }
     }
 
     private val artworkViewModel by viewModels<ArtworkV3ViewModel> {
@@ -216,6 +230,15 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         super.onViewCreated(view, savedInstanceState)
         _chromeBind = FragmentArtworkV3Binding.bind(view)
         _fabBarController = V3FabBarController(chromeBind.fabBar)
+        if (isSnapshotMode) {
+            // 快照只读：不挂下载/收藏/评论输入/更多菜单，也不触发任何在线补拉。
+            chromeBind.fabBar.root.isVisible = false
+            chromeBind.composerRoot.isVisible = false
+            chromeBind.navMore.isVisible = false
+            chromeBind.toolbar.setNavigationOnClickListener { requireActivity().finish() }
+            handleSystemInsets()
+            return
+        }
         sectionLoader = SectionLoader<ArtworkSection>(viewLifecycleOwner) { it.load(illustId, feedViewModel) }
         aiHelper = IllustAiHelper(this, chromeBind.root).also {
             it.restoreUpscaleIfRunning(illustId.toInt())
@@ -362,12 +385,13 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     override fun onResume() {
         super.onResume()
+        if (isSnapshotMode) return
         artworkViewModel.onPageVisible()
         artworkViewModel.refreshDownloadFab()
     }
 
     override fun onPause() {
-        artworkViewModel.pauseDownloadFab()
+        if (!isSnapshotMode) artworkViewModel.pauseDownloadFab()
         super.onPause()
     }
 
@@ -399,6 +423,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 首次绑定顶部页时懒建那一个共享 adapter(尺寸 / 折叠 / 取图逻辑全在它里面)。 */
     internal fun ensurePageAdapter(): IllustAdapter? {
         pageAdapter?.let { return it }
+        if (isSnapshotMode) return ensureSnapshotPageAdapter()
         if (view == null || !::retryController.isInitialized) return null
         val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return null
         if (illust.isGif()) return null // ugoira 走自己的 renderer
@@ -449,6 +474,37 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 每页真实宽高由 [ArtworkV3ViewModel.pageDimensions] 承载(VM 多 P 时拉一次网页 ajax)。
         // 这里把「已到」的值补给新建的 adapter;「后到」的值由 setup 处的观察者补上。
         artworkViewModel.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
+        pageAdapter = adapter
+        return adapter
+    }
+
+    /** 快照模式专用：从快照库读取 bean，并把每页图片直接指向快照本地文件。 */
+    private fun ensureSnapshotPageAdapter(): IllustAdapter? {
+        val snapshotId = snapshotId ?: return null
+        val data = SnapshotRuntimeCache.get(snapshotId) ?: return null
+        val illust = data.localizeIllust()
+        if (illust.isGif()) return null
+        val maxHeight = (resources.displayMetrics.heightPixels * 0.7f).toInt()
+        val activity = requireActivity()
+        val adapter: IllustAdapter = if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count)) {
+            val collapsible = CollapsibleIllustAdapter(
+                activity, this, illust, maxHeight, false,
+                onComicReaderClick = { /* 快照只读，不进入在线漫画阅读器 */ },
+                onExpandedChanged = { expanded -> onPagesExpandedChanged(expanded) },
+            )
+            chromeBind.collapsePill.setOnClickListener { collapsible.collapse() }
+            collapsible
+        } else {
+            IllustAdapter(activity, this, illust, maxHeight, false)
+        }
+        val pageCount = illust.page_count.coerceAtLeast(1)
+        for (i in 0 until pageCount) {
+            val url = data.illust.snapshotPageUrl(i, data.manifest.includeOriginal)
+            val file = data.resolve(url)
+            if (file != null) adapter.putLocalPageUri(i, Uri.fromFile(file))
+        }
+        adapter.setPageStatusListener { _, _ -> }
+        adapter.setLocalPagesChangedListener(null)
         pageAdapter = adapter
         return adapter
     }
@@ -1163,5 +1219,14 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
         @JvmStatic
         fun newInstance(illustId: Long): ArtworkV3Fragment = newInstance(illustId.toInt())
+
+        @JvmStatic
+        fun newInstanceSnapshot(snapshotId: String): ArtworkV3Fragment {
+            return ArtworkV3Fragment().apply {
+                arguments = Bundle().apply {
+                    putString(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId)
+                }
+            }
+        }
     }
 }

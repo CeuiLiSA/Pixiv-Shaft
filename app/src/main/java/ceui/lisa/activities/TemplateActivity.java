@@ -527,15 +527,26 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "离线快照":
                     return new ceui.pixiv.snapshot.SnapshotManagerFragment();
                 case "快照查看": {
-                    ceui.pixiv.snapshot.SnapshotViewerFragment viewer =
-                            new ceui.pixiv.snapshot.SnapshotViewerFragment();
-                    android.os.Bundle snapshotArgs = new android.os.Bundle();
-                    snapshotArgs.putString(
-                            ceui.pixiv.snapshot.SnapshotViewerFragment.ARG_SNAPSHOT_ID,
+                    String snapshotId = intent.getStringExtra(
+                            ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID);
+                    return ceui.pixiv.ui.detail.ArtworkV3Fragment.Companion.newInstanceSnapshot(snapshotId);
+                }
+                case "快照评论": {
+                    ceui.pixiv.ui.comments.CommentsFragment comments =
+                            new ceui.pixiv.ui.comments.CommentsFragment();
+                    android.os.Bundle snapshotCommentArgs = new android.os.Bundle();
+                    snapshotCommentArgs.putLong("objectId",
+                            intent.getLongExtra("objectId", 0L));
+                    snapshotCommentArgs.putLong("objectArthurId",
+                            intent.getLongExtra("objectArthurId", 0L));
+                    snapshotCommentArgs.putString("objectType",
+                            intent.getStringExtra("objectType"));
+                    snapshotCommentArgs.putString(
+                            ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID,
                             intent.getStringExtra(
-                                    ceui.pixiv.snapshot.SnapshotViewerFragment.ARG_SNAPSHOT_ID));
-                    viewer.setArguments(snapshotArgs);
-                    return viewer;
+                                    ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID));
+                    comments.setArguments(snapshotCommentArgs);
+                    return comments;
                 }
                 default:
                     return new Fragment();

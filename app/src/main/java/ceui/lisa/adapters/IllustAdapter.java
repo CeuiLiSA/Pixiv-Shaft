@@ -161,6 +161,11 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         this.localPagesChangedListener = listener;
     }
 
+    /** 快照模式用：直接把某一页指向快照库里的本地文件，绑定时优先读本地、不走网络。 */
+    public void putLocalPageUri(int page, @NonNull android.net.Uri uri) {
+        localPageUris.put(page, uri);
+    }
+
     /** View 生命周期结束时断开回调，避免后台下载记录扫描把旧 Fragment/View 留到扫描完成。 */
     public void release() {
         released = true;
