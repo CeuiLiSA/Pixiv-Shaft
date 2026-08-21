@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentSnapshotListBinding
 import ceui.lisa.databinding.ItemSnapshotBinding
@@ -134,7 +135,11 @@ class SnapshotListFragment : Fragment() {
 
     private fun openSnapshot(summary: SnapshotSummary) {
         val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照查看")
+        if (Shaft.sSettings.isUseArtworkV3()) {
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照查看")
+        } else {
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照经典查看")
+        }
         intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, summary.manifest.snapshotId)
         startActivity(intent)
     }

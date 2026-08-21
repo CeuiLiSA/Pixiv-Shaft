@@ -531,6 +531,18 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID);
                     return ceui.pixiv.ui.detail.ArtworkV3Fragment.Companion.newInstanceSnapshot(snapshotId);
                 }
+                case "快照经典查看": {
+                    ceui.lisa.fragments.FragmentIllust classic =
+                            new ceui.lisa.fragments.FragmentIllust();
+                    android.os.Bundle classicSnapshotArgs = new android.os.Bundle();
+                    classicSnapshotArgs.putInt("illust_id", 0);
+                    classicSnapshotArgs.putString(
+                            ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID,
+                            intent.getStringExtra(
+                                    ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID));
+                    classic.setArguments(classicSnapshotArgs);
+                    return classic;
+                }
                 case "快照评论": {
                     ceui.pixiv.ui.comments.CommentsFragment comments =
                             new ceui.pixiv.ui.comments.CommentsFragment();

@@ -3,6 +3,7 @@ package ceui.lisa.fragments
 import android.app.ProgressDialog
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import android.os.Bundle
@@ -66,6 +67,12 @@ import ceui.loxia.ProgressTextButton
 import ceui.loxia.combineLatest
 import ceui.loxia.flag.FlagDescFragment
 import ceui.pixiv.snapshot.SnapshotGenerator
+import ceui.pixiv.snapshot.SnapshotManagerFragment
+import ceui.pixiv.snapshot.SnapshotRepository
+import ceui.pixiv.snapshot.SnapshotRuntimeCache
+import ceui.pixiv.snapshot.SnapshotViewerData
+import ceui.pixiv.snapshot.localizeForViewer
+import ceui.pixiv.snapshot.snapshotPageUrl
 import ceui.pixiv.ui.share.shareFirstImage
 import ceui.pixiv.ui.synonym.SynonymOperate
 import ceui.pixiv.ui.upscale.IllustAiHelper
@@ -87,6 +94,12 @@ import kotlinx.coroutines.withContext
 class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     private val safeArgs by lazy { IllustArgs(requireArguments()) }
+
+    private val snapshotId: String? get() = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
+    private val isSnapshotMode: Boolean get() = snapshotId != null
+    private var snapshotViewerData: SnapshotViewerData? = null
+    private var snapshotBean: IllustsBean? = null
+    private var snapshotUser: UserBean? = null
 
     private class IllustArgs(b: Bundle) {
         val illustId: Int = b.getInt("illust_id")
@@ -112,6 +125,10 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     override fun initView() {
+        if (isSnapshotMode) {
+            setupSnapshotView()
+            return
+        }
         val illustLiveData = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong())
         illustLiveData.observe(viewLifecycleOwner) { illust ->
             updateIllust(illust)
@@ -151,7 +168,86 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
         val illust = illustLiveData.value ?: return
         baseBind.user = userLiveData
+
         observeMuteStatus(illust)
+    }
+
+    // ── 快照只读模式（实验）──────────────────────────────────────────────
+    private fun setupSnapshotView() {
+        val id = snapshotId ?: return
+        val cached = SnapshotRuntimeCache.get(id)
+        if (cached != null) {
+            bindSnapshotView(cached)
+        } else {
+            lifecycleScope.launch {
+                val loaded = withContext(Dispatchers.IO) {
+                    SnapshotRepository.loadViewerData(requireContext(), id)
+                }
+                SnapshotRuntimeCache.put(id, loaded)
+                bindSnapshotView(loaded)
+            }
+        }
+    }
+
+    private fun bindSnapshotView(data: SnapshotViewerData) {
+        snapshotViewerData = data
+        snapshotBean = data.localizeForViewer()
+        snapshotUser = snapshotBean?.user
+        // 独立快照数据通道：不写 ObjectPool，只使用本地字段驱动渲染。
+        val bean = snapshotBean ?: return
+        updateIllust(bean)
+        bean.user?.let { updateUser(it) }
+        applySnapshotReadOnlyOverrides()
+    }
+
+    private fun applySnapshotReadOnlyOverrides() {
+        val data = snapshotViewerData ?: return
+        baseBind.download.text = getString(R.string.snapshot_downloaded_label)
+        baseBind.download.setOnClickListener(null)
+        baseBind.download.setOnLongClickListener(null)
+
+        baseBind.postLike.setOnClickListener { snapshotUnsupportedToast() }
+        baseBind.postLike.setOnLongClickListener { snapshotUnsupportedToast(); true }
+        baseBind.illustLike.setOnClickListener { snapshotUnsupportedToast() }
+        baseBind.follow.setOnClickListener { snapshotUnsupportedToast() }
+        baseBind.unfollow.setOnClickListener { snapshotUnsupportedToast() }
+        baseBind.relaIllustBrief.setOnClickListener { snapshotUnsupportedToast() }
+        baseBind.userName.setOnClickListener { snapshotUnsupportedToast() }
+        baseBind.userName.setOnLongClickListener { snapshotUnsupportedToast(); true }
+        baseBind.related.setOnClickListener { snapshotUnsupportedToast() }
+
+        baseBind.comment.setOnClickListener {
+            if (data.comments != null) {
+                openSnapshotComments()
+            } else {
+                Common.showToast(getString(R.string.snapshot_no_comments_toast))
+            }
+        }
+    }
+
+    private fun snapshotUnsupportedToast() {
+        Common.showToast(getString(R.string.snapshot_unsupported_toast))
+    }
+
+    private fun openSnapshotComments() {
+        val data = snapshotViewerData ?: return
+        val intent = Intent(mContext, TemplateActivity::class.java)
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照评论")
+        intent.putExtra("objectId", data.illust.id.toLong())
+        intent.putExtra("objectArthurId", data.illust.user?.id?.toLong() ?: 0L)
+        intent.putExtra("objectType", ceui.loxia.ObjectType.ILLUST)
+        intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId)
+        startActivity(intent)
+    }
+
+    private fun applySnapshotLocalPages(adapter: IllustAdapter) {
+        val data = snapshotViewerData ?: return
+        val pageCount = data.illust.page_count.coerceAtLeast(1)
+        for (i in 0 until pageCount) {
+            val url = data.illust.snapshotPageUrl(i, data.manifest.includeOriginal)
+            val file = data.resolve(url)
+            if (file != null) adapter.putLocalPageUri(i, Uri.fromFile(file))
+        }
     }
 
     private fun observeMuteStatus(illust: IllustsBean) {
@@ -310,6 +406,17 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private fun setupToolbarMenu(illust: IllustsBean) {
         baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
+        if (isSnapshotMode) {
+            // 快照只读：溢出菜单只保留复制链接 / 分享首图 / 画质增强 / 智能抠图。
+            intArrayOf(
+                R.id.action_share,
+                R.id.action_dislike,
+                R.id.action_mute_illust,
+                R.id.action_flag_illust,
+                R.id.action_show_original,
+                R.id.action_snapshot,
+            ).forEach { id -> baseBind.toolbar.menu?.findItem(id)?.isVisible = false }
+        }
         // 动图(ugoira)的 original 是 zip,加载原图/画质增强/抠图都没法处理,隐藏这几项(对齐 V3 详情页)。
         if (illust.isGif) {
             baseBind.toolbar.menu?.findItem(R.id.action_ai_upscale)?.isVisible = false
@@ -420,6 +527,26 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         // 没有 footer 概念,只能把它当第 tags.size 格来渲染,并在两个监听里按下标提前拦掉 ——
         // 否则 illust.tags[position] 会越界。
         val tags = illust.tags.orEmpty()
+        if (isSnapshotMode) {
+            // 快照只读：标签区不渲染「编辑标签」入口，点击标签也不跳在线搜索。
+            baseBind.synonymMatch.setWorkTags(illust.tags)
+            baseBind.illustTag.adapter = object : TagAdapter<TagsBean>(tags) {
+                override fun getView(parent: FlowLayout, position: Int, s: TagsBean): View {
+                    val tv = LayoutInflater.from(mContext).inflate(
+                        R.layout.recy_single_line_text_new, parent, false
+                    ) as TextView
+                    var tag = s.name
+                    if (!TextUtils.isEmpty(s.translated_name)) {
+                        tag = tag + "/" + s.translated_name
+                    }
+                    tv.text = tag
+                    return tv
+                }
+            }
+            baseBind.illustTag.setOnTagClickListener { _, _, _ -> snapshotUnsupportedToast(); true }
+            baseBind.illustTag.setOnTagLongClickListener { _, _, _ -> snapshotUnsupportedToast(); true }
+            return
+        }
         if (tagSignature != renderedTagSignature) {
             renderedTagSignature = tagSignature
             // 同义词词典「标签匹配关系」框（issue #904）
@@ -567,7 +694,12 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                     } else {
                         val adapter = IllustAdapter(mActivity, this@FragmentIllust, illust, recyHeight, false)
                         baseBind.recyclerView.adapter = adapter
-                        vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
+                        if (isSnapshotMode) {
+                            adapter.setSnapshotId(snapshotId)
+                            applySnapshotLocalPages(adapter)
+                        } else {
+                            vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
+                        }
                     }
                 } else {
                     // 不重建,但 bean 实例可能已被池的 merge 换成新的一份(收藏态就在里面)。
@@ -689,7 +821,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     override fun onResume() {
         super.onResume()
-        checkDownload()
+        if (!isSnapshotMode) checkDownload()
     }
 
     private fun checkDownload() {
@@ -702,6 +834,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         aiHelper = IllustAiHelper(this, baseBind.root)
+        if (isSnapshotMode) return
         val intentFilter = IntentFilter()
         val illust = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong()).value ?: return
         mReceiver = CallBackReceiver { context, intent ->

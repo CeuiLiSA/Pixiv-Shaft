@@ -3007,6 +3007,9 @@
     <string name="snapshot_import_failed">导入失败：%1$s</string>
     <string name="snapshot_export_success">已导出快照</string>
     <string name="snapshot_exporting">正在导出快照…</string>
+    <string name="snapshot_downloaded_label">已离线化</string>
+    <string name="snapshot_unsupported_toast">离线快照不支持此操作</string>
+    <string name="snapshot_no_comments_toast">快照未包含评论</string>
     <string name="snapshot_export_failed">导出失败：%1$s</string>
     <string name="snapshot_open_failed">打开快照失败：%1$s</string>
     <string name="snapshot_create">离线化</string>

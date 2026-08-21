@@ -82,6 +82,15 @@ fun SnapshotViewerData.localizeForViewer(): IllustsBean {
             }
         }
     }
+    bean.user?.profile_image_urls?.let { urls ->
+        local(urls.px_16x16)?.let { urls.px_16x16 = it }
+        local(urls.px_50x50)?.let { urls.px_50x50 = it }
+        local(urls.px_170x170)?.let { urls.px_170x170 = it }
+        local(urls.square_medium)?.let { urls.square_medium = it }
+        local(urls.medium)?.let { urls.medium = it }
+        local(urls.large)?.let { urls.large = it }
+        local(urls.original)?.let { urls.original = it }
+    }
     return bean
 }
 

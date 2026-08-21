@@ -17,6 +17,13 @@ public abstract class AbstractIllustAdapter<VH extends RecyclerView.ViewHolder>
     protected int imageSize;
     protected boolean isForceOriginal;
 
+    /** 快照模式：设置后点击大图走 ImageDetailActivity 的“快照大图”分支。 */
+    protected String snapshotId = null;
+
+    public void setSnapshotId(String snapshotId) {
+        this.snapshotId = snapshotId;
+    }
+
     /**
      * 用最新的 bean 顶掉持有的旧引用，不 notify、不碰视图。
      *
@@ -41,7 +48,10 @@ public abstract class AbstractIllustAdapter<VH extends RecyclerView.ViewHolder>
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, ImageDetailActivity.class);
             intent.putExtra("illust", allIllust);
-            intent.putExtra("dataType", "二级详情");
+            intent.putExtra("dataType", snapshotId != null ? "快照大图" : "二级详情");
+            if (snapshotId != null) {
+                intent.putExtra(ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId);
+            }
             intent.putExtra("index", position);
             // 点击处的屏幕矩形:大图页(透明窗口)从这里展开进场,下拉收掉时缩回同一位置
             int[] loc = new int[2];
