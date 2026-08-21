@@ -28,6 +28,8 @@ import kotlinx.coroutines.withContext
  */
 class SnapshotManagerFragment : Fragment() {
 
+    private enum class SelectionPurpose { EXPORT, DELETE }
+
     private var _binding: ViewpagerWithTablayoutBinding? = null
     private val binding get() = checkNotNull(_binding)
 
@@ -61,6 +63,7 @@ class SnapshotManagerFragment : Fragment() {
     }
 
     private var inSelectionMode = false
+    private var selectionPurpose: SelectionPurpose? = null
     private var activeSelectionTab: SnapshotListFragment? = null
 
     override fun onCreateView(
@@ -99,11 +102,11 @@ class SnapshotManagerFragment : Fragment() {
                     true
                 }
                 R.id.action_batch_export -> {
-                    enterSelectionMode()
+                    enterSelectionMode(SelectionPurpose.EXPORT)
                     true
                 }
                 R.id.action_batch_delete -> {
-                    enterSelectionMode()
+                    enterSelectionMode(SelectionPurpose.DELETE)
                     true
                 }
                 R.id.action_cancel_selection -> {
@@ -145,7 +148,7 @@ class SnapshotManagerFragment : Fragment() {
         return childFragmentManager.findFragmentByTag(tag) as? SnapshotListFragment
     }
 
-    private fun enterSelectionMode() {
+    private fun enterSelectionMode(purpose: SelectionPurpose) {
         if (inSelectionMode) return
         val tab = currentSnapshotTab() ?: return
         if (!tab.hasItems()) {
@@ -153,6 +156,7 @@ class SnapshotManagerFragment : Fragment() {
             return
         }
         inSelectionMode = true
+        selectionPurpose = purpose
         activeSelectionTab = tab
         tab.enterSelectionMode()
         tab.onSelectionCountChanged = { refreshSelectionToolbar() }
@@ -162,6 +166,7 @@ class SnapshotManagerFragment : Fragment() {
     private fun exitSelectionMode() {
         if (!inSelectionMode) return
         inSelectionMode = false
+        selectionPurpose = null
         activeSelectionTab?.onSelectionCountChanged = null
         activeSelectionTab?.exitSelectionMode()
         activeSelectionTab = null
@@ -172,6 +177,8 @@ class SnapshotManagerFragment : Fragment() {
         val menu = binding.toolbar.menu
         menu.setGroupVisible(R.id.group_normal, false)
         menu.setGroupVisible(R.id.group_selection, true)
+        menu.findItem(R.id.action_export_selected)?.isVisible = selectionPurpose != SelectionPurpose.DELETE
+        menu.findItem(R.id.action_delete_selected)?.isVisible = selectionPurpose != SelectionPurpose.EXPORT
         tintMenuIconsWhite()
         binding.toolbar.navigationIcon =
             ContextCompat.getDrawable(requireContext(), R.drawable.ic_close_black_24dp)
