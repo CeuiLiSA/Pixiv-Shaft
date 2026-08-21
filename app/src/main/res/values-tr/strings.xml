@@ -1248,6 +1248,7 @@
     <string name="bookmarks_empty">Henüz konum yer imi yok.\nDaha fazla menüsünden \'Konumu kaydet\' seçin.</string>
     <string name="bookmarks_page_format">Sayfa %d</string>
     <string name="bookmarks_delete_confirm">Bu yer imi silinsin mi?</string>
+    <string name="comment_delete_confirm">Bu yorum silinsin mi? Bu işlem geri alınamaz.</string>
     <string name="annotations_title">Notlar / Vurgular</string>
     <string name="annotations_count">%d adet</string>
     <string name="annotations_empty">Henüz not veya vurgu yok.\nMetne uzun basın → renk seçerek kaydedin.</string>

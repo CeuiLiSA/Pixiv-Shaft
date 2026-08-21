@@ -39,6 +39,8 @@ import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import com.blankj.utilcode.util.BarUtils
 
 /**
@@ -236,16 +238,35 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
             }
             if (isOwn) {
                 item(getString(R.string.string_219), R.drawable.ic_delete_black_24dp) {
-                    launchSuspend { performDelete(comment.id, parentCommentId) }
+                    confirmDelete { launchSuspend { performDelete(comment.id, parentCommentId) } }
                 }
             }
         }
     }
 
     override fun onClickDeleteComment(sender: ProgressTextButton, comment: Comment, parentCommentId: Long) {
-        launchSuspend(sender) {
-            performDelete(comment.id, parentCommentId)
+        confirmDelete {
+            launchSuspend(sender) {
+                performDelete(comment.id, parentCommentId)
+            }
         }
+    }
+
+    /**
+     * 删评论是不可逆操作,卡片上的「删除」按钮又紧挨着回复,已有用户反馈手滑连着误删了好几条——
+     * 两个入口(卡片按钮 / 长按菜单)都先过一道确认,确认后才真正发删除。
+     */
+    private fun confirmDelete(onConfirmed: () -> Unit) {
+        WitDialog.MessageDialogBuilder(requireContext())
+            .setTitle(getString(R.string.string_219))
+            .setMessage(getString(R.string.comment_delete_confirm))
+            .addAction(getString(R.string.cancel)) { d, _ -> d.dismiss() }
+            .addAction(0, getString(R.string.string_219), WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+                d.dismiss()
+                onConfirmed()
+            }
+            .create()
+            .show()
     }
 
     // classic 分支的 TemplateActivity 是裸 FragmentManager,没有 NavHostFragment——

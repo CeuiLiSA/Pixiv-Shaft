@@ -1248,6 +1248,7 @@
     <string name="bookmarks_empty">위치 북마크가 없습니다.\n더보기 메뉴에서 \'위치 저장\'을 탭하세요.</string>
     <string name="bookmarks_page_format">%d 페이지</string>
     <string name="bookmarks_delete_confirm">이 북마크를 삭제하시겠습니까?</string>
+    <string name="comment_delete_confirm">이 댓글을 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다.</string>
     <string name="annotations_title">메모 / 하이라이트</string>
     <string name="annotations_count">%d 개</string>
     <string name="annotations_empty">메모나 하이라이트가 없습니다.\n텍스트를 길게 눌러 → 색상을 선택하여 저장하세요.</string>
