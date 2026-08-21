@@ -2674,7 +2674,7 @@
     <string name="nana7mi_usage_retry">Yeniden denemek için dokunun</string>
     <string name="nana7mi_usage_login_required">Kullanımı görmek için giriş yapın</string>
     <string name="nana7mi_usage_cta_title">Daha fazla kullanım</string>
-    <string name="nana7mi_usage_plan_price">¥%1$d</string>
+    <string name="nana7mi_usage_plan_price">¥%1$s</string>
     <string name="nana7mi_usage_plan_period">/ ay</string>
     <string name="nana7mi_usage_plan_badge">Daha avantajlı</string>
     <string name="nana7mi_usage_plan_current">Mevcut plan</string>

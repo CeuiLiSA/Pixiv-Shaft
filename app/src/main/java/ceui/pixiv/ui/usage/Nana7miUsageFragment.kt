@@ -111,8 +111,8 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
          * 在售的档位，按价格从低到高。这份表要和爱发电上真实挂着的方案对齐 —— app 这边
          * 只是把价格提前摆出来，收款和发货都以爱发电回来的订单为准，两边不一致会当场翻车。
          *
-         * [Plan.bestValue] 不是随手贴的标签：20x 的单价是 ¥2/x，5x 是 ¥4/x，确实更划算。
-         * 改价之后记得重算，别让这个徽章说谎。
+         * [Plan.bestValue] 不是随手贴的标签：20x 的单价是 ¥0.995/x，5x 是 ¥1.98/x，确实
+         * 更划算。改价之后记得重算，别让这个徽章说谎。
          *
          * 卖点只说**倍率**，不说绝对次数 —— 和这页顶上那条规矩是同一条：上限是服务端可调的
          * 运营参数，写进卖点就成了承诺，以后调小就变成「砍额度」。
@@ -122,7 +122,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
                 key = PLAN_PRO,
                 titleRes = R.string.nana7mi_usage_plan_5x_title,
                 descRes = R.string.nana7mi_usage_plan_5x_desc,
-                monthlyYuan = 20,
+                monthlyYuan = 9.9,
                 multiplier = 5,
                 brand = Brand(a1 = 0xFF5BB0FF.toInt(), tint = 0xFF2E7BD6.toInt(),
                     base = 0xFF0B1526.toInt()),
@@ -131,7 +131,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
                 key = PLAN_MAX,
                 titleRes = R.string.nana7mi_usage_plan_20x_title,
                 descRes = R.string.nana7mi_usage_plan_20x_desc,
-                monthlyYuan = 40,
+                monthlyYuan = 19.9,
                 multiplier = 20,
                 brand = Brand(a1 = 0xFFFFC85C.toInt(), tint = 0xFFC77A16.toInt(),
                     base = 0xFF150E04.toInt()),
@@ -145,7 +145,8 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         val key: String,
         @StringRes val titleRes: Int,
         @StringRes val descRes: Int,
-        val monthlyYuan: Int,
+        /** 元，可以带小数（¥9.9）。渲染走 [priceText]，别直接塞进 format。 */
+        val monthlyYuan: Double,
         val multiplier: Int,
         val brand: Brand,
         val bestValue: Boolean = false,
@@ -353,7 +354,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
             else -> getString(plan.descRes)
         }
         card.findViewById<TextView>(R.id.plan_price).apply {
-            text = getString(R.string.nana7mi_usage_plan_price, plan.monthlyYuan)
+            text = priceText(plan.monthlyYuan)
             setTextColor(accent)
         }
         // 分隔线跟着品牌色走一档很淡的，用中性发丝线会在一张有色卡片上显脏。
@@ -378,6 +379,20 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         }
         bindFeatures(card.findViewById(R.id.plan_features), plan, accent)
         bindCta(card, plan, isCurrent = current != null, belowOwned = belowOwned)
+    }
+
+    /**
+     * 价格读数。爱发电上挂的是 ¥9.9 / ¥19.9，所以这里必须能显示小数位。
+     *
+     * 两个刻意的地方：整数价（真出现 ¥29 这种档位时）不补 `.0`；小数点固定用 [Locale.US]
+     * 格式化 —— 俄语/土耳其语环境下 `%.2f` 会出「9,9」，而用户在爱发电结账页上看到的是
+     * 「9.9」，两处对不上会让人以为点错了档。货币符号在 string 资源里，不进这里。
+     */
+    private fun priceText(yuan: Double): String {
+        val amount =
+            if (yuan == Math.floor(yuan)) yuan.toLong().toString()
+            else String.format(Locale.US, "%.2f", yuan).trimEnd('0').trimEnd('.')
+        return getString(R.string.nana7mi_usage_plan_price, amount)
     }
 
     /** 同一个色相压到指定不透明度。品牌色只有四个定值，其余层次都从它们派生。 */

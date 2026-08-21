@@ -2674,7 +2674,7 @@
     <string name="nana7mi_usage_retry">Tap to retry</string>
     <string name="nana7mi_usage_login_required">Log in to see your usage</string>
     <string name="nana7mi_usage_cta_title">Unlock more usage</string>
-    <string name="nana7mi_usage_plan_price">¥%1$d</string>
+    <string name="nana7mi_usage_plan_price">¥%1$s</string>
     <string name="nana7mi_usage_plan_period">/ mo</string>
     <string name="nana7mi_usage_plan_badge">Better value</string>
     <string name="nana7mi_usage_plan_current">Current plan</string>

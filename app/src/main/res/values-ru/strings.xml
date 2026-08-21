@@ -2674,7 +2674,7 @@
     <string name="nana7mi_usage_retry">Нажмите, чтобы повторить</string>
     <string name="nana7mi_usage_login_required">Войдите, чтобы увидеть использование</string>
     <string name="nana7mi_usage_cta_title">Больше лимита</string>
-    <string name="nana7mi_usage_plan_price">¥%1$d</string>
+    <string name="nana7mi_usage_plan_price">¥%1$s</string>
     <string name="nana7mi_usage_plan_period">/ мес</string>
     <string name="nana7mi_usage_plan_badge">Выгоднее</string>
     <string name="nana7mi_usage_plan_current">Текущий план</string>

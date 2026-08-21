@@ -2674,7 +2674,7 @@
     <string name="nana7mi_usage_retry">タップして再試行</string>
     <string name="nana7mi_usage_login_required">ログインすると使用状況を確認できます</string>
     <string name="nana7mi_usage_cta_title">さらに使えるようにする</string>
-    <string name="nana7mi_usage_plan_price">¥%1$d</string>
+    <string name="nana7mi_usage_plan_price">¥%1$s</string>
     <string name="nana7mi_usage_plan_period">/ 月</string>
     <string name="nana7mi_usage_plan_badge">お得</string>
     <string name="nana7mi_usage_plan_current">現在のプラン</string>

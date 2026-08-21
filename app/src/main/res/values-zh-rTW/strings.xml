@@ -2676,7 +2676,7 @@
     <string name="nana7mi_usage_retry">點擊重試</string>
     <string name="nana7mi_usage_login_required">登入後可查看用量</string>
     <string name="nana7mi_usage_cta_title">解鎖更多用量</string>
-    <string name="nana7mi_usage_plan_price">¥%1$d</string>
+    <string name="nana7mi_usage_plan_price">¥%1$s</string>
     <string name="nana7mi_usage_plan_period">/ 月</string>
     <string name="nana7mi_usage_plan_badge">更划算</string>
     <string name="nana7mi_usage_plan_current">目前方案</string>

@@ -2674,7 +2674,7 @@
     <string name="nana7mi_usage_retry">탭하여 다시 시도</string>
     <string name="nana7mi_usage_login_required">로그인하면 사용량을 볼 수 있습니다</string>
     <string name="nana7mi_usage_cta_title">사용량 더 늘리기</string>
-    <string name="nana7mi_usage_plan_price">¥%1$d</string>
+    <string name="nana7mi_usage_plan_price">¥%1$s</string>
     <string name="nana7mi_usage_plan_period">/ 월</string>
     <string name="nana7mi_usage_plan_badge">더 이득</string>
     <string name="nana7mi_usage_plan_current">현재 요금제</string>
