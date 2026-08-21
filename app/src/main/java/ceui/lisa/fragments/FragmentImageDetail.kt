@@ -83,6 +83,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private val mIllustsBean: IllustsBean?
         get() = (activity as? ImageDetailActivity)?.mIllustsBean
 
+    private val isSnapshotMode: Boolean
+        get() = (activity as? ImageDetailActivity)?.isSnapshotMode == true
+
     /**
      * 延迟派发过来的手势回调，现在还能不能安全地碰 fragment 的东西。
      *
@@ -484,7 +487,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         // 仅当原图还没在查看器缓存里时才查库：正常浏览(原图已在 TaskPool 缓存)直接走原同步
         // 快路径，零 DB 开销、即时显示；真正要修的「下载过但查看器没缓存」才值得多查一次库。
         val illust = mIllustsBean
-        if (!isUrlMode && illust != null && !illust.isGif() && ImageLoaderV3.peekFile(imageUrl) == null) {
+        if (!isSnapshotMode && !isUrlMode && illust != null && !illust.isGif() && ImageLoaderV3.peekFile(imageUrl) == null) {
             // 原图尚未就绪（典型：一级详情页 B「展示原图」关，只显了 large）。先用 B 已加载的 large
             // 秒铺底，原图并行下好再盖上——避免大图页只剩一个转圈的空白等待。原图已在缓存
             // （peekFile 命中，通常是「展示原图」开时 B 已下好）则不进本分支，直接秒显原图，无需占位。

@@ -40,6 +40,51 @@ fun SnapshotViewerData.localizeIllust(): IllustsBean {
     return localized
 }
 
+/**
+ * 生成专门给现有 ImageDetailActivity / FragmentImageDetail 用的 bean：
+ * 每一页的 large/original 都指向快照里实际存在的那一个本地文件，避免查看器按 ORIGINAL 回源。
+ */
+fun SnapshotViewerData.localizeForViewer(): IllustsBean {
+    val bean = Shaft.sGson.fromJson(Shaft.sGson.toJson(illust), IllustsBean::class.java)
+    fun local(url: String?): String? {
+        if (url.isNullOrBlank()) return null
+        val rel = assets[url] ?: return url
+        return snapshotLocalUrl(manifest.snapshotId, rel)
+    }
+    bean.image_urls?.let { urls ->
+        val chosen = if (manifest.includeOriginal) urls.original else urls.large ?: urls.medium
+        local(chosen)?.let { localUrl ->
+            urls.original = localUrl
+            urls.large = localUrl
+            urls.medium = localUrl
+        }
+    }
+    if (bean.page_count <= 1) {
+        val chosen = bean.meta_single_page?.original_image_url
+            ?: bean.image_urls?.original
+            ?: bean.image_urls?.large
+            ?: bean.image_urls?.medium
+        local(chosen)?.let { localUrl ->
+            bean.meta_single_page?.original_image_url = localUrl
+            bean.meta_single_page?.original = localUrl
+            bean.image_urls?.original = localUrl
+            bean.image_urls?.large = localUrl
+            bean.image_urls?.medium = localUrl
+        }
+    } else {
+        bean.meta_pages?.forEach { page ->
+            val chosen = if (manifest.includeOriginal) page.image_urls?.original
+                else page.image_urls?.large ?: page.image_urls?.medium
+            local(chosen)?.let { localUrl ->
+                page.image_urls?.original = localUrl
+                page.image_urls?.large = localUrl
+                page.image_urls?.medium = localUrl
+            }
+        }
+    }
+    return bean
+}
+
 /** 把快照评论本地化：评论者头像和表情章 URL 改成 shaftsnap://。 */
 fun SnapshotViewerData.localizeComment(comment: Comment): Comment {
     val localizedUser = comment.user.copy(

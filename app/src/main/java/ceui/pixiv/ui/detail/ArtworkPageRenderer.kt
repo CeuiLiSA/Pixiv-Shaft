@@ -8,8 +8,11 @@ import ceui.lisa.databinding.RecyIllustDetailBinding
 import ceui.lisa.models.IllustsBean
 import ceui.loxia.ObjectPool
 import ceui.pixiv.feeds.FeedItem
+import android.content.Intent
+import ceui.lisa.activities.ImageDetailActivity
+import ceui.lisa.utils.Params
 import ceui.pixiv.feeds.feedRenderer
-import ceui.pixiv.snapshot.SnapshotImageViewerDialogFragment
+import ceui.pixiv.snapshot.SnapshotManagerFragment
 
 /**
  * 顶部大图 —— 逐页原生 [FeedItem],外层瀑布流回收每页。
@@ -64,9 +67,14 @@ internal fun ArtworkV3Fragment.artworkPageRenderer() =
         cell.itemView.setTag(R.id.tag_artwork_page_adapter, adapter)
         adapter.onBindViewHolder(ViewHolder(cell.binding), cell.item.pageIndex)
         if (isSnapshotMode) {
-            // 快照只读：点大图打开本地快照大图查看器，长按仍禁用下载。
+            // 快照只读：点大图复用现有 ImageDetailActivity，但走“快照大图”本地模式。
             cell.itemView.setOnClickListener {
-                snapshotId?.let { SnapshotImageViewerDialogFragment.show(childFragmentManager, it, cell.item.pageIndex) }
+                val snapshot = snapshotId ?: return@setOnClickListener
+                val intent = Intent(requireContext(), ImageDetailActivity::class.java)
+                intent.putExtra("dataType", "快照大图")
+                intent.putExtra("index", cell.item.pageIndex)
+                intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshot)
+                startActivity(intent)
             }
             cell.itemView.setOnLongClickListener(null)
         }

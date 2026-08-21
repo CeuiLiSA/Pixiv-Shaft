@@ -59,6 +59,11 @@ import ceui.pixiv.ui.upscale.UpscaleStatus
 import ceui.pixiv.ui.upscale.UpscaleTask
 import ceui.pixiv.ui.upscale.UpscaleTaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
+import ceui.pixiv.snapshot.SnapshotManagerFragment
+import ceui.pixiv.snapshot.SnapshotRepository
+import ceui.pixiv.snapshot.SnapshotRuntimeCache
+import ceui.pixiv.snapshot.SnapshotViewerData
+import ceui.pixiv.snapshot.localizeForViewer
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import com.blankj.utilcode.util.BarUtils
@@ -84,6 +89,9 @@ import timber.log.Timber
 class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     var mIllustsBean: IllustsBean? = null
         private set
+
+    val isSnapshotMode: Boolean
+        get() = "快照大图" == intent.getStringExtra("dataType")
     private val translationViewModel by viewModels<ImageTranslationViewModel>()
 
     private var localIllust: List<String>? = ArrayList()
@@ -252,6 +260,14 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     )
                 )
             }
+        } else if (isSnapshotMode) {
+            // 快照大图：复用现有查看器，但只读本地快照文件，隐藏下载/收藏/AI 入口。
+            findViewById<View>(R.id.btn_ai_menu).visibility = View.GONE
+            findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
+            findViewById<View>(R.id.download_this_one).visibility = View.GONE
+            currentPage = findViewById(R.id.current_page)
+            index = intent.getIntExtra("index", 0)
+            setupSnapshotViewer()
         } else if (ceui.pixiv.ui.common.ImageUrlViewer.DATA_TYPE_URL_SINGLE == dataType) {
             findViewById<View>(R.id.btn_ai_menu).visibility = View.GONE
             findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
@@ -332,6 +348,66 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      * 松手过阈值走统一收场(缩回缩略图矩形或沿手势方向淡出),否则回弹。进场从发起端带来的
      * [EXTRA_ENTER_BOUNDS] 缩略图矩形展开,没带则居中放大淡入。
      */
+
+    /**
+     * 快照大图查看器：复用现有 ImageDetailActivity / FragmentImageDetail，
+     * 但数据源全部来自快照本地文件，隐藏下载/收藏/AI 入口。
+     */
+    private fun setupSnapshotViewer() {
+        val snapshotId = intent.getStringExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
+        if (snapshotId.isNullOrEmpty()) {
+            finish()
+            return
+        }
+        val cached = SnapshotRuntimeCache.get(snapshotId)
+        if (cached != null) {
+            bindSnapshotViewer(cached)
+            return
+        }
+        lifecycleScope.launch {
+            val data = withContext(Dispatchers.IO) {
+                SnapshotRepository.loadViewerData(applicationContext, snapshotId)
+            }
+            SnapshotRuntimeCache.put(snapshotId, data)
+            bindSnapshotViewer(data)
+        }
+    }
+
+    private fun bindSnapshotViewer(data: SnapshotViewerData) {
+        if (isFinishing || isDestroyed) return
+        mIllustsBean = data.localizeForViewer()
+        val bean = mIllustsBean ?: return
+        val pageCount = bean.page_count.coerceAtLeast(1)
+        baseBind!!.viewPager.adapter = object : FragmentPagerAdapter(
+            supportFragmentManager
+        ) {
+            override fun getItem(i: Int): Fragment {
+                return FragmentImageDetail.newInstance(i)
+            }
+
+            override fun getCount(): Int = pageCount
+        }
+        baseBind!!.viewPager.currentItem = index.coerceIn(0, pageCount - 1)
+        currentPage?.apply {
+            if (pageCount <= 1) {
+                visibility = View.INVISIBLE
+            } else {
+                visibility = View.VISIBLE
+                text = String.format(
+                    Locale.getDefault(), "第 %d/%d P", index.coerceIn(0, pageCount - 1) + 1, pageCount
+                )
+            }
+        }
+        baseBind!!.viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+            override fun onPageScrolled(i: Int, v: Float, i1: Int) = Unit
+            override fun onPageSelected(i: Int) {
+                currentPage?.setText(
+                    String.format(Locale.getDefault(), "第 %d/%d P", i + 1, pageCount)
+                )
+            }
+            override fun onPageScrollStateChanged(i: Int) = Unit
+        })
+    }
     private fun setupViewerTransition(btnAi: View) {
         val rootLayout = baseBind!!.root as DragDismissLayout
         val chrome = listOfNotNull(baseBind?.bottomRela, btnAi)

@@ -10,10 +10,12 @@ import com.bumptech.glide.annotation.GlideModule;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.module.AppGlideModule;
 
+import java.io.File;
 import java.io.InputStream;
 
 import ceui.lisa.activities.Shaft;
 import ceui.pixiv.snapshot.SnapshotAwareGlideUrlLoader;
+import ceui.pixiv.snapshot.SnapshotLocalFileLoader;
 
 @GlideModule
 @Excludes(com.bumptech.glide.integration.okhttp3.OkHttpLibraryGlideModule.class)
@@ -32,6 +34,7 @@ public class GlideConfiguration extends AppGlideModule {
         //「响应已到达、请求随后被取消」(列表快速滑动)时会遗弃打开的 response body,
         //刷屏 "A connection to https://i.pximg.net/ was leaked",详见该类注释。
         registry.replace(GlideUrl.class, InputStream.class, new SnapshotAwareGlideUrlLoader.Factory(application.getOkHttpClient()));
+        registry.append(GlideUrl.class, File.class, new SnapshotLocalFileLoader.Factory());
     }
 
     @Override
