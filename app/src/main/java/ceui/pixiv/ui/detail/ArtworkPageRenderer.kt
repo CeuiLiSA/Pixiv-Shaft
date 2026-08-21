@@ -9,6 +9,7 @@ import ceui.lisa.models.IllustsBean
 import ceui.loxia.ObjectPool
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.feedRenderer
+import ceui.pixiv.snapshot.SnapshotImageViewerDialogFragment
 
 /**
  * 顶部大图 —— 逐页原生 [FeedItem],外层瀑布流回收每页。
@@ -63,8 +64,10 @@ internal fun ArtworkV3Fragment.artworkPageRenderer() =
         cell.itemView.setTag(R.id.tag_artwork_page_adapter, adapter)
         adapter.onBindViewHolder(ViewHolder(cell.binding), cell.item.pageIndex)
         if (isSnapshotMode) {
-            // 快照只读：点大图/长按都不允许进入在线大图查看或下载，避免触发网络原图请求。
-            cell.itemView.setOnClickListener(null)
+            // 快照只读：点大图打开本地快照大图查看器，长按仍禁用下载。
+            cell.itemView.setOnClickListener {
+                snapshotId?.let { SnapshotImageViewerDialogFragment.show(childFragmentManager, it, cell.item.pageIndex) }
+            }
             cell.itemView.setOnLongClickListener(null)
         }
     }

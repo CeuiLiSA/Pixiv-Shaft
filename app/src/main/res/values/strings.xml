@@ -3009,6 +3009,7 @@
     <string name="snapshot_include_original">使用原图</string>
     <string name="snapshot_ok">开始</string>
     <string name="snapshot_preparing">准备离线快照…</string>
+    <string name="snapshot_page_indicator_format">%1$d / %2$d</string>
     <string name="snapshot_generate_success">已生成离线快照</string>
     <string name="snapshot_generate_failed">生成失败：%1$s</string>
 </resources>
