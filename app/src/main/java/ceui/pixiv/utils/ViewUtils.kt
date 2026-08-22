@@ -9,7 +9,6 @@ import android.graphics.*
 import android.os.Build
 import android.text.StaticLayout
 import android.text.TextPaint
-import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.util.Size
 import android.util.TypedValue
@@ -26,7 +25,6 @@ import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
@@ -312,49 +310,6 @@ fun List<View>.makeOneSelected(selected: View?) {
     }
 }
 
-class InterceptTouchFrameLayout(context: Context, attrs: AttributeSet?, defStyle: Int, defStyleRes: Int)
-    : FrameLayout(context, attrs, defStyle, defStyleRes) {
-
-    constructor(context: Context) : this(context, null, 0, 0)
-
-    constructor(context: Context, attrs: AttributeSet?): this(context, attrs, 0, 0)
-
-    constructor(context: Context, attrs: AttributeSet?, defStyle: Int): this(context, attrs, defStyle, 0)
-
-    override fun onInterceptTouchEvent(ev: MotionEvent?): Boolean {
-        return true
-    }
-}
-
-object Justify {
-
-    data class LayoutInfo(val maxChildCount: Int, val actualSpacing: Float)
-
-    fun getColumnLayoutInfo(availableWidth: Float, childWidth: Float, minSpacing: Float): LayoutInfo {
-        require(childWidth > 10)
-
-        var consumedWidth = 0F
-        var triedChildCount = 0
-        while (consumedWidth < availableWidth) {
-            consumedWidth += childWidth
-            if (triedChildCount != 0) {
-                consumedWidth += minSpacing
-            }
-
-            ++triedChildCount
-        }
-
-        val maxChildCount = if (triedChildCount == 0) 0 else (triedChildCount - 1)
-        if (maxChildCount <= 1) {
-            return LayoutInfo(maxChildCount, 0F)
-        }
-
-        val actualSpacing = (availableWidth - maxChildCount * childWidth).toFloat() / (maxChildCount - 1)
-
-        return LayoutInfo(maxChildCount, actualSpacing)
-    }
-}
-
 fun measureChildNoPadding(
     child: View,
     parentWidthMeasureSpec: Int,
@@ -372,10 +327,6 @@ fun measureChildNoPadding(
     child.measure(childWidthMeasureSpec, childHeightMeasureSpec)
 }
 
-
-class TypingTextViewModel: ViewModel() {
-    val text = MutableLiveData("")
-}
 
 fun ViewPager2.addOnPageSelectedListener(listener: (position: Int) -> Unit) {
     registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {

@@ -11,8 +11,6 @@ import kotlinx.parcelize.Parcelize
 import java.io.Serializable
 
 
-
-
 data class AccountResponse(
     val access_token: String? = null,
     val expires_in: Int? = null,
@@ -407,11 +405,6 @@ data class ErrorResponse(
     val error: Error? = null
 ) : Serializable
 
-data class WebApiError(
-    val error: Boolean? = null,
-    val message: String? = null,
-) : Serializable
-
 data class Error(
     val message: String? = null,
     val reason: String? = null,
@@ -599,10 +592,6 @@ data class ZipUrl(
 data class GifFrame(
     val file: String? = null,
     val delay: Int? = null,
-) : Serializable
-
-data class AddCommentResponse(
-    val comment: Comment? = null,
 ) : Serializable
 
 data class Comment(
@@ -875,27 +864,6 @@ data class WebNovelCoverUrls(
     val original: String? = null,
 ) : Serializable
 
-data class RelatedUserBody (
-    val thumbnails: List<WebIllust>? = null,
-    val users: List<WebUser>? = null,
-) : Serializable
-
-data class WebRecmdBody (
-    val thumbnails: List<WebIllust>? = null,
-    val popularTags: TagsBody? = null,
-    val recommendTags: TagsBody? = null,
-    val recommendByTags: TagsBody? = null,
-) : Serializable
-
-
-data class TagsBody (
-    val illust: List<SingleRecommend>? = null,
-) : Serializable
-
-data class SingleRecommend (
-    val tag: String? = null,
-    val ids: List<Long>? = null,
-) : Serializable
 
 data class WebUser(
     val userId: Long? = null,
@@ -912,24 +880,6 @@ data class WebUser(
     val acceptRequest: Boolean? = null
 ) : Serializable
 
-
-data class TitleCaptionTranslation(
-    val workCaption: Any,
-    val workTitle: Any
-) : Serializable
-
-data class WaitingPage (
-    val thumbnails: ThumbnailBody? = null
-) : Serializable
-
-
-data class ThumbnailBody (
-    val illust: List<WebIllust>? = null,
-) : Serializable
-
-data class ListIllustBody (
-    val illusts: List<WebIllust>? = null,
-) : Serializable
 
 data class Novel(
     val caption: String? = null,
@@ -1021,15 +971,6 @@ data class SeriesNavigation(
     val prevNovel: NovelBean? = null
 )
 
-data class NextNovel(
-    val contentOrder: String? = null,
-    val coverUrl: String? = null,
-    val id: Int? = null,
-    val title: String? = null,
-    val viewable: Boolean? = null,
-    val viewableMessage: Any? = null
-)
-
 
 data class WebNovel(
     val aiType: Int? = null,
@@ -1057,7 +998,6 @@ data class WebIllustHolder(
     val id: Long? = null,
     val user: WebUser? = null
 ) : Serializable
-
 
 
 data class NovelImages(
