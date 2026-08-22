@@ -6,7 +6,7 @@ import ceui.lisa.cache.Cache
 import ceui.lisa.file.LegacyFile
 import ceui.lisa.http.Retro
 import ceui.lisa.models.GifResponse
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Params
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.UgoiraDownloadRecord
@@ -61,7 +61,7 @@ import kotlin.coroutines.coroutineContext
  *   等价于无锁。
  */
 suspend fun downloadUgoira(
-    illust: IllustsBean,
+    illust: Illust,
     encodeSem: Semaphore = Semaphore(Int.MAX_VALUE),
     onPhase: (UgoiraPhase) -> Unit = {},
 ) = withContext(Dispatchers.IO) {
@@ -125,7 +125,7 @@ suspend fun downloadUgoira(
     val resp: GifResponse = if (cached?.ugoira_metadata != null) {
         cached
     } else {
-        val fetched = Retro.getAppApiSuspend().getGifPackage(illustId)
+        val fetched = Retro.getAppApiSuspend().getGifPackage(illustId.toInt())
         runCatching { Cache.get().saveModel(Params.ILLUST_ID + "_" + illustId, fetched) }
         fetched
     }

@@ -1,7 +1,7 @@
 package ceui.pixiv.download
 
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.ui.task.DownloadNovelTask
@@ -40,7 +40,7 @@ object IllustCaptionExporter {
      * 开关关闭 / 无简介 / 不支持的 type / 字数不够时在调用线程上直接返回，不起协程。
      */
     @JvmStatic
-    fun export(illust: IllustsBean?) {
+    fun export(illust: Illust?) {
         if (!Shaft.sSettings.isAutoExportIllustCaption) return
         if (illust == null) return
         if (illust.type !in SUPPORTED_TYPES) return
@@ -52,7 +52,7 @@ object IllustCaptionExporter {
         scope.launch { write(illust, caption) }
     }
 
-    private fun write(illust: IllustsBean, caption: String) {
+    private fun write(illust: Illust, caption: String) {
         try {
             val destination = DownloadItems.illustCaptionDestination(illust)
             // openRaw 返回 null = Skip 策略且文件已存在，按策略跳过。
@@ -72,7 +72,7 @@ object IllustCaptionExporter {
         }
     }
 
-    private fun buildContent(illust: IllustsBean, caption: String): String {
+    private fun buildContent(illust: Illust, caption: String): String {
         val sb = StringBuilder()
         sb.append("标题：").append(illust.title.orEmpty()).append("\n\n")
         sb.append("作者：").append(illust.user?.name.orEmpty()).append("\n\n")

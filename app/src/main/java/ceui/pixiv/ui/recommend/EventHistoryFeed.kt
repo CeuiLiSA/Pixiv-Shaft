@@ -11,7 +11,7 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.CellEventHistoryBinding
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.models.NovelBean
 import ceui.lisa.models.UserBean
 import ceui.lisa.network.ShaftApiV2
@@ -34,7 +34,7 @@ import timber.log.Timber
 
 /**
  * 操作记录列表（feeds 框架版）。原 EventHistoryHolder + CommonAdapter 迁到标准 FeedSource/Renderer。
- * item.meta 里塞了原始 IllustsBean / NovelBean / UserBean，[EventHistoryFeedItem.parsed] lazy 反序列化一次。
+ * item.meta 里塞了原始 Illust / NovelBean / UserBean，[EventHistoryFeedItem.parsed] lazy 反序列化一次。
  */
 data class EventHistoryFeedItem(val item: ShaftApiV2.EventHistoryItem) : FeedItem {
     override val feedKey: Any get() = item.id
@@ -77,7 +77,7 @@ private fun parseTarget(targetType: String, meta: JsonElement?): ParsedTarget? {
     return try {
         when (targetType) {
             "illust", "manga" -> {
-                val bean = gson.fromJson(obj, IllustsBean::class.java) ?: return null
+                val bean = gson.fromJson(obj, Illust::class.java) ?: return null
                 ParsedTarget(
                     title = bean.title ?: "",
                     thumbUrl = bean.image_urls?.medium ?: bean.image_urls?.square_medium,

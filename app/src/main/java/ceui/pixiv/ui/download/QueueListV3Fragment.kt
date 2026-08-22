@@ -25,7 +25,7 @@ import ceui.lisa.core.Container
 import ceui.lisa.core.Manager
 import ceui.lisa.core.PageData
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.loxia.ObjectPool
@@ -213,7 +213,7 @@ class QueueListV3Fragment : Fragment() {
      * 多张 image 的 original 直链。
      *
      * **不能**走 [DownloadQueueDao.pageActiveLight] —— light projection 没
-     * illustGson，没法重建 IllustsBean 拿到 meta_pages / meta_single_page。
+     * illustGson，没法重建 Illust 拿到 meta_pages / meta_single_page。
      * 这里走 [DownloadQueueDao.pageActive] 拉带 illustGson 的完整 entity，
      * 反序列化后用 [originalUrlsOf] 抽 url。
      *
@@ -233,7 +233,7 @@ class QueueListV3Fragment : Fragment() {
                     if (!seen.add(row.illustId)) continue
                     val json = row.illustGson?.takeIf { it.isNotEmpty() } ?: continue
                     val illust = runCatching {
-                        Shaft.sGson.fromJson(json, ceui.lisa.models.IllustsBean::class.java)
+                        Shaft.sGson.fromJson(json, ceui.loxia.Illust::class.java)
                     }.getOrNull() ?: continue
                     out.addAll(originalUrlsOf(illust))
                 }
@@ -243,7 +243,7 @@ class QueueListV3Fragment : Fragment() {
         }
     }
 
-    private fun openVActivity(ctx: android.content.Context, bean: IllustsBean) {
+    private fun openVActivity(ctx: android.content.Context, bean: Illust) {
         val pageData = PageData(listOf(bean))
         Container.get().addPageToMap(pageData)
         startActivity(Intent(ctx, VActivity::class.java).apply {
@@ -301,11 +301,11 @@ private object QueueDiff : DiffUtil.ItemCallback<DownloadQueueRow>() {
  * 可被外层协程 cancel；视口外的 VH 在 [QueueAdapterV3.onViewRecycled] 里 cancel
  * 自己的 loadJob，避免无效解析继续跑。
  */
-private suspend fun loadIllustForRow(dao: DownloadQueueDao, rowId: Long): IllustsBean? =
+private suspend fun loadIllustForRow(dao: DownloadQueueDao, rowId: Long): Illust? =
     withContext(Dispatchers.IO) {
         val ent = runCatching { dao.getById(rowId) }.getOrNull() ?: return@withContext null
         val json = ent.illustGson?.takeIf { it.isNotEmpty() } ?: return@withContext null
-        runCatching { Shaft.sGson.fromJson(json, IllustsBean::class.java) }.getOrNull()
+        runCatching { Shaft.sGson.fromJson(json, Illust::class.java) }.getOrNull()
     }
 
 private class QueueAdapterV3(
@@ -394,7 +394,7 @@ private class QueueAdapterV3(
         h.boundIllustId = -1L
     }
 
-    private fun renderIllust(h: VH, item: DownloadQueueRow, illust: IllustsBean) {
+    private fun renderIllust(h: VH, item: DownloadQueueRow, illust: Illust) {
         h.title.text = illust.title.orEmpty().ifBlank { "illustId ${item.illustId}" }
         h.author.text = illust.user?.name?.let { "by: $it" } ?: ""
         // 64dp 方 thumb 用 square_medium 减体积; square_medium 缺时 medium → large

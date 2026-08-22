@@ -31,7 +31,7 @@ import java.util.Locale
  *      cacheDir/externalCacheDir 归为「缓存」,其余归为「用户数据」—— 报告里两边
  *      都列,直接对得上系统设置的数字。
  *   2. Room 表行数 + `illustGson` 列总字节:`illust_download_table`(每个下载页
- *      一条) 跟 `download_queue` (每个 enqueue illust 一条) 都把整段 IllustsBean
+ *      一条) 跟 `download_queue` (每个 enqueue illust 一条) 都把整段 Illust
  *      JSON 当字符串存,这是 3 GB 的主要嫌疑犯,直接查总长就能定论。
  *   3. `cache/staging_dl/` 残留:批量下载写盘前先 stream 到本地 stage 文件,commit
  *      到 MediaStore/SAF 后 `stageFile.delete()`(Manager.java:812)。如果有泄漏
@@ -154,8 +154,8 @@ class BulkDownloadDebugFragment : Fragment(R.layout.fragment_bulk_download_debug
             val db = AppDatabase.getAppDatabase(ctx).openHelper.readableDatabase
             // 行数:能确认表存在就查,不存在就 catch 后跳过(不同版本表名可能改)
             listOf(
-                "illust_download_table" to "illustGson",   // 每个下载页一行,含完整 IllustsBean JSON
-                "download_queue" to "illustGson",          // 每个 enqueue illust 一行,含完整 IllustsBean JSON
+                "illust_download_table" to "illustGson",   // 每个下载页一行,含完整 Illust JSON
+                "download_queue" to "illustGson",          // 每个 enqueue illust 一行,含完整 Illust JSON
                 "illust_downloading_table" to "taskGson",  // 进行中任务,含 DownloadItem JSON
                 "illust_table" to null,                    // 浏览历史
                 "feature_table" to null,

@@ -3,7 +3,7 @@ package ceui.lisa.file
 import android.content.Context
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.UgoiraDownloadRecord
@@ -27,7 +27,7 @@ object OutPut {
      * 不是设置里选了什么 —— 压制失败时保存链路会降级出 GIF,那时候名字和 mime 都得跟着是 GIF。
      */
     @JvmStatic
-    fun outPutUgoira(context: Context, from: File, illust: IllustsBean, asVideo: Boolean) {
+    fun outPutUgoira(context: Context, from: File, illust: Illust, asVideo: Boolean) {
         try {
             val handle = DownloadsRegistry.downloads.open(DownloadItems.ugoira(illust, asVideo))
             if (handle == null) {

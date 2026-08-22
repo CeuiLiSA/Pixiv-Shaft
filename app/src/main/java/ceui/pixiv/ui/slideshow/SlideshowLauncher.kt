@@ -4,16 +4,15 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import ceui.lisa.download.IllustDownload
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
-import ceui.loxia.Illust
 import timber.log.Timber
 
 object SlideshowLauncher {
 
     /**
-     * Launch the slideshow from a V2 list of [IllustsBean]. Single-page illusts contribute their
+     * Launch the slideshow from a V2 list of [Illust]. Single-page illusts contribute their
      * one image; multi-page illusts contribute every page in order. The slideshow plays at ORIGINAL
      * resolution, falling back to LARGE if the original URL is missing.
      */
@@ -21,7 +20,7 @@ object SlideshowLauncher {
     @JvmOverloads
     fun launchFromIllustsBeans(
         context: Context,
-        list: List<IllustsBean>,
+        list: List<Illust>,
         startListIndex: Int,
         random: Boolean = true,
     ) {
@@ -30,10 +29,10 @@ object SlideshowLauncher {
         var startUrlIndex = 0
         var seenStart = false
         list.forEachIndexed { i, illust ->
-            if (illust.getPage_count() <= 0) return@forEachIndexed
-            val baseTitle = illust.getTitle().orEmpty()
+            if (illust.page_count <= 0) return@forEachIndexed
+            val baseTitle = illust.title.orEmpty()
             try {
-                val pageCount = illust.getPage_count()
+                val pageCount = illust.page_count
                 for (p in 0 until pageCount) {
                     val url = bestUrlForV2(illust, p) ?: continue
                     if (i == startListIndex && !seenStart) {
@@ -44,7 +43,7 @@ object SlideshowLauncher {
                     titles.add(if (pageCount > 1) "$baseTitle (${p + 1})" else baseTitle)
                 }
             } catch (ex: Exception) {
-                Timber.w(ex, "[SlideshowLauncher] skipping illust ${illust.getId()}")
+                Timber.w(ex, "[SlideshowLauncher] skipping illust ${illust.id}")
             }
         }
         if (urls.isEmpty()) {
@@ -54,7 +53,7 @@ object SlideshowLauncher {
         startSession(context, urls, titles, startUrlIndex, random)
     }
 
-    private fun bestUrlForV2(illust: IllustsBean, page: Int): String? {
+    private fun bestUrlForV2(illust: Illust, page: Int): String? {
         val original = runCatching {
             IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
         }.getOrNull()

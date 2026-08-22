@@ -12,7 +12,7 @@ import androidx.work.WorkerParameters
 import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.VActivity
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.session.SessionManager
@@ -37,7 +37,7 @@ abstract class BaseStripWidgetWorker(
     protected abstract val providerClass: Class<out AppWidgetProvider>
 
     /** Fetch up to three illusts. Return null to signal transient failure (worker will retry). */
-    protected abstract suspend fun fetchIllusts(): List<IllustsBean>?
+    protected abstract suspend fun fetchIllusts(): List<Illust>?
 
     override suspend fun doWork(): Result {
         val manager = AppWidgetManager.getInstance(context)
@@ -87,7 +87,7 @@ abstract class BaseStripWidgetWorker(
     private suspend fun renderStrip(
         manager: AppWidgetManager,
         widgetId: Int,
-        illusts: List<IllustsBean>,
+        illusts: List<Illust>,
     ): Boolean {
         val opts = manager.getAppWidgetOptions(widgetId)
         val density = context.resources.displayMetrics.density

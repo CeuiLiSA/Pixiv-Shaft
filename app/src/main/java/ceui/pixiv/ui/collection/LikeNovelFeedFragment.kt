@@ -39,7 +39,7 @@ import ceui.pixiv.ui.common.setUpToolbar
  *   初始标签可由入参带入（同义词词典管理页跳转，issue #904）；
  * - 「过滤无效收藏」设置（isFilterInvalidBookmarks）：对齐 legacy beforeFirstLoad/beforeNextLoad，
  *   失效作品 / user 缺失 / user.id==0 三条都在设置开启时才过滤——注意与插画侧不同，legacy
- *   [ceui.lisa.core.Mapper] 的小说分支**不**恒过滤 !visible（只有 IllustsBean 分支才过滤），
+ *   [ceui.lisa.core.Mapper] 的小说分支**不**恒过滤 !visible（只有 Illust 分支才过滤），
  *   所以这里不能把它提到设置外面，否则设置关着的用户会看不到本来能看到的收藏；
  * - 无 toolbar 菜单：legacy FragmentLikeNovel 用的是裸 NAdapter（不是插画侧的
  *   IAdapterWithStar），既没有「收藏到精华」菜单，也没有「收藏页隐藏收藏按钮」那套爱心门控。

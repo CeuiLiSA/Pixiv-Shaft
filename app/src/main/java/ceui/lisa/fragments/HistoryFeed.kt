@@ -10,7 +10,8 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.databinding.CellHistoryIllustV3Binding
 import ceui.lisa.databinding.CellHistoryNovelV3Binding
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
+import ceui.loxia.toUserBean
 import ceui.lisa.models.NovelBean
 import ceui.lisa.models.UserBean
 import ceui.lisa.utils.GlideUtil
@@ -42,13 +43,13 @@ private const val MAX_HISTORY_HEIGHT_RATIO = 2.0f
 
 data class HistoryIllustFeedItem(
     val entity: IllustHistoryEntity,
-    val illust: IllustsBean,
+    val illust: Illust,
     val isSelectionMode: Boolean = false,
     val isSelected: Boolean = false,
 ) : FeedItem {
     override val feedKey: Any get() = entity.illustID
 
-    // entity(Java) / IllustsBean 都没有 equals，data class 默认实现退化成引用比较——刷新产出的
+    // entity(Java) / Illust 都没有 equals，data class 默认实现退化成引用比较——刷新产出的
     // 同内容新实例会被 DiffUtil 判「变了」而全表重绑（Glide 请求全部重发）。渲染消费的快照内容
     // 由 illustID + time 指纹（重看同一作品会刷新 time，快照 JSON 随之更新），再加两个选择态。
     // 手写按这四样比，对齐 IllustFeedItem 手写 equals 的先例。
@@ -134,7 +135,7 @@ class HistoryFeedSource(
                     }
                     illust.user?.let { user ->
                         if (ObjectPool.get<UserBean>(user.id.toLong()).value == null) {
-                            ObjectPool.updateUser(user)
+                            ObjectPool.updateUser(user.toUserBean())
                         }
                     }
                 }
@@ -255,7 +256,7 @@ class HistoryFeedSource(
 
     private fun List<IllustHistoryEntity>.toFeedItems(): List<FeedItem> = mapNotNull { entity ->
         if (historyType == 0) {
-            val illust = Shaft.sGson.fromJson(entity.illustJson, IllustsBean::class.java)
+            val illust = Shaft.sGson.fromJson(entity.illustJson, Illust::class.java)
                 ?: return@mapNotNull null
             HistoryIllustFeedItem(entity, illust)
         } else {
@@ -293,7 +294,7 @@ suspend fun deleteHistoryEntities(historyType: Int, entities: List<IllustHistory
                     "novel"
                 } else {
                     val ib = runCatching {
-                        Shaft.sGson.fromJson(entity.illustJson, IllustsBean::class.java)
+                        Shaft.sGson.fromJson(entity.illustJson, Illust::class.java)
                     }.getOrNull()
                     if (ib?.type == "manga") "manga" else "illust"
                 }
@@ -328,7 +329,7 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
                 cell.itemOrNull?.let { item -> confirmDeleteHistory(item.entity) }
             }
             binding.author.setOnClickListener {
-                cell.itemOrNull?.illust?.user?.id?.let { uid -> openHistoryUser(uid) }
+                cell.itemOrNull?.illust?.user?.id?.let { uid -> openHistoryUser(uid.toInt()) }
             }
         },
         recycle = { it.binding.illustImage.clearGlideOnRecycle() },
@@ -392,7 +393,7 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
         binding.time.text = historyTimeFormat.format(entity.time)
 
         when {
-            illust.isGif -> { binding.pSize.isVisible = true; binding.pSize.text = "GIF" }
+            illust.isGif() -> { binding.pSize.isVisible = true; binding.pSize.text = "GIF" }
             illust.page_count > 1 -> {
                 binding.pSize.isVisible = true
                 binding.pSize.text = String.format(Locale.getDefault(), "%dP", illust.page_count)

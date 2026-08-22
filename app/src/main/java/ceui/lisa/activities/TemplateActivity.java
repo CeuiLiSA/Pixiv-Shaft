@@ -52,7 +52,7 @@ import ceui.lisa.fragments.FragmentUserInfo;
 import ceui.lisa.fragments.FragmentViewPager;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWorkSpace;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.utils.Params;
@@ -179,7 +179,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return ceui.pixiv.ui.user.UserFansFeedFragment.newInstance(
                             intent.getIntExtra(Params.USER_ID, 0));
                 case "喜欢这个作品的用户":
-                    return LikeUsersFeedFragment.newInstance((IllustsBean) intent.getSerializableExtra(Params.CONTENT));
+                    return LikeUsersFeedFragment.newInstance((Illust) intent.getSerializableExtra(Params.CONTENT));
                 case "喜欢这部小说的用户":
                     return LikeUsersFeedFragment.newInstance(
                             intent.getLongExtra(Params.NOVEL_ID, 0L),
@@ -539,7 +539,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
             int illustArthurId = getArthurIdFromNovel(hit);
             return CommentsFragment.Companion.newInstance(workId, illustArthurId, ObjectType.NOVEL);
         } else {
-            IllustsBean hit = ObjectPool.INSTANCE.getIllust(workId).getValue();
+            Illust hit = ObjectPool.INSTANCE.getIllust(workId).getValue();
             int illustArthurId = getArthurIdFromIllust(hit);
             return CommentsFragment.Companion.newInstance(workId, illustArthurId, ObjectType.ILLUST);
         }
@@ -556,12 +556,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
         return 0;
     }
 
-    // Helper method to extract Arthur ID from IllustsBean
-    private int getArthurIdFromIllust(IllustsBean hit) {
+    // Helper method to extract Arthur ID from Illust
+    private int getArthurIdFromIllust(Illust hit) {
         if (hit != null) {
-            UserBean user = hit.getUser();
+            ceui.loxia.User user = hit.getUser();
             if (user != null) {
-                return user.getId();
+                return (int) user.getId();
             }
         }
         return 0;

@@ -4,11 +4,10 @@ import android.content.Intent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.AppLevelViewModel
 import ceui.loxia.AccountResponse
-import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.pixiv.actionqueue.ActionRequest
@@ -37,12 +36,11 @@ import timber.log.Timber
  * 同理**不弹「收藏成功」**：那一刻请求还没发出去，报成功就是骗用户，而失败时队列几分钟后
  * 还会补一个「收藏失败」的 toast 自相矛盾。反馈由爱心本身承担，失败时队列会把它拨回去。
  *
- * ## 一幅作品的三个表示
+ * ## 一幅作品的两个表示
  *
- * 同一个作品在仓库里同时以 [Illust]（V3 详情 / feeds 条目读它）、[IllustsBean]（legacy 详情、
- * IAdapter、下载链路读它，且是**可变共享实例**）和各列表条目自己的拷贝存在，[ObjectPool] 里
- * 前两者还是两个独立的键。所以每次收藏态变更都要三管齐下：写 [Illust] 池条目、写 [IllustsBean]
- * （传进来的实例 + 池里那份）、发 [Params.LIKED_ILLUST] 广播让各列表把自己的拷贝拨过去。
+ * 同一个作品在仓库里同时以 [ObjectPool] 里的 [Illust]（V3 详情 / feeds 条目 / legacy 详情都
+ * 按 id 读它）和各列表条目自己的拷贝存在。所以每次收藏态变更都要两管齐下：写 [Illust] 池条目、
+ * 发 [Params.LIKED_ILLUST] 广播让各列表把自己的拷贝拨过去。
  * 漏掉任何一路的表现都是「这个页面红了那个页面还是灰的」，而且回滚时同样会漏。
  *
  * 之所以要有这么一层门面：仓库里原本有三套并行的收藏写法（legacy 的 `PixivOperate`、
@@ -89,44 +87,14 @@ object PixivActions {
         bookmark: Boolean,
         restrict: String = defaultBookmarkRestrict(),
     ) {
-        if (illust.is_bookmarked == bookmark) return
+        if (illust.isBookmarked == bookmark) return
         applyIllustBookmark(
             illustId = illust.id,
             bookmark = bookmark,
             restrict = restrict,
-            bean = null,
+            illust = illust,
             authorId = illust.user?.id,
             authorFollowed = illust.user?.is_followed,
-        )
-    }
-
-    /**
-     * legacy 表示的入口（[IllustsBean] 是 IAdapter / 详情 pager / 下载链路共享的可变实例）。
-     *
-     * [bean] 会被就地改写：`PixivOperate.postLike` 一族按 bean 当前的 `is_bookmarked` 决定
-     * 发收藏还是取消，bean 停在旧值的话用户下一次点击会被反转成相反的操作。
-     */
-    @JvmStatic
-    @JvmOverloads
-    fun toggleIllustBookmark(bean: IllustsBean, restrict: String = defaultBookmarkRestrict()) {
-        setIllustBookmark(bean, !bean.isIs_bookmarked, restrict)
-    }
-
-    @JvmStatic
-    @JvmOverloads
-    fun setIllustBookmark(
-        bean: IllustsBean,
-        bookmark: Boolean,
-        restrict: String = defaultBookmarkRestrict(),
-    ) {
-        if (bean.isIs_bookmarked == bookmark) return
-        applyIllustBookmark(
-            illustId = bean.id.toLong(),
-            bookmark = bookmark,
-            restrict = restrict,
-            bean = bean,
-            authorId = bean.user?.id?.toLong(),
-            authorFollowed = bean.user?.isIs_followed,
         )
     }
 
@@ -160,8 +128,8 @@ object PixivActions {
      * 「批量收藏 (200 项)」是句假话，用户会照着它去等一个不会发生的进度。
      */
     @JvmStatic
-    fun pendingIllustBookmarkCount(illusts: List<IllustsBean>, bookmark: Boolean): Int =
-        illusts.count { it.isIs_bookmarked != bookmark }
+    fun pendingIllustBookmarkCount(illusts: List<Illust>, bookmark: Boolean): Int =
+        illusts.count { it.isBookmarked != bookmark }
 
     /**
      * 批量收藏 / 取消收藏。立即返回**真正入队的项数**（已经是目标态的会被跳过）。
@@ -171,7 +139,7 @@ object PixivActions {
      * 怎么退避、进程被杀怎么续，全是 `:actionqueue` 的事，这里一件都不重复实现。
      *
      * 门面在这一层只多做两件单条路径不需要的事：
-     *  - **分块 [yield]**：每项要写几个 [ObjectPool] 表示（[Illust] 那一路还带 gson merge）、
+     *  - **分块 [yield]**：每项要写 [ObjectPool] 表示（[Illust] 那一路还带 gson merge）、
      *    发一条跨列表广播、碰一次 MMKV，几千项连着跑完足够掉帧；
      *  - **逐项 try/catch**：上面任何一处抛出来都会让整个循环当场结束，而剩下的项就这么
      *    静默丢了。同仓 [PixivActionQueue] 的事件订阅是同一条理由单独兜每一条事件的。
@@ -179,11 +147,11 @@ object PixivActions {
     @JvmStatic
     @JvmOverloads
     fun setIllustBookmarks(
-        illusts: List<IllustsBean>,
+        illusts: List<Illust>,
         bookmark: Boolean,
         restrict: String = defaultBookmarkRestrict(),
     ): Int {
-        val todo = illusts.filter { it.isIs_bookmarked != bookmark }
+        val todo = illusts.filter { it.isBookmarked != bookmark }
         if (todo.isEmpty()) return 0
         bulkScope.launch {
             var failed = 0
@@ -255,11 +223,11 @@ object PixivActions {
         illustId: Long,
         bookmark: Boolean,
         restrict: String,
-        bean: IllustsBean?,
+        illust: Illust?,
         authorId: Long?,
         authorFollowed: Boolean?,
     ) {
-        writeIllustBookmarkLocally(illustId, bookmark, bean)
+        writeIllustBookmarkLocally(illustId, bookmark, illust)
         if (bookmark) RateAppManager.onUserEngaged()
 
         PixivActionQueue.enqueue(
@@ -439,32 +407,28 @@ object PixivActions {
      *
      * 幂等：已是目标态的表示原样跳过（`total_bookmarks` 的加减因此不会被重复调用叠加）。
      * 队列回滚时传相反的值再调一次即可，不需要另写一套。
+     *
+     * @param illust 调用方手上那份实例，仅在池里还没有这幅作品时用作兜底数据源 ——
+     *               池里没有就把它放进去，否则 V3 详情页按 id 读池会渲染出一颗灰心。
      */
     internal fun writeIllustBookmarkLocally(
         illustId: Long,
         bookmark: Boolean,
-        bean: IllustsBean? = null,
+        illust: Illust? = null,
     ) {
-        ObjectPool.get<Illust>(illustId).value?.let { illust ->
-            if (illust.is_bookmarked != bookmark) {
-                val delta = if (bookmark) 1 else -1
-                ObjectPool.update(
-                    illust.copy(
-                        is_bookmarked = bookmark,
-                        total_bookmarks = illust.total_bookmarks?.plus(delta),
-                    )
+        val pooled = ObjectPool.get<Illust>(illustId).value
+        val current = pooled ?: illust
+        if (current != null && current.is_bookmarked != bookmark) {
+            val delta = if (bookmark) 1 else -1
+            ObjectPool.update(
+                current.copy(
+                    is_bookmarked = bookmark,
+                    total_bookmarks = current.total_bookmarks?.plus(delta),
                 )
-            }
+            )
+        } else if (pooled == null && illust != null) {
+            ObjectPool.update(illust)
         }
-
-        val pooled = ObjectPool.get<IllustsBean>(illustId).value
-        bean?.setIs_bookmarked(bookmark)
-        if (pooled != null && pooled !== bean) {
-            pooled.setIs_bookmarked(bookmark)
-        }
-        // 池里已有就更新池里那份（与调用方的 bean 可能不是同一实例）；池里没有就把手上这份放进去，
-        // 否则 V3 详情页按 id 读池会渲染出一颗灰心。
-        (pooled ?: bean)?.let { ObjectPool.update(it) }
 
         broadcast(Params.LIKED_ILLUST, illustId, bookmark)
     }

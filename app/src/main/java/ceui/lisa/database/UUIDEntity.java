@@ -10,10 +10,10 @@ import java.util.List;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.core.IDWithList;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 
 @Entity(tableName = "uuid_list_table")
-public final class UUIDEntity implements IDWithList<IllustsBean> {
+public final class UUIDEntity implements IDWithList<Illust> {
 
     @NonNull
     @PrimaryKey()
@@ -53,7 +53,7 @@ public final class UUIDEntity implements IDWithList<IllustsBean> {
     }
 
     @Override
-    public List<IllustsBean> getList() {
-        return Shaft.sGson.fromJson(listJson, new TypeToken<List<IllustsBean>>(){}.getType());
+    public List<Illust> getList() {
+        return Shaft.sGson.fromJson(listJson, new TypeToken<List<Illust>>(){}.getType());
     }
 }

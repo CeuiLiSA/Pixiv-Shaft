@@ -14,7 +14,7 @@ import ceui.lisa.core.RemoteRepo
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecySimpleUserBinding
 import ceui.lisa.model.ListSimpleUser
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.models.UserBean
 import ceui.lisa.repo.NovelBookmarkUserRepo
 import ceui.lisa.repo.SimpleUserRepo
@@ -46,7 +46,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * 「喜欢这个作品的用户」列表页（feeds 框架版，替代 legacy [ceui.lisa.fragments.FragmentListSimpleUser] +
- * SimpleUserAdapter(非 muted)）。插画、小说共用本页：插画走 [Params.CONTENT]([IllustsBean])，
+ * SimpleUserAdapter(非 muted)）。插画、小说共用本页：插画走 [Params.CONTENT]([Illust])，
  * 小说走 [Params.NOVEL_ID] + [Params.TITLE]，除数据源和标题外的一切（行渲染、关注同步）完全复用。
  *
  * TemplateActivity 宿主、自带 toolbar（fragment_toolbar_feed）。数据源直接包裹既有的
@@ -70,14 +70,14 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
     override val feedViewModel by feedViewModels {
-        // 零捕获：先把 arg 读进局部 val，只把作品 id（插画 Int / 小说 Long）传进 source
+        // 零捕获：先把 arg 读进局部 val，只把作品 id（插画 Int——legacy SimpleUserRepo 仍收 Int / 小说 Long）传进 source
         // （source 归 VM 长期持有，绝不能捕获 Fragment）。
         val args = requireArguments()
         val novelId = args.getLong(Params.NOVEL_ID, 0L).takeIf { it != 0L }
-        val illust = args.getSerializable(Params.CONTENT) as? IllustsBean
+        val illust = args.getSerializable(Params.CONTENT) as? Illust
         when {
             novelId != null -> LikeUsersFeedSource(novelId)
-            illust != null -> LikeUsersFeedSource(illust.id)
+            illust != null -> LikeUsersFeedSource(illust.id.toInt())
             else -> error("LikeUsersFeedFragment 缺少作品参数")
         }
     }
@@ -120,7 +120,7 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         // 宁可少个书名也不能把「喜欢null的用户」摆到 toolbar 上。
         val args = requireArguments()
         val title = args.getString(Params.TITLE)
-            ?: (args.getSerializable(Params.CONTENT) as? IllustsBean)?.title
+            ?: (args.getSerializable(Params.CONTENT) as? Illust)?.title
         binding.toolbarTitle.text = "喜欢" + title.orEmpty() + "的用户"
 
         LocalBroadcastManager.getInstance(requireContext())
@@ -222,7 +222,7 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     companion object {
         @JvmStatic
-        fun newInstance(illust: IllustsBean): LikeUsersFeedFragment {
+        fun newInstance(illust: Illust): LikeUsersFeedFragment {
             return LikeUsersFeedFragment().apply {
                 arguments = Bundle().apply {
                     putSerializable(Params.CONTENT, illust)

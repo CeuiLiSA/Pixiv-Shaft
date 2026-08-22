@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.os.bundleOf
 import ceui.lisa.R
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.loxia.Client
 import ceui.pixiv.feeds.FeedPage
@@ -43,7 +43,7 @@ class PrimeTagDetailFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed
             // Retrofit suspend 自带 main-safe；解析量也只剩一页 30 条，不用再自己切线程。
             val page = Client.pixshaft.primeTagIllusts(key, cursor?.toIntOrNull() ?: 0, PAGE_SIZE)
             FeedPage(
-                page.illusts.mapNotNull { illust -> IllustFeedItem.from(illust) },
+                page.illusts.mapNotNull { illust -> IllustFeedItem.of(illust) },
                 page.next_offset?.toString(),
             )
         }
@@ -57,13 +57,13 @@ class PrimeTagDetailFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed
      * 都是刚下行的新鲜数据。本页拿的是 **策展快照冻结那一刻的 JSON** —— 搬到服务端之后它依然
      * 是快照，不会跟着 pixiv 更新。喂进去就是拿旧值盖新值：`ObjectPool.mergeKeepingExisting` 只把
      * null/空串/空数组当「空」，`is_bookmarked=false`、`total_bookmarks=15835` 都是正经 JSON 原始值，
-     * 照盖不误 → 用户已收藏的作品在详情页显示成未收藏；`AppLevelViewModelHelper.fill` 对 IllustsBean
+     * 照盖不误 → 用户已收藏的作品在详情页显示成未收藏；`AppLevelViewModelHelper.fill` 对 Illust
      * 传的是默认 UpdateMethod（不像它自己的历史分支那样用 IF_ABSENT），旧的 is_followed=false
      * 会把用户这次会话里刚点的「已关注」打回。
      *
      * 关掉不影响从本页点进详情：VActivity 只在池里 miss 时才用 PageData 的 bean 填池。
      */
-    override fun poolableBeansOf(item: FeedItem): List<IllustsBean> = emptyList()
+    override fun poolableBeansOf(item: FeedItem): List<Illust> = emptyList()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

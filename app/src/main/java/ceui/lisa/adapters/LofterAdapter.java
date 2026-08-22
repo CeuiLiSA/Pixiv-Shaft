@@ -1,7 +1,7 @@
 package ceui.lisa.adapters;
 
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 
 /**
  * Convert lofter metadata into pixiv metadata

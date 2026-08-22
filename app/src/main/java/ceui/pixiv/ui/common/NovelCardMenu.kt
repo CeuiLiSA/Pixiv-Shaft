@@ -131,7 +131,7 @@ internal fun NovelFeedFragment.showNovelCardMenu(
  * 屏蔽记录存的是 [UserBean] 的 JSON（`tag_mute_table.tagJson`），「屏蔽画师」列表页读回来直接
  * 渲染，所以头像和关注态得一并折过去——只带 id 和名字的话，那一页会是一行没有头像的空壳。
  *
- * 插画卡那边不需要这一步：legacy `IllustsBean.getUser()` 本来就是 [UserBean]。
+ * 插画卡那边不需要这一步：legacy `Illust.getUser()` 本来就是 [UserBean]。
  */
 private fun User.toMuteUserBean(): UserBean {
     // 显式起个名再进 apply：两边都有 profile_image_urls / name / account 这些同名成员，

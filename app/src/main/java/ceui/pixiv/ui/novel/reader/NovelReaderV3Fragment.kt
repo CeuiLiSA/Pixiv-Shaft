@@ -26,7 +26,6 @@ import ceui.lisa.core.PageData
 import ceui.lisa.database.NovelAnnotationEntity
 import ceui.lisa.database.NovelBookmarkEntity
 import ceui.lisa.databinding.FragmentNovelReaderV3Binding
-import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.NovelBean
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Params
@@ -1211,9 +1210,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 viewLifecycleOwner.lifecycleScope.launch {
                     runCatching { Client.appApi.getIllust(image.resourceId).illust }
                         .getOrNull()?.let { illust ->
-                            val bean = Shaft.sGson.let { g -> g.fromJson(g.toJson(illust), IllustsBean::class.java) }
                             val uuid = UUID.randomUUID().toString()
-                            Container.get().addPageToMap(PageData(uuid, null, listOf(bean)))
+                            Container.get().addPageToMap(PageData(uuid, null, listOf(illust)))
                             startActivity(Intent(requireContext(), VActivity::class.java).apply {
                                 putExtra(Params.POSITION, 0); putExtra(Params.PAGE_UUID, uuid)
                             })

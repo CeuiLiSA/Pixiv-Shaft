@@ -1,5 +1,7 @@
 package ceui.lisa.models;
 
+import ceui.loxia.Illust;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -12,7 +14,7 @@ public class UserPreviewsBean extends UserHolder implements Serializable, UserCo
      */
 
     private boolean is_muted;
-    private List<IllustsBean> illusts;
+    private List<Illust> illusts;
     private List<NovelBean> novels;
 
     public boolean isIs_muted() {
@@ -23,11 +25,11 @@ public class UserPreviewsBean extends UserHolder implements Serializable, UserCo
         this.is_muted = is_muted;
     }
 
-    public List<IllustsBean> getIllusts() {
+    public List<Illust> getIllusts() {
         return illusts;
     }
 
-    public void setIllusts(List<IllustsBean> illusts) {
+    public void setIllusts(List<Illust> illusts) {
         this.illusts = illusts;
     }
 

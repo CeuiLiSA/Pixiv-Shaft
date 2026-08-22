@@ -6,11 +6,10 @@ import android.view.View
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
-import ceui.lisa.models.ImageUrlsBean
-import ceui.lisa.models.IllustsBean
-import ceui.lisa.models.ProfileImageUrlsBean
-import ceui.lisa.models.TagsBean
-import ceui.lisa.models.UserBean
+import ceui.loxia.Illust
+import ceui.loxia.ImageUrls
+import ceui.loxia.Tag
+import ceui.loxia.User
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.UserTagIllust
@@ -32,7 +31,7 @@ import kotlinx.coroutines.withContext
  *
  * 数据走网页 ajax /ajax/user/{id}/{category}/tag（app-api 无此能力），offset 翻页；category 取
  * `illusts` / `manga`（issue #996：两端点响应同构，共用本页，按 CONTENT_TYPE 参数分流）。
- * 把精简的网页 work 对象映射成 IllustsBean 复用标准瀑布流插画卡。列表项点进详情 / 下载时该精简
+ * 把精简的网页 work 对象映射成 Illust 复用标准瀑布流插画卡。列表项点进详情 / 下载时该精简
  * bean 缺分页图 / 原图，由详情页与下载链路的 isFullDetail 守卫回 v1/illust/detail 补全
  *（见 ceui.loxia.fetchFullIllustDetail）。
  */
@@ -65,7 +64,7 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
     // toIllustsBean 出来全是 primitive 默认值 false/0。喂池会把当前用户刚点的收藏/关注态
     // 盖回假值（mergeKeepingExisting 不把 false/0 当空值）——本页入口就在画师主页的标签
     // 筛选条，刚关注完点进来立刻复现。详情页 isFullDetail 守卫会回拉全量，不缺这份。
-    override fun poolableBeansOf(item: FeedItem): List<IllustsBean> = emptyList()
+    override fun poolableBeansOf(item: FeedItem): List<Illust> = emptyList()
 
     /**
      * 这一页有个结构性错位：筛选条上的 tag 是 [ceui.lisa.activities.UserV3WorkTabFragment]
@@ -150,7 +149,7 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
 
 /**
  * 按 Tag 筛选画师插画/漫画的数据源：网页 ajax（[Client.webApi]），offset 翻页。
- * 每页精简 work → IllustsBean → [IllustFeedItem.fromBean]（含全局内容过滤，对齐 legacy 基类 Mapper）。
+ * 每页精简 work → Illust → [IllustFeedItem.of]（含全局内容过滤，对齐 legacy 基类 Mapper）。
  * 游标 = 下一页 offset（已加载条数）；works 空或已到 total 则停。零 Fragment 捕获。
  */
 class UserIllustByTagFeedSource(
@@ -178,7 +177,7 @@ class UserIllustByTagFeedSource(
         val loaded = offset + works.size
         // gson-free 映射 + 内容过滤挪 Default，保住 load 的 main-safe 契约。
         val items = withContext(Dispatchers.Default) {
-            works.mapNotNull { IllustFeedItem.fromBean(it.toIllustsBean(), skipMuteUserFilter = true) }
+            works.mapNotNull { IllustFeedItem.of(it.toIllust(), skipMuteUserFilter = true) }
         }
         val next = if (works.isNotEmpty() && loaded < total) loaded.toString() else null
         return FeedPage(items, next)
@@ -195,55 +194,49 @@ class UserIllustByTagFeedSource(
 private val IMG_PATH_REGEX = Regex("/img/(.+?)_(?:square|custom|master)1200\\.\\w+")
 
 /**
- * 网页 work → IllustsBean。务必 setVisible(true)，否则被 [ceui.lisa.core.Mapper] / feeds 内容过滤
+ * 网页 work → Illust。务必 visible = true，否则被 [ceui.lisa.core.Mapper] / feeds 内容过滤
  * 当不可见整条过滤掉。图片走同一 i.pximg.net CDN：由方图 url 重建无裁切的 master1200（跟 app-api 同形）。
  */
-internal fun UserTagIllust.toIllustsBean(): IllustsBean {
-    val bean = IllustsBean()
-    bean.id = id.toInt()
-    bean.title = title ?: ""
-    bean.isVisible = true
-    bean.width = width
-    bean.height = height
-    bean.page_count = if (pageCount > 0) pageCount else 1
-    bean.x_restrict = xRestrict
-    bean.illust_ai_type = aiType
-    bean.create_date = createDate
-    bean.type = when (illustType) {
-        1 -> "manga"
-        2 -> "ugoira"
-        else -> "illust"
-    }
-
+internal fun UserTagIllust.toIllust(): Illust {
     val square = url ?: ""
-    bean.image_urls = ImageUrlsBean().apply {
-        val m = IMG_PATH_REGEX.find(square)
-        if (m != null) {
-            val rel = m.groupValues[1] // 2024/11/11/18/36/26/124200157_p0
-            medium = "https://i.pximg.net/c/540x540_70/img-master/img/${rel}_master1200.jpg"
-            large = "https://i.pximg.net/c/600x1200_90_webp/img-master/img/${rel}_master1200.jpg"
-            square_medium = square.ifEmpty { medium }
-        } else if (square.isNotEmpty()) {
-            medium = square
-            large = square
-            square_medium = square
-        }
+    val m = IMG_PATH_REGEX.find(square)
+    val imageUrls = if (m != null) {
+        val rel = m.groupValues[1] // 2024/11/11/18/36/26/124200157_p0
+        val medium = "https://i.pximg.net/c/540x540_70/img-master/img/${rel}_master1200.jpg"
+        ImageUrls(
+            medium = medium,
+            large = "https://i.pximg.net/c/600x1200_90_webp/img-master/img/${rel}_master1200.jpg",
+            square_medium = square.ifEmpty { medium },
+        )
+    } else if (square.isNotEmpty()) {
+        ImageUrls(medium = square, large = square, square_medium = square)
+    } else {
+        ImageUrls()
     }
-
-    bean.user = UserBean().apply {
-        setId(userId.toInt())
-        setName(userName ?: "")
-        // 头像:列表已带,先填上,免得点进详情(回 API 补全前)那一下是空头像占位
-        profileImageUrl?.takeIf { it.isNotEmpty() }?.let { avatar ->
-            profile_image_urls = ProfileImageUrlsBean().apply {
-                medium = avatar          // FragmentIllust / ArtistVH 读 profile_image_urls.medium
-                setPx_170x170(avatar)
-            }
-        }
-    }
-
-    // tags 兜空,避免 getTagNames()/TagAdapter 等对 null 列表崩
-    bean.tags = tags?.map { name -> TagsBean().apply { setName(name) } } ?: emptyList()
-
-    return bean
+    // 头像:列表已带,先填上,免得点进详情(回 API 补全前)那一下是空头像占位
+    val avatar = profileImageUrl?.takeIf { it.isNotEmpty() }
+    return Illust(
+        id = id,
+        title = title ?: "",
+        visible = true,
+        width = width,
+        height = height,
+        page_count = if (pageCount > 0) pageCount else 1,
+        x_restrict = xRestrict,
+        illust_ai_type = aiType,
+        create_date = createDate,
+        type = when (illustType) {
+            1 -> "manga"
+            2 -> "ugoira"
+            else -> "illust"
+        },
+        image_urls = imageUrls,
+        user = User(
+            id = userId,
+            name = userName ?: "",
+            profile_image_urls = avatar?.let { ImageUrls(medium = it, px_170x170 = it) },
+        ),
+        // tags 兜空,避免 tagNames/TagAdapter 等对 null 列表崩
+        tags = tags?.map { name -> Tag(name = name) } ?: emptyList(),
+    )
 }

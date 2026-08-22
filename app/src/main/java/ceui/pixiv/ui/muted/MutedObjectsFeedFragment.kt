@@ -17,7 +17,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.MuteEntity
 import ceui.lisa.databinding.RecyViewHistoryBinding
 import ceui.lisa.helper.IllustNovelFilter
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.models.NovelBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.DensityUtil
@@ -161,7 +161,7 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
                 b.title.text = titleOr(illust.title, illust.id)
                 b.author.text = authorLine(illust.user?.name)
                 when {
-                    illust.isGif -> {
+                    illust.isGif() -> {
                         b.pSize.isVisible = true
                         b.pSize.text = "GIF"
                     }
@@ -188,7 +188,7 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
                     .load(GlideUtil.getUrl(novel.image_urls?.medium))
                     .placeholder(R.color.light_bg)
                     .into(b.illustImage)
-                b.title.text = titleOr(novel.title, novel.id)
+                b.title.text = titleOr(novel.title, novel.id.toLong())
                 b.author.text = authorLine(novel.user?.name)
                 b.pSize.isVisible = true
                 b.pSize.text = "小说"
@@ -204,7 +204,7 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
      * 这类行来自老 MMKV 遮罩名单的一次性迁移（见 [MutedWorkStore]）：那边只存过作品 id，
      * 标题封面作者都补不回来。留个 `#id` 至少让这一条看得见、点得到删除按钮。
      */
-    private fun titleOr(title: String?, id: Int): CharSequence =
+    private fun titleOr(title: String?, id: Long): CharSequence =
         title?.takeIf { it.isNotBlank() } ?: "#$id"
 
     /** 同上：作者名缺失就整行留空，不显示一个孤零零的 "by: "。 */
@@ -283,7 +283,7 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
 data class MutedObjectFeedItem(
     val entity: MuteEntity,
     /** 预解析的插画 bean（type==1 时非空，坏 JSON 为 null）——不在 bind 时 per-bind 解析。 */
-    val illust: IllustsBean?,
+    val illust: Illust?,
     /** 预解析的小说 bean（type==2 时非空，坏 JSON 为 null）。 */
     val novel: NovelBean?,
 ) : FeedItem {
@@ -311,7 +311,7 @@ class MutedObjectsFeedSource : FeedSource<Int> {
                 // 坏数据 runCatching 跳过为 null，卡片走 clearCard 兜底。
                 val illust = if (entity.type == TYPE_ILLUST) {
                     runCatching {
-                        Shaft.sGson.fromJson(entity.tagJson, IllustsBean::class.java)
+                        Shaft.sGson.fromJson(entity.tagJson, Illust::class.java)
                     }.getOrNull()
                 } else {
                     null

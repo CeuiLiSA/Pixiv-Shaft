@@ -25,7 +25,7 @@ import ceui.lisa.databinding.FragmentFileNameBinding;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.CustomFileNameCell;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Local;
@@ -34,7 +34,7 @@ import ceui.lisa.view.LinearItemDecoration;
 
 public class FragmentFileName extends BaseLazyFragment<FragmentFileNameBinding> {
 
-    private IllustsBean illust;
+    private Illust illust;
     private final List<CustomFileNameCell> allItems = new ArrayList<>();
     private FileNameAdapter mAdapter;
 
@@ -49,7 +49,7 @@ public class FragmentFileName extends BaseLazyFragment<FragmentFileNameBinding> 
 
     @Override
     protected void initView() {
-        illust = Shaft.sGson.fromJson(Params.EXAMPLE_ILLUST, IllustsBean.class);
+        illust = Shaft.sGson.fromJson(Params.EXAMPLE_ILLUST, Illust.class);
         baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.toolbar.setTitle(R.string.string_242);
         baseBind.showNow.setOnClickListener(new View.OnClickListener() {

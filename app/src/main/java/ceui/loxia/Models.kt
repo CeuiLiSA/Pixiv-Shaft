@@ -2,6 +2,8 @@ package ceui.loxia
 
 import android.os.Parcelable
 import android.text.TextUtils
+import ceui.lisa.models.Deduplicatable
+import ceui.lisa.models.IllustAIType
 import ceui.lisa.models.ModelObject
 import ceui.lisa.models.NovelBean
 import ceui.lisa.models.NovelDetail.NovelMarkerBean
@@ -166,7 +168,38 @@ data class Illust(
     val visible: Boolean? = null,
     val width: Int = 0,
     val x_restrict: Int? = null,
-) : Serializable, ModelObject {
+    /** 客户端装饰：首页「相关作品」标记。不属于 pixiv 原始模型，Gson / Serializable 都跳过。 */
+    @Transient val isRelated: Boolean = false,
+    /** 客户端装饰：trending / 榜单流水线注入的热度分。不属于 pixiv 原始模型，Gson / Serializable 都跳过。 */
+    @Transient val trendingScore: Float? = null,
+) : Serializable, ModelObject, Deduplicatable {
+
+    override fun getDuplicateKey(): Any = id
+
+    /** 作者显式的限制级标记：1=R-18、2=R-18G，两者都算 R18（不看 sanity_level，避免把 R-15 误判成 R18）。 */
+    fun isR18File(): Boolean = (x_restrict ?: 0) > 0
+
+    /** 「敏感/R-15」级内容（sanity_level 4 为敏感，6 及以上更高）。与 R18 正交：需同时回避时用 isR18File() || isSensitive()。 */
+    fun isSensitive(): Boolean = (sanity_level ?: 0) >= 4
+
+    /** ai_type==2 视为 AI 生成（与 NovelBean.isCreatedByAI 同口径）。 */
+    fun isCreatedByAI(): Boolean = illust_ai_type == IllustAIType.CreatedByAI
+
+    /** is_bookmarked 的非空视图，给 Java 调用方和三目表达式用。 */
+    val isBookmarked: Boolean get() = is_bookmarked == true
+
+    val tagNames: List<String> get() = tags?.mapNotNull { it.name } ?: emptyList()
+
+    /** 屏蔽判定用的标签串，格式 `*#name,`（与 NovelBean.getTagString 同款）。 */
+    val tagString: String get() = tags?.joinToString(separator = "") { "*#${it.name}," } ?: ""
+
+    fun withBookmarked(liked: Boolean): Illust = if (is_bookmarked == liked) this else copy(is_bookmarked = liked)
+
+    fun withMuted(muted: Boolean): Illust = if (is_muted == muted) this else copy(is_muted = muted)
+
+    fun withRelated(related: Boolean): Illust = if (isRelated == related) this else copy(isRelated = related)
+
+    fun withTrendingScore(score: Float?): Illust = if (trendingScore == score) this else copy(trendingScore = score)
 
     fun isAuthurExist(): Boolean {
         return user?.exist() == true
@@ -706,7 +739,7 @@ data class WebIllustPage(
 ) : Serializable
 
 // issue #592: 网页 ajax /ajax/illust/{id} 的 body。app-api 对部分作品(常见于简介带贩售/
-// 外链的,不限 R18)返回 visible=false 的空壳,网页 ajax 不受限;只取映射 IllustsBean
+// 外链的,不限 R18)返回 visible=false 的空壳,网页 ajax 不受限;只取映射 Illust
 // 所需的字段。两处 urls 形状略有不同:detail 是 mini/thumb,pages 是 thumb_mini,合用一个类。
 data class WebIllustBody(
     val illustTitle: String? = null,
@@ -750,7 +783,7 @@ data class WebIllustTag(
 ) : Serializable
 
 // issue #569: 网页版「按 Tag 筛选画师作品」接口 /ajax/user/{id}/illusts/tag 的响应体。
-// works 里是精简 work 对象(方图 url + 字符串 tags + 宽高),由 UserIllustByTagFeedSource.toIllustsBean 映射成 IllustsBean。
+// works 里是精简 work 对象(方图 url + 字符串 tags + 宽高),由 UserIllustByTagFeedSource.toIllustsBean 映射成 Illust。
 data class UserTagIllustBody(
     val works: List<UserTagIllust>? = null,
     val total: Int = 0,

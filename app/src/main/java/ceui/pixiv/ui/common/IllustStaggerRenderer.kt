@@ -13,7 +13,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.RecyIllustStaggerBinding
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.feeds.FeedRenderer
@@ -124,9 +124,9 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             cell.binding.likeAnim.setFailureListener { }
             // 爱心长按 → 按标签收藏（对齐 IAdapter）
             cell.binding.likeButton.setOnLongClickListener {
-                val bean = cell.item.bean
+                val bean = cell.item.illust
                 SelectTagBottomSheet.show(
-                    this@staggerIllustRenderer, bean.id, Params.TYPE_ILLUST, bean.tagNames,
+                    this@staggerIllustRenderer, bean.id.toInt(), Params.TYPE_ILLUST, bean.tagNames.toTypedArray(),
                 )
                 true
             }
@@ -162,7 +162,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
                     renderLikeState(cell.binding.likeButton, cell.item.illust.is_bookmarked == true)
                 }
                 if (payloads.any { it === PAYLOAD_ILLUST_SPOILER_CHANGED }) {
-                    val bean = cell.item.bean
+                    val bean = cell.item.illust
                     // 一律用 illust.id（Long）当名单 key：legacy bean.id 是 int，
                     // 两边混着用早晚会在同一份名单里对不上号
                     val spoilered = IllustMuteStore.isMuted(cell.item.illust.id)
@@ -183,7 +183,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             }
         },
     ) { cell ->
-        val bean = cell.item.bean
+        val bean = cell.item.illust
         cell.binding.illustImage.setHeightRatio(heightRatioOf(bean))
 
         // 打码与否的真源是屏蔽名单，bind 时现读：别的页面屏蔽了同一作品，本页滑动复用一次
@@ -205,9 +205,9 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
         if (bean.page_count > 1) {
             cell.binding.pSize.text = String.format(Locale.getDefault(), "%dP", bean.page_count)
         }
-        cell.binding.pGif.isVisible = bean.isGif
-        cell.binding.r18Badge.isVisible = bean.isR18File
-        cell.binding.createdByAi.isVisible = bean.isCreatedByAI
+        cell.binding.pGif.isVisible = bean.isGif()
+        cell.binding.r18Badge.isVisible = bean.isR18File()
+        cell.binding.createdByAi.isVisible = bean.isCreatedByAI()
         cell.binding.pRelated.isVisible = bean.isRelated
         // 只有 trending repo 注入 trendingScore，其他页 null 走 GONE（对齐 IAdapter 复用语义）
         cell.binding.trendingScore.bindTrendingScore(bean.trendingScore)
@@ -249,7 +249,7 @@ private fun IllustFeedFragment.applyIllustSpoilerMask(
  * 宽度交给瀑布流列自身，DynamicHeightImageView 在 onMeasure 用真实列宽算高——
  * 绝不写死像素尺寸，否则复用卡片在横竖屏切换后揣着旧方向的尺寸把整列搞乱。
  */
-private fun heightRatioOf(bean: IllustsBean): Float {
+private fun heightRatioOf(bean: Illust): Float {
     return if (bean.width > 0 && bean.height > 0) {
         (bean.height.toFloat() / bean.width.toFloat())
             .coerceIn(MIN_HEIGHT_RATIO, MAX_HEIGHT_RATIO)
@@ -264,7 +264,7 @@ private fun heightRatioOf(bean: IllustsBean): Float {
  */
 private fun IllustFeedFragment.loadIllustImage(
     binding: RecyIllustStaggerBinding,
-    bean: IllustsBean,
+    bean: Illust,
     spoilered: Boolean,
 ) {
     val imgUrl = if (Shaft.sSettings.isShowLargeThumbnailImage()) {

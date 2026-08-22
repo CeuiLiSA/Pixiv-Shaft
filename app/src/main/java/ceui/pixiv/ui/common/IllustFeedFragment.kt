@@ -15,7 +15,7 @@ import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.helper.StaggeredManager
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
@@ -91,8 +91,8 @@ abstract class IllustFeedFragment(
      * 详情 pager 回传的 bean 建条目的钩子。R18 专属榜单等「本页语义就是看 R18」的
      * 子类覆盖此方法透传 skipR18Filter，否则续拉的页会被全局 R18 过滤整页清空。
      */
-    protected open fun feedItemFromBean(bean: IllustsBean?): IllustFeedItem? {
-        return IllustFeedItem.fromBean(bean)
+    protected open fun feedItemFromBean(bean: Illust?): IllustFeedItem? {
+        return IllustFeedItem.of(bean)
     }
 
     /**
@@ -110,8 +110,8 @@ abstract class IllustFeedFragment(
      * 历史）、第三方上报榜单（shaft-api-v2 系）、精简网页 bean（按 Tag 筛选）都不是——那些页面
      * 一律覆写成 `emptyList()`，否则 mergeKeepingExisting 会拿旧值 / 假值盖掉池里更新的状态。
      */
-    protected open fun poolableBeansOf(item: FeedItem): List<IllustsBean> {
-        return if (item is IllustFeedItem) listOf(item.bean) else emptyList()
+    protected open fun poolableBeansOf(item: FeedItem): List<Illust> {
+        return if (item is IllustFeedItem) listOf(item.illust) else emptyList()
     }
 
     /**
@@ -186,7 +186,7 @@ abstract class IllustFeedFragment(
      */
     internal fun setIllustMuted(item: IllustFeedItem, muted: Boolean) {
         // 已是目标态时 store 返回 false，直接省掉这次重绑（图会重发一次 Glide 请求）
-        if (!IllustMuteStore.setMuted(item.illust.id, muted) { item.bean }) return
+        if (!IllustMuteStore.setMuted(item.illust.id, muted) { item.illust }) return
         rebindIllustCard(item.illust.id)
     }
 
@@ -265,11 +265,9 @@ abstract class IllustFeedFragment(
     // ── 收藏 ────────────────────────────────────────────────────────────────
 
     internal fun toggleLike(item: IllustFeedItem) {
-        // 单一真源是 item.illust（UI 由它渲染）。bean 可能因上次请求失败与 UI 背离——
-        // PixivOperate.postLike 按 bean 当前值决定收藏还是取消，先把 bean 校准回 UI 状态，
-        // 保证发出的请求永远与用户看到的操作一致。
+        // 单一真源是 item.illust（UI 由它渲染）：PixivOperate.postLike 按它当前的收藏态决定
+        // 收藏还是取消，发出的请求永远与用户看到的操作一致。
         val uiLiked = item.illust.is_bookmarked == true
-        item.bean.setIs_bookmarked(uiLiked)
         val willBookmark = !uiLiked
         val illustId = item.illust.id
         // showRelatedOnStar 时 postLike 会顺带拉相关作品并广播 FRAGMENT_ADD_RELATED_DATA；
@@ -281,7 +279,7 @@ abstract class IllustFeedFragment(
         //（withBookmarked 幂等）。回调式回滚反而会让队列在冷却几分钟后去碰一个早已销毁的
         // Fragment 持有的 VM。
         PixivOperate.postLike(
-            item.bean,
+            item.illust,
             PixivActions.defaultBookmarkRestrict(),
             showRelatedOnStar,
             feedViewModel.uiState.value.items.indexOfFirst {
@@ -295,7 +293,7 @@ abstract class IllustFeedFragment(
         }
         // 收藏后自动下载只在主动收藏（非取消）时触发，避免与「下载时自动收藏」循环联动（#880）
         if (willBookmark && Shaft.sSettings.isAutoDownloadAfterStar()) {
-            IllustDownload.downloadIllustAllPages(item.bean)
+            IllustDownload.downloadIllustAllPages(item.illust)
         }
     }
 
@@ -325,13 +323,13 @@ abstract class IllustFeedFragment(
             PageData(
                 syncViewModel.listPageUuid,
                 detailContinuationCursor,
-                illustItems.map { it.bean },
+                illustItems.map { it.illust },
             )
         } else {
             // 点击项已不在当前列表（刷新竞态等）：单开该作品，绝不错开成第一张。
             // 故意用一次性 uuid：这份单作品 PageData 的 ADD_DATA/SCROLL_TO（index 0）
             // 和主列表无关，不能被上面的接收器认领去把列表滚回顶部。
-            PageData(UUID.randomUUID().toString(), null, listOf(item.bean))
+            PageData(UUID.randomUUID().toString(), null, listOf(item.illust))
         }
         Container.get().addPageToMap(pageData)
         startActivity(Intent(requireContext(), VActivity::class.java).apply {
@@ -385,5 +383,5 @@ class IllustFeedSyncViewModel : ViewModel() {
      * ⚠️ 只挡「同一实例重复合池」。**就地改 bean 字段（如收藏态）这条 map 看不见** ——
      * 那类变更必须由变更点自己同步池，见 [IllustFeedItem.withBookmarked]。
      */
-    val pooledBeans = HashMap<Long, IllustsBean>()
+    val pooledBeans = HashMap<Long, Illust>()
 }

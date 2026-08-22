@@ -21,7 +21,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentImageDetailBinding
 import ceui.lisa.download.FileCreator
 import ceui.lisa.download.IllustDownload
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.Settings
 import ceui.lisa.view.DragDismissLayout
@@ -78,9 +78,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private var largeDisposable: Disposable? = null
     // 原图是否已显示（网络成功 / 本地直读）。large 占位仅在其为 false 时才铺，兜住 large/原图竞态。
     private var originalShown: Boolean = false
-    // 不再放进 arguments / savedInstanceState，避免每个 Fragment 重复持久化 80KB IllustsBean
+    // 不再放进 arguments / savedInstanceState，避免每个 Fragment 重复持久化 80KB Illust
     // 导致 TransactionTooLargeException。统一向 ImageDetailActivity 取。
-    private val mIllustsBean: IllustsBean?
+    private val mIllustsBean: Illust?
         get() = (activity as? ImageDetailActivity)?.mIllustsBean
 
     /**
@@ -513,7 +513,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
      * @param originalUrl 本页原图 url，仅用来和 large 比对：single-page 无 meta 时两者会回退到同一张，
      *                    此时占位无意义、直接跳过。
      */
-    private fun showLargePlaceholder(illust: IllustsBean, originalUrl: String) {
+    private fun showLargePlaceholder(illust: Illust, originalUrl: String) {
         val largeUrl = IllustDownload.getUrl(illust, index, Params.IMAGE_RESOLUTION_LARGE)
         if (largeUrl.isNullOrEmpty() || largeUrl == originalUrl) return
 
@@ -620,7 +620,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
      *
      * 返回 null 表示这页没下过 / 记录损坏，调用方回退网络。须在 IO 线程调用。
      */
-    private fun findDownloadedPageUri(illust: IllustsBean, page: Int): Uri? {
+    private fun findDownloadedPageUri(illust: Illust, page: Int): Uri? {
         return try {
             val context = Shaft.getContext()
             RecordedPageProbe.findUsableUri(context, illust.id.toLong(), page)
@@ -639,7 +639,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         //private const val CUSTOM_ZOOM_ADD_SCALE = 1.8f
         private const val MAX_SCALE_EPSILON = 0.01f
 
-        // IllustsBean 由 ImageDetailActivity 持有，Fragment 运行时读取，避免放进 Bundle
+        // Illust 由 ImageDetailActivity 持有，Fragment 运行时读取，避免放进 Bundle
         @JvmStatic
         fun newInstance(index: Int): FragmentImageDetail {
             val args = Bundle()

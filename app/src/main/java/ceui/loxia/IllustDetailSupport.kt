@@ -2,12 +2,6 @@ package ceui.loxia
 
 import ceui.lisa.http.Retro
 import ceui.lisa.interfaces.Callback
-import ceui.lisa.models.IllustsBean
-import ceui.lisa.models.ImageUrlsBean
-import ceui.lisa.models.MetaPagesBean
-import ceui.lisa.models.MetaSinglePageBean
-import ceui.lisa.models.TagsBean
-import ceui.lisa.models.UserBean
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -23,7 +17,7 @@ import java.net.URLDecoder
  * 用它直接建多图分页或下原图会崩或残缺,需回 v1/illust/detail 拉完整版。
  * 头像缺失不在此判定内——已由 GlideUtil/IllustDownload 的空值兜底处理,不再单独触发整页重拉。
  */
-fun IllustsBean.isFullDetail(): Boolean {
+fun Illust.isFullDetail(): Boolean {
     return if (page_count <= 1) {
         meta_single_page?.original_image_url?.isNotEmpty() == true
     } else {
@@ -38,8 +32,8 @@ fun IllustsBean.isFullDetail(): Boolean {
  * caption 非空可直接信;为空时只有 detail 接口整体覆盖过([ObjectPool.hasFullIllustVersion])
  * 才算「确认过真没有简介」,否则详情页应回 v1/illust/detail 补拉一次。
  */
-fun IllustsBean.hasTrustedCaption(): Boolean {
-    return !caption.isNullOrEmpty() || ObjectPool.hasFullIllustVersion(id.toLong())
+fun Illust.hasTrustedCaption(): Boolean {
+    return !caption.isNullOrEmpty() || ObjectPool.hasFullIllustVersion(id)
 }
 
 /**
@@ -47,7 +41,7 @@ fun IllustsBean.hasTrustedCaption(): Boolean {
  * app-api 判作品不可见时走网页 ajax 兜底(#592);已删 / 兜底也拿不到 / 网络失败返回
  * null —— 此时不覆盖,保留池里已有数据,由调用方降级处理。
  */
-suspend fun fetchFullIllustDetail(illustId: Long): IllustsBean? {
+suspend fun fetchFullIllustDetail(illustId: Long): Illust? {
     val fresh = try {
         Retro.getAppApiSuspend().getIllustByID(illustId).illust
     } catch (ce: CancellationException) {
@@ -56,7 +50,7 @@ suspend fun fetchFullIllustDetail(illustId: Long): IllustsBean? {
         Timber.e(e, "fetchFullIllustDetail failed illustId=%d", illustId)
         return null
     }
-    val usable = if (fresh != null && fresh.id != 0 && fresh.isVisible) {
+    val usable = if (fresh != null && fresh.id != 0L && fresh.visible == true) {
         fresh
     } else {
         // #592: app-api 应移动端商店政策把部分作品藏成 visible=false 的空壳(占位图
@@ -70,12 +64,12 @@ suspend fun fetchFullIllustDetail(illustId: Long): IllustsBean? {
 }
 
 /**
- * issue #592: 网页 ajax /ajax/illust/{id} 拉受限作品并映射成 [IllustsBean]。
+ * issue #592: 网页 ajax /ajax/illust/{id} 拉受限作品并映射成 [Illust]。
  * 多 P 的每页图址优先取 /ajax/illust/{id}/pages;该接口对 R18 需要网页 cookie,
  * 拿不到时按 pixiv 固定命名规则用 p0 原图地址推导 pN(gallery-dl 同方案)。
  * 拿不到 / 网络失败返回 null,不落池;协程取消照常向上抛。
  */
-suspend fun fetchIllustViaWebApi(illustId: Long): IllustsBean? {
+suspend fun fetchIllustViaWebApi(illustId: Long): Illust? {
     return try {
         val resp = Client.webApi.getWebIllust(illustId)
         val body = resp.body
@@ -98,7 +92,7 @@ suspend fun fetchIllustViaWebApi(illustId: Long): IllustsBean? {
             } else {
                 null
             }
-            body.toIllustsBean(illustId, webPages)
+            body.toIllust(illustId, webPages)
         }
     } catch (ce: CancellationException) {
         throw ce
@@ -112,7 +106,7 @@ suspend fun fetchIllustViaWebApi(illustId: Long): IllustsBean? {
  * V2(Java/Rx 链)侧的桥:后台拉 web 兜底,成功先落池(isFullVersion),主线程回调;
  * 拿不到回调 null。见 PixivOperate.getIllustByID。
  */
-fun fetchWebIllustFallbackAsync(illustId: Long, onResult: Callback<IllustsBean?>) {
+fun fetchWebIllustFallbackAsync(illustId: Long, onResult: Callback<Illust?>) {
     MainScope().launch {
         val bean = withContext(Dispatchers.IO) { fetchIllustViaWebApi(illustId) }
         if (bean != null) {
@@ -142,87 +136,83 @@ private fun webDateToAppDate(webDate: String): String {
     }.getOrDefault(webDate)
 }
 
-private fun WebIllustUrls.toImageUrlsBean(): ImageUrlsBean {
-    val web = this
-    return ImageUrlsBean().apply {
-        square_medium = web.thumb ?: web.thumb_mini ?: web.small
-        medium = web.small ?: web.regular
-        large = web.regular ?: web.original
-        original = web.original
-    }
+private fun WebIllustUrls.toImageUrls(): ImageUrls {
+    return ImageUrls(
+        square_medium = thumb ?: thumb_mini ?: small,
+        medium = small ?: regular,
+        large = regular ?: original,
+        original = original,
+    )
 }
 
-private fun WebIllustBody.toIllustsBean(illustId: Long, webPages: List<WebIllustPage>?): IllustsBean {
+private fun WebIllustBody.toIllust(illustId: Long, webPages: List<WebIllustPage>?): Illust {
     val body = this
-    return IllustsBean().apply {
-        id = illustId.toInt()
-        title = body.illustTitle
+    val metaSinglePage: MetaSinglePage
+    val metaPages: List<MetaPage>
+    if (body.pageCount <= 1) {
+        metaSinglePage = MetaSinglePage(original_image_url = body.urls?.original)
+        metaPages = emptyList()
+    } else {
+        // 多 P:app-api 的 meta_single_page 本来就是空对象,保持形状一致
+        metaSinglePage = MetaSinglePage()
+        metaPages = if (webPages != null && webPages.size >= body.pageCount &&
+            webPages.all { !it.urls?.original.isNullOrEmpty() }
+        ) {
+            webPages.map { page -> MetaPage(image_urls = page.urls!!.toImageUrls()) }
+        } else {
+            (0 until body.pageCount).map { i ->
+                MetaPage(
+                    image_urls = ImageUrls(
+                        square_medium = body.urls?.thumb?.replace("_p0", "_p$i"),
+                        medium = body.urls?.small?.replace("_p0", "_p$i"),
+                        large = body.urls?.regular?.replace("_p0", "_p$i"),
+                        original = body.urls?.original?.replace("_p0", "_p$i"),
+                    )
+                )
+            }
+        }
+    }
+    return Illust(
+        id = illustId,
+        title = body.illustTitle,
         type = when (body.illustType) {
             2 -> "ugoira"
             1 -> "manga"
             else -> "illust"
-        }
+        },
         caption = body.description?.replace(WEB_JUMP_LINK) { m ->
             // 单条链接畸形(坏 % 序列)只保留原样,不让 IllegalArgumentException
             // 把整个 web 兜底炸回「无法显示」
             runCatching { URLDecoder.decode(m.groupValues[1], "UTF-8") }
                 .getOrDefault(m.value)
-        }
-        restrict = body.restrict
-        x_restrict = body.xRestrict
-        sanity_level = body.sl
-        illust_ai_type = body.aiType
-        create_date = body.createDate?.let(::webDateToAppDate)
-        page_count = body.pageCount
-        width = body.width
-        height = body.height
-        total_view = body.viewCount
-        total_bookmarks = body.bookmarkCount
-        isIs_bookmarked = body.bookmarkData != null
-        isVisible = true
-        tools = emptyList()
+        },
+        restrict = body.restrict,
+        x_restrict = body.xRestrict,
+        sanity_level = body.sl,
+        illust_ai_type = body.aiType,
+        create_date = body.createDate?.let(::webDateToAppDate),
+        page_count = body.pageCount,
+        width = body.width,
+        height = body.height,
+        total_view = body.viewCount,
+        total_bookmarks = body.bookmarkCount,
+        is_bookmarked = body.bookmarkData != null,
+        visible = true,
+        tools = emptyList(),
         tags = body.tags?.tags?.mapNotNull { webTag ->
             webTag.tag?.let { tagName ->
-                TagsBean().apply {
-                    name = tagName
-                    translated_name = webTag.translation?.values?.firstOrNull()
-                }
+                Tag(name = tagName, translated_name = webTag.translation?.values?.firstOrNull())
             }
-        }
-        user = UserBean().apply {
-            id = body.userId?.toIntOrNull() ?: 0
-            name = body.userName
-            account = body.userAccount
-        }
-        image_urls = body.urls?.toImageUrlsBean()
-        if (body.pageCount <= 1) {
-            meta_single_page = MetaSinglePageBean().apply {
-                original_image_url = body.urls?.original
-            }
-            meta_pages = emptyList()
-        } else {
-            // 多 P:app-api 的 meta_single_page 本来就是空对象,保持形状一致
-            meta_single_page = MetaSinglePageBean()
-            meta_pages = if (webPages != null && webPages.size >= body.pageCount &&
-                webPages.all { !it.urls?.original.isNullOrEmpty() }
-            ) {
-                webPages.map { page ->
-                    MetaPagesBean().apply { image_urls = page.urls!!.toImageUrlsBean() }
-                }
-            } else {
-                (0 until body.pageCount).map { i ->
-                    MetaPagesBean().apply {
-                        image_urls = ImageUrlsBean().apply {
-                            square_medium = body.urls?.thumb?.replace("_p0", "_p$i")
-                            medium = body.urls?.small?.replace("_p0", "_p$i")
-                            large = body.urls?.regular?.replace("_p0", "_p$i")
-                            original = body.urls?.original?.replace("_p0", "_p$i")
-                        }
-                    }
-                }
-            }
-        }
-    }
+        },
+        user = User(
+            id = body.userId?.toLongOrNull() ?: 0L,
+            name = body.userName,
+            account = body.userAccount,
+        ),
+        image_urls = body.urls?.toImageUrls(),
+        meta_single_page = metaSinglePage,
+        meta_pages = metaPages,
+    )
 }
 
 /**

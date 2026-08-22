@@ -1,6 +1,6 @@
 package ceui.pixiv.ui.bulk
 
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
@@ -10,11 +10,11 @@ class BulkSelectStorageTest {
 
     @Test
     fun `put snapshots input and consume clears the slot`() {
-        val first = IllustsBean()
+        val first = Illust(id = 1L)
         val input = mutableListOf(first)
 
         BulkSelectStorage.put(input)
-        input += IllustsBean()
+        input += Illust(id = 2L)
 
         val consumed = BulkSelectStorage.consume()
         assertEquals(1, consumed?.size)
@@ -24,7 +24,7 @@ class BulkSelectStorageTest {
 
     @Test
     fun `oversized input is capped without retaining the source list`() {
-        val input = MutableList(20_001) { IllustsBean() }
+        val input = MutableList(20_001) { Illust(id = it.toLong()) }
 
         BulkSelectStorage.put(input)
         input.clear()

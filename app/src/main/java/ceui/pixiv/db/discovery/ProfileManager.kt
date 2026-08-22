@@ -6,7 +6,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.http.Retro
 import kotlinx.coroutines.runBlocking
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager
 import timber.log.Timber
@@ -44,9 +44,9 @@ object ProfileManager {
      * 收藏作品时实时更新画像：提升该画师亲和度 + 强化匹配标签的偏好分。
      * 让收藏行为立刻影响后续推荐，形成正反馈循环。
      */
-    fun onBookmarkIllust(illust: IllustsBean) {
+    fun onBookmarkIllust(illust: Illust) {
         val profile = cachedProfile ?: return
-        val userId = illust.user?.id?.toLong() ?: 0
+        val userId = illust.user?.id ?: 0L
 
         val newAuthorScores = profile.authorScores.toMutableMap()
         if (userId > 0) {
@@ -111,7 +111,7 @@ object ProfileManager {
         } catch (e: Exception) { emptyList() }
 
         // ====== 1.5 远程补充：收藏列表 + 关注列表 ======
-        val remoteBookmarks = mutableListOf<IllustsBean>()
+        val remoteBookmarks = mutableListOf<Illust>()
         val remoteFollowedAuthorIds = mutableListOf<Long>()
         val myUserId = SessionManager.loggedInUid.toInt()
 
@@ -159,11 +159,11 @@ object ProfileManager {
         }
 
         // ====== 2. 反序列化，分正面池和全量池 ======
-        val likedIllusts = mutableMapOf<Int, LikedRecord>()
+        val likedIllusts = mutableMapOf<Long, LikedRecord>()
 
         for (entity in downloads) {
             try {
-                val illust = gson.fromJson(entity.illustGson, IllustsBean::class.java) ?: continue
+                val illust = gson.fromJson(entity.illustGson, Illust::class.java) ?: continue
                 if (illust.id <= 0) continue
                 val existing = likedIllusts[illust.id]
                 if (existing != null) likedIllusts[illust.id] = existing.copy(weight = existing.weight + 5f)
@@ -177,7 +177,7 @@ object ProfileManager {
         var bookmarkParsed = 0
         for (entity in bookmarks) {
             try {
-                val illust = gson.fromJson(entity.illustJson, IllustsBean::class.java) ?: continue
+                val illust = gson.fromJson(entity.illustJson, Illust::class.java) ?: continue
                 if (illust.id <= 0) continue
                 val existing = likedIllusts[illust.id]
                 if (existing != null) likedIllusts[illust.id] = existing.copy(weight = existing.weight + 3f)
@@ -197,16 +197,16 @@ object ProfileManager {
         }
         Timber.d("$TAG buildProfile parsed remote bookmarks=$remoteBookmarkParsed (liked total=${likedIllusts.size})")
 
-        val viewedIllusts = mutableMapOf<Int, IllustsBean>()
+        val viewedIllusts = mutableMapOf<Long, Illust>()
         for (entity in viewHistoryLegacy) {
             try {
-                val illust = gson.fromJson(entity.illustJson, IllustsBean::class.java) ?: continue
+                val illust = gson.fromJson(entity.illustJson, Illust::class.java) ?: continue
                 if (illust.id > 0) viewedIllusts[illust.id] = illust
             } catch (_: Exception) {}
         }
         for (entity in viewHistoryNew) {
             try {
-                val illust = gson.fromJson(entity.json, IllustsBean::class.java) ?: continue
+                val illust = gson.fromJson(entity.json, Illust::class.java) ?: continue
                 if (illust.id > 0) viewedIllusts[illust.id] = illust
             } catch (_: Exception) {}
         }
@@ -255,7 +255,7 @@ object ProfileManager {
         val authorScores = mutableMapOf<Long, Float>()
         val now = System.currentTimeMillis()
         for ((_, record) in likedIllusts) {
-            val userId = record.illust.user?.id?.toLong() ?: continue
+            val userId = record.illust.user?.id ?: continue
             if (userId <= 0) continue
             val decay = recencyDecay(record.timestamp, now)
             authorScores[userId] = (authorScores[userId] ?: 0f) + record.weight * decay
@@ -273,14 +273,14 @@ object ProfileManager {
         // ====== 5. 种子作品（按 tag 分桶 + 兜底补充） ======
         val topTags = tagScores.entries.sortedByDescending { it.value }.take(20)
         val seedIllusts = mutableListOf<Long>()
-        val usedIds = mutableSetOf<Int>()
+        val usedIds = mutableSetOf<Long>()
         // 先按 top tag 分桶选
         for ((tagName, _) in topTags) {
             likedIllusts.values
                 .filter { it.illust.id !in usedIds && it.illust.tags?.any { t -> t.name == tagName } == true }
-                .maxByOrNull { if (it.illust.total_view > 0) it.illust.total_bookmarks.toFloat() / it.illust.total_view else 0f }
+                .maxByOrNull { if ((it.illust.total_view ?: 0) > 0) (it.illust.total_bookmarks ?: 0).toFloat() / (it.illust.total_view ?: 0) else 0f }
                 ?.let {
-                    seedIllusts.add(it.illust.id.toLong())
+                    seedIllusts.add(it.illust.id)
                     usedIds.add(it.illust.id)
                     Timber.d("$TAG buildProfile   seed illust id=${it.illust.id} tag='$tagName'")
                 }
@@ -292,7 +292,7 @@ object ProfileManager {
                 .sortedByDescending { it.weight }
                 .take(5 - seedIllusts.size)
                 .forEach {
-                    seedIllusts.add(it.illust.id.toLong())
+                    seedIllusts.add(it.illust.id)
                     usedIds.add(it.illust.id)
                     Timber.d("$TAG buildProfile   seed illust (fallback) id=${it.illust.id} weight=${it.weight}")
                 }
@@ -304,7 +304,7 @@ object ProfileManager {
 
         // ====== 7. 平均收藏率 ======
         val rates = likedIllusts.values.map {
-            if (it.illust.total_view > 0) it.illust.total_bookmarks.toFloat() / it.illust.total_view else 0f
+            if ((it.illust.total_view ?: 0) > 0) (it.illust.total_bookmarks ?: 0).toFloat() / (it.illust.total_view ?: 0) else 0f
         }
         val avgBookmarkRate = if (rates.isNotEmpty()) rates.average().toFloat() else 0.05f
 
@@ -372,5 +372,5 @@ object ProfileManager {
         return result
     }
 
-    private data class LikedRecord(val illust: IllustsBean, val weight: Float, val timestamp: Long)
+    private data class LikedRecord(val illust: Illust, val weight: Float, val timestamp: Long)
 }

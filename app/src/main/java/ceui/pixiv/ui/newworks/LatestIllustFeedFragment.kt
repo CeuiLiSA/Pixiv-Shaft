@@ -64,16 +64,13 @@ class LatestIllustFeedFragment : IllustFeedFragment() {
             phase: FeedLoadPhase,
             contentType: String,
         ): List<FeedItem> {
-            val pairs = illusts.mapNotNull { illust ->
-                IllustFeedItem.beanOf(illust)?.let { bean -> illust to bean }
-            }
             if (phase.isFreshFetch) {
                 DiscoveryPool.collect(
-                    pairs.map { it.second },
+                    illusts,
                     if (phase.isFirstPage) "latest:$contentType" else "latest_next:$contentType",
                 )
             }
-            return pairs.mapNotNull { (illust, bean) -> IllustFeedItem.of(illust, bean) }
+            return illusts.mapNotNull { IllustFeedItem.of(it) }
         }
     }
 }

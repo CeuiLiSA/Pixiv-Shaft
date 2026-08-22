@@ -9,7 +9,7 @@ import ceui.lisa.core.Manager
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.download.IllustDownload
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.DownloadLimitTypeUtil
 import ceui.pixiv.db.queue.DownloadQueueDao
@@ -252,7 +252,7 @@ object QueueDownloadManager {
     private val _ugoiraInFlightFlow = MutableStateFlow<List<UgoiraInFlight>>(emptyList())
     val ugoiraInFlightFlow: StateFlow<List<UgoiraInFlight>> get() = _ugoiraInFlightFlow
 
-    private fun setUgoiraPhase(rowId: Long, bean: IllustsBean, phase: UgoiraPhase) {
+    private fun setUgoiraPhase(rowId: Long, bean: Illust, phase: UgoiraPhase) {
         synchronized(ugoiraInFlightDetails) {
             ugoiraInFlightDetails[rowId] = UgoiraInFlight(rowId, bean, phase)
             _ugoiraInFlightFlow.value = ugoiraInFlightDetails.values.toList()
@@ -268,7 +268,7 @@ object QueueDownloadManager {
     private data class InFlightIllust(
         val queueRowId: Long,
         val illustId: Long,
-        val bean: IllustsBean,
+        val bean: Illust,
         val totalPages: Int,
         /** 已经被 [Manager.addTask] 喂出去的页数；下一次要 add 的页索引 = nextPageToAdd */
         var nextPageToAdd: Int,
@@ -410,8 +410,7 @@ object QueueDownloadManager {
         if (inFlight.isEmpty()) return
 
         val snapshot = snapshotManagerContent()
-        // illustId.toInt() 因为 IllustsBean.id 是 int，DownloadItem.illust.id 也是 int
-        val byIllust: Map<Int, List<DownloadItem>> = snapshot.groupBy { it.illust?.id ?: -1 }
+        val byIllust: Map<Long, List<DownloadItem>> = snapshot.groupBy { it.illust?.id ?: -1L }
 
         val now = System.currentTimeMillis()
         val toFinalize = mutableListOf<Pair<InFlightIllust, FinalizeKind>>()
@@ -419,7 +418,7 @@ object QueueDownloadManager {
         val iter = inFlight.entries.iterator()
         while (iter.hasNext()) {
             val inf = iter.next().value
-            val pages = byIllust[inf.illustId.toInt()] ?: emptyList()
+            val pages = byIllust[inf.illustId] ?: emptyList()
 
             // 停滞检测：以 (uuid:state:nonius) 列表为签名
             val signature = pages.joinToString("|") { it.uuid + ":" + it.state + ":" + it.nonius }
@@ -466,7 +465,7 @@ object QueueDownloadManager {
             // 复用顶部的 snapshot：每个 illust 的 page 集合互不影响，clearOne illust A
             // 不会改 illust B 的 byIllust[B.id] 视图。省掉每个 finalize 分支再各自
             // snapshotManagerContent() 的同步开销。
-            val remainingForThis = byIllust[inf.illustId.toInt()] ?: emptyList()
+            val remainingForThis = byIllust[inf.illustId] ?: emptyList()
             when (kind) {
                 FinalizeKind.SUCCESS -> {
                     retryStates.remove(inf.queueRowId)  // 进度看门狗状态随行终结
@@ -677,7 +676,7 @@ object QueueDownloadManager {
             return false
         }
 
-        if (bean.isGif) {
+        if (bean.isGif()) {
             // ugoira 走独立管线（getGifPackage → zip → 解压 → encodeGif → 写用户目录），
             // 不进 Manager.content 的页级并发模型 —— [downloadUgoira] 用单独的
             // [ugoiraScope] 串行跑，跟 illust 并发互不挤占。
@@ -699,7 +698,7 @@ object QueueDownloadManager {
 
         // Retry path 检测：Manager.content 里残留这个 illust 的 P
         // （来源：上轮 bumpRetry → PENDING；或冷启动 Manager.restore 带回的）
-        val target = row.illustId.toInt()
+        val target = row.illustId
         val existing = snapshotManagerContent().filter { it.illust?.id == target }
 
         val nextPageToAddInit = if (existing.isNotEmpty()) {
@@ -800,7 +799,7 @@ object QueueDownloadManager {
      *   - finally：移除 [ugoiraInFlightRowIds]，tryEmit 列表脏标，trySend tickle
      *     让主循环立刻再 pull 下一行（不必等 POLL_INTERVAL_MS）
      */
-    private fun dispatchUgoira(row: DownloadQueueEntity, bean: IllustsBean) {
+    private fun dispatchUgoira(row: DownloadQueueEntity, bean: Illust) {
         if (!ugoiraInFlightRowIds.add(row.id)) {
             Timber.tag(TAG).w("[QUEUE-CONSUMER] ugoira already dispatched row=${row.id}")
             return

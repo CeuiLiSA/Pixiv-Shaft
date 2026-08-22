@@ -12,7 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.helper.AppLevelViewModelHelper
 import ceui.lisa.model.ListIllust
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Params
 import ceui.loxia.ObjectPool
 import ceui.pixiv.feeds.FeedItem
@@ -45,7 +45,7 @@ import timber.log.Timber
 class IllustFeedDetailSync(
     private val feedViewModel: FeedViewModel<String>,
     private val listPageUuid: String,
-    private val itemFromBean: (IllustsBean?) -> IllustFeedItem?,
+    private val itemFromBean: (Illust?) -> IllustFeedItem?,
     /** 详情页正看到某张作品：illustId 按 id 锚定（缺省 0），pagerIndex 是快照下标兜底。 */
     private val onDetailScrolledTo: (illustId: Long, pagerIndex: Int) -> Unit,
 ) {
@@ -144,7 +144,7 @@ class IllustFeedDetailSync(
  */
 class IllustFeedPoolSync(
     private val syncViewModel: IllustFeedSyncViewModel,
-    private val poolableBeansOf: (FeedItem) -> List<IllustsBean>,
+    private val poolableBeansOf: (FeedItem) -> List<Illust>,
 ) {
 
     fun bind(viewLifecycleOwner: LifecycleOwner, uiState: StateFlow<FeedUiState>) {
@@ -189,12 +189,12 @@ class IllustFeedPoolSync(
                     // repeatOnLifecycle 一起终止且**不自愈**（本 view 生命周期内此后所有列表数据
                     // 都不再合池，详情页从此渲染陈旧数据），异常还会经无 handler 的 lifecycleScope
                     // 直奔线程默认处理器崩掉进程。合池是旁路职责，失败绝不该拖垮浏览。
-                    val freshBeans = mutableListOf<IllustsBean>()
+                    val freshBeans = mutableListOf<Illust>()
                     // 本轮打算记进 pooledBeans 的实例，**先攒着不落账**：一旦落了账，重试时
                     // `pooledBeans[id] !== bean` 就不再成立，这批 bean 会被永久判定为「已合过池」，
                     // 下面 catch 里承诺的「下次数据变化重扫」根本补不回来（尤其 fill 在循环外，
                     // 它一抛错，整批 bean 就再也不会 fill）。全部成功之后才统一记账。
-                    val staged = HashMap<Long, IllustsBean>()
+                    val staged = HashMap<Long, Illust>()
                     try {
                         itemsToScan.forEach { item ->
                             poolableBeansOf(item).forEach { bean ->

@@ -238,7 +238,7 @@ enum class DurationBucket {
  * R18 作品漏过、把蹭「R-18」标签的全年龄作品混进来——Google Play 反馈「全年龄和 R 混在一起」
  * 正是这个根因。能否看到 R18 实际由账号的内容浏览设置（账号 `x_restrict`）决定，关键字管不着。
  *
- * 判定只看 `x_restrict`、**不碰 `sanity_level`**，与 [ceui.lisa.models.IllustsBean.isR18File] 同口径，
+ * 判定只看 `x_restrict`、**不碰 `sanity_level`**，与 [ceui.loxia.Illust.isR18File] 同口径，
  * 避免把 sanity 4/6 但没有 R18 标记的普通（含轻微敏感）插画误删。
  */
 enum class R18Mode {
@@ -267,7 +267,7 @@ enum class AiMode {
     /** 服务端 `search_ai_type`：屏蔽=1，其余（含「仅看 AI」）=0（全返后客户端再筛）。 */
     fun searchAiType(): Int = if (this == ExcludeAi) 1 else 0
 
-    /** 该档是否接受这条作品；`aiType`==2 视为 AI 生成（[ceui.lisa.models.IllustsBean.IllustAIType.CreatedByAI]）。 */
+    /** 该档是否接受这条作品；`aiType`==2 视为 AI 生成（[ceui.lisa.models.IllustAIType.CreatedByAI]）。 */
     fun accepts(aiType: Int): Boolean = when (this) {
         All -> true
         ExcludeAi -> aiType != 2

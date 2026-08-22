@@ -2,6 +2,8 @@
 
 package ceui.loxia
 
+import ceui.lisa.models.ProfileImageUrlsBean
+import ceui.lisa.models.TagsBean
 import ceui.lisa.models.UserBean
 import ceui.lisa.models.UserModel
 
@@ -46,3 +48,46 @@ fun UserBean.toUser(): User {
         },
     )
 }
+
+/**
+ * loxia [User] → legacy [UserBean]。IllustsBean 已并入 [Illust]，但 UserBean 仍是不少 legacy
+ * 链路（关注 / 屏蔽画师 / 旧用户页）的入参类型，作品上的 user 要喂过去时走这一步。
+ * 显式起个名再进 apply：两边都有 profile_image_urls / name / account 这些同名成员，
+ * 在 apply 块里裸写会静默解析到 UserBean 自己那个还是空的字段。
+ */
+fun User.toUserBean(): UserBean {
+    val source = this
+    return UserBean().apply {
+        id = source.id.toInt()
+        name = source.name
+        account = source.account
+        comment = source.comment
+        mail_address = source.mail_address
+        isIs_premium = source.is_premium == true
+        isIs_followed = source.is_followed == true
+        isIs_mail_authorized = source.is_mail_authorized == true
+        isRequire_policy_agreement = source.require_policy_agreement == true
+        x_restrict = source.x_restrict ?: 0
+        isIs_access_blocking_user = source.is_access_blocking_user == true
+        isIs_accept_request = source.is_accept_request == true
+        source.profile_image_urls?.let { urls ->
+            profile_image_urls = ProfileImageUrlsBean().apply {
+                medium = urls.medium ?: urls.px_170x170
+                px_16x16 = urls.px_16x16
+                px_50x50 = urls.px_50x50
+                px_170x170 = urls.px_170x170 ?: urls.medium
+            }
+        }
+    }
+}
+
+/** loxia [Tag] → legacy [TagsBean]（TagAdapter / 屏蔽标签等 legacy 入参仍是 TagsBean）。 */
+fun Tag.toTagsBean(): TagsBean {
+    val source = this
+    return TagsBean().apply {
+        name = source.name
+        translated_name = source.translated_name
+    }
+}
+
+fun List<Tag>.toTagsBeans(): List<TagsBean> = map { it.toTagsBean() }

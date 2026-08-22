@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.actions.PixivActions
@@ -169,7 +169,7 @@ class BulkSelectV3Fragment : Fragment() {
      * （每页一行）。跟 confirm 按钮的"下载"语义对称：勾完之后先导链接备查，
      * 再点确认下载，事后用 .txt 给第三方下载器/IDM 对账或重抓缺漏页。
      *
-     * IllustsBean 在内存里就有 meta_pages / meta_single_page —— 用户在
+     * Illust 在内存里就有 meta_pages / meta_single_page —— 用户在
      * 上层列表浏览时就抓到了，不需要二次反序列化。flatMap 走 IO 防卡帧
      * （列表上限 10000+，每个再产 N 个 url，主线程会感知）。
      */
@@ -187,7 +187,7 @@ class BulkSelectV3Fragment : Fragment() {
     }
 
     /** 当前勾选的 legacy bean 快照。收藏链路读的就是这份可变共享实例。 */
-    private fun selectedBeans(): List<IllustsBean> =
+    private fun selectedBeans(): List<Illust> =
         items.filter { it.selected && it.selectable }.map { it.illust }
 
     /**
@@ -232,7 +232,7 @@ class BulkSelectV3Fragment : Fragment() {
      * 单张收藏时这是一次不起眼的副作用，批量时却是一次性关注几十上百个人。
      */
     private fun confirmBookmark(
-        picked: List<IllustsBean>,
+        picked: List<Illust>,
         count: Int,
         restrict: String,
         isPrivate: Boolean,
@@ -274,7 +274,7 @@ class BulkSelectV3Fragment : Fragment() {
     }
 
     /** 取消收藏的确认框。这一支是删数据且没有撤销，所以按钮用 NEGATIVE 语义。 */
-    private fun confirmUnbookmark(picked: List<IllustsBean>, count: Int) {
+    private fun confirmUnbookmark(picked: List<Illust>, count: Int) {
         if (count == 0) {
             Toaster.showShort(R.string.bulk_bookmark_nothing)
             return
@@ -311,7 +311,7 @@ class BulkSelectV3Fragment : Fragment() {
      * 报的是返回值而不是确认框上那个数：两者之间隔着一次用户点击，期间队列可能刚好回滚了
      * 某条失败的收藏，实际要发的条数就变了。
      */
-    private fun enqueueBookmarks(picked: List<IllustsBean>, bookmark: Boolean, restrict: String) {
+    private fun enqueueBookmarks(picked: List<Illust>, bookmark: Boolean, restrict: String) {
         val enqueued = PixivActions.setIllustBookmarks(picked, bookmark, restrict)
         if (enqueued == 0) {
             Toaster.showShort(R.string.bulk_bookmark_nothing)
@@ -392,7 +392,7 @@ class BulkSelectV3Fragment : Fragment() {
 }
 
 private data class SelectableItem(
-    val illust: IllustsBean,
+    val illust: Illust,
     val selected: Boolean,
     val selectable: Boolean,
 )
@@ -431,7 +431,7 @@ private class BulkSelectAdapter(
         }
 
         // GIF 徽章（不可选项才显示，跟 checkBadge 互斥）
-        h.gifBadge.visibility = if (illust.isGif) View.VISIBLE else View.GONE
+        h.gifBadge.visibility = if (illust.isGif()) View.VISIBLE else View.GONE
 
         // —— 选中态：边框 + 圆形勾标 + 微缩小 ——
         val isSelected = item.selected && item.selectable

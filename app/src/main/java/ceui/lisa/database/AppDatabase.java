@@ -289,7 +289,7 @@ public abstract class AppDatabase extends RoomDatabase {
     // Room 启动时 validateMigration 失败。改为 QueueDownloadManager.consumeUntilEmpty 里
     // mark DOWNLOADING 前 count 一次的运行时检查；reasonable，因为只有一个 consumer 写状态。
 
-    // 迁移 33 -> 34：download_queue 加 illustGson 列。入队时序列化 IllustsBean 进 DB，
+    // 迁移 33 -> 34：download_queue 加 illustGson 列。入队时序列化 Illust 进 DB，
     // 让 consumer / 队列 tab 显示 都不必再打 getIllustByID（冷启动 100+ PENDING 一拥而上
     // 会被 pixiv 429）。老行的 illustGson 为 null，consumer 会 fallback 到 API。
     private static final Migration MIGRATION_33_34 = new Migration(33, 34) {

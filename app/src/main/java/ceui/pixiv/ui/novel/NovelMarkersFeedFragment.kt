@@ -212,7 +212,7 @@ class NovelMarkersFeedSource : FeedSource<String> {
                 repo.initNextApi()
             }.awaitFirstValue()
         }
-        // 默认 Mapper 只过滤 IllustsBean/NovelBean，对 MarkedNovelItem 是 no-op → 不套，直接建条目
+        // 默认 Mapper 只过滤 Illust/NovelBean，对 MarkedNovelItem 是 no-op → 不套，直接建条目
         // （去掉多余的未受检 cast + Default 线程切换 + 全量空遍历）。
         val items: List<FeedItem> = resp.list.orEmpty().map { NovelMarkerFeedItem(it) }
         return FeedPage(items, resp.nextUrl?.takeIf { it.isNotEmpty() })

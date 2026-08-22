@@ -5,7 +5,7 @@ import android.content.Intent;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.IExecutor;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 
 /**
  * 分享
@@ -14,10 +14,10 @@ public abstract class ShareIllust implements IExecutor {
 
     public static final String URL_Head = "https://www.pixiv.net/artworks/";
     public static final String USER_URL_Head = "https://www.pixiv.net/users/";
-    private final IllustsBean mIllustsBean;
+    private final Illust mIllustsBean;
     private final Context mContext;
 
-    public ShareIllust(Context context, IllustsBean illustsBean) {
+    public ShareIllust(Context context, Illust illustsBean) {
         mContext = context;
         mIllustsBean = illustsBean;
     }

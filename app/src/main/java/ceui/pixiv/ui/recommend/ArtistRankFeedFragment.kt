@@ -75,7 +75,7 @@ class ArtistRankFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) 
  * 用不了 PixivFeedSource，手写 [FeedSource]（同浏览量榜 [ViewRankFeedSource]）。
  *
  * 逐条把原始 pixiv JSON 直接反序列化成 loxia [User] / [Illust] 拼 [UserPreview]——legacy repo 当年
- * 要经 UserBean / IllustsBean 是因为 UAdapter 只吃 legacy bean，feeds 侧 [UserFeedItem] 本就收
+ * 要经 UserBean / Illust 是因为 UAdapter 只吃 legacy bean，feeds 侧 [UserFeedItem] 本就收
  * [UserPreview]，少一层往返。用 [Shaft.sGson]（vanilla Gson，无自定义适配器）与 legacy 保持一致。
  *
  * 清零关注/收藏态：payload 里的 is_followed / is_bookmarked 是上报榜单那个客户端当时的状态，跟当前

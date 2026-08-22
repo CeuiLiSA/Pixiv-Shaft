@@ -64,7 +64,7 @@ private const val KEY_TAB_KINDS = "user_v3_tab_kinds"
  * 宿主非本类型时(如 TemplateActivity 独立复用该 fragment)回调被忽略。
  */
 interface UserIllustFirstPageListener {
-    fun onUserIllustFirstPage(illusts: List<ceui.lisa.models.IllustsBean>)
+    fun onUserIllustFirstPage(illusts: List<ceui.loxia.Illust>)
 }
 
 /** 小说侧的同款首屏回调(issue #996:小说 Tab 也有标签筛选条),约定同上。 */

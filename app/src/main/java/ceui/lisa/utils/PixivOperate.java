@@ -66,10 +66,11 @@ import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.models.UserModel;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.IllustDetailSupportKt;
 import ceui.loxia.ObjectPool;
+import ceui.loxia.User;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -89,8 +90,8 @@ import static com.blankj.utilcode.util.StringUtils.getString;
  */
 public class PixivOperate {
 
-    private static final Map<Integer, Back> sBack = new HashMap<>();
-    private static final Map<Integer, Long> gifEncodingWorkSet = new HashMap<>();
+    private static final Map<Long, Back> sBack = new HashMap<>();
+    private static final Map<Long, Long> gifEncodingWorkSet = new HashMap<>();
     private static final long reEncodeTimeThresholdMillis = 60 * 1000;
 
     public static void refreshUserData(Callback<UserModel> callback) {
@@ -126,22 +127,22 @@ public class PixivOperate {
         PixivActions.setUserFollow((long) userID, false, Params.TYPE_PUBLIC);
     }
 
-    public static void postLikeDefaultStarType(IllustsBean illustsBean) {
+    public static void postLikeDefaultStarType(Illust illustsBean) {
         postLike(illustsBean, PixivActions.defaultBookmarkRestrict(), false, 0);
     }
 
-    public static void postLike(IllustsBean illustsBean, String starType) {
+    public static void postLike(Illust illustsBean, String starType) {
         postLike(illustsBean, starType, false, 0);
     }
 
-    public static void postLike(IllustsBean illustsBean, String starType, boolean showRelated, int index) {
+    public static void postLike(Illust illustsBean, String starType, boolean showRelated, int index) {
         postLike(illustsBean, starType, showRelated, index, null);
     }
 
     /**
      * 收藏 / 取消收藏（按 {@code illustsBean} 当前状态取反）。
      *
-     * <p>**只是 {@link PixivActions#setIllustBookmark(IllustsBean, boolean, String)} 的 legacy 封装**：
+     * <p>**只是 {@link PixivActions#setIllustBookmark(Illust, boolean, String)} 的 legacy 封装**：
      * bean、ObjectPool 里的两个表示和 LIKED_ILLUST 广播当帧全部改掉，真正的请求由
      * PixivActionQueue 串行限流后发出，撞 429 整队冷却并自动重试，进程被杀后下次启动继续发。
      * 收藏后自动关注作者也由那一层负责（同样进队列）。
@@ -159,18 +160,18 @@ public class PixivOperate {
      *                       让相关作品只被发起收藏的那张列表认领（feeds 页传，legacy 调用点传 null
      *                       走宽松的按 id 锚定兜底）。
      */
-    public static void postLike(IllustsBean illustsBean, String starType, boolean showRelated,
+    public static void postLike(Illust illustsBean, String starType, boolean showRelated,
                                 int index, String sourcePageUuid) {
         if (illustsBean == null) {
             return;
         }
 
-        final boolean willBookmark = !illustsBean.isIs_bookmarked();
+        final boolean willBookmark = !illustsBean.isBookmarked();
         PixivActions.setIllustBookmark(illustsBean, willBookmark, starType);
 
         // 收藏的时候，顺便请求这个作品的相关作品
         if (willBookmark && showRelated) {
-            Retro.getAppApi().relatedIllust(illustsBean.getId())
+            Retro.getAppApi().relatedIllust((int) illustsBean.getId())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new NullCtrl<ListIllust>() {
@@ -181,7 +182,7 @@ public class PixivOperate {
                             intent.putExtra(Params.INDEX, index);
                             // feeds 版推荐页按被收藏作品 id 锚定插入位置（index 是 legacy
                             // adapter 位置语义，跨列表广播时不可靠）
-                            intent.putExtra(Params.ID, illustsBean.getId());
+                            intent.putExtra(Params.ID, (int) illustsBean.getId());
                             if (sourcePageUuid != null) {
                                 intent.putExtra(Params.PAGE_UUID, sourcePageUuid);
                             }
@@ -228,14 +229,14 @@ public class PixivOperate {
                      */
                     @Override
                     public void success(IllustSearchResponse illustSearchResponse) {
-                        IllustsBean illust = illustSearchResponse.getIllust();
+                        Illust illust = illustSearchResponse.getIllust();
                         if (illust == null) {
                             return;
                         }
                         //Update the illustration object in ObjectPool
                         ObjectPool.INSTANCE.updateIllust(illust);
                         //Check the permission to view the illustration
-                        if (illust.getId() == 0 || !illust.isVisible()) {
+                        if (illust.getId() == 0 || !Boolean.TRUE.equals(illust.getVisible())) {
                             // #592: app-api 屏蔽(visible=false)的作品走网页 ajax 兜底
                             IllustDetailSupportKt.fetchWebIllustFallbackAsync(illustID, webIllust -> {
                                 if (webIllust != null) {
@@ -269,11 +270,11 @@ public class PixivOperate {
                 .subscribe(new NullCtrl<IllustSearchResponse>() {
                     @Override
                     public void success(IllustSearchResponse illustSearchResponse) {
-                        IllustsBean illust = illustSearchResponse.getIllust();
+                        Illust illust = illustSearchResponse.getIllust();
                         if (illust == null) {
                             return;
                         }
-                        if (illust.getId() == 0 || !illust.isVisible()) {
+                        if (illust.getId() == 0 || !Boolean.TRUE.equals(illust.getVisible())) {
                             // #592: 深链接/搜索打开被 app-api 屏蔽的作品,原先会直接进
                             // 占位图页;改走网页 ajax 兜底,拿不到才报「无法显示」
                             IllustDetailSupportKt.fetchWebIllustFallbackAsync(illustID, webIllust -> {
@@ -311,10 +312,10 @@ public class PixivOperate {
     }
 
     /** 按 ID 打开作品详情页的公共尾段:同步关注态 → 建单作品 PageData → 进 VActivity。 */
-    private static void openIllustDetail(Context context, IllustsBean illust) {
-        UserBean user = illust.getUser();
+    private static void openIllustDetail(Context context, Illust illust) {
+        User user = illust.getUser();
         if (user != null) {
-            Shaft.appViewModel.updateFollowUserStatus(user.getId(), user.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
+            Shaft.appViewModel.updateFollowUserStatus((int) user.getId(), Boolean.TRUE.equals(user.is_followed()) ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
         }
 
         final PageData pageData = new PageData(Collections.singletonList(illust));
@@ -357,8 +358,8 @@ public class PixivOperate {
                 });
     }
 
-    public static void getGifInfo(IllustsBean illust, ErrorCtrl<GifResponse> errorCtrl) {
-        Retro.getAppApi().getGifPackage(illust.getId())
+    public static void getGifInfo(Illust illust, ErrorCtrl<GifResponse> errorCtrl) {
+        Retro.getAppApi().getGifPackage((int) illust.getId())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(errorCtrl);
@@ -451,7 +452,7 @@ public class PixivOperate {
      * 瀑布流卡片的遮罩判定读的是它的内存镜像，这里若直接 insertMuteTag，已经在跑的列表要等
      * 进程重启才认这条记录。
      */
-    public static void muteIllust(IllustsBean illust) {
+    public static void muteIllust(Illust illust) {
         IllustMuteStore.INSTANCE.setMuted(illust.getId(), true, () -> illust);
         Common.showToast(Shaft.getContext().getString(R.string.string_384));
     }
@@ -493,7 +494,7 @@ public class PixivOperate {
         }
     }
 
-    public static void insertIllustViewHistory(IllustsBean illust) {
+    public static void insertIllustViewHistory(Illust illust) {
         if (illust == null) {
             return;
         }
@@ -502,12 +503,12 @@ public class PixivOperate {
             Schedulers.io().scheduleDirect(() -> {
                 IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
                 illustHistoryEntity.setType(0);
-                illustHistoryEntity.setIllustID(illust.getId());
+                illustHistoryEntity.setIllustID((int) illust.getId());
                 illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(illust));
                 illustHistoryEntity.setTime(System.currentTimeMillis());
                 Common.showLog("插入了 " + illustHistoryEntity.getIllustID() + " time " + illustHistoryEntity.getTime());
                 AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
-                // dual-write: report to pixshaft-api (same IllustsBean payload the
+                // dual-write: report to pixshaft-api (same Illust payload the
                 // history list deserializes). illust tab covers illust + manga.
                 // Fully isolated: any failure here must never affect browsing.
                 try {
@@ -603,8 +604,8 @@ public class PixivOperate {
     }
 
     //筛选作品，只留下未收藏的作品
-    public static List<IllustsBean> getListWithoutBooked(ListIllust response) {
-        List<IllustsBean> result = new ArrayList<>();
+    public static List<Illust> getListWithoutBooked(ListIllust response) {
+        List<Illust> result = new ArrayList<>();
         if (response == null) {
             return result;
         }
@@ -613,8 +614,8 @@ public class PixivOperate {
             return result;
         }
 
-        for (IllustsBean illustsBean : response.getList()) {
-            if (!illustsBean.isIs_bookmarked()) {
+        for (Illust illustsBean : response.getList()) {
+            if (!illustsBean.isBookmarked()) {
                 result.add(illustsBean);
             }
         }
@@ -624,14 +625,14 @@ public class PixivOperate {
 
     //筛选作品，只留下收藏数达到标准的作品
     /** starSizeMax <= 0 表示上限不限（收藏量区间筛选只设了下限，或只有 users入り 关键字桶）。 */
-    public static List<IllustsBean> getListWithStarSize(ListIllust response, int starSize, int starSizeMax) {
-        List<IllustsBean> result = new ArrayList<>();
+    public static List<Illust> getListWithStarSize(ListIllust response, int starSize, int starSizeMax) {
+        List<Illust> result = new ArrayList<>();
         if (response == null || response.getList() == null || response.getList().size() == 0) {
             return result;
         }
 
-        for (IllustsBean illustsBean : response.getList()) {
-            int stars = illustsBean.getTotal_bookmarks();
+        for (Illust illustsBean : response.getList()) {
+            int stars = illustsBean.getTotal_bookmarks() == null ? 0 : illustsBean.getTotal_bookmarks();
             if (stars >= starSize && (starSizeMax <= 0 || stars <= starSizeMax)) {
                 result.add(illustsBean);
             }
@@ -649,7 +650,7 @@ public class PixivOperate {
         }
     }
 
-    public static void encodeGifV2(Context context, File parentFile, IllustsBean illustsBean, boolean autoSave) {
+    public static void encodeGifV2(Context context, File parentFile, Illust illustsBean, boolean autoSave) {
         RxRun.runOn(new RxRunnable<Void>() {
             @Override
             public Void execute() throws Exception {
@@ -767,11 +768,11 @@ public class PixivOperate {
         });
     }
 
-    public static void unzipAndPlay(Context context, IllustsBean illustsBean) {
+    public static void unzipAndPlay(Context context, Illust illustsBean) {
         unzipAndPlay(context, illustsBean, false);
     }
 
-    public static void unzipAndPlay(Context context, IllustsBean illustsBean, boolean autoSave) {
+    public static void unzipAndPlay(Context context, Illust illustsBean, boolean autoSave) {
         try {
             File fromZip = LegacyFile.gifZipFile(context, illustsBean);
             File toFolder = LegacyFile.gifUnzipFolder(context, illustsBean);
@@ -785,7 +786,7 @@ public class PixivOperate {
         }
     }
 
-    public static void setBack(int illustId, Back back) {
+    public static void setBack(long illustId, Back back) {
         sBack.put(illustId, back);
     }
 

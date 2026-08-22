@@ -39,7 +39,7 @@ public class Params {
     public static final String USER_KEY      = "pixiv_shaft_local_user";
     public static final String PAGE_UUID     = "page_uuid";
     public static final String POSITION      = "position";
-    // widget 点击自带的单张 IllustsBean（Serializable）：进程被杀后 Container 已空时用它重建 PageData
+    // widget 点击自带的单张 Illust（Serializable）：进程被杀后 Container 已空时用它重建 PageData
     public static final String WIDGET_ILLUST = "widget_illust";
     public static final String IS_LIKED      = "is liked";
     public static final String IS_POPULAR    = "is popular";

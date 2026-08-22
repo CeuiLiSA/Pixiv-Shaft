@@ -32,7 +32,7 @@ import ceui.lisa.adapters.SkeletonRailAdapter;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentNewCenterBinding;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
@@ -176,7 +176,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
     }
 
     /** 插画货架:空则收起整段;非空绑 RAdapter(复用排行榜横向卡),点击进详情大图 pager。 */
-    private void bindIllustRail(View section, RecyclerView rv, List<IllustsBean> data) {
+    private void bindIllustRail(View section, RecyclerView rv, List<Illust> data) {
         if (data == null || data.isEmpty()) {
             section.setVisibility(View.GONE);
             return;

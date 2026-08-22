@@ -4,7 +4,7 @@ import android.content.Context
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.db.queue.WorkType
@@ -36,7 +36,7 @@ object LegacyBatchEnqueue {
     /** 防御性硬上限：本接口理论上 BulkSelectV3Fragment 会让用户看清单后再确认，但极端误用兜底。 */
     private const val HARD_CAP = 100_000
 
-    fun enqueueAndToast(context: Context, illusts: List<IllustsBean>?) {
+    fun enqueueAndToast(context: Context, illusts: List<Illust>?) {
         // 全程用 ApplicationContext —— BulkSelectV3Fragment 调完会 finish()，
         // 后续 IO 协程跑到一半时 fragment context 已死，toast 会引用已销毁 Activity 崩溃。
         val appCtx: Context = context.applicationContext
@@ -78,19 +78,19 @@ object LegacyBatchEnqueue {
                 //
                 // **序列化 illust 进 illustGson 列** —— 这样 consumer / 队列 tab 显示
                 // 都不必再打 getIllustByID 接口；冷启动 100+ PENDING 一拥而上不会 429。
-                // Gson 序列化一个 IllustsBean ~30-80KB JSON，200 行 batch ≈ 6-16MB；
+                // Gson 序列化一个 Illust ~30-80KB JSON，200 行 batch ≈ 6-16MB；
                 // 全在 IO 线程做，跟 dao.appendBatch 同事务，不会卡主线程。
                 list.chunked(BATCH_SIZE).forEach { batch ->
                     val batchBase = System.nanoTime()
                     val rows = batch.mapIndexed { i, illust ->
                         // type 跟 streaming fetcher 一致：isGif → UGOIRA，再分 manga / illust
                         val rowType = when {
-                            illust.isGif -> WorkType.UGOIRA
+                            illust.isGif() -> WorkType.UGOIRA
                             illust.type == WorkType.MANGA -> WorkType.MANGA
                             else -> WorkType.ILLUST
                         }
                         DownloadQueueEntity(
-                            illustId = illust.id.toLong(),
+                            illustId = illust.id,
                             type = rowType,
                             seq = batchBase + i,
                             sourceTag = "legacy-batch",

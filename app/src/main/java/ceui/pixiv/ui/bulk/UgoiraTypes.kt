@@ -1,6 +1,6 @@
 package ceui.pixiv.ui.bulk
 
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 
 /**
  * Ugoira 任务的可见进度阶段。下载链是单 zip + 同步编码，没有自然的字节级
@@ -22,6 +22,6 @@ enum class UgoiraPhase {
 /** "正在下载" tab 渲染用的 ugoira 行快照（rowId 用 download_queue.id；bean 给缩略图 / 标题 / 详情跳转）。 */
 data class UgoiraInFlight(
     val rowId: Long,
-    val bean: IllustsBean,
+    val bean: Illust,
     val phase: UgoiraPhase,
 )

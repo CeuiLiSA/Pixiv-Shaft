@@ -10,7 +10,7 @@ import ceui.lisa.http.ImageHostManager
 import ceui.lisa.http.Retro
 import ceui.lisa.models.FramesBean
 import ceui.lisa.models.GifResponse
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.AnimatedGifEncoder
 import ceui.lisa.utils.Params
 import ceui.pixiv.ui.interpolate.RifeInterpolator
@@ -105,29 +105,29 @@ object UgoiraEngine {
      * 损坏但非空的 zip 后,两条链路都因「已缓存」跳过重下,这条 ugoira 就坏死了。
      * 锁对象极小,map 只增不减的滞留量级无害。
      */
-    private val illustFileLocks = ConcurrentHashMap<Int, Mutex>()
+    private val illustFileLocks = ConcurrentHashMap<Long, Mutex>()
 
-    internal fun fileLockFor(illustId: Int): Mutex =
+    internal fun fileLockFor(illustId: Long): Mutex =
         illustFileLocks.computeIfAbsent(illustId) { Mutex() }
 
     /** illustId -> 已就绪的可播放帧序列(内存快路径)。 */
-    private val readyFramesCache = ConcurrentHashMap<Int, UgoiraFrames>()
+    private val readyFramesCache = ConcurrentHashMap<Long, UgoiraFrames>()
 
     /**
      * illustId -> 可播帧序列广播。pipeline 只在**最终版**确定后发布一次(补帧成功=补帧版,
      * 否则=原速版)—— 中途不发,免得先播一段 12.5fps 的再跳到 50fps。播放器在此之前保持
      * 进度浮层,补帧进度照常走 [progressOf]。
      */
-    private val framesFlows = ConcurrentHashMap<Int, MutableStateFlow<UgoiraFrames?>>()
+    private val framesFlows = ConcurrentHashMap<Long, MutableStateFlow<UgoiraFrames?>>()
 
     /** 观察某条 ugoira 的可播帧序列(进来立刻拿当前值;null = 还没有任何一版可播)。 */
-    fun framesOf(illustId: Int): StateFlow<UgoiraFrames?> = framesFlowFor(illustId).asStateFlow()
+    fun framesOf(illustId: Long): StateFlow<UgoiraFrames?> = framesFlowFor(illustId).asStateFlow()
 
-    private fun framesFlowFor(illustId: Int): MutableStateFlow<UgoiraFrames?> =
+    private fun framesFlowFor(illustId: Long): MutableStateFlow<UgoiraFrames?> =
         framesFlows.computeIfAbsent(illustId) { MutableStateFlow(readyFramesCache[illustId]) }
 
     /** 落一版可播帧序列:写内存缓存 + 广播给正在看的播放器。 */
-    private fun publishFrames(id: Int, frames: UgoiraFrames) {
+    private fun publishFrames(id: Long, frames: UgoiraFrames) {
         readyFramesCache[id] = frames
         framesFlowFor(id).value = frames
     }
@@ -144,18 +144,18 @@ object UgoiraEngine {
     private var rifeHardFailed = false
 
     /** illustId -> 进度广播,跨 Fragment 共享。 */
-    private val progressFlows = ConcurrentHashMap<Int, MutableStateFlow<UgoiraProgress>>()
+    private val progressFlows = ConcurrentHashMap<Long, MutableStateFlow<UgoiraProgress>>()
 
     // 下面三张表统一用 [lock] 保护:「查任务 + 改观察者计数 + 撤销/安排取消」要整体原子。
     private val lock = Any()
-    private val jobs = HashMap<Int, Deferred<UgoiraFrames>>()   // illustId -> 正在跑的共享任务
-    private val refs = HashMap<Int, Int>()              // illustId -> 当前观察者数
-    private val cancelTimers = HashMap<Int, Job>()      // illustId -> 待触发的「划走取消」计时器
+    private val jobs = HashMap<Long, Deferred<UgoiraFrames>>()   // illustId -> 正在跑的共享任务
+    private val refs = HashMap<Long, Int>()             // illustId -> 当前观察者数
+    private val cancelTimers = HashMap<Long, Job>()     // illustId -> 待触发的「划走取消」计时器
 
     /** 观察某条 ugoira 的加载进度(进来立刻拿当前值)。 */
-    fun progressOf(illustId: Int): StateFlow<UgoiraProgress> = flowFor(illustId).asStateFlow()
+    fun progressOf(illustId: Long): StateFlow<UgoiraProgress> = flowFor(illustId).asStateFlow()
 
-    private fun flowFor(illustId: Int): MutableStateFlow<UgoiraProgress> =
+    private fun flowFor(illustId: Long): MutableStateFlow<UgoiraProgress> =
         progressFlows.computeIfAbsent(illustId) {
             MutableStateFlow(UgoiraProgress(UgoiraPhase.FETCH_META))
         }
@@ -165,7 +165,7 @@ object UgoiraEngine {
      * 变体选择是**确定性**的 —— 只看「当前开关 + 磁盘上有哪版」,不依赖本会话是否播过。
      * 只读文件系统,须在 IO 线程调用。
      */
-    fun peekPlayableFrames(illust: IllustsBean): UgoiraFrames? {
+    fun peekPlayableFrames(illust: Illust): UgoiraFrames? {
         val ctx = Shaft.getContext()
         val useRife = Shaft.sSettings.isUgoiraRifeEnable() && RifeInterpolator.isAvailable(ctx)
         if (useRife) {
@@ -193,7 +193,7 @@ object UgoiraEngine {
      * 阻塞,须在 IO 线程调用。
      */
     @JvmStatic
-    fun exportForSave(illust: IllustsBean): UgoiraExport? {
+    fun exportForSave(illust: Illust): UgoiraExport? {
         val frames = peekPlayableFrames(illust) ?: return null
         if (Shaft.sSettings.isUgoiraSaveAsMp4()) {
             exportVideo(illust, frames)?.let { return it }
@@ -223,7 +223,7 @@ object UgoiraEngine {
      * pipeline 失败返回 null,调用方回退老链路(出 GIF)。
      */
     @JvmStatic
-    fun prepareAndExportForSave(illust: IllustsBean): UgoiraExport? {
+    fun prepareAndExportForSave(illust: Illust): UgoiraExport? {
         exportForSave(illust)?.let { return it }
         val ok = runCatching { runBlocking { loadPlayableFrames(illust) } }
             .onFailure { Timber.tag(UGOIRA_LOG_TAG).w(it, "[save] illust=%d 完整 pipeline 失败,回退老链路", illust.id) }
@@ -232,7 +232,7 @@ object UgoiraEngine {
     }
 
     /** [exportForSave] 的 mp4 分支。压不出来返回 null(调用方降级 GIF)。 */
-    private fun exportVideo(illust: IllustsBean, frames: UgoiraFrames): UgoiraExport? {
+    private fun exportVideo(illust: Illust, frames: UgoiraFrames): UgoiraExport? {
         frames.video?.let {
             Timber.tag(UGOIRA_LOG_TAG).i("[save] illust=%d 直接复用播放缓存里的 mp4 (%d KB)", illust.id, it.length() / 1024)
             return UgoiraExport(it, isVideo = true, temporary = false)
@@ -261,10 +261,10 @@ object UgoiraEngine {
     }
 
     /** 纯内存 peek —— 已就绪的帧序列直接给,不碰文件系统。播放器主线程「秒开」专用(零 IO,免 ANR)。 */
-    fun peekReadyInMemory(illustId: Int): UgoiraFrames? = readyFramesCache[illustId]
+    fun peekReadyInMemory(illustId: Long): UgoiraFrames? = readyFramesCache[illustId]
 
     /** 帧加载失败(疑似系统清了缓存目录)→ 清掉内存记录,下次走完整 pipeline 重新落盘。 */
-    fun invalidate(illustId: Int) {
+    fun invalidate(illustId: Long) {
         readyFramesCache.remove(illustId)
         framesFlows.remove(illustId)
     }
@@ -274,7 +274,7 @@ object UgoiraEngine {
      * 「文件都在、数量也对、但内容坏」(断电截断类)时光清内存没用 —— 下一轮 pipeline 会
      * 磁盘命中同一批坏文件,自愈变成空转;只有删掉目录才是真重建。IO 线程调用。
      */
-    suspend fun purgeBrokenFrames(illustId: Int, dir: File) {
+    suspend fun purgeBrokenFrames(illustId: Long, dir: File) {
         invalidate(illustId)
         fileLockFor(illustId).withLock {
             if (dir.deleteRecursively()) {
@@ -325,7 +325,7 @@ object UgoiraEngine {
                 var removed = 0
                 for (dir in rifeWork + tmpFrames) {
                     val id = dir.name.removePrefix(RIFE_WORK_PREFIX).removePrefix(FRAMES_DIR_PREFIX)
-                        .takeWhile { it.isDigit() }.toIntOrNull()
+                        .takeWhile { it.isDigit() }.toLongOrNull()
                     if (id != null && synchronized(lock) { jobs.containsKey(id) }) continue
                     freed += dir.walkBottomUp().filter { it.isFile }.sumOf { it.length() }
                     if (dir.deleteRecursively()) removed++
@@ -338,7 +338,7 @@ object UgoiraEngine {
                     ?.filter { it.isDirectory && it.name.startsWith(FRAMES_DIR_PREFIX) }
                     ?.forEach { dir ->
                         val id = dir.name.removePrefix(FRAMES_DIR_PREFIX)
-                            .takeWhile { it.isDigit() }.toIntOrNull()
+                            .takeWhile { it.isDigit() }.toLongOrNull()
                         if (id != null && id in liveIds) return@forEach
                         val tmp = File(dir, UgoiraVideoEncoder.VIDEO_TMP_FILE_NAME)
                         if (tmp.isFile) {
@@ -359,7 +359,7 @@ object UgoiraEngine {
      * 想「尽早开播」的调用方应改用 [framesOf] —— pipeline 会先 emit 原速版再 emit 补帧版。
      * **await 被取消(Fragment 退出)不取消底层任务**,只把观察者计数减一;划走够久没人看才回收。
      */
-    suspend fun loadPlayableFrames(illust: IllustsBean): UgoiraFrames {
+    suspend fun loadPlayableFrames(illust: Illust): UgoiraFrames {
         val id = illust.id
         // 内存命中直接给,不做文件 stat —— 本方法在播放器主线程调用,不能碰文件系统
         // (免 disk-on-main / ANR)。文件真被系统清了,解码会失败,播放器 invalidate 后重来。
@@ -376,7 +376,7 @@ object UgoiraEngine {
     }
 
     /** 观察者 +1,拿到(或新建)共享任务;撤销任何待触发的「划走取消」。 */
-    private fun acquireJob(illust: IllustsBean): Deferred<UgoiraFrames> = synchronized(lock) {
+    private fun acquireJob(illust: Illust): Deferred<UgoiraFrames> = synchronized(lock) {
         val id = illust.id
         val count = (refs[id] ?: 0) + 1
         refs[id] = count
@@ -392,7 +392,7 @@ object UgoiraEngine {
     }
 
     /** 观察者 -1;归零且任务还在跑 → 宽限期后仍没人看就取消(省流量 + 让出并发额度)。 */
-    private fun releaseJob(id: Int): Unit = synchronized(lock) {
+    private fun releaseJob(id: Long): Unit = synchronized(lock) {
         val n = (refs[id] ?: 1) - 1
         if (n > 0) {
             refs[id] = n
@@ -431,7 +431,7 @@ object UgoiraEngine {
      * mp4」的中途换版(会看到一次跳变)。
      */
     private suspend fun finishAndPublish(
-        id: Int,
+        id: Long,
         frames: UgoiraFrames,
         flow: MutableStateFlow<UgoiraProgress>,
     ): UgoiraFrames {
@@ -447,7 +447,7 @@ object UgoiraEngine {
      * 握 per-illust 文件锁写目录(与保存链路互斥);调用方必须**不持有**该锁。
      */
     private suspend fun ensureVideo(
-        id: Int,
+        id: Long,
         frames: UgoiraFrames,
         flow: MutableStateFlow<UgoiraProgress>,
     ): UgoiraFrames {
@@ -484,7 +484,7 @@ object UgoiraEngine {
         }
     }
 
-    private suspend fun runPipeline(illust: IllustsBean): UgoiraFrames {
+    private suspend fun runPipeline(illust: Illust): UgoiraFrames {
         val id = illust.id
         val flow = flowFor(id)
         val t0 = System.currentTimeMillis()
@@ -719,7 +719,7 @@ object UgoiraEngine {
      *
      * 必须在文件锁内调用,且只在成功路径调用 —— 失败/取消时留着中间产物,下次进来接着用。
      */
-    internal fun discardIntermediates(id: Int, zipFile: File, unzipFolder: File) {
+    internal fun discardIntermediates(id: Long, zipFile: File, unzipFolder: File) {
         val freed = zipFile.length() +
             (unzipFolder.listFiles()?.filter { it.isFile }?.sumOf { it.length() } ?: 0L)
         runCatching { zipFile.delete() }
@@ -729,7 +729,7 @@ object UgoiraEngine {
     }
 
     /** 元数据优先取 [Cache] 里已有的 [GifResponse],否则 getGifPackage 拉一次并回写缓存。 */
-    private suspend fun fetchMeta(illustId: Int): GifResponse {
+    private suspend fun fetchMeta(illustId: Long): GifResponse {
         val cached = runCatching {
             Cache.get().getModel(Params.ILLUST_ID + "_" + illustId, GifResponse::class.java)
         }.getOrNull()
@@ -738,7 +738,7 @@ object UgoiraEngine {
             return cached
         }
         Timber.tag(UGOIRA_LOG_TAG).i("[fetchMeta] illust=%d 走网络 getGifPackage…", illustId)
-        val fetched = Retro.getAppApiSuspend().getGifPackage(illustId)
+        val fetched = Retro.getAppApiSuspend().getGifPackage(illustId.toInt())
         runCatching { Cache.get().saveModel(Params.ILLUST_ID + "_" + illustId, fetched) }
         Timber.tag(UGOIRA_LOG_TAG).i("[fetchMeta] illust=%d 网络返回", illustId)
         return fetched
@@ -884,7 +884,7 @@ private const val FRAMES_DELAY_FILE = "delays.txt"
 private const val FRAME_JPEG_QUALITY = 92
 
 /** 帧序列目录:`frames_<id>` / `frames_<id>_rife`,和 gif 变体一样按开关分开存。 */
-internal fun framesDirFor(ctx: Context, illust: IllustsBean, interpolated: Boolean): File =
+internal fun framesDirFor(ctx: Context, illust: Illust, interpolated: Boolean): File =
     File(
         LegacyFile.gifCacheFolder(ctx),
         FRAMES_DIR_PREFIX + illust.id + if (interpolated) "_rife" else "",

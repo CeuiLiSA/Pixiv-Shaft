@@ -336,7 +336,7 @@ class UserNovelSeriesFeedSource(userID: Int) : FeedSource<String> {
                 repo.initNextApi()
             }!!.awaitFirstValue()
         }
-        // 默认 Mapper 只过滤 IllustsBean/NovelBean，对 NovelSeriesItem 是 no-op → 不套，直接建条目。
+        // 默认 Mapper 只过滤 Illust/NovelBean，对 NovelSeriesItem 是 no-op → 不套，直接建条目。
         val items: List<FeedItem> = resp.list.orEmpty().map { NovelSeriesFeedItem(it) }
         return FeedPage(items, resp.nextUrl?.takeIf { it.isNotEmpty() })
     }

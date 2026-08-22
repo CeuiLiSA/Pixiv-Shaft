@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
-import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.ModelObject
 import ceui.lisa.models.NovelBean
 import ceui.lisa.models.ObjectSpec
@@ -36,7 +35,7 @@ object ObjectPool {
         }
     }
 
-    fun updateIllust(illust: IllustsBean) {
+    fun updateIllust(illust: Illust) {
         update(illust)
         illust.user?.let { user ->
             update(user)
@@ -47,7 +46,7 @@ object ObjectPool {
      * @param illustId The id of specified illustration
      * @return
      * */
-    fun getIllust(illustId: Long): LiveData<IllustsBean> {
+    fun getIllust(illustId: Long): LiveData<Illust> {
         return get(illustId)
     }
 
@@ -143,7 +142,7 @@ object ObjectPool {
     internal val fullVersionKeys = mutableSetOf<ObjectKey>()
 
     fun hasFullIllustVersion(illustId: Long): Boolean {
-        return ObjectKey(illustId, ObjectSpec.POST) in fullVersionKeys
+        return ObjectKey(illustId, ObjectSpec.Illust) in fullVersionKeys
     }
 
     @PublishedApi
@@ -179,12 +178,9 @@ object ObjectPool {
     private fun <ObjectT : ModelObject> findObjectSpec(objClass: KClass<ObjectT>): Int {
         val classSimpleName = objClass.simpleName ?: return ObjectSpec.UNKNOWN
         return when (classSimpleName) {
-            "IllustsBean" -> {
-                ObjectSpec.POST
-            }
             "Novel" -> {
-                // 不能跟 IllustsBean 共用 POST：插画/小说 ID 各自独立，撞键会让
-                // get<Novel> 取到 IllustsBean 直接 ClassCastException。
+                // 不能跟 Illust 共用类型：插画/小说 ID 各自独立，撞键会让
+                // get<Novel> 取到 Illust 直接 ClassCastException。
                 ObjectSpec.KNovel
             }
             "Illust" -> {

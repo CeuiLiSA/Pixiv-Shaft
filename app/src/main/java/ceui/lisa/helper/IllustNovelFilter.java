@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.MuteEntity;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
@@ -21,7 +21,7 @@ import ceui.loxia.User;
 
 public class IllustNovelFilter {
 
-    public static boolean judge(IllustsBean illust) {
+    public static boolean judge(Illust illust) {
         return judgeID(illust) || judgeTag(illust) || judgeUserID(illust) ;
     }
 
@@ -43,7 +43,7 @@ public class IllustNovelFilter {
      * 的作品 JSON 读出来再扔掉，一页 30 条就是 30 次全表扫。store 手里正好有一份同源的 id Set。
      * 顺带也消掉了「内存已屏蔽、异步 insert 还没落盘」这段时间里老列表与 feeds 的分歧。
      */
-    public static boolean judgeID(IllustsBean illust) {
+    public static boolean judgeID(Illust illust) {
         return IllustMuteStore.INSTANCE.isMuted(illust.getId());
     }
 
@@ -58,10 +58,10 @@ public class IllustNovelFilter {
         return NovelMuteStore.INSTANCE.isMuted(illust.getId());
     }
 
-    public static boolean judgeUserID(IllustsBean illust) {
+    public static boolean judgeUserID(Illust illust) {
         MuteEntity temp = AppDatabase.getAppDatabase(Shaft.getContext())
                 .searchDao()
-                .getUserMuteEntityByID(illust.getUser().getUserId());
+                .getUserMuteEntityByID((int) illust.getUser().getId());
         return temp != null;
     }
 
@@ -72,7 +72,7 @@ public class IllustNovelFilter {
         return temp != null;
     }
 
-    public static boolean judgeTag(IllustsBean illustsBean) {
+    public static boolean judgeTag(Illust illustsBean) {
         String tagString = illustsBean.getTagString();
         if (TextUtils.isEmpty(tagString)) {
             return false;
@@ -83,10 +83,8 @@ public class IllustNovelFilter {
             if (bean.isEffective()) {
                 String name = "*#" + bean.getName() + ",";
                 if (bean.getFilter_mode() == 0 && tagString.contains(name)) {
-                    illustsBean.setShield(true);
                     return true;
                 } else if (bean.getFilter_mode() == 1 && Pattern.compile(bean.getName()).matcher(tagString).find()) {
-                    illustsBean.setShield(true);
                     return true;
                 }
             }
@@ -116,13 +114,12 @@ public class IllustNovelFilter {
         return false;
     }
 
-    public static boolean judgeR18Filter(IllustsBean illustsBean) {
+    public static boolean judgeR18Filter(Illust illustsBean) {
         if (!Shaft.sSettings.isR18FilterTempEnable()) {
             return false;
         }
         String tagString = illustsBean.getTagString();
         boolean isHit = tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
-        illustsBean.setShield(isHit);
         return isHit;
     }
 

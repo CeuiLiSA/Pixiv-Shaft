@@ -110,9 +110,9 @@ public class NovelBean implements Serializable, Starable, ModelObject {
         this.novel_ai_type = novel_ai_type;
     }
 
-    /** ai_type==2 视为 AI 生成（与 {@link IllustsBean.IllustAIType#CreatedByAI} 同口径）。 */
+    /** ai_type==2 视为 AI 生成（与 {@link IllustAIType#CreatedByAI} 同口径）。 */
     public boolean isCreatedByAI() {
-        return novel_ai_type == IllustsBean.IllustAIType.CreatedByAI;
+        return novel_ai_type == IllustAIType.CreatedByAI;
     }
 
     public boolean isIs_original() {

@@ -3,11 +3,10 @@ package ceui.pixiv.actions
 import android.content.Context
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.models.NovelBean
 import ceui.lisa.utils.Common
 import ceui.loxia.Client
-import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
@@ -222,19 +221,18 @@ object PixivActionQueue {
         when (action.type) {
             PixivActionTypes.ILLUST_BOOKMARK -> {
                 val payload = action.parsePayload<BookmarkPayload>() ?: return unparsable(action)
-                // meta 兜底链:Illust 池(V3)→ IllustsBean 池(V2 点击时入池)→ API。
+                // meta 兜底链:Illust 池 → API。
                 // 队列化之前(4.8.3)点击路径自带 API 兜底;收编进队列后只读 Illust 池,
-                // V2 用户的收藏事件全部无 meta 上报,操作记录页整页读不出条目(#1010),
+                // 池里没有的收藏事件全部无 meta 上报,操作记录页整页读不出条目(#1010),
                 // 且 manga 因取不到 type 全被误报成 illust。
                 val illust = ObjectPool.get<Illust>(payload.id).value
-                val bean = if (illust == null) ObjectPool.get<IllustsBean>(payload.id).value else null
-                val fetched = if (illust == null && bean == null) {
+                val fetched = if (illust == null) {
                     withContext(Dispatchers.IO) {
                         runCatching { Client.appApi.getIllust(payload.id).illust }.getOrNull()
                     }
                 } else null
                 // pixiv 把漫画存成 type == "manga" 的 illust，按语义目标分开埋点。
-                val type = illust?.type ?: bean?.type ?: fetched?.type
+                val type = illust?.type ?: fetched?.type
                 val target = if (type == "manga") {
                     EventReporter.Target.MANGA
                 } else {
@@ -244,12 +242,12 @@ object PixivActionQueue {
                     if (payload.bookmark) EventReporter.Type.BOOKMARK else EventReporter.Type.UNBOOKMARK,
                     target,
                     payload.id,
-                    illust ?: bean ?: fetched,
+                    illust ?: fetched,
                 )
-                // 画像只吃 IllustsBean（要读 tags 和作者）。池里没有就跳过：进程重启后
+                // 画像只吃 Illust（要读 tags 和作者）。池里没有就跳过：进程重启后
                 // 补发的那条本来就没有 bean 可读，漏一次画像强化远好过为它多打一次网络。
                 if (payload.bookmark) {
-                    ObjectPool.get<IllustsBean>(payload.id).value?.let(ProfileManager::onBookmarkIllust)
+                    ObjectPool.get<Illust>(payload.id).value?.let(ProfileManager::onBookmarkIllust)
                 }
             }
 
@@ -298,7 +296,7 @@ object PixivActionQueue {
      * 回滚乐观更新。
      *
      * 写回用的是 [PixivActions] 里那两个「写本地状态」的函数本身，只是传相反的值 ——
-     * 乐观更新要覆盖的表示（[Illust] 池条目、[IllustsBean] 池条目与调用方手上的实例、
+     * 乐观更新要覆盖的表示（[Illust] 池条目、
      * 跨列表广播）一个都不能漏，而分成两套写法的必然结局是回滚这一侧漏掉其中一路，
      * 表现是「失败提示弹了但那颗心还红着」。
      */
@@ -309,7 +307,7 @@ object PixivActionQueue {
                 val payload = action.parsePayload<BookmarkPayload>() ?: return unparsable(action)
                 // 队列已经确认没有更新的意图压着（supersededByPending），这里再比一次当前值，
                 // 挡的是队列之外改过状态的路径（例如详情页刚从服务端刷回了真值）。
-                // 池里两个表示都没有时按 null 处理照常回滚：列表条目持有的是自己的拷贝，
+                // 池里没有时按 null 处理照常回滚：列表条目持有的是自己的拷贝，
                 // 它们只认广播，不回滚就一直红着。
                 val current = currentIllustBookmarked(payload.id)
                 if (current == null || current == payload.bookmark) {
@@ -349,10 +347,9 @@ object PixivActionQueue {
         }
     }
 
-    /** 这幅作品当前的收藏态；两个表示都不在池里时返回 null。legacy 那份优先（它是可变共享实例）。 */
+    /** 这幅作品当前的收藏态；不在池里时返回 null。 */
     private fun currentIllustBookmarked(illustId: Long): Boolean? =
-        ObjectPool.get<IllustsBean>(illustId).value?.isIs_bookmarked
-            ?: ObjectPool.get<Illust>(illustId).value?.is_bookmarked
+        ObjectPool.get<Illust>(illustId).value?.is_bookmarked
 
     /**
      * payload 解析不了时的统一出口 —— 只可能是版本回退后读到了新版写入的 json。

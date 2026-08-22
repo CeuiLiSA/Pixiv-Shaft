@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.pixiv.imageloader.ImageLoaderV3
 import kotlinx.coroutines.CancellationException
@@ -60,7 +60,7 @@ object MangaBatchTranslateCenter {
 
     /** 正在跑的那部作品,悬浮窗点一下跳回看图页用。 */
     @Volatile
-    var currentIllust: IllustsBean? = null
+    var currentIllust: Illust? = null
         private set
 
     /** 看图页的单页 / 圈选流水线正在跑:共用模型,整部翻译入口此时拒绝启动。 */
@@ -132,7 +132,7 @@ object MangaBatchTranslateCenter {
      */
     fun start(
         context: Context,
-        illust: IllustsBean,
+        illust: Illust,
         pageUrls: List<String?>,
         ocrModel: MangaOcrModel,
         ctdModel: ComicTextDetectorModel,
@@ -173,12 +173,12 @@ object MangaBatchTranslateCenter {
 
     private suspend fun runBatch(
         app: Context,
-        illust: IllustsBean,
+        illust: Illust,
         pageUrls: List<String?>,
         ocrModel: MangaOcrModel,
         ctdModel: ComicTextDetectorModel,
     ) {
-        val illustId = illust.id.toLong()
+        val illustId = illust.id
         val title = illust.title.orEmpty()
         val total = pageUrls.size
         var translated = 0

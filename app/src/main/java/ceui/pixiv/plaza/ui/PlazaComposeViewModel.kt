@@ -6,14 +6,12 @@ import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.network.PlazaResult
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.loxia.Client
-import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.pixiv.db.RecordType
-import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,11 +52,10 @@ class PlazaComposeViewModel : ViewModel() {
     private val _events = Channel<Event>(Channel.BUFFERED)
     val events get() = _events.receiveAsFlow()
 
-    // attached illust id → 完整 IllustsBean(异步 fetch 到的)。POST 时塞进
+    // attached illust id → 完整 Illust(异步 fetch 到的)。POST 时塞进
     // ref_metas 让 server 直接 seed illust_meta。fetch 失败的 id 不在这个 map
     // 里,POST 仍照发,只是 server 那侧的 meta 留空(后续 events 兜底)。
-    private val metaCache = mutableMapOf<Long, IllustsBean>()
-    private val gson = Gson()
+    private val metaCache = mutableMapOf<Long, Illust>()
 
     fun attachIllust(id: Long) {
         if (id <= 0L) return
@@ -87,9 +84,9 @@ class PlazaComposeViewModel : ViewModel() {
     }
 
     /**
-     * 后台拉一份 IllustsBean 进 [metaCache]。优先用 legacy/modern ObjectPool,
+     * 后台拉一份 Illust 进 [metaCache]。优先用 ObjectPool,
      * 拿不到走 DB history,最后才 API。复用 ArtworkV3ViewModel 同款 fallback
-     * 顺序(ObjectPool → DB → API),Gson bridge modern Illust → IllustsBean。
+     * 顺序(ObjectPool → DB → API)。
      * 任何环节失败都安静 swallow —— meta 是 best-effort hint,不是发帖前置。
      */
     private fun prefetchMeta(id: Long) {
@@ -97,7 +94,6 @@ class PlazaComposeViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val bean = ObjectPool.getIllust(id).value
-                    ?: bridgeModernIllust(id)
                     ?: fetchFromDbOrApi(id)
                 if (bean != null) {
                     metaCache[id] = bean
@@ -117,23 +113,16 @@ class PlazaComposeViewModel : ViewModel() {
         }
     }
 
-    private fun bridgeModernIllust(id: Long): IllustsBean? {
-        val modern = ObjectPool.get<Illust>(id).value ?: return null
-        return runCatching { gson.fromJson(gson.toJson(modern), IllustsBean::class.java) }.getOrNull()
-    }
-
-    private suspend fun fetchFromDbOrApi(id: Long): IllustsBean? {
+    private suspend fun fetchFromDbOrApi(id: Long): Illust? {
         val ctx = Shaft.getContext()
         val fromDb = withContext(Dispatchers.IO) {
             AppDatabase.getAppDatabase(ctx).generalDao()
                 .getByRecordTypeAndId(RecordType.VIEW_ILLUST_HISTORY, id)
                 ?.typedObject<Illust>()
         }
-        val modern = fromDb ?: Client.appApi.getIllust(id).illust ?: return null
-        ObjectPool.update(modern)
-        return runCatching { gson.fromJson(gson.toJson(modern), IllustsBean::class.java) }
-            .getOrNull()
-            ?.also { ObjectPool.updateIllust(it) }
+        val illust = fromDb ?: Client.appApi.getIllust(id).illust ?: return null
+        ObjectPool.update(illust)
+        return illust
     }
 
     fun submit(context: Context, text: String, selfUid: Long) {
@@ -155,7 +144,7 @@ class PlazaComposeViewModel : ViewModel() {
         _state.value = _state.value.copy(isSending = true)
         viewModelScope.launch {
             val attached = _state.value.attachedIllusts
-            // 只把 fetch 成功的 IllustsBean 塞进 ref_metas;没的 id 仍然在 refs.illust
+            // 只把 fetch 成功的 Illust 塞进 ref_metas;没的 id 仍然在 refs.illust
             // 里被签,server 那边 meta 留空,后续靠 events/batch 兜底。
             val metas: Map<Long, Any> = attached
                 .mapNotNull { id -> metaCache[id]?.let { id to it } }

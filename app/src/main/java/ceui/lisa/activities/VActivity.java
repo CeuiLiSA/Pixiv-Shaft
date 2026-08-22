@@ -24,7 +24,7 @@ import ceui.lisa.helper.DeduplicateArrayList;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import java.util.Collections;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
@@ -37,14 +37,14 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
 
     private String pageUUID = "";
     private int index = 0;
-    private IllustsBean widgetIllust = null;
+    private Illust widgetIllust = null;
 
     @Override
     protected void initBundle(Bundle bundle) {
         pageUUID = bundle.getString(Params.PAGE_UUID);
         index = bundle.getInt(Params.POSITION);
         // widget 点击携带的单张作品：进程被杀后 Container 已空时的兜底数据源
-        widgetIllust = (IllustsBean) bundle.getSerializable(Params.WIDGET_ILLUST);
+        widgetIllust = (Illust) bundle.getSerializable(Params.WIDGET_ILLUST);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
         PageData found = Container.get().getPage(pageUUID);
         // 进程被杀后 Container（内存级 HashMap）已空 → widget 点击会丢数据，之前直接 finish() 闪退回桌面
         //（视频复现：杀掉 app 后点 widget 没反应，刷新一次重新拉活进程才能点开）。
-        // widget 的 intent 自带 IllustsBean（Serializable），用它重建单图 PageData，
+        // widget 的 intent 自带 Illust（Serializable），用它重建单图 PageData，
         // 这样 app 未运行时点击 widget 也能正常打开详情。
         if (found == null && widgetIllust != null) {
             found = new PageData(pageUUID, null, Collections.singletonList(widgetIllust));
@@ -74,21 +74,22 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                 @NonNull
                 @Override
                 public Fragment getItem(int position) {
-                    IllustsBean illustsBean = pageData.getList().get(position);
-                    if (illustsBean.getId() == 0 || !illustsBean.isVisible()) {
-                        return FragmentImageDetail.newInstance(illustsBean.getImage_urls().getMaxImage());
+                    Illust illustsBean = pageData.getList().get(position);
+                    if (illustsBean.getId() == 0 || !Boolean.TRUE.equals(illustsBean.getVisible())) {
+                        return FragmentImageDetail.newInstance(illustsBean.getImage_urls() != null
+                                ? illustsBean.getImage_urls().findMaxSizeUrl() : null);
                     } else {
                         // ugoira(动图)不再甩去独立老页 FragmentSingleUgora,和普通插画一样走
                         // V3 / FragmentIllust,由页面内联的 UgoiraPlayerAdapter 自动播放。
                         // 旧的 FragmentSingleIllust 兜底页已删,非 V3 一律走 FragmentIllust。
-                        IllustsBean exist = ObjectPool.INSTANCE.getIllust(illustsBean.getId()).getValue();
+                        Illust exist = ObjectPool.INSTANCE.getIllust(illustsBean.getId()).getValue();
                         if (exist == null) {
                             ObjectPool.INSTANCE.updateIllust(illustsBean);
                         }
                         if (Shaft.sSettings.isUseArtworkV3()) {
                             return ArtworkV3Fragment.newInstance(illustsBean.getId());
                         } else {
-                            return FragmentIllust.newInstance(illustsBean.getId());
+                            return FragmentIllust.newInstance((int) illustsBean.getId());
                         }
                     }
                 }
@@ -219,7 +220,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
         // legacy 接收侧（NetListFragment 等）只读 INDEX，不受影响
         PageData currentPage = Container.get().getPage(pageUUID);
         if (currentPage != null && current >= 0 && current < currentPage.getList().size()) {
-            intent.putExtra(Params.ID, currentPage.getList().get(current).getId());
+            intent.putExtra(Params.ID, (int) currentPage.getList().get(current).getId());
         }
         intent.putExtra(Params.PAGE_UUID, pageUUID);
         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
