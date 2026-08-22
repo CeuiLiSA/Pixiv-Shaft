@@ -37,20 +37,40 @@ class ThemeColorFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
+    /** 是否为「标签译文颜色」选择模式（#1047-5）：选中颜色只写标签译文设置，不改主题。 */
+    private val selectTagTranslationColor by lazy {
+        arguments?.getBoolean(ARG_SELECT_TAG_TRANSLATION_COLOR, false) ?: false
+    }
+
     override val feedViewModel by feedViewModels<Int> {
-        // 零捕获：静态目录 + Settings 全局单例，source 不碰 Fragment（约定见 feedViewModels 文档）。
+        // 零捕获：先把 arguments 读成局部值，source 不碰 Fragment（约定见 feedViewModels 文档）。
         // 游标恒 null —— 十行就是全部，没有下一页。
-        FeedSource { FeedPage(themeColorItems(), null) }
+        val selectTagTranslationColor =
+            arguments?.getBoolean(ARG_SELECT_TAG_TRANSLATION_COLOR, false) ?: false
+        FeedSource {
+            FeedPage(
+                if (selectTagTranslationColor) tagTranslationColorItems() else themeColorItems(),
+                null
+            )
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpToolbar(binding, feedBinding.feedListView)
-        binding.toolbarTitle.text = getString(R.string.string_324)
+        binding.toolbarTitle.text = getString(
+            if (selectTagTranslationColor) R.string.tag_translation_color else R.string.string_324
+        )
         childFragmentManager.setFragmentResultListener(
             CustomThemeColorSheet.REQUEST_KEY, viewLifecycleOwner
         ) { _, bundle ->
-            bundle.getString(CustomThemeColorSheet.KEY_HEX)?.let(::onPickCustomColor)
+            bundle.getString(CustomThemeColorSheet.KEY_HEX)?.let { hex ->
+                if (selectTagTranslationColor) {
+                    onPickTagTranslationCustomColor(hex)
+                } else {
+                    onPickCustomColor(hex)
+                }
+            }
         }
     }
 
@@ -69,7 +89,13 @@ class ThemeColorFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     private fun themeColorRenderer() = feedRenderer<ThemeColorFeedItem, CellThemeColorBinding>(
         inflate = CellThemeColorBinding::inflate,
-        create = { cell -> cell.binding.root.setOnClickListener { onPickColor(cell.item) } },
+        create = { cell -> cell.binding.root.setOnClickListener {
+            if (selectTagTranslationColor) {
+                onPickTagTranslationColor(cell.item)
+            } else {
+                onPickColor(cell.item)
+            }
+        } },
     ) { cell ->
         val item = cell.item
         // 卡片本身就是色块；hex 全部来自目录里的字面量，parseColor 不会抛。
@@ -112,6 +138,46 @@ class ThemeColorFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         Common.restart()
         Common.showToast(getString(R.string.string_428), 2)
     }
+
+    /**
+     * 标签译文颜色模式：选预设只写标签译文设置，不改主题、不重启，选完直接返回设置页。
+     */
+    private fun onPickTagTranslationColor(item: ThemeColorFeedItem) {
+        if (item.index == CustomThemeColor.INDEX) {
+            CustomThemeColorSheet().show(childFragmentManager, "custom_theme_color")
+            return
+        }
+        if (item.index == Shaft.sSettings.getTagTranslationColorIndex()) return
+        Shaft.sSettings.setTagTranslationColorIndex(item.index)
+        Local.setSettings(Shaft.sSettings)
+        Common.showToast(getString(R.string.string_428), 2)
+        requireActivity().finish()
+    }
+
+    /** 标签译文颜色自定义档：写盘后直接返回设置页，不需要重启。 */
+    private fun onPickTagTranslationCustomColor(hex: String) {
+        val alreadyUsing = Shaft.sSettings.getTagTranslationColorIndex() == CustomThemeColor.INDEX &&
+                CustomThemeColor.normalize(Shaft.sSettings.getTagTranslationColorCustomHex()) == hex
+        if (alreadyUsing) return
+        Shaft.sSettings.setTagTranslationColorIndex(CustomThemeColor.INDEX)
+        Shaft.sSettings.setTagTranslationColorCustomHex(hex)
+        Local.setSettings(Shaft.sSettings)
+        Common.showToast(getString(R.string.string_428), 2)
+        requireActivity().finish()
+    }
+
+    companion object {
+        /** 设置页从「从主题色彩页中选择」进入时置 true，本页变成标签译文颜色选择器。 */
+        const val ARG_SELECT_TAG_TRANSLATION_COLOR = "select_tag_translation_color"
+
+        @JvmStatic
+        fun newInstance(selectTagTranslationColor: Boolean): ThemeColorFeedFragment =
+            ThemeColorFeedFragment().apply {
+                arguments = Bundle().apply {
+                    putBoolean(ARG_SELECT_TAG_TRANSLATION_COLOR, selectTagTranslationColor)
+                }
+            }
+    }
 }
 
 /**
@@ -148,5 +214,26 @@ private fun themeColorItems(): List<FeedItem> {
         nameRes = R.string.custom_theme_color_entry,
         hex = customHex,
         selected = current == CustomThemeColor.INDEX,
+    )
+}
+
+/**
+ * 标签译文颜色模式的列表数据：同样复用主题色目录和自定义档，但 selected 以标签译文设置为准。
+ * 跟随主题（-2）时没有任何一行高亮 —— 该选项在设置页的弹窗里。
+ */
+private fun tagTranslationColorItems(): List<FeedItem> {
+    val current = Shaft.sSettings.getTagTranslationColorIndex()
+    val presets = ThemeColorCatalog.entries.mapIndexed { index, entry ->
+        ThemeColorFeedItem(index, entry.nameRes, entry.hex, index == current)
+    }
+    if (!CustomThemeColor.isSupported) return presets
+    val customHex = CustomThemeColor.normalize(Shaft.sSettings.getTagTranslationColorCustomHex())
+        ?: ThemeColorCatalog.hexOf(current.takeIf { it in ThemeColorCatalog.entries.indices } ?: 0)
+    return presets + ThemeColorFeedItem(
+        index = CustomThemeColor.INDEX,
+        nameRes = R.string.custom_theme_color_entry,
+        hex = customHex,
+        selected = current == CustomThemeColor.INDEX &&
+                CustomThemeColor.normalize(Shaft.sSettings.getTagTranslationColorCustomHex()) == customHex,
     )
 }

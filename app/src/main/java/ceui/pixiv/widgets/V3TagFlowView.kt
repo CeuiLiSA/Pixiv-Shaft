@@ -3,7 +3,11 @@ package ceui.pixiv.widgets
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.text.InputType
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -23,6 +27,8 @@ import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.SearchTypeUtil
 import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.ui.settings.CustomThemeColor
+import ceui.pixiv.ui.settings.ThemeColorCatalog
 import ceui.loxia.Tag
 import ceui.pixiv.ui.synonym.SynonymOperate
 import ceui.pixiv.utils.ppppx
@@ -248,11 +254,27 @@ class V3TagFlowView @JvmOverloads constructor(
                 else -> gap
             }
             val tv = TextView(context).apply {
-                text = buildString {
+                val translationSuffix =
+                    if (showTranslation && !translated.isNullOrBlank()) "  $translated" else ""
+                val fullText = buildString {
                     if (showHashPrefix) append("# ")
                     append(name)
-                    if (showTranslation && !translated.isNullOrBlank()) {
-                        append("  "); append(translated)
+                    append(translationSuffix)
+                }
+                // #1047-5：原文与译文用 SpannableString 分别上色，避免整段 setTextColor 混在一起。
+                text = SpannableString(fullText).apply {
+                    val originalEnd = fullText.length - translationSuffix.length
+                    setSpan(
+                        ForegroundColorSpan(palette.textTag),
+                        0, originalEnd,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    if (originalEnd < length) {
+                        setSpan(
+                            ForegroundColorSpan(tagTranslationColor(palette)),
+                            originalEnd, length,
+                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
                     }
                 }
                 textSize = chipTextSize
@@ -365,6 +387,25 @@ class V3TagFlowView @JvmOverloads constructor(
                 hsv.post { hsv.fullScroll(View.FOCUS_RIGHT) }
             }
         }
+    }
+
+    /**
+     * 标签译文颜色（#1047-5）：跟随主题时与原文同色，否则取主题色目录/自定义色。
+     * 任何异常配置都回落原文色，保证可读性。
+     */
+    private fun tagTranslationColor(palette: V3Palette): Int {
+        val settings = Shaft.sSettings ?: return palette.textTag
+        if (settings.isTagTranslationColorFollowTheme()) return palette.textTag
+        val index = settings.tagTranslationColorIndex
+        if (index == CustomThemeColor.INDEX) {
+            CustomThemeColor.normalize(settings.tagTranslationColorCustomHex)
+                ?.let { return Color.parseColor(it) }
+            return palette.textTag
+        }
+        if (index in ThemeColorCatalog.entries.indices) {
+            return Color.parseColor(ThemeColorCatalog.hexOf(index))
+        }
+        return palette.textTag
     }
 
     private fun ensureEditor(): EditText {
