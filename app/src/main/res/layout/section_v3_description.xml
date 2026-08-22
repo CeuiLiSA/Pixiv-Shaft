@@ -30,6 +30,16 @@
             android:layout_weight="1" />
 
         <ImageView
+            android:id="@+id/desc_download"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="12dp"
+            android:contentDescription="@string/novel_actions_download"
+            android:src="@drawable/ic_file_download_black_24dp"
+            app:tint="@color/v3_text_3" />
+
+        <ImageView
             android:id="@+id/desc_translate"
             android:layout_width="48dp"
             android:layout_height="48dp"

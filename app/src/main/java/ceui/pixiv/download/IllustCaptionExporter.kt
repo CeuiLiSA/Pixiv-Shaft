@@ -8,6 +8,7 @@ import ceui.pixiv.ui.task.DownloadNovelTask
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -41,26 +42,46 @@ object IllustCaptionExporter {
      */
     @JvmStatic
     fun export(illust: IllustsBean?) {
-        if (!Shaft.sSettings.isAutoExportIllustCaption) return
-        if (illust == null) return
-        if (illust.type !in SUPPORTED_TYPES) return
-        val caption = DownloadNovelTask.replaceBrWithNewLine(illust.caption).trim()
-        if (caption.isBlank()) return
-        val minLength = Shaft.sSettings.autoExportCaptionMinLength.coerceAtLeast(1)
-        if (caption.length < minLength) return
-
-        scope.launch { write(illust, caption) }
+        val prepared = prepare(illust, force = false) ?: return
+        scope.launch { write(prepared.first, prepared.second) }
     }
 
-    private fun write(illust: IllustsBean, caption: String) {
-        try {
+    /**
+     * 手动导出一次作品简介：供简介区「下载简介」按钮使用，不受自动导出开关限制，
+     * 也不受自动导出的最少字数限制（只要简介非空即可）。
+     *
+     * 挂起直到落盘完成；写入仍在 [scope] 的 IO 线程上执行，返回时已切回调用协程
+     * （Fragment 侧是 Main），方便直接弹 toast。
+     */
+    suspend fun exportManual(illust: IllustsBean?): Boolean {
+        val prepared = prepare(illust, force = true) ?: return false
+        return scope.async { write(prepared.first, prepared.second) }.await()
+    }
+
+    /** 返回 null 表示本次不导出；否则返回 (作品, 清洗后的简介)。 */
+    private fun prepare(illust: IllustsBean?, force: Boolean): Pair<IllustsBean, String>? {
+        if (!force && !Shaft.sSettings.isAutoExportIllustCaption) return null
+        if (illust == null) return null
+        if (illust.type !in SUPPORTED_TYPES) return null
+        val caption = DownloadNovelTask.replaceBrWithNewLine(illust.caption).trim()
+        if (caption.isBlank()) return null
+        if (!force) {
+            val minLength = Shaft.sSettings.autoExportCaptionMinLength.coerceAtLeast(1)
+            if (caption.length < minLength) return null
+        }
+        return illust to caption
+    }
+
+    private fun write(illust: IllustsBean, caption: String): Boolean {
+        return try {
             val destination = DownloadItems.illustCaptionDestination(illust)
-            // openRaw 返回 null = Skip 策略且文件已存在，按策略跳过。
+            // openRaw 返回 null = Skip 策略且文件已存在，按策略跳过（不算失败）。
             val handle = DownloadsRegistry.downloads.openRaw(Bucket.Caption, destination, "text/plain")
-                ?: return
+                ?: return true
             try {
                 handle.stream.use { it.write(buildContent(illust, caption).toByteArray(Charsets.UTF_8)) }
                 handle.onFinish()
+                true
             } catch (t: Throwable) {
                 // 写一半失败要把 pending 行撤掉，否则 MediaStore 会留下 0 字节的
                 // `.pending-` 孤儿文件（同 ExportUtils.saveToDownloads 的处理）。
@@ -69,6 +90,7 @@ object IllustCaptionExporter {
             }
         } catch (t: Throwable) {
             Timber.tag(TAG).w(t, "export caption failed illust=${illust.id}")
+            false
         }
     }
 
