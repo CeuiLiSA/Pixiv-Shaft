@@ -113,10 +113,9 @@ public class Settings {
     private String tagTranslationColorCustomHex;
 
     public int getTagTranslationColorIndex() {
-        if (tagTranslationColorIndex == null) {
-            return TAG_TRANSLATION_COLOR_FOLLOW_THEME;
-        }
-        return tagTranslationColorIndex;
+        return tagTranslationColorIndex != null
+                ? tagTranslationColorIndex
+                : TAG_TRANSLATION_COLOR_FOLLOW_THEME;
     }
 
     public boolean isTagTranslationColorFollowTheme() {

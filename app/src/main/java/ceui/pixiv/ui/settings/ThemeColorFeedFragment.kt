@@ -147,8 +147,8 @@ class ThemeColorFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
             CustomThemeColorSheet().show(childFragmentManager, "custom_theme_color")
             return
         }
-        if (item.index == Shaft.sSettings.getTagTranslationColorIndex()) return
-        Shaft.sSettings.setTagTranslationColorIndex(item.index)
+        if (item.index == Shaft.sSettings.tagTranslationColorIndex) return
+        Shaft.sSettings.tagTranslationColorIndex = item.index
         Local.setSettings(Shaft.sSettings)
         Common.showToast(getString(R.string.string_428), 2)
         requireActivity().finish()
@@ -156,11 +156,11 @@ class ThemeColorFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     /** 标签译文颜色自定义档：写盘后直接返回设置页，不需要重启。 */
     private fun onPickTagTranslationCustomColor(hex: String) {
-        val alreadyUsing = Shaft.sSettings.getTagTranslationColorIndex() == CustomThemeColor.INDEX &&
-                CustomThemeColor.normalize(Shaft.sSettings.getTagTranslationColorCustomHex()) == hex
+        val alreadyUsing = Shaft.sSettings.tagTranslationColorIndex == CustomThemeColor.INDEX &&
+                CustomThemeColor.normalize(Shaft.sSettings.tagTranslationColorCustomHex) == hex
         if (alreadyUsing) return
-        Shaft.sSettings.setTagTranslationColorIndex(CustomThemeColor.INDEX)
-        Shaft.sSettings.setTagTranslationColorCustomHex(hex)
+        Shaft.sSettings.tagTranslationColorIndex = CustomThemeColor.INDEX
+        Shaft.sSettings.tagTranslationColorCustomHex = hex
         Local.setSettings(Shaft.sSettings)
         Common.showToast(getString(R.string.string_428), 2)
         requireActivity().finish()
@@ -222,18 +222,18 @@ private fun themeColorItems(): List<FeedItem> {
  * 跟随主题（-2）时没有任何一行高亮 —— 该选项在设置页的弹窗里。
  */
 private fun tagTranslationColorItems(): List<FeedItem> {
-    val current = Shaft.sSettings.getTagTranslationColorIndex()
+    val current = Shaft.sSettings.tagTranslationColorIndex
     val presets = ThemeColorCatalog.entries.mapIndexed { index, entry ->
         ThemeColorFeedItem(index, entry.nameRes, entry.hex, index == current)
     }
     if (!CustomThemeColor.isSupported) return presets
-    val customHex = CustomThemeColor.normalize(Shaft.sSettings.getTagTranslationColorCustomHex())
+    val customHex = CustomThemeColor.normalize(Shaft.sSettings.tagTranslationColorCustomHex)
         ?: ThemeColorCatalog.hexOf(current.takeIf { it in ThemeColorCatalog.entries.indices } ?: 0)
     return presets + ThemeColorFeedItem(
         index = CustomThemeColor.INDEX,
         nameRes = R.string.custom_theme_color_entry,
         hex = customHex,
         selected = current == CustomThemeColor.INDEX &&
-                CustomThemeColor.normalize(Shaft.sSettings.getTagTranslationColorCustomHex()) == customHex,
+                CustomThemeColor.normalize(Shaft.sSettings.tagTranslationColorCustomHex) == customHex,
     )
 }

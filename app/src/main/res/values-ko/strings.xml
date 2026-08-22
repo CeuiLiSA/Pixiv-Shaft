@@ -549,6 +549,9 @@
     <string name="string_322">내 팬.</string>
     <string name="string_323">나의 좋 은 P 친구</string>
     <string name="string_324">테마 컬러</string>
+    <string name="tag_translation_color">태그 번역 색상</string>
+    <string name="tag_translation_color_follow_theme">테마 따르기</string>
+    <string name="tag_translation_color_pick_from_theme_page">테마 색상 페이지에서 선택</string>
     <string name="string_325">클릭 설정</string>
     <string name="string_326">시작 하 다.</string>
     <string name="string_327">잠시 멈추다.</string>

@@ -68,6 +68,7 @@ import ceui.pixiv.ui.notification.NotificationPagerFragment;
 import ceui.pixiv.ui.notification.NotificationViewMoreFragment;
 import ceui.pixiv.ui.prime.PrimeTagDetailFragment;
 import ceui.pixiv.ui.prime.PrimeTagsFragment;
+import ceui.pixiv.ui.settings.ThemeColorFeedFragment;
 
 public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> implements ColorPickerDialogListener {
 
@@ -401,9 +402,9 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "主题颜色":
                     // feeds 框架版(替代 legacy FragmentColors);静态目录单页,带 toolbar。
                     // 设置 → 标签译文颜色 也复用本页，通过 extra 切成选择器模式。
-                    return ceui.pixiv.ui.settings.ThemeColorFeedFragment.newInstance(
+                    return ThemeColorFeedFragment.newInstance(
                             intent.getBooleanExtra(
-                                    ceui.pixiv.ui.settings.ThemeColorFeedFragment.ARG_SELECT_TAG_TRANSLATION_COLOR,
+                                    ThemeColorFeedFragment.ARG_SELECT_TAG_TRANSLATION_COLOR,
                                     false));
                 case "测试测试":
                     return new FragmentSAF();

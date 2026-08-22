@@ -3,7 +3,6 @@ package ceui.pixiv.widgets
 import android.content.ClipData
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
 import android.text.InputType
 import android.text.Spannable
 import android.text.SpannableString
@@ -17,6 +16,7 @@ import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.graphics.toColorInt
 import ceui.lisa.R
 import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.Shaft
@@ -395,15 +395,15 @@ class V3TagFlowView @JvmOverloads constructor(
      */
     private fun tagTranslationColor(palette: V3Palette): Int {
         val settings = Shaft.sSettings ?: return palette.textTag
-        if (settings.isTagTranslationColorFollowTheme()) return palette.textTag
+        if (settings.isTagTranslationColorFollowTheme) return palette.textTag
         val index = settings.tagTranslationColorIndex
         if (index == CustomThemeColor.INDEX) {
             CustomThemeColor.normalize(settings.tagTranslationColorCustomHex)
-                ?.let { return Color.parseColor(it) }
+                ?.let { return it.toColorInt() }
             return palette.textTag
         }
         if (index in ThemeColorCatalog.entries.indices) {
-            return Color.parseColor(ThemeColorCatalog.hexOf(index))
+            return ThemeColorCatalog.hexOf(index).toColorInt()
         }
         return palette.textTag
     }

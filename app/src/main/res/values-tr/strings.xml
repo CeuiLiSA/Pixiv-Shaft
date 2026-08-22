@@ -549,6 +549,9 @@
     <string name="string_322">Hayranlarım</string>
     <string name="string_323">P-Arkadaşlarım</string>
     <string name="string_324">Tema rengi</string>
+    <string name="tag_translation_color">Etiket çeviri rengi</string>
+    <string name="tag_translation_color_follow_theme">Temayı takip et</string>
+    <string name="tag_translation_color_pick_from_theme_page">Tema renk sayfasından seç</string>
     <string name="string_325">Ayarlara git</string>
     <string name="string_326">Başlat</string>
     <string name="string_327">Durdur</string>

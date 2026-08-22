@@ -28,6 +28,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.pixiv.ui.settings.CustomThemeColor;
 import ceui.pixiv.ui.settings.ThemeColorCatalog;
+import ceui.pixiv.ui.settings.ThemeColorFeedFragment;
 import ceui.pixiv.widget.RecommendCardWidgetProvider;
 import ceui.pixiv.widget.RecommendStripWidgetProvider;
 import ceui.pixiv.widget.SpotlightWidgetProvider;
@@ -418,7 +419,7 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     } else {
                         Intent intent = new Intent(mContext, TemplateActivity.class);
                         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "主题颜色");
-                        intent.putExtra(ceui.pixiv.ui.settings.ThemeColorFeedFragment.ARG_SELECT_TAG_TRANSLATION_COLOR, true);
+                        intent.putExtra(ThemeColorFeedFragment.ARG_SELECT_TAG_TRANSLATION_COLOR, true);
                         startActivity(intent);
                     }
                     dialog.dismiss();
@@ -430,9 +431,7 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
     public void onResume() {
         super.onResume();
         // 从「主题色彩页」选完标签译文颜色返回时刷新这一行的展示值。
-        if (baseBind != null) {
-            setTagTranslationColorName();
-        }
+        setTagTranslationColorName();
     }
 
     private String currentLanguageDisplay() {
