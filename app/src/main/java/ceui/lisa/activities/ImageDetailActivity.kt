@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.BackEventCompat
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.content.FileProvider
@@ -518,9 +519,34 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     override fun initData() {
         // 返回键/返回手势与下拉收掉共用 dismissViewer 收场动画。targetSdk 35+ 后预测式返回
         // 默认开启,系统不再回调 onBackPressed,必须用 OnBackPressedDispatcher 接管。
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+        //
+        // 这页是透明窗口(身后一级详情可见),系统不会给它播跨 Activity 预测式动画,
+        // 所以 callback 常开、自己做跟手:手势进度 → 内容缩小/朝手势方向平移、黑底变淡
+        // (ImageViewerTransition.onBackGestureProgress);取消弹回;提交走统一收场,
+        // 从当前缩放态接着缩回缩略图矩形/淡出,不跳变。
+        // 不带 owner 注册(与 TemplateActivity 同理):垫在所有 Fragment callback 之下。
+        onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
+            override fun handleOnBackStarted(backEvent: BackEventCompat) {
+                viewerTransition?.onBackGestureStarted()
+            }
+
+            override fun handleOnBackProgressed(backEvent: BackEventCompat) {
+                viewerTransition?.onBackGestureProgress(
+                    backEvent.progress,
+                    fromLeftEdge = backEvent.swipeEdge == BackEventCompat.EDGE_LEFT,
+                )
+            }
+
+            override fun handleOnBackCancelled() {
+                viewerTransition?.springBack()
+            }
+
             override fun handleOnBackPressed() {
-                if (maybeConfirmAiExit()) return
+                if (maybeConfirmAiExit()) {
+                    // 手势已经把内容缩下去了,弹确认框时先复位,选「继续翻译」才不会停在半缩状态
+                    viewerTransition?.springBack()
+                    return
+                }
                 finishViewer()
             }
         })

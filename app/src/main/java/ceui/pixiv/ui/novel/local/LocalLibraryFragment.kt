@@ -109,23 +109,26 @@ class LocalLibraryFragment : Fragment(R.layout.fragment_local_library) {
         recycler.layoutManager = LinearLayoutManager(requireContext())
         recycler.adapter = adapter
 
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
-            object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    if (!viewModel.goUp()) {
-                        isEnabled = false
-                        requireActivity().onBackPressedDispatcher.onBackPressed()
-                    }
-                }
-            },
-        )
+        // 返回先退一层目录。只在真能上翻(不在根目录)时 enabled —— render 里跟着 crumbs 刷新;
+        // 根目录时不拦,系统自己 finish 并播预测式返回动画。
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, goUpBackCallback)
 
         viewModel.state.observe(viewLifecycleOwner) { render(it) }
         viewModel.startIfNeeded()
     }
 
+    private val goUpBackCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            if (!viewModel.goUp()) {
+                isEnabled = false
+                requireActivity().onBackPressedDispatcher.onBackPressed()
+            }
+        }
+    }
+
     private fun render(state: LocalLibraryViewModel.UiState) {
+        goUpBackCallback.isEnabled =
+            state is LocalLibraryViewModel.UiState.Browsing && state.crumbs.size > 1
         when (state) {
             is LocalLibraryViewModel.UiState.NeedRoot -> {
                 clearItem?.isVisible = false

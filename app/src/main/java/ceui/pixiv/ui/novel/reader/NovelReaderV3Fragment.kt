@@ -182,8 +182,13 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     // ---- Wiring -------------------------------------------------------------
 
+    /**
+     * 返回手势:搜索层 > 顶底栏 > 退出。callback 只在前两者之一显示时 enabled:常开会让系统
+     * 放弃预测式返回动画;都收起后返回就是退出阅读器,必须交还给系统才有跟手的退出预览。
+     * 搜索层关闭时会顺手 chrome.show()(见 [closeSearch]),所以刷新 enabled 只看两者的显隐通知。
+     */
     private fun wireBackPress(chrome: ReaderChrome, so: ReaderSearchOverlay) {
-        val cb = object : androidx.activity.OnBackPressedCallback(true) {
+        val cb = object : androidx.activity.OnBackPressedCallback(so.isShown() || chrome.isShown) {
             override fun handleOnBackPressed() {
                 // 优先级 1：正文搜索 overlay 打开 → 返回手势先退出搜索（与 onClose 行为一致）。
                 if (so.isShown()) {
@@ -199,6 +204,10 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             }
         }
+        val refresh = { cb.isEnabled = so.isShown() || chrome.isShown }
+        val chromeListener = chrome.onVisibilityChanged
+        chrome.onVisibilityChanged = { shown -> chromeListener?.invoke(shown); refresh() }
+        so.onShownChanged = { refresh() }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, cb)
     }
 

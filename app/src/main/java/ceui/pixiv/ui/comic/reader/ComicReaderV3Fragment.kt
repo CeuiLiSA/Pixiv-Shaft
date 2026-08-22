@@ -243,14 +243,19 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         }
     }
 
+    /**
+     * 返回手势先收顶/底栏。callback 只在 chrome 显示时 enabled:常开会让系统放弃预测式返回动画,
+     * chrome 收起后返回就是退出阅读器,这时必须把返回交还给系统才有跟手的退出预览。
+     */
     private fun wireBackPress() {
-        val cb = object : androidx.activity.OnBackPressedCallback(true) {
+        val cb = object : androidx.activity.OnBackPressedCallback(chrome.shown) {
             override fun handleOnBackPressed() {
                 if (chrome.shown) { chrome.setShown(false); return }
                 isEnabled = false
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             }
         }
+        chrome.onShownChanged = { cb.isEnabled = it }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, cb)
     }
 

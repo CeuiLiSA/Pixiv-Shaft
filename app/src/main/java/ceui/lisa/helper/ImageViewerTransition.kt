@@ -73,7 +73,38 @@ class ImageViewerTransition(
         chromeViews.forEach { it.alpha = chromeAlpha }
     }
 
-    /** 竖向拖拽未过阈值,从当前拖拽位置弹回原状。 */
+    /**
+     * 预测式返回手势开始:还在播的进场/回弹动画直接定格到终点,让手势从稳定态接管;
+     * 同时挂起拖拽手势层,两套变换不打架。已在收场(exiting)则忽略。
+     */
+    fun onBackGestureStarted() {
+        if (exiting) return
+        animator?.removeAllListeners()
+        animator?.end()
+        animator = null
+        root.dragSuspended = true
+    }
+
+    /**
+     * 预测式返回跟手阶段:内容随进度缩小并朝手势方向略平移(和系统的跨 Activity 预览一个味),
+     * 黑底/工具条同步变淡。取消走 [springBack],提交走 [playExit] —— 两者都从当前态接续。
+     */
+    fun onBackGestureProgress(progress: Float, fromLeftEdge: Boolean) {
+        if (exiting) return
+        // 系统给的 progress 在常见提交点只有 0.3~0.5,线性映射几乎看不出缩小;
+        // 走减速曲线让前半段就明显缩下去,手感才像系统的跨 Activity 预览。
+        val raw = progress.coerceIn(0f, 1f)
+        val f = 1f - (1f - raw) * (1f - raw)
+        content.scaleX = lerp(1f, BACK_MIN_SCALE, f)
+        content.scaleY = content.scaleX
+        content.translationX = content.width * BACK_SHIFT_FRACTION * f * (if (fromLeftEdge) 1f else -1f)
+        content.translationY = 0f
+        background.alpha = (255 * (1f - f * BACK_DIM_FADE)).toInt().coerceIn(0, 255)
+        val chromeAlpha = (1f - f * 3f).coerceIn(0f, 1f)
+        chromeViews.forEach { it.alpha = chromeAlpha }
+    }
+
+    /** 竖向拖拽 / 预测式返回手势未过阈值,从当前位置弹回原状。 */
     fun springBack() {
         if (exiting) return
         root.dragSuspended = true
@@ -172,5 +203,9 @@ class ImageViewerTransition(
         private const val ENTER_DURATION = 280L
         private const val RETURN_DURATION = 220L
         private const val EXIT_DURATION = 240L
+        /** 预测式返回拉满时的内容缩放 / 横向偏移(占内容宽度) / 黑底淡出比例 */
+        private const val BACK_MIN_SCALE = 0.72f
+        private const val BACK_SHIFT_FRACTION = 0.10f
+        private const val BACK_DIM_FADE = 0.7f
     }
 }

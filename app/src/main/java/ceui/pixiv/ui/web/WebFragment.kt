@@ -65,25 +65,20 @@ class WebFragment : Fragment(R.layout.fragment_web) {
         }
     }
 
-    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+    /**
+     * 返回键/手势先退网页历史。enabled 跟着 canGoBack 走(doUpdateVisitedHistory 里刷新):
+     * 没有网页历史时不拦,系统自己 finish 宿主 TemplateActivity 并播预测式返回动画;
+     * 常开 callback 会把这页的预测式返回整个掐掉。
+     */
+    private val onBackPressedCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
-            // Check whether there's history.
-            if (view != null) {
-                if (binding.webView.canGoBack()) {
-                    binding.webView.goBack()
-                } else {
-                    back()
-                }
-            } else {
-                back()
+            if (view != null && binding.webView.canGoBack()) {
+                binding.webView.goBack()
+                return
             }
+            isEnabled = false
+            requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-    }
-
-    private fun back() {
-        onBackPressedCallback.isEnabled = false
-        // WebFragment 由 TemplateActivity(裸 FragmentManager,无 NavHost)承载,直接结束宿主。
-        activity?.finish()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -108,8 +103,14 @@ class WebFragment : Fragment(R.layout.fragment_web) {
         val refreshLayout = binding.refreshLayout
 
         binding.webView.webViewClient = object : WebViewClient() {
+            override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
+                super.doUpdateVisitedHistory(view, url, isReload)
+                onBackPressedCallback.isEnabled = view?.canGoBack() == true
+            }
+
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
+                onBackPressedCallback.isEnabled = view?.canGoBack() == true
                 if (args.saveCookies) {
                     // 始终从 www.pixiv.net 域取 cookie，确保拿到 PHPSESSID。只认已登录的那种
                     // （<uid>_<hash>）——匿名 PHPSESSID 存下去会把 hasWebCookie 骗成真。
@@ -280,11 +281,6 @@ class WebFragment : Fragment(R.layout.fragment_web) {
 
         // 加载 URL
         binding.webView.loadUrl(args.url)
-        requireActivity().onBackPressedDispatcher.addCallback(onBackPressedCallback)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        onBackPressedCallback.isEnabled = false
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, onBackPressedCallback)
     }
 }
