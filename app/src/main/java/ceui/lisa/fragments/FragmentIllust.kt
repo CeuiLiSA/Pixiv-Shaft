@@ -23,6 +23,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -63,6 +64,7 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressTextButton
 import ceui.loxia.combineLatest
 import ceui.loxia.toTagsBeans
+import ceui.loxia.User
 import ceui.loxia.toUserBean
 import ceui.loxia.flag.FlagDescFragment
 import ceui.pixiv.ui.share.shareFirstImage
@@ -126,14 +128,21 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             (baseBind.recyclerView.adapter as? IllustAdapter)?.seedPageDimensions(dims)
         }
         val userId = illustLiveData.value?.user?.id ?: return
-        val userLiveData = ObjectPool.get<UserBean>(userId.toLong())
+        // 关注态两条渠道都要观察：列表路径（Mapper / feeds 合池）现在只往池里放 loxia User
+        //（Illust.user 已是 User），legacy UserBean 只有用户页自己拉过 user/detail 才会有。
+        // 只盯 UserBean 的话，从列表点进来的作品关注按钮永远绑不上。
+        // 布局 (baseBind.user) 和 updateUser 都吃 UserBean，所以把两条渠道合成一条 UserBean 流。
+        val userLiveData = MediatorLiveData<UserBean>().apply {
+            addSource(ObjectPool.get<UserBean>(userId)) { value = it }
+            addSource(ObjectPool.get<User>(userId)) { value = it.toUserBean() }
+        }
         userLiveData.observe(viewLifecycleOwner) { user ->
             updateUser(user)
             Common.showLog("updateUser invoke ${user.isIs_followed}")
         }
-        // 「怎么关的」不在 UserBean 里，变化时上面那条不会响 —— 同 V3 详情页，见 FollowVisibility.changes。
+        // 「怎么关的」不在 UserBean / User 里，变化时上面那条不会响 —— 同 V3 详情页，见 FollowVisibility.changes。
         FollowVisibility.changes.observe(viewLifecycleOwner) { changed ->
-            if (changed == userId.toLong()) userLiveData.value?.let { updateUser(it) }
+            if (changed == userId) userLiveData.value?.let { updateUser(it) }
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(baseBind.root) { v, windowInsets ->
