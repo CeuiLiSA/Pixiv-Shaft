@@ -62,6 +62,7 @@ import ceui.lisa.view.DrawerLayoutViewPager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import ceui.loxia.Nana7miPlan;
 import ceui.pixiv.config.RemoteAppConfig;
+import ceui.pixiv.push.InAppPushCenter;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.navigation.DrawerIconCatalog;
 
@@ -156,6 +157,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         // 订阅档位是冷启动异步拉回来的,落地时机比账号晚,所以单独观察一次;不然徽章要等
         // 下一次冷启动才出现,首装的人则永远看不到。
         RemoteAppConfig.INSTANCE.getNana7miPlanLive().observe(this, plan -> bindPlanBadge());
+        // 应用内推送(付费用户公告)也是这次冷启动配置捎回来的,同样异步落地。只弹一次、
+        // 弹过就回执,去重和让路(评分框)都在 InAppPushCenter 里。
+        RemoteAppConfig.INSTANCE.getInAppPushLive().observe(this,
+                arrival -> InAppPushCenter.INSTANCE.onConfigArrived(this, arrival));
         baseBind.drawerHeader.setOnClickListener(v -> openMyUserPage());
         // 侧边栏头像单击进自己主页；长按仍是 R18 临时过滤开关
         baseBind.userHead.setOnClickListener(v -> openMyUserPage());
@@ -310,6 +315,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         // Show rate dialog after a short delay to avoid disrupting app startup.
         // 浏览记录云同步同意框不在首页弹,改到用户点进浏览历史页时再问(见 FragmentHistoryTabs / issue #889)。
         baseBind.viewPager.postDelayed(() -> {
+            // 应用内推送正在展示就这次不弹评分框(showIfNeeded 没跑到就不消耗那一次机会),
+            // 两个框叠在一起谁都看不清。
+            if (InAppPushCenter.INSTANCE.isShowing()) return;
             ceui.pixiv.widgets.RateAppDialog.Companion.showIfNeeded(getSupportFragmentManager());
         }, 2000);
     }

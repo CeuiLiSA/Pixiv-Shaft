@@ -2977,4 +2977,7 @@
     <string name="nana7mi_quota_snack_session">五小时额度已用完，%1$s后恢复</string>
     <string name="nana7mi_quota_snack_weekly">本周额度已用完，%1$s后恢复</string>
     <string name="nana7mi_quota_snack_action">查看用量</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">知道了</string>
+    <string name="inapp_push_default_action">去看看</string>
 </resources>

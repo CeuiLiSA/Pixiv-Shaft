@@ -2721,4 +2721,7 @@
     <string name="nana7mi_quota_snack_session">5 saatlik limit doldu, %1$s sonra yenilenir</string>
     <string name="nana7mi_quota_snack_weekly">Haftalık limit doldu, %1$s sonra yenilenir</string>
     <string name="nana7mi_quota_snack_action">Kullanımı gör</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">Anladım</string>
+    <string name="inapp_push_default_action">Göz at</string>
 </resources>

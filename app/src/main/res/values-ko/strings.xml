@@ -2721,4 +2721,7 @@
     <string name="nana7mi_quota_snack_session">5시간 한도를 모두 사용했습니다. %1$s 후 복구</string>
     <string name="nana7mi_quota_snack_weekly">주간 한도를 모두 사용했습니다. %1$s 후 복구</string>
     <string name="nana7mi_quota_snack_action">사용량 보기</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">알겠어요</string>
+    <string name="inapp_push_default_action">보러 가기</string>
 </resources>

@@ -2721,4 +2721,7 @@
     <string name="nana7mi_quota_snack_session">5-hour limit reached, back in %1$s</string>
     <string name="nana7mi_quota_snack_weekly">Weekly limit reached, back in %1$s</string>
     <string name="nana7mi_quota_snack_action">View usage</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">Got it</string>
+    <string name="inapp_push_default_action">Take a look</string>
 </resources>
