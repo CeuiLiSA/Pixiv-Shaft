@@ -67,8 +67,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     var selectionMenuEntries: List<Pair<Int, String>> = emptyList()
     var onSelectionMenuAction: ((id: Int) -> Unit)? = null
 
-    /** 记录 RecyclerView 最近一次滚动状态，区分“滚动中点击停滚”与“静止时单击呼出菜单”（#1047）。 */
-    private var scrollState = SCROLL_STATE_IDLE
+    /** 手指落下那一刻 RecyclerView 是否还在滚动，区分“滚动中点击停滚”与“静止时单击呼出菜单”（#1047）。 */
     private var wasScrollingOnTouchDown = false
 
     private val lm = LinearLayoutManager(context)
@@ -106,7 +105,6 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             }
 
             override fun onScrollStateChanged(rv: RecyclerView, newState: Int) {
-                scrollState = newState
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                     onCharIndexChanged?.invoke(currentCharIndex())
                 }
@@ -116,8 +114,9 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
-            // 在手指落下前先记住 RecyclerView 是否还在滚动：这次单击如果发生在
-            // 滚动中，ACTION_UP 后状态可能已被点击停滚改成 IDLE，不能再用来判断（#1047）。
+            // 在手指落下前先记住 RecyclerView 是否还在滚动（super.dispatchTouchEvent 里
+            // onInterceptTouchEvent 会把 SETTLING 改成 DRAGGING，ACTION_UP 后更是 IDLE，
+            // 再晚就判不出来了），所以必须在这里、交给 super 之前读 scrollState（#1047）。
             wasScrollingOnTouchDown = scrollState != SCROLL_STATE_IDLE
         }
         gestureDetector.onTouchEvent(ev)
