@@ -113,7 +113,7 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
         val novelId = row.novelId?.toLongOrNull()
         if (novelId != null) {
             // 单篇：id 字段是 pixiv 给单篇造的 collection id，真正的小说 id 在 novelId 上。
-            return NovelFeedItem.of(row.toNovel(novelId))
+            return NovelFeedItem.of(row.toNovel(novelId), skipAiFilter = params.onlyAi)
         }
         val seriesId = row.id?.toLongOrNull() ?: return null
         val representative = row.toNovel(seriesId, asSeries = true)
@@ -121,7 +121,7 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
         // 全局 R-18 过滤照常挂着（不因搜索选了「仅 R-18」就让步），与 [ceui.lisa.core.Mapper] 一致。
         // 注意反刷屏（issue #743）看的是**整个系列的已公开字数**，不是单章：设了「最长字数」的
         // 用户会连带滤掉长连载——这与那条设置「不想看长文」的本意一致，故不特判。
-        if (NovelFeedItem.of(representative) == null) return null
+        if (NovelFeedItem.of(representative, skipAiFilter = params.onlyAi) == null) return null
         return SearchNovelSeriesFeedItem(
             seriesId = seriesId,
             novel = representative,
@@ -225,7 +225,7 @@ internal data class WebNovelSearchParams(
 internal fun buildWebNovelSearchParams(searchModel: SearchModel): WebNovelSearchParams =
     buildWebNovelSearchParams(
         searchModel = searchModel,
-        excludeAi = Shaft.sSettings.isDeleteAIIllust,
+        excludeAi = Shaft.sSettings.isDeleteAIIllust && !Shaft.sSettings.isAiBlockClientSide,
     )
 
 internal fun buildWebNovelSearchParams(
@@ -233,7 +233,7 @@ internal fun buildWebNovelSearchParams(
     keywordSnapshot: String,
 ): WebNovelSearchParams = buildWebNovelSearchParams(
     searchModel = searchModel,
-    excludeAi = Shaft.sSettings.isDeleteAIIllust,
+    excludeAi = Shaft.sSettings.isDeleteAIIllust && !Shaft.sSettings.isAiBlockClientSide,
     keywordSnapshot = keywordSnapshot,
 )
 

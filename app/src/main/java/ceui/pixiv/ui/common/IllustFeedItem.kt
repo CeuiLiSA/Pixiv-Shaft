@@ -171,7 +171,7 @@ class IllustFeedItem(
             // （同 skipR18Filter / skipAiFilter「点进专属页就别用全局过滤把它清空」的思路）。
             if (!skipMuteUserFilter && IllustNovelFilter.judgeUserID(bean)) return false
             if (!skipR18Filter && IllustNovelFilter.judgeR18Filter(bean)) return false
-            if (!skipAiFilter && Shaft.sSettings.isDeleteAIIllust() && bean.isCreatedByAI) return false
+            if (!skipAiFilter && IllustNovelFilter.shouldHideAi(bean)) return false
             return true
         }
     }

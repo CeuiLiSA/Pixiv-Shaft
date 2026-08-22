@@ -8,6 +8,7 @@ import com.blankj.utilcode.util.PathUtils;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 import ceui.lisa.helper.NavigationLocationHelper;
@@ -130,6 +131,12 @@ public class Settings {
 
     //屏蔽，不显示AI创作的作品，默认不屏蔽
     private boolean deleteAIIllust = false;
+
+    //屏蔽 AI 时的强度：0=完全不显示（默认），1=模糊粒子化
+    private int aiBlockStrength = 0;
+
+    //屏蔽 AI 时的豁免作者 ID（保持添加顺序、自动去重）
+    private LinkedHashSet<Long> aiBlockExemptAuthorIds = new LinkedHashSet<>();
 
     //是否开启直连模式，true 开启  false 自行代理
     @SerializedName("autoFuckChina")
@@ -520,6 +527,32 @@ public class Settings {
 
     public void setDeleteAIIllust(boolean b) {
         deleteAIIllust = b;
+    }
+
+    public int getAiBlockStrength() {
+        return aiBlockStrength;
+    }
+
+    public void setAiBlockStrength(int aiBlockStrength) {
+        this.aiBlockStrength = aiBlockStrength == 1 ? 1 : 0;
+    }
+
+    public LinkedHashSet<Long> getAiBlockExemptAuthorIds() {
+        if (aiBlockExemptAuthorIds == null) {
+            aiBlockExemptAuthorIds = new LinkedHashSet<>();
+        }
+        return aiBlockExemptAuthorIds;
+    }
+
+    public void setAiBlockExemptAuthorIds(LinkedHashSet<Long> aiBlockExemptAuthorIds) {
+        this.aiBlockExemptAuthorIds = aiBlockExemptAuthorIds == null
+                ? new LinkedHashSet<>()
+                : aiBlockExemptAuthorIds;
+    }
+
+    /** 屏蔽 AI 是否需要客户端接管（拿全量再本地滤/遮）：模糊粒子化或存在豁免作者时，服务端不能直接剔掉 AI。 */
+    public boolean isAiBlockClientSide() {
+        return aiBlockStrength != 0 || !getAiBlockExemptAuthorIds().isEmpty();
     }
 
 

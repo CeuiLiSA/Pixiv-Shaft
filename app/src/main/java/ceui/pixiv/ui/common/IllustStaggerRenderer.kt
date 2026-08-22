@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.RecyIllustStaggerBinding
 import ceui.lisa.models.IllustsBean
@@ -83,7 +84,8 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
                 // 打码的卡：点一下 = 取消屏蔽（删掉那条屏蔽记录），当帧还原成正常卡，
                 // 再点才开详情。不直接开详情——否则「屏蔽」等于没屏蔽，手一滑就把刚遮住的
                 // 东西整屏铺开了。与长按菜单「取消屏蔽此作品」走的是同一个口。
-                if (IllustMuteStore.isMuted(tapped.illust.id)) {
+                val locallySpoilered = IllustMuteStore.isMuted(tapped.illust.id)
+                if (locallySpoilered) {
                     setIllustMuted(tapped, false)
                 } else {
                     openDetail(tapped)
@@ -142,7 +144,9 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             resetLikeAnim(cell.binding)
         },
         attach = { cell ->
-            val spoilered = cell.itemOrNull?.let { IllustMuteStore.isMuted(it.illust.id) }
+            val spoilered = cell.itemOrNull?.let {
+                IllustMuteStore.isMuted(it.illust.id) || IllustNovelFilter.shouldBlurAi(it.bean)
+            }
             if (spoilered == true) {
                 cell.binding.spoilerParticles.setParticleAnimationRunning(true)
             }
@@ -165,7 +169,8 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
                     val bean = cell.item.bean
                     // 一律用 illust.id（Long）当名单 key：legacy bean.id 是 int，
                     // 两边混着用早晚会在同一份名单里对不上号
-                    val spoilered = IllustMuteStore.isMuted(cell.item.illust.id)
+                    val spoilered = IllustMuteStore.isMuted(cell.item.illust.id) ||
+                            IllustNovelFilter.shouldBlurAi(cell.item.bean)
                     loadIllustImage(cell.binding, bean, spoilered)
                     // 这条路径是用户刚点下「屏蔽 / 取消屏蔽」的那一下：粒子淡进淡出，
                     // 跟 Glide 换图的 crossfade 同步，不要硬切
@@ -186,10 +191,11 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
         val bean = cell.item.bean
         cell.binding.illustImage.setHeightRatio(heightRatioOf(bean))
 
-        // 打码与否的真源是屏蔽名单，bind 时现读：别的页面屏蔽了同一作品，本页滑动复用一次
-        // 就跟上了（条目本身不带这个状态，见 PAYLOAD_ILLUST_SPOILER_CHANGED 的注释；
+        // 打码与否的真源是本地屏蔽名单 + AI 屏蔽强度，bind 时现读：别的页面改了屏蔽/设置，
+        // 本页滑动复用一次就跟上（条目本身不带这个状态，见 PAYLOAD_ILLUST_SPOILER_CHANGED 的注释；
         // 没被回收的卡由 IllustFeedFragment.observeMuteRevision 补绑）
-        val spoilered = IllustMuteStore.isMuted(cell.item.illust.id)
+        val spoilered = IllustMuteStore.isMuted(cell.item.illust.id) ||
+                IllustNovelFilter.shouldBlurAi(bean)
         // 粒子层只跟屏蔽态走：没被屏蔽的卡一律不画。之前首页推荐是「全员开」，
         // 整屏卡片都在跑逐帧粒子——既看不出是装饰还是屏蔽提示，也白烧一屏的帧。
         // View 本身不 clickable，不会截走卡片点击/长按。

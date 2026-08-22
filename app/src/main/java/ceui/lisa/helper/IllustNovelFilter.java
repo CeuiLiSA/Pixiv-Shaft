@@ -12,7 +12,6 @@ import ceui.lisa.database.MuteEntity;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.TagsBean;
-import ceui.lisa.utils.Common;
 import ceui.pixiv.ui.common.IllustMuteStore;
 import ceui.pixiv.ui.common.NovelMuteStore;
 import ceui.loxia.Novel;
@@ -70,6 +69,76 @@ public class IllustNovelFilter {
                 .searchDao()
                 .getUserMuteEntityByID(illust.getUser().getUserId());
         return temp != null;
+    }
+
+    private static boolean isAiExemptAuthor(long userId) {
+        return userId > 0 && Shaft.sSettings.getAiBlockExemptAuthorIds().contains(userId);
+    }
+
+    /** 屏蔽 AI 强度 = 完全不显示时，是否应该把这条插画从列表里剔除（豁免作者除外）。 */
+    public static boolean shouldHideAi(IllustsBean illust) {
+        if (!Shaft.sSettings.isDeleteAIIllust() || !illust.isCreatedByAI()) {
+            return false;
+        }
+        if (illust.getUser() != null && isAiExemptAuthor(illust.getUser().getUserId())) {
+            return false;
+        }
+        return Shaft.sSettings.getAiBlockStrength() == 0;
+    }
+
+    /** 屏蔽 AI 强度 = 模糊粒子化时，是否应该把这条插画在卡片上打码（豁免作者除外）。 */
+    public static boolean shouldBlurAi(IllustsBean illust) {
+        if (!Shaft.sSettings.isDeleteAIIllust() || !illust.isCreatedByAI()) {
+            return false;
+        }
+        if (illust.getUser() != null && isAiExemptAuthor(illust.getUser().getUserId())) {
+            return false;
+        }
+        return Shaft.sSettings.getAiBlockStrength() == 1;
+    }
+
+    /** 完全不显示强度下，是否把这条小说从列表里剔除（豁免作者除外）。 */
+    public static boolean shouldHideAi(NovelBean novel) {
+        if (!Shaft.sSettings.isDeleteAIIllust() || !novel.isCreatedByAI()) {
+            return false;
+        }
+        if (novel.getUser() != null && isAiExemptAuthor(novel.getUser().getUserId())) {
+            return false;
+        }
+        return Shaft.sSettings.getAiBlockStrength() == 0;
+    }
+
+    /** 模糊粒子化强度下，是否把这条小说在卡片上打码（豁免作者除外）。 */
+    public static boolean shouldBlurAi(NovelBean novel) {
+        if (!Shaft.sSettings.isDeleteAIIllust() || !novel.isCreatedByAI()) {
+            return false;
+        }
+        if (novel.getUser() != null && isAiExemptAuthor(novel.getUser().getUserId())) {
+            return false;
+        }
+        return Shaft.sSettings.getAiBlockStrength() == 1;
+    }
+
+    /** loxia Novel 版：完全不显示强度下是否剔除（豁免作者除外）。 */
+    public static boolean shouldHideAi(Novel novel) {
+        if (!Shaft.sSettings.isDeleteAIIllust() || novel.getNovel_ai_type() != 2) {
+            return false;
+        }
+        if (novel.getUser() != null && isAiExemptAuthor(novel.getUser().getId())) {
+            return false;
+        }
+        return Shaft.sSettings.getAiBlockStrength() == 0;
+    }
+
+    /** loxia Novel 版：模糊粒子化强度下是否打码（豁免作者除外）。 */
+    public static boolean shouldBlurAi(Novel novel) {
+        if (!Shaft.sSettings.isDeleteAIIllust() || novel.getNovel_ai_type() != 2) {
+            return false;
+        }
+        if (novel.getUser() != null && isAiExemptAuthor(novel.getUser().getId())) {
+            return false;
+        }
+        return Shaft.sSettings.getAiBlockStrength() == 1;
     }
 
     public static boolean judgeTag(IllustsBean illustsBean) {
