@@ -83,7 +83,7 @@ import timber.log.Timber
  * 图片二级详情
  */
 class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
-    var mIllustsBean: Illust? = null
+    var mIllust: Illust? = null
         private set
     private val translationViewModel by viewModels<ImageTranslationViewModel>()
 
@@ -162,20 +162,20 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         setupViewerTransition(btnAi)
         if ("二级详情" == dataType) {
             currentPage = findViewById(R.id.current_page)
-            mIllustsBean = intent.getSerializableExtra("illust") as Illust?
+            mIllust = intent.getSerializableExtra("illust") as Illust?
             index = intent.getIntExtra("index", 0)
-            if (mIllustsBean == null) {
+            if (mIllust == null) {
                 // 没有 bean 就装配不了任何点击语义,别留一个看得见点不动的胶囊
                 findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
                 return
             }
             // 译图仓库按作品分桶(app 级):绑定后本页各 Fragment 观察到的就是这部作品的译图,
             // 包括「翻译整部」在别的页面跑出来的
-            translationViewModel.bindIllust(mIllustsBean!!.id.toLong())
+            translationViewModel.bindIllust(mIllust!!.id.toLong())
             val btnAiMenu = findViewById<ImageView>(R.id.btn_ai_menu)
             btnAiMenu.visibility = View.VISIBLE
             btnAiMenu.setOnClickListener { anchor ->
-                val illust = mIllustsBean ?: return@setOnClickListener
+                val illust = mIllust ?: return@setOnClickListener
                 // 动图(ugoira)的 original 是 zip,画质增强/抠图没法处理,不展示这两项(对齐 V3 详情页)。
                 val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
                 if (!illust.isGif()) {
@@ -216,7 +216,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 }
 
                 override fun getCount(): Int {
-                    return mIllustsBean!!.page_count
+                    return mIllust!!.page_count
                 }
             }
             baseBind!!.viewPager.currentItem = index
@@ -233,7 +233,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                             Locale.getDefault(),
                             "第 %d/%d P",
                             i + 1,
-                            mIllustsBean!!.page_count
+                            mIllust!!.page_count
                         )
                     )
                 }
@@ -241,7 +241,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 override fun onPageScrollStateChanged(i: Int) {
                 }
             })
-            if (mIllustsBean!!.page_count == 1) {
+            if (mIllust!!.page_count == 1) {
                 currentPage?.setVisibility(View.INVISIBLE)
             } else {
                 currentPage?.setText(
@@ -249,7 +249,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                         Locale.getDefault(),
                         "第 %d/%d P",
                         index + 1,
-                        mIllustsBean!!.page_count
+                        mIllust!!.page_count
                     )
                 )
             }
@@ -391,8 +391,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         fabBar.attachBottomInsetMargin(findViewById(R.id.fab_bar_row))
 
         // 收藏态:先按 intent 带来的 bean 画一次,再观察 ObjectPool 里同 id 的权威 bean(若有)
-        mIllustsBean?.let { fabBar.setBookmarked(it.isBookmarked) }
-        mIllustsBean?.id?.toLong()?.let { id ->
+        mIllust?.let { fabBar.setBookmarked(it.isBookmarked) }
+        mIllust?.id?.toLong()?.let { id ->
             ObjectPool.get<Illust>(id).observe(this) { bean ->
                 bean?.let { fabBar.setBookmarked(it.isBookmarked) }
             }
@@ -435,7 +435,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     /** 收藏/取消收藏作用于整个作品:优先取 ObjectPool 里的权威 bean(与一级详情共享乐观态),退回 intent 副本。 */
     private fun likeTargetIllust(): Illust? =
-        mIllustsBean?.let { ObjectPool.get<Illust>(it.id.toLong()).value ?: it }
+        mIllust?.let { ObjectPool.get<Illust>(it.id.toLong()).value ?: it }
 
     private fun autoLikeAfterDownloadIfNeeded(illust: Illust, fabBar: V3FabBarController) {
         if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
@@ -445,7 +445,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     private fun checkDownload(i: Int) {
-        val illust = mIllustsBean ?: return
+        val illust = mIllust ?: return
         lifecycleScope.launch {
             val downloaded = withContext(Dispatchers.IO) {
                 Common.isIllustDownloaded(illust, i)

@@ -58,7 +58,7 @@ interface AppApiSuspend {
     ): ListUser
 
     @GET("v1/ugoira/metadata")
-    suspend fun getGifPackage(@Query("illust_id") illustId: Int): GifResponse
+    suspend fun getGifPackage(@Query("illust_id") illustId: Long): GifResponse
 
     @GET("v1/illust/detail?filter=for_android")
     suspend fun getIllustByID(@Query("illust_id") illustId: Long): IllustSearchResponse

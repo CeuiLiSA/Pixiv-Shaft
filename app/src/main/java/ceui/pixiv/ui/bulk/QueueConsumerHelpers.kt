@@ -43,7 +43,7 @@ internal fun snapshotManagerContent(): List<DownloadItem> {
  *      不会 429（量极少）
  * 解析成功的都灌一次 ObjectPool，下一次同 id 命中第 1 步。
  */
-internal suspend fun resolveIllustsBean(row: DownloadQueueEntity): Illust {
+internal suspend fun resolveIllust(row: DownloadQueueEntity): Illust {
     val illustId = row.illustId
     // 1) 内存池
     val cached = runCatching { ObjectPool.getIllust(illustId).value }.getOrNull()

@@ -376,7 +376,7 @@ private class QueueAdapterV3(
         renderPlaceholder(h, item)
         h.loadJob = scope.launch {
             val bean = loadIllustForRow(dao, item.id) ?: return@launch
-            // 灌 ObjectPool —— 跟 consumer.resolveIllustsBean 行为一致；后续别处 get
+            // 灌 ObjectPool —— 跟 consumer.resolveIllust 行为一致；后续别处 get
             // 同 id 直接命中，本 fragment 滚动回这条也直接走上面的 cached 分支。
             runCatching { ObjectPool.updateIllust(bean) }
             // race 防护：VH 可能已被复用 rebind 到别的行

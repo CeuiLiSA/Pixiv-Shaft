@@ -80,8 +80,8 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private var originalShown: Boolean = false
     // 不再放进 arguments / savedInstanceState，避免每个 Fragment 重复持久化 80KB Illust
     // 导致 TransactionTooLargeException。统一向 ImageDetailActivity 取。
-    private val mIllustsBean: Illust?
-        get() = (activity as? ImageDetailActivity)?.mIllustsBean
+    private val mIllust: Illust?
+        get() = (activity as? ImageDetailActivity)?.mIllust
 
     /**
      * 延迟派发过来的手势回调，现在还能不能安全地碰 fragment 的东西。
@@ -418,7 +418,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
      * VM 拿到归一化矩形按底图分辨率还原即可。最后解析原图 File 交给 VM 翻译。
      */
     private fun handleSelectedBox(screenRect: RectF) {
-        val illust = mIllustsBean ?: return
+        val illust = mIllust ?: return
         val zoomable = baseBind.image.zoomable
         val size = zoomable.contentSizeState.value
         if (size.width <= 0 || size.height <= 0) {
@@ -457,11 +457,11 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         originalShown = false
         largeDisposable?.dispose()
         largeDisposable = null
-        val isUrlMode = mIllustsBean == null && !TextUtils.isEmpty(url)
+        val isUrlMode = mIllust == null && !TextUtils.isEmpty(url)
         val imageUrl: String? = if (isUrlMode) {
             url
         } else {
-            IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_ORIGINAL)
+            IllustDownload.getUrl(mIllust, index, Params.IMAGE_RESOLUTION_ORIGINAL)
         }
 
         val shortUrl = imageUrl?.substringAfterLast('/') ?: "null"
@@ -483,7 +483,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         //
         // 仅当原图还没在查看器缓存里时才查库：正常浏览(原图已在 TaskPool 缓存)直接走原同步
         // 快路径，零 DB 开销、即时显示；真正要修的「下载过但查看器没缓存」才值得多查一次库。
-        val illust = mIllustsBean
+        val illust = mIllust
         if (!isUrlMode && illust != null && !illust.isGif() && ImageLoaderV3.peekFile(imageUrl) == null) {
             // 原图尚未就绪（典型：一级详情页 B「展示原图」关，只显了 large）。先用 B 已加载的 large
             // 秒铺底，原图并行下好再盖上——避免大图页只剩一个转圈的空白等待。原图已在缓存

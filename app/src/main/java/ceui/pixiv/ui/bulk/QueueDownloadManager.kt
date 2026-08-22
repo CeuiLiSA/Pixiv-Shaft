@@ -140,7 +140,7 @@ object QueueDownloadManager {
     private const val NETWORK_GATE_SLEEP_MS = 30_000L
     /** 一条 inflight illust 持续无任何 P 状态变化的"停滞"上限；超过则强制按失败收口 */
     private const val STALL_TIMEOUT_MS = 90_000L
-    /** resolveIllustsBean 失败 / addTask 异常等"软错误"后的退避 */
+    /** resolveIllust 失败 / addTask 异常等"软错误"后的退避 */
     private const val SOFT_ERROR_BACKOFF_MS = 1500L
 
     private var appContext: Context? = null
@@ -657,7 +657,7 @@ object QueueDownloadManager {
      */
     private suspend fun pullRowToInFlight(row: DownloadQueueEntity): Boolean {
         val bean = try {
-            resolveIllustsBean(row)
+            resolveIllust(row)
         } catch (e: Exception) {
             Timber.tag(TAG).w(e, "[QUEUE-CONSUMER] resolveBean failed illust=${row.illustId}")
             if (row.retryCount + 1 < MAX_RETRY) {
@@ -867,7 +867,7 @@ object QueueDownloadManager {
         }
     }
 
-    // [snapshotManagerContent] / [resolveIllustsBean] 已移到 QueueConsumerHelpers.kt
+    // [snapshotManagerContent] / [resolveIllust] 已移到 QueueConsumerHelpers.kt
 
     private const val TAG = "QueueDownloadManager"
 }

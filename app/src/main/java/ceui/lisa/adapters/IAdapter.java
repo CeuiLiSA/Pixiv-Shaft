@@ -309,7 +309,7 @@ public class IAdapter extends BaseAdapter<Illust, RecyIllustStaggerBinding> impl
                 popView.findViewById(R.id.play_slideshow).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        SlideshowLauncher.launchFromIllustsBeans(mContext, allItems, position, true);
+                        SlideshowLauncher.launchFromIllusts(mContext, allItems, position, true);
                         mNormalPopup.dismiss();
                     }
                 });

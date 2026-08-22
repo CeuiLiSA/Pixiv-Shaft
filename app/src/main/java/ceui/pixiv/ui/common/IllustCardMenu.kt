@@ -89,7 +89,7 @@ internal fun IllustFeedFragment.showCardMenu(
         item(getString(R.string.slideshow_play), R.drawable.ic_baseline_play_arrow_24) {
             val beans = scopedBeans()
             val position = beans.indexOfFirst { it.id == bean.id }.coerceAtLeast(0)
-            SlideshowLauncher.launchFromIllustsBeans(
+            SlideshowLauncher.launchFromIllusts(
                 requireContext(), ArrayList(beans), position, true,
             )
         }

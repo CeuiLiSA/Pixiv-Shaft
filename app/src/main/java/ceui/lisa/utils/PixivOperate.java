@@ -171,7 +171,7 @@ public class PixivOperate {
 
         // 收藏的时候，顺便请求这个作品的相关作品
         if (willBookmark && showRelated) {
-            Retro.getAppApi().relatedIllust((int) illustsBean.getId())
+            Retro.getAppApi().relatedIllust(illustsBean.getId())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new NullCtrl<ListIllust>() {
@@ -359,7 +359,7 @@ public class PixivOperate {
     }
 
     public static void getGifInfo(Illust illust, ErrorCtrl<GifResponse> errorCtrl) {
-        Retro.getAppApi().getGifPackage((int) illust.getId())
+        Retro.getAppApi().getGifPackage(illust.getId())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(errorCtrl);
