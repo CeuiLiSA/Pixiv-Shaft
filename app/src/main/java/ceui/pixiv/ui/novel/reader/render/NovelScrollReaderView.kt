@@ -67,11 +67,20 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     var selectionMenuEntries: List<Pair<Int, String>> = emptyList()
     var onSelectionMenuAction: ((id: Int) -> Unit)? = null
 
+    /** 记录 RecyclerView 最近一次滚动状态，区分“滚动中点击停滚”与“静止时单击呼出菜单”（#1047）。 */
+    private var scrollState = SCROLL_STATE_IDLE
+    private var wasScrollingOnTouchDown = false
+
     private val lm = LinearLayoutManager(context)
     private var contentAdapter: ContentAdapter? = null
 
     private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
         override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+            // 滚动中点击只负责停滚，不呼出菜单；等滚动完全停下后再单击才呼出（#1047）。
+            if (wasScrollingOnTouchDown) {
+                wasScrollingOnTouchDown = false
+                return true
+            }
             // 纵向滚动没有左右翻页语义，整屏单击都呼出菜单——不是横向那套三分区
             //（只留中间一竖条反直觉，#1038）。落在插画/跳转按钮上的点击让给它们自己的
             // onClick，避免「打开大图的同时菜单也弹出来」。
@@ -97,6 +106,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             }
 
             override fun onScrollStateChanged(rv: RecyclerView, newState: Int) {
+                scrollState = newState
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                     onCharIndexChanged?.invoke(currentCharIndex())
                 }
@@ -105,6 +115,11 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+            // 在手指落下前先记住 RecyclerView 是否还在滚动：这次单击如果发生在
+            // 滚动中，ACTION_UP 后状态可能已被点击停滚改成 IDLE，不能再用来判断（#1047）。
+            wasScrollingOnTouchDown = scrollState != SCROLL_STATE_IDLE
+        }
         gestureDetector.onTouchEvent(ev)
         return super.dispatchTouchEvent(ev)
     }
