@@ -51,9 +51,6 @@ FONT = ("Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, "
         "'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', "
         "system-ui, sans-serif")
 
-SCREEN_W, SCREEN_H = 512, 1138
-
-
 def esc(s: str) -> str:
     return html.escape(s, quote=True)
 
@@ -89,9 +86,9 @@ def frame_in_device(shot: Path) -> Image.Image:
     return canvas
 
 
-def framed_data_uri(shot: Path) -> str:
+def image_data_uri(im: Image.Image) -> str:
     buf = io.BytesIO()
-    frame_in_device(shot).save(buf, "WEBP", quality=88, method=6)
+    im.save(buf, "WEBP", quality=88, method=6)
     return "data:image/webp;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
@@ -256,14 +253,15 @@ def build_hero(lang: str) -> None:
     b.append(f'<g clip-path="url(#{uid}-clip)">')
     shots = [("gallery", 716, 128, -7), ("home", 964, 118, 7), ("detail", 840, 58, 0)]
     for name, x, y, rot in shots:
+        framed = frame_in_device(SCREENS / f"{name}.webp")
         w = 224
-        h = w * 2513 / 1187
+        h = w * framed.height / framed.width      # aspect comes from the device art, not a constant
         cx, cy = x + w / 2, y + h / 2
         if rot == 0:
             b.append(f'<ellipse cx="{cx:.1f}" cy="{cy:.1f}" rx="{w*0.7:.1f}" ry="{h*0.5:.1f}" '
                      f'fill="url(#{uid}-brand)" opacity=".55" filter="url(#{uid}-soft)"/>')
         b.append(f'<image x="{x}" y="{y}" width="{w}" height="{h:.1f}" transform="rotate({rot} {cx:.1f} {cy:.1f})" '
-                 f'href="{framed_data_uri(SCREENS / f"{name}.webp")}"/>')
+                 f'href="{image_data_uri(framed)}"/>')
     b.append('</g>')
     write(ASSETS / f"hero-{lang}.svg", svg(W, H, "\n".join(b), "Shaft — " + " ".join(t["h1"])))
 
