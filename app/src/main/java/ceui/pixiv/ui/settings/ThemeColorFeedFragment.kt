@@ -144,7 +144,8 @@ class ThemeColorFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
      */
     private fun onPickTagTranslationColor(item: ThemeColorFeedItem) {
         if (item.index == CustomThemeColor.INDEX) {
-            CustomThemeColorSheet().show(childFragmentManager, "custom_theme_color")
+            // 初始色给这一行展示的 hex（当前译文自定义色 / 回落值），不能让 picker 默认去读主题的自定义色。
+            CustomThemeColorSheet.newInstance(item.hex).show(childFragmentManager, "custom_theme_color")
             return
         }
         if (item.index == Shaft.sSettings.tagTranslationColorIndex) return
@@ -220,13 +221,15 @@ private fun themeColorItems(): List<FeedItem> {
 /**
  * 标签译文颜色模式的列表数据：同样复用主题色目录和自定义档，但 selected 以标签译文设置为准。
  * 跟随主题（-2）时没有任何一行高亮 —— 该选项在设置页的弹窗里。
+ *
+ * 自定义档这里**不**看 [CustomThemeColor.isSupported]：那个门槛是主题色要靠 API 30 的
+ * ResourcesLoader 才能送进 `?attr/colorPrimary`；译文色只是一个 ForegroundColorSpan，任何版本都能画。
  */
 private fun tagTranslationColorItems(): List<FeedItem> {
     val current = Shaft.sSettings.tagTranslationColorIndex
     val presets = ThemeColorCatalog.entries.mapIndexed { index, entry ->
         ThemeColorFeedItem(index, entry.nameRes, entry.hex, index == current)
     }
-    if (!CustomThemeColor.isSupported) return presets
     val customHex = CustomThemeColor.normalize(Shaft.sSettings.tagTranslationColorCustomHex)
         ?: ThemeColorCatalog.hexOf(current.takeIf { it in ThemeColorCatalog.entries.indices } ?: 0)
     return presets + ThemeColorFeedItem(
