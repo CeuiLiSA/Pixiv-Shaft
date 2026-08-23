@@ -8,6 +8,7 @@ import com.blankj.utilcode.util.PathUtils;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 
 import ceui.lisa.helper.NavigationLocationHelper;
@@ -98,6 +99,46 @@ public class Settings {
         this.customThemeColor = customThemeColor;
     }
 
+    // ===== 标签译文颜色（#1047-5）=====
+    /** 跟随主题（默认）：译文与标签原文同色。 */
+    public static final int TAG_TRANSLATION_COLOR_FOLLOW_THEME = -2;
+
+    /**
+     * 标签译文颜色：-2 = 跟随主题；0..9 = 主题色目录预设；
+     * {@link ceui.pixiv.ui.settings.CustomThemeColor#INDEX} = 自定义色。
+     * 老配置没有该字段时按跟随主题处理（getter 兜底）。
+     */
+    private Integer tagTranslationColorIndex;
+
+    /** 标签译文自定义色的 #RRGGBB（仅 tagTranslationColorIndex 为自定义档时读取）。 */
+    private String tagTranslationColorCustomHex;
+
+    public int getTagTranslationColorIndex() {
+        return tagTranslationColorIndex != null
+                ? tagTranslationColorIndex
+                : TAG_TRANSLATION_COLOR_FOLLOW_THEME;
+    }
+
+    public boolean isTagTranslationColorFollowTheme() {
+        return getTagTranslationColorIndex() == TAG_TRANSLATION_COLOR_FOLLOW_THEME;
+    }
+
+    public void setTagTranslationColorFollowTheme() {
+        this.tagTranslationColorIndex = TAG_TRANSLATION_COLOR_FOLLOW_THEME;
+    }
+
+    public void setTagTranslationColorIndex(int tagTranslationColorIndex) {
+        this.tagTranslationColorIndex = tagTranslationColorIndex;
+    }
+
+    public String getTagTranslationColorCustomHex() {
+        return tagTranslationColorCustomHex;
+    }
+
+    public void setTagTranslationColorCustomHex(String tagTranslationColorCustomHex) {
+        this.tagTranslationColorCustomHex = tagTranslationColorCustomHex;
+    }
+
     //主页显示R18
     private boolean mainViewR18 = false;
 
@@ -130,6 +171,12 @@ public class Settings {
 
     //屏蔽，不显示AI创作的作品，默认不屏蔽
     private boolean deleteAIIllust = false;
+
+    //屏蔽 AI 时的强度：0=完全不显示（默认），1=模糊粒子化
+    private int aiBlockStrength = 0;
+
+    //屏蔽 AI 时的豁免作者 ID（保持添加顺序、自动去重）
+    private LinkedHashSet<Long> aiBlockExemptAuthorIds = new LinkedHashSet<>();
 
     //是否开启直连模式，true 开启  false 自行代理
     @SerializedName("autoFuckChina")
@@ -520,6 +567,32 @@ public class Settings {
 
     public void setDeleteAIIllust(boolean b) {
         deleteAIIllust = b;
+    }
+
+    public int getAiBlockStrength() {
+        return aiBlockStrength;
+    }
+
+    public void setAiBlockStrength(int aiBlockStrength) {
+        this.aiBlockStrength = aiBlockStrength == 1 ? 1 : 0;
+    }
+
+    public LinkedHashSet<Long> getAiBlockExemptAuthorIds() {
+        if (aiBlockExemptAuthorIds == null) {
+            aiBlockExemptAuthorIds = new LinkedHashSet<>();
+        }
+        return aiBlockExemptAuthorIds;
+    }
+
+    public void setAiBlockExemptAuthorIds(LinkedHashSet<Long> aiBlockExemptAuthorIds) {
+        this.aiBlockExemptAuthorIds = aiBlockExemptAuthorIds == null
+                ? new LinkedHashSet<>()
+                : aiBlockExemptAuthorIds;
+    }
+
+    /** 屏蔽 AI 是否需要客户端接管（拿全量再本地滤/遮）：模糊粒子化或存在豁免作者时，服务端不能直接剔掉 AI。 */
+    public boolean isAiBlockClientSide() {
+        return aiBlockStrength != 0 || !getAiBlockExemptAuthorIds().isEmpty();
     }
 
 

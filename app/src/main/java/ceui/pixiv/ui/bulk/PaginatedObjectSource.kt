@@ -9,7 +9,7 @@ package ceui.pixiv.ui.bulk
 data class PageResult<T>(val items: List<T>, val nextUrl: String?)
 
 /**
- * 通用的"可翻页且有末尾"对象源。T 不限于 IllustsBean —— 后续 list-user / list-novel
+ * 通用的"可翻页且有末尾"对象源。T 不限于 Illust —— 后续 list-user / list-novel
  * 的批量场景也走同一接口。
  */
 interface PaginatedObjectSource<T> {

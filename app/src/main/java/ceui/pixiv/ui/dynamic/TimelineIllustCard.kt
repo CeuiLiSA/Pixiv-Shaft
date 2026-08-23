@@ -10,8 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.databinding.ItemTimelineGridImageBinding
 import ceui.lisa.databinding.RecyTimelineIllustBinding
-import ceui.lisa.models.IllustsBean
-import ceui.lisa.models.UserBean
+import ceui.loxia.Illust
+import ceui.loxia.User
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.GlideUtil
 import ceui.loxia.DateParse
@@ -108,7 +108,7 @@ fun timelineIllustRenderer(
 
 private fun bindTimelineCard(cell: FeedCell<IllustFeedItem, RecyTimelineIllustBinding>) {
     val b = cell.binding
-    val bean = cell.item.bean
+    val bean = cell.item.illust
     val ctx = b.root.context
 
     // 打码态 bind 时现读（条目本身不带这个状态，同瀑布流卡）；
@@ -140,8 +140,8 @@ private fun bindTimelineCard(cell: FeedCell<IllustFeedItem, RecyTimelineIllustBi
         bindSingleImage(b, bean, imageWidth, masked)
     }
 
-    b.viewCount.text = String.format(Locale.getDefault(), "%,d", bean.total_view)
-    b.bookmarkCount.text = String.format(Locale.getDefault(), "%,d", bean.total_bookmarks)
+    b.viewCount.text = String.format(Locale.getDefault(), "%,d", bean.total_view ?: 0)
+    b.bookmarkCount.text = String.format(Locale.getDefault(), "%,d", bean.total_bookmarks ?: 0)
 
     b.pageCountBadge.isVisible = bean.page_count > 1
     if (bean.page_count > 1) {
@@ -157,7 +157,7 @@ private fun bindTimelineCard(cell: FeedCell<IllustFeedItem, RecyTimelineIllustBi
  *
  * 无作者（[user] 为 null）时主动清干净：复用来的卡片可能还挂着上一条的头像。
  */
-private fun bindAvatar(b: RecyTimelineIllustBinding, user: UserBean?) {
+private fun bindAvatar(b: RecyTimelineIllustBinding, user: User?) {
     val requestKey = user?.let { GlideUtil.getHead(it) }?.cacheKey
     if (b.userIcon.tag == requestKey) return
     b.userIcon.tag = requestKey
@@ -170,7 +170,7 @@ private fun bindAvatar(b: RecyTimelineIllustBinding, user: UserBean?) {
 
 private fun bindSingleImage(
     b: RecyTimelineIllustBinding,
-    bean: IllustsBean,
+    bean: Illust,
     imageWidth: Int,
     masked: Boolean,
 ) {
@@ -214,7 +214,7 @@ private fun bindSingleImage(
 
 private fun bindGrid(
     b: RecyTimelineIllustBinding,
-    bean: IllustsBean,
+    bean: Illust,
     totalPages: Int,
     imageWidth: Int,
     masked: Boolean,
@@ -245,7 +245,7 @@ private class TimelineGridAdapter(
     private val onCellClick: () -> Unit,
 ) : RecyclerView.Adapter<TimelineGridAdapter.VH>() {
 
-    private var illust: IllustsBean? = null
+    private var illust: Illust? = null
     private var showCount = 0
     private var cellSize = 0
     private var hasMore = false
@@ -254,7 +254,7 @@ private class TimelineGridAdapter(
 
     @SuppressLint("NotifyDataSetChanged")
     fun submit(
-        illust: IllustsBean,
+        illust: Illust,
         showCount: Int,
         cellSize: Int,
         hasMore: Boolean,

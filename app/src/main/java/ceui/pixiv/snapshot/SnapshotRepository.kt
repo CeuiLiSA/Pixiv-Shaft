@@ -3,7 +3,7 @@ package ceui.pixiv.snapshot
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -18,7 +18,7 @@ data class SnapshotSummary(
 data class SnapshotViewerData(
     val snapshotDir: File,
     val manifest: SnapshotManifest,
-    val illust: IllustsBean,
+    val illust: Illust,
     val assets: Map<String, String>,
     val comments: SnapshotComments?,
 ) {
@@ -118,7 +118,7 @@ object SnapshotRepository {
         val snapshotDir = dir(context, snapshotId)
         val manifest = SnapshotValidator.readJson<SnapshotManifest>(File(snapshotDir, SNAPSHOT_MANIFEST))
             ?: throw SnapshotException("快照不存在或 manifest 损坏: $snapshotId")
-        val illust = SnapshotValidator.readJson<IllustsBean>(File(snapshotDir, SNAPSHOT_ILLUST_JSON))
+        val illust = SnapshotValidator.readJson<Illust>(File(snapshotDir, SNAPSHOT_ILLUST_JSON))
             ?: throw SnapshotException("快照缺少 illust.json: $snapshotId")
         val assets = SnapshotValidator.readJson<SnapshotAssets>(File(snapshotDir, SNAPSHOT_ASSETS_JSON))?.assets ?: emptyMap()
         val comments = if (manifest.includeComments) {

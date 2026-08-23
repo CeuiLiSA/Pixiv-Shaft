@@ -549,6 +549,9 @@
     <string name="string_322">Мои подписчики</string>
     <string name="string_323">Мои P-друзья</string>
     <string name="string_324">Цвет темы</string>
+    <string name="tag_translation_color">Цвет перевода тега</string>
+    <string name="tag_translation_color_follow_theme">Следовать теме</string>
+    <string name="tag_translation_color_pick_from_theme_page">Выбрать на странице цветов темы</string>
     <string name="string_325">Перейти к настройкам</string>
     <string name="string_326">Начать</string>
     <string name="string_327">Приостановить</string>
@@ -851,6 +854,19 @@
     <string name="created_by_ai">Создано ИИ</string>
     <string name="has_been_downloaded"> загрузка завершена</string>
     <string name="delete_ai_illust">Скрывать работы, созданные ИИ</string>
+    <string name="ai_block_strength">Уровень эффекта скрытия</string>
+    <string name="ai_block_strength_hide">Скрыть полностью</string>
+    <string name="ai_block_strength_blur">Размытие с частицами</string>
+    <string name="ai_block_exempt_authors">Список исключённых авторов</string>
+    <string name="ai_block_exempt_hint">Добавляйте ID авторов по одному и удаляйте их\nПосле изменения списка рекомендуется перезапустить приложение</string>
+    <string name="ai_block_exempt_add">Добавить</string>
+    <string name="ai_block_exempt_input_hint">Введите ID автора</string>
+    <string name="ai_block_exempt_empty">Пока нет авторов-исключений</string>
+    <string name="ai_block_exempt_save">Сохранить</string>
+    <string name="ai_block_exempt_invalid">Введите корректный ID автора</string>
+    <string name="ai_block_exempt_duplicate">Этот ID автора уже добавлен</string>
+    <string name="ai_block_exempt_none">Не задано</string>
+    <string name="ai_block_exempt_count">%1$d ID авторов</string>
     <string name="trying_login">Выполняется вход</string>
     <string name="userTab_other">Профиль</string>
     <string name="userTab_collection">Закладки</string>
@@ -2721,4 +2737,7 @@
     <string name="nana7mi_quota_snack_session">5-часовой лимит исчерпан, восстановится через %1$s</string>
     <string name="nana7mi_quota_snack_weekly">Недельный лимит исчерпан, восстановится через %1$s</string>
     <string name="nana7mi_quota_snack_action">Использование</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">Понятно</string>
+    <string name="inapp_push_default_action">Посмотреть</string>
 </resources>

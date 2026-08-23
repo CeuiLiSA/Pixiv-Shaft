@@ -74,6 +74,16 @@ interface PixshaftApi {
     ): AppConfigResponse
 
     /**
+     * 应用内推送的已读回执（服务端 `src/inapp-push.js`）。
+     *
+     * `/v1/config` 带回来的那条推送展示过一次之后调这个，服务端记下「这个 uid 看过了」，
+     * 之后任何设备、重装之后都不再下发。签名和 `/v1/account/…` 一样签请求体（见 [Client]）。
+     * 幂等：重复回执是空操作；404 = 这条推送已被后台删掉，同样算「办完了」。
+     */
+    @POST("v1/push/ack")
+    suspend fun ackInAppPush(@Body req: InAppPushAckReq): Response<InAppPushAckResp>
+
+    /**
      * 一页「热度标签」精选插画。
      *
      * 这份内置榜以前是 APK 里 183MB 的 `assets/pixiv_prime/prime_tag_for_<sha256>.txt`
@@ -225,8 +235,53 @@ data class AppConfigResponse(
      * 没带签名、未登录、或服务端查不到，都是 null；null 是「不知道」，不是「免费用户」。
      */
     val plan: Nana7miPlan? = null,
+    /**
+     * 这次冷启动要给他看的那条应用内推送；null = 没有（或没签名 / Lite / 服务端查失败）。
+     * 服务端一次只给**一条**、且只给没回执过的，所以这里永远不会是一个列表。
+     */
+    val push: InAppPush? = null,
     val serverTime: Long? = null,
 )
+
+/**
+ * 后台写的一条应用内推送（pixshaft-api 控制台「应用内推送」tab）。
+ *
+ * 每个字段都可空：这是服务端随 `/v1/config` 捎带的，解析不能因为少个字段就把整份配置
+ * 掀了。[id] 是回执和「本地已看」的键，缺了它这条推送就没法去重，直接不展示。
+ */
+data class InAppPush(
+    val id: Long? = null,
+    val title: String? = null,
+    val body: String? = null,
+    /** 按钮文案；null 用默认的「去看看」。只有 [actionUrl] 非空时才有按钮。 */
+    val actionLabel: String? = null,
+    /** `https://…`（能在 app 内处理的 pixiv 链接就在 app 内开，否则 Custom Tab）、`pixiv://…` 或 `shaftintent://…`。 */
+    val actionUrl: String? = null,
+    /** `paid` / `pro` / `max` / `all` —— 服务端已经按它筛过，客户端只是原样带着。 */
+    val audience: String? = null,
+    val startsAt: Long? = null,
+    val endsAt: Long? = null,
+)
+
+data class InAppPushAckReq(val uid: Long, val id: Long)
+
+data class InAppPushAckResp(val ok: Boolean = false, val first: Boolean? = null)
+
+/**
+ * 发一条已读回执。返回「是否已了结」：2xx 和任何 4xx 都算了结（400/404 重发多少次结果
+ * 都一样），只有 5xx / 网络错误才返回 false 让调用方下次再补。永不抛（取消除外）。
+ */
+suspend fun PixshaftApi.acknowledgeInAppPush(uid: Long, id: Long): Boolean {
+    if (uid <= 0L || id <= 0L) return true
+    return try {
+        val response = ackInAppPush(InAppPushAckReq(uid, id))
+        response.isSuccessful || response.code() in 400..499
+    } catch (ce: CancellationException) {
+        throw ce
+    } catch (_: Exception) {
+        false
+    }
+}
 
 /**
  * 服务端算额度时按的档位。

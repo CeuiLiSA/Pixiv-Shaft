@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.annotation.StringRes
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.loxia.Client
 import ceui.loxia.Comment
 import ceui.loxia.fetchFullIllustDetail
@@ -26,13 +26,13 @@ object SnapshotGenerator {
 
     suspend fun generate(
         context: Context,
-        illust: IllustsBean,
+        illust: Illust,
         includeComments: Boolean,
         includeOriginal: Boolean,
         onProgress: suspend (String) -> Unit = {},
     ): SnapshotManifest = withContext(Dispatchers.IO) {
         val appContext = context.applicationContext
-        if (illust.isGif) {
+        if (illust.isGif()) {
             throw SnapshotException(appContext.getString(R.string.snapshot_unsupported_ugoira))
         }
         val snapshotId = UUID.randomUUID().toString()
@@ -84,7 +84,7 @@ object SnapshotGenerator {
 
             val commentData = if (includeComments) {
                 progress(R.string.snapshot_progress_comments)
-                val response = Client.appApi.getIllustComments(bean.id.toLong())
+                val response = Client.appApi.getIllustComments(bean.id)
                 val threads = response.comments.map { comment ->
                     val replies = if (comment.has_replies) {
                         runCatching { Client.appApi.getIllustReplyComments("illust", comment.id).comments }
@@ -118,15 +118,15 @@ object SnapshotGenerator {
             val manifest = SnapshotManifest(
                 snapshotId = snapshotId,
                 createdAt = System.currentTimeMillis(),
-                illustId = bean.id.toLong(),
+                illustId = bean.id,
                 type = bean.type ?: "illust",
                 includeComments = includeComments,
                 includeOriginal = includeOriginal,
-                isBookmarked = bean.isIs_bookmarked,
-                isFollowed = bean.user?.isIs_followed ?: false,
+                isBookmarked = bean.isBookmarked,
+                isFollowed = bean.user?.is_followed ?: false,
                 title = bean.title,
                 authorName = bean.user?.name,
-                authorId = bean.user?.id?.toLong(),
+                authorId = bean.user?.id,
                 coverPath = pagePaths.firstOrNull(),
                 fileCount = fileCount,
                 totalSize = totalSize,

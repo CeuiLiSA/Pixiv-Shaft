@@ -81,7 +81,7 @@ object EventReporter {
     private const val MAX_RETRIES = 3
     // Per-event payload cap — must stay <= server's EVENTS_MAX_PAYLOAD_BYTES
     // (256 KiB). Anything bigger gets the payload stripped (event still
-    // reported without it) so a freak large IllustsBean can't break the batch.
+    // reported without it) so a freak large Illust can't break the batch.
     private const val MAX_PAYLOAD_BYTES = 200_000
 
     private val initialized = AtomicBoolean(false)
@@ -110,7 +110,7 @@ object EventReporter {
         val type: String,
         val targetType: String,
         val targetId: Long,
-        /** Pre-serialized JSON of the IllustsBean / NovelBean / UserBean.
+        /** Pre-serialized JSON of the Illust / Novel / User.
          *  Stored as String (not Any) so a re-queue after network failure
          *  doesn't pay the Gson cost again. null = no payload (server falls
          *  back to whatever it already has in illust_meta / user_meta). */

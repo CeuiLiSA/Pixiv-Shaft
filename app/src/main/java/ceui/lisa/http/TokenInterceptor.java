@@ -5,10 +5,9 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 import ceui.lisa.R;
-import ceui.lisa.models.UserModel;
+import ceui.loxia.AccountResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
-import ceui.loxia.UserModelConverter;
 import ceui.pixiv.actions.PixivActions;
 import ceui.pixiv.login.InvalidRefreshTokenException;
 import ceui.pixiv.login.PixivLogin;
@@ -82,22 +81,22 @@ public class TokenInterceptor implements Interceptor {
         }
         try {
             PixivOAuthResponse response = PixivLogin.INSTANCE.refreshTokenBlocking(refreshToken);
-            UserModel cached = Local.getUser();
+            AccountResponse cached = Local.getUser();
             if (cached != null) {
                 cached.setAccess_token(response.getAccessToken());
                 cached.setRefresh_token(response.getRefreshToken());
                 cached.setExpires_in(response.getExpiresIn());
                 if (cached.getUser() != null) {
-                    cached.getUser().setIs_login(true);
+                    cached.getUser().set_login(true);
                     // 会员状态**不能**沿用这份 SharedPreferences 副本里的：它是登录那一刻
                     // 写下来的，之后只有 SessionManager(MMKV) 那份会被资料同步修正，这份
                     // 从此再没变过。照抄它上报，就是「会员过期了还报有会员 / 登录后买的会员
                     // 一直报没有」的来源——前者让号留在借号池里，借到的人白花一次额度。
-                    cached.getUser().setIs_premium(SessionManager.INSTANCE.premiumForLegacyStore(
-                            response, cached.getUser().isIs_premium()));
+                    cached.getUser().set_premium(SessionManager.INSTANCE.premiumForLegacyStore(
+                            response, Boolean.TRUE.equals(cached.getUser().is_premium())));
                 }
                 long uid = cached.getUser() != null ? cached.getUserId() : 0L;
-                PixivActions.bindAccountOnline(uid, UserModelConverter.toAccountResponse(cached));
+                PixivActions.bindAccountOnline(uid, cached);
                 Local.saveUser(cached);
             } else {
                 SessionManager.INSTANCE.applyTokenRefresh(

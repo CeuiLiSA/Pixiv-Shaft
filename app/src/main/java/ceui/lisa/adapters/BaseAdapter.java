@@ -15,6 +15,7 @@ import java.util.List;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.interfaces.OnItemLongClickListener;
 import ceui.lisa.models.Starable;
+import ceui.loxia.Illust;
 import ceui.lisa.utils.Common;
 
 public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extends
@@ -140,7 +141,19 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
         }
 
         for (int i = 0; i < allItems.size(); i++) {
-            if (allItems.get(i) instanceof Starable) {
+            Item item = allItems.get(i);
+            if (item instanceof Illust) {
+                // Illust 是不可变 data class：换成带新收藏态的副本，再局部刷新
+                Illust illust = (Illust) item;
+                if (illust.getId() == id) {
+                    @SuppressWarnings("unchecked")
+                    Item replaced = (Item) illust.withBookmarked(isLike);
+                    allItems.set(i, replaced);
+                    notifyItemChanged(i + headerSize());
+                }
+                continue;
+            }
+            if (item instanceof Starable) {
                 if (((Starable) allItems.get(i)).getItemID() == id) {
                     //设置这个作品为已收藏状态
                     ((Starable) allItems.get(i)).setItemStared(isLike);

@@ -4,7 +4,7 @@ import java.util.List;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.ListIllust;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.utils.PixivOperate;
 
 /**
@@ -22,13 +22,13 @@ public class FilterMapper extends Mapper<ListIllust> {
         super.apply(listIllust);
         if (Shaft.sSettings.isDeleteStarIllust()) {
             //筛选作品，只留下未收藏的作品
-            List<IllustsBean> tempList = PixivOperate.getListWithoutBooked(listIllust);
+            List<Illust> tempList = PixivOperate.getListWithoutBooked(listIllust);
             listIllust.setIllusts(tempList);
         }
 
         if (filterStarSize && (starSizeLimit > 0 || starSizeMaxLimit > 0)) {
             //筛选作品，只留下收藏数符合筛选条件的作品
-            List<IllustsBean> tempList = PixivOperate.getListWithStarSize(listIllust, starSizeLimit, starSizeMaxLimit);
+            List<Illust> tempList = PixivOperate.getListWithStarSize(listIllust, starSizeLimit, starSizeMaxLimit);
             listIllust.setIllusts(tempList);
         }
 

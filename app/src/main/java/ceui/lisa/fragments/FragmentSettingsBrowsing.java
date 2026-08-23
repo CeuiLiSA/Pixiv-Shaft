@@ -21,6 +21,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.pixiv.ui.search.SortType;
+import ceui.pixiv.ui.settings.AiBlockExemptAuthorsSheet;
 import ceui.loxia.CloudHistoryConsent;
 import ceui.pixiv.session.SessionManager;
 
@@ -107,15 +108,23 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                 baseBind.r18FilterDefaultEnable.performClick());
 
         baseBind.deleteAiIllust.setChecked(Shaft.sSettings.isDeleteAIIllust());
+        renderAiBlockSubOptions();
         baseBind.deleteAiIllust.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Shaft.sSettings.setDeleteAIIllust(isChecked);
                 Common.showToast(getString(R.string.string_428), 2);
                 Local.setSettings(Shaft.sSettings);
+                renderAiBlockSubOptions();
             }
         });
         baseBind.deleteAiIllustRela.setOnClickListener(v -> baseBind.deleteAiIllust.performClick());
+        baseBind.aiBlockStrengthRela.setOnClickListener(v -> showAiBlockStrengthPicker());
+        baseBind.aiBlockExemptRela.setOnClickListener(v -> showAiBlockExemptAuthorEditor());
+        getChildFragmentManager().setFragmentResultListener(
+                AiBlockExemptAuthorsSheet.REQUEST_KEY,
+                this,
+                (requestKey, result) -> renderAiBlockSubOptions());
 
         baseBind.filterRankBookmarked.setChecked(Shaft.sSettings.isFilterRankBookmarked());
         baseBind.filterRankBookmarked.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -288,6 +297,42 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "同义词词典");
             startActivity(intent);
         });
+    }
+
+    private void renderAiBlockSubOptions() {
+        boolean enabled = Shaft.sSettings.isDeleteAIIllust();
+        baseBind.aiBlockStrengthRela.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        baseBind.aiBlockExemptRela.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        if (!enabled) return;
+        baseBind.aiBlockStrength.setText(Shaft.sSettings.getAiBlockStrength() == 0
+                ? getString(R.string.ai_block_strength_hide)
+                : getString(R.string.ai_block_strength_blur));
+        int count = Shaft.sSettings.getAiBlockExemptAuthorIds().size();
+        baseBind.aiBlockExempt.setText(count == 0
+                ? getString(R.string.ai_block_exempt_none)
+                : getString(R.string.ai_block_exempt_count, count));
+    }
+
+    private void showAiBlockStrengthPicker() {
+        WitDialog.CheckableDialogBuilder builder = new WitDialog.CheckableDialogBuilder(mContext);
+        builder.setTitle(getString(R.string.ai_block_strength))
+                .addItems(new CharSequence[]{
+                        getString(R.string.ai_block_strength_hide),
+                        getString(R.string.ai_block_strength_blur),
+                }, null)
+                .setCheckedIndex(Shaft.sSettings.getAiBlockStrength())
+                .addAction(android.R.string.cancel, (dialog, index) -> dialog.dismiss())
+                .addAction(android.R.string.ok, (dialog, index) -> {
+                    Shaft.sSettings.setAiBlockStrength(builder.getCheckedIndex());
+                    Local.setSettings(Shaft.sSettings);
+                    renderAiBlockSubOptions();
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
+    private void showAiBlockExemptAuthorEditor() {
+        new AiBlockExemptAuthorsSheet().show(getChildFragmentManager(), "ai_block_exempt_authors");
     }
 
     /**

@@ -1,6 +1,6 @@
 package ceui.pixiv.ui.bulk
 
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicReference
 
@@ -14,16 +14,16 @@ import java.util.concurrent.atomic.AtomicReference
  *   2. BulkSelectV3Fragment.onViewCreated → BulkSelectStorage.consume()
  *      取出列表（同时清空 holder，避免内存泄漏 / 旧数据复用）
  *
- * 防 OOM：[HARD_CAP] 截断超大列表。一个 IllustsBean 在内存里 ~10-15KB，
+ * 防 OOM：[HARD_CAP] 截断超大列表。一个 Illust 在内存里 ~10-15KB，
  * 5 万项就是 750MB 直接爆。
  */
 object BulkSelectStorage {
 
     private const val HARD_CAP = 20_000
 
-    private val pendingItems = AtomicReference<List<IllustsBean>?>()
+    private val pendingItems = AtomicReference<List<Illust>?>()
 
-    fun put(items: List<IllustsBean>) {
+    fun put(items: List<Illust>) {
         val snapshot = if (items.size > HARD_CAP) {
             Timber.tag("BulkSelectStorage")
                 .w("incoming size ${items.size} > HARD_CAP $HARD_CAP, truncating")
@@ -37,5 +37,5 @@ object BulkSelectStorage {
     }
 
     /** 取出列表并清空 holder。返回 null 说明流程异常（直接退出 fragment）。 */
-    fun consume(): List<IllustsBean>? = pendingItems.getAndSet(null)
+    fun consume(): List<Illust>? = pendingItems.getAndSet(null)
 }

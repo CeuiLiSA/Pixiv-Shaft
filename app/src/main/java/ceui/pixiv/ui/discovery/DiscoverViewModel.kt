@@ -8,7 +8,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.NullCtrl
 import ceui.lisa.model.ListIllust
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.lisa.repo.LatestIllustRepo
@@ -37,14 +37,14 @@ class DiscoverViewModel : ViewModel() {
     private val _primeTags = MutableLiveData<List<PrimeTagIndexItem>>()
     val primeTags: LiveData<List<PrimeTagIndexItem>> get() = _primeTags
 
-    private val _latest = MutableLiveData<List<IllustsBean>>()
-    val latest: LiveData<List<IllustsBean>> get() = _latest
+    private val _latest = MutableLiveData<List<Illust>>()
+    val latest: LiveData<List<Illust>> get() = _latest
 
-    private val _siteRecommend = MutableLiveData<List<IllustsBean>>()
-    val siteRecommend: LiveData<List<IllustsBean>> get() = _siteRecommend
+    private val _siteRecommend = MutableLiveData<List<Illust>>()
+    val siteRecommend: LiveData<List<Illust>> get() = _siteRecommend
 
-    private val _recentHot = MutableLiveData<List<IllustsBean>>()
-    val recentHot: LiveData<List<IllustsBean>> get() = _recentHot
+    private val _recentHot = MutableLiveData<List<Illust>>()
+    val recentHot: LiveData<List<Illust>> get() = _recentHot
 
     private var started = false
 
@@ -88,22 +88,21 @@ class DiscoverViewModel : ViewModel() {
     }
 
     /**
-     * 把一条 shelf 的 item 列表解析成可渲染的 [IllustsBean]:bean JSON → Gson,热度值由
+     * 把一条 shelf 的 item 列表解析成可渲染的 [Illust]:bean JSON → Gson,热度值由
      * [scoreOf] 决定(本月收藏取加权 score、当前最热/隐藏神作取 bookmark_count),露左上角 pill。
      */
     private fun parseShelf(
         items: List<ShaftApiV2.TrendingWorkItem>?,
         scoreOf: (ShaftApiV2.TrendingWorkItem) -> Float,
-    ): List<IllustsBean> {
+    ): List<Illust> {
         if (items.isNullOrEmpty()) return emptyList()
         val gson = Shaft.sGson
         return items.mapNotNull { item ->
             item.bean?.let { json ->
                 try {
-                    gson.fromJson(json, IllustsBean::class.java).apply {
-                        trendingScore = scoreOf(item)
-                        setIs_bookmarked(false)
-                    }
+                    gson.fromJson(json, Illust::class.java)
+                        .withTrendingScore(scoreOf(item))
+                        .withBookmarked(false)
                 } catch (e: Throwable) {
                     null
                 }
@@ -113,7 +112,7 @@ class DiscoverViewModel : ViewModel() {
 
     private fun loadIllustRail(
         repo: RemoteRepo<ListIllust>,
-        live: MutableLiveData<List<IllustsBean>>
+        live: MutableLiveData<List<Illust>>
     ) {
         // getFirstData 内部 subscribeOn(newThread).observeOn(mainThread),回调回到主线程。
         repo.getFirstData(object : NullCtrl<ListIllust>() {

@@ -8,7 +8,7 @@ import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentSafBinding;
 import ceui.lisa.file.SAFile;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.utils.Params;
 
 public class FragmentSAF extends BaseFragment<FragmentSafBinding> {
@@ -30,7 +30,7 @@ public class FragmentSAF extends BaseFragment<FragmentSafBinding> {
             @Override
             public void onClick(View v) {
                 try {
-                    IllustsBean illustsBean = Shaft.sGson.fromJson(Params.EXAMPLE_ILLUST, IllustsBean.class);
+                    Illust illustsBean = Shaft.sGson.fromJson(Params.EXAMPLE_ILLUST, Illust.class);
                     ceui.pixiv.download.backend.StorageBackend.WriteHandle handle =
                             ceui.pixiv.download.DownloadsRegistry.getDownloads().open(
                                     ceui.pixiv.download.config.DownloadItems.illustPage(illustsBean, 0));

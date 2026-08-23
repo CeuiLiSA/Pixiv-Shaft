@@ -7,8 +7,8 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.helper.IllustNovelFilter;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.model.ListTrendingtag;
-import ceui.lisa.models.IllustsBean;
-import ceui.lisa.models.NovelBean;
+import ceui.loxia.Illust;
+import ceui.loxia.Novel;
 import ceui.loxia.ObjectPool;
 import io.reactivex.functions.Function;
 
@@ -23,18 +23,21 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
     /**
      * 搜索「R-18 限制」三档客户端过滤：0=不限、1=仅安全(去掉 R18)、2=仅 R-18(去掉全年龄)。
      * 默认 0 对其它所有列表无副作用——只有搜索 repo 经 {@link #setSearchR18Restriction} 显式开启。
-     * 判定只看作者显式的 x_restrict（{@link IllustsBean#isR18File()}，1=R-18/2=R-18G 都算 R18），
+     * 判定只看作者显式的 x_restrict（{@link Illust#isR18File()}，1=R-18/2=R-18G 都算 R18），
      * 不碰 sanity_level，避免把没打 R18 标记的普通(含轻微敏感)作品误删。
      */
     private int searchR18Restriction = 0;
 
     /**
      * 搜索「仅看 AI」客户端过滤（issue #909）：true 时只留下 AI 生成作品
-     * （插画 {@link IllustsBean#isCreatedByAI()} / 小说 {@link NovelBean#isCreatedByAI()}，
+     * （插画 {@link Illust#isCreatedByAI()} / 小说 {@link Novel#isCreatedByAI()}，
      * 即 ai_type==2），其余剔除。默认 false 对其它所有列表无副作用——只有搜索 repo 经
      * {@link #setSearchOnlyAi} 显式开启。屏蔽 AI 仍走全局 {@link Shaft.sSettings#isDeleteAIIllust()}。
      */
     private boolean searchOnlyAi = false;
+
+    /** 搜索链路在模糊粒子化强度下需要保留 AI 条目交给 feeds 卡打码；老列表没有模糊层，默认仍剔除。 */
+    private boolean keepAiForBlur = false;
 
     public Mapper<T> enableSkipR18Filter() {
         this.skipR18Filter = true;
@@ -51,6 +54,11 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
         return this;
     }
 
+    public Mapper<T> setKeepAiForBlur(boolean keepAiForBlur) {
+        this.keepAiForBlur = keepAiForBlur;
+        return this;
+    }
+
     /** 该作品是否被搜索 R18 三档拒掉（isR18 = x_restrict > 0）。不限档恒不拒。 */
     private boolean searchR18Rejects(boolean isR18) {
         if (searchR18Restriction == 1) return isR18;    // 仅安全：R18 全去掉
@@ -61,11 +69,10 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
     @Override
     public T apply(T t) {
         List<Object> dash = new ArrayList<>();
-        boolean shouldHidAiIllusts = Shaft.sSettings.isDeleteAIIllust();
         for (Object o : t.getList()) {
-            if (o instanceof IllustsBean) {
-                IllustsBean illust = (IllustsBean) o;
-                if (!illust.isVisible()) {
+            if (o instanceof Illust) {
+                Illust illust = (Illust) o;
+                if (!Boolean.TRUE.equals(illust.getVisible())) {
                     dash.add(o);
                     continue;
                 }
@@ -81,13 +88,16 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
                 }
                 // 全局屏蔽 AI（首页等所有列表共用）；但搜索「仅看 AI」时必须让步——否则全局 hide
                 // 把 AI 去掉、searchOnlyAi 又把非 AI 去掉，结果会被清空。!searchOnlyAi 仅搜索时为真。
-                if (shouldHidAiIllusts && isCreatedByAI && !searchOnlyAi) {
+                // 完全不显示强度才剔除；模糊粒子化强度下老列表没有模糊层，同样剔除，只有搜索链路
+                // 显式 keepAiForBlur 时保留给 feeds 卡打码；豁免作者一律放行。
+                if (!searchOnlyAi && (IllustNovelFilter.shouldHideAi(illust)
+                        || (!keepAiForBlur && IllustNovelFilter.shouldBlurAi(illust)))) {
                     dash.add(o);
                 }
-                ObjectPool.INSTANCE.updateIllust((IllustsBean) o);
+                ObjectPool.INSTANCE.updateIllust((Illust) o);
             }
-            if (o instanceof NovelBean) {
-                NovelBean novel = (NovelBean) o;
+            if (o instanceof Novel) {
+                Novel novel = (Novel) o;
                 boolean isTagBanned = IllustNovelFilter.judgeTag(novel);
                 boolean isIdBanned = IllustNovelFilter.judgeID(novel);
                 boolean isUserBanned = IllustNovelFilter.judgeUserID(novel);
@@ -95,8 +105,14 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
                 // 小说专属：正文字数区间 + 超长标签名自动屏蔽（issue #743）。插画分支不挂。
                 boolean isSpamBanned = IllustNovelFilter.judgeNovelSpam(novel);
                 if (isTagBanned || isIdBanned || isUserBanned || isR18FilterBanned || isSpamBanned
-                        || searchR18Rejects(novel.getX_restrict() > 0)
+                        || searchR18Rejects(novel.getX_restrict() != null && novel.getX_restrict() > 0)
                         || (searchOnlyAi && !novel.isCreatedByAI())) {   // 仅看 AI：剔除非 AI 小说
+                    dash.add(o);
+                }
+                // 全局屏蔽 AI 的小说侧（与插画分支同口径）：完全不显示强度才剔除；
+                // 模糊粒子化强度下老列表没有模糊层，同样剔除，只有搜索链路 keepAiForBlur 时保留。
+                if (!searchOnlyAi && (IllustNovelFilter.shouldHideAi(novel)
+                        || (!keepAiForBlur && IllustNovelFilter.shouldBlurAi(novel)))) {
                     dash.add(o);
                 }
             }

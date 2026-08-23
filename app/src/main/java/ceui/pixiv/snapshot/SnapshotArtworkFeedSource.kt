@@ -1,7 +1,7 @@
 package ceui.pixiv.snapshot
 
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.loxia.Comment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
@@ -43,7 +43,7 @@ class SnapshotArtworkFeedSource(
 
     private fun buildLocalHeaderItems(
         data: SnapshotViewerData,
-        illust: IllustsBean,
+        illust: Illust,
     ): List<FeedItem> {
         val list = mutableListOf<FeedItem>()
         list.add(ArtworkHeroItem(illust))
@@ -54,7 +54,7 @@ class SnapshotArtworkFeedSource(
             ArtworkArtistItem(
                 illust,
                 // 兼容旧快照：manifest 没写 isFollowed 时回落到 illust.json 里存的那一份。
-                isFollowed = data.manifest.isFollowed || data.illust.user?.isIs_followed ?: false,
+                isFollowed = data.manifest.isFollowed || data.illust.user?.is_followed ?: false,
                 isPrivateFollow = false,
             )
         )
@@ -70,9 +70,9 @@ class SnapshotArtworkFeedSource(
             .orEmpty()
         list.add(
             ArtworkCommentsItem(
-                illustId = illust.id,
+                illustId = illust.id.toInt(),
                 illustTitle = illust.title.orEmpty(),
-                illustAuthorId = illust.user?.id ?: 0,
+                illustAuthorId = illust.user?.id?.toInt() ?: 0,
                 comments = previewComments,
                 fetched = true,
             )

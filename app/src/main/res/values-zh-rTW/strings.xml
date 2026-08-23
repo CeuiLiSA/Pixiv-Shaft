@@ -551,6 +551,9 @@
     <string name="string_322">我的粉絲</string>
     <string name="string_323">我的好P友</string>
     <string name="string_324">主題色彩</string>
+    <string name="tag_translation_color">標籤譯文顏色</string>
+    <string name="tag_translation_color_follow_theme">跟隨主題</string>
+    <string name="tag_translation_color_pick_from_theme_page">從主題色彩頁中選擇</string>
     <string name="string_325">點擊設定</string>
     <string name="string_326">開始</string>
     <string name="string_327">暫停</string>
@@ -853,6 +856,19 @@
     <string name="created_by_ai">AI 生成</string>
     <string name="has_been_downloaded">已下載完成</string>
     <string name="delete_ai_illust">不顯示 AI 生成的作品</string>
+    <string name="ai_block_strength">不顯示的效果級別</string>
+    <string name="ai_block_strength_hide">完全不顯示</string>
+    <string name="ai_block_strength_blur">模糊粒子化</string>
+    <string name="ai_block_exempt_authors">豁免的作者列表</string>
+    <string name="ai_block_exempt_hint">逐個添加作者ID，可刪除\n列表變動後建議重新啟動 App</string>
+    <string name="ai_block_exempt_add">添加</string>
+    <string name="ai_block_exempt_input_hint">輸入作者 ID</string>
+    <string name="ai_block_exempt_empty">還沒有豁免作者</string>
+    <string name="ai_block_exempt_save">儲存</string>
+    <string name="ai_block_exempt_invalid">請輸入有效的作者 ID</string>
+    <string name="ai_block_exempt_duplicate">該作者 ID 已新增</string>
+    <string name="ai_block_exempt_none">未設定</string>
+    <string name="ai_block_exempt_count">%1$d 個作者 ID</string>
     <string name="trying_login">嘗試登入</string>
     <string name="userTab_other">其他</string>
     <string name="userTab_collection">收藏</string>
@@ -2723,4 +2739,7 @@
     <string name="nana7mi_quota_snack_session">五小時額度已用完，%1$s後恢復</string>
     <string name="nana7mi_quota_snack_weekly">本週額度已用完，%1$s後恢復</string>
     <string name="nana7mi_quota_snack_action">查看用量</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">知道了</string>
+    <string name="inapp_push_default_action">去看看</string>
 </resources>

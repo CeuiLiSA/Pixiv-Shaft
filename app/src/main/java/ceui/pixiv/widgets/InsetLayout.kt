@@ -13,35 +13,14 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.updatePadding
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.MutableLiveData
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
-import ceui.loxia.asLiveData
 import ceui.loxia.findAncestorOrSelf
 import ceui.loxia.findFragmentOrNull
 import ceui.pixiv.utils.findAncestorOrNull
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlin.math.max
-
-open class MercuryDrawerLayout(context: Context, attrs: AttributeSet?, defStyle: Int)
-    : DrawerLayout(context, attrs, defStyle)  {
-
-    constructor(context: Context) : this(context, null, 0)
-
-    constructor(context: Context, attrs: AttributeSet?): this(context, attrs, 0)
-
-
-    private val _currentInsets = MutableLiveData<WindowInsets?>()
-    val currentInset = _currentInsets.asLiveData()
-
-    override fun onApplyWindowInsets(insets: WindowInsets?): WindowInsets {
-        this.suggestedMinimumWidth
-        _currentInsets.value = insets
-        return super.onApplyWindowInsets(insets)
-    }
-}
 
 
 data class InsetState(val margin: Rect, val padding: Rect) {

@@ -14,7 +14,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.CellFeatureV3Binding
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.feature.FeatureEntity
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.models.MangaSeriesItem
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
@@ -142,7 +142,7 @@ class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
             .forEachIndexed { index, iv ->
                 iv.isVisible = index < shows.size
                 val url = when (val show = shows.getOrNull(index)) {
-                    is IllustsBean -> GlideUtil.getMediumImg(show)
+                    is Illust -> GlideUtil.getMediumImg(show)
                     is MangaSeriesItem -> GlideUtil.getUrl(show.cover_image_urls.medium)
                     else -> null
                 }
@@ -236,7 +236,7 @@ class FeatureFeedItem(val entity: FeatureEntity) : FeedItem {
  *
  * **illustJson → allIllust / allMangaSeries 的 gson 反序列化在这里（IO 线程）一次做完**，
  * 绝不留到绑卡时 per-bind 解析（本仓硬性性能约定）。dataType == "漫画系列作品" 解成
- * List<MangaSeriesItem>，否则解成 List<IllustsBean>——逐条对齐 legacy FragmentFeature.handleFeatures。
+ * List<MangaSeriesItem>，否则解成 List<Illust>——逐条对齐 legacy FragmentFeature.handleFeatures。
  *
  * 零 Fragment 捕获：无参构造，DB 走 [Shaft.getContext] 的 application context。
  */
@@ -257,7 +257,7 @@ class FeatureFeedSource : FeedSource<Int> {
                     } else {
                         entity.allIllust = Shaft.sGson.fromJson(
                             entity.illustJson,
-                            object : TypeToken<List<IllustsBean>>() {}.type,
+                            object : TypeToken<List<Illust>>() {}.type,
                         )
                     }
                 }

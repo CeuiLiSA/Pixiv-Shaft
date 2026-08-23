@@ -37,8 +37,9 @@ import ceui.lisa.databinding.FragmentArtworkV3Binding
 import ceui.lisa.databinding.RecyIllustDetailBinding
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
+import ceui.pixiv.download.IllustCaptionExporter
 import ceui.lisa.helper.StaggeredManager
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Dev
 import ceui.lisa.utils.GlideUtil
@@ -52,6 +53,7 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.combineLatest
 import ceui.loxia.requireNetworkStateManager
+import ceui.loxia.toTagsBeans
 import ceui.pixiv.chat.base.panel.PanelState
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
@@ -257,7 +259,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 旋转 / 视图重建:feedViewModel 的列表存活(可能是展开态),但 pageAdapter 会重建为
         // 折叠态。二者不一致会出「p0 顶着展开胶囊、p1/p2 却已显示」的矛盾 UI。对齐 legacy(旋转即
         // 折叠):在任何页绑定前(此刻 uiState 尚未 render)把多出的页收回,保持与新 adapter 一致。
-        ObjectPool.get<IllustsBean>(illustId).value?.let { illust ->
+        ObjectPool.get<Illust>(illustId).value?.let { illust ->
             if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count)) {
                 feedViewModel.removeItems { it is ArtworkPageItem && it.pageIndex > 0 }
             }
@@ -267,7 +269,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             lifecycleOwner = viewLifecycleOwner,
             networkStateManager = requireNetworkStateManager(),
             urlAtIndex = { idx ->
-                val illust = ObjectPool.get<IllustsBean>(illustId).value
+                val illust = ObjectPool.get<Illust>(illustId).value
                     ?: return@PageLoadRetryController null
                 if (idx < 0 || idx >= illust.page_count) return@PageLoadRetryController null
                 val resolution = if (Shaft.sSettings.isShowOriginalPreviewImage)
@@ -276,7 +278,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     Params.IMAGE_RESOLUTION_LARGE
                 IllustDownload.getUrl(illust, idx, resolution)
             },
-            totalPages = { ObjectPool.get<IllustsBean>(illustId).value?.page_count ?: 0 },
+            totalPages = { ObjectPool.get<Illust>(illustId).value?.page_count ?: 0 },
             onSummaryChanged = { loaded, total, failed ->
                 renderImageLoadStatusBanner(
                     chromeBind.pageStatusRow, chromeBind.pageStatusText, loaded, total, failed,
@@ -308,13 +310,13 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             }
         })
 
-        // 关注态:观察作者 UserBean,变更后重算 Artist 条目(关注切换只这条重绑)。
+        // 关注态:观察作者 User,变更后重算 Artist 条目(关注切换只这条重绑)。
         // 顺带接住 caption 后台补拉的落地(见 ArtworkV3ViewModel.ensureTrustedCaption)。
-        ObjectPool.get<IllustsBean>(illustId).observe(viewLifecycleOwner) { illust ->
+        ObjectPool.get<Illust>(illustId).observe(viewLifecycleOwner) { illust ->
             illust ?: return@observe
             syncDescSection(illust.caption, illust.title)
             attachMuteObserver(illust)
-            val authorId = illust.user?.id?.toLong() ?: return@observe
+            val authorId = illust.user?.id ?: return@observe
             attachArtistFollowObserver(authorId)
         }
 
@@ -334,16 +336,16 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * 就是取消屏蔽,那一行当场就删了,再点进详情自然不会被挡。所以这里只观察库,不必再掺
      * [IllustMuteStore] 的版本号。
      */
-    private fun attachMuteObserver(illust: IllustsBean) {
+    private fun attachMuteObserver(illust: Illust) {
         if (muteObserved) return
         muteObserved = true
         // 经典同款 userId ?: 0 兜底:user 缺失/解析失败(#592 web 兜底 bean 可能 id=0)时,
         // 作品屏蔽的观察也要照常接线,画师侧退化成恒 null。只接一次——按 userId 重接会留下
         // 两个 mediator 同时观察,二者发射顺序不定,旧 mediator 的过期值可能盖掉新值。
-        val userId = illust.user?.userId ?: 0
+        val userId = illust.user?.id?.toInt() ?: 0
         val dao = AppDatabase.getAppDatabase(requireContext()).searchDao()
         combineLatest(
-            dao.getIllustMuteEntityByID(illust.id),
+            dao.getIllustMuteEntityByID(illust.id.toInt()),
             dao.getUserMuteEntityByIDLiveData(userId),
         ).observe(viewLifecycleOwner) { (illustEntity, userEntity) ->
             val muted = illustEntity != null || userEntity != null
@@ -398,7 +400,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (isSnapshotMode) {
             // FeedSource 加载完成后用快照里的真实收藏态刷新只读心形按钮（兼容旧快照回落 illust.json）。
             snapshotId?.let { SnapshotRuntimeCache.get(it) }?.let { data ->
-                fabBarController.setBookmarked(data.manifest.isBookmarked || data.illust.isIs_bookmarked)
+                fabBarController.setBookmarked(data.manifest.isBookmarked || data.illust.isBookmarked)
             }
             return
         }
@@ -441,7 +443,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         pageAdapter?.let { return it }
         if (isSnapshotMode) return ensureSnapshotPageAdapter()
         if (view == null || !::retryController.isInitialized) return null
-        val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return null
+        val illust = ObjectPool.get<Illust>(illustId).value ?: return null
         if (illust.isGif()) return null // ugoira 走自己的 renderer
         val maxHeight = (resources.displayMetrics.heightPixels * 0.7f).toInt()
         val activity = requireActivity()
@@ -501,7 +503,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private fun applySnapshotBookmarkState() {
         val id = snapshotId ?: return
         SnapshotRuntimeCache.get(id)?.let {
-            fabBarController.setBookmarked(it.manifest.isBookmarked || it.illust.isIs_bookmarked)
+            fabBarController.setBookmarked(it.manifest.isBookmarked || it.illust.isBookmarked)
             return
         }
         val appContext = requireContext().applicationContext
@@ -589,7 +591,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             val pageCount = if (isSnapshotMode) {
                 snapshotId?.let { SnapshotRuntimeCache.get(it) }?.illust?.page_count ?: return
             } else {
-                ObjectPool.get<IllustsBean>(illustId).value?.page_count ?: return
+                ObjectPool.get<Illust>(illustId).value?.page_count ?: return
             }
             feedViewModel.mutateItems { items ->
                 val existing = items.filterIsInstance<ArtworkPageItem>().mapTo(HashSet()) { it.pageIndex }
@@ -802,8 +804,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private fun attachArtistFollowObserver(authorId: Long) {
         if (authorId <= 0L || authorId == artistObservedUserId) return
         artistObservedUserId = authorId
-        // 关注了没：ObjectPool 的 UserBean。
-        ObjectPool.get<ceui.lisa.models.UserBean>(authorId).observe(viewLifecycleOwner) {
+        // 关注了没：统一观察 ObjectPool 的 User。
+        ObjectPool.get<ceui.loxia.User>(authorId).observe(viewLifecycleOwner) {
             refreshArtistFollowItem()
         }
         // 怎么关的：FollowVisibility。两条渠道缺一不可 —— 画师主页拿 user/follow/detail 补上
@@ -1026,15 +1028,15 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         fabBarController.applyDownloadOrderPreference()
 
         chromeBind.fabBar.fabDownloadContainer.setOnClick {
-            val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
+            val illust = ObjectPool.get<Illust>(illustId).value ?: return@setOnClick
             artworkViewModel.triggerDownload()
-            if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {
+            if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
                 fabBarController.setBookmarked(true)
                 PixivOperate.postLikeDefaultStarType(illust)
             }
         }
         chromeBind.fabBar.fabDownloadContainer.setOnLongClickListener {
-            val illust = ObjectPool.get<IllustsBean>(illustId).value
+            val illust = ObjectPool.get<Illust>(illustId).value
                 ?: return@setOnLongClickListener true
             val baseAct = requireActivity() as? ceui.lisa.activities.BaseActivity<*>
             val resNames = arrayOf(
@@ -1086,8 +1088,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         })
 
         chromeBind.fabBar.fabBookmark.setOnClick {
-            val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return@setOnClick
-            val willBookmark = !illust.isIs_bookmarked
+            val illust = ObjectPool.get<Illust>(illustId).value ?: return@setOnClick
+            val willBookmark = !illust.isBookmarked
             // 乐观着色与权威渲染(isBookmarked observer)同走 controller,取同一个内容色,
             // 避免取消收藏当帧闪一帧错色(详见 V3FabBarController.setBookmarked)。
             fabBarController.setBookmarked(willBookmark)
@@ -1098,10 +1100,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         }
 
         chromeBind.fabBar.fabBookmark.setOnLongClickListener {
-            val illust = ObjectPool.get<IllustsBean>(illustId).value
+            val illust = ObjectPool.get<Illust>(illustId).value
                 ?: return@setOnLongClickListener true
             SelectTagBottomSheet.show(
-                this, illust.id, Params.TYPE_ILLUST, illust.tagNames,
+                this, illust.id.toInt(), Params.TYPE_ILLUST, illust.tagNames.toTypedArray(),
             )
             true
         }
@@ -1109,8 +1111,24 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         chromeBind.navMore.setOnClick { showMoreMenu() }
     }
 
+    /**
+     * 简介区下载按钮(#1052):只下载/导出简介文本,不触发作品图片下载。
+     * 放在 Fragment 而不是 renderer 里,因为 [illustId] 是 private,renderer 拿不到。
+     */
+    internal fun downloadDescCaption() {
+        val illust = ObjectPool.get<Illust>(illustId).value ?: return
+        lifecycleScope.launch {
+            val ok = IllustCaptionExporter.exportManual(illust)
+            if (ok) {
+                Common.showToast(R.string.string_181)
+            } else {
+                Common.showToast(R.string.update_download_failed)
+            }
+        }
+    }
+
     private fun showMoreMenu() {
-        val illust = ObjectPool.get<IllustsBean>(illustId).value ?: return
+        val illust = ObjectPool.get<Illust>(illustId).value ?: return
         showV3Menu {
             item(getString(R.string.share), R.drawable.ic_share_black_24dp) {
                 object : ShareIllust(requireContext(), illust) {
@@ -1124,13 +1142,13 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 Common.copy(requireContext(), ShareIllust.URL_Head + illust.id)
             }
             // 动图的 original 是 zip,SnapshotGenerator 一进门就拒;别把注定失败的入口摆出来。
-            if (!illust.isGif) {
+            if (!illust.isGif()) {
                 item(getString(R.string.snapshot_create), R.drawable.ic_baseline_get_app_24) {
                     showSnapshotCreateDialog(illust)
                 }
             }
             item(getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
-                MuteTagSheet.show(childFragmentManager, illust.tags, illust.user)
+                MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
             }
             item(getString(R.string.string_355), R.drawable.ic_visibility_off_black_24dp) {
                 PixivOperate.muteIllust(illust)
@@ -1138,14 +1156,14 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             item(getString(R.string.flag_post), R.drawable.ic_baseline_flag_24) {
                 val intent = Intent(requireContext(), TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "举报插画")
-                intent.putExtra(ceui.loxia.flag.FlagDescFragment.FlagObjectIdKey, illust.id.toLong())
+                intent.putExtra(ceui.loxia.flag.FlagDescFragment.FlagObjectIdKey, illust.id)
                 intent.putExtra(
                     ceui.loxia.flag.FlagDescFragment.FlagObjectTypeKey,
                     ceui.lisa.models.ObjectSpec.POST,
                 )
                 startActivity(intent)
             }
-            if (!illust.isGif) {
+            if (!illust.isGif()) {
                 item(getString(R.string.string_0), R.drawable.ic_remove_red_eye_black_24dp) {
                     applyForceOriginal()
                 }
@@ -1166,7 +1184,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "发帖")
                     intent.putExtra(
                         ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_PREFILL_ILLUST_ID,
-                        illust.id.toLong(),
+                        illust.id,
                     )
                     startActivity(intent)
                 }

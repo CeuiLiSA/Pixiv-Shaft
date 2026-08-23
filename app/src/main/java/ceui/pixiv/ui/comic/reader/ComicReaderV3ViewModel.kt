@@ -5,9 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import ceui.lisa.activities.Shaft
 import ceui.lisa.download.IllustDownload
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
@@ -34,7 +33,7 @@ class ComicReaderV3ViewModel(val illustId: Long) : ViewModel() {
     sealed class LoadState {
         object Idle : LoadState()
         object Loading : LoadState()
-        data class Loaded(val illust: IllustsBean, val pages: List<ComicPage>) : LoadState()
+        data class Loaded(val illust: Illust, val pages: List<ComicPage>) : LoadState()
         data class Error(val message: String) : LoadState()
     }
 
@@ -85,9 +84,8 @@ class ComicReaderV3ViewModel(val illustId: Long) : ViewModel() {
                         _loadState.postValue(LoadState.Error("作品不存在"))
                         return@onSuccess
                     }
-                    val bean = Shaft.sGson.let { g -> g.fromJson(g.toJson(modern), IllustsBean::class.java) }
-                    ObjectPool.updateIllust(bean)
-                    applyIllust(bean)
+                    ObjectPool.updateIllust(modern)
+                    applyIllust(modern)
                 }
                 .onFailure { e ->
                     Timber.tag("ComicReaderV3").e(e, "load failed for illust=$illustId")
@@ -96,7 +94,7 @@ class ComicReaderV3ViewModel(val illustId: Long) : ViewModel() {
         }
     }
 
-    private fun applyIllust(illust: IllustsBean) {
+    private fun applyIllust(illust: Illust) {
         val total = illust.page_count.takeIf { it > 0 } ?: 1
         val pages = (0 until total).map { i ->
             ComicPage(

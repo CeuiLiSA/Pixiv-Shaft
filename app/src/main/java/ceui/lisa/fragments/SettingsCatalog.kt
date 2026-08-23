@@ -91,6 +91,7 @@ object SettingsCatalog {
             " 自定义颜色 自定义主题色彩 自定义色值 十六进制 hex 色号 取色器 拾色器 调色板 custom color color picker"
         } else ""
         add(Entry(APPEARANCE, "color_select_rela", R.string.string_324, keywords = "主题色 颜色 配色 强调色 粉色 accent color$customColorAliases"))
+        add(Entry(APPEARANCE, "tag_translation_color_rela", R.string.tag_translation_color, keywords = "标签 译文 翻译 颜色 跟随主题 主题色彩 标签译文 tag translation color"))
         add(Entry(APPEARANCE, "app_language_rela", R.string.language, keywords = "语言 简体 繁体 英文 日文 韩文 中文 language english"))
         add(Entry(APPEARANCE, "navigation_init_position_rela", R.string.string_426, keywords = "启动页 默认页 初始页 首页 导航 start page"))
         add(Entry(APPEARANCE, "bottom_bar_order_rela", R.string.string_342, keywords = "底部导航 tab 顺序 排序 页签 bottom bar"))
@@ -114,6 +115,9 @@ object SettingsCatalog {
         add(Entry(BROWSING, "filter_comment_rela", R.string.string_379, keywords = "评论 垃圾 广告 屏蔽 spam comment"))
         add(Entry(BROWSING, "r18_filter_default_enable_rela", R.string.string_414, R.string.string_415, keywords = "r18 过滤 屏蔽 安全模式 safe filter"))
         add(Entry(BROWSING, "delete_ai_illust_rela", R.string.delete_ai_illust, keywords = "ai 屏蔽ai 不看ai ai生成 aigc 过滤"))
+        // 下两行只在「不显示AI生成的作品」开着时可见；关着时 maybeHighlight 会自动跳过滚动/闪烁
+        add(Entry(BROWSING, "ai_block_strength_rela", R.string.ai_block_strength, keywords = "ai 屏蔽 效果 级别 强度 模糊 粒子 打码 完全不显示 blur"))
+        add(Entry(BROWSING, "ai_block_exempt_rela", R.string.ai_block_exempt_authors, keywords = "ai 屏蔽 豁免 白名单 作者 画师 例外 放行 exempt whitelist author"))
         add(Entry(BROWSING, "filter_rank_bookmarked_rela", R.string.filter_rank_bookmarked, keywords = "排行榜 已收藏 过滤 去重 rank"))
         add(Entry(BROWSING, "novel_filter_min_text_length_rela", R.string.novel_filter_min_text_length, R.string.novel_filter_min_text_length_desc, keywords = "小说 字数 太短 过短 屏蔽 刷屏 广告 spam novel length"))
         add(Entry(BROWSING, "novel_filter_max_text_length_rela", R.string.novel_filter_max_text_length, R.string.novel_filter_max_text_length_desc, keywords = "小说 字数 太长 过长 屏蔽 spam novel length"))

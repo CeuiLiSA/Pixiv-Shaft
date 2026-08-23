@@ -549,6 +549,9 @@
     <string name="string_322">Hayranlarım</string>
     <string name="string_323">P-Arkadaşlarım</string>
     <string name="string_324">Tema rengi</string>
+    <string name="tag_translation_color">Etiket çeviri rengi</string>
+    <string name="tag_translation_color_follow_theme">Temayı takip et</string>
+    <string name="tag_translation_color_pick_from_theme_page">Tema renk sayfasından seç</string>
     <string name="string_325">Ayarlara git</string>
     <string name="string_326">Başlat</string>
     <string name="string_327">Durdur</string>
@@ -851,6 +854,19 @@
     <string name="created_by_ai">AI ile oluşturuldu</string>
     <string name="has_been_downloaded"> İndirme tamamlandı</string>
     <string name="delete_ai_illust">AI ile oluşturulan eserleri gizle</string>
+    <string name="ai_block_strength">Gizleme efekt seviyesi</string>
+    <string name="ai_block_strength_hide">Tamamen gizle</string>
+    <string name="ai_block_strength_blur">Bulanık + parçacık</string>
+    <string name="ai_block_exempt_authors">Muaf yazar listesi</string>
+    <string name="ai_block_exempt_hint">Yazar ID\'lerini tek tek ekleyin, silebilirsiniz\nListe değişikliğinden sonra uygulamayı yeniden başlatmanız önerilir</string>
+    <string name="ai_block_exempt_add">Ekle</string>
+    <string name="ai_block_exempt_input_hint">Yazar ID girin</string>
+    <string name="ai_block_exempt_empty">Henüz muaf yazar yok</string>
+    <string name="ai_block_exempt_save">Kaydet</string>
+    <string name="ai_block_exempt_invalid">Geçerli bir yazar ID girin</string>
+    <string name="ai_block_exempt_duplicate">Bu yazar ID zaten eklendi</string>
+    <string name="ai_block_exempt_none">Ayarlanmadı</string>
+    <string name="ai_block_exempt_count">%1$d yazar ID\'si</string>
     <string name="trying_login">Giriş deneniyor</string>
     <string name="userTab_other">Diğer</string>
     <string name="userTab_collection">Yer imleri</string>
@@ -2721,4 +2737,7 @@
     <string name="nana7mi_quota_snack_session">5 saatlik limit doldu, %1$s sonra yenilenir</string>
     <string name="nana7mi_quota_snack_weekly">Haftalık limit doldu, %1$s sonra yenilenir</string>
     <string name="nana7mi_quota_snack_action">Kullanımı gör</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">Anladım</string>
+    <string name="inapp_push_default_action">Göz at</string>
 </resources>

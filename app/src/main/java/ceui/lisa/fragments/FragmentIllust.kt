@@ -42,16 +42,16 @@ import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.common.IllustMuteStore
+import ceui.pixiv.ui.translate.translateTag
 import ceui.pixiv.ui.detail.TagEditSheet
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentIllustBinding
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.models.ObjectSpec
 import ceui.lisa.models.TagsBean
-import ceui.lisa.models.UserBean
 import ceui.lisa.notification.CallBackReceiver
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.DensityUtil
@@ -63,6 +63,8 @@ import ceui.lisa.utils.ShareIllust
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressTextButton
 import ceui.loxia.combineLatest
+import ceui.loxia.toTagsBeans
+import ceui.loxia.User
 import ceui.loxia.flag.FlagDescFragment
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
@@ -96,8 +98,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private val snapshotId: String? get() = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
     private val isSnapshotMode: Boolean get() = snapshotId != null
     private var snapshotViewerData: SnapshotViewerData? = null
-    private var snapshotBean: IllustsBean? = null
-    private var snapshotUser: UserBean? = null
+    private var snapshotBean: Illust? = null
+    private var snapshotUser: User? = null
 
     private class IllustArgs(b: Bundle) {
         val illustId: Int = b.getInt("illust_id")
@@ -127,7 +129,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             setupSnapshotView()
             return
         }
-        val illustLiveData = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong())
+        val illustLiveData = ObjectPool.get<Illust>(safeArgs.illustId.toLong())
         illustLiveData.observe(viewLifecycleOwner) { illust ->
             updateIllust(illust)
         }
@@ -142,14 +144,14 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             (baseBind.recyclerView.adapter as? IllustAdapter)?.seedPageDimensions(dims)
         }
         val userId = illustLiveData.value?.user?.id ?: return
-        val userLiveData = ObjectPool.get<UserBean>(userId.toLong())
+        val userLiveData = ObjectPool.get<User>(userId)
         userLiveData.observe(viewLifecycleOwner) { user ->
             updateUser(user)
-            Common.showLog("updateUser invoke ${user.isIs_followed}")
+            Common.showLog("updateUser invoke ${user.is_followed}")
         }
-        // 「怎么关的」不在 UserBean 里，变化时上面那条不会响 —— 同 V3 详情页，见 FollowVisibility.changes。
+        // 「怎么关的」不在 User 里，变化时上面那条不会响 —— 同 V3 详情页，见 FollowVisibility.changes。
         FollowVisibility.changes.observe(viewLifecycleOwner) { changed ->
-            if (changed == userId.toLong()) userLiveData.value?.let { updateUser(it) }
+            if (changed == userId) userLiveData.value?.let { updateUser(it) }
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(baseBind.root) { v, windowInsets ->
@@ -241,8 +243,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         val data = snapshotViewerData ?: return
         val intent = Intent(mContext, TemplateActivity::class.java)
         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照评论")
-        intent.putExtra("objectId", data.illust.id.toLong())
-        intent.putExtra("objectArthurId", data.illust.user?.id?.toLong() ?: 0L)
+        intent.putExtra("objectId", data.illust.id)
+        intent.putExtra("objectArthurId", data.illust.user?.id ?: 0L)
         intent.putExtra("objectType", ceui.loxia.ObjectType.ILLUST)
         intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId)
         startActivity(intent)
@@ -256,14 +258,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
     }
 
-    private fun observeMuteStatus(illust: IllustsBean) {
+    private fun observeMuteStatus(illust: Illust) {
+
         viewLifecycleOwner.lifecycleScope.launch {
             val dao = AppDatabase.getAppDatabase(requireContext()).searchDao()
             val muteIllust = withContext(Dispatchers.IO) {
-                dao.getIllustMuteEntityByID(illust.id)
+                dao.getIllustMuteEntityByID(illust.id.toInt())
             }
             val muteUser = withContext(Dispatchers.IO) {
-                dao.getUserMuteEntityByIDLiveData((illust.user?.userId ?: 0))
+                dao.getUserMuteEntityByIDLiveData((illust.user?.id ?: 0L).toInt())
             }
             combineLatest(muteIllust, muteUser).observe(viewLifecycleOwner) {
                 val illustEntity = it.first
@@ -307,33 +310,34 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
     }
 
-    private fun updateUser(user: UserBean) {
-        if (user.isIs_followed) {
+    private fun updateUser(user: User) {
+        val userId = user.id.toInt()
+        if (user.is_followed == true) {
             baseBind.follow.isVisible = false
             baseBind.unfollow.isVisible = true
-            baseBind.unfollow.text = getString(followedLabelRes(user.id))
+            baseBind.unfollow.text = getString(followedLabelRes(userId))
             baseBind.unfollow.setOnClick {
-                unfollowUser(it, user.id)
+                unfollowUser(it, userId)
             }
         } else {
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true
             baseBind.follow.setOnClick {
-                followUser(it, user.id, PixivActions.defaultFollowRestrict())
+                followUser(it, userId, PixivActions.defaultFollowRestrict())
             }
             baseBind.follow.setOnLongClickListener {
-                followUser((it as ProgressTextButton), user.id, Params.TYPE_PRIVATE)
+                followUser((it as ProgressTextButton), userId, Params.TYPE_PRIVATE)
                 true
             }
         }
         baseBind.relaIllustBrief.setOnClick {
             val intent = Intent(mContext, UActivity::class.java)
-            intent.putExtra(Params.USER_ID, user.id)
+            intent.putExtra(Params.USER_ID, userId)
             startActivity(intent)
         }
         baseBind.userName.setOnClick {
             val intent = Intent(mContext, UActivity::class.java)
-            intent.putExtra(Params.USER_ID, user.id)
+            intent.putExtra(Params.USER_ID, userId)
             startActivity(intent)
         }
         baseBind.userName.setOnLongClickListener {
@@ -344,8 +348,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         baseBind.userName.text = user.name
     }
 
-    private fun updateIllust(illust: IllustsBean) {
-        if (illust.id == 0 || !illust.isVisible) {
+    private fun updateIllust(illust: Illust) {
+        // 快照是「当时那一刻」的存档，在线可见性判断不该作用在它上面：Gson 默认丢弃 null 字段，
+        // 精简来源的 bean 存进 illust.json 后 visible 会缺失 → 反序列化成 null → 一打开就
+        // 提示「作品不存在」并自动关页。id 那条仍然保留(存档本身坏了才会命中)。
+        if (illust.id == 0L || (!isSnapshotMode && illust.visible != true)) {
             Common.showToast(R.string.string_206)
             Handler().postDelayed({ finish() }, 1000)
             return
@@ -373,13 +380,13 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         loadUserAvatar(illust)
     }
 
-    private fun setupTitle(illust: IllustsBean) {
+    private fun setupTitle(illust: Illust) {
         if (!isSnapshotMode && illust.series != null && !TextUtils.isEmpty(illust.series.title)) {
             val clickableSpan: ClickableSpan = object : ClickableSpan() {
                 override fun onClick(widget: View) {
                     val intent = Intent(mContext, TemplateActivity::class.java)
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
-                    intent.putExtra(Params.MANGA_SERIES_ID, illust.series.id)
+                    intent.putExtra(Params.MANGA_SERIES_ID, illust.series.id.toInt())
                     startActivity(intent)
                 }
 
@@ -409,7 +416,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
     }
 
-    private fun setupToolbarMenu(illust: IllustsBean) {
+    private fun setupToolbarMenu(illust: Illust) {
         baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
         if (isSnapshotMode) {
@@ -424,7 +431,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             ).forEach { id -> baseBind.toolbar.menu?.findItem(id)?.isVisible = false }
         }
         // 动图(ugoira)的 original 是 zip,加载原图/画质增强/抠图都没法处理,隐藏这几项(对齐 V3 详情页)。
-        if (illust.isGif) {
+        if (illust.isGif()) {
             baseBind.toolbar.menu?.findItem(R.id.action_ai_upscale)?.isVisible = false
             baseBind.toolbar.menu?.findItem(R.id.action_ai_rembg)?.isVisible = false
             baseBind.toolbar.menu?.findItem(R.id.action_show_original)?.isVisible = false
@@ -449,7 +456,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                     true
                 }
                 R.id.action_dislike -> {
-                    MuteTagSheet.show(childFragmentManager, illust.tags, illust.user)
+                    MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
                     true
                 }
                 R.id.action_copy_link -> {
@@ -471,10 +478,9 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 R.id.action_flag_illust -> {
                     val intent = Intent(mContext, TemplateActivity::class.java)
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "举报插画")
-                    // illust.id 是 IllustsBean 的 Int 字段；TemplateActivity 读这个 extra 走
-                    // getLongExtra（配合 Illust.id: Long 的新版详情页入口），这里必须显式转 Long，
-                    // 否则又是一次 Int/Long extra 类型不匹配，读回来静默变 0。
-                    intent.putExtra(FlagDescFragment.FlagObjectIdKey, illust.id.toLong())
+                    // TemplateActivity 读这个 extra 走 getLongExtra,Illust.id 本身就是 Long,
+                    // 别收窄成 Int,否则 Int/Long extra 类型不匹配,读回来静默变 0。
+                    intent.putExtra(FlagDescFragment.FlagObjectIdKey, illust.id)
                     intent.putExtra(FlagDescFragment.FlagObjectTypeKey, ObjectSpec.POST)
                     startActivity(intent)
                     true
@@ -496,15 +502,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         })
     }
 
-    private fun setupLikeButton(illust: IllustsBean) {
-        if (illust.isIs_bookmarked) {
+    private fun setupLikeButton(illust: Illust) {
+        if (illust.isBookmarked) {
             baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp)
         } else {
             baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp)
         }
         baseBind.postLike.setOnClick {
-            val willBookmark = !illust.isIs_bookmarked
-            if (illust.isIs_bookmarked) {
+            val willBookmark = !illust.isBookmarked
+            if (illust.isBookmarked) {
                 baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp)
             } else {
                 baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp)
@@ -518,14 +524,14 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         baseBind.postLike.setOnLongClickListener(object : OnLongClickListener {
             override fun onLongClick(v: View): Boolean {
                 SelectTagBottomSheet.show(
-                    this@FragmentIllust, illust.id, Params.TYPE_ILLUST, illust.tagNames,
+                    this@FragmentIllust, illust.id.toInt(), Params.TYPE_ILLUST, illust.tagNames.toTypedArray(),
                 )
                 return true
             }
         })
     }
 
-    private fun setupTags(illust: IllustsBean) {
+    private fun setupTags(illust: Illust) {
         // 标签区重建 = 整片 chip 全部拆掉重新 inflate,肉眼就是一次闪烁。池发射(收藏回流等)带不来
         // 新标签,所以只在标签本身真的变了才重建;点击/长按监听照常重挂,始终闭包到最新的 bean(#962)。
         val tagSignature = illust.tags.orEmpty().joinToString("|") {
@@ -534,10 +540,10 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         // issue #1023: 末尾多挂一格「编辑标签」,对齐网页版标签行末尾那个「+」。TagFlowLayout
         // 没有 footer 概念,只能把它当第 tags.size 格来渲染,并在两个监听里按下标提前拦掉 ——
         // 否则 illust.tags[position] 会越界。
-        val tags = illust.tags.orEmpty()
+        val tags = illust.tags.orEmpty().toTagsBeans()
         if (isSnapshotMode) {
             // 快照只读：标签区不渲染「编辑标签」入口，点击标签也不跳在线搜索。
-            baseBind.synonymMatch.setWorkTags(illust.tags)
+            baseBind.synonymMatch.setWorkTags(tags)
             baseBind.illustTag.adapter = object : TagAdapter<TagsBean>(tags) {
                 override fun getView(parent: FlowLayout, position: Int, s: TagsBean): View {
                     val tv = LayoutInflater.from(mContext).inflate(
@@ -562,7 +568,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         if (tagSignature != renderedTagSignature) {
             renderedTagSignature = tagSignature
             // 同义词词典「标签匹配关系」框（issue #904）
-            baseBind.synonymMatch.setWorkTags(illust.tags)
+            baseBind.synonymMatch.setWorkTags(tags)
             baseBind.illustTag.adapter = object : TagAdapter<TagsBean>(tags + TagsBean()) {
                 override fun getView(parent: FlowLayout, position: Int, s: TagsBean): View {
                     val tv = LayoutInflater.from(mContext).inflate(
@@ -619,6 +625,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                     Common.copy(mContext, tagName)
                     dialog.dismiss()
                 }
+                // 翻译原文（#1054），与 V3 长按菜单同一入口
+                .addAction(getString(R.string.string_translate_caption)) { dialog, index ->
+                    translateTag(mContext, viewLifecycleOwner.lifecycleScope, tagName)
+                    dialog.dismiss()
+                }
             // 同义词词典（issue #904）功能总开关：默认关闭，关闭时菜单与本功能存在之前完全一致
             if (Shaft.sSettings.isSynonymDictEnabled) {
                 tagMenuBuilder.addAction(getString(R.string.synonym_add_as_synonym)) { dialog, index ->
@@ -632,12 +643,12 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
     }
 
-    private fun setupInfo(illust: IllustsBean) {
+    private fun setupInfo(illust: Illust) {
         baseBind.illustSize.text = getString(R.string.string_193, illust.width, illust.height)
         baseBind.illustId.text = getString(R.string.string_194, illust.id)
-        baseBind.userId.text = getString(R.string.string_195, illust.user.id)
+        baseBind.userId.text = getString(R.string.string_195, illust.user?.id)
         baseBind.illustId.setOnClick { Common.copy(mContext, illust.id.toString()) }
-        baseBind.userId.setOnClick { Common.copy(mContext, illust.user.id.toString()) }
+        baseBind.userId.setOnClick { Common.copy(mContext, illust.user?.id.toString()) }
     }
 
     /**
@@ -648,7 +659,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
      * 指纹必变，图片区照样重建；而收藏回流那种「只动 is_bookmarked / total_bookmarks」的
      * 池发射指纹不变，不再触发重建。
      */
-    private fun imageAreaSignature(illust: IllustsBean): String {
+    private fun imageAreaSignature(illust: Illust): String {
         val urls = if (illust.page_count <= 1) {
             illust.meta_single_page?.original_image_url.orEmpty()
         } else {
@@ -657,7 +668,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         return "${illust.isGif()}|${illust.page_count}|${illust.width}x${illust.height}|$urls"
     }
 
-    private fun setupBottomSheet(illust: IllustsBean) {
+    private fun setupBottomSheet(illust: Illust) {
         val sheetBehavior: BottomSheetBehavior<*> = BottomSheetBehavior.from(baseBind.coreLinear)
         baseBind.coreLinear.viewTreeObserver.addOnGlobalLayoutListener(object :
             OnGlobalLayoutListener {
@@ -723,18 +734,20 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         })
     }
 
-    private fun setupActionButtons(illust: IllustsBean) {
+    private fun setupActionButtons(illust: Illust) {
         baseBind.related.setOnClick {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关作品")
-            intent.putExtra(Params.ILLUST_ID, illust.id)
+            // TemplateActivity 按 getIntExtra 读 ILLUST_ID,Illust.id 是 Long 必须收窄
+            intent.putExtra(Params.ILLUST_ID, illust.id.toInt())
             intent.putExtra(Params.ILLUST_TITLE, illust.title)
             startActivity(intent)
         }
         baseBind.comment.setOnClick {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
-            intent.putExtra(Params.ILLUST_ID, illust.id)
+            // TemplateActivity 按 getIntExtra 读 ILLUST_ID,Illust.id 是 Long 必须收窄
+            intent.putExtra(Params.ILLUST_ID, illust.id.toInt())
             intent.putExtra(Params.ILLUST_TITLE, illust.title)
             startActivity(intent)
         }
@@ -746,7 +759,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
     }
 
-    private fun setupDescription(illust: IllustsBean) {
+    private fun setupDescription(illust: Illust) {
         val caption = illust.caption
         if (caption.isNullOrEmpty()) {
             baseBind.description.visibility = View.GONE
@@ -761,15 +774,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         baseBind.description.movementMethod = LinkMovementMethod.getInstance()
     }
 
-    private fun setupStats(illust: IllustsBean) {
+    private fun setupStats(illust: Illust) {
         baseBind.postTime.text = String.format(
             "%s投递", Common.getLocalYYYYMMDDHHMMString(illust.create_date)
         )
-        baseBind.totalView.text = illust.total_view.toString()
-        baseBind.totalLike.text = illust.total_bookmarks.toString()
+        baseBind.totalView.text = (illust.total_view ?: 0).toString()
+        baseBind.totalLike.text = (illust.total_bookmarks ?: 0).toString()
     }
 
-    private fun setupDownloadButton(illust: IllustsBean) {
+    private fun setupDownloadButton(illust: Illust) {
         baseBind.download.setChangeAlphaWhenPress(true)
         baseBind.related.setChangeAlphaWhenPress(true)
         baseBind.comment.setChangeAlphaWhenPress(true)
@@ -783,7 +796,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 IllustDownload.downloadIllustAllPagesWithResolution(illust, resolution, mContext as BaseActivity<*>)
             }
             checkDownload()
-            if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {
+            if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
                 PixivOperate.postLikeDefaultStarType(illust)
             }
         }
@@ -819,7 +832,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
     }
 
-    private fun loadUserAvatar(illust: IllustsBean) {
+    private fun loadUserAvatar(illust: Illust) {
         val url = illust.user?.profile_image_urls?.medium
         // Glide 的 into() 会先清空 target 再起新请求,即使命中内存缓存也会空一帧。池每发射一次就
         // 重发一次 → 收藏一下头像闪一下(#962)。url 没变、图还在,就什么都不用做。
@@ -848,26 +861,22 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         aiHelper = IllustAiHelper(this, baseBind.root)
         if (isSnapshotMode) return
         val intentFilter = IntentFilter()
-        val illust = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong()).value ?: return
+        val illust = ObjectPool.get<Illust>(safeArgs.illustId.toLong()).value ?: return
         mReceiver = CallBackReceiver { context, intent ->
             val bundle = intent.extras
             if (bundle != null) {
                 val id = bundle.getInt(Params.ID)
-                if (illust.id == id) {
+                if (illust.id == id.toLong()) {
                     val isLiked = bundle.getBoolean(Params.IS_LIKED)
+                    // Illust 不可变:收藏态 / 计数已由 PixivActions.writeIllustBookmarkLocally 写进
+                    // ObjectPool(本页 observer 会重跑 updateIllust),这里只按广播即时刷一下 UI。
+                    val latest = ObjectPool.get<Illust>(illust.id).value ?: illust
                     if (isLiked) {
-                        illust.isIs_bookmarked = true
                         baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp)
-                        val afterStarCount = illust.total_bookmarks + 1
-                        illust.total_bookmarks = afterStarCount
-                        baseBind.totalLike.text = afterStarCount.toString()
                     } else {
-                        illust.isIs_bookmarked = false
                         baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp)
-                        val afterStarCount = illust.total_bookmarks - 1
-                        illust.total_bookmarks = afterStarCount
-                        baseBind.totalLike.text = afterStarCount.toString()
                     }
+                    baseBind.totalLike.text = (latest.total_bookmarks ?: 0).toString()
                 }
             }
         }

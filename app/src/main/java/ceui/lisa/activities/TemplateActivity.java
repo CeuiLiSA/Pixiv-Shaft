@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -53,10 +52,9 @@ import ceui.lisa.fragments.FragmentUserInfo;
 import ceui.lisa.fragments.FragmentViewPager;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWorkSpace;
-import ceui.lisa.helper.BackHandlerHelper;
-import ceui.lisa.models.IllustsBean;
-import ceui.lisa.models.NovelBean;
-import ceui.lisa.models.UserBean;
+import ceui.loxia.Illust;
+import ceui.loxia.Novel;
+import ceui.loxia.User;
 import ceui.lisa.utils.Params;
 import ceui.loxia.ObjectPool;
 import ceui.loxia.ObjectType;
@@ -68,6 +66,7 @@ import ceui.pixiv.ui.notification.NotificationPagerFragment;
 import ceui.pixiv.ui.notification.NotificationViewMoreFragment;
 import ceui.pixiv.ui.prime.PrimeTagDetailFragment;
 import ceui.pixiv.ui.prime.PrimeTagsFragment;
+import ceui.pixiv.ui.settings.ThemeColorFeedFragment;
 
 public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> implements ColorPickerDialogListener {
 
@@ -181,7 +180,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return ceui.pixiv.ui.user.UserFansFeedFragment.newInstance(
                             intent.getIntExtra(Params.USER_ID, 0));
                 case "喜欢这个作品的用户":
-                    return LikeUsersFeedFragment.newInstance((IllustsBean) intent.getSerializableExtra(Params.CONTENT));
+                    return LikeUsersFeedFragment.newInstance((Illust) intent.getSerializableExtra(Params.CONTENT));
                 case "喜欢这部小说的用户":
                     return LikeUsersFeedFragment.newInstance(
                             intent.getLongExtra(Params.NOVEL_ID, 0L),
@@ -248,7 +247,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return ceui.pixiv.ui.user.UserNovelFeedFragment.newInstance(
                             intent.getIntExtra(Params.USER_ID, 0));
                 case "小说详情": {
-                    NovelBean bean = (NovelBean) intent.getSerializableExtra(Params.CONTENT);
+                    Novel bean = (Novel) intent.getSerializableExtra(Params.CONTENT);
                     long tid = bean != null ? bean.getId() : intent.getLongExtra(Params.NOVEL_ID, 0L);
                     return NovelTextFragment.Companion.newInstance(tid);
                 }
@@ -260,7 +259,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                                 intent.getStringExtra(Params.LOCAL_TXT_TITLE),
                                 intent.getStringExtra(Params.LOCAL_TXT_KEY));
                     }
-                    NovelBean bean = (NovelBean) intent.getSerializableExtra(Params.CONTENT);
+                    Novel bean = (Novel) intent.getSerializableExtra(Params.CONTENT);
                     if (bean != null) {
                         return NovelReaderV3Fragment.newInstance(bean);
                     }
@@ -399,8 +398,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "小说书签":
                     return new NovelMarkersFeedFragment();
                 case "主题颜色":
-                    // feeds 框架版(替代 legacy FragmentColors);静态目录单页,带 toolbar
-                    return new ceui.pixiv.ui.settings.ThemeColorFeedFragment();
+                    // feeds 框架版(替代 legacy FragmentColors);静态目录单页,带 toolbar。
+                    // 设置 → 标签译文颜色 也复用本页，通过 extra 切成选择器模式。
+                    return ThemeColorFeedFragment.newInstance(
+                            intent.getBooleanExtra(
+                                    ThemeColorFeedFragment.ARG_SELECT_TAG_TRANSLATION_COLOR,
+                                    false));
                 case "测试测试":
                     return new FragmentSAF();
                 case "举报插画":
@@ -573,33 +576,33 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
 
         if (workId == 0) {
             workId = intent.getIntExtra(Params.NOVEL_ID, 0);
-            NovelBean hit = ObjectPool.INSTANCE.getNovel(workId).getValue();
+            Novel hit = ObjectPool.INSTANCE.getNovel(workId).getValue();
             int illustArthurId = getArthurIdFromNovel(hit);
             return CommentsFragment.Companion.newInstance(workId, illustArthurId, ObjectType.NOVEL);
         } else {
-            IllustsBean hit = ObjectPool.INSTANCE.getIllust(workId).getValue();
+            Illust hit = ObjectPool.INSTANCE.getIllust(workId).getValue();
             int illustArthurId = getArthurIdFromIllust(hit);
             return CommentsFragment.Companion.newInstance(workId, illustArthurId, ObjectType.ILLUST);
         }
     }
 
-    // Helper method to extract Arthur ID from NovelBean
-    private int getArthurIdFromNovel(NovelBean hit) {
+    // Helper method to extract Arthur ID from Novel
+    private int getArthurIdFromNovel(Novel hit) {
         if (hit != null) {
-            UserBean user = hit.getUser();
+            User user = hit.getUser();
             if (user != null) {
-                return user.getId();
+                return (int) user.getId();
             }
         }
         return 0;
     }
 
-    // Helper method to extract Arthur ID from IllustsBean
-    private int getArthurIdFromIllust(IllustsBean hit) {
+    // Helper method to extract Arthur ID from Illust
+    private int getArthurIdFromIllust(Illust hit) {
         if (hit != null) {
-            UserBean user = hit.getUser();
+            ceui.loxia.User user = hit.getUser();
             if (user != null) {
-                return user.getId();
+                return (int) user.getId();
             }
         }
         return 0;
@@ -639,30 +642,19 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
 
     @Override
     protected void initView() {
-        // 返回键/返回手势:WebView 网页内历史后退 → 子 Fragment 返回栈 → 关闭本页。
-        // targetSdk 35+ 后预测式返回默认开启,系统不再回调 onKeyDown / onBackPressed,
-        // 必须用 OnBackPressedDispatcher 接管,否则这两条老逻辑全成死代码。
+        // 返回键/返回手势:这里故意不挂任何 OnBackPressedCallback。
         //
-        // ⚠️ 故意不传 LifecycleOwner:这是全 Activity 的兜底,必须排在所有子 Fragment 的
-        // callback 之下。带 owner 注册只会在 Activity 的 ON_START 才真正入队,而 Activity
-        // 的 ON_START(ReportFragment.onActivityPostStarted)晚于 FragmentActivity.onStart()
-        // 里子 Fragment 的 dispatchStart(),结果兜底反而压在 Fragment callback 之上,
-        // 阅读器「返回先关搜索/收顶底栏」全被它截胡直接 finish —— issue #1004。
-        // 不带 owner 则在 onCreate 当场入队,永远垫底;dispatcher 随 Activity 销毁,不泄漏。
-        getOnBackPressedDispatcher().addCallback(new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                if (childFragment instanceof FragmentWebView
-                        && ((FragmentWebView) childFragment).getAgentWeb() != null
-                        && ((FragmentWebView) childFragment).getAgentWeb().back()) {
-                    return;
-                }
-                if (BackHandlerHelper.handleBackPress(TemplateActivity.this)) {
-                    return;
-                }
-                finish();
-            }
-        });
+        // 预测式返回(targetSdk 35+ 默认开启)的跨 Activity / 回桌面动画只在「app 没向系统
+        // 注册任何返回回调」时才会播:只要 OnBackPressedDispatcher 里有一个 enabled 的
+        // callback,AndroidX 就会向 WindowOnBackInvokedDispatcher 注册 OnBackInvokedCallback,
+        // 系统随即放弃自己的动画,手势落下后只是干巴巴地回调 → 以前这里那个常开的兜底
+        // callback 把全 app 几乎所有页面的预测式返回都掐死了。
+        //
+        // 没有 callback 时系统走 Activity 默认返回(finishAfterTransition),动画由系统负责。
+        // 需要拦返回的页面(网页历史后退、阅读器收顶底栏、未保存确认…)各自在 Fragment 里
+        // 注册 callback,并且只在「真的有东西可拦」时才 setEnabled(true) —— 必须提前维护好
+        // enabled,系统在手势开始那一刻就决定播不播动画,handleOnBackPressed 里再判断已经晚了。
+        // 子 Fragment 返回栈由 FragmentManager 自带的 callback 处理(本 app 没有 addToBackStack)。
     }
 
     @Override

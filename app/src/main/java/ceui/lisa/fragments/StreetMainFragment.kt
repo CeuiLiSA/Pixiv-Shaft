@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.SearchActivity
-import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
@@ -28,7 +27,6 @@ import ceui.lisa.databinding.ItemStreetContentBinding
 import ceui.lisa.databinding.ItemStreetRailBinding
 import ceui.lisa.databinding.ItemStreetRailTagBinding
 import ceui.lisa.databinding.ItemStreetRailWorkBinding
-import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
@@ -835,11 +833,8 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
                         val illust = withContext(Dispatchers.IO) {
                             Client.appApi.getIllust(id).illust
                         } ?: return@launch
-                        val bean = Shaft.sGson.let { g ->
-                            g.fromJson(g.toJson(illust), IllustsBean::class.java)
-                        }
                         val uuid = UUID.randomUUID().toString()
-                        Container.get().addPageToMap(PageData(uuid, null, listOf(bean)))
+                        Container.get().addPageToMap(PageData(uuid, null, listOf(illust)))
                         startActivity(Intent(mContext, VActivity::class.java).apply {
                             putExtra(Params.POSITION, 0)
                             putExtra(Params.PAGE_UUID, uuid)

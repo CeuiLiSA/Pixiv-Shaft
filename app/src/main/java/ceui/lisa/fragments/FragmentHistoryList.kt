@@ -19,7 +19,7 @@ import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.helper.StaggeredManager
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.view.SpacesItemDecoration
@@ -153,7 +153,7 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
         })
     }
 
-    internal fun openHistoryIllust(illust: IllustsBean) {
+    internal fun openHistoryIllust(illust: Illust) {
         val all = loadedIllusts()
         if (all.isEmpty()) return
         val pageData = PageData(all)
@@ -205,7 +205,7 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
             }
         }
 
-    private fun loadedIllusts(): List<IllustsBean> =
+    private fun loadedIllusts(): List<Illust> =
         feedViewModel.uiState.value.items.filterIsInstance<HistoryIllustFeedItem>().map { it.illust }
 
     /** host 一键清空全部历史 (#886) 后调一下，让本 tab 重新拉数据源。 */

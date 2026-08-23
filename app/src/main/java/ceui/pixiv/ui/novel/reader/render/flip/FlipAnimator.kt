@@ -83,6 +83,3 @@ enum class FlipDirection(val sign: Float) {
 
     val opposite: FlipDirection get() = if (this == Forward) Backward else Forward
 }
-
-/** Final outcome of a finger release. */
-enum class FlipOutcome { Commit, Cancel }

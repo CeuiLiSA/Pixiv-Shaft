@@ -6,10 +6,9 @@ import ceui.lisa.core.Mapper
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.loxia.Client
 import ceui.loxia.Comment
-import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.fetchFullIllustDetail
 import ceui.loxia.isFullDetail
@@ -60,16 +59,16 @@ class ArtworkV3FeedSource(
      * 1. 池里已是完整版 → 直接用(从列表页进来的常态,零请求);
      * 2. 回 v1/illust/detail 拉完整版(顺带覆盖池)——覆盖精简来源 / 深链接;
      * 3. 拉取失败 / 已删,但池里有(精简)bean → 降级用它(issue #569:按 Tag 筛选等);
-     * 4. 池空 + 拉取失败(离线深链接 / widget 冷启)→ 退回 modern [Illust] 池 → 浏览历史 DB,
-     *    桥回 legacy 池后返回,避免离线时看过的作品也整页空白(对齐 legacy loadData 的兜底链)。
+     * 4. 池空 + 拉取失败(离线深链接 / widget 冷启)→ 退回浏览历史 DB,
+     *    入池后返回,避免离线时看过的作品也整页空白(对齐 legacy loadData 的兜底链)。
      *
      * ⚠️ 这一步是**首屏的阻塞路径**:它一走网络,整页就没有任何条目可提交,详情页(骨架图为 null)
      * 会画出全屏转圈。所以判据只能问一件事——「池里这条 bean 够不够把首屏画出来」,也就是
      * [isFullDetail] 的图片字段。**不要**再往这里挂「顺便补个字段」类的条件:那类补拉一律走后台
      * (见 [ArtworkV3ViewModel] 的 caption 补拉),落池后靠 observer 增量改条目。
      */
-    private suspend fun resolveFullIllust(): IllustsBean? {
-        val existing = ObjectPool.get<IllustsBean>(illustId).value
+    private suspend fun resolveFullIllust(): Illust? {
+        val existing = ObjectPool.get<Illust>(illustId).value
         if (existing != null && existing.isFullDetail()) {
             Timber.tag(ARTWORK_LAZY_TAG).d("resolveFullIllust: 池里已是完整版,零 API 直接用 illustId=%d", illustId)
             return existing
@@ -82,32 +81,28 @@ class ArtworkV3FeedSource(
         Timber.tag(ARTWORK_LAZY_TAG).w("resolveFullIllust: 拉完整版失败,降级/兜底 illustId=%d", illustId)
         if (existing != null) return existing
         return withContext(Dispatchers.IO) {
-            val modern = ObjectPool.get<Illust>(illustId).value ?: runCatching {
+            val cached = runCatching {
                 AppDatabase.getAppDatabase(Shaft.getContext()).generalDao()
                     .getByRecordTypeAndId(RecordType.VIEW_ILLUST_HISTORY, illustId)
                     ?.typedObject<Illust>()
             }.getOrNull()
-            // 字段名一致,gson round-trip 桥回 legacy bean;顺带覆盖池让 FAB VM 的 observer fire。
+            // 顺带覆盖池让 FAB VM 的 observer fire。
             // ObjectPool.update 内部 setValue 抛后台线程异常会自愈成 postValue,IO 线程调用安全。
-            modern?.let { m ->
-                runCatching {
-                    Shaft.sGson.fromJson(Shaft.sGson.toJsonTree(m), IllustsBean::class.java)
-                }.getOrNull()?.also { ObjectPool.updateIllust(it) }
-            }
+            cached?.also { ObjectPool.updateIllust(it) }
         }
     }
 
     companion object {
         /** 顶部大图页条目:ugoira 单条;静态图折叠时只 p0,否则全 P。 */
-        fun buildArtworkPageItems(illust: IllustsBean): List<FeedItem> {
-            if (illust.isGif()) return listOf(ArtworkUgoiraItem(illust.id.toLong()))
+        fun buildArtworkPageItems(illust: Illust): List<FeedItem> {
+            if (illust.isGif()) return listOf(ArtworkUgoiraItem(illust.id))
             val pageCount = illust.page_count.coerceAtLeast(1)
             val visible = if (CollapsibleIllustAdapter.shouldCollapse(pageCount)) 1 else pageCount
-            return (0 until visible).map { ArtworkPageItem(illust.id.toLong(), it) }
+            return (0 until visible).map { ArtworkPageItem(illust.id, it) }
         }
 
         /** header 区块条目,顺序对齐 legacy ArtworkV3ViewModel.doBuildHeaderItems。 */
-        fun buildArtworkHeaderItems(illust: IllustsBean): List<FeedItem> {
+        fun buildArtworkHeaderItems(illust: Illust): List<FeedItem> {
             val list = mutableListOf<FeedItem>()
             list.add(ArtworkHeroItem(illust))
             if (illust.series != null && !TextUtils.isEmpty(illust.series.title)) {
@@ -123,10 +118,10 @@ class ArtworkV3FeedSource(
             list.add(ArtworkTagsItem(illust))
             list.add(ArtworkStatsItem(illust))
             list.add(ArtworkDetailPanelItem(illust))
-            list.add(ArtworkCommentsItem(illust.id, illust.title ?: "", illust.user?.id ?: 0))
-            list.add(ArtworkAuthorWorksItem(illust.user?.name ?: "", illust.user?.id ?: 0))
+            list.add(ArtworkCommentsItem(illust.id.toInt(), illust.title ?: "", illust.user?.id?.toInt() ?: 0))
+            list.add(ArtworkAuthorWorksItem(illust.user?.name ?: "", illust.user?.id?.toInt() ?: 0))
             // 相关作品头初始 state=null(加载中);等区块滚到可见才拉,见 ArtworkSection.RELATED
-            list.add(ArtworkRelatedHeaderItem(illust.id, illust.title ?: ""))
+            list.add(ArtworkRelatedHeaderItem(illust.id.toInt(), illust.title ?: ""))
             return list
         }
     }
@@ -141,7 +136,7 @@ internal const val ARTWORK_LAZY_TAG = "ArtworkV3Lazy"
 
 /**
  * 相关作品一页(共享给数据源翻页 [ArtworkV3FeedSource.load] 与 [ArtworkSection.RELATED] 的懒加载)。
- * 走全局 Mapper 就地过滤(屏蔽 tag / 作者 / 作品 + R18 + AI);Mapper 已过滤,rawFromBean
+ * 走全局 Mapper 就地过滤(屏蔽 tag / 作者 / 作品 + R18 + AI);Mapper 已过滤,raw
  * 不二次过滤(否则「仅看 AI」等会误删)。main-safe。
  */
 internal suspend fun fetchArtworkRelated(
@@ -156,7 +151,7 @@ internal suspend fun fetchArtworkRelated(
     if (parsed.illusts != null) {
         Mapper<ListIllust>().apply(parsed)
     }
-    val items = parsed.list.orEmpty().mapNotNull { IllustFeedItem.rawFromBean(it) }
+    val items = parsed.list.orEmpty().mapNotNull { IllustFeedItem.raw(it) }
     items to parsed.next_url
 }
 
@@ -173,9 +168,9 @@ internal suspend fun fetchArtworkComments(illustId: Long): List<Comment> = withC
 internal suspend fun fetchAuthorWorks(
     userId: Int,
     excludeIllustId: Long,
-): List<IllustsBean> = withContext(Dispatchers.IO) {
+): List<Illust> = withContext(Dispatchers.IO) {
     Timber.tag(ARTWORK_LAZY_TAG).d("API 发出: 作者其他作品 userId=%d", userId)
     val resp = Retro.getAppApiSuspend().getUserSubmitIllust(userId, "illust")
     if (resp.illusts != null) Mapper<ListIllust>().apply(resp)
-    resp.list?.filter { it.id != excludeIllustId.toInt() }?.take(10) ?: emptyList()
+    resp.list?.filter { it.id != excludeIllustId }?.take(10) ?: emptyList()
 }

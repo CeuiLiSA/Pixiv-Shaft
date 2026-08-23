@@ -63,8 +63,9 @@ class NovelFeedItem(
             skipR18Filter: Boolean = false,
             skipMuteUserFilter: Boolean = false,
             skipSpamFilter: Boolean = false,
+            skipAiFilter: Boolean = false,
         ): NovelFeedItem? {
-            return if (passesContentFilters(novel, skipR18Filter, skipMuteUserFilter, skipSpamFilter)) {
+            return if (passesContentFilters(novel, skipR18Filter, skipMuteUserFilter, skipSpamFilter, skipAiFilter)) {
                 NovelFeedItem(novel, trendingScore)
             } else {
                 null
@@ -84,13 +85,14 @@ class NovelFeedItem(
 
         /**
          * 与 legacy [ceui.lisa.core.Mapper] 的小说分支逐条对齐（tag / id / 作者 / R18 过滤）。
-         * 走 [IllustNovelFilter] 的 loxia Novel 重载，无需 NovelBean。
+         * 走 [IllustNovelFilter] 的 loxia Novel 重载，无需 Novel。
          */
         private fun passesContentFilters(
             novel: Novel,
             skipR18Filter: Boolean,
             skipMuteUserFilter: Boolean = false,
             skipSpamFilter: Boolean = false,
+            skipAiFilter: Boolean = false,
         ): Boolean {
             if (IllustNovelFilter.judgeTag(novel)) return false
             // 不挂 judgeID：理由同插画侧——「屏蔽此作品」在 feeds 里是遮罩不是过滤，
@@ -99,6 +101,8 @@ class NovelFeedItem(
             // 空页追载狂翻页；主动点进作者页就该看到其小说。
             if (!skipMuteUserFilter && IllustNovelFilter.judgeUserID(novel)) return false
             if (!skipR18Filter && IllustNovelFilter.judgeR18Filter(novel)) return false
+            // 全局屏蔽 AI：完全不显示强度下剔除，模糊粒子化强度下保留由卡片打码（豁免作者除外）。
+            if (!skipAiFilter && IllustNovelFilter.shouldHideAi(novel)) return false
             // 正文字数区间 + 超长标签名自动屏蔽（issue #743）。三个阈值默认 0（关闭）。
             // 只在收藏夹让步（skipSpamFilter，见 of 的 KDoc）；作者页/榜单不让步——刷屏号的
             // 作者页本来就该被滤掉，那正是这个功能的目标。

@@ -549,6 +549,9 @@
     <string name="string_322">내 팬.</string>
     <string name="string_323">나의 좋 은 P 친구</string>
     <string name="string_324">테마 컬러</string>
+    <string name="tag_translation_color">태그 번역 색상</string>
+    <string name="tag_translation_color_follow_theme">테마 따르기</string>
+    <string name="tag_translation_color_pick_from_theme_page">테마 색상 페이지에서 선택</string>
     <string name="string_325">클릭 설정</string>
     <string name="string_326">시작 하 다.</string>
     <string name="string_327">잠시 멈추다.</string>
@@ -851,6 +854,19 @@
     <string name="created_by_ai">AI 생성</string>
     <string name="has_been_downloaded">다운로드 완료</string>
     <string name="delete_ai_illust">AI 생성 작품 숨기기</string>
+    <string name="ai_block_strength">숨김 효과 수준</string>
+    <string name="ai_block_strength_hide">완전히 표시 안 함</string>
+    <string name="ai_block_strength_blur">흐림 + 파티클</string>
+    <string name="ai_block_exempt_authors">제외 작가 목록</string>
+    <string name="ai_block_exempt_hint">작가 ID를 하나씩 추가하고 삭제할 수 있습니다\n목록 변경 후 앱 재시작을 권장합니다</string>
+    <string name="ai_block_exempt_add">추가</string>
+    <string name="ai_block_exempt_input_hint">작가 ID 입력</string>
+    <string name="ai_block_exempt_empty">아직 예외 작가가 없습니다</string>
+    <string name="ai_block_exempt_save">저장</string>
+    <string name="ai_block_exempt_invalid">유효한 작가 ID를 입력하세요</string>
+    <string name="ai_block_exempt_duplicate">이 작가 ID는 이미 추가됨</string>
+    <string name="ai_block_exempt_none">설정 안 됨</string>
+    <string name="ai_block_exempt_count">작가 ID %1$d개</string>
     <string name="trying_login">로그인 시도 중</string>
     <string name="userTab_other">기타</string>
     <string name="userTab_collection">북마크</string>
@@ -2721,4 +2737,7 @@
     <string name="nana7mi_quota_snack_session">5시간 한도를 모두 사용했습니다. %1$s 후 복구</string>
     <string name="nana7mi_quota_snack_weekly">주간 한도를 모두 사용했습니다. %1$s 후 복구</string>
     <string name="nana7mi_quota_snack_action">사용량 보기</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">알겠어요</string>
+    <string name="inapp_push_default_action">보러 가기</string>
 </resources>

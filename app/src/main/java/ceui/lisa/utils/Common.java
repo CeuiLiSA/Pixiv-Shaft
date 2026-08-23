@@ -62,7 +62,7 @@ import ceui.lisa.database.UserEntity;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.file.SAFile;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.models.UserContainer;
 import okhttp3.MediaType;
 import okhttp3.Response;
@@ -382,7 +382,7 @@ public class Common {
      * 检查插画是否已经下载过
      * SAF 与否只认 V3 下载配置——遗留 downloadWay 在还原异机备份后会与实际存储脱节（#984）。
      * */
-    public static boolean isIllustDownloaded(IllustsBean illust) {
+    public static boolean isIllustDownloaded(Illust illust) {
         try {
             if (illust.getPage_count() == 1) {
                 if (DownloadsRegistry.isSaf()) {
@@ -409,7 +409,7 @@ public class Common {
     /**
      * 检查插画某页是否已经下载过
      * */
-    public static boolean isIllustDownloaded(IllustsBean illust, int index) {
+    public static boolean isIllustDownloaded(Illust illust, int index) {
         try {
             if (illust.getPage_count() == 1) {
                 if (DownloadsRegistry.isSaf()) {

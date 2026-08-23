@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="416" viewBox="0 0 1200 416" role="img" aria-label="工程上同样讲究">
+<title>工程上同样讲究</title>
+
+  <defs>
+    <linearGradient id="t-brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c6cff"/><stop offset="1" stop-color="#5b6ee1"/>
+    </linearGradient>
+    <linearGradient id="t-text" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#d9d4ff"/><stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <radialGradient id="t-a1" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#7c6cff" stop-opacity=".75"/><stop offset="1" stop-color="#7c6cff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="t-a2" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity=".45"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="t-a3" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#f6339a" stop-opacity=".35"/><stop offset="1" stop-color="#f6339a" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="t-blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="60"/>
+    </filter>
+    <filter id="t-soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+    <filter id="t-grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".07"/></feComponentTransfer>
+    </filter>
+  </defs>
+<clipPath id="t-clip"><rect width="1200" height="416" rx="28"/></clipPath>
+<rect width="1200" height="416" rx="28" fill="#07060f"/>
+<g clip-path="url(#t-clip)" filter="url(#t-blur)"><circle cx="216" cy="62" r="228" fill="url(#t-a1)"/><circle cx="983" cy="374" r="249" fill="url(#t-a2)"/><circle cx="744" cy="41" r="187" fill="url(#t-a3)"/></g>
+<rect width="1200" height="416" rx="28" filter="url(#t-grain)" opacity=".6"/>
+<rect x=".5" y=".5" width="1199" height="415" rx="28" fill="none" stroke="#ffffff" stroke-opacity=".10"/>
+<text x="40" y="58" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="26" font-weight="800" fill="url(#t-text)">工程上同样讲究</text>
+<rect x="40.0" y="96" width="269.5" height="84" rx="18" fill="#ffffff" fill-opacity=".05" stroke="#ffffff" stroke-opacity=".12"/>
+<rect x="40.0" y="114" width="3" height="48" rx="1.5" fill="#7c6cff"/>
+<text x="62.0" y="132" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="17" font-weight="700" fill="#ffffff">Kotlin</text>
+<text x="62.0" y="156" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity=".6">Coroutines · Flow</text>
+<rect x="323.5" y="96" width="269.5" height="84" rx="18" fill="#ffffff" fill-opacity=".05" stroke="#ffffff" stroke-opacity=".12"/>
+<rect x="323.5" y="114" width="3" height="48" rx="1.5" fill="#22d3ee"/>
+<text x="345.5" y="132" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="17" font-weight="700" fill="#ffffff">Material Design 3</text>
+<text x="345.5" y="156" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity=".6">Material You · MD3-E</text>
+<rect x="607.0" y="96" width="269.5" height="84" rx="18" fill="#ffffff" fill-opacity=".05" stroke="#ffffff" stroke-opacity=".12"/>
+<rect x="607.0" y="114" width="3" height="48" rx="1.5" fill="#f6339a"/>
+<text x="629.0" y="132" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="17" font-weight="700" fill="#ffffff">MVVM</text>
+<text x="629.0" y="156" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity=".6">Repository Pattern</text>
+<rect x="890.5" y="96" width="269.5" height="84" rx="18" fill="#ffffff" fill-opacity=".05" stroke="#ffffff" stroke-opacity=".12"/>
+<rect x="890.5" y="114" width="3" height="48" rx="1.5" fill="#a78bfa"/>
+<text x="912.5" y="132" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="17" font-weight="700" fill="#ffffff">Retrofit 2</text>
+<text x="912.5" y="156" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity=".6">OkHttp · SSE 流式</text>
+<rect x="40.0" y="194" width="269.5" height="84" rx="18" fill="#ffffff" fill-opacity=".05" stroke="#ffffff" stroke-opacity=".12"/>
+<rect x="40.0" y="212" width="3" height="48" rx="1.5" fill="#00bb7f"/>
+<text x="62.0" y="230" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="17" font-weight="700" fill="#ffffff">Room</text>
+<text x="62.0" y="254" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity=".6">MMKV</text>
+<rect x="323.5" y="194" width="269.5" height="84" rx="18" fill="#ffffff" fill-opacity=".05" stroke="#ffffff" stroke-opacity=".12"/>
+<rect x="323.5" y="212" width="3" height="48" rx="1.5" fill="#fcbb00"/>
+<text x="345.5" y="230" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="17" font-weight="700" fill="#ffffff">Glide</text>
+<text x="345.5" y="254" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity=".6">Lottie · ZoomImage</text>
+<rect x="607.0" y="194" width="269.5" height="84" rx="18" fill="#ffffff" fill-opacity=".05" stroke="#ffffff" stroke-opacity=".12"/>
+<rect x="607.0" y="212" width="3" height="48" rx="1.5" fill="#7c6cff"/>
+<text x="629.0" y="230" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="17" font-weight="700" fill="#ffffff">自研 Feeds 框架</text>
+<text x="629.0" y="254" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity=".6">本地优先 · 统一分页</text>
+<rect x="890.5" y="194" width="269.5" height="84" rx="18" fill="#ffffff" fill-opacity=".05" stroke="#ffffff" stroke-opacity=".12"/>
+<rect x="890.5" y="212" width="3" height="48" rx="1.5" fill="#22d3ee"/>
+<text x="912.5" y="230" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="17" font-weight="700" fill="#ffffff">自研 witstudio</text>
+<text x="912.5" y="254" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity=".6">自有 UI 基建 · 零 QMUI</text>
+<rect x="40.0" y="292" width="269.5" height="84" rx="18" fill="#ffffff" fill-opacity=".05" stroke="#ffffff" stroke-opacity=".12"/>
+<rect x="40.0" y="310" width="3" height="48" rx="1.5" fill="#f6339a"/>
+<text x="62.0" y="328" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="17" font-weight="700" fill="#ffffff">actionqueue</text>
+<text x="62.0" y="352" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity=".6">持久化限流队列</text>
+<rect x="323.5" y="292" width="269.5" height="84" rx="18" fill="#ffffff" fill-opacity=".05" stroke="#ffffff" stroke-opacity=".12"/>
+<rect x="323.5" y="310" width="3" height="48" rx="1.5" fill="#a78bfa"/>
+<text x="345.5" y="328" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="17" font-weight="700" fill="#ffffff">Cronet</text>
+<text x="345.5" y="352" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity=".6">自定义 DNS · IPv4-only 兜底</text>
+<rect x="607.0" y="292" width="269.5" height="84" rx="18" fill="#ffffff" fill-opacity=".05" stroke="#ffffff" stroke-opacity=".12"/>
+<rect x="607.0" y="310" width="3" height="48" rx="1.5" fill="#00bb7f"/>
+<text x="629.0" y="328" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="17" font-weight="700" fill="#ffffff">Activity Embedding</text>
+<text x="629.0" y="352" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity=".6">平板横屏双栏</text>
+<rect x="890.5" y="292" width="269.5" height="84" rx="18" fill="#ffffff" fill-opacity=".05" stroke="#ffffff" stroke-opacity=".12"/>
+<rect x="890.5" y="310" width="3" height="48" rx="1.5" fill="#fcbb00"/>
+<text x="912.5" y="328" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="17" font-weight="700" fill="#ffffff">Target SDK 36</text>
+<text x="912.5" y="352" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" fill="#ffffff" fill-opacity=".6">Android 16 · Min 24</text>
+</svg>

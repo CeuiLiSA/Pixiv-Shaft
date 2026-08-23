@@ -549,6 +549,9 @@
     <string name="string_322">フォロワー</string>
     <string name="string_323">マイピク</string>
     <string name="string_324">テーマカラー</string>
+    <string name="tag_translation_color">タグ翻訳色</string>
+    <string name="tag_translation_color_follow_theme">テーマに従う</string>
+    <string name="tag_translation_color_pick_from_theme_page">テーマカラーページから選択</string>
     <string name="string_325">設定を開く</string>
     <string name="string_326">開始</string>
     <string name="string_327">停止</string>
@@ -851,6 +854,19 @@
     <string name="created_by_ai">AI生成</string>
     <string name="has_been_downloaded">ダウンロードしました</string>
     <string name="delete_ai_illust">AI生成の作品を非表示</string>
+    <string name="ai_block_strength">非表示の効果レベル</string>
+    <string name="ai_block_strength_hide">完全に非表示</string>
+    <string name="ai_block_strength_blur">ぼかし＋パーティクル</string>
+    <string name="ai_block_exempt_authors">除外する作者リスト</string>
+    <string name="ai_block_exempt_hint">作者 ID を 1 件ずつ追加・削除できます\nリストを変更した後はアプリの再起動を推奨します</string>
+    <string name="ai_block_exempt_add">追加</string>
+    <string name="ai_block_exempt_input_hint">作者 ID を入力</string>
+    <string name="ai_block_exempt_empty">除外作者はまだいません</string>
+    <string name="ai_block_exempt_save">保存</string>
+    <string name="ai_block_exempt_invalid">有効な作者 ID を入力してください</string>
+    <string name="ai_block_exempt_duplicate">この作者 ID は追加済みです</string>
+    <string name="ai_block_exempt_none">未設定</string>
+    <string name="ai_block_exempt_count">%1$d 件の作者 ID</string>
     <string name="trying_login">ログイン中</string>
     <string name="userTab_other">プロフィール</string>
     <string name="userTab_collection">お気に入り</string>
@@ -2721,4 +2737,7 @@
     <string name="nana7mi_quota_snack_session">5 時間の上限に達しました。%1$s後に回復</string>
     <string name="nana7mi_quota_snack_weekly">週間上限に達しました。%1$s後に回復</string>
     <string name="nana7mi_quota_snack_action">使用状況</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">わかった</string>
+    <string name="inapp_push_default_action">見てみる</string>
 </resources>

@@ -7,7 +7,7 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.download.RecordedPageProbe
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.ui.bulk.FetchEvent
@@ -106,7 +106,7 @@ object RenameSweeper {
                     needsEnrich++
                     continue
                 }
-                val bean = runCatching { Shaft.sGson.fromJson(gson, IllustsBean::class.java) }
+                val bean = runCatching { Shaft.sGson.fromJson(gson, Illust::class.java) }
                     .getOrNull()
                 if (bean == null || bean.id <= 0) {
                     broken++
@@ -118,7 +118,7 @@ object RenameSweeper {
                 // 且它本来就不是用户目录里的成品文件。只有 .gif 行（导入的成品）参与改名。
                 // 成品后缀现在有两种(动图保存格式 GIF / MP4),两种都参与改名。
                 val ugoiraIsMp4 = row.fileName.endsWith(".mp4", ignoreCase = true)
-                if (bean.isGif && !ugoiraIsMp4 && !row.fileName.endsWith(".gif", ignoreCase = true)) {
+                if (bean.isGif() && !ugoiraIsMp4 && !row.fileName.endsWith(".gif", ignoreCase = true)) {
                     ugoiraCacheZips++
                     continue
                 }
@@ -134,7 +134,7 @@ object RenameSweeper {
                 // 动图成品走 Ugoira bucket 的模板；其余走 Illust bucket。后缀按**这一行的
                 // 实际格式**算,不看当前设置 —— 切成 mp4 之后早先存的 GIF 仍然是 GIF。
                 val newName = runCatching {
-                    if (bean.isGif) {
+                    if (bean.isGif()) {
                         DownloadItems.ugoiraRelativePath(bean, ugoiraIsMp4).filename
                     } else {
                         DownloadItems.illustRelativePath(bean, pageIndex).filename

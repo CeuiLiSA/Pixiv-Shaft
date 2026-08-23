@@ -10,7 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.download.IllustDownload
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.imageloader.ImageLoaderV3
@@ -37,7 +37,7 @@ class IllustAiHelper(
     private val statusText: TextView get() = rootView.findViewById(R.id.ai_status_text)
     private val etaText: TextView get() = rootView.findViewById(R.id.ai_eta_text)
 
-    fun performRembg(illust: IllustsBean, model: RembgModel) {
+    fun performRembg(illust: Illust, model: RembgModel) {
         val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
             ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
 
@@ -87,7 +87,7 @@ class IllustAiHelper(
     }
 
 
-    fun performUpscale(illust: IllustsBean, model: UpscaleModel = UpscaleModel.REAL_ESRGAN) {
+    fun performUpscale(illust: Illust, model: UpscaleModel = UpscaleModel.REAL_ESRGAN) {
         val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
             ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
 
@@ -102,7 +102,7 @@ class IllustAiHelper(
     }
 
     fun restoreUpscaleIfRunning(illustId: Int) {
-        val key = UpscaleTask.illustKey(illustId)
+        val key = UpscaleTask.illustKey(illustId.toLong())
         val task = UpscaleTaskPool.getTask(key) ?: return
         when (task.status.value) {
             UpscaleStatus.Running, UpscaleStatus.Done -> observeUpscaleTask(task)

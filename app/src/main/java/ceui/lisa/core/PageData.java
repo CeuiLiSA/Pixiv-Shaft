@@ -5,22 +5,22 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 
-public class PageData implements IDWithList<IllustsBean>{
+public class PageData implements IDWithList<Illust>{
 
     private final String uuid;
     private String nextUrl;
-    private final List<IllustsBean> illustList;
+    private final List<Illust> illustList;
     private final AtomicBoolean loadingNextPage = new AtomicBoolean(false);
 
-    public PageData(List<IllustsBean> illustList) {
+    public PageData(List<Illust> illustList) {
         this.uuid = UUID.randomUUID().toString();
         this.nextUrl = null;
         this.illustList = new ArrayList<>(illustList);
     }
 
-    public PageData(String uuid, String nextUrl, List<IllustsBean> illustList) {
+    public PageData(String uuid, String nextUrl, List<Illust> illustList) {
         this.uuid = uuid;
         this.nextUrl = nextUrl;
         this.illustList = new ArrayList<>(illustList);
@@ -32,7 +32,7 @@ public class PageData implements IDWithList<IllustsBean>{
     }
 
     @Override
-    public List<IllustsBean> getList() {
+    public List<Illust> getList() {
         return illustList;
     }
 

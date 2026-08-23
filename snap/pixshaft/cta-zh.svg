@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="250" viewBox="0 0 1200 250" role="img" aria-label="现在就开始逛 Pixiv">
+<title>现在就开始逛 Pixiv</title>
+
+  <defs>
+    <linearGradient id="k-brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c6cff"/><stop offset="1" stop-color="#5b6ee1"/>
+    </linearGradient>
+    <linearGradient id="k-text" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#d9d4ff"/><stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <radialGradient id="k-a1" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#7c6cff" stop-opacity=".75"/><stop offset="1" stop-color="#7c6cff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="k-a2" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity=".45"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="k-a3" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#f6339a" stop-opacity=".35"/><stop offset="1" stop-color="#f6339a" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="k-blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="60"/>
+    </filter>
+    <filter id="k-soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+    <filter id="k-grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".07"/></feComponentTransfer>
+    </filter>
+  </defs>
+<clipPath id="k-clip"><rect width="1200" height="250" rx="28"/></clipPath>
+<rect width="1200" height="250" rx="28" fill="#07060f"/>
+<g clip-path="url(#k-clip)" filter="url(#k-blur)"><circle cx="216" cy="37" r="137" fill="url(#k-a1)"/><circle cx="983" cy="225" r="150" fill="url(#k-a2)"/><circle cx="744" cy="25" r="112" fill="url(#k-a3)"/></g>
+<rect width="1200" height="250" rx="28" filter="url(#k-grain)" opacity=".6"/>
+<rect x=".5" y=".5" width="1199" height="249" rx="28" fill="none" stroke="#ffffff" stroke-opacity=".10"/>
+<rect x="518.3" y="36.0" width="163.5" height="30" rx="15.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="538.3" cy="51.0" r="4" fill="#22d3ee"/>
+<text x="550.3" y="55.7" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="13" font-weight="600" fill="#ffffff" fill-opacity=".88">免费 · 开源 · 无广告</text>
+<text x="600.0" y="122" text-anchor="middle" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="40" font-weight="800" fill="url(#k-text)">现在就开始逛 Pixiv</text>
+<text x="600.0" y="156" text-anchor="middle" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" fill="#ffffff" fill-opacity=".7">Google Play 一键安装，或在 GitHub 下载最新 APK。完全开源，欢迎 Star 与贡献。</text>
+<rect x="420.4" y="180.0" width="172.8" height="44" rx="22.0" fill="url(#k-brand)"/>
+<text x="444.4" y="207.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity="1">Google Play 下载</text>
+<rect x="607.2" y="180.0" width="172.3" height="44" rx="22.0" fill="#ffffff" fill-opacity=".08" stroke="#ffffff" stroke-opacity=".22"/>
+<text x="631.2" y="207.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">GitHub Releases</text>
+</svg>

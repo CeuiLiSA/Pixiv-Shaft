@@ -18,8 +18,8 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.database.IllustHistoryEntity
-import ceui.lisa.models.IllustsBean
-import ceui.lisa.models.NovelBean
+import ceui.loxia.Illust
+import ceui.loxia.Novel
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
@@ -30,7 +30,7 @@ import java.util.Locale
 class HistoryV3Adapter(
     private val context: Context,
     private val items: MutableList<IllustHistoryEntity>,
-    private val allIllustsProvider: () -> List<IllustsBean>,
+    private val allIllustsProvider: () -> List<Illust>,
     private val onRequestDelete: (position: Int, entity: IllustHistoryEntity) -> Unit,
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -107,7 +107,7 @@ class HistoryV3Adapter(
         private val delete: ImageView = itemView.findViewById(R.id.delete_item)
 
         fun bind(entity: IllustHistoryEntity) {
-            val illust = Shaft.sGson.fromJson(entity.illustJson, IllustsBean::class.java) ?: return
+            val illust = Shaft.sGson.fromJson(entity.illustJson, Illust::class.java) ?: return
             val width = (context.resources.displayMetrics.widthPixels -
                     context.resources.getDimensionPixelSize(R.dimen.four_dp) * 6) / 2
             val imageHeight = if (illust.width > 0) {
@@ -127,7 +127,7 @@ class HistoryV3Adapter(
             time.text = timeFormat.format(entity.time)
 
             when {
-                illust.isGif -> {
+                illust.isGif() -> {
                     pSize.isVisible = true
                     pSize.text = "GIF"
                 }
@@ -149,7 +149,7 @@ class HistoryV3Adapter(
                 if (pos != RecyclerView.NO_POSITION) onRequestDelete(pos, entity)
             }
             author.setOnClickListener {
-                illust.user?.id?.let { openUser(it) }
+                illust.user?.id?.let { openUser(it.toInt()) }
             }
         }
     }
@@ -162,7 +162,7 @@ class HistoryV3Adapter(
         private val delete: ImageView = itemView.findViewById(R.id.delete_item)
 
         fun bind(entity: IllustHistoryEntity) {
-            val novel = Shaft.sGson.fromJson(entity.illustJson, NovelBean::class.java) ?: return
+            val novel = Shaft.sGson.fromJson(entity.illustJson, Novel::class.java) ?: return
             Glide.with(context)
                 .load(GlideUtil.getUrl(novel.image_urls?.medium))
                 .placeholder(R.color.v3_surface_2)
@@ -182,12 +182,12 @@ class HistoryV3Adapter(
                 if (pos != RecyclerView.NO_POSITION) onRequestDelete(pos, entity)
             }
             author.setOnClickListener {
-                novel.user?.id?.let { openUser(it) }
+                novel.user?.id?.let { openUser(it.toInt()) }
             }
         }
     }
 
-    private fun openIllust(illust: IllustsBean) {
+    private fun openIllust(illust: Illust) {
         val all = allIllustsProvider()
         if (all.isEmpty()) return
         val pageData = PageData(all)
@@ -200,7 +200,7 @@ class HistoryV3Adapter(
         context.startActivity(intent)
     }
 
-    private fun openNovel(novel: NovelBean) {
+    private fun openNovel(novel: Novel) {
         if (context.tryOpenNovelReaderDirect(novel.id.toLong())) return
         val intent = Intent(context, TemplateActivity::class.java).apply {
             putExtra(Params.CONTENT, novel)

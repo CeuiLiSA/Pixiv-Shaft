@@ -5,7 +5,7 @@ import android.net.Uri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.download.model.RelativePath
@@ -32,13 +32,13 @@ import java.util.Locale
  * 缺漏页，或对账多 p 下载完整性（用户的核心使用场景）。
  *
  * 流程：
- *  1. 调用方在 IO 线程把 [IllustsBean] 列表喂给 [originalUrlsOf] 抽出 url 列表
+ *  1. 调用方在 IO 线程把 [Illust] 列表喂给 [originalUrlsOf] 抽出 url 列表
  *  2. 主线程 [present] 弹二选一菜单：保存为 .txt / 通过系统分享面板发出
  *  3. 落盘走 [ceui.pixiv.download.Downloads.openRaw]
  *     ([Bucket.Log], `ShaftFiles/pixiv-links-yyyyMMdd-HHmmss.txt`)。
  *  4. 落盘成功后**尝试**用第三方 app 打开 .txt，见 [tryOpenSavedFile]。
  *
- * 调用方负责把"从 IllustsBean 抽 url"放在 IO 线程，[present] 主线程接收
+ * 调用方负责把"从 Illust 抽 url"放在 IO 线程，[present] 主线程接收
  * 现成的 [List]<String>。
  */
 internal object DownloadExportLinks {
@@ -184,15 +184,15 @@ internal object DownloadExportLinks {
  * 单个 illust → 它的 N 个 original 直链。
  *
  * pixiv API 的两套互斥结构：
- *  - 多 P：[IllustsBean.meta_pages] 非空，每项的 `image_urls.original` 是直链
- *  - 单 P：[IllustsBean.meta_single_page].original_image_url 是直链
+ *  - 多 P：[Illust.meta_pages] 非空，每项的 `image_urls.original` 是直链
+ *  - 单 P：[Illust.meta_single_page].original_image_url 是直链
  *
- * 历史数据 / 老 API 偶尔出现两边都空但 [IllustsBean.image_urls].original 有
+ * 历史数据 / 老 API 偶尔出现两边都空但 [Illust.image_urls].original 有
  * 值的情况，作为 fallback 不丢导出。空字符串过滤掉。
  *
- * 调用方应该在 IO 线程内调用——遍历几千个 IllustsBean 主线程会卡帧。
+ * 调用方应该在 IO 线程内调用——遍历几千个 Illust 主线程会卡帧。
  */
-internal fun originalUrlsOf(illust: IllustsBean): List<String> {
+internal fun originalUrlsOf(illust: Illust): List<String> {
     val pages = illust.meta_pages
     if (!pages.isNullOrEmpty()) {
         return pages.mapNotNull { it.image_urls?.original?.takeIf(String::isNotEmpty) }

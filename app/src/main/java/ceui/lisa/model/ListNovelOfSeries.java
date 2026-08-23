@@ -3,10 +3,10 @@ package ceui.lisa.model;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.models.NovelBean;
+import ceui.loxia.Novel;
 import ceui.lisa.models.NovelSeriesItem;
 
-public class ListNovelOfSeries implements ListShow<NovelBean> {
+public class ListNovelOfSeries implements ListShow<Novel> {
 
 
     /**
@@ -18,10 +18,10 @@ public class ListNovelOfSeries implements ListShow<NovelBean> {
      */
 
     private NovelSeriesItem novel_series_detail;
-    private NovelBean novel_series_first_novel;
-    private NovelBean novel_series_latest_novel;
+    private Novel novel_series_first_novel;
+    private Novel novel_series_latest_novel;
     private String next_url;
-    private List<NovelBean> novels;
+    private List<Novel> novels;
 
     public NovelSeriesItem getNovel_series_detail() {
         return novel_series_detail;
@@ -31,19 +31,19 @@ public class ListNovelOfSeries implements ListShow<NovelBean> {
         this.novel_series_detail = novel_series_detail;
     }
 
-    public NovelBean getNovel_series_first_novel() {
+    public Novel getNovel_series_first_novel() {
         return novel_series_first_novel;
     }
 
-    public void setNovel_series_first_novel(NovelBean novel_series_first_novel) {
+    public void setNovel_series_first_novel(Novel novel_series_first_novel) {
         this.novel_series_first_novel = novel_series_first_novel;
     }
 
-    public NovelBean getNovel_series_latest_novel() {
+    public Novel getNovel_series_latest_novel() {
         return novel_series_latest_novel;
     }
 
-    public void setNovel_series_latest_novel(NovelBean novel_series_latest_novel) {
+    public void setNovel_series_latest_novel(Novel novel_series_latest_novel) {
         this.novel_series_latest_novel = novel_series_latest_novel;
     }
 
@@ -55,16 +55,16 @@ public class ListNovelOfSeries implements ListShow<NovelBean> {
         this.next_url = next_url;
     }
 
-    public List<NovelBean> getNovels() {
+    public List<Novel> getNovels() {
         return novels;
     }
 
-    public void setNovels(List<NovelBean> novels) {
+    public void setNovels(List<Novel> novels) {
         this.novels = novels;
     }
 
     @Override
-    public List<NovelBean> getList() {
+    public List<Novel> getList() {
         return novels;
     }
 

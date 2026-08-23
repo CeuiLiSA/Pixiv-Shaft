@@ -5,7 +5,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.CancellationException
@@ -21,7 +21,7 @@ import timber.log.Timber
  * （[ceui.lisa.fragments.FragmentIllust]）共用同一条链路，避免两套复制品各自漂移
  * （生成参数、进度文案、异常处理只有一份）。
  */
-internal fun Fragment.showSnapshotCreateDialog(illust: IllustsBean) {
+internal fun Fragment.showSnapshotCreateDialog(illust: Illust) {
     val builder = WitDialog.MultiCheckableDialogBuilder(requireContext())
     builder.setTitle(R.string.snapshot_create)
     builder.addItem(getString(R.string.snapshot_include_comments)) { _, _ -> }
@@ -44,7 +44,7 @@ internal fun Fragment.showSnapshotCreateDialog(illust: IllustsBean) {
 }
 
 private fun Fragment.startSnapshotGeneration(
-    illust: IllustsBean,
+    illust: Illust,
     includeComments: Boolean,
     includeOriginal: Boolean,
 ) {

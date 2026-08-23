@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.BackEventCompat
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.core.content.FileProvider
@@ -25,7 +26,7 @@ import ceui.lisa.fragments.FragmentImageDetail
 import ceui.lisa.helper.ImageViewerTransition
 import ceui.lisa.helper.PageTransformerHelper
 import ceui.lisa.view.DragDismissLayout
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
@@ -88,7 +89,7 @@ import timber.log.Timber
  * 图片二级详情
  */
 class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
-    var mIllustsBean: IllustsBean? = null
+    var mIllust: Illust? = null
         private set
 
     val isSnapshotMode: Boolean
@@ -172,23 +173,23 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         setupViewerTransition(btnAi)
         if ("二级详情" == dataType) {
             currentPage = findViewById(R.id.current_page)
-            mIllustsBean = intent.getSerializableExtra("illust") as IllustsBean?
+            mIllust = intent.getSerializableExtra("illust") as Illust?
             index = intent.getIntExtra("index", 0)
-            if (mIllustsBean == null) {
+            if (mIllust == null) {
                 // 没有 bean 就装配不了任何点击语义,别留一个看得见点不动的胶囊
                 findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
                 return
             }
             // 译图仓库按作品分桶(app 级):绑定后本页各 Fragment 观察到的就是这部作品的译图,
             // 包括「翻译整部」在别的页面跑出来的
-            translationViewModel.bindIllust(mIllustsBean!!.id.toLong())
+            translationViewModel.bindIllust(mIllust!!.id.toLong())
             val btnAiMenu = findViewById<ImageView>(R.id.btn_ai_menu)
             btnAiMenu.visibility = View.VISIBLE
             btnAiMenu.setOnClickListener { anchor ->
-                val illust = mIllustsBean ?: return@setOnClickListener
+                val illust = mIllust ?: return@setOnClickListener
                 // 动图(ugoira)的 original 是 zip,画质增强/抠图没法处理,不展示这两项(对齐 V3 详情页)。
                 val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
-                if (!illust.isGif) {
+                if (!illust.isGif()) {
                     actions += getString(R.string.string_ai_upscale) to {
                         ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
                             performAiUpscale(illust, baseBind!!.viewPager.currentItem, model)
@@ -226,7 +227,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 }
 
                 override fun getCount(): Int {
-                    return mIllustsBean!!.page_count
+                    return mIllust!!.page_count
                 }
             }
             baseBind!!.viewPager.currentItem = index
@@ -243,7 +244,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                             Locale.getDefault(),
                             "第 %d/%d P",
                             i + 1,
-                            mIllustsBean!!.page_count
+                            mIllust!!.page_count
                         )
                     )
                 }
@@ -251,7 +252,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 override fun onPageScrollStateChanged(i: Int) {
                 }
             })
-            if (mIllustsBean!!.page_count == 1) {
+            if (mIllust!!.page_count == 1) {
                 currentPage?.setVisibility(View.INVISIBLE)
             } else {
                 currentPage?.setText(
@@ -259,7 +260,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                         Locale.getDefault(),
                         "第 %d/%d P",
                         index + 1,
-                        mIllustsBean!!.page_count
+                        mIllust!!.page_count
                     )
                 )
             }
@@ -387,8 +388,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     private fun bindSnapshotViewer(data: SnapshotViewerData) {
         if (isFinishing || isDestroyed) return
-        mIllustsBean = data.localizeIllust()
-        val bean = mIllustsBean ?: return
+        mIllust = data.localizeIllust()
+        val bean = mIllust ?: return
         // 译图仓库按作品分桶，不 bind 的话「翻译整部」跑完了本页也收不到产物(译图不回显)。
         translationViewModel.bindIllust(bean.id.toLong())
         val pageCount = bean.page_count.coerceAtLeast(1)
@@ -436,17 +437,17 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         fabBind.fabDivider.visibility = View.GONE
         fabBind.fabBookmark.setOnClickListener { /* 快照只读，不触发收藏 */ }
         fabBind.fabBookmark.setOnLongClickListener { true }
-        fabBar.setBookmarked(mIllustsBean?.isIs_bookmarked ?: false)
+        fabBar.setBookmarked(mIllust?.isBookmarked ?: false)
     }
 
     /** 快照大图保留 AI 菜单（数据源为本地快照文件），不显示下载相关动作。 */
     private fun setupSnapshotAiMenu() {
-        val illust = mIllustsBean ?: return
+        val illust = mIllust ?: return
         val btnAiMenu = findViewById<ImageView>(R.id.btn_ai_menu)
         btnAiMenu.visibility = View.VISIBLE
         btnAiMenu.setOnClickListener { anchor ->
             val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
-            if (!illust.isGif) {
+            if (!illust.isGif()) {
                 actions += getString(R.string.string_ai_upscale) to {
                     ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
                         performAiUpscale(illust, baseBind!!.viewPager.currentItem, model)
@@ -535,17 +536,17 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         fabBar.attachBottomInsetMargin(findViewById(R.id.fab_bar_row))
 
         // 收藏态:先按 intent 带来的 bean 画一次,再观察 ObjectPool 里同 id 的权威 bean(若有)
-        mIllustsBean?.let { fabBar.setBookmarked(it.isIs_bookmarked) }
-        mIllustsBean?.id?.toLong()?.let { id ->
-            ObjectPool.get<IllustsBean>(id).observe(this) { bean ->
-                bean?.let { fabBar.setBookmarked(it.isIs_bookmarked) }
+        mIllust?.let { fabBar.setBookmarked(it.isBookmarked) }
+        mIllust?.id?.toLong()?.let { id ->
+            ObjectPool.get<Illust>(id).observe(this) { bean ->
+                bean?.let { fabBar.setBookmarked(it.isBookmarked) }
             }
         }
 
         fabBind.fabDownloadContainer.setOnClick {
             val illust = likeTargetIllust() ?: return@setOnClick
             val page = baseBind!!.viewPager.currentItem
-            if (illust.isGif) {
+            if (illust.isGif()) {
                 // ugoira/gif 要 zip→帧→gif 渲染,简单文件拷贝救不了,保留原下载链路(它做 unzipAndPlay)。
                 IllustDownload.downloadIllustCertainPage(illust, page, mContext as BaseActivity<*>)
                 autoLikeAfterDownloadIfNeeded(illust, fabBar)
@@ -567,7 +568,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
         fabBind.fabBookmark.setOnClick {
             val illust = likeTargetIllust() ?: return@setOnClick
-            val willBookmark = !illust.isIs_bookmarked
+            val willBookmark = !illust.isBookmarked
             // 乐观着色,权威态由上面的 ObjectPool 观察兜底(与 ArtworkV3Fragment 同款)
             fabBar.setBookmarked(willBookmark)
             PixivOperate.postLikeDefaultStarType(illust)
@@ -578,18 +579,18 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     /** 收藏/取消收藏作用于整个作品:优先取 ObjectPool 里的权威 bean(与一级详情共享乐观态),退回 intent 副本。 */
-    private fun likeTargetIllust(): IllustsBean? =
-        mIllustsBean?.let { ObjectPool.get<IllustsBean>(it.id.toLong()).value ?: it }
+    private fun likeTargetIllust(): Illust? =
+        mIllust?.let { ObjectPool.get<Illust>(it.id.toLong()).value ?: it }
 
-    private fun autoLikeAfterDownloadIfNeeded(illust: IllustsBean, fabBar: V3FabBarController) {
-        if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {
+    private fun autoLikeAfterDownloadIfNeeded(illust: Illust, fabBar: V3FabBarController) {
+        if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
             fabBar.setBookmarked(true)
             PixivOperate.postLikeDefaultStarType(illust)
         }
     }
 
     private fun checkDownload(i: Int) {
-        val illust = mIllustsBean ?: return
+        val illust = mIllust ?: return
         lifecycleScope.launch {
             val downloaded = withContext(Dispatchers.IO) {
                 Common.isIllustDownloaded(illust, i)
@@ -607,7 +608,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      * (findDownloadedPageUri 仍查 DB)保持一致。按钮隐藏靠 [Common.isIllustDownloaded] → 新后端 `exists()` 自动生效。
      * 不再走旧 `IllustDownload` / 不重下原图。
      */
-    private suspend fun saveLoadedIllustPage(illust: IllustsBean, page: Int, imageUrl: String): Boolean =
+    private suspend fun saveLoadedIllustPage(illust: Illust, page: Int, imageUrl: String): Boolean =
         withContext(Dispatchers.IO) {
             val file = try {
                 ImageLoaderV3.obtain(imageUrl).awaitFile()
@@ -663,9 +664,34 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     override fun initData() {
         // 返回键/返回手势与下拉收掉共用 dismissViewer 收场动画。targetSdk 35+ 后预测式返回
         // 默认开启,系统不再回调 onBackPressed,必须用 OnBackPressedDispatcher 接管。
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+        //
+        // 这页是透明窗口(身后一级详情可见),系统不会给它播跨 Activity 预测式动画,
+        // 所以 callback 常开、自己做跟手:手势进度 → 内容缩小/朝手势方向平移、黑底变淡
+        // (ImageViewerTransition.onBackGestureProgress);取消弹回;提交走统一收场,
+        // 从当前缩放态接着缩回缩略图矩形/淡出,不跳变。
+        // 不带 owner 注册(与 TemplateActivity 同理):垫在所有 Fragment callback 之下。
+        onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
+            override fun handleOnBackStarted(backEvent: BackEventCompat) {
+                viewerTransition?.onBackGestureStarted()
+            }
+
+            override fun handleOnBackProgressed(backEvent: BackEventCompat) {
+                viewerTransition?.onBackGestureProgress(
+                    backEvent.progress,
+                    fromLeftEdge = backEvent.swipeEdge == BackEventCompat.EDGE_LEFT,
+                )
+            }
+
+            override fun handleOnBackCancelled() {
+                viewerTransition?.springBack()
+            }
+
             override fun handleOnBackPressed() {
-                if (maybeConfirmAiExit()) return
+                if (maybeConfirmAiExit()) {
+                    // 手势已经把内容缩下去了,弹确认框时先复位,选「继续翻译」才不会停在半缩状态
+                    viewerTransition?.springBack()
+                    return
+                }
                 finishViewer()
             }
         })
@@ -729,7 +755,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         super.onDestroy()
     }
 
-    private fun performAiRembg(illust: IllustsBean, pageIndex: Int, model: RembgModel) {
+    private fun performAiRembg(illust: Illust, pageIndex: Int, model: RembgModel) {
         val imageUrl = IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
             ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE) ?: return
 
@@ -790,7 +816,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      * 这里只负责模型存在性检查 + 拉图 + 把 File 喂给 VM。
      * Overlay UI 由 [observeTranslationStatus] 单独驱动。
      */
-    private fun performAiMangaTranslateInline(illust: IllustsBean, pageIndex: Int) {
+    private fun performAiMangaTranslateInline(illust: Illust, pageIndex: Int) {
         val ocrModel = MangaOcrModel.MANGA_OCR_BASE
         val ctdModel = ComicTextDetectorModel.CTD_BASE
         val ocrReady = MangaOcrModelManager.isModelReady(this, ocrModel)
@@ -828,7 +854,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      * 任务不跟本页生命周期走:进度在每个页面都挂着的悬浮小窗里,退出看图页也继续,
      * 回来译图都在(本页 Fragment 观察的就是中心里这部作品的桶)。
      */
-    private fun performAiMangaTranslateBatch(illust: IllustsBean) {
+    private fun performAiMangaTranslateBatch(illust: Illust) {
         val ocrModel = MangaOcrModel.MANGA_OCR_BASE
         val ctdModel = ComicTextDetectorModel.CTD_BASE
         val ocrReady = MangaOcrModelManager.isModelReady(this, ocrModel)
@@ -858,7 +884,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      * sheet,本机只下一次),通过后只往 VM 投一个圈选请求,真正的框选 + 流水线由当前页
      * [FragmentImageDetail] 接管 —— Activity 不直接持 Fragment 引用,也不碰图片触摸。
      */
-    private fun performAiMangaTranslateManual(illust: IllustsBean, pageIndex: Int) {
+    private fun performAiMangaTranslateManual(illust: Illust, pageIndex: Int) {
         val ocrModel = MangaOcrModel.MANGA_OCR_BASE
         val ctdModel = ComicTextDetectorModel.CTD_BASE
         val ocrReady = MangaOcrModelManager.isModelReady(this, ocrModel)
@@ -930,7 +956,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             null
         }
 
-    private fun performSetWallpaper(illust: IllustsBean, pageIndex: Int) {
+    private fun performSetWallpaper(illust: Illust, pageIndex: Int) {
         val imageUrl = IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
         if (imageUrl == null) {
             Timber.w("[ImageDetail] set wallpaper: original url missing page=%d", pageIndex)
@@ -978,7 +1004,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         return FileProvider.getUriForFile(this, "$packageName.provider", target)
     }
 
-    private fun performAiUpscale(illust: IllustsBean, pageIndex: Int, model: UpscaleModel) {
+    private fun performAiUpscale(illust: Illust, pageIndex: Int, model: UpscaleModel) {
         val imageUrl = IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
             ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE) ?: return
 

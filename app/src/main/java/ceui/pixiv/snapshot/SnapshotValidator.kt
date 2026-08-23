@@ -1,7 +1,7 @@
 package ceui.pixiv.snapshot
 
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import java.io.File
 
 /**
@@ -16,7 +16,7 @@ object SnapshotValidator {
         if (!File(snapshotDir, SNAPSHOT_MANIFEST).isFile) {
             throw SnapshotException("缺少 manifest.json")
         }
-        val illust = readJson<IllustsBean>(File(snapshotDir, SNAPSHOT_ILLUST_JSON))
+        val illust = readJson<Illust>(File(snapshotDir, SNAPSHOT_ILLUST_JSON))
             ?: throw SnapshotException("缺少或无法解析 illust.json")
         val assets = readJson<SnapshotAssets>(File(snapshotDir, SNAPSHOT_ASSETS_JSON))
             ?: SnapshotAssets()

@@ -38,9 +38,8 @@ import ceui.lisa.databinding.SectionV3RelatedHeaderBinding
 import ceui.lisa.databinding.SectionV3SeriesBinding
 import ceui.lisa.databinding.SectionV3StatsBinding
 import ceui.lisa.databinding.SectionV3TagsBinding
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.models.TagsBean
-import ceui.lisa.models.UserBean
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
@@ -51,6 +50,8 @@ import ceui.lisa.utils.SearchTypeUtil
 import ceui.loxia.Comment
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressTextButton
+import ceui.loxia.User
+import ceui.loxia.toTagsBeans
 import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.FeedCell
@@ -85,7 +86,7 @@ import java.text.NumberFormat
 // ── 区块条目 ────────────────────────────────────────────────────────────────
 
 class ArtworkHeroItem(
-    val illust: IllustsBean,
+    val illust: Illust,
     /**
      * 信息区那个补位的翻译按钮是否显示:只在整页**没有**简介区块时显示,否则和简介区自带的
      * 翻译按钮重复。初值按 bean 的 caption 判(与 [ArtworkV3FeedSource.buildArtworkHeaderItems]
@@ -101,7 +102,7 @@ class ArtworkHeroItem(
     override fun hashCode() = System.identityHashCode(illust) * 31 + showTranslate.hashCode()
 }
 
-class ArtworkSeriesItem(val illust: IllustsBean) : FeedItem {
+class ArtworkSeriesItem(val illust: Illust) : FeedItem {
     override val feedKey: Any get() = "artwork_series"
     override fun equals(other: Any?) = other is ArtworkSeriesItem && other.illust === illust
     override fun hashCode() = System.identityHashCode(illust)
@@ -111,17 +112,17 @@ data class ArtworkDescItem(val caption: String, val title: String = "") : FeedIt
     override val feedKey: Any get() = "artwork_desc"
 }
 
-class ArtworkStatsItem(val illust: IllustsBean) : FeedItem {
+class ArtworkStatsItem(val illust: Illust) : FeedItem {
     override val feedKey: Any get() = "artwork_stats"
     override fun equals(other: Any?) = other is ArtworkStatsItem && other.illust === illust
     override fun hashCode() = System.identityHashCode(illust)
 }
 
 class ArtworkTagsItem(
-    val illust: IllustsBean,
+    val illust: Illust,
     /**
-     * issue #1023: 标签能被用户就地增删（pixiv 社区标签，见 [PixivTagEditOperate]），改的是
-     * **同一个 bean 实例**上的 tags —— 只按 illust 身份判等的话 DiffUtil 看不见这种变化，
+     * issue #1023: 标签能被用户就地增删（pixiv 社区标签，见 [PixivTagEditOperate]），池里会换成
+     * 带新 tags 的实例 —— 只按 illust 身份判等的话 DiffUtil 看不见这种变化，
      * 编辑完 chip 不刷新。和 [ArtworkArtistItem] 把关注态纳入判等是同一个道理。
      */
     private val tagSignature: String =
@@ -136,7 +137,7 @@ class ArtworkTagsItem(
 
 /** 关注态参与相等性:关注切换时只这条重绑。 */
 class ArtworkArtistItem(
-    val illust: IllustsBean,
+    val illust: Illust,
     val isFollowed: Boolean = resolveIsFollowed(illust),
     // 可见性必须进 equals：从画师主页拿到「原来是私密关注」返回时,is_followed 没变,
     // 只有这个字段变了。不带上它 DiffUtil 就判定条目没动,作者栏会一直停在「已关注」。
@@ -153,20 +154,23 @@ class ArtworkArtistItem(
     companion object {
         // illust.user 只是快照。作者主页打开会 ObjectPool.updateUser 换掉池条目, illust.user 变孤儿。
         // 权威关注态先读池,池空再退回快照。对齐 legacy ArtworkDetailItem.Artist.resolveIsFollowed。
-        fun resolveIsFollowed(illust: IllustsBean): Boolean {
+        fun resolveIsFollowed(illust: Illust): Boolean {
             val user = illust.user ?: return false
-            return ObjectPool.get<UserBean>(user.id.toLong()).value?.isIs_followed
-                ?: user.isIs_followed
+            return resolveIsFollowed(user)
         }
 
-        fun resolvePrivateFollow(illust: IllustsBean): Boolean {
+        fun resolveIsFollowed(user: User): Boolean {
+            return ObjectPool.get<User>(user.id).value?.is_followed ?: (user.is_followed == true)
+        }
+
+        fun resolvePrivateFollow(illust: Illust): Boolean {
             val user = illust.user ?: return false
-            return FollowVisibility.isPrivate(user.id.toLong())
+            return FollowVisibility.isPrivate(user.id)
         }
     }
 }
 
-class ArtworkDetailPanelItem(val illust: IllustsBean) : FeedItem {
+class ArtworkDetailPanelItem(val illust: Illust) : FeedItem {
     override val feedKey: Any get() = "artwork_detail_panel"
     override fun equals(other: Any?) = other is ArtworkDetailPanelItem && other.illust === illust
     override fun hashCode() = System.identityHashCode(illust)
@@ -221,7 +225,7 @@ data class ArtworkCommentsItem(
 data class ArtworkAuthorWorksItem(
     val authorName: String,
     val userId: Int,
-    val works: List<IllustsBean>? = null,
+    val works: List<Illust>? = null,
 ) : FeedItem {
     override val feedKey: Any get() = "artwork_author_works"
     override fun equals(other: Any?) =
@@ -296,7 +300,8 @@ internal fun ArtworkV3Fragment.seriesRenderer() =
             }
             val intent = Intent(ctx, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
-            intent.putExtra(Params.MANGA_SERIES_ID, series.id)
+            // series.id 是 Long：走 TemplateActivity 认的 ARG_SERIES_ID(long)，别塞进 getIntExtra 读的 MANGA_SERIES_ID
+            intent.putExtra(IllustSeriesFragment.ARG_SERIES_ID, series.id)
             ctx.startActivity(intent)
         }
         applyTouchScale(b.root)
@@ -325,6 +330,9 @@ internal fun ArtworkV3Fragment.descRenderer() =
             descExpanded = !descExpanded
             applyDescCollapseState(b)
             if (!descExpanded) scrollDescBackIntoView(b.root)
+        }
+        b.descDownload.setOnClickListener {
+            downloadDescCaption()
         }
         b.descTranslate.setOnClickListener {
             val plain = (descFullCaption ?: HtmlCompat.fromHtml(
@@ -410,8 +418,8 @@ internal fun ArtworkV3Fragment.statsRenderer() =
     ) { cell ->
         val illust = cell.item.illust
         val fmt = NumberFormat.getNumberInstance()
-        cell.binding.statViews.text = fmt.format(illust.total_view)
-        cell.binding.statBookmarks.text = fmt.format(illust.total_bookmarks)
+        cell.binding.statViews.text = fmt.format(illust.total_view ?: 0)
+        cell.binding.statBookmarks.text = fmt.format(illust.total_bookmarks ?: 0)
     }
 
 internal fun ArtworkV3Fragment.tagsRenderer() =
@@ -441,7 +449,7 @@ internal fun ArtworkV3Fragment.tagsRenderer() =
             b.tagsFlow.onOverflowClick = {
                 // 变更经 fragment result 回来（listener 在 ArtworkV3Fragment 里注册，键
                 // TagEditSheet.REQUEST_TAGS_CHANGED），所以这里只管把 sheet 拉起来，不持有任何回调。
-                TagEditSheet.show(childFragmentManager, illust.id.toLong())
+                TagEditSheet.show(childFragmentManager, illust.id)
             }
             b.tagsFlow.onPinTag = { name, translated, newPinned ->
                 val tagBean = TagsBean().apply {
@@ -455,8 +463,8 @@ internal fun ArtworkV3Fragment.tagsRenderer() =
                 Common.showToast(R.string.operate_success)
             }
         }
-        b.tagsFlow.setJavaTags(illust.tags.orEmpty())
-        b.synonymMatch.setWorkTags(illust.tags.orEmpty())
+        b.tagsFlow.setTags(illust.tags.orEmpty())
+        b.synonymMatch.setWorkTags(illust.tags.orEmpty().toTagsBeans())
     }
 
 internal fun ArtworkV3Fragment.artistRenderer() =
@@ -477,7 +485,7 @@ internal fun ArtworkV3Fragment.artistRenderer() =
                 return@OnClickListener
             }
             val intent = Intent(ctx, UActivity::class.java)
-            intent.putExtra(Params.USER_ID, user.id)
+            intent.putExtra(Params.USER_ID, user.id.toInt())
             ctx.startActivity(intent)
         }
         b.artistCard.setOnClickListener(openUser)
@@ -500,10 +508,11 @@ internal fun ArtworkV3Fragment.artistRenderer() =
 
 private fun ArtworkV3Fragment.bindArtistFollowState(
     b: SectionV3ArtistBinding,
-    user: UserBean,
+    user: User,
     isFollowedOverride: Boolean? = null,
 ) {
     val ctx = requireContext()
+    val userId = user.id.toInt()
     if (isFollowedOverride != null) {
         // 快照只读：显示快照那一刻的关注态，但点击不产生任何动作。
         if (isFollowedOverride) {
@@ -523,21 +532,20 @@ private fun ArtworkV3Fragment.bindArtistFollowState(
         }
         return
     }
-    val isFollowed = ObjectPool.get<UserBean>(user.id.toLong()).value?.isIs_followed
-        ?: user.isIs_followed
+    val isFollowed = ArtworkArtistItem.resolveIsFollowed(user)
     if (isFollowed) {
-        b.followBtn.text = ctx.getString(followedLabelRes(user.id))
+        b.followBtn.text = ctx.getString(followedLabelRes(userId))
         palette.applyUnfollowBtn(b.followBtn)
-        b.followBtn.setOnClick { unfollowUser(it as ProgressTextButton, user.id) }
+        b.followBtn.setOnClick { unfollowUser(it as ProgressTextButton, userId) }
         b.followBtn.setOnLongClickListener(null)
         b.followBtn.isLongClickable = false
     } else {
         b.followBtn.text = ctx.getString(R.string.follow)
         palette.applyFollowBtn(b.followBtn)
         b.followBtn.setTextColor(Color.WHITE)
-        b.followBtn.setOnClick { followUser(it as ProgressTextButton, user.id, PixivActions.defaultFollowRestrict()) }
+        b.followBtn.setOnClick { followUser(it as ProgressTextButton, userId, PixivActions.defaultFollowRestrict()) }
         b.followBtn.setOnLongClickListener {
-            followUser(b.followBtn, user.id, Params.TYPE_PRIVATE); true
+            followUser(b.followBtn, userId, Params.TYPE_PRIVATE); true
         }
     }
 }
@@ -563,7 +571,7 @@ internal fun ArtworkV3Fragment.detailPanelRenderer() =
         }
     }
 
-private fun ArtworkV3Fragment.buildDetailChips(b: SectionV3DetailPanelBinding, illust: IllustsBean) {
+private fun ArtworkV3Fragment.buildDetailChips(b: SectionV3DetailPanelBinding, illust: Illust) {
     val ctx = requireContext()
     fun s(resId: Int) = ctx.getString(resId)
     val chips = listOf(
@@ -607,7 +615,7 @@ private fun ArtworkV3Fragment.createDetailChip(
     ctx: android.content.Context,
     label: String,
     value: String,
-    illust: IllustsBean,
+    illust: Illust,
 ): LinearLayout {
     return LinearLayout(ctx).apply {
         orientation = LinearLayout.VERTICAL
@@ -633,7 +641,7 @@ private fun ArtworkV3Fragment.createDetailChip(
                     label == artworkIdLabel || label == userIdLabel -> palette.textAccent
                     label == aiLabel && illust.illust_ai_type == 2 -> ctx.getColor(R.color.v3_purple)
                     label == aiLabel -> ctx.getColor(R.color.v3_green)
-                    label == restrictionLabel && illust.x_restrict > 0 -> ctx.getColor(R.color.v3_pink)
+                    label == restrictionLabel && (illust.x_restrict ?: 0) > 0 -> ctx.getColor(R.color.v3_pink)
                     label == restrictionLabel -> ctx.getColor(R.color.v3_blue)
                     else -> ctx.getColor(R.color.v3_text_1)
                 },
@@ -810,7 +818,7 @@ internal fun ArtworkV3Fragment.authorWorksRenderer() =
 
 private fun ArtworkV3Fragment.renderAuthorWorks(
     b: SectionV3AuthorWorksBinding,
-    works: List<IllustsBean>?,
+    works: List<Illust>?,
 ) {
     val ctx = requireContext()
     if (works == null) {
@@ -891,7 +899,7 @@ internal fun ArtworkV3Fragment.relatedHeaderRenderer() =
 // ── helpers ───────────────────────────────────────────────────────────────
 
 /** 第 0 P 原图 URL 的文件后缀(大写,如 PNG / JPG);拿不到返回 null。对齐旧 VH。 */
-private fun page0Extension(illust: IllustsBean): String? {
+private fun page0Extension(illust: Illust): String? {
     val url = if (illust.page_count <= 1) {
         illust.meta_single_page?.original_image_url
     } else {

@@ -12,14 +12,13 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.RecyNovelBinding
 import ceui.lisa.model.ListNovel
-import ceui.lisa.models.NovelBean
+import ceui.loxia.Novel
 import ceui.lisa.repo.SearchNovelRepo
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.viewmodel.SearchModel
-import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
@@ -32,7 +31,6 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.NovelFeedFragment
 import ceui.pixiv.ui.common.NovelFeedItem
 import ceui.pixiv.ui.common.awaitFirstValue
-import ceui.pixiv.ui.common.coverUrl
 import ceui.pixiv.ui.common.openUserActivity
 import ceui.pixiv.ui.novel.NovelSeriesFragment
 import ceui.pixiv.utils.ppppx
@@ -48,7 +46,7 @@ import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
 /**
  * 搜索「小说」tab（feeds 框架版，替代 legacy FragmentSearchNovel + SearchNovelRepo + NAdapter）。
  * 卡片复用 [NovelFeedFragment]。数据源包裹既有 [SearchNovelRepo]（无损、零发散，同插画 tab 思路），
- * 过滤走 repo 自己的 Mapper（含搜索 R18 三态 + 仅看 AI），过滤后 bean→loxia Novel 建条目。
+ * 过滤走 repo 自己的 Mapper（含搜索 R18 三态 + 仅看 AI），过滤后直接用统一 Novel 建条目。
  *
  * 「系列作品归纳」（issue #1016）开启时整条列表改走网页 ajax（`gs=1`），见
  * [SearchNovelSeriesWebSource]；此时列表里会混进 [SearchNovelSeriesFeedItem] 系列卡。
@@ -185,7 +183,7 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
         val ctx = b.root.context
         val palette = V3Palette.from(ctx)
 
-        seriesGlide.load(GlideUtil.getUrl(novel.coverUrl))
+        seriesGlide.load(GlideUtil.getUrl(novel.resolvedCoverUrl()))
             .override(80.ppppx, 119.ppppx)
             .placeholder(R.color.v3_surface_2)
             .error(R.color.v3_surface_2)
@@ -294,16 +292,10 @@ class SearchNovelFeedSource(private val searchModel: SearchModel) : FeedSource<S
         val items = withContext(Dispatchers.Default) {
             @Suppress("UNCHECKED_CAST")
             val filtered = (r.mapper() as Function<ListNovel, ListNovel>).apply(list)
-            // Mapper 已做完搜索专属过滤（R18 三态 / 仅看 AI），直接 bean→loxia Novel 建条目，不再过滤。
-            filtered.list.orEmpty().mapNotNull { rawNovelItem(it) }
+            // Mapper 已做完搜索专属过滤（R18 三态 / 仅看 AI），不再重复走全局过滤。
+            filtered.list.orEmpty().map { NovelFeedItem(it) }
         }
         return FeedPage(items, list.nextUrl?.takeIf { it.isNotEmpty() })
     }
 
-    private fun rawNovelItem(bean: NovelBean): NovelFeedItem? {
-        val novel = runCatching {
-            Shaft.sGson.fromJson(Shaft.sGson.toJsonTree(bean), Novel::class.java)
-        }.getOrNull() ?: return null
-        return NovelFeedItem(novel)
-    }
 }

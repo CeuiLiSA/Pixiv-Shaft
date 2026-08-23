@@ -26,7 +26,7 @@ class NiceFriendIllustFeedFragment : IllustFeedFragment(R.layout.fragment_toolba
 
     override val feedViewModel by feedViewModels {
         pixivFeedSource({ Client.appApi.getNiceFriendIllust() }) { resp, _ ->
-            resp.displayList.mapNotNull { IllustFeedItem.from(it) }
+            resp.displayList.mapNotNull { IllustFeedItem.of(it) }
         }
     }
 

@@ -58,15 +58,15 @@ import ceui.lisa.models.FramesBean;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
 import ceui.lisa.models.MarkedNovelItem;
-import ceui.lisa.models.NovelBean;
+import ceui.loxia.Novel;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.NovelSeriesItem;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
-import ceui.lisa.models.UserBean;
-import ceui.lisa.models.UserModel;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.AccountResponse;
+import ceui.loxia.Illust;
+import ceui.loxia.User;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.IllustDetailSupportKt;
 import ceui.loxia.ObjectPool;
@@ -89,14 +89,14 @@ import static com.blankj.utilcode.util.StringUtils.getString;
  */
 public class PixivOperate {
 
-    private static final Map<Integer, Back> sBack = new HashMap<>();
-    private static final Map<Integer, Long> gifEncodingWorkSet = new HashMap<>();
+    private static final Map<Long, Back> sBack = new HashMap<>();
+    private static final Map<Long, Long> gifEncodingWorkSet = new HashMap<>();
     private static final long reEncodeTimeThresholdMillis = 60 * 1000;
 
-    public static void refreshUserData(Callback<UserModel> callback) {
+    public static void refreshUserData(Callback<AccountResponse> callback) {
         String refreshToken = SessionManager.INSTANCE.getRefreshToken();
         if (refreshToken == null) return;
-        Call<UserModel> call = Retro.getAccountTokenApi().newRefreshToken(
+        Call<AccountResponse> call = Retro.getAccountTokenApi().newRefreshToken(
                 PixivOAuthConfig.PIXIV_ANDROID.getClientId(),
                 PixivOAuthConfig.PIXIV_ANDROID.getClientSecret(),
                 "refresh_token",
@@ -126,22 +126,22 @@ public class PixivOperate {
         PixivActions.setUserFollow((long) userID, false, Params.TYPE_PUBLIC);
     }
 
-    public static void postLikeDefaultStarType(IllustsBean illustsBean) {
+    public static void postLikeDefaultStarType(Illust illustsBean) {
         postLike(illustsBean, PixivActions.defaultBookmarkRestrict(), false, 0);
     }
 
-    public static void postLike(IllustsBean illustsBean, String starType) {
+    public static void postLike(Illust illustsBean, String starType) {
         postLike(illustsBean, starType, false, 0);
     }
 
-    public static void postLike(IllustsBean illustsBean, String starType, boolean showRelated, int index) {
+    public static void postLike(Illust illustsBean, String starType, boolean showRelated, int index) {
         postLike(illustsBean, starType, showRelated, index, null);
     }
 
     /**
      * 收藏 / 取消收藏（按 {@code illustsBean} 当前状态取反）。
      *
-     * <p>**只是 {@link PixivActions#setIllustBookmark(IllustsBean, boolean, String)} 的 legacy 封装**：
+     * <p>**只是 {@link PixivActions#setIllustBookmark(Illust, boolean, String)} 的 legacy 封装**：
      * bean、ObjectPool 里的两个表示和 LIKED_ILLUST 广播当帧全部改掉，真正的请求由
      * PixivActionQueue 串行限流后发出，撞 429 整队冷却并自动重试，进程被杀后下次启动继续发。
      * 收藏后自动关注作者也由那一层负责（同样进队列）。
@@ -159,13 +159,13 @@ public class PixivOperate {
      *                       让相关作品只被发起收藏的那张列表认领（feeds 页传，legacy 调用点传 null
      *                       走宽松的按 id 锚定兜底）。
      */
-    public static void postLike(IllustsBean illustsBean, String starType, boolean showRelated,
+    public static void postLike(Illust illustsBean, String starType, boolean showRelated,
                                 int index, String sourcePageUuid) {
         if (illustsBean == null) {
             return;
         }
 
-        final boolean willBookmark = !illustsBean.isIs_bookmarked();
+        final boolean willBookmark = !illustsBean.isBookmarked();
         PixivActions.setIllustBookmark(illustsBean, willBookmark, starType);
 
         // 收藏的时候，顺便请求这个作品的相关作品
@@ -181,7 +181,7 @@ public class PixivOperate {
                             intent.putExtra(Params.INDEX, index);
                             // feeds 版推荐页按被收藏作品 id 锚定插入位置（index 是 legacy
                             // adapter 位置语义，跨列表广播时不可靠）
-                            intent.putExtra(Params.ID, illustsBean.getId());
+                            intent.putExtra(Params.ID, (int) illustsBean.getId());
                             if (sourcePageUuid != null) {
                                 intent.putExtra(Params.PAGE_UUID, sourcePageUuid);
                             }
@@ -197,7 +197,7 @@ public class PixivOperate {
         PixivOperate.insertIllustViewHistory(illustsBean);
     }
 
-    // postLikeNovel(NovelBean, String, View) 已删除：全仓无调用方（小说收藏的现役入口是
+    // postLikeNovel(Novel, String, View) 已删除：全仓无调用方（小说收藏的现役入口是
     // PixivActions.setNovelBookmark / toggleNovelBookmark，走限流队列），而它还留着一整条
     // 自己打接口 + 自己发广播 + 自己做自动关注的老路径。留着只会给下一个人一个绕开队列的
     // 现成入口——两条写路径都拿 ObjectPool 当真源，队列冷却时会以相反顺序落到服务端。
@@ -228,14 +228,14 @@ public class PixivOperate {
                      */
                     @Override
                     public void success(IllustSearchResponse illustSearchResponse) {
-                        IllustsBean illust = illustSearchResponse.getIllust();
+                        Illust illust = illustSearchResponse.getIllust();
                         if (illust == null) {
                             return;
                         }
                         //Update the illustration object in ObjectPool
                         ObjectPool.INSTANCE.updateIllust(illust);
                         //Check the permission to view the illustration
-                        if (illust.getId() == 0 || !illust.isVisible()) {
+                        if (illust.getId() == 0 || !Boolean.TRUE.equals(illust.getVisible())) {
                             // #592: app-api 屏蔽(visible=false)的作品走网页 ajax 兜底
                             IllustDetailSupportKt.fetchWebIllustFallbackAsync(illustID, webIllust -> {
                                 if (webIllust != null) {
@@ -269,11 +269,11 @@ public class PixivOperate {
                 .subscribe(new NullCtrl<IllustSearchResponse>() {
                     @Override
                     public void success(IllustSearchResponse illustSearchResponse) {
-                        IllustsBean illust = illustSearchResponse.getIllust();
+                        Illust illust = illustSearchResponse.getIllust();
                         if (illust == null) {
                             return;
                         }
-                        if (illust.getId() == 0 || !illust.isVisible()) {
+                        if (illust.getId() == 0 || !Boolean.TRUE.equals(illust.getVisible())) {
                             // #592: 深链接/搜索打开被 app-api 屏蔽的作品,原先会直接进
                             // 占位图页;改走网页 ajax 兜底,拿不到才报「无法显示」
                             IllustDetailSupportKt.fetchWebIllustFallbackAsync(illustID, webIllust -> {
@@ -311,10 +311,10 @@ public class PixivOperate {
     }
 
     /** 按 ID 打开作品详情页的公共尾段:同步关注态 → 建单作品 PageData → 进 VActivity。 */
-    private static void openIllustDetail(Context context, IllustsBean illust) {
-        UserBean user = illust.getUser();
+    private static void openIllustDetail(Context context, Illust illust) {
+        User user = illust.getUser();
         if (user != null) {
-            Shaft.appViewModel.updateFollowUserStatus(user.getId(), user.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
+            Shaft.appViewModel.updateFollowUserStatus((int) user.getId(), Boolean.TRUE.equals(user.is_followed()) ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
         }
 
         final PageData pageData = new PageData(Collections.singletonList(illust));
@@ -357,7 +357,7 @@ public class PixivOperate {
                 });
     }
 
-    public static void getGifInfo(IllustsBean illust, ErrorCtrl<GifResponse> errorCtrl) {
+    public static void getGifInfo(Illust illust, ErrorCtrl<GifResponse> errorCtrl) {
         Retro.getAppApi().getGifPackage(illust.getId())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -389,19 +389,19 @@ public class PixivOperate {
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().updateMuteTag(muteEntity);
     }
 
-    public static void muteUser(UserBean userBean) {
-        muteUser(userBean, true);
+    public static void muteUser(User user) {
+        muteUser(user, true);
     }
 
     /**
      * {@code showToast=false} 给「屏蔽设定」sheet 用:它一次保存可能同时动标签和作者,
      * 逐项弹 toast 会连着刷好几条,由调用方在最后统一发一条(同 {@link #unMuteTag(TagsBean, boolean)})。
      */
-    public static void muteUser(UserBean userBean, boolean showToast) {
+    public static void muteUser(User user, boolean showToast) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.MUTE_USER);
-        muteEntity.setId(userBean.getId());
-        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setId((int) user.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(user));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
         if (showToast) {
@@ -409,16 +409,16 @@ public class PixivOperate {
         }
     }
 
-    public static void unMuteUser(UserBean userBean) {
-        unMuteUser(userBean, true);
+    public static void unMuteUser(User user) {
+        unMuteUser(user, true);
     }
 
-    /** 见 {@link #muteUser(UserBean, boolean)}。 */
-    public static void unMuteUser(UserBean userBean, boolean showToast) {
+    /** 见 {@link #muteUser(User, boolean)}。 */
+    public static void unMuteUser(User user, boolean showToast) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.MUTE_USER);
-        muteEntity.setId(userBean.getId());
-        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setId((int) user.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(user));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
         if (showToast) {
@@ -426,21 +426,21 @@ public class PixivOperate {
         }
     }
 
-    public static void blockUser(UserBean userBean) {
+    public static void blockUser(User user) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.BLOCK_USER);
-        muteEntity.setId(userBean.getId());
-        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setId((int) user.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(user));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
         Common.showToast(Shaft.getContext().getString(R.string.string_382));
     }
 
-    public static void unBlockUser(UserBean userBean) {
+    public static void unBlockUser(User user) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.BLOCK_USER);
-        muteEntity.setId(userBean.getId());
-        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setId((int) user.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(user));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
         Common.showToast(Shaft.getContext().getString(R.string.string_383));
@@ -451,13 +451,13 @@ public class PixivOperate {
      * 瀑布流卡片的遮罩判定读的是它的内存镜像，这里若直接 insertMuteTag，已经在跑的列表要等
      * 进程重启才认这条记录。
      */
-    public static void muteIllust(IllustsBean illust) {
+    public static void muteIllust(Illust illust) {
         IllustMuteStore.INSTANCE.setMuted(illust.getId(), true, () -> illust);
         Common.showToast(Shaft.getContext().getString(R.string.string_384));
     }
 
     /** 屏蔽单篇小说，同 {@link #muteIllust}。 */
-    public static void muteNovel(NovelBean novelBean) {
+    public static void muteNovel(Novel novelBean) {
         NovelMuteStore.INSTANCE.setMuted(novelBean.getId(), true, () -> novelBean);
         Common.showToast(Shaft.getContext().getString(R.string.string_384));
     }
@@ -493,7 +493,7 @@ public class PixivOperate {
         }
     }
 
-    public static void insertIllustViewHistory(IllustsBean illust) {
+    public static void insertIllustViewHistory(Illust illust) {
         if (illust == null) {
             return;
         }
@@ -502,12 +502,12 @@ public class PixivOperate {
             Schedulers.io().scheduleDirect(() -> {
                 IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
                 illustHistoryEntity.setType(0);
-                illustHistoryEntity.setIllustID(illust.getId());
+                illustHistoryEntity.setIllustID((int) illust.getId());
                 illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(illust));
                 illustHistoryEntity.setTime(System.currentTimeMillis());
                 Common.showLog("插入了 " + illustHistoryEntity.getIllustID() + " time " + illustHistoryEntity.getTime());
                 AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
-                // dual-write: report to pixshaft-api (same IllustsBean payload the
+                // dual-write: report to pixshaft-api (same Illust payload the
                 // history list deserializes). illust tab covers illust + manga.
                 // Fully isolated: any failure here must never affect browsing.
                 try {
@@ -520,7 +520,7 @@ public class PixivOperate {
         }
     }
 
-    public static void insertNovelViewHistory(NovelBean novelBean) {
+    public static void insertNovelViewHistory(Novel novelBean) {
         if (novelBean == null) {
             return;
         }
@@ -528,7 +528,7 @@ public class PixivOperate {
         if (novelBean.getId() > 0) {
             Schedulers.io().scheduleDirect(() -> {
                 IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
-                illustHistoryEntity.setIllustID(novelBean.getId());
+                illustHistoryEntity.setIllustID((int) novelBean.getId());
                 illustHistoryEntity.setType(1);
                 illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(novelBean));
                 illustHistoryEntity.setTime(System.currentTimeMillis());
@@ -603,8 +603,8 @@ public class PixivOperate {
     }
 
     //筛选作品，只留下未收藏的作品
-    public static List<IllustsBean> getListWithoutBooked(ListIllust response) {
-        List<IllustsBean> result = new ArrayList<>();
+    public static List<Illust> getListWithoutBooked(ListIllust response) {
+        List<Illust> result = new ArrayList<>();
         if (response == null) {
             return result;
         }
@@ -613,8 +613,8 @@ public class PixivOperate {
             return result;
         }
 
-        for (IllustsBean illustsBean : response.getList()) {
-            if (!illustsBean.isIs_bookmarked()) {
+        for (Illust illustsBean : response.getList()) {
+            if (!illustsBean.isBookmarked()) {
                 result.add(illustsBean);
             }
         }
@@ -624,14 +624,14 @@ public class PixivOperate {
 
     //筛选作品，只留下收藏数达到标准的作品
     /** starSizeMax <= 0 表示上限不限（收藏量区间筛选只设了下限，或只有 users入り 关键字桶）。 */
-    public static List<IllustsBean> getListWithStarSize(ListIllust response, int starSize, int starSizeMax) {
-        List<IllustsBean> result = new ArrayList<>();
+    public static List<Illust> getListWithStarSize(ListIllust response, int starSize, int starSizeMax) {
+        List<Illust> result = new ArrayList<>();
         if (response == null || response.getList() == null || response.getList().size() == 0) {
             return result;
         }
 
-        for (IllustsBean illustsBean : response.getList()) {
-            int stars = illustsBean.getTotal_bookmarks();
+        for (Illust illustsBean : response.getList()) {
+            int stars = illustsBean.getTotal_bookmarks() == null ? 0 : illustsBean.getTotal_bookmarks();
             if (stars >= starSize && (starSizeMax <= 0 || stars <= starSizeMax)) {
                 result.add(illustsBean);
             }
@@ -649,7 +649,7 @@ public class PixivOperate {
         }
     }
 
-    public static void encodeGifV2(Context context, File parentFile, IllustsBean illustsBean, boolean autoSave) {
+    public static void encodeGifV2(Context context, File parentFile, Illust illustsBean, boolean autoSave) {
         RxRun.runOn(new RxRunnable<Void>() {
             @Override
             public Void execute() throws Exception {
@@ -767,11 +767,11 @@ public class PixivOperate {
         });
     }
 
-    public static void unzipAndPlay(Context context, IllustsBean illustsBean) {
+    public static void unzipAndPlay(Context context, Illust illustsBean) {
         unzipAndPlay(context, illustsBean, false);
     }
 
-    public static void unzipAndPlay(Context context, IllustsBean illustsBean, boolean autoSave) {
+    public static void unzipAndPlay(Context context, Illust illustsBean, boolean autoSave) {
         try {
             File fromZip = LegacyFile.gifZipFile(context, illustsBean);
             File toFolder = LegacyFile.gifUnzipFolder(context, illustsBean);
@@ -785,7 +785,7 @@ public class PixivOperate {
         }
     }
 
-    public static void setBack(int illustId, Back back) {
+    public static void setBack(long illustId, Back back) {
         sBack.put(illustId, back);
     }
 

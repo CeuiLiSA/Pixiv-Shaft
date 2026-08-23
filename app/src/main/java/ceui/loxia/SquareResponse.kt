@@ -21,11 +21,6 @@ data class Circle(
     val meta: CircleMeta? = null
 ) : Serializable
 
-data class CirclePopularIllusts(
-    val illusts: List<WebIllust>? = null,
-    val recent_illusts: List<WebIllust>? = null,
-) : Serializable
-
 data class Pixpedia(
     val tag: String? = null,
     val abstract: String? = null,

@@ -146,7 +146,7 @@ class LikeIllustFeedFragment : IllustFeedFragment() {
             it.starType = starType
             it.dateTime = System.currentTimeMillis()
         }
-        val beans = currentIllustItems().map { item -> item.bean }
+        val beans = currentIllustItems().map { item -> item.illust }
         val appContext = Shaft.getContext()
         viewLifecycleOwner.lifecycleScope.launch {
             withContext(Dispatchers.IO) {
@@ -188,11 +188,10 @@ class LikeIllustFeedFragment : IllustFeedFragment() {
             // 「过滤无效收藏」设置补挡 user 缺失/为 0 的残缺条目（对齐 legacy beforeFirstLoad）
             val filterInvalid = Shaft.sSettings.isFilterInvalidBookmarks
             return illusts.mapNotNull { illust ->
-                val bean = IllustFeedItem.beanOf(illust) ?: return@mapNotNull null
-                if (filterInvalid && (bean.user == null || bean.user.id == 0)) {
+                if (filterInvalid && (illust.user == null || illust.user.id == 0L)) {
                     return@mapNotNull null
                 }
-                IllustFeedItem.of(illust, bean)
+                IllustFeedItem.of(illust)
             }
         }
     }

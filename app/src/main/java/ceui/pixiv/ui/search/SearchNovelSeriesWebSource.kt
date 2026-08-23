@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.search
 
 import ceui.lisa.activities.Shaft
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.viewmodel.SearchModel
 import ceui.loxia.Client
 import ceui.loxia.ImageUrls
@@ -33,7 +34,7 @@ import java.time.LocalDate
  *     借号跑热门的路子在这里用不上：借来的是 OAuth token，不是网页会员 cookie。
  *
  * 过滤也必须自己补齐：app-api 路径的屏蔽 tag / 屏蔽画师 / R-18 / 反刷屏是 [ceui.lisa.core.Mapper]
- * 对着 NovelBean 做的，网页返回的是另一套对象，一条都不会命中。这里把两种条目都先映射成 loxia
+ * 对着 Novel 做的，网页返回的是另一套对象，一条都不会命中。这里把两种条目都先映射成 loxia
  * [Novel] 再走 [NovelFeedItem.of]（与全 app 同一条过滤链），搜索专属的 R-18 三档 / 仅看 AI 在
  * 本文件内补。
  */
@@ -113,7 +114,7 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
         val novelId = row.novelId?.toLongOrNull()
         if (novelId != null) {
             // 单篇：id 字段是 pixiv 给单篇造的 collection id，真正的小说 id 在 novelId 上。
-            return NovelFeedItem.of(row.toNovel(novelId))
+            return NovelFeedItem.of(row.toNovel(novelId), skipAiFilter = params.onlyAi)
         }
         val seriesId = row.id?.toLongOrNull() ?: return null
         val representative = row.toNovel(seriesId, asSeries = true)
@@ -121,7 +122,11 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
         // 全局 R-18 过滤照常挂着（不因搜索选了「仅 R-18」就让步），与 [ceui.lisa.core.Mapper] 一致。
         // 注意反刷屏（issue #743）看的是**整个系列的已公开字数**，不是单章：设了「最长字数」的
         // 用户会连带滤掉长连载——这与那条设置「不想看长文」的本意一致，故不特判。
-        if (NovelFeedItem.of(representative) == null) return null
+        if (NovelFeedItem.of(representative, skipAiFilter = params.onlyAi) == null) return null
+        // 系列卡（novelSeriesCardRenderer）没有模糊/粒子层：屏蔽 AI 选「模糊粒子化」时，
+        // 单篇交给 NovelFeedFragment 打码，系列卡打不了码——按 Mapper 对老列表的同一口径直接剔除，
+        // 否则开了屏蔽反而把 AI 系列整张封面亮出来。「仅看 AI」时照常让步。
+        if (!params.onlyAi && IllustNovelFilter.shouldBlurAi(representative)) return null
         return SearchNovelSeriesFeedItem(
             seriesId = seriesId,
             novel = representative,
@@ -225,7 +230,7 @@ internal data class WebNovelSearchParams(
 internal fun buildWebNovelSearchParams(searchModel: SearchModel): WebNovelSearchParams =
     buildWebNovelSearchParams(
         searchModel = searchModel,
-        excludeAi = Shaft.sSettings.isDeleteAIIllust,
+        excludeAi = Shaft.sSettings.isDeleteAIIllust && !Shaft.sSettings.isAiBlockClientSide,
     )
 
 internal fun buildWebNovelSearchParams(
@@ -233,7 +238,7 @@ internal fun buildWebNovelSearchParams(
     keywordSnapshot: String,
 ): WebNovelSearchParams = buildWebNovelSearchParams(
     searchModel = searchModel,
-    excludeAi = Shaft.sSettings.isDeleteAIIllust,
+    excludeAi = Shaft.sSettings.isDeleteAIIllust && !Shaft.sSettings.isAiBlockClientSide,
     keywordSnapshot = keywordSnapshot,
 )
 

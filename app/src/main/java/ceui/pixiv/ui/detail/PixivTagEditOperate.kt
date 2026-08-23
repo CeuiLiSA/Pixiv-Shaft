@@ -1,9 +1,9 @@
 package ceui.pixiv.ui.detail
 
-import ceui.lisa.models.TagsBean
 import ceui.loxia.Client
 import ceui.loxia.CsrfTokenProvider
 import ceui.loxia.ObjectPool
+import ceui.loxia.Tag
 import ceui.loxia.WebResponse
 import ceui.loxia.WorkEditableTag
 import ceui.loxia.WorkTagEditRequest
@@ -110,13 +110,10 @@ object PixivTagEditOperate {
     fun applyToPool(illustId: Long, tags: List<WorkEditableTag>) {
         val illust = ObjectPool.getIllust(illustId).value ?: return
         val known = illust.tags.orEmpty().associate { it.name.orEmpty() to it.translated_name }
-        illust.tags = tags.mapNotNull { web ->
+        val newTags = tags.mapNotNull { web ->
             val name = web.tag?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
-            TagsBean().apply {
-                this.name = name
-                this.translated_name = known[name] ?: web.translatedName
-            }
+            Tag(name = name, translated_name = known[name] ?: web.translatedName)
         }
-        ObjectPool.updateIllust(illust)
+        ObjectPool.updateIllust(illust.copy(tags = newTags))
     }
 }

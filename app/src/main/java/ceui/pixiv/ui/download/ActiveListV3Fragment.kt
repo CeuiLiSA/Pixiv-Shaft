@@ -29,7 +29,7 @@ import ceui.lisa.core.ManagerReactive
 import ceui.lisa.core.PageData
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.download.FileSizeUtil
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.db.queue.DownloadQueueDao
@@ -97,12 +97,12 @@ class ActiveListV3Fragment : Fragment() {
         // 多少无关。setHasFixedSize(true) 跳过每次 notifyItem* 重测自身。
         list.setHasFixedSize(true)
 
-        // 点击 row → VActivity 看一级详情。把整段 currentList 的 IllustsBean 一起
+        // 点击 row → VActivity 看一级详情。把整段 currentList 的 Illust 一起
         // 拼 PageData，让用户在详情里能左右滑切到列表里相邻 item（illust 拿
         // DownloadItem.illust，ugoira 拿 UgoiraEntry.bean）。
         adapter.onItemClick = onItemClick@{ snap, all ->
             val ctx = context ?: return@onItemClick
-            val clicked: IllustsBean = when (snap) {
+            val clicked: Illust = when (snap) {
                 is ActiveSnapshot.IllustEntry -> snap.item.illust ?: run {
                     Toaster.showShort(R.string.dlmgr_queue_open_unavailable)
                     return@onItemClick
@@ -402,8 +402,8 @@ private sealed class ActiveSnapshot {
 
     data class UgoiraEntry(
         val rowId: Long,
-        /** 完整 bean 而非只存 id —— row click → VActivity 需要 IllustsBean 拼 PageData */
-        val bean: IllustsBean,
+        /** 完整 bean 而非只存 id —— row click → VActivity 需要 Illust 拼 PageData */
+        val bean: Illust,
         val title: String,
         val showUrl: String?,
         val phase: UgoiraPhase,
@@ -444,7 +444,7 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
 
     /**
      * 点击 row → VActivity 看一级详情。fragment 端注册，把整段 currentList 的
-     * IllustsBean 一起传出去拼 PageData，让用户在详情里能左右滑切到列表里相邻的 illust。
+     * Illust 一起传出去拼 PageData，让用户在详情里能左右滑切到列表里相邻的 illust。
      * 跟 [ceui.pixiv.ui.download.QueueListV3Fragment] 的行为一致。
      */
     var onItemClick: ((snap: ActiveSnapshot, all: List<ActiveSnapshot>) -> Unit)? = null

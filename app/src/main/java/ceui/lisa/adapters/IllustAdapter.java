@@ -48,7 +48,7 @@ import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.transformer.LargeBitmapScaleTransformer;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
@@ -110,7 +110,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * {@code onMeasure} 里用真实测量宽 × ratio 算高,故 ratio 一确定,该页首帧就量在终值上,
      * 不再有「兜底高→自然高」的跳。ratio 三种来源,越早越好:
      * <ul>
-     *   <li>P1:{@link IllustsBean#getWidth()}/{@code getHeight()},绑定即知;</li>
+     *   <li>P1:{@link Illust#getWidth()}/{@code getHeight()},绑定即知;</li>
      *   <li>多 P 第 2 张起:{@link #seedPageDimensions} 用网页 ajax 的每页真尺寸提前预置;</li>
      *   <li>兜底(无 cookie / 精简 bean 无尺寸):图片解码后由 {@link #rememberDecodedRatio}
      *       用位图宽高定下。</li>
@@ -136,7 +136,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      */
     private final Set<Integer> shownPages = ConcurrentHashMap.newKeySet();
 
-    public IllustAdapter(FragmentActivity activity, Fragment fragment, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
+    public IllustAdapter(FragmentActivity activity, Fragment fragment, Illust illustsBean, int maxHeight, boolean isForceOriginal) {
         Common.showLog("IllustAdapter maxHeight " + maxHeight);
         mActivity = activity;
         mContext = fragment.requireContext();
@@ -184,7 +184,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * 所以是精确的逐页匹配，不依赖文件名字典序，分图缺页也不会错位。
      */
     public void scanLocalDownloads() {
-        final IllustsBean illust = allIllust;
+        final Illust illust = allIllust;
         if (released || illust == null || localScanRunning || illust.isGif()) {
             return;
         }
@@ -317,7 +317,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         if(longPressDownload && snapshotId == null && mActivity instanceof BaseActivity<?>){
             holder.itemView.setOnLongClickListener(v -> {
                 IllustDownload.downloadIllustCertainPage(allIllust, position, (BaseActivity<?>) mActivity);
-                if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !allIllust.isIs_bookmarked()){
+                if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !allIllust.isBookmarked()){
                     PixivOperate.postLikeDefaultStarType(allIllust);
                 }
                 return true;
@@ -330,7 +330,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
 
         boolean changeSize; // = ratio 未知,需等图解码后由 rememberDecodedRatio 定 ratio
         if (position == 0 && allIllust.getWidth() > 0 && allIllust.getHeight() > 0) {
-            // 第一张:宽高来自 IllustsBean。单 P 扁图垫 maxHeight 居中、其余按真 ratio(见 applyPixelSize)。
+            // 第一张:宽高来自 Illust。单 P 扁图垫 maxHeight 居中、其余按真 ratio(见 applyPixelSize)。
             applyPixelSize(holder, position, allIllust.getWidth(), allIllust.getHeight());
             changeSize = false;
         } else {
@@ -353,7 +353,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      *
      * <p>多 P 后续页在 ajax 尺寸缺失(无 cookie / R18 / 受限 / 精简 bean)时,原先一律拿整屏高
      * {@code maxHeight} 当空白容器,图一到再从全高跳到自然高,首帧跳幅度最大。这里改用
-     * {@link IllustsBean} 的 P1 宽高当先验比例:同画布作品占位 ≈ 自然高,首帧跳基本归零;
+     * {@link Illust} 的 P1 宽高当先验比例:同画布作品占位 ≈ 自然高,首帧跳基本归零;
      * 混比作品也由解码校正一帧内回真值。
      *
      * <p>先验高超过 {@code maxHeight}(P1 为超长竖图)时退回旧的全高占位——把「先验过高」这个
@@ -403,7 +403,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     /**
      * 按该页真实像素宽高定展示盒,套到底层 {@code illust} 与顶层 {@code illust_hd}(布局四边对齐 illust、
      * 同盒同比):pos0 单 P 扁图(自然高 < maxHeight)垫 maxHeight 居中,其余按真 ratio(高/宽)并存
-     * {@link #pageRatio} 供回收重绑首帧直接用。两处调用同一口径:绑定时用 {@link IllustsBean} 的宽高;
+     * {@link #pageRatio} 供回收重绑首帧直接用。两处调用同一口径:绑定时用 {@link Illust} 的宽高;
      * {@link #renderOverlay} 贴原图前用「只读宽高」解码出的原图真尺寸再校准一次。
      * <p>protected:CollapsibleIllustAdapter 覆写它给多 P 封面补「极端宽图兜高」——兜高必须挂在
      * 这个统一入口上。若只在绑定后补一次,renderOverlay 的原图校准会重设自然 ratio 把兜高清掉,
