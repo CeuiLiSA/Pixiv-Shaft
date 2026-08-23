@@ -1,10 +1,9 @@
 package ceui.pixiv.ui.novel.reader
 
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
-import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.pixiv.db.discovery.DiscoveryPool
 import ceui.pixiv.ui.common.IllustFeedItem
@@ -47,7 +46,7 @@ object NovelIllustMixStore {
                 when (source) {
                     NovelIllustSource.Followed ->
                         Client.appApi.getFollowingIllusts(Params.TYPE_ALL).illusts
-                            .mapNotNull { IllustFeedItem.from(it)?.illust }
+                            .mapNotNull { IllustFeedItem.of(it)?.illust }
 
                     NovelIllustSource.Discover ->
                         // getDiscoveryFeedDiversified 只进内存 recent 名单、不 markShown，
@@ -55,10 +54,10 @@ object NovelIllustMixStore {
                         DiscoveryPool.getDiscoveryFeedDiversified(FETCH_LIMIT)
                             .mapNotNull { entity ->
                                 runCatching {
-                                    Shaft.sGson.fromJson(entity.illustJson, IllustsBean::class.java)
+                                    Shaft.sGson.fromJson(entity.illustJson, Illust::class.java)
                                 }.getOrNull()
                             }
-                            .mapNotNull { IllustFeedItem.fromBean(it)?.illust }
+                            .mapNotNull { IllustFeedItem.of(it)?.illust }
 
                     NovelIllustSource.Related -> fetchRelated(novel)
 
@@ -95,7 +94,7 @@ object NovelIllustMixStore {
                 merge_plain_keyword_results = true,
                 include_translated_tag_results = true,
             ).illusts
-                .mapNotNull { IllustFeedItem.from(it)?.illust }
+                .mapNotNull { IllustFeedItem.of(it)?.illust }
                 .forEach { result.putIfAbsent(it.id, it) }
         }
         return result.values.toList()

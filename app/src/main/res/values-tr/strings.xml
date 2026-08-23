@@ -549,6 +549,9 @@
     <string name="string_322">Hayranlarım</string>
     <string name="string_323">P-Arkadaşlarım</string>
     <string name="string_324">Tema rengi</string>
+    <string name="tag_translation_color">Etiket çeviri rengi</string>
+    <string name="tag_translation_color_follow_theme">Temayı takip et</string>
+    <string name="tag_translation_color_pick_from_theme_page">Tema renk sayfasından seç</string>
     <string name="string_325">Ayarlara git</string>
     <string name="string_326">Başlat</string>
     <string name="string_327">Durdur</string>
@@ -2734,4 +2737,7 @@
     <string name="nana7mi_quota_snack_session">5 saatlik limit doldu, %1$s sonra yenilenir</string>
     <string name="nana7mi_quota_snack_weekly">Haftalık limit doldu, %1$s sonra yenilenir</string>
     <string name="nana7mi_quota_snack_action">Kullanımı gör</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">Anladım</string>
+    <string name="inapp_push_default_action">Göz at</string>
 </resources>

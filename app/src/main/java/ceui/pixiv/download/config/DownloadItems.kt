@@ -1,7 +1,7 @@
 package ceui.pixiv.download.config
 
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.NovelSeriesDetail
 import ceui.pixiv.download.DownloadsRegistry
@@ -18,14 +18,14 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
 
 /**
- * Factories that adapt legacy data models ([IllustsBean]) into the
+ * Factories that adapt legacy data models ([Illust]) into the
  * new [DownloadItem] domain type. Kept separate from [DownloadItem] itself so
  * the core model stays free of Pixiv-specific imports.
  */
 object DownloadItems {
 
     @JvmStatic
-    fun illustPage(illust: IllustsBean, pageIndex: Int): DownloadItem {
+    fun illustPage(illust: Illust, pageIndex: Int): DownloadItem {
         val url = pageOriginalUrl(illust, pageIndex)
         val ext = extractExt(url, fallback = "png")
         return DownloadItem(
@@ -46,7 +46,7 @@ object DownloadItems {
     @JvmStatic
     @JvmOverloads
     fun ugoira(
-        illust: IllustsBean,
+        illust: Illust,
         asMp4: Boolean = Shaft.sSettings.isUgoiraSaveAsMp4(),
     ): DownloadItem = DownloadItem(
         bucket = Bucket.Ugoira,
@@ -58,7 +58,7 @@ object DownloadItems {
 
     /** Raw zip artefact downloaded from Pixiv before GIF rendering — app cache only. */
     @JvmStatic
-    fun ugoiraZip(illust: IllustsBean): DownloadItem = DownloadItem(
+    fun ugoiraZip(illust: Illust): DownloadItem = DownloadItem(
         bucket = Bucket.TempCache,
         ext = "zip",
         mime = "application/zip",
@@ -73,7 +73,7 @@ object DownloadItems {
      * directory structure / naming the user configured for local downloads.
      */
     @JvmStatic
-    fun illustRelativePath(illust: IllustsBean, pageIndex: Int): RelativePath =
+    fun illustRelativePath(illust: Illust, pageIndex: Int): RelativePath =
         renderedPath(illustPage(illust, pageIndex))
 
     /**
@@ -85,7 +85,7 @@ object DownloadItems {
      * 早先存下的 GIF 仍然是 GIF,重命名不该把它改成 `.mp4`。
      */
     @JvmStatic
-    fun ugoiraRelativePath(illust: IllustsBean, asMp4: Boolean): RelativePath =
+    fun ugoiraRelativePath(illust: Illust, asMp4: Boolean): RelativePath =
         renderedPath(ugoira(illust, asMp4))
 
     /**
@@ -94,10 +94,10 @@ object DownloadItems {
      * by default, not mixed with image files).
      */
     @JvmStatic
-    fun illustCaptionDestination(illust: IllustsBean): RelativePath =
+    fun illustCaptionDestination(illust: Illust): RelativePath =
         renderedPath(illustCaptionItem(illust))
 
-    private fun illustCaptionItem(illust: IllustsBean): DownloadItem = DownloadItem(
+    private fun illustCaptionItem(illust: Illust): DownloadItem = DownloadItem(
         bucket = Bucket.Caption,
         ext = "txt",
         mime = "text/plain",
@@ -350,10 +350,10 @@ object DownloadItems {
         return "$stem.$newExt"
     }
 
-    private fun metaOf(illust: IllustsBean, pageIndex: Int?): ItemMeta = ItemMeta(
-        id = illust.id.toLong(),
+    private fun metaOf(illust: Illust, pageIndex: Int?): ItemMeta = ItemMeta(
+        id = illust.id,
         title = illust.title.orEmpty(),
-        author = Author(illust.user?.id?.toLong() ?: 0L, illust.user?.name.orEmpty()),
+        author = Author(illust.user?.id ?: 0L, illust.user?.name.orEmpty()),
         createdAt = parseInstant(illust.create_date),
         page = pageIndex,
         totalPages = illust.page_count.coerceAtLeast(1),
@@ -362,11 +362,11 @@ object DownloadItems {
         flags = flagsOfIllust(illust),
     )
 
-    private fun flagsOfIllust(illust: IllustsBean): Set<Flag> {
+    private fun flagsOfIllust(illust: Illust): Set<Flag> {
         val out = mutableSetOf<Flag>()
-        if (illust.isR18File) out += Flag.R18
-        if (illust.isCreatedByAI) out += Flag.AI
-        if (illust.isGif) out += Flag.Animated
+        if (illust.isR18File()) out += Flag.R18
+        if (illust.isCreatedByAI()) out += Flag.AI
+        if (illust.isGif()) out += Flag.Animated
         return out
     }
 
@@ -393,11 +393,11 @@ object DownloadItems {
     private fun seriesFlagOf(raw: String?): Set<Flag> =
         if (seriesTitleOf(raw) != null) setOf(Flag.Series) else emptySet()
 
-    private fun pageOriginalUrl(illust: IllustsBean, index: Int): String =
+    private fun pageOriginalUrl(illust: Illust, index: Int): String =
         if (illust.page_count <= 1) {
             illust.meta_single_page?.original_image_url.orEmpty()
         } else {
-            illust.meta_pages.getOrNull(index)?.image_urls?.original.orEmpty()
+            illust.meta_pages?.getOrNull(index)?.image_urls?.original.orEmpty()
         }
 
     /**
@@ -436,5 +436,5 @@ object DownloadItems {
         }
     }
 
-    private val IllustsBean.imageUrls get() = image_urls
+    private val Illust.imageUrls get() = image_urls
 }

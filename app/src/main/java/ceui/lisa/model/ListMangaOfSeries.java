@@ -3,30 +3,30 @@ package ceui.lisa.model;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.models.ImageUrlsBean;
-import ceui.lisa.models.UserBean;
+import ceui.loxia.User;
 
-public class ListMangaOfSeries implements ListShow<IllustsBean> {
+public class ListMangaOfSeries implements ListShow<Illust> {
 
-    private IllustsBean illust_series_first_illust;
-    private List<IllustsBean> illusts;
+    private Illust illust_series_first_illust;
+    private List<Illust> illusts;
     private String next_url;
     private SeriesDetail illust_series_detail;
 
-    public IllustsBean getIllust_series_first_illust() {
+    public Illust getIllust_series_first_illust() {
         return illust_series_first_illust;
     }
 
-    public void setIllust_series_first_illust(IllustsBean illust_series_first_illust) {
+    public void setIllust_series_first_illust(Illust illust_series_first_illust) {
         this.illust_series_first_illust = illust_series_first_illust;
     }
 
-    public List<IllustsBean> getIllusts() {
+    public List<Illust> getIllusts() {
         return illusts;
     }
 
-    public void setIllusts(List<IllustsBean> illusts) {
+    public void setIllusts(List<Illust> illusts) {
         this.illusts = illusts;
     }
 
@@ -47,7 +47,7 @@ public class ListMangaOfSeries implements ListShow<IllustsBean> {
     }
 
     @Override
-    public List<IllustsBean> getList() {
+    public List<Illust> getList() {
         return illusts;
     }
 
@@ -64,7 +64,7 @@ public class ListMangaOfSeries implements ListShow<IllustsBean> {
         private String title;
         private String create_date;
         private String caption;
-        private UserBean user;
+        private User user;
         private ImageUrlsBean cover_image_urls;
 
         public int getId() {
@@ -123,11 +123,11 @@ public class ListMangaOfSeries implements ListShow<IllustsBean> {
             this.caption = caption;
         }
 
-        public UserBean getUser() {
+        public User getUser() {
             return user;
         }
 
-        public void setUser(UserBean user) {
+        public void setUser(User user) {
             this.user = user;
         }
 

@@ -549,6 +549,9 @@
     <string name="string_322">내 팬.</string>
     <string name="string_323">나의 좋 은 P 친구</string>
     <string name="string_324">테마 컬러</string>
+    <string name="tag_translation_color">태그 번역 색상</string>
+    <string name="tag_translation_color_follow_theme">테마 따르기</string>
+    <string name="tag_translation_color_pick_from_theme_page">테마 색상 페이지에서 선택</string>
     <string name="string_325">클릭 설정</string>
     <string name="string_326">시작 하 다.</string>
     <string name="string_327">잠시 멈추다.</string>
@@ -2734,4 +2737,7 @@
     <string name="nana7mi_quota_snack_session">5시간 한도를 모두 사용했습니다. %1$s 후 복구</string>
     <string name="nana7mi_quota_snack_weekly">주간 한도를 모두 사용했습니다. %1$s 후 복구</string>
     <string name="nana7mi_quota_snack_action">사용량 보기</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">알겠어요</string>
+    <string name="inapp_push_default_action">보러 가기</string>
 </resources>

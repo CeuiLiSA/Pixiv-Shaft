@@ -1,0 +1,36 @@
+parts {
+  device {
+    display {
+      width 1080
+      height 2400
+      x 0
+      y 0
+    }
+  }
+  portrait {
+    background {
+      image back.webp
+    }
+    foreground {
+      mask mask.webp
+      cutout hole
+    }
+  }
+}
+layouts {
+  portrait {
+    width 1187
+    height 2513
+    event EV_SW:0:1
+    part1 {
+      name portrait
+      x 0
+      y 0
+    }
+    part2 {
+      name device
+      x 49
+      y 55
+    }
+  }
+}

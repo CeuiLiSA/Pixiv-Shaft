@@ -4,6 +4,9 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.text.InputType
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -13,6 +16,10 @@ import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.graphics.toColorInt
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.Shaft
@@ -23,8 +30,11 @@ import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.SearchTypeUtil
 import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.ui.settings.CustomThemeColor
+import ceui.pixiv.ui.settings.ThemeColorCatalog
 import ceui.loxia.Tag
 import ceui.pixiv.ui.synonym.SynonymOperate
+import ceui.pixiv.ui.translate.translateTag
 import ceui.pixiv.utils.ppppx
 import com.google.android.flexbox.AlignItems
 import com.google.android.flexbox.FlexboxLayout
@@ -209,10 +219,14 @@ class V3TagFlowView @JvmOverloads constructor(
     private fun renderPairs(pairs: List<Pair<String, String?>>) {
         val prevCount = lastPairs.size
         lastPairs = pairs
+        // 译文色每次渲染算一次（不在 chip 循环里逐个算），并进签名：设置页改完色回来同一组
+        // tags 再 setTags 也要重画，不能被 dedupe 吞掉。
+        val translationColor = tagTranslationColor()
         val sig = buildString {
             pairs.forEach { (n, t) ->
                 append(n); append('|'); append(t ?: ""); append(';')
             }
+            append('#'); append(translationColor)
         }
         if (sig == lastSignature && childCount > 0) return
         lastSignature = sig
@@ -248,11 +262,27 @@ class V3TagFlowView @JvmOverloads constructor(
                 else -> gap
             }
             val tv = TextView(context).apply {
-                text = buildString {
+                val translationSuffix =
+                    if (showTranslation && !translated.isNullOrBlank()) "  $translated" else ""
+                val fullText = buildString {
                     if (showHashPrefix) append("# ")
                     append(name)
-                    if (showTranslation && !translated.isNullOrBlank()) {
-                        append("  "); append(translated)
+                    append(translationSuffix)
+                }
+                // #1047-5：原文与译文用 SpannableString 分别上色，避免整段 setTextColor 混在一起。
+                text = SpannableString(fullText).apply {
+                    val originalEnd = fullText.length - translationSuffix.length
+                    setSpan(
+                        ForegroundColorSpan(palette.textTag),
+                        0, originalEnd,
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                    )
+                    if (originalEnd < length) {
+                        setSpan(
+                            ForegroundColorSpan(translationColor),
+                            originalEnd, length,
+                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
                     }
                 }
                 textSize = chipTextSize
@@ -367,6 +397,25 @@ class V3TagFlowView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * 标签译文颜色（#1047-5）：跟随主题时与原文同色；否则把所选色（目录预设 / 自定义 hex）
+     * 按 [V3Palette.textTag] 同一套压暗/压亮规则处理后再用 —— 原文色本身就是主题色这么派生的，
+     * 目录里的裸 hex（浅色底上的 #fee65e 夏日黄、深色底上的 #673AB7 经典紫）直接涂上去看不清。
+     * 只钳 HSL 的 L，色相饱和度不动，用户选的还是那个色。任何异常配置都回落原文色。
+     */
+    private fun tagTranslationColor(): Int {
+        val settings = Shaft.sSettings ?: return palette.textTag
+        if (settings.isTagTranslationColorFollowTheme) return palette.textTag
+        val index = settings.tagTranslationColorIndex
+        val hex = when {
+            index == CustomThemeColor.INDEX ->
+                CustomThemeColor.normalize(settings.tagTranslationColorCustomHex)
+            index in ThemeColorCatalog.entries.indices -> ThemeColorCatalog.hexOf(index)
+            else -> null
+        } ?: return palette.textTag
+        return V3Palette(hex.toColorInt(), palette.isDark).textTag
+    }
+
     private fun ensureEditor(): EditText {
         _editor?.let { return it }
         val ed = EditText(context).apply {
@@ -395,7 +444,7 @@ class V3TagFlowView @JvmOverloads constructor(
 
     private fun showTagActionMenu(name: String, translated: String?) {
         val hasTranslation = !translated.isNullOrBlank()
-        // 顺序：原文 / 译文（可选）/ 固定（host 提供 onPinTag 才有）/ 添加为同义词 / 屏蔽
+        // 顺序：原文 / 译文（可选）/ 翻译 / 固定（host 提供 onPinTag 才有）/ 添加为同义词 / 屏蔽
         val labels = mutableListOf<String>()
         val actions = mutableListOf<() -> Unit>()
         labels.add(context.getString(R.string.v3_tag_menu_copy_original))
@@ -403,6 +452,17 @@ class V3TagFlowView @JvmOverloads constructor(
         if (hasTranslation) {
             labels.add(context.getString(R.string.v3_tag_menu_copy_translation))
             actions.add { copyToClipboard(translated!!) }
+        }
+        // 翻译原文（#1054）：冷门 tag 没译名、或 pixiv 只给英文译名时现翻成 app 内语言。
+        // 不按「有没有译名」做条件隐藏——译名是英文的情况判不准，恒显示最省心。
+        // 协程挂在宿主 Fragment 的 view lifecycle 上（列表/详情都在 Fragment 里），
+        // 拿不到再退到 Activity；两者都没有的场合不会有这个菜单。
+        labels.add(context.getString(R.string.string_translate_caption))
+        actions.add {
+            val owner = findViewTreeLifecycleOwner() ?: (context as? LifecycleOwner)
+            if (owner != null) {
+                translateTag(context, owner.lifecycleScope, name)
+            }
         }
         val pinHandler = onPinTag
         if (pinHandler != null) {

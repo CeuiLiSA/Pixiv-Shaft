@@ -41,7 +41,6 @@ import ceui.pixiv.ui.common.NovelMultiSelectReceiver
 import ceui.pixiv.ui.common.bindCopyChip
 import ceui.pixiv.ui.common.bindCopyLinkChip
 import ceui.pixiv.ui.common.bindOpenLinkChip
-import ceui.pixiv.ui.common.coverUrl
 import ceui.pixiv.ui.detail.SeriesAuthorFeedItem
 import ceui.pixiv.ui.detail.SeriesCaptionFeedItem
 import ceui.pixiv.ui.detail.SeriesSectionLabelFeedItem
@@ -255,7 +254,7 @@ fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3
         val fmt = NumberFormat.getInstance()
 
         // cover
-        val coverUrl = novel.coverUrl
+        val coverUrl = novel.resolvedCoverUrl()
         Glide.with(ctx).load(GlideUtil.getUrl(coverUrl))
             .placeholder(R.color.v3_surface_2).error(R.color.v3_surface_2)
             .centerCrop().into(b.novelCover)
@@ -344,7 +343,9 @@ private fun bindNovelCardBookmark(
 private fun bindNovelCardTags(b: CellNovelV3Binding, novel: Novel, palette: V3Palette) {
     val tags = novel.tags
     val ctx = b.root.context
-    if (tags.isNullOrEmpty()) {
+    // 与主力小说卡同一套设置（#982/#1047）：「小说列表显示标签」关闭时整体隐藏；
+    // 「小说列表标签折叠」开启时超 6 个折叠成「+N」，关闭时 maxTags=-1 全量展示。
+    if (tags.isNullOrEmpty() || !Shaft.sSettings.isShowNovelCardTags) {
         b.tagsSection.isVisible = false
         return
     }
@@ -352,40 +353,44 @@ private fun bindNovelCardTags(b: CellNovelV3Binding, novel: Novel, palette: V3Pa
     b.tagsFlow.removeAllViews()
     val density = ctx.resources.displayMetrics.density
     val tagBg = palette.tagLockedBg(999f * density).constantState
-    val maxTags = 6
-    tags.take(maxTags).forEach { tag ->
-        val tv = TextView(ctx).apply {
-            // 列表条目只显示 tag 原文，译名进详情页看（#1038，与主力小说卡同口径）
-            text = "# ${tag.name ?: ""}"
-            textSize = 11f
-            setTextColor(palette.textTag)
-            background = tagBg?.newDrawable()?.mutate()
-            setPaddingRelative(10.ppppx, 5.ppppx, 10.ppppx, 5.ppppx)
-            layoutParams = FlexboxLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-            ).apply { setMargins(0, 0, 6.ppppx, 6.ppppx); flexShrink = 0f }
-            setOnClickListener {
-                val intent = Intent(ctx, SearchActivity::class.java).apply {
-                    putExtra(Params.KEY_WORD, tag.name)
-                    putExtra(Params.INDEX, 1)
-                }
-                ctx.startActivity(intent)
-            }
+    val maxTags = if (Shaft.sSettings.isCollapseNovelCardTags) 6 else -1
+    val visibleTags = if (maxTags > 0) tags.take(maxTags) else tags
+    visibleTags.forEach { tag ->
+        val tv = TextView(ctx)
+        // 列表条目只显示 tag 原文，译名进详情页看（#1038，与主力小说卡同口径）
+        tv.text = "# ${tag.name ?: ""}"
+        tv.textSize = 11f
+        tv.setTextColor(palette.textTag)
+        tv.background = tagBg?.newDrawable()?.mutate()
+        tv.setPaddingRelative(10.ppppx, 5.ppppx, 10.ppppx, 5.ppppx)
+        val lp = FlexboxLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+        )
+        lp.setMargins(0, 0, 6.ppppx, 6.ppppx)
+        lp.flexShrink = 0f
+        tv.layoutParams = lp
+        tv.setOnClickListener {
+            val intent = Intent(ctx, SearchActivity::class.java)
+                .putExtra(Params.KEY_WORD, tag.name)
+                .putExtra(Params.INDEX, 1)
+            ctx.startActivity(intent)
         }
         applyCardTouchScale(tv, 0.94f)
         b.tagsFlow.addView(tv)
     }
-    if (tags.size > maxTags) {
-        val overflow = TextView(ctx).apply {
-            text = "+${tags.size - maxTags}"
-            textSize = 11f
-            setTextColor(palette.textSecondary)
-            background = tagBg?.newDrawable()?.mutate()
-            setPaddingRelative(10.ppppx, 5.ppppx, 10.ppppx, 5.ppppx)
-            layoutParams = FlexboxLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-            ).apply { setMargins(0, 0, 6.ppppx, 6.ppppx); flexShrink = 0f }
-        }
+    if (maxTags > 0 && tags.size > maxTags) {
+        val overflow = TextView(ctx)
+        overflow.text = "+${tags.size - maxTags}"
+        overflow.textSize = 11f
+        overflow.setTextColor(palette.textSecondary)
+        overflow.background = tagBg?.newDrawable()?.mutate()
+        overflow.setPaddingRelative(10.ppppx, 5.ppppx, 10.ppppx, 5.ppppx)
+        val overflowLp = FlexboxLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+        )
+        overflowLp.setMargins(0, 0, 6.ppppx, 6.ppppx)
+        overflowLp.flexShrink = 0f
+        overflow.layoutParams = overflowLp
         b.tagsFlow.addView(overflow)
     }
 }

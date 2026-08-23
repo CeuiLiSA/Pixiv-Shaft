@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.file.FileName;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.utils.Common;
 
 public class DownloadItem implements Serializable {
@@ -16,7 +16,7 @@ public class DownloadItem implements Serializable {
     private String url;
     private String showUrl;
     private String uuid;
-    private final IllustsBean illust;
+    private final Illust illust;
     private int index;
     private boolean autoSave = true;
     private int state = DownloadState.INIT;
@@ -28,7 +28,7 @@ public class DownloadItem implements Serializable {
     private transient long currentSize = 0;
     private transient long totalSize = 0;
 
-    public DownloadItem(IllustsBean illustsBean, int index) {
+    public DownloadItem(Illust illustsBean, int index) {
         this.illust = illustsBean;
         this.uuid = UUID.randomUUID().toString();
         if (this.illust.isGif()) {
@@ -76,7 +76,7 @@ public class DownloadItem implements Serializable {
         return url;
     }
 
-    public IllustsBean getIllust() {
+    public Illust getIllust() {
         return illust;
     }
 

@@ -9,22 +9,6 @@ import com.google.gson.annotations.SerializedName
  * 服务端 spec 见 docs `shaft-plaza-api-android.md` §3-§7。
  */
 
-// ── POST /api/v1/plaza/posts ─────────────────────────────────────
-
-/**
- * 注意:这个 DTO **不直接** Gson.toJson 上送 —— 上送的 JSON 是手拼的
- * canonical body (PlazaSig.canonicalPostBody) 加上 uid/ts/sig 三个外层字段,
- * Gson 不保证 key 顺序,会破坏 server-side bodyHash 校验。
- *
- * 仅用于本地内存表达,真正的 wire format 在 PlazaRepository 里手拼。
- */
-data class PlazaCreatePostInput(
-    val text: String,
-    val illust: List<Long> = emptyList(),
-    val novel: List<Long> = emptyList(),
-    val user: List<Long> = emptyList(),
-)
-
 // ── 响应 (POST 单条 / GET 单帖详情 / feed item) ──────────────────────
 
 /**

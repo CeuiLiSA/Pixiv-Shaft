@@ -48,6 +48,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.os.BundleCompat;
@@ -96,6 +97,27 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private boolean reverseUploadArmed = false;
     private ValueCallback<Uri> uploadMessage;
     private ValueCallback<Uri[]> uploadMessageAboveL;
+    /**
+     * 返回键/手势先退网页历史(AgentWeb.back 还顺带退全屏视频)。enabled 只在网页真有历史可退
+     * 时为 true(doUpdateVisitedHistory / onPageFinished 里刷新):没历史时不拦,系统自己
+     * finish 宿主并播预测式返回动画 —— 以前这段逻辑挂在 TemplateActivity 的常开兜底 callback
+     * 里,把全 app 的预测式返回都掐掉了。
+     */
+    private final OnBackPressedCallback webBackCallback = new OnBackPressedCallback(false) {
+        @Override
+        public void handleOnBackPressed() {
+            if (mAgentWeb != null && mAgentWeb.back()) {
+                syncBackCallback();
+                return;
+            }
+            setEnabled(false);
+            requireActivity().getOnBackPressedDispatcher().onBackPressed();
+        }
+    };
+
+    private void syncBackCallback() {
+        webBackCallback.setEnabled(mWebView != null && mWebView.canGoBack());
+    }
 
     @Override
     public void initBundle(Bundle bundle) {
@@ -198,6 +220,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         }
 
         mAgentWeb = ready.go(url);
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), webBackCallback);
         baseBind.ibMenu.setVisibility(View.VISIBLE);
         baseBind.ibMenu.setOnClickListener(v -> {
             String jumpUrl = url.contains(LOGIN_SIGN_HEAD) ? url : mWebView.getUrl();
@@ -213,7 +236,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         // 图搜的 Cloudflare Turnstile 跑在 challenges.cloudflare.com 的 iframe 里,对引擎域
         // 是第三方——存不下验证状态就会「勾完真人框又弹回来」无限循环(#733 真机复现)。
         CookieManager.getInstance().setAcceptThirdPartyCookies(mWebView, true);
-        // 返回键会一路退网页历史(见 TemplateActivity 的 OnBackPressedDispatcher),
+        // 返回键会一路退网页历史(见 webBackCallback),
         // 退过头了就靠这个回去 —— 图搜搜半天被一次误触返回抹掉太亏(#733)。
         baseBind.ibForward.setOnClickListener(v -> {
             if (mWebView.canGoForward()) {
@@ -323,7 +346,15 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                             injectCSS();
                         }
                         syncForwardButton();
+                        syncBackCallback();
                         super.onPageFinished(view, url);
+                    }
+
+                    @Override
+                    public void doUpdateVisitedHistory(WebView view, String url, boolean isReload) {
+                        super.doUpdateVisitedHistory(view, url, isReload);
+                        syncForwardButton();
+                        syncBackCallback();
                     }
                 })
                 .createAgentWeb()

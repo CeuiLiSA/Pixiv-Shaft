@@ -28,7 +28,7 @@ import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
  * 搜索链路重（sort 路由 / 内置热门榜 / 投稿期间档 / 关键字后缀 / R18 三态 + 仅看 AI + starSize
  * 客户端过滤）——**为无损、零发散，数据源直接包裹既有的 [SearchIllustRepo]**（复刻它全部逻辑风险太大），
  * 只把 Rx→suspend 桥一下，过滤走 repo 自己的 FilterMapper。过滤后已是「搜索专属过滤过」的 bean，
- * 用 [IllustFeedItem.rawFromBean] 直接建条目（**绝不能走 .of/fromBean，会在仅看 AI 时误删 AI**）。
+ * 用 [IllustFeedItem.raw] 直接建条目（**绝不能走 .of，会在仅看 AI 时误删 AI**）。
  *
  * 响应式重搜：数据源读 activity-scoped [SearchModel] 最新参数（不快照），fragment observe nowGo →
  * 命中标签匹配档才 refresh（对齐 legacy 的 TAG_MATCH_VALUE guard，防选了小说专属 target 时插画也重搜）。
@@ -61,7 +61,7 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
      * 收藏数门槛 / 隐藏已收藏），nextUrl 只是那条流水线的入料。
      *
      * 而详情 pager 的回传链复现不了这条流水线：VActivity 用的是裸 `Mapper`（不认 searchR18Restriction
-     * / searchOnlyAi），回到本页 `feedItemFromBean` 默认走 [IllustFeedItem.fromBean] →
+     * / searchOnlyAi），回到本页 `feedItemFromBean` 默认走 [IllustFeedItem.of] →
      * `passesContentFilters`（只有全局过滤链）。两头都丢，于是：
      * - R-18 限制选「仅安全」→ 续拉页整页 R-18 全部放行，追回列表；
      * - 「仅看 AI」+ 全局「屏蔽 AI 作品」开 → 首屏靠 FilterMapper 的 `!searchOnlyAi` 让步保住 AI，
@@ -69,7 +69,7 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
      *
      * 交 null 即关掉续读：详情页仍可在交接来的快照里翻，只是划到底不再自动续拉（对齐所有本地源
      * 的既有做法）。要恢复续读，得先让回传链拿得到搜索档位、能一比一复现 FilterMapper，
-     * 而不是把这个游标交出去。[IllustFeedItem.rawFromBean] 的文档已经写明「搜索专属过滤 feeds 侧
+     * 而不是把这个游标交出去。[IllustFeedItem.raw] 的文档已经写明「搜索专属过滤 feeds 侧
      * 不复刻」——本页正是那条禁令的适用对象。
      */
     override val detailContinuationCursor: String?
@@ -175,7 +175,7 @@ class SearchIllustFeedSource(private val searchModel: SearchModel) : FeedSource<
             @Suppress("UNCHECKED_CAST")
             val filtered = (r.mapper() as Function<ListIllust, ListIllust>).apply(list)
             // FilterMapper 已做完全部搜索专属过滤 → 直接建条目，不再过滤（否则仅看 AI 误删 AI）。
-            filtered.list.orEmpty().mapNotNull { IllustFeedItem.rawFromBean(it) }
+            filtered.list.orEmpty().mapNotNull { IllustFeedItem.raw(it) }
         }
         return FeedPage(items, list.nextUrl?.takeIf { it.isNotEmpty() })
     }

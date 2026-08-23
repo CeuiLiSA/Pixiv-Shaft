@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="328" viewBox="0 0 1200 328" role="img" aria-label="Built for browsing Pixiv">
+<title>Built for browsing Pixiv</title>
+
+  <defs>
+    <linearGradient id="c-brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c6cff"/><stop offset="1" stop-color="#5b6ee1"/>
+    </linearGradient>
+    <linearGradient id="c-text" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#d9d4ff"/><stop offset="1" stop-color="#22d3ee"/>
+    </linearGradient>
+    <radialGradient id="c-a1" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#7c6cff" stop-opacity=".75"/><stop offset="1" stop-color="#7c6cff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="c-a2" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#22d3ee" stop-opacity=".45"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="c-a3" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#f6339a" stop-opacity=".35"/><stop offset="1" stop-color="#f6339a" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="c-blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="60"/>
+    </filter>
+    <filter id="c-soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+    <filter id="c-grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".07"/></feComponentTransfer>
+    </filter>
+  </defs>
+<clipPath id="c-clip"><rect width="1200" height="328" rx="28"/></clipPath>
+<rect width="1200" height="328" rx="28" fill="#07060f"/>
+<g clip-path="url(#c-clip)" filter="url(#c-blur)"><circle cx="216" cy="49" r="180" fill="url(#c-a1)"/><circle cx="983" cy="295" r="196" fill="url(#c-a2)"/><circle cx="744" cy="32" r="147" fill="url(#c-a3)"/></g>
+<rect width="1200" height="328" rx="28" filter="url(#c-grain)" opacity=".6"/>
+<rect x=".5" y=".5" width="1199" height="327" rx="28" fill="none" stroke="#ffffff" stroke-opacity=".10"/>
+<text x="40" y="58" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="26" font-weight="800" fill="url(#c-text)">Built for browsing Pixiv</text>
+<rect x="40.0" y="92.0" width="160.9" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="62.0" cy="112.0" r="4" fill="#7c6cff"/>
+<text x="74.0" y="117.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Illustrations</text>
+<rect x="212.9" y="92.0" width="94.7" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="234.9" cy="112.0" r="4" fill="#22d3ee"/>
+<text x="246.9" y="117.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Manga</text>
+<rect x="319.6" y="92.0" width="103.0" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="341.6" cy="112.0" r="4" fill="#f6339a"/>
+<text x="353.6" y="117.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Novels</text>
+<rect x="434.6" y="92.0" width="119.5" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="456.6" cy="112.0" r="4" fill="#a78bfa"/>
+<text x="468.6" y="117.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Rankings</text>
+<rect x="566.2" y="92.0" width="137.5" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="588.2" cy="112.0" r="4" fill="#00bb7f"/>
+<text x="600.2" y="117.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">PixiVision</text>
+<rect x="715.7" y="92.0" width="110.0" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="737.7" cy="112.0" r="4" fill="#fcbb00"/>
+<text x="749.7" y="117.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">FANBOX</text>
+<rect x="837.7" y="92.0" width="146.1" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="859.7" cy="112.0" r="4" fill="#7c6cff"/>
+<text x="871.7" y="117.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">pixiv COMIC</text>
+<rect x="995.8" y="92.0" width="157.0" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="1017.8" cy="112.0" r="4" fill="#22d3ee"/>
+<text x="1029.8" y="117.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Trending tags</text>
+<rect x="40.0" y="144.0" width="165.3" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="62.0" cy="164.0" r="4" fill="#f6339a"/>
+<text x="74.0" y="169.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Following feed</text>
+<rect x="217.3" y="144.0" width="214.9" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="239.3" cy="164.0" r="4" fill="#a78bfa"/>
+<text x="251.3" y="169.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Ugoira interpolation</text>
+<rect x="444.1" y="144.0" width="127.0" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="466.1" cy="164.0" r="4" fill="#00bb7f"/>
+<text x="478.1" y="169.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">GIF / MP4</text>
+<rect x="583.2" y="144.0" width="165.3" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="605.2" cy="164.0" r="4" fill="#fcbb00"/>
+<text x="617.2" y="169.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Batch download</text>
+<rect x="760.4" y="144.0" width="206.6" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="782.4" cy="164.0" r="4" fill="#7c6cff"/>
+<text x="794.4" y="169.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Resumable downloads</text>
+<rect x="40.0" y="196.0" width="211.0" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="62.0" cy="216.0" r="4" fill="#22d3ee"/>
+<text x="74.0" y="221.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Reverse image search</text>
+<rect x="263.0" y="196.0" width="140.5" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="285.0" cy="216.0" r="4" fill="#f6339a"/>
+<text x="297.0" y="221.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Watch later</text>
+<rect x="415.4" y="196.0" width="157.0" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="437.4" cy="216.0" r="4" fill="#a78bfa"/>
+<text x="449.4" y="221.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Local library</text>
+<rect x="584.4" y="196.0" width="198.3" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="606.4" cy="216.0" r="4" fill="#00bb7f"/>
+<text x="618.4" y="221.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Network self-check</text>
+<rect x="794.7" y="196.0" width="157.0" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="816.7" cy="216.0" r="4" fill="#fcbb00"/>
+<text x="828.7" y="221.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Image mirrors</text>
+<rect x="963.7" y="196.0" width="173.5" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="985.7" cy="216.0" r="4" fill="#7c6cff"/>
+<text x="997.7" y="221.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Tablet two-pane</text>
+<rect x="40.0" y="248.0" width="160.9" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="62.0" cy="268.0" r="4" fill="#22d3ee"/>
+<text x="74.0" y="273.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Multi-account</text>
+<rect x="212.9" y="248.0" width="202.7" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="234.9" cy="268.0" r="4" fill="#f6339a"/>
+<text x="246.9" y="273.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Custom accent color</text>
+<rect x="427.6" y="248.0" width="123.9" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="449.6" cy="268.0" r="4" fill="#a78bfa"/>
+<text x="461.6" y="273.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Dark mode</text>
+<rect x="563.5" y="248.0" width="150.1" height="40" rx="20.0" fill="#ffffff" fill-opacity=".06" stroke="#ffffff" stroke-opacity=".14"/>
+<circle cx="585.5" cy="268.0" r="4" fill="#00bb7f"/>
+<text x="597.5" y="273.4" font-family="Inter, Sora, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', 'Microsoft YaHei', system-ui, sans-serif" font-size="15" font-weight="600" fill="#ffffff" fill-opacity=".88">Material You</text>
+</svg>

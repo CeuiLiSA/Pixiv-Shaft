@@ -5,7 +5,7 @@ import android.view.View
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.pixiv.feeds.FeedItem
@@ -62,7 +62,7 @@ class BookmarkRankFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_fe
     // 榜单 bean 是第三方上报快照:is_bookmarked 被 source 伪造成 false、user.is_followed 是
     // 上报者的——都不可信,喂池会把当前用户更新的收藏/关注态盖回去(mergeKeepingExisting 不把
     // false 当空值,AppLevelViewModelHelper.fill 直接灌关注态)。同 WatchLaterFeedFragment 先例。
-    override fun poolableBeansOf(item: FeedItem): List<IllustsBean> = emptyList()
+    override fun poolableBeansOf(item: FeedItem): List<Illust> = emptyList()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -130,16 +130,17 @@ class BookmarkRankFeedSource(
         ): IllustFeedItem? {
             val json = item.bean ?: return null
             val bean = try {
-                Shaft.sGson.fromJson(json, IllustsBean::class.java)
+                Shaft.sGson.fromJson(json, Illust::class.java)
             } catch (e: Throwable) {
                 Timber.tag("BookmarkRank").w(e, "skip malformed bean id=${item.target_id}")
                 return null
             } ?: return null
             // 收藏榜:pill 显 pixiv 总收藏数(TrendingScoreFormat 支持 K/M,990150→「990.2K」);
             // payload 里的收藏态是上报者的,清零让用户以自己名义收藏(对齐 ViewRankFeedSource)。
-            bean.trendingScore = item.bookmark_count.toFloat()
-            bean.setIs_bookmarked(false)
-            return IllustFeedItem.fromBean(bean, skipAiFilter = skipAiFilter)
+            return IllustFeedItem.of(
+                bean.withTrendingScore(item.bookmark_count.toFloat()).withBookmarked(false),
+                skipAiFilter = skipAiFilter,
+            )
         }
     }
 }

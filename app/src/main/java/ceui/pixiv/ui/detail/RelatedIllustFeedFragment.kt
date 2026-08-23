@@ -89,7 +89,7 @@ class RelatedIllustFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_f
 
     /** 把当前已加载的相关作品存进精华库（对齐 legacy action_bookmark）。序列化 + Room 写挪 IO 避免卡主线程。 */
     private fun saveToFeatures() {
-        val beans = ArrayList(currentIllustItems().map { it.bean })
+        val beans = ArrayList(currentIllustItems().map { it.illust })
         val appCtx = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
             withContext(Dispatchers.IO) {
@@ -126,17 +126,14 @@ private fun mapRelatedPage(
     phase: FeedLoadPhase,
     illustId: Long,
 ): List<FeedItem> {
-    val pairs = illusts.mapNotNull { illust ->
-        IllustFeedItem.beanOf(illust)?.let { bean -> illust to bean }
-    }
     // 对齐 RelatedIllustRepo.doOnNext：过滤前整页喂 DiscoveryPool。喂画像池是「拉取成功」型
     // 副作用，按 phase 门控——本源目前没配缓存（CacheRestore 走不到），但门控写在这里，
     // 将来给它开本地优先时不会拿磁盘上的旧数据重放去污染画像池。
     if (phase.isFreshFetch) {
         DiscoveryPool.collect(
-            pairs.map { it.second },
+            illusts,
             if (phase.isFirstPage) "related:$illustId" else "related_next:$illustId",
         )
     }
-    return pairs.mapNotNull { (illust, bean) -> IllustFeedItem.of(illust, bean) }
+    return illusts.mapNotNull { IllustFeedItem.of(it) }
 }

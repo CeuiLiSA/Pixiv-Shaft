@@ -36,7 +36,7 @@ public final class DownloadEntity implements Serializable {
     private long illustId;
 
     /**
-     * 这一行对应作品的第几页（0 基，与 {@code IllustsBean.meta_pages} 的下标一致）。
+     * 这一行对应作品的第几页（0 基，与 {@code Illust.meta_pages} 的下标一致）。
      * v41 新增，配合 {@code (illustId, page)} 复合索引。
      *
      * <p>之前"这一页下过没"只能拿 {@code FileCreator.customFileName} 算出**当前模板**下

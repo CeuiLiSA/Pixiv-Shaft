@@ -36,7 +36,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.ActivityLoginBinding
 import ceui.lisa.databinding.ItemLanguageRowBinding
-import ceui.lisa.models.UserModel
+import ceui.loxia.AccountResponse
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
@@ -111,7 +111,7 @@ class LandingViewModel : ViewModel() {
         // rawBody 而不是 result.response：落库要的是完整 user（R18 设置、邮箱验证态等），
         // PixivOAuthResponse 只带最小档案。与 OutWakeActivity 的 OAuth 回调路径同款处理。
         val userModel = runCatching {
-            Shaft.sGson.fromJson(rawBody, UserModel::class.java)
+            Shaft.sGson.fromJson(rawBody, AccountResponse::class.java)
         }.getOrNull()
         val user = userModel?.user
             ?: return RefreshTokenLoginOutcome.Failed(R.string.refresh_token_invalid_toast)
@@ -679,7 +679,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
 
     private fun performLogin(userJson: String) {
         val exportUser = runCatching {
-            Shaft.sGson.fromJson(userJson, UserModel::class.java)
+            Shaft.sGson.fromJson(userJson, AccountResponse::class.java)
         }.getOrNull()
         if (exportUser?.user == null) {
             Common.showToast("账号信息格式不正确，导入失败", 3)

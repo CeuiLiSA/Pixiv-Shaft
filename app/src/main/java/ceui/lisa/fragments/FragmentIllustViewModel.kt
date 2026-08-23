@@ -10,7 +10,7 @@ import androidx.lifecycle.viewModelScope
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.downloadProbeDispatcher
 import ceui.lisa.database.hasDownloadRecord
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.loxia.ObjectPool
 import ceui.loxia.fetchFullIllustDetail
@@ -44,15 +44,15 @@ class FragmentIllustViewModel(private val illustId: Long) : ViewModel() {
 
     private var pageDimsRequested = false
 
-    private val illustBeanLiveData = ObjectPool.get<IllustsBean>(illustId)
-    private val illustBeanObserver = Observer<IllustsBean> { bean -> ensurePageDimensions(bean) }
+    private val illustBeanLiveData = ObjectPool.get<Illust>(illustId)
+    private val illustBeanObserver = Observer<Illust> { bean -> ensurePageDimensions(bean) }
 
     init {
         // issue #569: 从「按 Tag 筛选」等精简来源进来时,池里的 bean 缺分页图/原图。后台回 API 拉完整版,
         // 整体覆盖 ObjectPool 后,FragmentIllust 的 illust observer 会带完整数据再次 fire、自动重建图片区。
         // 拉取失败则保留现有(精简)数据 —— GlideUtil / IllustDownload 已加空值兜底,不会崩,降级显示封面。
         viewModelScope.launch {
-            val cur = ObjectPool.get<IllustsBean>(illustId).value
+            val cur = ObjectPool.get<Illust>(illustId).value
             // hasTrustedCaption:列表接口会不定期掐掉部分作品的 caption(#960),caption 为空
             // 且没被 detail 确认过时也回源补拉,落池后 illust observer 自动重渲染简介。
             if (cur == null || !cur.isFullDetail() || !cur.hasTrustedCaption()) {
@@ -68,7 +68,7 @@ class FragmentIllustViewModel(private val illustId: Long) : ViewModel() {
     }
 
     /** 多 P 首次拿到 bean 时拉一次每页真实宽高(单 P 无需、只拉一次)。缺 cookie/失败静默降级。 */
-    private fun ensurePageDimensions(bean: IllustsBean) {
+    private fun ensurePageDimensions(bean: Illust) {
         if (pageDimsRequested || bean.page_count < 2) return
         pageDimsRequested = true
         viewModelScope.launch {
@@ -81,7 +81,7 @@ class FragmentIllustViewModel(private val illustId: Long) : ViewModel() {
         val appContext = context.applicationContext
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val illust = ObjectPool.get<IllustsBean>(illustId).value
+                val illust = ObjectPool.get<Illust>(illustId).value
                     ?: return@launch
                 val hasLocalFile = Common.isIllustDownloaded(illust)
                 // hasDownloadRecord 走 v38 的 illustId 索引（O(log n)），不再扫 2GB illustGson blob；

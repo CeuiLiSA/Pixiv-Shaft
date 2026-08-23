@@ -6,11 +6,12 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.loxia.requireEntityWrapper
+import ceui.loxia.toTagsBeans
 import ceui.pixiv.ui.bulk.BulkSelectStorage
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.slideshow.SlideshowLauncher
@@ -32,10 +33,10 @@ import ceui.pixiv.ui.slideshow.SlideshowLauncher
  */
 internal fun IllustFeedFragment.showCardMenu(
     item: IllustFeedItem,
-    scopedBeans: () -> List<IllustsBean> = { currentIllustItems().map { it.bean } },
+    scopedBeans: () -> List<Illust> = { currentIllustItems().map { it.illust } },
     onToggleSpoiler: (Boolean) -> Unit = { setIllustMuted(item, it) },
 ) {
-    val bean = item.bean
+    val bean = item.illust
     val entityWrapper = requireEntityWrapper()
     val inWatchLater = entityWrapper.isInWatchLater(item.illust.id)
     val spoilered = IllustMuteStore.isMuted(item.illust.id)
@@ -55,12 +56,13 @@ internal fun IllustFeedFragment.showCardMenu(
             onToggleSpoiler(!spoilered)
         }
         item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
-            MuteTagSheet.show(childFragmentManager, bean.tags, bean.user)
+            MuteTagSheet.show(childFragmentManager, bean.tags?.toTagsBeans(), bean.user)
         }
         item(getString(R.string.string_112), R.drawable.ic_baseline_comment_24) {
             startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
                 putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
-                putExtra(Params.ILLUST_ID, bean.id)
+                // TemplateActivity 侧仍按 getIntExtra 读
+                putExtra(Params.ILLUST_ID, bean.id.toInt())
                 putExtra(Params.ILLUST_TITLE, bean.title)
             })
         }
@@ -79,14 +81,14 @@ internal fun IllustFeedFragment.showCardMenu(
         }
         item(getString(R.string.string_339), R.drawable.ic_file_download_black_24dp) {
             IllustDownload.downloadIllustAllPages(bean)
-            if (Shaft.sSettings.isAutoPostLikeWhenDownload() && !bean.isIs_bookmarked) {
+            if (Shaft.sSettings.isAutoPostLikeWhenDownload() && !bean.isBookmarked) {
                 PixivOperate.postLikeDefaultStarType(bean)
             }
         }
         item(getString(R.string.slideshow_play), R.drawable.ic_baseline_play_arrow_24) {
             val beans = scopedBeans()
             val position = beans.indexOfFirst { it.id == bean.id }.coerceAtLeast(0)
-            SlideshowLauncher.launchFromIllustsBeans(
+            SlideshowLauncher.launchFromIllusts(
                 requireContext(), ArrayList(beans), position, true,
             )
         }

@@ -422,21 +422,39 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         // 搜索结果退出二次确认（issue #939，默认关闭）：只拦系统返回（手势/按键）——
         // 长滑之后误触退出就是从这条路来的；工具栏返回箭头是明确点击，不拦。
         // 交互对齐 MainActivity.exit()：2 秒内按两次返回才退出，第一次只 toast 提示。
-        // 开关状态每次返回时现读，从设置页改完回来立即生效，无需重建 Activity。
-        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+        //
+        // callback 只在「开关打开 && 还没按过第一次」时 enabled：常开会让系统放弃预测式返回
+        // 动画（有 app 回调注册就不播）。第一次按下 toast 后把自己关掉 2 秒，第二次返回直接
+        // 交给系统 → 跟手的预测式退出动画照常播；2 秒后再重新接管。开关关闭时整段不拦。
+        // 开关状态在 onResume 重读，从设置页改完回来立即生效，无需重建 Activity。
+        // 不带 owner 注册（与 TemplateActivity 同理）：垫在所有 Fragment callback 之下，
+        // 避免 Activity ON_START 晚于子 Fragment 导致的「兜底压在上面」。
+        mExitConfirmCallback = new androidx.activity.OnBackPressedCallback(false) {
             @Override
             public void handleOnBackPressed() {
-                if (Shaft.sSettings.isSearchExitConfirm()
-                        && System.currentTimeMillis() - mExitTime > 2000) {
-                    Common.showToast(getString(R.string.double_click_finish));
-                    mExitTime = System.currentTimeMillis();
-                    return;
-                }
-                setEnabled(false);
-                getOnBackPressedDispatcher().onBackPressed();
-                setEnabled(true);
+                Common.showToast(getString(R.string.double_click_finish));
+                mExitTime = System.currentTimeMillis();
+                refreshExitConfirmCallback();
+                baseBind.getRoot().postDelayed(SearchActivity.this::refreshExitConfirmCallback, EXIT_CONFIRM_WINDOW_MS + 100);
             }
-        });
+        };
+        getOnBackPressedDispatcher().addCallback(mExitConfirmCallback);
+        refreshExitConfirmCallback();
+    }
+
+    private static final long EXIT_CONFIRM_WINDOW_MS = 2000;
+    private androidx.activity.OnBackPressedCallback mExitConfirmCallback;
+
+    private void refreshExitConfirmCallback() {
+        if (mExitConfirmCallback == null) return;
+        boolean armed = System.currentTimeMillis() - mExitTime <= EXIT_CONFIRM_WINDOW_MS;
+        mExitConfirmCallback.setEnabled(Shaft.sSettings.isSearchExitConfirm() && !armed);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refreshExitConfirmCallback();
     }
 
     /**

@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.recommend
 
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.loxia.Novel
@@ -64,8 +64,8 @@ private suspend fun fetchHotPage(source: HotWorksSource, type: String, window: S
  * RecentWorksRepo）。
  *
  * shaft-api-v2 的响应不实现 KListShow（item.bean 是 JsonObject），用不了 PixivFeedSource，
- * 这里直接写 [FeedSource]。逐条 item.bean → IllustsBean，装 trendingScore、清 is_bookmarked
- * （payload 里是上报者的收藏态，跟当前用户无关），再走 [IllustFeedItem.fromBean]（含全局内容
+ * 这里直接写 [FeedSource]。逐条 item.bean → Illust，装 trendingScore、清 is_bookmarked
+ * （payload 里是上报者的收藏态，跟当前用户无关），再走 [IllustFeedItem.of]（含全局内容
  * 过滤 + bean→loxia Illust）。零 Fragment 捕获（source/type/window 都是构造进来的局部值）。
  */
 class HotWorksIllustFeedSource(
@@ -109,15 +109,13 @@ private fun mapHotIllustItem(
 ): IllustFeedItem? {
     val json = item.bean ?: return null
     val bean = try {
-        Shaft.sGson.fromJson(json, IllustsBean::class.java)
+        Shaft.sGson.fromJson(json, Illust::class.java)
     } catch (e: Throwable) {
         Timber.tag("HotWorks").w(e, "skip malformed illust bean id=${item.target_id}")
         return null
     } ?: return null
     // 对齐 legacy TrendingWorksRepo/RecentWorksRepo：热度值装 pill、清上报者收藏态。
-    bean.trendingScore = item.hotScore(source)
-    bean.setIs_bookmarked(false)
-    return IllustFeedItem.fromBean(bean)
+    return IllustFeedItem.of(bean.withTrendingScore(item.hotScore(source)).withBookmarked(false))
 }
 
 private fun mapHotNovelItem(

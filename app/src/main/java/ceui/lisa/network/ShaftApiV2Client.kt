@@ -193,7 +193,7 @@ object ShaftApiV2Client {
     /**
      * 发广场帖。
      *
-     * @param illustMetas 已知 illust 的完整 IllustsBean 快照(可选),用来让 server
+     * @param illustMetas 已知 illust 的完整 Illust 快照(可选),用来让 server
      *   在入库时直接 seed illust_meta —— GET 出去就是 enriched 的,不用等用户走
      *   /events/batch 才回填。**不参与 sig**(advisory hint),所以老 client 不带也
      *   能发帖。同理 novelMetas / userMetas 也是可选 hints。

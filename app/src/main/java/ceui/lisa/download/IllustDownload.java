@@ -34,9 +34,9 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
-import ceui.lisa.models.IllustsBean;
-import ceui.lisa.models.ImageUrlsBean;
-import ceui.lisa.models.MetaPagesBean;
+import ceui.loxia.Illust;
+import ceui.loxia.ImageUrls;
+import ceui.loxia.MetaPage;
 import ceui.loxia.ObjectPool;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.IllustCaptionExporter;
@@ -50,11 +50,11 @@ import ceui.lisa.utils.PixivOperate;
 
 public class IllustDownload {
 
-    private static DownloadItem buildDownloadItem(IllustsBean illust, int index) {
+    private static DownloadItem buildDownloadItem(Illust illust, int index) {
         return buildDownloadItem(illust, index, Params.IMAGE_RESOLUTION_ORIGINAL);
     }
 
-    private static DownloadItem buildDownloadItem(IllustsBean illust, int index, String imageResolution) {
+    private static DownloadItem buildDownloadItem(Illust illust, int index, String imageResolution) {
         if (illust.isGif()) {
             return null;
         } else if (illust.getPage_count() == 1) {
@@ -70,11 +70,11 @@ public class IllustDownload {
         }
     }
 
-    public static void downloadIllustFirstPage(IllustsBean illust, BaseActivity<?> activity) {
+    public static void downloadIllustFirstPage(Illust illust, BaseActivity<?> activity) {
         check(activity, () -> downloadIllustFirstPage(illust));
     }
 
-    public static void downloadIllustFirstPageWithResolution(IllustsBean illust, String imageResolution, BaseActivity<?> activity) {
+    public static void downloadIllustFirstPageWithResolution(Illust illust, String imageResolution, BaseActivity<?> activity) {
         check(activity, () -> {
             // ugoira 没有静态「第一页」可下:buildDownloadItem 对 gif 返回 null,直接
             // Manager.addTask(null) 会在 safeAdd 里 null.getUuid() NPE。动图统一走
@@ -92,11 +92,11 @@ public class IllustDownload {
         });
     }
 
-    public static void downloadIllustFirstPage(IllustsBean illust) {
+    public static void downloadIllustFirstPage(Illust illust) {
         downloadIllustFirstPageWithResolution(illust, Params.IMAGE_RESOLUTION_ORIGINAL);
     }
 
-    public static void downloadIllustFirstPageWithResolution(IllustsBean illust, String imageResolution) {
+    public static void downloadIllustFirstPageWithResolution(Illust illust, String imageResolution) {
         // 同上:gif 走 downloadGif,避免 buildDownloadItem 返 null → addTask(null) NPE。
         if (illust.isGif()) {
             downloadGif(illust);
@@ -110,7 +110,7 @@ public class IllustDownload {
         }
     }
 
-    public static void downloadIllustCertainPage(IllustsBean illust, int index, BaseActivity<?> activity) {
+    public static void downloadIllustCertainPage(Illust illust, int index, BaseActivity<?> activity) {
         check(activity, () -> {
             if (illust.getPage_count() == 1) {
                 // index!=0 时不合理
@@ -124,11 +124,11 @@ public class IllustDownload {
         });
     }
 
-    public static void downloadIllustAllPages(IllustsBean illust, BaseActivity<?> activity) {
+    public static void downloadIllustAllPages(Illust illust, BaseActivity<?> activity) {
         check(activity, () -> downloadIllustAllPages(illust));
     }
 
-    public static void downloadIllustAllPagesWithResolution(IllustsBean illust, String imageResolution, BaseActivity<?> activity) {
+    public static void downloadIllustAllPagesWithResolution(Illust illust, String imageResolution, BaseActivity<?> activity) {
         check(activity, () -> {
             if (illust.getPage_count() == 1) {
                 downloadIllustFirstPage(illust, activity);
@@ -145,7 +145,7 @@ public class IllustDownload {
         });
     }
 
-    public static void downloadIllustAllPages(IllustsBean illust) {
+    public static void downloadIllustAllPages(Illust illust) {
         // issue #569: 精简/网页来源的 bean(如「按 Tag 筛选」列表项)没有 meta_pages/meta_single_page,
         // 直接下载多图只会拿到封面、原图也取不到。先回 v1/illust/detail 拉完整版再下;
         // 拉取失败则降级用现有数据(已加空值兜底,不会崩)。
@@ -156,7 +156,7 @@ public class IllustDownload {
         doDownloadAllPages(illust);
     }
 
-    private static void doDownloadAllPages(IllustsBean illust) {
+    private static void doDownloadAllPages(Illust illust) {
         if (illust.isGif()){
             downloadGif(illust);
         } else if (illust.getPage_count() == 1) {
@@ -174,7 +174,7 @@ public class IllustDownload {
     }
 
     /** 详情/下载所需的分页信息是否缺失(精简来源的 bean 会缺,需回 API 补全)。 */
-    private static boolean needsFullData(IllustsBean illust) {
+    private static boolean needsFullData(Illust illust) {
         if (illust == null) {
             return false;
         }
@@ -182,7 +182,7 @@ public class IllustDownload {
             return illust.getMeta_single_page() == null
                     || TextUtils.isEmpty(illust.getMeta_single_page().getOriginal_image_url());
         }
-        List<MetaPagesBean> mp = illust.getMeta_pages();
+        List<MetaPage> mp = illust.getMeta_pages();
         return mp == null || mp.size() < illust.getPage_count();
     }
 
@@ -190,15 +190,15 @@ public class IllustDownload {
      * 回 v1/illust/detail 拉完整版后用完整 bean 执行 action;失败/已删则用原 bean 降级执行
      * (action 应是不再触发本守卫的「裸」下载实现,避免无限重拉)。
      */
-    private static void ensureFullThenRun(IllustsBean illust, java.util.function.Consumer<IllustsBean> action) {
+    private static void ensureFullThenRun(Illust illust, java.util.function.Consumer<Illust> action) {
         Retro.getAppApi().getIllustByID(illust.getId())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<IllustSearchResponse>() {
                     @Override
                     public void success(IllustSearchResponse resp) {
-                        IllustsBean fresh = resp.getIllust();
-                        if (fresh != null && fresh.getId() != 0 && fresh.isVisible()) {
+                        Illust fresh = resp.getIllust();
+                        if (fresh != null && fresh.getId() != 0 && Boolean.TRUE.equals(fresh.getVisible())) {
                             ObjectPool.INSTANCE.updateIllust(fresh);
                             action.accept(fresh);
                         } else {
@@ -217,11 +217,11 @@ public class IllustDownload {
     // downloadCheckedIllustAllPages 已移除：旧的 FragmentMultiDownload 勾选下载入口已废弃，
     // 现在统一通过 download_queue v33 持久化队列（见 ceui.pixiv.ui.bulk.LegacyBatchEnqueue 与 ceui.pixiv.ui.bulk.bulkEnqueueIllusts）。
 
-    public static DownloadItem downloadGif(GifResponse response, IllustsBean illust) {
+    public static DownloadItem downloadGif(GifResponse response, Illust illust) {
         return downloadGif(response, illust, false);
     }
 
-    public static DownloadItem downloadGif(GifResponse response, IllustsBean illust, boolean autoSave) {
+    public static DownloadItem downloadGif(GifResponse response, Illust illust, boolean autoSave) {
         DownloadItem item = new DownloadItem(illust, 0);
         item.setAutoSave(autoSave);
         item.setUrl((response.getUgoira_metadata().getZip_urls().getMedium()));
@@ -230,7 +230,7 @@ public class IllustDownload {
         return item;
     }
 
-    public static void downloadGif(IllustsBean illustsBean){
+    public static void downloadGif(Illust illustsBean){
         if(!illustsBean.isGif()){
             return;
         }
@@ -325,40 +325,43 @@ public class IllustDownload {
         }));
     }
 
-    public static String getUrl(IllustsBean illust, int index) {
+    public static String getUrl(Illust illust, int index) {
         return getUrl(illust, index, Params.IMAGE_RESOLUTION_ORIGINAL);
     }
 
-    public static String getUrl(IllustsBean illust, int index, String imageResolution) {
+    public static String getUrl(Illust illust, int index, String imageResolution) {
         return (getImageUrlByResolution(illust, index, imageResolution));
     }
 
-    private static String getImageUrlByResolution(IllustsBean illust, int index, String imageResolution) {
-        ImageUrlsBean imageUrlsBean = getImageUrlsBean(illust, index, imageResolution);
+    private static String getImageUrlByResolution(Illust illust, int index, String imageResolution) {
+        if (illust.getPage_count() == 1
+                && imageResolution.equals(Params.IMAGE_RESOLUTION_ORIGINAL)
+                && illust.getMeta_single_page() != null) {
+            // 单图原图取 meta_single_page.original_image_url;
+            // 精简/网页来源缺 meta_single_page → 降级到 image_urls,避免 NPE(issue #569)。
+            // 正常情况下载前会先 ensureFullThenRun 拉完整版,这里只是最后兜底。
+            return illust.getMeta_single_page().getOriginal_image_url();
+        }
+        ImageUrls imageUrls = getImageUrls(illust, index);
         switch (imageResolution) {
             case Params.IMAGE_RESOLUTION_ORIGINAL:
-                return imageUrlsBean.getOriginal();
+                return imageUrls.getOriginal();
             case Params.IMAGE_RESOLUTION_LARGE:
-                return imageUrlsBean.getLarge();
+                return imageUrls.getLarge();
             case Params.IMAGE_RESOLUTION_MEDIUM:
-                return imageUrlsBean.getMedium();
+                return imageUrls.getMedium();
             case Params.IMAGE_RESOLUTION_SQUARE_MEDIUM:
-                return imageUrlsBean.getSquare_medium();
+                return imageUrls.getSquare_medium();
             default:
-                return imageUrlsBean.getMaxImage();
+                return imageUrls.findMaxSizeUrl();
         }
     }
 
-    private static ImageUrlsBean getImageUrlsBean(IllustsBean illust, int index, String imageResolution) {
+    private static ImageUrls getImageUrls(Illust illust, int index) {
         if (illust.getPage_count() == 1) {
-            if (imageResolution.equals(Params.IMAGE_RESOLUTION_ORIGINAL)) {
-                // 精简/网页来源缺 meta_single_page → 降级到 image_urls,避免 NPE(issue #569)。
-                // 正常情况下载前会先 ensureFullThenRun 拉完整版,这里只是最后兜底。
-                return illust.getMeta_single_page() != null ? illust.getMeta_single_page() : illust.getImage_urls();
-            }
             return illust.getImage_urls();
         } else {
-            List<MetaPagesBean> mp = illust.getMeta_pages();
+            List<MetaPage> mp = illust.getMeta_pages();
             if (mp == null || index < 0 || index >= mp.size()) {
                 // 多图但无 meta_pages(精简/网页来源)→ 降级到封面 image_urls,避免 NPE(issue #569)
                 return illust.getImage_urls();
@@ -367,15 +370,15 @@ public class IllustDownload {
         }
     }
 
-    public static String getShowUrl(IllustsBean illust, int index) {
+    public static String getShowUrl(Illust illust, int index) {
         // 下载管理列表只显示 64dp 缩略图,square_medium (~360px) 比 medium (~540px)
         // 体积小一截,且本身就是方形裁切,跟下载卡片的方形 thumb 视觉吻合。
         // square_medium 缺时按 medium → large 兜底。
-        ImageUrlsBean urls;
+        ImageUrls urls;
         if (illust.getPage_count() == 1) {
             urls = illust.getImage_urls();
         } else {
-            List<MetaPagesBean> mp = illust.getMeta_pages();
+            List<MetaPage> mp = illust.getMeta_pages();
             urls = (mp == null || index < 0 || index >= mp.size())
                     ? illust.getImage_urls()
                     : mp.get(index).getImage_urls();

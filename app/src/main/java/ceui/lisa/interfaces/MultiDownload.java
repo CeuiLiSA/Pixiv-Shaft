@@ -6,7 +6,7 @@ import android.content.Intent;
 import java.util.List;
 
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.pixiv.ui.bulk.BulkSelectStorage;
 
 /**
@@ -17,10 +17,10 @@ public interface MultiDownload {
 
     Context getContext();
 
-    List<IllustsBean> getIllustList();
+    List<Illust> getIllustList();
 
     default void startDownload() {
-        List<IllustsBean> list = getIllustList();
+        List<Illust> list = getIllustList();
         if (list == null || list.isEmpty()) return;
         BulkSelectStorage.INSTANCE.put(list);
         Intent intent = new Intent(getContext(), TemplateActivity.class);

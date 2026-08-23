@@ -2,8 +2,9 @@ package ceui.loxia
 
 import android.os.Parcelable
 import android.text.TextUtils
+import ceui.lisa.models.Deduplicatable
+import ceui.lisa.models.IllustAIType
 import ceui.lisa.models.ModelObject
-import ceui.lisa.models.NovelBean
 import ceui.lisa.models.NovelDetail.NovelMarkerBean
 import ceui.lisa.models.ObjectSpec
 import com.google.gson.annotations.SerializedName
@@ -11,16 +12,19 @@ import kotlinx.parcelize.Parcelize
 import java.io.Serializable
 
 
-
-
 data class AccountResponse(
-    val access_token: String? = null,
-    val expires_in: Int? = null,
-    val refresh_token: String? = null,
-    val scope: String? = null,
-    val token_type: String? = null,
-    val user: User? = null
-) : Serializable
+    var access_token: String? = null,
+    var expires_in: Int? = null,
+    var refresh_token: String? = null,
+    var scope: String? = null,
+    var token_type: String? = null,
+    var user: User? = null,
+    // 旧 Java 账号 JSON 曾携带这两个字段，保留以保证账号备份/Room 记录无损恢复。
+    var device_token: String? = null,
+    var local_user: String? = null,
+) : Serializable, ceui.lisa.models.UserContainer {
+    override fun getUserId(): Int = user?.id?.toInt() ?: 0
+}
 
 data class IllustResponse(
     val illusts: List<Illust> = listOf(),
@@ -44,36 +48,6 @@ object ObjectType {
     const val MANGA = "manga"
     const val GIF = "ugoira"
     const val NOVEL = "novel"
-}
-
-object ConstantUser {
-    const val pixiv = 11L //pixiv事務局
-    const val pxv_sensei = 17391869L //pixiv描き方-sensei
-    const val mangapixiv = 14792128L //MANGA pixiv
-    const val pixivision = 12848282L //pixivision
-    const val pxv_sketch = 15241365L //pixiv Sketch
-    const val pixiv3 = 1085317L // pixiv MARKET事務局
-    const val fanbox = 20390859L // pixivFANBOX公式
-
-    const val CeuiLiSA = 31660292L
-    const val VOLUNTEER_USER_1 = 89989626L // 千年孤狼
-    const val VOLUNTEER_USER_2 = 81263065L // 虎鲸
-
-    val officialUsers = listOf(
-        pixiv,
-        pxv_sensei,
-        mangapixiv,
-        pixivision,
-        pxv_sketch,
-        pixiv3,
-        fanbox,
-    )
-
-    val volunteerUsers = listOf(
-        CeuiLiSA,
-        VOLUNTEER_USER_1,
-        VOLUNTEER_USER_2,
-    )
 }
 
 data class WebIllust(
@@ -168,7 +142,38 @@ data class Illust(
     val visible: Boolean? = null,
     val width: Int = 0,
     val x_restrict: Int? = null,
-) : Serializable, ModelObject {
+    /** 客户端装饰：首页「相关作品」标记。不属于 pixiv 原始模型，Gson / Serializable 都跳过。 */
+    @Transient val isRelated: Boolean = false,
+    /** 客户端装饰：trending / 榜单流水线注入的热度分。不属于 pixiv 原始模型，Gson / Serializable 都跳过。 */
+    @Transient val trendingScore: Float? = null,
+) : Serializable, ModelObject, Deduplicatable {
+
+    override fun getDuplicateKey(): Any = id
+
+    /** 作者显式的限制级标记：1=R-18、2=R-18G，两者都算 R18（不看 sanity_level，避免把 R-15 误判成 R18）。 */
+    fun isR18File(): Boolean = (x_restrict ?: 0) > 0
+
+    /** 「敏感/R-15」级内容（sanity_level 4 为敏感，6 及以上更高）。与 R18 正交：需同时回避时用 isR18File() || isSensitive()。 */
+    fun isSensitive(): Boolean = (sanity_level ?: 0) >= 4
+
+    /** ai_type==2 视为 AI 生成（与 Novel.isCreatedByAI 同口径）。 */
+    fun isCreatedByAI(): Boolean = illust_ai_type == IllustAIType.CreatedByAI
+
+    /** is_bookmarked 的非空视图，给 Java 调用方和三目表达式用。 */
+    val isBookmarked: Boolean get() = is_bookmarked == true
+
+    val tagNames: List<String> get() = tags?.mapNotNull { it.name } ?: emptyList()
+
+    /** 屏蔽判定用的标签串，格式 `*#name,`（与 Novel.getTagString 同款）。 */
+    val tagString: String get() = tags?.joinToString(separator = "") { "*#${it.name}," } ?: ""
+
+    fun withBookmarked(liked: Boolean): Illust = if (is_bookmarked == liked) this else copy(is_bookmarked = liked)
+
+    fun withMuted(muted: Boolean): Illust = if (is_muted == muted) this else copy(is_muted = muted)
+
+    fun withRelated(related: Boolean): Illust = if (isRelated == related) this else copy(isRelated = related)
+
+    fun withTrendingScore(score: Float?): Illust = if (trendingScore == score) this else copy(trendingScore = score)
 
     fun isAuthurExist(): Boolean {
         return user?.exist() == true
@@ -225,15 +230,6 @@ data class WebTag(
 ) : Serializable {
     val tagName: String? get() {
         return tag ?: tag_translation
-    }
-}
-
-data class Tag(
-    val name: String? = null,
-    val translated_name: String? = null
-) : Serializable {
-    val tagName: String? get() {
-        return name ?: translated_name
     }
 }
 
@@ -297,119 +293,8 @@ data class WebPrivacyField(
     val privacyLevel: String? = null,
 ) : Serializable
 
-object UserGender {
-
-    const val UNKNOWN = 0
-    const val MALE = 1
-    const val FEMALE = 2
-
-    fun random(): Int {
-        return listOf(UNKNOWN, MALE, FEMALE).random()
-    }
-}
-
-data class User(
-    val account: String? = null,
-    val id: Long = 0L,
-    val user_id: Long = 0L,
-    val is_followed: Boolean? = null,
-    val name: String? = null,
-    val pixiv_id: String? = null,
-    val profile_image_urls: ImageUrls? = null,
-    val is_mail_authorized: Boolean? = null,
-    val is_premium: Boolean? = null,
-    val mail_address: String? = null,
-    val gender: Int = UserGender.MALE,
-    val require_policy_agreement: Boolean? = null,
-    val x_restrict: Int? = null,
-    val comment: String? = null,
-    // user/detail v2 新增:对方是否屏蔽了当前用户的访问 / 是否开启「接受约稿(request)」
-    val is_access_blocking_user: Boolean? = null,
-    val is_accept_request: Boolean? = null,
-) : Serializable, ModelObject {
-    override val objectUniqueId: Long
-        get() = id
-    override val objectType: Int
-        get() = ObjectSpec.KUser
-
-    fun isOfficial(): Boolean {
-        return ConstantUser.officialUsers.contains(id)
-    }
-
-    fun isVolunteer(): Boolean {
-        return ConstantUser.volunteerUsers.contains(id)
-    }
-
-
-    fun hasGender(): Boolean {
-        return gender != UserGender.UNKNOWN
-    }
-
-    fun exist(): Boolean {
-        return name?.isNotEmpty() == true || account?.isNotEmpty() == true
-    }
-}
-
-data class ImageUrls(
-    val url: String? = null,
-    val large: String? = null,
-    val medium: String? = null,
-    val original: String? = null,
-    val small: String? = null,
-    val square_medium: String? = null,
-    val px_16x16: String? = null,
-    val px_170x170: String? = null,
-    val px_50x50: String? = null,
-) : Serializable {
-
-    fun findMaxSizeUrl(): String? {
-        if (url != null) {
-            return url
-        }
-
-        if (original != null) {
-            return original
-        }
-
-        if (large != null) {
-            return large
-        }
-
-        if (medium != null) {
-            return medium
-        }
-
-        if (square_medium != null) {
-            return square_medium
-        }
-
-        if (small != null) {
-            return small
-        }
-
-        if (px_170x170 != null) {
-            return px_170x170
-        }
-
-        if (px_50x50 != null) {
-            return px_50x50
-        }
-
-        if (px_16x16 != null) {
-            return px_16x16
-        }
-
-        return null
-    }
-}
-
 data class ErrorResponse(
     val error: Error? = null
-) : Serializable
-
-data class WebApiError(
-    val error: Boolean? = null,
-    val message: String? = null,
 ) : Serializable
 
 data class Error(
@@ -601,10 +486,6 @@ data class GifFrame(
     val delay: Int? = null,
 ) : Serializable
 
-data class AddCommentResponse(
-    val comment: Comment? = null,
-) : Serializable
-
 data class Comment(
     val comment: String? = null,
     val date: String? = null,
@@ -717,7 +598,7 @@ data class WebIllustPage(
 ) : Serializable
 
 // issue #592: 网页 ajax /ajax/illust/{id} 的 body。app-api 对部分作品(常见于简介带贩售/
-// 外链的,不限 R18)返回 visible=false 的空壳,网页 ajax 不受限;只取映射 IllustsBean
+// 外链的,不限 R18)返回 visible=false 的空壳,网页 ajax 不受限;只取映射 Illust
 // 所需的字段。两处 urls 形状略有不同:detail 是 mini/thumb,pages 是 thumb_mini,合用一个类。
 data class WebIllustBody(
     val illustTitle: String? = null,
@@ -761,7 +642,7 @@ data class WebIllustTag(
 ) : Serializable
 
 // issue #569: 网页版「按 Tag 筛选画师作品」接口 /ajax/user/{id}/illusts/tag 的响应体。
-// works 里是精简 work 对象(方图 url + 字符串 tags + 宽高),由 UserIllustByTagFeedSource.toIllustsBean 映射成 IllustsBean。
+// works 里是精简 work 对象(方图 url + 字符串 tags + 宽高),由 UserIllustByTagFeedSource.toIllustsBean 映射成 Illust。
 data class UserTagIllustBody(
     val works: List<UserTagIllust>? = null,
     val total: Int = 0,
@@ -875,27 +756,6 @@ data class WebNovelCoverUrls(
     val original: String? = null,
 ) : Serializable
 
-data class RelatedUserBody (
-    val thumbnails: List<WebIllust>? = null,
-    val users: List<WebUser>? = null,
-) : Serializable
-
-data class WebRecmdBody (
-    val thumbnails: List<WebIllust>? = null,
-    val popularTags: TagsBody? = null,
-    val recommendTags: TagsBody? = null,
-    val recommendByTags: TagsBody? = null,
-) : Serializable
-
-
-data class TagsBody (
-    val illust: List<SingleRecommend>? = null,
-) : Serializable
-
-data class SingleRecommend (
-    val tag: String? = null,
-    val ids: List<Long>? = null,
-) : Serializable
 
 data class WebUser(
     val userId: Long? = null,
@@ -912,59 +772,6 @@ data class WebUser(
     val acceptRequest: Boolean? = null
 ) : Serializable
 
-
-data class TitleCaptionTranslation(
-    val workCaption: Any,
-    val workTitle: Any
-) : Serializable
-
-data class WaitingPage (
-    val thumbnails: ThumbnailBody? = null
-) : Serializable
-
-
-data class ThumbnailBody (
-    val illust: List<WebIllust>? = null,
-) : Serializable
-
-data class ListIllustBody (
-    val illusts: List<WebIllust>? = null,
-) : Serializable
-
-data class Novel(
-    val caption: String? = null,
-    val create_date: String? = null,
-    val id: Long,
-    val image_urls: ImageUrls? = null,
-    val is_bookmarked: Boolean? = null,
-    val is_muted: Boolean? = null,
-    val is_mypixiv_only: Boolean? = null,
-    val is_original: Boolean? = null,
-    val is_x_restricted: Boolean? = null,
-    val page_count: Int? = null,
-    val restrict: Int? = null,
-    val series: Series? = null,
-    val tags: List<Tag>? = null,
-    val text_length: Int? = null,
-    val title: String? = null,
-    val total_bookmarks: Int? = null,
-    val total_comments: Int? = null,
-    val total_view: Int? = null,
-    val user: User? = null,
-    val visible: Boolean? = null,
-    val x_restrict: Int? = null,
-    val novel_ai_type: Int = 0,   // 0=未知 / 1=人类 / 2=AI（issue #909 仅看 AI 客户端过滤用）
-) : Serializable, ModelObject {
-    override val objectUniqueId: Long
-        get() = id
-    override val objectType: Int
-        get() = ObjectSpec.KNovel
-}
-
-data class Series (
-    val id: Long,
-    val title: String? = null,
-) : Serializable
 
 data class NovelResponse(
     val novels: List<Novel> = listOf(),
@@ -1017,17 +824,8 @@ data class WebRecommendNovel(
 )
 
 data class SeriesNavigation(
-    val nextNovel: NovelBean? = null,
-    val prevNovel: NovelBean? = null
-)
-
-data class NextNovel(
-    val contentOrder: String? = null,
-    val coverUrl: String? = null,
-    val id: Int? = null,
-    val title: String? = null,
-    val viewable: Boolean? = null,
-    val viewableMessage: Any? = null
+    val nextNovel: Novel? = null,
+    val prevNovel: Novel? = null
 )
 
 
@@ -1057,7 +855,6 @@ data class WebIllustHolder(
     val id: Long? = null,
     val user: WebUser? = null
 ) : Serializable
-
 
 
 data class NovelImages(

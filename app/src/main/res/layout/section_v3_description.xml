@@ -30,6 +30,16 @@
             android:layout_weight="1" />
 
         <ImageView
+            android:id="@+id/desc_download"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="12dp"
+            android:contentDescription="@string/novel_actions_download"
+            android:src="@drawable/ic_file_download_black_24dp"
+            app:tint="@color/v3_text_3" />
+
+        <ImageView
             android:id="@+id/desc_translate"
             android:layout_width="48dp"
             android:layout_height="48dp"
@@ -53,12 +63,15 @@
         android:textIsSelectable="true"
         android:textSize="14sp" />
 
+    <!-- #1053: 展开/收起点击区拉满整行（48dp 高 + 波纹），不再只有文字那么大一块 -->
     <TextView
         android:id="@+id/desc_toggle"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
         android:paddingHorizontal="20dp"
-        android:paddingVertical="4dp"
         android:text="@string/v3_desc_expand"
         android:textColor="@color/v3_blue"
         android:textSize="13sp"

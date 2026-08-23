@@ -10,7 +10,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.db.EntityType
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.db.RecordType
@@ -69,7 +69,7 @@ class WatchLaterFeedFragment : IllustFeedFragment() {
      * 关掉不影响从本页点进详情：VActivity 只在池里 miss 时才用 PageData 的 bean 填池
      *（见 VActivity `if (exist == null)`），不会顶掉更新的那份。legacy IAdapter 路径同样从不写池。
      */
-    override fun poolableBeansOf(item: FeedItem): List<IllustsBean> = emptyList()
+    override fun poolableBeansOf(item: FeedItem): List<Illust> = emptyList()
 
     /** 空态维持本页专属文案，不退化成通用的「居然啥也没有」。 */
     override val emptyStateText: CharSequence
@@ -101,15 +101,15 @@ class WatchLaterFeedFragment : IllustFeedFragment() {
     }
 
     /** 列表当前快照：供「播放全部」「清空前判空」取用（原 WatchLaterViewModel.current）。 */
-    internal fun currentBeans(): List<IllustsBean> = currentIllustItems().map { it.bean }
+    internal fun currentBeans(): List<Illust> = currentIllustItems().map { it.illust }
 }
 
 /**
  * 「稍后再看」数据源：general_table(WATCH_LATER) 全量单页，没有翻页（nextCursor 恒为 null，
- * 对齐 legacy 的 setEnableLoadMore(false)）。存的是 IllustsBean JSON（字段名与 loxia Illust
+ * 对齐 legacy 的 setEnableLoadMore(false)）。存的是 Illust JSON（字段名与 loxia Illust
  * 完全一致）。
  *
- * 用 [IllustFeedItem.rawFromBean] 而不是 fromBean：**这里的条目是用户手动存进来的，不该再被
+ * 用 [IllustFeedItem.raw] 而不是 of：**这里的条目是用户手动存进来的，不该再被
  * 全局内容过滤（R18 / 屏蔽标签 / 屏蔽画师 / 屏蔽 AI）二次筛掉**——存的时候能存，回来就得看得见，
  * 否则改一下设置列表就凭空少几张，还找不回来。legacy IAdapter 路径同样不过滤，此处即对齐。
  *
@@ -126,9 +126,9 @@ class WatchLaterFeedSource : FeedSource<String> {
                 .getByRecordType(RecordType.WATCH_LATER, 0, Int.MAX_VALUE)
                 .mapNotNull { entity ->
                     val bean = runCatching {
-                        Shaft.sGson.fromJson(entity.json, IllustsBean::class.java)
+                        Shaft.sGson.fromJson(entity.json, Illust::class.java)
                     }.getOrNull()
-                    IllustFeedItem.rawFromBean(bean)
+                    IllustFeedItem.raw(bean)
                 }
         }
         return FeedPage(items, null)

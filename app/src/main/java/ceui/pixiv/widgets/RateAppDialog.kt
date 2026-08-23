@@ -146,6 +146,10 @@ class RateAppDialog : PixivDialog(R.layout.dialog_rate_app) {
     companion object {
         private const val TAG = "RateAppDialog"
 
+        /** 评分框正在显示。首页的应用内推送靠它让路，两个框不叠在一起。 */
+        fun isShowing(fragmentManager: FragmentManager): Boolean =
+            fragmentManager.findFragmentByTag(TAG) != null
+
         fun showIfNeeded(fragmentManager: FragmentManager) {
             if (!RateAppManager.shouldShowRateDialog()) return
             // Play 不可用(被停用/强行停止/无 GMS)时不自动弹评分框(issue #936)。不消耗

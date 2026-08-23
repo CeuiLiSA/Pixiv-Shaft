@@ -9,7 +9,7 @@ import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
-import ceui.lisa.models.UserModel;
+import ceui.loxia.AccountResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
@@ -254,7 +254,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
         }
 
         PixivOAuthResult.Success success = (PixivOAuthResult.Success) result;
-        UserModel userModel = Shaft.sGson.fromJson(success.getRawBody(), UserModel.class);
+        AccountResponse userModel = Shaft.sGson.fromJson(success.getRawBody(), AccountResponse.class);
         Common.showLog(userModel.toString());
         Common.showToast("登录成功");
         Local.persistLoggedInUser(userModel);
@@ -290,10 +290,10 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
         return "登录失败: " + failure.getMessage();
     }
 
-    private void continueAfterMoonSync(UserModel loggedInUser) {
+    private void continueAfterMoonSync(AccountResponse loggedInUser) {
         // 检测是否打开 R18 并提示开启,新注册未验证邮箱用户不提示。
         if (loggedInUser.getUser().isR18Enabled()
-                || !loggedInUser.getUser().isIs_mail_authorized()) {
+                || !Boolean.TRUE.equals(loggedInUser.getUser().is_mail_authorized())) {
             mActivity.finish();
             Common.restart();
             return;

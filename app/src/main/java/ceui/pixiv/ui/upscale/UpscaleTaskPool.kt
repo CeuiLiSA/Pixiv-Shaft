@@ -53,7 +53,7 @@ class UpscaleTask(
     }
 
     companion object {
-        fun illustKey(illustId: Int): String = "illust_$illustId"
+        fun illustKey(illustId: Long): String = "illust_$illustId"
         fun galleryKey(): String = "gallery_${System.currentTimeMillis()}"
     }
 }

@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.recommend
 
 import android.os.Bundle
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
@@ -33,7 +33,7 @@ class TagRankIllustFeedFragment : IllustFeedFragment() {
 
     // 榜单 bean 是第三方上报快照:is_bookmarked 被 source 伪造成 false、user.is_followed 是
     // 上报者的——都不可信,喂池会把当前用户更新的收藏/关注态盖回去。同 WatchLaterFeedFragment 先例。
-    override fun poolableBeansOf(item: FeedItem): List<IllustsBean> = emptyList()
+    override fun poolableBeansOf(item: FeedItem): List<Illust> = emptyList()
 
     companion object {
         private const val ARG_TAG = "tag_rank_tag"

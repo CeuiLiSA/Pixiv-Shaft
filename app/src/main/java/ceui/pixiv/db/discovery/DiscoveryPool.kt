@@ -2,7 +2,7 @@ package ceui.pixiv.db.discovery
 
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.db.DiscoveryEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -57,7 +57,7 @@ object DiscoveryPool {
         }
     }
 
-    fun collect(illusts: List<IllustsBean>?, source: String) {
+    fun collect(illusts: List<Illust>?, source: String) {
         if (illusts.isNullOrEmpty()) {
             Timber.d("$TAG collect [%s] empty input, skip", source)
             return
@@ -85,13 +85,13 @@ object DiscoveryPool {
                 val entities = mutableListOf<DiscoveryEntity>()
 
                 for (illust in illusts) {
-                    val illustId = illust.id.toLong()
+                    val illustId = illust.id
                     if (illustId <= 0) { skipInvalid++; continue }
                     if (illustId in seenIds) { skipSeen++; continue }
                     if (illustId in pooledIds) { skipPooled++; continue }
-                    if (illust.isIs_bookmarked) { skipBookmarked++; continue }
+                    if (illust.is_bookmarked == true) { skipBookmarked++; continue }
 
-                    val userId = illust.user?.id?.toLong() ?: 0
+                    val userId = illust.user?.id ?: 0L
 
                     if (profile != null) {
                         if (userId in profile.mutedAuthors) { skipMutedAuthor++; continue }
@@ -101,11 +101,11 @@ object DiscoveryPool {
 
                         // 计算亲和度：tag/author 高匹配的内容不受 quality filter 限制
                         val affinity = quickAffinity(illust, profile)
-                        val views = illust.total_view
+                        val views = illust.total_view ?: 0
                         // 只对低亲和度内容执行质量过滤（降低门槛，让更多匹配口味的小众内容通过）
                         if (affinity < 1.5f) {
                             val qualityThreshold = minOf(profile.avgBookmarkRate * 0.15f, 0.01f)
-                            if (views > 100 && illust.total_bookmarks.toFloat() / views < qualityThreshold) {
+                            if (views > 100 && (illust.total_bookmarks ?: 0).toFloat() / views < qualityThreshold) {
                                 skipLowQuality++; continue
                             }
                         }
@@ -151,7 +151,7 @@ object DiscoveryPool {
      * 强偏好标签(lift>2) 贡献 1.0，中偏好标签(lift>1.5) 贡献 0.5，
      * 使多个中等匹配可以累积触发 bypass（如 3 个中偏好 tag → aff=1.5）。
      */
-    private fun quickAffinity(illust: IllustsBean, profile: UserProfile): Float {
+    private fun quickAffinity(illust: Illust, profile: UserProfile): Float {
         var aff = 0f
         illust.tags?.forEach { tag ->
             val name = tag.name ?: return@forEach
@@ -160,14 +160,14 @@ object DiscoveryPool {
                 else if (it > 1.5f) aff += 0.5f
             }
         }
-        val userId = illust.user?.id?.toLong() ?: 0
+        val userId = illust.user?.id ?: 0L
         profile.authorScores[userId]?.let { if (it >= 3f) aff += 2f }
         return aff
     }
 
     private data class ScoreBreakdown(val total: Float, val detail: String)
 
-    private fun scoreDetailed(illust: IllustsBean, profile: UserProfile): ScoreBreakdown {
+    private fun scoreDetailed(illust: Illust, profile: UserProfile): ScoreBreakdown {
         var tagScore = 0f; var matched = 0
         val matchedLifts = mutableListOf<Float>()
         illust.tags?.forEach { tag ->
@@ -185,7 +185,7 @@ object DiscoveryPool {
 
         // 画师亲和度：smoothstep 平滑过渡，消除 score=3 处的断崖
         var authorScore = 0f
-        val authorRaw = profile.authorScores[illust.user?.id?.toLong() ?: 0]
+        val authorRaw = profile.authorScores[illust.user?.id ?: 0L]
         if (authorRaw != null) {
             val t = ((authorRaw - 1f) / 3f).coerceIn(0f, 1f)
             val multiplier = 0.3f + 0.7f * t * t * (3f - 2f * t)
@@ -194,15 +194,17 @@ object DiscoveryPool {
 
         // 质量分：bookmark rate 对数缩放，避免极端值主导
         var qualityScore = 0f
-        if (illust.total_view > 100) {
-            val rate = illust.total_bookmarks.toFloat() / illust.total_view
+        val totalView = illust.total_view ?: 0
+        val totalBookmarks = illust.total_bookmarks ?: 0
+        if (totalView > 100) {
+            val rate = totalBookmarks.toFloat() / totalView
             qualityScore = (ln((rate * 100).toDouble().coerceAtLeast(1.0)) * 3f).toFloat()
         }
 
         // 新鲜度：连续对数曲线替代阶梯函数，消除 500/2000/5000 处的跳变
         var freshScore = 0f
-        if (illust.total_bookmarks > 5) {
-            val views = illust.total_view.toFloat().coerceAtLeast(1f)
+        if (totalBookmarks > 5) {
+            val views = totalView.toFloat().coerceAtLeast(1f)
             freshScore = (3f * (1f - ln(views.toDouble().coerceAtLeast(1.0)) / ln(5000.0)))
                 .toFloat().coerceIn(0f, 3f)
         }
@@ -212,10 +214,12 @@ object DiscoveryPool {
             tagScore, matched, synergyBonus, authorScore, qualityScore, freshScore))
     }
 
-    private fun scoreColdStart(illust: IllustsBean): Float {
+    private fun scoreColdStart(illust: Illust): Float {
         var s = 0f
-        if (illust.total_view > 0) s += illust.total_bookmarks.toFloat() / illust.total_view * 100f
-        if (illust.total_bookmarks > 100) s += 5f
+        val totalView = illust.total_view ?: 0
+        val totalBookmarks = illust.total_bookmarks ?: 0
+        if (totalView > 0) s += totalBookmarks.toFloat() / totalView * 100f
+        if (totalBookmarks > 100) s += 5f
         return s
     }
 
@@ -334,7 +338,7 @@ object DiscoveryPool {
 
                 for (entity in unshown) {
                     try {
-                        val illust = gson.fromJson(entity.illustJson, IllustsBean::class.java) ?: continue
+                        val illust = gson.fromJson(entity.illustJson, Illust::class.java) ?: continue
                         val newScore = scoreDetailed(illust, profile).total
                         if (kotlin.math.abs(newScore - entity.score) > 0.5f) {
                             pendingUpdates.add(entity.illustId to newScore)

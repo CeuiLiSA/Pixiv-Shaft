@@ -14,11 +14,10 @@ import ceui.lisa.activities.UActivity
 import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
-import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressIndicator
@@ -105,10 +104,8 @@ fun Context.tryOpenNovelReaderDirect(novelId: Long): Boolean {
 /** 把一组插画塞进 [VActivity] 查看器并定位到 [position]（经 [Container]/[PageData] 传递）。 */
 fun Fragment.openIllustsInViewer(illusts: List<Illust>, position: Int) {
     if (!isAdded || illusts.isEmpty()) return
-    val gson = Shaft.sGson
-    val beans = illusts.map { gson.fromJson(gson.toJson(it), IllustsBean::class.java) }
     val uuid = UUID.randomUUID().toString()
-    Container.get().addPageToMap(PageData(uuid, null, beans))
+    Container.get().addPageToMap(PageData(uuid, null, illusts))
     startActivity(Intent(requireContext(), VActivity::class.java).apply {
         putExtra(Params.POSITION, position)
         putExtra(Params.PAGE_UUID, uuid)

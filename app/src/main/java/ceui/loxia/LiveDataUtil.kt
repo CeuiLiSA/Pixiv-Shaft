@@ -445,15 +445,6 @@ fun<T> LiveData<T>.requireValue(): T {
 
 infix fun <A, B, C> Pair<A, B>.to(that: C) = Triple(this.first, this.second, that)
 
-class UpwardLiveData : MutableLiveData<Int>() {
-    override fun setValue(value: Int?) {
-        val local = this.value
-        if (value != null && (local == null || value > local)) {
-            super.setValue(value)
-        }
-    }
-}
-
 fun <T> LiveData<T>.safeObserver(lifecycleOwner: LifecycleOwner, observer: Observer<T>) {
     observe(lifecycleOwner, observer)
 }

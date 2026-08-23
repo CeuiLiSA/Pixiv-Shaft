@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.model.CustomFileNameCell;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.DownloadItems;
 
@@ -16,7 +16,7 @@ import ceui.pixiv.download.config.DownloadItems;
  * path resolution.
  *
  * The cell-based methods ({@link #defaultFileCells()},
- * {@link #customFileNameForPreview(IllustsBean, List, int)}) remain for the
+ * {@link #customFileNameForPreview(Illust, List, int)}) remain for the
  * legacy settings UI ({@code FragmentFileName}) until it is rewritten against
  * the new template editor.
  */
@@ -45,7 +45,7 @@ public class FileCreator {
         return ceui.pixiv.download.sanitize.FsSanitizer.INSTANCE.cleanSegment(before, true);
     }
 
-    public static boolean isExist(IllustsBean illust, int index) {
+    public static boolean isExist(Illust illust, int index) {
         try {
             var item = illust.isGif()
                     ? DownloadItems.ugoira(illust)
@@ -59,13 +59,13 @@ public class FileCreator {
     // 名字计算走 resolvePath 而不是 plan()：plan 的 Skip 分支在 SAF 下用
     // createFile 碰撞探测（有真实 IO 和文件副作用），而这两个方法会被
     // DownloadItem 构造函数在主线程、以及浏览时的 scanLocalDownloads 逐页调用。
-    public static String customFileName(IllustsBean illustsBean, int index) {
+    public static String customFileName(Illust illustsBean, int index) {
         return DownloadsRegistry.getDownloads()
                 .resolvePath(DownloadItems.illustPage(illustsBean, index))
                 .getFilename();
     }
 
-    public static String customGifFileName(IllustsBean illustsBean) {
+    public static String customGifFileName(Illust illustsBean) {
         return DownloadsRegistry.getDownloads()
                 .resolvePath(DownloadItems.ugoira(illustsBean))
                 .getFilename();
@@ -76,7 +76,7 @@ public class FileCreator {
      * editing in {@code FragmentFileName} see what they are configuring. Not
      * used for any actual download.
      */
-    public static String customFileNameForPreview(IllustsBean illustsBean,
+    public static String customFileNameForPreview(Illust illustsBean,
                                                   List<CustomFileNameCell> cells, int index) {
         // Preview intentionally mirrors the new system's output so UI shows
         // what will actually be saved — cell list is ignored.

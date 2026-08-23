@@ -146,7 +146,7 @@ fun IllustHistoryEntity.toHistoryReportItem(): HistoryReportItem? {
     val targetType = if (type == 1) {
         "novel"
     } else {
-        // 直接从已解析的 tree 读 type 字段,不再整只反序列化 IllustsBean 解一遍同样的 JSON
+        // 直接从已解析的 tree 读 type 字段,不再整只反序列化 Illust 解一遍同样的 JSON
         val workType = runCatching {
             tree.asJsonObject.get("type")?.takeIf { it.isJsonPrimitive }?.asString
         }.getOrNull()

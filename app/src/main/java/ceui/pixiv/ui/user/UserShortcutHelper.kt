@@ -18,7 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.UActivity
-import ceui.lisa.models.UserBean
+import ceui.loxia.User
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
@@ -58,7 +58,7 @@ object UserShortcutHelper {
         }
     }
 
-    fun pin(activity: FragmentActivity, user: UserBean) {
+    fun pin(activity: FragmentActivity, user: User) {
         val appContext = activity.applicationContext
         activity.lifecycleScope.launch {
             val icon = withContext(Dispatchers.IO) { loadAvatarIcon(appContext, user) }
@@ -68,14 +68,14 @@ object UserShortcutHelper {
         }
     }
 
-    private fun request(context: Context, user: UserBean, icon: IconCompat) {
+    private fun request(context: Context, user: User, icon: IconCompat) {
         val label = user.name?.takeIf { it.isNotBlank() } ?: user.id.toString()
         try {
             val shortcut = ShortcutInfoCompat.Builder(context, "user_${user.id}")
                 .setShortLabel(label)
                 .setLongLabel(label)
                 .setIcon(icon)
-                .setIntents(buildIntents(context, user.id))
+                .setIntents(buildIntents(context, user.id.toInt()))
                 .build()
             if (!ShortcutManagerCompat.requestPinShortcut(context, shortcut, null)) {
                 Common.showToast(context.getString(R.string.add_to_home_screen_failed))
@@ -109,7 +109,7 @@ object UserShortcutHelper {
         return arrayOf(home, userPage)
     }
 
-    private fun loadAvatarIcon(context: Context, user: UserBean): IconCompat {
+    private fun loadAvatarIcon(context: Context, user: User): IconCompat {
         val size = launcherIconSize(context)
         val bitmap = runCatching {
             Glide.with(context)

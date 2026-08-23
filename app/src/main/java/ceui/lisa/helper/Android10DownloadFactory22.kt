@@ -31,7 +31,7 @@ class Android10DownloadFactory22(
     private val item: DownloadItem,
 ) : DownloadFileFactory {
 
-    private val isGif = item.illust.isGif
+    private val isGif = item.illust.isGif()
 
     private val plan = if (isGif) {
         null

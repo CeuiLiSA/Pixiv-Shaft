@@ -7,7 +7,7 @@
 
         <variable
             name="user"
-            type="androidx.lifecycle.LiveData&lt;ceui.lisa.models.UserBean>" />
+            type="androidx.lifecycle.LiveData&lt;ceui.loxia.User>" />
     </data>
 
     <FrameLayout
@@ -631,4 +631,3 @@
 
 
 </layout>
-

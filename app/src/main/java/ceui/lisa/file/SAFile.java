@@ -2,7 +2,7 @@ package ceui.lisa.file;
 
 import android.content.Context;
 
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.DownloadItems;
 
@@ -15,11 +15,11 @@ import ceui.pixiv.download.config.DownloadItems;
  */
 public class SAFile {
 
-    public static boolean isFileExists(Context context, IllustsBean illust) {
+    public static boolean isFileExists(Context context, Illust illust) {
         return isFileExists(context, illust, 0);
     }
 
-    public static boolean isFileExists(Context context, IllustsBean illust, int index) {
+    public static boolean isFileExists(Context context, Illust illust, int index) {
         try {
             ceui.pixiv.download.model.DownloadItem item = illust.isGif()
                     ? DownloadItems.ugoira(illust)

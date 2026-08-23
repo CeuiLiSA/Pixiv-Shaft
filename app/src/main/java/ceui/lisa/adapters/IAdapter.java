@@ -40,17 +40,17 @@ import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.interfaces.OnItemLongClickListener;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
+import ceui.loxia.LegacyTagConverter;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import ceui.loxia.Illust;
 import ceui.pixiv.db.EntityWrapper;
 import ceui.pixiv.ui.recommend.TrendingScoreFormatKt;
 import ceui.pixiv.ui.slideshow.SlideshowLauncher;
 
-public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> implements MultiDownload {
+public class IAdapter extends BaseAdapter<Illust, RecyIllustStaggerBinding> implements MultiDownload {
 
     private static final float MIN_HEIGHT_RATIO = 0.6f;
     private static final float MAX_HEIGHT_RATIO = 2.0f;
@@ -58,7 +58,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     // 只为绑定时实时算列宽用：LayoutManager 的 measure 先于绑定，旋转后拿到的已是新方向的宽度
     private RecyclerView attachedRecyclerView;
 
-    public IAdapter(List<IllustsBean> targetList, Context context) {
+    public IAdapter(List<Illust> targetList, Context context) {
         super(targetList, context);
         handleClick();
         handleLongClick();
@@ -101,7 +101,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     }
 
     @Override
-    public void bindData(IllustsBean target, ViewHolder<RecyIllustStaggerBinding> bindView, int position) {
+    public void bindData(Illust target, ViewHolder<RecyIllustStaggerBinding> bindView, int position) {
 
         // 只按元数据驱动宽高比（钳到宽的 0.6~2.0 倍），宽度交给瀑布流列自身，
         // DynamicHeightImageView 在 onMeasure 用真实列宽算高——绝不写死像素尺寸，
@@ -116,11 +116,11 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         bindView.baseBind.illustImage.setHeightRatio(ratio);
 //        bindView.baseBind.debugMessage.setText("宽：" + target.getWidth() + "高：" + target.getHeight() + "id: " + target.getId());
 
-        renderLikeState(bindView.baseBind.likeButton, target.isIs_bookmarked());
+        renderLikeState(bindView.baseBind.likeButton, target.isBookmarked());
         bindView.baseBind.likeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean willBookmark = !target.isIs_bookmarked();
+                boolean willBookmark = !target.isBookmarked();
                 renderLikeState(bindView.baseBind.likeButton, willBookmark);
                 if (Shaft.sSettings.isPrivateStar()) {
                     PixivOperate.postLike(target, Params.TYPE_PRIVATE, showRelated, (position + 2));
@@ -139,7 +139,8 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 // 「按标签收藏」改走 MD3 bottom sheet（原先是从右侧 push 进来的整页 activity）。
                 // 这里只有 Context，用 showFrom 解出宿主 FragmentActivity。
                 SelectTagBottomSheet.showFrom(
-                        mContext, target.getId(), Params.TYPE_ILLUST, target.getTagNames());
+                        mContext, (int) target.getId(), Params.TYPE_ILLUST,
+                        target.getTagNames().toArray(new String[0]));
                 return true;
             }
         });
@@ -208,7 +209,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         }
     }
 
-    public RequestBuilder<Drawable> getBuilder(IllustsBean target) {
+    public RequestBuilder<Drawable> getBuilder(Illust target) {
         GlideUrl imgUrl = Shaft.sSettings.isShowLargeThumbnailImage() ? GlideUtil.getLargeImage(target) : GlideUtil.getMediumImg(target);
         return Glide.with(mContext)
                 .load(imgUrl)
@@ -222,7 +223,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     }
 
     @Override
-    public List<IllustsBean> getIllustList() {
+    public List<Illust> getIllustList() {
         return allItems;
     }
 
@@ -245,7 +246,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         setOnItemLongClickListener(new OnItemLongClickListener() {
             @Override
             public void onItemLongClick(View v, int position, int viewType) {
-                IllustsBean illust = allItems.get(position);
+                Illust illust = allItems.get(position);
                 View popView = View.inflate(mContext, R.layout.pop_window_2, null);
 
                 WitPopup mNormalPopup = WitPopups.popup(mContext)
@@ -271,7 +272,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                     public void onClick(View v) {
                         MuteTagSheet.show(
                                 ((FragmentActivity) mContext).getSupportFragmentManager(),
-                                illust.getTags(),
+                                illust.getTags() == null ? null : LegacyTagConverter.toTagsBeans(illust.getTags()),
                                 illust.getUser());
                         mNormalPopup.dismiss();
                     }
@@ -287,7 +288,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                     @Override
                     public void onClick(View v) {
                         IllustDownload.downloadIllustAllPages(illust);
-                        if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()){
+                        if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isBookmarked()){
                             PixivOperate.postLikeDefaultStarType(illust);
                         }
                         mNormalPopup.dismiss();
@@ -298,7 +299,8 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                     public void onClick(View v) {
                         Intent intent = new Intent(mContext, TemplateActivity.class);
                         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论");
-                        intent.putExtra(Params.ILLUST_ID, illust.getId());
+                        // TemplateActivity 按 getIntExtra 读 ILLUST_ID,Illust.getId() 是 long 必须收窄
+                        intent.putExtra(Params.ILLUST_ID, (int) illust.getId());
                         intent.putExtra(Params.ILLUST_TITLE, illust.getTitle());
                         mContext.startActivity(intent);
                         mNormalPopup.dismiss();
@@ -307,13 +309,13 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 popView.findViewById(R.id.play_slideshow).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        SlideshowLauncher.launchFromIllustsBeans(mContext, allItems, position, true);
+                        SlideshowLauncher.launchFromIllusts(mContext, allItems, position, true);
                         mNormalPopup.dismiss();
                     }
                 });
 
-                // 稍后再看:general_table 存 ceui.loxia.Illust,legacy 这里拿的是 IllustsBean,
-                // 用 Gson 跨序列化转一下(两者字段名一致)。文案按当前是否已在列表切换。
+                // 稍后再看:general_table 存 ceui.loxia.Illust,legacy 列表现在也是同一个模型,直接塞。
+                // 文案按当前是否已在列表切换。
                 EntityWrapper entityWrapper =
                         ((Shaft) mContext.getApplicationContext()).getEntityWrapper();
                 boolean inWatchLater = entityWrapper.isInWatchLater(illust.getId());
@@ -324,9 +326,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                         entityWrapper.removeFromWatchLater(mContext, illust.getId());
                         Common.showToast(R.string.watch_later_removed);
                     } else {
-                        Illust illustModel = Shaft.sGson.fromJson(
-                                Shaft.sGson.toJson(illust), Illust.class);
-                        entityWrapper.addToWatchLater(mContext, illustModel);
+                        entityWrapper.addToWatchLater(mContext, illust);
                         Common.showToast(R.string.watch_later_added);
                     }
                     mNormalPopup.dismiss();

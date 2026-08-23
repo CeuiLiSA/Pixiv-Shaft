@@ -102,7 +102,7 @@ public class Manager {
     }
 
     /**
-     * 恢复未完成的下载任务。每条记录的 taskGson 内嵌完整 IllustsBean (~80KB)，
+     * 恢复未完成的下载任务。每条记录的 taskGson 内嵌完整 Illust (~80KB)，
      * 过去全表加载在主线程触发过 OOM (CursorWindow.nativeGetString)。改为：
      *   1) 后台线程执行，避免阻塞 UI 启动；
      *   2) 限制条数，并先 trim 历史堆积条目；
@@ -913,9 +913,9 @@ public class Manager {
             // 开关前置判断:默认关时这条下载热路径零额外开销(不建 tag 列表、不读文件)。
             try {
                 if (Shaft.sSettings.isWriteTagsToImageExif()) {
-                    ceui.lisa.models.IllustsBean exifIllust = downloadItem.getIllust();
+                    ceui.loxia.Illust exifIllust = downloadItem.getIllust();
                     java.util.List<String> exifTags = (exifIllust != null && exifIllust.getTags() != null)
-                            ? java.util.Arrays.asList(exifIllust.getTagNames())
+                            ? exifIllust.getTagNames()
                             : java.util.Collections.<String>emptyList();
                     ceui.pixiv.download.ExifKeywordWriter.writeIfEnabled(
                             Shaft.getContext(), factory.getFileUri(), downloadItem.getName(), exifTags);
@@ -1357,9 +1357,9 @@ public class Manager {
     }
 
     private String uuid;
-    private int currentIllustID;
+    private long currentIllustID;
 
-    public int getCurrentIllustID() {
+    public long getCurrentIllustID() {
         return currentIllustID;
     }
 

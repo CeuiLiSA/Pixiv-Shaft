@@ -39,7 +39,7 @@ import ceui.pixiv.ui.common.setUpToolbar
  *   初始标签可由入参带入（同义词词典管理页跳转，issue #904）；
  * - 「过滤无效收藏」设置（isFilterInvalidBookmarks）：对齐 legacy beforeFirstLoad/beforeNextLoad，
  *   失效作品 / user 缺失 / user.id==0 三条都在设置开启时才过滤——注意与插画侧不同，legacy
- *   [ceui.lisa.core.Mapper] 的小说分支**不**恒过滤 !visible（只有 IllustsBean 分支才过滤），
+ *   [ceui.lisa.core.Mapper] 的小说分支**不**恒过滤 !visible（只有 Illust 分支才过滤），
  *   所以这里不能把它提到设置外面，否则设置关着的用户会看不到本来能看到的收藏；
  * - 无 toolbar 菜单：legacy FragmentLikeNovel 用的是裸 NAdapter（不是插画侧的
  *   IAdapterWithStar），既没有「收藏到精华」菜单，也没有「收藏页隐藏收藏按钮」那套爱心门控。
@@ -143,7 +143,7 @@ class LikeNovelFeedFragment : NovelFeedFragment() {
         private fun mapLikeNovelPage(novels: List<Novel>): List<FeedItem> {
             // 「过滤无效收藏」设置：对齐 legacy beforeFirstLoad —— 失效作品 / 作者缺失 / 作者
             // id 为 0 的残缺条目一起挡，且都只在设置开启时才挡（小说侧的通用过滤链不含 visible，
-            // 见类 KDoc）。visible 用 `== false` 而不是 `!= true`：legacy NovelBean.visible 是
+            // 见类 KDoc）。visible 用 `== false` 而不是 `!= true`：legacy Novel.visible 是
             // 原始 boolean，字段缺失会默认 false 把整页清空；字段缺失不是「作品失效」的证据，
             // 这里只认服务端明确说的 false（字段照常返回时两者等价）。
             val filterInvalid = Shaft.sSettings.isFilterInvalidBookmarks

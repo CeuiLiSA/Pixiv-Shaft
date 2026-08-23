@@ -206,7 +206,7 @@ public interface AppApi {
 
 
     @GET("v2/illust/related?filter=for_android")
-    Observable<ListIllust> relatedIllust(@Query("illust_id") int illust_id);
+    Observable<ListIllust> relatedIllust(@Query("illust_id") long illust_id);
 
 
     /**
@@ -253,7 +253,7 @@ public interface AppApi {
 
     //  /v1/ugoira/metadata?illust_id=47297805
     @GET("v1/ugoira/metadata")
-    Observable<GifResponse> getGifPackage(@Query("illust_id") int illust_id);
+    Observable<GifResponse> getGifPackage(@Query("illust_id") long illust_id);
 
 
     @FormUrlEncoded

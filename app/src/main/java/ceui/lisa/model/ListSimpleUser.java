@@ -3,12 +3,12 @@ package ceui.lisa.model;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.models.UserBean;
+import ceui.loxia.User;
 
-public class ListSimpleUser implements ListShow<UserBean> {
+public class ListSimpleUser implements ListShow<User> {
 
     private String next_url;
-    private List<UserBean> users;
+    private List<User> users;
 
     public String getNext_url() {
         return next_url;
@@ -18,16 +18,16 @@ public class ListSimpleUser implements ListShow<UserBean> {
         next_url = pNext_url;
     }
 
-    public List<UserBean> getUsers() {
+    public List<User> getUsers() {
         return users;
     }
 
-    public void setUsers(List<UserBean> pUsers) {
+    public void setUsers(List<User> pUsers) {
         users = pUsers;
     }
 
     @Override
-    public List<UserBean> getList() {
+    public List<User> getList() {
         return users;
     }
 

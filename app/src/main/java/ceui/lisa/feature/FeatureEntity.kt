@@ -4,7 +4,7 @@ import androidx.annotation.NonNull
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.models.MangaSeriesItem
 import java.io.Serializable
 
@@ -25,7 +25,7 @@ class FeatureEntity : Serializable {
     var illustJson: String = ""
     var seriesId = 0
     @Ignore
-    var allIllust: List<IllustsBean> = ArrayList()
+    var allIllust: List<Illust> = ArrayList()
     @Ignore
     var allMangaSeries: List<MangaSeriesItem> = ArrayList()
 

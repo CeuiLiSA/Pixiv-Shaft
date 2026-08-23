@@ -12,7 +12,7 @@ import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.db.discovery.DiscoveryPool
 import ceui.pixiv.db.discovery.ProfileManager
 import ceui.pixiv.feeds.FeedItem
@@ -45,7 +45,7 @@ import timber.log.Timber
  *   即 `nextCursor = null`，列表正常收尾到「没有更多」。（候选池展示后不回收、翻几页就耗尽是
  *   issue #937，本次不动。）
  * - **内容过滤**：legacy 直接把池子里的东西塞进列表，不过屏蔽/R18/AI 过滤链；这里走
- *   [IllustFeedItem.fromBean]，与全仓其它列表同口径。整页被滤空由 FeedViewModel 空页追载兜住。
+ *   [IllustFeedItem.of]，与全仓其它列表同口径。整页被滤空由 FeedViewModel 空页追载兜住。
  *
  * [markShown] 的标记口径与 legacy 保持一致（解析成功且 id>0 就标记，不管之后是否被过滤掉）——
  * 被过滤的条目若不标记，下次仍会被池子选中，白白触发空页追载。
@@ -80,7 +80,7 @@ class DiscoveryFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed)
     // 候选池的 illustJson 是**采集那一刻**冻结的快照，可能已存了几天。喂池会拿旧的
     // is_bookmarked=false / user.is_followed 盖掉当前会话里更新的收藏/关注态
     // （mergeKeepingExisting 不把 false 当空值）。同 WatchLaterFeedFragment 先例。
-    override fun poolableBeansOf(item: FeedItem): List<IllustsBean> = emptyList()
+    override fun poolableBeansOf(item: FeedItem): List<Illust> = emptyList()
 
     /** 候选池在库总数归 VM（数据不塞 Fragment），旋转 / 视图重建后不重查。 */
     private val countViewModel: DiscoveryPoolCountViewModel by viewModels()
@@ -187,13 +187,13 @@ class DiscoveryFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed)
             val result = mutableListOf<IllustFeedItem>()
             entities.forEach { entity ->
                 val bean = runCatching {
-                    Shaft.sGson.fromJson(entity.illustJson, IllustsBean::class.java)
+                    Shaft.sGson.fromJson(entity.illustJson, Illust::class.java)
                 }.onFailure {
                     Timber.w(it, "%s   parse FAILED id=%d", TAG, entity.illustId)
                 }.getOrNull()
                 if (bean == null || bean.id <= 0) return@forEach
                 DiscoveryPool.markShown(entity.illustId)
-                val item = IllustFeedItem.fromBean(bean)
+                val item = IllustFeedItem.of(bean)
                 item?.let(result::add)
                 Timber.d(
                     "%s   %s id=%d score=%.2f source='%s' '%s' by '%s'",

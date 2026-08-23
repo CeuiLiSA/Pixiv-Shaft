@@ -38,13 +38,16 @@
             android:textIsSelectable="true"
             android:textSize="14sp" />
 
-        <!-- issue #1005: 超长简介折叠开关（样式对齐插画详情 section_v3_description 的 desc_toggle） -->
+        <!-- issue #1005: 超长简介折叠开关（样式对齐插画详情 section_v3_description 的 desc_toggle）
+             #1053: 点击区拉满整行（48dp 高 + 波纹） -->
         <TextView
             android:id="@+id/caption_toggle"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
             android:paddingHorizontal="8dp"
-            android:paddingVertical="4dp"
             android:text="@string/v3_desc_expand"
             android:textColor="@color/v3_blue"
             android:textSize="13sp"

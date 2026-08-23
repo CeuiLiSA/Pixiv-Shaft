@@ -276,7 +276,7 @@ refresh 超时等）。判终态失败的话，一次网络抖动就会让爱心
   （`BookmarkPayload.tags`，追加字段，老行反序列化为 null 正好落到不带标签那一支）。
   顺带修掉：此前它只发 `LIKED_*` 广播、不写 ObjectPool，按标签收藏之后读池渲染的 V3 详情页
   那颗心还是灰的。
-- `PixivOperate.postLikeNovel(NovelBean, String, View)` 已**删除**（全仓无调用方，
+- `PixivOperate.postLikeNovel(Novel, String, View)` 已**删除**（全仓无调用方，
   留着只是给下一个人一个绕开队列的现成入口）。
 
 **未迁移**：

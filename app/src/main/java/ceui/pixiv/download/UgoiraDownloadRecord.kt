@@ -7,7 +7,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Params
 import ceui.pixiv.download.config.DownloadItems
 import timber.log.Timber
@@ -45,13 +45,13 @@ object UgoiraDownloadRecord {
      *            `.mp4` 的名字、指着一个 `.gif` 文件，改名扫描和「已下载」判定都会错。
      */
     @JvmStatic
-    fun record(illust: IllustsBean, uri: Uri, asMp4: Boolean) {
+    fun record(illust: Illust, uri: Uri, asMp4: Boolean) {
         runCatching {
             val entity = DownloadEntity().apply {
                 fileName = DownloadsRegistry.downloads
                     .resolvePath(DownloadItems.ugoira(illust, asMp4)).filename
                 filePath = uri.toString()
-                illustId = illust.id.toLong()
+                illustId = illust.id
                 // 动图没有分页，成品就是唯一那一「页」。留 -1 会被 DownloadPageBackfill
                 // 反复捞起来重解析文件名。
                 page = 0

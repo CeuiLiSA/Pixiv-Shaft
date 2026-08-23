@@ -11,7 +11,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.downloadProbeDispatcher
 import ceui.lisa.database.hasDownloadRecord
 import ceui.lisa.download.IllustDownload
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.loxia.ObjectPool
 import ceui.loxia.fetchFullIllustDetail
@@ -38,7 +38,7 @@ class ArtworkV3ViewModel(
     private val illustId: Long,
 ) : ViewModel() {
 
-    private var illustBean: IllustsBean? = null
+    private var illustBean: Illust? = null
 
     /**
      * 用户在本页主动开启的“加载原图”开关（跨旋转保留）。
@@ -50,11 +50,11 @@ class ArtworkV3ViewModel(
     private val _isBookmarked = MutableLiveData<Boolean>()
     val isBookmarked: LiveData<Boolean> = _isBookmarked
 
-    private val illustBeanLiveData = ObjectPool.get<IllustsBean>(illustId)
+    private val illustBeanLiveData = ObjectPool.get<Illust>(illustId)
 
-    private val illustBeanObserver = Observer<IllustsBean> { bean ->
+    private val illustBeanObserver = Observer<Illust> { bean ->
         illustBean = bean
-        _isBookmarked.value = bean.isIs_bookmarked
+        _isBookmarked.value = bean.isBookmarked
         ensurePageDimensions(bean)
         ensureTrustedCaption(bean)
         if (downloadFabActive && waitingForInitialBean) {
@@ -73,7 +73,7 @@ class ArtworkV3ViewModel(
     private var pageDimsRequested = false
 
     /** 多 P 首次拿到 bean 时拉一次每页真实宽高(单 P 无需、只拉一次)。缺 cookie/失败静默降级。 */
-    private fun ensurePageDimensions(bean: IllustsBean) {
+    private fun ensurePageDimensions(bean: Illust) {
         if (pageDimsRequested || bean.page_count < 2) return
         pageDimsRequested = true
         viewModelScope.launch {
@@ -119,7 +119,7 @@ class ArtworkV3ViewModel(
      * 6 次全空——那些作品是**真没写简介**。所以这笔钱只花在「用户真的打开了、且这条确实缺简介」
      * 的作品上([onPageVisible] 的闸门),每个作品至多一次(拉过即进 fullVersionKeys)。
      */
-    private fun ensureTrustedCaption(bean: IllustsBean) {
+    private fun ensureTrustedCaption(bean: Illust) {
         if (!pageVisible || captionBackfillRequested) return
         if (!bean.isFullDetail() || bean.hasTrustedCaption()) return
         captionBackfillRequested = true
@@ -174,7 +174,7 @@ class ArtworkV3ViewModel(
                 kotlinx.coroutines.delay(300)
                 // contentSnapshot() 是带 synchronized 的浅拷贝;直接 .content 拿 live list 会 CME。
                 val items = ceui.lisa.core.Manager.get().contentSnapshot()
-                val myItems = items.filter { it.illust?.id == illustId.toInt() }
+                val myItems = items.filter { it.illust?.id == illustId }
                 if (myItems.isEmpty()) {
                     // 队列清空 = 下载完成,直接设 Done,避免经过 Idle 闪烁
                     isPollingProgress = false
@@ -210,7 +210,7 @@ class ArtworkV3ViewModel(
         }
         waitingForInitialBean = false
         val hasQueuedPages = ceui.lisa.core.Manager.get().contentSnapshot()
-            .any { it.illust?.id == illustId.toInt() }
+            .any { it.illust?.id == illustId }
         if (hasQueuedPages) {
             // 从后台/其它页面回来时下载可能仍在队列：直接恢复轮询，不要先显示 Idle 再查 DB。
             _downloadFabState.value = DownloadFab.Downloading(0)
@@ -255,7 +255,7 @@ class ArtworkV3ViewModel(
                     // hasDownloadRecord 走 v38 的 illustId 索引(O(log n));存量回填未完成时退回旧 LIKE 兜底。
                     Common.isIllustDownloaded(bean) ||
                             withContext(downloadProbeDispatcher) {
-                                dao.hasDownloadRecord(bean.id.toLong())
+                                dao.hasDownloadRecord(bean.id)
                             }
                 }
                 downloadedCache = result

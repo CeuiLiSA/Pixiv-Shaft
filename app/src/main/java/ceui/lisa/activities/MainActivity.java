@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.activity.BackEventCompat;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -52,6 +53,7 @@ import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentViewPager;
 import ceui.pixiv.ui.me.MeFragment;
 import ceui.lisa.helper.DrawerLayoutHelper;
+import ceui.lisa.helper.DrawerPredictiveBack;
 import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
@@ -62,6 +64,7 @@ import ceui.lisa.view.DrawerLayoutViewPager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import ceui.loxia.Nana7miPlan;
 import ceui.pixiv.config.RemoteAppConfig;
+import ceui.pixiv.push.InAppPushCenter;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.navigation.DrawerIconCatalog;
 
@@ -72,6 +75,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
 
     public static final String[] ALL_SELECT_WAY = new String[]{"图库选图", "文件管理器选图"};
     private long mExitTime;
+    private static final long EXIT_WINDOW_MS = 2000;
+    private OnBackPressedCallback mainBackCallback;
+    private DrawerPredictiveBack drawerPredictiveBack;
     private Fragment[] baseFragments = null;
     // 与 baseFragments 一一对应的底部菜单 item id;TAB 顺序可配置后,
     // id 和位置的关系不再固定,所有 id<->position 换算都查这张表
@@ -156,6 +162,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         // 订阅档位是冷启动异步拉回来的,落地时机比账号晚,所以单独观察一次;不然徽章要等
         // 下一次冷启动才出现,首装的人则永远看不到。
         RemoteAppConfig.INSTANCE.getNana7miPlanLive().observe(this, plan -> bindPlanBadge());
+        // 应用内推送(付费用户公告)也是这次冷启动配置捎回来的,同样异步落地。只弹一次、
+        // 弹过就回执,去重和让路(评分框)都在 InAppPushCenter 里。
+        RemoteAppConfig.INSTANCE.getInAppPushLive().observe(this,
+                arrival -> InAppPushCenter.INSTANCE.onConfigArrived(this, arrival));
         baseBind.drawerHeader.setOnClickListener(v -> openMyUserPage());
         // 侧边栏头像单击进自己主页；长按仍是 R18 临时过滤开关
         baseBind.userHead.setOnClickListener(v -> openMyUserPage());
@@ -240,19 +250,63 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         });
         DrawerLayoutHelper.setCustomLeftEdgeSize(getDrawer(), 1.0f);
 
-        // 返回键/返回手势:抽屉开着先关抽屉,否则走双击退出。
-        // targetSdk 35+ 后预测式返回默认开启,系统不再回调 onKeyDown(KEYCODE_BACK),
+        // 返回键/返回手势:抽屉开着先关抽屉(Android 14+ 跟手滑出,见 DrawerPredictiveBack),
+        // 否则走双击退出。targetSdk 35+ 后预测式返回默认开启,系统不再回调 onKeyDown,
         // 必须用 OnBackPressedDispatcher 接管。
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+        //
+        // 预测式「回桌面」动画只在 app 没注册任何返回回调时才播,所以第一次按返回 toast 之后
+        // 把这个 callback 关掉 2 秒(refreshMainBackCallback):第二次返回直接交给系统,
+        // 跟手的回桌面预览照常播;2 秒过了再重新接管。抽屉开着时始终接管。
+        // 不带 owner 注册(与 TemplateActivity 同理):垫在所有 Fragment callback 之下。
+        drawerPredictiveBack = new DrawerPredictiveBack(baseBind.drawerLayout, baseBind.navView);
+        mainBackCallback = new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackStarted(@NonNull BackEventCompat backEvent) {
+                if (isDrawerOpen()) drawerPredictiveBack.onStarted();
+            }
+
+            @Override
+            public void handleOnBackProgressed(@NonNull BackEventCompat backEvent) {
+                if (isDrawerOpen()) drawerPredictiveBack.onProgressed(backEvent.getProgress());
+            }
+
+            @Override
+            public void handleOnBackCancelled() {
+                drawerPredictiveBack.onCancelled();
+            }
+
             @Override
             public void handleOnBackPressed() {
-                if (baseBind.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+                if (isDrawerOpen()) {
+                    drawerPredictiveBack.close();
                 } else {
                     exit();
                 }
             }
+        };
+        getOnBackPressedDispatcher().addCallback(mainBackCallback);
+        baseBind.drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerOpened(@NonNull View drawerView) {
+                refreshMainBackCallback();
+            }
+
+            @Override
+            public void onDrawerClosed(@NonNull View drawerView) {
+                refreshMainBackCallback();
+            }
         });
+    }
+
+    private boolean isDrawerOpen() {
+        return baseBind.drawerLayout.isDrawerOpen(GravityCompat.START);
+    }
+
+    /** 抽屉开着 || 不在「再按一次退出」的 2 秒窗口内 → 接管返回;否则交给系统播预测式回桌面。 */
+    private void refreshMainBackCallback() {
+        if (mainBackCallback == null) return;
+        boolean exitArmed = System.currentTimeMillis() - mExitTime <= EXIT_WINDOW_MS;
+        mainBackCallback.setEnabled(isDrawerOpen() || !exitArmed);
     }
 
     private void initFragment() {
@@ -310,6 +364,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         // Show rate dialog after a short delay to avoid disrupting app startup.
         // 浏览记录云同步同意框不在首页弹,改到用户点进浏览历史页时再问(见 FragmentHistoryTabs / issue #889)。
         baseBind.viewPager.postDelayed(() -> {
+            // 应用内推送正在展示就这次不弹评分框(showIfNeeded 没跑到就不消耗那一次机会),
+            // 两个框叠在一起谁都看不清。
+            if (InAppPushCenter.INSTANCE.isShowing()) return;
             ceui.pixiv.widgets.RateAppDialog.Companion.showIfNeeded(getSupportFragmentManager());
         }, 2000);
     }
@@ -755,8 +812,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
             } else {
                 Common.showToast(getString(R.string.double_click_finish));
                 mExitTime = System.currentTimeMillis();
+                refreshMainBackCallback();
+                baseBind.getRoot().postDelayed(this::refreshMainBackCallback, EXIT_WINDOW_MS + 100);
             }
         } else {
+            // 2 秒窗口内 callback 已关闭,正常情况下返回直接由系统处理(launcher 根 Activity 被移到后台
+            // 并播回桌面动画);这里只兜第一次按返回后抽屉又被打开再关掉之类的边角。
             finish();
         }
     }

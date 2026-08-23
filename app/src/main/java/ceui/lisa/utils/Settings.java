@@ -99,6 +99,46 @@ public class Settings {
         this.customThemeColor = customThemeColor;
     }
 
+    // ===== 标签译文颜色（#1047-5）=====
+    /** 跟随主题（默认）：译文与标签原文同色。 */
+    public static final int TAG_TRANSLATION_COLOR_FOLLOW_THEME = -2;
+
+    /**
+     * 标签译文颜色：-2 = 跟随主题；0..9 = 主题色目录预设；
+     * {@link ceui.pixiv.ui.settings.CustomThemeColor#INDEX} = 自定义色。
+     * 老配置没有该字段时按跟随主题处理（getter 兜底）。
+     */
+    private Integer tagTranslationColorIndex;
+
+    /** 标签译文自定义色的 #RRGGBB（仅 tagTranslationColorIndex 为自定义档时读取）。 */
+    private String tagTranslationColorCustomHex;
+
+    public int getTagTranslationColorIndex() {
+        return tagTranslationColorIndex != null
+                ? tagTranslationColorIndex
+                : TAG_TRANSLATION_COLOR_FOLLOW_THEME;
+    }
+
+    public boolean isTagTranslationColorFollowTheme() {
+        return getTagTranslationColorIndex() == TAG_TRANSLATION_COLOR_FOLLOW_THEME;
+    }
+
+    public void setTagTranslationColorFollowTheme() {
+        this.tagTranslationColorIndex = TAG_TRANSLATION_COLOR_FOLLOW_THEME;
+    }
+
+    public void setTagTranslationColorIndex(int tagTranslationColorIndex) {
+        this.tagTranslationColorIndex = tagTranslationColorIndex;
+    }
+
+    public String getTagTranslationColorCustomHex() {
+        return tagTranslationColorCustomHex;
+    }
+
+    public void setTagTranslationColorCustomHex(String tagTranslationColorCustomHex) {
+        this.tagTranslationColorCustomHex = tagTranslationColorCustomHex;
+    }
+
     //主页显示R18
     private boolean mainViewR18 = false;
 

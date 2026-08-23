@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.download.IllustDownload
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import com.bumptech.glide.Glide
@@ -21,7 +21,7 @@ import java.io.File
 // 分享首图（多 P 也只发 p0，与菜单文案 R.string.string_454 一致）。
 // 用 Glide.asFile() 取磁盘缓存的原始字节，不经过 Bitmap 解码 / PNG 再压缩 ——
 // 既避开原图尺寸下 .asBitmap() 的 OOM 风险，也保留原始格式与画质。
-fun Fragment.shareFirstImage(illust: IllustsBean) {
+fun Fragment.shareFirstImage(illust: Illust) {
     val ctx = context ?: return
     val url = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL) ?: return
 
@@ -48,7 +48,7 @@ fun Fragment.shareFirstImage(illust: IllustsBean) {
     }
 }
 
-private fun copyToShareCache(ctx: Context, source: File, illustId: Int, url: String): Uri {
+private fun copyToShareCache(ctx: Context, source: File, illustId: Long, url: String): Uri {
     val ext = url.substringAfterLast('/')
         .substringAfterLast('.', "jpg")
         .substringBefore('?')

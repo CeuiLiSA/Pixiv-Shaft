@@ -28,7 +28,7 @@ object Aria2Dispatcher {
      */
     @JvmStatic
     fun shouldDispatch(item: DownloadItem): Boolean {
-        if (item.illust.isGif) return false
+        if (item.illust.isGif()) return false
         return isEnabled()
     }
 

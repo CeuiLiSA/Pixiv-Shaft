@@ -549,6 +549,9 @@
     <string name="string_322">フォロワー</string>
     <string name="string_323">マイピク</string>
     <string name="string_324">テーマカラー</string>
+    <string name="tag_translation_color">タグ翻訳色</string>
+    <string name="tag_translation_color_follow_theme">テーマに従う</string>
+    <string name="tag_translation_color_pick_from_theme_page">テーマカラーページから選択</string>
     <string name="string_325">設定を開く</string>
     <string name="string_326">開始</string>
     <string name="string_327">停止</string>
@@ -2734,4 +2737,7 @@
     <string name="nana7mi_quota_snack_session">5 時間の上限に達しました。%1$s後に回復</string>
     <string name="nana7mi_quota_snack_weekly">週間上限に達しました。%1$s後に回復</string>
     <string name="nana7mi_quota_snack_action">使用状況</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">わかった</string>
+    <string name="inapp_push_default_action">見てみる</string>
 </resources>

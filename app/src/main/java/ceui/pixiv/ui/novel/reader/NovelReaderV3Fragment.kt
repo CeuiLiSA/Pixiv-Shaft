@@ -26,12 +26,10 @@ import ceui.lisa.core.PageData
 import ceui.lisa.database.NovelAnnotationEntity
 import ceui.lisa.database.NovelBookmarkEntity
 import ceui.lisa.databinding.FragmentNovelReaderV3Binding
-import ceui.lisa.models.IllustsBean
-import ceui.lisa.models.NovelBean
+import ceui.loxia.Novel
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
-import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.SeriesCache
 import ceui.pixiv.ui.common.ImageUrlViewer
@@ -182,8 +180,13 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     // ---- Wiring -------------------------------------------------------------
 
+    /**
+     * 返回手势:搜索层 > 顶底栏 > 退出。callback 只在前两者之一显示时 enabled:常开会让系统
+     * 放弃预测式返回动画;都收起后返回就是退出阅读器,必须交还给系统才有跟手的退出预览。
+     * 搜索层关闭时会顺手 chrome.show()(见 [closeSearch]),所以刷新 enabled 只看两者的显隐通知。
+     */
     private fun wireBackPress(chrome: ReaderChrome, so: ReaderSearchOverlay) {
-        val cb = object : androidx.activity.OnBackPressedCallback(true) {
+        val cb = object : androidx.activity.OnBackPressedCallback(so.isShown() || chrome.isShown) {
             override fun handleOnBackPressed() {
                 // 优先级 1：正文搜索 overlay 打开 → 返回手势先退出搜索（与 onClose 行为一致）。
                 if (so.isShown()) {
@@ -199,6 +202,10 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             }
         }
+        val refresh = { cb.isEnabled = so.isShown() || chrome.isShown }
+        val chromeListener = chrome.onVisibilityChanged
+        chrome.onVisibilityChanged = { shown -> chromeListener?.invoke(shown); refresh() }
+        so.onShownChanged = { refresh() }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, cb)
     }
 
@@ -1202,9 +1209,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 viewLifecycleOwner.lifecycleScope.launch {
                     runCatching { Client.appApi.getIllust(image.resourceId).illust }
                         .getOrNull()?.let { illust ->
-                            val bean = Shaft.sGson.let { g -> g.fromJson(g.toJson(illust), IllustsBean::class.java) }
                             val uuid = UUID.randomUUID().toString()
-                            Container.get().addPageToMap(PageData(uuid, null, listOf(bean)))
+                            Container.get().addPageToMap(PageData(uuid, null, listOf(illust)))
                             startActivity(Intent(requireContext(), VActivity::class.java).apply {
                                 putExtra(Params.POSITION, 0); putExtra(Params.PAGE_UUID, uuid)
                             })
@@ -1251,7 +1257,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             val idLong = args.getLong(ARG_NOVEL_ID, 0L)
             if (idLong != 0L) return idLong
             @Suppress("DEPRECATION")
-            val bean = args.getSerializable(Params.CONTENT) as? NovelBean
+            val bean = args.getSerializable(Params.CONTENT) as? Novel
             if (bean != null) return bean.id.toLong()
         }
         return 0L
@@ -1266,7 +1272,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         private const val COLOR_SEARCH_OTHER = 0x66FFEB3B           // semi-transparent yellow
 
         @JvmStatic
-        fun newInstance(novelBean: NovelBean): NovelReaderV3Fragment {
+        fun newInstance(novelBean: Novel): NovelReaderV3Fragment {
             return NovelReaderV3Fragment().apply {
                 arguments = Bundle().apply {
                     putSerializable(Params.CONTENT, novelBean)

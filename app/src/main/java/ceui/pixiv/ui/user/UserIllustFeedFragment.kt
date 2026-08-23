@@ -20,11 +20,10 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.feature.FeatureEntity
 import ceui.lisa.helper.UserIllustJumpHelper
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
-import ceui.loxia.Illust
 import ceui.pixiv.db.queue.WorkType
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
@@ -152,7 +151,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
 
     /** 首屏交付:标签条回调(父 fragment 优先,退回 activity)+ targetDate 定位。 */
     private fun deliverFirstPage(items: List<FeedItem>) {
-        val beans = items.filterIsInstance<IllustFeedItem>().map { it.bean }
+        val beans = items.filterIsInstance<IllustFeedItem>().map { it.illust }
         val listener = parentFragment as? UserIllustFirstPageListener
             ?: activity as? UserIllustFirstPageListener
         listener?.onUserIllustFirstPage(beans)
@@ -160,7 +159,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
     }
 
     /** 定位到首个创建日期 ≤ targetDate 的作品并轻微放大高亮;一次性消费。 */
-    private fun scrollToTargetDate(beans: List<IllustsBean>) {
+    private fun scrollToTargetDate(beans: List<Illust>) {
         val date = targetDate ?: return
         if (beans.isEmpty()) return
         var hit = beans.indexOfFirst {
@@ -246,7 +245,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
     private fun saveToFeature() {
         // 快照在主线程取(列表状态归主线程),整表 gson 序列化 + 同步 Room 写挪 IO——
         // 跳页后列表可达数百条,本仓有主线程写 Room 出 ANR 的前科(addTask 那次)。
-        val beans = currentIllustItems().map { it.bean }
+        val beans = currentIllustItems().map { it.illust }
         viewLifecycleOwner.lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 val entity = FeatureEntity().also {
@@ -278,7 +277,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
     private fun confirmDownloadAll() {
         val total = totalWorksViewModel.total.value
         if (total <= 0) return // 按钮该藏着,兜底
-        val authorName = currentIllustItems().firstOrNull()?.bean?.user?.name ?: "user"
+        val authorName = currentIllustItems().firstOrNull()?.illust?.user?.name ?: "user"
         showDownloadAllConfirm(authorName, total)
     }
 
@@ -318,10 +317,9 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
         /** 页响应 → 条目。跑在 Default 线程、被 VM 长期持有,放伴生对象保证零捕获。 */
         private fun mapUserIllustPage(illusts: List<Illust>): List<FeedItem> {
             return illusts.mapNotNull { illust ->
-                val bean = IllustFeedItem.beanOf(illust) ?: return@mapNotNull null
                 // 画师本人作品页：让步「屏蔽画师」过滤（否则屏蔽了本画师后，整页全被滤空 → 空页追载
                 // 狂翻 offset）。R18/标签/AI/作品ID 过滤照常。
-                IllustFeedItem.of(illust, bean, skipMuteUserFilter = true)
+                IllustFeedItem.of(illust, skipMuteUserFilter = true)
             }
         }
     }

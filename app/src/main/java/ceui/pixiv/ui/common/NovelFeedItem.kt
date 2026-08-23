@@ -85,7 +85,7 @@ class NovelFeedItem(
 
         /**
          * 与 legacy [ceui.lisa.core.Mapper] 的小说分支逐条对齐（tag / id / 作者 / R18 过滤）。
-         * 走 [IllustNovelFilter] 的 loxia Novel 重载，无需 NovelBean。
+         * 走 [IllustNovelFilter] 的 loxia Novel 重载，无需 Novel。
          */
         private fun passesContentFilters(
             novel: Novel,
