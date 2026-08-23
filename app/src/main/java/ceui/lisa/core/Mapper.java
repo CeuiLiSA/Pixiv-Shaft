@@ -36,6 +36,9 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
      */
     private boolean searchOnlyAi = false;
 
+    /** 搜索链路在模糊粒子化强度下需要保留 AI 条目交给 feeds 卡打码；老列表没有模糊层，默认仍剔除。 */
+    private boolean keepAiForBlur = false;
+
     public Mapper<T> enableSkipR18Filter() {
         this.skipR18Filter = true;
         return this;
@@ -51,6 +54,11 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
         return this;
     }
 
+    public Mapper<T> setKeepAiForBlur(boolean keepAiForBlur) {
+        this.keepAiForBlur = keepAiForBlur;
+        return this;
+    }
+
     /** 该作品是否被搜索 R18 三档拒掉（isR18 = x_restrict > 0）。不限档恒不拒。 */
     private boolean searchR18Rejects(boolean isR18) {
         if (searchR18Restriction == 1) return isR18;    // 仅安全：R18 全去掉
@@ -61,7 +69,6 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
     @Override
     public T apply(T t) {
         List<Object> dash = new ArrayList<>();
-        boolean shouldHidAiIllusts = Shaft.sSettings.isDeleteAIIllust();
         for (Object o : t.getList()) {
             if (o instanceof Illust) {
                 Illust illust = (Illust) o;
@@ -81,7 +88,10 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
                 }
                 // 全局屏蔽 AI（首页等所有列表共用）；但搜索「仅看 AI」时必须让步——否则全局 hide
                 // 把 AI 去掉、searchOnlyAi 又把非 AI 去掉，结果会被清空。!searchOnlyAi 仅搜索时为真。
-                if (shouldHidAiIllusts && isCreatedByAI && !searchOnlyAi) {
+                // 完全不显示强度才剔除；模糊粒子化强度下老列表没有模糊层，同样剔除，只有搜索链路
+                // 显式 keepAiForBlur 时保留给 feeds 卡打码；豁免作者一律放行。
+                if (!searchOnlyAi && (IllustNovelFilter.shouldHideAi(illust)
+                        || (!keepAiForBlur && IllustNovelFilter.shouldBlurAi(illust)))) {
                     dash.add(o);
                 }
                 ObjectPool.INSTANCE.updateIllust((Illust) o);
@@ -97,6 +107,12 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
                 if (isTagBanned || isIdBanned || isUserBanned || isR18FilterBanned || isSpamBanned
                         || searchR18Rejects(novel.getX_restrict() != null && novel.getX_restrict() > 0)
                         || (searchOnlyAi && !novel.isCreatedByAI())) {   // 仅看 AI：剔除非 AI 小说
+                    dash.add(o);
+                }
+                // 全局屏蔽 AI 的小说侧（与插画分支同口径）：完全不显示强度才剔除；
+                // 模糊粒子化强度下老列表没有模糊层，同样剔除，只有搜索链路 keepAiForBlur 时保留。
+                if (!searchOnlyAi && (IllustNovelFilter.shouldHideAi(novel)
+                        || (!keepAiForBlur && IllustNovelFilter.shouldBlurAi(novel)))) {
                     dash.add(o);
                 }
             }

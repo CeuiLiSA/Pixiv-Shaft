@@ -448,7 +448,9 @@ class SearchIllustRepo @JvmOverloads constructor(
         // AI：屏蔽走全局 isDeleteAIIllust → search_ai_type=1；「仅看 AI」会话态（issue #909）→
         // 服务端全返(search_ai_type=0)，再由 FilterMapper 客户端按 illust_ai_type==2 筛。
         val onlyAi = searchModel.onlyAi.value == true
-        searchAiType = if (onlyAi) 0 else if (Shaft.sSettings.isDeleteAIIllust) 1 else 0
+        // 模糊粒子化或存在豁免作者时服务端不能直接剔除 AI，必须全量返回后由客户端滤/遮。
+        val clientSideAi = onlyAi || (Shaft.sSettings.isDeleteAIIllust && Shaft.sSettings.isAiBlockClientSide)
+        searchAiType = if (clientSideAi) 0 else if (Shaft.sSettings.isDeleteAIIllust) 1 else 0
 
         this.filterMapper?.updateStarSizeLimit(this.getStarSizeLimit())
         // 区间上限只有官方 query 一条来源（starSize 关键字桶没有上限语义）；
@@ -457,6 +459,7 @@ class SearchIllustRepo @JvmOverloads constructor(
         // R18 三档（0=不限/1=仅安全/2=仅R-18）→ 客户端按 x_restrict 过滤
         this.filterMapper?.setSearchR18Restriction(r18Restriction ?: 0)
         this.filterMapper?.setSearchOnlyAi(onlyAi)
+        this.filterMapper?.setKeepAiForBlur(true)
     }
 
     private fun getStarSizeLimit(): Int {

@@ -189,6 +189,48 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/ai_block_strength_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/ai_block_strength" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/ai_block_strength"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/ai_block_exempt_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/ai_block_exempt_authors" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/ai_block_exempt"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/filter_rank_bookmarked_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_bottom">
