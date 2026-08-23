@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.search
 
 import ceui.lisa.activities.Shaft
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.viewmodel.SearchModel
 import ceui.loxia.Client
 import ceui.loxia.ImageUrls
@@ -122,6 +123,10 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
         // 注意反刷屏（issue #743）看的是**整个系列的已公开字数**，不是单章：设了「最长字数」的
         // 用户会连带滤掉长连载——这与那条设置「不想看长文」的本意一致，故不特判。
         if (NovelFeedItem.of(representative, skipAiFilter = params.onlyAi) == null) return null
+        // 系列卡（novelSeriesCardRenderer）没有模糊/粒子层：屏蔽 AI 选「模糊粒子化」时，
+        // 单篇交给 NovelFeedFragment 打码，系列卡打不了码——按 Mapper 对老列表的同一口径直接剔除，
+        // 否则开了屏蔽反而把 AI 系列整张封面亮出来。「仅看 AI」时照常让步。
+        if (!params.onlyAi && IllustNovelFilter.shouldBlurAi(representative)) return null
         return SearchNovelSeriesFeedItem(
             seriesId = seriesId,
             novel = representative,

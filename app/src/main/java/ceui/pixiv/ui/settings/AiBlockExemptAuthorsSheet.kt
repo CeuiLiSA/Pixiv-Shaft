@@ -46,7 +46,16 @@ class AiBlockExemptAuthorsSheet : BottomSheetDialogFragment() {
 
     private val palette by lazy { V3Palette.from(requireContext()) }
 
+    /**
+     * sheet 内的工作副本。只在 [onCreate] 从设置里灌一次：DialogFragment 会跨旋转/配置变更存活，
+     * 若放在 onViewCreated 里 addAll，转屏一次就把用户刚删掉、还没保存的 ID 又加回来。
+     */
     private val ids = LinkedHashSet<Long>()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        ids.addAll(Shaft.sSettings.aiBlockExemptAuthorIds)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,7 +73,6 @@ class AiBlockExemptAuthorsSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        ids.addAll(Shaft.sSettings.aiBlockExemptAuthorIds)
         applyAccent()
         binding.btnCancel.setOnClickListener { dismissAllowingStateLoss() }
         binding.btnSave.setOnClickListener { save() }
@@ -93,8 +101,10 @@ class AiBlockExemptAuthorsSheet : BottomSheetDialogFragment() {
 
     private fun addCurrentInput() {
         val text = binding.input.text?.toString()?.trim().orEmpty()
+        // 作者 ID 必须是正整数：IllustNovelFilter.isAiExemptAuthor 对 <=0 一律不认，
+        // 这里不拦的话「0」会被加进列表、保存成功却永远不生效。
         val id = text.toLongOrNull()
-        if (id == null) {
+        if (id == null || id <= 0L) {
             Common.showToast(getString(R.string.ai_block_exempt_invalid))
             return
         }
