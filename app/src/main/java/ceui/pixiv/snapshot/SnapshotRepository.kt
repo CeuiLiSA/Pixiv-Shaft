@@ -56,7 +56,12 @@ data class SnapshotViewerData(
  */
 object SnapshotRepository {
 
-    fun root(context: Context): File = File(context.filesDir, SNAPSHOT_ROOT_DIR).apply { mkdirs() }
+    /**
+     * 快照库根目录。**只算路径，不建目录**：它在 Glide 的图片加载路径上被调用
+     * （见 snapshotAssetFile），顺手 mkdirs 等于每加载一张快照图多一次 stat + 可能的 mkdir
+     * 系统调用。建目录是写入方的事，见 [createSnapshotDir] / [import]。
+     */
+    fun root(context: Context): File = File(context.filesDir, SNAPSHOT_ROOT_DIR)
 
     fun dir(context: Context, snapshotId: String): File = File(root(context), requireSnapshotId(snapshotId))
 

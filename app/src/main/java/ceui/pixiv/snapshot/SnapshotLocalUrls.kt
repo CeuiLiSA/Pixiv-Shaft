@@ -10,13 +10,26 @@ import java.io.File
 
 const val SNAPSHOT_LOCAL_SCHEME = "shaftsnap"
 
+/** 常量折叠后就是字面量 "shaftsnap://"：Glide 的 handles() 每次加载都要比一次，别在那里现拼。 */
+const val SNAPSHOT_LOCAL_URL_PREFIX = "$SNAPSHOT_LOCAL_SCHEME://"
+
 /** 把 assets.json 里的相对路径编码成 Glide 可识别的本地快照 URL。 */
 fun snapshotLocalUrl(snapshotId: String, rel: String): String =
-    "$SNAPSHOT_LOCAL_SCHEME://$snapshotId/${rel.trimStart('/')}"
+    "$SNAPSHOT_LOCAL_URL_PREFIX$snapshotId/${rel.trimStart('/')}"
+
+/**
+ * `shaftsnap://<snapshotId>/<rel>` → 快照库里的真实文件；越界、不存在都返回 null。
+ *
+ * 走 [safeResolve] 而不是直接拼路径：snapshotId / rel 来自 URL，必须挡住 `../` 逃逸。
+ */
+internal fun snapshotAssetFile(snapshotId: String, rel: String): File? =
+    runCatching { safeResolve(SnapshotRepository.root(Shaft.getContext()), "$snapshotId/$rel") }
+        .getOrNull()
+        ?.takeIf { it.isFile }
 
 /** 解析 `shaftsnap://<snapshotId>/<rel>`，非快照 URL 返回 null。 */
 fun parseSnapshotLocalUrl(url: String): Pair<String, String>? {
-    if (!url.startsWith("$SNAPSHOT_LOCAL_SCHEME://")) return null
+    if (!url.startsWith(SNAPSHOT_LOCAL_URL_PREFIX)) return null
     val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return null
     val snapshotId = uri.host ?: return null
     val rel = uri.path?.trimStart('/') ?: return null

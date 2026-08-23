@@ -14,7 +14,7 @@ import java.io.File;
 import java.io.InputStream;
 
 import ceui.lisa.activities.Shaft;
-import ceui.pixiv.snapshot.SnapshotAwareGlideUrlLoader;
+import ceui.pixiv.snapshot.SnapshotLocalStreamLoader;
 import ceui.pixiv.snapshot.SnapshotLocalFileLoader;
 
 @GlideModule
@@ -33,8 +33,13 @@ public class GlideConfiguration extends AppGlideModule {
         //用 LeakSafeOkHttpUrlLoader 而不是官方 OkHttpUrlLoader:官方 fetcher 在
         //「响应已到达、请求随后被取消」(列表快速滑动)时会遗弃打开的 response body,
         //刷屏 "A connection to https://i.pximg.net/ was leaked",详见该类注释。
-        registry.replace(GlideUrl.class, InputStream.class, new SnapshotAwareGlideUrlLoader.Factory(application.getOkHttpClient()));
-        registry.append(GlideUrl.class, File.class, new SnapshotLocalFileLoader.Factory());
+        registry.replace(GlideUrl.class, InputStream.class, new LeakSafeOkHttpUrlLoader.Factory(application.getOkHttpClient()));
+        //「离线快照」的 shaftsnap:// 走本地文件。必须 prepend 到网络 loader 之前:
+        //Glide 按注册顺序问 handles(),而 LeakSafeOkHttpUrlLoader.handles() 恒为 true,谁在前谁接管。
+        //也必须放在上面那行 replace 之后 —— replace 会先清掉该 (GlideUrl, InputStream) 下已注册的全部条目。
+        //普通图片加载只多一次前缀比较(SnapshotLocalStreamLoader.handles),不进快照逻辑、不碰磁盘。
+        registry.prepend(GlideUrl.class, InputStream.class, new SnapshotLocalStreamLoader.Factory());
+        registry.prepend(GlideUrl.class, File.class, new SnapshotLocalFileLoader.Factory());
     }
 
     @Override
