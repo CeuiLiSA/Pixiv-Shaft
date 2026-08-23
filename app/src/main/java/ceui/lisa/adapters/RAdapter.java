@@ -9,12 +9,12 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyRankIllustHorizontalBinding;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.utils.GlideUtil;
 
-public class RAdapter extends BaseAdapter<IllustsBean, RecyRankIllustHorizontalBinding> {
+public class RAdapter extends BaseAdapter<Illust, RecyRankIllustHorizontalBinding> {
 
-    public RAdapter(List<IllustsBean> targetList, Context context) {
+    public RAdapter(List<Illust> targetList, Context context) {
         super(targetList, context);
     }
 
@@ -24,8 +24,8 @@ public class RAdapter extends BaseAdapter<IllustsBean, RecyRankIllustHorizontalB
     }
 
     @Override
-    public void bindData(IllustsBean target, ViewHolder<RecyRankIllustHorizontalBinding> bindView, int position) {
-        IllustsBean bean = allItems.get(position);
+    public void bindData(Illust target, ViewHolder<RecyRankIllustHorizontalBinding> bindView, int position) {
+        Illust bean = allItems.get(position);
         bindView.baseBind.title.setText(bean.getTitle());
         // user / image_urls / profile_image_urls 都可能为 null(精简·网页来源 bean,见 #569;发现页
         // 站长推荐/当前最热的 shaft-api-v2 上报 bean 也可能缺字段)。链式 getter 直接点会 NPE 崩,

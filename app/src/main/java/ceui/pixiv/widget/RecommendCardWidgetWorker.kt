@@ -13,7 +13,7 @@ import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.VActivity
 import ceui.lisa.http.Retro
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.session.SessionManager
@@ -49,7 +49,7 @@ class RecommendCardWidgetWorker(
             withContext(Dispatchers.IO) {
                 Retro.getAppApiSuspend().getRecmdIllust(true)
                     .illusts
-                    ?.filter { !it.isR18File && !it.isSensitive }
+                    ?.filter { !it.isR18File() && !it.isSensitive() }
                     ?.shuffled()
             }
         } catch (e: Exception) {
@@ -99,7 +99,7 @@ class RecommendCardWidgetWorker(
     private suspend fun renderIllust(
         manager: AppWidgetManager,
         widgetId: Int,
-        illust: IllustsBean,
+        illust: Illust,
     ): Boolean {
         val opts = manager.getAppWidgetOptions(widgetId)
         val density = context.resources.displayMetrics.density
@@ -157,7 +157,7 @@ class RecommendCardWidgetWorker(
             views.setViewVisibility(R.id.widget_bookmark, android.view.View.VISIBLE)
             views.setOnClickPendingIntent(
                 R.id.widget_bookmark,
-                WidgetBookmarkReceiver.pendingIntent(context, "card/$widgetId", illust.id)
+                WidgetBookmarkReceiver.pendingIntent(context, "card/$widgetId", illust.id.toInt())
             )
         }
 

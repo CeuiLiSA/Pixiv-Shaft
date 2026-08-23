@@ -103,11 +103,13 @@ class CustomThemeColorSheet : V3BottomSheetBase() {
     }
 
     /**
-     * 打开时的初始色：优先用户已存的自定义色，其次当前正在用的主题色 —— 从当前主题色起步，
-     * 用户微调一下就能得到「和现在差不多但更喜欢一点」的色，比每次都从纯红开始有用。
+     * 打开时的初始色：调用方显式给了 [ARG_INITIAL_HEX] 就用它（标签译文颜色模式传的是当前译文色，
+     * 不能拿主题的自定义色顶上）；否则优先用户已存的自定义主题色，其次当前正在用的主题色 ——
+     * 从当前主题色起步，用户微调一下就能得到「和现在差不多但更喜欢一点」的色，比每次都从纯红开始有用。
      */
     private fun initialColor(): Int =
-        CustomThemeColor.savedColor()
+        CustomThemeColor.normalize(arguments?.getString(ARG_INITIAL_HEX))?.let(Color::parseColor)
+            ?: CustomThemeColor.savedColor()
             ?: Color.parseColor(ThemeColorCatalog.hexOf(ceui.lisa.activities.Shaft.sSettings.themeIndex))
 
     private fun currentColor(): Int = Color.HSVToColor(floatArrayOf(hue, saturation, value))
@@ -142,5 +144,12 @@ class CustomThemeColorSheet : V3BottomSheetBase() {
     companion object {
         const val REQUEST_KEY = "custom_theme_color"
         const val KEY_HEX = "hex"
+        private const val ARG_INITIAL_HEX = "initial_hex"
+
+        /** 指定打开时的初始色（`#RRGGBB`）；null / 非法时回落 [initialColor] 的默认规则。 */
+        fun newInstance(initialHex: String?): CustomThemeColorSheet =
+            CustomThemeColorSheet().apply {
+                arguments = bundleOf(ARG_INITIAL_HEX to initialHex)
+            }
     }
 }

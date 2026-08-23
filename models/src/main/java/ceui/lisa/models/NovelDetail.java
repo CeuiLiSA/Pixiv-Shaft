@@ -1,5 +1,6 @@
 package ceui.lisa.models;
 
+import ceui.loxia.Novel;
 import java.io.Serializable;
 import java.util.List;
 
@@ -21,8 +22,8 @@ public class NovelDetail implements Serializable {
 
     private NovelMarkerBean novel_marker;
     private String novel_text;
-    private NovelBean series_prev;
-    private NovelBean series_next;
+    private Novel series_prev;
+    private Novel series_next;
     private List<NovelChapterBean> parsedChapters = null;
 
     public NovelMarkerBean getNovel_marker() {
@@ -41,19 +42,19 @@ public class NovelDetail implements Serializable {
         this.novel_text = novel_text;
     }
 
-    public NovelBean getSeries_prev() {
+    public Novel getSeries_prev() {
         return series_prev;
     }
 
-    public void setSeries_prev(NovelBean series_prev) {
+    public void setSeries_prev(Novel series_prev) {
         this.series_prev = series_prev;
     }
 
-    public NovelBean getSeries_next() {
+    public Novel getSeries_next() {
         return series_next;
     }
 
-    public void setSeries_next(NovelBean series_next) {
+    public void setSeries_next(Novel series_next) {
         this.series_next = series_next;
     }
 

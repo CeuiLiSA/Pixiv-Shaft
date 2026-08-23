@@ -159,12 +159,3 @@ object NcnnUpscaler {
         return modelDir
     }
 }
-
-// Backward compatibility alias
-object RealESRGANUpscaler {
-    suspend fun upscale(
-        context: Context,
-        inputFile: File,
-        onProgress: ((percent: Float, etaSeconds: Float) -> Unit)? = null
-    ): File? = NcnnUpscaler.upscale(context, inputFile, UpscaleModel.REAL_ESRGAN, onProgress)
-}

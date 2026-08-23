@@ -32,7 +32,7 @@ import ceui.lisa.interfaces.Display;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.Preset;
 import ceui.lisa.models.UserDetailResponse;
-import ceui.lisa.models.UserModel;
+import ceui.loxia.AccountResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
@@ -144,13 +144,13 @@ public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> 
                     public void success(NullResponse nullResponse) {
                         Common.showToast(getString(R.string.string_261));
                         //修改好了之后刷新用户信息
-                        PixivOperate.refreshUserData(new Callback<UserModel>() {
+                        PixivOperate.refreshUserData(new Callback<AccountResponse>() {
                             @Override
-                            public void onResponse(Call<UserModel> call, Response<UserModel> response) {
+                            public void onResponse(Call<AccountResponse> call, Response<AccountResponse> response) {
                                 if (response != null) {
-                                    UserModel newUser = response.body();
+                                    AccountResponse newUser = response.body();
                                     if (newUser != null) {
-                                        newUser.getUser().setIs_login(true);
+                                        newUser.getUser().set_login(true);
                                         Local.saveUser(newUser);
                                         mActivity.finish();
                                     }
@@ -159,7 +159,7 @@ public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> 
                             }
 
                             @Override
-                            public void onFailure(Call<UserModel> call, Throwable t) {
+                            public void onFailure(Call<AccountResponse> call, Throwable t) {
                                 Common.showToast(t.toString());
                                 baseBind.progress.setVisibility(View.INVISIBLE);
                             }

@@ -90,7 +90,7 @@ class WatchLaterTabsFragment : Fragment(R.layout.viewpager_with_tablayout) {
         if (beans.isEmpty()) {
             Common.showToast(R.string.watch_later_empty)
         } else {
-            SlideshowLauncher.launchFromIllustsBeans(requireContext(), ArrayList(beans), 0, true)
+            SlideshowLauncher.launchFromIllusts(requireContext(), ArrayList(beans), 0, true)
         }
     }
 

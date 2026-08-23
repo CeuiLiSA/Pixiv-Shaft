@@ -25,7 +25,7 @@ class WalkthroughFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_fee
 
     override val feedViewModel by feedViewModels {
         pixivFeedSource({ Client.appApi.getWalkthroughWorks() }) { resp, _ ->
-            resp.displayList.mapNotNull { IllustFeedItem.from(it) }
+            resp.displayList.mapNotNull { IllustFeedItem.of(it) }
         }
     }
 

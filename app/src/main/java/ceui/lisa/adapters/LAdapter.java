@@ -9,14 +9,14 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyCardIllustBinding;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.utils.GlideUtil;
 
-public class LAdapter extends BaseAdapter<IllustsBean, RecyCardIllustBinding> {
+public class LAdapter extends BaseAdapter<Illust, RecyCardIllustBinding> {
 
     private final int imageSize;
 
-    public LAdapter(List<IllustsBean> targetList, Context context) {
+    public LAdapter(List<Illust> targetList, Context context) {
         super(targetList, context);
         // 作者其他作品横向条:让 3 张卡在「区块 12dp 内边距 + 卡间 8dp 间隔」内正好排满,首卡与
         // 标题左对齐、末卡不被屏幕边裁成细条(见反馈)。48dp = 两侧 12dp 容器内边距 + 卡间 8dp×3。
@@ -34,7 +34,7 @@ public class LAdapter extends BaseAdapter<IllustsBean, RecyCardIllustBinding> {
     }
 
     @Override
-    public void bindData(IllustsBean target, ViewHolder<RecyCardIllustBinding> bindView, int position) {
+    public void bindData(Illust target, ViewHolder<RecyCardIllustBinding> bindView, int position) {
         ViewGroup.LayoutParams params = bindView.baseBind.imageView.getLayoutParams();
         params.width = imageSize;
         params.height = imageSize;

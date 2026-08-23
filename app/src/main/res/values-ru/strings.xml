@@ -549,6 +549,9 @@
     <string name="string_322">Мои подписчики</string>
     <string name="string_323">Мои P-друзья</string>
     <string name="string_324">Цвет темы</string>
+    <string name="tag_translation_color">Цвет перевода тега</string>
+    <string name="tag_translation_color_follow_theme">Следовать теме</string>
+    <string name="tag_translation_color_pick_from_theme_page">Выбрать на странице цветов темы</string>
     <string name="string_325">Перейти к настройкам</string>
     <string name="string_326">Начать</string>
     <string name="string_327">Приостановить</string>
@@ -2721,4 +2724,7 @@
     <string name="nana7mi_quota_snack_session">5-часовой лимит исчерпан, восстановится через %1$s</string>
     <string name="nana7mi_quota_snack_weekly">Недельный лимит исчерпан, восстановится через %1$s</string>
     <string name="nana7mi_quota_snack_action">Использование</string>
+    <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
+    <string name="inapp_push_dismiss">Понятно</string>
+    <string name="inapp_push_default_action">Посмотреть</string>
 </resources>

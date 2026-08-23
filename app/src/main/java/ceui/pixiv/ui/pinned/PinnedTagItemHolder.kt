@@ -2,7 +2,6 @@ package ceui.pixiv.ui.pinned
 
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.SearchEntity
-import ceui.lisa.models.IllustsBean
 import ceui.loxia.Illust
 import ceui.loxia.ImageUrls
 import ceui.loxia.Tag
@@ -77,7 +76,7 @@ private fun parsePreview(json: String?): PinnedTagPreviewParsed? {
  */
 private data class PreviewRoot(val tag: PreviewTag?, val resp: PreviewResp?)
 private data class PreviewTag(val name: String?, val translated_name: String?)
-private data class PreviewResp(val illusts: List<IllustsBean>?)
+private data class PreviewResp(val illusts: List<Illust>?)
 
 private fun String.toPreviewIllust(): Illust =
     Illust(id = 0, image_urls = ImageUrls(square_medium = this))

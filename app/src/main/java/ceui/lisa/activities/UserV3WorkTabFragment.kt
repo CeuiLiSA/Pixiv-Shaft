@@ -8,7 +8,8 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
+import ceui.loxia.toTagsBean
 import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.Params
 import ceui.loxia.Novel
@@ -86,7 +87,7 @@ class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovel
     }
 
     /** 插画/漫画列表首屏回调:聚合高频 tag → 短到长排序 → 渲染筛选条(固定 2 行,末尾「高级搜索」)。 */
-    override fun onUserIllustFirstPage(illusts: List<IllustsBean>) {
+    override fun onUserIllustFirstPage(illusts: List<Illust>) {
         if (view == null || tagsRendered || illusts.isEmpty()) return
         // 列表首屏已按全局设置过滤过屏蔽作品/tag,这里直接按频率聚合,保留首次出现的 TagsBean(含译名)
         val freq = LinkedHashMap<String, Int>()
@@ -97,7 +98,7 @@ class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovel
                 val name = t.name ?: continue
                 if (name.isBlank()) continue
                 freq[name] = (freq[name] ?: 0) + 1
-                beanOf.getOrPut(name) { t }
+                beanOf.getOrPut(name) { t.toTagsBean() }
             }
         }
         renderTagsFromFreq(freq, beanOf)

@@ -13,7 +13,7 @@ import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.VActivity
 import ceui.lisa.http.Retro
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.session.SessionManager
@@ -51,7 +51,7 @@ class SpotlightWidgetWorker(
                 Retro.getAppApiSuspend().getRecmdIllust(true)
                     .illusts
                     ?.shuffled()
-                    ?.firstOrNull { !it.isR18File && !it.isSensitive }
+                    ?.firstOrNull { !it.isR18File() && !it.isSensitive() }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -100,7 +100,7 @@ class SpotlightWidgetWorker(
     private suspend fun renderIllust(
         manager: AppWidgetManager,
         widgetId: Int,
-        illust: IllustsBean,
+        illust: Illust,
     ): Boolean {
         val opts = manager.getAppWidgetOptions(widgetId)
         val density = context.resources.displayMetrics.density
@@ -180,7 +180,7 @@ class SpotlightWidgetWorker(
             views.setViewVisibility(R.id.widget_bookmark, android.view.View.VISIBLE)
             views.setOnClickPendingIntent(
                 R.id.widget_bookmark,
-                WidgetBookmarkReceiver.pendingIntent(context, "spotlight/$widgetId", illust.id)
+                WidgetBookmarkReceiver.pendingIntent(context, "spotlight/$widgetId", illust.id.toInt())
             )
         }
 

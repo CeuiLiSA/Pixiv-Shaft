@@ -31,7 +31,7 @@ import ceui.lisa.core.PageData
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadDao
 import ceui.lisa.database.DownloadEntity
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
@@ -240,7 +240,7 @@ class DoneListV3Fragment : Fragment() {
         // illustGson 是 `{"id":N,"shaft_imported":true}`，isGif 判不出来也 visible=false，
         // 送进 VActivity 会走它的「不可见作品」兜底分支去读空的 image_urls；那些行本来就
         // 指着真正的 .gif 文件，留在原来的查看器里反而是能看的。
-        val ugoira = group.parsedIllust?.takeIf { it.isGif }
+        val ugoira = group.parsedIllust?.takeIf { it.isGif() }
         if (ugoira != null) {
             openArtwork(ugoira)
             return
@@ -258,7 +258,7 @@ class DoneListV3Fragment : Fragment() {
      * 走 [VActivity] 打开单个作品 —— 与 [QueueListV3Fragment.openVActivity] 同一套：
      * 由它按 `isUseArtworkV3` 分发到 V3 / V2 详情页，不在这里各选一棵树。
      */
-    private fun openArtwork(illust: IllustsBean) {
+    private fun openArtwork(illust: Illust) {
         val ctx = context ?: return
         val pageData = PageData(listOf(illust))
         Container.get().addPageToMap(pageData)
@@ -271,7 +271,7 @@ class DoneListV3Fragment : Fragment() {
     }
 
     // fileName 形如 "pixiv_shaft_novel_<id>"；老纪录 / Cache key 改名等异常时
-    // 回退到 illustGson 里的 "id" 字段（NovelBean / loxia.Novel 都带）。
+    // 回退到 illustGson 里的 "id" 字段（Novel / loxia.Novel 都带）。
     private fun openNovel(group: DownloadGroup) {
         val novelId = extractNovelId(group.latest)
         if (novelId <= 0L) {
@@ -291,7 +291,7 @@ class DoneListV3Fragment : Fragment() {
         val userId: Int = if (group.isNovel) {
             group.parsedNovel?.user?.id?.toInt() ?: 0
         } else {
-            group.parsedIllust?.user?.id ?: 0
+            group.parsedIllust?.user?.id?.toInt() ?: 0
         }
         if (userId <= 0) return
         startActivity(
@@ -363,8 +363,8 @@ internal data class DownloadGroup(
     val pageCount: Int,
     val allFilePaths: List<String>,
     val allEntities: List<DownloadEntity>,
-    /** 预解析的 IllustsBean —— 在 IO 线程做完 Gson；UI 绑卡时直接用，不再 fromJson 卡帧 */
-    val parsedIllust: IllustsBean? = null,
+    /** 预解析的 Illust —— 在 IO 线程做完 Gson；UI 绑卡时直接用，不再 fromJson 卡帧 */
+    val parsedIllust: Illust? = null,
     /** 预解析的 loxia Novel —— 同 [parsedIllust]，仅小说行有值。issue #876:
      *  DB 里 fileName 是 PK（NOVEL_KEY+id），不带标题；下载记录卡片要从这里
      *  取真正的小说名 + 作者展示。 */
@@ -392,7 +392,7 @@ private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
         val latest = list.maxByOrNull { it.downloadTime } ?: list.first()
         val isNovel = latest.fileName?.contains(Params.NOVEL_KEY) == true
         val parsedIllust = if (isNovel) null else runCatching {
-            Shaft.sGson.fromJson(latest.illustGson, IllustsBean::class.java)
+            Shaft.sGson.fromJson(latest.illustGson, Illust::class.java)
         }.getOrNull()
         val parsedNovel = if (isNovel) runCatching {
             Shaft.sGson.fromJson(latest.illustGson, Novel::class.java)
@@ -495,7 +495,7 @@ private class DoneAdapterV3(
             }
         } else {
             // 用预解析的 illust（reload 时 IO 线程已 fromJson 完）—— 绑卡 0 解析
-            val illust: IllustsBean? = group.parsedIllust
+            val illust: Illust? = group.parsedIllust
             // 多页 illust：左上角只显示 "Np"（去掉 "MANGA · " 冗余前缀）。
             // 单页 illust：徽章直接隐藏 —— 没有页数信息可言。
             // 之前的渐隐 + 透明背景文字在暗色图上几乎读不出，改为白字 + 70% 黑底。
@@ -504,7 +504,7 @@ private class DoneAdapterV3(
             // 同属一个 illustId，分组后 group.pageCount 会是 2，照页数算法会渲染出骗人的「2P」。
             // 标成 GIF 也顺带说明了它点开去的是详情页而不是大图查看器。
             val badge: String? = when {
-                illust?.isGif == true -> "GIF"
+                illust?.isGif() == true -> "GIF"
                 group.pageCount > 1 -> "${group.pageCount}P"
                 (illust?.page_count ?: 1) > 1 -> "${illust?.page_count ?: 1}P"
                 else -> null

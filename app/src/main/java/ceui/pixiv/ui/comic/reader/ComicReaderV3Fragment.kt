@@ -25,7 +25,7 @@ import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.ShareIllust
 import ceui.loxia.ObjectPool
 import ceui.loxia.requireNetworkStateManager
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.task.PageLoadRetryController
@@ -159,7 +159,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
             }
         }
 
-        ObjectPool.getIllust(resolveIllustId()).observe(viewLifecycleOwner) { illust: IllustsBean? ->
+        ObjectPool.getIllust(resolveIllustId()).observe(viewLifecycleOwner) { illust: Illust? ->
             illust?.title?.takeIf { it.isNotEmpty() }?.let { binding.comicTopBar.comicTitle.text = it }
         }
 
@@ -243,14 +243,19 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         }
     }
 
+    /**
+     * 返回手势先收顶/底栏。callback 只在 chrome 显示时 enabled:常开会让系统放弃预测式返回动画,
+     * chrome 收起后返回就是退出阅读器,这时必须把返回交还给系统才有跟手的退出预览。
+     */
     private fun wireBackPress() {
-        val cb = object : androidx.activity.OnBackPressedCallback(true) {
+        val cb = object : androidx.activity.OnBackPressedCallback(chrome.shown) {
             override fun handleOnBackPressed() {
                 if (chrome.shown) { chrome.setShown(false); return }
                 isEnabled = false
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             }
         }
+        chrome.onShownChanged = { cb.isEnabled = it }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, cb)
     }
 
@@ -407,12 +412,12 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
     private fun showSeriesListSheet() {
         val illust = (viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded)?.illust
         val series = illust?.series
-        if (series == null || series.id == 0) {
+        if (series == null || series.id == 0L) {
             Toaster.showShort(R.string.comic_reader_no_series)
             return
         }
         ComicSeriesListSheet.newInstance(
-            seriesId = series.id.toLong(),
+            seriesId = series.id,
             currentIllustId = resolveIllustId(),
             seriesTitle = series.title,
         ).show(childFragmentManager, ComicSeriesListSheet.TAG)
@@ -433,7 +438,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         showV3Menu {
             item(getString(R.string.comic_reader_long_press_save), R.drawable.ic_baseline_get_app_24) {
                 IllustDownload.downloadIllustCertainPage(illust, pageIndex, activity)
-                if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isIs_bookmarked) {
+                if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
                     PixivOperate.postLikeDefaultStarType(illust)
                 }
             }

@@ -2,7 +2,7 @@ package ceui.pixiv.ui.recommend
 
 import android.os.Bundle
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.pixiv.feeds.FeedItem
@@ -37,7 +37,7 @@ class WallpaperIllustFeedFragment : IllustFeedFragment() {
     override val detailContinuationCursor: String? get() = null
 
     // 榜单 bean 是第三方上报快照,收藏/关注态不可信,不喂池。同 BookmarkRankFeedFragment。
-    override fun poolableBeansOf(item: FeedItem): List<IllustsBean> = emptyList()
+    override fun poolableBeansOf(item: FeedItem): List<Illust> = emptyList()
 
     companion object {
         private const val ARG_SCREEN = "wallpaper_screen"
@@ -82,14 +82,14 @@ class WallpaperFeedSource(
         private fun mapWallpaperItem(item: ShaftApiV2.TrendingWorkItem): IllustFeedItem? {
             val json = item.bean ?: return null
             val bean = try {
-                Shaft.sGson.fromJson(json, IllustsBean::class.java)
+                Shaft.sGson.fromJson(json, Illust::class.java)
             } catch (e: Throwable) {
                 Timber.tag("WallpaperRank").w(e, "skip malformed bean id=${item.target_id}")
                 return null
             } ?: return null
-            bean.trendingScore = item.bookmark_count.toFloat()
-            bean.setIs_bookmarked(false)
-            return IllustFeedItem.fromBean(bean)
+            return IllustFeedItem.of(
+                bean.withTrendingScore(item.bookmark_count.toFloat()).withBookmarked(false)
+            )
         }
     }
 }

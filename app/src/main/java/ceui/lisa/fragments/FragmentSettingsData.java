@@ -30,7 +30,7 @@ import ceui.lisa.databinding.FragmentSettingsDataBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.models.UserModel;
+import ceui.loxia.AccountResponse;
 import ceui.lisa.utils.BackupUtils;
 import ceui.lisa.utils.BackupUtils.BackupEntity;
 import ceui.lisa.utils.Common;
@@ -282,7 +282,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
      * 则账号已保留在本地账号列表，可稍后自行切换。
      */
     private void maybePromptRestoreAccount(List<UserEntity> accounts) {
-        final UserModel target = pickLatestBackupAccount(accounts);
+        final AccountResponse target = pickLatestBackupAccount(accounts);
         if (target == null) {
             return;
         }
@@ -302,7 +302,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                     @Override
                     public void onClick(WitDialog dialog, int index) {
                         dialog.dismiss();
-                        target.getUser().setIs_login(true);
+                        target.getUser().set_login(true);
                         Local.saveUser(target);
                         Common.restart();
                     }
@@ -312,7 +312,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
     }
 
     /** 取备份中最近一次登录的账号；token 不完整（非真实登录账号）时返回 null。 */
-    private UserModel pickLatestBackupAccount(List<UserEntity> accounts) {
+    private AccountResponse pickLatestBackupAccount(List<UserEntity> accounts) {
         if (accounts == null || accounts.isEmpty()) {
             return null;
         }
@@ -326,9 +326,9 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
             return null;
         }
         try {
-            UserModel userModel = Shaft.sGson.fromJson(best.getUserGson(), UserModel.class);
+            AccountResponse userModel = Shaft.sGson.fromJson(best.getUserGson(), AccountResponse.class);
             if (userModel != null && userModel.getUser() != null
-                    && !TextUtils.isEmpty(userModel.getRawAccessToken())
+                    && !TextUtils.isEmpty(userModel.getAccess_token())
                     && !TextUtils.isEmpty(userModel.getRefresh_token())) {
                 return userModel;
             }

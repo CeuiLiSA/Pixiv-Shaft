@@ -1,7 +1,7 @@
 package ceui.pixiv.download
 
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.ui.task.DownloadNovelTask
@@ -41,7 +41,7 @@ object IllustCaptionExporter {
      * 开关关闭 / 无简介 / 不支持的 type / 字数不够时在调用线程上直接返回，不起协程。
      */
     @JvmStatic
-    fun export(illust: IllustsBean?) {
+    fun export(illust: Illust?) {
         val prepared = prepare(illust, force = false) ?: return
         scope.launch { write(prepared.first, prepared.second) }
     }
@@ -53,13 +53,13 @@ object IllustCaptionExporter {
      * 挂起直到落盘完成；写入仍在 [scope] 的 IO 线程上执行，返回时已切回调用协程
      * （Fragment 侧是 Main），方便直接弹 toast。
      */
-    suspend fun exportManual(illust: IllustsBean?): Boolean {
+    suspend fun exportManual(illust: Illust?): Boolean {
         val prepared = prepare(illust, force = true) ?: return false
         return scope.async { write(prepared.first, prepared.second) }.await()
     }
 
     /** 返回 null 表示本次不导出；否则返回 (作品, 清洗后的简介)。 */
-    private fun prepare(illust: IllustsBean?, force: Boolean): Pair<IllustsBean, String>? {
+    private fun prepare(illust: Illust?, force: Boolean): Pair<Illust, String>? {
         if (!force && !Shaft.sSettings.isAutoExportIllustCaption) return null
         if (illust == null) return null
         if (illust.type !in SUPPORTED_TYPES) return null
@@ -72,7 +72,7 @@ object IllustCaptionExporter {
         return illust to caption
     }
 
-    private fun write(illust: IllustsBean, caption: String): Boolean {
+    private fun write(illust: Illust, caption: String): Boolean {
         return try {
             val destination = DownloadItems.illustCaptionDestination(illust)
             // openRaw 返回 null = Skip 策略且文件已存在，按策略跳过（不算失败）。
@@ -94,7 +94,7 @@ object IllustCaptionExporter {
         }
     }
 
-    private fun buildContent(illust: IllustsBean, caption: String): String {
+    private fun buildContent(illust: Illust, caption: String): String {
         val sb = StringBuilder()
         sb.append("标题：").append(illust.title.orEmpty()).append("\n\n")
         sb.append("作者：").append(illust.user?.name.orEmpty()).append("\n\n")

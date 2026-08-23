@@ -4,7 +4,7 @@ import android.content.Context;
 
 import java.io.File;
 
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 import ceui.lisa.utils.Common;
 
 import java.nio.charset.CharsetDecoder;
@@ -56,7 +56,7 @@ public class LegacyFile {
         return cacheDir;
     }
 
-    public static File gifZipFile(Context context, IllustsBean illust) {
+    public static File gifZipFile(Context context, Illust illust) {
         File gifCacheFolder = gifCacheFolder(context);
         String zipName = new FileName().zipName(illust);
         File zipFile = new File(gifCacheFolder, zipName);
@@ -71,7 +71,7 @@ public class LegacyFile {
         return zipFile;
     }
 
-    public static File gifUnzipFolder(Context context, IllustsBean illust) {
+    public static File gifUnzipFolder(Context context, Illust illust) {
         String folderName = new FileName().unzipName(illust);
         File unzipDirFile = new File(gifCacheFolder(context).getPath() + "/" + folderName);
         if (!unzipDirFile.exists()) {
@@ -81,7 +81,7 @@ public class LegacyFile {
         return unzipDirFile;
     }
 
-    public static File gifResultFile(Context context, IllustsBean illust) {
+    public static File gifResultFile(Context context, Illust illust) {
         File gifCacheFolder = gifCacheFolder(context);
         String gifResultName = new FileName().gifName(illust);
         File gifResult = new File(gifCacheFolder, gifResultName);

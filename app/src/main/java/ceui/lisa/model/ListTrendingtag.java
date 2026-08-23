@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 
 public class ListTrendingtag implements ListShow<ListTrendingtag.TrendTagsBean>, Serializable {
 
@@ -53,7 +53,7 @@ public class ListTrendingtag implements ListShow<ListTrendingtag.TrendTagsBean>,
         private String tag;
         private String name;
         private String translated_name;
-        private IllustsBean illust;
+        private Illust illust;
 
         public String getName() {
             return name;
@@ -87,11 +87,11 @@ public class ListTrendingtag implements ListShow<ListTrendingtag.TrendTagsBean>,
             this.translated_name = translated_name;
         }
 
-        public IllustsBean getIllust() {
+        public Illust getIllust() {
             return illust;
         }
 
-        public void setIllust(IllustsBean illust) {
+        public void setIllust(Illust illust) {
             this.illust = illust;
         }
 

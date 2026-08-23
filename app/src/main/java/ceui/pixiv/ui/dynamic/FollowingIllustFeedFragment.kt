@@ -43,7 +43,7 @@ class FollowingIllustFeedFragment : IllustFeedFragment() {
         // 取成局部 val:捕获的是 VM 实例(与 FeedViewModel 同 store、同寿命),不是 Fragment
         val holder = restrictViewModel
         pixivFeedSource({ Client.appApi.getFollowingIllusts(holder.restrict) }) { resp, _ ->
-            resp.displayList.mapNotNull { IllustFeedItem.from(it) }
+            resp.displayList.mapNotNull { IllustFeedItem.of(it) }
         }
     }
 

@@ -19,6 +19,8 @@ class ReaderSearchOverlay(private val binding: LayoutReaderSearchOverlayBinding)
     var onClose: (() -> Unit)? = null
     var onRegexToggle: ((Boolean) -> Unit)? = null
     var onListClick: (() -> Unit)? = null
+    /** 显隐切换通知（返回拦截的 enabled 跟着它走）。 */
+    var onShownChanged: ((Boolean) -> Unit)? = null
 
     private var regexMode = false
 
@@ -57,10 +59,15 @@ class ReaderSearchOverlay(private val binding: LayoutReaderSearchOverlayBinding)
         applyRegexStyle()
     }
 
+    /** 意图态而非 view 可见性：收起动画还有 160ms 才 GONE，返回拦截的 enabled 不能跟着那段滞后。 */
+    private var shown = binding.root.visibility == View.VISIBLE
+
     /** 搜索 overlay 是否处于可见态（用于返回手势优先关闭它）。 */
-    fun isShown(): Boolean = binding.root.visibility == View.VISIBLE
+    fun isShown(): Boolean = shown
 
     fun setShown(shown: Boolean) {
+        val changed = shown != this.shown
+        this.shown = shown
         if (shown) {
             binding.root.visibility = View.VISIBLE
             binding.root.alpha = 0f
@@ -81,6 +88,7 @@ class ReaderSearchOverlay(private val binding: LayoutReaderSearchOverlayBinding)
                 .withEndAction { binding.root.visibility = View.GONE }
                 .start()
         }
+        if (changed) onShownChanged?.invoke(shown)
     }
 
     fun clear() {

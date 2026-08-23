@@ -1,5 +1,6 @@
 package ceui.lisa.models;
 
+import ceui.loxia.User;
 import java.io.Serializable;
 
 public class MangaSeriesItem implements Serializable {
@@ -24,7 +25,7 @@ public class MangaSeriesItem implements Serializable {
     private String create_date;
     private int width;
     private int height;
-    private UserBean user;
+    private User user;
 
     public int getId() {
         return id;
@@ -90,11 +91,11 @@ public class MangaSeriesItem implements Serializable {
         this.height = height;
     }
 
-    public UserBean getUser() {
+    public User getUser() {
         return user;
     }
 
-    public void setUser(UserBean user) {
+    public void setUser(User user) {
         this.user = user;
     }
 }

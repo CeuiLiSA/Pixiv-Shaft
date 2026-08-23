@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.bulk
 
 import ceui.lisa.http.Retro
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 
 /**
  * 自己（或任意指定用户）的收藏插画/漫画列表。restrict 一般是 "public" / "private"。
@@ -16,7 +16,7 @@ class MyBookmarksSource(
     private val userId: Long,
     private val restrict: String,
     private val tag: String? = null,
-) : PaginatedObjectSource<IllustsBean> {
+) : PaginatedObjectSource<Illust> {
 
     override val sourceTag: String = buildString {
         append("bookmarks:").append(restrict).append(":").append(userId)
@@ -31,12 +31,12 @@ class MyBookmarksSource(
     override val endpointHint: String =
         "/v1/user/bookmarks/illust?restrict=$restrict" + (tag?.let { "&tag=$it" } ?: "")
 
-    override suspend fun firstPage(): PageResult<IllustsBean>? =
+    override suspend fun firstPage(): PageResult<Illust>? =
         Retro.getAppApiSuspend()
             .getUserLikeIllust(userId.toInt(), restrict, tag?.takeIf { it.isNotEmpty() })
             .toPageResult()
 
-    override suspend fun nextPage(nextUrl: String): PageResult<IllustsBean>? =
+    override suspend fun nextPage(nextUrl: String): PageResult<Illust>? =
         Retro.getAppApiSuspend()
             .getNextIllust(nextUrl)
             .toPageResult()

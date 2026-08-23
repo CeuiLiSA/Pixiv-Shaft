@@ -3,70 +3,15 @@ package ceui.pixiv.ui.slideshow
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import ceui.lisa.download.IllustDownload
-import ceui.lisa.models.IllustsBean
-import ceui.lisa.utils.Common
-import ceui.lisa.utils.Params
 import ceui.loxia.Illust
+import ceui.lisa.utils.Common
 import timber.log.Timber
 
 object SlideshowLauncher {
 
     /**
-     * Launch the slideshow from a V2 list of [IllustsBean]. Single-page illusts contribute their
-     * one image; multi-page illusts contribute every page in order. The slideshow plays at ORIGINAL
-     * resolution, falling back to LARGE if the original URL is missing.
-     */
-    @JvmStatic
-    @JvmOverloads
-    fun launchFromIllustsBeans(
-        context: Context,
-        list: List<IllustsBean>,
-        startListIndex: Int,
-        random: Boolean = true,
-    ) {
-        val urls = ArrayList<String>(list.size)
-        val titles = ArrayList<String>(list.size)
-        var startUrlIndex = 0
-        var seenStart = false
-        list.forEachIndexed { i, illust ->
-            if (illust.getPage_count() <= 0) return@forEachIndexed
-            val baseTitle = illust.getTitle().orEmpty()
-            try {
-                val pageCount = illust.getPage_count()
-                for (p in 0 until pageCount) {
-                    val url = bestUrlForV2(illust, p) ?: continue
-                    if (i == startListIndex && !seenStart) {
-                        startUrlIndex = urls.size
-                        seenStart = true
-                    }
-                    urls.add(url)
-                    titles.add(if (pageCount > 1) "$baseTitle (${p + 1})" else baseTitle)
-                }
-            } catch (ex: Exception) {
-                Timber.w(ex, "[SlideshowLauncher] skipping illust ${illust.getId()}")
-            }
-        }
-        if (urls.isEmpty()) {
-            Common.showToast(context.getString(ceui.lisa.R.string.slideshow_empty))
-            return
-        }
-        startSession(context, urls, titles, startUrlIndex, random)
-    }
-
-    private fun bestUrlForV2(illust: IllustsBean, page: Int): String? {
-        val original = runCatching {
-            IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
-        }.getOrNull()
-        if (!original.isNullOrEmpty()) return original
-        return runCatching {
-            IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
-        }.getOrNull()?.takeIf { it.isNotEmpty() }
-    }
-
-    /**
-     * Launch from V3 [Illust] list. Same expansion rule: each illust's pages become consecutive
-     * frames in the slideshow.
+     * Launch the slideshow from a list of [Illust]. Single-page illusts contribute their one image;
+     * multi-page illusts contribute every page in order (ORIGINAL, falling back to LARGE).
      */
     @JvmStatic
     @JvmOverloads

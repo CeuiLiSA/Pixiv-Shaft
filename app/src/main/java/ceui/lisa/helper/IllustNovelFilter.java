@@ -9,23 +9,22 @@ import java.util.regex.Pattern;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.MuteEntity;
-import ceui.lisa.models.IllustsBean;
-import ceui.lisa.models.NovelBean;
+import ceui.loxia.Illust;
+import ceui.loxia.Novel;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
 import ceui.pixiv.ui.common.IllustMuteStore;
 import ceui.pixiv.ui.common.NovelMuteStore;
-import ceui.loxia.Novel;
 import ceui.loxia.Tag;
 import ceui.loxia.User;
 
 public class IllustNovelFilter {
 
-    public static boolean judge(IllustsBean illust) {
+    public static boolean judge(Illust illust) {
         return judgeID(illust) || judgeTag(illust) || judgeUserID(illust) ;
     }
 
-    public static boolean judge(NovelBean illust) {
+    public static boolean judge(Novel illust) {
         return judgeID(illust) || judgeTag(illust) || judgeUserID(illust) ;
     }
 
@@ -43,7 +42,7 @@ public class IllustNovelFilter {
      * 的作品 JSON 读出来再扔掉，一页 30 条就是 30 次全表扫。store 手里正好有一份同源的 id Set。
      * 顺带也消掉了「内存已屏蔽、异步 insert 还没落盘」这段时间里老列表与 feeds 的分歧。
      */
-    public static boolean judgeID(IllustsBean illust) {
+    public static boolean judgeID(Illust illust) {
         return IllustMuteStore.INSTANCE.isMuted(illust.getId());
     }
 
@@ -54,25 +53,29 @@ public class IllustNovelFilter {
      * 序列，同号完全可能。这里原本查的是插画那批，于是「屏蔽插画 #12345」会顺带让小说 #12345
      * 从列表里消失，而真正屏蔽掉的小说一篇也拦不住。
      */
-    public static boolean judgeID(NovelBean illust) {
+    public static boolean judgeID(Novel illust) {
         return NovelMuteStore.INSTANCE.isMuted(illust.getId());
     }
 
-    public static boolean judgeUserID(IllustsBean illust) {
+    public static boolean judgeUserID(Illust illust) {
         MuteEntity temp = AppDatabase.getAppDatabase(Shaft.getContext())
                 .searchDao()
-                .getUserMuteEntityByID(illust.getUser().getUserId());
+                .getUserMuteEntityByID((int) illust.getUser().getId());
         return temp != null;
     }
 
-    public static boolean judgeUserID(NovelBean illust) {
+    public static boolean judgeUserID(Novel illust) {
+        User user = illust.getUser();
+        if (user == null) {
+            return false;
+        }
         MuteEntity temp = AppDatabase.getAppDatabase(Shaft.getContext())
                 .searchDao()
-                .getUserMuteEntityByID(illust.getUser().getUserId());
+                .getUserMuteEntityByID(user.getUserId());
         return temp != null;
     }
 
-    public static boolean judgeTag(IllustsBean illustsBean) {
+    public static boolean judgeTag(Illust illustsBean) {
         String tagString = illustsBean.getTagString();
         if (TextUtils.isEmpty(tagString)) {
             return false;
@@ -83,10 +86,8 @@ public class IllustNovelFilter {
             if (bean.isEffective()) {
                 String name = "*#" + bean.getName() + ",";
                 if (bean.getFilter_mode() == 0 && tagString.contains(name)) {
-                    illustsBean.setShield(true);
                     return true;
                 } else if (bean.getFilter_mode() == 1 && Pattern.compile(bean.getName()).matcher(tagString).find()) {
-                    illustsBean.setShield(true);
                     return true;
                 }
             }
@@ -94,7 +95,7 @@ public class IllustNovelFilter {
         return false;
     }
 
-    public static boolean judgeTag(NovelBean illustsBean) {
+    public static boolean judgeTag(Novel illustsBean) {
         String tagString = illustsBean.getTagString();
         if (TextUtils.isEmpty(tagString)) {
             return false;
@@ -116,17 +117,16 @@ public class IllustNovelFilter {
         return false;
     }
 
-    public static boolean judgeR18Filter(IllustsBean illustsBean) {
+    public static boolean judgeR18Filter(Illust illustsBean) {
         if (!Shaft.sSettings.isR18FilterTempEnable()) {
             return false;
         }
         String tagString = illustsBean.getTagString();
         boolean isHit = tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
-        illustsBean.setShield(isHit);
         return isHit;
     }
 
-    public static boolean judgeR18Filter(NovelBean illustsBean) {
+    public static boolean judgeR18Filter(Novel illustsBean) {
         if (!Shaft.sSettings.isR18FilterTempEnable()) {
             return false;
         }
@@ -134,68 +134,6 @@ public class IllustNovelFilter {
         boolean isHit = tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
 //        illustsBean.setShield(isHit);
         return isHit;
-    }
-
-    // ── loxia Novel 版判定 ────────────────────────────────────────────────
-
-    /** loxia Novel 无 getTagString(),这里按 NovelBean 同款格式 `*#name,` 现拼一遍。 */
-    private static String novelTagString(Novel novel) {
-        List<Tag> tags = novel.getTags();
-        if (tags == null || tags.isEmpty()) {
-            return "";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (Tag tag : tags) {
-            sb.append("*#").append(tag.getName()).append(",");
-        }
-        return sb.toString();
-    }
-
-    public static boolean judge(Novel novel) {
-        return judgeID(novel) || judgeTag(novel) || judgeUserID(novel);
-    }
-
-    /** loxia {@link Novel} 版，与上面的 {@link NovelBean} 重载同口径（小说那份名单）。 */
-    public static boolean judgeID(Novel novel) {
-        return NovelMuteStore.INSTANCE.isMuted(novel.getId());
-    }
-
-    public static boolean judgeUserID(Novel novel) {
-        User user = novel.getUser();
-        if (user == null) {
-            return false;
-        }
-        MuteEntity temp = AppDatabase.getAppDatabase(Shaft.getContext())
-                .searchDao()
-                .getUserMuteEntityByID((int) user.getId());
-        return temp != null;
-    }
-
-    public static boolean judgeTag(Novel novel) {
-        String tagString = novelTagString(novel);
-        if (TextUtils.isEmpty(tagString)) {
-            return false;
-        }
-        List<TagsBean> temp = getMutedTags();
-        for (TagsBean bean : temp) {
-            if (bean.isEffective()) {
-                String name = "*#" + bean.getName() + ",";
-                if (bean.getFilter_mode() == 0 && tagString.contains(name)) {
-                    return true;
-                } else if (bean.getFilter_mode() == 1 && Pattern.compile(bean.getName()).matcher(tagString).find()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    public static boolean judgeR18Filter(Novel novel) {
-        if (!Shaft.sSettings.isR18FilterTempEnable()) {
-            return false;
-        }
-        String tagString = novelTagString(novel);
-        return tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
     }
 
     // ── 小说自动屏蔽：正文字数区间 + 超长标签名（issue #743）────────────────
@@ -223,14 +161,6 @@ public class IllustNovelFilter {
         return maxTagNameLength > 0 && name != null && name.length() > maxTagNameLength;
     }
 
-    public static boolean judgeNovelSpam(NovelBean novel) {
-        return judgeNovelSpam(
-                novel,
-                Shaft.sSettings.getNovelFilterMinTextLength(),
-                Shaft.sSettings.getNovelFilterMaxTextLength(),
-                Shaft.sSettings.getNovelFilterMaxTagNameLength());
-    }
-
     public static boolean judgeNovelSpam(Novel novel) {
         return judgeNovelSpam(
                 novel,
@@ -243,23 +173,6 @@ public class IllustNovelFilter {
      * 阈值显式传入的判定本体。抽出这层是为了能在裸 JVM 单测里覆盖——读 {@link Shaft#sSettings}
      * 会触发 Application 子类的类初始化，在 unit test 里直接炸。见 NovelSpamFilterTest。
      */
-    static boolean judgeNovelSpam(NovelBean novel, int minLength, int maxLength, int maxTagNameLength) {
-        if (rejectsByTextLength(novel.getText_length(), minLength, maxLength)) {
-            return true;
-        }
-        List<TagsBean> tags = novel.getTags();
-        if (maxTagNameLength <= 0 || tags == null) {
-            return false;
-        }
-        for (TagsBean tag : tags) {
-            if (tagNameTooLong(tag.getName(), maxTagNameLength)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /** loxia {@link Novel} 版，判定必须与上面的 {@link NovelBean} 重载逐条一致。 */
     static boolean judgeNovelSpam(Novel novel, int minLength, int maxLength, int maxTagNameLength) {
         Integer textLength = novel.getText_length();
         if (rejectsByTextLength(textLength == null ? 0 : textLength, minLength, maxLength)) {

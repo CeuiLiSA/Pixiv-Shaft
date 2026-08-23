@@ -12,7 +12,7 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.models.AccountEditResponse;
 import ceui.lisa.models.UserState;
-import ceui.lisa.models.UserModel;
+import ceui.loxia.AccountResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -308,11 +308,11 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
     }
 
     private void saveUser() {
-        UserModel currentUser = Local.getUser();
+        AccountResponse currentUser = Local.getUser();
         Local.saveUser(currentUser);
         UserEntity userEntity = new UserEntity();
         userEntity.setLoginTime(System.currentTimeMillis());
-        userEntity.setUserID(currentUser.getUser().getId());
+        userEntity.setUserID((int) currentUser.getUser().getId());
         userEntity.setUserGson(Shaft.sGson.toJson(currentUser));
         AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
     }

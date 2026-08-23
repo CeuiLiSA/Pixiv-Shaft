@@ -108,7 +108,7 @@ class EntityWrapper(
     fun visitIllust(context: Context, illust: Illust) {
         val json = Shaft.sGson.toJson(illust)
         // local-only: the FragmentHistoryTabs illust/novel tabs read illust_table
-        // (legacy IllustsBean), reported separately from PixivOperate. Reporting
+        // (legacy Illust), reported separately from PixivOperate. Reporting
         // ceui.loxia.Illust here would pollute the remote with the wrong model.
         visit(context, illust.id, json, EntityType.ILLUST, RecordType.VIEW_ILLUST_HISTORY)
     }

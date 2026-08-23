@@ -2,7 +2,7 @@ package ceui.pixiv.ui.rank
 
 import android.os.Bundle
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.loxia.Client
 import ceui.pixiv.db.discovery.DiscoveryPool
 import ceui.pixiv.feeds.FeedItem
@@ -62,8 +62,8 @@ class RankIllustFeedFragment : IllustFeedFragment() {
     }
 
     /** 详情 pager 回流的页也要跳过 R18 过滤，否则 R18 榜续拉整页被清空。 */
-    override fun feedItemFromBean(bean: IllustsBean?): IllustFeedItem? {
-        return IllustFeedItem.fromBean(bean, skipR18Filter)
+    override fun feedItemFromBean(bean: Illust?): IllustFeedItem? {
+        return IllustFeedItem.of(bean, skipR18Filter)
     }
 
     companion object {
@@ -105,21 +105,18 @@ class RankIllustFeedFragment : IllustFeedFragment() {
             mode: String,
             skipR18Filter: Boolean,
         ): List<FeedItem> {
-            val pairs = illusts.mapNotNull { illust ->
-                IllustFeedItem.beanOf(illust)?.let { bean -> illust to bean }
-            }
             // 对齐 legacy RankIllustRepo：过滤前的整页喂给 DiscoveryPool（它内部自带去重/静音判断）。
             // 缓存恢复不喂（旧数据画像无意义、且违反重放安全）。
             if (phase.isFreshFetch) {
                 DiscoveryPool.collect(
-                    pairs.map { it.second },
+                    illusts,
                     if (phase.isFirstPage) "rank:$mode" else "rank_next:$mode",
                 )
             }
             val filterBookmarked = Shaft.sSettings.isFilterRankBookmarked
-            return pairs.mapNotNull { (illust, bean) ->
-                if (filterBookmarked && bean.isIs_bookmarked) return@mapNotNull null
-                IllustFeedItem.of(illust, bean, skipR18Filter)
+            return illusts.mapNotNull { illust ->
+                if (filterBookmarked && illust.isBookmarked) return@mapNotNull null
+                IllustFeedItem.of(illust, skipR18Filter)
             }
         }
     }

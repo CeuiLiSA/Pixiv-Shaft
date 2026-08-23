@@ -134,7 +134,7 @@ class MangaBatchFloatInstaller : Application.ActivityLifecycleCallbacks {
         /** 点卡片:跳到正在翻的那部作品的看图页;已经在它的看图页上就什么都不做。 */
         private fun openViewer(from: Activity) {
             val illust = MangaBatchTranslateCenter.currentIllust ?: return
-            if (from is ImageDetailActivity && from.mIllustsBean?.id == illust.id) return
+            if (from is ImageDetailActivity && from.mIllust?.id == illust.id) return
             val page = MangaBatchTranslateCenter.status.value?.pageDone ?: 0
             from.startActivity(
                 Intent(from, ImageDetailActivity::class.java).apply {

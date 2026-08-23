@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.comic.reader
 
 import ceui.lisa.database.ComicBookmarkEntity
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -29,7 +29,7 @@ object ComicPageUrlResolver {
 class AddComicBookmarkUseCase(private val repo: ComicBookmarkRepository) {
 
     fun invoke(
-        illust: IllustsBean,
+        illust: Illust,
         pages: List<ComicReaderV3ViewModel.ComicPage>,
         pageIndex: Int,
         note: String = "",
@@ -38,7 +38,7 @@ class AddComicBookmarkUseCase(private val repo: ComicBookmarkRepository) {
         val preview = page.previewUrl.ifEmpty { page.originalUrl }
         repo.add(
             ComicBookmarkEntity(
-                illust.id.toLong(),
+                illust.id,
                 pageIndex,
                 pages.size,
                 preview,
@@ -81,12 +81,12 @@ class JumpComicSeriesUseCase(private val navigator: ComicSeriesNavigator) {
 
     fun invoke(
         scope: CoroutineScope,
-        illust: IllustsBean,
+        illust: Illust,
         forward: Boolean,
         onResult: (Outcome) -> Unit,
     ) {
-        val seriesId = illust.series?.id?.toLong() ?: 0L
-        navigator.jump(scope, seriesId, illust.id.toLong(), forward) { result ->
+        val seriesId = illust.series?.id ?: 0L
+        navigator.jump(scope, seriesId, illust.id, forward) { result ->
             onResult(when (result) {
                 ComicSeriesNavigator.Result.NoSeries -> Outcome.NoSeries
                 is ComicSeriesNavigator.Result.Boundary ->

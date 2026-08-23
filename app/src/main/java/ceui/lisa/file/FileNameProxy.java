@@ -1,12 +1,12 @@
 package ceui.lisa.file;
 
-import ceui.lisa.models.IllustsBean;
+import ceui.loxia.Illust;
 
 public interface FileNameProxy {
 
-    String zipName(IllustsBean illust);
+    String zipName(Illust illust);
 
-    String unzipName(IllustsBean illust);
+    String unzipName(Illust illust);
 
-    String gifName(IllustsBean illust);
+    String gifName(Illust illust);
 }

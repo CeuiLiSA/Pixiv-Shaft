@@ -89,6 +89,50 @@ class PixshaftAppConfigApiTest {
     }
 
     @Test
+    fun `the in-app push rides along and parses, and is null when absent`() = runBlocking {
+        enqueue(
+            """{"uid":123,"nana7miSearchEnabled":true,
+                "plan":{"key":"pro","owned":"pro"},
+                "push":{"id":7,"title":"Pro 专属","body":"正文","actionLabel":"去看看",
+                        "actionUrl":"https://pixshaft.com/x","audience":"paid","startsAt":1,"endsAt":null},
+                "serverTime":1}""",
+        )
+        val push = api.appConfig(123L, "github").push
+        assertEquals(7L, push?.id)
+        assertEquals("Pro 专属", push?.title)
+        assertEquals("正文", push?.body)
+        assertEquals("去看看", push?.actionLabel)
+        assertEquals("https://pixshaft.com/x", push?.actionUrl)
+        assertEquals("paid", push?.audience)
+        assertNull(push?.endsAt)
+
+        enqueue("""{"uid":123,"nana7miSearchEnabled":true,"push":null}""")
+        assertNull(api.appConfig(123L, "github").push)
+        enqueue("""{"uid":123,"nana7miSearchEnabled":true}""")
+        assertNull(api.appConfig(123L, "github").push)
+    }
+
+    @Test
+    fun `push ack posts uid and id, and settles on 2xx and 4xx but not on 5xx`() = runBlocking {
+        enqueue("""{"ok":true,"id":7,"uid":123,"seen":true,"first":true}""")
+        assertEquals(true, api.acknowledgeInAppPush(123L, 7L))
+        val request = server.takeRequest()
+        assertEquals("/v1/push/ack", request.path)
+        assertEquals("POST", request.method)
+        assertEquals("""{"uid":123,"id":7}""", request.body.readUtf8())
+
+        // 404 = the push was deleted since it was served: nothing left to do.
+        server.enqueue(MockResponse().setResponseCode(404).setBody("""{"error":"unknown_push"}"""))
+        assertEquals(true, api.acknowledgeInAppPush(123L, 7L))
+        // 5xx = try again on the next cold start.
+        server.enqueue(MockResponse().setResponseCode(503))
+        assertEquals(false, api.acknowledgeInAppPush(123L, 7L))
+        // Nothing to ack for a bad key; never a request.
+        assertEquals(true, api.acknowledgeInAppPush(0L, 7L))
+        assertEquals(3, server.requestCount)
+    }
+
+    @Test
     fun `a Lite caller explicitly marks the config request`() = runBlocking {
         enqueue("""{"uid":123,"nana7miSearchEnabled":false,"plan":null,"serverTime":1}""")
 

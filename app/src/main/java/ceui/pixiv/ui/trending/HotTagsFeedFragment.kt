@@ -10,7 +10,7 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.RecyTagGridBinding
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
@@ -56,8 +56,7 @@ class HotTagsFeedFragment : FeedFragment() {
             resp.trend_tags
                 .filter { !it.tag.isNullOrEmpty() }
                 .mapIndexed { index, trendingTag ->
-                    // 详情页 / Glide 走 legacy IllustsBean，映射线程一次性转好
-                    val bean = trendingTag.illust?.let { IllustFeedItem.beanOf(it) }
+                    val bean = trendingTag.illust
                     if (index == 0) {
                         HotTagHeaderItem(trendingTag, bean)
                     } else {
@@ -88,7 +87,7 @@ class HotTagsFeedFragment : FeedFragment() {
     private inline fun <reified T : HotTagFeedItem> tagRenderer(
         ratio: Float,
         fullSpan: Boolean,
-        noinline imageOf: (IllustsBean) -> GlideUrl,
+        noinline imageOf: (Illust) -> GlideUrl,
     ) = feedRenderer<T, RecyTagGridBinding>(
         inflate = RecyTagGridBinding::inflate,
         fullSpan = fullSpan,
@@ -120,7 +119,7 @@ class HotTagsFeedFragment : FeedFragment() {
     }
 
     /** 长按 → 代表插画详情（单页一次性 PageData，与主列表互不认领，同 legacy TagAdapter）。 */
-    private fun openIllustDetail(bean: IllustsBean?): Boolean {
+    private fun openIllustDetail(bean: Illust?): Boolean {
         if (bean == null) return false
         val pageData = PageData(listOf(bean))
         Container.get().addPageToMap(pageData)
@@ -153,7 +152,7 @@ class HotTagsFeedFragment : FeedFragment() {
  */
 sealed class HotTagFeedItem(
     val trendingTag: TrendingTag,
-    val bean: IllustsBean?,
+    val bean: Illust?,
 ) : FeedItem {
 
     override val feedKey: Any get() = trendingTag.tag.orEmpty()
@@ -167,8 +166,8 @@ sealed class HotTagFeedItem(
     override fun hashCode(): Int = trendingTag.hashCode()
 }
 
-class HotTagHeaderItem(trendingTag: TrendingTag, bean: IllustsBean?) :
+class HotTagHeaderItem(trendingTag: TrendingTag, bean: Illust?) :
     HotTagFeedItem(trendingTag, bean)
 
-class HotTagGridItem(trendingTag: TrendingTag, bean: IllustsBean?) :
+class HotTagGridItem(trendingTag: TrendingTag, bean: Illust?) :
     HotTagFeedItem(trendingTag, bean)

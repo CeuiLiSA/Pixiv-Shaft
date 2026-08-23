@@ -13,7 +13,7 @@ import ceui.lisa.R
 import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.adapters.ViewHolder
 import ceui.lisa.databinding.RecyIllustDetailBinding
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.utils.ppppx
 import com.blankj.utilcode.util.BarUtils
 
@@ -32,7 +32,7 @@ import com.blankj.utilcode.util.BarUtils
 class CollapsibleIllustAdapter(
     activity: FragmentActivity,
     fragment: Fragment,
-    private val illust: IllustsBean,
+    private val illust: Illust,
     maxHeight: Int,
     isForceOriginal: Boolean,
     private val collapsedCount: Int = DEFAULT_COLLAPSED,
@@ -295,5 +295,5 @@ class CollapsibleIllustAdapter(
 /**
  * 进阅读器入口的文案:漫画说「阅读漫画」,多 P 插画说中性的「用阅读器看」(#1029)。
  */
-private fun comicReaderEnterTextRes(illust: IllustsBean): Int =
+private fun comicReaderEnterTextRes(illust: Illust): Int =
     if ("manga" == illust.type) R.string.comic_reader_enter else R.string.comic_reader_enter_illust

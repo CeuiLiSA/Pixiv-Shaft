@@ -9,12 +9,12 @@ import androidx.activity.OnBackPressedCallback
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentAiTranslateSettingsBinding
-import ceui.lisa.interfaces.FragmentBackHandler
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Settings
 import ceui.pixiv.ui.common.viewBinding
@@ -50,22 +50,29 @@ private data class AiTranslateSnapshot(
  * 视觉风格与保存/测试交互对齐 [Aria2SettingsFragment]（bg_v3 卡片 + pill 按钮 +
  * layout_toolbar 重着色）。
  */
-class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_settings), FragmentBackHandler {
+class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_settings) {
 
     private val binding by viewBinding(FragmentAiTranslateSettingsBinding::bind)
 
     private var apiKeyVisible = false
     private var thinkingMode = 0
+        set(value) {
+            field = value
+            refreshBackCallback()
+        }
     private val thinkingModeNames by lazy { resources.getStringArray(R.array.ai_translate_thinking_modes) }
 
     /** 进入页面时的已保存配置快照：退出时与当前 UI 比较判断有没有未保存改动。 */
     private var saved: AiTranslateSnapshot? = null
 
-    /** 正在执行退出流程（不保存/保存后退出）：BackHandlerHelper 路径不再二次弹窗。 */
-    private var exiting = false
-
-    /** 系统返回/手势：有未保存改动先弹确认框（保存/不保存/取消）。 */
-    private val backCallback = object : OnBackPressedCallback(true) {
+    /**
+     * 系统返回/手势：有未保存改动先弹确认框（保存/不保存/取消）。
+     *
+     * enabled 只在「有未保存改动」时为 true（[refreshBackCallback] 在每个可编辑项变化时维护）：
+     * 常开会让系统以为 app 要自己处理返回，整页的预测式返回动画就没了；没改动时直接放行给
+     * 系统，返回手势跟别的页面一样带预览动画。
+     */
+    private val backCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() = handleBackPressed()
     }
 
@@ -75,6 +82,7 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
         setUpToolbar()
         loadSettings()
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backCallback)
+        watchEditsForBackCallback()
 
         binding.aiTranslateSaveBtn.setOnClickListener { save() }
         binding.aiTranslateTestBtn.setOnClickListener { testConfig() }
@@ -99,6 +107,25 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
         if (defaultModel.isNotEmpty() && binding.aiTranslateModel.text.isNullOrBlank()) {
             binding.aiTranslateModel.setText(defaultModel)
         }
+    }
+
+    /** 每个参与 [currentSnapshot] 比对的控件一有变化就重算 dirty → 返回拦截的 enabled。 */
+    private fun watchEditsForBackCallback() {
+        listOf(
+            binding.aiTranslateBaseUrl,
+            binding.aiTranslateApiKey,
+            binding.aiTranslateModel,
+            binding.aiTranslatePrompt,
+            binding.aiTranslateReadTimeout,
+        ).forEach { it.doAfterTextChanged { refreshBackCallback() } }
+        binding.aiTranslateEnableSwitch.setOnCheckedChangeListener { _, _ -> refreshBackCallback() }
+        binding.aiTranslateStreamingSwitch.setOnCheckedChangeListener { _, _ -> refreshBackCallback() }
+        refreshBackCallback()
+    }
+
+    private fun refreshBackCallback() {
+        if (view == null) return
+        backCallback.isEnabled = isDirty()
     }
 
     private fun toggleApiKeyVisibility() {
@@ -209,6 +236,7 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
         settings.aiTranslateReadTimeoutSeconds = readTimeout
         Local.setSettings(settings)
         saved = settings.toSnapshot()
+        refreshBackCallback()
         Toaster.show(getString(R.string.aria2_saved))
         return true
     }
@@ -234,9 +262,7 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
 
     /**
      * 统一的返回处理入口：有未保存改动 → 弹窗；否则退出。
-     * 顶部返回按钮、系统返回（dispatcher 回调）、以及 TemplateActivity 的
-     * BackHandlerHelper 路径（[FragmentBackHandler]）都走这里，避免某条调度
-     * 路径失效时静默退出。
+     * 顶部返回按钮和系统返回（dispatcher 回调）都走这里。
      */
     private fun handleBackPressed() {
         Timber.d("AiTranslateSettings: back pressed, dirty=%s", isDirty())
@@ -247,22 +273,10 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
         }
     }
 
-    /** BackHandlerHelper 路径：处理了返回（弹窗）返回 true，否则放行退出。 */
-    override fun onBackPressed(): Boolean {
-        if (!exiting && isDirty()) {
-            showUnsavedDialog()
-            return true
-        }
-        return false
-    }
-
-    /** 先临时关掉自己的拦截再走系统返回,避免二次进入确认逻辑。 */
+    /** 先关掉自己的拦截再走系统返回（放弃改动时 dirty 仍为 true），避免二次进入确认逻辑。 */
     private fun exitPage() {
-        exiting = true
         backCallback.isEnabled = false
         requireActivity().onBackPressedDispatcher.onBackPressed()
-        backCallback.isEnabled = true
-        exiting = false
     }
 
     private fun showThinkingModePicker() {

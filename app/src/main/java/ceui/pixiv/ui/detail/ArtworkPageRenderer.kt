@@ -5,7 +5,7 @@ import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.adapters.ViewHolder
 import ceui.lisa.databinding.ItemArtworkUgoiraBinding
 import ceui.lisa.databinding.RecyIllustDetailBinding
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.feedRenderer
@@ -72,7 +72,7 @@ internal fun ArtworkV3Fragment.artworkUgoiraRenderer() =
         detach = { cell -> cell.binding.root.onFeedDetached() },
         recycle = { cell -> cell.binding.root.recycle() },
     ) { cell ->
-        val illust: IllustsBean = ObjectPool.get<IllustsBean>(cell.item.illustId).value
+        val illust: Illust = ObjectPool.get<Illust>(cell.item.illustId).value
             ?: return@feedRenderer
         val maxHeight = (resources.displayMetrics.heightPixels * 0.7f).toInt()
         cell.binding.root.bind(viewLifecycleOwner, illust, maxHeight)

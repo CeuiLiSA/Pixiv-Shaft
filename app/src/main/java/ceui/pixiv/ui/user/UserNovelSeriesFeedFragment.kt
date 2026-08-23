@@ -276,7 +276,8 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
         val act = activity as? BaseActivity<*> ?: return
         // 作者 id / name：allItems 里任何一项的 user 都指向该作者本人，取第一个非空的兜底 intent。
         val firstUser = list.firstOrNull { it.user != null }?.user
-        val authorId = firstUser?.id ?: requireActivity().intent.getIntExtra(Params.USER_ID, 0)
+        val authorId = firstUser?.id?.toInt()
+            ?: requireActivity().intent.getIntExtra(Params.USER_ID, 0)
         val authorName = firstUser?.name
         CrossSeriesDownloadTask.runAllMergedOne(
             activity = act,
@@ -336,7 +337,7 @@ class UserNovelSeriesFeedSource(userID: Int) : FeedSource<String> {
                 repo.initNextApi()
             }!!.awaitFirstValue()
         }
-        // 默认 Mapper 只过滤 IllustsBean/NovelBean，对 NovelSeriesItem 是 no-op → 不套，直接建条目。
+        // 默认 Mapper 只过滤 Illust/Novel，对 NovelSeriesItem 是 no-op → 不套，直接建条目。
         val items: List<FeedItem> = resp.list.orEmpty().map { NovelSeriesFeedItem(it) }
         return FeedPage(items, resp.nextUrl?.takeIf { it.isNotEmpty() })
     }

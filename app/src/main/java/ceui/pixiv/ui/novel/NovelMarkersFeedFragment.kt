@@ -15,11 +15,11 @@ import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecyNovelMarkersBinding
 import ceui.lisa.model.ListNovelMarkers
 import ceui.lisa.models.MarkedNovelItem
-import ceui.lisa.models.TagsBean
 import ceui.lisa.repo.NovelMarkersRepo
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
+import ceui.loxia.Tag
 import ceui.lisa.view.LinearItemDecoration
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
@@ -96,7 +96,7 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
             cell.binding.series.setOnClick { openSeries(cell.item.marker) }
             cell.binding.mark.setOnClick {
                 val marker = cell.item.marker
-                PixivOperate.postNovelMarker(marker.novel_marker, marker.novel.id, cell.binding.mark)
+                PixivOperate.postNovelMarker(marker.novel_marker, marker.novel.id.toInt(), cell.binding.mark)
             }
             cell.binding.novelTag.setOnTagClickListener { _, position, _ ->
                 openTagSearch(cell.item.marker, position)
@@ -121,24 +121,23 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         }
         b.title.text = novel.title
         b.date.text = novel.create_date?.take(10).orEmpty()
-        // user / image_urls 是 legacy bean 的 Java 字段（Kotlin 看到的是平台类型），
-        // 服务端 marked_novels 正常都会带，但脏数据不该把整页 fling 崩掉——一律走安全调用。
+        // 服务端 marked_novels 正常都会带 user / image_urls，但脏数据不该把整页 fling 崩掉。
         b.author.text = novel.user?.name.orEmpty()
         b.howManyWord.text = String.format(Locale.getDefault(), "%d字", novel.text_length)
         b.bookmarkCount.text = novel.total_bookmarks.toString()
-        b.novelTag.setAdapter(object : TagAdapter<TagsBean>(novel.tags.orEmpty()) {
-            override fun getView(parent: FlowLayout, position: Int, tag: TagsBean): View {
+        b.novelTag.setAdapter(object : TagAdapter<Tag>(novel.tags.orEmpty()) {
+            override fun getView(parent: FlowLayout, position: Int, tag: Tag): View {
                 val tv = LayoutInflater.from(parent.context)
                     .inflate(R.layout.recy_single_line_text_new, parent, false) as TextView
                 tv.text = tag.name
                 return tv
             }
         })
-        rowGlide.load(GlideUtil.getUrl(novel.image_urls?.maxImage)).into(b.cover)
+        rowGlide.load(GlideUtil.getUrl(novel.image_urls?.findMaxSizeUrl())).into(b.cover)
         rowGlide.load(GlideUtil.getHead(novel.user)).into(b.userHead)
     }
 
-    /** 整卡点击：进小说详情（携带整份 NovelBean，隐藏状态栏），与 legacy itemView 点击一字不差。 */
+    /** 整卡点击：进小说详情（携带整份 Novel，隐藏状态栏），与 legacy itemView 点击一字不差。 */
     private fun openNovel(marker: MarkedNovelItem) {
         if (requireContext().tryOpenNovelReaderDirect(marker.novel.id.toLong())) return
         val intent = Intent(requireContext(), TemplateActivity::class.java)
@@ -151,7 +150,8 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     /** 封面点击：看大图（原图 URL 走图片详情）。 */
     private fun openCover(marker: MarkedNovelItem) {
         val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(Params.URL, GlideUtil.getUrl(marker.novel.image_urls.maxImage).toStringUrl())
+        val cover = marker.novel.image_urls?.findMaxSizeUrl() ?: return
+        intent.putExtra(Params.URL, GlideUtil.getUrl(cover).toStringUrl())
         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情")
         startActivity(intent)
     }
@@ -159,7 +159,8 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     /** 头像 / 作者名点击：进画师页。 */
     private fun openUser(marker: MarkedNovelItem) {
         val intent = Intent(requireContext(), UActivity::class.java)
-        intent.putExtra(Params.USER_ID, marker.novel.user.id)
+        val userId = marker.novel.user?.id ?: return
+        intent.putExtra(Params.USER_ID, userId)
         startActivity(intent)
     }
 
@@ -175,7 +176,8 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     /** 标签点击：按标签搜索（INDEX=1 小说档）。 */
     private fun openTagSearch(marker: MarkedNovelItem, position: Int) {
         val intent = Intent(requireContext(), SearchActivity::class.java)
-        intent.putExtra(Params.KEY_WORD, marker.novel.tags[position].name)
+        val tagName = marker.novel.tags?.getOrNull(position)?.name ?: return
+        intent.putExtra(Params.KEY_WORD, tagName)
         intent.putExtra(Params.INDEX, 1)
         startActivity(intent)
     }
@@ -183,7 +185,7 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
 /**
  * 书签条目：持 legacy [MarkedNovelItem]（网络下行的 marked_novels 单条）。
- * feedKey 用小说 id（[ceui.lisa.models.NovelBean.getId] 返回 int，同类内唯一稳定）。
+ * feedKey 用小说 id（long，同类内唯一稳定）。
  */
 class NovelMarkerFeedItem(val marker: MarkedNovelItem) : FeedItem {
     override val feedKey: Any get() = marker.novel.id
@@ -212,7 +214,7 @@ class NovelMarkersFeedSource : FeedSource<String> {
                 repo.initNextApi()
             }.awaitFirstValue()
         }
-        // 默认 Mapper 只过滤 IllustsBean/NovelBean，对 MarkedNovelItem 是 no-op → 不套，直接建条目
+        // 默认 Mapper 只过滤 Illust/Novel，对 MarkedNovelItem 是 no-op → 不套，直接建条目
         // （去掉多余的未受检 cast + Default 线程切换 + 全量空遍历）。
         val items: List<FeedItem> = resp.list.orEmpty().map { NovelMarkerFeedItem(it) }
         return FeedPage(items, resp.nextUrl?.takeIf { it.isNotEmpty() })

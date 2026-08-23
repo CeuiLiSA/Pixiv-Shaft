@@ -28,6 +28,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.pixiv.ui.settings.CustomThemeColor;
 import ceui.pixiv.ui.settings.ThemeColorCatalog;
+import ceui.pixiv.ui.settings.ThemeColorFeedFragment;
 import ceui.pixiv.widget.RecommendCardWidgetProvider;
 import ceui.pixiv.widget.RecommendStripWidgetProvider;
 import ceui.pixiv.widget.SpotlightWidgetProvider;
@@ -79,6 +80,10 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "主题颜色");
             startActivity(intent);
         });
+
+        // 标签译文颜色（#1047-5）：跟随主题 or 从主题色彩页中选择
+        setTagTranslationColorName();
+        baseBind.tagTranslationColorRela.setOnClickListener(v -> showTagTranslationColorDialog());
 
         // 语言
         baseBind.appLanguage.setText(currentLanguageDisplay());
@@ -383,6 +388,50 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         }
         final int index = Shaft.sSettings.getThemeIndex();
         baseBind.colorSelect.setText(getString(ThemeColorCatalog.nameResOf(index)));
+    }
+
+    private void setTagTranslationColorName() {
+        if (Shaft.sSettings.isTagTranslationColorFollowTheme()) {
+            baseBind.tagTranslationColor.setText(getString(R.string.tag_translation_color_follow_theme));
+            return;
+        }
+        if (Shaft.sSettings.getTagTranslationColorIndex() == CustomThemeColor.INDEX) {
+            String hex = CustomThemeColor.normalize(Shaft.sSettings.getTagTranslationColorCustomHex());
+            baseBind.tagTranslationColor.setText(getString(R.string.custom_theme_color_entry) + " " +
+                    (hex != null ? hex : CustomThemeColor.currentHex()));
+            return;
+        }
+        baseBind.tagTranslationColor.setText(getString(ThemeColorCatalog.nameResOf(Shaft.sSettings.getTagTranslationColorIndex())));
+    }
+
+    private void showTagTranslationColorDialog() {
+        int checkedIndex = Shaft.sSettings.isTagTranslationColorFollowTheme() ? 0 : 1;
+        new WitDialog.CheckableDialogBuilder(mActivity)
+                .setCheckedIndex(checkedIndex)
+                .addItems(new String[]{
+                        getString(R.string.tag_translation_color_follow_theme),
+                        getString(R.string.tag_translation_color_pick_from_theme_page)
+                }, (dialog, which) -> {
+                    if (which == 0) {
+                        Shaft.sSettings.setTagTranslationColorFollowTheme();
+                        baseBind.tagTranslationColor.setText(getString(R.string.tag_translation_color_follow_theme));
+                        Local.setSettings(Shaft.sSettings);
+                    } else {
+                        Intent intent = new Intent(mContext, TemplateActivity.class);
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "主题颜色");
+                        intent.putExtra(ThemeColorFeedFragment.ARG_SELECT_TAG_TRANSLATION_COLOR, true);
+                        startActivity(intent);
+                    }
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // 从「主题色彩页」选完标签译文颜色返回时刷新这一行的展示值。
+        setTagTranslationColorName();
     }
 
     private String currentLanguageDisplay() {

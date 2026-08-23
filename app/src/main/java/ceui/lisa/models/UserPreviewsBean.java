@@ -1,5 +1,8 @@
 package ceui.lisa.models;
 
+import ceui.loxia.Illust;
+import ceui.loxia.Novel;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -12,8 +15,8 @@ public class UserPreviewsBean extends UserHolder implements Serializable, UserCo
      */
 
     private boolean is_muted;
-    private List<IllustsBean> illusts;
-    private List<NovelBean> novels;
+    private List<Illust> illusts;
+    private List<Novel> novels;
 
     public boolean isIs_muted() {
         return is_muted;
@@ -23,30 +26,30 @@ public class UserPreviewsBean extends UserHolder implements Serializable, UserCo
         this.is_muted = is_muted;
     }
 
-    public List<IllustsBean> getIllusts() {
+    public List<Illust> getIllusts() {
         return illusts;
     }
 
-    public void setIllusts(List<IllustsBean> illusts) {
+    public void setIllusts(List<Illust> illusts) {
         this.illusts = illusts;
     }
 
-    public List<NovelBean> getNovels() {
+    public List<Novel> getNovels() {
         return novels;
     }
 
-    public void setNovels(List<NovelBean> novels) {
+    public void setNovels(List<Novel> novels) {
         this.novels = novels;
     }
 
     @Override
     public int getUserId() {
-        return getUser().getId();
+        return (int) getUser().getId();
     }
 
     @Override
     public int getItemID() {
-        return getUser().getId();
+        return (int) getUser().getId();
     }
 
     @Override
@@ -56,11 +59,11 @@ public class UserPreviewsBean extends UserHolder implements Serializable, UserCo
 
     @Override
     public boolean isItemStared() {
-        return getUser().isIs_followed();
+        return Boolean.TRUE.equals(getUser().is_followed());
     }
 
     @Override
     public void setItemStared(boolean isLiked) {
-        getUser().setIs_followed(isLiked);
+        getUser().set_followed(isLiked);
     }
 }

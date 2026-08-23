@@ -51,6 +51,6 @@ public class UserDetailResponse extends UserHolder implements Serializable, User
 
     @Override
     public int getUserId() {
-        return getUser() == null ? 0 : getUser().getId();
+        return getUser() == null ? 0 : (int) getUser().getId();
     }
 }

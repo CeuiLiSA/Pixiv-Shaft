@@ -29,7 +29,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.activities.Shaft
 import ceui.lisa.R
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.ui.bulk.UGOIRA_LOG_TAG
@@ -215,7 +215,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
      * 打底预览图：先用列表页大概率已缓存的 medium 秒出，再让 large 异步覆盖，
      * 避免进详情页时 large 首次网络下载导致的长时间空白。
      */
-    private fun loadPreview(illust: IllustsBean) {
+    private fun loadPreview(illust: Illust) {
         if (previewIllustId == illust.id && imageView.drawable != null) return
         previewIllustId = illust.id
         val large = GlideUtil.getLargeImage(illust) ?: return
@@ -264,9 +264,9 @@ class UgoiraPlayerView @JvmOverloads constructor(
     /** 已为哪版帧序列自动自愈过(dir path)。同一版自愈一次仍坏就转手动重试,不无限循环重下。 */
     private var autoHealedDir: String? = null
     private var boundOwner: LifecycleOwner? = null
-    private var boundIllust: IllustsBean? = null
+    private var boundIllust: Illust? = null
     /** 当前已加载/在加载的预览图对应的作品 id，用于重进去重。 */
-    private var previewIllustId: Int? = null
+    private var previewIllustId: Long? = null
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onResume(owner: LifecycleOwner) {
             resumePlayback()
@@ -318,7 +318,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
     }
 
     /** 绑定一条 ugoira。进入即自动拉数据 → 下载 → 解压 → 编码 → 播放。 */
-    fun bind(owner: LifecycleOwner, illust: IllustsBean, maxHeight: Int) {
+    fun bind(owner: LifecycleOwner, illust: Illust, maxHeight: Int) {
         if (boundIllust?.id != illust.id) {
             pausePlayback()
             // 换了一条作品：旧的预览/帧画面不能残留，等新预览就位。
@@ -439,7 +439,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         startLoad(owner, illust)
     }
 
-    private fun startLoad(owner: LifecycleOwner, illust: IllustsBean) {
+    private fun startLoad(owner: LifecycleOwner, illust: Illust) {
         playbackActive = true
         downloadInFlight = true
         job?.cancel()
@@ -511,7 +511,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
      * 没有 mp4(压制失败 / 设备无编码器 / 老缓存目录)或这一版硬解翻过车,才退回
      * [FrameSequencePlayer] 的软解帧序列。
      */
-    private fun playFrames(illust: IllustsBean, frames: UgoiraFrames) {
+    private fun playFrames(illust: Illust, frames: UgoiraFrames) {
         if (playingDir == frames.dir.path) return
         if (frames.files.isEmpty()) return
         downloadInFlight = false
@@ -525,7 +525,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
     }
 
     /** 软解帧序列(回退路径)。 */
-    private fun playFrameSequence(illust: IllustsBean, frames: UgoiraFrames) {
+    private fun playFrameSequence(illust: Illust, frames: UgoiraFrames) {
         stopVideo()
         textureView.isVisible = false
         player?.stop()
@@ -542,7 +542,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
     }
 
     /** mp4 硬解。SurfaceTexture 还没就绪就先记下,由 listener 的 onAvailable 接着开播。 */
-    private fun playVideo(illust: IllustsBean, frames: UgoiraFrames) {
+    private fun playVideo(illust: Illust, frames: UgoiraFrames) {
         player?.stop()
         player = null
         stopVideo()
@@ -557,7 +557,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         }
     }
 
-    private fun startVideo(illust: IllustsBean, frames: UgoiraFrames, texture: SurfaceTexture) {
+    private fun startVideo(illust: Illust, frames: UgoiraFrames, texture: SurfaceTexture) {
         val video = frames.video ?: return
         stopVideo()
         val surface = Surface(texture)
@@ -597,7 +597,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
      * mp4 解码失败(文件被清 / 设备解码器抽风):这一版不再走硬解,当场退回帧序列。
      * 帧序列就在同一个目录里,画面不会中断到需要用户重试。
      */
-    private fun onVideoBroken(illust: IllustsBean, frames: UgoiraFrames) {
+    private fun onVideoBroken(illust: Illust, frames: UgoiraFrames) {
         if (playingDir != frames.dir.path) return // 过期回调,不动现场
         videoBrokenDir = frames.dir.path
         videoFrames = null
@@ -633,7 +633,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
      * 后自动重走一次完整 pipeline(否则「文件都在但内容坏」时磁盘命中同一批坏文件,自愈
      * 空转);同一版自愈过一次仍坏就只亮重试按钮,不无限循环烧流量。
      */
-    private fun onPlaybackBroken(illust: IllustsBean, frames: UgoiraFrames) {
+    private fun onPlaybackBroken(illust: Illust, frames: UgoiraFrames) {
         if (playingDir != frames.dir.path) return // 过期回调(已换版/已停),不动现场
         UgoiraEngine.invalidate(illust.id)
         val healedBefore = autoHealedDir == frames.dir.path
@@ -682,7 +682,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
  * StaggeredGridLayoutManager)addAdapter(0, this),靠 [onViewAttachedToWindow] 占满整行。
  */
 class UgoiraPlayerAdapter(
-    private val illust: IllustsBean,
+    private val illust: Illust,
     private val owner: LifecycleOwner,
     private val maxHeight: Int,
 ) : RecyclerView.Adapter<UgoiraPlayerAdapter.VH>() {

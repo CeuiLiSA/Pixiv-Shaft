@@ -3,7 +3,7 @@ package ceui.pixiv.ui.bulk
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.model.ListIllust
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
@@ -156,13 +156,13 @@ class BulkObjectFetcher<T>(
 // ───────────────────────── illust 专用：入队下载 ─────────────────────────
 
 /**
- * 把 `PaginatedObjectSource<IllustsBean>` 流式入队到 download_queue，并在终态唤醒消费者。
+ * 把 `PaginatedObjectSource<Illust>` 流式入队到 download_queue，并在终态唤醒消费者。
  *
  * 这是当前唯一的"动作"——以后如果要做 list-user 关注/list-novel 收藏等其它批量动作，
  * 再加同级的 `bulkFollowUsersFromSource(...)` 等顶层函数即可，不要复用本函数。
  */
 fun bulkEnqueueIllusts(
-    source: PaginatedObjectSource<IllustsBean>,
+    source: PaginatedObjectSource<Illust>,
     taskName: String,
 ): Flow<FetchEvent> {
     val dao: DownloadQueueDao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadQueueDao()
@@ -181,14 +181,14 @@ fun bulkEnqueueIllusts(
  * **不灌 ObjectPool**（20000 illusts × ~15KB 直接撑满内存 → OOM；setValue 还会
  *  触发可见 RecyclerView cell 刷新一轮，UI 抖动）。
  *
- * **改走 illustGson**：把 IllustsBean 当 JSON 字符串塞进 [DownloadQueueEntity.illustGson]
+ * **改走 illustGson**：把 Illust 当 JSON 字符串塞进 [DownloadQueueEntity.illustGson]
  *  列。冷启动 / 队列 tab / consumer 都按需 Gson.fromJson，只有 *可见* 的 ~10 个 row
  *  会进 ObjectPool（[ceui.pixiv.ui.download.QueueListV3Fragment] adapter 里）。
  *  这是 commit a01f5831 在 LegacyBatchEnqueue 上选的同一条路；当时漏了 streaming
  *  fetcher 这条路径，导致从作者作品 / 收藏批量入队的第 2 页之后标题/缩略图丢失。
  *
  * type 取自每条 illust 自身：isGif → UGOIRA（走 [downloadUgoira] 单独管线），
- * 否则按 [IllustsBean.getType] 落到 ILLUST/MANGA。bookmarks 这种 illust/manga/ugoira
+ * 否则按 [Illust.getType] 落到 ILLUST/MANGA。bookmarks 这种 illust/manga/ugoira
  * 混合的场景才能正确分流。
  *
  * **不再过滤 isGif** —— 之前一刀切丢弃，现在 ugoira 走 consumer 里的独立管线
@@ -197,7 +197,7 @@ fun bulkEnqueueIllusts(
  */
 private suspend fun enqueueIllustPage(
     collector: FlowCollector<FetchEvent>,
-    list: List<IllustsBean>,
+    list: List<Illust>,
     sourceTag: String,
     dao: DownloadQueueDao,
 ): Int {
@@ -210,12 +210,12 @@ private suspend fun enqueueIllustPage(
         // toJson 在 IO 线程做，单条 ~15KB 串生成完即写库，不会驻留
         val gson = runCatching { Shaft.sGson.toJson(illust) }.getOrNull()
         val rowType = when {
-            illust.isGif -> WorkType.UGOIRA
+            illust.isGif() -> WorkType.UGOIRA
             illust.type == WorkType.MANGA -> WorkType.MANGA
             else -> WorkType.ILLUST
         }
         DownloadQueueEntity(
-            illustId = illust.id.toLong(),
+            illustId = illust.id,
             type = rowType,
             seq = batchBase + i,
             sourceTag = sourceTag,
@@ -234,5 +234,5 @@ private fun abbrevUrl(url: String): String {
     return url.take(40) + "…" + url.takeLast(20)
 }
 
-internal fun ListIllust.toPageResult(): PageResult<IllustsBean> =
+internal fun ListIllust.toPageResult(): PageResult<Illust> =
     PageResult(items = list ?: emptyList(), nextUrl = next_url)

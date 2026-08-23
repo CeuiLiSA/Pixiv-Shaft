@@ -16,7 +16,6 @@ import java.lang.Exception
 
 sealed class RefreshState: Serializable {
     data class LOADING(val title: String = "", val refreshHint: RefreshHint? = null) : RefreshState()
-    data class FETCHING_LATEST(val hasContent: Boolean = true) : RefreshState()
     data class LOADED(val hasContent: Boolean = true, val hasNext: Boolean = true) : RefreshState()
     data class ERROR(val exception: Exception, val isInitialLoad: Boolean = false) : RefreshState()
 }

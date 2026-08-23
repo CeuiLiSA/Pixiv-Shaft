@@ -25,7 +25,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.SheetMuteTagBinding
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.models.TagsBean
-import ceui.lisa.models.UserBean
+import ceui.loxia.User
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
@@ -104,8 +104,8 @@ class MuteTagSheet : BottomSheetDialogFragment() {
     private val selected = mutableSetOf<String>()
 
     /** 这件作品的作者；拿不到（legacy 入口可能没传）则整个「按作者屏蔽」section 不出现。 */
-    private val author: UserBean? by lazy {
-        arguments?.getSerializable(KEY_AUTHOR) as? UserBean
+    private val author: User? by lazy {
+        arguments?.getSerializable(KEY_AUTHOR) as? User
     }
 
     /** 作者维度的「原状态 / 当前勾选」，等价于标签那两个集合，只是就一个对象所以是布尔。 */
@@ -170,7 +170,7 @@ class MuteTagSheet : BottomSheetDialogFragment() {
         author?.let { user ->
             val authorMuted = AppDatabase.getAppDatabase(Shaft.getContext())
                 .searchDao()
-                .getUserMuteEntityByID(user.id) != null
+                .getUserMuteEntityByID(user.id.toInt()) != null
             authorOriginallyMuted = authorMuted
             authorSelected = authorMuted
         }
@@ -426,7 +426,7 @@ class MuteTagSheet : BottomSheetDialogFragment() {
         /** [TemplateActivity] 的路由 key，不是 UI 文案。 */
         private const val MUTED_TAGS_ROUTE = "标签屏蔽记录"
 
-        /** 作者 bean 的 argument key（[UserBean] 本身 Serializable，整只带过来即可）。 */
+        /** 作者 argument key（[User] 本身 Serializable，整只带过来即可）。 */
         private const val KEY_AUTHOR = "mute_sheet_author"
 
         /**
@@ -438,11 +438,11 @@ class MuteTagSheet : BottomSheetDialogFragment() {
          */
         @JvmStatic
         @JvmOverloads
-        fun show(fm: FragmentManager, tags: List<TagsBean>?, author: UserBean? = null) {
+        fun show(fm: FragmentManager, tags: List<TagsBean>?, author: User? = null) {
             if (fm.isStateSaved || fm.findFragmentByTag(TAG) != null) return
             val payload = ArrayList(tags.orEmpty().filter { !it.name.isNullOrBlank() })
             // id=0 的作者当没有：mute 记录拿 id 当主键，写进去就是「屏蔽记录」页上一行删不掉的脏数据。
-            val validAuthor = author?.takeIf { it.id != 0 }
+            val validAuthor = author?.takeIf { it.id != 0L }
             MuteTagSheet().apply {
                 arguments = Bundle().apply {
                     putSerializable(Params.CONTENT, payload)

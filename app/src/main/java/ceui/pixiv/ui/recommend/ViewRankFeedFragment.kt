@@ -5,7 +5,7 @@ import android.view.View
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.pixiv.feeds.FeedItem
@@ -39,7 +39,7 @@ class ViewRankFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed) 
 
     // 榜单 bean 是第三方上报快照：is_bookmarked 被 source 伪造成 false、user.is_followed 是
     // 上报者的——都不可信，喂池会把当前用户更新的收藏/关注态盖回去。同 WatchLaterFeedFragment 先例。
-    override fun poolableBeansOf(item: FeedItem): List<IllustsBean> = emptyList()
+    override fun poolableBeansOf(item: FeedItem): List<Illust> = emptyList()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -56,8 +56,8 @@ class ViewRankFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed) 
 /**
  * 浏览量榜数据源：shaft-api-v2 discover/most-viewed（首屏 mostViewed，翻页 mostViewedByUrl）。
  * 响应不实现 KListShow（item.bean 是 JsonObject），用不了 PixivFeedSource，手写 [FeedSource]。
- * 逐条 item.bean → IllustsBean，装 trendingScore=浏览数、清 is_bookmarked（payload 里是上报者
- * 的收藏态），再走 [IllustFeedItem.fromBean]（含全局内容过滤，对齐 legacy 基类 Mapper）。
+ * 逐条 item.bean → Illust，装 trendingScore=浏览数、清 is_bookmarked（payload 里是上报者
+ * 的收藏态），再走 [IllustFeedItem.of]（含全局内容过滤，对齐 legacy 基类 Mapper）。
  * 零 Fragment 捕获（type/limit 是构造进来的局部值，map 是伴生纯函数）。
  */
 class ViewRankFeedSource(
@@ -83,16 +83,16 @@ class ViewRankFeedSource(
         private fun mapViewRankItem(item: ShaftApiV2.TrendingWorkItem): IllustFeedItem? {
             val json = item.bean ?: return null
             val bean = try {
-                Shaft.sGson.fromJson(json, IllustsBean::class.java)
+                Shaft.sGson.fromJson(json, Illust::class.java)
             } catch (e: Throwable) {
                 Timber.tag("ViewRank").w(e, "skip malformed bean id=${item.target_id}")
                 return null
             } ?: return null
             // 浏览量榜：pill 显浏览数（TrendingScoreFormat 支持 M，6457227→「6.5M」）；
             // payload 里的收藏态是上报者的，清零让用户以自己名义收藏（对齐 legacy ViewRankRepo）。
-            bean.trendingScore = item.view_count.toFloat()
-            bean.setIs_bookmarked(false)
-            return IllustFeedItem.fromBean(bean)
+            return IllustFeedItem.of(
+                bean.withTrendingScore(item.view_count.toFloat()).withBookmarked(false)
+            )
         }
     }
 }

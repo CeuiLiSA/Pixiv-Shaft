@@ -25,13 +25,12 @@ import ceui.lisa.databinding.RecyRecmdHeaderBinding
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.model.ListIllust
-import ceui.lisa.models.IllustsBean
+import ceui.loxia.Illust
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemHorizontalDecoration
 import ceui.lisa.view.SpacesItemWithHeadDecoration
 import ceui.loxia.Client
-import ceui.loxia.Illust
 import ceui.pixiv.db.discovery.DiscoveryPool
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedItem
@@ -102,7 +101,7 @@ open class RecmdIllustFeedFragment(
         get() = Shaft.sSettings.isShowRelatedWhenStar
 
     /** 排行榜预览头携带的 bean 也要合池 + 灌关注状态（对齐 legacy onFirstLoaded）。 */
-    override fun poolableBeansOf(item: FeedItem): List<IllustsBean> {
+    override fun poolableBeansOf(item: FeedItem): List<Illust> {
         return if (item is RankPreviewHeaderItem) item.rankBeans else super.poolableBeansOf(item)
     }
 
@@ -117,10 +116,10 @@ open class RecmdIllustFeedFragment(
             val anchorId = extras.getInt(Params.ID).toLong()
             if (anchorId <= 0) return
             viewLifecycleOwner.lifecycleScope.launch {
-                // bean→条目是逐条 gson 往返，不占主线程
+                // 条目过滤含同步 Room 查询，不占主线程
                 val related = withContext(Dispatchers.Default) {
                     listIllust.list.orEmpty().take(5)
-                        .onEach { it.isRelated = true }
+                        .map { it.withRelated(true) }
                         .mapNotNull { feedItemFromBean(it) }
                 }
                 if (related.isEmpty()) return@launch
@@ -214,7 +213,7 @@ open class RecmdIllustFeedFragment(
      */
     private fun bindRankStrip(cell: FeedCell<RankPreviewHeaderItem, RecyRecmdHeaderBinding>) {
         val item = cell.itemOrNull ?: return
-        val beans = item.rankBeans.filterNot { IllustMuteStore.isMuted(it.id.toLong()) }
+        val beans = item.rankBeans.filterNot { IllustMuteStore.isMuted(it.id) }
         // 同一份数据重复 bind（滚动回收再回来）不重设 adapter，保留横向滚动位置
         //（对齐 legacy 单例 header 只在数据到达时 show 一次的语义）。
         // 按 id 序列而不是条目本身认「同一份」：屏蔽掉一张后条目没变、可见集合变了，得重建。
@@ -233,13 +232,13 @@ open class RecmdIllustFeedFragment(
         }
         adapter.setOnItemLongClickListener { _, position, _ ->
             val bean = beans.getOrNull(position) ?: return@setOnItemLongClickListener
-            // rawFromBean 不再跑一遍内容过滤：这批 bean 在 mapRecmdPage 里已经滤过了
-            val menuItem = IllustFeedItem.rawFromBean(bean) ?: return@setOnItemLongClickListener
+            // raw 不再跑一遍内容过滤：这批 bean 在 mapRecmdPage 里已经滤过了
+            val menuItem = IllustFeedItem.raw(bean) ?: return@setOnItemLongClickListener
             showCardMenu(
                 menuItem,
                 scopedBeans = { beans },
                 onToggleSpoiler = { muted ->
-                    if (IllustMuteStore.setMuted(bean.id.toLong(), muted) { bean }) {
+                    if (IllustMuteStore.setMuted(bean.id, muted) { bean }) {
                         bindRankStrip(cell)
                     }
                 },
@@ -275,25 +274,21 @@ open class RecmdIllustFeedFragment(
             phase: FeedLoadPhase,
             dataType: String,
         ): List<FeedItem> {
-            val pairs = illusts.mapNotNull { illust ->
-                IllustFeedItem.beanOf(illust)?.let { bean -> illust to bean }
-            }
             // 对齐 legacy RecmdIllustRepo：过滤前整页喂 DiscoveryPool（排行榜预览不算）。
             // 缓存恢复不喂（旧数据画像无意义、且违反重放安全）。
             if (phase.isFreshFetch) {
                 DiscoveryPool.collect(
-                    pairs.map { it.second },
+                    illusts,
                     if (phase.isFirstPage) "recmd:$dataType" else "recmd_next:$dataType",
                 )
             }
-            val listItems = pairs.mapNotNull { (illust, bean) -> IllustFeedItem.of(illust, bean) }
+            val listItems = illusts.mapNotNull { IllustFeedItem.of(it) }
             if (!phase.isFirstPage) {
                 return listItems
             }
             // 排行榜预览头也要滤掉屏蔽的作品/标签/画师（issue #543：主列表滤了、这里不滤，
             // 被屏蔽内容就从首页顶部漏出来）；R18/AI 口味过滤照旧不适用——榜单不是个性化推荐
-            val rankBeans = rankingIllusts.mapNotNull { IllustFeedItem.beanOf(it) }
-                .filterNot { IllustNovelFilter.judge(it) }
+            val rankBeans = rankingIllusts.filterNot { IllustNovelFilter.judge(it) }
             return if (rankBeans.isEmpty()) {
                 listItems
             } else {
@@ -308,11 +303,11 @@ open class RecmdIllustFeedFragment(
  * 换了批次才重设内部 RAdapter。
  */
 class RankPreviewHeaderItem(
-    val rankBeans: List<IllustsBean>,
+    val rankBeans: List<Illust>,
     val dataType: String,
 ) : FeedItem {
 
-    private val rankIds: List<Int> = rankBeans.map { it.id }
+    private val rankIds: List<Long> = rankBeans.map { it.id }
 
     override val feedKey: Any get() = "recmd_rank_header"
 
