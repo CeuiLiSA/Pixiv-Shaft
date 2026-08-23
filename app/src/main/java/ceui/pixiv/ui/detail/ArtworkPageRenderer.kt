@@ -8,11 +8,7 @@ import ceui.lisa.databinding.RecyIllustDetailBinding
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.pixiv.feeds.FeedItem
-import android.content.Intent
-import ceui.lisa.activities.ImageDetailActivity
-import ceui.lisa.utils.Params
 import ceui.pixiv.feeds.feedRenderer
-import ceui.pixiv.snapshot.SnapshotManagerFragment
 
 /**
  * 顶部大图 —— 逐页原生 [FeedItem],外层瀑布流回收每页。
@@ -67,15 +63,12 @@ internal fun ArtworkV3Fragment.artworkPageRenderer() =
         cell.itemView.setTag(R.id.tag_artwork_page_adapter, adapter)
         adapter.onBindViewHolder(ViewHolder(cell.binding), cell.item.pageIndex)
         if (isSnapshotMode) {
-            // 快照只读：点大图复用现有 ImageDetailActivity，但走“快照大图”本地模式。
-            cell.itemView.setOnClickListener {
-                val snapshot = snapshotId ?: return@setOnClickListener
-                val intent = Intent(requireContext(), ImageDetailActivity::class.java)
-                intent.putExtra("dataType", "快照大图")
-                intent.putExtra("index", cell.item.pageIndex)
-                intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshot)
-                startActivity(intent)
-            }
+            // 点大图不在这里另起一份 intent:上一行的 adapter.onBindViewHolder 已经按
+            // AbstractIllustAdapter.snapshotId 路由到「快照大图」了,而且它带了
+            // EXTRA_ENTER_BOUNDS —— 大图页(透明窗口)靠这个矩形从点击处展开进场。
+            // 在这里覆盖掉等于把过渡动画退化成居中淡入,还让同一条路由散成两份会漂移的副本。
+            // 长按仍要显式置空:IllustAdapter 在快照模式下不再挂长按下载,但复用的 itemView
+            // 上可能还留着上一次绑定的监听。
             cell.itemView.setOnLongClickListener(null)
         }
     }

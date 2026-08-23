@@ -171,6 +171,9 @@ object SnapshotRepository {
             requireSnapshotId(manifest.snapshotId)
             SnapshotValidator.validate(staging, manifest)
             val target = dir(context, manifest.snapshotId)
+            // 首次导入时快照库根目录还不存在(root() 刻意不建目录),不先建出来的话下面那次
+            // rename 必然失败、白白回落到全量拷贝。
+            root(context).mkdirs()
             // 备份目录名带 BACKUP_PREFIX：合法快照 ID 只允许 [A-Za-z0-9_-]（见 requireSnapshotId），
             // 所以带点前缀的名字永远不会与真快照目录撞车，也就永远不会被 list() 当成一张卡片。
             val backup = File(target.parentFile, "$BACKUP_PREFIX${target.name}_${System.currentTimeMillis()}")
@@ -179,9 +182,16 @@ object SnapshotRepository {
                     throw SnapshotException("无法替换已有快照: ${manifest.snapshotId}")
                 }
             }
-            target.mkdirs()
             try {
-                staging.copyRecursively(target, overwrite = true)
+                // cacheDir 与 filesDir 同在 app 数据目录下(同一挂载点),rename 就是改个目录项,
+                // 零字节拷贝。copyRecursively 等于把刚解压出来的这一份再写一遍 —— 几百 MB 的
+                // 原图快照会白白多花一倍时间、峰值还要多占一个快照大小的可用空间,正是
+                // 「导入不再先落一份完整 ZIP」那次要避免的同一件事。
+                // rename 失败(理论上的分区差异)再回落到老路子。
+                if (!staging.renameTo(target)) {
+                    target.mkdirs()
+                    staging.copyRecursively(target, overwrite = true)
+                }
                 backup.deleteRecursively()
                 SnapshotRuntimeCache.remove(manifest.snapshotId)
                 manifest

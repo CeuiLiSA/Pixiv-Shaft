@@ -24,9 +24,11 @@ import ceui.lisa.utils.Common
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import com.bumptech.glide.Glide
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -62,11 +64,13 @@ class SnapshotListFragment : Fragment() {
     ) { uri ->
         val id = pendingExportId ?: return@registerForActivityResult
         if (uri != null) {
+            val appContext = requireContext().applicationContext
             lifecycleScope.launch {
                 try {
-                    withContext(Dispatchers.IO) { SnapshotRepository.export(requireContext(), id, uri) }
+                    withContext(Dispatchers.IO) { SnapshotRepository.export(appContext, id, uri) }
                     Common.showToast(getString(R.string.snapshot_export_success))
                 } catch (e: Exception) {
+                    Timber.w(e, "[Snapshot] export failed, id=%s", id)
                     Common.showToast(getString(R.string.snapshot_export_failed, e.message ?: ""))
                 }
             }
@@ -82,11 +86,13 @@ class SnapshotListFragment : Fragment() {
         binding.snapshotList.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         binding.snapshotList.itemAnimator = null
         binding.snapshotList.adapter = adapter
-        reload()
+        reload(resetScroll = true)
     }
 
     override fun onResume() {
         super.onResume()
+        // 例行刷新:不清空、不回顶。看完一个快照返回时列表内容通常一模一样,
+        // Diff 出来是零变更,滚动位置原样保留。
         reload()
     }
 
@@ -95,16 +101,30 @@ class SnapshotListFragment : Fragment() {
         _binding = null
     }
 
-    fun reload() {
+    /**
+     * [resetScroll] 只在导入/删除这类**结构性变更**后传 true。
+     *
+     * 「先清空再提交 + 回顶」是为了让双列瀑布流按新顺序重新布局(否则新卡会被 Diff 塞进
+     * 右列/旧列错位)——那是新卡进来时才需要付的代价。onResume 的例行刷新也这么干的话,
+     * 每次从详情页返回列表都要整个闪一下并跳回顶部,快照一多就再也找不回刚才看到哪了。
+     */
+    fun reload(resetScroll: Boolean = false) {
+        val appContext = requireContext().applicationContext
         lifecycleScope.launch {
-            val all = withContext(Dispatchers.IO) { SnapshotRepository.list(requireContext()) }
+            val all = try {
+                withContext(Dispatchers.IO) { SnapshotRepository.list(appContext) }
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (e: Exception) {
+                Timber.w(e, "[Snapshot] list failed")
+                return@launch
+            }
             val list = if (filter == null) all else all.filter { it.manifest.type == filter }
             if (_binding == null) return@launch
-            // 先清空再提交，强制双列瀑布流按新顺序重新布局，避免新卡被 Diff 塞进右列/旧列错位。
-            adapter.submitList(null)
+            if (resetScroll) adapter.submitList(null)
             adapter.submitList(list)
             binding.emptyHint.isVisible = list.isEmpty()
-            binding.snapshotList.scrollToPosition(0)
+            if (resetScroll) binding.snapshotList.scrollToPosition(0)
         }
     }
 
@@ -139,13 +159,26 @@ class SnapshotListFragment : Fragment() {
 
     private fun openSnapshot(summary: SnapshotSummary) {
         val snapshotId = summary.manifest.snapshotId
+        val appContext = requireContext().applicationContext
         lifecycleScope.launch {
             // 先确保内存缓存有完整快照数据，详情页/大图页直接同步消费，避免异步加载竞态。
-            withContext(Dispatchers.IO) {
-                if (SnapshotRuntimeCache.get(snapshotId) == null) {
-                    val data = SnapshotRepository.loadViewerData(requireContext(), snapshotId)
-                    SnapshotRuntimeCache.put(snapshotId, data)
+            // loadViewerData 对「目录已被删 / illust.json 损坏」是会抛的(卡片可能是上一次
+            // 列表快照,点下去时那份快照已经不在了)——裸 launch 里逃逸出去就是崩进程,
+            // 和 FragmentIllust / ImageDetailActivity 那两个入口一样就地兜住:提示 + 刷新列表。
+            try {
+                withContext(Dispatchers.IO) {
+                    if (SnapshotRuntimeCache.get(snapshotId) == null) {
+                        val data = SnapshotRepository.loadViewerData(appContext, snapshotId)
+                        SnapshotRuntimeCache.put(snapshotId, data)
+                    }
                 }
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (e: Exception) {
+                Timber.w(e, "[Snapshot] open failed, id=%s", snapshotId)
+                Common.showToast(getString(R.string.snapshot_open_failed, e.message ?: ""))
+                reload(resetScroll = true)
+                return@launch
             }
             if (_binding == null) return@launch
             val intent = Intent(requireContext(), TemplateActivity::class.java)
@@ -171,10 +204,11 @@ class SnapshotListFragment : Fragment() {
             .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.snapshot_delete, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 dialog.dismiss()
+                val appContext = requireContext().applicationContext
                 lifecycleScope.launch {
-                    val ok = withContext(Dispatchers.IO) { SnapshotRepository.delete(requireContext(), summary.manifest.snapshotId) }
+                    val ok = withContext(Dispatchers.IO) { SnapshotRepository.delete(appContext, summary.manifest.snapshotId) }
                     if (ok) Common.showToast(getString(R.string.snapshot_delete_success)) else Common.showToast(getString(R.string.snapshot_delete_failed))
-                    reload()
+                    reload(resetScroll = true)
                 }
             }
             .show()
@@ -269,6 +303,12 @@ private class SnapshotViewHolder(
     private val binding: ItemSnapshotBinding,
 ) : RecyclerView.ViewHolder(binding.root) {
 
+    private companion object {
+        // 只在主线程 bind 里用,一份即可:每格现构造一个 SimpleDateFormat 等于每次滑动
+        // 都重新解析一遍 pattern + 查一遍 Locale/TimeZone,而格式是常量。
+        val TIME_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+    }
+
     fun bind(
         summary: SnapshotSummary,
         onOpen: (SnapshotSummary) -> Unit,
@@ -289,7 +329,7 @@ private class SnapshotViewHolder(
             summary.manifest.authorName,
             "ID ${summary.manifest.authorId ?: summary.manifest.illustId}",
         ).joinToString(" · ")
-        val time = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(summary.manifest.createdAt))
+        val time = TIME_FORMAT.format(Date(summary.manifest.createdAt))
         binding.time.text = context.getString(
             R.string.snapshot_meta_format,
             time,

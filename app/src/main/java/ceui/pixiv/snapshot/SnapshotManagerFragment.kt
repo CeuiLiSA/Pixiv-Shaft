@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -51,11 +52,13 @@ class SnapshotManagerFragment : Fragment() {
     ) { uri ->
         val id = pendingSingleExportId ?: return@registerForActivityResult
         if (uri != null) {
+            val appContext = requireContext().applicationContext
             lifecycleScope.launch {
                 try {
-                    withContext(Dispatchers.IO) { SnapshotRepository.export(requireContext(), id, uri) }
+                    withContext(Dispatchers.IO) { SnapshotRepository.export(appContext, id, uri) }
                     Common.showToast(getString(R.string.snapshot_export_success))
                 } catch (e: Exception) {
+                    Timber.w(e, "[Snapshot] export failed, id=%s", id)
                     Common.showToast(getString(R.string.snapshot_export_failed, e.message ?: ""))
                 }
             }
@@ -65,6 +68,7 @@ class SnapshotManagerFragment : Fragment() {
     private var inSelectionMode = false
     private var selectionPurpose: SelectionPurpose? = null
     private var activeSelectionTab: SnapshotListFragment? = null
+    private lateinit var selectionBackCallback: OnBackPressedCallback
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -130,6 +134,15 @@ class SnapshotManagerFragment : Fragment() {
             }
         }
 
+        // 选择态返回键:优先退选择态而不是关页(对齐 FragmentHistoryTabs —— 本页就是仿它做的)。
+        // enabled 只在选择态为 true;不带 owner 之外的东西,跟着 viewLifecycleOwner 走。
+        selectionBackCallback = object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                exitSelectionMode()
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, selectionBackCallback)
+
         binding.viewPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageSelected(position: Int) {
                 if (inSelectionMode) exitSelectionMode()
@@ -158,6 +171,7 @@ class SnapshotManagerFragment : Fragment() {
         inSelectionMode = true
         selectionPurpose = purpose
         activeSelectionTab = tab
+        selectionBackCallback.isEnabled = true
         tab.enterSelectionMode()
         tab.onSelectionCountChanged = { refreshSelectionToolbar() }
         applySelectionToolbar()
@@ -166,6 +180,7 @@ class SnapshotManagerFragment : Fragment() {
     private fun exitSelectionMode() {
         if (!inSelectionMode) return
         inSelectionMode = false
+        selectionBackCallback.isEnabled = false
         selectionPurpose = null
         activeSelectionTab?.onSelectionCountChanged = null
         activeSelectionTab?.exitSelectionMode()
@@ -222,12 +237,16 @@ class SnapshotManagerFragment : Fragment() {
             .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.snapshot_delete, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 dialog.dismiss()
+                // 同 exportSelectedToFolder / importSnapshots：批量删除是秒级 IO，循环里
+                // 再 requireContext() 的话，中途转屏 detach 会抛 ISE —— 而这里是裸 launch，
+                // 逃逸出去就是崩进程、还删了一半。开工前取一次 application context。
+                val appContext = requireContext().applicationContext
                 lifecycleScope.launch {
                     withContext(Dispatchers.IO) {
-                        items.forEach { SnapshotRepository.delete(requireContext(), it.manifest.snapshotId) }
+                        items.forEach { SnapshotRepository.delete(appContext, it.manifest.snapshotId) }
                     }
                     exitSelectionMode()
-                    reloadAllTabs()
+                    reloadAllTabs(resetScroll = true)
                     Common.showToast(getString(R.string.snapshot_delete_success))
                 }
             }
@@ -302,15 +321,19 @@ class SnapshotManagerFragment : Fragment() {
                 if (dialog.isShowing) dialog.dismiss()
             }
             Common.showToast(getString(R.string.snapshot_import_multi_result, success, failed))
-            // 无论导入成功或失败，都重建双列列表，确保列表与磁盘状态一致。
-            reloadAllTabs()
+            // 无论导入成功或失败，都重建双列列表并回顶，确保列表与磁盘状态一致、新卡排序正确。
+            reloadAllTabs(resetScroll = true)
         }
     }
 
-    private fun reloadAllTabs() {
+    /**
+     * [resetScroll] 只在导入/删除这类**结构性变更**后传 true：那时列表顺序变了，需要清空重建
+     * 并回顶。例行刷新（onResume）不该回顶，否则看完一个快照返回就丢滚动位置。
+     */
+    private fun reloadAllTabs(resetScroll: Boolean) {
         childFragmentManager.fragments
             .filterIsInstance<SnapshotListFragment>()
-            .forEach { it.reload() }
+            .forEach { it.reload(resetScroll) }
     }
 
     companion object {

@@ -68,9 +68,14 @@ fun Comment.snapshotAvatarUrl(): String? = user.snapshotAvatarUrl()
 
 fun Comment.snapshotStampUrl(): String? = stamp?.stamp_url?.takeIf { it.isNotBlank() }
 
-/** 从 URL 提取小写扩展名；取不到就退回 .img，保证 ZIP 内路径可写。 */
+/**
+ * 从 URL 提取小写扩展名；取不到就退回 .img，保证 ZIP 内路径可写。
+ *
+ * 顺序是「先砍查询串，再取末段，再取后缀」。反过来写（先取 `?` 之后的东西）拿到的是
+ * 查询串本身：`a/1_p0.png?v=2` 会得到 `v=2`，判不出扩展名，整张图存成 `p0.img`。
+ */
 fun String.snapshotExtension(): String {
-    val raw = substringAfterLast('?', substringAfterLast('/')).substringAfterLast('.')
+    val raw = substringBefore('?').substringAfterLast('/').substringAfterLast('.')
     return if (raw.length in 2..5 && raw.all { it.isLetterOrDigit() }) {
         ".${raw.lowercase(Locale.US)}"
     } else {

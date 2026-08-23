@@ -677,8 +677,11 @@ internal fun ArtworkV3Fragment.commentsRenderer() =
                     return
                 }
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照评论")
-                intent.putExtra("objectId", item.illustId)
-                intent.putExtra("objectArthurId", item.illustAuthorId)
+                // 必须显式转 Long：CommentsFragment 的 args 是 getLong 读的，
+                // 塞 Int 进去 getLongExtra 只会拿到默认值 0 —— objectArthurId 一旦是 0，
+                // CommentFeedItem.isAuthor 恒 false，作者本人的评论就不再有「作者」标记。
+                intent.putExtra("objectId", item.illustId.toLong())
+                intent.putExtra("objectArthurId", item.illustAuthorId.toLong())
                 intent.putExtra("objectType", ceui.loxia.ObjectType.ILLUST)
                 intent.putExtra(
                     ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID,
