@@ -454,10 +454,21 @@ sealed class Nana7miClaimResult {
     /** 409 grant_refused：服务端知道这单是谁的但拒绝自动发（降级、¥0 单）—— 要人工。 */
     data object Refused : Nana7miClaimResult()
 
-    /** 400：单号格式不对（或没登录）。 */
+    /** 400 bad_order_no：这串东西根本不像个单号。 */
     data object BadNumber : Nana7miClaimResult()
 
-    /** 503 / 网络：可以再试。 */
+    /** 400 order_not_paid：单号是对的，但这笔的钱还没付完。 */
+    data object NotPaid : Nana7miClaimResult()
+
+    /**
+     * 400 order_not_a_plan：单号是对的，但这笔买的不是 Pro / Max 方案。
+     *
+     * 爱发电主页上「赞助」入口就贴在方案旁边，买错的人手里那个号是**真的**，
+     * 让他去检查有没有抄错只会让他一遍遍重抄同一串数字。
+     */
+    data object NotAPlan : Nana7miClaimResult()
+
+    /** 429 / 5xx / 网络：不是他的问题，可以再试。 */
     data class Retry(val cause: Exception? = null) : Nana7miClaimResult()
 }
 
@@ -475,13 +486,21 @@ suspend fun PixshaftApi.claimAfdianOrder(uid: Long, outTradeNo: String): Nana7mi
             }
         }.getOrNull()
         when (response.code()) {
+            // 400 里混着三件完全不同的事，只有第一件是「你手里那个号有问题」。另外两件
+            // 他抄的号是对的 —— 一笔还没付完，一笔买的根本不是方案。都翻译成「格式不对」，
+            // 人只会对着一串正确的数字反复重抄。
+            400 -> when (error) {
+                "order_not_paid" -> Nana7miClaimResult.NotPaid
+                "order_not_a_plan" -> Nana7miClaimResult.NotAPlan
+                else -> Nana7miClaimResult.BadNumber
+            }
             // 404 只有带着 `order_not_found` 才是「爱发电不认识这个单号」；别的 404（路由没
             // 挂、边缘代理答的）是服务端的事，让用户「稍后再试」而不是去怀疑自己抄错了。
             404 -> if (error == "order_not_found") Nana7miClaimResult.NotFound else Nana7miClaimResult.Retry()
             409 -> if (error == "grant_refused") Nana7miClaimResult.Refused else Nana7miClaimResult.Taken
-            // 429 是每 uid 6 次/分钟的闸：连按几下就到了，说「稍后再试」是实话。
-            429, 503 -> Nana7miClaimResult.Retry()
-            else -> Nana7miClaimResult.BadNumber
+            // 剩下的全归「不是他的问题」：429 是每 uid 6 次/分钟的闸，连按几下就到；5xx 和
+            // 边缘代理可能冒出来的任何状态码都是我们这边的事。只有 400 才该让他去改输入。
+            else -> Nana7miClaimResult.Retry()
         }
     } catch (ce: CancellationException) {
         throw ce

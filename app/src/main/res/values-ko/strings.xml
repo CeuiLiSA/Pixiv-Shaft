@@ -2729,6 +2729,8 @@
     <string name="nana7mi_usage_claim_confirm">복원</string>
     <string name="nana7mi_usage_claim_ok">적용되었습니다</string>
     <string name="nana7mi_usage_claim_not_found">주문을 찾을 수 없습니다. 번호를 확인하세요</string>
+    <string name="nana7mi_usage_claim_not_paid">이 주문은 아직 결제가 완료되지 않았습니다</string>
+    <string name="nana7mi_usage_claim_not_a_plan">이 주문은 Pro / Max 플랜이 아니라 사용할 수 없습니다</string>
     <string name="nana7mi_usage_claim_taken">이 주문은 이미 사용되었습니다</string>
     <string name="nana7mi_usage_claim_refused">이 주문은 수동 확인이 필요합니다. 개발자에게 문의하세요</string>
     <string name="nana7mi_usage_claim_retry">서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요</string>

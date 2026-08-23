@@ -2729,6 +2729,8 @@
     <string name="nana7mi_usage_claim_confirm">Восстановить</string>
     <string name="nana7mi_usage_claim_ok">Активировано</string>
     <string name="nana7mi_usage_claim_not_found">Заказ не найден — проверьте номер</string>
+    <string name="nana7mi_usage_claim_not_paid">Этот заказ ещё не оплачен</string>
+    <string name="nana7mi_usage_claim_not_a_plan">Это не заказ плана Pro / Max — его нельзя активировать</string>
     <string name="nana7mi_usage_claim_taken">Этот заказ уже использован</string>
     <string name="nana7mi_usage_claim_refused">Этот заказ требует ручной проверки — свяжитесь с разработчиком</string>
     <string name="nana7mi_usage_claim_retry">Сервис временно недоступен, попробуйте позже</string>

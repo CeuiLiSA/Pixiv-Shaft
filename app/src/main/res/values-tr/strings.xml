@@ -2729,6 +2729,8 @@
     <string name="nana7mi_usage_claim_confirm">Geri yükle</string>
     <string name="nana7mi_usage_claim_ok">Etkinleştirildi</string>
     <string name="nana7mi_usage_claim_not_found">Sipariş bulunamadı — numarayı kontrol edin</string>
+    <string name="nana7mi_usage_claim_not_paid">Bu siparişin ödemesi henüz tamamlanmadı</string>
+    <string name="nana7mi_usage_claim_not_a_plan">Bu sipariş bir Pro / Max planı değil, kullanılamaz</string>
     <string name="nana7mi_usage_claim_taken">Bu sipariş zaten kullanılmış</string>
     <string name="nana7mi_usage_claim_refused">Bu sipariş manuel kontrol gerektiriyor — lütfen geliştiriciyle iletişime geçin</string>
     <string name="nana7mi_usage_claim_retry">Hizmet geçici olarak kullanılamıyor, birazdan tekrar deneyin</string>

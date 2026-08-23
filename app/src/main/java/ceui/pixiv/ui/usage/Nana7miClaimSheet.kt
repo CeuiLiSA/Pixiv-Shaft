@@ -62,14 +62,22 @@ class Nana7miClaimSheet : V3BottomSheetBase() {
 
     private fun submit() {
         if (inFlight) return
-        val no = binding.orderInput.text.toString().trim()
+        // 只留数字再校验：这个号是从爱发电的订单页复制来的，粘过来常常带着「订单号：」
+        // 前缀或首尾空格。那种粘贴里的数字是对的，本地正则却会当场判它「格式不对」，
+        // 而这一页的用户已经是付了钱没到账的人了，不该再被自己的剪贴板卡一次。
+        val no = binding.orderInput.text.toString().filter(Char::isDigit)
         // 和服务端同一条闸（`^[0-9]{6,40}$`）：明显不是单号的先在本地拦下，别白打一个 400。
         if (!Regex("^[0-9]{6,40}$").matches(no)) {
             Common.showToast(getString(R.string.nana7mi_usage_claim_bad))
             return
         }
         val uid = SessionManager.loggedInUid
-        if (uid <= 0L) return
+        // 认领是把额度发到某个 pixiv 账号头上，没有账号就没有收货地址。理论上进不来这一页，
+        // 但静悄悄地什么都不发生比说一句「请先登录」难受得多。
+        if (uid <= 0L) {
+            Common.showToast(getString(R.string.plaza_login_required))
+            return
+        }
         inFlight = true
         binding.btnConfirm.isEnabled = false
         binding.btnConfirm.alpha = 0.4f
@@ -88,6 +96,8 @@ class Nana7miClaimSheet : V3BottomSheetBase() {
                     dismissAllowingStateLoss()
                 }
                 Nana7miClaimResult.NotFound -> Common.showToast(getString(R.string.nana7mi_usage_claim_not_found))
+                Nana7miClaimResult.NotPaid -> Common.showToast(getString(R.string.nana7mi_usage_claim_not_paid))
+                Nana7miClaimResult.NotAPlan -> Common.showToast(getString(R.string.nana7mi_usage_claim_not_a_plan))
                 Nana7miClaimResult.Taken -> Common.showToast(getString(R.string.nana7mi_usage_claim_taken))
                 Nana7miClaimResult.Refused -> Common.showToast(getString(R.string.nana7mi_usage_claim_refused))
                 Nana7miClaimResult.BadNumber -> Common.showToast(getString(R.string.nana7mi_usage_claim_bad))

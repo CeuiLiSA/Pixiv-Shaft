@@ -2729,6 +2729,8 @@
     <string name="nana7mi_usage_claim_confirm">復元</string>
     <string name="nana7mi_usage_claim_ok">反映されました</string>
     <string name="nana7mi_usage_claim_not_found">注文が見つかりません。番号を確認してください</string>
+    <string name="nana7mi_usage_claim_not_paid">この注文はまだ支払いが完了していません</string>
+    <string name="nana7mi_usage_claim_not_a_plan">この注文は Pro / Max プランではないため、引き換えできません</string>
     <string name="nana7mi_usage_claim_taken">この注文はすでに使用されています</string>
     <string name="nana7mi_usage_claim_refused">この注文は手動での確認が必要です。開発者にご連絡ください</string>
     <string name="nana7mi_usage_claim_retry">一時的に利用できません。しばらくしてからお試しください</string>

@@ -2731,6 +2731,8 @@
     <string name="nana7mi_usage_claim_confirm">恢復</string>
     <string name="nana7mi_usage_claim_ok">已到帳</string>
     <string name="nana7mi_usage_claim_not_found">找不到這個訂單號，檢查一下是不是抄錯了</string>
+    <string name="nana7mi_usage_claim_not_paid">這筆訂單還沒付款完成</string>
+    <string name="nana7mi_usage_claim_not_a_plan">這筆不是 Pro / Max 方案的訂單，換不了額度</string>
     <string name="nana7mi_usage_claim_taken">這個訂單已經用過了</string>
     <string name="nana7mi_usage_claim_refused">這個訂單需要人工處理，請聯絡作者</string>
     <string name="nana7mi_usage_claim_retry">服務暫時無法使用，稍後再試</string>

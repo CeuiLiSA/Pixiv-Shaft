@@ -2729,6 +2729,8 @@
     <string name="nana7mi_usage_claim_confirm">Restore</string>
     <string name="nana7mi_usage_claim_ok">Activated</string>
     <string name="nana7mi_usage_claim_not_found">Order not found — check the number</string>
+    <string name="nana7mi_usage_claim_not_paid">This order hasn\'t been paid for yet</string>
+    <string name="nana7mi_usage_claim_not_a_plan">This order isn\'t a Pro / Max plan, so it can\'t be redeemed</string>
     <string name="nana7mi_usage_claim_taken">This order has already been used</string>
     <string name="nana7mi_usage_claim_refused">This order needs a manual check — please contact the developer</string>
     <string name="nana7mi_usage_claim_retry">Service unavailable, try again shortly</string>

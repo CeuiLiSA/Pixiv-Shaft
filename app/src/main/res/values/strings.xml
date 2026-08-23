@@ -2985,6 +2985,8 @@
     <string name="nana7mi_usage_claim_confirm">恢复</string>
     <string name="nana7mi_usage_claim_ok">已到账</string>
     <string name="nana7mi_usage_claim_not_found">找不到这个订单号，检查一下是不是抄错了</string>
+    <string name="nana7mi_usage_claim_not_paid">这笔订单还没付款完成</string>
+    <string name="nana7mi_usage_claim_not_a_plan">这笔不是 Pro / Max 方案的订单，换不了额度</string>
     <string name="nana7mi_usage_claim_taken">这个订单已经用过了</string>
     <string name="nana7mi_usage_claim_refused">这个订单需要人工处理，请联系作者</string>
     <string name="nana7mi_usage_claim_retry">服务暂时不可用，稍后再试</string>
