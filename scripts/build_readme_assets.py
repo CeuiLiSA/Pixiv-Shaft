@@ -9,7 +9,12 @@ Everything is rendered as self-contained SVG so GitHub can show it as a plain
 data URIs).
 
 Inputs : snap/pixshaft/screens/*.webp   (512×1138 real-device screenshots)
-Outputs: snap/pixshaft/frames/<name>.svg (each screenshot in a phone frame)
+         snap/pixshaft/shaft-logo.png     (the app mark, from pixshaft.com)
+         snap/pixshaft/device/pixel_8/    (Google's Pixel 8 device-art frame, copied
+                                           from Android Studio's device-art-resources;
+                                           back.webp = bezel, mask.webp = screen corners
+                                           + punch-hole, layout = display offset)
+Outputs: snap/pixshaft/frames/<name>.webp (each screenshot composited into the Pixel 8)
          snap/pixshaft/hero-{en,zh}.svg
          snap/pixshaft/capabilities-{en,zh}.svg
          snap/pixshaft/tech-{en,zh}.svg
@@ -21,12 +26,17 @@ from __future__ import annotations
 
 import base64
 import html
+import io
+import re
 from pathlib import Path
+
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "snap" / "pixshaft"
 SCREENS = ASSETS / "screens"
 FRAMES = ASSETS / "frames"
+DEVICE = ASSETS / "device" / "pixel_8"
 
 # ---- theme (tokens lifted from pixshaft.com's stylesheet) -------------------
 INK = "#07060f"
@@ -50,6 +60,39 @@ def esc(s: str) -> str:
 
 def data_uri(path: Path) -> str:
     return "data:image/webp;base64," + base64.b64encode(path.read_bytes()).decode()
+
+
+def _device_layout() -> tuple[int, int, int, int]:
+    """(display_w, display_h, offset_x, offset_y) from the device-art `layout` file."""
+    txt = (DEVICE / "layout").read_text()
+    dw, dh = (int(v) for v in re.search(r"display \{\s*width (\d+)\s*height (\d+)", txt).groups())
+    ox, oy = (int(v) for v in re.search(r"name device\s*x (\d+)\s*y (\d+)", txt).groups())
+    return dw, dh, ox, oy
+
+
+def frame_in_device(shot: Path) -> Image.Image:
+    """Composite a screenshot into the Pixel 8 device art, at screenshot resolution
+    (the frame is scaled down to the shot, never the other way round)."""
+    dw, dh, ox, oy = _device_layout()
+    back = Image.open(DEVICE / "back.webp").convert("RGBA")
+    mask = Image.open(DEVICE / "mask.webp").convert("RGBA")
+    img = Image.open(shot).convert("RGBA")
+    k = img.width / dw                      # frame → shot scale
+    fw, fh = round(back.width * k), round(back.height * k)
+    sx, sy = round(ox * k), round(oy * k)
+    sh = round(dh * k)
+    screen = img.resize((img.width, sh), Image.LANCZOS) if img.height != sh else img
+    canvas = Image.new("RGBA", (fw, fh), (0, 0, 0, 0))
+    canvas.alpha_composite(screen, (sx, sy))
+    canvas.alpha_composite(mask.resize((screen.width, sh), Image.LANCZOS), (sx, sy))
+    canvas.alpha_composite(back.resize((fw, fh), Image.LANCZOS))
+    return canvas
+
+
+def framed_data_uri(shot: Path) -> str:
+    buf = io.BytesIO()
+    frame_in_device(shot).save(buf, "WEBP", quality=88, method=6)
+    return "data:image/webp;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
 def text_width(s: str, size: float, weight: str = "normal") -> float:
@@ -117,14 +160,12 @@ def ink_background(uid: str, w: int, h: int, rx: int = 28, aurora=True) -> str:
 
 
 def logo(x: float, y: float, size: float) -> str:
-    """Vector redraw of the Shaft snail mark (cyan tile, white ring + body + eyes)."""
-    s = size / 512.0
-    return f"""<g transform="translate({x} {y}) scale({s})">
-      <rect width="512" height="512" rx="96" fill="#12b5f5"/>
-      <circle cx="198" cy="292" r="118" fill="none" stroke="#ffffff" stroke-width="62"/>
-      <path d="M82 402 L124 360 L198 410 L360 410 a26 26 0 0 0 26 -26 L386 200 a22 22 0 0 0 -22 -22 L338 178 a22 22 0 0 0 -22 22 L316 330 L190 330 Z" fill="#ffffff"/>
-      <circle cx="334" cy="141" r="30" fill="#ffffff"/><circle cx="400" cy="141" r="30" fill="#ffffff"/>
-    </g>"""
+    """The real Shaft mark (snap/pixshaft/shaft-logo.png, from pixshaft.com), inlined and rounded."""
+    png = base64.b64encode((ASSETS / "shaft-logo.png").read_bytes()).decode()
+    r = size * 0.22
+    return (f'<clipPath id="logo-clip"><rect x="{x}" y="{y}" width="{size}" height="{size}" rx="{r:.1f}"/></clipPath>'
+            f'<image x="{x}" y="{y}" width="{size}" height="{size}" clip-path="url(#logo-clip)" '
+            f'href="data:image/png;base64,{png}"/>')
 
 
 def pill(x: float, y: float, label: str, *, size=14, h=36, fill="#ffffff", fill_op=".06",
@@ -149,33 +190,6 @@ def pill(x: float, y: float, label: str, *, size=14, h=36, fill="#ffffff", fill_
     return "\n".join(parts), w
 
 
-def phone(uid: str, x: float, y: float, w: float, img_uri: str, rotate: float = 0.0,
-          glow: bool = True) -> str:
-    """A screenshot in a minimal phone frame. `w` is the bezel width."""
-    bezel = w * 0.035
-    sw = w - bezel * 2
-    sh = sw * SCREEN_H / SCREEN_W
-    h = sh + bezel * 2
-    rx_out = w * 0.115
-    rx_in = rx_out - bezel
-    cx, cy = x + w / 2, y + h / 2
-    g = []
-    if glow:
-        g.append(f'<ellipse cx="{cx:.1f}" cy="{cy:.1f}" rx="{w*0.62:.1f}" ry="{h*0.48:.1f}" '
-                 f'fill="url(#{uid}-brand)" opacity=".55" filter="url(#{uid}-soft)"/>')
-    g.append(f'<g transform="rotate({rotate} {cx:.1f} {cy:.1f})">')
-    g.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{rx_out:.1f}" fill="{GLASS}" '
-             f'stroke="#ffffff" stroke-opacity=".18"/>')
-    g.append(f'<clipPath id="{uid}-scr"><rect x="{x+bezel:.1f}" y="{y+bezel:.1f}" width="{sw:.1f}" height="{sh:.1f}" rx="{rx_in:.1f}"/></clipPath>')
-    g.append(f'<image clip-path="url(#{uid}-scr)" x="{x+bezel:.1f}" y="{y+bezel:.1f}" width="{sw:.1f}" height="{sh:.1f}" '
-             f'preserveAspectRatio="xMidYMid slice" href="{img_uri}"/>')
-    # subtle top sheen
-    g.append(f'<rect x="{x+bezel:.1f}" y="{y+bezel:.1f}" width="{sw:.1f}" height="{sh:.1f}" rx="{rx_in:.1f}" fill="none" '
-             f'stroke="#ffffff" stroke-opacity=".08"/>')
-    g.append('</g>')
-    return "\n".join(g)
-
-
 def svg(w: int, h: int, body: str, title: str) -> str:
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}" role="img" aria-label="{esc(title)}">\n'
             f'<title>{esc(title)}</title>\n{body}\n</svg>\n')
@@ -189,15 +203,11 @@ def write(path: Path, content: str) -> None:
 
 # ---- 1. framed screenshots ---------------------------------------------------
 def build_frames() -> None:
+    FRAMES.mkdir(parents=True, exist_ok=True)
     for src in sorted(SCREENS.glob("*.webp")):
-        uid = "f"
-        W = 640
-        pw = 480
-        x = (W - pw) / 2
-        y = 64
-        body = defs(uid) + phone(uid, x, y, pw, data_uri(src), glow=True)
-        H = int(y * 2 + (pw - pw * 0.07) * SCREEN_H / SCREEN_W + pw * 0.07)
-        write(FRAMES / f"{src.stem}.svg", svg(W, H, body, f"Shaft – {src.stem}"))
+        out = FRAMES / f"{src.stem}.webp"
+        frame_in_device(src).save(out, "WEBP", quality=88, method=6)
+        print(f"  wrote {out.relative_to(ROOT)}  ({out.stat().st_size//1024} KB)")
 
 
 # ---- 2. hero ------------------------------------------------------------------
@@ -242,12 +252,18 @@ def build_hero(lang: str) -> None:
     p2, _ = pill(64 + w1 + 14, 478, t["btn2"], size=15, h=46, fill_op=".08", stroke_op=".22", pad=24)
     b.append(p1); b.append(p2)
     b.append(f'<text x="64" y="558" font-family="{FONT}" font-size="13" fill="#ffffff" fill-opacity=".5">{esc(t["foot"])}</text>')
-    # right: three phones, clipped to the card
+    # right: three Pixel 8 frames, clipped to the card; glow behind the middle one
     b.append(f'<g clip-path="url(#{uid}-clip)">')
-    shots = [("gallery", 724, 130, -7), ("home", 956, 120, 7), ("detail", 840, 64, 0)]
-    for i, (name, x, y, rot) in enumerate(shots):
-        b.append(phone(f"{uid}{i}", x, y, 212, data_uri(SCREENS / f"{name}.webp"), rotate=rot, glow=(i == 2))
-                 .replace(f'url(#{uid}{i}-brand)', f'url(#{uid}-brand)').replace(f'url(#{uid}{i}-soft)', f'url(#{uid}-soft)'))
+    shots = [("gallery", 716, 128, -7), ("home", 964, 118, 7), ("detail", 840, 58, 0)]
+    for name, x, y, rot in shots:
+        w = 224
+        h = w * 2513 / 1187
+        cx, cy = x + w / 2, y + h / 2
+        if rot == 0:
+            b.append(f'<ellipse cx="{cx:.1f}" cy="{cy:.1f}" rx="{w*0.7:.1f}" ry="{h*0.5:.1f}" '
+                     f'fill="url(#{uid}-brand)" opacity=".55" filter="url(#{uid}-soft)"/>')
+        b.append(f'<image x="{x}" y="{y}" width="{w}" height="{h:.1f}" transform="rotate({rot} {cx:.1f} {cy:.1f})" '
+                 f'href="{framed_data_uri(SCREENS / f"{name}.webp")}"/>')
     b.append('</g>')
     write(ASSETS / f"hero-{lang}.svg", svg(W, H, "\n".join(b), "Shaft — " + " ".join(t["h1"])))
 

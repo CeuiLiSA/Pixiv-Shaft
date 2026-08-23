@@ -106,23 +106,23 @@ Real-device captures — what you see here is exactly what you get when you open
 
 <table>
 <tr>
-<td align="center" width="33%"><img src="snap/pixshaft/frames/home.svg" width="300" alt="Home — recommendations and rankings in one screen"><br><b>Home</b><br><sub>Recommendations & rankings, one screen away</sub><br><sub>Personalised feed · Rankings carousel · One-tap bookmark</sub></td>
-<td align="center" width="33%"><img src="snap/pixshaft/frames/detail.svg" width="300" alt="Artwork detail — high-resolution viewing"><br><b>Viewer</b><br><sub>High-res viewing, every detail</sub><br><sub>Multi-page fold · Download / bookmark / comment capsule · Load original · Reverse search</sub></td>
-<td align="center" width="33%"><img src="snap/pixshaft/frames/filters.svg" width="300" alt="Search filters"><br><b>Search</b><br><sub>Exactly what you're looking for</sub><br><sub>Six sort orders · Bookmark-count range · AI three-way · Safe only</sub></td>
+<td align="center" width="33%"><img src="snap/pixshaft/frames/home.webp" width="300" alt="Home — recommendations and rankings in one screen"><br><b>Home</b><br><sub>Recommendations & rankings, one screen away</sub><br><sub>Personalised feed · Rankings carousel · One-tap bookmark</sub></td>
+<td align="center" width="33%"><img src="snap/pixshaft/frames/detail.webp" width="300" alt="Artwork detail — high-resolution viewing"><br><b>Viewer</b><br><sub>High-res viewing, every detail</sub><br><sub>Multi-page fold · Download / bookmark / comment capsule · Load original · Reverse search</sub></td>
+<td align="center" width="33%"><img src="snap/pixshaft/frames/filters.webp" width="300" alt="Search filters"><br><b>Search</b><br><sub>Exactly what you're looking for</sub><br><sub>Six sort orders · Bookmark-count range · AI three-way · Safe only</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="snap/pixshaft/frames/profile.svg" width="300" alt="Artist profile"><br><b>Artist</b><br><sub>Step into the artist's world</sub><br><sub>Advanced tag search · Works / bookmarks nav · Add to home screen</sub></td>
-<td align="center"><img src="snap/pixshaft/frames/gallery.svg" width="300" alt="Artist works wall"><br><b>Works wall</b><br><sub>Illustrations, manga and novels, tab by tab</sub><br><sub>Waterfall gallery · Bookmark from the card · Manga series</sub></td>
-<td align="center"><img src="snap/pixshaft/frames/discover.svg" width="300" alt="Discover — features, columns and chart hub"><br><b>Discover</b><br><sub>Features, columns & chart hub</sub><br><sub>Manga / novel columns · PixiVision · Trending tags · Chart hub</sub></td>
+<td align="center"><img src="snap/pixshaft/frames/profile.webp" width="300" alt="Artist profile"><br><b>Artist</b><br><sub>Step into the artist's world</sub><br><sub>Advanced tag search · Works / bookmarks nav · Add to home screen</sub></td>
+<td align="center"><img src="snap/pixshaft/frames/gallery.webp" width="300" alt="Artist works wall"><br><b>Works wall</b><br><sub>Illustrations, manga and novels, tab by tab</sub><br><sub>Waterfall gallery · Bookmark from the card · Manga series</sub></td>
+<td align="center"><img src="snap/pixshaft/frames/discover.webp" width="300" alt="Discover — features, columns and chart hub"><br><b>Discover</b><br><sub>Features, columns & chart hub</sub><br><sub>Manga / novel columns · PixiVision · Trending tags · Chart hub</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="snap/pixshaft/frames/tags.svg" width="300" alt="Trending tags"><br><b>Trending tags</b><br><sub>Live trends, with cover previews</sub><br><sub>Real-time tags · Cover preview · One tap in</sub></td>
-<td align="center"><img src="snap/pixshaft/frames/download.svg" width="300" alt="Download queue"><br><b>Downloads</b><br><sub>Batch download · queue management</sub><br><sub>Batch queue · Resumable · Caption export · Batch rename · aria2 remote</sub></td>
-<td align="center"><img src="snap/pixshaft/frames/manga.svg" width="300" alt="Manga series"><br><b>Manga</b><br><sub>Serialised manga, chapter by chapter</sub><br><sub>Follow series · Read whole chapters · Batch download / bookmark</sub></td>
+<td align="center"><img src="snap/pixshaft/frames/tags.webp" width="300" alt="Trending tags"><br><b>Trending tags</b><br><sub>Live trends, with cover previews</sub><br><sub>Real-time tags · Cover preview · One tap in</sub></td>
+<td align="center"><img src="snap/pixshaft/frames/download.webp" width="300" alt="Download queue"><br><b>Downloads</b><br><sub>Batch download · queue management</sub><br><sub>Batch queue · Resumable · Caption export · Batch rename · aria2 remote</sub></td>
+<td align="center"><img src="snap/pixshaft/frames/manga.webp" width="300" alt="Manga series"><br><b>Manga</b><br><sub>Serialised manga, chapter by chapter</sub><br><sub>Follow series · Read whole chapters · Batch download / bookmark</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="snap/pixshaft/frames/manga-read.svg" width="300" alt="Manga reader"><br><b>Manga reader</b><br><sub>Turns like paper, immersive</sub><br><sub>Two-way paging · Bookmarks · Translate the whole series · Night mode</sub></td>
-<td align="center"><img src="snap/pixshaft/frames/novel.svg" width="300" alt="Novel reader"><br><b>Novel reader</b><br><sub>Immersive reading</sub><br><sub>Progress percentage · Auto-mixed illustrations · Local txt library</sub></td>
+<td align="center"><img src="snap/pixshaft/frames/manga-read.webp" width="300" alt="Manga reader"><br><b>Manga reader</b><br><sub>Turns like paper, immersive</sub><br><sub>Two-way paging · Bookmarks · Translate the whole series · Night mode</sub></td>
+<td align="center"><img src="snap/pixshaft/frames/novel.webp" width="300" alt="Novel reader"><br><b>Novel reader</b><br><sub>Immersive reading</sub><br><sub>Progress percentage · Auto-mixed illustrations · Local txt library</sub></td>
 <td></td>
 </tr>
 </table>

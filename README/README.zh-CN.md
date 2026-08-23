@@ -106,23 +106,23 @@ SauceNAO / TinEye / IQDB / Ascii2D 一键溯源。
 
 <table>
 <tr>
-<td align="center" width="33%"><img src="../snap/pixshaft/frames/home.svg" width="300" alt="首页 — 推荐与排行，一屏直达"><br><b>首页</b><br><sub>推荐与排行，一屏直达</sub><br><sub>个性化推荐 · 排行榜横滑 · 卡片一键收藏</sub></td>
-<td align="center" width="33%"><img src="../snap/pixshaft/frames/detail.svg" width="300" alt="看图 — 高清看图，细节毕现"><br><b>看图</b><br><sub>高清看图，细节毕现</sub><br><sub>多 P 折叠 · 下载 / 收藏 / 评论胶囊 · 加载原图 · 以图搜图</sub></td>
-<td align="center" width="33%"><img src="../snap/pixshaft/frames/filters.svg" width="300" alt="搜索 — 想看的，精准筛出来"><br><b>搜索</b><br><sub>想看的，精准筛出来</sub><br><sub>六档排序 · 喜欢数区间 · AI 三档 · 仅安全</sub></td>
+<td align="center" width="33%"><img src="../snap/pixshaft/frames/home.webp" width="300" alt="首页 — 推荐与排行，一屏直达"><br><b>首页</b><br><sub>推荐与排行，一屏直达</sub><br><sub>个性化推荐 · 排行榜横滑 · 卡片一键收藏</sub></td>
+<td align="center" width="33%"><img src="../snap/pixshaft/frames/detail.webp" width="300" alt="看图 — 高清看图，细节毕现"><br><b>看图</b><br><sub>高清看图，细节毕现</sub><br><sub>多 P 折叠 · 下载 / 收藏 / 评论胶囊 · 加载原图 · 以图搜图</sub></td>
+<td align="center" width="33%"><img src="../snap/pixshaft/frames/filters.webp" width="300" alt="搜索 — 想看的，精准筛出来"><br><b>搜索</b><br><sub>想看的，精准筛出来</sub><br><sub>六档排序 · 喜欢数区间 · AI 三档 · 仅安全</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="../snap/pixshaft/frames/profile.svg" width="300" alt="画师 — 走进画师的世界"><br><b>画师</b><br><sub>走进画师的世界</sub><br><sub>标签高级搜索 · 作品 / 收藏导航 · 添加到桌面</sub></td>
-<td align="center"><img src="../snap/pixshaft/frames/gallery.svg" width="300" alt="画师作品墙"><br><b>作品墙</b><br><sub>插画、漫画、小说分栏浏览</sub><br><sub>瀑布流 · 卡片收藏 · 漫画系列</sub></td>
-<td align="center"><img src="../snap/pixshaft/frames/discover.svg" width="300" alt="发现 — 特辑、专栏与榜单专区"><br><b>发现</b><br><sub>特辑、专栏与榜单专区</sub><br><sub>漫画 / 小说专栏 · PixiVision 特辑 · 热度标签 · 榜单专区</sub></td>
+<td align="center"><img src="../snap/pixshaft/frames/profile.webp" width="300" alt="画师 — 走进画师的世界"><br><b>画师</b><br><sub>走进画师的世界</sub><br><sub>标签高级搜索 · 作品 / 收藏导航 · 添加到桌面</sub></td>
+<td align="center"><img src="../snap/pixshaft/frames/gallery.webp" width="300" alt="画师作品墙"><br><b>作品墙</b><br><sub>插画、漫画、小说分栏浏览</sub><br><sub>瀑布流 · 卡片收藏 · 漫画系列</sub></td>
+<td align="center"><img src="../snap/pixshaft/frames/discover.webp" width="300" alt="发现 — 特辑、专栏与榜单专区"><br><b>发现</b><br><sub>特辑、专栏与榜单专区</sub><br><sub>漫画 / 小说专栏 · PixiVision 特辑 · 热度标签 · 榜单专区</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="../snap/pixshaft/frames/tags.svg" width="300" alt="热门标签 — 实时热门，紧跟潮流"><br><b>热门标签</b><br><sub>实时热门，紧跟潮流</sub><br><sub>实时热门标签 · 封面预览 · 一键进入</sub></td>
-<td align="center"><img src="../snap/pixshaft/frames/download.svg" width="300" alt="下载 — 批量下载 · 队列管理"><br><b>下载</b><br><sub>批量下载 · 队列管理</sub><br><sub>批量队列 · 断点续传 · 简介导出 · 批量重命名 · aria2 远程</sub></td>
-<td align="center"><img src="../snap/pixshaft/frames/manga.svg" width="300" alt="漫画 — 漫画连载，逐话追更"><br><b>漫画</b><br><sub>漫画连载，逐话追更</sub><br><sub>系列追更 · 整话阅读 · 批量下载 / 收藏</sub></td>
+<td align="center"><img src="../snap/pixshaft/frames/tags.webp" width="300" alt="热门标签 — 实时热门，紧跟潮流"><br><b>热门标签</b><br><sub>实时热门，紧跟潮流</sub><br><sub>实时热门标签 · 封面预览 · 一键进入</sub></td>
+<td align="center"><img src="../snap/pixshaft/frames/download.webp" width="300" alt="下载 — 批量下载 · 队列管理"><br><b>下载</b><br><sub>批量下载 · 队列管理</sub><br><sub>批量队列 · 断点续传 · 简介导出 · 批量重命名 · aria2 远程</sub></td>
+<td align="center"><img src="../snap/pixshaft/frames/manga.webp" width="300" alt="漫画 — 漫画连载，逐话追更"><br><b>漫画</b><br><sub>漫画连载，逐话追更</sub><br><sub>系列追更 · 整话阅读 · 批量下载 / 收藏</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="../snap/pixshaft/frames/manga-read.svg" width="300" alt="漫画阅读 — 翻页如纸，沉浸看番"><br><b>漫画阅读</b><br><sub>翻页如纸，沉浸看番</sub><br><sub>双向翻页 · 书签 · 翻译整部漫画 · 夜间模式</sub></td>
-<td align="center"><img src="../snap/pixshaft/frames/novel.svg" width="300" alt="小说 — 沉浸式小说阅读器"><br><b>小说</b><br><sub>沉浸式小说阅读器</sub><br><sub>常驻进度百分比 · 自动混排插画 · 本地 txt 书库</sub></td>
+<td align="center"><img src="../snap/pixshaft/frames/manga-read.webp" width="300" alt="漫画阅读 — 翻页如纸，沉浸看番"><br><b>漫画阅读</b><br><sub>翻页如纸，沉浸看番</sub><br><sub>双向翻页 · 书签 · 翻译整部漫画 · 夜间模式</sub></td>
+<td align="center"><img src="../snap/pixshaft/frames/novel.webp" width="300" alt="小说 — 沉浸式小说阅读器"><br><b>小说</b><br><sub>沉浸式小说阅读器</sub><br><sub>常驻进度百分比 · 自动混排插画 · 本地 txt 书库</sub></td>
 <td></td>
 </tr>
 </table>
