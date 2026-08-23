@@ -2740,4 +2740,48 @@
     <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
     <string name="inapp_push_dismiss">Got it</string>
     <string name="inapp_push_default_action">Take a look</string>
+
+    <!-- 离线快照 v1 -->
+    <string name="snapshot_manager_title">Offline snapshots</string>
+    <string name="snapshot_empty">No offline snapshots yet\nUse “Save offline” in the artwork menu</string>
+    <string name="snapshot_import">Import snapshot</string>
+    <string name="snapshot_batch_export">Batch export</string>
+    <string name="snapshot_batch_delete">Batch delete</string>
+    <string name="snapshot_batch_delete_confirm">Delete the %1$d selected snapshots? This cannot be undone.</string>
+    <string name="snapshot_selected_count">%1$d selected</string>
+    <string name="snapshot_export">Export</string>
+    <string name="snapshot_delete">Delete</string>
+    <string name="snapshot_cover">Cover</string>
+    <string name="snapshot_untitled">Untitled</string>
+    <string name="snapshot_badge_comments">With comments</string>
+    <string name="snapshot_badge_original">Original</string>
+    <string name="snapshot_comments_title">Comments</string>
+    <string name="snapshot_delete_confirm">Delete snapshot “%1$s”? This cannot be undone.</string>
+    <string name="snapshot_delete_success">Snapshot deleted</string>
+    <string name="snapshot_delete_failed">Failed to delete snapshot</string>
+    <string name="snapshot_importing">Importing snapshot…</string>
+    <string name="snapshot_import_multi_result">Import finished: %1$d succeeded, %2$d failed</string>
+    <string name="snapshot_export_success">Snapshot exported</string>
+    <string name="snapshot_exporting">Exporting snapshot…</string>
+    <string name="snapshot_downloaded_label">Saved offline</string>
+    <string name="snapshot_unsupported_toast">Not available for offline snapshots</string>
+    <string name="snapshot_no_comments_toast">This snapshot has no comments</string>
+    <string name="snapshot_export_failed">Export failed: %1$s</string>
+    <string name="snapshot_open_failed">Failed to open snapshot: %1$s</string>
+    <string name="snapshot_create">Save offline</string>
+    <string name="snapshot_include_comments">Include comments</string>
+    <string name="snapshot_include_original">Use original image</string>
+    <string name="snapshot_ok">Start</string>
+    <string name="snapshot_preparing">Preparing snapshot…</string>
+    <string name="snapshot_generate_success">Offline snapshot saved</string>
+    <string name="snapshot_generate_failed">Failed: %1$s</string>
+    <string name="snapshot_progress_metadata">Preparing artwork metadata</string>
+    <string name="snapshot_progress_images">Downloading images %1$d/%2$d</string>
+    <string name="snapshot_progress_avatar">Downloading artist avatar</string>
+    <string name="snapshot_progress_comments">Fetching comments</string>
+    <string name="snapshot_progress_comment_assets">Downloading comment avatars/stamps</string>
+    <string name="snapshot_progress_writing">Writing snapshot</string>
+    <string name="snapshot_unsupported_ugoira">Ugoira is not supported for offline snapshots yet</string>
+    <string name="snapshot_error_page_url_missing">No usable URL for image %1$d</string>
+    <string name="snapshot_error_image_download">Image download failed: %1$s</string>
 </resources>

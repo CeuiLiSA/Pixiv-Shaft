@@ -2740,4 +2740,48 @@
     <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
     <string name="inapp_push_dismiss">알겠어요</string>
     <string name="inapp_push_default_action">보러 가기</string>
+
+    <!-- 离线快照 v1 -->
+    <string name="snapshot_manager_title">오프라인 스냅샷</string>
+    <string name="snapshot_empty">오프라인 스냅샷이 없습니다\n작품 메뉴에서 “오프라인 저장”을 선택하세요</string>
+    <string name="snapshot_import">스냅샷 가져오기</string>
+    <string name="snapshot_batch_export">일괄 내보내기</string>
+    <string name="snapshot_batch_delete">일괄 삭제</string>
+    <string name="snapshot_batch_delete_confirm">선택한 스냅샷 %1$d개를 삭제할까요? 이 작업은 되돌릴 수 없습니다.</string>
+    <string name="snapshot_selected_count">%1$d개 선택됨</string>
+    <string name="snapshot_export">내보내기</string>
+    <string name="snapshot_delete">삭제</string>
+    <string name="snapshot_cover">표지</string>
+    <string name="snapshot_untitled">제목 없음</string>
+    <string name="snapshot_badge_comments">댓글 포함</string>
+    <string name="snapshot_badge_original">원본</string>
+    <string name="snapshot_comments_title">댓글</string>
+    <string name="snapshot_delete_confirm">스냅샷 “%1$s”을(를) 삭제할까요? 이 작업은 되돌릴 수 없습니다.</string>
+    <string name="snapshot_delete_success">스냅샷을 삭제했습니다</string>
+    <string name="snapshot_delete_failed">스냅샷 삭제에 실패했습니다</string>
+    <string name="snapshot_importing">스냅샷을 가져오는 중…</string>
+    <string name="snapshot_import_multi_result">가져오기 완료: 성공 %1$d개, 실패 %2$d개</string>
+    <string name="snapshot_export_success">스냅샷을 내보냈습니다</string>
+    <string name="snapshot_exporting">스냅샷을 내보내는 중…</string>
+    <string name="snapshot_downloaded_label">오프라인 저장됨</string>
+    <string name="snapshot_unsupported_toast">오프라인 스냅샷에서는 사용할 수 없습니다</string>
+    <string name="snapshot_no_comments_toast">이 스냅샷에는 댓글이 없습니다</string>
+    <string name="snapshot_export_failed">내보내기 실패: %1$s</string>
+    <string name="snapshot_open_failed">스냅샷을 열지 못했습니다: %1$s</string>
+    <string name="snapshot_create">오프라인 저장</string>
+    <string name="snapshot_include_comments">댓글 포함</string>
+    <string name="snapshot_include_original">원본 이미지 사용</string>
+    <string name="snapshot_ok">시작</string>
+    <string name="snapshot_preparing">스냅샷 준비 중…</string>
+    <string name="snapshot_generate_success">오프라인 스냅샷을 만들었습니다</string>
+    <string name="snapshot_generate_failed">생성 실패: %1$s</string>
+    <string name="snapshot_progress_metadata">작품 메타데이터 준비 중</string>
+    <string name="snapshot_progress_images">이미지 다운로드 중 %1$d/%2$d</string>
+    <string name="snapshot_progress_avatar">작가 프로필 사진 다운로드 중</string>
+    <string name="snapshot_progress_comments">댓글 가져오는 중</string>
+    <string name="snapshot_progress_comment_assets">댓글 프로필 사진/스탬프 다운로드 중</string>
+    <string name="snapshot_progress_writing">스냅샷 저장 중</string>
+    <string name="snapshot_unsupported_ugoira">우고이라(ugoira)는 아직 오프라인 스냅샷을 지원하지 않습니다</string>
+    <string name="snapshot_error_page_url_missing">%1$d번째 이미지의 사용 가능한 URL이 없습니다</string>
+    <string name="snapshot_error_image_download">이미지 다운로드 실패: %1$s</string>
 </resources>

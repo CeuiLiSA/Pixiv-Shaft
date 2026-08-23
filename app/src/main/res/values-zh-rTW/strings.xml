@@ -2742,4 +2742,48 @@
     <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
     <string name="inapp_push_dismiss">知道了</string>
     <string name="inapp_push_default_action">去看看</string>
+
+    <!-- 离线快照 v1 -->
+    <string name="snapshot_manager_title">離線快照</string>
+    <string name="snapshot_empty">還沒有離線快照\n在作品詳情頁選單裡選擇「離線化」</string>
+    <string name="snapshot_import">匯入快照</string>
+    <string name="snapshot_batch_export">批次匯出</string>
+    <string name="snapshot_batch_delete">批次刪除</string>
+    <string name="snapshot_batch_delete_confirm">確定刪除選取的 %1$d 個快照嗎？此操作無法復原。</string>
+    <string name="snapshot_selected_count">已選 %1$d 項</string>
+    <string name="snapshot_export">匯出</string>
+    <string name="snapshot_delete">刪除</string>
+    <string name="snapshot_cover">封面</string>
+    <string name="snapshot_untitled">無標題</string>
+    <string name="snapshot_badge_comments">含評論</string>
+    <string name="snapshot_badge_original">原圖</string>
+    <string name="snapshot_comments_title">評論</string>
+    <string name="snapshot_delete_confirm">確定刪除快照「%1$s」嗎？此操作無法復原。</string>
+    <string name="snapshot_delete_success">已刪除快照</string>
+    <string name="snapshot_delete_failed">刪除快照失敗</string>
+    <string name="snapshot_importing">正在匯入快照…</string>
+    <string name="snapshot_import_multi_result">匯入完成：成功 %1$d 個，失敗 %2$d 個</string>
+    <string name="snapshot_export_success">已匯出快照</string>
+    <string name="snapshot_exporting">正在匯出快照…</string>
+    <string name="snapshot_downloaded_label">已離線化</string>
+    <string name="snapshot_unsupported_toast">離線快照不支援此操作</string>
+    <string name="snapshot_no_comments_toast">快照未包含評論</string>
+    <string name="snapshot_export_failed">匯出失敗：%1$s</string>
+    <string name="snapshot_open_failed">開啟快照失敗：%1$s</string>
+    <string name="snapshot_create">離線化</string>
+    <string name="snapshot_include_comments">包含評論</string>
+    <string name="snapshot_include_original">使用原圖</string>
+    <string name="snapshot_ok">開始</string>
+    <string name="snapshot_preparing">準備離線快照…</string>
+    <string name="snapshot_generate_success">已產生離線快照</string>
+    <string name="snapshot_generate_failed">產生失敗：%1$s</string>
+    <string name="snapshot_progress_metadata">準備作品中繼資料</string>
+    <string name="snapshot_progress_images">下載作品圖片 %1$d/%2$d</string>
+    <string name="snapshot_progress_avatar">下載作者頭像</string>
+    <string name="snapshot_progress_comments">取得評論</string>
+    <string name="snapshot_progress_comment_assets">下載評論頭像／貼圖</string>
+    <string name="snapshot_progress_writing">寫入快照</string>
+    <string name="snapshot_unsupported_ugoira">動圖 / ugoira 暫不支援離線快照</string>
+    <string name="snapshot_error_page_url_missing">作品第 %1$d 張圖缺少可用 URL</string>
+    <string name="snapshot_error_image_download">圖片下載失敗：%1$s</string>
 </resources>

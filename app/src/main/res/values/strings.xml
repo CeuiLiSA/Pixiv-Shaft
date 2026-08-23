@@ -3006,7 +3006,8 @@
     <string name="snapshot_delete">删除</string>
     <string name="snapshot_cover">封面</string>
     <string name="snapshot_untitled">无标题</string>
-    <string name="snapshot_meta_format">%1$s · %2$s</string>
+    <!-- 纯排版格式，无可译文字 -->
+    <string name="snapshot_meta_format" translatable="false">%1$s · %2$s</string>
     <string name="snapshot_badge_comments">含评论</string>
     <string name="snapshot_badge_original">原图</string>
     <string name="snapshot_comments_title">评论</string>

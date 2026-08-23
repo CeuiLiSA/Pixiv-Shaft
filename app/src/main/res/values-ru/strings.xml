@@ -2740,4 +2740,48 @@
     <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
     <string name="inapp_push_dismiss">Понятно</string>
     <string name="inapp_push_default_action">Посмотреть</string>
+
+    <!-- 离线快照 v1 -->
+    <string name="snapshot_manager_title">Офлайн-снимки</string>
+    <string name="snapshot_empty">Офлайн-снимков пока нет\nВыберите «Сохранить офлайн» в меню работы</string>
+    <string name="snapshot_import">Импорт снимка</string>
+    <string name="snapshot_batch_export">Массовый экспорт</string>
+    <string name="snapshot_batch_delete">Массовое удаление</string>
+    <string name="snapshot_batch_delete_confirm">Удалить выбранные снимки (%1$d)? Это действие необратимо.</string>
+    <string name="snapshot_selected_count">Выбрано: %1$d</string>
+    <string name="snapshot_export">Экспорт</string>
+    <string name="snapshot_delete">Удалить</string>
+    <string name="snapshot_cover">Обложка</string>
+    <string name="snapshot_untitled">Без названия</string>
+    <string name="snapshot_badge_comments">С комментариями</string>
+    <string name="snapshot_badge_original">Оригинал</string>
+    <string name="snapshot_comments_title">Комментарии</string>
+    <string name="snapshot_delete_confirm">Удалить снимок «%1$s»? Это действие необратимо.</string>
+    <string name="snapshot_delete_success">Снимок удалён</string>
+    <string name="snapshot_delete_failed">Не удалось удалить снимок</string>
+    <string name="snapshot_importing">Импорт снимка…</string>
+    <string name="snapshot_import_multi_result">Импорт завершён: успешно %1$d, с ошибкой %2$d</string>
+    <string name="snapshot_export_success">Снимок экспортирован</string>
+    <string name="snapshot_exporting">Экспорт снимка…</string>
+    <string name="snapshot_downloaded_label">Сохранено офлайн</string>
+    <string name="snapshot_unsupported_toast">Недоступно для офлайн-снимков</string>
+    <string name="snapshot_no_comments_toast">В этом снимке нет комментариев</string>
+    <string name="snapshot_export_failed">Ошибка экспорта: %1$s</string>
+    <string name="snapshot_open_failed">Не удалось открыть снимок: %1$s</string>
+    <string name="snapshot_create">Сохранить офлайн</string>
+    <string name="snapshot_include_comments">Включить комментарии</string>
+    <string name="snapshot_include_original">Использовать оригинал</string>
+    <string name="snapshot_ok">Начать</string>
+    <string name="snapshot_preparing">Подготовка снимка…</string>
+    <string name="snapshot_generate_success">Офлайн-снимок создан</string>
+    <string name="snapshot_generate_failed">Ошибка создания: %1$s</string>
+    <string name="snapshot_progress_metadata">Подготовка метаданных работы</string>
+    <string name="snapshot_progress_images">Загрузка изображений %1$d/%2$d</string>
+    <string name="snapshot_progress_avatar">Загрузка аватара автора</string>
+    <string name="snapshot_progress_comments">Получение комментариев</string>
+    <string name="snapshot_progress_comment_assets">Загрузка аватаров и стикеров комментариев</string>
+    <string name="snapshot_progress_writing">Запись снимка</string>
+    <string name="snapshot_unsupported_ugoira">Ugoira пока не поддерживается для офлайн-снимков</string>
+    <string name="snapshot_error_page_url_missing">Нет доступного URL для изображения %1$d</string>
+    <string name="snapshot_error_image_download">Не удалось загрузить изображение: %1$s</string>
 </resources>

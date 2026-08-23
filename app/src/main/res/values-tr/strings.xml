@@ -2740,4 +2740,48 @@
     <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
     <string name="inapp_push_dismiss">Anladım</string>
     <string name="inapp_push_default_action">Göz at</string>
+
+    <!-- 离线快照 v1 -->
+    <string name="snapshot_manager_title">Çevrimdışı anlık görüntüler</string>
+    <string name="snapshot_empty">Henüz çevrimdışı anlık görüntü yok\nEser menüsünden “Çevrimdışı kaydet” seçeneğini kullanın</string>
+    <string name="snapshot_import">Anlık görüntü içe aktar</string>
+    <string name="snapshot_batch_export">Toplu dışa aktar</string>
+    <string name="snapshot_batch_delete">Toplu sil</string>
+    <string name="snapshot_batch_delete_confirm">Seçili %1$d anlık görüntü silinsin mi? Bu işlem geri alınamaz.</string>
+    <string name="snapshot_selected_count">%1$d öğe seçildi</string>
+    <string name="snapshot_export">Dışa aktar</string>
+    <string name="snapshot_delete">Sil</string>
+    <string name="snapshot_cover">Kapak</string>
+    <string name="snapshot_untitled">Başlıksız</string>
+    <string name="snapshot_badge_comments">Yorumlu</string>
+    <string name="snapshot_badge_original">Orijinal</string>
+    <string name="snapshot_comments_title">Yorumlar</string>
+    <string name="snapshot_delete_confirm">“%1$s” anlık görüntüsü silinsin mi? Bu işlem geri alınamaz.</string>
+    <string name="snapshot_delete_success">Anlık görüntü silindi</string>
+    <string name="snapshot_delete_failed">Anlık görüntü silinemedi</string>
+    <string name="snapshot_importing">Anlık görüntü içe aktarılıyor…</string>
+    <string name="snapshot_import_multi_result">İçe aktarma tamamlandı: %1$d başarılı, %2$d başarısız</string>
+    <string name="snapshot_export_success">Anlık görüntü dışa aktarıldı</string>
+    <string name="snapshot_exporting">Anlık görüntü dışa aktarılıyor…</string>
+    <string name="snapshot_downloaded_label">Çevrimdışı kaydedildi</string>
+    <string name="snapshot_unsupported_toast">Çevrimdışı anlık görüntülerde kullanılamaz</string>
+    <string name="snapshot_no_comments_toast">Bu anlık görüntüde yorum yok</string>
+    <string name="snapshot_export_failed">Dışa aktarma başarısız: %1$s</string>
+    <string name="snapshot_open_failed">Anlık görüntü açılamadı: %1$s</string>
+    <string name="snapshot_create">Çevrimdışı kaydet</string>
+    <string name="snapshot_include_comments">Yorumları dahil et</string>
+    <string name="snapshot_include_original">Orijinal resmi kullan</string>
+    <string name="snapshot_ok">Başlat</string>
+    <string name="snapshot_preparing">Anlık görüntü hazırlanıyor…</string>
+    <string name="snapshot_generate_success">Çevrimdışı anlık görüntü oluşturuldu</string>
+    <string name="snapshot_generate_failed">Oluşturma başarısız: %1$s</string>
+    <string name="snapshot_progress_metadata">Eser meta verileri hazırlanıyor</string>
+    <string name="snapshot_progress_images">Resimler indiriliyor %1$d/%2$d</string>
+    <string name="snapshot_progress_avatar">Sanatçı avatarı indiriliyor</string>
+    <string name="snapshot_progress_comments">Yorumlar alınıyor</string>
+    <string name="snapshot_progress_comment_assets">Yorum avatarları/çıkartmaları indiriliyor</string>
+    <string name="snapshot_progress_writing">Anlık görüntü yazılıyor</string>
+    <string name="snapshot_unsupported_ugoira">Ugoira için çevrimdışı anlık görüntü henüz desteklenmiyor</string>
+    <string name="snapshot_error_page_url_missing">%1$d. resim için kullanılabilir URL yok</string>
+    <string name="snapshot_error_image_download">Resim indirilemedi: %1$s</string>
 </resources>

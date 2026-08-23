@@ -2740,4 +2740,48 @@
     <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
     <string name="inapp_push_dismiss">わかった</string>
     <string name="inapp_push_default_action">見てみる</string>
+
+    <!-- 离线快照 v1 -->
+    <string name="snapshot_manager_title">オフラインスナップショット</string>
+    <string name="snapshot_empty">オフラインスナップショットはまだありません\n作品メニューから「オフライン保存」を選んでください</string>
+    <string name="snapshot_import">スナップショットをインポート</string>
+    <string name="snapshot_batch_export">一括エクスポート</string>
+    <string name="snapshot_batch_delete">一括削除</string>
+    <string name="snapshot_batch_delete_confirm">選択した %1$d 件のスナップショットを削除しますか？この操作は元に戻せません。</string>
+    <string name="snapshot_selected_count">%1$d 件選択中</string>
+    <string name="snapshot_export">エクスポート</string>
+    <string name="snapshot_delete">削除</string>
+    <string name="snapshot_cover">カバー</string>
+    <string name="snapshot_untitled">タイトルなし</string>
+    <string name="snapshot_badge_comments">コメントあり</string>
+    <string name="snapshot_badge_original">オリジナル</string>
+    <string name="snapshot_comments_title">コメント</string>
+    <string name="snapshot_delete_confirm">スナップショット「%1$s」を削除しますか？この操作は元に戻せません。</string>
+    <string name="snapshot_delete_success">スナップショットを削除しました</string>
+    <string name="snapshot_delete_failed">スナップショットの削除に失敗しました</string>
+    <string name="snapshot_importing">スナップショットをインポート中…</string>
+    <string name="snapshot_import_multi_result">インポート完了：成功 %1$d 件、失敗 %2$d 件</string>
+    <string name="snapshot_export_success">スナップショットをエクスポートしました</string>
+    <string name="snapshot_exporting">スナップショットをエクスポート中…</string>
+    <string name="snapshot_downloaded_label">オフライン保存済み</string>
+    <string name="snapshot_unsupported_toast">オフラインスナップショットでは利用できません</string>
+    <string name="snapshot_no_comments_toast">このスナップショットにコメントは含まれていません</string>
+    <string name="snapshot_export_failed">エクスポートに失敗しました：%1$s</string>
+    <string name="snapshot_open_failed">スナップショットを開けませんでした：%1$s</string>
+    <string name="snapshot_create">オフライン保存</string>
+    <string name="snapshot_include_comments">コメントを含める</string>
+    <string name="snapshot_include_original">オリジナル画像を使用</string>
+    <string name="snapshot_ok">開始</string>
+    <string name="snapshot_preparing">スナップショットを準備中…</string>
+    <string name="snapshot_generate_success">オフラインスナップショットを作成しました</string>
+    <string name="snapshot_generate_failed">作成に失敗しました：%1$s</string>
+    <string name="snapshot_progress_metadata">作品のメタデータを準備中</string>
+    <string name="snapshot_progress_images">画像をダウンロード中 %1$d/%2$d</string>
+    <string name="snapshot_progress_avatar">作者のアイコンをダウンロード中</string>
+    <string name="snapshot_progress_comments">コメントを取得中</string>
+    <string name="snapshot_progress_comment_assets">コメントのアイコン／スタンプをダウンロード中</string>
+    <string name="snapshot_progress_writing">スナップショットを書き込み中</string>
+    <string name="snapshot_unsupported_ugoira">うごイラ / ugoira はオフラインスナップショットに未対応です</string>
+    <string name="snapshot_error_page_url_missing">%1$d 枚目の画像に利用可能な URL がありません</string>
+    <string name="snapshot_error_image_download">画像のダウンロードに失敗しました：%1$s</string>
 </resources>
