@@ -22,12 +22,6 @@ data class SnapshotViewerData(
     val assets: Map<String, String>,
     val comments: SnapshotComments?,
 ) {
-    fun resolve(url: String?): File? {
-        if (url.isNullOrBlank()) return null
-        val rel = assets[url] ?: return null
-        return runCatching { safeResolve(snapshotDir, rel) }.getOrNull()?.takeIf { it.isFile }
-    }
-
     /**
      * 第 [index] 页在快照里的那份文件 + 它的相对路径。
      *
