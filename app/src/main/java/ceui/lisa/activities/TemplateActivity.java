@@ -527,6 +527,42 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new NotificationViewMoreFragment();
                 case "公告分类":
                     return new InfoCategoryListFragment();
+                case "离线快照":
+                    return new ceui.pixiv.snapshot.SnapshotManagerFragment();
+                case "快照查看": {
+                    String snapshotId = intent.getStringExtra(
+                            ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID);
+                    return ceui.pixiv.ui.detail.ArtworkV3Fragment.Companion.newInstanceSnapshot(snapshotId);
+                }
+                case "快照经典查看": {
+                    ceui.lisa.fragments.FragmentIllust classic =
+                            new ceui.lisa.fragments.FragmentIllust();
+                    android.os.Bundle classicSnapshotArgs = new android.os.Bundle();
+                    classicSnapshotArgs.putInt("illust_id", 0);
+                    classicSnapshotArgs.putString(
+                            ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID,
+                            intent.getStringExtra(
+                                    ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID));
+                    classic.setArguments(classicSnapshotArgs);
+                    return classic;
+                }
+                case "快照评论": {
+                    ceui.pixiv.ui.comments.CommentsFragment comments =
+                            new ceui.pixiv.ui.comments.CommentsFragment();
+                    android.os.Bundle snapshotCommentArgs = new android.os.Bundle();
+                    snapshotCommentArgs.putLong("objectId",
+                            intent.getLongExtra("objectId", 0L));
+                    snapshotCommentArgs.putLong("objectArthurId",
+                            intent.getLongExtra("objectArthurId", 0L));
+                    snapshotCommentArgs.putString("objectType",
+                            intent.getStringExtra("objectType"));
+                    snapshotCommentArgs.putString(
+                            ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID,
+                            intent.getStringExtra(
+                                    ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID));
+                    comments.setArguments(snapshotCommentArgs);
+                    return comments;
+                }
                 default:
                     return new Fragment();
             }

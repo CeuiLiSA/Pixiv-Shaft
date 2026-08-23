@@ -477,6 +477,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         addDrawerSection(sections, R.string.drawer_section_records, new DrawerEntry[]{
                 new DrawerEntry(nav_slideshow, R.string.view_history),
                 new DrawerEntry(nav_gallery, R.string.download_manager),
+                new DrawerEntry(R.id.nav_snapshot, R.string.snapshot_manager_title),
                 new DrawerEntry(R.id.nav_notifications, R.string.notifications_and_info, experimentalAllowed),
                 new DrawerEntry(R.id.muted_list, R.string.muted_history),
                 new DrawerEntry(R.id.nav_event_history, R.string.event_history, !isLite),
@@ -575,6 +576,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         if (id == nav_gallery) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
+            intent.putExtra("hideStatusBar", false);
+        } else if (id == R.id.nav_snapshot) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "离线快照");
             intent.putExtra("hideStatusBar", false);
         } else if (id == nav_slideshow) {
             intent = new Intent(mContext, TemplateActivity.class);

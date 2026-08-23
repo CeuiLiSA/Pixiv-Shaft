@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="4dp"
+    android:layout_marginEnd="4dp"
+    android:layout_marginBottom="8dp"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardBackgroundColor="@color/v3_bg"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="1.5dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:id="@+id/imageWrap"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/cover"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:background="@color/v3_surface_2"
+                android:contentDescription="@string/snapshot_cover"
+                android:scaleType="centerCrop"
+                tools:src="@mipmap/ic_launcher" />
+
+            <ImageView
+                android:id="@+id/selectCheck"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="top|start"
+                android:layout_margin="8dp"
+                android:contentDescription="@null"
+                android:padding="5dp"
+                android:src="@drawable/history_check_unselected"
+                android:visibility="gone"
+                tools:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/deleteButton"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="8dp"
+                android:background="@drawable/v3_nav_btn_bg"
+                android:contentDescription="@string/snapshot_delete"
+                android:padding="6dp"
+                android:src="@drawable/ic_delete_black_24dp"
+                app:tint="#CCFFFFFF" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="12dp">
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:letterSpacing="-0.02"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_1"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                tools:text="作品标题" />
+
+            <TextView
+                android:id="@+id/author"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_3"
+                android:textSize="11sp"
+                tools:text="作者名 · ID 123456" />
+
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:letterSpacing="0.06"
+                android:maxLines="1"
+                android:textAllCaps="true"
+                android:textColor="@color/v3_text_3"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                tools:text="2025-01-01 12:00 · 1.2 MB" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/commentTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_v3_pill"
+                    android:includeFontPadding="false"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:text="@string/snapshot_badge_comments"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="10sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/originalTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_v3_pill"
+                    android:includeFontPadding="false"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:text="@string/snapshot_badge_original"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="10sp"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

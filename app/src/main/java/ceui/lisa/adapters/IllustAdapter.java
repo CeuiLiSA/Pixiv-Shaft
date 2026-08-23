@@ -161,6 +161,11 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         this.localPagesChangedListener = listener;
     }
 
+    /** 快照模式用：直接把某一页指向快照库里的本地文件，绑定时优先读本地、不走网络。 */
+    public void putLocalPageUri(int page, @NonNull android.net.Uri uri) {
+        localPageUris.put(page, uri);
+    }
+
     /** View 生命周期结束时断开回调，避免后台下载记录扫描把旧 Fragment/View 留到扫描完成。 */
     public void release() {
         released = true;
@@ -181,6 +186,11 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     public void scanLocalDownloads() {
         final Illust illust = allIllust;
         if (released || illust == null || localScanRunning || illust.isGif()) {
+            return;
+        }
+        // 快照模式:每页固定读快照目录里的那一份文件(宿主已用 putLocalPageUri 预置),
+        // 下载记录里的同 ID 文件一律不参与——否则「某一刻的存档」会被当前下载的版本顶掉。
+        if (snapshotId != null) {
             return;
         }
         final int pageCount = Math.max(illust.getPage_count(), 1);
@@ -241,6 +251,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             mainHandler.post(() -> {
                 if (released) return;
                 localScanRunning = false;
+                // snapshotId 由宿主在构造后的同一个主线程消息里赋值,而扫描是构造函数里就
+                // 发出去的:这条 post 一定排在它之后,所以在这里判定是可靠的(构造期那次
+                // 提前 return 拦不住已经在飞的这一趟)。
+                if (snapshotId != null) return;
                 boolean changed = false;
                 for (Map.Entry<Integer, Uri> en : found.entrySet()) {
                     if (localPageUris.put(en.getKey(), en.getValue()) == null) {
@@ -298,7 +312,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     @Override
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
         super.onBindViewHolder(holder, position);
-        if(longPressDownload && mActivity instanceof BaseActivity<?>){
+        // 快照只读：长按下载会拿 shaftsnap:// 当远程地址去下,还可能顺带触发「下载即收藏」
+        // 发出真实的收藏请求 —— 这一页所有写操作都该是哑的(V3 侧 renderer 已经把长按置空)。
+        if(longPressDownload && snapshotId == null && mActivity instanceof BaseActivity<?>){
             holder.itemView.setOnLongClickListener(v -> {
                 IllustDownload.downloadIllustCertainPage(allIllust, position, (BaseActivity<?>) mActivity);
                 if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !allIllust.isBookmarked()){

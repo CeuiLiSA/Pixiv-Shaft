@@ -60,6 +60,12 @@ import ceui.pixiv.ui.upscale.UpscaleStatus
 import ceui.pixiv.ui.upscale.UpscaleTask
 import ceui.pixiv.ui.upscale.UpscaleTaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
+import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.snapshot.SnapshotManagerFragment
+import ceui.pixiv.snapshot.SnapshotRepository
+import ceui.pixiv.snapshot.SnapshotRuntimeCache
+import ceui.pixiv.snapshot.SnapshotViewerData
+import ceui.pixiv.snapshot.localizeIllust
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import com.blankj.utilcode.util.BarUtils
@@ -85,6 +91,9 @@ import timber.log.Timber
 class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     var mIllust: Illust? = null
         private set
+
+    val isSnapshotMode: Boolean
+        get() = "快照大图" == intent.getStringExtra("dataType")
     private val translationViewModel by viewModels<ImageTranslationViewModel>()
 
     private var localIllust: List<String>? = ArrayList()
@@ -142,10 +151,12 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             v.layoutParams = lp
             windowInsets
         }
-        // btnAi 只在「二级详情」可用；放进 infoItems 会被 animateFadeInQuickly() 顶掉 GONE 状态 (issue #872)
+        // btnAi 只在「二级详情」和快照大图可用；放进 infoItems 会被 animateFadeInQuickly()
+        // 顶掉 GONE 状态 (issue #872)。反过来,可用的模式必须放进来,否则进沉浸模式时
+        // 底部信息和状态栏都收了,AI 按钮还孤零零浮在图上。
         val infoItems = mutableListOf<View>()
         baseBind?.bottomRela?.let { infoItems.add(it) }
-        if ("二级详情" == dataType) {
+        if ("二级详情" == dataType || isSnapshotMode) {
             infoItems.add(btnAi)
         }
         windowInsetsController.systemBarsBehavior =
@@ -253,6 +264,12 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     )
                 )
             }
+        } else if (isSnapshotMode) {
+            // 快照大图：复用现有查看器，只读本地快照文件，仅隐藏下载按钮。
+            findViewById<View>(R.id.download_this_one).visibility = View.GONE
+            currentPage = findViewById(R.id.current_page)
+            index = intent.getIntExtra("index", 0)
+            setupSnapshotViewer()
         } else if (ceui.pixiv.ui.common.ImageUrlViewer.DATA_TYPE_URL_SINGLE == dataType) {
             findViewById<View>(R.id.btn_ai_menu).visibility = View.GONE
             findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
@@ -333,6 +350,134 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      * 松手过阈值走统一收场(缩回缩略图矩形或沿手势方向淡出),否则回弹。进场从发起端带来的
      * [EXTRA_ENTER_BOUNDS] 缩略图矩形展开,没带则居中放大淡入。
      */
+
+    /**
+     * 快照大图查看器：复用现有 ImageDetailActivity / FragmentImageDetail，
+     * 但数据源全部来自快照本地文件，隐藏下载/收藏/AI 入口。
+     */
+    private fun setupSnapshotViewer() {
+        val snapshotId = intent.getStringExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
+        if (snapshotId.isNullOrEmpty()) {
+            finish()
+            return
+        }
+        val cached = SnapshotRuntimeCache.get(snapshotId)
+        if (cached != null) {
+            bindSnapshotViewer(cached)
+            return
+        }
+        lifecycleScope.launch {
+            // 快照可能已被管理页删掉 / manifest 损坏 —— loadViewerData 会抛。
+            // 裸 launch 里逃逸的异常直接崩进程,这里就地兜住:提示 + 关页。
+            val data = try {
+                withContext(Dispatchers.IO) {
+                    SnapshotRepository.loadViewerData(applicationContext, snapshotId)
+                }
+            } catch (ce: kotlinx.coroutines.CancellationException) {
+                throw ce
+            } catch (e: Exception) {
+                Timber.w(e, "[Snapshot] open image viewer failed, id=%s", snapshotId)
+                Common.showToast(getString(R.string.snapshot_open_failed, e.message ?: ""))
+                finish()
+                return@launch
+            }
+            SnapshotRuntimeCache.put(snapshotId, data)
+            bindSnapshotViewer(data)
+        }
+    }
+
+    private fun bindSnapshotViewer(data: SnapshotViewerData) {
+        if (isFinishing || isDestroyed) return
+        mIllust = data.localizeIllust()
+        val bean = mIllust ?: return
+        // 译图仓库按作品分桶，不 bind 的话「翻译整部」跑完了本页也收不到产物(译图不回显)。
+        translationViewModel.bindIllust(bean.id.toLong())
+        val pageCount = bean.page_count.coerceAtLeast(1)
+        baseBind!!.viewPager.adapter = object : FragmentPagerAdapter(
+            supportFragmentManager
+        ) {
+            override fun getItem(i: Int): Fragment {
+                return FragmentImageDetail.newInstance(i)
+            }
+
+            override fun getCount(): Int = pageCount
+        }
+        baseBind!!.viewPager.currentItem = index.coerceIn(0, pageCount - 1)
+        currentPage?.apply {
+            if (pageCount <= 1) {
+                visibility = View.INVISIBLE
+            } else {
+                visibility = View.VISIBLE
+                text = String.format(
+                    Locale.getDefault(), "第 %d/%d P", index.coerceIn(0, pageCount - 1) + 1, pageCount
+                )
+            }
+        }
+        baseBind!!.viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+            override fun onPageScrolled(i: Int, v: Float, i1: Int) = Unit
+            override fun onPageSelected(i: Int) {
+                currentPage?.setText(
+                    String.format(Locale.getDefault(), "第 %d/%d P", i + 1, pageCount)
+                )
+            }
+            override fun onPageScrollStateChanged(i: Int) = Unit
+        })
+        setupSnapshotFabBar()
+        setupSnapshotAiMenu()
+    }
+
+    /** 快照大图只隐藏下载按钮，收藏按钮保留但只读。 */
+    private fun setupSnapshotFabBar() {
+        val fabBind = ViewV3FabBarBinding.bind(findViewById(R.id.fab_bar))
+        val fabBar = V3FabBarController(fabBind)
+        this.fabBar = fabBar
+        fabBar.applyPalette(V3Palette.from(this))
+        fabBar.attachBottomInsetMargin(findViewById(R.id.fab_bar_row))
+        fabBind.fabDownloadContainer.visibility = View.GONE
+        fabBind.fabDivider.visibility = View.GONE
+        fabBind.fabBookmark.setOnClickListener { /* 快照只读，不触发收藏 */ }
+        fabBind.fabBookmark.setOnLongClickListener { true }
+        fabBar.setBookmarked(mIllust?.isBookmarked ?: false)
+    }
+
+    /** 快照大图保留 AI 菜单（数据源为本地快照文件），不显示下载相关动作。 */
+    private fun setupSnapshotAiMenu() {
+        val illust = mIllust ?: return
+        val btnAiMenu = findViewById<ImageView>(R.id.btn_ai_menu)
+        btnAiMenu.visibility = View.VISIBLE
+        btnAiMenu.setOnClickListener { anchor ->
+            val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
+            if (!illust.isGif()) {
+                actions += getString(R.string.string_ai_upscale) to {
+                    ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
+                        performAiUpscale(illust, baseBind!!.viewPager.currentItem, model)
+                    }
+                }
+                actions += getString(R.string.string_ai_rembg) to {
+                    RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
+                        performAiRembg(illust, baseBind!!.viewPager.currentItem, model)
+                    }
+                }
+            }
+            actions += getString(R.string.string_ai_manga_translate_inline) to {
+                performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
+            }
+            if (illust.page_count > 1) {
+                actions += getString(R.string.string_ai_manga_translate_batch) to {
+                    performAiMangaTranslateBatch(illust)
+                }
+            }
+            actions += getString(R.string.string_ai_manga_translate_manual) to {
+                performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
+            }
+            actions += getString(R.string.string_set_wallpaper) to {
+                performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
+            }
+            WitMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _ ->
+                actions[index].second()
+            }
+        }
+    }
     private fun setupViewerTransition(btnAi: View) {
         val rootLayout = baseBind!!.root as DragDismissLayout
         val chrome = listOfNotNull(baseBind?.bottomRela, btnAi)

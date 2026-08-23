@@ -40,45 +40,47 @@ fun CommentsFragment.commentCardRenderer(): FeedRenderer<CommentFeedItem, CellCo
         inflate = CellCommentBinding::inflate,
         create = { cell ->
             val binding = cell.binding
-            binding.root.setOnClickListener {
-                cell.itemOrNull?.let { item ->
-                    findActionReceiverOrNull<CommentActionReceiver>()?.onClickComment(item.comment)
+            if (!isSnapshotMode) {
+                binding.root.setOnClickListener {
+                    cell.itemOrNull?.let { item ->
+                        findActionReceiverOrNull<CommentActionReceiver>()?.onClickComment(item.comment)
+                    }
                 }
-            }
-            binding.root.setOnLongClickListener { sender ->
-                cell.itemOrNull?.let { item ->
-                    findActionReceiverOrNull<CommentActionReceiver>()
-                        ?.onLongClickComment(sender, item.comment, 0L)
+                binding.root.setOnLongClickListener { sender ->
+                    cell.itemOrNull?.let { item ->
+                        findActionReceiverOrNull<CommentActionReceiver>()
+                            ?.onLongClickComment(sender, item.comment, 0L)
+                    }
+                    true
                 }
-                true
-            }
-            binding.userIcon.setOnClick {
-                cell.itemOrNull?.let { item ->
-                    ObjectPool.update(item.comment.user)
-                    findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(item.comment.user.id)
+                binding.userIcon.setOnClick {
+                    cell.itemOrNull?.let { item ->
+                        ObjectPool.update(item.comment.user)
+                        findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(item.comment.user.id)
+                    }
                 }
-            }
-            binding.userName.setOnClick {
-                cell.itemOrNull?.let { item ->
-                    ObjectPool.update(item.comment.user)
-                    findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(item.comment.user.id)
+                binding.userName.setOnClick {
+                    cell.itemOrNull?.let { item ->
+                        ObjectPool.update(item.comment.user)
+                        findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(item.comment.user.id)
+                    }
                 }
-            }
-            binding.reply.setOnClick {
-                cell.itemOrNull?.let { item ->
-                    findActionReceiverOrNull<CommentActionReceiver>()?.onClickReply(item.comment, 0L)
+                binding.reply.setOnClick {
+                    cell.itemOrNull?.let { item ->
+                        findActionReceiverOrNull<CommentActionReceiver>()?.onClickReply(item.comment, 0L)
+                    }
                 }
-            }
-            binding.showReply.setOnClick { sender ->
-                cell.itemOrNull?.let { item ->
-                    findActionReceiverOrNull<CommentActionReceiver>()
-                        ?.onClickShowMoreReply(sender, item.comment.id)
+                binding.showReply.setOnClick { sender ->
+                    cell.itemOrNull?.let { item ->
+                        findActionReceiverOrNull<CommentActionReceiver>()
+                            ?.onClickShowMoreReply(sender, item.comment.id)
+                    }
                 }
-            }
-            binding.delete.setOnClick { sender ->
-                cell.itemOrNull?.let { item ->
-                    findActionReceiverOrNull<CommentActionReceiver>()
-                        ?.onClickDeleteComment(sender, item.comment, 0L)
+                binding.delete.setOnClick { sender ->
+                    cell.itemOrNull?.let { item ->
+                        findActionReceiverOrNull<CommentActionReceiver>()
+                            ?.onClickDeleteComment(sender, item.comment, 0L)
+                    }
                 }
             }
         },
@@ -138,11 +140,11 @@ fun CommentsFragment.commentCardRenderer(): FeedRenderer<CommentFeedItem, CellCo
             pillIcon(context, R.drawable.ic_delete_black_24dp, danger), null, null, null
         )
 
-        binding.reply.isVisible = SessionManager.loggedInUid != comment.user.id
-        binding.delete.isVisible = SessionManager.loggedInUid == comment.user.id
+        binding.reply.isVisible = !isSnapshotMode && SessionManager.loggedInUid != comment.user.id
+        binding.delete.isVisible = !isSnapshotMode && SessionManager.loggedInUid == comment.user.id
         // A locally sent reply can be shown before the pre-existing server thread is expanded.
         // Keep the affordance until that complete thread has actually been fetched.
-        binding.showReply.isVisible = comment.has_replies == true && !item.repliesLoaded
+        binding.showReply.isVisible = !isSnapshotMode && comment.has_replies == true && !item.repliesLoaded
 
         if (item.childComments.isNotEmpty()) {
             binding.childCommentsList.isVisible = true
@@ -157,6 +159,7 @@ fun CommentsFragment.commentCardRenderer(): FeedRenderer<CommentFeedItem, CellCo
                     binding.childCommentsList.layoutManager = LinearLayoutManager(context)
                     binding.childCommentsList.adapter = it
                 }
+            childAdapter.readOnly = isSnapshotMode
             childAdapter.submitList(item.childComments.map { childComment ->
                 ChildCommentItem(comment.id, childComment, item.illustArthurId)
             })

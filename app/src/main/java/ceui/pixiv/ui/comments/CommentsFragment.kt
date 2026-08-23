@@ -34,6 +34,8 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.snapshot.SnapshotCommentsFeedSource
+import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.user.UserActionReceiver
@@ -60,7 +62,10 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
         val objectId: Long = b.getLong("objectId")
         val objectArthurId: Long = b.getLong("objectArthurId")
         val objectType: String = b.getString("objectType").orEmpty()
+        val snapshotId: String? = b.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
     }
+
+    internal val isSnapshotMode: Boolean get() = args.snapshotId != null
 
     private val composer by viewModels<CommentsComposerViewModel> {
         viewModelFactory {
@@ -73,15 +78,20 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
         val objectId = args.objectId
         val objectType = args.objectType
         val illustArthurId = args.objectArthurId
-        pixivFeedSource(
-            initialFetch = {
-                if (objectType == ObjectType.ILLUST) {
-                    Client.appApi.getIllustComments(objectId)
-                } else {
-                    Client.appApi.getNovelComments(objectId)
-                }
-            },
-        ) { resp, phase -> mapCommentsPage(resp, illustArthurId, phase) }
+        val snapshotId = args.snapshotId
+        if (snapshotId != null) {
+            SnapshotCommentsFeedSource(snapshotId, illustArthurId)
+        } else {
+            pixivFeedSource(
+                initialFetch = {
+                    if (objectType == ObjectType.ILLUST) {
+                        Client.appApi.getIllustComments(objectId)
+                    } else {
+                        Client.appApi.getNovelComments(objectId)
+                    }
+                },
+            ) { resp, phase -> mapCommentsPage(resp, illustArthurId, phase) }
+        }
     }
 
     /** 刚发出、还没等到它上屏的顶层新评论 id——见 [applySendResult] / [onListCommitted]。 */
@@ -95,18 +105,26 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
         // 顶部状态栏高度一次性 padding,不用实时 insets(本页不再浮在模糊图上,无需每帧跟随)
         binding.toolbar.updatePadding(top = BarUtils.getStatusBarHeight())
         binding.toolbar.setNavigationOnClickListener { requireActivity().finish() }
-        binding.toolbarTitle.text = getString(R.string.comments)
-
-        CommentComposerController.attach(
-            fragment = this,
-            view = binding.commentComposer,
-            panelRoot = binding.root,
-            panelContentView = feedBinding.feedListView,
-            palette = V3Palette.from(requireContext()),
-            composer = composer,
-            onSent = ::applySendResult,
+        binding.toolbarTitle.text = getString(
+            if (isSnapshotMode) R.string.snapshot_comments_title else R.string.comments
         )
-        setUpReplyBanner(binding)
+
+        if (isSnapshotMode) {
+            binding.commentComposer.isVisible = false
+            binding.bottomBar.isVisible = false
+            binding.replyBanner.isVisible = false
+        } else {
+            CommentComposerController.attach(
+                fragment = this,
+                view = binding.commentComposer,
+                panelRoot = binding.root,
+                panelContentView = feedBinding.feedListView,
+                palette = V3Palette.from(requireContext()),
+                composer = composer,
+                onSent = ::applySendResult,
+            )
+            setUpReplyBanner(binding)
+        }
     }
 
     /** Keeps reply-only UI outside the reusable top-level/stamp composer module. */

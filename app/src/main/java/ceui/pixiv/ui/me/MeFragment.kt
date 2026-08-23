@@ -226,6 +226,7 @@ class MeFragment : Fragment(R.layout.fragment_me) {
             entries = listOf(
                 Entry(R.string.view_history, R.id.nav_slideshow),
                 Entry(R.string.watch_later, R.id.watch_later),
+                Entry(R.string.snapshot_manager_title, R.id.nav_snapshot),
                 Entry(R.string.prime_tags, R.id.nav_prime_tags),
                 Entry(R.string.muted_history, R.id.muted_list),
             ),

@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
@@ -45,6 +46,7 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.ShareIllust
+import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.core.Mapper
 import ceui.loxia.ObjectPool
@@ -73,9 +75,16 @@ import ceui.pixiv.ui.upscale.ModelPickerDialog
 import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
-import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.snapshot.SnapshotArtworkFeedSource
+import ceui.pixiv.snapshot.localizeIllust
+import ceui.pixiv.snapshot.SnapshotManagerFragment
+import ceui.pixiv.snapshot.SnapshotRepository
+import ceui.pixiv.snapshot.SnapshotRuntimeCache
+import ceui.pixiv.snapshot.showSnapshotCreateDialog
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -92,14 +101,22 @@ import timber.log.Timber
  */
 class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
+    internal val snapshotId: String? get() = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
+
+    internal val isSnapshotMode: Boolean get() = snapshotId != null
+
     private val illustId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt("illust_id").toLong()
+        if (isSnapshotMode) 0L else requireArguments().getInt("illust_id").toLong()
     }
 
     override val feedViewModel by feedViewModels {
-        // 零捕获:只把 id 读进局部值交给长命 VM 持有的数据源,不钉 Fragment。
-        val id = requireArguments().getInt("illust_id").toLong()
-        ArtworkV3FeedSource(id)
+        // 零捕获:只把 id/快照 id 读进局部值交给长命 VM 持有的数据源,不钉 Fragment。
+        val snapshot = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
+        if (snapshot != null) {
+            SnapshotArtworkFeedSource(snapshot)
+        } else {
+            ArtworkV3FeedSource(requireArguments().getInt("illust_id").toLong())
+        }
     }
 
     private val artworkViewModel by viewModels<ArtworkV3ViewModel> {
@@ -214,6 +231,26 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         super.onViewCreated(view, savedInstanceState)
         _chromeBind = FragmentArtworkV3Binding.bind(view)
         _fabBarController = V3FabBarController(chromeBind.fabBar)
+        if (isSnapshotMode) {
+            // 快照只读：保留收藏/关注按钮用于展示“那一刻”的状态，但点击一律无动作。
+            chromeBind.fabBar.root.isVisible = true
+            chromeBind.fabBar.fabDownloadContainer.isVisible = false
+            chromeBind.fabBar.fabDivider.isVisible = false
+            chromeBind.fabBar.fabBookmark.setOnClickListener {
+                Common.showToast(getString(R.string.snapshot_unsupported_toast))
+            }
+            chromeBind.fabBar.fabBookmark.setOnLongClickListener {
+                Common.showToast(getString(R.string.snapshot_unsupported_toast))
+                true
+            }
+            fabBarController.applyPalette(palette)
+            applySnapshotBookmarkState()
+            chromeBind.composerRoot.isVisible = false
+            chromeBind.navMore.isVisible = false
+            chromeBind.toolbar.setNavigationOnClickListener { requireActivity().finish() }
+            handleSystemInsets()
+            return
+        }
         sectionLoader = SectionLoader<ArtworkSection>(viewLifecycleOwner) { it.load(illustId, feedViewModel) }
         aiHelper = IllustAiHelper(this, chromeBind.root).also {
             it.restoreUpscaleIfRunning(illustId.toInt())
@@ -360,12 +397,19 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     override fun onResume() {
         super.onResume()
+        if (isSnapshotMode) {
+            // FeedSource 加载完成后用快照里的真实收藏态刷新只读心形按钮（兼容旧快照回落 illust.json）。
+            snapshotId?.let { SnapshotRuntimeCache.get(it) }?.let { data ->
+                fabBarController.setBookmarked(data.manifest.isBookmarked || data.illust.isBookmarked)
+            }
+            return
+        }
         artworkViewModel.onPageVisible()
         artworkViewModel.refreshDownloadFab()
     }
 
     override fun onPause() {
-        artworkViewModel.pauseDownloadFab()
+        if (!isSnapshotMode) artworkViewModel.pauseDownloadFab()
         super.onPause()
     }
 
@@ -397,6 +441,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 首次绑定顶部页时懒建那一个共享 adapter(尺寸 / 折叠 / 取图逻辑全在它里面)。 */
     internal fun ensurePageAdapter(): IllustAdapter? {
         pageAdapter?.let { return it }
+        if (isSnapshotMode) return ensureSnapshotPageAdapter()
         if (view == null || !::retryController.isInitialized) return null
         val illust = ObjectPool.get<Illust>(illustId).value ?: return null
         if (illust.isGif()) return null // ugoira 走自己的 renderer
@@ -452,6 +497,57 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     }
 
     /**
+     * 只读心形按钮：显示快照那一刻的收藏态。缓存已预热(管理页进入前会 preload)时同步取，
+     * 否则退到 IO 上读 manifest —— 不在 onViewCreated 里直接碰磁盘。
+     */
+    private fun applySnapshotBookmarkState() {
+        val id = snapshotId ?: return
+        SnapshotRuntimeCache.get(id)?.let {
+            fabBarController.setBookmarked(it.manifest.isBookmarked || it.illust.isBookmarked)
+            return
+        }
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val bookmarked = withContext(Dispatchers.IO) {
+                runCatching { SnapshotRepository.readManifest(appContext, id)?.isBookmarked }.getOrNull()
+            } ?: false
+            fabBarController.setBookmarked(bookmarked)
+        }
+    }
+
+    /** 快照模式专用：从快照库读取 bean，并把每页图片直接指向快照本地文件。 */
+    private fun ensureSnapshotPageAdapter(): IllustAdapter? {
+        val snapshotId = snapshotId ?: return null
+        val data = SnapshotRuntimeCache.get(snapshotId) ?: return null
+        val illust = data.localizeIllust()
+        if (illust.isGif()) return null
+        val maxHeight = (resources.displayMetrics.heightPixels * 0.7f).toInt()
+        val activity = requireActivity()
+        val adapter: IllustAdapter = if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count)) {
+            val collapsible = CollapsibleIllustAdapter(
+                activity, this, illust, maxHeight, false,
+                onComicReaderClick = null,
+                onExpandedChanged = { expanded -> onPagesExpandedChanged(expanded) },
+            )
+            chromeBind.collapsePill.setOnClickListener { collapsible.collapse() }
+            collapsible
+        } else {
+            IllustAdapter(activity, this, illust, maxHeight, false)
+        }
+        // 必须先打快照标记再喂本地页:adapter 构造时已经发出一趟「已下载文件」后台扫描,
+        // 标记会让它回主线程合并时整个作废,避免同 ID 的下载文件顶掉快照里的那一份。
+        adapter.setSnapshotId(snapshotId)
+        val pageCount = illust.page_count.coerceAtLeast(1)
+        for (i in 0 until pageCount) {
+            data.pageFile(i)?.let { file -> adapter.putLocalPageUri(i, Uri.fromFile(file)) }
+        }
+        adapter.setPageStatusListener { _, _ -> }
+        adapter.setLocalPagesChangedListener(null)
+        pageAdapter = adapter
+        return adapter
+    }
+
+    /**
      * “加载原图”：重建共享的顶层大图 adapter（isForceOriginal=true），
      * 并 bump 所有页面条目的 rebindTick，让外层 FeedAdapter 原地重绑。
      * 多 P 折叠作品保留展开态，避免点一下菜单就折回第一页。
@@ -492,7 +588,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             pill.alpha = 0f
             pill.visibility = View.VISIBLE
             pill.animate().alpha(1f).setDuration(220).start()
-            val pageCount = ObjectPool.get<Illust>(illustId).value?.page_count ?: return
+            val pageCount = if (isSnapshotMode) {
+                snapshotId?.let { SnapshotRuntimeCache.get(it) }?.illust?.page_count ?: return
+            } else {
+                ObjectPool.get<Illust>(illustId).value?.page_count ?: return
+            }
             feedViewModel.mutateItems { items ->
                 val existing = items.filterIsInstance<ArtworkPageItem>().mapTo(HashSet()) { it.pageIndex }
                 val toAdd = (1 until pageCount)
@@ -1041,6 +1141,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             item(getString(R.string.string_355_2), R.drawable.ic_baseline_launch_24) {
                 Common.copy(requireContext(), ShareIllust.URL_Head + illust.id)
             }
+            // 动图的 original 是 zip,SnapshotGenerator 一进门就拒;别把注定失败的入口摆出来。
+            if (!illust.isGif()) {
+                item(getString(R.string.snapshot_create), R.drawable.ic_baseline_get_app_24) {
+                    showSnapshotCreateDialog(illust)
+                }
+            }
             item(getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
                 MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
             }
@@ -1121,5 +1227,14 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
         @JvmStatic
         fun newInstance(illustId: Long): ArtworkV3Fragment = newInstance(illustId.toInt())
+
+        @JvmStatic
+        fun newInstanceSnapshot(snapshotId: String): ArtworkV3Fragment {
+            return ArtworkV3Fragment().apply {
+                arguments = Bundle().apply {
+                    putString(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId)
+                }
+            }
+        }
     }
 }

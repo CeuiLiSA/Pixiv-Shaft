@@ -294,6 +294,10 @@ internal fun ArtworkV3Fragment.seriesRenderer() =
         b.seriesLabel.setTextColor(palette.seriesStripText)
         b.seriesChevron.setTextColor(palette.seriesStripText)
         b.root.setOnClickListener {
+            if (isSnapshotMode) {
+                Common.showToast(ctx.getString(R.string.snapshot_unsupported_toast))
+                return@setOnClickListener
+            }
             val intent = Intent(ctx, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
             // series.id 是 Long：走 TemplateActivity 认的 ARG_SERIES_ID(long)，别塞进 getIntExtra 读的 MANGA_SERIES_ID
@@ -397,6 +401,10 @@ internal fun ArtworkV3Fragment.statsRenderer() =
             val wrap = cell.binding.statBookmarkWrap
             applyTouchScale(wrap)
             wrap.setOnClickListener {
+                if (isSnapshotMode) {
+                    Common.showToast(wrap.context.getString(R.string.snapshot_unsupported_toast))
+                    return@setOnClickListener
+                }
                 val illust = cell.item.illust
                 val ctx = wrap.context
                 ctx.startActivity(
@@ -424,26 +432,39 @@ internal fun ArtworkV3Fragment.tagsRenderer() =
         b.tagsFlow.searchIndex = 0 // illust tab
         // issue #1023: 标签行末尾的「编辑标签」块 —— 对齐网页版那个「+」。属性要在 setTags 之前
         // 赋值：是否挂点击监听在渲染时决定（见 V3TagFlowView.onOverflowClick 的 KDoc）。
-        b.tagsFlow.overflowActionIcon = R.drawable.ic_add_black_24dp
-        b.tagsFlow.overflowActionText = getString(R.string.work_tag_edit_entry)
-        b.tagsFlow.onOverflowClick = {
-            // 变更经 fragment result 回来（listener 在 ArtworkV3Fragment 里注册，键
-            // TagEditSheet.REQUEST_TAGS_CHANGED），所以这里只管把 sheet 拉起来，不持有任何回调。
-            TagEditSheet.show(childFragmentManager, illust.id)
+        if (isSnapshotMode) {
+            b.tagsFlow.overflowActionIcon = null
+            b.tagsFlow.overflowActionText = null
+            b.tagsFlow.onOverflowClick = null
+            b.tagsFlow.onPinTag = null
+            b.tagsFlow.onTagClick = {
+                Common.showToast(getString(R.string.snapshot_unsupported_toast))
+            }
+            b.tagsFlow.onTagLongClick = { name ->
+                Common.copy(requireContext(), name)
+            }
+        } else {
+            b.tagsFlow.overflowActionIcon = R.drawable.ic_add_black_24dp
+            b.tagsFlow.overflowActionText = getString(R.string.work_tag_edit_entry)
+            b.tagsFlow.onOverflowClick = {
+                // 变更经 fragment result 回来（listener 在 ArtworkV3Fragment 里注册，键
+                // TagEditSheet.REQUEST_TAGS_CHANGED），所以这里只管把 sheet 拉起来，不持有任何回调。
+                TagEditSheet.show(childFragmentManager, illust.id)
+            }
+            b.tagsFlow.onPinTag = { name, translated, newPinned ->
+                val tagBean = TagsBean().apply {
+                    this.name = name
+                    this.translated_name = translated
+                }
+                val previewJson = if (newPinned) buildPinnedTagPreviewJson(tagBean, illust) else null
+                PixivOperate.insertPinnedSearchHistory(
+                    name, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD, newPinned, previewJson,
+                )
+                Common.showToast(R.string.operate_success)
+            }
         }
         b.tagsFlow.setTags(illust.tags.orEmpty())
         b.synonymMatch.setWorkTags(illust.tags.orEmpty().toTagsBeans())
-        b.tagsFlow.onPinTag = { name, translated, newPinned ->
-            val tagBean = TagsBean().apply {
-                this.name = name
-                this.translated_name = translated
-            }
-            val previewJson = if (newPinned) buildPinnedTagPreviewJson(tagBean, illust) else null
-            PixivOperate.insertPinnedSearchHistory(
-                name, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD, newPinned, previewJson,
-            )
-            Common.showToast(R.string.operate_success)
-        }
     }
 
 internal fun ArtworkV3Fragment.artistRenderer() =
@@ -459,6 +480,10 @@ internal fun ArtworkV3Fragment.artistRenderer() =
         b.artistHandle.text = "@${user.account ?: ""}"
 
         val openUser = View.OnClickListener {
+            if (isSnapshotMode) {
+                Common.showToast(ctx.getString(R.string.snapshot_unsupported_toast))
+                return@OnClickListener
+            }
             val intent = Intent(ctx, UActivity::class.java)
             intent.putExtra(Params.USER_ID, user.id.toInt())
             ctx.startActivity(intent)
@@ -476,14 +501,37 @@ internal fun ArtworkV3Fragment.artistRenderer() =
 
         applyTouchScale(b.artistCard)
 
-        bindArtistFollowState(b, user)
+        bindArtistFollowState(b, user, if (isSnapshotMode) cell.item.isFollowed else null)
         b.artistBio.isVisible = !user.comment.isNullOrBlank()
         if (b.artistBio.isVisible) b.artistBio.text = user.comment
     }
 
-private fun ArtworkV3Fragment.bindArtistFollowState(b: SectionV3ArtistBinding, user: User) {
+private fun ArtworkV3Fragment.bindArtistFollowState(
+    b: SectionV3ArtistBinding,
+    user: User,
+    isFollowedOverride: Boolean? = null,
+) {
     val ctx = requireContext()
     val userId = user.id.toInt()
+    if (isFollowedOverride != null) {
+        // 快照只读：显示快照那一刻的关注态，但点击不产生任何动作。
+        if (isFollowedOverride) {
+            b.followBtn.text = ctx.getString(R.string.user_followed)
+            palette.applyUnfollowBtn(b.followBtn)
+        } else {
+            b.followBtn.text = ctx.getString(R.string.follow)
+            palette.applyFollowBtn(b.followBtn)
+            b.followBtn.setTextColor(Color.WHITE)
+        }
+        b.followBtn.setOnClickListener {
+            Common.showToast(ctx.getString(R.string.snapshot_unsupported_toast))
+        }
+        b.followBtn.setOnLongClickListener {
+            Common.showToast(ctx.getString(R.string.snapshot_unsupported_toast))
+            true
+        }
+        return
+    }
     val isFollowed = ArtworkArtistItem.resolveIsFollowed(user)
     if (isFollowed) {
         b.followBtn.text = ctx.getString(followedLabelRes(userId))
@@ -620,19 +668,41 @@ internal fun ArtworkV3Fragment.commentsRenderer() =
 
         fun openCommentList() {
             val intent = Intent(ctx, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
-            intent.putExtra(Params.ILLUST_ID, item.illustId)
-            intent.putExtra(Params.ILLUST_TITLE, item.illustTitle)
+            if (isSnapshotMode) {
+                // 没勾「包含评论」的快照点进来只会是一页空列表；经典详情页已经就地提示了，
+                // V3 这边跟上，别让用户白跳一次。
+                val snapshot = snapshotId?.let { ceui.pixiv.snapshot.SnapshotRuntimeCache.get(it) }
+                if (snapshot?.comments == null) {
+                    Common.showToast(ctx.getString(R.string.snapshot_no_comments_toast))
+                    return
+                }
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照评论")
+                intent.putExtra("objectId", item.illustId)
+                intent.putExtra("objectArthurId", item.illustAuthorId)
+                intent.putExtra("objectType", ceui.loxia.ObjectType.ILLUST)
+                intent.putExtra(
+                    ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID,
+                    snapshotId,
+                )
+            } else {
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+                intent.putExtra(Params.ILLUST_ID, item.illustId)
+                intent.putExtra(Params.ILLUST_TITLE, item.illustTitle)
+            }
             ctx.startActivity(intent)
         }
 
         b.commentsMore.setTextColor(palette.textAccent)
         b.commentsMore.setOnClick { openCommentList() }
 
-        val density = ctx.resources.displayMetrics.density
-        b.addCommentEntry.background = palette.settingsCardBg(22f * density, (1 * density).toInt())
-        b.addCommentAvatar.binding_loadUserIcon(SessionManager.loggedInUser)
-        b.addCommentEntry.setOnClick { showComposer() }
+        b.addCommentEntry.isVisible = !isSnapshotMode
+        b.addCommentAvatar.isVisible = !isSnapshotMode
+        if (!isSnapshotMode) {
+            val density = ctx.resources.displayMetrics.density
+            b.addCommentEntry.background = palette.settingsCardBg(22f * density, (1 * density).toInt())
+            b.addCommentAvatar.binding_loadUserIcon(SessionManager.loggedInUser)
+            b.addCommentEntry.setOnClick { showComposer() }
+        }
 
         renderCommentsPreview(b, item)
     }
@@ -697,19 +767,23 @@ private fun ArtworkV3Fragment.renderCommentsPreview(
 
         cellB.root.setOnLongClickListener {
             val text = comment.comment
-            showV3Menu("PreviewCommentMenu") {
-                if (!text.isNullOrBlank()) {
-                    item(ctx.getString(R.string.string_173), R.drawable.baseline_content_copy_24) {
-                        ClipBoardUtils.putTextIntoClipboard(ctx, text)
+            if (isSnapshotMode) {
+                if (!text.isNullOrBlank()) ClipBoardUtils.putTextIntoClipboard(ctx, text)
+            } else {
+                showV3Menu("PreviewCommentMenu") {
+                    if (!text.isNullOrBlank()) {
+                        item(ctx.getString(R.string.string_173), R.drawable.baseline_content_copy_24) {
+                            ClipBoardUtils.putTextIntoClipboard(ctx, text)
+                        }
+                        item(ctx.getString(R.string.string_translate_caption), R.drawable.ic_baseline_translate_24) {
+                            translateComment(text)
+                        }
                     }
-                    item(ctx.getString(R.string.string_translate_caption), R.drawable.ic_baseline_translate_24) {
-                        translateComment(text)
+                    item(ctx.getString(R.string.string_174), R.drawable.ic_supervisor_account_black_24dp) {
+                        val intent = Intent(ctx, UActivity::class.java)
+                        intent.putExtra(Params.USER_ID, comment.user.id.toInt())
+                        ctx.startActivity(intent)
                     }
-                }
-                item(ctx.getString(R.string.string_174), R.drawable.ic_supervisor_account_black_24dp) {
-                    val intent = Intent(ctx, UActivity::class.java)
-                    intent.putExtra(Params.USER_ID, comment.user.id.toInt())
-                    ctx.startActivity(intent)
                 }
             }
             true

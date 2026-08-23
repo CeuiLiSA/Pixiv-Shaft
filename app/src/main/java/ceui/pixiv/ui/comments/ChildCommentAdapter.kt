@@ -39,6 +39,9 @@ data class ChildCommentItem(
  */
 class ChildCommentAdapter : ListAdapter<ChildCommentItem, ChildCommentViewHolder>(DIFF) {
 
+    /** 快照只读模式：隐藏回复/删除按钮，禁止在线操作。 */
+    var readOnly: Boolean = false
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChildCommentViewHolder {
         val binding = CellChildCommentBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
@@ -47,7 +50,7 @@ class ChildCommentAdapter : ListAdapter<ChildCommentItem, ChildCommentViewHolder
     }
 
     override fun onBindViewHolder(holder: ChildCommentViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), readOnly)
     }
 
     companion object {
@@ -65,7 +68,7 @@ class ChildCommentViewHolder(
     private val binding: CellChildCommentBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(item: ChildCommentItem) {
+    fun bind(item: ChildCommentItem, readOnly: Boolean = false) {
         val comment = item.comment
         val context = binding.root.context
 
@@ -99,32 +102,34 @@ class ChildCommentViewHolder(
             reply = binding.reply,
         )
 
-        binding.reply.isVisible = SessionManager.loggedInUid != comment.user.id
-        binding.delete.isVisible = SessionManager.loggedInUid == comment.user.id
+        binding.reply.isVisible = !readOnly && SessionManager.loggedInUid != comment.user.id
+        binding.delete.isVisible = !readOnly && SessionManager.loggedInUid == comment.user.id
 
-        binding.root.setOnClickListener { sender ->
-            sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickComment(comment)
-        }
-        binding.root.setOnLongClickListener { sender ->
-            sender.findActionReceiverOrNull<CommentActionReceiver>()
-                ?.onLongClickComment(sender, comment, item.parentCommentId)
-            true
-        }
-        binding.userIcon.setOnClick {
-            ObjectPool.update(comment.user)
-            it.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(comment.user.id)
-        }
-        binding.userName.setOnClick {
-            ObjectPool.update(comment.user)
-            it.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(comment.user.id)
-        }
-        binding.reply.setOnClick { sender ->
-            sender.findActionReceiverOrNull<CommentActionReceiver>()
-                ?.onClickReply(comment, item.parentCommentId)
-        }
-        binding.delete.setOnClick { sender ->
-            sender.findActionReceiverOrNull<CommentActionReceiver>()
-                ?.onClickDeleteComment(sender, comment, item.parentCommentId)
+        if (!readOnly) {
+            binding.root.setOnClickListener { sender ->
+                sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickComment(comment)
+            }
+            binding.root.setOnLongClickListener { sender ->
+                sender.findActionReceiverOrNull<CommentActionReceiver>()
+                    ?.onLongClickComment(sender, comment, item.parentCommentId)
+                true
+            }
+            binding.userIcon.setOnClick {
+                ObjectPool.update(comment.user)
+                it.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(comment.user.id)
+            }
+            binding.userName.setOnClick {
+                ObjectPool.update(comment.user)
+                it.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(comment.user.id)
+            }
+            binding.reply.setOnClick { sender ->
+                sender.findActionReceiverOrNull<CommentActionReceiver>()
+                    ?.onClickReply(comment, item.parentCommentId)
+            }
+            binding.delete.setOnClick { sender ->
+                sender.findActionReceiverOrNull<CommentActionReceiver>()
+                    ?.onClickDeleteComment(sender, comment, item.parentCommentId)
+            }
         }
     }
 }

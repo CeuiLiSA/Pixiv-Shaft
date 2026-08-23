@@ -2993,6 +2993,54 @@
     <string name="nana7mi_quota_snack_session">五小时额度已用完，%1$s后恢复</string>
     <string name="nana7mi_quota_snack_weekly">本周额度已用完，%1$s后恢复</string>
     <string name="nana7mi_quota_snack_action">查看用量</string>
+
+    <!-- 离线快照 v1 -->
+    <string name="snapshot_manager_title">离线快照</string>
+    <string name="snapshot_empty">还没有离线快照\n在作品详情页菜单里选择「离线化」</string>
+    <string name="snapshot_import">导入快照</string>
+    <string name="snapshot_batch_export">批量导出</string>
+    <string name="snapshot_batch_delete">批量删除</string>
+    <string name="snapshot_batch_delete_confirm">确定删除选中的 %1$d 个快照吗？此操作不可恢复。</string>
+    <string name="snapshot_selected_count">已选 %1$d 项</string>
+    <string name="snapshot_export">导出</string>
+    <string name="snapshot_delete">删除</string>
+    <string name="snapshot_cover">封面</string>
+    <string name="snapshot_untitled">无标题</string>
+    <string name="snapshot_meta_format">%1$s · %2$s</string>
+    <string name="snapshot_badge_comments">含评论</string>
+    <string name="snapshot_badge_original">原图</string>
+    <string name="snapshot_comments_title">评论</string>
+    <string name="snapshot_delete_confirm">确定删除快照「%1$s」吗？此操作不可恢复。</string>
+    <string name="snapshot_delete_success">已删除快照</string>
+    <string name="snapshot_delete_failed">删除快照失败</string>
+    <string name="snapshot_importing">正在导入快照…</string>
+    <string name="snapshot_import_multi_result">导入完成：成功 %1$d 个，失败 %2$d 个</string>
+    <string name="snapshot_export_success">已导出快照</string>
+    <string name="snapshot_exporting">正在导出快照…</string>
+    <string name="snapshot_downloaded_label">已离线化</string>
+    <string name="snapshot_unsupported_toast">离线快照不支持此操作</string>
+    <string name="snapshot_no_comments_toast">快照未包含评论</string>
+    <string name="snapshot_export_failed">导出失败：%1$s</string>
+    <string name="snapshot_open_failed">打开快照失败：%1$s</string>
+    <string name="snapshot_create">离线化</string>
+    <string name="snapshot_include_comments">包含评论</string>
+    <string name="snapshot_include_original">使用原图</string>
+    <string name="snapshot_ok">开始</string>
+    <string name="snapshot_preparing">准备离线快照…</string>
+
+    <string name="snapshot_generate_success">已生成离线快照</string>
+    <string name="snapshot_generate_failed">生成失败：%1$s</string>
+
+    <!-- 生成过程的进度 / 失败原因，会直接显示给用户，不能硬编码在代码里 -->
+    <string name="snapshot_progress_metadata">准备作品元数据</string>
+    <string name="snapshot_progress_images">下载作品图片 %1$d/%2$d</string>
+    <string name="snapshot_progress_avatar">下载作者头像</string>
+    <string name="snapshot_progress_comments">获取评论</string>
+    <string name="snapshot_progress_comment_assets">下载评论头像/表情</string>
+    <string name="snapshot_progress_writing">写入快照</string>
+    <string name="snapshot_unsupported_ugoira">动图 / ugoira 暂不支持离线快照</string>
+    <string name="snapshot_error_page_url_missing">作品第 %1$d 张图缺少可用 URL</string>
+    <string name="snapshot_error_image_download">图片下载失败：%1$s</string>
     <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
     <string name="inapp_push_dismiss">知道了</string>
     <string name="inapp_push_default_action">去看看</string>

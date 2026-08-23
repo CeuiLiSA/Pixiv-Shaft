@@ -18,6 +18,18 @@ public abstract class AbstractIllustAdapter<VH extends RecyclerView.ViewHolder>
     protected boolean isForceOriginal;
 
     /**
+     * 快照模式：非 null 表示这份 adapter 渲染的是离线快照。
+     * 影响两件事:点击大图走 ImageDetailActivity 的「快照大图」分支;
+     * 以及 {@link IllustAdapter#scanLocalDownloads()} 整个停摆——快照页只许显示快照自带的文件。
+     * 构造之后才由宿主在主线程赋值,后台扫描线程会读它,故 volatile。
+     */
+    protected volatile String snapshotId = null;
+
+    public void setSnapshotId(String snapshotId) {
+        this.snapshotId = snapshotId;
+    }
+
+    /**
      * 用最新的 bean 顶掉持有的旧引用，不 notify、不碰视图。
      *
      * <p>给「渲染输入没变、所以不重建 adapter」的调用方用（见 FragmentIllust 的
@@ -41,7 +53,10 @@ public abstract class AbstractIllustAdapter<VH extends RecyclerView.ViewHolder>
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, ImageDetailActivity.class);
             intent.putExtra("illust", allIllust);
-            intent.putExtra("dataType", "二级详情");
+            intent.putExtra("dataType", snapshotId != null ? "快照大图" : "二级详情");
+            if (snapshotId != null) {
+                intent.putExtra(ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId);
+            }
             intent.putExtra("index", position);
             // 点击处的屏幕矩形:大图页(透明窗口)从这里展开进场,下拉收掉时缩回同一位置
             int[] loc = new int[2];
