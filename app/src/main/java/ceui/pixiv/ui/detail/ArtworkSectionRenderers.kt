@@ -327,6 +327,9 @@ internal fun ArtworkV3Fragment.descRenderer() =
             applyDescCollapseState(b)
             if (!descExpanded) scrollDescBackIntoView(b.root)
         }
+        b.descDownload.setOnClickListener {
+            downloadDescCaption()
+        }
         b.descTranslate.setOnClickListener {
             val plain = (descFullCaption ?: HtmlCompat.fromHtml(
                 cell.item.caption, HtmlCompat.FROM_HTML_MODE_COMPACT

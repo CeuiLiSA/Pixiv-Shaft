@@ -36,6 +36,7 @@ import ceui.lisa.databinding.FragmentArtworkV3Binding
 import ceui.lisa.databinding.RecyIllustDetailBinding
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
+import ceui.pixiv.download.IllustCaptionExporter
 import ceui.lisa.helper.StaggeredManager
 import ceui.loxia.Illust
 import ceui.lisa.utils.Common
@@ -1008,6 +1009,22 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         }
 
         chromeBind.navMore.setOnClick { showMoreMenu() }
+    }
+
+    /**
+     * 简介区下载按钮(#1052):只下载/导出简介文本,不触发作品图片下载。
+     * 放在 Fragment 而不是 renderer 里,因为 [illustId] 是 private,renderer 拿不到。
+     */
+    internal fun downloadDescCaption() {
+        val illust = ObjectPool.get<Illust>(illustId).value ?: return
+        lifecycleScope.launch {
+            val ok = IllustCaptionExporter.exportManual(illust)
+            if (ok) {
+                Common.showToast(R.string.string_181)
+            } else {
+                Common.showToast(R.string.update_download_failed)
+            }
+        }
     }
 
     private fun showMoreMenu() {
