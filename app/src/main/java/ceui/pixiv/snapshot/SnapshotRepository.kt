@@ -7,7 +7,6 @@ import ceui.lisa.models.IllustsBean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileInputStream
 
 data class SnapshotSummary(
     val manifest: SnapshotManifest,
@@ -155,15 +154,16 @@ object SnapshotRepository {
         }
 
     suspend fun import(context: Context, uri: Uri): SnapshotManifest = withContext(Dispatchers.IO) {
-        val tempZip = File(context.cacheDir, "snapshot_import_${System.currentTimeMillis()}$SNAPSHOT_EXTENSION")
         val staging = File(context.cacheDir, "snapshot_staging_${System.currentTimeMillis()}")
         sweepStaleBackups(context)
         try {
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                tempZip.outputStream().use { out -> input.copyTo(out) }
-            } ?: throw SnapshotException("无法读取所选文件")
             staging.mkdirs()
-            FileInputStream(tempZip).use { SnapshotArchive.unzip(it, staging) }
+            // 直接从 SAF 流解到 staging：先落一份完整 ZIP 到 cacheDir 再解，等于同一份数据
+            // 写两遍、峰值还要多占一个快照大小的可用空间(原图快照动辄几百 MB)，而 ZipInputStream
+            // 本来就是顺序读，落盘那一趟没有换来任何东西。
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                SnapshotArchive.unzip(input, staging)
+            } ?: throw SnapshotException("无法读取所选文件")
             val manifest = SnapshotValidator.readJson<SnapshotManifest>(File(staging, SNAPSHOT_MANIFEST))
                 ?: throw SnapshotException("不是有效的 .shaftsnap 快照：缺少 manifest.json")
             if (manifest.schemaVersion != SNAPSHOT_SCHEMA_VERSION) {
@@ -192,7 +192,6 @@ object SnapshotRepository {
                 throw e
             }
         } finally {
-            tempZip.delete()
             staging.deleteRecursively()
         }
     }

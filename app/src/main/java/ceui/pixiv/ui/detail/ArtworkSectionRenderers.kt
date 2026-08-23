@@ -661,6 +661,13 @@ internal fun ArtworkV3Fragment.commentsRenderer() =
         fun openCommentList() {
             val intent = Intent(ctx, TemplateActivity::class.java)
             if (isSnapshotMode) {
+                // 没勾「包含评论」的快照点进来只会是一页空列表；经典详情页已经就地提示了，
+                // V3 这边跟上，别让用户白跳一次。
+                val snapshot = snapshotId?.let { ceui.pixiv.snapshot.SnapshotRuntimeCache.get(it) }
+                if (snapshot?.comments == null) {
+                    Common.showToast(ctx.getString(R.string.snapshot_no_comments_toast))
+                    return
+                }
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照评论")
                 intent.putExtra("objectId", item.illustId)
                 intent.putExtra("objectArthurId", item.illustAuthorId)
