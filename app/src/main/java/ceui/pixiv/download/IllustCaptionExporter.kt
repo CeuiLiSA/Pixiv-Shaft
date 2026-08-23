@@ -15,7 +15,8 @@ import timber.log.Timber
 /**
  * 插画/漫画下载时，在作品进入 Manager 下载队列前，把作品简介（caption）导出一份 txt。
  *
- * 只在 [SUPPORTED_TYPES]（illust / manga）生效；小说、动图不参与。
+ * 自动导出只在 [SUPPORTED_TYPES]（illust / manga）生效；小说、动图不参与。
+ * 手动导出（[exportManual]）不限 type：简介区对动图同样展示，按钮在就得能存。
  * 内容参照小说 TXT 的信息头风格：标题 / 作者 / 作品ID / 链接 / 标签 / 简介。
  * 落盘路径走独立的 [Bucket.Caption] 桶，默认不与图片混放。
  */
@@ -48,7 +49,9 @@ object IllustCaptionExporter {
 
     /**
      * 手动导出一次作品简介：供简介区「下载简介」按钮使用，不受自动导出开关限制，
-     * 也不受自动导出的最少字数限制（只要简介非空即可）。
+     * 不受自动导出的最少字数限制（只要简介非空即可），也不限 type——简介区只看 caption
+     * 非空就产出（见 ArtworkV3FeedSource.buildArtworkHeaderItems），动图也会有这个按钮，
+     * 这里再按 [SUPPORTED_TYPES] 拒掉就是「按钮在、点了报下载失败」。
      *
      * 挂起直到落盘完成；写入仍在 [scope] 的 IO 线程上执行，返回时已切回调用协程
      * （Fragment 侧是 Main），方便直接弹 toast。
@@ -62,7 +65,7 @@ object IllustCaptionExporter {
     private fun prepare(illust: Illust?, force: Boolean): Pair<Illust, String>? {
         if (!force && !Shaft.sSettings.isAutoExportIllustCaption) return null
         if (illust == null) return null
-        if (illust.type !in SUPPORTED_TYPES) return null
+        if (!force && illust.type !in SUPPORTED_TYPES) return null
         val caption = DownloadNovelTask.replaceBrWithNewLine(illust.caption).trim()
         if (caption.isBlank()) return null
         if (!force) {
