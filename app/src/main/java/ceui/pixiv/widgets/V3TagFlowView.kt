@@ -17,6 +17,9 @@ import android.widget.HorizontalScrollView
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.toColorInt
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.Shaft
@@ -31,6 +34,7 @@ import ceui.pixiv.ui.settings.CustomThemeColor
 import ceui.pixiv.ui.settings.ThemeColorCatalog
 import ceui.loxia.Tag
 import ceui.pixiv.ui.synonym.SynonymOperate
+import ceui.pixiv.ui.translate.translateTag
 import ceui.pixiv.utils.ppppx
 import com.google.android.flexbox.AlignItems
 import com.google.android.flexbox.FlexboxLayout
@@ -440,7 +444,7 @@ class V3TagFlowView @JvmOverloads constructor(
 
     private fun showTagActionMenu(name: String, translated: String?) {
         val hasTranslation = !translated.isNullOrBlank()
-        // 顺序：原文 / 译文（可选）/ 固定（host 提供 onPinTag 才有）/ 添加为同义词 / 屏蔽
+        // 顺序：原文 / 译文（可选）/ 翻译 / 固定（host 提供 onPinTag 才有）/ 添加为同义词 / 屏蔽
         val labels = mutableListOf<String>()
         val actions = mutableListOf<() -> Unit>()
         labels.add(context.getString(R.string.v3_tag_menu_copy_original))
@@ -448,6 +452,17 @@ class V3TagFlowView @JvmOverloads constructor(
         if (hasTranslation) {
             labels.add(context.getString(R.string.v3_tag_menu_copy_translation))
             actions.add { copyToClipboard(translated!!) }
+        }
+        // 翻译原文（#1054）：冷门 tag 没译名、或 pixiv 只给英文译名时现翻成 app 内语言。
+        // 不按「有没有译名」做条件隐藏——译名是英文的情况判不准，恒显示最省心。
+        // 协程挂在宿主 Fragment 的 view lifecycle 上（列表/详情都在 Fragment 里），
+        // 拿不到再退到 Activity；两者都没有的场合不会有这个菜单。
+        labels.add(context.getString(R.string.string_translate_caption))
+        actions.add {
+            val owner = findViewTreeLifecycleOwner() ?: (context as? LifecycleOwner)
+            if (owner != null) {
+                translateTag(context, owner.lifecycleScope, name)
+            }
         }
         val pinHandler = onPinTag
         if (pinHandler != null) {

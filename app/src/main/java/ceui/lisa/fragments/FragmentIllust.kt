@@ -41,6 +41,7 @@ import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.common.IllustMuteStore
+import ceui.pixiv.ui.translate.translateTag
 import ceui.pixiv.ui.detail.TagEditSheet
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
 import ceui.lisa.database.AppDatabase
@@ -472,6 +473,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 }
                 .addAction(getString(R.string.string_120)) { dialog, index ->
                     Common.copy(mContext, tagName)
+                    dialog.dismiss()
+                }
+                // 翻译原文（#1054），与 V3 长按菜单同一入口
+                .addAction(getString(R.string.string_translate_caption)) { dialog, index ->
+                    translateTag(mContext, viewLifecycleOwner.lifecycleScope, tagName)
                     dialog.dismiss()
                 }
             // 同义词词典（issue #904）功能总开关：默认关闭，关闭时菜单与本功能存在之前完全一致
