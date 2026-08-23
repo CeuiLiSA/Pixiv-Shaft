@@ -5,9 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import ceui.lisa.models.ModelObject
-import ceui.lisa.models.NovelBean
 import ceui.lisa.models.ObjectSpec
-import ceui.lisa.models.UserBean
 import java.io.Serializable
 import kotlin.collections.set
 import kotlin.reflect.KClass
@@ -50,29 +48,21 @@ object ObjectPool {
         return get(illustId)
     }
 
-    fun getNovel(novelId: Long): LiveData<NovelBean> {
+    fun getNovel(novelId: Long): LiveData<Novel> {
         return get(novelId)
     }
 
-    fun updateUser(userBean: UserBean) {
-        update(userBean)
+    fun updateUser(user: User) {
+        update(user)
     }
 
     fun followUser(userId: Long) {
-        get<UserBean>(userId).value?.let { exist ->
-            exist.isIs_followed = true
-            update(exist)
-        }
         get<User>(userId).value?.let { exist ->
             update(exist.copy(is_followed = true))
         }
     }
 
     fun unFollowUser(userId: Long) {
-        get<UserBean>(userId).value?.let { exist ->
-            exist.isIs_followed = false
-            update(exist)
-        }
         get<User>(userId).value?.let { exist ->
             update(exist.copy(is_followed = false))
         }
@@ -185,9 +175,6 @@ object ObjectPool {
             }
             "Illust" -> {
                 ObjectSpec.Illust
-            }
-            "UserBean" -> {
-                ObjectSpec.USER
             }
             "User" -> {
                 ObjectSpec.KUser

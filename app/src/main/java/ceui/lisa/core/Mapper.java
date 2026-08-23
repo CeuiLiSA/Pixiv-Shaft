@@ -8,7 +8,7 @@ import ceui.lisa.helper.IllustNovelFilter;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.loxia.Illust;
-import ceui.lisa.models.NovelBean;
+import ceui.loxia.Novel;
 import ceui.loxia.ObjectPool;
 import io.reactivex.functions.Function;
 
@@ -30,7 +30,7 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
 
     /**
      * 搜索「仅看 AI」客户端过滤（issue #909）：true 时只留下 AI 生成作品
-     * （插画 {@link Illust#isCreatedByAI()} / 小说 {@link NovelBean#isCreatedByAI()}，
+     * （插画 {@link Illust#isCreatedByAI()} / 小说 {@link Novel#isCreatedByAI()}，
      * 即 ai_type==2），其余剔除。默认 false 对其它所有列表无副作用——只有搜索 repo 经
      * {@link #setSearchOnlyAi} 显式开启。屏蔽 AI 仍走全局 {@link Shaft.sSettings#isDeleteAIIllust()}。
      */
@@ -86,8 +86,8 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
                 }
                 ObjectPool.INSTANCE.updateIllust((Illust) o);
             }
-            if (o instanceof NovelBean) {
-                NovelBean novel = (NovelBean) o;
+            if (o instanceof Novel) {
+                Novel novel = (Novel) o;
                 boolean isTagBanned = IllustNovelFilter.judgeTag(novel);
                 boolean isIdBanned = IllustNovelFilter.judgeID(novel);
                 boolean isUserBanned = IllustNovelFilter.judgeUserID(novel);
@@ -95,7 +95,7 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
                 // 小说专属：正文字数区间 + 超长标签名自动屏蔽（issue #743）。插画分支不挂。
                 boolean isSpamBanned = IllustNovelFilter.judgeNovelSpam(novel);
                 if (isTagBanned || isIdBanned || isUserBanned || isR18FilterBanned || isSpamBanned
-                        || searchR18Rejects(novel.getX_restrict() > 0)
+                        || searchR18Rejects(novel.getX_restrict() != null && novel.getX_restrict() > 0)
                         || (searchOnlyAi && !novel.isCreatedByAI())) {   // 仅看 AI：剔除非 AI 小说
                     dash.add(o);
                 }

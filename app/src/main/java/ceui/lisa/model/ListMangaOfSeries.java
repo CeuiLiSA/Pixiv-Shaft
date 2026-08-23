@@ -5,7 +5,7 @@ import java.util.List;
 import ceui.lisa.interfaces.ListShow;
 import ceui.loxia.Illust;
 import ceui.lisa.models.ImageUrlsBean;
-import ceui.lisa.models.UserBean;
+import ceui.loxia.User;
 
 public class ListMangaOfSeries implements ListShow<Illust> {
 
@@ -64,7 +64,7 @@ public class ListMangaOfSeries implements ListShow<Illust> {
         private String title;
         private String create_date;
         private String caption;
-        private UserBean user;
+        private User user;
         private ImageUrlsBean cover_image_urls;
 
         public int getId() {
@@ -123,11 +123,11 @@ public class ListMangaOfSeries implements ListShow<Illust> {
             this.caption = caption;
         }
 
-        public UserBean getUser() {
+        public User getUser() {
             return user;
         }
 
-        public void setUser(UserBean user) {
+        public void setUser(User user) {
             this.user = user;
         }
 

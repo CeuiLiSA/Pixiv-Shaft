@@ -19,7 +19,6 @@ import ceui.lisa.databinding.ActivityUserV3Binding
 import ceui.lisa.helper.UserIllustJumpHelper
 import ceui.lisa.http.NullCtrl
 import ceui.lisa.http.Retro
-import ceui.lisa.models.UserBean
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.models.UserFollowDetail
 import ceui.lisa.utils.Common
@@ -39,6 +38,7 @@ import ceui.loxia.Event
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressTextButton
+import ceui.loxia.User
 import ceui.loxia.WebUserDetail
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.realCoverUrl
@@ -136,14 +136,14 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             mUserViewModel.isUserBlocked.postValue(blocked)
         }
 
-        ObjectPool.get<UserBean>(userId.toLong()).observe(this) { user ->
+        ObjectPool.get<User>(userId.toLong()).observe(this) { user ->
             updateFollowState(user)
         }
         // 「怎么关的」是另一半事实，有自己的通知渠道（user/follow/detail 补上私密关注时
         // is_followed 没变，上面那条不会响）。见 FollowVisibility.changes。
         FollowVisibility.changes.observe(this) { changed ->
             if (changed == userId.toLong()) {
-                ObjectPool.get<UserBean>(userId.toLong()).value?.let { updateFollowState(it) }
+                ObjectPool.get<User>(userId.toLong()).value?.let { updateFollowState(it) }
             }
         }
     }
@@ -261,7 +261,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserDetailResponse>() {
                 override fun success(userResponse: UserDetailResponse) {
-                    // UserBean 池更新 → updateFollowState 重绑关注按钮;
+                    // User 池更新 → updateFollowState 重绑关注按钮;
                     // user LiveData 更新 → displayUser 重绑 header UI(幂等)。
                     ObjectPool.updateUser(userResponse.user)
                     // 下拉刷新后允许重选最新有封面小说(封面可能随新投稿变化)
@@ -280,10 +280,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     /** 看的是自己：把服务端最新资料回写会话，侧边栏/“我的”头像跟着更新。 */
     private fun writeBackSelfProfile(userResponse: UserDetailResponse) {
         if (userId.toLong() != SessionManager.loggedInUid) return
-        val loxiaUser = Shaft.sGson.fromJson(
-            Shaft.sGson.toJson(userResponse.user), ceui.loxia.User::class.java
-        )
-        SessionManager.ingestFreshUser(loxiaUser, userId.toLong())
+        SessionManager.ingestFreshUser(userResponse.user, userId.toLong())
     }
 
     override fun initData() {
@@ -299,12 +296,11 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                     writeBackSelfProfile(userResponse)
                     // Record user visit history
                     runCatching {
-                        val loxiaUser = Shaft.sGson.fromJson(Shaft.sGson.toJson(userResponse.user), ceui.loxia.User::class.java)
-                        (application as? ceui.loxia.ServicesProvider)?.entityWrapper?.visitUser(this@UserActivityV3, loxiaUser)
+                        (application as? ceui.loxia.ServicesProvider)?.entityWrapper?.visitUser(this@UserActivityV3, userResponse.user)
                     }
                     Shaft.appViewModel.updateFollowUserStatus(
                         userId,
-                        if (userResponse.user.isIs_followed)
+                        if (userResponse.user.is_followed == true)
                             AppLevelViewModel.FollowUserStatus.FOLLOWED
                         else
                             AppLevelViewModel.FollowUserStatus.NOT_FOLLOW
@@ -460,9 +456,9 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         }
     }
 
-    private fun updateFollowState(user: UserBean) {
+    private fun updateFollowState(user: User) {
         if (baseBind == null) return
-        if (user.isIs_followed) {
+        if (user.is_followed == true) {
             baseBind.follow.isVisible = false
             baseBind.unfollow.isVisible = true
             baseBind.unfollow.text = getString(followedLabelRes(userId))
@@ -498,7 +494,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         val isNovelistOnly =
             profile.total_illusts == 0 && profile.total_manga == 0 && profile.total_novels > 0
         // 开启「接受约稿」才展示「约稿中」tab(紧贴资料左侧)
-        val isAcceptRequest = user.isIs_accept_request
+        val isAcceptRequest = user.is_accept_request == true
 
         if (tabKinds.isEmpty()) {
             // 首次进页:详情到手,一次性建全量 tab(有漫画/小说作品 / 开启约稿才含对应 tab)
@@ -551,7 +547,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
         // Avatar
         Glide.with(mContext).load(GlideUtil.getHead(user)).into(baseBind.userAvatar)
-        val avatarUrl = user.profile_image_urls?.getMaxImage()
+        val avatarUrl = user.profile_image_urls?.findMaxSizeUrl()
         if (!avatarUrl.isNullOrEmpty()) {
             baseBind.userAvatar.setOnClickListener {
                 openImageDetail(avatarUrl, "user_${user.id}_avatar")
@@ -559,7 +555,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         }
 
         // Premium
-        if (user.isIs_premium) {
+        if (user.is_premium == true) {
             baseBind.premiumRing.visibility = View.VISIBLE
             baseBind.premiumBadge.visibility = View.VISIBLE
         }
@@ -726,11 +722,11 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
         if (data.profile.total_illusts > 0) {
             labels.add("跳转到插画…")
-            actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, "插画作品") }
+            actions.add { jumpTo(data.user.id.toInt(), UserIllustJumpHelper.Kind.ILLUST, "插画作品") }
         }
         if (data.profile.total_manga > 0) {
             labels.add("跳转到漫画…")
-            actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, "漫画作品") }
+            actions.add { jumpTo(data.user.id.toInt(), UserIllustJumpHelper.Kind.MANGA, "漫画作品") }
         }
         labels.add(getString(R.string.string_436)) // 相关用户
         actions.add {

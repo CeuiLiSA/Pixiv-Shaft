@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey;
 
 import com.google.gson.Gson;
 
-import ceui.lisa.models.UserModel;
+import ceui.loxia.AccountResponse;
 
 @Entity(tableName = "user_table")
 public final class UserEntity {
@@ -48,7 +48,7 @@ public final class UserEntity {
         this.userGson = userGson;
     }
 
-    public UserModel getUser(Gson gson) {
-        return gson.fromJson(userGson, UserModel.class);
+    public AccountResponse getUser(Gson gson) {
+        return gson.fromJson(userGson, AccountResponse.class);
     }
 }

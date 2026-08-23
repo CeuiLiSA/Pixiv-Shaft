@@ -5,7 +5,6 @@ import java.util.List;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.loxia.Illust;
-import ceui.lisa.models.UserBean;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.User;
@@ -35,16 +34,16 @@ public class AppLevelViewModelHelper {
                 }
             } else if (list.get(0).getClass().equals(UserPreviewsBean.class)) {
                 for (UserPreviewsBean userPreviewsBean : (List<UserPreviewsBean>) list) {
-                    UserBean user = userPreviewsBean.getUser();
+                    User user = userPreviewsBean.getUser();
                     if (user == null) {
                         continue;
                     }
-                    Shaft.appViewModel.updateFollowUserStatus(user.getId(), getFollowUserStatus(user));
+                    Shaft.appViewModel.updateFollowUserStatus((int) user.getId(), getFollowUserStatus(user));
                 }
-            } else if (list.get(0).getClass().equals(UserBean.class)) {
-                for (UserBean userBean : (List<UserBean>) list) {
-                    int userId = userBean.getId();
-                    int followUserStatus = getFollowUserStatus(userBean);
+            } else if (list.get(0).getClass().equals(User.class)) {
+                for (User user : (List<User>) list) {
+                    int userId = (int) user.getId();
+                    int followUserStatus = getFollowUserStatus(user);
                     Shaft.appViewModel.updateFollowUserStatus(userId, followUserStatus);
                 }
             } else if (list.get(0).getClass().equals(IllustHistoryEntity.class)) {
@@ -62,15 +61,11 @@ public class AppLevelViewModelHelper {
         }
     }
 
-    private static int getFollowUserStatus(UserBean user) {
-        return user.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW;
-    }
-
     private static int getFollowUserStatus(User user) {
         return Boolean.TRUE.equals(user.is_followed()) ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW;
     }
 
-    public static void updateFollowUserStatus(UserBean user, int method) {
-        Shaft.appViewModel.updateFollowUserStatus(user.getId(), getFollowUserStatus(user), method);
+    public static void updateFollowUserStatus(User user, int method) {
+        Shaft.appViewModel.updateFollowUserStatus((int) user.getId(), getFollowUserStatus(user), method);
     }
 }

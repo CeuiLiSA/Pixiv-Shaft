@@ -143,7 +143,7 @@ class LikeNovelFeedFragment : NovelFeedFragment() {
         private fun mapLikeNovelPage(novels: List<Novel>): List<FeedItem> {
             // 「过滤无效收藏」设置：对齐 legacy beforeFirstLoad —— 失效作品 / 作者缺失 / 作者
             // id 为 0 的残缺条目一起挡，且都只在设置开启时才挡（小说侧的通用过滤链不含 visible，
-            // 见类 KDoc）。visible 用 `== false` 而不是 `!= true`：legacy NovelBean.visible 是
+            // 见类 KDoc）。visible 用 `== false` 而不是 `!= true`：legacy Novel.visible 是
             // 原始 boolean，字段缺失会默认 false 把整页清空；字段缺失不是「作品失效」的证据，
             // 这里只认服务端明确说的 false（字段照常返回时两者等价）。
             val filterInvalid = Shaft.sSettings.isFilterInvalidBookmarks

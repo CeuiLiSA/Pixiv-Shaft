@@ -1,5 +1,6 @@
 package ceui.lisa.models;
 
+import ceui.loxia.User;
 import java.io.Serializable;
 
 public class NovelSeriesItem implements Serializable {
@@ -41,7 +42,7 @@ public class NovelSeriesItem implements Serializable {
     private boolean is_concluded;
     private int content_count;
     private int total_character_count;
-    private UserBean user;
+    private User user;
     private String display_text;
     private boolean watchlist_added;
 
@@ -101,11 +102,11 @@ public class NovelSeriesItem implements Serializable {
         this.total_character_count = total_character_count;
     }
 
-    public UserBean getUser() {
+    public User getUser() {
         return user;
     }
 
-    public void setUser(UserBean user) {
+    public void setUser(User user) {
         this.user = user;
     }
 

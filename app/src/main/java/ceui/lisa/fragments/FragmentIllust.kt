@@ -23,7 +23,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -51,7 +50,6 @@ import ceui.lisa.download.IllustDownload
 import ceui.loxia.Illust
 import ceui.lisa.models.ObjectSpec
 import ceui.lisa.models.TagsBean
-import ceui.lisa.models.UserBean
 import ceui.lisa.notification.CallBackReceiver
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.DensityUtil
@@ -65,7 +63,6 @@ import ceui.loxia.ProgressTextButton
 import ceui.loxia.combineLatest
 import ceui.loxia.toTagsBeans
 import ceui.loxia.User
-import ceui.loxia.toUserBean
 import ceui.loxia.flag.FlagDescFragment
 import ceui.pixiv.ui.share.shareFirstImage
 import ceui.pixiv.ui.synonym.SynonymOperate
@@ -128,19 +125,12 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             (baseBind.recyclerView.adapter as? IllustAdapter)?.seedPageDimensions(dims)
         }
         val userId = illustLiveData.value?.user?.id ?: return
-        // 关注态两条渠道都要观察：列表路径（Mapper / feeds 合池）现在只往池里放 loxia User
-        //（Illust.user 已是 User），legacy UserBean 只有用户页自己拉过 user/detail 才会有。
-        // 只盯 UserBean 的话，从列表点进来的作品关注按钮永远绑不上。
-        // 布局 (baseBind.user) 和 updateUser 都吃 UserBean，所以把两条渠道合成一条 UserBean 流。
-        val userLiveData = MediatorLiveData<UserBean>().apply {
-            addSource(ObjectPool.get<UserBean>(userId)) { value = it }
-            addSource(ObjectPool.get<User>(userId)) { value = it.toUserBean() }
-        }
+        val userLiveData = ObjectPool.get<User>(userId)
         userLiveData.observe(viewLifecycleOwner) { user ->
             updateUser(user)
-            Common.showLog("updateUser invoke ${user.isIs_followed}")
+            Common.showLog("updateUser invoke ${user.is_followed}")
         }
-        // 「怎么关的」不在 UserBean / User 里，变化时上面那条不会响 —— 同 V3 详情页，见 FollowVisibility.changes。
+        // 「怎么关的」不在 User 里，变化时上面那条不会响 —— 同 V3 详情页，见 FollowVisibility.changes。
         FollowVisibility.changes.observe(viewLifecycleOwner) { changed ->
             if (changed == userId) userLiveData.value?.let { updateUser(it) }
         }
@@ -213,33 +203,34 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
     }
 
-    private fun updateUser(user: UserBean) {
-        if (user.isIs_followed) {
+    private fun updateUser(user: User) {
+        val userId = user.id.toInt()
+        if (user.is_followed == true) {
             baseBind.follow.isVisible = false
             baseBind.unfollow.isVisible = true
-            baseBind.unfollow.text = getString(followedLabelRes(user.id))
+            baseBind.unfollow.text = getString(followedLabelRes(userId))
             baseBind.unfollow.setOnClick {
-                unfollowUser(it, user.id)
+                unfollowUser(it, userId)
             }
         } else {
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true
             baseBind.follow.setOnClick {
-                followUser(it, user.id, PixivActions.defaultFollowRestrict())
+                followUser(it, userId, PixivActions.defaultFollowRestrict())
             }
             baseBind.follow.setOnLongClickListener {
-                followUser((it as ProgressTextButton), user.id, Params.TYPE_PRIVATE)
+                followUser((it as ProgressTextButton), userId, Params.TYPE_PRIVATE)
                 true
             }
         }
         baseBind.relaIllustBrief.setOnClick {
             val intent = Intent(mContext, UActivity::class.java)
-            intent.putExtra(Params.USER_ID, user.id)
+            intent.putExtra(Params.USER_ID, userId)
             startActivity(intent)
         }
         baseBind.userName.setOnClick {
             val intent = Intent(mContext, UActivity::class.java)
-            intent.putExtra(Params.USER_ID, user.id)
+            intent.putExtra(Params.USER_ID, userId)
             startActivity(intent)
         }
         baseBind.userName.setOnLongClickListener {
@@ -338,7 +329,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                     false
                 }
                 R.id.action_dislike -> {
-                    MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user?.toUserBean())
+                    MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
                     true
                 }
                 R.id.action_copy_link -> {

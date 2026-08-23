@@ -58,19 +58,18 @@ import ceui.lisa.models.FramesBean;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
 import ceui.lisa.models.MarkedNovelItem;
-import ceui.lisa.models.NovelBean;
+import ceui.loxia.Novel;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.NovelSeriesItem;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
-import ceui.lisa.models.UserBean;
-import ceui.lisa.models.UserModel;
+import ceui.loxia.AccountResponse;
 import ceui.loxia.Illust;
+import ceui.loxia.User;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.IllustDetailSupportKt;
 import ceui.loxia.ObjectPool;
-import ceui.loxia.User;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -94,10 +93,10 @@ public class PixivOperate {
     private static final Map<Long, Long> gifEncodingWorkSet = new HashMap<>();
     private static final long reEncodeTimeThresholdMillis = 60 * 1000;
 
-    public static void refreshUserData(Callback<UserModel> callback) {
+    public static void refreshUserData(Callback<AccountResponse> callback) {
         String refreshToken = SessionManager.INSTANCE.getRefreshToken();
         if (refreshToken == null) return;
-        Call<UserModel> call = Retro.getAccountTokenApi().newRefreshToken(
+        Call<AccountResponse> call = Retro.getAccountTokenApi().newRefreshToken(
                 PixivOAuthConfig.PIXIV_ANDROID.getClientId(),
                 PixivOAuthConfig.PIXIV_ANDROID.getClientSecret(),
                 "refresh_token",
@@ -198,7 +197,7 @@ public class PixivOperate {
         PixivOperate.insertIllustViewHistory(illustsBean);
     }
 
-    // postLikeNovel(NovelBean, String, View) 已删除：全仓无调用方（小说收藏的现役入口是
+    // postLikeNovel(Novel, String, View) 已删除：全仓无调用方（小说收藏的现役入口是
     // PixivActions.setNovelBookmark / toggleNovelBookmark，走限流队列），而它还留着一整条
     // 自己打接口 + 自己发广播 + 自己做自动关注的老路径。留着只会给下一个人一个绕开队列的
     // 现成入口——两条写路径都拿 ObjectPool 当真源，队列冷却时会以相反顺序落到服务端。
@@ -390,19 +389,19 @@ public class PixivOperate {
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().updateMuteTag(muteEntity);
     }
 
-    public static void muteUser(UserBean userBean) {
-        muteUser(userBean, true);
+    public static void muteUser(User user) {
+        muteUser(user, true);
     }
 
     /**
      * {@code showToast=false} 给「屏蔽设定」sheet 用:它一次保存可能同时动标签和作者,
      * 逐项弹 toast 会连着刷好几条,由调用方在最后统一发一条(同 {@link #unMuteTag(TagsBean, boolean)})。
      */
-    public static void muteUser(UserBean userBean, boolean showToast) {
+    public static void muteUser(User user, boolean showToast) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.MUTE_USER);
-        muteEntity.setId(userBean.getId());
-        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setId((int) user.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(user));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
         if (showToast) {
@@ -410,16 +409,16 @@ public class PixivOperate {
         }
     }
 
-    public static void unMuteUser(UserBean userBean) {
-        unMuteUser(userBean, true);
+    public static void unMuteUser(User user) {
+        unMuteUser(user, true);
     }
 
-    /** 见 {@link #muteUser(UserBean, boolean)}。 */
-    public static void unMuteUser(UserBean userBean, boolean showToast) {
+    /** 见 {@link #muteUser(User, boolean)}。 */
+    public static void unMuteUser(User user, boolean showToast) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.MUTE_USER);
-        muteEntity.setId(userBean.getId());
-        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setId((int) user.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(user));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
         if (showToast) {
@@ -427,21 +426,21 @@ public class PixivOperate {
         }
     }
 
-    public static void blockUser(UserBean userBean) {
+    public static void blockUser(User user) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.BLOCK_USER);
-        muteEntity.setId(userBean.getId());
-        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setId((int) user.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(user));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
         Common.showToast(Shaft.getContext().getString(R.string.string_382));
     }
 
-    public static void unBlockUser(UserBean userBean) {
+    public static void unBlockUser(User user) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.BLOCK_USER);
-        muteEntity.setId(userBean.getId());
-        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setId((int) user.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(user));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
         Common.showToast(Shaft.getContext().getString(R.string.string_383));
@@ -458,7 +457,7 @@ public class PixivOperate {
     }
 
     /** 屏蔽单篇小说，同 {@link #muteIllust}。 */
-    public static void muteNovel(NovelBean novelBean) {
+    public static void muteNovel(Novel novelBean) {
         NovelMuteStore.INSTANCE.setMuted(novelBean.getId(), true, () -> novelBean);
         Common.showToast(Shaft.getContext().getString(R.string.string_384));
     }
@@ -521,7 +520,7 @@ public class PixivOperate {
         }
     }
 
-    public static void insertNovelViewHistory(NovelBean novelBean) {
+    public static void insertNovelViewHistory(Novel novelBean) {
         if (novelBean == null) {
             return;
         }
@@ -529,7 +528,7 @@ public class PixivOperate {
         if (novelBean.getId() > 0) {
             Schedulers.io().scheduleDirect(() -> {
                 IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
-                illustHistoryEntity.setIllustID(novelBean.getId());
+                illustHistoryEntity.setIllustID((int) novelBean.getId());
                 illustHistoryEntity.setType(1);
                 illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(novelBean));
                 illustHistoryEntity.setTime(System.currentTimeMillis());

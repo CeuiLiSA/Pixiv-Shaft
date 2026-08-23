@@ -1,10 +1,7 @@
 package ceui.lisa.helper
 
-import ceui.lisa.models.NovelBean
-import ceui.lisa.models.TagsBean
 import ceui.loxia.Novel
 import ceui.loxia.Tag
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -15,8 +12,7 @@ import org.junit.Test
  * 打的是 [IllustNovelFilter.judgeNovelSpam] 阈值显式传入的那层——读 Shaft.sSettings 的便捷重载
  * 会触发 Application 子类的类初始化，在裸 JVM 单测里必炸，所以阈值在生产代码里就分了层。
  *
- * 每条断言都同时过 legacy [NovelBean]（走 Mapper，搜索等列表）和 loxia [Novel]（走 NovelFeedItem，
- * feeds 框架列表）两个重载并要求判定一致——不一致的话用户在搜索页和首页推荐会看到两套结果。
+ * Novel 已完成单模型迁移，搜索 Mapper 和 feeds 列表现在共用同一个判定入口。
  */
 class NovelSpamFilterTest {
 
@@ -24,16 +20,9 @@ class NovelSpamFilterTest {
         const val OFF = 0
     }
 
-    private fun bean(textLength: Int, vararg tagNames: String): NovelBean =
-        NovelBean().apply {
-            text_length = textLength
-            tags = tagNames.map { TagsBean().apply { name = it } }
-        }
-
     private fun novel(textLength: Int, vararg tagNames: String): Novel =
         Novel(id = 1L, text_length = textLength, tags = tagNames.map { Tag(name = it) })
 
-    /** 两个重载判定一致 + 命中预期，这是本 feature 的核心不变式。 */
     private fun assertSpam(
         expected: Boolean,
         textLength: Int,
@@ -42,18 +31,10 @@ class NovelSpamFilterTest {
         maxLength: Int = OFF,
         maxTagNameLength: Int = OFF,
     ) {
-        val fromBean = IllustNovelFilter.judgeNovelSpam(
-            bean(textLength, *tagNames), minLength, maxLength, maxTagNameLength
-        )
-        val fromNovel = IllustNovelFilter.judgeNovelSpam(
+        val actual = IllustNovelFilter.judgeNovelSpam(
             novel(textLength, *tagNames), minLength, maxLength, maxTagNameLength
         )
-        assertEquals(
-            "NovelBean / Novel 两个重载判定不一致 (len=$textLength, tags=${tagNames.toList()})",
-            fromBean,
-            fromNovel,
-        )
-        if (expected) assertTrue(fromBean) else assertFalse(fromBean)
+        if (expected) assertTrue(actual) else assertFalse(actual)
     }
 
     @Test

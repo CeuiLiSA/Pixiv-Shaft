@@ -465,7 +465,7 @@ object PixivActions {
      * 关注态版本的 [writeIllustBookmarkLocally]。同样幂等，回滚传相反的值复用。
      *
      * 只管「关注了没」；「怎么关的」由 [FollowVisibility] 单独存，且已经在
-     * [setUserFollow] 里先写好了 —— [ObjectPool] 这一下是**同步**分发给 UserBean 观察者的，
+     * [setUserFollow] 里先写好了 —— [ObjectPool] 这一下是**同步**分发给 User 观察者的，
      * 作者栏就在这里重绘，那时可见性必须已经是新的。
      */
     internal fun writeUserFollowLocally(
@@ -494,8 +494,7 @@ object PixivActions {
     }
 
     private fun isFollowed(userId: Long): Boolean =
-        ObjectPool.get<ceui.loxia.User>(userId).value?.is_followed == true ||
-            ObjectPool.get<ceui.lisa.models.UserBean>(userId).value?.isIs_followed == true
+        ObjectPool.get<ceui.loxia.User>(userId).value?.is_followed == true
 
     /**
      * legacy 的三条跨列表同步广播（[Params.LIKED_ILLUST] / [Params.LIKED_NOVEL] /

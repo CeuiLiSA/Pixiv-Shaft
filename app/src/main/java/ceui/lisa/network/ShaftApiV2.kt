@@ -33,7 +33,7 @@ interface ShaftApiV2 {
 
     /**
      * 站长推荐数据源。每个 item 的 `bean` 字段直接就是 Pixiv 端的 Illust（illust /
-     * manga）或 NovelBean（novel）JSON，可以丢给 Gson 反序列化复用现成渲染管线。
+     * manga）或 Novel（novel）JSON，可以丢给 Gson 反序列化复用现成渲染管线。
      *
      * - type: illust | manga | novel
      * - window: day | week | month
@@ -78,7 +78,7 @@ interface ShaftApiV2 {
         val unique_clients: Int,
         val score: Double,
         val computed_at: Long,
-        /** 完整 Illust / NovelBean JSON，仅 include_meta=1 时存在。 */
+        /** 完整 Illust / Novel JSON，仅 include_meta=1 时存在。 */
         val bean: JsonObject?,
         /** 仅 most-viewed 榜返回:该作 pixiv 总浏览数(其它榜单无此字段,默认 0)。 */
         val view_count: Int = 0,
@@ -144,7 +144,7 @@ interface ShaftApiV2 {
     /**
      * 画师收藏总榜 —— 按画师全部作品的 pixiv 总收藏数求和排名(含 R-18)。服务端回 pixiv
      * user_previews 形状。user / illusts 都是原始 pixiv JSON(JsonObject),由 [ArtistRankRepo]
-     * 用 Shaft.sGson 反序列化成 UserBean / Illust(和 HotWorksFeed 一致,不用 Retrofit
+     * 用 Shaft.sGson 反序列化成 User / Illust(和 HotWorksFeed 一致,不用 Retrofit
      * 默认 Gson),拼成 ListUser 复用现成「画师 + 3 预览图」列表。翻页跟随 next_url。
      */
     @GET("api/v1/discover/artists")
@@ -188,7 +188,7 @@ interface ShaftApiV2 {
      *
      * 三个可选筛选,可任意组合(Retrofit 对 null @Query 不发该参数,所以不传即无筛选):
      * - [ai]   only=只看 AI 生成 / exclude=只看非 AI。⚠️ **novel 没有 illust_ai_type 字段**
-     *          (pixiv 的 NovelBean 里就没有),传了会 400 `ai_filter_unsupported_for_novel`
+     *          (pixiv 的 Novel 里就没有),传了会 400 `ai_filter_unsupported_for_novel`
      *          —— 服务端刻意不静默返回空,免得被读成「小说里没有 AI 作品」。
      * - [year] 创作年份(4 位)。可选年份见 [discoverYears]。
      * - [q]    标题 **或** 画师名子串模糊搜索,大小写不敏感。
@@ -321,7 +321,7 @@ interface ShaftApiV2 {
      * 当前客户端自己的操作日志。client_id 是本地生成的 sha256(UUID)，只能查到自己的事件。
      * - eventType: null=全部；bookmark / unbookmark / download / follow / unfollow
      * - before: 上一页最后一条的 id（服务端按 id DESC 排），首页传 null
-     * 每条 item.meta 直接是当时上报的 Illust / NovelBean / UserBean JSON。
+     * 每条 item.meta 直接是当时上报的 Illust / Novel / User JSON。
      */
     @GET("api/v1/events/history")
     suspend fun eventsHistory(

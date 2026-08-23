@@ -1,14 +1,16 @@
 package ceui.lisa.models;
 
+import ceui.loxia.Novel;
+
 public class NovelSearchResponse {
 
-    private NovelBean novel;
+    private Novel novel;
 
-    public NovelBean getNovel() {
+    public Novel getNovel() {
         return novel;
     }
 
-    public void setNovel(NovelBean novel) {
+    public void setNovel(Novel novel) {
         this.novel = novel;
     }
 }

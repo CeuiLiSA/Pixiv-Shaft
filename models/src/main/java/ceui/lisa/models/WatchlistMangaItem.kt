@@ -1,5 +1,6 @@
 package ceui.lisa.models
 
+import ceui.loxia.User
 import java.io.Serializable
 
 class WatchlistMangaItem : Serializable {
@@ -13,5 +14,5 @@ class WatchlistMangaItem : Serializable {
             return field?.substring(0, 10)
         }
     var latest_content_id: Int? = null
-    var user: UserBean? = null
+    var user: User? = null
 }

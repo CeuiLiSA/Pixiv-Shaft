@@ -33,7 +33,7 @@ import java.time.LocalDate
  *     借号跑热门的路子在这里用不上：借来的是 OAuth token，不是网页会员 cookie。
  *
  * 过滤也必须自己补齐：app-api 路径的屏蔽 tag / 屏蔽画师 / R-18 / 反刷屏是 [ceui.lisa.core.Mapper]
- * 对着 NovelBean 做的，网页返回的是另一套对象，一条都不会命中。这里把两种条目都先映射成 loxia
+ * 对着 Novel 做的，网页返回的是另一套对象，一条都不会命中。这里把两种条目都先映射成 loxia
  * [Novel] 再走 [NovelFeedItem.of]（与全 app 同一条过滤链），搜索专属的 R-18 三档 / 仅看 AI 在
  * 本文件内补。
  */

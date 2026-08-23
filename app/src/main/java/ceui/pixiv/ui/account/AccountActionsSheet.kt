@@ -9,7 +9,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.setFragmentResult
 import ceui.lisa.R
 import ceui.lisa.databinding.SheetAccountActionsBinding
-import ceui.lisa.models.UserBean
+import ceui.loxia.User
 import ceui.lisa.utils.GlideUtil
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.utils.makeSheetTransparentAndFillNavBar
@@ -38,9 +38,9 @@ class AccountActionsSheet : BottomSheetDialogFragment() {
     private var _binding: SheetAccountActionsBinding? = null
     private val binding get() = _binding!!
 
-    private val user: UserBean? by lazy {
+    private val user: User? by lazy {
         @Suppress("DEPRECATION")
-        arguments?.getSerializable(KEY_USER) as? UserBean
+        arguments?.getSerializable(KEY_USER) as? User
     }
 
     private val isCurrent: Boolean get() = arguments?.getBoolean(KEY_IS_CURRENT) == true
@@ -94,7 +94,7 @@ class AccountActionsSheet : BottomSheetDialogFragment() {
             REQUEST_KEY,
             Bundle().apply {
                 putString(RESULT_ACTION, action)
-                putInt(RESULT_USER_ID, user?.id ?: 0)
+                putLong(RESULT_USER_ID, user?.id ?: 0L)
             }
         )
         dismissAllowingStateLoss()
@@ -126,7 +126,7 @@ class AccountActionsSheet : BottomSheetDialogFragment() {
         private const val KEY_IS_CURRENT = "is_current"
 
         /** 唯一入口。重复 show 由 TAG 挡掉（⋮ 容易连点）。 */
-        fun show(fm: FragmentManager, user: UserBean, isCurrent: Boolean) {
+        fun show(fm: FragmentManager, user: User, isCurrent: Boolean) {
             if (fm.isStateSaved || fm.findFragmentByTag(TAG) != null) return
             AccountActionsSheet().apply {
                 arguments = Bundle().apply {

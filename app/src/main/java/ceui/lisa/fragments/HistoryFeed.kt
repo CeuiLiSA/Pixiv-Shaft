@@ -11,14 +11,13 @@ import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.databinding.CellHistoryIllustV3Binding
 import ceui.lisa.databinding.CellHistoryNovelV3Binding
 import ceui.loxia.Illust
-import ceui.loxia.toUserBean
-import ceui.lisa.models.NovelBean
-import ceui.lisa.models.UserBean
+import ceui.loxia.Novel
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.HistoryEntry
 import ceui.loxia.ObjectPool
+import ceui.loxia.User
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedRenderer
@@ -72,7 +71,7 @@ data class HistoryIllustFeedItem(
 
 data class HistoryNovelFeedItem(
     val entity: IllustHistoryEntity,
-    val novel: NovelBean,
+    val novel: Novel,
     val isSelectionMode: Boolean = false,
     val isSelected: Boolean = false,
 ) : FeedItem {
@@ -134,8 +133,8 @@ class HistoryFeedSource(
                         ObjectPool.update(illust)
                     }
                     illust.user?.let { user ->
-                        if (ObjectPool.get<UserBean>(user.id.toLong()).value == null) {
-                            ObjectPool.updateUser(user.toUserBean())
+                        if (ObjectPool.get<User>(user.id).value == null) {
+                            ObjectPool.updateUser(user)
                         }
                     }
                 }
@@ -260,7 +259,7 @@ class HistoryFeedSource(
                 ?: return@mapNotNull null
             HistoryIllustFeedItem(entity, illust)
         } else {
-            val novel = Shaft.sGson.fromJson(entity.illustJson, NovelBean::class.java)
+            val novel = Shaft.sGson.fromJson(entity.illustJson, Novel::class.java)
                 ?: return@mapNotNull null
             HistoryNovelFeedItem(entity, novel)
         }
@@ -433,7 +432,7 @@ fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedIte
                 cell.itemOrNull?.let { item -> confirmDeleteHistory(item.entity) }
             }
             binding.author.setOnClickListener {
-                cell.itemOrNull?.novel?.user?.id?.let { uid -> openHistoryUser(uid) }
+                cell.itemOrNull?.novel?.user?.id?.let { uid -> openHistoryUser(uid.toInt()) }
             }
         },
         recycle = { it.binding.illustImage.clearGlideOnRecycle() },

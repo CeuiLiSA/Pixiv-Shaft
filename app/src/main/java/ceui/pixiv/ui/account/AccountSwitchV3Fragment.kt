@@ -20,8 +20,8 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentAccountSwitchV3Binding
 import ceui.lisa.databinding.ItemAccountSwitchRowV3Binding
 import ceui.lisa.fragments.SettingsCatalog
-import ceui.lisa.models.UserBean
-import ceui.lisa.models.UserModel
+import ceui.loxia.AccountResponse
+import ceui.loxia.User
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Local
@@ -69,10 +69,10 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
     private lateinit var palette: V3Palette
 
     /** 一个本地账号：DB 里存的登录态 JSON + 它的入库（= 登录 / 导入）时间。 */
-    private class LocalAccount(val model: UserModel, val user: UserBean, val loginTime: Long)
+    private class LocalAccount(val model: AccountResponse, val user: User, val loginTime: Long)
 
     /** 已渲染出来的账号，按 uid 索引 —— [AccountActionsSheet] 的回调只带 uid 回来。 */
-    private val accountsByUid = mutableMapOf<Int, LocalAccount>()
+    private val accountsByUid = mutableMapOf<Long, LocalAccount>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -93,7 +93,7 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
         childFragmentManager.setFragmentResultListener(
             AccountActionsSheet.REQUEST_KEY, viewLifecycleOwner
         ) { _, bundle ->
-            val account = accountsByUid[bundle.getInt(AccountActionsSheet.RESULT_USER_ID)]
+            val account = accountsByUid[bundle.getLong(AccountActionsSheet.RESULT_USER_ID)]
                 ?: return@setFragmentResultListener
             when (bundle.getString(AccountActionsSheet.RESULT_ACTION)) {
                 AccountActionsSheet.ACTION_SWITCH -> switchTo(account)
@@ -165,7 +165,7 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
                     AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().allUser
                         .mapNotNull { entity ->
                             val model = runCatching {
-                                Shaft.sGson.fromJson(entity.userGson, UserModel::class.java)
+                                Shaft.sGson.fromJson(entity.userGson, AccountResponse::class.java)
                             }.getOrNull()
                             val user = model?.user ?: return@mapNotNull null
                             LocalAccount(model, user, entity.loginTime)
@@ -205,7 +205,7 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
      */
     private fun currentAccount(accounts: List<LocalAccount>): LocalAccount? {
         val currentUid = SessionManager.loggedInUid
-        accounts.firstOrNull { it.user.id.toLong() == currentUid }?.let { return it }
+        accounts.firstOrNull { it.user.id == currentUid }?.let { return it }
         val fallback = Local.getUser() ?: return null
         val user = fallback.user ?: return null
         return LocalAccount(fallback, user, 0L)
@@ -219,8 +219,8 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
         binding.currentHandle.text = "@${user.account.orEmpty()}"
         binding.currentMail.text = user.mail_address?.takeIf { it.isNotBlank() }
             ?: getString(R.string.no_mail_address)
-        binding.currentPremiumBadge.isVisible = user.isIs_premium
-        binding.badgePremium.isVisible = user.isIs_premium
+        binding.currentPremiumBadge.isVisible = user.is_premium == true
+        binding.badgePremium.isVisible = user.is_premium == true
         bindLoginTime(binding.currentLoginTime, account.loginTime)
         avatarGlide.load(GlideUtil.getHead(user))
             .error(R.drawable.no_profile)
@@ -239,7 +239,7 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
             user.account?.takeIf { it.isNotBlank() }?.let { "@$it" },
             user.mail_address?.takeIf { it.isNotBlank() },
         ).joinToString(" · ").ifEmpty { getString(R.string.no_mail_address) }
-        row.rowPremiumBadge.isVisible = user.isIs_premium
+        row.rowPremiumBadge.isVisible = user.is_premium == true
         bindLoginTime(row.rowTime, account.loginTime)
         avatarGlide.load(GlideUtil.getHead(user))
             .error(R.drawable.no_profile)

@@ -89,7 +89,7 @@ class UserV3InfoFragment : Fragment() {
         if (!TextUtils.isEmpty(user.comment)) {
             binding.bio.visibility = View.VISIBLE
             binding.bio.text = androidx.core.text.HtmlCompat.fromHtml(
-                user.comment, androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+                user.comment.orEmpty(), androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
             )
             binding.bio.movementMethod = android.text.method.LinkMovementMethod.getInstance()
         }
@@ -259,7 +259,7 @@ class UserV3InfoFragment : Fragment() {
 
         val chips = mutableListOf<Triple<String, String, Boolean>>()
         chips.add(Triple("User ID", user.id.toString(), true))
-        chips.add(Triple("Account", user.account, false))
+        chips.add(Triple("Account", user.account.orEmpty(), false))
 
         if (!TextUtils.isEmpty(profile.gender)) {
             val genderText = when (profile.gender) {
@@ -278,7 +278,7 @@ class UserV3InfoFragment : Fragment() {
         if (!TextUtils.isEmpty(profile.job)) {
             chips.add(Triple("Job", profile.job, false))
         }
-        chips.add(Triple("Premium", if (user.isIs_premium) "★ Premium User" else "Standard", false))
+        chips.add(Triple("Premium", if (user.is_premium == true) "★ Premium User" else "Standard", false))
         chips.add(Triple("Pixiv URL", "https://www.pixiv.net/users/${user.id}", true))
 
         val grid = binding.profileGrid

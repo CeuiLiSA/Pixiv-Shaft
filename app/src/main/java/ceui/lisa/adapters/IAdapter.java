@@ -41,7 +41,7 @@ import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.interfaces.OnItemLongClickListener;
 import ceui.loxia.Illust;
-import ceui.loxia.UserModelConverter;
+import ceui.loxia.LegacyTagConverter;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
@@ -272,8 +272,8 @@ public class IAdapter extends BaseAdapter<Illust, RecyIllustStaggerBinding> impl
                     public void onClick(View v) {
                         MuteTagSheet.show(
                                 ((FragmentActivity) mContext).getSupportFragmentManager(),
-                                illust.getTags() == null ? null : UserModelConverter.toTagsBeans(illust.getTags()),
-                                illust.getUser() == null ? null : UserModelConverter.toUserBean(illust.getUser()));
+                                illust.getTags() == null ? null : LegacyTagConverter.toTagsBeans(illust.getTags()),
+                                illust.getUser());
                         mNormalPopup.dismiss();
                     }
                 });

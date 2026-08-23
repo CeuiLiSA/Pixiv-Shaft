@@ -51,7 +51,6 @@ import ceui.loxia.ObjectType
 import ceui.loxia.combineLatest
 import ceui.loxia.requireNetworkStateManager
 import ceui.loxia.toTagsBeans
-import ceui.loxia.toUserBean
 import ceui.pixiv.chat.base.panel.PanelState
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
@@ -273,7 +272,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             }
         })
 
-        // 关注态:观察作者 UserBean,变更后重算 Artist 条目(关注切换只这条重绑)。
+        // 关注态:观察作者 User,变更后重算 Artist 条目(关注切换只这条重绑)。
         // 顺带接住 caption 后台补拉的落地(见 ArtworkV3ViewModel.ensureTrustedCaption)。
         ObjectPool.get<Illust>(illustId).observe(viewLifecycleOwner) { illust ->
             illust ?: return@observe
@@ -704,11 +703,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private fun attachArtistFollowObserver(authorId: Long) {
         if (authorId <= 0L || authorId == artistObservedUserId) return
         artistObservedUserId = authorId
-        // 关注了没：ObjectPool 的 User（详情拉取落池的那份）/ UserBean（legacy 画师页落池的那份）。
+        // 关注了没：统一观察 ObjectPool 的 User。
         ObjectPool.get<ceui.loxia.User>(authorId).observe(viewLifecycleOwner) {
-            refreshArtistFollowItem()
-        }
-        ObjectPool.get<ceui.lisa.models.UserBean>(authorId).observe(viewLifecycleOwner) {
             refreshArtistFollowItem()
         }
         // 怎么关的：FollowVisibility。两条渠道缺一不可 —— 画师主页拿 user/follow/detail 补上
@@ -1029,7 +1025,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 Common.copy(requireContext(), ShareIllust.URL_Head + illust.id)
             }
             item(getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
-                MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user?.toUserBean())
+                MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
             }
             item(getString(R.string.string_355), R.drawable.ic_visibility_off_black_24dp) {
                 PixivOperate.muteIllust(illust)

@@ -12,8 +12,8 @@ import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.CellEventHistoryBinding
 import ceui.loxia.Illust
-import ceui.lisa.models.NovelBean
-import ceui.lisa.models.UserBean
+import ceui.loxia.Novel
+import ceui.loxia.User
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.lisa.utils.GlideUtil
@@ -34,7 +34,7 @@ import timber.log.Timber
 
 /**
  * 操作记录列表（feeds 框架版）。原 EventHistoryHolder + CommonAdapter 迁到标准 FeedSource/Renderer。
- * item.meta 里塞了原始 Illust / NovelBean / UserBean，[EventHistoryFeedItem.parsed] lazy 反序列化一次。
+ * item.meta 里塞了原始 Illust / Novel / User，[EventHistoryFeedItem.parsed] lazy 反序列化一次。
  */
 data class EventHistoryFeedItem(val item: ShaftApiV2.EventHistoryItem) : FeedItem {
     override val feedKey: Any get() = item.id
@@ -92,7 +92,7 @@ private fun parseTarget(targetType: String, meta: JsonElement?): ParsedTarget? {
                 )
             }
             "novel" -> {
-                val bean = gson.fromJson(obj, NovelBean::class.java) ?: return null
+                val bean = gson.fromJson(obj, Novel::class.java) ?: return null
                 ParsedTarget(
                     title = bean.title ?: "",
                     thumbUrl = bean.image_urls?.medium ?: bean.image_urls?.square_medium,
@@ -106,13 +106,13 @@ private fun parseTarget(targetType: String, meta: JsonElement?): ParsedTarget? {
                 )
             }
             "user" -> {
-                val bean = gson.fromJson(obj, UserBean::class.java) ?: return null
+                val bean = gson.fromJson(obj, User::class.java) ?: return null
                 ParsedTarget(
                     title = bean.name ?: "",
                     thumbUrl = bean.profile_image_urls?.medium,
                     openIntent = { ctx ->
                         ctx.startActivity(Intent(ctx, UActivity::class.java).apply {
-                            putExtra(Params.USER_ID, bean.id)
+                            putExtra(Params.USER_ID, bean.id.toInt())
                         })
                     }
                 )

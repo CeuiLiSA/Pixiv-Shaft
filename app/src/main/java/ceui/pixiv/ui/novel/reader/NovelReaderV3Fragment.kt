@@ -26,11 +26,10 @@ import ceui.lisa.core.PageData
 import ceui.lisa.database.NovelAnnotationEntity
 import ceui.lisa.database.NovelBookmarkEntity
 import ceui.lisa.databinding.FragmentNovelReaderV3Binding
-import ceui.lisa.models.NovelBean
+import ceui.loxia.Novel
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
-import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.SeriesCache
 import ceui.pixiv.ui.common.ImageUrlViewer
@@ -1258,7 +1257,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             val idLong = args.getLong(ARG_NOVEL_ID, 0L)
             if (idLong != 0L) return idLong
             @Suppress("DEPRECATION")
-            val bean = args.getSerializable(Params.CONTENT) as? NovelBean
+            val bean = args.getSerializable(Params.CONTENT) as? Novel
             if (bean != null) return bean.id.toLong()
         }
         return 0L
@@ -1273,7 +1272,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         private const val COLOR_SEARCH_OTHER = 0x66FFEB3B           // semi-transparent yellow
 
         @JvmStatic
-        fun newInstance(novelBean: NovelBean): NovelReaderV3Fragment {
+        fun newInstance(novelBean: Novel): NovelReaderV3Fragment {
             return NovelReaderV3Fragment().apply {
                 arguments = Bundle().apply {
                     putSerializable(Params.CONTENT, novelBean)

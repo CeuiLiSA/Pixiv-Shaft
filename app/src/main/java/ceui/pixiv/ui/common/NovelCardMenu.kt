@@ -4,9 +4,7 @@ import android.content.Intent
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.ui.muted.MuteTagSheet
-import ceui.lisa.models.ProfileImageUrlsBean
 import ceui.lisa.models.TagsBean
-import ceui.lisa.models.UserBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.loxia.Novel
@@ -71,7 +69,7 @@ internal fun NovelFeedFragment.showNovelCardMenu(
         // 标签和作者两个 section 都没东西可勾才不挂这一项——挂了点下去也只能静默无反应。
         if (tagsToMute.isNotEmpty() || author != null) {
             item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
-                MuteTagSheet.show(childFragmentManager, tagsToMute, author?.toMuteUserBean())
+                MuteTagSheet.show(childFragmentManager, tagsToMute, author)
             }
         }
         // 相关评论：与 NovelTextFragment.onClickNovelComments 同一条路，
@@ -120,32 +118,6 @@ internal fun NovelFeedFragment.showNovelCardMenu(
             } else {
                 entityWrapper.addNovelToWatchLater(appContext, novel)
                 Common.showToast(R.string.watch_later_added)
-            }
-        }
-    }
-}
-
-/**
- * loxia [User] → legacy [UserBean]，只给「屏蔽设定」sheet 的「按作者屏蔽」用。
- *
- * 屏蔽记录存的是 [UserBean] 的 JSON（`tag_mute_table.tagJson`），「屏蔽画师」列表页读回来直接
- * 渲染，所以头像和关注态得一并折过去——只带 id 和名字的话，那一页会是一行没有头像的空壳。
- *
- * 插画卡那边不需要这一步：legacy `Illust.getUser()` 本来就是 [UserBean]。
- */
-private fun User.toMuteUserBean(): UserBean {
-    // 显式起个名再进 apply：两边都有 profile_image_urls / name / account 这些同名成员，
-    // 在 apply 块里裸写会静默解析到 UserBean 自己那个还是空的字段，头像就永远传不过去。
-    val source = this
-    return UserBean().apply {
-        id = source.id.toInt()
-        name = source.name
-        account = source.account
-        isIs_followed = source.is_followed == true
-        source.profile_image_urls?.let { urls ->
-            profile_image_urls = ProfileImageUrlsBean().apply {
-                medium = urls.medium ?: urls.px_170x170
-                px_170x170 = urls.px_170x170 ?: urls.medium
             }
         }
     }

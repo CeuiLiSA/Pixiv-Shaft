@@ -373,7 +373,7 @@ abstract class NovelFeedFragment(
      * 请求 key 存 tag，真没变时跳过这次重新加载，避免局部重绑时白发一次请求。
      */
     private fun loadNovelCover(cover: ImageView, novel: Novel, spoilered: Boolean) {
-        val url = GlideUtil.getUrl(novel.coverUrl)
+        val url = GlideUtil.getUrl(novel.resolvedCoverUrl())
         val width = 80.ppppx
         val height = 119.ppppx
         val requestKey = NovelImageRequestKey(url?.cacheKey, width, height, spoilered)
@@ -399,8 +399,8 @@ abstract class NovelFeedFragment(
      * 长按菜单里的「屏蔽 / 取消屏蔽此作品」和**点一下已打码的卡**（[unmuteOr]，= 取消屏蔽）
      * 都走这里。屏蔽态只有「在不在名单里」一种——理由见 [MutedWorkStore] 的类注释。
      *
-     * 收 [Novel] 而不是裸 id：屏蔽方向要把整本小说序列化进记录（字段名与 NovelBean 对得上，
-     * 「屏蔽记录」页直接按 NovelBean 解出来画封面/标题/作者）。取消方向用不上。
+     * 收 [Novel] 而不是裸 id：屏蔽方向要把整本小说序列化进记录（字段名与 Novel 对得上，
+     * 「屏蔽记录」页直接按 Novel 解出来画封面/标题/作者）。取消方向用不上。
      */
     internal fun setNovelMuted(novel: Novel, muted: Boolean) {
         if (!NovelMuteStore.setMuted(novel.id, muted) { novel }) return

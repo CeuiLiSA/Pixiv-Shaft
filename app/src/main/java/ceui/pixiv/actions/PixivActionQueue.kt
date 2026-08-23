@@ -4,10 +4,9 @@ import android.content.Context
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.loxia.Illust
-import ceui.lisa.models.NovelBean
+import ceui.loxia.Novel
 import ceui.lisa.utils.Common
 import ceui.loxia.Client
-import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
 import ceui.pixiv.actionqueue.ActionEvent
@@ -253,9 +252,8 @@ object PixivActionQueue {
 
             PixivActionTypes.NOVEL_BOOKMARK -> {
                 val payload = action.parsePayload<BookmarkPayload>() ?: return unparsable(action)
-                // 同上:Novel 池(V3)→ NovelBean 池(V2)→ API 兜底。
+                // 统一 Novel 池命中优先，进程重启后的补发再走 API 兜底。
                 val novel = ObjectPool.get<Novel>(payload.id).value
-                    ?: ObjectPool.get<NovelBean>(payload.id).value
                     ?: withContext(Dispatchers.IO) {
                         runCatching { Client.appApi.getNovel(payload.id).novel }.getOrNull()
                     }

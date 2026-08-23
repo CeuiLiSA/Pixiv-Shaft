@@ -19,7 +19,7 @@ import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.database.IllustHistoryEntity
 import ceui.loxia.Illust
-import ceui.lisa.models.NovelBean
+import ceui.loxia.Novel
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
@@ -162,7 +162,7 @@ class HistoryV3Adapter(
         private val delete: ImageView = itemView.findViewById(R.id.delete_item)
 
         fun bind(entity: IllustHistoryEntity) {
-            val novel = Shaft.sGson.fromJson(entity.illustJson, NovelBean::class.java) ?: return
+            val novel = Shaft.sGson.fromJson(entity.illustJson, Novel::class.java) ?: return
             Glide.with(context)
                 .load(GlideUtil.getUrl(novel.image_urls?.medium))
                 .placeholder(R.color.v3_surface_2)
@@ -182,7 +182,7 @@ class HistoryV3Adapter(
                 if (pos != RecyclerView.NO_POSITION) onRequestDelete(pos, entity)
             }
             author.setOnClickListener {
-                novel.user?.id?.let { openUser(it) }
+                novel.user?.id?.let { openUser(it.toInt()) }
             }
         }
     }
@@ -200,7 +200,7 @@ class HistoryV3Adapter(
         context.startActivity(intent)
     }
 
-    private fun openNovel(novel: NovelBean) {
+    private fun openNovel(novel: Novel) {
         if (context.tryOpenNovelReaderDirect(novel.id.toLong())) return
         val intent = Intent(context, TemplateActivity::class.java).apply {
             putExtra(Params.CONTENT, novel)

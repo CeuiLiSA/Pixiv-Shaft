@@ -110,7 +110,7 @@ object EventReporter {
         val type: String,
         val targetType: String,
         val targetId: Long,
-        /** Pre-serialized JSON of the Illust / NovelBean / UserBean.
+        /** Pre-serialized JSON of the Illust / Novel / User.
          *  Stored as String (not Any) so a re-queue after network failure
          *  doesn't pay the Gson cost again. null = no payload (server falls
          *  back to whatever it already has in illust_meta / user_meta). */

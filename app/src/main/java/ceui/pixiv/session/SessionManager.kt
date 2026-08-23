@@ -6,7 +6,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.models.UserModel
 import ceui.lisa.utils.Common
 import ceui.loxia.AccountResponse
 import ceui.loxia.Client
@@ -168,7 +167,7 @@ object SessionManager {
             val legacyJson = Shaft.sPreferences?.getString("user", "") ?: return
             if (legacyJson.isEmpty()) return
 
-            val userModel = gson.fromJson(legacyJson, UserModel::class.java) ?: return
+            val userModel = gson.fromJson(legacyJson, AccountResponse::class.java) ?: return
             Timber.d("Migrating user data from SharedPreferences to SessionManager (MMKV)")
             updateSession(userModel)
         } catch (ex: Exception) {
@@ -176,27 +175,23 @@ object SessionManager {
         }
     }
 
-    fun updateSession(userModel: UserModel?) {
+    fun updateSession(userModel: AccountResponse?) {
         if (userModel == null) {
             prefStore.putString(USER_KEY, "")
             _loggedInAccount.value = AccountResponse()
         } else {
-            val javaJson = gson.toJson(userModel)
-            val accountResponse = gson.fromJson(javaJson, AccountResponse::class.java)
-            prefStore.putString(USER_KEY, gson.toJson(accountResponse))
-            _loggedInAccount.value = accountResponse
+            prefStore.putString(USER_KEY, gson.toJson(userModel))
+            _loggedInAccount.value = userModel
         }
     }
 
-    fun postUpdateSession(userModel: UserModel?) {
+    fun postUpdateSession(userModel: AccountResponse?) {
         if (userModel == null) {
             prefStore.putString(USER_KEY, "")
             _loggedInAccount.postValue(AccountResponse())
         } else {
-            val javaJson = gson.toJson(userModel)
-            val accountResponse = gson.fromJson(javaJson, AccountResponse::class.java)
-            prefStore.putString(USER_KEY, gson.toJson(accountResponse))
-            _loggedInAccount.postValue(accountResponse)
+            prefStore.putString(USER_KEY, gson.toJson(userModel))
+            _loggedInAccount.postValue(userModel)
         }
     }
 
@@ -371,10 +366,8 @@ object SessionManager {
         // 会员状态**只**认调用方显式传进来的那份，不从 [fresh] 里捡。
         //
         // 权威字段是 user/detail 同一份响应里的 `profile.is_premium`（[UserResponse.isPremium]
-        // 读的就是它），而 [fresh] 是那份响应的 `user` 对象。走 legacy Java 模型的调用方
-        // （UActivity / UserActivityV3 的「看的是自己」回写）把 UserBean 序列化再转过来，
-        // 那里的 is_premium 是**基本类型 boolean**，缺字段时恒为 false —— 顺手合进来就等于
-        // 用一个默认值把付费账号写成非会员，而上报出去会让它掉出借号池。
+        // 读的就是它），而 [fresh] 是那份响应的 `user` 对象。该字段在精简响应里可能缺失，
+        // 因此不能拿缺省值覆盖已有会员状态，否则会上报成非会员并让账号掉出借号池。
         //
         // 于是这里的规则很硬：会员状态只在调用方说「我这次真读到了」时才变。前台静默同步
         // 和「我的」页都传 profile.is_premium，其余调用方一概动不了它。
@@ -386,7 +379,7 @@ object SessionManager {
 
     /**
      * Returns "Bearer xxx" format token for API Authorization header.
-     * This replaces the old UserModel.getAccess_token() which added "Bearer " prefix.
+     * AccountResponse stores the raw token; HTTP callers use this helper for the Bearer form.
      */
     fun getBearerToken(): String {
         return "Bearer " + getAccessToken()

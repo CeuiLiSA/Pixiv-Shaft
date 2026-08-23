@@ -271,7 +271,7 @@ class DoneListV3Fragment : Fragment() {
     }
 
     // fileName 形如 "pixiv_shaft_novel_<id>"；老纪录 / Cache key 改名等异常时
-    // 回退到 illustGson 里的 "id" 字段（NovelBean / loxia.Novel 都带）。
+    // 回退到 illustGson 里的 "id" 字段（Novel / loxia.Novel 都带）。
     private fun openNovel(group: DownloadGroup) {
         val novelId = extractNovelId(group.latest)
         if (novelId <= 0L) {

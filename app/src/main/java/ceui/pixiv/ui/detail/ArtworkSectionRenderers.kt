@@ -40,7 +40,6 @@ import ceui.lisa.databinding.SectionV3StatsBinding
 import ceui.lisa.databinding.SectionV3TagsBinding
 import ceui.loxia.Illust
 import ceui.lisa.models.TagsBean
-import ceui.lisa.models.UserBean
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
@@ -161,9 +160,7 @@ class ArtworkArtistItem(
         }
 
         fun resolveIsFollowed(user: User): Boolean {
-            return ObjectPool.get<User>(user.id).value?.is_followed
-                ?: ObjectPool.get<UserBean>(user.id).value?.isIs_followed
-                ?: (user.is_followed == true)
+            return ObjectPool.get<User>(user.id).value?.is_followed ?: (user.is_followed == true)
         }
 
         fun resolvePrivateFollow(illust: Illust): Boolean {

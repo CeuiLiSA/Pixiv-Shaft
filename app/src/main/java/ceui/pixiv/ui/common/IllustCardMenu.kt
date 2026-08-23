@@ -12,7 +12,6 @@ import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.loxia.requireEntityWrapper
 import ceui.loxia.toTagsBeans
-import ceui.loxia.toUserBean
 import ceui.pixiv.ui.bulk.BulkSelectStorage
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.slideshow.SlideshowLauncher
@@ -57,7 +56,7 @@ internal fun IllustFeedFragment.showCardMenu(
             onToggleSpoiler(!spoilered)
         }
         item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {
-            MuteTagSheet.show(childFragmentManager, bean.tags?.toTagsBeans(), bean.user?.toUserBean())
+            MuteTagSheet.show(childFragmentManager, bean.tags?.toTagsBeans(), bean.user)
         }
         item(getString(R.string.string_112), R.drawable.ic_baseline_comment_24) {
             startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {

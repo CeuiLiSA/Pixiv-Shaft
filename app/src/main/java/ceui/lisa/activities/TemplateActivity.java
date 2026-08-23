@@ -53,8 +53,8 @@ import ceui.lisa.fragments.FragmentViewPager;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWorkSpace;
 import ceui.loxia.Illust;
-import ceui.lisa.models.NovelBean;
-import ceui.lisa.models.UserBean;
+import ceui.loxia.Novel;
+import ceui.loxia.User;
 import ceui.lisa.utils.Params;
 import ceui.loxia.ObjectPool;
 import ceui.loxia.ObjectType;
@@ -246,7 +246,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return ceui.pixiv.ui.user.UserNovelFeedFragment.newInstance(
                             intent.getIntExtra(Params.USER_ID, 0));
                 case "小说详情": {
-                    NovelBean bean = (NovelBean) intent.getSerializableExtra(Params.CONTENT);
+                    Novel bean = (Novel) intent.getSerializableExtra(Params.CONTENT);
                     long tid = bean != null ? bean.getId() : intent.getLongExtra(Params.NOVEL_ID, 0L);
                     return NovelTextFragment.Companion.newInstance(tid);
                 }
@@ -258,7 +258,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                                 intent.getStringExtra(Params.LOCAL_TXT_TITLE),
                                 intent.getStringExtra(Params.LOCAL_TXT_KEY));
                     }
-                    NovelBean bean = (NovelBean) intent.getSerializableExtra(Params.CONTENT);
+                    Novel bean = (Novel) intent.getSerializableExtra(Params.CONTENT);
                     if (bean != null) {
                         return NovelReaderV3Fragment.newInstance(bean);
                     }
@@ -535,7 +535,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
 
         if (workId == 0) {
             workId = intent.getIntExtra(Params.NOVEL_ID, 0);
-            NovelBean hit = ObjectPool.INSTANCE.getNovel(workId).getValue();
+            Novel hit = ObjectPool.INSTANCE.getNovel(workId).getValue();
             int illustArthurId = getArthurIdFromNovel(hit);
             return CommentsFragment.Companion.newInstance(workId, illustArthurId, ObjectType.NOVEL);
         } else {
@@ -545,12 +545,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
         }
     }
 
-    // Helper method to extract Arthur ID from NovelBean
-    private int getArthurIdFromNovel(NovelBean hit) {
+    // Helper method to extract Arthur ID from Novel
+    private int getArthurIdFromNovel(Novel hit) {
         if (hit != null) {
-            UserBean user = hit.getUser();
+            User user = hit.getUser();
             if (user != null) {
-                return user.getId();
+                return (int) user.getId();
             }
         }
         return 0;

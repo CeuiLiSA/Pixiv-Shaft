@@ -174,7 +174,7 @@ class NovelTextFragment :
                     runCatching {
                         val bean = Shaft.sGson.fromJson(
                             Shaft.sGson.toJson(novel),
-                            ceui.lisa.models.NovelBean::class.java,
+                            ceui.loxia.Novel::class.java,
                         )
                         ceui.lisa.utils.PixivOperate.insertNovelViewHistory(bean)
                     }.onFailure { Timber.w(it, "小说浏览历史写入失败(忽略)") }

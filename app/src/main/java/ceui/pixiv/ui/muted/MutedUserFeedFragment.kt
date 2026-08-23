@@ -11,7 +11,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.RecySimpleUserBinding
-import ceui.lisa.models.UserBean
+import ceui.loxia.User
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
@@ -48,11 +48,11 @@ import kotlinx.coroutines.withContext
  * 其中只有 action_delete（全部删除）归本页，导入 / 导出由 pager 自理。
  *
  * **不复用 [ceui.pixiv.ui.common.UserFeedFragment]**：它渲染的是 recy_user_preview（头像 + 3 张
- * 预览插画 + 关注按钮），条目是 loxia [ceui.loxia.UserPreview]，且会 feedLikeSync 把 bean 喂进全局
- * 关注态。而屏蔽画师这行的语义是 legacy 的 recy_simple_user（头像 + 名字 + 关注按钮，长按解除屏蔽），
- * bean 是 legacy [UserBean]，卡形与数据模型都对不上，故自建 renderer 精确复刻 muted 模式。
+ * 预览插画 + 关注按钮），条目是 loxia [ceui.loxia.UserPreview]，且会 feedLikeSync 把用户喂进全局
+ * 关注态。而屏蔽画师这行要的是 recy_simple_user（头像 + 名字 + 关注按钮，长按解除屏蔽），
+ * 卡形与列表条目结构都对不上，故自建 renderer 精确复刻 muted 模式。
  *
- * **陈旧 bean 不喂全局池**：屏蔽记录存的是 mute 那一刻冻结的 UserBean JSON（general/mute 表），
+ * **陈旧用户快照不喂全局池**：屏蔽记录存的是 mute 那一刻冻结的 User JSON（general/mute 表），
  * 之后再没更新。喂进 ObjectPool / 关注态会拿旧值盖掉本会话更新的收藏 / 关注态（同
  * WatchLaterFeedFragment.poolableBeansOf=emptyList 的成因）。本页自建 renderer 天然没有池写入路径，
  * 构造上即安全——所以下面全程不碰 ObjectPool。关注 / 解除屏蔽都是**用户显式点击**触发的网络 / DB
@@ -111,7 +111,7 @@ class MutedUserFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
         userGlide.load(GlideUtil.getUrl(user.profile_image_urls?.medium))
             .error(R.drawable.no_profile)
             .into(b.userHead)
-        renderFollow(b, user.isIs_followed)
+        renderFollow(b, user.is_followed == true)
     }
 
     /** 关注按钮文案：已关注 / 关注。 */
@@ -120,28 +120,28 @@ class MutedUserFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
             getString(if (followed) R.string.post_unfollow else R.string.post_follow)
     }
 
-    private fun openProfile(user: UserBean) {
+    private fun openProfile(user: User) {
         Common.showUser(requireContext(), user)
     }
 
     /** 关注 / 取关切换：就地翻 bean 状态 + 按钮文案（对齐 legacy 的命令式重绘，不 notify）。 */
     private fun toggleFollow(cell: FeedCell<MutedUserFeedItem, RecySimpleUserBinding>) {
         val user = cell.item.user
-        if (user.isIs_followed) {
-            PixivOperate.postUnFollowUser(user.id)
-            user.isIs_followed = false
+        if (user.is_followed == true) {
+            PixivOperate.postUnFollowUser(user.id.toInt())
+            user.is_followed = false
         } else {
-            PixivOperate.postFollowUser(user.id, PixivActions.defaultFollowRestrict())
-            user.isIs_followed = true
+            PixivOperate.postFollowUser(user.id.toInt(), PixivActions.defaultFollowRestrict())
+            user.is_followed = true
         }
-        renderFollow(cell.binding, user.isIs_followed)
+        renderFollow(cell.binding, user.is_followed == true)
     }
 
     /** 长按按钮 = 私密关注（沿用 legacy 的长按语义）。 */
     private fun privateFollow(cell: FeedCell<MutedUserFeedItem, RecySimpleUserBinding>) {
         val user = cell.item.user
-        PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE)
-        user.isIs_followed = true
+        PixivOperate.postFollowUser(user.id.toInt(), Params.TYPE_PRIVATE)
+        user.is_followed = true
         renderFollow(cell.binding, true)
     }
 
@@ -152,7 +152,7 @@ class MutedUserFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
      * 用 Fragment 级 [lifecycleScope]（不是 viewLifecycleOwner）：解除屏蔽是本地 DB 写，视图若在
      * 途中销毁也应照常删完；[feedViewModel] 比视图活得久，摘条 / 回退游标都安全。
      */
-    private fun unmute(user: UserBean) {
+    private fun unmute(user: User) {
         val id = user.id
         lifecycleScope.launch {
             withContext(Dispatchers.IO) { PixivOperate.unMuteUser(user) }
@@ -211,17 +211,17 @@ class MutedUserFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
 }
 
 /**
- * 屏蔽画师条目：持 legacy [UserBean]（mute 那一刻冻结的 JSON 反序列化而来）。
- * feedKey 用画师 id（[UserBean.getId] 返回 int，同类内唯一稳定）。
+ * 屏蔽画师条目持 mute 那一刻冻结的 [User] JSON。
+ * feedKey 用画师 id。
  */
-class MutedUserFeedItem(val user: UserBean) : FeedItem {
+class MutedUserFeedItem(val user: User) : FeedItem {
     override val feedKey: Any get() = user.id
 }
 
 /**
  * 屏蔽画师数据源：mute 表分页（offset 游标），每页 [PAGE_SIZE] 条。
  *
- * 每行的 tagJson 反序列化成 [UserBean]，坏数据用 runCatching 跳过（不崩一页）。游标推进按**DB 行数**
+ * 每行的 tagJson 反序列化成 [User]，坏数据用 runCatching 跳过（不崩一页）。游标推进按**DB 行数**
  * 而非解析成功的条目数——即便中间有坏行，offset 也照 `getMutedUser` 实际取回的行数往后走，不会卡死。
  * 短页（行数 < PAGE_SIZE）即到底返回 null：legacy `hasNext()` 恒 true 会让 loadMore 在空的下一页
  * 空转（框架的空页追载 guard 兜得住，但短页归 null 更干净且正确）。
@@ -238,10 +238,10 @@ class MutedUserFeedSource : FeedSource<Int> {
                 .searchDao()
                 .getMutedUser(PAGE_SIZE, offset)
             val items: List<FeedItem> = rows.mapNotNull { entity ->
-                val bean = runCatching {
-                    Shaft.sGson.fromJson(entity.tagJson, UserBean::class.java)
+                val user = runCatching {
+                    Shaft.sGson.fromJson(entity.tagJson, User::class.java)
                 }.getOrNull()
-                bean?.let { MutedUserFeedItem(it) }
+                user?.let { MutedUserFeedItem(it) }
             }
             val nextCursor = if (rows.size < PAGE_SIZE) null else offset + rows.size
             FeedPage(items, nextCursor)

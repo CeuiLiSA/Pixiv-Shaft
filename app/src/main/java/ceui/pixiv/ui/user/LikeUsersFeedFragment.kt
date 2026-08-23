@@ -15,7 +15,7 @@ import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecySimpleUserBinding
 import ceui.lisa.model.ListSimpleUser
 import ceui.loxia.Illust
-import ceui.lisa.models.UserBean
+import ceui.loxia.User
 import ceui.lisa.repo.NovelBookmarkUserRepo
 import ceui.lisa.repo.SimpleUserRepo
 import ceui.lisa.utils.Common
@@ -60,7 +60,7 @@ import kotlinx.coroutines.withContext
  *
  * **不复用 [ceui.pixiv.ui.common.UserFeedFragment]**（同 [ceui.pixiv.ui.muted.MutedUserFeedFragment]
  * 的理由）：它渲染的是 recy_user_preview（头像 + 3 张预览插画）、条目是 loxia UserPreview，而本页要的
- * 是 legacy recy_simple_user（头像 + 名字 + 关注按钮）+ legacy [UserBean]，卡形与数据模型都对不上。
+ * 是 recy_simple_user（头像 + 名字 + 关注按钮）+ [User]，卡形与列表条目结构都对不上。
  *
  * **这里是新鲜网络用户**（不同于 muted 存的冻结 JSON）：关注 / 池行为照常，无 poolableBeansOf /
  * 陈旧 bean 喂池的顾虑；关注切换仍是用户显式点击触发的网络写入。
@@ -98,7 +98,7 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
             val id = intent?.getIntExtra(Params.ID, 0) ?: return
             if (id == 0) return
             val liked = intent.getBooleanExtra(Params.IS_LIKED, false)
-            applyFollowed(feedViewModel, id, liked)
+            applyFollowed(feedViewModel, id.toLong(), liked)
         }
     }
 
@@ -166,12 +166,12 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
             getString(if (followed) R.string.post_unfollow else R.string.post_follow)
     }
 
-    private fun openProfile(user: UserBean) {
+    private fun openProfile(user: User) {
         Common.showUser(requireContext(), user)
     }
 
     /** VM 里这个用户当前的关注态（真源，adapter 快照可能还没跟上）。 */
-    private fun currentFollowed(userId: Int): Boolean? {
+    private fun currentFollowed(userId: Long): Boolean? {
         return feedViewModel.uiState.value.items
             .firstOrNull { it is LikeUserFeedItem && it.user.id == userId }
             ?.let { (it as LikeUserFeedItem).followed }
@@ -184,10 +184,10 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
      * 的 edit 契约是纯函数（它可能被 StateFlow 重放），而且新旧两代条目共享同一个 bean 实例，
      * 在 transform 里改它等于把 DiffUtil 的 oldItem 内容一起改掉。
      */
-    private fun applyFollowed(viewModel: FeedViewModel<String>, userId: Int, followed: Boolean) {
+    private fun applyFollowed(viewModel: FeedViewModel<String>, userId: Long, followed: Boolean) {
         viewModel.uiState.value.items.forEach { item ->
             if (item is LikeUserFeedItem && item.user.id == userId) {
-                item.user.isIs_followed = followed
+                item.user.is_followed = followed
             }
         }
         viewModel.updateItems(LikeUserFeedItem::class.java) { item ->
@@ -200,15 +200,15 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         // 真源是 VM 当前状态而非 cell.item（adapter 已提交的快照）：连点两下时读快照会把
         // 「取关」反转成「再关注一次」。与插画 / 小说 / 用户卡同一 bug 类。
         val user = cell.itemOrNull?.user ?: return
-        val target = !(currentFollowed(user.id) ?: user.isIs_followed)
+        val target = !(currentFollowed(user.id) ?: (user.is_followed == true))
         renderFollow(cell.binding, target)
         applyFollowed(feedViewModel, user.id, target)
         // 失败回滚由 PixivActionQueue 统一做：它会带相反的值再发一次 LIKED_USER，
         // 本页的 followSyncReceiver 收到就把条目拨回去（applyFollowed 幂等）。
         if (target) {
-            PixivOperate.postFollowUser(user.id, PixivActions.defaultFollowRestrict())
+            PixivOperate.postFollowUser(user.id.toInt(), PixivActions.defaultFollowRestrict())
         } else {
-            PixivOperate.postUnFollowUser(user.id)
+            PixivOperate.postUnFollowUser(user.id.toInt())
         }
     }
 
@@ -217,7 +217,7 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         val user = cell.itemOrNull?.user ?: return
         renderFollow(cell.binding, true)
         applyFollowed(feedViewModel, user.id, true)
-        PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE)
+        PixivOperate.postFollowUser(user.id.toInt(), Params.TYPE_PRIVATE)
     }
 
     companion object {
@@ -243,18 +243,18 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 }
 
 /**
- * 点赞用户条目：持 legacy [UserBean]。
- * feedKey 用画师 id（[UserBean.getId] 返回 int，同类内唯一稳定）。
+ * 点赞用户条目：持统一 [User]。
+ * feedKey 用画师 id。
  *
- * [followed] 是关注态的**不可变快照**，刻意不直接读 [user] 的 `isIs_followed`：[UserBean] 是可变
- * 的 legacy bean，而刷新前后 / 乐观更新前后的两代条目共享同一个实例——把渲染建立在可变字段上，
+ * [followed] 是关注态的**不可变快照**，刻意不直接读 [user] 的 `is_followed`：[User] 需要兼容
+ * Java 调用点而保持可变，刷新前后 / 乐观更新前后的两代条目共享同一个实例——把渲染建立在可变字段上，
  * 「关注态变了」在 DiffUtil 眼里就是不存在的（oldItem 的内容会被一起改掉）。换实例 + 值字段
- * 才让内容比较成立。bean 本身仍会被同步（下游 legacy 路径要读），但那是 transform 之外的事，
+ * 才让内容比较成立。User 本身仍会被同步（下游调用点要读），但那是 transform 之外的事，
  * 见 [LikeUsersFeedFragment.applyFollowed]。
  */
 class LikeUserFeedItem(
-    val user: UserBean,
-    val followed: Boolean = user.isIs_followed,
+    val user: User,
+    val followed: Boolean = user.is_followed == true,
 ) : FeedItem {
 
     override val feedKey: Any get() = user.id

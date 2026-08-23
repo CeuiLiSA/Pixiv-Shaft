@@ -232,7 +232,7 @@ class UserMangaSeriesFeedSource(userID: Int) : FeedSource<String> {
             }
             requireNotNull(api) { "MangaSeriesRepo.initNextApi 返回 null" }.awaitFirstValue()
         }
-        // 默认 Mapper 只过滤 Illust/NovelBean，对 MangaSeriesItem 是 no-op → 不套，直接建条目。
+        // 默认 Mapper 只过滤 Illust/Novel，对 MangaSeriesItem 是 no-op → 不套，直接建条目。
         val items: List<FeedItem> = resp.list.orEmpty().map { MangaSeriesFeedItem(it) }
         return FeedPage(items, resp.nextUrl?.takeIf { it.isNotEmpty() })
     }

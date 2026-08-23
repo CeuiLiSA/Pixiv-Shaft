@@ -6,7 +6,6 @@ import com.bumptech.glide.load.model.GlideUrl;
 
 
 import ceui.loxia.Illust;
-import ceui.lisa.models.UserBean;
 import ceui.loxia.ImageUrls;
 import ceui.loxia.MetaPage;
 import ceui.loxia.User;
@@ -37,25 +36,6 @@ public class GlideUtil {
 
     public static final String DEFAULT_HEAD_IMAGE = "https://s.pximg.net/common/images/no_profile.png";
 
-    public static GlideUrl getHead(UserBean userBean) {
-        if (userBean == null) {
-            return null;
-        }
-
-        if (userBean.getProfile_image_urls() == null) {
-            return null;
-        }
-
-        String image = userBean.getProfile_image_urls().getMaxImage();
-
-        if (TextUtils.equals(image, DEFAULT_HEAD_IMAGE)) {
-            return new GlideUrlChild(image);
-        } else {
-            return new GlideUrlChild((userBean.getProfile_image_urls().getMaxImage()));
-        }
-    }
-
-
     public static GlideUrl getHead(User user) {
         if (user == null) {
             return null;
@@ -66,10 +46,7 @@ public class GlideUtil {
             return null;
         }
 
-        String image = urls.getPx_170x170();
-        if (image == null) {
-            image = urls.getMedium();
-        }
+        String image = urls.findMaxSizeUrl();
         if (image == null) {
             return null;
         }

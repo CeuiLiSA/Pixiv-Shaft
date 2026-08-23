@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ceui.lisa.models.UserModel
 import ceui.lisa.utils.Local
 import ceui.loxia.AccountResponse
 import ceui.loxia.BindConfirmReq
@@ -242,15 +241,13 @@ class EmailBackupV3ViewModel(initialMode: Mode) : ViewModel() {
     /**
      * Reconstruct a fully-logged-in state from a restored [AccountResponse],
      * mirroring the canonical OAuth path in OutWakeActivity: legacy prefs +
-     * MMKV session + the account-switcher Room row. [AccountResponse] and
-     * [UserModel] are field-compatible, so a gson round-trip bridges them.
+     * MMKV session + the account-switcher Room row.
      */
     private fun persistLogin(account: AccountResponse) {
-        val userModel = gson.fromJson(gson.toJson(account), UserModel::class.java)
         // saveUser internally calls postUpdateSession (postValue): we run on
         // Dispatchers.IO and setValue off the main thread would throw. It writes
         // MMKV synchronously first, so the upcoming Common.restart() reads it back.
-        Local.persistLoggedInUser(userModel)
+        Local.persistLoggedInUser(account)
     }
 
     private fun onCodeSent(email: String) {

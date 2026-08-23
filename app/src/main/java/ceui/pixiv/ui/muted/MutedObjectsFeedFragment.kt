@@ -18,7 +18,7 @@ import ceui.lisa.database.MuteEntity
 import ceui.lisa.databinding.RecyViewHistoryBinding
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.loxia.Illust
-import ceui.lisa.models.NovelBean
+import ceui.loxia.Novel
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.GlideUtil
@@ -221,7 +221,7 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
     }
 
     /** 小说卡整卡点击：直开小说详情（用条目里预解析好的 bean，对齐 legacy MuteWorksAdapter 的 itemView 点击）。 */
-    private fun openNovelDetail(novel: NovelBean?) {
+    private fun openNovelDetail(novel: Novel?) {
         val ctx = context ?: return
         val target = novel ?: return
         if (ctx.tryOpenNovelReaderDirect(target.id.toLong())) return
@@ -285,7 +285,7 @@ data class MutedObjectFeedItem(
     /** 预解析的插画 bean（type==1 时非空，坏 JSON 为 null）——不在 bind 时 per-bind 解析。 */
     val illust: Illust?,
     /** 预解析的小说 bean（type==2 时非空，坏 JSON 为 null）。 */
-    val novel: NovelBean?,
+    val novel: Novel?,
 ) : FeedItem {
 
     override val feedKey: Any = entity.id to entity.type
@@ -318,7 +318,7 @@ class MutedObjectsFeedSource : FeedSource<Int> {
                 }
                 val novel = if (entity.type == TYPE_NOVEL) {
                     runCatching {
-                        Shaft.sGson.fromJson(entity.tagJson, NovelBean::class.java)
+                        Shaft.sGson.fromJson(entity.tagJson, Novel::class.java)
                     }.getOrNull()
                 } else {
                     null
