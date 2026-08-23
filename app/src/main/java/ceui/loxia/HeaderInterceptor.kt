@@ -26,9 +26,11 @@ class HeaderInterceptor : Interceptor {
 
     private fun addHeader(before: Request.Builder): Request.Builder {
         val requestNonce = RequestNonce.build()
-        // 未登录 / 已登出时不带 Authorization,让服务端返回 401 由上层处理,避免拦截器抛 RuntimeException 炸 OkHttp 线程
-        if (SessionManager.isLoggedIn) {
-            before.addHeader(ClientManager.HEADER_AUTH, SessionManager.getBearerToken())
+        // 未登录 / 已登出时不带 Authorization,让服务端返回 401 由上层处理,避免拦截器抛 RuntimeException 炸 OkHttp 线程。
+        // 只读一次：先判 isLoggedIn 再取 token 的话,两次读之间被登出就又会抛 RuntimeException。
+        val bearerToken = SessionManager.getBearerTokenOrEmpty()
+        if (bearerToken.isNotEmpty()) {
+            before.addHeader(ClientManager.HEADER_AUTH, bearerToken)
         }
         before.addHeader("accept-language", LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage())
             .addHeader("app-accept-language", LanguageHelper.getRequestHeaderAppAcceptLanguageFromAppLanguage())

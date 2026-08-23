@@ -42,6 +42,16 @@ public class TokenInterceptor implements Interceptor {
         Response response = chain.proceed(request);
 
         if (!explicitAuthorization && isTokenExpired(response)) {
+            // 未登录 / 刚被登出时不去刷新：没有会话可刷，而 SessionManager.getAccessToken()
+            // 在没有账号时抛的是 RuntimeException —— okhttp 的 AsyncCall.run 只把 IOException
+            // 当作请求失败，其余 Throwable 会被重新抛出，直接炸掉 Dispatcher 线程。
+            // 匿名请求同样会收到 400 "Error occurred at the OAuth process"，走的就是这里。
+            // 服务端的 400 原样交回上层（getResponseBody 只 peek 不消费，body 仍可读），
+            // 比抛 IOException 更好：后者会被 toAppError 归成「网络不可用」，盖掉真实原因。
+            if (!SessionManager.INSTANCE.isLoggedIn()) {
+                Timber.w("TokenInterceptor: 收到 400 OAuth 错误但当前无登录会话，跳过刷新");
+                return response;
+            }
             Timber.i("TokenInterceptor: access_token 过期，正在刷新");
             response.close();
             String newBearer = getNewToken(request.header("Authorization"));
@@ -70,7 +80,12 @@ public class TokenInterceptor implements Interceptor {
     }
 
     private synchronized String getNewToken(String tokenForThisRequest) throws IOException {
-        String currentBearer = SessionManager.INSTANCE.getBearerToken();
+        // 等这把锁的期间会话可能已经被清掉（另一个线程 logoutAndRestart / 用户主动登出），
+        // 所以这里必须用不抛异常的那支重新取一次，见 intercept 里的同一条理由。
+        String currentBearer = SessionManager.INSTANCE.getBearerTokenOrEmpty();
+        if (currentBearer.isEmpty()) {
+            throw new IOException("no session to refresh");
+        }
         // 如果别的线程已经刷过了（当前缓存 ≠ 本请求头），直接复用，避免重复刷新。
         if (!currentBearer.equals(tokenForThisRequest)) {
             return currentBearer;
