@@ -16,13 +16,12 @@ class SnapshotCommentsFeedSource(
     private val illustArthurId: Long,
 ) : FeedSource<String> {
 
-    override suspend fun load(cursor: String?): FeedPage<String> {
-        if (cursor != null) return FeedPage(emptyList(), null)
-        val data = withContext(Dispatchers.IO) {
-            SnapshotRuntimeCache.get(snapshotId)
-                ?: SnapshotRepository.loadViewerData(Shaft.getContext(), snapshotId)
-                    .also { SnapshotRuntimeCache.put(snapshotId, it) }
-        }
+    // 同 SnapshotArtworkFeedSource：整段留在 IO 上，逐条评论的本地化不回主线程做。
+    override suspend fun load(cursor: String?): FeedPage<String> = withContext(Dispatchers.IO) {
+        if (cursor != null) return@withContext FeedPage(emptyList(), null)
+        val data = SnapshotRuntimeCache.get(snapshotId)
+            ?: SnapshotRepository.loadViewerData(Shaft.getContext(), snapshotId)
+                .also { SnapshotRuntimeCache.put(snapshotId, it) }
         val items = data.comments?.threads?.map { thread ->
             CommentFeedItem(
                 comment = data.localizeComment(thread.comment),
@@ -31,6 +30,6 @@ class SnapshotCommentsFeedSource(
                 repliesLoaded = true,
             )
         }.orEmpty()
-        return FeedPage(items, null)
+        FeedPage(items, null)
     }
 }

@@ -64,12 +64,12 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.ProgressTextButton
 import ceui.loxia.combineLatest
 import ceui.loxia.flag.FlagDescFragment
-import ceui.pixiv.snapshot.SnapshotGenerator
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
 import ceui.pixiv.snapshot.SnapshotViewerData
 import ceui.pixiv.snapshot.localizeForViewer
+import ceui.pixiv.snapshot.showSnapshotCreateDialog
 import ceui.pixiv.snapshot.snapshotPageUrl
 import ceui.pixiv.ui.share.shareFirstImage
 import ceui.pixiv.ui.synonym.SynonymOperate
@@ -80,7 +80,6 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
-import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialog.CheckableDialogBuilder
 import ceui.pixiv.witstudio.dialog.WitDialog.MessageDialogBuilder
 import com.zhy.view.flowlayout.FlowLayout
@@ -89,6 +88,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
@@ -177,14 +177,24 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         val cached = SnapshotRuntimeCache.get(id)
         if (cached != null) {
             bindSnapshotView(cached)
-        } else {
-            lifecycleScope.launch {
-                val loaded = withContext(Dispatchers.IO) {
-                    SnapshotRepository.loadViewerData(requireContext(), id)
-                }
-                SnapshotRuntimeCache.put(id, loaded)
-                bindSnapshotView(loaded)
+            return
+        }
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            // 快照可能已被管理页删掉 / manifest 损坏 —— loadViewerData 会抛。
+            // 裸 launch 里逃逸的异常直接崩进程,这里就地兜住:提示 + 关页。
+            val loaded = try {
+                withContext(Dispatchers.IO) { SnapshotRepository.loadViewerData(appContext, id) }
+            } catch (ce: kotlinx.coroutines.CancellationException) {
+                throw ce
+            } catch (e: Exception) {
+                Timber.w(e, "[Snapshot] open classic viewer failed, id=%s", id)
+                Common.showToast(getString(R.string.snapshot_open_failed, e.message ?: ""))
+                finish()
+                return@launch
             }
+            SnapshotRuntimeCache.put(id, loaded)
+            bindSnapshotView(loaded)
         }
     }
 
@@ -436,7 +446,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                     false
                 }
                 R.id.action_snapshot -> {
-                    showSnapshotDialog(illust)
+                    showSnapshotCreateDialog(illust)
                     true
                 }
                 R.id.action_dislike -> {
@@ -895,64 +905,6 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0)
     }
 
-    private fun showSnapshotDialog(illust: IllustsBean) {
-        val builder = WitDialog.MultiCheckableDialogBuilder(mContext)
-        builder.setTitle(R.string.snapshot_create)
-        builder.addItem(getString(R.string.snapshot_include_comments)) { _, _ -> }
-        builder.addItem(getString(R.string.snapshot_include_original)) { _, _ -> }
-        builder.setCheckedItems(if (Shaft.sSettings.isShowOriginalPreviewImage()) intArrayOf(1) else intArrayOf())
-        builder.addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-        builder.addAction(R.string.snapshot_ok) { dialog, _ ->
-            val checked = builder.checkedItemIndexes
-            val includeComments = checked.contains(0)
-            val includeOriginal = checked.contains(1)
-            dialog.dismiss()
-            startSnapshotGeneration(illust, includeComments, includeOriginal)
-        }
-        builder.show()
-    }
-
-    private fun startSnapshotGeneration(
-        illust: IllustsBean,
-        includeComments: Boolean,
-        includeOriginal: Boolean,
-    ) {
-        val dialog = showSnapshotLoadingDialog(getString(R.string.snapshot_preparing))
-        lifecycleScope.launch {
-            try {
-                val manifest = withContext(Dispatchers.IO) {
-                    SnapshotGenerator.generate(
-                        context = mContext.applicationContext,
-                        illust = illust,
-                        includeComments = includeComments,
-                        includeOriginal = includeOriginal,
-                        onProgress = { message ->
-                            mActivity.runOnUiThread {
-                                dialog.findViewById<TextView>(R.id.loading_message)?.text = message
-                            }
-                        },
-                    )
-                }
-                dialog.dismiss()
-                Common.showToast(getString(R.string.snapshot_generate_success))
-            } catch (ce: kotlinx.coroutines.CancellationException) {
-                dialog.dismiss()
-                throw ce
-            } catch (e: Exception) {
-                dialog.dismiss()
-                Common.showToast(getString(R.string.snapshot_generate_failed, e.message ?: ""))
-            }
-        }
-    }
-
-    private fun showSnapshotLoadingDialog(message: String): WitDialog {
-        val dialog = WitDialog.CustomDialogBuilder(mContext)
-            .setLayout(R.layout.dialog_snapshot_loading)
-            .setCancelable(false)
-            .show()
-        dialog.findViewById<TextView>(R.id.loading_message)?.text = message
-        return dialog
-    }
     companion object {
         @JvmStatic
         fun newInstance(illustId: Int): FragmentIllust {

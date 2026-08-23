@@ -2,7 +2,6 @@ package ceui.pixiv.snapshot
 
 import android.graphics.Color
 import android.os.Bundle
-import android.widget.TextView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +19,7 @@ import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
  * 离线快照管理页：仿照 FragmentHistoryTabs，使用 viewpager_with_tablayout。
@@ -249,7 +249,7 @@ class SnapshotManagerFragment : Fragment() {
             // 只选一个时保持原有 CreateDocument 单文件导出体验。
             val summary = items.first()
             pendingSingleExportId = summary.manifest.snapshotId
-            singleExportLauncher.launch(snapshotExportFileName(summary.manifest))
+            singleExportLauncher.launch(summary.manifest.safeExportFileName())
         } else {
             exportFolderLauncher.launch(null)
         }
@@ -259,11 +259,14 @@ class SnapshotManagerFragment : Fragment() {
         val tab = activeSelectionTab ?: return
         val items = tab.selectedSnapshots()
         if (items.isEmpty()) return
-        val dialog = showLoadingDialog(getString(R.string.snapshot_exporting))
+        val dialog = showSnapshotLoadingDialog(getString(R.string.snapshot_exporting))
+        // 批量导出是秒级 IO；循环里再 requireContext() 的话，中途转屏 detach 会抛 ISE，
+        // 表现成「导了一半突然失败」。开工前取一次 application context 即可。
+        val appContext = requireContext().applicationContext
         lifecycleScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    items.forEach { SnapshotRepository.exportToDirectory(requireContext(), it.manifest.snapshotId, uri) }
+                    items.forEach { SnapshotRepository.exportToDirectory(appContext, it.manifest.snapshotId, uri) }
                 }
                 Common.showToast(getString(R.string.snapshot_export_success))
                 exitSelectionMode()
@@ -275,19 +278,10 @@ class SnapshotManagerFragment : Fragment() {
         }
     }
 
-    private fun showLoadingDialog(message: String): WitDialog {
-        val dialog = WitDialog.CustomDialogBuilder(requireContext())
-            .setLayout(R.layout.dialog_snapshot_loading)
-            .setCancelable(false)
-            .show()
-        dialog.findViewById<TextView>(R.id.loading_message)?.text = message
-        return dialog
-    }
-
-    private fun snapshotExportFileName(manifest: SnapshotManifest): String = manifest.safeExportFileName()
-
     private fun importSnapshots(uris: List<android.net.Uri>) {
-        val dialog = showLoadingDialog(getString(R.string.snapshot_importing))
+        val dialog = showSnapshotLoadingDialog(getString(R.string.snapshot_importing))
+        // 同 exportSelectedToFolder：多文件导入期间可能转屏，循环里不再碰 fragment。
+        val appContext = requireContext().applicationContext
         lifecycleScope.launch {
             var success = 0
             var failed = 0
@@ -295,9 +289,11 @@ class SnapshotManagerFragment : Fragment() {
                 withContext(Dispatchers.IO) {
                     uris.forEach { uri ->
                         try {
-                            SnapshotRepository.import(requireContext(), uri)
+                            SnapshotRepository.import(appContext, uri)
                             success++
                         } catch (e: Exception) {
+                            // 结果只有一个「成功 N / 失败 M」的计数，不落日志就完全无从诊断。
+                            Timber.w(e, "[Snapshot] import failed, uri=%s", uri)
                             failed++
                         }
                     }

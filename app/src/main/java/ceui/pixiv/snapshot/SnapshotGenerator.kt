@@ -1,6 +1,8 @@
 package ceui.pixiv.snapshot
 
 import android.content.Context
+import androidx.annotation.StringRes
+import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.models.IllustsBean
 import ceui.loxia.Client
@@ -27,17 +29,20 @@ object SnapshotGenerator {
         illust: IllustsBean,
         includeComments: Boolean,
         includeOriginal: Boolean,
-        onProgress: (String) -> Unit = {},
+        onProgress: suspend (String) -> Unit = {},
     ): SnapshotManifest = withContext(Dispatchers.IO) {
-        if (illust.isGif) {
-            throw SnapshotException("动图 / ugoira 暂不支持离线快照")
-        }
         val appContext = context.applicationContext
+        if (illust.isGif) {
+            throw SnapshotException(appContext.getString(R.string.snapshot_unsupported_ugoira))
+        }
         val snapshotId = UUID.randomUUID().toString()
         val snapshotDir = SnapshotRepository.createSnapshotDir(appContext, snapshotId)
+        // 进度文案是给用户看的,统一走资源;领域层不硬编码任何一种语言的 UI 串。
+        suspend fun progress(@StringRes resId: Int, vararg args: Any) =
+            onProgress(appContext.getString(resId, *args))
 
         try {
-            onProgress("准备作品元数据")
+            progress(R.string.snapshot_progress_metadata)
             val bean = if (illust.isFullDetail() && illust.hasTrustedCaption()) {
                 illust
             } else {
@@ -49,9 +54,11 @@ object SnapshotGenerator {
 
             val pageCount = bean.page_count.coerceAtLeast(1)
             for (i in 0 until pageCount) {
-                onProgress("下载作品图片 ${i + 1}/$pageCount")
+                progress(R.string.snapshot_progress_images, i + 1, pageCount)
                 val url = bean.snapshotPageUrl(i, includeOriginal)
-                    ?: throw SnapshotException("作品第 ${i + 1} 张图缺少可用 URL")
+                    ?: throw SnapshotException(
+                        appContext.getString(R.string.snapshot_error_page_url_missing, i + 1)
+                    )
                 val rel = "images/p$i${url.snapshotExtension()}"
                 copyUrlTo(appContext, url, File(snapshotDir, rel))
                 assets[url] = rel
@@ -59,14 +66,14 @@ object SnapshotGenerator {
             }
 
             bean.snapshotAuthorAvatarUrl()?.let { url ->
-                onProgress("下载作者头像")
+                progress(R.string.snapshot_progress_avatar)
                 val rel = "avatars/author${url.snapshotExtension()}"
                 copyUrlTo(appContext, url, File(snapshotDir, rel))
                 assets[url] = rel
             }
 
             val commentData = if (includeComments) {
-                onProgress("获取评论")
+                progress(R.string.snapshot_progress_comments)
                 val response = Client.appApi.getIllustComments(bean.id.toLong())
                 val threads = response.comments.map { comment ->
                     val replies = if (comment.has_replies) {
@@ -77,7 +84,7 @@ object SnapshotGenerator {
                     }
                     SnapshotCommentThread(comment, replies)
                 }
-                onProgress("下载评论头像/表情")
+                progress(R.string.snapshot_progress_comment_assets)
                 val avatarRelByUrl = mutableMapOf<String, String>()
                 val stampRelByUrl = mutableMapOf<String, String>()
                 threads.forEach { thread ->
@@ -89,7 +96,7 @@ object SnapshotGenerator {
                 null
             }
 
-            onProgress("写入快照")
+            progress(R.string.snapshot_progress_writing)
             writeJson(snapshotDir, SNAPSHOT_ILLUST_JSON, bean)
             if (commentData != null) {
                 writeJson(snapshotDir, SNAPSHOT_COMMENTS_JSON, commentData)
@@ -153,7 +160,7 @@ object SnapshotGenerator {
         val source = try {
             ImageLoaderV3.obtain(url).awaitFile()
         } catch (e: Exception) {
-            throw SnapshotException("图片下载失败: $url", e)
+            throw SnapshotException(context.getString(R.string.snapshot_error_image_download, url), e)
         }
         source.copyTo(target, overwrite = true)
     }

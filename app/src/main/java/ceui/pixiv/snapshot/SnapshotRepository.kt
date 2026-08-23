@@ -55,6 +55,10 @@ object SnapshotRepository {
             ?.mapNotNull { snapshotDir ->
                 val manifest = SnapshotValidator.readJson<SnapshotManifest>(File(snapshotDir, SNAPSHOT_MANIFEST))
                     ?: return@mapNotNull null
+                // 「目录名即快照 ID」是这个库的根本不变式：卡片上的所有操作(打开/导出/删除)
+                // 都拿 manifest.snapshotId 反解目录。名字对不上的目录(导入中途掉电留下的
+                // 备份等)必须当作不存在，否则会出现一张指向别人的重复卡片,删它删掉的是正主。
+                if (snapshotDir.name != manifest.snapshotId) return@mapNotNull null
                 val coverFile = manifest.coverPath?.let { rel -> runCatching { safeResolve(snapshotDir, rel) }.getOrNull()?.takeIf { f -> f.isFile } }
                 var fileCount = 0
                 var totalSize = 0L
@@ -121,6 +125,7 @@ object SnapshotRepository {
     suspend fun import(context: Context, uri: Uri): SnapshotManifest = withContext(Dispatchers.IO) {
         val tempZip = File(context.cacheDir, "snapshot_import_${System.currentTimeMillis()}$SNAPSHOT_EXTENSION")
         val staging = File(context.cacheDir, "snapshot_staging_${System.currentTimeMillis()}")
+        sweepStaleBackups(context)
         try {
             context.contentResolver.openInputStream(uri)?.use { input ->
                 tempZip.outputStream().use { out -> input.copyTo(out) }
@@ -135,7 +140,9 @@ object SnapshotRepository {
             requireSnapshotId(manifest.snapshotId)
             SnapshotValidator.validate(staging, manifest)
             val target = dir(context, manifest.snapshotId)
-            val backup = File(target.parentFile, "${target.name}.old_${System.currentTimeMillis()}")
+            // 备份目录名带 BACKUP_PREFIX：合法快照 ID 只允许 [A-Za-z0-9_-]（见 requireSnapshotId），
+            // 所以带点前缀的名字永远不会与真快照目录撞车，也就永远不会被 list() 当成一张卡片。
+            val backup = File(target.parentFile, "$BACKUP_PREFIX${target.name}_${System.currentTimeMillis()}")
             if (target.exists()) {
                 if (!target.renameTo(backup)) {
                     throw SnapshotException("无法替换已有快照: ${manifest.snapshotId}")
@@ -157,4 +164,16 @@ object SnapshotRepository {
             staging.deleteRecursively()
         }
     }
+
+    /**
+     * 清掉上一次导入没走完（进程被杀 / 掉电）留在库里的备份目录。
+     * 只在导入入口扫一次即可：它是唯一会产生备份目录的地方。
+     */
+    private fun sweepStaleBackups(context: Context) {
+        root(context).listFiles()
+            ?.filter { it.isDirectory && it.name.startsWith(BACKUP_PREFIX) }
+            ?.forEach { it.deleteRecursively() }
+    }
+
+    private const val BACKUP_PREFIX = ".backup_"
 }

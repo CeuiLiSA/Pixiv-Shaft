@@ -364,8 +364,19 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             return
         }
         lifecycleScope.launch {
-            val data = withContext(Dispatchers.IO) {
-                SnapshotRepository.loadViewerData(applicationContext, snapshotId)
+            // 快照可能已被管理页删掉 / manifest 损坏 —— loadViewerData 会抛。
+            // 裸 launch 里逃逸的异常直接崩进程,这里就地兜住:提示 + 关页。
+            val data = try {
+                withContext(Dispatchers.IO) {
+                    SnapshotRepository.loadViewerData(applicationContext, snapshotId)
+                }
+            } catch (ce: kotlinx.coroutines.CancellationException) {
+                throw ce
+            } catch (e: Exception) {
+                Timber.w(e, "[Snapshot] open image viewer failed, id=%s", snapshotId)
+                Common.showToast(getString(R.string.snapshot_open_failed, e.message ?: ""))
+                finish()
+                return@launch
             }
             SnapshotRuntimeCache.put(snapshotId, data)
             bindSnapshotViewer(data)

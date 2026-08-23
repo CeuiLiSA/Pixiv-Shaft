@@ -18,7 +18,6 @@ import ceui.pixiv.ui.detail.ArtworkTagsItem
 import ceui.pixiv.ui.detail.ArtworkV3FeedSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 快照详情页的 feeds 数据源：读私有快照库，产出与在线 ArtworkV3 相同的 Page/Header 条目。
@@ -28,16 +27,16 @@ class SnapshotArtworkFeedSource(
     private val snapshotId: String,
 ) : FeedSource<String> {
 
-    override suspend fun load(cursor: String?): FeedPage<String> {
-        if (cursor != null) return FeedPage(emptyList(), null)
-        val data = withContext(Dispatchers.IO) {
-            SnapshotRepository.loadViewerData(Shaft.getContext(), snapshotId)
-        }
+    // FeedSource 契约要求实现 main-safe：load 在主线程被调用，磁盘读、Gson 深拷贝、
+    // 逐条评论本地化都得留在 IO 上，不能只把 loadViewerData 那一段切过去。
+    override suspend fun load(cursor: String?): FeedPage<String> = withContext(Dispatchers.IO) {
+        if (cursor != null) return@withContext FeedPage(emptyList(), null)
+        val data = SnapshotRepository.loadViewerData(Shaft.getContext(), snapshotId)
         SnapshotRuntimeCache.put(snapshotId, data)
         val localized = data.localizeIllust()
         val pageItems = ArtworkV3FeedSource.buildArtworkPageItems(localized)
         val headerItems = buildLocalHeaderItems(data, localized)
-        return FeedPage(pageItems + headerItems, null)
+        FeedPage(pageItems + headerItems, null)
     }
 
     private fun buildLocalHeaderItems(
@@ -80,17 +79,34 @@ class SnapshotArtworkFeedSource(
     }
 }
 
-/** 进程内快照数据缓存：FeedSource 加载后供 Fragment 的 page adapter / 评论页复用。 */
+/**
+ * 进程内快照数据缓存：FeedSource 加载后供 Fragment 的 page adapter / 评论页复用。
+ *
+ * 有界 LRU：每条 entry 是一整份解析好的快照（illust bean + 全部评论 + assets 表），
+ * 无界持有会让内存随「本次进程里打开过多少个快照」单调增长，且永不释放。
+ * 上限取 [MAX_ENTRIES] —— 详情页 / 大图页 / 评论页同时只会用到当前这一个快照，
+ * 留几格余量即可；被淘汰的快照下次打开时各读取点都有磁盘回落，不影响正确性。
+ */
 object SnapshotRuntimeCache {
 
-    private val data = ConcurrentHashMap<String, SnapshotViewerData>()
+    private const val MAX_ENTRIES = 4
 
+    private val data = object : LinkedHashMap<String, SnapshotViewerData>(
+        MAX_ENTRIES, 0.75f, /* accessOrder = */ true,
+    ) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, SnapshotViewerData>) =
+            size > MAX_ENTRIES
+    }
+
+    @Synchronized
     fun put(snapshotId: String, value: SnapshotViewerData) {
         data[snapshotId] = value
     }
 
+    @Synchronized
     fun get(snapshotId: String): SnapshotViewerData? = data[snapshotId]
 
+    @Synchronized
     fun remove(snapshotId: String) {
         data.remove(snapshotId)
     }

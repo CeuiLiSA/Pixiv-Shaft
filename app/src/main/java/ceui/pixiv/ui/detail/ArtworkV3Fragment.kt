@@ -9,7 +9,6 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
-import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -75,12 +74,12 @@ import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.snapshot.SnapshotArtworkFeedSource
-import ceui.pixiv.snapshot.SnapshotGenerator
 import ceui.pixiv.snapshot.localizeIllust
 import ceui.pixiv.snapshot.snapshotPageUrl
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
+import ceui.pixiv.snapshot.showSnapshotCreateDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -244,8 +243,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 true
             }
             fabBarController.applyPalette(palette)
-            val snapshotManifest = snapshotId?.let { SnapshotRepository.readManifest(requireContext(), it) }
-            fabBarController.setBookmarked(snapshotManifest?.isBookmarked ?: false)
+            applySnapshotBookmarkState()
             chromeBind.composerRoot.isVisible = false
             chromeBind.navMore.isVisible = false
             chromeBind.toolbar.setNavigationOnClickListener { requireActivity().finish() }
@@ -497,6 +495,25 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         return adapter
     }
 
+    /**
+     * 只读心形按钮：显示快照那一刻的收藏态。缓存已预热(管理页进入前会 preload)时同步取，
+     * 否则退到 IO 上读 manifest —— 不在 onViewCreated 里直接碰磁盘。
+     */
+    private fun applySnapshotBookmarkState() {
+        val id = snapshotId ?: return
+        SnapshotRuntimeCache.get(id)?.let {
+            fabBarController.setBookmarked(it.manifest.isBookmarked || it.illust.isIs_bookmarked)
+            return
+        }
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val bookmarked = withContext(Dispatchers.IO) {
+                runCatching { SnapshotRepository.readManifest(appContext, id)?.isBookmarked }.getOrNull()
+            } ?: false
+            fabBarController.setBookmarked(bookmarked)
+        }
+    }
+
     /** 快照模式专用：从快照库读取 bean，并把每页图片直接指向快照本地文件。 */
     private fun ensureSnapshotPageAdapter(): IllustAdapter? {
         val snapshotId = snapshotId ?: return null
@@ -516,6 +533,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         } else {
             IllustAdapter(activity, this, illust, maxHeight, false)
         }
+        // 必须先打快照标记再喂本地页:adapter 构造时已经发出一趟「已下载文件」后台扫描,
+        // 标记会让它回主线程合并时整个作废,避免同 ID 的下载文件顶掉快照里的那一份。
+        adapter.setSnapshotId(snapshotId)
         val pageCount = illust.page_count.coerceAtLeast(1)
         for (i in 0 until pageCount) {
             val url = data.illust.snapshotPageUrl(i, data.manifest.includeOriginal)
@@ -1107,7 +1127,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 Common.copy(requireContext(), ShareIllust.URL_Head + illust.id)
             }
             item(getString(R.string.snapshot_create), R.drawable.ic_baseline_get_app_24) {
-                showSnapshotDialog(illust)
+                showSnapshotCreateDialog(illust)
             }
             item(getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
                 MuteTagSheet.show(childFragmentManager, illust.tags, illust.user)
@@ -1152,65 +1172,6 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 }
             }
         }
-    }
-
-    private fun showSnapshotDialog(illust: IllustsBean) {
-        val builder = WitDialog.MultiCheckableDialogBuilder(requireContext())
-        builder.setTitle(R.string.snapshot_create)
-        builder.addItem(getString(R.string.snapshot_include_comments)) { _, _ -> }
-        builder.addItem(getString(R.string.snapshot_include_original)) { _, _ -> }
-        builder.setCheckedItems(if (Shaft.sSettings.isShowOriginalPreviewImage()) intArrayOf(1) else intArrayOf())
-        builder.addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-        builder.addAction(R.string.snapshot_ok) { dialog, _ ->
-            val checked = builder.checkedItemIndexes
-            val includeComments = checked.contains(0)
-            val includeOriginal = checked.contains(1)
-            dialog.dismiss()
-            startSnapshotGeneration(illust, includeComments, includeOriginal)
-        }
-        builder.show()
-    }
-
-    private fun startSnapshotGeneration(
-        illust: IllustsBean,
-        includeComments: Boolean,
-        includeOriginal: Boolean,
-    ) {
-        val dialog = showSnapshotLoadingDialog(getString(R.string.snapshot_preparing))
-        lifecycleScope.launch {
-            try {
-                val manifest = withContext(Dispatchers.IO) {
-                    SnapshotGenerator.generate(
-                        context = requireContext().applicationContext,
-                        illust = illust,
-                        includeComments = includeComments,
-                        includeOriginal = includeOriginal,
-                        onProgress = { message ->
-                            requireActivity().runOnUiThread {
-                                dialog.findViewById<TextView>(R.id.loading_message)?.text = message
-                            }
-                        },
-                    )
-                }
-                dialog.dismiss()
-                Common.showToast(getString(R.string.snapshot_generate_success))
-            } catch (ce: kotlinx.coroutines.CancellationException) {
-                dialog.dismiss()
-                throw ce
-            } catch (e: Exception) {
-                dialog.dismiss()
-                Common.showToast(getString(R.string.snapshot_generate_failed, e.message ?: ""))
-            }
-        }
-    }
-
-    private fun showSnapshotLoadingDialog(message: String): WitDialog {
-        val dialog = WitDialog.CustomDialogBuilder(requireContext())
-            .setLayout(R.layout.dialog_snapshot_loading)
-            .setCancelable(false)
-            .show()
-        dialog.findViewById<TextView>(R.id.loading_message)?.text = message
-        return dialog
     }
 
     /**

@@ -17,8 +17,13 @@ public abstract class AbstractIllustAdapter<VH extends RecyclerView.ViewHolder>
     protected int imageSize;
     protected boolean isForceOriginal;
 
-    /** 快照模式：设置后点击大图走 ImageDetailActivity 的“快照大图”分支。 */
-    protected String snapshotId = null;
+    /**
+     * 快照模式：非 null 表示这份 adapter 渲染的是离线快照。
+     * 影响两件事:点击大图走 ImageDetailActivity 的「快照大图」分支;
+     * 以及 {@link IllustAdapter#scanLocalDownloads()} 整个停摆——快照页只许显示快照自带的文件。
+     * 构造之后才由宿主在主线程赋值,后台扫描线程会读它,故 volatile。
+     */
+    protected volatile String snapshotId = null;
 
     public void setSnapshotId(String snapshotId) {
         this.snapshotId = snapshotId;
