@@ -312,7 +312,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     @Override
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
         super.onBindViewHolder(holder, position);
-        if(longPressDownload && mActivity instanceof BaseActivity<?>){
+        // 快照只读：长按下载会拿 shaftsnap:// 当远程地址去下,还可能顺带触发「下载即收藏」
+        // 发出真实的收藏请求 —— 这一页所有写操作都该是哑的(V3 侧 renderer 已经把长按置空)。
+        if(longPressDownload && snapshotId == null && mActivity instanceof BaseActivity<?>){
             holder.itemView.setOnLongClickListener(v -> {
                 IllustDownload.downloadIllustCertainPage(allIllust, position, (BaseActivity<?>) mActivity);
                 if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !allIllust.isIs_bookmarked()){

@@ -61,8 +61,18 @@ object SnapshotGenerator {
                     )
                 val rel = "images/p$i${url.snapshotExtension()}"
                 copyUrlTo(appContext, url, File(snapshotDir, rel))
+                // 这一页只存一份文件，但渲染侧按哪一档分辨率来问由它自己决定：
+                // 把该页所有尺寸变体都指到这份存档，assets 是多对一映射，不多下一个字节。
+                bean.snapshotPageVariantUrls(i).forEach { variant -> assets[variant] = rel }
                 assets[url] = rel
                 pagePaths += rel
+            }
+
+            // 多图作品的封面(illust 级 image_urls)不属于任何一页，指到 p0。
+            if (pageCount > 1) {
+                pagePaths.firstOrNull()?.let { coverRel ->
+                    bean.snapshotCoverVariantUrls().forEach { variant -> assets[variant] = coverRel }
+                }
             }
 
             bean.snapshotAuthorAvatarUrl()?.let { url ->

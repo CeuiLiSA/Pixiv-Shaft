@@ -75,7 +75,6 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.snapshot.SnapshotArtworkFeedSource
 import ceui.pixiv.snapshot.localizeIllust
-import ceui.pixiv.snapshot.snapshotPageUrl
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
@@ -538,9 +537,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         adapter.setSnapshotId(snapshotId)
         val pageCount = illust.page_count.coerceAtLeast(1)
         for (i in 0 until pageCount) {
-            val url = data.illust.snapshotPageUrl(i, data.manifest.includeOriginal)
-            val file = data.resolve(url)
-            if (file != null) adapter.putLocalPageUri(i, Uri.fromFile(file))
+            data.pageFile(i)?.let { file -> adapter.putLocalPageUri(i, Uri.fromFile(file)) }
         }
         adapter.setPageStatusListener { _, _ -> }
         adapter.setLocalPagesChangedListener(null)
@@ -1126,8 +1123,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             item(getString(R.string.string_355_2), R.drawable.ic_baseline_launch_24) {
                 Common.copy(requireContext(), ShareIllust.URL_Head + illust.id)
             }
-            item(getString(R.string.snapshot_create), R.drawable.ic_baseline_get_app_24) {
-                showSnapshotCreateDialog(illust)
+            // 动图的 original 是 zip,SnapshotGenerator 一进门就拒;别把注定失败的入口摆出来。
+            if (!illust.isGif) {
+                item(getString(R.string.snapshot_create), R.drawable.ic_baseline_get_app_24) {
+                    showSnapshotCreateDialog(illust)
+                }
             }
             item(getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {
                 MuteTagSheet.show(childFragmentManager, illust.tags, illust.user)

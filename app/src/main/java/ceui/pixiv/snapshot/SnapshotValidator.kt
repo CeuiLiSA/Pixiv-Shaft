@@ -30,10 +30,21 @@ object SnapshotValidator {
             throw SnapshotException("快照不完整：assets 指向不存在的文件或非法路径。$sample")
         }
 
-        val required = linkedSetOf<String>()
-        for (i in 0 until illust.page_count.coerceAtLeast(1)) {
-            illust.snapshotPageUrl(i, manifest.includeOriginal)?.let { required += it }
+        // 页图按「该页任一尺寸变体能落到真实文件」判定，与渲染侧 SnapshotViewerData.pageFile
+        // 同一口径 —— 只认当初存的那一个 URL 的话，换个分辨率来问就会假阳性通过、真打开却空白。
+        fun relIsFile(rel: String?): Boolean =
+            rel != null && runCatching { safeResolve(snapshotDir, rel) }.getOrNull()?.isFile == true
+
+        val pageCount = illust.page_count.coerceAtLeast(1)
+        for (i in 0 until pageCount) {
+            val ok = illust.snapshotPageVariantUrls(i).any { relIsFile(assets.assets[it]) } ||
+                (i == 0 && relIsFile(manifest.coverPath))
+            if (!ok) {
+                throw SnapshotException("快照不完整：第 ${i + 1} 张图缺失")
+            }
         }
+
+        val required = linkedSetOf<String>()
         illust.snapshotAuthorAvatarUrl()?.let { required += it }
 
         if (manifest.includeComments) {

@@ -64,7 +64,7 @@ import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
 import ceui.pixiv.snapshot.SnapshotViewerData
-import ceui.pixiv.snapshot.localizeForViewer
+import ceui.pixiv.snapshot.localizeIllust
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
 import com.blankj.utilcode.util.BarUtils
@@ -150,10 +150,12 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             v.layoutParams = lp
             windowInsets
         }
-        // btnAi 只在「二级详情」可用；放进 infoItems 会被 animateFadeInQuickly() 顶掉 GONE 状态 (issue #872)
+        // btnAi 只在「二级详情」和快照大图可用；放进 infoItems 会被 animateFadeInQuickly()
+        // 顶掉 GONE 状态 (issue #872)。反过来,可用的模式必须放进来,否则进沉浸模式时
+        // 底部信息和状态栏都收了,AI 按钮还孤零零浮在图上。
         val infoItems = mutableListOf<View>()
         baseBind?.bottomRela?.let { infoItems.add(it) }
-        if ("二级详情" == dataType) {
+        if ("二级详情" == dataType || isSnapshotMode) {
             infoItems.add(btnAi)
         }
         windowInsetsController.systemBarsBehavior =
@@ -385,8 +387,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     private fun bindSnapshotViewer(data: SnapshotViewerData) {
         if (isFinishing || isDestroyed) return
-        mIllustsBean = data.localizeForViewer()
+        mIllustsBean = data.localizeIllust()
         val bean = mIllustsBean ?: return
+        // 译图仓库按作品分桶，不 bind 的话「翻译整部」跑完了本页也收不到产物(译图不回显)。
+        translationViewModel.bindIllust(bean.id.toLong())
         val pageCount = bean.page_count.coerceAtLeast(1)
         baseBind!!.viewPager.adapter = object : FragmentPagerAdapter(
             supportFragmentManager

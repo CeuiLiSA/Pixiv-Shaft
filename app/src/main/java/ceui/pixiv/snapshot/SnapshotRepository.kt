@@ -28,6 +28,31 @@ data class SnapshotViewerData(
         val rel = assets[url] ?: return null
         return runCatching { safeResolve(snapshotDir, rel) }.getOrNull()?.takeIf { it.isFile }
     }
+
+    /**
+     * 第 [index] 页在快照里的那份文件 + 它的相对路径。
+     *
+     * 快照一页只存一份文件，存的是 large 还是 original 由生成时的选项决定；而消费方按哪一档
+     * 分辨率来问是它自己决定的（大图页恒问 ORIGINAL）。所以这里把该页**所有尺寸变体**依次拿去
+     * assets 里查，命中即用——这是「第 i 页的本地文件是哪个」的唯一答案，生成、校验、渲染、
+     * 大图页都只许问它，不许各自再拼一遍 URL。
+     *
+     * p0 额外兜一层 manifest.coverPath：老快照的 assets 里可能只有当初那一个 URL。
+     */
+    private fun pageAsset(index: Int): Pair<File, String>? {
+        val rels = illust.snapshotPageVariantUrls(index).mapNotNull { assets[it] } +
+            listOfNotNull(manifest.coverPath?.takeIf { index == 0 })
+        rels.forEach { rel ->
+            val file = runCatching { safeResolve(snapshotDir, rel) }.getOrNull()
+            if (file != null && file.isFile) return file to rel
+        }
+        return null
+    }
+
+    fun pageFile(index: Int): File? = pageAsset(index)?.first
+
+    fun pageLocalUrl(index: Int): String? =
+        pageAsset(index)?.let { (_, rel) -> snapshotLocalUrl(manifest.snapshotId, rel) }
 }
 
 /**
@@ -60,12 +85,19 @@ object SnapshotRepository {
                 // 备份等)必须当作不存在，否则会出现一张指向别人的重复卡片,删它删掉的是正主。
                 if (snapshotDir.name != manifest.snapshotId) return@mapNotNull null
                 val coverFile = manifest.coverPath?.let { rel -> runCatching { safeResolve(snapshotDir, rel) }.getOrNull()?.takeIf { f -> f.isFile } }
-                var fileCount = 0
-                var totalSize = 0L
-                snapshotDir.walkTopDown().forEach { file ->
-                    if (file.isFile) {
-                        fileCount++
-                        totalSize += file.length()
+                // 文件数/体积生成时就写进 manifest 了，列表页(三个 Tab、每次 onResume 都刷)
+                // 没必要再把每个快照目录整个 walk 一遍 —— 那是 O(全库文件数) 次 stat。
+                // 只有老快照/manifest 没记的情况才退回真扫。
+                var fileCount = manifest.fileCount
+                var totalSize = manifest.totalSize
+                if (fileCount <= 0 || totalSize <= 0L) {
+                    fileCount = 0
+                    totalSize = 0L
+                    snapshotDir.walkTopDown().forEach { file ->
+                        if (file.isFile) {
+                            fileCount++
+                            totalSize += file.length()
+                        }
                     }
                 }
                 SnapshotSummary(manifest, fileCount, totalSize, coverFile)

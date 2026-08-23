@@ -31,7 +31,9 @@ class SnapshotArtworkFeedSource(
     // 逐条评论本地化都得留在 IO 上，不能只把 loadViewerData 那一段切过去。
     override suspend fun load(cursor: String?): FeedPage<String> = withContext(Dispatchers.IO) {
         if (cursor != null) return@withContext FeedPage(emptyList(), null)
-        val data = SnapshotRepository.loadViewerData(Shaft.getContext(), snapshotId)
+        // 快照是不可变的，缓存里有就别再读一遍磁盘 + 解一遍整份 JSON(含全部评论)。
+        val data = SnapshotRuntimeCache.get(snapshotId)
+            ?: SnapshotRepository.loadViewerData(Shaft.getContext(), snapshotId)
         SnapshotRuntimeCache.put(snapshotId, data)
         val localized = data.localizeIllust()
         val pageItems = ArtworkV3FeedSource.buildArtworkPageItems(localized)

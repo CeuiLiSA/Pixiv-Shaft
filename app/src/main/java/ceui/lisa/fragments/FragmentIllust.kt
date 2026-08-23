@@ -68,9 +68,8 @@ import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
 import ceui.pixiv.snapshot.SnapshotViewerData
-import ceui.pixiv.snapshot.localizeForViewer
+import ceui.pixiv.snapshot.localizeIllust
 import ceui.pixiv.snapshot.showSnapshotCreateDialog
-import ceui.pixiv.snapshot.snapshotPageUrl
 import ceui.pixiv.ui.share.shareFirstImage
 import ceui.pixiv.ui.synonym.SynonymOperate
 import ceui.pixiv.ui.upscale.IllustAiHelper
@@ -200,7 +199,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     private fun bindSnapshotView(data: SnapshotViewerData) {
         snapshotViewerData = data
-        snapshotBean = data.localizeForViewer()
+        snapshotBean = data.localizeIllust()
         snapshotUser = snapshotBean?.user
         // 独立快照数据通道：不写 ObjectPool，只使用本地字段驱动渲染。
         val bean = snapshotBean ?: return
@@ -253,9 +252,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         val data = snapshotViewerData ?: return
         val pageCount = data.illust.page_count.coerceAtLeast(1)
         for (i in 0 until pageCount) {
-            val url = data.illust.snapshotPageUrl(i, data.manifest.includeOriginal)
-            val file = data.resolve(url)
-            if (file != null) adapter.putLocalPageUri(i, Uri.fromFile(file))
+            data.pageFile(i)?.let { file -> adapter.putLocalPageUri(i, Uri.fromFile(file)) }
         }
     }
 
@@ -431,6 +428,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.toolbar.menu?.findItem(R.id.action_ai_upscale)?.isVisible = false
             baseBind.toolbar.menu?.findItem(R.id.action_ai_rembg)?.isVisible = false
             baseBind.toolbar.menu?.findItem(R.id.action_show_original)?.isVisible = false
+            // 动图的 original 是 zip,SnapshotGenerator 一进门就拒;别把注定失败的入口摆出来。
+            baseBind.toolbar.menu?.findItem(R.id.action_snapshot)?.isVisible = false
         }
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
         baseBind.toolbar.setOnMenuItemClickListener(Toolbar.OnMenuItemClickListener { menuItem ->

@@ -1,24 +1,55 @@
 package ceui.pixiv.snapshot
 
+import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.IllustsBean
-import ceui.lisa.models.ImageUrlsBean
-import ceui.lisa.models.UserBean
+import ceui.lisa.utils.Params
 import ceui.loxia.Comment
 import ceui.loxia.User
 import java.util.Locale
 
-/** 快照实际渲染某页时使用的 URL：开原图用 original，否则回落到详情页常用 large/medium。 */
+/**
+ * 快照的 URL 口径全部走仓库既有的 [IllustDownload.getUrl]，不再自己拼一套。
+ *
+ * 这一点是硬约束而不是风格问题：渲染侧问的就是 IllustDownload（大图页
+ * [ceui.lisa.fragments.FragmentImageDetail] 恒按 ORIGINAL 取，详情页 IllustAdapter 按全局
+ * 「展示原图」设置在 ORIGINAL / LARGE 之间切），归档侧一旦自己另拼一套，
+ * 存进去的和取出来的就不是同一个 URL —— 单图作品尤其容易踩：
+ * `MetaSinglePageBean` 只有 original_image_url，large / medium 恒为 null，
+ * 自己写的「large ?: medium ?: original」会静默退化成原图。
+ */
+private fun IllustsBean.urlAt(index: Int, resolution: String): String? =
+    runCatching { IllustDownload.getUrl(this, index, resolution) }
+        .getOrNull()
+        ?.takeIf { it.isNotBlank() }
+
+/** 生成快照时第 [index] 页要下载哪一档：勾了原图取 ORIGINAL，否则取 LARGE，都拿不到再逐级兜底。 */
 fun IllustsBean.snapshotPageUrl(index: Int, original: Boolean): String? {
-    val page = if (page_count <= 1) {
-        meta_single_page
-    } else {
-        meta_pages?.getOrNull(index)?.image_urls
-    } ?: image_urls
-    return if (original) {
-        page?.original?.takeIf { it.isNotBlank() } ?: page?.large
-    } else {
-        page?.large?.takeIf { it.isNotBlank() } ?: page?.medium ?: page?.original
-    }
+    val preferred = if (original) Params.IMAGE_RESOLUTION_ORIGINAL else Params.IMAGE_RESOLUTION_LARGE
+    return urlAt(index, preferred)
+        ?: urlAt(index, Params.IMAGE_RESOLUTION_ORIGINAL)
+        ?: urlAt(index, Params.IMAGE_RESOLUTION_LARGE)
+        ?: urlAt(index, Params.IMAGE_RESOLUTION_MEDIUM)
+}
+
+/**
+ * 第 [index] 页在渲染侧可能被请求到的**全部**尺寸变体。
+ *
+ * 快照一页只存一份文件，但消费方按哪一档来问是它自己决定的。所以 assets 做成多对一：
+ * 这一页的每个变体 URL 都指向那份存档，任何调用点都不会漏到网络上去。
+ */
+fun IllustsBean.snapshotPageVariantUrls(index: Int): List<String> = listOfNotNull(
+    urlAt(index, Params.IMAGE_RESOLUTION_ORIGINAL),
+    urlAt(index, Params.IMAGE_RESOLUTION_LARGE),
+    urlAt(index, Params.IMAGE_RESOLUTION_MEDIUM),
+    urlAt(index, Params.IMAGE_RESOLUTION_SQUARE_MEDIUM),
+).distinct()
+
+/** 多图作品的封面（illust 级 image_urls）不属于任何一页，单独列出来一并指到 p0。 */
+fun IllustsBean.snapshotCoverVariantUrls(): List<String> {
+    val urls = image_urls ?: return emptyList()
+    return listOfNotNull(urls.original, urls.large, urls.medium, urls.square_medium)
+        .filter { it.isNotBlank() }
+        .distinct()
 }
 
 /** 作者头像：优先 170px，其次 medium / max。 */
