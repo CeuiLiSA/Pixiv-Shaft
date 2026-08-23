@@ -549,6 +549,9 @@
     <string name="string_322">フォロワー</string>
     <string name="string_323">マイピク</string>
     <string name="string_324">テーマカラー</string>
+    <string name="tag_translation_color">タグ翻訳色</string>
+    <string name="tag_translation_color_follow_theme">テーマに従う</string>
+    <string name="tag_translation_color_pick_from_theme_page">テーマカラーページから選択</string>
     <string name="string_325">設定を開く</string>
     <string name="string_326">開始</string>
     <string name="string_327">停止</string>

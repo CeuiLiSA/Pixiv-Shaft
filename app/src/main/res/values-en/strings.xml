@@ -549,6 +549,9 @@
     <string name="string_322">My fans</string>
     <string name="string_323">My good friend p</string>
     <string name="string_324">Theme color</string>
+    <string name="tag_translation_color">Tag translation color</string>
+    <string name="tag_translation_color_follow_theme">Follow theme</string>
+    <string name="tag_translation_color_pick_from_theme_page">Choose from theme color page</string>
     <string name="string_325">Go to settings</string>
     <string name="string_326">start</string>
     <string name="string_327">Suspend</string>

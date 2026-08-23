@@ -549,6 +549,9 @@
     <string name="string_322">Мои подписчики</string>
     <string name="string_323">Мои P-друзья</string>
     <string name="string_324">Цвет темы</string>
+    <string name="tag_translation_color">Цвет перевода тега</string>
+    <string name="tag_translation_color_follow_theme">Следовать теме</string>
+    <string name="tag_translation_color_pick_from_theme_page">Выбрать на странице цветов темы</string>
     <string name="string_325">Перейти к настройкам</string>
     <string name="string_326">Начать</string>
     <string name="string_327">Приостановить</string>
