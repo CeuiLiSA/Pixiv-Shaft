@@ -8,6 +8,7 @@ import android.net.Uri
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -170,6 +171,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      */
     private var commentsJumpRealign = false
 
+    /** 页码浮标的排版监听(见 [attachPageProgressPill]),随视图摘挂。 */
+    private var pageProgressLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
+
     /** 解析好的完整简介(#965):折叠态显示的是截断文本,展开/重绑时从这里取回全文。 */
     internal var descFullCaption: CharSequence? = null
 
@@ -231,6 +235,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         super.onViewCreated(view, savedInstanceState)
         _chromeBind = FragmentArtworkV3Binding.bind(view)
         _fabBarController = V3FabBarController(chromeBind.fabBar)
+        attachPageProgressPill()
         if (isSnapshotMode) {
             // 快照只读：保留收藏/关注按钮用于展示“那一刻”的状态，但点击一律无动作。
             chromeBind.fabBar.root.isVisible = true
@@ -303,6 +308,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         feedBinding.feedListView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 if (dy > 8) hideFabBar() else if (dy < -8) showFabBar()
+                refreshPageProgressPill()
             }
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -431,6 +437,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         sectionLoader = null
         // helper 持有本次 rootView；Fragment 留在返回栈时必须随 View 生命周期断开引用。
         aiHelper = null
+        detachPageProgressPill()
         _fabBarController = null
         _chromeBind = null
         super.onDestroyView()
@@ -588,11 +595,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             pill.alpha = 0f
             pill.visibility = View.VISIBLE
             pill.animate().alpha(1f).setDuration(220).start()
-            val pageCount = if (isSnapshotMode) {
-                snapshotId?.let { SnapshotRuntimeCache.get(it) }?.illust?.page_count ?: return
-            } else {
-                ObjectPool.get<Illust>(illustId).value?.page_count ?: return
-            }
+            val pageCount = currentPageCount()
+            if (pageCount <= 0) return
             feedViewModel.mutateItems { items ->
                 val existing = items.filterIsInstance<ArtworkPageItem>().mapTo(HashSet()) { it.pageIndex }
                 val toAdd = (1 until pageCount)
@@ -623,6 +627,80 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             if (lm is StaggeredGridLayoutManager) lm.scrollToPositionWithOffset(0, 0)
             else feedBinding.feedListView.scrollToPosition(0)
         }
+    }
+
+    /** 池 / 快照两条来源统一取当前作品的总页数;取不到给 0。 */
+    private fun currentPageCount(): Int {
+        val illust = if (isSnapshotMode) {
+            snapshotId?.let { SnapshotRuntimeCache.get(it) }?.illust
+        } else {
+            ObjectPool.get<Illust>(illustId).value
+        }
+        return illust?.page_count ?: 0
+    }
+
+    /**
+     * 右上角常驻页码浮标(#1058):不进阅读器、直接在详情页往下滑看多图时,标出「当前页 / 总页」。
+     *
+     * 「当前页」取**正被浮标盖着的那一页**,而不是视口正中那一页——浮标就悬在顶栏下方,拿它自己
+     * 那条线去问「我盖着谁」最直观;竖幅长图也不会因为中线正好落在页缝里而跳数。具体是:可见的
+     * 页条目里,顶边已经越过锚线的最后一页;都还没越过(刚进页面)就取最靠前那页。
+     *
+     * 一页都不在屏幕上了(滑到简介 / 评论 / 相关作品)就收起——那时已经不是在「看图」。
+     * 折叠态(3P+ 未展开)只有 p0 在列表里,读数照样是「1 / N」,和 web 端一致。
+     */
+    private fun refreshPageProgressPill() {
+        if (_chromeBind == null) return
+        val pill = chromeBind.pageProgressPill
+        val total = currentPageCount()
+        // 单图 / 动图没有「第几页」可言
+        if (total <= 1) {
+            pill.isVisible = false
+            return
+        }
+        val listView = feedBinding.feedListView
+        val items = feedAdapter?.currentList
+        val layoutManager = listView.layoutManager
+        if (items == null || layoutManager == null) {
+            pill.isVisible = false
+            return
+        }
+        val anchorY = chromeBind.topOverlayColumn.bottom
+        var current = -1
+        var firstVisible = -1
+        for (i in 0 until listView.childCount) {
+            val child = listView.getChildAt(i)
+            val item = items.getOrNull(layoutManager.getPosition(child)) as? ArtworkPageItem ?: continue
+            if (firstVisible < 0 || item.pageIndex < firstVisible) firstVisible = item.pageIndex
+            if (child.top <= anchorY && item.pageIndex > current) current = item.pageIndex
+        }
+        if (current < 0) current = firstVisible
+        if (current < 0) {
+            pill.isVisible = false
+            return
+        }
+        val text = getString(R.string.artwork_page_indicator, current + 1, total)
+        if (pill.text?.toString() != text) pill.text = text
+        pill.isVisible = true
+    }
+
+    /**
+     * 页码浮标的刷新时机挂在列表的排版回调上,而不是 adapter 的增删通知:后者先于这一帧的
+     * layout 到达,那时候子 View 的 top/bottom 还是上一帧的,算出来是错的。排版回调则顺带
+     * 覆盖了「图加载完撑高条目」这类没有滚动、也没有条目增删的位移。
+     */
+    private fun attachPageProgressPill() {
+        val listView = feedBinding.feedListView
+        val listener = ViewTreeObserver.OnGlobalLayoutListener { refreshPageProgressPill() }
+        pageProgressLayoutListener = listener
+        listView.viewTreeObserver.addOnGlobalLayoutListener(listener)
+    }
+
+    private fun detachPageProgressPill() {
+        val listener = pageProgressLayoutListener ?: return
+        pageProgressLayoutListener = null
+        // 附着后 viewTreeObserver 返回的是**窗口**那一份,不摘就会一直挂在 Activity 上。
+        feedBinding.feedListView.viewTreeObserver.removeOnGlobalLayoutListener(listener)
     }
 
     // ── 懒加载区块 ───────────────────────────────────────────────────────────
@@ -1005,16 +1083,16 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, insets.bottom)
             windowInsets
         }
-        // 折叠「收起」胶囊钉在顶栏(toolbar + 可选重试横幅)之下(见 #881)
+        // 右上角胶囊行(页码浮标 + 「收起」)钉在顶栏(toolbar + 可选重试横幅)之下(见 #881)
         val pillGap = 8.ppppx
         chromeBind.topOverlayColumn.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
             if (bottom == oldBottom || _chromeBind == null) return@addOnLayoutChangeListener
-            val pill = chromeBind.collapsePill
-            val lp = pill.layoutParams as FrameLayout.LayoutParams
+            val row = chromeBind.topEndPillRow
+            val lp = row.layoutParams as FrameLayout.LayoutParams
             val target = bottom + pillGap
             if (lp.topMargin != target) {
                 lp.topMargin = target
-                pill.layoutParams = lp
+                row.layoutParams = lp
             }
         }
     }

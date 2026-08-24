@@ -571,6 +571,28 @@
 
             </androidx.appcompat.widget.Toolbar>
 
+            <!-- 常驻页码浮标(#1058):多图作品直接在详情页往下滑时,标出正被它盖着的那一页。
+                 排在 toolbar 之后、同为 6dp elevation,所以会画在底部信息面板之上;面板拉起来
+                 时由 onSlide 按 slideOffset 淡出(见 FragmentIllust.setupBottomSheet)。 -->
+            <TextView
+                android:id="@+id/page_progress_pill"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_below="@+id/toolbar"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/bg_v3_expand_pill"
+                android:elevation="@dimen/six_dp"
+                android:letterSpacing="0.02"
+                android:paddingHorizontal="12dp"
+                android:paddingTop="7dp"
+                android:paddingBottom="7dp"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
         </RelativeLayout>
 
 

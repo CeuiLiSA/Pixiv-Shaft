@@ -1558,6 +1558,8 @@
     <string name="comic_reader_preload_label">미리 불러오는 페이지 수</string>
     <string name="comic_reader_preload_value">%1$d 페이지 미리 불러오기</string>
     <string name="comic_reader_page_indicator">%1$d / %2$d</string>
+    <!-- 作品详情页里直接滑图时的常驻页码浮标(#1058)。纯数字，各语言一致。 -->
+    <string name="artwork_page_indicator">%1$d / %2$d</string>
     <string name="comic_reader_jump_to_page">%1$d 페이지로 이동</string>
     <string name="comic_reader_open_label">읽기 시작</string>
     <string name="comic_reader_load_failed">불러오기 실패: %1$s</string>

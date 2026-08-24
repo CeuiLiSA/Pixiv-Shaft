@@ -88,41 +88,69 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Floating "收起" pill: 仅多图展开中可见。topMargin 运行时由 top_overlay_column.bottom 驱动。 -->
+    <!-- 右上角悬浮胶囊行:「当前页/总页」读数 + 「收起」。两个各自显隐,靠右排。
+         topMargin 运行时由 top_overlay_column.bottom 驱动(见 handleSystemInsets)。 -->
     <LinearLayout
-        android:id="@+id/collapse_pill"
+        android:id="@+id/top_end_pill_row"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|end"
         android:layout_marginEnd="12dp"
-        android:background="@drawable/bg_v3_expand_pill"
-        android:clickable="true"
         android:elevation="8dp"
-        android:focusable="true"
         android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingEnd="14dp"
-        android:paddingTop="7dp"
-        android:paddingBottom="7dp"
-        android:visibility="gone">
+        android:orientation="horizontal">
 
-        <ImageView
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:layout_marginEnd="6dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_keyboard_arrow_up_black_24dp"
-            app:tint="#FFFFFF" />
-
+        <!-- 常驻页码浮标(#1058):多图作品直接在详情页往下滑时,标出正被它盖着的那一页。 -->
         <TextView
+            android:id="@+id/page_progress_pill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_v3_expand_pill"
             android:letterSpacing="0.02"
-            android:text="@string/v3_collapse_pages_title"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="7dp"
+            android:paddingBottom="7dp"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="2 / 5"
+            tools:visibility="visible" />
+
+        <!-- Floating "收起" pill: 仅多图展开中可见。 -->
+        <LinearLayout
+            android:id="@+id/collapse_pill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_v3_expand_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="14dp"
+            android:paddingTop="7dp"
+            android:paddingBottom="7dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginEnd="6dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_keyboard_arrow_up_black_24dp"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.02"
+                android:text="@string/v3_collapse_pages_title"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Floating action bar (download + bookmark),与二级大图页共用,见 view_v3_fab_bar.xml -->

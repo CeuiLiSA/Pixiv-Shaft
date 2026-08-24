@@ -1558,6 +1558,8 @@
     <string name="comic_reader_preload_label">Предзагрузка страниц</string>
     <string name="comic_reader_preload_value">Предзагрузка %1$d стр.</string>
     <string name="comic_reader_page_indicator">%1$d / %2$d</string>
+    <!-- 作品详情页里直接滑图时的常驻页码浮标(#1058)。纯数字，各语言一致。 -->
+    <string name="artwork_page_indicator">%1$d / %2$d</string>
     <string name="comic_reader_jump_to_page">Перейти к странице %1$d</string>
     <string name="comic_reader_open_label">Открыть в читалке</string>
     <string name="comic_reader_load_failed">Не удалось загрузить: %1$s</string>

@@ -27,6 +27,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.SearchActivity
@@ -117,6 +118,9 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private var renderedImageSignature: String? = null
     private var renderedTagSignature: String? = null
     private var bottomSheetCallbackAttached = false
+    /** 页码浮标的排版监听(见 [attachPageProgressPill]),随视图摘挂。 */
+    private var pageProgressLayoutListener: OnGlobalLayoutListener? = null
+    private val pageProgressLocation = IntArray(2)
     private var sheetDeltaY = 0
     private var loadedAvatarUrl: String? = null
 
@@ -369,6 +373,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
         setupTitle(illust)
         setupToolbarMenu(illust)
+        attachPageProgressPill()
         setupLikeButton(illust)
         setupTags(illust)
         setupInfo(illust)
@@ -668,6 +673,76 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         return "${illust.isGif()}|${illust.page_count}|${illust.width}x${illust.height}|$urls"
     }
 
+    /**
+     * 右上角常驻页码浮标(#1058):不进阅读器、直接在详情页往下滑看多图时,标出「当前页 / 总页」。
+     *
+     * 刷新时机挂在图片列表的排版回调上,而不是「换了 adapter 就算一次」:adapter 是在
+     * [setupBottomSheet] 的 onGlobalLayout 里建的,那一刻子 View 还没排版,读到的 top/bottom
+     * 全是 0;排版回调还顺带覆盖了「图加载完撑高条目」这类没有滚动的位移。
+     *
+     * 监听只挂一次 —— ObjectPool 每发射一次都会重跑 [updateIllust],但 recyclerView 本身不换。
+     */
+    private fun attachPageProgressPill() {
+        if (pageProgressLayoutListener != null) return
+        val listView = baseBind.recyclerView
+        listView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                refreshPageProgressPill()
+            }
+        })
+        val listener = OnGlobalLayoutListener { refreshPageProgressPill() }
+        pageProgressLayoutListener = listener
+        listView.viewTreeObserver.addOnGlobalLayoutListener(listener)
+    }
+
+    private fun detachPageProgressPill() {
+        val listener = pageProgressLayoutListener ?: return
+        pageProgressLayoutListener = null
+        // 附着后 viewTreeObserver 返回的是**窗口**那一份,不摘就会一直挂在 Activity 上。
+        baseBind.recyclerView.viewTreeObserver.removeOnGlobalLayoutListener(listener)
+    }
+
+    /**
+     * 「当前页」取**正被浮标盖着的那一页**,而不是视口正中那一页 —— 浮标就悬在 toolbar 下方,
+     * 拿它自己那条线去问「我盖着谁」最直观;竖幅长图也不会因为中线正好落在页缝里而跳数。
+     * 具体是:可见的页里,顶边已经越过锚线的最后一页;都还没越过(刚进页面)就取最靠前那页。
+     *
+     * 总页数直接问 adapter:动图走的是 [UgoiraPlayerAdapter],不是 [IllustAdapter],自然拿不到
+     * 页数、浮标也就不出现 —— 动图本来就没有「第几页」。
+     */
+    private fun refreshPageProgressPill() {
+        val pill = baseBind.pageProgressPill
+        val listView = baseBind.recyclerView
+        val total = (listView.adapter as? IllustAdapter)?.itemCount ?: 0
+        val layoutManager = listView.layoutManager
+        if (total <= 1 || layoutManager == null || listView.childCount == 0) {
+            pill.isVisible = false
+            return
+        }
+        // toolbar 与列表分属两棵子树(列表还会随底部面板滑动整体位移),锚线走屏幕坐标换算。
+        baseBind.toolbar.getLocationOnScreen(pageProgressLocation)
+        val anchorOnScreen = pageProgressLocation[1] + baseBind.toolbar.height
+        listView.getLocationOnScreen(pageProgressLocation)
+        val anchorY = anchorOnScreen - pageProgressLocation[1]
+        var current = -1
+        var firstVisible = -1
+        for (i in 0 until listView.childCount) {
+            val child = listView.getChildAt(i)
+            val position = layoutManager.getPosition(child)
+            if (position < 0 || position >= total) continue
+            if (firstVisible < 0 || position < firstVisible) firstVisible = position
+            if (child.top <= anchorY && position > current) current = position
+        }
+        if (current < 0) current = firstVisible
+        if (current < 0) {
+            pill.isVisible = false
+            return
+        }
+        val text = getString(R.string.artwork_page_indicator, current + 1, total)
+        if (pill.text?.toString() != text) pill.text = text
+        pill.isVisible = true
+    }
+
     private fun setupBottomSheet(illust: Illust) {
         val sheetBehavior: BottomSheetBehavior<*> = BottomSheetBehavior.from(baseBind.coreLinear)
         baseBind.coreLinear.viewTreeObserver.addOnGlobalLayoutListener(object :
@@ -698,6 +773,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                         override fun onStateChanged(bottomSheet: View, newState: Int) {}
                         override fun onSlide(bottomSheet: View, slideOffset: Float) {
                             baseBind.refreshLayout.translationY = -sheetDeltaY * slideOffset * 0.7f
+                            // 面板拉起来就不是在「看图」了,浮标跟着淡出(#1058)。
+                            baseBind.pageProgressPill.alpha = 1f - slideOffset
                         }
                     })
                 }
@@ -900,6 +977,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+        detachPageProgressPill()
         renderedImageSignature = null
         renderedTagSignature = null
         bottomSheetCallbackAttached = false
