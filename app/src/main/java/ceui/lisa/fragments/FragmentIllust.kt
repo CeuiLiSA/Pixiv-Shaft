@@ -118,8 +118,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private var renderedImageSignature: String? = null
     private var renderedTagSignature: String? = null
     private var bottomSheetCallbackAttached = false
-    /** 页码浮标的排版监听(见 [attachPageProgressPill]),随视图摘挂。 */
-    private var pageProgressLayoutListener: OnGlobalLayoutListener? = null
+    private var pageProgressPillAttached = false
     private val pageProgressLocation = IntArray(2)
     private var sheetDeltaY = 0
     private var loadedAvatarUrl: String? = null
@@ -681,25 +680,35 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
      * 全是 0;排版回调还顺带覆盖了「图加载完撑高条目」这类没有滚动的位移。
      *
      * 监听只挂一次 —— ObjectPool 每发射一次都会重跑 [updateIllust],但 recyclerView 本身不换。
+     *
+     * 挂和摘都锚在「附着到窗口」上,不能放到 onDestroyView 里摘:FragmentManager 是先把 view
+     * 从容器里 removeView(已 detach)、再走 onDestroyView 的,那时候 `getViewTreeObserver()`
+     * 返回的已经是一份新建的游离 observer,remove 静默落空 —— 监听会一直留在**窗口**那份上,
+     * 每次 layout 空跑一遍还钉着已销毁的 Fragment。详情页在 ViewPager 里翻一路就攒一路。
      */
     private fun attachPageProgressPill() {
-        if (pageProgressLayoutListener != null) return
+        if (pageProgressPillAttached) return
+        pageProgressPillAttached = true
         val listView = baseBind.recyclerView
         listView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 refreshPageProgressPill()
             }
         })
-        val listener = OnGlobalLayoutListener { refreshPageProgressPill() }
-        pageProgressLayoutListener = listener
-        listView.viewTreeObserver.addOnGlobalLayoutListener(listener)
-    }
+        val layoutListener = OnGlobalLayoutListener { refreshPageProgressPill() }
+        listView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) {
+                v.viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
+            }
 
-    private fun detachPageProgressPill() {
-        val listener = pageProgressLayoutListener ?: return
-        pageProgressLayoutListener = null
-        // 附着后 viewTreeObserver 返回的是**窗口**那一份,不摘就会一直挂在 Activity 上。
-        baseBind.recyclerView.viewTreeObserver.removeOnGlobalLayoutListener(listener)
+            // detach 派发时 mAttachInfo 还没置空,这里拿到的仍是窗口那份,摘得掉。
+            override fun onViewDetachedFromWindow(v: View) {
+                v.viewTreeObserver.removeOnGlobalLayoutListener(layoutListener)
+            }
+        })
+        if (listView.isAttachedToWindow) {
+            listView.viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
+        }
     }
 
     /**
@@ -977,7 +986,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        detachPageProgressPill()
+        pageProgressPillAttached = false
         renderedImageSignature = null
         renderedTagSignature = null
         bottomSheetCallbackAttached = false

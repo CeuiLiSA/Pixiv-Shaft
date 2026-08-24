@@ -171,9 +171,6 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      */
     private var commentsJumpRealign = false
 
-    /** 页码浮标的排版监听(见 [attachPageProgressPill]),随视图摘挂。 */
-    private var pageProgressLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
-
     /** 解析好的完整简介(#965):折叠态显示的是截断文本,展开/重绑时从这里取回全文。 */
     internal var descFullCaption: CharSequence? = null
 
@@ -437,7 +434,6 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         sectionLoader = null
         // helper 持有本次 rootView；Fragment 留在返回栈时必须随 View 生命周期断开引用。
         aiHelper = null
-        detachPageProgressPill()
         _fabBarController = null
         _chromeBind = null
         super.onDestroyView()
@@ -653,8 +649,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (_chromeBind == null) return
         val pill = chromeBind.pageProgressPill
         val total = currentPageCount()
-        // 单图 / 动图没有「第几页」可言
-        if (total <= 1) {
+        // 单图 / 动图没有「第几页」可言;整页屏蔽遮罩盖着时同样不该露出来 ——
+        // 胶囊行的 elevation(8dp)高过遮罩(0),同一个父容器先按 Z 排序再按声明顺序画,
+        // 不挡就会出现「全页糊掉、右上角还飘着 1 / 5」,与 [showFabBar] 同一条规则。
+        if (total <= 1 || muteMaskActive) {
             pill.isVisible = false
             return
         }
@@ -688,19 +686,30 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * 页码浮标的刷新时机挂在列表的排版回调上,而不是 adapter 的增删通知:后者先于这一帧的
      * layout 到达,那时候子 View 的 top/bottom 还是上一帧的,算出来是错的。排版回调则顺带
      * 覆盖了「图加载完撑高条目」这类没有滚动、也没有条目增删的位移。
+     *
+     * 挂和摘都锚在「附着到窗口」上,不能放到 onDestroyView 里摘:FragmentManager 是先把
+     * view 从容器里 removeView(已 detach、mAttachInfo 置空)、再走 onDestroyView 的,那时候
+     * `getViewTreeObserver()` 返回的已经是一份新建的游离 observer,remove 静默落空 ——
+     * 监听会一直留在**窗口**那份上,每次 layout 空跑一遍还钉着已销毁的 Fragment。详情页在
+     * ViewPager 里翻一路,就是一路这样的僵尸监听。
      */
     private fun attachPageProgressPill() {
         val listView = feedBinding.feedListView
-        val listener = ViewTreeObserver.OnGlobalLayoutListener { refreshPageProgressPill() }
-        pageProgressLayoutListener = listener
-        listView.viewTreeObserver.addOnGlobalLayoutListener(listener)
-    }
+        val layoutListener = ViewTreeObserver.OnGlobalLayoutListener { refreshPageProgressPill() }
+        listView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(v: View) {
+                v.viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
+            }
 
-    private fun detachPageProgressPill() {
-        val listener = pageProgressLayoutListener ?: return
-        pageProgressLayoutListener = null
-        // 附着后 viewTreeObserver 返回的是**窗口**那一份,不摘就会一直挂在 Activity 上。
-        feedBinding.feedListView.viewTreeObserver.removeOnGlobalLayoutListener(listener)
+            // detach 派发时 mAttachInfo 还没置空,这里拿到的仍是窗口那份,摘得掉。
+            override fun onViewDetachedFromWindow(v: View) {
+                v.viewTreeObserver.removeOnGlobalLayoutListener(layoutListener)
+            }
+        })
+        // onViewCreated 时 view 通常已经在容器里了,附着回调不会再补发一次。
+        if (listView.isAttachedToWindow) {
+            listView.viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
+        }
     }
 
     // ── 懒加载区块 ───────────────────────────────────────────────────────────
