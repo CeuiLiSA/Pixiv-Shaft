@@ -166,26 +166,29 @@ object ObjectPool {
     }
 
     private fun <ObjectT : ModelObject> findObjectSpec(objClass: KClass<ObjectT>): Int {
-        val classSimpleName = objClass.simpleName ?: return ObjectSpec.UNKNOWN
-        return when (classSimpleName) {
-            "Novel" -> {
+        // Class names are not a stable type discriminator: release R8 is allowed to rename
+        // Illust/Novel/User, which made simpleName fall through to UNKNOWN and split reads from
+        // writes into different ObjectPool keys. Compare class identities so R8 can safely rename
+        // the models without changing detail-page behavior.
+        return when (objClass) {
+            Novel::class -> {
                 // 不能跟 Illust 共用类型：插画/小说 ID 各自独立，撞键会让
                 // get<Novel> 取到 Illust 直接 ClassCastException。
                 ObjectSpec.KNovel
             }
-            "Illust" -> {
+            Illust::class -> {
                 ObjectSpec.Illust
             }
-            "User" -> {
+            User::class -> {
                 ObjectSpec.KUser
             }
-            "Article" -> {
+            Article::class -> {
                 ObjectSpec.ARTICLE
             }
-            "GifInfoResponse" -> {
+            GifInfoResponse::class -> {
                 ObjectSpec.GIF_INFO
             }
-            "UserResponse" -> {
+            UserResponse::class -> {
                 ObjectSpec.UserProfile
             }
             else -> {
