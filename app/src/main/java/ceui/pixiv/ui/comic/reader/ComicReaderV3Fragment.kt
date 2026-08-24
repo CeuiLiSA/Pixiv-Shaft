@@ -255,7 +255,10 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
                 requireActivity().onBackPressedDispatcher.onBackPressed()
             }
         }
-        chrome.onShownChanged = { cb.isEnabled = it }
+        chrome.onShownChanged = { shown ->
+            cb.isEnabled = shown
+            refreshPageOverlay()
+        }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, cb)
     }
 
@@ -354,8 +357,18 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         binding.comicBottomBar.comicSeekbar.max = (total - 1).coerceAtLeast(0)
         binding.comicBottomBar.comicSeekbar.progress = index.coerceIn(0, binding.comicBottomBar.comicSeekbar.max)
         binding.comicPageOverlay.text = getString(R.string.comic_reader_page_indicator, index + 1, total)
+        refreshPageOverlay()
+    }
+
+    /**
+     * 贴底页码浮标只在 chrome 收起时露出(#1058)。底栏的背景是半透明的 #CC000000,展开时正好
+     * 盖在这个距底 14dp 的浮标上,数字透出来糊成一团灰字、和「翻页方向」图标叠在一起;而且底栏
+     * 左右两端本来就是「当前页 / 总页」,再叠一层纯属重复。与小说阅读器的常驻进度(#994)同一条规则。
+     */
+    private fun refreshPageOverlay() {
+        val total = (viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded)?.pages?.size ?: 0
         binding.comicPageOverlay.visibility =
-            if (ComicReaderSettings.showPageNumber && total > 1) View.VISIBLE else View.GONE
+            if (ComicReaderSettings.showPageNumber && total > 1 && !chrome.shown) View.VISIBLE else View.GONE
     }
 
     // ---- Tap zone -----------------------------------------------------------
