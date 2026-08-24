@@ -409,6 +409,16 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         }
         artworkViewModel.onPageVisible()
         artworkViewModel.refreshDownloadFab()
+        refreshCachedOriginalPages()
+    }
+
+    /**
+     * 从二级大图页返回后，把进程内已缓存 ORIGINAL 的顶部大图页回填成原图。
+     * 遍历和快照/原图模式防御都在 [IllustAdapter.showCachedOriginalOverlays] 内。
+     */
+    private fun refreshCachedOriginalPages() {
+        if (isSnapshotMode) return
+        pageAdapter?.showCachedOriginalOverlays()
     }
 
     override fun onPause() {

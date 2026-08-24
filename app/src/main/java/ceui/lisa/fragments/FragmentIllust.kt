@@ -932,7 +932,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     override fun onResume() {
         super.onResume()
-        if (!isSnapshotMode) checkDownload()
+        if (!isSnapshotMode) {
+            checkDownload()
+            // 从二级大图页返回后，把进程内已缓存 ORIGINAL 的页直接回填，不重绑列表。
+            (baseBind.recyclerView.adapter as? IllustAdapter)?.showCachedOriginalOverlays()
+        }
     }
 
     private fun checkDownload() {
