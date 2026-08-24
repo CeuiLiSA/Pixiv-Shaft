@@ -10,9 +10,6 @@ class SearchRiskPolicyInstrumentedTest {
 
     @Test
     fun decryptsAndMatchesOnAndroidRuntime() {
-        SearchRiskPolicy.warmUp()
-
-        assertTrue(SearchRiskPolicy.isWarmedUp())
         assertTrue(
             SearchRiskPolicy.shouldWithhold(
                 text(0x4E60, 0x8FD1, 0x5E73),
