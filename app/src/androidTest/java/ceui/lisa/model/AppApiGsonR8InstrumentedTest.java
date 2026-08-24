@@ -19,10 +19,14 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 
+import ceui.lisa.core.DownloadItem;
 import ceui.lisa.http.AppApi;
 import ceui.lisa.http.AppApiSuspend;
 import ceui.loxia.Illust;
 import ceui.loxia.ObjectPool;
+import ceui.pixiv.snapshot.SnapshotManifest;
+import ceui.pixiv.ui.user.RequestPlanText;
+import ceui.pixiv.ui.user.UserRequestPlansResponse;
 import retrofit2.http.GET;
 
 /** Guards App API wire fields and Retrofit response signatures in the minified release APK. */
@@ -37,6 +41,18 @@ public final class AppApiGsonR8InstrumentedTest {
         assertNotNull(ListIllust.class.getDeclaredField("illusts"));
         assertNotNull(Illust.class.getDeclaredField("id"));
         assertNotNull(Illust.class.getDeclaredField("title"));
+    }
+
+    @Test
+    public void reflectionOnlyModelFieldsSurviveR8() throws Exception {
+        // These models are only ever instantiated by Gson. Without an identity keep, full-mode R8
+        // marks them uninstantiated and strips their fields even though -keepclassmembers lists
+        // them. One representative per category: fully-qualified Retrofit response, nested wire
+        // model, exported .shaftsnap manifest, and the Room-persisted download queue snapshot.
+        assertNotNull(UserRequestPlansResponse.class.getDeclaredField("request_plans"));
+        assertNotNull(RequestPlanText.class.getDeclaredField("translation"));
+        assertNotNull(SnapshotManifest.class.getDeclaredField("snapshotId"));
+        assertNotNull(DownloadItem.class.getDeclaredField("url"));
     }
 
     @Test

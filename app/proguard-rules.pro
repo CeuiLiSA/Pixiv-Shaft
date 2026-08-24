@@ -18,6 +18,17 @@
 -keepclassmembers class ceui.pixiv.download.config.** { <fields>; }
 -keepclassmembers class ceui.pixiv.download.header.** { <fields>; }
 
+# Wire models that live outside the model packages (referenced by fully-qualified name from the
+# Retrofit interfaces). Same contract as above: their source field names are the JSON schema.
+-keepclassmembers class ceui.pixiv.ui.user.UserRequestPlansResponse { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.user.RequestPlanUserProfile { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.user.RequestPlan { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.user.RequestPlanAcceptFlags { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.user.RequestPlanText { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.user.RequestPlanImageUrls { <fields>; }
+-keepclassmembers class ceui.lisa.http.CloudFlareDNSResponse { <fields>; }
+-keepclassmembers class ceui.lisa.http.CloudFlareDNSResponse$* { <fields>; }
+
 # Retrofit also reflects generic response types. In full mode, keeping fields alone is not enough:
 # R8 may merge/remove a DTO class and rewrite Observable<Dto> or Continuation<Dto> to Object,
 # which makes every otherwise-successful response fail with ClassCastException. Preserve only the
@@ -30,6 +41,14 @@
 -keep,allowobfuscation class ceui.lisa.update.**
 -keep,allowobfuscation class ceui.pixiv.chat.api.**
 -keep,allowobfuscation class ceui.pixiv.events.**
+-keep,allowobfuscation class ceui.pixiv.ui.user.UserRequestPlansResponse
+-keep,allowobfuscation class ceui.pixiv.ui.user.RequestPlanUserProfile
+-keep,allowobfuscation class ceui.pixiv.ui.user.RequestPlan
+-keep,allowobfuscation class ceui.pixiv.ui.user.RequestPlanAcceptFlags
+-keep,allowobfuscation class ceui.pixiv.ui.user.RequestPlanText
+-keep,allowobfuscation class ceui.pixiv.ui.user.RequestPlanImageUrls
+-keep,allowobfuscation class ceui.lisa.http.CloudFlareDNSResponse
+-keep,allowobfuscation class ceui.lisa.http.CloudFlareDNSResponse$*
 
 # Persisted/imported JSON models outside the network model packages. Their field names are an
 # on-disk compatibility contract across app upgrades, so preserving them also protects old backups.
@@ -45,6 +64,46 @@
 -keepclassmembers class ceui.pixiv.ui.pinned.PreviewRoot { <fields>; }
 -keepclassmembers class ceui.pixiv.ui.pinned.PreviewTag { <fields>; }
 -keepclassmembers class ceui.pixiv.ui.pinned.PreviewResp { <fields>; }
+-keepclassmembers class ceui.lisa.core.DownloadItem { <fields>; }
+-keepclassmembers class ceui.pixiv.actions.BookmarkPayload { <fields>; }
+-keepclassmembers class ceui.pixiv.actions.FollowPayload { <fields>; }
+-keepclassmembers class ceui.pixiv.actions.Nana7miSearchTelemetry$Payload { <fields>; }
+-keepclassmembers class ceui.pixiv.actions.Nana7miSearchTelemetry$BatchPayload { <fields>; }
+-keepclassmembers class ceui.pixiv.snapshot.SnapshotManifest { <fields>; }
+-keepclassmembers class ceui.pixiv.snapshot.SnapshotAssets { <fields>; }
+-keepclassmembers class ceui.pixiv.snapshot.SnapshotComments { <fields>; }
+-keepclassmembers class ceui.pixiv.snapshot.SnapshotCommentThread { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.prime.PrimeTagIndexItem { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.account.EmailBackupV3ViewModel$ErrorBody { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.debug.PopularTagExportViewModel$Envelope { <fields>; }
+
+# Field rules alone do NOT protect a class that only Gson ever instantiates: R8 full mode marks it
+# uninstantiated, deletes its "dead" instance fields despite -keepclassmembers, and folds reads to
+# null (verified in the release mapping — PreviewRoot/RawBackup lost every field while the
+# identity-kept model packages above survived). Every reflection-only type in this file therefore
+# also pins its class identity here; renaming the class stays allowed, field names stay original.
+-keep,allowobfuscation class ceui.lisa.core.DownloadItem
+-keep,allowobfuscation class ceui.lisa.utils.Settings
+-keep,allowobfuscation class ceui.lisa.utils.BackupUtils$BackupEntity
+-keep,allowobfuscation class ceui.lisa.feature.FeatureEntity
+-keep,allowobfuscation class ceui.pixiv.actions.BookmarkPayload
+-keep,allowobfuscation class ceui.pixiv.actions.FollowPayload
+-keep,allowobfuscation class ceui.pixiv.actions.Nana7miSearchTelemetry$Payload
+-keep,allowobfuscation class ceui.pixiv.actions.Nana7miSearchTelemetry$BatchPayload
+-keep,allowobfuscation class ceui.pixiv.download.StageStore$Manifest
+-keep,allowobfuscation class ceui.pixiv.snapshot.SnapshotManifest
+-keep,allowobfuscation class ceui.pixiv.snapshot.SnapshotAssets
+-keep,allowobfuscation class ceui.pixiv.snapshot.SnapshotComments
+-keep,allowobfuscation class ceui.pixiv.snapshot.SnapshotCommentThread
+-keep,allowobfuscation class ceui.pixiv.ui.synonym.SynonymDictBackup$*Json
+-keep,allowobfuscation class ceui.pixiv.ui.history.BrowseHistoryBackup$Payload
+-keep,allowobfuscation class ceui.pixiv.ui.history.BrowseHistoryBackup$RawBackup
+-keep,allowobfuscation class ceui.pixiv.ui.pinned.PreviewRoot
+-keep,allowobfuscation class ceui.pixiv.ui.pinned.PreviewTag
+-keep,allowobfuscation class ceui.pixiv.ui.pinned.PreviewResp
+-keep,allowobfuscation class ceui.pixiv.ui.prime.PrimeTagIndexItem
+-keep,allowobfuscation class ceui.pixiv.ui.account.EmailBackupV3ViewModel$ErrorBody
+-keep,allowobfuscation class ceui.pixiv.ui.debug.PopularTagExportViewModel$Envelope
 
 # These classes use private AndroidX fields by exact string name. Keep only the reflected fields;
 # DrawerLayoutHelper already degrades safely if an AndroidX release removes them altogether.
