@@ -590,6 +590,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (expanded) {
             pill.alpha = 0f
             pill.visibility = View.VISIBLE
+            syncTopEndPill()
             pill.animate().alpha(1f).setDuration(220).start()
             val pageCount = currentPageCount()
             if (pageCount <= 0) return
@@ -606,6 +607,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             pill.animate().alpha(0f).setDuration(220).withEndAction {
                 pill.visibility = View.GONE
                 pill.alpha = 1f
+                syncTopEndPill()
             }.start()
             // 一次编辑同时:删掉隐藏页 + bump 首页 rebindTick(强制 DiffUtil 原地重绑 p0,
             // 让「展开剩余 X 张」覆盖层重现)。不用 notifyItemChanged/post,避免与在飞的 diff 抢。
@@ -649,11 +651,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (_chromeBind == null) return
         val pill = chromeBind.pageProgressPill
         val total = currentPageCount()
-        // 单图 / 动图没有「第几页」可言;整页屏蔽遮罩盖着时同样不该露出来 ——
-        // 胶囊行的 elevation(8dp)高过遮罩(0),同一个父容器先按 Z 排序再按声明顺序画,
-        // 不挡就会出现「全页糊掉、右上角还飘着 1 / 5」,与 [showFabBar] 同一条规则。
-        if (total <= 1 || muteMaskActive) {
+        // 单图 / 动图没有「第几页」可言
+        if (total <= 1) {
             pill.isVisible = false
+            syncTopEndPill()
             return
         }
         val listView = feedBinding.feedListView
@@ -661,6 +662,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val layoutManager = listView.layoutManager
         if (items == null || layoutManager == null) {
             pill.isVisible = false
+            syncTopEndPill()
             return
         }
         val anchorY = chromeBind.topOverlayColumn.bottom
@@ -675,11 +677,31 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (current < 0) current = firstVisible
         if (current < 0) {
             pill.isVisible = false
+            syncTopEndPill()
             return
         }
         val text = getString(R.string.artwork_page_indicator, current + 1, total)
         if (pill.text?.toString() != text) pill.text = text
         pill.isVisible = true
+        syncTopEndPill()
+    }
+
+    /**
+     * 胶囊本体的显隐:「收起」和读数是同一枚胶囊里的两段,任一段有内容就露出来;两段都在场时
+     * 才插进那 10dp 的间隔 [top_end_pill_gap]。
+     *
+     * 间隔用一个独立的 Space 而不是挂成谁的 margin:LinearLayout 里 GONE 的子 View 自己不占位,
+     * 但它**前一个可见兄弟**的 marginEnd 照常生效 —— 挂在任一段身上,都会在另一段隐藏时让胶囊
+     * 往那一侧多出 10dp、左右不对称。
+     *
+     * 整页屏蔽遮罩盖着时一律收起 —— 胶囊的 elevation(8dp)高过遮罩(0),同一个父容器先按 Z
+     * 排序再按声明顺序画,不挡就会出现「全页糊掉、右上角还飘着 4 / 10」,与 [showFabBar] 同一条规则。
+     */
+    private fun syncTopEndPill() {
+        val hasCollapse = chromeBind.collapsePill.isVisible
+        val hasProgress = chromeBind.pageProgressPill.isVisible
+        chromeBind.topEndPillGap.isVisible = hasCollapse && hasProgress
+        chromeBind.topEndPillRow.isVisible = (hasCollapse || hasProgress) && !muteMaskActive
     }
 
     /**
@@ -965,6 +987,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private fun setMuteMaskActive(active: Boolean) {
         if (muteMaskActive == active) return
         muteMaskActive = active
+        syncTopEndPill()
         if (active) {
             hideFabBar(immediate = true)
         } else {
