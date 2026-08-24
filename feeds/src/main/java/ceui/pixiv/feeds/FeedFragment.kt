@@ -410,6 +410,9 @@ abstract class FeedFragment(
             // 的列表上设回 animator——无害且不泄漏（listView 随 view 一起回收）。
             listView.post { listView.itemAnimator = listItemAnimator }
             onListCommitted(state)
+            // 刷新可能把长列表截成很短的前缀：幸存 ViewHolder 不会重新 onBind，
+            // onNearEnd 的预取信号会永久丢失，这里提交后主动补一次检查。
+            listView.post { rearmPaginationIfNearEnd() }
         }
     }
 
@@ -438,6 +441,31 @@ abstract class FeedFragment(
         }
     }
 
+    /**
+     * 列表 diff 提交后补一次“触底预取”检查。
+     *
+     * 常规翻页由 [FeedAdapter] 的 onBind 驱动；但刷新把长列表截成很短的前缀时，
+     * 幸存的 ViewHolder 内容没变、RecyclerView 不会重新 onBind，短列表又可能没有
+     * 滚动空间，onNearEnd 永远不会再触发。这里在提交后主动看一次当前可见位置，
+     * 如果已经处于预取区就补调 [FeedViewModel.loadMore]，避免分页被“静默吃掉”。
+     */
+    private fun rearmPaginationIfNearEnd() {
+        if (!loadMoreEnabled) return
+        val listView = _binding?.feedListView ?: return
+        val adapter = feedAdapter ?: return
+        val layoutManager = listView.layoutManager ?: return
+        val lastVisible = when (layoutManager) {
+            is StaggeredGridLayoutManager ->
+                layoutManager.findLastVisibleItemPositions(null).maxOrNull() ?: -1
+            is LinearLayoutManager -> layoutManager.findLastVisibleItemPosition()
+            else -> -1
+        }
+        if (lastVisible < 0) return
+        if (adapter.isNearEnd(lastVisible)) {
+            feedViewModel.loadMore()
+        }
+    }
+
     /** adapter 现取不缓存：[rebuildList] 换过 adapter 之后，长活的 uiState collector 不能再往旧的提交。 */
     private fun render(state: FeedUiState) {
         val adapter = feedAdapter ?: return
@@ -450,12 +478,18 @@ abstract class FeedFragment(
         // adapter 还空着（首屏、旋转重建、rebuildList 换过 adapter）时没有「旧代」可撕。
         val newGeneration = state.refreshGeneration != lastRenderedGeneration
         lastRenderedGeneration = state.refreshGeneration
+        val listView = feedBinding.feedListView
         if (newGeneration && adapter.itemCount > 0 && displayList.isNotEmpty() &&
             needsCleanSwapAcrossGenerations(adapter.currentList, displayList)
         ) {
             commitNewGeneration(adapter, displayList, state)
         } else {
-            adapter.submitList(displayList) { onListCommitted(state) }
+            adapter.submitList(displayList) {
+                onListCommitted(state)
+                // 刷新可能把长列表截成很短的前缀：幸存 ViewHolder 不会重新 onBind，
+                // onNearEnd 的预取信号会永久丢失，这里提交后主动补一次检查。
+                listView.post { rearmPaginationIfNearEnd() }
+            }
         }
 
         val binding = feedBinding

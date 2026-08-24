@@ -91,7 +91,7 @@ class FeedAdapter(
         } else {
             renderer.onBind(cell, payloads)
         }
-        if (onNearEnd != null && position >= itemCount - prefetchDistance) {
+        if (onNearEnd != null && isNearEnd(position)) {
             onNearEnd.invoke()
         }
     }
@@ -115,6 +115,9 @@ class FeedAdapter(
         if (position !in 0 until itemCount) return 1
         return renderers[getItemViewType(position)].spanSize(spanCount)
     }
+
+    /** 是否处于触底预取区；供 [FeedFragment] 在列表提交后补一次预取检查。 */
+    internal fun isNearEnd(position: Int): Boolean = position >= itemCount - prefetchDistance
 }
 
 /** 兜底 payload：告诉 RecyclerView「复用原 holder 全量重绑」，而不是播放 change 动画。 */
