@@ -1,3 +1,5 @@
+import java.security.SecureRandom
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
@@ -6,9 +8,75 @@ apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 // apply plugin: 'org.jmailen.kotlinter'  // 临时停用，见根 build.gradle
 
+// 官方包的 HMAC 密钥只在构建进程里读取，绝不生成进 BuildConfig/String 常量。
+// 任务输出三份随机掩码字节表；C++ 在签名调用期间恢复原始字节、完成 HMAC 后立即清零。
+// 这能阻止 strings/jadx 直接拿到明文，但客户端仍是不可信环境，不能替代服务端短期凭证。
+def shaftEventsHmacProvider = providers.gradleProperty('SHAFT_EVENTS_HMAC')
+        .orElse(providers.environmentVariable('SHAFT_EVENTS_HMAC'))
+        .orElse('')
+def generatedShaftSecretsDir = layout.buildDirectory.dir('generated/shaft-secrets')
+def generatedShaftSecretsHeader = generatedShaftSecretsDir.map {
+    it.file('shaft_secrets.generated.h')
+}
+
+def generateShaftSecretsHeader = tasks.register('generateShaftSecretsHeader') {
+    outputs.file(generatedShaftSecretsHeader)
+    // Never persist the secret (or a guessable derivative) in Gradle's task history. Regenerating
+    // also gives every build fresh masks, even when the injected key itself did not rotate.
+    outputs.upToDateWhen { false }
+
+    doLast {
+        byte[] secret = shaftEventsHmacProvider.get().getBytes('UTF-8')
+        int storageSize = secret.length > 0 ? secret.length : 1
+        byte[] maskA = new byte[storageSize]
+        byte[] maskB = new byte[storageSize]
+        byte[] encoded = new byte[storageSize]
+        def random = new SecureRandom()
+        random.nextBytes(maskA)
+        random.nextBytes(maskB)
+        for (int i = 0; i < storageSize; i++) {
+            int value = i < secret.length ? secret[i] & 0xff : random.nextInt(256)
+            encoded[i] = (byte) (value ^ (maskA[i] & 0xff) ^ (maskB[i] & 0xff))
+        }
+
+        def values = { byte[] bytes ->
+            bytes.collect { '0x' + (it & 0xff).toString(16).padLeft(2, '0') }.join(', ')
+        }
+        def output = generatedShaftSecretsHeader.get().asFile
+        output.parentFile.mkdirs()
+        output.setText("""#pragma once
+#include <array>
+#include <cstddef>
+#include <cstdint>
+
+// Generated file. Contains only masked bytes; do not commit it.
+namespace shaft::generated {
+inline constexpr std::size_t kSecretSize = ${secret.length};
+inline constexpr std::size_t kStorageSize = ${storageSize};
+// Volatile reads prevent LTO/the optimizer from folding the three tables back into a contiguous
+// plaintext constant. The tables remain read-only and independently randomized per build.
+inline const volatile std::uint8_t kEncoded[kStorageSize] = { ${values(encoded)} };
+inline const volatile std::uint8_t kMaskA[kStorageSize] = { ${values(maskA)} };
+inline const volatile std::uint8_t kMaskB[kStorageSize] = { ${values(maskB)} };
+}  // namespace shaft::generated
+""", 'UTF-8')
+        output.setReadable(false, false)
+        output.setReadable(true, true)
+        output.setWritable(false, false)
+        output.setWritable(true, true)
+
+        [secret, maskA, maskB, encoded].each { bytes ->
+            for (int i = 0; i < bytes.length; i++) bytes[i] = 0
+        }
+    }
+}
+
 android {
     compileSdk 36
 
+    // Default instrumentation stays fast, while release hardening can explicitly run the same
+    // tests against R8 output with -PSHAFT_TEST_BUILD_TYPE=release.
+    testBuildType providers.gradleProperty('SHAFT_TEST_BUILD_TYPE').getOrElse('debug')
 
     defaultConfig {
         applicationId "ceui.pixiv"
@@ -27,14 +95,19 @@ android {
             }
         }
 
-        // Shaft community events server (shaft-api-v2). Secret is injected at
-        // build time from ~/.gradle/gradle.properties or env (SHAFT_EVENTS_HMAC) —
-        // never committed. Forks build with empty secret and get 401 from the
-        // server, which is intentional: only official builds may post events.
+        // Shaft community events server (shaft-api-v2). The URL is not secret.
+        // HMAC material is injected into libshaft_secrets.so by the task above;
+        // forks build with an empty native key and keep the historical disabled behavior.
         buildConfigField "String", "SHAFT_EVENTS_BASE_URL",
             '"' + (project.findProperty('SHAFT_EVENTS_BASE_URL') ?: 'http://36.138.103.18:30009') + '"'
-        buildConfigField "String", "SHAFT_EVENTS_HMAC",
-            '"' + (project.findProperty('SHAFT_EVENTS_HMAC') ?: System.getenv('SHAFT_EVENTS_HMAC') ?: '') + '"'
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DSHAFT_GENERATED_SECRET_DIR=${generatedShaftSecretsDir.get().asFile.absolutePath}"
+                cppFlags '-std=c++20', '-fvisibility=hidden', '-fvisibility-inlines-hidden',
+                        '-fstack-protector-strong', '-D_FORTIFY_SOURCE=2'
+            }
+        }
     }
 
     lint {
@@ -98,9 +171,11 @@ android {
             resValue "string", "app_name", "Shaft(Debug)"
         }
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             buildConfigField "boolean", "IS_DEBUG_MODE", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            testProguardFiles 'proguard-test-rules.pro'
             signingConfig hasShaftKeystore ? signingConfigs.shaft : signingConfigs.debug
 
             applicationIdSuffix ".pshaft"
@@ -130,6 +205,13 @@ android {
         }
     }
 
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+
     buildFeatures {
         dataBinding true
         viewBinding true
@@ -147,6 +229,15 @@ android {
     namespace 'ceui.lisa'
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17
+    }
+}
+
+// CMake compilation must never race the generated secret header, especially when Gradle
+// builds google/github variants in parallel.
+tasks.configureEach { task ->
+    def nativeBuildTask = task.name.contains('CMake') || task.name.startsWith('externalNativeBuild')
+    if (nativeBuildTask && !task.name.toLowerCase(Locale.ROOT).contains('clean')) {
+        task.dependsOn(generateShaftSecretsHeader)
     }
 }
 
@@ -169,6 +260,9 @@ dependencies {
     // AndroidX Test - JUnit Runner
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    // Release androidTest is minified independently from the target APK. Keep the runner's
+    // direct Trace dependency in the test APK so AndroidJUnitRunner can start under R8.
+    androidTestImplementation("androidx.tracing:tracing:1.2.0")
 
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation 'androidx.appcompat:appcompat:1.7.0'
@@ -218,6 +312,9 @@ dependencies {
     implementation("org.sufficientlysecure:html-textview:3.9")
     implementation 'com.wdullaer:materialdatetimepicker:4.2.3'
     implementation 'com.mxn.soul:flowingdrawer-core:2.1.0'
+    // flowingdrawer-core declares these classes in its animation path but its published POM omits
+    // the dependency. Debug/D8 tolerated that; R8 correctly exposes the potential runtime crash.
+    implementation 'com.nineoldandroids:library:2.4.0'
     implementation 'com.ToxicBakery.viewpager.transforms:view-pager-transforms:2.0.24'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation 'jp.wasabeef:recyclerview-animators:4.0.2'

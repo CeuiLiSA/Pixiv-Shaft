@@ -23,30 +23,31 @@ import com.ToxicBakery.viewpager.transforms.ZoomOutTransformer;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.function.Supplier;
 
 import ceui.lisa.activities.Shaft;
 
 public class PageTransformerHelper {
 
     private final static IndexedLinkedHashMap<Integer, TransformerType> transformerMap = Stream.of(
-            new TransformerType(0, DefaultTransformer.class),
-            new TransformerType(1, AccordionTransformer.class),
-            new TransformerType(2, BackgroundToForegroundTransformer.class),
-            new TransformerType(3, ForegroundToBackgroundTransformer.class),
-            new TransformerType(4, CubeInTransformer.class),
-            new TransformerType(5, CubeOutTransformer.class),
-            new TransformerType(6, DepthPageTransformer.class),
-            new TransformerType(7, FlipHorizontalTransformer.class),
-            new TransformerType(8, FlipVerticalTransformer.class),
-            new TransformerType(9, RotateDownTransformer.class),
-            new TransformerType(10, RotateUpTransformer.class),
-            new TransformerType(11, ScaleInOutTransformer.class),
-            new TransformerType(12, ZoomOutSlideTransformer.class),
-            new TransformerType(13, ZoomInTransformer.class),
-            new TransformerType(14, ZoomOutTransformer.class),
-            new TransformerType(15, StackTransformer.class),
-            new TransformerType(16, TabletTransformer.class),
-            new TransformerType(17, DrawerTransformer.class)
+            new TransformerType(0, "Default", DefaultTransformer::new),
+            new TransformerType(1, "Accordion", AccordionTransformer::new),
+            new TransformerType(2, "BackgroundToForeground", BackgroundToForegroundTransformer::new),
+            new TransformerType(3, "ForegroundToBackground", ForegroundToBackgroundTransformer::new),
+            new TransformerType(4, "CubeIn", CubeInTransformer::new),
+            new TransformerType(5, "CubeOut", CubeOutTransformer::new),
+            new TransformerType(6, "DepthPage", DepthPageTransformer::new),
+            new TransformerType(7, "FlipHorizontal", FlipHorizontalTransformer::new),
+            new TransformerType(8, "FlipVertical", FlipVerticalTransformer::new),
+            new TransformerType(9, "RotateDown", RotateDownTransformer::new),
+            new TransformerType(10, "RotateUp", RotateUpTransformer::new),
+            new TransformerType(11, "ScaleInOut", ScaleInOutTransformer::new),
+            new TransformerType(12, "ZoomOutSlide", ZoomOutSlideTransformer::new),
+            new TransformerType(13, "ZoomIn", ZoomInTransformer::new),
+            new TransformerType(14, "ZoomOut", ZoomOutTransformer::new),
+            new TransformerType(15, "Stack", StackTransformer::new),
+            new TransformerType(16, "Tablet", TabletTransformer::new),
+            new TransformerType(17, "Drawer", DrawerTransformer::new)
     ).collect(Collectors.toMap(TransformerType::getTypeId, t -> t, (v1, v2) -> v1, IndexedLinkedHashMap::new)).tidyIndexes();
 
     public static int getCurrentTransformerIndex() {
@@ -59,12 +60,8 @@ public class PageTransformerHelper {
     }
 
     public static ABaseTransformer getCurrentTransformer() {
-        try {
-            return transformerMap.get(Shaft.sSettings.getTransformerType()).pageTransformer.newInstance();
-        } catch (IllegalAccessException | InstantiationException e) {
-            e.printStackTrace();
-        }
-        return new DefaultTransformer();
+        TransformerType transformer = transformerMap.get(Shaft.sSettings.getTransformerType());
+        return transformer == null ? new DefaultTransformer() : transformer.factory.get();
     }
 
     public static String[] getTransformerNames() {
@@ -81,12 +78,17 @@ public class PageTransformerHelper {
     private static class TransformerType {
 
         private final int typeId;
-        private int nameResId;
-        private final Class<? extends ABaseTransformer> pageTransformer;
+        private final String name;
+        private final Supplier<? extends ABaseTransformer> factory;
 
-        public TransformerType(int typeId, Class<? extends ABaseTransformer> pageTransformer) {
+        public TransformerType(
+                int typeId,
+                String name,
+                Supplier<? extends ABaseTransformer> factory
+        ) {
             this.typeId = typeId;
-            this.pageTransformer = pageTransformer;
+            this.name = name;
+            this.factory = factory;
         }
 
         public int getTypeId() {
@@ -94,7 +96,7 @@ public class PageTransformerHelper {
         }
 
         public String getName() {
-            return pageTransformer.getSimpleName().replace("Transformer", "");
+            return name;
         }
     }
 }

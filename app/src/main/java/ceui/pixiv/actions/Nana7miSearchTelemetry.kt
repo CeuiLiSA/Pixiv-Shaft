@@ -16,6 +16,7 @@ import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.actionqueue.PendingAction
 import ceui.pixiv.actionqueue.QueuePolicy
 import ceui.pixiv.actionqueue.RetryScope
+import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.websocket.AppNetworkMonitor
 import io.reactivex.Observable
 import java.io.IOException
@@ -73,8 +74,8 @@ internal object Nana7miSearchTelemetry {
 
     @JvmStatic
     fun init(context: Context) {
-        if (!enabledForSecret(BuildConfig.SHAFT_EVENTS_HMAC)) {
-            Timber.tag(TAG).i("telemetry disabled: SHAFT_EVENTS_HMAC is empty")
+        if (!enabledForConfiguration(ShaftHmac.isConfigured)) {
+            Timber.tag(TAG).i("telemetry disabled: native HMAC signer is not configured")
             return
         }
         if (!initialized.compareAndSet(false, true)) return
@@ -253,10 +254,10 @@ internal object Nana7miSearchTelemetry {
     private fun isPermanentFailure(reason: String): Boolean =
         reason.startsWith(PERMANENT_FAILURE_PREFIX)
 
-    internal fun enabledForSecret(secret: String): Boolean = secret.isNotBlank()
-
     internal fun permanentFailure(reason: String, cause: Throwable? = null): ActionOutcome.Fail =
         ActionOutcome.Fail(PERMANENT_FAILURE_PREFIX + reason, cause)
+
+    internal fun enabledForConfiguration(configured: Boolean): Boolean = configured
 
     enum class ContentType(val wire: String) { ILLUST("illust"), NOVEL("novel") }
     enum class Page(val wire: String) { FIRST("first"), NEXT("next") }
@@ -312,8 +313,9 @@ internal object Nana7miSearchTelemetry {
         query: String,
         initialRoute: Route,
         initialReason: String? = null,
+        signerConfigured: Boolean = ShaftHmac.isConfigured,
     ): Flow? {
-        if (!enabledForSecret(BuildConfig.SHAFT_EVENTS_HMAC)) return null
+        if (!enabledForConfiguration(signerConfigured)) return null
         if (requesterUid <= 0L || query.length > QUERY_MAX_CHARS) {
             Timber.tag(TAG).w(
                 "telemetry flow skipped requester_uid=%d query_length=%d",

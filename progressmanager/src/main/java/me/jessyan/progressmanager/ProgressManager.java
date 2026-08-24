@@ -70,7 +70,10 @@ public final class ProgressManager {
 
     private static volatile ProgressManager mProgressManager;
 
-    private static final String OKHTTP_PACKAGE_NAME = "okhttp3.OkHttpClient";
+    // Derive the name from a class literal so R8 can safely rename OkHttpClient. A hard-coded
+    // "okhttp3.OkHttpClient" becomes stale after obfuscation and makes release builds report a
+    // dependency that is actually present as missing.
+    private static final String OKHTTP_PACKAGE_NAME = OkHttpClient.class.getName();
     private static final boolean DEPENDENCY_OKHTTP;
     private static final int DEFAULT_REFRESH_TIME = 150;
     private static final String IDENTIFICATION_NUMBER = "?JessYan=";

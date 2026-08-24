@@ -125,10 +125,9 @@ object ShaftApiV2Client {
      */
     private fun viewerTriple(viewerUid: Long): Triple<String, String, String>? {
         if (viewerUid <= 0L) return null
-        val secret = BuildConfig.SHAFT_EVENTS_HMAC
         val uidStr = viewerUid.toString()
         val tsStr = System.currentTimeMillis().toString()
-        val sig = PlazaSig.signViewer(secret, uidStr, tsStr)
+        val sig = PlazaSig.signViewer(uidStr, tsStr)
         return Triple(uidStr, tsStr, sig)
     }
 
@@ -179,10 +178,9 @@ object ShaftApiV2Client {
         before: Long? = null,
     ): PlazaResult<PlazaLikesResponse> {
         if (uid <= 0L) return PlazaResult.Err(0, "login_required", null)
-        val secret = BuildConfig.SHAFT_EVENTS_HMAC
         val uidStr = uid.toString()
         val tsStr = System.currentTimeMillis().toString()
-        val sig = PlazaSig.signLikesRead(secret, uidStr, tsStr)
+        val sig = PlazaSig.signLikesRead(uidStr, tsStr)
         val r = runCatchingPlaza {
             service.listMyPlazaLikes(uid, ts = tsStr, sig = sig, limit = limit, before = before)
         }
@@ -208,10 +206,9 @@ object ShaftApiV2Client {
         novelMetas: Map<Long, Any> = emptyMap(),
         userMetas: Map<Long, Any> = emptyMap(),
     ): PlazaResult<PlazaPost> {
-        val secret = BuildConfig.SHAFT_EVENTS_HMAC
         val uidStr = uid.toString()
         val tsStr = System.currentTimeMillis().toString()
-        val sig = PlazaSig.signPost(secret, uidStr, tsStr, text, illust, novel, user)
+        val sig = PlazaSig.signPost(uidStr, tsStr, text, illust, novel, user)
 
         // 严格拼 wire body。canonical body 跟 sig 是绑定的,不能过 Gson(key 顺序
         // 由 hash table 决定 → bodyHash mismatch → 401 bad_sig)。
@@ -259,19 +256,17 @@ object ShaftApiV2Client {
      * like_count 是权威值,客户端不要自己 +1 -1 漂移。
      */
     suspend fun likePlazaPost(uid: Long, postId: Long): PlazaResult<PlazaLikeResponse> {
-        val secret = BuildConfig.SHAFT_EVENTS_HMAC
         val uidStr = uid.toString()
         val tsStr = System.currentTimeMillis().toString()
-        val sig = PlazaSig.signLike(secret, uidStr, tsStr, postId)
+        val sig = PlazaSig.signLike(uidStr, tsStr, postId)
         val body = "{\"uid\":\"$uidStr\",\"ts\":\"$tsStr\",\"sig\":\"$sig\"}"
         return runCatchingPlaza { service.likePlazaPost(postId, body.toRequestBody(jsonMediaType)) }
     }
 
     suspend fun unlikePlazaPost(uid: Long, postId: Long): PlazaResult<PlazaLikeResponse> {
-        val secret = BuildConfig.SHAFT_EVENTS_HMAC
         val uidStr = uid.toString()
         val tsStr = System.currentTimeMillis().toString()
-        val sig = PlazaSig.signUnlike(secret, uidStr, tsStr, postId)
+        val sig = PlazaSig.signUnlike(uidStr, tsStr, postId)
         val body = "{\"uid\":\"$uidStr\",\"ts\":\"$tsStr\",\"sig\":\"$sig\"}"
         return runCatchingPlaza { service.unlikePlazaPost(postId, body.toRequestBody(jsonMediaType)) }
     }
@@ -291,10 +286,9 @@ object ShaftApiV2Client {
         postId: Long,
         text: String,
     ): PlazaResult<PlazaComment> {
-        val secret = BuildConfig.SHAFT_EVENTS_HMAC
         val uidStr = uid.toString()
         val tsStr = System.currentTimeMillis().toString()
-        val sig = PlazaSig.signComment(secret, uidStr, tsStr, postId, text)
+        val sig = PlazaSig.signComment(uidStr, tsStr, postId, text)
 
         // canonical body 只有 text 一个字段,sig 绑了它的 hash。wire body
         // 形如 {"uid":..,"ts":..,"sig":..,"text":..}。
@@ -312,10 +306,9 @@ object ShaftApiV2Client {
     }
 
     suspend fun deletePlazaComment(uid: Long, commentId: Long): PlazaResult<PlazaDeleteResponse> {
-        val secret = BuildConfig.SHAFT_EVENTS_HMAC
         val uidStr = uid.toString()
         val tsStr = System.currentTimeMillis().toString()
-        val sig = PlazaSig.signCommentDelete(secret, uidStr, tsStr, commentId)
+        val sig = PlazaSig.signCommentDelete(uidStr, tsStr, commentId)
         val body = "{\"uid\":\"$uidStr\",\"ts\":\"$tsStr\",\"sig\":\"$sig\"}"
         return runCatchingPlaza {
             service.deletePlazaComment(commentId, body.toRequestBody(jsonMediaType))
@@ -323,10 +316,9 @@ object ShaftApiV2Client {
     }
 
     suspend fun deletePlazaPost(uid: Long, postId: Long): PlazaResult<PlazaDeleteResponse> {
-        val secret = BuildConfig.SHAFT_EVENTS_HMAC
         val uidStr = uid.toString()
         val tsStr = System.currentTimeMillis().toString()
-        val sig = PlazaSig.signDelete(secret, uidStr, tsStr, postId)
+        val sig = PlazaSig.signDelete(uidStr, tsStr, postId)
         val body = "{\"uid\":\"$uidStr\",\"ts\":\"$tsStr\",\"sig\":\"$sig\"}"
         val r = runCatchingPlaza { service.deletePlazaPost(postId, body.toRequestBody(jsonMediaType)) }
         // server 200 / 404 (not_found 防 enumeration) 都视为"已经不在了"。

@@ -1,6 +1,5 @@
 package ceui.pixiv.chat.api
 
-import ceui.lisa.BuildConfig
 import ceui.pixiv.chat.ui.ChatRoomEntry
 import ceui.pixiv.shaftapi.ShaftHmac
 import timber.log.Timber
@@ -23,7 +22,6 @@ import timber.log.Timber
  */
 class ChatConversationsRepository(
     private val api: ShaftChatApi = ShaftChatHttpClient.api,
-    private val hmacSecret: String = BuildConfig.SHAFT_EVENTS_HMAC,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
 
@@ -36,7 +34,7 @@ class ChatConversationsRepository(
     suspend fun load(uid: Long, cursor: String?, limit: Int = 50): Page {
         require(uid > 0L) { "ChatConversationsRepository.load: uid must be > 0, got $uid" }
         val ts = clock().toString()
-        val sig = ShaftHmac.signClientIdTs(uid.toString(), ts, hmacSecret)
+        val sig = ShaftHmac.signClientIdTs(uid.toString(), ts)
         Timber.tag(TAG).i("→ GET /chat/conversations uid=%d cursor=%s limit=%d", uid, cursor ?: "(head)", limit)
         val t0 = System.nanoTime()
         val resp = api.listConversations(sig = sig, uid = uid, ts = ts, limit = limit, cursor = cursor)
@@ -64,7 +62,7 @@ class ChatConversationsRepository(
         require(uid > 0L) { "markRead: uid must be > 0, got $uid" }
         require(lastReadMessageId >= 0L) { "markRead: lastReadMessageId must be >= 0" }
         val ts = clock().toString()
-        val sig = ShaftHmac.signClientIdTs(uid.toString(), ts, hmacSecret)
+        val sig = ShaftHmac.signClientIdTs(uid.toString(), ts)
         Timber.tag(TAG).i("→ POST /chat/conversations/%s/read lastRead=%d", roomId, lastReadMessageId)
         api.markRead(
             room = roomId,

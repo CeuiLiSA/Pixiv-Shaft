@@ -94,10 +94,15 @@ onClose(code=1008, reason="replaced")
   ws://host:8080/api/v1/chat/ws?uid=<long>&ts=<unix_ms>&sig=<hmac_hex>&v=<versionCode>
 
 sig = HMAC_SHA256_HEX(
-  key  = BuildConfig.SHAFT_EVENTS_HMAC.toByteArray(UTF_8),  // ASCII 字节,不是 hex 解码
+  key  = native SHAFT_EVENTS_HMAC UTF-8 bytes,               // ASCII 字节,不是 hex 解码
   data = "${uid}|${ts}".toByteArray(UTF_8),                 // 注意:v 不进签名
 )
 ```
+
+密钥不进入 `BuildConfig` 或 JVM 字符串常量。构建任务从 Gradle property / 环境变量读取
+`SHAFT_EVENTS_HMAC`,每次用新的随机掩码生成仅位于 `app/build/` 的 C++ header，最终由
+`libshaft_secrets.so` 在一次签名期间恢复、使用并清零。客户端仍是不可信环境；若协议允许
+升级，首选服务端校验设备完整性后下发短期凭证，而不是在 APK 中长期保存共享密钥。
 
 四个坑(都踩过):
 
@@ -147,7 +152,6 @@ push banner"的手段 —— 老客户端收到就弹,改不动,只能让它收�
 ```kotlin
 class ShaftHmacAuthProvider(
     private val baseHttpUrl: String,            // BuildConfig.SHAFT_EVENTS_BASE_URL
-    private val secretAscii: String,            // BuildConfig.SHAFT_EVENTS_HMAC
     private val uidProvider: () -> Long,        // 当前登录用户的 pixiv uid
     private val appVersionCode: Int,            // BuildConfig.VERSION_CODE
 ) : WebSocketAuthProvider {
@@ -156,7 +160,7 @@ class ShaftHmacAuthProvider(
         val uid = uidProvider()
         require(uid > 0L) { "uid not initialised (not logged in?)" }
         val ts  = System.currentTimeMillis().toString()
-        val sig = ShaftHmac.sign("$uid|$ts", secretAscii)  // 只签 uid|ts
+        val sig = ShaftHmac.signHex("$uid|$ts")  // 只签 uid|ts；密钥不离开 native 层
         val url = deriveWsBase(baseHttpUrl) +
             "/api/v1/chat/ws?uid=$uid&ts=$ts&sig=$sig&v=$appVersionCode"
         return Request.Builder().url(url).build()
@@ -169,8 +173,8 @@ private fun deriveWsBase(httpBase: String): String =
         .replaceFirst("http://", "ws://")
 ```
 
-`ShaftHmac.sign` 跟 `EventReporter.hmacSha256Hex` 是同一算法,建议抽到
-`app/src/main/java/ceui/pixiv/shaftapi/ShaftHmac.kt` 共用。
+所有调用统一走 `app/src/main/java/ceui/pixiv/shaftapi/ShaftHmac.kt`，签名实现在
+`libshaft_secrets.so`；不要另写 JVM HMAC，也不要把密钥重新暴露给 managed code。
 
 ---
 

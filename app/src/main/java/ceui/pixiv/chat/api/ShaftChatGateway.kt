@@ -16,6 +16,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import androidx.lifecycle.asFlow
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.websocket.WebSocketEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -136,17 +137,14 @@ object ShaftChatGateway {
         // doesn't tear down + rebuild on every irrelevant LiveData write
         // (e.g. token refresh that keeps the same uid).
         //
-        // Fork builds compile with `SHAFT_EVENTS_HMAC=""` (see app/build.gradle
-        // — "Forks build with empty secret"). The HTTP `/events/batch` path
+        // Fork builds compile libshaft_secrets.so with an empty key (see app/build.gradle).
+        // The HTTP `/events/batch` path
         // already gates itself via `EventReporter.hmacEnabled`, but the WS path
-        // doesn't: `ShaftHmacAuthProvider.dynamicUrl` would call
-        // `SecretKeySpec(emptyBytes, "HmacSHA256")` which throws
-        // `IllegalArgumentException: Empty key` inside the manager's coroutine
-        // and crashes the app at launch. Pin `ready` to `false` here so the
+        // doesn't make sense without signing. Pin `ready` to `false` here so the
         // manager never activates → no client built → no signing attempt.
         // Public getters still work (subscribers see Idle / never-emitting
         // flows), so banner bridge / chat fragments don't NPE.
-        val ready: Flow<Boolean> = if (BuildConfig.SHAFT_EVENTS_HMAC.isEmpty()) {
+        val ready: Flow<Boolean> = if (!ShaftHmac.isConfigured) {
             Timber.tag(TAG).i("HMAC secret not configured — chat WS disabled for this build (fork mode)")
             flowOf(false)
         } else {

@@ -224,7 +224,7 @@ class ClientManager {
             .readTimeout(8, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
-            // X-Shaft-Sign = HMAC-SHA256(被签消息, SHAFT_EVENTS_HMAC)。签名规则集中在这里，
+            // X-Shaft-Sign = HMAC-SHA256(被签消息, native SHAFT_EVENTS_HMAC)。签名规则集中在这里，
             // 而不是散到各个 Retrofit 接口上：接口只声明「调什么」，不该顺带背着密码学。
             //
             //  - /v1/account/*：签**请求体**（邮箱备份/恢复、借号、遥测都在这条线上）
@@ -238,10 +238,9 @@ class ClientManager {
             // 浏览历史一律不签。空密钥（fork 构建）→ 不加头。
             .addInterceptor { chain ->
                 val req = chain.request()
-                val secret = BuildConfig.SHAFT_EVENTS_HMAC
                 val path = req.url.encodedPath
                 val message = when {
-                    secret.isEmpty() -> null
+                    !ShaftHmac.isConfigured -> null
                     path.contains("/v1/account/") || path.endsWith("/v1/push/ack") ->
                         req.body?.let { body -> Buffer().also { body.writeTo(it) }.readUtf8() }
                     path.endsWith("/v1/config") -> req.url.queryParameter("uid")
@@ -250,7 +249,7 @@ class ClientManager {
                 if (message == null) {
                     chain.proceed(req)
                 } else {
-                    val sig = ShaftHmac.signHex(message, secret)
+                    val sig = ShaftHmac.signHex(message)
                     chain.proceed(req.newBuilder().header("X-Shaft-Sign", sig).build())
                 }
             }

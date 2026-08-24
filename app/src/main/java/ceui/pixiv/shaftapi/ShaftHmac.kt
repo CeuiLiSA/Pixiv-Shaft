@@ -1,38 +1,39 @@
 package ceui.pixiv.shaftapi
 
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
-
 /**
- * Shared HMAC-SHA256 helper for talking to shaft-api-v2.
+ * HMAC-SHA256 signer for shaft-api-v2.
  *
- * The server treats the secret as the ASCII bytes of the hex string itself
- * (matching Node's default `crypto.createHmac('sha256', secret)` behaviour),
- * **not** the 32 bytes you'd get by hex-decoding it. Don't try to decode the
- * key — pass the raw `BuildConfig.SHAFT_EVENTS_HMAC` string straight in.
+ * The build secret is never emitted into BuildConfig or returned to managed code. Gradle writes
+ * masked byte tables under app/build/, and libshaft_secrets.so reconstructs the bytes only for the
+ * duration of one HMAC operation before wiping its temporary buffers. Kotlin receives only the
+ * lowercase hexadecimal digest.
  *
- * Both [EventReporter][ceui.pixiv.events.EventReporter] (HTTP /events/batch
- * body signature) and [chat][ceui.pixiv.chat] (WS upgrade-URL signature +
- * /chat/profile body signature) sign with this. Keeping it in one place
- * means a future tweak (e.g. switching key encoding) only happens once.
+ * An embedded client cannot make a long-lived shared secret truly non-extractable; this native
+ * boundary is static-analysis hardening. A server-issued short-lived key remains the stronger
+ * protocol-level design.
  */
 object ShaftHmac {
 
+    private val nativeOperational: Boolean by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+        runCatching {
+            System.loadLibrary("shaft_secrets")
+            nativeSelfTest()
+        }.getOrDefault(false)
+    }
+
+    /** False for fork/dev builds with no injected secret, or if the native signer cannot load. */
+    val isConfigured: Boolean
+        get() = nativeOperational && runCatching { nativeIsConfigured() }.getOrDefault(false)
+
     /**
-     * Compute `HMAC_SHA256(secretAscii, payload)` and return the digest as
-     * a lowercase hex string.
+     * Computes `HMAC_SHA256(secretUtf8, payloadUtf8)` inside libshaft_secrets.so.
      *
-     * Empty secret → empty signature, **not** an exception:`SecretKeySpec`
-     * 对空 key 直接抛 `IllegalArgumentException`,而没配 `SHAFT_EVENTS_HMAC` 的
-     * 构建(fork / 本地无 secret)`BuildConfig` 里就是空串——按 build.gradle 里
-     * 写明的契约,这类构建应该拿到服务端 401 走各自的错误 UI,而不是一进广场/
-     * 聊天就整个进程崩掉。空签名喂给服务端正好得到那个 401。
+     * Empty/unavailable native configuration deliberately returns an empty signature. The server
+     * then rejects privileged calls while fork builds keep running instead of crashing.
      */
-    fun signHex(payload: String, secretAscii: String): String {
-        if (secretAscii.isEmpty()) return ""
-        val mac = Mac.getInstance("HmacSHA256")
-        mac.init(SecretKeySpec(secretAscii.toByteArray(Charsets.UTF_8), "HmacSHA256"))
-        return mac.doFinal(payload.toByteArray(Charsets.UTF_8)).toHex()
+    fun signHex(payload: String): String {
+        if (!nativeOperational) return ""
+        return runCatching { nativeSignUtf8(payload) }.getOrDefault("")
     }
 
     /**
@@ -46,17 +47,14 @@ object ShaftHmac {
      * the literal string it received from the wire, so any canonicalisation
      * drift between sign-time and put-on-wire becomes a `bad_sig` 401.
      */
-    fun signClientIdTs(clientId: String, ts: String, secretAscii: String): String =
-        signHex("$clientId|$ts", secretAscii)
+    fun signClientIdTs(clientId: String, ts: String): String = signHex("$clientId|$ts")
 
-    private fun ByteArray.toHex(): String {
-        val out = StringBuilder(size * 2)
-        val hex = "0123456789abcdef"
-        for (b in this) {
-            val v = b.toInt() and 0xFF
-            out.append(hex[v ushr 4])
-            out.append(hex[v and 0x0F])
-        }
-        return out.toString()
-    }
+    internal val isOperationalForTest: Boolean
+        get() = nativeOperational
+
+    private external fun nativeIsConfigured(): Boolean
+
+    private external fun nativeSelfTest(): Boolean
+
+    private external fun nativeSignUtf8(payload: String): String
 }

@@ -92,7 +92,6 @@ object PlazaSig {
 
     // POST /api/v1/plaza/posts 的签名。message = "plaza.post|{uid}|{ts}|{sha256(canonical)}"。
     fun signPost(
-        secret: String,
         uid: String,
         ts: String,
         text: String,
@@ -101,23 +100,23 @@ object PlazaSig {
         user: List<Long>,
     ): String {
         val bodyHash = sha256Hex(canonicalPostBody(text, illust, novel, user))
-        return ShaftHmac.signHex("plaza.post|$uid|$ts|$bodyHash", secret)
+        return ShaftHmac.signHex("plaza.post|$uid|$ts|$bodyHash")
     }
 
     // DELETE /api/v1/plaza/posts/:id 的签名。message = "plaza.delete|{uid}|{ts}|{postId}"。
-    fun signDelete(secret: String, uid: String, ts: String, postId: Long): String {
-        return ShaftHmac.signHex("plaza.delete|$uid|$ts|$postId", secret)
+    fun signDelete(uid: String, ts: String, postId: Long): String {
+        return ShaftHmac.signHex("plaza.delete|$uid|$ts|$postId")
     }
 
     // ── 点赞 ───────────────────────────────────────────────────────
     // postId 用 string form 上签,跟 server auth.js 一致 (decimal string canonical)。
 
-    fun signLike(secret: String, uid: String, ts: String, postId: Long): String {
-        return ShaftHmac.signHex("plaza.like|$uid|$ts|$postId", secret)
+    fun signLike(uid: String, ts: String, postId: Long): String {
+        return ShaftHmac.signHex("plaza.like|$uid|$ts|$postId")
     }
 
-    fun signUnlike(secret: String, uid: String, ts: String, postId: Long): String {
-        return ShaftHmac.signHex("plaza.unlike|$uid|$ts|$postId", secret)
+    fun signUnlike(uid: String, ts: String, postId: Long): String {
+        return ShaftHmac.signHex("plaza.unlike|$uid|$ts|$postId")
     }
 
     // ── 评论 ───────────────────────────────────────────────────────
@@ -130,29 +129,28 @@ object PlazaSig {
     }
 
     fun signComment(
-        secret: String,
         uid: String,
         ts: String,
         postId: Long,
         text: String,
     ): String {
         val bodyHash = sha256Hex(canonicalCommentBody(text))
-        return ShaftHmac.signHex("plaza.comment|$uid|$ts|$postId|$bodyHash", secret)
+        return ShaftHmac.signHex("plaza.comment|$uid|$ts|$postId|$bodyHash")
     }
 
-    fun signCommentDelete(secret: String, uid: String, ts: String, commentId: Long): String {
-        return ShaftHmac.signHex("plaza.comment.delete|$uid|$ts|$commentId", secret)
+    fun signCommentDelete(uid: String, ts: String, commentId: Long): String {
+        return ShaftHmac.signHex("plaza.comment.delete|$uid|$ts|$commentId")
     }
 
     // ── 读端签名 (5min skew) ───────────────────────────────────────
     // viewer sig 用来在 feed/详情请求里换 `liked_by_viewer` 字段。
     // 同一份 sig 可以在 5 分钟内复用,不用每翻页都重签。
 
-    fun signViewer(secret: String, uid: String, ts: String): String {
-        return ShaftHmac.signHex("plaza.viewer|$uid|$ts", secret)
+    fun signViewer(uid: String, ts: String): String {
+        return ShaftHmac.signHex("plaza.viewer|$uid|$ts")
     }
 
-    fun signLikesRead(secret: String, uid: String, ts: String): String {
-        return ShaftHmac.signHex("plaza.likes.read|$uid|$ts", secret)
+    fun signLikesRead(uid: String, ts: String): String {
+        return ShaftHmac.signHex("plaza.likes.read|$uid|$ts")
     }
 }

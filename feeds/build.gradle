@@ -50,9 +50,9 @@ dependencies {
     api 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
     // FeedViewModel.uiState: StateFlow、FeedSource 的一票 suspend
     api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
-    // FeedFirstPageCache 的构造参数。版本对齐 :app 当前解析结果（retrofit converter-gson
-    // 传递引入 2.10.1），别在这里悄悄把全仓 gson 顶上去。
-    api 'com.google.code.gson:gson:2.10.1'
+    // Gson 2.11+ 自带 R8 full-mode 的 TypeToken / @SerializedName consumer rules。
+    // FeedFirstPageCache 的公开 API 暴露 Gson，因此由本模块显式声明并统一全仓版本。
+    api 'com.google.code.gson:gson:2.11.0'
 
     // ── implementation：纯内部实现 ─────────────────────────────────────────
     implementation 'androidx.core:core-ktx:1.13.1'

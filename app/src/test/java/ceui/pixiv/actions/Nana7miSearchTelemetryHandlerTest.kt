@@ -79,9 +79,8 @@ class Nana7miSearchTelemetryHandlerTest {
 
     @Test
     fun `telemetry is disabled when the build has no signing secret`() {
-        assertFalse(Nana7miSearchTelemetry.enabledForSecret(""))
-        assertFalse(Nana7miSearchTelemetry.enabledForSecret("  \t"))
-        assertTrue(Nana7miSearchTelemetry.enabledForSecret("official-build-secret"))
+        assertFalse(Nana7miSearchTelemetry.enabledForConfiguration(false))
+        assertTrue(Nana7miSearchTelemetry.enabledForConfiguration(true))
     }
 
     @Test
@@ -227,6 +226,7 @@ class Nana7miSearchTelemetryHandlerTest {
             contentType = Nana7miSearchTelemetry.ContentType.ILLUST,
             query = "初音ミク",
             initialRoute = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
+            signerConfigured = true,
         )!!
         flow.borrowed(4867906L)
 

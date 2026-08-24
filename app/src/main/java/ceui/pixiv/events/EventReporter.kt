@@ -135,7 +135,7 @@ object EventReporter {
                 Timber.tag(TAG).i("loaded existing client_id (head=%s..)", id.take(8))
             }
             clientId = id
-            hmacEnabled = BuildConfig.SHAFT_EVENTS_HMAC.isNotEmpty()
+            hmacEnabled = ShaftHmac.isConfigured
 
             Timber.tag(TAG).i(
                 "init OK: hmac=%s, baseUrl=%s, flushInterval=%dms, threshold=%d, maxBatch=%d",
@@ -434,7 +434,7 @@ object EventReporter {
         // 手动拼 JSON,跟 ChatFrameEncoder 同风格 — 两个字段无 metachar 风险,
         // clientId 是 hex64、uid 是 Long,直接字符串内插安全。
         val body = """{"client_id":"$cid","uid":$uid}"""
-        val sig = ShaftHmac.signHex(body, BuildConfig.SHAFT_EVENTS_HMAC)
+        val sig = ShaftHmac.signHex(body)
         Timber.tag(TAG).d(
             "uid_binding POST starting uid=%d clientId head=%s.. bodyBytes=%d sig head=%s.. sig tail=%s",
             uid, cid.take(8), body.length, sig.take(8), sig.takeLast(4),
@@ -500,7 +500,7 @@ object EventReporter {
             "events" to eventList,
         )
         val json = gson.toJson(payload)
-        val sig = ShaftHmac.signHex(json, BuildConfig.SHAFT_EVENTS_HMAC)
+        val sig = ShaftHmac.signHex(json)
         val withPayload = events.count { it.payloadJson != null }
         Timber.tag(TAG).d(
             "POST batch=%d (with-payload=%d) bytes=%d sig=%s..%s",

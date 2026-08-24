@@ -38,7 +38,6 @@ import timber.log.Timber
  */
 class ShaftHmacAuthProvider(
     private val baseHttpUrl: String,
-    private val secretAscii: String,
     private val uidProvider: () -> Long,
     /** Client app `versionCode`, advertised to the server as an unsigned `&v=`
      *  query param so it can version-gate `room:"global"` delivery (see class
@@ -60,7 +59,7 @@ class ShaftHmacAuthProvider(
             throw IllegalStateException("uid not available yet (user not logged in?)")
         }
         val ts = System.currentTimeMillis().toString()
-        val sig = ShaftHmac.signHex("$uid|$ts", secretAscii)
+        val sig = ShaftHmac.signHex("$uid|$ts")
         // `v` is appended after the signed params and is intentionally not part
         // of the HMAC — it's a server-side feature-gate hint, not a credential.
         val signed = deriveWsBase(baseHttpUrl) +
