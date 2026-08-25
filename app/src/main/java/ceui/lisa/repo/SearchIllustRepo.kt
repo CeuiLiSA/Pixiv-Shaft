@@ -71,12 +71,6 @@ class SearchIllustRepo @JvmOverloads constructor(
     @Volatile
     private var nana7miTelemetry: Nana7miSearchTelemetry.Flow? = null
 
-    /**
-     * 首屏来自 pixshaft 缓存：手里的 next_url 是**会员专属游标**，但这轮还没借过号。翻页时
-     * 缓存未命中要现借，绝不能落到 [initNextApi] 里「payload == null → 用自己的号直连」那支。
-     */
-    @Volatile
-    private var borrowedCursorFromCache = false
 
     override fun initApi(): Observable<ListIllust> {
         // 每轮首屏使用全新会话。即使上一轮请求取消得较晚，它也只能更新旧会话，不能把
@@ -84,7 +78,6 @@ class SearchIllustRepo @JvmOverloads constructor(
         val currentNana7miSession = Nana7miAccountSession(nana7miOutbox)
         nana7miSession = currentNana7miSession
         nana7miTelemetry = null
-        borrowedCursorFromCache = false
         // 关键字写搜索历史已上移到 SearchActivity（首搜 initModel + 重搜 nowGo，按 id 去重收口）。
         // 不再寄生在这里——原来只有插画 tab 触发，小说/作者 tab 漏写。
 
@@ -356,10 +349,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
                 type = ListIllust::class.java,
                 stage = "official_search",
-                onHit = {
-                    borrowedCursorFromCache = true
-                    nana7miTelemetry = null
-                },
+                onHit = { currentNana7miSession.markCursorFromCache() },
             ) { telemetry?.observeFirst(borrowedFlow) ?: borrowedFlow }
         } else {
             Retro.getAppApi().searchIllust(
@@ -400,9 +390,11 @@ class SearchIllustRepo @JvmOverloads constructor(
 
     override fun initNextApi(): Observable<ListIllust> {
         val session = nana7miSession
-        val telemetry = nana7miTelemetry
         val payload = session.payload
-        val cursorFromCache = borrowedCursorFromCache
+        val cursorFromCache = session.cursorFromCache
+        // 首屏来自缓存的那轮从没订阅过借号 flow（没有 flow_started），翻页也不上报，免得遥测里
+        // 出现一串没有 flow 的 request 事件。
+        val telemetry = if (cursorFromCache) null else nana7miTelemetry
         // nextUrl 与借用会话必须来自同一轮翻页。串行队列可能让真正订阅延后；若此时
         // 新首屏改写了 RemoteRepo.nextUrl，闭包里再读字段会拼出“旧账号 + 新游标”。
         val nextPageUrl = nextUrl

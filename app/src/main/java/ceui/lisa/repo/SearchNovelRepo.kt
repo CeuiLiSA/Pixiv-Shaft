@@ -64,9 +64,6 @@ class SearchNovelRepo @JvmOverloads constructor(
     @Volatile
     private var nana7miTelemetry: Nana7miSearchTelemetry.Flow? = null
 
-    /** 同 [SearchIllustRepo]：首屏来自缓存时游标是会员专属的，但这轮还没借号。 */
-    @Volatile
-    private var borrowedCursorFromCache = false
 
     // 复用基类 Mapper（已含屏蔽 tag/ID/用户 + 全局 R18 过滤）；额外承载搜索「R-18 限制」三档。
     // 注意：mapper() 由 RemoteRepo 构造器调用，早于本类属性初始化，故这里不读 r18Restriction，
@@ -83,7 +80,6 @@ class SearchNovelRepo @JvmOverloads constructor(
         val currentNana7miSession = Nana7miAccountSession(nana7miOutbox)
         nana7miSession = currentNana7miSession
         nana7miTelemetry = null
-        borrowedCursorFromCache = false
         val useBookmarkQuery = (bookmarkMin ?: 0) > 0 || (bookmarkMax ?: 0) > 0
         val keywordSuffix = if (useBookmarkQuery) "" else when {
             TextUtils.isEmpty(starSize) -> ""
@@ -375,10 +371,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                 maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
                 type = ListNovel::class.java,
                 stage = "novel_official_search",
-                onHit = {
-                    borrowedCursorFromCache = true
-                    nana7miTelemetry = null
-                },
+                onHit = { currentNana7miSession.markCursorFromCache() },
             ) { telemetry?.observeFirst(borrowedFlow) ?: borrowedFlow }
         } else {
             withTitleFallback { target ->
@@ -423,9 +416,10 @@ class SearchNovelRepo @JvmOverloads constructor(
 
     override fun initNextApi(): Observable<ListNovel> {
         val session = nana7miSession
-        val telemetry = nana7miTelemetry
         val borrowed = session.payload
-        val cursorFromCache = borrowedCursorFromCache
+        val cursorFromCache = session.cursorFromCache
+        // 首屏来自缓存的那轮从没订阅过借号 flow，翻页也不上报（见 SearchIllustRepo）。
+        val telemetry = if (cursorFromCache) null else nana7miTelemetry
         // Capture the cursor together with the session before this request waits for the
         // process-wide permit; a newer first page may otherwise replace RemoteRepo.nextUrl.
         val nextPageUrl = nextUrl

@@ -1,6 +1,7 @@
 package ceui.lisa.repo
 
 import ceui.lisa.BuildConfig
+import ceui.lisa.interfaces.ListShow
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.loxia.Client
 import ceui.loxia.Nana7miSearchCacheLookupReq
@@ -129,17 +130,21 @@ internal object Nana7miSearchCache {
         return page
     }
 
-    /** 纯解析，方便单测：`hit != true`、没有 page、或 page 解析不出 [type] 都是 null。 */
+    /** 纯解析，方便单测：`hit != true`、没有 page、page 解析不出 [type]、或列表缺失都是 null。 */
     fun <T : Any> decode(body: Nana7miSearchCacheLookupResp?, type: Class<T>): T? {
         if (body?.hit != true) return null
         val page = body.page ?: return null
         if (!page.isJsonObject) return null
-        return try {
+        val parsed = try {
             gson.fromJson(page, type)
         } catch (e: RuntimeException) {
             Timber.tag(LOG_TAG).w(e, "cache page did not parse as %s", type.simpleName)
-            null
+            return null
         }
+        // Mapper.apply 会遍历 getList()，null 会 NPE——服务端保证列表在，但这条路的规矩是
+        // 「任何不干净的东西都算未命中」，不把它交给下游去炸。
+        if (parsed is ListShow<*> && parsed.list == null) return null
+        return parsed
     }
 
     /**

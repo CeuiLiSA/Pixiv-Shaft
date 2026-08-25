@@ -137,6 +137,13 @@ class Nana7miSearchCacheTest {
                 ListIllust::class.java,
             ),
         )
+        // 列表字段缺失：解析得出来，但交给 Mapper 会 NPE，所以也是 miss。
+        assertNull(
+            Nana7miSearchCache.decode(
+                Nana7miSearchCacheLookupResp(hit = true, page = JsonParser.parseString("""{"next_url":"n"}""")),
+                ListIllust::class.java,
+            ),
+        )
     }
 
     // ── wire：请求体字段名和服务端 src/search-cache.js 一致 ──

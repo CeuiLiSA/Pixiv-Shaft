@@ -55,6 +55,22 @@ internal class Nana7miAccountSession(
         private set
 
     /**
+     * True when this session's first page came out of the pixshaft search cache: the cursor is a
+     * premium-only one, but nothing has been borrowed yet. A page turn that misses the cache must
+     * borrow *then* — and must never continue the cursor with the logged-in account.
+     *
+     * Lives on the session, not the repository, for the same reason [payload] does: a lookup that
+     * completes late can only mark the session it belongs to, never the search that replaced it.
+     */
+    @Volatile
+    var cursorFromCache: Boolean = false
+        private set
+
+    fun markCursorFromCache() {
+        cursorFromCache = true
+    }
+
+    /**
      * Fetch one account. The server classifies it at 55 minutes; an expired account is refreshed
      * on the client and re-reported before it is returned to the search request.
      */
