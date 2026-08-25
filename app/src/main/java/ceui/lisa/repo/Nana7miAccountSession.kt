@@ -12,17 +12,14 @@ import ceui.pixiv.login.InvalidRefreshTokenException
 import ceui.pixiv.login.PixivLogin
 import ceui.pixiv.login.PixivOAuthUser
 import ceui.pixiv.session.SessionManager
-import io.reactivex.Observable
-import io.reactivex.exceptions.Exceptions
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import timber.log.Timber
 import java.io.IOException
-import java.util.concurrent.Callable
-import java.util.concurrent.Semaphore
 
 /**
  * One borrowed Pixiv account for one search-repository instance.
@@ -156,88 +153,88 @@ internal class Nana7miAccountSession(
      * [successDetails] is deliberately supplied by the caller because illustration and novel
      * response models expose different list fields.
      */
-    fun <T : Any> requestWithRefresh(
+    suspend fun <T : Any> requestWithRefresh(
         initial: Nana7miPayload,
         stage: String,
         lease: Nana7miSearchLease,
         successDetails: (T) -> String,
-        request: (String) -> Observable<T>,
-    ): Observable<T> = Observable.defer {
+        request: suspend (String) -> T,
+    ): T {
         var activePayload = initial
         var refreshedForThisPage = false
 
-        fun execute(current: Nana7miPayload): Observable<T> =
+        suspend fun execute(current: Nana7miPayload): T =
             request("Bearer ${current.account.access_token}")
 
-        fun renewAndExecute(reason: String): Observable<T> =
-            lease.blockingObservable {
-                runBlocking { renew(activePayload, reason) }
-            }.flatMap { renewed ->
-                val current = (renewed as? Nana7miResult.Success)?.value
-                if (current == null) {
-                    // The caller may fall back to an unauthenticated preview page. Do not leave
-                    // pagination attached to the borrowed account whose renewal just failed.
-                    payload = null
-                    borrowedAccountLost = true
-                    val cause = when (renewed) {
-                        is Nana7miResult.InvalidResponse -> renewed.cause
-                        // Losing premium mid-pagination is not a token failure, but it is just as
-                        // terminal for this borrowed account. Report it as unavailable so a first
-                        // page can still fall back to the preview endpoint.
-                        is Nana7miResult.NotPremium ->
-                            IllegalStateException("nana7mi account is no longer premium")
-                        else -> null
-                    } ?: IllegalStateException("nana7mi refresh failed")
-                    Observable.error(BorrowedAccountUnavailableException(cause))
-                } else {
-                    refreshedForThisPage = true
-                    activePayload = current
-                    payload = current
-                    execute(current)
-                }
+        suspend fun renewAndExecute(reason: String): T {
+            // Token rotation + NonCancellable persistence run inside the lease's guarded block:
+            // cancellation must not release the serial permit before they have unwound.
+            val renewed = lease.guarded { renew(activePayload, reason) }
+            val current = (renewed as? Nana7miResult.Success)?.value
+            if (current == null) {
+                // The caller may fall back to an unauthenticated preview page. Do not leave
+                // pagination attached to the borrowed account whose renewal just failed.
+                payload = null
+                borrowedAccountLost = true
+                val cause = when (renewed) {
+                    is Nana7miResult.InvalidResponse -> renewed.cause
+                    // Losing premium mid-pagination is not a token failure, but it is just as
+                    // terminal for this borrowed account. Report it as unavailable so a first
+                    // page can still fall back to the preview endpoint.
+                    is Nana7miResult.NotPremium ->
+                        IllegalStateException("nana7mi account is no longer premium")
+                    else -> null
+                } ?: IllegalStateException("nana7mi refresh failed")
+                throw BorrowedAccountUnavailableException(cause)
             }
-
-        val firstAttempt = if (initial.expiresAt <= System.currentTimeMillis()) {
-            Timber.tag(LOG_TAG).d(
-                "stage=%s event=local_55m_expired account_uid=%d action=refresh_before_request",
-                stage,
-                initial.uid,
-            )
-            renewAndExecute("client_55m_expired")
-        } else {
-            execute(initial)
+            refreshedForThisPage = true
+            activePayload = current
+            payload = current
+            return execute(current)
         }
 
-        firstAttempt
-            .onErrorResumeNext { error: Throwable ->
-                if (refreshedForThisPage || !isPixivOAuthExpired(error)) {
-                    Observable.error(error)
-                } else {
-                    Timber.tag(LOG_TAG).w(
-                        "stage=%s result=oauth_expired account_uid=%d action=refresh_and_retry",
+        try {
+            val response = try {
+                if (initial.expiresAt <= System.currentTimeMillis()) {
+                    Timber.tag(LOG_TAG).d(
+                        "stage=%s event=local_55m_expired account_uid=%d action=refresh_before_request",
                         stage,
-                        activePayload.uid,
+                        initial.uid,
                     )
-                    renewAndExecute("pixiv_oauth_400")
+                    renewAndExecute("client_55m_expired")
+                } else {
+                    execute(initial)
                 }
-            }
-            .doOnNext { response ->
-                Timber.tag(LOG_TAG).d(
-                    "stage=%s result=success account_uid=%d %s",
-                    stage,
-                    payload?.uid ?: initial.uid,
-                    successDetails(response),
-                )
-            }
-            .doOnError { error ->
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (error: Throwable) {
+                if (refreshedForThisPage || !isPixivOAuthExpired(error)) throw error
                 Timber.tag(LOG_TAG).w(
-                    error,
-                    "stage=%s result=failure account_uid=%d error_type=%s",
+                    "stage=%s result=oauth_expired account_uid=%d action=refresh_and_retry",
                     stage,
-                    payload?.uid ?: initial.uid,
-                    error.javaClass.simpleName,
+                    activePayload.uid,
                 )
+                renewAndExecute("pixiv_oauth_400")
             }
+            Timber.tag(LOG_TAG).d(
+                "stage=%s result=success account_uid=%d %s",
+                stage,
+                payload?.uid ?: initial.uid,
+                successDetails(response),
+            )
+            return response
+        } catch (ce: CancellationException) {
+            throw ce
+        } catch (error: Throwable) {
+            Timber.tag(LOG_TAG).w(
+                error,
+                "stage=%s result=failure account_uid=%d error_type=%s",
+                stage,
+                payload?.uid ?: initial.uid,
+                error.javaClass.simpleName,
+            )
+            throw error
+        }
     }
 
     /**
@@ -518,38 +515,44 @@ internal fun isBorrowedAccountUnavailable(error: Throwable): Boolean =
  * running two borrowed-account flows concurrently.
  */
 internal object Nana7miSearchSerial {
-    private val semaphore = Semaphore(1, true)
+    private val semaphore = Semaphore(1)
 
-    fun <T : Any> run(
+    /**
+     * Acquires the permit (suspending, FIFO), runs [source] with a [Nana7miSearchLease], and
+     * releases once [source] has fully unwound — including any [Nana7miSearchLease.guarded]
+     * block that cancellation could not interrupt.
+     */
+    suspend fun <T : Any> run(
         stage: String,
-        source: (Nana7miSearchLease) -> Observable<T>,
-    ): Observable<T> =
-        Observable.using(
-            Callable {
-                val startedAt = System.nanoTime()
-                semaphore.acquire()
-                Timber.tag(LOG_TAG).d(
-                    "stage=serial event=acquired flow=%s waited_ms=%d",
-                    stage,
-                    (System.nanoTime() - startedAt) / 1_000_000L,
-                )
-                Nana7miSearchLease(stage, semaphore)
-            },
-            io.reactivex.functions.Function<Nana7miSearchLease, Observable<T>> { source(it) },
-            io.reactivex.functions.Consumer<Nana7miSearchLease> { it.requestRelease() },
-            false,
+        source: suspend (Nana7miSearchLease) -> T,
+    ): T {
+        val startedAt = System.nanoTime()
+        semaphore.acquire()
+        Timber.tag(LOG_TAG).d(
+            "stage=serial event=acquired flow=%s waited_ms=%d",
+            stage,
+            (System.nanoTime() - startedAt) / 1_000_000L,
         )
+        val lease = Nana7miSearchLease(stage, semaphore)
+        try {
+            return source(lease)
+        } finally {
+            lease.requestRelease()
+        }
+    }
 
     private const val LOG_TAG = "sadadsdasdw2"
 }
 
 /**
- * Keeps a serial permit alive while synchronous token work unwinds after Rx disposal.
+ * Keeps the serial permit alive while blocking token work unwinds after cancellation.
  *
- * Disposing a subscribeOn task only interrupts its thread; a blocking OAuth call can ignore that
- * interrupt, and NonCancellable persistence deliberately finishes anyway. The using disposer marks
- * this lease for release, while [blockingObservable] performs the actual release after the running
- * block and its synchronous downstream hand-off have returned.
+ * Cancelling a coroutine cannot stop a blocking OAuth call already running on an IO thread, and
+ * NonCancellable persistence deliberately finishes anyway. [guarded] runs such work on
+ * [Dispatchers.IO] without thread interruption, so `withContext` only returns — and
+ * [Nana7miSearchSerial.run] only reaches its release — after the block has actually exited. The
+ * counter is belt-and-braces: should a release ever be requested while work is active, the permit
+ * is handed back by the last block to finish rather than early.
  */
 internal class Nana7miSearchLease(
     private val stage: String,
@@ -560,23 +563,16 @@ internal class Nana7miSearchLease(
     private var releaseRequested = false
     private var released = false
 
-    fun <T : Any> blockingObservable(block: () -> T): Observable<T> = Observable.create { emitter ->
+    /**
+     * Runs [block] on IO under the lease. Throws [CancellationException] without running it when
+     * the lease has already been released.
+     */
+    suspend fun <T : Any> guarded(block: suspend () -> T): T {
         if (!beginBlockingWork()) {
-            emitter.tryOnError(CancellationException("nana7mi serial lease already released"))
-            return@create
+            throw CancellationException("nana7mi serial lease already released")
         }
         try {
-            val value = block()
-            if (!emitter.isDisposed) {
-                // onNext synchronously runs flatMap's mapper/subscription. Keep the lease active
-                // until that hand-off returns so cancellation cannot release between refresh and
-                // installing the rotated payload.
-                emitter.onNext(value)
-                if (!emitter.isDisposed) emitter.onComplete()
-            }
-        } catch (error: Throwable) {
-            Exceptions.throwIfFatal(error)
-            if (!emitter.isDisposed) emitter.onError(error)
+            return withContext(Dispatchers.IO) { block() }
         } finally {
             endBlockingWork()
         }

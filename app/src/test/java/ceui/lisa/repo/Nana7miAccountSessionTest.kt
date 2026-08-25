@@ -7,7 +7,7 @@ import ceui.loxia.Nana7miResult
 import ceui.loxia.User
 import ceui.pixiv.actions.AccountOnlineReportOutbox
 import ceui.pixiv.login.PixivOAuthUser
-import io.reactivex.Observable
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -70,17 +70,21 @@ class Nana7miAccountSessionTest {
             set(session, stale)
         }
 
-        val observer = Nana7miSearchSerial.run("renewal_failure") { lease ->
-            session.requestWithRefresh(
-                initial = stale,
-                stage = "test",
-                lease = lease,
-                successDetails = { _: String -> "unexpected" },
-                request = { Observable.just("unexpected") },
-            )
-        }.test()
+        val error = runCatching {
+            runBlocking {
+                Nana7miSearchSerial.run("renewal_failure") { lease ->
+                    session.requestWithRefresh(
+                        initial = stale,
+                        stage = "test",
+                        lease = lease,
+                        successDetails = { _: String -> "unexpected" },
+                        request = { "unexpected" },
+                    )
+                }
+            }
+        }.exceptionOrNull()
 
-        observer.assertError { it is BorrowedAccountUnavailableException }
+        assertTrue(error is BorrowedAccountUnavailableException)
         assertNull(session.payload)
         // Pagination must be able to tell "never borrowed" from "borrowed then lost".
         assertTrue(session.borrowedAccountLost)

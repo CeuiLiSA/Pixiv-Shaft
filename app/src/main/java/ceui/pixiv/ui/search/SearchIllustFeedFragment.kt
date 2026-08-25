@@ -16,7 +16,6 @@ import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
-import ceui.pixiv.ui.common.awaitFirstValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
@@ -27,7 +26,7 @@ import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
  *
  * 搜索链路重（sort 路由 / 内置热门榜 / 投稿期间档 / 关键字后缀 / R18 三态 + 仅看 AI + starSize
  * 客户端过滤）——**为无损、零发散，数据源直接包裹既有的 [SearchIllustRepo]**（复刻它全部逻辑风险太大），
- * 只把 Rx→suspend 桥一下，过滤走 repo 自己的 FilterMapper。过滤后已是「搜索专属过滤过」的 bean，
+ * 直接调它的 suspend initApi/initNextApi，过滤走 repo 自己的 FilterMapper。过滤后已是「搜索专属过滤过」的 bean，
  * 用 [IllustFeedItem.raw] 直接建条目（**绝不能走 .of，会在仅看 AI 时误删 AI**）。
  *
  * 响应式重搜：数据源读 activity-scoped [SearchModel] 最新参数（不快照），fragment observe nowGo →
@@ -167,22 +166,14 @@ class SearchIllustFeedSource(
             }
         }
         val r = repo ?: repoFactory().also { repo = it }
+        // initApi / initNextApi 是 suspend：借号、缓存查询、Pixiv 请求全在各自的挂起点里切线程，
+        // 这里不用再包 withContext(IO)。（搜索历史写入已上移到 SearchActivity，update 不做 Room I/O。）
         val list: ListIllust = if (cursor == null) {
-            // initApi() 切 IO：FeedSource.load 由 viewModelScope(Dispatchers.Main.immediate)
-            // 发起，在第一个真正的挂起点(awaitFirstValue 里的 subscribeOn(io))之前一直跑在主线程，
-            // 非会员那条路还会在这里同步借号(runBlocking)，不切 IO 就会静默卡主线程。
-            //（搜索历史写入已上移到 SearchActivity，update 不再做 Room I/O。）
-            val api = withContext(Dispatchers.IO) {
-                r.update(searchModel, keywordSnapshot) // 与上面的策略判断共用同一 keyword 快照
-                r.initApi()
-            }
-            api.awaitFirstValue()
+            r.update(searchModel, keywordSnapshot) // 与上面的策略判断共用同一 keyword 快照
+            r.initApi()
         } else {
-            val api = withContext(Dispatchers.IO) {
-                r.setNextUrl(cursor)
-                r.initNextApi()
-            }
-            api.awaitFirstValue()
+            r.nextUrl = cursor
+            r.initNextApi()
         }
         val items = withContext(Dispatchers.Default) {
             @Suppress("UNCHECKED_CAST")

@@ -8,7 +8,6 @@ import ceui.loxia.Nana7miSearchTelemetryReq
 import ceui.pixiv.actionqueue.ActionOutcome
 import ceui.pixiv.actionqueue.PendingAction
 import com.google.gson.Gson
-import io.reactivex.Observable
 import java.io.IOException
 import kotlinx.coroutines.runBlocking
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -231,18 +230,18 @@ class Nana7miSearchTelemetryHandlerTest {
         )!!
         flow.borrowed(4867906L)
 
-        flow.track(Observable.just("business-result"), Nana7miSearchTelemetry.Page.FIRST)
-            .test()
-            .assertValue("business-result")
-            .assertComplete()
+        val value = runBlocking {
+            flow.track(Nana7miSearchTelemetry.Page.FIRST) { "business-result" }
+        }
+        assertEquals("business-result", value)
 
         val businessError = IllegalStateException("business-failure")
-        flow.track(
-            Observable.error<String>(businessError),
-            Nana7miSearchTelemetry.Page.NEXT,
-        )
-            .test()
-            .assertError(businessError)
+        val thrown = runCatching {
+            runBlocking {
+                flow.track<String>(Nana7miSearchTelemetry.Page.NEXT) { throw businessError }
+            }
+        }.exceptionOrNull()
+        assertSame(businessError, thrown)
     }
 
     @Test

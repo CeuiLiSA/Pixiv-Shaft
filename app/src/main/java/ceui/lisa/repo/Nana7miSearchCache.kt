@@ -11,10 +11,11 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.search.SortType
 import com.google.gson.Gson
 import com.google.gson.JsonElement
-import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.net.URI
 import java.net.URLEncoder
@@ -85,10 +86,9 @@ internal object Nana7miSearchCache {
         sha256Hex("$KEY_VERSION|${kind.wire}|next|$nextUrl")
 
     /**
-     * 先查缓存，命中直接发射；未命中订阅 [miss]。查询在订阅线程上同步进行（RemoteRepo 已经把
-     * 它放在 `Schedulers.newThread()`），一次 pixshaft 往返换一次可能省掉的借号 + Pixiv 请求。
+     * 先查缓存，命中交给 [hit]；未命中跑 [miss]。一次 pixshaft 往返换一次可能省掉的借号 + Pixiv 请求。
      */
-    fun <T : Any> firstOrElse(
+    suspend fun <T : Any> firstOrElse(
         kind: Kind,
         key: String,
         page: Page,
@@ -96,11 +96,11 @@ internal object Nana7miSearchCache {
         maxAgeMs: Long,
         type: Class<T>,
         stage: String,
-        hit: (Observable<T>) -> Observable<T> = { it },
-        miss: () -> Observable<T>,
-    ): Observable<T> = Observable.defer {
+        hit: suspend (T) -> T = { it },
+        miss: suspend () -> T,
+    ): T {
         val cached = lookup(kind, key, page, requestId, maxAgeMs, type, stage)
-        if (cached != null) hit(Observable.just(cached)) else miss()
+        return if (cached != null) hit(cached) else miss()
     }
 
     /**
@@ -109,7 +109,7 @@ internal object Nana7miSearchCache {
      * 命中在服务端已经按 [page] 计了费；额度满了服务端回 429（和借号同一个形状），这里当未命中
      * 处理——接下来的借号会被同样拒绝、走既有的额度提示 + 预览降级。
      */
-    fun <T : Any> lookup(
+    suspend fun <T : Any> lookup(
         kind: Kind,
         key: String,
         page: Page,
@@ -123,18 +123,16 @@ internal object Nana7miSearchCache {
         // A new lookup supersedes any receipt left by an abandoned older flow.
         fillTokens.remove(fillKey)
         val resp = try {
-            runBlocking {
-                Client.pixshaft.searchCacheLookupRaw(
-                    Nana7miSearchCacheLookupReq(
-                        uid = uid,
-                        kind = kind.wire,
-                        key = key,
-                        maxAgeMs = maxAgeMs,
-                        page = page.wire,
-                        requestId = requestId,
-                    ),
-                )
-            }
+            Client.pixshaft.searchCacheLookupRaw(
+                Nana7miSearchCacheLookupReq(
+                    uid = uid,
+                    kind = kind.wire,
+                    key = key,
+                    maxAgeMs = maxAgeMs,
+                    page = page.wire,
+                    requestId = requestId,
+                ),
+            )
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -214,28 +212,31 @@ internal object Nana7miSearchCache {
             page = element,
             storeToken = storeToken,
         )
-        Observable.fromCallable { runBlocking { Client.pixshaft.searchCacheStoreRaw(req) } }
-            .subscribeOn(Schedulers.io())
-            .subscribe(
-                { resp ->
-                    val body = resp.body()
-                    Timber.tag(LOG_TAG).d(
-                        "stage=%s cache_store=%s key=%s reason=%s",
-                        stage,
-                        if (resp.isSuccessful && body?.stored == true) "stored" else "refused",
-                        key.take(12),
-                        body?.reason ?: resp.code().toString(),
-                    )
-                },
-                { e ->
-                    Timber.tag(LOG_TAG).w(
-                        "stage=%s cache_store=error error_type=%s",
-                        stage,
-                        e.javaClass.simpleName,
-                    )
-                },
-            )
+        storeScope.launch {
+            try {
+                val resp = Client.pixshaft.searchCacheStoreRaw(req)
+                val body = resp.body()
+                Timber.tag(LOG_TAG).d(
+                    "stage=%s cache_store=%s key=%s reason=%s",
+                    stage,
+                    if (resp.isSuccessful && body?.stored == true) "stored" else "refused",
+                    key.take(12),
+                    body?.reason ?: resp.code().toString(),
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.tag(LOG_TAG).w(
+                    "stage=%s cache_store=error error_type=%s",
+                    stage,
+                    e.javaClass.simpleName,
+                )
+            }
+        }
     }
+
+    /** 回填上传专用：进程级、不随任何页面取消——那一页已经交给 UI，回填是发完即忘的。 */
+    private val storeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private fun requesterUidOrNull(): Long? {
         // Lite 不借号也不参与缓存；服务端要一个合法 uid 做限流键，没登录就不问。
