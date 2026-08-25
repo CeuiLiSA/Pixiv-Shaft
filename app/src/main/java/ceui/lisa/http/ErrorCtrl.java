@@ -24,6 +24,15 @@ public abstract class ErrorCtrl<T> extends TryCatchObserver<T> {
 
     @Override
     public void error(Throwable e) {
+        handleError(e);
+    }
+
+    /**
+     * 非 Rx 入口：把请求异常解析成 pixiv 的业务错误文案（validation_errors / invalid_grant /
+     * error.message 等）弹 toast，解析不出来则退到 {@link AppErrorExtKt#toUserMessage}。
+     * 协程链路 catch 到异常后直接调这里，和 legacy Observer 链路的提示保持一致。
+     */
+    public static void handleError(Throwable e) {
         if (e instanceof HttpException) {
             try {
                 HttpException httpException = (HttpException) e;
@@ -114,7 +123,7 @@ public abstract class ErrorCtrl<T> extends TryCatchObserver<T> {
      * 取代原先直接抛 e.toString()(会露出 "retrofit2.HttpException: HTTP 404" 之类原始串)
      * 或什么都不做的处理。
      */
-    private void showMappedMessage(Throwable e) {
+    private static void showMappedMessage(Throwable e) {
         Common.showToast(AppErrorExtKt.toUserMessage(e, Shaft.getContext()));
     }
 
