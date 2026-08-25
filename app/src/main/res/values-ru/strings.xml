@@ -856,6 +856,7 @@
     <string name="delete_ai_illust">Скрывать работы, созданные ИИ</string>
     <string name="ai_block_strength">Уровень эффекта скрытия</string>
     <string name="ai_block_strength_hide">Скрыть полностью</string>
+    <string name="feed_all_items_filtered">Все работы скрыты настройками фильтра</string>
     <string name="ai_block_strength_blur">Размытие с частицами</string>
     <string name="ai_block_exempt_authors">Список исключённых авторов</string>
     <string name="ai_block_exempt_hint">Добавляйте ID авторов по одному и удаляйте их\nПосле изменения списка рекомендуется перезапустить приложение</string>

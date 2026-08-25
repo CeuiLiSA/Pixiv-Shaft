@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.user
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -42,6 +43,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+
+/** 通用空态下方换行追加「作品已被屏蔽设置全部隐藏」；未命中时原样返回。 */
+internal fun filteredEmptyStateText(
+    base: CharSequence,
+    allItemsFiltered: Boolean,
+    context: Context,
+): CharSequence = if (allItemsFiltered) {
+    "$base\n${context.getString(R.string.feed_all_items_filtered)}"
+} else {
+    base
+}
 
 /**
  * 「某人创作的插画」列表页(feeds 框架版,替代 legacy FragmentUserIllust + UserIllustRepo)。
@@ -103,20 +115,30 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
     /** 首屏只交付一次(标签回调 + targetDate 定位);旋转重建后 VM 已有数据会再交付一次(宿主自去重)。 */
     private var firstPageDelivered = false
 
-    /** 作者作品总数归 VM(数据不塞 Fragment):旋转/视图重建不重查。仅 toolbar 形态消费。 */
-    private val totalWorksViewModel: UserTotalWorksViewModel by viewModels()
+    /** 作者作品页状态归 VM(数据不塞 Fragment):旋转/视图重建不重查。toolbar 菜单与「全被过滤」空态判断共用。 */
+    private val userWorksStateViewModel: UserWorksStateViewModel by viewModels()
 
     // 内嵌 UserActivityV3 tab(无底栏)时,列表底部补手势条 inset;带 toolbar 独立页由 setUpToolbar 自理
     override val applyBottomSafeInset: Boolean = true
+
+    /** 作者作品被屏蔽设置（AI / R18 / 标签…）整页滤空时，在通用空态下方换行追加说明。 */
+    override val emptyStateText: CharSequence
+        get() = filteredEmptyStateText(
+            super.emptyStateText,
+            userWorksStateViewModel.allItemsFiltered.value,
+            requireContext(),
+        )
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获约定:userId / offset / type 先取成局部值,不把 Fragment 钉进长命 VM
         val uid = userId.toLong()
         val offset = initialOffset
         val type = workType
+        // userWorksStateViewModel 是 ViewModel 实例（非 Fragment），mapper 里借它记录「整页被过滤滤空」。
+        val stateVm = userWorksStateViewModel
         pixivFeedSource({
             Client.appApi.getUserCreatedIllusts(uid, type, offset.takeIf { it > 0 })
-        }) { resp, _ -> mapUserIllustPage(resp.displayList) }
+        }) { resp, _ -> mapUserIllustPage(resp.displayList, stateVm) }
     }
 
     // showToolbar 是运行时参数,系统重建只走无参构造,不能靠构造器传 contentLayoutId,
@@ -143,6 +165,17 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
                     if (!firstPageDelivered && state.items.isNotEmpty()) {
                         firstPageDelivered = true
                         deliverFirstPage(state.items)
+                    }
+                }
+            }
+        }
+
+        // allItemsFiltered 由 mapper 在后台设置，render 可能先于它跑；停在空态时补一次文案。
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                userWorksStateViewModel.allItemsFiltered.collect {
+                    if (feedViewModel.uiState.value.showEmptyState) {
+                        feedBinding.feedStateText.text = emptyStateText
                     }
                 }
             }
@@ -221,10 +254,10 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
             val downloadAllItem: MenuItem? = binding.toolbar.menu.findItem(R.id.action_download_all)
             // 数量没拿到前先藏,免得点了报「加载中」;拉到 >0 再显
             downloadAllItem?.isVisible = false
-            totalWorksViewModel.ensureLoaded(userId.toLong())
+            userWorksStateViewModel.ensureLoaded(userId.toLong())
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    totalWorksViewModel.total.collect { total ->
+                    userWorksStateViewModel.total.collect { total ->
                         if (total > 0) downloadAllItem?.isVisible = true
                     }
                 }
@@ -275,7 +308,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
     }
 
     private fun confirmDownloadAll() {
-        val total = totalWorksViewModel.total.value
+        val total = userWorksStateViewModel.total.value
         if (total <= 0) return // 按钮该藏着,兜底
         val authorName = currentIllustItems().firstOrNull()?.illust?.user?.name ?: "user"
         showDownloadAllConfirm(authorName, total)
@@ -315,42 +348,66 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
         }
 
         /** 页响应 → 条目。跑在 Default 线程、被 VM 长期持有,放伴生对象保证零捕获。 */
-        private fun mapUserIllustPage(illusts: List<Illust>): List<FeedItem> {
-            return illusts.mapNotNull { illust ->
+        private fun mapUserIllustPage(
+            illusts: List<Illust>,
+            stateVm: UserWorksStateViewModel
+        ): List<FeedItem> {
+            val items = illusts.mapNotNull { illust ->
                 // 画师本人作品页：让步「屏蔽画师」过滤（否则屏蔽了本画师后，整页全被滤空 → 空页追载
                 // 狂翻 offset）。R18/标签/AI/作品ID 过滤照常。
                 IllustFeedItem.of(illust, skipMuteUserFilter = true)
+            }
+            // 空态要能说清「作者有作品，只是被你的屏蔽设置全滤掉了」，和「作者确实没作品」区分开。
+            stateVm.reportPageFiltered(rawCount = illusts.size, shownCount = items.size)
+            return items
+        }
+    }
+}
+
+/**
+ * 作者作品页的小状态 VM：作品总数（下载全部） + 作品是否被屏蔽设置整页滤空（空态文案）。
+ * 单独一个小 VM 而不是塞进 FeedViewModel:它跟列表翻页状态没关系(数据归 ViewModel + 按需建小 VM)。
+ */
+class UserWorksStateViewModel : ViewModel() {
+
+    private val _total = MutableStateFlow(-1)
+
+    /** -1 = 还没拉到;仅 >0 时「下载全部」可见。 */
+    val total: StateFlow<Int> = _total.asStateFlow()
+
+    private val _allItemsFiltered = MutableStateFlow(false)
+
+    /** 服务端有作品、但被本地过滤链（AI / R18 / 标签 / 作品 ID）整页滤空（供空态文案判断）。 */
+    val allItemsFiltered: StateFlow<Boolean> = _allItemsFiltered.asStateFlow()
+
+    private var started = false
+
+    fun ensureLoaded(uid: Long) {
+        if (started) return
+        started = true
+        viewModelScope.launch {
+            try {
+                _total.value = Client.appApi.getUserProfile(uid).profile?.total_illusts ?: 0
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (ex: Exception) {
+                // 菜单项保持隐藏即可,失败允许下次进页重试
+                Timber.w(ex, "拉取作者作品总数失败")
+                started = false
             }
         }
     }
 
     /**
-     * 作者作品总数的小 VM(只服务「下载全部」菜单的显隐与确认框文案)。
-     * 单独一个小 VM 而不是塞进 FeedViewModel:它跟列表翻页状态没关系(数据归 ViewModel + 按需建小 VM)。
+     * mapper 在后台线程上报一页的过滤结果。
+     * 原始非空、展示为空 → 置 true；展示非空 → 置 false；原始就是空页（空页追载翻到底）不动——
+     * 否则「第一页 30 条全被滤掉、追载第二页服务端返回空」会把刚记下的 true 抹掉。
      */
-    class UserTotalWorksViewModel : ViewModel() {
-
-        private val _total = MutableStateFlow(-1)
-
-        /** -1 = 还没拉到;仅 >0 时「下载全部」可见。 */
-        val total: StateFlow<Int> = _total.asStateFlow()
-
-        private var started = false
-
-        fun ensureLoaded(uid: Long) {
-            if (started) return
-            started = true
-            viewModelScope.launch {
-                try {
-                    _total.value = Client.appApi.getUserProfile(uid).profile?.total_illusts ?: 0
-                } catch (ce: CancellationException) {
-                    throw ce
-                } catch (ex: Exception) {
-                    // 菜单项保持隐藏即可,失败允许下次进页重试
-                    Timber.w(ex, "拉取作者作品总数失败")
-                    started = false
-                }
-            }
+    fun reportPageFiltered(rawCount: Int, shownCount: Int) {
+        if (shownCount > 0) {
+            _allItemsFiltered.value = false
+        } else if (rawCount > 0) {
+            _allItemsFiltered.value = true
         }
     }
 }
