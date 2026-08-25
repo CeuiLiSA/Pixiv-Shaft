@@ -28,13 +28,10 @@ import ceui.lisa.core.Manager;
 
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.file.OutPut;
-import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.FeedBack;
-import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
+import ceui.lisa.core.JavaAsync;
 import ceui.lisa.models.GifResponse;
-import ceui.lisa.models.IllustSearchResponse;
 import ceui.loxia.Illust;
 import ceui.loxia.ImageUrls;
 import ceui.loxia.MetaPage;
@@ -43,11 +40,13 @@ import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.IllustCaptionExporter;
 import ceui.pixiv.download.config.StorageChoice;
 import ceui.pixiv.ui.bulk.UgoiraEngine;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.lisa.utils.PixivOps;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class IllustDownload {
 
@@ -192,26 +191,16 @@ public class IllustDownload {
      * (action 应是不再触发本守卫的「裸」下载实现,避免无限重拉)。
      */
     private static void ensureFullThenRun(Illust illust, java.util.function.Consumer<Illust> action) {
-        Retro.getAppApi().getIllustByID(illust.getId())
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<IllustSearchResponse>() {
-                    @Override
-                    public void success(IllustSearchResponse resp) {
-                        Illust fresh = resp.getIllust();
-                        if (fresh != null && fresh.getId() != 0 && Boolean.TRUE.equals(fresh.getVisible())) {
-                            ObjectPool.INSTANCE.updateIllust(fresh);
-                            action.accept(fresh);
-                        } else {
-                            action.accept(illust);
-                        }
-                    }
-
-                    @Override
-                    public void error(Throwable e) {
-                        action.accept(illust);
-                    }
-                });
+        // 失败静默降级（不弹 toast，对齐旧实现覆盖 error 不调 super 的行为）。
+        PixivOps.getIllustByID(illust.getId(), resp -> {
+            Illust fresh = resp.getIllust();
+            if (fresh != null && fresh.getId() != 0 && Boolean.TRUE.equals(fresh.getVisible())) {
+                ObjectPool.INSTANCE.updateIllust(fresh);
+                action.accept(fresh);
+            } else {
+                action.accept(illust);
+            }
+        }, e -> action.accept(illust));
     }
 
 
@@ -240,7 +229,7 @@ public class IllustDownload {
         // 无锁竞争。格式随「动图保存格式」设置:mp4 时播放缓存里那份直接就能用(纯拷贝),
         // GIF 时现编。出片 + 拷贝都是阻塞的,一起放后台线程。未命中 / 失败都回退到原始
         // 「下 zip→编码→保存」链路,行为不变。
-        Schedulers.io().scheduleDirect(() -> {
+        JavaAsync.fireAndForget(() -> {
             UgoiraEngine.UgoiraExport export = null;
             try {
                 // 设置成 mp4 时:帧不在盘上就把整条播放 pipeline 跑完再出片 —— 下面那条老链路
@@ -267,15 +256,22 @@ public class IllustDownload {
                     }
                 }
             }
-            PixivOperate.getGifInfo(illustsBean, new ErrorCtrl<GifResponse>() {
-                @Override
-                public void next(GifResponse gifResponse) {
-                    Cache.get().saveModel(Params.ILLUST_ID + "_" + illustsBean.getId(), gifResponse);
-                    downloadGif(gifResponse, illustsBean, true);
-                }
+            PixivOperate.getGifInfo(illustsBean, gifResponse -> {
+                Cache.get().saveModel(Params.ILLUST_ID + "_" + illustsBean.getId(), gifResponse);
+                downloadGif(gifResponse, illustsBean, true);
             });
         });
     }
+
+    /**
+     * 备份导出专用的单线程 executor（替代 Rx {@code Schedulers.single()}）：同名临时文件是共享的，
+     * 必须全局串行，见 {@link #downloadBackupFile(BaseActivity, String, Callback, Callback)}。
+     */
+    private static final ExecutorService BACKUP_EXECUTOR = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "shaft-backup-export");
+        t.setDaemon(true);
+        return t;
+    });
 
     public static void downloadBackupFile(BaseActivity<?> activity, String displayName, String content, Callback<Uri> targetCallback){
         downloadBackupFile(activity, displayName, textFile -> {
@@ -291,15 +287,15 @@ public class IllustDownload {
     /**
      * 文件写出 + MediaStore 复制都在工作线程执行(点击回调里同步写大文件会
      * ANR,见 #981),targetCallback 回主线程,fileWriter 里可以放心读库/序列化。
-     * 用 single() 而不是 io():同名临时文件是共享的,导出进行中用户再点一次
-     * 备份,io() 会两个任务并发 truncate + 交错写同一个文件,产出损坏的备份;
-     * single() 全局单线程,天然串行。
+     * 用单线程 executor 而不是共享 IO 池:同名临时文件是共享的,导出进行中用户再点一次
+     * 备份,并发会两个任务同时 truncate + 交错写同一个文件,产出损坏的备份;
+     * {@link #BACKUP_EXECUTOR} 全局单线程,天然串行。
      */
     public static void downloadBackupFile(BaseActivity<?> activity, String displayName, Callback<File> fileWriter, Callback<Uri> targetCallback){
         // 外层 try/catch 与回调处的 try/catch 都是在保持旧行为:旧实现里整个
         // feedback(含 getUriForFile 和 targetCallback)都跑在 check() 自带的
-        // try/catch 里,异步化后不能让这些异常变成 Rx undeliverable / 主线程崩溃
-        check(activity, () -> Schedulers.single().scheduleDirect(() -> {
+        // try/catch 里,异步化后不能让这些异常变成工作线程未捕获异常 / 主线程崩溃
+        check(activity, () -> BACKUP_EXECUTOR.execute(() -> {
             try {
                 File textFile = LegacyFile.textFile(activity, displayName);
                 try {

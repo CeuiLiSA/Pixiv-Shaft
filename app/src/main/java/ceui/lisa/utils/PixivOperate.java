@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -37,9 +36,7 @@ import ceui.lisa.activities.VActivity;
 import ceui.lisa.cache.Cache;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
-import ceui.lisa.core.RxRun;
-import ceui.lisa.core.RxRunnable;
-import ceui.lisa.core.TryCatchObserverImpl;
+import ceui.lisa.core.JavaAsync;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.MuteEntity;
@@ -49,19 +46,13 @@ import ceui.lisa.file.OutPut;
 
 import ceui.pixiv.login.PixivOAuthConfig;
 import ceui.lisa.http.ErrorCtrl;
-import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Back;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.FramesBean;
 import ceui.lisa.models.GifResponse;
-import ceui.lisa.models.IllustSearchResponse;
 import ceui.lisa.models.MarkedNovelItem;
 import ceui.loxia.Novel;
-import ceui.lisa.models.NovelDetail;
-import ceui.lisa.models.NovelSearchResponse;
-import ceui.lisa.models.NovelSeriesItem;
-import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.loxia.AccountResponse;
 import ceui.loxia.Illust;
@@ -70,16 +61,12 @@ import ceui.lisa.viewmodel.AppLevelState;
 import ceui.loxia.ServicesProvider;
 import ceui.loxia.IllustDetailSupportKt;
 import ceui.loxia.ObjectPool;
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.actions.PixivActions;
 import ceui.pixiv.ui.common.IllustMuteStore;
-import ceui.pixiv.ui.common.NovelMuteStore;
 
 import static com.blankj.utilcode.util.ColorUtils.getColor;
 import static com.blankj.utilcode.util.StringUtils.getString;
@@ -170,29 +157,23 @@ public class PixivOperate {
 
         // 收藏的时候，顺便请求这个作品的相关作品
         if (willBookmark && showRelated) {
-            Retro.getAppApi().relatedIllust(illustsBean.getId())
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new NullCtrl<ListIllust>() {
-                        @Override
-                        public void success(ListIllust listIllust) {
-                            Intent intent = new Intent(Params.FRAGMENT_ADD_RELATED_DATA);
-                            intent.putExtra(Params.CONTENT, listIllust);
-                            intent.putExtra(Params.INDEX, index);
-                            // feeds 版推荐页按被收藏作品 id 锚定插入位置（index 是 legacy
-                            // adapter 位置语义，跨列表广播时不可靠）
-                            intent.putExtra(Params.ID, (int) illustsBean.getId());
-                            if (sourcePageUuid != null) {
-                                intent.putExtra(Params.PAGE_UUID, sourcePageUuid);
-                            }
-                            LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+            PixivOps.relatedIllust(illustsBean.getId(), listIllust -> {
+                Intent intent = new Intent(Params.FRAGMENT_ADD_RELATED_DATA);
+                intent.putExtra(Params.CONTENT, listIllust);
+                intent.putExtra(Params.INDEX, index);
+                // feeds 版推荐页按被收藏作品 id 锚定插入位置（index 是 legacy
+                // adapter 位置语义，跨列表广播时不可靠）
+                intent.putExtra(Params.ID, (int) illustsBean.getId());
+                if (sourcePageUuid != null) {
+                    intent.putExtra(Params.PAGE_UUID, sourcePageUuid);
+                }
+                LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
-                            // 寄生收集：收藏时的相关作品进发现池
-                            Common.showLog("Discovery/Hook postLike star_related illust=" + illustsBean.getId() + " got " + (listIllust.getIllusts() != null ? listIllust.getIllusts().size() : 0) + " related");
-                            ((ceui.loxia.ServicesProvider) Shaft.getContext()).getDiscoveryPool().collect(
-                                    listIllust.getIllusts(), "star_related:" + illustsBean.getId());
-                        }
-                    });
+                // 寄生收集：收藏时的相关作品进发现池
+                Common.showLog("Discovery/Hook postLike star_related illust=" + illustsBean.getId() + " got " + (listIllust.getIllusts() != null ? listIllust.getIllusts().size() : 0) + " related");
+                ((ceui.loxia.ServicesProvider) Shaft.getContext()).getDiscoveryPool().collect(
+                        listIllust.getIllusts(), "star_related:" + illustsBean.getId());
+            });
         }
         PixivOperate.insertIllustViewHistory(illustsBean);
     }
@@ -214,95 +195,69 @@ public class PixivOperate {
                 .create();
         tipDialog.show();
         //Get response data
-        Retro.getAppApi()
-                .getIllustByID(illustID)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<IllustSearchResponse>() {
-
-
-                    /**
-                     *
-                     * @param illustSearchResponse The response message returned by {@link NullCtrl}
-                     *                             In case that the illustration information conveyed by illustSearchResponse is null
-                     */
-                    @Override
-                    public void success(IllustSearchResponse illustSearchResponse) {
-                        Illust illust = illustSearchResponse.getIllust();
-                        if (illust == null) {
-                            return;
-                        }
-                        //Update the illustration object in ObjectPool
-                        ObjectPool.INSTANCE.updateIllust(illust);
-                        //Check the permission to view the illustration
-                        if (illust.getId() == 0 || !Boolean.TRUE.equals(illust.getVisible())) {
-                            // #592: app-api 屏蔽(visible=false)的作品走网页 ajax 兜底
-                            IllustDetailSupportKt.fetchWebIllustFallbackAsync(illustID, webIllust -> {
-                                if (webIllust != null) {
-                                    openIllustDetail(context, webIllust);
-                                } else {
-                                    Common.showToast(R.string.string_206);
-                                }
-                            });
-                            return;
-                        }
-                        openIllustDetail(context, illust);
-                    }
-
-                    @Override
-                    public void must() {
-                        super.must();
-                        try {
-                            tipDialog.dismiss();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+        PixivOps.getIllustByID(illustID, illustSearchResponse -> {
+            Illust illust = illustSearchResponse.getIllust();
+            if (illust == null) {
+                return;
+            }
+            //Update the illustration object in ObjectPool
+            ObjectPool.INSTANCE.updateIllust(illust);
+            //Check the permission to view the illustration
+            if (illust.getId() == 0 || !Boolean.TRUE.equals(illust.getVisible())) {
+                // #592: app-api 屏蔽(visible=false)的作品走网页 ajax 兜底
+                IllustDetailSupportKt.fetchWebIllustFallbackAsync(illustID, webIllust -> {
+                    if (webIllust != null) {
+                        openIllustDetail(context, webIllust);
+                    } else {
+                        Common.showToast(R.string.string_206);
                     }
                 });
+                return;
+            }
+            openIllustDetail(context, illust);
+        }, null, () -> {
+            try {
+                tipDialog.dismiss();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public static void getIllustByID(long illustID, Context context,
                                      ceui.lisa.interfaces.Callback<Void> success, ceui.lisa.interfaces.Callback<Void> fail) {
-        Retro.getAppApi().getIllustByID(illustID)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<IllustSearchResponse>() {
-                    @Override
-                    public void success(IllustSearchResponse illustSearchResponse) {
-                        Illust illust = illustSearchResponse.getIllust();
-                        if (illust == null) {
-                            return;
-                        }
-                        if (illust.getId() == 0 || !Boolean.TRUE.equals(illust.getVisible())) {
-                            // #592: 深链接/搜索打开被 app-api 屏蔽的作品,原先会直接进
-                            // 占位图页;改走网页 ajax 兜底,拿不到才报「无法显示」
-                            IllustDetailSupportKt.fetchWebIllustFallbackAsync(illustID, webIllust -> {
-                                if (webIllust != null) {
-                                    openIllustDetail(context, webIllust);
-                                    if (success != null) {
-                                        success.doSomething(null);
-                                    }
-                                } else {
-                                    Common.showToast(R.string.string_206);
-                                    if (fail != null) {
-                                        fail.doSomething(null);
-                                    }
-                                }
-                            });
-                            return;
-                        }
-                        openIllustDetail(context, illust);
+        PixivOps.getIllustByID(illustID, illustSearchResponse -> {
+            Illust illust = illustSearchResponse.getIllust();
+            if (illust == null) {
+                return;
+            }
+            if (illust.getId() == 0 || !Boolean.TRUE.equals(illust.getVisible())) {
+                // #592: 深链接/搜索打开被 app-api 屏蔽的作品,原先会直接进
+                // 占位图页;改走网页 ajax 兜底,拿不到才报「无法显示」
+                IllustDetailSupportKt.fetchWebIllustFallbackAsync(illustID, webIllust -> {
+                    if (webIllust != null) {
+                        openIllustDetail(context, webIllust);
                         if (success != null) {
                             success.doSomething(null);
                         }
+                    } else {
+                        Common.showToast(R.string.string_206);
+                        if (fail != null) {
+                            fail.doSomething(null);
+                        }
                     }
-
-                    @Override
-                    public void must(boolean isSuccess) {
-                        if (!isSuccess && fail != null) fail.doSomething(null);
-                    }
-
                 });
+                return;
+            }
+            openIllustDetail(context, illust);
+            if (success != null) {
+                success.doSomething(null);
+            }
+        }, e -> {
+            // 失败：先弹 pixiv 业务错误文案（对齐 legacy NullCtrl.error），再回 fail
+            ErrorCtrl.handleError(e);
+            if (fail != null) fail.doSomething(null);
+        });
     }
 
     /** 按 ID 打开作品详情页的公共尾段:同步关注态 → 建单作品 PageData → 进 VActivity。 */
@@ -329,42 +284,34 @@ public class PixivOperate {
     public static void getNovelByID(long novel, Context context,
                                     ceui.lisa.interfaces.Callback<Void> callback,
                                     ceui.lisa.interfaces.Callback<Void> fail) {
-        Retro.getAppApi().getNovelByID(novel)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<NovelSearchResponse>() {
-                    @Override
-                    public void success(NovelSearchResponse novelSearchResponse) {
-                        if (novelSearchResponse.getNovel() != null) {
-                            Intent intent = new Intent(context, TemplateActivity.class);
-                            intent.putExtra(Params.CONTENT, novelSearchResponse.getNovel());
-                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
-                            intent.putExtra("hideStatusBar", true);
-                            context.startActivity(intent);
+        PixivOps.getNovelByID(novel, novelSearchResponse -> {
+            if (novelSearchResponse.getNovel() != null) {
+                Intent intent = new Intent(context, TemplateActivity.class);
+                intent.putExtra(Params.CONTENT, novelSearchResponse.getNovel());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
+                intent.putExtra("hideStatusBar", true);
+                context.startActivity(intent);
 
-                            if (callback != null) {
-                                callback.doSomething(null);
-                            }
-                        } else {
-                            Common.showToast("NovelSearchResponse 为空");
-                            if (fail != null) {
-                                fail.doSomething(null);
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void must(boolean isSuccess) {
-                        if (!isSuccess && fail != null) fail.doSomething(null);
-                    }
-                });
+                if (callback != null) {
+                    callback.doSomething(null);
+                }
+            } else {
+                Common.showToast("NovelSearchResponse 为空");
+                if (fail != null) {
+                    fail.doSomething(null);
+                }
+            }
+        }, e -> {
+            ErrorCtrl.handleError(e);
+            if (fail != null) fail.doSomething(null);
+        });
     }
 
-    public static void getGifInfo(Illust illust, ErrorCtrl<GifResponse> errorCtrl) {
-        Retro.getAppApi().getGifPackage(illust.getId())
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(errorCtrl);
+    /**
+     * 拉动图 metadata，成功回主线程 {@code onSuccess}；失败弹 pixiv 业务错误文案（对齐 legacy ErrorCtrl）。
+     */
+    public static void getGifInfo(Illust illust, JavaAsync.Consumer<GifResponse> onSuccess) {
+        PixivOps.getGifPackage(illust.getId(), onSuccess);
     }
 
     public static void muteTag(TagsBean tagsBean) {
@@ -429,25 +376,7 @@ public class PixivOperate {
         }
     }
 
-    public static void blockUser(User user) {
-        MuteEntity muteEntity = new MuteEntity();
-        muteEntity.setType(Params.BLOCK_USER);
-        muteEntity.setId((int) user.getId());
-        muteEntity.setTagJson(Shaft.sGson.toJson(user));
-        muteEntity.setSearchTime(System.currentTimeMillis());
-        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
-        Common.showToast(Shaft.getContext().getString(R.string.string_382));
-    }
-
-    public static void unBlockUser(User user) {
-        MuteEntity muteEntity = new MuteEntity();
-        muteEntity.setType(Params.BLOCK_USER);
-        muteEntity.setId((int) user.getId());
-        muteEntity.setTagJson(Shaft.sGson.toJson(user));
-        muteEntity.setSearchTime(System.currentTimeMillis());
-        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
-        Common.showToast(Shaft.getContext().getString(R.string.string_383));
-    }
+    // blockUser / unBlockUser 已删除：全仓无调用方（拉黑的现役入口是 EntityWrapper.blockUser）。
 
     /**
      * 屏蔽单件插画。写库和内存名单一并交给 {@link IllustMuteStore}（顺带把落库挪出主线程）——
@@ -459,21 +388,7 @@ public class PixivOperate {
         Common.showToast(Shaft.getContext().getString(R.string.string_384));
     }
 
-    /** 屏蔽单篇小说，同 {@link #muteIllust}。 */
-    public static void muteNovel(Novel novelBean) {
-        NovelMuteStore.INSTANCE.setMuted(novelBean.getId(), true, () -> novelBean);
-        Common.showToast(Shaft.getContext().getString(R.string.string_384));
-    }
-
-    public static void muteTags(List<TagsBean> tagsBeans) {
-        if (tagsBeans == null || tagsBeans.size() == 0) {
-            return;
-        }
-
-        for (TagsBean tagsBean : tagsBeans) {
-            muteTag(tagsBean);
-        }
-    }
+    // muteNovel / muteTags 已删除：全仓无调用方（小说屏蔽走 NovelMuteStore，批量屏蔽标签由调用方循环 muteTag）。
 
     public static void unMuteTag(TagsBean tagsBean) {
         unMuteTag(tagsBean, true);
@@ -502,7 +417,7 @@ public class PixivOperate {
         }
 
         if (illust.getId() > 0) {
-            Schedulers.io().scheduleDirect(() -> {
+            JavaAsync.fireAndForget(() -> {
                 IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
                 illustHistoryEntity.setType(0);
                 illustHistoryEntity.setIllustID((int) illust.getId());
@@ -529,7 +444,7 @@ public class PixivOperate {
         }
 
         if (novelBean.getId() > 0) {
-            Schedulers.io().scheduleDirect(() -> {
+            JavaAsync.fireAndForget(() -> {
                 IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
                 illustHistoryEntity.setIllustID((int) novelBean.getId());
                 illustHistoryEntity.setType(1);
@@ -652,15 +567,18 @@ public class PixivOperate {
         }
     }
 
+    /**
+     * 后台把解压好的帧序列编成 GIF（可选 autoSave 落到用户存储）。整段跑在 IO 线程；
+     * 失败只清掉半成品文件，不弹提示（对齐旧 RxRun + TryCatchObserverImpl 的静默行为）。
+     */
     public static void encodeGifV2(Context context, File parentFile, Illust illustsBean, boolean autoSave) {
-        RxRun.runOn(new RxRunnable<Void>() {
-            @Override
-            public Void execute() throws Exception {
+        JavaAsync.fireAndForget(() -> {
+            try {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
                 long currentTimeMillis = System.currentTimeMillis();
                 if (gifEncodingWorkSet.containsKey(illustsBean.getId())
                         && (currentTimeMillis - gifEncodingWorkSet.get(illustsBean.getId())) < reEncodeTimeThresholdMillis) {
-                    return null;
+                    return;
                 }
                 gifEncodingWorkSet.put(illustsBean.getId(), currentTimeMillis);
                 Common.showLog("encodeGif 开始生成gif图");
@@ -750,11 +668,7 @@ public class PixivOperate {
 
                 // 旧的 FragmentSingleUgora 靠 PLAY_GIF 广播刷新播放,页面已删、无接收方;
                 // 内联播放走 UgoiraEngine(collect 进度,不靠广播),故不再发。
-                return null;
-            }
-        }, new TryCatchObserverImpl<>() {
-            @Override
-            public void error(Throwable e) {
+            } catch (Exception e) {
                 Common.showLog("encodeGifV2 error: " + e.getClass().getName() + " " + e.getMessage());
                 e.printStackTrace();
                 gifEncodingWorkSet.remove(illustsBean.getId());
@@ -796,104 +710,30 @@ public class PixivOperate {
         sBack.clear();
     }
 
-    public static void postNovelMarker(NovelDetail.NovelMarkerBean novelMarkerBean, int novelId, int page, View view) {
-        int currentMarkPage = novelMarkerBean.getPage();
-        if (currentMarkPage == 0 || (currentMarkPage > 0 && currentMarkPage != page)) {
-            novelMarkerBean.setPage(page);
-            Retro.getAppApi().postAddNovelMarker(
-                            novelId, page)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<NullResponse>() {
-                        @Override
-                        public void next(NullResponse nullResponse) {
-                            if (view instanceof ImageView) {
-                                ((ImageView) view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_add)));
-                            }
-                            Common.showToast(getString(R.string.string_368, page));
-                        }
-                    });
-        } else {
-            novelMarkerBean.setPage(0);
-            Retro.getAppApi().postDeleteNovelMarker(
-                            novelId)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<NullResponse>() {
-                        @Override
-                        public void next(NullResponse nullResponse) {
-                            if (view instanceof ImageView) {
-                                ((ImageView) view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_none)));
-                            }
-                            Common.showToast(getString(R.string.string_369));
-                        }
-                    });
-        }
-    }
+    // postNovelMarker(NovelDetail.NovelMarkerBean, ...) 已删除：全仓无调用方（旧小说详情页书签按钮已下线）。
 
     // For markers page
     public static void postNovelMarker(MarkedNovelItem.NovelMarker marker, int novelId, View view) {
         int page = marker.getPage();
         if (marker.isCancelled()) {
             marker.setCancelled(false);
-            Retro.getAppApi().postAddNovelMarker(
-                            novelId, page)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<NullResponse>() {
-                        @Override
-                        public void next(NullResponse nullResponse) {
-                            if(view instanceof ImageView){
-                                ((ImageView)view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_add)));
-                            }
-                            Common.showToast(getString(R.string.string_368, page));
-                        }
-                    });
+            PixivOps.postAddNovelMarker(novelId, page, nullResponse -> {
+                if (view instanceof ImageView) {
+                    ((ImageView) view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_add)));
+                }
+                Common.showToast(getString(R.string.string_368, page));
+            });
         } else {
             marker.setCancelled(true);
-            Retro.getAppApi().postDeleteNovelMarker(
-                            novelId)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<NullResponse>() {
-                        @Override
-                        public void next(NullResponse nullResponse) {
-                            if(view instanceof ImageView){
-                                ((ImageView)view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_none)));
-                            }
-                            Common.showToast(getString(R.string.string_369));
-                        }
-                    });
+            PixivOps.postDeleteNovelMarker(novelId, nullResponse -> {
+                if (view instanceof ImageView) {
+                    ((ImageView) view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_none)));
+                }
+                Common.showToast(getString(R.string.string_369));
+            });
         }
     }
 
-    public static void postNovelWatchlist(NovelSeriesItem series, Button btn) {
-        boolean add = !series.isWatchlist_added();
-        int seriesId = series.getId();
-        if (add) {
-            Retro.getAppApi().postWatchlistNovelAdd(
-                    seriesId)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new ErrorCtrl<NullResponse>() {
-                @Override
-                public void next(NullResponse nullResponse) {
-                    series.setWatchlist_added(true);
-                    btn.setText(R.string.already_in_your_watchlist);
-                }
-            });
-        } else {
-            Retro.getAppApi().postWatchlistNovelDelete(
-                    seriesId)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new ErrorCtrl<NullResponse>() {
-                @Override
-                public void next(NullResponse nullResponse) {
-                    series.setWatchlist_added(false);
-                    btn.setText(R.string.add_to_watchlist);
-                }
-            });
-        }
-    }
+    // postNovelWatchlist(NovelSeriesItem, Button) 已删除：全仓无调用方（追更开关现役入口是
+    // NovelSeriesFragment 直调 AppApiSuspend.postWatchlistNovelAdd/Delete）。
 }
