@@ -32,7 +32,9 @@ class CrossGenerationSwapTest {
     @Test
     fun `refreshing a deep-scrolled list back to its first page reuses the diff path`() {
         // 翻了 3 页共 90 条 → 下拉刷新只拉回第 1 页 30 条。共有项就是那 30 条、两边顺序一致。
-        // DiffUtil 只需移除折叠线以下的 60 条 + 顶部原地重绑，绝不该为此清空重填。
+        // DiffUtil 只需移除折叠线以下的 60 条，绝不该为此清空重填。
+        // （注意幸存的顶部条目内容没变就**不会**重绑，onBind 驱动的预取信号因此可能断掉——
+        // 那是 FeedFragment.rearmPaginationIfNearEnd 负责的事，见 PR #1059。）
         val old = rows(*(1..90).toList().toIntArray())
         val new = rows(*(1..30).toList().toIntArray())
         assertFalse("只拉回第一页不是重排", needsCleanSwapAcrossGenerations(old, new))

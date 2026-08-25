@@ -91,10 +91,16 @@ class FeedAdapter(
         } else {
             renderer.onBind(cell, payloads)
         }
-        if (onNearEnd != null && position >= itemCount - prefetchDistance) {
+        if (onNearEnd != null && isNearEnd(position)) {
             onNearEnd.invoke()
         }
     }
+
+    /**
+     * [position] 是否已进入触底预取区。onBind 用它点火 [onNearEnd]；
+     * [FeedFragment] 在列表提交后也用同一判据补检一次（见 `rearmPaginationIfNearEnd`）。
+     */
+    fun isNearEnd(position: Int): Boolean = position >= itemCount - prefetchDistance
 
     override fun onViewRecycled(cell: FeedCell<FeedItem, ViewBinding>) {
         renderers[cell.itemViewType].onRecycled(cell)

@@ -9,6 +9,7 @@ import androidx.annotation.LayoutRes
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
@@ -409,7 +410,53 @@ abstract class FeedFragment(
             // view 可能在这一帧后就销毁；listView 是捕获的强引用，post 照常跑，只是往一个已 detach
             // 的列表上设回 animator——无害且不泄漏（listView 随 view 一起回收）。
             listView.post { listView.itemAnimator = listItemAnimator }
-            onListCommitted(state)
+            afterListCommitted(state)
+        }
+    }
+
+    /**
+     * 两条提交路径（DiffUtil / 整代清空重填）的共同收口：先回调子类，再补一次触底预取检查。
+     */
+    private fun afterListCommitted(state: FeedUiState) {
+        onListCommitted(state)
+        rearmPaginationIfNearEnd()
+    }
+
+    /**
+     * 列表提交后补一次「触底预取」检查。
+     *
+     * 常规翻页完全由 [FeedAdapter] 的 onBind 点火。但刷新把翻过多页的长列表换成一个**短前缀**
+     * （首页被 mapper 过滤后只剩几条）时，走的是 DiffUtil 路径：只派发尾部 remove，顶部幸存的
+     * holder 内容没变**不会重新 bind**，短列表又填不满屏、滚不动，onNearEnd 从此不再有机会
+     * 点火——分页就这样被静默吃掉（PR #1059 真机复现）。这里用与 onBind 相同的判据
+     * （[FeedAdapter.isNearEnd]）看一眼当前最后可见位置，已在预取区就主动补一次 loadMore。
+     *
+     * 时机：提交回调里 RecyclerView 刚 requestLayout、还没排版，此时读到的是旧布局；等这次
+     * layout 结束再查（[doOnNextLayout]）。没有 pending layout（diff 零派发）就直接查。
+     * 重复触发无害：[FeedViewModel.loadMore] 自带 reachedEnd / 刷新中 / 单飞守卫。
+     */
+    private fun rearmPaginationIfNearEnd() {
+        if (!loadMoreEnabled) return
+        val listView = _binding?.feedListView ?: return
+        if (listView.isLayoutRequested) {
+            listView.doOnNextLayout { checkNearEndNow() }
+        } else {
+            checkNearEndNow()
+        }
+    }
+
+    private fun checkNearEndNow() {
+        // adapter 现取：rebuildList 可能已经换过一轮，别拿提交时那个
+        val adapter = feedAdapter ?: return
+        val listView = _binding?.feedListView ?: return
+        if (adapter.itemCount == 0) return
+        val lastVisible = when (val manager = listView.layoutManager) {
+            is StaggeredGridLayoutManager -> manager.findLastVisibleItemPositions(null).max()
+            is LinearLayoutManager -> manager.findLastVisibleItemPosition()
+            else -> return
+        }
+        if (lastVisible != RecyclerView.NO_POSITION && adapter.isNearEnd(lastVisible)) {
+            feedViewModel.loadMore()
         }
     }
 
@@ -455,7 +502,7 @@ abstract class FeedFragment(
         ) {
             commitNewGeneration(adapter, displayList, state)
         } else {
-            adapter.submitList(displayList) { onListCommitted(state) }
+            adapter.submitList(displayList) { afterListCommitted(state) }
         }
 
         val binding = feedBinding
