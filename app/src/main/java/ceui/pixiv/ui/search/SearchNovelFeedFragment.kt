@@ -39,7 +39,6 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import io.reactivex.functions.Function
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
@@ -304,7 +303,7 @@ class SearchNovelFeedSource(
         }
         val items = withContext(Dispatchers.Default) {
             @Suppress("UNCHECKED_CAST")
-            val filtered = (r.mapper() as Function<ListNovel, ListNovel>).apply(list)
+            val filtered = r.mapper().apply(list)
             // Mapper 已做完搜索专属过滤（R18 三态 / 仅看 AI），不再重复走全局过滤。
             filtered.list.orEmpty().map { NovelFeedItem(it) }
         }

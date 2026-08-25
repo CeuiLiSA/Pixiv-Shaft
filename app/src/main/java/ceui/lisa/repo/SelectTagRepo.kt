@@ -10,7 +10,7 @@ import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.Params
 import ceui.pixiv.db.synonym.SynonymMatcher
 import io.reactivex.Observable
-import io.reactivex.functions.Function
+import ceui.lisa.core.ResponseMapper
 
 class SelectTagRepo(
         private val id: Int,
@@ -48,8 +48,8 @@ class SelectTagRepo(
         return null
     }
 
-    override fun mapper(): Function<in ListBookmarkTag, ListBookmarkTag> {
-        return Function { listBookmarkTag ->
+    override fun mapper(): ResponseMapper<ListBookmarkTag> {
+        return ResponseMapper { listBookmarkTag ->
             val tags = listBookmarkTag.list
             if (listTag != null) {
                 tags.forEach { tag ->

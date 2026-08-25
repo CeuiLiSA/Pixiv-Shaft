@@ -18,7 +18,7 @@ import ceui.pixiv.ui.search.SortType
 import ceui.pixiv.ui.search.v3.DurationBucket
 import ceui.pixiv.ui.search.v3.SearchTarget
 import io.reactivex.Observable
-import io.reactivex.functions.Function
+import ceui.lisa.core.ResponseMapper
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.time.LocalDate
@@ -531,7 +531,7 @@ class SearchIllustRepo @JvmOverloads constructor(
         return Observable.just(ListIllust().apply { illusts = emptyList() })
     }
 
-    override fun mapper(): Function<in ListIllust, ListIllust> {
+    override fun mapper(): ResponseMapper<ListIllust> {
         if (this.filterMapper == null) {
             this.filterMapper = FilterMapper().enableFilterStarSize()
         }

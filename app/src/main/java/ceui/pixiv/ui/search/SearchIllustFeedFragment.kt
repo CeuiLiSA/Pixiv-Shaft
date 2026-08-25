@@ -17,7 +17,6 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.awaitFirstValue
-import io.reactivex.functions.Function
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
@@ -187,7 +186,7 @@ class SearchIllustFeedSource(
         }
         val items = withContext(Dispatchers.Default) {
             @Suppress("UNCHECKED_CAST")
-            val filtered = (r.mapper() as Function<ListIllust, ListIllust>).apply(list)
+            val filtered = r.mapper().apply(list)
             // FilterMapper 已做完全部搜索专属过滤 → 直接建条目，不再过滤（否则仅看 AI 误删 AI）。
             filtered.list.orEmpty().mapNotNull { IllustFeedItem.raw(it) }
         }

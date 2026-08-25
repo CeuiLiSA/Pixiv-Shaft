@@ -18,7 +18,7 @@ import ceui.pixiv.ui.search.SortType
 import ceui.pixiv.ui.search.v3.DurationBucket
 import ceui.pixiv.ui.search.v3.SearchTarget
 import io.reactivex.Observable
-import io.reactivex.functions.Function
+import ceui.lisa.core.ResponseMapper
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.time.LocalDate
@@ -68,7 +68,7 @@ class SearchNovelRepo @JvmOverloads constructor(
     // 复用基类 Mapper（已含屏蔽 tag/ID/用户 + 全局 R18 过滤）；额外承载搜索「R-18 限制」三档。
     // 注意：mapper() 由 RemoteRepo 构造器调用，早于本类属性初始化，故这里不读 r18Restriction，
     // 实际档位在 update() 里推给 mapper（与 SearchIllustRepo 的 FilterMapper 同套路）。
-    override fun mapper(): Function<in ListNovel, ListNovel> {
+    override fun mapper(): ResponseMapper<ListNovel> {
         if (filterMapper == null) {
             filterMapper = Mapper()
         }

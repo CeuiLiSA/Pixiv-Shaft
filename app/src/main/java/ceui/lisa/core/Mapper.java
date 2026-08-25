@@ -10,13 +10,12 @@ import ceui.lisa.model.ListTrendingtag;
 import ceui.loxia.Illust;
 import ceui.loxia.Novel;
 import ceui.loxia.ObjectPool;
-import io.reactivex.functions.Function;
 
 /**
  * 默认Mapper，从列表中隐藏掉包含“已屏蔽tag”的作品
  * @param <T>
  */
-public class Mapper<T extends ListShow<?>> implements Function<T, T> {
+public class Mapper<T extends ListShow<?>> implements ResponseMapper<T> {
 
     private boolean skipR18Filter = false;
 

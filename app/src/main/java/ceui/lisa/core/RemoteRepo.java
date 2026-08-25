@@ -4,7 +4,6 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -25,7 +24,7 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
      * ?: Similar to ? extends Response, this represents a wildcard but with a reversed relationship.
      * super Response: This specifies that the type can be either the Response class itself or any class that is a superclass of Response. In simpler terms, the Observable can emit objects of any type as long as that type is an ancestor (parent class) in the inheritance hierarchy leading up to Response.
      * */
-    private final Function<? super Response, Response> mFunction;
+    private final ResponseMapper<Response> mFunction;
     protected String nextUrl = "";
 
     public RemoteRepo() {
@@ -58,7 +57,7 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
         mApi = initApi();//mApi contains the response data
         if (mApi != null) {
             mApi.subscribeOn(Schedulers.newThread())
-                    .map(mFunction)
+                    .map(mFunction::apply)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(nullCtrl);
         }
@@ -78,13 +77,13 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
         mApi = initNextApi();
         if (mApi != null) {
             mApi.subscribeOn(Schedulers.newThread())
-                    .map(mFunction)
+                    .map(mFunction::apply)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(nullCtrl);
         }
     }
 
-    public Function<? super Response, Response> mapper() {
+    public ResponseMapper<Response> mapper() {
         return new Mapper<>();
     }
 
