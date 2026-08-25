@@ -162,9 +162,10 @@ internal object Nana7miSearchCache {
             fillTokens[fillKey] = body.storeToken
         }
         Timber.tag(LOG_TAG).d(
-            "stage=%s cache=%s age_ms=%s",
+            "stage=%s cache=%s key=%s age_ms=%s",
             stage,
             if (decoded != null) "hit" else "miss",
+            key.take(12),
             body?.ageMs?.toString() ?: "-",
         )
         return decoded
@@ -219,9 +220,10 @@ internal object Nana7miSearchCache {
                 { resp ->
                     val body = resp.body()
                     Timber.tag(LOG_TAG).d(
-                        "stage=%s cache_store=%s reason=%s",
+                        "stage=%s cache_store=%s key=%s reason=%s",
                         stage,
                         if (resp.isSuccessful && body?.stored == true) "stored" else "refused",
+                        key.take(12),
                         body?.reason ?: resp.code().toString(),
                     )
                 },
