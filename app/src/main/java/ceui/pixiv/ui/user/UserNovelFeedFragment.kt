@@ -10,7 +10,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import ceui.lisa.R
 import ceui.lisa.activities.UserNovelFirstPageListener
-import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
@@ -45,24 +44,24 @@ class UserNovelFeedFragment : NovelFeedFragment() {
         requireArguments().getBoolean(Params.FLAG, true)
     }
 
-    /** 作者页状态小 VM：持有 AI 全隐藏标记（空态文案用）；小说页不消费 total。 */
+    /** 作者页状态小 VM：持有「整页被过滤滤空」标记（空态文案用）；小说页不消费 total。 */
     private val userWorksStateViewModel: UserWorksStateViewModel by viewModels()
 
     // 内嵌 UserActivityV3 tab(无底栏)时,列表底部补手势条 inset;带 toolbar 独立页由 setUpToolbar 自理
     override val applyBottomSafeInset: Boolean = true
 
-    /** 作者小说被全局 AI 屏蔽整页滤空时，在通用空态下方换行追加「已隐藏所有AI作品」。 */
+    /** 作者小说被屏蔽设置（AI / R18 / 标签…）整页滤空时，在通用空态下方换行追加说明。 */
     override val emptyStateText: CharSequence
-        get() = aiHiddenEmptyStateText(
+        get() = filteredEmptyStateText(
             super.emptyStateText,
-            isAiHideAllEnabled() && userWorksStateViewModel.allAiHidden.value,
+            userWorksStateViewModel.allItemsFiltered.value,
             requireContext(),
         )
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获约定:userId 先取成局部值,不把 Fragment 钉进长命 VM
         val uid = userId.toLong()
-        // userWorksStateViewModel 是 ViewModel 实例（非 Fragment），mapper 里借它记录「整页都是 AI 被隐藏」。
+        // userWorksStateViewModel 是 ViewModel 实例（非 Fragment），mapper 里借它记录「整页被过滤滤空」。
         val stateVm = userWorksStateViewModel
         pixivFeedSource({ Client.appApi.getUserCreatedNovels(uid) }) { resp, _ ->
             mapUserNovelPage(resp.displayList, stateVm)
@@ -102,10 +101,10 @@ class UserNovelFeedFragment : NovelFeedFragment() {
             }
         }
 
-        // allAiHidden 由 mapper 在后台设置，render 可能先于它跑；停在空态时补一次文案。
+        // allItemsFiltered 由 mapper 在后台设置，render 可能先于它跑；停在空态时补一次文案。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                userWorksStateViewModel.allAiHidden.collect {
+                userWorksStateViewModel.allItemsFiltered.collect {
                     if (feedViewModel.uiState.value.showEmptyState) {
                         feedBinding.feedStateText.text = emptyStateText
                     }
@@ -136,12 +135,10 @@ class UserNovelFeedFragment : NovelFeedFragment() {
             novels: List<Novel>,
             stateVm: UserWorksStateViewModel,
         ): List<FeedItem> {
-            // 纯 AI 作者整页滤空时，空态要能说清原因；这里记的是「这一页原始作品全部命中 AI 隐藏」，
-            // 而不是「结果为空」——避免把 R18/标签屏蔽造成的空页也误报成 AI 隐藏。
-            stateVm.setAllAiHidden(
-                novels.isNotEmpty() && novels.all { IllustNovelFilter.shouldHideAi(it) }
-            )
-            return novels.mapNotNull { NovelFeedItem.of(it, skipMuteUserFilter = true) }
+            val items = novels.mapNotNull { NovelFeedItem.of(it, skipMuteUserFilter = true) }
+            // 空态要能说清「作者有作品，只是被你的屏蔽设置全滤掉了」，和「作者确实没作品」区分开。
+            stateVm.reportPageFiltered(rawCount = novels.size, shownCount = items.size)
+            return items
         }
     }
 }

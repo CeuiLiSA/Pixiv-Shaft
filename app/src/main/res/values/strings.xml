@@ -885,7 +885,7 @@
     <string name="delete_ai_illust">不显示AI生成的作品</string>
     <string name="ai_block_strength">不显示的效果级别</string>
     <string name="ai_block_strength_hide">完全不显示</string>
-    <string name="ai_block_all_hidden">已隐藏所有AI作品</string>
+    <string name="feed_all_items_filtered">作品已被屏蔽设置全部隐藏</string>
     <string name="ai_block_strength_blur">模糊粒子化</string>
     <string name="ai_block_exempt_authors">豁免的作者列表</string>
     <string name="ai_block_exempt_hint">逐个添加作者ID，可删除\n列表变动后建议重启下app</string>

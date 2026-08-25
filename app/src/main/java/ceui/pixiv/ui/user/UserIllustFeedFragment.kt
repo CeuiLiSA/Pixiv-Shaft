@@ -20,7 +20,6 @@ import ceui.lisa.activities.UserIllustFirstPageListener
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.feature.FeatureEntity
-import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.helper.UserIllustJumpHelper
 import ceui.loxia.Illust
 import ceui.lisa.utils.Common
@@ -45,17 +44,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-/** 「不显示AI生成的作品」开启且效果为「完全不显示」时，作者页空态可据此说明原因。 */
-internal fun isAiHideAllEnabled(): Boolean =
-    Shaft.sSettings.isDeleteAIIllust && Shaft.sSettings.aiBlockStrength == 0
-
-/** 通用空态下方换行追加「已隐藏所有AI作品」；未命中时原样返回。 */
-internal fun aiHiddenEmptyStateText(
+/** 通用空态下方换行追加「作品已被屏蔽设置全部隐藏」；未命中时原样返回。 */
+internal fun filteredEmptyStateText(
     base: CharSequence,
-    allAiHidden: Boolean,
+    allItemsFiltered: Boolean,
     context: Context,
-): CharSequence = if (allAiHidden) {
-    "$base\n${context.getString(R.string.ai_block_all_hidden)}"
+): CharSequence = if (allItemsFiltered) {
+    "$base\n${context.getString(R.string.feed_all_items_filtered)}"
 } else {
     base
 }
@@ -120,17 +115,17 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
     /** 首屏只交付一次(标签回调 + targetDate 定位);旋转重建后 VM 已有数据会再交付一次(宿主自去重)。 */
     private var firstPageDelivered = false
 
-    /** 作者作品页状态归 VM(数据不塞 Fragment):旋转/视图重建不重查。toolbar 菜单与 AI 空态判断共用。 */
+    /** 作者作品页状态归 VM(数据不塞 Fragment):旋转/视图重建不重查。toolbar 菜单与「全被过滤」空态判断共用。 */
     private val userWorksStateViewModel: UserWorksStateViewModel by viewModels()
 
     // 内嵌 UserActivityV3 tab(无底栏)时,列表底部补手势条 inset;带 toolbar 独立页由 setUpToolbar 自理
     override val applyBottomSafeInset: Boolean = true
 
-    /** 作者作品被全局 AI 屏蔽整页滤空时，在通用空态下方换行追加「已隐藏所有AI作品」。 */
+    /** 作者作品被屏蔽设置（AI / R18 / 标签…）整页滤空时，在通用空态下方换行追加说明。 */
     override val emptyStateText: CharSequence
-        get() = aiHiddenEmptyStateText(
+        get() = filteredEmptyStateText(
             super.emptyStateText,
-            isAiHideAllEnabled() && userWorksStateViewModel.allAiHidden.value,
+            userWorksStateViewModel.allItemsFiltered.value,
             requireContext(),
         )
 
@@ -139,7 +134,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
         val uid = userId.toLong()
         val offset = initialOffset
         val type = workType
-        // userWorksStateViewModel 是 ViewModel 实例（非 Fragment），mapper 里借它记录「整页都是 AI 被隐藏」。
+        // userWorksStateViewModel 是 ViewModel 实例（非 Fragment），mapper 里借它记录「整页被过滤滤空」。
         val stateVm = userWorksStateViewModel
         pixivFeedSource({
             Client.appApi.getUserCreatedIllusts(uid, type, offset.takeIf { it > 0 })
@@ -175,10 +170,10 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
             }
         }
 
-        // allAiHidden 由 mapper 在后台设置，render 可能先于它跑；停在空态时补一次文案。
+        // allItemsFiltered 由 mapper 在后台设置，render 可能先于它跑；停在空态时补一次文案。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                userWorksStateViewModel.allAiHidden.collect {
+                userWorksStateViewModel.allItemsFiltered.collect {
                     if (feedViewModel.uiState.value.showEmptyState) {
                         feedBinding.feedStateText.text = emptyStateText
                     }
@@ -357,22 +352,20 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
             illusts: List<Illust>,
             stateVm: UserWorksStateViewModel
         ): List<FeedItem> {
-            // 纯 AI 作者整页滤空时，空态要能说清原因；这里记的是「这一页原始作品全部命中 AI 隐藏」，
-            // 而不是「结果为空」——避免把 R18/标签屏蔽造成的空页也误报成 AI 隐藏。
-            stateVm.setAllAiHidden(
-                illusts.isNotEmpty() && illusts.all { IllustNovelFilter.shouldHideAi(it) }
-            )
-            return illusts.mapNotNull { illust ->
+            val items = illusts.mapNotNull { illust ->
                 // 画师本人作品页：让步「屏蔽画师」过滤（否则屏蔽了本画师后，整页全被滤空 → 空页追载
                 // 狂翻 offset）。R18/标签/AI/作品ID 过滤照常。
                 IllustFeedItem.of(illust, skipMuteUserFilter = true)
             }
+            // 空态要能说清「作者有作品，只是被你的屏蔽设置全滤掉了」，和「作者确实没作品」区分开。
+            stateVm.reportPageFiltered(rawCount = illusts.size, shownCount = items.size)
+            return items
         }
     }
 }
 
 /**
- * 作者作品页的小状态 VM：作品总数（下载全部） + 最近一页是否全被 AI 隐藏（空态文案）。
+ * 作者作品页的小状态 VM：作品总数（下载全部） + 作品是否被屏蔽设置整页滤空（空态文案）。
  * 单独一个小 VM 而不是塞进 FeedViewModel:它跟列表翻页状态没关系(数据归 ViewModel + 按需建小 VM)。
  */
 class UserWorksStateViewModel : ViewModel() {
@@ -382,10 +375,10 @@ class UserWorksStateViewModel : ViewModel() {
     /** -1 = 还没拉到;仅 >0 时「下载全部」可见。 */
     val total: StateFlow<Int> = _total.asStateFlow()
 
-    private val _allAiHidden = MutableStateFlow(false)
+    private val _allItemsFiltered = MutableStateFlow(false)
 
-    /** 最近一页原始作品是否全部命中「AI 完全不显示」（供空态文案判断）。 */
-    val allAiHidden: StateFlow<Boolean> = _allAiHidden.asStateFlow()
+    /** 服务端有作品、但被本地过滤链（AI / R18 / 标签 / 作品 ID）整页滤空（供空态文案判断）。 */
+    val allItemsFiltered: StateFlow<Boolean> = _allItemsFiltered.asStateFlow()
 
     private var started = false
 
@@ -405,8 +398,16 @@ class UserWorksStateViewModel : ViewModel() {
         }
     }
 
-    /** mapper 在后台线程上报：这一页原始作品是否全部被 AI 隐藏（空态文案用）。 */
-    fun setAllAiHidden(hidden: Boolean) {
-        _allAiHidden.value = hidden
+    /**
+     * mapper 在后台线程上报一页的过滤结果。
+     * 原始非空、展示为空 → 置 true；展示非空 → 置 false；原始就是空页（空页追载翻到底）不动——
+     * 否则「第一页 30 条全被滤掉、追载第二页服务端返回空」会把刚记下的 true 抹掉。
+     */
+    fun reportPageFiltered(rawCount: Int, shownCount: Int) {
+        if (shownCount > 0) {
+            _allItemsFiltered.value = false
+        } else if (rawCount > 0) {
+            _allItemsFiltered.value = true
+        }
     }
 }

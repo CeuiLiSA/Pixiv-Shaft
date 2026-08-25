@@ -856,7 +856,7 @@
     <string name="delete_ai_illust">AI ile oluşturulan eserleri gizle</string>
     <string name="ai_block_strength">Gizleme efekt seviyesi</string>
     <string name="ai_block_strength_hide">Tamamen gizle</string>
-    <string name="ai_block_all_hidden">Tüm AI eserleri gizlendi</string>
+    <string name="feed_all_items_filtered">Tüm eserler filtre ayarlarınız tarafından gizlendi</string>
     <string name="ai_block_strength_blur">Bulanık + parçacık</string>
     <string name="ai_block_exempt_authors">Muaf yazar listesi</string>
     <string name="ai_block_exempt_hint">Yazar ID\'lerini tek tek ekleyin, silebilirsiniz\nListe değişikliğinden sonra uygulamayı yeniden başlatmanız önerilir</string>
