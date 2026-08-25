@@ -21,7 +21,6 @@ import java.lang.reflect.WildcardType;
 
 import ceui.lisa.core.DownloadItem;
 import ceui.lisa.http.AppApi;
-import ceui.lisa.http.AppApiSuspend;
 import ceui.loxia.Illust;
 import ceui.loxia.ObjectPool;
 import ceui.pixiv.snapshot.SnapshotManifest;
@@ -57,17 +56,17 @@ public final class AppApiGsonR8InstrumentedTest {
 
     @Test
     public void retrofitResponseGenericTypesSurviveR8FullMode() {
-        Method suspendMethod = findGetEndpoint(AppApiSuspend.class, "v1/illust/recommended");
-        Type suspendContinuation = suspendMethod.getGenericParameterTypes()[
-                suspendMethod.getGenericParameterTypes().length - 1];
-        ParameterizedType continuation = (ParameterizedType) suspendContinuation;
-        assertEquals(RecmdIllust.class, unwrapWildcard(continuation.getActualTypeArguments()[0]));
+        // AppApi is suspend-only now: the response type lives in the trailing Continuation<? super T>
+        // parameter, which Retrofit reads reflectively. Two endpoints from different call paths
+        // (recommended feed via widgets, latest works via LatestIllustRepo).
+        assertEquals(RecmdIllust.class, continuationResultType(findGetEndpoint(AppApi.class, "v1/illust/recommended")));
+        assertEquals(ListIllust.class, continuationResultType(findGetEndpoint(AppApi.class, "v1/illust/new")));
+    }
 
-        // The old recommended Rx endpoint has no live call site and is correctly removed. Check a
-        // legacy Rx endpoint that is still used by LatestIllustRepo instead.
-        Method rxMethod = findGetEndpoint(AppApi.class, "v1/illust/new");
-        ParameterizedType observable = (ParameterizedType) rxMethod.getGenericReturnType();
-        assertEquals(ListIllust.class, unwrapWildcard(observable.getActualTypeArguments()[0]));
+    private static Type continuationResultType(Method suspendMethod) {
+        Type[] params = suspendMethod.getGenericParameterTypes();
+        ParameterizedType continuation = (ParameterizedType) params[params.length - 1];
+        return unwrapWildcard(continuation.getActualTypeArguments()[0]);
     }
 
     @Test

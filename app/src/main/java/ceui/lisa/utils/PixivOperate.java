@@ -568,13 +568,28 @@ public class PixivOperate {
     }
 
     /**
-     * 后台把解压好的帧序列编成 GIF（可选 autoSave 落到用户存储）。整段跑在 IO 线程；
+     * GIF 编码专用线程池：分钟级 CPU 重活，不能占共享的 Dispatchers.IO；而且
+     * 编码线程要降到 BACKGROUND 优先级，降档作用在 Linux tid 上、不随任务结束还原——
+     * 放共享池会把池线程永久降档，之后复用它的搜索/DB 过滤全被限成 cgroup background。
+     * 独占线程 + 工厂里直接降档，对齐旧 RxRun 的 Schedulers.newThread() 语义。
+     */
+    private static final java.util.concurrent.ExecutorService GIF_ENCODE_EXECUTOR =
+            java.util.concurrent.Executors.newCachedThreadPool(r -> {
+                Thread t = new Thread(() -> {
+                    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+                    r.run();
+                }, "shaft-gif-encode");
+                t.setDaemon(true);
+                return t;
+            });
+
+    /**
+     * 后台把解压好的帧序列编成 GIF（可选 autoSave 落到用户存储）。整段跑在 {@link #GIF_ENCODE_EXECUTOR}；
      * 失败只清掉半成品文件，不弹提示（对齐旧 RxRun + TryCatchObserverImpl 的静默行为）。
      */
     public static void encodeGifV2(Context context, File parentFile, Illust illustsBean, boolean autoSave) {
-        JavaAsync.fireAndForget(() -> {
+        GIF_ENCODE_EXECUTOR.execute(() -> {
             try {
-                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
                 long currentTimeMillis = System.currentTimeMillis();
                 if (gifEncodingWorkSet.containsKey(illustsBean.getId())
                         && (currentTimeMillis - gifEncodingWorkSet.get(illustsBean.getId())) < reEncodeTimeThresholdMillis) {

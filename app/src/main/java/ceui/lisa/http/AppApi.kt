@@ -5,16 +5,12 @@ import ceui.lisa.model.ListIllust
 import ceui.lisa.model.ListMangaSeries
 import ceui.lisa.model.ListNovel
 import ceui.lisa.model.ListNovelMarkers
-import ceui.lisa.model.ListNovelOfSeries
 import ceui.lisa.model.ListNovelSeries
 import ceui.lisa.model.ListSimpleUser
 import ceui.lisa.model.ListTag
 import ceui.lisa.model.ListTrendingtag
 import ceui.lisa.model.ListUser
-import ceui.lisa.model.ListWatchlistManga
-import ceui.lisa.model.ListWatchlistNovel
 import ceui.lisa.model.RecmdIllust
-import ceui.lisa.models.CommentHolder
 import ceui.lisa.models.GifResponse
 import ceui.lisa.models.IllustSearchResponse
 import ceui.lisa.models.NovelSearchResponse
@@ -24,8 +20,6 @@ import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.models.UserFollowDetail
 import ceui.lisa.models.UserState
 import okhttp3.MultipartBody
-import okhttp3.ResponseBody
-import retrofit2.Call
 import retrofit2.http.Field
 import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
@@ -202,9 +196,6 @@ interface AppApi {
         @Query("reading_time_max") readingTimeMax: Int? = null,
     ): ListNovel
 
-    @GET("v1/search/user?filter=for_android")
-    suspend fun searchUser(@Query("word") word: String): ListUser
-
     // ── 作品 / 详情 ─────────────────────────────────────────────────────
 
     @GET("v1/illust/detail?filter=for_android")
@@ -218,13 +209,6 @@ interface AppApi {
 
     @GET("v1/ugoira/metadata")
     suspend fun getGifPackage(@Query("illust_id") illustId: Long): GifResponse
-
-    /** 小说正文 webview 页；仍是 [Call]，调用方需要原始 body。 */
-    @GET("/webview/v2/novel")
-    fun getNovelDetailV2(@Query("id") id: Long): Call<ResponseBody>
-
-    @GET("v2/novel/series")
-    suspend fun getNovelSeries(@Query("series_id") seriesId: Int): ListNovelOfSeries
 
     // ── 用户 ────────────────────────────────────────────────────────────
 
@@ -255,9 +239,6 @@ interface AppApi {
         @Query("offset") offset: Int? = null,
     ): ListUser
 
-    @GET("v1/user/related?filter=for_android")
-    suspend fun getRelatedUsers(@Query("seed_user_id") seedUserId: Int): ListUser
-
     @GET("v1/illust/bookmark/users?filter=for_android")
     suspend fun getUsersWhoLikeThisIllust(@Query("illust_id") illustId: Int): ListSimpleUser
 
@@ -284,18 +265,7 @@ interface AppApi {
     @POST("v1/user/workspace/edit")
     suspend fun editWorkSpace(@FieldMap fields: Map<String, String>): NullResponse
 
-    // ── 关注 / 收藏 / 评论 ───────────────────────────────────────────────
-
-    @FormUrlEncoded
-    @POST("v1/user/follow/add")
-    suspend fun postFollow(
-        @Field("user_id") userId: Int,
-        @Field("restrict") followType: String,
-    ): NullResponse
-
-    @FormUrlEncoded
-    @POST("v1/user/follow/delete")
-    suspend fun postUnFollow(@Field("user_id") userId: Int): NullResponse
+    // ── 收藏 ────────────────────────────────────────────────────────────
 
     @FormUrlEncoded
     @POST("v2/illust/bookmark/add")
@@ -303,22 +273,6 @@ interface AppApi {
         @Field("illust_id") illustId: Int,
         @Field("restrict") restrict: String,
     ): NullResponse
-
-    @FormUrlEncoded
-    @POST("v1/illust/comment/add")
-    suspend fun postIllustComment(
-        @Field("illust_id") illustId: Int,
-        @Field("comment") comment: String,
-        @Field("parent_comment_id") parentCommentId: Int? = null,
-    ): CommentHolder
-
-    @FormUrlEncoded
-    @POST("v1/novel/comment/add")
-    suspend fun postNovelComment(
-        @Field("novel_id") novelId: Int,
-        @Field("comment") comment: String,
-        @Field("parent_comment_id") parentCommentId: Int? = null,
-    ): CommentHolder
 
     // ── 收藏标签 ────────────────────────────────────────────────────────
 
@@ -356,9 +310,6 @@ interface AppApi {
     @POST("v1/novel/marker/delete")
     suspend fun postDeleteNovelMarker(@Field("novel_id") novelId: Int): NullResponse
 
-    @GET("v1/watchlist/novel")
-    suspend fun getWatchlistNovel(): ListWatchlistNovel
-
     @FormUrlEncoded
     @POST("v1/watchlist/novel/add")
     suspend fun postWatchlistNovelAdd(@Field("series_id") seriesId: Int): NullResponse
@@ -366,9 +317,6 @@ interface AppApi {
     @FormUrlEncoded
     @POST("v1/watchlist/novel/delete")
     suspend fun postWatchlistNovelDelete(@Field("series_id") seriesId: Int): NullResponse
-
-    @GET("v1/watchlist/manga")
-    suspend fun getWatchlistManga(): ListWatchlistManga
 
     @FormUrlEncoded
     @POST("v1/watchlist/manga/add")

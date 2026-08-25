@@ -41,6 +41,14 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
     // 拒成「不正确的请求」(invalid_request)。static 是为了跨 Activity 重建(配置变化/
     // 回调重投递)仍能去重,避免同一个 code 交换两次。#892
     private static String sHandledLoginCode = null;
+    /**
+     * 进行中的 OAuth 换 token：true 表示 sHandledLoginCode 对应的请求还没回来。
+     * 换 token 挂在进程级 scope 上不随本页取消；配置变更重建后的实例靠这个标记知道
+     * 「结果还在路上」，登记自己为 sLoginWaiter 接管回调，而不是按 isLoggedIn() 立刻二选一
+     * （那会在网络往返期间先把用户送回登录页，几百毫秒后登录态又落库——状态错乱）。
+     */
+    private static boolean sLoginInFlight = false;
+    private static java.lang.ref.WeakReference<OutWakeActivity> sLoginWaiter = null;
 
     @Override
     protected int initLayout() {
@@ -232,6 +240,11 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
     private void handleLoginCallback(Uri uri) {
         String loginCode = uri.getQueryParameter("code");
         if (loginCode != null && loginCode.equals(sHandledLoginCode)) {
+            if (sLoginInFlight) {
+                // 上一个实例发起的换 token 还没回来（配置变更重建）：接管回调，继续停在 loading 页。
+                sLoginWaiter = new java.lang.ref.WeakReference<>(this);
+                return;
+            }
             if (SessionManager.INSTANCE.isLoggedIn()) {
                 openMainActivity();
             } else {
@@ -241,24 +254,37 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
         }
 
         sHandledLoginCode = loginCode;
+        sLoginInFlight = true;
+        sLoginWaiter = new java.lang.ref.WeakReference<>(this);
         Common.showToast(getString(R.string.trying_login));
         // 换 token 是进程级动作，不能随 Activity 取消：深色模式/语言切换等不在 configChanges 里的
-        // 配置变更会重建本页，重建后 sHandledLoginCode 已等于本次 code，丢掉结果就要用户重新授权。
+        // 配置变更会重建本页，结果由 sLoginWaiter 里活着的那个实例接手跑完整的 handleLoginResult。
         JavaAsync.runDetached(() -> PixivLogin.INSTANCE.handleCallback(uri), result -> {
-            if (isFinishing() || isDestroyed()) {
-                // 宿主已没了：只把登录态落库，导航交给重建后的实例（它会按 isLoggedIn 走 openMainActivity）。
+            OutWakeActivity host = takeLoginWaiter();
+            if (host == null) {
+                // 没有活着的宿主（用户已退出本页）：只把登录态落库，不导航不弹窗。
                 if (result instanceof PixivOAuthResult.Success) {
                     Local.persistLoggedInUser(Shaft.sGson.fromJson(
                             ((PixivOAuthResult.Success) result).getRawBody(), AccountResponse.class));
                 }
                 return;
             }
-            handleLoginResult(result);
+            host.handleLoginResult(result);
         }, throwable -> {
-            if (isFinishing() || isDestroyed()) return;
+            OutWakeActivity host = takeLoginWaiter();
+            if (host == null) return;
             Common.showToast("登录失败");
-            backToLoginScreen();
+            host.backToLoginScreen();
         });
+    }
+
+    /** 换 token 回来时结算：清 in-flight 标记，返回仍活着的等待实例（可能已换成重建后的那个）。 */
+    private static OutWakeActivity takeLoginWaiter() {
+        sLoginInFlight = false;
+        OutWakeActivity host = sLoginWaiter != null ? sLoginWaiter.get() : null;
+        sLoginWaiter = null;
+        if (host == null || host.isFinishing() || host.isDestroyed()) return null;
+        return host;
     }
 
     private void handleLoginResult(PixivOAuthResult result) {
