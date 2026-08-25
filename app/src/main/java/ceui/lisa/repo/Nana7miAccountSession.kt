@@ -86,6 +86,29 @@ internal class Nana7miAccountSession(
     }
 
     /**
+     * Borrow for a cursor whose first page came out of the search cache. The paid first-page id is
+     * offered first so the server hands over an account without charging a second search. The
+     * server only honours that id for a bounded replay window (30 minutes) after the hit; past it
+     * the dispatch answers 409 `request_id_conflict`. That means "this needs a fresh search charge",
+     * not "no account", so retry once with a fresh id — otherwise a reader who lingers on a cached
+     * first page would have pagination end silently on the first page turn that misses.
+     */
+    suspend fun fetchReadyForCachedCursor(): Nana7miResult {
+        val paidRequestId = cachedFirstRequestId
+        if (cachedFirstRequestIdRequired && paidRequestId == null) {
+            throw BorrowedAccountUnavailableException(
+                IllegalStateException("cached cursor lost its paid request id"),
+            )
+        }
+        val first = fetchReady(paidRequestId)
+        if (paidRequestId == null || !isPaidRequestIdRejected(first)) return first
+        Timber.tag(LOG_TAG).w(
+            "stage=fetch result=paid_request_id_rejected action=retry_fresh_search",
+        )
+        return fetchReady(Nana7miSearchCache.newRequestId())
+    }
+
+    /**
      * Fetch one account. The server classifies it at 55 minutes; an expired account is refreshed
      * on the client and re-reported before it is returned to the search request.
      */
@@ -481,6 +504,10 @@ internal class BorrowedAccountUnavailableException(cause: Throwable) : IOExcepti
     "borrowed Pixiv account could not be renewed",
     cause,
 )
+
+/** 409 is the only status dispatch reserves for a request id it will no longer honour. */
+internal fun isPaidRequestIdRejected(result: Nana7miResult): Boolean =
+    result is Nana7miResult.HttpFailure && result.status == 409
 
 internal fun isBorrowedAccountUnavailable(error: Throwable): Boolean =
     generateSequence(error) { it.cause }.any { it is BorrowedAccountUnavailableException }

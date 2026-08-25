@@ -150,9 +150,9 @@ internal object Nana7miSearchCache {
             return null
         }
         val body = resp.body()
-        val page = decode(body, type)
+        val decoded = decode(body, type)
         if (
-            page == null && body?.hit == false && requestId != null &&
+            decoded == null && body?.hit == false && requestId != null &&
             !body.storeToken.isNullOrBlank()
         ) {
             // This map is an optimisation, never durable state. A pathological
@@ -164,10 +164,10 @@ internal object Nana7miSearchCache {
         Timber.tag(LOG_TAG).d(
             "stage=%s cache=%s age_ms=%s",
             stage,
-            if (page != null) "hit" else "miss",
-            resp.body()?.ageMs?.toString() ?: "-",
+            if (decoded != null) "hit" else "miss",
+            body?.ageMs?.toString() ?: "-",
         )
-        return page
+        return decoded
     }
 
     /** 纯解析，方便单测：`hit != true`、没有 page、page 解析不出 [type]、或列表缺失都是 null。 */

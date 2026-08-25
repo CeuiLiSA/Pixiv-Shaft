@@ -155,3 +155,14 @@ class Nana7miAccountSessionTest {
         assertNull(freshMembershipOf(null, uid))
     }
 }
+
+class Nana7miPaidRequestIdRejectionTest {
+
+    @Test
+    fun `only a 409 from dispatch means the paid request id must be replaced`() {
+        assertTrue(isPaidRequestIdRejected(Nana7miResult.HttpFailure(409)))
+        assertFalse(isPaidRequestIdRejected(Nana7miResult.HttpFailure(500)))
+        assertFalse(isPaidRequestIdRejected(Nana7miResult.NoAccount))
+        assertFalse(isPaidRequestIdRejected(Nana7miResult.RateLimited(null, null, null, null)))
+    }
+}

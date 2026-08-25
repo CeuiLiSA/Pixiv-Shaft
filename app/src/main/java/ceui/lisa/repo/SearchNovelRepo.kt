@@ -493,13 +493,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                             "stage=novel_official_search_next event=borrow_for_cached_cursor",
                         )
                         lease.blockingObservable {
-                            val paidRequestId = session.cachedFirstRequestId
-                            if (session.cachedFirstRequestIdRequired && paidRequestId == null) {
-                                throw BorrowedAccountUnavailableException(
-                                    IllegalStateException("cached cursor lost its paid request id"),
-                                )
-                            }
-                            runBlocking { session.fetchReady(paidRequestId) }
+                            runBlocking { session.fetchReadyForCachedCursor() }
                             session.payload?.takeIf { !it.expired }
                                 ?: throw BorrowedAccountUnavailableException(
                                     IllegalStateException("no borrowed account for cached cursor"),
