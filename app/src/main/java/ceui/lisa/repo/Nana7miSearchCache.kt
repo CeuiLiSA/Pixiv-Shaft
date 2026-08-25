@@ -37,6 +37,8 @@ import java.security.MessageDigest
 internal object Nana7miSearchCache {
 
     enum class Kind(val wire: String) { ILLUST("illust"), NOVEL("novel") }
+    /** 命中时服务端按它计费：首屏 = 一次搜索，翻页 = 一次翻页。 */
+    enum class Page(val wire: String) { FIRST("first"), NEXT("next") }
 
     /** 规范串的版本前缀：改了参数拼法就升它，老 key 自然作废，不会串页。 */
     private const val KEY_VERSION = "v1"
@@ -82,28 +84,29 @@ internal object Nana7miSearchCache {
     fun <T : Any> firstOrElse(
         kind: Kind,
         key: String,
+        page: Page,
         maxAgeMs: Long,
         type: Class<T>,
         stage: String,
-        onHit: (T) -> Unit = {},
+        hit: (Observable<T>) -> Observable<T> = { it },
         miss: () -> Observable<T>,
     ): Observable<T> = Observable.defer {
-        val cached = lookup(kind, key, maxAgeMs, type, stage)
-        if (cached != null) {
-            onHit(cached)
-            Observable.just(cached)
-        } else {
-            miss()
-        }
+        val cached = lookup(kind, key, page, maxAgeMs, type, stage)
+        if (cached != null) hit(Observable.just(cached)) else miss()
     }
 
-    /** 命中返回解析好的页面，其余一切返回 null。取消照常向上抛。 */
-    fun <T : Any> lookup(kind: Kind, key: String, maxAgeMs: Long, type: Class<T>, stage: String): T? {
+    /**
+     * 命中返回解析好的页面，其余一切返回 null。取消照常向上抛。
+     *
+     * 命中在服务端已经按 [page] 计了费；额度满了服务端回 429（和借号同一个形状），这里当未命中
+     * 处理——接下来的借号会被同样拒绝、走既有的额度提示 + 预览降级。
+     */
+    fun <T : Any> lookup(kind: Kind, key: String, page: Page, maxAgeMs: Long, type: Class<T>, stage: String): T? {
         val uid = requesterUidOrNull() ?: return null
         val resp = try {
             runBlocking {
                 Client.pixshaft.searchCacheLookupRaw(
-                    Nana7miSearchCacheLookupReq(uid = uid, kind = kind.wire, key = key, maxAgeMs = maxAgeMs),
+                    Nana7miSearchCacheLookupReq(uid = uid, kind = kind.wire, key = key, maxAgeMs = maxAgeMs, page = page.wire),
                 )
             }
         } catch (e: CancellationException) {

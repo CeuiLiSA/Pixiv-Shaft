@@ -583,12 +583,16 @@ data class Nana7miSearchTelemetryBatchAck(
     val rejected: Int = 0,
 )
 
-/** [maxAgeMs]：这次调用能容忍多旧的一页；服务端还有一个更硬的上限（默认 24h）。 */
+/**
+ * [maxAgeMs]：这次调用能容忍多旧的一页；服务端还有一个更硬的上限（默认 24h）。
+ * [page]：`first` / `next` —— 命中时服务端按它计费（整次搜索 / 一次翻页），和真借号一样。
+ */
 data class Nana7miSearchCacheLookupReq(
     val uid: Long,
     val kind: String,
     val key: String,
     val maxAgeMs: Long,
+    val page: String,
 )
 
 /**
@@ -600,6 +604,9 @@ data class Nana7miSearchCacheLookupResp(
     val page: JsonElement? = null,
     val storedAt: Long? = null,
     val ageMs: Long? = null,
+    /** 命中已计费之后的额度（同 /v1/account/nana7mi 返回的 quotas）；额度满了整个响应是 429。 */
+    val quotas: List<Nana7miQuotaWindow>? = null,
+    val plan: Nana7miPlan? = null,
 )
 
 data class Nana7miSearchCacheStoreReq(

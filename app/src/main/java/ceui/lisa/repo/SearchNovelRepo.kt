@@ -368,10 +368,24 @@ class SearchNovelRepo @JvmOverloads constructor(
             Nana7miSearchCache.firstOrElse(
                 kind = cacheKind,
                 key = cacheKey,
+                page = Nana7miSearchCache.Page.FIRST,
                 maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
                 type = ListNovel::class.java,
                 stage = "novel_official_search",
-                onHit = { currentNana7miSession.markCursorFromCache() },
+                hit = { cached ->
+                    // 命中也是一轮完整的流程：路由记成 cache_hit，request + flow 事件照常上报，
+                    // 服务端那边已经按一次搜索计过费。
+                    currentNana7miSession.markCursorFromCache()
+                    telemetry?.cacheHit()
+                    val tracked = telemetry?.track(
+                        source = cached,
+                        page = Nana7miSearchTelemetry.Page.FIRST,
+                        route = Nana7miSearchTelemetry.Route.CACHE_HIT,
+                        borrowedUid = null,
+                        reason = null,
+                    ) ?: cached
+                    telemetry?.observeFirst(tracked) ?: tracked
+                },
             ) { telemetry?.observeFirst(borrowedFlow) ?: borrowedFlow }
         } else {
             withTitleFallback { target ->
@@ -418,8 +432,7 @@ class SearchNovelRepo @JvmOverloads constructor(
         val session = nana7miSession
         val borrowed = session.payload
         val cursorFromCache = session.cursorFromCache
-        // 首屏来自缓存的那轮从没订阅过借号 flow，翻页也不上报（见 SearchIllustRepo）。
-        val telemetry = if (cursorFromCache) null else nana7miTelemetry
+        val telemetry = nana7miTelemetry
         // Capture the cursor together with the session before this request waits for the
         // process-wide permit; a newer first page may otherwise replace RemoteRepo.nextUrl.
         val nextPageUrl = nextUrl
@@ -438,9 +451,20 @@ class SearchNovelRepo @JvmOverloads constructor(
             Nana7miSearchCache.firstOrElse(
                 kind = cacheKind,
                 key = cacheKey,
+                page = Nana7miSearchCache.Page.NEXT,
                 maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
                 type = ListNovel::class.java,
                 stage = "novel_official_search_next",
+                hit = { cached ->
+                    // 命中的翻页同样上报（route=cache_hit），服务端已按一次翻页计费。
+                    telemetry?.track(
+                        source = cached,
+                        page = Nana7miSearchTelemetry.Page.NEXT,
+                        route = Nana7miSearchTelemetry.Route.CACHE_HIT,
+                        borrowedUid = null,
+                        reason = null,
+                    ) ?: cached
+                },
             ) {
                 Nana7miSearchSerial.run("novel_next") { lease ->
                     val ready: Observable<Nana7miPayload> = if (borrowed != null) {

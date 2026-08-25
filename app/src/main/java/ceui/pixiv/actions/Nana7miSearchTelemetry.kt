@@ -269,6 +269,8 @@ class Nana7miSearchTelemetry internal constructor(
         BORROWED_OFFICIAL("borrowed_official"),
         PREVIEW_DIRECT("preview_direct"),
         PREVIEW_FALLBACK("preview_fallback"),
+        /** 首屏来自 pixshaft 一级缓存：照常计费，但没借号、没打 Pixiv。 */
+        CACHE_HIT("cache_hit"),
     }
     enum class EventType(val wire: String) {
         REQUEST("request"), FLOW_STARTED("flow_started"), FLOW_TERMINAL("flow_terminal")
@@ -280,6 +282,7 @@ class Nana7miSearchTelemetry internal constructor(
         OFFICIAL_SUCCESS("official_success"),
         PREVIEW_SUCCESS("preview_success"),
         FALLBACK_SUCCESS("fallback_success"),
+        CACHE_SUCCESS("cache_success"),
         TOTAL_FAILURE("total_failure"),
         CANCELLED("cancelled"),
     }
@@ -371,6 +374,13 @@ class Nana7miSearchTelemetry internal constructor(
             currentReason = reason.take(LABEL_MAX_CHARS)
         }
 
+        /** 首屏命中一级缓存：这轮的路由是 cache_hit，没有借来的账号可报。 */
+        fun cacheHit() {
+            currentRoute = Route.CACHE_HIT
+            currentReason = null
+            currentBorrowedUid = null
+        }
+
         fun <T : Any> track(
             source: Observable<T>,
             page: Page,
@@ -425,6 +435,7 @@ class Nana7miSearchTelemetry internal constructor(
             Route.BORROWED_OFFICIAL -> FlowOutcome.OFFICIAL_SUCCESS
             Route.PREVIEW_DIRECT -> FlowOutcome.PREVIEW_SUCCESS
             Route.PREVIEW_FALLBACK -> FlowOutcome.FALLBACK_SUCCESS
+            Route.CACHE_HIT -> FlowOutcome.CACHE_SUCCESS
         }
 
         private fun finish(flowOutcome: FlowOutcome, outcome: Outcome, error: Throwable?) {
@@ -547,6 +558,9 @@ class Nana7miSearchTelemetry internal constructor(
                 FlowOutcome.FALLBACK_SUCCESS.wire ->
                     payload.outcome == Outcome.SUCCESS.wire &&
                             payload.route == Route.PREVIEW_FALLBACK.wire
+                FlowOutcome.CACHE_SUCCESS.wire ->
+                    payload.outcome == Outcome.SUCCESS.wire &&
+                            payload.route == Route.CACHE_HIT.wire
                 else -> false
             } && payload.durationMs != null
             else -> false

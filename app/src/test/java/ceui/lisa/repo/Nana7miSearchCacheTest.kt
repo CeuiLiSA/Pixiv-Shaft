@@ -149,7 +149,7 @@ class Nana7miSearchCacheTest {
     // ── wire：请求体字段名和服务端 src/search-cache.js 一致 ──
 
     @Test
-    fun `lookup posts uid, kind, key and maxAgeMs and parses the page`() = runBlocking {
+    fun `lookup posts uid, kind, key, maxAgeMs and page, and parses the page`() = runBlocking {
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -158,7 +158,7 @@ class Nana7miSearchCacheTest {
         )
         val key = "a".repeat(64)
         val resp = api.searchCacheLookupRaw(
-            Nana7miSearchCacheLookupReq(uid = 42L, kind = "illust", key = key, maxAgeMs = 60_000L),
+            Nana7miSearchCacheLookupReq(uid = 42L, kind = "illust", key = key, maxAgeMs = 60_000L, page = "first"),
         )
         val recorded = server.takeRequest()
         assertEquals("/v1/account/nana7mi/search-cache/lookup", recorded.path)
@@ -167,6 +167,7 @@ class Nana7miSearchCacheTest {
         assertEquals("illust", sent["kind"].asString)
         assertEquals(key, sent["key"].asString)
         assertEquals(60_000L, sent["maxAgeMs"].asLong)
+        assertEquals("first", sent["page"].asString)
 
         assertTrue(resp.isSuccessful)
         val page = Nana7miSearchCache.decode(resp.body(), ListIllust::class.java)!!
