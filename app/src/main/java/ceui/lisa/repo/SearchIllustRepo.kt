@@ -272,6 +272,12 @@ class SearchIllustRepo @JvmOverloads constructor(
                     "height_max" to heightMax,
                 ),
             )
+            val requestIdProtocolEnabled = remoteAppConfig.nana7miRequestIdEnabled
+            val firstRequestId = if (requestIdProtocolEnabled) {
+                Nana7miSearchCache.newRequestId()
+            } else {
+                null
+            }
             val borrowedFlow = Nana7miSearchSerial.run("illust_first") { lease ->
                 Timber.tag(NANA7MI_LOG_TAG).d(
                     "stage=flow event=start requester_uid=%d sort=%s keyword_length=%d",
@@ -281,7 +287,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                 )
                 lease.blockingObservable {
                     runBlocking {
-                        currentNana7miSession.fetchReady()
+                        currentNana7miSession.fetchReady(firstRequestId)
                     }
                 }.flatMap { result ->
                     val newNana7mi = currentNana7miSession.payload
@@ -329,6 +335,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                             page = Nana7miSearchTelemetry.Page.FIRST,
                             route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
                             borrowedUid = newNana7mi.uid,
+                            eventId = firstRequestId,
                         ) ?: source).onErrorResumeNext { error: Throwable ->
                             if (isBorrowedAccountUnavailable(error)) {
                                 fallbackAfterBorrowFailure("borrowed_refresh_failed")
@@ -347,13 +354,17 @@ class SearchIllustRepo @JvmOverloads constructor(
                 kind = cacheKind,
                 key = cacheKey,
                 page = Nana7miSearchCache.Page.FIRST,
+                requestId = firstRequestId,
                 maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
                 type = ListIllust::class.java,
                 stage = "official_search",
                 hit = { cached ->
                     // 命中也是一轮完整的流程：路由记成 cache_hit，request + flow 事件照常上报，
                     // 服务端那边已经按一次搜索计过费。
-                    currentNana7miSession.markCursorFromCache()
+                    currentNana7miSession.markCursorFromCache(
+                        firstRequestId,
+                        requestIdProtocolEnabled,
+                    )
                     telemetry?.cacheHit()
                     val tracked = telemetry?.track(
                         source = cached,
@@ -361,6 +372,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                         route = Nana7miSearchTelemetry.Route.CACHE_HIT,
                         borrowedUid = null,
                         reason = null,
+                        eventId = firstRequestId,
                     ) ?: cached
                     telemetry?.observeFirst(tracked) ?: tracked
                 },
@@ -423,10 +435,16 @@ class SearchIllustRepo @JvmOverloads constructor(
             // 的话手里还没有号，这时才借。
             val cacheKind = Nana7miSearchCache.Kind.ILLUST
             val cacheKey = Nana7miSearchCache.nextPageKey(cacheKind, nextPageUrl)
+            val nextRequestId = if (remoteAppConfig.nana7miRequestIdEnabled) {
+                Nana7miSearchCache.newRequestId()
+            } else {
+                null
+            }
             Nana7miSearchCache.firstOrElse(
                 kind = cacheKind,
                 key = cacheKey,
                 page = Nana7miSearchCache.Page.NEXT,
+                requestId = nextRequestId,
                 maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
                 type = ListIllust::class.java,
                 stage = "official_search_next",
@@ -438,6 +456,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                         route = Nana7miSearchTelemetry.Route.CACHE_HIT,
                         borrowedUid = null,
                         reason = null,
+                        eventId = nextRequestId,
                     ) ?: cached
                 },
             ) {
@@ -449,7 +468,13 @@ class SearchIllustRepo @JvmOverloads constructor(
                             "stage=official_search_next event=borrow_for_cached_cursor",
                         )
                         lease.blockingObservable {
-                            runBlocking { session.fetchReady() }
+                            val paidRequestId = session.cachedFirstRequestId
+                            if (session.cachedFirstRequestIdRequired && paidRequestId == null) {
+                                throw BorrowedAccountUnavailableException(
+                                    IllegalStateException("cached cursor lost its paid request id"),
+                                )
+                            }
+                            runBlocking { session.fetchReady(paidRequestId) }
                             session.payload?.takeIf { !it.expired }
                                 ?: throw BorrowedAccountUnavailableException(
                                     IllegalStateException("no borrowed account for cached cursor"),
@@ -479,6 +504,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                             page = Nana7miSearchTelemetry.Page.NEXT,
                             route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
                             borrowedUid = current.uid,
+                            eventId = nextRequestId,
                         ) ?: source
                     }.onErrorResumeNext { error: Throwable ->
                         if (isBorrowedAccountUnavailable(error)) {

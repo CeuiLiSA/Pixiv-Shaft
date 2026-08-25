@@ -387,23 +387,24 @@ class Nana7miSearchTelemetry internal constructor(
             route: Route = currentRoute,
             borrowedUid: Long? = currentBorrowedUid,
             reason: String? = if (route == currentRoute) currentReason else null,
+            eventId: String? = null,
         ): Observable<T> {
             return Observable.defer {
                 val completed = AtomicBoolean(false)
                 source
                     .doOnNext {
                         if (completed.compareAndSet(false, true)) {
-                            report(EventType.REQUEST, page, route, Outcome.SUCCESS, null, borrowedUid, reason, null, null)
+                            report(EventType.REQUEST, page, route, Outcome.SUCCESS, null, borrowedUid, reason, null, null, eventId)
                         }
                     }
                     .doOnError { error ->
                         if (completed.compareAndSet(false, true)) {
-                            report(EventType.REQUEST, page, route, Outcome.FAILURE, null, borrowedUid, reason, error, null)
+                            report(EventType.REQUEST, page, route, Outcome.FAILURE, null, borrowedUid, reason, error, null, eventId)
                         }
                     }
                     .doOnDispose {
                         if (completed.compareAndSet(false, true)) {
-                            report(EventType.REQUEST, page, route, Outcome.CANCELLED, null, borrowedUid, "disposed", null, null)
+                            report(EventType.REQUEST, page, route, Outcome.CANCELLED, null, borrowedUid, "disposed", null, null, eventId)
                         }
                     }
             }
@@ -463,6 +464,7 @@ class Nana7miSearchTelemetry internal constructor(
             reason: String?,
             error: Throwable?,
             durationMs: Long?,
+            requestEventId: String? = null,
         ) {
             try {
                 val http = error?.let { causeChain(it).filterIsInstance<HttpException>().firstOrNull() }
@@ -473,7 +475,7 @@ class Nana7miSearchTelemetry internal constructor(
                     error != null -> "unexpected_failure"
                     else -> null
                 }
-                val eventId = UUID.randomUUID().toString()
+                val eventId = requestEventId ?: UUID.randomUUID().toString()
                 val payload = Payload(
                     eventId = eventId,
                     flowId = flowId,

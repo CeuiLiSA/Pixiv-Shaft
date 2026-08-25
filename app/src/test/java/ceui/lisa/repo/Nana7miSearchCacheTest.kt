@@ -12,6 +12,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -149,7 +150,7 @@ class Nana7miSearchCacheTest {
     // ── wire：请求体字段名和服务端 src/search-cache.js 一致 ──
 
     @Test
-    fun `lookup posts uid, kind, key, maxAgeMs and page, and parses the page`() = runBlocking {
+    fun `lookup posts uid, kind, key, maxAgeMs, page and requestId, and parses the page`() = runBlocking {
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -157,8 +158,16 @@ class Nana7miSearchCacheTest {
                 .setBody("""{"hit":true,"page":{"illusts":[{"id":1}],"next_url":"n"},"storedAt":10,"ageMs":3,"serverTime":13}"""),
         )
         val key = "a".repeat(64)
+        val requestId = "823e4567-e89b-42d3-a456-426614174010"
         val resp = api.searchCacheLookupRaw(
-            Nana7miSearchCacheLookupReq(uid = 42L, kind = "illust", key = key, maxAgeMs = 60_000L, page = "first"),
+            Nana7miSearchCacheLookupReq(
+                uid = 42L,
+                kind = "illust",
+                key = key,
+                maxAgeMs = 60_000L,
+                page = "first",
+                requestId = requestId,
+            ),
         )
         val recorded = server.takeRequest()
         assertEquals("/v1/account/nana7mi/search-cache/lookup", recorded.path)
@@ -168,10 +177,35 @@ class Nana7miSearchCacheTest {
         assertEquals(key, sent["key"].asString)
         assertEquals(60_000L, sent["maxAgeMs"].asLong)
         assertEquals("first", sent["page"].asString)
+        assertEquals(requestId, sent["requestId"].asString)
 
         assertTrue(resp.isSuccessful)
         val page = Nana7miSearchCache.decode(resp.body(), ListIllust::class.java)!!
         assertEquals(1L, page.illusts[0].id)
         assertEquals("n", page.next_url)
+    }
+
+    @Test
+    fun `legacy capability omits requestId from cache lookup body`() = runBlocking {
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""{"hit":false}"""),
+        )
+
+        api.searchCacheLookupRaw(
+            Nana7miSearchCacheLookupReq(
+                uid = 42L,
+                kind = "illust",
+                key = "b".repeat(64),
+                maxAgeMs = 60_000L,
+                page = "first",
+                requestId = null,
+            ),
+        )
+
+        val sent = JsonParser.parseString(server.takeRequest().body.readUtf8()).asJsonObject
+        assertFalse(sent.has("requestId"))
     }
 }

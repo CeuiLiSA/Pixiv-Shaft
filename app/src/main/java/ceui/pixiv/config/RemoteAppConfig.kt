@@ -28,8 +28,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * 1. **调用方永远不等网络。** 值先从 MMKV 读上一次的结果（首帧就有确定答案），拉取在后台
  *    跑完再覆盖。读接口是纯内存字段。
- * 2. **只有服务端明确说话才改。** 超时、5xx、字段缺失都保留上一次已知值，绝不因为一次网络
- *    抖动就把用户手里已经在用的功能掀掉。
+ * 2. **业务开关只有服务端明确说话才改。** 超时、5xx、字段缺失都保留上一次已知值，绝不因为
+ *    一次网络抖动就把用户手里已经在用的功能掀掉。
+ *
+ * 请求体协议能力是例外：`nana7miRequestIdEnabled` 缺失本身就说明对面是老服务端，必须保持
+ * false，且不落本地缓存；否则新 APK 会给旧版严格的 `/nana` 多发一个字段并收到 400。
  *
  * 从没成功拉到过时（首次安装、或服务端一直不可达）默认是**关**：这些开关管的是灰度中的功能，
  * 没拿到许可就不开，而不是先开着等服务端来喊停。
@@ -58,6 +61,13 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
 
     @Volatile
     private var nana7miSearch = DEFAULT_NANA7MI_SEARCH
+
+    /**
+     * 请求幂等协议不是功能开关，也不持久化。只有本进程从当前服务端明确看到 true 才启用；
+     * 老服务端缺字段时立即保持/恢复 false，确保请求体仍是它接受的旧契约。
+     */
+    @Volatile
+    private var nana7miRequestId = false
 
     /**
      * 这个 uid 的订阅档位，null = 还不知道。
@@ -126,6 +136,13 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
             if (BuildConfig.IS_LITE) return false
             refreshIfStale()
             return nana7miSearch
+        }
+
+    val nana7miRequestIdEnabled: Boolean
+        get() {
+            if (BuildConfig.IS_LITE) return false
+            refreshIfStale()
+            return nana7miRequestId
         }
 
     /**
@@ -235,6 +252,10 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
     private fun apply(uid: Long, response: AppConfigResponse) {
         fetchedForUid = uid
         failedForUid = null
+        // Capability negotiation is deliberately fail-closed. Unlike the
+        // search kill switch below, an absent field is a real answer: this is
+        // an older server, whose strict /nana body rejects requestId.
+        nana7miRequestId = !BuildConfig.IS_LITE && response.nana7miRequestIdEnabled == true
         applyPlan(uid, response.plan)
         // 推送和档位一样只给签了名的登录用户；Lite 连 plan 都拿不到，推送也一并屏蔽。
         val push = if (BuildConfig.IS_LITE || uid <= 0L) null else response.push
@@ -242,13 +263,22 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         if (push != null) Timber.tag(TAG).i("in-app push arrived uid=%d id=%s", uid, push.id)
         val enabled = if (BuildConfig.IS_LITE) false else response.nana7miSearchEnabled
         if (enabled == null) {
-            Timber.tag(TAG).d("server has no opinion on nana7mi search, keeping %s", nana7miSearch)
+            Timber.tag(TAG).d(
+                "server has no opinion on nana7mi search, keeping %s request_id=%s",
+                nana7miSearch,
+                nana7miRequestId,
+            )
             return
         }
         nana7miSearch = enabled
         valueForUid = uid
         runCatching { store.putBoolean(cacheKey(uid), enabled) }
-        Timber.tag(TAG).i("config applied uid=%d nana7mi_search_enabled=%s", uid, enabled)
+        Timber.tag(TAG).i(
+            "config applied uid=%d nana7mi_search_enabled=%s request_id=%s",
+            uid,
+            enabled,
+            nana7miRequestId,
+        )
     }
 
     /**

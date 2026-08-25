@@ -9,6 +9,7 @@ import ceui.pixiv.actions.AccountOnlineReportOutbox
 import ceui.pixiv.login.PixivOAuthUser
 import io.reactivex.Observable
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -25,6 +26,29 @@ class Nana7miAccountSessionTest {
 
         assertEquals("disabled_for_lite", session.resultLabel(Nana7miResult.DisabledForLite))
         assertEquals("no_account", session.resultLabel(Nana7miResult.NoAccount))
+    }
+
+    @Test
+    fun `cached cursor keeps the paid first-page request id for account handoff`() {
+        val session = Nana7miAccountSession(testOutbox())
+        val requestId = "823e4567-e89b-42d3-a456-426614174010"
+
+        session.markCursorFromCache(requestId, requestIdProtocolEnabled = true)
+
+        assertTrue(session.cursorFromCache)
+        assertEquals(requestId, session.cachedFirstRequestId)
+        assertTrue(session.cachedFirstRequestIdRequired)
+    }
+
+    @Test
+    fun `legacy cached cursor intentionally hands off without a request id`() {
+        val session = Nana7miAccountSession(testOutbox())
+
+        session.markCursorFromCache(null, requestIdProtocolEnabled = false)
+
+        assertTrue(session.cursorFromCache)
+        assertNull(session.cachedFirstRequestId)
+        assertFalse(session.cachedFirstRequestIdRequired)
     }
 
     @Test

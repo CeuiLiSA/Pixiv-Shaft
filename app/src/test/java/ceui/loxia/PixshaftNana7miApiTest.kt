@@ -35,7 +35,7 @@ class PixshaftNana7miApiTest {
     }
 
     @Test
-    fun `nana7mi call posts caller uid and parses one account`() = runBlocking {
+    fun `nana7mi call posts caller uid and idempotency id and parses one account`() = runBlocking {
         server.enqueue(
             MockResponse()
                 .setResponseCode(200)
@@ -60,12 +60,16 @@ class PixshaftNana7miApiTest {
                 ),
         )
 
-        val result = api.fetchNana7mi(31660292L)
+        val requestId = "823e4567-e89b-42d3-a456-426614174010"
+        val result = api.fetchNana7mi(31660292L, requestId)
         val request = server.takeRequest()
 
         assertEquals("/v1/account/nana7mi", request.path)
         assertEquals("POST", request.method)
-        assertEquals("{\"uid\":31660292}", request.body.readUtf8())
+        assertEquals(
+            "{\"uid\":31660292,\"requestId\":\"$requestId\"}",
+            request.body.readUtf8(),
+        )
         assertTrue(result is Nana7miResult.Success)
         val response = (result as Nana7miResult.Success).value
         assertEquals(102L, response.uid)
@@ -79,6 +83,7 @@ class PixshaftNana7miApiTest {
     fun `nana7mi maps no account and rate limit without throwing`() = runBlocking {
         server.enqueue(MockResponse().setResponseCode(404).setBody("{\"error\":\"no_account\"}"))
         assertTrue(api.fetchNana7mi(1L) is Nana7miResult.NoAccount)
+        assertEquals("{\"uid\":1}", server.takeRequest().body.readUtf8())
 
         server.enqueue(
             MockResponse()

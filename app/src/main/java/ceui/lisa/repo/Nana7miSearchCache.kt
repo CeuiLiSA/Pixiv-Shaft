@@ -18,6 +18,7 @@ import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.net.URLEncoder
 import java.security.MessageDigest
+import java.util.UUID
 
 /**
  * 借号搜索一级缓存的客户端半边（server: pixshaft-api `src/search-cache.js`）。
@@ -85,13 +86,14 @@ internal object Nana7miSearchCache {
         kind: Kind,
         key: String,
         page: Page,
+        requestId: String?,
         maxAgeMs: Long,
         type: Class<T>,
         stage: String,
         hit: (Observable<T>) -> Observable<T> = { it },
         miss: () -> Observable<T>,
     ): Observable<T> = Observable.defer {
-        val cached = lookup(kind, key, page, maxAgeMs, type, stage)
+        val cached = lookup(kind, key, page, requestId, maxAgeMs, type, stage)
         if (cached != null) hit(Observable.just(cached)) else miss()
     }
 
@@ -101,12 +103,27 @@ internal object Nana7miSearchCache {
      * 命中在服务端已经按 [page] 计了费；额度满了服务端回 429（和借号同一个形状），这里当未命中
      * 处理——接下来的借号会被同样拒绝、走既有的额度提示 + 预览降级。
      */
-    fun <T : Any> lookup(kind: Kind, key: String, page: Page, maxAgeMs: Long, type: Class<T>, stage: String): T? {
+    fun <T : Any> lookup(
+        kind: Kind,
+        key: String,
+        page: Page,
+        requestId: String?,
+        maxAgeMs: Long,
+        type: Class<T>,
+        stage: String,
+    ): T? {
         val uid = requesterUidOrNull() ?: return null
         val resp = try {
             runBlocking {
                 Client.pixshaft.searchCacheLookupRaw(
-                    Nana7miSearchCacheLookupReq(uid = uid, kind = kind.wire, key = key, maxAgeMs = maxAgeMs, page = page.wire),
+                    Nana7miSearchCacheLookupReq(
+                        uid = uid,
+                        kind = kind.wire,
+                        key = key,
+                        maxAgeMs = maxAgeMs,
+                        page = page.wire,
+                        requestId = requestId,
+                    ),
                 )
             }
         } catch (e: CancellationException) {
@@ -190,6 +207,9 @@ internal object Nana7miSearchCache {
         if (BuildConfig.IS_LITE) return null
         return SessionManager.loggedInUid.takeIf { it > 0L }
     }
+
+    /** 一次页面操作一个 ID；lookup、可能的 fallback 和 request 遥测必须复用它。 */
+    fun newRequestId(): String = UUID.randomUUID().toString()
 
     private fun encode(value: String): String = URLEncoder.encode(value, "UTF-8")
 

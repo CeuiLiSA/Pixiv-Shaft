@@ -66,15 +66,30 @@ internal class Nana7miAccountSession(
     var cursorFromCache: Boolean = false
         private set
 
-    fun markCursorFromCache() {
+    /** 已付费首屏的幂等 ID；缓存游标翻页未命中时用它换账号，不再开启第二次搜索。 */
+    @Volatile
+    var cachedFirstRequestId: String? = null
+        private set
+
+    /** true 表示该缓存首屏已按新协议计费，后续账号交接绝不能丢掉它的 ID。 */
+    @Volatile
+    var cachedFirstRequestIdRequired: Boolean = false
+        private set
+
+    fun markCursorFromCache(requestId: String?, requestIdProtocolEnabled: Boolean) {
+        require(!requestIdProtocolEnabled || requestId != null) {
+            "request-id protocol enabled without a paid first-page id"
+        }
         cursorFromCache = true
+        cachedFirstRequestId = requestId
+        cachedFirstRequestIdRequired = requestIdProtocolEnabled
     }
 
     /**
      * Fetch one account. The server classifies it at 55 minutes; an expired account is refreshed
      * on the client and re-reported before it is returned to the search request.
      */
-    suspend fun fetchReady(): Nana7miResult {
+    suspend fun fetchReady(requestId: String? = null): Nana7miResult {
         // Defense in depth: repository routing already disables borrowing in Lite, but keeping the
         // network boundary closed prevents a future caller from accidentally bypassing that gate.
         if (BuildConfig.IS_LITE) return Nana7miResult.DisabledForLite
@@ -83,7 +98,7 @@ internal class Nana7miAccountSession(
             "stage=fetch event=request requester_uid=%d",
             requesterUid,
         )
-        val fetched = Client.pixshaft.fetchNana7mi(requesterUid)
+        val fetched = Client.pixshaft.fetchNana7mi(requesterUid, requestId)
         logFetchResult(requesterUid, fetched)
         if (fetched is Nana7miResult.RateLimited) {
             // 配额拒绝对用户是可见事实（结果会静默降级成热度预览），限流拒绝不是。

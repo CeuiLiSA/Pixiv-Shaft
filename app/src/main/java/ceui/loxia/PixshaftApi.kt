@@ -242,12 +242,17 @@ data class PrimeTagIllustPage(
 )
 
 /**
- * 服务端基础配置。每个开关都是可空的：字段缺失（老服务端 / 新客户端）表示「服务端没意见」，
- * 客户端保留上一次已知值，绝不能把 null 当成 false 去关功能。
+ * 服务端基础配置。业务开关可空：字段缺失表示「服务端没意见」，客户端保留上一次已知值。
+ * 协议能力是例外：缺失就代表老服务端，必须按 false 处理，具体见 [nana7miRequestIdEnabled]。
  */
 data class AppConfigResponse(
     val uid: Long? = null,
     val nana7miSearchEnabled: Boolean? = null,
+    /**
+     * 服务端是否接受 Nana7mi 请求体里的 `requestId`。缺失表示老服务端，客户端必须省略该字段，
+     * 因为旧版 `/v1/account/nana7mi` 对 `{ uid }` 之外的字段会直接 400。
+     */
+    val nana7miRequestIdEnabled: Boolean? = null,
     /**
      * 这个 uid 的订阅档位。**只有带签名的请求才拿得到**（见 [Client] 里的签名拦截器）——
      * 这条路由本身是公开的，档位却是「谁在付钱、付到哪天」，不能让任何人拿 uid 就查。
@@ -414,7 +419,11 @@ data class BindOnlineAck(
     val uid: Long? = null,
 )
 
-data class Nana7miRequest(val uid: Long)
+data class Nana7miRequest(
+    val uid: Long,
+    /** 与缓存 lookup / 请求遥测共用；重试或缓存回退不会再开一笔搜索费用。 */
+    val requestId: String? = null,
+)
 
 /**
  * @param months 只是下单页上月数选择器的预填值，不是承诺 —— 买家在爱发电那边还能改，
@@ -593,6 +602,8 @@ data class Nana7miSearchCacheLookupReq(
     val key: String,
     val maxAgeMs: Long,
     val page: String,
+    /** 本页 lookup、可能发生的官方回退、以及 request 遥测共用的幂等 ID。 */
+    val requestId: String? = null,
 )
 
 /**
@@ -836,10 +847,10 @@ private fun parseRateLimited(response: Response<Nana7miResponse>): Nana7miResult
     )
 }
 
-suspend fun PixshaftApi.fetchNana7mi(uid: Long): Nana7miResult {
+suspend fun PixshaftApi.fetchNana7mi(uid: Long, requestId: String? = null): Nana7miResult {
     if (uid <= 0L) return Nana7miResult.InvalidRequest
     return try {
-        val response = fetchNana7miRaw(Nana7miRequest(uid))
+        val response = fetchNana7miRaw(Nana7miRequest(uid, requestId))
         when (response.code()) {
             404 -> Nana7miResult.NoAccount
             429 -> parseRateLimited(response)

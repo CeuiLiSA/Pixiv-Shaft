@@ -50,7 +50,7 @@ class PixshaftAppConfigApiTest {
 
     @Test
     fun `config call carries the caller uid and parses the switch`() = runBlocking {
-        enqueue("""{"uid":123,"nana7miSearchEnabled":false,"serverTime":1786939077135}""")
+        enqueue("""{"uid":123,"nana7miSearchEnabled":false,"nana7miRequestIdEnabled":true,"serverTime":1786939077135}""")
 
         val config = api.appConfig(123L, "github")
 
@@ -60,6 +60,7 @@ class PixshaftAppConfigApiTest {
         assertEquals("GET", request.method)
         assertEquals(123L, config.uid)
         assertEquals(false, config.nana7miSearchEnabled)
+        assertEquals(true, config.nana7miRequestIdEnabled)
         assertEquals(1786939077135L, config.serverTime)
     }
 
@@ -79,6 +80,7 @@ class PixshaftAppConfigApiTest {
         val config = api.appConfig(123L, "github")
 
         assertNull(config.nana7miSearchEnabled)
+        assertNull(config.nana7miRequestIdEnabled)
     }
 
     @Test
