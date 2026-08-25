@@ -17,7 +17,7 @@
         app:layout_constraintBottom_toTopOf="@id/composer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/app_bar_layout">
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"

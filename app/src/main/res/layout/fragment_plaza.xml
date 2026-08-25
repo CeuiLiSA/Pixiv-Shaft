@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 广场 feed。Toolbar 沿用 chat_layout_toolbar 的视觉一致性
-     (id `app_bar_layout` + `tv_title` 让 setupToolbar() 继续兼容)，
+     (同一套 toolbar_layout 形态；id `toolbar` + `toolbar_title` 让 setupToolbar() 继续兼容)，
      但加了右侧菜单 (+ 发帖)，所以不直接 include。 -->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"

@@ -129,7 +129,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
 
     /** Toolbar 主标题 view 引用,避开每次 typing emit 都 findViewById。 */
     private val titleView: TextView?
-        get() = view?.findViewById(R.id.tv_title)
+        get() = view?.findViewById(R.id.toolbar_title)
 
     /** Send button gating (doc §12): WS Connected + has text + not rate-limited. */
     private var wsConnected = false
@@ -249,7 +249,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             // host a peer avatar (unlike the previous Material3 design);
             // the per-bubble avatar tap (wired by the adapter) is still
             // the primary affordance for opening the peer profile.
-            view.findViewById<View>(R.id.tv_title)?.setOnClickListener {
+            view.findViewById<View>(R.id.toolbar_title)?.setOnClickListener {
                 openUserProfile(peerUid)
             }
             fetchPeerProfile(peerUid, chatAdapter)

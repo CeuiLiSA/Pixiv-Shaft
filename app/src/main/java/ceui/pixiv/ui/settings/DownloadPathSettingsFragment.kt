@@ -7,12 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.HorizontalScrollView
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
@@ -75,32 +71,11 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Shared layout_toolbar is designed for dark photo backgrounds — the
-        // title is always_white and the back arrow has a light tint. On the
-        // V3 off-white background we need to recolor both.
-        val toolbar = binding.toolbarLayout
-        toolbar.naviTitle.apply {
-            text = getString(R.string.download_path_title)
-            setTextColor(resources.getColor(R.color.v3_text_1, null))
-            setTextAppearance(R.style.textMontserratBold)
-            textSize = 18f
-        }
-        (toolbar.naviBack as ImageView).setColorFilter(resources.getColor(R.color.v3_text_1, null))
-        toolbar.naviBack.setOnClickListener {
+        // 全 app 统一的 toolbar_layout(同设置页 / 榜单页):品牌色 + 白字,标题 / 返回在这里接线。
+        binding.toolbarLayout.toolbarTitle.setText(R.string.download_path_title)
+        binding.toolbarLayout.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        toolbar.naviMore.visibility = View.GONE
-
-        // Apply status-bar inset as top padding on the toolbar so content does
-        // not draw under the status bar. Consume the top inset here and pass
-        // the remaining insets (left/right/bottom) through so child views see
-        // unchanged horizontals.
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar.root) { v, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(top = bars.top + dp(10))
-            insets
-        }
-        ViewCompat.requestApplyInsets(toolbar.root)
 
         render()
     }

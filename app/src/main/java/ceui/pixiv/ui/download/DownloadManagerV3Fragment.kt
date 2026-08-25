@@ -1,20 +1,23 @@
 package ceui.pixiv.ui.download
 
 import android.app.Activity
-import android.content.Intent
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuItemCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -25,13 +28,15 @@ import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.core.Manager
 import ceui.lisa.utils.Common
+import ceui.loxia.appServices
+import ceui.pixiv.ui.bulk.QueueDownloadManager
+import ceui.pixiv.ui.common.tintMenuIconsWhite
+import com.blankj.utilcode.util.BarUtils
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import ceui.loxia.appServices
-import ceui.pixiv.ui.bulk.QueueDownloadManager
 
 /**
  * V3 设计哲学的下载管理页：单页面 3 tab 容器。
@@ -120,22 +125,21 @@ class DownloadManagerV3Fragment : Fragment() {
         //     一半行宽,「正在 N · 等待 M · 暂停 K · 失败 L · 1.2 MB/s」不再换行。
         //     pause/resume 是 Manager + QueueDownloadManager 全局 singleton 动作,
         //     host 直接调,不绕 SharedVM (Active fragment 不需要参与)。
+        // 统一 toolbar 的 inset 打法(同 setUpToolbar(FragmentToolbarFeedBinding)):toolbar 自己
+        // 顶到状态栏下面,底部导航 inset 作根布局 paddingBottom(原 fitsSystemWindows 的效果)。
+        toolbar.updatePadding(top = BarUtils.getStatusBarHeight())
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
         toolbar.inflateMenu(R.menu.menu_download_manager)
+        toolbar.tintMenuIconsWhite()
         val exportItem = toolbar.menu.findItem(R.id.action_export)
         val pauseToggleItem = toolbar.menu.findItem(R.id.action_pause_toggle)
         val searchItem = toolbar.menu.findItem(R.id.action_search)
         val importItem = toolbar.menu.findItem(R.id.action_import)
         setupDoneSearch(searchItem)
-        // 必须清 iconTintList — Toolbar 默认会拿 colorControlNormal 强行覆盖
-        // menu icon 的颜色,把 vector 自带的 fillColor=v3_text_1 压成淡色
-        // (浅色主题下跟白底融合看不见)。同 BulkSelectV3.refreshSelectToggleIcon
-        // 末尾对 select_toggle 做的处理。setIcon() 后 iconTintList 仍是 null
-        // (MenuItem property 跟 drawable 解耦),不需要反复重设。
-        // 走 MenuItemCompat —— MenuItem.setIconTintList 是 API 26 才进 framework
-        // 的接口方法,直接 item.iconTintList= 在 API 24/25 会 NoSuchMethodError;
-        // compat 走 SupportMenuItem (AppCompat Toolbar 的 menu item 都是) 全版本安全。
-        exportItem?.let { MenuItemCompat.setIconTintList(it, null) }
-        pauseToggleItem?.let { MenuItemCompat.setIconTintList(it, null) }
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_export -> {

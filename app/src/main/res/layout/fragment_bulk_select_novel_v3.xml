@@ -13,7 +13,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/v3_bg"
-    android:fitsSystemWindows="true"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -22,16 +21,34 @@
         android:background="@color/v3_bg"
         app:elevation="0dp">
 
+        <!-- 全 app 统一 toolbar(同 toolbar_layout.xml):品牌色 + 白字居中标题。
+             状态栏 inset 由 Fragment 在代码里 padding 到 toolbar 顶部(BaseActivity 是
+             edge-to-edge,fitsSystemWindows 会连底部导航 inset 一起吃掉)。 -->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/v3_bg"
-            app:contentInsetStartWithNavigation="0dp"
-            app:navigationIcon="?attr/homeAsUpIndicator"
-            app:title="@string/bulk_select_novel_title"
-            app:titleTextAppearance="@style/TextAppearance.AppCompat.Title"
-            app:titleTextColor="@color/v3_text_1" />
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:elevation="@dimen/six_dp"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:title=" "
+            app:titleTextColor="@android:color/white">
+
+            <TextView
+                android:id="@+id/toolbar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="@string/bulk_select_novel_title"
+                android:textColor="@color/always_white"
+                android:textSize="18sp" />
+
+        </androidx.appcompat.widget.Toolbar>
 
         <TextView
             android:id="@+id/hint"

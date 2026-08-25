@@ -8,7 +8,7 @@
 
     <include
         android:id="@+id/toolbar_layout"
-        layout="@layout/layout_toolbar" />
+        layout="@layout/toolbar_layout" />
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll_view"

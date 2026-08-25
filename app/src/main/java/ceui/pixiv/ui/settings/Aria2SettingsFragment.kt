@@ -2,10 +2,6 @@ package ceui.pixiv.ui.settings
 
 import android.os.Bundle
 import android.view.View
-import android.widget.ImageView
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
@@ -28,7 +24,7 @@ import kotlinx.coroutines.withContext
  * 转发给远端 aria2（如跑在 NAS 上的实例），不再下载到本机。
  *
  * 视觉风格对齐 [DownloadPathSettingsFragment]（V3 设置子页：bg_v3 卡片 +
- * pill 按钮 + layout_toolbar 重着色）。
+ * pill 按钮 + toolbar_layout 统一 toolbar）。
  */
 class Aria2SettingsFragment : Fragment(R.layout.fragment_aria2_settings) {
 
@@ -45,27 +41,11 @@ class Aria2SettingsFragment : Fragment(R.layout.fragment_aria2_settings) {
     }
 
     private fun setUpToolbar() {
-        // 共用的 layout_toolbar 是给深色图片背景设计的（白字 + 浅色返回箭头），
-        // V3 浅色背景上需要重着色 —— 与 DownloadPathSettingsFragment 同款处理。
-        val toolbar = binding.toolbarLayout
-        toolbar.naviTitle.apply {
-            text = getString(R.string.aria2_settings_title)
-            setTextColor(resources.getColor(R.color.v3_text_1, null))
-            setTextAppearance(R.style.textMontserratBold)
-            textSize = 18f
-        }
-        (toolbar.naviBack as ImageView).setColorFilter(resources.getColor(R.color.v3_text_1, null))
-        toolbar.naviBack.setOnClickListener {
+        // 全 app 统一的 toolbar_layout(同设置页 / 榜单页):品牌色 + 白字,标题 / 返回在这里接线。
+        binding.toolbarLayout.toolbarTitle.setText(R.string.aria2_settings_title)
+        binding.toolbarLayout.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        toolbar.naviMore.visibility = View.GONE
-
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar.root) { v, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(top = bars.top + dp(10))
-            insets
-        }
-        ViewCompat.requestApplyInsets(toolbar.root)
     }
 
     private fun loadSettings() {
@@ -130,6 +110,4 @@ class Aria2SettingsFragment : Fragment(R.layout.fragment_aria2_settings) {
         }
     }
 
-    private fun dp(v: Int): Int =
-        (v * resources.displayMetrics.density).toInt()
 }

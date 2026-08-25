@@ -3,9 +3,9 @@ package ceui.pixiv.chat.ui
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -20,11 +20,11 @@ import ceui.pixiv.chat.api.ChatConversationsRepository
 import ceui.pixiv.chat.api.ChatFrame
 import ceui.pixiv.chat.api.ChatFrameDecoder
 import ceui.pixiv.chat.api.ShaftChatGateway
+import ceui.pixiv.chat.base.setupToolbar
 import ceui.pixiv.chat.base.viewBinding
 import ceui.pixiv.chat.base.viewModels
 import ceui.pixiv.chat.vm.ChatRoomListViewModel
 import ceui.pixiv.websocket.IncomingMessage
-import com.blankj.utilcode.util.BarUtils
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
  * [ChatRoomListViewModel]. This fragment is purely the binding layer:
  * inflate, observe, render, dispatch user events.
  *
- * V3 chrome: a large-title header on `v3_bg` (back + 聊天室 + conversation
+ * Chrome: the app-wide brand toolbar (chat_layout_toolbar: 聊天室 + conversation
  * count) instead of the classic brand toolbar, and a divider-less list whose
  * one public room is a theme-gradient hero card (see [ChatRoomListAdapter]).
  */
@@ -52,15 +52,10 @@ class ChatRoomListFragment : Fragment(R.layout.chat_fragment_room_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Header chrome. BaseActivity is edge-to-edge, so the header owns its
-        // own status-bar inset (the `head` spacer) and the list owns its own
-        // navigation-bar inset (bottom padding). fitsSystemWindows can't be
-        // used here — it would inhale both insets at once (see NavExt notes).
-        binding.head.updateLayoutParams { height = BarUtils.getStatusBarHeight() }
-        binding.tvTitle.text = getString(R.string.chat_drawer_entry)
-        binding.btnBack.setOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
-        }
+        // 统一 toolbar:标题 + 返回 + 品牌色 + 状态栏 inset 全由 setupToolbar 接线;
+        // 列表自己吃底部导航 inset(BaseActivity 是 edge-to-edge)。
+        setupToolbar(title = getString(R.string.chat_drawer_entry), showBack = true)
+        val subtitle = view.findViewById<TextView>(R.id.toolbar_subtitle)
 
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
@@ -82,10 +77,10 @@ class ChatRoomListFragment : Fragment(R.layout.chat_fragment_room_list) {
                 viewModel.state.collect { s ->
                     adapter.submitList(s.items.map(::localizeTitle))
                     if (s.items.isEmpty()) {
-                        binding.tvSubtitle.visibility = View.GONE
+                        subtitle.visibility = View.GONE
                     } else {
-                        binding.tvSubtitle.visibility = View.VISIBLE
-                        binding.tvSubtitle.text =
+                        subtitle.visibility = View.VISIBLE
+                        subtitle.text =
                             getString(R.string.chat_room_count, s.items.size)
                     }
                 }

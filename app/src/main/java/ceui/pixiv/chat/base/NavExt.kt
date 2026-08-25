@@ -10,7 +10,7 @@ import ceui.lisa.activities.Shaft
 import com.blankj.utilcode.util.BarUtils
 
 /**
- * Wires the classic Shaft toolbar (`chat_layout_toolbar.xml`).
+ * Wires the chat toolbar (`chat_layout_toolbar.xml` — same shape as the app-wide `toolbar_layout.xml`).
  *
  * Three things this helper owns at runtime so the static XML doesn't have to:
  *
@@ -35,9 +35,9 @@ import com.blankj.utilcode.util.BarUtils
  */
 fun Fragment.setupToolbar(title: String, showBack: Boolean = false) {
     val v = view ?: return
-    v.findViewById<TextView>(R.id.tv_title)?.text = title
+    v.findViewById<TextView>(R.id.toolbar_title)?.text = title
 
-    val toolbar = v.findViewById<Toolbar>(R.id.app_bar_layout) ?: return
+    val toolbar = v.findViewById<Toolbar>(R.id.toolbar) ?: return
     toolbar.setBackgroundColor(Color.parseColor(Shaft.getThemeColor()))
     toolbar.updatePadding(top = BarUtils.getStatusBarHeight())
 

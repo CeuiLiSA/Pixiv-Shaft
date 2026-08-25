@@ -1,13 +1,11 @@
 package ceui.pixiv.ui.common
 
 import android.content.Intent
-import android.graphics.drawable.ColorDrawable
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
-import androidx.core.view.updatePaddingRelative
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.GridLayoutManager
@@ -16,17 +14,13 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
-import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.helper.StaggeredManager
-import ceui.lisa.utils.Common
 import ceui.lisa.view.LinearItemDecoration
 import ceui.lisa.view.LinearItemDecorationNoLRTB
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Novel
 import ceui.loxia.launchSuspend
-import ceui.pixiv.utils.animateWiggle
 import ceui.pixiv.utils.ppppx
-import ceui.pixiv.utils.setOnClick
 import com.blankj.utilcode.util.BarUtils
 import timber.log.Timber
 
@@ -44,42 +38,6 @@ interface ViewPagerFragment
 
 interface HomeTabContainer : ViewPagerFragment {
     fun bottomExtraSpacing(): Int = 100.ppppx
-}
-
-fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
-    val parentFrag = parentFragment
-    if (parentFrag is ViewPagerFragment) {
-        binding.toolbarLayout.isVisible = false
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            if (parentFrag is HomeTabContainer) {
-                content.updatePadding(0, 0, 0, insets.bottom + parentFrag.bottomExtraSpacing())
-            } else {
-                content.updatePadding(0, 0, 0, insets.bottom)
-            }
-            WindowInsetsCompat.CONSUMED
-        }
-    } else {
-        binding.toolbarLayout.isVisible = true
-        binding.toolbarLayout.background = ColorDrawable(
-            Common.resolveThemeAttribute(
-                requireContext(),
-                androidx.appcompat.R.attr.colorPrimary
-            )
-        )
-        binding.naviBack.setOnClick {
-            requireActivity().finish()
-        }
-        binding.naviMore.setOnClick {
-            requireActivity().findCurrentFragmentOrNull()?.view?.animateWiggle()
-        }
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            binding.toolbarLayout.updatePaddingRelative(top = insets.top)
-            content.updatePadding(0, 0, 0, insets.bottom)
-            WindowInsetsCompat.CONSUMED
-        }
-    }
 }
 
 /**

@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 会话列表(聊天室主页) —— V3 重设计。
-     · v3_bg 背景，去掉旧的 M3 theme overlay + 品牌色 toolbar；改成 V3 大标题 header
-       (返回键 + 大标题「聊天室」+ 会话数副标题)，与「发现 / 推荐」tab 的 v3 header 同族。
+     · v3_bg 背景 + 全 app 统一的品牌色 toolbar(chat_layout_toolbar,标题「聊天室」+ 会话数副标题)。
      · 内容为纯 RecyclerView(hero 公屏卡 + 私信行两种 viewType)，不再套 StateLayout —
        该 fragment 从不 setState，StateLayout 只会引入对 M3 主题的依赖。
-     · head 占位在代码里撑成状态栏高度；recycler 底 padding 走 window inset(BaseActivity
-       是 edge-to-edge)。 -->
+     · recycler 底 padding 走 window inset(BaseActivity 是 edge-to-edge)。 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -15,65 +13,10 @@
     android:background="@color/v3_bg"
     android:orientation="vertical">
 
-    <!-- 状态栏占位：ChatRoomListFragment 里撑到 BarUtils.getStatusBarHeight() -->
-    <View
-        android:id="@+id/head"
-        android:layout_width="match_parent"
-        android:layout_height="1dp" />
-
-    <!-- 顶栏：仅返回键(borderless 圆形 ripple) -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:paddingStart="8dp"
-        android:paddingEnd="16dp">
-
-        <ImageButton
-            android:id="@+id/btn_back"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_gravity="center_vertical|start"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/chat_action_back"
-            android:scaleType="centerInside"
-            android:src="@drawable/baseline_arrow_back_24"
-            app:tint="@color/v3_text_1" />
-
-    </FrameLayout>
-
-    <!-- 大标题块 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="8dp">
-
-        <TextView
-            android:id="@+id/tv_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:includeFontPadding="false"
-            android:letterSpacing="-0.03"
-            android:textColor="@color/v3_text_1"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            tools:text="聊天室" />
-
-        <TextView
-            android:id="@+id/tv_subtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:includeFontPadding="false"
-            android:textColor="@color/v3_text_3"
-            android:textSize="13sp"
-            android:visibility="gone"
-            tools:text="3 个对话"
-            tools:visibility="visible" />
-
-    </LinearLayout>
+    <!-- 全 app 统一 toolbar(同 toolbar_layout.xml 形态,聊天室版多一行副标题 = 会话数)。
+         品牌色 + 状态栏 inset 由 NavExt.setupToolbar 在运行时设。 -->
+    <!-- include 不带 id:带了会盖掉根 Toolbar 的 @id/toolbar,setupToolbar 就找不到它了。 -->
+    <include layout="@layout/chat_layout_toolbar" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"

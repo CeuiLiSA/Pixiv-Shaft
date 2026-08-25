@@ -9,7 +9,9 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
-import androidx.core.view.MenuItemCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -17,17 +19,19 @@ import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
-import ceui.loxia.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
+import ceui.loxia.Illust
 import ceui.pixiv.actions.PixivActions
+import ceui.pixiv.ui.common.tintMenuIconsWhite
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.download.DownloadExportLinks
 import ceui.pixiv.ui.download.originalUrlsOf
-import com.bumptech.glide.Glide
-import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
+import com.blankj.utilcode.util.BarUtils
+import com.bumptech.glide.Glide
+import com.hjq.toast.Toaster
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -88,13 +92,16 @@ class BulkSelectV3Fragment : Fragment() {
         // 单按钮 master-checkbox 模式：icon 跟选中态切（refreshSelectToggleIcon），
         // 点击行为也跟 icon 一致 —— 没全选 → 全选；已全选 → 取消全选。
         // 反选已废，使用频率低 + 单按钮表达不出第三种状态。
+        // 统一 toolbar 的 inset 打法(同 setUpToolbar(FragmentToolbarFeedBinding)):toolbar 自己
+        // 顶到状态栏下面,底部导航 inset 作根布局 paddingBottom(原 fitsSystemWindows 的效果)。
+        toolbar.updatePadding(top = BarUtils.getStatusBarHeight())
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
         toolbar.inflateMenu(R.menu.menu_bulk_select_v3)
-        // 同 refreshSelectToggleIcon 末尾对 select_toggle 的处理 — Toolbar 默认
-        // 会拿 colorControlNormal 强行覆盖 menu icon 的 tint，把 ic_v3_export_24
-        // 自带的 android:tint=v3_text_1 压成淡色（浅色主题下跟白底融合看不见）。
-        // MenuItem.setIconTintList 是 API 26 才进 framework 的接口方法,直接赋值
-        // 在 API 24/25 会 NoSuchMethodError;走 MenuItemCompat (SupportMenuItem) 全版本安全。
-        toolbar.menu.findItem(R.id.action_export)?.let { MenuItemCompat.setIconTintList(it, null) }
+        toolbar.tintMenuIconsWhite()
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
                 R.id.action_select_toggle -> {
@@ -391,11 +398,7 @@ class BulkSelectV3Fragment : Fragment() {
         val allSelected = selectableCount > 0 && selectedCount == selectableCount
         item.setIcon(if (allSelected) R.drawable.ic_deselect_24 else R.drawable.ic_select_all_24)
         item.setTitle(if (allSelected) R.string.bulk_select_clear_all else R.string.bulk_select_select_all)
-        // 防止 Toolbar / theme overlay 给菜单 icon 套统一 tint，把
-        // ic_deselect_24 内部写死的 v3_blue 压成灰色。每次 setIcon 后清掉
-        // iconTintList，让 drawable 自己的 fillColor 说了算。MenuItemCompat:
-        // 直接 item.iconTintList= 在 API 24/25 会 NoSuchMethodError。
-        MenuItemCompat.setIconTintList(item, null)
+        // setIcon 后 MenuItem 的 iconTintList 不变,统一白色 tint 不需要重设。
     }
 }
 

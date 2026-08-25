@@ -4,11 +4,7 @@ import android.os.Bundle
 import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
 import android.view.View
-import android.widget.ImageView
 import androidx.activity.OnBackPressedCallback
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -48,7 +44,7 @@ private data class AiTranslateSnapshot(
  * server（Sakura 模型）等本地部署（本地服务 key 可留空）。
  *
  * 视觉风格与保存/测试交互对齐 [Aria2SettingsFragment]（bg_v3 卡片 + pill 按钮 +
- * layout_toolbar 重着色）。
+ * toolbar_layout 统一 toolbar）。
  */
 class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_settings) {
 
@@ -145,27 +141,11 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
     }
 
     private fun setUpToolbar() {
-        // 共用的 layout_toolbar 是给深色图片背景设计的（白字 + 浅色返回箭头），
-        // V3 浅色背景上需要重着色 —— 与 Aria2SettingsFragment 同款处理。
-        val toolbar = binding.toolbarLayout
-        toolbar.naviTitle.apply {
-            text = getString(R.string.ai_translate_settings_title)
-            setTextColor(resources.getColor(R.color.v3_text_1, null))
-            setTextAppearance(R.style.textMontserratBold)
-            textSize = 18f
-        }
-        (toolbar.naviBack as ImageView).setColorFilter(resources.getColor(R.color.v3_text_1, null))
-        toolbar.naviBack.setOnClickListener {
+        // 全 app 统一的 toolbar_layout(同设置页 / 榜单页):品牌色 + 白字,标题 / 返回在这里接线。
+        binding.toolbarLayout.toolbarTitle.setText(R.string.ai_translate_settings_title)
+        binding.toolbarLayout.toolbar.setNavigationOnClickListener {
             handleBackPressed()
         }
-        toolbar.naviMore.visibility = View.GONE
-
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar.root) { v, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(top = bars.top + dp(10))
-            insets
-        }
-        ViewCompat.requestApplyInsets(toolbar.root)
     }
 
     /** 已保存配置 → 快照；读超时存原文，与编辑框逐字比较（保持旧 isDirty 语义）。 */
@@ -368,6 +348,4 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
             .show()
     }
 
-    private fun dp(v: Int): Int =
-        (v * resources.displayMetrics.density).toInt()
 }

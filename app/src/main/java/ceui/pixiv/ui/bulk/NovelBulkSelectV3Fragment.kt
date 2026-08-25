@@ -9,7 +9,9 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.os.ConfigurationCompat
-import androidx.core.view.MenuItemCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,19 +21,21 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.loxia.Novel
 import ceui.pixiv.actions.PixivActions
+import ceui.pixiv.ui.common.tintMenuIconsWhite
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.task.BatchDownloadNovelsTask
 import ceui.pixiv.ui.task.FailedNovel
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
+import com.blankj.utilcode.util.BarUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.hjq.toast.Toaster
-import ceui.pixiv.witstudio.dialog.WitDialog
-import ceui.pixiv.witstudio.dialog.WitDialogAction
+import java.text.NumberFormat
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.text.NumberFormat
-import java.util.Locale
 
 /**
  * V3 风格小说批量操作 · 多选页（issue #974）。
@@ -102,7 +106,16 @@ class NovelBulkSelectV3Fragment : Fragment() {
         toolbar.setNavigationOnClickListener { requireActivity().finish() }
         // 单按钮 master-checkbox：icon 跟选中态切，点击行为跟 icon 一致
         //（没全选 → 全选；已全选 → 取消全选），同插画页。
+        // 统一 toolbar 的 inset 打法(同 setUpToolbar(FragmentToolbarFeedBinding)):toolbar 自己
+        // 顶到状态栏下面,底部导航 inset 作根布局 paddingBottom(原 fitsSystemWindows 的效果)。
+        toolbar.updatePadding(top = BarUtils.getStatusBarHeight())
+        ViewCompat.setOnApplyWindowInsetsListener(view) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(bottom = insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
         toolbar.inflateMenu(R.menu.menu_bulk_select_novel_v3)
+        toolbar.tintMenuIconsWhite()
         toolbar.setOnMenuItemClickListener { item ->
             if (item.itemId == R.id.action_select_toggle) {
                 selectAllToggle()
@@ -404,18 +417,14 @@ class NovelBulkSelectV3Fragment : Fragment() {
 
     /**
      * Master-checkbox：icon + title 跟「有多少已选中」走，跟 [selectAllToggle] 的行为一致，
-     * 用户看到啥 icon 就预期点击会做啥。
-     *
-     * 每次 setIcon 后清 iconTintList，防 Toolbar / theme overlay 给菜单 icon 套统一 tint 把
-     * ic_deselect_24 内部写死的 v3_blue 压成灰。MenuItemCompat：直接赋值在 API 24/25 会
-     * NoSuchMethodError（setIconTintList 是 API 26 才进 framework 的接口方法）。
+     * 用户看到啥 icon 就预期点击会做啥。setIcon 不动 MenuItem 的 iconTintList，
+     * 统一白色 tint（tintMenuIconsWhite）不用重设。
      */
     private fun refreshSelectToggleIcon(selectedCount: Int) {
         val item = toolbar.menu.findItem(R.id.action_select_toggle) ?: return
         val allSelected = items.isNotEmpty() && selectedCount == items.size
         item.setIcon(if (allSelected) R.drawable.ic_deselect_24 else R.drawable.ic_select_all_24)
         item.setTitle(if (allSelected) R.string.bulk_select_clear_all else R.string.bulk_select_select_all)
-        MenuItemCompat.setIconTintList(item, null)
     }
 }
 

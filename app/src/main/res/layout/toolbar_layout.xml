@@ -1,39 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<!--
+  全 app 统一的独立页 toolbar(以设置页 fragment_settings_hub / 榜单页 fragment_rank_picker
+  为准):AppCompat Toolbar + ?attr/colorPrimary 品牌色背景 + six_dp 阴影 + AppBarOverlay
+  深色 overlay(白色返回箭头 / 菜单图标)+ 居中 18sp 白字标题(toolbar_title)。
+  fitsSystemWindows 让 toolbar 自己吃状态栏 inset,品牌色一直铺到屏幕顶。
+  新页面直接 <include layout="@layout/toolbar_layout" />,别再自绘一套。
+-->
+<androidx.appcompat.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/colorPrimary"
+    android:elevation="@dimen/six_dp"
+    android:fitsSystemWindows="true"
+    android:theme="@style/AppTheme.AppBarOverlay"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+    app:popupTheme="@style/AppTheme.PopupOverlay"
+    app:title=" "
+    app:titleTextColor="@android:color/white">
 
-    <data>
-
-    </data>
-
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/toolbar_title"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
-        android:elevation="@dimen/six_dp"
-        android:fitsSystemWindows="true"
-        android:theme="@style/AppTheme.AppBarOverlay"
-        app:popupTheme="@style/AppTheme.PopupOverlay"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
-        app:title=" "
-        app:titleTextColor="@android:color/white">
+        android:layout_gravity="center"
+        android:layout_marginEnd="@dimen/sixteen_dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textColor="@color/always_white"
+        android:textSize="18sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/sixteen_dp"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:layout_gravity="center"
-            android:id="@+id/toolbar_title"
-            android:textColor="@color/always_white"
-            android:textSize="18sp">
-
-        </TextView>
-
-    </androidx.appcompat.widget.Toolbar>
-</layout>
-
+</androidx.appcompat.widget.Toolbar>

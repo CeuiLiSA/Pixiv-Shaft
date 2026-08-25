@@ -12,9 +12,6 @@ import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -82,25 +79,11 @@ class NovelHeaderSettingsFragment : Fragment(R.layout.fragment_novel_header_sett
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val toolbar = binding.toolbarLayout
-        toolbar.naviTitle.apply {
-            text = getString(R.string.novel_header_settings_title)
-            setTextColor(resources.getColor(R.color.v3_text_1, null))
-            setTextAppearance(R.style.textMontserratBold)
-            textSize = 18f
-        }
-        (toolbar.naviBack as ImageView).setColorFilter(resources.getColor(R.color.v3_text_1, null))
-        toolbar.naviBack.setOnClickListener {
+        // 全 app 统一的 toolbar_layout(同设置页 / 榜单页):品牌色 + 白字,标题 / 返回在这里接线。
+        binding.toolbarLayout.toolbarTitle.setText(R.string.novel_header_settings_title)
+        binding.toolbarLayout.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
-        toolbar.naviMore.visibility = View.GONE
-
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar.root) { v, insets ->
-            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(top = bars.top + dp(10))
-            insets
-        }
-        ViewCompat.requestApplyInsets(toolbar.root)
 
         store = HeaderConfigRepo.load()
         draftPresetName = store.activeName
