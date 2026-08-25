@@ -136,6 +136,15 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      */
     private final Set<Integer> shownPages = ConcurrentHashMap.newKeySet();
 
+    /**
+     * 当前仍绑定在屏上的页 binding（V3 feeds 委托模式），用于不重绑直接回填缓存原图。
+     * 存 binding 而不是 ViewHolder：外层 renderer 每次 onBind/onRecycle 都 new 一个 ViewHolder 壳。
+     */
+    private final Map<Integer, RecyIllustDetailBinding> boundBindings = new ConcurrentHashMap<>();
+
+    /** 已对当前 holder 显示过缓存原图 overlay 的页码，避免 onResume 重复触发淡入。 */
+    private final Set<Integer> cachedOriginalShownPages = ConcurrentHashMap.newKeySet();
+
     public IllustAdapter(FragmentActivity activity, Fragment fragment, Illust illustsBean, int maxHeight, boolean isForceOriginal) {
         Common.showLog("IllustAdapter maxHeight " + maxHeight);
         mActivity = activity;
@@ -166,6 +175,41 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         localPageUris.put(page, uri);
     }
 
+    /**
+     * 不重绑列表，直接把当前仍绑定在屏上的这一页升级为缓存原图。
+     * 仅处理进程内已缓存 ORIGINAL 的页；未绑定或已显示过则 no-op。
+     */
+    public void showCachedOriginalOverlay(int position) {
+        if (released || snapshotId != null || cachedOriginalShownPages.contains(position)) return;
+        if (Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal) return;
+        RecyIllustDetailBinding binding = boundBindings.get(position);
+        if (binding == null || localPageUris.containsKey(position)) return;
+        String originalUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_ORIGINAL);
+        String largeUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_LARGE);
+        if (originalUrl == null || originalUrl.equals(largeUrl)) return;
+        File file = ImageLoaderV3.peekFile(originalUrl);
+        if (file == null) return;
+        renderCachedOriginalOverlay(new ViewHolder<>(binding), file, largeUrl, position);
+    }
+
+    /**
+     * 对当前作品所有已绑定页执行缓存原图回填，未绑定页留到下次绑定时自动走缓存检查。
+     * 快照模式 / 已开启原图模式 / 已 forceOriginal 时内部直接 no-op。
+     */
+    public void showCachedOriginalOverlays() {
+        if (released || snapshotId != null) return;
+        if (Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal) return;
+        if (allIllust == null || allIllust.isGif()) return;
+        int pageCount = Math.max(allIllust.getPage_count(), 1);
+        for (int position = 0; position < pageCount; position++) {
+            String originalUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_ORIGINAL);
+            String largeUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_LARGE);
+            if (originalUrl != null && !originalUrl.equals(largeUrl) && ImageLoaderV3.peekFile(originalUrl) != null) {
+                showCachedOriginalOverlay(position);
+            }
+        }
+    }
+
     /** View 生命周期结束时断开回调，避免后台下载记录扫描把旧 Fragment/View 留到扫描完成。 */
     public void release() {
         released = true;
@@ -174,6 +218,8 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         pageRatio.clear();
         overlaySizedPages.clear();
         shownPages.clear();
+        boundBindings.clear();
+        cachedOriginalShownPages.clear();
         mainHandler.removeCallbacksAndMessages(null);
     }
 
@@ -281,6 +327,15 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     @Override
     public void onViewRecycled(@NonNull ViewHolder<RecyIllustDetailBinding> holder) {
         super.onViewRecycled(holder);
+        // 解除当前 binding 的绑定记录，避免已回收页被 onResume 直接回填。
+        Integer recycledPosition = boundBindings.entrySet().stream()
+                .filter(e -> e.getValue() == holder.baseBind)
+                .map(Map.Entry::getKey)
+                .findFirst().orElse(null);
+        if (recycledPosition != null) {
+            boundBindings.remove(recycledPosition);
+            cachedOriginalShownPages.remove(recycledPosition);
+        }
         // Detach this holder's LoadTask observers (see loadIllust) so they don't outlive
         // the bind and pile up on the per-URL task's LiveData.
         detachTaskObservers(holder);
@@ -312,6 +367,8 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     @Override
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
         super.onBindViewHolder(holder, position);
+        boundBindings.entrySet().removeIf(e -> e.getValue() == holder.baseBind);
+        boundBindings.put(position, holder.baseBind);
         // 快照只读：长按下载会拿 shaftsnap:// 当远程地址去下,还可能顺带触发「下载即收藏」
         // 发出真实的收藏请求 —— 这一页所有写操作都该是哑的(V3 侧 renderer 已经把长按置空)。
         if(longPressDownload && snapshotId == null && mActivity instanceof BaseActivity<?>){
@@ -458,6 +515,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         fragmentRequestManager.clear(holder.baseBind.illustHd);
         holder.baseBind.illustHd.setImageDrawable(null);
         holder.baseBind.illustHd.setVisibility(View.GONE);
+        cachedOriginalShownPages.remove(position);
 
         // 命中已下载的本地文件就直读，跳过网络 LoadTask —— 详情页展开多图复用下载结果。
         Uri localUri = localPageUris.get(position);
@@ -471,9 +529,15 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     private void loadFromNetwork(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
         boolean loadOriginal = Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal;
         final String largeUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_LARGE);
-        final String targetUrl = loadOriginal
-                ? IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_ORIGINAL)
-                : largeUrl;
+        final String originalUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_ORIGINAL);
+        // 不主动下载原图；但若这一页原图已经在进程内缓存（如刚从大图页看过），
+        // 就直接用缓存原图覆盖 LARGE，避免明明有更清晰的图却显示模糊。
+        // 这是 bonus 路径：失败仍保留 LARGE，不影响不开启原图的省流量语义。
+        final File cachedOriginalFile = (!loadOriginal && snapshotId == null && originalUrl != null && !originalUrl.equals(largeUrl))
+                ? ImageLoaderV3.peekFile(originalUrl)
+                : null;
+        boolean cachedOriginal = cachedOriginalFile != null;
+        final String targetUrl = loadOriginal ? originalUrl : largeUrl;
 
         // tag = 本次 bind 想显示的「最终」url;所有回调据此判 stale,复用时旧回调自动变 no-op(#912)。
         holder.baseBind.illust.setTag(R.id.tag_image_url, targetUrl);
@@ -501,6 +565,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         if (!loadOriginal) {
             // 仅 large 模式:large 就是最终图,每页都要真正下下来展示。
             renderBase(holder, position, changeSize, new GlideUrlChild(largeUrl), targetUrl, /*isFinal=*/true);
+            // bonus：该页原图已在进程内缓存，叠加显示原图；失败静默保留 LARGE。
+            if (cachedOriginal && cachedOriginalFile != null) {
+                renderCachedOriginalOverlay(holder, cachedOriginalFile, targetUrl, position);
+            }
             return;
         }
 
@@ -583,6 +651,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     public boolean onLoadFailed(@Nullable GlideException e, Object m, Target<Bitmap> target, boolean isFirstResource) {
                         if (!guardUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return false;
                         if (isFinal) {
+                            // 缓存原图与 LARGE 是并行加载的：原图已经成功盖上后，迟到的
+                            // LARGE 失败只是底层占位失败，不能再把清晰原图改成错误态。
+                            if (cachedOriginalShownPages.contains(position)) {
+                                Timber.d("[IllustAdapter] base(large) FAIL ignored after cached-original success pos=%d, url=%s",
+                                        position, shortUrl);
+                                return false;
+                            }
                             Timber.w(e, "[IllustAdapter] base(large) FAIL pos=%d, url=%s", position, shortUrl);
                             holder.baseBind.reload.setVisibility(View.VISIBLE);
                             holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
@@ -706,6 +781,58 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                         holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
                         holder.baseBind.illustHd.setVisibility(View.VISIBLE);
                         Shaft.getMMKV().encode(guardUrl, true);
+                        return false;
+                    }
+                })
+                .into(holder.baseBind.illustHd);
+    }
+
+    /**
+     * bonus 路径：仅当详情页不主动加载原图、但该页原图已在进程内缓存时使用。
+     * 与 [renderOverlay] 的区别：原图只是增强，失败/解码异常时静默保留底层 LARGE，
+     * 不亮 reload、不把已有的大图展示变成错误态。
+     */
+    private void renderCachedOriginalOverlay(ViewHolder<RecyIllustDetailBinding> holder, File file,
+                                            String guardUrl, int position) {
+        // 防御：快照模式 / 已开启原图模式时本 bonus 路径完全不跑。
+        if (released || snapshotId != null) return;
+        if (Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal) return;
+        // 首次为该页拿原图真尺寸，校准展示盒；与 renderOverlay 同一套去重。
+        if (overlaySizedPages.add(position)) {
+            int[] bounds = readImageBounds(file);
+            if (bounds != null) {
+                applyPixelSize(holder, position, bounds[0], bounds[1]);
+            }
+        }
+        holder.baseBind.illustHd.setVisibility(View.INVISIBLE);
+        RequestManager requestManager = mFragment != null ? Glide.with(mFragment) : Glide.with(mContext);
+        requestManager
+                .asBitmap()
+                .load(file)
+                .transform(new LargeBitmapScaleTransformer())
+                .transition(BitmapTransitionOptions.withCrossFade())
+                .listener(new RequestListener<Bitmap>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object m, Target<Bitmap> target, boolean isFirstResource) {
+                        if (!guardUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url)))
+                            return false;
+                        // bonus：失败就退回 LARGE，不亮 reload、不干扰已成功的大图。
+                        Timber.w(e, "[IllustAdapter] cached-original overlay FAIL, keep LARGE pos=%d", position);
+                        holder.baseBind.illustHd.setImageDrawable(null);
+                        holder.baseBind.illustHd.setVisibility(View.GONE);
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(Bitmap resource, Object m, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                        if (!guardUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url)))
+                            return false;
+                        Timber.d("[IllustAdapter] cached-original overlay OK pos=%d, %dx%d, ds=%s",
+                                position, resource.getWidth(), resource.getHeight(), dataSource.name());
+                        holder.baseBind.reload.setVisibility(View.GONE);
+                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+                        holder.baseBind.illustHd.setVisibility(View.VISIBLE);
+                        cachedOriginalShownPages.add(position);
                         return false;
                     }
                 })
