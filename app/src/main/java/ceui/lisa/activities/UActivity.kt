@@ -18,7 +18,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.ActivityNewUserBinding
 import ceui.lisa.fragments.FragmentHolder.Companion.newInstance
 import ceui.lisa.helper.UserIllustJumpHelper
-import ceui.lisa.http.NullCtrl
+import ceui.lisa.http.ErrorCtrl
 import ceui.lisa.http.Retro
 import ceui.lisa.interfaces.Display
 import ceui.lisa.models.UserDetailResponse
@@ -45,8 +45,8 @@ import ceui.pixiv.widgets.FeedBackToTopFab
 import com.bumptech.glide.Glide
 import com.github.ybq.android.spinkit.style.Wave
 import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -155,40 +155,42 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             return
         }
         baseBind.progress.visibility = View.VISIBLE
-        Retro.getAppApi().getUserDetailV2(userId)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object : NullCtrl<UserDetailResponse>() {
-                override fun success(userResponse: UserDetailResponse) {
-                    ObjectPool.updateUser(userResponse.user)
-                    mUserViewModel.user.value = userResponse
-                    writeBackSelfProfile(userResponse)
-                    runCatching {
-                        (application as? ceui.loxia.ServicesProvider)?.entityWrapper?.visitUser(this@UActivity, userResponse.user)
-                    }
-                    appServices().appLevelState.updateFollowUserStatus(
-                        userId,
-                        if (userResponse.user.is_followed == true)
-                            AppLevelState.FollowUserStatus.FOLLOWED
-                        else
-                            AppLevelState.FollowUserStatus.NOT_FOLLOW
-                    )
+        lifecycleScope.launch {
+            try {
+                val userResponse = withContext(Dispatchers.IO) { Retro.getAppApiSuspend().getUserDetailV2(userId) }
+                ObjectPool.updateUser(userResponse.user)
+                mUserViewModel.user.value = userResponse
+                writeBackSelfProfile(userResponse)
+                runCatching {
+                    (application as? ceui.loxia.ServicesProvider)?.entityWrapper?.visitUser(this@UActivity, userResponse.user)
                 }
-
-                override fun must() {
-                    baseBind.progress.visibility = View.INVISIBLE
-                }
-            })
-        Retro.getAppApi().getFollowDetail(userId)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object : NullCtrl<UserFollowDetail>() {
-                override fun success(userFollowDetail: UserFollowDetail) {
-                    appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(userFollowDetail))
-                    // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
-                    FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(userFollowDetail))
-                }
-            })
+                appServices().appLevelState.updateFollowUserStatus(
+                    userId,
+                    if (userResponse.user.is_followed == true)
+                        AppLevelState.FollowUserStatus.FOLLOWED
+                    else
+                        AppLevelState.FollowUserStatus.NOT_FOLLOW
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                ErrorCtrl.handleError(e)
+            } finally {
+                baseBind.progress.visibility = View.INVISIBLE
+            }
+        }
+        lifecycleScope.launch {
+            try {
+                val userFollowDetail = withContext(Dispatchers.IO) { Retro.getAppApiSuspend().getFollowDetail(userId) }
+                appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(userFollowDetail))
+                // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
+                FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(userFollowDetail))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                ErrorCtrl.handleError(e)
+            }
+        }
     }
 
     override fun hideStatusBar(): Boolean {

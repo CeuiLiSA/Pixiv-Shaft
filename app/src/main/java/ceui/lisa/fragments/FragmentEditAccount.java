@@ -8,15 +8,10 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentEditAccountBinding;
-import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
-import ceui.lisa.models.AccountEditResponse;
-import ceui.lisa.models.UserState;
+import ceui.lisa.http.LegacyApiCalls;
 import ceui.loxia.AccountResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 import ceui.pixiv.session.SessionManager;
 
@@ -39,21 +34,15 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
         }
         baseBind.toolbar.toolbarTitle.setText(R.string.string_250);
         baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> finish());
-        Retro.getAppApi().getAccountState()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<UserState>() {
-                    @Override
-                    public void success(UserState userState) {
-                        if (userState.getUser_state() != null) {
-                            canChangePixivID = userState.getUser_state().isCan_change_pixiv_id();
-                            baseBind.pixivId.setEnabled(canChangePixivID);
-                            hasPassword = userState.getUser_state().isHas_password();
-                            // 显隐挂在 TextInputLayout 上，否则外框和浮动标签会留在原地
-                            baseBind.userOldPasswordLayout.setVisibility(hasPassword ? View.VISIBLE : View.GONE);
-                        }
-                    }
-                });
+        LegacyApiCalls.getAccountState(this, userState -> {
+            if (userState.getUser_state() != null) {
+                canChangePixivID = userState.getUser_state().isCan_change_pixiv_id();
+                baseBind.pixivId.setEnabled(canChangePixivID);
+                hasPassword = userState.getUser_state().isHas_password();
+                // 显隐挂在 TextInputLayout 上，否则外框和浮动标签会留在原地
+                baseBind.userOldPasswordLayout.setVisibility(hasPassword ? View.VISIBLE : View.GONE);
+            }
+        });
         if (!TextUtils.isEmpty(SessionManager.INSTANCE.getMailAddress())) {
             baseBind.emailAddress.setText(SessionManager.INSTANCE.getMailAddress());
         }
@@ -91,54 +80,35 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
                     Common.showToast("你还没有做任何修改");
                 } else if (isPixivIdNotChanged && !isPasswordNotChanged) {
                     Common.showToast("正在修改密码");
-                    Retro.getSignApi().changePassword(SessionManager.INSTANCE.getBearerToken(),
-                            currentPassword,
-                            baseBind.userNewPassword.getText().toString())
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new NullCtrl<AccountEditResponse>() {
-                                @Override
-                                public void success(AccountEditResponse accountEditResponse) {
-                                    Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
-                                    saveUser();
-                                    mActivity.finish();
-                                    Common.showToast("密码修改成功");
-                                }
-                            });
+                    LegacyApiCalls.editAccount(this, SessionManager.INSTANCE.getBearerToken(),
+                            null, null, currentPassword, baseBind.userNewPassword.getText().toString(),
+                            accountEditResponse -> {
+                        Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
+                        saveUser();
+                        mActivity.finish();
+                        Common.showToast("密码修改成功");
+                    });
                 } else if (!isPixivIdNotChanged && isPasswordNotChanged) {
                     Common.showToast("正在修改PixivID");
-                    Retro.getSignApi().changePixivID(SessionManager.INSTANCE.getBearerToken(),
-                            baseBind.pixivId.getText().toString(),
-                            currentPassword)
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new NullCtrl<AccountEditResponse>() {
-                                @Override
-                                public void success(AccountEditResponse accountEditResponse) {
-                                    Local.getUser().getUser().setAccount(baseBind.pixivId.getText().toString());
-                                    saveUser();
-                                    mActivity.finish();
-                                    Common.showToast("PixivID修改成功");
-                                }
-                            });
+                    LegacyApiCalls.editAccount(this, SessionManager.INSTANCE.getBearerToken(),
+                            null, baseBind.pixivId.getText().toString(), currentPassword, null,
+                            accountEditResponse -> {
+                        Local.getUser().getUser().setAccount(baseBind.pixivId.getText().toString());
+                        saveUser();
+                        mActivity.finish();
+                        Common.showToast("PixivID修改成功");
+                    });
                 } else if (!isPixivIdNotChanged && !isPasswordNotChanged) {
                     Common.showToast("正在修改PixivID 和密码");
-                    Retro.getSignApi().changePasswordPixivID(SessionManager.INSTANCE.getBearerToken(),
-                            baseBind.pixivId.getText().toString(),
-                            currentPassword,
-                            baseBind.userNewPassword.getText().toString())
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new NullCtrl<AccountEditResponse>() {
-                                @Override
-                                public void success(AccountEditResponse accountEditResponse) {
-                                    Local.getUser().getUser().setAccount(baseBind.pixivId.getText().toString());
-                                    Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
-                                    saveUser();
-                                    mActivity.finish();
-                                    Common.showToast("PixivID 和密码修改成功");
-                                }
-                            });
+                    LegacyApiCalls.editAccount(this, SessionManager.INSTANCE.getBearerToken(),
+                            null, baseBind.pixivId.getText().toString(), currentPassword, baseBind.userNewPassword.getText().toString(),
+                            accountEditResponse -> {
+                        Local.getUser().getUser().setAccount(baseBind.pixivId.getText().toString());
+                        Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
+                        saveUser();
+                        mActivity.finish();
+                        Common.showToast("PixivID 和密码修改成功");
+                    });
                 }
             } else {
                 if (TextUtils.isEmpty(baseBind.pixivId.getText().toString())) {
@@ -153,69 +123,40 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
                 }
 
                 if (isPixivIdNotChanged && isPasswordNotChanged) {
-                    Retro.getSignApi().changeEmail(SessionManager.INSTANCE.getBearerToken(),
-                            baseBind.emailAddress.getText().toString(),
-                            currentPassword)
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new NullCtrl<AccountEditResponse>() {
-                                @Override
-                                public void success(AccountEditResponse accountEditResponse) {
-                                    mActivity.finish();
-                                    Common.showToast("验证邮件发送成功！", true);
-                                }
-                            });
+                    LegacyApiCalls.editAccount(this, SessionManager.INSTANCE.getBearerToken(),
+                            baseBind.emailAddress.getText().toString(), null, currentPassword, null,
+                            accountEditResponse -> {
+                        mActivity.finish();
+                        Common.showToast("验证邮件发送成功！", true);
+                    });
                 } else if (!isPixivIdNotChanged && isPasswordNotChanged) {
-                    Retro.getSignApi().changeEmailAndPixivID(SessionManager.INSTANCE.getBearerToken(),
-                            baseBind.emailAddress.getText().toString(),
-                            baseBind.pixivId.getText().toString(),
-                            currentPassword)
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new NullCtrl<AccountEditResponse>() {
-                                @Override
-                                public void success(AccountEditResponse accountEditResponse) {
-                                    Local.getUser().getUser().setAccount(baseBind.pixivId.getText().toString());
-                                    saveUser();
-                                    mActivity.finish();
-                                    Common.showToast("验证邮件发送成功！", true);
-                                }
-                            });
+                    LegacyApiCalls.editAccount(this, SessionManager.INSTANCE.getBearerToken(),
+                            baseBind.emailAddress.getText().toString(), baseBind.pixivId.getText().toString(), currentPassword, null,
+                            accountEditResponse -> {
+                        Local.getUser().getUser().setAccount(baseBind.pixivId.getText().toString());
+                        saveUser();
+                        mActivity.finish();
+                        Common.showToast("验证邮件发送成功！", true);
+                    });
                 } else if (isPixivIdNotChanged && !isPasswordNotChanged) {
-                    Retro.getSignApi().changeEmailAndPassword(SessionManager.INSTANCE.getBearerToken(),
-                            baseBind.emailAddress.getText().toString(),
-                            currentPassword,
-                            baseBind.userNewPassword.getText().toString())
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new NullCtrl<AccountEditResponse>() {
-                                @Override
-                                public void success(AccountEditResponse accountEditResponse) {
-                                    Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
-                                    saveUser();
-                                    mActivity.finish();
-                                    Common.showToast("验证邮件发送成功！", true);
-                                }
-                            });
+                    LegacyApiCalls.editAccount(this, SessionManager.INSTANCE.getBearerToken(),
+                            baseBind.emailAddress.getText().toString(), null, currentPassword, baseBind.userNewPassword.getText().toString(),
+                            accountEditResponse -> {
+                        Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
+                        saveUser();
+                        mActivity.finish();
+                        Common.showToast("验证邮件发送成功！", true);
+                    });
                 } else if (!isPixivIdNotChanged && !isPasswordNotChanged) {
-                    Retro.getSignApi().edit(
-                            SessionManager.INSTANCE.getBearerToken(),
-                            baseBind.emailAddress.getText().toString(),
-                            baseBind.pixivId.getText().toString(),
-                            currentPassword,
-                            baseBind.userNewPassword.getText().toString())
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new NullCtrl<AccountEditResponse>() {
-                                @Override
-                                public void success(AccountEditResponse accountEditResponse) {
-                                    Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
-                                    Local.getUser().getUser().setAccount(baseBind.pixivId.getText().toString());
-                                    saveUser();
-                                    mActivity.finish();
-                                    Common.showToast("验证邮件发送成功！", true);
-                                }
-                            });
+                    LegacyApiCalls.editAccount(this, SessionManager.INSTANCE.getBearerToken(),
+                            baseBind.emailAddress.getText().toString(), baseBind.pixivId.getText().toString(), currentPassword, baseBind.userNewPassword.getText().toString(),
+                            accountEditResponse -> {
+                        Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
+                        Local.getUser().getUser().setAccount(baseBind.pixivId.getText().toString());
+                        saveUser();
+                        mActivity.finish();
+                        Common.showToast("验证邮件发送成功！", true);
+                    });
                 }
             }
         } else {
@@ -232,20 +173,14 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
                     Common.showToast("你还没有做任何修改");
                 } else {
                     Common.showToast("正在修改密码");
-                    Retro.getSignApi().changePassword(SessionManager.INSTANCE.getBearerToken(),
-                            currentPassword,
-                            baseBind.userNewPassword.getText().toString())
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new NullCtrl<AccountEditResponse>() {
-                                @Override
-                                public void success(AccountEditResponse accountEditResponse) {
-                                    Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
-                                    saveUser();
-                                    mActivity.finish();
-                                    Common.showToast("密码修改成功");
-                                }
-                            });
+                    LegacyApiCalls.editAccount(this, SessionManager.INSTANCE.getBearerToken(),
+                            null, null, currentPassword, baseBind.userNewPassword.getText().toString(),
+                            accountEditResponse -> {
+                        Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
+                        saveUser();
+                        mActivity.finish();
+                        Common.showToast("密码修改成功");
+                    });
                 }
             } else {
                 //邮箱地址不为空
@@ -255,52 +190,32 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
                         Common.showToast("你还没有做任何修改");
                     } else {
                         Common.showToast("正在修改密码");
-                        Retro.getSignApi().changePassword(SessionManager.INSTANCE.getBearerToken(),
-                                currentPassword,
-                                baseBind.userNewPassword.getText().toString())
-                                .subscribeOn(Schedulers.newThread())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new NullCtrl<AccountEditResponse>() {
-                                    @Override
-                                    public void success(AccountEditResponse accountEditResponse) {
-                                        Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
-                                        saveUser();
-                                        mActivity.finish();
-                                        Common.showToast("密码修改成功");
-                                    }
-                                });
+                        LegacyApiCalls.editAccount(this, SessionManager.INSTANCE.getBearerToken(),
+                                null, null, currentPassword, baseBind.userNewPassword.getText().toString(),
+                                accountEditResponse -> {
+                            Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
+                            saveUser();
+                            mActivity.finish();
+                            Common.showToast("密码修改成功");
+                        });
                     }
                 } else {
                     if (isPasswordNotChanged) {
-                        Retro.getSignApi().changeEmail(SessionManager.INSTANCE.getBearerToken(),
-                                baseBind.emailAddress.getText().toString(),
-                                currentPassword)
-                                .subscribeOn(Schedulers.newThread())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new NullCtrl<AccountEditResponse>() {
-                                    @Override
-                                    public void success(AccountEditResponse accountEditResponse) {
-                                        mActivity.finish();
-                                        Common.showToast("验证邮件发送成功！", true);
-                                    }
-                                });
+                        LegacyApiCalls.editAccount(this, SessionManager.INSTANCE.getBearerToken(),
+                                baseBind.emailAddress.getText().toString(), null, currentPassword, null,
+                                accountEditResponse -> {
+                            mActivity.finish();
+                            Common.showToast("验证邮件发送成功！", true);
+                        });
                     } else {
-                        Retro.getSignApi().changeEmailAndPassword(
-                                SessionManager.INSTANCE.getBearerToken(),
-                                baseBind.emailAddress.getText().toString(),
-                                currentPassword,
-                                baseBind.userNewPassword.getText().toString())
-                                .subscribeOn(Schedulers.newThread())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe(new NullCtrl<AccountEditResponse>() {
-                                    @Override
-                                    public void success(AccountEditResponse accountEditResponse) {
-                                        Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
-                                        saveUser();
-                                        mActivity.finish();
-                                        Common.showToast("验证邮件发送成功！", true);
-                                    }
-                                });
+                        LegacyApiCalls.editAccount(this, SessionManager.INSTANCE.getBearerToken(),
+                                baseBind.emailAddress.getText().toString(), null, currentPassword, baseBind.userNewPassword.getText().toString(),
+                                accountEditResponse -> {
+                            Local.getUser().getUser().setPassword(baseBind.userNewPassword.getText().toString());
+                            saveUser();
+                            mActivity.finish();
+                            Common.showToast("验证邮件发送成功！", true);
+                        });
                     }
                 }
             }

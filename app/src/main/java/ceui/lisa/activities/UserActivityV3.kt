@@ -17,7 +17,7 @@ import ceui.lisa.R
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.ActivityUserV3Binding
 import ceui.lisa.helper.UserIllustJumpHelper
-import ceui.lisa.http.NullCtrl
+import ceui.lisa.http.ErrorCtrl
 import ceui.lisa.http.Retro
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.models.UserFollowDetail
@@ -51,8 +51,7 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayoutMediator
 import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -258,25 +257,25 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     private fun refreshUserDetail() {
         // 用 v2/for_ios:多带 is_accept_request(驱动「约稿中」tab),字段与 UA 无关
-        Retro.getAppApi().getUserDetailV2(userId)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object : NullCtrl<UserDetailResponse>() {
-                override fun success(userResponse: UserDetailResponse) {
-                    // User 池更新 → updateFollowState 重绑关注按钮;
-                    // user LiveData 更新 → displayUser 重绑 header UI(幂等)。
-                    ObjectPool.updateUser(userResponse.user)
-                    // 下拉刷新后允许重选最新有封面小说(封面可能随新投稿变化)
-                    mUserViewModel.novelBannerFetched = false
-                    mUserViewModel.novelBannerNovel = null
-                    mUserViewModel.user.value = userResponse
-                    writeBackSelfProfile(userResponse)
-                }
-
-                override fun must() {
-                    baseBind.refreshLayout.isRefreshing = false
-                }
-            })
+        lifecycleScope.launch {
+            try {
+                val userResponse = withContext(Dispatchers.IO) { Retro.getAppApiSuspend().getUserDetailV2(userId) }
+                // User 池更新 → updateFollowState 重绑关注按钮;
+                // user LiveData 更新 → displayUser 重绑 header UI(幂等)。
+                ObjectPool.updateUser(userResponse.user)
+                // 下拉刷新后允许重选最新有封面小说(封面可能随新投稿变化)
+                mUserViewModel.novelBannerFetched = false
+                mUserViewModel.novelBannerNovel = null
+                mUserViewModel.user.value = userResponse
+                writeBackSelfProfile(userResponse)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                ErrorCtrl.handleError(e)
+            } finally {
+                baseBind.refreshLayout.isRefreshing = false
+            }
+        }
     }
 
     /** 看的是自己：把服务端最新资料回写会话，侧边栏/“我的”头像跟着更新。 */
@@ -288,59 +287,57 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     override fun initData() {
         baseBind.progress.visibility = View.VISIBLE
         // 用 v2/for_ios:多带 is_accept_request(驱动「约稿中」tab),字段与 UA 无关
-        Retro.getAppApi().getUserDetailV2(userId)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object : NullCtrl<UserDetailResponse>() {
-                override fun success(userResponse: UserDetailResponse) {
-                    ObjectPool.updateUser(userResponse.user)
-                    mUserViewModel.user.value = userResponse
-                    writeBackSelfProfile(userResponse)
-                    // Record user visit history
-                    runCatching {
-                        (application as? ceui.loxia.ServicesProvider)?.entityWrapper?.visitUser(this@UserActivityV3, userResponse.user)
-                    }
-                    appServices().appLevelState.updateFollowUserStatus(
-                        userId,
-                        if (userResponse.user.is_followed == true)
-                            AppLevelState.FollowUserStatus.FOLLOWED
-                        else
-                            AppLevelState.FollowUserStatus.NOT_FOLLOW
-                    )
+        lifecycleScope.launch {
+            try {
+                val userResponse = withContext(Dispatchers.IO) { Retro.getAppApiSuspend().getUserDetailV2(userId) }
+                ObjectPool.updateUser(userResponse.user)
+                mUserViewModel.user.value = userResponse
+                writeBackSelfProfile(userResponse)
+                // Record user visit history
+                runCatching {
+                    (application as? ceui.loxia.ServicesProvider)?.entityWrapper?.visitUser(this@UserActivityV3, userResponse.user)
                 }
-
-                override fun error(e: Throwable) {
-                    super.error(e)
-                    // user/detail 拉不到时兜底常驻 3 tab(插画/收藏/资料),别让整页空白
-                    buildAllTabs(
-                        hasIllust = true,
-                        hasManga = false,
-                        hasMangaSeries = false,
-                        hasNovel = false,
-                        hasNovelSeries = false,
-                        hasRequest = false,
-                    )
-                }
-
-                override fun must() {
-                    baseBind.progress.visibility = View.INVISIBLE
-                }
-            })
+                appServices().appLevelState.updateFollowUserStatus(
+                    userId,
+                    if (userResponse.user.is_followed == true)
+                        AppLevelState.FollowUserStatus.FOLLOWED
+                    else
+                        AppLevelState.FollowUserStatus.NOT_FOLLOW
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                ErrorCtrl.handleError(e)
+                // user/detail 拉不到时兜底常驻 3 tab(插画/收藏/资料),别让整页空白
+                buildAllTabs(
+                    hasIllust = true,
+                    hasManga = false,
+                    hasMangaSeries = false,
+                    hasNovel = false,
+                    hasNovelSeries = false,
+                    hasRequest = false,
+                )
+            } finally {
+                baseBind.progress.visibility = View.INVISIBLE
+            }
+        }
         // user/follow/detail:把「已关注」细分成 公开/非公开 写进 AppLevelState。这个请求
         // 一度被删掉,理由是 getFollowUserLiveData 全仓没有读者 —— 现在关注按钮读它来区分
         // 「已关注」/「悄悄关注中」(issue #997),理由不再成立。user/detail 的 is_followed 只是
         // 个 bool,给不出可见性,而开了「关注作者默认私人关注」之后短按也可能是私密的。
         // 失败不管:精确态拿不到时 followedLabelRes 保守回落「已关注」。
-        Retro.getAppApi().getFollowDetail(userId)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object : NullCtrl<UserFollowDetail>() {
-                override fun success(followDetail: UserFollowDetail) {
-                    appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(followDetail))
-                    // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
-                    FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(followDetail))
-                }
-            })
+        lifecycleScope.launch {
+            try {
+                val followDetail = withContext(Dispatchers.IO) { Retro.getAppApiSuspend().getFollowDetail(userId) }
+                appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(followDetail))
+                // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
+                FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(followDetail))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                ErrorCtrl.handleError(e)
+            }
+        }
 
         // Fetch supplementary data from Web API (bio HTML, badges, social links)
         lifecycleScope.launch {

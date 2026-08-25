@@ -21,8 +21,7 @@ import ceui.lisa.fragments.FragmentIllust;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.pixiv.ui.detail.ArtworkV3Fragment;
 import ceui.lisa.helper.DeduplicateArrayList;
-import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
+import ceui.lisa.http.LegacyApiCalls;
 import ceui.lisa.model.ListIllust;
 import ceui.loxia.Illust;
 import java.util.Collections;
@@ -30,8 +29,6 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.loxia.ObjectPool;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
 
@@ -139,34 +136,24 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                         if (!TextUtils.isEmpty(nextUrl)) {
                             if (pageData.tryStartNextPageLoad()) {
                                 Common.showLog("Container 去请求下一页 " + nextUrl);
-                                try {
-                                    Retro.getAppApi().getNextIllust(nextUrl)
-                                            .subscribeOn(Schedulers.newThread())
-                                            .observeOn(AndroidSchedulers.mainThread())
-                                            .doFinally(pageData::finishNextPageLoad)
-                                            .subscribe(new NullCtrl<ListIllust>() {
-                                                @Override
-                                                public void success(ListIllust listIllust) {
-                                                    Mapper mapper = new Mapper<ListIllust>();
-                                                    listIllust = (ListIllust) mapper.apply(listIllust);
-                                                    Common.showLog("Container 下一页请求成功 ");
-                                                    Intent intent = new Intent(Params.FRAGMENT_ADD_DATA);
-                                                    intent.putExtra(Params.PAGE_UUID, pageUUID);
-                                                    intent.putExtra(Params.CONTENT, listIllust);
-                                                    LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                                // onFinally 对应旧 doFinally：成功/失败都把 in-flight 标记放掉；
+                                // 页面销毁取消时不回调，此时 pageData 也随 Activity 一起走了。
+                                LegacyApiCalls.getNextIllust(VActivity.this, nextUrl, raw -> {
+                                    Mapper<ListIllust> mapper = new Mapper<>();
+                                    ListIllust listIllust = mapper.apply(raw);
+                                    Common.showLog("Container 下一页请求成功 ");
+                                    Intent intent = new Intent(Params.FRAGMENT_ADD_DATA);
+                                    intent.putExtra(Params.PAGE_UUID, pageUUID);
+                                    intent.putExtra(Params.CONTENT, listIllust);
+                                    LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
-                                                    // pageData.getList().addAll(listIllust.getList());
-                                                    DeduplicateArrayList.addAllWithNoRepeat(pageData.getList(), listIllust.getList());
-                                                    pageData.setNextUrl(listIllust.getNextUrl());
-                                                    if (baseBind.viewPager.getAdapter() != null) {
-                                                        baseBind.viewPager.getAdapter().notifyDataSetChanged();
-                                                    }
-                                                }
-                                            });
-                                } catch (RuntimeException e) {
-                                    pageData.finishNextPageLoad();
-                                    throw e;
-                                }
+                                    // pageData.getList().addAll(listIllust.getList());
+                                    DeduplicateArrayList.addAllWithNoRepeat(pageData.getList(), listIllust.getList());
+                                    pageData.setNextUrl(listIllust.getNextUrl());
+                                    if (baseBind.viewPager.getAdapter() != null) {
+                                        baseBind.viewPager.getAdapter().notifyDataSetChanged();
+                                    }
+                                }, pageData::finishNextPageLoad);
                             } else {
                                 Common.showLog("Container 不去请求下一页 00");
                             }

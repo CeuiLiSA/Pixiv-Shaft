@@ -19,9 +19,7 @@ import ceui.pixiv.login.PixivOAuthResult;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
-import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
+import ceui.lisa.core.JavaAsync;
 
 public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
@@ -244,13 +242,10 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
         sHandledLoginCode = loginCode;
         Common.showToast(getString(R.string.trying_login));
-        Observable.fromCallable(() -> PixivLogin.INSTANCE.handleCallback(uri))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::handleLoginResult, throwable -> {
-                    Common.showToast("登录失败");
-                    backToLoginScreen();
-                });
+        JavaAsync.run(this, () -> PixivLogin.INSTANCE.handleCallback(uri), this::handleLoginResult, throwable -> {
+            Common.showToast("登录失败");
+            backToLoginScreen();
+        });
     }
 
     private void handleLoginResult(PixivOAuthResult result) {
