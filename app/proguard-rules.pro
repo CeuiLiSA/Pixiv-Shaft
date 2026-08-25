@@ -141,3 +141,40 @@
 -dontwarn com.download.library.DownloadListenerAdapter
 -dontwarn com.download.library.DownloadTask
 -dontwarn com.download.library.ResourceRequest
+
+# onnxruntime-android ships no consumer rules, and libonnxruntime4j_jni.so resolves ai.onnxruntime.*
+# by name (FindClass/GetMethodID/GetFieldID on OrtException, TensorInfo, NodeInfo, OnnxTensor, ...).
+# Verified in the release mapping: OrtException was renamed to b.c and TensorInfo removed, so every
+# ORT error path and getInputInfo() would throw NoClassDefFoundError in the minified APK.
+-keep class ai.onnxruntime.** { *; }
+
+# Shaft.hasStackFrame() suppresses known library crashes by matching source class names on the
+# stack. Keep those names so the workarounds still fire after obfuscation.
+-keepnames class com.bumptech.glide.load.resource.gif.GifDrawable
+-keepnames class com.google.android.gms.common.internal.BaseGmsClient
+-keepnames class com.google.android.gms.common.internal.BaseGmsClient$*
+
+# Retrofit wire type outside the model packages (API.kt getSearchOptions). It currently survives only
+# through Gson's own @SerializedName rule; pin it the same way as RequestPlan* so an un-annotated
+# field added later cannot be stripped.
+-keep,allowobfuscation class ceui.pixiv.ui.search.v3.SearchOptionsResponse
+-keep,allowobfuscation class ceui.pixiv.ui.search.v3.SearchOptionsScope
+-keep,allowobfuscation class ceui.pixiv.ui.search.v3.BookmarkRange
+-keep,allowobfuscation class ceui.pixiv.ui.search.v3.ToolOptions
+-keep,allowobfuscation class ceui.pixiv.ui.search.v3.GenreOptions
+-keep,allowobfuscation class ceui.pixiv.ui.search.v3.GenreOption
+-keep,allowobfuscation class ceui.pixiv.ui.search.v3.LangOptions
+-keep,allowobfuscation class ceui.pixiv.ui.search.v3.LangOption
+-keepclassmembers class ceui.pixiv.ui.search.v3.SearchOptionsResponse { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.search.v3.SearchOptionsScope { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.search.v3.BookmarkRange { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.search.v3.ToolOptions { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.search.v3.GenreOptions { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.search.v3.GenreOption { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.search.v3.LangOptions { <fields>; }
+-keepclassmembers class ceui.pixiv.ui.search.v3.LangOption { <fields>; }
+
+# Persisted download/header config models: the field rules above only hold while Java code keeps
+# instantiating these classes. Pin identity so a refactor to Gson-only construction stays safe.
+-keep,allowobfuscation class ceui.pixiv.download.config.**
+-keep,allowobfuscation class ceui.pixiv.download.header.**
