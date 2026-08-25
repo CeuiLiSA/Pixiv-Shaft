@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 import androidx.documentfile.provider.DocumentFile;
 
@@ -330,33 +331,46 @@ public class IllustDownload {
     }
 
     public static String getUrl(Illust illust, int index, String imageResolution) {
-        return (getImageUrlByResolution(illust, index, imageResolution));
+        return getImageUrlByResolution(illust, index, imageResolution);
     }
 
+    @Nullable
     private static String getImageUrlByResolution(Illust illust, int index, String imageResolution) {
-        if (illust.getPage_count() == 1
-                && imageResolution.equals(Params.IMAGE_RESOLUTION_ORIGINAL)
-                && illust.getMeta_single_page() != null) {
-            // 单图原图取 meta_single_page.original_image_url;
-            // 精简/网页来源缺 meta_single_page → 降级到 image_urls,避免 NPE(issue #569)。
-            // 正常情况下载前会先 ensureFullThenRun 拉完整版,这里只是最后兜底。
-            return illust.getMeta_single_page().getOriginal_image_url();
-        }
         ImageUrls imageUrls = getImageUrls(illust, index);
+        // A single-page API response normally carries the original URL in meta_single_page, but
+        // restricted/deleted/web-derived records may contain the object with a null field. Do not
+        // return that null early: fall through to image_urls and finally the best lower resolution.
+        String metaOriginal = illust.getPage_count() == 1 && illust.getMeta_single_page() != null
+                ? illust.getMeta_single_page().getOriginal_image_url()
+                : null;
+        String original = firstUsableUrl(
+                metaOriginal,
+                imageUrls != null ? imageUrls.getOriginal() : null
+        );
+
+        if (imageUrls == null) {
+            return original;
+        }
         switch (imageResolution) {
             case Params.IMAGE_RESOLUTION_ORIGINAL:
-                return imageUrls.getOriginal();
+                return firstUsableUrl(original, imageUrls.getLarge(), imageUrls.getMedium(),
+                        imageUrls.getSquare_medium(), imageUrls.getUrl(), imageUrls.getSmall());
             case Params.IMAGE_RESOLUTION_LARGE:
-                return imageUrls.getLarge();
+                return firstUsableUrl(imageUrls.getLarge(), imageUrls.getMedium(), original,
+                        imageUrls.getSquare_medium(), imageUrls.getUrl(), imageUrls.getSmall());
             case Params.IMAGE_RESOLUTION_MEDIUM:
-                return imageUrls.getMedium();
+                return firstUsableUrl(imageUrls.getMedium(), imageUrls.getLarge(), original,
+                        imageUrls.getSquare_medium(), imageUrls.getUrl(), imageUrls.getSmall());
             case Params.IMAGE_RESOLUTION_SQUARE_MEDIUM:
-                return imageUrls.getSquare_medium();
+                return firstUsableUrl(imageUrls.getSquare_medium(), imageUrls.getMedium(),
+                        imageUrls.getLarge(), original, imageUrls.getUrl(), imageUrls.getSmall());
             default:
-                return imageUrls.findMaxSizeUrl();
+                return firstUsableUrl(imageUrls.getUrl(), original, imageUrls.getLarge(),
+                        imageUrls.getMedium(), imageUrls.getSquare_medium(), imageUrls.getSmall());
         }
     }
 
+    @Nullable
     private static ImageUrls getImageUrls(Illust illust, int index) {
         if (illust.getPage_count() == 1) {
             return illust.getImage_urls();
@@ -366,8 +380,21 @@ public class IllustDownload {
                 // 多图但无 meta_pages(精简/网页来源)→ 降级到封面 image_urls,避免 NPE(issue #569)
                 return illust.getImage_urls();
             }
-            return mp.get(index).getImage_urls();
+            MetaPage page = mp.get(index);
+            return page != null && page.getImage_urls() != null
+                    ? page.getImage_urls()
+                    : illust.getImage_urls();
         }
+    }
+
+    @Nullable
+    private static String firstUsableUrl(String... candidates) {
+        for (String candidate : candidates) {
+            if (candidate != null && !candidate.trim().isEmpty()) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     public static String getShowUrl(Illust illust, int index) {

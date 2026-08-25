@@ -480,6 +480,21 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         holder.baseBind.reload.setVisibility(View.GONE);
         holder.baseBind.reload.setOnClickListener(v -> loadIllust(holder, position, changeSize));
 
+        // Restricted/deleted or web-derived records can legitimately have no usable image URL.
+        // Both V2's CollapsibleIllustAdapter and V3 delegate here; never dereference the nullable
+        // result (the old lastIndexOf call crashed both detail implementations). Keep the page
+        // alive and expose the existing retry affordance in case a later full-detail refresh fills
+        // the URLs.
+        if (targetUrl == null) {
+            IllegalStateException error = new IllegalStateException(
+                    "No usable image URL for illust=" + allIllust.getId() + ", page=" + position);
+            holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+            holder.baseBind.reload.setVisibility(View.VISIBLE);
+            Timber.w(error, "[IllustAdapter] skip image bind: all URL resolutions are missing");
+            reportPageStatus(position, new TaskStatus.Error(error));
+            return;
+        }
+
         holder.baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
         holder.baseBind.progressLayout.donutProgress.setProgress(0);
 
