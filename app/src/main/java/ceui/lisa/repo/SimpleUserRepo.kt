@@ -3,16 +3,15 @@ package ceui.lisa.repo
 import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListSimpleUser
-import io.reactivex.Observable
 
 class SimpleUserRepo(private val illustID: Int) : RemoteRepo<ListSimpleUser>() {
 
-    override fun initApi(): Observable<ListSimpleUser> {
-        return Retro.getAppApi().getUsersWhoLikeThisIllust(illustID)
+    override suspend fun initApi(): ListSimpleUser {
+        return Retro.getAppApiSuspend().getUsersWhoLikeThisIllust(illustID)
     }
 
-    override fun initNextApi(): Observable<ListSimpleUser> {
-        return Retro.getAppApi().getNextSimpleUser(nextUrl)
+    override suspend fun initNextApi(): ListSimpleUser {
+        return Retro.getAppApiSuspend().getNextSimpleUser(nextUrl)
     }
 }
 
@@ -25,11 +24,11 @@ class SimpleUserRepo(private val illustID: Int) : RemoteRepo<ListSimpleUser>() {
  */
 class NovelBookmarkUserRepo(private val novelID: Long) : RemoteRepo<ListSimpleUser>() {
 
-    override fun initApi(): Observable<ListSimpleUser> {
-        return Retro.getAppApi().getUsersWhoLikeThisNovel(novelID)
+    override suspend fun initApi(): ListSimpleUser {
+        return Retro.getAppApiSuspend().getUsersWhoLikeThisNovel(novelID)
     }
 
-    override fun initNextApi(): Observable<ListSimpleUser> {
-        return Retro.getAppApi().getNextSimpleUser(nextUrl)
+    override suspend fun initNextApi(): ListSimpleUser {
+        return Retro.getAppApiSuspend().getNextSimpleUser(nextUrl)
     }
 }
