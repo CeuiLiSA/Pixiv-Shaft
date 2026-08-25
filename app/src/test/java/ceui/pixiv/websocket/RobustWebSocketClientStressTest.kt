@@ -100,10 +100,24 @@ class RobustWebSocketClientStressTest {
         pollMs: Long = 25,
         condition: () -> Boolean,
     ) {
-        val deadline = System.currentTimeMillis() + timeoutMs
+        val deadline = System.nanoTime() + timeoutMs * 1_000_000L
         while (!condition()) {
-            if (System.currentTimeMillis() > deadline) error("waitFor timed out after ${timeoutMs}ms")
+            if (System.nanoTime() > deadline) error("waitFor timed out after ${timeoutMs}ms")
             delay(pollMs)
+        }
+    }
+
+    /**
+     * Suspend until the server accepts its next WebSocket upgrade. Drains
+     * [TestWebSocketServer.serverEvents] (an unbounded channel), so unlike
+     * polling [RobustWebSocketClient.state] it can never miss a transition —
+     * a reconnect that completes faster than a poll interval is still seen.
+     */
+    private suspend fun awaitServerOpen(timeoutMs: Long = 10_000) {
+        withTimeout(timeoutMs) {
+            while (true) {
+                if (server.serverEvents.receive() is TestWebSocketServer.ServerEvent.Open) return@withTimeout
+            }
         }
     }
 
@@ -244,33 +258,42 @@ class RobustWebSocketClientStressTest {
         )
         try {
             // Don't connect — pile up the burst, then connect to drain.
-            // Note on pre-fetch: the consumer is parked in receive() before
-            // any send. The very first send (seq-0) is rendezvous'd directly
-            // into the consumer's local variable (held in deliver() while
-            // waiting for Connected). The next [bufferSize] sends fill the
-            // channel, and subsequent sends drop the oldest *buffered* item.
-            // Net result: bufferSize + 1 messages survive — seq-0 plus the
-            // newest bufferSize.
+            // Note on pre-fetch: the consumer coroutine is launched on
+            // Dispatchers.IO at construction. *If* it has already parked in
+            // receive() by the time the burst starts, the very first send
+            // (seq-0) is rendezvous'd straight into its local variable (held
+            // in deliver() while waiting for Connected) and survives on top
+            // of the buffer. If the IO thread hasn't scheduled it yet, seq-0
+            // is just another evicted message. Both are correct DropOldest
+            // behaviour, so the assertions accept either — asserting exactly
+            // bufferSize+1 made the test a bet on dispatcher scheduling.
             for (i in 0 until burst) {
                 assertTrue(client.send("seq-$i"))
             }
             client.connect()
             waitFor(timeoutMs = 5_000) { client.state.value is WebSocketState.Connected }
             val fake = fakeFactory.sockets.single()
-            waitFor(timeoutMs = 5_000) { fake.sentText.size >= bufferSize + 1 }
-            // Tiny settle window so any in-flight extra send (there should
-            // be none) has a chance to surface before we assert the count.
-            delay(50)
+            waitFor(timeoutMs = 5_000) { fake.sentText.size >= bufferSize }
+            // Settle window so the optional pre-fetched seq-0 (which is
+            // always delivered first, before the buffer) and any in-flight
+            // extra send has a chance to surface before we assert the count.
+            delay(100)
 
             synchronized(fake.sentText) {
                 val received = fake.sentText.toList()
                 val n = received.size
-                assertEquals("expected exactly bufferSize+1 surviving messages", bufferSize + 1, n)
-                assertEquals("seq-0", received.first())
+                assertTrue(
+                    "expected bufferSize or bufferSize+1 surviving messages, got $n",
+                    n == bufferSize || n == bufferSize + 1,
+                )
+                val prefetched = n - bufferSize
+                if (prefetched == 1) {
+                    assertEquals("seq-0", received.first())
+                }
                 // The remaining bufferSize messages must be the newest ones, in order.
-                for (i in 1 until n) {
-                    val expectedSeq = burst - bufferSize + (i - 1)
-                    assertEquals("seq-$expectedSeq", received[i])
+                for (i in prefetched until n) {
+                    val expectedSeq = burst - bufferSize + (i - prefetched)
+                    assertEquals("position $i", "seq-$expectedSeq", received[i])
                 }
             }
         } finally {
@@ -310,19 +333,26 @@ class RobustWebSocketClientStressTest {
             )
             try {
                 client.connect()
+                awaitServerOpen()
                 waitFor(timeoutMs = 5_000) { client.state.value is WebSocketState.Connected }
 
                 // Drive each kill round explicitly: send a marker, wait for
                 // the reconnect to complete, then continue. This avoids the
                 // race where producer outpaces server-side close.
+                //
+                // Progress is observed on the *server* side: each round is
+                // done once the server has accepted a fresh upgrade. Polling
+                // the client for the transient `!Connected` state is a race —
+                // with a 30 ms backoff on localhost the whole
+                // Connected → Reconnecting → Connected trip can fit inside a
+                // single poll interval, the poll misses it, and the test then
+                // waits 10 s for a close that never comes.
                 repeat(rounds) { round ->
                     client.send("ping-round-$round")
-                    // The server's onMessage will fire close() right after
-                    // recording this message. We expect the client to leave
-                    // Connected (Reconnecting) and come back to Connected.
-                    waitFor(timeoutMs = 10_000) {
-                        client.state.value !is WebSocketState.Connected
-                    }
+                    // The server's onMessage fires close() right after
+                    // recording this message; the client must reconnect and
+                    // the server must see the next upgrade.
+                    awaitServerOpen()
                     waitFor(timeoutMs = 10_000) {
                         client.state.value is WebSocketState.Connected
                     }

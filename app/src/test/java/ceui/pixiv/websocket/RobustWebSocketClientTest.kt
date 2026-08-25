@@ -586,27 +586,40 @@ class RobustWebSocketClientTest {
         )
         try {
             // Don't connect — fill buffer up past capacity. The consumer
-            // coroutine is parked in receive(); the very FIRST send is
-            // handed off as a rendezvous and held inside the consumer's
-            // deliver() loop (it's then blocked waiting for Connected).
-            // The next [outgoingBufferSize] sends fill the channel buffer.
-            // Subsequent sends drop the oldest *buffered* item.
+            // coroutine is launched on Dispatchers.IO at construction. *If*
+            // it is already parked in receive() when the sends start, the
+            // very FIRST send is handed off as a rendezvous and held inside
+            // the consumer's deliver() loop (blocked waiting for Connected);
+            // if the IO thread hasn't scheduled it yet, m1 is simply the
+            // first message evicted. Either way the next
+            // [outgoingBufferSize] sends fill the channel buffer and later
+            // sends drop the oldest *buffered* item.
             //
             // So the 10 sends end up surviving as:
-            //   - m1  : in transit inside the consumer (rendezvous'd)
-            //   - m7..m10: latest 4 in the channel buffer (m2..m6 dropped)
+            //   - m1      : optional, in transit inside the consumer
+            //   - m7..m10 : latest 4 in the channel buffer (m2..m6 dropped)
+            // Asserting exactly 5 was a bet on dispatcher scheduling that
+            // lost on a loaded machine.
             for (i in 1..10) assertTrue(client.send("m$i"))
 
             client.connect()
             client.awaitConnected()
 
             // The fake records each successful send into [sentText]. Poll
-            // until we have all 5 — no TCP/handshake/echo, so this lands
-            // in tens of ms even on a heavily-loaded CI runner.
+            // until the 4 buffered survivors have landed — no
+            // TCP/handshake/echo, so this lands in tens of ms even on a
+            // heavily-loaded CI runner — then give the optional pre-fetched
+            // m1 (always delivered first) a settle window.
             val fake = fakeFactory.sockets.single()
-            awaitFakeSends(fake, expected = 5)
+            awaitFakeSends(fake, expected = 4)
+            delay(100)
 
-            assertEquals(listOf("m1", "m7", "m8", "m9", "m10"), fake.sentText.toList())
+            val sent = fake.sentText.toList()
+            val expectedTail = listOf("m7", "m8", "m9", "m10")
+            assertTrue(
+                "got $sent",
+                sent == expectedTail || sent == listOf("m1") + expectedTail,
+            )
         } finally {
             client.close()
             fakeFactory.close()

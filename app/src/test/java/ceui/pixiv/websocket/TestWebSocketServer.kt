@@ -61,7 +61,12 @@ class TestWebSocketServer {
         // can still be in flight when @After reaches this method and make the
         // test worker wait for the server timeout. Tests are already over at
         // this point: force-cancel every remaining peer before shutting down.
-        activeSockets.toList().forEach { socket ->
+        // Not Kotlin's toList(): on a ConcurrentLinkedQueue it reads size()
+        // then iterates, and a peer removing itself in onClosed/onFailure
+        // between the two throws NoSuchElementException out of @After.
+        // toArray() is a single consistent snapshot.
+        activeSockets.toArray().forEach { socket ->
+            socket as WebSocket
             try {
                 socket.cancel()
             } catch (_: RuntimeException) {
@@ -177,6 +182,6 @@ class TestWebSocketServer {
 
     /** Force-close every active server socket with [code]/[reason]. */
     fun closeAll(code: Int = 1011, reason: String = "test forced close") {
-        activeSockets.toList().forEach { it.close(code, reason) }
+        activeSockets.toArray().forEach { (it as WebSocket).close(code, reason) }
     }
 }
