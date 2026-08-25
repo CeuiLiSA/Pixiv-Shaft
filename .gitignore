@@ -12,7 +12,7 @@
 /app/github/
 /app/google/
 .idea/misc.xml
-/.kotlin3rdparty/
+3rdparty/
 *.zip
 ncnn.zip
 .kotlin/
