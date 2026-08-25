@@ -1,5 +1,6 @@
 package ceui.pixiv.websocket
 
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -162,8 +163,8 @@ class WebSocketManager(
      * is caught at the call site instead of degrading into a silent
      * "connection never comes back" zombie.
      */
-    @Volatile
-    private var isShutdown: Boolean = false
+    private val shutdownFlag = AtomicBoolean(false)
+    private val isShutdown: Boolean get() = shutdownFlag.get()
 
     /**
      * Start observing session state. Call once from
@@ -303,8 +304,9 @@ class WebSocketManager(
      * Idempotent: calling [shutdown] more than once is a no-op.
      */
     fun shutdown() {
-        if (isShutdown) return
-        isShutdown = true
+        // compareAndSet, not check-then-set: concurrent shutdown() callers
+        // must not both slip past the guard and double-close the client.
+        if (!shutdownFlag.compareAndSet(false, true)) return
         deactivate()
         scope.cancel()
     }
