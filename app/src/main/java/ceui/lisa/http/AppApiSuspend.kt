@@ -321,13 +321,13 @@ interface AppApiSuspend {
     @GET("v1/user/bookmark-tags/illust")
     suspend fun getAllIllustBookmarkTags(
         @Query("user_id") userId: Int,
-        @Query("restrict") restrict: String,
+        @Query("restrict") restrict: String?,
     ): ListTag
 
     @GET("v1/user/bookmark-tags/novel")
     suspend fun getAllNovelBookmarkTags(
         @Query("user_id") userId: Int,
-        @Query("restrict") restrict: String,
+        @Query("restrict") restrict: String?,
     ): ListTag
 
     @GET("v2/illust/bookmark/detail")
