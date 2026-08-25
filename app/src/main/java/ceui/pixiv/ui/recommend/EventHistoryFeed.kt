@@ -45,11 +45,11 @@ data class EventHistoryFeedItem(val item: ShaftApiV2.EventHistoryItem) : FeedIte
 
 /**
  * FeedSource：调 shaft-api-v2 /events/history 拉当前 client_id 的事件流（id DESC，游标 = next_before）。
- * client_id 还没生成（EventReporter.init 未跑完）时返回空页 → 框架显示 empty 占位，不打服务端。
+ * client_id 还没生成（EventReporter.start 未跑完）时返回空页 → 框架显示 empty 占位，不打服务端。
  */
-class EventHistoryFeedSource : FeedSource<Long> {
+class EventHistoryFeedSource(private val eventReporter: EventReporter) : FeedSource<Long> {
     override suspend fun load(cursor: Long?): FeedPage<Long> {
-        val cid = EventReporter.currentClientId()
+        val cid = eventReporter.currentClientId()
         if (cid.isEmpty()) return FeedPage(emptyList(), null)
         val resp = ShaftApiV2Client.service.eventsHistory(
             clientId = cid, limit = 50, eventType = null, before = cursor,

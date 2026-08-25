@@ -13,7 +13,7 @@ import ceui.lisa.R
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
-import ceui.pixiv.events.EventReporter
+import ceui.loxia.appServices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -61,10 +61,10 @@ class BulkDownloadDebugFragment : Fragment(R.layout.fragment_bulk_download_debug
 
         // 整行点击都复制 —— 64 字符 hex 太长,用户单独点 TextView 选中再复制太繁琐。
         // 跟 FragmentEventHistory 的 action_copy_client_id 一致,toast 只回显前 12 位
-        // 让用户确认是哪个 client。EventReporter.init 没跑完时 cid 是空串,这时给
+        // 让用户确认是哪个 client。EventReporter.start 没跑完时 cid 是空串,这时给
         // not_ready toast 而不是复制空串。
         view.findViewById<LinearLayout>(R.id.fingerprintRow).setOnClickListener {
-            val cid = EventReporter.currentClientId()
+            val cid = requireContext().appServices().eventReporter.currentClientId()
             if (cid.isEmpty()) {
                 Common.showToast(getString(R.string.event_history_client_id_not_ready))
             } else {
@@ -90,7 +90,7 @@ class BulkDownloadDebugFragment : Fragment(R.layout.fragment_bulk_download_debug
     }
 
     private fun refreshFingerprint() {
-        val cid = EventReporter.currentClientId()
+        val cid = requireContext().appServices().eventReporter.currentClientId()
         fingerprintText.text = cid.ifEmpty { getString(R.string.event_history_client_id_not_ready) }
     }
 

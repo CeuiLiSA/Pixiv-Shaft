@@ -149,9 +149,11 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     // 统一路由到新的 V3 下载管理页（默认进队列 tab）
                     return new ceui.pixiv.ui.download.DownloadManagerV3Fragment();
                 case "批量选择":
-                    return new ceui.pixiv.ui.bulk.BulkSelectV3Fragment();
+                    return ceui.pixiv.ui.bulk.BulkSelectV3Fragment.newInstance(
+                            intent.getStringExtra(ceui.pixiv.ui.bulk.BulkSelectHandoff.ARG_HANDOFF_KEY));
                 case "小说批量选择":
-                    return new ceui.pixiv.ui.bulk.NovelBulkSelectV3Fragment();
+                    return ceui.pixiv.ui.bulk.NovelBulkSelectV3Fragment.newInstance(
+                            intent.getStringExtra(ceui.pixiv.ui.bulk.BulkSelectHandoff.ARG_HANDOFF_KEY));
                 case "画廊":
                     // feeds 框架版画廊，替代 legacy FragmentWalkThrough
                     return new ceui.pixiv.ui.home.WalkthroughFeedFragment();

@@ -221,7 +221,8 @@ class Nana7miSearchTelemetryHandlerTest {
 
     @Test
     fun `tracking never changes source success or failure when telemetry is unavailable`() {
-        val flow = Nana7miSearchTelemetry.start(
+        val telemetry = Nana7miSearchTelemetry(lazy { error("no Context needed before start()") })
+        val flow = telemetry.beginFlow(
             requesterUid = 31660292L,
             contentType = Nana7miSearchTelemetry.ContentType.ILLUST,
             query = "初音ミク",

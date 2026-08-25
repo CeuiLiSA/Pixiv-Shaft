@@ -5,10 +5,10 @@ import androidx.annotation.WorkerThread
 import ceui.lisa.core.Manager
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
-import ceui.pixiv.ui.bulk.QueueDownloadManager
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.File
+import ceui.loxia.appServices
 
 /**
  * 一键清理批量下载相关的持久化数据,把下载管理恢复成"第一次打开 app"的状态。
@@ -69,7 +69,8 @@ object BulkDownloadCacheCleaner {
         //    Manager.clearAll() = stopAll() + deleteAllDownloading() + content.clear()
         //    + invalidate(),一并把内存里 DownloadItem 也清了(否则下载中 tab 残留
         //    "幽灵任务"直到下次切 tab)。
-        runCatching { QueueDownloadManager.pause() }
+        val queue = context.appServices().queueDownloadManager
+        runCatching { queue.pause() }
             .onFailure { Timber.tag(TAG).w(it, "QueueDownloadManager.pause failed") }
         runCatching { Manager.get().clearAll() }
             .onFailure { Timber.tag(TAG).w(it, "Manager.clearAll failed") }
@@ -104,7 +105,7 @@ object BulkDownloadCacheCleaner {
 
         // 5) 通知 UI —— 已完成 / 队列 tab 当前打开着的话立刻翻到空状态
         runCatching { ManagerReactive.pokeDoneTable() }
-        runCatching { QueueDownloadManager.queueListInvalidations.tryEmit(Unit) }
+        runCatching { queue.queueListInvalidations.tryEmit(Unit) }
 
         Timber.tag(TAG).i("wipe() done")
     }

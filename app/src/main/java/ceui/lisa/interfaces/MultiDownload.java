@@ -7,7 +7,8 @@ import java.util.List;
 
 import ceui.lisa.activities.TemplateActivity;
 import ceui.loxia.Illust;
-import ceui.pixiv.ui.bulk.BulkSelectStorage;
+import ceui.pixiv.ui.bulk.BulkSelectHandoff;
+import ceui.pixiv.ui.bulk.BulkSelectHandoffKt;
 
 /**
  * 旧入口（列表长按 / popup "批量下载"）。
@@ -22,9 +23,10 @@ public interface MultiDownload {
     default void startDownload() {
         List<Illust> list = getIllustList();
         if (list == null || list.isEmpty()) return;
-        BulkSelectStorage.INSTANCE.put(list);
+        String key = BulkSelectHandoffKt.IllustBulkSelectHandoff.put(list);
         Intent intent = new Intent(getContext(), TemplateActivity.class);
         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "批量选择");
+        intent.putExtra(BulkSelectHandoff.ARG_HANDOFF_KEY, key);
         getContext().startActivity(intent);
     }
 }

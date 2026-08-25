@@ -22,7 +22,8 @@ import ceui.lisa.utils.DensityUtil;
  */
 
 public class MultiImageView extends LinearLayout {
-    public static int MAX_WIDTH = 0;
+    /** 本 view 首次测量得到的可用宽度；以前是 static，被所有实例共享、且只按第一个实例的宽度算。 */
+    private int maxWidth = 0;
 
     // 照片的Url列表
     private List<GlideUrl> imagesList;
@@ -60,13 +61,13 @@ public class MultiImageView extends LinearLayout {
         }
         imagesList = lists;
 
-        if (MAX_WIDTH > 0) {
+        if (maxWidth > 0) {
             if (lists.size() == 2 || lists.size() == 4) {
-                pxMoreWandH = (MAX_WIDTH - pxImagePadding) / 2;
+                pxMoreWandH = (maxWidth - pxImagePadding) / 2;
             } else {
-                pxMoreWandH = (MAX_WIDTH - pxImagePadding * 2) / 3; //解决右侧图片和内容对不齐问题
+                pxMoreWandH = (maxWidth - pxImagePadding * 2) / 3; //解决右侧图片和内容对不齐问题
             }
-            pxOneMaxWandH = MAX_WIDTH ;  // 一张图的时候，图片宽度
+            pxOneMaxWandH = maxWidth ;  // 一张图的时候，图片宽度
             initImageLayoutParams();
         }
 
@@ -75,10 +76,10 @@ public class MultiImageView extends LinearLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (MAX_WIDTH == 0) {
+        if (maxWidth == 0) {
             int width = measureWidth(widthMeasureSpec);
             if (width > 0) {
-                MAX_WIDTH = width - getPaddingLeft() - getPaddingRight();
+                maxWidth = width - getPaddingLeft() - getPaddingRight();
                 if (imagesList != null && imagesList.size() > 0) {
                     setList(imagesList);
                 }
@@ -131,7 +132,7 @@ public class MultiImageView extends LinearLayout {
     private void initView() {
         this.setOrientation(VERTICAL);
         this.removeAllViews();
-        if (MAX_WIDTH == 0) {
+        if (maxWidth == 0) {
             //为了触发onMeasure()来测量MultiImageView的最大宽度，MultiImageView的宽设置为match_parent
             addView(new View(getContext()));
             return;

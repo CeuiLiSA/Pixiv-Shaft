@@ -37,6 +37,7 @@ import ceui.lisa.database.DownloadEntity
 import ceui.lisa.databinding.ViewV3FabBarBinding
 import ceui.lisa.download.FileCreator
 import ceui.loxia.ObjectPool
+import ceui.loxia.appServices
 import ceui.pixiv.ui.detail.DownloadFab
 import ceui.pixiv.ui.detail.V3FabBarController
 import ceui.pixiv.utils.setOnClick
@@ -49,7 +50,6 @@ import ceui.pixiv.ui.translate.ComicTextDetectorModel
 import ceui.pixiv.ui.translate.ComicTextDetectorModelManager
 import ceui.pixiv.ui.translate.MangaOcrModel
 import ceui.pixiv.ui.translate.MangaOcrModelManager
-import ceui.pixiv.ui.translate.MangaBatchTranslateCenter
 import ceui.pixiv.ui.translate.MangaTranslatePrepSheet
 import ceui.pixiv.ui.upscale.BackgroundRemover
 import ceui.pixiv.ui.upscale.ModelPickerDialog
@@ -830,7 +830,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             sheet.show(supportFragmentManager, MangaTranslatePrepSheet.TAG)
             return
         }
-        if (translationViewModel.running.value == true || MangaBatchTranslateCenter.isRunning) {
+        if (translationViewModel.running.value == true || appServices().mangaBatchTranslateCenter.isRunning) {
             Common.showToast(R.string.string_ai_translate_in_progress)
             return
         }
@@ -844,13 +844,16 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 Common.showToast(R.string.string_ai_ocr_failed)
                 return@launch
             }
-            translationViewModel.start(applicationContext, file, pageIndex, ocrModel, ctdModel)
+            // 平板双栏另一个详情页正跑单页翻译时,begin 会失败:进程只允许一条单页流水线。
+            if (!translationViewModel.start(file, pageIndex, ocrModel, ctdModel)) {
+                Common.showToast(R.string.string_ai_translate_in_progress)
+            }
         }
     }
 
     /**
      * AI 菜单「翻译整部」入口(issue #925):模型就绪检查与单页共用同一 prep sheet,通过后把
-     * 每一页的 original(缺则 large)url 按页序交给 app 级 [MangaBatchTranslateCenter] 整批跑。
+     * 每一页的 original(缺则 large)url 按页序交给进程级 [ceui.pixiv.ui.translate.MangaBatchTranslateCenter] 整批跑。
      * 任务不跟本页生命周期走:进度在每个页面都挂着的悬浮小窗里,退出看图页也继续,
      * 回来译图都在(本页 Fragment 观察的就是中心里这部作品的桶)。
      */
@@ -866,7 +869,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             sheet.show(supportFragmentManager, MangaTranslatePrepSheet.TAG)
             return
         }
-        if (translationViewModel.running.value == true || MangaBatchTranslateCenter.isRunning) {
+        if (translationViewModel.running.value == true || appServices().mangaBatchTranslateCenter.isRunning) {
             Common.showToast(R.string.string_ai_translate_in_progress)
             return
         }
@@ -874,7 +877,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
                 ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
         }
-        if (!MangaBatchTranslateCenter.start(applicationContext, illust, urls, ocrModel, ctdModel)) {
+        if (!appServices().mangaBatchTranslateCenter.start(illust, urls, ocrModel, ctdModel)) {
             Common.showToast(R.string.string_ai_translate_in_progress)
         }
     }
@@ -896,7 +899,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             sheet.show(supportFragmentManager, MangaTranslatePrepSheet.TAG)
             return
         }
-        if (translationViewModel.running.value == true || MangaBatchTranslateCenter.isRunning) {
+        if (translationViewModel.running.value == true || appServices().mangaBatchTranslateCenter.isRunning) {
             Common.showToast(R.string.string_ai_translate_in_progress)
             return
         }

@@ -1,9 +1,9 @@
 package ceui.pixiv.ui.task
 
+import android.content.Context
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
 import ceui.lisa.models.NovelSeriesItem
 import ceui.loxia.Client
@@ -32,7 +32,10 @@ import timber.log.Timber
  * 输出格式由调用方传入的 [ExportFormat] 决定（TXT/MD/PDF/EPUB），实际落盘
  * 走 [MergedNovelWriters]。抓章节失败不中断整个批次，仅计数。
  */
-object CrossSeriesDownloadTask {
+class CrossSeriesDownloadTask(context: Context) {
+
+    /** 只留 applicationContext：写文件 / 取字符串都在 lifecycleScope 协程里跑，不能拿 Activity。 */
+    private val ctx: Context = context.applicationContext
 
     enum class Mode {
         /** 选中的系列，每个各自合并为一个文件。 */
@@ -61,7 +64,6 @@ object CrossSeriesDownloadTask {
             onFinished(0, emptyList())
             return
         }
-        val ctx = Shaft.getContext()
         activity.lifecycleScope.launch {
             val failures = mutableListOf<SeriesFailure>()
             var successCount = 0
@@ -126,7 +128,6 @@ object CrossSeriesDownloadTask {
             onFinished(false, 0)
             return
         }
-        val ctx = Shaft.getContext()
         activity.lifecycleScope.launch {
             try {
                 val chapters = mutableListOf<MergedChapter>()
@@ -237,7 +238,6 @@ object CrossSeriesDownloadTask {
         seriesItem: NovelSeriesItem,
         format: ExportFormat,
     ) {
-        val ctx = Shaft.getContext()
         val seriesId = seriesItem.id.toLong()
         // 先拉一次 getNovelSeries 拿 detail（带 user / caption 等），然后翻页。
         val initial = Client.appApi.getNovelSeries(seriesId)

@@ -63,6 +63,7 @@ import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.view.DrawerLayoutViewPager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import ceui.loxia.Nana7miPlan;
+import ceui.loxia.ServicesProvider;
 import ceui.pixiv.config.RemoteAppConfig;
 import ceui.pixiv.push.InAppPushCenter;
 import ceui.pixiv.session.SessionManager;
@@ -71,7 +72,7 @@ import ceui.pixiv.ui.navigation.DrawerIconCatalog;
 /**
  * 主页
  */
-public class MainActivity extends BaseActivity<ActivityCoverBinding> {
+public class MainActivity extends BaseActivity<ActivityCoverBinding> implements ColdStartSplashHost {
 
     public static final String[] ALL_SELECT_WAY = new String[]{"图库选图", "文件管理器选图"};
     private long mExitTime;
@@ -86,9 +87,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
     /**
      * 开屏动画安全兜底超时：万一首页推荐插画 tab 没能按预期跑到（异常 / 未来改了默认
      * tab），也不能让开屏永久卡住——超时后强制放行，最坏情况退化回「开屏消失后闪一帧
-     * 常规 loading」，而不是白屏假死。ColdStartSplashGate 本身没有超时保护，靠这里兜底。
+     * 常规 loading」，而不是白屏假死。splashResolved 本身没有超时保护，靠这里兜底。
      */
     private static final long SPLASH_SAFETY_TIMEOUT_MS = 1200L;
+
+    /** 开屏是否已放行。实例字段：每个 MainActivity 实例天然从 false 起，不需要 reset。 */
+    private volatile boolean splashResolved = false;
 
     private final android.content.BroadcastReceiver profileReadyReceiver = new android.content.BroadcastReceiver() {
         @Override
@@ -100,12 +104,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
 
     /**
      * installSplashScreen 必须在 super.onCreate 之前调用（AndroidX SplashScreen 契约）。
-     * keepOnScreenCondition 只等 ColdStartSplashGate（首页推荐插画 tab 的本地优先裁决），
+     * keepOnScreenCondition 只等 splashResolved（首页推荐插画 tab 经 ColdStartSplashHost 回调的本地优先裁决），
      * 不等网络；安全超时兜底见 SPLASH_SAFETY_TIMEOUT_MS。
      *
      * 只有这次冷启动真的会落在首页推荐插画 tab（FragmentLeft，位置随 TAB 顺序设置变化）时，
      * 才值得等：用户设置了「启动到最近使用的页」或把默认 tab 指到别处时，
-     * RecmdIllustFeedFragment(插画) 根本不会被创建，ColdStartSplashGate 永远等不到
+     * RecmdIllustFeedFragment(插画) 根本不会被创建，splashResolved 永远等不到
      * Fragment 那边的信号，只能靠安全超时兜底——那样每次冷启动都白等满 1200ms，
      * 比完全不做这个功能还差。落在其它 tab 时直接放行，不占这些用户便宜。
      * getNavigationInitPosition() 依赖 initView() 建好的 baseFragments，必须放在
@@ -114,16 +118,20 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
      */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        ColdStartSplashGate.reset();
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
-        splashScreen.setKeepOnScreenCondition(() -> !ColdStartSplashGate.isResolved());
+        splashScreen.setKeepOnScreenCondition(() -> !splashResolved);
         super.onCreate(savedInstanceState);
         if (baseFragments == null || !(baseFragments[getNavigationInitPosition()] instanceof FragmentLeft)) {
-            ColdStartSplashGate.markResolved();
+            markSplashResolved();
         } else {
             new Handler(Looper.getMainLooper())
-                    .postDelayed(ColdStartSplashGate::markResolved, SPLASH_SAFETY_TIMEOUT_MS);
+                    .postDelayed(this::markSplashResolved, SPLASH_SAFETY_TIMEOUT_MS);
         }
+    }
+
+    @Override
+    public void markSplashResolved() {
+        splashResolved = true;
     }
 
     @Override
@@ -161,10 +169,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         SessionManager.INSTANCE.getLoggedInAccount().observe(this, account -> initDrawerHeader());
         // 订阅档位是冷启动异步拉回来的,落地时机比账号晚,所以单独观察一次;不然徽章要等
         // 下一次冷启动才出现,首装的人则永远看不到。
-        RemoteAppConfig.INSTANCE.getNana7miPlanLive().observe(this, plan -> bindPlanBadge());
+        RemoteAppConfig remoteAppConfig = ((ServicesProvider) getApplication()).getRemoteAppConfig();
+        remoteAppConfig.getNana7miPlanLive().observe(this, plan -> bindPlanBadge());
         // 应用内推送(付费用户公告)也是这次冷启动配置捎回来的,同样异步落地。只弹一次、
         // 弹过就回执,去重和让路(评分框)都在 InAppPushCenter 里。
-        RemoteAppConfig.INSTANCE.getInAppPushLive().observe(this,
+        remoteAppConfig.getInAppPushLive().observe(this,
                 arrival -> InAppPushCenter.INSTANCE.onConfigArrived(this, arrival));
         baseBind.drawerHeader.setOnClickListener(v -> openMyUserPage());
         // 侧边栏头像单击进自己主页；长按仍是 R18 临时过滤开关
@@ -446,7 +455,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
         boolean isLite = ceui.lisa.BuildConfig.IS_LITE;
         boolean experimentalAllowed = !(isLite && !isDebugBuild);
 
-        ceui.pixiv.db.discovery.UserProfile profile = ceui.pixiv.db.discovery.ProfileManager.INSTANCE.cached();
+        ceui.pixiv.db.discovery.UserProfile profile = ((ServicesProvider) getApplication()).getProfileManager().cached();
         boolean discoveryReady = profile != null && profile.isReady();
         android.util.Log.d("Discovery/Gate", "buildDrawerMenu, discoveryReady=" + discoveryReady);
 
@@ -774,7 +783,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> {
             baseBind.userPlanBadge.setVisibility(View.GONE);
             return;
         }
-        Nana7miPlan plan = RemoteAppConfig.INSTANCE.getNana7miPlan();
+        Nana7miPlan plan = ((ServicesProvider) getApplication()).getRemoteAppConfig().getNana7miPlan();
         String label = plan == null ? null : plan.getBadgeLabel();
         if (label == null) {
             baseBind.userPlanBadge.setVisibility(View.GONE);

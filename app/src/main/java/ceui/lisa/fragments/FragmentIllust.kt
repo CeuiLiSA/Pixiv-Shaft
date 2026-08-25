@@ -55,6 +55,7 @@ import ceui.lisa.models.ObjectSpec
 import ceui.lisa.models.TagsBean
 import ceui.lisa.notification.CallBackReceiver
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.SystemBarMetrics
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
@@ -997,7 +998,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     override fun vertical() {
-        baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0)
+        baseBind.toolbar.setPadding(0, SystemBarMetrics.statusBarHeight(requireContext()), 0, 0)
     }
 
     companion object {

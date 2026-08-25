@@ -2,7 +2,6 @@ package ceui.pixiv.ui.download
 
 import androidx.lifecycle.AndroidViewModel
 import android.app.Application
-import ceui.lisa.activities.Shaft
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
@@ -20,6 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import ceui.loxia.appServices
 
 /**
  * 三个 tab 共享的 stats 数据源。
@@ -38,7 +38,7 @@ import kotlinx.coroutines.flow.map
 class DownloadManagerSharedViewModel(app: Application) : AndroidViewModel(app) {
 
     private val queueDao: DownloadQueueDao by lazy {
-        AppDatabase.getAppDatabase(Shaft.getContext()).downloadQueueDao()
+        AppDatabase.getAppDatabase(app).downloadQueueDao()
     }
 
     data class Snapshot(
@@ -63,7 +63,7 @@ class DownloadManagerSharedViewModel(app: Application) : AndroidViewModel(app) {
      * 新订阅立刻拿一次初始 tick。
      */
     private val queueCountsFlow: Flow<QueueCounts> =
-        QueueDownloadManager.queueListInvalidations
+        app.appServices().queueDownloadManager.queueListInvalidations
             .map {
                 QueueCounts(
                     pending = runCatching { queueDao.countByStatus(QueueStatus.PENDING) }.getOrDefault(0),

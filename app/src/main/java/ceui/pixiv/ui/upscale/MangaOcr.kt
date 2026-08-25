@@ -13,7 +13,7 @@ import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.pixiv.ui.translate.ComicTextDetector
 import ceui.pixiv.ui.translate.DetectionBox
-import ceui.pixiv.ui.translate.MangaOcrRecognizer
+import ceui.pixiv.ui.translate.MangaTranslateModels
 import ceui.pixiv.ui.translate.TextMask
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -120,23 +120,24 @@ object MangaOcr {
      * Recognize text in a manga page.
      *
      * Pipeline: comic-text-detector (气泡级 AABB) → manga-ocr (ViT+GPT2) 重识别。
-     * 调用前必须 [MangaOcrRecognizer.loadModel] 和 [ComicTextDetector.loadModel],否则返回 null。
+     * 调用前必须把 [models] 加载好([MangaTranslateModels.ensureLoaded]),否则返回 null。
      *
      * Progress 阶段: "检测文本框" 0→0.3,"识别 i/N" 0.3→1.0。
      */
     suspend fun recognize(
         context: Context,
+        models: MangaTranslateModels,
         inputFile: File,
         onProgress: ((stage: String, fraction: Float) -> Unit)? = null
     ): MangaOcrResult? = withContext(Dispatchers.IO) {
         // 整段 OCR 是秒级阻塞工作,必须在这里逐段检查取消,否则页面销毁后
         // 气泡检测 + 逐框识别会整段跑完才返回,「工作流无法中断」就出在这一层
         coroutineContext.ensureActive()
-        if (!MangaOcrRecognizer.isLoaded) {
+        if (!models.ocr.isLoaded) {
             Timber.e("MangaOcr: manga-ocr model not loaded")
             return@withContext null
         }
-        if (!ComicTextDetector.isLoaded) {
+        if (!models.detector.isLoaded) {
             Timber.e("MangaOcr: comic-text-detector model not loaded")
             return@withContext null
         }
@@ -165,7 +166,7 @@ object MangaOcr {
             onProgress?.invoke(context.getString(R.string.string_ai_ocr_detecting), Float.NaN)
 
             coroutineContext.ensureActive()
-            val detResult = ComicTextDetector.detect(bitmap!!)
+            val detResult = models.detector.detect(bitmap!!)
             coroutineContext.ensureActive()
             val rawRegions = detResult.boxes.map { it.toOcrTextRegion() }
             Timber.d("MangaOcr: CTD returned ${rawRegions.size} regions, mask=${detResult.textMask?.let { "${it.width}x${it.height}" } ?: "null"}")
@@ -196,7 +197,7 @@ object MangaOcr {
                 var cropped: Bitmap? = null
                 try {
                     cropped = aabbCrop(bitmap!!, region)
-                    val result = MangaOcrRecognizer.recognize(cropped)
+                    val result = models.ocr.recognize(cropped)
                     val trimmed = result.text.trimEnd { it in TRAILING_NOISE_CHARS }
                     Timber.d(
                         "MangaOcr: → [${result.text}]" +

@@ -2,6 +2,7 @@ package ceui.pixiv.ui.download
 
 import android.app.Activity
 import android.content.Intent
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -24,12 +25,13 @@ import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.core.Manager
 import ceui.lisa.utils.Common
-import ceui.pixiv.ui.bulk.QueueDownloadManager
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import ceui.loxia.appServices
+import ceui.pixiv.ui.bulk.QueueDownloadManager
 
 /**
  * V3 设计哲学的下载管理页：单页面 3 tab 容器。
@@ -44,6 +46,18 @@ import kotlinx.coroutines.launch
  * 数字直接追加到 tab 文字后面，避免单独占一行。
  */
 class DownloadManagerV3Fragment : Fragment() {
+
+    /**
+     * 在 [onAttach] 取一次而不是每次 `requireContext()`:清空/重试这类操作跑在
+     * IO 协程里,阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
+     * 实例是应用级的,提前拿住没有泄漏问题。
+     */
+    private lateinit var queueDownloadManager: QueueDownloadManager
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        queueDownloadManager = context.appServices().queueDownloadManager
+    }
 
     private val sharedVm: DownloadManagerSharedViewModel by activityViewModels()
 
@@ -131,12 +145,12 @@ class DownloadManagerV3Fragment : Fragment() {
                 R.id.action_pause_toggle -> {
                     // 读当前 pausedFlow 决定方向:暂停态 → 继续;运行态 → 暂停。
                     // 不存第二份 UI 状态,跟 host 的 icon/title 联动用同一个 source of truth。
-                    if (QueueDownloadManager.isPaused()) {
+                    if (queueDownloadManager.isPaused()) {
                         Manager.get().startAll()
-                        QueueDownloadManager.resume()
+                        queueDownloadManager.resume()
                     } else {
                         Manager.get().stopAll()
-                        QueueDownloadManager.pause()
+                        queueDownloadManager.pause()
                     }
                     true
                 }
@@ -172,7 +186,7 @@ class DownloadManagerV3Fragment : Fragment() {
         // 实际暂停态错位)。distinctUntilChanged 隐含 (StateFlow 不会重发同值)。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                QueueDownloadManager.pausedFlow.collect { paused ->
+                queueDownloadManager.pausedFlow.collect { paused ->
                     if (paused) {
                         pauseToggleItem?.setIcon(R.drawable.ic_v3_resume_all_24)
                         pauseToggleItem?.setTitle(R.string.dlmgr_active_action_resume_all)

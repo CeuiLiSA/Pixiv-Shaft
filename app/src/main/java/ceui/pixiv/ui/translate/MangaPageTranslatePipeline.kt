@@ -19,7 +19,8 @@ import android.graphics.Bitmap
  * 一页漫画的自动翻译流水线:模型按需加载 → CTD+OCR → batch 翻译 → 擦字回填 → 落盘 PNG。
  *
  * 单页「翻译漫画」([ceui.lisa.activities.ImageTranslationViewModel])和整部批量
- * ([MangaBatchTranslateCenter])共用这一份;本对象不弹任何 toast、不持任何 UI 状态,
+ * ([MangaBatchTranslateCenter])共用这一份;本对象无状态(纯函数集合,所以是 object),
+ * 不弹任何 toast、不持任何 UI 状态,模型会话由调用方通过 [MangaTranslateModels] 传入,
  * 阶段进度通过 [onStage] 吐出,结局用 [Outcome] 返回,由调用方决定怎么提示用户。
  * 取消(CancellationException)原样上抛。
  */
@@ -50,6 +51,7 @@ object MangaPageTranslatePipeline {
      */
     suspend fun translatePage(
         app: Context,
+        models: MangaTranslateModels,
         imageFile: File,
         pageIndex: Int,
         ocrModel: MangaOcrModel,
@@ -58,19 +60,13 @@ object MangaPageTranslatePipeline {
         onRequestSent: () -> Unit = {},
     ): Outcome {
         // 1. 模型按需加载
-        if (!MangaOcrRecognizer.isLoaded || !ComicTextDetector.isLoaded) {
+        if (!models.isLoaded) {
             onStage(Stage(app.getString(R.string.string_ai_ocr_loading_model)))
-            val loaded = withContext(Dispatchers.IO) {
-                runCatching {
-                    MangaOcrRecognizer.loadModel(app, ocrModel)
-                    ComicTextDetector.loadModel(app, ctdModel)
-                }.onFailure { Timber.e(it, "loadModel failed") }.isSuccess
-            }
-            if (!loaded) return Outcome.ModelLoadFailed
+            if (!models.ensureLoaded(ocrModel, ctdModel)) return Outcome.ModelLoadFailed
         }
 
         // 2. OCR
-        val ocrResult = MangaOcr.recognize(app, imageFile) { stage, fraction ->
+        val ocrResult = MangaOcr.recognize(app, models, imageFile) { stage, fraction ->
             val pct = if (fraction.isNaN()) null else (fraction * 100).toInt().coerceIn(0, 100)
             onStage(Stage(stage, pct))
         } ?: return Outcome.OcrFailed

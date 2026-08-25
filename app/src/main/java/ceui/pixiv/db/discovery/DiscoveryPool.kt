@@ -1,5 +1,6 @@
 package ceui.pixiv.db.discovery
 
+import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.loxia.Illust
@@ -16,11 +17,24 @@ import java.util.Random
 import kotlin.math.ln
 import kotlin.math.pow
 
-object DiscoveryPool {
+/**
+ * 发现页候选池。进程级一份，由 [ceui.lisa.activities.Shaft] 构造、经
+ * [ceui.loxia.ServicesProvider.discoveryPool] 取用；构造只订阅画像变化，不做 IO。
+ */
+class DiscoveryPool(app: Context, private val profileManager: ProfileManager) {
 
-    private const val TAG = "Discovery/Pool"
-    private const val MAX_POOL_SIZE = 2000
-    private const val MAX_RECENT_IDS = 800
+    private val app: Context = app.applicationContext
+
+    companion object {
+        private const val TAG = "Discovery/Pool"
+        private const val MAX_POOL_SIZE = 2000
+        private const val MAX_RECENT_IDS = 800
+    }
+
+    init {
+        // 画像变了就用新画像给未展示的候选重新打分（收藏传 2s 防抖，重建传 0）。
+        profileManager.addOnProfileChanged { debounceMs -> rescorePool(debounceMs) }
+    }
 
     // 单飞并行度：initialize/collect/rescore 全部串行执行，pooledIds/seenIds
     // 这两个裸 HashSet 的线程安全靠它保证（并发 collect 同时写会竞态）
@@ -35,7 +49,7 @@ object DiscoveryPool {
         scope.launch {
             val t = System.currentTimeMillis()
             try {
-                val db = AppDatabase.getAppDatabase(Shaft.getContext())
+                val db = AppDatabase.getAppDatabase(app)
                 val dao = db.discoveryDao()
 
                 dao.getUnshown(MAX_POOL_SIZE, 0).forEach { pooledIds.add(it.illustId) }
@@ -66,7 +80,7 @@ object DiscoveryPool {
 
         scope.launch {
             try {
-                val profile = ProfileManager.cached()
+                val profile = profileManager.cached()
                 val coldStart = profile == null
                 if (coldStart) {
                     Timber.d("$TAG collect [%s] COLD START mode", source)
@@ -76,7 +90,7 @@ object DiscoveryPool {
                         profile.mutedTags.size, profile.mutedAuthors.size, profile.avoidedTags.size)
                 }
 
-                val dao = AppDatabase.getAppDatabase(Shaft.getContext()).discoveryDao()
+                val dao = AppDatabase.getAppDatabase(app).discoveryDao()
                 val gson = Shaft.sGson
                 var accepted = 0
                 var skipInvalid = 0; var skipSeen = 0; var skipPooled = 0
@@ -225,7 +239,7 @@ object DiscoveryPool {
 
     fun getDiscoveryFeed(limit: Int = 50, offset: Int = 0): List<DiscoveryEntity> {
         return try {
-            val r = AppDatabase.getAppDatabase(Shaft.getContext()).discoveryDao().getUnshown(limit, offset)
+            val r = AppDatabase.getAppDatabase(app).discoveryDao().getUnshown(limit, offset)
             Timber.d("$TAG getDiscoveryFeed limit=$limit offset=$offset -> ${r.size}")
             r
         } catch (e: Exception) {
@@ -258,7 +272,7 @@ object DiscoveryPool {
     fun getDiscoveryFeedDiversified(limit: Int = 50): List<DiscoveryEntity> {
         return try {
             val candidateSize = limit * 4
-            val dao = AppDatabase.getAppDatabase(Shaft.getContext()).discoveryDao()
+            val dao = AppDatabase.getAppDatabase(app).discoveryDao()
             val snapshot = synchronized(recentLock) { recentlyReturnedSet.toSet() }
             val candidates = dao.getUnshown(candidateSize, 0)
                 .filter { it.illustId !in snapshot }
@@ -329,8 +343,8 @@ object DiscoveryPool {
         rescoreJob = scope.launch {
             if (debounceMs > 0) delay(debounceMs)
             try {
-                val profile = ProfileManager.cached() ?: return@launch
-                val db = AppDatabase.getAppDatabase(Shaft.getContext())
+                val profile = profileManager.cached() ?: return@launch
+                val db = AppDatabase.getAppDatabase(app)
                 val dao = db.discoveryDao()
                 val gson = Shaft.sGson
                 val unshown = dao.getAllUnshown()
@@ -363,7 +377,7 @@ object DiscoveryPool {
     fun markShown(illustId: Long) {
         scope.launch {
             try {
-                AppDatabase.getAppDatabase(Shaft.getContext()).discoveryDao().markShown(illustId)
+                AppDatabase.getAppDatabase(app).discoveryDao().markShown(illustId)
                 Timber.d("$TAG markShown $illustId")
             } catch (e: Exception) {
                 Timber.e(e, "$TAG markShown failed $illustId")
@@ -373,12 +387,12 @@ object DiscoveryPool {
 
     /** 候选池在库总条数（含已展示的）。同步 Room 查询——调用方自己切 IO。 */
     fun totalCount(): Int {
-        return AppDatabase.getAppDatabase(Shaft.getContext()).discoveryDao().count()
+        return AppDatabase.getAppDatabase(app).discoveryDao().count()
     }
 
     fun getStats(): String {
         return try {
-            val dao = AppDatabase.getAppDatabase(Shaft.getContext()).discoveryDao()
+            val dao = AppDatabase.getAppDatabase(app).discoveryDao()
             "pool(total=${dao.count()}, unshown=${dao.countUnshown()}), mem(pooled=${pooledIds.size}, seen=${seenIds.size}), init=$initialized"
         } catch (e: Exception) { "error: ${e.message}" }
     }

@@ -26,12 +26,14 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
+import ceui.lisa.utils.SystemBarMetrics
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.widgets.FeedBackToTopFab
 import ceui.pixiv.widgets.applyV3RefreshTheme
-import ceui.lisa.viewmodel.AppLevelViewModel
+import ceui.lisa.viewmodel.AppLevelState
+import ceui.loxia.appServices
 import ceui.lisa.viewmodel.UserViewModel
 import ceui.loxia.Client
 import ceui.loxia.Event
@@ -150,7 +152,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     override fun initView() {
         palette = V3Palette.from(this)
-        baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0)
+        baseBind.toolbar.setPadding(0, SystemBarMetrics.statusBarHeight(this), 0, 0)
         baseBind.toolbar.setNavigationOnClickListener { finish() }
 
         // 内嵌列表(插画/漫画/小说/收藏)默认背景是 fragment_center(日#FFFFFF/夜#2A2A2A),与页面
@@ -188,7 +190,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 val offset =
-                    baseBind.toolbarLayout.height - Shaft.statusHeight - Shaft.toolbarHeight
+                    baseBind.toolbarLayout.height - SystemBarMetrics.statusBarHeight(this@UserActivityV3) - SystemBarMetrics.toolbarHeight(this@UserActivityV3)
                 baseBind.appBar.addOnOffsetChangedListener { _, verticalOffset ->
                     val abs = Math.abs(verticalOffset)
                     when {
@@ -298,12 +300,12 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                     runCatching {
                         (application as? ceui.loxia.ServicesProvider)?.entityWrapper?.visitUser(this@UserActivityV3, userResponse.user)
                     }
-                    Shaft.appViewModel.updateFollowUserStatus(
+                    appServices().appLevelState.updateFollowUserStatus(
                         userId,
                         if (userResponse.user.is_followed == true)
-                            AppLevelViewModel.FollowUserStatus.FOLLOWED
+                            AppLevelState.FollowUserStatus.FOLLOWED
                         else
-                            AppLevelViewModel.FollowUserStatus.NOT_FOLLOW
+                            AppLevelState.FollowUserStatus.NOT_FOLLOW
                     )
                 }
 
@@ -324,7 +326,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                     baseBind.progress.visibility = View.INVISIBLE
                 }
             })
-        // user/follow/detail:把「已关注」细分成 公开/非公开 写进 AppLevelViewModel。这个请求
+        // user/follow/detail:把「已关注」细分成 公开/非公开 写进 AppLevelState。这个请求
         // 一度被删掉,理由是 getFollowUserLiveData 全仓没有读者 —— 现在关注按钮读它来区分
         // 「已关注」/「悄悄关注中」(issue #997),理由不再成立。user/detail 的 is_followed 只是
         // 个 bool,给不出可见性,而开了「关注作者默认私人关注」之后短按也可能是私密的。
@@ -334,7 +336,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserFollowDetail>() {
                 override fun success(followDetail: UserFollowDetail) {
-                    Shaft.appViewModel.updateFollowUserStatus(userId, followStatusOf(followDetail))
+                    appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(followDetail))
                     // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
                     FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(followDetail))
                 }
@@ -813,7 +815,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         val taskName = getString(R.string.bulk_task_name, authorName, typeLabel)
         ceui.pixiv.ui.bulk.FetchProgressDialog.show(
             supportFragmentManager,
-            ceui.pixiv.ui.bulk.bulkEnqueueIllusts(source, taskName),
+            ceui.pixiv.ui.bulk.bulkEnqueueIllusts(this, source, taskName),
         )
         // 不在这里 notifyNewItems —— 等 fetcher 全部抓完才统一唤醒消费者
     }

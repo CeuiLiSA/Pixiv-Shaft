@@ -26,6 +26,7 @@ import ceui.pixiv.ui.common.viewBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ceui.loxia.appServices
 
 /**
  * 「相关作品」页（feeds 框架版，替代 legacy FragmentRelatedIllust + RelatedIllustRepo + IAdapter）。
@@ -55,6 +56,8 @@ class RelatedIllustFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_f
     override val feedViewModel by feedViewModels {
         // 零捕获：先把 Fragment 属性取成局部 val 再进 source 的 lambda
         val illustId = illustId
+        // 应用级对象，捕获它不会把 Fragment 钉进 VM
+        val pool = requireContext().appServices().discoveryPool
         pixivFeedSource(
             initialFetch = { Client.appApi.getRelatedIllusts(illustId) },
             // 翻页门控：「相关作品无限下滑」关时只出首页（nextCursor=null 让 loadMore 直接 return，
@@ -66,7 +69,7 @@ class RelatedIllustFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_f
                     null
                 }
             },
-        ) { resp, phase -> mapRelatedPage(resp.illusts, phase, illustId) }
+        ) { resp, phase -> mapRelatedPage(pool, resp.illusts, phase, illustId) }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -122,6 +125,7 @@ class RelatedIllustFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_f
 
 /** 跑在 Default 线程（[PixivFeedSource] 派发）、被 VM 长期持有，放顶层保证零捕获。 */
 private fun mapRelatedPage(
+    pool: DiscoveryPool,
     illusts: List<Illust>,
     phase: FeedLoadPhase,
     illustId: Long,
@@ -130,7 +134,7 @@ private fun mapRelatedPage(
     // 副作用，按 phase 门控——本源目前没配缓存（CacheRestore 走不到），但门控写在这里，
     // 将来给它开本地优先时不会拿磁盘上的旧数据重放去污染画像池。
     if (phase.isFreshFetch) {
-        DiscoveryPool.collect(
+        pool.collect(
             illusts,
             if (phase.isFirstPage) "related:$illustId" else "related_next:$illustId",
         )

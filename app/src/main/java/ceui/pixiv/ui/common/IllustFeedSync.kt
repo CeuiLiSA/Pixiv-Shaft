@@ -10,7 +10,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import ceui.lisa.helper.AppLevelViewModelHelper
+import ceui.lisa.helper.AppLevelStateHelper
 import ceui.lisa.model.ListIllust
 import ceui.loxia.Illust
 import ceui.lisa.utils.Params
@@ -126,7 +126,7 @@ class IllustFeedDetailSync(
 /**
  * 列表数据落地后把最新 bean 合入 ObjectPool（主线程；对齐 legacy Mapper 的池同步职责，
  * 否则 V3 详情命中旧池条目会渲染过期的收藏数/爱心），并把作者关注状态灌进
- * AppLevelViewModel（对齐 legacy NetListFragment 每页 tidyAppViewModel，
+ * AppLevelState（对齐 legacy NetListFragment 每页 tidyAppViewModel，
  * UActivity/UserActivityV3 的关注按钮消费它）。
  *
  * **只喂真正下行的网络数据**：本地优先恢复的那一代（[FeedUiState.itemsFromCache]）整代跳过 ——
@@ -160,7 +160,7 @@ class IllustFeedPoolSync(
                     // [ceui.pixiv.feeds.cache.DEFAULT_FEED_CACHE_MAX_AGE]，里面的 is_bookmarked=false /
                     // is_followed=false / total_bookmarks 全是「正经值」而非空值，而 ObjectPool 的
                     // mergeKeepingExisting 只把 null / 空串 / 空数组当空 —— 旧值会原样盖掉池里更新的
-                    // 收藏态、收藏数；AppLevelViewModel 的默认 method 也只在传入 FOLLOWED 时早退，
+                    // 收藏态、收藏数；AppLevelState 的默认 method 也只在传入 FOLLOWED 时早退，
                     // 旧的 NOT_FOLLOW 会把刚点的「已关注」打回。#897 的「只补字段不降级」不变量挡不住
                     // 这类污染：快照存的是完整 bean，坏的是新鲜度不是完整度。
                     //
@@ -184,7 +184,7 @@ class IllustFeedPoolSync(
                         state.items
                     }
                     // poolableBeansOf 是子类可覆写的开放钩子，下游 ObjectPool.updateIllust /
-                    // AppLevelViewModelHelper.fill 也都吃外部数据。这里抛出来的话后果与
+                    // AppLevelStateHelper.fill 也都吃外部数据。这里抛出来的话后果与
                     // IllustFeedDetailSync 的 ADD_DATA 循环同类：collector 会连同
                     // repeatOnLifecycle 一起终止且**不自愈**（本 view 生命周期内此后所有列表数据
                     // 都不再合池，详情页从此渲染陈旧数据），异常还会经无 handler 的 lifecycleScope
@@ -210,7 +210,7 @@ class IllustFeedPoolSync(
                             }
                         }
                         if (freshBeans.isNotEmpty()) {
-                            AppLevelViewModelHelper.fill(freshBeans)
+                            AppLevelStateHelper.fill(freshBeans)
                         }
                     } catch (ce: CancellationException) {
                         throw ce

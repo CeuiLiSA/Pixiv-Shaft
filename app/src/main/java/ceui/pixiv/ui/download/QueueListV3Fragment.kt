@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.download
 
 import android.graphics.Color
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -32,7 +33,6 @@ import ceui.loxia.ObjectPool
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueRow
 import ceui.pixiv.db.queue.QueueStatus
-import ceui.pixiv.ui.bulk.QueueDownloadManager
 import com.bumptech.glide.Glide
 import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -47,6 +47,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import ceui.loxia.appServices
+import ceui.pixiv.ui.bulk.QueueDownloadManager
 
 /**
  * V3 风格 "批量队列" 列表。
@@ -58,6 +60,18 @@ import timber.log.Timber
  *  - 状态徽章彩色：PENDING(灰)/DOWNLOADING(蓝)/SUCCESS(绿)/FAILED(红)
  */
 class QueueListV3Fragment : Fragment() {
+
+    /**
+     * 在 [onAttach] 取一次而不是每次 `requireContext()`:清空/重试这类操作跑在
+     * IO 协程里,阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
+     * 实例是应用级的,提前拿住没有泄漏问题。
+     */
+    private lateinit var queueDownloadManager: QueueDownloadManager
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        queueDownloadManager = context.appServices().queueDownloadManager
+    }
 
     private val dao: DownloadQueueDao by lazy {
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadQueueDao()
@@ -123,13 +137,13 @@ class QueueListV3Fragment : Fragment() {
 
         btnPause.setOnClickListener {
             // pausedFlow 翻转后 combine collector 自动设 text，不在这里手动重复设。
-            if (QueueDownloadManager.isPaused()) {
+            if (queueDownloadManager.isPaused()) {
                 // 联动：批量队列恢复时，正在下载 tab 的 Manager 也跟着恢复
-                QueueDownloadManager.resume()
+                queueDownloadManager.resume()
                 Manager.get().startAll()
             } else {
                 // 联动：批量队列暂停时，连同 Manager 当前正在下的也暂停
-                QueueDownloadManager.pause()
+                queueDownloadManager.pause()
                 Manager.get().stopAll()
             }
         }
@@ -137,7 +151,7 @@ class QueueListV3Fragment : Fragment() {
             viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                 runCatching { dao.retryAllFailed() }
                 // 用户手动点重试 → 必须 resume() 而不仅仅 tickle，否则 paused 时啥也不做
-                QueueDownloadManager.resume()
+                queueDownloadManager.resume()
             }
         }
         btnClearAll.setOnClickListener {
@@ -149,9 +163,9 @@ class QueueListV3Fragment : Fragment() {
                     runCatching { Manager.get().clearAll() }
                     // 同步停掉 ugoira workers —— 否则用户清完，正在跑的 ugoira 还会
                     // 编完 GIF 落到用户图库（用户已表明全清，落盘等于无视意图）。
-                    runCatching { QueueDownloadManager.cancelOngoingUgoiraWorkers() }
+                    runCatching { queueDownloadManager.cancelOngoingUgoiraWorkers() }
                     runCatching { dao.deleteAll() }
-                    QueueDownloadManager.queueListInvalidations.tryEmit(Unit)
+                    queueDownloadManager.queueListInvalidations.tryEmit(Unit)
                 }
             }
         }
@@ -168,8 +182,8 @@ class QueueListV3Fragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 combine(
-                    QueueDownloadManager.queueListInvalidations,
-                    QueueDownloadManager.pausedFlow,
+                    queueDownloadManager.queueListInvalidations,
+                    queueDownloadManager.pausedFlow,
                 ) { _, paused -> paused }
                     .map { paused ->
                         // light projection：不拉 illustGson（5000 × 5–30KB JSON 会撑爆 heap）

@@ -2,19 +2,18 @@ package ceui.pixiv.actions
 
 import android.content.Context
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.lisa.utils.Common
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
+import ceui.loxia.appServices
 import ceui.pixiv.actionqueue.ActionEvent
 import ceui.pixiv.actionqueue.ActionQueue
 import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.actionqueue.PendingAction
 import ceui.pixiv.actionqueue.QueuePolicy
-import ceui.pixiv.db.discovery.ProfileManager
 import ceui.pixiv.events.EventReporter
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.websocket.AppNetworkMonitor
@@ -34,11 +33,17 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 收藏 / 关注这类写操作的进程级队列宿主。
  *
  * 队列本体 [ActionQueue] 是可注入的普通对象（为了能单测）；这里负责它在 app 里的
- * 单例装配、启动时机和失败反馈，是唯一持有实例的地方。UI 不直接碰它，走 [PixivActions]。
+ * 装配、启动时机和失败反馈，是唯一持有实例的地方。UI 不直接碰它，走 [PixivActions]。
+ *
+ * 一个进程只有一份，由 [ceui.lisa.activities.Shaft] 构造并经
+ * [ceui.loxia.ServicesProvider.pixivActionQueue] 暴露；构造廉价（不建队列、不起协程），
+ * 真正的装配在 [start]。
  */
-object PixivActionQueue {
+class PixivActionQueue(app: Context) {
 
-    private val initialized = AtomicBoolean(false)
+    private val app: Context = app.applicationContext
+
+    private val started = AtomicBoolean(false)
 
     /**
      * 反馈协程的 scope。
@@ -55,11 +60,9 @@ object PixivActionQueue {
     @Volatile
     private var queue: ActionQueue? = null
 
-    /** 幂等。在 [Shaft] 的 onCreate 里调，必须排在 SessionManager.initialize 之后（gate 要读登录态）。 */
-    @JvmStatic
-    fun init(context: Context) {
-        if (!initialized.compareAndSet(false, true)) return
-        val app = context.applicationContext
+    /** 幂等。由 [ceui.lisa.activities.Shaft] 调，必须排在 SessionManager.initialize 之后（gate 要读登录态）。 */
+    fun start() {
+        if (!started.compareAndSet(false, true)) return
         // 进程级共用那一个 monitor：它按订阅数注册/注销系统 NetworkCallback，各自 new 一个
         // 等于各注册一个回调，与该类「全进程只注册一个」的设计相悖。
         val monitor = AppNetworkMonitor.get(app)
@@ -111,8 +114,8 @@ object PixivActionQueue {
     internal fun enqueue(request: ActionRequest) {
         val instance = queue
         if (instance == null) {
-            // 只可能发生在 init 之前就有人点了收藏，正常启动顺序下不会走到。
-            Timber.tag(TAG).w("enqueue before init, dropped: %s", request.dedupeKey)
+            // 只可能发生在 start 之前就有人点了收藏，正常启动顺序下不会走到。
+            Timber.tag(TAG).w("enqueue before start, dropped: %s", request.dedupeKey)
             return
         }
         instance.enqueue(request)
@@ -237,7 +240,7 @@ object PixivActionQueue {
                 } else {
                     EventReporter.Target.ILLUST
                 }
-                EventReporter.report(
+                eventReporter.report(
                     if (payload.bookmark) EventReporter.Type.BOOKMARK else EventReporter.Type.UNBOOKMARK,
                     target,
                     payload.id,
@@ -246,7 +249,7 @@ object PixivActionQueue {
                 // 画像只吃 Illust（要读 tags 和作者）。池里没有就跳过：进程重启后
                 // 补发的那条本来就没有 bean 可读，漏一次画像强化远好过为它多打一次网络。
                 if (payload.bookmark) {
-                    ObjectPool.get<Illust>(payload.id).value?.let(ProfileManager::onBookmarkIllust)
+                    ObjectPool.get<Illust>(payload.id).value?.let(profileManager::onBookmarkIllust)
                 }
             }
 
@@ -257,7 +260,7 @@ object PixivActionQueue {
                     ?: withContext(Dispatchers.IO) {
                         runCatching { Client.appApi.getNovel(payload.id).novel }.getOrNull()
                     }
-                EventReporter.report(
+                eventReporter.report(
                     if (payload.bookmark) EventReporter.Type.BOOKMARK else EventReporter.Type.UNBOOKMARK,
                     EventReporter.Target.NOVEL,
                     payload.id,
@@ -270,11 +273,11 @@ object PixivActionQueue {
                 // reportFollowUser 自己做 ObjectPool 命中→getUserProfile 兜底的解析，
                 // 调用方不用先把 User 取到手 —— 省掉了 UActivity 里那次「等 profile 回来
                 // 才敢关注」的等待，那期间页面被销毁的话意图就丢了。
-                EventReporter.reportFollowUser(payload.userId, payload.follow)
+                eventReporter.reportFollowUser(payload.userId, payload.follow)
                 if (payload.follow) {
-                    ProfileManager.onFollowUser(payload.userId)
+                    profileManager.onFollowUser(payload.userId)
                 } else {
-                    ProfileManager.onUnfollowUser(payload.userId)
+                    profileManager.onUnfollowUser(payload.userId)
                 }
             }
         }
@@ -337,10 +340,7 @@ object PixivActionQueue {
                     FollowVisibility.clearLocal(payload.userId)
                     PixivActions.writeUserFollowLocally(payload.userId, !payload.follow)
                 }
-                val ctx = Shaft.getContext()
-                if (ctx != null) {
-                    Common.showToast(ctx.getString(R.string.msg_operation_fail, event.reason))
-                }
+                Common.showToast(app.getString(R.string.msg_operation_fail, event.reason))
             }
         }
     }
@@ -364,13 +364,19 @@ object PixivActionQueue {
     }
 
     private fun toast(resId: Int) {
-        Shaft.getContext()?.let { Common.showToast(it.getString(resId)) }
+        Common.showToast(app.getString(resId))
     }
 
-    private const val TAG = "PixivActionQueue"
+    /** 发现画像：与本队列同为进程级服务，按需取，不在构造期互相持有（两边构造顺序无关）。 */
+    private val profileManager get() = app.appServices().profileManager
+    private val eventReporter: EventReporter get() = app.appServices().eventReporter
 
-    /** pixiv 对收藏/关注的速率限制没有公开文档，2 秒是实测不触发 429 的保守值。 */
-    private const val MIN_GAP_MS = 2_000L
+    private companion object {
+        const val TAG = "PixivActionQueue"
 
-    private const val MS_PER_MINUTE = 60_000L
+        /** pixiv 对收藏/关注的速率限制没有公开文档，2 秒是实测不触发 429 的保守值。 */
+        const val MIN_GAP_MS = 2_000L
+
+        const val MS_PER_MINUTE = 60_000L
+    }
 }

@@ -63,8 +63,8 @@ class WatchLaterFeedFragment : IllustFeedFragment() {
      * 拿的都是刚下行的新鲜数据。本页不是：general_table 存的是**加入稍后再看那一刻**冻结的 JSON，
      * 之后再没更新过。喂进去会拿旧值盖掉新值——ObjectPool.mergeKeepingExisting 只把
      * null/空串/空数组当「空」，`is_bookmarked=false`、`total_bookmarks=100` 是正经 JSON 原始值，
-     * 照盖不误；AppLevelViewModelHelper.fill 那条更狠，旧的 is_followed=false 会把用户这次会话里
-     * 刚点的「已关注」打回「未关注」（AppLevelViewModel 只在传入 FOLLOWED 时才早退）。
+     * 照盖不误；AppLevelStateHelper.fill 那条更狠，旧的 is_followed=false 会把用户这次会话里
+     * 刚点的「已关注」打回「未关注」（AppLevelState 只在传入 FOLLOWED 时才早退）。
      *
      * 关掉不影响从本页点进详情：VActivity 只在池里 miss 时才用 PageData 的 bean 填池
      *（见 VActivity `if (exist == null)`），不会顶掉更新的那份。legacy IAdapter 路径同样从不写池。

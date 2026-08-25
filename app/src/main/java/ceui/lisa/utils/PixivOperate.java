@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.OutWakeActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
@@ -67,7 +66,8 @@ import ceui.lisa.models.TagsBean;
 import ceui.loxia.AccountResponse;
 import ceui.loxia.Illust;
 import ceui.loxia.User;
-import ceui.lisa.viewmodel.AppLevelViewModel;
+import ceui.lisa.viewmodel.AppLevelState;
+import ceui.loxia.ServicesProvider;
 import ceui.loxia.IllustDetailSupportKt;
 import ceui.loxia.ObjectPool;
 import io.reactivex.Observable;
@@ -107,7 +107,7 @@ public class PixivOperate {
 
     /**
      * 关注。**只是 {@link PixivActions#setUserFollow} 的 legacy 封装**——本地状态（ObjectPool、
-     * AppLevelViewModel、LIKED_USER 广播）当帧生效，真正的请求由 PixivActionQueue 限流后发出。
+     * AppLevelState、LIKED_USER 广播）当帧生效，真正的请求由 PixivActionQueue 限流后发出。
      * <p>
      * 之所以不再自己打接口：这个方法和 PixivActions 都拿 ObjectPool 的关注态当真源，两条路并存时
      * 只要队列还在冷却，「详情页关注 → 列表里取关」就会以相反的顺序落到服务端，最终状态与用户
@@ -189,7 +189,7 @@ public class PixivOperate {
 
                             // 寄生收集：收藏时的相关作品进发现池
                             Common.showLog("Discovery/Hook postLike star_related illust=" + illustsBean.getId() + " got " + (listIllust.getIllusts() != null ? listIllust.getIllusts().size() : 0) + " related");
-                            ceui.pixiv.db.discovery.DiscoveryPool.INSTANCE.collect(
+                            ((ceui.loxia.ServicesProvider) Shaft.getContext()).getDiscoveryPool().collect(
                                     listIllust.getIllusts(), "star_related:" + illustsBean.getId());
                         }
                     });
@@ -302,11 +302,6 @@ public class PixivOperate {
                         if (!isSuccess && fail != null) fail.doSomething(null);
                     }
 
-                    @Override
-                    public void must() {
-                        super.must();
-                        OutWakeActivity.isNetWorking = false;
-                    }
                 });
     }
 
@@ -314,7 +309,7 @@ public class PixivOperate {
     private static void openIllustDetail(Context context, Illust illust) {
         User user = illust.getUser();
         if (user != null) {
-            Shaft.appViewModel.updateFollowUserStatus((int) user.getId(), Boolean.TRUE.equals(user.is_followed()) ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
+            ((ServicesProvider) Shaft.getContext()).getAppLevelState().updateFollowUserStatus((int) user.getId(), Boolean.TRUE.equals(user.is_followed()) ? AppLevelState.FollowUserStatus.FOLLOWED : AppLevelState.FollowUserStatus.NOT_FOLLOW);
         }
 
         final PageData pageData = new PageData(Collections.singletonList(illust));
@@ -328,6 +323,12 @@ public class PixivOperate {
 
     public static void getNovelByID(long novel, Context context,
                                     ceui.lisa.interfaces.Callback<Void> callback) {
+        getNovelByID(novel, context, callback, null);
+    }
+
+    public static void getNovelByID(long novel, Context context,
+                                    ceui.lisa.interfaces.Callback<Void> callback,
+                                    ceui.lisa.interfaces.Callback<Void> fail) {
         Retro.getAppApi().getNovelByID(novel)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -346,13 +347,15 @@ public class PixivOperate {
                             }
                         } else {
                             Common.showToast("NovelSearchResponse 为空");
+                            if (fail != null) {
+                                fail.doSomething(null);
+                            }
                         }
                     }
 
                     @Override
-                    public void must() {
-                        super.must();
-                        OutWakeActivity.isNetWorking = false;
+                    public void must(boolean isSuccess) {
+                        if (!isSuccess && fail != null) fail.doSomething(null);
                     }
                 });
     }

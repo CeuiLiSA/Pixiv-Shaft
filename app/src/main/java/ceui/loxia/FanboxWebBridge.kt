@@ -1,6 +1,9 @@
 package ceui.loxia
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceError
@@ -8,8 +11,8 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.MainThread
 import ceui.lisa.BuildConfig
-import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Common
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
@@ -40,19 +43,23 @@ import kotlin.coroutines.resume
  *
  * 首屏那 5MB SPA(全在 s.pximg.net 上)一点用都没有,`shouldInterceptRequest` 把 fanbox.cc
  * 以外的子资源全掐掉,实际只下 8KB 左右的壳。
+ *
+ * 生命周期:进程里只有一份,由 [ceui.lisa.activities.Shaft] 构造并经
+ * [ServicesProvider.fanboxWebBridge] 暴露。构造不建 WebView;第一次 [get] 才懒建,
+ * 空闲 [IDLE_RELEASE_MS] 后或 Application.onTrimMemory 时经 [release] 销毁,下次再用重建。
+ * WebView 是全 app 最重的对象之一(几十 MB 的独立渲染进程),不能像以前那样建了就常驻。
  */
-object FanboxWebBridge {
+class FanboxWebBridge(app: Context) {
 
-    private const val ORIGIN = "https://www.fanbox.cc/"
-    private const val FANBOX_DOMAIN = "fanbox.cc"
-    private const val BRIDGE_NAME = "FanboxNativeBridge"
-    private const val TIMEOUT_MS = 25_000L
+    private val appContext: Context = app.applicationContext
 
     private val requestMutex = Mutex()
     private val sequence = AtomicLong(0L)
     private val pending = ConcurrentHashMap<String, CancellableContinuation<String?>>()
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val idleRelease = Runnable { release() }
 
-    /** 只在主线程碰。null = 还没建过,或上一次建失败(WebView 组件缺失的设备)。 */
+    /** 只在主线程碰。null = 还没建过、上一次建失败(WebView 组件缺失的设备)或已被 [release]。 */
     private var webView: WebView? = null
     private var pageLoaded = false
     private var pageWaiter: CancellableContinuation<Unit>? = null
@@ -64,18 +71,46 @@ object FanboxWebBridge {
     suspend fun get(url: String): String? = withTimeoutOrNull(TIMEOUT_MS) {
         requestMutex.withLock {
             withContext(Dispatchers.Main) {
-                val view = ensureWebView() ?: return@withContext null
-                if (!ensurePageLoaded(view)) return@withContext null
-                fetchInPage(view, url)
+                mainHandler.removeCallbacks(idleRelease)
+                try {
+                    val view = ensureWebView() ?: return@withContext null
+                    if (!ensurePageLoaded(view)) return@withContext null
+                    fetchInPage(view, url)
+                } finally {
+                    // 无论成败都重新起倒计时;下一次 get 进来会先取消它。
+                    mainHandler.postDelayed(idleRelease, IDLE_RELEASE_MS)
+                }
             }
         }
+    }
+
+    /**
+     * 销毁 WebView、放掉所有还在等的调用方(以 null 结束,调用方走 post.get 兜底)。
+     * 可重复调用;释放后下一次 [get] 会重新懒建并重新加载首页壳。
+     */
+    @MainThread
+    fun release() {
+        mainHandler.removeCallbacks(idleRelease)
+        pageWaiter?.let { pageWaiter = null; if (it.isActive) it.resume(Unit) }
+        pending.keys.toList().forEach { token ->
+            pending.remove(token)?.let { if (it.isActive) it.resume(null) }
+        }
+        pageLoaded = false
+        val view = webView ?: return
+        webView = null
+        // 先摘 bridge 再 destroy:destroy 之后 JS 仍可能回调一次,别让它碰到已经清空的表。
+        view.removeJavascriptInterface(BRIDGE_NAME)
+        view.stopLoading()
+        view.webViewClient = WebViewClient()
+        view.destroy()
+        Common.showLog("FanboxWebBridge released")
     }
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     private fun ensureWebView(): WebView? {
         webView?.let { return it }
         // WebView 在少数机型上会因为组件正在升级而直接抛,这里不能让 FANBOX 详情页跟着崩。
-        val view = runCatching { WebView(Shaft.getContext()) }.getOrElse {
+        val view = runCatching { WebView(appContext) }.getOrElse {
             Common.showLog("FanboxWebBridge WebView 不可用: $it")
             return null
         }
@@ -96,7 +131,7 @@ object FanboxWebBridge {
             setAcceptCookie(true)
             setAcceptThirdPartyCookies(view, true)
         }
-        view.addJavascriptInterface(JsBridge, BRIDGE_NAME)
+        view.addJavascriptInterface(JsBridge(), BRIDGE_NAME)
         view.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
@@ -171,21 +206,37 @@ object FanboxWebBridge {
         """.trimIndent()
     }
 
-    private object JsBridge {
+    /** 非 static 内部类:JS 回调要落回这一个 bridge 实例的 pending 表。 */
+    private inner class JsBridge {
         @JavascriptInterface
         fun onResult(token: String, status: Int, body: String) {
             val cont = pending.remove(token) ?: return
             if (status != 200) {
                 Common.showLog("FanboxWebBridge $token 失败 status=$status")
             }
-            cont.resume(body.takeIf { status == 200 })
+            if (cont.isActive) cont.resume(body.takeIf { status == 200 })
         }
     }
 
-    /**
-     * 掐掉子资源用的空响应。给 200 而不是错误码 —— WebView 对被拦下的资源不会报错,
-     * 但个别机型上返回 null body 会打一串 console 噪音。
-     */
-    private val EMPTY_RESPONSE: WebResourceResponse
-        get() = WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
+    private companion object {
+        const val ORIGIN = "https://www.fanbox.cc/"
+        const val FANBOX_DOMAIN = "fanbox.cc"
+        const val BRIDGE_NAME = "FanboxNativeBridge"
+        const val TIMEOUT_MS = 25_000L
+
+        /**
+         * 空闲多久后销毁 WebView。用户在 FANBOX 里连点几篇帖子时,每篇都重建 WebView +
+         * 重载首页壳(一次网络往返 + CF 种 cookie)太浪费;但读完正文离开 FANBOX 之后这张
+         * 页面就没有任何用处了。60 秒够覆盖「看完一篇回列表点下一篇」的间隔,又不会让
+         * 一个渲染进程在后台白占几十 MB。
+         */
+        const val IDLE_RELEASE_MS = 60_000L
+
+        /**
+         * 掐掉子资源用的空响应。给 200 而不是错误码 —— WebView 对被拦下的资源不会报错,
+         * 但个别机型上返回 null body 会打一串 console 噪音。
+         */
+        val EMPTY_RESPONSE: WebResourceResponse
+            get() = WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
+    }
 }

@@ -28,10 +28,9 @@ import ceui.lisa.R;
 import ceui.lisa.helper.ShortcutHelper;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.notification.NetWorkStateReceiver;
-import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Settings;
-import ceui.lisa.viewmodel.AppLevelViewModel;
+import ceui.lisa.viewmodel.AppLevelState;
 import ceui.loxia.ServicesProvider;
 import ceui.pixiv.db.EntityWrapper;
 import ceui.pixiv.session.SessionManager;
@@ -58,7 +57,18 @@ public class Shaft extends Application implements ServicesProvider {
     private NetworkStateManager networkStateManager;
     private OkHttpClient mOkHttpClient;
     private static MMKV mmkv;
-    public static AppLevelViewModel appViewModel;
+    private AppLevelState appLevelState;
+    private ceui.pixiv.ui.translate.MangaTranslateModels mangaTranslateModels;
+    private ceui.pixiv.ui.translate.MangaBatchTranslateCenter mangaBatchTranslateCenter;
+    private ceui.loxia.FanboxWebBridge fanboxWebBridge;
+    private ceui.pixiv.ui.bulk.QueueDownloadManager queueDownloadManager;
+    private ceui.pixiv.actions.PixivActionQueue pixivActionQueue;
+    private ceui.pixiv.db.discovery.ProfileManager profileManager;
+    private ceui.pixiv.db.discovery.DiscoveryPool discoveryPool;
+    private ceui.pixiv.actions.AccountOnlineReportOutbox accountOnlineReportOutbox;
+    private ceui.pixiv.actions.Nana7miSearchTelemetry nana7miSearchTelemetry;
+    private ceui.pixiv.config.RemoteAppConfig remoteAppConfig;
+    private ceui.pixiv.events.EventReporter eventReporter;
 
     private EntityWrapper entityWrapper;
 
@@ -82,10 +92,6 @@ public class Shaft extends Application implements ServicesProvider {
     @SuppressLint("StaticFieldLeak")
     private Activity currentActivity;
 
-    /**
-     * 状态栏高度，初始化
-     */
-    public static int statusHeight = 0, toolbarHeight = 0;
     /**
      * 全局context
      */
@@ -333,6 +339,20 @@ public class Shaft extends Application implements ServicesProvider {
         entityWrapper = new EntityWrapper(this);
         entityWrapper.initialize();
 
+        // 进程级服务：构造都必须廉价（见 ServicesProvider 注释）。
+        appLevelState = new AppLevelState();
+        mangaTranslateModels = new ceui.pixiv.ui.translate.MangaTranslateModels(this);
+        mangaBatchTranslateCenter = new ceui.pixiv.ui.translate.MangaBatchTranslateCenter(this, mangaTranslateModels);
+        fanboxWebBridge = new ceui.loxia.FanboxWebBridge(this);
+        queueDownloadManager = new ceui.pixiv.ui.bulk.QueueDownloadManager(this);
+        pixivActionQueue = new ceui.pixiv.actions.PixivActionQueue(this);
+        profileManager = new ceui.pixiv.db.discovery.ProfileManager(this);
+        discoveryPool = new ceui.pixiv.db.discovery.DiscoveryPool(this, profileManager);
+        accountOnlineReportOutbox = new ceui.pixiv.actions.AccountOnlineReportOutbox(this);
+        nana7miSearchTelemetry = new ceui.pixiv.actions.Nana7miSearchTelemetry(this);
+        remoteAppConfig = new ceui.pixiv.config.RemoteAppConfig(this);
+        eventReporter = new ceui.pixiv.events.EventReporter(this);
+
         SessionManager.INSTANCE.initialize();
 
         // issue #931: 平板大屏双栏（Activity Embedding）。默认关闭，install 内先看
@@ -355,7 +375,7 @@ public class Shaft extends Application implements ServicesProvider {
         // 「下一次 onActivityResumed」来弹恢复确认框的。放到 idle 里注册就晚于首个
         // Activity 的 onResume，恢复弹窗不会出现在首屏，而是等用户下次跳页/切回前台时
         // 突然冒出来。init 自身只有 ~3ms（同步部分只是赋 context + launch）。
-        ceui.pixiv.ui.bulk.QueueDownloadManager.INSTANCE.init(this);
+        queueDownloadManager.start();
 
         // v38 illustId 索引列的一次性存量回填：把老下载记录的 illustId 补上，让
         // “这幅画下过没” 从 illustGson blob 全表 LIKE 扫描（2GB+ 卡）转成走索引。
@@ -371,7 +391,7 @@ public class Shaft extends Application implements ServicesProvider {
         // 能不发版关掉。拉取全在后台，读到的永远是内存里的最后一个已知值。
         // 安全顺序：必须在 MMKV.initialize 之后（读缓存）、SessionManager.initialize 之后
         // （uid 是灰度分桶键）。
-        ceui.pixiv.config.RemoteAppConfig.init();
+        remoteAppConfig.start();
 
         // 「屏蔽此作品」名单预热：判定跑在列表 bind 的热路径上（同步读内存 Set），名单本身来自
         // Room，这里提前读好，免得首屏第一次 bind 在主线程查库。顺带把老 MMKV 遮罩名单
@@ -382,14 +402,6 @@ public class Shaft extends Application implements ServicesProvider {
         updateTheme();
 
         ThemeHelper.applyTheme(null, sSettings.getThemeType());
-
-        //计算状态栏高度并赋值
-        statusHeight = 0;
-        int resourceId = sContext.getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            statusHeight = sContext.getResources().getDimensionPixelSize(resourceId);
-        }
-        toolbarHeight = DensityUtil.dp2px(56.0f);
 
         // Toast 必须同步初始化：Common.showToast 遍布全 app，首帧路径上（未登录提示、
         // deep link 解析失败等）就可能弹，晚于它初始化就是一次没人看见的 toast。
@@ -406,7 +418,6 @@ public class Shaft extends Application implements ServicesProvider {
 
         // Activity 会直接读这个 static，必须在第一个 Activity 之前就位。三个空
         // ConcurrentHashMap，成本可忽略。
-        appViewModel = new AppLevelViewModel(this);
 
         // 「翻译整部」悬浮小窗(issue #925):每个 Activity 观察 app 级任务状态,有任务才 inflate。
         // 必须在第一个 Activity 创建前注册,否则首屏收不到。
@@ -562,30 +573,30 @@ public class Shaft extends Application implements ServicesProvider {
 
         // 社区榜单事件上报（shaft-api-v2）。完全 fire-and-forget，失败静默，
         // 任何崩溃都被它自己捕获。安全顺序：必须在 MMKV.initialize 之后。
-        step("EventReporter", () -> ceui.pixiv.events.EventReporter.INSTANCE.init(this));
+        step("EventReporter", eventReporter::start);
 
         // 收藏/关注的持久化限流队列。这类写操作原本是点一次发一次，连点或批量操作
         // 很容易被 pixiv 429；现在统一排队串行发送，撞限流整队冷却并自动重试，
         // 进程被杀后下次启动继续把没发完的发出去。
         // 安全顺序：必须在 SessionManager.initialize 之后（gate 读登录态）、
-        // EventReporter.init 之后（PixivActions 会埋点）。
-        step("PixivActionQueue", () -> ceui.pixiv.actions.PixivActionQueue.init(this));
+        // EventReporter.start 之后（PixivActions 会埋点）。
+        step("PixivActionQueue", pixivActionQueue::start);
 
         // Nana7mi 搜索遥测使用独立的 ActionQueue 数据库和消费循环：同样具备落盘/重试，
         // 但服务端或遥测自身故障绝不能拖慢收藏、关注等用户业务动作。
         if (!ceui.lisa.BuildConfig.IS_LITE) {
-            step("Nana7miSearchTelemetry", () -> ceui.pixiv.actions.Nana7miSearchTelemetry.INSTANCE.init(this));
+            step("Nana7miSearchTelemetry", nana7miSearchTelemetry::start);
         }
 
         // AccountResponse 上报使用独立的全局 outbox：它不属于当前登录用户，切账号或
         // 登出后也必须继续补报刚 refresh 出来的新 token。
         if (!ceui.lisa.BuildConfig.IS_LITE) {
-            step("AccountOnlineReportOutbox", () -> ceui.pixiv.actions.AccountOnlineReportOutbox.INSTANCE.init(this));
+            step("AccountOnlineReportOutbox", accountOnlineReportOutbox::start);
         }
 
         // shaft-api-v2 chat WebSocket gateway. App-scoped — 一个 WebSocketManager
         // 全局复用,生命周期与进程一致(匿名协议没有"退登")。必须在
-        // EventReporter.init 之后,因为 ShaftHmacAuthProvider 要靠
+        // EventReporter.start 之后,因为 ShaftHmacAuthProvider 要靠
         // currentClientId() 签 URL,init 同步把 clientId 写好。
         step("ShaftChatGateway", () -> ceui.pixiv.chat.api.ShaftChatGateway.INSTANCE.bootstrap(this));
 
@@ -620,11 +631,11 @@ public class Shaft extends Application implements ServicesProvider {
         // 初始化发现池 + 异步构建用户画像
         step("DiscoveryPool", () -> {
             Timber.d("Discovery/Init >>> initializing DiscoveryPool");
-            ceui.pixiv.db.discovery.DiscoveryPool.INSTANCE.initialize();
+            discoveryPool.initialize();
             Timber.d("Discovery/Init >>> starting ProfileManager.buildProfile on background thread");
             new Thread(() -> {
                 try {
-                    ceui.pixiv.db.discovery.ProfileManager.INSTANCE.buildProfile();
+                    profileManager.buildProfile();
                     Timber.d("Discovery/Init <<< ProfileManager.buildProfile completed");
                 } catch (Exception e) {
                     Timber.e(e, "Discovery/Init <<< ProfileManager.buildProfile FAILED");
@@ -700,6 +711,11 @@ public class Shaft extends Application implements ServicesProvider {
         super.onTrimMemory(level);
         // [DEBUG-568] 内存压力回调时间线
         Timber.tag("DEBUG-568").w("onTrimMemory %s | %s", trimLevelName(level), memorySnapshot());
+        // 字段在 onCreate 里构造；onCreate 中途抛异常时系统仍可能回调这里，判空兜底。
+        if (level >= TRIM_MEMORY_BACKGROUND) {
+            if (fanboxWebBridge != null) fanboxWebBridge.release();
+            if (mangaBatchTranslateCenter != null) mangaBatchTranslateCenter.releaseModelsIfIdle();
+        }
     }
 
     @Override
@@ -861,5 +877,65 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public @NotNull EntityWrapper getEntityWrapper() {
         return entityWrapper;
+    }
+
+    @Override
+    public @NotNull AppLevelState getAppLevelState() {
+        return appLevelState;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.ui.translate.MangaTranslateModels getMangaTranslateModels() {
+        return mangaTranslateModels;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.ui.translate.MangaBatchTranslateCenter getMangaBatchTranslateCenter() {
+        return mangaBatchTranslateCenter;
+    }
+
+    @Override
+    public @NotNull ceui.loxia.FanboxWebBridge getFanboxWebBridge() {
+        return fanboxWebBridge;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.ui.bulk.QueueDownloadManager getQueueDownloadManager() {
+        return queueDownloadManager;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.actions.PixivActionQueue getPixivActionQueue() {
+        return pixivActionQueue;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.db.discovery.ProfileManager getProfileManager() {
+        return profileManager;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.db.discovery.DiscoveryPool getDiscoveryPool() {
+        return discoveryPool;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.actions.AccountOnlineReportOutbox getAccountOnlineReportOutbox() {
+        return accountOnlineReportOutbox;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.actions.Nana7miSearchTelemetry getNana7miSearchTelemetry() {
+        return nana7miSearchTelemetry;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.config.RemoteAppConfig getRemoteAppConfig() {
+        return remoteAppConfig;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.events.EventReporter getEventReporter() {
+        return eventReporter;
     }
 }

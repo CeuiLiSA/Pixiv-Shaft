@@ -60,10 +60,13 @@ interface FanboxApi {
  * 响应外壳和 post.get 一样是 `body.post`,只是 post 对象里多了 `type` / `body`,
  * 封面字段也换成了平的 `coverImageUrl`(不是列表接口那个 `cover.url`)。
  *
+ * [bridge] 从 [ServicesProvider.fanboxWebBridge] 拿(`context.appServices().fanboxWebBridge`),
+ * 显式传进来而不是内部抓全局,是为了让这条链路不依赖任何进程级单例。
+ *
  * 返回 null = 被 CF 挡了 / 没登录 / 超时 / 解析不出来,调用方应退回 [FanboxApi.postGet]。
  */
-suspend fun fetchFanboxPostInfo(postId: String): FanboxPost? {
-    val raw = FanboxWebBridge.get("https://api.fanbox.cc/post.info?postId=$postId") ?: return null
+suspend fun fetchFanboxPostInfo(bridge: FanboxWebBridge, postId: String): FanboxPost? {
+    val raw = bridge.get("https://api.fanbox.cc/post.info?postId=$postId") ?: return null
     return runCatching {
         fanboxGson.fromJson(raw, FanboxPostDetailResponse::class.java).body?.post
     }.getOrElse {

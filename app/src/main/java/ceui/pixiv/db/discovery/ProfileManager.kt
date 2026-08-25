@@ -1,5 +1,6 @@
 package ceui.pixiv.db.discovery
 
+import android.content.Context
 import android.content.Intent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.activities.Shaft
@@ -10,13 +11,41 @@ import ceui.loxia.Illust
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager
 import timber.log.Timber
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.exp
 
-object ProfileManager {
+/**
+ * 发现页用户画像。进程级一份，由 [ceui.lisa.activities.Shaft] 构造、经
+ * [ceui.loxia.ServicesProvider.profileManager] 取用；构造不做任何 IO。
+ *
+ * 不认识 [DiscoveryPool]：画像变化只通过 [addOnProfileChanged] 往外报，
+ * 候选池自己订阅去重打分，避免两者互相引用。
+ */
+class ProfileManager(app: Context) {
 
-    private const val TAG = "Discovery/Profile"
-    const val ACTION_PROFILE_READY = "ceui.pixiv.DISCOVERY_PROFILE_READY"
-    private const val FOLLOW_WEIGHT = 4f
+    private val app: Context = app.applicationContext
+
+    companion object {
+        private const val TAG = "Discovery/Profile"
+        const val ACTION_PROFILE_READY = "ceui.pixiv.DISCOVERY_PROFILE_READY"
+        private const val FOLLOW_WEIGHT = 4f
+        private const val PAGE_SIZE = 100
+    }
+
+    /** 画像变化回调。参数是建议的防抖毫秒数：0 = 立即，>0 = 高频操作（收藏）合并执行。 */
+    fun interface OnProfileChanged {
+        fun onProfileChanged(debounceMs: Long)
+    }
+
+    private val listeners = CopyOnWriteArrayList<OnProfileChanged>()
+
+    fun addOnProfileChanged(listener: OnProfileChanged) {
+        listeners.add(listener)
+    }
+
+    private fun notifyChanged(debounceMs: Long) {
+        listeners.forEach { it.onProfileChanged(debounceMs) }
+    }
 
     @Volatile
     private var cachedProfile: UserProfile? = null
@@ -72,15 +101,14 @@ object ProfileManager {
             tagScores = newTagScores
         )
         Timber.d("$TAG onBookmarkIllust illustId=${illust.id}, author=$userId")
-        DiscoveryPool.rescorePool(debounceMs = 2000L)
+        notifyChanged(debounceMs = 2000L)
     }
 
     fun buildProfile(): UserProfile {
         val startTime = System.currentTimeMillis()
         Timber.d("$TAG buildProfile >>> started")
 
-        val context = Shaft.getContext()
-        val db = AppDatabase.getAppDatabase(context)
+        val db = AppDatabase.getAppDatabase(app)
         val gson = Shaft.sGson
 
         // ====== 1. 读取本地数据源（只取最近的，够算画像就行）======
@@ -329,8 +357,8 @@ object ProfileManager {
         )
         cachedProfile = profile
         broadcastReady()
-        // 画像重建后，用新画像重新给候选池打分
-        DiscoveryPool.rescorePool()
+        // 画像重建后，候选池（订阅方）用新画像重新打分
+        notifyChanged(debounceMs = 0L)
 
         val elapsed = System.currentTimeMillis() - startTime
         Timber.d("$TAG buildProfile <<< DONE in ${elapsed}ms")
@@ -343,7 +371,7 @@ object ProfileManager {
 
     private fun broadcastReady() {
         try {
-            LocalBroadcastManager.getInstance(Shaft.getContext())
+            LocalBroadcastManager.getInstance(app)
                 .sendBroadcast(Intent(ACTION_PROFILE_READY))
             Timber.d("$TAG broadcast ACTION_PROFILE_READY sent")
         } catch (e: Exception) {
@@ -357,8 +385,6 @@ object ProfileManager {
         return if (daysAgo <= 30) 1.0f
         else exp(-0.03 * (daysAgo - 30)).toFloat().coerceAtLeast(0.05f)
     }
-
-    private const val PAGE_SIZE = 100
 
     private inline fun <T> paginate(max: Int, query: (limit: Int, offset: Int) -> List<T>): List<T> {
         val result = mutableListOf<T>()

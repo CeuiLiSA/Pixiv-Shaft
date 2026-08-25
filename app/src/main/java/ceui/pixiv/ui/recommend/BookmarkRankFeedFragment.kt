@@ -61,7 +61,7 @@ class BookmarkRankFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_fe
 
     // 榜单 bean 是第三方上报快照:is_bookmarked 被 source 伪造成 false、user.is_followed 是
     // 上报者的——都不可信,喂池会把当前用户更新的收藏/关注态盖回去(mergeKeepingExisting 不把
-    // false 当空值,AppLevelViewModelHelper.fill 直接灌关注态)。同 WatchLaterFeedFragment 先例。
+    // false 当空值,AppLevelStateHelper.fill 直接灌关注态)。同 WatchLaterFeedFragment 先例。
     override fun poolableBeansOf(item: FeedItem): List<Illust> = emptyList()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

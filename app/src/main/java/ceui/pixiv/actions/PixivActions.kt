@@ -6,7 +6,8 @@ import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.loxia.Illust
 import ceui.lisa.utils.Params
-import ceui.lisa.viewmodel.AppLevelViewModel
+import ceui.lisa.viewmodel.AppLevelState
+import ceui.loxia.appServices
 import ceui.loxia.AccountResponse
 import ceui.loxia.Novel
 import ceui.loxia.ObjectPool
@@ -49,6 +50,10 @@ import timber.log.Timber
  * 所有收藏 / 关注写操作都从这里进同一条限流队列。
  */
 object PixivActions {
+
+    /** 队列是进程级服务（见 [ceui.loxia.ServicesProvider]），这个门面自己无状态，按需取。 */
+    private val actionQueue: PixivActionQueue
+        get() = Shaft.getContext().appServices().pixivActionQueue
 
     /**
      * 收藏的默认可见性。
@@ -230,7 +235,7 @@ object PixivActions {
         writeIllustBookmarkLocally(illustId, bookmark, illust)
         if (bookmark) RateAppManager.onUserEngaged()
 
-        PixivActionQueue.enqueue(
+        actionQueue.enqueue(
             ActionRequest(
                 type = PixivActionTypes.ILLUST_BOOKMARK,
                 dedupeKey = "${PixivActionTypes.ILLUST_BOOKMARK}:$illustId",
@@ -274,7 +279,7 @@ object PixivActions {
     fun bookmarkIllustWithTags(illustId: Long, restrict: String, tags: List<String>) {
         writeIllustBookmarkLocally(illustId, true)
         RateAppManager.onUserEngaged()
-        PixivActionQueue.enqueue(
+        actionQueue.enqueue(
             ActionRequest(
                 type = PixivActionTypes.ILLUST_BOOKMARK,
                 dedupeKey = "${PixivActionTypes.ILLUST_BOOKMARK}:$illustId",
@@ -296,7 +301,7 @@ object PixivActions {
             Timber.tag(TAG).w("bindAccountOnline skipped, invalid uid=%d", uid)
             return
         }
-        AccountOnlineReportOutbox.enqueueOnline(uid, accountResponse)
+        Shaft.getContext().appServices().accountOnlineReportOutbox.enqueueOnline(uid, accountResponse)
     }
 
     /**
@@ -314,7 +319,7 @@ object PixivActions {
         val pooled = ObjectPool.get<Novel>(novelId).value
         writeNovelBookmarkLocally(novelId, true)
         RateAppManager.onUserEngaged()
-        PixivActionQueue.enqueue(
+        actionQueue.enqueue(
             ActionRequest(
                 type = PixivActionTypes.NOVEL_BOOKMARK,
                 dedupeKey = "${PixivActionTypes.NOVEL_BOOKMARK}:$novelId",
@@ -352,7 +357,7 @@ object PixivActions {
         writeNovelBookmarkLocally(novel.id, bookmark, novel)
         if (bookmark) RateAppManager.onUserEngaged()
 
-        PixivActionQueue.enqueue(
+        actionQueue.enqueue(
             ActionRequest(
                 type = PixivActionTypes.NOVEL_BOOKMARK,
                 dedupeKey = "${PixivActionTypes.NOVEL_BOOKMARK}:${novel.id}",
@@ -390,7 +395,7 @@ object PixivActions {
         writeUserFollowLocally(userId, follow, restrict)
         if (follow) RateAppManager.onUserEngaged()
 
-        PixivActionQueue.enqueue(
+        actionQueue.enqueue(
             ActionRequest(
                 type = PixivActionTypes.USER_FOLLOW,
                 // 合并键只带 userId：同一个人的关注/取关反复横跳只留最后一次。
@@ -474,19 +479,19 @@ object PixivActions {
         restrict: String = Params.TYPE_PUBLIC,
     ) {
         if (follow) {
-            Shaft.appViewModel.updateFollowUserStatus(
+            Shaft.getContext().appServices().appLevelState.updateFollowUserStatus(
                 userId.toInt(),
                 if (restrict == Params.TYPE_PUBLIC) {
-                    AppLevelViewModel.FollowUserStatus.FOLLOWED_PUBLIC
+                    AppLevelState.FollowUserStatus.FOLLOWED_PUBLIC
                 } else {
-                    AppLevelViewModel.FollowUserStatus.FOLLOWED_PRIVATE
+                    AppLevelState.FollowUserStatus.FOLLOWED_PRIVATE
                 },
             )
             ObjectPool.followUser(userId)
         } else {
-            Shaft.appViewModel.updateFollowUserStatus(
+            Shaft.getContext().appServices().appLevelState.updateFollowUserStatus(
                 userId.toInt(),
-                AppLevelViewModel.FollowUserStatus.NOT_FOLLOW,
+                AppLevelState.FollowUserStatus.NOT_FOLLOW,
             )
             ObjectPool.unFollowUser(userId)
         }
@@ -520,7 +525,7 @@ object PixivActions {
      * [PixivActionQueue] 手里，这里只是门面的转发（UI 不直接碰队列）。
      */
     @JvmStatic
-    fun estimatedQueueMinutes(count: Int): Int = PixivActionQueue.estimatedMinutes(count)
+    fun estimatedQueueMinutes(count: Int): Int = actionQueue.estimatedMinutes(count)
 
     /**
      * 批量写入每让一次主线程处理多少项。按一帧 16ms 的预算倒推的悲观值：单项最贵的一路是

@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.utils.SystemBarMetrics;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentNewRightBinding;
 import ceui.lisa.utils.Common;
@@ -78,7 +79,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
 
         if (Dev.hideMainActivityStatus) {
             ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-            headParams.height = Shaft.statusHeight;
+            headParams.height = SystemBarMetrics.statusBarHeight(mContext);
             baseBind.head.setLayoutParams(headParams);
         }
 

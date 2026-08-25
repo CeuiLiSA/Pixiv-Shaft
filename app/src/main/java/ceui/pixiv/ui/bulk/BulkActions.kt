@@ -26,7 +26,7 @@ fun startBookmarkIllustBulkDownload(
     val source = MyBookmarksSource(userId = userId, restrict = restrict)
     FetchProgressDialog.show(
         activity.supportFragmentManager,
-        bulkEnqueueIllusts(source, taskName),
+        bulkEnqueueIllusts(activity, source, taskName),
     )
 }
 
@@ -48,6 +48,6 @@ fun startAuthorWorksBulkDownload(
     val source = AuthorWorksSource(userId = userId, type = type)
     FetchProgressDialog.show(
         activity.supportFragmentManager,
-        bulkEnqueueIllusts(source, taskName),
+        bulkEnqueueIllusts(activity, source, taskName),
     )
 }

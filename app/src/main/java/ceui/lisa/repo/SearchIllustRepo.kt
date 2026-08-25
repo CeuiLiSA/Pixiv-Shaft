@@ -9,6 +9,7 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
+import ceui.pixiv.actions.AccountOnlineReportOutbox
 import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.config.RemoteAppConfig
 import ceui.pixiv.session.SessionManager
@@ -54,13 +55,17 @@ class SearchIllustRepo @JvmOverloads constructor(
     // 放最尾靠 @JvmOverloads 的默认值兜底 positional 构造：feeds 版 [ceui.pixiv.ui.search.SearchIllustFeedSource]
     // 用 SearchIllustRepo(null×8) 构造后靠 update(searchModel) 填参，也依赖这些默认值。
     private var contentType: String? = null,
+    // 进程级服务，由构造方（Fragment）从 ServicesProvider 取出注入；Repo 自己不认识 Application。
+    private val nana7miOutbox: AccountOnlineReportOutbox,
+    private val nana7miTelemetryService: Nana7miSearchTelemetry,
+    private val remoteAppConfig: RemoteAppConfig,
 ) : RemoteRepo<ListIllust>() {
 
     private var filterMapper: FilterMapper? = null
 
     // Repo 实例级借用会话，不切换应用登录态；插画和小说共用同一套刷新/上报规则。
     @Volatile
-    private var nana7miSession = Nana7miAccountSession()
+    private var nana7miSession = Nana7miAccountSession(nana7miOutbox)
 
     @Volatile
     private var nana7miTelemetry: Nana7miSearchTelemetry.Flow? = null
@@ -68,7 +73,7 @@ class SearchIllustRepo @JvmOverloads constructor(
     override fun initApi(): Observable<ListIllust> {
         // 每轮首屏使用全新会话。即使上一轮请求取消得较晚，它也只能更新旧会话，不能把
         // 旧借用账号重新写进当前查询，污染当前结果的 next_url 翻页。
-        val currentNana7miSession = Nana7miAccountSession()
+        val currentNana7miSession = Nana7miAccountSession(nana7miOutbox)
         nana7miSession = currentNana7miSession
         nana7miTelemetry = null
         // 关键字写搜索历史已上移到 SearchActivity（首搜 initModel + 重搜 nowGo，按 id 去重收口）。
@@ -104,7 +109,7 @@ class SearchIllustRepo @JvmOverloads constructor(
         // 借号搜索可以被服务端远程关掉（pixshaft-api /v1/config）。关掉后非会员的人气排序
         // 退回借号上线前的行为——直接走 popular-preview。绝不能落到下面的 searchIllust：
         // 那是拿自己的非会员 token 打会员专属 sort，必然 400。
-        val nana7miEnabled = RemoteAppConfig.nana7miSearchEnabled
+        val nana7miEnabled = remoteAppConfig.nana7miSearchEnabled
         val selectedPopularPreview = sortType == SortType.POPULAR_PREVIEW
         val usePopularPreview = selectedPopularPreview || (wantsPremiumOnlySort && !nana7miEnabled)
         // 仅喜欢数筛选（date 排序）在借号被远程关掉时**不能**落 preview——那会把排序偷换成
@@ -121,14 +126,14 @@ class SearchIllustRepo @JvmOverloads constructor(
         val effectiveSearchTarget = SearchTarget.toQueryValue(searchType)
         val requesterUid = SessionManager.loggedInUid
         val telemetry = if (BuildConfig.IS_LITE) null else when {
-            usePopularPreview -> Nana7miSearchTelemetry.start(
+            usePopularPreview -> nana7miTelemetryService.beginFlow(
                 requesterUid = requesterUid,
                 contentType = Nana7miSearchTelemetry.ContentType.ILLUST,
                 query = assembledKeyword,
                 initialRoute = Nana7miSearchTelemetry.Route.PREVIEW_DIRECT,
                 initialReason = if (selectedPopularPreview) "selected_preview" else "remote_disabled",
             )
-            useBorrowedOfficial -> Nana7miSearchTelemetry.start(
+            useBorrowedOfficial -> nana7miTelemetryService.beginFlow(
                 requesterUid = requesterUid,
                 contentType = Nana7miSearchTelemetry.ContentType.ILLUST,
                 query = assembledKeyword,

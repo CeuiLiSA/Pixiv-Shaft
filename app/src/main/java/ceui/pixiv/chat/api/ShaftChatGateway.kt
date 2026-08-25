@@ -47,7 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * - [bootstrap] is called once from
  *   [ceui.lisa.activities.Shaft] after
- *   [ceui.pixiv.events.EventReporter.init] (so `clientId` is available
+ *   [ceui.pixiv.events.EventReporter.start] (so `clientId` is available
  *   synchronously when the manager activates).
  * - Activation signal is a `StateFlow<Boolean>` pinned to `true` for the
  *   process lifetime. The chat is anonymous (uses `EventReporter.currentClientId()`
@@ -113,7 +113,7 @@ object ShaftChatGateway {
 
     /**
      * Idempotent. Safe to call from `Application.onCreate` after
-     * `EventReporter.init`. Subsequent calls are no-ops.
+     * `EventReporter.start`. Subsequent calls are no-ops.
      */
     fun bootstrap(app: Application) {
         if (!bootstrapped.compareAndSet(false, true)) return

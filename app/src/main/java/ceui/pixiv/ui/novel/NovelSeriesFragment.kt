@@ -267,7 +267,7 @@ class NovelSeriesFragment :
         }
         val dedup = loadedNovels().distinctBy { it.id }
         val stopSignal = AtomicBoolean(false)
-        val flow = MergeDownloadNovelSeriesTask.bulkMergeNovelSeries(
+        val flow = MergeDownloadNovelSeriesTask(requireContext()).bulkMergeNovelSeries(
             seriesDetail = detail,
             knownNovels = dedup,
             format = format,

@@ -8,14 +8,15 @@ import io.reactivex.Observable
 import timber.log.Timber
 
 class LatestIllustRepo(
-    private val workType: String?
+    private val workType: String?,
+    private val discoveryPool: DiscoveryPool,
 ) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
         return Retro.getAppApi().getNewWorks(workType)
             .doOnNext { listIllust ->
                 Timber.d("Discovery/Repo latest type=$workType, got ${listIllust?.illusts?.size} items")
-                DiscoveryPool.collect(listIllust?.illusts, "latest:$workType")
+                discoveryPool.collect(listIllust?.illusts, "latest:$workType")
             }
     }
 
@@ -23,7 +24,7 @@ class LatestIllustRepo(
         return Retro.getAppApi().getNextIllust(nextUrl)
             .doOnNext { listIllust ->
                 Timber.d("Discovery/Repo latest_next type=$workType, got ${listIllust?.illusts?.size} items")
-                DiscoveryPool.collect(listIllust?.illusts, "latest_next:$workType")
+                discoveryPool.collect(listIllust?.illusts, "latest_next:$workType")
             }
     }
 }

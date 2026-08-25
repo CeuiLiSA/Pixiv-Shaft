@@ -48,10 +48,31 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Logs are verbose by design (per project request). All log lines use the
  * "EventReporter" tag so a single `adb logcat -s EventReporter` shows the
  * full report → enqueue → flush → POST → response chain.
+ *
+ * Process-scoped service: constructed by [ceui.lisa.activities.Shaft] and exposed via
+ * [ceui.loxia.ServicesProvider]. The constructor does no IO; [start] does.
  */
-object EventReporter {
+// Context 参数只为和其他进程级服务保持同一构造契约（见 ServicesProvider）；
+// 本类只碰 MMKV，暂时用不上它。
+class EventReporter(@Suppress("UNUSED_PARAMETER") app: Context) {
 
-    private const val TAG = "EventReporter"
+    private companion object {
+        const val TAG = "EventReporter"
+        const val MMKV_KEY_CLIENT_ID = "shaft_events_client_id"
+        /** 上一次成功 POST 到 server 的 (uid, clientId) tuple,值是 "uid:clientId"
+         *  连接串。值匹配当前则跳过 POST(server 端 ON CONFLICT 幂等兜底,这只是
+         *  省一次网络往返 + 一次 HMAC 计算)。uid 或 clientId 变化都会 cache miss。*/
+        const val MMKV_KEY_LAST_UID_BINDING = "shaft_events_uid_binding_last"
+        const val FLUSH_INTERVAL_MS = 30_000L
+        const val FLUSH_THRESHOLD = 10           // POST when queue reaches this many
+        const val MAX_BATCH = 50                 // server caps at 100; stay well under
+        const val MAX_QUEUE = 500                // hard cap, drop oldest above this
+        const val MAX_RETRIES = 3
+        // Per-event payload cap — must stay <= server's EVENTS_MAX_PAYLOAD_BYTES
+        // (256 KiB). Anything bigger gets the payload stripped (event still
+        // reported without it) so a freak large Illust can't break the batch.
+        const val MAX_PAYLOAD_BYTES = 200_000
+    }
 
     /** Wire-level event type strings. Must match shaft-api-v2 src/db.js whitelists. */
     object Type {
@@ -69,20 +90,6 @@ object EventReporter {
         const val USER = "user"
     }
 
-    private const val MMKV_KEY_CLIENT_ID = "shaft_events_client_id"
-    /** 上一次成功 POST 到 server 的 (uid, clientId) tuple,值是 "uid:clientId"
-     *  连接串。值匹配当前则跳过 POST(server 端 ON CONFLICT 幂等兜底,这只是
-     *  省一次网络往返 + 一次 HMAC 计算)。uid 或 clientId 变化都会 cache miss。*/
-    private const val MMKV_KEY_LAST_UID_BINDING = "shaft_events_uid_binding_last"
-    private const val FLUSH_INTERVAL_MS = 30_000L
-    private const val FLUSH_THRESHOLD = 10           // POST when queue reaches this many
-    private const val MAX_BATCH = 50                 // server caps at 100; stay well under
-    private const val MAX_QUEUE = 500                // hard cap, drop oldest above this
-    private const val MAX_RETRIES = 3
-    // Per-event payload cap — must stay <= server's EVENTS_MAX_PAYLOAD_BYTES
-    // (256 KiB). Anything bigger gets the payload stripped (event still
-    // reported without it) so a freak large Illust can't break the batch.
-    private const val MAX_PAYLOAD_BYTES = 200_000
 
     private val initialized = AtomicBoolean(false)
     /** True while a POST is in flight. Prevents threshold-triggered flushes from
@@ -118,10 +125,10 @@ object EventReporter {
         var attempts: Int = 0,
     )
 
-    /** Idempotent. Call from Application.onCreate(). */
-    fun init(appCtx: Context) {
+    /** Idempotent. Called by [ceui.lisa.activities.Shaft] once the process is up. */
+    fun start() {
         if (!initialized.compareAndSet(false, true)) {
-            Timber.tag(TAG).d("init() called again, ignoring")
+            Timber.tag(TAG).d("start() called again, ignoring")
             return
         }
         try {
@@ -181,7 +188,7 @@ object EventReporter {
         } catch (t: Throwable) {
             // Initialization must never crash the app. If MMKV isn't available,
             // we just stay disabled forever for this process.
-            Timber.tag(TAG).e(t, "init failed, reporter disabled this session")
+            Timber.tag(TAG).e(t, "start failed, reporter disabled this session")
             initialized.set(false)
         }
     }

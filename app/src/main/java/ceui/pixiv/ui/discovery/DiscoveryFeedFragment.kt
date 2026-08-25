@@ -5,7 +5,7 @@ import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
@@ -14,7 +14,6 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.loxia.Illust
 import ceui.pixiv.db.discovery.DiscoveryPool
-import ceui.pixiv.db.discovery.ProfileManager
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
@@ -33,6 +32,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import ceui.loxia.appServices
+import android.app.Application
 
 /**
  * 「发现」（算法流）页，feeds 框架版，替代 legacy FragmentDiscovery。
@@ -55,14 +56,16 @@ class DiscoveryFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed)
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
     override val feedViewModel by feedViewModels {
+        // 应用级对象，捕获它不会把 Fragment 钉进 VM
+        val pool = requireContext().appServices().discoveryPool
         // 游标类型被 IllustFeedFragment 钉成 String（pixiv 列表的游标就是 nextUrl）；本地池子
         // 没有 URL，这里只拿它当页号用，并覆写 detailContinuationCursor 不让它漏进详情页。
         FeedSource<String> { cursor ->
             val page = cursor?.toIntOrNull() ?: 0
             // 池子读写都是同步 Room 调用，FeedSource.load 的 main-safe 契约要求自己切 IO。
             val (poolSize, items) = withContext(Dispatchers.IO) {
-                val entities = DiscoveryPool.getDiscoveryFeedDiversified(PAGE_SIZE)
-                entities.size to convertAndMark(entities)
+                val entities = pool.getDiscoveryFeedDiversified(PAGE_SIZE)
+                entities.size to convertAndMark(pool, entities)
             }
             Timber.d("%s page=%d: %d entities -> %d illusts", TAG, page, poolSize, items.size)
             FeedPage(
@@ -125,13 +128,14 @@ class DiscoveryFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed)
      * 挪到 IO 上打。
      */
     private fun logDiagnostics() {
+        val services = requireContext().appServices()
         viewLifecycleOwner.lifecycleScope.launch {
             val stats = withContext(Dispatchers.IO) {
-                runCatching { DiscoveryPool.getStats() }.getOrElse { "unavailable" }
+                runCatching { services.discoveryPool.getStats() }.getOrElse { "unavailable" }
             }
             Timber.d("%s pool: %s", TAG, stats)
         }
-        val profile = ProfileManager.cached()
+        val profile = services.profileManager.cached()
         if (profile == null) {
             Timber.d("%s profile NOT READY", TAG)
             return
@@ -150,7 +154,9 @@ class DiscoveryFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed)
      * toolbar 计数用的候选池在库总数。单独一个小 VM 而不是塞进 FeedViewModel：
      * 它跟列表翻页状态没关系（数据归 ViewModel + 按需建小 VM，别拉大杂烩）。
      */
-    class DiscoveryPoolCountViewModel : ViewModel() {
+    class DiscoveryPoolCountViewModel(application: Application) : AndroidViewModel(application) {
+
+        private val pool = application.appServices().discoveryPool
 
         private val _total = MutableStateFlow<Int?>(null)
 
@@ -164,7 +170,7 @@ class DiscoveryFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed)
         fun reload() {
             viewModelScope.launch {
                 val count = withContext(Dispatchers.IO) {
-                    runCatching { DiscoveryPool.totalCount() }
+                    runCatching { pool.totalCount() }
                         .onFailure { Timber.w(it, "%s totalCount failed", TAG) }
                         .getOrNull()
                 }
@@ -178,12 +184,12 @@ class DiscoveryFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed)
         private const val PAGE_SIZE = 30
 
         /**
-         * 池子实体 → feed 条目。零捕获（只碰 object / 全局 gson），可以安全地活到 VM 生命周期。
+         * 池子实体 → feed 条目。零捕获（只碰应用级 pool / 全局 gson），可以安全地活到 VM 生命周期。
          *
          * 逐条日志沿用 legacy 的字段（id/score/source/标题/作者）：调分数权重、查 #937 这类
          * 候选池问题就靠它。多打一个 filtered 标记——legacy 不过滤，没有这个状态。
          */
-        private fun convertAndMark(entities: List<ceui.pixiv.db.DiscoveryEntity>): List<IllustFeedItem> {
+        private fun convertAndMark(pool: DiscoveryPool, entities: List<ceui.pixiv.db.DiscoveryEntity>): List<IllustFeedItem> {
             val result = mutableListOf<IllustFeedItem>()
             entities.forEach { entity ->
                 val bean = runCatching {
@@ -192,7 +198,7 @@ class DiscoveryFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed)
                     Timber.w(it, "%s   parse FAILED id=%d", TAG, entity.illustId)
                 }.getOrNull()
                 if (bean == null || bean.id <= 0) return@forEach
-                DiscoveryPool.markShown(entity.illustId)
+                pool.markShown(entity.illustId)
                 val item = IllustFeedItem.of(bean)
                 item?.let(result::add)
                 Timber.d(

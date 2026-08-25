@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
-import ceui.lisa.activities.ColdStartSplashGate
+import ceui.lisa.activities.ColdStartSplashHost
 import ceui.lisa.activities.RankActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.VActivity
@@ -50,6 +50,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ceui.loxia.appServices
 
 /**
  * 首页「推荐插画」tab / 推荐漫画页（feeds 框架版，替代 legacy FragmentRecmdIllust +
@@ -79,6 +80,8 @@ open class RecmdIllustFeedFragment(
         // 只捕获局部值、映射走伴生函数，不把 Fragment 实例钉进 VM
         val dataType = dataType
         val apiType = if (dataType == TYPE_MANGA) "manga" else "illust"
+        // 应用级对象，捕获它不会把 Fragment 钉进 VM
+        val pool = requireContext().appServices().discoveryPool
         // 本地优先（哔哩哔哩 / 新闻首页语义）：给稳定 slot 即开磁盘缓存，冷启秒显上次首屏
         // 再拉最新覆盖。slot 已由框架自动拼账号命名空间，切号不串味。
         cachedPixivFeedSource(
@@ -92,7 +95,7 @@ open class RecmdIllustFeedFragment(
                 dataType != TYPE_ILLUST || Shaft.sSettings.isAutoRefreshHomeFeed
             },
         ) { resp, phase ->
-            mapRecmdPage(resp.illusts, resp.ranking_illusts, phase, dataType)
+            mapRecmdPage(pool, resp.illusts, resp.ranking_illusts, phase, dataType)
         }
     }
 
@@ -153,7 +156,7 @@ open class RecmdIllustFeedFragment(
         if (dataType == TYPE_ILLUST) {
             viewLifecycleOwner.lifecycleScope.launch {
                 feedViewModel.uiState.first { it.refresh !is LoadState.Idle || it.hasLoadedOnce }
-                ColdStartSplashGate.markResolved()
+                (activity as? ColdStartSplashHost)?.markSplashResolved()
             }
         }
     }
@@ -269,6 +272,7 @@ open class RecmdIllustFeedFragment(
          * 与首屏保持一致，靠 [FeedLoadPhase.isFirstPage] 判定。
          */
         private fun mapRecmdPage(
+            pool: DiscoveryPool,
             illusts: List<Illust>,
             rankingIllusts: List<Illust>,
             phase: FeedLoadPhase,
@@ -277,7 +281,7 @@ open class RecmdIllustFeedFragment(
             // 对齐 legacy RecmdIllustRepo：过滤前整页喂 DiscoveryPool（排行榜预览不算）。
             // 缓存恢复不喂（旧数据画像无意义、且违反重放安全）。
             if (phase.isFreshFetch) {
-                DiscoveryPool.collect(
+                pool.collect(
                     illusts,
                     if (phase.isFirstPage) "recmd:$dataType" else "recmd_next:$dataType",
                 )

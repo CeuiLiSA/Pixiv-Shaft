@@ -22,6 +22,7 @@ import ceui.lisa.databinding.FragmentImageDetailBinding
 import ceui.lisa.download.FileCreator
 import ceui.lisa.download.IllustDownload
 import ceui.loxia.Illust
+import ceui.loxia.appServices
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.Settings
 import ceui.lisa.view.DragDismissLayout
@@ -33,7 +34,6 @@ import ceui.pixiv.imageloader.observeState
 import ceui.pixiv.ui.common.deleteImageById
 import ceui.pixiv.ui.common.getImageIdInGallery
 import ceui.pixiv.ui.common.saveImageToGallery
-import ceui.pixiv.ui.translate.MangaBatchTranslateCenter
 import ceui.pixiv.ui.translate.MangaOcrModel
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.utils.setOnClick
@@ -389,7 +389,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
     /** 进圈选模式:亮出框选层接管触摸,画完一框就退出并交给 VM 翻译。 */
     private fun enterManualSelection() {
-        if (translationViewModel.running.value == true || MangaBatchTranslateCenter.isRunning) {
+        if (translationViewModel.running.value == true || requireContext().appServices().mangaBatchTranslateCenter.isRunning) {
             Toaster.showShort(R.string.string_ai_translate_in_progress)
             return
         }
@@ -449,9 +449,12 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             Toaster.showShort(R.string.string_ai_ocr_failed)
             return
         }
-        translationViewModel.startManualRegion(
-            requireContext().applicationContext, file, index, l, t, r, b, MangaOcrModel.MANGA_OCR_BASE
+        val started = translationViewModel.startManualRegion(
+            file, index, l, t, r, b, MangaOcrModel.MANGA_OCR_BASE
         )
+        if (!started) {
+            Toaster.showShort(R.string.string_ai_translate_in_progress)
+        }
     }
 
     private fun loadImage() {

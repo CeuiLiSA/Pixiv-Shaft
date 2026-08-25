@@ -43,9 +43,11 @@ import kotlinx.coroutines.android.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import ceui.pixiv.db.discovery.DiscoveryPool
 
 class NovelReaderV3ViewModel(
     val novelId: Long,
+    private val discoveryPool: DiscoveryPool,
     private val localUri: String? = null,
     private val localTitle: String? = null,
 ) : ViewModel() {
@@ -242,7 +244,7 @@ class NovelReaderV3ViewModel(
         if (mixIllustsSource == source && mixIllusts.isNotEmpty()) return
         val novel = this.novel
         viewModelScope.launch {
-            runCatching { NovelIllustMixStore.get(source, novel) }
+            runCatching { NovelIllustMixStore.get(discoveryPool, source, novel) }
                 .onSuccess { list ->
                     // 来源在拉取途中又被切走就丢弃结果，别用旧口径的图污染新设置。
                     if (list.isEmpty() || ReaderSettings.illustMixSource != source) return@onSuccess
@@ -624,12 +626,13 @@ class NovelReaderV3ViewModel(
     companion object {
         fun factory(
             novelId: Long,
+            discoveryPool: DiscoveryPool,
             localUri: String? = null,
             localTitle: String? = null,
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return NovelReaderV3ViewModel(novelId, localUri, localTitle) as T
+                return NovelReaderV3ViewModel(novelId, discoveryPool, localUri, localTitle) as T
             }
         }
     }

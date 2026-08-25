@@ -2,6 +2,7 @@ package ceui.pixiv.ui.download
 
 import android.content.Intent
 import android.net.Uri
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -37,7 +38,6 @@ import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
 import ceui.loxia.Novel
 import ceui.pixiv.db.queue.QueueStatus
-import ceui.pixiv.ui.bulk.QueueDownloadManager
 import com.bumptech.glide.Glide
 import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -54,6 +54,8 @@ import java.io.Serializable
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import ceui.loxia.appServices
+import ceui.pixiv.ui.bulk.QueueDownloadManager
 
 /**
  * V3 风格 "已完成" — 双列卡片网格。
@@ -71,6 +73,18 @@ import java.util.Locale
  * DOWNLOAD_FINISH 广播兜底架构（0 timer、0 broadcast receiver）。
  */
 class DoneListV3Fragment : Fragment() {
+
+    /**
+     * 在 [onAttach] 取一次而不是每次 `requireContext()`:清空/重试这类操作跑在
+     * IO 协程里,阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
+     * 实例是应用级的,提前拿住没有泄漏问题。
+     */
+    private lateinit var queueDownloadManager: QueueDownloadManager
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        queueDownloadManager = context.appServices().queueDownloadManager
+    }
 
     private val dao: DownloadDao by lazy {
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()
@@ -133,7 +147,7 @@ class DoneListV3Fragment : Fragment() {
                         // 这张表了(改为 illust_download_table 分组数),但 SUCCESS 行
                         // 也是历史垃圾,跟着一起清。
                         runCatching { queueDao.deleteByStatus(QueueStatus.SUCCESS) }
-                        QueueDownloadManager.queueListInvalidations.tryEmit(Unit)
+                        queueDownloadManager.queueListInvalidations.tryEmit(Unit)
                     }
                 }
             }

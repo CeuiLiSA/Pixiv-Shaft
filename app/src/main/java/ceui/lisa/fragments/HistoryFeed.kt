@@ -116,9 +116,9 @@ class HistoryFeedSource(
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val page = loadPage(cursor)
-        // ObjectPool.store 是普通 map + setValue(见 ObjectPool),后台线程写会与主线程 get/update
-        // 竞争撞 ConcurrentModificationException。load 由 FeedViewModel 的 viewModelScope(Main)调起,
-        // 这里回主线程再喂池,详情页 ObjectPool.get 才拿得到 illust。
+        // ObjectPool.update 走 LiveData.setValue(见 ObjectPool 类注释「线程」),只能在主线程调。
+        // load 由 FeedViewModel 的 viewModelScope(Main)调起,这里回主线程再喂池,
+        // 详情页 ObjectPool.get 才拿得到 illust。
         //
         // 只做 putIfAbsent,绝不覆盖:历史条目的 illustJson 是**浏览当时**冻结的快照,直接
         // updateIllust 会拿旧的 is_bookmarked=false / is_followed=false 盖掉当前会话里更新的池值

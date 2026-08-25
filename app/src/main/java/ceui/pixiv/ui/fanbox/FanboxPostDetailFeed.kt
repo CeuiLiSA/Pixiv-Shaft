@@ -37,6 +37,8 @@ import ceui.loxia.FanboxImage
 import ceui.loxia.FanboxPlan
 import ceui.loxia.FanboxPost
 import ceui.loxia.FanboxUrlEmbed
+import ceui.loxia.FanboxWebBridge
+import ceui.loxia.appServices
 import ceui.loxia.fetchFanboxPostInfo
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.ui.common.ImageUrlViewer
@@ -84,7 +86,9 @@ class FanboxPostDetailFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         val plansTitle = getString(R.string.fanbox_section_plans)
         val commentsTitle = getString(R.string.fanbox_section_comments)
         val commentsLocked = getString(R.string.fanbox_comments_locked)
-        FeedSource { _ -> loadFanboxPostDetail(id, plansTitle, commentsTitle, commentsLocked) }
+        // 桥是进程级服务(应用 Context 持有),捕获它不会把 Fragment 带进 VM。
+        val bridge = requireContext().appServices().fanboxWebBridge
+        FeedSource { _ -> loadFanboxPostDetail(bridge, id, plansTitle, commentsTitle, commentsLocked) }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -369,12 +373,13 @@ class FanboxPostDetailFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
  * 被挡时才退回 post.get,那条路只有元数据。
  */
 private suspend fun loadFanboxPostDetail(
+    bridge: FanboxWebBridge,
     postId: String,
     plansTitle: String,
     commentsTitle: String,
     commentsLocked: String,
 ): FeedPage<String> {
-    val fullPost = fetchFanboxPostInfo(postId)
+    val fullPost = fetchFanboxPostInfo(bridge, postId)
     val post = fullPost
         ?: Client.fanboxApi.postGet(postId).body?.post
         ?: return FeedPage(emptyList(), null)

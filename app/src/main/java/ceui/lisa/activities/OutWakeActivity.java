@@ -27,7 +27,12 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
     public static final String HOST_ME = "pixiv.me";
     public static final String HOST_PIXIVISION = "pixivision.net";
-    public static boolean isNetWorking = false;
+
+    /**
+     * 本实例是否已经发起了作品/小说详情请求。以前是 static、由 PixivOperate 跨类复位；
+     * 改成实例字段后由本类自己在成功/失败回调里复位，不再有别的类写它。
+     */
+    private boolean requestInFlight = false;
 
     private static final String HOST_ACCOUNT = "account";
     private static final String HOST_SEARCH = "search";
@@ -93,10 +98,10 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
         List<String> pathSegments = uri.getPathSegments();
         if (pathSegments.contains("artworks") || pathSegments.contains("i")) {
-            if (isNetWorking) {
+            if (requestInFlight) {
                 return true;
             }
-            isNetWorking = true;
+            requestInFlight = true;
             String illustId = lastPathSegment(pathSegments);
             if (!TextUtils.isEmpty(illustId)) {
                 openIllust(illustId);
@@ -107,10 +112,10 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
         boolean isNovelPage = pathSegments.contains("novel")
                 && !TextUtils.isEmpty(uri.getQueryParameter("id"));
         if (isNovelPage || pathSegments.contains("n")) {
-            if (isNetWorking) {
+            if (requestInFlight) {
                 return true;
             }
-            isNetWorking = true;
+            requestInFlight = true;
             String novelId = isNovelPage
                     ? uri.getQueryParameter("id")
                     : lastPathSegment(pathSegments);
@@ -196,11 +201,15 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
     }
 
     private void openIllust(String illustId) {
-        PixivOperate.getIllustByID(tryParseId(illustId), mContext, t -> finish(), null);
+        PixivOperate.getIllustByID(tryParseId(illustId), mContext,
+                t -> { requestInFlight = false; finish(); },
+                t -> requestInFlight = false);
     }
 
     private void openNovel(String novelId) {
-        PixivOperate.getNovelByID(tryParseId(novelId), mContext, t -> finish());
+        PixivOperate.getNovelByID(tryParseId(novelId), mContext,
+                t -> { requestInFlight = false; finish(); },
+                t -> requestInFlight = false);
     }
 
     private void openUser(String userId) {

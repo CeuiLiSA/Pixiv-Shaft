@@ -15,6 +15,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import ceui.loxia.appServices
 
 /**
  * **唯一调用方**：[ceui.pixiv.ui.bulk.BulkSelectV3Fragment] 确认按钮。
@@ -40,6 +41,7 @@ object LegacyBatchEnqueue {
         // 全程用 ApplicationContext —— BulkSelectV3Fragment 调完会 finish()，
         // 后续 IO 协程跑到一半时 fragment context 已死，toast 会引用已销毁 Activity 崩溃。
         val appCtx: Context = context.applicationContext
+        val queue = appCtx.appServices().queueDownloadManager
 
         val incomingSize = illusts?.size ?: 0
         if (incomingSize == 0) {
@@ -100,11 +102,11 @@ object LegacyBatchEnqueue {
                     }
                     dao.appendBatch(rows)
                     // 每个 batch 都 poke UI（让用户看到行数在涨），不用等 resume
-                    QueueDownloadManager.queueListInvalidations.tryEmit(Unit)
+                    queue.queueListInvalidations.tryEmit(Unit)
                 }
 
                 // 全部入完才唤醒一次（之前是每批都 resume，浪费 N 次主线程标志写）
-                QueueDownloadManager.resume()
+                queue.resume()
 
                 withContext(Dispatchers.Main) {
                     Toaster.showShort(appCtx.getString(R.string.bulk_enqueue_done, list.size))

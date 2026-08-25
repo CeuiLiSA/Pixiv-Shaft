@@ -45,9 +45,17 @@ import timber.log.Timber
  * Events are buffered and delivered in batches: one flush becomes one queue row and therefore
  * one signed request carrying up to [MAX_BATCH_EVENTS] events. See [buffer] for the trade-off.
  */
-internal object Nana7miSearchTelemetry {
+class Nana7miSearchTelemetry internal constructor(
+    /**
+     * Resolved lazily so JVM unit tests can build an instance without any Android Context
+     * (a stub Context throws on construction); production passes the Application.
+     */
+    private val appContext: Lazy<Context>,
+) {
 
-    private val initialized = AtomicBoolean(false)
+    constructor(app: Context) : this(lazy { app.applicationContext })
+
+    private val started = AtomicBoolean(false)
     private val scope = CoroutineScope(
         SupervisorJob() + Dispatchers.IO +
                 CoroutineExceptionHandler { _, error ->
@@ -72,18 +80,21 @@ internal object Nana7miSearchTelemetry {
      */
     private val buffer = ArrayDeque<Payload>()
 
-    @JvmStatic
-    fun init(context: Context) {
+    /**
+     * Idempotent. Called by Shaft's deferred init (non-Lite only); builds the durable queue and
+     * launches the flush/recovery workers. Flows created before this point buffer their events.
+     */
+    fun start() {
         if (!enabledForConfiguration(ShaftHmac.isConfigured)) {
             Timber.tag(TAG).i("telemetry disabled: native HMAC signer is not configured")
             return
         }
-        if (!initialized.compareAndSet(false, true)) return
-        val appContext = context.applicationContext
+        if (!started.compareAndSet(false, true)) return
+        val app = appContext.value
         try {
-            val monitor = AppNetworkMonitor.get(appContext)
+            val monitor = AppNetworkMonitor.get(app)
             val instance = ActionQueue.withRoomStore(
-                context = appContext,
+                context = app,
                 databaseName = DATABASE_NAME,
                 handlers = mapOf(
                     BATCH_ACTION_TYPE to Nana7miSearchTelemetryBatchHandler(
@@ -174,11 +185,11 @@ internal object Nana7miSearchTelemetry {
             // problem must never crash or brick the search process. Reset the guard and retry in
             // process; a concurrent/manual init that succeeds makes the delayed call a no-op.
             queue = null
-            initialized.set(false)
+            started.set(false)
             Timber.tag(TAG).e(error, "telemetry initialization failed; retrying")
             scope.launch {
                 delay(INIT_RETRY_INTERVAL_MS)
-                init(appContext)
+                start()
             }
         }
     }
@@ -251,13 +262,6 @@ internal object Nana7miSearchTelemetry {
         }
     }
 
-    private fun isPermanentFailure(reason: String): Boolean =
-        reason.startsWith(PERMANENT_FAILURE_PREFIX)
-
-    internal fun permanentFailure(reason: String, cause: Throwable? = null): ActionOutcome.Fail =
-        ActionOutcome.Fail(PERMANENT_FAILURE_PREFIX + reason, cause)
-
-    internal fun enabledForConfiguration(configured: Boolean): Boolean = configured
 
     enum class ContentType(val wire: String) { ILLUST("illust"), NOVEL("novel") }
     enum class Page(val wire: String) { FIRST("first"), NEXT("next") }
@@ -307,7 +311,8 @@ internal object Nana7miSearchTelemetry {
      */
     data class BatchPayload(val events: List<Payload>? = null)
 
-    fun start(
+    /** Opens one user-search flow; null when telemetry is disabled or the input is out of range. */
+    fun beginFlow(
         requesterUid: Long,
         contentType: ContentType,
         query: String,
@@ -334,55 +339,8 @@ internal object Nana7miSearchTelemetry {
         )
     }
 
-    internal fun valid(payload: Payload, owner: String = ""): Boolean =
-        UUID_RE.matches(payload.eventId) &&
-                UUID_RE.matches(payload.flowId) &&
-                payload.occurredAt > 0L &&
-                payload.requesterUid > 0L &&
-                (payload.borrowedUid == null || payload.borrowedUid > 0L) &&
-                payload.query.length <= QUERY_MAX_CHARS &&
-                payload.contentType in CONTENT_TYPES &&
-                payload.page in PAGES &&
-                payload.route in ROUTES &&
-                payload.eventType != null && payload.eventType in EVENT_TYPES &&
-                payload.outcome in OUTCOMES &&
-                payload.flowOutcome.let { it == null || it in FLOW_OUTCOMES } &&
-                (payload.reason == null || payload.reason.length <= LABEL_MAX_CHARS) &&
-                (payload.errorType == null || payload.errorType.length <= LABEL_MAX_CHARS) &&
-                (payload.httpStatus == null || payload.httpStatus in 100..599) &&
-                (payload.durationMs == null || payload.durationMs in 0..MAX_DURATION_MS) &&
-                payload.appVersion?.isNotBlank() == true && payload.appVersion.length <= VERSION_MAX_CHARS &&
-                payload.appChannel?.isNotBlank() == true && payload.appChannel.length <= VERSION_MAX_CHARS &&
-                validCombination(payload) &&
-                (owner.isBlank() || owner == payload.requesterUid.toString())
 
-    private fun validCombination(payload: Payload): Boolean = when (payload.eventType) {
-        EventType.REQUEST.wire ->
-            payload.outcome != Outcome.STARTED.wire &&
-                    payload.flowOutcome == null && payload.durationMs == null &&
-                    (payload.route != Route.BORROWED_OFFICIAL.wire || payload.borrowedUid != null)
-        EventType.FLOW_STARTED.wire ->
-            payload.outcome == Outcome.STARTED.wire &&
-                    payload.flowOutcome == null && payload.durationMs == null
-        EventType.FLOW_TERMINAL.wire -> when (payload.flowOutcome) {
-            FlowOutcome.CANCELLED.wire -> payload.outcome == Outcome.CANCELLED.wire
-            FlowOutcome.TOTAL_FAILURE.wire -> payload.outcome == Outcome.FAILURE.wire
-            FlowOutcome.OFFICIAL_SUCCESS.wire ->
-                payload.outcome == Outcome.SUCCESS.wire &&
-                        payload.route == Route.BORROWED_OFFICIAL.wire &&
-                        payload.borrowedUid != null
-            FlowOutcome.PREVIEW_SUCCESS.wire ->
-                payload.outcome == Outcome.SUCCESS.wire &&
-                        payload.route == Route.PREVIEW_DIRECT.wire
-            FlowOutcome.FALLBACK_SUCCESS.wire ->
-                payload.outcome == Outcome.SUCCESS.wire &&
-                        payload.route == Route.PREVIEW_FALLBACK.wire
-            else -> false
-        } && payload.durationMs != null
-        else -> false
-    }
-
-    class Flow internal constructor(
+    inner class Flow internal constructor(
         private val flowId: String,
         private val requesterUid: Long,
         private val contentType: ContentType,
@@ -536,55 +494,114 @@ internal object Nana7miSearchTelemetry {
         }
     }
 
-    private fun causeChain(error: Throwable): Sequence<Throwable> =
-        generateSequence(error) { current -> current.cause?.takeUnless { it === current } }
 
-    private fun monotonicNowMs(): Long = System.nanoTime() / 1_000_000L
+    internal companion object {
+        private fun isPermanentFailure(reason: String): Boolean =
+            reason.startsWith(PERMANENT_FAILURE_PREFIX)
 
-    internal const val QUERY_MAX_CHARS = 1_000
-    private const val LABEL_MAX_CHARS = 100
-    private const val VERSION_MAX_CHARS = 50
-    private const val MAX_DURATION_MS = 24L * 60L * 60L * 1_000L
-    internal const val TAG = "Nana7miTelemetry"
-    private const val ACTION_TYPE = "nana7mi_search_telemetry"
-    internal const val BATCH_ACTION_TYPE = "nana7mi_search_telemetry_batch"
-    private const val DATABASE_NAME = "nana7mi_search_telemetry.db"
-    private const val GLOBAL_OWNER = "nana7mi_search_telemetry"
-    private const val MIN_GAP_MS = 250L
-    /** Flush cadence; a whole search session usually leaves as one or two requests. */
-    private const val FLUSH_INTERVAL_MS = 30_000L
-    /** Flush early on a burst instead of making the tail of it wait a full window. */
-    private const val FLUSH_THRESHOLD_EVENTS = 20
-    /** Events per request. Must stay <= the server's NANA7MI_TELEMETRY_BATCH_MAX_EVENTS. */
-    private const val MAX_BATCH_EVENTS = 50
-    /** Ceiling for events not yet handed to the queue; oldest lose. */
-    private const val MAX_BUFFERED_EVENTS = 200
-    // Rows are batches now, so these caps are an order of magnitude smaller than the
-    // one-row-per-event era while holding far more events (500 x 50 = 25,000).
-    private const val MAX_FAILED_ROWS = 200
-    private const val MAX_STORED_ROWS = 500
-    private const val INIT_RETRY_INTERVAL_MS = 60_000L
-    private const val FAILED_RETRY_INTERVAL_MS = 6L * 60L * 60L * 1_000L
-    private const val PERMANENT_FAILURE_PREFIX = "permanent telemetry failure: "
-    private val APP_VERSION = if (BuildConfig.IS_DEBUG_MODE) {
-        BuildConfig.VERSION_NAME + "-debug"
-    } else {
-        BuildConfig.VERSION_NAME
+        internal fun permanentFailure(reason: String, cause: Throwable? = null): ActionOutcome.Fail =
+            ActionOutcome.Fail(PERMANENT_FAILURE_PREFIX + reason, cause)
+
+        internal fun enabledForConfiguration(configured: Boolean): Boolean = configured
+
+        internal fun valid(payload: Payload, owner: String = ""): Boolean =
+            UUID_RE.matches(payload.eventId) &&
+                    UUID_RE.matches(payload.flowId) &&
+                    payload.occurredAt > 0L &&
+                    payload.requesterUid > 0L &&
+                    (payload.borrowedUid == null || payload.borrowedUid > 0L) &&
+                    payload.query.length <= QUERY_MAX_CHARS &&
+                    payload.contentType in CONTENT_TYPES &&
+                    payload.page in PAGES &&
+                    payload.route in ROUTES &&
+                    payload.eventType != null && payload.eventType in EVENT_TYPES &&
+                    payload.outcome in OUTCOMES &&
+                    payload.flowOutcome.let { it == null || it in FLOW_OUTCOMES } &&
+                    (payload.reason == null || payload.reason.length <= LABEL_MAX_CHARS) &&
+                    (payload.errorType == null || payload.errorType.length <= LABEL_MAX_CHARS) &&
+                    (payload.httpStatus == null || payload.httpStatus in 100..599) &&
+                    (payload.durationMs == null || payload.durationMs in 0..MAX_DURATION_MS) &&
+                    payload.appVersion?.isNotBlank() == true && payload.appVersion.length <= VERSION_MAX_CHARS &&
+                    payload.appChannel?.isNotBlank() == true && payload.appChannel.length <= VERSION_MAX_CHARS &&
+                    validCombination(payload) &&
+                    (owner.isBlank() || owner == payload.requesterUid.toString())
+
+        private fun validCombination(payload: Payload): Boolean = when (payload.eventType) {
+            EventType.REQUEST.wire ->
+                payload.outcome != Outcome.STARTED.wire &&
+                        payload.flowOutcome == null && payload.durationMs == null &&
+                        (payload.route != Route.BORROWED_OFFICIAL.wire || payload.borrowedUid != null)
+            EventType.FLOW_STARTED.wire ->
+                payload.outcome == Outcome.STARTED.wire &&
+                        payload.flowOutcome == null && payload.durationMs == null
+            EventType.FLOW_TERMINAL.wire -> when (payload.flowOutcome) {
+                FlowOutcome.CANCELLED.wire -> payload.outcome == Outcome.CANCELLED.wire
+                FlowOutcome.TOTAL_FAILURE.wire -> payload.outcome == Outcome.FAILURE.wire
+                FlowOutcome.OFFICIAL_SUCCESS.wire ->
+                    payload.outcome == Outcome.SUCCESS.wire &&
+                            payload.route == Route.BORROWED_OFFICIAL.wire &&
+                            payload.borrowedUid != null
+                FlowOutcome.PREVIEW_SUCCESS.wire ->
+                    payload.outcome == Outcome.SUCCESS.wire &&
+                            payload.route == Route.PREVIEW_DIRECT.wire
+                FlowOutcome.FALLBACK_SUCCESS.wire ->
+                    payload.outcome == Outcome.SUCCESS.wire &&
+                            payload.route == Route.PREVIEW_FALLBACK.wire
+                else -> false
+            } && payload.durationMs != null
+            else -> false
+        }
+
+        private fun causeChain(error: Throwable): Sequence<Throwable> =
+            generateSequence(error) { current -> current.cause?.takeUnless { it === current } }
+
+        private fun monotonicNowMs(): Long = System.nanoTime() / 1_000_000L
+
+        internal const val QUERY_MAX_CHARS = 1_000
+        private const val LABEL_MAX_CHARS = 100
+        private const val VERSION_MAX_CHARS = 50
+        private const val MAX_DURATION_MS = 24L * 60L * 60L * 1_000L
+        internal const val TAG = "Nana7miTelemetry"
+        private const val ACTION_TYPE = "nana7mi_search_telemetry"
+        internal const val BATCH_ACTION_TYPE = "nana7mi_search_telemetry_batch"
+        private const val DATABASE_NAME = "nana7mi_search_telemetry.db"
+        private const val GLOBAL_OWNER = "nana7mi_search_telemetry"
+        private const val MIN_GAP_MS = 250L
+        /** Flush cadence; a whole search session usually leaves as one or two requests. */
+        private const val FLUSH_INTERVAL_MS = 30_000L
+        /** Flush early on a burst instead of making the tail of it wait a full window. */
+        private const val FLUSH_THRESHOLD_EVENTS = 20
+        /** Events per request. Must stay <= the server's NANA7MI_TELEMETRY_BATCH_MAX_EVENTS. */
+        private const val MAX_BATCH_EVENTS = 50
+        /** Ceiling for events not yet handed to the queue; oldest lose. */
+        private const val MAX_BUFFERED_EVENTS = 200
+        // Rows are batches now, so these caps are an order of magnitude smaller than the
+        // one-row-per-event era while holding far more events (500 x 50 = 25,000).
+        private const val MAX_FAILED_ROWS = 200
+        private const val MAX_STORED_ROWS = 500
+        private const val INIT_RETRY_INTERVAL_MS = 60_000L
+        private const val FAILED_RETRY_INTERVAL_MS = 6L * 60L * 60L * 1_000L
+        private const val PERMANENT_FAILURE_PREFIX = "permanent telemetry failure: "
+        private val APP_VERSION = if (BuildConfig.IS_DEBUG_MODE) {
+            BuildConfig.VERSION_NAME + "-debug"
+        } else {
+            BuildConfig.VERSION_NAME
+        }
+        private val UUID_RE = Regex(
+            "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            RegexOption.IGNORE_CASE,
+        )
+        private val CONTENT_TYPES = ContentType.entries.mapTo(hashSetOf()) { it.wire }
+        private val PAGES = Page.entries.mapTo(hashSetOf()) { it.wire }
+        private val ROUTES = Route.entries.mapTo(hashSetOf()) { it.wire }
+        private val EVENT_TYPES = EventType.entries.mapTo(hashSetOf()) { it.wire }
+        private val OUTCOMES = Outcome.entries.mapTo(hashSetOf()) { it.wire }
+        private val FLOW_OUTCOMES = FlowOutcome.entries.mapTo(hashSetOf()) { it.wire }
     }
-    private val UUID_RE = Regex(
-        "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-        RegexOption.IGNORE_CASE,
-    )
-    private val CONTENT_TYPES = ContentType.entries.mapTo(hashSetOf()) { it.wire }
-    private val PAGES = Page.entries.mapTo(hashSetOf()) { it.wire }
-    private val ROUTES = Route.entries.mapTo(hashSetOf()) { it.wire }
-    private val EVENT_TYPES = EventType.entries.mapTo(hashSetOf()) { it.wire }
-    private val OUTCOMES = Outcome.entries.mapTo(hashSetOf()) { it.wire }
-    private val FLOW_OUTCOMES = FlowOutcome.entries.mapTo(hashSetOf()) { it.wire }
 }
 
 /**
- * Delivers one buffered flush. Kept outside the object to make the network dependency
+ * Delivers one buffered flush. Kept outside the class to make the network dependency
  * injectable in JVM tests.
  */
 internal class Nana7miSearchTelemetryBatchHandler(

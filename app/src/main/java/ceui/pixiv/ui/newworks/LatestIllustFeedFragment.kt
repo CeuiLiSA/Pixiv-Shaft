@@ -10,6 +10,7 @@ import ceui.pixiv.feeds.pixiv.cachedPixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.loxia.appServices
 
 /**
  * 最新作品「插画」/「漫画」tab（feeds 框架版，替代 legacy FragmentLatestWorks + IAdapter）。
@@ -33,11 +34,13 @@ class LatestIllustFeedFragment : IllustFeedFragment() {
         // 零捕获约定（见 feedViewModels 文档）：source/mapper 归 VM 长期持有，
         // 只捕获局部值、映射走伴生函数，不把 Fragment 实例钉进 VM
         val contentType = contentType
+        // 应用级对象，捕获它不会把 Fragment 钉进 VM
+        val pool = requireContext().appServices().discoveryPool
         cachedPixivFeedSource(
             slot = "latest-$contentType",
             initialFetch = { Client.appApi.getNewIllusts(contentType) },
         ) { resp, phase ->
-            mapLatestPage(resp.displayList, phase, contentType)
+            mapLatestPage(pool, resp.displayList, phase, contentType)
         }
     }
 
@@ -60,12 +63,13 @@ class LatestIllustFeedFragment : IllustFeedFragment() {
          * [phase] 为缓存恢复时只做纯映射，不喂画像池（拿旧数据重放会污染下游）。
          */
         private fun mapLatestPage(
+            pool: DiscoveryPool,
             illusts: List<Illust>,
             phase: FeedLoadPhase,
             contentType: String,
         ): List<FeedItem> {
             if (phase.isFreshFetch) {
-                DiscoveryPool.collect(
+                pool.collect(
                     illusts,
                     if (phase.isFirstPage) "latest:$contentType" else "latest_next:$contentType",
                 )

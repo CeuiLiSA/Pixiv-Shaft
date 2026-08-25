@@ -37,7 +37,7 @@ import ceui.loxia.PLAN_MAX
 import ceui.loxia.PLAN_PRO
 import ceui.loxia.fetchNana7miQuota
 import ceui.loxia.requestAfdianCheckout
-import ceui.pixiv.config.RemoteAppConfig
+import ceui.loxia.appServices
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.pixiv.witstudio.theme.V3Palette
@@ -265,7 +265,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         baseBind.swipeRefresh.setOnRefreshListener { load(withSpinner = false, pulled = true) }
         val palette = V3Palette.from(mContext)
         baseBind.errorAction.setTextColor(palette.primary)
-        plan = RemoteAppConfig.nana7miPlan
+        plan = requireContext().appServices().remoteAppConfig.nana7miPlan
         bindPlanLabel()
         setupPlans(palette)
         // 「已在爱发电付款但没到账？」—— 站内直接下的单没有身份，只能拿订单号来认领。
@@ -674,7 +674,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
                     bindPlanLabel()
                     setupPlans(V3Palette.from(mContext))
                     // 顺手把缓存刷新了：刚买完的人从这页退回去，侧边栏徽章就已经对了。
-                    RemoteAppConfig.updateNana7miPlan(uid, it)
+                    requireContext().appServices().remoteAppConfig.updateNana7miPlan(uid, it)
                     if (pendingSince > 0L) {
                         val now = it.owned to it.ownedExpiresAt
                         val base = pendingPlan

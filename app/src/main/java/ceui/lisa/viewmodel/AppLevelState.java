@@ -1,22 +1,25 @@
 package ceui.lisa.viewmodel;
 
-import android.app.Application;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import androidx.annotation.NonNull;
-import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
-public class AppLevelViewModel extends AndroidViewModel {
+/**
+ * 关注 / 收藏态的进程级内存表。一个进程一份，由 {@link ceui.lisa.activities.Shaft} 构造、
+ * 经 {@link ceui.loxia.ServicesProvider#getAppLevelState()} 取用。
+ *
+ * <p>它以前叫 AppLevelViewModel 且继承 AndroidViewModel、挂在 Shaft 的 static 字段上——
+ * 但它从没跟任何 ViewModelStore 绑定过生命周期，本质就是一张跨页面共享的表，
+ * 所以改成普通 class：单测可以 new 第二份，也不再伪装成 lifecycle 组件。
+ */
+public class AppLevelState {
 
     private final ConcurrentMap<Integer, MutableLiveData<Integer>> followUserStatus;
     private final ConcurrentMap<Integer, MutableLiveData<Integer>> starIllustStatus;
     private final ConcurrentMap<Integer, MutableLiveData<Integer>> starNovelStatus;
 
-    public AppLevelViewModel(@NonNull Application application) {
-        super(application);
+    public AppLevelState() {
         followUserStatus = new ConcurrentHashMap<>();
         starIllustStatus = new ConcurrentHashMap<>();
         starNovelStatus = new ConcurrentHashMap<>();

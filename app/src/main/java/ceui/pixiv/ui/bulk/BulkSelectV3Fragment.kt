@@ -36,7 +36,7 @@ import kotlinx.coroutines.withContext
  * V3 风格批量操作 · 多选页。
  *
  * 入口：IAdapter / TagAdapter 长按 → MultiDownload.startDownload() → TemplateActivity("批量选择") →
- *       本 fragment 取 BulkSelectStorage.consume() 拿到列表
+ *       本 fragment 用 arguments 里的 key 从 [IllustBulkSelectHandoff] take 出列表
  *
  * 行为：
  *  - 默认全不选（issue #922：默认全选时整屏铺蓝 scrim，缩略图反而看不清；想要全部的
@@ -50,6 +50,14 @@ import kotlinx.coroutines.withContext
  *      → `:actionqueue` 限流队列
  */
 class BulkSelectV3Fragment : Fragment() {
+
+    companion object {
+        /** [handoffKey] 是入口 put 进 [IllustBulkSelectHandoff] 时拿到的 key；null / 过期时本页显示「没有可选项」。 */
+        @JvmStatic
+        fun newInstance(handoffKey: String?): BulkSelectV3Fragment = BulkSelectV3Fragment().apply {
+            arguments = Bundle().apply { putString(BulkSelectHandoff.ARG_HANDOFF_KEY, handoffKey) }
+        }
+    }
 
     private val items = mutableListOf<SelectableItem>()
     private val adapter: BulkSelectAdapter by lazy {
@@ -111,7 +119,7 @@ class BulkSelectV3Fragment : Fragment() {
         grid.adapter = adapter
 
         // 取列表 —— 大列表（10000+）SelectableItem 构造也搬 IO 避免主线程长时间循环。
-        val raw = BulkSelectStorage.consume()
+        val raw = IllustBulkSelectHandoff.take(arguments?.getString(BulkSelectHandoff.ARG_HANDOFF_KEY))
         if (raw.isNullOrEmpty()) {
             hint.text = getString(R.string.bulk_select_no_items)
             btnConfirm.isEnabled = false

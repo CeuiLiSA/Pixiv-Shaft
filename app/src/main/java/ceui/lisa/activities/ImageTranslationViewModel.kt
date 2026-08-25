@@ -1,21 +1,22 @@
 package ceui.lisa.activities
 
+import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
 import ceui.lisa.utils.Common
+import ceui.loxia.appServices
 import ceui.loxia.asLiveData
 import ceui.pixiv.ui.translate.ComicTextDetectorModel
 import ceui.pixiv.ui.translate.MangaOcrModel
 import ceui.pixiv.ui.translate.MangaBatchTranslateCenter
-import ceui.pixiv.ui.translate.MangaOcrRecognizer
 import ceui.pixiv.ui.translate.MangaPageTranslatePipeline
 import ceui.pixiv.ui.translate.MangaPageTranslatePipeline.Stage
 import ceui.pixiv.ui.translate.TextEraser
@@ -44,7 +45,12 @@ import java.io.FileOutputStream
  * - 大图自动 downsample(短边 ≤ [MangaPageTranslatePipeline.MAX_RENDER_SHORT_SIDE])防 OOM,region 坐标等比缩放跟随
  * - 同一页二次翻译会把旧产物文件 delete 掉,避免 cacheDir 累积
  */
-class ImageTranslationViewModel : ViewModel() {
+class ImageTranslationViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val app: Context = application
+    private val services = application.appServices()
+    private val batchCenter: MangaBatchTranslateCenter get() = services.mangaBatchTranslateCenter
+    private val models get() = services.mangaTranslateModels
 
     private val _running = MutableLiveData(false)
     val running: LiveData<Boolean> get() = _running.asLiveData()
@@ -53,7 +59,7 @@ class ImageTranslationViewModel : ViewModel() {
     val status: LiveData<Stage?> get() = _status.asLiveData()
 
     /**
-     * 本作品 pageIndex → 译图路径。真正的存储在 [MangaBatchTranslateCenter](app 级,按作品 id 分桶),
+     * 本作品 pageIndex → 译图路径。真正的存储在 [MangaBatchTranslateCenter](进程级,按作品 id 分桶),
      * 这样「翻译整部」在别的页面跑出来的译图、以及上次在本页单页翻的译图,重进看图页都还在;
      * 这里只是对当前绑定作品那一桶的投影。
      */
@@ -68,7 +74,7 @@ class ImageTranslationViewModel : ViewModel() {
         if (id == illustId && boundSource != null) return
         boundSource?.let { _translatedPaths.removeSource(it) }
         illustId = id
-        val source = MangaBatchTranslateCenter.pathsOf(id)
+        val source = batchCenter.pathsOf(id)
         boundSource = source
         _translatedPaths.addSource(source) { _translatedPaths.value = it }
     }
@@ -137,23 +143,21 @@ class ImageTranslationViewModel : ViewModel() {
      * 启动 pipeline。已在跑就直接 return false,UI 自己决定要不要 toast。
      */
     fun start(
-        context: Context,
         imageFile: File,
         pageIndex: Int,
         ocrModel: MangaOcrModel,
         ctdModel: ComicTextDetectorModel,
     ): Boolean {
-        if (_running.value == true || MangaBatchTranslateCenter.isRunning) return false
+        if (_running.value == true) return false
+        if (!batchCenter.beginSinglePage()) return false
         _running.value = true
         cancelledByUser = false
         cancelToastShown = false
         aiRequestSent = false
-        MangaBatchTranslateCenter.singlePageBusy = true
-        val app = context.applicationContext
         pipelineJob = viewModelScope.launch {
             try {
                 val outcome = MangaPageTranslatePipeline.translatePage(
-                    app, imageFile, pageIndex, ocrModel, ctdModel,
+                    app, models, imageFile, pageIndex, ocrModel, ctdModel,
                     onStage = { _status.postValue(it) },
                     onRequestSent = { aiRequestSent = true },
                 )
@@ -177,7 +181,7 @@ class ImageTranslationViewModel : ViewModel() {
                     Common.showToast(R.string.string_ai_manga_translate_failed)
                 }
             } finally {
-                MangaBatchTranslateCenter.singlePageBusy = false
+                batchCenter.endSinglePage()
                 _status.postValue(null)
                 _running.postValue(false)
                 pipelineJob = null
@@ -211,7 +215,6 @@ class ImageTranslationViewModel : ViewModel() {
      * - 不做气泡扩展:用户框多大就在多大区域内排版,所见即所得。
      */
     fun startManualRegion(
-        context: Context,
         originalFile: File,
         pageIndex: Int,
         normLeft: Float,
@@ -220,16 +223,15 @@ class ImageTranslationViewModel : ViewModel() {
         normBottom: Float,
         ocrModel: MangaOcrModel,
     ): Boolean {
-        if (_running.value == true || MangaBatchTranslateCenter.isRunning) return false
+        if (_running.value == true) return false
+        if (!batchCenter.beginSinglePage()) return false
         _running.value = true
         cancelledByUser = false
         cancelToastShown = false
         aiRequestSent = false
-        MangaBatchTranslateCenter.singlePageBusy = true
-        val app = context.applicationContext
         pipelineJob = viewModelScope.launch {
             try {
-                runManualPipeline(app, originalFile, pageIndex, normLeft, normTop, normRight, normBottom, ocrModel)
+                runManualPipeline(originalFile, pageIndex, normLeft, normTop, normRight, normBottom, ocrModel)
             } catch (e: CancellationException) {
                 if (cancelledByUser) maybeToastCancelled()
                 throw e
@@ -241,7 +243,7 @@ class ImageTranslationViewModel : ViewModel() {
                     Common.showToast(R.string.string_ai_manga_translate_failed)
                 }
             } finally {
-                MangaBatchTranslateCenter.singlePageBusy = false
+                batchCenter.endSinglePage()
                 _status.postValue(null)
                 _running.postValue(false)
                 pipelineJob = null
@@ -251,20 +253,15 @@ class ImageTranslationViewModel : ViewModel() {
     }
 
     private suspend fun runManualPipeline(
-        app: Context,
         originalFile: File,
         pageIndex: Int,
         l: Float, t: Float, r: Float, b: Float,
         ocrModel: MangaOcrModel,
     ) {
         // 1. 只需 manga-ocr 模型(CTD 仅自动检测用),按需加载
-        if (!MangaOcrRecognizer.isLoaded) {
+        if (!models.isOcrLoaded) {
             _status.postValue(Stage(app.getString(R.string.string_ai_ocr_loading_model)))
-            val ok = withContext(Dispatchers.IO) {
-                runCatching { MangaOcrRecognizer.loadModel(app, ocrModel) }
-                    .onFailure { Timber.e(it, "manual: loadModel failed") }.isSuccess
-            }
-            if (!ok) {
+            if (!models.ensureOcrLoaded(ocrModel)) {
                 if (!cancelledByUser) Common.showToast(R.string.string_ai_ocr_failed)
                 return
             }
@@ -359,7 +356,7 @@ class ImageTranslationViewModel : ViewModel() {
             // 此时绝不能 recycle,否则把底图也回收了,后续 eraseText 直接挂。
             val crop = Bitmap.createBitmap(base, x0, y0, rw, rh)
             val result = try {
-                MangaOcrRecognizer.recognize(crop)
+                models.ocr.recognize(crop)
             } finally {
                 if (crop !== base) crop.recycle()
             }
@@ -444,7 +441,7 @@ class ImageTranslationViewModel : ViewModel() {
     }
 
     private fun publishTranslated(pageIndex: Int, newPath: String) {
-        MangaBatchTranslateCenter.publish(illustId, pageIndex, newPath)
+        batchCenter.publish(illustId, pageIndex, newPath)
     }
 
     override fun onCleared() {

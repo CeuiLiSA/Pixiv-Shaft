@@ -33,6 +33,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.OutWakeActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.utils.SystemBarMetrics;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.SearchHintAdapter;
@@ -70,7 +71,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         final String[] SEARCH_TYPE = SearchTypeUtil.SEARCH_TYPE_NAME;
 
         ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-        headParams.height = Shaft.statusHeight;
+        headParams.height = SystemBarMetrics.statusBarHeight(mContext);
         baseBind.head.setLayoutParams(headParams);
         hintViewModel = new ViewModelProvider(this).get(SearchHintViewModel.class);
         setupHintObservers();

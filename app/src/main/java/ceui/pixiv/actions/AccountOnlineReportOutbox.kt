@@ -39,8 +39,17 @@ import timber.log.Timber
  * they therefore must survive logout/account switching and cannot share the owner-partitioned
  * bookmark queue. A refreshed AccountResponse is synchronously committed to app-private MMKV
  * before any network attempt. Same-type/same-uid writes replace older data.
+ *
+ * One instance per process, constructed by [ceui.lisa.activities.Shaft] and exposed through
+ * [ceui.loxia.ServicesProvider.accountOnlineReportOutbox]. The constructor is cheap (no IO, no
+ * coroutines); [start] launches the worker.
  */
-object AccountOnlineReportOutbox {
+class AccountOnlineReportOutbox internal constructor(
+    /** Resolved lazily so JVM unit tests can build one without an Android Context. */
+    private val appContext: Lazy<Context>,
+) {
+
+    constructor(app: Context) : this(lazy { app.applicationContext })
 
     enum class PersistResult { DELIVERED, QUEUED, FAILED }
 
@@ -61,7 +70,7 @@ object AccountOnlineReportOutbox {
 
     private data class RetryDecision(val permanent: Boolean, val delayMs: Long = 0L)
 
-    private val initialized = AtomicBoolean(false)
+    private val started = AtomicBoolean(false)
     private val storageMutex = Mutex()
     private val networkMutex = Mutex()
     // If MMKV cannot persist a retry transition (for example disk-full), the old row still looks
@@ -81,10 +90,10 @@ object AccountOnlineReportOutbox {
     @Volatile
     private var monitor: ceui.pixiv.websocket.NetworkMonitor? = null
 
-    @JvmStatic
-    fun init(context: Context) {
-        if (!initialized.compareAndSet(false, true)) return
-        monitor = AppNetworkMonitor.get(context.applicationContext)
+    /** Idempotent. Called by Shaft's deferred init; launches the delivery worker. */
+    fun start() {
+        if (!started.compareAndSet(false, true)) return
+        monitor = AppNetworkMonitor.get(appContext.value)
         scope.launch {
             workerLoop()
         }
@@ -429,16 +438,18 @@ object AccountOnlineReportOutbox {
 
     private class PermanentReportException(message: String) : IOException(message)
 
-    private const val TAG = "AccountOnlineOutbox"
-    private const val MMKV_ID = "account-online-outbox-v1"
-    private const val KEY_PREFIX = "operation:"
-    private const val TYPE_ONLINE = "online"
-    private const val TYPE_INVALID = "invalid_refresh"
-    private const val MAX_ATTEMPTS = 5
-    private const val MIN_GAP_MS = 1_000L
-    private const val INITIAL_RETRY_MS = 30_000L
-    private const val MAX_RETRY_MS = 30L * 60_000L
-    private const val MAX_IDLE_WAIT_MS = 60L * 60_000L
-    private const val WORKER_FAILURE_DELAY_MS = 60_000L
-    private val TRANSIENT_HTTP_CODES = setOf(408, 425, 429)
+    private companion object {
+        const val TAG = "AccountOnlineOutbox"
+        const val MMKV_ID = "account-online-outbox-v1"
+        const val KEY_PREFIX = "operation:"
+        const val TYPE_ONLINE = "online"
+        const val TYPE_INVALID = "invalid_refresh"
+        const val MAX_ATTEMPTS = 5
+        const val MIN_GAP_MS = 1_000L
+        const val INITIAL_RETRY_MS = 30_000L
+        const val MAX_RETRY_MS = 30L * 60_000L
+        const val MAX_IDLE_WAIT_MS = 60L * 60_000L
+        const val WORKER_FAILURE_DELAY_MS = 60_000L
+        val TRANSIENT_HTTP_CODES = setOf(408, 425, 429)
+    }
 }

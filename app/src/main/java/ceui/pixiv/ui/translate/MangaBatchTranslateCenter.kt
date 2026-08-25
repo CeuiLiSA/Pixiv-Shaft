@@ -17,7 +17,10 @@ import timber.log.Timber
 import java.io.File
 
 /**
- * 「翻译整部」(issue #925)的 app 级任务中心 + 译图仓库。
+ * 「翻译整部」(issue #925)的进程级任务中心 + 译图仓库。
+ *
+ * 普通 class,由 [ceui.lisa.activities.Shaft] 构造一份,经
+ * [ceui.loxia.ServicesProvider.mangaBatchTranslateCenter] 取用。
  *
  * 为什么不放在看图页的 ViewModel:整部翻译动辄几分钟,用户点了之后就该能退出看图页
  * 去干别的,回来译图都在;跟着 Activity 生命周期走的话一返回就被取消,悬浮窗也就没意义了。
@@ -28,10 +31,12 @@ import java.io.File
  *   单页「翻译漫画」/「圈选翻译」的产物也 [publish] 进来,重进看图页还能看到
  * - 桶按 LRU 最多留 [MAX_ILLUSTS] 部,挤出去的连文件一起删,cacheDir 不会无限长
  *
- * 与单页流水线互斥:两边共用同一套 OCR 模型单例,不能并发。单页那边跑的时候置
- * [singlePageBusy],这边跑的时候 [isRunning] 为 true,入口各自先看对方。
+ * 与单页流水线互斥:两边共用同一套 OCR 模型([models]),不能并发。单页那边跑之前先
+ * [beginSinglePage] 占位、跑完 [endSinglePage];这边跑的时候 [isRunning] 为 true,入口各自先看对方。
  */
-object MangaBatchTranslateCenter {
+class MangaBatchTranslateCenter(app: Context, private val models: MangaTranslateModels) {
+
+    private val app: Context = app.applicationContext
 
     data class BatchStatus(
         val illustId: Long,
@@ -44,11 +49,13 @@ object MangaBatchTranslateCenter {
         val stagePercent: Int? = null,
     )
 
-    /** 保留译图的作品数上限(挤出去的连缓存文件一起删)。 */
-    private const val MAX_ILLUSTS = 3
+    private companion object {
+        /** 保留译图的作品数上限(挤出去的连缓存文件一起删)。 */
+        const val MAX_ILLUSTS = 3
 
-    /** 桶总数硬上限(含浏览时建的空桶),防进程级 map 随浏览量无界增长。 */
-    private const val MAX_BUCKETS = 24
+        /** 桶总数硬上限(含浏览时建的空桶),防进程级 map 随浏览量无界增长。 */
+        const val MAX_BUCKETS = 24
+    }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -65,7 +72,35 @@ object MangaBatchTranslateCenter {
 
     /** 看图页的单页 / 圈选流水线正在跑:共用模型,整部翻译入口此时拒绝启动。 */
     @Volatile
-    var singlePageBusy = false
+    private var singlePageBusy = false
+
+    /** 单页流水线是否在跑(只读;写入走 [beginSinglePage] / [endSinglePage])。 */
+    val isSinglePageBusy: Boolean get() = singlePageBusy
+
+    /**
+     * 单页 / 圈选流水线开跑前占位。主线程调。
+     * @return false = 整部翻译或另一个单页任务正在用模型,调用方不该启动
+     */
+    fun beginSinglePage(): Boolean {
+        if (isRunning || singlePageBusy) return false
+        singlePageBusy = true
+        return true
+    }
+
+    /** 单页流水线收尾(成功、失败、取消都要调)。 */
+    /**
+     * 内存压力时释放模型会话,但只在**没人用**的时候:批量任务或单页流水线跑到一半被释放,
+     * 下一次 recognize 会抛 "Model not loaded",半页气泡静默丢失。释放决策放这里而不是
+     * [MangaTranslateModels],因为只有本类知道谁在用。
+     */
+    fun releaseModelsIfIdle() {
+        if (isRunning || isSinglePageBusy) return
+        models.release()
+    }
+
+    fun endSinglePage() {
+        singlePageBusy = false
+    }
 
     @Volatile
     private var cancelledByUser = false
@@ -131,19 +166,17 @@ object MangaBatchTranslateCenter {
      * @param pageUrls 下标即 pageIndex;null 表示该页没有可用 url,按失败计
      */
     fun start(
-        context: Context,
         illust: Illust,
         pageUrls: List<String?>,
         ocrModel: MangaOcrModel,
         ctdModel: ComicTextDetectorModel,
     ): Boolean {
         if (isRunning || singlePageBusy) return false
-        val app = context.applicationContext
         cancelledByUser = false
         currentIllust = illust
         job = scope.launch {
             try {
-                runBatch(app, illust, pageUrls, ocrModel, ctdModel)
+                runBatch(illust, pageUrls, ocrModel, ctdModel)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -172,7 +205,6 @@ object MangaBatchTranslateCenter {
     }
 
     private suspend fun runBatch(
-        app: Context,
         illust: Illust,
         pageUrls: List<String?>,
         ocrModel: MangaOcrModel,
@@ -209,7 +241,7 @@ object MangaBatchTranslateCenter {
                 failed++
                 continue
             }
-            when (val outcome = MangaPageTranslatePipeline.translatePage(app, file, pageIndex, ocrModel, ctdModel, post)) {
+            when (val outcome = MangaPageTranslatePipeline.translatePage(app, models, file, pageIndex, ocrModel, ctdModel, post)) {
                 is MangaPageTranslatePipeline.Outcome.Done -> {
                     publish(illustId, pageIndex, outcome.outFile.absolutePath)
                     translated++

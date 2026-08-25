@@ -14,6 +14,9 @@ import java.io.File
 import java.nio.FloatBuffer
 import java.nio.LongBuffer
 import java.text.Normalizer
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 import kotlin.coroutines.coroutineContext
 import kotlin.math.exp
 import kotlin.math.ln
@@ -24,9 +27,17 @@ import kotlin.math.ln
  * Architecture: ViT encoder (DeiT-base 384x384) + GPT-2 decoder.
  * Specialized for Japanese manga text — much more accurate than generic OCR.
  *
+ * 普通 class:一份会话就是一组已加载的 ORT session,由 [MangaTranslateModels] 持有进程内共用的
+ * 那份(模型加载慢、占内存,批量翻译与单页翻译不该各开一份)。
+ *
  * Usage:
- *   MangaOcrRecognizer.loadModel(context, MangaOcrModel.MANGA_OCR_BASE)
- *   val text = MangaOcrRecognizer.recognize(croppedBitmap)
+ *   val ocr = MangaOcrRecognizer()
+ *   ocr.loadModel(context, MangaOcrModel.MANGA_OCR_BASE)
+ *   val text = ocr.recognize(croppedBitmap)
+ *   ocr.release()
+ *
+ * 线程模型:[loadModel] / [release] 拿写锁,[recognize] 拿读锁 —— release 不会在一次识别
+ * 中途把 session 关掉,并发 recognize 之间互不阻塞(ORT session 本身可并发 run)。
  */
 /**
  * manga-ocr 重识别结果。
@@ -37,7 +48,9 @@ import kotlin.math.ln
  */
 data class OcrResult(val text: String, val confidence: Float)
 
-object MangaOcrRecognizer {
+class MangaOcrRecognizer {
+
+    private val lock = ReentrantReadWriteLock()
 
     private var encoderSession: OrtSession? = null
     private var decoderSession: OrtSession? = null
@@ -59,11 +72,10 @@ object MangaOcrRecognizer {
         val maxLength: Int,
     )
 
-    val isLoaded: Boolean get() = encoderSession != null && decoderSession != null
+    val isLoaded: Boolean get() = lock.read { encoderSession != null && decoderSession != null }
 
-    @Synchronized
-    fun loadModel(context: Context, model: MangaOcrModel) {
-        if (isLoaded) return
+    fun loadModel(context: Context, model: MangaOcrModel) = lock.write {
+        if (encoderSession != null && decoderSession != null) return@write
 
         val modelDir = MangaOcrModelManager.modelDir(context, model)
         val configFile = File(modelDir, "config.json")
@@ -116,15 +128,29 @@ object MangaOcrRecognizer {
         Timber.d("MangaOcr: model loaded, vocab size=${vocabList.size}")
     }
 
-    @Synchronized
-    fun unloadModel() {
-        encoderSession?.close()
-        decoderSession?.close()
-        encoderSession = null
-        decoderSession = null
-        vocab = null
-        config = null
-        Timber.d("MangaOcr: model unloaded")
+    /** 关掉 ORT session 释放内存;之后再 [loadModel] 可重新加载。没加载过则无操作。 */
+    /**
+     * 释放模型会话。`tryLock` 而不是阻塞拿写锁：它由 Application.onTrimMemory 在主线程调，
+     * 正有识别在跑时宁可这次不释放，也不能让主线程等一次 ORT 推理。
+     *
+     * @return false = 正在识别、本次跳过。
+     */
+    fun release(): Boolean {
+        val w = lock.writeLock()
+        if (!w.tryLock()) return false
+        try {
+            if (encoderSession == null && decoderSession == null) return true
+            encoderSession?.close()
+            decoderSession?.close()
+            encoderSession = null
+            decoderSession = null
+            vocab = null
+            config = null
+            Timber.d("MangaOcr: model unloaded")
+            return true
+        } finally {
+            w.unlock()
+        }
     }
 
     /**
@@ -135,6 +161,10 @@ object MangaOcrRecognizer {
      */
     suspend fun recognize(bitmap: Bitmap): OcrResult {
         coroutineContext.ensureActive()
+        return lock.read { recognizeLocked(bitmap) }
+    }
+
+    private suspend fun recognizeLocked(bitmap: Bitmap): OcrResult {
         val encoder = encoderSession ?: throw IllegalStateException("Model not loaded")
         val decoder = decoderSession ?: throw IllegalStateException("Model not loaded")
         val cfg = config ?: throw IllegalStateException("Model not loaded")

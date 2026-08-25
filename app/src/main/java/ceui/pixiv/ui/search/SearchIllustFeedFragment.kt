@@ -9,6 +9,7 @@ import ceui.lisa.model.ListIllust
 import ceui.lisa.repo.SearchIllustRepo
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
+import ceui.loxia.appServices
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.LoadState
@@ -44,7 +45,17 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获：捕获 activity-scoped SearchModel（≥ Activity 生命周期），先取局部 val
         val searchModel = ViewModelProvider(requireActivity())[SearchModel::class.java]
-        SearchIllustFeedSource(searchModel)
+        // 进程级服务也先取局部 val（应用级对象，不延长任何 Fragment 生命周期）
+        val services = requireContext().appServices()
+        SearchIllustFeedSource(searchModel) {
+            // 8 个必填参数先给 null，全部由 update(searchModel) 填；构造时 super 已建好 FilterMapper。
+            SearchIllustRepo(
+                null, null, null, null, null, null, null, null,
+                nana7miOutbox = services.accountOnlineReportOutbox,
+                nana7miTelemetryService = services.nana7miSearchTelemetry,
+                remoteAppConfig = services.remoteAppConfig,
+            )
+        }
     }
 
     override val emptyStateText: CharSequence
@@ -132,7 +143,11 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
  * 配置 FilterMapper（R18 三态 / onlyAi / starSize）；load(cursor) 用 repo 翻页。过滤走 repo.mapper()
  * （FilterMapper，含 legacy 全部搜索过滤 + ObjectPool 合池，setValue 失败自动 postValue 兜底，off-main 安全）。
  */
-class SearchIllustFeedSource(private val searchModel: SearchModel) : FeedSource<String> {
+class SearchIllustFeedSource(
+    private val searchModel: SearchModel,
+    /** 只在首页真正要发请求时才调；风险拦截命中的首页不会建 Repo。 */
+    private val repoFactory: () -> SearchIllustRepo,
+) : FeedSource<String> {
 
     private var repo: SearchIllustRepo? = null
 
@@ -152,8 +167,7 @@ class SearchIllustFeedSource(private val searchModel: SearchModel) : FeedSource<
                 return FeedPage(emptyList(), null)
             }
         }
-        // 8 个必填参数先给 null，全部由 update(searchModel) 填；构造时 super 已建好 FilterMapper。
-        val r = repo ?: SearchIllustRepo(null, null, null, null, null, null, null, null).also { repo = it }
+        val r = repo ?: repoFactory().also { repo = it }
         val list: ListIllust = if (cursor == null) {
             // initApi() 切 IO：FeedSource.load 由 viewModelScope(Dispatchers.Main.immediate)
             // 发起，在第一个真正的挂起点(awaitFirstValue 里的 subscribeOn(io))之前一直跑在主线程，

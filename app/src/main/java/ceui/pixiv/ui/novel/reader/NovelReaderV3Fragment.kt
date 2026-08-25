@@ -80,6 +80,7 @@ import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import ceui.loxia.appServices
 
 class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     SeriesNavCallback, ExportFormatCallback, BookmarkSheetCallback, AnnotationSheetCallback,
@@ -89,6 +90,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private val viewModel: NovelReaderV3ViewModel by viewModels {
         NovelReaderV3ViewModel.factory(
             resolveNovelId(),
+            requireContext().appServices().discoveryPool,
             arguments?.getString(ARG_LOCAL_URI),
             arguments?.getString(ARG_LOCAL_TITLE),
         )

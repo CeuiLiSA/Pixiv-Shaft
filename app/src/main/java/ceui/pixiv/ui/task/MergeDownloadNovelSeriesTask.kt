@@ -1,6 +1,6 @@
 package ceui.pixiv.ui.task
 
-import ceui.lisa.activities.Shaft
+import android.content.Context
 import ceui.lisa.fragments.WebNovelParser
 import ceui.loxia.Client
 import ceui.loxia.Novel
@@ -33,7 +33,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  * true。producer 在章节循环之间检查 —— 已抓到的章节会继续走完写盘流程,产物是
  * 「截短版」合集。直接 Job.cancel 会让 emit 在 collector 端立即断,无法报 Done。
  */
-object MergeDownloadNovelSeriesTask {
+class MergeDownloadNovelSeriesTask(context: Context) {
+
+    private val ctx: Context = context.applicationContext
 
     fun bulkMergeNovelSeries(
         seriesDetail: NovelSeriesDetail,
@@ -130,7 +132,7 @@ object MergeDownloadNovelSeriesTask {
             documentId = "novel_series_$seriesId",
         )
         val writer = MergedNovelWriters.forFormat(format)
-        val ok = writer.write(Shaft.getContext(), content, destination) { key, bytes ->
+        val ok = writer.write(ctx, content, destination) { key, bytes ->
             emit(FetchEvent.ImageFetched(key, bytes))
         }
         if (!ok) {
@@ -201,6 +203,8 @@ object MergeDownloadNovelSeriesTask {
             ?: throw RuntimeException("invalid web novel: ${novel.id}")
     }
 
-    private const val CHAPTER_DELAY_MS = 1500L
-    private const val SERIES_PAGE_DELAY_MS = 1000L
+    private companion object {
+        const val CHAPTER_DELAY_MS = 1500L
+        const val SERIES_PAGE_DELAY_MS = 1000L
+    }
 }

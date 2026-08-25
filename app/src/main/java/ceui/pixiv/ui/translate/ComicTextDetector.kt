@@ -14,6 +14,9 @@ import kotlinx.coroutines.ensureActive
 import timber.log.Timber
 import java.io.File
 import java.nio.FloatBuffer
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 import kotlin.coroutines.coroutineContext
 
 /**
@@ -66,34 +69,43 @@ data class TextMask(
     override fun hashCode(): Int = (width * 31 + height) * 31 + data.contentHashCode()
 }
 
-object ComicTextDetector {
+/**
+ * comic-text-detector 会话。普通 class,进程内共用的那份由 [MangaTranslateModels] 持有。
+ *
+ * 线程模型同 [MangaOcrRecognizer]:[loadModel] / [release] 写锁,[detect] 读锁。
+ */
+class ComicTextDetector {
 
-    /** YOLO 输入尺寸,固定 1024。 */
-    private const val INPUT_SIZE = 1024
+    private companion object {
+        /** YOLO 输入尺寸,固定 1024。 */
+        private const val INPUT_SIZE = 1024
 
-    /** 候选 box 最低 conf。跟 dmMaze 上游 conf_thresh 一致。 */
-    private const val DEFAULT_CONF_THRESHOLD = 0.4f
+        /** 候选 box 最低 conf。跟 dmMaze 上游 conf_thresh 一致。 */
+        private const val DEFAULT_CONF_THRESHOLD = 0.4f
 
-    /**
-     * NMS IoU 阈值,跟 dmMaze 上游 nms_thresh=0.35 一致(比 YOLOv5 默认 0.45 紧)。
-     *
-     * 上游用 **class-aware** NMS(text/balloon 互不抑制),我们改 **class-agnostic** —
-     * 理由:OCR 下游对同一气泡只想拿一个 crop;text(文字紧框)和 balloon(气泡含背景)
-     * 经常都在同一气泡触发,class-aware 会两个都留,manga-ocr 跑两遍出相同文本。
-     * IoU 0.35 + class-agnostic 能稳定把这对 dup 框合并到高分那个。
-     */
-    private const val DEFAULT_IOU_THRESHOLD = 0.35f
+        /**
+         * NMS IoU 阈值,跟 dmMaze 上游 nms_thresh=0.35 一致(比 YOLOv5 默认 0.45 紧)。
+         *
+         * 上游用 **class-aware** NMS(text/balloon 互不抑制),我们改 **class-agnostic** —
+         * 理由:OCR 下游对同一气泡只想拿一个 crop;text(文字紧框)和 balloon(气泡含背景)
+         * 经常都在同一气泡触发,class-aware 会两个都留,manga-ocr 跑两遍出相同文本。
+         * IoU 0.35 + class-agnostic 能稳定把这对 dup 框合并到高分那个。
+         */
+        private const val DEFAULT_IOU_THRESHOLD = 0.35f
 
-    /**
-     * letterbox 填充色 — 跟上游 dmMaze inference.py 一致用 **black (0,0,0)**。
-     * 注意:YOLOv5 训练默认是 gray 114,但 CTD 推理代码 letterbox 默认 color=(0,0,0),
-     * 模型实际在黑色 padding 分布上工作,用 gray 会让边界 anchor 偏移。
-     */
-    private const val LETTERBOX_FILL_COLOR = 0xFF000000.toInt()
+        /**
+         * letterbox 填充色 — 跟上游 dmMaze inference.py 一致用 **black (0,0,0)**。
+         * 注意:YOLOv5 训练默认是 gray 114,但 CTD 推理代码 letterbox 默认 color=(0,0,0),
+         * 模型实际在黑色 padding 分布上工作,用 gray 会让边界 anchor 偏移。
+         */
+        private const val LETTERBOX_FILL_COLOR = 0xFF000000.toInt()
 
-    /** mask 二值化阈值。CTD seg head 是 sigmoid'd in [0,1],dmMaze 默认 0.3 走文本框聚类,
-     *  我们要的是「这个像素是不是字」更严格一些,0.5 比较安全。 */
-    private const val MASK_THRESHOLD = 0.5f
+        /** mask 二值化阈值。CTD seg head 是 sigmoid'd in [0,1],dmMaze 默认 0.3 走文本框聚类,
+         *  我们要的是「这个像素是不是字」更严格一些,0.5 比较安全。 */
+        private const val MASK_THRESHOLD = 0.5f
+    }
+
+    private val lock = ReentrantReadWriteLock()
 
     private var session: OrtSession? = null
     private var ortEnv: OrtEnvironment? = null
@@ -103,11 +115,10 @@ object ComicTextDetector {
     /** 哪个 output 是 text seg mask(4D, 1-channel)。-1 = 不可用,detect 时退化为只返回 boxes。 */
     private var maskOutputIndex: Int = -1
 
-    val isLoaded: Boolean get() = session != null
+    val isLoaded: Boolean get() = lock.read { session != null }
 
-    @Synchronized
-    fun loadModel(context: Context, model: ComicTextDetectorModel) {
-        if (isLoaded) return
+    fun loadModel(context: Context, model: ComicTextDetectorModel) = lock.write {
+        if (session != null) return@write
         val modelDir = ComicTextDetectorModelManager.modelDir(context, model)
         val modelFile = File(modelDir, model.modelFiles.first())
         val env = OrtEnvironment.getEnvironment()
@@ -151,11 +162,20 @@ object ComicTextDetector {
         }
     }
 
-    @Synchronized
-    fun unloadModel() {
-        session?.close()
-        session = null
-        Timber.d("CTD: model unloaded")
+    /** 关掉 ORT session 释放内存;之后再 [loadModel] 可重新加载。没加载过则无操作。 */
+    /** 同 [MangaOcrRecognizer.release]:主线程调,`tryLock` 拿不到就跳过本次。 */
+    fun release(): Boolean {
+        val w = lock.writeLock()
+        if (!w.tryLock()) return false
+        try {
+            val s = session ?: return true
+            s.close()
+            session = null
+            Timber.d("CTD: model unloaded")
+            return true
+        } finally {
+            w.unlock()
+        }
     }
 
     /**
@@ -170,6 +190,14 @@ object ComicTextDetector {
         iouThreshold: Float = DEFAULT_IOU_THRESHOLD,
     ): DetectionResult {
         coroutineContext.ensureActive()
+        return lock.read { detectLocked(bitmap, confThreshold, iouThreshold) }
+    }
+
+    private suspend fun detectLocked(
+        bitmap: Bitmap,
+        confThreshold: Float,
+        iouThreshold: Float,
+    ): DetectionResult {
         val sess = session ?: throw IllegalStateException("CTD model not loaded")
         val env = ortEnv ?: throw IllegalStateException("CTD model not loaded")
 

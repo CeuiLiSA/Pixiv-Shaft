@@ -9,6 +9,7 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListNovel
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
+import ceui.pixiv.actions.AccountOnlineReportOutbox
 import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.config.RemoteAppConfig
 import ceui.pixiv.session.SessionManager
@@ -50,11 +51,15 @@ class SearchNovelRepo @JvmOverloads constructor(
      * 跨午夜也不会窗口停滞。null 时直接用 [startDate]/[endDate]（指定期间自定义）。
      */
     private var durationBucket: String? = null,
+    // 进程级服务，由构造方（Fragment）从 ServicesProvider 取出注入；Repo 自己不认识 Application。
+    private val nana7miOutbox: AccountOnlineReportOutbox,
+    private val nana7miTelemetryService: Nana7miSearchTelemetry,
+    private val remoteAppConfig: RemoteAppConfig,
 ) : RemoteRepo<ListNovel>() {
 
     private var filterMapper: Mapper<ListNovel>? = null
     @Volatile
-    private var nana7miSession = Nana7miAccountSession()
+    private var nana7miSession = Nana7miAccountSession(nana7miOutbox)
     @Volatile
     private var nana7miTelemetry: Nana7miSearchTelemetry.Flow? = null
 
@@ -70,7 +75,7 @@ class SearchNovelRepo @JvmOverloads constructor(
 
     override fun initApi(): Observable<ListNovel> {
         // A late completion from an older query must not overwrite the account for this query.
-        val currentNana7miSession = Nana7miAccountSession()
+        val currentNana7miSession = Nana7miAccountSession(nana7miOutbox)
         nana7miSession = currentNana7miSession
         nana7miTelemetry = null
         val useBookmarkQuery = (bookmarkMin ?: 0) > 0 || (bookmarkMax ?: 0) > 0
@@ -87,7 +92,7 @@ class SearchNovelRepo @JvmOverloads constructor(
         // 借号搜索可以被服务端远程关掉（pixshaft-api /v1/config）。关掉后非会员的人气排序
         // 退回借号上线前的行为——直接走 popular-preview；绝不能落到 searchNovel，那是拿自己
         // 的非会员 token 打会员专属 sort，必然 400。
-        val nana7miEnabled = RemoteAppConfig.nana7miSearchEnabled
+        val nana7miEnabled = remoteAppConfig.nana7miSearchEnabled
         val wantsPremiumOnlySort =
             isPremium != true && sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE
         // 喜欢数筛选（bookmark_num_min/max）同样是会员专属参数——非会员设了就借号让服务端
@@ -129,14 +134,14 @@ class SearchNovelRepo @JvmOverloads constructor(
         }
         val requesterUid = SessionManager.loggedInUid
         val telemetry = if (BuildConfig.IS_LITE) null else when {
-            usePopularPreview -> Nana7miSearchTelemetry.start(
+            usePopularPreview -> nana7miTelemetryService.beginFlow(
                 requesterUid = requesterUid,
                 contentType = Nana7miSearchTelemetry.ContentType.NOVEL,
                 query = assembledKeyword,
                 initialRoute = Nana7miSearchTelemetry.Route.PREVIEW_DIRECT,
                 initialReason = if (selectedPopularPreview) "selected_preview" else "remote_disabled",
             )
-            useBorrowedOfficial -> Nana7miSearchTelemetry.start(
+            useBorrowedOfficial -> nana7miTelemetryService.beginFlow(
                 requesterUid = requesterUid,
                 contentType = Nana7miSearchTelemetry.ContentType.NOVEL,
                 query = assembledKeyword,

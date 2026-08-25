@@ -10,7 +10,8 @@ import ceui.lisa.utils.Params
 import ceui.loxia.Novel
 import ceui.loxia.User
 import ceui.loxia.requireEntityWrapper
-import ceui.pixiv.ui.bulk.NovelBulkSelectStorage
+import ceui.pixiv.ui.bulk.BulkSelectHandoff
+import ceui.pixiv.ui.bulk.NovelBulkSelectHandoff
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.task.BatchDownloadNovelsTask
 
@@ -83,9 +84,10 @@ internal fun NovelFeedFragment.showNovelCardMenu(
         item(getString(R.string.bulk_actions_entry), R.drawable.ic_select_all_24) {
             val novels = scopedNovels()
             if (novels.isEmpty()) return@item
-            NovelBulkSelectStorage.put(novels)
+            val key = NovelBulkSelectHandoff.put(novels)
             startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
                 putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说批量选择") // route key, not UI text
+                putExtra(BulkSelectHandoff.ARG_HANDOFF_KEY, key)
             })
         }
         // 下载这一篇：复用批量/系列下载同一条落盘链路（BatchDownloadNovelsTask），

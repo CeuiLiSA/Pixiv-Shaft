@@ -15,6 +15,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import ceui.lisa.R
 import ceui.lisa.activities.ImageDetailActivity
+import ceui.loxia.appServices
 import ceui.pixiv.banner.BannerHostOwner
 import timber.log.Timber
 import java.util.WeakHashMap
@@ -33,6 +34,7 @@ import java.util.WeakHashMap
 class MangaBatchFloatInstaller : Application.ActivityLifecycleCallbacks {
 
     private class Slot(val activity: Activity, val owner: LifecycleOwner) {
+        private val center: MangaBatchTranslateCenter = activity.appServices().mangaBatchTranslateCenter
         var card: MangaBatchTranslateFloatCard? = null
         var root: View? = null
         val observer = Observer<MangaBatchTranslateCenter.BatchStatus?> { status ->
@@ -41,11 +43,11 @@ class MangaBatchFloatInstaller : Application.ActivityLifecycleCallbacks {
         }
 
         fun attach() {
-            MangaBatchTranslateCenter.status.observe(owner, observer)
+            center.status.observe(owner, observer)
         }
 
         fun detach() {
-            MangaBatchTranslateCenter.status.removeObserver(observer)
+            center.status.removeObserver(observer)
             root?.let { (it.parent as? ViewGroup)?.removeView(it) }
             root = null
             card = null
@@ -89,8 +91,8 @@ class MangaBatchFloatInstaller : Application.ActivityLifecycleCallbacks {
             root = view
             val built = MangaBatchTranslateFloatCard(
                 view,
-                onCancel = { MangaBatchTranslateCenter.cancel() },
-                onTap = { openViewer(activity) },
+                onCancel = { center.cancel() },
+                onTap = { openViewer(activity, center) },
                 onMoved = { tx, ty ->
                     sharedTx = tx
                     sharedTy = ty
@@ -132,10 +134,10 @@ class MangaBatchFloatInstaller : Application.ActivityLifecycleCallbacks {
         private var sharedTy = 0f
 
         /** 点卡片:跳到正在翻的那部作品的看图页;已经在它的看图页上就什么都不做。 */
-        private fun openViewer(from: Activity) {
-            val illust = MangaBatchTranslateCenter.currentIllust ?: return
+        private fun openViewer(from: Activity, center: MangaBatchTranslateCenter) {
+            val illust = center.currentIllust ?: return
             if (from is ImageDetailActivity && from.mIllust?.id == illust.id) return
-            val page = MangaBatchTranslateCenter.status.value?.pageDone ?: 0
+            val page = center.status.value?.pageDone ?: 0
             from.startActivity(
                 Intent(from, ImageDetailActivity::class.java).apply {
                     putExtra("illust", illust)

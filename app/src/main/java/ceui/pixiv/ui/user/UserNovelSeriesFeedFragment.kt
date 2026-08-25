@@ -249,7 +249,7 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
 
     private fun startPerSeries(seriesList: List<NovelSeriesItem>, format: ExportFormat) {
         val act = activity as? BaseActivity<*> ?: return
-        CrossSeriesDownloadTask.runPerSeries(
+        CrossSeriesDownloadTask(requireContext()).runPerSeries(
             activity = act,
             seriesList = seriesList,
             format = format,
@@ -279,7 +279,7 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
         val authorId = firstUser?.id?.toInt()
             ?: requireActivity().intent.getIntExtra(Params.USER_ID, 0)
         val authorName = firstUser?.name
-        CrossSeriesDownloadTask.runAllMergedOne(
+        CrossSeriesDownloadTask(requireContext()).runAllMergedOne(
             activity = act,
             seriesList = list,
             authorName = authorName,

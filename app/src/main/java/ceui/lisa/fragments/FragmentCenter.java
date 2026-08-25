@@ -23,7 +23,7 @@ import java.util.List;
 import ceui.lisa.BuildConfig;
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
-import ceui.lisa.activities.Shaft;
+import ceui.lisa.utils.SystemBarMetrics;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.DiscoverTagAdapter;
@@ -66,7 +66,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
     protected void initView() {
         if (Dev.hideMainActivityStatus) {
             ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-            headParams.height = Shaft.statusHeight;
+            headParams.height = SystemBarMetrics.statusBarHeight(mContext);
             baseBind.head.setLayoutParams(headParams);
         }
 

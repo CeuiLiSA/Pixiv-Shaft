@@ -13,6 +13,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.RecyNovelBinding
 import ceui.lisa.model.ListNovel
 import ceui.loxia.Novel
+import ceui.loxia.appServices
 import ceui.lisa.repo.SearchNovelRepo
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
@@ -66,7 +67,15 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
         val searchModel = ViewModelProvider(requireActivity())[SearchModel::class.java]
-        SearchNovelFeedSource(searchModel)
+        val services = requireContext().appServices()
+        SearchNovelFeedSource(searchModel) {
+            SearchNovelRepo(
+                null, null, null, null, null, null, null, null,
+                nana7miOutbox = services.accountOnlineReportOutbox,
+                nana7miTelemetryService = services.nana7miSearchTelemetry,
+                remoteAppConfig = services.remoteAppConfig,
+            )
+        }
     }
 
     /**
@@ -245,7 +254,11 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
  * 用户切开关必定触发一次搜索（sheet 提交 → nowGo → refresh），refresh 从 load(null) 起，
  * 模式自然跟着换。
  */
-class SearchNovelFeedSource(private val searchModel: SearchModel) : FeedSource<String> {
+class SearchNovelFeedSource(
+    private val searchModel: SearchModel,
+    /** 只在首页真正要发请求时才调；风险拦截命中的首页不会建 Repo。 */
+    private val repoFactory: () -> SearchNovelRepo,
+) : FeedSource<String> {
 
     private var repo: SearchNovelRepo? = null
     private val webSource by lazy(LazyThreadSafetyMode.NONE) {
@@ -281,7 +294,7 @@ class SearchNovelFeedSource(private val searchModel: SearchModel) : FeedSource<S
                 webSource.load(cursor)
             }
         }
-        val r = repo ?: SearchNovelRepo(null, null, null, null, null, null, null, null).also { repo = it }
+        val r = repo ?: repoFactory().also { repo = it }
         val list: ListNovel = if (cursor == null) {
             r.update(searchModel, keywordSnapshot)
             r.initApi().awaitFirstValue()

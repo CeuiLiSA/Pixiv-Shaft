@@ -8,10 +8,10 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * 关注的**可见性**（公开 / 私人）——「关注了没」之外那半个事实。
  *
- * 为什么要单独一份，而不是继续塞 `AppLevelViewModel.followUserStatus`：那个 Int 把「是否关注」
+ * 为什么要单独一份，而不是继续塞 `AppLevelState.followUserStatus`：那个 Int 把「是否关注」
  * 和「可见性」两件正交的事编码在一起（`FOLLOWED` 与 `FOLLOWED_PUBLIC` 只是同一件事的两种精度），
  * 于是任何一个写入者都能整个盖掉另一个写入者的成果。仓库为此已经长出了 `UpdateMethod` 三件套和
- * 一条 `isPreciseFollow` 守卫，而 `AppLevelViewModelHelper.fill` 拿列表里的旧 `is_followed` 覆盖
+ * 一条 `isPreciseFollow` 守卫，而 `AppLevelStateHelper.fill` 拿列表里的旧 `is_followed` 覆盖
  * 用户刚点的关注，这个坑至今还挂在注释里。可见性再挤进去只会多一层补丁。
  *
  * 这里只存可见性，只有两个写入者，优先级写死在类型里：
@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap
  * **守卫内建在 [writeRemote] 里，不外露**：调用点没有「记得检查」这回事，也就漏不掉。
  *
  * 两张表都只增不删，量级是每个见过的用户一个 Long + 一个短字符串，和
- * `AppLevelViewModel` 那张进程级 map 同量级。
+ * `AppLevelState` 那张进程级 map 同量级。
  */
 object FollowVisibility {
 

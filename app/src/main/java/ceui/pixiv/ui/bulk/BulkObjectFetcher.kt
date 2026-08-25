@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.bulk
 
+import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.model.ListIllust
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import timber.log.Timber
+import ceui.loxia.appServices
 
 /**
  * 细粒度 fetcher 事件：dialog 用它驱动 CLI 风格的实时 verbose 显示。
@@ -162,16 +164,19 @@ class BulkObjectFetcher<T>(
  * 再加同级的 `bulkFollowUsersFromSource(...)` 等顶层函数即可，不要复用本函数。
  */
 fun bulkEnqueueIllusts(
+    context: Context,
     source: PaginatedObjectSource<Illust>,
     taskName: String,
 ): Flow<FetchEvent> {
-    val dao: DownloadQueueDao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadQueueDao()
+    val app = context.applicationContext
+    val dao: DownloadQueueDao = AppDatabase.getAppDatabase(app).downloadQueueDao()
+    val queue = app.appServices().queueDownloadManager
     return BulkObjectFetcher(
         source = source,
         taskName = taskName,
         onPage = { collector, items -> enqueueIllustPage(collector, items, source.sourceTag, dao) },
         // 任何"已入队过东西"的终态（成功 / 部分失败）都唤醒消费者，避免活儿白干
-        onTerminal = { _, total -> if (total > 0) QueueDownloadManager.resume() },
+        onTerminal = { _, total -> if (total > 0) queue.resume() },
     ).fetch()
 }
 

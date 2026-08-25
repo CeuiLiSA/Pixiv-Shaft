@@ -36,7 +36,7 @@ object NovelIllustMixStore {
     private val mutex = Mutex()
     private val cache = mutableMapOf<CacheKey, Entry>()
 
-    suspend fun get(source: NovelIllustSource, novel: Novel? = null): List<Illust> {
+    suspend fun get(pool: DiscoveryPool, source: NovelIllustSource, novel: Novel? = null): List<Illust> {
         if (source == NovelIllustSource.None) return emptyList()
         val key = CacheKey(source, if (source == NovelIllustSource.Related) novel?.id ?: 0L else 0L)
         mutex.withLock {
@@ -51,7 +51,7 @@ object NovelIllustMixStore {
                     NovelIllustSource.Discover ->
                         // getDiscoveryFeedDiversified 只进内存 recent 名单、不 markShown，
                         // 不会把发现页的候选池提前消耗掉（池回收是 issue #937 的事）。
-                        DiscoveryPool.getDiscoveryFeedDiversified(FETCH_LIMIT)
+                        pool.getDiscoveryFeedDiversified(FETCH_LIMIT)
                             .mapNotNull { entity ->
                                 runCatching {
                                     Shaft.sGson.fromJson(entity.illustJson, Illust::class.java)

@@ -26,11 +26,14 @@ object ImageTaskRegistry {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     /**
-     * 抓字节的实现。默认复用 Glide(见 [GlideImageFetcher]);单测可换成假实现。
-     * 通过 registry 统一注入,任务本身不认识 Glide/jessyan。
+     * 抓字节的实现,复用 Glide(见 [GlideImageFetcher])。通过 registry 统一交给每个任务,
+     * 任务本身不认识 Glide/jessyan。
+     *
+     * 不是可写的全局注入点:全项目(含单测)没有任何地方替换过它,一个「为了可测留的口子」
+     * 若从未用上,剩下的只是一个谁都能改的进程级可变量。要测 [ImageLoadTask],直接 new 一个
+     * 传假 [ImageFetcher] 即可,不必经过本表。
      */
-    @Volatile
-    var fetcher: ImageFetcher = GlideImageFetcher
+    private val fetcher: ImageFetcher = GlideImageFetcher
 
     // 访问序 LinkedHashMap 实现 LRU
     private val taskMap: LinkedHashMap<String, ImageLoadTask> =

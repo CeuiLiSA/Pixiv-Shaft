@@ -31,7 +31,10 @@ import java.util.concurrent.Semaphore
  * header. Both illustration and novel search share this class so first-page, pagination, refresh,
  * and durable re-report behavior cannot drift apart.
  */
-internal class Nana7miAccountSession {
+internal class Nana7miAccountSession(
+    /** Durable outbox for the refreshed-token / invalid-token reports this session emits. */
+    private val outbox: AccountOnlineReportOutbox,
+) {
 
     @Volatile
     var payload: Nana7miPayload? = null
@@ -190,10 +193,10 @@ internal class Nana7miAccountSession {
      */
     private suspend fun reportNotPremium(result: Nana7miResult.NotPremium, stage: String) {
         val persisted = withContext(NonCancellable) {
-            AccountOnlineReportOutbox.persistOnline(result.uid, result.account)
+            outbox.persistOnline(result.uid, result.account)
         }
         val reportResult = if (persisted) {
-            AccountOnlineReportOutbox.attemptOnline(result.uid).name.lowercase()
+            outbox.attemptOnline(result.uid).name.lowercase()
         } else {
             "persist_failed"
         }
@@ -259,7 +262,7 @@ internal class Nana7miAccountSession {
         } catch (error: Exception) {
             if (error is InvalidRefreshTokenException) {
                 val persisted = withContext(NonCancellable) {
-                    AccountOnlineReportOutbox.persistInvalidRefreshToken(uid, refreshToken)
+                    outbox.persistInvalidRefreshToken(uid, refreshToken)
                 }
                 Timber.tag(LOG_TAG).w(
                     error,
@@ -307,7 +310,7 @@ internal class Nana7miAccountSession {
         // Persist before the cancellable network attempt. Once Pixiv rotates a refresh token,
         // returning Success is only safe if either the server or this global outbox owns the new one.
         val persisted = withContext(NonCancellable) {
-            AccountOnlineReportOutbox.persistOnline(uid, refreshedAccount)
+            outbox.persistOnline(uid, refreshedAccount)
         }
         if (!persisted) {
             Timber.tag(LOG_TAG).e(
@@ -324,7 +327,7 @@ internal class Nana7miAccountSession {
             uid,
             reason,
         )
-        val reportResult = AccountOnlineReportOutbox.attemptOnline(uid)
+        val reportResult = outbox.attemptOnline(uid)
         Timber.tag(LOG_TAG).d(
             "stage=online_report result=%s account_uid=%d reason=%s",
             reportResult.name.lowercase(),

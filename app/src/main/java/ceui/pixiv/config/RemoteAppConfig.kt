@@ -1,5 +1,6 @@
 package ceui.pixiv.config
 
+import android.content.Context
 import android.os.SystemClock
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -36,8 +37,13 @@ import java.util.concurrent.atomic.AtomicBoolean
  * uid 是灰度分桶键：服务端按它决定白/黑名单和灰度桶。因此登录态变化后要重拉一次，否则「这个
  * uid 该不该开」要等到下次冷启动才知道；这件事由 [nana7miSearchEnabled] 的读取顺带触发，不用
  * 在登录流程里另挂钩子。
+ *
+ * 进程级服务：由 [ceui.lisa.activities.Shaft] 构造并经 [ceui.loxia.ServicesProvider] 暴露，
+ * 构造不做任何 IO，真正的读缓存 / 拉取从 [start] 开始。
  */
-object RemoteAppConfig {
+// Context 参数只为和其他进程级服务保持同一构造契约（见 ServicesProvider）；
+// 本类只碰 MMKV，暂时用不上它。
+class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
 
     private val initialized = AtomicBoolean(false)
     private val fetching = AtomicBoolean(false)
@@ -149,9 +155,8 @@ object RemoteAppConfig {
         applyPlan(uid, incoming)
     }
 
-    /** 冷启动调用一次。必须在 MMKV.initialize 和 SessionManager.initialize 之后。 */
-    @JvmStatic
-    fun init() {
+    /** 冷启动调用一次（幂等）。必须在 MMKV.initialize 和 SessionManager.initialize 之后。 */
+    fun start() {
         if (!initialized.compareAndSet(false, true)) return
         // 同步读，让首帧就有确定答案；一次 mmap 读，不值得为它排一次调度。
         loadCached(SessionManager.loggedInUid)
@@ -205,7 +210,7 @@ object RemoteAppConfig {
         scope.launch {
             try {
                 // 会话中途切了账号：先把新 uid 上次的答案顶上（一次 mmap 读），别让接下来这一
-                // 个网络往返期间继续用着上一个账号的许可。冷启动时 init 已经读过，这里是空转。
+                // 个网络往返期间继续用着上一个账号的许可。冷启动时 start 已经读过，这里是空转。
                 loadCached(uid)
                 apply(
                     uid,
@@ -282,11 +287,13 @@ object RemoteAppConfig {
 
     private val gson by lazy { Gson() }
 
-    private const val TAG = "RemoteAppConfig"
-    private const val MMKV_ID = "remote-app-config-v1"
-    private const val KEY_NANA7MI_SEARCH_PREFIX = "nana7mi_search_enabled_"
-    private const val KEY_NANA7MI_PLAN_PREFIX = "nana7mi_plan_"
-    // 没拿到服务端许可之前不开：这是灰度中的功能，默认关比默认开安全。
-    private const val DEFAULT_NANA7MI_SEARCH = false
-    private const val RETRY_COOLDOWN_MS = 5 * 60 * 1000L
+    private companion object {
+        const val TAG = "RemoteAppConfig"
+        const val MMKV_ID = "remote-app-config-v1"
+        const val KEY_NANA7MI_SEARCH_PREFIX = "nana7mi_search_enabled_"
+        const val KEY_NANA7MI_PLAN_PREFIX = "nana7mi_plan_"
+        // 没拿到服务端许可之前不开：这是灰度中的功能，默认关比默认开安全。
+        const val DEFAULT_NANA7MI_SEARCH = false
+        const val RETRY_COOLDOWN_MS = 5 * 60 * 1000L
+    }
 }

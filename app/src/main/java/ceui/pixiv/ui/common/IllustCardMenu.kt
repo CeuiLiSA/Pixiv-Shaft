@@ -12,7 +12,8 @@ import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.loxia.requireEntityWrapper
 import ceui.loxia.toTagsBeans
-import ceui.pixiv.ui.bulk.BulkSelectStorage
+import ceui.pixiv.ui.bulk.BulkSelectHandoff
+import ceui.pixiv.ui.bulk.IllustBulkSelectHandoff
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.slideshow.SlideshowLauncher
 
@@ -73,9 +74,10 @@ internal fun IllustFeedFragment.showCardMenu(
             // 整个列表交给 V3 多选页勾选（对齐 legacy IAdapter popup / MultiDownload）
             val beans = scopedBeans()
             if (beans.isNotEmpty()) {
-                BulkSelectStorage.put(beans)
+                val key = IllustBulkSelectHandoff.put(beans)
                 startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
                     putExtra(TemplateActivity.EXTRA_FRAGMENT, "批量选择")
+                    putExtra(BulkSelectHandoff.ARG_HANDOFF_KEY, key)
                 })
             }
         }

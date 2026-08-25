@@ -77,7 +77,10 @@ import timber.log.Timber
  *   }
  *   ```
  */
-object QueueDownloadManager {
+class QueueDownloadManager(app: Context) {
+
+    /** 由 [ceui.lisa.activities.Shaft] 构造并经 ServicesProvider 暴露；构造只存 context，不碰 DB。 */
+    private val appContext: Context = app.applicationContext
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -114,44 +117,12 @@ object QueueDownloadManager {
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     ).also { it.tryEmit(Unit) }
 
-    // —— 调度参数 ——
-    /**
-     * 「连续无进展」的最大重试次数（对应 download_queue.retryCount）。有断点续传后，
-     * 只要一次尝试推进了字节前沿就会 [DownloadQueueDao.resetRetry] 清零，所以这个上限
-     * 只在**完全下不动**（404 / 一直 0 字节）时才生效 —— 快速失败一条真下不了的。
-     */
-    private const val MAX_RETRY = 3
-    /**
-     * 绝对重试硬顶：防止病态场景（服务器每次只吐几字节又断，进度看门狗永远判"有进展"）
-     * 把一条 illust 无限重试下去。正常抖动线路远到不了这个数就续完了。
-     */
-    private const val ABSOLUTE_MAX_RETRY = 50
-    /**
-     * 进度评分单位：完成一个 page 记 1 个单位（1TB，远超任何单文件字节数），page 内
-     * 已下字节直接累加。这样「某页下完被移出 content」也稳稳算作前进（page 项占主导），
-     * 单页 illust 的续传前沿推进也能被识别。见 [progressScore]。
-     */
-    private const val PAGE_SCORE_UNIT = 1_000_000_000_000L
-    /** 孤儿 stage 文件（.part / .part.meta）的最大存活期，冷启动扫一次回收，见 [StageStore.sweepOrphans]。 */
-    private const val STAGE_MAX_AGE_MS = 48L * 60 * 60 * 1000
-    /** 主循环兜底 polling：即使 ticker 没动，也每隔一段时间复查一次 */
-    private const val POLL_INTERVAL_MS = 800L
-    /** canDownloadNow=false 时挂起的 sleep 周期 */
-    private const val NETWORK_GATE_SLEEP_MS = 30_000L
-    /** 一条 inflight illust 持续无任何 P 状态变化的"停滞"上限；超过则强制按失败收口 */
-    private const val STALL_TIMEOUT_MS = 90_000L
-    /** resolveIllust 失败 / addTask 异常等"软错误"后的退避 */
-    private const val SOFT_ERROR_BACKOFF_MS = 1500L
-
-    private var appContext: Context? = null
-
     /**
      * 懒加载 dao —— 必须延后到 [loopJob] 协程（IO 线程）首次使用时才触发 DB 打开 + migration，
-     * 否则 [init] 会被 [Shaft.onCreate] 在 Main 线程上拖住（v33 首次升级时 ~数百 ms）。
+     * 否则 [start] 会被 [Shaft.onCreate] 在 Main 线程上拖住（v33 首次升级时 ~数百 ms）。
      */
     private val dao: DownloadQueueDao by lazy {
-        val ctx = appContext ?: throw IllegalStateException("QueueDownloadManager not initialized")
-        AppDatabase.getAppDatabase(ctx).downloadQueueDao()
+        AppDatabase.getAppDatabase(appContext).downloadQueueDao()
     }
 
     /**
@@ -235,8 +206,7 @@ object QueueDownloadManager {
         val success = batchSuccessCount.getAndSet(0)
         val failed = batchFailedCount.getAndSet(0)
         if (success == 0 && failed == 0) return
-        val ctx = appContext ?: return
-        Common.showToast(ctx.getString(R.string.bulk_download_summary, success + failed, success, failed))
+        Common.showToast(appContext.getString(R.string.bulk_download_summary, success + failed, success, failed))
     }
 
     // [UgoiraPhase] / [UgoiraInFlight] 已移到 UgoiraTypes.kt（同包，引用方式不变：直接写名字）
@@ -280,9 +250,12 @@ object QueueDownloadManager {
         var lastChangeAt: Long = System.currentTimeMillis(),
     )
 
-    fun init(context: Context) {
+    /**
+     * 启动冷启动恢复 + 消费循环。幂等。[Shaft.onCreate] 同步调（不能放进延迟批，
+     * 见那边注释：promptResumeOnFirstActivity 要赶在首个 Activity 的 onResume 之前注册）。
+     */
+    fun start() {
         if (loopJob != null) return
-        appContext = context.applicationContext
         // 注意：这里不要触碰 dao；首次 dao 访问发生在下面的 launch 协程（IO 线程）里。
         loopJob = scope.launch {
             // 冷启动：上次崩溃残留的 DOWNLOADING 全部归位为 PENDING
@@ -293,16 +266,14 @@ object QueueDownloadManager {
             // 在网络抖动时下载失败留下的 0 字节 `.pending-NNNN` 文件）。这一时刻
             // 没有任何下载在进行，所以查到的全是孤儿，删除安全。
             runCatching {
-                val ctx = appContext ?: return@runCatching
-                MediaStoreOrphanCleaner.cleanupPendingOrphans(ctx)
+                MediaStoreOrphanCleaner.cleanupPendingOrphans(appContext)
             }.onFailure { Timber.tag(TAG).w(it, "cleanupPendingOrphans failed") }
 
             // 断点续传的 stage 落点（cacheDir/staging_dl/*.part[.meta]）回收：永久失败 /
             // 清空队列 / 崩溃残留的孤儿 .part 会一直占 cacheDir。正在下载的 .part 会被高频
             // write 顶新 lastModified，只有真被遗弃的才老到被扫走，纯按年龄回收即安全。
             runCatching {
-                val ctx = appContext ?: return@runCatching
-                val stageDir = java.io.File(ctx.cacheDir, StageStore.STAGE_DIR_NAME)
+                val stageDir = java.io.File(appContext.cacheDir, StageStore.STAGE_DIR_NAME)
                 val swept = StageStore.sweepOrphans(stageDir, STAGE_MAX_AGE_MS, System.currentTimeMillis())
                 if (swept > 0) Timber.tag(TAG).i("[QUEUE-CONSUMER] swept $swept orphan stage files")
             }.onFailure { Timber.tag(TAG).w(it, "stage sweep failed") }
@@ -330,7 +301,7 @@ object QueueDownloadManager {
 
             runMainLoop()
         }
-        Timber.tag(TAG).d("QueueDownloadManager initialized")
+        Timber.tag(TAG).d("QueueDownloadManager started")
     }
 
     /**
@@ -869,6 +840,38 @@ object QueueDownloadManager {
 
     // [snapshotManagerContent] / [resolveIllust] 已移到 QueueConsumerHelpers.kt
 
-    private const val TAG = "QueueDownloadManager"
+    private companion object {
+        private const val TAG = "QueueDownloadManager"
+
+        // —— 调度参数 ——
+        /**
+         * 「连续无进展」的最大重试次数（对应 download_queue.retryCount）。有断点续传后，
+         * 只要一次尝试推进了字节前沿就会 [DownloadQueueDao.resetRetry] 清零，所以这个上限
+         * 只在**完全下不动**（404 / 一直 0 字节）时才生效 —— 快速失败一条真下不了的。
+         */
+        private const val MAX_RETRY = 3
+        /**
+         * 绝对重试硬顶：防止病态场景（服务器每次只吐几字节又断，进度看门狗永远判"有进展"）
+         * 把一条 illust 无限重试下去。正常抖动线路远到不了这个数就续完了。
+         */
+        private const val ABSOLUTE_MAX_RETRY = 50
+        /**
+         * 进度评分单位：完成一个 page 记 1 个单位（1TB，远超任何单文件字节数），page 内
+         * 已下字节直接累加。这样「某页下完被移出 content」也稳稳算作前进（page 项占主导），
+         * 单页 illust 的续传前沿推进也能被识别。见 [progressScore]。
+         */
+        private const val PAGE_SCORE_UNIT = 1_000_000_000_000L
+        /** 孤儿 stage 文件（.part / .part.meta）的最大存活期，冷启动扫一次回收，见 [StageStore.sweepOrphans]。 */
+        private const val STAGE_MAX_AGE_MS = 48L * 60 * 60 * 1000
+        /** 主循环兜底 polling：即使 ticker 没动，也每隔一段时间复查一次 */
+        private const val POLL_INTERVAL_MS = 800L
+        /** canDownloadNow=false 时挂起的 sleep 周期 */
+        private const val NETWORK_GATE_SLEEP_MS = 30_000L
+        /** 一条 inflight illust 持续无任何 P 状态变化的"停滞"上限；超过则强制按失败收口 */
+        private const val STALL_TIMEOUT_MS = 90_000L
+        /** resolveIllust 失败 / addTask 异常等"软错误"后的退避 */
+        private const val SOFT_ERROR_BACKOFF_MS = 1500L
+
+    }
 }
 

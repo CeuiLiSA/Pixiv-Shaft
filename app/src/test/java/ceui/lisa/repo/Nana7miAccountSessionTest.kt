@@ -5,6 +5,7 @@ import ceui.loxia.AccountResponse
 import ceui.loxia.Nana7miPayload
 import ceui.loxia.Nana7miResult
 import ceui.loxia.User
+import ceui.pixiv.actions.AccountOnlineReportOutbox
 import ceui.pixiv.login.PixivOAuthUser
 import io.reactivex.Observable
 import org.junit.Assert.assertEquals
@@ -14,9 +15,13 @@ import org.junit.Test
 
 class Nana7miAccountSessionTest {
 
+    /** Outbox whose Context is never resolved: these tests stop before any persistence. */
+    private fun testOutbox() = AccountOnlineReportOutbox(lazy { error("no Context in unit test") })
+
+
     @Test
     fun `disabled flavor is not reported as an empty account pool`() {
-        val session = Nana7miAccountSession()
+        val session = Nana7miAccountSession(testOutbox())
 
         assertEquals("disabled_for_lite", session.resultLabel(Nana7miResult.DisabledForLite))
         assertEquals("no_account", session.resultLabel(Nana7miResult.NoAccount))
@@ -34,7 +39,7 @@ class Nana7miAccountSessionTest {
             expiresAt = 0L,
             expired = false,
         )
-        val session = Nana7miAccountSession()
+        val session = Nana7miAccountSession(testOutbox())
         // fetchReady normally installs this state; avoid networking in this focused state test.
         Nana7miAccountSession::class.java.getDeclaredField("payload").apply {
             isAccessible = true

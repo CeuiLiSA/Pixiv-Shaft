@@ -27,7 +27,9 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
-import ceui.lisa.viewmodel.AppLevelViewModel
+import ceui.lisa.utils.SystemBarMetrics
+import ceui.lisa.viewmodel.AppLevelState
+import ceui.loxia.appServices
 import ceui.lisa.viewmodel.UserViewModel
 import ceui.loxia.Event
 import ceui.loxia.ObjectPool
@@ -61,13 +63,13 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         FeedBackToTopFab.installForHost(this, baseBind.appBar)
         val wave = Wave()
         baseBind.progress.indeterminateDrawable = wave
-        baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0)
+        baseBind.toolbar.setPadding(0, SystemBarMetrics.statusBarHeight(this), 0, 0)
         baseBind.toolbar.setNavigationOnClickListener { v: View? -> finish() }
         baseBind.toolbarLayout.viewTreeObserver.addOnGlobalLayoutListener(object :
             OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 val offset =
-                    baseBind.toolbarLayout.height - Shaft.statusHeight - Shaft.toolbarHeight
+                    baseBind.toolbarLayout.height - SystemBarMetrics.statusBarHeight(this@UActivity) - SystemBarMetrics.toolbarHeight(this@UActivity)
                 baseBind.appBar.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
                     if (Math.abs(verticalOffset) < 15) {
                         baseBind.centerHeader.alpha = 1.0f
@@ -164,12 +166,12 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
                     runCatching {
                         (application as? ceui.loxia.ServicesProvider)?.entityWrapper?.visitUser(this@UActivity, userResponse.user)
                     }
-                    Shaft.appViewModel.updateFollowUserStatus(
+                    appServices().appLevelState.updateFollowUserStatus(
                         userId,
                         if (userResponse.user.is_followed == true)
-                            AppLevelViewModel.FollowUserStatus.FOLLOWED
+                            AppLevelState.FollowUserStatus.FOLLOWED
                         else
-                            AppLevelViewModel.FollowUserStatus.NOT_FOLLOW
+                            AppLevelState.FollowUserStatus.NOT_FOLLOW
                     )
                 }
 
@@ -182,7 +184,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserFollowDetail>() {
                 override fun success(userFollowDetail: UserFollowDetail) {
-                    Shaft.appViewModel.updateFollowUserStatus(userId, followStatusOf(userFollowDetail))
+                    appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(userFollowDetail))
                     // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
                     FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(userFollowDetail))
                 }
@@ -396,12 +398,12 @@ fun followedLabelRes(userId: Int): Int =
         R.string.user_followed
     }
 
-/** user/follow/detail 响应 → [AppLevelViewModel.FollowUserStatus]。V2/V3 画师主页共用。 */
+/** user/follow/detail 响应 → [AppLevelState.FollowUserStatus]。V2/V3 画师主页共用。 */
 fun followStatusOf(followDetail: UserFollowDetail): Int = when {
-    followDetail.isPublicFollow -> AppLevelViewModel.FollowUserStatus.FOLLOWED_PUBLIC
-    followDetail.isPrivateFollow -> AppLevelViewModel.FollowUserStatus.FOLLOWED_PRIVATE
-    followDetail.isFollow -> AppLevelViewModel.FollowUserStatus.FOLLOWED
-    else -> AppLevelViewModel.FollowUserStatus.NOT_FOLLOW
+    followDetail.isPublicFollow -> AppLevelState.FollowUserStatus.FOLLOWED_PUBLIC
+    followDetail.isPrivateFollow -> AppLevelState.FollowUserStatus.FOLLOWED_PRIVATE
+    followDetail.isFollow -> AppLevelState.FollowUserStatus.FOLLOWED
+    else -> AppLevelState.FollowUserStatus.NOT_FOLLOW
 }
 
 /** user/follow/detail 响应里的可见性；未关注时为 null。 */

@@ -12,6 +12,7 @@ import ceui.pixiv.feeds.pixiv.cachedPixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.loxia.appServices
 
 /**
  * 插画 / 漫画排行榜列表页（feeds 框架版，替代 legacy FragmentRankIllust + IAdapter）。
@@ -45,6 +46,8 @@ class RankIllustFeedFragment : IllustFeedFragment() {
         val mode = mode
         val queryDate = queryDate
         val skipR18Filter = skipR18Filter
+        // 应用级对象，捕获它不会把 Fragment 钉进 VM
+        val pool = requireContext().appServices().discoveryPool
         if (queryDate == null) {
             // 19 种 mode（14 插画 + 5 漫画，见 ILLUST_MODES/MANGA_MODES）互不重名，
             // 直接当 slot 用；框架自动拼账号命名空间，切号不串味。
@@ -52,11 +55,11 @@ class RankIllustFeedFragment : IllustFeedFragment() {
                 slot = "rank-$mode",
                 initialFetch = { Client.appApi.getRankingIllusts(mode, queryDate) },
             ) { resp, phase ->
-                mapRankPage(resp.displayList, phase, mode, skipR18Filter)
+                mapRankPage(pool, resp.displayList, phase, mode, skipR18Filter)
             }
         } else {
             pixivFeedSource({ Client.appApi.getRankingIllusts(mode, queryDate) }) { resp, phase ->
-                mapRankPage(resp.displayList, phase, mode, skipR18Filter)
+                mapRankPage(pool, resp.displayList, phase, mode, skipR18Filter)
             }
         }
     }
@@ -100,6 +103,7 @@ class RankIllustFeedFragment : IllustFeedFragment() {
          * 那是「拉取成功」的副作用，拿旧数据重放会污染下游。
          */
         private fun mapRankPage(
+            pool: DiscoveryPool,
             illusts: List<ceui.loxia.Illust>,
             phase: FeedLoadPhase,
             mode: String,
@@ -108,7 +112,7 @@ class RankIllustFeedFragment : IllustFeedFragment() {
             // 对齐 legacy RankIllustRepo：过滤前的整页喂给 DiscoveryPool（它内部自带去重/静音判断）。
             // 缓存恢复不喂（旧数据画像无意义、且违反重放安全）。
             if (phase.isFreshFetch) {
-                DiscoveryPool.collect(
+                pool.collect(
                     illusts,
                     if (phase.isFirstPage) "rank:$mode" else "rank_next:$mode",
                 )

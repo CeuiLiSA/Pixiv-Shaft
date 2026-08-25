@@ -7,7 +7,6 @@ import com.google.gson.Gson
 import ceui.lisa.models.ModelObject
 import ceui.lisa.models.ObjectSpec
 import java.io.Serializable
-import kotlin.collections.set
 import kotlin.reflect.KClass
 
 
@@ -17,11 +16,62 @@ data class ObjectKey(
 ) : Serializable
 
 /**
- * Object pool in Android is a software design pattern that involves reusing objects that are expensive to create or configure. It's essentially a collection of initialized objects that can be readily used by the application, reducing the overhead of creating new objects all the time.
- * */
+ * 进程级的「同一实体只有一份可观察状态」池：列表页 / 详情页 / 收藏动作对同一 Illust、User、
+ * Novel 的更新都汇到同一个 [MutableLiveData]，谁订阅谁就看到最新值。这是它必须是进程级的
+ * 理由——它的价值就在于跨页面共享。
+ *
+ * ## 有界 + LRU
+ *
+ * 池按访问序 LRU，上限 [MAX_ENTRIES]。为什么要有上限：每条 Illust / Novel 连 caption、tags、
+ * meta_pages 在内存里 ~10-15KB，一次长时间刷推荐/搜索会灌进上万条，无界的池会把这些对象在
+ * 列表页早已销毁之后继续钉在内存里。2048 条 ≈ 70 页 × 30 条，够覆盖「从列表进详情再返回」
+ * 这种共享场景；最坏情况 ~30MB，且大多数条目和仍存活的列表共享同一实例，实际增量远小于此。
+ *
+ * ## 被淘汰的条目的语义
+ *
+ * 淘汰只是把 `key → LiveData` 这条映射从池里移除，**不会**碰那份 LiveData 本身：仍在观察它的
+ * 页面继续持有并收到自己那份的更新（不会崩、不会丢已有值）。为了不让「旧页面和新页面各看各的」
+ * 发生，**仍有观察者的条目不会被淘汰**（见 [trimLocked]），被踢的只有已经没人看的。
+ *
+ * ## 线程
+ *
+ * 池内 map 由 [lock] 守护，任何线程 [get] / [update] 都不会再撞 ConcurrentModificationException；
+ * 但 `LiveData.setValue` 仍只能在主线程调，所以 [update] 一律**在主线程**调用
+ * （后台线程灌池的先例见 HistoryFeed：回主线程再喂）。
+ */
 object ObjectPool {
 
-    val store = mutableMapOf<ObjectKey, MutableLiveData<Any>>()
+    /** 见类注释「有界 + LRU」。 */
+    private const val MAX_ENTRIES = 2048
+
+    private val lock = Any()
+
+    /** 访问序 LinkedHashMap 实现 LRU；只在 [lock] 内碰。淘汰见 [trimLocked]。 */
+    private val store: LinkedHashMap<ObjectKey, MutableLiveData<Any>> =
+        LinkedHashMap(MAX_ENTRIES, 0.75f, true)
+
+    /**
+     * 超限时从最旧的一端起淘汰，但**跳过仍有观察者的条目**：详情 pager 里离屏页的 ViewModel
+     * 会 `observeForever` 自己那份 LiveData，如果把它踢出池，翻回来时 Fragment 重新 [get]
+     * 会拿到另一份新 LiveData，VM 和 Fragment 从此各看各的（收藏爱心不翻转、简介不渲染）。
+     * 有人在看的对象不该被踢；没人看的才是真正的垃圾。极端情况下全池都有观察者则暂不淘汰。
+     * 必须在 [lock] 内调用。
+     */
+    private fun trimLocked() {
+        if (store.size <= MAX_ENTRIES) return
+        val it = store.entries.iterator()
+        while (store.size > MAX_ENTRIES && it.hasNext()) {
+            val entry = it.next()
+            if (entry.value.hasObservers()) continue
+            it.remove()
+            // 条目走了，「detail 确认过」的标记也没有存在意义（下次 update 会重新置）。
+            fullVersionKeys.remove(entry.key)
+        }
+    }
+
+    /** 当前池内条目数，只供日志 / 调试。 */
+    val size: Int
+        get() = synchronized(lock) { store.size }
 
     fun putUserPreview(preview: UserPreview) {
         preview.user?.let { user ->
@@ -83,29 +133,32 @@ object ObjectPool {
      * */
     fun <ObjectT : ModelObject> getFromMap(objClass: KClass<ObjectT>, id: Long): LiveData<ObjectT> {
         val key = ObjectKey(id, findObjectSpec(objClass))
-        val storedLiveData = store[key]
-        return (if (storedLiveData == null) {
-            val newly = MutableLiveData<Any>()
-            store[key] = newly
-            newly
-        } else {
-            storedLiveData
-        }) as LiveData<ObjectT>
+        @Suppress("UNCHECKED_CAST")
+        return synchronized(lock) {
+            store.getOrPut(key) { MutableLiveData<Any>() }.also { trimLocked() }
+        } as LiveData<ObjectT>
     }
 
     inline fun <reified ObjectT : ModelObject> update(obj: ObjectT, isFullVersion: Boolean = false) {
         return updateObjectPool(obj, isFullVersion)
     }
 
-    inline fun <reified ObjectT : ModelObject> updateObjectPool(obj: ObjectT, isFullVersion: Boolean) {
+    /** 主线程调用（内部走 `setValue`，见类注释「线程」）。 */
+    fun <ObjectT : ModelObject> updateObjectPool(obj: ObjectT, isFullVersion: Boolean) {
         val key = ObjectKey(obj.objectUniqueId, obj.objectType)
-        if (isFullVersion) {
-            fullVersionKeys.add(key)
+        val storedObject: MutableLiveData<Any>
+        val created: Boolean
+        synchronized(lock) {
+            if (isFullVersion) {
+                fullVersionKeys.add(key)
+            }
+            val existing = store[key]
+            created = existing == null
+            storedObject = existing ?: MutableLiveData<Any>(obj).also { store[key] = it; trimLocked() }
         }
-        val storedObject = store[key]
-        if (storedObject == null) {
-            store[key] = MutableLiveData(obj)
-        } else {
+        if (!created) {
+            // setValue 放在锁外：observer 回调里可能再 get/update，锁内回调会重入同一把锁
+            // (synchronized 可重入不死锁，但没必要把 UI 回调关在锁里)。
             try {
                 val lastValue = storedObject.value
                 // lastValue === obj:同一实例(典型 followUser 原地改字段后再 update),
@@ -119,24 +172,22 @@ object ObjectPool {
                 storedObject.postValue(obj)
             }
         }
-        Log.d("updateObjectPool", "对象池大小：${store.size}")
+        Log.d("updateObjectPool", "对象池大小：$size")
     }
 
     /**
      * 收到过 isFullVersion=true(detail 接口整体覆盖)更新的 key。详情页用它区分
      * 「列表接口不定期掐掉的空 caption」和「detail 确认过的真无简介」:前者要回源补拉,
      * 后者不该反复白拉(#960,见 [hasTrustedCaption])。进程内存活即可,
-     * 重启后代价不过是每个空简介作品多拉一次 detail。
+     * 重启后代价不过是每个空简介作品多拉一次 detail。随条目一起 LRU 淘汰;只在 [lock] 内碰。
      */
-    @PublishedApi
-    internal val fullVersionKeys = mutableSetOf<ObjectKey>()
+    private val fullVersionKeys = mutableSetOf<ObjectKey>()
 
     fun hasFullIllustVersion(illustId: Long): Boolean {
-        return ObjectKey(illustId, ObjectSpec.Illust) in fullVersionKeys
+        return synchronized(lock) { ObjectKey(illustId, ObjectSpec.Illust) in fullVersionKeys }
     }
 
-    @PublishedApi
-    internal val gson: Gson = Gson()
+    private val gson: Gson = Gson()
 
     /**
      * 列表接口返回的是「精简版」对象，往往缺少 detail 接口才有的字段（典型：caption）。
@@ -144,8 +195,7 @@ object ObjectPool {
      * 覆盖旧值的非空字段。这样后到的精简列表更新（如作者其他作品、用户作品列表）不会把
      * 已经展示出来的简介等抹掉。isFullVersion=true 的 detail 更新仍走整体覆盖。
      */
-    @PublishedApi
-    internal fun <T : Any> mergeKeepingExisting(clazz: Class<T>, old: Any, fresh: T): T {
+    private fun <T : Any> mergeKeepingExisting(clazz: Class<T>, old: Any, fresh: T): T {
         return try {
             val oldJson = gson.toJsonTree(old).asJsonObject
             val freshJson = gson.toJsonTree(fresh).asJsonObject

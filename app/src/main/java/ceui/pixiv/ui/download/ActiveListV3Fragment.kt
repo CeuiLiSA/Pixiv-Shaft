@@ -2,6 +2,7 @@ package ceui.pixiv.ui.download
 
 import android.content.Intent
 import android.graphics.Color
+import android.content.Context
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.LayoutInflater
@@ -33,7 +34,6 @@ import ceui.loxia.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.db.queue.DownloadQueueDao
-import ceui.pixiv.ui.bulk.QueueDownloadManager
 import ceui.pixiv.ui.bulk.UgoiraInFlight
 import ceui.pixiv.ui.bulk.UgoiraPhase
 import com.bumptech.glide.Glide
@@ -49,6 +49,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import ceui.loxia.appServices
+import ceui.pixiv.ui.bulk.QueueDownloadManager
 
 /**
  * V3 风格 "正在下载" —— 订阅 [ManagerReactive.contentFlow]。
@@ -68,6 +70,18 @@ import timber.log.Timber
  *   - 运行时 invariant：snapshot 里 DOWNLOADING > 配置上限 直接 warn 到日志
  */
 class ActiveListV3Fragment : Fragment() {
+
+    /**
+     * 在 [onAttach] 取一次而不是每次 `requireContext()`:清空/重试这类操作跑在
+     * IO 协程里,阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
+     * 实例是应用级的,提前拿住没有泄漏问题。
+     */
+    private lateinit var queueDownloadManager: QueueDownloadManager
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        queueDownloadManager = context.appServices().queueDownloadManager
+    }
 
     private val adapter = ActiveAdapterV3()
     private var statusHeader: TextView? = null
@@ -165,7 +179,7 @@ class ActiveListV3Fragment : Fragment() {
                     Manager.get().clearAll()
                     // 跟 QueueListV3Fragment 一致：同步取消 ugoira workers，否则
                     // 用户清完仍有 ugoira 正在跑、跑完还往用户图库写 GIF（违反"全清"）
-                    runCatching { QueueDownloadManager.cancelOngoingUgoiraWorkers() }
+                    runCatching { queueDownloadManager.cancelOngoingUgoiraWorkers() }
                     viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                         runCatching { queueDao.deleteAll() }
                     }
@@ -188,7 +202,7 @@ class ActiveListV3Fragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 kotlinx.coroutines.flow.combine(
                     ManagerReactive.contentFlow,
-                    QueueDownloadManager.ugoiraInFlightFlow,
+                    queueDownloadManager.ugoiraInFlightFlow,
                     speedBpsFlow,
                 ) { snapshot, ugoiras, speedBps -> Triple(snapshot, ugoiras, speedBps) }
                     .conflate()

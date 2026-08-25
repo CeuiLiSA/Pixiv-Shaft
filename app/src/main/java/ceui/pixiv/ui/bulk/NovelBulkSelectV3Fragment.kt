@@ -37,7 +37,7 @@ import java.util.Locale
  * V3 风格小说批量操作 · 多选页（issue #974）。
  *
  * 入口：小说卡长按 → [ceui.pixiv.ui.common.showNovelCardMenu] →
- *       [NovelBulkSelectStorage.put] → TemplateActivity("小说批量选择")。
+ *       [NovelBulkSelectHandoff].put → key 随 Intent → TemplateActivity("小说批量选择") → 本页 take。
  *
  * ## 为什么不复用插画那页
  *
@@ -58,6 +58,14 @@ import java.util.Locale
  *  - 尾段（tonal）= 批量收藏 / 批量取消收藏，走 [PixivActions] 门面 → `:actionqueue` 队列
  */
 class NovelBulkSelectV3Fragment : Fragment() {
+
+    companion object {
+        /** [handoffKey] 是入口 put 进 [NovelBulkSelectHandoff] 时拿到的 key；null / 过期时本页显示「没有可选项」。 */
+        @JvmStatic
+        fun newInstance(handoffKey: String?): NovelBulkSelectV3Fragment = NovelBulkSelectV3Fragment().apply {
+            arguments = Bundle().apply { putString(BulkSelectHandoff.ARG_HANDOFF_KEY, handoffKey) }
+        }
+    }
 
     /** 源列表。勾选结果靠下标换回这里的 [Novel]。 */
     private var source: List<Novel> = emptyList()
@@ -114,7 +122,7 @@ class NovelBulkSelectV3Fragment : Fragment() {
         list.layoutManager = LinearLayoutManager(requireContext())
         list.adapter = adapter
 
-        val raw = NovelBulkSelectStorage.consume()
+        val raw = NovelBulkSelectHandoff.take(arguments?.getString(BulkSelectHandoff.ARG_HANDOFF_KEY))
         if (raw.isNullOrEmpty()) {
             hint.text = getString(R.string.bulk_select_no_items)
             btnConfirm.isEnabled = false
