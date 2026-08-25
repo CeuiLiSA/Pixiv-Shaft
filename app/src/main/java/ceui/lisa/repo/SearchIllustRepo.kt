@@ -10,6 +10,7 @@ import ceui.lisa.model.ListIllust
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import ceui.pixiv.actions.AccountOnlineReportOutbox
+import ceui.loxia.Nana7miPayload
 import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.config.RemoteAppConfig
 import ceui.pixiv.session.SessionManager
@@ -70,12 +71,20 @@ class SearchIllustRepo @JvmOverloads constructor(
     @Volatile
     private var nana7miTelemetry: Nana7miSearchTelemetry.Flow? = null
 
+    /**
+     * 首屏来自 pixshaft 缓存：手里的 next_url 是**会员专属游标**，但这轮还没借过号。翻页时
+     * 缓存未命中要现借，绝不能落到 [initNextApi] 里「payload == null → 用自己的号直连」那支。
+     */
+    @Volatile
+    private var borrowedCursorFromCache = false
+
     override fun initApi(): Observable<ListIllust> {
         // 每轮首屏使用全新会话。即使上一轮请求取消得较晚，它也只能更新旧会话，不能把
         // 旧借用账号重新写进当前查询，污染当前结果的 next_url 翻页。
         val currentNana7miSession = Nana7miAccountSession(nana7miOutbox)
         nana7miSession = currentNana7miSession
         nana7miTelemetry = null
+        borrowedCursorFromCache = false
         // 关键字写搜索历史已上移到 SearchActivity（首搜 initModel + 重搜 nowGo，按 id 去重收口）。
         // 不再寄生在这里——原来只有插画 tab 触发，小说/作者 tab 漏写。
 
@@ -246,7 +255,31 @@ class SearchIllustRepo @JvmOverloads constructor(
                 page = Nana7miSearchTelemetry.Page.FIRST,
             ) ?: source
         } else if (useBorrowedOfficial) {
-            Nana7miSearchSerial.run("illust_first") { lease ->
+            // 借号之前先问 pixshaft：同样的请求别人（或自己）刚搜过就直接拿那页，不派发、
+            // 不 renew、不打 Pixiv。key 必须覆盖下面 searchIllustWithAuth 发出去的每一个参数。
+            val cacheKind = Nana7miSearchCache.Kind.ILLUST
+            val cacheKey = Nana7miSearchCache.firstPageKey(
+                cacheKind,
+                listOf(
+                    "word" to assembledKeyword,
+                    "sort" to sortType,
+                    "start_date" to effectiveStartDate,
+                    "end_date" to effectiveEndDate,
+                    "search_target" to effectiveSearchTarget,
+                    "bookmark_num_min" to bookmarkMin,
+                    "bookmark_num_max" to bookmarkMax,
+                    "tool" to tool,
+                    "lang" to lang,
+                    "search_ai_type" to searchAiType,
+                    "ratio" to ratioPattern,
+                    "content_type" to contentType,
+                    "width_min" to widthMin,
+                    "width_max" to widthMax,
+                    "height_min" to heightMin,
+                    "height_max" to heightMax,
+                ),
+            )
+            val borrowedFlow = Nana7miSearchSerial.run("illust_first") { lease ->
                 Timber.tag(NANA7MI_LOG_TAG).d(
                     "stage=flow event=start requester_uid=%d sort=%s keyword_length=%d",
                     requesterUid,
@@ -294,6 +327,9 @@ class SearchIllustRepo @JvmOverloads constructor(
                                 heightMin,
                                 heightMax,
                             )
+                        }.doOnNext { page ->
+                            // 只回填真正借号打到的官方结果；回退页（preview / 直连）不是同一个东西。
+                            Nana7miSearchCache.store(cacheKind, cacheKey, page, "official_search")
                         }
                         (telemetry?.track(
                             source = source,
@@ -312,6 +348,19 @@ class SearchIllustRepo @JvmOverloads constructor(
                     }
                 }
             }
+            // 命中时整条借号 flow 不订阅：没有 flow_started / request 事件，遥测里就不会出现一个
+            // 没借过号的「official_success」；这轮后续翻页也不再上报（nana7miTelemetry 置空）。
+            Nana7miSearchCache.firstOrElse(
+                kind = cacheKind,
+                key = cacheKey,
+                maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
+                type = ListIllust::class.java,
+                stage = "official_search",
+                onHit = {
+                    borrowedCursorFromCache = true
+                    nana7miTelemetry = null
+                },
+            ) { telemetry?.observeFirst(borrowedFlow) ?: borrowedFlow }
         } else {
             Retro.getAppApi().searchIllust(
                 assembledKeyword,
@@ -332,7 +381,8 @@ class SearchIllustRepo @JvmOverloads constructor(
                 heightMax,
             )
         }
-        return telemetry?.observeFirst(result) ?: result
+        // 借号分支已经在缓存未命中那一侧自己包了 observeFirst（命中时不能包）。
+        return if (useBorrowedOfficial) result else telemetry?.observeFirst(result) ?: result
     }
 
     /**
@@ -352,44 +402,75 @@ class SearchIllustRepo @JvmOverloads constructor(
         val session = nana7miSession
         val telemetry = nana7miTelemetry
         val payload = session.payload
+        val cursorFromCache = borrowedCursorFromCache
         // nextUrl 与借用会话必须来自同一轮翻页。串行队列可能让真正订阅延后；若此时
         // 新首屏改写了 RemoteRepo.nextUrl，闭包里再读字段会拼出“旧账号 + 新游标”。
         val nextPageUrl = nextUrl
         return if (session.borrowedAccountLost) {
             endBorrowedPagination("already_lost")
-        } else if (payload == null) {
+        } else if (payload == null && !cursorFromCache) {
             val source = Retro.getAppApi().getNextIllust(nextPageUrl)
             telemetry?.track(
                 source = source,
                 page = Nana7miSearchTelemetry.Page.NEXT,
             ) ?: source
         } else {
-            Timber.tag(NANA7MI_LOG_TAG).d(
-                "stage=official_search_next event=request account_uid=%d",
-                payload.uid,
-            )
-            Nana7miSearchSerial.run("illust_next") { lease ->
-                val source = session.requestWithRefresh(
-                    initial = payload,
-                    stage = "official_search_next",
-                    lease = lease,
-                    successDetails = { response ->
-                        "illust_count=${response.illusts?.size ?: 0} " +
-                                "has_next=${!response.next_url.isNullOrBlank()}"
-                    },
-                ) { authorization ->
-                    Retro.getAppApi().getNextIllustWithAuth(authorization, nextPageUrl)
-                }
-                (telemetry?.track(
-                    source = source,
-                    page = Nana7miSearchTelemetry.Page.NEXT,
-                    route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
-                    borrowedUid = payload.uid,
-                ) ?: source).onErrorResumeNext { error: Throwable ->
-                    if (isBorrowedAccountUnavailable(error)) {
-                        endBorrowedPagination("renew_failed")
+            // 会员专属游标：先问缓存（别人翻过的页直接拿），未命中再用借来的号打；首屏来自缓存
+            // 的话手里还没有号，这时才借。
+            val cacheKind = Nana7miSearchCache.Kind.ILLUST
+            val cacheKey = Nana7miSearchCache.nextPageKey(cacheKind, nextPageUrl)
+            Nana7miSearchCache.firstOrElse(
+                kind = cacheKind,
+                key = cacheKey,
+                maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
+                type = ListIllust::class.java,
+                stage = "official_search_next",
+            ) {
+                Nana7miSearchSerial.run("illust_next") { lease ->
+                    val ready: Observable<Nana7miPayload> = if (payload != null) {
+                        Observable.just(payload)
                     } else {
-                        Observable.error(error)
+                        Timber.tag(NANA7MI_LOG_TAG).d(
+                            "stage=official_search_next event=borrow_for_cached_cursor",
+                        )
+                        lease.blockingObservable {
+                            runBlocking { session.fetchReady() }
+                            session.payload?.takeIf { !it.expired }
+                                ?: throw BorrowedAccountUnavailableException(
+                                    IllegalStateException("no borrowed account for cached cursor"),
+                                )
+                        }
+                    }
+                    ready.flatMap { current ->
+                        Timber.tag(NANA7MI_LOG_TAG).d(
+                            "stage=official_search_next event=request account_uid=%d",
+                            current.uid,
+                        )
+                        val source = session.requestWithRefresh(
+                            initial = current,
+                            stage = "official_search_next",
+                            lease = lease,
+                            successDetails = { response ->
+                                "illust_count=${response.illusts?.size ?: 0} " +
+                                        "has_next=${!response.next_url.isNullOrBlank()}"
+                            },
+                        ) { authorization ->
+                            Retro.getAppApi().getNextIllustWithAuth(authorization, nextPageUrl)
+                        }.doOnNext { page ->
+                            Nana7miSearchCache.store(cacheKind, cacheKey, page, "official_search_next")
+                        }
+                        telemetry?.track(
+                            source = source,
+                            page = Nana7miSearchTelemetry.Page.NEXT,
+                            route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
+                            borrowedUid = current.uid,
+                        ) ?: source
+                    }.onErrorResumeNext { error: Throwable ->
+                        if (isBorrowedAccountUnavailable(error)) {
+                            endBorrowedPagination("renew_failed")
+                        } else {
+                            Observable.error(error)
+                        }
                     }
                 }
             }

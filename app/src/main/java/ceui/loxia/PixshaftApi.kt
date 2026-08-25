@@ -191,6 +191,25 @@ interface PixshaftApi {
         @Body body: Nana7miSearchTelemetryBatchReq,
     ): Nana7miSearchTelemetryBatchAck
 
+    /**
+     * 借号搜索一级缓存（server: src/search-cache.js）。借号**之前**先问一声：命中就直接拿
+     * 这一页渲染，不派发、不 renew、不打 Pixiv；未命中和从前一样。服务端不认识 Pixiv 的
+     * 参数——[Nana7miSearchCacheLookupReq.key] 是客户端按「马上要发的那个请求」算出来的
+     * sha256（[ceui.lisa.repo.Nana7miSearchCache]），页面原样存原样还。
+     *
+     * 任何异常（关掉了、坏了、限流）都长得和未命中一样：这条路永远不能让搜索失败。
+     */
+    @POST("v1/account/nana7mi/search-cache/lookup")
+    suspend fun searchCacheLookupRaw(
+        @Body body: Nana7miSearchCacheLookupReq,
+    ): Response<Nana7miSearchCacheLookupResp>
+
+    /** 借号搜索成功后把这一页回填进缓存，下一个同样请求的人就能命中。发完即忘。 */
+    @POST("v1/account/nana7mi/search-cache/store")
+    suspend fun searchCacheStoreRaw(
+        @Body body: Nana7miSearchCacheStoreReq,
+    ): Response<Nana7miSearchCacheStoreResp>
+
     /** Restore (login page): mail a code IF [email] has a backup ([RestoreRequestAck.found]). */
     @POST("v1/account/restore/request")
     suspend fun restoreRequest(@Body body: EmailReq): RestoreRequestAck
@@ -562,6 +581,38 @@ data class Nana7miSearchTelemetryBatchAck(
     val stored: Int = 0,
     val duplicate: Int = 0,
     val rejected: Int = 0,
+)
+
+/** [maxAgeMs]：这次调用能容忍多旧的一页；服务端还有一个更硬的上限（默认 24h）。 */
+data class Nana7miSearchCacheLookupReq(
+    val uid: Long,
+    val kind: String,
+    val key: String,
+    val maxAgeMs: Long,
+)
+
+/**
+ * [page] 是当初存进去的那份搜索响应原文（`{ illusts|novels: [...], next_url }`），
+ * 用 Gson 按对应的列表模型解析即可；`hit == false` 时为 null。
+ */
+data class Nana7miSearchCacheLookupResp(
+    val hit: Boolean? = null,
+    val page: JsonElement? = null,
+    val storedAt: Long? = null,
+    val ageMs: Long? = null,
+)
+
+data class Nana7miSearchCacheStoreReq(
+    val uid: Long,
+    val kind: String,
+    val key: String,
+    val page: JsonElement,
+)
+
+/** 被拒（`stored == false`）也是 200：没有任何值得重试的东西，[reason] 只是给日志看。 */
+data class Nana7miSearchCacheStoreResp(
+    val stored: Boolean? = null,
+    val reason: String? = null,
 )
 
 /**

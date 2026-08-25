@@ -10,6 +10,7 @@ import ceui.lisa.model.ListNovel
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import ceui.pixiv.actions.AccountOnlineReportOutbox
+import ceui.loxia.Nana7miPayload
 import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.config.RemoteAppConfig
 import ceui.pixiv.session.SessionManager
@@ -63,6 +64,10 @@ class SearchNovelRepo @JvmOverloads constructor(
     @Volatile
     private var nana7miTelemetry: Nana7miSearchTelemetry.Flow? = null
 
+    /** 同 [SearchIllustRepo]：首屏来自缓存时游标是会员专属的，但这轮还没借号。 */
+    @Volatile
+    private var borrowedCursorFromCache = false
+
     // 复用基类 Mapper（已含屏蔽 tag/ID/用户 + 全局 R18 过滤）；额外承载搜索「R-18 限制」三档。
     // 注意：mapper() 由 RemoteRepo 构造器调用，早于本类属性初始化，故这里不读 r18Restriction，
     // 实际档位在 update() 里推给 mapper（与 SearchIllustRepo 的 FilterMapper 同套路）。
@@ -78,6 +83,7 @@ class SearchNovelRepo @JvmOverloads constructor(
         val currentNana7miSession = Nana7miAccountSession(nana7miOutbox)
         nana7miSession = currentNana7miSession
         nana7miTelemetry = null
+        borrowedCursorFromCache = false
         val useBookmarkQuery = (bookmarkMin ?: 0) > 0 || (bookmarkMax ?: 0) > 0
         val keywordSuffix = if (useBookmarkQuery) "" else when {
             TextUtils.isEmpty(starSize) -> ""
@@ -265,7 +271,34 @@ class SearchNovelRepo @JvmOverloads constructor(
                 page = Nana7miSearchTelemetry.Page.FIRST,
             ) ?: source
         } else if (useBorrowedOfficial) {
-            Nana7miSearchSerial.run("novel_first") { lease ->
+            // 借号之前先问 pixshaft（见 SearchIllustRepo）。key 覆盖 searchNovelWithAuth 的每个参数，
+            // 外加「默认档空结果会降级重发」这个语义——它决定了同一组参数最终拿到哪一页。
+            val cacheKind = Nana7miSearchCache.Kind.NOVEL
+            val cacheKey = Nana7miSearchCache.firstPageKey(
+                cacheKind,
+                listOf(
+                    "word" to assembledKeyword,
+                    "sort" to sortType,
+                    "start_date" to effectiveStartDate,
+                    "end_date" to effectiveEndDate,
+                    "search_target" to effectiveSearchTarget,
+                    "title_fallback" to defaultTier,
+                    "bookmark_num_min" to bookmarkMin,
+                    "bookmark_num_max" to bookmarkMax,
+                    "genre" to genre,
+                    "lang" to lang,
+                    "search_ai_type" to searchAiType,
+                    "is_original_only" to isOriginalOnly,
+                    "is_replaceable_only" to isReplaceableOnly,
+                    "text_length_min" to textLengthMin,
+                    "text_length_max" to textLengthMax,
+                    "word_count_min" to wordCountMin,
+                    "word_count_max" to wordCountMax,
+                    "reading_time_min" to readingTimeMin,
+                    "reading_time_max" to readingTimeMax,
+                ),
+            )
+            val borrowedFlow = Nana7miSearchSerial.run("novel_first") { lease ->
                 Timber.tag(NANA7MI_LOG_TAG).d(
                     "stage=novel_flow event=start requester_uid=%d sort=%s keyword_length=%d",
                     requesterUid,
@@ -316,6 +349,8 @@ class SearchNovelRepo @JvmOverloads constructor(
                                     readingTimeMax,
                                 )
                             }
+                        }.doOnNext { page ->
+                            Nana7miSearchCache.store(cacheKind, cacheKey, page, "novel_official_search")
                         }
                         (telemetry?.track(
                             source = source,
@@ -334,6 +369,17 @@ class SearchNovelRepo @JvmOverloads constructor(
                     }
                 }
             }
+            Nana7miSearchCache.firstOrElse(
+                kind = cacheKind,
+                key = cacheKey,
+                maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
+                type = ListNovel::class.java,
+                stage = "novel_official_search",
+                onHit = {
+                    borrowedCursorFromCache = true
+                    nana7miTelemetry = null
+                },
+            ) { telemetry?.observeFirst(borrowedFlow) ?: borrowedFlow }
         } else {
             withTitleFallback { target ->
                 Retro.getAppApi().searchNovel(
@@ -358,7 +404,8 @@ class SearchNovelRepo @JvmOverloads constructor(
                 )
             }
         }
-        return telemetry?.observeFirst(result) ?: result
+        // 借号分支在缓存未命中那一侧自己包了 observeFirst（命中时不能包）。
+        return if (useBorrowedOfficial) result else telemetry?.observeFirst(result) ?: result
     }
 
     /**
@@ -378,44 +425,74 @@ class SearchNovelRepo @JvmOverloads constructor(
         val session = nana7miSession
         val telemetry = nana7miTelemetry
         val borrowed = session.payload
+        val cursorFromCache = borrowedCursorFromCache
         // Capture the cursor together with the session before this request waits for the
         // process-wide permit; a newer first page may otherwise replace RemoteRepo.nextUrl.
         val nextPageUrl = nextUrl
         return if (session.borrowedAccountLost) {
             endBorrowedPagination("already_lost")
-        } else if (borrowed == null) {
+        } else if (borrowed == null && !cursorFromCache) {
             val source = Retro.getAppApi().getNextNovel(nextPageUrl)
             telemetry?.track(
                 source = source,
                 page = Nana7miSearchTelemetry.Page.NEXT,
             ) ?: source
         } else {
-            Timber.tag(NANA7MI_LOG_TAG).d(
-                "stage=novel_official_search_next event=request account_uid=%d",
-                borrowed.uid,
-            )
-            Nana7miSearchSerial.run("novel_next") { lease ->
-                val source = session.requestWithRefresh(
-                    initial = borrowed,
-                    stage = "novel_official_search_next",
-                    lease = lease,
-                    successDetails = { response ->
-                        "novel_count=${response.novels?.size ?: 0} " +
-                                "has_next=${!response.nextUrl.isNullOrBlank()}"
-                    },
-                ) { authorization ->
-                    Retro.getAppApi().getNextNovelWithAuth(authorization, nextPageUrl)
-                }
-                (telemetry?.track(
-                    source = source,
-                    page = Nana7miSearchTelemetry.Page.NEXT,
-                    route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
-                    borrowedUid = borrowed.uid,
-                ) ?: source).onErrorResumeNext { error: Throwable ->
-                    if (isBorrowedAccountUnavailable(error)) {
-                        endBorrowedPagination("renew_failed")
+            // 会员专属游标：先问缓存，未命中再用借来的号打；首屏来自缓存的话这时才借（见 SearchIllustRepo）。
+            val cacheKind = Nana7miSearchCache.Kind.NOVEL
+            val cacheKey = Nana7miSearchCache.nextPageKey(cacheKind, nextPageUrl)
+            Nana7miSearchCache.firstOrElse(
+                kind = cacheKind,
+                key = cacheKey,
+                maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
+                type = ListNovel::class.java,
+                stage = "novel_official_search_next",
+            ) {
+                Nana7miSearchSerial.run("novel_next") { lease ->
+                    val ready: Observable<Nana7miPayload> = if (borrowed != null) {
+                        Observable.just(borrowed)
                     } else {
-                        Observable.error(error)
+                        Timber.tag(NANA7MI_LOG_TAG).d(
+                            "stage=novel_official_search_next event=borrow_for_cached_cursor",
+                        )
+                        lease.blockingObservable {
+                            runBlocking { session.fetchReady() }
+                            session.payload?.takeIf { !it.expired }
+                                ?: throw BorrowedAccountUnavailableException(
+                                    IllegalStateException("no borrowed account for cached cursor"),
+                                )
+                        }
+                    }
+                    ready.flatMap { current ->
+                        Timber.tag(NANA7MI_LOG_TAG).d(
+                            "stage=novel_official_search_next event=request account_uid=%d",
+                            current.uid,
+                        )
+                        val source = session.requestWithRefresh(
+                            initial = current,
+                            stage = "novel_official_search_next",
+                            lease = lease,
+                            successDetails = { response ->
+                                "novel_count=${response.novels?.size ?: 0} " +
+                                        "has_next=${!response.nextUrl.isNullOrBlank()}"
+                            },
+                        ) { authorization ->
+                            Retro.getAppApi().getNextNovelWithAuth(authorization, nextPageUrl)
+                        }.doOnNext { page ->
+                            Nana7miSearchCache.store(cacheKind, cacheKey, page, "novel_official_search_next")
+                        }
+                        telemetry?.track(
+                            source = source,
+                            page = Nana7miSearchTelemetry.Page.NEXT,
+                            route = Nana7miSearchTelemetry.Route.BORROWED_OFFICIAL,
+                            borrowedUid = current.uid,
+                        ) ?: source
+                    }.onErrorResumeNext { error: Throwable ->
+                        if (isBorrowedAccountUnavailable(error)) {
+                            endBorrowedPagination("renew_failed")
+                        } else {
+                            Observable.error(error)
+                        }
                     }
                 }
             }
