@@ -856,6 +856,7 @@
     <string name="delete_ai_illust">Hide AI-generated works</string>
     <string name="ai_block_strength">Hide effect level</string>
     <string name="ai_block_strength_hide">Hide completely</string>
+    <string name="ai_block_all_hidden">All AI-generated works are hidden</string>
     <string name="ai_block_strength_blur">Blur with particles</string>
     <string name="ai_block_exempt_authors">Exempt author list</string>
     <string name="ai_block_exempt_hint">Add author IDs one by one and remove them as needed.\nA restart is recommended after changing the list.</string>

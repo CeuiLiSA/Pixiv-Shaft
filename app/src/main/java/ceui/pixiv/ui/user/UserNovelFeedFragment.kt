@@ -4,11 +4,13 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import ceui.lisa.R
 import ceui.lisa.activities.UserNovelFirstPageListener
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
@@ -43,14 +45,27 @@ class UserNovelFeedFragment : NovelFeedFragment() {
         requireArguments().getBoolean(Params.FLAG, true)
     }
 
+    /** 作者页状态小 VM：持有 AI 全隐藏标记（空态文案用）；小说页不消费 total。 */
+    private val userWorksStateViewModel: UserWorksStateViewModel by viewModels()
+
     // 内嵌 UserActivityV3 tab(无底栏)时,列表底部补手势条 inset;带 toolbar 独立页由 setUpToolbar 自理
     override val applyBottomSafeInset: Boolean = true
+
+    /** 作者小说被全局 AI 屏蔽整页滤空时，在通用空态下方换行追加「已隐藏所有AI作品」。 */
+    override val emptyStateText: CharSequence
+        get() = aiHiddenEmptyStateText(
+            super.emptyStateText,
+            isAiHideAllEnabled() && userWorksStateViewModel.allAiHidden.value,
+            requireContext(),
+        )
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获约定:userId 先取成局部值,不把 Fragment 钉进长命 VM
         val uid = userId.toLong()
+        // userWorksStateViewModel 是 ViewModel 实例（非 Fragment），mapper 里借它记录「整页都是 AI 被隐藏」。
+        val stateVm = userWorksStateViewModel
         pixivFeedSource({ Client.appApi.getUserCreatedNovels(uid) }) { resp, _ ->
-            mapUserNovelPage(resp.displayList)
+            mapUserNovelPage(resp.displayList, stateVm)
         }
     }
 
@@ -87,6 +102,17 @@ class UserNovelFeedFragment : NovelFeedFragment() {
             }
         }
 
+        // allAiHidden 由 mapper 在后台设置，render 可能先于它跑；停在空态时补一次文案。
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                userWorksStateViewModel.allAiHidden.collect {
+                    if (feedViewModel.uiState.value.showEmptyState) {
+                        feedBinding.feedStateText.text = emptyStateText
+                    }
+                }
+            }
+        }
+
         if (!showToolbar) return
         val binding = FragmentToolbarFeedBinding.bind(view)
         setUpToolbar(binding, feedBinding.feedListView)
@@ -106,7 +132,15 @@ class UserNovelFeedFragment : NovelFeedFragment() {
         }
 
         /** 页响应 → 条目。跑在 Default 线程、被 VM 长期持有，放伴生对象保证零捕获。 */
-        private fun mapUserNovelPage(novels: List<Novel>): List<FeedItem> {
+        private fun mapUserNovelPage(
+            novels: List<Novel>,
+            stateVm: UserWorksStateViewModel,
+        ): List<FeedItem> {
+            // 纯 AI 作者整页滤空时，空态要能说清原因；这里记的是「这一页原始作品全部命中 AI 隐藏」，
+            // 而不是「结果为空」——避免把 R18/标签屏蔽造成的空页也误报成 AI 隐藏。
+            stateVm.setAllAiHidden(
+                novels.isNotEmpty() && novels.all { IllustNovelFilter.shouldHideAi(it) }
+            )
             return novels.mapNotNull { NovelFeedItem.of(it, skipMuteUserFilter = true) }
         }
     }

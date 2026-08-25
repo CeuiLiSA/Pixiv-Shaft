@@ -856,6 +856,7 @@
     <string name="delete_ai_illust">AI生成の作品を非表示</string>
     <string name="ai_block_strength">非表示の効果レベル</string>
     <string name="ai_block_strength_hide">完全に非表示</string>
+    <string name="ai_block_all_hidden">すべてのAI生成作品を非表示にしました</string>
     <string name="ai_block_strength_blur">ぼかし＋パーティクル</string>
     <string name="ai_block_exempt_authors">除外する作者リスト</string>
     <string name="ai_block_exempt_hint">作者 ID を 1 件ずつ追加・削除できます\nリストを変更した後はアプリの再起動を推奨します</string>
