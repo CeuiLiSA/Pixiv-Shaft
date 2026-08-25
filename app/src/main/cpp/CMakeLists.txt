@@ -25,7 +25,10 @@ target_compile_options(shaft_secrets PRIVATE
 target_link_options(shaft_secrets PRIVATE
         -Wl,--gc-sections
         -Wl,-z,relro
-        -Wl,-z,now)
+        -Wl,-z,now
+        # Google Play 自 2025-11 起要求 16 KB page size 支持：LOAD 段必须按 16 KB 对齐，
+        # 否则上传时报 "not compatible with 16 KB devices"。
+        -Wl,-z,max-page-size=16384)
 
 set_target_properties(shaft_secrets PROPERTIES
         CXX_VISIBILITY_PRESET hidden
