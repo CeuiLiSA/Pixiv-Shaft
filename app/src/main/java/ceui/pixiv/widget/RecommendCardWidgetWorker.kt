@@ -47,7 +47,7 @@ class RecommendCardWidgetWorker(
 
         val illusts = try {
             withContext(Dispatchers.IO) {
-                Retro.getAppApiSuspend().getRecmdIllust(true)
+                Retro.getAppApi().getRecmdIllust(true)
                     .illusts
                     ?.filter { !it.isR18File() && !it.isSensitive() }
                     ?.shuffled()

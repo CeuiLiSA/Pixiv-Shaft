@@ -390,8 +390,8 @@ class NovelSeriesFragment :
             try {
                 val nowAdded = detail.watchlist_added == true
                 val seriesIdInt = detail.id.toInt()
-                if (nowAdded) Retro.getAppApiSuspend().postWatchlistNovelDelete(seriesIdInt)
-                else Retro.getAppApiSuspend().postWatchlistNovelAdd(seriesIdInt)
+                if (nowAdded) Retro.getAppApi().postWatchlistNovelDelete(seriesIdInt)
+                else Retro.getAppApi().postWatchlistNovelAdd(seriesIdInt)
                 feedViewModel.updateItems<NovelSeriesHeroFeedItem> {
                     it.copy(series = it.series.copy(watchlist_added = !nowAdded))
                 }

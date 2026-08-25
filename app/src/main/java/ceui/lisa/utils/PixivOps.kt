@@ -1,7 +1,7 @@
 package ceui.lisa.utils
 
 import ceui.lisa.core.JavaAsync
-import ceui.lisa.http.AppApiSuspend
+import ceui.lisa.http.AppApi
 import ceui.lisa.http.ErrorCtrl
 import ceui.lisa.http.Retro
 import ceui.lisa.models.GifResponse
@@ -28,7 +28,7 @@ import timber.log.Timber
  * - 请求挂在 [JavaAsync.appScope] 上（不随页面销毁取消）：这些操作原本也不随页面取消，
  *   而且成功回调里有落库 / 广播这类「发出去就该做完」的事。
  *
- * Kotlin 新代码不要用这里 —— 直接 `launchSuspend { Retro.getAppApiSuspend().xxx() }`。
+ * Kotlin 新代码不要用这里 —— 直接 `launchSuspend { Retro.getAppApi().xxx() }`。
  */
 object PixivOps {
 
@@ -36,11 +36,11 @@ object PixivOps {
         onSuccess: JavaAsync.Consumer<T>,
         onError: JavaAsync.Consumer<Throwable>?,
         onFinally: Runnable?,
-        call: suspend AppApiSuspend.() -> T,
+        call: suspend AppApi.() -> T,
     ) {
         JavaAsync.appScope.launch(Dispatchers.Main) {
             try {
-                val result = withContext(Dispatchers.IO) { Retro.getAppApiSuspend().call() }
+                val result = withContext(Dispatchers.IO) { Retro.getAppApi().call() }
                 onSuccess.accept(result)
             } catch (e: CancellationException) {
                 throw e

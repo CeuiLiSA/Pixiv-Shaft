@@ -64,7 +64,7 @@ internal suspend fun resolveIllust(row: DownloadQueueEntity): Illust {
     }
 
     // 3) 老行 fallback：API 拉一次，这一路不应该是常态
-    val resp = Retro.getAppApiSuspend().getIllustByID(illustId)
+    val resp = Retro.getAppApi().getIllustByID(illustId)
     val bean = resp.illust
         ?: throw IllegalStateException("getIllustByID returned null for $illustId")
     withContext(Dispatchers.Main.immediate) {

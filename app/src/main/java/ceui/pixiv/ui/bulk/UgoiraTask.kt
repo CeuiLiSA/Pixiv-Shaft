@@ -125,7 +125,7 @@ suspend fun downloadUgoira(
     val resp: GifResponse = if (cached?.ugoira_metadata != null) {
         cached
     } else {
-        val fetched = Retro.getAppApiSuspend().getGifPackage(illustId)
+        val fetched = Retro.getAppApi().getGifPackage(illustId)
         runCatching { Cache.get().saveModel(Params.ILLUST_ID + "_" + illustId, fetched) }
         fetched
     }

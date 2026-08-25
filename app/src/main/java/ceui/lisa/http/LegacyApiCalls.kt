@@ -19,7 +19,7 @@ import timber.log.Timber
 
 /**
  * 给还是 Java 的 legacy 页面用的网络请求门面：Java 调不了 suspend 函数，这里把
- * [AppApiSuspend] / [SignApi] / [ResourceApi] 的调用包成「回调回主线程」的 `@JvmStatic` 方法，
+ * [AppApi] / [SignApi] / [ResourceApi] 的调用包成「回调回主线程」的 `@JvmStatic` 方法，
  * 替代原先 `Retro.getAppApi().xxx().subscribeOn(newThread).observeOn(mainThread).subscribe(NullCtrl)`。
  *
  * - 请求挂在 [owner] 的 lifecycleScope 上（Fragment / Activity 自身），页面销毁自动取消；
@@ -28,7 +28,7 @@ import timber.log.Timber
  *   传了 `onError` 则由调用方自己处理。
  * - `onFinally` 对应旧 `NullCtrl.must()`：成功失败都回调，取消不回调。
  *
- * Kotlin 页面不要用这个，直接 `lifecycleScope.launch { Retro.getAppApiSuspend().xxx() }`。
+ * Kotlin 页面不要用这个，直接 `lifecycleScope.launch { Retro.getAppApi().xxx() }`。
  */
 object LegacyApiCalls {
 
@@ -59,15 +59,15 @@ object LegacyApiCalls {
 
     @JvmStatic
     fun getAccountState(owner: LifecycleOwner, onSuccess: JavaAsync.Consumer<UserState>) =
-        call(owner, onSuccess, null, null) { Retro.getAppApiSuspend().getAccountState() }
+        call(owner, onSuccess, null, null) { Retro.getAppApi().getAccountState() }
 
     @JvmStatic
     fun getPresets(owner: LifecycleOwner, onSuccess: JavaAsync.Consumer<Preset>) =
-        call(owner, onSuccess, null, null) { Retro.getAppApiSuspend().getPresets() }
+        call(owner, onSuccess, null, null) { Retro.getAppApi().getPresets() }
 
     @JvmStatic
     fun getUserDetailV2(owner: LifecycleOwner, userId: Int, onSuccess: JavaAsync.Consumer<UserDetailResponse>) =
-        call(owner, onSuccess, null, null) { Retro.getAppApiSuspend().getUserDetailV2(userId) }
+        call(owner, onSuccess, null, null) { Retro.getAppApi().getUserDetailV2(userId) }
 
     @JvmStatic
     fun updateUserProfile(
@@ -75,11 +75,11 @@ object LegacyApiCalls {
         parts: List<MultipartBody.Part>,
         onSuccess: JavaAsync.Consumer<NullResponse>,
         onError: JavaAsync.Consumer<Throwable>?,
-    ) = call(owner, onSuccess, onError, null) { Retro.getAppApiSuspend().updateUserProfile(parts) }
+    ) = call(owner, onSuccess, onError, null) { Retro.getAppApi().updateUserProfile(parts) }
 
     @JvmStatic
     fun getHotTags(owner: LifecycleOwner, type: String, onSuccess: JavaAsync.Consumer<ListTrendingtag>) =
-        call(owner, onSuccess, null, null) { Retro.getAppApiSuspend().getHotTags(type) }
+        call(owner, onSuccess, null, null) { Retro.getAppApi().getHotTags(type) }
 
     @JvmStatic
     fun getNextIllust(
@@ -87,7 +87,7 @@ object LegacyApiCalls {
         nextUrl: String,
         onSuccess: JavaAsync.Consumer<ListIllust>,
         onFinally: Runnable?,
-    ) = call(owner, onSuccess, null, onFinally) { Retro.getAppApiSuspend().getNextIllust(nextUrl) }
+    ) = call(owner, onSuccess, null, onFinally) { Retro.getAppApi().getNextIllust(nextUrl) }
 
     // ── accounts.pixiv.net ─────────────────────────────────────────────
 

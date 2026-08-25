@@ -12,7 +12,7 @@ class LatestIllustRepo(
 ) : RemoteRepo<ListIllust>() {
 
     override suspend fun initApi(): ListIllust {
-        val listIllust = Retro.getAppApiSuspend().getNewWorks(workType)
+        val listIllust = Retro.getAppApi().getNewWorks(workType)
         Timber.d("Discovery/Repo latest type=$workType, got ${listIllust.illusts?.size} items")
         // 过滤前整页喂发现页画像采集（对齐旧 doOnNext：在 mapper 之前）。
         discoveryPool.collect(listIllust.illusts, "latest:$workType")
@@ -20,7 +20,7 @@ class LatestIllustRepo(
     }
 
     override suspend fun initNextApi(): ListIllust {
-        val listIllust = Retro.getAppApiSuspend().getNextIllust(nextUrl)
+        val listIllust = Retro.getAppApi().getNextIllust(nextUrl)
         Timber.d("Discovery/Repo latest_next type=$workType, got ${listIllust.illusts?.size} items")
         discoveryPool.collect(listIllust.illusts, "latest_next:$workType")
         return listIllust

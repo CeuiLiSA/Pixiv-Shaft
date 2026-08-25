@@ -15,7 +15,7 @@ class RecommendStripWorker(
     override val providerClass = RecommendStripWidgetProvider::class.java
 
     override suspend fun fetchIllusts(): List<Illust>? = withContext(Dispatchers.IO) {
-        Retro.getAppApiSuspend().getRecmdIllust(true)
+        Retro.getAppApi().getRecmdIllust(true)
             .illusts
             ?.filter { !it.isR18File() && !it.isSensitive() }
             ?.shuffled()

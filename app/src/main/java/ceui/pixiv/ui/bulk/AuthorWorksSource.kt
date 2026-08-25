@@ -17,12 +17,12 @@ class AuthorWorksSource(
     override val endpointHint: String = "/v1/user/illusts?type=$type"
 
     override suspend fun firstPage(): PageResult<Illust>? =
-        Retro.getAppApiSuspend()
+        Retro.getAppApi()
             .getUserSubmitIllust(userId.toInt(), type)
             .toPageResult()
 
     override suspend fun nextPage(nextUrl: String): PageResult<Illust>? =
-        Retro.getAppApiSuspend()
+        Retro.getAppApi()
             .getNextIllust(nextUrl)
             .toPageResult()
 }

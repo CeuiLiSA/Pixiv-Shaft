@@ -75,7 +75,14 @@ public class Manager {
      * 从不同步执行——哪怕当前已在主线程——保持 Rx 的排队语义（多处逻辑依赖"content.remove
      * 先入队、广播第二个 Runnable"这种 FIFO 顺序）。
      */
-    private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    private static final class MainHolder {
+        // 惰性：JVM 单测里 Looper 未 mock，Manager 的静态工具方法（openStageStream 等）不能因此初始化失败。
+        static final Handler MAIN = new Handler(Looper.getMainLooper());
+    }
+
+    private static void postMain(Runnable r) {
+        MainHolder.MAIN.post(r);
+    }
     /**
      * 多任务并发下载的运行句柄表（key = item.uuid），值是 {@link DownloadTask}（替代 Rx
      * {@code Disposable}）。旧设计是单一 handle（串行），现在支持 1-5 并发：每个正在传的
@@ -163,7 +170,7 @@ public class Manager {
                     content = restored;
                 }
                 ManagerReactive.invalidate();
-                MAIN.post(() ->
+                postMain(() ->
                         Common.showToast("下载记录恢复成功"));
             } catch (Throwable t) {
                 Common.showLog("Manager restore failed: " + t.getMessage());
@@ -320,7 +327,7 @@ public class Manager {
             // batch 完一次 invalidate 即可（DROP_OLDEST 保证多次 tryEmit 自动合并，
             // 但仍是最佳实践：每个语义批次 emit 一次而不是每条 safeAdd 都 emit）
             ManagerReactive.invalidate();
-            MAIN.post(() -> {
+            postMain(() -> {
                 if (DownloadLimitTypeUtil.startTaskWhenCreate()) {
                     triggerPump();
                 }
@@ -597,7 +604,7 @@ public class Manager {
             } catch (Exception e) {
                 Common.showLog("[DL] factory init failed: " + e);
                 e.printStackTrace();
-                MAIN.post(() -> {
+                postMain(() -> {
                     Common.showToast(mContext.getString(R.string.string_365));
                     complete(downloadItem, false);
                     // 单条失败不再 stopAll —— 并发模式下其它正在传的 page 不应受牵连。
@@ -636,7 +643,7 @@ public class Manager {
             if (shouldSkip) {
                 Common.showLog("[DL] skip download (already exists), illust=" + downloadItem.getIllust().getId());
                 complete(downloadItem, true);
-                MAIN.post(() -> {
+                postMain(() -> {
                     synchronized (Manager.this) {
                         content.remove(downloadItem);
                     }
@@ -674,7 +681,7 @@ public class Manager {
                     // 失败时会先 delete row 再抛），但 factory 还可能维护额外状态 ——
                     // 调一次 abandonWrite 兜底，幂等 + 内部判空。
                     try { factory.abandonWrite(); } catch (Exception ignored) {}
-                    MAIN.post(() -> {
+                    postMain(() -> {
                         Common.showToast(mContext.getString(R.string.string_365));
                         complete(downloadItem, false);
                         pumpAvailableSlots();
@@ -684,7 +691,7 @@ public class Manager {
                 if (opened == null) {
                     Common.showLog("[DL] factory.insert() returned null targetUri");
                     try { factory.abandonWrite(); } catch (Exception ignored) {}
-                    MAIN.post(() -> {
+                    postMain(() -> {
                         Common.showToast(mContext.getString(R.string.string_365));
                         complete(downloadItem, false);
                         pumpAvailableSlots();
@@ -718,7 +725,7 @@ public class Manager {
             }
 
             // 回主线程启动下载链（handle 赋值需要在一致的线程）
-            MAIN.post(() ->
+            postMain(() ->
                 startDownloadChain(context, downloadItem, factory, cachedFile, targetUri, dlUrl, passSize, staged));
         });
     }
@@ -751,7 +758,7 @@ public class Manager {
             Common.showLog("[ARIA2] dispatched uuid=" + itemUuid + " gid=" + gid
                     + " name=" + downloadItem.getName());
             // 与本地下载成功路径一致：content.remove 第一时间排上主线程
-            MAIN.post(() -> {
+            postMain(() -> {
                 synchronized (Manager.this) {
                     content.remove(downloadItem);
                 }
@@ -759,7 +766,7 @@ public class Manager {
             });
             try { complete(downloadItem, true); } catch (Throwable t) { Common.showLog("[ARIA2] complete(success) failed: " + t); }
             if (Shaft.sSettings.isToastDownloadResult() && !downloadItem.isSilent()) {
-                MAIN.post(() ->
+                postMain(() ->
                         Common.showToast(mContext.getString(R.string.aria2_task_sent, downloadItem.getName())));
             }
         }, throwable -> {
@@ -771,7 +778,7 @@ public class Manager {
         }, () -> {
             handles.remove(itemUuid);
             Common.showLog("[ARIA2] onFinally uuid=" + itemUuid);
-            MAIN.post(this::pumpAvailableSlots);
+            postMain(this::pumpAvailableSlots);
         });
         handles.put(itemUuid, d);
     }
@@ -805,7 +812,7 @@ public class Manager {
             acquiredStage = activeStageKeys.add(stageKey);
             if (!acquiredStage) {
                 Common.showLog("[STAGED-DL] stage key busy, defer uuid=" + itemUuid + " url=" + dlUrl);
-                MAIN.post(() -> {
+                postMain(() -> {
                     complete(downloadItem, false);
                     pumpAvailableSlots();
                 });
@@ -848,7 +855,7 @@ public class Manager {
             //
             // 把 remove 排到最前面，独立 Runnable，跟后续 IO 工作解耦：哪怕后面
             // 任何步骤 throw，main thread 都已经把这条 item 从 content 取出了。
-            MAIN.post(() -> {
+            postMain(() -> {
                 int sizeBefore;
                 boolean removed;
                 int sizeAfter;
@@ -864,7 +871,7 @@ public class Manager {
 
             if(downloadItem.getIllust().isGif()){
                 Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + downloadItem.getIllust().getId(), true);
-                MAIN.post(() ->
+                postMain(() ->
                     PixivOperate.unzipAndPlay(context, downloadItem.getIllust(), downloadItem.isAutoSave()));
             }
 
@@ -929,7 +936,7 @@ public class Manager {
 
             // 广播放第二个 Runnable，跟 content.remove 顺序保留（main thread FIFO）。
             final DownloadEntity finalEntity = downloadEntity;
-            MAIN.post(() -> {
+            postMain(() -> {
                 if (Shaft.sSettings.isToastDownloadResult() && !downloadItem.isSilent()) {
                     Common.showToast(downloadItem.getName() + mContext.getString(R.string.has_been_downloaded));
                 }
@@ -984,7 +991,7 @@ public class Manager {
             }
             handles.remove(itemUuid);
             Common.showLog("onFinally uuid=" + itemUuid);
-            MAIN.post(this::pumpAvailableSlots);
+            postMain(this::pumpAvailableSlots);
         });
         handles.put(itemUuid, d);
     }
@@ -1258,7 +1265,7 @@ public class Manager {
                 long finalDownloaded = downloaded;
                 long finalTotal = totalSize;
                 int finalProgress = progress;
-                MAIN.post(() -> {
+                postMain(() -> {
                     DownloadProgress dp = new DownloadProgress(finalProgress, finalDownloaded, finalTotal);
                     item.setNonius(finalProgress);
                     item.setCurrentSize(finalDownloaded);

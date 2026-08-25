@@ -157,7 +157,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         baseBind.progress.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
-                val userResponse = withContext(Dispatchers.IO) { Retro.getAppApiSuspend().getUserDetailV2(userId) }
+                val userResponse = withContext(Dispatchers.IO) { Retro.getAppApi().getUserDetailV2(userId) }
                 ObjectPool.updateUser(userResponse.user)
                 mUserViewModel.user.value = userResponse
                 writeBackSelfProfile(userResponse)
@@ -181,7 +181,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         }
         lifecycleScope.launch {
             try {
-                val userFollowDetail = withContext(Dispatchers.IO) { Retro.getAppApiSuspend().getFollowDetail(userId) }
+                val userFollowDetail = withContext(Dispatchers.IO) { Retro.getAppApi().getFollowDetail(userId) }
                 appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(userFollowDetail))
                 // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
                 FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(userFollowDetail))

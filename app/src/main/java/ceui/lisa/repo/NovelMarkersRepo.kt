@@ -7,10 +7,10 @@ import ceui.lisa.model.ListNovelMarkers
 class NovelMarkersRepo : RemoteRepo<ListNovelMarkers>() {
 
     override suspend fun initApi(): ListNovelMarkers {
-        return Retro.getAppApiSuspend().getNovelMarkers()
+        return Retro.getAppApi().getNovelMarkers()
     }
 
     override suspend fun initNextApi(): ListNovelMarkers {
-        return Retro.getAppApiSuspend().getNextNovelMarkers(nextUrl)
+        return Retro.getAppApi().getNextNovelMarkers(nextUrl)
     }
 }

@@ -12,12 +12,12 @@ class BookedTagRepo(
     override suspend fun initApi(): ListTag {
         // starType 为 null 时 Retrofit 省略 restrict query（服务端默认 public），与 legacy 一致。
         if (type == 1) {
-            return Retro.getAppApiSuspend().getAllNovelBookmarkTags(currentUserID(), starType)
+            return Retro.getAppApi().getAllNovelBookmarkTags(currentUserID(), starType)
         }
-        return Retro.getAppApiSuspend().getAllIllustBookmarkTags(currentUserID(), starType)
+        return Retro.getAppApi().getAllIllustBookmarkTags(currentUserID(), starType)
     }
 
     override suspend fun initNextApi(): ListTag {
-        return Retro.getAppApiSuspend().getNextTags(nextUrl)
+        return Retro.getAppApi().getNextTags(nextUrl)
     }
 }

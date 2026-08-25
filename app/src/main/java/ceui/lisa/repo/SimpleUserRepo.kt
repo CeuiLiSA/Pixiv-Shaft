@@ -7,11 +7,11 @@ import ceui.lisa.model.ListSimpleUser
 class SimpleUserRepo(private val illustID: Int) : RemoteRepo<ListSimpleUser>() {
 
     override suspend fun initApi(): ListSimpleUser {
-        return Retro.getAppApiSuspend().getUsersWhoLikeThisIllust(illustID)
+        return Retro.getAppApi().getUsersWhoLikeThisIllust(illustID)
     }
 
     override suspend fun initNextApi(): ListSimpleUser {
-        return Retro.getAppApiSuspend().getNextSimpleUser(nextUrl)
+        return Retro.getAppApi().getNextSimpleUser(nextUrl)
     }
 }
 
@@ -25,10 +25,10 @@ class SimpleUserRepo(private val illustID: Int) : RemoteRepo<ListSimpleUser>() {
 class NovelBookmarkUserRepo(private val novelID: Long) : RemoteRepo<ListSimpleUser>() {
 
     override suspend fun initApi(): ListSimpleUser {
-        return Retro.getAppApiSuspend().getUsersWhoLikeThisNovel(novelID)
+        return Retro.getAppApi().getUsersWhoLikeThisNovel(novelID)
     }
 
     override suspend fun initNextApi(): ListSimpleUser {
-        return Retro.getAppApiSuspend().getNextSimpleUser(nextUrl)
+        return Retro.getAppApi().getNextSimpleUser(nextUrl)
     }
 }

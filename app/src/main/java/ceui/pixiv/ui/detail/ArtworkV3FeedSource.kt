@@ -170,7 +170,7 @@ internal suspend fun fetchAuthorWorks(
     excludeIllustId: Long,
 ): List<Illust> = withContext(Dispatchers.IO) {
     Timber.tag(ARTWORK_LAZY_TAG).d("API 发出: 作者其他作品 userId=%d", userId)
-    val resp = Retro.getAppApiSuspend().getUserSubmitIllust(userId, "illust")
+    val resp = Retro.getAppApi().getUserSubmitIllust(userId, "illust")
     if (resp.illusts != null) Mapper<ListIllust>().apply(resp)
     resp.list?.filter { it.id != excludeIllustId }?.take(10) ?: emptyList()
 }

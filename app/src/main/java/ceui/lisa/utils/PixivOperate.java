@@ -735,5 +735,5 @@ public class PixivOperate {
     }
 
     // postNovelWatchlist(NovelSeriesItem, Button) 已删除：全仓无调用方（追更开关现役入口是
-    // NovelSeriesFragment 直调 AppApiSuspend.postWatchlistNovelAdd/Delete）。
+    // NovelSeriesFragment 直调 AppApi.postWatchlistNovelAdd/Delete）。
 }

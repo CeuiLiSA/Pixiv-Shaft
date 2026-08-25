@@ -130,8 +130,8 @@ class IllustSeriesFragment :
                 val detail = hero.series
                 val nowAdded = detail.watchlist_added == true
                 val seriesIdInt = detail.id.toInt()
-                if (nowAdded) Retro.getAppApiSuspend().postWatchlistMangaDelete(seriesIdInt)
-                else Retro.getAppApiSuspend().postWatchlistMangaAdd(seriesIdInt)
+                if (nowAdded) Retro.getAppApi().postWatchlistMangaDelete(seriesIdInt)
+                else Retro.getAppApi().postWatchlistMangaAdd(seriesIdInt)
                 // 本地翻转 watchlist_added 并重发 hero 条目触发重绑收藏 icon。
                 feedViewModel.updateItems<MangaHeroFeedItem> {
                     it.copy(series = it.series.copy(watchlist_added = !nowAdded))

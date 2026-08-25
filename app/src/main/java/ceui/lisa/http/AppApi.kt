@@ -40,13 +40,17 @@ import retrofit2.http.Query
 import retrofit2.http.Url
 
 /**
- * app-api.pixiv.net 的 suspend 接口，配合 [Retro.getAppApiSuspend] 使用 —— 与旧 Rx 版
- * `AppApi` 同一个 Retrofit 实例、同一套拦截器/token 逻辑，仅去掉 Rx 适配层。
+ * app-api.pixiv.net 的 suspend 接口，经 [Retro.getAppApi] 取实例（单例 Retrofit，
+ * 直连/代理开关变化时由 [Retro.refreshAppApi] 重建）。
  *
- * 可空参数传 null 时 Retrofit 自动省略该 Query/Field，等价于 legacy 的多重载。
- * 旧 `AppApi` 里从没被调用过的端点（评论列表、旧版排行、mypixiv 小说等）没有搬过来。
+ * 可空参数传 null 时 Retrofit 自动省略该 Query/Field。新代码（ceui.pixiv / ceui.loxia）
+ * 优先用 `Client.appApi`（loxia API），这里是 legacy 页面与 repo 的入口。
  */
-interface AppApiSuspend {
+interface AppApi {
+
+    companion object {
+        const val API_BASE_URL = "https://app-api.pixiv.net/"
+    }
 
     // ── 排行 / 推荐 / 热门 ────────────────────────────────────────────────
 

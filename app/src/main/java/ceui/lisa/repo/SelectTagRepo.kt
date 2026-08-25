@@ -20,7 +20,7 @@ class SelectTagRepo(
     var listTag: ListTag? = null
 
     override suspend fun initApi(): ListBookmarkTag {
-        val api = Retro.getAppApiSuspend()
+        val api = Retro.getAppApi()
         // 先拉用户全量收藏标签存进 listTag（mapper 勾选要用），再拉本作品已打的标签（对齐旧 flatMap 顺序）。
         return when (type) {
             Params.TYPE_ILLUST -> {

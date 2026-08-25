@@ -29,7 +29,7 @@ class FragmentWorkSpace : BaseLazyFragment<FragmentWorkSpaceBinding>(), Display<
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val user = withContext(Dispatchers.IO) {
-                    Retro.getAppApiSuspend().getUserDetailV2(SessionManager.loggedInUid.toInt())
+                    Retro.getAppApi().getUserDetailV2(SessionManager.loggedInUid.toInt())
                 }
                 invoke(user)
             } catch (e: CancellationException) {
@@ -106,7 +106,7 @@ class FragmentWorkSpace : BaseLazyFragment<FragmentWorkSpaceBinding>(), Display<
 
             viewLifecycleOwner.lifecycleScope.launch {
                 try {
-                    withContext(Dispatchers.IO) { Retro.getAppApiSuspend().editWorkSpace(map) }
+                    withContext(Dispatchers.IO) { Retro.getAppApi().editWorkSpace(map) }
                     Common.showToast("修改成功！", true)
                     mActivity.finish()
                 } catch (e: CancellationException) {

@@ -21,30 +21,16 @@ import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Retro {
 
     /**
-     * @return AppApi the api that the request needed
-     * <p>
-     * Configued in {@link AppApi}
-     * </p>
-     * <p>
-     * get() returns a Java interface to HTTP calls,and then it .create(),creates the AppApi
-     * </p>
+     * {@link AppApi}：app-api 的 suspend 接口，单例 Retrofit 上 create（Retrofit 内部缓存方法解析，
+     * 每次 create 很便宜）。
      */
     public static AppApi getAppApi() {
         return get().create(AppApi.class);
-    }
-
-    /**
-     * {@link AppApiSuspend}: 同一个 Retrofit 实例上的 suspend 接口，新代码（Kotlin 协程）用这个，
-     * 不要再对 {@link AppApi} 的 Observable 做 blockingFirst / awaitFirst 桥接。
-     */
-    public static AppApiSuspend getAppApiSuspend() {
-        return get().create(AppApiSuspend.class);
     }
 
     public static void refreshAppApi() {
@@ -141,7 +127,6 @@ public class Retro {
         Gson gson = new GsonBuilder().setLenient().create();
         return new Retrofit.Builder()
                 .client(client)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .baseUrl(baseUrl)
                 .build();
@@ -152,7 +137,6 @@ public class Retro {
         OkHttpClient client = builder.build();
         return new Retrofit.Builder()
                 .client(client)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(baseUrl)
                 .build();
     }

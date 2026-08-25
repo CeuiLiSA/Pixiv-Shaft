@@ -24,16 +24,11 @@ import ceui.loxia.ProgressIndicator
 import ceui.loxia.launchSuspend
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.utils.setOnClick
-import io.reactivex.Observable
-import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.UUID
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 /**
  * 详情类 feeds 页(漫画系列 / 小说详情 / 小说系列)共用的小工具，收口三页里原本各写一遍的
- * 「作品档案」chip、经典 Intent 跳转、收藏切换与 Rx→suspend 桥接，避免复制粘贴。
+ * 「作品档案」chip、经典 Intent 跳转与收藏切换，避免复制粘贴。
  *
  * 这些页面都挂在 [TemplateActivity]（无 NavController），跳转一律走显式 Intent。
  */
@@ -132,17 +127,4 @@ fun Fragment.toggleNovelBookmark(sender: ProgressIndicator, novelId: Long) {
             ?: return@launchSuspend
         PixivActions.toggleNovelBookmark(novel)
     }
-}
-
-// ── Rx2 Observable → suspend（项目不引 kotlinx-coroutines-rx2，统一收口这一份）──
-// 全项目仅剩的 Rx→协程桥：只给「消费 legacy Rx repo（initApi()/initNextApi() 返回
-// Observable）」的 feeds 页用 —— 搜索两页 + BookedTag/SelectTag/LikeUsers/NovelMarkers/
-// UserNovelSeries/UserMangaSeries 等。这些 repo 全部协程化后本函数一并删除。
-// 直连 AppApi 端点的新代码一律走 Retro.getAppApiSuspend() / Client.webApi，不要再新增桥接。
-
-suspend fun <T : Any> Observable<T>.awaitFirstValue(): T = suspendCancellableCoroutine { cont ->
-    val disposable = subscribeOn(Schedulers.io())
-        .firstOrError()
-        .subscribe({ cont.resume(it) }, { cont.resumeWithException(it) })
-    cont.invokeOnCancellation { disposable.dispose() }
 }

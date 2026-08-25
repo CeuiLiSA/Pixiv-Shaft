@@ -7,10 +7,10 @@ import ceui.lisa.model.ListMangaSeries
 class MangaSeriesRepo(private val userID: Int) : RemoteRepo<ListMangaSeries>() {
 
     override suspend fun initApi(): ListMangaSeries {
-        return Retro.getAppApiSuspend().getUserMangaSeries(userID)
+        return Retro.getAppApi().getUserMangaSeries(userID)
     }
 
     override suspend fun initNextApi(): ListMangaSeries {
-        return Retro.getAppApiSuspend().getNextUserMangaSeries(nextUrl)
+        return Retro.getAppApi().getNextUserMangaSeries(nextUrl)
     }
 }

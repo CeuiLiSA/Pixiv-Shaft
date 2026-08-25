@@ -738,7 +738,7 @@ object UgoiraEngine {
             return cached
         }
         Timber.tag(UGOIRA_LOG_TAG).i("[fetchMeta] illust=%d 走网络 getGifPackage…", illustId)
-        val fetched = Retro.getAppApiSuspend().getGifPackage(illustId)
+        val fetched = Retro.getAppApi().getGifPackage(illustId)
         runCatching { Cache.get().saveModel(Params.ILLUST_ID + "_" + illustId, fetched) }
         Timber.tag(UGOIRA_LOG_TAG).i("[fetchMeta] illust=%d 网络返回", illustId)
         return fetched

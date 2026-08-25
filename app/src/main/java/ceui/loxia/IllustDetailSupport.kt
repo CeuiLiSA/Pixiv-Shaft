@@ -43,7 +43,7 @@ fun Illust.hasTrustedCaption(): Boolean {
  */
 suspend fun fetchFullIllustDetail(illustId: Long): Illust? {
     val fresh = try {
-        Retro.getAppApiSuspend().getIllustByID(illustId).illust
+        Retro.getAppApi().getIllustByID(illustId).illust
     } catch (ce: CancellationException) {
         throw ce
     } catch (e: Exception) {

@@ -32,12 +32,12 @@ class MyBookmarksSource(
         "/v1/user/bookmarks/illust?restrict=$restrict" + (tag?.let { "&tag=$it" } ?: "")
 
     override suspend fun firstPage(): PageResult<Illust>? =
-        Retro.getAppApiSuspend()
+        Retro.getAppApi()
             .getUserLikeIllust(userId.toInt(), restrict, tag?.takeIf { it.isNotEmpty() })
             .toPageResult()
 
     override suspend fun nextPage(nextUrl: String): PageResult<Illust>? =
-        Retro.getAppApiSuspend()
+        Retro.getAppApi()
             .getNextIllust(nextUrl)
             .toPageResult()
 }

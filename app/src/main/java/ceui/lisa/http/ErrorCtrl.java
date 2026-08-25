@@ -5,33 +5,24 @@ import android.text.TextUtils;
 import java.io.IOException;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.core.TryCatchObserver;
 import ceui.lisa.models.Error500;
 import ceui.lisa.models.Error500Obj;
 import ceui.lisa.models.ErrorResponse;
 import ceui.lisa.models.ErrorResponse2;
 import ceui.lisa.utils.Common;
 import ceui.pixiv.chat.base.AppErrorExtKt;
-import io.reactivex.disposables.Disposable;
 import retrofit2.HttpException;
 
-public abstract class ErrorCtrl<T> extends TryCatchObserver<T> {
+/**
+ * pixiv 请求失败的统一提示：解析 app-api 的业务错误体（validation_errors / invalid_grant /
+ * error.message 等）弹 toast，解析不出来则退到 {@link AppErrorExtKt#toUserMessage}。
+ * 协程链路 catch 到异常后直接调 {@link #handleError}。
+ */
+public final class ErrorCtrl {
 
-    @Override
-    public void subscribe(Disposable d) {
-
+    private ErrorCtrl() {
     }
 
-    @Override
-    public void error(Throwable e) {
-        handleError(e);
-    }
-
-    /**
-     * 非 Rx 入口：把请求异常解析成 pixiv 的业务错误文案（validation_errors / invalid_grant /
-     * error.message 等）弹 toast，解析不出来则退到 {@link AppErrorExtKt#toUserMessage}。
-     * 协程链路 catch 到异常后直接调这里，和 legacy Observer 链路的提示保持一致。
-     */
     public static void handleError(Throwable e) {
         if (e instanceof HttpException) {
             try {
@@ -127,8 +118,4 @@ public abstract class ErrorCtrl<T> extends TryCatchObserver<T> {
         Common.showToast(AppErrorExtKt.toUserMessage(e, Shaft.getContext()));
     }
 
-    @Override
-    public void complete() {
-
-    }
 }

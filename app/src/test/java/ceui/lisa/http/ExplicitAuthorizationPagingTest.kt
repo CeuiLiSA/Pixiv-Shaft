@@ -1,5 +1,6 @@
 package ceui.lisa.http
 
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -9,7 +10,6 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 
 class ExplicitAuthorizationPagingTest {
@@ -37,10 +37,10 @@ class ExplicitAuthorizationPagingTest {
         )
         val api = createApi()
 
-        val response = api.getNextIllustWithAuth(
+        val response = runBlocking { api.getNextIllustWithAuth(
             "Bearer borrowed-account",
             server.url("/v1/search/illust?offset=30").toString(),
-        ).blockingFirst()
+        ) }
 
         val request = server.takeRequest()
         assertEquals("Bearer borrowed-account", request.getHeader("Authorization"))
@@ -59,10 +59,10 @@ class ExplicitAuthorizationPagingTest {
         )
         val api = createApi()
 
-        val response = api.getNextNovelWithAuth(
+        val response = runBlocking { api.getNextNovelWithAuth(
             "Bearer borrowed-novel-account",
             server.url("/v1/search/novel?offset=30").toString(),
-        ).blockingFirst()
+        ) }
 
         val request = server.takeRequest()
         assertEquals("Bearer borrowed-novel-account", request.getHeader("Authorization"))
@@ -81,7 +81,7 @@ class ExplicitAuthorizationPagingTest {
         )
         val api = createApi()
 
-        val response = api.searchNovelWithAuth(
+        val response = runBlocking { api.searchNovelWithAuth(
             "Bearer borrowed-novel-account",
             "test word",
             "popular_desc",
@@ -101,7 +101,7 @@ class ExplicitAuthorizationPagingTest {
             40,
             50,
             60,
-        ).blockingFirst()
+        ) }
 
         val request = server.takeRequest()
         assertEquals("Bearer borrowed-novel-account", request.getHeader("Authorization"))
@@ -133,7 +133,6 @@ class ExplicitAuthorizationPagingTest {
         return Retrofit.Builder()
             .baseUrl(server.url("/"))
             .client(client)
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(AppApi::class.java)

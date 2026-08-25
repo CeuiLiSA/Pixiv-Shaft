@@ -148,7 +148,7 @@ class SearchIllustRepo @JvmOverloads constructor(
         }
         nana7miTelemetry = telemetry
 
-        val api = Retro.getAppApiSuspend()
+        val api = Retro.getAppApi()
 
         suspend fun popularPreviewRequest(): ListIllust = api.popularPreview(
             assembledKeyword,
@@ -390,7 +390,7 @@ class SearchIllustRepo @JvmOverloads constructor(
         // nextUrl 与借用会话必须来自同一轮翻页。串行队列可能让真正发请求延后；若此时
         // 新首屏改写了 nextUrl，后面再读字段会拼出“旧账号 + 新游标”。
         val nextPageUrl = nextUrl
-        val api = Retro.getAppApiSuspend()
+        val api = Retro.getAppApi()
         if (session.borrowedAccountLost) {
             return endBorrowedPagination("already_lost")
         }
@@ -478,7 +478,7 @@ class SearchIllustRepo @JvmOverloads constructor(
     /**
      * 借号在翻页途中失效时的终止页。
      *
-     * 这里**绝不能**回落到 [ceui.lisa.http.AppApiSuspend.getNextIllust]：nextUrl 是「会员专属 sort」的
+     * 这里**绝不能**回落到 [ceui.lisa.http.AppApi.getNextIllust]：nextUrl 是「会员专属 sort」的
      * 游标，而那个方法没有 explicit-authorization 标记，会被 Retro 的拦截器注入当前登录账号的
      * token —— 用非会员的自己的号去打会员游标必然 400，用户每点一次重试就再撞一次，形成死循环。
      *

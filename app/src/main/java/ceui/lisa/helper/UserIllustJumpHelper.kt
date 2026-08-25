@@ -53,7 +53,7 @@ object UserIllustJumpHelper {
 
         activity.scope().launch {
             val resp = try {
-                withContext(Dispatchers.IO) { Retro.getAppApiSuspend().getUserDetailV2(userID) }
+                withContext(Dispatchers.IO) { Retro.getAppApi().getUserDetailV2(userID) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -250,7 +250,7 @@ object UserIllustJumpHelper {
         JavaAsync.appScope.launch {
             val firstDate = try {
                 withContext(Dispatchers.IO) {
-                    val api = Retro.getAppApiSuspend()
+                    val api = Retro.getAppApi()
                     when (kind) {
                         Kind.NOVEL -> {
                             val url = "https://app-api.pixiv.net/v1/user/novels?user_id=$userID&offset=$offset"
