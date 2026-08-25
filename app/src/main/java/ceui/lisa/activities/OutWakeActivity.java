@@ -242,7 +242,20 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
         sHandledLoginCode = loginCode;
         Common.showToast(getString(R.string.trying_login));
-        JavaAsync.run(this, () -> PixivLogin.INSTANCE.handleCallback(uri), this::handleLoginResult, throwable -> {
+        // 换 token 是进程级动作，不能随 Activity 取消：深色模式/语言切换等不在 configChanges 里的
+        // 配置变更会重建本页，重建后 sHandledLoginCode 已等于本次 code，丢掉结果就要用户重新授权。
+        JavaAsync.runDetached(() -> PixivLogin.INSTANCE.handleCallback(uri), result -> {
+            if (isFinishing() || isDestroyed()) {
+                // 宿主已没了：只把登录态落库，导航交给重建后的实例（它会按 isLoggedIn 走 openMainActivity）。
+                if (result instanceof PixivOAuthResult.Success) {
+                    Local.persistLoggedInUser(Shaft.sGson.fromJson(
+                            ((PixivOAuthResult.Success) result).getRawBody(), AccountResponse.class));
+                }
+                return;
+            }
+            handleLoginResult(result);
+        }, throwable -> {
+            if (isFinishing() || isDestroyed()) return;
             Common.showToast("登录失败");
             backToLoginScreen();
         });

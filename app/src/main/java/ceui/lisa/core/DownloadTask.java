@@ -51,8 +51,15 @@ final class DownloadTask {
 
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
     private final AtomicBoolean finallyRan = new AtomicBoolean(false);
-    private volatile Thread worker;
-    private volatile int phase = PRODUCING;
+    /**
+     * 守住「读 phase/worker → interrupt」与「phase 切换 → 清中断标记」两段的原子性：
+     * 否则 cancel() 读到 PRODUCING 后被抢占，工作线程跑完交付、归还线程池、领走别条下载，
+     * 主线程恢复时 interrupt 会打到那条无辜的下载（Rx 的 FutureTask.cancel(true) 靠 runner CAS
+     * 防的就是这个）。
+     */
+    private final Object interruptLock = new Object();
+    private Thread worker;
+    private int phase = PRODUCING;
 
     private DownloadTask(Body body, Consumer<String> onNext, Consumer<Throwable> onError, Runnable onFinally) {
         this.body = body;
@@ -71,9 +78,11 @@ final class DownloadTask {
     /** 对应 {@code Disposable.dispose()}：幂等。 */
     void cancel() {
         if (!cancelled.compareAndSet(false, true)) return;
-        Thread t = worker;
-        if (phase == PRODUCING && t != null && t != Thread.currentThread()) {
-            t.interrupt();
+        synchronized (interruptLock) {
+            Thread t = worker;
+            if (phase == PRODUCING && t != null && t != Thread.currentThread()) {
+                t.interrupt();
+            }
         }
         runFinally();
     }
@@ -96,7 +105,9 @@ final class DownloadTask {
             // 排队期间就被取消：doFinally 已在 cancel() 里跑过，Body 不再执行。
             return;
         }
-        worker = Thread.currentThread();
+        synchronized (interruptLock) {
+            worker = Thread.currentThread();
+        }
         Emitter emitter = new Emitter();
         try {
             try {
@@ -105,17 +116,22 @@ final class DownloadTask {
                 // Body 自己没兜住的异常（Rx 里 create 的 lambda 抛出会走 tryOnError）。
                 emitter.tryOnError(t);
             }
-            // producing 结束：清掉可能残留的中断标记（线程要还给池子）。
-            phase = CONSUMING;
-            Thread.interrupted();
+            // producing 结束：清掉可能残留的中断标记（线程要还给池子）。与 cancel() 同锁，
+            // 保证不会有 interrupt 在这之后才落下来。
+            synchronized (interruptLock) {
+                phase = CONSUMING;
+                Thread.interrupted();
+            }
             if (cancelled.get()) {
                 return;
             }
             deliver(emitter);
         } finally {
-            phase = DONE;
-            worker = null;
-            Thread.interrupted();
+            synchronized (interruptLock) {
+                phase = DONE;
+                worker = null;
+                Thread.interrupted();
+            }
             runFinally();
         }
     }

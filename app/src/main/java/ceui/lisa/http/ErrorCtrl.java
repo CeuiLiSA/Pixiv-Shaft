@@ -12,6 +12,7 @@ import ceui.lisa.models.ErrorResponse2;
 import ceui.lisa.utils.Common;
 import ceui.pixiv.chat.base.AppErrorExtKt;
 import retrofit2.HttpException;
+import timber.log.Timber;
 
 /**
  * pixiv 请求失败的统一提示：解析 app-api 的业务错误体（validation_errors / invalid_grant /
@@ -24,6 +25,18 @@ public final class ErrorCtrl {
     }
 
     public static void handleError(Throwable e) {
+        try {
+            parseAndToast(e);
+        } catch (RuntimeException ex) {
+            // 旧 TryCatchObserver.onError 整体兜住解析异常（5xx 返回 HTML 错误页时 Gson 会抛
+            // JsonSyntaxException、errors.system 缺失会 NPE）。壳删了，容错落到这里：
+            // 解析失败就退到通用映射文案，绝不能让一个提示把协程崩掉。
+            Timber.w(ex, "ErrorCtrl parse failed");
+            showMappedMessage(e);
+        }
+    }
+
+    private static void parseAndToast(Throwable e) {
         if (e instanceof HttpException) {
             try {
                 HttpException httpException = (HttpException) e;

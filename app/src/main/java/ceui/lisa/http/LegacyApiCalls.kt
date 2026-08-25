@@ -26,7 +26,9 @@ import timber.log.Timber
  *   `owner` 为 null 时挂在 [JavaAsync.appScope]（无宿主的静态任务）。
  * - 失败默认走 [ErrorCtrl.handleError]（与旧 NullCtrl 链路一致的 pixiv 业务错误文案 toast）；
  *   传了 `onError` 则由调用方自己处理。
- * - `onFinally` 对应旧 `NullCtrl.must()`：成功失败都回调，取消不回调。
+ * - `onFinally` 对应旧 `doFinally`/`NullCtrl.must()`：成功、失败、**取消**都恰好回调一次——
+ *   VActivity 翻页的闸门放在跨配置变更存活的 PageData 上，取消不放闸会永久卡死翻页。
+ * - `onSuccess` 自己抛的异常只记日志，不当成请求失败去弹「网络错误」。
  *
  * Kotlin 页面不要用这个，直接 `lifecycleScope.launch { Retro.getAppApi().xxx() }`。
  */
@@ -43,13 +45,19 @@ object LegacyApiCalls {
         scope.launch {
             try {
                 val result = withContext(Dispatchers.IO) { request() }
-                onSuccess.accept(result)
-                onFinally?.run()
+                try {
+                    onSuccess.accept(result)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    Timber.e(e, "LegacyApiCalls onSuccess threw")
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Throwable) {
                 Timber.w(e, "LegacyApiCalls request failed")
                 if (onError != null) onError.accept(e) else ErrorCtrl.handleError(e)
+            } finally {
                 onFinally?.run()
             }
         }

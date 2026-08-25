@@ -62,6 +62,29 @@ object JavaAsync {
         }
     }
 
+    /**
+     * 不随页面取消的 [run]：`work` 在 IO 跑、回调回主线程，挂 [appScope]。给「进程级动作」用
+     * （OAuth 换 token 落库这种，页面因配置变更重建也必须做完），回调里自己判断宿主是否还活着。
+     */
+    @JvmStatic
+    fun <T> runDetached(
+        work: Callable<T>,
+        onSuccess: Consumer<T>,
+        onError: Consumer<Throwable>,
+    ) {
+        appScope.launch {
+            try {
+                val result = withContext(Dispatchers.IO) { work.call() }
+                onSuccess.accept(result)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                Timber.w(e, "JavaAsync.runDetached failed")
+                onError.accept(e)
+            }
+        }
+    }
+
     /** 无宿主后台任务：失败只打日志（或交给 [onError]），不弹 toast。 */
     @JvmStatic
     @JvmOverloads
