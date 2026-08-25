@@ -16,21 +16,24 @@ import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
+import java.net.URI
 import java.net.URLEncoder
 import java.security.MessageDigest
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 借号搜索一级缓存的客户端半边（server: pixshaft-api `src/search-cache.js`）。
  *
  * 借号搜索一次要花：借号方的额度、多半一次借来账号的 renew、以及从又一个 IP 打到池子账号
- * 上的一次会员专属请求。绝大部分是重复劳动——同一个 tag 的人气排序一天里很多人搜。所以借号
+ * 上的一次会员专属请求。用户返回同一个 tag、重试或反复翻页时会重复做这些事。所以借号
  * **之前**先问 pixshaft 一声：命中就直接拿那页渲染；未命中才借号，借完把那页回填，下一个发同样
- * 请求的人（不限于自己）就能命中。翻页同理：每页的 `next_url` 就是下一页的 key。
+ * 请求的人（同一 UID）就能命中。客户端响应不是可信来源，所以服务端绝不把它跨用户传播。
+ * 翻页同理：每页的 `next_url` 就是下一页的 key。
  *
  * 服务端不认识 Pixiv 的参数，key 由这里按「马上要发的那个请求」算 sha256：同一个请求天然同一个
- * key，谁存的谁都能用。请求参数（关键字 / 排序 / 全部筛选 / `search_ai_type`）任何一项不同就是
- * 不同的 key——这是对的，不然 B 会看到按 A 的设置过滤过的结果。
+ * key，同一 UID 下的相同请求就能复用。请求参数（关键字 / 排序 / 全部筛选 /
+ * `search_ai_type`）任何一项不同就是不同的 key——否则后一次会看到按前一次设置过滤过的结果。
  *
  * 这条路永远不能让搜索失败：查询的任何异常（网络、非 2xx、脏响应、限流）都等价于未命中；回填
  * 发完即忘。
@@ -49,6 +52,9 @@ internal object Nana7miSearchCache {
     private const val MAX_AGE_DATE_MS = 30L * 60_000L
 
     private val gson = Gson()
+    private data class FillKey(val uid: Long, val kind: Kind, val key: String)
+    private val fillTokens = ConcurrentHashMap<FillKey, String>()
+    private const val MAX_PENDING_FILLS = 64
 
     fun maxAgeMsFor(sortType: String?): Long = when (sortType) {
         PixivSearchParamUtil.POPULAR_SORT_VALUE,
@@ -113,6 +119,9 @@ internal object Nana7miSearchCache {
         stage: String,
     ): T? {
         val uid = requesterUidOrNull() ?: return null
+        val fillKey = FillKey(uid, kind, key)
+        // A new lookup supersedes any receipt left by an abandoned older flow.
+        fillTokens.remove(fillKey)
         val resp = try {
             runBlocking {
                 Client.pixshaft.searchCacheLookupRaw(
@@ -140,7 +149,18 @@ internal object Nana7miSearchCache {
             Timber.tag(LOG_TAG).w("stage=%s cache=http_%d", stage, resp.code())
             return null
         }
-        val page = decode(resp.body(), type)
+        val body = resp.body()
+        val page = decode(body, type)
+        if (
+            page == null && body?.hit == false && requestId != null &&
+            !body.storeToken.isNullOrBlank()
+        ) {
+            // This map is an optimisation, never durable state. A pathological
+            // number of abandoned misses may drop receipts and merely reduce
+            // future hit rate; it cannot break the successful search.
+            if (fillTokens.size >= MAX_PENDING_FILLS) fillTokens.clear()
+            fillTokens[fillKey] = body.storeToken
+        }
         Timber.tag(LOG_TAG).d(
             "stage=%s cache=%s age_ms=%s",
             stage,
@@ -163,7 +183,13 @@ internal object Nana7miSearchCache {
         }
         // Mapper.apply 会遍历 getList()，null 会 NPE——服务端保证列表在，但这条路的规矩是
         // 「任何不干净的东西都算未命中」，不把它交给下游去炸。
-        if (parsed is ListShow<*> && parsed.list == null) return null
+        if (parsed is ListShow<*>) {
+            if (parsed.list == null) return null
+            if (!isSafePixivNextUrl(parsed.nextUrl)) {
+                Timber.tag(LOG_TAG).w("cache page carried an unsafe next_url")
+                return null
+            }
+        }
         return parsed
     }
 
@@ -173,13 +199,20 @@ internal object Nana7miSearchCache {
      */
     fun store(kind: Kind, key: String, page: Any, stage: String) {
         val uid = requesterUidOrNull() ?: return
+        val storeToken = fillTokens.remove(FillKey(uid, kind, key)) ?: return
         val element: JsonElement = try {
             gson.toJsonTree(page)
         } catch (e: RuntimeException) {
             Timber.tag(LOG_TAG).w(e, "stage=%s cache_store=serialize_failed", stage)
             return
         }
-        val req = Nana7miSearchCacheStoreReq(uid = uid, kind = kind.wire, key = key, page = element)
+        val req = Nana7miSearchCacheStoreReq(
+            uid = uid,
+            kind = kind.wire,
+            key = key,
+            page = element,
+            storeToken = storeToken,
+        )
         Observable.fromCallable { runBlocking { Client.pixshaft.searchCacheStoreRaw(req) } }
             .subscribeOn(Schedulers.io())
             .subscribe(
@@ -210,6 +243,20 @@ internal object Nana7miSearchCache {
 
     /** 一次页面操作一个 ID；lookup、可能的 fallback 和 request 遥测必须复用它。 */
     fun newRequestId(): String = UUID.randomUUID().toString()
+
+    /** A cached cursor is followed with the borrowed account's Authorization. */
+    private fun isSafePixivNextUrl(raw: String?): Boolean {
+        if (raw.isNullOrBlank()) return true
+        return try {
+            val uri = URI(raw)
+            "https".equals(uri.scheme, ignoreCase = true) &&
+                    "app-api.pixiv.net".equals(uri.host, ignoreCase = true) &&
+                    uri.rawUserInfo == null && uri.rawFragment == null &&
+                    (uri.port == -1 || uri.port == 443)
+        } catch (_: Exception) {
+            false
+        }
+    }
 
     private fun encode(value: String): String = URLEncoder.encode(value, "UTF-8")
 

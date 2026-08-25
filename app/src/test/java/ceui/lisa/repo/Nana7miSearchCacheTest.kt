@@ -4,6 +4,7 @@ import ceui.lisa.model.ListIllust
 import ceui.lisa.model.ListNovel
 import ceui.loxia.Nana7miSearchCacheLookupReq
 import ceui.loxia.Nana7miSearchCacheLookupResp
+import ceui.loxia.Nana7miSearchCacheStoreReq
 import ceui.loxia.PixshaftApi
 import com.google.gson.Gson
 import com.google.gson.JsonParser
@@ -42,7 +43,7 @@ class Nana7miSearchCacheTest {
         server.shutdown()
     }
 
-    // ── key：跨用户共享的前提是「同一个请求 → 同一个 key」 ──
+    // ── key：同一 UID 复用的前提是「同一个请求 → 同一个 key」 ──
 
     @Test
     fun `same request from two callers yields the same key`() {
@@ -103,7 +104,7 @@ class Nana7miSearchCacheTest {
         val body = Nana7miSearchCacheLookupResp(
             hit = true,
             page = JsonParser.parseString(
-                """{"illusts":[{"id":101,"title":"one"},{"id":102,"title":"two"}],"next_url":"https://example.invalid/next"}""",
+                """{"illusts":[{"id":101,"title":"one"},{"id":102,"title":"two"}],"next_url":"https://app-api.pixiv.net/v1/search/illust?offset=30"}""",
             ),
             storedAt = 1L,
             ageMs = 5L,
@@ -111,7 +112,7 @@ class Nana7miSearchCacheTest {
         val page = Nana7miSearchCache.decode(body, ListIllust::class.java)!!
         assertEquals(2, page.illusts.size)
         assertEquals(102L, page.illusts[1].id)
-        assertEquals("https://example.invalid/next", page.next_url)
+        assertEquals("https://app-api.pixiv.net/v1/search/illust?offset=30", page.next_url)
 
         val novel = Nana7miSearchCache.decode(
             Nana7miSearchCacheLookupResp(hit = true, page = JsonParser.parseString("""{"novels":[{"id":7}],"next_url":null}""")),
@@ -145,6 +146,17 @@ class Nana7miSearchCacheTest {
                 ListIllust::class.java,
             ),
         )
+        assertNull(
+            Nana7miSearchCache.decode(
+                Nana7miSearchCacheLookupResp(
+                    hit = true,
+                    page = JsonParser.parseString(
+                        """{"illusts":[{"id":1}],"next_url":"https://attacker.example/steal"}""",
+                    ),
+                ),
+                ListIllust::class.java,
+            ),
+        )
     }
 
     // ── wire：请求体字段名和服务端 src/search-cache.js 一致 ──
@@ -155,7 +167,7 @@ class Nana7miSearchCacheTest {
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/json")
-                .setBody("""{"hit":true,"page":{"illusts":[{"id":1}],"next_url":"n"},"storedAt":10,"ageMs":3,"serverTime":13}"""),
+                .setBody("""{"hit":true,"page":{"illusts":[{"id":1}],"next_url":"https://app-api.pixiv.net/v1/search/illust?offset=30"},"storedAt":10,"ageMs":3,"serverTime":13}"""),
         )
         val key = "a".repeat(64)
         val requestId = "823e4567-e89b-42d3-a456-426614174010"
@@ -182,7 +194,7 @@ class Nana7miSearchCacheTest {
         assertTrue(resp.isSuccessful)
         val page = Nana7miSearchCache.decode(resp.body(), ListIllust::class.java)!!
         assertEquals(1L, page.illusts[0].id)
-        assertEquals("n", page.next_url)
+        assertEquals("https://app-api.pixiv.net/v1/search/illust?offset=30", page.next_url)
     }
 
     @Test
@@ -207,5 +219,33 @@ class Nana7miSearchCacheTest {
 
         val sent = JsonParser.parseString(server.takeRequest().body.readUtf8()).asJsonObject
         assertFalse(sent.has("requestId"))
+    }
+
+    @Test
+    fun `store echoes the opaque one-time receipt from a miss`() = runBlocking {
+        server.enqueue(
+            MockResponse()
+                .setResponseCode(200)
+                .setHeader("Content-Type", "application/json")
+                .setBody("""{"stored":true}"""),
+        )
+        val token = "opaque.server.receipt"
+        val page = JsonParser.parseString("""{"illusts":[{"id":1}],"next_url":null}""")
+
+        val response = api.searchCacheStoreRaw(
+            Nana7miSearchCacheStoreReq(
+                uid = 42L,
+                kind = "illust",
+                key = "c".repeat(64),
+                page = page,
+                storeToken = token,
+            ),
+        )
+
+        assertTrue(response.isSuccessful)
+        assertTrue(response.body()?.stored == true)
+        val sent = JsonParser.parseString(server.takeRequest().body.readUtf8()).asJsonObject
+        assertEquals(token, sent["storeToken"].asString)
+        assertEquals(1L, sent["page"].asJsonObject["illusts"].asJsonArray[0].asJsonObject["id"].asLong)
     }
 }
