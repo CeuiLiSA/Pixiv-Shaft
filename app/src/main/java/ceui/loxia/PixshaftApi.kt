@@ -195,8 +195,8 @@ interface PixshaftApi {
      * 借号搜索一级缓存（server: src/search-cache.js）。借号**之前**先问一声：命中就直接拿
      * 这一页渲染，不派发、不 renew、不打 Pixiv；未命中和从前一样。服务端不认识 Pixiv 的
      * 参数——[Nana7miSearchCacheLookupReq.key] 是客户端按「马上要发的那个请求」算出来的
-     * sha256（[ceui.lisa.repo.Nana7miSearchCache]）。客户端回填的数据按 UID 隔离，不能跨用户
-     * 传播；miss 响应还会给一次性的 [Nana7miSearchCacheLookupResp.storeToken]。
+     * sha256（[ceui.lisa.repo.Nana7miSearchCache]）。缓存跨用户共享：谁回填的谁都能命中；
+     * miss 响应还会给一次性的 [Nana7miSearchCacheLookupResp.storeToken]，回填必须凭它。
      *
      * 任何异常（关掉了、坏了、限流）都长得和未命中一样：这条路永远不能让搜索失败。
      */
@@ -205,7 +205,7 @@ interface PixshaftApi {
         @Body body: Nana7miSearchCacheLookupReq,
     ): Response<Nana7miSearchCacheLookupResp>
 
-    /** 借号搜索成功后凭 miss receipt 回填；同一 UID 的相同请求之后可以命中。发完即忘。 */
+    /** 借号搜索成功后凭 miss receipt 回填；之后任何人发相同请求都能命中。发完即忘。 */
     @POST("v1/account/nana7mi/search-cache/store")
     suspend fun searchCacheStoreRaw(
         @Body body: Nana7miSearchCacheStoreReq,
