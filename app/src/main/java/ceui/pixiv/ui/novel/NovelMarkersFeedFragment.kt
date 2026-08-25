@@ -29,7 +29,6 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
-import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
 import ceui.pixiv.ui.common.viewBinding
@@ -40,8 +39,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.zhy.view.flowlayout.FlowLayout
 import com.zhy.view.flowlayout.TagAdapter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.util.Locale
 
 /**
@@ -192,10 +189,8 @@ class NovelMarkerFeedItem(val marker: MarkedNovelItem) : FeedItem {
 }
 
 /**
- * 小说书签数据源：包裹既有的 [NovelMarkersRepo]，把 Rx→suspend 桥一下（对齐 SearchIllustFeedSource）。
- * load(null) → getNovelMarkers；load(cursor) → setNextUrl + getNextNovelMarkers；过滤走 repo 自己的
- * mapper()（默认 [ceui.lisa.core.Mapper]，与 legacy `.map(mFunction)` 同一条流水线，对小说列表实为
- * 空操作但保持链路一致）。网络请求前的同步重活切 IO，映射 / 建条目切 Default。游标 = nextUrl。
+ * 小说书签数据源：包裹既有的 [NovelMarkersRepo]。
+ * load(null) → getNovelMarkers；load(cursor) → nextUrl + getNextNovelMarkers。游标 = nextUrl。
  *
  * 零 Fragment 捕获：无参构造，自持 repo，不碰 View / Context。
  */
@@ -204,15 +199,11 @@ class NovelMarkersFeedSource : FeedSource<String> {
     private val repo = NovelMarkersRepo()
 
     override suspend fun load(cursor: String?): FeedPage<String> {
-        // initApi / initNextApi 在返回 Observable 前是纯同步的（Retro 组装请求），放 IO 稳妥；
-        // 真正的挂起在 awaitFirstValue 内部（subscribeOn(io) + firstOrError）。
         val resp: ListNovelMarkers = if (cursor == null) {
-            withContext(Dispatchers.IO) { repo.initApi() }.awaitFirstValue()
+            repo.initApi()
         } else {
-            withContext(Dispatchers.IO) {
-                repo.setNextUrl(cursor)
-                repo.initNextApi()
-            }.awaitFirstValue()
+            repo.nextUrl = cursor
+            repo.initNextApi()
         }
         // 默认 Mapper 只过滤 Illust/Novel，对 MarkedNovelItem 是 no-op → 不套，直接建条目
         // （去掉多余的未受检 cast + Default 线程切换 + 全量空遍历）。

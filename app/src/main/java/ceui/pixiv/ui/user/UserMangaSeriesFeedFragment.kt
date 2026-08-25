@@ -30,7 +30,6 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
-import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.pinHostGlide
@@ -208,11 +207,8 @@ class MangaSeriesFeedItem(val series: MangaSeriesItem) : FeedItem {
 }
 
 /**
- * 漫画系列数据源：包裹既有的 [MangaSeriesRepo]，把 Rx→suspend 桥一下（对齐 NovelMarkersFeedSource）。
- * load(null) → getUserMangaSeries；load(cursor) → setNextUrl + getNextUserMangaSeries；过滤走 repo
- * 自己的 mapper()（默认 [ceui.lisa.core.Mapper]，与 legacy `.map(mFunction)` 同一条流水线，对
- * MangaSeriesItem 列表实为空操作但保持链路一致）。网络请求前的同步重活切 IO，映射 / 建条目切 Default。
- * 游标 = nextUrl。
+ * 漫画系列数据源：包裹既有的 [MangaSeriesRepo]（对齐 NovelMarkersFeedSource）。
+ * load(null) → getUserMangaSeries；load(cursor) → nextUrl + getNextUserMangaSeries。游标 = nextUrl。
  *
  * 零 Fragment 捕获：只吃一个 userID(Int)，自持 repo，不碰 View / Context。
  */
@@ -221,16 +217,11 @@ class UserMangaSeriesFeedSource(userID: Int) : FeedSource<String> {
     private val repo = MangaSeriesRepo(userID)
 
     override suspend fun load(cursor: String?): FeedPage<String> {
-        // initApi / initNextApi 在返回 Observable 前是纯同步的（Retro 组装请求），放 IO 稳妥；
-        // 真正的挂起在 awaitFirstValue 内部（subscribeOn(io) + firstOrError）。
         val resp: ListMangaSeries = if (cursor == null) {
-            withContext(Dispatchers.IO) { repo.initApi() }.awaitFirstValue()
+            repo.initApi()
         } else {
-            val api = withContext(Dispatchers.IO) {
-                repo.setNextUrl(cursor)
-                repo.initNextApi()
-            }
-            requireNotNull(api) { "MangaSeriesRepo.initNextApi 返回 null" }.awaitFirstValue()
+            repo.nextUrl = cursor
+            repo.initNextApi()
         }
         // 默认 Mapper 只过滤 Illust/Novel，对 MangaSeriesItem 是 no-op → 不套，直接建条目。
         val items: List<FeedItem> = resp.list.orEmpty().map { MangaSeriesFeedItem(it) }

@@ -9,7 +9,6 @@ import ceui.lisa.model.ListTag
 import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.Params
 import ceui.pixiv.db.synonym.SynonymMatcher
-import io.reactivex.Observable
 import ceui.lisa.core.ResponseMapper
 
 class SelectTagRepo(
@@ -20,31 +19,23 @@ class SelectTagRepo(
 
     var listTag: ListTag? = null
 
-    override fun initApi(): Observable<ListBookmarkTag> {
-
-        var api1: Observable<ListBookmarkTag>? = null
-        var api2: Observable<ListTag>? = null
-
-        when(type){
+    override suspend fun initApi(): ListBookmarkTag {
+        val api = Retro.getAppApiSuspend()
+        // 先拉用户全量收藏标签存进 listTag（mapper 勾选要用），再拉本作品已打的标签（对齐旧 flatMap 顺序）。
+        return when (type) {
             Params.TYPE_ILLUST -> {
-                api1 = Retro.getAppApi().getIllustBookmarkTags(id)
-                api2 = Retro.getAppApi().getAllIllustBookmarkTags(currentUserID(), Params.TYPE_PUBLIC)
+                listTag = api.getAllIllustBookmarkTags(currentUserID(), Params.TYPE_PUBLIC)
+                api.getIllustBookmarkTags(id)
             }
             Params.TYPE_NOVEL -> {
-                api1 = Retro.getAppApi().getNovelBookmarkTags(id)
-                api2 = Retro.getAppApi().getAllNovelBookmarkTags(currentUserID(), Params.TYPE_PUBLIC)
+                listTag = api.getAllNovelBookmarkTags(currentUserID(), Params.TYPE_PUBLIC)
+                api.getNovelBookmarkTags(id)
             }
+            else -> throw IllegalArgumentException("unknown type $type")
         }
-
-        return api2!!.flatMap(
-            fun(listTag: ListTag): Observable<ListBookmarkTag> {
-                this.listTag = listTag
-                return api1!!
-            }
-        )
     }
 
-    override fun initNextApi(): Observable<ListBookmarkTag>? {
+    override suspend fun initNextApi(): ListBookmarkTag? {
         return null
     }
 
@@ -59,7 +50,7 @@ class SelectTagRepo(
                 }
             }
             // 同义词词典（issue #904）核心闭环：作品标签命中词典 → 对应目标标签（=收藏标签）自动勾选。
-            // mapper 跑在 Rx 后台线程（subscribeOn 之后、observeOn(main) 之前），DB 全量读不会阻塞 UI。
+            // mapper 由 RemoteRepo.loadFirst 在 IO 上跑，DB 全量读不会阻塞 UI。
             // 词典是增强功能：任何异常（DB 锁/迁移中等）都不能把整个收藏标签列表拖垮成 onError。
             try {
                 applySynonymMatching(tags)

@@ -6,7 +6,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.RemoteRepo
-import ceui.lisa.http.NullCtrl
 import ceui.lisa.model.ListIllust
 import ceui.loxia.Illust
 import ceui.lisa.network.ShaftApiV2
@@ -16,6 +15,7 @@ import ceui.pixiv.ui.prime.PrimeTagIndexItem
 import com.blankj.utilcode.util.Utils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -116,22 +116,19 @@ class DiscoverViewModel(application: Application) : AndroidViewModel(application
         repo: RemoteRepo<ListIllust>,
         live: MutableLiveData<List<Illust>>
     ) {
-        // getFirstData 内部 subscribeOn(newThread).observeOn(mainThread),回调回到主线程。
-        repo.getFirstData(object : NullCtrl<ListIllust>() {
-            override fun success(t: ListIllust) {
+        viewModelScope.launch {
+            val list = try {
                 // 过滤 user==null 的脏数据:RAdapter 直接取 user.name / 头像,null 会 NPE 崩。
-                live.value = t.illusts?.filter { it.user != null }?.take(RAIL_LIMIT) ?: emptyList()
+                repo.loadFirst()?.illusts?.filter { it.user != null }?.take(RAIL_LIMIT) ?: emptyList()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // 失败静默塌陷(不走 ErrorCtrl,避免对后台货架弹 toast);发空→收起该货架。
+                Timber.w(e, "Discovery/Repo latest rail failed")
+                emptyList()
             }
-
-            override fun nullSuccess() {
-                live.value = emptyList()
-            }
-
-            override fun error(e: Throwable) {
-                // 失败静默塌陷(不调 super,避免 ErrorCtrl 对后台货架弹 toast);发空→收起该货架。
-                live.value = emptyList()
-            }
-        })
+            live.value = list
+        }
     }
 
     private fun loadTags() {

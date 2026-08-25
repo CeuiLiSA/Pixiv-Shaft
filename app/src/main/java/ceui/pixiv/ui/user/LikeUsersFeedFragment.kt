@@ -33,7 +33,6 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
-import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.pinHostGlide
@@ -271,8 +270,7 @@ class LikeUserFeedItem(
 /**
  * 点赞用户数据源：包裹 [SimpleUserRepo] / [NovelBookmarkUserRepo]（cursor = next_url）。
  * load(null) → initApi(getUsersWhoLikeThisIllust / getUsersWhoLikeThisNovel)；
- * load(cursor) → setNextUrl + initNextApi(getNextSimpleUser)——翻页两边共用同一个 next_url 接口。
- * 请求发起切 IO（awaitFirstValue 内部 subscribeOn(io)，此处外层 withContext 只为对齐既有桥接写法）；
+ * load(cursor) → nextUrl + initNextApi(getNextSimpleUser)——翻页两边共用同一个 next_url 接口。
  * 映射切 Default。短页 / 无 next_url（空串）即到底返回 null。
  *
  * 零 Fragment 捕获：只吃作品 id（插画 Int / 小说 Long），repo 内部持 id + next_url 分页状态。
@@ -286,12 +284,10 @@ class LikeUsersFeedSource private constructor(
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val resp: ListSimpleUser = if (cursor == null) {
-            withContext(Dispatchers.IO) { repo.initApi() }.awaitFirstValue()
+            requireNotNull(repo.initApi())
         } else {
-            withContext(Dispatchers.IO) {
-                repo.setNextUrl(cursor)
-                repo.initNextApi()
-            }.awaitFirstValue()
+            repo.nextUrl = cursor
+            requireNotNull(repo.initNextApi())
         }
         val items: List<FeedItem> = withContext(Dispatchers.Default) {
             resp.list.orEmpty().map { LikeUserFeedItem(it) }

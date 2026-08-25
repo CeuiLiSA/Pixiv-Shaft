@@ -27,7 +27,6 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.updateItems
-import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.Dispatchers
@@ -286,9 +285,9 @@ class SelectTagFeedItem(val tag: TagsBean) : FeedItem {
 /**
  * 「按标签收藏」数据源：包裹 legacy [SelectTagRepo]，单页（nextCursor 恒 null，对齐 initNextApi=null）。
  *
- * load(null)：IO 上建 + 订阅 [SelectTagRepo.initApi]（api2 拉全量标签 → flatMap 到 api1 拉本作品标签，
- * 顺带把 listTag 存进 repo），await 首值；再在 IO 上跑 [SelectTagRepo.mapper]（同义词词典自动勾选
- * issue #904，含全量 DB 读，绝不能上主线程）+ beforeFirstLoad 全选，最后映射成条目。
+ * load(null)：[SelectTagRepo.loadFirst]（先拉全量标签存进 repo.listTag，再拉本作品标签，然后在 IO 上跑
+ * [SelectTagRepo.mapper]——同义词词典自动勾选 issue #904，含全量 DB 读，绝不能上主线程）；
+ * 再 beforeFirstLoad 全选，最后映射成条目。
  *
  * 零 Fragment 捕获：只吃 illustID/type/tagNames（基本类型 + 不可变 list）。
  */
@@ -301,10 +300,9 @@ class SelectTagFeedSource(
     override suspend fun load(cursor: String?): FeedPage<String> {
         // 单页：框架只会用 cursor == null 调本源（nextCursor 恒 null，无翻页）。
         val repo = SelectTagRepo(illustID, type, tagNames)
-        val resp: ListBookmarkTag = withContext(Dispatchers.IO) { repo.initApi() }.awaitFirstValue()
-        val tags: List<TagsBean> = withContext(Dispatchers.IO) {
-            // 同义词词典自动勾选（issue #904）在 mapper 里做，跑后台线程（读全量词典 DB），不阻塞 UI。
-            repo.mapper().apply(resp)
+        // 同义词词典自动勾选（issue #904）在 mapper 里做，loadFirst 内部已切 IO（读全量词典 DB），不阻塞 UI。
+        val resp: ListBookmarkTag = requireNotNull(repo.loadFirst())
+        val tags: List<TagsBean> = withContext(Dispatchers.Default) {
             // beforeFirstLoad 全选：设置开 + (tagNames 空 或 该标签命中作品标签) → 勾选。
             if (Shaft.sSettings.isStarWithTagSelectAll) {
                 resp.list?.forEach { tag ->
