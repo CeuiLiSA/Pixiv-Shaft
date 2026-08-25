@@ -18,7 +18,6 @@ import ceui.pixiv.actionqueue.QueuePolicy
 import ceui.pixiv.actionqueue.RetryScope
 import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.websocket.AppNetworkMonitor
-import io.reactivex.Observable
 import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
@@ -365,6 +364,10 @@ class Nana7miSearchTelemetry internal constructor(
         @Volatile
         private var currentBorrowedUid: Long? = null
 
+        /** 给 [trackOrRun] 的默认参数用：当前路由 / 原因快照。 */
+        internal val routeNow: Route get() = currentRoute
+        internal val reasonNow: String? get() = currentReason
+
         fun borrowed(uid: Long) {
             if (uid > 0L) currentBorrowedUid = uid
         }
@@ -381,56 +384,65 @@ class Nana7miSearchTelemetry internal constructor(
             currentBorrowedUid = null
         }
 
-        fun <T : Any> track(
-            source: Observable<T>,
+        /**
+         * Runs one page request and reports exactly one REQUEST event for it: success, failure,
+         * or cancelled (the coroutine was cancelled while [source] was in flight).
+         *
+         * Route / borrowed uid / reason are captured at call time, so a fallback that starts a
+         * new tracked request after this one fails reports its own route, not this one's.
+         */
+        suspend fun <T : Any> track(
             page: Page,
             route: Route = currentRoute,
             borrowedUid: Long? = currentBorrowedUid,
             reason: String? = if (route == currentRoute) currentReason else null,
             eventId: String? = null,
-        ): Observable<T> {
-            return Observable.defer {
-                val completed = AtomicBoolean(false)
-                source
-                    .doOnNext {
-                        if (completed.compareAndSet(false, true)) {
-                            report(EventType.REQUEST, page, route, Outcome.SUCCESS, null, borrowedUid, reason, null, null, eventId)
-                        }
-                    }
-                    .doOnError { error ->
-                        if (completed.compareAndSet(false, true)) {
-                            report(EventType.REQUEST, page, route, Outcome.FAILURE, null, borrowedUid, reason, error, null, eventId)
-                        }
-                    }
-                    .doOnDispose {
-                        if (completed.compareAndSet(false, true)) {
-                            report(EventType.REQUEST, page, route, Outcome.CANCELLED, null, borrowedUid, "disposed", null, null, eventId)
-                        }
-                    }
+            source: suspend () -> T,
+        ): T {
+            val result = try {
+                source()
+            } catch (e: CancellationException) {
+                report(EventType.REQUEST, page, route, Outcome.CANCELLED, null, borrowedUid, "disposed", null, null, eventId)
+                throw e
+            } catch (error: Throwable) {
+                report(EventType.REQUEST, page, route, Outcome.FAILURE, null, borrowedUid, reason, error, null, eventId)
+                throw error
             }
+            report(EventType.REQUEST, page, route, Outcome.SUCCESS, null, borrowedUid, reason, null, null, eventId)
+            return result
         }
 
-        /** Wraps only the first-page observable; pagination remains request-level telemetry. */
-        fun <T : Any> observeFirst(source: Observable<T>): Observable<T> = source
-            .doOnSubscribe {
-                if (started.compareAndSet(false, true)) {
-                    startedAt = monotonicNowMs()
-                    report(
-                        EventType.FLOW_STARTED,
-                        Page.FIRST,
-                        currentRoute,
-                        Outcome.STARTED,
-                        null,
-                        currentBorrowedUid,
-                        currentReason,
-                        null,
-                        null,
-                    )
-                }
+        /**
+         * Wraps only the first-page request: FLOW_STARTED before it runs, one FLOW_TERMINAL after
+         * (success / total failure / cancelled). Pagination remains request-level telemetry.
+         */
+        suspend fun <T : Any> observeFirst(source: suspend () -> T): T {
+            if (started.compareAndSet(false, true)) {
+                startedAt = monotonicNowMs()
+                report(
+                    EventType.FLOW_STARTED,
+                    Page.FIRST,
+                    currentRoute,
+                    Outcome.STARTED,
+                    null,
+                    currentBorrowedUid,
+                    currentReason,
+                    null,
+                    null,
+                )
             }
-            .doOnNext { finish(successOutcome(), Outcome.SUCCESS, null) }
-            .doOnError { error -> finish(FlowOutcome.TOTAL_FAILURE, Outcome.FAILURE, error) }
-            .doOnDispose { finish(FlowOutcome.CANCELLED, Outcome.CANCELLED, null) }
+            val result = try {
+                source()
+            } catch (e: CancellationException) {
+                finish(FlowOutcome.CANCELLED, Outcome.CANCELLED, null)
+                throw e
+            } catch (error: Throwable) {
+                finish(FlowOutcome.TOTAL_FAILURE, Outcome.FAILURE, error)
+                throw error
+            }
+            finish(successOutcome(), Outcome.SUCCESS, null)
+            return result
+        }
 
         private fun successOutcome(): FlowOutcome = when (currentRoute) {
             Route.BORROWED_OFFICIAL -> FlowOutcome.OFFICIAL_SUCCESS

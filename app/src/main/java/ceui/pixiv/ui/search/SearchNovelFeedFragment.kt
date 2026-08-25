@@ -31,7 +31,6 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.NovelFeedFragment
 import ceui.pixiv.ui.common.NovelFeedItem
-import ceui.pixiv.ui.common.awaitFirstValue
 import ceui.pixiv.ui.common.openUserActivity
 import ceui.pixiv.ui.novel.NovelSeriesFragment
 import ceui.pixiv.utils.ppppx
@@ -296,10 +295,10 @@ class SearchNovelFeedSource(
         val r = repo ?: repoFactory().also { repo = it }
         val list: ListNovel = if (cursor == null) {
             r.update(searchModel, keywordSnapshot)
-            r.initApi().awaitFirstValue()
+            r.initApi()
         } else {
-            r.setNextUrl(cursor)
-            r.initNextApi().awaitFirstValue()
+            r.nextUrl = cursor
+            r.initNextApi()
         }
         val items = withContext(Dispatchers.Default) {
             @Suppress("UNCHECKED_CAST")
