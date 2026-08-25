@@ -28,7 +28,8 @@ import java.util.concurrent.Executors
  *       android:layout_width="match_parent"
  *       android:layout_height="match_parent" />
  *
- * Images must be placed in assets/prime_square/ as square JPGs.
+ * Images live in assets/prime_square/ as IMAGE_TILE_SIZE-px square WebPs,
+ * produced by scripts/shrink_prime_square.py (ATLAS_COLS*ATLAS_ROWS of them).
  */
 class TracedTunnelView @JvmOverloads constructor(
     context: Context,
@@ -224,16 +225,15 @@ private class TunnelImpl(private val view: View, private val onReady: () -> Unit
             )
             val atlasCanvas = Canvas(atlasBitmap)
 
-            val options = BitmapFactory.Options().apply {
-                inSampleSize = 2
-            }
+            // 资源已由 scripts/shrink_prime_square.py 预缩到 IMAGE_TILE_SIZE 见方的 WebP，
+            // 这里不能再 inSampleSize，否则 200 会被砍成 100 才拉回 200。
             val tilePaint = Paint(Paint.FILTER_BITMAP_FLAG)
 
             for (row in 0 until ATLAS_ROWS) {
                 for (col in 0 until ATLAS_COLS) {
                     val index = (row * ATLAS_COLS + col) % files.size
                     val bitmap = assetManager.open("prime_square/${files[index]}").use {
-                        BitmapFactory.decodeStream(it, null, options)
+                        BitmapFactory.decodeStream(it)
                     }
                     bitmap?.let {
                         val destRect = android.graphics.RectF(
