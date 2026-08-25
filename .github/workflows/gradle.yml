@@ -91,6 +91,28 @@ jobs:
             echo "APK_SUFFIX=classic" >> $GITHUB_ENV
           fi
 
+      # 单测跑在打包之前，红了就不出产物。只跑 debug 变体：release 变体的
+      # 测试代码相同，多跑一遍只是白费 R8 前的编译时间。
+      - name: Run unit tests
+        env:
+          SHAFT_EVENTS_HMAC: ${{ secrets.SHAFT_EVENTS_HMAC }}
+        run: >-
+          ./gradlew
+          :app:testGithubDebugUnitTest
+          :actionqueue:testDebugUnitTest
+          :feeds:testDebugUnitTest
+          --continue
+
+      - name: Upload unit test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-reports-${{ github.run_id }}
+          path: |
+            **/build/reports/tests/
+            **/build/test-results/
+          if-no-files-found: ignore
+
       - name: Build debug apk
         if: github.ref_type == 'branch'
         env:
