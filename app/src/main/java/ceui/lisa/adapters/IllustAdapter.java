@@ -636,6 +636,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     public boolean onLoadFailed(@Nullable GlideException e, Object m, Target<Bitmap> target, boolean isFirstResource) {
                         if (!guardUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return false;
                         if (isFinal) {
+                            // 缓存原图与 LARGE 是并行加载的：原图已经成功盖上后，迟到的
+                            // LARGE 失败只是底层占位失败，不能再把清晰原图改成错误态。
+                            if (cachedOriginalShownPages.contains(position)) {
+                                Timber.d("[IllustAdapter] base(large) FAIL ignored after cached-original success pos=%d, url=%s",
+                                        position, shortUrl);
+                                return false;
+                            }
                             Timber.w(e, "[IllustAdapter] base(large) FAIL pos=%d, url=%s", position, shortUrl);
                             holder.baseBind.reload.setVisibility(View.VISIBLE);
                             holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
