@@ -39,8 +39,11 @@ def generateShaftSecretsHeader = tasks.register('generateShaftSecretsHeader') {
             encoded[i] = (byte) (value ^ (maskA[i] & 0xff) ^ (maskB[i] & 0xff))
         }
 
+        // Integer.toString(int) is STATIC in Java, so Groovy's `(it & 0xff).toString(16)` resolves to
+        // Integer.toString(16) == "16" for every byte: all three tables came out as 0x16 and the
+        // signer keyed on 64 bytes of 0x16 — every X-Shaft-Sign since the native move was wrong.
         def values = { byte[] bytes ->
-            bytes.collect { '0x' + (it & 0xff).toString(16).padLeft(2, '0') }.join(', ')
+            bytes.collect { String.format('0x%02x', it & 0xff) }.join(', ')
         }
         def output = generatedShaftSecretsHeader.get().asFile
         output.parentFile.mkdirs()
