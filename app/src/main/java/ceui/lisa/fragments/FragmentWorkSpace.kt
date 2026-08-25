@@ -7,14 +7,16 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentWorkSpaceBinding
 import ceui.pixiv.session.SessionManager
-import ceui.lisa.http.NullCtrl
+import androidx.lifecycle.lifecycleScope
+import ceui.lisa.http.ErrorCtrl
 import ceui.lisa.http.Retro
 import ceui.lisa.interfaces.Display
-import ceui.lisa.models.NullResponse
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.utils.Common
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class FragmentWorkSpace : BaseLazyFragment<FragmentWorkSpaceBinding>(), Display<UserDetailResponse> {
 
@@ -24,19 +26,20 @@ class FragmentWorkSpace : BaseLazyFragment<FragmentWorkSpaceBinding>(), Display<
 
 
     public override fun initData() {
-        Retro.getAppApi()
-            .getUserDetailV2(SessionManager.loggedInUid.toInt())
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object : NullCtrl<UserDetailResponse>() {
-                override fun success(user: UserDetailResponse) {
-                    invoke(user)
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val user = withContext(Dispatchers.IO) {
+                    Retro.getAppApiSuspend().getUserDetailV2(SessionManager.loggedInUid.toInt())
                 }
-
-                override fun must(isSuccess: Boolean) {
-                    baseBind.progress.visibility = View.INVISIBLE
-                }
-            })
+                invoke(user)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                ErrorCtrl.handleError(e)
+            } finally {
+                baseBind.progress.visibility = View.INVISIBLE
+            }
+        }
     }
 
     override fun invoke(response: UserDetailResponse) {
@@ -101,19 +104,19 @@ class FragmentWorkSpace : BaseLazyFragment<FragmentWorkSpaceBinding>(), Display<
             map["chair"] = Common.checkEmpty(baseBind.chair)
             map["comment"] = Common.checkEmpty(baseBind.otherText)
 
-            Retro.getAppApi().editWorkSpace(map)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(object : NullCtrl<NullResponse>() {
-                    override fun success(accountEditResponse: NullResponse) {
-                        Common.showToast("修改成功！", true)
-                        mActivity.finish()
-                    }
-
-                    override fun must(isSuccess: Boolean) {
-                        baseBind.progress.visibility = View.INVISIBLE
-                    }
-                })
+            viewLifecycleOwner.lifecycleScope.launch {
+                try {
+                    withContext(Dispatchers.IO) { Retro.getAppApiSuspend().editWorkSpace(map) }
+                    Common.showToast("修改成功！", true)
+                    mActivity.finish()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    ErrorCtrl.handleError(e)
+                } finally {
+                    baseBind.progress.visibility = View.INVISIBLE
+                }
+            }
         }
     }
 }

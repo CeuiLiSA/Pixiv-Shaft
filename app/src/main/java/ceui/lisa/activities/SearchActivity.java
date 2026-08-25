@@ -48,7 +48,7 @@ import ceui.pixiv.ui.search.SearchHintViewModel;
 import ceui.pixiv.ui.search.v3.SearchFilterV3BottomSheet;
 import ceui.pixiv.ui.search.v3.SearchFilterV3LegacyBridge;
 import ceui.pixiv.widgets.FeedBackToTopFab;
-import io.reactivex.schedulers.Schedulers;
+import ceui.lisa.core.JavaAsync;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
@@ -77,7 +77,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     @Override
     public void initModel() {
         // AES/GCM 提供器与词库只在搜索页用到：进页即在后台预热，避免首次键入时冷解密卡主线程。
-        Schedulers.computation().scheduleDirect(SearchRiskPolicy::warmUp);
+        JavaAsync.fireAndForget(SearchRiskPolicy::warmUp);
         searchModel = new ViewModelProvider(this).get(SearchModel.class);
         hintViewModel = new ViewModelProvider(this).get(SearchHintViewModel.class);
         searchModel.getKeyword().setValue(keyWord);
@@ -103,7 +103,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         // initModel / nowGo 都跑在主线程，统一挪开不碰主线程 Room（对齐本仓
         // insertIllustViewHistory 等既有做法）。fire-and-forget，去重靠 id REPLACE，乱序无碍；
         // 只捕获 String + 静态方法，不持有 Activity，无泄漏。
-        Schedulers.io().scheduleDirect(() -> {
+        JavaAsync.fireAndForget(() -> {
             // 被拦截的查询不持久化；结果页仍保留当前 chip 来解释为什么未显示。
             if (!SearchRiskPolicy.shouldWithhold(trimmed)) {
                 PixivOperate.insertSearchHistory(trimmed, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);

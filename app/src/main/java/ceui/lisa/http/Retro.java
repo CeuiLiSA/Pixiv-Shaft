@@ -47,10 +47,6 @@ public class Retro {
         return get().create(AppApiSuspend.class);
     }
 
-    public static LofterApi getLofterApi() {
-        return get().create(LofterApi.class);
-    }
-
     public static void refreshAppApi() {
         Holder.appRetrofit = buildRetrofit(API_BASE_URL);
     }

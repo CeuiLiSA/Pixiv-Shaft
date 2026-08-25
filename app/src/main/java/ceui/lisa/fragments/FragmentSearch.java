@@ -41,8 +41,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.databinding.FragmentSearchBinding;
 import ceui.lisa.databinding.RecySingleLineTextWithDeleteBinding;
-import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
+import ceui.lisa.http.LegacyApiCalls;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.utils.ClipBoardUtils;
@@ -51,8 +50,6 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.SearchTypeUtil;
 import ceui.pixiv.ui.search.SearchHintViewModel;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 
 public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
@@ -294,12 +291,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void getHotTags() {
-        Retro.getAppApi().getHotTags(Params.TYPE_ILLUST)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<ListTrendingtag>() {
-                    @Override
-                    public void success(ListTrendingtag listTrendingtag) {
+        LegacyApiCalls.getHotTags(this, Params.TYPE_ILLUST, listTrendingtag -> {
                         baseBind.hotTags.setAdapter(new TagAdapter<ListTrendingtag.TrendTagsBean>(
                                 listTrendingtag.getList().subList(0, 15)) {
                             @Override
@@ -334,8 +326,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                                 return true;
                             }
                         });
-                    }
-                });
+        });
     }
 
     @Override

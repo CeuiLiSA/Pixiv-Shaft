@@ -6,6 +6,10 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.view.View
 import androidx.core.graphics.ColorUtils
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
@@ -18,12 +22,11 @@ import ceui.lisa.utils.PackageUtils
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
-import io.reactivex.disposables.Disposable
 import ceui.pixiv.witstudio.theme.WitRowStyle
 
 class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
 
-    private var updateDisposable: Disposable? = null
+    private var updateJob: Job? = null
 
     override fun initLayout() {
         mLayoutID = R.layout.fragment_about
@@ -191,28 +194,33 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
     private fun performUpdateCheck(manual: Boolean) {
         baseBind.updateStatus.setText(R.string.update_checking)
 
-        updateDisposable?.dispose()
-        updateDisposable = AppUpdateChecker.checkForUpdate()
-            .subscribe({ result ->
-                AppUpdateChecker.markChecked()
-                when (result) {
-                    is AppUpdateChecker.UpdateResult.UpdateAvailable -> {
-                        val version = result.release.tagName.removePrefix("v").removePrefix("V")
-                        baseBind.updateStatus.text = getString(R.string.update_found_new, version)
-                        if (!manual && AppUpdateChecker.isVersionSkipped(version)) {
-                            return@subscribe
-                        }
-                        showUpdateDialog(result.release)
-                    }
-
-                    is AppUpdateChecker.UpdateResult.NoUpdate -> {
-                        baseBind.updateStatus.text =
-                            getString(R.string.update_already_latest, result.remoteVersion)
-                    }
-                }
-            }, { _ ->
+        updateJob?.cancel()
+        updateJob = viewLifecycleOwner.lifecycleScope.launch {
+            val result = try {
+                AppUpdateChecker.checkForUpdate()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
                 baseBind.updateStatus.setText(R.string.update_check_failed)
-            })
+                return@launch
+            }
+            AppUpdateChecker.markChecked()
+            when (result) {
+                is AppUpdateChecker.UpdateResult.UpdateAvailable -> {
+                    val version = result.release.tagName.removePrefix("v").removePrefix("V")
+                    baseBind.updateStatus.text = getString(R.string.update_found_new, version)
+                    if (!manual && AppUpdateChecker.isVersionSkipped(version)) {
+                        return@launch
+                    }
+                    showUpdateDialog(result.release)
+                }
+
+                is AppUpdateChecker.UpdateResult.NoUpdate -> {
+                    baseBind.updateStatus.text =
+                        getString(R.string.update_already_latest, result.remoteVersion)
+                }
+            }
+        }
     }
 
     private fun showUpdateDialog(release: GitHubRelease) {
@@ -220,8 +228,4 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
         dialog.show(childFragmentManager, "update_dialog")
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        updateDisposable?.dispose()
-    }
 }

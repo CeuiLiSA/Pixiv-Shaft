@@ -4,7 +4,7 @@ import android.app.Activity
 import android.text.InputType
 import androidx.fragment.app.FragmentActivity
 import ceui.lisa.R
-import ceui.lisa.http.NullCtrl
+import ceui.lisa.http.ErrorCtrl
 import ceui.lisa.http.Retro
 import ceui.lisa.repo.buildOffsetUrl
 import ceui.lisa.utils.Common
@@ -12,8 +12,13 @@ import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.dialog.WitTipDialog
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import ceui.lisa.core.JavaAsync
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.Calendar
@@ -46,33 +51,36 @@ object UserIllustJumpHelper {
             .create()
         loading.show()
 
-        Retro.getAppApi().getUserDetailV2(userID)
-            .subscribeOn(Schedulers.newThread())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(object : NullCtrl<ceui.lisa.models.UserDetailResponse>() {
-                override fun success(resp: ceui.lisa.models.UserDetailResponse) {
-                    if (activity.isAlive()) loading.dismiss()
-                    if (!activity.isAlive()) return
-                    val profile = resp.profile ?: return
-                    val total = when (kind) {
-                        Kind.ILLUST -> profile.total_illusts
-                        Kind.MANGA -> profile.total_manga
-                        Kind.NOVEL -> profile.total_novels
-                    }
-                    if (total <= 0) {
-                        Common.showToast(activity.getString(R.string.user_jump_no_works))
-                        return
-                    }
-                    showChoiceDialog(activity, userID, kind, total, onJump)
-                }
-
-                override fun must(isSuccess: Boolean) {
-                    if (!isSuccess && loading.isShowing && activity.isAlive()) loading.dismiss()
-                }
-            })
+        activity.scope().launch {
+            val resp = try {
+                withContext(Dispatchers.IO) { Retro.getAppApiSuspend().getUserDetailV2(userID) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                ErrorCtrl.handleError(e)
+                if (loading.isShowing && activity.isAlive()) loading.dismiss()
+                return@launch
+            }
+            if (activity.isAlive()) loading.dismiss()
+            if (!activity.isAlive()) return@launch
+            val profile = resp.profile ?: return@launch
+            val total = when (kind) {
+                Kind.ILLUST -> profile.total_illusts
+                Kind.MANGA -> profile.total_manga
+                Kind.NOVEL -> profile.total_novels
+            }
+            if (total <= 0) {
+                Common.showToast(activity.getString(R.string.user_jump_no_works))
+                return@launch
+            }
+            showChoiceDialog(activity, userID, kind, total, onJump)
+        }
     }
 
     private fun Activity.isAlive(): Boolean = !isFinishing && !isDestroyed
+
+    /** 宿主是 LifecycleOwner（FragmentActivity）就挂它的 scope，页面销毁自动取消；否则退到应用级 scope。 */
+    private fun Activity.scope() = (this as? LifecycleOwner)?.lifecycleScope ?: JavaAsync.appScope
 
     private fun showChoiceDialog(
         activity: Activity,
@@ -239,36 +247,28 @@ object UserIllustJumpHelper {
         onSuccess: (LocalDate?) -> Unit,
         onFailure: (Throwable) -> Unit,
     ) {
-        val api = Retro.getAppApi()
-        when (kind) {
-            Kind.NOVEL -> {
-                val url = "https://app-api.pixiv.net/v1/user/novels?user_id=$userID&offset=$offset"
-                api.getNextNovel(url)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(object : NullCtrl<ceui.lisa.model.ListNovel>() {
-                        override fun success(r: ceui.lisa.model.ListNovel) {
-                            val d = r.list?.firstOrNull()?.create_date
-                            onSuccess(parseDate(d))
+        JavaAsync.appScope.launch {
+            val firstDate = try {
+                withContext(Dispatchers.IO) {
+                    val api = Retro.getAppApiSuspend()
+                    when (kind) {
+                        Kind.NOVEL -> {
+                            val url = "https://app-api.pixiv.net/v1/user/novels?user_id=$userID&offset=$offset"
+                            api.getNextNovel(url).list?.firstOrNull()?.create_date
                         }
-                        override fun nullSuccess() { onSuccess(null) }
-                        override fun error(e: Throwable) { onFailure(e) }
-                    })
-            }
-            else -> {
-                val type = if (kind == Kind.MANGA) "manga" else "illust"
-                api.getNextIllust(buildOffsetUrl(userID, type, offset))
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(object : NullCtrl<ceui.lisa.model.ListIllust>() {
-                        override fun success(r: ceui.lisa.model.ListIllust) {
-                            val d = r.list?.firstOrNull()?.create_date
-                            onSuccess(parseDate(d))
+                        else -> {
+                            val type = if (kind == Kind.MANGA) "manga" else "illust"
+                            api.getNextIllust(buildOffsetUrl(userID, type, offset)).list?.firstOrNull()?.create_date
                         }
-                        override fun nullSuccess() { onSuccess(null) }
-                        override fun error(e: Throwable) { onFailure(e) }
-                    })
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                onFailure(e)
+                return@launch
             }
+            onSuccess(parseDate(firstDate))
         }
     }
 

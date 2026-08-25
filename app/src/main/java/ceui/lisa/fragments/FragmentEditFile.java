@@ -26,10 +26,9 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentEditFileBinding;
 import ceui.lisa.download.FileSizeUtil;
-import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
+import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.http.LegacyApiCalls;
 import ceui.lisa.interfaces.Display;
-import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.Preset;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.loxia.AccountResponse;
@@ -38,8 +37,6 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -88,15 +85,7 @@ public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> 
         baseBind.toolbar.toolbarTitle.setText(R.string.string_92);
         baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> finish());
 
-        Retro.getAppApi().getPresets()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<Preset>() {
-                    @Override
-                    public void success(Preset preset) {
-                        invoke(preset);
-                    }
-                });
+        LegacyApiCalls.getPresets(this, this::invoke);
     }
 
     private void submit() {
@@ -136,36 +125,35 @@ public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> 
         parts.add(comment);
         parts.add(birthdayPart);
 
-        Retro.getAppApi().updateUserProfile(parts)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<NullResponse>() {
-                    @Override
-                    public void success(NullResponse nullResponse) {
-                        Common.showToast(getString(R.string.string_261));
-                        //修改好了之后刷新用户信息
-                        PixivOperate.refreshUserData(new Callback<AccountResponse>() {
-                            @Override
-                            public void onResponse(Call<AccountResponse> call, Response<AccountResponse> response) {
-                                if (response != null) {
-                                    AccountResponse newUser = response.body();
-                                    if (newUser != null) {
-                                        newUser.getUser().set_login(true);
-                                        Local.saveUser(newUser);
-                                        mActivity.finish();
-                                    }
-                                }
-                                baseBind.progress.setVisibility(View.INVISIBLE);
-                            }
-
-                            @Override
-                            public void onFailure(Call<AccountResponse> call, Throwable t) {
-                                Common.showToast(t.toString());
-                                baseBind.progress.setVisibility(View.INVISIBLE);
-                            }
-                        });
+        LegacyApiCalls.updateUserProfile(this, parts, nullResponse -> {
+            Common.showToast(getString(R.string.string_261));
+            //修改好了之后刷新用户信息
+            PixivOperate.refreshUserData(new Callback<AccountResponse>() {
+                @Override
+                public void onResponse(Call<AccountResponse> call, Response<AccountResponse> response) {
+                    if (response != null) {
+                        AccountResponse newUser = response.body();
+                        if (newUser != null) {
+                            newUser.getUser().set_login(true);
+                            Local.saveUser(newUser);
+                            mActivity.finish();
+                        }
                     }
-                });
+                    baseBind.progress.setVisibility(View.INVISIBLE);
+                }
+
+
+                @Override
+                public void onFailure(Call<AccountResponse> call, Throwable t) {
+                    Common.showToast(t.toString());
+                    baseBind.progress.setVisibility(View.INVISIBLE);
+                }
+            });
+        }, e -> {
+            // 旧 Rx 链路失败只弹 toast、进度条会一直转；现在顺手收掉
+            ErrorCtrl.handleError(e);
+            baseBind.progress.setVisibility(View.INVISIBLE);
+        });
     }
 
 
@@ -241,81 +229,75 @@ public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> 
 
 
         //加载预设信息
-        Retro.getAppApi().getUserDetailV2((int) SessionManager.INSTANCE.getLoggedInUid())
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<UserDetailResponse>() {
-                    @Override
-                    public void success(UserDetailResponse user) {
-                        for (int i = 0; i < preset.getProfile_presets().getAddresses().size(); i++) {
-                            if (user.getProfile().getAddress_id() == preset.getProfile_presets().getAddresses().get(i).getId()) {
-                                baseBind.address.setSelection(i);
-                                if (preset.getProfile_presets().getAddresses().get(i).getIs_global()) {
-                                    for (int j = 0; j < preset.getProfile_presets().getCountries().size(); j++) {
-                                        if (!TextUtils.isEmpty(user.getProfile().getCountry_code())) {
-                                            if (user.getProfile().getCountry_code().equals(preset.getProfile_presets().getCountries().get(j).getCode())) {
-                                                baseBind.country.setSelection(j);
-                                            }
-                                        }
-                                    }
+        LegacyApiCalls.getUserDetailV2(this, (int) SessionManager.INSTANCE.getLoggedInUid(), user -> {
+            for (int i = 0; i < preset.getProfile_presets().getAddresses().size(); i++) {
+                if (user.getProfile().getAddress_id() == preset.getProfile_presets().getAddresses().get(i).getId()) {
+                    baseBind.address.setSelection(i);
+                    if (preset.getProfile_presets().getAddresses().get(i).getIs_global()) {
+                        for (int j = 0; j < preset.getProfile_presets().getCountries().size(); j++) {
+                            if (!TextUtils.isEmpty(user.getProfile().getCountry_code())) {
+                                if (user.getProfile().getCountry_code().equals(preset.getProfile_presets().getCountries().get(j).getCode())) {
+                                    baseBind.country.setSelection(j);
                                 }
                             }
                         }
-
-                        for (int i = 0; i < preset.getProfile_presets().getJobs().size(); i++) {
-                            if (user.getProfile().getJob_id() == preset.getProfile_presets().getJobs().get(i).getId()) {
-                                baseBind.job.setSelection(i);
-                            }
-                        }
-
-                        if ("male".equals(user.getProfile().getGender())) {
-                            baseBind.sex.setSelection(1);
-                        } else if ("female".equals(user.getProfile().getGender())) {
-                            baseBind.sex.setSelection(2);
-                        } else {
-                            baseBind.sex.setSelection(0);
-                        }
-
-                        baseBind.userName.setText(user.getUser().getName());
-                        baseBind.webpage.setText(user.getProfile().getWebpage());
-                        baseBind.twitter.setText(user.getProfile().getTwitter_account());
-                        baseBind.comment.setText(user.getUser().getComment());
-                        birthday = user.getProfile().getBirth();
-                        baseBind.birthday.setText(birthday);
-
-                        // 生日设置
-                        baseBind.birthdayArea.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                DatePickerDialog dpd;
-                                Calendar now = Calendar.getInstance();
-                                Calendar start = Calendar.getInstance();
-                                if (!TextUtils.isEmpty(birthday)) {
-                                    String[] t = birthday.split("-");
-                                    dpd = DatePickerDialog.newInstance(
-                                            FragmentEditFile.this,
-                                            Integer.parseInt(t[0]), // Initial year selection
-                                            Integer.parseInt(t[1]) - 1, // Initial month selection
-                                            Integer.parseInt(t[2]) // Initial day selection
-                                    );
-                                } else {
-                                    dpd = DatePickerDialog.newInstance(
-                                            FragmentEditFile.this,
-                                            now.get(Calendar.YEAR) - 18, // Initial year selection
-                                            0, // Initial month selection
-                                            1 // Initial day selection
-                                    );
-                                }
-                                start.set(now.get(Calendar.YEAR) - 100, 0, 1);
-                                dpd.setMinDate(start);
-                                dpd.setMaxDate(now);
-                                dpd.setAccentColor(Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
-                                dpd.setThemeDark(mContext.getResources().getBoolean(R.bool.is_night_mode));
-                                dpd.show(getParentFragmentManager(), "DatePickerDialog");
-                            }
-                        });
                     }
-                });
+                }
+            }
+
+            for (int i = 0; i < preset.getProfile_presets().getJobs().size(); i++) {
+                if (user.getProfile().getJob_id() == preset.getProfile_presets().getJobs().get(i).getId()) {
+                    baseBind.job.setSelection(i);
+                }
+            }
+
+            if ("male".equals(user.getProfile().getGender())) {
+                baseBind.sex.setSelection(1);
+            } else if ("female".equals(user.getProfile().getGender())) {
+                baseBind.sex.setSelection(2);
+            } else {
+                baseBind.sex.setSelection(0);
+            }
+
+            baseBind.userName.setText(user.getUser().getName());
+            baseBind.webpage.setText(user.getProfile().getWebpage());
+            baseBind.twitter.setText(user.getProfile().getTwitter_account());
+            baseBind.comment.setText(user.getUser().getComment());
+            birthday = user.getProfile().getBirth();
+            baseBind.birthday.setText(birthday);
+
+            // 生日设置
+            baseBind.birthdayArea.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    DatePickerDialog dpd;
+                    Calendar now = Calendar.getInstance();
+                    Calendar start = Calendar.getInstance();
+                    if (!TextUtils.isEmpty(birthday)) {
+                        String[] t = birthday.split("-");
+                        dpd = DatePickerDialog.newInstance(
+                                FragmentEditFile.this,
+                                Integer.parseInt(t[0]), // Initial year selection
+                                Integer.parseInt(t[1]) - 1, // Initial month selection
+                                Integer.parseInt(t[2]) // Initial day selection
+                        );
+                    } else {
+                        dpd = DatePickerDialog.newInstance(
+                                FragmentEditFile.this,
+                                now.get(Calendar.YEAR) - 18, // Initial year selection
+                                0, // Initial month selection
+                                1 // Initial day selection
+                        );
+                    }
+                    start.set(now.get(Calendar.YEAR) - 100, 0, 1);
+                    dpd.setMinDate(start);
+                    dpd.setMaxDate(now);
+                    dpd.setAccentColor(Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
+                    dpd.setThemeDark(mContext.getResources().getBoolean(R.bool.is_night_mode));
+                    dpd.show(getParentFragmentManager(), "DatePickerDialog");
+                }
+            });
+        });
     }
 
     private String sex = "", address = "", job = "", country = "", birthday = "";

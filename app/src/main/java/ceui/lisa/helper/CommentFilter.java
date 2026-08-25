@@ -2,7 +2,6 @@ package ceui.lisa.helper;
 
 import android.text.TextUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -12,12 +11,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
+import ceui.lisa.http.LegacyApiCalls;
 import ceui.lisa.models.ReplyCommentBean;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.ResponseBody;
+import timber.log.Timber;
 
 public class CommentFilter {
 
@@ -63,28 +59,17 @@ public class CommentFilter {
     }
 
     private static void updateRulesFromRemote() {
-
-        Retro.getResourceApi().getCommentFilterRule()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<ResponseBody>() {
-                    @Override
-                    public void success(ResponseBody responseBody) {
-                        try {
-                            String content = responseBody.string();
-                            if (TextUtils.isEmpty(content)) {
-                                return;
-                            }
-
-                            rules = Arrays.stream(content.split("\\r?\\n", -1))
-                                    .filter(string -> !TextUtils.isEmpty(string))
-                                    .map(CommentFilterRule::new)
-                                    .collect(Collectors.toList());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
+        // 静态初始化、无宿主：挂应用级 scope；远端拉不到就沿用本地 assets 规则，失败只打日志不弹 toast
+        // （旧链路会经 ErrorCtrl 对用户弹一条和评论无关的错误，这里收掉）。
+        LegacyApiCalls.getResourceText(null, null, content -> {
+            if (TextUtils.isEmpty(content)) {
+                return;
+            }
+            rules = Arrays.stream(content.split("\\r?\\n", -1))
+                    .filter(string -> !TextUtils.isEmpty(string))
+                    .map(CommentFilterRule::new)
+                    .collect(Collectors.toList());
+        }, e -> Timber.w(e, "comment filter rule remote update failed"));
     }
 
     private static class CommentFilterRule {
