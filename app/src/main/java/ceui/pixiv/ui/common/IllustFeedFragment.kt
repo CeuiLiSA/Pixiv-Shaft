@@ -7,6 +7,7 @@ import androidx.annotation.LayoutRes
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -143,7 +144,12 @@ abstract class IllustFeedFragment(
         return StaggeredManager(
             Shaft.sSettings.lineCount,
             RecyclerView.VERTICAL,
-        )
+        ).apply {
+            // GAP_HANDLING_NONE 对齐 legacy / Recmd / Artwork：SGLM 默认 gap 策略在刷新换代时
+            // 会把首行 item decoration 的 top 间距误判成“顶部有洞”，清 lookup 重排，造成左列空出、
+            // 首卡跑右、列间距闪跳。纯瀑布流页统一关掉，避免这类跨代重排。
+            gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_NONE
+        }
     }
 
     override fun onListReady(listView: RecyclerView) {
