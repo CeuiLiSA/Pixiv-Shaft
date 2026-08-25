@@ -91,6 +91,29 @@ jobs:
             echo "APK_SUFFIX=classic" >> $GITHUB_ENV
           fi
 
+      # 官方仓库的包必须带正确的 HMAC 密钥，否则广场/聊天会被 shaft-api-v2 401，
+      # 而 build.gradle 对空密钥是静默降级的（fork 友好），CI 不会自己红。
+      # 这里只比对 sha256 指纹：密钥是 256 bit 随机值，公开指纹无法反推。
+      # 指纹来源：服务器 /etc/shaft-api-v2/events-hmac-secret，`tr -d '\n' | sha256sum`。
+      # 轮换密钥时同步更新这里和 GitHub Secret SHAFT_EVENTS_HMAC。
+      # fork 发来的 PR 同样拿不到 Secrets，跳过。
+      - name: Verify SHAFT_EVENTS_HMAC secret
+        if: github.repository == env.ORIGINAL_PROJECT && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork)
+        env:
+          SHAFT_EVENTS_HMAC: ${{ secrets.SHAFT_EVENTS_HMAC }}
+          EXPECTED_FINGERPRINT: e0f22bd504573b61863577d1369fc6c4c2e6dceab92cd5baddc3b9fe7fcfde6e
+        run: |
+          if [ -z "$SHAFT_EVENTS_HMAC" ]; then
+            echo "::error::SHAFT_EVENTS_HMAC secret is empty; the APK would sign with an empty key"
+            exit 1
+          fi
+          ACTUAL=$(printf '%s' "$SHAFT_EVENTS_HMAC" | sha256sum | awk '{print $1}')
+          if [ "$ACTUAL" != "$EXPECTED_FINGERPRINT" ]; then
+            echo "::error::SHAFT_EVENTS_HMAC fingerprint mismatch: got $ACTUAL"
+            exit 1
+          fi
+          echo "SHAFT_EVENTS_HMAC fingerprint OK"
+
       # 单测跑在打包之前，红了就不出产物。只跑 debug 变体：release 变体的
       # 测试代码相同，多跑一遍只是白费 R8 前的编译时间。
       - name: Run unit tests
