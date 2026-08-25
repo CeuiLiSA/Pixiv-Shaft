@@ -4,6 +4,8 @@ package ceui.lisa.core;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -16,6 +18,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import ceui.lisa.R;
@@ -40,9 +46,6 @@ import ceui.pixiv.download.RecordedPageProbe;
 import ceui.pixiv.download.StageStore;
 import ceui.pixiv.download.aria2.Aria2Dispatcher;
 import ceui.pixiv.imageloader.ImageLoaderV3;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -53,15 +56,36 @@ public class Manager {
     private final Context mContext = Shaft.getContext();
     private List<DownloadItem> content = new ArrayList<>();
     /**
-     * 多任务并发下载的运行 disposable 表（key = item.uuid）。
-     * 旧设计是单一 `Disposable handle`（串行），现在支持 1-5 并发：每个正在传的
-     * page 各占一个 entry。stopOne(uuid) 只 dispose 那一个；stopAll() dispose 全部。
+     * 下载 IO 线程池（替代原先的 RxJava {@code Schedulers.io()}）：无界缓存池，空闲线程 60s
+     * 回收，线程名 {@code shaft-dl-io-N}。restore / addTask 的 DB 写、传输 Body、传输完成后的
+     * DB + finishWrite 收尾全在这里跑；UI mutation 一律 {@link #MAIN} post 回主线程。
      */
-    private final Map<String, Disposable> handles = new ConcurrentHashMap<>();
+    private static final ExecutorService IO = Executors.newCachedThreadPool(new ThreadFactory() {
+        private final AtomicInteger seq = new AtomicInteger(1);
+
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(r, "shaft-dl-io-" + seq.getAndIncrement());
+            t.setDaemon(true);
+            return t;
+        }
+    });
+    /**
+     * 主线程投递（替代 {@code AndroidSchedulers.mainThread().scheduleDirect}）。永远 post、
+     * 从不同步执行——哪怕当前已在主线程——保持 Rx 的排队语义（多处逻辑依赖"content.remove
+     * 先入队、广播第二个 Runnable"这种 FIFO 顺序）。
+     */
+    private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    /**
+     * 多任务并发下载的运行句柄表（key = item.uuid），值是 {@link DownloadTask}（替代 Rx
+     * {@code Disposable}）。旧设计是单一 handle（串行），现在支持 1-5 并发：每个正在传的
+     * page 各占一个 entry。stopOne(uuid) 只 cancel 那一个；stopAll() cancel 全部。
+     */
+    private final Map<String, DownloadTask> handles = new ConcurrentHashMap<>();
     /**
      * 正在写的 stage key（= sha256(url)）集合。断点续传把 {@code .part} 按 url 命名，
      * url-key 不像 uuid 那样天然唯一（同一张图可能被重复入队），必须挡住两个传输
-     * 同时 append 同一个 {@code .part}。{@code startDownloadChain} 抢占，doFinally 释放。
+     * 同时 append 同一个 {@code .part}。{@code startDownloadChain} 抢占，onFinally 释放。
      */
     private final java.util.Set<String> activeStageKeys = ConcurrentHashMap.newKeySet();
     private boolean isRunning = false;
@@ -114,7 +138,7 @@ public class Manager {
     // 唯一保留的是 BulkObjectFetcher.RATE_LIMIT_MS（页间 API 间隔，防 pixiv 429）。
 
     public void restore() {
-        Schedulers.io().scheduleDirect(() -> {
+        IO.execute(() -> {
             try {
                 AppDatabase db = AppDatabase.getAppDatabase(mContext);
                 db.downloadDao().trimDownloading(MAX_RESTORE_ITEMS);
@@ -139,7 +163,7 @@ public class Manager {
                     content = restored;
                 }
                 ManagerReactive.invalidate();
-                AndroidSchedulers.mainThread().scheduleDirect(() ->
+                MAIN.post(() ->
                         Common.showToast("下载记录恢复成功"));
             } catch (Throwable t) {
                 Common.showLog("Manager restore failed: " + t.getMessage());
@@ -180,7 +204,7 @@ public class Manager {
                 // Gson(~80KB)+Room insert 若同步执行,会卡在被并发
                 // hasDownloadRecordByIllustId LIKE 全表扫描占满的 SQLite 连接池上 →
                 // 主线程 ANR。故 persistAsync=true：add 同步、持久化挪后台。
-                // (批量版 addTasks 早已整段在 Schedulers.io(),这里对齐它的教训。)
+                // (批量版 addTasks 早已整段在 IO 线程池,这里对齐它的教训。)
                 safeAdd(bean, true);
             }
             if(DownloadLimitTypeUtil.startTaskWhenCreate()){
@@ -209,7 +233,7 @@ public class Manager {
 
     /**
      * @param persistAsync true 时把 DownloadingEntity 的持久化(Gson 序列化 + Room
-     *   insert)丢到 Schedulers.io() 后台执行，只保证 content.add 同步返回。
+     *   insert)丢到 IO 线程池后台执行，只保证 content.add 同步返回。
      *   addTask 从主线程调用必须传 true —— 同步写 Room 会卡在被并发
      *   hasDownloadRecordByIllustId LIKE 全表扫描占满的 SQLite 连接池上 → 主线程 ANR。
      *   addTasks 整段已在 IO 线程,传 false 同步持久化即可(避免每条 fan-out 一个 IO 任务)。
@@ -219,7 +243,7 @@ public class Manager {
         content.add(item);
         if (persistAsync) {
             final DownloadItem toPersist = item;
-            Schedulers.io().scheduleDirect(() -> {
+            IO.execute(() -> {
                 try {
                     persistDownloading(toPersist);
                 } catch (Throwable t) {
@@ -270,7 +294,7 @@ public class Manager {
 
         // Gson 序列化 + DB INSERT 是重操作（172P 场景需序列化 ~13MB JSON + 172 次 INSERT），
         // 必须在后台线程执行，否则主线程卡死。
-        Schedulers.io().scheduleDirect(() -> {
+        IO.execute(() -> {
             long t0 = System.nanoTime();
             synchronized (this) {
                 if (content == null) {
@@ -296,7 +320,7 @@ public class Manager {
             // batch 完一次 invalidate 即可（DROP_OLDEST 保证多次 tryEmit 自动合并，
             // 但仍是最佳实践：每个语义批次 emit 一次而不是每条 safeAdd 都 emit）
             ManagerReactive.invalidate();
-            AndroidSchedulers.mainThread().scheduleDirect(() -> {
+            MAIN.post(() -> {
                 if (DownloadLimitTypeUtil.startTaskWhenCreate()) {
                     triggerPump();
                 }
@@ -313,7 +337,7 @@ public class Manager {
             resurrectIfStranded(item);
         }
         isRunning = true;
-        // 之前 isRunning=true 时会 short-circuit return，假设单线程串行用 doFinally
+        // 之前 isRunning=true 时会 short-circuit return，假设单线程串行用 onFinally
         // 自动驱动下一条；并发模式下需要每次都 pumpAvailableSlots() 来填满空闲槽位。
         pumpAvailableSlots();
         ManagerReactive.invalidate();
@@ -325,11 +349,11 @@ public class Manager {
      *
      * 用于"刚 addTask 一批 / fillSlots 末尾想 trigger pump"等场景：这时 content 里
      * 可能有刚 [pumpAvailableSlots] 抢占式 setState(DOWNLOADING) 但 [startDownloadChain]
-     * 里 [handles].put(uuid) 还在 Schedulers.io → mainThread 异步排队中的 in-flight item。
+     * 里 [handles].put(uuid) 还在 IO → 主线程 异步排队中的 in-flight item。
      * 走 startAll 会让 resurrectIfStranded 看到"DOWNLOADING && !handles.containsKey"
      * 误判 stranded → setState(INIT) + setNonius(0) → pump 又把它当 INIT 挑出来再
      * dispatch 一次，导致：
-     *   - 同 uuid 两条 Observable 抢同一个 stage 文件 / targetUri（实测出过两次 read-start）
+     *   - 同 uuid 两条传输任务抢同一个 stage 文件 / targetUri（实测出过两次 read-start）
      *   - UI 进度一会儿前进一会儿回到 0% 闪烁
      *
      * 用户态 "全部继续" 按钮 / 冷启动 restore 后的残留清理仍然走 [startAll]——
@@ -368,13 +392,13 @@ public class Manager {
      *     只挑 INIT —— 槽位永远拉不到，下载彻底卡死（issue #873）。
      *
      *  2. **冷启动 restore 带回的 stranded DOWNLOADING**：进程被杀时正在传的 item，
-     *     restore 之后 state 字段是 DOWNLOADING，但原 Disposable 已随进程消失。
+     *     restore 之后 state 字段是 DOWNLOADING，但原 DownloadTask 句柄已随进程消失。
      *     QueueDownloadManager.kt:596 的 retry path 历史上自己处理过这种情况，
      *     现在统一收口到这里。
      *
      * FAILED 也一起翻 INIT，让 retry 自然走 pump 路径。
      * 正在跑的 page（handles 里有 uuid）绝不能动 —— 否则把 DOWNLOADING 翻 INIT 后
-     * pump 会再 dispatch 一条 Observable，跟原 chain 抢同一个 stage 文件 / targetUri，
+     * pump 会再 dispatch 一条传输任务，跟原 chain 抢同一个 stage 文件 / targetUri，
      * 实测出过同 uuid 两次 read-start。
      */
     private void resurrectIfStranded(DownloadItem item) {
@@ -411,9 +435,9 @@ public class Manager {
             item.setPaused(true);
         }
         isRunning = false;
-        // dispose 全部正在传输的下载（snapshot 防 CME）
-        for (Disposable d : new ArrayList<>(handles.values())) {
-            try { d.dispose(); } catch (Exception ignored) {}
+        // cancel 全部正在传输的下载（snapshot 防 CME）
+        for (DownloadTask d : new ArrayList<>(handles.values())) {
+            try { d.cancel(); } catch (Exception ignored) {}
         }
         handles.clear();
         Common.showLog("已经停止");
@@ -428,9 +452,9 @@ public class Manager {
                 break;
             }
         }
-        Disposable d = handles.remove(uuid);
+        DownloadTask d = handles.remove(uuid);
         if (d != null) {
-            try { d.dispose(); } catch (Exception ignored) {}
+            try { d.cancel(); } catch (Exception ignored) {}
         }
         ManagerReactive.invalidate();
     }
@@ -473,7 +497,7 @@ public class Manager {
      * 并发数上限或没有 INIT 可用为止。
      *
      * synchronized 关键：state 检查 + 状态置 DOWNLOADING + handles.put 必须原子，
-     * 否则两个 doFinally 同时回调可能挑到同一条 INIT 派发两次。
+     * 否则两个 onFinally 同时回调可能挑到同一条 INIT 派发两次。
      *
      * public：用户改并发设置时希望"扩大槽位继续跑"但不希望像 startAll 那样
      * 把手动暂停的 item 也强制恢复 —— FragmentSettings 调这个。
@@ -560,7 +584,7 @@ public class Manager {
 
         // SAF factory 创建、文件查询、insert 全部在 IO 线程执行，
         // 避免 172P 连续下载时 SAF 操作阻塞主线程。
-        Schedulers.io().scheduleDirect(() -> {
+        IO.execute(() -> {
             DownloadFileFactory factory;
             try {
                 // SAF 与否只认 V3 下载配置，不读遗留 downloadWay（#984）；
@@ -573,7 +597,7 @@ public class Manager {
             } catch (Exception e) {
                 Common.showLog("[DL] factory init failed: " + e);
                 e.printStackTrace();
-                AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                MAIN.post(() -> {
                     Common.showToast(mContext.getString(R.string.string_365));
                     complete(downloadItem, false);
                     // 单条失败不再 stopAll —— 并发模式下其它正在传的 page 不应受牵连。
@@ -592,7 +616,7 @@ public class Manager {
             // MediaStore 再给它加个 " (1)"。所以这里再按 (illustId, page) 问一次下载记录。
             // 只在策略确实是「已存在则跳过」时生效；Rename 是用户明确要新文件，
             // Replace 本来就要覆写，都不能被记录短路。gif 走的是 app cache 里的中间 zip，
-            // 不参与。整段已经在 Schedulers.io() 上，DB + fd 探测都安全。
+            // 不参与。整段已经在 IO 线程池上，DB + fd 探测都安全。
             if (!shouldSkip && !downloadItem.getIllust().isGif()) {
                 boolean skipPolicy =
                         (factory instanceof Android10DownloadFactory22 && ((Android10DownloadFactory22) factory).isSkipPolicy())
@@ -612,7 +636,7 @@ public class Manager {
             if (shouldSkip) {
                 Common.showLog("[DL] skip download (already exists), illust=" + downloadItem.getIllust().getId());
                 complete(downloadItem, true);
-                AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                MAIN.post(() -> {
                     synchronized (Manager.this) {
                         content.remove(downloadItem);
                     }
@@ -650,7 +674,7 @@ public class Manager {
                     // 失败时会先 delete row 再抛），但 factory 还可能维护额外状态 ——
                     // 调一次 abandonWrite 兜底，幂等 + 内部判空。
                     try { factory.abandonWrite(); } catch (Exception ignored) {}
-                    AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                    MAIN.post(() -> {
                         Common.showToast(mContext.getString(R.string.string_365));
                         complete(downloadItem, false);
                         pumpAvailableSlots();
@@ -660,7 +684,7 @@ public class Manager {
                 if (opened == null) {
                     Common.showLog("[DL] factory.insert() returned null targetUri");
                     try { factory.abandonWrite(); } catch (Exception ignored) {}
-                    AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                    MAIN.post(() -> {
                         Common.showToast(mContext.getString(R.string.string_365));
                         complete(downloadItem, false);
                         pumpAvailableSlots();
@@ -693,8 +717,8 @@ public class Manager {
                 }
             }
 
-            // 回主线程启动 RxJava 下载链（handle 赋值需要在一致的线程）
-            AndroidSchedulers.mainThread().scheduleDirect(() ->
+            // 回主线程启动下载链（handle 赋值需要在一致的线程）
+            MAIN.post(() ->
                 startDownloadChain(context, downloadItem, factory, cachedFile, targetUri, dlUrl, passSize, staged));
         });
     }
@@ -714,32 +738,20 @@ public class Manager {
      */
     private void dispatchToAria2(DownloadItem downloadItem) {
         final String itemUuid = downloadItem.getUuid();
-        Disposable d = io.reactivex.Observable.<String>create(emitter -> {
+        DownloadTask d = DownloadTask.launch(IO, emitter -> {
             try {
                 String gid = Aria2Dispatcher.dispatch(downloadItem);
                 emitter.onNext(gid);
                 emitter.onComplete();
             } catch (Exception e) {
-                // tryOnError：disposed 后静默丢弃这个 error。isDisposed() 检查与
-                // onError() 之间存在 TOCTOU 竞态，若竞态漏网、在 disposed 后普通
-                // onError()，会走 Shaft.java 里设的 RxJavaPlugins.setErrorHandler
-                // （只记录、不 crash）；tryOnError 是为此设计的竞态安全 API，直接
-                // 把这种情况静默掉，更干净。
+                // 取消（disposed）后这个 error 静默丢弃，不会往外抛。
                 emitter.tryOnError(e);
             }
-        })
-        .subscribeOn(Schedulers.io())
-        .observeOn(Schedulers.io())
-        .doFinally(() -> {
-            handles.remove(itemUuid);
-            Common.showLog("[ARIA2] doFinally uuid=" + itemUuid);
-            AndroidSchedulers.mainThread().scheduleDirect(this::pumpAvailableSlots);
-        })
-        .subscribe(gid -> {
+        }, gid -> {
             Common.showLog("[ARIA2] dispatched uuid=" + itemUuid + " gid=" + gid
                     + " name=" + downloadItem.getName());
             // 与本地下载成功路径一致：content.remove 第一时间排上主线程
-            AndroidSchedulers.mainThread().scheduleDirect(() -> {
+            MAIN.post(() -> {
                 synchronized (Manager.this) {
                     content.remove(downloadItem);
                 }
@@ -747,7 +759,7 @@ public class Manager {
             });
             try { complete(downloadItem, true); } catch (Throwable t) { Common.showLog("[ARIA2] complete(success) failed: " + t); }
             if (Shaft.sSettings.isToastDownloadResult() && !downloadItem.isSilent()) {
-                AndroidSchedulers.mainThread().scheduleDirect(() ->
+                MAIN.post(() ->
                         Common.showToast(mContext.getString(R.string.aria2_task_sent, downloadItem.getName())));
             }
         }, throwable -> {
@@ -756,6 +768,10 @@ public class Manager {
                 Common.showToast(mContext.getString(R.string.aria2_send_failed, String.valueOf(throwable.getMessage())));
             }
             complete(downloadItem, false);
+        }, () -> {
+            handles.remove(itemUuid);
+            Common.showLog("[ARIA2] onFinally uuid=" + itemUuid);
+            MAIN.post(this::pumpAvailableSlots);
         });
         handles.put(itemUuid, d);
     }
@@ -789,7 +805,7 @@ public class Manager {
             acquiredStage = activeStageKeys.add(stageKey);
             if (!acquiredStage) {
                 Common.showLog("[STAGED-DL] stage key busy, defer uuid=" + itemUuid + " url=" + dlUrl);
-                AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                MAIN.post(() -> {
                     complete(downloadItem, false);
                     pumpAvailableSlots();
                 });
@@ -799,7 +815,7 @@ public class Manager {
             acquiredStage = false;
         }
 
-        Disposable d = io.reactivex.Observable.<String>create(emitter -> {
+        DownloadTask d = DownloadTask.launch(IO, emitter -> {
             try {
                 if (staged) {
                     runStagedTransfer(context, downloadItem, factory, cachedFile, dlUrl,
@@ -813,22 +829,10 @@ public class Manager {
                     emitter.onError(e);
                 }
             }
-        })
-        .subscribeOn(Schedulers.io())
-        // 完成回调保持在 IO 线程，Gson 序列化 + DB 操作 + finishWrite 不阻塞主线程。
-        // 只有 UI 通知（广播、Toast）和 pump 回主线程。
-        .observeOn(Schedulers.io())
-        .doFinally(() -> {
-            // 这条传完了：释放 stage 单主锁 + 把 disposable 从表里移除，主线程上 pump 下一个
-            // 空闲槽位。doFinally 对 onNext / onError / dispose(暂停) 都会跑，在这里释放锁最稳。
-            if (acquiredStage) {
-                activeStageKeys.remove(stageKey);
-            }
-            handles.remove(itemUuid);
-            Common.showLog("doFinally uuid=" + itemUuid);
-            AndroidSchedulers.mainThread().scheduleDirect(this::pumpAvailableSlots);
-        })
-        .subscribe(s -> {
+        },
+        // 完成回调保持在 IO 线程（DownloadTask 在 Body 跑完后同线程交付），Gson 序列化 +
+        // DB 操作 + finishWrite 不阻塞主线程。只有 UI 通知（广播、Toast）和 pump 回主线程。
+        s -> {
             Common.showLog("downloadOne " + s);
 
             // ===== CRITICAL: 把 content.remove 提到最前 =====
@@ -844,7 +848,7 @@ public class Manager {
             //
             // 把 remove 排到最前面，独立 Runnable，跟后续 IO 工作解耦：哪怕后面
             // 任何步骤 throw，main thread 都已经把这条 item 从 content 取出了。
-            AndroidSchedulers.mainThread().scheduleDirect(() -> {
+            MAIN.post(() -> {
                 int sizeBefore;
                 boolean removed;
                 int sizeAfter;
@@ -860,7 +864,7 @@ public class Manager {
 
             if(downloadItem.getIllust().isGif()){
                 Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + downloadItem.getIllust().getId(), true);
-                AndroidSchedulers.mainThread().scheduleDirect(() ->
+                MAIN.post(() ->
                     PixivOperate.unzipAndPlay(context, downloadItem.getIllust(), downloadItem.isAutoSave()));
             }
 
@@ -925,7 +929,7 @@ public class Manager {
 
             // 广播放第二个 Runnable，跟 content.remove 顺序保留（main thread FIFO）。
             final DownloadEntity finalEntity = downloadEntity;
-            AndroidSchedulers.mainThread().scheduleDirect(() -> {
+            MAIN.post(() -> {
                 if (Shaft.sSettings.isToastDownloadResult() && !downloadItem.isSilent()) {
                     Common.showToast(downloadItem.getName() + mContext.getString(R.string.has_been_downloaded));
                 }
@@ -972,6 +976,15 @@ public class Manager {
                 intent.putExtra(Params.CONTENT, holder);
                 LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
             }
+        }, () -> {
+            // 这条传完了：释放 stage 单主锁 + 把句柄从表里移除，主线程上 pump 下一个
+            // 空闲槽位。onFinally 对 onNext / onError / cancel(暂停) 都会跑，在这里释放锁最稳。
+            if (acquiredStage) {
+                activeStageKeys.remove(stageKey);
+            }
+            handles.remove(itemUuid);
+            Common.showLog("onFinally uuid=" + itemUuid);
+            MAIN.post(this::pumpAvailableSlots);
         });
         handles.put(itemUuid, d);
     }
@@ -998,7 +1011,7 @@ public class Manager {
     private void runStagedTransfer(Context context, DownloadItem downloadItem,
             DownloadFileFactory factory, File cachedFile, String dlUrl,
             java.io.File stageDir, String stageKey, java.io.File stageFile, java.io.File metaFile,
-            OkHttpClient client, io.reactivex.ObservableEmitter<String> emitter) throws Exception {
+            OkHttpClient client, DownloadEmitter emitter) throws Exception {
         Response response = null;
         InputStream inputStream = null;
         OutputStream outputStream = null;
@@ -1157,7 +1170,7 @@ public class Manager {
      */
     private void runDirectTransfer(Context context, DownloadItem downloadItem, File cachedFile,
             Uri targetUri, String dlUrl, long passSize, OkHttpClient client,
-            io.reactivex.ObservableEmitter<String> emitter) throws Exception {
+            DownloadEmitter emitter) throws Exception {
         Response response = null;
         InputStream inputStream = null;
         OutputStream outputStream = null;
@@ -1223,7 +1236,7 @@ public class Manager {
      * @return 实际写到的总字节数（含 startOffset）。
      */
     private long pumpBytes(InputStream in, OutputStream out, DownloadItem item,
-            long startOffset, long totalSize, io.reactivex.ObservableEmitter<String> emitter) throws IOException {
+            long startOffset, long totalSize, DownloadEmitter emitter) throws IOException {
         byte[] buffer = new byte[8192];
         long downloaded = startOffset;
         int lastProgress = 0;
@@ -1245,7 +1258,7 @@ public class Manager {
                 long finalDownloaded = downloaded;
                 long finalTotal = totalSize;
                 int finalProgress = progress;
-                AndroidSchedulers.mainThread().scheduleDirect(() -> {
+                MAIN.post(() -> {
                     DownloadProgress dp = new DownloadProgress(finalProgress, finalDownloaded, finalTotal);
                     item.setNonius(finalProgress);
                     item.setCurrentSize(finalDownloaded);
@@ -1272,7 +1285,7 @@ public class Manager {
      * 只是几十 ms。{@code emitter.isDisposed()} 时中途 return（不删 stage，留给续传）。
      */
     private void commitStageToTarget(Context context, java.io.File stageFile, Uri targetUri,
-            io.reactivex.ObservableEmitter<String> emitter) throws IOException {
+            DownloadEmitter emitter) throws IOException {
         long t0 = System.nanoTime();
         java.io.FileInputStream stageIn = null;
         OutputStream mediaOut = null;
@@ -1393,7 +1406,7 @@ public class Manager {
      * 是否有这个 uuid 的活动 disposable。QueueDownloadManager 的 retry path 用这个
      * 区分"冷启动 Manager.restore 带回的 stranded DOWNLOADING（无 handle，应翻 INIT
      * 重发）"vs"真在跑的 DOWNLOADING（有 handle，**绝不能**翻 INIT，否则 pump 会
-     * 再 dispatch 一条 Observable，跟原 chain 抢同一个 stage 文件 / targetUri）"。
+     * 再 dispatch 一条传输任务，跟原 chain 抢同一个 stage 文件 / targetUri）"。
      */
     public boolean isRunningHandle(String uuid) {
         return handles.containsKey(uuid);

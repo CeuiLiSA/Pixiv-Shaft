@@ -61,7 +61,7 @@ object ManagerReactive {
 
     /**
      * Manager 任意 mutation（add / remove / state change / progress）后调一次。
-     * tryEmit 线程安全 + 非阻塞，可以从主线程 / IO 线程 / RxJava scheduler
+     * tryEmit 线程安全 + 非阻塞，可以从主线程 / IO 线程 / 下载线程池
      * 任意位置调。
      */
     @JvmStatic
