@@ -6,6 +6,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.core.FilterMapper
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
+import ceui.lisa.repo.BorrowedSearchPage.withViewerBookmarkState
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import ceui.pixiv.actions.AccountOnlineReportOutbox
@@ -327,7 +328,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                     }.also { page ->
                         // 只回填真正借号打到的官方结果；回退页（preview / 直连）不是同一个东西。
                         Nana7miSearchCache.store(cacheKind, cacheKey, page, "official_search")
-                    }
+                    }.withViewerBookmarkState()
                 }
             } catch (ce: CancellationException) {
                 throw ce
@@ -362,7 +363,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                         borrowedUid = null,
                         reason = null,
                         eventId = firstRequestId,
-                    ) { cached }
+                    ) { cached.withViewerBookmarkState() }
                 }
             },
         ) { telemetry.observeFirstOrRun { borrowedFlow() } }
@@ -424,7 +425,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                     borrowedUid = null,
                     reason = null,
                     eventId = nextRequestId,
-                ) { cached }
+                ) { cached.withViewerBookmarkState() }
             },
         ) {
             Nana7miSearchSerial.run("illust_next") { lease ->
@@ -463,7 +464,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                             api.getNextIllustWithAuth(authorization, nextPageUrl)
                         }.also { page ->
                             Nana7miSearchCache.store(cacheKind, cacheKey, page, "official_search_next")
-                        }
+                        }.withViewerBookmarkState()
                     }
                 } catch (ce: CancellationException) {
                     throw ce

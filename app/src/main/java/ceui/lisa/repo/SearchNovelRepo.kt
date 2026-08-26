@@ -6,6 +6,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.core.Mapper
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListNovel
+import ceui.lisa.repo.BorrowedSearchPage.withViewerBookmarkState
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import ceui.pixiv.actions.AccountOnlineReportOutbox
@@ -341,7 +342,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                         }
                     }.also { page ->
                         Nana7miSearchCache.store(cacheKind, cacheKey, page, "novel_official_search")
-                    }
+                    }.withViewerBookmarkState()
                 }
             } catch (ce: CancellationException) {
                 throw ce
@@ -374,7 +375,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                         borrowedUid = null,
                         reason = null,
                         eventId = firstRequestId,
-                    ) { cached }
+                    ) { cached.withViewerBookmarkState() }
                 }
             },
         ) { telemetry.observeFirstOrRun { borrowedFlow() } }
@@ -435,7 +436,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                     borrowedUid = null,
                     reason = null,
                     eventId = nextRequestId,
-                ) { cached }
+                ) { cached.withViewerBookmarkState() }
             },
         ) {
             Nana7miSearchSerial.run("novel_next") { lease ->
@@ -474,7 +475,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                             api.getNextNovelWithAuth(authorization, nextPageUrl)
                         }.also { page ->
                             Nana7miSearchCache.store(cacheKind, cacheKey, page, "novel_official_search_next")
-                        }
+                        }.withViewerBookmarkState()
                     }
                 } catch (ce: CancellationException) {
                     throw ce
