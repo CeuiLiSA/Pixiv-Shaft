@@ -2,6 +2,7 @@
 <!-- 侧边栏一行（MD3 navigation drawer item）：透明底 + 按压 28dp 胶囊 ripple，图标 + 标题。 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="56dp"
     android:background="@drawable/bg_drawer_item_pill"
@@ -20,12 +21,30 @@
 
     <TextView
         android:id="@+id/drawer_row_title"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
+        android:layout_weight="1"
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/v3_text_1"
         android:textSize="15sp" />
+
+    <!-- 右侧小胶囊角标(「NEW」等),默认不出现,由 DrawerEntry.badge 决定。 -->
+    <TextView
+        android:id="@+id/drawer_row_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_drawer_row_badge"
+        android:includeFontPadding="false"
+        android:paddingHorizontal="7dp"
+        android:paddingVertical="3dp"
+        android:textColor="@color/always_white"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:text="NEW"
+        tools:visibility="visible" />
 
 </LinearLayout>

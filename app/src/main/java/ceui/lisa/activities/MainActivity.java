@@ -430,11 +430,18 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
         final int id;
         final int titleRes;
         final boolean visible;
+        /** 行右侧小胶囊角标文案(如「NEW」);null = 不显示。 */
+        final String badge;
 
-        DrawerEntry(int id, int titleRes, boolean visible) {
+        DrawerEntry(int id, int titleRes, boolean visible, String badge) {
             this.id = id;
             this.titleRes = titleRes;
             this.visible = visible;
+            this.badge = badge;
+        }
+
+        DrawerEntry(int id, int titleRes, boolean visible) {
+            this(id, titleRes, visible, null);
         }
 
         DrawerEntry(int id, int titleRes) {
@@ -482,6 +489,16 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
                 new DrawerEntry(R.id.nav_fans, R.string.string_322),
         });
 
+        // 借号用量:服务端两只配额桶的只读视图,紧贴「我的」之后、「记录与管理」之前 ——
+        // 它是「查自己用了多少」,不属于任何一组功能入口。渠道口径跟着借号功能本身走
+        // (google flavor 整个借号搜索都不出现),所以是 !isLite 而不是 experimentalAllowed:
+        // 后者在 Lite debug 下仍会放行,会给一个功能不存在的包留下查不到东西的入口。
+        if (!isLite) {
+            addDrawerSection(sections, R.string.drawer_section_usage, new DrawerEntry[]{
+                    new DrawerEntry(R.id.nav_nana7mi_usage, R.string.nana7mi_usage_title, true, "NEW"),
+            });
+        }
+
         // 高频入口前置:浏览历史 排在「记录与管理」首位,设置 排在「其他」首位。
         addDrawerSection(sections, R.string.drawer_section_records, new DrawerEntry[]{
                 new DrawerEntry(nav_slideshow, R.string.view_history),
@@ -522,16 +539,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
                 // Play 版不带这类站外付费内容入口。
                 new DrawerEntry(R.id.nav_fanbox, R.string.fanbox_entry, !isLite),
         });
-
-        // 借号用量:服务端两只配额桶的只读视图,放在侧边栏最末 —— 它是「查自己用了多少」,
-        // 不属于上面任何一组功能入口。渠道口径跟着借号功能本身走(google flavor 整个借号
-        // 搜索都不出现),所以是 !isLite 而不是 experimentalAllowed:后者在 Lite debug 下
-        // 仍会放行,会给一个功能不存在的包留下查不到东西的入口。
-        if (!isLite) {
-            addDrawerSection(sections, R.string.drawer_section_usage, new DrawerEntry[]{
-                    new DrawerEntry(R.id.nav_nana7mi_usage, R.string.nana7mi_usage_title),
-            });
-        }
     }
 
     /**
@@ -559,6 +566,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
             View row = inflater.inflate(R.layout.item_drawer_row, parent, false);
             ((ImageView) row.findViewById(R.id.drawer_row_icon)).setImageResource(DrawerIconCatalog.iconFor(entry.id));
             ((TextView) row.findViewById(R.id.drawer_row_title)).setText(entry.titleRes);
+            TextView badge = row.findViewById(R.id.drawer_row_badge);
+            if (entry.badge != null) {
+                badge.setText(entry.badge);
+                badge.setVisibility(View.VISIBLE);
+            }
             row.setOnClickListener(v -> {
                 handleDrawerAction(entry.id);
                 baseBind.drawerLayout.closeDrawer(GravityCompat.START);
