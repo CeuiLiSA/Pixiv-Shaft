@@ -793,10 +793,6 @@
     <string name="string_ctd_download_title">下載漫畫文字框偵測模型</string>
     <string name="string_ctd_download_subtitle">%1$s 用於精確定位漫畫氣泡和文字塊，比通用 OCR 偵測更準</string>
     <string name="string_ctd_download_done">文字框偵測模型下載完成</string>
-    <string name="string_nllb_download_title">下載翻譯模型</string>
-    <string name="string_nllb_download_subtitle">%1$s 需額外下載以提供高品質漫畫翻譯</string>
-    <string name="string_nllb_download_done">翻譯模型下載完成</string>
-    <string name="string_nllb_model_needed">請先下載翻譯模型</string>
     <string name="string_433">按熱度排序去哪兒了？</string>
     <string name="string_434">熱度排序現在位於右邊滑動欄的搜索選項/排序方式中，你可以通過右上角的設置鍵進行設置，設置完畢後請保存。熱度排序現在位於右邊滑動欄的搜索選項/排序方式中，你可以通過右上角的設置鍵進行設置，設置完畢後請保存。熱度排序現在位於右邊滑動欄的搜索選項/排序方式中，你可以通過右上角的設置鍵進行設置，設置完畢後請保存。</string>
     <string name="string_435">搜索選項僅對插畫/小說有效</string>

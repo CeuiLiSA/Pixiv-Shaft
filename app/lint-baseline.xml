@@ -8996,17 +8996,6 @@
 
     <issue
         id="UnusedResources"
-        message="The resource `R.string.string_nllb_model_needed` appears to be unused"
-        errorLine1="    &lt;string name=&quot;string_nllb_model_needed&quot;>需要先下载翻译模型&lt;/string>"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="785"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="UnusedResources"
         message="The resource `R.string.string_433` appears to be unused"
         errorLine1="    &lt;string name=&quot;string_433&quot;>按热度排序去哪儿了？&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~">

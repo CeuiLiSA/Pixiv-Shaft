@@ -791,10 +791,6 @@
     <string name="string_ctd_download_title">Загрузка детектора текстовых блоков манги</string>
     <string name="string_ctd_download_subtitle">%1$s точнее универсального OCR-детектора находит речевые пузыри и текстовые блоки</string>
     <string name="string_ctd_download_done">Детектор текстовых блоков загружен</string>
-    <string name="string_nllb_download_title">Скачать модель перевода</string>
-    <string name="string_nllb_download_subtitle">Дополнительная загрузка %1$s обеспечит более качественный перевод манги</string>
-    <string name="string_nllb_download_done">Модель перевода загружена</string>
-    <string name="string_nllb_model_needed">Сначала скачайте модель перевода</string>
     <string name="string_433">Где сортировка по популярности?</string>
     <string name="string_434">Сортировка по популярности теперь находится в параметрах поиска/методе сортировки на правой выдвижной панели. Настроить её можно кнопкой в правом верхнем углу. После настройки сохраните изменения.</string>
     <string name="string_435">Параметры поиска работают только для иллюстраций и новелл</string>

@@ -791,10 +791,6 @@
     <string name="string_ctd_download_title">만화 텍스트 박스 감지 모델 다운로드</string>
     <string name="string_ctd_download_subtitle">%1$s 는 말풍선과 텍스트 블록을 정확히 찾는 데 사용됩니다 (일반 OCR 감지보다 정확)</string>
     <string name="string_ctd_download_done">텍스트 박스 감지 모델 다운로드 완료</string>
-    <string name="string_nllb_download_title">번역 모델 다운로드</string>
-    <string name="string_nllb_download_subtitle">%1$s 를 추가 다운로드하면 고품질 만화 번역을 사용할 수 있습니다</string>
-    <string name="string_nllb_download_done">번역 모델 다운로드 완료</string>
-    <string name="string_nllb_model_needed">먼저 번역 모델을 다운로드해 주세요</string>
     <string name="string_433">인기순 어디까지 가봤니?</string>
     <string name="string_434">인기도 순위는 이제 우측 슬라이딩 바의 검색 옵션/정렬 방식에 위치하게 되었으며, 우측 상단의 설정 버튼을 통해 설정할 수 있으며, 설정 후 저장하시기 바랍니다.</string>
     <string name="string_435">검색 옵션은 일러스트레이션/소설에만 유효합니다.</string>
