@@ -3,8 +3,6 @@ package ceui.pixiv.chat.api
 import android.content.Context
 import ceui.lisa.BuildConfig
 import ceui.pixiv.session.SessionManager
-import okhttp3.logging.HttpLoggingInterceptor
-import timber.log.Timber
 import ceui.pixiv.websocket.ExponentialBackoffWithJitter
 import ceui.pixiv.websocket.AppNetworkMonitor
 import ceui.pixiv.websocket.NetworkMonitor
@@ -63,16 +61,6 @@ object ShaftChatWsClient {
             // there). writeTimeout is fine to set on the base client.
             .writeTimeout(10, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
-        if (BuildConfig.IS_DEBUG_MODE) {
-            // Logs the upgrade handshake (101 / 401 / 429 / 503 — see docs
-            // §1.1). OkHttp drops the interceptor after the upgrade succeeds
-            // so this never logs business frames; those come from
-            // RobustWebSocketClient's payload logging below.
-            okHttpBuilder.addInterceptor(
-                HttpLoggingInterceptor { Timber.tag("Chat-Handshake").i(it) }
-                    .apply { level = HttpLoggingInterceptor.Level.HEADERS }
-            )
-        }
         val okHttp = okHttpBuilder.build()
 
         val config = WebSocketConfig(

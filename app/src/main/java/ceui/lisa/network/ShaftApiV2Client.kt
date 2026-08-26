@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -42,14 +41,6 @@ object ShaftApiV2Client {
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
         .writeTimeout(15, TimeUnit.SECONDS)
-        .addInterceptor(
-            HttpLoggingInterceptor { Timber.tag("ShaftApiV2").i(it) }
-                .apply {
-                    level = if (BuildConfig.IS_DEBUG_MODE)
-                        HttpLoggingInterceptor.Level.BODY
-                    else HttpLoggingInterceptor.Level.BASIC
-                }
-        )
         .build()
 
     val retrofit: Retrofit = Retrofit.Builder()

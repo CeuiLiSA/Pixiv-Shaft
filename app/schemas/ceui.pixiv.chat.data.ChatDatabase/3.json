@@ -1,0 +1,112 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "9079657644f41ae9b2db59b2b2c9e598",
+    "entities": [
+      {
+        "tableName": "chat_messages",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`local_key` TEXT NOT NULL, `server_id` INTEGER, `client_msg_id` TEXT, `uid` INTEGER NOT NULL, `room` TEXT NOT NULL, `display_name` TEXT, `text` TEXT, `illust_id` INTEGER, `ts` INTEGER NOT NULL, `state` TEXT NOT NULL, `reply_to_uid` INTEGER, `reply_to_cmid` TEXT, `reply_to_display_name` TEXT, `reply_to_text` TEXT, PRIMARY KEY(`local_key`))",
+        "fields": [
+          {
+            "fieldPath": "localKey",
+            "columnName": "local_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serverId",
+            "columnName": "server_id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "clientMsgId",
+            "columnName": "client_msg_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "room",
+            "columnName": "room",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "display_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "text",
+            "columnName": "text",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "illustId",
+            "columnName": "illust_id",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "ts",
+            "columnName": "ts",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "replyToUid",
+            "columnName": "reply_to_uid",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "replyToCmid",
+            "columnName": "reply_to_cmid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "replyToDisplayName",
+            "columnName": "reply_to_display_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "replyToText",
+            "columnName": "reply_to_text",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "local_key"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_chat_messages_room_ts",
+            "unique": false,
+            "columnNames": [
+              "room",
+              "ts"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_chat_messages_room_ts` ON `${TABLE_NAME}` (`room`, `ts`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9079657644f41ae9b2db59b2b2c9e598')"
+    ]
+  }
+}

@@ -417,7 +417,7 @@ object SessionManager {
                 }
                 response.accessToken
             } catch (ex: InvalidRefreshTokenException) {
-                Timber.w(ex, "refresh_token 被吊销，登出")
+                Timber.w("Authentication credential revoked; signing out")
                 postUpdateSession(null)
                 Common.showToast(R.string.string_340)
                 Common.restart()

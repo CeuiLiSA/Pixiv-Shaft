@@ -212,7 +212,7 @@ class FanboxWebBridge(app: Context) {
         fun onResult(token: String, status: Int, body: String) {
             val cont = pending.remove(token) ?: return
             if (status != 200) {
-                Common.showLog("FanboxWebBridge $token 失败 status=$status")
+                Common.showLog("FanboxWebBridge request failed, status=$status")
             }
             if (cont.isActive) cont.resume(body.takeIf { status == 200 })
         }

@@ -8,7 +8,6 @@ import ceui.pixiv.session.SessionManager
 import com.tencent.mmkv.MMKV
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 /**
@@ -58,9 +57,7 @@ object CsrfTokenProvider {
     fun fetch(): String? {
         return try {
             val cookies = SessionManager.normalizeWebCookie(store.decodeString(SessionManager.COOKIE_KEY, ""))
-            Timber.d("CsrfToken: cookie length=${cookies.length}, empty=${cookies.isEmpty()}")
             if (cookies.isEmpty()) {
-                Timber.w("CsrfToken: no web cookie stored, cannot fetch token")
                 return null
             }
             val request = Request.Builder()
@@ -69,26 +66,17 @@ object CsrfTokenProvider {
                 .addHeader("User-Agent", ClientManager.WEB_USER_AGENT)
                 .build()
             val response = buildClient().newCall(request).execute()
-            Timber.d("CsrfToken: HTTP ${response.code}, url=${response.request.url}")
             val body = response.use { it.body?.string() }
             if (body == null) {
-                Timber.w("CsrfToken: response body is null")
                 return null
             }
-            Timber.d("CsrfToken: body length=${body.length}, has meta-global-data=${body.contains("meta-global-data")}")
             val token = parseToken(body)
             if (token != null) {
-                Timber.d("CsrfToken: parsed token=${token.take(8)}...")
                 cached = token
                 store.encode(KEY_CSRF, token)
-            } else {
-                // 打印 HTML 片段帮助调试
-                val snippet = body.take(2000)
-                Timber.w("CsrfToken: failed to parse token from HTML, snippet:\n$snippet")
             }
             token
-        } catch (e: Exception) {
-            Timber.e(e, "CsrfToken: fetch exception")
+        } catch (_: Exception) {
             null
         }
     }
@@ -116,7 +104,6 @@ object CsrfTokenProvider {
         // Pattern 3: 兜底，全文搜索 "token":"32位hex"
         tokenRegex.find(html)?.let { return it.groupValues[1] }
 
-        Timber.w("CsrfToken: no token found in HTML (length=${html.length})")
         return null
     }
 

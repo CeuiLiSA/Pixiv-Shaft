@@ -1,6 +1,5 @@
 package ceui.loxia
 
-import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AppApiProxyInterceptor
 import ceui.lisa.http.AppApiTimeouts
@@ -11,7 +10,6 @@ import ceui.pixiv.shaftapi.ShaftHmac
 import okhttp3.Dns
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
-import okhttp3.logging.HttpLoggingInterceptor
 import okio.Buffer
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -175,9 +173,6 @@ class ClientManager {
 
         okhttpClientBuilder.addInterceptor(HeaderInterceptor())
         okhttpClientBuilder.addInterceptor(TokenFetcherInterceptor())
-        okhttpClientBuilder.addInterceptor(HttpLoggingInterceptor().apply {
-            setLevel(HttpLoggingInterceptor.Level.BODY)
-        })
         applyAppApiProxy(okhttpClientBuilder)
         applyDirectConnect(okhttpClientBuilder)
 
@@ -200,9 +195,6 @@ class ClientManager {
             .protocols(listOf(Protocol.HTTP_1_1))
 
         httpBuilder.addInterceptor(WebHeaderInterceptor())
-        httpBuilder.addInterceptor(HttpLoggingInterceptor().apply {
-            setLevel(HttpLoggingInterceptor.Level.BODY)
-        })
         // issue #959: www.pixiv.net 也走直连(Cronet QUIC + CF IP),否则网页端专属功能
         // (拉黑、Web 首页、按 tag 筛作品…)在没梯子的网络上一律超时。
         applyDirectConnect(httpBuilder)
@@ -253,10 +245,6 @@ class ClientManager {
                     chain.proceed(req.newBuilder().header("X-Shaft-Sign", sig).build())
                 }
             }
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                // BASIC, not BODY: history payloads are large, keep logs sane.
-                setLevel(HttpLoggingInterceptor.Level.BASIC)
-            })
         applyDirectConnect(httpBuilder)
         return Retrofit.Builder()
             .baseUrl(PIXSHAFT_API_HOST)
@@ -282,9 +270,6 @@ class ClientManager {
 
         httpBuilder.addInterceptor(HeaderInterceptor())
         httpBuilder.addInterceptor(TokenFetcherInterceptor())
-        httpBuilder.addInterceptor(HttpLoggingInterceptor().apply {
-            setLevel(HttpLoggingInterceptor.Level.BASIC)
-        })
         applyDirectConnect(httpBuilder)
 
         return Retrofit.Builder()
@@ -308,9 +293,6 @@ class ClientManager {
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
         httpBuilder.addInterceptor(FanboxHeaderInterceptor())
-        httpBuilder.addInterceptor(HttpLoggingInterceptor().apply {
-            setLevel(HttpLoggingInterceptor.Level.BASIC)
-        })
         applyDirectConnect(httpBuilder)
 
         return Retrofit.Builder()
@@ -342,9 +324,6 @@ class ClientManager {
             // 注意:这绕不过 Clash 的 TUN/VPN 模式,TUN 用户需要在 Clash 规则里
             // 把 shaft.api / 111.229.197.181 设为 DIRECT。
             .proxy(Proxy.NO_PROXY)
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                setLevel(HttpLoggingInterceptor.Level.BODY)
-            })
         return Retrofit.Builder()
             .baseUrl(MOON_API_HOST)
             .addConverterFactory(GsonConverterFactory.create())

@@ -126,6 +126,64 @@ jobs:
           :feeds:testDebugUnitTest
           --continue
 
+      # Room 会在编译时自动写出当前 schema；如果忘记提交，迁移测试会消费刚生成的
+      # 文件并照样通过，最终却丢失可供未来迁移使用的版本历史。
+      - name: Verify Room schemas are committed
+        run: |
+          changes="$(git status --porcelain --untracked-files=all -- app/schemas)"
+          if [ -n "$changes" ]; then
+            echo "::error::Room schemas changed during compilation; regenerate and commit app/schemas"
+            printf '%s\n' "$changes"
+            exit 1
+          fi
+
+      # app lint 只分析宿主自身；各 library 必须显式列出，才能阻止模块内新问题绕过门禁。
+      - name: Run Android lint
+        run: >-
+          ./gradlew
+          :app:lintGithubDebug
+          :actionqueue:lintDebug
+          :feeds:lintDebug
+          :models:lintDebug
+          :flowlayout-lib:lintDebug
+          :progressmanager:lintDebug
+          :witstudio:lintDebug
+          --continue
+
+      # progressmanager 历史配置了 abortOnError=false；统一检查 XML，避免该模块的
+      # lint Error 被 Gradle 任务吞掉后让 CI 误报成功。
+      - name: Verify lint reports are error-free
+        run: |
+          failed=0
+          reports=(
+            app/build/reports/lint-results-githubDebug.xml
+            actionqueue/build/reports/lint-results-debug.xml
+            feeds/build/reports/lint-results-debug.xml
+            models/build/reports/lint-results-debug.xml
+            flowlayout-lib/build/reports/lint-results-debug.xml
+            progressmanager/build/reports/lint-results-debug.xml
+            witstudio/build/reports/lint-results-debug.xml
+          )
+
+          for report in "${reports[@]}"; do
+            if [ ! -f "$report" ]; then
+              echo "::error file=$report::Expected lint XML report was not generated"
+              failed=1
+            elif grep -Eq 'severity="(Error|Fatal)"' "$report"; then
+              echo "::error file=$report::Android lint reported an error"
+              failed=1
+            fi
+          done
+          exit "$failed"
+
+      - name: Upload lint reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-reports-${{ github.run_id }}
+          path: '**/build/reports/lint-results*'
+          if-no-files-found: ignore
+
       - name: Upload unit test reports
         if: failure()
         uses: actions/upload-artifact@v4
@@ -248,3 +306,68 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  instrumentation:
+    name: Critical androidTest (API 35)
+    runs-on: ubuntu-24.04
+    needs: build
+    timeout-minutes: 45
+
+    steps:
+      - name: Clone repo
+        uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4.2.2
+        with:
+          java-version: '21'
+          distribution: 'adopt'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # MigrationTestHelper 必须对未混淆的目标 APK 跑，避免测试夹具跨 APK 调用被 R8
+      # 重命名的 Kotlin stdlib；真正依赖混淆结果的契约测试则单独对 Release 跑。
+      # x86_64 只对本次测试构建生效，正式 APK 仍保持 arm64-v8a。
+      - name: Run critical instrumented tests
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          # 一次性测试键，仅用于证明 native signer 能加载；不是生产凭证。
+          SHAFT_EVENTS_HMAC: ci-instrumentation-only-not-a-secret
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7_pro
+          script: |
+            ./gradlew :app:connectedGithubDebugAndroidTest \
+              -Pandroid.testInstrumentationRunnerArguments.class=ceui.lisa.database.AppDatabaseMigrationTest \
+              -PSHAFT_TEST_ABI=x86_64 \
+              --stacktrace
+            ./gradlew :app:connectedGithubReleaseAndroidTest \
+              -Pandroid.testInstrumentationRunnerArguments.class=ceui.lisa.ExampleInstrumentedTest,ceui.lisa.model.AppApiGsonR8InstrumentedTest,ceui.pixiv.shaftapi.ShaftHmacInstrumentedTest,ceui.pixiv.ui.search.SearchRiskPolicyInstrumentedTest \
+              -PSHAFT_TEST_BUILD_TYPE=release \
+              -PSHAFT_TEST_ABI=x86_64 \
+              --stacktrace
+            ./gradlew :actionqueue:connectedDebugAndroidTest --stacktrace
+
+      - name: Upload instrumented test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-reports-${{ github.run_id }}
+          path: |
+            **/build/reports/androidTests/
+            **/build/outputs/androidTest-results/
+          if-no-files-found: ignore

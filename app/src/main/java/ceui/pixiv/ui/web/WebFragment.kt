@@ -7,8 +7,6 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -19,7 +17,6 @@ import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentWebBinding
-import ceui.lisa.utils.Common
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.viewBinding
 import ceui.loxia.ClientManager
@@ -55,13 +52,7 @@ class WebFragment : Fragment(R.layout.fragment_web) {
     private inner class CsrfBridge {
         @JavascriptInterface
         fun onCsrfToken(token: String) {
-            Common.showLog("dsaadsdsaaww2 JsBridge csrf token=$token")
             CsrfTokenProvider.set(token)
-        }
-
-        @JavascriptInterface
-        fun onDebug(msg: String) {
-            Common.showLog("dsaadsdsaaww2 JsBridge debug: $msg")
         }
     }
 
@@ -116,7 +107,6 @@ class WebFragment : Fragment(R.layout.fragment_web) {
                     // （<uid>_<hash>）——匿名 PHPSESSID 存下去会把 hasWebCookie 骗成真。
                     val cookie = CookieManager.getInstance().getCookie("https://www.pixiv.net")
                     if (SessionManager.isLoggedInWebCookie(cookie)) {
-                        Common.showLog("dsaadsdsaaww2 set $cookie")
                         prefStore.putString(SessionManager.COOKIE_KEY, SessionManager.normalizeWebCookie(cookie))
                     }
                     // 在 pixiv 页面提取 CSRF token
@@ -128,23 +118,17 @@ class WebFragment : Fragment(R.layout.fragment_web) {
                                 try {
                                     if (window.pixiv && window.pixiv.context && window.pixiv.context.token) {
                                         CsrfBridge.onCsrfToken(window.pixiv.context.token);
-                                        CsrfBridge.onDebug('found via pixiv.context.token');
                                         return;
-                                    } else {
-                                        CsrfBridge.onDebug('s1: pixiv.context=' + (window.pixiv ? JSON.stringify(Object.keys(window.pixiv)).substring(0,100) : 'undefined'));
                                     }
-                                } catch(e) { CsrfBridge.onDebug('s1 error: ' + e); }
+                                } catch(e) {}
 
                                 // 策略2: 从 globalInitData 读取
                                 try {
                                     if (window.globalInitData && window.globalInitData.token) {
                                         CsrfBridge.onCsrfToken(window.globalInitData.token);
-                                        CsrfBridge.onDebug('found via globalInitData.token');
                                         return;
-                                    } else {
-                                        CsrfBridge.onDebug('s2: globalInitData=' + (window.globalInitData ? 'exists,keys=' + JSON.stringify(Object.keys(window.globalInitData)).substring(0,100) : 'undefined'));
                                     }
-                                } catch(e) { CsrfBridge.onDebug('s2 error: ' + e); }
+                                } catch(e) {}
 
                                 // 策略3: 从 __NEXT_DATA__ JS 对象提取
                                 try {
@@ -153,11 +137,10 @@ class WebFragment : Fragment(R.layout.fragment_web) {
                                         var m = json.match(/"token":"([a-f0-9]{32})"/);
                                         if (m) {
                                             CsrfBridge.onCsrfToken(m[1]);
-                                            CsrfBridge.onDebug('found via __NEXT_DATA__');
                                             return;
                                         }
                                     }
-                                } catch(e) { CsrfBridge.onDebug('s3 error: ' + e); }
+                                } catch(e) {}
 
                                 // 策略4: 从 meta-global-data 标签提取
                                 try {
@@ -167,16 +150,10 @@ class WebFragment : Fragment(R.layout.fragment_web) {
                                         var m2 = c.match(/"token":"([a-f0-9]{32})"/);
                                         if (m2) {
                                             CsrfBridge.onCsrfToken(m2[1]);
-                                            CsrfBridge.onDebug('found via meta-global-data');
                                             return;
-                                        } else {
-                                            var ti2 = c.indexOf('token');
-                                            CsrfBridge.onDebug('s4: meta-global-data len=' + c.length + ', tokenAt=' + ti2 + (ti2>=0 ? ', near=' + c.substring(ti2,ti2+60) : ''));
                                         }
-                                    } else {
-                                        CsrfBridge.onDebug('s4: meta-global-data element not found');
                                     }
-                                } catch(e) { CsrfBridge.onDebug('s4 error: ' + e); }
+                                } catch(e) {}
 
                                 // 策略5: 从页面 HTML 搜索 token
                                 try {
@@ -184,13 +161,9 @@ class WebFragment : Fragment(R.layout.fragment_web) {
                                     var m3 = html.match(/"token":"([a-f0-9]{32})"/);
                                     if (m3) {
                                         CsrfBridge.onCsrfToken(m3[1]);
-                                        CsrfBridge.onDebug('found via innerHTML');
                                         return;
-                                    } else {
-                                        var ti3 = html.indexOf('"token"');
-                                        CsrfBridge.onDebug('s5: innerHTML len=' + html.length + ', tokenAt=' + ti3 + (ti3>=0 ? ', near=' + html.substring(ti3,ti3+80) : ''));
                                     }
-                                } catch(e) { CsrfBridge.onDebug('s5 error: ' + e); }
+                                } catch(e) {}
 
                                 // 策略6: fetch 首页 HTML
                                 fetch(location.origin, {credentials: 'include'})
@@ -199,18 +172,9 @@ class WebFragment : Fragment(R.layout.fragment_web) {
                                         var m = data.match(/"token":"([a-f0-9]+)"/);
                                         if(m) {
                                             CsrfBridge.onCsrfToken(m[1]);
-                                            CsrfBridge.onDebug('found via fetch');
-                                        } else {
-                                            // 搜索 token 关键字位置
-                                            var ti = data.indexOf('token');
-                                            var tokenSnippet = ti >= 0 ? data.substring(Math.max(0,ti-20), ti+80) : 'token not found';
-                                            // 搜索 meta-global-data
-                                            var mi = data.indexOf('meta-global-data');
-                                            var metaSnippet = mi >= 0 ? data.substring(mi, mi+200) : 'meta-global-data not found';
-                                            CsrfBridge.onDebug('fetch no match, len=' + data.length + ', tokenAt=' + ti + ', tokenSnippet=' + tokenSnippet + ', metaSnippet=' + metaSnippet);
                                         }
                                     })
-                                    .catch(function(e){ CsrfBridge.onDebug('fetch error: ' + e); });
+                                    .catch(function(e){});
                             })()
                             """.trimIndent(),
                             null
@@ -231,14 +195,6 @@ class WebFragment : Fragment(R.layout.fragment_web) {
                 }
             }
 
-            override fun shouldInterceptRequest(
-                view: WebView?,
-                request: WebResourceRequest?
-            ): WebResourceResponse? {
-                val requestUrlString = request?.url?.toString()
-                Common.showLog("asewsd requestUrlString ${requestUrlString}")
-                return super.shouldInterceptRequest(view, request)
-            }
         }
         binding.webView.webChromeClient = object : WebChromeClient() {
 

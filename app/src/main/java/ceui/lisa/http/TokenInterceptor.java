@@ -49,10 +49,10 @@ public class TokenInterceptor implements Interceptor {
             // 服务端的 400 原样交回上层（getResponseBody 只 peek 不消费，body 仍可读），
             // 比抛 IOException 更好：后者会被 toAppError 归成「网络不可用」，盖掉真实原因。
             if (!SessionManager.INSTANCE.isLoggedIn()) {
-                Timber.w("TokenInterceptor: 收到 400 OAuth 错误但当前无登录会话，跳过刷新");
+                Timber.w("Authentication failed without an active session; skipping refresh");
                 return response;
             }
-            Timber.i("TokenInterceptor: access_token 过期，正在刷新");
+            Timber.i("Authentication expired; refreshing session");
             response.close();
             String newBearer = getNewToken(request.header("Authorization"));
             Request newRequest = request

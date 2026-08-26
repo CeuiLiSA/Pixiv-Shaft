@@ -4,7 +4,6 @@ import ceui.lisa.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.RequestBody
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -68,14 +67,6 @@ object ShaftEventsClient {
             // HTTP/2 is fine over cleartext for this server (no TLS) since the
             // network_security_config base policy already permits cleartext.
             .protocols(listOf(Protocol.HTTP_1_1))
-
-        if (BuildConfig.IS_DEBUG_MODE) {
-            builder.addInterceptor(HttpLoggingInterceptor().apply {
-                // BODY would dump every event; HEADERS is enough to confirm the
-                // request was sent and the X-Shaft-Sign / response status.
-                level = HttpLoggingInterceptor.Level.HEADERS
-            })
-        }
 
         return Retrofit.Builder()
             .baseUrl(BuildConfig.SHAFT_EVENTS_BASE_URL)

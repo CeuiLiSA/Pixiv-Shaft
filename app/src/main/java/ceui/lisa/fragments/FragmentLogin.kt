@@ -97,7 +97,7 @@ class LandingViewModel : ViewModel() {
         refreshTokenLoginJob = viewModelScope.launch {
             val outcome = when (val result = PixivLogin.refreshTokenForLogin(refreshToken)) {
                 is PixivOAuthResult.Failure -> {
-                    Timber.w("refresh-token login failed: %s", result.message)
+                    Timber.w("Credential login failed")
                     RefreshTokenLoginOutcome.Failed(refreshTokenFailureToast(result))
                 }
 
@@ -120,7 +120,7 @@ class LandingViewModel : ViewModel() {
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            Timber.e(e, "refresh-token login persistence failed")
+            Timber.e(e, "Credential login persistence failed")
             // Session 已写（saveUser 成功）则用户已登录，Room 行缺失仅影响账户切换列表：
             // 视为非致命，继续流程，避免半登录态卡在登录页
             if (!SessionManager.isLoggedIn) {

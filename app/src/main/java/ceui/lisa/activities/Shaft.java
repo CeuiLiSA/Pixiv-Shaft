@@ -23,6 +23,7 @@ import com.tencent.mmkv.MMKV;
 
 import androidx.annotation.NonNull;
 
+import ceui.lisa.BuildConfig;
 import ceui.lisa.R;
 
 import ceui.lisa.helper.ShortcutHelper;
@@ -305,7 +306,9 @@ public class Shaft extends Application implements ServicesProvider {
             sPreferences = getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
         }
 
-        Timber.plant(new Timber.DebugTree());
+        if (BuildConfig.IS_DEBUG_MODE) {
+            Timber.plant(new Timber.DebugTree());
+        }
 
         initMMKV(this);
         networkStateManager = new NetworkStateManager(this);

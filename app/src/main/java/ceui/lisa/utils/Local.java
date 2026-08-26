@@ -33,7 +33,6 @@ public class Local {
     public static AccountResponse getUser() {
         String json = Shaft.sPreferences
                 .getString(USER, "");
-        Timber.d("getUserJson%s", json);
         return Shaft.sGson.fromJson(json, AccountResponse.class);
     }
 

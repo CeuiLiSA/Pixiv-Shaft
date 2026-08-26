@@ -48,7 +48,6 @@ import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.util.Locale
 import java.util.UUID
 
@@ -212,7 +211,6 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
     private fun extractCsrfToken(view: WebView, attempt: Int = 1, onResult: (String?) -> Unit) {
         view.evaluateJavascript(EXTRACT_TOKEN_JS) { result ->
             val token = result?.trim('"')?.takeIf { CSRF_TOKEN_FORMAT.matches(it) }
-            Timber.d("StreetMain: csrf attempt $attempt token=${token?.take(8)}")
             when {
                 token != null -> {
                     CsrfTokenProvider.set(token)
@@ -226,7 +224,6 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
                 // baseBind 已失效之后再回来碰 UI。
                 else -> viewLifecycleOwner.lifecycleScope.launch {
                     val fallback = withContext(Dispatchers.IO) { CsrfTokenProvider.fetch() }
-                    Timber.d("StreetMain: csrf okhttp fallback token=${fallback?.take(8)}")
                     onResult(fallback)
                 }
             }
@@ -248,7 +245,6 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
      * 继续走"静默取 token"然后继续失败，直接清掉、重新登录。
      */
     private fun onWebSessionExpired() {
-        Timber.d("StreetMain: web session expired, clearing cookie")
         MMKV.defaultMMKV().removeValueForKey(SessionManager.COOKIE_KEY)
         CsrfTokenProvider.clear()
         showWebLoginDialog()
@@ -280,7 +276,6 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
      * 让 WebView 自行处理 Cloudflare JS Challenge，然后通过 evaluateJavascript 提取 token。
      */
     private fun fetchCsrfViaWebView() {
-        Timber.d("StreetMain: have cookie but no CSRF, fetching via WebView")
         baseBind.toolbarTitle.text = getString(R.string.street_title)
         // CSRF 没就绪前下拉刷新必失败(refresh() 直接抛"token 未就绪"的 toast),先关掉手势,
         // cleanupWebView 里恢复。legacy 的 FalsifyHeader 本来就不触发刷新,这是对齐旧行为。
@@ -384,7 +379,6 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                Timber.d("StreetMain: WebView onPageFinished url=$url")
                 if (!cookieSaved) {
                     checkAndSaveCookie()
                 } else if (url?.contains("www.pixiv.net") == true) {
@@ -433,7 +427,6 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
         if (!SessionManager.isLoggedInWebCookie(cookie)) return
 
         cookieSaved = true
-        Timber.d("StreetMain: PHPSESSID found, saving cookie")
         MMKV.defaultMMKV().putString(SessionManager.COOKIE_KEY, SessionManager.normalizeWebCookie(cookie))
         CsrfTokenProvider.clear()
 

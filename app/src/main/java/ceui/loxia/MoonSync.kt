@@ -25,7 +25,7 @@ import java.util.Locale
  * moonAPI(自建后端)上的设置同步:登录后拉取 / 用户主动上传。
  *
  * 详细日志走 Timber tag `MoonSync`,过滤命令:`adb logcat -s MoonSync:*`
- * (网络层完整请求/响应在 OkHttp `HttpLoggingInterceptor BODY` 层,搜 `OkHttp`)
+ * 网络请求/响应不写日志，避免同步内容或认证材料进入 logcat。
  */
 object MoonSync {
 

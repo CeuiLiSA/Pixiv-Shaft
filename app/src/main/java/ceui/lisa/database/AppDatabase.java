@@ -50,11 +50,12 @@ import ceui.pixiv.db.synonym.SynonymTargetEntity;
                 SynonymTagEntity.class, // 同义词词典-同义词（v36, issue #904）
                 FeedCacheEntity.class, // feeds 框架本地优先首屏快照（v39）
         },
-        version = 41,
-        exportSchema = false
+        version = AppDatabase.VERSION,
+        exportSchema = true
 )
 public abstract class AppDatabase extends RoomDatabase {
 
+    public static final int VERSION = 41;
     public static final String DATABASE_NAME = "roomDemo-database";
     private static final Migration MIGRATION_23_24 = new Migration(23, 24) {
         @Override
@@ -404,6 +405,35 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    private static final Migration[] ALL_MIGRATIONS = {
+            MIGRATION_23_24,
+            MIGRATION_24_25,
+            MIGRATION_25_26,
+            MIGRATION_26_27,
+            MIGRATION_27_28,
+            MIGRATION_28_29,
+            MIGRATION_29_30,
+            MIGRATION_30_31,
+            MIGRATION_31_32,
+            MIGRATION_32_33,
+            MIGRATION_33_34,
+            MIGRATION_34_35,
+            MIGRATION_35_36,
+            MIGRATION_36_37,
+            MIGRATION_37_38,
+            MIGRATION_38_39,
+            MIGRATION_39_40,
+            MIGRATION_40_41,
+    };
+
+    /**
+     * Production and migration tests share one registry so adding a migration cannot update one
+     * path while silently leaving the other stale.
+     */
+    public static Migration[] migrations() {
+        return ALL_MIGRATIONS.clone();
+    }
+
     private static AppDatabase INSTANCE;
 
     // synchronized：同义词词典（issue #904）让 Rx 后台线程（SelectTagRepo.mapper）也会触发
@@ -416,24 +446,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             // Don't do this on a real app! See PersistenceBasicSample for an example.
                             //.fallbackToDestructiveMigration()
                             .allowMainThreadQueries()
-                            .addMigrations(MIGRATION_23_24)
-                            .addMigrations(MIGRATION_24_25)
-                            .addMigrations(MIGRATION_25_26) // 注册 25 -> 26 迁移
-                            .addMigrations(MIGRATION_26_27) // 注册 26 -> 27 迁移
-                            .addMigrations(MIGRATION_27_28) // 注册 27 -> 28 迁移 (discovery_table)
-                            .addMigrations(MIGRATION_28_29) // 注册 28 -> 29 迁移 (discovery_table + authorId)
-                            .addMigrations(MIGRATION_29_30) // 注册 29 -> 30 迁移 (V3 阅读器 6 张表)
-                            .addMigrations(MIGRATION_30_31) // 注册 30 -> 31 迁移 (V3 漫画书签)
-                            .addMigrations(MIGRATION_31_32) // 注册 31 -> 32 迁移 (V3 漫画累计统计)
-                            .addMigrations(MIGRATION_32_33) // 注册 32 -> 33 迁移 (批量下载队列)
-                            .addMigrations(MIGRATION_33_34) // 注册 33 -> 34 迁移 (download_queue.illustGson)
-                            .addMigrations(MIGRATION_34_35) // 注册 34 -> 35 迁移 (search_table.previewIllustsJson)
-                            .addMigrations(MIGRATION_35_36) // 注册 35 -> 36 迁移 (同义词词典两张表)
-                            .addMigrations(MIGRATION_36_37) // 注册 36 -> 37 迁移 (synonym_target_table.lastUsedAt)
-                            .addMigrations(MIGRATION_37_38) // 注册 37 -> 38 迁移 (illust_download_table.illustId 索引列)
-                            .addMigrations(MIGRATION_38_39) // 注册 38 -> 39 迁移 (feed_cache_table 本地优先首屏快照)
-                            .addMigrations(MIGRATION_39_40) // 注册 39 -> 40 迁移 (删除 illust_recmd_table)
-                            .addMigrations(MIGRATION_40_41) // 注册 40 -> 41 迁移 (illust_download_table.page 列, issue #953)
+                            .addMigrations(ALL_MIGRATIONS)
                             .build();
         }
         return INSTANCE;
@@ -474,4 +487,3 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract FeedCacheDao feedCacheDao();
 
 }
-

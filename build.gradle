@@ -23,6 +23,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.gms:google-services:4.4.2'
         classpath 'com.google.firebase:firebase-crashlytics-gradle:3.0.2'
+        classpath 'androidx.room:room-gradle-plugin:2.7.2'
         // kotlinter 会把 kotlin-compiler-embeddable 拉进 buildscript classpath
         // 与 Kotlin 2.1 KGP 冲突（GradleKotlinCompilerWorkArguments 序列化失败）。
         // 暂时停用；需要格式化时独立跑 ktlint 即可。

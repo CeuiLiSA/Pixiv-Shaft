@@ -19,7 +19,6 @@ import ceui.pixiv.session.SessionManager;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
-import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -119,10 +118,6 @@ public class Retro {
             builder.addInterceptor(new AppApiProxyInterceptor());
         }
         applyDirectConnect(builder, directConnect);
-        HttpLoggingInterceptor l = new HttpLoggingInterceptor(
-                message -> Timber.i(message));
-        l.setLevel(HttpLoggingInterceptor.Level.BODY);
-        builder.addInterceptor(l);
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder().setLenient().create();
         return new Retrofit.Builder()

@@ -1,5 +1,6 @@
 package ceui.pixiv.witstudio.widget
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import androidx.appcompat.widget.AppCompatButton
@@ -16,6 +17,7 @@ import ceui.pixiv.witstudio.widget.internal.WitRoundHelper
  * ⚠️ 本控件会用自己的圆角背景**覆盖** `android:background`（同 QMUI 的行为）。
  * 在布局里同时写 `android:background` 和 `wit_*` 属性时，前者不会生效。
  */
+@SuppressLint("ResourceType") // TypedArray indexes come from the local android.R.attr array below.
 public class WitRoundButton @JvmOverloads public constructor(
     context: Context,
     attrs: AttributeSet? = null,

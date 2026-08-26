@@ -4,6 +4,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
+apply plugin: 'androidx.room'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 // apply plugin: 'org.jmailen.kotlinter'  // 临时停用，见根 build.gradle
@@ -89,13 +90,9 @@ android {
         versionName "4.8.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
-            abiFilters 'arm64-v8a'
-        }
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments = [:]
-            }
+            // Production remains arm64-only. CI can request x86_64 so instrumented tests run on
+            // GitHub's hardware-accelerated emulator without changing shipped APKs.
+            abiFilters providers.gradleProperty('SHAFT_TEST_ABI').getOrElse('arm64-v8a')
         }
 
         // Shaft community events server (shaft-api-v2). The URL is not secret.
@@ -206,6 +203,8 @@ android {
             //jni库的调用会到资源文件夹下libs里面找so文件
             jniLibs.srcDirs = ['libs']
         }
+        // MigrationTestHelper 在设备上从 assets 读取历史 schema，创建旧版数据库并校验迁移结果。
+        androidTest.assets.srcDirs += files("$projectDir/schemas")
     }
 
     externalNativeBuild {
@@ -233,6 +232,11 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17
     }
+}
+
+room {
+    // schema 是迁移测试的输入，也用于 code review；必须随版本一并提交。
+    schemaDirectory "$projectDir/schemas"
 }
 
 // CMake compilation must never race the generated secret header, especially when Gradle
@@ -263,6 +267,8 @@ dependencies {
     // AndroidX Test - JUnit Runner
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.room:room-testing:2.7.2")
+    androidTestImplementation("androidx.test:runner:1.6.2")
     // Release androidTest is minified independently from the target APK. Keep the runner's
     // direct Trace dependency in the test APK so AndroidJUnitRunner can start under R8.
     androidTestImplementation("androidx.tracing:tracing:1.2.0")
@@ -298,7 +304,6 @@ dependencies {
     implementation 'com.github.bumptech.glide:okhttp3-integration:4.16.0'
     kapt 'com.github.bumptech.glide:compiler:4.16.0'
 
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
     implementation 'jp.wasabeef:glide-transformations:4.3.0'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
