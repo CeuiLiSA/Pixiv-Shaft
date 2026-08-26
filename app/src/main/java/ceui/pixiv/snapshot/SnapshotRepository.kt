@@ -82,7 +82,10 @@ object SnapshotRepository {
                 // 都拿 manifest.snapshotId 反解目录。名字对不上的目录(导入中途掉电留下的
                 // 备份等)必须当作不存在，否则会出现一张指向别人的重复卡片,删它删掉的是正主。
                 if (snapshotDir.name != manifest.snapshotId) return@mapNotNull null
-                val coverFile = manifest.coverPath?.let { rel -> runCatching { safeResolve(snapshotDir, rel) }.getOrNull()?.takeIf { f -> f.isFile } }
+                // 早期快照/手改 manifest 可能没记 R 级和页数；用 illust.json 回补，
+                // 保证老卡片也能显示左上角 R 级与 P 角标（fileCount 是整目录文件数，不是页数）。
+                val displayManifest = manifest.backfillDisplayFields(snapshotDir)
+                val coverFile = displayManifest.coverPath?.let { rel -> runCatching { safeResolve(snapshotDir, rel) }.getOrNull()?.takeIf { f -> f.isFile } }
                 // 文件数/体积生成时就写进 manifest 了，列表页(三个 Tab、每次 onResume 都刷)
                 // 没必要再把每个快照目录整个 walk 一遍 —— 那是 O(全库文件数) 次 stat。
                 // 只有老快照/manifest 没记的情况才退回真扫。
@@ -98,7 +101,7 @@ object SnapshotRepository {
                         }
                     }
                 }
-                SnapshotSummary(manifest, fileCount, totalSize, coverFile)
+                SnapshotSummary(displayManifest, fileCount, totalSize, coverFile)
             }
             ?.sortedByDescending { it.manifest.createdAt }
             ?: emptyList()
@@ -213,6 +216,19 @@ object SnapshotRepository {
         root(context).listFiles()
             ?.filter { it.isDirectory && it.name.startsWith(BACKUP_PREFIX) }
             ?.forEach { it.deleteRecursively() }
+    }
+
+    /**
+     * 老快照的 manifest 可能没记 R 级/页数；从快照自带的 illust.json 回补显示字段。
+     * 只影响列表展示、不落盘，避免在只读 list() 里产生写副作用。
+     */
+    private fun SnapshotManifest.backfillDisplayFields(snapshotDir: File): SnapshotManifest {
+        if (xRestrict != null && pageCount != null && pageCount > 0) return this
+        val illust = SnapshotValidator.readJson<Illust>(File(snapshotDir, SNAPSHOT_ILLUST_JSON)) ?: return this
+        return copy(
+            xRestrict = xRestrict ?: illust.x_restrict,
+            pageCount = if (pageCount != null && pageCount > 0) pageCount else illust.page_count.coerceAtLeast(1)
+        )
     }
 
     private const val BACKUP_PREFIX = ".backup_"

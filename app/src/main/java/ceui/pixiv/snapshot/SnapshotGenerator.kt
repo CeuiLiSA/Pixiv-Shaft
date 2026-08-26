@@ -124,6 +124,8 @@ object SnapshotGenerator {
                 includeOriginal = includeOriginal,
                 isBookmarked = bean.isBookmarked,
                 isFollowed = bean.user?.is_followed ?: false,
+                xRestrict = bean.x_restrict,
+                pageCount = pageCount,
                 title = bean.title,
                 authorName = bean.user?.name,
                 authorId = bean.user?.id,
