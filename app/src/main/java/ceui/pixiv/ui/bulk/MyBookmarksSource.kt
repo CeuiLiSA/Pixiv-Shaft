@@ -33,7 +33,7 @@ class MyBookmarksSource(
 
     override suspend fun firstPage(): PageResult<Illust>? =
         Retro.getAppApi()
-            .getUserLikeIllust(userId.toInt(), restrict, tag?.takeIf { it.isNotEmpty() })
+            .getUserLikeIllust(userId, restrict, tag?.takeIf { it.isNotEmpty() })
             .toPageResult()
 
     override suspend fun nextPage(nextUrl: String): PageResult<Illust>? =

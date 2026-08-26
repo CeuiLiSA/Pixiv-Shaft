@@ -23,7 +23,7 @@ data class AccountResponse(
     var device_token: String? = null,
     var local_user: String? = null,
 ) : Serializable, ceui.lisa.models.UserContainer {
-    override fun getUserId(): Int = user?.id?.toInt() ?: 0
+    override fun getUserId(): Long = user?.id ?: 0L
 }
 
 data class IllustResponse(

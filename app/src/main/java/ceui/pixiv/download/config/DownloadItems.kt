@@ -146,7 +146,7 @@ object DownloadItems {
                 ItemMeta(
                     id = novel.id?.toLong() ?: 0L,
                     title = novel.title.orEmpty(),
-                    author = Author(novel.user?.id?.toLong() ?: 0L, novel.user?.name.orEmpty()),
+                    author = Author(novel.user?.id ?: 0L, novel.user?.name.orEmpty()),
                     createdAt = parseInstant(novel.create_date),
                     flags = flagsOfLoxiaNovel(novel),
                     seriesTitle = seriesTitleOf(novel.series?.title),
@@ -232,7 +232,7 @@ object DownloadItems {
      */
     @JvmStatic
     fun novelSeriesMergeDestinationForAuthor(
-        authorId: Int,
+        authorId: Long,
         authorName: String?,
         chapterCount: Int,
         ext: String,
@@ -242,7 +242,7 @@ object DownloadItems {
             ItemMeta(
                 id = 0L,
                 title = "",
-                author = Author(authorId.toLong(), authorName.orEmpty()),
+                author = Author(authorId, authorName.orEmpty()),
                 createdAt = Instant.now(),
                 seriesTotal = chapterCount.takeIf { it > 0 },
             ),

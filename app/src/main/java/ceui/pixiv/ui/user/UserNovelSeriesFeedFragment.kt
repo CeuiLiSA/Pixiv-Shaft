@@ -82,8 +82,8 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获：只从 arguments / intent 取出 userID(int)，source 仅持有这个基本类型，不碰 Fragment/View。
         // legacy 从 activity intent 读 USER_ID；newInstance 存进 args，这里 args 优先、缺失回退 intent。
-        val userID = arguments?.getInt(ARG_USER_ID, 0)?.takeIf { it != 0 }
-            ?: requireActivity().intent.getIntExtra(Params.USER_ID, 0)
+        val userID = arguments?.getLong(ARG_USER_ID, 0L)?.takeIf { it != 0L }
+            ?: requireActivity().intent.getLongExtra(Params.USER_ID, 0L)
         UserNovelSeriesFeedSource(userID)
     }
 
@@ -273,8 +273,7 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
         val act = activity as? BaseActivity<*> ?: return
         // 作者 id / name：allItems 里任何一项的 user 都指向该作者本人，取第一个非空的兜底 intent。
         val firstUser = list.firstOrNull { it.user != null }?.user
-        val authorId = firstUser?.id?.toInt()
-            ?: requireActivity().intent.getIntExtra(Params.USER_ID, 0)
+        val authorId = firstUser?.id?: requireActivity().intent.getLongExtra(Params.USER_ID, 0L)
         val authorName = firstUser?.name
         CrossSeriesDownloadTask(requireContext()).runAllMergedOne(
             activity = act,
@@ -290,10 +289,10 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
 
         @JvmStatic
         @JvmOverloads
-        fun newInstance(userID: Int, showToolbar: Boolean = true): UserNovelSeriesFeedFragment =
+        fun newInstance(userID: Long, showToolbar: Boolean = true): UserNovelSeriesFeedFragment =
             UserNovelSeriesFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(ARG_USER_ID, userID)
+                    putLong(ARG_USER_ID, userID)
                     putBoolean(Params.FLAG, showToolbar)
                 }
             }
@@ -314,7 +313,7 @@ class NovelSeriesFeedItem(val series: NovelSeriesItem) : FeedItem {
  *
  * 零 Fragment 捕获：只吃一个 userID(int)，自持 repo，不碰 View / Context。
  */
-class UserNovelSeriesFeedSource(userID: Int) : FeedSource<String> {
+class UserNovelSeriesFeedSource(userID: Long) : FeedSource<String> {
 
     private val repo = NovelSeriesRepo(userID)
 

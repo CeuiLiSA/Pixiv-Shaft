@@ -227,7 +227,7 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
         Local.saveUser(currentUser);
         UserEntity userEntity = new UserEntity();
         userEntity.setLoginTime(System.currentTimeMillis());
-        userEntity.setUserID((int) currentUser.getUser().getId());
+        userEntity.setUserID(currentUser.getUser().getId());
         userEntity.setUserGson(Shaft.sGson.toJson(currentUser));
         AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
     }

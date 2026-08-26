@@ -83,7 +83,7 @@ class UserV3InfoFragment : Fragment() {
     private fun bindUserDetail(data: UserDetailResponse) {
         val user = data.user
         val profile = data.profile
-        val isSelf = user.id.toLong() == SessionManager.loggedInUid
+        val isSelf = user.id == SessionManager.loggedInUid
 
         // Bio
         if (!TextUtils.isEmpty(user.comment)) {

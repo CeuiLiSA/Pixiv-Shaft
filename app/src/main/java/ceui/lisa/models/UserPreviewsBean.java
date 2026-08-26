@@ -43,8 +43,8 @@ public class UserPreviewsBean extends UserHolder implements Serializable, UserCo
     }
 
     @Override
-    public int getUserId() {
-        return (int) getUser().getId();
+    public long getUserId() {
+        return getUser().getId();
     }
 
     @Override

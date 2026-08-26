@@ -30,7 +30,7 @@ class UserFansFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) {
 
     // legacy 用 int USER_ID（TemplateActivity 路由 getIntExtra），loxia 侧收 Long。
     private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.USER_ID).toLong()
+        requireArguments().getLong(Params.USER_ID)
     }
 
     override val feedViewModel by feedViewModels {
@@ -49,10 +49,10 @@ class UserFansFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) {
 
     companion object {
         @JvmStatic
-        fun newInstance(userId: Int): UserFansFeedFragment {
+        fun newInstance(userId: Long): UserFansFeedFragment {
             return UserFansFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userId)
+                    putLong(Params.USER_ID, userId)
                 }
             }
         }

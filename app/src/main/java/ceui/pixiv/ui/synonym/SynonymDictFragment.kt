@@ -165,7 +165,7 @@ class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
         }
         val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
             putExtra(TemplateActivity.EXTRA_FRAGMENT, if (toNovel) "小说收藏" else "插画/漫画收藏")
-            putExtra(Params.USER_ID, SessionManager.loggedInUid.toInt())
+            putExtra(Params.USER_ID, SessionManager.loggedInUid)
             putExtra(Params.STAR_TYPE, starType)
             putExtra(Params.KEY_WORD, targetName)
         }

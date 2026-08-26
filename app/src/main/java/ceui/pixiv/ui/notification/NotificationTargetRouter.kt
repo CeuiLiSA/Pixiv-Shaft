@@ -36,7 +36,7 @@ fun Context.routeNotificationTargetUrl(targetUrl: String?) {
         }
         "users" -> info.value.toLongOrNull()?.let { id ->
             startActivity(Intent(this, UActivity::class.java).apply {
-                putExtra(Params.USER_ID, id.toInt())
+                putExtra(Params.USER_ID, id)
             })
         }
         else -> runCatching {

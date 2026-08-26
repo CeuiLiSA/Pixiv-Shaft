@@ -75,7 +75,7 @@ object UserShortcutHelper {
                 .setShortLabel(label)
                 .setLongLabel(label)
                 .setIcon(icon)
-                .setIntents(buildIntents(context, user.id.toInt()))
+                .setIntents(buildIntents(context, user.id))
                 .build()
             if (!ShortcutManagerCompat.requestPinShortcut(context, shortcut, null)) {
                 Common.showToast(context.getString(R.string.add_to_home_screen_failed))
@@ -96,7 +96,7 @@ object UserShortcutHelper {
      * 指向 UActivity 而不是 UserActivityV3：作者页 V2/V3 的分发口在 UActivity 里，
      * 按点击时的设置走。快捷方式是长期留在桌面上的，不能把创建那一刻的 V2/V3 选择焊死。
      */
-    private fun buildIntents(context: Context, userId: Int): Array<Intent> {
+    private fun buildIntents(context: Context, userId: Long): Array<Intent> {
         val home = Intent(context, MainActivity::class.java).apply {
             action = Intent.ACTION_MAIN
             addCategory(Intent.CATEGORY_LAUNCHER)

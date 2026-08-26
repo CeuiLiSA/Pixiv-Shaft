@@ -62,9 +62,9 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
     public void initView() {
         if (type == 0) {
             allPages = new Fragment[]{
-                    LikeIllustFeedFragment.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
+                    LikeIllustFeedFragment.newInstance(SessionManager.INSTANCE.getLoggedInUid(),
                             Params.TYPE_PUBLIC),
-                    LikeIllustFeedFragment.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
+                    LikeIllustFeedFragment.newInstance(SessionManager.INSTANCE.getLoggedInUid(),
                             Params.TYPE_PRIVATE)
             };
             CHINESE_TITLES = new String[]{
@@ -73,9 +73,9 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             };
         } else if (type == 1) {
             allPages = new Fragment[]{
-                    LikeNovelFeedFragment.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
+                    LikeNovelFeedFragment.newInstance(SessionManager.INSTANCE.getLoggedInUid(),
                             Params.TYPE_PUBLIC, false),
-                    LikeNovelFeedFragment.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
+                    LikeNovelFeedFragment.newInstance(SessionManager.INSTANCE.getLoggedInUid(),
                             Params.TYPE_PRIVATE, false)
             };
             CHINESE_TITLES = new String[]{
@@ -84,9 +84,9 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             };
         } else if (type == 2) {
             allPages = new Fragment[]{
-                    FollowUserFeedFragment.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
+                    FollowUserFeedFragment.newInstance(SessionManager.INSTANCE.getLoggedInUid(),
                             Params.TYPE_PUBLIC, false),
-                    FollowUserFeedFragment.newInstance((int) SessionManager.INSTANCE.getLoggedInUid(),
+                    FollowUserFeedFragment.newInstance(SessionManager.INSTANCE.getLoggedInUid(),
                             Params.TYPE_PRIVATE, false)
             };
             CHINESE_TITLES = new String[]{

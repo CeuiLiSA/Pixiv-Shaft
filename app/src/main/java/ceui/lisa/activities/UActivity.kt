@@ -51,7 +51,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResponse> {
-    private var userId = 0
+    private var userId = 0L
     private lateinit var mUserViewModel: UserViewModel
     override fun initLayout(): Int {
         return R.layout.activity_new_user
@@ -89,7 +89,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
     }
 
     override fun initBundle(bundle: Bundle) {
-        userId = bundle.getInt(Params.USER_ID)
+        userId = bundle.getLong(Params.USER_ID)
     }
 
     override fun initModel() {
@@ -104,14 +104,14 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             mUserViewModel.isUserMuted.postValue(muted)
             mUserViewModel.isUserBlocked.postValue(blocked)
         }
-        ObjectPool.get<User>(userId.toLong()).observe(this) { user ->
+        ObjectPool.get<User>(userId).observe(this) { user ->
             updateUser(user)
             Common.showLog("updateUser invoke ${user.is_followed}")
         }
         // 「怎么关的」是另一半事实，有自己的通知渠道。见 FollowVisibility.changes。
         FollowVisibility.changes.observe(this) { changed ->
-            if (changed == userId.toLong()) {
-                ObjectPool.get<User>(userId.toLong()).value?.let { updateUser(it) }
+            if (changed == userId) {
+                ObjectPool.get<User>(userId).value?.let { updateUser(it) }
             }
         }
     }
@@ -142,8 +142,8 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
 
     /** 看的是自己：把服务端最新资料回写会话，侧边栏/“我的”头像跟着更新。 */
     private fun writeBackSelfProfile(userResponse: UserDetailResponse) {
-        if (userId.toLong() != SessionManager.loggedInUid) return
-        SessionManager.ingestFreshUser(userResponse.user, userId.toLong())
+        if (userId != SessionManager.loggedInUid) return
+        SessionManager.ingestFreshUser(userResponse.user, userId)
     }
 
     override fun initData() {
@@ -184,7 +184,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
                 val userFollowDetail = withContext(Dispatchers.IO) { Retro.getAppApi().getFollowDetail(userId) }
                 appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(userFollowDetail))
                 // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
-                FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(userFollowDetail))
+                FollowVisibility.writeRemote(userId, followRestrictOf(userFollowDetail))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -202,7 +202,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             .beginTransaction()
             .replace(R.id.fragment_container, newInstance())
             .commitNowAllowingStateLoss()
-        val isSelf = userId.toLong() == SessionManager.loggedInUid
+        val isSelf = userId == SessionManager.loggedInUid
         if (isSelf) {
             baseBind.followLayout.visibility = View.GONE
         } else {
@@ -219,11 +219,11 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
 
             if (totalIllusts > 0) {
                 labels.add("跳转到插画…")
-                actions.add { jumpTo(data.user.id.toInt(), UserIllustJumpHelper.Kind.ILLUST, "插画作品") }
+                actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, "插画作品") }
             }
             if (totalManga > 0) {
                 labels.add("跳转到漫画…")
-                actions.add { jumpTo(data.user.id.toInt(), UserIllustJumpHelper.Kind.MANGA, "漫画作品") }
+                actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, "漫画作品") }
             }
             // 与 V3 的「更多」菜单对齐：自己的页面也要能进相关用户和下载管理
             labels.add(getString(R.string.string_436)) // 相关用户
@@ -263,7 +263,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
                 labels.add(getString(R.string.pixiv_block_menu))
                 actions.add {
                     ceui.pixiv.ui.user.PixivBlockOperate.showBlockDialog(
-                        this, data.user.id.toLong(), data.user.name.orEmpty()
+                        this, data.user.id, data.user.name.orEmpty()
                     )
                 }
             }
@@ -334,7 +334,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         })
     }
 
-    private fun jumpTo(userID: Int, kind: UserIllustJumpHelper.Kind, fragmentTag: String) {
+    private fun jumpTo(userID: Long, kind: UserIllustJumpHelper.Kind, fragmentTag: String) {
         UserIllustJumpHelper.showJumpDialog(this, userID, kind) { offset, pickedDate ->
             if (isFinishing || isDestroyed) return@showJumpDialog
             val intent = Intent(this, TemplateActivity::class.java)
@@ -347,7 +347,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
     }
 }
 
-fun Fragment.followUser(sender: ProgressIndicator, userId: Int, followType: String) {
+fun Fragment.followUser(sender: ProgressIndicator, userId: Long, followType: String) {
     activity?.followUser(sender, userId, followType)
 }
 
@@ -363,22 +363,22 @@ fun Fragment.followUser(sender: ProgressIndicator, userId: Int, followType: Stri
  *
  * [sender] 已经没有可等的异步过程了，保留只为不改这个函数在六个调用点上的签名。
  */
-fun FragmentActivity.followUser(sender: ProgressIndicator, userId: Int, followType: String) {
+fun FragmentActivity.followUser(sender: ProgressIndicator, userId: Long, followType: String) {
     PixivActions.setUserFollow(
-        userId = userId.toLong(),
+        userId = userId,
         follow = true,
         restrict = followType,
     )
 }
 
-fun Fragment.unfollowUser(sender: ProgressIndicator, userId: Int) {
+fun Fragment.unfollowUser(sender: ProgressIndicator, userId: Long) {
     activity?.unfollowUser(sender, userId)
 }
 
 /** 取关。语义与 [followUser] 完全对称，同样不弹「已取消关注」。 */
-fun FragmentActivity.unfollowUser(sender: ProgressIndicator, userId: Int) {
+fun FragmentActivity.unfollowUser(sender: ProgressIndicator, userId: Long) {
     PixivActions.setUserFollow(
-        userId = userId.toLong(),
+        userId = userId,
         follow = false,
     )
 }
@@ -393,8 +393,8 @@ fun FragmentActivity.unfollowUser(sender: ProgressIndicator, userId: Int) {
  * 不知道就回落「已关注」：宁可少报私密，也不能把公开关注说成私人的。
  */
 @StringRes
-fun followedLabelRes(userId: Int): Int =
-    if (FollowVisibility.isPrivate(userId.toLong())) {
+fun followedLabelRes(userId: Long): Int =
+    if (FollowVisibility.isPrivate(userId)) {
         R.string.user_followed_private
     } else {
         R.string.user_followed

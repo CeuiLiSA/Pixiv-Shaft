@@ -83,7 +83,7 @@ public class Local {
         saveUser(userModel); // internally calls SessionManager.postUpdateSession (single source of truth)
         UserEntity entity = new UserEntity();
         entity.setLoginTime(System.currentTimeMillis());
-        entity.setUserID((int) userModel.getUser().getId());
+        entity.setUserID(userModel.getUser().getId());
         entity.setUserGson(Shaft.sGson.toJson(getUser()));
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertUser(entity);
     }

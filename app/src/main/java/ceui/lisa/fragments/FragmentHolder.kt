@@ -43,25 +43,25 @@ class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
         val items: Array<Fragment>
 
         when {
-            data.userId.toLong() == SessionManager.loggedInUid -> {
+            data.user?.id == SessionManager.loggedInUid -> {
                 titles = arrayOf(getString(R.string.userTab_collection), getString(R.string.userTab_other))
                 items = arrayOf<Fragment>(
-                        LikeIllustFeedFragment.newInstance(data.userId, Params.TYPE_PUBLIC),
+                        LikeIllustFeedFragment.newInstance(data.user?.id ?: 0L, Params.TYPE_PUBLIC),
                         FragmentUserRight()
                 )
             }
             data.profile.total_manga > 0 -> {
                 titles = arrayOf(getString(R.string.type_illust), getString(R.string.type_manga), getString(R.string.userTab_other))
                 items = arrayOf<Fragment>(
-                        UserIllustFeedFragment.newInstance(data.userId, false),
-                        ceui.pixiv.ui.user.UserMangaFeedFragment.newInstance(data.userId, false),
+                        UserIllustFeedFragment.newInstance(data.user?.id ?: 0L, false),
+                        ceui.pixiv.ui.user.UserMangaFeedFragment.newInstance(data.user?.id ?: 0L, false),
                         FragmentUserRight()
                 )
             }
             else -> {
                 titles = arrayOf(getString(R.string.type_illust), getString(R.string.userTab_other))
                 items = arrayOf<Fragment>(
-                        UserIllustFeedFragment.newInstance(data.userId, false),
+                        UserIllustFeedFragment.newInstance(data.user?.id ?: 0L, false),
                         FragmentUserRight()
                 )
             }

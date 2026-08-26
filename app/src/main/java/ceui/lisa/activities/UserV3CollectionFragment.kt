@@ -25,7 +25,7 @@ private const val SEG_NOVEL = 1
  */
 class UserV3CollectionFragment : Fragment() {
 
-    private var userId = 0
+    private var userId = 0L
     private var selected = SEG_ILLUST
     private var contentLoaded = false
     private lateinit var palette: V3Palette
@@ -33,9 +33,9 @@ class UserV3CollectionFragment : Fragment() {
     private lateinit var segNovel: TextView
 
     companion object {
-        fun newInstance(userId: Int): UserV3CollectionFragment =
+        fun newInstance(userId: Long): UserV3CollectionFragment =
             UserV3CollectionFragment().apply {
-                arguments = Bundle().apply { putInt(ARG_USER_ID, userId) }
+                arguments = Bundle().apply { putLong(ARG_USER_ID, userId) }
             }
     }
 
@@ -44,7 +44,7 @@ class UserV3CollectionFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        userId = arguments?.getInt(ARG_USER_ID) ?: 0
+        userId = arguments?.getLong(ARG_USER_ID) ?: 0L
         return inflater.inflate(R.layout.fragment_user_v3_collection, container, false)
     }
 

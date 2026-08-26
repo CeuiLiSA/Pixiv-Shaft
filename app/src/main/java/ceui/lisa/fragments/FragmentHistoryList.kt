@@ -147,7 +147,7 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
     // ── renderer 回调（HistoryFeed.kt 里的扩展 renderer 调用）────────────────────────
     internal fun toggleHistorySelect(entity: IllustHistoryEntity) = selectionVm.toggle(entity.illustID.toLong())
 
-    internal fun openHistoryUser(uid: Int) {
+    internal fun openHistoryUser(uid: Long) {
         startActivity(Intent(requireContext(), UActivity::class.java).apply {
             putExtra(Params.USER_ID, uid)
         })

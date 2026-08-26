@@ -147,7 +147,7 @@ fun FragmentHistoryUserList.historyUserRenderer(): FeedRenderer<HistoryUserFeedI
                     toggleUserHistorySelect(item.entity)
                 } else {
                     v.context.startActivity(Intent(v.context, UActivity::class.java).apply {
-                        putExtra(Params.USER_ID, item.entity.id.toInt())
+                        putExtra(Params.USER_ID, item.entity.id)
                     })
                 }
             }

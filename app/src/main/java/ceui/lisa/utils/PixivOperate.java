@@ -105,12 +105,12 @@ public class PixivOperate {
      * 埋点与发现画像同样挪到了队列的成功回调里（{@code PixivActionQueue.report}）——发出去就撤不回来的
      * 东西必须等服务端确认。
      */
-    public static void postFollowUser(int userID, String followType) {
-        PixivActions.setUserFollow((long) userID, true, followType);
+    public static void postFollowUser(long userID, String followType) {
+        PixivActions.setUserFollow(userID, true, followType);
     }
 
-    public static void postUnFollowUser(int userID) {
-        PixivActions.setUserFollow((long) userID, false, Params.TYPE_PUBLIC);
+    public static void postUnFollowUser(long userID) {
+        PixivActions.setUserFollow(userID, false, Params.TYPE_PUBLIC);
     }
 
     public static void postLikeDefaultStarType(Illust illustsBean) {
@@ -264,7 +264,7 @@ public class PixivOperate {
     private static void openIllustDetail(Context context, Illust illust) {
         User user = illust.getUser();
         if (user != null) {
-            ((ServicesProvider) Shaft.getContext()).getAppLevelState().updateFollowUserStatus((int) user.getId(), Boolean.TRUE.equals(user.is_followed()) ? AppLevelState.FollowUserStatus.FOLLOWED : AppLevelState.FollowUserStatus.NOT_FOLLOW);
+            ((ServicesProvider) Shaft.getContext()).getAppLevelState().updateFollowUserStatus(user.getId(), Boolean.TRUE.equals(user.is_followed()) ? AppLevelState.FollowUserStatus.FOLLOWED : AppLevelState.FollowUserStatus.NOT_FOLLOW);
         }
 
         final PageData pageData = new PageData(Collections.singletonList(illust));
@@ -350,7 +350,7 @@ public class PixivOperate {
     public static void muteUser(User user, boolean showToast) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.MUTE_USER);
-        muteEntity.setId((int) user.getId());
+        muteEntity.setId(user.getId());
         muteEntity.setTagJson(Shaft.sGson.toJson(user));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
@@ -367,7 +367,7 @@ public class PixivOperate {
     public static void unMuteUser(User user, boolean showToast) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.MUTE_USER);
-        muteEntity.setId((int) user.getId());
+        muteEntity.setId(user.getId());
         muteEntity.setTagJson(Shaft.sGson.toJson(user));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);

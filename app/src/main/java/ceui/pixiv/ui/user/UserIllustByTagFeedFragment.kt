@@ -39,8 +39,8 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
-    private val userId: Int by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.USER_ID)
+    private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
+        requireArguments().getLong(Params.USER_ID)
     }
     // 命名避开 Fragment.getTag()（同 JVM 签名会被判「accidental override」）。
     private val filterTag: String by lazy(LazyThreadSafetyMode.NONE) {
@@ -132,13 +132,13 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
         @JvmStatic
         @JvmOverloads
         fun newInstance(
-            userId: Int,
+            userId: Long,
             tag: String?,
             category: String = UserTagSearchSheet.CATEGORY_ILLUSTS,
         ): UserIllustByTagFeedFragment {
             return UserIllustByTagFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userId)
+                    putLong(Params.USER_ID, userId)
                     putString(Params.KEY_WORD, tag)
                     putString(Params.CONTENT_TYPE, category)
                 }
@@ -153,7 +153,7 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
  * 游标 = 下一页 offset（已加载条数）；works 空或已到 total 则停。零 Fragment 捕获。
  */
 class UserIllustByTagFeedSource(
-    private val userId: Int,
+    private val userId: Long,
     private val tag: String,
     private val category: String,
 ) : FeedSource<String> {
@@ -162,7 +162,7 @@ class UserIllustByTagFeedSource(
     override suspend fun load(cursor: String?): FeedPage<String> {
         val offset = cursor?.toIntOrNull() ?: 0
         val resp = Client.webApi
-            .getUserIllustsByTag(userId.toLong(), category, tag, offset, PAGE_SIZE)
+            .getUserIllustsByTag(userId, category, tag, offset, PAGE_SIZE)
         // 网页 ajax 的业务错误(限流、参数非法、要求登录…)是 HTTP 200 + error:true + body:null。
         // 不认这一层的话 works 空、total 0，会被渲染成「筛出来 0 件」的空白页 —— 用户既看不到
         // 原因也点不到重试。抛出去交给 feeds 的错误态(issue #956)。

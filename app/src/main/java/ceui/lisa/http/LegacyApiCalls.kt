@@ -74,7 +74,7 @@ object LegacyApiCalls {
         call(owner, onSuccess, null, null) { Retro.getAppApi().getPresets() }
 
     @JvmStatic
-    fun getUserDetailV2(owner: LifecycleOwner, userId: Int, onSuccess: JavaAsync.Consumer<UserDetailResponse>) =
+    fun getUserDetailV2(owner: LifecycleOwner, userId: Long, onSuccess: JavaAsync.Consumer<UserDetailResponse>) =
         call(owner, onSuccess, null, null) { Retro.getAppApi().getUserDetailV2(userId) }
 
     @JvmStatic

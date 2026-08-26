@@ -631,7 +631,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关于软件");
         } else if (id == R.id.main_page) {
             intent = new Intent(mContext, UActivity.class);
-            intent.putExtra(Params.USER_ID, (int) SessionManager.INSTANCE.getLoggedInUid());
+            intent.putExtra(Params.USER_ID, SessionManager.INSTANCE.getLoggedInUid());
         } else if (id == R.id.nav_ai_upscale) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "AI画质提升");
@@ -761,7 +761,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
 
     private void openMyUserPage() {
         Intent userIntent = new Intent(mContext, UActivity.class);
-        userIntent.putExtra(Params.USER_ID, (int) SessionManager.INSTANCE.getLoggedInUid());
+        userIntent.putExtra(Params.USER_ID, (long) SessionManager.INSTANCE.getLoggedInUid());
         startActivity(userIntent);
         baseBind.drawerLayout.closeDrawer(GravityCompat.START);
     }

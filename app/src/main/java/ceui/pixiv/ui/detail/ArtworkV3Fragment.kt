@@ -345,7 +345,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 经典同款 userId ?: 0 兜底:user 缺失/解析失败(#592 web 兜底 bean 可能 id=0)时,
         // 作品屏蔽的观察也要照常接线,画师侧退化成恒 null。只接一次——按 userId 重接会留下
         // 两个 mediator 同时观察,二者发射顺序不定,旧 mediator 的过期值可能盖掉新值。
-        val userId = illust.user?.id?.toInt() ?: 0
+        val userId = illust.user?.id?: 0
         val dao = AppDatabase.getAppDatabase(requireContext()).searchDao()
         combineLatest(
             dao.getIllustMuteEntityByID(illust.id.toInt()),

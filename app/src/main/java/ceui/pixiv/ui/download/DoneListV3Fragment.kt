@@ -302,12 +302,12 @@ class DoneListV3Fragment : Fragment() {
     // 点下载卡片的作者名 → 跳作者主页(UActivity)。下载记录都带完整 illustGson,
     // user.id 正常都在;解析失败 / 老记录拿不到 id 就静默不跳。
     private fun openAuthor(group: DownloadGroup) {
-        val userId: Int = if (group.isNovel) {
-            group.parsedNovel?.user?.id?.toInt() ?: 0
+        val userId: Long = if (group.isNovel) {
+            group.parsedNovel?.user?.id ?: 0L
         } else {
-            group.parsedIllust?.user?.id?.toInt() ?: 0
+            group.parsedIllust?.user?.id ?: 0L
         }
-        if (userId <= 0) return
+        if (userId <= 0L) return
         startActivity(
             Intent(requireContext(), UActivity::class.java).putExtra(Params.USER_ID, userId),
         )

@@ -66,7 +66,7 @@ fun TextView.bindOpenLinkChip(labelRes: Int, url: String) {
 
 fun Fragment.openUserActivity(userId: Long) {
     startActivity(Intent(requireContext(), UActivity::class.java).apply {
-        putExtra(Params.USER_ID, userId.toInt())
+        putExtra(Params.USER_ID, userId)
     })
 }
 

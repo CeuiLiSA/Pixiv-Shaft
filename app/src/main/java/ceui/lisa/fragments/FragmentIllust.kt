@@ -275,7 +275,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 dao.getIllustMuteEntityByID(illust.id.toInt())
             }
             val muteUser = withContext(Dispatchers.IO) {
-                dao.getUserMuteEntityByIDLiveData((illust.user?.id ?: 0L).toInt())
+                dao.getUserMuteEntityByIDLiveData(illust.user?.id ?: 0L)
             }
             combineLatest(muteIllust, muteUser).observe(viewLifecycleOwner) {
                 val illustEntity = it.first
@@ -320,7 +320,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     private fun updateUser(user: User) {
-        val userId = user.id.toInt()
+        val userId = user.id
         if (user.is_followed == true) {
             baseBind.follow.isVisible = false
             baseBind.unfollow.isVisible = true
@@ -341,12 +341,12 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
         baseBind.relaIllustBrief.setOnClick {
             val intent = Intent(mContext, UActivity::class.java)
-            intent.putExtra(Params.USER_ID, userId)
+            intent.putExtra(Params.USER_ID, user.id)
             startActivity(intent)
         }
         baseBind.userName.setOnClick {
             val intent = Intent(mContext, UActivity::class.java)
-            intent.putExtra(Params.USER_ID, userId)
+            intent.putExtra(Params.USER_ID, user.id)
             startActivity(intent)
         }
         baseBind.userName.setOnLongClickListener {

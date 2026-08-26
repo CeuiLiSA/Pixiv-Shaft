@@ -16,7 +16,7 @@ class FeatureEntity : Serializable {
     var uuid: String = ""
     var dateTime: Long = 0L
     var starType: String = ""
-    var userID = 0
+    var userID = 0L
     var illustID = 0
     var illustTitle: String = ""
     var isShowToolbar = false

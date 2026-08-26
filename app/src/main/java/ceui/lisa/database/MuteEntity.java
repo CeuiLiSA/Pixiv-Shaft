@@ -5,7 +5,7 @@ import androidx.room.Entity;
 @Entity(tableName = "tag_mute_table", primaryKeys = {"id", "type"})
 public final class MuteEntity {
 
-    private int id;
+    private long id;
     private String tagJson;
     private long searchTime;
     private int type; //0标签，1插画漫画，2小说，3用户
@@ -18,11 +18,11 @@ public final class MuteEntity {
         this.type = type;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 

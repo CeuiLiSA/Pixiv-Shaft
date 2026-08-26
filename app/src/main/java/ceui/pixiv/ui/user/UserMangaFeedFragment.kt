@@ -39,14 +39,14 @@ class UserMangaFeedFragment : UserIllustFeedFragment() {
         @JvmStatic
         @JvmOverloads
         fun newInstance(
-            userID: Int,
+            userID: Long,
             showToolbar: Boolean,
             initialOffset: Int = 0,
             targetDate: String? = null,
         ): UserMangaFeedFragment {
             return UserMangaFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userID)
+                    putLong(Params.USER_ID, userID)
                     putBoolean(Params.FLAG, showToolbar)
                     putInt(Params.INITIAL_OFFSET, initialOffset)
                     if (targetDate != null) putString(Params.TARGET_DATE, targetDate)

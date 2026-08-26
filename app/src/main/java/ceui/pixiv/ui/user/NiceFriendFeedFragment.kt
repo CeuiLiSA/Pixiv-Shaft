@@ -34,7 +34,7 @@ class NiceFriendFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) 
     // legacy 从 Activity 的 intent 直接读 int USER_ID（它没有 newInstance），这里收进 arguments，
     // 好让 Fragment 自洽、可被复用。
     private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.USER_ID).toLong()
+        requireArguments().getLong(Params.USER_ID)
     }
 
     override val feedViewModel by feedViewModels {
@@ -53,10 +53,10 @@ class NiceFriendFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) 
 
     companion object {
         @JvmStatic
-        fun newInstance(userId: Int): NiceFriendFeedFragment {
+        fun newInstance(userId: Long): NiceFriendFeedFragment {
             return NiceFriendFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userId)
+                    putLong(Params.USER_ID, userId)
                 }
             }
         }

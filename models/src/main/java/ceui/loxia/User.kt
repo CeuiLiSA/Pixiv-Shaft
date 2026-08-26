@@ -64,7 +64,7 @@ data class User(
     override val objectUniqueId: Long get() = id
     override val objectType: Int get() = ObjectSpec.KUser
 
-    override fun getUserId(): Int = id.toInt()
+    override fun getUserId(): Long = id
     override fun getItemID(): Int = id.toInt()
     override fun setItemID(id: Int) {
         this.id = id.toLong()

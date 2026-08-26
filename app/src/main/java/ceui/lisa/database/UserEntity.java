@@ -11,7 +11,7 @@ import ceui.loxia.AccountResponse;
 public final class UserEntity {
 
     @PrimaryKey()
-    private int userID;
+    private long userID;
     private String userGson;
     private long loginTime;
 
@@ -32,11 +32,11 @@ public final class UserEntity {
                 '}';
     }
 
-    public int getUserID() {
+    public long getUserID() {
         return userID;
     }
 
-    public void setUserID(int userID) {
+    public void setUserID(long userID) {
         this.userID = userID;
     }
 

@@ -29,7 +29,7 @@ class FragmentWorkSpace : BaseLazyFragment<FragmentWorkSpaceBinding>(), Display<
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val user = withContext(Dispatchers.IO) {
-                    Retro.getAppApi().getUserDetailV2(SessionManager.loggedInUid.toInt())
+                    Retro.getAppApi().getUserDetailV2(SessionManager.loggedInUid)
                 }
                 invoke(user)
             } catch (e: CancellationException) {

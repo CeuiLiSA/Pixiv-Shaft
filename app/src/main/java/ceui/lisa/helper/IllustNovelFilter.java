@@ -59,7 +59,7 @@ public class IllustNovelFilter {
     public static boolean judgeUserID(Illust illust) {
         MuteEntity temp = AppDatabase.getAppDatabase(Shaft.getContext())
                 .searchDao()
-                .getUserMuteEntityByID((int) illust.getUser().getId());
+                .getUserMuteEntityByID(illust.getUser().getId());
         return temp != null;
     }
 

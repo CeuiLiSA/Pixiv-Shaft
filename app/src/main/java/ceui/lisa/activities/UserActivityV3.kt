@@ -75,7 +75,7 @@ interface UserNovelFirstPageListener {
 
 class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
-    private var userId = 0
+    private var userId = 0L
     private lateinit var mUserViewModel: UserViewModel
     private lateinit var palette: V3Palette
 
@@ -117,7 +117,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     override fun initLayout(): Int = R.layout.activity_user_v3
 
     override fun initBundle(bundle: Bundle) {
-        userId = bundle.getInt(Params.USER_ID)
+        userId = bundle.getLong(Params.USER_ID)
     }
 
     override fun initModel() {
@@ -137,14 +137,14 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             mUserViewModel.isUserBlocked.postValue(blocked)
         }
 
-        ObjectPool.get<User>(userId.toLong()).observe(this) { user ->
+        ObjectPool.get<User>(userId).observe(this) { user ->
             updateFollowState(user)
         }
         // 「怎么关的」是另一半事实，有自己的通知渠道（user/follow/detail 补上私密关注时
         // is_followed 没变，上面那条不会响）。见 FollowVisibility.changes。
         FollowVisibility.changes.observe(this) { changed ->
-            if (changed == userId.toLong()) {
-                ObjectPool.get<User>(userId.toLong()).value?.let { updateFollowState(it) }
+            if (changed == userId) {
+                ObjectPool.get<User>(userId).value?.let { updateFollowState(it) }
             }
         }
     }
@@ -280,8 +280,8 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     /** 看的是自己：把服务端最新资料回写会话，侧边栏/“我的”头像跟着更新。 */
     private fun writeBackSelfProfile(userResponse: UserDetailResponse) {
-        if (userId.toLong() != SessionManager.loggedInUid) return
-        SessionManager.ingestFreshUser(userResponse.user, userId.toLong())
+        if (userId != SessionManager.loggedInUid) return
+        SessionManager.ingestFreshUser(userResponse.user, userId)
     }
 
     override fun initData() {
@@ -331,7 +331,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 val followDetail = withContext(Dispatchers.IO) { Retro.getAppApi().getFollowDetail(userId) }
                 appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(followDetail))
                 // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
-                FollowVisibility.writeRemote(userId.toLong(), followRestrictOf(followDetail))
+                FollowVisibility.writeRemote(userId, followRestrictOf(followDetail))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -342,7 +342,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         // Fetch supplementary data from Web API (bio HTML, badges, social links)
         lifecycleScope.launch {
             try {
-                val resp = Client.webApi.getWebUserDetail(userId.toLong())
+                val resp = Client.webApi.getWebUserDetail(userId)
                 resp.body?.let { mUserViewModel.webUserDetail.value = it }
             } catch (e: Exception) {
                 timber.log.Timber.d(e, "Web user detail fetch failed for user=$userId")
@@ -475,7 +475,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
     }
 
     private fun displayUser(data: UserDetailResponse) {
-        val isSelf = userId.toLong() == SessionManager.loggedInUid
+        val isSelf = userId == SessionManager.loggedInUid
         val profile = data.profile
         val user = data.user
 
@@ -635,7 +635,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         novelBannerLoading = true
         lifecycleScope.launch {
             val resp = try {
-                Client.appApi.getUserCreatedNovels(userId.toLong())
+                Client.appApi.getUserCreatedNovels(userId)
             } catch (ce: CancellationException) {
                 // 页面销毁 → lifecycleScope 取消：必须放行，否则协程取消被当成一次「请求失败」吞掉
                 throw ce
@@ -655,7 +655,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     private fun displayWebUserDetail(detail: WebUserDetail) {
         val dp = resources.displayMetrics.density
-        val isSelf = userId.toLong() == SessionManager.loggedInUid
+        val isSelf = userId == SessionManager.loggedInUid
 
         // ── Badges row ───────────────────────────────────────────────
         var showBadges = false
@@ -696,7 +696,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             baseBind.msgBtn.setOnClick {
                 val intent = android.content.Intent(mContext, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "聊天室")
-                intent.putExtra(TemplateActivity.EXTRA_CHAT_PEER_UID, userId.toLong())
+                intent.putExtra(TemplateActivity.EXTRA_CHAT_PEER_UID, userId)
                 startActivity(intent)
             }
         }
@@ -721,11 +721,11 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
         if (data.profile.total_illusts > 0) {
             labels.add("跳转到插画…")
-            actions.add { jumpTo(data.user.id.toInt(), UserIllustJumpHelper.Kind.ILLUST, "插画作品") }
+            actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, "插画作品") }
         }
         if (data.profile.total_manga > 0) {
             labels.add("跳转到漫画…")
-            actions.add { jumpTo(data.user.id.toInt(), UserIllustJumpHelper.Kind.MANGA, "漫画作品") }
+            actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, "漫画作品") }
         }
         labels.add(getString(R.string.string_436)) // 相关用户
         actions.add {
@@ -738,7 +738,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             labels.add(getString(R.string.bulk_user_menu_download_all_illust))
             actions.add {
                 startBatchFetch(
-                    userIdLong = data.user.id.toLong(),
+                    userIdLong = data.user.id,
                     type = ceui.pixiv.db.queue.WorkType.ILLUST,
                     authorName = data.user.name ?: "user",
                 )
@@ -748,7 +748,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             labels.add(getString(R.string.bulk_user_menu_download_all_manga))
             actions.add {
                 startBatchFetch(
-                    userIdLong = data.user.id.toLong(),
+                    userIdLong = data.user.id,
                     type = ceui.pixiv.db.queue.WorkType.MANGA,
                     authorName = data.user.name ?: "user",
                 )
@@ -786,7 +786,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             labels.add(getString(R.string.pixiv_block_menu))
             actions.add {
                 ceui.pixiv.ui.user.PixivBlockOperate.showBlockDialog(
-                    this, data.user.id.toLong(), data.user.name.orEmpty()
+                    this, data.user.id, data.user.name.orEmpty()
                 )
             }
         }
@@ -817,7 +817,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         // 不在这里 notifyNewItems —— 等 fetcher 全部抓完才统一唤醒消费者
     }
 
-    private fun jumpTo(userID: Int, kind: UserIllustJumpHelper.Kind, fragmentTag: String) {
+    private fun jumpTo(userID: Long, kind: UserIllustJumpHelper.Kind, fragmentTag: String) {
         UserIllustJumpHelper.showJumpDialog(this, userID, kind) { offset, pickedDate ->
             if (isFinishing || isDestroyed) return@showJumpDialog
             val intent = Intent(this, TemplateActivity::class.java)

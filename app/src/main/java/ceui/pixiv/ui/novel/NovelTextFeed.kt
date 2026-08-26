@@ -715,7 +715,7 @@ fun novelSectionHeaderRenderer(): FeedRenderer<NovelSectionHeaderItem, SectionV3
                     val ctx = sender.context
                     ctx.startActivity(Intent(ctx, TemplateActivity::class.java).apply {
                         putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说作品")
-                        putExtra(Params.USER_ID, item.userId.toInt())
+                        putExtra(Params.USER_ID, item.userId)
                     })
                 }
             }
