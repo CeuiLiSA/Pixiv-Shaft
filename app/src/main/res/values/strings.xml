@@ -820,10 +820,6 @@
     <string name="string_ctd_download_title">下载漫画文本框检测模型</string>
     <string name="string_ctd_download_subtitle">%1$s 用于精确定位漫画气泡和文本块，替代通用 OCR 检测</string>
     <string name="string_ctd_download_done">文本框检测模型下载完成</string>
-    <string name="string_nllb_download_title">下载翻译模型</string>
-    <string name="string_nllb_download_subtitle">%1$s 需要额外下载以提供高质量漫画翻译</string>
-    <string name="string_nllb_download_done">翻译模型下载完成</string>
-    <string name="string_nllb_model_needed">需要先下载翻译模型</string>
     <string name="string_433">按热度排序去哪儿了？</string>
     <string name="string_434">热度排序现在位于右边滑动栏的搜索选项/排序方式中，你可以通过右上角的设置键进行设置，设置完毕后请保存。</string>
     <string name="string_435">搜索选项仅对插画/小说有效</string>

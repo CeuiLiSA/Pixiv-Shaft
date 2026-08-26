@@ -791,10 +791,6 @@
     <string name="string_ctd_download_title">Manga metin kutusu algılayıcısını indir</string>
     <string name="string_ctd_download_subtitle">%1$s konuşma balonlarını ve metin bloklarını genel bir OCR algılayıcıdan daha doğru bulur</string>
     <string name="string_ctd_download_done">Metin kutusu algılayıcısı indirildi</string>
-    <string name="string_nllb_download_title">Çeviri modelini indir</string>
-    <string name="string_nllb_download_subtitle">Daha kaliteli manga çevirisi için %1$s modelini ayrıca indirmeniz gerekir</string>
-    <string name="string_nllb_download_done">Çeviri modeli indirildi</string>
-    <string name="string_nllb_model_needed">Önce çeviri modelini indirin</string>
     <string name="string_433">Popülerlik sıralaması nerede?</string>
     <string name="string_434">Popülerlik sıralamasını artık sağdaki kayan menüde, arama seçeneklerinin içinde bulabilirsin. Ayarları yaptıktan sonra kaydetmeyi unutma!</string>
     <string name="string_435">Arama seçenekleri sadece resim ve romanlar içindir</string>

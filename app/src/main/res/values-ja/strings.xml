@@ -791,10 +791,6 @@
     <string name="string_ctd_download_title">マンガテキスト検出モデルをダウンロード</string>
     <string name="string_ctd_download_subtitle">%1$s で吹き出しとテキストブロックを正確に検出します（汎用OCR検出より精度が高い）</string>
     <string name="string_ctd_download_done">テキスト検出モデルのダウンロード完了</string>
-    <string name="string_nllb_download_title">翻訳モデルをダウンロード</string>
-    <string name="string_nllb_download_subtitle">%1$s を追加ダウンロードすると高品質な漫画翻訳が利用できます</string>
-    <string name="string_nllb_download_done">翻訳モデルのダウンロードが完了しました</string>
-    <string name="string_nllb_model_needed">先に翻訳モデルをダウンロードしてください</string>
     <string name="string_433">人気順について</string>
     <string name="string_434">人気順を利用するには右上からフィルタメニューを開き、並び替えから人気順を選択してください。選択後にフィルターメニューをタップすると並び順設定が保存されます。</string>
     <string name="string_435">検索オプションはイラスト・小説にのみ有効です</string>
