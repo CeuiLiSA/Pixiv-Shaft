@@ -6,98 +6,95 @@
 
     </data>
 
+    <!-- V3 小说排行榜 hero 卡:同 recy_rank_illust_horizontal 一套语言——圆角 16 CardView 裁封面 +
+         底部 bg_v3_card_scrim 恒暗渐变,白色标题/作者叠在 scrim 上(替掉旧版白底 CardView + 2dp 阴影 +
+         整图 #44 压暗 + 一字一硬阴影);图未加载露出 v3_surface_2 圆角占位(日夜自适应)。
+         小说特有:右上角字数胶囊,标题给两行(小说标题普遍偏长)。
+         id title/author/illust_image/user_head/novel_length 保持不变(RecmdNovelRankAdapter 靠它绑定)。 -->
     <androidx.cardview.widget.CardView
         android:layout_width="180dp"
         android:layout_height="180dp"
-        android:clickable="true"
         android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="2dp"
-        app:cardElevation="2dp">
+        app:cardBackgroundColor="@color/v3_surface_2"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="0dp">
 
-        <RelativeLayout
+        <ImageView
+            android:id="@+id/illust_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@android:color/white"
-            android:orientation="vertical">
+            android:background="@color/v3_surface_2"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop" />
 
+        <!-- 底部恒暗渐变蒙版:白字在任意封面上都读得清(日夜通用) -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="110dp"
+            android:layout_gravity="bottom"
+            android:background="@drawable/bg_v3_card_scrim" />
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:scaleType="centerCrop"
-                android:foreground="#44000000"
-                android:id="@+id/illust_image"
-                android:layout_height="match_parent">
+        <!-- 字数胶囊,贴右上角 -->
+        <TextView
+            android:id="@+id/novel_length"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="8dp"
+            android:background="@drawable/bg_v3_rank_novel_pill"
+            android:letterSpacing="0.02"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:textColor="@color/always_white"
+            android:textSize="10sp"
+            android:textStyle="bold" />
 
-            </ImageView>
-
+        <!-- 标题 + 作者簇,贴卡底左下 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:orientation="vertical"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="9dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:textSize="13sp"
-                android:layout_marginStart="@dimen/eight_dp"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:shadowColor="#FF000000"
-                android:layout_alignParentEnd="true"
-                android:layout_margin="@dimen/six_dp"
-                android:shadowDx="1.5"
-                android:shadowDy="1.5"
-                android:shadowRadius="1.5"
-                android:id="@+id/novel_length"
-                android:layout_height="wrap_content" />
-
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:textSize="14sp"
-                android:layout_marginStart="@dimen/eight_dp"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:shadowColor="#FF000000"
-                android:layout_centerInParent="true"
-                android:shadowDx="1.5"
-                android:shadowDy="1.5"
-                android:shadowRadius="1.5"
                 android:id="@+id/title"
-                android:layout_height="wrap_content" />
-
-
-            <RelativeLayout
                 android:layout_width="match_parent"
-                android:id="@+id/bottom_rela"
-                android:layout_alignParentBottom="true"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:letterSpacing="-0.02"
+                android:lineSpacingMultiplier="1.1"
+                android:maxLines="2"
+                android:textColor="@color/always_white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <de.hdodenhof.circleimageview.CircleImageView
-                    android:layout_width="20sp"
-
                     android:id="@+id/user_head"
-                    android:layout_marginStart="@dimen/eight_dp"
-                    android:layout_marginBottom="@dimen/eight_dp"
-                    android:layout_marginTop="@dimen/eight_dp"
-                    android:layout_marginEnd="@dimen/four_dp"
-                    android:layout_height="20sp" />
-
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="6dp" />
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:textSize="11sp"
-                    android:shadowColor="#FF000000"
-                    android:shadowDx="1.5"
-                    android:shadowDy="1.5"
-                    android:layout_toEndOf="@+id/user_head"
-                    android:shadowRadius="1.5"
-                    android:layout_centerVertical="true"
-                    android:layout_marginEnd="@dimen/eight_dp"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold"
                     android:id="@+id/author"
-                    android:layout_height="wrap_content" />
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="#E6FFFFFF"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
 
-            </RelativeLayout>
-
-
-        </RelativeLayout>
     </androidx.cardview.widget.CardView>
+
 </layout>

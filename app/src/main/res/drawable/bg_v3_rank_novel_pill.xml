@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 排行榜小说 hero 卡右上角的字数胶囊:压在封面上的半透明恒暗底(不随日夜),白字在任意封面上可读。
+     同 v3_nav_btn_bg 的色阶,只是改成 999 圆角胶囊而不是圆。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#66000000" />
+    <corners android:radius="999dp" />
+</shape>
