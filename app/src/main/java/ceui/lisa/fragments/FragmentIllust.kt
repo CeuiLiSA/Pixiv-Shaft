@@ -129,6 +129,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     override fun initView() {
+        // 导航栏占位要在快照 early-return 之前挂好,否则离线快照页底栏压在手势条上。
+        applyNavigationBarInset()
         if (isSnapshotMode) {
             setupSnapshotView()
             return
@@ -158,6 +160,13 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             if (changed == userId) userLiveData.value?.let { updateUser(it) }
         }
 
+        val illust = illustLiveData.value ?: return
+        baseBind.user = userLiveData
+
+        observeMuteStatus(illust)
+    }
+
+    private fun applyNavigationBarInset() {
         ViewCompat.setOnApplyWindowInsetsListener(baseBind.root) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
             if (insets.bottom > 0) {
@@ -170,10 +179,6 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             }
             windowInsets
         }
-        val illust = illustLiveData.value ?: return
-        baseBind.user = userLiveData
-
-        observeMuteStatus(illust)
     }
 
     // ── 快照只读模式（实验）──────────────────────────────────────────────
