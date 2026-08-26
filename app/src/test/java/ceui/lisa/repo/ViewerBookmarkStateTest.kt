@@ -2,7 +2,7 @@ package ceui.lisa.repo
 
 import ceui.lisa.model.ListIllust
 import ceui.lisa.model.ListNovel
-import ceui.lisa.repo.BorrowedSearchPage.withViewerBookmarkState
+import ceui.lisa.repo.ViewerBookmarkState.withViewerBookmarkState
 import ceui.loxia.Illust
 import ceui.loxia.Novel
 import org.junit.Assert.assertEquals
@@ -10,16 +10,16 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Test
 
-/** #1063：借号页里的 is_bookmarked 是借来那个号的视角，出仓前必须换成当前用户已知的收藏态。 */
-class BorrowedSearchPageTest {
+/** #1063：这条链路返回的 is_bookmarked 不代表当前用户，出仓前必须换成当前用户已知的收藏态。 */
+class ViewerBookmarkStateTest {
 
     @Test
-    fun `illust page drops borrowed bookmark state and keeps what the viewer already knows`() {
+    fun `illust page drops upstream bookmark state and keeps what the viewer already knows`() {
         val page = ListIllust().apply {
             setNext_url("https://app-api.pixiv.net/v1/search/illust?offset=30")
             illusts = listOf(
-                Illust(id = 1L, is_bookmarked = true),   // 借来的号收藏了，当前用户没收藏
-                Illust(id = 2L, is_bookmarked = false),  // 借来的号没收藏，当前用户收藏了（报告人的场景）
+                Illust(id = 1L, is_bookmarked = true),   // 上游说收藏了，当前用户其实没收藏
+                Illust(id = 2L, is_bookmarked = false),  // 上游说没收藏，当前用户其实收藏了（报告人的场景）
                 Illust(id = 3L, is_bookmarked = false),  // 当前用户没看过：不知道
             )
         }

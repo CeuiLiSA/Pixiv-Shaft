@@ -6,7 +6,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.core.Mapper
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListNovel
-import ceui.lisa.repo.BorrowedSearchPage.withViewerBookmarkState
+import ceui.lisa.repo.ViewerBookmarkState.withViewerBookmarkState
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import ceui.pixiv.actions.AccountOnlineReportOutbox
