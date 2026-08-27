@@ -8,6 +8,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.http.Retro
 import ceui.loxia.Illust
+import ceui.loxia.ObjectPool
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.pixiv.ui.common.IllustFeedItem
@@ -128,7 +129,11 @@ class DiscoverViewModel(application: Application) : AndroidViewModel(application
                             IllustFeedItem.passesContentFilters(illust, skipR18Filter = false) &&
                             !IllustNovelFilter.judgeID(illust) &&
                             !IllustNovelFilter.shouldBlurAi(illust)
-                    }.take(RAIL_LIMIT)
+                    }.take(RAIL_LIMIT).onEach { illust ->
+                        // 入池：货架点击进 VActivity/ArtworkV3 是按 id 读池的，不入池首屏就得先转圈拉
+                        // illust/detail（对齐旧 Mapper 与 feeds 侧 IllustFeedSync 的做法）。后台线程调用安全。
+                        ObjectPool.updateIllust(illust)
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
