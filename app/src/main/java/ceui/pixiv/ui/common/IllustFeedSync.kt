@@ -202,11 +202,22 @@ class IllustFeedPoolSync(
                                 // staged 兼作本轮内去重（同一实例在一次扫描里出现两次时只合一次），
                                 // 这正是原先 put 的返回值顺带干的活。
                                 val known = staged[id] ?: syncViewModel.pooledBeans[id]
-                                if (known !== bean) {
-                                    ObjectPool.updateIllust(bean)
-                                    freshBeans.add(bean)
+                                if (known === bean) return@forEach
+                                if (known != null && known.copy(is_bookmarked = bean.is_bookmarked) == bean) {
+                                    // 只是收藏态翻转产生的等价新实例（本页点爱心 / LIKED_ILLUST 广播
+                                    // 绕回，见 IllustFeedItem.withBookmarked）：它的 user 还是列表加载
+                                    // 时的旧快照，若走下面的 updateIllust + fill，里面陈旧的
+                                    // is_followed=false 会盖掉池里 / AppLevelState 里用户这次会话刚点的
+                                    // 「已关注」（false 不是空值，mergeKeepingExisting 不会替它挡；
+                                    // NORMAL 方法也只在传入 FOLLOWED 时早退）。只同步作品本身
+                                    //（幂等；顺带兜住刷新时服务端只变了收藏态的情况），不碰 user。
+                                    ObjectPool.update(bean)
                                     staged[id] = bean
+                                    return@forEach
                                 }
+                                ObjectPool.updateIllust(bean)
+                                freshBeans.add(bean)
+                                staged[id] = bean
                             }
                         }
                         if (freshBeans.isNotEmpty()) {
