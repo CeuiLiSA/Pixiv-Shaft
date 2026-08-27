@@ -121,6 +121,15 @@ object SnapshotRepository {
         val snapshotDir = dir(context, snapshotId)
         val manifest = SnapshotValidator.readJson<SnapshotManifest>(File(snapshotDir, SNAPSHOT_MANIFEST))
             ?: throw SnapshotException("快照不存在或 manifest 损坏: $snapshotId")
+        return loadViewerData(context, snapshotId, manifest)
+    }
+
+    internal fun loadViewerData(
+        context: Context,
+        snapshotId: String,
+        manifest: SnapshotManifest,
+    ): SnapshotViewerData {
+        val snapshotDir = dir(context, snapshotId)
         val illust = SnapshotValidator.readJson<Illust>(File(snapshotDir, SNAPSHOT_ILLUST_JSON))
             ?: throw SnapshotException("快照缺少 illust.json: $snapshotId")
         val assets = SnapshotValidator.readJson<SnapshotAssets>(File(snapshotDir, SNAPSHOT_ASSETS_JSON))?.assets ?: emptyMap()

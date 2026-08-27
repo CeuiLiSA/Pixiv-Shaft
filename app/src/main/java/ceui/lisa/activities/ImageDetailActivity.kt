@@ -61,6 +61,7 @@ import ceui.pixiv.ui.upscale.UpscaleTask
 import ceui.pixiv.ui.upscale.UpscaleTaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.snapshot.AutoSnapshotRepository
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
@@ -361,6 +362,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             finish()
             return
         }
+        val snapshotIsAuto = intent.getBooleanExtra(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false)
         val cached = SnapshotRuntimeCache.get(snapshotId)
         if (cached != null) {
             bindSnapshotViewer(cached)
@@ -371,7 +373,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             // 裸 launch 里逃逸的异常直接崩进程,这里就地兜住:提示 + 关页。
             val data = try {
                 withContext(Dispatchers.IO) {
-                    SnapshotRepository.loadViewerData(applicationContext, snapshotId)
+                    if (snapshotIsAuto) {
+                        AutoSnapshotRepository.loadAutoViewerData(applicationContext, snapshotId)
+                    } else {
+                        SnapshotRepository.loadViewerData(applicationContext, snapshotId)
+                    }
                 }
             } catch (ce: kotlinx.coroutines.CancellationException) {
                 throw ce

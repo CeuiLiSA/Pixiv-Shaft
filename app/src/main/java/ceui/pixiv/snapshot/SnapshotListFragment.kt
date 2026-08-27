@@ -36,6 +36,9 @@ import java.util.Locale
 /**
  * 离线快照管理页的单个 Tab：双列瀑布流卡片，按 manifest.type 过滤。
  * filter == null 表示“全部”。
+ *
+ * 列表由正式快照（SnapshotSummary）和自动快照（AutoSnapshotSummary）合并而成：
+ * 自动快照带“自动”标记，长按弹窗可转正/删除，多选模式下不显示勾选框。
  */
 class SnapshotListFragment : Fragment() {
 
@@ -50,6 +53,7 @@ class SnapshotListFragment : Fragment() {
         onOpen = { openSnapshot(it) },
         onExport = { exportSnapshot(it) },
         onDelete = { confirmDelete(it) },
+        onLongPress = { onLongPress(it) },
     ).also { adapter ->
         adapter.onSelectionToggle = { onSelectionCountChanged?.invoke(adapter.selectedIds.size) }
     }
@@ -91,8 +95,6 @@ class SnapshotListFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // 例行刷新:不清空、不回顶。看完一个快照返回时列表内容通常一模一样,
-        // Diff 出来是零变更,滚动位置原样保留。
         reload()
     }
 
@@ -101,35 +103,33 @@ class SnapshotListFragment : Fragment() {
         _binding = null
     }
 
-    /**
-     * [resetScroll] 只在导入/删除这类**结构性变更**后传 true。
-     *
-     * 「先清空再提交 + 回顶」是为了让双列瀑布流按新顺序重新布局(否则新卡会被 Diff 塞进
-     * 右列/旧列错位)——那是新卡进来时才需要付的代价。onResume 的例行刷新也这么干的话,
-     * 每次从详情页返回列表都要整个闪一下并跳回顶部,快照一多就再也找不回刚才看到哪了。
-     */
     fun reload(resetScroll: Boolean = false) {
         val appContext = requireContext().applicationContext
         lifecycleScope.launch {
             val all = try {
-                withContext(Dispatchers.IO) { SnapshotRepository.list(appContext) }
+                withContext(Dispatchers.IO) {
+                    val formal = SnapshotRepository.list(appContext).map { FormalSnapshotCard(it) }
+                    val auto = AutoSnapshotRepository.listAuto(appContext).map { AutoSnapshotCard(it) }
+                    (formal + auto)
+                        .filter { filter == null || it.type == filter }
+                        .sortedByDescending { it.createdAt }
+                }
             } catch (ce: CancellationException) {
                 throw ce
             } catch (e: Exception) {
                 Timber.w(e, "[Snapshot] list failed")
                 return@launch
             }
-            val list = if (filter == null) all else all.filter { it.manifest.type == filter }
             if (_binding == null) return@launch
             if (resetScroll) adapter.submitList(null)
-            adapter.submitList(list)
-            binding.emptyHint.isVisible = list.isEmpty()
+            adapter.submitList(all)
+            binding.emptyHint.isVisible = all.isEmpty()
             if (resetScroll) binding.snapshotList.scrollToPosition(0)
         }
     }
 
     fun enterSelectionMode() {
-        if (adapter.currentList.isEmpty()) return
+        if (!hasItems()) return
         adapter.setSelectionMode(true)
         onSelectionCountChanged?.invoke(0)
     }
@@ -139,12 +139,17 @@ class SnapshotListFragment : Fragment() {
         onSelectionCountChanged?.invoke(0)
     }
 
+    /** 批量操作只包含正式快照；自动快照不可多选、不可批量导出/删除。 */
     fun selectedSnapshots(): List<SnapshotSummary> =
-        adapter.currentList.filter { it.manifest.snapshotId in adapter.selectedIds }
+        adapter.currentList
+            .filterIsInstance<FormalSnapshotCard>()
+            .filter { it.snapshotId in adapter.selectedIds }
+            .map { it.summary }
 
     fun selectedCount(): Int = adapter.selectedIds.size
 
-    fun hasItems(): Boolean = adapter.currentList.isNotEmpty()
+    /** 批量选择只对正式快照有效；自动快照隐匿勾选框，不参与批量操作。 */
+    fun hasItems(): Boolean = adapter.currentList.any { !it.isAuto }
 
     fun isAllSelected(): Boolean = adapter.isAllSelected()
 
@@ -157,18 +162,19 @@ class SnapshotListFragment : Fragment() {
         onSelectionCountChanged?.invoke(adapter.selectedIds.size)
     }
 
-    private fun openSnapshot(summary: SnapshotSummary) {
-        val snapshotId = summary.manifest.snapshotId
+    private fun openSnapshot(card: SnapshotCard) {
+        val snapshotId = card.snapshotId
+        val isAuto = card.isAuto
         val appContext = requireContext().applicationContext
         lifecycleScope.launch {
-            // 先确保内存缓存有完整快照数据，详情页/大图页直接同步消费，避免异步加载竞态。
-            // loadViewerData 对「目录已被删 / illust.json 损坏」是会抛的(卡片可能是上一次
-            // 列表快照,点下去时那份快照已经不在了)——裸 launch 里逃逸出去就是崩进程,
-            // 和 FragmentIllust / ImageDetailActivity 那两个入口一样就地兜住:提示 + 刷新列表。
             try {
                 withContext(Dispatchers.IO) {
                     if (SnapshotRuntimeCache.get(snapshotId) == null) {
-                        val data = SnapshotRepository.loadViewerData(appContext, snapshotId)
+                        val data = if (isAuto) {
+                            AutoSnapshotRepository.loadAutoViewerData(appContext, snapshotId)
+                        } else {
+                            SnapshotRepository.loadViewerData(appContext, snapshotId)
+                        }
                         SnapshotRuntimeCache.put(snapshotId, data)
                     }
                 }
@@ -188,25 +194,82 @@ class SnapshotListFragment : Fragment() {
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照经典查看")
             }
             intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId)
+            intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, isAuto)
             startActivity(intent)
         }
     }
 
-    private fun exportSnapshot(summary: SnapshotSummary) {
-        pendingExportId = summary.manifest.snapshotId
-        exportLauncher.launch(summary.manifest.safeExportFileName())
+    private fun onLongPress(card: SnapshotCard) {
+        when (card) {
+            is AutoSnapshotCard -> showAutoActions(card)
+            is FormalSnapshotCard -> exportSnapshot(card)
+        }
     }
 
-    private fun confirmDelete(summary: SnapshotSummary) {
+    private fun showAutoActions(card: AutoSnapshotCard) {
+        WitDialog.MessageDialogBuilder(requireContext())
+            .setTitle(card.title ?: getString(R.string.snapshot_untitled))
+            .addAction(R.string.snapshot_promote) { dialog, _ ->
+                dialog.dismiss()
+                confirmPromote(card)
+            }
+            .addAction(0, R.string.snapshot_delete, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
+                dialog.dismiss()
+                confirmDelete(card)
+            }
+            .show()
+    }
+
+    private fun confirmPromote(card: AutoSnapshotCard) {
+        WitDialog.MessageDialogBuilder(requireContext())
+            .setTitle(R.string.snapshot_promote_title)
+            .setMessage(R.string.snapshot_promote_confirm)
+            .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+            .addAction(R.string.snapshot_promote) { dialog, _ ->
+                dialog.dismiss()
+                val appContext = requireContext().applicationContext
+                lifecycleScope.launch {
+                    try {
+                        withContext(Dispatchers.IO) {
+                            SnapshotPromoter.promote(appContext, card.snapshotId)
+                        }
+                        Common.showToast(getString(R.string.snapshot_promote_success))
+                        reload()
+                    } catch (ce: CancellationException) {
+                        throw ce
+                    } catch (e: Exception) {
+                        Timber.w(e, "[Snapshot] promote failed, id=%s", card.snapshotId)
+                        Common.showToast(getString(R.string.snapshot_promote_failed, e.message ?: ""))
+                    }
+                }
+            }
+            .show()
+    }
+
+    private fun exportSnapshot(card: SnapshotCard) {
+        // 自动快照不允许导出，只有转正为 SnapshotManifest 后才可导出。
+        if (card is AutoSnapshotCard) return
+        val formal = card as FormalSnapshotCard
+        pendingExportId = formal.snapshotId
+        exportLauncher.launch(formal.summary.manifest.safeExportFileName())
+    }
+
+    private fun confirmDelete(card: SnapshotCard) {
         WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(R.string.snapshot_delete)
-            .setMessage(getString(R.string.snapshot_delete_confirm, summary.manifest.title ?: summary.manifest.snapshotId))
+            .setMessage(getString(R.string.snapshot_delete_confirm, card.title ?: card.snapshotId))
             .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.snapshot_delete, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 dialog.dismiss()
                 val appContext = requireContext().applicationContext
                 lifecycleScope.launch {
-                    val ok = withContext(Dispatchers.IO) { SnapshotRepository.delete(appContext, summary.manifest.snapshotId) }
+                    val ok = withContext(Dispatchers.IO) {
+                        if (card.isAuto) {
+                            AutoSnapshotRepository.deleteAuto(appContext, card.snapshotId)
+                        } else {
+                            SnapshotRepository.delete(appContext, card.snapshotId)
+                        }
+                    }
                     if (ok) Common.showToast(getString(R.string.snapshot_delete_success)) else Common.showToast(getString(R.string.snapshot_delete_failed))
                     reload(resetScroll = true)
                 }
@@ -228,16 +291,17 @@ class SnapshotListFragment : Fragment() {
 }
 
 private class SnapshotAdapter(
-    private val onOpen: (SnapshotSummary) -> Unit,
-    private val onExport: (SnapshotSummary) -> Unit,
-    private val onDelete: (SnapshotSummary) -> Unit,
-) : ListAdapter<SnapshotSummary, SnapshotViewHolder>(DIFF) {
+    private val onOpen: (SnapshotCard) -> Unit,
+    private val onExport: (SnapshotCard) -> Unit,
+    private val onDelete: (SnapshotCard) -> Unit,
+    private val onLongPress: (SnapshotCard) -> Unit,
+) : ListAdapter<SnapshotCard, SnapshotViewHolder>(DIFF) {
 
     var selectionMode: Boolean = false
         private set
 
     val selectedIds = linkedSetOf<String>()
-    var onSelectionToggle: ((SnapshotSummary) -> Unit)? = null
+    var onSelectionToggle: ((SnapshotCard) -> Unit)? = null
 
     fun setSelectionMode(enabled: Boolean) {
         if (selectionMode == enabled) return
@@ -246,19 +310,19 @@ private class SnapshotAdapter(
         notifyDataSetChanged()
     }
 
-    fun toggleSelection(summary: SnapshotSummary) {
-        if (!selectionMode) return
-        if (!selectedIds.add(summary.manifest.snapshotId)) {
-            selectedIds.remove(summary.manifest.snapshotId)
+    fun toggleSelection(card: SnapshotCard) {
+        if (!selectionMode || card.isAuto) return
+        if (!selectedIds.add(card.snapshotId)) {
+            selectedIds.remove(card.snapshotId)
         }
-        onSelectionToggle?.invoke(summary)
+        onSelectionToggle?.invoke(card)
         notifyDataSetChanged()
     }
 
     fun selectAll() {
         if (!selectionMode) return
         selectedIds.clear()
-        selectedIds.addAll(currentList.map { it.manifest.snapshotId })
+        selectedIds.addAll(currentList.filter { !it.isAuto }.map { it.snapshotId })
         notifyDataSetChanged()
     }
 
@@ -267,8 +331,10 @@ private class SnapshotAdapter(
         notifyDataSetChanged()
     }
 
-    fun isAllSelected(): Boolean =
-        currentList.isNotEmpty() && selectedIds.size == currentList.size
+    fun isAllSelected(): Boolean {
+        val selectable = currentList.count { !it.isAuto }
+        return selectable > 0 && selectedIds.size == selectable
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SnapshotViewHolder {
         val binding = ItemSnapshotBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -276,24 +342,25 @@ private class SnapshotAdapter(
     }
 
     override fun onBindViewHolder(holder: SnapshotViewHolder, position: Int) {
-        val summary = getItem(position)
+        val card = getItem(position)
         holder.bind(
-            summary = summary,
+            card = card,
             onOpen = onOpen,
             onExport = onExport,
             onDelete = onDelete,
+            onLongPress = onLongPress,
             selectionMode = selectionMode,
-            selected = summary.manifest.snapshotId in selectedIds,
-            onToggleSelection = { toggleSelection(summary) },
+            selected = card.snapshotId in selectedIds,
+            onToggleSelection = { toggleSelection(card) },
         )
     }
 
     companion object {
-        private val DIFF = object : DiffUtil.ItemCallback<SnapshotSummary>() {
-            override fun areItemsTheSame(oldItem: SnapshotSummary, newItem: SnapshotSummary): Boolean =
-                oldItem.manifest.snapshotId == newItem.manifest.snapshotId
+        private val DIFF = object : DiffUtil.ItemCallback<SnapshotCard>() {
+            override fun areItemsTheSame(oldItem: SnapshotCard, newItem: SnapshotCard): Boolean =
+                oldItem.snapshotId == newItem.snapshotId
 
-            override fun areContentsTheSame(oldItem: SnapshotSummary, newItem: SnapshotSummary): Boolean =
+            override fun areContentsTheSame(oldItem: SnapshotCard, newItem: SnapshotCard): Boolean =
                 oldItem == newItem
         }
     }
@@ -304,42 +371,42 @@ private class SnapshotViewHolder(
 ) : RecyclerView.ViewHolder(binding.root) {
 
     private companion object {
-        // 只在主线程 bind 里用,一份即可:每格现构造一个 SimpleDateFormat 等于每次滑动
-        // 都重新解析一遍 pattern + 查一遍 Locale/TimeZone,而格式是常量。
         val TIME_FORMAT = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
     }
 
     fun bind(
-        summary: SnapshotSummary,
-        onOpen: (SnapshotSummary) -> Unit,
-        onExport: (SnapshotSummary) -> Unit,
-        onDelete: (SnapshotSummary) -> Unit,
+        card: SnapshotCard,
+        onOpen: (SnapshotCard) -> Unit,
+        onExport: (SnapshotCard) -> Unit,
+        onDelete: (SnapshotCard) -> Unit,
+        onLongPress: (SnapshotCard) -> Unit,
         selectionMode: Boolean,
         selected: Boolean,
         onToggleSelection: () -> Unit,
     ) {
         val context = binding.root.context
-        if (summary.coverFile != null) {
-            Glide.with(binding.cover).load(summary.coverFile).into(binding.cover)
+        if (card.coverFile != null) {
+            Glide.with(binding.cover).load(card.coverFile).into(binding.cover)
         } else {
             Glide.with(binding.cover).clear(binding.cover)
         }
-        binding.title.text = summary.manifest.title ?: context.getString(R.string.snapshot_untitled)
+        binding.title.text = card.title ?: context.getString(R.string.snapshot_untitled)
         binding.author.text = listOfNotNull(
-            summary.manifest.authorName,
-            "ID ${summary.manifest.authorId ?: summary.manifest.illustId}",
+            card.authorName,
+            "ID ${card.authorId ?: card.illustId}",
         ).joinToString(" · ")
-        val time = TIME_FORMAT.format(Date(summary.manifest.createdAt))
+        val time = TIME_FORMAT.format(Date(card.createdAt))
         binding.time.text = context.getString(
             R.string.snapshot_meta_format,
             time,
-            Formatter.formatShortFileSize(context, summary.totalSize),
+            Formatter.formatShortFileSize(context, card.totalSize),
         )
-        binding.commentTag.isVisible = summary.manifest.includeComments
-        binding.originalTag.isVisible = summary.manifest.includeOriginal
+        binding.autoTag.isVisible = card.isAuto
+        binding.commentTag.isVisible = card.includeComments
+        binding.originalTag.isVisible = card.includeOriginal
 
-        val isR18 = (summary.manifest.xRestrict ?: 0) > 0
-        val pageCount = summary.manifest.pageCount ?: 1
+        val isR18 = (card.xRestrict ?: 0) > 0
+        val pageCount = card.pageCount ?: 1
         binding.r18Badge.isVisible = isR18
         binding.pSize.isVisible = pageCount > 1
         if (pageCount > 1) {
@@ -349,17 +416,26 @@ private class SnapshotViewHolder(
         binding.badgeRow.isVisible = !selectionMode
 
         HistorySelectBadge.bindSelection(binding.selectCheck, binding.deleteButton, selectionMode, selected)
+        // 自动快照在多选态隐匿勾选框，且不可被点选进入批量操作。
+        binding.selectCheck.isVisible = selectionMode && !card.isAuto
+
         if (selectionMode) {
-            binding.root.setOnClickListener { onToggleSelection() }
-            binding.root.setOnLongClickListener(null)
-            binding.deleteButton.setOnClickListener(null)
+            if (card.isAuto) {
+                binding.root.setOnClickListener(null)
+                binding.root.setOnLongClickListener(null)
+                binding.deleteButton.setOnClickListener(null)
+            } else {
+                binding.root.setOnClickListener { onToggleSelection() }
+                binding.root.setOnLongClickListener(null)
+                binding.deleteButton.setOnClickListener(null)
+            }
         } else {
-            binding.root.setOnClickListener { onOpen(summary) }
+            binding.root.setOnClickListener { onOpen(card) }
             binding.root.setOnLongClickListener {
-                onExport(summary)
+                if (card.isAuto) onLongPress(card) else onExport(card)
                 true
             }
-            binding.deleteButton.setOnClickListener { onDelete(summary) }
+            binding.deleteButton.setOnClickListener { onDelete(card) }
         }
     }
 }

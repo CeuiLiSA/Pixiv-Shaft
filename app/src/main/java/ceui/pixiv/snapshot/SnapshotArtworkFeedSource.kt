@@ -1,5 +1,6 @@
 package ceui.pixiv.snapshot
 
+import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.loxia.Illust
 import ceui.loxia.Comment
@@ -20,11 +21,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * 快照详情页的 feeds 数据源：读私有快照库，产出与在线 ArtworkV3 相同的 Page/Header 条目。
+ * 快照详情页的 feeds 数据源：读快照库，产出与在线 ArtworkV3 相同的 Page/Header 条目。
  * 不产出作者作品 / 相关作品等需要联网的区块。
+ *
+ * [isAuto] 用于 cache miss 时路由到 AutoSnapshotRepository 或 SnapshotRepository。
  */
 class SnapshotArtworkFeedSource(
     private val snapshotId: String,
+    private val isAuto: Boolean,
 ) : FeedSource<String> {
 
     // FeedSource 契约要求实现 main-safe：load 在主线程被调用，磁盘读、Gson 深拷贝、
@@ -33,12 +37,20 @@ class SnapshotArtworkFeedSource(
         if (cursor != null) return@withContext FeedPage(emptyList(), null)
         // 快照是不可变的，缓存里有就别再读一遍磁盘 + 解一遍整份 JSON(含全部评论)。
         val data = SnapshotRuntimeCache.get(snapshotId)
-            ?: SnapshotRepository.loadViewerData(Shaft.getContext(), snapshotId)
+            ?: loadViewerData(Shaft.getContext())
         SnapshotRuntimeCache.put(snapshotId, data)
         val localized = data.localizeIllust()
         val pageItems = ArtworkV3FeedSource.buildArtworkPageItems(localized)
         val headerItems = buildLocalHeaderItems(data, localized)
         FeedPage(pageItems + headerItems, null)
+    }
+
+    private fun loadViewerData(context: Context): SnapshotViewerData {
+        return if (isAuto) {
+            AutoSnapshotRepository.loadAutoViewerData(context, snapshotId)
+        } else {
+            SnapshotRepository.loadViewerData(context, snapshotId)
+        }
     }
 
     private fun buildLocalHeaderItems(

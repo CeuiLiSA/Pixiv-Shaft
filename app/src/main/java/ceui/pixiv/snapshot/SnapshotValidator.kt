@@ -16,6 +16,12 @@ object SnapshotValidator {
         if (!File(snapshotDir, SNAPSHOT_MANIFEST).isFile) {
             throw SnapshotException("缺少 manifest.json")
         }
+        validateContents(snapshotDir, manifest)
+    }
+
+    /** 校验快照目录内已解析的 manifest 对应的内容，不要求 manifest.json 已落盘。 */
+    internal fun validateContents(snapshotDir: File, manifest: SnapshotManifest) {
+        requireSnapshotId(manifest.snapshotId)
         val illust = readJson<Illust>(File(snapshotDir, SNAPSHOT_ILLUST_JSON))
             ?: throw SnapshotException("缺少或无法解析 illust.json")
         val assets = readJson<SnapshotAssets>(File(snapshotDir, SNAPSHOT_ASSETS_JSON))

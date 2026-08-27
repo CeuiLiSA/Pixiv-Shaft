@@ -118,6 +118,29 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/auto_snapshot_on_bookmark_rela"
+                    style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/wit_row_single">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/setting_auto_snapshot_on_bookmark" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/setting_auto_snapshot_on_bookmark_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/auto_snapshot_on_bookmark"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/is_firebase_enable_rela"
                     style="@style/M3SetRow"
                     android:layout_marginTop="14dp"

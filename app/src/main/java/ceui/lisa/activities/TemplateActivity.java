@@ -531,7 +531,10 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "快照查看": {
                     String snapshotId = intent.getStringExtra(
                             ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID);
-                    return ceui.pixiv.ui.detail.ArtworkV3Fragment.Companion.newInstanceSnapshot(snapshotId);
+                    boolean snapshotIsAuto = intent.getBooleanExtra(
+                            ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false);
+                    return ceui.pixiv.ui.detail.ArtworkV3Fragment.Companion.newInstanceSnapshot(
+                            snapshotId, snapshotIsAuto);
                 }
                 case "快照经典查看": {
                     ceui.lisa.fragments.FragmentIllust classic =
@@ -542,6 +545,10 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID,
                             intent.getStringExtra(
                                     ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID));
+                    classicSnapshotArgs.putBoolean(
+                            ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO,
+                            intent.getBooleanExtra(
+                                    ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false));
                     classic.setArguments(classicSnapshotArgs);
                     return classic;
                 }
@@ -559,6 +566,10 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID,
                             intent.getStringExtra(
                                     ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID));
+                    snapshotCommentArgs.putBoolean(
+                            ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO,
+                            intent.getBooleanExtra(
+                                    ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false));
                     comments.setArguments(snapshotCommentArgs);
                     return comments;
                 }
