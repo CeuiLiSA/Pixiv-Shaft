@@ -396,12 +396,29 @@ object SessionManager {
         }
     }
 
-    fun refreshAccessToken(tokenForThisRequest: String): String? {
-        val freshAccessToken = getAccessToken()
-        if (!TextUtils.equals(freshAccessToken, tokenForThisRequest)) {
-            return freshAccessToken
-        }
+    /**
+     * 见 [SingleFlightTokenRefresher]。锁内会 `withContext(Main)` 回主线程写 LiveData；
+     * 主线程永远不会调 [refreshAccessToken]，不存在反向拿锁，不会死锁。
+     *
+     * 已登出（例如并发线程刚因吊销把会话清掉）时 [getAccessToken] 会 throw，
+     * 这里换成 null，别把异常抛进 OkHttp 线程。
+     */
+    private val tokenRefresher = SingleFlightTokenRefresher(
+        currentToken = { runCatching { getAccessToken() }.getOrNull() },
+        doRefresh = ::doRefreshLocked,
+    )
 
+    /**
+     * 由两套 OkHttp 栈的拦截器（[ceui.loxia.TokenFetcherInterceptor] / Retro 的
+     * [ceui.lisa.http.TokenInterceptor]）在 OkHttp 线程上调用：拿着「本次请求用的
+     * access token」来换一个新的。两栈共用这一把锁，同一个旧 token 只会触发一次真正的刷新请求。
+     *
+     * @return 新 access token；拿不到（网络失败 / 已登出）返回 null，调用方原样返回 400。
+     */
+    fun refreshAccessToken(tokenForThisRequest: String): String? =
+        tokenRefresher.refresh(tokenForThisRequest)
+
+    private fun doRefreshLocked(): String? {
         return runBlocking(Dispatchers.IO) {
             try {
                 val refreshToken = _loggedInAccount.value?.refresh_token
@@ -417,13 +434,13 @@ object SessionManager {
                 }
                 response.accessToken
             } catch (ex: InvalidRefreshTokenException) {
-                Timber.w("Authentication credential revoked; signing out")
+                Timber.tag("TokenRefresh").e(ex, "refresh rejected as INVALID refresh token → signing out + restart")
                 postUpdateSession(null)
                 Common.showToast(R.string.string_340)
                 Common.restart()
                 null
             } catch (ex: Exception) {
-                Timber.e(ex)
+                Timber.tag("TokenRefresh").e(ex, "refresh failed (transient), keeping session")
                 null
             }
         }
@@ -462,7 +479,7 @@ object SessionManager {
      * 这次刷新响应能替**当前登录账号**说的会员状态，说不了就是 null。
      *
      * 判据复用借号那支的 [freshMembershipOf]（uid 对不上就不算数），两处是同一条规则：
-     * 一次 token 刷新只能替它自己指名的那个账号说话。给 Java 侧（TokenInterceptor）也用。
+     * 一次 token 刷新只能替它自己指名的那个账号说话。
      *
      * 这里多一道 `uid > 0`：[freshMembershipOf] 的调用契约是「uid 已保证 > 0」，而
      * [loggedInUid] 在未登录/会话还没加载完时就是 0，而 pixiv-login 在 pixiv 漏发 id 时
@@ -471,24 +488,6 @@ object SessionManager {
     fun freshPremiumOf(response: PixivOAuthResponse): Boolean? {
         val uid = loggedInUid
         return if (uid <= 0L) null else freshMembershipOf(response.user, uid)
-    }
-
-    /**
-     * TokenInterceptor 走旧的 [ceui.lisa.utils.Local] 副本落盘时该写进去的会员状态。
-     *
-     * 优先本次 OAuth 响应（pixiv 亲口说的）；它没说就取会话里那份 —— 会话的值由前台
-     * 静默同步按 `profile.is_premium` 维护，是全 app 唯一会跟着变的一份。SharedPreferences
-     * 里那份只在登录时写过一次，之后再没有任何东西改过它，拿它去上报就是这个 bug 的来源：
-     * 会员过期后一直报 true（号继续被借出去，借的人白花额度），登录后才买的会员一直报 false。
-     */
-    fun premiumForLegacyStore(
-        response: PixivOAuthResponse,
-        fallback: Boolean,
-    ): Boolean {
-        val fresh = freshPremiumOf(response)
-        // 只有 pixiv 这次真说了才算一次观测；退回会话/旧值的那两条路是沿用，不是新读到。
-        if (fresh != null) markPremiumObserved(loggedInUid)
-        return resolvePremiumForReport(fresh, loggedInUser?.is_premium, fallback)
     }
 
     fun getAccessToken(): String {

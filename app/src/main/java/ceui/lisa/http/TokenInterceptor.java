@@ -5,13 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 
 import ceui.lisa.R;
-import ceui.loxia.AccountResponse;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Local;
-import ceui.pixiv.actions.PixivActions;
-import ceui.pixiv.login.InvalidRefreshTokenException;
-import ceui.pixiv.login.PixivLogin;
-import ceui.pixiv.login.PixivOAuthResponse;
 import ceui.pixiv.session.SessionManager;
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -20,7 +14,7 @@ import timber.log.Timber;
 
 /**
  * 检测到 400 OAuth 过期时自动用 refresh_token 换新 access_token，并重放原请求。
- * Token 交换走 {@link PixivLogin}（内部使用共享的 OkHttp + Worker relay 配置）。
+ * Token 交换委托 {@link SessionManager#refreshAccessToken(String)}，与 Client.kt 栈共用同一把单飞锁。
  */
 public class TokenInterceptor implements Interceptor {
 
@@ -52,16 +46,35 @@ public class TokenInterceptor implements Interceptor {
                 Timber.w("Authentication failed without an active session; skipping refresh");
                 return response;
             }
-            Timber.i("Authentication expired; refreshing session");
+            String tokenForThisRequest = stripBearer(request.header("Authorization"));
+            Timber.tag("TokenRefresh").d("[%s] 400 token error on %s %s (Retro stack) → asking for refresh",
+                    Thread.currentThread().getName(), request.method(), request.url().encodedPath());
+            // 刷新统一走 SessionManager 的单飞锁：Client.kt 那套栈（TokenFetcherInterceptor）
+            // 也是它。两套 OkHttp 栈并发 400 时只能有一个线程拿 refresh_token 去换——
+            // pixiv 会轮换 refresh_token，各刷各的会让输家被判「凭证吊销」强制登出。
+            String newAccessToken = SessionManager.INSTANCE.refreshAccessToken(tokenForThisRequest);
+            if (newAccessToken == null) {
+                // 拿不到新 token（网络失败 / 已登出）：原 400 原样交回上层。别提前 close，
+                // Retrofit 还要读 errorBody。
+                Timber.tag("TokenRefresh").w("[%s] no refreshed token for %s %s (Retro stack) → returning original 400",
+                        Thread.currentThread().getName(), request.method(), request.url().encodedPath());
+                return response;
+            }
+            Timber.tag("TokenRefresh").d("[%s] replaying %s %s (Retro stack) with refreshed token",
+                    Thread.currentThread().getName(), request.method(), request.url().encodedPath());
             response.close();
-            String newBearer = getNewToken(request.header("Authorization"));
             Request newRequest = request
                     .newBuilder()
-                    .header("Authorization", newBearer)
+                    .header("Authorization", "Bearer " + newAccessToken)
                     .build();
             return chain.proceed(newRequest);
         }
         return response;
+    }
+
+    private static String stripBearer(String header) {
+        if (header == null) return "";
+        return header.startsWith("Bearer ") ? header.substring("Bearer ".length()) : header;
     }
 
     private boolean isTokenExpired(Response response) {
@@ -77,56 +90,6 @@ public class TokenInterceptor implements Interceptor {
             logoutAndRestart();
         }
         return false;
-    }
-
-    private synchronized String getNewToken(String tokenForThisRequest) throws IOException {
-        // 等这把锁的期间会话可能已经被清掉（另一个线程 logoutAndRestart / 用户主动登出），
-        // 所以这里必须用不抛异常的那支重新取一次，见 intercept 里的同一条理由。
-        String currentBearer = SessionManager.INSTANCE.getBearerTokenOrEmpty();
-        if (currentBearer.isEmpty()) {
-            throw new IOException("no session to refresh");
-        }
-        // 如果别的线程已经刷过了（当前缓存 ≠ 本请求头），直接复用，避免重复刷新。
-        if (!currentBearer.equals(tokenForThisRequest)) {
-            return currentBearer;
-        }
-        String refreshToken = SessionManager.INSTANCE.getRefreshToken();
-        if (refreshToken == null) {
-            throw new IOException("refresh_token not exist");
-        }
-        try {
-            PixivOAuthResponse response = PixivLogin.INSTANCE.refreshTokenBlocking(refreshToken);
-            AccountResponse cached = Local.getUser();
-            if (cached != null) {
-                cached.setAccess_token(response.getAccessToken());
-                cached.setRefresh_token(response.getRefreshToken());
-                cached.setExpires_in(response.getExpiresIn());
-                if (cached.getUser() != null) {
-                    cached.getUser().set_login(true);
-                    // 会员状态**不能**沿用这份 SharedPreferences 副本里的：它是登录那一刻
-                    // 写下来的，之后只有 SessionManager(MMKV) 那份会被资料同步修正，这份
-                    // 从此再没变过。照抄它上报，就是「会员过期了还报有会员 / 登录后买的会员
-                    // 一直报没有」的来源——前者让号留在借号池里，借到的人白花一次额度。
-                    cached.getUser().set_premium(SessionManager.INSTANCE.premiumForLegacyStore(
-                            response, Boolean.TRUE.equals(cached.getUser().is_premium())));
-                }
-                long uid = cached.getUser() != null ? cached.getUserId() : 0L;
-                PixivActions.bindAccountOnline(uid, cached);
-                Local.saveUser(cached);
-            } else {
-                SessionManager.INSTANCE.applyTokenRefresh(
-                        response.getAccessToken(),
-                        response.getRefreshToken(),
-                        response.getExpiresIn(),
-                        SessionManager.INSTANCE.freshPremiumOf(response));
-            }
-            return "Bearer " + response.getAccessToken();
-        } catch (InvalidRefreshTokenException ex) {
-            logoutAndRestart();
-            throw new IOException("refresh_token revoked", ex);
-        } catch (Exception ex) {
-            throw new IOException("Token refresh failed", ex);
-        }
     }
 
     private static void logoutAndRestart() {
