@@ -2111,6 +2111,17 @@
     <string name="search_filter_v3_date_start">起始日期</string>
     <string name="search_filter_v3_date_end">截止日期</string>
     <string name="search_filter_v3_date_unset">未设置</string>
+    <string name="search_filter_v3_shift_step">平移步长</string>
+    <string name="search_filter_v3_shift_step_day">天</string>
+    <string name="search_filter_v3_shift_step_week">周</string>
+    <string name="search_filter_v3_shift_step_month">月</string>
+    <string name="search_filter_v3_shift_step_year">年</string>
+    <string name="search_filter_v3_shift_prev">往前%1$s</string>
+    <string name="search_filter_v3_shift_next">往后%1$s</string>
+    <string name="search_filter_v3_shift_unit_day">一天</string>
+    <string name="search_filter_v3_shift_unit_week">一周</string>
+    <string name="search_filter_v3_shift_unit_month">一个月</string>
+    <string name="search_filter_v3_shift_unit_year">一年</string>
     <string name="search_filter_v3_row_original_only">仅限原创作品</string>
     <string name="search_filter_v3_row_replaceable_only">仅限支持单词置换的作品</string>
     <string name="search_filter_v3_row_group_by_series">系列作品归纳</string>

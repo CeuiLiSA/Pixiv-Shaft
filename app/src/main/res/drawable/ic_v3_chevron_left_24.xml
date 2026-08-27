@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ic_v3_chevron_24 的左向镜像「‹」，DateRangePickerSheet「往前」按钮用；颜色 runtime tint。 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="22dp"
+    android:height="22dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M14.71,6.71a1,1 0,0 1,0 1.41L10.83,12l3.88,3.88a1,1 0,1 1,-1.42 1.41L8.7,12.7a1,1 0,0 1,0 -1.41l4.59,-4.59a1,1 0,0 1,1.42 0z" />
+</vector>

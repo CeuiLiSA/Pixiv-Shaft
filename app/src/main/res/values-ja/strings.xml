@@ -1913,6 +1913,17 @@
     <string name="search_filter_v3_date_start">開始日</string>
     <string name="search_filter_v3_date_end">終了日</string>
     <string name="search_filter_v3_date_unset">未設定</string>
+    <string name="search_filter_v3_shift_step">移動単位</string>
+    <string name="search_filter_v3_shift_step_day">日</string>
+    <string name="search_filter_v3_shift_step_week">週</string>
+    <string name="search_filter_v3_shift_step_month">月</string>
+    <string name="search_filter_v3_shift_step_year">年</string>
+    <string name="search_filter_v3_shift_prev">%1$s前へ</string>
+    <string name="search_filter_v3_shift_next">%1$s後へ</string>
+    <string name="search_filter_v3_shift_unit_day">1日</string>
+    <string name="search_filter_v3_shift_unit_week">1週間</string>
+    <string name="search_filter_v3_shift_unit_month">1ヶ月</string>
+    <string name="search_filter_v3_shift_unit_year">1年</string>
     <string name="search_filter_v3_row_original_only">オリジナル作品のみ</string>
     <string name="search_filter_v3_row_replaceable_only">単語置換対応作品のみ</string>
     <string name="search_filter_v3_row_group_by_series">シリーズ単位で表示</string>

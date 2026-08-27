@@ -1913,6 +1913,17 @@
     <string name="search_filter_v3_date_start">Start date</string>
     <string name="search_filter_v3_date_end">End date</string>
     <string name="search_filter_v3_date_unset">Not set</string>
+    <string name="search_filter_v3_shift_step">Shift by</string>
+    <string name="search_filter_v3_shift_step_day">Day</string>
+    <string name="search_filter_v3_shift_step_week">Week</string>
+    <string name="search_filter_v3_shift_step_month">Month</string>
+    <string name="search_filter_v3_shift_step_year">Year</string>
+    <string name="search_filter_v3_shift_prev">Back %1$s</string>
+    <string name="search_filter_v3_shift_next">Forward %1$s</string>
+    <string name="search_filter_v3_shift_unit_day">1 day</string>
+    <string name="search_filter_v3_shift_unit_week">1 week</string>
+    <string name="search_filter_v3_shift_unit_month">1 month</string>
+    <string name="search_filter_v3_shift_unit_year">1 year</string>
     <string name="search_filter_v3_row_original_only">Original works only</string>
     <string name="search_filter_v3_row_replaceable_only">Word-replaceable only</string>
     <string name="search_filter_v3_row_group_by_series">Group works by series</string>

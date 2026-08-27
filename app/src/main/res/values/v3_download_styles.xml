@@ -41,4 +41,19 @@
         <item name="android:textAllCaps">true</item>
         <item name="android:includeFontPadding">false</item>
     </style>
+
+    <!-- V3 搜索「指定期间」sheet 里的平移步长胶囊（日/周/月/年）；选中态颜色 runtime 给 -->
+    <style name="V3DateShiftStepPill">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">6dp</item>
+        <item name="android:background">@drawable/bg_v3_chip</item>
+        <item name="android:paddingStart">11dp</item>
+        <item name="android:paddingEnd">11dp</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingBottom">5dp</item>
+        <item name="android:textColor">@color/v3_text_3</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
 </resources>

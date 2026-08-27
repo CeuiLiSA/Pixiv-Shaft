@@ -1913,6 +1913,17 @@
     <string name="search_filter_v3_date_start">Başlangıç tarihi</string>
     <string name="search_filter_v3_date_end">Bitiş tarihi</string>
     <string name="search_filter_v3_date_unset">Belirsiz</string>
+    <string name="search_filter_v3_shift_step">Kaydırma adımı</string>
+    <string name="search_filter_v3_shift_step_day">Gün</string>
+    <string name="search_filter_v3_shift_step_week">Hafta</string>
+    <string name="search_filter_v3_shift_step_month">Ay</string>
+    <string name="search_filter_v3_shift_step_year">Yıl</string>
+    <string name="search_filter_v3_shift_prev">%1$s geri</string>
+    <string name="search_filter_v3_shift_next">%1$s ileri</string>
+    <string name="search_filter_v3_shift_unit_day">1 gün</string>
+    <string name="search_filter_v3_shift_unit_week">1 hafta</string>
+    <string name="search_filter_v3_shift_unit_month">1 ay</string>
+    <string name="search_filter_v3_shift_unit_year">1 yıl</string>
     <string name="search_filter_v3_row_original_only">Yalnızca özgün eserler</string>
     <string name="search_filter_v3_row_replaceable_only">Yalnızca kelime değiştirilebilir</string>
     <string name="search_filter_v3_row_group_by_series">Seri olarak grupla</string>

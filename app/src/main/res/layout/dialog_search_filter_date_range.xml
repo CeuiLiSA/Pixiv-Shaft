@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 「指定期间」自定义起止日期 picker —— DateRangePickerSheet。
      左「取消」/ 标题 / 右「确定」；下面两行起 / 止日期 + 清除按钮。
-     选完起始日自动续弹结束日 picker（issue #718 起的体验）。 -->
+     选完起始日自动续弹结束日 picker（issue #718 起的体验）。
+     下面第二张卡「整体平移」：选好范围后按 日/周/月/年 步长把起止一起前推/后推，
+     不用重新手挑两次日期（参考 pixez-flutter#1316 的预设思路 + 用户建议）。 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -62,6 +65,11 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:background="@drawable/bg_v3_settings_card"
             android:tag="v3_card"
             android:clipToOutline="true"
@@ -102,6 +110,111 @@
                 android:textSize="15sp"
                 android:visibility="gone"
                 tools:visibility="visible" />
+        </LinearLayout>
+
+        <!-- 整体平移：起止日期一起按步长前推 / 后推。两端都未设时整卡 GONE。 -->
+        <LinearLayout
+            android:id="@+id/shift_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_v3_settings_card"
+            android:tag="v3_card"
+            android:clipToOutline="true"
+            android:orientation="vertical"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:orientation="horizontal"
+                android:paddingStart="18dp"
+                android:paddingEnd="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/search_filter_v3_shift_step"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/step_day"
+                    style="@style/V3DateShiftStepPill"
+                    android:text="@string/search_filter_v3_shift_step_day" />
+
+                <TextView
+                    android:id="@+id/step_week"
+                    style="@style/V3DateShiftStepPill"
+                    android:text="@string/search_filter_v3_shift_step_week" />
+
+                <TextView
+                    android:id="@+id/step_month"
+                    style="@style/V3DateShiftStepPill"
+                    android:text="@string/search_filter_v3_shift_step_month" />
+
+                <TextView
+                    android:id="@+id/step_year"
+                    style="@style/V3DateShiftStepPill"
+                    android:text="@string/search_filter_v3_shift_step_year" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="18dp"
+                android:background="@color/v3_border_2" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="52dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/btn_shift_prev"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackground"
+                    android:drawablePadding="2dp"
+                    android:gravity="center"
+                    android:paddingStart="12dp"
+                    android:paddingTop="15dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="15dp"
+                    android:textSize="15sp"
+                    app:drawableStartCompat="@drawable/ic_v3_chevron_left_24"
+                    tools:text="往前一个月" />
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@color/v3_border_2" />
+
+                <TextView
+                    android:id="@+id/btn_shift_next"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackground"
+                    android:drawablePadding="2dp"
+                    android:gravity="center"
+                    android:paddingStart="12dp"
+                    android:paddingTop="15dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="15dp"
+                    android:textSize="15sp"
+                    app:drawableEndCompat="@drawable/ic_v3_chevron_24"
+                    tools:text="往后一个月" />
+            </LinearLayout>
+        </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>

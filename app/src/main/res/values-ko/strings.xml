@@ -1913,6 +1913,17 @@
     <string name="search_filter_v3_date_start">시작일</string>
     <string name="search_filter_v3_date_end">종료일</string>
     <string name="search_filter_v3_date_unset">미설정</string>
+    <string name="search_filter_v3_shift_step">이동 단위</string>
+    <string name="search_filter_v3_shift_step_day">일</string>
+    <string name="search_filter_v3_shift_step_week">주</string>
+    <string name="search_filter_v3_shift_step_month">월</string>
+    <string name="search_filter_v3_shift_step_year">년</string>
+    <string name="search_filter_v3_shift_prev">%1$s 앞으로</string>
+    <string name="search_filter_v3_shift_next">%1$s 뒤로</string>
+    <string name="search_filter_v3_shift_unit_day">1일</string>
+    <string name="search_filter_v3_shift_unit_week">1주</string>
+    <string name="search_filter_v3_shift_unit_month">1개월</string>
+    <string name="search_filter_v3_shift_unit_year">1년</string>
     <string name="search_filter_v3_row_original_only">오리지널 작품만</string>
     <string name="search_filter_v3_row_replaceable_only">단어 치환 가능 작품만</string>
     <string name="search_filter_v3_row_group_by_series">시리즈 단위로 묶기</string>

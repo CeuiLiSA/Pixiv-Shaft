@@ -1913,6 +1913,17 @@
     <string name="search_filter_v3_date_start">Начальная дата</string>
     <string name="search_filter_v3_date_end">Конечная дата</string>
     <string name="search_filter_v3_date_unset">Не задано</string>
+    <string name="search_filter_v3_shift_step">Сдвиг на</string>
+    <string name="search_filter_v3_shift_step_day">День</string>
+    <string name="search_filter_v3_shift_step_week">Неделя</string>
+    <string name="search_filter_v3_shift_step_month">Месяц</string>
+    <string name="search_filter_v3_shift_step_year">Год</string>
+    <string name="search_filter_v3_shift_prev">Назад на %1$s</string>
+    <string name="search_filter_v3_shift_next">Вперёд на %1$s</string>
+    <string name="search_filter_v3_shift_unit_day">1 день</string>
+    <string name="search_filter_v3_shift_unit_week">1 неделю</string>
+    <string name="search_filter_v3_shift_unit_month">1 месяц</string>
+    <string name="search_filter_v3_shift_unit_year">1 год</string>
     <string name="search_filter_v3_row_original_only">Только оригинальные работы</string>
     <string name="search_filter_v3_row_replaceable_only">Только с заменяемыми словами</string>
     <string name="search_filter_v3_row_group_by_series">Группировать по сериям</string>
