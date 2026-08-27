@@ -122,7 +122,7 @@ internal object Nana7miSearchCache {
         val fillKey = FillKey(uid, kind, key)
         // A new lookup supersedes any receipt left by an abandoned older flow.
         fillTokens.remove(fillKey)
-        val resp = try {
+        val lookup = suspend {
             Client.pixshaft.searchCacheLookupRaw(
                 Nana7miSearchCacheLookupReq(
                     uid = uid,
@@ -132,6 +132,12 @@ internal object Nana7miSearchCache {
                     page = page.wire,
                     requestId = requestId,
                 ),
+            )
+        }
+        val resp = try {
+            if (requestId == null) lookup() else retryNana7miNetworkCall(
+                stage = "${stage}_cache_lookup",
+                source = lookup,
             )
         } catch (e: CancellationException) {
             throw e

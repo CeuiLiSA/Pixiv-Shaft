@@ -118,7 +118,19 @@ internal class Nana7miAccountSession(
             "stage=fetch event=request requester_uid=%d",
             requesterUid,
         )
-        val fetched = Client.pixshaft.fetchNana7mi(requesterUid, requestId)
+        val fetched = if (requestId == null) {
+            // Legacy servers cannot deduplicate quota consumption, so never replay their dispatch.
+            Client.pixshaft.fetchNana7mi(requesterUid, null)
+        } else {
+            retryNana7miNetworkResult(
+                stage = "dispatch",
+                failureOf = { (it as? Nana7miResult.NetworkFailure)?.cause },
+            ) {
+                // The same id is mandatory: the first request may have reached the server even if
+                // its response did not reach us. Server-side idempotency makes that replay free.
+                Client.pixshaft.fetchNana7mi(requesterUid, requestId)
+            }
+        }
         logFetchResult(requesterUid, fetched)
         if (fetched is Nana7miResult.RateLimited) {
             // 配额拒绝对用户是可见事实（结果会静默降级成热度预览），限流拒绝不是。
@@ -163,8 +175,11 @@ internal class Nana7miAccountSession(
         var activePayload = initial
         var refreshedForThisPage = false
 
-        suspend fun execute(current: Nana7miPayload): T =
+        suspend fun execute(current: Nana7miPayload): T = retryNana7miNetworkCall(stage) {
+            // Search first/next-page calls are GETs, so replaying one transient transport failure
+            // cannot duplicate a mutation. The shared helper caps both attempts at 15 seconds.
             request("Bearer ${current.account.access_token}")
+        }
 
         suspend fun renewAndExecute(reason: String): T {
             // Token rotation + NonCancellable persistence run inside the lease's guarded block:

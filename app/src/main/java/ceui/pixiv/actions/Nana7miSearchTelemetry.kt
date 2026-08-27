@@ -3,6 +3,7 @@ package ceui.pixiv.actions
 import android.content.Context
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
+import ceui.lisa.http.classifyTransportFailure
 import ceui.loxia.Client
 import ceui.loxia.Nana7miSearchTelemetryAck
 import ceui.loxia.Nana7miSearchTelemetryBatchAck
@@ -18,6 +19,8 @@ import ceui.pixiv.actionqueue.QueuePolicy
 import ceui.pixiv.actionqueue.RetryScope
 import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.websocket.AppNetworkMonitor
+import com.google.gson.JsonParseException
+import com.google.gson.stream.MalformedJsonException
 import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
@@ -480,10 +483,11 @@ class Nana7miSearchTelemetry internal constructor(
         ) {
             try {
                 val http = error?.let { causeChain(it).filterIsInstance<HttpException>().firstOrNull() }
-                val root = error?.let { causeChain(it).last() }
+                val stableErrorType = error?.let(::nana7miTelemetryFailureType)
                 val effectiveReason = reason ?: when {
                     http != null -> "http_${http.code()}"
-                    root is IOException -> "io_failure"
+                    stableErrorType?.startsWith("network_") == true -> "network_failure"
+                    stableErrorType == "decode_json" -> "invalid_response"
                     error != null -> "unexpected_failure"
                     else -> null
                 }
@@ -502,7 +506,7 @@ class Nana7miSearchTelemetry internal constructor(
                     outcome = outcome.wire,
                     flowOutcome = flowOutcome?.wire,
                     reason = effectiveReason?.take(LABEL_MAX_CHARS),
-                    errorType = error?.javaClass?.simpleName?.take(LABEL_MAX_CHARS),
+                    errorType = stableErrorType?.take(LABEL_MAX_CHARS),
                     httpStatus = http?.code(),
                     durationMs = durationMs,
                     appVersion = APP_VERSION,
@@ -781,4 +785,16 @@ private fun Throwable.toTelemetryActionOutcome(isOnline: Boolean): ActionOutcome
     // Converter/protocol errors can be caused by a bad backend rollout. Keep a bounded dead
     // letter and let the six-hour recovery sweep retry after the server has been repaired.
     else -> ActionOutcome.Retry(cause = this, scope = RetryScope.ACTION)
+}
+
+/** Stable labels survive R8 obfuscation and keep wrapper differences out of admin rollups. */
+internal fun nana7miTelemetryFailureType(error: Throwable): String {
+    val causes = generateSequence(error) { current ->
+        current.cause?.takeUnless { it === current }
+    }.toList()
+    return when {
+        causes.any { it is HttpException } -> "http"
+        causes.any { it is JsonParseException || it is MalformedJsonException } -> "decode_json"
+        else -> classifyTransportFailure(error)?.wire ?: "unexpected"
+    }
 }

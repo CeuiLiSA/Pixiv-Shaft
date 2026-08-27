@@ -8,7 +8,10 @@ import ceui.loxia.Nana7miSearchTelemetryReq
 import ceui.pixiv.actionqueue.ActionOutcome
 import ceui.pixiv.actionqueue.PendingAction
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import java.io.IOException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
 import kotlinx.coroutines.runBlocking
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -80,6 +83,21 @@ class Nana7miSearchTelemetryHandlerTest {
     fun `telemetry is disabled when the build has no signing secret`() {
         assertFalse(Nana7miSearchTelemetry.enabledForConfiguration(false))
         assertTrue(Nana7miSearchTelemetry.enabledForConfiguration(true))
+    }
+
+    @Test
+    fun `failure labels are stable across wrappers and obfuscation`() {
+        assertEquals(
+            "network_timeout",
+            nana7miTelemetryFailureType(IOException("outer", SocketTimeoutException("slow"))),
+        )
+        assertEquals(
+            "network_connect",
+            nana7miTelemetryFailureType(IOException("outer", ConnectException("refused"))),
+        )
+        assertEquals("decode_json", nana7miTelemetryFailureType(JsonSyntaxException("bad")))
+        assertEquals("unexpected", nana7miTelemetryFailureType(IllegalStateException("bug")))
+        assertEquals("http", nana7miTelemetryFailureType(httpError(503)))
     }
 
     @Test

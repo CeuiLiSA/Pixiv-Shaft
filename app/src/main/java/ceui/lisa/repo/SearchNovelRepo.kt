@@ -151,49 +151,57 @@ class SearchNovelRepo @JvmOverloads constructor(
 
         val api = Retro.getAppApi()
 
-        suspend fun popularPreviewRequest(): ListNovel = withTitleFallback { target ->
-            api.popularNovelPreview(
-                assembledKeyword,
-                effectiveStartDate,
-                effectiveEndDate,
-                target,
-                bookmarkMin,
-                bookmarkMax,
-                genre,
-                lang,
-                searchAiType,
-                isOriginalOnly,
-                isReplaceableOnly,
-                textLengthMin,
-                textLengthMax,
-                wordCountMin,
-                wordCountMax,
-                readingTimeMin,
-                readingTimeMax,
-            )
+        suspend fun popularPreviewRequest(): ListNovel = retryNana7miNetworkCall(
+            stage = "novel_popular_preview",
+        ) {
+            withTitleFallback { target ->
+                api.popularNovelPreview(
+                    assembledKeyword,
+                    effectiveStartDate,
+                    effectiveEndDate,
+                    target,
+                    bookmarkMin,
+                    bookmarkMax,
+                    genre,
+                    lang,
+                    searchAiType,
+                    isOriginalOnly,
+                    isReplaceableOnly,
+                    textLengthMin,
+                    textLengthMax,
+                    wordCountMin,
+                    wordCountMax,
+                    readingTimeMin,
+                    readingTimeMax,
+                )
+            }
         }
 
-        suspend fun plainSearchRequest(): ListNovel = withTitleFallback { target ->
-            api.searchNovel(
-                assembledKeyword,
-                sortType,
-                effectiveStartDate,
-                effectiveEndDate,
-                target,
-                bookmarkMin,
-                bookmarkMax,
-                genre,
-                lang,
-                searchAiType,
-                isOriginalOnly,
-                isReplaceableOnly,
-                textLengthMin,
-                textLengthMax,
-                wordCountMin,
-                wordCountMax,
-                readingTimeMin,
-                readingTimeMax,
-            )
+        suspend fun plainSearchRequest(): ListNovel = retryNana7miNetworkCall(
+            stage = "novel_plain_search",
+        ) {
+            withTitleFallback { target ->
+                api.searchNovel(
+                    assembledKeyword,
+                    sortType,
+                    effectiveStartDate,
+                    effectiveEndDate,
+                    target,
+                    bookmarkMin,
+                    bookmarkMax,
+                    genre,
+                    lang,
+                    searchAiType,
+                    isOriginalOnly,
+                    isReplaceableOnly,
+                    textLengthMin,
+                    textLengthMax,
+                    wordCountMin,
+                    wordCountMax,
+                    readingTimeMin,
+                    readingTimeMax,
+                )
+            }
         }
 
         suspend fun fallbackPreview(reason: String): ListNovel {

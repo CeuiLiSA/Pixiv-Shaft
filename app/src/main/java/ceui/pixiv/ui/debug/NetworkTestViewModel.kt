@@ -170,7 +170,8 @@ data class NetworkAlert(val titleRes: Int, val message: String)
  *
  * 关键约定（来自 PR #895 的方向）：第 5 步**按目标各自复刻线上真实连接路径**，否则测出来的
  * 「通/不通」对用户没有参考价值——见 [buildHandshakeClient]：
- *   · app-api / pixshaft：H2+H1；直连开启时经 [CronetInterceptor]（QUIC，绕 SNI 阻断）
+ *   · app-api：H2+H1；直连开启时经 [CronetInterceptor]（QUIC，绕 SNI 阻断）
+ *   · pixshaft：H2+H1，始终使用系统 DNS/TLS，不受 Pixiv 直连开关影响
  *   · www.pixiv.net：HTTP/1.1 + [WebHeaderInterceptor]（cookie/Host/UA）；直连开启时经 Cronet
  *   · i.pximg.net：直连开启时无 SNI + 信任所有证书 + 强制 HTTP/1.1（图片服务器按 IP 路由）
  *
@@ -902,7 +903,8 @@ class NetworkTestViewModel : ViewModel() {
     /**
      * 为目标构建与线上同源的 OkHttpClient —— 测什么路径就用 app 真实连这个域名时的那套
      * （见 [Client] 的 createAPPAPI / createPixshaftService 与 Shaft 图片 client）：
-     *   · APP_API / PIXSHAFT：H2+H1；直连开启时挂 [CronetInterceptor]（请求转 QUIC，绕 SNI 阻断）。
+     *   · APP_API：H2+H1；直连开启时挂 [CronetInterceptor]（请求转 QUIC，绕 SNI 阻断）。
+     *   · PIXSHAFT：H2+H1 + 系统 DNS/TLS，和线上 pixshaft client 一致。
      *   · IMAGE：直连开启时无 SNI（[RubySSLSocketFactory]）+ 信任所有证书 + 关主机名校验 + 强制 HTTP/1.1。
      * 连接池 0 空闲 → 每次调用都重新握手；默认用 [pinnedDns] 把域名钉到本次选定的 IP；
      * 未钉 IP（fake-ip / 代理 / Cronet 绕过）时用线上同一个 [IPv4OnlyDns] 过滤污染的 IPv6
@@ -945,7 +947,6 @@ class NetworkTestViewModel : ViewModel() {
             }
             TargetKind.PIXSHAFT -> {
                 builder.protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
-                if (direct) addCronet(builder)
             }
             TargetKind.WEB_API -> {
                 // 镜像 createWebAPIService：H1 + Web 头 + 直连 Cronet。
@@ -967,6 +968,7 @@ class NetworkTestViewModel : ViewModel() {
             if (direct && !ImageHostManager.requiresStandardClient()) strRes(R.string.network_test_path_no_sni)
             else strRes(R.string.network_test_path_standard_tls)
         }
+        TargetKind.PIXSHAFT -> strRes(R.string.network_test_path_standard_tls)
         else -> if (direct) strRes(R.string.network_test_path_cronet) else strRes(R.string.network_test_path_standard_tls)
     }
 

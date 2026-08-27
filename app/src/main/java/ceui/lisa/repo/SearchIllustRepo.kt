@@ -151,42 +151,50 @@ class SearchIllustRepo @JvmOverloads constructor(
 
         val api = Retro.getAppApi()
 
-        suspend fun popularPreviewRequest(): ListIllust = api.popularPreview(
-            assembledKeyword,
-            effectiveStartDate,
-            effectiveEndDate,
-            effectiveSearchTarget,
-            bookmarkMin,
-            bookmarkMax,
-            tool,
-            lang,
-            searchAiType,
-            ratioPattern,
-            contentType,
-            widthMin,
-            widthMax,
-            heightMin,
-            heightMax,
-        )
+        suspend fun popularPreviewRequest(): ListIllust = retryNana7miNetworkCall(
+            stage = "popular_preview",
+        ) {
+            api.popularPreview(
+                assembledKeyword,
+                effectiveStartDate,
+                effectiveEndDate,
+                effectiveSearchTarget,
+                bookmarkMin,
+                bookmarkMax,
+                tool,
+                lang,
+                searchAiType,
+                ratioPattern,
+                contentType,
+                widthMin,
+                widthMax,
+                heightMin,
+                heightMax,
+            )
+        }
 
-        suspend fun plainSearchRequest(): ListIllust = api.searchIllust(
-            assembledKeyword,
-            sortType,
-            effectiveStartDate,
-            effectiveEndDate,
-            effectiveSearchTarget,
-            bookmarkMin,
-            bookmarkMax,
-            tool,
-            lang,
-            searchAiType,
-            ratioPattern,
-            contentType,
-            widthMin,
-            widthMax,
-            heightMin,
-            heightMax,
-        )
+        suspend fun plainSearchRequest(): ListIllust = retryNana7miNetworkCall(
+            stage = "plain_search",
+        ) {
+            api.searchIllust(
+                assembledKeyword,
+                sortType,
+                effectiveStartDate,
+                effectiveEndDate,
+                effectiveSearchTarget,
+                bookmarkMin,
+                bookmarkMax,
+                tool,
+                lang,
+                searchAiType,
+                ratioPattern,
+                contentType,
+                widthMin,
+                widthMax,
+                heightMin,
+                heightMax,
+            )
+        }
 
         suspend fun fallbackPreview(reason: String): ListIllust {
             telemetry?.fallback(reason)

@@ -146,7 +146,7 @@ class ClientManager {
      * 挂上去只是一个恒放行的空拦截器。与 [Retro.buildRetrofit] 的装配范围保持一致。
      *
      * 必须在 [applyDirectConnect] **之前**调用：改写后的域名（用户自建代理）不在
-     * Cronet 的 host_resolver_rules MAP 规则内，交给 Cronet 时走系统 DNS/TLS 解析，
+     * Cronet 的精确 host allowlist 内，直连拦截器会放行给 OkHttp 的系统 DNS/TLS，
      * 二者共存互不干扰。
      */
     private fun applyAppApiProxy(builder: OkHttpClient.Builder) {
@@ -245,7 +245,10 @@ class ClientManager {
                     chain.proceed(req.newBuilder().header("X-Shaft-Sign", sig).build())
                 }
             }
-        applyDirectConnect(httpBuilder)
+        // pixshaft.com is our own backend, not a Pixiv host blocked by SNI. Sending it through
+        // Cronet used to bypass the 6/8-second OkHttp timeouts above (Cronet had its own 30-second
+        // wait) and also discarded OkHttp's connection retry behavior. Keep this client on the
+        // ordinary system DNS/TLS path regardless of Pixiv's "direct connect" preference.
         return Retrofit.Builder()
             .baseUrl(PIXSHAFT_API_HOST)
             .addConverterFactory(GsonConverterFactory.create())

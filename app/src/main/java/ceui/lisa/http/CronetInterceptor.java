@@ -12,9 +12,15 @@ import org.chromium.net.UrlResponseInfo;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
+import java.net.SocketTimeoutException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,6 +43,23 @@ public class CronetInterceptor implements Interceptor {
 
     private static final String TAG = "CronetInterceptor";
     private static final int MAX_RESPONSE_BYTES = 10 * 1024 * 1024; // 10MB
+    private static final long CANCEL_POLL_MILLIS = 100L;
+    private static final long REQUEST_TIMEOUT_MILLIS = TimeUnit.SECONDS.toMillis(30L);
+
+    /**
+     * Cronet direct-connect exists only to reach Pixiv-owned endpoints that are blocked by SNI.
+     * Keeping this as an exact allowlist is also defense in depth for callers: a client that
+     * accidentally installs the interceptor must never reroute pixshaft, a user proxy, or another
+     * third-party origin through Cronet and silently lose that client's OkHttp policy.
+     */
+    private static final Set<String> DIRECT_CONNECT_HOSTS = new HashSet<>(Arrays.asList(
+            "app-api.pixiv.net",
+            "oauth.secure.pixiv.net",
+            "www.pixiv.net",
+            "accounts.pixiv.net",
+            "comic.pixiv.net",
+            "api.fanbox.cc"
+    ));
 
     // Cloudflare Anycast IPs for Pixiv API — shared with HttpDns
     public static final String CF_IP_PRIMARY = "104.18.42.239";
@@ -60,6 +83,14 @@ public class CronetInterceptor implements Interceptor {
 
     public CronetInterceptor(CronetEngine engine) {
         this.engine = engine;
+    }
+
+    public static boolean shouldInterceptHost(String host) {
+        return host != null && DIRECT_CONNECT_HOSTS.contains(host.toLowerCase(Locale.US));
+    }
+
+    static long requestTimeoutMillis() {
+        return REQUEST_TIMEOUT_MILLIS;
     }
 
     private static CronetEngine buildEngine(Context context) {
@@ -87,6 +118,9 @@ public class CronetInterceptor implements Interceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
+        if (!shouldInterceptHost(request.url().host())) {
+            return chain.proceed(request);
+        }
         String url = request.url().toString();
         String method = request.method();
         String path = request.url().encodedPath();
@@ -186,20 +220,49 @@ public class CronetInterceptor implements Interceptor {
         UrlRequest urlRequest = builder.build();
         urlRequest.start();
 
-        try {
-            if (!latch.await(30, TimeUnit.SECONDS)) {
+        // Keep the existing 30-second Cronet deadline: the owning clients' connect/read timeouts
+        // were never applied to this fully-buffered path, and shortening the total here would
+        // change successful slow Pixiv/FANBOX/comic requests into failures. Polling the OkHttp call
+        // still propagates Retrofit/coroutine cancellation instead of leaving Cronet running after
+        // the screen has gone away.
+        long timeoutMillis = requestTimeoutMillis();
+        long deadlineNanos = startTime + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+        while (latch.getCount() != 0L) {
+            if (chain.call().isCanceled()) {
+                urlRequest.cancel();
+                long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+                Log.w(TAG, "←── " + method + " " + shortUrl + " CANCELLED [" + elapsed + "ms]");
+                throw new IOException("Canceled");
+            }
+            long remainingNanos = deadlineNanos - System.nanoTime();
+            if (remainingNanos <= 0L) {
                 urlRequest.cancel();
                 long elapsed = (System.nanoTime() - startTime) / 1_000_000;
                 Log.e(TAG, "←── " + method + " " + shortUrl + " TIMEOUT [" + elapsed + "ms]");
-                throw new IOException("Cronet request timed out: " + url);
+                throw new SocketTimeoutException("Cronet request timed out after " + timeoutMillis + "ms");
             }
-        } catch (InterruptedException e) {
-            urlRequest.cancel();
-            long elapsed = (System.nanoTime() - startTime) / 1_000_000;
-            Log.e(TAG, "←── " + method + " " + shortUrl + " INTERRUPTED [" + elapsed + "ms]");
-            throw new IOException("Cronet request interrupted", e);
+            long waitMillis = Math.min(
+                    CANCEL_POLL_MILLIS,
+                    Math.max(1L, TimeUnit.NANOSECONDS.toMillis(remainingNanos))
+            );
+            try {
+                latch.await(waitMillis, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                urlRequest.cancel();
+                Thread.currentThread().interrupt();
+                long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+                Log.e(TAG, "←── " + method + " " + shortUrl + " INTERRUPTED [" + elapsed + "ms]");
+                InterruptedIOException interrupted =
+                        new InterruptedIOException("Cronet request interrupted");
+                interrupted.initCause(e);
+                throw interrupted;
+            }
         }
 
+        if (chain.call().isCanceled()) {
+            urlRequest.cancel();
+            throw new IOException("Canceled");
+        }
         if (error[0] != null) {
             long elapsed = (System.nanoTime() - startTime) / 1_000_000;
             Log.e(TAG, "←── " + method + " " + shortUrl + " FAILED [" + elapsed + "ms] " + error[0].getMessage());
