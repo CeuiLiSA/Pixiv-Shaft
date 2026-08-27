@@ -40,7 +40,7 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
     private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getLong(Params.USER_ID)
+        Params.getUserId(requireArguments())
     }
     // 命名避开 Fragment.getTag()（同 JVM 签名会被判「accidental override」）。
     private val filterTag: String by lazy(LazyThreadSafetyMode.NONE) {
@@ -52,7 +52,7 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
     }
 
     override val feedViewModel by feedViewModels {
-        // 零捕获：source 只吃 Int userId + String tag + String category。
+        // 零捕获：source 只吃 Long userId + String tag + String category。
         UserIllustByTagFeedSource(userId, filterTag, category)
     }
 

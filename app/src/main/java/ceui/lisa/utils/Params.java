@@ -1,8 +1,39 @@
 package ceui.lisa.utils;
 
+import android.content.Intent;
+import android.os.Bundle;
+
 import ceui.loxia.HeaderInterceptor;
 
 public class Params {
+
+    /**
+     * 读取跨版本保存的 long 参数。
+     *
+     * <p>4.8.9 及更早版本把 {@link #USER_ID} 写成 {@code int}。桌面快捷方式、系统恢复的
+     * Activity intent 和 Fragment arguments 都可能在升级后继续携带旧的 {@link Integer}；
+     * {@link Bundle#getLong(String)} 不会替调用方做数值扩宽，直接读会静默回落到 0。
+     * 新代码仍统一写 long，读取端在这里兼容旧的任意 {@link Number}。</p>
+     */
+    public static long getLongCompat(Bundle bundle, String key) {
+        return coerceLong(bundle == null ? null : bundle.get(key));
+    }
+
+    public static long getLongCompat(Intent intent, String key) {
+        return intent == null ? 0L : getLongCompat(intent.getExtras(), key);
+    }
+
+    public static long getUserId(Bundle bundle) {
+        return getLongCompat(bundle, USER_ID);
+    }
+
+    public static long getUserId(Intent intent) {
+        return getLongCompat(intent, USER_ID);
+    }
+
+    public static long coerceLong(Object value) {
+        return value instanceof Number ? ((Number) value).longValue() : 0L;
+    }
 
     public static final String ID            = "simple id";
     public static final String USER_ID       = "user id";

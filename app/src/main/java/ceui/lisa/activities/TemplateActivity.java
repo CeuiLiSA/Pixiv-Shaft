@@ -160,14 +160,14 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "正在关注":
                     // feeds 框架版，替代 legacy FragmentFollowUser + FollowUserRepo + UAdapter
                     return ceui.pixiv.ui.user.FollowUserFeedFragment.newInstance(
-                            getIntent().getLongExtra(Params.USER_ID, 0L),
+                            Params.getUserId(getIntent()),
                             Params.TYPE_PUBLIC, true);
                 case "好P友":
                     // feeds 框架版，替代 legacy FragmentNiceFriend + NiceFriendRepo + UAdapter。
                     // legacy 直接从 Activity 的 intent 读 USER_ID（它没有 newInstance），
                     // 新版收进 arguments，故这里显式传。
                     return ceui.pixiv.ui.user.NiceFriendFeedFragment.newInstance(
-                            intent.getLongExtra(Params.USER_ID, 0L));
+                            Params.getUserId(intent));
                 case "好P友作品":
                     // feeds 框架版好P友作品流，替代 legacy FragmentNiceFriendIllust
                     return new ceui.pixiv.ui.home.NiceFriendIllustFeedFragment();
@@ -180,7 +180,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "粉丝":
                     // feeds 框架版，替代 legacy FragmentWhoFollowThisUser + WhoFollowThisUserRepo + UAdapter
                     return ceui.pixiv.ui.user.UserFansFeedFragment.newInstance(
-                            intent.getLongExtra(Params.USER_ID, 0L));
+                            Params.getUserId(intent));
                 case "喜欢这个作品的用户":
                     return LikeUsersFeedFragment.newInstance((Illust) intent.getSerializableExtra(Params.CONTENT));
                 case "喜欢这部小说的用户":
@@ -197,19 +197,19 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 }
                 case "插画作品":
                     return ceui.pixiv.ui.user.UserIllustFeedFragment.newInstance(
-                            intent.getLongExtra(Params.USER_ID, 0L),
+                            Params.getUserId(intent),
                             true, intent.getIntExtra(Params.INITIAL_OFFSET, 0),
                             intent.getStringExtra(Params.TARGET_DATE));
                 case "插画标签作品": // issue #569: 按 Tag 筛选画师插画
-                    return UserIllustByTagFeedFragment.newInstance(intent.getLongExtra(Params.USER_ID, 0L),
+                    return UserIllustByTagFeedFragment.newInstance(Params.getUserId(intent),
                             intent.getStringExtra(Params.KEY_WORD));
                 case "漫画标签作品": // issue #996: 按 Tag 筛选画师漫画(与插画同页,网页端点段不同)
-                    return UserIllustByTagFeedFragment.newInstance(intent.getLongExtra(Params.USER_ID, 0L),
+                    return UserIllustByTagFeedFragment.newInstance(Params.getUserId(intent),
                             intent.getStringExtra(Params.KEY_WORD),
                             ceui.pixiv.ui.user.UserTagSearchSheet.CATEGORY_MANGA);
                 case "小说标签作品": // issue #996: 按 Tag 筛选作者小说
                     return ceui.pixiv.ui.user.UserNovelByTagFeedFragment.newInstance(
-                            intent.getLongExtra(Params.USER_ID, 0L),
+                            Params.getUserId(intent),
                             intent.getStringExtra(Params.KEY_WORD));
                 case "约稿方案详情":
                     return ceui.pixiv.ui.user.RequestPlanDetailFragment.newInstance(
@@ -218,14 +218,14 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "漫画作品":
                     // feeds 框架版,替代 legacy FragmentUserManga
                     return ceui.pixiv.ui.user.UserMangaFeedFragment.newInstance(
-                            intent.getLongExtra(Params.USER_ID, 0L),
+                            Params.getUserId(intent),
                             true, intent.getIntExtra(Params.INITIAL_OFFSET, 0),
                             intent.getStringExtra(Params.TARGET_DATE));
                 case "插画/漫画收藏": {
                     // STAR_TYPE / KEY_WORD 可选：同义词词典管理页跳转时带上（issue #904）
                     String starType = intent.getStringExtra(Params.STAR_TYPE);
                     return ceui.pixiv.ui.collection.LikeIllustFeedFragment.newInstance(
-                            intent.getLongExtra(Params.USER_ID, 0L),
+                            Params.getUserId(intent),
                             starType != null ? starType : Params.TYPE_PUBLIC, true,
                             intent.getStringExtra(Params.KEY_WORD));
                 }
@@ -240,14 +240,14 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     String novelStarType = intent.getStringExtra(Params.STAR_TYPE);
                     // feeds 框架版，替代 legacy FragmentLikeNovel + LikeNovelRepo + NAdapter
                     return ceui.pixiv.ui.collection.LikeNovelFeedFragment.newInstance(
-                            intent.getLongExtra(Params.USER_ID, 0L),
+                            Params.getUserId(intent),
                             novelStarType != null ? novelStarType : Params.TYPE_PUBLIC, true,
                             intent.getStringExtra(Params.KEY_WORD));
                 }
                 case "小说作品":
                     // feeds 框架版,替代 legacy FragmentUserNovel
                     return ceui.pixiv.ui.user.UserNovelFeedFragment.newInstance(
-                            intent.getLongExtra(Params.USER_ID, 0L));
+                            Params.getUserId(intent));
                 case "小说详情": {
                     Novel bean = (Novel) intent.getSerializableExtra(Params.CONTENT);
                     long tid = bean != null ? bean.getId() : intent.getLongExtra(Params.NOVEL_ID, 0L);
@@ -356,7 +356,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     // feeds 版(替代 legacy FragmentNewNovels);独立页带 toolbar,restrict 走默认「全部」
                     return ceui.pixiv.ui.dynamic.FollowingNovelFeedFragment.newInstance();
                 case "漫画系列作品":
-                    return UserMangaSeriesFeedFragment.newInstance(intent.getLongExtra(Params.USER_ID, 0L));
+                    return UserMangaSeriesFeedFragment.newInstance(Params.getUserId(intent));
                 case "漫画系列详情": {
                     // 迁到 V3 漫画系列详情页 IllustSeriesFragment（标题优先的单话列表，
                     // 不再是旧瀑布流）。系列 id 兼容旧调用的 MANGA_SERIES_ID(int) 与
@@ -368,7 +368,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return ceui.pixiv.ui.detail.IllustSeriesFragment.Companion.newInstance(sid);
                 }
                 case "小说系列作品":
-                    return UserNovelSeriesFeedFragment.newInstance(intent.getLongExtra(Params.USER_ID, 0L));
+                    return UserNovelSeriesFeedFragment.newInstance(Params.getUserId(intent));
                 case "精华列":
                     return new FeatureFeedFragment();
                 case "我的作业环境":
@@ -421,7 +421,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             intent.getIntExtra(FlagDescFragment.FlagObjectTypeKey, 0)
                     );
                 case "相关用户":
-                    return RelatedUserFeedFragment.newInstance(intent.getLongExtra(Params.USER_ID, 0L));
+                    return RelatedUserFeedFragment.newInstance(Params.getUserId(intent));
                 case "Markdown":
                     String url = intent.getStringExtra(Params.URL);
                     return FragmentMarkdown.newInstance(url);

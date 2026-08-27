@@ -89,7 +89,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
     }
 
     override fun initBundle(bundle: Bundle) {
-        userId = bundle.getLong(Params.USER_ID)
+        userId = Params.getUserId(bundle)
     }
 
     override fun initModel() {

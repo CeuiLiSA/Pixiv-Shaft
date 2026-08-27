@@ -100,7 +100,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
     }
 
     protected val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getLong(Params.USER_ID)
+        Params.getUserId(requireArguments())
     }
     protected val showToolbar: Boolean by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getBoolean(Params.FLAG)

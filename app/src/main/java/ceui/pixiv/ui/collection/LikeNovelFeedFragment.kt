@@ -47,7 +47,7 @@ import ceui.pixiv.ui.common.setUpToolbar
 class LikeNovelFeedFragment : NovelFeedFragment() {
 
     private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getLong(Params.USER_ID)
+        Params.getUserId(requireArguments())
     }
     private val starType: String by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getString(Params.STAR_TYPE) ?: Params.TYPE_PUBLIC

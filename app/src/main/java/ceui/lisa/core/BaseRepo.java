@@ -9,7 +9,7 @@ public class BaseRepo {
         Common.showLog("BaseRepo " + getClass().getSimpleName() + " newInstance");
     }
 
-    public Long currentUserID() {
+    public long currentUserID() {
         return SessionManager.INSTANCE.getLoggedInUid();
     }
 }

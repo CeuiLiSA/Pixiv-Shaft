@@ -80,10 +80,10 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
     // 约稿 tab 全是 autoLoad=false，此处对齐；首屏由 FeedFragment.onResume 的 ensureLoaded 补，
     // 独立 TemplateActivity 形态（一进来就 RESUMED）不受影响。
     override val feedViewModel by feedViewModels(autoLoad = false) {
-        // 零捕获：只从 arguments / intent 取出 userID(int)，source 仅持有这个基本类型，不碰 Fragment/View。
+        // 零捕获：只从 arguments / intent 取出 userID(Long)，source 仅持有这个值，不碰 Fragment/View。
         // legacy 从 activity intent 读 USER_ID；newInstance 存进 args，这里 args 优先、缺失回退 intent。
-        val userID = arguments?.getLong(ARG_USER_ID, 0L)?.takeIf { it != 0L }
-            ?: requireActivity().intent.getLongExtra(Params.USER_ID, 0L)
+        val userID = Params.getLongCompat(arguments, ARG_USER_ID).takeIf { it != 0L }
+            ?: Params.getUserId(requireActivity().intent)
         UserNovelSeriesFeedSource(userID)
     }
 
@@ -273,7 +273,7 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
         val act = activity as? BaseActivity<*> ?: return
         // 作者 id / name：allItems 里任何一项的 user 都指向该作者本人，取第一个非空的兜底 intent。
         val firstUser = list.firstOrNull { it.user != null }?.user
-        val authorId = firstUser?.id?: requireActivity().intent.getLongExtra(Params.USER_ID, 0L)
+        val authorId = firstUser?.id ?: Params.getUserId(requireActivity().intent)
         val authorName = firstUser?.name
         CrossSeriesDownloadTask(requireContext()).runAllMergedOne(
             activity = act,
@@ -311,7 +311,7 @@ class NovelSeriesFeedItem(val series: NovelSeriesItem) : FeedItem {
  * 作者小说系列总览数据源：包裹既有的 [NovelSeriesRepo]（对齐 NovelMarkersFeedSource）。
  * load(null) → getUserNovelSeries；load(cursor) → nextUrl + getNextUserNovelSeries。游标 = nextUrl。
  *
- * 零 Fragment 捕获：只吃一个 userID(int)，自持 repo，不碰 View / Context。
+ * 零 Fragment 捕获：只吃一个 userID(Long)，自持 repo，不碰 View / Context。
  */
 class UserNovelSeriesFeedSource(userID: Long) : FeedSource<String> {
 

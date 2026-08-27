@@ -39,7 +39,7 @@ class UserNovelByTagFeedFragment : NovelFeedFragment(R.layout.fragment_toolbar_f
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
     private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getLong(Params.USER_ID)
+        Params.getUserId(requireArguments())
     }
     // 命名避开 Fragment.getTag()（同 JVM 签名会被判「accidental override」）。
     private val filterTag: String by lazy(LazyThreadSafetyMode.NONE) {
@@ -47,7 +47,7 @@ class UserNovelByTagFeedFragment : NovelFeedFragment(R.layout.fragment_toolbar_f
     }
 
     override val feedViewModel by feedViewModels {
-        // 零捕获：source 只吃 Int userId + String tag。
+        // 零捕获：source 只吃 Long userId + String tag。
         UserNovelByTagFeedSource(userId, filterTag)
     }
 

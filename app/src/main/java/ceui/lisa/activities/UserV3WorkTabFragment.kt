@@ -66,7 +66,7 @@ class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovel
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        userId = arguments?.getLong(ARG_USER_ID) ?: 0L
+        userId = Params.getLongCompat(arguments, ARG_USER_ID)
         return inflater.inflate(R.layout.fragment_user_v3_illust_tab, container, false)
     }
 

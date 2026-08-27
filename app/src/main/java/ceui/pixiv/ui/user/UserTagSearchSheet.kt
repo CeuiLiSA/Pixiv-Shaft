@@ -58,7 +58,7 @@ class UserTagSearchSheet : V3BottomSheetBase() {
     private val binding get() = _binding!!
 
     private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getLong(Params.USER_ID)
+        Params.getUserId(requireArguments())
     }
 
     // 网页 ajax 端点段:illusts / manga / novels。缺省 illusts。

@@ -40,7 +40,7 @@ import java.text.NumberFormat
 class RequestPlanFeedFragment : FeedFragment() {
 
     private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getLong(Params.USER_ID)
+        Params.getUserId(requireArguments())
     }
 
     private lateinit var palette: V3Palette

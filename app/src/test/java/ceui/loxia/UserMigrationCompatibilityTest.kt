@@ -1,15 +1,29 @@
 package ceui.loxia
 
+import ceui.lisa.models.UserDetailResponse
+import ceui.lisa.models.UserPreviewsBean
 import com.google.gson.Gson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.ObjectStreamClass
 
 class UserMigrationCompatibilityTest {
 
     private val gson = Gson()
+
+    @Test
+    fun `4_8_9 用户快照在 getUserId 改签后仍可反序列化`() {
+        assertEquals(3488682966520018560L, serialVersionUid(User::class.java))
+        assertEquals(1370286510125849777L, serialVersionUid(AccountResponse::class.java))
+        assertEquals(-9038046041993882463L, serialVersionUid(UserDetailResponse::class.java))
+        assertEquals(-782402126830490604L, serialVersionUid(UserPreviewsBean::class.java))
+    }
+
+    private fun serialVersionUid(type: Class<*>): Long =
+        ObjectStreamClass.lookup(type).serialVersionUID
 
     @Test
     fun `旧用户快照可直接读成唯一 User 模型`() {

@@ -5,6 +5,9 @@ import java.util.List;
 
 public class UserDetailResponse extends UserHolder implements Serializable, UserContainer {
 
+    // 4.8.9 的序列化版本号；getUserId 改为 long 不应让系统恢复旧页面崩溃。
+    private static final long serialVersionUID = -9038046041993882463L;
+
     private ProfileBean profile;
     private ProfilePublicityBean profile_publicity;
     private WorkspaceBean workspace;

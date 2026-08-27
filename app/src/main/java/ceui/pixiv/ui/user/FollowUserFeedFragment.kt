@@ -45,10 +45,9 @@ import kotlinx.coroutines.launch
  */
 class FollowUserFeedFragment : UserFeedFragment() {
 
-    // legacy 用 int USER_ID（TemplateActivity 路由 getIntExtra / FragmentCollection 传
-    // (int) SessionManager.loggedInUid）；loxia 侧接口收 Long，取用处再转。
+    // 新链路统一传 Long；Params 的兼容读取保留升级前已保存的 Int USER_ID。
     private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getLong(Params.USER_ID)
+        Params.getUserId(requireArguments())
     }
     private val starType: String by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getString(Params.STAR_TYPE) ?: Params.TYPE_PUBLIC

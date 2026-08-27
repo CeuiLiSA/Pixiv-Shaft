@@ -15,7 +15,7 @@ import androidx.lifecycle.MutableLiveData;
  */
 public class AppLevelState {
 
-    private final ConcurrentMap<Long, MutableLiveData<Long>> followUserStatus;
+    private final ConcurrentMap<Long, MutableLiveData<Integer>> followUserStatus;
     private final ConcurrentMap<Integer, MutableLiveData<Integer>> starIllustStatus;
     private final ConcurrentMap<Integer, MutableLiveData<Integer>> starNovelStatus;
 
@@ -25,10 +25,10 @@ public class AppLevelState {
         starNovelStatus = new ConcurrentHashMap<>();
     }
 
-    public MutableLiveData<Long> getFollowUserLiveData(Long userId) {
-        MutableLiveData<Long> data = followUserStatus.get(userId);
+    public MutableLiveData<Integer> getFollowUserLiveData(long userId) {
+        MutableLiveData<Integer> data = followUserStatus.get(userId);
         if (data == null) {
-            data = new MutableLiveData<>((long) FollowUserStatus.UNKNOWN);
+            data = new MutableLiveData<>(FollowUserStatus.UNKNOWN);
             followUserStatus.put(userId, data);
         }
         return data;
@@ -39,36 +39,34 @@ public class AppLevelState {
     }
 
     public void updateFollowUserStatus(long userId, int status, int method) {
-        long Status;
-        Status = status;
-        MutableLiveData<Long> data = followUserStatus.get(userId);
+        MutableLiveData<Integer> data = followUserStatus.get(userId);
         switch (method) {
             case UpdateMethod.IF_ABSENT:
                 if (data != null) {
-                    Long currentValue = data.getValue();
+                    Integer currentValue = data.getValue();
                     if (currentValue != null && currentValue == FollowUserStatus.UNKNOWN) {
-                        data.setValue(Status);
+                        data.setValue(status);
                     }
                 } else {
-                    followUserStatus.put(userId, new MutableLiveData<>(Status));
+                    followUserStatus.put(userId, new MutableLiveData<>(status));
                 }
                 break;
             case UpdateMethod.FORCE_REPLACE:
                 if (data != null) {
-                    data.setValue(Status);
+                    data.setValue(status);
                 } else {
-                    followUserStatus.put(userId, new MutableLiveData<>(Status));
+                    followUserStatus.put(userId, new MutableLiveData<>(status));
                 }
                 break;
             default:
                 if (data != null) {
-                    Long currentValue = data.getValue();
-                    if (FollowUserStatus.isPreciseFollow(Math.toIntExact(currentValue)) && Status == FollowUserStatus.FOLLOWED) {
+                    Integer currentValue = data.getValue();
+                    if (FollowUserStatus.isPreciseFollow(currentValue) && status == FollowUserStatus.FOLLOWED) {
                         return;
                     }
-                    data.setValue(Status);
+                    data.setValue(status);
                 } else {
-                    followUserStatus.put(userId, new MutableLiveData<>(Status));
+                    followUserStatus.put(userId, new MutableLiveData<>(status));
                 }
                 break;
         }

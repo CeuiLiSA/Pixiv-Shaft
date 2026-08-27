@@ -23,6 +23,11 @@ data class AccountResponse(
     var device_token: String? = null,
     var local_user: String? = null,
 ) : Serializable, ceui.lisa.models.UserContainer {
+    companion object {
+        // 保持与 4.8.9 相同：UserContainer.getUserId 改签不破坏旧账号快照。
+        private const val serialVersionUID: Long = 1370286510125849777L
+    }
+
     override fun getUserId(): Long = user?.id ?: 0L
 }
 

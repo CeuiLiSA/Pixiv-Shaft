@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 class UserNovelFeedFragment : NovelFeedFragment() {
 
     private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getLong(Params.USER_ID)
+        Params.getUserId(requireArguments())
     }
 
     /** legacy 默认 true（newInstance(userID) 单参版），保持一致。 */
