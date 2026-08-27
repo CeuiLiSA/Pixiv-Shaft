@@ -2785,4 +2785,14 @@
     <string name="snapshot_unsupported_ugoira">Ugoira is not supported for offline snapshots yet</string>
     <string name="snapshot_error_page_url_missing">No usable URL for image %1$d</string>
     <string name="snapshot_error_image_download">Image download failed: %1$s</string>
+
+    <!-- Auto snapshot (experimental) -->
+    <string name="setting_auto_snapshot_on_bookmark">Create offline snapshot on bookmark</string>
+    <string name="setting_auto_snapshot_on_bookmark_desc">Quietly create a lightweight offline snapshot after you bookmark a work (experimental)</string>
+    <string name="snapshot_auto_badge">Auto</string>
+    <string name="snapshot_promote">Convert to regular snapshot</string>
+    <string name="snapshot_promote_title">Convert to Regular Snapshot</string>
+    <string name="snapshot_promote_confirm">After conversion, this snapshot will be kept as a regular snapshot and can be exported. Continue?</string>
+    <string name="snapshot_promote_success">Converted to regular snapshot</string>
+    <string name="snapshot_promote_failed">Conversion failed: %1$s</string>
 </resources>

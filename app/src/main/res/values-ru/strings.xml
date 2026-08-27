@@ -2785,4 +2785,14 @@
     <string name="snapshot_unsupported_ugoira">Ugoira пока не поддерживается для офлайн-снимков</string>
     <string name="snapshot_error_page_url_missing">Нет доступного URL для изображения %1$d</string>
     <string name="snapshot_error_image_download">Не удалось загрузить изображение: %1$s</string>
+
+    <!-- Автоматический снимок (экспериментально) -->
+    <string name="setting_auto_snapshot_on_bookmark">Создавать офлайн-снимок при добавлении в закладки</string>
+    <string name="setting_auto_snapshot_on_bookmark_desc">Тихо создавать лёгкий офлайн-снимок после добавления работы в закладки (экспериментально)</string>
+    <string name="snapshot_auto_badge">Авто</string>
+    <string name="snapshot_promote">Преобразовать в обычный снимок</string>
+    <string name="snapshot_promote_title">Преобразовать в обычный снимок</string>
+    <string name="snapshot_promote_confirm">После преобразования снимок будет сохранён как обычный и его можно будет экспортировать. Продолжить?</string>
+    <string name="snapshot_promote_success">Преобразовано в обычный снимок</string>
+    <string name="snapshot_promote_failed">Не удалось преобразовать: %1$s</string>
 </resources>

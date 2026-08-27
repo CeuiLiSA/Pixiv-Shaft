@@ -2785,4 +2785,14 @@
     <string name="snapshot_unsupported_ugoira">Ugoira için çevrimdışı anlık görüntü henüz desteklenmiyor</string>
     <string name="snapshot_error_page_url_missing">%1$d. resim için kullanılabilir URL yok</string>
     <string name="snapshot_error_image_download">Resim indirilemedi: %1$s</string>
+
+    <!-- Otomatik anlık görüntü (deneysel) -->
+    <string name="setting_auto_snapshot_on_bookmark">Yer imine eklendiğinde çevrimdışı anlık görüntü oluştur</string>
+    <string name="setting_auto_snapshot_on_bookmark_desc">Bir eseri yer imine ekledikten sonra arka planda sessizce hafif bir çevrimdışı anlık görüntü oluşturur (deneysel)</string>
+    <string name="snapshot_auto_badge">Otomatik</string>
+    <string name="snapshot_promote">Normal anlık görüntüye dönüştür</string>
+    <string name="snapshot_promote_title">Normal Anlık Görüntüye Dönüştür</string>
+    <string name="snapshot_promote_confirm">Dönüştürdükten sonra bu anlık görüntü normal bir anlık görüntü olarak saklanır ve dışa aktarılabilir. Dönüştürülsün mü?</string>
+    <string name="snapshot_promote_success">Normal anlık görüntüye dönüştürüldü</string>
+    <string name="snapshot_promote_failed">Dönüştürme başarısız: %1$s</string>
 </resources>
