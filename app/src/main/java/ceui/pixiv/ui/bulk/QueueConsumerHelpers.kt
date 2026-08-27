@@ -18,21 +18,10 @@ import timber.log.Timber
  */
 
 /**
- * Manager.content 是非线程安全 List，且主线程会 remove。安全 snapshot 含重试。
+ * [Manager.content] 的浅拷贝快照。底层已是 CopyOnWriteArrayList + synchronized 拷贝，
+ * 任何线程调用都不会 CME，无需重试。
  */
-internal fun snapshotManagerContent(): List<DownloadItem> {
-    for (attempt in 1..5) {
-        try {
-            return Manager.get().contentSnapshot()
-        } catch (e: Exception) {
-            if (attempt == 5) {
-                Timber.tag(TAG).w(e, "snapshotManagerContent failed after retries")
-                return emptyList()
-            }
-        }
-    }
-    return emptyList()
-}
+internal fun snapshotManagerContent(): List<DownloadItem> = Manager.get().contentSnapshot()
 
 /**
  * 解析 [row] 对应的 [Illust]，优先级：

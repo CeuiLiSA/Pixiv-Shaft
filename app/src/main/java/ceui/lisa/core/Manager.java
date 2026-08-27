@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -54,7 +55,15 @@ import okhttp3.ResponseBody;
 public class Manager {
 
     private final Context mContext = Shaft.getContext();
-    private List<DownloadItem> content = new ArrayList<>();
+    /**
+     * 下载列表。用 {@link CopyOnWriteArrayList}：写入（add/remove/clear）仍走
+     * {@code synchronized (this)} 保证复合操作原子（去重 + add），但任何线程的遍历
+     * （{@link #activeCount}/{@link #getFirstReady}/外部 {@link #getContent()}/
+     * {@link #contentSnapshot()}）天然拿到一致快照，不会再撞
+     * ConcurrentModificationException。列表规模是「进行中的 page 数」量级，
+     * 写时拷贝的代价可忽略。
+     */
+    private List<DownloadItem> content = new CopyOnWriteArrayList<>();
     /**
      * 下载 IO 线程池（替代原先的 RxJava {@code Schedulers.io()}）：无界缓存池，空闲线程 60s
      * 回收，线程名 {@code shaft-dl-io-N}。restore / addTask 的 DB 写、传输 Body、传输完成后的
@@ -167,7 +176,7 @@ public class Manager {
                     }
                 }
                 synchronized (this) {
-                    content = restored;
+                    content = new CopyOnWriteArrayList<>(restored);
                 }
                 ManagerReactive.invalidate();
                 postMain(() ->
@@ -194,7 +203,7 @@ public class Manager {
         }
         synchronized (this) {
             if (content == null) {
-                content = new ArrayList<>();
+                content = new CopyOnWriteArrayList<>();
             }
 
             boolean isTaskExist = false;
@@ -305,7 +314,7 @@ public class Manager {
             long t0 = System.nanoTime();
             synchronized (this) {
                 if (content == null) {
-                    content = new ArrayList<>();
+                    content = new CopyOnWriteArrayList<>();
                 }
                 // 批量构建一个 HashSet 做 O(1) 去重，避免 O(n^2) 逐项扫描
                 java.util.Set<String> existingUrls = new java.util.HashSet<>();
