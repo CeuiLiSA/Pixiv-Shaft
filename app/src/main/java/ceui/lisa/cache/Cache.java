@@ -1,36 +1,47 @@
 package ceui.lisa.cache;
 
-public class Cache implements IOperate, Proxy<IOperate>{
+import com.blankj.utilcode.util.PathUtils;
 
-    private final IOperate mOperate;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+import timber.log.Timber;
+
+/**
+ * 用 Java 序列化把对象存到内部 cache 目录的 key 文件里。
+ * 原本是 IOperate/Proxy/FileOperator 三层抽象包着唯一一个实现，已合并。
+ */
+public class Cache {
 
     private Cache() {
-        mOperate = create();
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
     public <T> T getModel(String key, Class<T> pClass) {
-        return mOperate.getModel(key, pClass);
+        File file = new File(PathUtils.getInternalAppCachePath(), key);
+        if (!file.exists()) {
+            return null;
+        }
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+            return (T) ois.readObject();
+        } catch (ClassNotFoundException | IOException e) {
+            Timber.w(e, "Cache.getModel failed key=%s", key);
+            return null;
+        }
     }
 
-    @Override
-    public <T> void saveModel(String ket, T pT) {
-        mOperate.saveModel(ket, pT);
-    }
-
-    @Override
-    public void clearAll() {
-        mOperate.clearAll();
-    }
-
-    @Override
-    public void clear(String key) {
-        mOperate.clear(key);
-    }
-
-    @Override
-    public IOperate create() {
-        return new FileOperator();
+    public <T> void saveModel(String key, T value) {
+        File file = new File(PathUtils.getInternalAppCachePath(), key);
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+            oos.writeObject(value);
+            oos.flush();
+        } catch (IOException e) {
+            Timber.w(e, "Cache.saveModel failed key=%s", key);
+        }
     }
 
     private static class Holder {

@@ -14,7 +14,6 @@ import androidx.window.embedding.SplitRule
 import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.Shaft
-import ceui.lisa.activities.VPActivity
 import ceui.pixiv.ui.slideshow.SlideshowActivity
 
 /**
@@ -91,7 +90,6 @@ object TabletActivityEmbedding {
             setOf(
                 ImageDetailActivity::class.java,
                 SlideshowActivity::class.java,
-                VPActivity::class.java,
             ).map { ActivityFilter(ComponentName(context, it), null) }.toSet()
         )
             .setAlwaysExpand(true)
