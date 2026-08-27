@@ -14,10 +14,10 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecyMangaSeriesBinding
+import ceui.lisa.http.Retro
 import ceui.lisa.feature.FeatureEntity
 import ceui.lisa.model.ListMangaSeries
 import ceui.lisa.models.MangaSeriesItem
-import ceui.lisa.repo.MangaSeriesRepo
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
@@ -25,11 +25,11 @@ import ceui.lisa.view.LinearItemDecorationNoLRTB
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
-import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedRenderer
-import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.feeds.pixiv.PixivFeedSource
+import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.pinHostGlide
@@ -79,9 +79,9 @@ class UserMangaSeriesFeedFragment : FeedFragment() {
     // 小说系列 tab 全是 autoLoad=false，此处对齐；首屏由 FeedFragment.onResume 的 ensureLoaded 补，
     // 独立 TemplateActivity 形态（一进来就 RESUMED）不受影响。
     override val feedViewModel by feedViewModels(autoLoad = false) {
-        // 零捕获：只把 userID(Long) 读成局部 val 按值传给 source，source 自持 repo、不碰 Fragment / View。
+        // 零捕获：只把 userID(Long) 读成局部 val 按值传给 source，不碰 Fragment / View。
         val uid = Params.getUserId(requireArguments())
-        UserMangaSeriesFeedSource(uid)
+        userMangaSeriesFeedSource(uid)
     }
 
     /**
@@ -207,24 +207,10 @@ class MangaSeriesFeedItem(val series: MangaSeriesItem) : FeedItem {
 }
 
 /**
- * 漫画系列数据源：包裹既有的 [MangaSeriesRepo]（对齐 NovelMarkersFeedSource）。
- * load(null) → getUserMangaSeries；load(cursor) → nextUrl + getNextUserMangaSeries。游标 = nextUrl。
- *
- * 零 Fragment 捕获：只吃一个 userID(Long)，自持 repo，不碰 View / Context。
+ * 漫画系列数据源：首页 getUserMangaSeries，翻页由 [PixivFeedSource] 按 next_url 重放。
+ * 零 Fragment 捕获：只捕获一个 userID(Long)。
  */
-class UserMangaSeriesFeedSource(userID: Long) : FeedSource<String> {
-
-    private val repo = MangaSeriesRepo(userID)
-
-    override suspend fun load(cursor: String?): FeedPage<String> {
-        val resp: ListMangaSeries = if (cursor == null) {
-            repo.initApi()
-        } else {
-            repo.nextUrl = cursor
-            repo.initNextApi()
-        }
-        // 默认 Mapper 只过滤 Illust/Novel，对 MangaSeriesItem 是 no-op → 不套，直接建条目。
-        val items: List<FeedItem> = resp.list.orEmpty().map { MangaSeriesFeedItem(it) }
-        return FeedPage(items, resp.nextUrl?.takeIf { it.isNotEmpty() })
+private fun userMangaSeriesFeedSource(userID: Long): PixivFeedSource<ListMangaSeries> =
+    pixivFeedSource(initialFetch = { Retro.getAppApi().getUserMangaSeries(userID) }) { resp, _ ->
+        resp.displayList.map { MangaSeriesFeedItem(it) }
     }
-}

@@ -13,9 +13,9 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecyNovelMarkersBinding
+import ceui.lisa.http.Retro
 import ceui.lisa.model.ListNovelMarkers
 import ceui.lisa.models.MarkedNovelItem
-import ceui.lisa.repo.NovelMarkersRepo
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
@@ -24,11 +24,11 @@ import ceui.lisa.view.LinearItemDecoration
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
-import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedRenderer
-import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.feeds.pixiv.PixivFeedSource
+import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
 import ceui.pixiv.ui.common.viewBinding
@@ -56,8 +56,8 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
     override val feedViewModel by feedViewModels {
-        // 零捕获：source 无参，自持一个 NovelMarkersRepo，不碰 Fragment / View。
-        NovelMarkersFeedSource()
+        // 零捕获：source 无参，不碰 Fragment / View。
+        novelMarkersFeedSource()
     }
 
     /**
@@ -189,25 +189,9 @@ class NovelMarkerFeedItem(val marker: MarkedNovelItem) : FeedItem {
 }
 
 /**
- * 小说书签数据源：包裹既有的 [NovelMarkersRepo]。
- * load(null) → getNovelMarkers；load(cursor) → nextUrl + getNextNovelMarkers。游标 = nextUrl。
- *
- * 零 Fragment 捕获：无参构造，自持 repo，不碰 View / Context。
+ * 小说书签数据源：首页 getNovelMarkers，翻页由 [PixivFeedSource] 按 next_url 重放。零 Fragment 捕获。
  */
-class NovelMarkersFeedSource : FeedSource<String> {
-
-    private val repo = NovelMarkersRepo()
-
-    override suspend fun load(cursor: String?): FeedPage<String> {
-        val resp: ListNovelMarkers = if (cursor == null) {
-            repo.initApi()
-        } else {
-            repo.nextUrl = cursor
-            repo.initNextApi()
-        }
-        // 默认 Mapper 只过滤 Illust/Novel，对 MarkedNovelItem 是 no-op → 不套，直接建条目
-        // （去掉多余的未受检 cast + Default 线程切换 + 全量空遍历）。
-        val items: List<FeedItem> = resp.list.orEmpty().map { NovelMarkerFeedItem(it) }
-        return FeedPage(items, resp.nextUrl?.takeIf { it.isNotEmpty() })
+private fun novelMarkersFeedSource(): PixivFeedSource<ListNovelMarkers> =
+    pixivFeedSource(initialFetch = { Retro.getAppApi().getNovelMarkers() }) { resp, _ ->
+        resp.displayList.map { NovelMarkerFeedItem(it) }
     }
-}

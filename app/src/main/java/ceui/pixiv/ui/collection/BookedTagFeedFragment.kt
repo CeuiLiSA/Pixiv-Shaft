@@ -22,7 +22,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentBookedTagFeedBinding
 import ceui.lisa.databinding.RecyBookTagBinding
 import ceui.lisa.models.TagsBean
-import ceui.lisa.repo.BookedTagRepo
+import ceui.lisa.http.Retro
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
 import ceui.pixiv.feeds.FeedFragment
@@ -33,6 +33,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.ppppx
 import com.blankj.utilcode.util.BarUtils
@@ -277,13 +278,13 @@ data class BookedTagFeedItem(val tag: TagsBean) : FeedItem {
 
 /**
  * 收藏标签数据源:一次性把所有分页拉全后返回单页(nextCursor 恒 null),让客户端搜索简单且忠实
- * (legacy 搜索时本就要预加载全部,收藏夹标签又是有界集合)。首屏 load() 内:`initApi()` 取第一页,
- * 再循环 `nextUrl = next; initNextApi()` 累积到 nextUrl 空。
+ * (legacy 搜索时本就要预加载全部,收藏夹标签又是有界集合)。首屏 load() 内:先取第一页,
+ * 再循环 getNextTags(next) 累积到 nextUrl 空。
  * 拉全后在真实标签前拼两个虚拟行 `[未分類, 全部]`(对齐 legacy onFirstLoaded 的插入顺序)。
  *
  * 防御性上限 [MAX_PAGES]:异常数据(nextUrl 不收敛)时截断并 log,已拉的部分照常可搜。
  *
- * 零 Fragment 捕获:只持有 type/starType 两个基本类型;每次 load 新建 [BookedTagRepo]。
+ * 零 Fragment 捕获:只持有 type/starType 两个基本类型。
  */
 class BookedTagFeedSource(
     private val type: Int,
@@ -292,9 +293,15 @@ class BookedTagFeedSource(
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val items: List<FeedItem> = withContext(Dispatchers.IO) {
-            val repo = BookedTagRepo(type, starType)
+            val api = Retro.getAppApi()
+            val uid = SessionManager.loggedInUid
             val realTags = ArrayList<TagsBean>()
-            val first = repo.initApi()
+            // starType 为 null 时 Retrofit 省略 restrict query（服务端默认 public），与 legacy 一致。
+            val first = if (type == 1) {
+                api.getAllNovelBookmarkTags(uid, starType)
+            } else {
+                api.getAllIllustBookmarkTags(uid, starType)
+            }
             realTags.addAll(first.list.orEmpty())
             var next: String? = first.nextUrl
             var hops = 0
@@ -306,8 +313,7 @@ class BookedTagFeedSource(
                 // 某一页失败即止步、保留已加载部分（对齐 legacy preloadOne/finishPreload 的降级：首屏 +
                 // 已翻页照常可搜，不因中途某页出错把整页拖成错误态）。首页 initApi 失败仍照常抛出走错误态。
                 val page = try {
-                    repo.nextUrl = next
-                    repo.initNextApi()
+                    api.getNextTags(next)
                 } catch (ce: CancellationException) {
                     throw ce
                 } catch (e: Exception) {

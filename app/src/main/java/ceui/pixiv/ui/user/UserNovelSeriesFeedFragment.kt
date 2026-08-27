@@ -12,20 +12,20 @@ import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecyNovelSeriesOfUserBinding
+import ceui.lisa.http.Retro
 import ceui.lisa.model.ListNovelSeries
 import ceui.lisa.models.NovelSeriesItem
-import ceui.lisa.repo.NovelSeriesRepo
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
-import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedRenderer
-import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.feeds.pixiv.PixivFeedSource
+import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.novel.CrossSeriesDownloadOptionsSheet
@@ -84,7 +84,7 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
         // legacy 从 activity intent 读 USER_ID；newInstance 存进 args，这里 args 优先、缺失回退 intent。
         val userID = Params.getLongCompat(arguments, ARG_USER_ID).takeIf { it != 0L }
             ?: Params.getUserId(requireActivity().intent)
-        UserNovelSeriesFeedSource(userID)
+        userNovelSeriesFeedSource(userID)
     }
 
     // showToolbar 是运行时参数,系统重建只走无参构造,不能靠构造器传 contentLayoutId,
@@ -308,24 +308,10 @@ class NovelSeriesFeedItem(val series: NovelSeriesItem) : FeedItem {
 }
 
 /**
- * 作者小说系列总览数据源：包裹既有的 [NovelSeriesRepo]（对齐 NovelMarkersFeedSource）。
- * load(null) → getUserNovelSeries；load(cursor) → nextUrl + getNextUserNovelSeries。游标 = nextUrl。
- *
- * 零 Fragment 捕获：只吃一个 userID(Long)，自持 repo，不碰 View / Context。
+ * 作者小说系列总览数据源：首页 getUserNovelSeries，翻页由 [PixivFeedSource] 按 next_url 重放。
+ * 零 Fragment 捕获：只捕获一个 userID(Long)。
  */
-class UserNovelSeriesFeedSource(userID: Long) : FeedSource<String> {
-
-    private val repo = NovelSeriesRepo(userID)
-
-    override suspend fun load(cursor: String?): FeedPage<String> {
-        val resp: ListNovelSeries = if (cursor == null) {
-            repo.initApi()
-        } else {
-            repo.nextUrl = cursor
-            repo.initNextApi()
-        }
-        // 默认 Mapper 只过滤 Illust/Novel，对 NovelSeriesItem 是 no-op → 不套，直接建条目。
-        val items: List<FeedItem> = resp.list.orEmpty().map { NovelSeriesFeedItem(it) }
-        return FeedPage(items, resp.nextUrl?.takeIf { it.isNotEmpty() })
+private fun userNovelSeriesFeedSource(userID: Long): PixivFeedSource<ListNovelSeries> =
+    pixivFeedSource(initialFetch = { Retro.getAppApi().getUserNovelSeries(userID) }) { resp, _ ->
+        resp.displayList.map { NovelSeriesFeedItem(it) }
     }
-}

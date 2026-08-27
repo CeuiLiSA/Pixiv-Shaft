@@ -5,12 +5,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.activities.Shaft
-import ceui.lisa.core.RemoteRepo
-import ceui.lisa.model.ListIllust
+import ceui.lisa.helper.IllustNovelFilter
+import ceui.lisa.http.Retro
 import ceui.loxia.Illust
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
-import ceui.lisa.repo.LatestIllustRepo
+import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.prime.PrimeTagIndexItem
 import com.blankj.utilcode.util.Utils
 import com.google.gson.Gson
@@ -26,7 +26,7 @@ import android.app.Application
 /**
  * 发现页(FragmentCenter)各内容货架的数据持有者。把侧边栏「发现」分组的内容直接铺进 tab:
  *   · [primeTags]   热度标签 —— 本地策展 asset(prime_index.json),离线秒开
- *   · [latest]      最新     —— [LatestIllustRepo] getNewWorks(全站新投稿)
+ *   · [latest]      最新     —— getNewWorks(全站新投稿),见 [loadLatestRail]
  *   · [siteRecommend] 本月收藏 —— shaft-api-v2 周收藏榜(非 Lite)
  *   · [recentHot]   当前最热 —— shaft-api-v2 实时收藏流(非 Lite)
  *
@@ -60,7 +60,7 @@ class DiscoverViewModel(application: Application) : AndroidViewModel(application
     /** 下拉刷新 / 双击 tab forceRefresh:重拉全部货架。 */
     fun reload(includeServerShelves: Boolean) {
         loadTags()
-        loadIllustRail(LatestIllustRepo("illust", getApplication<Application>().appServices().discoveryPool), _latest)
+        loadLatestRail()
         // 本月收藏 / 当前最热 / 隐藏神作 三条 shaft-api-v2 货架合并成一个 /discover 请求;
         // Lite 渠道不展示这三条。
         if (includeServerShelves) {
@@ -112,14 +112,24 @@ class DiscoverViewModel(application: Application) : AndroidViewModel(application
         }.filter { it.user != null }.take(RAIL_LIMIT)
     }
 
-    private fun loadIllustRail(
-        repo: RemoteRepo<ListIllust>,
-        live: MutableLiveData<List<Illust>>
-    ) {
+    /** 「最新」货架：全站新投稿首页;过滤前整页喂发现页画像采集,再套 feeds 同款内容过滤截到 [RAIL_LIMIT]。 */
+    private fun loadLatestRail() {
+        val pool = getApplication<Application>().appServices().discoveryPool
         viewModelScope.launch {
             val list = try {
-                // 过滤 user==null 的脏数据:RAdapter 直接取 user.name / 头像,null 会 NPE 崩。
-                repo.loadFirst()?.illusts?.filter { it.user != null }?.take(RAIL_LIMIT) ?: emptyList()
+                val illusts = Retro.getAppApi().getNewWorks("illust").illusts.orEmpty()
+                Timber.d("Discovery/Repo latest got ${illusts.size} items")
+                pool.collect(illusts, "latest:illust")
+                withContext(Dispatchers.Default) {
+                    illusts.filter { illust ->
+                        // 过滤 user==null 的脏数据:RAdapter 直接取 user.name / 头像,null 会 NPE 崩。
+                        // 货架卡片画不出遮罩 / 模糊层,「屏蔽此作品」与模糊级 AI 也一并滤掉(对齐旧 Mapper)。
+                        illust.user != null &&
+                            IllustFeedItem.passesContentFilters(illust, skipR18Filter = false) &&
+                            !IllustNovelFilter.judgeID(illust) &&
+                            !IllustNovelFilter.shouldBlurAi(illust)
+                    }.take(RAIL_LIMIT)
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -127,7 +137,7 @@ class DiscoverViewModel(application: Application) : AndroidViewModel(application
                 Timber.w(e, "Discovery/Repo latest rail failed")
                 emptyList()
             }
-            live.value = list
+            _latest.value = list
         }
     }
 

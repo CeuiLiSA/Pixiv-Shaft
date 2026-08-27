@@ -436,7 +436,7 @@ public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase INSTANCE;
 
-    // synchronized：同义词词典（issue #904）让 Rx 后台线程（SelectTagRepo.mapper）也会触发
+    // synchronized：同义词词典（issue #904）让后台线程（SelectTagFeedSource 的同义词勾选）也会触发
     // 首次初始化，与主线程并发 check-then-act 会 double-build 两个 RoomDatabase 实例写同一文件。
     public static synchronized AppDatabase getAppDatabase(Context context) {
         if (INSTANCE == null) {

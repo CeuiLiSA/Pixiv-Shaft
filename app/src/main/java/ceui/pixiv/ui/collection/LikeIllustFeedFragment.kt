@@ -42,7 +42,7 @@ import kotlinx.coroutines.withContext
  * - 「按标签筛选」页选完标签广播 FILTER_ILLUST 回流，匹配 starType 才认领并刷新；
  *   初始标签可由入参带入（同义词词典管理页跳转，issue #904）；
  * - 「过滤无效收藏」设置：失效作品（!isVisible）由通用过滤链恒过滤（对齐 legacy
- *   RemoteRepo 的 Mapper），设置补的是 user 缺失/为 0 的残缺条目；
+ *   legacy Mapper），设置补的是 user 缺失/为 0 的残缺条目；
  * - 自己的收藏页 + 「收藏页隐藏收藏按钮」设置 → 卡片不显示爱心（对齐 IAdapterWithStar）；
  * - 带 toolbar 形态（TemplateActivity「插画/漫画收藏」）沿用 local_save 菜单，
  *   只响应「收藏到精华」（legacy 的 jump/add 两项在本页本来就是死的）。

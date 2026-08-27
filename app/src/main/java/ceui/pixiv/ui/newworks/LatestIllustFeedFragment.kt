@@ -20,7 +20,7 @@ import ceui.loxia.appServices
  * 与 legacy 的行为对齐点：
  * - 懒加载（[feedViewModels] autoLoad=false）：Fragment 被 ViewPager 提前创建，数据等
  *   tab 真正可见（onResume）才拉，不替用户偷偷请求没打开过的 tab；
- * - 每页数据在过滤前整页喂 DiscoveryPool（发现页画像采集，对齐 LatestIllustRepo.doOnNext）。
+ * - 每页数据在过滤前整页喂 DiscoveryPool（发现页画像采集）。
  *
  * 本地优先：给稳定 slot 开磁盘缓存，冷启秒显上次首屏再拉最新覆盖（同 RankIllustFeedFragment）。
  */

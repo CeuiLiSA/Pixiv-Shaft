@@ -10,14 +10,12 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
-import ceui.lisa.core.RemoteRepo
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecySimpleUserBinding
+import ceui.lisa.http.Retro
 import ceui.lisa.model.ListSimpleUser
 import ceui.loxia.Illust
 import ceui.loxia.User
-import ceui.lisa.repo.NovelBookmarkUserRepo
-import ceui.lisa.repo.SimpleUserRepo
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
@@ -27,12 +25,12 @@ import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
-import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedRenderer
-import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.feeds.pixiv.PixivFeedSource
+import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.pinHostGlide
@@ -40,18 +38,14 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /**
  * 「喜欢这个作品的用户」列表页（feeds 框架版，替代 legacy [ceui.lisa.fragments.FragmentListSimpleUser] +
  * SimpleUserAdapter(非 muted)）。插画、小说共用本页：插画走 [Params.CONTENT]([Illust])，
  * 小说走 [Params.NOVEL_ID] + [Params.TITLE]，除数据源和标题外的一切（行渲染、关注同步）完全复用。
  *
- * TemplateActivity 宿主、自带 toolbar（fragment_toolbar_feed）。数据源直接包裹既有的
- * [SimpleUserRepo]（getUsersWhoLikeThisIllust + getNextSimpleUser）或
- * [NovelBookmarkUserRepo]（getUsersWhoLikeThisNovel + getNextSimpleUser），把 Rx→suspend 桥一下即可，
- * 翻页跟随 next_url。
+ * TemplateActivity 宿主、自带 toolbar（fragment_toolbar_feed）。数据源是 [pixivFeedSource]：
+ * 首页 getUsersWhoLikeThisIllust / getUsersWhoLikeThisNovel，翻页跟随 next_url。
  *
  * **row 复刻 muted 那套 recy_simple_user，但去掉 muted 专属交互**：这里是普通的「点赞用户」列表，
  * item 长按不再是解除屏蔽（非 muted 模式下 SimpleUserAdapter 的 item 长按本就是 no-op），只保留
@@ -69,14 +63,16 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
     override val feedViewModel by feedViewModels {
-        // 零捕获：先把 arg 读进局部 val，只把作品 id（插画 Int——legacy SimpleUserRepo 仍收 Int / 小说 Long）传进 source
+        // 零捕获：先把 arg 读进局部 val，只把作品 id（插画 Int / 小说 Long）捕获进 source
         // （source 归 VM 长期持有，绝不能捕获 Fragment）。
         val args = requireArguments()
         val novelId = args.getLong(Params.NOVEL_ID, 0L).takeIf { it != 0L }
-        val illust = args.getSerializable(Params.CONTENT) as? Illust
+        val illustId = (args.getSerializable(Params.CONTENT) as? Illust)?.id?.toInt()
         when {
-            novelId != null -> LikeUsersFeedSource(novelId)
-            illust != null -> LikeUsersFeedSource(illust.id.toInt())
+            // `v1/novel/bookmark/users` 不在 app-api 公开文档里但确实存在：无 token 打它回 400
+            //（OAuth 报错，说明路由命中），不存在的路径才回 404。
+            novelId != null -> likeUsersFeedSource { Retro.getAppApi().getUsersWhoLikeThisNovel(novelId) }
+            illustId != null -> likeUsersFeedSource { Retro.getAppApi().getUsersWhoLikeThisIllust(illustId) }
             else -> error("LikeUsersFeedFragment 缺少作品参数")
         }
     }
@@ -268,30 +264,10 @@ class LikeUserFeedItem(
 }
 
 /**
- * 点赞用户数据源：包裹 [SimpleUserRepo] / [NovelBookmarkUserRepo]（cursor = next_url）。
- * load(null) → initApi(getUsersWhoLikeThisIllust / getUsersWhoLikeThisNovel)；
- * load(cursor) → nextUrl + initNextApi(getNextSimpleUser)——翻页两边共用同一个 next_url 接口。
- * 映射切 Default。短页 / 无 next_url（空串）即到底返回 null。
- *
- * 零 Fragment 捕获：只吃作品 id（插画 Int / 小说 Long），repo 内部持 id + next_url 分页状态。
+ * 点赞用户数据源：cursor = next_url，翻页由 [PixivFeedSource] 统一重放；插画 / 小说两个端点响应
+ * 结构一致（`users` + `next_url`），只差首页请求。零 Fragment 捕获：[initialFetch] 只捕获作品 id。
  */
-class LikeUsersFeedSource private constructor(
-    private val repo: RemoteRepo<ListSimpleUser>,
-) : FeedSource<String> {
-
-    constructor(illustId: Int) : this(SimpleUserRepo(illustId))
-    constructor(novelId: Long) : this(NovelBookmarkUserRepo(novelId))
-
-    override suspend fun load(cursor: String?): FeedPage<String> {
-        val resp: ListSimpleUser = if (cursor == null) {
-            requireNotNull(repo.initApi())
-        } else {
-            repo.nextUrl = cursor
-            requireNotNull(repo.initNextApi())
-        }
-        val items: List<FeedItem> = withContext(Dispatchers.Default) {
-            resp.list.orEmpty().map { LikeUserFeedItem(it) }
-        }
-        return FeedPage(items, resp.nextUrl?.takeIf { it.isNotEmpty() })
+private fun likeUsersFeedSource(initialFetch: suspend () -> ListSimpleUser): PixivFeedSource<ListSimpleUser> =
+    pixivFeedSource(initialFetch = initialFetch) { resp, _ ->
+        resp.displayList.map { LikeUserFeedItem(it) }
     }
-}

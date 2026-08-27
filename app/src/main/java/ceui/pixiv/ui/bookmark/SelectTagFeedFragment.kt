@@ -11,9 +11,9 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.databinding.RecySelectTagBinding
-import ceui.lisa.model.ListBookmarkTag
+import ceui.lisa.database.AppDatabase
+import ceui.lisa.http.Retro
 import ceui.lisa.models.TagsBean
-import ceui.lisa.repo.SelectTagRepo
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
@@ -27,10 +27,13 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.updateItems
+import ceui.pixiv.db.synonym.SynonymMatcher
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /**
  * 「按标签收藏」的标签列表（feeds 框架版，替代 legacy [ceui.lisa.fragments.FragmentSB] + SAdapter +
@@ -283,11 +286,11 @@ class SelectTagFeedItem(val tag: TagsBean) : FeedItem {
 }
 
 /**
- * 「按标签收藏」数据源：包裹 legacy [SelectTagRepo]，单页（nextCursor 恒 null，对齐 initNextApi=null）。
+ * 「按标签收藏」数据源：单页（nextCursor 恒 null）。
  *
- * load(null)：[SelectTagRepo.loadFirst]（先拉全量标签存进 repo.listTag，再拉本作品标签，然后在 IO 上跑
- * [SelectTagRepo.mapper]——同义词词典自动勾选 issue #904，含全量 DB 读，绝不能上主线程）；
- * 再 beforeFirstLoad 全选，最后映射成条目。
+ * load(null)：先拉用户全量收藏标签（勾选要用），再拉本作品已打的标签；然后在 IO 上做三步勾选——
+ * 作品标签命中收藏标签 → 勾选；同义词词典自动勾选（issue #904，含全量 DB 读，绝不能上主线程）；
+ * 最后按设置「全选」。
  *
  * 零 Fragment 捕获：只吃 illustID/type/tagNames（基本类型 + 不可变 list）。
  */
@@ -299,21 +302,66 @@ class SelectTagFeedSource(
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         // 单页：框架只会用 cursor == null 调本源（nextCursor 恒 null，无翻页）。
-        val repo = SelectTagRepo(illustID, type, tagNames)
-        // 同义词词典自动勾选（issue #904）在 mapper 里做，loadFirst 内部已切 IO（读全量词典 DB），不阻塞 UI。
-        val resp: ListBookmarkTag = requireNotNull(repo.loadFirst())
-        val tags: List<TagsBean> = withContext(Dispatchers.Default) {
-            // beforeFirstLoad 全选：设置开 + (tagNames 空 或 该标签命中作品标签) → 勾选。
+        val api = Retro.getAppApi()
+        val uid = SessionManager.loggedInUid
+        val (bookedTags, resp) = when (type) {
+            Params.TYPE_ILLUST ->
+                api.getAllIllustBookmarkTags(uid, Params.TYPE_PUBLIC) to api.getIllustBookmarkTags(illustID)
+            Params.TYPE_NOVEL ->
+                api.getAllNovelBookmarkTags(uid, Params.TYPE_PUBLIC) to api.getNovelBookmarkTags(illustID)
+            else -> throw IllegalArgumentException("unknown type $type")
+        }
+        val tags: MutableList<TagsBean> = resp.list ?: mutableListOf()
+        withContext(Dispatchers.IO) {
+            val bookedNames = bookedTags.displayList.mapTo(HashSet()) { it.name }
+            tags.forEach { tag ->
+                if (tag.name in bookedNames && tagNames.contains(tag.name)) {
+                    tag.isSelected = true
+                }
+            }
+            // 词典是增强功能：任何异常（DB 锁/迁移中等）都不能把整个收藏标签列表拖垮成 onError。
+            try {
+                applySynonymMatching(tags)
+            } catch (e: Exception) {
+                Timber.e(e, "synonym matching failed, skipped")
+            }
+            // 全选：设置开 + (tagNames 空 或 该标签命中作品标签) → 勾选。
             if (Shaft.sSettings.isStarWithTagSelectAll) {
-                resp.list?.forEach { tag ->
+                tags.forEach { tag ->
                     if (tagNames.isEmpty() || tagNames.contains(tag.name)) {
                         tag.isSelected = true
                     }
                 }
             }
-            resp.list.orEmpty()
         }
         val items: List<FeedItem> = tags.map { SelectTagFeedItem(it) }
         return FeedPage(items, null)
+    }
+
+    /**
+     * 同义词词典（issue #904）核心闭环：作品标签命中词典 → 对应目标标签（=收藏标签）自动勾选。
+     * 收藏标签列表里已有同名目标标签 → 勾选；没有 → 作为新标签插到列表顶部并勾选。
+     */
+    private fun applySynonymMatching(tags: MutableList<TagsBean>) {
+        // 功能总开关默认关闭：关闭时按标签收藏页与本功能存在之前完全一致
+        if (!Shaft.sSettings.isSynonymDictEnabled || tagNames.isEmpty()) {
+            return
+        }
+        val dict = AppDatabase.getAppDatabase(Shaft.getContext()).synonymDao().getAllWithSynonyms()
+        if (dict.isEmpty()) {
+            return
+        }
+        SynonymMatcher.matchedTargetNames(tagNames, dict).forEach { targetName ->
+            val existing = tags.firstOrNull { it.name == targetName }
+            if (existing != null) {
+                existing.isSelected = true
+            } else {
+                tags.add(0, TagsBean().apply {
+                    name = targetName
+                    count = 0
+                    isSelected = true
+                })
+            }
+        }
     }
 }
