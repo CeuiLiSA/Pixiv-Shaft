@@ -61,10 +61,15 @@ data class User(
     var lastTokenTime: Long = -1L,
 ) : Serializable, ModelObject, UserContainer, Starable {
 
+    companion object {
+        // 保持与 4.8.9 相同：UserContainer.getUserId 改签后仍能恢复系统保存的 User。
+        private const val serialVersionUID: Long = 3488682966520018560L
+    }
+
     override val objectUniqueId: Long get() = id
     override val objectType: Int get() = ObjectSpec.KUser
 
-    override fun getUserId(): Int = id.toInt()
+    override fun getUserId(): Long = id
     override fun getItemID(): Int = id.toInt()
     override fun setItemID(id: Int) {
         this.id = id.toLong()

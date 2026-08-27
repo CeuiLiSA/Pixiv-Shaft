@@ -45,10 +45,9 @@ import kotlinx.coroutines.launch
  */
 class FollowUserFeedFragment : UserFeedFragment() {
 
-    // legacy 用 int USER_ID（TemplateActivity 路由 getIntExtra / FragmentCollection 传
-    // (int) SessionManager.loggedInUid）；loxia 侧接口收 Long，取用处再转。
-    private val userId: Int by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.USER_ID)
+    // 新链路统一传 Long；Params 的兼容读取保留升级前已保存的 Int USER_ID。
+    private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
+        Params.getUserId(requireArguments())
     }
     private val starType: String by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getString(Params.STAR_TYPE) ?: Params.TYPE_PUBLIC
@@ -66,7 +65,7 @@ class FollowUserFeedFragment : UserFeedFragment() {
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获：Fragment 属性先取成局部 val；jump 是兄弟 VM（生命周期 ≥ FeedViewModel），可捕获
-        val uid = userId.toLong()
+        val uid = userId
         val restrict = starType
         val jump = jumpViewModel
         pixivFeedSource({
@@ -147,7 +146,7 @@ class FollowUserFeedFragment : UserFeedFragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             val total = try {
-                Client.appApi.getUserProfile(userId.toLong()).profile?.total_follow_users ?: 0
+                Client.appApi.getUserProfile(userId).profile?.total_follow_users ?: 0
             } catch (ce: CancellationException) {
                 throw ce
             } catch (ex: Throwable) {
@@ -196,13 +195,13 @@ class FollowUserFeedFragment : UserFeedFragment() {
         @JvmStatic
         @JvmOverloads
         fun newInstance(
-            userID: Int,
+            userID: Long,
             starType: String,
             showToolbar: Boolean = false,
         ): FollowUserFeedFragment {
             return FollowUserFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userID)
+                    putLong(Params.USER_ID, userID)
                     putString(Params.STAR_TYPE, starType)
                     putBoolean(Params.FLAG, showToolbar)
                 }

@@ -127,7 +127,7 @@ class LandingViewModel : ViewModel() {
                 return RefreshTokenLoginOutcome.Failed(R.string.refresh_token_persist_error_toast)
             }
         }
-        return RefreshTokenLoginOutcome.Succeeded(user.id.toLong())
+        return RefreshTokenLoginOutcome.Succeeded(user.id)
     }
 }
 

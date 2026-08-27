@@ -57,8 +57,8 @@ class UserMangaSeriesFeedFragment : FeedFragment() {
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
     /** toolbar 收藏动作要用的画师 id（fragment 作用域读 arguments，非零捕获路径，直接读安全）。 */
-    private val userID: Int
-        get() = requireArguments().getInt(Params.USER_ID)
+    private val userID: Long
+        get() = Params.getUserId(requireArguments())
 
     /**
      * 两种形态,对齐 [UserNovelSeriesFeedFragment]:
@@ -79,8 +79,8 @@ class UserMangaSeriesFeedFragment : FeedFragment() {
     // 小说系列 tab 全是 autoLoad=false，此处对齐；首屏由 FeedFragment.onResume 的 ensureLoaded 补，
     // 独立 TemplateActivity 形态（一进来就 RESUMED）不受影响。
     override val feedViewModel by feedViewModels(autoLoad = false) {
-        // 零捕获：只把 userID(Int) 读成局部 val 按值传给 source，source 自持 repo、不碰 Fragment / View。
-        val uid = requireArguments().getInt(Params.USER_ID)
+        // 零捕获：只把 userID(Long) 读成局部 val 按值传给 source，source 自持 repo、不碰 Fragment / View。
+        val uid = Params.getUserId(requireArguments())
         UserMangaSeriesFeedSource(uid)
     }
 
@@ -187,10 +187,10 @@ class UserMangaSeriesFeedFragment : FeedFragment() {
     companion object {
         @JvmStatic
         @JvmOverloads
-        fun newInstance(userID: Int, showToolbar: Boolean = true): UserMangaSeriesFeedFragment {
+        fun newInstance(userID: Long, showToolbar: Boolean = true): UserMangaSeriesFeedFragment {
             return UserMangaSeriesFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userID)
+                    putLong(Params.USER_ID, userID)
                     putBoolean(Params.FLAG, showToolbar)
                 }
             }
@@ -210,9 +210,9 @@ class MangaSeriesFeedItem(val series: MangaSeriesItem) : FeedItem {
  * 漫画系列数据源：包裹既有的 [MangaSeriesRepo]（对齐 NovelMarkersFeedSource）。
  * load(null) → getUserMangaSeries；load(cursor) → nextUrl + getNextUserMangaSeries。游标 = nextUrl。
  *
- * 零 Fragment 捕获：只吃一个 userID(Int)，自持 repo，不碰 View / Context。
+ * 零 Fragment 捕获：只吃一个 userID(Long)，自持 repo，不碰 View / Context。
  */
-class UserMangaSeriesFeedSource(userID: Int) : FeedSource<String> {
+class UserMangaSeriesFeedSource(userID: Long) : FeedSource<String> {
 
     private val repo = MangaSeriesRepo(userID)
 

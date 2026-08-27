@@ -15,7 +15,7 @@ import androidx.lifecycle.MutableLiveData;
  */
 public class AppLevelState {
 
-    private final ConcurrentMap<Integer, MutableLiveData<Integer>> followUserStatus;
+    private final ConcurrentMap<Long, MutableLiveData<Integer>> followUserStatus;
     private final ConcurrentMap<Integer, MutableLiveData<Integer>> starIllustStatus;
     private final ConcurrentMap<Integer, MutableLiveData<Integer>> starNovelStatus;
 
@@ -25,7 +25,7 @@ public class AppLevelState {
         starNovelStatus = new ConcurrentHashMap<>();
     }
 
-    public MutableLiveData<Integer> getFollowUserLiveData(int userId) {
+    public MutableLiveData<Integer> getFollowUserLiveData(long userId) {
         MutableLiveData<Integer> data = followUserStatus.get(userId);
         if (data == null) {
             data = new MutableLiveData<>(FollowUserStatus.UNKNOWN);
@@ -34,11 +34,11 @@ public class AppLevelState {
         return data;
     }
 
-    public void updateFollowUserStatus(int userId, int status) {
+    public void updateFollowUserStatus(long userId, int status) {
         updateFollowUserStatus(userId, status, UpdateMethod.NORMAL);
     }
 
-    public void updateFollowUserStatus(int userId, int status, int method) {
+    public void updateFollowUserStatus(long userId, int status, int method) {
         MutableLiveData<Integer> data = followUserStatus.get(userId);
         switch (method) {
             case UpdateMethod.IF_ABSENT:

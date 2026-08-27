@@ -214,27 +214,27 @@ interface AppApi {
 
     @GET("v1/user/illusts?filter=for_android")
     suspend fun getUserSubmitIllust(
-        @Query("user_id") userId: Int,
+        @Query("user_id") userId: Long,
         @Query("type") type: String,
     ): ListIllust
 
     /** tag 传 null 时 Retrofit 自动省略该 Query，等价于 legacy 的双重载。 */
     @GET("v1/user/bookmarks/illust")
     suspend fun getUserLikeIllust(
-        @Query("user_id") userId: Int,
+        @Query("user_id") userId: Long,
         @Query("restrict") restrict: String,
         @Query("tag") tag: String? = null,
     ): ListIllust
 
     @GET("v2/user/detail?filter=for_ios")
-    suspend fun getUserDetailV2(@Query("user_id") userId: Int): UserDetailResponse
+    suspend fun getUserDetailV2(@Query("user_id") userId: Long): UserDetailResponse
 
     @GET("v1/user/follow/detail")
-    suspend fun getFollowDetail(@Query("user_id") userId: Int): UserFollowDetail
+    suspend fun getFollowDetail(@Query("user_id") userId: Long): UserFollowDetail
 
     @GET("v1/user/following?filter=for_android")
     suspend fun getFollowUser(
-        @Query("user_id") userId: Int,
+        @Query("user_id") userId: Long,
         @Query("restrict") restrict: String,
         @Query("offset") offset: Int? = null,
     ): ListUser
@@ -246,10 +246,10 @@ interface AppApi {
     suspend fun getUsersWhoLikeThisNovel(@Query("novel_id") novelId: Long): ListSimpleUser
 
     @GET("v1/user/illust-series")
-    suspend fun getUserMangaSeries(@Query("user_id") userId: Int): ListMangaSeries
+    suspend fun getUserMangaSeries(@Query("user_id") userId: Long): ListMangaSeries
 
     @GET("v1/user/novel-series")
-    suspend fun getUserNovelSeries(@Query("user_id") userId: Int): ListNovelSeries
+    suspend fun getUserNovelSeries(@Query("user_id") userId: Long): ListNovelSeries
 
     @GET("v1/user/me/state")
     suspend fun getAccountState(): UserState
@@ -278,13 +278,13 @@ interface AppApi {
 
     @GET("v1/user/bookmark-tags/illust")
     suspend fun getAllIllustBookmarkTags(
-        @Query("user_id") userId: Int,
+        @Query("user_id") userId: Long,
         @Query("restrict") restrict: String?,
     ): ListTag
 
     @GET("v1/user/bookmark-tags/novel")
     suspend fun getAllNovelBookmarkTags(
-        @Query("user_id") userId: Int,
+        @Query("user_id") userId: Long,
         @Query("restrict") restrict: String?,
     ): ListTag
 

@@ -328,7 +328,7 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
                 cell.itemOrNull?.let { item -> confirmDeleteHistory(item.entity) }
             }
             binding.author.setOnClickListener {
-                cell.itemOrNull?.illust?.user?.id?.let { uid -> openHistoryUser(uid.toInt()) }
+                cell.itemOrNull?.illust?.user?.id?.let { uid -> openHistoryUser(uid) }
             }
         },
         recycle = { it.binding.illustImage.clearGlideOnRecycle() },
@@ -432,7 +432,7 @@ fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedIte
                 cell.itemOrNull?.let { item -> confirmDeleteHistory(item.entity) }
             }
             binding.author.setOnClickListener {
-                cell.itemOrNull?.novel?.user?.id?.let { uid -> openHistoryUser(uid.toInt()) }
+                cell.itemOrNull?.novel?.user?.id?.let { uid -> openHistoryUser(uid) }
             }
         },
         recycle = { it.binding.illustImage.clearGlideOnRecycle() },

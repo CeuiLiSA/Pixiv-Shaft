@@ -170,7 +170,7 @@ class MuteTagSheet : BottomSheetDialogFragment() {
         author?.let { user ->
             val authorMuted = AppDatabase.getAppDatabase(Shaft.getContext())
                 .searchDao()
-                .getUserMuteEntityByID(user.id.toInt()) != null
+                .getUserMuteEntityByID(user.id) != null
             authorOriginallyMuted = authorMuted
             authorSelected = authorMuted
         }

@@ -37,7 +37,7 @@ public class AppLevelStateHelper {
                     if (user == null) {
                         continue;
                     }
-                    state().updateFollowUserStatus((int) user.getId(), getFollowUserStatus(user));
+                    state().updateFollowUserStatus(user.getId(), getFollowUserStatus(user));
                 }
             } else if (list.get(0).getClass().equals(UserPreviewsBean.class)) {
                 for (UserPreviewsBean userPreviewsBean : (List<UserPreviewsBean>) list) {
@@ -45,11 +45,11 @@ public class AppLevelStateHelper {
                     if (user == null) {
                         continue;
                     }
-                    state().updateFollowUserStatus((int) user.getId(), getFollowUserStatus(user));
+                    state().updateFollowUserStatus(user.getId(), getFollowUserStatus(user));
                 }
             } else if (list.get(0).getClass().equals(User.class)) {
                 for (User user : (List<User>) list) {
-                    int userId = (int) user.getId();
+                    long userId = user.getId();
                     int followUserStatus = getFollowUserStatus(user);
                     state().updateFollowUserStatus(userId, followUserStatus);
                 }
@@ -62,7 +62,7 @@ public class AppLevelStateHelper {
                     if (userBean == null) {
                         continue;
                     }
-                    state().updateFollowUserStatus((int) userBean.getId(), getFollowUserStatus(userBean), AppLevelState.UpdateMethod.IF_ABSENT);
+                    state().updateFollowUserStatus(userBean.getId(), getFollowUserStatus(userBean), AppLevelState.UpdateMethod.IF_ABSENT);
                 }
             }
         }
@@ -73,6 +73,6 @@ public class AppLevelStateHelper {
     }
 
     public static void updateFollowUserStatus(User user, int method) {
-        state().updateFollowUserStatus((int) user.getId(), getFollowUserStatus(user), method);
+        state().updateFollowUserStatus(user.getId(), getFollowUserStatus(user), method);
     }
 }

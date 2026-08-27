@@ -46,8 +46,8 @@ import ceui.pixiv.ui.common.setUpToolbar
  */
 class LikeNovelFeedFragment : NovelFeedFragment() {
 
-    private val userId: Int by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.USER_ID)
+    private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
+        Params.getUserId(requireArguments())
     }
     private val starType: String by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getString(Params.STAR_TYPE) ?: Params.TYPE_PUBLIC
@@ -62,7 +62,7 @@ class LikeNovelFeedFragment : NovelFeedFragment() {
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获约定（见 feedViewModels 文档）：lambda 只捕获局部值和兄弟 VM
         //（filterViewModel 与列表 VM 同一 ViewModelStore、同生命周期），不捕获 Fragment
-        val userId = userId.toLong()
+        val userId = userId
         val starType = starType
         val filter = filterViewModel.also {
             // 列表 VM 首次创建时才走到这里：用入参初始化标签过滤（issue #904 跳转带初始标签）；
@@ -122,14 +122,14 @@ class LikeNovelFeedFragment : NovelFeedFragment() {
         @JvmStatic
         @JvmOverloads
         fun newInstance(
-            userID: Int,
+            userID: Long,
             starType: String,
             showToolbar: Boolean = false,
             initialTag: String? = null,
         ): LikeNovelFeedFragment {
             return LikeNovelFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userID)
+                    putLong(Params.USER_ID, userID)
                     putString(Params.STAR_TYPE, starType)
                     putBoolean(Params.FLAG, showToolbar)
                     if (!initialTag.isNullOrEmpty()) {

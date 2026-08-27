@@ -205,9 +205,9 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         // 失败回滚由 PixivActionQueue 统一做：它会带相反的值再发一次 LIKED_USER，
         // 本页的 followSyncReceiver 收到就把条目拨回去（applyFollowed 幂等）。
         if (target) {
-            PixivOperate.postFollowUser(user.id.toInt(), PixivActions.defaultFollowRestrict())
+            PixivOperate.postFollowUser(user.id, PixivActions.defaultFollowRestrict())
         } else {
-            PixivOperate.postUnFollowUser(user.id.toInt())
+            PixivOperate.postUnFollowUser(user.id)
         }
     }
 
@@ -216,7 +216,7 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         val user = cell.itemOrNull?.user ?: return
         renderFollow(cell.binding, true)
         applyFollowed(feedViewModel, user.id, true)
-        PixivOperate.postFollowUser(user.id.toInt(), Params.TYPE_PRIVATE)
+        PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE)
     }
 
     companion object {

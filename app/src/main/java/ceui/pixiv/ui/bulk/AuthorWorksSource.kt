@@ -18,7 +18,7 @@ class AuthorWorksSource(
 
     override suspend fun firstPage(): PageResult<Illust>? =
         Retro.getAppApi()
-            .getUserSubmitIllust(userId.toInt(), type)
+            .getUserSubmitIllust(userId, type)
             .toPageResult()
 
     override suspend fun nextPage(nextUrl: String): PageResult<Illust>? =

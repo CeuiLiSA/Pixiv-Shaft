@@ -231,7 +231,7 @@ fun seriesAuthorRenderer(): FeedRenderer<SeriesAuthorFeedItem, SectionV3ArtistBi
 
         val openUser = android.view.View.OnClickListener {
             val intent = Intent(ctx, UActivity::class.java)
-            intent.putExtra(Params.USER_ID, user.id.toInt())
+            intent.putExtra(Params.USER_ID, user.id)
             ctx.startActivity(intent)
         }
         b.artistCard.setOnClickListener(openUser)
@@ -265,13 +265,13 @@ fun seriesAuthorRenderer(): FeedRenderer<SeriesAuthorFeedItem, SectionV3ArtistBi
             val fragment = it.findFragmentOrNull<Fragment>() ?: return@setOnClick
             val nowFollowed = (ObjectPool.get<User>(user.id).value ?: user).is_followed == true
             renderFollow(!nowFollowed)
-            if (nowFollowed) fragment.unfollowUser(it as ProgressTextButton, user.id.toInt())
-            else fragment.followUser(it as ProgressTextButton, user.id.toInt(), PixivActions.defaultFollowRestrict())
+            if (nowFollowed) fragment.unfollowUser(it as ProgressTextButton, user.id)
+            else fragment.followUser(it as ProgressTextButton, user.id, PixivActions.defaultFollowRestrict())
         }
         b.followBtn.setOnLongClickListener {
             val fragment = it.findFragmentOrNull<Fragment>() ?: return@setOnLongClickListener false
             renderFollow(true)
-            fragment.followUser(b.followBtn, user.id.toInt(), Params.TYPE_PRIVATE); true
+            fragment.followUser(b.followBtn, user.id, Params.TYPE_PRIVATE); true
         }
     }
 

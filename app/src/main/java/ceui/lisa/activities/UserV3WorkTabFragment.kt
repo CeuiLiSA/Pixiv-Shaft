@@ -39,7 +39,7 @@ private const val MAX_TAG_CHIPS = 20 // issue #569: 高频 tag 药丸最多展�
  */
 class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovelFirstPageListener {
 
-    private var userId = 0
+    private var userId = 0L
     private var tagsRendered = false
     private var allTags: List<TagsBean> = emptyList()
     // trimToTwoRows 的收敛结果缓存(按宽度,重复渲染不再离屏测量)
@@ -52,10 +52,10 @@ class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovel
     }
 
     companion object {
-        fun newInstance(userId: Int, category: String): UserV3WorkTabFragment =
+        fun newInstance(userId: Long, category: String): UserV3WorkTabFragment =
             UserV3WorkTabFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(ARG_USER_ID, userId)
+                    putLong(ARG_USER_ID, userId)
                     putString(ARG_CATEGORY, category)
                 }
             }
@@ -66,7 +66,7 @@ class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovel
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        userId = arguments?.getInt(ARG_USER_ID) ?: 0
+        userId = Params.getLongCompat(arguments, ARG_USER_ID)
         return inflater.inflate(R.layout.fragment_user_v3_illust_tab, container, false)
     }
 

@@ -128,10 +128,10 @@ class MutedUserFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
     private fun toggleFollow(cell: FeedCell<MutedUserFeedItem, RecySimpleUserBinding>) {
         val user = cell.item.user
         if (user.is_followed == true) {
-            PixivOperate.postUnFollowUser(user.id.toInt())
+            PixivOperate.postUnFollowUser(user.id)
             user.is_followed = false
         } else {
-            PixivOperate.postFollowUser(user.id.toInt(), PixivActions.defaultFollowRestrict())
+            PixivOperate.postFollowUser(user.id, PixivActions.defaultFollowRestrict())
             user.is_followed = true
         }
         renderFollow(cell.binding, user.is_followed == true)
@@ -140,7 +140,7 @@ class MutedUserFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
     /** 长按按钮 = 私密关注（沿用 legacy 的长按语义）。 */
     private fun privateFollow(cell: FeedCell<MutedUserFeedItem, RecySimpleUserBinding>) {
         val user = cell.item.user
-        PixivOperate.postFollowUser(user.id.toInt(), Params.TYPE_PRIVATE)
+        PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE)
         user.is_followed = true
         renderFollow(cell.binding, true)
     }

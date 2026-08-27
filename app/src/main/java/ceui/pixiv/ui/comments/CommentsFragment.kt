@@ -291,7 +291,7 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
     // findNavController()/pushFragment 必炸,直接走 Intent(master 分支才有 Navigation 那套)
     override fun onClickUser(id: Long) {
         val userIntent = Intent(requireContext(), UActivity::class.java)
-        userIntent.putExtra(Params.USER_ID, id.toInt())
+        userIntent.putExtra(Params.USER_ID, id)
         startActivity(userIntent)
     }
 

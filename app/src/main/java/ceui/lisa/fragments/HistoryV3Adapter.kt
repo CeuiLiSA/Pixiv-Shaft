@@ -149,7 +149,7 @@ class HistoryV3Adapter(
                 if (pos != RecyclerView.NO_POSITION) onRequestDelete(pos, entity)
             }
             author.setOnClickListener {
-                illust.user?.id?.let { openUser(it.toInt()) }
+                illust.user?.id?.let { openUser(it) }
             }
         }
     }
@@ -182,7 +182,7 @@ class HistoryV3Adapter(
                 if (pos != RecyclerView.NO_POSITION) onRequestDelete(pos, entity)
             }
             author.setOnClickListener {
-                novel.user?.id?.let { openUser(it.toInt()) }
+                novel.user?.id?.let { openUser(it) }
             }
         }
     }
@@ -210,7 +210,7 @@ class HistoryV3Adapter(
         context.startActivity(intent)
     }
 
-    private fun openUser(userId: Int) {
+    private fun openUser(userId: Long) {
         val intent = Intent(context, UActivity::class.java).apply {
             putExtra(Params.USER_ID, userId)
         }

@@ -118,8 +118,8 @@ class ArtworkV3FeedSource(
             list.add(ArtworkTagsItem(illust))
             list.add(ArtworkStatsItem(illust))
             list.add(ArtworkDetailPanelItem(illust))
-            list.add(ArtworkCommentsItem(illust.id.toInt(), illust.title ?: "", illust.user?.id?.toInt() ?: 0))
-            list.add(ArtworkAuthorWorksItem(illust.user?.name ?: "", illust.user?.id?.toInt() ?: 0))
+            list.add(ArtworkCommentsItem(illust.id.toInt(), illust.title ?: "", illust.user?.id ?: 0L))
+            list.add(ArtworkAuthorWorksItem(illust.user?.name ?: "", illust.user?.id ?: 0L))
             // 相关作品头初始 state=null(加载中);等区块滚到可见才拉,见 ArtworkSection.RELATED
             list.add(ArtworkRelatedHeaderItem(illust.id.toInt(), illust.title ?: ""))
             return list
@@ -166,7 +166,7 @@ internal suspend fun fetchArtworkComments(illustId: Long): List<Comment> = withC
 
 /** 作者其他作品(前 10 条,排除当前作品)。走全局 Mapper 过滤。main-safe。 */
 internal suspend fun fetchAuthorWorks(
-    userId: Int,
+    userId: Long,
     excludeIllustId: Long,
 ): List<Illust> = withContext(Dispatchers.IO) {
     Timber.tag(ARTWORK_LAZY_TAG).d("API 发出: 作者其他作品 userId=%d", userId)

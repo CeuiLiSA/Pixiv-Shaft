@@ -28,9 +28,9 @@ class UserFansFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) {
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
-    // legacy 用 int USER_ID（TemplateActivity 路由 getIntExtra），loxia 侧收 Long。
+    // 新链路统一传 Long；Params 的兼容读取保留升级前已保存的 Int USER_ID。
     private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.USER_ID).toLong()
+        Params.getUserId(requireArguments())
     }
 
     override val feedViewModel by feedViewModels {
@@ -49,10 +49,10 @@ class UserFansFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) {
 
     companion object {
         @JvmStatic
-        fun newInstance(userId: Int): UserFansFeedFragment {
+        fun newInstance(userId: Long): UserFansFeedFragment {
             return UserFansFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userId)
+                    putLong(Params.USER_ID, userId)
                 }
             }
         }

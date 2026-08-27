@@ -49,8 +49,8 @@ import kotlinx.coroutines.withContext
  */
 class LikeIllustFeedFragment : IllustFeedFragment() {
 
-    private val userId: Int by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.USER_ID)
+    private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
+        Params.getUserId(requireArguments())
     }
     private val starType: String by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getString(Params.STAR_TYPE) ?: Params.TYPE_PUBLIC
@@ -65,7 +65,7 @@ class LikeIllustFeedFragment : IllustFeedFragment() {
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获约定（见 feedViewModels 文档）：lambda 只捕获局部值和兄弟 VM
         //（filterViewModel 与列表 VM 同一 ViewModelStore、同生命周期），不捕获 Fragment
-        val userId = userId.toLong()
+        val userId = userId
         val starType = starType
         val filter = filterViewModel.also {
             // 列表 VM 首次创建时才走到这里：用入参初始化标签过滤（issue #904 跳转带初始标签）；
@@ -85,7 +85,7 @@ class LikeIllustFeedFragment : IllustFeedFragment() {
 
     /** 自己的收藏页 + 「隐藏收藏按钮」设置 → 卡片不显示爱心；动态读，设置改完回来即时生效。 */
     override val hideLikeButton: Boolean
-        get() = SessionManager.loggedInUid == userId.toLong() &&
+        get() = SessionManager.loggedInUid == userId &&
                 Shaft.sSettings.isHideStarButtonAtMyCollection()
 
     /** 「按标签筛选」页的选择回流：公开/私密两 tab 并存，匹配本页 starType 才认领。 */
@@ -165,14 +165,14 @@ class LikeIllustFeedFragment : IllustFeedFragment() {
         @JvmStatic
         @JvmOverloads
         fun newInstance(
-            userID: Int,
+            userID: Long,
             starType: String,
             showToolbar: Boolean = false,
             initialTag: String? = null,
         ): LikeIllustFeedFragment {
             return LikeIllustFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userID)
+                    putLong(Params.USER_ID, userID)
                     putString(Params.STAR_TYPE, starType)
                     putBoolean(Params.FLAG, showToolbar)
                     if (!initialTag.isNullOrEmpty()) {

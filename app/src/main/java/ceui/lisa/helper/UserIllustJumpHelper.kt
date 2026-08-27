@@ -41,11 +41,11 @@ object UserIllustJumpHelper {
     @JvmStatic
     fun showJumpDialog(
         activity: Activity,
-        userID: Int,
+        userID: Long,
         kind: Kind,
         onJump: OnJumpPicked
     ) {
-        if (userID <= 0) return
+        if (userID <= 0L) return
         val loading = WitTipDialog.Builder(activity)
             .setTipWord(activity.getString(R.string.user_jump_loading))
             .create()
@@ -84,7 +84,7 @@ object UserIllustJumpHelper {
 
     private fun showChoiceDialog(
         activity: Activity,
-        userID: Int,
+        userID: Long,
         kind: Kind,
         total: Int,
         onJump: OnJumpPicked
@@ -137,7 +137,7 @@ object UserIllustJumpHelper {
 
     private fun pickDate(
         activity: Activity,
-        userID: Int,
+        userID: Long,
         kind: Kind,
         total: Int,
         onJump: OnJumpPicked
@@ -170,7 +170,7 @@ object UserIllustJumpHelper {
      */
     private fun locateByDate(
         activity: Activity,
-        userID: Int,
+        userID: Long,
         kind: Kind,
         total: Int,
         target: LocalDate,
@@ -206,7 +206,7 @@ object UserIllustJumpHelper {
     }
 
     private fun binarySearch(
-        userID: Int,
+        userID: Long,
         kind: Kind,
         totalPages: Int,
         target: LocalDate,
@@ -241,7 +241,7 @@ object UserIllustJumpHelper {
     }
 
     private fun fetchFirstDate(
-        userID: Int,
+        userID: Long,
         kind: Kind,
         offset: Int,
         onSuccess: (LocalDate?) -> Unit,

@@ -57,8 +57,8 @@ class UserTagSearchSheet : V3BottomSheetBase() {
     private var _binding: DialogUserTagSearchBinding? = null
     private val binding get() = _binding!!
 
-    private val userId: Int by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.USER_ID)
+    private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
+        Params.getUserId(requireArguments())
     }
 
     // 网页 ajax 端点段:illusts / manga / novels。缺省 illusts。
@@ -137,7 +137,7 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         binding.loading.isVisible = true
         binding.emptyText.isVisible = false
         viewLifecycleOwner.lifecycleScope.launch {
-            val uid = userId.toLong()
+            val uid = userId
             val tags = try {
                 Client.webApi.getUserWorkTags(uid, category).body
             } catch (e: kotlinx.coroutines.CancellationException) {
@@ -333,13 +333,13 @@ class UserTagSearchSheet : V3BottomSheetBase() {
             else -> "插画标签作品"
         }
 
-        fun show(fm: FragmentManager, userId: Int, category: String = CATEGORY_ILLUSTS) {
+        fun show(fm: FragmentManager, userId: Long, category: String = CATEGORY_ILLUSTS) {
             // 双保险：isStateSaved 挡住 onSaveInstanceState 之后 commit 抛 IllegalStateException；
             // findFragmentByTag 挡住快速双击弹出两张 sheet。
             if (fm.isStateSaved || fm.findFragmentByTag(TAG) != null) return
             UserTagSearchSheet().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userId)
+                    putLong(Params.USER_ID, userId)
                     putString(Params.CONTENT_TYPE, category)
                 }
             }.show(fm, TAG)

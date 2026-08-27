@@ -79,7 +79,7 @@ class RecmdUserRailFeedFragment : FeedFragment() {
                     val id = cell.item.preview.user?.id ?: return@setOnClick
                     startActivity(
                         Intent(requireContext(), UActivity::class.java).apply {
-                            putExtra(Params.USER_ID, id.toInt())
+                            putExtra(Params.USER_ID, id)
                         },
                     )
                 }

@@ -188,7 +188,7 @@ class ArtworkDetailPanelItem(val illust: Illust) : FeedItem {
 data class ArtworkCommentsItem(
     val illustId: Int,
     val illustTitle: String,
-    val illustAuthorId: Int,
+    val illustAuthorId: Long,
     val comments: List<Comment>? = null,
     /** 是否已成功从服务端拉过一次评论预览。false = 还该（重）拉，与本地已插入几条无关。 */
     val fetched: Boolean = false,
@@ -224,14 +224,14 @@ data class ArtworkCommentsItem(
 /** 作者其他作品(懒):works == null 表示还没拉。 */
 data class ArtworkAuthorWorksItem(
     val authorName: String,
-    val userId: Int,
+    val userId: Long,
     val works: List<Illust>? = null,
 ) : FeedItem {
     override val feedKey: Any get() = "artwork_author_works"
     override fun equals(other: Any?) =
         other is ArtworkAuthorWorksItem && other.userId == userId && other.works === works
 
-    override fun hashCode() = userId * 31 + System.identityHashCode(works)
+    override fun hashCode() = userId.hashCode() * 31 + System.identityHashCode(works)
 }
 
 /** 相关作品头:滚到可见才懒加载(见 [ArtworkSection.RELATED]),加载态 / 空态 / 有相关三态。 */
@@ -485,7 +485,7 @@ internal fun ArtworkV3Fragment.artistRenderer() =
                 return@OnClickListener
             }
             val intent = Intent(ctx, UActivity::class.java)
-            intent.putExtra(Params.USER_ID, user.id.toInt())
+            intent.putExtra(Params.USER_ID, user.id)
             ctx.startActivity(intent)
         }
         b.artistCard.setOnClickListener(openUser)
@@ -512,7 +512,7 @@ private fun ArtworkV3Fragment.bindArtistFollowState(
     isFollowedOverride: Boolean? = null,
 ) {
     val ctx = requireContext()
-    val userId = user.id.toInt()
+    val userId = user.id
     if (isFollowedOverride != null) {
         // 快照只读：显示快照那一刻的关注态，但点击不产生任何动作。
         if (isFollowedOverride) {
@@ -681,7 +681,7 @@ internal fun ArtworkV3Fragment.commentsRenderer() =
                 // 塞 Int 进去 getLongExtra 只会拿到默认值 0 —— objectArthurId 一旦是 0，
                 // CommentFeedItem.isAuthor 恒 false，作者本人的评论就不再有「作者」标记。
                 intent.putExtra("objectId", item.illustId.toLong())
-                intent.putExtra("objectArthurId", item.illustAuthorId.toLong())
+                intent.putExtra("objectArthurId", item.illustAuthorId)
                 intent.putExtra("objectType", ceui.loxia.ObjectType.ILLUST)
                 intent.putExtra(
                     ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID,
@@ -745,7 +745,7 @@ private fun ArtworkV3Fragment.renderCommentsPreview(
         cellB.userName.text = comment.user.name
         cellB.commentTime.text = comment.displayCommentDate()
 
-        val isArthur = illustAuthorId.toLong() == comment.user.id
+        val isArthur = illustAuthorId == comment.user.id
         cellB.arthurLabel.isVisible = isArthur
         if (isArthur) {
             cellB.arthurLabel.backgroundTintList = ColorStateList.valueOf(palette.alpha15)
@@ -784,7 +784,7 @@ private fun ArtworkV3Fragment.renderCommentsPreview(
                     }
                     item(ctx.getString(R.string.string_174), R.drawable.ic_supervisor_account_black_24dp) {
                         val intent = Intent(ctx, UActivity::class.java)
-                        intent.putExtra(Params.USER_ID, comment.user.id.toInt())
+                        intent.putExtra(Params.USER_ID, comment.user.id)
                         ctx.startActivity(intent)
                     }
                 }

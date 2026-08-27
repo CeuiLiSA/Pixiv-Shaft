@@ -100,7 +100,7 @@ class RequestPlanDetailFragment : Fragment(R.layout.fragment_request_plan_detail
         val openUser = View.OnClickListener {
             startActivity(
                 Intent(requireContext(), UserActivityV3::class.java)
-                    .putExtra(Params.USER_ID, user.id.toInt())
+                    .putExtra(Params.USER_ID, user.id)
             )
         }
         ab.artistCard.setOnClickListener(openUser)
@@ -123,16 +123,16 @@ class RequestPlanDetailFragment : Fragment(R.layout.fragment_request_plan_detail
         if (user.is_followed == true) {
             ab.followBtn.text = getString(R.string.unfollow)
             palette.applyUnfollowBtn(ab.followBtn)
-            ab.followBtn.setOnClick { unfollowUser(it as ProgressTextButton, user.id.toInt()) }
+            ab.followBtn.setOnClick { unfollowUser(it as ProgressTextButton, user.id) }
         } else {
             ab.followBtn.text = getString(R.string.follow)
             palette.applyFollowBtn(ab.followBtn)
             ab.followBtn.setTextColor(Color.WHITE)
             ab.followBtn.setOnClick {
-                followUser(it as ProgressTextButton, user.id.toInt(), PixivActions.defaultFollowRestrict())
+                followUser(it as ProgressTextButton, user.id, PixivActions.defaultFollowRestrict())
             }
             ab.followBtn.setOnLongClickListener {
-                followUser(ab.followBtn, user.id.toInt(), Params.TYPE_PRIVATE); true
+                followUser(ab.followBtn, user.id, Params.TYPE_PRIVATE); true
             }
         }
     }

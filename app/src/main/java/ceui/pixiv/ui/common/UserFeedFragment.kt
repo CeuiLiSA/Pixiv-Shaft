@@ -179,9 +179,9 @@ abstract class UserFeedFragment(
         // 一次 LIKED_USER，本页 onViewCreated 挂的 FeedLikeSync 收到就把条目拨回去（幂等）。
         // 不再用回调式回滚——队列可能在冷却几分钟后才判定失败，那时本 Fragment 早销毁了。
         if (target) {
-            PixivOperate.postFollowUser(userId.toInt(), PixivActions.defaultFollowRestrict())
+            PixivOperate.postFollowUser(userId, PixivActions.defaultFollowRestrict())
         } else {
-            PixivOperate.postUnFollowUser(userId.toInt())
+            PixivOperate.postUnFollowUser(userId)
         }
     }
 
@@ -193,7 +193,7 @@ abstract class UserFeedFragment(
         // 失败回滚同 toggleFollow，由队列的 LIKED_USER 广播完成。
         renderFollow(cell.binding, true)
         applyFollow(userId, true)
-        PixivOperate.postFollowUser(userId.toInt(), Params.TYPE_PRIVATE)
+        PixivOperate.postFollowUser(userId, Params.TYPE_PRIVATE)
     }
 
     private fun applyFollow(userId: Long, followed: Boolean) {

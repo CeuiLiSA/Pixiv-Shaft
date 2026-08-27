@@ -39,8 +39,8 @@ import java.text.NumberFormat
  */
 class RequestPlanFeedFragment : FeedFragment() {
 
-    private val userId: Int by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.USER_ID)
+    private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
+        Params.getUserId(requireArguments())
     }
 
     private lateinit var palette: V3Palette
@@ -50,7 +50,7 @@ class RequestPlanFeedFragment : FeedFragment() {
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获约定:userId 先取成局部 Long,不把 Fragment 钉进长命 VM
-        val uid = userId.toLong()
+        val uid = userId
         FeedSource<String> { _ ->
             val resp = Client.appApi.getUserRequestPlans(uid)
             // resp.user 是该画师本人(约稿方案的作者),带给详情页展示作者行
@@ -170,9 +170,9 @@ class RequestPlanFeedFragment : FeedFragment() {
         private const val AI_TYPE_GENERATED = 2
         private val ADULT_BADGE_COLOR = 0xFFE0405E.toInt()
 
-        fun newInstance(userId: Int): RequestPlanFeedFragment =
+        fun newInstance(userId: Long): RequestPlanFeedFragment =
             RequestPlanFeedFragment().apply {
-                arguments = Bundle().apply { putInt(Params.USER_ID, userId) }
+                arguments = Bundle().apply { putLong(Params.USER_ID, userId) }
             }
     }
 }

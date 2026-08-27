@@ -35,8 +35,8 @@ import kotlinx.coroutines.launch
  */
 class UserNovelFeedFragment : NovelFeedFragment() {
 
-    private val userId: Int by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.USER_ID)
+    private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
+        Params.getUserId(requireArguments())
     }
 
     /** legacy 默认 true（newInstance(userID) 单参版），保持一致。 */
@@ -60,7 +60,7 @@ class UserNovelFeedFragment : NovelFeedFragment() {
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获约定:userId 先取成局部值,不把 Fragment 钉进长命 VM
-        val uid = userId.toLong()
+        val uid = userId
         // userWorksStateViewModel 是 ViewModel 实例（非 Fragment），mapper 里借它记录「整页被过滤滤空」。
         val stateVm = userWorksStateViewModel
         pixivFeedSource({ Client.appApi.getUserCreatedNovels(uid) }) { resp, _ ->
@@ -121,10 +121,10 @@ class UserNovelFeedFragment : NovelFeedFragment() {
     companion object {
         @JvmStatic
         @JvmOverloads
-        fun newInstance(userID: Int, showToolbar: Boolean = true): UserNovelFeedFragment {
+        fun newInstance(userID: Long, showToolbar: Boolean = true): UserNovelFeedFragment {
             return UserNovelFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userID)
+                    putLong(Params.USER_ID, userID)
                     putBoolean(Params.FLAG, showToolbar)
                 }
             }

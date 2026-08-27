@@ -38,8 +38,8 @@ class UserNovelByTagFeedFragment : NovelFeedFragment(R.layout.fragment_toolbar_f
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
-    private val userId: Int by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.USER_ID)
+    private val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
+        Params.getUserId(requireArguments())
     }
     // 命名避开 Fragment.getTag()（同 JVM 签名会被判「accidental override」）。
     private val filterTag: String by lazy(LazyThreadSafetyMode.NONE) {
@@ -47,7 +47,7 @@ class UserNovelByTagFeedFragment : NovelFeedFragment(R.layout.fragment_toolbar_f
     }
 
     override val feedViewModel by feedViewModels {
-        // 零捕获：source 只吃 Int userId + String tag。
+        // 零捕获：source 只吃 Long userId + String tag。
         UserNovelByTagFeedSource(userId, filterTag)
     }
 
@@ -95,10 +95,10 @@ class UserNovelByTagFeedFragment : NovelFeedFragment(R.layout.fragment_toolbar_f
 
     companion object {
         @JvmStatic
-        fun newInstance(userId: Int, tag: String?): UserNovelByTagFeedFragment {
+        fun newInstance(userId: Long, tag: String?): UserNovelByTagFeedFragment {
             return UserNovelByTagFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userId)
+                    putLong(Params.USER_ID, userId)
                     putString(Params.KEY_WORD, tag)
                 }
             }
@@ -112,14 +112,14 @@ class UserNovelByTagFeedFragment : NovelFeedFragment(R.layout.fragment_toolbar_f
  * 游标 = 下一页 offset（已加载条数）；works 空或已到 total 则停。零 Fragment 捕获。
  */
 class UserNovelByTagFeedSource(
-    private val userId: Int,
+    private val userId: Long,
     private val tag: String,
 ) : FeedSource<String> {
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val offset = cursor?.toIntOrNull() ?: 0
         val resp = Client.webApi
-            .getUserNovelsByTag(userId.toLong(), tag, offset, PAGE_SIZE)
+            .getUserNovelsByTag(userId, tag, offset, PAGE_SIZE)
         // 网页 ajax 的业务错误是 HTTP 200 + error:true + body:null，同插画侧：
         // 抛出去交给 feeds 的错误态,别渲染成「筛出来 0 件」。
         if (resp.error == true) {

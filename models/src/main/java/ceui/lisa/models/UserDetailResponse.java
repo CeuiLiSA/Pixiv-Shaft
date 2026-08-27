@@ -1,15 +1,12 @@
 package ceui.lisa.models;
 
-import android.text.TextUtils;
-
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class UserDetailResponse extends UserHolder implements Serializable, UserContainer {
+
+    // 4.8.9 的序列化版本号；getUserId 改为 long 不应让系统恢复旧页面崩溃。
+    private static final long serialVersionUID = -9038046041993882463L;
 
     private ProfileBean profile;
     private ProfilePublicityBean profile_publicity;
@@ -50,7 +47,7 @@ public class UserDetailResponse extends UserHolder implements Serializable, User
     }
 
     @Override
-    public int getUserId() {
-        return getUser() == null ? 0 : (int) getUser().getId();
+    public long getUserId() {
+        return getUser() == null ? 0 : getUser().getId();
     }
 }

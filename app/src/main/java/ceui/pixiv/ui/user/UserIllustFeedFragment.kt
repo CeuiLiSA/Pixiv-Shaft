@@ -99,8 +99,8 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
         return newInstance(userId, showToolbar, offset, pickedDate)
     }
 
-    protected val userId: Int by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.USER_ID)
+    protected val userId: Long by lazy(LazyThreadSafetyMode.NONE) {
+        Params.getUserId(requireArguments())
     }
     protected val showToolbar: Boolean by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getBoolean(Params.FLAG)
@@ -131,7 +131,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获约定:userId / offset / type 先取成局部值,不把 Fragment 钉进长命 VM
-        val uid = userId.toLong()
+        val uid = userId
         val offset = initialOffset
         val type = workType
         // userWorksStateViewModel 是 ViewModel 实例（非 Fragment），mapper 里借它记录「整页被过滤滤空」。
@@ -254,7 +254,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
             val downloadAllItem: MenuItem? = binding.toolbar.menu.findItem(R.id.action_download_all)
             // 数量没拿到前先藏,免得点了报「加载中」;拉到 >0 再显
             downloadAllItem?.isVisible = false
-            userWorksStateViewModel.ensureLoaded(userId.toLong())
+            userWorksStateViewModel.ensureLoaded(userId)
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     userWorksStateViewModel.total.collect { total ->
@@ -322,7 +322,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
             .addAction(0, getString(android.R.string.ok)) { d, _ ->
                 d.dismiss()
                 startAuthorWorksBulkDownload(
-                    requireActivity(), userId.toLong(), WorkType.ILLUST, authorName,
+                    requireActivity(), userId, WorkType.ILLUST, authorName,
                 )
             }
             .show()
@@ -332,14 +332,14 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
         @JvmStatic
         @JvmOverloads
         fun newInstance(
-            userID: Int,
+            userID: Long,
             showToolbar: Boolean,
             initialOffset: Int = 0,
             targetDate: String? = null,
         ): UserIllustFeedFragment {
             return UserIllustFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.USER_ID, userID)
+                    putLong(Params.USER_ID, userID)
                     putBoolean(Params.FLAG, showToolbar)
                     putInt(Params.INITIAL_OFFSET, initialOffset)
                     if (targetDate != null) putString(Params.TARGET_DATE, targetDate)

@@ -241,6 +241,6 @@ private fun WatchlistFeedFragment.openSeriesAuthor(series: WatchlistSeries) {
     if (series.isMasked) return
     val userId = series.user?.id ?: return
     startActivity(Intent(requireContext(), UActivity::class.java).apply {
-        putExtra(Params.USER_ID, userId.toInt())
+        putExtra(Params.USER_ID, userId)
     })
 }

@@ -93,22 +93,15 @@ public class Common {
     }
 
     /**
-     * 把用户输入/外链里的数字串安全解析成 Pixiv 用户 ID(int)。
-     * Pixiv 用户 ID 落在 int 范围内,但用户可能往搜索框/链接里塞超出 int 的纯数字
-     * (电话号、乱填),裸 Integer.valueOf 会抛 NumberFormatException 直接崩
-     * (Crashlytics: For input string "12779303638")。解析失败或越界一律返回 0,
-     * 跳到「用户不存在」页而不是闪退。
+     * 把用户输入/外链里的数字串安全解析成 Pixiv 用户 ID(long)。
      */
-    public static int safeUserId(String str) {
-        if (str == null) return 0;
+    public static long safeUserId(String str) {
+        if (str == null) return 0L;
         try {
             long value = Long.parseLong(str.trim());
-            if (value > 0 && value <= Integer.MAX_VALUE) {
-                return (int) value;
-            }
-        } catch (NumberFormatException ignored) {
-        }
-        return 0;
+            if (value > 0L) return value;
+        } catch (NumberFormatException ignored) {}
+        return 0L;
     }
 
     public static boolean isEmpty(List<?> list) {
@@ -129,7 +122,7 @@ public class Common {
         if (SessionManager.INSTANCE.isLoggedIn()) {
             if(deleteUser){
                 UserEntity userEntity = new UserEntity();
-                userEntity.setUserID((int) SessionManager.INSTANCE.getLoggedInUid());
+                userEntity.setUserID(SessionManager.INSTANCE.getLoggedInUid());
                 AppDatabase.getAppDatabase(context)
                         .downloadDao().deleteUser(userEntity);
             }

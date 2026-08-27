@@ -112,7 +112,7 @@ private fun parseTarget(targetType: String, meta: JsonElement?): ParsedTarget? {
                     thumbUrl = bean.profile_image_urls?.medium,
                     openIntent = { ctx ->
                         ctx.startActivity(Intent(ctx, UActivity::class.java).apply {
-                            putExtra(Params.USER_ID, bean.id.toInt())
+                            putExtra(Params.USER_ID, bean.id)
                         })
                     }
                 )

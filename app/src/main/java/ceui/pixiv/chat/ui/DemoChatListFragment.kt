@@ -326,14 +326,13 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      * [ceui.lisa.activities.UserActivityV3] when the user has v3 settings
      * enabled, so we don't have to branch here.
      *
-     * UActivity reads the uid as Int; the cast is safe since pixiv uids
-     * fit well within Int.MAX_VALUE. Uid 0 means "unknown" — bail out.
+     * UActivity reads the uid as Long. Uid 0 means "unknown" — bail out.
      */
     private fun openUserProfile(uid: Long) {
         if (uid <= 0L) return
         val ctx = context ?: return
         val intent = Intent(ctx, UActivity::class.java).apply {
-            putExtra(Params.USER_ID, uid.toInt())
+            putExtra(Params.USER_ID, uid)
         }
         ctx.startActivity(intent)
     }

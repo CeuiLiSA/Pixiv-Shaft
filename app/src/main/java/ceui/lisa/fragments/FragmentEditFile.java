@@ -229,7 +229,7 @@ public class FragmentEditFile extends BaseLazyFragment<FragmentEditFileBinding> 
 
 
         //加载预设信息
-        LegacyApiCalls.getUserDetailV2(this, (int) SessionManager.INSTANCE.getLoggedInUid(), user -> {
+        LegacyApiCalls.getUserDetailV2(this, SessionManager.INSTANCE.getLoggedInUid(), user -> {
             for (int i = 0; i < preset.getProfile_presets().getAddresses().size(); i++) {
                 if (user.getProfile().getAddress_id() == preset.getProfile_presets().getAddresses().get(i).getId()) {
                     baseBind.address.setSelection(i);

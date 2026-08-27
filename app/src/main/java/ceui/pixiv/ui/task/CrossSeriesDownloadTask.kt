@@ -120,7 +120,7 @@ class CrossSeriesDownloadTask(context: Context) {
         activity: FragmentActivity,
         seriesList: List<NovelSeriesItem>,
         authorName: String?,
-        authorId: Int,
+        authorId: Long,
         format: ExportFormat,
         onFinished: (ok: Boolean, skippedChapters: Int) -> Unit,
     ) {
@@ -335,7 +335,7 @@ class CrossSeriesDownloadTask(context: Context) {
 
     private fun buildMergedFileName(
         authorName: String?,
-        authorId: Int,
+        authorId: Long,
         format: ExportFormat,
     ): String {
         val sanitized = authorName.orEmpty()

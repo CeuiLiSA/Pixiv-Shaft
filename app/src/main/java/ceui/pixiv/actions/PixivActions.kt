@@ -480,7 +480,7 @@ object PixivActions {
     ) {
         if (follow) {
             Shaft.getContext().appServices().appLevelState.updateFollowUserStatus(
-                userId.toInt(),
+                userId,
                 if (restrict == Params.TYPE_PUBLIC) {
                     AppLevelState.FollowUserStatus.FOLLOWED_PUBLIC
                 } else {
@@ -490,7 +490,7 @@ object PixivActions {
             ObjectPool.followUser(userId)
         } else {
             Shaft.getContext().appServices().appLevelState.updateFollowUserStatus(
-                userId.toInt(),
+                userId,
                 AppLevelState.FollowUserStatus.NOT_FOLLOW,
             )
             ObjectPool.unFollowUser(userId)

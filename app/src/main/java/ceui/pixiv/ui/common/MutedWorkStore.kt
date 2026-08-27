@@ -170,8 +170,8 @@ open class MutedWorkStore(
     private fun migrateLegacyMmkv() {
         val legacy = MMKV.mmkvWithID(legacyMmkvId)
         val keys = legacy.allKeys() ?: return
-        val pending = keys.mapNotNull { it.toIntOrNull() }
-            .filter { it > 0 && !mutedIds.contains(it.toLong()) }
+        val pending = keys.mapNotNull { it.toLongOrNull() }
+            .filter { it > 0 && !mutedIds.contains(it) }
         if (pending.isNotEmpty()) {
             val now = System.currentTimeMillis()
             val dao = dao()
@@ -185,7 +185,7 @@ open class MutedWorkStore(
                     })
                 }
             }
-            pending.forEach { mutedIds.add(it.toLong()) }
+            pending.forEach { mutedIds.add(it) }
             // 迁移是异步的，首屏那批卡多半已经绑完了：不发这一下，刚迁进来的作品要等滑动复用才打码
             bumpRevision()
         }
@@ -222,7 +222,7 @@ open class MutedWorkStore(
         if (changed) {
             bumpRevision()
         }
-        val id = workId.toInt()
+        val id = workId
         io.execute {
             runCatching {
                 if (muted) {
@@ -269,12 +269,12 @@ open class MutedWorkStore(
         io.execute { ensureLoaded() }
     }
 
-    private fun jsonOf(payload: () -> Any?, id: Int): String {
+    private fun jsonOf(payload: () -> Any?, id: Long): String {
         val json = runCatching { Shaft.sGson.toJson(payload()) }.getOrNull()
         return json?.takeIf { it.isNotBlank() && it != "null" } ?: idOnlyJson(id)
     }
 
-    private fun idOnlyJson(id: Int): String = """{"id":$id}"""
+    private fun idOnlyJson(id: Long): String = """{"id":$id}"""
 
     private companion object {
         /**

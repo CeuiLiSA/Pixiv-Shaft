@@ -141,7 +141,7 @@ class ProfileManager(app: Context) {
         // ====== 1.5 远程补充：收藏列表 + 关注列表 ======
         val remoteBookmarks = mutableListOf<Illust>()
         val remoteFollowedAuthorIds = mutableListOf<Long>()
-        val myUserId = SessionManager.loggedInUid.toInt()
+        val myUserId = SessionManager.loggedInUid
 
         if (myUserId > 0) {
             // buildProfile 是 Shaft.java 在专用后台线程上的同步调用（Java 调不了 suspend），
@@ -160,7 +160,7 @@ class ProfileManager(app: Context) {
                     Timber.d("$TAG buildProfile fetching remote following userId=$myUserId")
                     val resp = Retro.getAppApi().getFollowUser(myUserId, "public")
                     resp.list?.forEach { preview ->
-                        val uid = preview.user?.id?.toLong() ?: return@forEach
+                        val uid = preview.user?.id ?: return@forEach
                         if (uid > 0) remoteFollowedAuthorIds.add(uid)
                     }
                     Timber.d("$TAG buildProfile remote following=${remoteFollowedAuthorIds.size}")
