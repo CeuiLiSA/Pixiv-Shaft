@@ -338,6 +338,16 @@ private class SnapshotViewHolder(
         binding.commentTag.isVisible = summary.manifest.includeComments
         binding.originalTag.isVisible = summary.manifest.includeOriginal
 
+        val isR18 = (summary.manifest.xRestrict ?: 0) > 0
+        val pageCount = summary.manifest.pageCount ?: 1
+        binding.r18Badge.isVisible = isR18
+        binding.pSize.isVisible = pageCount > 1
+        if (pageCount > 1) {
+            binding.pSize.text = String.format(Locale.getDefault(), "%dP", pageCount)
+        }
+        // 多选勾标固定在左上角；进入多选态时隐藏角标行，避免和勾标叠在一起。
+        binding.badgeRow.isVisible = !selectionMode
+
         HistorySelectBadge.bindSelection(binding.selectCheck, binding.deleteButton, selectionMode, selected)
         if (selectionMode) {
             binding.root.setOnClickListener { onToggleSelection() }

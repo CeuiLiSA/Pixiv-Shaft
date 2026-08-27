@@ -23,6 +23,8 @@ data class SnapshotManifest(
     val includeOriginal: Boolean = false,
     val isBookmarked: Boolean = false,
     val isFollowed: Boolean = false,
+    val xRestrict: Int? = null,
+    val pageCount: Int? = null,
     val title: String? = null,
     val authorName: String? = null,
     val authorId: Long? = null,
