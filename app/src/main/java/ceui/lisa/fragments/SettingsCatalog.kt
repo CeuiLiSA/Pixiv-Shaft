@@ -102,6 +102,7 @@ object SettingsCatalog {
         add(Entry(APPEARANCE, "layout_mode_rela", R.string.layout_mode, keywords = "瀑布流 线性 列表 关注动态 staggered linear"))
         add(Entry(APPEARANCE, "show_novel_card_tags_rela", R.string.show_novel_card_tags_setting, keywords = "小说标签 卡片 tag novel"))
         add(Entry(APPEARANCE, "widget_refresh_interval_rela", R.string.v3_widget_refresh_interval_title, keywords = "小组件 桌面 插件 widget 刷新 间隔 换图 频率 refresh interval"))
+        add(Entry(APPEARANCE, "muzei_settings_rela", R.string.muzei_settings_title, R.string.muzei_settings_entry_desc, keywords = "muzei 动态壁纸 壁纸 自动换壁纸 live wallpaper 桌面"))
         // 别名按整串子串匹配（同上），所以「隐藏按钮」「挡画面」这类连写说法要各铺一遍
         val widgetHideAliases = "小组件 小工具 桌面 插件 widget 按钮 隐藏 隐藏按钮 去掉按钮 关闭按钮 遮挡 挡住 挡画面 遮挡画面 button hide"
         add(Entry(APPEARANCE, "widget_hide_bookmark_button_rela", R.string.v3_widget_hide_bookmark_button, R.string.v3_widget_hide_bookmark_button_desc, keywords = "$widgetHideAliases 收藏 喜欢 爱心 收藏按钮 喜欢按钮 bookmark like heart"))

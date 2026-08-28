@@ -68,6 +68,7 @@ import ceui.pixiv.ui.comments.CommentsComposerViewModel
 import ceui.pixiv.ui.comments.SentComment
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.staggerIllustRenderer
+import ceui.pixiv.wallpaper.WallpaperSetter
 import ceui.pixiv.ui.share.shareFirstImage
 import ceui.pixiv.ui.task.PageLoadRetryController
 import ceui.pixiv.ui.task.renderImageLoadStatusBanner
@@ -1270,6 +1271,14 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             if (!illust.isGif()) {
                 item(getString(R.string.snapshot_create), R.drawable.ic_baseline_get_app_24) {
                     showSnapshotCreateDialog(illust)
+                }
+            }
+            // issue #898 / #515:详情页直接设壁纸(首图),不必先进全屏看图页。动图 original 是 zip,跳过。
+            if (!illust.isGif()) {
+                item(getString(R.string.string_set_wallpaper), R.drawable.ic_baseline_wallpaper_24) {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        WallpaperSetter.setFromIllust(requireActivity(), illust, 0)
+                    }
                 }
             }
             item(getString(R.string.string_1), R.drawable.ic_baseline_settings_24) {

@@ -356,6 +356,27 @@
 
                 </RelativeLayout>
 
+                <RelativeLayout
+                    android:id="@+id/muzei_settings_rela"
+                    style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/wit_row_single">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/muzei_settings_title" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/muzei_settings_entry_desc" />
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
             </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>

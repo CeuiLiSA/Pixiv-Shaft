@@ -1,6 +1,5 @@
 package ceui.lisa.activities
 
-import android.app.WallpaperManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -10,7 +9,6 @@ import android.widget.TextView
 import androidx.activity.BackEventCompat
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
-import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -40,6 +38,7 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.appServices
 import ceui.pixiv.ui.detail.DownloadFab
 import ceui.pixiv.ui.detail.V3FabBarController
+import ceui.pixiv.wallpaper.WallpaperSetter
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.IllustCaptionExporter
@@ -966,51 +965,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
 
     private fun performSetWallpaper(illust: Illust, pageIndex: Int) {
-        val imageUrl = IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
-        if (imageUrl == null) {
-            Timber.w("[ImageDetail] set wallpaper: original url missing page=%d", pageIndex)
-            Common.showToast(R.string.string_set_wallpaper_failed)
-            return
-        }
-
         lifecycleScope.launch {
-            val file = awaitLoadedFile(imageUrl)
-            if (file == null) {
-                Common.showToast(R.string.string_set_wallpaper_failed)
-                return@launch
-            }
-            val uri = runCatching {
-                withContext(Dispatchers.IO) {
-                    copyImageFileToCacheFolder(file, "wallpaper_from_shaft.png")
-                }
-            }.getOrElse { ex ->
-                Timber.w(ex, "[ImageDetail] set wallpaper: prepare uri failed page=%d", pageIndex)
-                Common.showToast(R.string.string_set_wallpaper_failed)
-                return@launch
-            }
-            val intent = Intent(WallpaperManager.ACTION_CROP_AND_SET_WALLPAPER).apply {
-                setDataAndType(uri, "image/*")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            try {
-                startActivity(intent)
-            } catch (ex: Exception) {
-                Timber.w(ex, "[ImageDetail] set wallpaper failed")
-                Common.showToast(R.string.string_set_wallpaper_failed)
-            }
+            WallpaperSetter.setFromIllust(this@ImageDetailActivity, illust, pageIndex)
         }
-    }
-
-    private fun copyImageFileToCacheFolder(source: File, fileName: String): Uri {
-        val dir = File(cacheDir, "wallpaper_share").apply {
-            mkdirs()
-            listFiles()?.forEach { it.delete() }
-        }
-        val target = File(dir, fileName)
-        source.inputStream().use { input ->
-            target.outputStream().use { input.copyTo(it) }
-        }
-        return FileProvider.getUriForFile(this, "$packageName.provider", target)
     }
 
     private fun performAiUpscale(illust: Illust, pageIndex: Int, model: UpscaleModel) {

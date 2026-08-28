@@ -255,6 +255,10 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         });
         baseBind.bottomBarOrderRela.setOnClickListener(v -> baseBind.orderSelect.performClick());
 
+        // Muzei 动态壁纸来源设置（issue #548）；同一个 Activity 也是 Muzei 侧「来源设置」的落点
+        baseBind.muzeiSettingsRela.setOnClickListener(v ->
+                startActivity(new Intent(mContext, ceui.pixiv.muzei.MuzeiSettingsActivity.class)));
+
         // 桌面小组件换图间隔（issue #641，只作用于推荐类小组件；日榜内容一天一变，固定 6 小时）
         final int[] INTERVAL_MINUTES = new int[]{15, 30, 60, 120, 360};
         final String[] INTERVAL_NAMES = new String[INTERVAL_MINUTES.length];

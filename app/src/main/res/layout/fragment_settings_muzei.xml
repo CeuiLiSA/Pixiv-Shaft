@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/v3_bg"
+        android:orientation="vertical">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:elevation="@dimen/six_dp"
+            android:fitsSystemWindows="true"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:title=" "
+            app:titleTextColor="@android:color/white">
+
+            <TextView
+                android:id="@+id/toolbar_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/muzei_settings_title"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scroll_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="32dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/parent_linear"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="16dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="16dp">
+
+                <RelativeLayout
+                    android:id="@+id/muzei_install_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_top">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            android:id="@+id/muzei_install_title"
+                            style="@style/M3SetTitle"
+                            android:text="@string/muzei_settings_title" />
+
+                        <TextView
+                            android:id="@+id/muzei_install_desc"
+                            style="@style/M3SetDesc"
+                            android:text="@string/muzei_installed_desc" />
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/muzei_source_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="150dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/muzei_source_title" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/muzei_source"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/muzei_allow_r18_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/muzei_allow_r18" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/muzei_allow_r18_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/muzei_allow_r18"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/muzei_refresh_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_bottom">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/muzei_refresh_now" />
+                    </LinearLayout>
+
+                    <TextView style="@style/M3SetArrow" />
+
+                </RelativeLayout>
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+    </LinearLayout>
+
+</layout>

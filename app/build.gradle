@@ -393,6 +393,9 @@ dependencies {
 
     implementation 'androidx.work:work-runtime-ktx:2.9.1'
 
+    // Muzei 动态壁纸来源(issue #548):MuzeiArtProvider + 文件选择器可见的 DocumentsProvider
+    implementation 'com.google.android.apps.muzei:muzei-api:3.4.2'
+
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.3'
 
     configurations {
