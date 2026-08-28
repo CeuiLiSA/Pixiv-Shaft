@@ -73,6 +73,7 @@
 -keepclassmembers class ceui.pixiv.snapshot.SnapshotAssets { <fields>; }
 -keepclassmembers class ceui.pixiv.snapshot.SnapshotComments { <fields>; }
 -keepclassmembers class ceui.pixiv.snapshot.SnapshotCommentThread { <fields>; }
+-keepclassmembers class ceui.pixiv.snapshot.AutoSnapshotManifest { <fields>; }
 -keepclassmembers class ceui.pixiv.ui.prime.PrimeTagIndexItem { <fields>; }
 -keepclassmembers class ceui.pixiv.ui.account.EmailBackupV3ViewModel$ErrorBody { <fields>; }
 -keepclassmembers class ceui.pixiv.ui.debug.PopularTagExportViewModel$Envelope { <fields>; }
@@ -95,6 +96,7 @@
 -keep,allowobfuscation class ceui.pixiv.snapshot.SnapshotAssets
 -keep,allowobfuscation class ceui.pixiv.snapshot.SnapshotComments
 -keep,allowobfuscation class ceui.pixiv.snapshot.SnapshotCommentThread
+-keep,allowobfuscation class ceui.pixiv.snapshot.AutoSnapshotManifest
 -keep,allowobfuscation class ceui.pixiv.ui.synonym.SynonymDictBackup$*Json
 -keep,allowobfuscation class ceui.pixiv.ui.history.BrowseHistoryBackup$Payload
 -keep,allowobfuscation class ceui.pixiv.ui.history.BrowseHistoryBackup$RawBackup

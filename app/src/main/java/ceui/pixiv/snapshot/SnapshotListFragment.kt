@@ -95,6 +95,8 @@ class SnapshotListFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        // 例行刷新:不清空、不回顶。看完一个快照返回时列表内容通常一模一样,
+        // Diff 出来是零变更,滚动位置原样保留。
         reload()
     }
 
@@ -103,6 +105,13 @@ class SnapshotListFragment : Fragment() {
         _binding = null
     }
 
+    /**
+     * [resetScroll] 只在导入/删除这类**结构性变更**后传 true。
+     *
+     * 「先清空再提交 + 回顶」是为了让双列瀑布流按新顺序重新布局(否则新卡会被 Diff 塞进
+     * 右列/旧列错位)——那是新卡进来时才需要付的代价。onResume 的例行刷新也这么干的话,
+     * 每次从详情页返回列表都要整个闪一下并跳回顶部,快照一多就再也找不回刚才看到哪了。
+     */
     fun reload(resetScroll: Boolean = false) {
         val appContext = requireContext().applicationContext
         lifecycleScope.launch {

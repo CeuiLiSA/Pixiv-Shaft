@@ -70,7 +70,9 @@ object AutoSnapshotRepository {
             val total = autos.sumOf { it.totalSize }
             if (total <= AUTO_SNAPSHOT_MAX_BYTES) break
             val oldest = autos.minByOrNull { it.manifest.createdAt } ?: break
-            deleteAuto(context, oldest.manifest.snapshotId)
+            // 删除失败（deleteRecursively 半途出错等）必须退出：这一份下轮还会被选中，
+            // 继续循环就是永不推进的全库扫描死循环。宁可本轮超额，等下次生成再收。
+            if (!deleteAuto(context, oldest.manifest.snapshotId)) break
             autos = listAuto(context)
         }
     }
