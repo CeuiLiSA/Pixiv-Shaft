@@ -7,13 +7,15 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 
 /**
- * 标签专区的 feed 子页(feeds 框架版)。宿主 [TagRankFragment] 按所选标签把本 fragment
- * replace 进 feed_container,一次只有一个在场;无参 [IllustFeedFragment](toolbar 在宿主),
- * 数据走 [BookmarkRankFeedSource] 带 ?tag=。
+ * 固定 tag 的插画收藏榜 feed 子页(feeds 框架版):宿主把本 fragment replace 进
+ * feed_container,一次只有一个在场;无参 [IllustFeedFragment](toolbar 在宿主),数据走
+ * [BookmarkRankFeedSource] 带 ?tag=(type 固定 illust)。标签专区本身已改成按类型分 tab、
+ * 用带 type 的 [BookmarkRankIllustFeedFragment] / [BookmarkRankNovelFeedFragment];本类留给
+ * 写死单个插画 tag 的入口(如动图榜)。
  *
  * `autoLoad = false`:replace 进来即 RESUMED,首屏由 FeedFragment.onResume 的
  * ensureLoaded 拉起,单 feed 在场时与 autoLoad=true 行为等价 —— 保持 false 是对齐
- * 这组榜单子页的既定组合(见 [YearRankIllustFeedFragment])。
+ * 这组榜单子页的既定组合(见 [BookmarkRankIllustFeedFragment])。
  */
 class TagRankIllustFeedFragment : IllustFeedFragment() {
 

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「选择条 + feed」的榜单子页布局:标签专区 / 年代榜按类型(插画 / 漫画 / 小说)分成三个
+  ViewPager 页,每页是一个 RankPickerPageFragment —— 本布局就是它的内容(toolbar + 类型 tab
+  在宿主 fragment_year_rank 里)。选择条与 loading 的形状照抄 fragment_rank_picker.xml。
+-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?android:attr/colorBackground"
+        android:orientation="vertical">
+
+        <!-- 当前选项 + 下拉箭头:点了弹 RankPickerSheet。 -->
+        <TextView
+            android:id="@+id/rank_selector"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="?attr/colorPrimary"
+            android:clickable="true"
+            android:focusable="true"
+            android:drawableEnd="@drawable/ic_baseline_keyboard_arrow_down_24"
+            android:drawablePadding="4dp"
+            android:drawableTint="@android:color/white"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:paddingStart="@dimen/twelve_dp"
+            android:paddingEnd="@dimen/twelve_dp"
+            android:singleLine="true"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/feed_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <!-- 拉选项列表(/discover/tags 或 /discover/years)期间;装上首个 feed 就 GONE。 -->
+            <ProgressBar
+                android:id="@+id/rank_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+</layout>

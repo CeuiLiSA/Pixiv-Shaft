@@ -1,17 +1,13 @@
 package ceui.pixiv.ui.recommend
 
-import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
-import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.NovelFeedItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 /** shaft-api-v2 两条热度榜口径：TRENDING=本月收藏(当前周收藏加权榜)/RECENT=当前最热(实时流·日周月榜)。 */
 enum class HotWorksSource {
@@ -103,32 +99,14 @@ class HotWorksNovelFeedSource(
 
 // ── item.bean → FeedItem（跑在 Default 线程，纯函数，零捕获） ──
 
+// 解析 + 清上报者收藏态 + 装热度 pill 的逻辑与收藏榜/浏览量榜共用（RankFeeds.kt），
+// 对齐 legacy TrendingWorksRepo/RecentWorksRepo。
 private fun mapHotIllustItem(
     item: ShaftApiV2.TrendingWorkItem,
     source: HotWorksSource,
-): IllustFeedItem? {
-    val json = item.bean ?: return null
-    val bean = try {
-        Shaft.sGson.fromJson(json, Illust::class.java)
-    } catch (e: Throwable) {
-        Timber.tag("HotWorks").w(e, "skip malformed illust bean id=${item.target_id}")
-        return null
-    } ?: return null
-    // 对齐 legacy TrendingWorksRepo/RecentWorksRepo：热度值装 pill、清上报者收藏态。
-    return IllustFeedItem.of(bean.withTrendingScore(item.hotScore(source)).withBookmarked(false))
-}
+): IllustFeedItem? = item.toIllustFeedItem(item.hotScore(source), logTag = "HotWorks")
 
 private fun mapHotNovelItem(
     item: ShaftApiV2.TrendingWorkItem,
     source: HotWorksSource,
-): NovelFeedItem? {
-    val json = item.bean ?: return null
-    val novel = try {
-        Shaft.sGson.fromJson(json, Novel::class.java)
-    } catch (e: Throwable) {
-        Timber.tag("HotWorks").w(e, "skip malformed novel bean id=${item.target_id}")
-        return null
-    } ?: return null
-    // 清上报者收藏态；热度分单独带进 NovelFeedItem（不是 Novel 的字段）。
-    return NovelFeedItem.of(novel.copy(is_bookmarked = false), item.hotScore(source))
-}
+): NovelFeedItem? = item.toNovelFeedItem(item.hotScore(source), logTag = "HotWorks")
