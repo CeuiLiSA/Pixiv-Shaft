@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  系列榜(SeriesRankFeedFragment)的单条卡:左侧文案区(系列标题 / 「N 话 · 收藏 M」/
+  画师头像+名字),右侧封面(该系列收藏最高那部作品的缩略图;漫画 90x120 竖图、小说封面同尺寸)。
+  形状照 recy_watchlist_manga(追更列表),去掉「查看最新」按钮。卡间距由列表的
+  LinearItemDecoration(12dp)撑开,CardView 自身不带 margin。
+-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:foreground="?attr/selectableItemBackground">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/eight_dp">
+
+            <com.makeramen.roundedimageview.RoundedImageView
+                android:id="@+id/cover"
+                android:layout_width="90dp"
+                android:layout_height="120dp"
+                android:layout_alignParentEnd="true"
+                android:scaleType="centerCrop"
+                app:riv_border_width="0dp"
+                app:riv_corner_radius="@dimen/eight_dp" />
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:layout_toStartOf="@id/cover"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="@color/v3_text_1"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- 「N 话 · 收藏 M」 -->
+            <TextView
+                android:id="@+id/meta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/title"
+                android:layout_marginTop="@dimen/four_dp"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:layout_toStartOf="@id/cover"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="13sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/cover"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:layout_toStartOf="@id/cover"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/user_head"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginEnd="@dimen/four_dp"
+                    app:civ_border_color="@color/dark_bg"
+                    app:civ_border_width="1dp" />
+
+                <TextView
+                    android:id="@+id/author"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+</layout>

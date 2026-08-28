@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  新作榜(MonthRankFragment)布局 = fragment_rank_picker 的「toolbar + 选择条」+
+  fragment_recent_recommend 的「类型 tab + ViewPager」:选择条选月份(弹 RankPickerSheet),
+  tab 切插画 / 漫画 / 小说。两个既有布局都被多处引用,不改它们,单独一张。
+-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <ceui.pixiv.widgets.TopInsetLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?attr/colorPrimary"
+        android:orientation="vertical">
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/app_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/colorPrimary">
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:elevation="@dimen/six_dp"
+                    android:theme="@style/AppTheme.AppBarOverlay"
+                    app:layout_scrollFlags="scroll|enterAlways"
+                    app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+                    app:popupTheme="@style/AppTheme.PopupOverlay"
+                    app:title=" "
+                    app:titleTextColor="@android:color/white">
+
+                    <TextView
+                        android:id="@+id/toolbar_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+
+                </androidx.appcompat.widget.Toolbar>
+
+                <!-- 当前月份 + 下拉箭头:点了弹 RankPickerSheet 选月份。 -->
+                <TextView
+                    android:id="@+id/rank_selector"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="?attr/colorPrimary"
+                    android:clickable="true"
+                    android:drawableEnd="@drawable/ic_baseline_keyboard_arrow_down_24"
+                    android:drawablePadding="4dp"
+                    android:drawableTint="@android:color/white"
+                    android:ellipsize="end"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:paddingStart="@dimen/twelve_dp"
+                    android:paddingEnd="@dimen/twelve_dp"
+                    android:singleLine="true"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/tab_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="35dp"
+                    android:background="?attr/colorPrimary"
+                    app:tabIndicatorColor="@android:color/white"
+                    app:tabIndicatorFullWidth="false"
+                    app:tabMode="fixed"
+                    app:tabSelectedTextColor="@android:color/white"
+                    app:tabTextColor="@color/light_new_primary_color" />
+
+            </com.google.android.material.appbar.AppBarLayout>
+
+            <androidx.viewpager.widget.ViewPager
+                android:id="@+id/view_pager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?android:attr/colorBackground"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+            <!-- 拉 /discover/months 期间;拿到月份建完 pager 就 GONE。 -->
+            <ProgressBar
+                android:id="@+id/rank_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center" />
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    </ceui.pixiv.widgets.TopInsetLinearLayout>
+</layout>

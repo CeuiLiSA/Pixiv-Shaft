@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  榜单列表顶部的一行浅色提示(如「榜单统计中」:服务端 complete=false 时衍生表还在回填,
+  榜可能不全)。作为 FeedItem 渲染进列表首位(RankNoticeItem),不占宿主布局。
+-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <TextView
+        android:id="@+id/notice_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingStart="@dimen/twelve_dp"
+        android:paddingTop="@dimen/eight_dp"
+        android:paddingEnd="@dimen/twelve_dp"
+        android:paddingBottom="@dimen/four_dp"
+        android:textColor="@color/v3_text_3"
+        android:textSize="12sp" />
+</layout>
