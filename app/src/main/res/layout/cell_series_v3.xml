@@ -139,12 +139,20 @@
                 android:textSize="13sp"
                 tools:text="画师名" />
 
+            <!-- 高度/内边距照 recy_user_preview 的关注按钮:AppCompatButton 自带的竖向 padding 在
+                 28dp 里会把 12sp 字切掉上下沿,必须显式给 paddingTop/Bottom + gravity center。 -->
             <ceui.pixiv.witstudio.widget.WitRoundButton
                 android:id="@+id/action"
                 android:layout_width="wrap_content"
-                android:layout_height="28dp"
+                android:layout_height="30dp"
                 android:layout_marginStart="8dp"
-                android:paddingHorizontal="12dp"
+                android:minHeight="0dp"
+                android:minWidth="0dp"
+                android:gravity="center"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:paddingTop="@dimen/four_dp"
+                android:paddingBottom="@dimen/four_dp"
                 android:textSize="12sp"
                 android:visibility="gone"
                 tools:text="查看最新话"

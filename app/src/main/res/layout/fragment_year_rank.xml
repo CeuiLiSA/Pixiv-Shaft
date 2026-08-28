@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   toolbar + tabs + pager 的榜单布局。原为年代榜而建;年代榜后来改成「选择条 + bottom
-  sheet」(fragment_rank_picker.xml,和标签专区一起),现在只有壁纸榜
-  (WallpaperRankFragment,手机/桌面两个固定 tab)在用 —— 文件名和 years_loading 这个
-  id 是历史遗留,壁纸榜用不到 loading(tab 本地写死),直接 GONE。
-  基于 fragment_recent_recommend.xml,两点不同:
-    1. tabMode=scrollable;
-    2. 多一个居中 ProgressBar(异步拉 tab 列表的页面用,拉到之前没有 tab 可建)。
+  sheet」(fragment_rank_picker.xml,和标签专区一起),现在给壁纸榜(WallpaperRankFragment,
+  手机/桌面两个固定 tab)和 TypeTabsRankFragment 一族(类型 / window / length 等 2–3 个固定
+  tab)共用 —— 文件名和 years_loading 这个 id 是历史遗留,这些页面用不到 loading(tab 本地
+  写死),直接 GONE。
+  基于 fragment_recent_recommend.xml,只多一个居中 ProgressBar(异步拉 tab 列表的页面用,
+  拉到之前没有 tab 可建)。tab 与那边同为 fixed + fill:当年为 20 个年份 tab 设的
+  scrollable 会让 2–3 个 tab 挤在左边,与追更列表等页面的 tab 样式不一致。
   同样不复用 viewpager_with_tablayout.xml:那个被多处引用,不能为单一页面加控件。
 -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -61,9 +62,8 @@
                     android:background="?attr/colorPrimary"
                     app:tabIndicatorColor="@android:color/white"
                     app:tabIndicatorFullWidth="false"
-                    app:tabMode="scrollable"
-                    app:tabPaddingStart="@dimen/twelve_dp"
-                    app:tabPaddingEnd="@dimen/twelve_dp"
+                    app:tabMode="fixed"
+                    app:tabGravity="fill"
                     app:tabSelectedTextColor="@android:color/white"
                     app:tabTextColor="@color/light_new_primary_color" />
 
