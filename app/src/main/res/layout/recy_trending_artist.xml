@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 人气画师榜的纯画师行:头像 + 名字 + 「本周 N 人关注」副标题 + 关注按钮。
+     没有代表作预览(trending/users 只回 user_meta),所以不复用 recy_user_preview 的三格卡。
+     关注按钮 / 头像 / 名字的样式对齐 recy_user_preview,交互由 TrendingArtistsFragment 绑定。 -->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_pixiv"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="@dimen/four_dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/twelve_dp"
+        android:paddingTop="@dimen/twelve_dp"
+        android:paddingEnd="@dimen/twelve_dp"
+        android:paddingBottom="@dimen/twelve_dp">
+
+        <TextView
+            android:id="@+id/rank_index"
+            android:layout_width="28dp"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:gravity="center"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/user_head"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="@dimen/four_dp"
+            android:layout_toEndOf="@id/rank_index"
+            app:civ_border_color="#DDDDDD"
+            app:civ_border_width="1dp" />
+
+        <ceui.pixiv.witstudio.widget.WitRoundButton
+            android:id="@+id/post_like_user"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center"
+            android:paddingStart="@dimen/sixteen_dp"
+            android:paddingTop="@dimen/four_dp"
+            android:paddingEnd="@dimen/sixteen_dp"
+            android:paddingBottom="@dimen/four_dp"
+            android:text="@string/post_follow"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="13sp"
+            app:wit_borderColor="?attr/colorPrimary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="@dimen/twelve_dp"
+            android:layout_marginEnd="@dimen/twelve_dp"
+            android:layout_toStartOf="@id/post_like_user"
+            android:layout_toEndOf="@id/user_head"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/user_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/follow_count"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_2"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>
