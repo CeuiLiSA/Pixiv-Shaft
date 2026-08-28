@@ -1141,7 +1141,6 @@
     <string name="reader_watchlist_toggle_failed">Не удалось обновить список отслеживания</string>
     <string name="reader_btn_settings">Настройки</string>
     <string name="reader_btn_search">Поиск</string>
-    <string name="reader_btn_more">Ещё</string>
     <string name="reader_btn_theme_night">Ночь</string>
     <string name="reader_btn_theme_day">День</string>
     <string name="reader_desc_back">Назад</string>
@@ -1229,7 +1228,6 @@
     <string name="action_save">Сохранить</string>
     <string name="action_cancel">Отмена</string>
     <string name="action_delete">Удалить</string>
-    <string name="menu_annotations">Заметки / выделения</string>
     <string name="menu_bookmarks">Закладки позиций</string>
     <string name="menu_save_position">Сохранить позицию</string>
     <string name="menu_export">Экспорт</string>

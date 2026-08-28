@@ -37,6 +37,7 @@ import ceui.pixiv.ui.common.NOVEL_URL_HEAD
 import ceui.pixiv.ui.common.shareNovel
 import ceui.pixiv.ui.common.viewBinding
 import java.util.UUID
+import ceui.pixiv.ui.detail.V3MenuBuilder
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
@@ -276,7 +277,6 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             // area is covered so search-hit centering avoids the hidden zone.
             so.view.post { scrollReaderView?.topInset = so.view.height }
         }
-        bb.onMoreClick = { showReaderOverflowMenu() }
         bb.onSeekCommit = { pageIndex -> rv.goToPage(pageIndex, animate = false) }
         bb.onScrollSeekCommit = { fraction ->
             scrollReaderView?.takeIf { it.visibility == View.VISIBLE }?.scrollToFraction(fraction)
@@ -682,13 +682,19 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         startActivity(intent)
     }
 
+    /**
+     * 顶栏 ⋮ 菜单：作品相关（详情 / 评论 / 分享 / 复制）+ 阅读器相关（书签 / 保存位置 /
+     * 追更 / 导出）。后者原本挂在底栏「更多」，底栏收窄后合并到这里。
+     * 「批注」不再挂菜单项——顶栏已有常驻批注按钮（[ReaderTopBar.onAnnotationsClick]）。
+     */
     private fun showTopMoreMenu() {
         if (isLocalSource) {
-            // 本地 txt 没有作品详情 / 评论 / 分享链接，只留「复制正文」一项。
+            // 本地 txt 没有作品详情 / 评论 / 分享链接，只留「复制正文」+ 阅读器项。
             showV3Menu {
                 item(getString(R.string.menu_copy_novel_text), R.drawable.chat_ic_content_copy) {
                     copyNovelBodyToClipboard()
                 }
+                addReaderMenuItems()
             }
             return
         }
@@ -731,6 +737,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 item(getString(R.string.menu_copy_novel_text), R.drawable.chat_ic_content_copy) {
                     copyNovelBodyToClipboard()
                 }
+                addReaderMenuItems()
             }
         }
     }
@@ -757,51 +764,47 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         }
     }
 
-    private fun showReaderOverflowMenu() {
-        showV3Menu {
-            item(getString(R.string.menu_annotations), R.drawable.ic_reader_annotations) {
-                showAnnotationsSheet()
+    /** 阅读器自身的菜单项（书签 / 保存位置 / 追更 / 导出），由 [showTopMoreMenu] 两个分支共用。 */
+    private fun V3MenuBuilder.addReaderMenuItems() {
+        item(getString(R.string.menu_bookmarks), R.drawable.ic_baseline_bookmark_24) {
+            showBookmarksSheet()
+        }
+        item(getString(R.string.menu_save_position), R.drawable.ic_baseline_bookmark_24) {
+            // 纵向滚动模式没有 pagination（rv 从没排过版），按滚动位置的 charIndex 存；
+            // 横向翻页仍按当前页存（#1038：此前纵向下静默存不上、toast 却报已保存）。
+            val sv = scrollReaderView
+            if (sv != null && sv.visibility == View.VISIBLE) {
+                viewModel.addBookmarkAtCharIndex(sv.currentCharIndex())
+            } else {
+                viewModel.addBookmarkAtCurrentPage(readerView?.currentPageIndex() ?: 0)
             }
-            item(getString(R.string.menu_bookmarks), R.drawable.ic_baseline_bookmark_24) {
-                showBookmarksSheet()
-            }
-            item(getString(R.string.menu_save_position), R.drawable.ic_baseline_bookmark_24) {
-                // 纵向滚动模式没有 pagination（rv 从没排过版），按滚动位置的 charIndex 存；
-                // 横向翻页仍按当前页存（#1038：此前纵向下静默存不上、toast 却报已保存）。
-                val sv = scrollReaderView
-                if (sv != null && sv.visibility == View.VISIBLE) {
-                    viewModel.addBookmarkAtCharIndex(sv.currentCharIndex())
-                } else {
-                    viewModel.addBookmarkAtCurrentPage(readerView?.currentPageIndex() ?: 0)
+            Toaster.showShort(getString(R.string.msg_bookmark_saved))
+        }
+        // 追更 (加入/取消)：仅当前小说有所属系列时才挂条目，文案按当前
+        // [watchlistAdded] 在「加入追更列表」/「取消追更」之间切。点击走
+        // 乐观更新，失败由 toggleWatchlist 内部回滚 + toast。
+        if (watchlistSeriesId != null) {
+            val label = getString(
+                if (watchlistAdded) R.string.reader_menu_watchlist_remove
+                else R.string.reader_menu_watchlist_add
+            )
+            val icon = if (watchlistAdded) R.drawable.icon_liked else R.drawable.icon_not_liked
+            item(label, icon) { toggleWatchlist() }
+        }
+        // 本地 txt 已经是 txt，再导出无意义；且 NovelHeaderRenderer 需要非空
+        // novel（本地源 novel 为 null），直接不挂导出项。
+        if (!isLocalSource) {
+            item(getString(R.string.menu_export), R.drawable.ic_baseline_get_app_24) {
+                if (viewModel.loadState.value !is NovelReaderV3ViewModel.LoadState.Loaded) {
+                    Toaster.showShort(getString(R.string.msg_novel_not_ready))
+                    return@item
                 }
-                Toaster.showShort(getString(R.string.msg_bookmark_saved))
-            }
-            // 追更 (加入/取消)：仅当前小说有所属系列时才挂条目，文案按当前
-            // [watchlistAdded] 在「加入追更列表」/「取消追更」之间切。点击走
-            // 乐观更新，失败由 toggleWatchlist 内部回滚 + toast。
-            if (watchlistSeriesId != null) {
-                val label = getString(
-                    if (watchlistAdded) R.string.reader_menu_watchlist_remove
-                    else R.string.reader_menu_watchlist_add
-                )
-                val icon = if (watchlistAdded) R.drawable.icon_liked else R.drawable.icon_not_liked
-                item(label, icon) { toggleWatchlist() }
-            }
-            // 本地 txt 已经是 txt，再导出无意义；且 NovelHeaderRenderer 需要非空
-            // novel（本地源 novel 为 null），直接不挂导出项。
-            if (!isLocalSource) {
-                item(getString(R.string.menu_export), R.drawable.ic_baseline_get_app_24) {
-                    if (viewModel.loadState.value !is NovelReaderV3ViewModel.LoadState.Loaded) {
-                        Toaster.showShort(getString(R.string.msg_novel_not_ready))
-                        return@item
-                    }
-                    val defaultFormat = Shaft.sSettings.defaultNovelExportFormat
-                    val format = ExportFormat.entries.firstOrNull { it.name == defaultFormat }
-                    if (format != null) {
-                        executeExport(format)
-                    } else {
-                        showExportSheet()
-                    }
+                val defaultFormat = Shaft.sSettings.defaultNovelExportFormat
+                val format = ExportFormat.entries.firstOrNull { it.name == defaultFormat }
+                if (format != null) {
+                    executeExport(format)
+                } else {
+                    showExportSheet()
                 }
             }
         }
@@ -1084,8 +1087,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     // ---- Watchlist (加入追更列表) --------------------------------------------
     //
-    // pixiv 原生 series header 有"追更"开关。这里把同一动作收进 reader 右下角
-    // 「更多」(showReaderOverflowMenu) 菜单，避免常驻底栏挤占视图。状态来源 / API：
+    // pixiv 原生 series header 有"追更"开关。这里把同一动作收进 reader 顶栏
+    // ⋮ 菜单（showTopMoreMenu / addReaderMenuItems），避免常驻底栏挤占视图。状态来源 / API：
     //   - GET /v1/novel/series/{id}   → novel_series_detail.watchlist_added (初始态)
     //   - POST /v1/novel/series/watchlist/add | delete
     // 进 reader 时预拉一次，菜单弹出时按 [watchlistAdded] 决定 item 文案；点击

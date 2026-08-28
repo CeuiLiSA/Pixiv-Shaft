@@ -1141,7 +1141,6 @@
     <string name="reader_watchlist_toggle_failed">Watchlist update failed</string>
     <string name="reader_btn_settings">Settings</string>
     <string name="reader_btn_search">Search</string>
-    <string name="reader_btn_more">More</string>
     <string name="reader_btn_theme_night">Night</string>
     <string name="reader_btn_theme_day">Day</string>
     <string name="reader_desc_back">Back</string>
@@ -1229,7 +1228,6 @@
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_delete">Delete</string>
-    <string name="menu_annotations">Notes / Highlights</string>
     <string name="menu_bookmarks">Position bookmarks</string>
     <string name="menu_save_position">Save current position</string>
     <string name="menu_export">Export</string>

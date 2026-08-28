@@ -1141,7 +1141,6 @@
     <string name="reader_watchlist_toggle_failed">İzleme listesi güncellenemedi</string>
     <string name="reader_btn_settings">Ayarlar</string>
     <string name="reader_btn_search">Ara</string>
-    <string name="reader_btn_more">Daha fazla</string>
     <string name="reader_btn_theme_night">Gece</string>
     <string name="reader_btn_theme_day">Gündüz</string>
     <string name="reader_desc_back">Geri</string>
@@ -1229,7 +1228,6 @@
     <string name="action_save">Kaydet</string>
     <string name="action_cancel">İptal</string>
     <string name="action_delete">Sil</string>
-    <string name="menu_annotations">Notlar / Vurgular</string>
     <string name="menu_bookmarks">Konum yer imleri</string>
     <string name="menu_save_position">Mevcut konumu kaydet</string>
     <string name="menu_export">Dışa aktar</string>

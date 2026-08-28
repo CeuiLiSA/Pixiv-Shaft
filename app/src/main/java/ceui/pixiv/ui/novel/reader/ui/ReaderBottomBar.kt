@@ -17,7 +17,6 @@ class ReaderBottomBar(private val binding: LayoutReaderBottomBarBinding) {
     var onSettingsClick: (() -> Unit)? = null
     var onThemeToggleClick: (() -> Unit)? = null
     var onSearchClick: (() -> Unit)? = null
-    var onMoreClick: (() -> Unit)? = null
     var onSeekStart: (() -> Unit)? = null
     /** Paged mode: drag changes — pageIndex 0..total-1. */
     var onSeekChanged: ((pageIndex: Int) -> Unit)? = null
@@ -37,7 +36,6 @@ class ReaderBottomBar(private val binding: LayoutReaderBottomBarBinding) {
         binding.btnSettings.setOnClickListener { onSettingsClick?.invoke() }
         binding.btnThemeToggle.setOnClickListener { onThemeToggleClick?.invoke() }
         binding.btnSearch.setOnClickListener { onSearchClick?.invoke() }
-        binding.btnMore.setOnClickListener { onMoreClick?.invoke() }
 
         binding.skProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(s: SeekBar, progress: Int, fromUser: Boolean) {

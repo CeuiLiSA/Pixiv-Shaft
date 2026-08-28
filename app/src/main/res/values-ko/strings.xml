@@ -1141,7 +1141,6 @@
     <string name="reader_watchlist_toggle_failed">관심 목록 변경 실패</string>
     <string name="reader_btn_settings">설정</string>
     <string name="reader_btn_search">검색</string>
-    <string name="reader_btn_more">더보기</string>
     <string name="reader_btn_theme_night">야간</string>
     <string name="reader_btn_theme_day">주간</string>
     <string name="reader_desc_back">뒤로</string>
@@ -1229,7 +1228,6 @@
     <string name="action_save">저장</string>
     <string name="action_cancel">취소</string>
     <string name="action_delete">삭제</string>
-    <string name="menu_annotations">메모 / 하이라이트</string>
     <string name="menu_bookmarks">위치 북마크</string>
     <string name="menu_save_position">현재 위치 저장</string>
     <string name="menu_export">내보내기</string>

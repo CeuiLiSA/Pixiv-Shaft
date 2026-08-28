@@ -1143,7 +1143,6 @@
     <string name="reader_watchlist_toggle_failed">追更操作失敗</string>
     <string name="reader_btn_settings">設定</string>
     <string name="reader_btn_search">搜尋</string>
-    <string name="reader_btn_more">更多</string>
     <string name="reader_btn_theme_night">夜間</string>
     <string name="reader_btn_theme_day">日間</string>
     <string name="reader_desc_back">返回</string>
@@ -1231,7 +1230,6 @@
     <string name="action_save">儲存</string>
     <string name="action_cancel">取消</string>
     <string name="action_delete">刪除</string>
-    <string name="menu_annotations">筆記 / 標記</string>
     <string name="menu_bookmarks">位置書籤</string>
     <string name="menu_save_position">儲存目前位置</string>
     <string name="menu_export">匯出</string>

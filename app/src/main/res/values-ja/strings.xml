@@ -1141,7 +1141,6 @@
     <string name="reader_watchlist_toggle_failed">ウォッチリストの更新に失敗しました</string>
     <string name="reader_btn_settings">設定</string>
     <string name="reader_btn_search">検索</string>
-    <string name="reader_btn_more">その他</string>
     <string name="reader_btn_theme_night">ナイト</string>
     <string name="reader_btn_theme_day">デイ</string>
     <string name="reader_desc_back">戻る</string>
@@ -1229,7 +1228,6 @@
     <string name="action_save">保存</string>
     <string name="action_cancel">キャンセル</string>
     <string name="action_delete">削除</string>
-    <string name="menu_annotations">メモ / ハイライト</string>
     <string name="menu_bookmarks">位置ブックマーク</string>
     <string name="menu_save_position">現在位置を保存</string>
     <string name="menu_export">エクスポート</string>
