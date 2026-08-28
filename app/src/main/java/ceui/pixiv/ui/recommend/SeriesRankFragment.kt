@@ -2,17 +2,13 @@ package ceui.pixiv.ui.recommend
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
-import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
-import ceui.lisa.databinding.FragmentYearRankBinding
 import ceui.lisa.databinding.ItemRankNoticeBinding
 import ceui.lisa.databinding.CellSeriesV3Binding
 import ceui.lisa.network.ShaftApiV2
@@ -28,7 +24,6 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
-import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.detail.IllustSeriesFragment
 import ceui.pixiv.ui.novel.NovelSeriesFragment
 import ceui.pixiv.ui.series.SeriesCard
@@ -47,61 +42,19 @@ import timber.log.Timber
  * 系列榜 — 打自建服务端 shaft-api-v2 的 discover/series。两个固定 tab:漫画 / 小说,
  * 系列按「系列内作品累计 pixiv 收藏数」排(含 R-18)。单 tab 是 [SeriesRankFeedFragment]。
  *
- * 复用 fragment_year_rank 布局(toolbar + tabs + pager,同 [WallpaperRankFragment]);tab 本地
- * 写死,yearsLoading 直接 GONE。FSPA + RESUME_ONLY_CURRENT + 子 fragment autoLoad=false 的
- * 组合同 [YearRankFragment]。
+ * 宿主是 [TypeTabsRankFragment](toolbar + tabs + pager,FSPA + RESUME_ONLY_CURRENT +
+ * 子 fragment autoLoad=false)。
  */
-class SeriesRankFragment : Fragment(R.layout.fragment_year_rank) {
+class SeriesRankFragment : TypeTabsRankFragment() {
 
-    private val binding by viewBinding(FragmentYearRankBinding::bind)
+    override val titleRes: Int get() = R.string.series_rank_title
 
-    private var currentPos: Int = 0
+    /** 漫画在前(系列心智更强)。 */
+    override val types: List<String> get() = listOf(RankType.MANGA, RankType.NOVEL)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        savedInstanceState?.let {
-            currentPos = it.getInt(KEY_POS, 0)
-        }
-
-        binding.toolbar.title = " "
-        binding.toolbarTitle.text = getString(R.string.series_rank_title)
-        binding.toolbar.setNavigationOnClickListener { activity?.finish() }
-        binding.yearsLoading.visibility = View.GONE
-
-        binding.viewPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
-            override fun onPageSelected(position: Int) { currentPos = position }
-        })
-
-        // type 值是服务端 enum;标题是本地化文案。顺序即 tab 顺序:漫画在前。
-        val types = listOf(RANK_TYPE_MANGA, RANK_TYPE_NOVEL)
-        val titles = listOf(
-            getString(R.string.type_manga),
-            getString(R.string.type_novel),
-        )
-
-        binding.viewPager.adapter = object : FragmentStatePagerAdapter(
-            childFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-        ) {
-            override fun getItem(position: Int): Fragment =
-                SeriesRankFeedFragment.newInstance(types[position])
-            override fun getCount(): Int = titles.size
-            override fun getPageTitle(position: Int): CharSequence = titles[position]
-        }
-        binding.tabLayout.setupWithViewPager(binding.viewPager)
-        val pos = currentPos.coerceIn(0, titles.size - 1)
-        currentPos = pos
-        binding.viewPager.setCurrentItem(pos, false)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putInt(KEY_POS, currentPos)
-    }
+    override fun createPage(type: String): Fragment = SeriesRankFeedFragment.newInstance(type)
 
     companion object {
-        private const val KEY_POS = "series_rank_pos"
-
         @JvmStatic
         fun newInstance(): SeriesRankFragment = SeriesRankFragment()
     }
@@ -148,7 +101,7 @@ data class RankNoticeItem(val textRes: Int) : FeedItem {
 class SeriesRankFeedFragment : FeedFragment() {
 
     private val type: String by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getString(ARG_TYPE) ?: RANK_TYPE_MANGA
+        requireArguments().getString(ARG_TYPE) ?: RankType.MANGA
     }
 
     /** 封面 / 头像的 Glide 请求管理器,建一次复用(理由见 NovelFeedFragment.novelGlide)。 */
@@ -213,7 +166,7 @@ class SeriesRankFeedFragment : FeedFragment() {
     private fun openSeries(item: SeriesRankFeedItem) {
         if (item.seriesId == 0L) return
         val intent = Intent(requireContext(), TemplateActivity::class.java)
-        if (item.type == RANK_TYPE_NOVEL) {
+        if (item.type == RankType.NOVEL) {
             intent.putExtra(NovelSeriesFragment.ARG_SERIES_ID, item.seriesId)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列")
         } else {
@@ -233,7 +186,7 @@ class SeriesRankFeedFragment : FeedFragment() {
     companion object {
         private const val ARG_TYPE = "series_rank_type"
 
-        /** [type] 是 [RANK_TYPE_MANGA] / [RANK_TYPE_NOVEL],服务端 enum 语义,别本地化。 */
+        /** [type] 是 [RankType.MANGA] / [RankType.NOVEL],服务端 enum 语义,别本地化。 */
         @JvmStatic
         fun newInstance(type: String): SeriesRankFeedFragment {
             return SeriesRankFeedFragment().apply {
@@ -253,7 +206,7 @@ class SeriesRankFeedFragment : FeedFragment() {
  * [RankNoticeItem]「榜单统计中」;翻页不再重复塞。零 Fragment 捕获。
  */
 class SeriesRankFeedSource(
-    /** [RANK_TYPE_MANGA] | [RANK_TYPE_NOVEL]。 */
+    /** [RankType.MANGA] | [RankType.NOVEL]。 */
     private val type: String,
 ) : FeedSource<String> {
 
@@ -263,7 +216,7 @@ class SeriesRankFeedSource(
         } else {
             ShaftApiV2Client.service.discoverSeriesByUrl(cursor)
         }
-        val isNovel = type == RANK_TYPE_NOVEL
+        val isNovel = type == RankType.NOVEL
         // gson 解析 cover_bean 挪 Default,保住 load 的 main-safe 契约。
         val items = withContext(Dispatchers.Default) {
             val base = (resp.offset ?: 0) + 1

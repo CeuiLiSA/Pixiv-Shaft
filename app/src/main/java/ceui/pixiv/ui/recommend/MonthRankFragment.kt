@@ -80,7 +80,7 @@ class MonthRankFragment : Fragment(R.layout.fragment_month_rank), RankPickerShee
         binding.rankLoading.visibility = if (firstBuild) View.VISIBLE else View.GONE
         viewLifecycleOwner.lifecycleScope.launch {
             val months = try {
-                ShaftApiV2Client.service.discoverMonths(type = RANK_TYPE_ILLUST).months.orEmpty()
+                ShaftApiV2Client.service.discoverMonths(type = RankType.ILLUST).months.orEmpty()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Throwable) {
@@ -127,9 +127,9 @@ class MonthRankFragment : Fragment(R.layout.fragment_month_rank), RankPickerShee
         )
         // type 传 server 端稳定 enum,不传 localized(系统语言切换 + 状态恢复会对不上)。
         val fragments: List<Fragment> = listOf(
-            FilteredBookmarkRankIllustFeedFragment.newInstance(RANK_TYPE_ILLUST, month),
-            FilteredBookmarkRankIllustFeedFragment.newInstance(RANK_TYPE_MANGA, month),
-            FilteredBookmarkRankNovelFeedFragment.newInstance(month = month, length = null),
+            BookmarkRankIllustFeedFragment.newInstance(type = RankType.ILLUST, month = month),
+            BookmarkRankIllustFeedFragment.newInstance(type = RankType.MANGA, month = month),
+            BookmarkRankNovelFeedFragment.newInstance(month = month),
         )
 
         binding.viewPager.adapter = object : FragmentStatePagerAdapter(

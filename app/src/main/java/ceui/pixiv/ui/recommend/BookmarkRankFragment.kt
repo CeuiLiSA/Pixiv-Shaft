@@ -21,8 +21,15 @@ const val AI_ONLY = "only"
 /** ?restrict=sfw —— 全年龄榜(服务端剔除 R-18)。null 即通榜(不带该 query)。 */
 const val RESTRICT_SFW = "sfw"
 
+/** most-bookmarked 的 `length` enum(仅 novel):short <2 万字 / medium 2–5 万 / long ≥5 万。 */
+const val NOVEL_LENGTH_LONG = "long"
+const val NOVEL_LENGTH_MEDIUM = "medium"
+const val NOVEL_LENGTH_SHORT = "short"
+
 private const val ARG_AI = "bookmark_rank_ai"
 private const val ARG_RESTRICT = "bookmark_rank_restrict"
+private const val ARG_MONTH = "bookmark_rank_month"
+private const val ARG_LENGTH = "bookmark_rank_length"
 
 /**
  * 全站收藏榜宿主:插画 / 漫画 / 小说 三个类型 tab([TypeTabsRankFragment]),每个 tab 一个
@@ -100,7 +107,9 @@ class BookmarkRankIllustFeedFragment : IllustFeedFragment() {
         val year = args.getString(ARG_YEAR)
         val tag = args.getString(ARG_TAG)
         val restrict = args.getString(ARG_RESTRICT)
-        BookmarkRankFeedSource(type = type, ai = ai, year = year, tag = tag, restrict = restrict)
+        val month = args.getString(ARG_MONTH)
+        BookmarkRankFeedSource(
+            type = type, ai = ai, year = year, tag = tag, restrict = restrict, month = month)
     }
 
     // shaft-api-v2 的 next_url 是 shaft 绝对 URL,不是 app-api illust nextUrl;别漏进详情页 pager
@@ -119,8 +128,8 @@ class BookmarkRankIllustFeedFragment : IllustFeedFragment() {
 
         /**
          * [type] 是 [RankType.ILLUST] / [RankType.MANGA](服务端 enum);[ai] / [year] / [tag] /
-         * [restrict] 为 null 即不带该 query。[tag] 是服务端原文 tag 名,别传 translated;
-         * [year] 是 4 位年份字符串。
+         * [restrict] / [month] 为 null 即不带该 query。[tag] 是服务端原文 tag 名,别传 translated;
+         * [year] 是 4 位年份字符串;[month] 是 `YYYY-MM`(新作榜)。
          */
         @JvmStatic
         fun newInstance(
@@ -129,6 +138,7 @@ class BookmarkRankIllustFeedFragment : IllustFeedFragment() {
             year: String? = null,
             tag: String? = null,
             restrict: String? = null,
+            month: String? = null,
         ): BookmarkRankIllustFeedFragment {
             return BookmarkRankIllustFeedFragment().apply {
                 arguments = Bundle().apply {
@@ -137,6 +147,7 @@ class BookmarkRankIllustFeedFragment : IllustFeedFragment() {
                     putString(ARG_YEAR, year)
                     putString(ARG_TAG, tag)
                     putString(ARG_RESTRICT, restrict)
+                    putString(ARG_MONTH, month)
                 }
             }
         }
@@ -155,24 +166,33 @@ class BookmarkRankNovelFeedFragment : NovelFeedFragment() {
         val year = args.getString(ARG_YEAR)
         val tag = args.getString(ARG_TAG)
         val restrict = args.getString(ARG_RESTRICT)
-        BookmarkRankFeedSource(type = RankType.NOVEL, year = year, tag = tag, restrict = restrict)
+        val month = args.getString(ARG_MONTH)
+        val length = args.getString(ARG_LENGTH)
+        BookmarkRankFeedSource(
+            type = RankType.NOVEL, year = year, tag = tag, restrict = restrict,
+            month = month, length = length)
     }
 
     companion object {
         private const val ARG_YEAR = "bookmark_rank_year"
         private const val ARG_TAG = "bookmark_rank_tag"
 
+        /** [month] 是 `YYYY-MM`(新作榜);[length] 是 [NOVEL_LENGTH_LONG] 等三档(长篇小说榜)。 */
         @JvmStatic
         fun newInstance(
             year: String? = null,
             tag: String? = null,
             restrict: String? = null,
+            month: String? = null,
+            length: String? = null,
         ): BookmarkRankNovelFeedFragment {
             return BookmarkRankNovelFeedFragment().apply {
                 arguments = Bundle().apply {
                     putString(ARG_YEAR, year)
                     putString(ARG_TAG, tag)
                     putString(ARG_RESTRICT, restrict)
+                    putString(ARG_MONTH, month)
+                    putString(ARG_LENGTH, length)
                 }
             }
         }
@@ -184,8 +204,9 @@ class BookmarkRankNovelFeedFragment : NovelFeedFragment() {
  * 响应不实现 KListShow(item.bean 是 JsonObject),用不了 PixivFeedSource,手写 [FeedSource]
  * (同浏览量榜 [ViewRankFeedSource])。
  *
- * [ai] / [year] / [tag] / [restrict] 为 null 时 Retrofit 不发该 query,即无筛选 —— 收藏榜、AI 榜、
- * 全年龄榜、年代榜、标签专区共用本 source,只是带的 query 不同。[type] 决定 bean 解析成插画卡
+ * [ai] / [year] / [tag] / [restrict] / [month] / [length] 为 null 时 Retrofit 不发该 query,即无筛选
+ * —— 收藏榜、AI 榜、全年龄榜、年代榜、标签专区、新作榜、长篇小说榜、动图榜共用本 source,只是
+ * 带的 query 不同。[length] 只在 type=novel 时发(其余类型服务端 400)。[type] 决定 bean 解析成插画卡
  * 还是小说卡(见 [toRankFeedItem])。零 Fragment 捕获(全是构造进来的局部值,map 是纯函数)。
  */
 class BookmarkRankFeedSource(
@@ -195,12 +216,15 @@ class BookmarkRankFeedSource(
     private val year: String? = null,
     private val tag: String? = null,
     private val restrict: String? = null,
+    private val month: String? = null,
+    private val length: String? = null,
 ) : FeedSource<String> {
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val resp: ShaftApiV2.MostBookmarkedResponse = if (cursor == null) {
             ShaftApiV2Client.service.mostBookmarked(
-                type = type, limit = limitN, ai = ai, year = year, tag = tag, restrict = restrict)
+                type = type, limit = limitN, ai = ai, year = year, tag = tag, restrict = restrict,
+                month = month, length = length?.takeIf { type == RankType.NOVEL })
         } else {
             ShaftApiV2Client.service.mostBookmarkedByUrl(cursor)
         }

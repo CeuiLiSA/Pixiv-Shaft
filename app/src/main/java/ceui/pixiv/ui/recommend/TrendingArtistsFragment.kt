@@ -2,13 +2,11 @@ package ceui.pixiv.ui.recommend
 
 import android.os.Bundle
 import android.view.View
+import androidx.annotation.StringRes
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentStatePagerAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
-import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
-import ceui.lisa.databinding.FragmentYearRankBinding
 import ceui.lisa.databinding.RecyTrendingArtistBinding
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
@@ -29,7 +27,6 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.feedLikeSync
 import ceui.pixiv.ui.common.openUserActivity
-import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
@@ -41,63 +38,30 @@ import com.bumptech.glide.RequestManager
  * 三个固定 tab:今日 / 本周 / 本月,默认本周(服务端也以 week 为默认口径)。单 tab 是
  * [TrendingArtistFeedFragment]。
  *
- * 复用 fragment_year_rank 布局(toolbar + tabs + pager 的通用形状),tab 本地写死、无异步加载态
- * —— yearsLoading 直接 GONE。FSPA + RESUME_ONLY_CURRENT + 子 fragment autoLoad=false 的组合同
- * [WallpaperRankFragment] / [YearRankFragment]。
+ * 宿主契约见 [TypeTabsRankFragment](换成 window enum 分 tab)。
  */
-class TrendingArtistsFragment : Fragment(R.layout.fragment_year_rank) {
+class TrendingArtistsFragment : TypeTabsRankFragment() {
 
-    private val binding by viewBinding(FragmentYearRankBinding::bind)
+    override val titleRes: Int get() = R.string.trending_artists_title
 
-    private var currentPos: Int = DEFAULT_POS
+    /** window 值是服务端 enum;顺序即 tab 顺序。 */
+    override val types: List<String> get() = WINDOWS
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    @StringRes
+    override fun tabTitleRes(type: String): Int = windowTitleRes(type)
 
-        savedInstanceState?.let {
-            currentPos = it.getInt(KEY_POS, DEFAULT_POS)
-        }
+    /** 默认落在「本周」。 */
+    override val defaultPos: Int get() = WINDOWS.indexOf(WINDOW_WEEK)
 
-        binding.toolbar.title = " "
-        binding.toolbarTitle.text = getString(R.string.trending_artists_title)
-        binding.toolbar.setNavigationOnClickListener { activity?.finish() }
-        binding.yearsLoading.visibility = View.GONE
-
-        binding.viewPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
-            override fun onPageSelected(position: Int) { currentPos = position }
-        })
-
-        // window 值是服务端 enum;标题是本地化文案。顺序即 tab 顺序。
-        val titles = WINDOWS.map { getString(windowTitleRes(it)) }
-
-        binding.viewPager.adapter = object : FragmentStatePagerAdapter(
-            childFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
-        ) {
-            override fun getItem(position: Int): Fragment =
-                TrendingArtistFeedFragment.newInstance(WINDOWS[position])
-            override fun getCount(): Int = titles.size
-            override fun getPageTitle(position: Int): CharSequence = titles[position]
-        }
-        binding.tabLayout.setupWithViewPager(binding.viewPager)
-        val pos = currentPos.coerceIn(0, titles.size - 1)
-        currentPos = pos
-        binding.viewPager.setCurrentItem(pos, false)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putInt(KEY_POS, currentPos)
-    }
+    override fun createPage(type: String): Fragment = TrendingArtistFeedFragment.newInstance(type)
 
     companion object {
-        private const val KEY_POS = "trending_artists_pos"
         const val WINDOW_DAY = "day"
         const val WINDOW_WEEK = "week"
         const val WINDOW_MONTH = "month"
         private val WINDOWS = listOf(WINDOW_DAY, WINDOW_WEEK, WINDOW_MONTH)
-        /** 默认落在「本周」。 */
-        private val DEFAULT_POS = WINDOWS.indexOf(WINDOW_WEEK)
 
+        @StringRes
         fun windowTitleRes(window: String): Int = when (window) {
             WINDOW_DAY -> R.string.trending_window_day
             WINDOW_MONTH -> R.string.trending_window_month

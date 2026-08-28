@@ -13,7 +13,7 @@ import ceui.pixiv.ui.common.viewBinding
  * tag=うごイラ 的 discover/most-bookmarked,不需要新接口。
  *
  * 复用 fragment_rank_picker 布局(toolbar + feed_container),但 tag 是写死的:选择条与
- * loading 直接 GONE,首装 replace 一个 [TagRankIllustFeedFragment];重建路径 child 由 FM
+ * loading 直接 GONE,首装 replace 一个带 tag 的 [BookmarkRankIllustFeedFragment];重建路径 child 由 FM
  * 自己带回来,不重复装(否则会重拉首屏)。
  */
 class UgoiraRankFragment : Fragment(R.layout.fragment_rank_picker) {
@@ -31,7 +31,10 @@ class UgoiraRankFragment : Fragment(R.layout.fragment_rank_picker) {
 
         if (childFragmentManager.findFragmentById(R.id.feed_container) == null) {
             childFragmentManager.commit {
-                replace(R.id.feed_container, TagRankIllustFeedFragment.newInstance(UGOIRA_TAG))
+                replace(
+                    R.id.feed_container,
+                    BookmarkRankIllustFeedFragment.newInstance(type = RankType.ILLUST, tag = UGOIRA_TAG),
+                )
             }
         }
     }
