@@ -2191,7 +2191,6 @@
     <!-- 系列榜 / 新作榜 / 长篇小说榜(shaft-api-v2 discover/series & most-bookmarked?month/length) -->
     <string name="series_rank">系列榜</string>
     <string name="series_rank_title">系列收藏榜</string>
-    <string name="series_rank_meta">%1$d 话 · 累计收藏 %2$s</string>
     <string name="rank_incomplete_notice">榜单统计中，结果可能不完整</string>
     <string name="month_rank">新作榜</string>
     <string name="month_rank_title">本月新作榜</string>
@@ -3119,4 +3118,7 @@
     <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
     <string name="inapp_push_dismiss">知道了</string>
     <string name="inapp_push_default_action">去看看</string>
+    <string name="watchlist_empty">还没有追更的系列</string>
+    <string name="series_updated_at">更新于 %s</string>
+    <string name="series_total_bookmarks">累计收藏 %s</string>
 </resources>

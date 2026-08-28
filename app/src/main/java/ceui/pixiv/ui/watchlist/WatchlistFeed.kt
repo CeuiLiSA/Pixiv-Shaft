@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.watchlist
 
+import android.content.Context
 import android.content.Intent
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
@@ -7,9 +8,7 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
-import ceui.lisa.databinding.RecyWatchlistMangaBinding
-import ceui.lisa.databinding.RecyWatchlistNovelBinding
-import ceui.lisa.utils.GlideUtil
+import ceui.lisa.databinding.CellSeriesV3Binding
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.view.LinearItemDecoration
@@ -23,6 +22,8 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.detail.IllustSeriesFragment
 import ceui.pixiv.ui.novel.NovelSeriesFragment
+import ceui.pixiv.ui.series.SeriesCard
+import ceui.pixiv.ui.series.SeriesCardModel
 import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.utils.ppppx
@@ -57,7 +58,7 @@ data class WatchlistNovelFeedItem(val series: WatchlistSeries) : FeedItem {
 abstract class WatchlistFeedFragment : FeedFragment() {
 
     /**
-     * 卡片间距：recy_watchlist_* 的根 CardView 不自带 margin，全靠 decoration 撑开
+     * 卡片间距：cell_series_v3 不自带 margin，全靠 decoration 撑开
      *（legacy 是 ListFragment.verticalRecyclerView() 默认挂的 12dp，feeds 的 onListReady 默认
      * 什么都不挂，得自己来）。12dp 与同族的 NovelFeedFragment / UserFeedFragment 一致。
      */
@@ -67,7 +68,7 @@ abstract class WatchlistFeedFragment : FeedFragment() {
 
     /** 空态文案：追更列表为空是常态（没追过任何系列），别退化成通用的「居然啥也没有」。 */
     override val emptyStateText: CharSequence
-        get() = getString(R.string.string_186)
+        get() = getString(R.string.watchlist_empty)
 }
 
 /**
@@ -106,18 +107,19 @@ class WatchlistNovelFeedFragment : WatchlistFeedFragment() {
 }
 
 /**
- * 追更漫画卡（复用 legacy 的 recy_watchlist_manga，视觉零变化）。
+ * 追更漫画卡:共用的 V3 系列卡([ceui.lisa.R.layout.cell_series_v3],与系列榜同一张)。
  *
- * 点卡片 / 点「查看最新」都进漫画系列详情 —— 这不是我合并的，legacy WatchlistMangaAdapter
- * 两个监听器本就跳同一处（只有小说侧的「阅读最新」才真去开最新一话）。
+ * 点卡片 / 点「查看最新话」都进漫画系列详情 —— 这不是我合并的,legacy WatchlistMangaAdapter
+ * 两个监听器本就跳同一处(只有小说侧的「阅读最新话」才真去开最新一话)。
  */
 internal fun WatchlistFeedFragment.watchlistMangaRenderer():
-        FeedRenderer<WatchlistMangaFeedItem, RecyWatchlistMangaBinding> =
-    feedRenderer<WatchlistMangaFeedItem, RecyWatchlistMangaBinding>(
-        inflate = RecyWatchlistMangaBinding::inflate,
+        FeedRenderer<WatchlistMangaFeedItem, CellSeriesV3Binding> =
+    feedRenderer<WatchlistMangaFeedItem, CellSeriesV3Binding>(
+        inflate = CellSeriesV3Binding::inflate,
         create = { cell ->
+            SeriesCard.setup(cell.binding)
             cell.binding.root.setOnClick { openMangaSeries(cell.item.series) }
-            cell.binding.viewLatest.setOnClick { openMangaSeries(cell.item.series) }
+            cell.binding.action.setOnClick { openMangaSeries(cell.item.series) }
             cell.binding.author.setOnClick { openSeriesAuthor(cell.item.series) }
             cell.binding.userHead.setOnClick { openSeriesAuthor(cell.item.series) }
         },
@@ -126,34 +128,30 @@ internal fun WatchlistFeedFragment.watchlistMangaRenderer():
             cell.binding.userHead.clearGlideOnRecycle()
         },
     ) { cell ->
-        bindWatchlistCard(
-            series = cell.item.series,
-            title = cell.binding.title,
-            author = cell.binding.author,
-            lastDate = cell.binding.lastDate,
-            contentCount = cell.binding.contentCount,
-            cover = cell.binding.cover,
-            userHead = cell.binding.userHead,
-            actionButton = cell.binding.viewLatest,
+        SeriesCard.bind(
+            cell.binding,
+            cell.item.series.toCardModel(requireContext(), R.string.view_latest_episode),
+            Glide.with(this),
         )
     }
 
 /**
- * 追更小说卡（复用 legacy 的 recy_watchlist_novel，视觉零变化）。
+ * 追更小说卡(同一张 V3 系列卡)。
  *
- * 与漫画卡的唯一差别：「阅读最新」按 [WatchlistSeries.latest_content_id] 直接开最新一话
- * （那是**作品** id，不是系列 id），点卡片才进系列页。
+ * 与漫画卡的唯一差别:「阅读最新话」按 [WatchlistSeries.latest_content_id] 直接开最新一话
+ * (那是**作品** id,不是系列 id),点卡片才进系列页。
  */
 internal fun WatchlistFeedFragment.watchlistNovelRenderer():
-        FeedRenderer<WatchlistNovelFeedItem, RecyWatchlistNovelBinding> =
-    feedRenderer<WatchlistNovelFeedItem, RecyWatchlistNovelBinding>(
-        inflate = RecyWatchlistNovelBinding::inflate,
+        FeedRenderer<WatchlistNovelFeedItem, CellSeriesV3Binding> =
+    feedRenderer<WatchlistNovelFeedItem, CellSeriesV3Binding>(
+        inflate = CellSeriesV3Binding::inflate,
         create = { cell ->
+            SeriesCard.setup(cell.binding)
             cell.binding.root.setOnClick { openNovelSeries(cell.item.series) }
-            cell.binding.readLatest.setOnClick {
-                // legacy 在 latest_content_id 为 null 时会 NPE（`target.latest_content_id!!`）；
-                // 这里静默忽略——屏蔽态本就不该走到（按钮已 INVISIBLE），非屏蔽态缺这个字段
-                // 是服务端的边角，没有「最新一话」可开，不值得崩。
+            cell.binding.action.setOnClick {
+                // legacy 在 latest_content_id 为 null 时会 NPE(`target.latest_content_id!!`);
+                // 这里静默忽略——屏蔽态本就不该走到(按钮已 GONE),非屏蔽态缺这个字段
+                // 是服务端的边角,没有「最新一话」可开,不值得崩。
                 val latest = cell.item.series.latest_content_id ?: return@setOnClick
                 PixivOperate.getNovelByID(latest, requireContext(), null)
             }
@@ -165,60 +163,36 @@ internal fun WatchlistFeedFragment.watchlistNovelRenderer():
             cell.binding.userHead.clearGlideOnRecycle()
         },
     ) { cell ->
-        bindWatchlistCard(
-            series = cell.item.series,
-            title = cell.binding.title,
-            author = cell.binding.author,
-            lastDate = cell.binding.lastDate,
-            contentCount = cell.binding.contentCount,
-            cover = cell.binding.cover,
-            userHead = cell.binding.userHead,
-            actionButton = cell.binding.readLatest,
+        SeriesCard.bind(
+            cell.binding,
+            cell.item.series.toCardModel(requireContext(), R.string.read_latest_episode),
+            Glide.with(this),
         )
     }
 
 /**
- * 两张卡共用的绑定（两份布局的字段完全同构，只有动作按钮的 id 不同）。
- *
- * 屏蔽态（[WatchlistSeries.isMasked]）按 legacy 语义：只显示 mask_text、清空其余文案、
- * 隐藏封面与动作按钮。点击监听在 create 阶段挂一次，这里不重复摘挂——各 open* 自带
- * 屏蔽守卫，比 legacy 每次 bind 都 `setOnClickListener {}` 覆盖一遍更省。
+ * pixiv 追更条目 → 系列卡显示模型。屏蔽态([WatchlistSeries.isMasked])只带 mask_text,
+ * 卡片按 legacy 语义只显示那句话。ISO 时间串只取日期部分(legacy 是在模型 getter 里
+ * substring(0,10),那份 getter 还会对 null 串抛 NPE;这里改成读时安全截取)。
  */
-private fun bindWatchlistCard(
-    series: WatchlistSeries,
-    title: android.widget.TextView,
-    author: android.widget.TextView,
-    lastDate: android.widget.TextView,
-    contentCount: android.widget.TextView,
-    cover: android.widget.ImageView,
-    userHead: android.widget.ImageView,
-    actionButton: View,
-) {
-    if (series.isMasked) {
-        title.text = series.mask_text
-        author.text = ""
-        lastDate.text = ""
-        contentCount.text = ""
-        // INVISIBLE 而非 GONE：保住卡片高度，屏蔽条目不会比邻居矮一截（对齐 legacy）
-        actionButton.visibility = View.INVISIBLE
-        cover.visibility = View.INVISIBLE
-        // 头像也要藏：复用的 holder 从正常条目重绑到屏蔽条目时，上一条画师的头像会原样留着
-        userHead.visibility = View.INVISIBLE
-        return
+private fun WatchlistSeries.toCardModel(context: Context, actionRes: Int): SeriesCardModel {
+    if (isMasked) {
+        return SeriesCardModel(
+            title = "", coverUrl = null, countText = "", subtitle = "", subtitleAccent = false,
+            authorName = "", authorHeadUrl = null, maskText = mask_text,
+        )
     }
-    title.text = series.title
-    author.text = series.user?.name ?: ""
-    // ISO 串只取日期部分（legacy 是在模型 getter 里 substring(0,10)，那份 getter 还会对
-    // null 串抛 NPE；这里改成读时安全截取）
-    lastDate.text = series.last_published_content_datetime?.take(10) ?: ""
-    contentCount.text = contentCount.context.getString(
-        R.string.episode_number, series.published_content_count,
+    val date = last_published_content_datetime?.take(10)
+    return SeriesCardModel(
+        title = title,
+        coverUrl = url,
+        countText = context.getString(R.string.episode_number, published_content_count),
+        subtitle = if (date.isNullOrEmpty()) "" else context.getString(R.string.series_updated_at, date),
+        subtitleAccent = false,
+        authorName = user?.name ?: "",
+        authorHeadUrl = user?.profile_image_urls?.medium,
+        actionText = context.getString(actionRes),
     )
-    actionButton.visibility = View.VISIBLE
-    cover.visibility = View.VISIBLE
-    userHead.visibility = View.VISIBLE
-    Glide.with(cover).load(GlideUtil.getUrl(series.url)).into(cover)
-    series.user?.let { Glide.with(userHead).load(GlideUtil.getHead(it)).into(userHead) }
 }
 
 private fun WatchlistFeedFragment.openMangaSeries(series: WatchlistSeries) {

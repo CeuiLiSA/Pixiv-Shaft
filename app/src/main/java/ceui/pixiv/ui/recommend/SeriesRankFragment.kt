@@ -14,10 +14,9 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
 import ceui.lisa.databinding.FragmentYearRankBinding
 import ceui.lisa.databinding.ItemRankNoticeBinding
-import ceui.lisa.databinding.ItemSeriesRankBinding
+import ceui.lisa.databinding.CellSeriesV3Binding
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
-import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.Illust
@@ -32,6 +31,8 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.detail.IllustSeriesFragment
 import ceui.pixiv.ui.novel.NovelSeriesFragment
+import ceui.pixiv.ui.series.SeriesCard
+import ceui.pixiv.ui.series.SeriesCardModel
 import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
@@ -121,6 +122,8 @@ data class SeriesRankFeedItem(
     val userName: String,
     val userHeadUrl: String?,
     val coverUrl: String?,
+    /** 榜单名次(1 起,= 服务端 offset + 页内序号),卡片左上徽标。 */
+    val rank: Int,
 ) : FeedItem {
     override val feedKey: Any get() = "$type:$seriesId"
 }
@@ -135,7 +138,8 @@ data class RankNoticeItem(val textRes: Int) : FeedItem {
 
 /**
  * 系列榜的 feed 子页(漫画 / 小说各一个实例,由 [SeriesRankFragment] 的 pager 装)。
- * 自定义卡 item_series_rank:封面 / 系列标题 / 「N 话 · 收藏 M」/ 画师头像+名字;
+ * 共用的 V3 系列卡 cell_series_v3(与追更列表同一张):封面 + 名次徽标 / 系列标题 / 「N话」chip +
+ * 「累计收藏 M」/ 画师头像+名字;
  * 整卡点击进系列页(manga → 「漫画系列详情」IllustSeriesFragment,novel → 「小说系列」
  * NovelSeriesFragment),头像 / 画师名进画师页。
  *
@@ -164,7 +168,7 @@ class SeriesRankFeedFragment : FeedFragment() {
     }
 
     override fun onListReady(listView: RecyclerView) {
-        // 卡间距:item_series_rank 的根 CardView 不自带 margin,全靠 decoration 撑开(同追更列表)。
+        // 卡间距:cell_series_v3 不自带 margin,全靠 decoration 撑开(同追更列表)。
         listView.addItemDecoration(LinearItemDecoration(12.ppppx))
     }
 
@@ -175,9 +179,10 @@ class SeriesRankFeedFragment : FeedFragment() {
         ) { cell -> cell.binding.noticeText.setText(cell.item.textRes) }
 
     private fun seriesRenderer() =
-        feedRenderer<SeriesRankFeedItem, ItemSeriesRankBinding>(
-            inflate = ItemSeriesRankBinding::inflate,
+        feedRenderer<SeriesRankFeedItem, CellSeriesV3Binding>(
+            inflate = CellSeriesV3Binding::inflate,
             create = { cell ->
+                SeriesCard.setup(cell.binding)
                 cell.binding.root.setOnClick { cell.itemOrNull?.let { openSeries(it) } }
                 cell.binding.userHead.setOnClick { cell.itemOrNull?.let { openAuthor(it) } }
                 cell.binding.author.setOnClick { cell.itemOrNull?.let { openAuthor(it) } }
@@ -187,16 +192,21 @@ class SeriesRankFeedFragment : FeedFragment() {
                 cell.binding.userHead.clearGlideOnRecycle()
             },
         ) { cell ->
-            val b = cell.binding
             val item = cell.item
-            b.title.text = item.title
-            b.meta.text = getString(
-                R.string.series_rank_meta, item.workCount, formatRankCount(item.totalBookmarks),
+            SeriesCard.bind(
+                cell.binding,
+                SeriesCardModel(
+                    title = item.title,
+                    coverUrl = item.coverUrl,
+                    countText = getString(R.string.episode_number, item.workCount),
+                    subtitle = getString(R.string.series_total_bookmarks, formatRankCount(item.totalBookmarks)),
+                    subtitleAccent = true,
+                    authorName = item.userName,
+                    authorHeadUrl = item.userHeadUrl,
+                    rank = item.rank,
+                ),
+                seriesGlide,
             )
-            b.author.text = item.userName
-            // URL 为空时 GlideUtil.getUrl 回 null,Glide 走 fallback 留空位,不抛。
-            seriesGlide.load(GlideUtil.getUrl(item.coverUrl)).into(b.cover)
-            seriesGlide.load(GlideUtil.getUrl(item.userHeadUrl)).into(b.userHead)
         }
 
     /** 整卡点击:manga → 漫画系列详情(IllustSeriesFragment),novel → 小说系列(NovelSeriesFragment)。 */
@@ -256,7 +266,8 @@ class SeriesRankFeedSource(
         val isNovel = type == RANK_TYPE_NOVEL
         // gson 解析 cover_bean 挪 Default,保住 load 的 main-safe 契约。
         val items = withContext(Dispatchers.Default) {
-            resp.items.orEmpty().mapNotNull { mapSeriesItem(it, type, isNovel) }
+            val base = (resp.offset ?: 0) + 1
+            resp.items.orEmpty().mapIndexedNotNull { i, it -> mapSeriesItem(it, type, isNovel, base + i) }
         }
         val withNotice = if (cursor == null && resp.complete == false && items.isNotEmpty()) {
             listOf(RankNoticeItem(R.string.rank_incomplete_notice)) + items
@@ -272,6 +283,7 @@ class SeriesRankFeedSource(
             item: ShaftApiV2.SeriesRankItem,
             type: String,
             isNovel: Boolean,
+            rank: Int,
         ): SeriesRankFeedItem? {
             // series_id 缺失的脏条目会全挤成同一个身份(0),被框架 dedupByIdentity 折叠成一条,直接跳过。
             if (item.series_id == 0L) return null
@@ -302,6 +314,7 @@ class SeriesRankFeedSource(
                 userName = user?.name ?: user?.account.orEmpty(),
                 userHeadUrl = user?.profile_image_urls?.medium,
                 coverUrl = coverUrl,
+                rank = rank,
             )
         }
     }

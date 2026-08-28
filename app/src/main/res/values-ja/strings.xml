@@ -1980,7 +1980,6 @@
     <string name="wallpaper_rank_title">壁紙ブックマークランキング</string>
     <string name="series_rank">シリーズ</string>
     <string name="series_rank_title">シリーズランキング</string>
-    <string name="series_rank_meta">%1$d話 · ブックマーク計 %2$s</string>
     <string name="rank_incomplete_notice">ランキング集計中のため、結果が不完全な場合があります</string>
     <string name="month_rank">新作</string>
     <string name="month_rank_title">月別新作ランキング</string>

@@ -1980,7 +1980,6 @@
     <string name="wallpaper_rank_title">Рейтинг обоев</string>
     <string name="series_rank">Серии</string>
     <string name="series_rank_title">Рейтинг серий</string>
-    <string name="series_rank_meta">%1$d гл. · %2$s закладок</string>
     <string name="rank_incomplete_notice">Рейтинг ещё считается, результаты могут быть неполными</string>
     <string name="month_rank">Новинки</string>
     <string name="month_rank_title">Новинки по месяцам</string>

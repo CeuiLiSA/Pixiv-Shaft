@@ -1980,7 +1980,6 @@
     <string name="wallpaper_rank_title">배경화면 북마크 순위</string>
     <string name="series_rank">시리즈 순위</string>
     <string name="series_rank_title">시리즈 북마크 순위</string>
-    <string name="series_rank_meta">%1$d화 · 누적 북마크 %2$s</string>
     <string name="rank_incomplete_notice">순위 집계 중이라 결과가 불완전할 수 있습니다</string>
     <string name="month_rank">신작 순위</string>
     <string name="month_rank_title">월별 신작 순위</string>

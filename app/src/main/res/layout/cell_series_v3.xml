@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  系列卡(V3 + MD3-E)。追更列表(漫画 / 小说)与系列榜(漫画 / 小说)四处共用同一张卡,
+  绑定走 ceui.pixiv.ui.series.SeriesCard —— 取代 legacy recy_watchlist_manga / recy_watchlist_novel
+  (?attr/colorPrimary 实色竖条 + 三行同色同号文字 + Borderless Button)和 item_series_rank。
+
+  取舍:
+  - 底走 bg_v3_card(v3_surface_1 + 0.5dp hairline + 28dp 圆角),压在 v3_bg 上靠层次区分,
+    日夜双模同一套;按压 ripple 用 bg_drawer_item_pill(同 28dp mask,不出框)。
+  - 封面在**左**、16dp 圆角(书脊感;legacy 放右边像附图)。榜单在封面左上悬一枚 tonal 名次徽标。
+  - 信息层级:标题(v3_text_1 粗)> 话数 chip + 副文案(追更 = 更新日期 v3_text_3;
+    榜单 = 累计收藏,主题强调色)> 画师行(v3_text_2)。legacy 把日期 / 话数做成主题色 15sp,
+    和标题抢眼,是反的。
+  - 动作按钮(「查看最新话 / 阅读最新话」)是 V3 secondary pill(WitRoundButton,palette 注入),
+    榜单不显示。
+  卡间距由列表 LinearItemDecoration(12dp)统一给,cell 本身不加 margin。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_v3_card"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="@drawable/bg_drawer_item_pill"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <FrameLayout
+        android:layout_width="84dp"
+        android:layout_height="112dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/cover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/v3_surface_2"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3SeriesCover" />
+
+        <!-- 名次徽标(仅榜单):底色由 SeriesCard 用 V3Palette.pillPrimary 注入,文字 floatingPillContent。 -->
+        <TextView
+            android:id="@+id/rank_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:layout_margin="6dp"
+            android:minWidth="26dp"
+            android:gravity="center"
+            android:paddingHorizontal="7dp"
+            android:paddingVertical="2dp"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="#1"
+            tools:visibility="visible" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="112dp"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/v3_text_1"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="タヌキ出没注意 気になる先輩に注意喚起をする陸上部のタヌキさん" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/count_chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_v3_chip"
+                android:paddingHorizontal="9dp"
+                android:paddingVertical="3dp"
+                android:textColor="@color/v3_text_2"
+                android:textSize="12sp"
+                tools:text="120话" />
+
+            <TextView
+                android:id="@+id/subtitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_3"
+                android:textSize="12sp"
+                tools:text="累计收藏 2.0M" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/user_head"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:background="@color/v3_surface_2"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Chat.Avatar" />
+
+            <TextView
+                android:id="@+id/author"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_2"
+                android:textSize="13sp"
+                tools:text="画师名" />
+
+            <ceui.pixiv.witstudio.widget.WitRoundButton
+                android:id="@+id/action"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:layout_marginStart="8dp"
+                android:paddingHorizontal="12dp"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="查看最新话"
+                tools:visibility="visible" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

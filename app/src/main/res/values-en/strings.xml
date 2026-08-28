@@ -1980,7 +1980,6 @@
     <string name="wallpaper_rank_title">Wallpaper Ranking</string>
     <string name="series_rank">Series</string>
     <string name="series_rank_title">Series Ranking</string>
-    <string name="series_rank_meta">%1$d eps · %2$s bookmarks</string>
     <string name="rank_incomplete_notice">Ranking is still being computed; results may be incomplete</string>
     <string name="month_rank">New Works</string>
     <string name="month_rank_title">New Works by Month</string>
@@ -2858,4 +2857,7 @@
     <string name="snapshot_promote_confirm">After conversion, this snapshot will be kept as a regular snapshot and can be exported. Continue?</string>
     <string name="snapshot_promote_success">Converted to regular snapshot</string>
     <string name="snapshot_promote_failed">Conversion failed: %1$s</string>
+    <string name="watchlist_empty">No series in your watchlist yet</string>
+    <string name="series_updated_at">Updated %s</string>
+    <string name="series_total_bookmarks">%s bookmarks in total</string>
 </resources>

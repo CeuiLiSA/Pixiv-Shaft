@@ -1982,7 +1982,6 @@
     <string name="wallpaper_rank_title">桌布收藏榜</string>
     <string name="series_rank">系列榜</string>
     <string name="series_rank_title">系列收藏榜</string>
-    <string name="series_rank_meta">%1$d 話 · 累計收藏 %2$s</string>
     <string name="rank_incomplete_notice">榜單統計中，結果可能不完整</string>
     <string name="month_rank">新作榜</string>
     <string name="month_rank_title">本月新作榜</string>
@@ -2857,4 +2856,7 @@
     <string name="snapshot_promote_confirm">轉為正式快照後，它將作為一般快照保留，並且可以匯出。確定轉正嗎？</string>
     <string name="snapshot_promote_success">已轉為正式快照</string>
     <string name="snapshot_promote_failed">轉正失敗：%1$s</string>
+    <string name="watchlist_empty">還沒有追更的系列</string>
+    <string name="series_updated_at">更新於 %s</string>
+    <string name="series_total_bookmarks">累計收藏 %s</string>
 </resources>

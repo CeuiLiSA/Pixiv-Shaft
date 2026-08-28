@@ -562,6 +562,12 @@
         <item name="cornerSize">12dp</item>
     </style>
 
+    <!-- cell_series_v3 的封面:84x112 竖图,16dp 比 V3FeatureThumb 更圆一档,呼应卡底 28dp。 -->
+    <style name="ShapeAppearance.V3SeriesCover" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
     <!-- 小说详情页可复制信息 chip：扁平浅灰胶囊，点击复制对应字段。 -->
     <style name="NovelInfoChip" parent="">
         <item name="android:layout_width">wrap_content</item>

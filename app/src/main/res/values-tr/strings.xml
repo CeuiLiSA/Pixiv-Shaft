@@ -1980,7 +1980,6 @@
     <string name="wallpaper_rank_title">Duvar Kağıdı Sıralaması</string>
     <string name="series_rank">Seriler</string>
     <string name="series_rank_title">Seri Sıralaması</string>
-    <string name="series_rank_meta">%1$d bölüm · %2$s yer imi</string>
     <string name="rank_incomplete_notice">Sıralama hâlâ hesaplanıyor; sonuçlar eksik olabilir</string>
     <string name="month_rank">Yeni Eserler</string>
     <string name="month_rank_title">Aya Göre Yeni Eserler</string>
