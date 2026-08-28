@@ -40,8 +40,9 @@ fun Illust.hasTrustedCaption(): Boolean {
  * 回 v1/illust/detail 拉完整版,整体覆盖(isFullVersion)进 ObjectPool 并返回。
  * app-api 判作品不可见时走网页 ajax 兜底(#592);已删 / 兜底也拿不到 / 网络失败返回
  * null —— 此时不覆盖,保留池里已有数据,由调用方降级处理。
+ * `toUpdate` 可选，不传入时仍保持进 ObjectPool。
  */
-suspend fun fetchFullIllustDetail(illustId: Long): Illust? {
+suspend fun fetchFullIllustDetail(illustId: Long, toUpdate: Boolean = true): Illust? {
     val fresh = try {
         Retro.getAppApi().getIllustByID(illustId).illust
     } catch (ce: CancellationException) {
@@ -58,8 +59,10 @@ suspend fun fetchFullIllustDetail(illustId: Long): Illust? {
         // 同样 error,自然落回 null。
         fetchIllustViaWebApi(illustId) ?: return null
     }
-    ObjectPool.update(usable, isFullVersion = true)
-    usable.user?.let { ObjectPool.update(it) }
+    if (toUpdate) {
+        ObjectPool.update(usable, isFullVersion = true)
+        usable.user?.let { ObjectPool.update(it) }
+    }
     return usable
 }
 

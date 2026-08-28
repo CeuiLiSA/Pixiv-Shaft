@@ -31,6 +31,8 @@ internal data class BookmarkPayload(
     val bookmark: Boolean,
     val restrict: String,
     val tags: List<String>? = null,
+    /** 是否在收藏成功确认后触发自动快照（单点收藏/按标签收藏为 true，批量收藏为 false）。 */
+    val autoSnapshot: Boolean = false,
 )
 
 /** @param follow true = 关注，false = 取关 */

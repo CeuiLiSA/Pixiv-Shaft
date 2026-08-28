@@ -68,6 +68,7 @@ import ceui.loxia.combineLatest
 import ceui.loxia.toTagsBeans
 import ceui.loxia.User
 import ceui.loxia.flag.FlagDescFragment
+import ceui.pixiv.snapshot.AutoSnapshotRepository
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
@@ -98,6 +99,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private val safeArgs by lazy { IllustArgs(requireArguments()) }
 
     private val snapshotId: String? get() = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
+    private val snapshotIsAuto: Boolean
+        get() = arguments?.getBoolean(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false) ?: false
     private val isSnapshotMode: Boolean get() = snapshotId != null
     private var snapshotViewerData: SnapshotViewerData? = null
     private var snapshotBean: Illust? = null
@@ -194,7 +197,13 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             // 快照可能已被管理页删掉 / manifest 损坏 —— loadViewerData 会抛。
             // 裸 launch 里逃逸的异常直接崩进程,这里就地兜住:提示 + 关页。
             val loaded = try {
-                withContext(Dispatchers.IO) { SnapshotRepository.loadViewerData(appContext, id) }
+                withContext(Dispatchers.IO) {
+                    if (snapshotIsAuto) {
+                        AutoSnapshotRepository.loadAutoViewerData(appContext, id)
+                    } else {
+                        SnapshotRepository.loadViewerData(appContext, id)
+                    }
+                }
             } catch (ce: kotlinx.coroutines.CancellationException) {
                 throw ce
             } catch (e: Exception) {
@@ -256,6 +265,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         intent.putExtra("objectArthurId", data.illust.user?.id ?: 0L)
         intent.putExtra("objectType", ceui.loxia.ObjectType.ILLUST)
         intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId)
+        intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, snapshotIsAuto)
         startActivity(intent)
     }
 
@@ -811,6 +821,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                         baseBind.recyclerView.adapter = adapter
                         if (isSnapshotMode) {
                             adapter.setSnapshotId(snapshotId)
+                            adapter.setSnapshotIsAuto(snapshotIsAuto)
                             applySnapshotLocalPages(adapter)
                         } else {
                             vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }

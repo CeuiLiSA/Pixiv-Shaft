@@ -11,6 +11,8 @@ const val SNAPSHOT_MANIFEST = "manifest.json"
 const val SNAPSHOT_ILLUST_JSON = "illust.json"
 const val SNAPSHOT_COMMENTS_JSON = "comments.json"
 const val SNAPSHOT_ASSETS_JSON = "assets.json"
+const val AUTO_SNAPSHOT_MANIFEST = "auto_manifest.json"
+const val AUTO_SNAPSHOT_SCHEMA_VERSION = 1
 
 /** 单个离线快照的 manifest，v1 只含手动快照所需的字段。 */
 data class SnapshotManifest(
@@ -31,6 +33,111 @@ data class SnapshotManifest(
     val coverPath: String? = null,
     val fileCount: Int = 0,
     val totalSize: Long = 0L,
+)
+
+/** 自动快照的 manifest，v1 只收录自动生成所需的展示/转正字段。 */
+data class AutoSnapshotManifest(
+    val schemaVersion: Int = AUTO_SNAPSHOT_SCHEMA_VERSION,
+    val snapshotId: String,
+    val createdAt: Long = System.currentTimeMillis(),
+    val illustId: Long,
+    val type: String = "illust",
+    val includeComments: Boolean = false,
+    val includeOriginal: Boolean = false,
+    val isBookmarked: Boolean = false,
+    val isFollowed: Boolean = false,
+    val xRestrict: Int? = null,
+    val pageCount: Int? = null,
+    val title: String? = null,
+    val authorName: String? = null,
+    val authorId: Long? = null,
+    val coverPath: String? = null,
+    val fileCount: Int = 0,
+    val totalSize: Long = 0L,
+)
+
+/** 管理页展示自动快照时使用的轻量摘要。 */
+data class AutoSnapshotSummary(
+    val manifest: AutoSnapshotManifest,
+    val fileCount: Int,
+    val totalSize: Long,
+    val coverFile: File?,
+)
+
+/** 管理页列表统一模型：正式快照或自动快照。 */
+sealed interface SnapshotCard {
+    val snapshotId: String
+    val isAuto: Boolean
+    val createdAt: Long
+    val illustId: Long
+    val type: String
+    val title: String?
+    val authorName: String?
+    val authorId: Long?
+    val xRestrict: Int?
+    val pageCount: Int?
+    val includeComments: Boolean
+    val includeOriginal: Boolean
+    val coverFile: File?
+    val fileCount: Int
+    val totalSize: Long
+}
+
+data class FormalSnapshotCard(val summary: SnapshotSummary) : SnapshotCard {
+    override val snapshotId get() = summary.manifest.snapshotId
+    override val isAuto get() = false
+    override val createdAt get() = summary.manifest.createdAt
+    override val illustId get() = summary.manifest.illustId
+    override val type get() = summary.manifest.type
+    override val title get() = summary.manifest.title
+    override val authorName get() = summary.manifest.authorName
+    override val authorId get() = summary.manifest.authorId
+    override val xRestrict get() = summary.manifest.xRestrict
+    override val pageCount get() = summary.manifest.pageCount
+    override val includeComments get() = summary.manifest.includeComments
+    override val includeOriginal get() = summary.manifest.includeOriginal
+    override val coverFile get() = summary.coverFile
+    override val fileCount get() = summary.fileCount
+    override val totalSize get() = summary.totalSize
+}
+
+data class AutoSnapshotCard(val summary: AutoSnapshotSummary) : SnapshotCard {
+    override val snapshotId get() = summary.manifest.snapshotId
+    override val isAuto get() = true
+    override val createdAt get() = summary.manifest.createdAt
+    override val illustId get() = summary.manifest.illustId
+    override val type get() = summary.manifest.type
+    override val title get() = summary.manifest.title
+    override val authorName get() = summary.manifest.authorName
+    override val authorId get() = summary.manifest.authorId
+    override val xRestrict get() = summary.manifest.xRestrict
+    override val pageCount get() = summary.manifest.pageCount
+    override val includeComments get() = summary.manifest.includeComments
+    override val includeOriginal get() = summary.manifest.includeOriginal
+    override val coverFile get() = summary.coverFile
+    override val fileCount get() = summary.fileCount
+    override val totalSize get() = summary.totalSize
+}
+
+/** 自动快照在内存中转为正式 manifest 的轻量映射；不写盘、不保留自动来源痕迹。 */
+fun AutoSnapshotManifest.toSnapshotManifest(): SnapshotManifest = SnapshotManifest(
+    schemaVersion = SNAPSHOT_SCHEMA_VERSION,
+    snapshotId = snapshotId,
+    createdAt = createdAt,
+    illustId = illustId,
+    type = type,
+    includeComments = includeComments,
+    includeOriginal = includeOriginal,
+    isBookmarked = isBookmarked,
+    isFollowed = isFollowed,
+    xRestrict = xRestrict,
+    pageCount = pageCount,
+    title = title,
+    authorName = authorName,
+    authorId = authorId,
+    coverPath = coverPath,
+    fileCount = fileCount,
+    totalSize = totalSize,
 )
 
 /** assets.json：URL -> 快照目录内相对路径。渲染只允许读这些本地文件。 */

@@ -2796,4 +2796,14 @@
     <string name="snapshot_unsupported_ugoira">うごイラ / ugoira はオフラインスナップショットに未対応です</string>
     <string name="snapshot_error_page_url_missing">%1$d 枚目の画像に利用可能な URL がありません</string>
     <string name="snapshot_error_image_download">画像のダウンロードに失敗しました：%1$s</string>
+
+    <!-- 自動スナップショット（試験的） -->
+    <string name="setting_auto_snapshot_on_bookmark">ブックマーク時にオフラインスナップショットを作成</string>
+    <string name="setting_auto_snapshot_on_bookmark_desc">作品をブックマークした後、バックグラウンドで軽量なオフラインスナップショットを静かに作成します（試験的）</string>
+    <string name="snapshot_auto_badge">自動</string>
+    <string name="snapshot_promote">正式スナップショットに変換</string>
+    <string name="snapshot_promote_title">正式スナップショットに変換</string>
+    <string name="snapshot_promote_confirm">変換後は通常のスナップショットとして保存され、書き出しが可能になります。変換しますか？</string>
+    <string name="snapshot_promote_success">正式スナップショットに変換しました</string>
+    <string name="snapshot_promote_failed">変換に失敗しました：%1$s</string>
 </resources>

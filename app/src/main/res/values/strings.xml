@@ -3054,6 +3054,17 @@
     <string name="snapshot_unsupported_ugoira">动图 / ugoira 暂不支持离线快照</string>
     <string name="snapshot_error_page_url_missing">作品第 %1$d 张图缺少可用 URL</string>
     <string name="snapshot_error_image_download">图片下载失败：%1$s</string>
+
+    <!-- 自动快照（试验性） -->
+    <string name="setting_auto_snapshot_on_bookmark">收藏时生成离线快照</string>
+    <string name="setting_auto_snapshot_on_bookmark_desc">收藏作品后在后台静默生成一份轻量离线快照（试验性）</string>
+    <string name="snapshot_auto_badge">自动</string>
+    <string name="snapshot_promote">转为正式快照</string>
+    <string name="snapshot_promote_title">转为正式快照</string>
+    <string name="snapshot_promote_confirm">转为正式快照后，它将作为普通快照保留，并且可以导出。确定转正吗？</string>
+    <string name="snapshot_promote_success">已转为正式快照</string>
+    <string name="snapshot_promote_failed">转正失败：%1$s</string>
+
     <!-- 应用内推送（付费用户公告，pixshaft 控制台下发，只弹一次） -->
     <string name="inapp_push_dismiss">知道了</string>
     <string name="inapp_push_default_action">去看看</string>

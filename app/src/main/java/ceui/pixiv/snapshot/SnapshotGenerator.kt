@@ -17,10 +17,12 @@ import java.io.File
 import java.util.UUID
 
 /**
- * 从在线详情页生成一份 v1 手动快照。
+ * 从在线详情页生成一份离线快照。
  *
  * 数据源优先级：ObjectPool 已有完整元数据 -> 缺失时回 v1/illust/detail 补齐；
  * 图片优先复用 ImageLoaderV3 已下好的共享文件，缺失时由它联网拉取。
+ *
+ * 正式快照写 manifest.json；自动快照写 auto_manifest.json（内部格式，转正后才成为正式快照）。
  */
 object SnapshotGenerator {
 
@@ -31,6 +33,66 @@ object SnapshotGenerator {
         includeOriginal: Boolean,
         onProgress: suspend (String) -> Unit = {},
     ): SnapshotManifest = withContext(Dispatchers.IO) {
+        val content = generateContent(
+            context = context,
+            illust = illust,
+            includeComments = includeComments,
+            includeOriginal = includeOriginal,
+            onProgress = onProgress,
+        )
+        try {
+            val manifest = content.toSnapshotManifest(includeComments, includeOriginal)
+            writeJson(content.snapshotDir, SNAPSHOT_MANIFEST, manifest)
+            manifest
+        } catch (e: Exception) {
+            content.snapshotDir.deleteRecursively()
+            throw e
+        }
+    }
+
+    suspend fun generateAuto(
+        context: Context,
+        illust: Illust,
+        includeOriginal: Boolean = false,
+        onProgress: suspend (String) -> Unit = {},
+    ): AutoSnapshotManifest = withContext(Dispatchers.IO) {
+        val content = generateContent(
+            context = context,
+            illust = illust,
+            includeComments = false,
+            includeOriginal = includeOriginal,
+            onProgress = onProgress,
+        )
+        try {
+            val manifest = content.toAutoSnapshotManifest(includeOriginal)
+            writeJson(content.snapshotDir, AUTO_SNAPSHOT_MANIFEST, manifest)
+            manifest
+        } catch (e: Exception) {
+            content.snapshotDir.deleteRecursively()
+            throw e
+        }
+    }
+
+    private data class SnapshotContent(
+        val snapshotDir: File,
+        val snapshotId: String,
+        val bean: Illust,
+        val pageCount: Int,
+        val assets: Map<String, String>,
+        val pagePaths: List<String>,
+        val comments: SnapshotComments?,
+        val fileCount: Int,
+        val totalSize: Long,
+        val createdAt: Long,
+    )
+
+    private suspend fun generateContent(
+        context: Context,
+        illust: Illust,
+        includeComments: Boolean,
+        includeOriginal: Boolean,
+        onProgress: suspend (String) -> Unit,
+    ): SnapshotContent = withContext(Dispatchers.IO) {
         val appContext = context.applicationContext
         if (illust.isGif()) {
             throw SnapshotException(appContext.getString(R.string.snapshot_unsupported_ugoira))
@@ -46,7 +108,8 @@ object SnapshotGenerator {
             val bean = if (illust.isFullDetail() && illust.hasTrustedCaption()) {
                 illust
             } else {
-                fetchFullIllustDetail(illust.id.toLong()) ?: illust
+                // toUpdate = false：快照生成只是读取完整元数据，不应改动 ObjectPool。
+                fetchFullIllustDetail(illust.id, false) ?: illust
             }
 
             val assets = linkedMapOf<String, String>()
@@ -115,31 +178,66 @@ object SnapshotGenerator {
 
             val fileCount = snapshotDir.walkTopDown().count { it.isFile }
             val totalSize = snapshotDir.walkTopDown().filter { it.isFile }.sumOf { it.length() }
-            val manifest = SnapshotManifest(
+            SnapshotContent(
+                snapshotDir = snapshotDir,
                 snapshotId = snapshotId,
-                createdAt = System.currentTimeMillis(),
-                illustId = bean.id,
-                type = bean.type ?: "illust",
-                includeComments = includeComments,
-                includeOriginal = includeOriginal,
-                isBookmarked = bean.isBookmarked,
-                isFollowed = bean.user?.is_followed ?: false,
-                xRestrict = bean.x_restrict,
+                bean = bean,
                 pageCount = pageCount,
-                title = bean.title,
-                authorName = bean.user?.name,
-                authorId = bean.user?.id,
-                coverPath = pagePaths.firstOrNull(),
+                assets = assets,
+                pagePaths = pagePaths,
+                comments = commentData,
                 fileCount = fileCount,
                 totalSize = totalSize,
+                createdAt = System.currentTimeMillis(),
             )
-            writeJson(snapshotDir, SNAPSHOT_MANIFEST, manifest)
-            manifest
         } catch (e: Exception) {
             snapshotDir.deleteRecursively()
             throw e
         }
     }
+
+    private fun SnapshotContent.toSnapshotManifest(
+        includeComments: Boolean,
+        includeOriginal: Boolean,
+    ): SnapshotManifest = SnapshotManifest(
+        snapshotId = snapshotId,
+        createdAt = createdAt,
+        illustId = bean.id,
+        type = bean.type ?: "illust",
+        includeComments = includeComments,
+        includeOriginal = includeOriginal,
+        isBookmarked = bean.isBookmarked,
+        isFollowed = bean.user?.is_followed ?: false,
+        xRestrict = bean.x_restrict,
+        pageCount = pageCount,
+        title = bean.title,
+        authorName = bean.user?.name,
+        authorId = bean.user?.id,
+        coverPath = pagePaths.firstOrNull(),
+        fileCount = fileCount,
+        totalSize = totalSize,
+    )
+
+    private fun SnapshotContent.toAutoSnapshotManifest(
+        includeOriginal: Boolean,
+    ): AutoSnapshotManifest = AutoSnapshotManifest(
+        snapshotId = snapshotId,
+        createdAt = createdAt,
+        illustId = bean.id,
+        type = bean.type ?: "illust",
+        includeComments = false,
+        includeOriginal = includeOriginal,
+        isBookmarked = bean.isBookmarked,
+        isFollowed = bean.user?.is_followed ?: false,
+        xRestrict = bean.x_restrict,
+        pageCount = pageCount,
+        title = bean.title,
+        authorName = bean.user?.name,
+        authorId = bean.user?.id,
+        coverPath = pagePaths.firstOrNull(),
+        fileCount = fileCount,
+        totalSize = totalSize,
+    )
 
     private suspend fun downloadCommentAssets(
         context: Context,

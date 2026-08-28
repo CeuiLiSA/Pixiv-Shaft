@@ -92,6 +92,15 @@ object PixivActions {
         bookmark: Boolean,
         restrict: String = defaultBookmarkRestrict(),
     ) {
+        setIllustBookmark(illust, bookmark, restrict, autoSnapshot = true)
+    }
+
+    private fun setIllustBookmark(
+        illust: Illust,
+        bookmark: Boolean,
+        restrict: String,
+        autoSnapshot: Boolean,
+    ) {
         if (illust.isBookmarked == bookmark) return
         applyIllustBookmark(
             illustId = illust.id,
@@ -100,7 +109,10 @@ object PixivActions {
             illust = illust,
             authorId = illust.user?.id,
             authorFollowed = illust.user?.is_followed,
+            autoSnapshot = autoSnapshot,
         )
+        // 自动快照不再在点击时触发，改为 ActionQueue Succeeded 事件后触发，
+        // 避免与收藏/关注写操作“竞争”ObjectPool 数据。
     }
 
     // ── 批量收藏 / 取消收藏 ──────────────────────────────────────────────────
@@ -163,7 +175,7 @@ object PixivActions {
             todo.chunked(BULK_CHUNK).forEach { chunk ->
                 chunk.forEach { illust ->
                     try {
-                        setIllustBookmark(illust, bookmark, restrict)
+                        setIllustBookmark(illust, bookmark, restrict, autoSnapshot = false)
                     } catch (ce: CancellationException) {
                         throw ce
                     } catch (t: Throwable) {
@@ -231,6 +243,7 @@ object PixivActions {
         illust: Illust?,
         authorId: Long?,
         authorFollowed: Boolean?,
+        autoSnapshot: Boolean,
     ) {
         writeIllustBookmarkLocally(illustId, bookmark, illust)
         if (bookmark) RateAppManager.onUserEngaged()
@@ -239,7 +252,9 @@ object PixivActions {
             ActionRequest(
                 type = PixivActionTypes.ILLUST_BOOKMARK,
                 dedupeKey = "${PixivActionTypes.ILLUST_BOOKMARK}:$illustId",
-                payload = Shaft.sGson.toJson(BookmarkPayload(illustId, bookmark, restrict)),
+                payload = Shaft.sGson.toJson(
+                    BookmarkPayload(illustId, bookmark, restrict, autoSnapshot = autoSnapshot)
+                ),
             )
         )
 
@@ -278,13 +293,14 @@ object PixivActions {
     @JvmStatic
     fun bookmarkIllustWithTags(illustId: Long, restrict: String, tags: List<String>) {
         writeIllustBookmarkLocally(illustId, true)
+        // 自动快照统一由 ActionQueue Succeeded 事件触发。
         RateAppManager.onUserEngaged()
         actionQueue.enqueue(
             ActionRequest(
                 type = PixivActionTypes.ILLUST_BOOKMARK,
                 dedupeKey = "${PixivActionTypes.ILLUST_BOOKMARK}:$illustId",
                 payload = Shaft.sGson.toJson(
-                    BookmarkPayload(illustId, true, restrict, tags.ifEmpty { null })
+                    BookmarkPayload(illustId, true, restrict, tags.ifEmpty { null }, autoSnapshot = true)
                 ),
             )
         )

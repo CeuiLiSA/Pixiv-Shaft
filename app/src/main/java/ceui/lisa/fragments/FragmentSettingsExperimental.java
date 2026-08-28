@@ -24,6 +24,19 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
     protected void initData() {
         bindWitGalleryRows();
 
+        // 自动快照是本地离线能力，不涉及站外 UGC，所有渠道都显示。
+        baseBind.autoSnapshotOnBookmark.setChecked(Shaft.sSettings.isAutoSnapshotOnBookmark());
+        baseBind.autoSnapshotOnBookmark.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setAutoSnapshotOnBookmark(isChecked);
+                Local.setSettings(Shaft.sSettings);
+                Common.showToast(getString(R.string.string_428));
+            }
+        });
+        baseBind.autoSnapshotOnBookmarkRela.setOnClickListener(v ->
+                baseBind.autoSnapshotOnBookmark.performClick());
+
         // google(Play)渠道:聊天室 / 广场是站外 UGC 入口,合规起见整组不出现。认 IS_LITE
         // 而不是 debug 口径 —— lite 的 debug 包同样没有,与 SettingsCatalog 索引一致。
         if (ceui.lisa.BuildConfig.IS_LITE) {

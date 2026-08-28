@@ -2798,4 +2798,14 @@
     <string name="snapshot_unsupported_ugoira">動圖 / ugoira 暫不支援離線快照</string>
     <string name="snapshot_error_page_url_missing">作品第 %1$d 張圖缺少可用 URL</string>
     <string name="snapshot_error_image_download">圖片下載失敗：%1$s</string>
+
+    <!-- 自動快照（實驗性） -->
+    <string name="setting_auto_snapshot_on_bookmark">收藏時產生離線快照</string>
+    <string name="setting_auto_snapshot_on_bookmark_desc">收藏作品後在背景靜默產生一份輕量離線快照（實驗性）</string>
+    <string name="snapshot_auto_badge">自動</string>
+    <string name="snapshot_promote">轉為正式快照</string>
+    <string name="snapshot_promote_title">轉為正式快照</string>
+    <string name="snapshot_promote_confirm">轉為正式快照後，它將作為一般快照保留，並且可以匯出。確定轉正嗎？</string>
+    <string name="snapshot_promote_success">已轉為正式快照</string>
+    <string name="snapshot_promote_failed">轉正失敗：%1$s</string>
 </resources>

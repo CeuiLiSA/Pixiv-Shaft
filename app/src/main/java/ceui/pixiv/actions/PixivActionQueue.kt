@@ -16,6 +16,7 @@ import ceui.pixiv.actionqueue.PendingAction
 import ceui.pixiv.actionqueue.QueuePolicy
 import ceui.pixiv.events.EventReporter
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.snapshot.AutoSnapshotEngine
 import ceui.pixiv.websocket.AppNetworkMonitor
 import ceui.pixiv.websocket.NetworkMonitor
 import kotlinx.coroutines.CancellationException
@@ -250,6 +251,16 @@ class PixivActionQueue(app: Context) {
                 // 补发的那条本来就没有 bean 可读，漏一次画像强化远好过为它多打一次网络。
                 if (payload.bookmark) {
                     ObjectPool.get<Illust>(payload.id).value?.let(profileManager::onBookmarkIllust)
+                }
+
+                // 事件驱动：收藏被服务端确认成功后再触发自动快照。
+                // 此时读取 ObjectPool 里的值已经是“本地乐观态 == 服务端确认态”，
+                // 不再与队列竞争数据；只有单点收藏/按标签收藏的 payload 才带 autoSnapshot。
+                if (payload.bookmark && payload.autoSnapshot) {
+                    val confirmed = ObjectPool.get<Illust>(payload.id).value
+                        ?.takeIf { it.is_bookmarked == true }
+                        ?: (illust ?: fetched)?.takeIf { it.is_bookmarked == true }
+                    confirmed?.let(AutoSnapshotEngine::onBookmarkConfirmed)
                 }
             }
 

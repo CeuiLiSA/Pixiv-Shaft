@@ -104,6 +104,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     internal val snapshotId: String? get() = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
 
+    internal val snapshotIsAuto: Boolean
+        get() = arguments?.getBoolean(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false) ?: false
+
     internal val isSnapshotMode: Boolean get() = snapshotId != null
 
     private val illustId: Long by lazy(LazyThreadSafetyMode.NONE) {
@@ -111,10 +114,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     }
 
     override val feedViewModel by feedViewModels {
-        // 零捕获:只把 id/快照 id 读进局部值交给长命 VM 持有的数据源,不钉 Fragment。
+        // 零捕获:只把 id/快照 id/是否自动 读进局部值交给长命 VM 持有的数据源,不钉 Fragment。
         val snapshot = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
+        val snapshotAuto = arguments?.getBoolean(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false) ?: false
         if (snapshot != null) {
-            SnapshotArtworkFeedSource(snapshot)
+            SnapshotArtworkFeedSource(snapshot, snapshotAuto)
         } else {
             ArtworkV3FeedSource(requireArguments().getInt("illust_id").toLong())
         }
@@ -550,6 +554,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 必须先打快照标记再喂本地页:adapter 构造时已经发出一趟「已下载文件」后台扫描,
         // 标记会让它回主线程合并时整个作废,避免同 ID 的下载文件顶掉快照里的那一份。
         adapter.setSnapshotId(snapshotId)
+        adapter.setSnapshotIsAuto(snapshotIsAuto)
         val pageCount = illust.page_count.coerceAtLeast(1)
         for (i in 0 until pageCount) {
             data.pageFile(i)?.let { file -> adapter.putLocalPageUri(i, Uri.fromFile(file)) }
@@ -1349,10 +1354,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         fun newInstance(illustId: Long): ArtworkV3Fragment = newInstance(illustId.toInt())
 
         @JvmStatic
-        fun newInstanceSnapshot(snapshotId: String): ArtworkV3Fragment {
+        @JvmOverloads
+        fun newInstanceSnapshot(snapshotId: String, isAuto: Boolean = false): ArtworkV3Fragment {
             return ArtworkV3Fragment().apply {
                 arguments = Bundle().apply {
                     putString(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId)
+                    putBoolean(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, isAuto)
                 }
             }
         }

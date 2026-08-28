@@ -63,6 +63,7 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
         val objectArthurId: Long = b.getLong("objectArthurId")
         val objectType: String = b.getString("objectType").orEmpty()
         val snapshotId: String? = b.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
+        val snapshotIsAuto: Boolean = b.getBoolean(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false)
     }
 
     internal val isSnapshotMode: Boolean get() = args.snapshotId != null
@@ -79,8 +80,9 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
         val objectType = args.objectType
         val illustArthurId = args.objectArthurId
         val snapshotId = args.snapshotId
+        val snapshotIsAuto = args.snapshotIsAuto
         if (snapshotId != null) {
-            SnapshotCommentsFeedSource(snapshotId, illustArthurId)
+            SnapshotCommentsFeedSource(snapshotId, illustArthurId, snapshotIsAuto)
         } else {
             pixivFeedSource(
                 initialFetch = {

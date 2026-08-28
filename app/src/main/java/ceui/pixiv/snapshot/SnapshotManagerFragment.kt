@@ -338,5 +338,6 @@ class SnapshotManagerFragment : Fragment() {
 
     companion object {
         const val ARG_SNAPSHOT_ID = "snapshotId"
+        const val ARG_SNAPSHOT_IS_AUTO = "snapshotIsAuto"
     }
 }
