@@ -103,11 +103,6 @@ object ComicReaderSettings {
         get() = store.decodeFloat(K_DBLTAP_ZOOM, 2.5f).coerceIn(1.5f, 5f)
         set(value) { store.encode(K_DBLTAP_ZOOM, value.coerceIn(1.5f, 5f)); emit(ChangeEvent.Image) }
 
-    /** 漫画通常右翻页（RTL）；Pixiv 多页插画一般 LTR。提供一键切换。 */
-    fun toggleDirection() {
-        pageDirection = if (pageDirection == PageDirection.LTR) PageDirection.RTL else PageDirection.LTR
-    }
-
     fun snapshot(): Snapshot = Snapshot(
         readingMode = readingMode,
         pageDirection = pageDirection,

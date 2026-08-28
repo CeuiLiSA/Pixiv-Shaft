@@ -1549,7 +1549,6 @@
     <string name="comic_reader_back">Назад</string>
     <string name="comic_reader_more">Ещё</string>
     <string name="comic_reader_pages">Страницы</string>
-    <string name="comic_reader_direction">Направление</string>
     <string name="comic_reader_settings">Настройки чтения</string>
     <string name="comic_reader_theme">Фон</string>
     <string name="comic_reader_retry">Перезагрузить</string>

@@ -107,7 +107,6 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         pagedViewport.applyDirection()
         pagedViewport.applyTransformer()
         pagedViewport.applyOffscreenLimit()
-        applyDirectionIcon()
 
         binding.comicBottomBar.comicSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(s: SeekBar?, p: Int, fromUser: Boolean) {
@@ -135,7 +134,6 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
                     pagedViewport.applyTransformer()
                     pagedViewport.applyDirection()
                     pagedViewport.applyOffscreenLimit()
-                    applyDirectionIcon()
                     val state = viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded ?: return@observe
                     val resume = if (::current.isInitialized) current.currentIndex()
                                  else viewModel.currentPage.value ?: 0
@@ -184,19 +182,6 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         indicatorColorProvider = ::comicIndicatorColor,
     )
 
-    private fun isRtl(): Boolean =
-        ComicReaderSettings.pageDirection == ComicReaderSettings.PageDirection.RTL
-
-    private fun currentDirectionLabelRes(): Int =
-        if (isRtl()) R.string.comic_reader_dir_rtl else R.string.comic_reader_dir_ltr
-
-    /** 底栏翻页方向按钮的图标跟随当前方向(LTR → 向右箭头,RTL → 向左箭头),让状态一眼可见。 */
-    private fun applyDirectionIcon() {
-        binding.comicBottomBar.comicBtnDirection.setImageResource(
-            if (isRtl()) R.drawable.ic_reader_dir_rtl else R.drawable.ic_reader_dir_ltr
-        )
-    }
-
     // 加载/进度环随黑白底着色:黑底用白环(与插画详情页一致),白底用深灰,避免白环不可见。
     private fun comicIndicatorColor(): Int =
         if (ComicReaderSettings.backgroundDark) Color.WHITE else 0xFF333333.toInt()
@@ -217,17 +202,9 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
     }
 
     private fun wireBottomBar() {
+        // 翻页方向不再放底栏(#1042 的误触源头),只在「阅读设置」面板里改；
+        // 系列上一篇/下一篇挪进顶栏 ⋮ 菜单(showOverflowMenu)。
         binding.comicBottomBar.comicBtnPages.setOnClickListener { showThumbsSheet() }
-        binding.comicBottomBar.comicBtnDirection.setOnClickListener {
-            ComicReaderSettings.toggleDirection()
-            pagedViewport.applyDirection()
-            applyDirectionIcon()
-            // issue #1042:这颗按钮原先和「系列」同图标、按下无任何反馈,误触一下方向就静默翻了,
-            // 用户体感是「设置不记忆、重开又变回去」。切换时明确告知当前方向。
-            Toaster.showShort(
-                getString(R.string.comic_reader_direction) + ": " + getString(currentDirectionLabelRes())
-            )
-        }
         binding.comicBottomBar.comicBtnSettings.setOnClickListener {
             ComicReaderSettingsSheet().show(childFragmentManager, ComicReaderSettingsSheet.TAG)
         }
@@ -235,12 +212,6 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
             ComicReaderSettings.backgroundDark = !ComicReaderSettings.backgroundDark
         }
         binding.comicBottomBar.comicBtnSeriesList.setOnClickListener { showSeriesListSheet() }
-        binding.comicBottomBar.comicBtnPrevSeries.setOnClickListener {
-            viewModel.jumpSeriesNeighbor(forward = false)
-        }
-        binding.comicBottomBar.comicBtnNextSeries.setOnClickListener {
-            viewModel.jumpSeriesNeighbor(forward = true)
-        }
     }
 
     /**
@@ -403,10 +374,20 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         }.execute()
     }
 
+    /** 顶栏 ⋮：书签 / 评论，有系列时再挂 系列上一篇/下一篇。分享不重复挂——顶栏已有常驻分享按钮。 */
     private fun showOverflowMenu() {
+        val illust = (viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded)?.illust
+        val hasSeries = illust?.series?.let { it.id != 0L } == true
         showV3Menu {
             item(getString(R.string.comic_reader_bookmarks_button), R.drawable.ic_baseline_bookmark_24) { showBookmarksSheet() }
-            item(getString(R.string.string_110), R.drawable.ic_share_black_24dp) { shareCurrentIllust() }
+            if (hasSeries) {
+                item(getString(R.string.comic_reader_prev_series), R.drawable.ic_baseline_arrow_back_ios_24) {
+                    viewModel.jumpSeriesNeighbor(forward = false)
+                }
+                item(getString(R.string.comic_reader_next_series), R.drawable.ic_chevron_right_black_24dp) {
+                    viewModel.jumpSeriesNeighbor(forward = true)
+                }
+            }
             item(getString(R.string.view_comments), R.drawable.ic_baseline_comment_24) {
                 val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
                     putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")

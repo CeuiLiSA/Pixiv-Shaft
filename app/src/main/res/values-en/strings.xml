@@ -1549,7 +1549,6 @@
     <string name="comic_reader_back">Back</string>
     <string name="comic_reader_more">More</string>
     <string name="comic_reader_pages">Pages</string>
-    <string name="comic_reader_direction">Direction</string>
     <string name="comic_reader_settings">Reader settings</string>
     <string name="comic_reader_theme">Background</string>
     <string name="comic_reader_retry">Reload</string>

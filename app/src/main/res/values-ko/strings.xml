@@ -1549,7 +1549,6 @@
     <string name="comic_reader_back">뒤로</string>
     <string name="comic_reader_more">더보기</string>
     <string name="comic_reader_pages">페이지 목록</string>
-    <string name="comic_reader_direction">페이지 방향</string>
     <string name="comic_reader_settings">뷰어 설정</string>
     <string name="comic_reader_theme">배경</string>
     <string name="comic_reader_retry">다시 불러오기</string>

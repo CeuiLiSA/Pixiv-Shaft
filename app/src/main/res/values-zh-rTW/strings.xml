@@ -1551,7 +1551,6 @@
     <string name="comic_reader_back">返回</string>
     <string name="comic_reader_more">更多</string>
     <string name="comic_reader_pages">頁面列表</string>
-    <string name="comic_reader_direction">翻頁方向</string>
     <string name="comic_reader_settings">閱讀設定</string>
     <string name="comic_reader_theme">背景</string>
     <string name="comic_reader_retry">重新載入</string>

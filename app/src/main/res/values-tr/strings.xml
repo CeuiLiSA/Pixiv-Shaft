@@ -1549,7 +1549,6 @@
     <string name="comic_reader_back">Geri</string>
     <string name="comic_reader_more">Daha fazla</string>
     <string name="comic_reader_pages">Sayfalar</string>
-    <string name="comic_reader_direction">Yön</string>
     <string name="comic_reader_settings">Okuyucu ayarları</string>
     <string name="comic_reader_theme">Arka plan</string>
     <string name="comic_reader_retry">Yeniden yükle</string>
