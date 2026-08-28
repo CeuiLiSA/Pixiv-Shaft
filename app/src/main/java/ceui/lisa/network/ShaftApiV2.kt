@@ -206,6 +206,15 @@ interface ShaftApiV2 {
         @Query("q") q: String? = null,
         /** **精确** tag 名(服务端原文,不是 translated;区分大小写)。可选值见 [discoverTags]。 */
         @Query("tag") tag: String? = null,
+        /** sfw | r18。null = 不按分级筛。 */
+        @Query("restrict") restrict: String? = null,
+        /** 创作月份 `YYYY-MM`(「新作榜」)。可选月份见 [discoverMonths]。 */
+        @Query("month") month: String? = null,
+        /**
+         * 仅 novel:short(<2 万字)| medium(2–5 万)| long(≥5 万)。illust/manga 传了由服务端
+         * 决定忽略或 400,客户端只在 type=novel 时带。
+         */
+        @Query("length") length: String? = null,
     ): MostBookmarkedResponse
 
     /** 翻页专用:直接打 server 返回的 `next_url`(绝对 URL,已带 ai/year/q/tag)。 */
@@ -222,6 +231,79 @@ interface ShaftApiV2 {
         val ai: String? = null,
         val year: String? = null,
         val tag: String? = null,
+        val restrict: String? = null,
+        val month: String? = null,
+        val length: String? = null,
+        /** 服务端衍生表回填未完时 false(榜可能不全);老服务端不回该字段 → Gson 给 false,调用方按 `!= false` 读。 */
+        val complete: Boolean? = null,
+    )
+
+    /**
+     * 「新作榜」的月份选择器数据源:有哪些月、每月多少作品(月份降序,最多 36 个月)。
+     * `month` 是 `YYYY-MM` 字符串,直接透传给 [mostBookmarked] 的 month 参数。
+     */
+    @GET("api/v1/discover/months")
+    suspend fun discoverMonths(
+        @Query("type") type: String = "illust",
+    ): MonthsResponse
+
+    data class MonthsResponse(
+        val type: String,
+        val complete: Boolean? = null,
+        // 同 YearsResponse.years:Gson 不走 Kotlin 默认值,缺字段即 null。
+        val months: List<MonthBucket>? = null,
+    )
+
+    data class MonthBucket(
+        val month: String = "",
+        val count: Int = 0,
+    )
+
+    /**
+     * 系列榜 —— 漫画 / 小说系列按「系列内作品累计 pixiv 收藏数」排。每条 item 带系列元数据
+     * + 该系列收藏最高那部作品的完整 bean(manga → Illust JSON / novel → Novel JSON),
+     * 客户端拿它出封面缩略图。翻页跟随 next_url。complete=false 表示服务端回填未完,榜可能不全。
+     */
+    @GET("api/v1/discover/series")
+    suspend fun discoverSeries(
+        /** manga | novel。 */
+        @Query("type") type: String,
+        @Query("limit") limit: Int = 30,
+        @Query("offset") offset: Int = 0,
+    ): SeriesRankResponse
+
+    /** 翻页专用:直接打 server 返回的 `next_url`(绝对 URL,已带 type)。 */
+    @GET
+    suspend fun discoverSeriesByUrl(@Url url: String): SeriesRankResponse
+
+    data class SeriesRankResponse(
+        val type: String,
+        val limit: Int,
+        val offset: Int? = null,
+        val complete: Boolean? = null,
+        val next_url: String? = null,
+        val items: List<SeriesRankItem>? = null,
+    )
+
+    data class SeriesRankItem(
+        val series_id: Long = 0,
+        val title: String? = null,
+        val work_count: Int = 0,
+        val total_bookmarks: Int = 0,
+        val user: SeriesRankUser? = null,
+        /** 收藏最高那部作品的完整 Illust / Novel JSON;收 JsonElement 是防服务端给显式 null。 */
+        val cover_bean: JsonElement? = null,
+    )
+
+    data class SeriesRankUser(
+        val id: Long = 0,
+        val name: String? = null,
+        val account: String? = null,
+        val profile_image_urls: SeriesRankUserImageUrls? = null,
+    )
+
+    data class SeriesRankUserImageUrls(
+        val medium: String? = null,
     )
 
     /**
@@ -315,6 +397,55 @@ interface ShaftApiV2 {
         val user_id: Long = 0,
         val total_bookmarks: Long = 0,
         val work_count: Int = 0,
+    )
+
+    /**
+     * 人气画师 —— 「本站用户在窗口内关注最多的画师」榜(server 端 trending_users,按加权 score 排;
+     * follow_count 是窗口内 follow 事件数)。**不带代表作**,item.meta 只有 name / account /
+     * avatar_url(server LEFT JOIN user_meta,理论上可 null,线上三档头 200 全有),所以客户端
+     * 渲染成纯画师行(头像 + 名字 + 「本周 N 人关注」),由 [ceui.pixiv.ui.recommend.TrendingArtistsFeedSource]
+     * 拼成 loxia User。
+     *
+     * - window: day | week | month;server 端每档固定 5000 行
+     *
+     * 翻页同 trending:首屏 offset=0,后续走 [trendingUsersByUrl] 喂 server 的 next_url。
+     */
+    @GET("api/v1/trending/users")
+    suspend fun trendingUsers(
+        @Query("window") window: String = "week",
+        @Query("limit") limit: Int = 30,
+        @Query("offset") offset: Int = 0,
+    ): TrendingUsersResponse
+
+    /** 翻页专用:直接打 server 返回的 `next_url`(绝对 URL,已带 window/limit)。 */
+    @GET
+    suspend fun trendingUsersByUrl(@Url url: String): TrendingUsersResponse
+
+    data class TrendingUsersResponse(
+        val window: String,
+        val limit: Int,
+        val computed_at: Long,
+        val items: List<TrendingUserItem>,
+        val offset: Int? = null,
+        val total: Int? = null,
+        val next_url: String? = null,
+    )
+
+    data class TrendingUserItem(
+        val target_id: Long,
+        val follow_count: Int,
+        val unfollow_count: Int,
+        val unique_clients: Int,
+        val score: Double,
+        val computed_at: Long,
+        /** 服务端 LEFT JOIN user_meta:没人上报过该画师 payload 时为 null,客户端跳过该条。 */
+        val meta: TrendingUserMeta?,
+    )
+
+    data class TrendingUserMeta(
+        val name: String? = null,
+        val account: String? = null,
+        val avatar_url: String? = null,
     )
 
     /**

@@ -99,6 +99,12 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
             baseBind.catYearRank.setVisibility(View.GONE);
             baseBind.catTagRank.setVisibility(View.GONE);
             baseBind.catWallpaperRank.setVisibility(View.GONE);
+            baseBind.catSeriesRank.setVisibility(View.GONE);
+            baseBind.catMonthRank.setVisibility(View.GONE);
+            baseBind.catNovelLengthRank.setVisibility(View.GONE);
+            baseBind.catSfwRank.setVisibility(View.GONE);
+            baseBind.catTrendingArtists.setVisibility(View.GONE);
+            baseBind.catUgoiraRank.setVisibility(View.GONE);
             baseBind.catPixivComic.setVisibility(View.GONE);
         }
 
@@ -122,6 +128,12 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         baseBind.catYearRank.setOnClickListener(v -> openFragment("年代榜"));
         baseBind.catTagRank.setOnClickListener(v -> openFragment("标签榜"));
         baseBind.catWallpaperRank.setOnClickListener(v -> openFragment("壁纸榜"));
+        baseBind.catSeriesRank.setOnClickListener(v -> openFragment("系列榜"));
+        baseBind.catMonthRank.setOnClickListener(v -> openFragment("新作榜"));
+        baseBind.catNovelLengthRank.setOnClickListener(v -> openFragment("长篇小说榜"));
+        baseBind.catSfwRank.setOnClickListener(v -> openFragment("全年龄榜"));
+        baseBind.catTrendingArtists.setOnClickListener(v -> openFragment("人气画师"));
+        baseBind.catUgoiraRank.setOnClickListener(v -> openFragment("动图榜"));
         baseBind.catWalk.setOnClickListener(v -> openFragment("画廊"));
         baseBind.catFollowNovel.setOnClickListener(v -> openFragment("关注者的小说"));
         baseBind.catDiscovery.setOnClickListener(v -> openFragment("发现"));
@@ -149,6 +161,12 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         styleCatChip(baseBind.catYearRank, palette, R.drawable.ic_date_range_black_24dp);
         styleCatChip(baseBind.catTagRank, palette, R.drawable.ic_loyalty_black_24dp);
         styleCatChip(baseBind.catWallpaperRank, palette, R.drawable.ic_setcat_photo);
+        styleCatChip(baseBind.catSeriesRank, palette, R.drawable.ic_baseline_list_24);
+        styleCatChip(baseBind.catMonthRank, palette, R.drawable.ic_fiber_new_black_24dp);
+        styleCatChip(baseBind.catNovelLengthRank, palette, R.drawable.ic_baseline_menu_book_24);
+        styleCatChip(baseBind.catSfwRank, palette, R.drawable.ic_check_circle_black_24dp);
+        styleCatChip(baseBind.catTrendingArtists, palette, R.drawable.outline_whatshot_24);
+        styleCatChip(baseBind.catUgoiraRank, palette, R.drawable.ic_baseline_play_arrow_24);
         styleCatChip(baseBind.catWalk, palette, R.drawable.ic_collections_black_24dp);
         styleCatChip(baseBind.catFollowNovel, palette, R.drawable.ic_baseline_bookmark_24);
         styleCatChip(baseBind.catDiscovery, palette, R.drawable.ic_baseline_explore_24);

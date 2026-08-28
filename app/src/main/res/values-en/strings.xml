@@ -1978,8 +1978,42 @@
     <string name="year_rank_pick">Pick a year</string>
     <string name="wallpaper_rank">Wallpapers</string>
     <string name="wallpaper_rank_title">Wallpaper Ranking</string>
+    <string name="series_rank">Series</string>
+    <string name="series_rank_title">Series Ranking</string>
+    <string name="series_rank_meta">%1$d eps · %2$s bookmarks</string>
+    <string name="rank_incomplete_notice">Ranking is still being computed; results may be incomplete</string>
+    <string name="month_rank">New Works</string>
+    <string name="month_rank_title">New Works by Month</string>
+    <string name="month_rank_pick">Pick a month</string>
+    <string name="month_rank_load_failed">Failed to load month list</string>
+    <string name="novel_length_rank">Long Novels</string>
+    <string name="novel_length_rank_title">Novel Ranking by Length</string>
+    <string name="novel_length_long">Long (≥50k)</string>
+    <string name="novel_length_medium">Medium (20–50k)</string>
+    <string name="novel_length_short">Short (&lt;20k)</string>
+    <string name="sfw_rank">All Ages</string>
+    <string name="sfw_rank_title">All-Ages Bookmark Ranking</string>
+    <string name="ugoira_rank">Ugoira</string>
+    <string name="ugoira_rank_title">Ugoira Ranking</string>
     <string name="wallpaper_screen_phone">Phone</string>
     <string name="wallpaper_screen_desktop">Desktop</string>
+    <string name="trending_artists">Trending Artists</string>
+    <string name="trending_artists_title">Trending Artists on Shaft</string>
+    <string name="trending_window_day">Today</string>
+    <string name="trending_window_week">This Week</string>
+    <string name="trending_window_month">This Month</string>
+    <plurals name="trending_artist_followers_day">
+        <item quantity="one">%1$d new follower today</item>
+        <item quantity="other">%1$d new followers today</item>
+    </plurals>
+    <plurals name="trending_artist_followers_week">
+        <item quantity="one">%1$d new follower this week</item>
+        <item quantity="other">%1$d new followers this week</item>
+    </plurals>
+    <plurals name="trending_artist_followers_month">
+        <item quantity="one">%1$d new follower this month</item>
+        <item quantity="other">%1$d new followers this month</item>
+    </plurals>
     <string name="recent_window_live">Live</string>
     <string name="recent_window_day">Daily ranking</string>
     <string name="recent_window_week">Weekly ranking</string>

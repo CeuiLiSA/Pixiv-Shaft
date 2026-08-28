@@ -2188,8 +2188,41 @@
     <string name="year_rank_pick">选择年份</string>
     <string name="wallpaper_rank">壁纸榜</string>
     <string name="wallpaper_rank_title">壁纸收藏榜</string>
+    <!-- 系列榜 / 新作榜 / 长篇小说榜(shaft-api-v2 discover/series & most-bookmarked?month/length) -->
+    <string name="series_rank">系列榜</string>
+    <string name="series_rank_title">系列收藏榜</string>
+    <string name="series_rank_meta">%1$d 话 · 累计收藏 %2$s</string>
+    <string name="rank_incomplete_notice">榜单统计中，结果可能不完整</string>
+    <string name="month_rank">新作榜</string>
+    <string name="month_rank_title">本月新作榜</string>
+    <string name="month_rank_pick">选择月份</string>
+    <string name="month_rank_load_failed">月份列表加载失败</string>
+    <string name="novel_length_rank">长篇小说</string>
+    <string name="novel_length_rank_title">长篇小说榜</string>
+    <string name="novel_length_long">长篇（≥5 万字）</string>
+    <string name="novel_length_medium">中篇（2–5 万字）</string>
+    <string name="novel_length_short">短篇（&lt;2 万字）</string>
+    <string name="sfw_rank">全年龄榜</string>
+    <string name="sfw_rank_title">全年龄收藏榜</string>
+    <string name="ugoira_rank">动图榜</string>
+    <string name="ugoira_rank_title">动图收藏榜</string>
     <string name="wallpaper_screen_phone">手机</string>
     <string name="wallpaper_screen_desktop">桌面</string>
+    <!-- 人气画师(shaft-api-v2 trending/users:本站用户窗口内关注最多的画师) -->
+    <string name="trending_artists">人气画师</string>
+    <string name="trending_artists_title">本站人气画师</string>
+    <string name="trending_window_day">今日</string>
+    <string name="trending_window_week">本周</string>
+    <string name="trending_window_month">本月</string>
+    <plurals name="trending_artist_followers_day">
+        <item quantity="other">今日 %1$d 人关注</item>
+    </plurals>
+    <plurals name="trending_artist_followers_week">
+        <item quantity="other">本周 %1$d 人关注</item>
+    </plurals>
+    <plurals name="trending_artist_followers_month">
+        <item quantity="other">本月 %1$d 人关注</item>
+    </plurals>
     <!-- 当前最热的窗口下拉(实时流 / 实时日·周·月榜) -->
     <string name="recent_window_live">实时</string>
     <string name="recent_window_day">日榜</string>

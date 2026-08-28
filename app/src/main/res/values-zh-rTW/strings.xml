@@ -1980,8 +1980,39 @@
     <string name="year_rank_pick">選擇年份</string>
     <string name="wallpaper_rank">桌布榜</string>
     <string name="wallpaper_rank_title">桌布收藏榜</string>
+    <string name="series_rank">系列榜</string>
+    <string name="series_rank_title">系列收藏榜</string>
+    <string name="series_rank_meta">%1$d 話 · 累計收藏 %2$s</string>
+    <string name="rank_incomplete_notice">榜單統計中，結果可能不完整</string>
+    <string name="month_rank">新作榜</string>
+    <string name="month_rank_title">本月新作榜</string>
+    <string name="month_rank_pick">選擇月份</string>
+    <string name="month_rank_load_failed">月份列表載入失敗</string>
+    <string name="novel_length_rank">長篇小說</string>
+    <string name="novel_length_rank_title">長篇小說榜</string>
+    <string name="novel_length_long">長篇（≥5 萬字）</string>
+    <string name="novel_length_medium">中篇（2–5 萬字）</string>
+    <string name="novel_length_short">短篇（&lt;2 萬字）</string>
+    <string name="sfw_rank">全年齡榜</string>
+    <string name="sfw_rank_title">全年齡收藏榜</string>
+    <string name="ugoira_rank">動圖榜</string>
+    <string name="ugoira_rank_title">動圖收藏榜</string>
     <string name="wallpaper_screen_phone">手機</string>
     <string name="wallpaper_screen_desktop">桌面</string>
+    <string name="trending_artists">人氣繪師</string>
+    <string name="trending_artists_title">本站人氣繪師</string>
+    <string name="trending_window_day">今日</string>
+    <string name="trending_window_week">本週</string>
+    <string name="trending_window_month">本月</string>
+    <plurals name="trending_artist_followers_day">
+        <item quantity="other">今日 %1$d 人關注</item>
+    </plurals>
+    <plurals name="trending_artist_followers_week">
+        <item quantity="other">本週 %1$d 人關注</item>
+    </plurals>
+    <plurals name="trending_artist_followers_month">
+        <item quantity="other">本月 %1$d 人關注</item>
+    </plurals>
     <string name="recent_window_live">即時</string>
     <string name="recent_window_day">日榜</string>
     <string name="recent_window_week">週榜</string>

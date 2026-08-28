@@ -439,7 +439,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "画师均分榜":
                     return ceui.pixiv.ui.recommend.ArtistRankFeedFragment.newInstance("avg");
                 case "浏览量榜":
-                    return ceui.pixiv.ui.recommend.ViewRankFeedFragment.newInstance();
+                    return ceui.pixiv.ui.recommend.ViewRankFragment.newInstance();
                 case "pixiv漫画":
                     return new ceui.pixiv.ui.comic.ComicTopFeedFragment();
                 case "FANBOX首页":
@@ -449,17 +449,34 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             intent.getStringExtra(
                                     ceui.pixiv.ui.fanbox.FanboxPostDetailFragment.ARG_POST_ID));
                 case "收藏榜":
-                    return ceui.pixiv.ui.recommend.BookmarkRankFeedFragment.newInstance(null);
+                    return ceui.pixiv.ui.recommend.BookmarkRankFragment.newInstance(null, null);
                 case "AI榜":
                     // 同一个 Fragment,多带一个 ?ai=only(同画师榜/均分榜共用 ArtistRankFeedFragment)
-                    return ceui.pixiv.ui.recommend.BookmarkRankFeedFragment.newInstance(
-                            ceui.pixiv.ui.recommend.BookmarkRankFeedFragmentKt.AI_ONLY);
+                    return ceui.pixiv.ui.recommend.BookmarkRankFragment.newInstance(
+                            ceui.pixiv.ui.recommend.BookmarkRankFragmentKt.AI_ONLY, null);
+                case "全年龄榜":
+                    // 同一个 Fragment,多带一个 ?restrict=sfw(服务端剔除 R-18)
+                    return ceui.pixiv.ui.recommend.BookmarkRankFragment.newInstance(
+                            null, ceui.pixiv.ui.recommend.BookmarkRankFragmentKt.RESTRICT_SFW);
                 case "年代榜":
                     return ceui.pixiv.ui.recommend.YearRankFragment.newInstance();
                 case "标签榜":
                     return ceui.pixiv.ui.recommend.TagRankFragment.newInstance();
                 case "壁纸榜":
                     return ceui.pixiv.ui.recommend.WallpaperRankFragment.newInstance();
+                case "系列榜":
+                    // shaft-api-v2 discover/series:漫画 / 小说系列按累计收藏排
+                    return ceui.pixiv.ui.recommend.SeriesRankFragment.newInstance();
+                case "新作榜":
+                    // shaft-api-v2 discover/most-bookmarked?month=YYYY-MM,选月份 + 三类型 tab
+                    return ceui.pixiv.ui.recommend.MonthRankFragment.newInstance();
+                case "长篇小说榜":
+                    // shaft-api-v2 discover/most-bookmarked?type=novel&length=long|medium|short
+                    return ceui.pixiv.ui.recommend.NovelLengthRankFragment.newInstance();
+                case "人气画师":
+                    return ceui.pixiv.ui.recommend.TrendingArtistsFragment.newInstance();
+                case "动图榜":
+                    return ceui.pixiv.ui.recommend.UgoiraRankFragment.newInstance();
                 case "操作记录":
                     return new ceui.pixiv.ui.recommend.FragmentEventHistory();
                 case "批量下载Debug":

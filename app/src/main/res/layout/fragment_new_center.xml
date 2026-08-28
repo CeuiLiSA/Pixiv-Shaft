@@ -631,6 +631,115 @@
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
+                        <!-- 系列榜 / 新作榜 / 长篇小说榜:shaft-api-v2 discover/series & most-bookmarked?month/length,Lite 里 GONE -->
+                        <TextView
+                            android:id="@+id/catSeriesRank"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/series_rank"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/catMonthRank"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/month_rank"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/catNovelLengthRank"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/novel_length_rank"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/catSfwRank"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/sfw_rank"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/catTrendingArtists"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/trending_artists"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/catUgoiraRank"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/ugoira_rank"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
                         <TextView
                             android:id="@+id/catFollowNovel"
                             android:layout_width="wrap_content"
