@@ -126,11 +126,14 @@ public class WitPopup(private val context: Context) {
                 )
             }
             clipToOutline = true
+            // 固定宽度(listPopup 那条路)时内容必须 MATCH_PARENT:否则容器虽按 fixedWidthPx
+            // EXACTLY 测量,ListView 自己却是 WRAP_CONTENT → 只拿到 AT_MOST,每一行缩成文字宽度,
+            // 按压 ripple 也只盖住文字、盖不满整行。自适应宽度时仍用 WRAP_CONTENT 让内容定宽。
+            val contentWidth = if (fixedWidthPx > 0) ViewGroup.LayoutParams.MATCH_PARENT
+                               else ViewGroup.LayoutParams.WRAP_CONTENT
             addView(
                 content,
-                FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
-                )
+                FrameLayout.LayoutParams(contentWidth, ViewGroup.LayoutParams.WRAP_CONTENT)
             )
         }
 
