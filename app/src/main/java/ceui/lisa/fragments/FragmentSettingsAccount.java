@@ -86,7 +86,8 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
                             dialog.dismiss();
                         }
                     })
-                    .addAction(R.string.login_out, new WitDialogAction.ActionListener() {
+                    // NEGATIVE → wit_danger:退出登录是破坏性操作,按钮同样标红(日夜各一版,不跟主题色)。
+                    .addAction(0, R.string.login_out, WitDialogAction.ACTION_PROP_NEGATIVE, new WitDialogAction.ActionListener() {
                         @Override
                         public void onClick(WitDialog dialog, int index) {
                             Common.logOut(mContext, builder.isChecked());

@@ -178,12 +178,16 @@
 
                     <LinearLayout style="@style/M3SetTexts">
 
+                        <!-- 破坏性操作:标题与箭头走 v3_danger(wit_danger,日夜各一版),不跟主题色。 -->
                         <TextView
                             style="@style/M3SetTitle"
-                            android:text="@string/login_out" />
+                            android:text="@string/login_out"
+                            android:textColor="@color/v3_danger" />
                     </LinearLayout>
 
-                    <TextView style="@style/M3SetArrow" />
+                    <TextView
+                        style="@style/M3SetArrow"
+                        android:drawableTint="@color/v3_danger" />
 
                 </RelativeLayout>
 
