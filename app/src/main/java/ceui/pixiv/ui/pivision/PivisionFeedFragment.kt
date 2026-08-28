@@ -76,7 +76,7 @@ class PivisionFeedFragment : FeedFragment() {
             card.background = palette.settingsCardBg(28f * dp, (1 * dp).toInt())
             card.clipToOutline = true
             cell.binding.category.background = palette.pillPrimary(999f * dp)
-            cell.binding.category.setTextColor(palette.floatingPillContent)
+            cell.binding.category.setTextColor(palette.onPrimary)
             cell.binding.publishDate.setTextColor(palette.textSecondary)
             cell.binding.cta.setTextColor(palette.textAccent)
             card.setOnClick { openArticle(cell.item.article) }

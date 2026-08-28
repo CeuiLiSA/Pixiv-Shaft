@@ -78,7 +78,7 @@ class RequestPlanFeedFragment : FeedFragment() {
             card.background = palette.settingsCardBg(28f * dp, (1 * dp).toInt())
             card.clipToOutline = true
             cell.binding.price.background = palette.pillPrimary(999f * dp)
-            cell.binding.price.setTextColor(palette.floatingPillContent)
+            cell.binding.price.setTextColor(palette.onPrimary)
             cell.binding.badgeAdult.background = GradientDrawable().apply {
                 cornerRadius = 999f * dp
                 setColor(ADULT_BADGE_COLOR)

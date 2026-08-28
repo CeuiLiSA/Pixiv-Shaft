@@ -264,6 +264,19 @@ public class V3Palette @JvmOverloads public constructor(
     @ColorInt public val floatingPillContent: Int = if (isDark) 0xFFFFFFFF.toInt()
     else ensureDarkEnough(primary, 0.40f)
 
+    /**
+     * [pillPrimary] **实底主题色**胶囊上的文字 / 图标色。底就是 [primary] 本身,日夜同一个值:
+     * 十档预设里绝大多数够深,用纯白;浅主题(盛夏黄 #fee65e 那类,感知亮度 ≥ 0.5)白字会隐形,
+     * 压深主题色。
+     *
+     * ⚠️ 和 [floatingPillContent] 不是一回事:那个是给 [cardFill] 浅底悬浮胶囊用的,浅色模式
+     * 故意压成深字 —— 放到实底主题色上就是「紫底黑字」(pixivision 分类 chip / 系列榜名次徽标
+     * 曾这么错用过)。凡是 [pillPrimary] / [applyFollowBtn] 的底,前景一律用这个。
+     */
+    @ColorInt public val onPrimary: Int =
+        if (ColorUtils.calculateLuminance(primary) < 0.5) 0xFFFFFFFF.toInt()
+        else ensureDarkEnough(primary, 0.25f)
+
     // ── convenience ─────────────────────────────────────────────────
 
     /** Apply accent-colored follow button drawable */

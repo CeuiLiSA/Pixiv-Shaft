@@ -101,7 +101,7 @@ class PivisionRailFeedFragment : FeedFragment(R.layout.fragment_pivision_rail_fe
             card.background = palette.settingsCardBg(20f * dp, (1 * dp).toInt())
             card.clipToOutline = true
             cell.binding.category.background = palette.pillPrimary(999f * dp)
-            cell.binding.category.setTextColor(palette.floatingPillContent)
+            cell.binding.category.setTextColor(palette.onPrimary)
             card.setOnClick { openArticle(cell.item.article) }
         },
         recycle = { cell -> cell.binding.cover.clearGlideOnRecycle() },

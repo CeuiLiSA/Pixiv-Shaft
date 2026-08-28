@@ -40,7 +40,7 @@ object SeriesCard {
         val palette = V3Palette.from(b.root.context)
         val d = b.root.resources.displayMetrics.density
         b.rankBadge.background = palette.pillPrimary(999f * d)
-        b.rankBadge.setTextColor(palette.floatingPillContent)
+        b.rankBadge.setTextColor(palette.onPrimary)
         palette.applyUnfollowBtn(b.action) // V3 secondary pill:描边 + 次级文字色
         b.subtitle.tag = palette.textAccent
     }
