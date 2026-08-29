@@ -383,7 +383,7 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
         // view 按新 ratio 重新量高、再 centerCrop 一次 → 二次裁切放大,图糊且只剩一小块
         //（Glide 不会因为 relayout 重发请求）。同 recy_illust_stagger 那段注释治的病。
         val columnWidth = historyColumnWidthPx
-        Glide.with(context).load(resolveIllustThumbnailUrl(illust, columnWidth))
+        Glide.with(context).load(resolveIllustThumbnailUrl(illust))
             .override(columnWidth, (columnWidth * ratio).toInt().coerceAtLeast(1))
             .placeholder(R.color.v3_surface_2).into(binding.illustImage)
         binding.title.text = illust.title
