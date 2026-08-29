@@ -5,7 +5,6 @@ import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.activities.UActivity
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.databinding.CellHistoryIllustV3Binding
@@ -24,6 +23,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.common.resolveIllustThumbnailUrl
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
 import ceui.pixiv.utils.clearGlideOnRecycle
 import com.bumptech.glide.Glide
@@ -382,9 +382,8 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
         // 的高**。scaleType=centerCrop 让 into(ImageView) 按「请求尺寸的宽高比」解码裁图,随后
         // view 按新 ratio 重新量高、再 centerCrop 一次 → 二次裁切放大,图糊且只剩一小块
         //（Glide 不会因为 relayout 重发请求）。同 recy_illust_stagger 那段注释治的病。
-        val columnWidth = (context.resources.displayMetrics.widthPixels /
-                Shaft.sSettings.lineCount).coerceAtLeast(1)
-        Glide.with(context).load(GlideUtil.getMediumImg(illust))
+        val columnWidth = historyColumnWidthPx
+        Glide.with(context).load(resolveIllustThumbnailUrl(illust))
             .override(columnWidth, (columnWidth * ratio).toInt().coerceAtLeast(1))
             .placeholder(R.color.v3_surface_2).into(binding.illustImage)
         binding.title.text = illust.title

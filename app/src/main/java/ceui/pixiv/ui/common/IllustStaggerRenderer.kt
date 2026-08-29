@@ -22,6 +22,7 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.ui.recommend.bindTrendingScore
 import ceui.pixiv.utils.playLikePressHaptic
 import ceui.pixiv.utils.setOnClick
+import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import jp.wasabeef.glide.transformations.BlurTransformation
@@ -30,6 +31,16 @@ import java.util.Locale
 /** 瀑布流卡片高度钳制（对齐 legacy IAdapter）：高 = 宽的 0.6~2.0 倍。 */
 private const val MIN_HEIGHT_RATIO = 0.6f
 private const val MAX_HEIGHT_RATIO = 2.0f
+
+/**
+ * 极端高宽比阈值：比例超过该值视为“离谱”，缩略图改走 square_medium。
+ *
+ * 只看比例、不看原图宽：pixiv 的 medium / large 是按 540x540 / 600x1200 的盒子等比缩进去的，
+ * 缩略图实际宽 = 540/比例（medium）或 1200/比例（large），**与原图宽无关** —— 一张
+ * 3000x13000 的图 medium 也只有 125px 宽。比例 > 4 时缩略图宽必 ≤ 135 / 300px，
+ * 无论列宽多少都会被 centerCrop 横向拉糊，所以不需要再拿原图宽和列宽比一次。
+ */
+private const val EXTREME_HEIGHT_RATIO = 4f
 
 /** 屏蔽态的 Glide 模糊参数（对齐画师头图 [ceui.pixiv.ui.muted] 那套 25/3，够糊到认不出内容）。 */
 private const val SPOILER_BLUR_RADIUS = 25
@@ -265,6 +276,27 @@ private fun heightRatioOf(bean: Illust): Float {
 }
 
 /**
+ * 插画缩略图取图策略（瀑布流 / 浏览记录等共用）：
+ * - 比例离谱（见 [EXTREME_HEIGHT_RATIO]）→ 改用 square_medium（缺失时回退 medium）；
+ * - 否则正常走 large/medium，centerCrop 裁剪由调用方原有逻辑处理。
+ */
+internal fun resolveIllustThumbnailUrl(bean: Illust): GlideUrl? {
+    if (bean.width > 0 && bean.height > 0 && shouldUseSquareThumb(bean)) {
+        return GlideUtil.getUrl(
+            bean.image_urls?.square_medium?.takeIf { it.isNotBlank() }
+                ?: bean.image_urls?.medium
+        )
+    }
+    if (Shaft.sSettings.isShowLargeThumbnailImage) {
+        return GlideUtil.getLargeImage(bean)
+    }
+    return GlideUtil.getMediumImg(bean)
+}
+
+private fun shouldUseSquareThumb(bean: Illust): Boolean =
+    bean.height.toFloat() / bean.width > EXTREME_HEIGHT_RATIO
+
+/**
  * 卡片图加载。全量绑定和「屏蔽态切换」的局部重绑共用同一条路径，两边参数必须逐字一致 ——
  * 否则局部重绑刚换的图会被下一次全量绑定按不同的 key 再拉一遍（白闪一次）。
  */
@@ -273,17 +305,15 @@ private fun IllustFeedFragment.loadIllustImage(
     bean: Illust,
     spoilered: Boolean,
 ) {
-    val imgUrl = if (Shaft.sSettings.isShowLargeThumbnailImage()) {
-        GlideUtil.getLargeImage(bean)
-    } else {
-        GlideUtil.getMediumImg(bean)
-    }
+    // 取图策略统一走共享解析：large（开关开） / medium（常规） / square_medium（极端高宽比兜底）。
+    val columnWidth = illustColumnWidthPx
+    val displayRatio = heightRatioOf(bean)
+    val imgUrl = resolveIllustThumbnailUrl(bean)
     // 请求尺寸必须显式 override：into(ImageView) 对 centerCrop 会在解码阶段按「请求尺寸」
     // 的宽高比裁位图，而默认请求尺寸取复用卡片上一次布局残留的旧宽高（旧方向的列宽 ×
     // 上一张图的比例），横竖屏来回切后图会被裁得只剩一小块还发糊，且 view 重新量高后
     // Glide 不会重发请求。override 成当前列宽 × 钳制后比例，请求宽高比恒等于展示宽高比。
-    val columnWidth = illustColumnWidthPx
-    val columnHeight = (columnWidth * heightRatioOf(bean)).toInt()
+    val columnHeight = (columnWidth * displayRatio).toInt()
     // GlideUrlChild 每次构造都带当前时间戳请求头（PixivHeaders.x-client-time/hash），
     // 而 GlideUrl.equals() 要求 headers 也相等才算「同一请求」——这里的 headers 又是个
     // 没重写 equals 的 lambda，Glide 自己的活跃资源缓存永远认不出「这张图已经在显示」。
