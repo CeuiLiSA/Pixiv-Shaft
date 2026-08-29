@@ -31,7 +31,6 @@ import ceui.pixiv.feeds.updateItems
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -62,6 +61,17 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
     internal val historyTimeFormat by lazy {
         SimpleDateFormat(getString(R.string.string_350), Locale.getDefault())
     }
+
+    /**
+     * 插画历史当前列宽（px），与标准瀑布流 IllustFeedFragment.illustColumnWidthPx 同源：
+     * 取 LayoutManager 实时宽度，首帧兜底屏宽，按用户「每行几列」设置分列。
+     */
+    internal val historyColumnWidthPx: Int
+        get() {
+            val listWidth = feedBinding.feedListView.layoutManager?.width?.takeIf { it > 0 }
+                ?: resources.displayMetrics.widthPixels
+            return (listWidth / Shaft.sSettings.lineCount).coerceAtLeast(1)
+        }
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> =
         listOf(historyIllustRenderer(), historyNovelRenderer())
