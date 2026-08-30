@@ -47,6 +47,24 @@ class TemplateValidatorTest {
         assertTrue(r.warnings.isEmpty())
     }
 
+    @Test fun `backup bucket accepts json extension`() {
+        val r = TemplateValidator.validate("ShaftBackups/Shaft-Backup_{created:yyyyMMdd_HHmmss}.json", Bucket.Backup)
+        assertTrue(r.ok)
+        assertTrue(r.errors.isEmpty())
+    }
+
+    @Test fun `backup bucket rejects non json extension`() {
+        val r = TemplateValidator.validate("ShaftBackups/Shaft-Backup_{created:yyyyMMdd_HHmmss}.zip", Bucket.Backup)
+        assertFalse(r.ok)
+        assertTrue(r.errors.any { it.message.contains(".json") })
+    }
+
+    @Test fun `backup bucket rejects ext variable`() {
+        val r = TemplateValidator.validate("ShaftBackups/Shaft-Backup_{created:yyyyMMdd_HHmmss}.{ext}", Bucket.Backup)
+        assertFalse(r.ok)
+        assertTrue(r.errors.any { it.message.contains("{ext}") })
+    }
+
     /**
      * 复现 bug 的入口：`[?p<100:…]` 能编译（被当成名为 `p<100` 的 flag），
      * 旧校验只编译不渲染 → 放行保存 → 下载时崩。现在保存校验也渲染样本，

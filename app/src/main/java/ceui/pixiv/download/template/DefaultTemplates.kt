@@ -36,7 +36,7 @@ object DefaultTemplates {
 
     // Caption txt for illustration/manga: separate ShaftDescriptions/ folder.
     const val CAPTION = "ShaftDescriptions/{title}_{id}.txt"
-    const val BACKUP  = "Shaft/Backups/{created:yyyyMMdd_HHmmss}.zip"
+    const val BACKUP  = "ShaftBackups/Shaft-Backup_{created:yyyyMMdd_HHmmss}.json"
     const val LOG     = "Shaft/Logs/{created:yyyyMMdd_HHmmss}.txt"
     const val TEMP    = "ugoira/{id}/{title} {id}.{ext}"
 

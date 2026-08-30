@@ -68,7 +68,7 @@ object TemplateSamples {
         Bucket.Novel       to "txt",
         Bucket.NovelSeries to "txt",
         Bucket.Caption     to "txt",
-        Bucket.Backup      to "zip",
+        Bucket.Backup      to "json",
         Bucket.Log         to "txt",
         Bucket.TempCache   to "bin",
     )

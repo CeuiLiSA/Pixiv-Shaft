@@ -51,14 +51,11 @@ object OutPut {
     }
 
     @JvmStatic
-    fun outPutBackupFile(context: Context, from: File, fileName: String) {
+    fun outPutBackupFile(context: Context, from: File) {
         // 备份文件本身就是 JSON（Shaft-Backup.json），之前写成 application/zip 会让
         // MediaStore 按 MIME 给文件补一个 .zip 后缀，看起来像压缩包实则不是（#949）。
-        writeRaw(Bucket.Backup, "ShaftBackups/$fileName", "application/json", from, R.string.save_backup_failed)
-    }
-
-    private fun writeRaw(bucket: Bucket, rawPath: String, mime: String, from: File, failedMsgId: Int) {
-        writeRawPath(bucket, RelativePath.parse(rawPath), mime, from, failedMsgId)
+        // 目录和文件名都按用户在「下载路径」里给 Backup 桶配的模板走，不再硬编码。
+        writeRawPath(Bucket.Backup, DownloadItems.backupDestination(), "application/json", from, R.string.save_backup_failed)
     }
 
     private fun writeRawPath(bucket: Bucket, path: RelativePath, mime: String, from: File, failedMsgId: Int) {

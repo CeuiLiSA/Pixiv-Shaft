@@ -268,8 +268,7 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Uri initialUri = Uri.parse("content://com.android.externalstorage.documents/document/primary:"
-                    + "Download%2fShaftBackups%2f" + MUTE_RECORDS_FILE_NAME);
+            Uri initialUri = Uri.parse("content://com.android.externalstorage.documents/document/primary:Download");
             intent.putExtra(EXTRA_INITIAL_URI, initialUri);
         }
         startActivityForResult(intent, REQUEST_CODE_IMPORT_MUTE);

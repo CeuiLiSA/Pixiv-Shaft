@@ -52,10 +52,17 @@ data class DownloadConfig(
             Bucket.Caption -> DefaultTemplates.CAPTION
             else -> defaults.template
         }
+        // 备份文件是 JSON 快照，冲突时不能覆盖也不能跳过：强制重命名，避免旧备份被静默替换。
+        // SAF 下由系统 provider 自动追加 (1)；MediaStore 下由 Downloads.nextFreePath 生成 (1)。
+        val overwrite = if (bucket == Bucket.Backup) {
+            OverwritePolicy.Rename
+        } else {
+            override?.overwrite ?: inherited?.overwrite ?: defaults.overwrite
+        }
         return ResolvedBucket(
             template  = override?.template  ?: fallbackTemplate,
             storage   = override?.storage   ?: inherited?.storage   ?: defaults.storage,
-            overwrite = override?.overwrite ?: inherited?.overwrite ?: defaults.overwrite,
+            overwrite = overwrite,
         )
     }
 
