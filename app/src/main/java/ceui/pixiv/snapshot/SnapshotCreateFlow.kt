@@ -49,6 +49,8 @@ private fun Fragment.startSnapshotGeneration(
     includeOriginal: Boolean,
 ) {
     val dialog = showSnapshotLoadingDialog(getString(R.string.snapshot_preparing))
+    // generate 是秒级 IO；结束后 fragment 可能已 detach（lifecycle 未销毁、lifecycleScope 未取消），
+    // 结果文案一律用 appContext 取，别再经 Fragment.getString → requireContext()。
     val appContext = requireContext().applicationContext
     lifecycleScope.launch {
         try {
@@ -66,14 +68,14 @@ private fun Fragment.startSnapshotGeneration(
                 },
             )
             dialog.dismiss()
-            Common.showToast(getString(R.string.snapshot_generate_success))
+            Common.showToast(appContext.getString(R.string.snapshot_generate_success))
         } catch (ce: CancellationException) {
             dialog.dismiss()
             throw ce
         } catch (e: Exception) {
             Timber.w(e, "[Snapshot] generate failed, illustId=%d", illust.id)
             dialog.dismiss()
-            Common.showToast(getString(R.string.snapshot_generate_failed, e.message ?: ""))
+            Common.showToast(appContext.getString(R.string.snapshot_generate_failed, e.message ?: ""))
         }
     }
 }

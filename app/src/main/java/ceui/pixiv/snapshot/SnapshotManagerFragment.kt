@@ -56,10 +56,10 @@ class SnapshotManagerFragment : Fragment() {
             lifecycleScope.launch {
                 try {
                     withContext(Dispatchers.IO) { SnapshotRepository.export(appContext, id, uri) }
-                    Common.showToast(getString(R.string.snapshot_export_success))
+                    Common.showToast(appContext.getString(R.string.snapshot_export_success))
                 } catch (e: Exception) {
                     Timber.w(e, "[Snapshot] export failed, id=%s", id)
-                    Common.showToast(getString(R.string.snapshot_export_failed, e.message ?: ""))
+                    Common.showToast(appContext.getString(R.string.snapshot_export_failed, e.message ?: ""))
                 }
             }
         }
@@ -287,10 +287,10 @@ class SnapshotManagerFragment : Fragment() {
                 withContext(Dispatchers.IO) {
                     items.forEach { SnapshotRepository.exportToDirectory(appContext, it.manifest.snapshotId, uri) }
                 }
-                Common.showToast(getString(R.string.snapshot_export_success))
+                Common.showToast(appContext.getString(R.string.snapshot_export_success))
                 exitSelectionMode()
             } catch (e: Exception) {
-                Common.showToast(getString(R.string.snapshot_export_failed, e.message ?: ""))
+                Common.showToast(appContext.getString(R.string.snapshot_export_failed, e.message ?: ""))
             } finally {
                 if (dialog.isShowing) dialog.dismiss()
             }
@@ -320,7 +320,7 @@ class SnapshotManagerFragment : Fragment() {
             } finally {
                 if (dialog.isShowing) dialog.dismiss()
             }
-            Common.showToast(getString(R.string.snapshot_import_multi_result, success, failed))
+            Common.showToast(appContext.getString(R.string.snapshot_import_multi_result, success, failed))
             // 无论导入成功或失败，都重建双列列表并回顶，确保列表与磁盘状态一致、新卡排序正确。
             reloadAllTabs(resetScroll = true)
         }
