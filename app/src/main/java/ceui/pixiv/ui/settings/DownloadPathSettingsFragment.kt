@@ -607,12 +607,8 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
         cell.findViewById<TextView>(R.id.bucket_storage).text = storageLabel(resolved.storage)
 
         val policyView = cell.findViewById<TextView>(R.id.bucket_policy)
-        // 备份桶固定使用「已存在则重命名」（复用现有文案），与 DownloadConfig.resolve 的强制策略保持一致。
-        policyView.text = if (bucket == Bucket.Backup) {
-            getString(R.string.download_path_policy_rename)
-        } else {
-            policyLabel(resolved.overwrite)
-        }
+        // 备份桶的「已存在则重命名」由 DownloadConfig.resolve 强制，这里只照实显示，不再写第二份规则。
+        policyView.text = policyLabel(resolved.overwrite)
 
         val templateEdit = cell.findViewById<EditText>(R.id.bucket_template)
         val previewView = cell.findViewById<TextView>(R.id.bucket_preview)
