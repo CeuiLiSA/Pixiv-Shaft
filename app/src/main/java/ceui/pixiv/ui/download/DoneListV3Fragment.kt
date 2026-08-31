@@ -259,7 +259,7 @@ class DoneListV3Fragment : Fragment() {
             openArtwork(ugoira)
             return
         }
-        // 取该 illust 全部 page 的 filePath（按 fileName 自然顺序）
+        // 取该 illust 全部 page 的 filePath（按页码顺序，见 DownloadPageOrder）
         val paths: ArrayList<String> = ArrayList(group.allFilePaths)
         val intent = Intent(requireContext(), ImageDetailActivity::class.java)
         intent.putExtra("illust", paths as Serializable)
@@ -399,10 +399,10 @@ private fun groupByIllust(rows: List<DownloadEntity>): List<DownloadGroup> {
         }
         buckets.getOrPut(key) { mutableListOf() }.add(row)
     }
-    // 每组按 fileName 自然排序（p0, p1, p2…），代表 entity 取 downloadTime 最大的；
-    // Gson.fromJson 在这里（IO 线程）就解掉，绑卡时不再 parse
+    // 每组按页码排序（page 列优先、fileName 自然序兜底，见 DownloadPageOrder），
+    // 代表 entity 取 downloadTime 最大的；Gson.fromJson 在这里（IO 线程）就解掉，绑卡时不再 parse
     val groups = buckets.entries.map { (k, list) ->
-        val sortedByName = list.sortedBy { it.fileName.orEmpty() }
+        val sortedByName = list.sortedWith(DownloadPageOrder)
         val latest = list.maxByOrNull { it.downloadTime } ?: list.first()
         val isNovel = latest.fileName?.contains(Params.NOVEL_KEY) == true
         val parsedIllust = if (isNovel) null else runCatching {
