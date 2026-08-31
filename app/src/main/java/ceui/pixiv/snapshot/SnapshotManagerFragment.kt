@@ -25,7 +25,7 @@ import timber.log.Timber
 /**
  * 离线快照管理页：仿照 FragmentHistoryTabs，使用 viewpager_with_tablayout。
  * Three tabs: 全部 | 插画 | 漫画，每个 tab 是双列瀑布流卡片。
- * 支持多选批量导出到 SAF 文件夹。
+ * 支持多选批量导出到 SAF 文件夹，也支持多选批量删除（含自动快照）。
  */
 class SnapshotManagerFragment : Fragment() {
 
@@ -164,7 +164,8 @@ class SnapshotManagerFragment : Fragment() {
     private fun enterSelectionMode(purpose: SelectionPurpose) {
         if (inSelectionMode) return
         val tab = currentSnapshotTab() ?: return
-        if (!tab.hasItems()) {
+        val includeAuto = purpose == SelectionPurpose.DELETE
+        if (!tab.hasItems(includeAuto)) {
             Common.showToast(getString(R.string.snapshot_empty))
             return
         }
@@ -172,7 +173,7 @@ class SnapshotManagerFragment : Fragment() {
         selectionPurpose = purpose
         activeSelectionTab = tab
         selectionBackCallback.isEnabled = true
-        tab.enterSelectionMode()
+        tab.enterSelectionMode(includeAuto)
         tab.onSelectionCountChanged = { refreshSelectionToolbar() }
         applySelectionToolbar()
     }
@@ -229,7 +230,7 @@ class SnapshotManagerFragment : Fragment() {
 
     private fun confirmDeleteSelected() {
         val tab = activeSelectionTab ?: return
-        val items = tab.selectedSnapshots()
+        val items = tab.selectedCards()
         if (items.isEmpty()) return
         WitDialog.MessageDialogBuilder(requireContext())
             .setTitle(R.string.snapshot_batch_delete)
@@ -243,7 +244,13 @@ class SnapshotManagerFragment : Fragment() {
                 val appContext = requireContext().applicationContext
                 lifecycleScope.launch {
                     withContext(Dispatchers.IO) {
-                        items.forEach { SnapshotRepository.delete(appContext, it.manifest.snapshotId) }
+                        items.forEach {
+                            if (it.isAuto) {
+                                AutoSnapshotRepository.deleteAuto(appContext, it.snapshotId)
+                            } else {
+                                SnapshotRepository.delete(appContext, it.snapshotId)
+                            }
+                        }
                     }
                     exitSelectionMode()
                     reloadAllTabs(resetScroll = true)

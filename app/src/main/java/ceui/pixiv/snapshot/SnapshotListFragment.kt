@@ -39,7 +39,8 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  * filter == null 表示“全部”。
  *
  * 列表由正式快照（SnapshotSummary）和自动快照（AutoSnapshotSummary）合并而成：
- * 自动快照带“自动”标记，长按弹窗可转正/删除，多选模式下不显示勾选框。
+ * 自动快照带“自动”标记，长按弹窗可转正/删除；批量导出多选态不显示自动快照勾选框，
+ * 批量删除多选态允许勾选并批量删除自动快照。
  */
 class SnapshotListFragment : Fragment() {
 
@@ -107,13 +108,16 @@ class SnapshotListFragment : Fragment() {
     }
 
     /**
-     * [resetScroll] 只在导入/删除这类**结构性变更**后传 true。
+     * [resetScroll] 只在导入/批量删除这类**结构性变更**后传 true。
+     * 单卡删除只移除一张卡，保留当前滚动位置即可，与浏览历史页行为一致。
+     * [reflow] 用于单卡删除后让 StaggeredGrid 重新分配 span，避免最后一张停在右列；
+     * 不会清空列表，也不会回顶。
      *
      * 「先清空再提交 + 回顶」是为了让双列瀑布流按新顺序重新布局(否则新卡会被 Diff 塞进
      * 右列/旧列错位)——那是新卡进来时才需要付的代价。onResume 的例行刷新也这么干的话,
      * 每次从详情页返回列表都要整个闪一下并跳回顶部,快照一多就再也找不回刚才看到哪了。
      */
-    fun reload(resetScroll: Boolean = false) {
+    fun reload(resetScroll: Boolean = false, reflow: Boolean = false) {
         val appContext = requireContext().applicationContext
         lifecycleScope.launch {
             val all = try {
@@ -131,16 +135,26 @@ class SnapshotListFragment : Fragment() {
                 return@launch
             }
             if (_binding == null) return@launch
+            val snapshotList = binding.snapshotList
             if (resetScroll) adapter.submitList(null)
-            adapter.submitList(all)
+            if (reflow) {
+                adapter.submitList(all, Runnable {
+                    if (_binding?.snapshotList === snapshotList) {
+                        (snapshotList.layoutManager as? StaggeredGridLayoutManager)
+                            ?.invalidateSpanAssignments()
+                    }
+                })
+            } else {
+                adapter.submitList(all)
+            }
             binding.emptyHint.isVisible = all.isEmpty()
-            if (resetScroll) binding.snapshotList.scrollToPosition(0)
+            if (resetScroll) snapshotList.scrollToPosition(0)
         }
     }
 
-    fun enterSelectionMode() {
-        if (!hasItems()) return
-        adapter.setSelectionMode(true)
+    fun enterSelectionMode(includeAuto: Boolean = false) {
+        if (!hasItems(includeAuto)) return
+        adapter.setSelectionMode(true, includeAuto)
         onSelectionCountChanged?.invoke(0)
     }
 
@@ -149,17 +163,24 @@ class SnapshotListFragment : Fragment() {
         onSelectionCountChanged?.invoke(0)
     }
 
-    /** 批量操作只包含正式快照；自动快照不可多选、不可批量导出/删除。 */
+    /** 批量导出只包含正式快照；自动快照不可导出，只参与批量删除。 */
     fun selectedSnapshots(): List<SnapshotSummary> =
         adapter.currentList
             .filterIsInstance<FormalSnapshotCard>()
             .filter { it.snapshotId in adapter.selectedIds }
             .map { it.summary }
 
+    /** 批量删除可同时包含正式快照与自动快照。 */
+    fun selectedCards(): List<SnapshotCard> =
+        adapter.currentList.filter { it.snapshotId in adapter.selectedIds }
+
     fun selectedCount(): Int = adapter.selectedIds.size
 
-    /** 批量选择只对正式快照有效；自动快照隐匿勾选框，不参与批量操作。 */
-    fun hasItems(): Boolean = adapter.currentList.any { !it.isAuto }
+    /**
+     * 批量导出只对正式快照有效；批量删除允许自动快照，因此 [includeAuto] 时自动快照也算可选项。
+     */
+    fun hasItems(includeAuto: Boolean = false): Boolean =
+        adapter.currentList.any { includeAuto || !it.isAuto }
 
     fun isAllSelected(): Boolean = adapter.isAllSelected()
 
@@ -281,7 +302,7 @@ class SnapshotListFragment : Fragment() {
                         }
                     }
                     if (ok) Common.showToast(getString(R.string.snapshot_delete_success)) else Common.showToast(getString(R.string.snapshot_delete_failed))
-                    reload(resetScroll = true)
+                    reload(reflow = true)
                 }
             }
             .show()
@@ -310,18 +331,22 @@ private class SnapshotAdapter(
     var selectionMode: Boolean = false
         private set
 
+    var selectionIncludesAuto: Boolean = false
+        private set
+
     val selectedIds = linkedSetOf<String>()
     var onSelectionToggle: ((SnapshotCard) -> Unit)? = null
 
-    fun setSelectionMode(enabled: Boolean) {
-        if (selectionMode == enabled) return
+    fun setSelectionMode(enabled: Boolean, includeAuto: Boolean = false) {
+        if (selectionMode == enabled && selectionIncludesAuto == includeAuto) return
         selectionMode = enabled
+        selectionIncludesAuto = if (enabled) includeAuto else false
         if (!enabled) selectedIds.clear()
         notifyDataSetChanged()
     }
 
     fun toggleSelection(card: SnapshotCard) {
-        if (!selectionMode || card.isAuto) return
+        if (!selectionMode || !isSelectable(card)) return
         if (!selectedIds.add(card.snapshotId)) {
             selectedIds.remove(card.snapshotId)
         }
@@ -332,7 +357,7 @@ private class SnapshotAdapter(
     fun selectAll() {
         if (!selectionMode) return
         selectedIds.clear()
-        selectedIds.addAll(currentList.filter { !it.isAuto }.map { it.snapshotId })
+        selectedIds.addAll(currentList.filter(::isSelectable).map { it.snapshotId })
         notifyDataSetChanged()
     }
 
@@ -341,8 +366,11 @@ private class SnapshotAdapter(
         notifyDataSetChanged()
     }
 
+    private fun isSelectable(card: SnapshotCard): Boolean =
+        !card.isAuto || selectionIncludesAuto
+
     fun isAllSelected(): Boolean {
-        val selectable = currentList.count { !it.isAuto }
+        val selectable = currentList.count(::isSelectable)
         return selectable > 0 && selectedIds.size == selectable
     }
 
@@ -360,6 +388,7 @@ private class SnapshotAdapter(
             onDelete = onDelete,
             onLongPress = onLongPress,
             selectionMode = selectionMode,
+            selectable = isSelectable(card),
             selected = card.snapshotId in selectedIds,
             onToggleSelection = { toggleSelection(card) },
         )
@@ -391,6 +420,7 @@ private class SnapshotViewHolder(
         onDelete: (SnapshotCard) -> Unit,
         onLongPress: (SnapshotCard) -> Unit,
         selectionMode: Boolean,
+        selectable: Boolean,
         selected: Boolean,
         onToggleSelection: () -> Unit,
     ) {
@@ -426,11 +456,11 @@ private class SnapshotViewHolder(
         binding.badgeRow.isVisible = !selectionMode
 
         HistorySelectBadge.bindSelection(binding.selectCheck, binding.deleteButton, selectionMode, selected)
-        // 自动快照在多选态隐匿勾选框，且不可被点选进入批量操作。
-        binding.selectCheck.isVisible = selectionMode && !card.isAuto
+        // 自动快照仅在批量导出多选态隐匿勾选框；批量删除多选态可勾选并批量删除。
+        binding.selectCheck.isVisible = selectionMode && selectable
 
         if (selectionMode) {
-            if (card.isAuto) {
+            if (!selectable) {
                 binding.root.setOnClickListener(null)
                 binding.root.setOnLongClickListener(null)
                 binding.deleteButton.setOnClickListener(null)
