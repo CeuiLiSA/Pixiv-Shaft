@@ -90,26 +90,8 @@ object DownloadsRegistry {
      */
     @JvmStatic
     fun applyGlobalStorage(choice: StorageChoice) {
-        val imagesStorage: StorageChoice
-        val downloadsStorage: StorageChoice
-        when (choice) {
-            is StorageChoice.Saf -> {
-                imagesStorage = choice
-                downloadsStorage = choice
-            }
-            is StorageChoice.MediaStore -> {
-                imagesStorage = choice
-                downloadsStorage = when (choice.collection) {
-                    StorageChoice.MediaStore.Collection.Images ->
-                        StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
-                    StorageChoice.MediaStore.Collection.Downloads -> choice
-                }
-            }
-            StorageChoice.AppCache -> {
-                imagesStorage = choice
-                downloadsStorage = choice
-            }
-        }
+        val imagesStorage: StorageChoice = choice
+        val downloadsStorage: StorageChoice = choice.forDownloadsBucket()
         store.update { cfg ->
             // Preserve per-bucket templates but replace all storage choices
             val newDefaults = cfg.defaults.copy(storage = imagesStorage)

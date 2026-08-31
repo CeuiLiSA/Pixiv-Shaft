@@ -62,9 +62,17 @@ data class DownloadConfig(
         } else {
             override?.overwrite ?: inherited?.overwrite ?: defaults.overwrite
         }
+        // 存储位置兜底：defaults.storage 是「图片」的位置（设置页只让用户选一次）。非图片桶
+        // 没有 perBucket 覆盖时（「全部恢复默认」会清空 perBucket）不能照抄 —— 相册卷拒收
+        // 非 image/*，备份 / 小说会静默写失败（真机复现：MIME type application/json cannot
+        // be inserted into content://media/external/images/media）。
+        val fallbackStorage = when (bucket) {
+            Bucket.Illust, Bucket.Ugoira -> defaults.storage
+            else -> defaults.storage.forDownloadsBucket()
+        }
         return ResolvedBucket(
             template  = override?.template  ?: fallbackTemplate,
-            storage   = override?.storage   ?: inherited?.storage   ?: defaults.storage,
+            storage   = override?.storage   ?: inherited?.storage   ?: fallbackStorage,
             overwrite = overwrite,
         )
     }

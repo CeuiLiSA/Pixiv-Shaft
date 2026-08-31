@@ -298,12 +298,21 @@ public class IllustDownload {
         check(activity, () -> BACKUP_EXECUTOR.execute(() -> {
             try {
                 File textFile = LegacyFile.textFile(activity, displayName);
+                boolean written = false;
                 try {
                     fileWriter.doSomething(textFile);
                     Common.showLog("downloadBackupFile displayName " + textFile.getName());
-                    OutPut.outPutBackupFile(activity, textFile, displayName);
+                    written = OutPut.outPutBackupFile(activity, textFile, displayName);
                 } catch (Exception e) {
+                    // 序列化 / 写临时文件本身失败:OutPut 没机会报错,这里补一条
                     e.printStackTrace();
+                    Common.showToast(Shaft.getContext().getString(R.string.save_backup_failed,
+                            e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+                }
+                if (!written) {
+                    // 没写进用户存储就不回调 targetCallback —— 否则调用方会 toast「备份成功」
+                    // (真机复现:全部恢复默认后备份落到相册卷被 MediaStore 拒掉,却仍提示成功)
+                    return;
                 }
                 Uri fileURI = FileProvider.getUriForFile(activity,
                         activity.getApplicationContext().getPackageName() + ".provider", textFile);

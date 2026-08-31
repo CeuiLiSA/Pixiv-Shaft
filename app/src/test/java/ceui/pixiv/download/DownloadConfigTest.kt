@@ -85,7 +85,8 @@ class DownloadConfigTest {
         val r = cfg.resolve(Bucket.Novel)
         assertEquals("novels/{title}.txt", r.template)
         assertEquals(OverwritePolicy.Skip, r.overwrite)
-        assertEquals(defaults.storage, r.storage)   // inherited
+        // storage 没覆盖 → 走兜底；小说是文本桶，defaults 的相册卷会被派生成 Downloads
+        assertEquals(StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads), r.storage)
     }
 
     @Test fun `withBucket replaces override immutably`() {
@@ -118,6 +119,36 @@ class DownloadConfigTest {
 
     @Test fun `default overwrite is Replace`() {
         assertEquals(OverwritePolicy.Replace, defaults.overwrite)
+    }
+
+    // ── 非图片桶的存储兜底 ──
+
+    @Test fun `text buckets without override never fall to the Images collection`() {
+        // 「全部恢复默认」会清空 perBucket；defaults.storage 是相册卷时，备份 / 小说 / 日志
+        // 不能照抄 —— MediaStore Images 拒收非 image/*，真机上备份会静默写失败。
+        val cfg = DownloadConfig(defaults = defaults) // defaults.storage = Images
+        val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+        for (bucket in listOf(Bucket.Novel, Bucket.NovelSeries, Bucket.Caption, Bucket.Backup, Bucket.Log)) {
+            assertEquals("bucket $bucket", downloads, cfg.resolve(bucket).storage)
+        }
+        assertEquals(defaults.storage, cfg.resolve(Bucket.Illust).storage)
+        assertEquals(defaults.storage, cfg.resolve(Bucket.Ugoira).storage)
+    }
+
+    @Test fun `text bucket storage fallback keeps non-Images defaults as-is`() {
+        // JVM 单测里 Uri.parse 不可用，用 AppCache 覆盖「非 MediaStore 原样返回」那一支
+        val cache = StorageChoice.AppCache
+        assertEquals(cache, DownloadConfig(defaults = defaults.copy(storage = cache)).resolve(Bucket.Backup).storage)
+        val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+        assertEquals(downloads, DownloadConfig(defaults = defaults.copy(storage = downloads)).resolve(Bucket.Novel).storage)
+    }
+
+    @Test fun `explicit storage override still wins for text buckets`() {
+        val cfg = DownloadConfig(
+            defaults = defaults,
+            perBucket = mapOf(Bucket.Novel to BucketConfig(storage = defaults.storage)),
+        )
+        assertEquals(defaults.storage, cfg.resolve(Bucket.Novel).storage)
     }
 
     @Test fun `backup bucket without override resolves to its own default template`() {

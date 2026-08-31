@@ -50,27 +50,31 @@ object OutPut {
         }
     }
 
+    /** @return 是否真的写进了用户存储；失败时已 toast 具体错误，调用方不要再报成功。 */
     @JvmStatic
-    fun outPutBackupFile(context: Context, from: File, fileName: String) {
+    fun outPutBackupFile(context: Context, from: File, fileName: String): Boolean {
         // 备份文件本身就是 JSON（Shaft-Backup.json），之前写成 application/zip 会让
         // MediaStore 按 MIME 给文件补一个 .zip 后缀，看起来像压缩包实则不是（#949）。
         // 目录和文件名都按用户在「下载路径」里给 Backup 桶配的模板走，不再硬编码；
         // [fileName] 只作为模板的 {title}（区分设置备份 / 浏览历史 / 屏蔽记录 / 词典）。
-        writeRawPath(Bucket.Backup, DownloadItems.backupDestination(fileName), "application/json", from, R.string.save_backup_failed)
+        return writeRawPath(Bucket.Backup, DownloadItems.backupDestination(fileName), "application/json", from, R.string.save_backup_failed)
     }
 
-    private fun writeRawPath(bucket: Bucket, path: RelativePath, mime: String, from: File, failedMsgId: Int) {
-        try {
-            val handle = DownloadsRegistry.downloads.openRaw(bucket, path, mime) ?: return
+    private fun writeRawPath(bucket: Bucket, path: RelativePath, mime: String, from: File, failedMsgId: Int): Boolean {
+        return try {
+            // openRaw 返回 null 只有 Skip 策略下「已存在」这一种情况，对调用方来说文件确实在。
+            val handle = DownloadsRegistry.downloads.openRaw(bucket, path, mime) ?: return true
             BufferedInputStream(FileInputStream(from)).use { bis ->
                 BufferedOutputStream(handle.stream).use { bos ->
                     bis.copyTo(bos)
                 }
             }
             handle.onFinish()
+            true
         } catch (t: Throwable) {
             Timber.e(t, "OutPut.writeRaw failed (bucket=$bucket path=${path.joinTo()})")
             Common.showToast(string(failedMsgId, errMsg(t)))
+            false
         }
     }
 

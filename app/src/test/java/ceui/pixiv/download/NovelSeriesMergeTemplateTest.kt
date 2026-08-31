@@ -131,15 +131,18 @@ class NovelSeriesMergeTemplateTest {
             defaults = BucketDefaults(template = "Illust/{id}.{ext}", storage = images),
         )
         val exempt = setOf(Bucket.NovelSeries, Bucket.Caption, Bucket.Backup, Bucket.TempCache)
+        val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
         for (bucket in Bucket.entries - exempt) {
             val resolved = cfg.resolve(bucket)
             assertEquals("bucket $bucket template", "Illust/{id}.{ext}", resolved.template)
-            assertEquals("bucket $bucket storage", images, resolved.storage)
+            // 存储兜底：图片桶照抄 defaults；文本桶（Novel / Log）不能落到相册卷，派生到 Downloads。
+            val expectedStorage = if (bucket == Bucket.Illust || bucket == Bucket.Ugoira) images else downloads
+            assertEquals("bucket $bucket storage", expectedStorage, resolved.storage)
             assertEquals("bucket $bucket overwrite", cfg.defaults.overwrite, resolved.overwrite)
         }
         val backup = cfg.resolve(Bucket.Backup)
         assertEquals(DefaultTemplates.BACKUP, backup.template)
-        assertEquals(images, backup.storage)
+        assertEquals(downloads, backup.storage)
         assertEquals(OverwritePolicy.Rename, backup.overwrite)
     }
 
