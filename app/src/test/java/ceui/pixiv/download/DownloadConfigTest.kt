@@ -8,6 +8,7 @@ import ceui.pixiv.download.config.DownloadConfigJson
 import ceui.pixiv.download.config.OverwritePolicy
 import ceui.pixiv.download.config.StorageChoice
 import ceui.pixiv.download.model.Bucket
+import ceui.pixiv.download.template.DefaultTemplates
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -35,6 +36,32 @@ class DownloadConfigTest {
         assertEquals(setOf(Bucket.Novel), cfg.perBucket.keys)
         // 反序列化出的配置要能安全走完 copy/mapValues 一类的全量遍历。
         cfg.copy(perBucket = cfg.perBucket.mapValues { (_, bc) -> bc })
+    }
+
+    @Test fun `fromJson replaces invalid backup template with json default`() {
+        val json = """
+            {"version":1,
+             "defaults":{"template":"d/{id}.{ext}",
+                         "storage":{"kind":"media_store","collection":"Images"},
+                         "overwrite":"Replace"},
+             "perBucket":{
+                "Backup":{"template":"ShaftBackups/{created:yyyyMMdd_HHmmss}.zip"}}}
+        """.trimIndent()
+        val cfg = DownloadConfigJson.fromJson(json)
+        assertEquals(DefaultTemplates.BACKUP, cfg.resolve(Bucket.Backup).template)
+    }
+
+    @Test fun `fromJson replaces backup template containing ext with json default`() {
+        val json = """
+            {"version":1,
+             "defaults":{"template":"d/{id}.{ext}",
+                         "storage":{"kind":"media_store","collection":"Images"},
+                         "overwrite":"Replace"},
+             "perBucket":{
+                "Backup":{"template":"ShaftBackups/{created:yyyyMMdd_HHmmss}.{ext}"}}}
+        """.trimIndent()
+        val cfg = DownloadConfigJson.fromJson(json)
+        assertEquals(DefaultTemplates.BACKUP, cfg.resolve(Bucket.Backup).template)
     }
 
     @Test fun `resolve falls back to defaults when no override`() {
@@ -91,6 +118,19 @@ class DownloadConfigTest {
 
     @Test fun `default overwrite is Replace`() {
         assertEquals(OverwritePolicy.Replace, defaults.overwrite)
+    }
+
+    @Test fun `backup bucket without override resolves to its own default template`() {
+        val cfg = DownloadConfig(defaults = defaults)
+        assertEquals(DefaultTemplates.BACKUP, cfg.resolve(Bucket.Backup).template)
+    }
+
+    @Test fun `backup bucket always resolves to Rename overwrite policy`() {
+        val cfg = DownloadConfig(
+            defaults = defaults.copy(overwrite = OverwritePolicy.Replace),
+            perBucket = mapOf(Bucket.Backup to BucketConfig(overwrite = OverwritePolicy.Skip)),
+        )
+        assertEquals(OverwritePolicy.Rename, cfg.resolve(Bucket.Backup).overwrite)
     }
 
     // ── Global StorageChoice via applyGlobalStorage logic ──

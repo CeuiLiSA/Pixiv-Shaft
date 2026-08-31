@@ -83,7 +83,22 @@ object TemplateValidator {
     }
 
     private fun applyBucketRules(source: String, bucket: Bucket, issues: MutableList<Issue>) {
-        val needsExtension = bucket != Bucket.Novel && bucket != Bucket.Backup && bucket != Bucket.Log
+        if (bucket == Bucket.Backup) {
+            if (source.contains("{ext}")) {
+                issues += Issue(
+                    Severity.Error,
+                    "Backup template must not contain {ext} — backup files are always .json",
+                )
+            }
+            if (!source.endsWith(".json")) {
+                issues += Issue(
+                    Severity.Error,
+                    "Backup template must end with .json",
+                )
+            }
+            return
+        }
+        val needsExtension = bucket != Bucket.Novel && bucket != Bucket.Log
         if (needsExtension && !source.contains("{ext}") && !source.matches(Regex(".*\\.[A-Za-z0-9]+$"))) {
             issues += Issue(
                 Severity.Warning,

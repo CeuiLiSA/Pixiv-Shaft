@@ -21,6 +21,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
@@ -304,10 +305,8 @@ class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "*/*"
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val initialUri = Uri.parse(
-                    "content://com.android.externalstorage.documents/document/primary:" +
-                        "Download%2fShaftBackups%2f" + SynonymDictBackup.FILE_NAME,
-                )
+                val initialUri =
+                    "content://com.android.externalstorage.documents/document/primary:Download".toUri()
                 putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri)
             }
         }

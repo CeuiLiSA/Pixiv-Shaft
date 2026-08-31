@@ -301,7 +301,7 @@ public class IllustDownload {
                 try {
                     fileWriter.doSomething(textFile);
                     Common.showLog("downloadBackupFile displayName " + textFile.getName());
-                    OutPut.outPutBackupFile(activity, textFile, textFile.getName());
+                    OutPut.outPutBackupFile(activity, textFile, displayName);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

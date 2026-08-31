@@ -326,6 +326,35 @@ object DownloadItems {
     }
 
     /**
+     * 备份导出落盘路径：完整使用 [Bucket.Backup] 模板渲染出的目录 + 文件名，
+     * 不再用调用方的临时文件名覆盖。备份文件永远是 JSON，因此渲染时固定 ext=json。
+     *
+     * [fileName] 是调用方的备份名（`Shaft-Backup.json` / `Shaft-BrowseHistory.json` /
+     * `Shaft-MuteRecords.json` / `Shaft-SynonymDict.json`），去掉后缀后作为 `{title}`
+     * 喂给模板 —— 四种导出走同一个桶，文件名里必须还能看出来是哪一种。
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun backupDestination(
+        fileName: String,
+        config: DownloadConfig = DownloadsRegistry.store.loadOrFallback(),
+    ): RelativePath {
+        val resolved = config.resolve(Bucket.Backup)
+        return FsSanitizer.clean(
+            SafeTemplateRender.render(
+                resolved.template, Bucket.Backup, backupMeta(fileName), "json", config.pageNumbering,
+            ),
+        )
+    }
+
+    private fun backupMeta(fileName: String): ItemMeta = ItemMeta(
+        id = 0L,
+        title = fileName.substringBeforeLast('.'),
+        author = Author(0L, ""),
+        createdAt = Instant.now(),
+    )
+
+    /**
      * 合并下载的兜底：模板里把后缀写死成 `.txt`（或干脆不写后缀）时，导出 EPUB /
      * PDF 会得到一个打不开的假文件。只在结尾是**已知导出后缀**时替换、没有后缀时
      * 追加——不能无脑按最后一个点切，系列名里带点（`Vol.1 合集`）会被腰斩。

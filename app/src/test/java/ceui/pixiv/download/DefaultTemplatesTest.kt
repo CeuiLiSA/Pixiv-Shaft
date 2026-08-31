@@ -32,7 +32,7 @@ class DefaultTemplatesTest {
                 Bucket.Illust, Bucket.TempCache -> "jpg"
                 Bucket.Ugoira -> "gif"
                 Bucket.Novel, Bucket.NovelSeries, Bucket.Caption, Bucket.Log -> "txt"
-                Bucket.Backup -> "zip"
+                Bucket.Backup -> "json"
             }
             val rendered = compiled.render(META, ext)
             val cleaned = FsSanitizer.clean(rendered)
@@ -48,6 +48,11 @@ class DefaultTemplatesTest {
 
         val both = t.render(META.copy(flags = setOf(Flag.R18, Flag.AI)), "jpg").joinTo()
         assertEquals("flags do not change the legacy default path", plain, both)
+    }
+
+    @Test fun `backup default template uses ShaftBackups and json filename`() {
+        assertTrue(DefaultTemplates.BACKUP.startsWith("ShaftBackups/{title}_"))
+        assertTrue(DefaultTemplates.BACKUP.endsWith(".json"))
     }
 
     @Test fun `illust default appends one based page number only for multi-page`() {

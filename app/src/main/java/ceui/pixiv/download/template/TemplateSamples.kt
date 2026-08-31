@@ -62,13 +62,21 @@ object TemplateSamples {
         flags = setOf(Flag.Animated),
     )
 
+    /** 备份桶：`{title}` 是备份类型名，不是作品标题（见 DownloadItems.backupDestination）。 */
+    val BACKUP_SAMPLE = ItemMeta(
+        id = 0L,
+        title = "Shaft-Backup",
+        author = Author(0L, ""),
+        createdAt = CREATED,
+    )
+
     private val DEFAULT_EXT: Map<Bucket, String> = mapOf(
         Bucket.Illust      to "jpg",
         Bucket.Ugoira      to "gif",
         Bucket.Novel       to "txt",
         Bucket.NovelSeries to "txt",
         Bucket.Caption     to "txt",
-        Bucket.Backup      to "zip",
+        Bucket.Backup      to "json",
         Bucket.Log         to "txt",
         Bucket.TempCache   to "bin",
     )
@@ -77,6 +85,7 @@ object TemplateSamples {
         Bucket.Novel -> NOVEL_SAMPLE
         Bucket.NovelSeries -> NOVEL_SERIES_SAMPLE
         Bucket.Ugoira -> UGOIRA_SAMPLE
+        Bucket.Backup -> BACKUP_SAMPLE
         else -> ILLUST_SAMPLE
     }
 

@@ -13,6 +13,7 @@ import android.widget.EditText
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.core.view.MenuItemCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
@@ -356,8 +357,9 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
     }
 
     /**
-     * 导出全部本地浏览历史(插画/漫画/小说/用户)到 Download/ShaftBackups/Shaft-BrowseHistory.json。
-     * 读库在 IO,落盘复用 [IllustDownload.downloadBackupFile](走 MediaStore + 分享同设置页备份)。
+     * 导出全部本地浏览历史(插画/漫画/小说/用户)到 Backup 桶模板目录（默认 Download/ShaftBackups，
+     * 文件名由 Backup 桶模板决定）。读库在 IO,落盘复用 [IllustDownload.downloadBackupFile]
+     * (走 MediaStore + 分享同设置页备份)。
      */
     private fun exportHistory() {
         val act = activity as? BaseActivity<*> ?: return
@@ -391,10 +393,8 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "*/*"
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val initialUri = Uri.parse(
-                    "content://com.android.externalstorage.documents/document/primary:" +
-                        "Download%2fShaftBackups%2f" + BROWSE_HISTORY_FILE_NAME,
-                )
+                val initialUri =
+                    "content://com.android.externalstorage.documents/document/primary:Download".toUri()
                 putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri)
             }
         }
