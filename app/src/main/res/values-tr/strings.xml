@@ -1219,6 +1219,8 @@
     <string name="setting_illust_mix_discover">Keşfet</string>
     <string name="setting_illust_mix_related">İlgili</string>
     <string name="action_copy">Kopyala</string>
+    <string name="copy_work_id">Çalışma kimliğini kopyala</string>
+    <string name="copy_work_title">Çalışma başlığını kopyala</string>
     <string name="action_select_all">Tümünü seç</string>
     <string name="action_highlight">Vurgula</string>
     <string name="action_note">Not</string>
