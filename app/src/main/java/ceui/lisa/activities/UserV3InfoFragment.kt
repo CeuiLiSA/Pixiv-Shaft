@@ -263,8 +263,9 @@ class UserV3InfoFragment : Fragment() {
 
         if (!TextUtils.isEmpty(profile.gender)) {
             val genderText = when (profile.gender) {
-                "male" -> "Male"
-                "female" -> "Female"
+                "male", "1" -> getString(R.string.male)
+                "female", "2" -> getString(R.string.female)
+                "0" -> getString(R.string.unknown_gender)
                 else -> profile.gender
             }
             chips.add(Triple("Gender", genderText, false))
