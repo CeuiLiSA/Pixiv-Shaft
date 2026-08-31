@@ -20,4 +20,14 @@
         android:textColor="?android:attr/textColorSecondary"
         android:textSize="13sp"
         android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/feed_footer_paused"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/feed_append_paused_tap_to_continue"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="13sp"
+        android:visibility="gone" />
 </FrameLayout>

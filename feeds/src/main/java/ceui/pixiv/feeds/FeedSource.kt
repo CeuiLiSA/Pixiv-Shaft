@@ -11,6 +11,53 @@ data class FeedPage<Cursor : Any>(
 )
 
 /**
+ * 自动翻页的节奏与预算。
+ *
+ * 触底预取是零间隔的：一页只剩一两条可展示（其余被 R-18 / 屏蔽等本地过滤掉）时，那一两条
+ * 一绑定就落在预取区、立刻再翻一页——线上遥测里一次搜索 48 秒翻 89 页、一直翻到 pixiv 的
+ * 5000 条 offset 上限，全是这个形态，没有一个是人在看。两条闸门把它压回人的节奏：
+ *
+ * - [minPageIntervalMs]：相邻两次 [FeedViewModel.loadMore] 网络翻页之间的最小间隔（含空页
+ *   追载的每一跳），以上一页返回时刻起算。等待期间 footer 照常转圈，预取信号不会丢。
+ *   首屏 / 下拉刷新整条链路不受限，刷新后的第一次翻页也不受限——那是用户的动作，
+ *   而且刷新自带的空页追载有 [FeedViewModel] 的跳数硬上限，跑不飞，节流它只会让重过滤
+ *   用户的首屏多白等。
+ * - [maxAutoPages]：**连着翻**的页数预算。跑飞和人的区别不在翻了多少页，而在页与页之间有
+ *   没有停下来看：线上人类重度翻页 12–20 s/页，跑飞 ≤ 2.4 s/页。所以两页之间隔了
+ *   [burstIdleResetMs] 以上就算「看过了」，预算归零——自己账号的收藏、关注动态翻多深都碰
+ *   不到它；薄页跑飞（节流后 1 s 一页）30 页后停下，footer 变成「点击加载更多」，用户点一下
+ *   再给一份预算（[FeedViewModel.continueAppend]）。
+ *
+ * 默认值 [Default] 全框架生效。个别数据源（本地库、无网络代价的列表）可覆写
+ * [FeedSource.pagingPolicy] 放宽到 [Unlimited]。
+ */
+data class FeedPagingPolicy(
+    val maxAutoPages: Int = DEFAULT_MAX_AUTO_PAGES,
+    val minPageIntervalMs: Long = DEFAULT_MIN_PAGE_INTERVAL_MS,
+    val burstIdleResetMs: Long = DEFAULT_BURST_IDLE_RESET_MS,
+) {
+    init {
+        require(maxAutoPages >= 1) { "maxAutoPages 至少为 1（无上限用 Unlimited）：$maxAutoPages" }
+        require(minPageIntervalMs >= 0) { "minPageIntervalMs 不能为负：$minPageIntervalMs" }
+        require(burstIdleResetMs >= 0) { "burstIdleResetMs 不能为负：$burstIdleResetMs" }
+    }
+
+    companion object {
+        const val DEFAULT_MAX_AUTO_PAGES: Int = 30
+        const val DEFAULT_MIN_PAGE_INTERVAL_MS: Long = 1_000L
+        const val DEFAULT_BURST_IDLE_RESET_MS: Long = 5_000L
+
+        val Default: FeedPagingPolicy = FeedPagingPolicy()
+
+        /** 不节流、不设预算：只给没有网络代价的数据源用。 */
+        val Unlimited: FeedPagingPolicy = FeedPagingPolicy(
+            maxAutoPages = Int.MAX_VALUE,
+            minPageIntervalMs = 0L,
+        )
+    }
+}
+
+/**
  * 数据源契约：一个必做的 suspend [load]，外加一个可选的本地优先能力 [loadFromCache]。
  *
  * - `cursor == null` 表示加载第一页（首屏 / 刷新都会走这里）；否则加载游标指向的下一页。
@@ -56,4 +103,12 @@ fun interface FeedSource<Cursor : Any> {
      * 抛出来会经 viewModelScope 直奔线程默认处理器崩掉进程；要读磁盘请改用 [loadFromCache]。
      */
     fun refreshAfterCacheHit(): Boolean = true
+
+    /**
+     * 自动翻页的节奏与预算，默认 [FeedPagingPolicy.Default]（全框架统一的闸门）。
+     *
+     * 每次 [FeedViewModel.refresh] / [FeedViewModel.loadMore] 现读。与 [refreshAfterCacheHit]
+     * 同一契约：必须是廉价的纯内存判断，**不要碰 IO、不要抛**。
+     */
+    fun pagingPolicy(): FeedPagingPolicy = FeedPagingPolicy.Default
 }

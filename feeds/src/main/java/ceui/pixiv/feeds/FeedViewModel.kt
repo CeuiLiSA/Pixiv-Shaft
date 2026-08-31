@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +24,10 @@ import java.util.WeakHashMap
  * - refresh 永远赢：会取消进行中的任何加载；
  * - loadMore 单飞（single-flight）：Loading 中重入直接忽略；
  * - append 出错后不再被滚动自动触发，只能由 [retryAppend]（用户点击）恢复，避免错误风暴；
- * - 追加页按身份去重，服务端翻页窗口漂移不会产生重复条目破坏 DiffUtil。
+ * - 追加页按身份去重，服务端翻页窗口漂移不会产生重复条目破坏 DiffUtil；
+ * - [loadMore] 的网络翻页按 [FeedPagingPolicy] 节流 + 记预算：相邻两页至少隔
+ *   [FeedPagingPolicy.minPageIntervalMs]，连着翻满 [FeedPagingPolicy.maxAutoPages] 页
+ *   就停手等用户点「继续」（[continueAppend]）；刷新链路不受这两条约束。
  */
 class FeedViewModel<Cursor : Any>(
     private val source: FeedSource<Cursor>,
@@ -31,6 +35,8 @@ class FeedViewModel<Cursor : Any>(
     internal val autoLoad: Boolean = true,
     /** [feedViewModels] 记录的游标类型，用于检测同 key 复用时的类型冲突；直接构造可不传。 */
     val cursorClass: Class<Cursor>? = null,
+    /** 翻页节流用的单调毫秒时钟。默认 nanoTime（不受用户改系统时间影响）；单测注入虚拟时间。 */
+    private val clock: () -> Long = { System.nanoTime() / 1_000_000 },
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(FeedUiState())
@@ -40,6 +46,20 @@ class FeedViewModel<Cursor : Any>(
     private var refreshJob: Job? = null
     private var appendJob: Job? = null
     private var notifiedRefreshError: LoadState.Error? = null
+
+    /**
+     * 上一次 [loadMore] 网络页返回的时刻（[clock] 毫秒），null = 本代还没翻过页。
+     * 下一页至少要等到它加 [FeedPagingPolicy.minPageIntervalMs]；离它超过
+     * [FeedPagingPolicy.burstIdleResetMs] 再翻，说明用户停下来看过了，预算归零。
+     * refresh 整代提交时置 null：刷新后的第一次翻页不节流。
+     */
+    private var lastPageLoadedAt: Long? = null
+
+    /**
+     * 这一串**连着翻**的网络页数（空页追载的每一跳都算）。refresh 整代提交、
+     * [continueAppend]、以及两页之间隔够 [FeedPagingPolicy.burstIdleResetMs] 时归零。
+     */
+    private var pagesInBudget = 0
 
     /** 当前翻页游标快照，用于把分页上下文交接给外部组件（如详情页 pager 续读）。 */
     val currentCursor: Cursor?
@@ -102,6 +122,9 @@ class FeedViewModel<Cursor : Any>(
                 // 这一代快照就是终态，refresh 直接收成 Idle，下面的网络段整段跳过。
                 val stayOnCache = !source.refreshAfterCacheHit()
                 nextCursor = cached.nextCursor
+                // 快照是新的一代：预算从头来，也没有「上一页」可以据以节流
+                pagesInBudget = 0
+                lastPageLoadedAt = null
                 _uiState.update {
                     it.copy(
                         items = cached.items,
@@ -114,6 +137,7 @@ class FeedViewModel<Cursor : Any>(
                         refresh = if (stayOnCache) LoadState.Idle else LoadState.Loading,
                         append = LoadState.Idle,
                         reachedEnd = cached.nextCursor == null,
+                        appendPaused = false,
                         hasLoadedOnce = true,
                         // 停在快照上时也**照样**置 true：这一代确实来自磁盘，副作用消费方
                         //（IllustFeedPoolSync 喂 ObjectPool / 关注态）靠它门控，抹掉就会让陈旧
@@ -142,6 +166,8 @@ class FeedViewModel<Cursor : Any>(
             }
 
             try {
+                // 刷新链路整条不节流、不计预算：首屏是用户的动作，追载有 MAX_EMPTY_PAGE_HOPS
+                // 硬上限跑不飞，节流它只会让重过滤用户（#729）的首屏多白等一两秒。
                 var page = source.load(null)
                 // 新一代游标先记在局部，与 items 一起在成功时提交：中途失败（空页追载的
                 // 后续请求挂掉）不能让屏幕上的旧一代列表配上新一代游标，否则后续
@@ -157,11 +183,15 @@ class FeedViewModel<Cursor : Any>(
                 }
                 val hopCapExhausted = items.isEmpty() && emptyHops >= MAX_EMPTY_PAGE_HOPS
                 nextCursor = freshCursor
+                // 新一代：预算从头来，刷新后的第一次翻页也不必等
+                lastPageLoadedAt = null
+                pagesInBudget = 0
                 _uiState.update {
                     it.copy(
                         items = items,
                         refresh = LoadState.Idle,
                         reachedEnd = freshCursor == null || hopCapExhausted,
+                        appendPaused = false,
                         hasLoadedOnce = true,
                         itemsFromCache = false,
                         // 整代替换：新一代网络首屏与屏幕上的旧条目实例无关
@@ -194,11 +224,21 @@ class FeedViewModel<Cursor : Any>(
      * 列表不变、DiffUtil 零派发、onBind 不再发生，预取信号就断了。所以这里主动追载：
      * 只要拿到的页没有贡献新条目且还有游标，就继续取下一页（上限 [MAX_EMPTY_PAGE_HOPS]，
      * 触顶视为到底），保证一次 loadMore 结束后要么有新内容、要么确定到底。
+     *
+     * 两条闸门（[FeedPagingPolicy]）都在这里：每一次网络翻页（含追载的每一跳）之前先等够
+     * 与上一页的最小间隔——等待期间 append 已是 Loading，footer 转圈、预取信号不丢；连着
+     * 翻满一份预算就置 [FeedUiState.appendPaused] 收手，之后的滚动触发一律忽略，直到用户点
+     * footer 调 [continueAppend]。「连着」以进入本次 loadMore 时距上一页的间隔判定：隔够
+     * [FeedPagingPolicy.burstIdleResetMs] 就是用户看过了，预算归零——正常人翻多深都不会被
+     * 拦，拦的只是机器节奏。预算判定排在空页追载之前：一页只剩一两条的「薄页」和整页滤空的
+     * 页都是在烧同一份预算，不能让追载绕过它。
      */
     fun loadMore() {
         val current = _uiState.value
         if (!current.hasLoadedOnce || current.reachedEnd) return
         if (current.refresh is LoadState.Loading) return
+        // 预算用完：只认 footer 上的那一下点击（continueAppend），滚动触发一律忽略
+        if (current.appendPaused) return
         // Loading 防重入；Error 停手等用户点重试
         if (current.append !is LoadState.Idle) return
         val firstCursor = nextCursor ?: return
@@ -211,10 +251,17 @@ class FeedViewModel<Cursor : Any>(
         appendJob = viewModelScope.launch {
             _uiState.update { it.copy(append = LoadState.Loading) }
             try {
+                val policy = source.pagingPolicy()
+                // 用户停下来看过了（距上一页超过 burstIdleResetMs）：这不是一串连着翻的延续
+                val idleFor = lastPageLoadedAt?.let { clock() - it }
+                if (idleFor != null && idleFor >= policy.burstIdleResetMs) pagesInBudget = 0
                 var cursor = firstCursor
                 var emptyHops = 0
                 while (true) {
+                    awaitPageInterval(policy, lastPageLoadedAt)
                     val page = source.load(cursor)
+                    lastPageLoadedAt = clock()
+                    pagesInBudget++
                     nextCursor = page.nextCursor
                     // VM 的全部状态变更都在主线程串行发生，先读快照再算增量是安全的
                     val seen = _uiState.value.items.mapTo(HashSet()) { it.identity }
@@ -228,6 +275,11 @@ class FeedViewModel<Cursor : Any>(
                         )
                     }
                     val next = page.nextCursor
+                    if (next != null && pagesInBudget >= policy.maxAutoPages) {
+                        Timber.i("feeds: 本代已自动翻 %d 页，停下等用户点「加载更多」", pagesInBudget)
+                        _uiState.update { it.copy(appendPaused = true) }
+                        break
+                    }
                     if (fresh.isNotEmpty() || next == null) break
                     if (++emptyHops >= MAX_EMPTY_PAGE_HOPS) {
                         Timber.w("feeds: 连续 %d 页零新条目，视为到底", emptyHops)
@@ -256,7 +308,11 @@ class FeedViewModel<Cursor : Any>(
     fun adoptCursor(cursor: Cursor?) {
         appendJob?.cancel()
         nextCursor = cursor
-        _uiState.update { it.copy(append = LoadState.Idle, reachedEnd = cursor == null) }
+        // 交接来的是新的分页上下文：暂停态一并清掉，否则 cursor == null 时会同时挂着
+        // reachedEnd 和「点击加载更多」
+        _uiState.update {
+            it.copy(append = LoadState.Idle, reachedEnd = cursor == null, appendPaused = false)
+        }
     }
 
     /**
@@ -276,6 +332,7 @@ class FeedViewModel<Cursor : Any>(
                 items = next,
                 append = LoadState.Idle,
                 reachedEnd = cursor == null,
+                appendPaused = false,
                 structureVersion = if (next !== state.items) {
                     state.structureVersion + 1
                 } else {
@@ -313,6 +370,28 @@ class FeedViewModel<Cursor : Any>(
             _uiState.update { it.copy(append = LoadState.Idle) }
             loadMore()
         }
+    }
+
+    /**
+     * 自动翻页预算用完之后的手动继续（footer 上「点击加载更多」）：再给一份
+     * [FeedPagingPolicy.maxAutoPages] 的预算并立刻翻一页。不在暂停态时是 no-op。
+     * 节流照旧——预算是「翻多少页」的闸，间隔是「翻多快」的闸，两者独立。
+     */
+    fun continueAppend() {
+        if (!_uiState.value.appendPaused) return
+        pagesInBudget = 0
+        _uiState.update { it.copy(appendPaused = false) }
+        loadMore()
+    }
+
+    /**
+     * 等到与上一页（[since]）至少隔够 [FeedPagingPolicy.minPageIntervalMs]。
+     * 在 viewModelScope 里 delay，refresh / adoptCursor 的取消照常穿透。
+     */
+    private suspend fun awaitPageInterval(policy: FeedPagingPolicy, since: Long?) {
+        if (since == null || policy.minPageIntervalMs <= 0L) return
+        val wait = policy.minPageIntervalMs - (clock() - since)
+        if (wait > 0L) delay(wait)
     }
 
     /**

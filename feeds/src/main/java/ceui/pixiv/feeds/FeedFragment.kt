@@ -195,7 +195,10 @@ abstract class FeedFragment(
         binding.feedSkeleton.removeAllViews()
 
         val adapter = FeedAdapter(
-            renderers = onCreateRenderers() + AppendFooterRenderer { feedViewModel.retryAppend() },
+            renderers = onCreateRenderers() + AppendFooterRenderer(
+                onRetry = { feedViewModel.retryAppend() },
+                onContinue = { feedViewModel.continueAppend() },
+            ),
             onNearEnd = { if (loadMoreEnabled) feedViewModel.loadMore() },
         )
         feedAdapter = adapter
@@ -488,8 +491,11 @@ abstract class FeedFragment(
     /** adapter 现取不缓存：[rebuildList] 换过 adapter 之后，长活的 uiState collector 不能再往旧的提交。 */
     private fun render(state: FeedUiState) {
         val adapter = feedAdapter ?: return
-        val displayList = when (val append = state.append) {
-            is LoadState.Loading, is LoadState.Error -> state.items + AppendFooterItem(append)
+        val displayList = when {
+            state.append is LoadState.Loading || state.append is LoadState.Error ->
+                state.items + AppendFooterItem(state.append)
+            // 自动翻页预算用完：还有下一页，footer 变「点击加载更多」等用户点
+            state.appendPaused -> state.items + AppendFooterItem(state.append, paused = true)
             else -> state.items
         }
         // 整代替换（下拉刷新 / 冷启的缓存→网络）**且新旧两代真的会撕**时才绕开 DiffUtil，

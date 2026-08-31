@@ -56,8 +56,8 @@ ShaftFeedHost.install()
 - **AGP 8 默认 non-transitive R**：`:app` 引用搬走的资源（`@layout/fragment_feed`、
   `@color/feed_skeleton_block` 等）必须写成 `ceui.pixiv.feeds.R.xxx`，光靠资源合并
   只在 XML 里（`@layout/fragment_feed`）自动生效，Kotlin/Java 侧不行。
-- **三条文案随框架搬进了模块**（`empty_list_1` / `list_load_failed_tap_retry` /
-  `feed_error_tap_retry`，7 个 locale 全带）。`scripts/sort_locale_strings.py` 和
+- **文案随框架住在模块里**（`empty_list_1` / `list_load_failed_tap_retry` /
+  `feed_error_tap_retry` / `feed_append_paused_tap_to_continue`，7 个 locale 全带）。`scripts/sort_locale_strings.py` 和
   `scripts/find_missing_used_strings.py` 的默认路径写死在 `app/src/main/res` 下，
   跑这几条要把路径显式指到 `feeds/src/main`，两个脚本参数名不同：
   `find_missing_used_strings.py` 用 `--source-root` / `--source-values` / `--target`，
@@ -66,3 +66,30 @@ ShaftFeedHost.install()
   （`checkDependencies` 默认 false）。改了 `:feeds` 要单独跑 `./gradlew :feeds:lintDebug`。
   没给 `:app` 打开 `checkDependencies`——那会把 `:models` / `:progressmanager` /
   `:flowlayout-lib` 这些老模块的存量问题一起灌进本就是红的 app lint 里。
+
+---
+
+## 4. 翻页的节奏与预算（`FeedPagingPolicy`）
+
+触底预取是零间隔的：`FeedAdapter.onBind` 进尾部 6 条就调 `loadMore()`，页一提交
+`FeedFragment.rearmPaginationIfNearEnd` 再补一次。一页只剩一两条可展示（其余被 R-18 /
+屏蔽等本地过滤掉，过滤发生在 `FeedSource.load` 的 mapper 里，框架只看到「薄页」）时，
+那一两条一绑定就又落在预取区，于是一页接一页零间隔连翻——线上遥测里一次搜索 48 秒翻
+89 页、一直翻到 pixiv 的 5000 条 offset 上限，全是这个形态，没有一个是人在看。
+
+`FeedViewModel` 因此对**首屏之后的每一次网络翻页**（含空页追载的每一跳）过两道闸，
+参数来自 `FeedSource.pagingPolicy()`（默认 `FeedPagingPolicy.Default`，全框架统一）：
+
+- **最小间隔** `minPageIntervalMs`（默认 1 s）：相邻两次 `loadMore` 网络页至少隔这么久，
+  以上一页返回时刻起算。等待发生在 append 已置 Loading 之后（footer 转圈），预取信号不会
+  丢；下拉刷新照常取消它。刷新整条链路（首屏 + 空页追载）和刷新后的第一次翻页都不受限：
+  那是用户的动作，追载又有跳数硬上限跑不飞，节流它只会让重过滤用户（#729）首屏多白等。
+- **连翻预算** `maxAutoPages`（默认 30 页）：跑飞和人的区别不在翻了多少页，而在页与页之间
+  有没有停下来看（线上人类重度翻页 12–20 s/页，跑飞 ≤ 2.4 s/页）。两页之间隔了
+  `burstIdleResetMs`（默认 5 s）以上预算就归零，所以自己账号的收藏、关注动态翻多深都碰不到；
+  连着翻满就置 `FeedUiState.appendPaused`，之后滚动触发一律忽略，footer 变成
+  「点击加载更多」，用户点一下 `continueAppend()` 再给一份预算。预算判定排在空页追载
+  （`MAX_EMPTY_PAGE_HOPS`）之前——薄页和整页滤空烧的是同一份预算。
+
+没有网络代价的数据源（本地库）可覆写 `pagingPolicy()` 返回 `FeedPagingPolicy.Unlimited`。
+与 `refreshAfterCacheHit()` 同一契约：每次现读、纯内存、不抛。

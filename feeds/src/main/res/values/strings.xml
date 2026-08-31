@@ -13,4 +13,5 @@
     <string name="list_load_failed_tap_retry">加载失败，点击重试</string>
     <string name="feed_error_tap_retry">点击重试</string>
     <string name="feed_state_go_network_test">去网络测试</string>
+    <string name="feed_append_paused_tap_to_continue">点击加载更多</string>
 </resources>

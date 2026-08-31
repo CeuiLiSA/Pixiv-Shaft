@@ -4,4 +4,5 @@
     <string name="list_load_failed_tap_retry">読み込みに失敗しました。タップして再試行。</string>
     <string name="feed_error_tap_retry">タップして再試行</string>
     <string name="feed_state_go_network_test">ネットワークテストを実行</string>
+    <string name="feed_append_paused_tap_to_continue">タップしてさらに読み込む</string>
 </resources>

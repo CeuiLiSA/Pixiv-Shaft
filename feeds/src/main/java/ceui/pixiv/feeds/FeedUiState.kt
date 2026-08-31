@@ -16,6 +16,13 @@ data class FeedUiState(
     val append: LoadState = LoadState.Idle,
     /** 是否已翻到底（没有下一页游标）。 */
     val reachedEnd: Boolean = false,
+    /**
+     * 自动翻页预算（[FeedPagingPolicy.maxAutoPages]）已用完：还有下一页，但不再由滚动触发，
+     * footer 变成「点击加载更多」，等用户点 [FeedViewModel.continueAppend] 再给一份预算。
+     * 与 [reachedEnd] 互斥（到底了就没有「继续」可言）：refresh 整代提交和游标交接
+     * （[FeedViewModel.adoptCursor]）都把它清掉。
+     */
+    val appendPaused: Boolean = false,
     /** 是否成功完成过至少一次刷新，用于区分「首屏加载」和「后续刷新」。 */
     val hasLoadedOnce: Boolean = false,
     /**

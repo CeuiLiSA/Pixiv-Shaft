@@ -4,6 +4,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -12,6 +13,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -50,6 +52,22 @@ class FeedViewModelTest {
             return FeedPage(pages[index], next)
         }
     }
+
+    /** 带翻页策略的假数据源：页数据同 [FakeSource]，策略由测试指定。 */
+    private class PolicySource(
+        pages: List<List<Row>>,
+        private val policy: FeedPagingPolicy,
+    ) : FeedSource<Int> {
+        private val inner = FakeSource(pages)
+        val loadCount: Int get() = inner.loadCount
+        override suspend fun load(cursor: Int?): FeedPage<Int> = inner.load(cursor)
+        override fun pagingPolicy(): FeedPagingPolicy = policy
+    }
+
+    /** 每页一条、页号即 id 的 n 页。 */
+    private fun onePerPage(n: Int): List<List<Row>> = List(n) { listOf(Row(it)) }
+
+    private val noThrottle = FeedPagingPolicy(maxAutoPages = Int.MAX_VALUE, minPageIntervalMs = 0)
 
     @Test
     fun `refresh loads first page`() = runTest(dispatcher) {
@@ -734,5 +752,283 @@ class FeedViewModelTest {
         assertEquals(1, source.firstPageNetworkCount)
         assertEquals(listOf(Row(10)), vm.uiState.value.items)
         assertEquals(LoadState.Idle, vm.uiState.value.refresh)
+    }
+
+    // ── 翻页节奏与预算（FeedPagingPolicy）──
+
+    @Test
+    fun `default paging policy is thirty pages one second apart and is what a plain source reports`() {
+        assertEquals(
+            FeedPagingPolicy(maxAutoPages = 30, minPageIntervalMs = 1_000L, burstIdleResetMs = 5_000L),
+            FeedPagingPolicy.Default,
+        )
+        assertEquals(FeedPagingPolicy.Default, FeedSource<Int> { FeedPage(emptyList(), null) }.pagingPolicy())
+        assertEquals(Int.MAX_VALUE, FeedPagingPolicy.Unlimited.maxAutoPages)
+        assertEquals(0L, FeedPagingPolicy.Unlimited.minPageIntervalMs)
+        // 预算 0 不是「无上限」而是配置错误：会让第一页之后永远停手
+        assertThrows(IllegalArgumentException::class.java) { FeedPagingPolicy(maxAutoPages = 0) }
+        assertThrows(IllegalArgumentException::class.java) { FeedPagingPolicy(minPageIntervalMs = -1) }
+        assertThrows(IllegalArgumentException::class.java) { FeedPagingPolicy(burstIdleResetMs = -1) }
+    }
+
+    @Test
+    fun `auto paging pauses after the budget and continueAppend grants another`() = runTest(dispatcher) {
+        val source = PolicySource(onePerPage(10), FeedPagingPolicy(maxAutoPages = 3, minPageIntervalMs = 0))
+        val vm = FeedViewModel(source)
+        advanceUntilIdle()
+        assertEquals(listOf(Row(0)), vm.uiState.value.items)
+
+        repeat(3) {
+            vm.loadMore()
+            advanceUntilIdle()
+        }
+        var state = vm.uiState.value
+        assertEquals((0..3).map(::Row), state.items)
+        assertTrue("第三页翻完预算用尽，应暂停", state.appendPaused)
+        assertFalse("还有下一页，不是到底", state.reachedEnd)
+        assertEquals(LoadState.Idle, state.append)
+        assertEquals(4, source.loadCount)
+
+        // 暂停中滚动触发一律忽略：不发请求、不动列表
+        vm.loadMore()
+        advanceUntilIdle()
+        assertEquals(4, source.loadCount)
+        assertEquals((0..3).map(::Row), vm.uiState.value.items)
+
+        // footer 那一下点击：再给一份预算并立刻翻一页
+        vm.continueAppend()
+        advanceUntilIdle()
+        state = vm.uiState.value
+        assertEquals((0..4).map(::Row), state.items)
+        assertFalse(state.appendPaused)
+        assertEquals(5, source.loadCount)
+
+        // 新预算同样是 3 页：第 5、6 页翻完再次暂停
+        repeat(2) {
+            vm.loadMore()
+            advanceUntilIdle()
+        }
+        state = vm.uiState.value
+        assertEquals((0..6).map(::Row), state.items)
+        assertTrue(state.appendPaused)
+        assertEquals(7, source.loadCount)
+    }
+
+    @Test
+    fun `continueAppend is a no-op unless paused`() = runTest(dispatcher) {
+        val source = PolicySource(onePerPage(4), noThrottle)
+        val vm = FeedViewModel(source)
+        advanceUntilIdle()
+        vm.continueAppend()
+        advanceUntilIdle()
+        assertEquals(1, source.loadCount)
+        assertEquals(listOf(Row(0)), vm.uiState.value.items)
+    }
+
+    @Test
+    fun `pages spent chasing empty pages come out of the same budget`() = runTest(dispatcher) {
+        // 首页之后两页整页滤空（线上「薄页 / 空页」形态），再跟真正的新页
+        val source = PolicySource(
+            listOf(listOf(Row(1)), emptyList(), emptyList(), listOf(Row(2)), listOf(Row(3))),
+            FeedPagingPolicy(maxAutoPages = 2, minPageIntervalMs = 0),
+        )
+        val vm = FeedViewModel(source)
+        advanceUntilIdle()
+
+        vm.loadMore()
+        advanceUntilIdle()
+        val state = vm.uiState.value
+        // 两跳空页正好烧完 2 页预算：暂停，而不是当成到底（后面明明还有内容）
+        assertEquals(listOf(Row(1)), state.items)
+        assertTrue(state.appendPaused)
+        assertFalse(state.reachedEnd)
+        assertEquals(3, source.loadCount)
+
+        vm.continueAppend()
+        advanceUntilIdle()
+        assertEquals(listOf(Row(1), Row(2)), vm.uiState.value.items)
+        assertFalse(vm.uiState.value.appendPaused)
+    }
+
+    @Test
+    fun `refresh starts a fresh budget and clears the pause`() = runTest(dispatcher) {
+        val source = PolicySource(onePerPage(10), FeedPagingPolicy(maxAutoPages = 2, minPageIntervalMs = 0))
+        val vm = FeedViewModel(source)
+        advanceUntilIdle()
+        repeat(2) {
+            vm.loadMore()
+            advanceUntilIdle()
+        }
+        assertTrue(vm.uiState.value.appendPaused)
+
+        vm.refresh()
+        advanceUntilIdle()
+        assertFalse(vm.uiState.value.appendPaused)
+        assertEquals(listOf(Row(0)), vm.uiState.value.items)
+
+        repeat(2) {
+            vm.loadMore()
+            advanceUntilIdle()
+        }
+        assertEquals((0..2).map(::Row), vm.uiState.value.items)
+        assertTrue("新一代的预算同样是 2 页", vm.uiState.value.appendPaused)
+    }
+
+    @Test
+    fun `consecutive page loads are spaced by the policy interval`() = runTest(dispatcher) {
+        val source = PolicySource(onePerPage(8), FeedPagingPolicy(maxAutoPages = 30, minPageIntervalMs = 1_000))
+        val vm = FeedViewModel(source, clock = { testScheduler.currentTime })
+        advanceUntilIdle() // 首屏于 t=0
+        assertEquals(1, source.loadCount)
+
+        // 刷新后的第一次翻页不等：首屏填不满屏时（#1059 的补触发）第二页要立刻来
+        vm.loadMore()
+        dispatcher.scheduler.runCurrent()
+        assertEquals(2, source.loadCount)
+        assertEquals(0L, testScheduler.currentTime)
+
+        // 紧接着的第三页要等到 t=1000 才发出，等待期间 footer 已是 Loading
+        vm.loadMore()
+        dispatcher.scheduler.runCurrent()
+        assertEquals(LoadState.Loading, vm.uiState.value.append)
+        assertEquals(2, source.loadCount)
+        advanceTimeBy(999)
+        dispatcher.scheduler.runCurrent()
+        assertEquals(2, source.loadCount)
+        advanceTimeBy(1)
+        dispatcher.scheduler.runCurrent()
+        assertEquals(3, source.loadCount)
+        assertEquals((0..2).map(::Row), vm.uiState.value.items)
+        assertEquals(LoadState.Idle, vm.uiState.value.append)
+
+        // 下一页同样以上一页返回时刻（t=1000）起算
+        vm.loadMore()
+        advanceTimeBy(500)
+        dispatcher.scheduler.runCurrent()
+        assertEquals(3, source.loadCount)
+        advanceTimeBy(500)
+        dispatcher.scheduler.runCurrent()
+        assertEquals(4, source.loadCount)
+
+        // 隔了很久再翻：间隔早已满足，立刻发出，不白等
+        advanceTimeBy(10_000)
+        vm.loadMore()
+        dispatcher.scheduler.runCurrent()
+        assertEquals(5, source.loadCount)
+    }
+
+    @Test
+    fun `a refresh chase through empty first pages is never paced`() = runTest(dispatcher) {
+        // #729：首页整页滤空，追载两跳才有内容——首屏不能因为节流多等两秒
+        val source = PolicySource(
+            listOf(emptyList(), emptyList(), listOf(Row(1))),
+            FeedPagingPolicy(maxAutoPages = 30, minPageIntervalMs = 1_000),
+        )
+        val vm = FeedViewModel(source, clock = { testScheduler.currentTime })
+        dispatcher.scheduler.runCurrent()
+        assertEquals(3, source.loadCount)
+        assertEquals(0L, testScheduler.currentTime)
+        assertEquals(listOf(Row(1)), vm.uiState.value.items)
+    }
+
+    @Test
+    fun `a pause between pages resets the budget so a person reading deep is never stopped`() = runTest(dispatcher) {
+        val source = PolicySource(
+            onePerPage(20),
+            FeedPagingPolicy(maxAutoPages = 2, minPageIntervalMs = 0, burstIdleResetMs = 5_000),
+        )
+        val vm = FeedViewModel(source, clock = { testScheduler.currentTime })
+        advanceUntilIdle()
+
+        // 人的节奏：每页看 5 秒以上再翻——翻多少页都不会被拦
+        repeat(6) {
+            advanceTimeBy(5_000)
+            vm.loadMore()
+            dispatcher.scheduler.runCurrent()
+            assertFalse("第 ${it + 1} 页后不该暂停", vm.uiState.value.appendPaused)
+        }
+        assertEquals(7, source.loadCount)
+
+        // 机器的节奏：看够 5 秒翻一页（预算归零后计 1），紧接着零间隔再翻一页就到预算
+        advanceTimeBy(5_000)
+        vm.loadMore()
+        dispatcher.scheduler.runCurrent()
+        assertFalse(vm.uiState.value.appendPaused)
+        vm.loadMore()
+        dispatcher.scheduler.runCurrent()
+        assertTrue(vm.uiState.value.appendPaused)
+        assertEquals(9, source.loadCount)
+    }
+
+    @Test
+    fun `adopting a cursor clears the pause so reachedEnd and paused never coexist`() = runTest(dispatcher) {
+        val source = PolicySource(onePerPage(6), FeedPagingPolicy(maxAutoPages = 1, minPageIntervalMs = 0))
+        val vm = FeedViewModel(source)
+        advanceUntilIdle()
+        vm.loadMore()
+        advanceUntilIdle()
+        assertTrue(vm.uiState.value.appendPaused)
+
+        vm.adoptCursor(null)
+        val state = vm.uiState.value
+        assertTrue(state.reachedEnd)
+        assertFalse(state.appendPaused)
+    }
+
+    @Test
+    fun `manual continue after a pause is paced like any other page`() = runTest(dispatcher) {
+        val source = PolicySource(onePerPage(8), FeedPagingPolicy(maxAutoPages = 1, minPageIntervalMs = 1_000))
+        val vm = FeedViewModel(source, clock = { testScheduler.currentTime })
+        advanceUntilIdle()
+        vm.loadMore()
+        advanceUntilIdle() // 第二页于 t=0（刷新后首次翻页不等），预算用尽
+        assertTrue(vm.uiState.value.appendPaused)
+        assertEquals(0L, testScheduler.currentTime)
+
+        vm.continueAppend()
+        dispatcher.scheduler.runCurrent()
+        assertFalse(vm.uiState.value.appendPaused)
+        assertEquals(2, source.loadCount)
+        advanceTimeBy(1_000)
+        dispatcher.scheduler.runCurrent()
+        assertEquals(3, source.loadCount)
+    }
+
+    @Test
+    fun `the first page of a refresh is never delayed and cancels a paced append`() = runTest(dispatcher) {
+        val source = PolicySource(onePerPage(8), FeedPagingPolicy(maxAutoPages = 30, minPageIntervalMs = 1_000))
+        val vm = FeedViewModel(source, clock = { testScheduler.currentTime })
+        advanceUntilIdle()
+        vm.loadMore()
+        dispatcher.scheduler.runCurrent() // 第二页，t=0
+        assertEquals(2, source.loadCount)
+
+        vm.loadMore() // 第三页卡在间隔等待上
+        advanceTimeBy(500)
+        dispatcher.scheduler.runCurrent()
+        assertEquals(LoadState.Loading, vm.uiState.value.append)
+
+        vm.refresh() // 下拉刷新永远赢，且首屏不节流
+        dispatcher.scheduler.runCurrent()
+        assertEquals(3, source.loadCount)
+        val state = vm.uiState.value
+        assertEquals(LoadState.Idle, state.refresh)
+        assertEquals(LoadState.Idle, state.append)
+        assertEquals(listOf(Row(0)), state.items)
+        // 被取消的那次追加不会在它原定的时刻偷偷发出去
+        advanceTimeBy(5_000)
+        dispatcher.scheduler.runCurrent()
+        assertEquals(3, source.loadCount)
+    }
+
+    @Test
+    fun `zero interval policy does not delay at all`() = runTest(dispatcher) {
+        val source = PolicySource(onePerPage(4), noThrottle)
+        val vm = FeedViewModel(source, clock = { testScheduler.currentTime })
+        advanceUntilIdle()
+        vm.loadMore()
+        dispatcher.scheduler.runCurrent()
+        assertEquals(2, source.loadCount)
+        assertEquals(0L, testScheduler.currentTime)
     }
 }
