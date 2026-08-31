@@ -2273,6 +2273,10 @@
     <string name="network_test_overall_clean_sub_fallback">DNS resolution, handshake, size probe, image downloads OK.</string>
     <string name="chat_drawer_entry">Chat Room</string>
     <string name="chat_room_global_title">Public Lounge</string>
+    <!-- 应用内 banner（ceui.pixiv.banner.host.ChatBannerBridge）的小标题 / 正文兜底 -->
+    <string name="chat_banner_caption_dm">Direct message</string>
+    <string name="chat_banner_caption_reply_to_you">replied to you</string>
+    <string name="chat_banner_shared_illust">Shared an artwork</string>
     <string name="chat_preview_you_prefix">You:</string>
     <string name="chat_room_count">%1$d conversations</string>
     <string name="chat_new_messages">%1$d new messages</string>

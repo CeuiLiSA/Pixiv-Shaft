@@ -14,11 +14,18 @@ sealed interface BannerRequest {
     val deepLink: String?
     val metadata: Map<String, String>
 
-    /** A simple title/message banner with optional icon and action button. */
+    /**
+     * A simple title/message banner with optional icon and action button.
+     *
+     * [caption] is a short, accent-coloured line rendered *above* [title] —
+     * the "where did this come from" slot (e.g. `私信 · 回复了你`). Keep it to a
+     * few words; the default binder renders it single-line.
+     */
     data class Text(
         override val id: String,
         val title: String,
         val message: String? = null,
+        val caption: String? = null,
         val icon: BannerIcon? = null,
         val action: BannerAction? = null,
         override val dedupKey: String? = null,

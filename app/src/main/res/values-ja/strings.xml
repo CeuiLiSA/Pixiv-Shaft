@@ -2256,6 +2256,10 @@
     <string name="network_test_overall_clean_sub_fallback">DNS 解決、ハンドシェイク、サイズ検証、画像ダウンロードも正常です。</string>
     <string name="chat_drawer_entry">チャットルーム</string>
     <string name="chat_room_global_title">公開ラウンジ</string>
+    <!-- 应用内 banner（ceui.pixiv.banner.host.ChatBannerBridge）的小标题 / 正文兜底 -->
+    <string name="chat_banner_caption_dm">ダイレクトメッセージ</string>
+    <string name="chat_banner_caption_reply_to_you">あなたに返信</string>
+    <string name="chat_banner_shared_illust">作品をシェアしました</string>
     <string name="chat_preview_you_prefix">自分:</string>
     <string name="chat_room_count">%1$d 件のトーク</string>
     <string name="chat_new_messages">新着 %1$d 件</string>

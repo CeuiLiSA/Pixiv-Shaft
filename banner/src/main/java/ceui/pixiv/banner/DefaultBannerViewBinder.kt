@@ -14,10 +14,17 @@ import androidx.core.view.isVisible
  * under the project's AppCompat-based theme without triggering Material's
  * theme-enforcement crashes.
  *
- * Only [BannerIcon.Resource] is rendered — URL icons would need to be loaded
- * via this binder's caller (e.g. a custom binder using Glide).
+ * Layout (see `banner_default.xml`): a 44dp circular icon slot, then
+ * caption / title / message stacked, then either a chevron (when the request
+ * carries a [BannerRequest.deepLink] and no explicit action) or the action
+ * button.
+ *
+ * [BannerIcon.Resource] is rendered directly; [BannerIcon.Url] goes through the
+ * host-supplied [iconLoader] and is hidden when no loader was provided.
  */
-class DefaultBannerViewBinder : BannerViewBinder {
+class DefaultBannerViewBinder(
+    private val iconLoader: BannerIconLoader? = null,
+) : BannerViewBinder {
 
     override val key: String = BannerViewBinder.DEFAULT_KEY
 
@@ -30,27 +37,35 @@ class DefaultBannerViewBinder : BannerViewBinder {
                 "Register a custom binder under request.binderKey for non-text banners.",
         )
 
+        val iconFrame = view.findViewById<View>(R.id.banner_icon_frame)
         val icon = view.findViewById<ImageView>(R.id.banner_icon)
+        val caption = view.findViewById<TextView>(R.id.banner_caption)
         val title = view.findViewById<TextView>(R.id.banner_title)
         val message = view.findViewById<TextView>(R.id.banner_message)
+        val chevron = view.findViewById<View>(R.id.banner_chevron)
         val action = view.findViewById<Button>(R.id.banner_action)
 
+        bindText(caption, text.caption)
         title.text = text.title
-
-        if (text.message.isNullOrBlank()) {
-            message.isVisible = false
-        } else {
-            message.isVisible = true
-            message.text = text.message
-        }
+        bindText(message, text.message)
 
         when (val src = text.icon) {
             is BannerIcon.Resource -> {
-                icon.isVisible = true
+                iconFrame.isVisible = true
                 icon.setImageResource(src.resId)
             }
-            is BannerIcon.Url, null -> {
-                icon.isVisible = false
+            is BannerIcon.Url -> {
+                val loader = iconLoader
+                if (loader == null) {
+                    iconFrame.isVisible = false
+                    icon.setImageDrawable(null)
+                } else {
+                    iconFrame.isVisible = true
+                    loader.load(icon, src.url)
+                }
+            }
+            null -> {
+                iconFrame.isVisible = false
                 icon.setImageDrawable(null)
             }
         }
@@ -59,7 +74,9 @@ class DefaultBannerViewBinder : BannerViewBinder {
         if (actionData == null) {
             action.isVisible = false
             action.setOnClickListener(null)
+            chevron.isVisible = text.deepLink != null
         } else {
+            chevron.isVisible = false
             action.isVisible = true
             action.text = actionData.label
             action.setOnClickListener {
@@ -71,6 +88,16 @@ class DefaultBannerViewBinder : BannerViewBinder {
         view.setOnClickListener {
             callbacks.triggerTap()
             callbacks.dismiss(BannerDismissReason.UserTap)
+        }
+    }
+
+    private fun bindText(target: TextView, value: String?) {
+        if (value.isNullOrBlank()) {
+            target.isVisible = false
+            target.text = null
+        } else {
+            target.isVisible = true
+            target.text = value
         }
     }
 }

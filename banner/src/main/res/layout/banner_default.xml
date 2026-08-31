@@ -9,23 +9,39 @@
     android:layout_marginTop="8dp"
     android:layout_marginBottom="10dp"
     app:cardBackgroundColor="@color/banner_card_background"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp">
+    app:cardCornerRadius="20dp"
+    app:cardElevation="6dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="16dp">
+        android:paddingStart="14dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="12dp">
 
-        <ImageView
-            android:id="@+id/banner_icon"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+        <!-- 44dp 圆形头像位。CardView 在 API 21+ 会按 outline 裁剪子 View，
+             拿它当圆形裁切容器就不用再引 CircleImageView / Material。 -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/banner_icon_frame"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:layout_marginEnd="12dp"
             android:visibility="gone"
-            tools:ignore="ContentDescription" />
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="0dp"
+            tools:visibility="visible">
+
+            <ImageView
+                android:id="@+id/banner_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                tools:ignore="ContentDescription" />
+        </androidx.cardview.widget.CardView>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -34,11 +50,28 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/banner_caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="1dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="私信 · 回复了你"
+                tools:visibility="visible" />
+
+            <TextView
                 android:id="@+id/banner_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:textColor="@color/banner_title_text"
+                android:textSize="15sp"
+                android:textStyle="bold"
                 tools:text="Banner title" />
 
             <TextView
@@ -46,22 +79,34 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+                android:ellipsize="end"
+                android:lineSpacingExtra="1dp"
+                android:maxLines="2"
                 android:textColor="@color/banner_message_text"
+                android:textSize="14sp"
                 android:visibility="gone"
-                tools:text="Optional secondary message"
+                tools:text="Optional secondary message that may wrap onto a second line before it gets cut"
                 tools:visibility="visible" />
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/banner_chevron"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginStart="6dp"
+            android:src="@drawable/banner_ic_chevron_right"
+            android:visibility="gone"
+            tools:ignore="ContentDescription"
+            tools:visibility="visible" />
 
         <Button
             android:id="@+id/banner_action"
             style="?android:attr/borderlessButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="6dp"
             android:textColor="?attr/colorPrimary"
             android:visibility="gone"
-            tools:text="Action"
-            tools:visibility="visible" />
+            tools:text="Action" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

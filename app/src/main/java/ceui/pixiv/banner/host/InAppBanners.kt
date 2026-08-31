@@ -6,13 +6,18 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.widget.ImageView
+import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
+import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.banner.BannerEvent
 import ceui.pixiv.banner.BannerHostInstaller
+import ceui.pixiv.banner.BannerIconLoader
 import ceui.pixiv.banner.BannerManager
 import ceui.pixiv.banner.BannerViewBinder
 import ceui.pixiv.banner.DefaultBannerViewBinder
 import ceui.pixiv.banner.RealBannerManager
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -66,7 +71,7 @@ object InAppBanners {
         if (!bootstrapped.compareAndSet(false, true)) return
 
         val binders = mapOf<String, BannerViewBinder>(
-            BannerViewBinder.DEFAULT_KEY to DefaultBannerViewBinder(),
+            BannerViewBinder.DEFAULT_KEY to DefaultBannerViewBinder(iconLoader = GlideBannerIconLoader),
         )
         manager = RealBannerManager(binders = binders)
         manager.start()
@@ -80,7 +85,7 @@ object InAppBanners {
             installer.installNow(it)
         }
 
-        ChatBannerBridge(manager, scope).start()
+        ChatBannerBridge(app, manager, scope).start()
 
         scope.launch {
             manager.events
@@ -119,6 +124,24 @@ object InAppBanners {
             } catch (t: Throwable) {
                 Timber.tag(TAG).w(t, "Failed to launch chat from banner tap")
             }
+        }
+    }
+
+    /**
+     * 宿主侧的 [BannerIcon.Url] 加载器：走 Glide + [GlideUrlChild]（pximg 需要 referer），
+     * 圆形裁切，占位用 Shaft 自己的 logo（与 [ChatBannerBridge] 的匿名 / 失败兜底一致；
+     * 不用 chat_avatar_placeholder —— 它依赖 Material 的 colorSurfaceContainerHigh，
+     * AppCompat 主题的 MainActivity 上解析不了）。
+     */
+    private object GlideBannerIconLoader : BannerIconLoader {
+        override fun load(target: ImageView, url: String) {
+            runCatching {
+                Glide.with(target)
+                    .load(GlideUrlChild(url))
+                    .placeholder(R.drawable.icon_shaft_with_bg)
+                    .circleCrop()
+                    .into(target)
+            }.onFailure { Timber.tag(TAG).w(it, "banner icon load failed") }
         }
     }
 

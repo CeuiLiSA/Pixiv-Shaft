@@ -2523,6 +2523,10 @@
     <!-- Chat subsystem (borrowed from Peanut; see ceui.pixiv.chat.*) -->
     <string name="chat_drawer_entry">聊天室</string>
     <string name="chat_room_global_title">公屏闲聊</string>
+    <!-- 应用内 banner（ceui.pixiv.banner.host.ChatBannerBridge）的小标题 / 正文兜底 -->
+    <string name="chat_banner_caption_dm">私信</string>
+    <string name="chat_banner_caption_reply_to_you">回复了你</string>
+    <string name="chat_banner_shared_illust">分享了一件作品</string>
     <string name="chat_preview_you_prefix">你:</string>
     <string name="chat_room_count">%1$d 个对话</string>
     <string name="chat_new_messages">%1$d 条新消息</string>
