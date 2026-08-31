@@ -25,6 +25,14 @@
 command -v jq >/dev/null 2>&1 || exit 0
 
 input=$(cat)
+
+# 第 0 行：用户全局状态栏（当前登录邮箱 / 模型 / 目录）。项目级 statusLine 会
+# 盖掉全局的,所以这里主动调一次,没装全局脚本的贡献者就跳过,不影响下面。
+global_sl="$HOME/.claude/statusline.sh"
+if [ -f "$global_sl" ]; then
+  printf '%s' "$input" | bash "$global_sl" 2>/dev/null && printf '\n'
+fi
+
 tp=$(printf '%s' "$input" | jq -r '.transcript_path // empty' 2>/dev/null)
 cwd=$(printf '%s' "$input" | jq -r '.cwd // .workspace.current_dir // empty' 2>/dev/null)
 [ -n "$tp" ] && [ -f "$tp" ] || exit 0
