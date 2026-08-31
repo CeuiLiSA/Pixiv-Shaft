@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
-import androidx.core.view.doOnLayout
+import androidx.core.view.doOnPreDraw
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -311,9 +311,14 @@ class UserV3InfoFragment : Fragment() {
     /**
      * 子卡片先按「半行宽度」量自己的期望宽度，两个都放得下才并列，否则独占一行，而不是强行
      * 并列截断。判断依赖 grid 的真实宽度：首次绑定时父卡片刚从 gone 切 visible，grid 还没量过，
-     * 等这一次 layout 出来再摆（同一帧内完成，不闪）；已布局过（下拉刷新重绑）时 doOnLayout
-     * 同步执行。不能拿屏幕宽度估算——平板双栏 / 分屏下 widthPixels 是整屏宽，估出来比实际
-     * 宽一倍，长文本照样被并列截断，等于没修。
+     * 要等这一次 measure/layout 跑完才有数，所以放到 preDraw 里摆（layout 已完成、还没画）。
+     * 不能拿屏幕宽度估算——平板双栏 / 分屏下 widthPixels 是整屏宽，估出来比实际宽一倍，长文本
+     * 照样被并列截断，等于没修。
+     *
+     * 也不能用 doOnLayout：OnLayoutChangeListener 是在 grid 自己的 layout() 里回调的，回调里
+     * addView 打上的 FORCE_LAYOUT 标记会在 layout() 收尾时被清掉，ViewRootImpl 判定「无需第二趟」，
+     * 首帧 grid 是空的，要等别的东西触发下一次 layout 才出现。preDraw 里 addView 走的是正常的
+     * requestLayout → 下一帧重排，OneShotPreDrawListener 随 view detach 自动摘除。
      */
     private fun renderChipGrid(
         grid: LinearLayout,
@@ -321,7 +326,7 @@ class UserV3InfoFragment : Fragment() {
         createChip: (Int) -> View,
         isFullWidth: (Int) -> Boolean = { false },
     ) {
-        grid.doOnLayout { layoutChipGrid(grid, chipCount, createChip, isFullWidth) }
+        grid.doOnPreDraw { layoutChipGrid(grid, chipCount, createChip, isFullWidth) }
     }
 
     private fun layoutChipGrid(
