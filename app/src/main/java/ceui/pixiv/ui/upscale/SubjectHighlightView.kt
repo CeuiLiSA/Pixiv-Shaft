@@ -117,14 +117,14 @@ class SubjectHighlightView @JvmOverloads constructor(
         val orig = originalBitmap ?: return
         val dim = dimOverlay ?: return
 
-        val m = fitCenterMatrix(orig.width, orig.height)
-
         // 1. Original image at full brightness
-        canvas.drawBitmap(orig, m, imagePaint)
+        canvas.drawBitmap(orig, fitCenterMatrix(orig.width, orig.height), imagePaint)
 
         // 2. Dim overlay (background darkened, subject area transparent)
+        // 各自 fit-center 而不是共用原图的矩阵:rembg 输入超过像素预算时会被降采样
+        // (见 decodeBoundedArgb),遮罩比原图小,共用矩阵会把它画到左上角一块。
         dimPaint.alpha = (dimAlpha * 255).toInt()
-        canvas.drawBitmap(dim, m, dimPaint)
+        canvas.drawBitmap(dim, fitCenterMatrix(dim.width, dim.height), dimPaint)
     }
 
     // ── lifecycle ────────────────────────────────────────────────────
