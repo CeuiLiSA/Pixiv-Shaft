@@ -41,8 +41,9 @@ import kotlinx.coroutines.withContext
  *   宿主 pager 需 BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT），不替用户偷偷请求私密收藏；
  * - 「按标签筛选」页选完标签广播 FILTER_ILLUST 回流，匹配 starType 才认领并刷新；
  *   初始标签可由入参带入（同义词词典管理页跳转，issue #904）；
- * - 「过滤无效收藏」设置：失效作品（!isVisible）由通用过滤链恒过滤（对齐 legacy
- *   legacy Mapper），设置补的是 user 缺失/为 0 的残缺条目；
+ * - 「过滤无效收藏」设置：失效作品（!isVisible）/ user 缺失 / user.id==0 都在设置开启时
+ *   才过滤；关闭时插画收藏也放行 visible=false 的失效条目（对齐小说侧与设置文案，区别于
+ *   其它 feed 的通用过滤链恒过滤 !isVisible）；
  * - 自己的收藏页 + 「收藏页隐藏收藏按钮」设置 → 卡片不显示爱心（对齐 IAdapterWithStar）；
  * - 带 toolbar 形态（TemplateActivity「插画/漫画收藏」）沿用 local_save 菜单，
  *   只响应「收藏到精华」（legacy 的 jump/add 两项在本页本来就是死的）。
@@ -184,14 +185,14 @@ class LikeIllustFeedFragment : IllustFeedFragment() {
 
         /** 页响应 → 条目。跑在 Default 线程、被 VM 长期持有，放伴生对象保证零捕获。 */
         private fun mapLikePage(illusts: List<Illust>): List<FeedItem> {
-            // 失效作品（!isVisible）由 IllustFeedItem 的通用过滤链恒过滤；
-            // 「过滤无效收藏」设置补挡 user 缺失/为 0 的残缺条目（对齐 legacy beforeFirstLoad）
+            // 「过滤无效收藏」设置开启时挡失效作品（!isVisible）+ user 缺失/为 0 的残缺条目；
+            // 关闭时不过滤 visible，让已删除/不可见的插画收藏也能显示（与小说侧一致）。
             val filterInvalid = Shaft.sSettings.isFilterInvalidBookmarks
             return illusts.mapNotNull { illust ->
                 if (filterInvalid && (illust.user == null || illust.user.id == 0L)) {
                     return@mapNotNull null
                 }
-                IllustFeedItem.of(illust)
+                IllustFeedItem.of(illust, skipVisibleFilter = !filterInvalid)
             }
         }
     }
