@@ -281,47 +281,12 @@ class UserV3InfoFragment : Fragment() {
         chips.add(Triple("Premium", if (user.is_premium == true) "★ Premium User" else "Standard", false))
         chips.add(Triple("Pixiv URL", "https://www.pixiv.net/users/${user.id}", true))
 
-        val grid = binding.profileGrid
-        grid.removeAllViews()
-        val density = resources.displayMetrics.density
-        val rowGap = (10 * density).toInt()
-        val chipGap = (5 * density).toInt()
-        var i = 0
-        while (i < chips.size) {
-            val row = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.HORIZONTAL
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { bottomMargin = rowGap }
-            }
-
-            val chip1 = createProfileChip(chips[i])
-            val isLastSingle = i + 1 >= chips.size
-            val isFullWidth = chips[i].first == "Pixiv URL"
-
-            if (isFullWidth || isLastSingle) {
-                chip1.layoutParams =
-                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                row.addView(chip1)
-            } else {
-                chip1.layoutParams =
-                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                        marginEnd = chipGap
-                    }
-                row.addView(chip1)
-
-                val chip2 = createProfileChip(chips[i + 1])
-                chip2.layoutParams =
-                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                        marginStart = chipGap
-                    }
-                row.addView(chip2)
-                i++
-            }
-            grid.addView(row)
-            i++
-        }
+        renderChipGrid(
+            binding.profileGrid,
+            chips.size,
+            createChip = { createProfileChip(chips[it]) },
+            isFullWidth = { chips[it].first == "Pixiv URL" }
+        )
     }
 
     private fun createProfileChip(data: Triple<String, String, Boolean>): View {
@@ -340,6 +305,88 @@ class UserV3InfoFragment : Fragment() {
             bd.root.setOnClickListener { openUrl(data.second) }
         }
         return bd.root
+    }
+
+    private fun renderChipGrid(
+        grid: LinearLayout,
+        chipCount: Int,
+        createChip: (Int) -> View,
+        isFullWidth: (Int) -> Boolean = { false },
+    ) {
+        grid.removeAllViews()
+        val density = resources.displayMetrics.density
+        val rowGap = (10 * density).toInt()
+        val chipGap = (5 * density).toInt()
+
+        // 子卡片先按“半行宽度”测自己的期望宽度，容不下就独占一行，而不是强行并列截断。
+        // 首次数据到达时 grid 可能尚未完成布局，退回按屏幕/卡片边距估算。
+        val gridWidth = if (grid.width > 0) grid.width else {
+            resources.displayMetrics.widthPixels -
+                (20 * density).toInt() * 2 -
+                (18 * density).toInt() * 2
+        }
+        val halfSlotWidth = ((gridWidth - chipGap) / 2).coerceAtLeast(0)
+
+        fun fitsHalfSlot(chip: View): Boolean {
+            val bd = ItemV3ProfileChipBinding.bind(chip)
+            val labelWidth = bd.chipLabel.paint.measureText(
+                bd.chipLabel.text.toString().uppercase()
+            )
+            val valueWidth = bd.chipValue.paint.measureText(bd.chipValue.text.toString())
+            val desiredWidth = maxOf(labelWidth, valueWidth).toInt() +
+                bd.root.paddingLeft + bd.root.paddingRight
+            return desiredWidth <= halfSlotWidth
+        }
+
+        var i = 0
+        while (i < chipCount) {
+            val row = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { bottomMargin = rowGap }
+            }
+
+            val chip1 = createChip(i)
+            val isLastSingle = i + 1 >= chipCount
+            val fullWidth = isFullWidth(i)
+            val chip1Fits = !fullWidth && !isLastSingle && fitsHalfSlot(chip1)
+            val chip2 = if (chip1Fits) createChip(i + 1) else null
+            val canPair = chip1Fits && chip2 != null && fitsHalfSlot(chip2)
+
+            if (canPair) {
+                chip1.layoutParams =
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                        marginEnd = chipGap
+                    }
+                row.addView(chip1)
+
+                val chip2View = checkNotNull(chip2)
+                chip2View.layoutParams =
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                        marginStart = chipGap
+                    }
+                row.addView(chip2View)
+                i++
+            } else {
+                // 独占一行时允许文本换行，长文本不再被单行省略
+                makeChipWrappable(chip1)
+                chip1.layoutParams =
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                row.addView(chip1)
+            }
+            grid.addView(row)
+            i++
+        }
+    }
+
+    @android.annotation.SuppressLint("InlinedApi")
+    private fun makeChipWrappable(chip: View) {
+        val bd = ItemV3ProfileChipBinding.bind(chip)
+        bd.chipValue.maxLines = Int.MAX_VALUE
+        bd.chipValue.ellipsize = null
+        bd.chipValue.breakStrategy = android.graphics.text.LineBreaker.BREAK_STRATEGY_HIGH_QUALITY
     }
 
     private fun setupWorkspaceCard(workspace: WorkspaceBean?) {
@@ -362,47 +409,11 @@ class UserV3InfoFragment : Fragment() {
         if (items.isEmpty()) return
 
         binding.workspaceCard.visibility = View.VISIBLE
-        val grid = binding.workspaceGrid
-        grid.removeAllViews()
-        val density = resources.displayMetrics.density
-        val rowGap = (10 * density).toInt()
-        val chipGap = (5 * density).toInt()
-
-        var i = 0
-        while (i < items.size) {
-            val row = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.HORIZONTAL
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply { bottomMargin = rowGap }
-            }
-
-            val isLastSingle = i + 1 >= items.size
-            val chip1 = createWorkspaceChip(items[i])
-
-            if (isLastSingle) {
-                chip1.layoutParams =
-                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                row.addView(chip1)
-            } else {
-                chip1.layoutParams =
-                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                        marginEnd = chipGap
-                    }
-                row.addView(chip1)
-
-                val chip2 = createWorkspaceChip(items[i + 1])
-                chip2.layoutParams =
-                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
-                        marginStart = chipGap
-                    }
-                row.addView(chip2)
-                i++
-            }
-            grid.addView(row)
-            i++
-        }
+        renderChipGrid(
+            binding.workspaceGrid,
+            items.size,
+            createChip = { createWorkspaceChip(items[it]) }
+        )
 
         binding.workspaceHeaderToggle.setOnClickListener {
             val isVisible = binding.workspaceGrid.visibility == View.VISIBLE
