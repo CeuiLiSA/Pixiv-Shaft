@@ -80,19 +80,71 @@
             </LinearLayout>
 
             <!-- Bio (between profile and workspace) -->
-            <TextView
-                android:id="@+id/bio"
+            <LinearLayout
+                android:id="@+id/bio_section"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:alpha="0.78"
-                android:autoLink="all"
-                android:lineSpacingMultiplier="1.6"
-                android:textColor="@color/v3_text_1"
-                android:textColorLink="#3D8BFD"
-                android:textIsSelectable="true"
-                android:textSize="14sp"
-                android:visibility="gone" />
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="0.12"
+                        android:text="@string/label_personal_intro"
+                        android:textAllCaps="true"
+                        android:textColor="@color/v3_text_3"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <ImageView
+                        android:id="@+id/bio_translate"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:padding="12dp"
+                        android:contentDescription="@string/string_translate_caption"
+                        android:src="@drawable/ic_baseline_translate_24"
+                        app:tint="@color/v3_text_3" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/bio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:alpha="0.78"
+                    android:autoLink="all"
+                    android:lineSpacingMultiplier="1.6"
+                    android:textColor="@color/v3_text_1"
+                    android:textColorLink="#3D8BFD"
+                    android:textIsSelectable="true"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/bio_toggle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:text="@string/v3_desc_expand"
+                    android:textColor="@color/v3_blue"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+            </LinearLayout>
 
             <!-- Workspace Card -->
             <LinearLayout

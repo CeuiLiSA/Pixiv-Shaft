@@ -6,6 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.core.view.OneShotPreDrawListener
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.core.view.doOnPreDraw
 import androidx.databinding.DataBindingUtil
@@ -20,7 +22,11 @@ import ceui.lisa.utils.PixivOperate
 import ceui.lisa.viewmodel.UserViewModel
 import ceui.loxia.Event
 import ceui.loxia.WebUserDetail
+import ceui.pixiv.ui.comments.translateComment
 import ceui.pixiv.session.SessionManager
+
+/** 作者简介折叠阈值，与 V3 详情页简介一致。 */
+private const val BIO_COLLAPSED_LINES = 5
 
 /**
  * V3 用户主页右侧 Tab —— 资料 / 工作环境 / 社交链接 / 简介 / 屏蔽。
@@ -32,6 +38,10 @@ class UserV3InfoFragment : Fragment() {
     private var _binding: FragmentUserV3InfoBinding? = null
     private val binding get() = _binding!!
     private val userViewModel: UserViewModel by activityViewModels()
+
+    /** 作者简介展开态（对齐 V3 详情页简介折叠）。 */
+    private var bioExpanded = false
+    private var bioFullText: CharSequence? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -74,11 +84,71 @@ class UserV3InfoFragment : Fragment() {
                 binding.muteSwitch.setOnCheckedChangeListener(muteSwitchListener)
             }
         }
+        binding.bioTranslate.setOnClickListener { translateBio() }
+        binding.bioToggle.setOnClickListener {
+            bioExpanded = !bioExpanded
+            applyBioCollapseState()
+        }
     }
 
     override fun onDestroyView() {
+        clearPendingBioPreDraw()
+        bioFullText = null
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun bindBio(full: CharSequence) {
+        bioFullText = full
+        binding.bioSection.isVisible = true
+        binding.bio.text = full
+        binding.bio.movementMethod = android.text.method.LinkMovementMethod.getInstance()
+        applyBioCollapseState()
+    }
+
+    private fun translateBio() {
+        val plain = (bioFullText ?: binding.bio.text).toString().trim()
+        translateComment(plain)
+    }
+
+    /**
+     * 长简介折叠，对齐 V3 详情页简介区：#965/#1005 同款实现口径。
+     * 折叠态在文本层面截到第 [BIO_COLLAPSED_LINES] 行止，避免 textIsSelectable /
+     * LinkMovementMethod 把隐藏行滚出来。
+     */
+    private fun applyBioCollapseState() {
+        val full = bioFullText ?: return
+        binding.bio.maxLines = if (bioExpanded) Int.MAX_VALUE else BIO_COLLAPSED_LINES
+        binding.bio.text = full
+        binding.bio.scrollTo(0, 0)
+        binding.bioToggle.setText(
+            if (bioExpanded) R.string.v3_desc_collapse else R.string.v3_desc_expand
+        )
+        clearPendingBioPreDraw()
+        lateinit var request: OneShotPreDrawListener
+        request = binding.bio.doOnPreDraw {
+            if (binding.bio.getTag(R.id.v3_desc_predraw_listener) === request &&
+                bioFullText === full
+            ) {
+                binding.bio.setTag(R.id.v3_desc_predraw_listener, null)
+                val layout = binding.bio.layout
+                if (layout != null) {
+                    val overflow = layout.lineCount > BIO_COLLAPSED_LINES
+                    binding.bioToggle.isVisible = overflow
+                    if (!bioExpanded && overflow) {
+                        val end = layout.getLineEnd(BIO_COLLAPSED_LINES - 1).coerceIn(0, full.length)
+                        binding.bio.text = full.subSequence(0, end).trimEnd()
+                    }
+                }
+            }
+        }
+        binding.bio.setTag(R.id.v3_desc_predraw_listener, request)
+    }
+
+    private fun clearPendingBioPreDraw() {
+        (binding.bio.getTag(R.id.v3_desc_predraw_listener) as? OneShotPreDrawListener)
+            ?.removeListener()
+        binding.bio.setTag(R.id.v3_desc_predraw_listener, null)
     }
 
     private fun bindUserDetail(data: UserDetailResponse) {
@@ -88,11 +158,11 @@ class UserV3InfoFragment : Fragment() {
 
         // Bio
         if (!TextUtils.isEmpty(user.comment)) {
-            binding.bio.visibility = View.VISIBLE
-            binding.bio.text = androidx.core.text.HtmlCompat.fromHtml(
-                user.comment.orEmpty(), androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+            bindBio(
+                androidx.core.text.HtmlCompat.fromHtml(
+                    user.comment.orEmpty(), androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+                )
             )
-            binding.bio.movementMethod = android.text.method.LinkMovementMethod.getInstance()
         }
 
         // Social chips from app API (web API may add more later)
@@ -114,11 +184,11 @@ class UserV3InfoFragment : Fragment() {
     private fun bindWebUserDetail(detail: WebUserDetail) {
         // Web 端的 commentHtml 比 app 端的 user.comment 排版更全（有 <a> 等标签）,有就覆盖。
         if (!detail.commentHtml.isNullOrEmpty()) {
-            binding.bio.isVisible = true
-            binding.bio.text = androidx.core.text.HtmlCompat.fromHtml(
-                detail.commentHtml, androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+            bindBio(
+                androidx.core.text.HtmlCompat.fromHtml(
+                    detail.commentHtml, androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+                )
             )
-            binding.bio.movementMethod = android.text.method.LinkMovementMethod.getInstance()
         }
 
         // Supplement social links from Web API
