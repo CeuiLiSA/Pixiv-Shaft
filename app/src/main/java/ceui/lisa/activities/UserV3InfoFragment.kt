@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -307,25 +308,35 @@ class UserV3InfoFragment : Fragment() {
         return bd.root
     }
 
+    /**
+     * 子卡片先按「半行宽度」量自己的期望宽度，两个都放得下才并列，否则独占一行，而不是强行
+     * 并列截断。判断依赖 grid 的真实宽度：首次绑定时父卡片刚从 gone 切 visible，grid 还没量过，
+     * 等这一次 layout 出来再摆（同一帧内完成，不闪）；已布局过（下拉刷新重绑）时 doOnLayout
+     * 同步执行。不能拿屏幕宽度估算——平板双栏 / 分屏下 widthPixels 是整屏宽，估出来比实际
+     * 宽一倍，长文本照样被并列截断，等于没修。
+     */
     private fun renderChipGrid(
         grid: LinearLayout,
         chipCount: Int,
         createChip: (Int) -> View,
         isFullWidth: (Int) -> Boolean = { false },
     ) {
+        grid.doOnLayout { layoutChipGrid(grid, chipCount, createChip, isFullWidth) }
+    }
+
+    private fun layoutChipGrid(
+        grid: LinearLayout,
+        chipCount: Int,
+        createChip: (Int) -> View,
+        isFullWidth: (Int) -> Boolean,
+    ) {
         grid.removeAllViews()
         val density = resources.displayMetrics.density
         val rowGap = (10 * density).toInt()
         val chipGap = (5 * density).toInt()
 
-        // 子卡片先按“半行宽度”测自己的期望宽度，容不下就独占一行，而不是强行并列截断。
-        // 首次数据到达时 grid 可能尚未完成布局，退回按屏幕/卡片边距估算。
-        val gridWidth = if (grid.width > 0) grid.width else {
-            resources.displayMetrics.widthPixels -
-                (20 * density).toInt() * 2 -
-                (18 * density).toInt() * 2
-        }
-        val halfSlotWidth = ((gridWidth - chipGap) / 2).coerceAtLeast(0)
+        // 并列时 chip1 有 marginEnd、chip2 有 marginStart，一行让出两份 chipGap。
+        val halfSlotWidth = ((grid.width - chipGap * 2) / 2).coerceAtLeast(0)
 
         fun fitsHalfSlot(chip: View): Boolean {
             val bd = ItemV3ProfileChipBinding.bind(chip)
