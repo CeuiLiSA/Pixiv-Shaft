@@ -46,6 +46,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 同义词词典管理页（issue #904），承载于 TemplateActivity「同义词词典」。
@@ -165,7 +166,7 @@ class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
             Params.TYPE_PUBLIC
         }
         val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, if (toNovel) "小说收藏" else "插画/漫画收藏")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, (if (toNovel) TemplateRoute.NOVEL_BOOKMARKS else TemplateRoute.ILLUST_BOOKMARKS).key)
             putExtra(Params.USER_ID, SessionManager.loggedInUid)
             putExtra(Params.STAR_TYPE, starType)
             putExtra(Params.KEY_WORD, targetName)

@@ -41,6 +41,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.color.MaterialColors
 import kotlin.math.roundToInt
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 「屏蔽设定」MD3-Expressive bottom sheet —— 取代 legacy `ceui.lisa.dialogs.MuteDialog`
@@ -136,7 +137,7 @@ class MuteTagSheet : BottomSheetDialogFragment() {
         binding.btnSave.setOnClickListener { save() }
         binding.btnHistory.setOnClickListener {
             startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, MUTED_TAGS_ROUTE)
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MUTED_TAGS.key)
             })
             dismissAllowingStateLoss()
         }
@@ -424,7 +425,6 @@ class MuteTagSheet : BottomSheetDialogFragment() {
         private const val MAX_HEIGHT_FRACTION = 0.82F
 
         /** [TemplateActivity] 的路由 key，不是 UI 文案。 */
-        private const val MUTED_TAGS_ROUTE = "标签屏蔽记录"
 
         /** 作者 argument key（[User] 本身 Serializable，整只带过来即可）。 */
         private const val KEY_AUTHOR = "mute_sheet_author"

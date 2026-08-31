@@ -42,6 +42,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * issue #1023「编辑标签」MD3-Expressive bottom sheet —— pixiv 社区标签的就地增删。
@@ -200,7 +201,7 @@ class TagEditSheet : BottomSheetDialogFragment() {
             TagEditViewModel.Effect.GoWebLogin -> {
                 startActivity(
                     Intent(requireContext(), TemplateActivity::class.java).apply {
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, WEB_HOME_ROUTE)
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_HOME.key)
                         putExtra(Params.AUTO_WEB_LOGIN, true)
                     }
                 )
@@ -326,7 +327,6 @@ class TagEditSheet : BottomSheetDialogFragment() {
         private const val MAX_HEIGHT_FRACTION = 0.75F
 
         /** [TemplateActivity] 的路由 key，不是 UI 文案。 */
-        private const val WEB_HOME_ROUTE = "Web首页"
 
         /**
          * 唯一入口。重复 show 由 TAG 挡掉(标签行末尾那格容易连点)。

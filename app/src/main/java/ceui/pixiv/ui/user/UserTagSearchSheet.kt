@@ -31,6 +31,7 @@ import ceui.pixiv.ui.search.v3.V3BottomSheetBase
 import ceui.pixiv.utils.setOnClick
 import kotlinx.coroutines.launch
 import java.util.Locale
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 画师主页「高级搜索」—— 该画师**全量**作品标签的可搜索列表，对齐网页版画师页的同名面板。
@@ -210,7 +211,7 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         startActivity(
             Intent(requireContext(), TemplateActivity::class.java).apply {
                 putExtra(Params.USER_ID, userId)
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, routeOf(category))
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, routeOf(category).key)
                 putExtra(Params.KEY_WORD, name)
             }
         )
@@ -327,10 +328,10 @@ class UserTagSearchSheet : V3BottomSheetBase() {
         const val CATEGORY_NOVELS = "novels"
 
         /** 类别 → TemplateActivity 的筛选列表路由(chip 与 sheet 两个入口共用这份映射)。 */
-        fun routeOf(category: String): String = when (category) {
-            CATEGORY_MANGA -> "漫画标签作品"
-            CATEGORY_NOVELS -> "小说标签作品"
-            else -> "插画标签作品"
+        fun routeOf(category: String): TemplateRoute = when (category) {
+            CATEGORY_MANGA -> TemplateRoute.USER_MANGA_BY_TAG
+            CATEGORY_NOVELS -> TemplateRoute.USER_NOVELS_BY_TAG
+            else -> TemplateRoute.USER_ILLUSTS_BY_TAG
         }
 
         fun show(fm: FragmentManager, userId: Long, category: String = CATEGORY_ILLUSTS) {

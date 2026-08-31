@@ -24,6 +24,7 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * "展开全部" 子页（feeds 框架版）:从某条 group 通知点开,拉同 group 的完整流水。
@@ -33,7 +34,6 @@ import com.bumptech.glide.RequestManager
 class NotificationViewMoreFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     companion object {
-        const val ROUTE_KEY = "通知展开"
         const val EXTRA_NOTIFICATION_ID = "notification_id"
         const val EXTRA_TITLE = "notification_view_more_title"
     }
@@ -96,7 +96,7 @@ class NotificationViewMoreFragment : FeedFragment(R.layout.fragment_toolbar_feed
         // 子页里的 cell 理论上不再有 view_more,但兜底也跳一次自身。
         if (item.id <= 0L || item.id == notificationId) return
         val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, ROUTE_KEY)
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOTIFICATION_VIEW_MORE.key)
             putExtra(EXTRA_NOTIFICATION_ID, item.id)
             putExtra(EXTRA_TITLE, item.view_more?.title.orEmpty())
         }

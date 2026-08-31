@@ -18,6 +18,7 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * "通知" tab 内容页（feeds 框架版）。父 NotificationPagerFragment 自带 toolbar + tab bar
@@ -69,7 +70,7 @@ class NotificationListFragment : FeedFragment() {
     private fun onClickViewMore(item: NotificationItem) {
         if (item.id <= 0L) return
         val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, NotificationViewMoreFragment.ROUTE_KEY)
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOTIFICATION_VIEW_MORE.key)
             putExtra(NotificationViewMoreFragment.EXTRA_NOTIFICATION_ID, item.id)
             putExtra(NotificationViewMoreFragment.EXTRA_TITLE, item.view_more?.title.orEmpty())
         }

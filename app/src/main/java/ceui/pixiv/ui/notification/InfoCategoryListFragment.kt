@@ -28,7 +28,6 @@ import ceui.pixiv.utils.setOnClick
 class InfoCategoryListFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     companion object {
-        const val ROUTE_KEY = "公告分类"
         const val EXTRA_CATEGORY_ID = "info_category_id"
         const val EXTRA_CATEGORY_TITLE = "info_category_title"
     }

@@ -20,6 +20,7 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * "公告" tab 首屏（feeds 框架版）:/v1/info/latest 聚合视图,header + 4-5 个 entry / 分类。
@@ -73,7 +74,7 @@ class InfoLatestFragment : FeedFragment() {
 
     private fun onClickInfoCategoryMore(category: CategorizedInfo) {
         val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, InfoCategoryListFragment.ROUTE_KEY)
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.INFO_CATEGORY.key)
             putExtra(InfoCategoryListFragment.EXTRA_CATEGORY_ID, category.category_id)
             putExtra(InfoCategoryListFragment.EXTRA_CATEGORY_TITLE, category.category_title.orEmpty())
         }
@@ -85,7 +86,7 @@ class InfoLatestFragment : FeedFragment() {
 internal fun openInfoUrl(ctx: Context, item: InfoItem) {
     val url = item.url ?: return
     val intent = Intent(ctx, TemplateActivity::class.java).apply {
-        putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
+        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key)
         putExtra(Params.URL, url)
         putExtra(Params.TITLE, item.title.orEmpty())
     }

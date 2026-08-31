@@ -40,6 +40,7 @@ import ceui.pixiv.witstudio.theme.V3Palette;
 import ceui.lisa.view.HorizontalSpaceDecoration;
 import ceui.pixiv.ui.discovery.DiscoverViewModel;
 import ceui.pixiv.ui.prime.PrimeTagIndexItem;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /**
  * 「发现」tab —— V3 内容货架版。侧边栏「发现」分组的内容直接铺进这里:
@@ -75,7 +76,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
                 ((MainActivity) mActivity).getDrawer().openDrawer(GravityCompat.START, true);
             }
         });
-        baseBind.searchBar.setOnClickListener(v -> openFragment("搜索"));
+        baseBind.searchBar.setOnClickListener(v -> openFragment(TemplateRoute.SEARCH));
 
         // ── 货架 RecyclerView 初始化(横向,固定高)。先挂骨架图占位,数据到达后 bindXxxRail 换真实
         //    adapter —— rail 高度全程不变,页面没有任何高度跳动。骨架卡宽与真实卡一致(标签 120 / 插画 180)。──
@@ -109,35 +110,35 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         }
 
         // ── 「查看全部」跳原来的整页 ──
-        baseBind.tagMore.setOnClickListener(v -> openFragment("PrimeTagsList"));
-        baseBind.latestMore.setOnClickListener(v -> openFragmentKeepStatusBar("最新作品"));
-        baseBind.siteMore.setOnClickListener(v -> openFragment("站长推荐"));
-        baseBind.recentMore.setOnClickListener(v -> openFragment("当前最热"));
+        baseBind.tagMore.setOnClickListener(v -> openFragment(TemplateRoute.PRIME_TAGS));
+        baseBind.latestMore.setOnClickListener(v -> openFragmentKeepStatusBar(TemplateRoute.NEW_WORKS));
+        baseBind.siteMore.setOnClickListener(v -> openFragment(TemplateRoute.SITE_RECOMMEND));
+        baseBind.recentMore.setOnClickListener(v -> openFragment(TemplateRoute.RECENT_RECOMMEND));
 
         // ── 重点模块:漫画 / 小说 —— 置顶大卡,和下面的小分类 chip 分开(用户反馈:别混在一起) ──
-        baseBind.bigManga.setOnClickListener(v -> openFragment("推荐漫画"));
-        baseBind.bigNovel.setOnClickListener(v -> openFragmentKeepStatusBar("推荐小说"));
+        baseBind.bigManga.setOnClickListener(v -> openFragment(TemplateRoute.RECOMMENDED_MANGA));
+        baseBind.bigNovel.setOnClickListener(v -> openFragmentKeepStatusBar(TemplateRoute.RECOMMENDED_NOVELS));
 
         // ── 更多分类:旧跳转卡降级成一排 chip ──
-        baseBind.catArtistRank.setOnClickListener(v -> openFragment("画师榜"));
-        baseBind.catArtistAvgRank.setOnClickListener(v -> openFragment("画师均分榜"));
-        baseBind.catViewRank.setOnClickListener(v -> openFragment("浏览量榜"));
-        baseBind.catPixivComic.setOnClickListener(v -> openFragment("pixiv漫画"));
-        baseBind.catBookmarkRank.setOnClickListener(v -> openFragment("收藏榜"));
-        baseBind.catAiRank.setOnClickListener(v -> openFragment("AI榜"));
-        baseBind.catYearRank.setOnClickListener(v -> openFragment("年代榜"));
-        baseBind.catTagRank.setOnClickListener(v -> openFragment("标签榜"));
-        baseBind.catWallpaperRank.setOnClickListener(v -> openFragment("壁纸榜"));
-        baseBind.catSeriesRank.setOnClickListener(v -> openFragment("系列榜"));
-        baseBind.catMonthRank.setOnClickListener(v -> openFragment("新作榜"));
-        baseBind.catNovelLengthRank.setOnClickListener(v -> openFragment("长篇小说榜"));
-        baseBind.catSfwRank.setOnClickListener(v -> openFragment("全年龄榜"));
-        baseBind.catTrendingArtists.setOnClickListener(v -> openFragment("人气画师"));
-        baseBind.catUgoiraRank.setOnClickListener(v -> openFragment("动图榜"));
-        baseBind.catWalk.setOnClickListener(v -> openFragment("画廊"));
-        baseBind.catFollowNovel.setOnClickListener(v -> openFragment("关注者的小说"));
-        baseBind.catDiscovery.setOnClickListener(v -> openFragment("发现"));
-        baseBind.catNiceFriend.setOnClickListener(v -> openFragment("好P友作品"));
+        baseBind.catArtistRank.setOnClickListener(v -> openFragment(TemplateRoute.ARTIST_RANK));
+        baseBind.catArtistAvgRank.setOnClickListener(v -> openFragment(TemplateRoute.ARTIST_AVG_RANK));
+        baseBind.catViewRank.setOnClickListener(v -> openFragment(TemplateRoute.VIEW_RANK));
+        baseBind.catPixivComic.setOnClickListener(v -> openFragment(TemplateRoute.PIXIV_COMIC));
+        baseBind.catBookmarkRank.setOnClickListener(v -> openFragment(TemplateRoute.BOOKMARK_RANK));
+        baseBind.catAiRank.setOnClickListener(v -> openFragment(TemplateRoute.AI_RANK));
+        baseBind.catYearRank.setOnClickListener(v -> openFragment(TemplateRoute.YEAR_RANK));
+        baseBind.catTagRank.setOnClickListener(v -> openFragment(TemplateRoute.TAG_RANK));
+        baseBind.catWallpaperRank.setOnClickListener(v -> openFragment(TemplateRoute.WALLPAPER_RANK));
+        baseBind.catSeriesRank.setOnClickListener(v -> openFragment(TemplateRoute.SERIES_RANK));
+        baseBind.catMonthRank.setOnClickListener(v -> openFragment(TemplateRoute.MONTH_RANK));
+        baseBind.catNovelLengthRank.setOnClickListener(v -> openFragment(TemplateRoute.NOVEL_LENGTH_RANK));
+        baseBind.catSfwRank.setOnClickListener(v -> openFragment(TemplateRoute.SFW_RANK));
+        baseBind.catTrendingArtists.setOnClickListener(v -> openFragment(TemplateRoute.TRENDING_ARTISTS));
+        baseBind.catUgoiraRank.setOnClickListener(v -> openFragment(TemplateRoute.UGOIRA_RANK));
+        baseBind.catWalk.setOnClickListener(v -> openFragment(TemplateRoute.WALKTHROUGH));
+        baseBind.catFollowNovel.setOnClickListener(v -> openFragment(TemplateRoute.FOLLOWING_NOVELS));
+        baseBind.catDiscovery.setOnClickListener(v -> openFragment(TemplateRoute.DISCOVERY));
+        baseBind.catNiceFriend.setOnClickListener(v -> openFragment(TemplateRoute.NICE_FRIEND_ILLUSTS));
 
         // Web 首页:仅 github 渠道(占位 Coming soon),Lite 整个 chip GONE。
         if (BuildConfig.IS_LITE) {
@@ -242,7 +243,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
             String name = item.getTag().getTranslated_name() != null
                     ? item.getTag().getTranslated_name() : item.getTag().getName();
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "PrimeTagDetail");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PRIME_TAG_DETAIL.key);
             intent.putExtra("name", name);
             intent.putExtra("key", item.getTagKey());
             startActivity(intent);
@@ -280,16 +281,16 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         iconWrap.setBackground(palette.seriesIconBg(DensityUtil.dp2px(12.0f)));
     }
 
-    private void openFragment(String dataType) {
+    private void openFragment(TemplateRoute route) {
         Intent intent = new Intent(mContext, TemplateActivity.class);
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, dataType);
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, route.key);
         startActivity(intent);
     }
 
     /** 小说类页面进 TemplateActivity 时保留状态栏(和旧入口/侧边栏一致)。 */
-    private void openFragmentKeepStatusBar(String dataType) {
+    private void openFragmentKeepStatusBar(TemplateRoute route) {
         Intent intent = new Intent(mContext, TemplateActivity.class);
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, dataType);
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, route.key);
         intent.putExtra("hideStatusBar", false);
         startActivity(intent);
     }

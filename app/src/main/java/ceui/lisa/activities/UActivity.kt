@@ -49,6 +49,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResponse> {
     private var userId = 0L
@@ -219,24 +220,24 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
 
             if (totalIllusts > 0) {
                 labels.add("跳转到插画…")
-                actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, "插画作品") }
+                actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, TemplateRoute.USER_ILLUSTS) }
             }
             if (totalManga > 0) {
                 labels.add("跳转到漫画…")
-                actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, "漫画作品") }
+                actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, TemplateRoute.USER_MANGA) }
             }
             // 与 V3 的「更多」菜单对齐：自己的页面也要能进相关用户和下载管理
             labels.add(getString(R.string.string_436)) // 相关用户
             actions.add {
                 val intent = Intent(mContext, TemplateActivity::class.java)
                 intent.putExtra(Params.USER_ID, data.user.id)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关用户")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RELATED_USERS.key)
                 startActivity(intent)
             }
             labels.add(getString(R.string.bulk_user_menu_open_download_manager))
             actions.add {
                 val intent = Intent(mContext, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DOWNLOAD_MANAGER.key)
                 startActivity(intent)
             }
             // issue #1027:把作者主页固定成桌面图标。桌面不支持时(部分三方 launcher)不摆这一项
@@ -311,7 +312,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         val pFriend = View.OnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, data.user.id)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "好P友")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NICE_FRIENDS.key)
             startActivity(intent)
         }
         baseBind.pFriend.setOnClickListener(pFriend)
@@ -319,7 +320,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         val follow = View.OnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, data.user.id)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "正在关注")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FOLLOWING.key)
             startActivity(intent)
         }
         baseBind.followCount.setOnClickListener(follow)
@@ -328,17 +329,17 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
 
     private fun openImageDetail(imageUrl: String, saveName: String) {
         startActivity(Intent(mContext, TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.IMAGE_DETAIL.key)
             putExtra(Params.URL, imageUrl)
             putExtra(Params.TITLE, saveName)
         })
     }
 
-    private fun jumpTo(userID: Long, kind: UserIllustJumpHelper.Kind, fragmentTag: String) {
+    private fun jumpTo(userID: Long, kind: UserIllustJumpHelper.Kind, route: TemplateRoute) {
         UserIllustJumpHelper.showJumpDialog(this, userID, kind) { offset, pickedDate ->
             if (isFinishing || isDestroyed) return@showJumpDialog
             val intent = Intent(this, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, fragmentTag)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, route.key)
             intent.putExtra(Params.USER_ID, userID)
             intent.putExtra(Params.INITIAL_OFFSET, offset)
             if (pickedDate != null) intent.putExtra(Params.TARGET_DATE, pickedDate)

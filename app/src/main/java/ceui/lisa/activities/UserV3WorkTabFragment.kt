@@ -147,7 +147,7 @@ class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovel
         filterBar.onTagClick = { name ->
             val intent = Intent(requireContext(), TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, userId)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, UserTagSearchSheet.routeOf(category))
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, UserTagSearchSheet.routeOf(category).key)
             intent.putExtra(Params.KEY_WORD, name)
             startActivity(intent)
         }

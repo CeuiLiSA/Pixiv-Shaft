@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import ceui.lisa.R
 import ceui.lisa.helper.UserIllustJumpHelper
 import ceui.lisa.utils.Params
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 「某人创作的漫画」列表页（feeds 框架版，替代 legacy FragmentUserManga + UserMangaRepo）。
@@ -34,7 +35,7 @@ class UserMangaFeedFragment : UserIllustFeedFragment() {
 
     companion object {
         /** legacy 精华功能的 dataType 路由字面量（按它分支重建页面），不是展示文案，别本地化。 */
-        private const val DATA_TYPE_FEATURE = "漫画作品"
+        private val DATA_TYPE_FEATURE = TemplateRoute.USER_MANGA.key
 
         @JvmStatic
         @JvmOverloads

@@ -31,6 +31,7 @@ import ceui.pixiv.ui.common.setUpToolbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 「某人收藏的插画/漫画」列表页（feeds 框架版，替代 legacy FragmentLikeIllust +
@@ -159,7 +160,7 @@ class LikeIllustFeedFragment : IllustFeedFragment() {
 
     companion object {
         /** legacy 精华功能的 dataType 路由字面量（按它分支重建页面），不是展示文案，别本地化。 */
-        private const val DATA_TYPE_FEATURE = "插画/漫画收藏"
+        private val DATA_TYPE_FEATURE = TemplateRoute.ILLUST_BOOKMARKS.key
 
         /** [initialTag] 初始按标签过滤（同义词词典管理页跳转用，issue #904），null/空 = 不过滤。 */
         @JvmStatic

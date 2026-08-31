@@ -46,6 +46,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.min
+import ceui.pixiv.ui.navigation.TemplateRoute
+import timber.log.Timber
 
 /** 本地精华列表的分页大小，对齐 legacy ListFragment.PAGE_SIZE（20）。 */
 private const val PAGE_SIZE = 20
@@ -157,7 +159,12 @@ class FeatureFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     /** 点卡片：按 dataType 分发到对应二级页（对齐 legacy 的 viewType==0 分支）。 */
     private fun openFeature(entity: FeatureEntity) {
         val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, entity.dataType)
+        // dataType 是落库的路由 key；库里冒出认不得的值不该崩到 TemplateActivity 里去。
+        val route = TemplateRoute.fromKey(entity.dataType) ?: run {
+            Timber.w("feature entity %s carries unknown route '%s'", entity.uuid, entity.dataType)
+            return
+        }
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, route.key)
         intent.putExtra(Params.USER_ID, entity.userID)
         intent.putExtra(Params.ILLUST_ID, entity.illustID)
         intent.putExtra(Params.ILLUST_TITLE, entity.illustTitle)
@@ -249,7 +256,7 @@ class FeatureFeedSource : FeedSource<Int> {
                 .getFeatureList(PAGE_SIZE, offset)
             page.forEach { entity ->
                 if (entity.illustJson.isNotEmpty()) {
-                    if (entity.dataType == "漫画系列作品") {
+                    if (entity.dataType == TemplateRoute.USER_MANGA_SERIES.key) {
                         entity.allMangaSeries = Shaft.sGson.fromJson(
                             entity.illustJson,
                             object : TypeToken<List<MangaSeriesItem>>() {}.type,

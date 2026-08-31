@@ -57,6 +57,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.text.NumberFormat
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 private const val KEY_TAB_KINDS = "user_v3_tab_kinds"
 /**
@@ -587,13 +588,13 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         baseBind.statFollowing.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, user.id)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "正在关注")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FOLLOWING.key)
             startActivity(intent)
         }
         baseBind.statMypixiv.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, user.id)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "好P友")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NICE_FRIENDS.key)
             startActivity(intent)
         }
 
@@ -619,7 +620,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         showBanner(cover) {
             if (tryOpenNovelReaderDirect(novel.id)) return@showBanner
             startActivity(Intent(this, TemplateActivity::class.java).apply {
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情")
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_DETAIL.key)
                 putExtra(Params.NOVEL_ID, novel.id)
             })
         }
@@ -695,7 +696,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             baseBind.msgBtn.imageTintList = android.content.res.ColorStateList.valueOf(palette.textAccent)
             baseBind.msgBtn.setOnClick {
                 val intent = android.content.Intent(mContext, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "聊天室")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.CHAT.key)
                 intent.putExtra(TemplateActivity.EXTRA_CHAT_PEER_UID, userId)
                 startActivity(intent)
             }
@@ -721,17 +722,17 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
         if (data.profile.total_illusts > 0) {
             labels.add("跳转到插画…")
-            actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, "插画作品") }
+            actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.ILLUST, TemplateRoute.USER_ILLUSTS) }
         }
         if (data.profile.total_manga > 0) {
             labels.add("跳转到漫画…")
-            actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, "漫画作品") }
+            actions.add { jumpTo(data.user.id, UserIllustJumpHelper.Kind.MANGA, TemplateRoute.USER_MANGA) }
         }
         labels.add(getString(R.string.string_436)) // 相关用户
         actions.add {
             val intent = Intent(this, TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, data.user.id)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关用户")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RELATED_USERS.key)
             startActivity(intent)
         }
         if (data.profile.total_illusts > 0) {
@@ -757,7 +758,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         labels.add(getString(R.string.bulk_user_menu_open_download_manager))
         actions.add {
             val intent = Intent(this, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理") // route key
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DOWNLOAD_MANAGER.key) // route key
             startActivity(intent)
         }
         // issue #1027:把作者主页固定成桌面图标。桌面不支持时(部分三方 launcher)不摆这一项
@@ -817,11 +818,11 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         // 不在这里 notifyNewItems —— 等 fetcher 全部抓完才统一唤醒消费者
     }
 
-    private fun jumpTo(userID: Long, kind: UserIllustJumpHelper.Kind, fragmentTag: String) {
+    private fun jumpTo(userID: Long, kind: UserIllustJumpHelper.Kind, route: TemplateRoute) {
         UserIllustJumpHelper.showJumpDialog(this, userID, kind) { offset, pickedDate ->
             if (isFinishing || isDestroyed) return@showJumpDialog
             val intent = Intent(this, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, fragmentTag)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, route.key)
             intent.putExtra(Params.USER_ID, userID)
             intent.putExtra(Params.INITIAL_OFFSET, offset)
             if (pickedDate != null) intent.putExtra(Params.TARGET_DATE, pickedDate)
@@ -831,7 +832,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
 
     private fun openImageDetail(imageUrl: String, saveName: String) {
         startActivity(Intent(mContext, TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.IMAGE_DETAIL.key)
             putExtra(Params.URL, imageUrl)
             putExtra(Params.TITLE, saveName)
         })

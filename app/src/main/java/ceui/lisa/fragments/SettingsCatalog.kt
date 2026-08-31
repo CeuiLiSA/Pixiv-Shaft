@@ -15,6 +15,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.witstudio.theme.WitRowStyle
 import ceui.pixiv.ui.settings.CustomThemeColor
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 两级设置页的目录：分类定义 + 全量设置项索引（搜索用）。
@@ -24,7 +25,6 @@ import ceui.pixiv.ui.settings.CustomThemeColor
  */
 object SettingsCatalog {
 
-    const val PAGE_CATEGORY = "设置分类"
     const val EXTRA_CATEGORY = "settings_category"
     const val EXTRA_HIGHLIGHT = "settings_highlight_id"
 
@@ -242,7 +242,7 @@ object SettingsCatalog {
     @JvmOverloads
     fun open(context: Context, category: Category, highlightIdName: String? = null) {
         val intent = Intent(context, TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, PAGE_CATEGORY)
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SETTINGS_CATEGORY.key)
         intent.putExtra(EXTRA_CATEGORY, category.key)
         if (!highlightIdName.isNullOrEmpty()) {
             intent.putExtra(EXTRA_HIGHLIGHT, highlightIdName)

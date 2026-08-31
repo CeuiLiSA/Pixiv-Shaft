@@ -20,6 +20,7 @@ import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import ceui.lisa.core.JavaAsync;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
@@ -34,8 +35,6 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
     private static final String HOST_ACCOUNT = "account";
     private static final String HOST_SEARCH = "search";
-    private static final String FRAGMENT_WEB = "网页链接";
-    private static final String FRAGMENT_LOGIN = "登录注册";
 
     // 已经发起过 token 交换的登录 code。OAuth 授权码是单次性的,重复提交会被 Pixiv
     // 拒成「不正确的请求」(invalid_request)。static 是为了跨 Activity 重建(配置变化/
@@ -229,7 +228,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
         Intent intent = new Intent(mContext, TemplateActivity.class);
         intent.putExtra(Params.URL, url);
         intent.putExtra(Params.TITLE, title);
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, FRAGMENT_WEB);
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key);
         if (preferPreserve) {
             intent.putExtra(Params.PREFER_PRESERVE, true);
         }
@@ -357,7 +356,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                     @Override
                     public void onClick(WitDialog dialog, int index) {
                         Intent intent = new Intent(mContext, TemplateActivity.class);
-                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, FRAGMENT_WEB);
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key);
                         intent.putExtra(Params.URL, Params.URL_R18_SETTING);
                         startActivity(intent);
                     }
@@ -385,7 +384,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
      */
     private void backToLoginScreen() {
         Intent intent = new Intent(mContext, TemplateActivity.class);
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, FRAGMENT_LOGIN);
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.LOGIN.key);
         startActivity(intent);
         finish();
     }
