@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import ceui.lisa.activities.TemplateActivity
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 打开「网络测试」页，与侧边栏 nav_network_test 走同一条 TemplateActivity 路由，不新增页面。
@@ -12,7 +13,7 @@ import ceui.lisa.activities.TemplateActivity
  */
 fun openNetworkTestPage(context: Context) {
     val intent = Intent(context, TemplateActivity::class.java)
-        .putExtra(TemplateActivity.EXTRA_FRAGMENT, "网络测试")
+        .putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DEBUG_NETWORK_TEST.key)
     if (context !is Activity) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }

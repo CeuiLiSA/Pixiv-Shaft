@@ -31,6 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /** 历史卡封面高度下限 = 宽的 0.5 倍(对齐改造前 `coerceAtLeast(itemWidth / 2)` 的语义)。 */
 private const val MIN_HISTORY_HEIGHT_RATIO = 0.5f
@@ -417,7 +418,7 @@ fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedIte
                 } else if (!v.context.tryOpenNovelReaderDirect(item.novel.id.toLong())) {
                     v.context.startActivity(Intent(v.context, TemplateActivity::class.java).apply {
                         putExtra(Params.CONTENT, item.novel)
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情")
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_DETAIL.key)
                         putExtra("hideStatusBar", true)
                     })
                 }

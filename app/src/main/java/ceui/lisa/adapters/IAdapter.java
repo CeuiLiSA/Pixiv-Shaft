@@ -49,6 +49,7 @@ import ceui.lisa.utils.PixivOperate;
 import ceui.pixiv.db.EntityWrapper;
 import ceui.pixiv.ui.recommend.TrendingScoreFormatKt;
 import ceui.pixiv.ui.slideshow.SlideshowLauncher;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 public class IAdapter extends BaseAdapter<Illust, RecyIllustStaggerBinding> implements MultiDownload {
 
@@ -298,7 +299,7 @@ public class IAdapter extends BaseAdapter<Illust, RecyIllustStaggerBinding> impl
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(mContext, TemplateActivity.class);
-                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论");
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key);
                         // TemplateActivity 按 getIntExtra 读 ILLUST_ID,Illust.getId() 是 long 必须收窄
                         intent.putExtra(Params.ILLUST_ID, (int) illust.getId());
                         intent.putExtra(Params.ILLUST_TITLE, illust.getTitle());

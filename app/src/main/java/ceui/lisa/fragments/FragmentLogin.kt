@@ -62,6 +62,7 @@ import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.math.roundToInt
 import timber.log.Timber
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /** refresh_token 登录的终局，由 [LandingViewModel] 发出、[FragmentLogin] 消费。 */
 sealed class RefreshTokenLoginOutcome {
@@ -258,7 +259,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             when (item.itemId) {
                 R.id.action_settings -> {
                     startActivity(Intent(mContext, TemplateActivity::class.java).apply {
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置")
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SETTINGS.key)
                     })
                     true
                 }
@@ -587,7 +588,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         } else {
             page.restoreFromEmail.setOnClickListener {
                 startActivity(Intent(mContext, TemplateActivity::class.java).apply {
-                    putExtra(TemplateActivity.EXTRA_FRAGMENT, "邮箱备份")
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.EMAIL_BACKUP.key)
                     putExtra("mode", "restore")
                 })
             }
@@ -671,7 +672,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
 
     private fun openWebPage(url: String, title: String) {
         startActivity(Intent(mContext, TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key)
             putExtra(Params.URL, url)
             putExtra(Params.TITLE, title)
         })

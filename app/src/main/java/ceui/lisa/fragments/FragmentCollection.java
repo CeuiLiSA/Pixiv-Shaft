@@ -31,6 +31,7 @@ import ceui.pixiv.ui.bulk.BulkActions;
 import ceui.pixiv.ui.collection.LikeIllustFeedFragment;
 
 import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
@@ -131,7 +132,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
                 if (item.getItemId() == R.id.action_filter) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_KEYWORD, restrict);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签筛选");
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.BOOKED_TAG_FILTER.key);
                     intent.putExtra(Params.DATA_TYPE, type);
                     startActivity(intent);
                     return true;

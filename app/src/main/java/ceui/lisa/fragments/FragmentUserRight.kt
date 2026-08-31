@@ -17,6 +17,7 @@ import ceui.lisa.utils.PixivOperate
 import ceui.lisa.viewmodel.UserViewModel
 import com.zhy.view.flowlayout.FlowLayout
 import com.zhy.view.flowlayout.TagAdapter
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 class FragmentUserRight : BaseLazyFragment<FragmentUserRightBinding>() {
 
@@ -93,28 +94,28 @@ class FragmentUserRight : BaseLazyFragment<FragmentUserRightBinding>() {
             intent.putExtra(Params.USER_ID, data.user.userId)
             when {
                 content[position].contains(getString(R.string.string_246)) -> {
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画作品")
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.USER_ILLUSTS.key)
                 }
                 content[position].contains(getString(R.string.string_233)) -> {
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画作品")
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.USER_MANGA.key)
                 }
                 content[position].contains(getString(R.string.string_230)) -> {
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列作品")
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.USER_MANGA_SERIES.key)
                 }
                 content[position].contains(getString(R.string.string_237)) -> {
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说作品")
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.USER_NOVELS.key)
                 }
                 content[position].contains(getString(R.string.string_257)) -> {
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列作品")
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.USER_NOVEL_SERIES.key)
                 }
                 content[position].contains(getString(R.string.string_164)) -> {
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画/漫画收藏")
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ILLUST_BOOKMARKS.key)
                 }
                 content[position].contains(getString(R.string.string_192)) -> {
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说收藏")
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_BOOKMARKS.key)
                 }
                 content[position].contains(getString(R.string.string_436)) -> {
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关用户")
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RELATED_USERS.key)
                 }
             }
             startActivity(intent)
@@ -129,7 +130,7 @@ class FragmentUserRight : BaseLazyFragment<FragmentUserRightBinding>() {
 
         baseBind.showDetail.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "详细信息")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.USER_INFO.key)
             intent.putExtra(Params.CONTENT, data)
             startActivity(intent)
         }

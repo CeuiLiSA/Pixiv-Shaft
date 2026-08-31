@@ -8,6 +8,7 @@ import ceui.lisa.activities.UActivity
 import ceui.lisa.utils.Params
 import ceui.pixiv.utils.extractPixivId
 import timber.log.Timber
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 通知 target_url 路由统一出口:
@@ -23,13 +24,13 @@ fun Context.routeNotificationTargetUrl(targetUrl: String?) {
     when (info.type) {
         "illusts" -> info.value.toLongOrNull()?.let { id ->
             startActivity(Intent(this, TemplateActivity::class.java).apply {
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "Plaza打开作品")
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PLAZA_OPEN_ILLUST.key)
                 putExtra(Params.ILLUST_ID, id.toInt())
             })
         }
         "novels" -> info.value.toLongOrNull()?.let { id ->
             startActivity(Intent(this, TemplateActivity::class.java).apply {
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情")
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_DETAIL.key)
                 putExtra(Params.NOVEL_ID, id)
                 putExtra("hideStatusBar", true)
             })

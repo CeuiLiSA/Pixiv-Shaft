@@ -66,6 +66,7 @@ import ceui.pixiv.utils.buildPinnedTagPreviewJson
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import java.text.NumberFormat
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * ArtworkV3 详情页的 header 区块 —— 从 legacy [ArtworkDetailAdapter] 的 10 个 inner ViewHolder
@@ -299,7 +300,7 @@ internal fun ArtworkV3Fragment.seriesRenderer() =
                 return@setOnClickListener
             }
             val intent = Intent(ctx, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MANGA_SERIES_DETAIL.key)
             // series.id 是 Long：走 TemplateActivity 认的 ARG_SERIES_ID(long)，别塞进 getIntExtra 读的 MANGA_SERIES_ID
             intent.putExtra(IllustSeriesFragment.ARG_SERIES_ID, series.id)
             ctx.startActivity(intent)
@@ -410,7 +411,7 @@ internal fun ArtworkV3Fragment.statsRenderer() =
                 ctx.startActivity(
                     Intent(ctx, TemplateActivity::class.java).apply {
                         putExtra(Params.CONTENT, illust)
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, "喜欢这个作品的用户")
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ILLUST_LIKERS.key)
                     }
                 )
             }
@@ -676,7 +677,7 @@ internal fun ArtworkV3Fragment.commentsRenderer() =
                     Common.showToast(ctx.getString(R.string.snapshot_no_comments_toast))
                     return
                 }
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照评论")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SNAPSHOT_COMMENTS.key)
                 // 必须显式转 Long：CommentsFragment 的 args 是 getLong 读的，
                 // 塞 Int 进去 getLongExtra 只会拿到默认值 0 —— objectArthurId 一旦是 0，
                 // CommentFeedItem.isAuthor 恒 false，作者本人的评论就不再有「作者」标记。
@@ -688,7 +689,7 @@ internal fun ArtworkV3Fragment.commentsRenderer() =
                     snapshotId,
                 )
             } else {
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key)
                 intent.putExtra(Params.ILLUST_ID, item.illustId)
                 intent.putExtra(Params.ILLUST_TITLE, item.illustTitle)
             }
@@ -812,7 +813,7 @@ internal fun ArtworkV3Fragment.authorWorksRenderer() =
         b.authorWorksSeeAll.setTextColor(palette.textAccent)
         b.authorWorksSeeAll.setOnClickListener {
             val intent = Intent(ctx, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画作品")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.USER_ILLUSTS.key)
             intent.putExtra(Params.USER_ID, item.userId)
             ctx.startActivity(intent)
         }
@@ -889,7 +890,7 @@ internal fun ArtworkV3Fragment.relatedHeaderRenderer() =
         b.relatedSeeMore.setTextColor(palette.textAccent)
         b.relatedSeeMore.setOnClick {
             val intent = Intent(ctx, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关作品")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RELATED_ILLUSTS.key)
             intent.putExtra(Params.ILLUST_ID, item.illustId)
             intent.putExtra(Params.ILLUST_TITLE, item.illustTitle)
             ctx.startActivity(intent)

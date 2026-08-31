@@ -37,6 +37,7 @@ import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 系列榜 — 打自建服务端 shaft-api-v2 的 discover/series。两个固定 tab:漫画 / 小说,
@@ -168,10 +169,10 @@ class SeriesRankFeedFragment : FeedFragment() {
         val intent = Intent(requireContext(), TemplateActivity::class.java)
         if (item.type == RankType.NOVEL) {
             intent.putExtra(NovelSeriesFragment.ARG_SERIES_ID, item.seriesId)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_SERIES.key)
         } else {
             intent.putExtra(IllustSeriesFragment.ARG_SERIES_ID, item.seriesId)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MANGA_SERIES_DETAIL.key)
         }
         startActivity(intent)
     }

@@ -64,6 +64,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.text.NumberFormat
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 // ── 从旧 holder 文件迁来的公共契约（同包，FQN 不变，外部 import 无需改）──────
 
@@ -411,7 +412,7 @@ fun novelProfileRenderer(
                 val title = ObjectPool.get<Novel>(novelId).value?.title
                 ctx.startActivity(
                     Intent(ctx, TemplateActivity::class.java).apply {
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, "喜欢这部小说的用户")
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_LIKERS.key)
                         putExtra(Params.NOVEL_ID, novelId)
                         putExtra(Params.TITLE, title)
                     }
@@ -714,7 +715,7 @@ fun novelSectionHeaderRenderer(): FeedRenderer<NovelSectionHeaderItem, SectionV3
                 if (item.section == NovelDetailSection.AUTHOR_WORKS && item.userId > 0) {
                     val ctx = sender.context
                     ctx.startActivity(Intent(ctx, TemplateActivity::class.java).apply {
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说作品")
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.USER_NOVELS.key)
                         putExtra(Params.USER_ID, item.userId)
                     })
                 }

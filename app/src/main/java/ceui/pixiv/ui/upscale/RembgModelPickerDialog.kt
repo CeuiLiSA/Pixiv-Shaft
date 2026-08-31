@@ -16,6 +16,7 @@ import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.PixivDialog
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 class RembgModelPickerDialog : PixivDialog(R.layout.dialog_rembg_model_picker) {
 
@@ -107,7 +108,7 @@ class RembgModelPickerDialog : PixivDialog(R.layout.dialog_rembg_model_picker) {
         if (!model.bundledInApk && !RembgModelManager.isModelReady(ctx, model)) {
             dismissAllowingStateLoss()
             val intent = Intent(ctx, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "模型下载")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REMBG_MODEL_DOWNLOAD.key)
             intent.putExtra("model_name", model.name)
             ctx.startActivity(intent)
         } else {

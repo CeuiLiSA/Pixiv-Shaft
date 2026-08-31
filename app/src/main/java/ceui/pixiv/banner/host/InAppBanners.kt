@@ -27,6 +27,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * Process-wide entry point for the in-app banner system.
@@ -108,13 +109,13 @@ object InAppBanners {
             if (peer > 0L) {
                 // 1v1: open the per-conversation chat fragment directly,
                 // not the list — the user explicitly wants this thread.
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "聊天室")
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.CHAT.key)
                 putExtra(TemplateActivity.EXTRA_CHAT_PEER_UID, peer)
             } else {
                 // Global: dispatch through the dedicated "open global" case
                 // so we don't bounce to the new conversation list (which
                 // now owns the bare "聊天室" route without a peer).
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "聊天-全员公屏")
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.CHAT_GLOBAL_ROOM.key)
             }
             if (activity == null) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }

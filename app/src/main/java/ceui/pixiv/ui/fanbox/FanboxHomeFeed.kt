@@ -34,6 +34,7 @@ import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * pixiv FANBOX 首页(原生)。两个 tab 一一对应网页版首页的两个接口:
@@ -147,7 +148,7 @@ class FanboxPostFeedFragment : FeedFragment() {
     /** 进原生详情页(元数据 + 赞助方案 + 评论);正文在详情页里再引导去网页。 */
     private fun openPost(post: FanboxPost) {
         startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "FANBOX帖子")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FANBOX_POST.key)
             putExtra(FanboxPostDetailFragment.ARG_POST_ID, post.id)
         })
     }
@@ -264,7 +265,7 @@ internal fun formatFanboxTime(raw: String?): String {
 /** FANBOX 的详情/创作者页都没有可用的原生接口,一律落回网页版。 */
 internal fun Fragment.openFanboxWeb(url: String) {
     startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-        putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
+        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key)
         putExtra(Params.URL, url)
         putExtra(Params.TITLE, getString(R.string.fanbox_entry))
         putExtra(Params.PREFER_PRESERVE, true)

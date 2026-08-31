@@ -45,6 +45,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import jp.wasabeef.glide.transformations.BlurTransformation
 import timber.log.Timber
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /** 收藏态局部重绑的 payload 标记（按引用识别）。 */
 private val PAYLOAD_NOVEL_BOOKMARK = Any()
@@ -548,7 +549,7 @@ abstract class NovelFeedFragment(
     private fun openNovelSeries(seriesId: Long) {
         startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
             putExtra(NovelSeriesFragment.ARG_SERIES_ID, seriesId)
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_SERIES.key)
         })
     }
 
@@ -559,7 +560,7 @@ abstract class NovelFeedFragment(
         } ?: return
         startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
             putExtra(Params.URL, GlideUtil.getUrl(url).toStringUrl())
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.IMAGE_DETAIL.key)
         })
     }
 

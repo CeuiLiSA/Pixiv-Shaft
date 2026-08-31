@@ -28,6 +28,7 @@ import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 「追更列表」的漫画 / 小说条目。持不可变的 loxia [WatchlistSeries]。
@@ -199,7 +200,7 @@ private fun WatchlistFeedFragment.openMangaSeries(series: WatchlistSeries) {
     if (series.isMasked) return
     startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
         putExtra(IllustSeriesFragment.ARG_SERIES_ID, series.id)
-        putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
+        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MANGA_SERIES_DETAIL.key)
     })
 }
 
@@ -207,7 +208,7 @@ private fun WatchlistFeedFragment.openNovelSeries(series: WatchlistSeries) {
     if (series.isMasked) return
     startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
         putExtra(NovelSeriesFragment.ARG_SERIES_ID, series.id)
-        putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列")
+        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_SERIES.key)
     })
 }
 

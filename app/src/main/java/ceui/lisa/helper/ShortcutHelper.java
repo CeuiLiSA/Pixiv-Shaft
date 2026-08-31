@@ -22,6 +22,7 @@ import androidx.core.graphics.drawable.IconCompat;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 public class ShortcutHelper {
 
@@ -44,7 +45,7 @@ public class ShortcutHelper {
 
             Intent intent = new Intent(context, TemplateActivity.class);
             intent.setAction(Intent.ACTION_VIEW);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SEARCH.key);
             IconCompat iconCompat;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 try {

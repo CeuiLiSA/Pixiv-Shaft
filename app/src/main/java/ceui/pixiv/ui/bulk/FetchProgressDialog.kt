@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat
 import java.util.ArrayDeque
 import java.util.Date
 import java.util.Locale
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * Claude Code CLI 风格的进度 dialog —— 用户能 **一直** 看到 "当前在干嘛"，绝不让人干等。
@@ -151,7 +152,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
         openManagerBtn.setOnClickListener {
             val ctx = requireContext()
             val intent = Intent(ctx, TemplateActivity::class.java)
-                .putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理") // route key, not UI text
+                .putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DOWNLOAD_MANAGER.key) // route key, not UI text
             ctx.startActivity(intent)
             dismissAllowingStateLoss()
         }

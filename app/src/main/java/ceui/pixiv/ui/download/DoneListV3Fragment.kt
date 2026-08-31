@@ -56,6 +56,7 @@ import java.util.Date
 import java.util.Locale
 import ceui.loxia.appServices
 import ceui.pixiv.ui.bulk.QueueDownloadManager
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * V3 风格 "已完成" — 双列卡片网格。
@@ -293,7 +294,7 @@ class DoneListV3Fragment : Fragment() {
             return
         }
         val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说正文")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_READER.key)
             putExtra(Params.NOVEL_ID, novelId)
         }
         startActivity(intent)

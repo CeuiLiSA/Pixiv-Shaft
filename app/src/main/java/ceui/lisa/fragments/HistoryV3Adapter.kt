@@ -26,6 +26,7 @@ import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
 import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.Locale
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 class HistoryV3Adapter(
     private val context: Context,
@@ -204,7 +205,7 @@ class HistoryV3Adapter(
         if (context.tryOpenNovelReaderDirect(novel.id.toLong())) return
         val intent = Intent(context, TemplateActivity::class.java).apply {
             putExtra(Params.CONTENT, novel)
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_DETAIL.key)
             putExtra("hideStatusBar", true)
         }
         context.startActivity(intent)

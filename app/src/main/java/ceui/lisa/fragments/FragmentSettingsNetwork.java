@@ -30,6 +30,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.loxia.Client;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /** 设置 · 网络 */
 public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettingsNetworkBinding> {
@@ -67,7 +68,7 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
         });
         baseBind.directConnectLink.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key);
             intent.putExtra(Params.URL, "https://github.com/Notsfsssf/Pix-EzViewer");
             intent.putExtra(Params.TITLE, "PxEz项目主页");
             startActivity(intent);

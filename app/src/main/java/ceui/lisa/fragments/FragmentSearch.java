@@ -50,6 +50,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.SearchTypeUtil;
 import ceui.pixiv.ui.search.SearchHintViewModel;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 
 public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
@@ -374,7 +375,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 .show());
         baseBind.viewAllPinned.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "PinnedTagsList");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PINNED_TAGS.key);
             startActivity(intent);
         });
     }

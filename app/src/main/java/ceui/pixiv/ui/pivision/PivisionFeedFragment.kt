@@ -24,6 +24,7 @@ import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 「特辑」(pixivision) 的 illust / manga tab（feeds 框架版，替代 legacy FragmentPivision +
@@ -99,7 +100,7 @@ class PivisionFeedFragment : FeedFragment() {
         val url = article.article_url ?: return
         startActivity(
             Intent(requireContext(), TemplateActivity::class.java).apply {
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key)
                 putExtra(Params.URL, url)
                 putExtra(Params.TITLE, getString(R.string.pixiv_special))
                 putExtra(Params.PREFER_PRESERVE, true)

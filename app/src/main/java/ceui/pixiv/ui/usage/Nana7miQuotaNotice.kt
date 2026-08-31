@@ -9,6 +9,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.loxia.Nana7miResult
 import com.google.android.material.snackbar.Snackbar
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 「热度排序额度用完了」的一次性提示。
@@ -109,7 +110,7 @@ fun Fragment.observeNana7miQuotaNotice() {
             .setAction(R.string.nana7mi_quota_snack_action) {
                 startActivity(
                     Intent(requireContext(), TemplateActivity::class.java)
-                        .putExtra(TemplateActivity.EXTRA_FRAGMENT, "借号用量"),
+                        .putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NANA7MI_USAGE.key),
                 )
             }
             .show()

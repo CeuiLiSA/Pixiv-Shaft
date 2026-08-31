@@ -11,6 +11,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentSettingsAiBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /** 设置 · AI 功能（超分/抠图/漫画翻译模型） */
 public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiBinding> {
@@ -57,7 +58,7 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
         {
             baseBind.rifeModelRela.setOnClickListener(v -> {
                 Intent intent = new Intent(mContext, ceui.lisa.activities.TemplateActivity.class);
-                intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "RIFE补帧模型下载");
+                intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RIFE_MODEL_DOWNLOAD.key);
                 intent.putExtra("rife_model_name", ceui.pixiv.ui.interpolate.RifeModel.RIFE_V4_6.name());
                 startActivity(intent);
             });
@@ -71,7 +72,7 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
         {
             baseBind.bubbleDetectorModelRela.setOnClickListener(v -> {
                 Intent intent = new Intent(mContext, ceui.lisa.activities.TemplateActivity.class);
-                intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "漫画文本框检测模型下载");
+                intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMIC_TEXT_DETECTOR_MODEL_DOWNLOAD.key);
                 intent.putExtra("ctd_model_name", ceui.pixiv.ui.translate.ComicTextDetectorModel.CTD_BASE.name());
                 startActivity(intent);
             });
@@ -85,7 +86,7 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
         {
             baseBind.ocrModelRela.setOnClickListener(v -> {
                 Intent intent = new Intent(mContext, ceui.lisa.activities.TemplateActivity.class);
-                intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "漫画OCR模型下载");
+                intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MANGA_OCR_MODEL_DOWNLOAD.key);
                 intent.putExtra("manga_ocr_model_name", ceui.pixiv.ui.translate.MangaOcrModel.MANGA_OCR_BASE.name());
                 startActivity(intent);
             });
@@ -98,7 +99,7 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
         // 自定义 AI 翻译（#975）— OpenAI 兼容接口替代内置 Google web 翻译
         baseBind.aiTranslateRela.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, ceui.lisa.activities.TemplateActivity.class);
-            intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "自定义AI翻译");
+            intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.AI_TRANSLATE_SETTINGS.key);
             startActivity(intent);
         });
     }

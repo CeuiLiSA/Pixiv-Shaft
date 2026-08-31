@@ -32,6 +32,7 @@ import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 离线快照管理页的单个 Tab：双列瀑布流卡片，按 manifest.type 过滤。
@@ -198,9 +199,9 @@ class SnapshotListFragment : Fragment() {
             if (_binding == null) return@launch
             val intent = Intent(requireContext(), TemplateActivity::class.java)
             if (Shaft.sSettings.isUseArtworkV3()) {
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照查看")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SNAPSHOT_VIEW.key)
             } else {
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照经典查看")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SNAPSHOT_VIEW_CLASSIC.key)
             }
             intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId)
             intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, isAuto)

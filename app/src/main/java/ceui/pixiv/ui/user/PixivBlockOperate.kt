@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * issue #959: pixiv 官方「拉黑」(网页端 ブロック)。
@@ -225,7 +226,7 @@ object PixivBlockOperate {
                 dialog.dismiss()
                 activity.startActivity(
                     Intent(activity, TemplateActivity::class.java).apply {
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, "Web首页")
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_HOME.key)
                         putExtra(Params.AUTO_WEB_LOGIN, true)
                     }
                 )

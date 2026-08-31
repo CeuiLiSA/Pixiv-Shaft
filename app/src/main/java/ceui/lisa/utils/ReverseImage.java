@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /**
  * 以图搜图。
@@ -79,7 +80,7 @@ public class ReverseImage {
      */
     public static void search(Context context, Uri imageUri, ReverseProvider provider) {
         Intent intent = new Intent(context, TemplateActivity.class);
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "以图搜图");
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REVERSE_IMAGE_SEARCH.key);
         intent.putExtra(Params.TITLE, provider.displayName);
         intent.putExtra(Params.URL, provider.uploadPageUrl);
         intent.putExtra(Params.REVERSE_SEARCH_IMAGE_URI, imageUri);

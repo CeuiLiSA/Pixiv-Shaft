@@ -42,6 +42,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 「按标签筛选」——按收藏标签浏览收藏(feeds 框架版,替代 legacy [ceui.lisa.fragments.FragmentBookedTag]
@@ -106,7 +107,7 @@ class BookedTagFeedFragment : FeedFragment(R.layout.fragment_booked_tag_feed) {
             binding.toolbar.menu.add(getString(R.string.synonym_dict_title))
                 .setOnMenuItemClickListener {
                     startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, "同义词词典")
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SYNONYM_DICT.key)
                     })
                     true
                 }

@@ -16,6 +16,7 @@ import ceui.lisa.utils.Params
 import ceui.pixiv.imageloader.ImageLoaderV3
 import ceui.lisa.view.SeamlessCircularProgressIndicator
 import kotlinx.coroutines.launch
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 class IllustAiHelper(
     private val fragment: Fragment,
@@ -76,7 +77,7 @@ class IllustAiHelper(
             }.start()
             if (result != null) {
                 val intent = Intent(context, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "主体高亮")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REMBG_HIGHLIGHT.key)
                 intent.putExtra("original_path", file.absolutePath)
                 intent.putExtra("rembg_path", result.absolutePath)
                 fragment.startActivity(intent)
@@ -121,7 +122,7 @@ class IllustAiHelper(
         fun navigateToCompare(): Boolean {
             val result = task.resultFile.value ?: return false
             val intent = Intent(context, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画质增强对比")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.UPSCALE_COMPARE.key)
             intent.putExtra("upscaled_path", result.absolutePath)
             intent.putExtra("original_path", task.originalFilePath)
             fragment.startActivity(intent)

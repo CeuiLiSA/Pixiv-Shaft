@@ -32,6 +32,7 @@ import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.witstudio.theme.WitRowStyle
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 举报第一步：选违规类型（feeds 框架版）。违规类型列表由服务端 /v1/illust/report/topic-list
@@ -135,7 +136,7 @@ class FlagReasonFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     private fun onClickTopic(topic: IllustReportTopic) {
         flagDescLauncher.launch(Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "填写举报详细信息")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FLAG_DESC.key)
             putExtra(FlagDescFragment.FlagTopicIdKey, topic.topic_id)
             putExtra(FlagDescFragment.FlagTopicTitleKey, topic.topic_title.orEmpty())
             putExtra(FlagDescFragment.FlagObjectIdKey, flagObjectId)

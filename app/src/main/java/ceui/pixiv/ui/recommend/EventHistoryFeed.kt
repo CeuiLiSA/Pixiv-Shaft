@@ -31,6 +31,7 @@ import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 操作记录列表（feeds 框架版）。原 EventHistoryHolder + CommonAdapter 迁到标准 FeedSource/Renderer。
@@ -99,7 +100,7 @@ private fun parseTarget(targetType: String, meta: JsonElement?): ParsedTarget? {
                     openIntent = { ctx ->
                         ctx.startActivity(Intent(ctx, TemplateActivity::class.java).apply {
                             putExtra(Params.CONTENT, bean)
-                            putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情")
+                            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_DETAIL.key)
                             putExtra("hideStatusBar", true)
                         })
                     }

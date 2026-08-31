@@ -39,6 +39,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import ceui.pixiv.witstudio.theme.WitRowStyle
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 账号管理（V3 / MD3-Expressive），替代 legacy `ceui.lisa.fragments.FragmentLocalUsers`。
@@ -312,7 +313,7 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
     private fun openLoginPage() {
         startActivity(
             Intent(requireContext(), TemplateActivity::class.java)
-                .putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册")
+                .putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.LOGIN.key)
         )
     }
 }

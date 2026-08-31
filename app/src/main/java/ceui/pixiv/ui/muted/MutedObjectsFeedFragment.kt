@@ -50,6 +50,7 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /** MuteEntity.type：1=插画/漫画，2=小说（0=标签、3=用户不进本页）。 */
 private const val TYPE_ILLUST = 1
@@ -227,7 +228,7 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
         if (ctx.tryOpenNovelReaderDirect(target.id.toLong())) return
         val intent = Intent(ctx, TemplateActivity::class.java).apply {
             putExtra(Params.CONTENT, target)
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_DETAIL.key)
             putExtra("hideStatusBar", true)
         }
         ctx.startActivity(intent)

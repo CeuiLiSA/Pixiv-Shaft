@@ -29,6 +29,7 @@ import com.blankj.utilcode.util.BarUtils
 import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 广场。Toolbar 右上 + → 进发帖页;右下 FAB 备份入口 (移动端 reach 友好)。
@@ -160,7 +161,7 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
 
     private fun openDetail(post: PlazaPost) {
         val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Plaza帖子详情")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PLAZA_POST_DETAIL.key)
         intent.putExtra(PlazaPostDetailFragment.EXTRA_POST_ID, post.id)
         startActivity(intent)
     }
@@ -171,7 +172,7 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
             return
         }
         val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "发帖")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PLAZA_COMPOSE.key)
         startActivity(intent)
     }
 

@@ -25,6 +25,7 @@ import ceui.loxia.launchSuspend
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.utils.setOnClick
 import java.util.UUID
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 详情类 feeds 页(漫画系列 / 小说详情 / 小说系列)共用的小工具，收口三页里原本各写一遍的
@@ -73,7 +74,7 @@ fun Fragment.openUserActivity(userId: Long) {
 fun Fragment.openNovelDetail(novelId: Long) {
     if (requireContext().tryOpenNovelReaderDirect(novelId)) return
     startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-        putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情")
+        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_DETAIL.key)
         putExtra(Params.NOVEL_ID, novelId)
     })
 }
@@ -90,7 +91,7 @@ fun Fragment.openNovelDetail(novelId: Long) {
 fun Context.tryOpenNovelReaderDirect(novelId: Long): Boolean {
     if (!Shaft.sSettings.isNovelListDirectToReader) return false
     startActivity(Intent(this, TemplateActivity::class.java).apply {
-        putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说正文")
+        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_READER.key)
         putExtra(Params.NOVEL_ID, novelId)
     })
     return true

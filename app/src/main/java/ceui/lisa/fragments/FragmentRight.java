@@ -25,6 +25,7 @@ import ceui.pixiv.ui.dynamic.DynamicPageViewModel;
 import ceui.pixiv.ui.dynamic.FollowingIllustFeedFragment;
 import ceui.pixiv.ui.dynamic.FollowingNovelFeedFragment;
 import ceui.pixiv.ui.user.RecmdUserRailFeedFragment;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /**
  * 「动态」tab 的外壳:固定 header(抽屉 + 标题 + 搜索) + 推荐用户货架 + 内容 sheet(插画/漫画·小说
@@ -90,7 +91,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
         });
         baseBind.searchBar.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SEARCH.key);
             startActivity(intent);
         });
         baseBind.seeMore.setOnClickListener(v -> openRecmdUserPage());
@@ -304,7 +305,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
 
     private void openRecmdUserPage() {
         Intent intent = new Intent(mContext, TemplateActivity.class);
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "推荐用户");
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RECOMMENDED_USERS.key);
         String handoffKey = null;
         kotlin.Pair<java.util.List<ceui.loxia.UserPreview>, String> snapshot =
                 railFragment != null && railFragment.getView() != null

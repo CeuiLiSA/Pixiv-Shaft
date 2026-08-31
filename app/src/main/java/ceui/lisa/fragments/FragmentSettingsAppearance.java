@@ -32,6 +32,7 @@ import ceui.pixiv.ui.settings.ThemeColorFeedFragment;
 import ceui.pixiv.widget.RecommendCardWidgetProvider;
 import ceui.pixiv.widget.RecommendStripWidgetProvider;
 import ceui.pixiv.widget.SpotlightWidgetProvider;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /** 设置 · 界面 */
 public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSettingsAppearanceBinding> {
@@ -77,7 +78,7 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         setThemeName();
         baseBind.colorSelectRela.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "主题颜色");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.THEME_COLOR.key);
             startActivity(intent);
         });
 
@@ -422,7 +423,7 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                         Local.setSettings(Shaft.sSettings);
                     } else {
                         Intent intent = new Intent(mContext, TemplateActivity.class);
-                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "主题颜色");
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.THEME_COLOR.key);
                         intent.putExtra(ThemeColorFeedFragment.ARG_SELECT_TAG_TRANSLATION_COLOR, true);
                         startActivity(intent);
                     }

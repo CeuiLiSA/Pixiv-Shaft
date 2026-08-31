@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /** 通用空态下方换行追加「作品已被屏蔽设置全部隐藏」；未命中时原样返回。 */
 internal fun filteredEmptyStateText(
@@ -86,7 +87,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
     protected open val titleRes: Int get() = R.string.string_246
 
     /** legacy 精华功能的 dataType 路由字面量（按它分支重建页面），不是展示文案，别本地化。 */
-    protected open val featureDataType: String get() = "插画作品"
+    protected open val featureDataType: String get() = TemplateRoute.USER_ILLUSTS.key
 
     /** 「跳转」对话框按哪种作品数分页。 */
     protected open val jumpKind: UserIllustJumpHelper.Kind get() = UserIllustJumpHelper.Kind.ILLUST

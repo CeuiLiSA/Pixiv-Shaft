@@ -84,6 +84,7 @@ import java.net.URLDecoder
 import java.util.Locale
 import kotlin.coroutines.resume
 import timber.log.Timber
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 图片二级详情
@@ -806,7 +807,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             }.start()
             if (result != null) {
                 val intent = Intent(this@ImageDetailActivity, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "主体高亮")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REMBG_HIGHLIGHT.key)
                 intent.putExtra("original_path", file.absolutePath)
                 intent.putExtra("rembg_path", result.absolutePath)
                 startActivity(intent)
@@ -998,7 +999,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         viewCompare.setOnClickListener {
             val result = task.resultFile.value ?: return@setOnClickListener
             val intent = android.content.Intent(this, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画质增强对比")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.UPSCALE_COMPARE.key)
             intent.putExtra("upscaled_path", result.absolutePath)
             intent.putExtra("original_path", task.originalFilePath)
             startActivity(intent)
@@ -1031,7 +1032,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                             overlayRoot.visibility = View.GONE
                         }.start()
                         val intent = android.content.Intent(this@ImageDetailActivity, TemplateActivity::class.java)
-                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画质增强对比")
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.UPSCALE_COMPARE.key)
                         intent.putExtra("upscaled_path", result.absolutePath)
                         intent.putExtra("original_path", task.originalFilePath)
                         startActivity(intent)

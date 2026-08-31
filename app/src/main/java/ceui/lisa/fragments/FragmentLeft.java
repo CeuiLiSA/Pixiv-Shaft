@@ -22,6 +22,7 @@ import ceui.lisa.utils.Params;
 import ceui.pixiv.feeds.FeedFragment;
 import ceui.pixiv.ui.home.RecmdIllustFeedFragment;
 import ceui.pixiv.ui.trending.HotTagsFeedFragment;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
 
@@ -52,7 +53,7 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_search) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索");
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SEARCH.key);
                     startActivity(intent);
                     return true;
                 }

@@ -24,6 +24,7 @@ import ceui.lisa.helper.PageTransformerHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Settings;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /** 设置 · 看图与详情 */
 public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettingsViewingBinding> {
@@ -145,7 +146,7 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
                 if (isChecked && !ceui.pixiv.ui.interpolate.RifeInterpolator.INSTANCE.isAvailable(mContext)) {
                     android.content.Intent intent =
                             new android.content.Intent(mContext, ceui.lisa.activities.TemplateActivity.class);
-                    intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "RIFE补帧模型下载");
+                    intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RIFE_MODEL_DOWNLOAD.key);
                     intent.putExtra("rife_model_name", ceui.pixiv.ui.interpolate.RifeModel.RIFE_V4_6.name());
                     startActivity(intent);
                 }

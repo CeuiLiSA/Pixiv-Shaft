@@ -11,6 +11,7 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsAccountBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /** 设置 · 账号 */
 public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettingsAccountBinding> {
@@ -24,13 +25,13 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
     protected void initData() {
         baseBind.userManage.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "账号管理");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ACCOUNT_SWITCH.key);
             startActivity(intent);
         });
 
         baseBind.editAccount.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "绑定邮箱");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.EDIT_ACCOUNT.key);
             startActivity(intent);
         });
 
@@ -42,7 +43,7 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
         } else {
             baseBind.accountBackup.setOnClickListener(v -> {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "邮箱备份");
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.EMAIL_BACKUP.key);
                 intent.putExtra("mode", "backup");
                 startActivity(intent);
             });
@@ -50,26 +51,26 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
 
         baseBind.editFile.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "编辑个人资料");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.EDIT_PROFILE.key);
             startActivity(intent);
         });
 
         baseBind.workSpace.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的作业环境");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WORKSPACE.key);
             startActivity(intent);
         });
 
         baseBind.r18Space.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key);
             intent.putExtra(Params.URL, Params.URL_R18_SETTING);
             startActivity(intent);
         });
 
         baseBind.premiumSpace.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key);
             intent.putExtra(Params.URL, Params.URL_PREMIUM_SETTING);
             startActivity(intent);
         });

@@ -16,6 +16,7 @@ import ceui.lisa.utils.MyOnTabSelectedListener;
 import ceui.lisa.utils.Params;
 import ceui.pixiv.ui.home.RecmdNovelFeedFragment;
 import ceui.pixiv.ui.trending.HotTagsFeedFragment;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 public class FragmentNewNovel extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
@@ -46,7 +47,7 @@ public class FragmentNewNovel extends BaseFragment<ViewpagerWithTablayoutBinding
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_search) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索");
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SEARCH.key);
                     startActivity(intent);
                     return true;
                 }

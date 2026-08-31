@@ -39,6 +39,7 @@ import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlin.math.floor
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 某作者「小说系列」总览页（feeds 框架版，替代 legacy [ceui.lisa.fragments.FragmentNovelSeries] +
@@ -154,7 +155,7 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
     private fun openSeries(series: NovelSeriesItem) {
         val intent = Intent(requireContext(), TemplateActivity::class.java)
         intent.putExtra(NovelSeriesFragment.ARG_SERIES_ID, series.id.toLong())
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_SERIES.key)
         startActivity(intent)
     }
 

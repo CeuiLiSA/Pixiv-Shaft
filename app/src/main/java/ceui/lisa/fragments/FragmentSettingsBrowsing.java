@@ -24,6 +24,7 @@ import ceui.pixiv.ui.search.SortType;
 import ceui.pixiv.ui.settings.AiBlockExemptAuthorsSheet;
 import ceui.loxia.CloudHistoryConsent;
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /** 设置 · 浏览与搜索 */
 public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSettingsBrowsingBinding> {
@@ -294,7 +295,7 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         // 同义词词典管理入口（仅开关打开时可见）
         baseBind.synonymDictRela.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "同义词词典");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SYNONYM_DICT.key);
             startActivity(intent);
         });
     }

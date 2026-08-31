@@ -24,6 +24,7 @@ import ceui.pixiv.utils.ppppx
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayout
 import java.util.concurrent.Executors
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 「标签匹配关系」框（issue #904）—— 作品详情页 tags 区下方的预期收藏夹匹配展示。
@@ -336,7 +337,7 @@ class SynonymMatchView @JvmOverloads constructor(
 
     private fun openDictPage() {
         val intent = Intent(context, TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "同义词词典")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SYNONYM_DICT.key)
         context.startActivity(intent)
     }
 

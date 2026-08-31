@@ -23,6 +23,7 @@ import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import ceui.pixiv.witstudio.theme.WitRowStyle
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
 
@@ -57,7 +58,7 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
             }
             baseBind.versionHistory.setOnClickListener {
                 val intent = Intent(mContext, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "版本历史")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.VERSION_HISTORY.key)
                 startActivity(intent)
             }
         } else {
@@ -72,7 +73,7 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
         run {
             baseBind.faq.setOnClickListener {
                 val intent = Intent(mContext, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Markdown")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MARKDOWN.key)
                 intent.putExtra(Params.URL, "FAQ.md")
                 startActivity(intent)
             }
@@ -149,14 +150,14 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
         run {
             baseBind.pixivProblem.setOnClickListener {
                 val intent = Intent(mContext, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key)
                 intent.putExtra(Params.URL, "https://app.pixiv.help/hc/zh-cn")
                 intent.putExtra(Params.TITLE, getString(R.string.pixiv_problem))
                 startActivity(intent)
             }
             baseBind.pixivUseDetail.setOnClickListener {
                 val intent = Intent(mContext, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key)
                 intent.putExtra(
                     Params.URL,
                     "https://www.pixiv.net/terms/?page=term&appname=pixiv_ios"
@@ -166,7 +167,7 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
             }
             baseBind.pixivPrivacy.setOnClickListener {
                 val intent = Intent(mContext, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key)
                 intent.putExtra(
                     Params.URL,
                     "https://www.pixiv.net/terms/?page=privacy&appname=pixiv_ios"

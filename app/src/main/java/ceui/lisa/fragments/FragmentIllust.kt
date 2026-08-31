@@ -93,6 +93,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
@@ -260,7 +261,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private fun openSnapshotComments() {
         val data = snapshotViewerData ?: return
         val intent = Intent(mContext, TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "快照评论")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SNAPSHOT_COMMENTS.key)
         intent.putExtra("objectId", data.illust.id)
         intent.putExtra("objectArthurId", data.illust.user?.id ?: 0L)
         intent.putExtra("objectType", ceui.loxia.ObjectType.ILLUST)
@@ -405,7 +406,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             val clickableSpan: ClickableSpan = object : ClickableSpan() {
                 override fun onClick(widget: View) {
                     val intent = Intent(mContext, TemplateActivity::class.java)
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MANGA_SERIES_DETAIL.key)
                     intent.putExtra(Params.MANGA_SERIES_ID, illust.series.id.toInt())
                     startActivity(intent)
                 }
@@ -497,7 +498,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 }
                 R.id.action_flag_illust -> {
                     val intent = Intent(mContext, TemplateActivity::class.java)
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "举报插画")
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FLAG_REASON.key)
                     // TemplateActivity 读这个 extra 走 getLongExtra,Illust.id 本身就是 Long,
                     // 别收窄成 Int,否则 Int/Long extra 类型不匹配,读回来静默变 0。
                     intent.putExtra(FlagDescFragment.FlagObjectIdKey, illust.id)
@@ -840,7 +841,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private fun setupActionButtons(illust: Illust) {
         baseBind.related.setOnClick {
             val intent = Intent(mContext, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关作品")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RELATED_ILLUSTS.key)
             // TemplateActivity 按 getIntExtra 读 ILLUST_ID,Illust.id 是 Long 必须收窄
             intent.putExtra(Params.ILLUST_ID, illust.id.toInt())
             intent.putExtra(Params.ILLUST_TITLE, illust.title)
@@ -848,7 +849,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
         baseBind.comment.setOnClick {
             val intent = Intent(mContext, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key)
             // TemplateActivity 按 getIntExtra 读 ILLUST_ID,Illust.id 是 Long 必须收窄
             intent.putExtra(Params.ILLUST_ID, illust.id.toInt())
             intent.putExtra(Params.ILLUST_TITLE, illust.title)
@@ -857,7 +858,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         baseBind.illustLike.setOnClick {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.CONTENT, illust)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "喜欢这个作品的用户")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ILLUST_LIKERS.key)
             startActivity(intent)
         }
     }

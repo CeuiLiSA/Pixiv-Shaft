@@ -29,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 class ComicSeriesListViewModel(
     private val seriesId: Long,
@@ -169,7 +170,7 @@ class ComicSeriesListSheet : BottomSheetDialogFragment() {
         binding.list.layoutManager = LinearLayoutManager(requireContext())
         binding.list.adapter = SeriesAdapter(illusts, currentIndex, accent, descending, effectiveTotal) { illust ->
             val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画阅读")
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMIC_READER.key)
                 putExtra(Params.ILLUST_ID, illust.id)
             }
             startActivity(intent)

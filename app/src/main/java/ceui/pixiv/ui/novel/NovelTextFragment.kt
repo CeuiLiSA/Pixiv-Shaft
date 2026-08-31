@@ -59,6 +59,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.UUID
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 小说详情页（feeds 框架版）。固定卡：标题+系列 → 作者 → 作品档案 → 功能按钮 →
@@ -146,7 +147,7 @@ class NovelTextFragment :
         readButton.btnRead.setOnClick {
             val ctx = requireContext()
             val intent = Intent(ctx, TemplateActivity::class.java).apply {
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说正文")
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_READER.key)
                 putExtra(Params.NOVEL_ID, novelId)
             }
             ctx.startActivity(intent)
@@ -243,7 +244,7 @@ class NovelTextFragment :
 
     override fun onClickNovelComments(sender: View, novelId: Long) {
         val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key)
             putExtra(Params.NOVEL_ID, novelId.toInt())
         }
         startActivity(intent)
@@ -314,7 +315,7 @@ class NovelTextFragment :
 
     override fun onClickNovelSeries(sender: View, series: Series) {
         startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_SERIES.key)
             putExtra(NovelSeriesFragment.ARG_SERIES_ID, series.id)
         })
     }

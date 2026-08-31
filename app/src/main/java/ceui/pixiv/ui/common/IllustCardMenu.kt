@@ -16,6 +16,7 @@ import ceui.pixiv.ui.bulk.BulkSelectHandoff
 import ceui.pixiv.ui.bulk.IllustBulkSelectHandoff
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.slideshow.SlideshowLauncher
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 插画卡长按菜单：屏蔽此作品 / 屏蔽设定 / 相关评论 / 批量下载 / 单作品下载 / 幻灯片 / 稍后再看。
@@ -61,7 +62,7 @@ internal fun IllustFeedFragment.showCardMenu(
         }
         item(getString(R.string.string_112), R.drawable.ic_baseline_comment_24) {
             startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key)
                 // TemplateActivity 侧仍按 getIntExtra 读
                 putExtra(Params.ILLUST_ID, bean.id.toInt())
                 putExtra(Params.ILLUST_TITLE, bean.title)
@@ -76,7 +77,7 @@ internal fun IllustFeedFragment.showCardMenu(
             if (beans.isNotEmpty()) {
                 val key = IllustBulkSelectHandoff.put(beans)
                 startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-                    putExtra(TemplateActivity.EXTRA_FRAGMENT, "批量选择")
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.BULK_SELECT.key)
                     putExtra(BulkSelectHandoff.ARG_HANDOFF_KEY, key)
                 })
             }

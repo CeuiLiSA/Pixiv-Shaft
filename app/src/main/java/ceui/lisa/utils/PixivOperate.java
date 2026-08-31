@@ -70,6 +70,7 @@ import ceui.pixiv.ui.common.IllustMuteStore;
 
 import static com.blankj.utilcode.util.ColorUtils.getColor;
 import static com.blankj.utilcode.util.StringUtils.getString;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /**
  * A class about Pixiv operations.
@@ -288,7 +289,7 @@ public class PixivOperate {
             if (novelSearchResponse.getNovel() != null) {
                 Intent intent = new Intent(context, TemplateActivity.class);
                 intent.putExtra(Params.CONTENT, novelSearchResponse.getNovel());
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_DETAIL.key);
                 intent.putExtra("hideStatusBar", true);
                 context.startActivity(intent);
 

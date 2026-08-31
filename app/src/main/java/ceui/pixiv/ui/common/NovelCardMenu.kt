@@ -14,6 +14,7 @@ import ceui.pixiv.ui.bulk.BulkSelectHandoff
 import ceui.pixiv.ui.bulk.NovelBulkSelectHandoff
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.task.BatchDownloadNovelsTask
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 小说卡长按菜单（issue #974）。对齐插画卡的 [showCardMenu]：长按 = 打开「这一列表级别」的动作。
@@ -77,7 +78,7 @@ internal fun NovelFeedFragment.showNovelCardMenu(
         // TemplateActivity 按 NOVEL_ID 走 ObjectType.NOVEL 的 CommentsFragment。
         item(getString(R.string.string_112), R.drawable.ic_baseline_comment_24) {
             startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key)
                 putExtra(Params.NOVEL_ID, novel.id.toInt())
             })
         }
@@ -86,7 +87,7 @@ internal fun NovelFeedFragment.showNovelCardMenu(
             if (novels.isEmpty()) return@item
             val key = NovelBulkSelectHandoff.put(novels)
             startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说批量选择") // route key, not UI text
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_BULK_SELECT.key) // route key, not UI text
                 putExtra(BulkSelectHandoff.ARG_HANDOFF_KEY, key)
             })
         }

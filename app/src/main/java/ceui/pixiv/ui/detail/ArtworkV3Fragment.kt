@@ -88,6 +88,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 插画详情页(feeds 框架版)。整页 = 一张异构瀑布流:顶部大图页 + header 区块(全 fullSpan)+
@@ -591,7 +592,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     private fun openComicReader() {
         startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画阅读")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMIC_READER.key)
             putExtra(Params.ILLUST_ID, illustId.toInt())
         })
     }
@@ -964,7 +965,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             // 长按直达完整评论区(#1009),与下载/收藏 FAB 的长按增强同一套习惯。
             chromeBind.fabBar.fabComment.setOnLongClickListener {
                 val intent = Intent(requireContext(), TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key)
                 intent.putExtra(Params.ILLUST_ID, illustId.toInt())
                 startActivity(intent)
                 true
@@ -1289,7 +1290,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             }
             item(getString(R.string.flag_post), R.drawable.ic_baseline_flag_24) {
                 val intent = Intent(requireContext(), TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "举报插画")
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FLAG_REASON.key)
                 intent.putExtra(ceui.loxia.flag.FlagDescFragment.FlagObjectIdKey, illust.id)
                 intent.putExtra(
                     ceui.loxia.flag.FlagDescFragment.FlagObjectTypeKey,
@@ -1315,7 +1316,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             if (Dev.showPlazaShareInArtwork) {
                 item(getString(R.string.plaza_share_illust_to_plaza), R.drawable.ic_plaza_forum_24) {
                     val intent = Intent(requireContext(), TemplateActivity::class.java)
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "发帖")
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PLAZA_COMPOSE.key)
                     intent.putExtra(
                         ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_PREFILL_ILLUST_ID,
                         illust.id,

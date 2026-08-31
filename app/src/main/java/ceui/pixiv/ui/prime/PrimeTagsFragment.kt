@@ -27,6 +27,7 @@ import com.blankj.utilcode.util.Utils
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * Prime 标签目录页（feeds 框架版）。目录（`prime_index.json`）仍是内置 assets，几十 KB、
@@ -79,7 +80,7 @@ class PrimeTagsFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         // file_path 不合规就没有服务端 key，这条目录项点不开——静默忽略，别开一个必然空的页。
         val key = indexItem.tagKey ?: return
         val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "PrimeTagDetail")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PRIME_TAG_DETAIL.key)
         intent.putExtra("name", indexItem.tag.translated_name)
         intent.putExtra("key", key)
         startActivity(intent)

@@ -26,6 +26,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 广场 feed adapter。每条卡片一个 [PlazaPostViewHolder]。
@@ -306,7 +307,7 @@ private fun inflateCellShell(
     }
     binding.root.setOnClickListener {
         val intent = Intent(ctx, TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Plaza打开作品")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PLAZA_OPEN_ILLUST.key)
         intent.putExtra(Params.ILLUST_ID, ref.id.toInt())
         ctx.startActivity(intent)
     }

@@ -41,6 +41,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 搜索「小说」tab（feeds 框架版，替代 legacy FragmentSearchNovel + SearchNovelRepo + NAdapter）。
@@ -101,7 +102,7 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
                 getString(R.string.street_web_login_confirm) to {
                     startActivity(
                         Intent(requireContext(), TemplateActivity::class.java).apply {
-                            putExtra(TemplateActivity.EXTRA_FRAGMENT, "Web首页")
+                            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_HOME.key)
                             putExtra(Params.AUTO_WEB_LOGIN, true)
                         }
                     )
@@ -229,7 +230,7 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
     private fun openNovelSeriesPage(seriesId: Long) {
         startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
             putExtra(NovelSeriesFragment.ARG_SERIES_ID, seriesId)
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_SERIES.key)
         })
     }
 

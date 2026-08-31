@@ -21,6 +21,7 @@ import com.github.panpf.sketch.loadImage
 import ceui.lisa.view.SeamlessCircularProgressIndicator
 import java.io.File
 import java.io.FileOutputStream
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 class FragmentAiUpscale : Fragment() {
 
@@ -305,7 +306,7 @@ class FragmentAiUpscale : Fragment() {
 
     private fun navigateToCompare(upscaledPath: String, originalPath: String) {
         val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画质增强对比")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.UPSCALE_COMPARE.key)
         intent.putExtra("upscaled_path", upscaledPath)
         intent.putExtra("original_path", originalPath)
         startActivity(intent)

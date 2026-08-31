@@ -31,6 +31,7 @@ import ceui.pixiv.witstudio.theme.V3Palette
 import com.blankj.utilcode.util.BarUtils
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 本地小说书库 —— 用户给一个文件夹，按文件夹分系列/作者、按文件名排序当列表，
@@ -194,7 +195,7 @@ class LocalLibraryFragment : Fragment(R.layout.fragment_local_library) {
         val tree = viewModel.currentTree() ?: return
         val fileUri = DocumentsContract.buildDocumentUriUsingTree(tree, entry.docId)
         val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说正文")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_READER.key)
             putExtra(Params.LOCAL_TXT_URI, fileUri.toString())
             putExtra(Params.LOCAL_TXT_TITLE, titleOf(entry.name))
             putExtra(Params.LOCAL_TXT_KEY, buildRelPath(entry.name))

@@ -40,6 +40,7 @@ import com.bumptech.glide.RequestManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 「漫画系列作品」列表页（feeds 框架版，替代 legacy [ceui.lisa.fragments.FragmentMangaSeries] +
@@ -153,7 +154,7 @@ class UserMangaSeriesFeedFragment : FeedFragment() {
     /** 整卡点击：进「漫画系列详情」，携带系列 id（与 legacy itemView 点击一字不差）。 */
     private fun openSeries(series: MangaSeriesItem) {
         val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MANGA_SERIES_DETAIL.key)
         intent.putExtra(Params.MANGA_SERIES_ID, series.id)
         startActivity(intent)
     }

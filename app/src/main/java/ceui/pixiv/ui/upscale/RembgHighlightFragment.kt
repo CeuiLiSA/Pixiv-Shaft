@@ -23,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * iPhone / 国产手机相册风格的抠图确认页面。
@@ -108,7 +109,7 @@ class RembgHighlightFragment : Fragment() {
         // Preview cutout on checkerboard background (zoomable)
         view.findViewById<TextView>(R.id.btn_preview).setOnClickListener {
             val intent = Intent(requireContext(), TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "抠图预览")
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REMBG_PREVIEW.key)
             intent.putExtra("rembg_path", rembgPath)
             startActivity(intent)
         }

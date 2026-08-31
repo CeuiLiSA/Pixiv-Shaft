@@ -82,6 +82,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import ceui.loxia.appServices
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     SeriesNavCallback, ExportFormatCallback, BookmarkSheetCallback, AnnotationSheetCallback,
@@ -676,7 +677,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         val novelId = resolveNovelId()
         if (novelId == 0L) return
         val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
-            putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "小说详情")
+            putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_DETAIL.key)
             putExtra(Params.NOVEL_ID, novelId)
         }
         startActivity(intent)
@@ -719,7 +720,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 }
                 item(getString(R.string.view_comments), R.drawable.ic_baseline_comment_24) {
                     val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
-                        putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+                        putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key)
                         putExtra(Params.NOVEL_ID, novelId.toInt())
                     }
                     startActivity(intent)
@@ -1009,7 +1010,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     override fun onSeriesNovelSelected(novel: Novel) {
         val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
-            putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "小说正文")
+            putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_READER.key)
             putExtra(Params.NOVEL_ID, novel.id)
         }
         startActivity(intent)
@@ -1076,7 +1077,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     neighbor.title.orEmpty(),
                 ))
             val intent = Intent(requireContext(), ceui.lisa.activities.TemplateActivity::class.java).apply {
-                putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, "小说正文")
+                putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_READER.key)
                 putExtra(Params.NOVEL_ID, neighbor.id)
             }
             startActivity(intent)

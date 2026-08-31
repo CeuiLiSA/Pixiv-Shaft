@@ -35,6 +35,7 @@ import com.hjq.toast.Toaster
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * V3 风格批量操作 · 多选页。
@@ -171,7 +172,7 @@ class BulkSelectV3Fragment : Fragment() {
                     // 入队完成立刻跳转下载管理 V3 总览，让用户能看到队列动起来 ——
                     // 否则用户点完确认眼前一黑（finish）只看到 toast，不知道东西去哪了。
                     val intent = Intent(ctx, TemplateActivity::class.java)
-                        .putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理") // route key, not UI text
+                        .putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DOWNLOAD_MANAGER.key) // route key, not UI text
                     ctx.startActivity(intent)
                 }
                 requireActivity().finish()

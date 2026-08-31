@@ -68,6 +68,7 @@ import ceui.pixiv.config.RemoteAppConfig;
 import ceui.pixiv.push.InAppPushCenter;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.navigation.DrawerIconCatalog;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /**
  * 主页
@@ -401,7 +402,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
             // （v4.8.4/4.8.5 线上事故）。改用 CLEAR_TASK 让登录页直接成为 task root，
             // 系统清 task 不构成 primary-finish 连坐；与 Common.logOut 的写法保持一致。
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.LOGIN.key);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                     | Intent.FLAG_ACTIVITY_CLEAR_TOP
                     | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -596,129 +597,129 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
         Intent intent = null;
         if (id == nav_gallery) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DOWNLOAD_MANAGER.key);
             intent.putExtra("hideStatusBar", false);
         } else if (id == R.id.nav_snapshot) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "离线快照");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SNAPSHOT_MANAGER.key);
             intent.putExtra("hideStatusBar", false);
         } else if (id == nav_slideshow) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "浏览记录");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.HISTORY.key);
         } else if (id == R.id.watch_later) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "稍后再看");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WATCH_LATER.key);
         } else if (id == R.id.nav_notifications) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "通知中心");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOTIFICATION_CENTER.key);
         } else if (id == R.id.nav_manage) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SETTINGS.key);
         } else if (id == R.id.nav_nana7mi_usage) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "借号用量");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NANA7MI_USAGE.key);
         } else if (id == R.id.nav_prime_tags) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "PrimeTagsList");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PRIME_TAGS.key);
         } else if (id == R.id.nav_pinned_tags) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "PinnedTagsList");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PINNED_TAGS.key);
         } else if (id == R.id.nav_discovery) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "发现");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DISCOVERY.key);
         } else if (id == R.id.nav_share) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关于软件");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ABOUT.key);
         } else if (id == R.id.main_page) {
             intent = new Intent(mContext, UActivity.class);
             intent.putExtra(Params.USER_ID, SessionManager.INSTANCE.getLoggedInUid());
         } else if (id == R.id.nav_ai_upscale) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "AI画质提升");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.AI_UPSCALE.key);
         } else if (id == R.id.nav_reverse) {
             selectPhoto();
         } else if (id == R.id.nav_new_work) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "最新作品");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NEW_WORKS.key);
             intent.putExtra("hideStatusBar", false);
         } else if (id == R.id.muted_list) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "标签屏蔽记录");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MUTED_TAGS.key);
         } else if (id == R.id.nav_feature) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "精华列");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FEATURE_LIST.key);
         } else if (id == R.id.nav_fans) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "粉丝");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FANS.key);
         } else if (id == R.id.illust_star) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的插画收藏");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MY_ILLUST_COLLECTION.key);
             intent.putExtra("hideStatusBar", false);
         } else if (id == R.id.novel_star) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的小说收藏");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MY_NOVEL_COLLECTION.key);
             intent.putExtra("hideStatusBar", false);
         } else if (id == R.id.watchlist) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "追更列表");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WATCHLIST.key);
             intent.putExtra("hideStatusBar", false);
         } else if (id == R.id.novel_markers) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说书签");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_MARKERS.key);
             intent.putExtra("hideStatusBar", false);
         } else if (id == R.id.follow_user) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的关注");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MY_FOLLOWING.key);
             intent.putExtra("hideStatusBar", false);
         } else if (id == R.id.nav_current_hot) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "当前最热");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RECENT_RECOMMEND.key);
         } else if (id == R.id.nav_site_recommend) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "站长推荐");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SITE_RECOMMEND.key);
         } else if (id == R.id.nav_event_history) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "操作记录");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.EVENT_HISTORY.key);
         } else if (id == R.id.nav_local_novel) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "本地小说库");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.LOCAL_NOVEL_LIBRARY.key);
         } else if (id == R.id.nav_debug_bulk_dl) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "批量下载Debug");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DEBUG_BULK_DOWNLOAD.key);
         } else if (id == R.id.nav_saf_perf_test) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "SAF写入压测");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DEBUG_SAF_PERF.key);
         } else if (id == R.id.nav_network_test) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网络测试");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DEBUG_NETWORK_TEST.key);
         } else if (id == R.id.nav_tag_popular_export) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "标签热度导出");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DEBUG_POPULAR_TAG_EXPORT.key);
         } else if (id == R.id.nav_web_home) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "Web首页");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_HOME.key);
         } else if (id == R.id.nav_fanbox) {
             intent = new Intent(mContext, TemplateActivity.class);
             if (ceui.pixiv.ui.fanbox.FanboxHomeFeedKt.hasFanboxSession()) {
                 // 有 FANBOXSESSID 才进原生首页 —— post.listHome 未登录一律 401,
                 // 直接进去只会看到一屏错误态。
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "FANBOX首页");
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FANBOX_HOME.key);
             } else {
                 // 没登录过:送去网页版登录。cookie 存在 WebView 的 CookieManager 里,
                 // 登完下次点进来 hasFanboxSession() 就为真,自动走原生。
                 // 走「网页链接」这条现成路由(FragmentWebView,带标准 toolbar),
                 // 不是 WebFragment —— 后者是个没有 toolbar 的裸 WebView,外观对不上。
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key);
                 intent.putExtra(Params.URL, "https://www.fanbox.cc/");
                 intent.putExtra(Params.TITLE, getString(R.string.fanbox_entry));
                 intent.putExtra(Params.PREFER_PRESERVE, true);
             }
         } else if (id == R.id.nav_chat_room) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "聊天室");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.CHAT.key);
         } else if (id == R.id.nav_plaza) {
             intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "广场");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PLAZA.key);
         }
         if (intent != null) {
             // 当前最热 / 本月收藏 / 操作记录:服务端聚合内容可能含 R-18,进去前过一次警示框
@@ -825,7 +826,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
                         .addAction(R.string.cancel, (d, i) -> d.dismiss())
                         .addAction(0, R.string.see_download_task, WitDialogAction.ACTION_PROP_NEUTRAL, (d, i) -> {
                             Intent intent = new Intent(mContext, TemplateActivity.class);
-                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
+                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DOWNLOAD_MANAGER.key);
                             intent.putExtra("hideStatusBar", true);
                             startActivity(intent);
                             d.dismiss();

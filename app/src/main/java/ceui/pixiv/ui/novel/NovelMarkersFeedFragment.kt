@@ -40,6 +40,7 @@ import com.bumptech.glide.RequestManager
 import com.zhy.view.flowlayout.FlowLayout
 import com.zhy.view.flowlayout.TagAdapter
 import java.util.Locale
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 「小说书签」列表页（feeds 框架版，替代 legacy [ceui.lisa.fragments.FragmentNovelMarkers] +
@@ -139,7 +140,7 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         if (requireContext().tryOpenNovelReaderDirect(marker.novel.id.toLong())) return
         val intent = Intent(requireContext(), TemplateActivity::class.java)
         intent.putExtra(Params.CONTENT, marker.novel)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_DETAIL.key)
         intent.putExtra("hideStatusBar", true)
         startActivity(intent)
     }
@@ -149,7 +150,7 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         val intent = Intent(requireContext(), TemplateActivity::class.java)
         val cover = marker.novel.image_urls?.findMaxSizeUrl() ?: return
         intent.putExtra(Params.URL, GlideUtil.getUrl(cover).toStringUrl())
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.IMAGE_DETAIL.key)
         startActivity(intent)
     }
 
@@ -166,7 +167,7 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         val series = marker.novel.series ?: return
         val intent = Intent(requireContext(), TemplateActivity::class.java)
         intent.putExtra(NovelSeriesFragment.ARG_SERIES_ID, series.id.toLong())
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_SERIES.key)
         startActivity(intent)
     }
 

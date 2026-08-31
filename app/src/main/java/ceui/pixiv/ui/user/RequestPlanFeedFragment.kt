@@ -27,6 +27,7 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.google.android.flexbox.FlexboxLayout
 import java.text.NumberFormat
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 画师主页「约稿中」Tab —— 仅在 user/detail 的 is_accept_request=true 时由 [UserActivityV3] 插入。
@@ -160,7 +161,7 @@ class RequestPlanFeedFragment : FeedFragment() {
     /** 点击卡片 → 站内 MD3-E 详情页(不再跳网页),经 TemplateActivity 路由并透传方案 + 作者。 */
     private fun openPlan(item: RequestPlanFeedItem) {
         val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "约稿方案详情")
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REQUEST_PLAN_DETAIL.key)
         intent.putExtra(Params.CONTENT, item.plan)
         intent.putExtra(Params.USER_MODEL, item.user)
         startActivity(intent)

@@ -23,6 +23,7 @@ import ceui.lisa.utils.Settings;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.OverwritePolicy;
 import ceui.pixiv.download.config.StorageChoice;
+import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /** 设置 · 下载 */
 public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSettingsDownloadBinding> {
@@ -67,7 +68,7 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         baseBind.fileName.setText(getString(R.string.download_path_entry_desc));
         baseBind.fileNameRela.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载路径与文件名");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DOWNLOAD_PATH_SETTINGS.key);
             startActivity(intent);
         });
 
@@ -75,14 +76,14 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         refreshAria2Label();
         baseBind.aria2Rela.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "aria2远程下载");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ARIA2_SETTINGS.key);
             startActivity(intent);
         });
 
         // 下载内容信息头 —— 可视化勾选 / 拖拽排序小说 TXT 的元信息块
         baseBind.novelHeaderRela.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说信息头");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_HEADER_SETTINGS.key);
             startActivity(intent);
         });
 

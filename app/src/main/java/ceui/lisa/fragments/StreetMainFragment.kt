@@ -50,6 +50,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import java.util.UUID
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 从页面里抠 CSRF token。
@@ -706,7 +707,7 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
             if (it.startsWith("http")) it else "https://www.pixiv.net$it"
         } ?: return
         startActivity(Intent(mContext, TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key)
             putExtra(Params.URL, url)
             putExtra(Params.TITLE, title ?: getString(R.string.street_title))
         })
@@ -839,7 +840,7 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
             }
             "novel" -> {
                 startActivity(Intent(mContext, TemplateActivity::class.java).apply {
-                    putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说正文")
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_READER.key)
                     putExtra(Params.NOVEL_ID, id)
                 })
             }

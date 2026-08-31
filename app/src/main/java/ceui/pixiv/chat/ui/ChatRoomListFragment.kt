@@ -28,6 +28,7 @@ import ceui.pixiv.websocket.IncomingMessage
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * Conversation list view (chat home). The hard part — paging, avatar
@@ -135,10 +136,10 @@ class ChatRoomListFragment : Fragment(R.layout.chat_fragment_room_list) {
         val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
             when (entry.kind) {
                 ChatRoomEntry.Kind.GLOBAL -> {
-                    putExtra(TemplateActivity.EXTRA_FRAGMENT, "聊天-全员公屏")
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.CHAT_GLOBAL_ROOM.key)
                 }
                 ChatRoomEntry.Kind.ONE_ON_ONE -> {
-                    putExtra(TemplateActivity.EXTRA_FRAGMENT, "聊天室")
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.CHAT.key)
                     entry.peerUid?.takeIf { it > 0L }?.let {
                         putExtra(TemplateActivity.EXTRA_CHAT_PEER_UID, it)
                     }

@@ -34,6 +34,7 @@ import com.github.panpf.zoomimage.zoom.ContentScaleCompat
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 漫画阅读器 V3 Fragment：MVVM-Lite + Bridge + Composition Root。
@@ -268,7 +269,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
                     }
                     is ComicReaderV3ViewModel.UiEvent.NavigateToReader -> {
                         val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-                            putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画阅读")
+                            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMIC_READER.key)
                             putExtra(Params.ILLUST_ID, event.illustId)
                         }
                         startActivity(intent)
@@ -390,7 +391,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
             }
             item(getString(R.string.view_comments), R.drawable.ic_baseline_comment_24) {
                 val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
-                    putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key)
                     putExtra(Params.ILLUST_ID, resolveIllustId().toInt())
                 }
                 startActivity(intent)

@@ -28,6 +28,7 @@ import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * 发现页「pixivision 特辑」横向货架（feeds 框架版，替代 legacy FragmentPivisionHorizontal +
@@ -81,7 +82,7 @@ class PivisionRailFeedFragment : FeedFragment(R.layout.fragment_pivision_rail_fe
             startActivity(
                 Intent(requireContext(), TemplateActivity::class.java).apply {
                     putExtra("hideStatusBar", false)
-                    putExtra(TemplateActivity.EXTRA_FRAGMENT, "特辑")
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PIXIVISION.key)
                 },
             )
         }
@@ -121,7 +122,7 @@ class PivisionRailFeedFragment : FeedFragment(R.layout.fragment_pivision_rail_fe
         val url = article.article_url ?: return
         startActivity(
             Intent(requireContext(), TemplateActivity::class.java).apply {
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_LINK.key)
                 putExtra(Params.URL, url)
                 putExtra(Params.TITLE, getString(R.string.pixiv_special))
                 putExtra(Params.PREFER_PRESERVE, true)

@@ -24,6 +24,7 @@ import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
  * issue #569：某画师「按 Tag 筛选」后的插画/漫画作品列表（feeds 框架版，替代 legacy
@@ -91,7 +92,7 @@ class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar
             getString(R.string.street_web_login_confirm) to {
                 startActivity(
                     Intent(requireContext(), TemplateActivity::class.java).apply {
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, "Web首页")
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_HOME.key)
                         putExtra(Params.AUTO_WEB_LOGIN, true)
                     }
                 )
