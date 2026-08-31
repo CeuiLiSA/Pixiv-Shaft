@@ -299,7 +299,10 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                             String destiny = request.getUrl().toString();
                             Common.showLog(className + "destiny " + destiny);
                             if (destiny.contains(PIXIV_HEAD)) {
-                                if (destiny.contains("logout.php") || destiny.contains("login.php") || destiny.contains("settings.php") || destiny.contains("/settings/") || destiny.contains("upload.php")) {
+                                // 这些页面(含 /premium 整条订阅流程)留在 WebView 里;其余 pixiv.net 链接交给
+                                // OutWakeActivity 当站内深链处理。注意服务端 301/302 也会走到这里,白名单漏了
+                                // 的话,一次重定向就把页面「跳」回主页(#831 的 login.php、#1072 的 /premium)。
+                                if (destiny.contains("logout.php") || destiny.contains("login.php") || destiny.contains("settings.php") || destiny.contains("/settings/") || destiny.contains("upload.php") || destiny.contains("/premium")) {
                                     return false;
                                 } else {
                                     try {
