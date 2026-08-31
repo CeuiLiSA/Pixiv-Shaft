@@ -1219,6 +1219,8 @@
     <string name="setting_illust_mix_discover">Обзор</string>
     <string name="setting_illust_mix_related">Похожие</string>
     <string name="action_copy">Копировать</string>
+    <string name="copy_work_id">Копировать ID работы</string>
+    <string name="copy_work_title">Копировать название работы</string>
     <string name="action_select_all">Выделить всё</string>
     <string name="action_highlight">Выделить</string>
     <string name="action_note">Заметка</string>

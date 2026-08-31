@@ -2,13 +2,13 @@ package ceui.pixiv.ui.common
 
 import android.content.Intent
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.loxia.Novel
-import ceui.loxia.User
 import ceui.loxia.requireEntityWrapper
 import ceui.pixiv.ui.bulk.BulkSelectHandoff
 import ceui.pixiv.ui.bulk.NovelBulkSelectHandoff
@@ -39,6 +39,21 @@ internal fun NovelFeedFragment.showNovelCardMenu(
     onToggleSpoiler: (Boolean) -> Unit = { setNovelMuted(item.novel, it) },
 ) {
     val novel = item.novel
+    // 收藏夹关闭「过滤无效收藏」后，已删除/不公开的失效小说仍会显示（灰色封面）。长按同样
+    // 只保留复制 ID / 标题，避免对无法打开的作品弹出一堆无效操作。
+    if (!Shaft.sSettings.isFilterInvalidBookmarks && novel.visible == false) {
+        showV3Menu("NovelFeedCardMenu") {
+            item(getString(R.string.copy_work_id), R.drawable.baseline_content_copy_24) {
+                Common.copy(requireContext(), novel.id.toString())
+            }
+            if (!novel.title.isNullOrBlank()) {
+                item(getString(R.string.copy_work_title), R.drawable.baseline_content_copy_24) {
+                    Common.copy(requireContext(), novel.title)
+                }
+            }
+        }
+        return
+    }
     val entityWrapper = requireEntityWrapper()
     val inWatchLater = entityWrapper.isNovelInWatchLater(novel.id)
     val spoilered = NovelMuteStore.isMuted(novel.id)

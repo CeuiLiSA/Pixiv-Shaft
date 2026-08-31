@@ -1221,6 +1221,8 @@
     <string name="setting_illust_mix_discover">發現頁</string>
     <string name="setting_illust_mix_related">相關作品</string>
     <string name="action_copy">複製</string>
+    <string name="copy_work_id">複製作品ID</string>
+    <string name="copy_work_title">複製作品標題</string>
     <string name="action_select_all">全選</string>
     <string name="action_highlight">標記</string>
     <string name="action_note">筆記</string>

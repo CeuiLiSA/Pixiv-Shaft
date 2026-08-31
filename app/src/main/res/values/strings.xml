@@ -1326,6 +1326,8 @@
 
     <!-- Reader actions & menus -->
     <string name="action_copy">复制</string>
+    <string name="copy_work_id">复制作品ID</string>
+    <string name="copy_work_title">复制作品标题</string>
     <string name="action_select_all">全选</string>
     <string name="action_highlight">标记高亮</string>
     <string name="action_note">笔记</string>

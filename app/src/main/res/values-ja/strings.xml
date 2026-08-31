@@ -1219,6 +1219,8 @@
     <string name="setting_illust_mix_discover">ディスカバリー</string>
     <string name="setting_illust_mix_related">関連</string>
     <string name="action_copy">コピー</string>
+    <string name="copy_work_id">作品IDをコピー</string>
+    <string name="copy_work_title">作品タイトルをコピー</string>
     <string name="action_select_all">すべて選択</string>
     <string name="action_highlight">ハイライト</string>
     <string name="action_note">メモ</string>

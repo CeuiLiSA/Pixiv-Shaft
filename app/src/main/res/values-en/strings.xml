@@ -1219,6 +1219,8 @@
     <string name="setting_illust_mix_discover">Discovery</string>
     <string name="setting_illust_mix_related">Related</string>
     <string name="action_copy">Copy</string>
+    <string name="copy_work_id">Copy work ID</string>
+    <string name="copy_work_title">Copy work title</string>
     <string name="action_select_all">Select all</string>
     <string name="action_highlight">Highlight</string>
     <string name="action_note">Note</string>

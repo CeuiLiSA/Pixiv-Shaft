@@ -39,6 +39,22 @@ internal fun IllustFeedFragment.showCardMenu(
     onToggleSpoiler: (Boolean) -> Unit = { setIllustMuted(item, it) },
 ) {
     val bean = item.illust
+    // 收藏夹关闭「过滤无效收藏」后，已删除/不公开的失效插画仍会显示（灰色封面）。这类作品
+    // 打不开详情，下载/屏蔽/评论等动作也基本无意义，长按只保留「复制作品ID」以及能拿到的
+    // 「复制作品标题」，方便对照本地下载文件确认是哪张作品被删了。
+    if (!Shaft.sSettings.isFilterInvalidBookmarks && bean.visible != true) {
+        showV3Menu("IllustFeedCardMenu") {
+            item(getString(R.string.copy_work_id), R.drawable.baseline_content_copy_24) {
+                Common.copy(requireContext(), bean.id.toString())
+            }
+            if (!bean.title.isNullOrBlank()) {
+                item(getString(R.string.copy_work_title), R.drawable.baseline_content_copy_24) {
+                    Common.copy(requireContext(), bean.title)
+                }
+            }
+        }
+        return
+    }
     val entityWrapper = requireEntityWrapper()
     val inWatchLater = entityWrapper.isInWatchLater(item.illust.id)
     val spoilered = IllustMuteStore.isMuted(item.illust.id)
