@@ -16,6 +16,7 @@
             <option value="$PROJECT_DIR$/flowlayout-lib" />
             <option value="$PROJECT_DIR$/models" />
             <option value="$PROJECT_DIR$/progressmanager" />
+            <option value="$PROJECT_DIR$/websocket" />
             <option value="$PROJECT_DIR$/witstudio" />
           </set>
         </option>
