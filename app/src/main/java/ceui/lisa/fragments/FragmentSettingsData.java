@@ -47,6 +47,9 @@ import ceui.pixiv.ui.bulk.UgoiraEngine;
 /** 设置 · 备份与缓存 */
 public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsDataBinding> {
 
+    /** 设置备份的名字：临时文件名，同时是 Backup 桶模板里的 {title}。 */
+    private static final String BACKUP_FILE_NAME = "Shaft-Backup.json";
+
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_data;
@@ -72,7 +75,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                             final boolean backupViewHistory = builder.isChecked();
                             // 走 fileWriter 流式导出:读库 + 序列化 + 落盘全在 IO 线程逐批直写文件,
                             // 不再在主线程把整张历史表 toJson 成巨型 String(大历史库 OOM/ANR,#981)。
-                            IllustDownload.downloadBackupFile((BaseActivity<?>) mActivity, "Shaft-Backup.json", (Callback<File>) textFile -> {
+                            IllustDownload.downloadBackupFile((BaseActivity<?>) mActivity, BACKUP_FILE_NAME, (Callback<File>) textFile -> {
                                 try {
                                     BackupUtils.writeBackupToFile(mContext, backupViewHistory, textFile);
                                 } catch (IOException e) {
@@ -220,7 +223,7 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
 
     private String backupTemplateFolder() {
         try {
-            RelativePath rel = DownloadItems.backupDestination();
+            RelativePath rel = DownloadItems.backupDestination(BACKUP_FILE_NAME);
             return TextUtils.join("/", rel.getDirectory());
         } catch (Throwable t) {
             return "ShaftBackups";

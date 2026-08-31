@@ -4,6 +4,7 @@ import ceui.pixiv.download.config.BucketConfig
 import ceui.pixiv.download.config.BucketDefaults
 import ceui.pixiv.download.config.ConfigPresets
 import ceui.pixiv.download.config.DownloadConfig
+import ceui.pixiv.download.config.OverwritePolicy
 import ceui.pixiv.download.config.StorageChoice
 import ceui.pixiv.download.model.Author
 import ceui.pixiv.download.model.Bucket
@@ -121,18 +122,25 @@ class NovelSeriesMergeTemplateTest {
     /**
      * 合集桶的兜底逻辑写在通用的 [DownloadConfig.resolve] 里，必须证明它对其他桶
      * 是零影响：没有 override 的桶照旧全部掉回 defaults，一个字节都不能变。
+     * [Bucket.Backup] 是另一处刻意例外（模板缺省用 [DefaultTemplates.BACKUP]、
+     * 覆盖策略固定 Rename），单独断言。
      */
     @Test fun `other buckets keep the plain defaults fallback`() {
         val images = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Images)
         val cfg = DownloadConfig(
             defaults = BucketDefaults(template = "Illust/{id}.{ext}", storage = images),
         )
-        for (bucket in Bucket.entries - Bucket.NovelSeries - Bucket.Caption - Bucket.TempCache) {
+        val exempt = setOf(Bucket.NovelSeries, Bucket.Caption, Bucket.Backup, Bucket.TempCache)
+        for (bucket in Bucket.entries - exempt) {
             val resolved = cfg.resolve(bucket)
             assertEquals("bucket $bucket template", "Illust/{id}.{ext}", resolved.template)
             assertEquals("bucket $bucket storage", images, resolved.storage)
             assertEquals("bucket $bucket overwrite", cfg.defaults.overwrite, resolved.overwrite)
         }
+        val backup = cfg.resolve(Bucket.Backup)
+        assertEquals(DefaultTemplates.BACKUP, backup.template)
+        assertEquals(images, backup.storage)
+        assertEquals(OverwritePolicy.Rename, backup.overwrite)
     }
 
     /** 预设里插画 / 动图 / 小说三条模板不能被这次改动碰到。 */

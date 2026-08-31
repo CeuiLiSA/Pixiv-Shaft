@@ -120,6 +120,11 @@ class DownloadConfigTest {
         assertEquals(OverwritePolicy.Replace, defaults.overwrite)
     }
 
+    @Test fun `backup bucket without override resolves to its own default template`() {
+        val cfg = DownloadConfig(defaults = defaults)
+        assertEquals(DefaultTemplates.BACKUP, cfg.resolve(Bucket.Backup).template)
+    }
+
     @Test fun `backup bucket always resolves to Rename overwrite policy`() {
         val cfg = DownloadConfig(
             defaults = defaults.copy(overwrite = OverwritePolicy.Replace),

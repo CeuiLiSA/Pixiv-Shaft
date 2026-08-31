@@ -51,7 +51,7 @@ class DefaultTemplatesTest {
     }
 
     @Test fun `backup default template uses ShaftBackups and json filename`() {
-        assertTrue(DefaultTemplates.BACKUP.startsWith("ShaftBackups/Shaft-Backup_"))
+        assertTrue(DefaultTemplates.BACKUP.startsWith("ShaftBackups/{title}_"))
         assertTrue(DefaultTemplates.BACKUP.endsWith(".json"))
     }
 

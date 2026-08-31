@@ -328,23 +328,28 @@ object DownloadItems {
     /**
      * 备份导出落盘路径：完整使用 [Bucket.Backup] 模板渲染出的目录 + 文件名，
      * 不再用调用方的临时文件名覆盖。备份文件永远是 JSON，因此渲染时固定 ext=json。
+     *
+     * [fileName] 是调用方的备份名（`Shaft-Backup.json` / `Shaft-BrowseHistory.json` /
+     * `Shaft-MuteRecords.json` / `Shaft-SynonymDict.json`），去掉后缀后作为 `{title}`
+     * 喂给模板 —— 四种导出走同一个桶，文件名里必须还能看出来是哪一种。
      */
     @JvmStatic
     @JvmOverloads
     fun backupDestination(
+        fileName: String,
         config: DownloadConfig = DownloadsRegistry.store.loadOrFallback(),
     ): RelativePath {
         val resolved = config.resolve(Bucket.Backup)
         return FsSanitizer.clean(
             SafeTemplateRender.render(
-                resolved.template, Bucket.Backup, backupMeta(), "json", config.pageNumbering,
+                resolved.template, Bucket.Backup, backupMeta(fileName), "json", config.pageNumbering,
             ),
         )
     }
 
-    private fun backupMeta(): ItemMeta = ItemMeta(
+    private fun backupMeta(fileName: String): ItemMeta = ItemMeta(
         id = 0L,
-        title = "",
+        title = fileName.substringBeforeLast('.'),
         author = Author(0L, ""),
         createdAt = Instant.now(),
     )
