@@ -69,9 +69,10 @@ class IllustFeedItem(
             skipR18Filter: Boolean = false,
             skipAiFilter: Boolean = false,
             skipMuteUserFilter: Boolean = false,
+            skipVisibleFilter: Boolean = false,
         ): IllustFeedItem? {
             if (illust == null) return null
-            if (!passesContentFilters(illust, skipR18Filter, skipAiFilter, skipMuteUserFilter)) return null
+            if (!passesContentFilters(illust, skipR18Filter, skipAiFilter, skipMuteUserFilter, skipVisibleFilter)) return null
             return IllustFeedItem(illust)
         }
 
@@ -93,6 +94,8 @@ class IllustFeedItem(
          * [skipAiFilter]：同理，给「AI 专属榜单」用——用户主动点进 AI 榜,全局「屏蔽 AI 作品」
          * 就不该把它清空（那是用户设的「我平时不想看到 AI」，不是「我点开 AI 榜也不想看」）。
          * 只让步 AI 这一条：屏蔽画师/标签、R18 过滤在 AI 榜里照常生效。
+         * [skipVisibleFilter]：收藏夹「过滤无效收藏」关闭时让步——不把 visible != true 的作品
+         * 当失效滤掉；仅收藏页按开关传入，其余列表默认 false 保持恒过滤。
          *
          * ⚠️ 这里面 judgeTag/judgeUserID 各是一次**同步 Room 查询**，调用方必须在后台线程
          * 跑（各 mapper 已由 PixivFeedSource 派到 Dispatchers.Default；详情回传链见
@@ -103,8 +106,9 @@ class IllustFeedItem(
             skipR18Filter: Boolean,
             skipAiFilter: Boolean = false,
             skipMuteUserFilter: Boolean = false,
+            skipVisibleFilter: Boolean = false,
         ): Boolean {
-            if (illust.visible != true) return false
+            if (!skipVisibleFilter && illust.visible != true) return false
             if (IllustNovelFilter.judgeTag(illust)) return false
             // 不挂 judgeID：被「屏蔽此作品」记下的单件作品在 feeds 里是**遮罩**而不是过滤——
             // 卡片留在原位糊掉 + 盖粒子，点一下即取消屏蔽（见 [ceui.pixiv.ui.common.IllustMuteStore]）。
