@@ -7,7 +7,6 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.isVisible
-import ceui.lisa.R
 
 /**
  * Built-in binder for [BannerRequest.Text]. Uses `androidx.cardview.widget.CardView`

@@ -23,7 +23,7 @@ import timber.log.Timber
 /**
  * Short haptic tick on every inbound DM [ChatFrame.Msg]. App-scoped,
  * subscribes to [ShaftChatGateway.incoming] — mirrors the lifecycle and
- * shape of [ceui.pixiv.banner.ChatBannerBridge].
+ * shape of [ceui.pixiv.banner.host.ChatBannerBridge].
  *
  * ## Suppression rules
  *
@@ -52,7 +52,7 @@ import timber.log.Timber
  *
  * ## In-conversation buzzing is intentional
  *
- * [ceui.pixiv.banner.ChatBannerBridge] suppresses banners when the user is
+ * [ceui.pixiv.banner.host.ChatBannerBridge] suppresses banners when the user is
  * already viewing the source room (overlay would obscure the same content
  * they want to see). Haptic does NOT do that — vibration is a non-visual
  * affordance that doesn't obstruct anything, and "feedback that a new

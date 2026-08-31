@@ -1,4 +1,4 @@
-package ceui.pixiv.banner
+package ceui.pixiv.banner.host
 
 import android.app.Activity
 import android.app.Application
@@ -7,6 +7,12 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import ceui.lisa.activities.TemplateActivity
+import ceui.pixiv.banner.BannerEvent
+import ceui.pixiv.banner.BannerHostInstaller
+import ceui.pixiv.banner.BannerManager
+import ceui.pixiv.banner.BannerViewBinder
+import ceui.pixiv.banner.DefaultBannerViewBinder
+import ceui.pixiv.banner.RealBannerManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

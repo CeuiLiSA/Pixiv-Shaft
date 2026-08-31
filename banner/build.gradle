@@ -1,0 +1,54 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdk 36
+
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 36
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+
+    // 与包名一致：模块内的 R 就是 ceui.pixiv.banner.R，消费方（:app）源码侧一行 import 都不用改。
+    namespace 'ceui.pixiv.banner'
+}
+
+dependencies {
+    // ── api：类型长在本模块的公开 API 上，消费方不声明也要能编过 ──────────────
+    // BannerManager.state / events 是 StateFlow / SharedFlow；RealBannerManager 默认跑在
+    // Dispatchers.Main，Main 由 coroutines-android 提供。
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+
+    // ── implementation：纯内部实现 ─────────────────────────────────────────
+    // BannerHost 的 WindowInsetsCompat / updatePadding
+    implementation 'androidx.core:core-ktx:1.13.1'
+    // BannerPresenter 的 repeatOnLifecycle / lifecycle.coroutineScope
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7"
+    // banner_default.xml：CardView 容器，文字用 TextAppearance.AppCompat.*、按钮取 ?attr/colorPrimary
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.jakewharton.timber:timber:5.0.1'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
+
+    // 刻意不引：okhttp / :websocket / :models / 任何 pixiv 代码。
+    // 本模块只认识「一个 BannerRequest 队列 + 一个挂在 android.R.id.content 上的宿主 View」；
+    // 聊天报文 → banner 的翻译、deep link 落地、宿主设置开关全在消费方（app 的 banner/host）。
+}

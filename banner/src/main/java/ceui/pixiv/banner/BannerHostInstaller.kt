@@ -52,8 +52,8 @@ class BannerHostInstaller(
     /**
      * 给「注册得比第一个 Activity 还晚」的场景补一次安装。
      *
-     * banner 系统整体是启动延迟批的一员（见 [ceui.lisa.activities.Shaft] 的
-     * `runDeferredInit`），跑到的时候首个 Activity 早已 created / resumed 完，两个
+     * banner 系统整体是宿主启动延迟批的一员（app 侧 `Shaft.runDeferredInit` →
+     * `InAppBanners.bootstrap`），跑到的时候首个 Activity 早已 created / resumed 完，两个
      * 生命周期回调都错过了它 —— 不补这一次，最重要的首屏在整个会话里都不会有
      * banner 宿主。[installIfNeeded] 自带 presenters 去重，重复调用无害。
      *

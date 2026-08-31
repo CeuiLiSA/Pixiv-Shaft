@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- dark 版，同样逐一对应宿主 values-night 里的 card_user_head / dark_text / view_history_title -->
+    <color name="banner_card_background">#666666</color>
+    <color name="banner_title_text">#FFFFFF</color>
+    <color name="banner_message_text">#BDBDBD</color>
+</resources>

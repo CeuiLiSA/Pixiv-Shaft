@@ -592,7 +592,7 @@ public class Shaft extends Application implements ServicesProvider {
         // ChatBannerBridge 订阅 gateway.incoming。
         // 传 currentActivity：它注册的两个 lifecycle callback 现在才挂上，首个 Activity
         // 的 created/resumed 早过去了，不补这一下首屏整场都没有 banner 宿主。
-        step("InAppBanners", () -> ceui.pixiv.banner.InAppBanners.INSTANCE.bootstrap(this, currentActivity));
+        step("InAppBanners", () -> ceui.pixiv.banner.host.InAppBanners.INSTANCE.bootstrap(this, currentActivity));
 
         // 网络变化时停掉下载队列。CONNECTIVITY_ACTION 只与下载有关，首帧不需要。
         step("NetWorkStateReceiver", () -> {

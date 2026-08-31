@@ -8,7 +8,7 @@
     android:layout_marginHorizontal="12dp"
     android:layout_marginTop="8dp"
     android:layout_marginBottom="10dp"
-    app:cardBackgroundColor="@color/card_user_head"
+    app:cardBackgroundColor="@color/banner_card_background"
     app:cardCornerRadius="16dp"
     app:cardElevation="4dp">
 
@@ -38,7 +38,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                android:textColor="@color/dark_text"
+                android:textColor="@color/banner_title_text"
                 tools:text="Banner title" />
 
             <TextView
@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-                android:textColor="@color/view_history_title"
+                android:textColor="@color/banner_message_text"
                 android:visibility="gone"
                 tools:text="Optional secondary message"
                 tools:visibility="visible" />

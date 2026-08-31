@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 默认文字卡片（DefaultBannerViewBinder / banner_default.xml）的配色。
+         值与宿主 app 拆分前引用的 card_user_head / dark_text / view_history_title 逐一相同，
+         模块自己持有一份是为了对宿主主题零依赖；要换皮肤走 BannerViewBinder 注入。 -->
+    <color name="banner_card_background">#FFFFFF</color>
+    <color name="banner_title_text">#333333</color>
+    <color name="banner_message_text">#666666</color>
+</resources>

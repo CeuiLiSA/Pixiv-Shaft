@@ -125,6 +125,7 @@ jobs:
           :actionqueue:testDebugUnitTest
           :feeds:testDebugUnitTest
           :websocket:testDebugUnitTest
+          :banner:testDebugUnitTest
           --continue
 
       # Room 会在编译时自动写出当前 schema；如果忘记提交，迁移测试会消费刚生成的
@@ -146,6 +147,7 @@ jobs:
           :actionqueue:lintDebug
           :feeds:lintDebug
           :websocket:lintDebug
+          :banner:lintDebug
           :models:lintDebug
           :flowlayout-lib:lintDebug
           :progressmanager:lintDebug
@@ -162,6 +164,7 @@ jobs:
             actionqueue/build/reports/lint-results-debug.xml
             feeds/build/reports/lint-results-debug.xml
             websocket/build/reports/lint-results-debug.xml
+            banner/build/reports/lint-results-debug.xml
             models/build/reports/lint-results-debug.xml
             flowlayout-lib/build/reports/lint-results-debug.xml
             progressmanager/build/reports/lint-results-debug.xml

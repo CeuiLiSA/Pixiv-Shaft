@@ -97,7 +97,7 @@ object ShaftChatGateway {
      * "global" or a 1v1 thread id), or null when no chat fragment is foreground.
      * The fragment maintains it from its own onResume/onPause — the authoritative
      * source, vs reverse-engineering it from the foreground Activity. Read by
-     * [ceui.pixiv.banner.ChatBannerBridge] to suppress banners for the open room.
+     * [ceui.pixiv.banner.host.ChatBannerBridge] to suppress banners for the open room.
      */
     @Volatile
     private var _foregroundChatRoom: String? = null

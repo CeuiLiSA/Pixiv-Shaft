@@ -14358,16 +14358,6 @@
             column="29"/>
     </issue>
 
-    <issue
-        id="ClickableViewAccessibility"
-        message="Custom view `BannerHost` overrides `onTouchEvent` but not `performClick`"
-        errorLine1="    override fun onTouchEvent(event: MotionEvent): Boolean = false"
-        errorLine2="                 ~~~~~~~~~~~~">
-        <location
-            file="src/main/java/ceui/pixiv/banner/BannerHost.kt"
-            line="47"
-            column="18"/>
-    </issue>
 
     <issue
         id="ClickableViewAccessibility"

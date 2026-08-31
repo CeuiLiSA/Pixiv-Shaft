@@ -360,6 +360,9 @@ dependencies {
     // WebSocket 客户端框架（RobustWebSocketClient / WebSocketManager / NetworkMonitor）。对 pixiv 一无所知，
     // HMAC 签名与聊天报文模型在宿主 chat/api 侧，见 docs/ws-chat-integration.md。
     implementation project(path: ':websocket')
+    // 应用内 banner 框架（BannerManager / BannerHostInstaller / 默认文字卡片）。对 pixiv 一无所知，
+    // 聊天报文 → banner 的桥接与 deep link 落地在宿主侧，见 ceui.pixiv.banner.host。
+    implementation project(path: ':banner')
     implementation project(path: ':progressmanager')
     implementation project(path: ':flowlayout-lib')
     implementation project(path: ':actionqueue')
