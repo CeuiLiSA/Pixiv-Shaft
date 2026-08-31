@@ -2844,4 +2844,22 @@
     <string name="snapshot_promote_confirm">変換後は通常のスナップショットとして保存され、書き出しが可能になります。変換しますか？</string>
     <string name="snapshot_promote_success">正式スナップショットに変換しました</string>
     <string name="snapshot_promote_failed">変換に失敗しました：%1$s</string>
+    <!-- 人气画师 / 系列追更（v4.9.1 补译） -->
+    <string name="trending_artists">人気絵師</string>
+    <string name="trending_artists_title">Shaft の人気絵師</string>
+    <string name="trending_window_day">今日</string>
+    <string name="trending_window_week">今週</string>
+    <string name="trending_window_month">今月</string>
+    <plurals name="trending_artist_followers_day">
+        <item quantity="other">今日 %1$d 人がフォロー</item>
+    </plurals>
+    <plurals name="trending_artist_followers_week">
+        <item quantity="other">今週 %1$d 人がフォロー</item>
+    </plurals>
+    <plurals name="trending_artist_followers_month">
+        <item quantity="other">今月 %1$d 人がフォロー</item>
+    </plurals>
+    <string name="watchlist_empty">フォロー中のシリーズはまだありません</string>
+    <string name="series_updated_at">%s 更新</string>
+    <string name="series_total_bookmarks">累計ブックマーク %s</string>
 </resources>
