@@ -357,6 +357,9 @@ dependencies {
     // 列表框架（FeedSource / FeedViewModel / FeedFragment / FeedAdapter）。对 pixiv 一无所知，
     // 宿主特有的东西由 ShaftFeedHost 在 Shaft.onCreate 注入，见 ceui.pixiv.feeds.host。
     implementation project(path: ':feeds')
+    // WebSocket 客户端框架（RobustWebSocketClient / WebSocketManager / NetworkMonitor）。对 pixiv 一无所知，
+    // HMAC 签名与聊天报文模型在宿主 chat/api 侧，见 docs/ws-chat-integration.md。
+    implementation project(path: ':websocket')
     implementation project(path: ':progressmanager')
     implementation project(path: ':flowlayout-lib')
     implementation project(path: ':actionqueue')

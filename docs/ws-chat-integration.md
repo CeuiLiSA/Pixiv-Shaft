@@ -4,7 +4,7 @@
 strict to_uid 校验、实时 display_name、Map iteration 快照、closeChatDb
 原子性、文件 broker→router 改名)。
 源码:`shaft-api-v2/src/chat/{db,router,auth,ws,routes,threadId}.js`。
-客户端框架已落地于 `app/src/main/java/ceui/pixiv/{websocket,chat}/`。
+客户端框架已落地于 `websocket/src/main/java/ceui/pixiv/websocket/`（独立 library module `:websocket`），聊天接入层在 `app/src/main/java/ceui/pixiv/chat/`。
 
 本文件描述**服务端契约** —— 帧格式、鉴权、心跳、错误码、HTTP 配套 ——
 以及怎么把这套契约对到现有 `WebSocketAuthProvider` / `RobustWebSocketClient` /

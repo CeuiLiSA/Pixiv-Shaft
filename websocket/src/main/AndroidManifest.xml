@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- NetworkMonitor 要读 ConnectivityManager 的连通性并注册 NetworkCallback。
+         普通权限（非运行时），由 manifest merger 并入消费方；宿主自己本来也声明了。 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+</manifest>

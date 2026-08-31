@@ -1,0 +1,51 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdk 36
+
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 36
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+
+    // 与包名一致，消费方（:app）源码侧一行 import 都不用改。
+    namespace 'ceui.pixiv.websocket'
+}
+
+dependencies {
+    // ── api：类型长在本模块的公开 API 上，消费方不声明也要能编过 ──────────────
+    // RobustWebSocketClient(baseClient: OkHttpClient)、WebSocketClient.send(ByteString)、
+    // IncomingMessage.Binary(bytes: ByteString)。okio 经 okhttp 的 compile 依赖透出。
+    api 'com.squareup.okhttp3:okhttp:4.12.0'
+    // 公开 API 全是 Flow / StateFlow；WebSocketManager 默认跑在 Dispatchers.Main.immediate，
+    // Main 由 coroutines-android 提供。
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+
+    // ── implementation：纯内部实现 ─────────────────────────────────────────
+    implementation 'com.jakewharton.timber:timber:5.0.1'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
+
+    // 刻意不引：retrofit / Room / :models / 任何 pixiv 代码。
+    // 本模块只认识「一条 URL、一个 OkHttpClient、一个能给 token 的 WebSocketAuthProvider」；
+    // HMAC 签名、聊天报文模型、收藏队列等全在消费方（app 的 chat/api、actions）。
+}
