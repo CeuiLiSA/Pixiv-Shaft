@@ -2,7 +2,6 @@ package ceui.pixiv.ui.upscale
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -51,9 +50,8 @@ object BackgroundRemover {
             val nativeDir = context.applicationInfo.nativeLibraryDir
             val executablePath = "$nativeDir/librembg_ncnn.so"
 
-            // Decode and re-encode as clean PNG
-            val opts = BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_8888 }
-            val bitmap = BitmapFactory.decodeFile(inputFile.absolutePath, opts)
+            // Decode and re-encode as clean PNG(超大原图按像素预算降采样,见 decodeBoundedArgb)
+            val bitmap = decodeBoundedArgb(inputFile, "Rembg")
             if (bitmap == null) {
                 Timber.e("Rembg: failed to decode input")
                 return@withContext null
