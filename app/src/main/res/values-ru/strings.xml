@@ -2887,6 +2887,7 @@
     <string name="bookmark_library_empty_syncing">Копируем закладки, скоро появятся</string>
     <string name="bookmark_library_empty_filtered">Нет закладок, подходящих под фильтры</string>
     <string name="bookmark_library_syncing">Копируем закладки в фоне · уже %1$s</string>
+    <string name="bookmark_library_sync_offline">Нет сети — копирование продолжится после подключения</string>
     <string name="bookmark_library_sync_queued">Копирование в очереди, ждём следующего окна</string>
     <string name="bookmark_library_sync_cooldown">Пауза, чтобы не превысить лимиты pixiv</string>
     <string name="bookmark_library_rebuild">Пересоздать локальную копию</string>

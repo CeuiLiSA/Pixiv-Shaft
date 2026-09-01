@@ -2878,6 +2878,7 @@
     <string name="bookmark_library_empty_syncing">미러를 동기화하는 중입니다. 곧 표시됩니다</string>
     <string name="bookmark_library_empty_filtered">조건에 맞는 북마크가 없습니다</string>
     <string name="bookmark_library_syncing">백그라운드에서 동기화 중 · %1$s개</string>
+    <string name="bookmark_library_sync_offline">오프라인입니다. 연결되면 동기화를 이어갑니다</string>
     <string name="bookmark_library_sync_queued">동기화 대기 중입니다</string>
     <string name="bookmark_library_sync_cooldown">pixiv 요청 제한을 피하려고 일시 중지했습니다</string>
     <string name="bookmark_library_rebuild">로컬 미러 다시 만들기</string>

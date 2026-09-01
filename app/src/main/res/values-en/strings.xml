@@ -2880,6 +2880,7 @@
     <string name="bookmark_library_empty_syncing">Mirroring in progress, items will appear shortly</string>
     <string name="bookmark_library_empty_filtered">No bookmarks match these filters</string>
     <string name="bookmark_library_syncing">Mirroring bookmarks in the background · %1$s so far</string>
+    <string name="bookmark_library_sync_offline">Offline — mirroring resumes once you are back online</string>
     <string name="bookmark_library_sync_queued">Mirror queued, waiting for the next sync window</string>
     <string name="bookmark_library_sync_cooldown">Paused to stay under pixiv rate limits, resuming later</string>
     <string name="bookmark_library_rebuild">Rebuild local mirror</string>

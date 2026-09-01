@@ -2881,6 +2881,7 @@
     <string name="bookmark_library_empty_syncing">Kopyalama sürüyor, birazdan görünecek</string>
     <string name="bookmark_library_empty_filtered">Bu filtrelere uyan yer imi yok</string>
     <string name="bookmark_library_syncing">Yer imleri arka planda kopyalanıyor · %1$s</string>
+    <string name="bookmark_library_sync_offline">Çevrimdışı — bağlantı gelince kopyalama sürer</string>
     <string name="bookmark_library_sync_queued">Kopyalama sırada, sonraki pencerede sürecek</string>
     <string name="bookmark_library_sync_cooldown">pixiv sınırlarına takılmamak için duraklatıldı</string>
     <string name="bookmark_library_rebuild">Yerel kopyayı yeniden oluştur</string>

@@ -61,7 +61,7 @@ internal class BookmarkLibraryUi(
     private val viewModel: BookmarkLibraryViewModel,
     private val feedViewModel: FeedViewModel<String>,
     private val contentType: MirrorContentType,
-    /** 当前列表上有多少条目。空列表时的自动重查要用（见 [refreshIfStillEmpty]）。 */
+    /** 当前列表上有多少条目。判断「屏幕上这份是不是已经过期」要用，见 [refreshIfStale]。 */
     private val itemCount: () -> Int,
 ) {
 
@@ -382,8 +382,13 @@ internal class BookmarkLibraryUi(
             fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.filter.collectLatest { renderChips() } }
                 launch {
-                    // 进度条上的「已 N 件」跟着镜像行数走
-                    viewModel.totalCount.collectLatest { renderSyncBanner() }
+                    // 进度条上的「已 N 件」跟着镜像行数走；顺带在这里判「屏幕上的内容是不是
+                    // 已经过期」——必须挂在 totalCount 上而不是 observeOwnerCount 上，因为
+                    // 后者发射时 refreshCounts 才刚启动，读到的还是旧计数。
+                    viewModel.totalCount.collectLatest {
+                        renderSyncBanner()
+                        refreshIfStale()
+                    }
                 }
                 launch {
                     mirror.observeState(uid).collectLatest { states ->
@@ -396,34 +401,45 @@ internal class BookmarkLibraryUi(
                     mirror.observeOwnerCount(uid).collectLatest {
                         viewModel.onMirrorChanged()
                         renderSyncBanner()
-                        refreshIfStillEmpty()
                     }
                 }
             }
         }
+        // 掉网 / 恢复联网都要重画进度条：文案里「正在补齐 / 当前无网络」这两句的真假只取决于
+        // 网络，而网络变化不会引起镜像表或状态表的任何写入 —— 不单独看着它，用户掉线后
+        // 那句「正在后台补齐」会一直挂在那儿骗人，直到别的事件碰巧触发一次重绘。
+        context.appServices().networkStateManager.networkState
+            .observe(fragment.viewLifecycleOwner) { renderSyncBanner() }
     }
 
     /**
-     * 后台刚往镜像里写进一批，而屏幕上还是空的 → 自动重查一次。
+     * 屏幕上这份列表和库里对不上了 → 自动重查一次。
      *
-     * **这条是闭环的关键**：本地源查到 0 行时返回的 `nextCursor` 是 null，feeds 框架
-     * 据此判定「到底了」，从此不会再问数据源要任何东西。于是「切到一个从没镜像过的书架」
-     * 或「刚点了重建镜像」时，页面会永久停在空态 —— 而它头顶那条进度条还在一秒一秒地
-     * 数「正在补齐 · 已 300 件」。用户看到的是两句互相打脸的话，唯一出路是自己想到下拉刷新。
+     * 判据刻意只是**两边条数的对账**，不掺「镜像同步到哪一步了」：
      *
-     * 三道门缺一不可：
-     * - 只在**镜像还没补完**时管。少了它每次进页面都会白查一遍：Room 的 Flow 一订阅就先发
-     *   一次当前值，而那一刻首屏查询还没提交进 uiState，列表当然是空的。
-     * - 只在**列表确实为空**时管。有内容时后台每 5 秒写一页，跟着刷就等于每 5 秒把用户的
-     *   滚动位置拽回顶部一次；而且本来也不需要 —— 本地分页每页都是新查询，往下滑自然读得到。
-     * - **有筛选条件时不管**。那种「空」是条件没筛到，不是数据没到，重查一百次还是空。
+     * - `库里 < 屏幕`：屏幕上挂着库里已经没有的行。最典型的是刚点了「重建本地镜像」——
+     *   `rebuildShelf` 是 fire-and-forget 的，清空在它自己的协程里，而 `rebuildMirror`
+     *   紧接着发的那次刷新完全可能跑在清空**之前**（真机日志复现：清空 2 行之后 2ms，
+     *   那次查询读到的还是 2 行）。
+     * - `屏幕为空而库里有货`：本地源查到 0 行时返回的 `nextCursor` 是 null，feeds 框架据此
+     *   判定「到底了」，从此不再问数据源要任何东西。所以镜像补进第一批之后，得有人推它一把。
+     *
+     * **不要**再拿 `isFirstSyncDone` 当条件（上一版就栽在这儿）：它恰好在最后一页落库的
+     * 同一时刻翻成 true，于是「补齐中且空」这条判据在最需要它的那一瞬间失效 —— 回填明明
+     * 完成了，页面却永远停在「正在补齐…」的空态上（真机复现）。条数对账没有这个时序缝隙。
+     *
+     * 只在两边真的对不上时动手，所以取消收藏删掉一两行**不会**触发（1007 < 60 不成立），
+     * 用户的滚动位置不会被无谓地拽回顶部。有筛选条件时一律不管：那种「空」是条件没筛到。
      */
-    private fun refreshIfStillEmpty() {
+    private fun refreshIfStale() {
         if (destroyed) return
-        if (viewModel.mirrorState.value?.isFirstSyncDone != false) return
         if (viewModel.filter.value.hasAnyCondition) return
-        if (itemCount() > 0) return
-        Timber.tag(TAG).d("镜像仍在补齐而列表为空，自动重查")
+        val shown = itemCount()
+        val stored = viewModel.totalCount.value ?: return
+        val hasGhostRows = stored < shown
+        val emptyButStored = shown == 0 && stored > 0
+        if (!hasGhostRows && !emptyButStored) return
+        Timber.tag(TAG).d("列表与库对不上，自动重查（库内 %d 行 / 屏幕 %d 条）", stored, shown)
         applyFilterChange()
     }
 
@@ -441,13 +457,20 @@ internal class BookmarkLibraryUi(
         val syncing = state != null && !state.isFirstSyncDone
         binding.syncBanner.visibility = if (syncing) View.VISIBLE else View.GONE
         if (!syncing || state == null) return
+        // 离线时引擎每个 tick 都直接返回 Idle（连库都不查），一页都不会补。
+        // 这时候还挂着「正在后台补齐」就是在骗人：用户会以为等一会儿就好，实际要等到有网。
+        val offline = context.appServices().networkStateManager.networkState.value?.isOnline != true
         binding.syncText.text = when {
+            offline -> context.getString(R.string.bookmark_library_sync_offline)
             state.cooldownUntil > System.currentTimeMillis() ->
                 context.getString(R.string.bookmark_library_sync_cooldown)
             state.phase == MirrorPhase.BACKFILLING ->
                 context.getString(R.string.bookmark_library_syncing, formatCount(total))
             else -> context.getString(R.string.bookmark_library_sync_queued)
         }
+        // 转圈只在真的在补的时候转；离线/冷却时停下来，别让一个永远转着的圈暗示「马上就好」
+        binding.syncSpinner.visibility =
+            if (offline || state.cooldownUntil > System.currentTimeMillis()) View.INVISIBLE else View.VISIBLE
     }
 
     private fun sortLabelRes(sort: BookmarkSort): Int = when (sort) {

@@ -2879,6 +2879,7 @@
     <string name="bookmark_library_empty_syncing">正在補齊本地鏡像，稍候就會出現</string>
     <string name="bookmark_library_empty_filtered">沒有符合條件的收藏</string>
     <string name="bookmark_library_syncing">正在背景補齊收藏鏡像 · 已 %1$s 件</string>
+    <string name="bookmark_library_sync_offline">目前無網路，恢復連線後會自動繼續補齊</string>
     <string name="bookmark_library_sync_queued">收藏鏡像已排隊，等待下一個同步視窗</string>
     <string name="bookmark_library_sync_cooldown">已暫停同步以避開 pixiv 頻率限制，稍後自動繼續</string>
     <string name="bookmark_library_rebuild">重建本地鏡像</string>

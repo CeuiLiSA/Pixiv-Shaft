@@ -2878,6 +2878,7 @@
     <string name="bookmark_library_empty_syncing">ミラーを同期中です。まもなく表示されます</string>
     <string name="bookmark_library_empty_filtered">条件に合うブックマークがありません</string>
     <string name="bookmark_library_syncing">バックグラウンドで同期中 · %1$s 件</string>
+    <string name="bookmark_library_sync_offline">オフラインです。接続が戻ると同期を再開します</string>
     <string name="bookmark_library_sync_queued">同期待ちです。次のウィンドウで再開します</string>
     <string name="bookmark_library_sync_cooldown">pixiv のレート制限を避けるため一時停止中です</string>
     <string name="bookmark_library_rebuild">ローカルミラーを再構築</string>
