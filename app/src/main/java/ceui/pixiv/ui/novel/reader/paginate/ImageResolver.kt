@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.novel.reader.paginate
 
-import ceui.loxia.NovelImages
-import ceui.loxia.WebNovel
+import ceui.pixiv.api.model.NovelImages
+import ceui.pixiv.api.model.WebNovel
 import ceui.pixiv.ui.novel.reader.model.ContentToken
 
 /**

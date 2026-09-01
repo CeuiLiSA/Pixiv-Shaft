@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import ceui.lisa.activities.Shaft
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.http.Retro
-import ceui.loxia.Illust
-import ceui.loxia.ObjectPool
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.cache.ObjectPool
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.pixiv.ui.common.IllustFeedItem
@@ -21,7 +21,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import android.app.Application
 
 /**

@@ -3,8 +3,6 @@ package ceui.pixiv.ui.common
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import ceui.loxia.RefreshHint
-import ceui.loxia.RefreshState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

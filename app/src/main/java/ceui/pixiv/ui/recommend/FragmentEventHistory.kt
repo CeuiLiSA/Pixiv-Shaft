@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.recommend
 
 import android.os.Bundle
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding

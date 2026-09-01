@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import ceui.lisa.activities.ImageDetailActivity;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 
 public abstract class AbstractIllustAdapter<VH extends RecyclerView.ViewHolder>
         extends RecyclerView.Adapter<VH> {

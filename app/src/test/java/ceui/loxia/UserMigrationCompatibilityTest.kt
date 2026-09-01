@@ -2,6 +2,7 @@ package ceui.loxia
 
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.models.UserPreviewsBean
+import ceui.pixiv.api.model.AccountResponse
 import com.google.gson.Gson
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

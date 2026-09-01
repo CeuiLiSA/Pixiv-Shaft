@@ -2,9 +2,9 @@ package ceui.pixiv.snapshot
 
 import android.net.Uri
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Comment
-import ceui.loxia.Illust
 import ceui.loxia.ImageUrls
+import ceui.pixiv.api.model.Comment
+import ceui.pixiv.api.model.Illust
 import java.io.File
 
 const val SNAPSHOT_LOCAL_SCHEME = "shaftsnap"

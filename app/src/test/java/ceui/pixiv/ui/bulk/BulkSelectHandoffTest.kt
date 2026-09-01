@@ -1,6 +1,6 @@
 package ceui.pixiv.ui.bulk
 
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull

@@ -1,8 +1,8 @@
 package ceui.pixiv.ui.comments
 
-import ceui.loxia.Client
-import ceui.loxia.Stamp
-import ceui.loxia.StampsResponse
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.Stamp
+import ceui.pixiv.api.model.StampsResponse
 import ceui.pixiv.ui.common.createResponseStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers

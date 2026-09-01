@@ -1,9 +1,9 @@
 package ceui.pixiv.ui.novel.reader
 
-import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.Tag
 import ceui.loxia.User
+import ceui.pixiv.api.model.Illust
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Test

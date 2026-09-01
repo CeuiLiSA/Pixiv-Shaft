@@ -18,7 +18,7 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.database.IllustHistoryEntity
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params

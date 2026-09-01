@@ -29,7 +29,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
-import ceui.loxia.Client;
+import ceui.pixiv.api.Client;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /** 设置 · 网络 */

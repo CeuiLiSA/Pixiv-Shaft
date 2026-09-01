@@ -5,7 +5,7 @@ import android.content.Intent;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.IExecutor;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 
 /**
  * 分享

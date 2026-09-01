@@ -7,7 +7,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.http.Retro
 import kotlinx.coroutines.runBlocking
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager
 import timber.log.Timber
@@ -16,7 +16,7 @@ import kotlin.math.exp
 
 /**
  * 发现页用户画像。进程级一份，由 [ceui.lisa.activities.Shaft] 构造、经
- * [ceui.loxia.ServicesProvider.profileManager] 取用；构造不做任何 IO。
+ * [ceui.pixiv.services.ServicesProvider.profileManager] 取用；构造不做任何 IO。
  *
  * 不认识 [DiscoveryPool]：画像变化只通过 [addOnProfileChanged] 往外报，
  * 候选池自己订阅去重打分，避免两者互相引用。

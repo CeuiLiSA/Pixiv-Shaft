@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.pivision
 
-import ceui.loxia.ArticlesResponse
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.ArticlesResponse
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource

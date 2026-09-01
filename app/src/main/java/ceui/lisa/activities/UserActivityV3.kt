@@ -33,16 +33,16 @@ import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.widgets.FeedBackToTopFab
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.lisa.viewmodel.AppLevelState
-import ceui.loxia.requireEntityWrapper
-import ceui.loxia.appServices
+import ceui.pixiv.services.requireEntityWrapper
+import ceui.pixiv.services.appServices
 import ceui.lisa.viewmodel.UserViewModel
-import ceui.loxia.Client
-import ceui.loxia.Event
+import ceui.pixiv.api.Client
+import ceui.pixiv.utils.Event
 import ceui.loxia.Novel
-import ceui.loxia.ObjectPool
-import ceui.loxia.ProgressTextButton
+import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.widgets.ProgressTextButton
 import ceui.loxia.User
-import ceui.loxia.WebUserDetail
+import ceui.pixiv.api.model.WebUserDetail
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.realCoverUrl
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
@@ -67,7 +67,7 @@ private const val KEY_TAB_KINDS = "user_v3_tab_kinds"
  * 宿主非本类型时(如 TemplateActivity 独立复用该 fragment)回调被忽略。
  */
 interface UserIllustFirstPageListener {
-    fun onUserIllustFirstPage(illusts: List<ceui.loxia.Illust>)
+    fun onUserIllustFirstPage(illusts: List<ceui.pixiv.api.model.Illust>)
 }
 
 /** 小说侧的同款首屏回调(issue #996:小说 Tab 也有标签筛选条),约定同上。 */
@@ -297,7 +297,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
                 writeBackSelfProfile(userResponse)
                 // Record user visit history
                 runCatching {
-                    (application as? ceui.loxia.ServicesProvider)?.entityWrapper?.visitUser(this@UserActivityV3, userResponse.user)
+                    (application as? ceui.pixiv.services.ServicesProvider)?.entityWrapper?.visitUser(this@UserActivityV3, userResponse.user)
                 }
                 appServices().appLevelState.updateFollowUserStatus(
                     userId,

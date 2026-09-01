@@ -1,7 +1,7 @@
 package ceui.pixiv.session
 
-import ceui.loxia.Client
-import ceui.loxia.SelfProfile
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.SelfProfile
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
-import ceui.loxia.Illust
-import ceui.loxia.toTagsBean
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.utils.toTagsBean
 import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.Params
 import ceui.loxia.Novel
@@ -104,7 +104,7 @@ class UserV3WorkTabFragment : Fragment(), UserIllustFirstPageListener, UserNovel
         renderTagsFromFreq(freq, beanOf)
     }
 
-    /** 小说列表首屏回调:loxia Tag → TagsBean 后走同一条聚合/渲染链路。 */
+    /** 小说列表首屏回调:Tag → TagsBean 后走同一条聚合/渲染链路。 */
     override fun onUserNovelFirstPage(novels: List<Novel>) {
         if (view == null || tagsRendered || novels.isEmpty()) return
         val freq = LinkedHashMap<String, Int>()

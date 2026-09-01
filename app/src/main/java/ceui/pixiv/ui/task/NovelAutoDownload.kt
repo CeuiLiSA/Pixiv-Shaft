@@ -3,8 +3,8 @@ package ceui.pixiv.ui.task
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
-import ceui.loxia.Client
 import ceui.loxia.Novel
+import ceui.pixiv.api.Client
 import ceui.pixiv.ui.novel.reader.NovelTextCache
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult

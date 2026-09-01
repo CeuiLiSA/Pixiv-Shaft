@@ -942,7 +942,7 @@ public class Manager {
             // 开关前置判断:默认关时这条下载热路径零额外开销(不建 tag 列表、不读文件)。
             try {
                 if (Shaft.sSettings.isWriteTagsToImageExif()) {
-                    ceui.loxia.Illust exifIllust = downloadItem.getIllust();
+                    ceui.pixiv.api.model.Illust exifIllust = downloadItem.getIllust();
                     java.util.List<String> exifTags = (exifIllust != null && exifIllust.getTags() != null)
                             ? exifIllust.getTagNames()
                             : java.util.Collections.<String>emptyList();

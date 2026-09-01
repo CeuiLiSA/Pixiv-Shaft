@@ -1,7 +1,7 @@
 package ceui.pixiv.snapshot
 
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import java.io.File
 
 /**

@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.novel.reader
 
 import android.util.LruCache
-import ceui.loxia.WebNovel
+import ceui.pixiv.api.model.WebNovel
 import ceui.pixiv.ui.novel.reader.model.ContentToken
 
 /**

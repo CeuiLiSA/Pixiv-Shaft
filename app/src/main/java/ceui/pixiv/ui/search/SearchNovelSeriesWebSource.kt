@@ -3,13 +3,13 @@ package ceui.pixiv.ui.search
 import ceui.lisa.activities.Shaft
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.viewmodel.SearchModel
-import ceui.loxia.Client
 import ceui.loxia.ImageUrls
 import ceui.loxia.Novel
 import ceui.loxia.Series
 import ceui.loxia.Tag
 import ceui.loxia.User
-import ceui.loxia.WebNovelCollection
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.WebNovelCollection
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
@@ -34,7 +34,7 @@ import java.time.LocalDate
  *     借号跑热门的路子在这里用不上：借来的是 OAuth token，不是网页会员 cookie。
  *
  * 过滤也必须自己补齐：app-api 路径的屏蔽 tag / 屏蔽画师 / R-18 / 反刷屏是 [ceui.lisa.core.Mapper]
- * 对着 Novel 做的，网页返回的是另一套对象，一条都不会命中。这里把两种条目都先映射成 loxia
+ * 对着 Novel 做的，网页返回的是另一套对象，一条都不会命中。这里把两种条目都先映射成
  * [Novel] 再走 [NovelFeedItem.of]（与全 app 同一条过滤链），搜索专属的 R-18 三档 / 仅看 AI 在
  * 本文件内补。
  */
@@ -102,7 +102,7 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
     }
 
     /**
-     * 一条结果 → feed 条目。系列条目和单篇条目**都**先落成 loxia [Novel] 再过
+     * 一条结果 → feed 条目。系列条目和单篇条目**都**先落成 [Novel] 再过
      * [NovelFeedItem.of]，让两种卡共用同一条内容过滤链；系列那条随后换壳成
      * [SearchNovelSeriesFeedItem]（卡片形态不同，身份也不能和小说 id 混在一起）。
      */
@@ -138,7 +138,7 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
 
 /**
  * 归纳模式下的「系列」卡条目。复用主力小说卡布局（`recy_novel`）渲染，所以内容也装在一个
- * loxia [Novel] 里；[seriesId] 单独拎出来做身份 + 点击跳转，**不能**用 novel.id 当小说 id——
+ * [Novel] 里；[seriesId] 单独拎出来做身份 + 点击跳转，**不能**用 novel.id 当小说 id——
  * 它是系列 id，喂给小说详情接口会 404。
  */
 data class SearchNovelSeriesFeedItem(
@@ -152,7 +152,7 @@ data class SearchNovelSeriesFeedItem(
 }
 
 /**
- * 网页搜索条目 → loxia [Novel]。封面是 novel-cover-master 的多尺寸图，与 app-api 同一 CDN，
+ * 网页搜索条目 → [Novel]。封面是 novel-cover-master 的多尺寸图，与 app-api 同一 CDN，
  * 直接三档同填；tags 只有字符串名，无译名；visible 置 true 免得被当不可见滤掉。
  *
  * [asSeries] = 系列条目：字数/时间取「已公开」那份（未公开的付费话不算），日期取最新一话的

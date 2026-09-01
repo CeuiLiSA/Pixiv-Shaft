@@ -1,6 +1,6 @@
 package ceui.lisa.models;
 
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 
 public class IllustSearchResponse {
 

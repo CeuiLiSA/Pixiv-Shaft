@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.MuteEntity;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.loxia.Novel;
 import ceui.lisa.models.TagsBean;
 import ceui.pixiv.ui.common.IllustMuteStore;

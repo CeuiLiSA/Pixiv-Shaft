@@ -19,8 +19,8 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentWebBinding
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.viewBinding
-import ceui.loxia.ClientManager
-import ceui.loxia.CsrfTokenProvider
+import ceui.pixiv.api.ClientManager
+import ceui.pixiv.api.CsrfTokenProvider
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import com.tencent.mmkv.MMKV
 

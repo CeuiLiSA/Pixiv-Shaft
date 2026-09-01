@@ -5,7 +5,7 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.loxia.Novel
 import ceui.pixiv.download.header.HeaderConfigRepo
 import ceui.pixiv.download.header.NovelHeaderRenderer

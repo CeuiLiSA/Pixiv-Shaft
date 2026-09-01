@@ -8,7 +8,7 @@ import ceui.lisa.download.IllustDownload
 import ceui.lisa.http.Retro
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.lisa.utils.Params
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.session.SessionManager
 import com.google.android.apps.muzei.api.provider.Artwork
 import com.google.android.apps.muzei.api.provider.ProviderContract

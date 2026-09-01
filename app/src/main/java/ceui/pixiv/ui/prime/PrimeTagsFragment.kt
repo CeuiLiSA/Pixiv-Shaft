@@ -11,7 +11,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.CellItemPrimeTagBinding
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.view.LinearItemDecoration
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.ImageUrls
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem

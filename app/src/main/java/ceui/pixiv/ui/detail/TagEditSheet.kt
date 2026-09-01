@@ -32,7 +32,7 @@ import ceui.lisa.databinding.SheetTagEditBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
-import ceui.loxia.WorkEditableTag
+import ceui.pixiv.api.model.WorkEditableTag
 import ceui.pixiv.utils.makeSheetTransparentAndFillNavBar
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.screenHeight

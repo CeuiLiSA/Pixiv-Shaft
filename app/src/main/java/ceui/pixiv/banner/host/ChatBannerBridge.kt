@@ -3,7 +3,7 @@ package ceui.pixiv.banner.host
 import android.content.Context
 import android.util.LruCache
 import ceui.lisa.R
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.pixiv.banner.BannerCategory
 import ceui.pixiv.banner.BannerDisplayPolicy
 import ceui.pixiv.banner.BannerIcon

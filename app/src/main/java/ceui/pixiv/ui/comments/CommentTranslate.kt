@@ -3,7 +3,7 @@ package ceui.pixiv.ui.comments
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
 import ceui.lisa.utils.Common
-import ceui.loxia.launchSuspend
+import ceui.pixiv.ui.common.launchSuspend
 import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.currentTranslator
 import ceui.pixiv.ui.translate.onThinkingPhase

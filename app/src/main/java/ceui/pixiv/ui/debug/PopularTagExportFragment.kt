@@ -13,7 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import ceui.lisa.R
 import ceui.lisa.utils.Common
-import ceui.loxia.hideKeyboard
+import ceui.pixiv.utils.hideKeyboard
 import com.blankj.utilcode.util.BarUtils
 
 /**

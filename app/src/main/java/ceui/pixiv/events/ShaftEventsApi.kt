@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit
  * shaft-api-v2 — community trending events.
  * Backend lives in https://github.com/SoxiaLiSA/shaft-api-v2
  *
- * Deliberately NOT routed through ceui.loxia.Client: pixiv auth headers,
+ * Deliberately NOT routed through ceui.pixiv.api.Client: pixiv auth headers,
  * token-refresh logic and Cronet are irrelevant here, and a separate
  * OkHttp instance keeps short event timeouts from interfering with the
  * 10s timeouts used for pixiv calls.

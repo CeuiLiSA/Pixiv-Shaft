@@ -3,7 +3,7 @@ package ceui.pixiv.ui.slideshow
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import timber.log.Timber
 

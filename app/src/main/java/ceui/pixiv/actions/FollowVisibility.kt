@@ -43,7 +43,7 @@ object FollowVisibility {
      *
      * **可见性得有自己的通知渠道，不能搭 `is_followed` 的便车。** 两者是正交的事实：
      * `user/follow/detail` 在画师主页补上「原来是私密关注」时，`is_followed` 一个字节都没变，
-     * [ceui.loxia.ObjectPool] 的 User 观察者根本不会响。少了这条渠道，就会出现
+     * [ceui.pixiv.cache.ObjectPool] 的 User 观察者根本不会响。少了这条渠道，就会出现
      * 「重启 app → 详情页显示『已关注』→ 进画师主页看到『悄悄关注中』→ 返回详情页还是『已关注』」
      * —— 详情页压根不知道该重绘（issue #997 追加反馈）。
      *

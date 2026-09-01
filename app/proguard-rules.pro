@@ -11,6 +11,8 @@
 -keepclassmembers class ceui.lisa.models.** { <fields>; }
 -keepclassmembers class ceui.lisa.model.** { <fields>; }
 -keepclassmembers class ceui.loxia.** { <fields>; }
+-keepclassmembers class ceui.pixiv.api.** { <fields>; }
+-keepclassmembers class ceui.pixiv.shaftapi.** { <fields>; }
 -keepclassmembers class ceui.lisa.network.** { <fields>; }
 -keepclassmembers class ceui.lisa.update.** { <fields>; }
 -keepclassmembers class ceui.pixiv.chat.api.** { <fields>; }
@@ -37,6 +39,8 @@
 -keep,allowobfuscation class ceui.lisa.models.**
 -keep,allowobfuscation class ceui.lisa.model.**
 -keep,allowobfuscation class ceui.loxia.*
+-keep,allowobfuscation class ceui.pixiv.api.**
+-keep,allowobfuscation class ceui.pixiv.shaftapi.**
 -keep,allowobfuscation class ceui.lisa.network.**
 -keep,allowobfuscation class ceui.lisa.update.**
 -keep,allowobfuscation class ceui.pixiv.chat.api.**

@@ -9,7 +9,7 @@ package ceui.lisa.http
  * 这些值覆盖以下调用段：
  * - [Retro.buildRetrofit]：老栈 AppApi（app-api.pixiv.net）、AccountTokenApi
  *   （oauth.secure.pixiv.net 刷新 token）与 SignApi 共用。
- * - [ceui.loxia.ClientManager.createAPPAPI]：新栈 app-api。
+ * - [ceui.pixiv.api.ClientManager.createAPPAPI]：新栈 app-api。
  * - [ceui.pixiv.login.PixivLogin.buildClient]：OAuth 登录交换 / refresh_token 刷新。
  * - 以上 client 开启 PxveAPI 代理时，[AppApiProxyInterceptor] 改写后的代理请求
  *   仍走这些 client，因此代理路径同样使用这里的超时。
@@ -19,7 +19,7 @@ object AppApiTimeouts {
     /** 连接超时（秒）。现收敛到5s。 */
     const val CONNECT_TIMEOUT_SECONDS = 5L
 
-    /** 读超时（秒）。值 = 原 OkHttp 默认 10s / loxia REQUIEST_TIME 10s。 */
+    /** 读超时（秒）。值 = 原 OkHttp 默认 10s / 旧 REQUIEST_TIME 10s。 */
     const val READ_TIMEOUT_SECONDS = 10L
 
     /** 写超时（秒）。app-api 相关 client 显式/默认均为 10s，一并收敛。 */

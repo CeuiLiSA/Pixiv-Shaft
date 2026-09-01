@@ -3,8 +3,8 @@ package ceui.pixiv.download.importer
 import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.loxia.fetchFullIllustDetail
 import ceui.pixiv.ui.bulk.FetchEvent
+import ceui.pixiv.utils.fetchFullIllustDetail
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

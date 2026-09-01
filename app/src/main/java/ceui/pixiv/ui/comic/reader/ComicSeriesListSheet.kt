@@ -21,8 +21,8 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.ItemReaderSeriesRowBinding
 import ceui.lisa.databinding.SheetReaderSeriesBinding
 import ceui.lisa.utils.Params
-import ceui.loxia.Illust
-import ceui.loxia.SeriesCache
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.cache.SeriesCache
 import ceui.pixiv.ui.novel.reader.ui.ReaderSheetUi
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.Dispatchers

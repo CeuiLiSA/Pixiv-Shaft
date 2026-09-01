@@ -7,7 +7,7 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.download.RecordedPageProbe
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.ui.bulk.FetchEvent

@@ -10,7 +10,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.db.EntityType
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.db.RecordType
@@ -106,7 +106,7 @@ class WatchLaterFeedFragment : IllustFeedFragment() {
 
 /**
  * 「稍后再看」数据源：general_table(WATCH_LATER) 全量单页，没有翻页（nextCursor 恒为 null，
- * 对齐 legacy 的 setEnableLoadMore(false)）。存的是 Illust JSON（字段名与 loxia Illust
+ * 对齐 legacy 的 setEnableLoadMore(false)）。存的是 Illust JSON（字段名与 Illust
  * 完全一致）。
  *
  * 用 [IllustFeedItem.raw] 而不是 of：**这里的条目是用户手动存进来的，不该再被

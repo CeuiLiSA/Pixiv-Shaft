@@ -9,9 +9,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ceui.loxia.Client
-import ceui.loxia.Illust
-import ceui.loxia.IllustResponse
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.IllustResponse
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.search.SortType
 import com.google.gson.GsonBuilder

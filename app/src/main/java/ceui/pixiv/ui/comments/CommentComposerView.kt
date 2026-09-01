@@ -13,7 +13,7 @@ import androidx.core.view.isVisible
 import androidx.interpolator.view.animation.FastOutLinearInInterpolator
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
-import ceui.loxia.ProgressImageButton
+import ceui.pixiv.widgets.ProgressImageButton
 
 /** Shared visual implementation of the Pixiv text/emoji/stamp comment composer. */
 class CommentComposerView @JvmOverloads constructor(

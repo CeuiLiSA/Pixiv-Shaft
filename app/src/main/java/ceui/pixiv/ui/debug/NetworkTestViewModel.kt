@@ -15,9 +15,9 @@ import ceui.lisa.http.PixivHeaders
 import ceui.lisa.http.RubySSLSocketFactory
 import ceui.lisa.http.TrustAllCertManager
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
-import ceui.loxia.HeaderInterceptor
-import ceui.loxia.WebHeaderInterceptor
+import ceui.pixiv.api.Client
+import ceui.pixiv.network.HeaderInterceptor
+import ceui.pixiv.network.WebHeaderInterceptor
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlin.coroutines.coroutineContext

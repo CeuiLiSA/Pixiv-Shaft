@@ -8,7 +8,7 @@ import java.io.StringReader;
 /**
  * 从 illust_download_table 的 illustGson blob 抽取顶层 {@code "id"}（作品自身 id）。
  *
- * illustGson 是 {@code ceui.loxia.Illust} / Novel 的 Gson 序列化，顶层直接就有
+ * illustGson 是 {@code ceui.pixiv.api.model.Illust} / Novel 的 Gson 序列化，顶层直接就有
  * {@code "id":<number>}。这里用流式 {@link JsonReader} 只读到顶层的 id 就停，**不下钻**
  * 嵌套对象（image_urls / user / meta_pages 各自也有自己的 id），所以拿到的永远是作品
  * 本身的 id —— 比旧的 {@code illustGson LIKE '%"id":X%'} 更精确（LIKE 会误命中 caption

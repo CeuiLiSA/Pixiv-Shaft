@@ -5,8 +5,8 @@ import android.widget.ImageView
 import androidx.databinding.BindingAdapter
 import ceui.lisa.R
 import ceui.lisa.utils.GlideUrlChild
-import ceui.loxia.Illust
 import ceui.loxia.User
+import ceui.pixiv.api.model.Illust
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade

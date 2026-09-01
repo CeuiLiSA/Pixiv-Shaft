@@ -10,8 +10,8 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.CellNotificationBinding
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.view.LinearItemDecoration
-import ceui.loxia.Client
-import ceui.loxia.NotificationItem
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.NotificationItem
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer

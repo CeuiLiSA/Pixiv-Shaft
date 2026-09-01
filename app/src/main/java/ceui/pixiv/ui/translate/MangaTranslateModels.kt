@@ -13,7 +13,7 @@ import timber.log.Timber
  * 为什么是「一份、进程级」而不是各调用方自己 new:模型加载要秒级、常驻几百 MB,
  * 整部批量翻译([MangaBatchTranslateCenter])和看图页单页 / 圈选翻译
  * ([ceui.lisa.activities.ImageTranslationViewModel])前后脚会用到同一套,各开一份既慢又炸内存。
- * 它由 [ceui.lisa.activities.Shaft] 构造并通过 [ceui.loxia.ServicesProvider.mangaTranslateModels] 提供;
+ * 它由 [ceui.lisa.activities.Shaft] 构造并通过 [ceui.pixiv.services.ServicesProvider.mangaTranslateModels] 提供;
  * 单测可以自己 new 一份。
  *
  * 构造廉价:不做任何 IO,模型在第一次 [ensureLoaded] 时才读盘。

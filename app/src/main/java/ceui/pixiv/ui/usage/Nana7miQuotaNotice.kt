@@ -7,7 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
-import ceui.loxia.Nana7miResult
+import ceui.pixiv.shaftapi.Nana7miResult
 import com.google.android.material.snackbar.Snackbar
 import ceui.pixiv.ui.navigation.TemplateRoute
 

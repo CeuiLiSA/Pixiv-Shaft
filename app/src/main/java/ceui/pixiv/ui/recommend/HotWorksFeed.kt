@@ -62,7 +62,7 @@ private suspend fun fetchHotPage(source: HotWorksSource, type: String, window: S
  * shaft-api-v2 的响应不实现 KListShow（item.bean 是 JsonObject），用不了 PixivFeedSource，
  * 这里直接写 [FeedSource]。逐条 item.bean → Illust，装 trendingScore、清 is_bookmarked
  * （payload 里是上报者的收藏态，跟当前用户无关），再走 [IllustFeedItem.of]（含全局内容
- * 过滤 + bean→loxia Illust）。零 Fragment 捕获（source/type/window 都是构造进来的局部值）。
+ * 过滤 + bean→Illust）。零 Fragment 捕获（source/type/window 都是构造进来的局部值）。
  */
 class HotWorksIllustFeedSource(
     private val source: HotWorksSource,
@@ -82,7 +82,7 @@ class HotWorksIllustFeedSource(
     }
 }
 
-/** 小说版（type=novel）。同上，只是 item.bean → loxia Novel，热度分单独带进 NovelFeedItem。 */
+/** 小说版（type=novel）。同上，只是 item.bean → Novel，热度分单独带进 NovelFeedItem。 */
 class HotWorksNovelFeedSource(
     private val source: HotWorksSource,
     private val window: String?,

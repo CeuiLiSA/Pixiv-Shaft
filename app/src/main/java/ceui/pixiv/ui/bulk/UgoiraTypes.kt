@@ -1,6 +1,6 @@
 package ceui.pixiv.ui.bulk
 
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 
 /**
  * Ugoira 任务的可见进度阶段。下载链是单 zip + 同步编码，没有自然的字节级

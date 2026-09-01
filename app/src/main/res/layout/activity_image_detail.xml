@@ -69,7 +69,7 @@
             </FrameLayout>
 
             <!-- 「下载详情」模式复用底部中央位置显示本地文件路径(历史行为) -->
-            <ceui.loxia.ProgressTextButton
+            <ceui.pixiv.widgets.ProgressTextButton
                 android:id="@+id/download_this_one"
                 style="@style/GreenShiningButton"
                 android:layout_width="wrap_content"

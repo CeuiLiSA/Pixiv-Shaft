@@ -11,7 +11,7 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.CellEventHistoryBinding
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
 import ceui.loxia.User
 import ceui.lisa.network.ShaftApiV2

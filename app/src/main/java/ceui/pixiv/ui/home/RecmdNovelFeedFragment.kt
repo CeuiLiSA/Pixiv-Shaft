@@ -15,7 +15,7 @@ import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.view.LinearItemHorizontalDecoration
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedItem
@@ -36,7 +36,7 @@ import com.bumptech.glide.Glide
 /**
  * 「推荐小说」页（FragmentNewNovel 的推荐 tab，feeds 框架版，替代 legacy FragmentRecmdNovel +
  * NAdapterWithHeadView + RecmdNovelRepo）。异构列表 = 横向排行榜预览头（整行）+ 小说卡列表，
- * 卡片/收藏/跳转全部复用基类 [NovelFeedFragment]（全 loxia Novel，零 gson）。
+ * 卡片/收藏/跳转全部复用基类 [NovelFeedFragment]（全程 Novel 数据类，零 gson）。
  *
  * 与 legacy 对齐：首屏 ranking_novels 渲染横向排行榜预览头（NovelHeader 同款 recy_recmd_header），
  * 「查看更多」进 RankActivity 小说榜，卡片点击开小说详情。本地优先缓存（同 RecmdIllustFeedFragment）。
@@ -158,7 +158,7 @@ class NovelRankPreviewHeaderItem(val rankNovels: List<Novel>) : FeedItem {
 }
 
 /**
- * 排行榜预览头里的横向小说卡 adapter（loxia 原生，recy_rank_novel_horizontal，替代 legacy NHAdapter）。
+ * 排行榜预览头里的横向小说卡 adapter（数据类原生，recy_rank_novel_horizontal，替代 legacy NHAdapter）。
  * 点击开小说详情（走 novelId，不传序列化 bean），长按弹小说卡菜单。
  */
 private class RecmdNovelRankAdapter(

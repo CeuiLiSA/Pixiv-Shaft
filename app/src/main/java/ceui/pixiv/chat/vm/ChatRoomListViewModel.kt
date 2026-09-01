@@ -2,7 +2,7 @@ package ceui.pixiv.chat.vm
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.pixiv.chat.api.ChatConversationsRepository
 import ceui.pixiv.chat.api.ChatFrame
 import ceui.pixiv.chat.ui.ChatRoomEntry

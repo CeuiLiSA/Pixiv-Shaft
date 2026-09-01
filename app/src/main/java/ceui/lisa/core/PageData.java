@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 
 public class PageData implements IDWithList<Illust>{
 

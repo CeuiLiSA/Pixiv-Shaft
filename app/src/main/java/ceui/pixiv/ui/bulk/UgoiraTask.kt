@@ -6,7 +6,7 @@ import ceui.lisa.cache.Cache
 import ceui.lisa.file.LegacyFile
 import ceui.lisa.http.Retro
 import ceui.lisa.models.GifResponse
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Params
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.UgoiraDownloadRecord

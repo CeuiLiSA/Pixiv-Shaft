@@ -4,7 +4,7 @@ import java.util.List;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.ListIllust;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.utils.PixivOperate;
 
 /**

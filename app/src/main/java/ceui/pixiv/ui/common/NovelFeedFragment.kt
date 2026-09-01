@@ -22,7 +22,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.loxia.Novel
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.FeedCell
@@ -68,9 +68,9 @@ private const val NOVEL_SPOILER_BLUR_SAMPLING = 3
  * 小说列表页的共享基类（对齐插画侧 [IllustFeedFragment]）。子类只声明数据源
  *（feedViewModels + mapper 产出 [NovelFeedItem]）；本类统一提供主力小说卡（recy_novel）：
  *
- * - 全程 loxia [Novel] data class：收藏走 [ceui.pixiv.actions.PixivActions] 的持久化队列，
+ * - 全程 [Novel] data class：收藏走 [ceui.pixiv.actions.PixivActions] 的持久化队列，
  *   跳转走 [DetailFeedSupport] 的 openNovelDetail/openUserActivity，标签流 [ceui.pixiv.widgets.V3TagFlowView]
- *   直接吃 loxia [ceui.loxia.Tag]——不并存 legacy 可变 bean、不做 gson 往返；
+ *   直接吃 [ceui.loxia.Tag]——不并存 legacy 可变 bean、不做 gson 往返；
  * - 收藏：乐观切态 + 收藏后自动关注作者(isAutoFollowAfterStar)，私密收藏设置 / 埋点 / RateApp /
  *   失败回滚都在队列侧统一处理，并收发 LIKED_NOVEL 广播与其它小说列表双向同步收藏态；
  * - 点击语义：卡片开小说详情 / 封面看封面大图 / 头像·作者进画师页 / 系列进小说系列页 /

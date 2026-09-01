@@ -32,7 +32,7 @@ import ceui.lisa.core.PageData
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadDao
 import ceui.lisa.database.DownloadEntity
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
@@ -54,7 +54,7 @@ import java.io.Serializable
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import ceui.pixiv.ui.navigation.TemplateRoute
 
@@ -380,7 +380,7 @@ internal data class DownloadGroup(
     val allEntities: List<DownloadEntity>,
     /** 预解析的 Illust —— 在 IO 线程做完 Gson；UI 绑卡时直接用，不再 fromJson 卡帧 */
     val parsedIllust: Illust? = null,
-    /** 预解析的 loxia Novel —— 同 [parsedIllust]，仅小说行有值。issue #876:
+    /** 预解析的 Novel —— 同 [parsedIllust]，仅小说行有值。issue #876:
      *  DB 里 fileName 是 PK（NOVEL_KEY+id），不带标题；下载记录卡片要从这里
      *  取真正的小说名 + 作者展示。 */
     val parsedNovel: Novel? = null,

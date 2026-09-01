@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.search
 
-import ceui.loxia.WebNovelSearchBody
-import ceui.loxia.WebResponse
+import ceui.pixiv.api.model.WebNovelSearchBody
+import ceui.pixiv.api.model.WebResponse
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import org.junit.Assert.assertEquals

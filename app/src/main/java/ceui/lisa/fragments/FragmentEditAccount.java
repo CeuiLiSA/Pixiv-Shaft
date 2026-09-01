@@ -9,7 +9,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentEditAccountBinding;
 import ceui.lisa.http.LegacyApiCalls;
-import ceui.loxia.AccountResponse;
+import ceui.pixiv.api.model.AccountResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 

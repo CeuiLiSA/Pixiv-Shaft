@@ -5,9 +5,9 @@ import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.databinding.CellNotificationBinding
 import ceui.lisa.utils.GlideUrlChild
-import ceui.loxia.DateParse
-import ceui.loxia.NotificationItem
+import ceui.pixiv.api.model.NotificationItem
 import ceui.pixiv.feeds.FeedItem
+import ceui.pixiv.utils.DateParse
 import com.bumptech.glide.RequestManager
 
 /** feeds 框架条目，被 [NotificationListFragment] 和 [NotificationViewMoreFragment] 共用。 */

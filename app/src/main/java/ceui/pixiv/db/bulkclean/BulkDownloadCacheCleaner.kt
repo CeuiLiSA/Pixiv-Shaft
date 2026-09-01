@@ -8,7 +8,7 @@ import ceui.lisa.database.AppDatabase
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.File
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 
 /**
  * 一键清理批量下载相关的持久化数据,把下载管理恢复成"第一次打开 app"的状态。

@@ -12,7 +12,7 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.view.LinearItemDecoration
-import ceui.loxia.Article
+import ceui.pixiv.api.model.Article
 import ceui.pixiv.feeds.FeedArticleSkeletonView
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem

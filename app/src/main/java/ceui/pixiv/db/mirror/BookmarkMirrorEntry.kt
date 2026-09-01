@@ -1,7 +1,7 @@
 package ceui.pixiv.db.mirror
 
 import android.content.Context
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
 
 /**

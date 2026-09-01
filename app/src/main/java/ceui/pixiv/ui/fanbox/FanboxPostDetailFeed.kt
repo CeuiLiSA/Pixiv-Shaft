@@ -27,19 +27,18 @@ import ceui.lisa.databinding.CellFanboxPlanBinding
 import ceui.lisa.databinding.CellFanboxSectionBinding
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.utils.GlideUtil
-import ceui.loxia.Client
-import ceui.loxia.FanboxBlockLink
-import ceui.loxia.FanboxBlockStyle
-import ceui.loxia.FanboxComment
-import ceui.loxia.FanboxEmbed
-import ceui.loxia.FanboxFile
-import ceui.loxia.FanboxImage
-import ceui.loxia.FanboxPlan
-import ceui.loxia.FanboxPost
-import ceui.loxia.FanboxUrlEmbed
-import ceui.loxia.FanboxWebBridge
-import ceui.loxia.appServices
-import ceui.loxia.fetchFanboxPostInfo
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.FanboxBlockLink
+import ceui.pixiv.api.FanboxBlockStyle
+import ceui.pixiv.api.FanboxComment
+import ceui.pixiv.api.FanboxEmbed
+import ceui.pixiv.api.FanboxFile
+import ceui.pixiv.api.FanboxImage
+import ceui.pixiv.api.FanboxPlan
+import ceui.pixiv.api.FanboxPost
+import ceui.pixiv.api.FanboxUrlEmbed
+import ceui.pixiv.services.appServices
+import ceui.pixiv.api.fetchFanboxPostInfo
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.ui.common.ImageUrlViewer
 import ceui.pixiv.feeds.FeedItem
@@ -63,7 +62,7 @@ import com.bumptech.glide.Glide
  * (plan.listCreator,就是付费墙那个「方案列表」背后的数据)、完整评论区(含楼中楼)。
  *
  * 正文那条路要绕一下:`post.info` 被 Cloudflare 单独挡了非浏览器客户端,OkHttp 一律 403,
- * 所以它走 [ceui.loxia.FanboxWebBridge](不上屏的 WebView)发。拿不到时(没登录、被挡、
+ * 所以它走 [ceui.pixiv.ui.fanbox.FanboxWebBridge](不上屏的 WebView)发。拿不到时(没登录、被挡、
  * 超时)退回 `post.get` 只渲染元数据,并把正文位置换成「在网页中打开」。
  *
  * 受限帖子(没赞助到档)服务端本来就不下发 body,那是正常态,走的是赞助方案那一段。
@@ -425,7 +424,7 @@ private suspend fun loadFanboxPostDetail(
 }
 
 /**
- * 正文 → 列表项。块的形状按 `type` 分家(schema 见 [ceui.loxia.FanboxPostBody]):
+ * 正文 → 列表项。块的形状按 `type` 分家(schema 见 [ceui.pixiv.api.FanboxPostBody]):
  * `article` 是块数组 + 资源 map,其余几种是扁的 text/images/files。
  *
  * 拿不到 body(受限 / 被挡)返回空表,由调用方决定挂什么兜底。

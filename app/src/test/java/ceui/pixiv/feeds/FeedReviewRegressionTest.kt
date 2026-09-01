@@ -1,8 +1,8 @@
 package ceui.pixiv.feeds
 
-import ceui.loxia.Comment
 import ceui.loxia.User
-import ceui.loxia.UserPreview
+import ceui.pixiv.api.model.Comment
+import ceui.pixiv.api.model.UserPreview
 import ceui.pixiv.ui.common.toUserFeedItems
 import ceui.pixiv.ui.detail.ArtworkCommentsItem
 import ceui.pixiv.ui.recommend.HotWorksSource

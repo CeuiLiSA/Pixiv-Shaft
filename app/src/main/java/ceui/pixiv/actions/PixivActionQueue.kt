@@ -2,13 +2,13 @@ package ceui.pixiv.actions
 
 import android.content.Context
 import ceui.lisa.R
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
 import ceui.lisa.utils.Common
-import ceui.loxia.Client
-import ceui.loxia.ObjectPool
+import ceui.pixiv.api.Client
+import ceui.pixiv.cache.ObjectPool
 import ceui.loxia.User
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import ceui.pixiv.actionqueue.ActionEvent
 import ceui.pixiv.actionqueue.ActionQueue
 import ceui.pixiv.actionqueue.ActionRequest
@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 装配、启动时机和失败反馈，是唯一持有实例的地方。UI 不直接碰它，走 [PixivActions]。
  *
  * 一个进程只有一份，由 [ceui.lisa.activities.Shaft] 构造并经
- * [ceui.loxia.ServicesProvider.pixivActionQueue] 暴露；构造廉价（不建队列、不起协程），
+ * [ceui.pixiv.services.ServicesProvider.pixivActionQueue] 暴露；构造廉价（不建队列、不起协程），
  * 真正的装配在 [start]。
  */
 class PixivActionQueue(app: Context) {
@@ -328,7 +328,7 @@ class PixivActionQueue(app: Context) {
     private fun syncBookmarkMirror(
         contentType: MirrorContentType,
         payload: BookmarkPayload,
-        illustOrNull: ceui.loxia.Illust?,
+        illustOrNull: ceui.pixiv.api.model.Illust?,
         novelOrNull: ceui.loxia.Novel?,
     ) {
         val mirror = app.appServices().bookmarkMirror

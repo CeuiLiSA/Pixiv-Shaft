@@ -14,7 +14,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.RecyIllustStaggerBinding
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.feeds.FeedRenderer

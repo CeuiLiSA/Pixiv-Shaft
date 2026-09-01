@@ -9,7 +9,7 @@ import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.loxia.Novel
-import ceui.loxia.requireEntityWrapper
+import ceui.pixiv.services.requireEntityWrapper
 import ceui.pixiv.ui.bulk.BulkSelectHandoff
 import ceui.pixiv.ui.bulk.NovelBulkSelectHandoff
 import ceui.pixiv.ui.detail.showV3Menu
@@ -82,7 +82,7 @@ internal fun NovelFeedFragment.showNovelCardMenu(
         item(spoilerLabel, spoilerIcon) {
             onToggleSpoiler(!spoilered)
         }
-        // 屏蔽设定：与插画卡同一套屏蔽表（IllustNovelFilter 对 loxia Novel 有同款重载）。
+        // 屏蔽设定：与插画卡同一套屏蔽表（IllustNovelFilter 对 Novel 有同款重载）。
         // 标签和作者两个 section 都没东西可勾才不挂这一项——挂了点下去也只能静默无反应。
         if (tagsToMute.isNotEmpty() || author != null) {
             item(getString(R.string.string_111), R.drawable.ic_not_interested_black_24dp) {

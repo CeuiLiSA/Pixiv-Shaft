@@ -1,10 +1,10 @@
 package ceui.pixiv.ui.comments
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import ceui.loxia.API
-import ceui.loxia.Comment
-import ceui.loxia.ObjectType
-import ceui.loxia.PostCommentResponse
+import ceui.pixiv.api.API
+import ceui.pixiv.api.model.Comment
+import ceui.pixiv.api.model.ObjectType
+import ceui.pixiv.api.model.PostCommentResponse
 import ceui.loxia.User
 import ceui.pixiv.feeds.FeedItem
 import java.lang.reflect.InvocationHandler

@@ -9,13 +9,13 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.databinding.CellHistoryIllustV3Binding
 import ceui.lisa.databinding.CellHistoryNovelV3Binding
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
-import ceui.loxia.HistoryEntry
-import ceui.loxia.ObjectPool
+import ceui.pixiv.api.Client
+import ceui.pixiv.shaftapi.HistoryEntry
+import ceui.pixiv.cache.ObjectPool
 import ceui.loxia.User
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage

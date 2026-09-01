@@ -10,13 +10,13 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.RecyTagGridBinding
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.view.TagItemDecoration
-import ceui.loxia.Client
-import ceui.loxia.TrendingTag
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.TrendingTag
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer

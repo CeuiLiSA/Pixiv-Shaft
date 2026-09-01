@@ -21,7 +21,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentBookmarkLibraryBinding
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import ceui.pixiv.db.mirror.AgeFilter
 import ceui.pixiv.db.mirror.AiFilter
 import ceui.pixiv.db.mirror.BookmarkFilter

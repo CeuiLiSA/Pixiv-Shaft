@@ -12,9 +12,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.helper.AppLevelStateHelper
 import ceui.lisa.model.ListIllust
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Params
-import ceui.loxia.ObjectPool
+import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.FeedViewModel

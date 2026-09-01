@@ -73,7 +73,7 @@
             app:trackCornerRadius="4dp"
             app:trackThickness="5dp" />
 
-        <ceui.loxia.ProgressTextButton
+        <ceui.pixiv.widgets.ProgressTextButton
             android:id="@+id/download_button"
             style="@style/GreenShiningButton"
             android:layout_width="wrap_content"

@@ -20,14 +20,14 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentAccountSwitchV3Binding
 import ceui.lisa.databinding.ItemAccountSwitchRowV3Binding
 import ceui.lisa.fragments.SettingsCatalog
-import ceui.loxia.AccountResponse
+import ceui.pixiv.api.model.AccountResponse
 import ceui.loxia.User
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
-import ceui.loxia.getHumanReadableMessage
+import ceui.pixiv.ui.common.getHumanReadableMessage
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.setOnClick

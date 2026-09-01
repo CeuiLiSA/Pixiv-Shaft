@@ -1,6 +1,6 @@
 package ceui.pixiv.feeds.pixiv
 
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

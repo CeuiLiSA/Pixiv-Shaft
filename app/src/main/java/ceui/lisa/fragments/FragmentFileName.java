@@ -25,7 +25,7 @@ import ceui.lisa.databinding.FragmentFileNameBinding;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.CustomFileNameCell;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Local;

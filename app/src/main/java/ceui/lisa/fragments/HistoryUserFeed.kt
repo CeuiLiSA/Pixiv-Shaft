@@ -7,9 +7,8 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.CellHistoryUserBinding
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
-import ceui.loxia.HistoryEntry
 import ceui.loxia.User
+import ceui.pixiv.api.Client
 import ceui.pixiv.db.EntityType
 import ceui.pixiv.db.GeneralEntity
 import ceui.pixiv.db.RecordType
@@ -19,6 +18,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.shaftapi.HistoryEntry
 import ceui.pixiv.utils.clearGlideOnRecycle
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers

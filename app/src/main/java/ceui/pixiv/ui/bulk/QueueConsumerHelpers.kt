@@ -4,8 +4,8 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
 import ceui.lisa.http.Retro
-import ceui.loxia.Illust
-import ceui.loxia.ObjectPool
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.db.queue.DownloadQueueEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

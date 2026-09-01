@@ -46,7 +46,7 @@ import ceui.pixiv.witstudio.dialog.WitDialog
  * 自带 signature dedupe，同一组 tags 多次 setTags 不会重建 view。
  *
  * 三个 API 按数据源选：
- * - [setTags]：loxia 的 [Tag]（小说）
+ * - [setTags]：[Tag]（小说）
  * - [setJavaTags]：lisa 的 [TagsBean]（插画）
  * - [setTagNames]：纯字符串列表（搜索页输入框的 chip 输入）
  *

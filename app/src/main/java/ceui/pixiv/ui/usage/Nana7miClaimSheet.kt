@@ -9,10 +9,10 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.databinding.DialogNana7miClaimBinding
 import ceui.lisa.utils.Common
-import ceui.loxia.Client
-import ceui.loxia.Nana7miClaimResult
-import ceui.loxia.claimAfdianOrder
+import ceui.pixiv.api.Client
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.shaftapi.Nana7miClaimResult
+import ceui.pixiv.shaftapi.claimAfdianOrder
 import ceui.pixiv.ui.search.v3.V3BottomSheetBase
 import ceui.pixiv.utils.setOnClick
 import kotlinx.coroutines.launch

@@ -67,7 +67,7 @@ class NovelWatchLaterFeedFragment : NovelFeedFragment() {
 
 /**
  * 小说稍后再看的数据源：general_table(WATCH_LATER_NOVEL) 全量单页，没有翻页
- *（nextCursor 恒为 null）。存的是 loxia Novel JSON，还原时不过全局过滤
+ *（nextCursor 恒为 null）。存的是 Novel JSON，还原时不过全局过滤
  *（[NovelFeedItem.rawFromNovel]）。
  */
 class NovelWatchLaterFeedSource : FeedSource<String> {

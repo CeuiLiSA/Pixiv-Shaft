@@ -6,7 +6,7 @@ import androidx.core.content.IntentCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import ceui.lisa.activities.TemplateActivity
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import ceui.lisa.fragments.FragmentAboutApp
 import ceui.lisa.fragments.FragmentCollection
 import ceui.lisa.fragments.FragmentDonate
@@ -32,13 +32,13 @@ import ceui.lisa.fragments.SettingsCatalog
 import ceui.lisa.fragments.StreetMainFragment
 import ceui.lisa.update.FragmentVersionHistory
 import ceui.lisa.utils.Params
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
-import ceui.loxia.ObjectPool
-import ceui.loxia.ObjectType
+import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.api.model.ObjectType
 import ceui.loxia.User
-import ceui.loxia.flag.FlagDescFragment
-import ceui.loxia.flag.FlagReasonFragment
+import ceui.pixiv.ui.flag.FlagDescFragment
+import ceui.pixiv.ui.flag.FlagReasonFragment
 import ceui.pixiv.chat.ui.ChatRoomListFragment
 import ceui.pixiv.chat.ui.DemoChatListFragment
 import ceui.pixiv.plaza.ui.PlazaComposeFragment

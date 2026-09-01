@@ -1,8 +1,8 @@
 package ceui.lisa.fragments
 
 import ceui.lisa.models.NovelDetail
-import ceui.loxia.PixivHtmlObject
-import ceui.loxia.WebNovel
+import ceui.pixiv.api.model.PixivHtmlObject
+import ceui.pixiv.api.model.WebNovel
 import com.google.gson.Gson
 import okhttp3.ResponseBody
 import org.jsoup.Jsoup

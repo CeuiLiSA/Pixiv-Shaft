@@ -11,8 +11,8 @@ import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemHorizontalDecoration
-import ceui.loxia.Client
-import ceui.loxia.UserPreview
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.UserPreview
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
@@ -98,7 +98,7 @@ class RecmdUserRailFeedFragment : FeedFragment() {
     /**
      * 交接给「查看更多」([RecmdUserFeedFragment] 整页) 的快照：当前这一批 + 续读游标。
      *
-     * 直接给 loxia [UserPreview]：整页也是 feeds 版、要的就是这个类型。以前这里 gson 转成 legacy
+     * 直接给 [UserPreview]：整页也是 feeds 版、要的就是这个类型。以前这里 gson 转成 legacy
      * `UserPreviewsBean` 是为了迁就 legacy 消费方 FragmentRecmdUser，那边下线后转换只剩浪费
      * （对面还得再转回来）。少一层转换也就没有「转不动的条目」要兜了。
      */
@@ -120,7 +120,7 @@ class RecmdUserRailFeedFragment : FeedFragment() {
 }
 
 /**
- * 推荐用户货架条目：只持不可变的 loxia [UserPreview]。
+ * 推荐用户货架条目：只持不可变的 [UserPreview]。
  *
  * 货架卡没有关注按钮、也不参与关注态回流，所以不用
  * [ceui.pixiv.ui.common.UserFeedItem] 那套（那份带 withFollowed / 预览图）；这里只要 id + 头像 + 名字。

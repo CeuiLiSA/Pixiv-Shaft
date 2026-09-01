@@ -4,10 +4,10 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.utils.Local
-import ceui.loxia.Client
-import ceui.loxia.HistoryReportBody
-import ceui.loxia.HistoryReportItem
+import ceui.pixiv.api.Client
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.shaftapi.HistoryReportBody
+import ceui.pixiv.shaftapi.HistoryReportItem
 import com.google.gson.JsonParser
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler

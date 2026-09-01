@@ -7,9 +7,9 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.helper.IllustNovelFilter;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.model.ListTrendingtag;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.loxia.Novel;
-import ceui.loxia.ObjectPool;
+import ceui.pixiv.cache.ObjectPool;
 
 /**
  * 默认Mapper，从列表中隐藏掉包含“已屏蔽tag”的作品

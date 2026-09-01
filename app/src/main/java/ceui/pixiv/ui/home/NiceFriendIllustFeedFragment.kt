@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.View
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment

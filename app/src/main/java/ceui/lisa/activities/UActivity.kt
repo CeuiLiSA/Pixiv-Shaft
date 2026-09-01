@@ -29,13 +29,13 @@ import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.SystemBarMetrics
 import ceui.lisa.viewmodel.AppLevelState
-import ceui.loxia.requireEntityWrapper
-import ceui.loxia.appServices
+import ceui.pixiv.services.requireEntityWrapper
+import ceui.pixiv.services.appServices
 import ceui.lisa.viewmodel.UserViewModel
-import ceui.loxia.Event
-import ceui.loxia.ObjectPool
-import ceui.loxia.ProgressIndicator
-import ceui.loxia.ProgressTextButton
+import ceui.pixiv.utils.Event
+import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.widgets.ProgressIndicator
+import ceui.pixiv.widgets.ProgressTextButton
 import ceui.loxia.User
 import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
@@ -164,7 +164,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
                 mUserViewModel.user.value = userResponse
                 writeBackSelfProfile(userResponse)
                 runCatching {
-                    (application as? ceui.loxia.ServicesProvider)?.entityWrapper?.visitUser(this@UActivity, userResponse.user)
+                    (application as? ceui.pixiv.services.ServicesProvider)?.entityWrapper?.visitUser(this@UActivity, userResponse.user)
                 }
                 appServices().appLevelState.updateFollowUserStatus(
                     userId,

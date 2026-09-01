@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.novel.reader
 
-import ceui.loxia.Illust
 import ceui.loxia.Novel
+import ceui.pixiv.api.model.Illust
 import kotlin.random.Random
 
 /**

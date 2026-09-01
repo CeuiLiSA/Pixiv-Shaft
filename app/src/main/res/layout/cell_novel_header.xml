@@ -47,7 +47,7 @@
                     tools:text="ある小説のタイトル" />
 
                 <!-- issue #1005: 收藏心移入下方三大按钮，此处与插画详情对齐放「分享」 -->
-                <ceui.loxia.ProgressImageButton
+                <ceui.pixiv.widgets.ProgressImageButton
                     android:id="@+id/share"
                     android:layout_width="@dimen/min_widget_size"
                     android:layout_height="@dimen/min_widget_size"

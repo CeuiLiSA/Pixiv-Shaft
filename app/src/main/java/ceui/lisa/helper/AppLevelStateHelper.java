@@ -4,10 +4,10 @@ import java.util.List;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.IllustHistoryEntity;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.viewmodel.AppLevelState;
-import ceui.loxia.ServicesProvider;
+import ceui.pixiv.services.ServicesProvider;
 import ceui.loxia.User;
 
 public class AppLevelStateHelper {
@@ -27,7 +27,7 @@ public class AppLevelStateHelper {
         if (list.size() > 0) {
             if (list.get(0).getClass().equals(Illust.class)) {
                 for (Illust illustsBean : (List<Illust>) list) {
-                    // user 可空(loxia Illust.user 声明就是 User?)。这里过去是裸解引用,靠「调用方
+                    // user 可空(Illust.user 声明就是 User?)。这里过去是裸解引用,靠「调用方
                     // 交进来的 bean 都过过内容过滤链(judgeUserID 会先碰 getUser())」这个隐含契约
                     // 兜着 —— 而 IllustFeedFragment.poolableBeansOf 是 open 的,子类(如推荐页把
                     // 排行榜预览头的 bean 也交出来)明确不做内容过滤,契约就破了。破了就是主线程 NPE,

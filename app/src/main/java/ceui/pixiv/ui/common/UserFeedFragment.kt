@@ -13,8 +13,8 @@ import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.User
-import ceui.loxia.UserPreview
 import ceui.pixiv.actions.PixivActions
+import ceui.pixiv.api.model.UserPreview
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -41,7 +41,7 @@ private val PAYLOAD_USER_FOLLOW = Any()
  * 画师榜 [ceui.pixiv.ui.recommend.ArtistRankFeedFragment]。
  *
  * **3 张预览图：插画不足 3 张时用小说封面补位**（对齐 legacy `UAdapter`，补位需要封面 URL，
- * [ceui.loxia.UserPreview.novels] 相应解析为 `List<Novel>`）。补位一度只对关注列表开、其余页
+ * [ceui.pixiv.api.model.UserPreview.novels] 相应解析为 `List<Novel>`）。补位一度只对关注列表开、其余页
  * 「不足留空」，但纯小说作者在哪张列表里都是空三格 —— 相关用户 / 粉丝 / 搜索用户页照样难看
  * （issue #997），而「留空」这个默认从来没有过理由，所以开关删掉、全部页面一致补位。
  *
@@ -219,7 +219,7 @@ fun List<UserPreview>.toUserFeedItems(): List<UserFeedItem> =
     filter { it.user != null }.map(::UserFeedItem)
 
 /**
- * 用户 feed 条目：持 loxia [UserPreview]（含 [User] + 预览插画）。feeds 框架的用户列表基建
+ * 用户 feed 条目：持 [UserPreview]（含 [User] + 预览插画）。feeds 框架的用户列表基建
  * （对齐插画侧 [IllustFeedItem] / 小说侧 NovelFeedItem）。
  *
  * 内容相等性看整个 [UserPreview]（data class 深比较）：关注态（user.is_followed）或预览图变了

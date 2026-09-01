@@ -1,6 +1,6 @@
 package ceui.lisa.http;
 
-import ceui.loxia.AccountResponse;
+import ceui.pixiv.api.model.AccountResponse;
 import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;

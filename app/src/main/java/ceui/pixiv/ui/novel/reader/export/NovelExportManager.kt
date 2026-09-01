@@ -6,8 +6,8 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
 import ceui.lisa.utils.Params
 import ceui.loxia.Novel
-import ceui.loxia.SeriesCache
-import ceui.loxia.WebNovel
+import ceui.pixiv.api.model.WebNovel
+import ceui.pixiv.cache.SeriesCache
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.model.RelativePath
 import ceui.pixiv.ui.novel.reader.model.ContentToken
@@ -49,7 +49,7 @@ object NovelExportManager {
                 seriesOrder = seriesOrderOf(novel),
             )
         } else {
-            // No loxia Novel — only the web payload. Best-effort meta;
+            // No Novel — only the web payload. Best-effort meta;
             // templates that lean on author/created get blanks, but the
             // path still respects the user's preset.
             DownloadItems.novelDestinationFromWeb(

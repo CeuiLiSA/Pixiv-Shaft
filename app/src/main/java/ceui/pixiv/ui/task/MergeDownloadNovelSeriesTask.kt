@@ -2,10 +2,10 @@ package ceui.pixiv.ui.task
 
 import android.content.Context
 import ceui.lisa.fragments.WebNovelParser
-import ceui.loxia.Client
 import ceui.loxia.Novel
-import ceui.loxia.NovelSeriesDetail
-import ceui.loxia.WebNovel
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.NovelSeriesDetail
+import ceui.pixiv.api.model.WebNovel
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.ui.bulk.FetchEvent
 import ceui.pixiv.ui.novel.reader.export.ExportFormat

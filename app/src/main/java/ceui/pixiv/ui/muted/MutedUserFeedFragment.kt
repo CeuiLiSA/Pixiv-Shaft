@@ -48,7 +48,7 @@ import kotlinx.coroutines.withContext
  * 其中只有 action_delete（全部删除）归本页，导入 / 导出由 pager 自理。
  *
  * **不复用 [ceui.pixiv.ui.common.UserFeedFragment]**：它渲染的是 recy_user_preview（头像 + 3 张
- * 预览插画 + 关注按钮），条目是 loxia [ceui.loxia.UserPreview]，且会 feedLikeSync 把用户喂进全局
+ * 预览插画 + 关注按钮），条目是 [ceui.pixiv.api.model.UserPreview]，且会 feedLikeSync 把用户喂进全局
  * 关注态。而屏蔽画师这行要的是 recy_simple_user（头像 + 名字 + 关注按钮，长按解除屏蔽），
  * 卡形与列表条目结构都对不上，故自建 renderer 精确复刻 muted 模式。
  *

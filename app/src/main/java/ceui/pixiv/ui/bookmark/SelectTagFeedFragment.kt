@@ -232,7 +232,7 @@ class SelectTagFeedFragment : FeedFragment() {
      * ## 为什么从 legacy 的 RxJava + ErrorCtrl 链换成入队
      *
      * 原先这里直接打 `postLike*WithTags`，与仓库里其他收藏入口并行。两条写路径都拿
-     * [ceui.loxia.ObjectPool] 当真源，队列正在冷却时它们会以相反的顺序落到服务端 ——
+     * [ceui.pixiv.cache.ObjectPool] 当真源，队列正在冷却时它们会以相反的顺序落到服务端 ——
      * 「卡片上点心（进队列）→ 开 sheet 选标签提交（直发）」这种再普通不过的操作，最终状态
      * 由谁先到决定，而不是由用户最后做的那件事决定。而且带标签和不带标签打的是**同一个**
      * `bookmark/add` 端点，是互相覆盖的关系，共用 dedupeKey 之后连点只发最后一次。

@@ -3,7 +3,7 @@ package ceui.lisa.utils;
 import android.content.Intent;
 import android.os.Bundle;
 
-import ceui.loxia.HeaderInterceptor;
+import ceui.pixiv.network.HeaderInterceptor;
 
 public class Params {
 

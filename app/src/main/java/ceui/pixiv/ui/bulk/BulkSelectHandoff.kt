@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.bulk
 
-import ceui.loxia.Illust
 import ceui.loxia.Novel
+import ceui.pixiv.api.model.Illust
 import timber.log.Timber
 import java.util.UUID
 

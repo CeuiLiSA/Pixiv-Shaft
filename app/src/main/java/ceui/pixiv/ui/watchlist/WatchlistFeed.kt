@@ -12,8 +12,8 @@ import ceui.lisa.databinding.CellSeriesV3Binding
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.view.LinearItemDecoration
-import ceui.loxia.Client
-import ceui.loxia.WatchlistSeries
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.WatchlistSeries
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
@@ -31,7 +31,7 @@ import com.bumptech.glide.Glide
 import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
- * 「追更列表」的漫画 / 小说条目。持不可变的 loxia [WatchlistSeries]。
+ * 「追更列表」的漫画 / 小说条目。持不可变的 [WatchlistSeries]。
  *
  * 漫画与小说分成两个类而不是共用一个带 flag 的类：[ceui.pixiv.feeds.FeedItem] 的身份是
  * (具体类型, feedKey)，两边的系列 id 各自独立、可能重号，共用一个类会让它们在同一张列表里撞身份。
@@ -75,7 +75,7 @@ abstract class WatchlistFeedFragment : FeedFragment() {
 /**
  * 追更「漫画」tab。
  *
- * 端点 `v1/watchlist/manga`（loxia [ceui.loxia.API.getWatchlistManga]，与 legacy
+ * 端点 `v1/watchlist/manga`（[ceui.pixiv.api.API.getWatchlistManga]，与 legacy
  * `AppApi.getWatchlistManga` 逐字对齐：路径之外不带任何 query），翻页走响应自带的 nextUrl。
  */
 class WatchlistMangaFeedFragment : WatchlistFeedFragment() {

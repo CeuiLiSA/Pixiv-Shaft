@@ -5,7 +5,7 @@ import ceui.pixiv.actionqueue.ActionHandler
 import ceui.pixiv.actionqueue.ActionOutcome
 import ceui.pixiv.actionqueue.PendingAction
 import ceui.pixiv.actionqueue.RetryScope
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
 import java.io.IOException

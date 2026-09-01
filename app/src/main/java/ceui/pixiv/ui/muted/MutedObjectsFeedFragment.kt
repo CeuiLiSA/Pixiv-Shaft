@@ -17,7 +17,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.MuteEntity
 import ceui.lisa.databinding.RecyViewHistoryBinding
 import ceui.lisa.helper.IllustNovelFilter
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.DensityUtil

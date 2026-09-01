@@ -23,10 +23,10 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.databinding.ItemBigReadButtonBinding
 import ceui.pixiv.witstudio.theme.V3Palette
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.loxia.Novel
-import ceui.loxia.NovelSeriesResp
-import ceui.loxia.ProgressIndicator
+import ceui.pixiv.api.model.NovelSeriesResp
+import ceui.pixiv.widgets.ProgressIndicator
 import ceui.lisa.http.Retro
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -383,7 +383,7 @@ class NovelSeriesFragment :
     override fun onToggleNovelSelection(novelId: Long) = selectionModel.toggleSelection(novelId)
 
     // ── NovelSeriesHeaderActionReceiver ─────────────────────────────────
-    override fun onClickToggleWatchlist(progressView: ceui.loxia.ProgressImageButton) {
+    override fun onClickToggleWatchlist(progressView: ceui.pixiv.widgets.ProgressImageButton) {
         val detail = heroDetail() ?: return
         progressView.showProgress()
         viewLifecycleOwner.lifecycleScope.launch {

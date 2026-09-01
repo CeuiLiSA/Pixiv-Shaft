@@ -4,13 +4,13 @@ import android.content.Intent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.AppLevelState
-import ceui.loxia.appServices
-import ceui.loxia.AccountResponse
+import ceui.pixiv.services.appServices
+import ceui.pixiv.api.model.AccountResponse
 import ceui.loxia.Novel
-import ceui.loxia.ObjectPool
+import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.task.NovelAutoDownload
@@ -51,7 +51,7 @@ import timber.log.Timber
  */
 object PixivActions {
 
-    /** 队列是进程级服务（见 [ceui.loxia.ServicesProvider]），这个门面自己无状态，按需取。 */
+    /** 队列是进程级服务（见 [ceui.pixiv.services.ServicesProvider]），这个门面自己无状态，按需取。 */
     private val actionQueue: PixivActionQueue
         get() = Shaft.getContext().appServices().pixivActionQueue
 

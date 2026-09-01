@@ -8,8 +8,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ceui.lisa.R
-import ceui.loxia.Event
 import ceui.pixiv.ui.common.NavFragmentViewModel
+import ceui.pixiv.utils.Event
 import kotlinx.coroutines.CompletableDeferred
 
 class DialogViewModel : ViewModel() {

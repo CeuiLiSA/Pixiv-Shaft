@@ -19,7 +19,7 @@ import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.helper.StaggeredManager
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.view.SpacesItemDecoration

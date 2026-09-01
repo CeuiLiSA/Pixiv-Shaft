@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.databinding.CellCommentStampBinding
 import ceui.lisa.utils.GlideUrlChild
-import ceui.loxia.Stamp
+import ceui.pixiv.api.model.Stamp
 import com.bumptech.glide.Glide
 
 /**

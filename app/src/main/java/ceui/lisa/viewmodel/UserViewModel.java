@@ -4,9 +4,9 @@ package ceui.lisa.viewmodel;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import ceui.lisa.models.UserDetailResponse;
-import ceui.loxia.Event;
 import ceui.loxia.Novel;
-import ceui.loxia.WebUserDetail;
+import ceui.pixiv.api.model.WebUserDetail;
+import ceui.pixiv.utils.Event;
 
 public class UserViewModel extends ViewModel {
 

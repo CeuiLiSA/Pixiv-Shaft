@@ -7,9 +7,9 @@ import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Common
-import ceui.loxia.AccountResponse
-import ceui.loxia.Client
-import ceui.loxia.ObjectPool
+import ceui.pixiv.api.model.AccountResponse
+import ceui.pixiv.api.Client
+import ceui.pixiv.cache.ObjectPool
 import ceui.loxia.User
 import ceui.lisa.repo.freshMembershipOf
 import ceui.pixiv.actions.PixivActions
@@ -302,7 +302,7 @@ object SessionManager {
      *
      * 和 [ingestFreshUser] 的区别只有一处：那条**只在 is_premium 相对旧值变化时**才上报，服务于
      * 日常静默同步；这里**无条件**报一次 —— 哪怕值没变，也要把一份 `premiumAgeMs≈0` 的新观测送上
-     * 去，好让曾被借号方误判过的号凭「更晚的真读」回到借号池（见 [ceui.loxia.BindOnlineReq.premiumAgeMs]）。
+     * 去，好让曾被借号方误判过的号凭「更晚的真读」回到借号池（见 [ceui.pixiv.shaftapi.BindOnlineReq.premiumAgeMs]）。
      *
      * [markPremiumObserved] 在校验通过后才调：否则会给一个并不属于当前号的观测打上 age 戳。
      *
@@ -409,7 +409,7 @@ object SessionManager {
     )
 
     /**
-     * 由两套 OkHttp 栈的拦截器（[ceui.loxia.TokenFetcherInterceptor] / Retro 的
+     * 由两套 OkHttp 栈的拦截器（[ceui.pixiv.network.TokenFetcherInterceptor] / Retro 的
      * [ceui.lisa.http.TokenInterceptor]）在 OkHttp 线程上调用：拿着「本次请求用的
      * access token」来换一个新的。两栈共用这一把锁，同一个旧 token 只会触发一次真正的刷新请求。
      *

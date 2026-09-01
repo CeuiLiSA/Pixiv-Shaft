@@ -1,6 +1,6 @@
 package ceui.pixiv.ui.common
 
-import ceui.loxia.ProgressIndicator
+import ceui.pixiv.widgets.ProgressIndicator
 
 /**
  * 小说卡片点击 / 多选契约。原本内联在已删除的 NovelCardHolder.kt(CommonAdapter/ListItemHolder 框架),

@@ -2,7 +2,7 @@ package ceui.lisa.file;
 
 import android.content.Context;
 
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.DownloadItems;
 

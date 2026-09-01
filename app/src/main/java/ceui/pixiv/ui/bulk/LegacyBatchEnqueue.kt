@@ -4,7 +4,7 @@ import android.content.Context
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.db.queue.WorkType
@@ -15,7 +15,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 
 /**
  * **唯一调用方**：[ceui.pixiv.ui.bulk.BulkSelectV3Fragment] 确认按钮。

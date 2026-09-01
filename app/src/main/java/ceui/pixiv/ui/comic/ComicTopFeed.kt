@@ -16,9 +16,9 @@ import ceui.lisa.databinding.CellComicBannerItemBinding
 import ceui.lisa.databinding.CellComicWorkBinding
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.utils.GlideUtil
-import ceui.loxia.Client
-import ceui.loxia.ComicBanner
-import ceui.loxia.ComicWork
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.ComicBanner
+import ceui.pixiv.api.ComicWork
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
@@ -40,7 +40,7 @@ import kotlinx.coroutines.withContext
  *
  * 该接口没有分页(一次性返回全部 banner 和作品),所以 [FeedPage] 的 nextCursor 恒为 null。
  *
- * 认证复用 pixiv 主 app 的 token,见 [ceui.loxia.ComicApi]。未登录该接口一律 403,
+ * 认证复用 pixiv 主 app 的 token,见 [ceui.pixiv.api.ComicApi]。未登录该接口一律 403,
  * 上层照常走 feeds 的错误态。
  */
 class ComicTopFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {

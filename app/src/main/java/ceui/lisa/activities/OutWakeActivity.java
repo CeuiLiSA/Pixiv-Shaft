@@ -9,7 +9,7 @@ import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
-import ceui.loxia.AccountResponse;
+import ceui.pixiv.api.model.AccountResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
@@ -307,7 +307,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
         );
 
         // 云端设置同步完成后继续原有的 R18 检查流程。
-        ceui.loxia.MoonSync.syncFromCloudOnLogin(
+        ceui.pixiv.ui.settings.MoonSync.syncFromCloudOnLogin(
                 mActivity,
                 userModel.getUser().getId(),
                 () -> continueAfterMoonSync(userModel)

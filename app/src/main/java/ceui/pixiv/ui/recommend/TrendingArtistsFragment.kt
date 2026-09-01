@@ -219,7 +219,7 @@ class TrendingArtistFeedFragment : FeedFragment() {
 }
 
 /**
- * 人气画师条目:loxia [User](由 trending/users 的 meta 拼出,只有 id / name / account / 头像)+
+ * 人气画师条目:[User](由 trending/users 的 meta 拼出,只有 id / name / account / 头像)+
  * 名次 + 窗口内关注人数。内容相等性看三者(data class),关注乐观切态走 [withFollowed]。
  */
 data class TrendingArtistItem(

@@ -10,7 +10,7 @@ object RecordType {
     const val BLOCK_USER = 6
 
     // 稍后再看:本地收藏一批想稍后浏览的插画。仅本地(不上报云端),复用 general_table
-    // 存 ceui.loxia.Illust JSON,渲染走 IllustCardHolder,与浏览历史同一套。
+    // 存 ceui.pixiv.api.model.Illust JSON,渲染走 IllustCardHolder,与浏览历史同一套。
     const val WATCH_LATER = 7
 
     // 稍后再看(小说)。**必须是独立的 recordType,不能跟 WATCH_LATER 共用再靠 entityType 分流**:

@@ -50,7 +50,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentIllustBinding
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.models.ObjectSpec
 import ceui.lisa.models.TagsBean
 import ceui.lisa.notification.CallBackReceiver
@@ -62,12 +62,12 @@ import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.SearchTypeUtil
 import ceui.lisa.utils.ShareIllust
-import ceui.loxia.ObjectPool
-import ceui.loxia.ProgressTextButton
-import ceui.loxia.combineLatest
-import ceui.loxia.toTagsBeans
+import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.widgets.ProgressTextButton
+import ceui.pixiv.utils.combineLatest
+import ceui.pixiv.utils.toTagsBeans
 import ceui.loxia.User
-import ceui.loxia.flag.FlagDescFragment
+import ceui.pixiv.ui.flag.FlagDescFragment
 import ceui.pixiv.snapshot.AutoSnapshotRepository
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
@@ -264,7 +264,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SNAPSHOT_COMMENTS.key)
         intent.putExtra("objectId", data.illust.id)
         intent.putExtra("objectArthurId", data.illust.user?.id ?: 0L)
-        intent.putExtra("objectType", ceui.loxia.ObjectType.ILLUST)
+        intent.putExtra("objectType", ceui.pixiv.api.model.ObjectType.ILLUST)
         intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId)
         intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, snapshotIsAuto)
         startActivity(intent)

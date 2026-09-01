@@ -28,7 +28,7 @@ import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.core.Manager
 import ceui.lisa.utils.Common
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import ceui.pixiv.ui.common.tintMenuIconsWhite
 import com.blankj.utilcode.util.BarUtils

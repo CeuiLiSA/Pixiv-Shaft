@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.download.IllustDownload
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import com.bumptech.glide.Glide

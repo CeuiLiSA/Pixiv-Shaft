@@ -4,12 +4,12 @@ import android.os.Parcelable
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.utils.Common
-import ceui.loxia.Client
-import ceui.loxia.Illust
-import ceui.loxia.KListShow
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.KListShow
 import ceui.lisa.R
 import ceui.loxia.Novel
-import ceui.loxia.launchSuspend
+import ceui.pixiv.ui.common.launchSuspend
 import ceui.pixiv.ui.common.findCurrentFragmentOrNull
 import ceui.pixiv.ui.common.getFileSize
 import com.blankj.utilcode.util.PathUtils

@@ -3,9 +3,9 @@ package ceui.pixiv.db.mirror
 import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.loxia.Illust
 import ceui.loxia.Novel
-import ceui.loxia.appServices
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler

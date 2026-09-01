@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.detail
 
-import ceui.loxia.Comment
 import ceui.loxia.User
+import ceui.pixiv.api.model.Comment
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

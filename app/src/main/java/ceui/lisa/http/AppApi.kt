@@ -37,8 +37,8 @@ import retrofit2.http.Url
  * app-api.pixiv.net 的 suspend 接口，经 [Retro.getAppApi] 取实例（单例 Retrofit，
  * 直连/代理开关变化时由 [Retro.refreshAppApi] 重建）。
  *
- * 可空参数传 null 时 Retrofit 自动省略该 Query/Field。新代码（ceui.pixiv / ceui.loxia）
- * 优先用 `Client.appApi`（loxia API），这里是 legacy 页面与 repo 的入口。
+ * 可空参数传 null 时 Retrofit 自动省略该 Query/Field。新代码（ceui.pixiv）
+ * 优先用 `Client.appApi`（`ceui.pixiv.api.API`），这里是 legacy 页面与 repo 的入口。
  */
 interface AppApi {
 

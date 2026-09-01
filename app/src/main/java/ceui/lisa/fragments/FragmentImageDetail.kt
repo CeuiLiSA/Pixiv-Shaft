@@ -21,8 +21,8 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentImageDetailBinding
 import ceui.lisa.download.FileCreator
 import ceui.lisa.download.IllustDownload
-import ceui.loxia.Illust
-import ceui.loxia.appServices
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.services.appServices
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.Settings
 import ceui.lisa.view.DragDismissLayout

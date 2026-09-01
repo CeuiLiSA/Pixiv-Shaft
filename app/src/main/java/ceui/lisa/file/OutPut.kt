@@ -3,7 +3,7 @@ package ceui.lisa.file
 import android.content.Context
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.UgoiraDownloadRecord

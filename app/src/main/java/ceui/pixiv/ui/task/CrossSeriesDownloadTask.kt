@@ -6,9 +6,9 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.fragments.WebNovelParser
 import ceui.lisa.models.NovelSeriesItem
-import ceui.loxia.Client
 import ceui.loxia.Novel
-import ceui.loxia.WebNovel
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.WebNovel
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.MergedChapter

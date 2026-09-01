@@ -24,9 +24,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import ceui.lisa.R
 import ceui.lisa.utils.Common
-import ceui.loxia.MoonSync
-import ceui.loxia.hideKeyboard
-import ceui.loxia.showKeyboard
+import ceui.pixiv.ui.settings.MoonSync
+import ceui.pixiv.utils.hideKeyboard
+import ceui.pixiv.utils.showKeyboard
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date

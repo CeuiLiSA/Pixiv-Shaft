@@ -3,11 +3,11 @@ package ceui.lisa.repo
 import ceui.lisa.BuildConfig
 import ceui.lisa.interfaces.ListShow
 import ceui.lisa.utils.PixivSearchParamUtil
-import ceui.loxia.Client
-import ceui.loxia.Nana7miSearchCacheLookupReq
-import ceui.loxia.Nana7miSearchCacheLookupResp
-import ceui.loxia.Nana7miSearchCacheStoreReq
+import ceui.pixiv.api.Client
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.shaftapi.Nana7miSearchCacheLookupReq
+import ceui.pixiv.shaftapi.Nana7miSearchCacheLookupResp
+import ceui.pixiv.shaftapi.Nana7miSearchCacheStoreReq
 import ceui.pixiv.ui.search.SortType
 import com.google.gson.Gson
 import com.google.gson.JsonElement

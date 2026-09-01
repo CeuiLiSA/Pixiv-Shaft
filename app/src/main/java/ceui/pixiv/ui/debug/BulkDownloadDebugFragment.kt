@@ -13,7 +13,7 @@ import ceui.lisa.R
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

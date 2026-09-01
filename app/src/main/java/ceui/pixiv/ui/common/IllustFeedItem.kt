@@ -1,8 +1,8 @@
 package ceui.pixiv.ui.common
 
 import ceui.lisa.helper.IllustNovelFilter
-import ceui.loxia.Illust
-import ceui.loxia.ObjectPool
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.feeds.FeedItem
 
 /** 收藏状态局部重绑的 payload 标记（按引用识别），插画 feed 卡片共用。 */
@@ -23,7 +23,7 @@ fun illustLikeChangePayload(old: IllustFeedItem, new: IllustFeedItem): Any? {
 }
 
 /**
- * 插画 feed 条目：只包一个 immutable 的 loxia [Illust]（驱动 UI 与 DiffUtil）。
+ * 插画 feed 条目：只包一个 immutable 的 [Illust]（驱动 UI 与 DiffUtil）。
  *
  * 本文件只放「条目是什么、怎么从各种上游建出来、状态怎么变」：不碰 View、不依赖 Fragment。
  * 怎么画在 [staggerIllustRenderer]，长按菜单在 [showCardMenu]，页面怎么编排在 [IllustFeedFragment]。

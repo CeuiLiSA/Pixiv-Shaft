@@ -80,7 +80,7 @@ data class BookmarkMirrorEntity(
     /** 收藏顺序序号，越大越新。见类文档。 */
     val bookmarkSeq: Long,
 
-    /** 完整的 `ceui.loxia.Illust` / `ceui.loxia.Novel` JSON，渲染时才反序列化。 */
+    /** 完整的 `ceui.pixiv.api.model.Illust` / `ceui.loxia.Novel` JSON，渲染时才反序列化。 */
     val payloadJson: String,
 
     // ── 去规范化的筛选/排序列 ──────────────────────────────────────────────

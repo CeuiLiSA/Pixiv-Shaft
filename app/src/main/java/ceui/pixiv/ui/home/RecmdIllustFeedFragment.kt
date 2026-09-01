@@ -25,12 +25,12 @@ import ceui.lisa.databinding.RecyRecmdHeaderBinding
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.model.ListIllust
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemHorizontalDecoration
 import ceui.lisa.view.SpacesItemWithHeadDecoration
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.pixiv.db.discovery.DiscoveryPool
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedItem
@@ -50,7 +50,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 
 /**
  * 首页「推荐插画」tab / 推荐漫画页（feeds 框架版，替代 legacy FragmentRecmdIllust +

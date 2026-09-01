@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 
 /**
  * 三个 tab 共享的 stats 数据源。

@@ -1,11 +1,11 @@
 package ceui.lisa.repo
 
 import ceui.lisa.BuildConfig
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.loxia.User
-import ceui.loxia.Nana7miPayload
-import ceui.loxia.Nana7miResult
-import ceui.loxia.fetchNana7mi
+import ceui.pixiv.shaftapi.Nana7miPayload
+import ceui.pixiv.shaftapi.Nana7miResult
+import ceui.pixiv.shaftapi.fetchNana7mi
 import ceui.pixiv.ui.usage.Nana7miQuotaNotice
 import ceui.pixiv.actions.AccountOnlineReportOutbox
 import ceui.pixiv.login.InvalidRefreshTokenException

@@ -89,7 +89,7 @@
                     tools:text="\@hitohachan" />
             </LinearLayout>
 
-            <ceui.loxia.ProgressTextButton
+            <ceui.pixiv.widgets.ProgressTextButton
                 android:id="@+id/follow_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="32dp"

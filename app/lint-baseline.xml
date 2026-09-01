@@ -1202,7 +1202,7 @@
         errorLine1="    imm?.showSoftInput(editText, InputMethodManager.HIDE_IMPLICIT_ONLY)"
         errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/ceui/loxia/FragmentUtils.kt"
+            file="src/main/java/ceui/pixiv/utils/FragmentUtils.kt"
             line="13"
             column="34"/>
     </issue>
@@ -3121,7 +3121,7 @@
         errorLine1="        Log.d(&quot;updateObjectPool&quot;, &quot;对象池大小：$size&quot;)"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/ceui/loxia/ObjectPool.kt"
+            file="src/main/java/ceui/pixiv/cache/ObjectPool.kt"
             line="175"
             column="9"/>
     </issue>
@@ -15685,7 +15685,7 @@
         errorLine1="    private val formatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm&quot;, Locale.getDefault())"
         errorLine2="                                                                            ~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/ceui/loxia/DateParse.kt"
+            file="src/main/java/ceui/pixiv/utils/DateParse.kt"
             line="16"
             column="77"/>
     </issue>

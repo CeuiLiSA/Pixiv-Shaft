@@ -2,9 +2,9 @@ package ceui.pixiv.snapshot
 
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.utils.Params
-import ceui.loxia.Comment
-import ceui.loxia.Illust
 import ceui.loxia.User
+import ceui.pixiv.api.model.Comment
+import ceui.pixiv.api.model.Illust
 import java.util.Locale
 
 /**
@@ -14,7 +14,7 @@ import java.util.Locale
  * [ceui.lisa.fragments.FragmentImageDetail] 恒按 ORIGINAL 取，详情页 IllustAdapter 按全局
  * 「展示原图」设置在 ORIGINAL / LARGE 之间切），归档侧一旦自己另拼一套，
  * 存进去的和取出来的就不是同一个 URL —— 单图作品尤其容易踩：
- * [ceui.loxia.MetaSinglePage] 只有 original_image_url，非原图那几档只存在于 illust 级
+ * [ceui.pixiv.api.model.MetaSinglePage] 只有 original_image_url，非原图那几档只存在于 illust 级
  * [ceui.loxia.ImageUrls] 里。
  */
 private fun Illust.urlAt(index: Int, resolution: String): String? =

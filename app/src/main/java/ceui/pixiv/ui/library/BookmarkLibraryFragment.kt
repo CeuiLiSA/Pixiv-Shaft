@@ -7,7 +7,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentBookmarkLibraryBinding
 import ceui.lisa.utils.Params
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.db.mirror.BookmarkShelf
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.feeds.FeedItem

@@ -3,8 +3,8 @@ package ceui.pixiv.ui.notification
 import androidx.core.view.isVisible
 import ceui.lisa.databinding.CellInfoCategoryHeaderBinding
 import ceui.lisa.databinding.CellInfoEntryBinding
-import ceui.loxia.CategorizedInfo
-import ceui.loxia.InfoItem
+import ceui.pixiv.api.model.CategorizedInfo
+import ceui.pixiv.api.model.InfoItem
 import ceui.pixiv.feeds.FeedItem
 
 /**

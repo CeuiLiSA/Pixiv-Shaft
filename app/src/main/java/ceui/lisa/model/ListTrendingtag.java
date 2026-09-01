@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 
 public class ListTrendingtag implements ListShow<ListTrendingtag.TrendTagsBean>, Serializable {
 

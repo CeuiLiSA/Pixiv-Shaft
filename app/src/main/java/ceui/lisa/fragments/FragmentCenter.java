@@ -32,7 +32,7 @@ import ceui.lisa.adapters.SkeletonRailAdapter;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentNewCenterBinding;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;

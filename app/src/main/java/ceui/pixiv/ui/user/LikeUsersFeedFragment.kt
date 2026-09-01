@@ -14,7 +14,7 @@ import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecySimpleUserBinding
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListSimpleUser
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.User
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
@@ -52,7 +52,7 @@ import com.bumptech.glide.RequestManager
  * item 点按进画师页 + 关注按钮点按切换 / 长按私密关注（对齐 legacy 非 muted 分支）。
  *
  * **不复用 [ceui.pixiv.ui.common.UserFeedFragment]**（同 [ceui.pixiv.ui.muted.MutedUserFeedFragment]
- * 的理由）：它渲染的是 recy_user_preview（头像 + 3 张预览插画）、条目是 loxia UserPreview，而本页要的
+ * 的理由）：它渲染的是 recy_user_preview（头像 + 3 张预览插画）、条目是 UserPreview，而本页要的
  * 是 recy_simple_user（头像 + 名字 + 关注按钮）+ [User]，卡形与列表条目结构都对不上。
  *
  * **这里是新鲜网络用户**（不同于 muted 存的冻结 JSON）：关注 / 池行为照常，无 poolableBeansOf /

@@ -5,8 +5,8 @@ import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.adapters.ViewHolder
 import ceui.lisa.databinding.ItemArtworkUgoiraBinding
 import ceui.lisa.databinding.RecyIllustDetailBinding
-import ceui.loxia.Illust
-import ceui.loxia.ObjectPool
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.feedRenderer
 

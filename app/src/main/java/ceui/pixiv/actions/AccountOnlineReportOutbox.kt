@@ -4,11 +4,11 @@ import android.content.Context
 import androidx.annotation.Keep
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
-import ceui.loxia.AccountResponse
-import ceui.loxia.BindOnlineReq
-import ceui.loxia.Client
-import ceui.loxia.Nana7miInvalidReq
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.AccountResponse
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.shaftapi.BindOnlineReq
+import ceui.pixiv.shaftapi.Nana7miInvalidReq
 import ceui.pixiv.websocket.AppNetworkMonitor
 import com.tencent.mmkv.MMKV
 import java.io.IOException
@@ -41,7 +41,7 @@ import timber.log.Timber
  * before any network attempt. Same-type/same-uid writes replace older data.
  *
  * One instance per process, constructed by [ceui.lisa.activities.Shaft] and exposed through
- * [ceui.loxia.ServicesProvider.accountOnlineReportOutbox]. The constructor is cheap (no IO, no
+ * [ceui.pixiv.services.ServicesProvider.accountOnlineReportOutbox]. The constructor is cheap (no IO, no
  * coroutines); [start] launches the worker.
  */
 class AccountOnlineReportOutbox internal constructor(

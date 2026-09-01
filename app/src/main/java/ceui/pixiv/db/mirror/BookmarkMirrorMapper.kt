@@ -1,9 +1,9 @@
 package ceui.pixiv.db.mirror
 
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.Tag
+import ceui.pixiv.api.model.Illust
 import timber.log.Timber
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter

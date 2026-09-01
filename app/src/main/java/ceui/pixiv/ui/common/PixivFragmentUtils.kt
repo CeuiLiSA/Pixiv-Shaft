@@ -19,7 +19,6 @@ import ceui.lisa.view.LinearItemDecoration
 import ceui.lisa.view.LinearItemDecorationNoLRTB
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Novel
-import ceui.loxia.launchSuspend
 import ceui.pixiv.utils.ppppx
 import com.blankj.utilcode.util.BarUtils
 import timber.log.Timber

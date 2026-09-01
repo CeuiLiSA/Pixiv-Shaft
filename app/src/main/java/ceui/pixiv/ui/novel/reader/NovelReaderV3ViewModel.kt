@@ -14,12 +14,12 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.NovelAnnotationEntity
 import ceui.lisa.database.NovelBookmarkEntity
 import ceui.lisa.fragments.WebNovelParser
-import ceui.loxia.Client
-import ceui.loxia.Illust
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
-import ceui.loxia.ObjectPool
+import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.actions.PixivActions
-import ceui.loxia.WebNovel
+import ceui.pixiv.api.model.WebNovel
 import ceui.pixiv.ui.novel.reader.model.ContentToken
 import ceui.pixiv.ui.novel.reader.model.NovelIllustSource
 import ceui.pixiv.ui.novel.reader.model.Page

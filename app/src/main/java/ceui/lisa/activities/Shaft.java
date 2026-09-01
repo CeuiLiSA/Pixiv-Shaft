@@ -32,7 +32,7 @@ import ceui.lisa.notification.NetWorkStateReceiver;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Settings;
 import ceui.lisa.viewmodel.AppLevelState;
-import ceui.loxia.ServicesProvider;
+import ceui.pixiv.services.ServicesProvider;
 import ceui.pixiv.db.EntityWrapper;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.utils.NetworkStateManager;
@@ -59,7 +59,7 @@ public class Shaft extends Application implements ServicesProvider {
     private AppLevelState appLevelState;
     private ceui.pixiv.ui.translate.MangaTranslateModels mangaTranslateModels;
     private ceui.pixiv.ui.translate.MangaBatchTranslateCenter mangaBatchTranslateCenter;
-    private ceui.loxia.FanboxWebBridge fanboxWebBridge;
+    private ceui.pixiv.ui.fanbox.FanboxWebBridge fanboxWebBridge;
     private ceui.pixiv.ui.bulk.QueueDownloadManager queueDownloadManager;
     private ceui.pixiv.actions.PixivActionQueue pixivActionQueue;
     private ceui.pixiv.db.discovery.ProfileManager profileManager;
@@ -332,7 +332,7 @@ public class Shaft extends Application implements ServicesProvider {
         appLevelState = new AppLevelState();
         mangaTranslateModels = new ceui.pixiv.ui.translate.MangaTranslateModels(this);
         mangaBatchTranslateCenter = new ceui.pixiv.ui.translate.MangaBatchTranslateCenter(this, mangaTranslateModels);
-        fanboxWebBridge = new ceui.loxia.FanboxWebBridge(this);
+        fanboxWebBridge = new ceui.pixiv.ui.fanbox.FanboxWebBridge(this);
         queueDownloadManager = new ceui.pixiv.ui.bulk.QueueDownloadManager(this);
         pixivActionQueue = new ceui.pixiv.actions.PixivActionQueue(this);
         profileManager = new ceui.pixiv.db.discovery.ProfileManager(this);
@@ -892,7 +892,7 @@ public class Shaft extends Application implements ServicesProvider {
     }
 
     @Override
-    public @NotNull ceui.loxia.FanboxWebBridge getFanboxWebBridge() {
+    public @NotNull ceui.pixiv.ui.fanbox.FanboxWebBridge getFanboxWebBridge() {
         return fanboxWebBridge;
     }
 

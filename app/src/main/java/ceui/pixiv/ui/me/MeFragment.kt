@@ -21,7 +21,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.GlideUtil
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.navigation.DrawerIconCatalog
 import com.bumptech.glide.Glide

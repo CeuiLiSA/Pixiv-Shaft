@@ -208,7 +208,7 @@ open class MutedWorkStore(
      *
      * @param payload 只在**屏蔽**方向调用，且在 IO 线程上调——序列化整个作品 bean 不该占主线程。
      * 交出来的东西按 [MutedObjectFeedItem][ceui.pixiv.ui.muted.MutedObjectFeedItem] 的解析口径来：
-     * 插画给 [ceui.loxia.Illust]、小说给 [ceui.loxia.Novel]（字段名与 Novel 对得上，
+     * 插画给 [ceui.pixiv.api.model.Illust]、小说给 [ceui.loxia.Novel]（字段名与 Novel 对得上，
      * gson 直接吃）。序列化不出东西就退回 id 壳，记录页仍能列出这一条、仍能删。
      *
      * @return 名单状态是否**真的**变了。已经是目标态返回 false，调用方据此跳过重绑——幂等守卫

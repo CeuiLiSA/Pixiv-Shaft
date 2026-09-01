@@ -10,7 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.download.IllustDownload
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.imageloader.ImageLoaderV3

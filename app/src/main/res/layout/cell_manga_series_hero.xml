@@ -32,7 +32,7 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="漫画シリーズ作品" />
 
-        <ceui.loxia.ProgressImageButton
+        <ceui.pixiv.widgets.ProgressImageButton
             android:id="@+id/bookmark"
             android:layout_width="@dimen/min_widget_size"
             android:layout_height="@dimen/min_widget_size"

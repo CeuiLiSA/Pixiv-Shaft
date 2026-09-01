@@ -1,12 +1,12 @@
 package ceui.pixiv.actions
 
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Nana7miSearchTelemetryAck
-import ceui.loxia.Nana7miSearchTelemetryBatchAck
-import ceui.loxia.Nana7miSearchTelemetryBatchReq
-import ceui.loxia.Nana7miSearchTelemetryReq
 import ceui.pixiv.actionqueue.ActionOutcome
 import ceui.pixiv.actionqueue.PendingAction
+import ceui.pixiv.shaftapi.Nana7miSearchTelemetryAck
+import ceui.pixiv.shaftapi.Nana7miSearchTelemetryBatchAck
+import ceui.pixiv.shaftapi.Nana7miSearchTelemetryBatchReq
+import ceui.pixiv.shaftapi.Nana7miSearchTelemetryReq
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import java.io.IOException

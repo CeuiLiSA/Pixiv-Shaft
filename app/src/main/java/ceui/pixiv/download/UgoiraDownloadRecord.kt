@@ -7,7 +7,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Params
 import ceui.pixiv.download.config.DownloadItems
 import timber.log.Timber

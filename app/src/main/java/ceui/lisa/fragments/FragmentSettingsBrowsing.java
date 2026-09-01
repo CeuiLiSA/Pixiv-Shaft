@@ -22,7 +22,7 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.pixiv.ui.search.SortType;
 import ceui.pixiv.ui.settings.AiBlockExemptAuthorsSheet;
-import ceui.loxia.CloudHistoryConsent;
+import ceui.pixiv.ui.history.CloudHistoryConsent;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 

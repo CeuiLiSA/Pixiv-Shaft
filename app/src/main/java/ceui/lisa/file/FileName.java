@@ -1,7 +1,7 @@
 package ceui.lisa.file;
 
 import ceui.lisa.download.FileCreator;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.utils.Common;
 
 public class FileName implements FileNameProxy {

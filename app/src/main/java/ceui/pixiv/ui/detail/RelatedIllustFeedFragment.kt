@@ -10,9 +10,9 @@ import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.feature.FeatureEntity
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
-import ceui.loxia.Illust
-import ceui.loxia.IllustResponse
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.IllustResponse
 import ceui.pixiv.db.discovery.DiscoveryPool
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedLoadPhase
@@ -26,7 +26,7 @@ import ceui.pixiv.ui.common.viewBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 
 /**
  * 「相关作品」页（feeds 框架版，替代 legacy FragmentRelatedIllust + RelatedIllustRepo + IAdapter）。

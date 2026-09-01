@@ -9,7 +9,7 @@ import ceui.lisa.R
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.imageloader.ImageLoaderV3
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers

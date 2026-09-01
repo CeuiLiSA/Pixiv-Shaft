@@ -208,7 +208,7 @@
                                 android:layout_centerVertical="true"
                                 android:layout_marginEnd="12dp">
 
-                                <ceui.loxia.ProgressTextButton
+                                <ceui.pixiv.widgets.ProgressTextButton
                                     android:id="@+id/follow"
                                     style="@style/BlueShiningButton"
                                     android:layout_width="wrap_content"
@@ -219,7 +219,7 @@
                                     app:ptb_progress_stroke_width="3dp"
                                     app:ptb_progress_width="14dp" />
 
-                                <ceui.loxia.ProgressTextButton
+                                <ceui.pixiv.widgets.ProgressTextButton
                                     android:id="@+id/unfollow"
                                     style="@style/RedShiningButton"
                                     android:layout_width="wrap_content"
@@ -619,7 +619,7 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <ceui.loxia.ProgressTextButton
+                <ceui.pixiv.widgets.ProgressTextButton
                     android:id="@+id/cancel_mute_illust"
                     style="@style/BlueShiningButton"
                     android:layout_width="wrap_content"
@@ -628,7 +628,7 @@
                     android:paddingHorizontal="20dp"
                     android:text="@string/action_unmute_work" />
 
-                <ceui.loxia.ProgressTextButton
+                <ceui.pixiv.widgets.ProgressTextButton
                     android:id="@+id/cancel_mute_user"
                     style="@style/BlueShiningButton"
                     android:layout_width="wrap_content"
@@ -637,7 +637,7 @@
                     android:paddingHorizontal="20dp"
                     android:text="@string/action_unmute_user" />
 
-                <ceui.loxia.ProgressTextButton
+                <ceui.pixiv.widgets.ProgressTextButton
                     android:id="@+id/leave"
                     style="@style/RedShiningButton"
                     android:layout_width="wrap_content"

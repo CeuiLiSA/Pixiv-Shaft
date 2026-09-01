@@ -406,7 +406,7 @@
                         android:textColor="@color/white"
                         android:textSize="14sp" />
 
-                    <ceui.loxia.ProgressTextButton
+                    <ceui.pixiv.widgets.ProgressTextButton
                         android:id="@+id/ai_translate_test_btn"
                         android:layout_width="wrap_content"
                         android:layout_height="42dp"

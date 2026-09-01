@@ -23,12 +23,12 @@ import ceui.pixiv.ui.detail.ArtworkV3Fragment;
 import ceui.lisa.helper.DeduplicateArrayList;
 import ceui.lisa.http.LegacyApiCalls;
 import ceui.lisa.model.ListIllust;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import java.util.Collections;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import ceui.loxia.ObjectPool;
+import ceui.pixiv.cache.ObjectPool;
 
 public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
 

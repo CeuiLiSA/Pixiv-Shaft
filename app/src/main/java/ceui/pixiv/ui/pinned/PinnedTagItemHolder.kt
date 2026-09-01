@@ -2,9 +2,9 @@ package ceui.pixiv.ui.pinned
 
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.SearchEntity
-import ceui.loxia.Illust
 import ceui.loxia.ImageUrls
 import ceui.loxia.Tag
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.feeds.FeedItem
 import timber.log.Timber
 

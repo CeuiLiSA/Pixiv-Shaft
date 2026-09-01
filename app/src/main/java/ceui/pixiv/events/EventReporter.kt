@@ -6,8 +6,8 @@ import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.shaftapi.ShaftHmac
-import ceui.loxia.Client
-import ceui.loxia.ObjectPool
+import ceui.pixiv.api.Client
+import ceui.pixiv.cache.ObjectPool
 import ceui.loxia.User
 import com.google.gson.Gson
 import com.google.gson.JsonParser
@@ -50,7 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * full report → enqueue → flush → POST → response chain.
  *
  * Process-scoped service: constructed by [ceui.lisa.activities.Shaft] and exposed via
- * [ceui.loxia.ServicesProvider]. The constructor does no IO; [start] does.
+ * [ceui.pixiv.services.ServicesProvider]. The constructor does no IO; [start] does.
  */
 // Context 参数只为和其他进程级服务保持同一构造契约（见 ServicesProvider）；
 // 本类只碰 MMKV，暂时用不上它。

@@ -2,9 +2,9 @@ package ceui.lisa.repo
 
 import ceui.lisa.model.ListIllust
 import ceui.lisa.model.ListNovel
-import ceui.loxia.Illust
 import ceui.loxia.Novel
-import ceui.loxia.ObjectPool
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.cache.ObjectPool
 
 /**
  * 搜索页出仓前的收藏态修正（#1063）。

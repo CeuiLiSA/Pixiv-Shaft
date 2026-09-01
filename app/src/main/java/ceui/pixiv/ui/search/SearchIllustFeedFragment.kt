@@ -9,7 +9,7 @@ import ceui.lisa.model.ListIllust
 import ceui.lisa.repo.SearchIllustRepo
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.LoadState

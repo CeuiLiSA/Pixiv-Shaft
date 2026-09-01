@@ -6,11 +6,11 @@ import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.network.PlazaResult
 import ceui.lisa.network.ShaftApiV2Client
-import ceui.loxia.Client
-import ceui.loxia.ObjectPool
+import ceui.pixiv.api.Client
+import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.db.RecordType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel

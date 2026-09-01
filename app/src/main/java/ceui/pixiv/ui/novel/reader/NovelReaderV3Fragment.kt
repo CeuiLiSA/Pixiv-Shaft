@@ -29,9 +29,9 @@ import ceui.lisa.databinding.FragmentNovelReaderV3Binding
 import ceui.loxia.Novel
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
-import ceui.loxia.ObjectPool
-import ceui.loxia.SeriesCache
+import ceui.pixiv.api.Client
+import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.cache.SeriesCache
 import ceui.pixiv.ui.common.ImageUrlViewer
 import ceui.pixiv.ui.common.NOVEL_URL_HEAD
 import ceui.pixiv.ui.common.shareNovel
@@ -81,7 +81,7 @@ import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.navigation.TemplateRoute
 
 class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),

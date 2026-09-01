@@ -3,7 +3,7 @@ package ceui.pixiv.snapshot
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

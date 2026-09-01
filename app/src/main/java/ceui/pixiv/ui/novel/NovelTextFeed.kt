@@ -29,12 +29,12 @@ import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.SearchTypeUtil
 import ceui.lisa.utils.ShareIllust
 import ceui.pixiv.witstudio.theme.V3Palette
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.loxia.Novel
-import ceui.loxia.ObjectPool
+import ceui.pixiv.cache.ObjectPool
 import ceui.loxia.Series
 import ceui.loxia.User
-import ceui.loxia.findActionReceiverOrNull
+import ceui.pixiv.ui.common.findActionReceiverOrNull
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
@@ -215,7 +215,7 @@ private suspend fun fetchNovelAuthorWorks(userId: Long, excludeNovelId: Long): L
 
 /**
  * 相关小说。web 端 recommend 只取 id（为什么不用它的卡片数据见
- * [ceui.loxia.PixivWebApi.getNovelRecommendInit] 的 KDoc），detail 并发补水：
+ * [ceui.pixiv.api.PixivWebApi.getNovelRecommendInit] 的 KDoc），detail 并发补水：
  * 单条失败（已删除/不可见）跳过；推荐非空而补水全军覆没则抛出去走 SectionLoader
  * 的自动重试——那是网络挂了，不是「没有相关作品」。
  *

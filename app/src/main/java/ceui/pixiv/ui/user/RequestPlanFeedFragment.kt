@@ -14,7 +14,7 @@ import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage

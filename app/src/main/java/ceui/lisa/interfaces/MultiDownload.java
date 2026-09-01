@@ -6,7 +6,7 @@ import android.content.Intent;
 import java.util.List;
 
 import ceui.lisa.activities.TemplateActivity;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.pixiv.ui.bulk.BulkSelectHandoff;
 import ceui.pixiv.ui.bulk.BulkSelectHandoffKt;
 import ceui.pixiv.ui.navigation.TemplateRoute;

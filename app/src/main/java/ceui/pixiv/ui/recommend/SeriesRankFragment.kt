@@ -15,7 +15,7 @@ import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem

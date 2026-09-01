@@ -48,7 +48,7 @@ import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.IllustDownload;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.transformer.LargeBitmapScaleTransformer;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;

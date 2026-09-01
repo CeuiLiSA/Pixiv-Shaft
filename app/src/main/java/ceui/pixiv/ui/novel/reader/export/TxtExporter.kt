@@ -2,7 +2,7 @@ package ceui.pixiv.ui.novel.reader.export
 
 import android.content.Context
 import ceui.loxia.Novel
-import ceui.loxia.WebNovel
+import ceui.pixiv.api.model.WebNovel
 import ceui.pixiv.download.header.HeaderConfigRepo
 import ceui.pixiv.download.header.NovelHeaderRenderer
 import ceui.pixiv.download.model.RelativePath

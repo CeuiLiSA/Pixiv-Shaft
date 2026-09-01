@@ -74,7 +74,7 @@ public class FragmentSettingsBookmarks extends SettingsPageFragment<FragmentSett
                 Local.setSettings(Shaft.sSettings);
                 if (isChecked) {
                     // 开回来时主动踢一脚，用户不用等下一个空闲心跳
-                    ceui.loxia.ServiceProviderKt.appServices(requireContext())
+                    ceui.pixiv.services.ServiceProviderKt.appServices(requireContext())
                             .getBookmarkMirror().kick("settings toggled on");
                 }
             }

@@ -19,7 +19,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.ItemReaderSeriesRowBinding
 import ceui.lisa.databinding.SheetReaderSeriesBinding
 import ceui.loxia.Novel
-import ceui.loxia.SeriesCache
+import ceui.pixiv.cache.SeriesCache
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

@@ -1,11 +1,11 @@
 package ceui.pixiv.db
 
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Client
-import ceui.loxia.HistoryReportBody
-import ceui.loxia.HistoryReportItem
-import ceui.loxia.SyncPrefBody
+import ceui.pixiv.api.Client
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.shaftapi.HistoryReportBody
+import ceui.pixiv.shaftapi.HistoryReportItem
+import ceui.pixiv.shaftapi.SyncPrefBody
 import com.google.gson.JsonElement
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope

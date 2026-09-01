@@ -3,13 +3,13 @@ package ceui.pixiv.ui.search
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import ceui.loxia.Event
-import ceui.loxia.ObjectType
 import ceui.loxia.Tag
+import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.ui.search.v3.BodyLengthUnit
 import ceui.pixiv.ui.search.v3.IllustContentType
 import ceui.pixiv.ui.search.v3.SearchFilterV3
 import ceui.pixiv.ui.search.v3.SearchOptionsResponse
+import ceui.pixiv.utils.Event
 
 class SearchViewModel(initialKeyword: String) : ViewModel() {
 

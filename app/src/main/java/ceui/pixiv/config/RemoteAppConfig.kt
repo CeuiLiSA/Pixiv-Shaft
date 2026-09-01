@@ -5,9 +5,9 @@ import android.os.SystemClock
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.BuildConfig
-import ceui.loxia.AppConfigResponse
-import ceui.loxia.Client
-import ceui.loxia.Nana7miPlan
+import ceui.pixiv.shaftapi.AppConfigResponse
+import ceui.pixiv.api.Client
+import ceui.pixiv.shaftapi.Nana7miPlan
 import ceui.pixiv.push.InAppPushArrival
 import com.google.gson.Gson
 import ceui.pixiv.session.SessionManager
@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * uid 该不该开」要等到下次冷启动才知道；这件事由 [nana7miSearchEnabled] 的读取顺带触发，不用
  * 在登录流程里另挂钩子。
  *
- * 进程级服务：由 [ceui.lisa.activities.Shaft] 构造并经 [ceui.loxia.ServicesProvider] 暴露，
+ * 进程级服务：由 [ceui.lisa.activities.Shaft] 构造并经 [ceui.pixiv.services.ServicesProvider] 暴露，
  * 构造不做任何 IO，真正的读缓存 / 拉取从 [start] 开始。
  */
 // Context 参数只为和其他进程级服务保持同一构造契约（见 ServicesProvider）；

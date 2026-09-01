@@ -7,7 +7,7 @@ import androidx.fragment.app.FragmentPagerAdapter
 import ceui.lisa.R
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding
 import ceui.lisa.utils.Common
-import ceui.loxia.requireEntityWrapper
+import ceui.pixiv.services.requireEntityWrapper
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.slideshow.SlideshowLauncher

@@ -3,7 +3,7 @@ package ceui.pixiv.widget
 import android.content.Context
 import androidx.work.WorkerParameters
 import ceui.lisa.http.Retro
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

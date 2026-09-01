@@ -2,7 +2,7 @@ package ceui.pixiv.ui.novel.reader.export
 
 import android.content.Context
 import ceui.loxia.Novel
-import ceui.loxia.WebNovel
+import ceui.pixiv.api.model.WebNovel
 import ceui.pixiv.download.model.RelativePath
 import ceui.pixiv.ui.novel.reader.model.ContentToken
 import ceui.pixiv.ui.novel.reader.paginate.ImageResolver

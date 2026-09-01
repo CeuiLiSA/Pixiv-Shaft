@@ -23,9 +23,9 @@ import ceui.lisa.download.IllustDownload
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.ShareIllust
-import ceui.loxia.ObjectPool
-import ceui.loxia.requireNetworkStateManager
-import ceui.loxia.Illust
+import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.services.requireNetworkStateManager
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.task.PageLoadRetryController

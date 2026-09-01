@@ -11,7 +11,7 @@ import timber.log.Timber
  *
  * 两条链路共用这里，格式也保持一致：
  *  - 设置页导出 / 导入的 `Shaft-Backup.json`（[ceui.lisa.utils.BackupUtils]）
- *  - 云同步 payload 里的 `downloadConfigV3`（[ceui.loxia.MoonSync]）
+ *  - 云同步 payload 里的 `downloadConfigV3`（[ceui.pixiv.ui.settings.MoonSync]）
  *
  * 还原是 **merge 而不是整份覆盖**：storage（存储位置）跟设备走，备份里的 SAF
  * treeUri 换台机器或重装后并没有 persistable 权限，照抄回来会让下载全部失败。

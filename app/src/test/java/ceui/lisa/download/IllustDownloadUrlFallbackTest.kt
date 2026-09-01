@@ -1,10 +1,10 @@
 package ceui.lisa.download
 
 import ceui.lisa.utils.Params
-import ceui.loxia.Illust
 import ceui.loxia.ImageUrls
-import ceui.loxia.MetaPage
-import ceui.loxia.MetaSinglePage
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.MetaPage
+import ceui.pixiv.api.model.MetaSinglePage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test

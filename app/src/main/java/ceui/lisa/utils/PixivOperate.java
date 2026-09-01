@@ -54,13 +54,13 @@ import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.MarkedNovelItem;
 import ceui.loxia.Novel;
 import ceui.lisa.models.TagsBean;
-import ceui.loxia.AccountResponse;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.AccountResponse;
+import ceui.pixiv.api.model.Illust;
 import ceui.loxia.User;
 import ceui.lisa.viewmodel.AppLevelState;
-import ceui.loxia.ServicesProvider;
-import ceui.loxia.IllustDetailSupportKt;
-import ceui.loxia.ObjectPool;
+import ceui.pixiv.services.ServicesProvider;
+import ceui.pixiv.utils.IllustDetailSupportKt;
+import ceui.pixiv.cache.ObjectPool;
 import retrofit2.Call;
 import retrofit2.Callback;
 
@@ -172,7 +172,7 @@ public class PixivOperate {
 
                 // 寄生收集：收藏时的相关作品进发现池
                 Common.showLog("Discovery/Hook postLike star_related illust=" + illustsBean.getId() + " got " + (listIllust.getIllusts() != null ? listIllust.getIllusts().size() : 0) + " related");
-                ((ceui.loxia.ServicesProvider) Shaft.getContext()).getDiscoveryPool().collect(
+                ((ceui.pixiv.services.ServicesProvider) Shaft.getContext()).getDiscoveryPool().collect(
                         listIllust.getIllusts(), "star_related:" + illustsBean.getId());
             });
         }

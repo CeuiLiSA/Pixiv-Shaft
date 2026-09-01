@@ -6,9 +6,9 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import ceui.lisa.viewmodel.SearchModel
-import ceui.loxia.observeEvent
 import ceui.pixiv.ui.search.SearchViewModel
 import ceui.pixiv.ui.search.SortType
+import ceui.pixiv.utils.observeEvent
 import java.util.WeakHashMap
 
 /**

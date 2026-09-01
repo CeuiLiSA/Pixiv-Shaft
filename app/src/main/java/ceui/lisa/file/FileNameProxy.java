@@ -1,6 +1,6 @@
 package ceui.lisa.file;
 
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 
 public interface FileNameProxy {
 

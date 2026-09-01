@@ -5,7 +5,7 @@ import androidx.fragment.app.Fragment
 import ceui.lisa.R
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource

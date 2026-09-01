@@ -8,7 +8,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.CellInfoEntryBinding
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.view.LinearItemDecoration
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer

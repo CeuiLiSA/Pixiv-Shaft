@@ -1,9 +1,9 @@
 package ceui.pixiv.ui.novel.reader
 
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.loxia.Novel
 import ceui.pixiv.db.discovery.DiscoveryPool
 import ceui.pixiv.ui.common.IllustFeedItem

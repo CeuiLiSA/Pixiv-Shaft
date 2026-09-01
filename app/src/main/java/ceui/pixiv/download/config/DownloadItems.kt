@@ -1,9 +1,9 @@
 package ceui.pixiv.download.config
 
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
 import ceui.loxia.Novel
-import ceui.loxia.NovelSeriesDetail
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.NovelSeriesDetail
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.model.Author
 import ceui.pixiv.download.model.Bucket
@@ -116,7 +116,7 @@ object DownloadItems {
 
     /**
      * Full sanitized [RelativePath] (directory + filename) for a novel from
-     * the loxia [Novel] model, rendered through the user's active naming
+     * the [Novel] model, rendered through the user's active naming
      * preset. 只取 filename 的调用方会把模板里的目录部分丢掉，`byAuthor` /
      * `byDate` / `detailed` 这些预设会静默失效——要写文件就用这个完整路径。
      *
@@ -135,7 +135,7 @@ object DownloadItems {
         /**
          * 本篇在系列**可见列表**中的 1-based 位置 + 系列总篇数。批量下载
          * （[ceui.pixiv.ui.task.BatchDownloadNovelsTask]）取列表下标，单篇
-         * 导出查 [ceui.loxia.SeriesCache]——两边必须同源，才能渲染出同一个
+         * 导出查 [ceui.pixiv.cache.SeriesCache]——两边必须同源，才能渲染出同一个
          * 文件名。拿不到时传 null，`{series_order}` 渲染成空串。
          */
         seriesOrder: Int? = null,
@@ -159,7 +159,7 @@ object DownloadItems {
 
     /**
      * For ReaderV3 export when only the WebNovel payload is known (rare —
-     * the loxia [Novel] is usually present). Best-effort meta: author/created
+     * the [Novel] is usually present). Best-effort meta: author/created
      * are unavailable, so templates that lean on them get blank values, but
      * the path is still rendered through the active preset so the file lands
      * in the user's chosen folder.

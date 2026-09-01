@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.file.FileName;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.utils.Common;
 
 public class DownloadItem implements Serializable {

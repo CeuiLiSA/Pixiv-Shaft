@@ -17,7 +17,6 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
 import ceui.loxia.User
-import ceui.loxia.requireEntityWrapper
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
@@ -25,6 +24,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.services.requireEntityWrapper
 import ceui.pixiv.utils.clearGlideOnRecycle
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.witstudio.dialog.WitDialog

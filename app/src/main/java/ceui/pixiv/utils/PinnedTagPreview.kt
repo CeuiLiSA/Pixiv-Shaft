@@ -1,6 +1,6 @@
 package ceui.pixiv.utils
 
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.models.TagsBean
 import com.google.gson.Gson
 import com.google.gson.JsonArray

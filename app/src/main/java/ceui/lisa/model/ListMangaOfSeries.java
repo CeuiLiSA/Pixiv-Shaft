@@ -3,7 +3,7 @@ package ceui.lisa.model;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.models.ImageUrlsBean;
 import ceui.loxia.User;
 

@@ -8,9 +8,9 @@ import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.lisa.utils.Params
-import ceui.loxia.Illust
 import ceui.loxia.User
-import ceui.loxia.UserPreview
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.UserPreview
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
@@ -74,7 +74,7 @@ class ArtistRankFeedFragment : UserFeedFragment(R.layout.fragment_toolbar_feed) 
  * 响应 [ShaftApiV2.ArtistRankResponse] 不实现 KListShow（user / illusts 是原始 pixiv JsonObject），
  * 用不了 PixivFeedSource，手写 [FeedSource]（同浏览量榜 [ViewRankFeedSource]）。
  *
- * 逐条把原始 pixiv JSON 直接反序列化成 loxia [User] / [Illust] 拼 [UserPreview]；feeds 侧
+ * 逐条把原始 pixiv JSON 直接反序列化成 [User] / [Illust] 拼 [UserPreview]；feeds 侧
  * [UserFeedItem] 本就收 [UserPreview]，无需中间模型往返。用 [Shaft.sGson]（vanilla Gson，
  * 无自定义适配器）与其他缓存读取路径保持一致。
  *

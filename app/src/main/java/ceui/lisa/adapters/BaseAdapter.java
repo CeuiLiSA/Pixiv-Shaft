@@ -15,7 +15,7 @@ import java.util.List;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.interfaces.OnItemLongClickListener;
 import ceui.lisa.models.Starable;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.utils.Common;
 
 public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extends

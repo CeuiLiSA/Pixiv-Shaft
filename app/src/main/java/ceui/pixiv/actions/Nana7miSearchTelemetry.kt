@@ -4,11 +4,6 @@ import android.content.Context
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.classifyTransportFailure
-import ceui.loxia.Client
-import ceui.loxia.Nana7miSearchTelemetryAck
-import ceui.loxia.Nana7miSearchTelemetryBatchAck
-import ceui.loxia.Nana7miSearchTelemetryBatchReq
-import ceui.loxia.Nana7miSearchTelemetryReq
 import ceui.pixiv.actionqueue.ActionEvent
 import ceui.pixiv.actionqueue.ActionHandler
 import ceui.pixiv.actionqueue.ActionOutcome
@@ -17,6 +12,11 @@ import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.actionqueue.PendingAction
 import ceui.pixiv.actionqueue.QueuePolicy
 import ceui.pixiv.actionqueue.RetryScope
+import ceui.pixiv.api.Client
+import ceui.pixiv.shaftapi.Nana7miSearchTelemetryAck
+import ceui.pixiv.shaftapi.Nana7miSearchTelemetryBatchAck
+import ceui.pixiv.shaftapi.Nana7miSearchTelemetryBatchReq
+import ceui.pixiv.shaftapi.Nana7miSearchTelemetryReq
 import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.websocket.AppNetworkMonitor
 import com.google.gson.JsonParseException

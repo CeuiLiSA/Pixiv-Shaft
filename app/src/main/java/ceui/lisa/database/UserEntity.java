@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey;
 
 import com.google.gson.Gson;
 
-import ceui.loxia.AccountResponse;
+import ceui.pixiv.api.model.AccountResponse;
 
 @Entity(tableName = "user_table")
 public final class UserEntity {

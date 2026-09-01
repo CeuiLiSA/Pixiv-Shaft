@@ -8,7 +8,7 @@ import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentSafBinding;
 import ceui.lisa.file.SAFile;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.utils.Params;
 
 public class FragmentSAF extends BaseFragment<FragmentSafBinding> {

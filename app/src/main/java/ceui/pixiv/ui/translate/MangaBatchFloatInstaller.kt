@@ -15,8 +15,8 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import ceui.lisa.R
 import ceui.lisa.activities.ImageDetailActivity
-import ceui.loxia.appServices
 import ceui.pixiv.banner.BannerHostOwner
+import ceui.pixiv.services.appServices
 import timber.log.Timber
 import java.util.WeakHashMap
 

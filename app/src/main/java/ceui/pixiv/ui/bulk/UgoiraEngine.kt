@@ -10,7 +10,7 @@ import ceui.lisa.http.ImageHostManager
 import ceui.lisa.http.Retro
 import ceui.lisa.models.FramesBean
 import ceui.lisa.models.GifResponse
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.AnimatedGifEncoder
 import ceui.lisa.utils.Params
 import ceui.pixiv.ui.interpolate.RifeInterpolator

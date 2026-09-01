@@ -5,7 +5,7 @@ import android.view.View
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.common.UserFeedFragment
@@ -19,7 +19,7 @@ import ceui.pixiv.ui.common.viewBinding
  * 关注了某画师的用户列表；TemplateActivity 宿主、自带 toolbar（fragment_toolbar_feed），复用
  * [UserFeedFragment] 的用户卡渲染 / 关注切换 / LIKED_USER 广播同步。
  *
- * 端点直接复用 loxia 现成的 [ceui.loxia.API.getUserFans]（/v1/user/follower + user_id），和 legacy
+ * 端点直接复用现成的 [ceui.pixiv.api.API.getUserFans]（/v1/user/follower + user_id），和 legacy
  * repo 打的是同一个接口，翻页同样跟随 next_url（由 [pixivFeedSource] 的默认 nextCursorOf 接管，
  * 一比一换掉 legacy 的 getNextUser(nextUrl)）。唯一差别是 filter=for_ios 而非 legacy 的 for_android
  * ——filter 只影响响应里图片 URL 的形态，用户卡渲染无差别（相关用户页 getRelatedUsers 同理）。

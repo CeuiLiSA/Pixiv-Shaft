@@ -7,7 +7,7 @@ import android.graphics.pdf.PdfDocument
 import android.text.Layout
 import android.text.TextPaint
 import ceui.loxia.Novel
-import ceui.loxia.WebNovel
+import ceui.pixiv.api.model.WebNovel
 import ceui.pixiv.download.model.RelativePath
 import ceui.pixiv.ui.novel.reader.model.ContentToken
 import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer

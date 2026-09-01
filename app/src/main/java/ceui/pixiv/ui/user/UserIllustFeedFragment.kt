@@ -21,10 +21,10 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.feature.FeatureEntity
 import ceui.lisa.helper.UserIllustJumpHelper
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.pixiv.db.queue.WorkType
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.pixiv.pixivFeedSource

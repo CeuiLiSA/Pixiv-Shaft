@@ -1,8 +1,8 @@
 package ceui.pixiv.ui.rank
 
 import android.os.Bundle
-import ceui.loxia.Client
 import ceui.loxia.Novel
+import ceui.pixiv.api.Client
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.pixiv.pixivFeedSource

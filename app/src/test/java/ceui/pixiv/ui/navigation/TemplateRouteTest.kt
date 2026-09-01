@@ -126,7 +126,7 @@ class TemplateRouteTest {
             "FEATURE_LIST" to "精华列",
             "WORKSPACE" to "我的作业环境",
             "PRIME_TAGS" to "PrimeTagsList",
-            "PINNED_TAGS" to "PinnedTagsList",
+            "PINNED_CONTENT" to "PinnedContentTabs",
             "PRIME_TAG_DETAIL" to "PrimeTagDetail",
             "MY_ILLUST_COLLECTION" to "我的插画收藏",
             "MY_NOVEL_COLLECTION" to "我的小说收藏",

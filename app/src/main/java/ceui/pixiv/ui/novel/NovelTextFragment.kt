@@ -20,11 +20,11 @@ import ceui.lisa.databinding.ItemBigReadButtonBinding
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.view.LinearItemDecorationNoLRTB
-import ceui.loxia.Client
-import ceui.loxia.Illust
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
-import ceui.loxia.ObjectPool
-import ceui.loxia.ProgressIndicator
+import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.widgets.ProgressIndicator
 import ceui.loxia.Series
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer

@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.comic.reader
 
 import ceui.lisa.database.ComicBookmarkEntity
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import kotlinx.coroutines.CoroutineScope
 
 /**

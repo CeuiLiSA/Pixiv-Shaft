@@ -62,7 +62,7 @@ import ceui.lisa.database.UserEntity;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.file.SAFile;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.models.UserContainer;
 import okhttp3.MediaType;
 import okhttp3.Response;

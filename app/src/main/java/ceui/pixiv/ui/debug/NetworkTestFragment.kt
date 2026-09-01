@@ -24,7 +24,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import ceui.lisa.R
 import ceui.lisa.http.ImageHostManager
 import ceui.lisa.utils.Common
-import ceui.loxia.hideKeyboard
+import ceui.pixiv.utils.hideKeyboard
 import com.blankj.utilcode.util.BarUtils
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.launch

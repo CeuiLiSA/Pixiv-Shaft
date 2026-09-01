@@ -24,7 +24,7 @@ import ceui.lisa.fragments.FragmentImageDetail
 import ceui.lisa.helper.ImageViewerTransition
 import ceui.lisa.helper.PageTransformerHelper
 import ceui.lisa.view.DragDismissLayout
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
@@ -34,8 +34,8 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.DownloadEntity
 import ceui.lisa.databinding.ViewV3FabBarBinding
 import ceui.lisa.download.FileCreator
-import ceui.loxia.ObjectPool
-import ceui.loxia.appServices
+import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.detail.DownloadFab
 import ceui.pixiv.ui.detail.V3FabBarController
 import ceui.pixiv.wallpaper.WallpaperSetter

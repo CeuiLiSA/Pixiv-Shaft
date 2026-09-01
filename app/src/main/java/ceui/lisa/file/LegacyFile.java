@@ -4,7 +4,7 @@ import android.content.Context;
 
 import java.io.File;
 
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.utils.Common;
 
 import java.nio.charset.CharsetDecoder;

@@ -10,11 +10,11 @@ import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.databinding.ItemTimelineGridImageBinding
 import ceui.lisa.databinding.RecyTimelineIllustBinding
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.User
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.GlideUtil
-import ceui.loxia.DateParse
+import ceui.pixiv.utils.DateParse
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedRenderer

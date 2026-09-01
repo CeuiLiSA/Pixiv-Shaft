@@ -9,9 +9,9 @@ import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
-import ceui.loxia.BlockSaveRequest
-import ceui.loxia.Client
-import ceui.loxia.CsrfTokenProvider
+import ceui.pixiv.api.model.BlockSaveRequest
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.CsrfTokenProvider
 import ceui.pixiv.chat.base.toUserMessage
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -35,7 +35,7 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  *  - 需要**网页 cookie**(PHPSESSID),没有就把用户引到「Web 首页」的网页登录流程去同步一次;
  *  - 需要 **x-csrf-token**,缺失时走 [CsrfTokenProvider.fetch] 现抓;
  *  - 需要 www.pixiv.net 通 —— 直连支持见 [ceui.lisa.http.CronetInterceptor] 的 host 映射,
- *    和 [ceui.loxia.ClientManager.createWebAPIService] 里挂上的直连拦截器。
+ *    和 [ceui.pixiv.api.ClientManager.createWebAPIService] 里挂上的直连拦截器。
  *
  * V2([ceui.lisa.activities.UActivity])和 V3([ceui.lisa.activities.UserActivityV3])两棵树共用本
  * 文件的入口,不要各自复制一份。

@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
-import ceui.loxia.AccountResponse;
+import ceui.pixiv.api.model.AccountResponse;
 import ceui.pixiv.session.SessionManager;
 import timber.log.Timber;
 

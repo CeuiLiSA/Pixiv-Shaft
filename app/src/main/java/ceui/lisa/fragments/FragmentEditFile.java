@@ -31,7 +31,7 @@ import ceui.lisa.http.LegacyApiCalls;
 import ceui.lisa.interfaces.Display;
 import ceui.lisa.models.Preset;
 import ceui.lisa.models.UserDetailResponse;
-import ceui.loxia.AccountResponse;
+import ceui.pixiv.api.model.AccountResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;

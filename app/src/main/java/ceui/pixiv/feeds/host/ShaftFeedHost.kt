@@ -5,9 +5,9 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import ceui.lisa.R
 import ceui.pixiv.witstudio.theme.V3Palette
-import ceui.loxia.getHumanReadableMessage
-import ceui.loxia.openNetworkTestPage
-import ceui.loxia.requireNetworkStateManager
+import ceui.pixiv.ui.common.getHumanReadableMessage
+import ceui.pixiv.ui.debug.openNetworkTestPage
+import ceui.pixiv.services.requireNetworkStateManager
 import ceui.pixiv.chat.base.isNetworkClassError
 import ceui.pixiv.feeds.FeedFramework
 import ceui.pixiv.feeds.FeedHost

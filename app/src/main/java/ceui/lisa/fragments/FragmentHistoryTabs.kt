@@ -28,8 +28,8 @@ import ceui.lisa.databinding.ViewpagerWithTablayoutBinding
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.interfaces.Callback
 import ceui.lisa.utils.Common
-import ceui.loxia.Client
-import ceui.loxia.CloudHistoryConsent
+import ceui.pixiv.api.Client
+import ceui.pixiv.ui.history.CloudHistoryConsent
 import ceui.pixiv.db.HistoryBackfill
 import ceui.pixiv.db.RecordType
 import ceui.pixiv.session.SessionManager

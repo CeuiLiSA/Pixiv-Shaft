@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.bulk
 
 import ceui.lisa.http.Retro
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 
 /**
  * 某作者的全部作品（插画或漫画，由 [type] 决定）。

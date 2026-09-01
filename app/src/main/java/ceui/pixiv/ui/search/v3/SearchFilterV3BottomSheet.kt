@@ -15,8 +15,8 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.CellSearchFilterRowBinding
 import ceui.lisa.databinding.DialogSearchFilterV3Binding
 import ceui.lisa.utils.Local
-import ceui.loxia.Client
-import ceui.loxia.ObjectType
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.ui.search.SearchRiskPolicy
 import ceui.pixiv.ui.search.SearchViewModel
 import ceui.pixiv.ui.search.SortType

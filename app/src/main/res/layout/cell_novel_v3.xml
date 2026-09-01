@@ -226,7 +226,7 @@
                     tools:text="8,172" />
 
                 <!-- Bookmark button -->
-                <ceui.loxia.ProgressImageButton
+                <ceui.pixiv.widgets.ProgressImageButton
                     android:id="@+id/bookmark_btn"
                     android:layout_width="32dp"
                     android:layout_height="32dp"

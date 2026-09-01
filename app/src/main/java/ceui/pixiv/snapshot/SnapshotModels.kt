@@ -1,6 +1,6 @@
 package ceui.pixiv.snapshot
 
-import ceui.loxia.Comment
+import ceui.pixiv.api.model.Comment
 import java.io.File
 
 const val SNAPSHOT_SCHEMA_VERSION = 1

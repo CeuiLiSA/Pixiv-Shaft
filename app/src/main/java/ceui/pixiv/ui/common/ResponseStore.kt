@@ -1,7 +1,6 @@
 package ceui.pixiv.ui.common
 
-import ceui.loxia.Client
-import ceui.loxia.RefreshHint
+import ceui.pixiv.api.Client
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.delay

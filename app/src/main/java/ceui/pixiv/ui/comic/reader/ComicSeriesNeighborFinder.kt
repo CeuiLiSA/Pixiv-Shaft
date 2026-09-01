@@ -1,6 +1,6 @@
 package ceui.pixiv.ui.comic.reader
 
-import ceui.loxia.SeriesCache
+import ceui.pixiv.cache.SeriesCache
 
 /**
  * 返回当前 illustId 在系列里的相邻篇。整条系列走 [SeriesCache] 进程内缓存——第一次翻页

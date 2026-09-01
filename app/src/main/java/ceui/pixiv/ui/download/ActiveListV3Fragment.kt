@@ -30,7 +30,7 @@ import ceui.lisa.core.ManagerReactive
 import ceui.lisa.core.PageData
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.download.FileSizeUtil
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.db.queue.DownloadQueueDao
@@ -49,7 +49,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 
 /**

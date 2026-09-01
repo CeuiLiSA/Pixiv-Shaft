@@ -45,7 +45,7 @@ import kotlinx.coroutines.withContext
  *
  * ## 为什么不复用插画那页
  *
- * 两者只有外观像，内里没有一处共用：模型是不可变的 loxia [Novel] 而不是可变的
+ * 两者只有外观像，内里没有一处共用：模型是不可变的 [Novel] 而不是可变的
  * `Illust`；下载走 [BatchDownloadNovelsTask] 直接落盘而不是灌 download_queue，
  * 因此也没有「下载管理」页可跳；没有多页 / 动图徽章、没有「N 张图」这个维度、
  * 没有 original 直链可导出。硬塞进一个 fragment 的结果是每个方法都要先问一句

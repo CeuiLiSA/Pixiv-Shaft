@@ -17,10 +17,10 @@ import ceui.lisa.databinding.ViewpagerWithTablayoutBinding
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
-import ceui.loxia.Client
-import ceui.loxia.FanboxCreator
-import ceui.loxia.FanboxHeaderInterceptor
-import ceui.loxia.FanboxPost
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.FanboxCreator
+import ceui.pixiv.network.FanboxHeaderInterceptor
+import ceui.pixiv.api.FanboxPost
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage

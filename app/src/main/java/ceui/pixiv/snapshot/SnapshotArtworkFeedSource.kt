@@ -2,8 +2,8 @@ package ceui.pixiv.snapshot
 
 import android.content.Context
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
-import ceui.loxia.Comment
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.Comment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource

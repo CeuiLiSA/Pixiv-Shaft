@@ -43,7 +43,7 @@
             android:textColorHint="@color/v3_text_3"
             android:textSize="15sp" />
 
-        <ceui.loxia.ProgressImageButton
+        <ceui.pixiv.widgets.ProgressImageButton
             android:id="@+id/send_button"
             android:layout_width="48dp"
             android:layout_height="48dp"

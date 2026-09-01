@@ -29,7 +29,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.activities.Shaft
 import ceui.lisa.R
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.ui.bulk.UGOIRA_LOG_TAG

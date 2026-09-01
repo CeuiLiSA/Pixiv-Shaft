@@ -1,7 +1,7 @@
 package ceui.lisa.models;
 
-import ceui.loxia.Illust;
 import ceui.loxia.Novel;
+import ceui.pixiv.api.model.Illust;
 
 import java.io.Serializable;
 import java.util.List;

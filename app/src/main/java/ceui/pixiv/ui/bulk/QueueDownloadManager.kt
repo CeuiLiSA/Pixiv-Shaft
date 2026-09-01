@@ -9,7 +9,7 @@ import ceui.lisa.core.Manager
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.download.IllustDownload
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.DownloadLimitTypeUtil
 import ceui.pixiv.db.queue.DownloadQueueDao

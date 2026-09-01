@@ -2,7 +2,7 @@ package ceui.lisa.model;
 
 import java.util.List;
 
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 
 public class RecmdIllust extends ListIllust {
 

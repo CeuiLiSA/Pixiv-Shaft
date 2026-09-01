@@ -9,7 +9,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyRankIllustHorizontalBinding;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.lisa.utils.GlideUtil;
 
 public class RAdapter extends BaseAdapter<Illust, RecyRankIllustHorizontalBinding> {

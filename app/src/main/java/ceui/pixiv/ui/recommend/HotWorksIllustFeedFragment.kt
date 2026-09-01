@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.recommend
 
 import android.os.Bundle
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment

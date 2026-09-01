@@ -5,7 +5,7 @@ import android.net.Uri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.download.model.RelativePath

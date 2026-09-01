@@ -13,7 +13,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.pixiv.chat.base.toUserMessage
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.pixiv.pixivFeedSource

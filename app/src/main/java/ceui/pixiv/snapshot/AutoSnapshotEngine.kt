@@ -1,8 +1,8 @@
 package ceui.pixiv.snapshot
 
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
-import ceui.loxia.appServices
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.services.appServices
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope

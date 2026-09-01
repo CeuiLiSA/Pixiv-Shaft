@@ -5,8 +5,8 @@ import android.view.View
 import androidx.lifecycle.ViewModelProvider
 import ceui.lisa.R
 import ceui.lisa.viewmodel.SearchModel
-import ceui.loxia.Client
-import ceui.loxia.UserPreviewResponse
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.UserPreviewResponse
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels

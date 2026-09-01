@@ -26,7 +26,7 @@
 
             <!-- ProgressImageButton：收藏请求在飞时原地转圈（对齐头卡旧红心）。
                  clickable=false 让点击落在按钮容器上，背景置空去掉 ImageButton 默认底 -->
-            <ceui.loxia.ProgressImageButton
+            <ceui.pixiv.widgets.ProgressImageButton
                 android:id="@+id/bookmark_icon"
                 android:layout_width="18dp"
                 android:layout_height="18dp"

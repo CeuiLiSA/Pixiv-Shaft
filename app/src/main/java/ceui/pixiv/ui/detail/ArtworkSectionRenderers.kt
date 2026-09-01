@@ -38,7 +38,7 @@ import ceui.lisa.databinding.SectionV3RelatedHeaderBinding
 import ceui.lisa.databinding.SectionV3SeriesBinding
 import ceui.lisa.databinding.SectionV3StatsBinding
 import ceui.lisa.databinding.SectionV3TagsBinding
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
@@ -47,11 +47,11 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.SearchTypeUtil
-import ceui.loxia.Comment
-import ceui.loxia.ObjectPool
-import ceui.loxia.ProgressTextButton
+import ceui.pixiv.api.model.Comment
+import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.widgets.ProgressTextButton
 import ceui.loxia.User
-import ceui.loxia.toTagsBeans
+import ceui.pixiv.utils.toTagsBeans
 import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.feeds.FeedCell
@@ -683,7 +683,7 @@ internal fun ArtworkV3Fragment.commentsRenderer() =
                 // CommentFeedItem.isAuthor 恒 false，作者本人的评论就不再有「作者」标记。
                 intent.putExtra("objectId", item.illustId.toLong())
                 intent.putExtra("objectArthurId", item.illustAuthorId)
-                intent.putExtra("objectType", ceui.loxia.ObjectType.ILLUST)
+                intent.putExtra("objectType", ceui.pixiv.api.model.ObjectType.ILLUST)
                 intent.putExtra(
                     ceui.pixiv.snapshot.SnapshotManagerFragment.ARG_SNAPSHOT_ID,
                     snapshotId,

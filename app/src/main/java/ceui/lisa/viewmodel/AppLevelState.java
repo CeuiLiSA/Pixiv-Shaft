@@ -7,7 +7,7 @@ import androidx.lifecycle.MutableLiveData;
 
 /**
  * 关注 / 收藏态的进程级内存表。一个进程一份，由 {@link ceui.lisa.activities.Shaft} 构造、
- * 经 {@link ceui.loxia.ServicesProvider#getAppLevelState()} 取用。
+ * 经 {@link ceui.pixiv.services.ServicesProvider#getAppLevelState()} 取用。
  *
  * <p>它以前叫 AppLevelViewModel 且继承 AndroidViewModel、挂在 Shaft 的 static 字段上——
  * 但它从没跟任何 ViewModelStore 绑定过生命周期，本质就是一张跨页面共享的表，

@@ -1,8 +1,8 @@
 package ceui.pixiv.db.mirror
 
-import ceui.loxia.Client
-import ceui.loxia.IllustResponse
-import ceui.loxia.NovelResponse
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.IllustResponse
+import ceui.pixiv.api.model.NovelResponse
 import ceui.pixiv.feeds.pixiv.replayNextUrl
 import com.google.gson.Gson
 

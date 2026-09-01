@@ -2,8 +2,8 @@ package ceui.pixiv.ui.rank
 
 import android.os.Bundle
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
-import ceui.loxia.Client
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.Client
 import ceui.pixiv.db.discovery.DiscoveryPool
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedLoadPhase
@@ -12,7 +12,7 @@ import ceui.pixiv.feeds.pixiv.cachedPixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 
 /**
  * 插画 / 漫画排行榜列表页（feeds 框架版，替代 legacy FragmentRankIllust + IAdapter）。
@@ -104,7 +104,7 @@ class RankIllustFeedFragment : IllustFeedFragment() {
          */
         private fun mapRankPage(
             pool: DiscoveryPool,
-            illusts: List<ceui.loxia.Illust>,
+            illusts: List<ceui.pixiv.api.model.Illust>,
             phase: FeedLoadPhase,
             mode: String,
             skipR18Filter: Boolean,

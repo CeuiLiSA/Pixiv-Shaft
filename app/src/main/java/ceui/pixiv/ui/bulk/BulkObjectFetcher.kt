@@ -4,7 +4,7 @@ import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.model.ListIllust
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import timber.log.Timber
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 
 /**
  * 细粒度 fetcher 事件：dialog 用它驱动 CLI 风格的实时 verbose 显示。

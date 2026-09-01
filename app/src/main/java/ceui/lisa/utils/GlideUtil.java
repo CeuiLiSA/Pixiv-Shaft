@@ -5,9 +5,9 @@ import android.text.TextUtils;
 import com.bumptech.glide.load.model.GlideUrl;
 
 
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.loxia.ImageUrls;
-import ceui.loxia.MetaPage;
+import ceui.pixiv.api.model.MetaPage;
 import ceui.loxia.User;
 
 import java.util.List;

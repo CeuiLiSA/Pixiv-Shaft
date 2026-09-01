@@ -80,7 +80,7 @@
                 android:textColorHint="@color/v3_text_3"
                 android:textSize="15sp" />
 
-            <ceui.loxia.ProgressTextButton
+            <ceui.pixiv.widgets.ProgressTextButton
                 android:id="@+id/submit_flag"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"

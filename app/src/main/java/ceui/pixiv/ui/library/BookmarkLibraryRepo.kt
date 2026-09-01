@@ -2,8 +2,8 @@ package ceui.pixiv.ui.library
 
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.loxia.Illust
 import ceui.loxia.Novel
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.db.mirror.BookmarkAuthorFacet
 import ceui.pixiv.db.mirror.BookmarkFilter
 import ceui.pixiv.db.mirror.BookmarkMirrorDao

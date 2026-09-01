@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.common
 
-import ceui.loxia.Illust
-import ceui.loxia.ProgressIndicator
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.widgets.ProgressIndicator
 
 /**
  * 插画卡片点击契约。原本内联在已删除的 IllustCardHolder.kt(CommonAdapter/ListItemHolder 框架),

@@ -31,7 +31,7 @@ import ceui.lisa.activities.UActivity
 import ceui.lisa.databinding.ChatFragmentDemoListBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.pixiv.chat.api.ChatConversationsRepository
 import ceui.pixiv.chat.api.ChatFrame
 import ceui.pixiv.chat.api.ChatThreadId

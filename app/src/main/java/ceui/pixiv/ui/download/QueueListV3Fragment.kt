@@ -26,10 +26,10 @@ import ceui.lisa.core.Container
 import ceui.lisa.core.Manager
 import ceui.lisa.core.PageData
 import ceui.lisa.database.AppDatabase
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
-import ceui.loxia.ObjectPool
+import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueRow
 import ceui.pixiv.db.queue.QueueStatus
@@ -47,7 +47,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 
 /**
@@ -247,7 +247,7 @@ class QueueListV3Fragment : Fragment() {
                     if (!seen.add(row.illustId)) continue
                     val json = row.illustGson?.takeIf { it.isNotEmpty() } ?: continue
                     val illust = runCatching {
-                        Shaft.sGson.fromJson(json, ceui.loxia.Illust::class.java)
+                        Shaft.sGson.fromJson(json, ceui.pixiv.api.model.Illust::class.java)
                     }.getOrNull() ?: continue
                     out.addAll(originalUrlsOf(illust))
                 }

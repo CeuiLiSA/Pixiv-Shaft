@@ -6,13 +6,13 @@ import android.view.View
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.loxia.ImageUrls
 import ceui.loxia.Tag
 import ceui.loxia.User
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
-import ceui.loxia.UserTagIllust
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.UserTagIllust
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
@@ -34,7 +34,7 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  * `illusts` / `manga`（issue #996：两端点响应同构，共用本页，按 CONTENT_TYPE 参数分流）。
  * 把精简的网页 work 对象映射成 Illust 复用标准瀑布流插画卡。列表项点进详情 / 下载时该精简
  * bean 缺分页图 / 原图，由详情页与下载链路的 isFullDetail 守卫回 v1/illust/detail 补全
- *（见 ceui.loxia.fetchFullIllustDetail）。
+ *（见 ceui.pixiv.utils.fetchFullIllustDetail）。
  */
 class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed) {
 

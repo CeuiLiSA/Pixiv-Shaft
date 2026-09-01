@@ -40,8 +40,8 @@ import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.interfaces.OnItemLongClickListener;
-import ceui.loxia.Illust;
-import ceui.loxia.LegacyTagConverter;
+import ceui.pixiv.api.model.Illust;
+import ceui.pixiv.utils.LegacyTagConverter;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
@@ -315,7 +315,7 @@ public class IAdapter extends BaseAdapter<Illust, RecyIllustStaggerBinding> impl
                     }
                 });
 
-                // 稍后再看:general_table 存 ceui.loxia.Illust,legacy 列表现在也是同一个模型,直接塞。
+                // 稍后再看:general_table 存 ceui.pixiv.api.model.Illust,legacy 列表现在也是同一个模型,直接塞。
                 // 文案按当前是否已在列表切换。
                 EntityWrapper entityWrapper =
                         ((Shaft) mContext.getApplicationContext()).getEntityWrapper();

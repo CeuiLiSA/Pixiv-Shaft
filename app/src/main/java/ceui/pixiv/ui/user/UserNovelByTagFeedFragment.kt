@@ -7,13 +7,13 @@ import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.loxia.ImageUrls
 import ceui.loxia.Novel
 import ceui.loxia.Series
 import ceui.loxia.Tag
 import ceui.loxia.User
-import ceui.loxia.UserTagNovel
+import ceui.pixiv.api.model.UserTagNovel
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
@@ -29,7 +29,7 @@ import ceui.pixiv.ui.navigation.TemplateRoute
 /**
  * issue #996：某作者「按 Tag 筛选」后的小说列表——插画侧 [UserIllustByTagFeedFragment]
  * 的小说对应物，同一套网页 ajax 路数（/ajax/user/{id}/novels/tag，offset 翻页），把精简的
- * 网页小说对象映射成 loxia [Novel] 复用基类的主力小说卡。点进阅读只按 id 走详情接口，
+ * 网页小说对象映射成 [Novel] 复用基类的主力小说卡。点进阅读只按 id 走详情接口，
  * 不依赖这份精简数据的完整性。
  *
  * 空态的网页登录引导、登录回来自动重拉，两套逻辑与插画侧同因同解（数据源是 www.pixiv.net
@@ -109,7 +109,7 @@ class UserNovelByTagFeedFragment : NovelFeedFragment(R.layout.fragment_toolbar_f
 
 /**
  * 按 Tag 筛选作者小说的数据源：网页 ajax（[Client.webApi]），offset 翻页。
- * 每页精简 work → loxia [Novel] → [NovelFeedItem.of]（含全局内容过滤）。
+ * 每页精简 work → [Novel] → [NovelFeedItem.of]（含全局内容过滤）。
  * 游标 = 下一页 offset（已加载条数）；works 空或已到 total 则停。零 Fragment 捕获。
  */
 class UserNovelByTagFeedSource(
@@ -146,7 +146,7 @@ class UserNovelByTagFeedSource(
 }
 
 /**
- * 网页精简小说 → loxia [Novel]。封面本就是 novel-cover-master 的 600x600，与 app-api 缩略图
+ * 网页精简小说 → [Novel]。封面本就是 novel-cover-master 的 600x600，与 app-api 缩略图
  * 同一 CDN，直接三档同填；tags 只有字符串名，无译名。visible 置 true 避免被当不可见滤掉。
  *
  * 系列信息网页也给（seriesId/seriesTitle，单篇为 null），照填 —— 不填的话本页每张卡都缺

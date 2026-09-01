@@ -1,13 +1,13 @@
 package ceui.pixiv.ui.detail
 
-import ceui.loxia.Client
-import ceui.loxia.CsrfTokenProvider
-import ceui.loxia.ObjectPool
 import ceui.loxia.Tag
-import ceui.loxia.WebResponse
-import ceui.loxia.WorkEditableTag
-import ceui.loxia.WorkTagEditRequest
-import ceui.loxia.WorkTagsBody
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.CsrfTokenProvider
+import ceui.pixiv.api.model.WebResponse
+import ceui.pixiv.api.model.WorkEditableTag
+import ceui.pixiv.api.model.WorkTagEditRequest
+import ceui.pixiv.api.model.WorkTagsBody
+import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.session.SessionManager
 import com.google.gson.Gson
 import retrofit2.HttpException
@@ -104,7 +104,7 @@ object PixivTagEditOperate {
      * 把编辑结果写回对象池,让 V2 / V3 两棵树各自的观察者自然重画。
      *
      * 译名优先沿用池里已有的那份:app-api 的译名跟着 app 语言走,而网页这条接口全仓统一
-     * `lang=zh`(见 [ceui.loxia.PixivWebApi]),直接照抄会把非中文用户的译名冲成中文。
+     * `lang=zh`(见 [ceui.pixiv.api.PixivWebApi]),直接照抄会把非中文用户的译名冲成中文。
      * 只有新加进来的标签才用网页给的译名。
      */
     fun applyToPool(illustId: Long, tags: List<WorkEditableTag>) {

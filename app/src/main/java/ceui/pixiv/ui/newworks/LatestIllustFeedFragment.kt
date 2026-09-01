@@ -1,8 +1,8 @@
 package ceui.pixiv.ui.newworks
 
 import android.os.Bundle
-import ceui.loxia.Client
-import ceui.loxia.Illust
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.db.discovery.DiscoveryPool
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedLoadPhase
@@ -10,7 +10,7 @@ import ceui.pixiv.feeds.pixiv.cachedPixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 
 /**
  * 最新作品「插画」/「漫画」tab（feeds 框架版，替代 legacy FragmentLatestWorks + IAdapter）。

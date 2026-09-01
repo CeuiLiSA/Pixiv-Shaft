@@ -12,7 +12,7 @@ import ceui.pixiv.session.SessionManager
 import ceui.lisa.utils.MyOnTabSelectedListener
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.UserViewModel
-import ceui.loxia.observeEvent
+import ceui.pixiv.utils.observeEvent
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.ui.collection.LikeIllustFeedFragment
 import ceui.pixiv.ui.user.UserIllustFeedFragment

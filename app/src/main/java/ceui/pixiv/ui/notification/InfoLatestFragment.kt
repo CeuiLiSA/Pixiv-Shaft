@@ -9,9 +9,9 @@ import ceui.lisa.databinding.CellInfoCategoryHeaderBinding
 import ceui.lisa.databinding.CellInfoEntryBinding
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
-import ceui.loxia.CategorizedInfo
-import ceui.loxia.Client
-import ceui.loxia.InfoItem
+import ceui.pixiv.api.model.CategorizedInfo
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.InfoItem
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer

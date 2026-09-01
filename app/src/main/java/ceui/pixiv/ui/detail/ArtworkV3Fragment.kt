@@ -40,7 +40,7 @@ import ceui.lisa.databinding.RecyIllustDetailBinding
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
 import ceui.pixiv.download.IllustCaptionExporter
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Dev
 import ceui.lisa.utils.GlideUtil
@@ -50,11 +50,11 @@ import ceui.lisa.utils.ShareIllust
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.core.Mapper
-import ceui.loxia.ObjectPool
-import ceui.loxia.ObjectType
-import ceui.loxia.combineLatest
-import ceui.loxia.requireNetworkStateManager
-import ceui.loxia.toTagsBeans
+import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.api.model.ObjectType
+import ceui.pixiv.utils.combineLatest
+import ceui.pixiv.services.requireNetworkStateManager
+import ceui.pixiv.utils.toTagsBeans
 import ceui.pixiv.chat.base.panel.PanelState
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
@@ -1302,9 +1302,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             item(getString(R.string.flag_post), R.drawable.ic_baseline_flag_24) {
                 val intent = Intent(requireContext(), TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FLAG_REASON.key)
-                intent.putExtra(ceui.loxia.flag.FlagDescFragment.FlagObjectIdKey, illust.id)
+                intent.putExtra(ceui.pixiv.ui.flag.FlagDescFragment.FlagObjectIdKey, illust.id)
                 intent.putExtra(
-                    ceui.loxia.flag.FlagDescFragment.FlagObjectTypeKey,
+                    ceui.pixiv.ui.flag.FlagDescFragment.FlagObjectTypeKey,
                     ceui.lisa.models.ObjectSpec.POST,
                 )
                 startActivity(intent)

@@ -11,10 +11,8 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.http.Retro
 import ceui.lisa.view.LinearItemDecorationNoLRTB
-import ceui.loxia.Client
-import ceui.loxia.Illust
-import ceui.loxia.ProgressImageButton
-import ceui.loxia.ProgressIndicator
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
@@ -26,6 +24,8 @@ import ceui.pixiv.ui.common.openIllustsInViewer
 import ceui.pixiv.ui.common.toggleIllustBookmark
 import ceui.pixiv.ui.novel.NovelSeriesHeaderActionReceiver
 import ceui.pixiv.utils.ppppx
+import ceui.pixiv.widgets.ProgressImageButton
+import ceui.pixiv.widgets.ProgressIndicator
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch

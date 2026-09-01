@@ -21,8 +21,8 @@ import java.lang.reflect.WildcardType;
 
 import ceui.lisa.core.DownloadItem;
 import ceui.lisa.http.AppApi;
-import ceui.loxia.Illust;
-import ceui.loxia.ObjectPool;
+import ceui.pixiv.api.model.Illust;
+import ceui.pixiv.cache.ObjectPool;
 import ceui.pixiv.snapshot.SnapshotManifest;
 import ceui.pixiv.ui.user.RequestPlanText;
 import ceui.pixiv.ui.user.UserRequestPlansResponse;

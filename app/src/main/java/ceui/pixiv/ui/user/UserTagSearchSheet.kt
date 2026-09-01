@@ -25,8 +25,8 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.CellUserTagSearchRowBinding
 import ceui.lisa.databinding.DialogUserTagSearchBinding
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
-import ceui.loxia.UserWorkTag
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.UserWorkTag
 import ceui.pixiv.ui.search.v3.V3BottomSheetBase
 import ceui.pixiv.utils.setOnClick
 import kotlinx.coroutines.launch

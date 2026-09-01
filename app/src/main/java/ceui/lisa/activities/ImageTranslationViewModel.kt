@@ -12,8 +12,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
 import ceui.lisa.utils.Common
-import ceui.loxia.appServices
-import ceui.loxia.asLiveData
+import ceui.pixiv.services.appServices
+import ceui.pixiv.utils.asLiveData
 import ceui.pixiv.ui.translate.ComicTextDetectorModel
 import ceui.pixiv.ui.translate.MangaOcrModel
 import ceui.pixiv.ui.translate.MangaBatchTranslateCenter

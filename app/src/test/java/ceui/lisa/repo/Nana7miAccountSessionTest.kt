@@ -1,12 +1,12 @@
 package ceui.lisa.repo
 
 import ceui.lisa.model.ListIllust
-import ceui.loxia.AccountResponse
-import ceui.loxia.Nana7miPayload
-import ceui.loxia.Nana7miResult
 import ceui.loxia.User
 import ceui.pixiv.actions.AccountOnlineReportOutbox
+import ceui.pixiv.api.model.AccountResponse
 import ceui.pixiv.login.PixivOAuthUser
+import ceui.pixiv.shaftapi.Nana7miPayload
+import ceui.pixiv.shaftapi.Nana7miResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -139,7 +139,7 @@ class Nana7miAccountSessionTest {
      * unidentifiable responses rather than trusting them.
      *
      * The stake is higher than one stored field: `renew` also tests this value with `== false` to
-     * decide whether to return [ceui.loxia.Nana7miResult.NotPremium], which pauses dispatch and
+     * decide whether to return [ceui.pixiv.shaftapi.Nana7miResult.NotPremium], which pauses dispatch and
      * pulls the account out of the lending pool. Anything that is *not* an explicit `false` has to
      * stay `null` so that branch is never taken on a guess.
      */

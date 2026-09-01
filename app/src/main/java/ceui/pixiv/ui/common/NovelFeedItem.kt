@@ -5,11 +5,11 @@ import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedItem
 
 /**
- * 小说 feed 条目：只持不可变的 loxia [Novel]（data class）+ 可选的站长/热度 [trendingScore]。
+ * 小说 feed 条目：只持不可变的 [Novel]（data class）+ 可选的站长/热度 [trendingScore]。
  *
- * 对齐插画侧 [IllustFeedItem] 的思路，但小说全链路已 loxia 化（收藏走
- * [ceui.loxia.API.addNovelBookmark]、详情走 [DetailFeedSupport.openNovelDetail]、
- * 标签流 [ceui.pixiv.widgets.V3TagFlowView.setTags] 直接吃 loxia [ceui.loxia.Tag]），
+ * 对齐插画侧 [IllustFeedItem] 的思路，但小说全链路已数据类化（收藏走
+ * [ceui.pixiv.api.API.addNovelBookmark]、详情走 [DetailFeedSupport.openNovelDetail]、
+ * 标签流 [ceui.pixiv.widgets.V3TagFlowView.setTags] 直接吃 [ceui.loxia.Tag]），
  * 因此不再像 IllustFeedItem 那样并存 legacy 可变 bean、也不做 gson 往返——
  * 卡片渲染、收藏、跳转全部读这一个 data class。
  *
@@ -85,7 +85,7 @@ class NovelFeedItem(
 
         /**
          * 与 legacy [ceui.lisa.core.Mapper] 的小说分支逐条对齐（tag / id / 作者 / R18 过滤）。
-         * 走 [IllustNovelFilter] 的 loxia Novel 重载，无需 Novel。
+         * 走 [IllustNovelFilter] 的 [ceui.loxia.Novel] 重载，无需 legacy bean。
          */
         private fun passesContentFilters(
             novel: Novel,

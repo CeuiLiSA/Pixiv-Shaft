@@ -3,7 +3,7 @@ package ceui.lisa.interfaces;
 import java.util.Collections;
 import java.util.List;
 
-import ceui.loxia.KListShow;
+import ceui.pixiv.api.model.KListShow;
 
 /**
  * legacy 列表响应契约。顺带实现 {@link KListShow}，让这些 Java 响应模型能直接交给

@@ -14,7 +14,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.CellFeatureV3Binding
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.feature.FeatureEntity
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.models.MangaSeriesItem
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil

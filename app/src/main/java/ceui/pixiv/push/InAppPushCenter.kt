@@ -12,10 +12,10 @@ import androidx.lifecycle.LifecycleOwner
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.utils.Common
-import ceui.loxia.Client
-import ceui.loxia.InAppPush
-import ceui.loxia.acknowledgeInAppPush
+import ceui.pixiv.api.Client
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.shaftapi.InAppPush
+import ceui.pixiv.shaftapi.acknowledgeInAppPush
 import ceui.pixiv.widgets.RateAppDialog
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction

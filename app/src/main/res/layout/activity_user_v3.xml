@@ -148,7 +148,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content">
 
-                                    <ceui.loxia.ProgressTextButton
+                                    <ceui.pixiv.widgets.ProgressTextButton
                                         android:id="@+id/follow"
                                         android:layout_width="wrap_content"
                                         android:layout_height="42dp"
@@ -163,7 +163,7 @@
                                         app:ptb_progress_stroke_width="3dp"
                                         app:ptb_progress_width="14dp" />
 
-                                    <ceui.loxia.ProgressTextButton
+                                    <ceui.pixiv.widgets.ProgressTextButton
                                         android:id="@+id/unfollow"
                                         android:layout_width="wrap_content"
                                         android:layout_height="42dp"

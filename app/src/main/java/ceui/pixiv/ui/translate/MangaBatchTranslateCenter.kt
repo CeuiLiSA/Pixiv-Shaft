@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.pixiv.imageloader.ImageLoaderV3
 import kotlinx.coroutines.CancellationException
@@ -20,7 +20,7 @@ import java.io.File
  * 「翻译整部」(issue #925)的进程级任务中心 + 译图仓库。
  *
  * 普通 class,由 [ceui.lisa.activities.Shaft] 构造一份,经
- * [ceui.loxia.ServicesProvider.mangaBatchTranslateCenter] 取用。
+ * [ceui.pixiv.services.ServicesProvider.mangaBatchTranslateCenter] 取用。
  *
  * 为什么不放在看图页的 ViewModel:整部翻译动辄几分钟,用户点了之后就该能退出看图页
  * 去干别的,回来译图都在;跟着 Activity 生命周期走的话一返回就被取消,悬浮窗也就没意义了。

@@ -20,8 +20,8 @@ import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.models.WorkspaceBean
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.viewmodel.UserViewModel
-import ceui.loxia.Event
-import ceui.loxia.WebUserDetail
+import ceui.pixiv.utils.Event
+import ceui.pixiv.api.model.WebUserDetail
 import ceui.pixiv.ui.comments.translateComment
 import ceui.pixiv.session.SessionManager
 

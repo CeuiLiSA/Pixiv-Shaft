@@ -1,6 +1,6 @@
 package ceui.pixiv.feeds.pixiv
 
-import ceui.loxia.KListShow
+import ceui.pixiv.api.model.KListShow
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedLoadPhase
 import ceui.pixiv.feeds.FeedPage

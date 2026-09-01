@@ -4,8 +4,8 @@ import androidx.annotation.StringRes
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.network.ShaftApiV2
-import ceui.loxia.Illust
 import ceui.loxia.Novel
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.NovelFeedItem
@@ -39,9 +39,9 @@ object RankType {
  * 榜单 item.bean → FeedItem 的共用映射(跑在 Default 线程、纯函数、零捕获)。
  * 收藏榜 / 浏览量榜 / 热度榜 的 item 形状都是 [ShaftApiV2.TrendingWorkItem],只有
  * 「热度 pill 显什么数」和「bean 解析成 Illust 还是 Novel」两处不同,这里把两条路统一:
- * - 插画 / 漫画:bean → loxia [Illust],装 trendingScore、清上报者收藏态,走 [IllustFeedItem.of]
+ * - 插画 / 漫画:bean → [Illust],装 trendingScore、清上报者收藏态,走 [IllustFeedItem.of]
  *   (含全局内容过滤);
- * - 小说:bean → loxia [Novel],清上报者收藏态,热度分单独带进 [NovelFeedItem]。
+ * - 小说:bean → [Novel],清上报者收藏态,热度分单独带进 [NovelFeedItem]。
  */
 internal fun ShaftApiV2.TrendingWorkItem.toIllustFeedItem(
     score: Float,

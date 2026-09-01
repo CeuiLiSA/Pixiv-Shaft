@@ -1,7 +1,7 @@
 package ceui.pixiv.download
 
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.ui.task.DownloadNovelTask

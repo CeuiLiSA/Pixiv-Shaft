@@ -21,7 +21,7 @@
             android:gravity="center"
             android:orientation="vertical">
 
-            <ceui.loxia.ProgressImageButton
+            <ceui.pixiv.widgets.ProgressImageButton
                 android:id="@+id/progress_circular"
                 android:layout_width="40dp"
                 android:layout_height="40dp"

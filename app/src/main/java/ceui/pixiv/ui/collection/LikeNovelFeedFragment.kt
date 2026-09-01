@@ -15,7 +15,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.utils.Params
-import ceui.loxia.Client
+import ceui.pixiv.api.Client
 import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.db.mirror.MirrorContentType

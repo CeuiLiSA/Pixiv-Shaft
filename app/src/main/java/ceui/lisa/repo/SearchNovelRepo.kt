@@ -10,7 +10,7 @@ import ceui.lisa.repo.ViewerBookmarkState.withViewerBookmarkState
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import ceui.pixiv.actions.AccountOnlineReportOutbox
-import ceui.loxia.Nana7miPayload
+import ceui.pixiv.shaftapi.Nana7miPayload
 import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.actions.observeFirstOrRun
 import ceui.pixiv.actions.trackOrRun

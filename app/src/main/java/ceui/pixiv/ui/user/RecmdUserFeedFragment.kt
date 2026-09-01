@@ -6,9 +6,9 @@ import ceui.lisa.R
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.fragments.RecmdUserHandoff
 import ceui.lisa.fragments.RecmdUserSnapshot
-import ceui.loxia.Client
-import ceui.loxia.UserPreview
-import ceui.loxia.UserPreviewResponse
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.UserPreview
+import ceui.pixiv.api.model.UserPreviewResponse
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.pixiv.pixivFeedSource

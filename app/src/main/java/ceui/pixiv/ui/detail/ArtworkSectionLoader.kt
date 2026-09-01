@@ -3,10 +3,10 @@ package ceui.pixiv.ui.detail
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.activities.Shaft
-import ceui.loxia.getHumanReadableMessage
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.updateItems
+import ceui.pixiv.ui.common.getHumanReadableMessage
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

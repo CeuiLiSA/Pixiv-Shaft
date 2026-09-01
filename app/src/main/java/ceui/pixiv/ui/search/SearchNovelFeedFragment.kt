@@ -13,7 +13,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.RecyNovelBinding
 import ceui.lisa.model.ListNovel
 import ceui.loxia.Novel
-import ceui.loxia.appServices
+import ceui.pixiv.services.appServices
 import ceui.lisa.repo.SearchNovelRepo
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params

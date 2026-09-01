@@ -27,8 +27,8 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
-import ceui.loxia.ObjectPool
-import ceui.loxia.ProgressTextButton
+import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.widgets.ProgressTextButton
 import ceui.loxia.User
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.ui.common.viewBinding

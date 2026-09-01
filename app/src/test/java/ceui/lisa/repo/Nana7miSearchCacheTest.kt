@@ -2,10 +2,10 @@ package ceui.lisa.repo
 
 import ceui.lisa.model.ListIllust
 import ceui.lisa.model.ListNovel
-import ceui.loxia.Nana7miSearchCacheLookupReq
-import ceui.loxia.Nana7miSearchCacheLookupResp
-import ceui.loxia.Nana7miSearchCacheStoreReq
-import ceui.loxia.PixshaftApi
+import ceui.pixiv.shaftapi.Nana7miSearchCacheLookupReq
+import ceui.pixiv.shaftapi.Nana7miSearchCacheLookupResp
+import ceui.pixiv.shaftapi.Nana7miSearchCacheStoreReq
+import ceui.pixiv.shaftapi.PixshaftApi
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking

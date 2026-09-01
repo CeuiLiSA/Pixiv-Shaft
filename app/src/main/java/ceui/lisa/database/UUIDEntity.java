@@ -10,7 +10,7 @@ import java.util.List;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.core.IDWithList;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 
 @Entity(tableName = "uuid_list_table")
 public final class UUIDEntity implements IDWithList<Illust> {

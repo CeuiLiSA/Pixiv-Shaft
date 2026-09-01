@@ -4,7 +4,7 @@ import androidx.annotation.NonNull
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.models.MangaSeriesItem
 import java.io.Serializable
 

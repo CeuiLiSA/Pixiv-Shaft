@@ -307,7 +307,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
         Intent intent = new Intent(mContext, TemplateActivity.class);
         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RECOMMENDED_USERS.key);
         String handoffKey = null;
-        kotlin.Pair<java.util.List<ceui.loxia.UserPreview>, String> snapshot =
+        kotlin.Pair<java.util.List<ceui.pixiv.api.model.UserPreview>, String> snapshot =
                 railFragment != null && railFragment.getView() != null
                         ? railFragment.currentSnapshot() : null;
         if (snapshot != null && !snapshot.getFirst().isEmpty()) {

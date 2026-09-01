@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.model.CustomFileNameCell;
-import ceui.loxia.Illust;
+import ceui.pixiv.api.model.Illust;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.DownloadItems;
 

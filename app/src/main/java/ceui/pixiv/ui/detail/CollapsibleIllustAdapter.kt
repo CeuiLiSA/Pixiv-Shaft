@@ -13,7 +13,7 @@ import ceui.lisa.R
 import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.adapters.ViewHolder
 import ceui.lisa.databinding.RecyIllustDetailBinding
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.utils.ppppx
 import com.blankj.utilcode.util.BarUtils
 

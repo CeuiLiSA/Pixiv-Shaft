@@ -404,7 +404,7 @@ interface ShaftApiV2 {
      * follow_count 是窗口内 follow 事件数)。**不带代表作**,item.meta 只有 name / account /
      * avatar_url(server LEFT JOIN user_meta,理论上可 null,线上三档头 200 全有),所以客户端
      * 渲染成纯画师行(头像 + 名字 + 「本周 N 人关注」),由 [ceui.pixiv.ui.recommend.TrendingArtistsFeedSource]
-     * 拼成 loxia User。
+     * 拼成 User。
      *
      * - window: day | week | month;server 端每档固定 5000 行
      *

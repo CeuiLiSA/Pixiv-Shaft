@@ -5,9 +5,9 @@ import android.content.Intent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.loxia.Illust
 import ceui.loxia.Novel
 import ceui.loxia.User
+import ceui.pixiv.api.model.Illust
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -116,7 +116,7 @@ class EntityWrapper(
         val json = Shaft.sGson.toJson(illust)
         // local-only: the FragmentHistoryTabs illust/novel tabs read illust_table
         // (legacy Illust), reported separately from PixivOperate. Reporting
-        // ceui.loxia.Illust here would pollute the remote with the wrong model.
+        // ceui.pixiv.api.model.Illust here would pollute the remote with the wrong model.
         visit(context, illust.id, json, EntityType.ILLUST, RecordType.VIEW_ILLUST_HISTORY)
     }
 

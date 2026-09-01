@@ -55,7 +55,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.SearchTypeUtil;
 import ceui.loxia.User;
-import ceui.loxia.ServiceProviderKt;
+import ceui.pixiv.services.ServiceProviderKt;
 import ceui.pixiv.ui.pinned.PinnedUsers;
 import ceui.pixiv.ui.search.SearchHintViewModel;
 import ceui.pixiv.ui.navigation.TemplateRoute;

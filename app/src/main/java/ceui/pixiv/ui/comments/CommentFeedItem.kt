@@ -2,8 +2,8 @@ package ceui.pixiv.ui.comments
 
 import ceui.lisa.activities.Shaft
 import ceui.lisa.helper.CommentFilter
-import ceui.loxia.Comment
-import ceui.loxia.CommentResponse
+import ceui.pixiv.api.model.Comment
+import ceui.pixiv.api.model.CommentResponse
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedLoadPhase
 

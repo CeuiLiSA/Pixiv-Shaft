@@ -5,7 +5,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.CancellationException

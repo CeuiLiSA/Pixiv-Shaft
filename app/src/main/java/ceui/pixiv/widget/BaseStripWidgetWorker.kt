@@ -12,7 +12,7 @@ import androidx.work.WorkerParameters
 import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.VActivity
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.session.SessionManager

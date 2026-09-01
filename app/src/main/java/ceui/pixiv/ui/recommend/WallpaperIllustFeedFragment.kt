@@ -2,7 +2,7 @@ package ceui.pixiv.ui.recommend
 
 import android.os.Bundle
 import ceui.lisa.activities.Shaft
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.network.ShaftApiV2
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.pixiv.feeds.FeedItem

@@ -6,12 +6,12 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
-import ceui.loxia.requireEntityWrapper
-import ceui.loxia.toTagsBeans
+import ceui.pixiv.services.requireEntityWrapper
+import ceui.pixiv.utils.toTagsBeans
 import ceui.pixiv.ui.bulk.BulkSelectHandoff
 import ceui.pixiv.ui.bulk.IllustBulkSelectHandoff
 import ceui.pixiv.ui.detail.showV3Menu

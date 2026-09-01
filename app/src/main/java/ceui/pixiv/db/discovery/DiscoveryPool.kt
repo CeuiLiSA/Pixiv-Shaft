@@ -3,7 +3,7 @@ package ceui.pixiv.db.discovery
 import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.db.DiscoveryEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +19,7 @@ import kotlin.math.pow
 
 /**
  * 发现页候选池。进程级一份，由 [ceui.lisa.activities.Shaft] 构造、经
- * [ceui.loxia.ServicesProvider.discoveryPool] 取用；构造只订阅画像变化，不做 IO。
+ * [ceui.pixiv.services.ServicesProvider.discoveryPool] 取用；构造只订阅画像变化，不做 IO。
  */
 class DiscoveryPool(app: Context, private val profileManager: ProfileManager) {
 

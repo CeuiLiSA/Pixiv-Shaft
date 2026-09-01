@@ -100,7 +100,7 @@
                 android:textSize="11sp"
                 tools:text="3小时前" />
 
-            <ceui.loxia.ProgressImageButton
+            <ceui.pixiv.widgets.ProgressImageButton
                 android:id="@+id/bookmark_btn"
                 android:layout_width="32dp"
                 android:layout_height="32dp"

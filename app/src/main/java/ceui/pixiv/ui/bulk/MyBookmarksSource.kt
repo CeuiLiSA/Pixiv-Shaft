@@ -1,7 +1,7 @@
 package ceui.pixiv.ui.bulk
 
 import ceui.lisa.http.Retro
-import ceui.loxia.Illust
+import ceui.pixiv.api.model.Illust
 
 /**
  * 自己（或任意指定用户）的收藏插画/漫画列表。restrict 一般是 "public" / "private"。

@@ -3,10 +3,10 @@ package ceui.pixiv.ui.comments
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import ceui.loxia.API
-import ceui.loxia.Client
-import ceui.loxia.Comment
-import ceui.loxia.ObjectType
+import ceui.pixiv.api.API
+import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.Comment
+import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.feeds.FeedItem
 import kotlinx.coroutines.sync.Mutex
 
