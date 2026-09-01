@@ -452,6 +452,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // helper 持有本次 rootView；Fragment 留在返回栈时必须随 View 生命周期断开引用。
         aiHelper = null
         _fabBarController = null
+        // 收起胶囊的淡出动画挂在 Choreographer 上,view 从窗口摘下来它照样 tick 到底,
+        // 结束时那个 withEndAction 会去碰 chromeBind —— 此刻已是 null,checkNotNull 直接抛。
+        // (220ms 的窗口:3P+ 作品点「收起」的当下旋屏 / 返回就能撞上。)
+        _chromeBind?.collapsePill?.animate()?.cancel()
         _chromeBind = null
         super.onDestroyView()
     }
@@ -623,6 +627,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             }
         } else {
             pill.animate().alpha(0f).setDuration(220).withEndAction {
+                // onDestroyView 已 cancel 过一遍(cancel 不派发 end action),这里是第二道:
+                // 动画结束回调不保证跑在 view 还活着的时候,syncTopEndPill 会 checkNotNull(chromeBind)。
+                if (_chromeBind == null) return@withEndAction
                 pill.visibility = View.GONE
                 pill.alpha = 1f
                 syncTopEndPill()
@@ -645,15 +652,23 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         }
     }
 
-    /** 池 / 快照两条来源统一取当前作品的总页数;取不到给 0。 */
-    private fun currentPageCount(): Int {
-        val illust = if (isSnapshotMode) {
+    /**
+     * 池 / 快照两条来源统一取当前作品的 bean;取不到给 null。
+     *
+     * 快照模式下 [illustId] 恒为 0L(快照只认 snapshotId),所以任何直接
+     * `ObjectPool.get<Illust>(illustId)` 的地方在快照里都是静默拿到 null —— 凡是两种模式
+     * 都要用的读取都得走这里。
+     */
+    private fun currentIllust(): Illust? {
+        return if (isSnapshotMode) {
             snapshotId?.let { SnapshotRuntimeCache.get(it) }?.illust
         } else {
             ObjectPool.get<Illust>(illustId).value
         }
-        return illust?.page_count ?: 0
     }
+
+    /** 池 / 快照两条来源统一取当前作品的总页数;取不到给 0。 */
+    private fun currentPageCount(): Int = currentIllust()?.page_count ?: 0
 
     /**
      * 右上角常驻页码浮标(#1058):不进阅读器、直接在详情页往下滑看多图时,标出「当前页 / 总页」。
@@ -1246,9 +1261,13 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /**
      * 简介区下载按钮(#1052):只下载/导出简介文本,不触发作品图片下载。
      * 放在 Fragment 而不是 renderer 里,因为 [illustId] 是 private,renderer 拿不到。
+     *
+     * bean 走 [currentIllust]:简介区块在快照里照常渲染、按钮也照常绑(见
+     * ArtworkSectionRenderers 的 descRenderer),而快照的 illustId 是 0L —— 按 id 读池会拿到
+     * null 然后**静默** return,点了什么都不发生(其余快照里不支持的控件至少还会 toast)。
      */
     internal fun downloadDescCaption() {
-        val illust = ObjectPool.get<Illust>(illustId).value ?: return
+        val illust = currentIllust() ?: return
         lifecycleScope.launch {
             val ok = IllustCaptionExporter.exportManual(illust)
             if (ok) {

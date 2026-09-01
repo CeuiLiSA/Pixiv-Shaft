@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.detail
 
 import android.text.TextUtils
+import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.Mapper
 import ceui.lisa.database.AppDatabase
@@ -47,7 +48,7 @@ class ArtworkV3FeedSource(
         // 请求(用户明明还没往下翻)。等「相关作品」区块真正滚到可见,ArtworkSection.RELATED 才拉
         // 第 1 页并原子追加条目/交接游标，重新开启分页。cursor=null 表示暂无下一页。
         Timber.tag(ARTWORK_LAZY_TAG).d("进页 load(null) 开始 illustId=%d", illustId)
-        val illust = resolveFullIllust() ?: return FeedPage(emptyList(), null)
+        val illust = resolveFullIllust()
         Timber.tag(ARTWORK_LAZY_TAG).d(
             "进页只出「大图 + header」,不拉 related/comments/authorWorks illustId=%d", illustId,
         )
@@ -66,8 +67,15 @@ class ArtworkV3FeedSource(
      * 会画出全屏转圈。所以判据只能问一件事——「池里这条 bean 够不够把首屏画出来」,也就是
      * [isFullDetail] 的图片字段。**不要**再往这里挂「顺便补个字段」类的条件:那类补拉一律走后台
      * (见 [ArtworkV3ViewModel] 的 caption 补拉),落池后靠 observer 增量改条目。
+     *
+     * 兜底链全部落空时**抛异常**,不返回 null:返回 null 会被 [load] 变成一页「成功的空结果」,
+     * 于是 [ceui.pixiv.feeds.FeedUiState.showEmptyState] 亮起——用户看到的是「居然啥也没有」
+     * 加一张空态插图(和作品被删一个样),既没有「点击重试」,联网后
+     * [ceui.pixiv.feeds.FeedFragment.onNetworkRestored] 也不会自动刷新(它只认全屏错误态)。
+     * 飞行模式下点开一个没看过的作品就是这个死胡同。抛出去才能进
+     * [ceui.pixiv.feeds.FeedUiState.showFullscreenError],拿回重试入口与联网自动刷新。
      */
-    private suspend fun resolveFullIllust(): Illust? {
+    private suspend fun resolveFullIllust(): Illust {
         val existing = ObjectPool.get<Illust>(illustId).value
         if (existing != null && existing.isFullDetail()) {
             Timber.tag(ARTWORK_LAZY_TAG).d("resolveFullIllust: 池里已是完整版,零 API 直接用 illustId=%d", illustId)
@@ -77,20 +85,33 @@ class ArtworkV3FeedSource(
             "resolveFullIllust: 池里%s,回 v1/illust/detail 拉完整版(唯一进页 API) illustId=%d",
             if (existing == null) "无此作品" else "只有精简版", illustId,
         )
-        fetchFullIllustDetail(illustId)?.let { return it }
+        // 传输层异常留一份:它决定错误态是「网络不可用 + 去网络测试」还是「无权限查看的作品」。
+        var transportError: Throwable? = null
+        fetchFullIllustDetail(illustId, onTransportError = { transportError = it })?.let { return it }
         Timber.tag(ARTWORK_LAZY_TAG).w("resolveFullIllust: 拉完整版失败,降级/兜底 illustId=%d", illustId)
         if (existing != null) return existing
-        return withContext(Dispatchers.IO) {
-            val cached = runCatching {
+        val cached = withContext(Dispatchers.IO) {
+            val row = runCatching {
                 AppDatabase.getAppDatabase(Shaft.getContext()).generalDao()
                     .getByRecordTypeAndId(RecordType.VIEW_ILLUST_HISTORY, illustId)
                     ?.typedObject<Illust>()
             }.getOrNull()
             // 顺带覆盖池让 FAB VM 的 observer fire。
             // ObjectPool.update 内部 setValue 抛后台线程异常会自愈成 postValue,IO 线程调用安全。
-            cached?.also { ObjectPool.updateIllust(it) }
+            row?.also { ObjectPool.updateIllust(it) }
         }
+        if (cached != null) return cached
+        throw transportError ?: IllustDetailUnavailableException()
     }
+
+    /**
+     * 接口答复了、但这条作品拿不到(已删 / 无权限 / 兜底 web 也拿不到)。
+     * message 直接给用户看(走 FeedFragment 的 humanReadableErrorOf → AppError.Unknown),
+     * 所以用的是经典页同一句 [R.string.string_206],而不是英文调试串。
+     */
+    private class IllustDetailUnavailableException : IllegalStateException(
+        Shaft.getContext().getString(R.string.string_206)
+    )
 
     companion object {
         /** 顶部大图页条目:ugoira 单条;静态图折叠时只 p0,否则全 P。 */

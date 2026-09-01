@@ -41,14 +41,24 @@ fun Illust.hasTrustedCaption(): Boolean {
  * app-api 判作品不可见时走网页 ajax 兜底(#592);已删 / 兜底也拿不到 / 网络失败返回
  * null —— 此时不覆盖,保留池里已有数据,由调用方降级处理。
  * `toUpdate` 可选，不传入时仍保持进 ObjectPool。
+ *
+ * @param onTransportError 传输层异常(断网 / 超时 / HTTP 错误)的旁路出口。返回值仍是 null,
+ *   绝大多数调用方只关心「拿没拿到」,照旧无视即可;需要把失败**呈现**给用户的调用方
+ *   (详情页首屏)则要靠它区分「网络挂了」和「作品没了」——两者的错误态文案与后续动作
+ *   完全不同,而 null 把这个区别抹平了。
  */
-suspend fun fetchFullIllustDetail(illustId: Long, toUpdate: Boolean = true): Illust? {
+suspend fun fetchFullIllustDetail(
+    illustId: Long,
+    toUpdate: Boolean = true,
+    onTransportError: ((Throwable) -> Unit)? = null,
+): Illust? {
     val fresh = try {
         Retro.getAppApi().getIllustByID(illustId).illust
     } catch (ce: CancellationException) {
         throw ce
     } catch (e: Exception) {
         Timber.e(e, "fetchFullIllustDetail failed illustId=%d", illustId)
+        onTransportError?.invoke(e)
         return null
     }
     val usable = if (fresh != null && fresh.id != 0L && fresh.visible == true) {
