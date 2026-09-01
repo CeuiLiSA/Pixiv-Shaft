@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  「侧边栏 → 置顶标签」列表 cell。
-  样式与 `cell_item_prime_tag.xml` 一致（用户需求：参考 PrimeTagItemHolder 的样式），
-  数据源换成本地 search_table 解出来的 PinnedTagItemHolder。
+  「我置顶的内容 → 标签」列表 cell（V3 + MD3-E）。
+  和隔壁「作者」tab 的 cell_item_pinned_user 共用同一套卡片语汇（bg_v3_card 卡底 +
+  bg_drawer_item_pill ripple + 20dp/16dp 内距，卡间距由列表的 LinearItemDecoration(12dp) 给）——
+  两个 tab 是同一页的左右页，卡片不能长得不一样。
+  信息层级：译名/标签名 16sp bold / v3_text_1 → 原名副标题 13sp / v3_text_2 → 预览图。
 -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -20,8 +22,13 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/cell_background"
-        android:orientation="vertical">
+        android:background="@drawable/bg_v3_card"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/bg_drawer_item_pill"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="16dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -40,33 +47,39 @@
                     android:id="@+id/pinned_tag_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="@{holder.tag.translated_name != null ? holder.tag.translated_name : holder.tag.name}"
-                    android:textColor="@color/text00"
-                    android:textSize="18sp"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/pinned_tag_subtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:text="@{holder.tag.name}"
-                    android:textColor="@color/text20"
-                    android:textSize="15sp"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="13sp"
                     android:visibility="@{holder.showSubtitle ? View.VISIBLE : View.GONE}" />
             </LinearLayout>
 
             <ImageView
                 android:id="@+id/delete_pin"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/string_443"
-                android:padding="12dp"
+                android:padding="10dp"
                 android:src="@drawable/ic_cancel_black_24dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="@color/v3_text_3" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -74,7 +87,7 @@
             android:id="@+id/illusts_preview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:visibility="@{holder.hasPreview ? View.VISIBLE : View.GONE}">
 
             <net.csdn.roundview.RoundImageView
@@ -86,7 +99,7 @@
                 app:layout_constraintDimensionRatio="1:1"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:rRadius="2dp" />
+                app:rRadius="10dp" />
 
             <net.csdn.roundview.RoundImageView
                 android:id="@+id/illust_2"
@@ -94,12 +107,12 @@
                 visibleOrInvisible="@{holder.illust1 != null}"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:layout_marginHorizontal="2dp"
+                android:layout_marginHorizontal="4dp"
                 app:layout_constraintDimensionRatio="1:1"
                 app:layout_constraintEnd_toStartOf="@+id/illust_3"
                 app:layout_constraintStart_toEndOf="@+id/illust_1"
                 app:layout_constraintTop_toTopOf="parent"
-                app:rRadius="2dp" />
+                app:rRadius="10dp" />
 
             <net.csdn.roundview.RoundImageView
                 android:id="@+id/illust_3"
@@ -111,7 +124,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/illust_2"
                 app:layout_constraintTop_toTopOf="parent"
-                app:rRadius="2dp" />
+                app:rRadius="10dp" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

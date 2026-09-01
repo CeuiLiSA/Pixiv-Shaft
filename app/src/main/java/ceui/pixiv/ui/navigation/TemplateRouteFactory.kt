@@ -81,7 +81,7 @@ import ceui.pixiv.ui.novel.NovelSeriesFragment
 import ceui.pixiv.ui.novel.NovelTextFragment
 import ceui.pixiv.ui.novel.local.LocalLibraryFragment
 import ceui.pixiv.ui.novel.reader.NovelReaderV3Fragment
-import ceui.pixiv.ui.pinned.PinnedTagsFragment
+import ceui.pixiv.ui.pinned.PinnedTabsFragment
 import ceui.pixiv.ui.prime.PrimeTagDetailFragment
 import ceui.pixiv.ui.prime.PrimeTagsFragment
 import ceui.pixiv.ui.recommend.AI_ONLY
@@ -362,7 +362,7 @@ object TemplateRouteFactory {
         TemplateRoute.FEATURE_LIST -> FeatureFeedFragment()
         TemplateRoute.WORKSPACE -> FragmentWorkSpace()
         TemplateRoute.PRIME_TAGS -> PrimeTagsFragment()
-        TemplateRoute.PINNED_TAGS -> PinnedTagsFragment()
+        TemplateRoute.PINNED_CONTENT -> PinnedTabsFragment()
         // key = 老 assets 文件名里那段 sha256，现在是 pixshaft-api 的路径参数。
         TemplateRoute.PRIME_TAG_DETAIL -> PrimeTagDetailFragment.newInstance(
             intent.requireString("name"),

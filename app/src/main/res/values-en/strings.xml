@@ -1033,6 +1033,10 @@
     <string name="pinned_user_added">Pinned \u201c%1$s\u201d</string>
     <string name="unpin_user_confirm_message">Unpin \u201c%1$s\u201d?</string>
     <string name="unpin_user_success">Artist unpinned</string>
+    <string name="pinned_content">My Pinned Items</string>
+    <string name="clear_pinned_users_msg">This will unpin every artist.</string>
+    <string name="pinned_users_cleared">All artists unpinned</string>
+    <string name="pinned_empty">Nothing here yet</string>
     <string name="check_for_updates">Check for updates</string>
     <string name="update_checking">Checking for updates...</string>
     <string name="update_new_version_available">New version available</string>

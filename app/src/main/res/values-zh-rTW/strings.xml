@@ -1035,6 +1035,10 @@
     <string name="pinned_user_added">已釘選「%1$s」</string>
     <string name="unpin_user_confirm_message">確定取消釘選作者「%1$s」嗎？</string>
     <string name="unpin_user_success">已取消釘選</string>
+    <string name="pinned_content">我釘選的內容</string>
+    <string name="clear_pinned_users_msg">這將會取消所有釘選作者</string>
+    <string name="pinned_users_cleared">已取消所有釘選作者</string>
+    <string name="pinned_empty">這裡還什麼都沒有</string>
     <string name="check_for_updates">檢查更新</string>
     <string name="update_checking">正在檢查更新…</string>
     <string name="update_new_version_available">發現新版本</string>

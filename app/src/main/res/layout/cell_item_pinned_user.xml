@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「我置顶的内容 → 作者」列表 cell（V3 + MD3-E）。
+  卡片语汇同 cell_download_bucket / cell_download_preset：bg_v3_card 卡底（v3_surface_1 +
+  hairline + 28dp 圆角）压在 v3_bg 上，按压 ripple 走 bg_drawer_item_pill（同 mask 不出框），
+  内距 20dp/16dp —— 28dp 的圆角会吃掉左侧空间，12dp（cell_series_v3 那种打头是大封面图的卡
+  才够）会让内容顶着圆角。卡间距由列表的 LinearItemDecoration(12dp) 统一给，cell 自己不加 margin。
+  信息层级：昵称 16sp bold / v3_text_1 → @account 13sp / v3_text_2。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_v3_card"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="@drawable/bg_drawer_item_pill"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="16dp">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/user_avatar"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@color/v3_surface_2"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Chat.Avatar" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/user_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/v3_text_1"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="藤ちょこ（藤原）" />
+
+        <TextView
+            android:id="@+id/user_account"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/v3_text_2"
+            android:textSize="13sp"
+            tools:text="\@fuzichoco" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/delete_pin"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/unpin_user"
+        android:padding="10dp"
+        android:src="@drawable/ic_cancel_black_24dp"
+        app:tint="@color/v3_text_3" />
+
+</LinearLayout>

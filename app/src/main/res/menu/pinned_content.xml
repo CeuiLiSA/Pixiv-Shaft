@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「我置顶的内容」toolbar 菜单。只挂一个「更多」，点开是 V3 菜单 sheet（清空当前 tab），
+  与 watch_later.xml 同一套做法（图标名里的 black 只是资源名，toolbar 挂 AppBarOverlay 会自动 tint 成白）。
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_more"
+        android:icon="@drawable/ic_more_vert_black_24dp"
+        android:title="@string/more_actions"
+        app:showAsAction="always" />
+</menu>

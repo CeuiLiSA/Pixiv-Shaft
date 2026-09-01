@@ -355,7 +355,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         // 固定数量超出上限时会被静默挤掉（issue #524）
         List<SearchEntity> pinned = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getAllPinned();
         List<SearchEntity> recent = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getRecentUnpinned(50);
-        bindPinnedUsersSection(PinnedUsers.load(Shaft.getContext()));
+        bindPinnedUsersSection(PinnedUsers.loadForSearchRow(Shaft.getContext()));
         bindPinnedSection(pinned);
         bindHistorySection(recent);
     }
@@ -438,7 +438,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 .show());
         baseBind.viewAllPinned.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PINNED_TAGS.key);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PINNED_CONTENT.key);
             startActivity(intent);
         });
     }

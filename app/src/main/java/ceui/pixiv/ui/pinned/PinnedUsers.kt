@@ -16,16 +16,28 @@ import timber.log.Timber
 object PinnedUsers {
 
     /**
-     * 一次最多取这么多。置顶是手挑的，几十个封顶；给个上限只是别让某天写脏的表
-     * 把搜索首页的 onResume 拖住（这条链路和它旁边的置顶标签一样跑在主线程上）。
+     * 搜索首页那一排横向格子的上限。那里只是个快捷入口，超出的部分在「我置顶的内容」页看，
+     * 且这条链路和它旁边的置顶标签一样跑在主线程上，不能不设防。
      */
-    private const val MAX_COUNT = 100
+    private const val SEARCH_ROW_LIMIT = 100
+
+    /**
+     * 全量取，**不设上限**。
+     * 「我置顶的内容 → 作者」是这份数据的完整列表页，截断就是 issue #524 那个坑的翻版
+     * （置顶标签当年就是被塞进「最近搜索」的 LIMIT 里静默挤掉的，所以 searchDao().getAllPinned()
+     * 至今没有 LIMIT）—— 列表页少显示几条，用户只会以为置顶丢了。
+     */
+    @JvmStatic
+    fun loadAll(context: Context): List<User> = query(context, Int.MAX_VALUE)
+
+    /** 搜索首页那一排用，带上限，理由见 [SEARCH_ROW_LIMIT]。 */
+    @JvmStatic
+    fun loadForSearchRow(context: Context): List<User> = query(context, SEARCH_ROW_LIMIT)
 
     /** 按置顶时间倒序。JSON 坏掉的行跳过，不让一条脏数据把整排作者干掉。 */
-    @JvmStatic
-    fun load(context: Context): List<User> {
+    private fun query(context: Context, limit: Int): List<User> {
         return AppDatabase.getAppDatabase(context).generalDao()
-            .getByRecordType(RecordType.PINNED_USER, 0, MAX_COUNT)
+            .getByRecordType(RecordType.PINNED_USER, 0, limit)
             .mapNotNull { entity ->
                 runCatching { entity.typedObject<User>() }
                     .onFailure { Timber.w(it, "pinned user ${entity.id} json broken, skipped") }

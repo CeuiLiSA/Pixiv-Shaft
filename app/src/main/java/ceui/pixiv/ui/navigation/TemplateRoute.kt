@@ -93,7 +93,7 @@ enum class TemplateRoute(@JvmField val key: String) {
     FEATURE_LIST("精华列"),
     WORKSPACE("我的作业环境"),
     PRIME_TAGS("PrimeTagsList"),
-    PINNED_TAGS("PinnedTagsList"),
+    PINNED_CONTENT("PinnedContentTabs"),
     PRIME_TAG_DETAIL("PrimeTagDetail"),
     MY_ILLUST_COLLECTION("我的插画收藏"),
     MY_NOVEL_COLLECTION("我的小说收藏"),

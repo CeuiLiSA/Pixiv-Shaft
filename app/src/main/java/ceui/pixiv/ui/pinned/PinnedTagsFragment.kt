@@ -3,8 +3,6 @@ package ceui.pixiv.ui.pinned
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -16,7 +14,6 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.SearchEntity
 import ceui.lisa.databinding.CellItemPinnedTagBinding
-import ceui.lisa.databinding.FragmentPinnedTagsBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
@@ -27,9 +24,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
-import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.ppppx
-import com.blankj.utilcode.util.BarUtils
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
@@ -37,20 +32,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * 「侧边栏 → 置顶标签」入口对应的列表页（feeds 框架版）。
- *
- * 入口在 [ceui.lisa.activities.MainActivity.handleDrawerAction] 通过
- * `EXTRA_FRAGMENT = "PinnedTagsList"` 路由到这里。
+ * 「我置顶的内容」的「标签」tab（[PinnedTabsFragment] 的左页）。
  *
  * 数据来源是 [ceui.lisa.utils.PixivOperate.insertPinnedSearchHistory] 写入的 search_table，
  * 本地 Room 查询，没有分页也没有网络，因此不接本地优先缓存——数据本身就在本地。
  *
  * 用户从详情页长按置顶 / 取消置顶后回到本页要看到最新结果，所以每次页面进入 STARTED
  * 都主动 [ceui.pixiv.feeds.FeedViewModel.refresh] 重新查一次 DB（对齐旧版 onResume 语义）。
+ *
+ * 本页原本自带 toolbar + 「清空」按钮（独立入口时代）；改成 tab 结构后返回 / 标题 / 清空
+ * 统一由宿主 [PinnedTabsFragment] 出，本页只负责列表本体。
  */
-class PinnedTagsFragment : FeedFragment(R.layout.fragment_pinned_tags) {
+class PinnedTagsFragment : FeedFragment() {
 
-    private val binding by viewBinding(FragmentPinnedTagsBinding::bind)
+    // 裸 fragment_feed 挂在 tab 宿主下，底部没有导航栏吃 systemBars inset，得自己补，
+    // 否则最后一张卡片压在手势条底下（同 WatchLaterFeedFragment）。
+    override val applyBottomSafeInset: Boolean = true
 
     // autoLoad = false：本页刻意每次可见都重查一遍本地库（下面的 repeatOnLifecycle(STARTED) 里
     // refresh），首屏那次也由它负责。留着默认的 autoLoad 只会让 VM 的 init refresh 与它撞在一起，
@@ -68,35 +65,20 @@ class PinnedTagsFragment : FeedFragment(R.layout.fragment_pinned_tags) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        binding.toolbar.apply {
-            // BaseActivity 走 EdgeToEdge,顶部状态栏 inset 由 runtime padding 处理,不用
-            // fitsSystemWindows(那个在 EdgeToEdge host 下会和 bottom inset 一起算导致额外空白)。
-            updatePadding(top = BarUtils.getStatusBarHeight())
-            setNavigationOnClickListener { activity?.finish() }
-        }
-        binding.clearAll.setOnClickListener { showClearAllDialog() }
-
         // STARTED-aware 协程:只在 fragment 可见时才触发 refresh,避免后台 churn。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 feedViewModel.refresh()
             }
         }
-        // 「清空」按钮只在有内容时露出,基类的 render() 不管页面专属的这块 UI,单独订阅。
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                feedViewModel.uiState.collect { state ->
-                    binding.clearAll.isVisible = state.items.isNotEmpty()
-                }
-            }
-        }
     }
 
+    /** 宿主的「清空」要先知道这页空不空 —— 空列表不该走二次确认再报一句「已清空」。 */
+    fun hasItems(): Boolean = feedViewModel.uiState.value.items.isNotEmpty()
+
     override fun onListReady(listView: RecyclerView) {
-        // 对齐旧版 setUpLayoutManager(ListMode.VERTICAL) 的间距：卡片左右/底部 18dp 间隔 +
-        // 首项顶部留白,不挂会顶到屏幕边、上下也无空隙。
-        listView.addItemDecoration(LinearItemDecoration(18.ppppx))
+        // 卡间距对齐 V3 卡片列表通用的 12dp（cell 自带 12dp padding，卡与卡之间再留 12dp）。
+        listView.addItemDecoration(LinearItemDecoration(12.ppppx))
     }
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
@@ -147,7 +129,8 @@ class PinnedTagsFragment : FeedFragment(R.layout.fragment_pinned_tags) {
             .show()
     }
 
-    private fun showClearAllDialog() {
+    /** 宿主 tab 页的「清空」转到这里 —— 删库和刷新都在有数据源的这一侧。 */
+    fun showClearAllDialog() {
         val ctx = context ?: return
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)

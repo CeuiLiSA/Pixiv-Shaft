@@ -1033,6 +1033,10 @@
     <string name="pinned_user_added">Автор \u00ab%1$s\u00bb закреплён</string>
     <string name="unpin_user_confirm_message">Открепить автора \u00ab%1$s\u00bb?</string>
     <string name="unpin_user_success">Автор откреплён</string>
+    <string name="pinned_content">Мои закреплённые</string>
+    <string name="clear_pinned_users_msg">Все авторы будут откреплены.</string>
+    <string name="pinned_users_cleared">Все авторы откреплены</string>
+    <string name="pinned_empty">Здесь пока пусто</string>
     <string name="check_for_updates">Проверить обновления</string>
     <string name="update_checking">Проверка обновлений…</string>
     <string name="update_new_version_available">Доступна новая версия</string>

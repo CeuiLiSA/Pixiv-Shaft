@@ -255,6 +255,21 @@ class EntityWrapper(
     }
 
     /**
+     * 取消置顶并**等落库完成**。列表页删完要立刻重查 DB，用上面那个 fire-and-forget 的
+     * [unpinUser] 会和重查赛跑、刷出还没删掉的旧行。菜单那种「点完就走」的调用点仍用 [unpinUser]。
+     */
+    suspend fun deletePinnedUser(context: Context, userId: Long) = withContext(Dispatchers.IO) {
+        deleteEntity(context, RecordType.PINNED_USER, userId)
+    }
+
+    /** 清空置顶作者，同样等落库完成（理由见 [deletePinnedUser]）。 */
+    suspend fun clearPinnedUsers(context: Context) = withContext(Dispatchers.IO) {
+        AppDatabase.getAppDatabase(context).generalDao()
+            .deleteAllByRecordType(RecordType.PINNED_USER)
+        _pinnedUserIds.clear()
+    }
+
+    /**
      * 稍后再看列表变更后发本地广播，对应 tab 收到重新拉 DB。
      * LocalBroadcastManager.sendBroadcast 内部 post 到主线程，IO 线程调也安全。
      *
