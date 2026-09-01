@@ -24,9 +24,16 @@ import java.io.IOException
  * - **绝不碰任何 header**（token / cookie / csrf 全在那里）；
  * - **绝不读 body**（读了还要 peek 回去，既有内存代价又会把用户内容写进日志）。
  *
- * URL 本身对 pixiv 这几个域是安全的：app-api 的 query 是 user_id / restrict /
- * max_bookmark_id 这类参数，token 走 header；oauth 的 refresh_token 走 POST body，
- * 而 body 不打。
+ * URL 本身对挂了本拦截器的这几个域是安全的：app-api / comic 的 query 是
+ * user_id / restrict / max_bookmark_id 这类参数，token 一律走 header；网页 ajax 与
+ * FANBOX 靠 cookie，也在 header 里。**OAuth 根本不经过这里**——登录与 token 刷新用的是
+ * [ceui.pixiv.login.PixivLogin] 自己建的那个 OkHttpClient（`TokenFetcherInterceptor`
+ * 撞 400 时也是转去调它），所以 refresh_token 连出现在本类视野里的机会都没有。
+ *
+ * ⚠️ 打的是**改写前**的 URL：开着 PxveAPI 代理时，`AppApiProxyInterceptor` 会把
+ * app-api / oauth 重写到代理域名，而它排在本拦截器之后。所以日志里看到的永远是
+ * 「这次业务请求要的是哪个 pixiv 接口」，不是「实际连了哪台主机」——排查代理本身时
+ * 别拿它当依据。
  *
  * ## 只在 debug 装
  *

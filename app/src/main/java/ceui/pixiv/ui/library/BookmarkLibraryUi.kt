@@ -80,7 +80,13 @@ internal class BookmarkLibraryUi(
      */
     private var resetAfterGeneration: Int? = null
 
-    /** 上一次看到的库内行数，用来认出「库里多出了东西」。 */
+    /**
+     * 上一次看到的库内行数，用来认出「库里多出了东西」。
+     *
+     * 它是**当前这个书架**的行数，所以换书架时必须清零（见 [switchShelf]）：不清的话，
+     * 新书架的第一次计数会被当成「多出来的东西」——从 31 行的悄悄收藏切到 1012 行的公开
+     * 收藏，看起来就是「凭空多了 981 条」，于是刚切完立刻又重查一遍。
+     */
     private var lastKnownStored: Int? = null
 
     /** 最近一次拿到的全部书架状态；切书架时按当前 shelfKey 重新挑一条出来。 */
@@ -255,7 +261,10 @@ internal class BookmarkLibraryUi(
         val shelf = viewModel.shelf
         Timber.tag(TAG).i("用户手动重建镜像 %s", shelf.label)
         context.appServices().bookmarkMirror.rebuildShelf(shelf)
-        applyFilterChange()
+        // **刻意不在这里刷新**：清空发生在 rebuildShelf 自己的协程里，这里立刻刷只会
+        // 读到清空前的数据（真机复现过：清空 2 行之后 2ms，那次查询读到的还是 2 行）。
+        // 交给 [refreshIfStale] —— 清空落库后 totalCount 会掉到 0，它自然会把屏幕对齐，
+        // 回填补进来之后再对齐一次。少一次抢跑的刷新，也就少一个需要兜的时序。
     }
 
     /**
@@ -275,6 +284,8 @@ internal class BookmarkLibraryUi(
         if (current.restrict == restrict) return
         val next = current.copy(restrict = restrict)
         if (!viewModel.switchShelf(next)) return
+        // 行数基准跟着书架走：换了书架，上一个书架的行数就不再是比较的参照物
+        lastKnownStored = null
         binding.searchInput.setText("")
         context.appServices().bookmarkMirror
             .ensureShelf(next, reason = "收藏库切换到${next.restrict.apiValue}")
@@ -468,6 +479,10 @@ internal class BookmarkLibraryUi(
      */
     private fun refreshIfStale() {
         if (destroyed) return
+        // 已经有一次刷新在路上（换书架 / 换筛选刚发出去的那次）：此刻屏幕上本来就是旧的，
+        // 而且正在被修。拿这份必然过期的 shown 去和新库比，只会得出一个恒真的结论，然后
+        // 再排一次多余的刷新——真机实测「切到更小的书架」每次都因此连查两遍。
+        if (resetAfterGeneration != null) return
         if (viewModel.filter.value.hasAnyCondition) return
         val shown = itemCount()
         val stored = viewModel.totalCount.value ?: return
