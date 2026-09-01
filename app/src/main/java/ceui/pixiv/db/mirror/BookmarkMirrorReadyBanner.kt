@@ -41,7 +41,8 @@ object BookmarkMirrorReadyBanner {
         // 标记就没写上，下次全量完成时又会弹一次。引导宁可漏一次，也不能重复打扰。
         prefs.encode(key, true)
 
-        val deepLink = "shaft://bookmark-library?restrict=${shelf.restrict.apiValue}"
+        val deepLink = "shaft://bookmark-library" +
+            "?restrict=${shelf.restrict.apiValue}&type=${shelf.contentType.code}"
         val shown = runCatching {
             InAppBanners.manager.enqueue(
                 BannerRequest.Text(
@@ -51,13 +52,21 @@ object BookmarkMirrorReadyBanner {
                         R.string.bookmark_mirror_ready_message,
                         String.format(Locale.getDefault(), "%,d", rows),
                     ),
-                    caption = context.getString(R.string.bookmark_library_title),
-                    icon = BannerIcon.Resource(R.drawable.ic_baseline_filter_24),
+                    caption = context.getString(
+                        if (shelf.contentType == MirrorContentType.NOVEL) {
+                            R.string.string_320
+                        } else {
+                            R.string.bookmark_library_title
+                        }
+                    ),
+                    // 用 app 自己的图标：这条不是某个作品/某个人发来的消息，而是**应用**
+                    // 在跟用户说话。摆一个筛选漏斗只会让人以为是某种筛选结果通知。
+                    icon = BannerIcon.Resource(R.mipmap.ic_launcher),
                     action = ceui.pixiv.banner.BannerAction(
                         label = context.getString(R.string.bookmark_mirror_ready_action),
                         deepLink = deepLink,
                     ),
-                    dedupKey = "bookmark-mirror-ready",
+                    dedupKey = "bookmark-mirror-ready-${shelf.contentType.tag}",
                     priority = BannerPriority.NORMAL,
                     category = BannerCategory.System,
                     // Enqueue 而不是 Replace：这条不该把用户正在看的（比如刚收到的私信）挤掉。

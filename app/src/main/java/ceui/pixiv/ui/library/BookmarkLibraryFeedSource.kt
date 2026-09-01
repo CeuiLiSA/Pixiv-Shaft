@@ -4,7 +4,11 @@ import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedPagingPolicy
 import ceui.pixiv.feeds.FeedSource
+import ceui.pixiv.db.mirror.AgeFilter
+import ceui.pixiv.db.mirror.AiFilter
+import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.common.NovelFeedItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -28,6 +32,21 @@ import timber.log.Timber
  * 每种排序又都补了 `targetId DESC` 作全序兜底键（见 [ceui.pixiv.db.mirror.BookmarkMirrorQuery]），
  * 并列行的次序不会在两次查询之间抖动。
  *
+ * ## 内容过滤跟着「它替代的那个页面」走
+ *
+ * **不是 `raw`（完全不过滤）**。本页替代的是「我的插画/小说收藏」，而那两个页面的既定
+ * 立场是：反刷屏阈值（小说的字数/超长 tag）不该裁剪用户自己的藏书，但**屏蔽标签 / 屏蔽
+ * 画师 / R18 / AI 屏蔽照常生效** —— 那几条是用户对特定对象或类别的显式表态，换个入口
+ * 就绕过去，等于这个新页面偷偷把用户明确说过不想看的东西放了进来。
+ *
+ * 两处让步，都用仓库既有的那条规则（「点进专属页就别再用全局过滤把它清空」）：
+ * - 用户在筛选面板里**显式选了分级**（R-18 / R-18G / 全年龄）→ 跳过全局 R18 过滤，
+ *   否则那个控件会变成一个永远筛出 0 条的死按钮；
+ * - 显式选了 AI 档同理。
+ *
+ * 「作品状态」那一维交给 SQL（[BookmarkMirrorQuery]）：它还要能**反过来只看失效的**，
+ * 好让用户找出来清理，所以这里一律 `skipVisibleFilter`，不做二次挡。
+ *
  * ## 零 Fragment 捕获
  *
  * 只持有 [viewModel]（同一 ViewModelStore、同生命周期），筛选条件每次 [load] 现读 ——
@@ -35,6 +54,8 @@ import timber.log.Timber
  */
 class BookmarkLibraryFeedSource(
     private val viewModel: BookmarkLibraryViewModel,
+    /** 决定每行 payload 解析成插画卡还是小说卡。同一张表、同一套查询，只有这一步不同。 */
+    private val contentType: MirrorContentType,
 ) : FeedSource<String> {
 
     override suspend fun load(cursor: String?): FeedPage<String> {
@@ -53,10 +74,27 @@ class BookmarkLibraryFeedSource(
         // 肉眼可见的掉帧。同仓 PixivFeedSource 的 mapper 也是为这条契约才 withContext(Default)。
         val items: List<FeedItem> = withContext(Dispatchers.Default) {
             rows.mapNotNull { row ->
-                // raw 而不是 of：这是**用户自己收藏过的东西**，不该再被全局内容过滤
-                //（R18 / 屏蔽标签 / 屏蔽画师 / 屏蔽 AI）二次筛掉——收藏得进来，回来就得看得见
-                //（对齐「稍后再看」的取舍）。本页要挡什么由用户在筛选面板里自己说了算。
-                IllustFeedItem.raw(BookmarkLibraryRepo.toIllust(row))
+                when (contentType) {
+                    MirrorContentType.ILLUST ->
+                        IllustFeedItem.of(
+                            BookmarkLibraryRepo.toIllust(row),
+                            skipR18Filter = filter.age != AgeFilter.ANY,
+                            skipAiFilter = filter.ai != AiFilter.ANY,
+                            skipVisibleFilter = true,
+                        )
+                    MirrorContentType.NOVEL ->
+                        BookmarkLibraryRepo.toNovel(row)?.let { novel ->
+                            NovelFeedItem.of(
+                                novel,
+                                skipR18Filter = filter.age != AgeFilter.ANY,
+                                skipAiFilter = filter.ai != AiFilter.ANY,
+                                // 对齐 LikeNovelFeedFragment：字数/超长 tag 那套反刷屏阈值
+                                // （issue #743）是冲着发现面上的广告去的，不该把用户自己
+                                // 收藏过的短文从藏书里抹掉。
+                                skipSpamFilter = true,
+                            )
+                        }
+                }
             }
         }
         // 不足一页 = 到底了。注意判据是**查回来的行数**而不是映射后的条目数：

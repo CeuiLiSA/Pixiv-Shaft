@@ -3173,6 +3173,8 @@
     <string name="bookmark_filter_section_ai">AI 生成</string>
     <string name="bookmark_filter_section_pages">页数</string>
     <string name="bookmark_filter_section_state">作品状态</string>
+    <string name="bookmark_filter_section_length">字数</string>
+    <string name="bookmark_filter_length_min">%1$s 字以上</string>
     <string name="bookmark_filter_section_popularity">人气</string>
     <string name="bookmark_filter_section_year">发布年份</string>
     <string name="bookmark_filter_section_series">系列</string>

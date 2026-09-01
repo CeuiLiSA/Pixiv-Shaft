@@ -2912,6 +2912,8 @@
     <string name="bookmark_filter_section_ai">AI generated</string>
     <string name="bookmark_filter_section_pages">Pages</string>
     <string name="bookmark_filter_section_state">Status</string>
+    <string name="bookmark_filter_section_length">Length</string>
+    <string name="bookmark_filter_length_min">%1$s+ characters</string>
     <string name="bookmark_filter_section_popularity">Popularity</string>
     <string name="bookmark_filter_section_year">Year posted</string>
     <string name="bookmark_filter_section_series">Series</string>

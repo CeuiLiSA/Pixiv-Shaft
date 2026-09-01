@@ -190,14 +190,13 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
     }
 
     /**
-     * 插画收藏页 (type=0) 的 toolbar 多挂一个 ⋯ overflow，弹 WitDialog 选具体动作；
-     * 其它收藏类型保持原 filter only。
+     * 插画 / 小说收藏页（type 0/1）的 toolbar 挂「按标签筛选」+ ⋯ overflow，
+     * ⋯ 弹 WitDialog 选具体动作；关注页（type 2）另有自己的跳页菜单。
      */
     private void inflateToolbarMenu() {
-        if (type == 0) {
+        // 插画和小说都挂 ⋯：两边都有本地收藏库可进（差别只是插画那一项还多一个「下载全部作品」）
+        if (filterType.contains(type)) {
             baseBind.toolbar.inflateMenu(R.menu.illust_collection_actions);
-        } else if (filterType.contains(type)) {
-            baseBind.toolbar.inflateMenu(R.menu.illust_filter);
         } else if (type == 2) {
             baseBind.toolbar.inflateMenu(R.menu.follow_user_jump);
         }
@@ -228,10 +227,15 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
      */
     private void showMoreActionsDialog(String restrict) {
         if (mActivity == null || mActivity.isFinishing()) return;
-        String[] items = new String[]{
-                getString(R.string.bookmark_library_menu_entry),
-                getString(R.string.bulk_collection_menu_download_all)
-        };
+        // 「下载全部作品」只有插画侧有（批量下载管线吃的是 illust）；小说侧只出收藏库这一项。
+        String[] items = type == 0
+                ? new String[]{
+                        getString(R.string.bookmark_library_menu_entry),
+                        getString(R.string.bulk_collection_menu_download_all)
+                }
+                : new String[]{
+                        getString(R.string.bookmark_library_menu_entry)
+                };
         new WitDialog.MenuDialogBuilder(mActivity)
                 .addItems(items, (dialog, which) -> {
                     dialog.dismiss();
@@ -239,6 +243,11 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
                         Intent intent = new Intent(mContext, TemplateActivity.class);
                         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.BOOKMARK_LIBRARY.key);
                         intent.putExtra(Params.STAR_TYPE, restrict);
+                        intent.putExtra(
+                                ceui.pixiv.ui.library.BookmarkLibraryUi.ARG_CONTENT_TYPE,
+                                type == 1
+                                        ? ceui.pixiv.db.mirror.MirrorContentType.NOVEL.getCode()
+                                        : ceui.pixiv.db.mirror.MirrorContentType.ILLUST.getCode());
                         startActivity(intent);
                     } else if (which == 1) {
                         long uid = SessionManager.INSTANCE.getLoggedInUid();

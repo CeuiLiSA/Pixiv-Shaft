@@ -2910,6 +2910,8 @@
     <string name="bookmark_filter_section_ai">AI 생성</string>
     <string name="bookmark_filter_section_pages">페이지 수</string>
     <string name="bookmark_filter_section_state">작품 상태</string>
+    <string name="bookmark_filter_section_length">글자 수</string>
+    <string name="bookmark_filter_length_min">%1$s자 이상</string>
     <string name="bookmark_filter_section_popularity">인기</string>
     <string name="bookmark_filter_section_year">게시 연도</string>
     <string name="bookmark_filter_section_series">시리즈</string>

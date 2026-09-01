@@ -111,7 +111,10 @@ object InAppBanners {
         }
     }
 
-    /** `shaft://bookmark-library?restrict=public|private` → 收藏库，落在指定的那个书架上。 */
+    /**
+     * `shaft://bookmark-library?restrict=public|private&type=0|1` → 收藏库，
+     * 落在指定的那个书架上（type：0=插画 1=小说，见 MirrorContentType.code）。
+     */
     private suspend fun openBookmarkLibrary(app: Application, uri: Uri) {
         val activity = foreground.current()
         val ctx: Context = activity ?: app
@@ -119,6 +122,9 @@ object InAppBanners {
             putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.BOOKMARK_LIBRARY.key)
             uri.getQueryParameter("restrict")?.let {
                 putExtra(ceui.lisa.utils.Params.STAR_TYPE, it)
+            }
+            uri.getQueryParameter("type")?.toIntOrNull()?.let {
+                putExtra(ceui.pixiv.ui.library.BookmarkLibraryUi.ARG_CONTENT_TYPE, it)
             }
             if (activity == null) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }

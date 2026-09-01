@@ -217,6 +217,21 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             ) { filter, value -> filter.copy(pages = value) }
         }
 
+        if (!isIllust) {
+            // 小说侧「人气」之外最实用的那一维：想找长篇 / 想找一口气看完的短篇。
+            singleChoiceSection(
+                title = getString(R.string.bookmark_filter_section_length),
+                options = LENGTH_STEPS.map { step ->
+                    step to if (step == null) {
+                        getString(R.string.bookmark_filter_any)
+                    } else {
+                        getString(R.string.bookmark_filter_length_min, formatCount(step))
+                    }
+                },
+                selected = { it.minTextLength },
+            ) { filter, value -> filter.copy(minTextLength = value) }
+        }
+
         singleChoiceSection(
             title = getString(R.string.bookmark_filter_section_age),
             options = listOf(
@@ -634,6 +649,9 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
 
         /** 人气档位。用预设档而不是数字输入框：用户脑子里就是「几千收藏以上」这种量级。 */
         private val POPULARITY_STEPS: List<Int?> = listOf(null, 500, 2_000, 10_000, 30_000)
+
+        /** 小说字数档位。一万字上下大致是「一顿饭能看完」和「要分几次看」的分界。 */
+        private val LENGTH_STEPS: List<Int?> = listOf(null, 5_000, 20_000, 50_000, 100_000)
 
         fun show(host: androidx.fragment.app.Fragment) {
             if (host.childFragmentManager.findFragmentByTag(TAG) != null) return

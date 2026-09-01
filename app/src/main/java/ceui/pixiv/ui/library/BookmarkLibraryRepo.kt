@@ -3,6 +3,7 @@ package ceui.pixiv.ui.library
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.loxia.Illust
+import ceui.loxia.Novel
 import ceui.pixiv.db.mirror.BookmarkAuthorFacet
 import ceui.pixiv.db.mirror.BookmarkFilter
 import ceui.pixiv.db.mirror.BookmarkMirrorDao
@@ -69,8 +70,13 @@ object BookmarkLibraryRepo {
      * 坏行（旧版本写的 JSON、被截断的 payload）只丢这一条并留一条日志，不让整页炸掉：
      * 镜像表是后台攒了几万行的东西，一条坏行毁掉整个页面完全不成比例。
      */
-    fun toIllust(row: BookmarkMirrorEntity): Illust? = runCatching {
-        Shaft.sGson.fromJson(row.payloadJson, Illust::class.java)
+    fun toIllust(row: BookmarkMirrorEntity): Illust? = deserialize(row, Illust::class.java)
+
+    /** 行 → [Novel]。容错策略同 [toIllust]。 */
+    fun toNovel(row: BookmarkMirrorEntity): Novel? = deserialize(row, Novel::class.java)
+
+    private fun <T> deserialize(row: BookmarkMirrorEntity, clazz: Class<T>): T? = runCatching {
+        Shaft.sGson.fromJson(row.payloadJson, clazz)
     }.onFailure {
         Timber.tag(TAG).w(it, "镜像行反序列化失败 shelf=%s id=%d", row.shelfKey, row.targetId)
     }.getOrNull()

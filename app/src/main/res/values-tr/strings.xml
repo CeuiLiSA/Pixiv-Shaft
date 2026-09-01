@@ -2913,6 +2913,8 @@
     <string name="bookmark_filter_section_ai">Yapay zekâ</string>
     <string name="bookmark_filter_section_pages">Sayfa sayısı</string>
     <string name="bookmark_filter_section_state">Durum</string>
+    <string name="bookmark_filter_section_length">Uzunluk</string>
+    <string name="bookmark_filter_length_min">%1$s+ karakter</string>
     <string name="bookmark_filter_section_popularity">Popülerlik</string>
     <string name="bookmark_filter_section_year">Yayın yılı</string>
     <string name="bookmark_filter_section_series">Seri</string>

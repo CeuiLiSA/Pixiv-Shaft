@@ -374,23 +374,35 @@ object TemplateRouteFactory {
         // 否则用户从库里点进去会被立刻重定向回来，两个页面互相踢皮球。
         TemplateRoute.MY_ILLUST_COLLECTION -> {
             val wantsClassic = intent.getBooleanExtra(ceui.lisa.utils.Params.FLAG, false)
-            if (!wantsClassic && isIllustBookmarkMirrorReady()) {
+            if (!wantsClassic && isBookmarkMirrorReady(ceui.pixiv.db.mirror.MirrorContentType.ILLUST)) {
                 ceui.pixiv.ui.library.BookmarkLibraryFragment.newInstance()
             } else {
                 FragmentCollection.newInstance(0)
             }
         }
-        TemplateRoute.MY_NOVEL_COLLECTION -> FragmentCollection.newInstance(1)
-        // 收藏库：默认看自己的公开插画收藏；将来接小说/悄悄收藏只是换 extra，页面不用改。
-        TemplateRoute.BOOKMARK_LIBRARY -> ceui.pixiv.ui.library.BookmarkLibraryFragment.newInstance(
-            starType = intent.getStringExtra(ceui.lisa.utils.Params.STAR_TYPE)
-                ?: ceui.lisa.utils.Params.TYPE_PUBLIC,
-            contentType = ceui.pixiv.db.mirror.MirrorContentType.of(
-                intent.getIntExtra(
-                    ceui.pixiv.ui.library.BookmarkLibraryFragment.ARG_CONTENT_TYPE, 0,
-                )
-            ) ?: ceui.pixiv.db.mirror.MirrorContentType.ILLUST,
-        )
+        // 小说收藏入口与插画侧同一条规则（理由见上面 MY_ILLUST_COLLECTION 的注释）。
+        TemplateRoute.MY_NOVEL_COLLECTION -> {
+            val wantsClassic = intent.getBooleanExtra(ceui.lisa.utils.Params.FLAG, false)
+            if (!wantsClassic && isBookmarkMirrorReady(ceui.pixiv.db.mirror.MirrorContentType.NOVEL)) {
+                ceui.pixiv.ui.library.NovelBookmarkLibraryFragment.newInstance()
+            } else {
+                FragmentCollection.newInstance(1)
+            }
+        }
+        // 收藏库：按 contentType 分流到插画版 / 小说版（两者页面接线共用 BookmarkLibraryUi，
+        // 只是列表基类和卡片不同）。restrict 决定落在公开还是悄悄那个书架上。
+        TemplateRoute.BOOKMARK_LIBRARY -> {
+            val starType = intent.getStringExtra(ceui.lisa.utils.Params.STAR_TYPE)
+                ?: ceui.lisa.utils.Params.TYPE_PUBLIC
+            val type = ceui.pixiv.db.mirror.MirrorContentType.of(
+                intent.getIntExtra(ceui.pixiv.ui.library.BookmarkLibraryUi.ARG_CONTENT_TYPE, 0)
+            ) ?: ceui.pixiv.db.mirror.MirrorContentType.ILLUST
+            if (type == ceui.pixiv.db.mirror.MirrorContentType.NOVEL) {
+                ceui.pixiv.ui.library.NovelBookmarkLibraryFragment.newInstance(starType = starType)
+            } else {
+                ceui.pixiv.ui.library.BookmarkLibraryFragment.newInstance(starType = starType)
+            }
+        }
         TemplateRoute.WATCHLIST -> FragmentCollection.newInstance(3)
         TemplateRoute.MY_FOLLOWING -> FragmentCollection.newInstance(2)
         TemplateRoute.NOVEL_MARKERS -> NovelMarkersFeedFragment()
@@ -522,19 +534,19 @@ object TemplateRouteFactory {
 }
 
 /**
- * 当前账号的「公开插画收藏」在本地镜像里是不是已经完整了。
+ * 当前账号在这个内容类型下的「公开收藏」在本地镜像里是不是已经完整了。
  *
  * 是一次主键点查（表里最多四行），够便宜到可以摆在导航路径上；任何异常都按「没就绪」处理，
- * 让入口回落到原始列表 —— 导航绝不能因为一个附加功能而崩。判据用**公开**书架，因为本地库
- * 页面看的就是它。
+ * 让入口回落到原始列表 —— 导航绝不能因为一个附加功能而崩。判据用**公开**书架：收藏库
+ * 默认落在它上面，悄悄收藏那半边进去以后可以就地切。
  */
-private fun isIllustBookmarkMirrorReady(): Boolean {
+private fun isBookmarkMirrorReady(contentType: ceui.pixiv.db.mirror.MirrorContentType): Boolean {
     val uid = ceui.pixiv.session.SessionManager.loggedInUid
     if (uid <= 0L) return false
     return ceui.lisa.activities.Shaft.getContext().appServices().bookmarkMirror.isShelfReady(
         ceui.pixiv.db.mirror.BookmarkShelf(
             ownerUid = uid,
-            contentType = ceui.pixiv.db.mirror.MirrorContentType.ILLUST,
+            contentType = contentType,
             restrict = ceui.pixiv.db.mirror.MirrorRestrict.PUBLIC,
         )
     )

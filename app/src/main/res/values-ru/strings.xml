@@ -2919,6 +2919,8 @@
     <string name="bookmark_filter_section_ai">Сгенерировано ИИ</string>
     <string name="bookmark_filter_section_pages">Страницы</string>
     <string name="bookmark_filter_section_state">Состояние</string>
+    <string name="bookmark_filter_section_length">Объём</string>
+    <string name="bookmark_filter_length_min">от %1$s знаков</string>
     <string name="bookmark_filter_section_popularity">Популярность</string>
     <string name="bookmark_filter_section_year">Год публикации</string>
     <string name="bookmark_filter_section_series">Серия</string>

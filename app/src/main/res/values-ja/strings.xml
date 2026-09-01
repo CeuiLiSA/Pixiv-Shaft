@@ -2910,6 +2910,8 @@
     <string name="bookmark_filter_section_ai">AI 生成</string>
     <string name="bookmark_filter_section_pages">ページ数</string>
     <string name="bookmark_filter_section_state">作品の状態</string>
+    <string name="bookmark_filter_section_length">文字数</string>
+    <string name="bookmark_filter_length_min">%1$s 文字以上</string>
     <string name="bookmark_filter_section_popularity">人気</string>
     <string name="bookmark_filter_section_year">投稿年</string>
     <string name="bookmark_filter_section_series">シリーズ</string>
