@@ -125,6 +125,26 @@
 
                 </RelativeLayout>
 
+                <!-- 收藏库本地镜像总开关。关掉后后台引擎立即停工（已镜像的数据保留，
+                     可以在收藏库页的「重建本地镜像」里自己处理）。 -->
+                <RelativeLayout
+                    android:id="@+id/bookmark_mirror_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/settings_bookmark_mirror" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/bookmark_mirror"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
                 <RelativeLayout
                     android:id="@+id/select_all_tag_rela"
                     style="@style/M3SetRow"

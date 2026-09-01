@@ -407,6 +407,11 @@ public class Settings {
     // 收藏夹过滤已失效作品（已删除/不可见），默认不过滤
     private boolean filterInvalidBookmarks = false;
 
+    // 收藏镜像总开关，默认开启。开启后，用户**打开过**的收藏页（插画/小说 × 公开/悄悄收藏）
+    // 会被后台以 5 秒一页的限速静默镜像进本地库，之后才能倒序/按标签/按作者/按年份筛选。
+    // 关闭后引擎立即停工（已镜像的数据保留，可在收藏页的本地库入口里手动清除）。
+    private boolean bookmarkMirrorEnabled = true;
+
     // 同义词词典功能总开关（issue #904），默认关闭。
     // 关闭时所有相关 UI（详情页匹配框/长按菜单项/管理页入口/自动导入/自动勾选）完全隐藏
     private boolean synonymDictEnabled = false;
@@ -1278,6 +1283,14 @@ public class Settings {
 
     public void setFilterInvalidBookmarks(boolean filterInvalidBookmarks) {
         this.filterInvalidBookmarks = filterInvalidBookmarks;
+    }
+
+    public boolean isBookmarkMirrorEnabled() {
+        return bookmarkMirrorEnabled;
+    }
+
+    public void setBookmarkMirrorEnabled(boolean bookmarkMirrorEnabled) {
+        this.bookmarkMirrorEnabled = bookmarkMirrorEnabled;
     }
 
     public boolean isSynonymDictEnabled() {

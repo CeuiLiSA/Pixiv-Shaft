@@ -97,6 +97,8 @@ enum class TemplateRoute(@JvmField val key: String) {
     PRIME_TAG_DETAIL("PrimeTagDetail"),
     MY_ILLUST_COLLECTION("我的插画收藏"),
     MY_NOVEL_COLLECTION("我的小说收藏"),
+    /** 收藏库：本地收藏镜像的浏览/筛选页（倒序、按标签/作者/年份筛、全文搜、随机漫游）。 */
+    BOOKMARK_LIBRARY("收藏库"),
     WATCHLIST("追更列表"),
     MY_FOLLOWING("我的关注"),
     NOVEL_MARKERS("小说书签"),

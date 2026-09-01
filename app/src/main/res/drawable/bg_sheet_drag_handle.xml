@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- sheet 顶部的拖拽把手。自绘而不是用 BottomSheetDragHandleView：那是 Material3 组件，
+     用它就得给 sheet 根套一个完整的 M3 theme，而那会把 app 自己的 colorPrimary 一并换掉
+     （见 sheet_bookmark_filter.xml 顶部注释）。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/v3_border_2" />
+    <corners android:radius="2dp" />
+</shape>

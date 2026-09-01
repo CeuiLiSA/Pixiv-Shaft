@@ -1,0 +1,1902 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 42,
+    "identityHash": "487b496bf790e38bf5be33fc6689d8c5",
+    "entities": [
+      {
+        "tableName": "illust_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`illustID` INTEGER NOT NULL, `illustJson` TEXT, `time` INTEGER NOT NULL, `type` INTEGER NOT NULL, PRIMARY KEY(`illustID`))",
+        "fields": [
+          {
+            "fieldPath": "illustID",
+            "columnName": "illustID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "illustJson",
+            "columnName": "illustJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "time",
+            "columnName": "time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "illustID"
+          ]
+        }
+      },
+      {
+        "tableName": "illust_download_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`fileName` TEXT NOT NULL, `filePath` TEXT, `taskGson` TEXT, `illustGson` TEXT, `downloadTime` INTEGER NOT NULL, `illustId` INTEGER NOT NULL DEFAULT 0, `page` INTEGER NOT NULL DEFAULT -1, PRIMARY KEY(`fileName`))",
+        "fields": [
+          {
+            "fieldPath": "fileName",
+            "columnName": "fileName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filePath",
+            "columnName": "filePath",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "taskGson",
+            "columnName": "taskGson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "illustGson",
+            "columnName": "illustGson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "downloadTime",
+            "columnName": "downloadTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "illustId",
+            "columnName": "illustId",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "page",
+            "columnName": "page",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "-1"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "fileName"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_illust_download_table_illustId",
+            "unique": false,
+            "columnNames": [
+              "illustId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_illust_download_table_illustId` ON `${TABLE_NAME}` (`illustId`)"
+          },
+          {
+            "name": "index_illust_download_table_illustId_page",
+            "unique": false,
+            "columnNames": [
+              "illustId",
+              "page"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_illust_download_table_illustId_page` ON `${TABLE_NAME}` (`illustId`, `page`)"
+          }
+        ]
+      },
+      {
+        "tableName": "user_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userID` INTEGER NOT NULL, `userGson` TEXT, `loginTime` INTEGER NOT NULL, PRIMARY KEY(`userID`))",
+        "fields": [
+          {
+            "fieldPath": "userID",
+            "columnName": "userID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userGson",
+            "columnName": "userGson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "loginTime",
+            "columnName": "loginTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "userID"
+          ]
+        }
+      },
+      {
+        "tableName": "search_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `keyword` TEXT, `searchTime` INTEGER NOT NULL, `searchType` INTEGER NOT NULL, `pinned` INTEGER NOT NULL, `previewIllustsJson` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "keyword",
+            "columnName": "keyword",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "searchTime",
+            "columnName": "searchTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "searchType",
+            "columnName": "searchType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pinned",
+            "columnName": "pinned",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "previewIllustsJson",
+            "columnName": "previewIllustsJson",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "upload_image_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `fileName` TEXT, `filePath` TEXT, `uploadTime` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fileName",
+            "columnName": "fileName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "filePath",
+            "columnName": "filePath",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "uploadTime",
+            "columnName": "uploadTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "tag_mute_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `tagJson` TEXT, `searchTime` INTEGER NOT NULL, `type` INTEGER NOT NULL, PRIMARY KEY(`id`, `type`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tagJson",
+            "columnName": "tagJson",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "searchTime",
+            "columnName": "searchTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id",
+            "type"
+          ]
+        }
+      },
+      {
+        "tableName": "uuid_list_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` TEXT NOT NULL, `listJson` TEXT, PRIMARY KEY(`uuid`))",
+        "fields": [
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "listJson",
+            "columnName": "listJson",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uuid"
+          ]
+        }
+      },
+      {
+        "tableName": "feature_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` TEXT NOT NULL, `dateTime` INTEGER NOT NULL, `starType` TEXT NOT NULL, `userID` INTEGER NOT NULL, `illustID` INTEGER NOT NULL, `illustTitle` TEXT NOT NULL, `isShowToolbar` INTEGER NOT NULL, `name` TEXT NOT NULL, `dataType` TEXT NOT NULL, `illustJson` TEXT NOT NULL, `seriesId` INTEGER NOT NULL, PRIMARY KEY(`uuid`))",
+        "fields": [
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateTime",
+            "columnName": "dateTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "starType",
+            "columnName": "starType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userID",
+            "columnName": "userID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "illustID",
+            "columnName": "illustID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "illustTitle",
+            "columnName": "illustTitle",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isShowToolbar",
+            "columnName": "isShowToolbar",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dataType",
+            "columnName": "dataType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "illustJson",
+            "columnName": "illustJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "seriesId",
+            "columnName": "seriesId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uuid"
+          ]
+        }
+      },
+      {
+        "tableName": "illust_downloading_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`fileName` TEXT NOT NULL, `uuid` TEXT, `taskGson` TEXT, PRIMARY KEY(`fileName`))",
+        "fields": [
+          {
+            "fieldPath": "fileName",
+            "columnName": "fileName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "taskGson",
+            "columnName": "taskGson",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "fileName"
+          ]
+        }
+      },
+      {
+        "tableName": "general_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `json` TEXT NOT NULL, `entityType` INTEGER NOT NULL, `recordType` INTEGER NOT NULL, `updatedTime` INTEGER NOT NULL, PRIMARY KEY(`id`, `recordType`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "json",
+            "columnName": "json",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "entityType",
+            "columnName": "entityType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordType",
+            "columnName": "recordType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedTime",
+            "columnName": "updatedTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id",
+            "recordType"
+          ]
+        }
+      },
+      {
+        "tableName": "remote_keys",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`recordType` INTEGER NOT NULL, `nextPageUrl` TEXT, `lastUpdatedTime` INTEGER NOT NULL, PRIMARY KEY(`recordType`))",
+        "fields": [
+          {
+            "fieldPath": "recordType",
+            "columnName": "recordType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextPageUrl",
+            "columnName": "nextPageUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "lastUpdatedTime",
+            "columnName": "lastUpdatedTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "recordType"
+          ]
+        }
+      },
+      {
+        "tableName": "discovery_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`illustId` INTEGER NOT NULL, `illustJson` TEXT NOT NULL, `score` REAL NOT NULL, `source` TEXT NOT NULL, `collectedTime` INTEGER NOT NULL, `shown` INTEGER NOT NULL, `authorId` INTEGER NOT NULL, PRIMARY KEY(`illustId`))",
+        "fields": [
+          {
+            "fieldPath": "illustId",
+            "columnName": "illustId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "illustJson",
+            "columnName": "illustJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "score",
+            "columnName": "score",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "collectedTime",
+            "columnName": "collectedTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "shown",
+            "columnName": "shown",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "authorId",
+            "columnName": "authorId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "illustId"
+          ]
+        }
+      },
+      {
+        "tableName": "novel_bookmark_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`bookmarkId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `novelId` INTEGER NOT NULL, `charIndex` INTEGER NOT NULL, `pageIndex` INTEGER NOT NULL, `preview` TEXT NOT NULL, `note` TEXT NOT NULL, `createdTime` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "bookmarkId",
+            "columnName": "bookmarkId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "novelId",
+            "columnName": "novelId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "charIndex",
+            "columnName": "charIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pageIndex",
+            "columnName": "pageIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "preview",
+            "columnName": "preview",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdTime",
+            "columnName": "createdTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "bookmarkId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_novel_bookmark_table_novelId",
+            "unique": false,
+            "columnNames": [
+              "novelId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_novel_bookmark_table_novelId` ON `${TABLE_NAME}` (`novelId`)"
+          },
+          {
+            "name": "index_novel_bookmark_table_createdTime",
+            "unique": false,
+            "columnNames": [
+              "createdTime"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_novel_bookmark_table_createdTime` ON `${TABLE_NAME}` (`createdTime`)"
+          }
+        ]
+      },
+      {
+        "tableName": "novel_annotation_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`annotationId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `novelId` INTEGER NOT NULL, `charStart` INTEGER NOT NULL, `charEnd` INTEGER NOT NULL, `excerpt` TEXT NOT NULL, `note` TEXT NOT NULL, `color` INTEGER NOT NULL, `kind` INTEGER NOT NULL, `createdTime` INTEGER NOT NULL, `updatedTime` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "annotationId",
+            "columnName": "annotationId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "novelId",
+            "columnName": "novelId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "charStart",
+            "columnName": "charStart",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "charEnd",
+            "columnName": "charEnd",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "excerpt",
+            "columnName": "excerpt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "color",
+            "columnName": "color",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdTime",
+            "columnName": "createdTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedTime",
+            "columnName": "updatedTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "annotationId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_novel_annotation_table_novelId",
+            "unique": false,
+            "columnNames": [
+              "novelId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_novel_annotation_table_novelId` ON `${TABLE_NAME}` (`novelId`)"
+          },
+          {
+            "name": "index_novel_annotation_table_novelId_charStart",
+            "unique": false,
+            "columnNames": [
+              "novelId",
+              "charStart"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_novel_annotation_table_novelId_charStart` ON `${TABLE_NAME}` (`novelId`, `charStart`)"
+          }
+        ]
+      },
+      {
+        "tableName": "novel_reading_stats_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`novelId` INTEGER NOT NULL, `lastCharIndex` INTEGER NOT NULL, `lastPageIndex` INTEGER NOT NULL, `totalPageCount` INTEGER NOT NULL, `lastReadTime` INTEGER NOT NULL, `firstReadTime` INTEGER NOT NULL, `openCount` INTEGER NOT NULL, `totalDurationMs` INTEGER NOT NULL, `totalFlips` INTEGER NOT NULL, `totalCharsRead` INTEGER NOT NULL, `completed` INTEGER NOT NULL, PRIMARY KEY(`novelId`))",
+        "fields": [
+          {
+            "fieldPath": "novelId",
+            "columnName": "novelId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastCharIndex",
+            "columnName": "lastCharIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastPageIndex",
+            "columnName": "lastPageIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalPageCount",
+            "columnName": "totalPageCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastReadTime",
+            "columnName": "lastReadTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstReadTime",
+            "columnName": "firstReadTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "openCount",
+            "columnName": "openCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalDurationMs",
+            "columnName": "totalDurationMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalFlips",
+            "columnName": "totalFlips",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalCharsRead",
+            "columnName": "totalCharsRead",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completed",
+            "columnName": "completed",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "novelId"
+          ]
+        }
+      },
+      {
+        "tableName": "novel_daily_reading_stats_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dayEpoch` INTEGER NOT NULL, `durationMs` INTEGER NOT NULL, `charsRead` INTEGER NOT NULL, `flipCount` INTEGER NOT NULL, `novelsTouched` INTEGER NOT NULL, PRIMARY KEY(`dayEpoch`))",
+        "fields": [
+          {
+            "fieldPath": "dayEpoch",
+            "columnName": "dayEpoch",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "durationMs",
+            "columnName": "durationMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "charsRead",
+            "columnName": "charsRead",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "flipCount",
+            "columnName": "flipCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "novelsTouched",
+            "columnName": "novelsTouched",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "dayEpoch"
+          ]
+        }
+      },
+      {
+        "tableName": "novel_custom_theme_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`themeId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `backgroundColor` INTEGER NOT NULL, `textColor` INTEGER NOT NULL, `secondaryTextColor` INTEGER NOT NULL, `accentColor` INTEGER NOT NULL, `linkColor` INTEGER NOT NULL, `selectionColor` INTEGER NOT NULL, `highlightColor` INTEGER NOT NULL, `dividerColor` INTEGER NOT NULL, `chapterTitleColor` INTEGER NOT NULL, `isDark` INTEGER NOT NULL, `backgroundImagePath` TEXT, `createdTime` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "themeId",
+            "columnName": "themeId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "backgroundColor",
+            "columnName": "backgroundColor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "textColor",
+            "columnName": "textColor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "secondaryTextColor",
+            "columnName": "secondaryTextColor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "accentColor",
+            "columnName": "accentColor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "linkColor",
+            "columnName": "linkColor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "selectionColor",
+            "columnName": "selectionColor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "highlightColor",
+            "columnName": "highlightColor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dividerColor",
+            "columnName": "dividerColor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chapterTitleColor",
+            "columnName": "chapterTitleColor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isDark",
+            "columnName": "isDark",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "backgroundImagePath",
+            "columnName": "backgroundImagePath",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdTime",
+            "columnName": "createdTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "themeId"
+          ]
+        }
+      },
+      {
+        "tableName": "novel_custom_font_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`fontId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `displayName` TEXT NOT NULL, `relativePath` TEXT NOT NULL, `originalUri` TEXT NOT NULL, `byteSize` INTEGER NOT NULL, `installedTime` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "fontId",
+            "columnName": "fontId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "displayName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "relativePath",
+            "columnName": "relativePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "originalUri",
+            "columnName": "originalUri",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "byteSize",
+            "columnName": "byteSize",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "installedTime",
+            "columnName": "installedTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "fontId"
+          ]
+        }
+      },
+      {
+        "tableName": "comic_bookmark_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`bookmarkId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `illustId` INTEGER NOT NULL, `pageIndex` INTEGER NOT NULL, `totalPages` INTEGER NOT NULL, `preview_url` TEXT NOT NULL, `note` TEXT NOT NULL, `createdTime` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "bookmarkId",
+            "columnName": "bookmarkId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "illustId",
+            "columnName": "illustId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pageIndex",
+            "columnName": "pageIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalPages",
+            "columnName": "totalPages",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "previewUrl",
+            "columnName": "preview_url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdTime",
+            "columnName": "createdTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "bookmarkId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_comic_bookmark_table_illustId",
+            "unique": false,
+            "columnNames": [
+              "illustId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_comic_bookmark_table_illustId` ON `${TABLE_NAME}` (`illustId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "comic_reading_stats_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`illustId` INTEGER NOT NULL, `lastPageIndex` INTEGER NOT NULL, `totalPageCount` INTEGER NOT NULL, `lastReadTime` INTEGER NOT NULL, `firstReadTime` INTEGER NOT NULL, `openCount` INTEGER NOT NULL, `totalDurationMs` INTEGER NOT NULL, `totalFlips` INTEGER NOT NULL, `completed` INTEGER NOT NULL, PRIMARY KEY(`illustId`))",
+        "fields": [
+          {
+            "fieldPath": "illustId",
+            "columnName": "illustId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastPageIndex",
+            "columnName": "lastPageIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalPageCount",
+            "columnName": "totalPageCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastReadTime",
+            "columnName": "lastReadTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstReadTime",
+            "columnName": "firstReadTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "openCount",
+            "columnName": "openCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalDurationMs",
+            "columnName": "totalDurationMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalFlips",
+            "columnName": "totalFlips",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completed",
+            "columnName": "completed",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "illustId"
+          ]
+        }
+      },
+      {
+        "tableName": "download_queue",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `illustId` INTEGER NOT NULL, `type` TEXT NOT NULL, `seq` INTEGER NOT NULL, `sourceTag` TEXT NOT NULL, `status` TEXT NOT NULL, `errorMsg` TEXT, `retryCount` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL, `finishedAt` INTEGER, `illustGson` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "illustId",
+            "columnName": "illustId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "seq",
+            "columnName": "seq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sourceTag",
+            "columnName": "sourceTag",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "errorMsg",
+            "columnName": "errorMsg",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "retryCount",
+            "columnName": "retryCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "finishedAt",
+            "columnName": "finishedAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "illustGson",
+            "columnName": "illustGson",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_download_queue_status",
+            "unique": false,
+            "columnNames": [
+              "status"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_download_queue_status` ON `${TABLE_NAME}` (`status`)"
+          },
+          {
+            "name": "index_download_queue_seq",
+            "unique": false,
+            "columnNames": [
+              "seq"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_download_queue_seq` ON `${TABLE_NAME}` (`seq`)"
+          },
+          {
+            "name": "index_download_queue_illustId",
+            "unique": false,
+            "columnNames": [
+              "illustId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_download_queue_illustId` ON `${TABLE_NAME}` (`illustId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "synonym_target_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `lastUsedAt` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastUsedAt",
+            "columnName": "lastUsedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_synonym_target_table_name",
+            "unique": true,
+            "columnNames": [
+              "name"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_synonym_target_table_name` ON `${TABLE_NAME}` (`name`)"
+          }
+        ]
+      },
+      {
+        "tableName": "synonym_tag_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `targetId` INTEGER NOT NULL, `name` TEXT NOT NULL, `remark` TEXT, `createdAt` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetId",
+            "columnName": "targetId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remark",
+            "columnName": "remark",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_synonym_tag_table_targetId",
+            "unique": false,
+            "columnNames": [
+              "targetId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_synonym_tag_table_targetId` ON `${TABLE_NAME}` (`targetId`)"
+          },
+          {
+            "name": "index_synonym_tag_table_name",
+            "unique": false,
+            "columnNames": [
+              "name"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_synonym_tag_table_name` ON `${TABLE_NAME}` (`name`)"
+          }
+        ]
+      },
+      {
+        "tableName": "feed_cache_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`cacheKey` TEXT NOT NULL, `schemaVersion` INTEGER NOT NULL, `payloadJson` TEXT NOT NULL, `nextCursor` TEXT, `savedAt` INTEGER NOT NULL, PRIMARY KEY(`cacheKey`))",
+        "fields": [
+          {
+            "fieldPath": "cacheKey",
+            "columnName": "cacheKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "schemaVersion",
+            "columnName": "schemaVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payloadJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextCursor",
+            "columnName": "nextCursor",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "savedAt",
+            "columnName": "savedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "cacheKey"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_feed_cache_table_savedAt",
+            "unique": false,
+            "columnNames": [
+              "savedAt"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_feed_cache_table_savedAt` ON `${TABLE_NAME}` (`savedAt`)"
+          }
+        ]
+      },
+      {
+        "tableName": "bookmark_mirror_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`shelfKey` TEXT NOT NULL, `targetId` INTEGER NOT NULL, `ownerUid` INTEGER NOT NULL, `contentType` INTEGER NOT NULL, `restrictCode` INTEGER NOT NULL, `bookmarkSeq` INTEGER NOT NULL, `payloadJson` TEXT NOT NULL, `title` TEXT NOT NULL, `authorId` INTEGER NOT NULL, `authorName` TEXT NOT NULL, `workType` TEXT NOT NULL, `pageCount` INTEGER NOT NULL, `width` INTEGER NOT NULL, `height` INTEGER NOT NULL, `aspectRatio` REAL NOT NULL, `orientation` INTEGER NOT NULL, `totalBookmarks` INTEGER NOT NULL, `totalView` INTEGER NOT NULL, `textLength` INTEGER NOT NULL, `createDateMs` INTEGER NOT NULL, `aiType` INTEGER NOT NULL, `xRestrict` INTEGER NOT NULL, `sanityLevel` INTEGER NOT NULL, `isVisible` INTEGER NOT NULL, `isMuted` INTEGER NOT NULL, `seriesId` INTEGER NOT NULL, `tagCount` INTEGER NOT NULL, `searchText` TEXT NOT NULL, `syncedAt` INTEGER NOT NULL, `generation` INTEGER NOT NULL, PRIMARY KEY(`shelfKey`, `targetId`))",
+        "fields": [
+          {
+            "fieldPath": "shelfKey",
+            "columnName": "shelfKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetId",
+            "columnName": "targetId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerUid",
+            "columnName": "ownerUid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentType",
+            "columnName": "contentType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restrictCode",
+            "columnName": "restrictCode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bookmarkSeq",
+            "columnName": "bookmarkSeq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payloadJson",
+            "columnName": "payloadJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "authorId",
+            "columnName": "authorId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "authorName",
+            "columnName": "authorName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "workType",
+            "columnName": "workType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pageCount",
+            "columnName": "pageCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "width",
+            "columnName": "width",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "height",
+            "columnName": "height",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "aspectRatio",
+            "columnName": "aspectRatio",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "orientation",
+            "columnName": "orientation",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalBookmarks",
+            "columnName": "totalBookmarks",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "totalView",
+            "columnName": "totalView",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "textLength",
+            "columnName": "textLength",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createDateMs",
+            "columnName": "createDateMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "aiType",
+            "columnName": "aiType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "xRestrict",
+            "columnName": "xRestrict",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sanityLevel",
+            "columnName": "sanityLevel",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isVisible",
+            "columnName": "isVisible",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isMuted",
+            "columnName": "isMuted",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "seriesId",
+            "columnName": "seriesId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tagCount",
+            "columnName": "tagCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "searchText",
+            "columnName": "searchText",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "syncedAt",
+            "columnName": "syncedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "generation",
+            "columnName": "generation",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "shelfKey",
+            "targetId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_bookmarkSeq",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "bookmarkSeq"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_bookmarkSeq` ON `${TABLE_NAME}` (`shelfKey`, `bookmarkSeq`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_createDateMs",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "createDateMs"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_createDateMs` ON `${TABLE_NAME}` (`shelfKey`, `createDateMs`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_totalBookmarks",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "totalBookmarks"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_totalBookmarks` ON `${TABLE_NAME}` (`shelfKey`, `totalBookmarks`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_totalView",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "totalView"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_totalView` ON `${TABLE_NAME}` (`shelfKey`, `totalView`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_textLength",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "textLength"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_textLength` ON `${TABLE_NAME}` (`shelfKey`, `textLength`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_title",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "title"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_title` ON `${TABLE_NAME}` (`shelfKey`, `title`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_authorId_bookmarkSeq",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "authorId",
+              "bookmarkSeq"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_authorId_bookmarkSeq` ON `${TABLE_NAME}` (`shelfKey`, `authorId`, `bookmarkSeq`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_seriesId",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "seriesId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_seriesId` ON `${TABLE_NAME}` (`shelfKey`, `seriesId`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_workType_bookmarkSeq",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "workType",
+              "bookmarkSeq"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_workType_bookmarkSeq` ON `${TABLE_NAME}` (`shelfKey`, `workType`, `bookmarkSeq`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_xRestrict_bookmarkSeq",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "xRestrict",
+              "bookmarkSeq"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_xRestrict_bookmarkSeq` ON `${TABLE_NAME}` (`shelfKey`, `xRestrict`, `bookmarkSeq`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_aiType_bookmarkSeq",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "aiType",
+              "bookmarkSeq"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_aiType_bookmarkSeq` ON `${TABLE_NAME}` (`shelfKey`, `aiType`, `bookmarkSeq`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_pageCount_bookmarkSeq",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "pageCount",
+              "bookmarkSeq"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_pageCount_bookmarkSeq` ON `${TABLE_NAME}` (`shelfKey`, `pageCount`, `bookmarkSeq`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_orientation_bookmarkSeq",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "orientation",
+              "bookmarkSeq"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_orientation_bookmarkSeq` ON `${TABLE_NAME}` (`shelfKey`, `orientation`, `bookmarkSeq`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_shelfKey_generation",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "generation"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_shelfKey_generation` ON `${TABLE_NAME}` (`shelfKey`, `generation`)"
+          },
+          {
+            "name": "index_bookmark_mirror_table_targetId",
+            "unique": false,
+            "columnNames": [
+              "targetId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_table_targetId` ON `${TABLE_NAME}` (`targetId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "bookmark_mirror_tag_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`shelfKey` TEXT NOT NULL, `targetId` INTEGER NOT NULL, `tagName` TEXT NOT NULL, `displayName` TEXT NOT NULL, `translatedName` TEXT NOT NULL, PRIMARY KEY(`shelfKey`, `targetId`, `tagName`))",
+        "fields": [
+          {
+            "fieldPath": "shelfKey",
+            "columnName": "shelfKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetId",
+            "columnName": "targetId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tagName",
+            "columnName": "tagName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "displayName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "translatedName",
+            "columnName": "translatedName",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "shelfKey",
+            "targetId",
+            "tagName"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_bookmark_mirror_tag_table_shelfKey_tagName",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "tagName"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_tag_table_shelfKey_tagName` ON `${TABLE_NAME}` (`shelfKey`, `tagName`)"
+          },
+          {
+            "name": "index_bookmark_mirror_tag_table_shelfKey_targetId",
+            "unique": false,
+            "columnNames": [
+              "shelfKey",
+              "targetId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_tag_table_shelfKey_targetId` ON `${TABLE_NAME}` (`shelfKey`, `targetId`)"
+          },
+          {
+            "name": "index_bookmark_mirror_tag_table_targetId",
+            "unique": false,
+            "columnNames": [
+              "targetId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_bookmark_mirror_tag_table_targetId` ON `${TABLE_NAME}` (`targetId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "bookmark_mirror_state_table",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`shelfKey` TEXT NOT NULL, `ownerUid` INTEGER NOT NULL, `contentType` INTEGER NOT NULL, `restrictCode` INTEGER NOT NULL, `phase` INTEGER NOT NULL, `nextUrl` TEXT, `generation` INTEGER NOT NULL, `nextBackfillSeq` INTEGER NOT NULL, `headSeqCursor` INTEGER NOT NULL, `headBlockCeiling` INTEGER NOT NULL, `pagesThisRun` INTEGER NOT NULL, `itemsThisRun` INTEGER NOT NULL, `firstCompletedAt` INTEGER NOT NULL, `lastSyncedAt` INTEGER NOT NULL, `lastFullSweepAt` INTEGER NOT NULL, `lastErrorAt` INTEGER NOT NULL, `lastError` TEXT, `consecutiveFailures` INTEGER NOT NULL, `cooldownUntil` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`shelfKey`))",
+        "fields": [
+          {
+            "fieldPath": "shelfKey",
+            "columnName": "shelfKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerUid",
+            "columnName": "ownerUid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contentType",
+            "columnName": "contentType",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "restrictCode",
+            "columnName": "restrictCode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "phase",
+            "columnName": "phase",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextUrl",
+            "columnName": "nextUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "generation",
+            "columnName": "generation",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextBackfillSeq",
+            "columnName": "nextBackfillSeq",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "headSeqCursor",
+            "columnName": "headSeqCursor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "headBlockCeiling",
+            "columnName": "headBlockCeiling",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pagesThisRun",
+            "columnName": "pagesThisRun",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "itemsThisRun",
+            "columnName": "itemsThisRun",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "firstCompletedAt",
+            "columnName": "firstCompletedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSyncedAt",
+            "columnName": "lastSyncedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastFullSweepAt",
+            "columnName": "lastFullSweepAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastErrorAt",
+            "columnName": "lastErrorAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastError",
+            "columnName": "lastError",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "consecutiveFailures",
+            "columnName": "consecutiveFailures",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cooldownUntil",
+            "columnName": "cooldownUntil",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updatedAt",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "shelfKey"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '487b496bf790e38bf5be33fc6689d8c5')"
+    ]
+  }
+}

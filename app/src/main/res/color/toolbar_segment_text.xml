@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  配合 bg_toolbar_segment_option：选中段是**纯白胶囊**（不随主题/日夜变），所以字色也必须是
+  固定的深色 —— 用 v3_text_1 这类跟随日夜的色，夜间会变成白字压白底。未选段直接压在主题色
+  toolbar 上，用白字（与全 app toolbar 的 titleTextColor 一致）。
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="#1F1F1F" android:state_selected="true" />
+    <item android:color="@android:color/white" />
+</selector>

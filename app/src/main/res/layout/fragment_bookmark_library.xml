@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  收藏库（本地镜像浏览页）。承载于 TemplateActivity「收藏库」。
+
+  V3 / MD3-E：
+  - Toolbar 走 feeds 独立页那套 5 件套（AppBarOverlay + popupTheme + navigationIcon +
+    titleTextColor + 居中标题），状态栏 inset 由代码 padding，不用 fitsSystemWindows；
+  - 搜索是 20dp 大圆角玻璃面（bg_v3_surface），筛选是 14dp 胶囊 chip 行（bg_bookmark_chip），
+    选中用主题色实底表达 —— Expressive 的形状语汇：更大的圆角、更松的留白、用形状说话；
+  - 颜色全走 v3_*（自带 values-night），10 套主题色靠 ?attr/colorPrimary 跟随。
+
+  ⚠️ 本布局被 AppCompat 宿主（TemplateActivity）加载，**不能用 Material3 组件**
+  （缺 M3 attrs 会崩，见 fragment_feed.xml 里同款注释）。所以 chip 是 TextView + shape drawable，
+  进度条是原生 ProgressBar。真正需要 M3 的地方（筛选 sheet）自带 Theme.Material3 覆盖。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:elevation="@dimen/six_dp"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:title=" "
+        app:titleTextColor="@android:color/white">
+
+        <!--
+          toolbar 里只放这一个东西：公开 / 悄悄收藏的切换。
+
+          刻意**不再单独摆一行标题**：用户是从「我的插画收藏」点进来的，再把同一句话当标题
+          写一遍、下面又跟一行说明当前是哪个书架，等于同一件事说三遍。分段控件本身就把
+          「这是收藏页 / 现在在看哪一半 / 另一半在哪」三件事一次说清了。
+
+          MD3-E connected segmented button：半透明白轨道 + 纯白实底选中段。压在主题色 toolbar
+          上，10 套主题色都读得出（配色理由见两个 drawable 的注释）。
+        -->
+        <LinearLayout
+            android:id="@+id/shelf_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_toolbar_segment_track"
+            android:orientation="horizontal"
+            android:padding="3dp">
+
+            <TextView
+                android:id="@+id/shelf_public"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_toolbar_segment_option"
+                android:gravity="center"
+                android:minWidth="104dp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="7dp"
+                android:text="@string/public_like_illust"
+                android:textColor="@color/toolbar_segment_text"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/shelf_private"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_toolbar_segment_option"
+                android:gravity="center"
+                android:minWidth="104dp"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="7dp"
+                android:text="@string/private_like_illust"
+                android:textColor="@color/toolbar_segment_text"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <!--
+      后台镜像进度。**只在还没补齐时出现**：补齐之后它永远消失，不再占一行
+      （这是「同步完成过一次，以后只维护」在界面上的表达）。
+    -->
+    <LinearLayout
+        android:id="@+id/sync_banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_v3_surface"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="11dp"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ProgressBar
+            android:id="@+id/sync_spinner"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="10dp" />
+
+        <TextView
+            android:id="@+id/sync_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/v3_text_2"
+            android:textSize="12sp"
+            tools:text="正在后台补齐收藏镜像 · 已 1,860 件" />
+    </LinearLayout>
+
+    <!-- 搜索：标题 / 作者 / 标签（含译名）逐词 AND -->
+    <EditText
+        android:id="@+id/search_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_v3_surface"
+        android:drawableStart="@drawable/ic_search_black_24dp"
+        android:drawablePadding="10dp"
+        android:drawableTint="@color/v3_text_3"
+        android:hint="@string/bookmark_library_search_hint"
+        android:imeOptions="actionSearch"
+        android:inputType="text"
+        android:maxLines="1"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="13dp"
+        android:textColor="@color/v3_text_1"
+        android:textColorHint="@color/v3_text_3"
+        android:textSize="14sp"
+        tools:ignore="Autofill" />
+
+    <!--
+      筛选 chip 行。横滑而不是折行：条件多了也只占一行高度，且「往右还有更多」这件事
+      靠露出半个 chip 自己就说清楚了。clipToPadding=false 让首尾 chip 能滑到边缘外。
+    -->
+    <HorizontalScrollView
+        android:id="@+id/chip_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="16dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/chip_row"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
+    <include
+        android:id="@+id/feed_root"
+        layout="@layout/fragment_feed"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1" />
+</LinearLayout>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  开在**彩色 toolbar 上**的分段控件轨道。
+  不能复用 bg_reader_segment_track：那个是 v3_surface_2（一层很淡的黑），压在主题色上
+  只会变成"稍微深一点的同色"，读不出是个控件。这里用半透明白，在 10 套主题色上表现一致。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#33FFFFFF" />
+    <corners android:radius="17dp" />
+</shape>

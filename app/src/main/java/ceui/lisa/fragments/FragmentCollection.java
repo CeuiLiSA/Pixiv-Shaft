@@ -219,18 +219,28 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
     }
 
     /**
-     * ⋯ 点开后的二级菜单。当前只有"下载全部作品"一项；以后可加导出 / 离线缓存等
-     * 同类批量操作，集中收口在这个 dialog 里，避免 toolbar 上挂一堆图标。
+     * ⋯ 点开后的二级菜单。集中收口同类操作，避免 toolbar 上挂一堆图标。
+     *
+     * 「按条件浏览收藏」排第一：它是本页唯一能做倒序 / 按标签 / 按作者 / 按年份筛的入口
+     * （pixiv 的收藏接口只能从新到旧顺着翻，见 BookmarkMirrorEntity 的类注释），
+     * 也是用户最常真正需要的那件事。带上当前 tab 的 restrict —— 公开收藏和悄悄收藏
+     * 在本地是两个独立书架，进错了就是空的。
      */
     private void showMoreActionsDialog(String restrict) {
         if (mActivity == null || mActivity.isFinishing()) return;
         String[] items = new String[]{
+                getString(R.string.bookmark_library_menu_entry),
                 getString(R.string.bulk_collection_menu_download_all)
         };
         new WitDialog.MenuDialogBuilder(mActivity)
                 .addItems(items, (dialog, which) -> {
                     dialog.dismiss();
                     if (which == 0) {
+                        Intent intent = new Intent(mContext, TemplateActivity.class);
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.BOOKMARK_LIBRARY.key);
+                        intent.putExtra(Params.STAR_TYPE, restrict);
+                        startActivity(intent);
+                    } else if (which == 1) {
                         long uid = SessionManager.INSTANCE.getLoggedInUid();
                         String restrictLabel = getString(restrict.equals(Params.TYPE_PUBLIC)
                                 ? R.string.public_like_illust

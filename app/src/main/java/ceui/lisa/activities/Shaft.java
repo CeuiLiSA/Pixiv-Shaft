@@ -68,6 +68,7 @@ public class Shaft extends Application implements ServicesProvider {
     private ceui.pixiv.actions.Nana7miSearchTelemetry nana7miSearchTelemetry;
     private ceui.pixiv.config.RemoteAppConfig remoteAppConfig;
     private ceui.pixiv.events.EventReporter eventReporter;
+    private ceui.pixiv.db.mirror.BookmarkMirrorService bookmarkMirror;
 
     private EntityWrapper entityWrapper;
 
@@ -340,6 +341,7 @@ public class Shaft extends Application implements ServicesProvider {
         nana7miSearchTelemetry = new ceui.pixiv.actions.Nana7miSearchTelemetry(this);
         remoteAppConfig = new ceui.pixiv.config.RemoteAppConfig(this);
         eventReporter = new ceui.pixiv.events.EventReporter(this);
+        bookmarkMirror = new ceui.pixiv.db.mirror.BookmarkMirrorService(this);
 
         SessionManager.INSTANCE.initialize();
 
@@ -615,6 +617,13 @@ public class Shaft extends Application implements ServicesProvider {
         // 动态快捷方式：getDynamicShortcuts 是一次 binder IPC，O+ 还要现画一张
         // adaptive icon 位图。只有用户长按启动图标才看得到，没有任何理由抢首帧。
         step("ShortcutHelper", ShortcutHelper::addAppShortcuts);
+
+        // 收藏镜像引擎。启动只是把限速循环挂起来等信号：**没有任何一个书架被注册过的设备，
+        // 它一个请求都不会发**（书架只在用户真的打开某个收藏页时才注册，见
+        // BookmarkMirrorService.ensureShelf）。已注册的书架会从上次落盘的断点续上，
+        // 每 5 秒一页，静默地把没拉完的部分拉完。
+        // 安全顺序：必须在 SessionManager.initialize 之后（要读登录 uid）。
+        step("BookmarkMirror", bookmarkMirror::start);
 
         // 初始化发现池 + 异步构建用户画像
         step("DiscoveryPool", () -> {
@@ -905,6 +914,11 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public @NotNull ceui.pixiv.db.discovery.DiscoveryPool getDiscoveryPool() {
         return discoveryPool;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.db.mirror.BookmarkMirrorService getBookmarkMirror() {
+        return bookmarkMirror;
     }
 
     @Override

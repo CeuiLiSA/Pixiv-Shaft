@@ -130,6 +130,7 @@ class TemplateRouteTest {
             "PRIME_TAG_DETAIL" to "PrimeTagDetail",
             "MY_ILLUST_COLLECTION" to "我的插画收藏",
             "MY_NOVEL_COLLECTION" to "我的小说收藏",
+            "BOOKMARK_LIBRARY" to "收藏库",
             "WATCHLIST" to "追更列表",
             "MY_FOLLOWING" to "我的关注",
             "NOVEL_MARKERS" to "小说书签",

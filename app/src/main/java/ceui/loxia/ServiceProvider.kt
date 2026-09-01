@@ -11,6 +11,7 @@ import ceui.pixiv.config.RemoteAppConfig
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.events.EventReporter
 import ceui.pixiv.db.discovery.DiscoveryPool
+import ceui.pixiv.db.mirror.BookmarkMirrorService
 import ceui.pixiv.db.discovery.ProfileManager
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import ceui.pixiv.ui.translate.MangaBatchTranslateCenter
@@ -68,6 +69,9 @@ interface ServicesProvider {
 
     /** shaft-events 埋点上报。 */
     val eventReporter: EventReporter
+
+    /** 收藏镜像引擎：限速静默地把收藏列表整份镜像到本地，支撑倒序与花式筛选。 */
+    val bookmarkMirror: BookmarkMirrorService
 }
 
 fun Context.appServices(): ServicesProvider = applicationContext as ServicesProvider

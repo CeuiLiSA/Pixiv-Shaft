@@ -17,6 +17,10 @@ import ceui.pixiv.db.FeedCacheEntity;
 import ceui.pixiv.db.GeneralDao;
 import ceui.pixiv.db.GeneralEntity;
 import ceui.pixiv.db.RemoteKey;
+import ceui.pixiv.db.mirror.BookmarkMirrorDao;
+import ceui.pixiv.db.mirror.BookmarkMirrorEntity;
+import ceui.pixiv.db.mirror.BookmarkMirrorStateEntity;
+import ceui.pixiv.db.mirror.BookmarkMirrorTagEntity;
 import ceui.pixiv.db.queue.DownloadQueueDao;
 import ceui.pixiv.db.queue.DownloadQueueEntity;
 import ceui.pixiv.db.synonym.SynonymDao;
@@ -49,13 +53,16 @@ import ceui.pixiv.db.synonym.SynonymTargetEntity;
                 SynonymTargetEntity.class, // 同义词词典-目标标签（v36 建表 / v37 加 lastUsedAt, issue #904/#910）
                 SynonymTagEntity.class, // 同义词词典-同义词（v36, issue #904）
                 FeedCacheEntity.class, // feeds 框架本地优先首屏快照（v39）
+                BookmarkMirrorEntity.class, // 收藏镜像主表（v42）
+                BookmarkMirrorTagEntity.class, // 收藏镜像标签倒排表（v42）
+                BookmarkMirrorStateEntity.class, // 收藏镜像每书架同步状态（v42）
         },
         version = AppDatabase.VERSION,
         exportSchema = true
 )
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 41;
+    public static final int VERSION = 42;
     public static final String DATABASE_NAME = "roomDemo-database";
     private static final Migration MIGRATION_23_24 = new Migration(23, 24) {
         @Override
@@ -405,6 +412,113 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * v41 -> v42：收藏镜像三张表（主表 / 标签倒排表 / 每书架同步状态）。
+     *
+     * 建表而不改表，所以对存量数据零影响；建完是空的，由
+     * {@link ceui.pixiv.db.mirror.BookmarkMirrorService} 在用户第一次打开收藏页时
+     * 限速后台回填。索引数量偏多是**故意的**：这张表存在的全部意义就是让「按收藏顺序倒序 /
+     * 按作者 / 按热度 / 按年份 / 按标签」这些服务端给不了的排序筛选在本地即时出结果，
+     * 而写入只发生在每 5 秒一页的后台回填里，写放大完全不在用户感知路径上。
+     *
+     * 索引名必须与 Room 由 @Index 生成的一致：index_&lt;table&gt;_&lt;col&gt;_&lt;col&gt;…
+     */
+    private static final Migration MIGRATION_41_42 = new Migration(41, 42) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS bookmark_mirror_table (" +
+                            "shelfKey TEXT NOT NULL, " +
+                            "targetId INTEGER NOT NULL, " +
+                            "ownerUid INTEGER NOT NULL, " +
+                            "contentType INTEGER NOT NULL, " +
+                            "restrictCode INTEGER NOT NULL, " +
+                            "bookmarkSeq INTEGER NOT NULL, " +
+                            "payloadJson TEXT NOT NULL, " +
+                            "title TEXT NOT NULL, " +
+                            "authorId INTEGER NOT NULL, " +
+                            "authorName TEXT NOT NULL, " +
+                            "workType TEXT NOT NULL, " +
+                            "pageCount INTEGER NOT NULL, " +
+                            "width INTEGER NOT NULL, " +
+                            "height INTEGER NOT NULL, " +
+                            "aspectRatio REAL NOT NULL, " +
+                            "orientation INTEGER NOT NULL, " +
+                            "totalBookmarks INTEGER NOT NULL, " +
+                            "totalView INTEGER NOT NULL, " +
+                            "textLength INTEGER NOT NULL, " +
+                            "createDateMs INTEGER NOT NULL, " +
+                            "aiType INTEGER NOT NULL, " +
+                            "xRestrict INTEGER NOT NULL, " +
+                            "sanityLevel INTEGER NOT NULL, " +
+                            "isVisible INTEGER NOT NULL, " +
+                            "isMuted INTEGER NOT NULL, " +
+                            "seriesId INTEGER NOT NULL, " +
+                            "tagCount INTEGER NOT NULL, " +
+                            "searchText TEXT NOT NULL, " +
+                            "syncedAt INTEGER NOT NULL, " +
+                            "generation INTEGER NOT NULL, " +
+                            "PRIMARY KEY(shelfKey, targetId)" +
+                            ")"
+            );
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_bookmarkSeq ON bookmark_mirror_table(shelfKey, bookmarkSeq)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_createDateMs ON bookmark_mirror_table(shelfKey, createDateMs)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_totalBookmarks ON bookmark_mirror_table(shelfKey, totalBookmarks)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_totalView ON bookmark_mirror_table(shelfKey, totalView)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_textLength ON bookmark_mirror_table(shelfKey, textLength)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_title ON bookmark_mirror_table(shelfKey, title)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_authorId_bookmarkSeq ON bookmark_mirror_table(shelfKey, authorId, bookmarkSeq)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_seriesId ON bookmark_mirror_table(shelfKey, seriesId)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_workType_bookmarkSeq ON bookmark_mirror_table(shelfKey, workType, bookmarkSeq)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_xRestrict_bookmarkSeq ON bookmark_mirror_table(shelfKey, xRestrict, bookmarkSeq)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_aiType_bookmarkSeq ON bookmark_mirror_table(shelfKey, aiType, bookmarkSeq)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_pageCount_bookmarkSeq ON bookmark_mirror_table(shelfKey, pageCount, bookmarkSeq)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_orientation_bookmarkSeq ON bookmark_mirror_table(shelfKey, orientation, bookmarkSeq)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_generation ON bookmark_mirror_table(shelfKey, generation)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_targetId ON bookmark_mirror_table(targetId)");
+
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS bookmark_mirror_tag_table (" +
+                            "shelfKey TEXT NOT NULL, " +
+                            "targetId INTEGER NOT NULL, " +
+                            "tagName TEXT NOT NULL, " +
+                            "displayName TEXT NOT NULL, " +
+                            "translatedName TEXT NOT NULL, " +
+                            "PRIMARY KEY(shelfKey, targetId, tagName)" +
+                            ")"
+            );
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_tag_table_shelfKey_tagName ON bookmark_mirror_tag_table(shelfKey, tagName)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_tag_table_shelfKey_targetId ON bookmark_mirror_tag_table(shelfKey, targetId)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_tag_table_targetId ON bookmark_mirror_tag_table(targetId)");
+
+            database.execSQL(
+                    "CREATE TABLE IF NOT EXISTS bookmark_mirror_state_table (" +
+                            "shelfKey TEXT NOT NULL, " +
+                            "ownerUid INTEGER NOT NULL, " +
+                            "contentType INTEGER NOT NULL, " +
+                            "restrictCode INTEGER NOT NULL, " +
+                            "phase INTEGER NOT NULL, " +
+                            "nextUrl TEXT, " +
+                            "generation INTEGER NOT NULL, " +
+                            "nextBackfillSeq INTEGER NOT NULL, " +
+                            "headSeqCursor INTEGER NOT NULL, " +
+                            "headBlockCeiling INTEGER NOT NULL, " +
+                            "pagesThisRun INTEGER NOT NULL, " +
+                            "itemsThisRun INTEGER NOT NULL, " +
+                            "firstCompletedAt INTEGER NOT NULL, " +
+                            "lastSyncedAt INTEGER NOT NULL, " +
+                            "lastFullSweepAt INTEGER NOT NULL, " +
+                            "lastErrorAt INTEGER NOT NULL, " +
+                            "lastError TEXT, " +
+                            "consecutiveFailures INTEGER NOT NULL, " +
+                            "cooldownUntil INTEGER NOT NULL, " +
+                            "updatedAt INTEGER NOT NULL, " +
+                            "PRIMARY KEY(shelfKey)" +
+                            ")"
+            );
+        }
+    };
+
     private static final Migration[] ALL_MIGRATIONS = {
             MIGRATION_23_24,
             MIGRATION_24_25,
@@ -424,6 +538,7 @@ public abstract class AppDatabase extends RoomDatabase {
             MIGRATION_38_39,
             MIGRATION_39_40,
             MIGRATION_40_41,
+            MIGRATION_41_42,
     };
 
     /**
@@ -477,6 +592,9 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract NovelCustomFontDao novelCustomFontDao();
 
     public abstract ComicBookmarkDao comicBookmarkDao();
+
+    /** 收藏镜像（v42）：本地整份镜像收藏列表，支撑倒序与花式筛选。 */
+    public abstract BookmarkMirrorDao bookmarkMirrorDao();
 
     public abstract ComicReadingStatsDao comicReadingStatsDao();
 

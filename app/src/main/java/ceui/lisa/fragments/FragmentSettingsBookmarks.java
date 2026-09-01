@@ -63,6 +63,24 @@ public class FragmentSettingsBookmarks extends SettingsPageFragment<FragmentSett
         baseBind.filterInvalidBookmarksRela.setOnClickListener(v ->
                 baseBind.filterInvalidBookmarks.performClick());
 
+        // 收藏库本地镜像。关掉是立即生效的：引擎每次 tick 都现读这个开关，
+        // 不必重启 app（正在飞的那一页会跑完，之后不再发新请求）。
+        baseBind.bookmarkMirror.setChecked(Shaft.sSettings.isBookmarkMirrorEnabled());
+        baseBind.bookmarkMirror.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setBookmarkMirrorEnabled(isChecked);
+                Common.showToast(getString(R.string.string_428), 2);
+                Local.setSettings(Shaft.sSettings);
+                if (isChecked) {
+                    // 开回来时主动踢一脚，用户不用等下一个空闲心跳
+                    ceui.loxia.ServiceProviderKt.appServices(requireContext())
+                            .getBookmarkMirror().kick("settings toggled on");
+                }
+            }
+        });
+        baseBind.bookmarkMirrorRela.setOnClickListener(v -> baseBind.bookmarkMirror.performClick());
+
         baseBind.selectAllTag.setChecked(Shaft.sSettings.isStarWithTagSelectAll());
         baseBind.selectAllTag.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override

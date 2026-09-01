@@ -14,6 +14,8 @@ import ceui.pixiv.actionqueue.ActionQueue
 import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.actionqueue.PendingAction
 import ceui.pixiv.actionqueue.QueuePolicy
+import ceui.pixiv.db.mirror.MirrorContentType
+import ceui.pixiv.db.mirror.MirrorRestrict
 import ceui.pixiv.events.EventReporter
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.snapshot.AutoSnapshotEngine
@@ -262,6 +264,18 @@ class PixivActionQueue(app: Context) {
                         ?: (illust ?: fetched)?.takeIf { it.is_bookmarked == true }
                     confirmed?.let(AutoSnapshotEngine::onBookmarkConfirmed)
                 }
+
+                // 收藏镜像的本地维护。**在这里而不是点击时**，理由和上面的埋点一样：
+                // 队列还可能因为 429 打满重试或作品已删除而终态失败并回滚，那时镜像里
+                // 就会多出一条服务端根本不存在的收藏。
+                // 这条路径承担了「同步完成过一次，以后只维护」的大半：用户在 app 里的
+                // 每一次收藏/取消都直接改本地表，一次网络请求都不用多打。
+                syncBookmarkMirror(
+                    MirrorContentType.ILLUST,
+                    payload,
+                    illustOrNull = illust ?: fetched,
+                    novelOrNull = null,
+                )
             }
 
             PixivActionTypes.NOVEL_BOOKMARK -> {
@@ -277,6 +291,12 @@ class PixivActionQueue(app: Context) {
                     payload.id,
                     novel,
                 )
+                syncBookmarkMirror(
+                    MirrorContentType.NOVEL,
+                    payload,
+                    illustOrNull = null,
+                    novelOrNull = novel,
+                )
             }
 
             PixivActionTypes.USER_FOLLOW -> {
@@ -290,6 +310,41 @@ class PixivActionQueue(app: Context) {
                 } else {
                     profileManager.onUnfollowUser(payload.userId)
                 }
+            }
+        }
+    }
+
+
+    /**
+     * 把一次已被服务端确认的收藏 / 取消收藏同步进收藏镜像表。
+     *
+     * - **收藏**：需要一份带 `is_bookmarked = true` 的 bean 才能入库（镜像行里存的是完整
+     *   JSON，将来直接渲染卡片）。池里没有、API 也没兜到时就放弃这一条 —— 缺的那条会在
+     *   下一次增量维护里被表头扫到，不值得为它专门再打一次请求。
+     * - **取消**：不需要 bean，按 id 跨公开/悄悄两个书架删。
+     *
+     * 书架没被注册过（用户从没打开过那个收藏页）时引擎自己会忽略，这里不必判断。
+     */
+    private fun syncBookmarkMirror(
+        contentType: MirrorContentType,
+        payload: BookmarkPayload,
+        illustOrNull: ceui.loxia.Illust?,
+        novelOrNull: ceui.loxia.Novel?,
+    ) {
+        val mirror = app.appServices().bookmarkMirror
+        if (!payload.bookmark) {
+            mirror.onUnbookmarked(contentType, payload.id)
+            return
+        }
+        val restrict = MirrorRestrict.ofApiValue(payload.restrict)
+        when (contentType) {
+            MirrorContentType.ILLUST -> {
+                val bean = ObjectPool.get<Illust>(payload.id).value ?: illustOrNull ?: return
+                mirror.onIllustBookmarked(bean.withBookmarked(true), restrict)
+            }
+            MirrorContentType.NOVEL -> {
+                val bean = ObjectPool.get<Novel>(payload.id).value ?: novelOrNull ?: return
+                mirror.onNovelBookmarked(bean.withBookmarked(true), restrict)
             }
         }
     }

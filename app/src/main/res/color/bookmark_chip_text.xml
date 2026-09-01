@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 配合 bg_bookmark_chip：选中态是主题色实底，文字必须翻白才够对比。 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@android:color/white" android:state_activated="true" />
+    <item android:color="@color/v3_text_2" />
+</selector>

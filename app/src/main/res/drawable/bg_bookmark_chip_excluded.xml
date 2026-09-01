@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  「排除这个标签」态的 chip。用危险色而不是主题色：包含与排除是**相反**的意图，
+  同一排 chip 里必须一眼分得出，只靠深浅差别在小尺寸上读不出来。
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?android:attr/colorControlHighlight">
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <solid android:color="@android:color/white" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <solid android:color="@color/v3_danger" />
+        </shape>
+    </item>
+</ripple>

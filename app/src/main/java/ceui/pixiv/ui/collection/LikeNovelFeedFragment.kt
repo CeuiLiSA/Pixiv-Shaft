@@ -18,6 +18,8 @@ import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedItem
+import ceui.pixiv.db.mirror.MirrorContentType
+import ceui.pixiv.db.mirror.trackBookmarkShelfVisit
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.common.NovelFeedFragment
@@ -110,6 +112,20 @@ class LikeNovelFeedFragment : NovelFeedFragment() {
         }
         LocalBroadcastManager.getInstance(requireContext())
             .registerReceiver(filterReceiver, IntentFilter(Params.FILTER_NOVEL))
+    }
+
+    /**
+     * 打开**自己**的收藏页 = 开启这个书架的本地镜像（见 [trackBookmarkShelfVisit]）。
+     *
+     * 放 onResume 而不是 onViewCreated：宿主 pager 用的是
+     * BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT，相邻 tab 的 Fragment 会被提前创建、
+     * 走完 onViewCreated，但**不会被 RESUME**。挂在 onViewCreated 上就等于用户只点了
+     * 「公开收藏」，我们却顺手把「悄悄收藏」也注册上了 —— 与本页 `autoLoad = false`
+     * 不替用户偷偷请求私密收藏是同一条底线（真机实测过：确实两个书架都被注册了）。
+     */
+    override fun onResume() {
+        super.onResume()
+        requireContext().trackBookmarkShelfVisit(userId, starType, MirrorContentType.NOVEL)
     }
 
     override fun onDestroyView() {

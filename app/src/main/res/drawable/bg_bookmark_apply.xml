@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 筛选 sheet 的提交条：MD3-E 大圆角实底 CTA（20dp，比 chip 的 14dp 更松），
+     按压时四角一起收到 14dp —— Expressive 用形状形变而不是只用透明度做反馈。 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#33FFFFFF">
+    <item>
+        <selector>
+            <item android:state_pressed="true">
+                <shape android:shape="rectangle">
+                    <corners android:radius="14dp" />
+                    <solid android:color="?attr/colorPrimary" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="20dp" />
+                    <solid android:color="?attr/colorPrimary" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+</ripple>

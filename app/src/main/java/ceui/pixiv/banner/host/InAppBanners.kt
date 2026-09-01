@@ -47,6 +47,9 @@ object InAppBanners {
     private const val SCHEME = "shaft"
     private const val HOST_CHAT = "chat"
 
+    /** 收藏库（本地镜像浏览页）。`shaft://bookmark-library?restrict=public|private`。 */
+    private const val HOST_BOOKMARK_LIBRARY = "bookmark-library"
+
     private val bootstrapped = AtomicBoolean(false)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val foreground = ForegroundTracker()
@@ -100,8 +103,35 @@ object InAppBanners {
     private suspend fun handleTap(app: Application, deepLink: String?) {
         deepLink ?: return
         val uri = runCatching { Uri.parse(deepLink) }.getOrNull() ?: return
-        if (uri.scheme != SCHEME || uri.host != HOST_CHAT) return
+        if (uri.scheme != SCHEME) return
+        when (uri.host) {
+            HOST_CHAT -> openChat(app, uri)
+            HOST_BOOKMARK_LIBRARY -> openBookmarkLibrary(app, uri)
+            else -> Unit
+        }
+    }
 
+    /** `shaft://bookmark-library?restrict=public|private` → 收藏库，落在指定的那个书架上。 */
+    private suspend fun openBookmarkLibrary(app: Application, uri: Uri) {
+        val activity = foreground.current()
+        val ctx: Context = activity ?: app
+        val intent = Intent(ctx, TemplateActivity::class.java).apply {
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.BOOKMARK_LIBRARY.key)
+            uri.getQueryParameter("restrict")?.let {
+                putExtra(ceui.lisa.utils.Params.STAR_TYPE, it)
+            }
+            if (activity == null) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        withContext(Dispatchers.Main) {
+            try {
+                ctx.startActivity(intent)
+            } catch (t: Throwable) {
+                Timber.tag(TAG).w(t, "Failed to launch bookmark library from banner tap")
+            }
+        }
+    }
+
+    private suspend fun openChat(app: Application, uri: Uri) {
         val activity = foreground.current()
         val ctx: Context = activity ?: app
         val peer = uri.getQueryParameter("peer")?.toLongOrNull() ?: 0L

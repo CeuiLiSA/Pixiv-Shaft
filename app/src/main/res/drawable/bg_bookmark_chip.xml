@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  收藏库筛选 chip。MD3-E 的分段/筛选语汇：**选中用形状与实底表达，而不是只加一圈描边**。
+  选中 = 主题色实底 14dp 胶囊（跟随 10 套主题色，所以取 ?attr/colorPrimary 而不是写死蓝）；
+  未选 = v3_surface_1 + 0.5dp hairline，与 bg_v3_chip 同款，压在 v3_bg 上刚好读得出层级。
+  ripple 用同半径 mask 裁形，按压反馈不外溢成方角（同 bg_reader_segment_option 的取舍）。
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?android:attr/colorControlHighlight">
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <solid android:color="@android:color/white" />
+        </shape>
+    </item>
+    <item>
+        <selector>
+            <item android:state_activated="true">
+                <shape android:shape="rectangle">
+                    <corners android:radius="14dp" />
+                    <solid android:color="?attr/colorPrimary" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="14dp" />
+                    <solid android:color="@color/v3_surface_1" />
+                    <stroke
+                        android:width="0.5dp"
+                        android:color="@color/v3_border_1" />
+                </shape>
+            </item>
+        </selector>
+    </item>
+</ripple>
