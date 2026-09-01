@@ -33,6 +33,7 @@ import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.widgets.FeedBackToTopFab
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.lisa.viewmodel.AppLevelState
+import ceui.loxia.requireEntityWrapper
 import ceui.loxia.appServices
 import ceui.lisa.viewmodel.UserViewModel
 import ceui.loxia.Client
@@ -765,6 +766,19 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         if (UserShortcutHelper.isSupported(this)) {
             labels.add(getString(R.string.add_to_home_screen))
             actions.add { UserShortcutHelper.pin(this, data.user) }
+        }
+        // 置顶作者:把常看的画师钉在搜索首页,和「置顶标签」各占一段,互不挤占。
+        val entityWrapper = requireEntityWrapper()
+        val userPinned = entityWrapper.isUserPinned(data.user.id)
+        labels.add(getString(if (userPinned) R.string.unpin_user else R.string.pin_user))
+        actions.add {
+            if (userPinned) {
+                entityWrapper.unpinUser(applicationContext, data.user.id)
+                Common.showToast(getString(R.string.unpin_user_success))
+            } else {
+                entityWrapper.pinUser(applicationContext, data.user)
+                Common.showToast(getString(R.string.pinned_user_added, data.user.name.orEmpty()))
+            }
         }
         if (!isSelf) {
             labels.add(

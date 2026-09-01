@@ -108,6 +108,39 @@
 
 
                     <LinearLayout
+                        android:id="@+id/pinned_users_section"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_marginTop="@dimen/twenty_four_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:text="@string/pinned_users"
+                            android:textColor="@color/second_text_color"
+                            android:textSize="14sp" />
+
+                        <ceui.lisa.view.NestMax
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <com.zhy.view.flowlayout.TagFlowLayout
+                                android:id="@+id/pinned_users_flow"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginEnd="@dimen/four_dp" />
+
+                        </ceui.lisa.view.NestMax>
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
                         android:id="@+id/pinned_section"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

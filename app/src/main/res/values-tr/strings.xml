@@ -1027,6 +1027,12 @@
     <string name="pinned_tags_cleared">Tüm sabitlenmiş etiketler kaldırıldı</string>
     <string name="unpin_tag_confirm_message">“%1$s” sabitlemesi kaldırılsın mı?</string>
     <string name="unpin_tag_success">Etiket sabitlemesi kaldırıldı</string>
+    <string name="pinned_users">Sabitlenen Sanatçılar</string>
+    <string name="pin_user">Bu sanatçıyı sabitle</string>
+    <string name="unpin_user">Sanatçı sabitlemesini kaldır</string>
+    <string name="pinned_user_added">\u201c%1$s\u201d sabitlendi</string>
+    <string name="unpin_user_confirm_message">\u201c%1$s\u201d sabitlemesi kaldırılsın mı?</string>
+    <string name="unpin_user_success">Sanatçı sabitlemesi kaldırıldı</string>
     <string name="check_for_updates">Güncellemeleri kontrol et</string>
     <string name="update_checking">Güncellemeler kontrol ediliyor…</string>
     <string name="update_new_version_available">Yeni sürüm bulundu</string>

@@ -19,4 +19,9 @@ object RecordType {
     // 共用一个 recordType 时,加入同号小说会被 OnConflictStrategy.REPLACE 静默覆盖掉那张插画,
     // 而按 (recordType, id) 删除又会把两条一起删。分开就没有这些事。
     const val WATCH_LATER_NOVEL = 8
+
+    // 置顶作者:本地把常看的画师钉在搜索首页。存 ceui.loxia.User 全量 JSON(要头像和昵称),
+    // 与「置顶标签」刻意分开 —— 后者是 search_table.pinned 的搜索历史行,两者挤在同一排
+    // 格子里正是用户在反馈的问题;而且作者按 uid 定位,改名/重名都不会跑偏。
+    const val PINNED_USER = 9
 }

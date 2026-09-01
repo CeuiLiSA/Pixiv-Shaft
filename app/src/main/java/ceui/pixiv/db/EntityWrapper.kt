@@ -31,6 +31,8 @@ class EntityWrapper(
     // 稍后再看的小说 id（与插画各占一个 recordType，见 RecordType.WATCH_LATER_NOVEL 的注释：
     // 插画号段与小说号段会撞，共用 recordType 会在 (id, recordType) 主键上互相覆盖）。
     private val _watchLaterNovelIds: MutableSet<Long> = ConcurrentHashMap.newKeySet()
+    // 置顶作者的 uid，作者主页「更多」菜单要即时判断摆「置顶」还是「取消置顶」，不能等一次 DB 往返。
+    private val _pinnedUserIds: MutableSet<Long> = ConcurrentHashMap.newKeySet()
 
     fun initialize() {
         MainScope().launch {
@@ -42,6 +44,7 @@ class EntityWrapper(
                 _blockingNovelIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.BLOCK_NOVEL))
                 _watchLaterIllustIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.WATCH_LATER))
                 _watchLaterNovelIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.WATCH_LATER_NOVEL))
+                _pinnedUserIds.addAll(database.generalDao().getAllIdsByRecordType(RecordType.PINNED_USER))
             }
         }
     }
@@ -60,6 +63,8 @@ class EntityWrapper(
                 _watchLaterIllustIds.add(entity.id)
             } else if (entity.recordType == RecordType.WATCH_LATER_NOVEL) {
                 _watchLaterNovelIds.add(entity.id)
+            } else if (entity.recordType == RecordType.PINNED_USER) {
+                _pinnedUserIds.add(entity.id)
             }
             Timber.d("EntityWrapper insertEntity done ${entity.id}")
         } catch (ex: Exception) {
@@ -81,6 +86,8 @@ class EntityWrapper(
                 _watchLaterIllustIds.remove(id)
             } else if (recordType == RecordType.WATCH_LATER_NOVEL) {
                 _watchLaterNovelIds.remove(id)
+            } else if (recordType == RecordType.PINNED_USER) {
+                _pinnedUserIds.remove(id)
             }
             Timber.d("EntityWrapper deleteEntity done $id")
         } catch (ex: Exception) {
@@ -221,6 +228,30 @@ class EntityWrapper(
 
     fun isNovelInWatchLater(novelId: Long): Boolean {
         return _watchLaterNovelIds.contains(novelId)
+    }
+
+    // ---- 置顶作者 ----
+
+    /**
+     * 置顶一个作者。存全量 User JSON —— 搜索首页那排要画头像和昵称，只存 uid 的话每次进
+     * 搜索页都得为每个置顶作者发一次 detail 请求，离线时还什么都画不出来。
+     * 昵称/头像会过期，但点进去就是作者主页，那里拿的是新鲜数据；这份快照只用于那一排格子。
+     */
+    fun pinUser(context: Context, user: User) {
+        val json = Shaft.sGson.toJson(user)
+        MainScope().launch(Dispatchers.IO) {
+            insertEntity(context, GeneralEntity(user.id, json, EntityType.USER, RecordType.PINNED_USER))
+        }
+    }
+
+    fun unpinUser(context: Context, userId: Long) {
+        MainScope().launch(Dispatchers.IO) {
+            deleteEntity(context, RecordType.PINNED_USER, userId)
+        }
+    }
+
+    fun isUserPinned(userId: Long): Boolean {
+        return _pinnedUserIds.contains(userId)
     }
 
     /**

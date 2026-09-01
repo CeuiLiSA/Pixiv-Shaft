@@ -1027,6 +1027,12 @@
     <string name="pinned_tags_cleared">Закреплённые теги удалены</string>
     <string name="unpin_tag_confirm_message">Открепить «%1$s»?</string>
     <string name="unpin_tag_success">Тег откреплён</string>
+    <string name="pinned_users">Закреплённые авторы</string>
+    <string name="pin_user">Закрепить автора</string>
+    <string name="unpin_user">Открепить автора</string>
+    <string name="pinned_user_added">Автор \u00ab%1$s\u00bb закреплён</string>
+    <string name="unpin_user_confirm_message">Открепить автора \u00ab%1$s\u00bb?</string>
+    <string name="unpin_user_success">Автор откреплён</string>
     <string name="check_for_updates">Проверить обновления</string>
     <string name="update_checking">Проверка обновлений…</string>
     <string name="update_new_version_available">Доступна новая версия</string>

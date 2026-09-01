@@ -23,9 +23,12 @@ import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import ceui.pixiv.witstudio.dialog.WitTipDialog;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
+import com.bumptech.glide.Glide;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,15 +43,20 @@ import ceui.lisa.adapters.SearchHintAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.databinding.FragmentSearchBinding;
+import ceui.lisa.databinding.RecyPinnedUserBinding;
 import ceui.lisa.databinding.RecySingleLineTextWithDeleteBinding;
 import ceui.lisa.http.LegacyApiCalls;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.SearchTypeUtil;
+import ceui.loxia.User;
+import ceui.loxia.ServiceProviderKt;
+import ceui.pixiv.ui.pinned.PinnedUsers;
 import ceui.pixiv.ui.search.SearchHintViewModel;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 
@@ -56,6 +64,8 @@ import ceui.pixiv.ui.navigation.TemplateRoute;
 public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
     private SearchHintViewModel hintViewModel;
+    /** 当前这一排置顶作者。取消置顶要就地摘掉一条重绑（异步落库赶不上立刻重查 DB）。 */
+    private List<User> pinnedUsers = Collections.emptyList();
     private int searchType = SearchTypeUtil.defaultSearchType;
     private boolean hasSwitchSearchType = false;
 
@@ -345,8 +355,61 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         // 固定数量超出上限时会被静默挤掉（issue #524）
         List<SearchEntity> pinned = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getAllPinned();
         List<SearchEntity> recent = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getRecentUnpinned(50);
+        bindPinnedUsersSection(PinnedUsers.load(Shaft.getContext()));
         bindPinnedSection(pinned);
         bindHistorySection(recent);
+    }
+
+    /**
+     * 置顶作者单独一段，摆在置顶标签上面。刻意不和置顶标签共用一排：作者挤占标签的格子
+     * 正是这个功能要解决的问题（用户只能「搜作者名 → 置顶那条搜索」）。
+     */
+    private void bindPinnedUsersSection(final List<User> users) {
+        pinnedUsers = users;
+        if (users.isEmpty()) {
+            baseBind.pinnedUsersSection.setVisibility(View.GONE);
+            return;
+        }
+        baseBind.pinnedUsersSection.setVisibility(View.VISIBLE);
+        baseBind.pinnedUsersFlow.setAdapter(new TagAdapter<User>(users) {
+            @Override
+            public View getView(FlowLayout parent, int position, User user) {
+                RecyPinnedUserBinding binding = DataBindingUtil.inflate(
+                        LayoutInflater.from(mContext), R.layout.recy_pinned_user, parent, false);
+                binding.userName.setText(user.getName());
+                Glide.with(binding.userAvatar).load(GlideUtil.getHead(user)).into(binding.userAvatar);
+                return binding.getRoot();
+            }
+        });
+        baseBind.pinnedUsersFlow.setOnTagClickListener((view, position, parent) -> {
+            // 走 UActivity 而不是直接开 V3：新旧作者页的路由分发在 UActivity 里，
+            // 这里硬指一个就会绕开用户的「使用新版作品页」开关。
+            Intent intent = new Intent(mContext, UActivity.class);
+            intent.putExtra(Params.USER_ID, users.get(position).getId());
+            startActivity(intent);
+            return false;
+        });
+        baseBind.pinnedUsersFlow.setOnTagLongClickListener((view, position, parent) ->
+                showUnpinUserDialog(users.get(position)));
+    }
+
+    private boolean showUnpinUserDialog(final User user) {
+        new WitDialog.MessageDialogBuilder(mContext)
+                .setTitle(R.string.string_143)
+                .setMessage(getString(R.string.unpin_user_confirm_message, user.getName()))
+                .addAction(getString(R.string.string_142), (dialog, index) -> dialog.dismiss())
+                .addAction(0, getString(R.string.unpin_user), WitDialogAction.ACTION_PROP_NEGATIVE, (dialog, index) -> {
+                    ServiceProviderKt.requireEntityWrapper(mActivity).unpinUser(Shaft.getContext(), user.getId());
+                    Common.showToast(getString(R.string.unpin_user_success));
+                    dialog.dismiss();
+                    // unpinUser 是 IO 线程异步落库,这里立刻重查 DB 会读到旧行 ——
+                    // 直接把这一条从当前列表里摘掉重绑,不等 DB。
+                    List<User> rest = new ArrayList<>(pinnedUsers);
+                    rest.remove(user);
+                    bindPinnedUsersSection(rest);
+                })
+                .show();
+        return true;
     }
 
     private void bindPinnedSection(final List<SearchEntity> pinned) {

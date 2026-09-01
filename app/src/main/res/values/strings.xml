@@ -1090,6 +1090,12 @@
     <string name="pinned_tags_cleared">已取消所有置顶标签</string>
     <string name="unpin_tag_confirm_message">确定取消置顶「%1$s」吗？</string>
     <string name="unpin_tag_success">已取消置顶</string>
+    <string name="pinned_users">置顶作者</string>
+    <string name="pin_user">置顶作者</string>
+    <string name="unpin_user">取消置顶作者</string>
+    <string name="pinned_user_added">已置顶「%1$s」</string>
+    <string name="unpin_user_confirm_message">确定取消置顶作者「%1$s」吗？</string>
+    <string name="unpin_user_success">已取消置顶</string>
 
     <string name="check_for_updates">检查更新</string>
     <string name="update_checking">正在检查更新…</string>

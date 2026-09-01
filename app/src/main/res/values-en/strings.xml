@@ -1027,6 +1027,12 @@
     <string name="pinned_tags_cleared">All pinned tags removed</string>
     <string name="unpin_tag_confirm_message">Unpin “%1$s”?</string>
     <string name="unpin_tag_success">Tag unpinned</string>
+    <string name="pinned_users">Pinned Artists</string>
+    <string name="pin_user">Pin this artist</string>
+    <string name="unpin_user">Unpin this artist</string>
+    <string name="pinned_user_added">Pinned \u201c%1$s\u201d</string>
+    <string name="unpin_user_confirm_message">Unpin \u201c%1$s\u201d?</string>
+    <string name="unpin_user_success">Artist unpinned</string>
     <string name="check_for_updates">Check for updates</string>
     <string name="update_checking">Checking for updates...</string>
     <string name="update_new_version_available">New version available</string>
