@@ -661,6 +661,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                             Timber.w(e, "[IllustAdapter] base(large) FAIL pos=%d, url=%s", position, shortUrl);
                             holder.baseBind.reload.setVisibility(View.VISIBLE);
                             holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+                            // isFinal=true 时 large 就是最终图,它的成败**就是**这一页的成败,必须上报:
+                            // 否则默认设置(isShowOriginalPreviewImage=false)下宿主的
+                            // PageLoadRetryController 永远收不到任何页面状态,failedCount 恒为 0,
+                            // 「重试全部」横幅出不来、联网后也不会自动重试(只有原图模式在上报)。
+                            reportPageStatus(position, new TaskStatus.Error(
+                                    e != null ? e : new IllegalStateException(
+                                            "large load failed for page " + position)));
                         } else {
                             // 占位 large 缓存未命中是预期路径(原图正在下、下好即盖上),不算错误、不亮重载、不动进度环。
                             Timber.d("[IllustAdapter] base(large) cache-miss placeholder skipped pos=%d, url=%s", position, shortUrl);
@@ -676,6 +683,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                         holder.baseBind.reload.setVisibility(View.GONE);
                         if (isFinal) {
                             holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
+                            reportPageStatus(position, TaskStatus.Finished.INSTANCE);
                         }
                         rememberDecodedRatio(holder, position, changeSize, resource);
                         return false;
@@ -833,6 +841,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                         holder.baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
                         holder.baseBind.illustHd.setVisibility(View.VISIBLE);
                         cachedOriginalShownPages.add(position);
+                        // 缓存原图救回了这一页(LARGE 可能已经先失败并上报过 Error):这里补一次
+                        // Finished 把它从「失败」里摘掉,否则横幅会为一张明明已经显示的图催重试。
+                        reportPageStatus(position, TaskStatus.Finished.INSTANCE);
                         return false;
                     }
                 })

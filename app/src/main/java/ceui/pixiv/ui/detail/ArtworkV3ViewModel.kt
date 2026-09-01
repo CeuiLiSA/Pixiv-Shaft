@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.downloadProbeDispatcher
@@ -153,11 +154,26 @@ class ArtworkV3ViewModel(
         illustBeanLiveData.removeObserver(illustBeanObserver)
     }
 
-    fun triggerDownload() {
+    /**
+     * 主下载 FAB。必须走带 activity 的重载:
+     * - 用户在设置里选的「默认下载分辨率」由 [IllustDownload.defaultImageResolution] 兑现 ——
+     *   不带分辨率的重载内部写死原图,等于把这条设置在 V3 详情页整个吞掉(经典页
+     *   [ceui.lisa.fragments.FragmentIllust] 的下载按钮一直是尊重它的);
+     * - activity 是 [IllustDownload.check] 的 SAF 闸门所必需:授权目录失效时要能弹出重选,
+     *   否则整批入队后每一页都写盘失败。
+     *
+     * @param activity 宿主 activity;取不到时降级为不带闸门的调用(分辨率仍然生效)。
+     */
+    fun triggerDownload(activity: BaseActivity<*>?) {
         val illust = illustBean ?: return
         downloadCheckJob?.cancel()
         downloadedCache = null
-        IllustDownload.downloadIllustAllPages(illust)
+        val resolution = IllustDownload.defaultImageResolution()
+        if (activity != null) {
+            IllustDownload.downloadIllustAllPagesWithResolution(illust, resolution, activity)
+        } else {
+            IllustDownload.downloadIllustAllPagesWithResolution(illust, resolution)
+        }
         _downloadFabState.value = DownloadFab.Downloading(0)
         startProgressPolling(illust.page_count)
     }

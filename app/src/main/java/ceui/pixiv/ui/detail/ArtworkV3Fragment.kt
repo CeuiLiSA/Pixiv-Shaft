@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
+import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.actions.FollowVisibility
@@ -1156,7 +1157,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
         chromeBind.fabBar.fabDownloadContainer.setOnClick {
             val illust = ObjectPool.get<Illust>(illustId).value ?: return@setOnClick
-            artworkViewModel.triggerDownload()
+            artworkViewModel.triggerDownload(requireActivity() as? BaseActivity<*>)
             if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
                 fabBarController.setBookmarked(true)
                 PixivOperate.postLikeDefaultStarType(illust)
@@ -1165,7 +1166,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         chromeBind.fabBar.fabDownloadContainer.setOnLongClickListener {
             val illust = ObjectPool.get<Illust>(illustId).value
                 ?: return@setOnLongClickListener true
-            val baseAct = requireActivity() as? ceui.lisa.activities.BaseActivity<*>
+            val baseAct = requireActivity() as? BaseActivity<*>
             val resNames = arrayOf(
                 getString(R.string.resolution_original),
                 getString(R.string.resolution_large),
@@ -1222,7 +1223,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             fabBarController.setBookmarked(willBookmark)
             PixivOperate.postLikeDefaultStarType(illust)
             if (willBookmark && Shaft.sSettings.isAutoDownloadAfterStar) {
-                IllustDownload.downloadIllustAllPages(illust)
+                // 同样尊重「默认下载分辨率」。刻意**不**带 activity:收藏是个轻动作,不该顺手
+                // 弹出 SAF 重选目录的对话框;闸门留给用户主动点下载 FAB 那条路径。
+                IllustDownload.downloadIllustAllPagesWithResolution(
+                    illust, IllustDownload.defaultImageResolution(),
+                )
             }
         }
 

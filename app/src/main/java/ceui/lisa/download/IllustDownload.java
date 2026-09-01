@@ -70,10 +70,6 @@ public class IllustDownload {
         }
     }
 
-    public static void downloadIllustFirstPage(Illust illust, BaseActivity<?> activity) {
-        check(activity, () -> downloadIllustFirstPage(illust));
-    }
-
     public static void downloadIllustFirstPageWithResolution(Illust illust, String imageResolution, BaseActivity<?> activity) {
         check(activity, () -> {
             // ugoira 没有静态「第一页」可下:buildDownloadItem 对 gif 返回 null,直接
@@ -124,48 +120,57 @@ public class IllustDownload {
         });
     }
 
+    /**
+     * 设置里的「默认下载分辨率」,没设过则原图。所有**不让用户当场选分辨率**的下载入口
+     * (主下载按钮 / 收藏后自动下载)都该用它,而不是直接写死 IMAGE_RESOLUTION_ORIGINAL。
+     */
+    public static String defaultImageResolution() {
+        String resolution = Shaft.sSettings.getDefaultImageResolution();
+        return TextUtils.isEmpty(resolution) ? Params.IMAGE_RESOLUTION_ORIGINAL : resolution;
+    }
+
     public static void downloadIllustAllPages(Illust illust, BaseActivity<?> activity) {
-        check(activity, () -> downloadIllustAllPages(illust));
+        downloadIllustAllPagesWithResolution(illust, Params.IMAGE_RESOLUTION_ORIGINAL, activity);
     }
 
     public static void downloadIllustAllPagesWithResolution(Illust illust, String imageResolution, BaseActivity<?> activity) {
-        check(activity, () -> {
-            if (illust.getPage_count() == 1) {
-                downloadIllustFirstPage(illust, activity);
-            } else {
-                IllustCaptionExporter.export(illust);
-                List<DownloadItem> tempList = new ArrayList<>();
-                for (int i = 0; i < illust.getPage_count(); i++) {
-                    DownloadItem item = buildDownloadItem(illust, i, imageResolution);
-                    tempList.add(item);
-                }
-                Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
-                Manager.get().addTasks(tempList);
-            }
-        });
+        check(activity, () -> downloadIllustAllPagesWithResolution(illust, imageResolution));
     }
 
     public static void downloadIllustAllPages(Illust illust) {
+        downloadIllustAllPagesWithResolution(illust, Params.IMAGE_RESOLUTION_ORIGINAL);
+    }
+
+    /**
+     * 「整个作品」的下载入口,分辨率版。带 activity 的重载只是在它外面套一道 {@link #check} 的
+     * SAF 闸门,真正的分发全在这里 —— 动图 / 单图 / #569 补全三条分支从此对**所有**分辨率生效。
+     *
+     * <p>曾经这条链是分叉的:分辨率版自己内联了一份「只管多图」的实现,于是绕过了动图分支
+     * (buildDownloadItem 对 gif 返 null → addTasks 全部跳过 → 点了没反应)和下面那道 #569 补全;
+     * 单图还会掉进不带分辨率的 downloadIllustFirstPage,把用户选的分辨率悄悄换回原图。
+     */
+    public static void downloadIllustAllPagesWithResolution(Illust illust, String imageResolution) {
         // issue #569: 精简/网页来源的 bean(如「按 Tag 筛选」列表项)没有 meta_pages/meta_single_page,
         // 直接下载多图只会拿到封面、原图也取不到。先回 v1/illust/detail 拉完整版再下;
         // 拉取失败则降级用现有数据(已加空值兜底,不会崩)。
         if (needsFullData(illust)) {
-            ensureFullThenRun(illust, IllustDownload::doDownloadAllPages);
+            ensureFullThenRun(illust, full -> doDownloadAllPages(full, imageResolution));
             return;
         }
-        doDownloadAllPages(illust);
+        doDownloadAllPages(illust, imageResolution);
     }
 
-    private static void doDownloadAllPages(Illust illust) {
+    private static void doDownloadAllPages(Illust illust, String imageResolution) {
         if (illust.isGif()){
+            // 分辨率对 gif 无意义(zip→帧→编码),忽略。
             downloadGif(illust);
         } else if (illust.getPage_count() == 1) {
-            downloadIllustFirstPage(illust);
+            downloadIllustFirstPageWithResolution(illust, imageResolution);
         } else {
             IllustCaptionExporter.export(illust);
             List<DownloadItem> tempList = new ArrayList<>();
             for (int i = 0; i < illust.getPage_count(); i++) {
-                DownloadItem item = buildDownloadItem(illust, i);
+                DownloadItem item = buildDownloadItem(illust, i, imageResolution);
                 tempList.add(item);
             }
             Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));

@@ -219,9 +219,8 @@ public class Manager {
                 // 但 addTask 跑在主线程(详情页下载按钮),DownloadingEntity 的
                 // Gson(~80KB)+Room insert 若同步执行,会卡在被并发
                 // hasDownloadRecordByIllustId LIKE 全表扫描占满的 SQLite 连接池上 →
-                // 主线程 ANR。故 persistAsync=true：add 同步、持久化挪后台。
-                // (批量版 addTasks 早已整段在 IO 线程池,这里对齐它的教训。)
-                safeAdd(bean, true);
+                // 主线程 ANR。故 safeAdd 内部只保证 add 同步、持久化挪后台。
+                safeAdd(bean);
             }
             if(DownloadLimitTypeUtil.startTaskWhenCreate()){
                 // 见 triggerPump 的 javadoc —— addTask 是连续调用 hot path
@@ -243,32 +242,25 @@ public class Manager {
         }
     }
 
-    private void safeAdd(DownloadItem item) {
-        safeAdd(item, false);
-    }
-
     /**
-     * @param persistAsync true 时把 DownloadingEntity 的持久化(Gson 序列化 + Room
-     *   insert)丢到 IO 线程池后台执行，只保证 content.add 同步返回。
-     *   addTask 从主线程调用必须传 true —— 同步写 Room 会卡在被并发
-     *   hasDownloadRecordByIllustId LIKE 全表扫描占满的 SQLite 连接池上 → 主线程 ANR。
-     *   addTasks 整段已在 IO 线程,传 false 同步持久化即可(避免每条 fan-out 一个 IO 任务)。
+     * content.add 同步返回，DownloadingEntity 的持久化(Gson 序列化 + Room insert)丢后台。
+     *
+     * <p>唯一调用方 {@link #addTask} 在**主线程持锁**时调用：同步写 Room 会卡在被并发
+     * hasDownloadRecordByIllustId LIKE 全表扫描占满的 SQLite 连接池上 → 主线程 ANR，
+     * 而且持锁期间所有 {@link #contentSnapshot()} 都得排队。批量版 {@link #addTasks}
+     * 不走这里——它自己在锁外整批持久化，避免每条 fan-out 一个 IO 任务。
      */
-    private void safeAdd(DownloadItem item, boolean persistAsync) {
+    private void safeAdd(DownloadItem item) {
         Common.showLog("Manager safeAdd " + item.getUuid());
         content.add(item);
-        if (persistAsync) {
-            final DownloadItem toPersist = item;
-            IO.execute(() -> {
-                try {
-                    persistDownloading(toPersist);
-                } catch (Throwable t) {
-                    Common.showLog("safeAdd persistDownloading failed: " + t.getMessage());
-                }
-            });
-        } else {
-            persistDownloading(item);
-        }
+        final DownloadItem toPersist = item;
+        IO.execute(() -> {
+            try {
+                persistDownloading(toPersist);
+            } catch (Throwable t) {
+                Common.showLog("safeAdd persistDownloading failed: " + t.getMessage());
+            }
+        });
     }
 
     /**
@@ -312,6 +304,11 @@ public class Manager {
         // 必须在后台线程执行，否则主线程卡死。
         IO.execute(() -> {
             long t0 = System.nanoTime();
+            // 持久化**必须留在临界区外**：锁住的这段时间里，任何线程的 contentSnapshot()
+            // 都得排队等——包括详情页 FAB 在主线程读队列那一下。把 172 次
+            // Gson(~80KB)+Room insert 关在锁里，等于让主线程陪着这整批 IO 一起卡（ANR）。
+            // 临界区只保留「去重 + content.add」这点纯内存操作，其余挪出去。
+            List<DownloadItem> accepted = new ArrayList<>(list.size());
             synchronized (this) {
                 if (content == null) {
                     content = new CopyOnWriteArrayList<>();
@@ -325,9 +322,21 @@ public class Manager {
                     // 与 addTask 对齐:跳过 null item(gif 走 buildDownloadItem 返 null 的历史坑),
                     // 否则 item.getUrl() 直接 NPE。调用方本应先过滤,这里兜底。
                     if (item != null && !existingUrls.contains(item.getUrl())) {
-                        safeAdd(item);
+                        // content.add 必须同步:triggerPump 的 getFirstReady 靠 content 立刻变长。
+                        content.add(item);
                         existingUrls.add(item.getUrl());
+                        accepted.add(item);
                     }
+                }
+            }
+            // 崩溃恢复记录:落后于 content 一小段时间。这段窗口里进程被杀会丢掉「续传」记录
+            // (下次冷启少恢复几条)，与 safeAdd 把持久化丢后台是同一个取舍——远比让主线程
+            // 陪着整批 IO 一起卡划算。
+            for (DownloadItem item : accepted) {
+                try {
+                    persistDownloading(item);
+                } catch (Throwable t) {
+                    Common.showLog("addTasks persistDownloading failed: " + t.getMessage());
                 }
             }
             long totalMs = (System.nanoTime() - t0) / 1_000_000;
