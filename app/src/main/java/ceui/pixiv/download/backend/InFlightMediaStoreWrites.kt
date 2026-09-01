@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * [ceui.pixiv.download.maintenance.MediaStoreOrphanCleaner] 冷启动打扫孤儿
  * pending 行时,原本靠「DATE_ADDED 距今 < 60s」识别在途行;但低调下载
- * ([SilentDownload])会在 insert 时就把 DATE_ADDED 回拨到 2007,时间闸对
+ * ([SilentDownload])会在 insert 时就把 DATE_ADDED 往前推 20 年,时间闸对
  * 这类行完全失效,清理协程与在途下载交错时会把正在写的行删掉 —— 写入落在
  * 已 unlink 的 FD 上静默丢弃,用户看到"下载成功"但文件不存在。改用显式
  * 登记,不依赖任何时间列。

@@ -258,8 +258,9 @@ class MediaStoreBackend(
                 // 低调下载:insert 时就带上回拨时间。DATE_ADDED 只在插入时赋值、
                 // 后续扫描不重算,这里是它最可靠的落点;onFinish 里的 backdateRow
                 // 作为 DATE_MODIFIED / DATE_TAKEN 的第二道保险。
-                put(MediaStore.MediaColumns.DATE_ADDED, SilentDownload.BACKDATE_SEC)
-                put(MediaStore.MediaColumns.DATE_MODIFIED, SilentDownload.BACKDATE_SEC)
+                val backdateSec = SilentDownload.backdateSeconds()
+                put(MediaStore.MediaColumns.DATE_ADDED, backdateSec)
+                put(MediaStore.MediaColumns.DATE_MODIFIED, backdateSec)
             }
         }
         var target: Uri = insertPendingRow(collectionUri, values, silent, relPath)
@@ -412,12 +413,13 @@ class MediaStoreBackend(
                 // 低调下载:先回拨 mtime 再扫,scanner 照 mtime 记 date_modified;
                 // 但 DATE_ADDED 由 scanner 记为「现在」,pre-Q 没有行所有权限制,
                 // 扫完在回调里直接把时间列改掉,把另一半也回拨上。
-                SilentDownload.backdateFile(file)
+                val stampMs = SilentDownload.backdateMillis()
+                SilentDownload.backdateFile(file, stampMs)
                 MediaScannerConnection.scanFile(
                     context, arrayOf(file.absolutePath), arrayOf(mime),
                 ) { _, scannedUri ->
                     if (scannedUri != null) {
-                        SilentDownload.backdateRow(context.contentResolver, scannedUri, null)
+                        SilentDownload.backdateRow(context.contentResolver, scannedUri, null, stampMs)
                     }
                 }
             } else {
