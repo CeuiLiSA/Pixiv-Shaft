@@ -171,6 +171,7 @@ class ClientManager {
             .dns(IPv4OnlyDns)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
+        RequestLogInterceptor.installOn(okhttpClientBuilder, "Net/AppApi")
         okhttpClientBuilder.addInterceptor(HeaderInterceptor())
         okhttpClientBuilder.addInterceptor(TokenFetcherInterceptor())
         applyAppApiProxy(okhttpClientBuilder)
@@ -194,6 +195,7 @@ class ClientManager {
             .dns(IPv4OnlyDns)
             .protocols(listOf(Protocol.HTTP_1_1))
 
+        RequestLogInterceptor.installOn(httpBuilder, "Net/WebApi")
         httpBuilder.addInterceptor(WebHeaderInterceptor())
         // issue #959: www.pixiv.net 也走直连(Cronet QUIC + CF IP),否则网页端专属功能
         // (拉黑、Web 首页、按 tag 筛作品…)在没梯子的网络上一律超时。
@@ -271,6 +273,7 @@ class ClientManager {
             .dns(IPv4OnlyDns)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
+        RequestLogInterceptor.installOn(httpBuilder, "Net/Comic")
         httpBuilder.addInterceptor(HeaderInterceptor())
         httpBuilder.addInterceptor(TokenFetcherInterceptor())
         applyDirectConnect(httpBuilder)
@@ -295,6 +298,7 @@ class ClientManager {
             .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
+        RequestLogInterceptor.installOn(httpBuilder, "Net/Fanbox")
         httpBuilder.addInterceptor(FanboxHeaderInterceptor())
         applyDirectConnect(httpBuilder)
 
