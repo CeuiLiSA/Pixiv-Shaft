@@ -99,6 +99,11 @@ class BookmarkLibraryFragment :
         ).also { it.install() }
     }
 
+    override fun onResume() {
+        super.onResume()
+        ui?.onResumed()
+    }
+
     override fun onDestroyView() {
         ui?.destroy()
         ui = null

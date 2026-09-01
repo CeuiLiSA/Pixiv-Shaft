@@ -183,6 +183,27 @@ class BookmarkMirrorService(app: Context) {
         }
     }
 
+    /**
+     * 立刻去服务端对一次这个书架的表头，**不受 [ensureShelf] 的节流影响**。
+     *
+     * 给「用户主动下拉刷新」用。那个动作的语义就是「我知道可能有新东西，去看一眼」——
+     * 任何形式的节流在这里都是在跟用户对着干。它也是整套镜像唯一一个**用户可以主动触发**
+     * 的同步入口：网页端 / 别的设备上收藏的东西，如果自动窗口还没到，这就是那条出路。
+     */
+    fun syncNow(shelf: BookmarkShelf, reason: String) {
+        if (!isFeatureEnabled()) return
+        if (shelf.ownerUid <= 0L) return
+        scope.launch {
+            if (dao.findState(shelf.key) == null) {
+                dao.upsertState(newState(shelf, System.currentTimeMillis()))
+                Timber.tag(TAG).i("注册书架 %s（原因：%s）", shelf.label, reason)
+            }
+            Timber.tag(TAG).i("[%s] 用户主动要求同步（%s）", shelf.label, reason)
+            maintenanceRequested += shelf.key
+            kick(reason)
+        }
+    }
+
     /** 唤醒循环（别处发生了值得干活的事）。 */
     fun kick(reason: String) {
         Timber.tag(TAG).v("kick: %s", reason)
@@ -987,10 +1008,16 @@ class BookmarkMirrorService(app: Context) {
         private const val MAINTENANCE_INTERVAL_MS = 6 * 60 * 60_000L
 
         /**
-         * 「用户在看这个书架」这个信号的节流窗口。窗口内重复的 [ensureShelf] 不再排增量：
-         * 页面上那个公开/悄悄切换来回点几下就是几次调用，而两分钟里收藏不会有什么新变化。
+         * 「用户在看这个书架」这个信号的节流窗口。
+         *
+         * 它要挡的只有一种东西：**秒级的连点**（页面顶部那个公开/悄悄切换被来回戳，真机上
+         * 15 秒里能触发 42 次）。所以窗口只要盖住那个量级就够了。
+         *
+         * 曾经设成 2 分钟，那是错的：用户最典型的动作恰恰是「在网页端收藏几张 → 切回 app
+         * 看看」，这个来回一分钟内就能完成，却会被整整挡掉，表现就是「网页端收藏的东西
+         * app 里死活看不到」。宁可多打两次请求，也不能让这条主路径失效。
          */
-        private const val MIN_MAINTENANCE_GAP_MS = 2 * 60_000L
+        private const val MIN_MAINTENANCE_GAP_MS = 30_000L
 
         /**
          * 全量重扫的间隔。它是**唯一**能发现「在网页端/别的设备取消了收藏」的机制，

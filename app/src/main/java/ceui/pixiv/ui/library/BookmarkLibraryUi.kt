@@ -80,6 +80,9 @@ internal class BookmarkLibraryUi(
      */
     private var resetAfterGeneration: Int? = null
 
+    /** 上一次看到的库内行数，用来认出「库里多出了东西」。 */
+    private var lastKnownStored: Int? = null
+
     /** 最近一次拿到的全部书架状态；切书架时按当前 shelfKey 重新挑一条出来。 */
     private var latestStates: List<BookmarkMirrorStateEntity> = emptyList()
 
@@ -97,9 +100,41 @@ internal class BookmarkLibraryUi(
         setUpChips()
         observeState()
 
+        setUpPullToRefresh()
+
         // 打开收藏库本身就是一次「用户在看这个书架」的信号：让引擎马上补一次增量，
         // 而不是等下一个例行窗口。补的过程静默，页面照常用本地数据。
         context.appServices().bookmarkMirror.ensureShelf(viewModel.shelf, reason = "打开收藏库")
+    }
+
+    /**
+     * 页面重新回到前台。**必须在 onResume 上再对一次**，不能只在 onViewCreated：
+     * 「在网页端收藏几张 → 切回 app 看看」是最典型的动作，而那个来回根本不会销毁本页的
+     * view —— 只挂在 install 上的话，回来看到的还是走之前那份，用户的结论就是
+     * 「网页端收藏的东西 app 里看不到」。
+     */
+    fun onResumed() {
+        if (destroyed) return
+        context.appServices().bookmarkMirror.ensureShelf(viewModel.shelf, reason = "回到收藏库")
+    }
+
+    /**
+     * 下拉刷新 = **去服务端对一次表头** + 重查本地。
+     *
+     * 框架默认只做后者（`feedViewModel.refresh()`），对本页来说等于什么都没做：本地源
+     * 读的就是镜像表，镜像不动，再查一百次也还是同一批。而「下拉刷新」恰恰是用户想说
+     * 「我在别处收藏了东西，去看看」时唯一会做的动作 —— 它必须真的去同步，否则这套
+     * 镜像对「网页端/别的设备上的收藏」就是个死胡同。
+     *
+     * 同步是异步的（受全局限速，约 10 秒两页），所以下拉的转圈会先随本地重查停下；
+     * 新收藏落库后由 [refreshIfStale] 接手上屏。
+     */
+    private fun setUpPullToRefresh() {
+        val refreshLayout = binding.feedRoot.feedRefreshLayout
+        refreshLayout.setOnRefreshListener {
+            context.appServices().bookmarkMirror.syncNow(viewModel.shelf, reason = "下拉刷新")
+            applyFilterChange()
+        }
     }
 
     fun destroy() {
@@ -436,10 +471,28 @@ internal class BookmarkLibraryUi(
         if (viewModel.filter.value.hasAnyCondition) return
         val shown = itemCount()
         val stored = viewModel.totalCount.value ?: return
+        val previous = lastKnownStored
+        lastKnownStored = stored
+
         val hasGhostRows = stored < shown
         val emptyButStored = shown == 0 && stored > 0
-        if (!hasGhostRows && !emptyButStored) return
-        Timber.tag(TAG).d("列表与库对不上，自动重查（库内 %d 行 / 屏幕 %d 条）", stored, shown)
+        // 库里多出了东西，而用户正停在列表顶部 → 直接让它上屏。
+        // 三个条件缺一不可：
+        // - **多出来**（而不是变少）：变少是取消收藏，那条由 hasGhostRows 管；
+        // - **停在顶部**：默认排序下新收藏就排在最上面，用户正看着那儿，插进去是他期待的；
+        //   滚到下面时一律不动 —— 把正在浏览的人拽回顶部比晚看到几条糟得多；
+        // - **已经补齐过一次**：首次回填期新行是从新往旧一路往**末尾**加的，顶部根本不会变，
+        //   跟着刷只是每 5 秒把整个列表重排一遍的无用功。
+        val grewWhileAtTop = previous != null &&
+            stored > previous &&
+            viewModel.mirrorState.value?.isFirstSyncDone == true &&
+            !listView.canScrollVertically(-1)
+
+        if (!hasGhostRows && !emptyButStored && !grewWhileAtTop) return
+        Timber.tag(TAG).d(
+            "列表与库对不上，自动重查（库内 %d 行 / 屏幕 %d 条，新增上屏=%b）",
+            stored, shown, grewWhileAtTop,
+        )
         applyFilterChange()
     }
 
