@@ -74,10 +74,6 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         retryController = PageLoadRetryController(
             lifecycleOwner = viewLifecycleOwner,
             networkStateManager = requireNetworkStateManager(),
-            urlAtIndex = { idx ->
-                (viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded)
-                    ?.pages?.getOrNull(idx)?.let { viewModel.urlForPage(it) }
-            },
             totalPages = {
                 (viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded)?.pages?.size ?: 0
             },

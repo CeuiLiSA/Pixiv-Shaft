@@ -36,7 +36,6 @@ fun renderImageLoadStatusBanner(
 class PageLoadRetryController(
     lifecycleOwner: LifecycleOwner,
     networkStateManager: NetworkStateManager,
-    private val urlAtIndex: (Int) -> String?,
     private val totalPages: () -> Int,
     private val onSummaryChanged: (loaded: Int, total: Int, failed: Int) -> Unit,
     private val onRetryAt: (Int) -> Unit,

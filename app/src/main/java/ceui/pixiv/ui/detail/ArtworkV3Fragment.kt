@@ -40,7 +40,6 @@ import ceui.lisa.databinding.RecyIllustDetailBinding
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
 import ceui.pixiv.download.IllustCaptionExporter
-import ceui.lisa.helper.StaggeredManager
 import ceui.loxia.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Dev
@@ -204,12 +203,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         )
     }
 
-    override fun onCreateLayoutManager(): RecyclerView.LayoutManager {
-        // 带整行 header 的瀑布流:GAP_HANDLING_NONE 对齐 legacy(开 gap 策略回滚时重排跳动)
-        return StaggeredManager(Shaft.sSettings.lineCount, RecyclerView.VERTICAL).apply {
-            gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_NONE
-        }
-    }
+    // onCreateLayoutManager 不覆写:父类 IllustFeedFragment 那份与本页原先内联的实现逐字相同
+    // (同样的 StaggeredManager(lineCount, VERTICAL) + GAP_HANDLING_NONE),它的注释里本来就写着
+    // 「对齐 legacy / Recmd / Artwork」——两份并存只会让下次调 gap 策略时漏改一处。
 
     override fun onListReady(listView: RecyclerView) {
         val spanCount = Shaft.sSettings.lineCount.coerceAtLeast(1)
@@ -277,16 +273,6 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         retryController = PageLoadRetryController(
             lifecycleOwner = viewLifecycleOwner,
             networkStateManager = requireNetworkStateManager(),
-            urlAtIndex = { idx ->
-                val illust = ObjectPool.get<Illust>(illustId).value
-                    ?: return@PageLoadRetryController null
-                if (idx < 0 || idx >= illust.page_count) return@PageLoadRetryController null
-                val resolution = if (Shaft.sSettings.isShowOriginalPreviewImage)
-                    Params.IMAGE_RESOLUTION_ORIGINAL
-                else
-                    Params.IMAGE_RESOLUTION_LARGE
-                IllustDownload.getUrl(illust, idx, resolution)
-            },
             totalPages = { ObjectPool.get<Illust>(illustId).value?.page_count ?: 0 },
             onSummaryChanged = { loaded, total, failed ->
                 renderImageLoadStatusBanner(
@@ -409,9 +395,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         super.onResume()
         if (isSnapshotMode) {
             // FeedSource 加载完成后用快照里的真实收藏态刷新只读心形按钮（兼容旧快照回落 illust.json）。
-            snapshotId?.let { SnapshotRuntimeCache.get(it) }?.let { data ->
-                fabBarController.setBookmarked(data.manifest.isBookmarked || data.illust.isBookmarked)
-            }
+            // 走同一个 helper 而不是在这里再内联一遍:那份内联只查 SnapshotRuntimeCache,
+            // 缓存没命中(4 条 LRU 被挤掉、进程重建)就什么都不做,心形停在默认灰;
+            // helper 有回落读 manifest 的 IO 分支。
+            applySnapshotBookmarkState()
             return
         }
         artworkViewModel.onPageVisible()
