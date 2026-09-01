@@ -63,6 +63,12 @@ class ArtworkV3ViewModel(
         }
     }
 
+    /**
+     * 「这一页被用户真正打开过」。[ensurePageDimensions] 与 [ensureTrustedCaption] 两处
+     * 「按需回源」共用的门,由 [onPageVisible] 拨上,详见那里。
+     */
+    private var pageVisible = false
+
     // ── 每页真实宽高(网页 ajax /ajax/illust/{id}/pages)──
     // app-api 的 meta_pages 不带每 P 宽高;这里补上,供顶部大图在下载前按真 ratio 预置各页高度,
     // 消除多 P 首帧「兜底高→自然高」的跳。Fragment 观察 [pageDimensions] 喂给 IllustAdapter。
@@ -73,9 +79,20 @@ class ArtworkV3ViewModel(
 
     private var pageDimsRequested = false
 
-    /** 多 P 首次拿到 bean 时拉一次每页真实宽高(单 P 无需、只拉一次)。缺 cookie/失败静默降级。 */
+    /**
+     * 多 P 首次拿到 bean 时拉一次每页真实宽高(单 P 无需、只拉一次)。缺 cookie/失败静默降级。
+     *
+     * 和 [ensureTrustedCaption] 共用 [pageVisible] 这道门,理由完全相同:[ceui.lisa.activities.VActivity]
+     * 用 offscreenPageLimit=1 预建前后各一页的 Fragment,它们的 onViewCreated → setupFabBar 会
+     * 碰到本 VM,observeForever 立刻把池里的 bean 投递过来 —— 挂在观察者上的话,每个多 P 的
+     * **邻居**作品都要白付一趟带 cookie 的网页 ajax,横滑浏览 N 个作品多打约 2N 个请求。
+     *
+     * 推迟到 onResume 不影响效果:顶部大图 adapter 是首次 bind 才懒建的,而这趟 ajax 本来就要
+     * 几百毫秒才回,[ArtworkV3Fragment] 那边「值先到由 ensurePageAdapter 补 / adapter 先建由
+     * 观察者补」两条路都还在。
+     */
     private fun ensurePageDimensions(bean: Illust) {
-        if (pageDimsRequested || bean.page_count < 2) return
+        if (!pageVisible || pageDimsRequested || bean.page_count < 2) return
         pageDimsRequested = true
         viewModelScope.launch {
             fetchIllustPageDimensions(illustId)?.let { _pageDimensions.value = it }
@@ -85,7 +102,6 @@ class ArtworkV3ViewModel(
     // ── caption 后台补拉(#960)──
 
     private var captionBackfillRequested = false
-    private var pageVisible = false
 
     /**
      * 「这一页被用户真正打开过」——由 Fragment 的 onResume 调,一次性闸门(不在 onPause 复位:
@@ -94,10 +110,17 @@ class ArtworkV3ViewModel(
      * [ceui.lisa.activities.VActivity] 用 BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT + offscreenPageLimit=1
      * 提前建好前后各一页的 Fragment/VM(为了横滑跟手),那两页只到 STARTED。补拉挂在 VM 创建上的话,
      * 一次横滑浏览会把**没打开过**的作品也各拉一遍 detail;挂在这里就只给当前页付钱。
+     *
+     * 守着两处按需回源:caption 补拉([ensureTrustedCaption])与每页真实宽高
+     * ([ensurePageDimensions])。后者原先挂在 ObjectPool 观察者上,VM 一建出来就发 ——
+     * 正是这条 KDoc 说不该付的那笔钱。
      */
     fun onPageVisible() {
         pageVisible = true
-        illustBean?.let { ensureTrustedCaption(it) }
+        illustBean?.let {
+            ensurePageDimensions(it)
+            ensureTrustedCaption(it)
+        }
     }
 
     /**
