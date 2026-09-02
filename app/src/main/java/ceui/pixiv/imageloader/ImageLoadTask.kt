@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
+import java.io.IOException
 
 /**
  * V3 图片加载系统里「一张图 = 一个任务」的最小单元。
@@ -115,6 +116,11 @@ class ImageLoadTask(
             val file = fetcher.fetch(request.url) { percent ->
                 // 只在下载中推进百分比,原子 CAS 避免覆盖已到来的终态。
                 _state.update { if (it is ImageLoadState.Loading) ImageLoadState.Loading(percent) else it }
+            }
+            // Success 的契约是「文件可用」:空文件(镜像站回 200 空 body 之类)若也进 Success,
+            // awaitFile() 的可用性谓词永远等不到终态、保存/AI/壁纸流程会无声挂死。这里改走 Error,可 retry。
+            if (!file.isUsableImageFile()) {
+                throw IOException("fetched file is missing or empty: ${file.path}")
             }
             _state.value = ImageLoadState.Success(file)
             Timber.d("[ImgV3] task SUCCESS url=$shortUrl totalMs=${elapsedRealtime() - startMs} size=${file.length()}")

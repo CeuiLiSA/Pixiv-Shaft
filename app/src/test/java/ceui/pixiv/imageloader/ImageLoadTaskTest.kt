@@ -1,6 +1,7 @@
 package ceui.pixiv.imageloader
 
 import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -135,6 +136,27 @@ class ImageLoadTaskTest {
         assertEquals(secondFile, task.awaitFile())
         assertEquals(2, calls)
         assertEquals(ImageLoadState.Success(secondFile), task.state.value)
+    }
+
+    @Test
+    fun `empty fetched file becomes error instead of hanging awaitFile`() = runTest {
+        val empty = File.createTempFile("imageloadtask-empty-", ".jpg").apply { deleteOnExit() }
+        val task = ImageLoadTask(
+            request = ImageRequest("https://i.pximg.net/img-original/img/empty.jpg"),
+            scope = this,
+            fetcher = object : ImageFetcher {
+                override suspend fun fetch(url: String, onProgress: (Int) -> Unit): File = empty
+            },
+            elapsedRealtime = { 0L },
+        )
+
+        task.start()
+        advanceUntilIdle()
+        assertTrue(task.state.value is ImageLoadState.Error)
+        assertNull(task.currentFile)
+
+        val thrown = runCatching { task.awaitFile() }.exceptionOrNull()
+        assertTrue(thrown is IOException)
     }
 
     @Test
