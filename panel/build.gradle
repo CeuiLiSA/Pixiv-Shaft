@@ -1,0 +1,49 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdk 36
+
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 36
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+
+    namespace 'ceui.pixiv.panel'
+}
+
+dependencies {
+    // ── api：类型长在本模块的公开 API 上，消费方不声明也要能编过 ──────────────
+    // PanelHost.listView 是 RecyclerView；attachBottomPanel 是 Fragment 的扩展，
+    // BottomPanelCoordinator 构造签名里也直接带 Fragment / LifecycleOwner。
+    api 'androidx.recyclerview:recyclerview:1.3.2'
+    api 'androidx.fragment:fragment-ktx:1.8.5'
+
+    // ── implementation：纯内部实现 ─────────────────────────────────────────
+    // WindowInsetsCompat / WindowInsetsAnimationCompat / updatePadding / isVisible
+    implementation 'androidx.core:core-ktx:1.13.1'
+    // 面板打开时的 OnBackPressedCallback
+    implementation 'androidx.activity:activity-ktx:1.9.3'
+    // 面板高度动画的 FastOutSlowInInterpolator
+    implementation 'androidx.interpolator:interpolator:1.0.0'
+
+    // 刻意不引：timber / :models / 任何 pixiv 代码。
+    // 本模块只认识「一个 PanelHost 契约 + 键盘与面板互斥的高度编排」，
+    // 面板里装什么（表情、评论草稿……）全在消费方。
+}

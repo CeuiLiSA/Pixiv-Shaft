@@ -1,4 +1,4 @@
-package ceui.pixiv.chat.base.panel
+package ceui.pixiv.panel
 
 /** Three-state model for input area + bottom panel screens. */
 enum class PanelState {

@@ -148,6 +148,7 @@ jobs:
           :feeds:lintDebug
           :websocket:lintDebug
           :banner:lintDebug
+          :panel:lintDebug
           :models:lintDebug
           :flowlayout-lib:lintDebug
           :progressmanager:lintDebug

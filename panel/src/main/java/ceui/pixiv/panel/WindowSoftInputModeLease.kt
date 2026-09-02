@@ -1,4 +1,4 @@
-package ceui.pixiv.chat.base.panel
+package ceui.pixiv.panel
 
 import android.view.Window
 import android.view.WindowManager
@@ -12,7 +12,7 @@ import java.util.WeakHashMap
  * the final release restores the snapshot. This prevents overlapping resumed Fragments from
  * restoring each other's Window policy out of order.
  */
-internal object WindowSoftInputModeLease {
+object WindowSoftInputModeLease {
 
     private data class Entry(
         val originalMode: Int,
@@ -37,7 +37,7 @@ internal object WindowSoftInputModeLease {
         return Handle(window)
     }
 
-    internal class Handle(private var window: Window?) {
+    class Handle(private var window: Window?) {
         @MainThread
         fun release() {
             val acquiredWindow = window ?: return

@@ -56,7 +56,7 @@ import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.utils.combineLatest
 import ceui.pixiv.services.requireNetworkStateManager
 import ceui.pixiv.utils.toTagsBeans
-import ceui.pixiv.chat.base.panel.PanelState
+import ceui.pixiv.panel.PanelState
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedViewModel

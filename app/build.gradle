@@ -363,6 +363,9 @@ dependencies {
     // 应用内 banner 框架（BannerManager / BannerHostInstaller / 默认文字卡片）。对 pixiv 一无所知，
     // 聊天报文 → banner 的桥接与 deep link 落地在宿主侧，见 ceui.pixiv.banner.host。
     implementation project(path: ':banner')
+    // 底部面板编排（PanelHost / BottomPanelCoordinator / WindowSoftInputModeLease）。对 pixiv 一无所知，
+    // 只管键盘与面板互斥的高度动画，面板内容与草稿在宿主侧，见 ceui.pixiv.ui.comments。
+    implementation project(path: ':panel')
     implementation project(path: ':progressmanager')
     implementation project(path: ':flowlayout-lib')
     implementation project(path: ':actionqueue')

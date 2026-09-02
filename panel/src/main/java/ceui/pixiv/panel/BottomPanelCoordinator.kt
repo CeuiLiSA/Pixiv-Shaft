@@ -1,4 +1,4 @@
-package ceui.pixiv.chat.base.panel
+package ceui.pixiv.panel
 
 import android.animation.ValueAnimator
 import android.util.TypedValue

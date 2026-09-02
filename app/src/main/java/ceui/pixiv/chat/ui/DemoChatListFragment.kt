@@ -39,9 +39,9 @@ import ceui.pixiv.chat.api.HttpChatHistorySource
 import ceui.pixiv.chat.api.ShaftChatGateway
 import ceui.pixiv.chat.base.PagingFooterAdapter
 import ceui.pixiv.chat.base.launchSuspend
-import ceui.pixiv.chat.base.panel.BottomPanelCoordinator
-import ceui.pixiv.chat.base.panel.PanelHost
-import ceui.pixiv.chat.base.panel.attachBottomPanel
+import ceui.pixiv.panel.BottomPanelCoordinator
+import ceui.pixiv.panel.PanelHost
+import ceui.pixiv.panel.attachBottomPanel
 import ceui.pixiv.chat.base.setupToolbar
 import ceui.pixiv.chat.base.viewBinding
 import ceui.pixiv.chat.base.viewModels

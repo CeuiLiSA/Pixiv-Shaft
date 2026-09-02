@@ -1,4 +1,4 @@
-package ceui.pixiv.chat.base.panel
+package ceui.pixiv.panel
 
 import androidx.fragment.app.Fragment
 
