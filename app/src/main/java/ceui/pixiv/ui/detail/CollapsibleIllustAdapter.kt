@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.detail
 
 import android.annotation.SuppressLint
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
@@ -38,6 +39,12 @@ class CollapsibleIllustAdapter(
     private val collapsedCount: Int = DEFAULT_COLLAPSED,
     var onComicReaderClick: (() -> Unit)? = null,
     var onExpandedChanged: ((expanded: Boolean) -> Unit)? = null,
+    /**
+     * 长按「展开剩余 X 张」→ 多图预览(#1085)。折叠态下这枚 CTA 才是用户眼里「这里还有几张」
+     * 的落点,跟右上角的阅读胶囊是同一个诉求的两个入口,手势保持一致(都是长按)。
+     * 返回是否真的弹出了预览 —— 没弹就别把这次长按吃掉,单击展开照常。
+     */
+    var onExpandPillLongClick: (() -> Boolean)? = null,
 ) : IllustAdapter(activity, fragment, illust, maxHeight, isForceOriginal) {
 
     private var expanded = false
@@ -207,6 +214,11 @@ class CollapsibleIllustAdapter(
         // Press-down feedback — scale on ACTION_DOWN, restore on release/cancel.
         // Return false so the click still fires normally via setOnClickListener.
         applyPillTouchFeedback(pill)
+        pill.setOnLongClickListener { v ->
+            if (onExpandPillLongClick?.invoke() != true) return@setOnLongClickListener false
+            v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            true
+        }
         pill.setOnClickListener {
             // Kick off the data change FIRST so onExpandedChanged(true) fires
             // before the fade — the host pill fades IN concurrently with this

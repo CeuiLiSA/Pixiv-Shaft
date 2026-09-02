@@ -45,4 +45,8 @@
     <dimen name="user_head_size_feeds">42dp</dimen>
     <dimen name="tab_layout_neg_height">-48dp</dimen>
     <dimen name="min_widget_size">44dp</dimen>
+
+    <!-- 页面预览网格每格四周的内缩。相邻两格各出一份，合起来就是一条 hairline（0.5dp，
+         同全 App 描边口径）；实际渲染每边最少占 1px，缝再细也不会消失。 -->
+    <dimen name="page_thumb_gutter">0.25dp</dimen>
 </resources>

@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.graphics.Rect
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.FrameLayout
@@ -177,6 +178,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      */
     private var commentsJumpRealign = false
 
+    /** 页码读数当前指着哪一页(0 基);浮标不在场时为 -1。长按预览拿它当高亮/初始滚动位。 */
+    private var pageProgressIndex = -1
+
+    /** 预览里点了一页、但那一页还被折叠着:展开后的条目一落地就补跳过去。 */
+    private var pendingPageJump: Int? = null
+
     /** 解析好的完整简介(#965):折叠态显示的是截断文本,展开/重绑时从这里取回全文。 */
     internal var descFullCaption: CharSequence? = null
 
@@ -222,6 +229,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                 scheduleCommentsRealign()
+                // 展开多图产出的页条目也是从这里落地的,长按预览欠着的那一跳在此接上(#1085)。
+                drainPendingPageJump()
             }
         })
     }
@@ -236,6 +245,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         _chromeBind = FragmentArtworkV3Binding.bind(view)
         _fabBarController = V3FabBarController(chromeBind.fabBar)
         attachPageProgressPill()
+        attachPagesPreview()
         if (isSnapshotMode) {
             // 快照只读：保留收藏/关注按钮用于展示“那一刻”的状态，但点击一律无动作。
             chromeBind.fabBar.root.isVisible = true
@@ -428,6 +438,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 跳评论的基线钉扎(#970)随视图作废:留着的话,视图重建(回退栈重显/旋转)后首次
         // render 的数据落地就会把新列表拽去评论区。
         commentsJumpRealign = false
+        pendingPageJump = null
+        pageProgressIndex = -1
         pageAdapter?.release()
         pageAdapter = null
         // 本视图生命周期内的一次性 guard 随视图销毁归零。否则同一 Fragment 实例视图重建(回退栈
@@ -463,6 +475,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 activity, this, illust, maxHeight, artworkViewModel.forceOriginalPreview,
                 onComicReaderClick = { openComicReader() },
                 onExpandedChanged = { expanded -> onPagesExpandedChanged(expanded) },
+                onExpandPillLongClick = { openPagesPreview() },
             )
             // 悬浮「收起」胶囊点击 → 折叠(collapse() 触发 onExpandedChanged(false) → 收回页 + 回顶 + 藏胶囊)
             chromeBind.collapsePill.setOnClickListener { collapsible.collapse() }
@@ -539,6 +552,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 activity, this, illust, maxHeight, false,
                 onComicReaderClick = null,
                 onExpandedChanged = { expanded -> onPagesExpandedChanged(expanded) },
+                onExpandPillLongClick = { openPagesPreview() },
             )
             chromeBind.collapsePill.setOnClickListener { collapsible.collapse() }
             collapsible
@@ -673,6 +687,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val total = currentPageCount()
         // 单图 / 动图没有「第几页」可言
         if (total <= 1) {
+            pageProgressIndex = -1
             pill.isVisible = false
             syncTopEndPill()
             return
@@ -681,6 +696,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val items = feedAdapter?.currentList
         val layoutManager = listView.layoutManager
         if (items == null || layoutManager == null) {
+            pageProgressIndex = -1
             pill.isVisible = false
             syncTopEndPill()
             return
@@ -696,14 +712,98 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         }
         if (current < 0) current = firstVisible
         if (current < 0) {
+            pageProgressIndex = -1
             pill.isVisible = false
             syncTopEndPill()
             return
         }
+        pageProgressIndex = current
         val text = getString(R.string.artwork_page_indicator, current + 1, total)
         if (pill.text?.toString() != text) pill.text = text
         pill.isVisible = true
         syncTopEndPill()
+    }
+
+    /**
+     * 阅读胶囊**长按** → 多图预览(#1085)。web 端那枚页码按钮是单击预览的,这里改成长按:胶囊里
+     * 「收起」那一段本来就吃单击,再叠一层单击必然互抢。
+     *
+     * 监听必须挂两处 —— 胶囊本体和里面的「收起」。「收起」自己 clickable,触摸落在它身上就被它
+     * 吃掉了,父容器根本收不到;只挂父的话,展开态(也就是最想预览的时候)按在「收起」上没反应。
+     *
+     * 选页结果走 fragment result 回来而不是 lambda:sheet 跨横屏会重建,回调必然失效(同 #1023)。
+     */
+    private fun attachPagesPreview() {
+        val onLongPress = View.OnLongClickListener { v ->
+            if (!openPagesPreview()) return@OnLongClickListener false
+            v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            true
+        }
+        chromeBind.topEndPillRow.setOnLongClickListener(onLongPress)
+        chromeBind.collapsePill.setOnLongClickListener(onLongPress)
+        childFragmentManager.setFragmentResultListener(
+            ArtworkThumbsSheet.REQUEST_KEY,
+            viewLifecycleOwner,
+        ) { _, bundle ->
+            jumpToPage(bundle.getInt(ArtworkThumbsSheet.KEY_PAGE_INDEX))
+        }
+    }
+
+    /** 弹预览。返回是否真的弹了 —— 没弹就别把这次长按吃掉。 */
+    private fun openPagesPreview(): Boolean {
+        val illust = currentIllust() ?: return false
+        val models = if (isSnapshotMode) {
+            // 快照页的图在本地,缩略图别回网上取(离线打开时那边什么也拿不到)。
+            val data = snapshotId?.let { SnapshotRuntimeCache.get(it) } ?: return false
+            ArtworkThumbsSheet.localModels(illust.page_count) { data.pageFile(it) }
+        } else {
+            ArtworkThumbsSheet.networkModels(illust)
+        }
+        return ArtworkThumbsSheet.show(this, models, pageProgressIndex.coerceAtLeast(0))
+    }
+
+    /**
+     * 跳到预览里选中的那一页。折叠态(3P+ 未展开)下列表里只有 p0,先展开 —— 预览里点的多半正是
+     * 被折起来的那些页。展开产出的条目走 feedViewModel 的异步 diff,落地后由
+     * [drainPendingPageJump] 接着滚。
+     */
+    private fun jumpToPage(index: Int) {
+        commentsJumpRealign = false
+        if (scrollToPageItem(index)) return
+        val collapsible = pageAdapter as? CollapsibleIllustAdapter ?: return
+        if (collapsible.isExpanded) return
+        pendingPageJump = index
+        collapsible.expand()
+    }
+
+    /** 那一页已经在列表里就滚过去并返回 true;还被折着(找不到条目)返回 false。 */
+    private fun scrollToPageItem(index: Int): Boolean {
+        if (_chromeBind == null) return false
+        val fa = feedAdapter ?: return false
+        val pos = fa.currentList.indexOfFirst { it is ArtworkPageItem && it.pageIndex == index }
+        if (pos < 0) return false
+        // 落位对齐列表顶缘,与页码读数的锚线口径一致:浮标压着谁就读谁,跳完读数正好是这一页。
+        val lm = feedBinding.feedListView.layoutManager
+        if (lm is StaggeredGridLayoutManager) lm.scrollToPositionWithOffset(pos, 0)
+        else feedBinding.feedListView.scrollToPosition(pos)
+        return true
+    }
+
+    /**
+     * 展开产出的条目落地后补跳。必须排到下一帧:条目增删通知先于这一帧的排版到达,当场滚会落在
+     * 上一帧的位置上(与 [scheduleCommentsRealign] 同一个理由)。
+     * ⚠️ 先验视图还活着 —— 在飞的 submitList 可能在 onDestroyView 之后才派发。
+     */
+    private fun drainPendingPageJump() {
+        val index = pendingPageJump ?: return
+        if (_chromeBind == null) {
+            pendingPageJump = null
+            return
+        }
+        feedBinding.feedListView.post {
+            if (pendingPageJump != index || _chromeBind == null) return@post
+            if (scrollToPageItem(index)) pendingPageJump = null
+        }
     }
 
     /**

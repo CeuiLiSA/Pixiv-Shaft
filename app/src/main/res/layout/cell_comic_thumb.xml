@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 页面预览网格的一格。格间缝 = 相邻两格的 padding 相加,取一条 hairline
+     (@dimen/page_thumb_gutter):缩略图之间几乎不留缝,一屏能当整篇来扫。 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:foreground="?attr/selectableItemBackground"
-    android:padding="2dp">
+    android:padding="@dimen/page_thumb_gutter">
 
     <ImageView
         android:id="@+id/cell_thumb_image"

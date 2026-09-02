@@ -13,6 +13,7 @@ import android.text.TextPaint
 import android.text.TextUtils
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnLongClickListener
@@ -44,6 +45,7 @@ import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.pixiv.ui.translate.translateTag
+import ceui.pixiv.ui.detail.ArtworkThumbsSheet
 import ceui.pixiv.ui.detail.TagEditSheet
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
 import ceui.lisa.database.AppDatabase
@@ -125,6 +127,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private var bottomSheetCallbackAttached = false
     private var pageProgressPillAttached = false
     private val pageProgressLocation = IntArray(2)
+    /** 页码浮标当前指着哪一页(0 基);浮标不在场时为 -1。长按预览拿它当高亮/初始滚动位。 */
+    private var pageProgressIndex = -1
     private var sheetDeltaY = 0
     private var loadedAvatarUrl: String? = null
 
@@ -726,6 +730,59 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         if (listView.isAttachedToWindow) {
             listView.viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
         }
+        attachPagesPreview()
+    }
+
+    /**
+     * 阅读浮标**长按** → 多图预览(#1085)。web 端那枚页码按钮是单击预览的,这里改成长按 —— V3 那枚
+     * 胶囊里「收起」那一段本来就吃单击,两棵树的手势保持一致。
+     *
+     * 面板拉起来时浮标是靠 alpha 淡出的(见 [setupBottomSheet]),View 还在、照样收触摸;透明了还能
+     * 长按出一张预览就成了「按到空气」,所以顺带按 alpha 挡掉。
+     *
+     * 选页结果走 fragment result 回来而不是 lambda:sheet 跨横屏会重建,回调必然失效(同 #1023)。
+     */
+    private fun attachPagesPreview() {
+        baseBind.pageProgressPill.setOnLongClickListener { v ->
+            if (v.alpha < 0.5f) return@setOnLongClickListener false
+            val illust = currentIllust() ?: return@setOnLongClickListener false
+            val models = if (isSnapshotMode) {
+                // 快照页的图在本地,缩略图别回网上取(离线打开时那边什么也拿不到)。
+                val data = snapshotViewerData ?: return@setOnLongClickListener false
+                ArtworkThumbsSheet.localModels(illust.page_count) { data.pageFile(it) }
+            } else {
+                ArtworkThumbsSheet.networkModels(illust)
+            }
+            if (!ArtworkThumbsSheet.show(this, models, pageProgressIndex.coerceAtLeast(0))) {
+                return@setOnLongClickListener false
+            }
+            v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            true
+        }
+        childFragmentManager.setFragmentResultListener(
+            ArtworkThumbsSheet.REQUEST_KEY,
+            viewLifecycleOwner,
+        ) { _, bundle ->
+            jumpToPage(bundle.getInt(ArtworkThumbsSheet.KEY_PAGE_INDEX))
+        }
+    }
+
+    /** 池 / 快照两条来源统一取当前作品的 bean。快照不写 ObjectPool,只有本地字段那一份。 */
+    private fun currentIllust(): Illust? =
+        if (isSnapshotMode) snapshotBean
+        else ObjectPool.get<Illust>(safeArgs.illustId.toLong()).value
+
+    /**
+     * 跳到预览里选中的那一页。V2 的图片区是一页一条目的 [LinearLayoutManager],没有折叠态,
+     * 位置就是页序。落位对齐列表顶缘,与页码读数的锚线口径一致(浮标压着谁就读谁)。
+     */
+    private fun jumpToPage(index: Int) {
+        val listView = baseBind.recyclerView
+        val total = (listView.adapter as? IllustAdapter)?.itemCount ?: return
+        if (index !in 0 until total) return
+        val lm = listView.layoutManager
+        if (lm is LinearLayoutManager) lm.scrollToPositionWithOffset(index, 0)
+        else listView.scrollToPosition(index)
     }
 
     /**
@@ -742,6 +799,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         val total = (listView.adapter as? IllustAdapter)?.itemCount ?: 0
         val layoutManager = listView.layoutManager
         if (total <= 1 || layoutManager == null || listView.childCount == 0) {
+            pageProgressIndex = -1
             pill.isVisible = false
             return
         }
@@ -761,9 +819,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
         if (current < 0) current = firstVisible
         if (current < 0) {
+            pageProgressIndex = -1
             pill.isVisible = false
             return
         }
+        pageProgressIndex = current
         val text = getString(R.string.artwork_page_indicator, current + 1, total)
         if (pill.text?.toString() != text) pill.text = text
         pill.isVisible = true
@@ -1009,6 +1069,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             e.printStackTrace()
         }
         pageProgressPillAttached = false
+        pageProgressIndex = -1
         renderedImageSignature = null
         renderedTagSignature = null
         bottomSheetCallbackAttached = false
