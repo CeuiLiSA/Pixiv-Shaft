@@ -20,6 +20,7 @@ import androidx.lifecycle.Observer;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions;
+import com.bumptech.glide.load.resource.bitmap.DownsampleStrategy;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 
@@ -57,6 +59,10 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.pixiv.download.RecordedPageProbe;
 import ceui.pixiv.utils.SketchPreloader;
+import ceui.lisa.view.DynamicHeightImageView;
+import ceui.lisa.view.PanoramaDragListener;
+import ceui.lisa.view.PanoramaPan;
+import com.blankj.utilcode.util.SizeUtils;
 import ceui.pixiv.imageloader.ImageLoadState;
 import ceui.pixiv.imageloader.ImageLoadTask;
 import ceui.pixiv.imageloader.ImageLoaderV3;
@@ -145,6 +151,29 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     /** 已对当前 holder 显示过缓存原图 overlay 的页码，避免 onResume 重复触发淡入。 */
     private final Set<Integer> cachedOriginalShownPages = ConcurrentHashMap.newKeySet();
 
+    /**
+     * 全景页(超宽图)集合。这种图按宽度缩后自然高只剩一条缝(17300×1750 在手机上约 110px,还压在
+     * 状态栏底下),FIT_CENTER 塞进大黑盒也只是把缝挪个位置。全景页改为:盒高固定
+     * {@link #panoramaBoxHeight},图放大到盒高、横向可拖(见 {@link DynamicHeightImageView#setPanorama});
+     * 并且**强制走原图**——pixiv 的 large 是 600×1200 内缩略,这种图的 large 只有 600×60,放大后是一片糊。
+     * 判定统一在 {@link #applyRatio}:自然高不足盒高的 {@link #PANORAMA_MIN_GAIN} 分之一才算,
+     * 正常横图(4:3、16:9)自然高远高于阈值,原样不动。
+     */
+    private final Set<Integer> panoramaPages = ConcurrentHashMap.newKeySet();
+    /** 各全景页的横向偏移,按页持有:回收重绑后拖到哪还是哪。 */
+    private final Map<Integer, PanoramaPan> panoramaPans = new ConcurrentHashMap<>();
+    /** 全景页的画面高度(px):280dp,不超过 maxHeight。 */
+    private final int panoramaBoxHeight;
+    /** 全景判定:自然高 < 盒高 × 0.6(即放大至少 1.67 倍才值得进全景)。 */
+    private static final float PANORAMA_MIN_GAIN = 0.6f;
+    private static final int PANORAMA_BOX_HEIGHT_DP = 280;
+    /**
+     * 全景页解码位图的宽度上限。盒高 280dp 在 3x 屏上是 840px,17300×1750 要解成 8300×840;
+     * 再宽的图(如 30:1)按此上限解码后靠矩阵放大。8192 是现役 GPU 纹理尺寸的普遍下限,
+     * 现有竖长漫画路径解出的位图早已超过 4096 高,不必更保守。
+     */
+    private static final int PANORAMA_MAX_BITMAP_WIDTH = 8192;
+
     public IllustAdapter(FragmentActivity activity, Fragment fragment, Illust illustsBean, int maxHeight, boolean isForceOriginal) {
         Common.showLog("IllustAdapter maxHeight " + maxHeight);
         mActivity = activity;
@@ -152,6 +181,8 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         allIllust = illustsBean;
         this.maxHeight = maxHeight;
         imageSize = mContext.getResources().getDisplayMetrics().widthPixels;
+        int panoramaDefault = SizeUtils.dp2px(PANORAMA_BOX_HEIGHT_DP);
+        panoramaBoxHeight = maxHeight > 0 ? Math.min(panoramaDefault, maxHeight) : panoramaDefault;
         this.isForceOriginal = isForceOriginal;
         this.mFragment = fragment;
         this.fragmentRequestManager = Glide.with(fragment);
@@ -381,6 +412,8 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             });
         }
 
+        // 回收重绑先退出全景(scaleType / 触摸监听还原),再由下面的尺寸判定决定要不要重新进。
+        resetPanorama(holder);
         // 统一 FIT_CENTER:有了每页真 ratio,展示盒与图同比,不letterbox也不裁切(旧代码后续页用
         // CENTER_CROP 只是为掩盖「高度靠解码后才定」的临时错比,现在不需要)。
         holder.baseBind.illust.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -425,8 +458,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     private boolean applyRatioOrPlaceholder(ViewHolder<RecyIllustDetailBinding> holder, int position) {
         Float ratio = pageRatio.get(position);
         if (ratio != null && ratio > 0f) {
-            holder.baseBind.illust.setHeightRatio(ratio);
-            holder.baseBind.illustHd.setHeightRatio(ratio);
+            applyRatio(holder, position, ratio);
             return false;
         }
         // 多 P 后续页:P1 宽高(bean 必有)当先验比例占位,替代 maxHeight 全高空白容器。
@@ -435,8 +467,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             float prior = (float) allIllust.getHeight() / allIllust.getWidth();
             int priorHeight = Math.round((float) imageSize * prior);
             if (maxHeight <= 0 || priorHeight <= maxHeight) {
-                holder.baseBind.illust.setHeightRatio(prior);
-                holder.baseBind.illustHd.setHeightRatio(prior);
+                if (isPanoramaRatio(prior)) {
+                    // P1 是全景图,这一页多半也是:先按全景盒高占位,免得先缩成一条缝再跳到盒高。
+                    setFixedHeight(holder, panoramaBoxHeight);
+                } else {
+                    holder.baseBind.illust.setHeightRatio(prior);
+                    holder.baseBind.illustHd.setHeightRatio(prior);
+                }
                 return true;
             }
         }
@@ -472,6 +509,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         }
         float ratio = (float) h / w;
         int naturalHeight = Math.round((float) imageSize * ratio);
+        if (applyPanoramaIfNeeded(holder, position, ratio)) {
+            return;
+        }
         if (position == 0 && allIllust.getPage_count() == 1 && maxHeight > 0 && naturalHeight < maxHeight) {
             setFixedHeight(holder, maxHeight);
         } else {
@@ -479,6 +519,81 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             holder.baseBind.illustHd.setHeightRatio(ratio);
             pageRatio.put(position, ratio);
         }
+    }
+
+    /** 已知该页真实 ratio(高/宽)时的统一入口:全景优先,否则按 ratio 自 measure。 */
+    private void applyRatio(ViewHolder<RecyIllustDetailBinding> holder, int position, float ratio) {
+        if (applyPanoramaIfNeeded(holder, position, ratio)) {
+            return;
+        }
+        holder.baseBind.illust.setHeightRatio(ratio);
+        holder.baseBind.illustHd.setHeightRatio(ratio);
+    }
+
+    /** 是否为全景页;CollapsibleIllustAdapter 的封面兜高遇到全景页要让路(盒高已由全景定下)。 */
+    protected boolean isPanoramaPage(int position) {
+        return panoramaPages.contains(position);
+    }
+
+    private boolean isPanoramaRatio(float ratio) {
+        if (ratio <= 0f || panoramaBoxHeight <= 0) {
+            return false;
+        }
+        return imageSize * ratio < panoramaBoxHeight * PANORAMA_MIN_GAIN;
+    }
+
+    /**
+     * 按 ratio 判定并进入/退出全景。返回 true 表示这一页是全景、盒子已经定好;false 表示按普通路径走。
+     * 原图校准(renderOverlay)给出的真尺寸可能把一页从全景改判回普通(bean 宽高错了),此时要把
+     * 全景态整体撤掉,否则 MATRIX scaleType 会残留在普通页上。
+     */
+    private boolean applyPanoramaIfNeeded(ViewHolder<RecyIllustDetailBinding> holder, int position, float ratio) {
+        if (!isPanoramaRatio(ratio)) {
+            if (panoramaPages.remove(position)) {
+                resetPanorama(holder);
+            }
+            return false;
+        }
+        panoramaPages.add(position);
+        pageRatio.put(position, ratio);
+        PanoramaPan pan = panoramaPans.computeIfAbsent(position, k -> new PanoramaPan());
+        DynamicHeightImageView base = holder.baseBind.illust;
+        DynamicHeightImageView hd = holder.baseBind.illustHd;
+        // 每次 bind 都先 resetPanorama,所以此刻已在全景 = 同一页在本 holder 上的二次判定
+        //(原图落地后的真尺寸校准)。盒高与 pan 不变,拖动监听也不能换:惯性进行中换一个新的
+        // OverScroller,旧的一帧帧还在推、新的按下又拦不住它。
+        boolean alreadyPanorama = base.isPanorama();
+        // 首图同样从顶部贴顶、顶栏浮在图上,与普通作品一致;不另留净空(用户反馈:顶部空一块很突兀)。
+        setFixedHeight(holder, panoramaBoxHeight);
+        base.setPanorama(pan);
+        hd.setPanorama(pan);
+        if (!alreadyPanorama) {
+            holder.itemView.setOnTouchListener(new PanoramaDragListener(pan, Arrays.asList(base, hd)));
+        }
+        return true;
+    }
+
+    private void resetPanorama(ViewHolder<RecyIllustDetailBinding> holder) {
+        holder.baseBind.illust.setPanorama(null);
+        holder.baseBind.illustHd.setPanorama(null);
+        holder.itemView.setOnTouchListener(null);
+    }
+
+    /** 这一页要不要拿原图:设置开 / 宿主强制 / 全景页(large 只有 600px 宽,放大后没法看)。 */
+    private boolean wantsOriginal(int position) {
+        return Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal || panoramaPages.contains(position);
+    }
+
+    /**
+     * 全景页的解码尺寸:按「装进 8192 × 盒高」缩(CENTER_INSIDE 不放大),而不是默认的 CENTER_OUTSIDE
+     * ——后者按「盖满视图」算,对 30:1 的图会解出两万像素宽的位图。
+     */
+    private RequestBuilder<Bitmap> panoramaDecodeSize(RequestBuilder<Bitmap> request, int position) {
+        if (!panoramaPages.contains(position)) {
+            return request;
+        }
+        return request.downsample(DownsampleStrategy.CENTER_INSIDE)
+                .override(PANORAMA_MAX_BITMAP_WIDTH, panoramaBoxHeight);
     }
 
     /**
@@ -527,7 +642,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     }
 
     private void loadFromNetwork(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
-        boolean loadOriginal = Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal;
+        boolean loadOriginal = wantsOriginal(position);
         final String largeUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_LARGE);
         final String originalUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_ORIGINAL);
         // 不主动下载原图；但若这一页原图已经在进程内缓存（如刚从大图页看过），
@@ -704,9 +819,22 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             return;
         }
         float ratio = (float) resource.getHeight() / resource.getWidth();
-        if (ratio > 0f) {
-            pageRatio.put(position, ratio);
-            holder.baseBind.illust.setHeightRatio(ratio);
+        if (ratio <= 0f) {
+            return;
+        }
+        pageRatio.put(position, ratio);
+        boolean wasOriginal = wantsOriginal(position);
+        applyRatio(holder, position, ratio);
+        // 解码完才知道是全景、而这次只下了 large → 补一轮原图。Glide 禁止在回调里起新请求,下一拍再来;
+        // 那时 ratio 已知(changeSize=false),不会再进本路径,不会循环。
+        if (!wasOriginal && panoramaPages.contains(position) && snapshotId == null
+                && !localPageUris.containsKey(position)) {
+            String guardUrl = (String) holder.baseBind.illust.getTag(R.id.tag_image_url);
+            holder.baseBind.illust.post(() -> {
+                if (released || mFragment == null || mFragment.getView() == null) return;
+                if (guardUrl == null || !guardUrl.equals(holder.baseBind.illust.getTag(R.id.tag_image_url))) return;
+                loadIllust(holder, position, false);
+            });
         }
     }
 
@@ -765,10 +893,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         // 底层 large 依旧透出来。就绪后再置 VISIBLE 淡入盖上。
         holder.baseBind.illustHd.setVisibility(View.INVISIBLE);
         RequestManager requestManager = mFragment != null ? Glide.with(mFragment) : Glide.with(mContext);
-        requestManager
+        panoramaDecodeSize(requestManager
                 .asBitmap()
                 .load(file)
-                .transform(new LargeBitmapScaleTransformer())
+                .transform(new LargeBitmapScaleTransformer()), position)
                 .transition(BitmapTransitionOptions.withCrossFade())
                 .listener(new RequestListener<Bitmap>() {
                     @Override
@@ -804,7 +932,8 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                                             String guardUrl, int position) {
         // 防御：快照模式 / 已开启原图模式时本 bonus 路径完全不跑。
         if (released || snapshotId != null) return;
-        if (Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal) return;
+        // 全景页本就走原图路径,bonus 覆盖只会重复解一次大位图。
+        if (wantsOriginal(position)) return;
         // 首次为该页拿原图真尺寸，校准展示盒；与 renderOverlay 同一套去重。
         if (overlaySizedPages.add(position)) {
             int[] bounds = readImageBounds(file);
@@ -814,10 +943,11 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         }
         holder.baseBind.illustHd.setVisibility(View.INVISIBLE);
         RequestManager requestManager = mFragment != null ? Glide.with(mFragment) : Glide.with(mContext);
-        requestManager
+        // 上面的校准可能刚把这一页改判成全景(bean 宽高不准),解码尺寸按当下的判定走。
+        panoramaDecodeSize(requestManager
                 .asBitmap()
                 .load(file)
-                .transform(new LargeBitmapScaleTransformer())
+                .transform(new LargeBitmapScaleTransformer()), position)
                 .transition(BitmapTransitionOptions.withCrossFade())
                 .listener(new RequestListener<Bitmap>() {
                     @Override
@@ -862,7 +992,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * 上层 detachTaskObservers 统一清理，本路径不挂 LiveData observer，不会累积(#912)。
      */
     private void loadFromLocalFile(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize, Uri localUri) {
-        boolean isLoadOriginalImage = Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal;
+        boolean isLoadOriginalImage = wantsOriginal(position);
         final String imageUrl = IllustDownload.getUrl(allIllust, position,
                 isLoadOriginalImage ? Params.IMAGE_RESOLUTION_ORIGINAL : Params.IMAGE_RESOLUTION_LARGE);
         // 与网络路径一致地打 tag，让后续 stale 回调判定、reload 重试逻辑共用一套。
@@ -875,10 +1005,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         // 与 renderBase 同一口径(#963):首显 crossFade 淡入(硬盘直读等待期间眼睛已适应暗底,
         // 硬切最刺眼的正是本路径),回收重绑 dontAnimate 直接贴图不从灰底淡入。
         boolean firstShow = !shownPages.contains(position);
-        RequestBuilder<Bitmap> request = requestManager
+        RequestBuilder<Bitmap> request = panoramaDecodeSize(requestManager
                 .asBitmap()
                 .load(localUri)
-                .transform(new LargeBitmapScaleTransformer());
+                .transform(new LargeBitmapScaleTransformer()), position);
         request = firstShow
                 ? request.transition(BitmapTransitionOptions.withCrossFade())
                 : request.dontAnimate();

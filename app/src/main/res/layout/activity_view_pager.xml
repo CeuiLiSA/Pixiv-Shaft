@@ -10,12 +10,14 @@
         android:layout_height="match_parent">
 
 
-        <androidx.viewpager.widget.ViewPager
+        <!-- FixedViewPager:ViewPager 1.0 的 onInterceptTouchEvent 拿 findPointerIndex 的 -1 直接 getX 会崩
+             (多指、其中一根抬起没被它看到时),大图页早已换成它,这里同样兜住。 -->
+        <ceui.lisa.view.FixedViewPager
             android:layout_width="match_parent"
             android:id="@+id/viewPager"
             android:layout_height="match_parent">
 
-        </androidx.viewpager.widget.ViewPager>
+        </ceui.lisa.view.FixedViewPager>
 
     </RelativeLayout>
 </layout>

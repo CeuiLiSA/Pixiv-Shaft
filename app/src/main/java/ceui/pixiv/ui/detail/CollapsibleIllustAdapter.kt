@@ -107,7 +107,9 @@ class CollapsibleIllustAdapter(
         h: Int,
     ) {
         super.applyPixelSize(holder, position, w, h)
-        if (position == 0 && isCollapsible) {
+        // 全景页(超宽图)的盒高已由 super 定下(固定高 + 横向可拖),不再套封面兜高:
+        // 兜高会把它拔回 maxHeight 的大黑盒,正是全景要替代的观感。
+        if (position == 0 && isCollapsible && !isPanoramaPage(position)) {
             floorCoverHeight(holder, w, h)
         }
     }
