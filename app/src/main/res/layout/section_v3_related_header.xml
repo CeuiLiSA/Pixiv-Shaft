@@ -40,7 +40,18 @@
         android:layout_height="wrap_content"
         android:visibility="gone">
 
+        <!-- 插画详情:相关作品是普通瀑布流卡,直接用瀑布流骨架(列数跟随「每行几列」设置,
+             8dp 间距/圆角与真卡一致)。小说详情复用本布局但后面跟的是小说卡,继续用转圈。
+             高度写死一屏多一点:骨架只是给真卡占位,拉到后本容器整块收起、相关卡从同一位置
+             接着排,所以占多高不影响最终版式,够铺满视口即可。 -->
+        <ceui.pixiv.feeds.FeedStaggeredSkeletonView
+            android:id="@+id/related_skeleton"
+            android:layout_width="match_parent"
+            android:layout_height="360dp"
+            android:visibility="gone" />
+
         <ProgressBar
+            android:id="@+id/related_loading_spinner"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:layout_gravity="center"

@@ -18,6 +18,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
 import ceui.lisa.activities.VActivity
@@ -740,8 +741,9 @@ private fun ArtworkV3Fragment.renderCommentsPreview(
     val accent = palette.textAccent
     comments.forEach { comment ->
         val cellB = CellCommentPreviewBinding.inflate(inflater, b.commentsList, false)
-        (cellB.root.layoutParams as ViewGroup.MarginLayoutParams).topMargin =
-            if (b.commentsList.childCount > 0) 8.ppppx else 0
+        // 条目间 hairline：第一条上面不画（下面就是「添加评论」胶囊）。这里整段重建，
+        // 不存在列表页那种「插入后相邻条目不重绑」的问题，所以放在 cell 里最省。
+        cellB.rowDivider.isVisible = b.commentsList.childCount > 0
 
         cellB.userName.text = comment.user.name
         cellB.commentTime.text = comment.displayCommentDate()
@@ -896,6 +898,10 @@ internal fun ArtworkV3Fragment.relatedHeaderRenderer() =
             ctx.startActivity(intent)
         }
         b.relatedLoadingContainer.isVisible = item.state == null
+        // 插画侧走瀑布流骨架(列数跟随设置),转圈只留给复用本布局的小说详情
+        b.relatedSkeleton.spanCount = Shaft.sSettings.lineCount
+        b.relatedSkeleton.isVisible = true
+        b.relatedLoadingSpinner.isVisible = false
         b.relatedSeeMore.isVisible = item.state == true
         b.relatedEmpty.isVisible = item.state == false
     }

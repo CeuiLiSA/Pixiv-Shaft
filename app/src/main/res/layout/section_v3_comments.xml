@@ -3,8 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingHorizontal="12dp"
     android:paddingBottom="18dp">
+
+    <!-- 评论行是无界平铺(edge-to-edge),所以左右边距不能挂在本区块根上,而是各自挂在
+         区块头 / 「添加评论」胶囊 / 空态上,统一 12dp 与其余区块头对齐。 -->
 
     <!-- Header: 评论 label + 查看更多(常驻右侧,无论有没有评论都能进完整列表) -->
     <LinearLayout
@@ -12,7 +14,9 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="14dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
 
         <TextView
             android:layout_width="0dp"
@@ -41,6 +45,8 @@
         android:id="@+id/add_comment_entry"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
         android:layout_marginBottom="14dp"
         android:clickable="true"
         android:focusable="true"
@@ -68,14 +74,12 @@
             android:textSize="14sp" />
     </LinearLayout>
 
-    <!-- Loading spinner -->
-    <ProgressBar
+    <!-- 加载态骨架图:三张评论卡的卡内内容(头像 / 名字 / 时间 / 两行正文),尺寸照抄
+         cell_comment_preview,真评论到位时原地替换、不跳版。 -->
+    <ceui.pixiv.ui.detail.SectionCommentsSkeletonView
         android:id="@+id/comments_loading"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginVertical="50dp"
-        android:indeterminateTint="@color/v3_text_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:visibility="gone" />
 
     <!-- Comments list -->
@@ -92,7 +96,10 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:minHeight="160dp"
-        android:paddingVertical="48dp"
+        android:paddingStart="12dp"
+        android:paddingTop="48dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="48dp"
         android:text="@string/v3_no_comments_yet"
         android:textColor="@color/v3_text_3"
         android:textSize="13sp"

@@ -41,13 +41,11 @@
             android:textSize="12sp" />
     </LinearLayout>
 
-    <ProgressBar
+    <!-- 加载态骨架图:一排正方形封面块,边长/间距/内边距与下面的 RV 逐项对齐 -->
+    <ceui.pixiv.ui.detail.SectionAuthorWorksSkeletonView
         android:id="@+id/author_works_loading"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginVertical="50dp"
-        android:indeterminateTint="@color/v3_text_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView

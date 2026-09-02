@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 列表条目之间的 hairline。0.5dp 在任何密度下至少渲染 1px;list_divider 自带 values-night,
+     日夜两套都读得出。左右缩进由使用方(BottomDividerDecoration 的 margin)给,不写死在这里。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <size android:height="@dimen/hairline_width" />
+    <solid android:color="@color/list_divider" />
+</shape>

@@ -49,4 +49,8 @@
     <!-- 页面预览网格每格四周的内缩。相邻两格各出一份，合起来就是一条 hairline（0.5dp，
          同全 App 描边口径）；实际渲染每边最少占 1px，缝再细也不会消失。 -->
     <dimen name="page_thumb_gutter">0.25dp</dimen>
+
+    <!-- 全 App 描边 / 分割线口径。0.5dp 在任何密度下都至少渲染 1px
+         （complexToDimensionPixelSize 对非零值保底 1px），不会缩没。 -->
+    <dimen name="hairline_width">0.5dp</dimen>
 </resources>

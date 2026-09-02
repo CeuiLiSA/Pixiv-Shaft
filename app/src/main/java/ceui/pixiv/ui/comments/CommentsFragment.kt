@@ -21,12 +21,12 @@ import ceui.lisa.databinding.FragmentCommentsFeedBinding
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
-import ceui.lisa.view.LinearItemDecoration
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Comment
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.widgets.ProgressTextButton
+import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.launchSuspend
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -39,7 +39,6 @@ import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.user.UserActionReceiver
-import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
@@ -212,7 +211,12 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
     }
 
     override fun onListReady(listView: RecyclerView) {
-        listView.addItemDecoration(LinearItemDecoration(10.ppppx))
+        // 无界平铺(#1038)之后条目之间只靠 hairline 分隔,分割线跟着条目一起通栏、左右不留缩进。
+        // 用 ItemDecoration 而不是在 cell 里放一根线:发新评论 prepend / 翻页 append 都不会重绑
+        // 相邻条目,写在 cell 里那一根会漏画。
+        listView.addItemDecoration(
+            BottomDividerDecoration(requireContext(), R.drawable.hairline_divider),
+        )
     }
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {

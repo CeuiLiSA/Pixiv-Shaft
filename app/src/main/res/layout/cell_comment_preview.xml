@@ -1,102 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 一级详情页评论预览卡:作品评论列表页毛玻璃卡的缩小版(只读一瞥,无回复/删除/嵌套,点「查看评论」进完整列表)。
-     绑定在 ArtworkDetailAdapter.CommentsVH 里手写完成,不用 databinding。 -->
+<!-- 一级详情页评论预览行:作品评论列表页条目的缩小版(只读一瞥,无回复/删除/嵌套,点「查看评论」进完整列表)。
+     绑定在 ArtworkSectionRenderers.renderCommentsPreview 里手写完成,不用 databinding。
+     无界平铺(#1038 同款):不套卡底、edge-to-edge,条目间距由自身上下 padding 承担,
+     渲染方不再给第 2 条起加 topMargin。padding 四向拆开写 —— paddingHorizontal 是
+     API 26+ 属性,minSdk 24 的机器上会被静默忽略,行内容直接顶满屏幕边。 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/v3_comment_preview_card"
-    android:foreground="@drawable/v3_ripple_card14"
-    android:orientation="vertical"
-    android:paddingStart="12dp"
-    android:paddingTop="10dp"
-    android:paddingEnd="12dp"
-    android:paddingBottom="10dp">
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical">
 
-    <!-- Header: avatar · [作者] name · time -->
+    <!-- 条目间的 hairline(第一条由渲染方藏掉)。跟着条目一起无界:通栏到底,左右不留缩进。
+         颜色 list_divider 自带 values-night,日夜都读得出。 -->
+    <View
+        android:id="@+id/row_divider"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/hairline_width"
+        android:background="@color/list_divider" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:paddingStart="12dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="12dp">
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/user_icon"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginEnd="10dp"
-            android:scaleType="centerCrop"
-            app:civ_border_color="@color/v3_border_2"
-            app:civ_border_width="1.5dp" />
-
-        <TextView
-            android:id="@+id/arthur_label"
-            android:layout_width="wrap_content"
+        <!-- Header: avatar · [作者] name · time -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="6dp"
-            android:background="@drawable/v3_author_badge_bg"
-            android:includeFontPadding="false"
-            android:letterSpacing="0.02"
-            android:paddingStart="6dp"
-            android:paddingTop="1.5dp"
-            android:paddingEnd="6dp"
-            android:paddingBottom="1.5dp"
-            android:text="@string/string_432"
-            android:textColor="@color/v3_purple"
-            android:textSize="9sp"
-            android:textStyle="bold"
-            android:visibility="gone"
-            tools:text="作者"
-            tools:visibility="visible" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/user_name"
-            style="@style/textMontserratSemiBold"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:letterSpacing="-0.01"
-            android:maxLines="1"
-            android:textColor="@color/v3_text_1"
-            android:textSize="13sp"
-            tools:text="评论者名字" />
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/user_icon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="10dp"
+                android:scaleType="centerCrop"
+                app:civ_border_color="@color/v3_border_2"
+                app:civ_border_width="1.5dp" />
 
-        <TextView
-            android:id="@+id/comment_time"
-            android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/arthur_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/v3_author_badge_bg"
+                android:includeFontPadding="false"
+                android:letterSpacing="0.02"
+                android:paddingStart="6dp"
+                android:paddingTop="1.5dp"
+                android:paddingEnd="6dp"
+                android:paddingBottom="1.5dp"
+                android:text="@string/string_432"
+                android:textColor="@color/v3_purple"
+                android:textSize="9sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="作者"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/user_name"
+                style="@style/textMontserratSemiBold"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:letterSpacing="-0.01"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_1"
+                android:textSize="13sp"
+                tools:text="评论者名字" />
+
+            <TextView
+                android:id="@+id/comment_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:letterSpacing="0.02"
+                android:maxLines="1"
+                android:textColor="@color/v3_text_3"
+                android:textSize="11sp"
+                tools:text="3 小时前" />
+        </LinearLayout>
+
+        <!-- Body: text or stamp -->
+        <FrameLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:letterSpacing="0.02"
-            android:maxLines="1"
-            android:textColor="@color/v3_text_3"
-            android:textSize="11sp"
-            tools:text="3 小时前" />
+            android:layout_marginStart="42dp"
+            android:layout_marginTop="6dp">
+
+            <TextView
+                android:id="@+id/comment_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.01"
+                android:lineSpacingMultiplier="1.3"
+                android:textColor="@color/v3_text_2"
+                android:textSize="13sp"
+                tools:text="这是详情页里的一条评论预览。" />
+
+            <net.csdn.roundview.RoundImageView
+                android:id="@+id/comment_stamp"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:scaleType="fitCenter"
+                app:rRadius="12dp" />
+        </FrameLayout>
     </LinearLayout>
-
-    <!-- Body: text or stamp -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="42dp"
-        android:layout_marginTop="6dp">
-
-        <TextView
-            android:id="@+id/comment_content"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:letterSpacing="0.01"
-            android:lineSpacingMultiplier="1.3"
-            android:textColor="@color/v3_text_2"
-            android:textSize="13sp"
-            tools:text="这是详情页里的一条评论预览。" />
-
-        <net.csdn.roundview.RoundImageView
-            android:id="@+id/comment_stamp"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:scaleType="fitCenter"
-            app:rRadius="12dp" />
-    </FrameLayout>
 </LinearLayout>
