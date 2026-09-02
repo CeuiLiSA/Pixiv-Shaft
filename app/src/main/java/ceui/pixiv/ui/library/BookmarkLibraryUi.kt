@@ -463,10 +463,12 @@ internal class BookmarkLibraryUi(
      *
      * 判据刻意只是**两边条数的对账**，不掺「镜像同步到哪一步了」：
      *
-     * - `库里 < 屏幕`：屏幕上挂着库里已经没有的行。最典型的是刚点了「重建本地镜像」——
-     *   `rebuildShelf` 是 fire-and-forget 的，清空在它自己的协程里，而 `rebuildMirror`
-     *   紧接着发的那次刷新完全可能跑在清空**之前**（真机日志复现：清空 2 行之后 2ms，
-     *   那次查询读到的还是 2 行）。
+     * - `库里被清空而屏幕上还有东西`：刚点了「重建本地镜像」—— `rebuildShelf` 是
+     *   fire-and-forget 的，清空在它自己的协程里，页面这边只能靠计数掉到 0 认出来。
+     *   **不能放宽成「库里 < 屏幕」**：取消收藏会即时删掉镜像行而卡片留在屏幕上（与原收藏页
+     *   一致，只翻空那颗心），列表一旦已经全部加载完（几十条的小书架、或滑到了底），每取消一次
+     *   都会被判成对不上，然后 [applyFilterChange] 把用户从列表深处拽回顶部。那几张卡片留着
+     *   就是原收藏页的既有行为，不值得为它重排整个列表。
      * - `屏幕为空而库里有货`：本地源查到 0 行时返回的 `nextCursor` 是 null，feeds 框架据此
      *   判定「到底了」，从此不再问数据源要任何东西。所以镜像补进第一批之后，得有人推它一把。
      *
@@ -474,8 +476,8 @@ internal class BookmarkLibraryUi(
      * 同一时刻翻成 true，于是「补齐中且空」这条判据在最需要它的那一瞬间失效 —— 回填明明
      * 完成了，页面却永远停在「正在补齐…」的空态上（真机复现）。条数对账没有这个时序缝隙。
      *
-     * 只在两边真的对不上时动手，所以取消收藏删掉一两行**不会**触发（1007 < 60 不成立），
-     * 用户的滚动位置不会被无谓地拽回顶部。有筛选条件时一律不管：那种「空」是条件没筛到。
+     * 只在两边真的对不上时动手，用户的滚动位置不会被无谓地拽回顶部。有筛选条件时一律不管：
+     * 那种「空」是条件没筛到。
      */
     private fun refreshIfStale() {
         if (destroyed) return
@@ -489,11 +491,11 @@ internal class BookmarkLibraryUi(
         val previous = lastKnownStored
         lastKnownStored = stored
 
-        val hasGhostRows = stored < shown
+        val clearedWhileShown = stored == 0 && shown > 0
         val emptyButStored = shown == 0 && stored > 0
         // 库里多出了东西，而用户正停在列表顶部 → 直接让它上屏。
         // 三个条件缺一不可：
-        // - **多出来**（而不是变少）：变少是取消收藏，那条由 hasGhostRows 管；
+        // - **多出来**（而不是变少）：变少是取消收藏，卡片原地留着（见类文档）；
         // - **停在顶部**：默认排序下新收藏就排在最上面，用户正看着那儿，插进去是他期待的；
         //   滚到下面时一律不动 —— 把正在浏览的人拽回顶部比晚看到几条糟得多；
         // - **已经补齐过一次**：首次回填期新行是从新往旧一路往**末尾**加的，顶部根本不会变，
@@ -503,7 +505,7 @@ internal class BookmarkLibraryUi(
             viewModel.mirrorState.value?.isFirstSyncDone == true &&
             !listView.canScrollVertically(-1)
 
-        if (!hasGhostRows && !emptyButStored && !grewWhileAtTop) return
+        if (!clearedWhileShown && !emptyButStored && !grewWhileAtTop) return
         Timber.tag(TAG).d(
             "列表与库对不上，自动重查（库内 %d 行 / 屏幕 %d 条，新增上屏=%b）",
             stored, shown, grewWhileAtTop,

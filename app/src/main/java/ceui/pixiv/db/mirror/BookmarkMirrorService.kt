@@ -493,24 +493,28 @@ class BookmarkMirrorService(app: Context) {
         awaitRateLimitWindow(shelf)
 
         val startedAt = System.currentTimeMillis()
-        val page = try {
-            fetcherFor(shelf).load(run.cursor)
+        val fetched: Result<FetchedPage> = try {
+            Result.success(fetcherFor(shelf).load(run.cursor))
         } catch (ce: CancellationException) {
             throw ce
         } catch (t: Throwable) {
-            // 失败也要记账：失败的请求同样占了 pixiv 的配额，尤其撞 429 时更不能立刻重来。
-            lastRequestFinishedAt = System.currentTimeMillis()
-            return onPageFailed(shelf, state, t)
+            Result.failure(t)
         }
+        // 成败都要记账：失败的请求同样占了 pixiv 的配额，尤其撞 429 时更不能立刻重来。
         lastRequestFinishedAt = System.currentTimeMillis()
         val latencyMs = System.currentTimeMillis() - startedAt
 
-        // ⚠️ 取回一页之后**必须重新确认这一轮还算数**。
+        // ⚠️ 请求回来之后（**无论成败**）必须重新确认这一轮还算数。
         // 网络那一步（Retrofit suspend / replayNextUrl 的 withContext(IO)）会把
         // limitedParallelism(1) 的槽位让出去，这几百毫秒里 rebuildShelf / dropShelf 的
         // scope.launch 完全可能插进来跑完。不校验的话：用户点了「重建本地镜像」，这一页
         // 会带着**重建前**的 state 快照写回去，把刚建好的干净状态连游标带 phase 一起覆盖，
         // 重建静默失效；dropShelf 则会把行写回一个已经被移除的书架。
+        // 失败路径必须过同一道门：onPageFailed 同样是拿 state 快照 copy 回写。掉网正是最常见的
+        // 失败原因，而「点了重建、这一页恰好失败」会把旧 phase / 旧游标 / 旧 firstCompletedAt
+        // 整份盖回刚清空的书架 —— 引擎从旧断点接着翻一张空表，表头那一段永远补不回来，
+        // firstCompletedAt 又让入口以为这份镜像是完整的。此外本地收藏在请求在途时抬高过的
+        // 号段上限也只有从 latest 里才拿得到，拿旧快照回写会把它抹掉、下一轮重用同一段号。
         // 用 generation 作这一轮的身份：正常翻页不会动它，重建会把它清零，移除会让整行消失。
         val latest = dao.findState(shelf.key)
         if (latest == null || latest.generation != state.generation) {
@@ -525,6 +529,7 @@ class BookmarkMirrorService(app: Context) {
         // 用最新的一份继续：期间可能有本地收藏抬高过号段上限（openHeadBlock），
         // 拿旧快照 copy 回去会把那次抬升抹掉。
         state = latest
+        val page = fetched.getOrElse { return onPageFailed(shelf, state, it) }
 
         val now = System.currentTimeMillis()
         val written = writePage(shelf, state, run, page, now)
