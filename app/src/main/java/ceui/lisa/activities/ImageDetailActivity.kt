@@ -537,6 +537,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         val fabBind = ViewV3FabBarBinding.bind(findViewById(R.id.fab_bar))
         val fabBar = V3FabBarController(fabBind)
         this.fabBar = fabBar
+        // 胶囊配色与一级 V3 详情页同一套规则(V3Palette 派生,日夜双模),不用 XML 里的深色默认值
+        fabBar.applyPalette(V3Palette.from(this))
         fabBar.applyDownloadOrderPreference()
         // 底距落在「胶囊 + 页码」整行上,页码跟着胶囊一起动
         fabBar.attachBottomInsetMargin(findViewById(R.id.fab_bar_row))

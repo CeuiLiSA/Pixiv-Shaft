@@ -2,8 +2,8 @@
 <!--
   悬浮「下载 + 收藏」胶囊,一级 V3 详情页(fragment_artwork_v3)与二级大图页
   (activity_image_detail)共用,状态着色/顺序偏好/底距等共享逻辑见 V3FabBarController。
-  颜色只是深色默认值:一级页由 controller.applyPalette 按 palette 重刷;二级大图页纯黑底,
-  直接用默认值。摆放位置(layout_gravity / margin)由各 include 处给出。
+  颜色只是深色默认值:两页都由 controller.applyPalette 按 V3Palette 重刷(日夜双模、跟随主题色),
+  别依赖这里的值。摆放位置(layout_gravity / margin)由各 include 处给出。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"

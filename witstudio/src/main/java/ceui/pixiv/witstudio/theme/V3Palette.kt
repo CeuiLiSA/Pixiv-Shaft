@@ -257,12 +257,20 @@ public class V3Palette @JvmOverloads public constructor(
         }
 
     /**
-     * [floatingPillBg] 胶囊上的前景（图标/分隔线/进度环）—— 胶囊底是 [cardFill] tint：
-     * 深色模式近黑靛蓝，保持纯白；浅色模式底是"带主题色调的白"，白图标会隐形，
-     * 压深主题色（同 [seriesStripText] 的日夜策略）。
+     * [floatingPillBg] 胶囊上的前景（图标/分隔线/进度环）。胶囊上放的全是「待操作」图标
+     * （下载 / 收藏 / 跳评论 / 回顶），前景要读成**带主题色的未激活态**：看得出是主题色系，
+     * 但不能是强调色正色，也不能退成无关的黑灰。
+     *
+     * - 深色模式：底近黑靛蓝，保持纯白。
+     * - 浅色模式：底是"带主题色调的白"。此前压深主题色（`ensureDarkEnough 0.40`，饱和度不动），
+     *   结果整条胶囊看起来像"已选中 / 已做过"；樱桃粉档算出来是深红 #CA0234，和 `has_bookmarked`
+     *   的红心几乎同色，收藏前后分不出来。现在把饱和度砍到 40% 再压到中等深度（L 0.45），
+     *   得到一档"哑光主题色"（樱桃粉 → 酒红 #A0465C、靛紫 → #565790），最后按 [cardFill]
+     *   过一道对比度兜底（盛夏黄 / 绿这类感知亮的档会再压深一点）。有状态的着色（红心 / 绿勾）
+     *   是高饱和正色，压在这个哑光色旁边才拉得开。
      */
     @ColorInt public val floatingPillContent: Int = if (isDark) 0xFFFFFFFF.toInt()
-    else ensureDarkEnough(primary, 0.40f)
+    else ensureContrastAgainst(darken(desaturate(primary, 0.40f), 0.45f), cardFill, goLighter = false)
 
     /**
      * [pillPrimary] **实底主题色**胶囊上的文字 / 图标色。底就是 [primary] 本身,日夜同一个值:

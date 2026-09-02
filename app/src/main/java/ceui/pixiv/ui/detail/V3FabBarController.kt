@@ -29,7 +29,7 @@ class V3FabBarController(val binding: ViewV3FabBarBinding) {
     @ColorInt
     private var contentColor: Int = context.getColor(R.color.white)
 
-    /** 一级 V3 页按 [V3Palette] 重刷胶囊背景与内容色(浅色主题下 XML 默认深色值不可用)。 */
+    /** 按 [V3Palette] 重刷胶囊背景与内容色,两页都必须调(浅色主题下 XML 默认深色值不可用)。 */
     fun applyPalette(palette: V3Palette) {
         val density = binding.root.resources.displayMetrics.density
         binding.root.background = palette.floatingPillBg(999f * density)
