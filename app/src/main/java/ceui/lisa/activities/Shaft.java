@@ -36,7 +36,7 @@ import ceui.pixiv.services.ServicesProvider;
 import ceui.pixiv.db.EntityWrapper;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.utils.NetworkStateManager;
-import me.jessyan.progressmanager.ProgressManager;
+import ceui.pixiv.progress.ProgressTracker;
 import okhttp3.OkHttpClient;
 import timber.log.Timber;
 
@@ -55,6 +55,18 @@ public class Shaft extends Application implements ServicesProvider {
     protected NetWorkStateReceiver netWorkStateReceiver;
     private NetworkStateManager networkStateManager;
     private OkHttpClient mOkHttpClient;
+    /**
+     * 图片 / 下载进度的订阅表，挂在 {@link #getOkHttpClient()} 的 network interceptor 上。
+     * 进程内只此一份：拦截器装在哪个 client 上，订阅就得去同一个实例（见 GlideImageFetcher）。
+     * 订阅者回调跑在下载线程上，它自己抛异常只记日志，不能把一次好端端的下载判成失败。
+     */
+    private final ProgressTracker downloadProgress = new ProgressTracker(
+            ProgressTracker.DEFAULT_REFRESH_INTERVAL_MS,
+            ceui.pixiv.progress.Clock.MONOTONIC,
+            e -> {
+                Timber.e(e, "download progress listener crashed");
+                return kotlin.Unit.INSTANCE;
+            });
     private static MMKV mmkv;
     private AppLevelState appLevelState;
     private ceui.pixiv.ui.translate.MangaTranslateModels mangaTranslateModels;
@@ -731,7 +743,7 @@ public class Shaft extends Application implements ServicesProvider {
      * 里等于让所有用户替「可能永远不加载图片的那一帧」买单。
      *
      * <p>synchronized：Glide 的 registry 初始化不保证在主线程，两个调用方可能并发首次
-     * 触发，构建两个 client 会让连接池 / ProgressManager 的拦截器各存一份。
+     * 触发，构建两个 client 会让连接池 / 进度拦截器各存一份。
      */
     public synchronized OkHttpClient getOkHttpClient() {
         if (mOkHttpClient == null) {
@@ -740,15 +752,20 @@ public class Shaft extends Application implements ServicesProvider {
         return mOkHttpClient;
     }
 
+    /** 见 {@link #downloadProgress}。要在 {@link #getOkHttpClient()} 那条 client 上发的请求才有进度。 */
+    public ProgressTracker getDownloadProgress() {
+        return downloadProgress;
+    }
+
     private OkHttpClient buildOkHttpClient() {
         // 退回 H1.1 后同款 AIOOBE 仍在线上复现（栈里已经是 Http1ExchangeCodec.writeRequest），
         // 说明成因不是 H2 帧缓冲，而是一条连接被两个 exchange 同时拿去写请求头。okhttp 连接池
         // 那层改不动，这里兜住崩溃形态：把非 IOException 包成 IOException，让 okhttp 拆掉坏连接、
         // 走 onFailure 而不是从 dispatcher 线程 uncaught 崩进程。详见该类注释。
-        // 必须是 network interceptor，且要挂在最外层才能连 ProgressManager 自己的 body 包装一起盖住
-        // ——ProgressManager.with() 内部就是 addNetworkInterceptor，所以得先加自己再交给它。
+        // 必须是 network interceptor，且要挂在最外层才能连进度追踪自己的 body 包装一起盖住
+        // ——ProgressTracker.install() 内部就是 addNetworkInterceptor，所以得先加自己再交给它。
         // 下载(Manager)、ugoira 由本 client newBuilder() 派生，自动继承；聊天 WebSocket 是独立 client，不在内。
-        OkHttpClient.Builder glideBuilder = ProgressManager.getInstance().with(
+        OkHttpClient.Builder glideBuilder = downloadProgress.install(
                 new OkHttpClient.Builder()
                         .addNetworkInterceptor(new ceui.lisa.http.BufferCorruptionGuardInterceptor()));
         // 图片客户端一律强制 HTTP/1.1。Glide 加载缩略图网格会在单条 H2 连接上并发开大量

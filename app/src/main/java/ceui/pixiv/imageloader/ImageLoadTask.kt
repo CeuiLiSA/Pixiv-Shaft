@@ -24,7 +24,7 @@ import java.io.IOException
  * 任务由进程级 registry 持有,不随 fragment/activity 销毁,所以 B 返回列表再进 B/C,进度和结果都还在。
  *
  * 设计上刻意区别于 ui/task:
- * - **单一职责 + 依赖接缝**:只做「状态编排」,抓字节交给 [ImageFetcher],不认识 Glide/jessyan(可替换、可测)。
+ * - **单一职责 + 依赖接缝**:只做「状态编排」,抓字节交给 [ImageFetcher],不认识 Glide/ProgressTracker(可替换、可测)。
  * - **状态单一数据源**:进度只推进 [ImageLoadState.Loading],终态只由真正拿到文件决定,杜绝
  *   ui/task 那种「进度先到 100%、文件还没就绪」的竞态。
  * - **状态无锁并发**:进度回调在 IO 线程、终态在 registry 线程,用 [MutableStateFlow.update] 原子 CAS,

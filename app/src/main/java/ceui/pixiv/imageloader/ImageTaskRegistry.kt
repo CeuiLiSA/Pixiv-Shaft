@@ -27,7 +27,7 @@ object ImageTaskRegistry {
 
     /**
      * 抓字节的实现,复用 Glide(见 [GlideImageFetcher])。通过 registry 统一交给每个任务,
-     * 任务本身不认识 Glide/jessyan。
+     * 任务本身不认识 Glide/ProgressTracker。
      *
      * 不是可写的全局注入点:全项目(含单测)没有任何地方替换过它,一个「为了可测留的口子」
      * 若从未用上,剩下的只是一个谁都能改的进程级可变量。要测 [ImageLoadTask],直接 new 一个

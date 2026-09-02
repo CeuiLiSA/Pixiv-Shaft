@@ -9,7 +9,7 @@ import java.io.File
  * 同一条进度、同一份结果,不各下一次;且任务由进程级 [ImageTaskRegistry] 持有,B 返回列表再进 B/C,
  * 进度与已下文件都保留。瀑布流 A 分辨率低、url 不同,天然是另一个任务,不与 B/C 共享(也无需共享)。
  *
- * 抓取与解码全程复用 Glide,进度复用 jessyan ProgressManager。
+ * 抓取与解码全程复用 Glide,进度来自 :progressmanager 的 ProgressTracker(挂在 Shaft 的 OkHttp 客户端上)。
  *
  * 典型用法(渲染层的 ImageView 绑定扩展后续加入本包):
  * ```

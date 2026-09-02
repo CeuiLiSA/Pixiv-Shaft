@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdk 36
@@ -6,23 +7,41 @@ android {
     defaultConfig {
         minSdkVersion 24
         targetSdkVersion 36
-
-        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-
+        consumerProguardFiles 'consumer-rules.pro'
     }
+
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    lint {
-        abortOnError false
-        warning 'InvalidPackage'
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-    namespace 'me.jessyan.progressmanager'
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+
+    namespace 'ceui.pixiv.progress'
+}
+
+kotlin {
+    // 库模块：强制显式 public/internal + 显式返回类型，避免把实现细节顺手暴露成 API。
+    explicitApi()
 }
 
 dependencies {
-    compileOnly 'com.squareup.okhttp3:okhttp:4.4.1'
+    // ── api：类型长在本模块的公开 API 上，消费方不声明也要能编过 ──────────────
+    // ProgressTracker.interceptor 是 okhttp3.Interceptor，install() 收 OkHttpClient.Builder。
+    api 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
+
+    // 刻意不引：coroutines / timber / android.os.Handler / :models / 任何 pixiv 代码。
+    // 本模块只认识「一条 URL 上正在流过多少字节」；回调在哪个线程消费、怎么落到 UI，
+    // 全是消费方的事（见 app 的 imageloader）。零 Android 依赖，单测在纯 JVM 上跑。
 }
