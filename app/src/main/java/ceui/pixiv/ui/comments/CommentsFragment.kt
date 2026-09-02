@@ -91,6 +91,10 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
                         Client.appApi.getNovelComments(objectId)
                     }
                 },
+                // 一级内存缓存:详情页评论预览刚拉过的整页直接接走,冷启命中即终态(不再补发网络,
+                // 下拉刷新走 load(null) 照常打网络)。见 CommentsFirstPageCache。
+                cache = CommentsFirstPageCache.shared.storeFor(CommentTarget(objectId, objectType)),
+                refreshAfterCacheHit = { false },
             ) { resp, phase -> mapCommentsPage(resp, illustArthurId, phase) }
         }
     }

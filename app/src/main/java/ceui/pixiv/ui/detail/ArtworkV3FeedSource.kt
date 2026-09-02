@@ -10,6 +10,7 @@ import ceui.lisa.model.ListIllust
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Comment
+import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.utils.fetchFullIllustDetail
 import ceui.pixiv.utils.isFullDetail
@@ -18,6 +19,8 @@ import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.comments.CommentTarget
+import ceui.pixiv.ui.comments.CommentsFirstPageCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -179,10 +182,15 @@ internal suspend fun fetchArtworkRelated(
 /**
  * 评论预览(前 3 条)。错误交给调用方 [ArtworkSection.COMMENTS](永久 404 标失败态,
  * 其余交 SectionLoader 重试),取消必须透传。main-safe。
+ *
+ * 接口返回的是整页(约 30 条 + next_url),预览只画 3 条,整页存进 [CommentsFirstPageCache]:
+ * 点「查看更多」进评论列表页直接接走,不为同一页再发第二次请求。
  */
 internal suspend fun fetchArtworkComments(illustId: Long): List<Comment> = withContext(Dispatchers.IO) {
     Timber.tag(ARTWORK_LAZY_TAG).d("API 发出: 评论预览 illustId=%d", illustId)
-    Client.appApi.getIllustComments(illustId).comments.take(3)
+    val response = Client.appApi.getIllustComments(illustId)
+    CommentsFirstPageCache.shared.put(CommentTarget(illustId, ObjectType.ILLUST), response)
+    response.comments.take(3)
 }
 
 /** 作者其他作品(前 10 条,排除当前作品)。走全局 Mapper 过滤。main-safe。 */

@@ -3,6 +3,7 @@ package ceui.pixiv.ui.comments
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import ceui.pixiv.api.API
 import ceui.pixiv.api.model.Comment
+import ceui.pixiv.api.model.CommentResponse
 import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.api.model.PostCommentResponse
 import ceui.loxia.User
@@ -19,6 +20,7 @@ import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -161,6 +163,46 @@ class CommentsComposerViewModelTest {
         assertEquals(listOf(30L, 20L), updated.childComments.map { it.id })
         assertTrue(updated.repliesLoaded)
         assertTrue(updated.comment.has_replies)
+    }
+
+    @Test
+    fun `successful send invalidates the cached first page of its target`() = runTest {
+        val api = ControllableCommentApi()
+        val cache = CommentsFirstPageCache()
+        val target = CommentTarget(objectId = 1L, objectType = ObjectType.ILLUST)
+        val other = CommentTarget(objectId = 2L, objectType = ObjectType.ILLUST)
+        cache.put(target, CommentResponse())
+        cache.put(other, CommentResponse())
+        val viewModel = CommentsComposerViewModel(target = target, api = api.proxy, firstPageCache = cache)
+        viewModel.updateDraft("hello")
+
+        val result = async { viewModel.sendComment() }
+        runCurrent()
+        assertNotNull("发送未落定前不失效", cache.get(target))
+        api.complete(comment(id = 20L))
+        result.await()
+
+        assertNull(cache.get(target))
+        assertNotNull("别的对象的第一页不受影响", cache.get(other))
+    }
+
+    @Test
+    fun `send answered without a comment still invalidates the cached first page`() = runTest {
+        val api = ControllableCommentApi()
+        val cache = CommentsFirstPageCache()
+        val target = CommentTarget(objectId = 1L, objectType = ObjectType.ILLUST)
+        cache.put(target, CommentResponse())
+        val viewModel = CommentsComposerViewModel(target = target, api = api.proxy, firstPageCache = cache)
+        viewModel.updateDraft("hello")
+
+        supervisorScope {
+            val result = async { viewModel.sendComment() }
+            runCurrent()
+            api.complete(null)
+            assertTrue(runCatching { result.await() }.exceptionOrNull() is CommentProtocolException)
+        }
+
+        assertNull("服务端已应答，评论多半已落库，缓存不能再信", cache.get(target))
     }
 
     private fun viewModel(api: ControllableCommentApi) = CommentsComposerViewModel(

@@ -33,6 +33,8 @@ internal class CommentProtocolException :
 class CommentsComposerViewModel(
     private val target: CommentTarget,
     private val api: API = Client.appApi,
+    /** 发 / 删评论成功后失效 [target] 的第一页内存缓存，下一次进列表页拿服务端新页。 */
+    private val firstPageCache: CommentsFirstPageCache = CommentsFirstPageCache.shared,
 ) : ViewModel() {
 
     private val sendMutex = Mutex()
@@ -98,6 +100,9 @@ class CommentsComposerViewModel(
                     api.postNovelComment(target.objectId, content)
                 }
             }
+            // 服务端已经应答就失效第一页缓存：哪怕响应缺 comment（下面按协议错误抛出），
+            // 评论多半也已落库，缓存里那页从此不可信。
+            firstPageCache.invalidate(target)
             val comment = resp.comment ?: throw CommentProtocolException()
             if (draftRevision == sentDraftRevision) {
                 draftRevision++
@@ -122,6 +127,7 @@ class CommentsComposerViewModel(
             } else {
                 api.postNovelComment(target.objectId, "", parentCommentId, stampId)
             }
+            firstPageCache.invalidate(target)
             val comment = resp.comment ?: throw CommentProtocolException()
             clearReplyIfUnchanged(reply.revision)
             return SentComment(reply.parentCommentId, comment)
@@ -132,6 +138,7 @@ class CommentsComposerViewModel(
 
     suspend fun deleteComment(commentId: Long) {
         api.deleteComment(target.objectType, commentId)
+        firstPageCache.invalidate(target)
     }
 
     private fun clearReplyIfUnchanged(sentRevision: Long) {

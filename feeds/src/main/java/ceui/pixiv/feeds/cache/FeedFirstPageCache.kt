@@ -35,7 +35,7 @@ class FeedFirstPageCache<Resp : Any>(
     private val gson: Gson,
     private val accountId: () -> Long,
     private val now: () -> Long = { System.currentTimeMillis() },
-) {
+) : FeedFirstPageStore<Resp> {
 
     /**
      * slot 拼当前账号 + 载荷类型全名：
@@ -52,7 +52,7 @@ class FeedFirstPageCache<Resp : Any>(
      * 计时打点：本地优先的冷启体验全靠这一步够快（IO 派发 + gson 反序列化），耗时异常时
      * 用 key 定位是哪个 feed / 哪个账号的槽位偏慢。
      */
-    suspend fun read(): CachedFirstPage<Resp>? {
+    override suspend fun read(): CachedFirstPage<Resp>? {
         val startNanos = System.nanoTime()
         val result = readInternal()
         val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
@@ -90,7 +90,7 @@ class FeedFirstPageCache<Resp : Any>(
     }
 
     /** 落盘最新首屏（网络首屏成功时调）。失败只留痕不打断加载。 */
-    suspend fun write(response: Resp, nextCursor: String?) {
+    override suspend fun write(response: Resp, nextCursor: String?) {
         val json = try {
             withContext(Dispatchers.Default) { gson.toJson(response) }
         } catch (ce: CancellationException) {

@@ -8,6 +8,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.cache.CachedFirstPage
 import ceui.pixiv.feeds.cache.DEFAULT_FEED_CACHE_MAX_AGE
 import ceui.pixiv.feeds.cache.FeedFirstPageCache
+import ceui.pixiv.feeds.cache.FeedFirstPageStore
 import ceui.pixiv.feeds.cache.feedCacheWriteScope
 import ceui.pixiv.feeds.cache.feedFirstPageCache
 import com.google.gson.Gson
@@ -43,8 +44,9 @@ private val pagingGson = Gson()
  * - [nextCursorOf] 是翻页门控钩子，默认取响应的 nextUrl。返回 null 即「到此为止」——
  *   「只出首页」的货架 / 被设置项门控的列表（如「相关作品无限下滑」关时）用它表达，
  *   不必为了改一个游标就手抄整套协议（那样会连带丢掉缓存、phase 区分与 main-safe 保证）；
- * - 传了 [cache] 即开「本地优先」：首屏网络成功后落盘，冷启时 [loadFromCache] 秒显旧首屏
- *   （见 [cachedPixivFeedSource]）；不传则退化为纯网络；
+ * - 传了 [cache] 即开「本地优先」：首屏网络成功后存进去，冷启时 [loadFromCache] 秒显旧首屏；
+ *   快照住磁盘（[cachedPixivFeedSource]）还是进程内存（如评论第一页在详情页与列表页之间的
+ *   交接）由 [FeedFirstPageStore] 的实现决定；不传则退化为纯网络；
  * - 本类实例被 [FeedViewModel] 持有到页面最终销毁：[initialFetch] / [mapper] / [cache] 不要捕获
  *   Fragment / View / Context，需要的值先取成局部变量（零捕获约定见 feedViewModels 文档）。
  *
@@ -58,7 +60,7 @@ private val pagingGson = Gson()
 class PixivFeedSource<Resp : KListShow<*>>(
     private val responseClass: Class<Resp>,
     private val initialFetch: suspend () -> Resp,
-    private val cache: FeedFirstPageCache<Resp>? = null,
+    private val cache: FeedFirstPageStore<Resp>? = null,
     /** 首屏落盘的 scope（fire-and-forget，见 [feedCacheWriteScope]）。单测注入可控 scope 以便等待。 */
     private val cacheWriteScope: CoroutineScope = feedCacheWriteScope,
     /** 翻页门控：给出下一页游标，null = 到此为止。默认取响应自带的 nextUrl。 */
@@ -133,15 +135,23 @@ class PixivFeedSource<Resp : KListShow<*>>(
  * }
  * ```
  * 需要翻页门控（只出首页 / 被设置项关掉后不再翻）时传 [nextCursorOf]。
+ *
+ * 要接一个**进程内**的首屏快照（另一页刚拉过同一页、直接交接过来，不再发第二次请求）就传
+ * [cache]，并按需用 [refreshAfterCacheHit] 决定命中后要不要再刷一次网络；磁盘快照走
+ * [cachedPixivFeedSource]。
  */
 inline fun <reified Resp : KListShow<*>> pixivFeedSource(
     noinline initialFetch: suspend () -> Resp,
+    cache: FeedFirstPageStore<Resp>? = null,
+    noinline refreshAfterCacheHit: () -> Boolean = { true },
     noinline nextCursorOf: (Resp) -> String? = { it.nextPageUrl?.takeIf(String::isNotEmpty) },
     noinline mapper: (response: Resp, phase: FeedLoadPhase) -> List<FeedItem>,
 ): PixivFeedSource<Resp> = PixivFeedSource(
     responseClass = Resp::class.java,
     initialFetch = initialFetch,
+    cache = cache,
     nextCursorOf = nextCursorOf,
+    shouldRefreshAfterCacheHit = refreshAfterCacheHit,
     mapper = mapper,
 )
 

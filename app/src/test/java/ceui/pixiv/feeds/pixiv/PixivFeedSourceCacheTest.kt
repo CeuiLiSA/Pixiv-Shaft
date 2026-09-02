@@ -5,7 +5,9 @@ import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedLoadPhase
 import ceui.pixiv.feeds.cache.FeedCacheBackend
 import ceui.pixiv.feeds.cache.FeedCacheRecord
+import ceui.pixiv.feeds.cache.CachedFirstPage
 import ceui.pixiv.feeds.cache.FeedFirstPageCache
+import ceui.pixiv.feeds.cache.FeedFirstPageStore
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -182,5 +184,46 @@ class PixivFeedSourceCacheTest {
 
         pagingAllowed = true
         assertEquals("门控开时照常翻页", "next-url", source.load(null).nextCursor)
+    }
+
+    /** 进程内存层（评论第一页交接）实现 [FeedFirstPageStore] 直接接进来，不经 gson / backend。 */
+    private class InMemoryStore : FeedFirstPageStore<FakeResp> {
+        var page: CachedFirstPage<FakeResp>? = null
+        override suspend fun read(): CachedFirstPage<FakeResp>? = page
+        override suspend fun write(response: FakeResp, nextCursor: String?) {
+            page = CachedFirstPage(response, nextCursor, 0L)
+        }
+    }
+
+    @Test
+    fun `any FeedFirstPageStore works as the local-first tier`() = runBlocking {
+        val store = InMemoryStore()
+        val phases = mutableListOf<FeedLoadPhase>()
+        var networkCalls = 0
+        val writeParent = Job()
+        val source = PixivFeedSource(
+            responseClass = FakeResp::class.java,
+            initialFetch = { networkCalls++; FakeResp(listOf(7), "next") },
+            cache = store,
+            cacheWriteScope = CoroutineScope(Dispatchers.Unconfined + writeParent),
+        ) { resp, phase ->
+            phases.add(phase)
+            resp.displayList.map { Row(it) }
+        }
+
+        // 另一页预先交接过来的快照：冷启恢复不打网络
+        store.write(FakeResp(listOf(1, 2), "handed-over"), "handed-over")
+        val restored = source.loadFromCache()
+        assertEquals(listOf(Row(1), Row(2)), restored?.items)
+        assertEquals("handed-over", restored?.nextCursor)
+        assertEquals(FeedLoadPhase.CacheRestore, phases.last())
+        assertEquals(0, networkCalls)
+
+        // 网络首屏照常写回同一个 store
+        val page = source.load(null)
+        writeParent.children.toList().forEach { it.join() }
+        assertEquals(listOf(Row(7)), page.items)
+        assertEquals(listOf(7), store.page?.payload?.displayList)
+        assertEquals("next", store.page?.nextCursor)
     }
 }
