@@ -2743,6 +2743,7 @@
     <string name="account_switch_add_desc">登入或註冊另一個 pixiv 帳號</string>
     <string name="account_switch_login_time">登入於 %1$s</string>
     <string name="account_switch_actions">帳號操作</string>
+    <string name="drawer_switch_account">切換帳號</string>
     <string name="account_switch_action_switch">切換到這個帳號</string>
     <string name="account_switch_action_export">匯出登入資訊到剪貼簿</string>
     <string name="account_switch_action_copy_name">複製帳號名稱</string>

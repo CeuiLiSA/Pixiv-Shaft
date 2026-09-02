@@ -2727,6 +2727,7 @@
     <string name="account_switch_add_desc">다른 pixiv 계정으로 로그인하거나 가입하기</string>
     <string name="account_switch_login_time">%1$s 로그인</string>
     <string name="account_switch_actions">계정 작업</string>
+    <string name="drawer_switch_account">계정 전환</string>
     <string name="account_switch_action_switch">이 계정으로 전환</string>
     <string name="account_switch_action_export">로그인 정보를 클립보드에 복사</string>
     <string name="account_switch_action_copy_name">계정 이름 복사</string>

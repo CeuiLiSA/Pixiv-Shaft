@@ -2727,6 +2727,7 @@
     <string name="account_switch_add_desc">Войти в другой аккаунт pixiv или создать его</string>
     <string name="account_switch_login_time">Вход: %1$s</string>
     <string name="account_switch_actions">Действия с аккаунтом</string>
+    <string name="drawer_switch_account">Сменить аккаунт</string>
     <string name="account_switch_action_switch">Переключиться на этот аккаунт</string>
     <string name="account_switch_action_export">Скопировать данные входа в буфер обмена</string>
     <string name="account_switch_action_copy_name">Скопировать имя аккаунта</string>

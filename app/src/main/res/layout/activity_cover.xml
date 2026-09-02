@@ -107,7 +107,8 @@
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
                             android:layout_marginStart="14dp"
-                            android:layout_marginEnd="26dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_toStartOf="@+id/drawer_switch_account"
                             android:layout_toEndOf="@id/user_head"
                             android:orientation="vertical">
 
@@ -172,13 +173,24 @@
 
                         </LinearLayout>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                        <!--
+                            账号切换快捷入口。以前这里是个纯装饰的「>」，只是提示整块可点；
+                            换成真按钮直达账号管理页，点它不再经过 drawer_header 的主页跳转。
+                            图标复用账号操作面板「切换到这个账号」的 swap_horiz，颜色跟抽屉
+                            其他行图标一样走 v3_text_2，不抢主题色。
+                        -->
+                        <ImageButton
+                            android:id="@+id/drawer_switch_account"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
-                            android:drawableEnd="@drawable/ic_arrow_right"
-                            android:importantForAccessibility="no" />
+                            android:layout_marginEnd="-8dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/drawer_switch_account"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/ic_v3_swap_account_24"
+                            app:tint="@color/v3_text_2" />
 
                     </RelativeLayout>
 

@@ -2999,6 +2999,7 @@
     <string name="account_switch_add_desc">登录或注册另一个 pixiv 账号</string>
     <string name="account_switch_login_time">登录于 %1$s</string>
     <string name="account_switch_actions">账号操作</string>
+    <string name="drawer_switch_account">切换账号</string>
     <string name="account_switch_action_switch">切换到这个账号</string>
     <string name="account_switch_action_export">导出登录信息到剪贴板</string>
     <string name="account_switch_action_copy_name">复制账号名</string>

@@ -184,6 +184,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
         remoteAppConfig.getInAppPushLive().observe(this,
                 arrival -> InAppPushCenter.INSTANCE.onConfigArrived(this, arrival));
         baseBind.drawerHeader.setOnClickListener(v -> openMyUserPage());
+        // 头部右侧的切换图标直达账号管理页,不再经过整块的主页跳转
+        baseBind.drawerSwitchAccount.setOnClickListener(v -> openAccountSwitch());
         // 侧边栏头像单击进自己主页；长按仍是 R18 临时过滤开关
         baseBind.userHead.setOnClickListener(v -> openMyUserPage());
         baseBind.userHead.setOnLongClickListener(new View.OnLongClickListener() {
@@ -805,6 +807,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
         Intent userIntent = new Intent(mContext, UActivity.class);
         userIntent.putExtra(Params.USER_ID, (long) SessionManager.INSTANCE.getLoggedInUid());
         startActivity(userIntent);
+        baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+    }
+
+    private void openAccountSwitch() {
+        Intent intent = new Intent(mContext, TemplateActivity.class);
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ACCOUNT_SWITCH.key);
+        startActivity(intent);
         baseBind.drawerLayout.closeDrawer(GravityCompat.START);
     }
 

@@ -2727,6 +2727,7 @@
     <string name="account_switch_add_desc">Başka bir pixiv hesabıyla giriş yapın veya kaydolun</string>
     <string name="account_switch_login_time">Giriş: %1$s</string>
     <string name="account_switch_actions">Hesap işlemleri</string>
+    <string name="drawer_switch_account">Hesap değiştir</string>
     <string name="account_switch_action_switch">Bu hesaba geç</string>
     <string name="account_switch_action_export">Giriş bilgilerini panoya kopyala</string>
     <string name="account_switch_action_copy_name">Hesap adını kopyala</string>

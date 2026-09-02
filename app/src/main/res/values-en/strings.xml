@@ -2744,6 +2744,7 @@
     <string name="account_switch_add_desc">Sign in to or create another pixiv account</string>
     <string name="account_switch_login_time">Signed in on %1$s</string>
     <string name="account_switch_actions">Account actions</string>
+    <string name="drawer_switch_account">Switch account</string>
     <string name="account_switch_action_switch">Switch to this account</string>
     <string name="account_switch_action_export">Copy login data to clipboard</string>
     <string name="account_switch_action_copy_name">Copy account name</string>
