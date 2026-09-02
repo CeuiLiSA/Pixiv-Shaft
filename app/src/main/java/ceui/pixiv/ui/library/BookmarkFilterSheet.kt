@@ -320,6 +320,8 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         add(BookmarkSort.VIEWS_DESC to getString(R.string.bookmark_sort_views_desc))
         if (isIllust) {
             add(BookmarkSort.PAGES_DESC to getString(R.string.bookmark_sort_pages_desc))
+            add(BookmarkSort.RATIO_TALLEST to getString(R.string.bookmark_sort_ratio_tallest))
+            add(BookmarkSort.RATIO_WIDEST to getString(R.string.bookmark_sort_ratio_widest))
         } else {
             add(BookmarkSort.LENGTH_DESC to getString(R.string.bookmark_sort_length_desc))
             add(BookmarkSort.LENGTH_ASC to getString(R.string.bookmark_sort_length_asc))

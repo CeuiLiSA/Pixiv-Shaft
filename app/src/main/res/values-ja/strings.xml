@@ -2911,6 +2911,8 @@
     <string name="bookmark_sort_popular_asc">人気 · 低い順</string>
     <string name="bookmark_sort_views_desc">閲覧数 · 多い順</string>
     <string name="bookmark_sort_pages_desc">ページ数 · 多い順</string>
+    <string name="bookmark_sort_ratio_tallest">縦横比 · 縦長順</string>
+    <string name="bookmark_sort_ratio_widest">縦横比 · 横長順</string>
     <string name="bookmark_sort_length_desc">文字数 · 長い順</string>
     <string name="bookmark_sort_length_asc">文字数 · 短い順</string>
     <string name="bookmark_sort_title_asc">タイトル · A→Z</string>

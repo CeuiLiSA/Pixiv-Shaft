@@ -50,6 +50,8 @@ import androidx.room.Index
         Index(value = ["shelfKey", "totalView"]),
         Index(value = ["shelfKey", "textLength"]),
         Index(value = ["shelfKey", "title"]),
+        // 按宽高比排（最竖长 / 最横扁）：范围条件 aspectRatio > 0 与排序键同列，一趟索引扫完
+        Index(value = ["shelfKey", "aspectRatio"]),
         // 高基数筛选：按作者看收藏（顺带带上排序键，作者页内的排序也不用临时表）
         Index(value = ["shelfKey", "authorId", "bookmarkSeq"]),
         Index(value = ["shelfKey", "seriesId"]),

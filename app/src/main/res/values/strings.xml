@@ -3174,6 +3174,8 @@
     <string name="bookmark_sort_popular_asc">人气 · 低→高</string>
     <string name="bookmark_sort_views_desc">浏览量 · 高→低</string>
     <string name="bookmark_sort_pages_desc">页数 · 多→少</string>
+    <string name="bookmark_sort_ratio_tallest">宽高比 · 最竖长</string>
+    <string name="bookmark_sort_ratio_widest">宽高比 · 最横扁</string>
     <string name="bookmark_sort_length_desc">字数 · 长→短</string>
     <string name="bookmark_sort_length_asc">字数 · 短→长</string>
     <string name="bookmark_sort_title_asc">标题 · A→Z</string>

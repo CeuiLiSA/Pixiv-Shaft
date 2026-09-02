@@ -72,6 +72,21 @@ class BookmarkMirrorQueryTest {
         assertFalse(sql, sql.contains("targetId = ?"))
     }
 
+    /** 比值未知（0）= 被删/不可见作品，不挡掉的话「最竖长」会先吐出一串失效作品。 */
+    @Test
+    fun `按宽高比排序时挡掉比值未知的行`() {
+        listOf(BookmarkSort.RATIO_TALLEST to "aspectRatio ASC", BookmarkSort.RATIO_WIDEST to "aspectRatio DESC")
+            .forEach { (sort, orderBy) ->
+                val sql = BookmarkMirrorQuery.rows(BookmarkFilter(shelfKey = shelf, sort = sort), 30, 0).sql
+                assertTrue(sql, sql.contains("aspectRatio > 0"))
+                assertTrue(sql, sql.contains("ORDER BY $orderBy, targetId DESC"))
+                // count 走同一段 WHERE，「共 N 件」和列表必须对得上
+                assertTrue(BookmarkMirrorQuery.count(BookmarkFilter(shelfKey = shelf, sort = sort)).sql.contains("aspectRatio > 0"))
+            }
+        val plain = BookmarkMirrorQuery.rows(BookmarkFilter(shelfKey = shelf), 30, 0).sql
+        assertFalse(plain, plain.contains("aspectRatio"))
+    }
+
     @Test
     fun `作者云排掉没有作者名的失效作品`() {
         val sql = BookmarkMirrorQuery.authorFacets(BookmarkFilter(shelfKey = shelf), 50).sql

@@ -552,6 +552,8 @@ internal class BookmarkLibraryUi(
         BookmarkSort.POPULAR_ASC -> R.string.bookmark_sort_popular_asc
         BookmarkSort.VIEWS_DESC -> R.string.bookmark_sort_views_desc
         BookmarkSort.PAGES_DESC -> R.string.bookmark_sort_pages_desc
+        BookmarkSort.RATIO_TALLEST -> R.string.bookmark_sort_ratio_tallest
+        BookmarkSort.RATIO_WIDEST -> R.string.bookmark_sort_ratio_widest
         BookmarkSort.LENGTH_DESC -> R.string.bookmark_sort_length_desc
         BookmarkSort.LENGTH_ASC -> R.string.bookmark_sort_length_asc
         BookmarkSort.TITLE_ASC -> R.string.bookmark_sort_title_asc

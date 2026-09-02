@@ -89,6 +89,11 @@ enum class BookmarkSort(
      * 大量并列，必须补兜底键，否则 LIMIT/OFFSET 翻页会漏条目 / 出重复。
      */
     val uniqueKey: Boolean = false,
+    /**
+     * 排序键是宽高比时顺带要求 `aspectRatio > 0`。放进 WHERE 而不是 ORDER BY 表达式：
+     * 范围条件和排序键是同一列，`(shelfKey, aspectRatio)` 索引一趟就把过滤和排序都做了。
+     */
+    val requiresKnownRatio: Boolean = false,
 ) {
     /** 收藏时间：新 → 旧（= pixiv 官方顺序）。 */
     BOOKMARK_NEWEST("bookmarkSeq DESC", uniqueKey = true),
@@ -111,6 +116,14 @@ enum class BookmarkSort(
     VIEWS_DESC("totalView DESC"),
     /** 页数（找「长漫画」用）。 */
     PAGES_DESC("pageCount DESC"),
+    /**
+     * 宽高比（width/height）：最竖长 → 最横扁 / 最横扁 → 最竖长。
+     * 「画幅」那一档只分横/竖/方三档，找**最**细长的手机壁纸、**最**宽的桌面壁纸还是得按比值排。
+     * 比值未知（0，被删/不可见作品）的行会被 [requiresKnownRatio] 从结果里挡掉，
+     * 否则「最竖长」会先吐出一串失效作品。
+     */
+    RATIO_TALLEST("aspectRatio ASC", requiresKnownRatio = true),
+    RATIO_WIDEST("aspectRatio DESC", requiresKnownRatio = true),
     /** 字数（小说书架用）。 */
     LENGTH_DESC("textLength DESC"),
     LENGTH_ASC("textLength ASC"),
@@ -264,6 +277,7 @@ object BookmarkMirrorQuery {
         appendRange(clauses, args, "createDateMs", filter.createdFromMs, filter.createdToMs)
 
         if (filter.seriesOnly) clauses += "seriesId > 0"
+        if (filter.sort.requiresKnownRatio) clauses += "aspectRatio > 0"
 
         return clauses.joinToString(" AND ")
     }

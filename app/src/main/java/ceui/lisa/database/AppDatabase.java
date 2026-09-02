@@ -62,7 +62,7 @@ import ceui.pixiv.db.synonym.SynonymTargetEntity;
 )
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 42;
+    public static final int VERSION = 43;
     public static final String DATABASE_NAME = "roomDemo-database";
     private static final Migration MIGRATION_23_24 = new Migration(23, 24) {
         @Override
@@ -519,6 +519,17 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * v42 -> v43：收藏镜像主表补 (shelfKey, aspectRatio) 索引，给「宽高比 · 最竖长 / 最横扁」
+     * 两个排序用。只加索引不动数据；索引名必须与 Room 由 @Index 生成的一致。
+     */
+    private static final Migration MIGRATION_42_43 = new Migration(42, 43) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_bookmark_mirror_table_shelfKey_aspectRatio ON bookmark_mirror_table(shelfKey, aspectRatio)");
+        }
+    };
+
     private static final Migration[] ALL_MIGRATIONS = {
             MIGRATION_23_24,
             MIGRATION_24_25,
@@ -539,6 +550,7 @@ public abstract class AppDatabase extends RoomDatabase {
             MIGRATION_39_40,
             MIGRATION_40_41,
             MIGRATION_41_42,
+            MIGRATION_42_43,
     };
 
     /**
