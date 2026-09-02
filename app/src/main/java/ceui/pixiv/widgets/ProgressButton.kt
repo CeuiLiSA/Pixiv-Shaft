@@ -100,7 +100,9 @@ class ProgressTextButton(context: Context, attrs: AttributeSet?, defStyle: Int) 
         val padding: Rect,
         val text: String,
         val isClickable: Boolean,
-        val drawable: Drawable?
+        val drawable: Drawable?,
+        val minWidth: Int,
+        val minHeight: Int
     )
 
     private var originalState: OriginalState? = null
@@ -141,14 +143,24 @@ class ProgressTextButton(context: Context, attrs: AttributeSet?, defStyle: Int) 
             Rect(paddingLeft, paddingTop, paddingRight, paddingBottom),
             text.toString(),
             isClickable,
-            compoundDrawables.firstOrNull()
+            compoundDrawables.firstOrNull(),
+            minWidth,
+            minHeight
         )
 
         val circleWidth = progressWidth.roundToInt()
         val circleHeight = progressWidth.roundToInt()
 
-        val hPadding = (width - circleWidth) / 2
-        (height - circleHeight - paddingTop - paddingBottom) / 2
+        // 转圈期间文字被清空,按钮只剩一个圆圈当 compound drawable,wrap_content 的按钮会从
+        // "文字高"塌成"圆圈高"(评论区「查看回复」胶囊肉眼可见地缩一下)。这里直接把点击前的
+        // 测量结果锁成 min 尺寸,loading 前后占位严格一致 —— 不用 padding 去凑:空 TextView 的
+        // Layout 仍占一行行高,padding 凑出来的高度会比原来高出「行高 - 圆圈高」那么多。
+        minWidth = width
+        minHeight = height
+        // 横向 padding 还是要重算:左侧 compound drawable 是钉在 paddingLeft 上画的,不重算圆圈
+        // 会贴着左边而不是居中。drawablePadding 也要扣 —— 只要挂着 drawable,TextView 就会把它
+        // 算进宽度。纵向不用管,drawable 本来就在 vspace 里居中。
+        val hPadding = ((width - circleWidth - compoundDrawablePadding) / 2).coerceAtLeast(0)
 
         isClickable = false
 
@@ -178,6 +190,10 @@ class ProgressTextButton(context: Context, attrs: AttributeSet?, defStyle: Int) 
         text = pendingTarget ?: stored.text // 恢复文字
         pendingTarget = null
         isClickable = stored.isClickable
+        // min 尺寸必须还原成 XML 里的值(cell_comment 显式写了 0dp,而 AppCompat 按钮默认
+        // 带 88dp x 48dp),否则复用的 view 会被上一次转圈的尺寸卡住
+        minWidth = stored.minWidth
+        minHeight = stored.minHeight
         setPadding(
             stored.padding.left,
             stored.padding.top,
