@@ -166,6 +166,67 @@ class CommentsComposerViewModelTest {
     }
 
     @Test
+    fun `translating a reply stores it on the parent and hiding removes it`() {
+        val viewModel = viewModel(ControllableCommentApi())
+        val parent = CommentFeedItem(
+            comment = comment(id = 10L),
+            illustArthurId = 1L,
+            childComments = listOf(comment(id = 20L)),
+        )
+        val items: List<FeedItem> = listOf(parent)
+
+        val translated = viewModel.applyTranslation(
+            items = items,
+            commentId = 20L,
+            parentCommentId = 10L,
+            translation = "译文",
+        ).single() as CommentFeedItem
+        assertEquals(mapOf(20L to "译文"), translated.translations)
+
+        val hidden = viewModel.applyTranslation(
+            items = listOf(translated),
+            commentId = 20L,
+            parentCommentId = 10L,
+            translation = null,
+        ).single() as CommentFeedItem
+        assertTrue(hidden.translations.isEmpty())
+    }
+
+    @Test
+    fun `translation that changes nothing returns the same list instance`() {
+        val viewModel = viewModel(ControllableCommentApi())
+        val parent = CommentFeedItem(
+            comment = comment(id = 10L),
+            illustArthurId = 1L,
+            translations = mapOf(10L to "译文"),
+        )
+        val items: List<FeedItem> = listOf(parent)
+
+        // 同值重复写入、目标已不在列表、隐藏一条本就没译文的:三种都必须是 no-op(mutateItems 靠实例相等识别)
+        assertTrue(items === viewModel.applyTranslation(items, 10L, 0L, "译文"))
+        assertTrue(items === viewModel.applyTranslation(items, 99L, 0L, "译文"))
+        assertTrue(items === viewModel.applyTranslation(items, 20L, 10L, null))
+    }
+
+    @Test
+    fun `deleting a reply drops its translation`() {
+        val viewModel = viewModel(ControllableCommentApi())
+        val parent = CommentFeedItem(
+            comment = comment(id = 10L, hasReplies = true),
+            illustArthurId = 1L,
+            childComments = listOf(comment(id = 20L)),
+            translations = mapOf(10L to "父", 20L to "子"),
+        )
+        val updated = viewModel.applyDeletedComment(
+            items = listOf(parent),
+            commentId = 20L,
+            parentCommentId = 10L,
+        ).single() as CommentFeedItem
+
+        assertEquals(mapOf(10L to "父"), updated.translations)
+    }
+
+    @Test
     fun `successful send invalidates the cached first page of its target`() = runTest {
         val api = ControllableCommentApi()
         val cache = CommentsFirstPageCache()

@@ -761,6 +761,7 @@
     <string name="string_translate_caption">Перевести</string>
     <string name="v3_translate_caption_label">Описание:</string>
     <string name="string_translating">Перевод…</string>
+    <string name="comment_translation_hide">Скрыть перевод</string>
     <string name="string_translate_failed">Не удалось перевести</string>
     <string name="string_translate_model_loading">Загрузка модели перевода…</string>
     <string name="string_ai_manga_translate_inline">Перевести мангу</string>

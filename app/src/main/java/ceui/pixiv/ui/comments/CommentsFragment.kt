@@ -8,6 +8,8 @@ import android.transition.TransitionManager
 import android.transition.TransitionSet
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import androidx.core.view.children
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
@@ -19,6 +21,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.UActivity
 import ceui.lisa.databinding.FragmentCommentsFeedBinding
 import ceui.lisa.utils.ClipBoardUtils
+import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.api.Client
@@ -101,6 +104,17 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
 
     /** 刚发出、还没等到它上屏的顶层新评论 id——见 [applySendResult] / [onListCommitted]。 */
     private var pendingScrollHighlightCommentId: Long? = null
+
+    /**
+     * 刚译完、等着在 cell 里播展开动画的评论 id(主评论 / 子回复混放)。译文本体在
+     * [CommentFeedItem.translations] 里随 VM 存活;这个集合只是一次性的「要不要播动画」标记,
+     * 由 renderer 在 bind 时消费(见 CommentCardRenderer / [ChildCommentAdapter]),
+     * 滚出滚回的重绑因此不会重播。跟 view 同生死,不需要跨转屏。
+     */
+    internal val pendingTranslationReveals: MutableSet<Long> = HashSet()
+
+    /** 翻译请求在途的评论 id:AI 引擎慢时用户会再长按一次,只提示「翻译中」不重发请求。 */
+    private val translatingCommentIds: MutableSet<Long> = HashSet()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -245,14 +259,21 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
     override fun onLongClickComment(anchor: View, comment: Comment, parentCommentId: Long) {
         val isOwn = SessionManager.loggedInUid == comment.user.id
         val commentText = comment.comment
-        // 社交软件式长按操作:复制评论 / 回复 / 查看用户 / 删除(仅自己),统一用 V3MenuDialog
+        val translated = currentTranslationOf(comment.id, parentCommentId) != null
+        // 社交软件式长按操作:复制评论 / 翻译 / 回复 / 查看用户 / 删除(仅自己),统一用 V3MenuDialog
         showV3Menu("CommentMenu") {
             if (!commentText.isNullOrBlank()) {
                 item(getString(R.string.string_173), R.drawable.baseline_content_copy_24) {
                     ClipBoardUtils.putTextIntoClipboard(requireContext(), commentText)
                 }
-                item(getString(R.string.string_translate_caption), R.drawable.ic_baseline_translate_24) {
-                    translateComment(commentText)
+                if (translated) {
+                    item(getString(R.string.comment_translation_hide), R.drawable.ic_baseline_translate_24) {
+                        hideCommentTranslation(anchor, comment, parentCommentId)
+                    }
+                } else {
+                    item(getString(R.string.string_translate_caption), R.drawable.ic_baseline_translate_24) {
+                        translateCommentInline(commentText, comment, parentCommentId)
+                    }
                 }
             }
             if (!isOwn) {
@@ -270,6 +291,49 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
                 }
             }
         }
+    }
+
+    /**
+     * 长按「翻译」:译文不再弹窗,而是写进这条评论的 [CommentFeedItem.translations],由 renderer
+     * 在 cell 内 hairline 下面展开(见 [commentCardRenderer] / CommentTranslationReveal.kt)。
+     * 译完先登记到 [pendingTranslationReveals] 再 mutateItems,重绑那一次才播展开动画。
+     */
+    private fun translateCommentInline(text: String, comment: Comment, parentCommentId: Long) {
+        val src = text.trim()
+        if (src.isEmpty()) return
+        Common.showToast(R.string.string_translating)
+        if (!translatingCommentIds.add(comment.id)) return
+        launchSuspend {
+            try {
+                val translated = translateTextOrPrompt(src) ?: return@launchSuspend
+                pendingTranslationReveals += comment.id
+                feedViewModel.mutateItems { items ->
+                    composer.applyTranslation(items, comment.id, parentCommentId, translated)
+                }
+            } finally {
+                translatingCommentIds -= comment.id
+            }
+        }
+    }
+
+    /** 「隐藏译文」:先把 cell 里的译文块收起来,收完再从数据里摘掉(重绑成 gone,不闪)。 */
+    private fun hideCommentTranslation(anchor: View, comment: Comment, parentCommentId: Long) {
+        val commit = {
+            feedViewModel.mutateItems { items ->
+                composer.applyTranslation(items, comment.id, parentCommentId, null)
+            }
+        }
+        // anchor 是 cell 根布局;译文块在两种 cell 里都是根的直接子 view,只看直接子级,
+        // 不会误拿到主评论根下面嵌套子回复列表里的那一块
+        val block = (anchor as? ViewGroup)?.children?.firstOrNull { it.id == R.id.translation_block }
+        if (block == null) commit() else collapseCommentTranslation(block, commit)
+    }
+
+    private fun currentTranslationOf(commentId: Long, parentCommentId: Long): String? {
+        val ownerId = if (parentCommentId > 0L) parentCommentId else commentId
+        val owner = feedViewModel.uiState.value.items
+            .firstOrNull { it is CommentFeedItem && it.comment.id == ownerId } as? CommentFeedItem
+        return owner?.translations?.get(commentId)
     }
 
     override fun onClickDeleteComment(sender: ProgressTextButton, comment: Comment, parentCommentId: Long) {

@@ -24,19 +24,28 @@ fun Fragment.translateComment(text: String?) {
     val ctx = requireContext()
     Common.showToast(R.string.string_translating)
     launchSuspend {
-        val translated = try {
-            currentTranslator().translate(src, appTranslateTargetLang(), onPhase = onThinkingPhase)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Timber.e(e, "translate comment failed")
-            promptTranslateFailedIfPossible(e)
-            return@launchSuspend
-        }
-        if (translated.isBlank()) {
-            promptTranslateFailedIfPossible(null)
-            return@launchSuspend
-        }
+        val translated = translateTextOrPrompt(src) ?: return@launchSuspend
         showTranslatedDialog(ctx, translated)
     }
+}
+
+/**
+ * 翻译一段文本;失败 / 译文为空时按引擎给出提示(见 [promptTranslateFailedIfPossible])并返回 null,
+ * 调用方只需处理成功分支。评论列表页把译文写回 cell、其它入口弹窗,共用这一段。
+ */
+internal suspend fun Fragment.translateTextOrPrompt(src: String): String? {
+    val translated = try {
+        currentTranslator().translate(src, appTranslateTargetLang(), onPhase = onThinkingPhase)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.e(e, "translate comment failed")
+        promptTranslateFailedIfPossible(e)
+        return null
+    }
+    if (translated.isBlank()) {
+        promptTranslateFailedIfPossible(null)
+        return null
+    }
+    return translated
 }

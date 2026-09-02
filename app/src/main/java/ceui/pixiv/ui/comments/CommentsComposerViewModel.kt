@@ -181,6 +181,7 @@ class CommentsComposerViewModel(
                 if (item is CommentFeedItem && item.comment.id == parentCommentId) {
                     val remaining = item.childComments.filterNot { it.id == commentId }
                     item.copy(
+                        translations = item.translations - commentId,
                         // Only a fully loaded thread can prove that no replies remain. For a
                         // collapsed thread, preserve the server's has_replies flag because its
                         // older replies are not represented in childComments yet.
@@ -212,5 +213,26 @@ class CommentsComposerViewModel(
                 )
             } else item
         }
+    }
+
+    /**
+     * 评论译到了 / 用户点了「隐藏译文」：写进 / 摘出所属主评论的 [CommentFeedItem.translations]
+     * （子回复挂在父评论那张表里，见 [CommentFeedItem.translations]）。[translation] 为 null 表示摘除。
+     * 目标不在列表里（已被删）或值没变化时原样返回入参，让 mutateItems 识别为 no-op。
+     */
+    fun applyTranslation(
+        items: List<FeedItem>,
+        commentId: Long,
+        parentCommentId: Long,
+        translation: String?,
+    ): List<FeedItem> {
+        val ownerId = if (parentCommentId > 0L) parentCommentId else commentId
+        val index = items.indexOfFirst { it is CommentFeedItem && it.comment.id == ownerId }
+        if (index < 0) return items
+        val owner = items[index] as CommentFeedItem
+        if (owner.translations[commentId] == translation) return items
+        val next = if (translation == null) owner.translations - commentId
+            else owner.translations + (commentId to translation)
+        return items.toMutableList().also { it[index] = owner.copy(translations = next) }
     }
 }

@@ -761,6 +761,7 @@
     <string name="string_translate_caption">번역</string>
     <string name="v3_translate_caption_label">소개:</string>
     <string name="string_translating">번역 중…</string>
+    <string name="comment_translation_hide">번역 숨기기</string>
     <string name="string_translate_failed">번역 실패</string>
     <string name="string_translate_model_loading">번역 모델 불러오는 중…</string>
     <string name="string_ai_manga_translate_inline">만화 번역</string>

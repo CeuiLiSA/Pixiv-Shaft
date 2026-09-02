@@ -103,6 +103,36 @@
             app:rRadius="18dp" />
     </FrameLayout>
 
+    <!-- ═══ Translation: hairline + 译文 ═══
+         默认 gone;译文住在 CommentFeedItem.translations,由 bindCommentTranslation 绑定、
+         刚译完那一次做高度展开动画(见 CommentTranslationReveal.kt)。 -->
+    <LinearLayout
+        android:id="@+id/translation_block"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="54dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/hairline_width"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/hairline_divider" />
+
+        <TextView
+            android:id="@+id/translation_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:letterSpacing="0.01"
+            android:lineSpacingMultiplier="1.35"
+            android:textColor="@color/v3_text_2"
+            android:textSize="15sp"
+            tools:text="这是翻译后的评论内容。" />
+    </LinearLayout>
+
     <!-- ═══ Actions ═══ -->
     <LinearLayout
         android:id="@+id/action_layout"

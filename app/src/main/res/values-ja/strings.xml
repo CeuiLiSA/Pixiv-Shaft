@@ -761,6 +761,7 @@
     <string name="string_translate_caption">翻訳</string>
     <string name="v3_translate_caption_label">あらすじ：</string>
     <string name="string_translating">翻訳中…</string>
+    <string name="comment_translation_hide">翻訳を隠す</string>
     <string name="string_translate_failed">翻訳に失敗しました</string>
     <string name="string_translate_model_loading">翻訳モデルを読み込み中…</string>
     <string name="string_ai_manga_translate_inline">マンガ翻訳</string>

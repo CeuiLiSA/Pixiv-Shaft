@@ -761,6 +761,7 @@
     <string name="string_translate_caption">Translate</string>
     <string name="v3_translate_caption_label">description:</string>
     <string name="string_translating">Translating...</string>
+    <string name="comment_translation_hide">Hide translation</string>
     <string name="string_translate_failed">Translation failed</string>
     <string name="string_translate_model_loading">Loading translation model...</string>
     <string name="string_ai_manga_translate_inline">Translate Manga</string>

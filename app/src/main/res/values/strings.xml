@@ -790,6 +790,7 @@
     <string name="string_translate_caption">翻译</string>
     <string name="v3_translate_caption_label">简介：</string>
     <string name="string_translating">翻译中…</string>
+    <string name="comment_translation_hide">隐藏译文</string>
     <string name="string_translate_failed">翻译失败</string>
     <string name="string_translate_model_loading">正在加载翻译模型…</string>
     <string name="string_ai_manga_translate_inline">翻译漫画</string>

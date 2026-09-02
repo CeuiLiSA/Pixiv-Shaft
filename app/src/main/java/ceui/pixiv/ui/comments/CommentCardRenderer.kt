@@ -14,6 +14,7 @@ import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.utils.DateParse
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.ui.common.findActionReceiverOrNull
+import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.session.SessionManager
@@ -85,11 +86,26 @@ fun CommentsFragment.commentCardRenderer(): FeedRenderer<CommentFeedItem, CellCo
             }
         },
         recycle = { cell ->
+            cancelCommentTranslationAnimation(cell.binding.translationBlock)
             cell.binding.userIcon.clearGlideOnRecycle()
             // 同步清掉 binding_loadUserIcon 的去重 tag,否则复用的 view 换绑到同头像 URL 的另一条
             // 评论时会误判"已加载"跳过重绘,而图其实已被上面 clear() 清空,头像永久空白
             cell.binding.userIcon.setTag(R.id.user_head_icon_tag, null)
             cell.binding.commentStamp.clearGlideOnRecycle()
+        },
+        // 译文写入 / 摘除只动 translations:走 payload 只重绑译文块 + 子回复列表,头像 / 图章的
+        // Glide 请求、胶囊图标的 drawable 重建统统跳过。
+        changePayload = { oldItem, newItem ->
+            if (oldItem.copy(translations = newItem.translations) == newItem) TRANSLATIONS_PAYLOAD else null
+        },
+        bindPayloads = { cell, payloads ->
+            if (payloads.all { it === TRANSLATIONS_PAYLOAD }) {
+                bindTranslation(cell)
+                bindChildComments(cell)
+                true
+            } else {
+                false
+            }
         },
     ) { cell ->
         val item = cell.item
@@ -116,6 +132,7 @@ fun CommentsFragment.commentCardRenderer(): FeedRenderer<CommentFeedItem, CellCo
                 binding.commentContent.textSize.toInt(),
             )
         }
+        bindTranslation(cell)
 
         binding.arthurLabel.isVisible = item.isArthurCommented
         applyV3CommentAccents(
@@ -146,28 +163,54 @@ fun CommentsFragment.commentCardRenderer(): FeedRenderer<CommentFeedItem, CellCo
         // Keep the affordance until that complete thread has actually been fetched.
         binding.showReply.isVisible = !isSnapshotMode && comment.has_replies == true && !item.repliesLoaded
 
-        if (item.childComments.isNotEmpty()) {
-            binding.childCommentsList.isVisible = true
-            if (binding.childCommentsList.itemDecorationCount == 0) {
-                binding.childCommentsList.addItemDecoration(
-                    BottomDividerDecoration(context, R.drawable.list_divider_no_end, marginLeft = 12.ppppx)
-                )
-            }
-            // 复用已挂在子 RecyclerView 上的 adapter(复用 cell 不重复 new),2026 RecyclerView 实践
-            val childAdapter = binding.childCommentsList.adapter as? ChildCommentAdapter
-                ?: ChildCommentAdapter().also {
-                    binding.childCommentsList.layoutManager = LinearLayoutManager(context)
-                    binding.childCommentsList.adapter = it
-                }
-            childAdapter.readOnly = isSnapshotMode
-            childAdapter.submitList(item.childComments.map { childComment ->
-                ChildCommentItem(comment.id, childComment, item.illustArthurId)
-            })
-        } else {
-            binding.childCommentsList.isVisible = false
-            (binding.childCommentsList.adapter as? ChildCommentAdapter)?.submitList(emptyList())
-        }
+        bindChildComments(cell)
     }
+
+private fun CommentsFragment.bindTranslation(cell: FeedCell<CommentFeedItem, CellCommentBinding>) {
+    val commentId = cell.item.comment.id
+    bindCommentTranslation(
+        block = cell.binding.translationBlock,
+        textView = cell.binding.translationText,
+        translation = cell.item.translations[commentId],
+        reveal = pendingTranslationReveals.remove(commentId),
+    )
+}
+
+private fun CommentsFragment.bindChildComments(cell: FeedCell<CommentFeedItem, CellCommentBinding>) {
+    val item = cell.item
+    val binding = cell.binding
+    val context = binding.root.context
+    if (item.childComments.isNotEmpty()) {
+        binding.childCommentsList.isVisible = true
+        if (binding.childCommentsList.itemDecorationCount == 0) {
+            binding.childCommentsList.addItemDecoration(
+                BottomDividerDecoration(context, R.drawable.list_divider_no_end, marginLeft = 12.ppppx)
+            )
+        }
+        // 复用已挂在子 RecyclerView 上的 adapter(复用 cell 不重复 new),2026 RecyclerView 实践
+        val childAdapter = binding.childCommentsList.adapter as? ChildCommentAdapter
+            ?: ChildCommentAdapter().also {
+                binding.childCommentsList.layoutManager = LinearLayoutManager(context)
+                binding.childCommentsList.adapter = it
+            }
+        childAdapter.readOnly = isSnapshotMode
+        childAdapter.pendingTranslationReveals = pendingTranslationReveals
+        childAdapter.submitList(item.childComments.map { childComment ->
+            ChildCommentItem(
+                parentCommentId = item.comment.id,
+                comment = childComment,
+                illustArthurId = item.illustArthurId,
+                translation = item.translations[childComment.id],
+            )
+        })
+    } else {
+        binding.childCommentsList.isVisible = false
+        (binding.childCommentsList.adapter as? ChildCommentAdapter)?.submitList(emptyList())
+    }
+}
+
+/** [CommentFeedItem] 只有 translations 变了时的 change payload,见 [commentCardRenderer]。 */
+private val TRANSLATIONS_PAYLOAD = Any()
 
 /** 操作胶囊图标:统一缩到 [sizeDp] 并着色。drawableStartCompat/EndCompat 在 XML 里只能吃图标
  *  原生 24dp，必须在代码里 setBounds 才能真正改渲染尺寸——mutate() 避免污染其他地方共用的

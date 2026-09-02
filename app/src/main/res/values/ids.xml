@@ -96,4 +96,6 @@
     <item type="id" name="v3_desc_predraw_listener" />
     <!-- 借号用量页入口（侧边栏最底部）。服务端 /v1/account/nana7mi/quota 的只读视图。 -->
     <item type="id" name="nav_nana7mi_usage" />
+    <!-- 评论 cell 内嵌译文块正在跑的展开/收起动画；重绑/回收时据此取消。 -->
+    <item type="id" name="comment_translation_animator" />
 </resources>

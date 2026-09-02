@@ -761,6 +761,7 @@
     <string name="string_translate_caption">Çevir</string>
     <string name="v3_translate_caption_label">Açıklama:</string>
     <string name="string_translating">Çevriliyor…</string>
+    <string name="comment_translation_hide">Çeviriyi gizle</string>
     <string name="string_translate_failed">Çeviri başarısız oldu</string>
     <string name="string_translate_model_loading">Çeviri modeli yükleniyor…</string>
     <string name="string_ai_manga_translate_inline">Manga çevirisi</string>

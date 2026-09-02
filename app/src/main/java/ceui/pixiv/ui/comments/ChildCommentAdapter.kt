@@ -28,6 +28,8 @@ data class ChildCommentItem(
     val parentCommentId: Long,
     val comment: Comment,
     val illustArthurId: Long,
+    /** 已展开的译文(来自所属 [CommentFeedItem.translations]),null = 未翻译。 */
+    val translation: String? = null,
 ) {
     val isArthurCommented: Boolean
         get() = illustArthurId == comment.user.id
@@ -42,6 +44,12 @@ class ChildCommentAdapter : ListAdapter<ChildCommentItem, ChildCommentViewHolder
     /** 快照只读模式：隐藏回复/删除按钮，禁止在线操作。 */
     var readOnly: Boolean = false
 
+    /**
+     * 刚译完、等着在 cell 里播展开动画的评论 id;与 [CommentsFragment] 共用同一个集合实例,
+     * bind 时消费掉——滚出滚回的重绑不再重播。
+     */
+    var pendingTranslationReveals: MutableSet<Long>? = null
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChildCommentViewHolder {
         val binding = CellChildCommentBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
@@ -50,7 +58,13 @@ class ChildCommentAdapter : ListAdapter<ChildCommentItem, ChildCommentViewHolder
     }
 
     override fun onBindViewHolder(holder: ChildCommentViewHolder, position: Int) {
-        holder.bind(getItem(position), readOnly)
+        val item = getItem(position)
+        val reveal = pendingTranslationReveals?.remove(item.comment.id) == true
+        holder.bind(item, readOnly, reveal)
+    }
+
+    override fun onViewRecycled(holder: ChildCommentViewHolder) {
+        holder.recycle()
     }
 
     companion object {
@@ -59,7 +73,7 @@ class ChildCommentAdapter : ListAdapter<ChildCommentItem, ChildCommentViewHolder
                 oldItem.comment.id == newItem.comment.id
 
             override fun areContentsTheSame(oldItem: ChildCommentItem, newItem: ChildCommentItem): Boolean =
-                oldItem.comment == newItem.comment && oldItem.illustArthurId == newItem.illustArthurId
+                oldItem == newItem
         }
     }
 }
@@ -68,7 +82,7 @@ class ChildCommentViewHolder(
     private val binding: CellChildCommentBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(item: ChildCommentItem, readOnly: Boolean = false) {
+    fun bind(item: ChildCommentItem, readOnly: Boolean = false, revealTranslation: Boolean = false) {
         val comment = item.comment
         val context = binding.root.context
 
@@ -92,6 +106,13 @@ class ChildCommentViewHolder(
                 binding.commentContent.textSize.toInt(),
             )
         }
+
+        bindCommentTranslation(
+            block = binding.translationBlock,
+            textView = binding.translationText,
+            translation = item.translation,
+            reveal = revealTranslation,
+        )
 
         binding.arthurLabel.isVisible = item.isArthurCommented
         applyV3CommentAccents(
@@ -131,5 +152,9 @@ class ChildCommentViewHolder(
                     ?.onClickDeleteComment(sender, comment, item.parentCommentId)
             }
         }
+    }
+
+    fun recycle() {
+        cancelCommentTranslationAnimation(binding.translationBlock)
     }
 }
