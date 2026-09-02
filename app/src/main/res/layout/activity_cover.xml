@@ -13,28 +13,44 @@
         android:layout_height="match_parent"
         tools:openDrawer="start">
 
-        <RelativeLayout
+        <!-- 底栏「跟随列表滚动收起」：内容页铺满整屏、底栏浮在其上，收起时露出的是列表本身
+             而不是一条空白（以前 view_pager 是 layout_above 底栏，底栏一挪就会露出窗口底色）。
+             被底栏压住的那一截由 MainActivity 把底栏高度当成底部安全区重新分发 inset，
+             各列表据此补 paddingBottom；滑动的触发见 BottomBarAutoHide。 -->
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <ceui.lisa.view.DrawerLayoutViewPager
-                android:id="@+id/view_pager"
+            <!-- 这层壳只为「重写往内容区分发的底部 inset」留一个挂点(见 MainActivity
+                 setUpAutoHidingBottomBar):不能直接把 listener 挂到 view_pager 上——
+                 ViewPager 在构造函数里给自己装了一个 OnApplyWindowInsetsListener,
+                 用来把同一份 inset 分别发给每一页(而不是走 ViewGroup 那套「第一页消费完
+                 后面的页就收不到」的链式分发),挂上去会把它顶掉。 -->
+            <FrameLayout
+                android:id="@+id/content_host"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_above="@+id/navigation_view">
+                android:layout_height="match_parent">
 
-            </ceui.lisa.view.DrawerLayoutViewPager>
+                <ceui.lisa.view.DrawerLayoutViewPager
+                    android:id="@+id/view_pager"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                </ceui.lisa.view.DrawerLayoutViewPager>
+
+            </FrameLayout>
 
             <com.google.android.material.bottomnavigation.BottomNavigationView
-                android:layout_width="match_parent"
-                android:layout_alignParentBottom="true"
-                android:background="?android:attr/windowBackground"
                 android:id="@+id/navigation_view"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:background="?android:attr/windowBackground"
+                app:layout_behavior="com.google.android.material.behavior.HideViewOnScrollBehavior">
 
             </com.google.android.material.bottomnavigation.BottomNavigationView>
 
-        </RelativeLayout>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
         <!-- 侧边栏：MD3 modal navigation drawer（替代 NavigationView+menu）。
              容器右缘 28dp 圆角（代码里 setClipToOutline），条目为透明底胶囊行，

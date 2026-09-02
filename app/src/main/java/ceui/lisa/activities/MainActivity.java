@@ -30,8 +30,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
@@ -67,6 +70,7 @@ import ceui.pixiv.services.ServicesProvider;
 import ceui.pixiv.config.RemoteAppConfig;
 import ceui.pixiv.push.InAppPushCenter;
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.ui.navigation.BottomBarAutoHide;
 import ceui.pixiv.ui.navigation.DrawerIconCatalog;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 
@@ -80,6 +84,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
     private static final long EXIT_WINDOW_MS = 2000;
     private OnBackPressedCallback mainBackCallback;
     private DrawerPredictiveBack drawerPredictiveBack;
+    private BottomBarAutoHide bottomBarAutoHide;
     private Fragment[] baseFragments = null;
     // 与 baseFragments 一一对应的底部菜单 item id;TAB 顺序可配置后,
     // id 和位置的关系不再固定,所有 id<->position 换算都查这张表
@@ -148,6 +153,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
     @Override
     protected void initView() {
         baseBind.drawerLayout.setScrimColor(Color.TRANSPARENT);
+
+        setUpAutoHidingBottomBar();
 
         // 抽屉整体 edge-to-edge:顶部补 status bar,底部补 nav bar(BaseActivity 开了 EdgeToEdge)
         baseBind.drawerContent.setPaddingRelative(
@@ -244,6 +251,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
                 if (tabMenuIds != null && position < tabMenuIds.length) {
                     baseBind.navigationView.setSelectedItemId(tabMenuIds[position]);
                 }
+                // 换 tab 必须把底栏放回来:收起状态下滑到别的 tab,否则没底栏可点。
+                bottomBarAutoHide.reveal();
             }
 
             @Override
@@ -317,6 +326,38 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
         if (mainBackCallback == null) return;
         boolean exitArmed = System.currentTimeMillis() - mExitTime <= EXIT_WINDOW_MS;
         mainBackCallback.setEnabled(isDrawerOpen() || !exitArmed);
+    }
+
+    /**
+     * 底栏跟随列表滚动收起 / 上滑恢复。
+     *
+     * 布局上底栏已经浮在 view_pager 之上(见 activity_cover.xml),所以内容页现在铺满整屏——
+     * 被底栏压住的那一截靠这里补:把底栏高度(它自己已经吃掉了系统导航栏 inset)当作底部安全区
+     * 重新分发给内容区,各列表沿用既有的「底部 systemBars inset -> paddingBottom」那套读法
+     * (FeedFragment.applyBottomSafeInset / 发现页与「我」页的 NestedScrollView),不用各自去认
+     * 「宿主有没有底栏」。首帧底栏还没量到高度,量到后由 layout 监听补发一次 inset。
+     * inset 的 listener 挂在 content_host 这层壳上而不是 view_pager 上,原因见 activity_cover.xml。
+     *
+     * 收起 / 恢复的触发见 {@link BottomBarAutoHide}(不能靠 CoordinatorLayout 的嵌套滚动分发)。
+     */
+    private void setUpAutoHidingBottomBar() {
+        ViewCompat.setOnApplyWindowInsetsListener(baseBind.contentHost, (v, windowInsets) -> {
+            Insets navBars = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
+            int bottom = Math.max(navBars.bottom, baseBind.navigationView.getHeight());
+            return new WindowInsetsCompat.Builder(windowInsets)
+                    .setInsets(WindowInsetsCompat.Type.navigationBars(),
+                            Insets.of(navBars.left, navBars.top, navBars.right, bottom))
+                    .build();
+        });
+        baseBind.navigationView.addOnLayoutChangeListener(
+                (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                    if ((bottom - top) != (oldBottom - oldTop)) {
+                        ViewCompat.requestApplyInsets(baseBind.contentHost);
+                    }
+                });
+
+        bottomBarAutoHide = new BottomBarAutoHide(baseBind.navigationView);
+        bottomBarAutoHide.install(this);
     }
 
     private void initFragment() {

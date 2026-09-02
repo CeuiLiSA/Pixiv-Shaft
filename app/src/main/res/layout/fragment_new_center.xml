@@ -78,6 +78,7 @@
             <!-- clipToPadding=false:内容滚动时贴着视口底边裁切,而不是被 24dp paddingBottom 提前
                  24dp 切一刀(那会在底部悬空一条「莫名其妙的裁切痕迹」)。padding 只用来给末尾留出滚动余量。 -->
             <androidx.core.widget.NestedScrollView
+                android:id="@+id/discoverScroll"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipToPadding="false"

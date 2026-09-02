@@ -34,6 +34,13 @@ import ceui.pixiv.ui.common.setUpToolbar
  */
 class FollowingNovelFeedFragment : NovelFeedFragment() {
 
+    /**
+     * 铺到屏幕底,底部安全区靠 inset 补:无底栏的宿主是手势条/导航栏,首页那份是浮在内容之上的
+     * 底栏高度(MainActivity 重写了分发给内容区的 inset)。以前首页是 view_pager 让位给底栏,
+     * 这里保持 false;现在底栏会跟随滚动收起,内容必须铺满整屏,改由列表自己补 padding。
+     */
+    override val applyBottomSafeInset: Boolean = true
+
     private val restrictViewModel: RestrictViewModel by viewModels()
 
     /** legacy 默认带 toolbar（TemplateActivity 走无参构造，hideToolbar=false），保持一致。 */

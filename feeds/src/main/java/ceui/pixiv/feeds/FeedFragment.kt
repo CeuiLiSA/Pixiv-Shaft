@@ -51,9 +51,11 @@ abstract class FeedFragment(
     protected abstract fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>>
 
     /**
-     * 裸 fragment_feed 形态下,是否给列表底部补 systemBars inset(手势条/导航栏)。
-     * 全屏铺到屏幕底、底部无 BottomNavigation 的宿主(UserActivityV3 的各 tab 等)覆写为 true;
-     * 首页那种底部有导航栏的宿主保持 false。带 toolbar 的骨架不受此开关影响(setUpToolbar 自理)。
+     * 裸 fragment_feed 形态下,是否给列表底部补 inset。铺到屏幕底的列表覆写为 true;
+     * 只占半屏、上面还压着别的内容的货架(横向 rail 等)保持 false。
+     * 具体补多少由宿主分发的 inset 决定:一般宿主是手势条/导航栏,首页是浮在内容之上、会跟随
+     * 滚动收起的底栏高度(MainActivity 重写了分发给内容区的 inset)。
+     * 带 toolbar 的骨架不受此开关影响(setUpToolbar 自理)。
      */
     protected open val applyBottomSafeInset: Boolean = false
 
@@ -113,11 +115,9 @@ abstract class FeedFragment(
             feedRoot.setBackgroundColor(feedRootBackgroundColor)
         }
 
-        // 底部 safe-area:裸 fragment_feed 铺到屏幕底(UserActivityV3 tab 等无底栏宿主),列表末尾
-        // 会被手势条/导航栏挡住。给列表补底部 systemBars inset(clipToPadding=false 已使末条能上滚)。
+        // 底部 safe-area:裸 fragment_feed 铺到屏幕底,列表末尾会被手势条/导航栏(首页则是浮在内容
+        // 之上的底栏)挡住。给列表补底部 systemBars inset(clipToPadding=false 已使末条能上滚)。
         // 只在裸 feed 形态生效:带 toolbar 的骨架由 setUpToolbar 自己吃 inset,重复套会多留一截。
-        // 底部有 BottomNavigation 的宿主(首页 MainActivity)保持 applyBottomSafeInset=false,免得在
-        // 导航栏上方留空。
         if (view === feedRoot && applyBottomSafeInset) {
             val listView = binding.feedListView
             val basePaddingBottom = listView.paddingBottom
