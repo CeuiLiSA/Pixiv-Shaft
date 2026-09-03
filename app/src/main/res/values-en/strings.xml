@@ -2969,4 +2969,6 @@
     <string name="cloud_translate_quota_weekly">Weekly translation limit reached, back in %1$s</string>
     <string name="cloud_translate_quota_unknown">Translation limit reached, please try again later</string>
     <string name="cloud_translate_usage_lt1">&lt;1%</string>
+    <string name="cloud_translate_engine_line">Current engine: %1$s</string>
+    <string name="cloud_translate_usage_section_engine">AI translation limits · %1$s</string>
 </resources>

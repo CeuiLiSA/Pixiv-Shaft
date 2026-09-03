@@ -2967,4 +2967,6 @@
     <string name="cloud_translate_quota_weekly">이번 주 번역 한도를 모두 사용했습니다. %1$s 후 복구됩니다</string>
     <string name="cloud_translate_quota_unknown">번역 한도를 모두 사용했습니다. 잠시 후 다시 시도해 주세요</string>
     <string name="cloud_translate_usage_lt1">&lt;1%</string>
+    <string name="cloud_translate_engine_line">현재 엔진: %1$s</string>
+    <string name="cloud_translate_usage_section_engine">AI 번역 한도 · %1$s</string>
 </resources>

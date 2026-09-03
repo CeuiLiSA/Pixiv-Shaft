@@ -290,8 +290,21 @@ data class AppConfigResponse(
      * （默认关）——没被宣告过的路由不去打。
      */
     val cloudTranslateEnabled: Boolean? = null,
+    /** 云翻译当前用的厂商和模型全名（「OpenAI · gpt-5.4-mini」），功能关着时为 null。纯展示。 */
+    val cloudTranslateEngine: CloudTranslateEngine? = null,
     val serverTime: Long? = null,
 )
+
+/** 服务端 `translateEngine()`：可以给用户看的两样东西，没有 key、没有地址。 */
+data class CloudTranslateEngine(
+    val vendor: String? = null,
+    val model: String? = null,
+) {
+    /** 「OpenAI · gpt-5.4-mini」；两样都缺就 null，调用方别画一个空标签。 */
+    val display: String?
+        get() = listOfNotNull(vendor?.takeIf { it.isNotBlank() }, model?.takeIf { it.isNotBlank() })
+            .takeIf { it.isNotEmpty() }?.joinToString(" · ")
+}
 
 /**
  * 后台写的一条应用内推送（pixshaft-api 控制台「应用内推送」tab）。
@@ -706,6 +719,8 @@ sealed class Nana7miQuotaResult {
         val serverTime: Long,
         /** 服务端此刻认的档位。比冷启动缓存的那份新，用量页优先用它。 */
         val plan: Nana7miPlan? = null,
+        /** 只有云翻译额度会带：当前翻译引擎，用量页把它写进分组标题。 */
+        val engine: CloudTranslateEngine? = null,
     ) : Nana7miQuotaResult()
 
     data class HttpFailure(val status: Int) : Nana7miQuotaResult()
@@ -767,6 +782,7 @@ data class TranslateQuotaResponse(
     val uid: Long? = null,
     val serverTime: Long? = null,
     val enabled: Boolean? = null,
+    val engine: CloudTranslateEngine? = null,
     val plan: Nana7miPlan? = null,
     val quotas: List<Nana7miQuotaWindow> = emptyList(),
 )
@@ -862,6 +878,7 @@ suspend fun PixshaftApi.fetchTranslateQuota(uid: Long): Nana7miQuotaResult {
             body.quotas,
             body.serverTime ?: System.currentTimeMillis(),
             body.plan,
+            body.engine,
         )
     } catch (ce: CancellationException) {
         throw ce

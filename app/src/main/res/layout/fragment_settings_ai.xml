@@ -167,6 +167,7 @@
                             android:text="@string/cloud_translate_title" />
 
                         <TextView
+                            android:id="@+id/cloud_translate_desc"
                             style="@style/M3SetDesc"
                             android:text="@string/cloud_translate_desc" />
                     </LinearLayout>

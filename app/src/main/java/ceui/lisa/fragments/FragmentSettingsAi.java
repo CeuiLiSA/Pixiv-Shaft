@@ -104,6 +104,14 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
                 Local.setSettings(Shaft.sSettings);
             });
             baseBind.cloudTranslateRela.setOnClickListener(v -> baseBind.cloudTranslateSwitch.toggle());
+            // 描述末尾带上当前引擎（「当前引擎：OpenAI · gpt-5.4-mini」），没拉到过就只显示基础描述
+            ceui.pixiv.shaftapi.CloudTranslateEngine engine =
+                    ceui.pixiv.services.ServiceProviderKt.appServices(mContext).getRemoteAppConfig().getCloudTranslateEngineInfo();
+            String engineText = engine != null ? engine.getDisplay() : null;
+            if (engineText != null) {
+                baseBind.cloudTranslateDesc.setText(getString(R.string.cloud_translate_desc) + "\n"
+                        + getString(R.string.cloud_translate_engine_line, engineText));
+            }
         }
 
         // 自定义 AI 翻译（#975）— OpenAI 兼容接口替代内置 Google web 翻译

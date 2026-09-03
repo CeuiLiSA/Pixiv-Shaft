@@ -3230,4 +3230,6 @@
     <string name="cloud_translate_quota_weekly">本周翻译额度已用完，%1$s后恢复</string>
     <string name="cloud_translate_quota_unknown">翻译额度已用完，请稍后再试</string>
     <string name="cloud_translate_usage_lt1">&lt;1%</string>
+    <string name="cloud_translate_engine_line">当前引擎：%1$s</string>
+    <string name="cloud_translate_usage_section_engine">AI 翻译额度 · %1$s</string>
 </resources>

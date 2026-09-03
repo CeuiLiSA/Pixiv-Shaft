@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.BuildConfig
 import ceui.pixiv.shaftapi.AppConfigResponse
+import ceui.pixiv.shaftapi.CloudTranslateEngine
 import ceui.pixiv.api.Client
 import ceui.pixiv.shaftapi.Nana7miPlan
 import ceui.pixiv.push.InAppPushArrival
@@ -65,6 +66,10 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
     /** 云翻译代理开关（服务端 `cloudTranslateEnabled`）。缓存规矩同 [nana7miSearch]：是开关，拿不到就沿用旧值。 */
     @Volatile
     private var cloudTranslate = DEFAULT_CLOUD_TRANSLATE
+
+    /** 云翻译当前引擎（厂商 + 模型），纯展示；不分 uid，全局一份。 */
+    @Volatile
+    private var cloudTranslateEngine: CloudTranslateEngine? = null
 
     /**
      * 请求幂等协议不是功能开关，也不持久化。只有本进程从当前服务端明确看到 true 才启用；
@@ -160,6 +165,13 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
             return cloudTranslate
         }
 
+    /** 设置页和用量页展示用的「OpenAI · gpt-5.4-mini」；没拉到过就是 null，别画空标签。 */
+    val cloudTranslateEngineInfo: CloudTranslateEngine?
+        get() {
+            refreshIfStale()
+            return cloudTranslateEngine
+        }
+
     /**
      * 当前登录账号的订阅档位；没拉到过、未登录、或缓存已过期都是 null。
      *
@@ -225,6 +237,9 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         cloudTranslate = runCatching {
             store.getBoolean(translateKey(uid), DEFAULT_CLOUD_TRANSLATE)
         }.getOrDefault(DEFAULT_CLOUD_TRANSLATE)
+        cloudTranslateEngine = runCatching {
+            store.getString(KEY_CLOUD_TRANSLATE_ENGINE, null)?.let { gson.fromJson(it, CloudTranslateEngine::class.java) }
+        }.getOrNull()
         plan = if (BuildConfig.IS_LITE) null else loadCachedPlan(uid)
         planLive.postValue(plan)
         valueForUid = uid
@@ -296,6 +311,14 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
             cloudTranslate = on
             runCatching { store.putBoolean(translateKey(uid), on) }
         }
+        // 引擎名跟着开关走：服务端开着就给，关着就是 null；缺失（老服务端）保留旧值。
+        if (response.cloudTranslateEnabled != null) {
+            cloudTranslateEngine = response.cloudTranslateEngine
+            runCatching {
+                if (cloudTranslateEngine == null) store.removeValueForKey(KEY_CLOUD_TRANSLATE_ENGINE)
+                else store.putString(KEY_CLOUD_TRANSLATE_ENGINE, gson.toJson(cloudTranslateEngine))
+            }
+        }
         val enabled = if (BuildConfig.IS_LITE) false else response.nana7miSearchEnabled
         if (enabled == null) {
             Timber.tag(TAG).d(
@@ -360,6 +383,7 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         const val KEY_NANA7MI_SEARCH_PREFIX = "nana7mi_search_enabled_"
         const val KEY_NANA7MI_PLAN_PREFIX = "nana7mi_plan_"
         const val KEY_CLOUD_TRANSLATE_PREFIX = "cloud_translate_enabled_"
+        const val KEY_CLOUD_TRANSLATE_ENGINE = "cloud_translate_engine"
         // 服务端没宣告过之前不打这条路由：老服务端对它是 404。
         const val DEFAULT_CLOUD_TRANSLATE = false
         // 没拿到服务端许可之前不开：这是灰度中的功能，默认关比默认开安全。

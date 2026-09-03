@@ -28,6 +28,7 @@ import ceui.lisa.databinding.FragmentNana7miUsageBinding
 import ceui.lisa.fragments.BaseFragment
 import ceui.lisa.utils.Common
 import ceui.pixiv.api.Client
+import ceui.pixiv.shaftapi.CloudTranslateEngine
 import ceui.pixiv.shaftapi.Nana7miCheckoutClient
 import ceui.pixiv.shaftapi.Nana7miCheckoutResult
 import ceui.pixiv.shaftapi.Nana7miPlan
@@ -773,15 +774,19 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
     private suspend fun fetchAndRenderTranslate(uid: Long) {
         val result = Client.pixshaft.fetchTranslateQuota(uid)
         if (result is Nana7miQuotaResult.Success) {
-            renderTranslate(result.quotas, result.serverTime)
+            renderTranslate(result.quotas, result.serverTime, result.engine)
         } else {
             baseBind.translateSectionTitle.visibility = View.GONE
             baseBind.translateRows.visibility = View.GONE
         }
     }
 
-    private fun renderTranslate(quotas: List<Nana7miQuotaWindow>, serverTime: Long) {
+    private fun renderTranslate(quotas: List<Nana7miQuotaWindow>, serverTime: Long, engine: CloudTranslateEngine?) {
         baseBind.translateSectionTitle.visibility = View.VISIBLE
+        // 分组标题带上厂商和模型全名（产品决定可露）；服务端没给就用不带引擎的标题
+        baseBind.translateSectionTitle.text = engine?.display
+            ?.let { getString(R.string.cloud_translate_usage_section_engine, it) }
+            ?: getString(R.string.cloud_translate_usage_section)
         baseBind.translateRows.visibility = View.VISIBLE
         val host = baseBind.translateRows
         host.removeAllViews()

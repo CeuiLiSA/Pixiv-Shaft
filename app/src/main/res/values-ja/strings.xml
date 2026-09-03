@@ -2967,4 +2967,6 @@
     <string name="cloud_translate_quota_weekly">今週の翻訳上限に達しました。%1$s後に回復します</string>
     <string name="cloud_translate_quota_unknown">翻訳の上限に達しました。しばらくしてからお試しください</string>
     <string name="cloud_translate_usage_lt1">&lt;1%</string>
+    <string name="cloud_translate_engine_line">現在のエンジン：%1$s</string>
+    <string name="cloud_translate_usage_section_engine">AI 翻訳の上限 · %1$s</string>
 </resources>

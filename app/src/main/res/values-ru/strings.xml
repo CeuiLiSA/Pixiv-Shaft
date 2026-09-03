@@ -2976,4 +2976,6 @@
     <string name="cloud_translate_quota_weekly">Недельный лимит перевода исчерпан, восстановится через %1$s</string>
     <string name="cloud_translate_quota_unknown">Лимит перевода исчерпан, попробуйте позже</string>
     <string name="cloud_translate_usage_lt1">&lt;1%</string>
+    <string name="cloud_translate_engine_line">Текущий движок: %1$s</string>
+    <string name="cloud_translate_usage_section_engine">Лимиты ИИ-перевода · %1$s</string>
 </resources>
