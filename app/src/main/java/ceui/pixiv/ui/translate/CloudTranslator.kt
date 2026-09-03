@@ -76,6 +76,7 @@ object CloudTranslator : Translator {
         Client.pixshaft, SessionManager.loggedInUid, inputs, outputLang,
         onItem, onProgress, onPhase, onRequestSent,
         onServerDisabled = ::markServerDisabled,
+        fallback = GoogleWebTranslator,
     )
 
     /**
@@ -99,6 +100,7 @@ object CloudTranslator : Translator {
         onPhase: ((AiTranslatePhase) -> Unit)? = null,
         onRequestSent: (() -> Unit)? = null,
         onServerDisabled: (() -> Unit)? = null,
+        fallback: Translator? = null,
     ): List<String> = withContext(Dispatchers.IO) {
         if (inputs.isEmpty()) return@withContext emptyList()
         val lang = serverLangOf(outputLang)
@@ -188,6 +190,14 @@ object CloudTranslator : Translator {
                 done += (to - from)
                 onProgress?.invoke(done, inputs.size)
             }
+        }
+
+        // 服务端把功能关了（运维手动开关 / 总开关）：这一次就直接交给下一级引擎重做，用户看到的
+        // 只是译文换了个来源，不是一个 503 弹窗；本地开关已在上面翻掉，后续调用不会再到这里。
+        val disabled = stopAll.get()
+        if (fallback != null && disabled is CloudTranslateException && disabled.code == 503) {
+            Timber.tag(TAG).i("server switched off, redoing this batch with %s", fallback::class.simpleName)
+            return@withContext fallback.translateBatch(inputs, outputLang, onItem, onProgress, onPhase, onRequestSent)
         }
 
         if (results.all { it.isBlank() }) {

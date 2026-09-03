@@ -148,6 +148,32 @@ class CloudTranslatorTest {
     }
 
     @Test
+    fun `服务端关停时这一批直接交给下一级引擎重做，不抛错`() = runBlocking {
+        server.enqueue(json(503, """{"error":"translate_disabled"}"""))
+        val fallback = object : Translator {
+            val calls = mutableListOf<List<String>>()
+            override suspend fun translate(input: String, outputLang: String, onPhase: ((AiTranslatePhase) -> Unit)?): String =
+                "G:$input"
+            override suspend fun translateBatch(
+                inputs: List<String>, outputLang: String,
+                onItem: ((Int, String) -> Unit)?, onProgress: ((Int, Int) -> Unit)?,
+                onPhase: ((AiTranslatePhase) -> Unit)?, onRequestSent: (() -> Unit)?,
+            ): List<String> {
+                calls.add(inputs)
+                return inputs.map { "G:$it" }
+            }
+        }
+        var disabled = 0
+        val out = CloudTranslator.translateBatchWith(
+            api, 7L, listOf("a", "b"), "en",
+            onServerDisabled = { disabled++ }, fallback = fallback,
+        )
+        assertEquals(listOf("G:a", "G:b"), out)
+        assertEquals(listOf(listOf("a", "b")), fallback.calls)
+        assertEquals(1, disabled)
+    }
+
+    @Test
     fun `分片同时受字符数和条数约束`() {
         // 100 条 10 字符：字符远不到 3000，但条数要按 64 切成两段
         val many = List(100) { "0123456789" }
