@@ -1,1 +1,8 @@
+plugins {
+    // Daemon JVM toolchain（gradle/gradle-daemon-jvm.properties）声明了 daemon 必须跑在
+    // JDK 17 上；机器上没有匹配 JDK 时靠这个解析器按里面的 toolchainUrl 自动下载到
+    // ~/.gradle/jdks，避免 Studio 自带的 JBR 25 去跑 lint/release 直接炸。
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
 include ':app', ':models', ':progressmanager', ':flowlayout-lib', ':actionqueue', ':feeds', ':witstudio', ':websocket', ':banner', ':panel'
