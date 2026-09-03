@@ -37,6 +37,8 @@ object CloudTranslator : Translator {
 
     /** 与服务端 TRANSLATE_MAX_CHARS(8000)留足余量；单条超长文本会独占一个分片。 */
     internal const val MAX_BATCH_CHARS = 3000
+    /** 服务端 TRANSLATE_MAX_ITEMS：一页漫画气泡再多也不能把 65 条塞进一个请求（会 413）。 */
+    internal const val MAX_BATCH_ITEMS = 64
     private const val REQUEST_CONCURRENCY = 4
     private const val TAG = "CloudTranslator"
 
@@ -70,7 +72,21 @@ object CloudTranslator : Translator {
         onProgress: ((Int, Int) -> Unit)?,
         onPhase: ((AiTranslatePhase) -> Unit)?,
         onRequestSent: (() -> Unit)?,
-    ): List<String> = translateBatchWith(Client.pixshaft, SessionManager.loggedInUid, inputs, outputLang, onItem, onProgress, onPhase, onRequestSent)
+    ): List<String> = translateBatchWith(
+        Client.pixshaft, SessionManager.loggedInUid, inputs, outputLang,
+        onItem, onProgress, onPhase, onRequestSent,
+        onServerDisabled = ::markServerDisabled,
+    )
+
+    /**
+     * 服务端回了 `translate_disabled`：运维刚把总开关关了。冷启动那份 `cloudTranslateEnabled`
+     * 还是 true，不当场翻掉的话，用户每翻一次都吃一个 503 弹窗直到重启 —— 开关就失去意义了。
+     * 翻掉之后下一次翻译由 [currentTranslator] 直接落到 Google，下次冷启动再由服务端决定要不要开回来。
+     */
+    private fun markServerDisabled() {
+        val context = Shaft.getContext() ?: return
+        context.appServices().remoteAppConfig.markCloudTranslateDisabled(SessionManager.loggedInUid)
+    }
 
     /** 依赖显式传入的版本，单测用 MockWebServer 起一个 Retrofit 实例直接打。 */
     internal suspend fun translateBatchWith(
@@ -82,11 +98,12 @@ object CloudTranslator : Translator {
         onProgress: ((Int, Int) -> Unit)? = null,
         onPhase: ((AiTranslatePhase) -> Unit)? = null,
         onRequestSent: (() -> Unit)? = null,
+        onServerDisabled: (() -> Unit)? = null,
     ): List<String> = withContext(Dispatchers.IO) {
         if (inputs.isEmpty()) return@withContext emptyList()
         val lang = serverLangOf(outputLang)
         val results = MutableList(inputs.size) { "" }
-        val ranges = AiTranslator.chunkByCharLimit(inputs, MAX_BATCH_CHARS)
+        val ranges = chunkRanges(inputs, MAX_BATCH_CHARS, MAX_BATCH_ITEMS)
         val lastError = AtomicReference<Exception?>(null)
         // 额度用完 / 功能关闭 / 限流：同一个 uid 的其它分片必然同样失败，别再放出去烧限流额度。
         val stopAll = AtomicReference<Exception?>(null)
@@ -133,6 +150,7 @@ object CloudTranslator : Translator {
                                 stopAll.compareAndSet(null, e)
                                 lastError.set(e)
                                 Timber.tag(TAG).w("← 503 translate_disabled in %dms: server switched translation off", ms)
+                                onServerDisabled?.invoke()
                                 null
                             }
                             is TranslateResult.HttpFailure -> {
@@ -179,6 +197,12 @@ object CloudTranslator : Translator {
         stopAll.get()?.let { Timber.w(it, "CloudTranslator: partial result, %d/%d items", results.count { it.isNotBlank() }, inputs.size) }
         results
     }
+
+    /** 先按字符切（同 [AiTranslator.chunkByCharLimit]），再把每段按条数上限二次切开。 */
+    internal fun chunkRanges(inputs: List<String>, maxChars: Int, maxItems: Int): List<Pair<Int, Int>> =
+        AiTranslator.chunkByCharLimit(inputs, maxChars).flatMap { (from, to) ->
+            (from until to step maxItems).map { start -> start to minOf(start + maxItems, to) }
+        }
 
     /**
      * 服务端只认它自己的白名单（zh-CN / zh-TW / en / ja / ko / ru / tr）。[appTranslateTargetLang]

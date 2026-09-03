@@ -187,6 +187,17 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         applyPlan(uid, incoming)
     }
 
+    /**
+     * 服务端当场说了「关了」（翻译路由回 503 `translate_disabled`）：立刻把内存和缓存里的开关翻掉，
+     * 让下一次翻译直接退回 Google，不用等下次冷启动。只认当前登录账号，切号后回来的旧响应不作数。
+     */
+    fun markCloudTranslateDisabled(uid: Long) {
+        if (uid != SessionManager.loggedInUid) return
+        cloudTranslate = false
+        runCatching { store.putBoolean(translateKey(uid), false) }
+        Timber.tag(TAG).i("cloud translate switched off by server uid=%d", uid)
+    }
+
     /** 冷启动调用一次（幂等）。必须在 MMKV.initialize 和 SessionManager.initialize 之后。 */
     fun start() {
         if (!initialized.compareAndSet(false, true)) return

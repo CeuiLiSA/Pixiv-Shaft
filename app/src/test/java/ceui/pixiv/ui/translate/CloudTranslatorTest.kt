@@ -135,6 +135,30 @@ class CloudTranslatorTest {
     }
 
     @Test
+    fun `503 translate_disabled 触发 onServerDisabled 回调`() = runBlocking {
+        server.enqueue(json(503, """{"error":"translate_disabled"}"""))
+        var disabled = 0
+        try {
+            CloudTranslator.translateBatchWith(api, 7L, listOf("a"), "en", onServerDisabled = { disabled++ })
+            fail("expected CloudTranslateException")
+        } catch (e: CloudTranslateException) {
+            assertEquals(503, e.code)
+        }
+        assertEquals(1, disabled)
+    }
+
+    @Test
+    fun `分片同时受字符数和条数约束`() {
+        // 100 条 10 字符：字符远不到 3000，但条数要按 64 切成两段
+        val many = List(100) { "0123456789" }
+        assertEquals(listOf(0 to 64, 64 to 100), CloudTranslator.chunkRanges(many, 3000, 64))
+        // 字符先切：每条 1500 加分隔符，两条就超 3000，只能一条一段
+        val long = List(5) { "x".repeat(1500) }
+        assertEquals(listOf(0 to 1, 1 to 2, 2 to 3, 3 to 4, 4 to 5), CloudTranslator.chunkRanges(long, 3000, 64))
+        assertEquals(listOf(0 to 2, 2 to 3), CloudTranslator.chunkRanges(listOf("a", "b", "c"), 3000, 2))
+    }
+
+    @Test
     fun `gtx 语言码映射成服务端白名单`() {
         assertEquals("zh-CN", CloudTranslator.serverLangOf("zh"))
         assertEquals("zh-CN", CloudTranslator.serverLangOf("zh-CN"))
