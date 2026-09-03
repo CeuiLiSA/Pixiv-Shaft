@@ -62,6 +62,10 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
     @Volatile
     private var nana7miSearch = DEFAULT_NANA7MI_SEARCH
 
+    /** 云翻译代理开关（服务端 `cloudTranslateEnabled`）。缓存规矩同 [nana7miSearch]：是开关，拿不到就沿用旧值。 */
+    @Volatile
+    private var cloudTranslate = DEFAULT_CLOUD_TRANSLATE
+
     /**
      * 请求幂等协议不是功能开关，也不持久化。只有本进程从当前服务端明确看到 true 才启用；
      * 老服务端缺字段时立即保持/恢复 false，确保请求体仍是它接受的旧契约。
@@ -146,6 +150,17 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         }
 
     /**
+     * 云翻译（PixShaft 服务器代理的 AI 翻译）在服务端开着。这是服务端的总开关，不是用户偏好；
+     * 用户自己那只开关在 `Settings.cloudTranslateEnabled`，两者都开才走云翻译（见 CloudTranslator）。
+     * Lite 不排除：翻译不碰借来的账号，Play 渠道也能用。
+     */
+    val cloudTranslateEnabled: Boolean
+        get() {
+            refreshIfStale()
+            return cloudTranslate
+        }
+
+    /**
      * 当前登录账号的订阅档位；没拉到过、未登录、或缓存已过期都是 null。
      *
      * null 是「不知道」，**不是「免费用户」** —— 拿它去判断该不该显示付费入口没问题，
@@ -196,6 +211,9 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
                 store.getBoolean(cacheKey(uid), DEFAULT_NANA7MI_SEARCH)
             }.getOrDefault(DEFAULT_NANA7MI_SEARCH)
         }
+        cloudTranslate = runCatching {
+            store.getBoolean(translateKey(uid), DEFAULT_CLOUD_TRANSLATE)
+        }.getOrDefault(DEFAULT_CLOUD_TRANSLATE)
         plan = if (BuildConfig.IS_LITE) null else loadCachedPlan(uid)
         planLive.postValue(plan)
         valueForUid = uid
@@ -261,6 +279,12 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         val push = if (BuildConfig.IS_LITE || uid <= 0L) null else response.push
         pushLive.postValue(push?.let { InAppPushArrival(uid, it) })
         if (push != null) Timber.tag(TAG).i("in-app push arrived uid=%d id=%s", uid, push.id)
+        // 和下面的搜索开关同一条规矩：服务端没说就沿用旧值。老服务端没这个字段，
+        // 客户端于是一直停在默认的关 —— 不会去打一条它没宣告过的路由。
+        response.cloudTranslateEnabled?.let { on ->
+            cloudTranslate = on
+            runCatching { store.putBoolean(translateKey(uid), on) }
+        }
         val enabled = if (BuildConfig.IS_LITE) false else response.nana7miSearchEnabled
         if (enabled == null) {
             Timber.tag(TAG).d(
@@ -315,6 +339,8 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
 
     private fun planKey(uid: Long) = KEY_NANA7MI_PLAN_PREFIX + uid
 
+    private fun translateKey(uid: Long) = KEY_CLOUD_TRANSLATE_PREFIX + uid
+
     private val gson by lazy { Gson() }
 
     private companion object {
@@ -322,6 +348,9 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         const val MMKV_ID = "remote-app-config-v1"
         const val KEY_NANA7MI_SEARCH_PREFIX = "nana7mi_search_enabled_"
         const val KEY_NANA7MI_PLAN_PREFIX = "nana7mi_plan_"
+        const val KEY_CLOUD_TRANSLATE_PREFIX = "cloud_translate_enabled_"
+        // 服务端没宣告过之前不打这条路由：老服务端对它是 404。
+        const val DEFAULT_CLOUD_TRANSLATE = false
         // 没拿到服务端许可之前不开：这是灰度中的功能，默认关比默认开安全。
         const val DEFAULT_NANA7MI_SEARCH = false
         const val RETRY_COOLDOWN_MS = 5 * 60 * 1000L

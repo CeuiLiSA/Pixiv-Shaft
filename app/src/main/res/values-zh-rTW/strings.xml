@@ -2957,4 +2957,14 @@
     <string name="bookmark_filter_tag_mode_any">任一滿足</string>
     <string name="bookmark_filter_tag_empty">目前結果裡沒有可繼續下鑽的標籤</string>
     <string name="bookmark_filter_author_empty">目前結果裡沒有可篩選的作者</string>
+
+    <!-- PixShaft 雲翻譯 -->
+    <string name="cloud_translate_title">PixShaft 雲翻譯</string>
+    <string name="cloud_translate_desc">留言、標題、標籤與漫畫翻譯改走 PixShaft 伺服器的 AI 翻譯，無需代理，按字元計算額度；關閉則使用內建 Google 翻譯。已啟用自訂 AI 翻譯時優先自訂。</string>
+    <string name="cloud_translate_usage_section">AI 翻譯額度（按字元）</string>
+    <string name="cloud_translate_failed_title">雲翻譯失敗</string>
+    <string name="cloud_translate_quota_title">雲翻譯額度已用完</string>
+    <string name="cloud_translate_quota_session">五小時翻譯額度已用完，%1$s後恢復</string>
+    <string name="cloud_translate_quota_weekly">本週翻譯額度已用完，%1$s後恢復</string>
+    <string name="cloud_translate_quota_unknown">翻譯額度已用完，請稍後再試</string>
 </resources>

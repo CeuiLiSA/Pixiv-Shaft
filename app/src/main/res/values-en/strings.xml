@@ -2958,4 +2958,14 @@
     <string name="bookmark_filter_tag_mode_any">Match any</string>
     <string name="bookmark_filter_tag_empty">No further tags to drill into</string>
     <string name="bookmark_filter_author_empty">No artists to filter by</string>
+
+    <!-- PixShaft cloud translation -->
+    <string name="cloud_translate_title">PixShaft Cloud Translation</string>
+    <string name="cloud_translate_desc">Translate comments, titles, tags and manga through PixShaft\'s AI translation server — no proxy needed, metered by characters. Off = the built-in Google translation. A custom AI translation, when enabled, takes priority.</string>
+    <string name="cloud_translate_usage_section">AI translation limits (characters)</string>
+    <string name="cloud_translate_failed_title">Cloud translation failed</string>
+    <string name="cloud_translate_quota_title">Cloud translation limit reached</string>
+    <string name="cloud_translate_quota_session">5-hour translation limit reached, back in %1$s</string>
+    <string name="cloud_translate_quota_weekly">Weekly translation limit reached, back in %1$s</string>
+    <string name="cloud_translate_quota_unknown">Translation limit reached, please try again later</string>
 </resources>

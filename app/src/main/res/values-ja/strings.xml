@@ -2956,4 +2956,14 @@
     <string name="bookmark_filter_tag_mode_any">いずれか含む</string>
     <string name="bookmark_filter_tag_empty">これ以上絞り込めるタグがありません</string>
     <string name="bookmark_filter_author_empty">絞り込める作者がいません</string>
+
+    <!-- PixShaft クラウド翻訳 -->
+    <string name="cloud_translate_title">PixShaft クラウド翻訳</string>
+    <string name="cloud_translate_desc">コメント・タイトル・タグ・マンガの翻訳を PixShaft サーバーの AI 翻訳で行います。プロキシ不要、文字数で上限を計算。オフにすると内蔵の Google 翻訳を使用。カスタム AI 翻訳が有効な場合はそちらを優先します。</string>
+    <string name="cloud_translate_usage_section">AI 翻訳の上限（文字数）</string>
+    <string name="cloud_translate_failed_title">クラウド翻訳に失敗しました</string>
+    <string name="cloud_translate_quota_title">クラウド翻訳の上限に達しました</string>
+    <string name="cloud_translate_quota_session">5 時間の翻訳上限に達しました。%1$s後に回復します</string>
+    <string name="cloud_translate_quota_weekly">今週の翻訳上限に達しました。%1$s後に回復します</string>
+    <string name="cloud_translate_quota_unknown">翻訳の上限に達しました。しばらくしてからお試しください</string>
 </resources>

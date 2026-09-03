@@ -96,6 +96,16 @@ public class FragmentSettingsAi extends SettingsPageFragment<FragmentSettingsAiB
                     ceui.pixiv.ui.translate.MangaOcrModel.MANGA_OCR_BASE);
         }
 
+        // PixShaft 云翻译 — 服务端代理的 AI 翻译，按字符计额度；默认开，关掉退回内置 Google 翻译
+        {
+            baseBind.cloudTranslateSwitch.setChecked(Shaft.sSettings.isCloudTranslateEnabled());
+            baseBind.cloudTranslateSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                Shaft.sSettings.setCloudTranslateEnabled(isChecked);
+                Local.setSettings(Shaft.sSettings);
+            });
+            baseBind.cloudTranslateRela.setOnClickListener(v -> baseBind.cloudTranslateSwitch.toggle());
+        }
+
         // 自定义 AI 翻译（#975）— OpenAI 兼容接口替代内置 Google web 翻译
         baseBind.aiTranslateRela.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, ceui.lisa.activities.TemplateActivity.class);

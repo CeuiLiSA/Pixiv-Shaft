@@ -36,6 +36,7 @@ import ceui.pixiv.shaftapi.Nana7miQuotaWindow
 import ceui.pixiv.shaftapi.PLAN_MAX
 import ceui.pixiv.shaftapi.PLAN_PRO
 import ceui.pixiv.shaftapi.fetchNana7miQuota
+import ceui.pixiv.shaftapi.fetchTranslateQuota
 import ceui.pixiv.shaftapi.requestAfdianCheckout
 import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
@@ -650,6 +651,8 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
             // 不摆订阅卡：画一根 0% 的条是在暗示他「用着用着会没」，卖他一份用不上的额度更糟。
             baseBind.swipeRefresh.isRefreshing = false
             renderPremium()
+            // 云翻译额度对会员照样计数（翻译不走 pixiv 会员身份），所以这一组还是要拉。
+            viewLifecycleOwner.lifecycleScope.launch { fetchAndRenderTranslate(uid) }
             return
         }
         if (withSpinner) showLoading()
@@ -692,6 +695,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
                     }
                 }
                 render(result.quotas, result.serverTime)
+                fetchAndRenderTranslate(uid)
                 landed
             }
             // 静默刷新失败就当没刷过：屏幕上那份数据还是有效的，把它换成错误页是在
@@ -760,6 +764,35 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         baseBind.errorText.text = message
         baseBind.errorAction.visibility = if (retryable) View.VISIBLE else View.GONE
         baseBind.errorState.isClickable = retryable
+    }
+
+    /**
+     * 云翻译那一组桶。任何一种拿不到（老服务端 404、服务端关着、网络失败）都只是把这一组
+     * 藏起来：它是这页的附属读数，不该让主体的热度排序额度跟着变成「加载失败」。
+     */
+    private suspend fun fetchAndRenderTranslate(uid: Long) {
+        val result = Client.pixshaft.fetchTranslateQuota(uid)
+        if (result is Nana7miQuotaResult.Success) {
+            renderTranslate(result.quotas, result.serverTime)
+        } else {
+            baseBind.translateSectionTitle.visibility = View.GONE
+            baseBind.translateRows.visibility = View.GONE
+        }
+    }
+
+    private fun renderTranslate(quotas: List<Nana7miQuotaWindow>, serverTime: Long) {
+        baseBind.translateSectionTitle.visibility = View.VISIBLE
+        baseBind.translateRows.visibility = View.VISIBLE
+        val host = baseBind.translateRows
+        host.removeAllViews()
+        val inflater = LayoutInflater.from(mContext)
+        quotas.forEachIndexed { index, window ->
+            val row = inflater.inflate(R.layout.item_nana7mi_usage_row, host, false)
+            row.setBackgroundResource(WitRowStyle.rowBackground(index, quotas.size))
+            bindRow(row, window, serverTime)
+            host.addView(row)
+        }
+        WitRowStyle.applyThemedRowBg(host)
     }
 
     private fun render(quotas: List<Nana7miQuotaWindow>, serverTime: Long) {

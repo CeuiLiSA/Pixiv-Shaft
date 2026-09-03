@@ -140,6 +140,23 @@ interface PixshaftApi {
     ): Response<Nana7miQuotaResponse>
 
     /**
+     * 云翻译（服务端 `src/translate.js`）：把要翻的文本交给 PixShaft 服务器，服务器再转给它
+     * 自己配置的 OpenAI 兼容上游。模型、提示词、思考参数全在服务端定，客户端**只发文本和
+     * 目标语言**；按源文本字符数扣两只桶的额度，429 的形状和借号完全一样。
+     * 和其它 `/v1/account/` 路由同一个签名信封（拦截器签请求体）。
+     */
+    @POST("v1/account/translate")
+    suspend fun translateRaw(
+        @Body body: TranslateRequest,
+    ): Response<TranslateResponse>
+
+    /** 云翻译额度只读接口，形状同 [fetchNana7miQuotaRaw]，多一个 `enabled`。 */
+    @POST("v1/account/translate/quota")
+    suspend fun fetchTranslateQuotaRaw(
+        @Body body: Nana7miRequest,
+    ): Response<TranslateQuotaResponse>
+
+    /**
      * 换一条爱发电下单链接，链接里已经带好了「这是谁买的」。
      *
      * 服务端把 uid 和档位做成一段签过名的令牌，塞进下单页的 `custom_order_id` 和留言里；
@@ -268,6 +285,11 @@ data class AppConfigResponse(
      * 服务端一次只给**一条**、且只给没回执过的，所以这里永远不会是一个列表。
      */
     val push: InAppPush? = null,
+    /**
+     * 服务端的云翻译代理开着（总开关 + 上游已配置）。缺失 = 老服务端，客户端保留上次答案
+     * （默认关）——没被宣告过的路由不去打。
+     */
+    val cloudTranslateEnabled: Boolean? = null,
     val serverTime: Long? = null,
 )
 
@@ -689,6 +711,9 @@ sealed class Nana7miQuotaResult {
     data class HttpFailure(val status: Int) : Nana7miQuotaResult()
     data class NetworkFailure(val cause: java.io.IOException) : Nana7miQuotaResult()
     data class InvalidResponse(val cause: Exception? = null) : Nana7miQuotaResult()
+
+    /** 只有云翻译额度会回这个：服务端明确说功能关着，用量页不该画一组永远用不上的桶。 */
+    data object Disabled : Nana7miQuotaResult()
 }
 
 /**
@@ -704,6 +729,133 @@ suspend fun PixshaftApi.fetchNana7miQuota(uid: Long): Nana7miQuotaResult {
         if (body.quotas.isEmpty()) return Nana7miQuotaResult.InvalidResponse()
         // serverTime 缺失（老服务端）时退回本机时钟：倒计时可能偏一点，但整页还能看，
         // 比因为少一个字段就把页面判成加载失败强。
+        Nana7miQuotaResult.Success(
+            body.quotas,
+            body.serverTime ?: System.currentTimeMillis(),
+            body.plan,
+        )
+    } catch (ce: CancellationException) {
+        throw ce
+    } catch (io: java.io.IOException) {
+        Nana7miQuotaResult.NetworkFailure(io)
+    } catch (e: Exception) {
+        Nana7miQuotaResult.InvalidResponse(e)
+    }
+}
+
+// ──────────────────────────── 云翻译 ────────────────────────────
+
+/** 服务端只读 `uid` / `texts` / `lang`，多余字段一律忽略，所以这里也只有这三个。 */
+data class TranslateRequest(
+    val uid: Long,
+    val texts: List<String>,
+    /** 服务端白名单：zh-CN / zh-TW / en / ja / ko / ru / tr，即 app 自己的 UI 语言。 */
+    val lang: String,
+)
+
+data class TranslateResponse(
+    val uid: Long? = null,
+    /** 与请求 `texts` 等长、同序；服务端已经校验过长度，对不上会直接回 502。 */
+    val translations: List<String>? = null,
+    val serverTime: Long? = null,
+    val plan: Nana7miPlan? = null,
+    /** 扣完这一笔之后的读数，和 [Nana7miQuotaWindow] 同形，只是单位是字符。 */
+    val quotas: List<Nana7miQuotaWindow> = emptyList(),
+)
+
+data class TranslateQuotaResponse(
+    val uid: Long? = null,
+    val serverTime: Long? = null,
+    val enabled: Boolean? = null,
+    val plan: Nana7miPlan? = null,
+    val quotas: List<Nana7miQuotaWindow> = emptyList(),
+)
+
+sealed class TranslateResult {
+    data class Success(
+        val translations: List<String>,
+        val quotas: List<Nana7miQuotaWindow>,
+        val serverTime: Long,
+        val plan: Nana7miPlan? = null,
+    ) : TranslateResult()
+
+    /** 429：既可能是两只额度桶（[Nana7miResult.RateLimited.isQuota]），也可能是每分钟限流。 */
+    data class RateLimited(val limit: Nana7miResult.RateLimited) : TranslateResult()
+
+    /** 503 `translate_disabled`：服务端把功能关了。下一次 `/v1/config` 会把开关同步回来。 */
+    data object Disabled : TranslateResult()
+
+    /** 其它非 2xx。[error] 是服务端的 snake_case 错误码（`upstream_timeout` 之类），拿来给用户看。 */
+    data class HttpFailure(val status: Int, val error: String? = null) : TranslateResult()
+    data class NetworkFailure(val cause: java.io.IOException) : TranslateResult()
+    data class InvalidResponse(val cause: Exception? = null) : TranslateResult()
+}
+
+private data class ErrorBody(val error: String? = null)
+
+/**
+ * 安全版云翻译：取消照常上抛，其余失败都变成结果值。[texts] 为空直接回空成功，不打网络。
+ */
+suspend fun PixshaftApi.translateTexts(uid: Long, texts: List<String>, lang: String): TranslateResult {
+    if (uid <= 0L) return TranslateResult.InvalidResponse()
+    if (texts.isEmpty()) return TranslateResult.Success(emptyList(), emptyList(), System.currentTimeMillis())
+    return try {
+        val response = translateRaw(TranslateRequest(uid, texts, lang))
+        when {
+            response.isSuccessful -> {
+                val body = response.body() ?: return TranslateResult.InvalidResponse()
+                val translations = body.translations
+                if (translations == null || translations.size != texts.size) {
+                    return TranslateResult.InvalidResponse()
+                }
+                TranslateResult.Success(
+                    translations,
+                    body.quotas,
+                    body.serverTime ?: System.currentTimeMillis(),
+                    body.plan,
+                )
+            }
+            response.code() == 429 -> TranslateResult.RateLimited(parseRateLimited(response))
+            else -> {
+                val error = parseErrorCode(response)
+                if (response.code() == 503 && error == "translate_disabled") {
+                    TranslateResult.Disabled
+                } else {
+                    TranslateResult.HttpFailure(response.code(), error)
+                }
+            }
+        }
+    } catch (ce: CancellationException) {
+        throw ce
+    } catch (io: java.io.IOException) {
+        TranslateResult.NetworkFailure(io)
+    } catch (e: Exception) {
+        TranslateResult.InvalidResponse(e)
+    }
+}
+
+private fun parseErrorCode(response: Response<*>): String? = try {
+    response.errorBody()?.string()?.takeIf { it.isNotBlank() }?.let {
+        rateLimitGson.fromJson(it, ErrorBody::class.java)?.error
+    }
+} catch (ce: CancellationException) {
+    throw ce
+} catch (e: Exception) {
+    null
+}
+
+/**
+ * 云翻译额度，只读。和 [fetchNana7miQuota] 同一个结果类型，用量页两组桶共用一套渲染；
+ * 服务端说 `enabled:false` 时回 [Nana7miQuotaResult.Disabled]，那一组不画。
+ */
+suspend fun PixshaftApi.fetchTranslateQuota(uid: Long): Nana7miQuotaResult {
+    if (uid <= 0L) return Nana7miQuotaResult.InvalidResponse()
+    return try {
+        val response = fetchTranslateQuotaRaw(Nana7miRequest(uid))
+        if (!response.isSuccessful) return Nana7miQuotaResult.HttpFailure(response.code())
+        val body = response.body() ?: return Nana7miQuotaResult.InvalidResponse()
+        if (body.enabled == false) return Nana7miQuotaResult.Disabled
+        if (body.quotas.isEmpty()) return Nana7miQuotaResult.InvalidResponse()
         Nana7miQuotaResult.Success(
             body.quotas,
             body.serverTime ?: System.currentTimeMillis(),
@@ -832,7 +984,7 @@ private val rateLimitGson by lazy { com.google.gson.Gson() }
  * 429 的细节在 body 里，不在头里：`Retry-After` 只有秒数，说不出是哪一档卡住的，也说不出
  * 什么时候回满。解析失败就退回只读头 —— 提示不出来是小事，把一次搜索搞崩是大事。
  */
-private fun parseRateLimited(response: Response<Nana7miResponse>): Nana7miResult.RateLimited {
+private fun parseRateLimited(response: Response<*>): Nana7miResult.RateLimited {
     val headerRetry = response.headers()["Retry-After"]?.toLongOrNull()
     val body = try {
         response.errorBody()?.string()?.takeIf { it.isNotBlank() }?.let {

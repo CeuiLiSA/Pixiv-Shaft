@@ -2965,4 +2965,14 @@
     <string name="bookmark_filter_tag_mode_any">Любой из тегов</string>
     <string name="bookmark_filter_tag_empty">Больше нет тегов для уточнения</string>
     <string name="bookmark_filter_author_empty">Нет авторов для фильтрации</string>
+
+    <!-- Облачный перевод PixShaft -->
+    <string name="cloud_translate_title">Облачный перевод PixShaft</string>
+    <string name="cloud_translate_desc">Комментарии, названия, теги и манга переводятся ИИ на сервере PixShaft — без прокси, лимит считается по символам. Выключено = встроенный Google Переводчик. Включённый пользовательский ИИ-перевод имеет приоритет.</string>
+    <string name="cloud_translate_usage_section">Лимиты ИИ-перевода (символы)</string>
+    <string name="cloud_translate_failed_title">Облачный перевод не удался</string>
+    <string name="cloud_translate_quota_title">Лимит облачного перевода исчерпан</string>
+    <string name="cloud_translate_quota_session">5-часовой лимит перевода исчерпан, восстановится через %1$s</string>
+    <string name="cloud_translate_quota_weekly">Недельный лимит перевода исчерпан, восстановится через %1$s</string>
+    <string name="cloud_translate_quota_unknown">Лимит перевода исчерпан, попробуйте позже</string>
 </resources>

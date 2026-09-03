@@ -122,6 +122,10 @@ class ClientManager {
         // pixshaft-api: browse-history backend, real public domain.
         const val PIXSHAFT_API_HOST = "https://pixshaft.com/"
 
+        // 服务端 TRANSLATE_UPSTREAM_TIMEOUT_MS 默认 90s，这里比它多留 30s，让「上游超时」
+        // 以服务端的 504 到达，而不是客户端先断线变成一句含糊的 timeout。
+        const val PIXSHAFT_TRANSLATE_READ_TIMEOUT_SECONDS = 120
+
         // pixiv COMIC。和 app-api 同一套 OAuth token,只是换个 host。
         const val COMIC_API_HOST = "https://comic.pixiv.net/"
 
@@ -251,6 +255,16 @@ class ClientManager {
                 } else {
                     val sig = ShaftHmac.signHex(message)
                     chain.proceed(req.newBuilder().header("X-Shaft-Sign", sig).build())
+                }
+            }
+            // 云翻译是这条线上唯一「等一次 LLM 往返」的路由：上游一次要 10 秒上下，思考型
+            // 模型更久，8 秒的读超时会把每一次都掐死。只对这一条路径放宽，别的路由照旧快失败。
+            .addInterceptor { chain ->
+                val req = chain.request()
+                if (req.url.encodedPath.endsWith("/v1/account/translate")) {
+                    chain.withReadTimeout(PIXSHAFT_TRANSLATE_READ_TIMEOUT_SECONDS, TimeUnit.SECONDS).proceed(req)
+                } else {
+                    chain.proceed(req)
                 }
             }
         // pixshaft.com is our own backend, not a Pixiv host blocked by SNI. Sending it through

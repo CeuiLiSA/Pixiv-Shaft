@@ -3219,4 +3219,14 @@
     <string name="bookmark_filter_tag_mode_any">任一满足</string>
     <string name="bookmark_filter_tag_empty">当前结果里没有可继续下钻的标签</string>
     <string name="bookmark_filter_author_empty">当前结果里没有可筛选的作者</string>
+
+    <!-- PixShaft 云翻译（服务端代理的 AI 翻译，pixshaft-api src/translate.js） -->
+    <string name="cloud_translate_title">PixShaft 云翻译</string>
+    <string name="cloud_translate_desc">评论、标题、标签与漫画翻译走 PixShaft 服务器的 AI 翻译，无需代理，按字符计额度；关闭则使用内置 Google 翻译。已启用自定义 AI 翻译时优先自定义。</string>
+    <string name="cloud_translate_usage_section">AI 翻译额度（按字符）</string>
+    <string name="cloud_translate_failed_title">云翻译失败</string>
+    <string name="cloud_translate_quota_title">云翻译额度已用完</string>
+    <string name="cloud_translate_quota_session">五小时翻译额度已用完，%1$s后恢复</string>
+    <string name="cloud_translate_quota_weekly">本周翻译额度已用完，%1$s后恢复</string>
+    <string name="cloud_translate_quota_unknown">翻译额度已用完，请稍后再试</string>
 </resources>

@@ -396,6 +396,12 @@ public class Settings {
     /** OkHttp readTimeout 秒数，默认 120；思考型模型可调大（30~600） */
     private int aiTranslateReadTimeoutSeconds = 120;
 
+    /**
+     * PixShaft 云翻译（服务端代理的 AI 翻译，按字符计额度）。默认开：这是给没有代理、也没有自己
+     * API key 的大多数用户准备的。自定义 AI 翻译启用时优先自定义；两者都关走内置 Google 翻译。
+     */
+    private boolean cloudTranslateEnabled = true;
+
     /** 已完成 tab 的列表展示模式（0=横向列表，1=网格 2 列，2=紧凑缩图 4 列）。1 = 旧默认。 */
     private int doneListLayoutMode = 1;
 
@@ -1158,6 +1164,14 @@ public class Settings {
 
     public void setAria2RemoteDir(String aria2RemoteDir) {
         this.aria2RemoteDir = aria2RemoteDir;
+    }
+
+    public boolean isCloudTranslateEnabled() {
+        return cloudTranslateEnabled;
+    }
+
+    public void setCloudTranslateEnabled(boolean cloudTranslateEnabled) {
+        this.cloudTranslateEnabled = cloudTranslateEnabled;
     }
 
     public boolean isAiTranslateEnabled() {

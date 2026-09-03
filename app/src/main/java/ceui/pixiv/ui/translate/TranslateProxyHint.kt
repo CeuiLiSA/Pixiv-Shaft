@@ -1,7 +1,11 @@
 package ceui.pixiv.ui.translate
 
 import android.app.Activity
+import android.content.Intent
 import ceui.lisa.R
+import ceui.lisa.activities.TemplateActivity
+import ceui.pixiv.ui.navigation.TemplateRoute
+import ceui.pixiv.ui.usage.Nana7miQuotaFormat
 import ceui.lisa.utils.ClipBoardUtils
 import com.blankj.utilcode.util.ActivityUtils
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -37,17 +41,44 @@ internal fun promptTranslateFailedIfPossible(e: Exception?) {
         Timber.d("TranslateProxyHint: skip cancelled translation error: %s", e.message)
         return
     }
-    if (!AiTranslator.isActive()) {
+    // 云翻译额度用完：这不是「失败」而是「用到头了」，说清楚什么时候恢复、把用量页递过去。
+    if (e is CloudTranslateQuotaException) {
+        promptCloudQuotaExhausted(e)
+        return
+    }
+    val cloud = !AiTranslator.isActive() && CloudTranslator.isActive()
+    if (!AiTranslator.isActive() && !cloud) {
         promptProxyNeededIfPossible()
         return
     }
     showTranslateDialogIfPossible { activity ->
         val body = buildFailureBody(activity, e)
         WitDialog.MessageDialogBuilder(activity)
-            .setTitle(R.string.ai_translate_failed_title)
+            .setTitle(if (cloud) R.string.cloud_translate_failed_title else R.string.ai_translate_failed_title)
             .setMessage(body)
             .addAction(activity.getString(R.string.string_120)) { dialog, _ ->
                 ClipBoardUtils.putTextIntoClipboard(activity, body)
+                dialog.dismiss()
+            }
+    }
+}
+
+private fun promptCloudQuotaExhausted(e: CloudTranslateQuotaException) {
+    showTranslateDialogIfPossible { activity ->
+        val resetIn = e.resetInMs?.let { Nana7miQuotaFormat.duration(activity, it) }
+        val message = when {
+            resetIn == null -> activity.getString(R.string.cloud_translate_quota_unknown)
+            e.scope == "uid_weekly" -> activity.getString(R.string.cloud_translate_quota_weekly, resetIn)
+            else -> activity.getString(R.string.cloud_translate_quota_session, resetIn)
+        }
+        WitDialog.MessageDialogBuilder(activity)
+            .setTitle(R.string.cloud_translate_quota_title)
+            .setMessage(message)
+            .addAction(activity.getString(R.string.nana7mi_quota_snack_action)) { dialog, _ ->
+                activity.startActivity(
+                    Intent(activity, TemplateActivity::class.java)
+                        .putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NANA7MI_USAGE.key),
+                )
                 dialog.dismiss()
             }
     }
@@ -67,6 +98,7 @@ private fun buildFailureBody(activity: Activity, e: Exception?): String {
 private fun failureCode(e: Exception?): Int? = when (e) {
     is AiTranslator.RetryableApiException -> e.code
     is AiTranslator.ApiConfigException -> e.code
+    is CloudTranslateException -> e.code
     else -> null
 }
 
@@ -78,6 +110,7 @@ private fun failureMessage(e: Exception?, code: Int?, activity: Activity): Strin
     val raw = when (e) {
         is AiTranslator.RetryableApiException -> e.message
         is AiTranslator.ApiConfigException -> e.message
+        is CloudTranslateException -> e.message
         else -> e?.message ?: e?.toString()
     }.orEmpty()
     val stripped = if (code != null && raw.startsWith("HTTP $code: ")) {

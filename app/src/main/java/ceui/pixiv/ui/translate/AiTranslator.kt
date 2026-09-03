@@ -915,6 +915,14 @@ object AiTranslator : Translator {
     }
 }
 
-/** 业务侧统一取翻译器:自定义 AI 配好并启用 → AI,否则内置 Google web 端点。 */
-fun currentTranslator(): Translator =
-    if (AiTranslator.isActive()) AiTranslator else GoogleWebTranslator
+/**
+ * 业务侧统一取翻译器,优先级从高到低:
+ *  1. 自定义 AI(用户自己的 OpenAI 兼容接口,配好并启用)
+ *  2. PixShaft 云翻译(服务端代理,登录 + 服务端开 + 用户没关)
+ *  3. 内置 Google web 端点(国内需代理)
+ */
+fun currentTranslator(): Translator = when {
+    AiTranslator.isActive() -> AiTranslator
+    CloudTranslator.isActive() -> CloudTranslator
+    else -> GoogleWebTranslator
+}

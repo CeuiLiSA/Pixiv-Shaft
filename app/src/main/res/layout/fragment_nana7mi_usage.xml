@@ -117,6 +117,32 @@
                             android:orientation="vertical" />
 
                         <!--
+                            云翻译额度（服务端 src/translate.js 的两只桶，单位是字符）。和热度排序共用
+                            同一档位倍率，所以放在同一页、同一套分段行；服务端说功能关着或老服务端
+                            没这条路由时整组 gone，不画一组永远动不了的进度条。
+                        -->
+                        <TextView
+                            android:id="@+id/translate_section_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="22dp"
+                            android:paddingBottom="10dp"
+                            android:paddingStart="4dp"
+                            android:text="@string/cloud_translate_usage_section"
+                            android:textColor="@color/v3_text_2"
+                            android:textSize="13sp"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
+
+                        <LinearLayout
+                            android:id="@+id/translate_rows"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            tools:visibility="visible" />
+
+                        <!--
                             订阅方案。放在额度读数和 UID **之下**：先让用户看见自己用到哪了、
                             手里有可复制的 UID，再谈解锁 —— 顶在读数上面就成了没有由头的广告。
 

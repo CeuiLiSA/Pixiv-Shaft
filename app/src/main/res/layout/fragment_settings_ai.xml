@@ -156,6 +156,28 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/cloud_translate_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/cloud_translate_title" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/cloud_translate_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/cloud_translate_switch"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/ai_translate_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_bottom">

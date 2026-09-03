@@ -2956,4 +2956,14 @@
     <string name="bookmark_filter_tag_mode_any">하나라도 일치</string>
     <string name="bookmark_filter_tag_empty">더 좁힐 태그가 없습니다</string>
     <string name="bookmark_filter_author_empty">필터링할 작가가 없습니다</string>
+
+    <!-- PixShaft 클라우드 번역 -->
+    <string name="cloud_translate_title">PixShaft 클라우드 번역</string>
+    <string name="cloud_translate_desc">댓글·제목·태그·만화 번역을 PixShaft 서버의 AI 번역으로 처리합니다. 프록시 불필요, 글자 수로 한도 계산. 끄면 내장 Google 번역을 사용합니다. 사용자 지정 AI 번역이 켜져 있으면 그쪽이 우선합니다.</string>
+    <string name="cloud_translate_usage_section">AI 번역 한도(글자 수)</string>
+    <string name="cloud_translate_failed_title">클라우드 번역 실패</string>
+    <string name="cloud_translate_quota_title">클라우드 번역 한도 도달</string>
+    <string name="cloud_translate_quota_session">5시간 번역 한도를 모두 사용했습니다. %1$s 후 복구됩니다</string>
+    <string name="cloud_translate_quota_weekly">이번 주 번역 한도를 모두 사용했습니다. %1$s 후 복구됩니다</string>
+    <string name="cloud_translate_quota_unknown">번역 한도를 모두 사용했습니다. 잠시 후 다시 시도해 주세요</string>
 </resources>
