@@ -185,6 +185,13 @@ class CloudTranslatorTest {
     }
 
     @Test
+    fun `译文里的 JSON null 变成空串而不是 NPE`() = runBlocking {
+        server.enqueue(json(200, """{"translations":["a",null],"quotas":[]}"""))
+        val out = CloudTranslator.translateBatchWith(api, 7L, listOf("x", "y"), "en")
+        assertEquals(listOf("a", ""), out)
+    }
+
+    @Test
     fun `gtx 语言码映射成服务端白名单`() {
         assertEquals("zh-CN", CloudTranslator.serverLangOf("zh"))
         assertEquals("zh-CN", CloudTranslator.serverLangOf("zh-CN"))

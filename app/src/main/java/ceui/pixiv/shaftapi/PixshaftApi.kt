@@ -808,8 +808,10 @@ suspend fun PixshaftApi.translateTexts(uid: Long, texts: List<String>, lang: Str
                 if (translations == null || translations.size != texts.size) {
                     return TranslateResult.InvalidResponse()
                 }
+                // Gson 会把 JSON null 原样塞进 List<String>，下游 isNotEmpty() 就是 NPE。服务端
+                // 已把 null 写成 ""，这里再兜一层，别让一个坏元素把整批翻译变成崩溃。
                 TranslateResult.Success(
-                    translations,
+                    translations.map { (it as String?) ?: "" },
                     body.quotas,
                     body.serverTime ?: System.currentTimeMillis(),
                     body.plan,
