@@ -38,6 +38,7 @@ object CloudTranslator : Translator {
     /** 与服务端 TRANSLATE_MAX_CHARS(8000)留足余量；单条超长文本会独占一个分片。 */
     internal const val MAX_BATCH_CHARS = 3000
     private const val REQUEST_CONCURRENCY = 4
+    private const val TAG = "CloudTranslator"
 
     private val requestSemaphore = Semaphore(REQUEST_CONCURRENCY)
 
@@ -99,35 +100,54 @@ object CloudTranslator : Translator {
                         // 请求即将发出：业务侧从此刻起要拦退出（服务端已经在替我们烧上游 token）。
                         onRequestSent?.invoke()
                         onPhase?.invoke(AiTranslatePhase.GENERATING)
-                        when (val result = api.translateTexts(uid, slice, lang)) {
-                            is TranslateResult.Success -> result.translations
+                        val chars = slice.sumOf { it.length }
+                        Timber.tag(TAG).i(
+                            "→ POST /v1/account/translate uid=%d items=%d chars=%d lang=%s chunk=[%d,%d)",
+                            uid, slice.size, chars, lang, from, to,
+                        )
+                        // System.nanoTime 而不是 SystemClock：这段要在 JVM 单测里跑，android.os 没桩。
+                        val started = System.nanoTime()
+                        val result = api.translateTexts(uid, slice, lang)
+                        val ms = (System.nanoTime() - started) / 1_000_000
+                        when (result) {
+                            is TranslateResult.Success -> {
+                                val session = result.quotas.firstOrNull { it.key == "session" }
+                                Timber.tag(TAG).i(
+                                    "← 200 in %dms items=%d plan=%s session=%s/%s weekly=%s/%s",
+                                    ms, result.translations.size, result.plan?.key,
+                                    session?.used?.toLong(), session?.max,
+                                    result.quotas.firstOrNull { it.key == "weekly" }?.used?.toLong(),
+                                    result.quotas.firstOrNull { it.key == "weekly" }?.max,
+                                )
+                                result.translations
+                            }
                             is TranslateResult.RateLimited -> {
                                 val e = quotaExceptionOf(result)
                                 stopAll.compareAndSet(null, e)
                                 lastError.set(e)
-                                Timber.w(e, "CloudTranslator: batch [%d,%d) rate limited", from, to)
+                                Timber.tag(TAG).w(e, "← 429 in %dms scope=%s retryAfter=%s chunk=[%d,%d)", ms, result.limit.scope, result.limit.retryAfterSeconds, from, to)
                                 null
                             }
                             is TranslateResult.Disabled -> {
                                 val e = CloudTranslateException(503, "translate_disabled")
                                 stopAll.compareAndSet(null, e)
                                 lastError.set(e)
-                                Timber.w("CloudTranslator: server switched translation off")
+                                Timber.tag(TAG).w("← 503 translate_disabled in %dms: server switched translation off", ms)
                                 null
                             }
                             is TranslateResult.HttpFailure -> {
                                 lastError.set(CloudTranslateException(result.status, result.error ?: "HTTP ${result.status}"))
-                                Timber.w("CloudTranslator: batch [%d,%d) HTTP %d %s", from, to, result.status, result.error)
+                                Timber.tag(TAG).w("← %d %s in %dms chunk=[%d,%d)", result.status, result.error, ms, from, to)
                                 null
                             }
                             is TranslateResult.NetworkFailure -> {
                                 lastError.set(result.cause)
-                                Timber.w(result.cause, "CloudTranslator: batch [%d,%d) network failure", from, to)
+                                Timber.tag(TAG).w(result.cause, "← network failure in %dms chunk=[%d,%d)", ms, from, to)
                                 null
                             }
                             is TranslateResult.InvalidResponse -> {
                                 lastError.set(result.cause ?: IOException("CloudTranslator: malformed response"))
-                                Timber.w(result.cause, "CloudTranslator: batch [%d,%d) malformed response", from, to)
+                                Timber.tag(TAG).w(result.cause, "← malformed response in %dms chunk=[%d,%d)", ms, from, to)
                                 null
                             }
                         }
