@@ -2975,4 +2975,5 @@
     <string name="cloud_translate_quota_session">5-часовой лимит перевода исчерпан, восстановится через %1$s</string>
     <string name="cloud_translate_quota_weekly">Недельный лимит перевода исчерпан, восстановится через %1$s</string>
     <string name="cloud_translate_quota_unknown">Лимит перевода исчерпан, попробуйте позже</string>
+    <string name="cloud_translate_usage_chars">Использовано %1$s / %2$s символов · %3$s</string>
 </resources>

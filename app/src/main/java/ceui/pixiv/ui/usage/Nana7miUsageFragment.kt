@@ -47,6 +47,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.util.Date
 import java.util.Locale
 
@@ -790,6 +791,17 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
             val row = inflater.inflate(R.layout.item_nana7mi_usage_row, host, false)
             row.setBackgroundResource(WitRowStyle.rowBackground(index, quotas.size))
             bindRow(row, window, serverTime)
+            // 字符额度动辄几十万，翻几页漫画只占不到 1%，百分比向下取整就一直是 0% ——
+            // 看着像没记账。把绝对读数写进第二行，让每一笔都看得见。
+            if (window.remaining != null && window.max > 0) {
+                val fmt = NumberFormat.getIntegerInstance()
+                row.findViewById<TextView>(R.id.usage_reset).text = getString(
+                    R.string.cloud_translate_usage_chars,
+                    fmt.format(window.used.toLong()),
+                    fmt.format(window.max),
+                    resetTextOf(window, serverTime),
+                )
+            }
             host.addView(row)
         }
         WitRowStyle.applyThemedRowBg(host)

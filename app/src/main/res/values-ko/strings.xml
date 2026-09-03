@@ -2966,4 +2966,5 @@
     <string name="cloud_translate_quota_session">5시간 번역 한도를 모두 사용했습니다. %1$s 후 복구됩니다</string>
     <string name="cloud_translate_quota_weekly">이번 주 번역 한도를 모두 사용했습니다. %1$s 후 복구됩니다</string>
     <string name="cloud_translate_quota_unknown">번역 한도를 모두 사용했습니다. 잠시 후 다시 시도해 주세요</string>
+    <string name="cloud_translate_usage_chars">%1$s / %2$s자 사용 · %3$s</string>
 </resources>

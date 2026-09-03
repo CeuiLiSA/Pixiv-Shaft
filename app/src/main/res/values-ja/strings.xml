@@ -2966,4 +2966,5 @@
     <string name="cloud_translate_quota_session">5 時間の翻訳上限に達しました。%1$s後に回復します</string>
     <string name="cloud_translate_quota_weekly">今週の翻訳上限に達しました。%1$s後に回復します</string>
     <string name="cloud_translate_quota_unknown">翻訳の上限に達しました。しばらくしてからお試しください</string>
+    <string name="cloud_translate_usage_chars">%1$s / %2$s 文字使用 · %3$s</string>
 </resources>

@@ -2968,4 +2968,5 @@
     <string name="cloud_translate_quota_session">5-hour translation limit reached, back in %1$s</string>
     <string name="cloud_translate_quota_weekly">Weekly translation limit reached, back in %1$s</string>
     <string name="cloud_translate_quota_unknown">Translation limit reached, please try again later</string>
+    <string name="cloud_translate_usage_chars">%1$s / %2$s characters used · %3$s</string>
 </resources>

@@ -3229,4 +3229,5 @@
     <string name="cloud_translate_quota_session">五小时翻译额度已用完，%1$s后恢复</string>
     <string name="cloud_translate_quota_weekly">本周翻译额度已用完，%1$s后恢复</string>
     <string name="cloud_translate_quota_unknown">翻译额度已用完，请稍后再试</string>
+    <string name="cloud_translate_usage_chars">已用 %1$s / %2$s 字符 · %3$s</string>
 </resources>
