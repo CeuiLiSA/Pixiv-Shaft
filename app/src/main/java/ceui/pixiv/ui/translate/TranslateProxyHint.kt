@@ -46,7 +46,10 @@ internal fun promptTranslateFailedIfPossible(e: Exception?) {
         promptCloudQuotaExhausted(e)
         return
     }
-    val cloud = !AiTranslator.isActive() && CloudTranslator.isActive()
+    // 异常本身说是云翻译的就按云翻译报：服务端刚关停时 CloudTranslator 会先把开关翻掉再抛，
+    // 这时再问 isActive() 已经是 false，会误弹成「需要代理」。
+    val cloud = e is CloudTranslateException ||
+        (!AiTranslator.isActive() && CloudTranslator.isActive())
     if (!AiTranslator.isActive() && !cloud) {
         promptProxyNeededIfPossible()
         return
