@@ -621,7 +621,7 @@
     <!--
       站长推荐 score pill。封面左上叠层,金渐变背景 + 琥珀金字 + 黑 shadow。
       默认 visibility=gone,只有 trending repo 把 score 注入到 bean 时才显示。
-      插画卡(IAdapter)与小说卡(NovelFeedFragment 的 renderer)共用,与现有 tag_stroke 风格
+      插画卡(IllustStaggerRenderer)与小说卡(NovelFeedFragment 的 renderer)共用,与现有 tag_stroke 风格
       刻意区分以表明语义不同。
     -->
     <style name="TrendingScorePill">

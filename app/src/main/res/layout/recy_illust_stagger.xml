@@ -50,8 +50,7 @@
 
             <!-- 角标行。整行带 id 是为了屏蔽态一把藏掉（每个角标各自的显隐仍由绑定按作品算，
                  见 IllustStaggerRenderer.applyIllustSpoilerMask）：R-18 / 页数 / GIF / AI 这些
-                 正是屏蔽要盖住的信息，图糊了角标还写着就漏了一半。legacy IAdapter 不碰这一层，
-                 它那边被屏蔽的作品整条不进列表。 -->
+                 正是屏蔽要盖住的信息，图糊了角标还写着就漏了一半。 -->
             <LinearLayout
                 android:id="@+id/badge_row"
                 android:layout_width="wrap_content"
@@ -155,10 +154,9 @@
 
             </LinearLayout>
 
-            <!-- 现代化收藏按钮（feeds 与 legacy IAdapter 共用）：
+            <!-- 现代化收藏按钮：
                  40dp 深色圆底座 + 4dp 边距（不顶死卡片圆角）+ 24dp 心形 icon。
-                 未收藏 = 白色空心描边，已收藏 = 红色实心（feeds 走 renderLikeState，
-                 legacy 走 IAdapter.renderLikeState，两处切同一对 drawable） -->
+                 未收藏 = 白色空心描边，已收藏 = 红色实心（IllustStaggerRenderer.renderLikeState 切这对 drawable） -->
             <ImageButton
                 android:layout_width="40dp"
                 android:layout_height="40dp"
@@ -174,7 +172,7 @@
             </ImageButton>
 
             <!-- 收藏爆发动画层：叠在 like_button 之上、平时 GONE，只由 feeds 渲染器
-                 点收藏时播放（legacy IAdapter 不感知）。72dp 画布贴卡片右下角，
+                 点收藏时播放。72dp 画布贴卡片右下角，
                  动画内爱心圆心设计在画布 (96,96)/144 处 = 按钮几何中心
                  （margin 4dp + 半径 20dp = 距角 24dp）；改按钮尺寸/边距要同步动画。
                  非 clickable，点击穿透给下面的按钮 -->
