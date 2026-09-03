@@ -2961,12 +2961,12 @@
 
     <!-- PixShaft cloud translation -->
     <string name="cloud_translate_title">PixShaft Cloud Translation</string>
-    <string name="cloud_translate_desc">Translate comments, titles, tags and manga through PixShaft\'s AI translation server — no proxy needed, metered by characters. Off = the built-in Google translation. A custom AI translation, when enabled, takes priority.</string>
-    <string name="cloud_translate_usage_section">AI translation limits (characters)</string>
+    <string name="cloud_translate_desc">Translate comments, titles, tags and manga through PixShaft\'s AI translation server — no proxy needed, with a usage allowance. Off = the built-in Google translation. A custom AI translation, when enabled, takes priority.</string>
+    <string name="cloud_translate_usage_section">AI translation limits</string>
     <string name="cloud_translate_failed_title">Cloud translation failed</string>
     <string name="cloud_translate_quota_title">Cloud translation limit reached</string>
     <string name="cloud_translate_quota_session">5-hour translation limit reached, back in %1$s</string>
     <string name="cloud_translate_quota_weekly">Weekly translation limit reached, back in %1$s</string>
     <string name="cloud_translate_quota_unknown">Translation limit reached, please try again later</string>
-    <string name="cloud_translate_usage_chars">%1$s / %2$s characters used · %3$s</string>
+    <string name="cloud_translate_usage_lt1">&lt;1%</string>
 </resources>

@@ -2962,12 +2962,12 @@
 
     <!-- PixShaft bulut çevirisi -->
     <string name="cloud_translate_title">PixShaft Bulut Çevirisi</string>
-    <string name="cloud_translate_desc">Yorumlar, başlıklar, etiketler ve mangalar PixShaft sunucusundaki yapay zekâ ile çevrilir; proxy gerekmez, kota karakter sayısına göre hesaplanır. Kapalıyken yerleşik Google Çeviri kullanılır. Etkin bir özel yapay zekâ çevirisi önceliklidir.</string>
-    <string name="cloud_translate_usage_section">Yapay zekâ çeviri kotası (karakter)</string>
+    <string name="cloud_translate_desc">Yorumlar, başlıklar, etiketler ve mangalar PixShaft sunucusundaki yapay zekâ ile çevrilir; proxy gerekmez, kullanım kotası vardır. Kapalıyken yerleşik Google Çeviri kullanılır. Etkin bir özel yapay zekâ çevirisi önceliklidir.</string>
+    <string name="cloud_translate_usage_section">Yapay zekâ çeviri kotası</string>
     <string name="cloud_translate_failed_title">Bulut çevirisi başarısız</string>
     <string name="cloud_translate_quota_title">Bulut çevirisi kotası doldu</string>
     <string name="cloud_translate_quota_session">5 saatlik çeviri kotası doldu, %1$s sonra yenilenir</string>
     <string name="cloud_translate_quota_weekly">Haftalık çeviri kotası doldu, %1$s sonra yenilenir</string>
     <string name="cloud_translate_quota_unknown">Çeviri kotası doldu, lütfen daha sonra tekrar deneyin</string>
-    <string name="cloud_translate_usage_chars">%1$s / %2$s karakter kullanıldı · %3$s</string>
+    <string name="cloud_translate_usage_lt1">&lt;1%</string>
 </resources>
