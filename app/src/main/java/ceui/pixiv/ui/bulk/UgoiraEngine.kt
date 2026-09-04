@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import ceui.lisa.activities.Shaft
-import ceui.lisa.cache.Cache
+import ceui.lisa.cache.UgoiraMetadataCache
 import ceui.lisa.file.LegacyFile
 import ceui.lisa.http.ImageHostManager
 import ceui.lisa.http.Retro
@@ -728,10 +728,10 @@ object UgoiraEngine {
             .i("[pipeline] illust=%d 清掉中间产物(zip + 解压帧),回收 %d KB", id, freed / 1024)
     }
 
-    /** 元数据优先取 [Cache] 里已有的 [GifResponse],否则 getGifPackage 拉一次并回写缓存。 */
+    /** 元数据优先取 [UgoiraMetadataCache],否则 getGifPackage 拉一次并回写缓存。 */
     private suspend fun fetchMeta(illustId: Long): GifResponse {
         val cached = runCatching {
-            Cache.get().getModel(Params.ILLUST_ID + "_" + illustId, GifResponse::class.java)
+            UgoiraMetadataCache.get(illustId)
         }.getOrNull()
         if (cached?.ugoira_metadata != null) {
             Timber.tag(UGOIRA_LOG_TAG).i("[fetchMeta] illust=%d 命中本地 Cache", illustId)
@@ -739,7 +739,7 @@ object UgoiraEngine {
         }
         Timber.tag(UGOIRA_LOG_TAG).i("[fetchMeta] illust=%d 走网络 getGifPackage…", illustId)
         val fetched = Retro.getAppApi().getGifPackage(illustId)
-        runCatching { Cache.get().saveModel(Params.ILLUST_ID + "_" + illustId, fetched) }
+        runCatching { UgoiraMetadataCache.put(illustId, fetched) }
         Timber.tag(UGOIRA_LOG_TAG).i("[fetchMeta] illust=%d 网络返回", illustId)
         return fetched
     }

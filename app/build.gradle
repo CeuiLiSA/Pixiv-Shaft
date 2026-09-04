@@ -261,6 +261,7 @@ dependencies {
     testImplementation libs.mockWebServer
     testImplementation libs.coroutinesTest
     testImplementation libs.androidxArchCoreTesting
+    testImplementation libs.robolectric
     // JVM 单测里 android.jar 的 org.json 是 Stub!,真实现放前面顶掉(AiTranslator 测试用)
     testImplementation libs.orgJson
 

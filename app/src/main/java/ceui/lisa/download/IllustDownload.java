@@ -22,7 +22,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.cache.Cache;
+import ceui.lisa.cache.UgoiraMetadataCache;
 import ceui.lisa.core.DownloadItem;
 import ceui.lisa.core.Manager;
 
@@ -262,7 +262,7 @@ public class IllustDownload {
                 }
             }
             PixivOperate.getGifInfo(illustsBean, gifResponse -> {
-                Cache.get().saveModel(Params.ILLUST_ID + "_" + illustsBean.getId(), gifResponse);
+                JavaAsync.fireAndForget(() -> UgoiraMetadataCache.put(illustsBean.getId(), gifResponse));
                 downloadGif(gifResponse, illustsBean, true);
             });
         });

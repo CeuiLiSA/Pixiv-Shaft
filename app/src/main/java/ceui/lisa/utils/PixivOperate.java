@@ -33,7 +33,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
-import ceui.lisa.cache.Cache;
+import ceui.lisa.cache.UgoiraMetadataCache;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.core.JavaAsync;
@@ -623,7 +623,7 @@ public class PixivOperate {
 
                 int frameCount = allFiles.size();
 
-                GifResponse gifResponse = Cache.get().getModel(Params.ILLUST_ID + "_" + illustsBean.getId(), GifResponse.class);
+                GifResponse gifResponse = UgoiraMetadataCache.get(illustsBean.getId());
                 int delayMs = 60;
                 if (gifResponse != null) {
                     List<FramesBean> framesBeans = gifResponse.getUgoira_metadata().getFrames();

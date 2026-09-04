@@ -2,12 +2,11 @@ package ceui.pixiv.ui.bulk
 
 import android.os.Process
 import ceui.lisa.activities.Shaft
-import ceui.lisa.cache.Cache
+import ceui.lisa.cache.UgoiraMetadataCache
 import ceui.lisa.file.LegacyFile
 import ceui.lisa.http.Retro
 import ceui.lisa.models.GifResponse
 import ceui.pixiv.api.model.Illust
-import ceui.lisa.utils.Params
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.UgoiraDownloadRecord
 import ceui.pixiv.download.config.DownloadItems
@@ -120,13 +119,13 @@ suspend fun downloadUgoira(
     // 1) 元数据：zip url + frame delays。Cache 里如果已经有 GifResponse 直接复用。
     onPhase(UgoiraPhase.FETCH_META)
     val cached = runCatching {
-        Cache.get().getModel(Params.ILLUST_ID + "_" + illustId, GifResponse::class.java)
+        UgoiraMetadataCache.get(illustId)
     }.getOrNull()
     val resp: GifResponse = if (cached?.ugoira_metadata != null) {
         cached
     } else {
         val fetched = Retro.getAppApi().getGifPackage(illustId)
-        runCatching { Cache.get().saveModel(Params.ILLUST_ID + "_" + illustId, fetched) }
+        runCatching { UgoiraMetadataCache.put(illustId, fetched) }
         fetched
     }
     val zipUrl = resp.ugoira_metadata?.zip_urls?.medium
