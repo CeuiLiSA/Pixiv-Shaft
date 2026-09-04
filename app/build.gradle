@@ -355,7 +355,6 @@ dependencies {
     // 部分华为等 OEM 上 libmmkv.so 偶发 dlopen "not found"，ReLinker 兜底从 APK 抠 .so 按绝对路径加载。
     implementation libs.relinker
 
-    implementation libs.androidxWebkit
     implementation libs.androidxBrowser
 
     // Pixiv OAuth 2.0 PKCE 登录（自家库，支持 Chrome Custom Tab）

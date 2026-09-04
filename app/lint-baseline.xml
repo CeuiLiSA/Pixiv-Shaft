@@ -1561,17 +1561,6 @@
 
     <issue
         id="GradleDependency"
-        message="A newer version of androidx.webkit:webkit than 1.12.1 is available: 1.17.0"
-        errorLine1="    implementation &apos;androidx.webkit:webkit:1.12.1&apos;"
-        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="build.gradle"
-            line="367"
-            column="20"/>
-    </issue>
-
-    <issue
-        id="GradleDependency"
         message="A newer version of androidx.browser:browser than 1.8.0 is available: 1.10.0"
         errorLine1="    implementation &apos;androidx.browser:browser:1.8.0&apos;"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">

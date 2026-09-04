@@ -5,8 +5,6 @@ public class Dev {
 
     public static final boolean hideMainActivityStatus = true;
 
-
-    public static final boolean use_weiss = false;
     public static final boolean show_url_detail = false;
 
     // 主页底部「我」tab,发版前先收起,放开就是 true

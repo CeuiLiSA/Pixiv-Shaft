@@ -58,7 +58,6 @@ toaster = "15.0"
 tracing = "1.2.0"
 utilCode = "1.31.1"
 viewPagerTransforms = "2.0.24"
-webkit = "1.12.1"
 window = "1.5.1"
 work = "2.9.1"
 zoomImage = "1.4.0"
@@ -89,7 +88,6 @@ androidxSwipeRefreshLayout = { module = "androidx.swiperefreshlayout:swiperefres
 androidxTestJunit = { module = "androidx.test.ext:junit", version.ref = "androidxTestJunit" }
 androidxTestRunner = { module = "androidx.test:runner", version.ref = "runner" }
 androidxTracing = { module = "androidx.tracing:tracing", version.ref = "tracing" }
-androidxWebkit = { module = "androidx.webkit:webkit", version.ref = "webkit" }
 androidxWindow = { module = "androidx.window:window", version.ref = "window" }
 androidxWork = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 agentwebCore = { module = "com.github.Justson.AgentWeb:agentweb-core", version.ref = "agentweb" }
