@@ -13,10 +13,18 @@ class TokenFetcherInterceptor : Interceptor {
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val request = chain.request()
+        val originalRequest = chain.request()
+        val explicitAuthorization = originalRequest.header(HeaderInterceptor.EXPLICIT_AUTHORIZATION_HEADER) == "1"
+        val request = if (explicitAuthorization) {
+            originalRequest.newBuilder()
+                .removeHeader(HeaderInterceptor.EXPLICIT_AUTHORIZATION_HEADER)
+                .build()
+        } else {
+            originalRequest
+        }
         val response = chain.proceed(request)
 
-        return if (response.code == 400) {
+        return if (!explicitAuthorization && response.code == 400) {
             // 只为下面两个 marker 做 contains，pixiv 的 token 错误响应不到 200 字节；
             // 有上限地 peek，别把任意大小的 400 响应体整个读进内存。
             val gson = response.peekBody(TOKEN_ERROR_PEEK_BYTES).string()
@@ -38,7 +46,7 @@ class TokenFetcherInterceptor : Interceptor {
                     // 只有确定要重放时才关旧响应；拿不到新 token 时旧响应要原样交回
                     // Retrofit 读 errorBody，提前 close 会让它抛 "closed"。
                     response.close()
-                    val newRequest = chain.request()
+                    val newRequest = request
                         .newBuilder()
                         .header(ClientManager.HEADER_AUTH, ClientManager.TOKEN_HEAD + refreshedAccessToken)
                         .build()

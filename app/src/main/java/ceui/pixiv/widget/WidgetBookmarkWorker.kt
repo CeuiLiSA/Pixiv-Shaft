@@ -5,7 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.session.SessionManager
@@ -35,7 +35,7 @@ class WidgetBookmarkWorker(
         val starType = if (Shaft.sSettings.isPrivateStar) Params.TYPE_PRIVATE else Params.TYPE_PUBLIC
         return try {
             withContext(Dispatchers.IO) {
-                Retro.getAppApi().postLikeIllust(illustId, starType)
+                Client.appApi.postLikeIllust(illustId, starType)
             }
             Common.showToast(
                 context.getString(

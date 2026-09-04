@@ -3,7 +3,7 @@ package ceui.pixiv.ui.bulk
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.db.queue.DownloadQueueEntity
@@ -53,7 +53,7 @@ internal suspend fun resolveIllust(row: DownloadQueueEntity): Illust {
     }
 
     // 3) 老行 fallback：API 拉一次，这一路不应该是常态
-    val resp = Retro.getAppApi().getIllustByID(illustId)
+    val resp = Client.appApi.getIllustByID(illustId)
     val bean = resp.illust
         ?: throw IllegalStateException("getIllustByID returned null for $illustId")
     withContext(Dispatchers.Main.immediate) {

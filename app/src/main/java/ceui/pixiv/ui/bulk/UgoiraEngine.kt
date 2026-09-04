@@ -7,7 +7,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.cache.UgoiraMetadataCache
 import ceui.lisa.file.LegacyFile
 import ceui.lisa.http.ImageHostManager
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.lisa.models.FramesBean
 import ceui.lisa.models.GifResponse
 import ceui.pixiv.api.model.Illust
@@ -738,7 +738,7 @@ object UgoiraEngine {
             return cached
         }
         Timber.tag(UGOIRA_LOG_TAG).i("[fetchMeta] illust=%d 走网络 getGifPackage…", illustId)
-        val fetched = Retro.getAppApi().getGifPackage(illustId)
+        val fetched = Client.appApi.getGifPackage(illustId)
         runCatching { UgoiraMetadataCache.put(illustId, fetched) }
         Timber.tag(UGOIRA_LOG_TAG).i("[fetchMeta] illust=%d 网络返回", illustId)
         return fetched

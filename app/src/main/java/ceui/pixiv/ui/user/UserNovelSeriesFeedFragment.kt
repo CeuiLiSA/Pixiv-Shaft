@@ -12,7 +12,7 @@ import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecyNovelSeriesOfUserBinding
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.lisa.model.ListNovelSeries
 import ceui.lisa.models.NovelSeriesItem
 import ceui.lisa.utils.Common
@@ -313,6 +313,6 @@ class NovelSeriesFeedItem(val series: NovelSeriesItem) : FeedItem {
  * 零 Fragment 捕获：只捕获一个 userID(Long)。
  */
 private fun userNovelSeriesFeedSource(userID: Long): PixivFeedSource<ListNovelSeries> =
-    pixivFeedSource(initialFetch = { Retro.getAppApi().getUserNovelSeries(userID) }) { resp, _ ->
+    pixivFeedSource(initialFetch = { Client.appApi.getUserNovelSeries(userID) }) { resp, _ ->
         resp.displayList.map { NovelSeriesFeedItem(it) }
     }

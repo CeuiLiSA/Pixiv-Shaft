@@ -12,7 +12,7 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecySimpleUserBinding
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.lisa.model.ListSimpleUser
 import ceui.pixiv.api.model.Illust
 import ceui.loxia.User
@@ -71,8 +71,8 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         when {
             // `v1/novel/bookmark/users` 不在 app-api 公开文档里但确实存在：无 token 打它回 400
             //（OAuth 报错，说明路由命中），不存在的路径才回 404。
-            novelId != null -> likeUsersFeedSource { Retro.getAppApi().getUsersWhoLikeThisNovel(novelId) }
-            illustId != null -> likeUsersFeedSource { Retro.getAppApi().getUsersWhoLikeThisIllust(illustId) }
+            novelId != null -> likeUsersFeedSource { Client.appApi.getUsersWhoLikeThisNovel(novelId) }
+            illustId != null -> likeUsersFeedSource { Client.appApi.getUsersWhoLikeThisIllust(illustId) }
             else -> error("LikeUsersFeedFragment 缺少作品参数")
         }
     }

@@ -4,7 +4,7 @@ import android.os.Process
 import ceui.lisa.activities.Shaft
 import ceui.lisa.cache.UgoiraMetadataCache
 import ceui.lisa.file.LegacyFile
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.lisa.models.GifResponse
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.download.DownloadsRegistry
@@ -124,7 +124,7 @@ suspend fun downloadUgoira(
     val resp: GifResponse = if (cached?.ugoira_metadata != null) {
         cached
     } else {
-        val fetched = Retro.getAppApi().getGifPackage(illustId)
+        val fetched = Client.appApi.getGifPackage(illustId)
         runCatching { UgoiraMetadataCache.put(illustId, fetched) }
         fetched
     }

@@ -5,7 +5,6 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.Mapper
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.api.Client
@@ -199,7 +198,7 @@ internal suspend fun fetchAuthorWorks(
     excludeIllustId: Long,
 ): List<Illust> = withContext(Dispatchers.IO) {
     Timber.tag(ARTWORK_LAZY_TAG).d("API 发出: 作者其他作品 userId=%d", userId)
-    val resp = Retro.getAppApi().getUserSubmitIllust(userId, "illust")
+    val resp = Client.appApi.getUserSubmitIllust(userId, "illust")
     if (resp.illusts != null) Mapper<ListIllust>().apply(resp)
     resp.list?.filter { it.id != excludeIllustId }?.take(10) ?: emptyList()
 }

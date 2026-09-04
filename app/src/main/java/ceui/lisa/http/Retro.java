@@ -1,6 +1,5 @@
 package ceui.lisa.http;
 
-import static ceui.lisa.http.AppApi.API_BASE_URL;
 import static ceui.lisa.http.ResourceApi.JSDELIVR_BASE_URL;
 import static ceui.lisa.http.SignApi.SIGN_API;
 
@@ -23,18 +22,6 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Retro {
-
-    /**
-     * {@link AppApi}：app-api 的 suspend 接口，单例 Retrofit 上 create（Retrofit 内部缓存方法解析，
-     * 每次 create 很便宜）。
-     */
-    public static AppApi getAppApi() {
-        return get().create(AppApi.class);
-    }
-
-    public static void refreshAppApi() {
-        Holder.appRetrofit = buildRetrofit(API_BASE_URL);
-    }
 
     public static SignApi getSignApi() {
         return buildRetrofit(SIGN_API).create(SignApi.class);
@@ -71,10 +58,6 @@ public class Retro {
      *                <p>
      *                For example:
      *                </p>
-     *                <p>
-     *                String API_BASE_URL = "https://app-api.pixiv.net/";in {@link AppApi}
-     *                </p>
-     *
      */
     private static Retrofit buildRetrofit(String baseUrl) {
         return buildRetrofit(baseUrl, true);
@@ -90,7 +73,7 @@ public class Retro {
      */
     private static Retrofit buildRetrofit(String baseUrl, boolean directConnect) {
         OkHttpClient.Builder builder = getLogClient();
-        // AppApi / OAuth 刷新 / PxveAPI 代理共用 AppApiTimeouts。
+        // OAuth 刷新 / PxveAPI 代理共用 AppApiTimeouts。
         builder.connectTimeout(AppApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .readTimeout(AppApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .writeTimeout(AppApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -136,16 +119,6 @@ public class Retro {
                 .build();
     }
 
-    /**
-     * @return The static Retrofit
-     * <p>
-     * @see Retrofit retrofit2.Retrofit
-     * </p>
-     */
-    private static Retrofit get() {
-        return Holder.appRetrofit;
-    }
-
     public static OkHttpClient.Builder getLogClient() {
         // 公共 builder：只放公共 DNS 与协议；各业务链路的超时由各自 Timeouts 类设置。
         // app-api/oauth/www/comic 系统 DNS 只保留 IPv4（官方单 A 记录，IPv6 多为污染）；
@@ -153,9 +126,5 @@ public class Retro {
         return new OkHttpClient.Builder()
                 .dns(IPv4OnlyDns.INSTANCE)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1));
-    }
-
-    private static class Holder {
-        private static Retrofit appRetrofit = buildRetrofit(API_BASE_URL);
     }
 }

@@ -12,7 +12,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.VActivity
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
@@ -48,7 +48,7 @@ class SpotlightWidgetWorker(
 
         val illust = try {
             withContext(Dispatchers.IO) {
-                Retro.getAppApi().getRecmdIllust(true)
+                Client.appApi.getRecmdIllust(true)
                     .illusts
                     ?.shuffled()
                     ?.firstOrNull { !it.isR18File() && !it.isSensitive() }

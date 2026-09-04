@@ -1,6 +1,6 @@
 package ceui.pixiv.ui.bulk
 
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Illust
 
 /**
@@ -17,12 +17,12 @@ class AuthorWorksSource(
     override val endpointHint: String = "/v1/user/illusts?type=$type"
 
     override suspend fun firstPage(): PageResult<Illust>? =
-        Retro.getAppApi()
+        Client.appApi
             .getUserSubmitIllust(userId, type)
             .toPageResult()
 
     override suspend fun nextPage(nextUrl: String): PageResult<Illust>? =
-        Retro.getAppApi()
+        Client.appApi
             .getNextIllust(nextUrl)
             .toPageResult()
 }

@@ -23,7 +23,7 @@ import ceui.pixiv.ui.common.viewBinding
  * 端点与 legacy 一致：`/v1/user/mypixiv?filter=for_android`（
  * [ceui.pixiv.api.API.getUserPixivFriends]），翻页走响应自带的 nextUrl。
  * 注意 `filter=for_android` 是迁移时补上的——那个声明此前零调用方、一直漏着 filter，
- * 而 legacy `AppApi.getNiceFriend` 一直带着它（见该声明处的注释）。
+ * 而 legacy API 的 `getNiceFriend` 一直带着它（见该声明处的注释）。
  *
  * 3 张预览图不足留空、不拿小说封面补位——见 [UserFeedFragment] 的裁决说明。
  */

@@ -6,7 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.activities.Shaft
 import ceui.lisa.helper.IllustNovelFilter
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.cache.ObjectPool
 import ceui.lisa.network.ShaftApiV2
@@ -118,7 +118,7 @@ class DiscoverViewModel(application: Application) : AndroidViewModel(application
         val pool = getApplication<Application>().appServices().discoveryPool
         viewModelScope.launch {
             val list = try {
-                val illusts = Retro.getAppApi().getNewWorks("illust").illusts.orEmpty()
+                val illusts = Client.appApi.getNewWorks("illust").illusts.orEmpty()
                 Timber.d("Discovery/Repo latest got ${illusts.size} items")
                 pool.collect(illusts, "latest:illust")
                 withContext(Dispatchers.Default) {

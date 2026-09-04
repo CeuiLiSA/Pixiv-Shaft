@@ -9,7 +9,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
-import ceui.lisa.http.Retro
 import ceui.lisa.view.LinearItemDecorationNoLRTB
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Illust
@@ -130,8 +129,8 @@ class IllustSeriesFragment :
                 val detail = hero.series
                 val nowAdded = detail.watchlist_added == true
                 val seriesIdInt = detail.id.toInt()
-                if (nowAdded) Retro.getAppApi().postWatchlistMangaDelete(seriesIdInt)
-                else Retro.getAppApi().postWatchlistMangaAdd(seriesIdInt)
+                if (nowAdded) Client.appApi.postWatchlistMangaDelete(seriesIdInt)
+                else Client.appApi.postWatchlistMangaAdd(seriesIdInt)
                 // 本地翻转 watchlist_added 并重发 hero 条目触发重绑收藏 icon。
                 feedViewModel.updateItems<MangaHeroFeedItem> {
                     it.copy(series = it.series.copy(watchlist_added = !nowAdded))

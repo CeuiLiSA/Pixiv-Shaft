@@ -19,7 +19,7 @@ import ceui.lisa.databinding.ActivityNewUserBinding
 import ceui.lisa.fragments.FragmentHolder.Companion.newInstance
 import ceui.lisa.helper.UserIllustJumpHelper
 import ceui.lisa.http.ErrorCtrl
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.lisa.interfaces.Display
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.models.UserFollowDetail
@@ -156,7 +156,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         baseBind.progress.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
-                val userResponse = withContext(Dispatchers.IO) { Retro.getAppApi().getUserDetailV2(userId) }
+                val userResponse = withContext(Dispatchers.IO) { Client.appApi.getUserDetailV2(userId) }
                 ObjectPool.updateUser(userResponse.user)
                 mUserViewModel.user.value = userResponse
                 writeBackSelfProfile(userResponse)
@@ -180,7 +180,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         }
         lifecycleScope.launch {
             try {
-                val userFollowDetail = withContext(Dispatchers.IO) { Retro.getAppApi().getFollowDetail(userId) }
+                val userFollowDetail = withContext(Dispatchers.IO) { Client.appApi.getFollowDetail(userId) }
                 appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(userFollowDetail))
                 // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
                 FollowVisibility.writeRemote(userId, followRestrictOf(userFollowDetail))

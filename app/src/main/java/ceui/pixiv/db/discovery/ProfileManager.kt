@@ -5,7 +5,7 @@ import android.content.Intent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import kotlinx.coroutines.runBlocking
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.db.RecordType
@@ -149,7 +149,7 @@ class ProfileManager(app: Context) {
             runBlocking {
                 try {
                     Timber.d("$TAG buildProfile fetching remote bookmarks userId=$myUserId")
-                    val resp = Retro.getAppApi().getUserLikeIllust(myUserId, "public")
+                    val resp = Client.appApi.getUserLikeIllust(myUserId, "public")
                     resp.illusts?.let { remoteBookmarks.addAll(it) }
                     Timber.d("$TAG buildProfile remote bookmarks=${remoteBookmarks.size}")
                 } catch (e: Exception) {
@@ -158,7 +158,7 @@ class ProfileManager(app: Context) {
 
                 try {
                     Timber.d("$TAG buildProfile fetching remote following userId=$myUserId")
-                    val resp = Retro.getAppApi().getFollowUser(myUserId, "public")
+                    val resp = Client.appApi.getFollowUser(myUserId, "public")
                     resp.list?.forEach { preview ->
                         val uid = preview.user?.id ?: return@forEach
                         if (uid > 0) remoteFollowedAuthorIds.add(uid)

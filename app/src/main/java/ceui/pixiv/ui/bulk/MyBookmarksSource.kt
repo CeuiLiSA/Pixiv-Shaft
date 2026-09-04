@@ -1,6 +1,6 @@
 package ceui.pixiv.ui.bulk
 
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Illust
 
 /**
@@ -32,12 +32,12 @@ class MyBookmarksSource(
         "/v1/user/bookmarks/illust?restrict=$restrict" + (tag?.let { "&tag=$it" } ?: "")
 
     override suspend fun firstPage(): PageResult<Illust>? =
-        Retro.getAppApi()
+        Client.appApi
             .getUserLikeIllust(userId, restrict, tag?.takeIf { it.isNotEmpty() })
             .toPageResult()
 
     override suspend fun nextPage(nextUrl: String): PageResult<Illust>? =
-        Retro.getAppApi()
+        Client.appApi
             .getNextIllust(nextUrl)
             .toPageResult()
 }

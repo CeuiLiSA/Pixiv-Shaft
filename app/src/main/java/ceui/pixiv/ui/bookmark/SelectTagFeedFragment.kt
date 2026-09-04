@@ -12,7 +12,7 @@ import ceui.lisa.activities.Shaft
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.databinding.RecySelectTagBinding
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
@@ -302,7 +302,7 @@ class SelectTagFeedSource(
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         // 单页：框架只会用 cursor == null 调本源（nextCursor 恒 null，无翻页）。
-        val api = Retro.getAppApi()
+        val api = Client.appApi
         val uid = SessionManager.loggedInUid
         val (bookedTags, resp) = when (type) {
             Params.TYPE_ILLUST ->

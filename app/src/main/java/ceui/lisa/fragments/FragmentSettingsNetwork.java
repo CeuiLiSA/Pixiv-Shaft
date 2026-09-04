@@ -25,7 +25,6 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsNetworkBinding;
 import ceui.lisa.http.AppApiProxyInterceptor;
 import ceui.lisa.http.HttpDns;
-import ceui.lisa.http.Retro;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
@@ -59,7 +58,6 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                 }
                 baseBind.useSecureDnsGroup.setVisibility(isChecked ? View.VISIBLE : View.GONE);
                 if (changed) {
-                    Retro.refreshAppApi();
                     // issue #956: 网页 ajax 客户端（Client.webApi）也带直连拦截器，
                     // reset() 里会一并重建，否则「按 tag 筛画师作品」要重启 App 才吃到直连。
                     Client.INSTANCE.reset();
@@ -296,7 +294,6 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                     if (changed) {
                         // 挂载/卸载 AppApiProxyInterceptor 需要重建客户端（与直连开关同款）。
                         // 网页 ajax 走 www.pixiv.net 不经这个代理，但 Client.reset() 顺带重建无害。
-                        Retro.refreshAppApi();
                         Client.INSTANCE.reset();
                         // PixivLogin.client 是 by lazy 单例，这里重建不了 —— 本次会话的
                         // token 自动刷新仍走旧客户端（直连 oauth）。提示用户重启才完全生效。

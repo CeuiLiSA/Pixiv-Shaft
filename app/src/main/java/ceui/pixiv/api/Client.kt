@@ -30,21 +30,19 @@ object Client {
 
     private val clientManager = ClientManager()
 
+    @Volatile
     private var _appApi: API? = null
 
     val appApi: API get() {
-        val _api = _appApi
-        return if (_api != null) {
-            _api
-        } else {
-            val impl = clientManager.createAPPAPI(API::class.java)
-            _appApi = impl
-            impl
+        return _appApi ?: synchronized(this) {
+            _appApi ?: clientManager.createAPPAPI(API::class.java).also {
+                _appApi = it
+            }
         }
     }
 
+    @Synchronized
     fun reset() {
-        _appApi = null
         _appApi = clientManager.createAPPAPI(API::class.java)
         // 网页 API 也带直连拦截器,直连开关切换后必须一起重建,否则要重启 App 才生效。
         _webApi = null
@@ -156,7 +154,7 @@ class ClientManager {
     /**
      * App API 代理（PxveAPI 风格），只给 [createAPPAPI] 用 —— 其余 client
      * （web / pixshaft / comic / fanbox / moon）根本不发 app-api/oauth 请求，
-     * 挂上去只是一个恒放行的空拦截器。与 [Retro.buildRetrofit] 的装配范围保持一致。
+     * 挂上去只是一个恒放行的空拦截器。
      *
      * 必须在 [applyDirectConnect] **之前**调用：改写后的域名（用户自建代理）不在
      * Cronet 的精确 host allowlist 内，直连拦截器会放行给 OkHttp 的系统 DNS/TLS，

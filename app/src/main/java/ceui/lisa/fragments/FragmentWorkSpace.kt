@@ -9,7 +9,7 @@ import ceui.lisa.databinding.FragmentWorkSpaceBinding
 import ceui.pixiv.session.SessionManager
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.http.ErrorCtrl
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.lisa.interfaces.Display
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.utils.Common
@@ -29,7 +29,7 @@ class FragmentWorkSpace : BaseLazyFragment<FragmentWorkSpaceBinding>(), Display<
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val user = withContext(Dispatchers.IO) {
-                    Retro.getAppApi().getUserDetailV2(SessionManager.loggedInUid)
+                    Client.appApi.getUserDetailV2(SessionManager.loggedInUid)
                 }
                 invoke(user)
             } catch (e: CancellationException) {
@@ -106,7 +106,7 @@ class FragmentWorkSpace : BaseLazyFragment<FragmentWorkSpaceBinding>(), Display<
 
             viewLifecycleOwner.lifecycleScope.launch {
                 try {
-                    withContext(Dispatchers.IO) { Retro.getAppApi().editWorkSpace(map) }
+                    withContext(Dispatchers.IO) { Client.appApi.editWorkSpace(map) }
                     Common.showToast("修改成功！", true)
                     mActivity.finish()
                 } catch (e: CancellationException) {

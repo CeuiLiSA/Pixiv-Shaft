@@ -1,7 +1,24 @@
 package ceui.pixiv.api
 
+import ceui.lisa.model.ListBookmarkTag
+import ceui.lisa.model.ListIllust
+import ceui.lisa.model.ListMangaSeries
+import ceui.lisa.model.ListNovel
+import ceui.lisa.model.ListNovelMarkers
+import ceui.lisa.model.ListNovelSeries
+import ceui.lisa.model.ListSimpleUser
+import ceui.lisa.model.ListTag
 import ceui.lisa.model.ListTrendingtag
+import ceui.lisa.model.ListUser
+import ceui.lisa.model.RecmdIllust
+import ceui.lisa.models.GifResponse
+import ceui.lisa.models.IllustSearchResponse
+import ceui.lisa.models.NovelSearchResponse
 import ceui.lisa.models.NullResponse
+import ceui.lisa.models.Preset
+import ceui.lisa.models.UserDetailResponse
+import ceui.lisa.models.UserFollowDetail
+import ceui.lisa.models.UserState
 import ceui.lisa.utils.Params
 import ceui.pixiv.api.model.ArticlesResponse
 import ceui.pixiv.api.model.CommentResponse
@@ -25,12 +42,17 @@ import ceui.pixiv.api.model.TrendingTagsResponse
 import ceui.pixiv.api.model.UserPreviewResponse
 import ceui.pixiv.api.model.UserResponse
 import ceui.pixiv.api.model.WatchlistResponse
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody
-import retrofit2.Call
 import retrofit2.http.Field
+import retrofit2.http.FieldMap
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Headers
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.Url
@@ -74,8 +96,7 @@ interface API {
      * 带收藏夹标签的收藏。与 [postBookmark] 是同一个端点，只是多带 `tags[]` ——
      * 端点相同意味着它们对同一作品是互相覆盖的，不是叠加，所以队列里共用同一个 dedupeKey。
      *
-     * 标签用 `List<String>` 而不是 legacy 那样的 `vararg`：payload 从 json 反序列化回来就是
-     * 列表，摊成 vararg 只是为了迁就 [ceui.lisa.http.AppApi] 的旧签名。
+     * 标签用 `List<String>`：payload 从 json 反序列化回来就是列表，无需再摊成 vararg。
      */
     @FormUrlEncoded
     @POST("/v2/illust/bookmark/add")
@@ -199,7 +220,7 @@ interface API {
         @Query("include_ranking_illusts") include_ranking_illusts: Boolean = false,
     ): NovelResponse
 
-    // 推荐小说（feeds 版，替代 legacy RxJava AppApi.getRecmdNovel）：首屏带 ranking_novels
+    // 推荐小说（feeds 版，替代旧 RxJava getRecmdNovel）：首屏带 ranking_novels
     // 排行榜预览头（对齐 legacy include_ranking_novels=true）。
     @GET("/v1/novel/recommended?include_privacy_policy=true&filter=for_ios&include_ranking_novels=true")
     suspend fun getRecommendedNovelsWithRanking(): NovelRecommendResponse
@@ -254,7 +275,7 @@ interface API {
         @Query("user_id") user_id: Long,
     ): ceui.pixiv.ui.user.UserRequestPlansResponse
 
-    // filter=for_android 对齐 legacy AppApi.getFollowUser：本接口此前零调用方，迁「关注列表」页
+    // filter=for_android 对齐旧 getFollowUser：本接口此前零调用方，迁「关注列表」页
     // (FollowUserFeedFragment) 时按 legacy 端点补齐，不影响其它页。
     @GET("/v1/user/following?filter=for_android")
     suspend fun getFollowingUsers(
@@ -269,14 +290,14 @@ interface API {
         @Query("user_id") user_id: Long,
     ): UserPreviewResponse
 
-    // filter=for_android 对齐 legacy AppApi.getNiceFriend：本接口此前零调用方（声明了但从没被
+    // filter=for_android 对齐旧 getNiceFriend：本接口此前零调用方（声明了但从没被
     // 跑过），迁「好P友」页(NiceFriendFeedFragment)时才第一次激活它——补上 legacy 一直带着的
     // filter。pixiv 的 filter 决定 image_urls 返回哪套变体，漏掉它用户卡的 3 张预览图可能空白。
     // 它原先是这组 user_preview 端点里唯一不带 filter 的（following=for_android /
     // follower=for_ios / recommended=for_ios / related=for_android），本就是个异类。
     /**
      * 「追更列表」——已追的漫画/小说**系列**（响应顶层字段就是 series，见 [WatchlistResponse]）。
-     * legacy AppApi.getWatchlistManga/getWatchlistNovel 逐字对齐：路径之外不带任何 query。
+     * 与旧 getWatchlistManga/getWatchlistNovel 逐字对齐：路径之外不带任何 query。
      */
     @GET("v1/watchlist/manga")
     suspend fun getWatchlistManga(): WatchlistResponse
@@ -298,7 +319,7 @@ interface API {
     @GET("/v1/user/recommended?filter=for_ios")
     suspend fun recommendedUsers(): UserPreviewResponse
 
-    /** 相关用户（某画师的相关画师推荐，对齐 legacy AppApi.getRelatedUsers）。 */
+    /** 相关用户（某画师的相关画师推荐，对齐旧 getRelatedUsers）。 */
     @GET("/v1/user/related?filter=for_android")
     suspend fun getRelatedUsers(
         @Query("seed_user_id") seed_user_id: Long,
@@ -312,7 +333,7 @@ interface API {
         @Query("date") date: String? = null,
     ): IllustResponse
 
-    // 小说排行榜（feeds 版，替代 legacy RxJava AppApi.getRankNovel）：mode 见
+    // 小说排行榜（feeds 版，替代旧 RxJava getRankNovel）：mode 见
     // RankNovelFeedFragment.NOVEL_MODES。legacy 带的是 filter=for_android，这里跟同接口的
     // getRankingIllusts 统一成 for_ios（小说响应无 image_urls 变体差异，两者等价）。
     @GET("/v1/novel/ranking?filter=for_ios")
@@ -322,14 +343,14 @@ interface API {
         @Query("date") date: String? = null,
     ): NovelResponse
 
-    // 最新作品（feeds 版，替代 legacy RxJava AppApi.getNewWorks）：全站最新投稿的插画/漫画。
+    // 最新作品（feeds 版，替代旧 RxJava getNewWorks）：全站最新投稿的插画/漫画。
     // content_type = "illust" | "manga"。
     @GET("/v1/illust/new?filter=for_ios")
     suspend fun getNewIllusts(
         @Query("content_type") contentType: String,
     ): IllustResponse
 
-    // 最新小说（feeds 版，替代 legacy RxJava AppApi.getNewNovels）：全站最新投稿的小说。
+    // 最新小说（feeds 版，替代旧 RxJava getNewNovels）：全站最新投稿的小说。
     @GET("/v1/novel/new")
     suspend fun getNewNovels(): NovelResponse
 
@@ -533,4 +554,307 @@ interface API {
     suspend fun getInfoList(
         @Query("cid") cid: Int,
     ): InfoListResponse
+
+    // ── Legacy response models ──────────────────────────────────────────
+    // These endpoints are still consumed by the old lisa screens. They deliberately keep
+    // their existing response types while sharing Client.appApi's single Retrofit stack.
+
+    @GET("v1/illust/ranking?filter=for_android")
+    suspend fun getRank(
+        @Query("mode") mode: String,
+        @Query("date") date: String?,
+    ): ListIllust
+
+    @GET("v1/illust/recommended?include_privacy_policy=true&filter=for_android")
+    suspend fun getRecmdIllust(
+        @Query("include_ranking_illusts") includeRankingIllusts: Boolean,
+    ): RecmdIllust
+
+    @GET("v1/trending-tags/{type}?filter=for_android&include_translated_tag_results=true")
+    suspend fun getHotTags(@Path("type") type: String): ListTrendingtag
+
+    @GET("v1/illust/new?filter=for_android")
+    suspend fun getNewWorks(@Query("content_type") contentType: String): ListIllust
+
+    @GET("v1/search/illust?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
+    suspend fun searchIllust(
+        @Query("word") word: String,
+        @Query("sort") sort: String?,
+        @Query("start_date") startDate: String?,
+        @Query("end_date") endDate: String?,
+        @Query("search_target") searchTarget: String?,
+        @Query("bookmark_num_min") bookmarkNumMin: Int? = null,
+        @Query("bookmark_num_max") bookmarkNumMax: Int? = null,
+        @Query("tool") tool: String? = null,
+        @Query("lang") lang: String? = null,
+        @Query("search_ai_type") searchAiType: Int? = null,
+        @Query("ratio_pattern") ratioPattern: String? = null,
+        @Query("content_type") contentType: String? = null,
+        @Query("width_min") widthMin: Int? = null,
+        @Query("width_max") widthMax: Int? = null,
+        @Query("height_min") heightMin: Int? = null,
+        @Query("height_max") heightMax: Int? = null,
+    ): ListIllust
+
+    @Headers("X-Shaft-Explicit-Authorization: 1")
+    @GET("v1/search/illust?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
+    suspend fun searchIllustWithAuth(
+        @Header("Authorization") authorization: String,
+        @Query("word") word: String,
+        @Query("sort") sort: String?,
+        @Query("start_date") startDate: String?,
+        @Query("end_date") endDate: String?,
+        @Query("search_target") searchTarget: String?,
+        @Query("bookmark_num_min") bookmarkNumMin: Int? = null,
+        @Query("bookmark_num_max") bookmarkNumMax: Int? = null,
+        @Query("tool") tool: String? = null,
+        @Query("lang") lang: String? = null,
+        @Query("search_ai_type") searchAiType: Int? = null,
+        @Query("ratio_pattern") ratioPattern: String? = null,
+        @Query("content_type") contentType: String? = null,
+        @Query("width_min") widthMin: Int? = null,
+        @Query("width_max") widthMax: Int? = null,
+        @Query("height_min") heightMin: Int? = null,
+        @Query("height_max") heightMax: Int? = null,
+    ): ListIllust
+
+    @GET("v1/search/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
+    suspend fun searchNovelLegacy(
+        @Query("word") word: String,
+        @Query("sort") sort: String?,
+        @Query("start_date") startDate: String?,
+        @Query("end_date") endDate: String?,
+        @Query("search_target") searchTarget: String?,
+        @Query("bookmark_num_min") bookmarkNumMin: Int? = null,
+        @Query("bookmark_num_max") bookmarkNumMax: Int? = null,
+        @Query("genre") genre: Int? = null,
+        @Query("lang") lang: String? = null,
+        @Query("search_ai_type") searchAiType: Int? = null,
+        @Query("is_original_only") isOriginalOnly: Boolean? = null,
+        @Query("is_replaceable_only") isReplaceableOnly: Boolean? = null,
+        @Query("text_length_min") textLengthMin: Int? = null,
+        @Query("text_length_max") textLengthMax: Int? = null,
+        @Query("word_count_min") wordCountMin: Int? = null,
+        @Query("word_count_max") wordCountMax: Int? = null,
+        @Query("reading_time_min") readingTimeMin: Int? = null,
+        @Query("reading_time_max") readingTimeMax: Int? = null,
+    ): ListNovel
+
+    @Headers("X-Shaft-Explicit-Authorization: 1")
+    @GET("v1/search/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
+    suspend fun searchNovelWithAuth(
+        @Header("Authorization") authorization: String,
+        @Query("word") word: String,
+        @Query("sort") sort: String?,
+        @Query("start_date") startDate: String?,
+        @Query("end_date") endDate: String?,
+        @Query("search_target") searchTarget: String?,
+        @Query("bookmark_num_min") bookmarkNumMin: Int? = null,
+        @Query("bookmark_num_max") bookmarkNumMax: Int? = null,
+        @Query("genre") genre: Int? = null,
+        @Query("lang") lang: String? = null,
+        @Query("search_ai_type") searchAiType: Int? = null,
+        @Query("is_original_only") isOriginalOnly: Boolean? = null,
+        @Query("is_replaceable_only") isReplaceableOnly: Boolean? = null,
+        @Query("text_length_min") textLengthMin: Int? = null,
+        @Query("text_length_max") textLengthMax: Int? = null,
+        @Query("word_count_min") wordCountMin: Int? = null,
+        @Query("word_count_max") wordCountMax: Int? = null,
+        @Query("reading_time_min") readingTimeMin: Int? = null,
+        @Query("reading_time_max") readingTimeMax: Int? = null,
+    ): ListNovel
+
+    @GET("v1/search/popular-preview/illust?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
+    suspend fun popularPreviewLegacy(
+        @Query("word") word: String,
+        @Query("start_date") startDate: String?,
+        @Query("end_date") endDate: String?,
+        @Query("search_target") searchTarget: String?,
+        @Query("bookmark_num_min") bookmarkNumMin: Int? = null,
+        @Query("bookmark_num_max") bookmarkNumMax: Int? = null,
+        @Query("tool") tool: String? = null,
+        @Query("lang") lang: String? = null,
+        @Query("search_ai_type") searchAiType: Int? = null,
+        @Query("ratio_pattern") ratioPattern: String? = null,
+        @Query("content_type") contentType: String? = null,
+        @Query("width_min") widthMin: Int? = null,
+        @Query("width_max") widthMax: Int? = null,
+        @Query("height_min") heightMin: Int? = null,
+        @Query("height_max") heightMax: Int? = null,
+    ): ListIllust
+
+    @GET("v1/search/popular-preview/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
+    suspend fun popularNovelPreview(
+        @Query("word") word: String,
+        @Query("start_date") startDate: String?,
+        @Query("end_date") endDate: String?,
+        @Query("search_target") searchTarget: String?,
+        @Query("bookmark_num_min") bookmarkNumMin: Int? = null,
+        @Query("bookmark_num_max") bookmarkNumMax: Int? = null,
+        @Query("genre") genre: Int? = null,
+        @Query("lang") lang: String? = null,
+        @Query("search_ai_type") searchAiType: Int? = null,
+        @Query("is_original_only") isOriginalOnly: Boolean? = null,
+        @Query("is_replaceable_only") isReplaceableOnly: Boolean? = null,
+        @Query("text_length_min") textLengthMin: Int? = null,
+        @Query("text_length_max") textLengthMax: Int? = null,
+        @Query("word_count_min") wordCountMin: Int? = null,
+        @Query("word_count_max") wordCountMax: Int? = null,
+        @Query("reading_time_min") readingTimeMin: Int? = null,
+        @Query("reading_time_max") readingTimeMax: Int? = null,
+    ): ListNovel
+
+    @GET("v1/illust/detail?filter=for_android")
+    suspend fun getIllustByID(@Query("illust_id") illustId: Long): IllustSearchResponse
+
+    @GET("v2/novel/detail")
+    suspend fun getNovelByID(@Query("novel_id") novelId: Long): NovelSearchResponse
+
+    @GET("v2/illust/related?filter=for_android")
+    suspend fun relatedIllust(@Query("illust_id") illustId: Long): ListIllust
+
+    @GET("v1/ugoira/metadata")
+    suspend fun getGifPackage(@Query("illust_id") illustId: Long): GifResponse
+
+    @GET("v1/user/illusts?filter=for_android")
+    suspend fun getUserSubmitIllust(
+        @Query("user_id") userId: Long,
+        @Query("type") type: String,
+    ): ListIllust
+
+    @GET("v1/user/bookmarks/illust")
+    suspend fun getUserLikeIllust(
+        @Query("user_id") userId: Long,
+        @Query("restrict") restrict: String,
+        @Query("tag") tag: String? = null,
+    ): ListIllust
+
+    @GET("v2/user/detail?filter=for_ios")
+    suspend fun getUserDetailV2(@Query("user_id") userId: Long): UserDetailResponse
+
+    @GET("v1/user/follow/detail")
+    suspend fun getFollowDetail(@Query("user_id") userId: Long): UserFollowDetail
+
+    @GET("v1/user/following?filter=for_android")
+    suspend fun getFollowUser(
+        @Query("user_id") userId: Long,
+        @Query("restrict") restrict: String,
+        @Query("offset") offset: Int? = null,
+    ): ListUser
+
+    @GET("v1/illust/bookmark/users?filter=for_android")
+    suspend fun getUsersWhoLikeThisIllust(@Query("illust_id") illustId: Int): ListSimpleUser
+
+    @GET("v1/novel/bookmark/users?filter=for_android")
+    suspend fun getUsersWhoLikeThisNovel(@Query("novel_id") novelId: Long): ListSimpleUser
+
+    @GET("v1/user/illust-series")
+    suspend fun getUserMangaSeries(@Query("user_id") userId: Long): ListMangaSeries
+
+    @GET("v1/user/novel-series")
+    suspend fun getUserNovelSeries(@Query("user_id") userId: Long): ListNovelSeries
+
+    @GET("v1/user/me/state")
+    suspend fun getAccountState(): UserState
+
+    @GET("v1/user/profile/presets")
+    suspend fun getPresets(): Preset
+
+    @Multipart
+    @POST("v1/user/profile/edit")
+    suspend fun updateUserProfile(@Part parts: List<MultipartBody.Part>): NullResponse
+
+    @FormUrlEncoded
+    @POST("v1/user/workspace/edit")
+    suspend fun editWorkSpace(@FieldMap fields: Map<String, String>): NullResponse
+
+    @FormUrlEncoded
+    @POST("v2/illust/bookmark/add")
+    suspend fun postLikeIllust(
+        @Field("illust_id") illustId: Int,
+        @Field("restrict") restrict: String,
+    ): NullResponse
+
+    @GET("v1/user/bookmark-tags/illust")
+    suspend fun getAllIllustBookmarkTags(
+        @Query("user_id") userId: Long,
+        @Query("restrict") restrict: String?,
+    ): ListTag
+
+    @GET("v1/user/bookmark-tags/novel")
+    suspend fun getAllNovelBookmarkTags(
+        @Query("user_id") userId: Long,
+        @Query("restrict") restrict: String?,
+    ): ListTag
+
+    @GET("v2/illust/bookmark/detail")
+    suspend fun getIllustBookmarkTags(@Query("illust_id") illustId: Int): ListBookmarkTag
+
+    @GET("v2/novel/bookmark/detail")
+    suspend fun getNovelBookmarkTags(@Query("novel_id") novelId: Int): ListBookmarkTag
+
+    @GET("v2/novel/markers")
+    suspend fun getNovelMarkers(): ListNovelMarkers
+
+    @FormUrlEncoded
+    @POST("v1/novel/marker/add")
+    suspend fun postAddNovelMarker(
+        @Field("novel_id") novelId: Int,
+        @Field("page") page: Int,
+    ): NullResponse
+
+    @FormUrlEncoded
+    @POST("v1/novel/marker/delete")
+    suspend fun postDeleteNovelMarker(@Field("novel_id") novelId: Int): NullResponse
+
+    @FormUrlEncoded
+    @POST("v1/watchlist/novel/add")
+    suspend fun postWatchlistNovelAdd(@Field("series_id") seriesId: Int): NullResponse
+
+    @FormUrlEncoded
+    @POST("v1/watchlist/novel/delete")
+    suspend fun postWatchlistNovelDelete(@Field("series_id") seriesId: Int): NullResponse
+
+    @FormUrlEncoded
+    @POST("v1/watchlist/manga/add")
+    suspend fun postWatchlistMangaAdd(@Field("series_id") seriesId: Int): NullResponse
+
+    @FormUrlEncoded
+    @POST("v1/watchlist/manga/delete")
+    suspend fun postWatchlistMangaDelete(@Field("series_id") seriesId: Int): NullResponse
+
+    @GET
+    suspend fun getNextIllust(@Url nextUrl: String): ListIllust
+
+    @Headers("X-Shaft-Explicit-Authorization: 1")
+    @GET
+    suspend fun getNextIllustWithAuth(
+        @Header("Authorization") authorization: String,
+        @Url nextUrl: String,
+    ): ListIllust
+
+    @GET
+    suspend fun getNextNovel(@Url nextUrl: String): ListNovel
+
+    @Headers("X-Shaft-Explicit-Authorization: 1")
+    @GET
+    suspend fun getNextNovelWithAuth(
+        @Header("Authorization") authorization: String,
+        @Url nextUrl: String,
+    ): ListNovel
+
+    @GET
+    suspend fun getNextTags(@Url nextUrl: String): ListTag
+
+    @GET
+    suspend fun getNextSimpleUser(@Url nextUrl: String): ListSimpleUser
+
+    @GET
+    suspend fun getNextUserNovelSeries(@Url nextUrl: String): ListNovelSeries
+
+    @GET
+    suspend fun getNextUserMangaSeries(@Url nextUrl: String): ListMangaSeries
+
+    @GET
+    suspend fun getNextNovelMarkers(@Url nextUrl: String): ListNovelMarkers
 }

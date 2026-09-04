@@ -2,7 +2,7 @@ package ceui.pixiv.widget
 
 import android.content.Context
 import androidx.work.WorkerParameters
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Illust
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,7 +15,7 @@ class RecommendStripWorker(
     override val providerClass = RecommendStripWidgetProvider::class.java
 
     override suspend fun fetchIllusts(): List<Illust>? = withContext(Dispatchers.IO) {
-        Retro.getAppApi().getRecmdIllust(true)
+        Client.appApi.getRecmdIllust(true)
             .illusts
             ?.filter { !it.isR18File() && !it.isSensitive() }
             ?.shuffled()

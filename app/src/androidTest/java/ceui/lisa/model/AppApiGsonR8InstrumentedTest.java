@@ -20,7 +20,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 
 import ceui.lisa.core.DownloadItem;
-import ceui.lisa.http.AppApi;
+import ceui.pixiv.api.API;
 import ceui.pixiv.api.model.Illust;
 import ceui.pixiv.cache.ObjectPool;
 import ceui.pixiv.snapshot.SnapshotManifest;
@@ -56,11 +56,11 @@ public final class AppApiGsonR8InstrumentedTest {
 
     @Test
     public void retrofitResponseGenericTypesSurviveR8FullMode() {
-        // AppApi is suspend-only now: the response type lives in the trailing Continuation<? super T>
+        // API is suspend-only: the response type lives in the trailing Continuation<? super T>
         // parameter, which Retrofit reads reflectively. Two endpoints from different call paths
         // (recommended feed via widgets, latest works via LatestIllustRepo).
-        assertEquals(RecmdIllust.class, continuationResultType(findGetEndpoint(AppApi.class, "v1/illust/recommended")));
-        assertEquals(ListIllust.class, continuationResultType(findGetEndpoint(AppApi.class, "v1/illust/new")));
+        assertEquals(RecmdIllust.class, continuationResultType(findGetEndpoint(API.class, "v1/illust/recommended")));
+        assertEquals(ListIllust.class, continuationResultType(findGetEndpoint(API.class, "v1/illust/new")));
     }
 
     private static Type continuationResultType(Method suspendMethod) {

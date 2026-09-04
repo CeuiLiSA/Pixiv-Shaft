@@ -22,7 +22,7 @@ import java.util.concurrent.Callable
  *   和 legacy `NullCtrl` 链路的提示一致。
  * - [fireAndForget]：无宿主的一次性后台任务（写库、打点），跑在应用级 scope 上。
  *
- * Java 调不了 suspend 函数：网络请求这类需要 [ceui.lisa.http.AppApi] 的逻辑，
+ * Java 调不了 suspend 函数：网络请求这类需要 [ceui.pixiv.api.API] 的逻辑，
  * 放进 Kotlin 侧的 `@JvmStatic` 回调式门面（如 PixivOperate），Java 只管传回调；
  * 这里的 [run] 只适合纯阻塞工作（文件 / 数据库 / 解压）。
  *

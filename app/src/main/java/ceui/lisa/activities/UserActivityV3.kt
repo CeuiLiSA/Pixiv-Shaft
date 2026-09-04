@@ -18,7 +18,6 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.ActivityUserV3Binding
 import ceui.lisa.helper.UserIllustJumpHelper
 import ceui.lisa.http.ErrorCtrl
-import ceui.lisa.http.Retro
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.models.UserFollowDetail
 import ceui.lisa.utils.Common
@@ -261,7 +260,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         // 用 v2/for_ios:多带 is_accept_request(驱动「约稿中」tab),字段与 UA 无关
         lifecycleScope.launch {
             try {
-                val userResponse = withContext(Dispatchers.IO) { Retro.getAppApi().getUserDetailV2(userId) }
+                val userResponse = withContext(Dispatchers.IO) { Client.appApi.getUserDetailV2(userId) }
                 // User 池更新 → updateFollowState 重绑关注按钮;
                 // user LiveData 更新 → displayUser 重绑 header UI(幂等)。
                 ObjectPool.updateUser(userResponse.user)
@@ -291,7 +290,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         // 用 v2/for_ios:多带 is_accept_request(驱动「约稿中」tab),字段与 UA 无关
         lifecycleScope.launch {
             try {
-                val userResponse = withContext(Dispatchers.IO) { Retro.getAppApi().getUserDetailV2(userId) }
+                val userResponse = withContext(Dispatchers.IO) { Client.appApi.getUserDetailV2(userId) }
                 ObjectPool.updateUser(userResponse.user)
                 mUserViewModel.user.value = userResponse
                 writeBackSelfProfile(userResponse)
@@ -330,7 +329,7 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         // 失败不管:精确态拿不到时 followedLabelRes 保守回落「已关注」。
         lifecycleScope.launch {
             try {
-                val followDetail = withContext(Dispatchers.IO) { Retro.getAppApi().getFollowDetail(userId) }
+                val followDetail = withContext(Dispatchers.IO) { Client.appApi.getFollowDetail(userId) }
                 appServices().appLevelState.updateFollowUserStatus(userId, followStatusOf(followDetail))
                 // 本地动过的话 writeRemote 自己会丢弃；真写进去了它会发通知，重绘不用这里操心。
                 FollowVisibility.writeRemote(userId, followRestrictOf(followDetail))

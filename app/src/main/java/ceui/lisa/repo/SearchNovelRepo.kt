@@ -4,7 +4,7 @@ import android.text.TextUtils
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.Mapper
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.lisa.model.ListNovel
 import ceui.lisa.repo.ViewerBookmarkState.withViewerBookmarkState
 import ceui.lisa.utils.PixivSearchParamUtil
@@ -149,7 +149,7 @@ class SearchNovelRepo @JvmOverloads constructor(
         }
         nana7miTelemetry = telemetry
 
-        val api = Retro.getAppApi()
+        val api = Client.appApi
 
         suspend fun popularPreviewRequest(): ListNovel = retryNana7miNetworkCall(
             stage = "novel_popular_preview",
@@ -181,7 +181,7 @@ class SearchNovelRepo @JvmOverloads constructor(
             stage = "novel_plain_search",
         ) {
             withTitleFallback { target ->
-                api.searchNovel(
+                api.searchNovelLegacy(
                     assembledKeyword,
                     sortType,
                     effectiveStartDate,
@@ -411,7 +411,7 @@ class SearchNovelRepo @JvmOverloads constructor(
         // Capture the cursor together with the session before this request waits for the
         // process-wide permit; a newer first page may otherwise replace nextUrl.
         val nextPageUrl = nextUrl
-        val api = Retro.getAppApi()
+        val api = Client.appApi
         if (session.borrowedAccountLost) {
             return endBorrowedPagination("already_lost")
         }
@@ -498,8 +498,8 @@ class SearchNovelRepo @JvmOverloads constructor(
     /**
      * 借号在翻页途中失效时的终止页。
      *
-     * 这里**绝不能**回落到 [ceui.lisa.http.AppApi.getNextNovel]：nextUrl 是「会员专属 sort」的
-     * 游标，而那个方法没有 explicit-authorization 标记，会被 Retro 的拦截器注入当前登录账号的
+     * 这里**绝不能**回落到 [ceui.pixiv.api.API.getNextNovel]：nextUrl 是「会员专属 sort」的
+     * 游标，而那个方法没有 explicit-authorization 标记，会被 Client 的拦截器注入当前登录账号的
      * token —— 用非会员的自己的号去打会员游标必然 400，用户每点一次重试就再撞一次，形成死循环。
      *
      * 返回空的终止页（无 next_url）让列表停在已拿到的结果上；重新搜索会走 [initApi] 建新会话、

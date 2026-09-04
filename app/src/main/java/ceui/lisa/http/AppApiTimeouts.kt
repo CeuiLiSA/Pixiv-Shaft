@@ -7,9 +7,8 @@ package ceui.lisa.http
  * 所有调用点统一从这里取值，避免散落硬编码。
  *
  * 这些值覆盖以下调用段：
- * - [Retro.buildRetrofit]：老栈 AppApi（app-api.pixiv.net）、AccountTokenApi
- *   （oauth.secure.pixiv.net 刷新 token）与 SignApi 共用。
- * - [ceui.pixiv.api.ClientManager.createAPPAPI]：新栈 app-api。
+ * - [Retro.buildRetrofit]：AccountTokenApi（oauth.secure.pixiv.net 刷新 token）与 SignApi 共用。
+ * - [ceui.pixiv.api.ClientManager.createAPPAPI]：app-api。
  * - [ceui.pixiv.login.PixivLogin.buildClient]：OAuth 登录交换 / refresh_token 刷新。
  * - 以上 client 开启 PxveAPI 代理时，[AppApiProxyInterceptor] 改写后的代理请求
  *   仍走这些 client，因此代理路径同样使用这里的超时。

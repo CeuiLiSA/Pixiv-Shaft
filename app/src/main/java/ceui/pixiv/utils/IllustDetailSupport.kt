@@ -1,6 +1,5 @@
 package ceui.pixiv.utils
 
-import ceui.lisa.http.Retro
 import ceui.lisa.interfaces.Callback
 import ceui.loxia.ImageUrls
 import ceui.loxia.Tag
@@ -64,7 +63,7 @@ suspend fun fetchFullIllustDetail(
     onTransportError: ((Throwable) -> Unit)? = null,
 ): Illust? {
     val fresh = try {
-        Retro.getAppApi().getIllustByID(illustId).illust
+        Client.appApi.getIllustByID(illustId).illust
     } catch (ce: CancellationException) {
         throw ce
     } catch (e: Exception) {

@@ -3,21 +3,13 @@ package ceui.lisa.database;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
-import ceui.lisa.http.AppApi;
-
 /**
  * A class represents the search history
  * <p>
  *     int id:searchEntity.getKeyword().hashCode() + searchEntity.getSearchType()
  * </p>
  * <p>
- *     String keyword:The search content
- *     <p>
- *         Value 1:{@link AppApi#getIllustByID(String, long)}
- *     </p>
- *     <p>
- *         Value 2:{@link AppApi#getIllustByID(String, long)}
- *     </p>
+ *     String keyword: The search content
  *
  * </p>
  * */

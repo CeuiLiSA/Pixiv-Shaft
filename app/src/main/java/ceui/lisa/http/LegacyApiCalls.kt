@@ -15,12 +15,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
+import ceui.pixiv.api.Client
 import timber.log.Timber
 
 /**
  * 给还是 Java 的 legacy 页面用的网络请求门面：Java 调不了 suspend 函数，这里把
- * [AppApi] / [SignApi] / [ResourceApi] 的调用包成「回调回主线程」的 `@JvmStatic` 方法，
- * 替代原先 `Retro.getAppApi().xxx().subscribeOn(newThread).observeOn(mainThread).subscribe(NullCtrl)`。
+ * app-api / [SignApi] / [ResourceApi] 的调用包成「回调回主线程」的 `@JvmStatic` 方法，
+ * 替代原先的 RxJava 请求链。
  *
  * - 请求挂在 [owner] 的 lifecycleScope 上（Fragment / Activity 自身），页面销毁自动取消；
  *   `owner` 为 null 时挂在 [JavaAsync.appScope]（无宿主的静态任务）。
@@ -30,7 +31,7 @@ import timber.log.Timber
  *   VActivity 翻页的闸门放在跨配置变更存活的 PageData 上，取消不放闸会永久卡死翻页。
  * - `onSuccess` 自己抛的异常只记日志，不当成请求失败去弹「网络错误」。
  *
- * Kotlin 页面不要用这个，直接 `lifecycleScope.launch { Retro.getAppApi().xxx() }`。
+ * Kotlin 页面不要用这个，直接 `lifecycleScope.launch { Client.appApi.xxx() }`。
  */
 object LegacyApiCalls {
 
@@ -67,15 +68,15 @@ object LegacyApiCalls {
 
     @JvmStatic
     fun getAccountState(owner: LifecycleOwner, onSuccess: JavaAsync.Consumer<UserState>) =
-        call(owner, onSuccess, null, null) { Retro.getAppApi().getAccountState() }
+        call(owner, onSuccess, null, null) { Client.appApi.getAccountState() }
 
     @JvmStatic
     fun getPresets(owner: LifecycleOwner, onSuccess: JavaAsync.Consumer<Preset>) =
-        call(owner, onSuccess, null, null) { Retro.getAppApi().getPresets() }
+        call(owner, onSuccess, null, null) { Client.appApi.getPresets() }
 
     @JvmStatic
     fun getUserDetailV2(owner: LifecycleOwner, userId: Long, onSuccess: JavaAsync.Consumer<UserDetailResponse>) =
-        call(owner, onSuccess, null, null) { Retro.getAppApi().getUserDetailV2(userId) }
+        call(owner, onSuccess, null, null) { Client.appApi.getUserDetailV2(userId) }
 
     @JvmStatic
     fun updateUserProfile(
@@ -83,11 +84,11 @@ object LegacyApiCalls {
         parts: List<MultipartBody.Part>,
         onSuccess: JavaAsync.Consumer<NullResponse>,
         onError: JavaAsync.Consumer<Throwable>?,
-    ) = call(owner, onSuccess, onError, null) { Retro.getAppApi().updateUserProfile(parts) }
+    ) = call(owner, onSuccess, onError, null) { Client.appApi.updateUserProfile(parts) }
 
     @JvmStatic
     fun getHotTags(owner: LifecycleOwner, type: String, onSuccess: JavaAsync.Consumer<ListTrendingtag>) =
-        call(owner, onSuccess, null, null) { Retro.getAppApi().getHotTags(type) }
+        call(owner, onSuccess, null, null) { Client.appApi.getHotTags(type) }
 
     @JvmStatic
     fun getNextIllust(
@@ -95,7 +96,7 @@ object LegacyApiCalls {
         nextUrl: String,
         onSuccess: JavaAsync.Consumer<ListIllust>,
         onFinally: Runnable?,
-    ) = call(owner, onSuccess, null, onFinally) { Retro.getAppApi().getNextIllust(nextUrl) }
+    ) = call(owner, onSuccess, null, onFinally) { Client.appApi.getNextIllust(nextUrl) }
 
     // ── accounts.pixiv.net ─────────────────────────────────────────────
 

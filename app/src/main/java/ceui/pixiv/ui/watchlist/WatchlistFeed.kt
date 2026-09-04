@@ -76,7 +76,7 @@ abstract class WatchlistFeedFragment : FeedFragment() {
  * 追更「漫画」tab。
  *
  * 端点 `v1/watchlist/manga`（[ceui.pixiv.api.API.getWatchlistManga]，与 legacy
- * `AppApi.getWatchlistManga` 逐字对齐：路径之外不带任何 query），翻页走响应自带的 nextUrl。
+ * `API.getWatchlistManga` 逐字对齐：路径之外不带任何 query），翻页走响应自带的 nextUrl。
  */
 class WatchlistMangaFeedFragment : WatchlistFeedFragment() {
 

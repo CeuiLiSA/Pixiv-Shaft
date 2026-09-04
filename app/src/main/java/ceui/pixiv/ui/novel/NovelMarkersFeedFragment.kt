@@ -13,7 +13,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecyNovelMarkersBinding
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.lisa.model.ListNovelMarkers
 import ceui.lisa.models.MarkedNovelItem
 import ceui.lisa.utils.GlideUtil
@@ -193,6 +193,6 @@ class NovelMarkerFeedItem(val marker: MarkedNovelItem) : FeedItem {
  * 小说书签数据源：首页 getNovelMarkers，翻页由 [PixivFeedSource] 按 next_url 重放。零 Fragment 捕获。
  */
 private fun novelMarkersFeedSource(): PixivFeedSource<ListNovelMarkers> =
-    pixivFeedSource(initialFetch = { Retro.getAppApi().getNovelMarkers() }) { resp, _ ->
+    pixivFeedSource(initialFetch = { Client.appApi.getNovelMarkers() }) { resp, _ ->
         resp.displayList.map { NovelMarkerFeedItem(it) }
     }

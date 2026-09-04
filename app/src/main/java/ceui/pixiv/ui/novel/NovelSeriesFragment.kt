@@ -27,7 +27,6 @@ import ceui.pixiv.api.Client
 import ceui.loxia.Novel
 import ceui.pixiv.api.model.NovelSeriesResp
 import ceui.pixiv.widgets.ProgressIndicator
-import ceui.lisa.http.Retro
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
@@ -390,8 +389,8 @@ class NovelSeriesFragment :
             try {
                 val nowAdded = detail.watchlist_added == true
                 val seriesIdInt = detail.id.toInt()
-                if (nowAdded) Retro.getAppApi().postWatchlistNovelDelete(seriesIdInt)
-                else Retro.getAppApi().postWatchlistNovelAdd(seriesIdInt)
+                if (nowAdded) Client.appApi.postWatchlistNovelDelete(seriesIdInt)
+                else Client.appApi.postWatchlistNovelAdd(seriesIdInt)
                 feedViewModel.updateItems<NovelSeriesHeroFeedItem> {
                     it.copy(series = it.series.copy(watchlist_added = !nowAdded))
                 }

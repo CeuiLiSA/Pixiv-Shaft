@@ -19,7 +19,6 @@ import androidx.lifecycle.lifecycleScope
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.http.Retro
 import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
@@ -1123,8 +1122,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         watchlistAdded = nextAdded
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                if (nextAdded) Retro.getAppApi().postWatchlistNovelAdd(seriesId.toInt())
-                else Retro.getAppApi().postWatchlistNovelDelete(seriesId.toInt())
+                if (nextAdded) Client.appApi.postWatchlistNovelAdd(seriesId.toInt())
+                else Client.appApi.postWatchlistNovelDelete(seriesId.toInt())
                 Toaster.showShort(if (nextAdded) R.string.reader_watchlist_added_toast else R.string.reader_watchlist_removed_toast)
             } catch (ce: CancellationException) {
                 throw ce

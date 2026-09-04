@@ -25,7 +25,7 @@ import java.util.WeakHashMap
  *   2. 持续观察 SearchViewModel 的 filter 变化，原子地翻成 SearchModel 字段；当 sheet 触发
  *      搜索事件时，给 SearchModel.nowGo 一脚，老 fragment 就刷新。
  *
- * 全部 V3 维度（tool / lang / genre / duration / bookmark / 仅原创 / 仅单词置换）legacy AppApi
+ * 全部 V3 维度（tool / lang / genre / duration / bookmark / 仅原创 / 仅单词置换）legacy API
  * 已经扩展支持，bridge 全字段双向翻译；老版与新版功能完全对齐。
  */
 object SearchFilterV3LegacyBridge {

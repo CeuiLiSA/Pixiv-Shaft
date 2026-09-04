@@ -5,7 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import ceui.lisa.activities.Shaft
 import ceui.lisa.download.IllustDownload
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.lisa.network.ShaftApiV2Client
 import ceui.lisa.utils.Params
 import ceui.pixiv.api.model.Illust
@@ -67,13 +67,13 @@ class MuzeiArtworkWorker(
     }
 
     private suspend fun fetch(source: MuzeiSource): List<Illust> = when (source) {
-        MuzeiSource.DAILY_RANK -> Retro.getAppApi().getRank("day", null).illusts.orEmpty()
+        MuzeiSource.DAILY_RANK -> Client.appApi.getRank("day", null).illusts.orEmpty()
         // 推荐流每次都不同,打乱一下避免总是同一批头图先被轮到
-        MuzeiSource.RECOMMEND -> Retro.getAppApi().getRecmdIllust(true).illusts.orEmpty().shuffled()
+        MuzeiSource.RECOMMEND -> Client.appApi.getRecmdIllust(true).illusts.orEmpty().shuffled()
         MuzeiSource.BOOKMARKS -> {
             val uid = SessionManager.loggedInUid
             if (uid <= 0L) emptyList()
-            else Retro.getAppApi().getUserLikeIllust(uid, "public").illusts.orEmpty().shuffled()
+            else Client.appApi.getUserLikeIllust(uid, "public").illusts.orEmpty().shuffled()
         }
         MuzeiSource.WALLPAPER_RANK -> ShaftApiV2Client.service
             .wallpapers(screen = "phone", limit = MAX_BATCH)

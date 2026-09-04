@@ -22,7 +22,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentBookedTagFeedBinding
 import ceui.lisa.databinding.RecyBookTagBinding
 import ceui.lisa.models.TagsBean
-import ceui.lisa.http.Retro
+import ceui.pixiv.api.Client
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecoration
 import ceui.pixiv.feeds.FeedFragment
@@ -294,7 +294,7 @@ class BookedTagFeedSource(
 
     override suspend fun load(cursor: String?): FeedPage<String> {
         val items: List<FeedItem> = withContext(Dispatchers.IO) {
-            val api = Retro.getAppApi()
+            val api = Client.appApi
             val uid = SessionManager.loggedInUid
             val realTags = ArrayList<TagsBean>()
             // starType 为 null 时 Retrofit 省略 restrict query（服务端默认 public），与 legacy 一致。
