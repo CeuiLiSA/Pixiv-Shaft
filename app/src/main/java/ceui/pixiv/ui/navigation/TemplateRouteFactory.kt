@@ -9,7 +9,6 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.services.appServices
 import ceui.lisa.fragments.FragmentAboutApp
 import ceui.lisa.fragments.FragmentCollection
-import ceui.lisa.fragments.FragmentDonate
 import ceui.lisa.fragments.FragmentEditAccount
 import ceui.lisa.fragments.FragmentEditFile
 import ceui.lisa.fragments.FragmentFileName
@@ -346,7 +345,8 @@ object TemplateRouteFactory {
         TemplateRoute.ARIA2_SETTINGS -> Aria2SettingsFragment()
         TemplateRoute.AI_TRANSLATE_SETTINGS -> AiTranslateSettingsFragment()
         TemplateRoute.NOVEL_HEADER_SETTINGS -> NovelHeaderSettingsFragment()
-        TemplateRoute.DONATE -> FragmentDonate.newInstance()
+        // 旧 key 是线上契约不能删；已移除的空捐赠页安全降级到关于页。
+        TemplateRoute.DONATE -> FragmentAboutApp()
         // feeds 版(替代 legacy FragmentNewNovels);独立页带 toolbar,restrict 走默认「全部」
         TemplateRoute.FOLLOWING_NOVELS -> FollowingNovelFeedFragment.newInstance()
         TemplateRoute.USER_MANGA_SERIES -> UserMangaSeriesFeedFragment.newInstance(Params.getUserId(intent))

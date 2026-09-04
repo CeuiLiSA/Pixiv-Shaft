@@ -12453,17 +12453,6 @@
     </issue>
 
     <issue
-        id="UselessLeaf"
-        message="This `LinearLayout` view is unnecessary (no children, no `background`, no `id`, no `style`)"
-        errorLine1="            &lt;LinearLayout"
-        errorLine2="             ~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_donate.xml"
-            line="46"
-            column="14"/>
-    </issue>
-
-    <issue
         id="UselessParent"
         message="This `ScrollView` layout or its `LinearLayout` parent is unnecessary; transfer the `background` attribute to the other view"
         errorLine1="            &lt;ScrollView"
