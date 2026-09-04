@@ -266,7 +266,6 @@ dependencies {
 
     // AndroidX Test - JUnit Runner
     androidTestImplementation libs.androidxTestJunit
-    androidTestImplementation libs.androidxEspresso
     androidTestImplementation libs.androidxRoomTesting
     androidTestImplementation libs.androidxTestRunner
     // Release androidTest is minified independently from the target APK. Keep the runner's
@@ -301,7 +300,6 @@ dependencies {
     implementation libs.androidxRoomKtx
     kapt libs.androidxRoomCompiler
     implementation libs.agentwebCore
-    implementation libs.agentwebFileChooser
     implementation libs.rebound
     implementation libs.htmlTextView
     implementation libs.materialDateTimePicker
@@ -310,14 +308,12 @@ dependencies {
     // the dependency. Debug/D8 tolerated that; R8 correctly exposes the potential runtime crash.
     implementation libs.nineOldAndroids
     implementation libs.viewPagerTransforms
-    implementation libs.recyclerViewAnimators
     implementation libs.utilCode
     implementation libs.firebaseAnalytics
     implementation libs.firebaseCrashlytics
 
     // Google Play In-App Review
     implementation libs.googleReview
-    implementation libs.googleReviewKtx
 
     implementation libs.colorPicker
     implementation libs.androidxSplashScreen
