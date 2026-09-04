@@ -184,6 +184,19 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         baseBind.showNovelCardTagsRela.setOnClickListener(v ->
                 baseBind.showNovelCardTags.performClick());
 
+        // 小说列表显示标签译文（默认关闭，保留 #1038 的紧凑列表默认值）
+        baseBind.showNovelCardTagTranslations.setChecked(Shaft.sSettings.isShowNovelCardTagTranslations());
+        baseBind.showNovelCardTagTranslations.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setShowNovelCardTagTranslations(isChecked);
+                Common.showToast(getString(R.string.string_428));
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.showNovelCardTagTranslationsRela.setOnClickListener(v ->
+                baseBind.showNovelCardTagTranslations.performClick());
+
         // 小说列表卡片标签折叠
         baseBind.collapseNovelCardTags.setChecked(Shaft.sSettings.isCollapseNovelCardTags());
         baseBind.collapseNovelCardTags.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

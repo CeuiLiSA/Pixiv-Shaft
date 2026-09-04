@@ -223,6 +223,9 @@ public class Settings {
     //小说卡片是否显示标签
     private boolean showNovelCardTags = true;
 
+    //小说列表卡片是否显示标签译文，默认关闭以保持列表紧凑
+    private boolean showNovelCardTagTranslations = false;
+
     //小说列表卡片标签是否折叠（超过 6 个换成「+N」），默认折叠
     private boolean collapseNovelCardTags = true;
 
@@ -1265,6 +1268,14 @@ public class Settings {
 
     public void setShowNovelCardTags(boolean showNovelCardTags) {
         this.showNovelCardTags = showNovelCardTags;
+    }
+
+    public boolean isShowNovelCardTagTranslations() {
+        return showNovelCardTagTranslations;
+    }
+
+    public void setShowNovelCardTagTranslations(boolean showNovelCardTagTranslations) {
+        this.showNovelCardTagTranslations = showNovelCardTagTranslations;
     }
 
     public boolean isCollapseNovelCardTags() {

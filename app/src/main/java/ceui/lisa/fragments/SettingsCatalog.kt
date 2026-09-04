@@ -101,6 +101,7 @@ object SettingsCatalog {
         add(Entry(APPEARANCE, "line_count_rela", R.string.string_336, keywords = "列数 几列 瀑布流 网格 columns grid"))
         add(Entry(APPEARANCE, "layout_mode_rela", R.string.layout_mode, keywords = "瀑布流 线性 列表 关注动态 staggered linear"))
         add(Entry(APPEARANCE, "show_novel_card_tags_rela", R.string.show_novel_card_tags_setting, keywords = "小说标签 卡片 tag novel"))
+        add(Entry(APPEARANCE, "show_novel_card_tag_translations_rela", R.string.show_novel_card_tag_translations_setting, keywords = "小说标签译文 小说标签翻译 小说列表标签译文 小说列表标签翻译 标签译文 标签翻译 tag translation novel"))
         add(Entry(APPEARANCE, "widget_refresh_interval_rela", R.string.v3_widget_refresh_interval_title, keywords = "小组件 桌面 插件 widget 刷新 间隔 换图 频率 refresh interval"))
         add(Entry(APPEARANCE, "muzei_settings_rela", R.string.muzei_settings_title, R.string.muzei_settings_entry_desc, keywords = "muzei 动态壁纸 壁纸 自动换壁纸 live wallpaper 桌面"))
         // 别名按整串子串匹配（同上），所以「隐藏按钮」「挡画面」这类连写说法要各铺一遍

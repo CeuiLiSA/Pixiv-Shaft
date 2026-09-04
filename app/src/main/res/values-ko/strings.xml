@@ -1072,6 +1072,7 @@
     <string name="rate_dialog_maybe_later">나중에</string>
     <string name="rate_dialog_never">다시 묻지 않기</string>
     <string name="show_novel_card_tags_setting">소설 카드에 태그 표시</string>
+    <string name="show_novel_card_tag_translations_setting">소설 카드에 태그 번역 표시</string>
     <string name="collapse_novel_card_tags_setting">소설 카드 태그 접기</string>
     <string name="string_discovery">탐색</string>
     <string name="download_records_export">다운로드 기록 내보내기</string>

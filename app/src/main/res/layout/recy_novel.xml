@@ -227,8 +227,8 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- 标签流:满宽紧凑 chip,列表里只显示 tag 原文(译名进详情页看,#1038)。tag 数由
-                 绑定方设的 maxTags 折叠成「+N」。关闭「显示标签」时喂空列表折叠。 -->
+            <!-- 标签流：满宽紧凑 chip，译文由「小说列表显示标签译文」控制（默认关闭，#1089）。
+                 tag 数由绑定方设的 maxTags 折叠成「+N」；关闭「显示标签」时喂空列表折叠。 -->
             <ceui.pixiv.widgets.V3TagFlowView
                 android:id="@+id/novel_tag"
                 android:layout_width="match_parent"

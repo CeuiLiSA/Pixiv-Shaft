@@ -219,7 +219,7 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
         b.novelTag.compact = true
         b.novelTag.searchIndex = 1
         b.novelTag.showHashPrefix = false
-        b.novelTag.showTranslation = false
+        b.novelTag.showTranslation = Shaft.sSettings.isShowNovelCardTagTranslations()
         b.novelTag.maxTags = if (Shaft.sSettings.isCollapseNovelCardTags()) 6 else -1
         b.novelTag.setTags(tags)
         b.novelTag.isVisible = tags.isNotEmpty()

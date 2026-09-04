@@ -274,6 +274,24 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/show_novel_card_tag_translations_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/show_novel_card_tag_translations_setting" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/show_novel_card_tag_translations"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/collapse_novel_card_tags_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_bottom">

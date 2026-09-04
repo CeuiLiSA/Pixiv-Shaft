@@ -2,6 +2,9 @@ package ceui.pixiv.ui.novel
 
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -30,6 +33,7 @@ import ceui.pixiv.api.model.NovelSeriesResp
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.widgets.ProgressImageButton
 import ceui.pixiv.widgets.ProgressIndicator
+import ceui.pixiv.widgets.resolveTagTranslationColor
 import ceui.pixiv.ui.common.findActionReceiverOrNull
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
@@ -343,8 +347,8 @@ private fun bindNovelCardBookmark(
 private fun bindNovelCardTags(b: CellNovelV3Binding, novel: Novel, palette: V3Palette) {
     val tags = novel.tags
     val ctx = b.root.context
-    // 与主力小说卡同一套设置（#982/#1047）：「小说列表显示标签」关闭时整体隐藏；
-    // 「小说列表标签折叠」开启时超 6 个折叠成「+N」，关闭时 maxTags=-1 全量展示。
+    // 与主力小说卡同一套设置（#982/#1047/#1089）：「小说列表显示标签」关闭时整体隐藏；
+    // 译文默认关闭、可单独开启；「小说列表标签折叠」开启时超 6 个折叠成「+N」。
     if (tags.isNullOrEmpty() || !Shaft.sSettings.isShowNovelCardTags) {
         b.tagsSection.isVisible = false
         return
@@ -354,11 +358,26 @@ private fun bindNovelCardTags(b: CellNovelV3Binding, novel: Novel, palette: V3Pa
     val density = ctx.resources.displayMetrics.density
     val tagBg = palette.tagLockedBg(999f * density).constantState
     val maxTags = if (Shaft.sSettings.isCollapseNovelCardTags) 6 else -1
+    val showTranslations = Shaft.sSettings.isShowNovelCardTagTranslations
+    val translationColor = resolveTagTranslationColor(palette)
     val visibleTags = if (maxTags > 0) tags.take(maxTags) else tags
     visibleTags.forEach { tag ->
         val tv = TextView(ctx)
-        // 列表条目只显示 tag 原文，译名进详情页看（#1038，与主力小说卡同口径）
-        tv.text = "# ${tag.name ?: ""}"
+        val translationSuffix = tag.translated_name
+            ?.takeIf { showTranslations && it.isNotBlank() }
+            ?.let { "  $it" }
+            .orEmpty()
+        val fullText = "# ${tag.name ?: ""}$translationSuffix"
+        tv.text = SpannableString(fullText).apply {
+            if (translationSuffix.isNotEmpty()) {
+                setSpan(
+                    ForegroundColorSpan(translationColor),
+                    fullText.length - translationSuffix.length,
+                    fullText.length,
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
+                )
+            }
+        }
         tv.textSize = 11f
         tv.setTextColor(palette.textTag)
         tv.background = tagBg?.newDrawable()?.mutate()

@@ -1138,6 +1138,7 @@
     <string name="rate_dialog_never">不再提醒</string>
 
     <string name="show_novel_card_tags_setting">小说列表显示标签</string>
+    <string name="show_novel_card_tag_translations_setting">小说列表显示标签译文</string>
     <string name="collapse_novel_card_tags_setting">小说列表标签折叠</string>
 
     <string name="string_discovery">发现</string>

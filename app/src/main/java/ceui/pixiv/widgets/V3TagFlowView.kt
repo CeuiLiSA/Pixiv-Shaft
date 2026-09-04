@@ -42,6 +42,23 @@ import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
 
 /**
+ * 标签译文颜色（#1047-5）：跟随主题时与原文同色；否则把所选色（目录预设 / 自定义 hex）
+ * 按 [V3Palette.textTag] 同一套压暗/压亮规则处理后再用。供标准标签流和手写小说系列卡共用。
+ */
+internal fun resolveTagTranslationColor(palette: V3Palette): Int {
+    val settings = Shaft.sSettings ?: return palette.textTag
+    if (settings.isTagTranslationColorFollowTheme) return palette.textTag
+    val index = settings.tagTranslationColorIndex
+    val hex = when {
+        index == CustomThemeColor.INDEX ->
+            CustomThemeColor.normalize(settings.tagTranslationColorCustomHex)
+        index in ThemeColorCatalog.entries.indices -> ThemeColorCatalog.hexOf(index)
+        else -> null
+    } ?: return palette.textTag
+    return V3Palette(hex.toColorInt(), palette.isDark).textTag
+}
+
+/**
  * V3 风格标签流 — 胶囊形背景 + `# name  译名` 格式 + 点击跳 SearchActivity。
  * 自带 signature dedupe，同一组 tags 多次 setTags 不会重建 view。
  *
@@ -221,7 +238,7 @@ class V3TagFlowView @JvmOverloads constructor(
         lastPairs = pairs
         // 译文色每次渲染算一次（不在 chip 循环里逐个算），并进签名：设置页改完色回来同一组
         // tags 再 setTags 也要重画，不能被 dedupe 吞掉。
-        val translationColor = tagTranslationColor()
+        val translationColor = resolveTagTranslationColor(palette)
         val sig = buildString {
             pairs.forEach { (n, t) ->
                 append(n); append('|'); append(t ?: ""); append(';')
@@ -395,25 +412,6 @@ class V3TagFlowView @JvmOverloads constructor(
                 hsv.post { hsv.fullScroll(View.FOCUS_RIGHT) }
             }
         }
-    }
-
-    /**
-     * 标签译文颜色（#1047-5）：跟随主题时与原文同色；否则把所选色（目录预设 / 自定义 hex）
-     * 按 [V3Palette.textTag] 同一套压暗/压亮规则处理后再用 —— 原文色本身就是主题色这么派生的，
-     * 目录里的裸 hex（浅色底上的 #fee65e 夏日黄、深色底上的 #673AB7 经典紫）直接涂上去看不清。
-     * 只钳 HSL 的 L，色相饱和度不动，用户选的还是那个色。任何异常配置都回落原文色。
-     */
-    private fun tagTranslationColor(): Int {
-        val settings = Shaft.sSettings ?: return palette.textTag
-        if (settings.isTagTranslationColorFollowTheme) return palette.textTag
-        val index = settings.tagTranslationColorIndex
-        val hex = when {
-            index == CustomThemeColor.INDEX ->
-                CustomThemeColor.normalize(settings.tagTranslationColorCustomHex)
-            index in ThemeColorCatalog.entries.indices -> ThemeColorCatalog.hexOf(index)
-            else -> null
-        } ?: return palette.textTag
-        return V3Palette(hex.toColorInt(), palette.isDark).textTag
     }
 
     private fun ensureEditor(): EditText {
