@@ -29,7 +29,7 @@ class BearerInterceptor(
             AuthLog.warning("bearer unavailable; continuing migration fallback path=$path")
             request
         } else {
-            AuthLog.debug("bearer attached path=${path}, token=${token}")
+            AuthLog.debug("bearer attached path=$path")
             request.newBuilder()
                 .header("Authorization", "Bearer $token")
                 .header("X-Pixshaft-Auth-Version", "2")
