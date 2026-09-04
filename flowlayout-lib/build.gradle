@@ -13,10 +13,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    namespace 'com.zhy.view.flowlayout'
+    namespace = 'com.zhy.view.flowlayout'
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation libs.androidxCoreBase
+    testImplementation libs.junit4
 }

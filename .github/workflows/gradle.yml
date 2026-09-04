@@ -126,6 +126,12 @@ jobs:
           :feeds:testDebugUnitTest
           :websocket:testDebugUnitTest
           :banner:testDebugUnitTest
+          :panel:testDebugUnitTest
+          :models:testDebugUnitTest
+          :flowlayout-lib:testDebugUnitTest
+          :progressmanager:testDebugUnitTest
+          :safe:testDebugUnitTest
+          :witstudio:testDebugUnitTest
           --continue
 
       # Room 会在编译时自动写出当前 schema；如果忘记提交，迁移测试会消费刚生成的
@@ -152,6 +158,7 @@ jobs:
           :models:lintDebug
           :flowlayout-lib:lintDebug
           :progressmanager:lintDebug
+          :safe:lintDebug
           :witstudio:lintDebug
           --continue
 
@@ -166,9 +173,11 @@ jobs:
             feeds/build/reports/lint-results-debug.xml
             websocket/build/reports/lint-results-debug.xml
             banner/build/reports/lint-results-debug.xml
+            panel/build/reports/lint-results-debug.xml
             models/build/reports/lint-results-debug.xml
             flowlayout-lib/build/reports/lint-results-debug.xml
             progressmanager/build/reports/lint-results-debug.xml
+            safe/build/reports/lint-results-debug.xml
             witstudio/build/reports/lint-results-debug.xml
           )
 

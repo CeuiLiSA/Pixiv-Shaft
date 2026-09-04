@@ -31,7 +31,7 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17
     }
-    namespace 'ceui.pixiv.actionqueue'
+    namespace = 'ceui.pixiv.actionqueue'
 
     testOptions {
         unitTests.returnDefaultValues = true
@@ -52,9 +52,9 @@ ksp {
 }
 
 dependencies {
-    implementation 'androidx.room:room-runtime:2.7.2'
-    implementation 'androidx.room:room-ktx:2.7.2'
-    ksp 'androidx.room:room-compiler:2.7.2'
+    implementation libs.androidxRoomRuntime
+    implementation libs.androidxRoomKtx
+    ksp libs.androidxRoomCompiler
 
     // :app 没有显式声明 coroutines（靠 lifecycle-ktx 传递引入 1.10.2）。本模块不依赖
     // lifecycle，必须自己声明，版本对齐 :app 传递解析出的结果，避免两个版本并存。
@@ -62,16 +62,16 @@ dependencies {
     // 是 api 不是 implementation：coroutines 的类型长在本模块的**公开 API** 上
     // （events: SharedFlow / state: StateFlow / 一票 suspend 函数）。用 implementation 的话
     // 消费方必须自己另外声明才编得过 —— 现在 :app 恰好能编过纯属沾了 lifecycle-ktx 传递引入的光。
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+    api libs.coroutinesAndroid
 
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
+    testImplementation libs.junit4
+    testImplementation libs.coroutinesTest
 
     // 手写 Migration 只有跑一遍真 SQLite 才知道对不对：Room 会逐字校验列和索引定义，
     // 少一个索引、类型写错都是启动时 IllegalStateException，而队列里躺的是用户的收藏。
-    androidTestImplementation 'androidx.room:room-testing:2.7.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
-    androidTestImplementation 'androidx.test:runner:1.6.2'
+    androidTestImplementation libs.androidxRoomTesting
+    androidTestImplementation libs.androidxTestJunit
+    androidTestImplementation libs.androidxTestRunner
 
     // 刻意不引：retrofit / okhttp / gson / :models / 任何 pixiv 代码。
     // 本模块不认识「收藏」，只认识「一个带 type 的 payload 字符串和一个执行器」。

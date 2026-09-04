@@ -22,7 +22,7 @@ android {
     // viewBinding 的 library 模块。刻意不开 dataBinding：库里没有一处需要 <layout> 表达式
     // 绑定，开了只是让每次构建多跑一遍注解处理。:app 的 dataBinding 与本模块无关。
     buildFeatures {
-        viewBinding true
+        viewBinding = true
     }
 
     compileOptions {
@@ -33,7 +33,7 @@ android {
         jvmTarget = JavaVersion.VERSION_17
     }
 
-    namespace 'ceui.pixiv.witstudio'
+    namespace = 'ceui.pixiv.witstudio'
 
     // 刻意不设 resourcePrefix：全仓没有这个约定，而且本模块要接管一批 :app 既有资源名
     // （:app 侧留引用别名指过来，见 app/src/main/res/values/colors.xml 里 v3_* -> @color/wit_*
@@ -52,23 +52,12 @@ dependencies {
     // 版本逐条对齐 :app，避免同一依赖两个版本并存。
     //
     // 今天真正用到的只有 appcompat（WitDialog : AppCompatDialog、
-    // WitRoundButton : AppCompatButton）。
-    api 'androidx.appcompat:appcompat:1.7.0'
+    // WitRoundButton : AppCompatButton）和 core-ktx 的 View 扩展。
+    api libs.androidxAppcompat
 
-    // ↓ 为后续阶段预留，**当前模块内一处未用**（grep 三个包名均为 0）。
-    // 等着搬进来的是 :app 侧的 PixivDialog : DialogFragment、
-    // V3BottomSheetBase(→WitBottomSheetBase) : BottomSheetDialogFragment、
-    // DialogViewModel.alertTaskPool : CompletableDeferred。
-    // 若那次搬迁最终没发生，这三条应当一并删掉——留着会让本模块的依赖面
-    // 看起来比实际大，也和「只认识 View、Dialog 和一个 ?attr/colorPrimary」的定位不符。
-    api 'androidx.fragment:fragment-ktx:1.8.5'
-    api 'com.google.android.material:material:1.14.0'
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+    implementation libs.androidxCore
 
-    implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7'
-
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation libs.junit4
 
     // 刻意不引：
     //   - retrofit / glide / gson / :models / 任何 pixiv 业务代码 —— 本模块不认识

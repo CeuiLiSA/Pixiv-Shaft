@@ -80,7 +80,7 @@ android {
 
     // Default instrumentation stays fast, while release hardening can explicitly run the same
     // tests against R8 output with -PSHAFT_TEST_BUILD_TYPE=release.
-    testBuildType providers.gradleProperty('SHAFT_TEST_BUILD_TYPE').getOrElse('debug')
+    testBuildType = providers.gradleProperty('SHAFT_TEST_BUILD_TYPE').getOrElse('debug')
 
     defaultConfig {
         applicationId "ceui.pixiv"
@@ -114,7 +114,7 @@ android {
         // minSdk 24 但 compileSdk 36：越版本调用编译期无感，只在老机器上炸成
         // NoSuchMethodError（见 #953 CommentComposerView 的 requireViewById）。
         // 所以 lint 必须能卡住构建 —— 存量问题进 baseline，新引入的错误才报警。
-        abortOnError true
+        abortOnError = true
         baseline = file('lint-baseline.xml')
         fatal 'NewApi'
     }
@@ -165,18 +165,18 @@ android {
             buildConfigField "boolean", "IS_DEBUG_MODE", "true"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             // debug 也用正式 key（有的话）：跟历史行为一致，debug 包能覆盖安装旧 debug 包
-            signingConfig hasShaftKeystore ? signingConfigs.shaft : signingConfigs.debug
+            signingConfig = hasShaftKeystore ? signingConfigs.shaft : signingConfigs.debug
 
             applicationIdSuffix ".cshaft"
             resValue "string", "app_name", "Shaft(Debug)"
         }
         release {
             minifyEnabled true
-            shrinkResources true
+            shrinkResources = true
             buildConfigField "boolean", "IS_DEBUG_MODE", "false"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             testProguardFiles 'proguard-test-rules.pro'
-            signingConfig hasShaftKeystore ? signingConfigs.shaft : signingConfigs.debug
+            signingConfig = hasShaftKeystore ? signingConfigs.shaft : signingConfigs.debug
 
             applicationIdSuffix ".pshaft"
             resValue "string", "app_name", "Shaft"
@@ -210,13 +210,13 @@ android {
     externalNativeBuild {
         cmake {
             path file('src/main/cpp/CMakeLists.txt')
-            version '3.22.1'
+            version = '3.22.1'
         }
     }
 
     buildFeatures {
-        dataBinding true
-        viewBinding true
+        dataBinding = true
+        viewBinding = true
         buildConfig = true // 启用 BuildConfig
     }
     packagingOptions {
@@ -228,7 +228,7 @@ android {
         }
     }
 
-    namespace 'ceui.lisa'
+    namespace = 'ceui.lisa'
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17
     }
@@ -255,103 +255,84 @@ tasks.withType(Test).configureEach {
 }
 
 dependencies {
-    testImplementation("junit:junit:4.13.2")
+    testImplementation libs.junit4
     // websocket 测试(来自上游 Peanut)需要的 mock server 与协程测试调度器;
     // 版本分别对齐主依赖的 okhttp 4.12.0 / 传递解析出的 coroutines 1.10.2
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
-    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation libs.mockWebServer
+    testImplementation libs.coroutinesTest
+    testImplementation libs.androidxArchCoreTesting
     // JVM 单测里 android.jar 的 org.json 是 Stub!,真实现放前面顶掉(AiTranslator 测试用)
-    testImplementation("org.json:json:20231013")
+    testImplementation libs.orgJson
 
     // AndroidX Test - JUnit Runner
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation("androidx.room:room-testing:2.7.2")
-    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation libs.androidxTestJunit
+    androidTestImplementation libs.androidxEspresso
+    androidTestImplementation libs.androidxRoomTesting
+    androidTestImplementation libs.androidxTestRunner
     // Release androidTest is minified independently from the target APK. Keep the runner's
     // direct Trace dependency in the test APK so AndroidJUnitRunner can start under R8.
-    androidTestImplementation("androidx.tracing:tracing:1.2.0")
+    androidTestImplementation libs.androidxTracing
 
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.recyclerview:recyclerview:1.3.2'
-    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
-    implementation 'com.google.android.material:material:1.14.0'
-
-    //=============== lifecycle
-    def lifecycle_version = '2.8.7'
-
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
-
-
-
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "androidx.core:core-ktx:1.13.1"
+    implementation libs.androidxAppcompat
+    implementation libs.androidxConstraintLayout
+    implementation libs.androidxRecyclerView
+    implementation libs.androidxSwipeRefreshLayout
+    implementation libs.material
+    implementation libs.androidxLifecycleLiveData
+    implementation libs.androidxLifecycleViewModel
+    implementation libs.androidxCore
     // issue #931: 平板大屏双栏（Activity Embedding 分栏规则）
-    implementation "androidx.window:window:1.5.1"
+    implementation libs.androidxWindow
     // 原本由 navigation-fragment-ktx 传递引入,移除 Navigation 后需直接声明,
     // 提供 Fragment.viewModels() / activityViewModels() 等 KTX 扩展。
-    implementation "androidx.fragment:fragment-ktx:1.8.5"
+    implementation libs.androidxFragment
 
-    api 'com.squareup.retrofit2:retrofit:2.11.0'
-    api 'com.squareup.retrofit2:converter-gson:2.11.0'
+    api libs.retrofit
+    api libs.retrofitGson
 
-    implementation 'com.github.bumptech.glide:glide:4.16.0'
-    implementation 'com.github.bumptech.glide:okhttp3-integration:4.16.0'
-    kapt 'com.github.bumptech.glide:compiler:4.16.0'
+    implementation libs.glide
+    implementation libs.glideOkhttp
+    kapt libs.glideCompiler
 
-    implementation 'jp.wasabeef:glide-transformations:4.3.0'
-    implementation 'de.hdodenhof:circleimageview:3.1.0'
-    implementation 'com.github.ybq:Android-SpinKit:1.4.0'
-    implementation 'androidx.room:room-runtime:2.7.2'
-    implementation "androidx.room:room-ktx:2.7.2"
-    kapt 'androidx.room:room-compiler:2.7.2'
-    implementation 'com.github.Justson.AgentWeb:agentweb-core:v4.1.9-androidx'
-    implementation 'com.github.Justson.AgentWeb:agentweb-filechooser:v4.1.9-androidx'
-    implementation 'com.facebook.rebound:rebound:0.3.8'
-    implementation("org.sufficientlysecure:html-textview:3.9")
-    implementation 'com.wdullaer:materialdatetimepicker:4.2.3'
-    implementation 'com.mxn.soul:flowingdrawer-core:2.1.0'
+    implementation libs.glideTransformations
+    implementation libs.circleImageView
+    implementation libs.androidxRoomRuntime
+    implementation libs.androidxRoomKtx
+    kapt libs.androidxRoomCompiler
+    implementation libs.agentwebCore
+    implementation libs.agentwebFileChooser
+    implementation libs.rebound
+    implementation libs.htmlTextView
+    implementation libs.materialDateTimePicker
+    implementation libs.flowingDrawer
     // flowingdrawer-core declares these classes in its animation path but its published POM omits
     // the dependency. Debug/D8 tolerated that; R8 correctly exposes the potential runtime crash.
-    implementation 'com.nineoldandroids:library:2.4.0'
-    implementation 'com.ToxicBakery.viewpager.transforms:view-pager-transforms:2.0.24'
-    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
-    implementation 'jp.wasabeef:recyclerview-animators:4.0.2'
-    implementation 'gdut.bsx:share2:0.9.3'
-    implementation 'com.blankj:utilcodex:1.31.1'
-    implementation 'com.safframework.log:saf-logginginterceptor:1.6.0'
-    implementation 'com.google.firebase:firebase-analytics:22.1.2'
-    implementation 'com.google.firebase:firebase-crashlytics:19.2.1'
+    implementation libs.nineOldAndroids
+    implementation libs.viewPagerTransforms
+    implementation libs.recyclerViewAnimators
+    implementation libs.utilCode
+    implementation libs.firebaseAnalytics
+    implementation libs.firebaseCrashlytics
 
     // Google Play In-App Review
-    implementation 'com.google.android.play:review:2.0.2'
-    implementation 'com.google.android.play:review-ktx:2.0.2'
+    implementation libs.googleReview
+    implementation libs.googleReviewKtx
 
-    implementation 'com.jaredrummler:colorpicker:1.1.0'
-    implementation 'androidx.core:core-splashscreen:1.0.1'
-
-
-    implementation 'com.makeramen:roundedimageview:2.3.0'
-
-    implementation 'io.github.csdn-mobile:RoundView:1.8.0'
-
-
-    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation libs.colorPicker
+    implementation libs.androidxSplashScreen
+    implementation libs.roundedImageView
+    // net.csdn.roundview.RoundImageView is inflated directly by comment/plaza XML layouts.
+    implementation libs.roundView
+    implementation libs.okhttp
     // SSE 标准解析(AiTranslator 流式翻译):与 okhttp 同版本,按规范处理多行 data/CRLF/注释行
-    implementation 'com.squareup.okhttp3:okhttp-sse:4.12.0'
+    implementation libs.okhttpSse
 
     // Cronet (Chromium 网络栈) 提供 QUIC/HTTP3 支持，绕过 GFW 的 TCP RST
-    implementation 'org.chromium.net:cronet-embedded:143.7445.0'
+    implementation libs.cronet
 
-    def lottieVersion = "3.4.1"
-    implementation "com.airbnb.android:lottie:$lottieVersion"
-
-    implementation 'xyz.zpayh:hdimageview:3.0.2'
+    implementation libs.lottie
+    implementation libs.hdImageView
 
     implementation project(path: ':models')
     // 列表框架（FeedSource / FeedViewModel / FeedFragment / FeedAdapter）。对 pixiv 一无所知，
@@ -373,42 +354,37 @@ dependencies {
     // First-party token storage + OkHttp Bearer/401 machinery. This module has
     // no dependency on :app or Pixiv business models.
     implementation project(path: ':safe')
-    implementation 'com.tencent:mmkv-static:2.2.3'
+    implementation libs.mmkv
     // 部分华为等 OEM 上 libmmkv.so 偶发 dlopen "not found"，ReLinker 兜底从 APK 抠 .so 按绝对路径加载。
-    implementation 'com.getkeepsafe.relinker:relinker:1.4.5'
+    implementation libs.relinker
 
-    implementation 'androidx.webkit:webkit:1.12.1'
-    implementation 'androidx.browser:browser:1.8.0'
+    implementation libs.androidxWebkit
+    implementation libs.androidxBrowser
 
     // Pixiv OAuth 2.0 PKCE 登录（自家库，支持 Chrome Custom Tab）
-    implementation 'com.github.SoxiaLiSA:pixiv-login:1.4.1'
-    implementation 'org.jsoup:jsoup:1.18.1'
+    implementation libs.pixivLogin
+    implementation libs.jsoup
 
-    implementation 'com.github.getActivity:Toaster:15.0'
-    implementation 'com.jakewharton.timber:timber:5.0.1'
+    implementation libs.toaster
+    implementation libs.timber
 
     // ONNX Runtime for offline translation model inference
-    implementation 'com.microsoft.onnxruntime:onnxruntime-android:1.24.3'
+    implementation libs.onnxRuntime
 
-    testImplementation 'junit:junit:4.13.2'
-
-    implementation "androidx.documentfile:documentfile:1.0.1"
-    implementation 'org.honorato.multistatetogglebutton:multistatetogglebutton:0.2.2'
-    implementation "io.noties.markwon:core:4.6.2"
+    implementation libs.androidxDocumentFile
+    implementation libs.markwon
     // Java language implementation
-    implementation("androidx.activity:activity-ktx:1.9.3")
-    implementation("com.google.android.flexbox:flexbox:3.0.0")
+    implementation libs.androidxActivity
+    implementation libs.flexbox
 
-    implementation("io.github.panpf.zoomimage:zoomimage-view-sketch4:1.4.0")
+    implementation libs.zoomImage
 
-    implementation("me.zhanghai.android.fastscroll:library:1.2.0")
-
-    implementation 'androidx.work:work-runtime-ktx:2.9.1'
+    implementation libs.androidxWork
 
     // Muzei 动态壁纸来源(issue #548):MuzeiArtProvider + 文件选择器可见的 DocumentsProvider
-    implementation 'com.google.android.apps.muzei:muzei-api:3.4.2'
+    implementation libs.muzei
 
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.3'
+    coreLibraryDesugaring libs.desugarJdkLibs
 
     configurations {
         all*.exclude group: 'com.android.support', module: 'support-v13'

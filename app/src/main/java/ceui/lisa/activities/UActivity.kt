@@ -44,7 +44,6 @@ import ceui.pixiv.ui.user.UserShortcutHelper
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.FeedBackToTopFab
 import com.bumptech.glide.Glide
-import com.github.ybq.android.spinkit.style.Wave
 import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
@@ -63,8 +62,6 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         // 列表右下角「回顶」悬浮钮(issue #1040,设置里默认关),与 V3 主页同款;
         // 装在 FragmentHolder 建 pager 之前,插画/漫画/收藏 tab 的 feeds 列表建好视图时自动挂上
         FeedBackToTopFab.installForHost(this, baseBind.appBar)
-        val wave = Wave()
-        baseBind.progress.indeterminateDrawable = wave
         baseBind.toolbar.setPadding(0, SystemBarMetrics.statusBarHeight(this), 0, 0)
         baseBind.toolbar.setNavigationOnClickListener { v: View? -> finish() }
         baseBind.toolbarLayout.viewTreeObserver.addOnGlobalLayoutListener(object :

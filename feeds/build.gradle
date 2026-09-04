@@ -26,12 +26,12 @@ android {
     }
 
     buildFeatures {
-        viewBinding true
+        viewBinding = true
     }
 
     // 与包名一致：模块内的 R 就是 ceui.pixiv.feeds.R，消费方（:app）经资源合并照常
     // 拿得到 @layout/fragment_feed 等，源码侧一行 import 都不用改。
-    namespace 'ceui.pixiv.feeds'
+    namespace = 'ceui.pixiv.feeds'
 
     testOptions {
         unitTests.returnDefaultValues = true
@@ -41,27 +41,27 @@ android {
 dependencies {
     // ── api：类型长在本模块的公开 API 上，消费方不声明也要能编过 ──────────────
     // FeedCell : RecyclerView.ViewHolder、onCreateLayoutManager(): LayoutManager
-    api 'androidx.recyclerview:recyclerview:1.3.2'
+    api libs.androidxRecyclerView
     // FeedFragment : Fragment、Fragment.feedViewModels()
-    api 'androidx.fragment:fragment-ktx:1.8.5'
+    api libs.androidxFragment
     // FeedViewModel : ViewModel
-    api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7"
+    api libs.androidxLifecycleViewModel
     // feedBinding.feedRefreshLayout 是 SwipeRefreshLayout（子类要碰）
-    api 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    api libs.androidxSwipeRefreshLayout
     // FeedViewModel.uiState: StateFlow、FeedSource 的一票 suspend
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+    api libs.coroutinesAndroid
     // Gson 2.11+ 自带 R8 full-mode 的 TypeToken / @SerializedName consumer rules。
     // FeedFirstPageCache 的公开 API 暴露 Gson，因此由本模块显式声明并统一全仓版本。
-    api 'com.google.code.gson:gson:2.11.0'
+    api libs.gson
 
     // ── implementation：纯内部实现 ─────────────────────────────────────────
-    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation libs.androidxCore
     // repeatOnLifecycle / lifecycleScope
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.8.7"
-    implementation 'com.jakewharton.timber:timber:5.0.1'
+    implementation libs.androidxLifecycleRuntime
+    implementation libs.timber
 
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
+    testImplementation libs.junit4
+    testImplementation libs.coroutinesTest
 
     // 刻意不引：retrofit / okhttp / Room / glide / :models / 任何 pixiv 代码。
     // 本模块不认识 pixiv，只认识「一个能翻页的 FeedSource 和一组 FeedRenderer」。

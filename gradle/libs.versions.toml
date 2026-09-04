@@ -1,0 +1,146 @@
+[versions]
+activity = "1.9.3"
+agentweb = "v4.1.9-androidx"
+androidxAnnotation = "1.9.1"
+androidxTestJunit = "1.2.1"
+appcompat = "1.7.0"
+archCore = "2.2.0"
+browser = "1.8.0"
+cardview = "1.0.0"
+circleImageView = "3.1.0"
+colorPicker = "1.1.0"
+constraintLayout = "2.2.0"
+core = "1.13.1"
+coroutines = "1.10.2"
+cronet = "143.7445.0"
+desugarJdkLibs = "2.1.3"
+documentFile = "1.0.1"
+espresso = "3.5.1"
+firebaseAnalytics = "22.1.2"
+firebaseCrashlytics = "19.2.1"
+flexbox = "3.0.0"
+flowingDrawer = "2.1.0"
+fragment = "1.8.5"
+glide = "4.16.0"
+glideTransformations = "4.3.0"
+gson = "2.11.0"
+hdImageView = "3.0.2"
+htmlTextView = "3.9"
+interpolator = "1.0.0"
+jsoup = "1.18.1"
+junit4 = "4.13.2"
+lifecycle = "2.8.7"
+lottie = "6.7.1"
+markwon = "4.6.2"
+material = "1.14.0"
+materialDateTimePicker = "4.2.3"
+mmkv = "2.2.3"
+mockWebServer = "4.12.0"
+muzei = "3.4.2"
+nineOldAndroids = "2.4.0"
+okhttp = "4.12.0"
+onnxRuntime = "1.24.3"
+orgJson = "20231013"
+pixivLogin = "1.4.1"
+playReview = "2.0.2"
+rebound = "0.3.8"
+recyclerView = "1.3.2"
+recyclerViewAnimators = "4.0.2"
+relinker = "1.4.5"
+retrofit = "2.11.0"
+robolectric = "4.14.1"
+room = "2.7.2"
+roundedImageView = "2.3.0"
+roundView = "1.8.0"
+runner = "1.6.2"
+splashScreen = "1.0.1"
+swipeRefreshLayout = "1.1.0"
+timber = "5.0.1"
+toaster = "15.0"
+tracing = "1.2.0"
+utilCode = "1.31.1"
+viewPagerTransforms = "2.0.24"
+webkit = "1.12.1"
+window = "1.5.1"
+work = "2.9.1"
+zoomImage = "1.4.0"
+
+[libraries]
+androidxAnnotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
+androidxActivity = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
+androidxAppcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidxArchCoreTesting = { module = "androidx.arch.core:core-testing", version.ref = "archCore" }
+androidxBrowser = { module = "androidx.browser:browser", version.ref = "browser" }
+androidxCardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
+androidxConstraintLayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintLayout" }
+androidxCore = { module = "androidx.core:core-ktx", version.ref = "core" }
+androidxCoreBase = { module = "androidx.core:core", version.ref = "core" }
+androidxDocumentFile = { module = "androidx.documentfile:documentfile", version.ref = "documentFile" }
+androidxEspresso = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso" }
+androidxFragment = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment" }
+androidxInterpolator = { module = "androidx.interpolator:interpolator", version.ref = "interpolator" }
+androidxLifecycleLiveData = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycle" }
+androidxLifecycleRuntime = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
+androidxLifecycleViewModel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+androidxRecyclerView = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerView" }
+androidxRoomCompiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+androidxRoomKtx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidxRoomRuntime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidxRoomTesting = { module = "androidx.room:room-testing", version.ref = "room" }
+androidxSplashScreen = { module = "androidx.core:core-splashscreen", version.ref = "splashScreen" }
+androidxSwipeRefreshLayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swipeRefreshLayout" }
+androidxTestJunit = { module = "androidx.test.ext:junit", version.ref = "androidxTestJunit" }
+androidxTestRunner = { module = "androidx.test:runner", version.ref = "runner" }
+androidxTracing = { module = "androidx.tracing:tracing", version.ref = "tracing" }
+androidxWebkit = { module = "androidx.webkit:webkit", version.ref = "webkit" }
+androidxWindow = { module = "androidx.window:window", version.ref = "window" }
+androidxWork = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+agentwebCore = { module = "com.github.Justson.AgentWeb:agentweb-core", version.ref = "agentweb" }
+agentwebFileChooser = { module = "com.github.Justson.AgentWeb:agentweb-filechooser", version.ref = "agentweb" }
+circleImageView = { module = "de.hdodenhof:circleimageview", version.ref = "circleImageView" }
+colorPicker = { module = "com.jaredrummler:colorpicker", version.ref = "colorPicker" }
+coroutinesAndroid = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+coroutinesTest = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+cronet = { module = "org.chromium.net:cronet-embedded", version.ref = "cronet" }
+desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+firebaseAnalytics = { module = "com.google.firebase:firebase-analytics", version.ref = "firebaseAnalytics" }
+firebaseCrashlytics = { module = "com.google.firebase:firebase-crashlytics", version.ref = "firebaseCrashlytics" }
+flexbox = { module = "com.google.android.flexbox:flexbox", version.ref = "flexbox" }
+flowingDrawer = { module = "com.mxn.soul:flowingdrawer-core", version.ref = "flowingDrawer" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
+glideCompiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
+glideOkhttp = { module = "com.github.bumptech.glide:okhttp3-integration", version.ref = "glide" }
+glideTransformations = { module = "jp.wasabeef:glide-transformations", version.ref = "glideTransformations" }
+googleReview = { module = "com.google.android.play:review", version.ref = "playReview" }
+googleReviewKtx = { module = "com.google.android.play:review-ktx", version.ref = "playReview" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+hdImageView = { module = "xyz.zpayh:hdimageview", version.ref = "hdImageView" }
+htmlTextView = { module = "org.sufficientlysecure:html-textview", version.ref = "htmlTextView" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+junit4 = { module = "junit:junit", version.ref = "junit4" }
+lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
+markwon = { module = "io.noties.markwon:core", version.ref = "markwon" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+materialDateTimePicker = { module = "com.wdullaer:materialdatetimepicker", version.ref = "materialDateTimePicker" }
+mmkv = { module = "com.tencent:mmkv-static", version.ref = "mmkv" }
+mockWebServer = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "mockWebServer" }
+muzei = { module = "com.google.android.apps.muzei:muzei-api", version.ref = "muzei" }
+nineOldAndroids = { module = "com.nineoldandroids:library", version.ref = "nineOldAndroids" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okhttpSse = { module = "com.squareup.okhttp3:okhttp-sse", version.ref = "okhttp" }
+onnxRuntime = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxRuntime" }
+orgJson = { module = "org.json:json", version.ref = "orgJson" }
+pixivLogin = { module = "com.github.SoxiaLiSA:pixiv-login", version.ref = "pixivLogin" }
+rebound = { module = "com.facebook.rebound:rebound", version.ref = "rebound" }
+recyclerViewAnimators = { module = "jp.wasabeef:recyclerview-animators", version.ref = "recyclerViewAnimators" }
+relinker = { module = "com.getkeepsafe.relinker:relinker", version.ref = "relinker" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofitGson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+roundedImageView = { module = "com.makeramen:roundedimageview", version.ref = "roundedImageView" }
+roundView = { module = "io.github.csdn-mobile:RoundView", version.ref = "roundView" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+toaster = { module = "com.github.getActivity:Toaster", version.ref = "toaster" }
+utilCode = { module = "com.blankj:utilcodex", version.ref = "utilCode" }
+viewPagerTransforms = { module = "com.ToxicBakery.viewpager.transforms:view-pager-transforms", version.ref = "viewPagerTransforms" }
+zoomImage = { module = "io.github.panpf.zoomimage:zoomimage-view-sketch4", version.ref = "zoomImage" }
