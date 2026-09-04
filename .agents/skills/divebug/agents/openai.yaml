@@ -1,0 +1,4 @@
+interface:
+  display_name: "Divebug"
+  short_description: "完整定位、修复、验证并落地 Pixiv-Shaft bug"
+  default_prompt: "Use $divebug to investigate and fix the provided Pixiv-Shaft bug end to end."
