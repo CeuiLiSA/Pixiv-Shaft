@@ -6,7 +6,7 @@ import okhttp3.Response
 import okhttp3.Route
 
 /** Handles one server-authoritative 401 refresh and one replay, never more. */
-public class TokenAuthenticator(
+class TokenAuthenticator(
     private val sessions: SessionProvider,
 ) : Authenticator {
 

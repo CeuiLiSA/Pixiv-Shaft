@@ -9,7 +9,7 @@ internal object AuthRoutes {
 }
 
 /** Adds the current token; all 401 recovery belongs to [TokenAuthenticator]. */
-public class BearerInterceptor(
+class BearerInterceptor(
     private val sessions: SessionProvider,
 ) : Interceptor {
 
@@ -29,7 +29,7 @@ public class BearerInterceptor(
             AuthLog.warning("bearer unavailable; continuing migration fallback path=$path")
             request
         } else {
-            AuthLog.debug("bearer attached path=$path")
+            AuthLog.debug("bearer attached path=${path}, token=${token}")
             request.newBuilder()
                 .header("Authorization", "Bearer $token")
                 .header("X-Pixshaft-Auth-Version", "2")

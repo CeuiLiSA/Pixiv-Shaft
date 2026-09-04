@@ -7,10 +7,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-public class TokenAuthenticatorTest {
+class TokenAuthenticatorTest {
 
     @Test
-    public fun `refreshable account 401 renews and replays with fresh bearer`() {
+    fun `refreshable account 401 renews and replays with fresh bearer`() {
         val provider = FakeProvider(current = "old", refreshed = "new")
         val response = unauthorized(
             request("https://pixshaft.com/v1/account/translate", "old"),
@@ -26,7 +26,7 @@ public class TokenAuthenticatorTest {
     }
 
     @Test
-    public fun `second 401 is terminal and cannot loop`() {
+    fun `second 401 is terminal and cannot loop`() {
         val provider = FakeProvider(current = "old", refreshed = "new")
         val first = unauthorized(
             request("https://pixshaft.com/v1/account/translate", "old"),
@@ -45,7 +45,7 @@ public class TokenAuthenticatorTest {
     }
 
     @Test
-    public fun `revoked session is cleared without refresh`() {
+    fun `revoked session is cleared without refresh`() {
         val provider = FakeProvider(current = "old", refreshed = "new")
         val response = unauthorized(
             request("https://pixshaft.com/v1/account/translate", "old"),
@@ -59,7 +59,7 @@ public class TokenAuthenticatorTest {
     }
 
     @Test
-    public fun `missing session can bootstrap after auth-required 401`() {
+    fun `missing session can bootstrap after auth-required 401`() {
         val provider = FakeProvider(current = null, bootstrap = "first")
         val response = unauthorized(
             request("https://pixshaft.com/v1/account/translate"),
@@ -74,7 +74,7 @@ public class TokenAuthenticatorTest {
     }
 
     @Test
-    public fun `public route 401 is never treated as a session failure`() {
+    fun `public route 401 is never treated as a session failure`() {
         val provider = FakeProvider(current = "old", refreshed = "new")
         val response = unauthorized(
             request("https://pixshaft.com/v1/config", "old"),

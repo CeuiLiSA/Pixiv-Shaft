@@ -4,7 +4,7 @@ package ceui.pixiv.safe.auth
  * Single-flight refresh coordinator. It knows nothing about Pixiv, Retrofit or
  * UI state, so every waiting OkHttp request observes the same refresh attempt.
  */
-public class RefreshCoordinator(
+class RefreshCoordinator(
     private val currentAccessToken: () -> String?,
     private val performRefresh: () -> String?,
 ) {
@@ -13,7 +13,7 @@ public class RefreshCoordinator(
     @Volatile
     private var completedAttempts: Long = 0L
 
-    public fun refresh(staleAccessToken: String): String? {
+    fun refresh(staleAccessToken: String): String? {
         val fast = currentAccessToken()
         if (fast == null) {
             AuthLog.warning("401 recovery stopped: no current session")

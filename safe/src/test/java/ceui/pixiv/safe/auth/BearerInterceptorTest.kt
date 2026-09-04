@@ -8,10 +8,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-public class BearerInterceptorTest {
+class BearerInterceptorTest {
 
     @Test
-    public fun `protected route receives bearer and protocol version`() {
+    fun `protected route receives bearer and protocol version`() {
         val server = MockWebServer()
         server.enqueue(MockResponse().setResponseCode(200))
         server.start()
@@ -33,7 +33,7 @@ public class BearerInterceptorTest {
     }
 
     @Test
-    public fun `public route neither bootstraps nor receives bearer`() {
+    fun `public route neither bootstraps nor receives bearer`() {
         val provider = FakeProvider("access-token")
         val server = MockWebServer()
         server.enqueue(MockResponse().setResponseCode(200))

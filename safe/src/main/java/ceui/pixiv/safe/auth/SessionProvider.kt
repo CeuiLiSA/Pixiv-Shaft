@@ -1,8 +1,8 @@
 package ceui.pixiv.safe.auth
 
-public interface SessionProvider {
-    public fun currentAccessToken(): String?
-    public fun accessTokenOrBootstrap(): String?
-    public fun refreshAfter401(staleAccessToken: String): String?
-    public fun clearCurrentSession()
+interface SessionProvider {
+    fun currentAccessToken(): String?
+    fun accessTokenOrBootstrap(): String?
+    fun refreshAfter401(staleAccessToken: String): String?
+    fun clearCurrentSession()
 }

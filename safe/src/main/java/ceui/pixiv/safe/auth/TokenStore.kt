@@ -33,14 +33,14 @@ private class MmkvAuthKeyValueStore(
 }
 
 /** Android-Keystore-backed storage for the first-party token pair. */
-public class TokenStore internal constructor(
+class TokenStore internal constructor(
     private val store: AuthKeyValueStore,
     private val gson: Gson,
 ) {
-    public constructor() : this(MmkvAuthKeyValueStore(MMKV.mmkvWithID(STORE_ID)), Gson())
+    constructor() : this(MmkvAuthKeyValueStore(MMKV.mmkvWithID(STORE_ID)), Gson())
 
     @Synchronized
-    public fun load(): AuthSession? {
+    fun load(): AuthSession? {
         val envelope = store.decodeString(KEY_SESSION)?.takeIf { it.isNotBlank() } ?: return null
         return runCatching {
             val parts = envelope.split(':', limit = 3)
@@ -62,7 +62,7 @@ public class TokenStore internal constructor(
 
     @Synchronized
     @Throws(IOException::class)
-    public fun save(session: AuthSession) {
+    fun save(session: AuthSession) {
         val encoded = runCatching { encrypt(session, getOrCreateKey()) }.getOrElse {
             deleteKey()
             encrypt(session, getOrCreateKey())
@@ -78,14 +78,14 @@ public class TokenStore internal constructor(
     }
 
     @Synchronized
-    public fun clear() {
+    fun clear() {
         store.removeValue(KEY_SESSION)
         clearRefreshAttempt()
         AuthLog.debug("local auth session cleared")
     }
 
     @Synchronized
-    public fun deviceId(): String {
+    fun deviceId(): String {
         store.decodeString(KEY_DEVICE_ID)?.takeIf { it.isNotBlank() }?.let { return it }
         val generated = UUID.randomUUID().toString()
         if (!store.encodeString(KEY_DEVICE_ID, generated)) {
@@ -97,7 +97,7 @@ public class TokenStore internal constructor(
 
     @Synchronized
     @Throws(IOException::class)
-    public fun refreshAttempt(sessionId: String, generation: Long): String {
+    fun refreshAttempt(sessionId: String, generation: Long): String {
         val existing = store.decodeString(KEY_REFRESH_ATTEMPT)
             ?.let { encoded -> runCatching { gson.fromJson(encoded, RefreshAttempt::class.java) }.getOrNull() }
         if (existing?.sessionId == sessionId &&
@@ -118,7 +118,7 @@ public class TokenStore internal constructor(
     }
 
     @Synchronized
-    public fun clearRefreshAttempt() {
+    fun clearRefreshAttempt() {
         store.removeValues(arrayOf(KEY_REFRESH_ATTEMPT, LEGACY_KEY_ATTEMPT_OWNER, LEGACY_KEY_ATTEMPT_ID))
         store.sync()
         AuthLog.debug("durable refresh attempt cleared")

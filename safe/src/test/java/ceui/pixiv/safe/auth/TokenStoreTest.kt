@@ -7,10 +7,10 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 import java.io.IOException
 
-public class TokenStoreTest {
+class TokenStoreTest {
 
     @Test
-    public fun `refresh attempt is stable for one token generation`() {
+    fun `refresh attempt is stable for one token generation`() {
         val values = FakeAuthKeyValueStore()
         val store = TokenStore(values, Gson())
 
@@ -22,7 +22,7 @@ public class TokenStoreTest {
     }
 
     @Test
-    public fun `refresh attempt changes with its token generation`() {
+    fun `refresh attempt changes with its token generation`() {
         val store = TokenStore(FakeAuthKeyValueStore(), Gson())
 
         val first = store.refreshAttempt("session-1", 3L)
@@ -32,7 +32,7 @@ public class TokenStoreTest {
     }
 
     @Test
-    public fun `failed persistence never returns a new refresh attempt`() {
+    fun `failed persistence never returns a new refresh attempt`() {
         val values = FakeAuthKeyValueStore()
         val store = TokenStore(values, Gson())
         val durable = store.refreshAttempt("session-1", 3L)

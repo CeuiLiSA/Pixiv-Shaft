@@ -9,10 +9,10 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
-public class RefreshCoordinatorTest {
+class RefreshCoordinatorTest {
 
     @Test
-    public fun `concurrent stale requests perform exactly one refresh`() {
+    fun `concurrent stale requests perform exactly one refresh`() {
         val token = AtomicReference("old")
         val calls = AtomicInteger()
         val threads = 16
@@ -42,7 +42,7 @@ public class RefreshCoordinatorTest {
     }
 
     @Test
-    public fun `already replaced token uses fast path`() {
+    fun `already replaced token uses fast path`() {
         val calls = AtomicInteger()
         val coordinator = RefreshCoordinator(
             currentAccessToken = { "new" },
@@ -53,7 +53,7 @@ public class RefreshCoordinatorTest {
     }
 
     @Test
-    public fun `waiters do not serially retry a failed refresh`() {
+    fun `waiters do not serially retry a failed refresh`() {
         val calls = AtomicInteger()
         val threads = 8
         val ready = CountDownLatch(threads)
