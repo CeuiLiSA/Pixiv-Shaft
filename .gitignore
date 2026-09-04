@@ -4,7 +4,7 @@
 /.idea
 /.history
 .DS_Store
-/build
+**/build/
 /captures
 .externalNativeBuild
 /app/.cxx/

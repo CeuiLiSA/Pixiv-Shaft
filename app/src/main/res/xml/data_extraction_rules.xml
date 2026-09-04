@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="mmkv/pixshaft-auth-v2" />
+        <exclude domain="file" path="mmkv/pixshaft-auth-v2.crc" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="mmkv/pixshaft-auth-v2" />
+        <exclude domain="file" path="mmkv/pixshaft-auth-v2.crc" />
+    </device-transfer>
+</data-extraction-rules>

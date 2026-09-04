@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Ciphertext is bound to an Android-Keystore key that cannot migrate. -->
+    <exclude domain="file" path="mmkv/pixshaft-auth-v2" />
+    <exclude domain="file" path="mmkv/pixshaft-auth-v2.crc" />
+</full-backup-content>

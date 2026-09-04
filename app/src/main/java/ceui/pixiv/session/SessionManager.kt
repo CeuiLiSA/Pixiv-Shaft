@@ -9,6 +9,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Common
 import ceui.pixiv.api.model.AccountResponse
 import ceui.pixiv.api.Client
+import ceui.pixiv.auth.AuthSessionManager
 import ceui.pixiv.cache.ObjectPool
 import ceui.loxia.User
 import ceui.lisa.repo.freshMembershipOf
@@ -176,6 +177,7 @@ object SessionManager {
     }
 
     fun updateSession(userModel: AccountResponse?) {
+        revokeAuthSessionIfAccountChanges(userModel)
         if (userModel == null) {
             prefStore.putString(USER_KEY, "")
             _loggedInAccount.value = AccountResponse()
@@ -186,12 +188,21 @@ object SessionManager {
     }
 
     fun postUpdateSession(userModel: AccountResponse?) {
+        revokeAuthSessionIfAccountChanges(userModel)
         if (userModel == null) {
             prefStore.putString(USER_KEY, "")
             _loggedInAccount.postValue(AccountResponse())
         } else {
             prefStore.putString(USER_KEY, gson.toJson(userModel))
             _loggedInAccount.postValue(userModel)
+        }
+    }
+
+    private fun revokeAuthSessionIfAccountChanges(next: AccountResponse?) {
+        val currentUid = _loggedInAccount.value?.user?.id ?: 0L
+        val nextUid = next?.user?.id ?: 0L
+        if (currentUid > 0L && currentUid != nextUid) {
+            AuthSessionManager.logoutCurrentSession()
         }
     }
 

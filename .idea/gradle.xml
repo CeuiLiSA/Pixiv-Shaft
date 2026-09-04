@@ -17,6 +17,7 @@
             <option value="$PROJECT_DIR$/models" />
             <option value="$PROJECT_DIR$/panel" />
             <option value="$PROJECT_DIR$/progressmanager" />
+            <option value="$PROJECT_DIR$/safe" />
             <option value="$PROJECT_DIR$/websocket" />
             <option value="$PROJECT_DIR$/witstudio" />
           </set>

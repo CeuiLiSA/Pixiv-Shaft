@@ -11,6 +11,9 @@ import ceui.pixiv.network.HeaderInterceptor
 import ceui.pixiv.network.RequestLogInterceptor
 import ceui.pixiv.network.TokenFetcherInterceptor
 import ceui.pixiv.network.WebHeaderInterceptor
+import ceui.pixiv.auth.AuthSessionManager
+import ceui.pixiv.safe.auth.BearerInterceptor
+import ceui.pixiv.safe.auth.TokenAuthenticator
 import ceui.pixiv.shaftapi.PixshaftApi
 import ceui.pixiv.shaftapi.ShaftHmac
 import okhttp3.Dns
@@ -228,6 +231,12 @@ class ClientManager {
             .readTimeout(8, TimeUnit.SECONDS)
             .retryOnConnectionFailure(true)
             .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
+            // PixShaft Auth V2 is independent from Pixiv OAuth. The application
+            // interceptor attaches/bootstraps our short access token; OkHttp's
+            // Authenticator performs one single-flight refresh after an
+            // authoritative 401 and returns one replay request.
+            .addInterceptor(BearerInterceptor(AuthSessionManager))
+            .authenticator(TokenAuthenticator(AuthSessionManager))
             // X-Shaft-Sign = HMAC-SHA256(被签消息, native SHAFT_EVENTS_HMAC)。签名规则集中在这里，
             // 而不是散到各个 Retrofit 接口上：接口只声明「调什么」，不该顺带背着密码学。
             //
@@ -239,7 +248,9 @@ class ClientManager {
             //    拿一个公开 uid 就查到）。不签照样能用，只是拿不到 plan —— 未登录的冷启动
             //    正是这种情况。
             //
-            // 浏览历史一律不签。空密钥（fork 构建）→ 不加头。
+            // Auth V2 灰度期仍发旧 HMAC，让新 APK 可以先于后端上线；服务端有 Bearer 时
+            // 优先校验 Bearer，并要求 body.uid 与 token uid 一致。浏览历史仍不签。
+            // 空密钥（fork 构建）→ 不加旧头，但 Auth V2 仍可独立工作。
             .addInterceptor { chain ->
                 val req = chain.request()
                 val path = req.url.encodedPath
