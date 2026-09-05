@@ -2868,6 +2868,18 @@
     <!-- 自動快照（實驗性） -->
     <string name="setting_auto_snapshot_on_bookmark">收藏時產生離線快照</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">收藏作品後在背景靜默產生一份輕量離線快照（實驗性）</string>
+
+    <!-- 日誌檔案（實驗性） -->
+    <string name="setting_log_file_enable">啟用日誌檔案</string>
+    <string name="setting_log_file_desc">可能影響效能\n日誌檔案在%1$s</string>
+    <string name="setting_log_file_no_file">尚未產生</string>
+    <string name="setting_log_file_share">分享日誌檔案</string>
+    <string name="setting_log_file_share_history_title">有歷史分享過的日誌檔案</string>
+    <string name="setting_log_file_share_since_last">分享新產生的日誌</string>
+    <string name="setting_log_file_share_all">合併歷史分享與新產生再分享</string>
+    <string name="setting_trigger_crash">觸發一次致命錯誤</string>
+    <string name="setting_trigger_crash_desc">點擊後立即崩潰，用於驗證崩潰日誌落盤</string>
+    <string name="setting_log_file_share_failed">分享日誌檔案失敗</string>
     <string name="snapshot_auto_badge">自動</string>
     <string name="snapshot_promote">轉為正式快照</string>
     <string name="snapshot_promote_title">轉為正式快照</string>

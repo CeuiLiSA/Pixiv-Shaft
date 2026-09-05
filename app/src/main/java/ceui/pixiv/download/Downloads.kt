@@ -108,12 +108,18 @@ class Downloads(
      * bypass template rendering. New code should prefer [plan] / [open] via a
      * typed [DownloadItem].
      */
-    fun openRaw(bucket: Bucket, rawPath: RelativePath, mime: String): StorageBackend.WriteHandle? {
+    fun openRaw(
+        bucket: Bucket,
+        rawPath: RelativePath,
+        mime: String,
+        overwrite: OverwritePolicy? = null,
+    ): StorageBackend.WriteHandle? {
         require(bucket != Bucket.TempCache) { "openRaw is not intended for TempCache" }
         val resolved = configProvider().resolve(bucket)
         val cleaned = FsSanitizer.clean(rawPath)
         val backend = backendFactory(resolved.storage)
-        val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, resolved.overwrite, mime)
+        val policy = overwrite ?: resolved.overwrite
+        val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, policy, mime)
         if (skip) return null
         return if (resolved.overwrite == OverwritePolicy.Replace) {
             backend.replace(finalPath, mime)

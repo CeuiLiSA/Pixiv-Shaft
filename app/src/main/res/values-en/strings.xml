@@ -2869,6 +2869,18 @@
     <!-- Auto snapshot (experimental) -->
     <string name="setting_auto_snapshot_on_bookmark">Create offline snapshot on bookmark</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">Quietly create a lightweight offline snapshot after you bookmark a work (experimental)</string>
+
+    <!-- Log file (experimental) -->
+    <string name="setting_log_file_enable">Enable log file</string>
+    <string name="setting_log_file_desc">May affect performance\nLog file at %1$s</string>
+    <string name="setting_log_file_no_file">Not generated yet</string>
+    <string name="setting_log_file_share">Share log file</string>
+    <string name="setting_log_file_share_history_title">There are previously shared log files</string>
+    <string name="setting_log_file_share_since_last">Share newly generated logs</string>
+    <string name="setting_log_file_share_all">Merge previously shared and newly generated logs</string>
+    <string name="setting_trigger_crash">Trigger a fatal error</string>
+    <string name="setting_trigger_crash_desc">Crashes immediately to verify crash log capture</string>
+    <string name="setting_log_file_share_failed">Failed to share log file</string>
     <string name="snapshot_auto_badge">Auto</string>
     <string name="snapshot_promote">Convert to regular snapshot</string>
     <string name="snapshot_promote_title">Convert to Regular Snapshot</string>

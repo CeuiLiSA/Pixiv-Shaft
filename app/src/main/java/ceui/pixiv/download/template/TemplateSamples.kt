@@ -70,6 +70,14 @@ object TemplateSamples {
         createdAt = CREATED,
     )
 
+    /** 日志桶：`{title}` 固定为 `log`，文件名主要靠 `{created}` 生成。 */
+    val LOG_SAMPLE = ItemMeta(
+        id = 0L,
+        title = "log",
+        author = Author(0L, ""),
+        createdAt = CREATED,
+    )
+
     private val DEFAULT_EXT: Map<Bucket, String> = mapOf(
         Bucket.Illust      to "jpg",
         Bucket.Ugoira      to "gif",
@@ -86,6 +94,7 @@ object TemplateSamples {
         Bucket.NovelSeries -> NOVEL_SERIES_SAMPLE
         Bucket.Ugoira -> UGOIRA_SAMPLE
         Bucket.Backup -> BACKUP_SAMPLE
+        Bucket.Log -> LOG_SAMPLE
         else -> ILLUST_SAMPLE
     }
 
