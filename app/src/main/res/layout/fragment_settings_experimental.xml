@@ -141,6 +141,64 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/log_file_enable_rela"
+                    style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/wit_row_single">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="96dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/setting_log_file_enable" />
+
+                        <TextView
+                            android:id="@+id/log_file_path"
+                            style="@style/M3SetDesc"
+                            android:text="@string/setting_log_file_no_file" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:id="@+id/log_file_share"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="12dp"
+                        android:layout_toStartOf="@id/log_file_enable"
+                        android:clickable="true"
+                        android:contentDescription="@string/setting_log_file_share"
+                        android:focusable="true"
+                        android:src="@drawable/ic_share_black_24dp"
+                        android:tint="@color/v3_text_1" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/log_file_enable"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/trigger_crash_rela"
+                    style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/wit_row_single">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/setting_trigger_crash" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/setting_trigger_crash_desc" />
+                    </LinearLayout>
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/is_firebase_enable_rela"
                     style="@style/M3SetRow"
                     android:layout_marginTop="14dp"

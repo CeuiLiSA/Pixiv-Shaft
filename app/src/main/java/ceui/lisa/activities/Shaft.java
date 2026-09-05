@@ -34,6 +34,7 @@ import ceui.lisa.utils.Settings;
 import ceui.lisa.viewmodel.AppLevelState;
 import ceui.pixiv.services.ServicesProvider;
 import ceui.pixiv.db.EntityWrapper;
+import ceui.pixiv.debug.TimberFileLog;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.utils.NetworkStateManager;
 import ceui.pixiv.progress.ProgressTracker;
@@ -190,6 +191,19 @@ public class Shaft extends Application implements ServicesProvider {
     public void onCreate() {
         super.onCreate();
 
+        // 包一层默认崩溃处理器：把致命崩溃栈同步写入文件日志（若有），再交回系统。
+        final Thread.UncaughtExceptionHandler originalCrashHandler =
+                Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            try {
+                TimberFileLog.INSTANCE.logCrashNow(thread.getName(), throwable);
+            } catch (Throwable ignored) {
+            }
+            if (originalCrashHandler != null) {
+                originalCrashHandler.uncaughtException(thread, throwable);
+            }
+        });
+
         // Keep the main Looper alive across the GMS "Unknown calling package name"
         // SecurityException. GMS delivers it on the main thread's Handler, which
         // otherwise unwinds Looper.loop() and kills the process. Re-entering the
@@ -326,6 +340,10 @@ public class Shaft extends Application implements ServicesProvider {
         initMMKV(this);
         networkStateManager = new NetworkStateManager(this);
         sSettings = Local.getSettings();
+
+        if (sSettings.isLogFileEnabled()) {
+            TimberFileLog.INSTANCE.maybeStart();
+        }
 
         // issue #865: 图片加速代理。在 mOkHttpClient 构建前把持久化的模式/自定义 host
         // 灌进 ImageHostManager —— requiresStandardClient() 靠它决定是否给图片客户端

@@ -2852,6 +2852,18 @@
     <!-- 自動スナップショット（試験的） -->
     <string name="setting_auto_snapshot_on_bookmark">ブックマーク時にオフラインスナップショットを作成</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">作品をブックマークした後、バックグラウンドで軽量なオフラインスナップショットを静かに作成します（試験的）</string>
+
+    <!-- ログファイル（試験的） -->
+    <string name="setting_log_file_enable">ログファイルを有効にする</string>
+    <string name="setting_log_file_desc">パフォーマンスに影響する可能性があります\nログファイル: %1$s</string>
+    <string name="setting_log_file_no_file">未生成</string>
+    <string name="setting_log_file_share">ログファイルを共有</string>
+    <string name="setting_log_file_share_history_title">過去に共有したログファイルがあります</string>
+    <string name="setting_log_file_share_since_last">新しく生成されたログを共有</string>
+    <string name="setting_log_file_share_all">過去に共有したログと新しく生成されたログをまとめて共有</string>
+    <string name="setting_log_file_share_failed">ログファイルの共有に失敗しました</string>
+    <string name="setting_trigger_crash">致命的なエラーを発生させる</string>
+    <string name="setting_trigger_crash_desc">クリックすると即座にクラッシュします（クラッシュログの記録を確認するため）</string>
     <string name="snapshot_auto_badge">自動</string>
     <string name="snapshot_promote">正式スナップショットに変換</string>
     <string name="snapshot_promote_title">正式スナップショットに変換</string>

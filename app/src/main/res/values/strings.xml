@@ -3126,6 +3126,18 @@
     <!-- 自动快照（试验性） -->
     <string name="setting_auto_snapshot_on_bookmark">收藏时生成离线快照</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">收藏作品后在后台静默生成一份轻量离线快照（试验性）</string>
+
+    <!-- 日志文件（试验性） -->
+    <string name="setting_log_file_enable">启用日志文件</string>
+    <string name="setting_log_file_desc">可能影响性能\n日志文件在%1$s</string>
+    <string name="setting_log_file_no_file">尚未生成</string>
+    <string name="setting_log_file_share">分享日志文件</string>
+    <string name="setting_log_file_share_history_title">有历史分享过的日志文件</string>
+    <string name="setting_log_file_share_since_last">分享新生成的日志</string>
+    <string name="setting_log_file_share_all">合并历史分享与新生成再分享</string>
+    <string name="setting_trigger_crash">引发一次致命错误</string>
+    <string name="setting_trigger_crash_desc">点击后立即崩溃，用于验证崩溃日志落盘</string>
+    <string name="setting_log_file_share_failed">分享日志文件失败</string>
     <string name="snapshot_auto_badge">自动</string>
     <string name="snapshot_promote">转为正式快照</string>
     <string name="snapshot_promote_title">转为正式快照</string>

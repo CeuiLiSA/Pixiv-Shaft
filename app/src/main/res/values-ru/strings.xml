@@ -2852,6 +2852,18 @@
     <!-- Автоматический снимок (экспериментально) -->
     <string name="setting_auto_snapshot_on_bookmark">Создавать офлайн-снимок при добавлении в закладки</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">Тихо создавать лёгкий офлайн-снимок после добавления работы в закладки (экспериментально)</string>
+
+    <!-- Файл журнала (экспериментально) -->
+    <string name="setting_log_file_enable">Включить файл журнала</string>
+    <string name="setting_log_file_desc">Может повлиять на производительность\nФайл журнала: %1$s</string>
+    <string name="setting_log_file_no_file">Ещё не создан</string>
+    <string name="setting_log_file_share">Поделиться файлом журнала</string>
+    <string name="setting_log_file_share_history_title">Есть ранее опубликованные файлы журнала</string>
+    <string name="setting_log_file_share_since_last">Поделиться новыми журналами</string>
+    <string name="setting_log_file_share_all">Объединить ранее опубликованные и новые журналы</string>
+    <string name="setting_log_file_share_failed">Не удалось поделиться файлом журнала</string>
+    <string name="setting_trigger_crash">Вызвать фатальную ошибку</string>
+    <string name="setting_trigger_crash_desc">Немедленно вызывает сбой (для проверки записи журнала сбоев)</string>
     <string name="snapshot_auto_badge">Авто</string>
     <string name="snapshot_promote">Преобразовать в обычный снимок</string>
     <string name="snapshot_promote_title">Преобразовать в обычный снимок</string>

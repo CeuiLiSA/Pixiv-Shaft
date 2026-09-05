@@ -11,6 +11,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentSettingsExperimentalBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.pixiv.debug.TimberFileLog;
 
 /** 设置 · 试验性 */
 public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentSettingsExperimentalBinding> {
@@ -23,6 +24,8 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
     @Override
     protected void initData() {
         bindWitGalleryRows();
+        bindLogFileRow();
+        bindTriggerCrashRow();
 
         // 自动快照是本地离线能力，不涉及站外 UGC，所有渠道都显示。
         baseBind.autoSnapshotOnBookmark.setChecked(Shaft.sSettings.isAutoSnapshotOnBookmark());
@@ -119,6 +122,43 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         }
         baseBind.witGalleryRela.setOnClickListener(v ->
                 ceui.pixiv.ui.settings.WitDialogGallery.showWit(mContext));
+    }
+
+    private void bindLogFileRow() {
+        baseBind.logFileEnable.setChecked(Shaft.sSettings.isLogFileEnabled());
+        String folder = TimberFileLog.INSTANCE.currentFolderPath();
+        baseBind.logFilePath.setText(getString(
+                R.string.setting_log_file_desc,
+                folder != null ? folder : getString(R.string.setting_log_file_no_file)));
+
+        baseBind.logFileShare.setOnClickListener(v ->
+                TimberFileLog.INSTANCE.shareLogFile(mContext));
+
+        baseBind.logFileEnable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setLogFileEnabled(isChecked);
+                Local.setSettings(Shaft.sSettings);
+                Common.showToast(getString(R.string.please_restart_app), 2);
+            }
+        });
+        baseBind.logFileEnableRela.setOnClickListener(v ->
+                baseBind.logFileEnable.performClick());
+    }
+
+    private void bindTriggerCrashRow() {
+        if (!ceui.lisa.BuildConfig.DEBUG) {
+            baseBind.triggerCrashRela.setVisibility(View.GONE);
+            return;
+        }
+        baseBind.triggerCrashRela.setOnClickListener(v -> crashDeep());
+    }
+
+    /**
+     * 无限递归触发 StackOverflowError：Error 而非 Exception，catch(Exception) 抓不到，且必走未捕获异常处理器。
+     */
+    private void crashDeep() {
+        crashDeep();
     }
 
     private void bindFirebaseRow() {
