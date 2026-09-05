@@ -171,7 +171,7 @@
                         android:contentDescription="@string/setting_log_file_share"
                         android:focusable="true"
                         android:src="@drawable/ic_share_black_24dp"
-                        android:tint="@color/v3_text_1" />
+                        app:tint="@color/v3_text_1" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/log_file_enable"
