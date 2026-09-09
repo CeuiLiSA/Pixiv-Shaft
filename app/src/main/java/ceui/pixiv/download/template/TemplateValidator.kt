@@ -98,7 +98,22 @@ object TemplateValidator {
             }
             return
         }
-        val needsExtension = bucket != Bucket.Novel && bucket != Bucket.Log
+        if (bucket == Bucket.Log) {
+            if (source.contains("{ext}")) {
+                issues += Issue(
+                    Severity.Error,
+                    "Log template must not contain {ext} — log files are always .txt",
+                )
+            }
+            if (!source.endsWith(".txt")) {
+                issues += Issue(
+                    Severity.Error,
+                    "Log template must end with .txt",
+                )
+            }
+            return
+        }
+        val needsExtension = bucket != Bucket.Novel
         if (needsExtension && !source.contains("{ext}") && !source.matches(Regex(".*\\.[A-Za-z0-9]+$"))) {
             issues += Issue(
                 Severity.Warning,
