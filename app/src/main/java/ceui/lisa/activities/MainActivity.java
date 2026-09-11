@@ -5,6 +5,7 @@ import static ceui.lisa.R.id.nav_slideshow;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ActivityNotFoundException;
 import android.content.pm.PackageManager;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,7 +14,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -26,6 +26,8 @@ import android.widget.TextView;
 
 import androidx.activity.BackEventCompat;
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -807,17 +809,24 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
                 .addItems(ALL_SELECT_WAY, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (which == 0) {
-                            Intent intentToPickPic = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                            intentToPickPic.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
-                            startActivityForResult(intentToPickPic, Params.REQUEST_CODE_CHOOSE);
-                        } else {
-                            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                            intent.addCategory(Intent.CATEGORY_OPENABLE);//必须
-                            intent.setType("image/*");//必须
-                            startActivityForResult(intent, Params.REQUEST_CODE_CHOOSE);
-                        }
                         dialog.dismiss();
+                        try {
+                            Intent intent;
+                            if (which == 0) {
+                                // AndroidX 优先用系统照片选择器，不支持时自动回退到文档选择器。
+                                intent = new PickVisualMedia().createIntent(MainActivity.this,
+                                        new PickVisualMediaRequest.Builder()
+                                                .setMediaType(PickVisualMedia.ImageOnly.INSTANCE)
+                                                .build());
+                            } else {
+                                intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                                intent.setType("image/*");
+                            }
+                            startActivityForResult(intent, Params.REQUEST_CODE_CHOOSE);
+                        } catch (ActivityNotFoundException | SecurityException e) {
+                            Common.showToast(R.string.string_262);
+                        }
                     }
                 })
                 .show();
@@ -880,7 +889,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
-            Uri imageUri = data == null ? null : data.getData();
+            // 部分回移版照片选择器只通过 ClipData 返回 Uri，交给同一契约解析。
+            Uri imageUri = new PickVisualMedia().parseResult(resultCode, data);
             if (imageUri != null) {
                 ReverseImage.searchFrom(this, imageUri, ReverseImage.DEFAULT_ENGINE, null);
             }
