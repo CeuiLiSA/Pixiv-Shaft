@@ -58,8 +58,6 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
-        <include layout="@layout/view_ai_upscale_overlay" />
-
         <ceui.lisa.view.SeamlessCircularProgressIndicator
             android:id="@+id/progress_circular"
             android:layout_width="wrap_content"
