@@ -11,6 +11,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import ceui.lisa.R;
+import ceui.lisa.BuildConfig;
+import ceui.pixiv.ui.recommend.DailyRecommendationsFragment;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.SystemBarMetrics;
@@ -65,13 +67,21 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
     @Override
     public void lazyData() {
         final boolean hotTagsFirst = Shaft.sSettings.isRecommendHotTagsFirst();
-        final String[] TITLES = new String[]{
+        final String[] TITLES = BuildConfig.IS_LITE ? new String[]{
                 Shaft.getContext().getString(R.string.recommend_illust),
                 Shaft.getContext().getString(R.string.hot_tag)
+        } : new String[]{
+                getString(R.string.recommend_illust),
+                getString(R.string.hot_tag),
+                getString(R.string.daily_recommendations)
         };
-        mFragments = new Fragment[]{
+        mFragments = BuildConfig.IS_LITE ? new Fragment[]{
                 RecmdIllustFeedFragment.newInstance(RecmdIllustFeedFragment.TYPE_ILLUST),
                 HotTagsFeedFragment.newInstance(Params.TYPE_ILLUST)
+        } : new Fragment[]{
+                RecmdIllustFeedFragment.newInstance(RecmdIllustFeedFragment.TYPE_ILLUST),
+                HotTagsFeedFragment.newInstance(Params.TYPE_ILLUST),
+                new DailyRecommendationsFragment()
         };
         if (hotTagsFirst) {
             String title = TITLES[0];
@@ -94,7 +104,7 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
             // 身份跟随内容而非位置，避免改顺序后恢复出标题与内容不一致的页签。
             @Override
             public long getItemId(int position) {
-                return hotTagsFirst ? 1 - position : position;
+                return hotTagsFirst && position < 2 ? 1 - position : position;
             }
 
             @NonNull

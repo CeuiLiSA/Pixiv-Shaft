@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_recommendations">Daily picks</string>
+    <string name="daily_recommendations_intro">A daily selection based on bookmarks and follows on this device. Pull down to reload.</string>
+    <string name="daily_recommendations_personalized">%1$s · Based on your bookmarks and follows. Updates at midnight, Beijing time.</string>
+    <string name="daily_recommendations_popular">%1$s · Showing popular works while preference history is limited.</string>
+    <string name="daily_recommendations_login">Sign in to view daily picks</string>
+    <string name="daily_recommendations_unavailable">Daily picks are unavailable. Pull down to try again later.</string>
+    <string name="daily_recommendations_empty">No daily picks match your filters. Pull down to try again later.</string>
+    <string name="daily_recommendations_expired">Daily picks have changed. Pull down to refresh before continuing.</string>
+</resources>

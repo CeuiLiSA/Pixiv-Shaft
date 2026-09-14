@@ -59,7 +59,9 @@
                     app:tabIndicatorFullWidth="false"
                     app:tabIndicatorColor="@android:color/white"
                     app:tabSelectedTextColor="@android:color/white"
-                    android:layout_height="40dp">
+                    app:tabMode="auto"
+                    android:minHeight="48dp"
+                    android:layout_height="wrap_content">
 
                 </com.google.android.material.tabs.TabLayout>
 
@@ -76,4 +78,3 @@
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
     </LinearLayout>
 </layout>
-

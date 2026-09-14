@@ -5,6 +5,7 @@ import com.google.gson.JsonObject
 import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.HTTP
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -12,6 +13,22 @@ import retrofit2.http.Query
 import retrofit2.http.Url
 
 interface ShaftApiV2 {
+    @POST("api/v1/recommendations/daily")
+    suspend fun dailyRecommendations(
+        @Header("X-Shaft-Sign") signature: String,
+        @Body body: okhttp3.RequestBody,
+    ): DailyRecommendationsResponse
+
+    data class DailyRecommendationsResponse(
+        val date: String,
+        val refresh_at: Long,
+        val mode: String,
+        val items: List<TrendingWorkItem>,
+        val total: Int,
+        val offset: Int,
+        val limit: Int,
+        val next_cursor: String?,
+    )
 
     data class HealthResponse(
         val ok: Boolean,
