@@ -3013,6 +3013,7 @@
 
     <!-- 借号用量页（服务端两只配额桶的只读视图） -->
     <string name="nana7mi_usage_title">使用情况</string>
+    <string name="nana7mi_usage_motto">失败是成功之母\n充钱是成功支付</string>
     <string name="nana7mi_usage_section">搜索按热度排序额度</string>
     <string name="nana7mi_usage_window_session">当前时段</string>
     <string name="nana7mi_usage_window_weekly">每周额度</string>

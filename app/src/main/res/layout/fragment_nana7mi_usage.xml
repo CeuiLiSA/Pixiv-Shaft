@@ -142,6 +142,22 @@
                             android:visibility="gone"
                             tools:visibility="visible" />
 
+                        <TextView
+                            android:id="@+id/usage_motto"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="22dp"
+                            android:background="@drawable/bg_v3_surface"
+                            android:gravity="center"
+                            android:paddingStart="20dp"
+                            android:paddingTop="18dp"
+                            android:paddingEnd="20dp"
+                            android:paddingBottom="18dp"
+                            android:text="@string/nana7mi_usage_motto"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="18sp"
+                            android:fontFamily="@font/montserrat_semi_bold" />
+
                         <!--
                             订阅方案。放在额度读数和 UID **之下**：先让用户看见自己用到哪了、
                             手里有可复制的 UID，再谈解锁 —— 顶在读数上面就成了没有由头的广告。

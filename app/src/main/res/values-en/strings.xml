@@ -2757,6 +2757,7 @@
 
     <!-- 借号用量页（服务端两只配额桶的只读视图） -->
     <string name="nana7mi_usage_title">Usage</string>
+    <string name="nana7mi_usage_motto">Failure is the mother of success\nPaying is a successful payment</string>
     <string name="nana7mi_usage_section">Search-by-popularity limits</string>
     <string name="nana7mi_usage_window_session">Current session</string>
     <string name="nana7mi_usage_window_weekly">Weekly limit</string>
