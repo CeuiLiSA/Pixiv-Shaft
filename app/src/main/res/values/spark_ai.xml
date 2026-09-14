@@ -47,6 +47,7 @@
     <string name="spark_lab_prompt_label">语气与要求（可选）</string>
     <string name="spark_lab_prompt_hint">例如：保留人名，使用自然的口语</string>
     <string name="spark_lab_translate_send">开始翻译</string>
+    <string name="spark_lab_translating">翻译中…</string>
     <string name="spark_lab_result">译文</string>
     <string name="spark_lab_result_empty">译文将显示在这里</string>
     <string name="spark_lab_result_empty_body">填写原文并选择目标语言，即可逐步查看翻译结果。</string>

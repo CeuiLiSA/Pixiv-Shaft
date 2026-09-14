@@ -176,6 +176,10 @@ class SparkAiFragment : Fragment() {
             emptyState.visibility = View.GONE
         }
         root.findViewById<TextView>(ceui.lisa.R.id.spark_translation_text).text = state.translation.ifBlank { getString(ceui.lisa.R.string.spark_lab_result_empty) }
+        root.findViewById<Button>(ceui.lisa.R.id.spark_translate_send).apply {
+            isEnabled = !state.translating
+            text = getString(if (state.translating) ceui.lisa.R.string.spark_lab_translating else ceui.lisa.R.string.spark_lab_translate_send)
+        }
         root.findViewById<ImageButton>(ceui.lisa.R.id.spark_chat_send).apply {
             setImageResource(if (state.generating) ceui.lisa.R.drawable.spark_ic_stop else ceui.lisa.R.drawable.chat_ic_send)
             contentDescription = getString(if (state.generating) ceui.lisa.R.string.spark_lab_stop else ceui.lisa.R.string.spark_lab_send)

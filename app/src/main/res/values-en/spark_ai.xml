@@ -43,6 +43,7 @@
     <string name="spark_lab_prompt_label">Tone and instructions (optional)</string>
     <string name="spark_lab_prompt_hint">For example: keep names, use a conversational tone</string>
     <string name="spark_lab_translate_send">Translate text</string>
+    <string name="spark_lab_translating">Translating…</string>
     <string name="spark_lab_result">Translation</string>
     <string name="spark_lab_result_empty">Your translation appears here</string>
     <string name="spark_lab_result_empty_body">Enter text and choose a language to see the translation as it is generated.</string>
