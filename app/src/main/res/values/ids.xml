@@ -38,6 +38,7 @@
     <item type="id" name="nav_debug_bulk_dl" />
     <item type="id" name="nav_saf_perf_test" />
     <item type="id" name="nav_network_test" />
+    <item type="id" name="nav_spark_ai" />
     <item type="id" name="nav_current_hot" />
     <item type="id" name="nav_site_recommend" />
     <item type="id" name="nav_event_history" />

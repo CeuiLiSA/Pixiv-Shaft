@@ -590,6 +590,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
                 new DrawerEntry(R.id.nav_debug_bulk_dl, R.string.debug_bulk_dl_entry, experimentalAllowed),
                 new DrawerEntry(R.id.nav_saf_perf_test, R.string.saf_perf_test_entry, experimentalAllowed),
                 new DrawerEntry(R.id.nav_network_test, R.string.nav_network_test_entry, experimentalAllowed),
+                new DrawerEntry(R.id.nav_spark_ai, R.string.spark_ai_entry, experimentalAllowed),
                 new DrawerEntry(R.id.nav_tag_popular_export, R.string.tag_popular_export_entry, isDebugBuild),
                 // 中心页那个「Web 首页」chip 至今是 showComingSoon() 占位,StreetMainFragment
                 // 一直没有可用入口。而网页登录(同步 PHPSESSID)只能从这个页面走,拉黑、按 tag
@@ -692,6 +693,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
         } else if (id == R.id.nav_discovery) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DISCOVERY.key);
+        } else if (id == R.id.nav_spark_ai) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SPARK_AI.key);
         } else if (id == R.id.nav_share) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ABOUT.key);

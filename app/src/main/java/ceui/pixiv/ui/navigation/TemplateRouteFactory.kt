@@ -107,6 +107,7 @@ import ceui.pixiv.ui.settings.ThemeColorFeedFragment
 import ceui.pixiv.ui.synonym.SynonymDictFragment
 import ceui.pixiv.ui.translate.ComicTextDetectorDownloadFragment
 import ceui.pixiv.ui.translate.MangaOcrDownloadFragment
+import ceui.pixiv.ui.spark.SparkAiFragment
 import ceui.pixiv.ui.translate.TranslationModelDownloadFragment
 import ceui.pixiv.ui.upscale.FragmentAiUpscale
 import ceui.pixiv.ui.upscale.RembgHighlightFragment
@@ -345,6 +346,7 @@ object TemplateRouteFactory {
         TemplateRoute.DOWNLOAD_PATH_SETTINGS -> DownloadPathSettingsFragment()
         TemplateRoute.ARIA2_SETTINGS -> Aria2SettingsFragment()
         TemplateRoute.AI_TRANSLATE_SETTINGS -> AiTranslateSettingsFragment()
+        TemplateRoute.SPARK_AI -> SparkAiFragment()
         TemplateRoute.NOVEL_HEADER_SETTINGS -> NovelHeaderSettingsFragment()
         // 旧 key 是线上契约不能删；已移除的空捐赠页安全降级到关于页。
         TemplateRoute.DONATE -> FragmentAboutApp()
