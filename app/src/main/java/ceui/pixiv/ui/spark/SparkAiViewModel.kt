@@ -25,7 +25,14 @@ data class SparkUiState(
 )
 
 class SparkAiViewModel : ViewModel() {
-    private val client = OkHttpClient.Builder().readTimeout(0, TimeUnit.MILLISECONDS).build()
+    // A stalled SSE connection must eventually surface as an error. Infinite
+    // read timeout leaves the UI stuck on “Translating…” forever when the
+    // upstream or proxy stops sending events.
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(45, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
+        .build()
     private val _state = MutableStateFlow(SparkUiState())
     val state: StateFlow<SparkUiState> = _state.asStateFlow()
     private var chatSource: EventSource? = null
