@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-accent="violet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pixiv-Shaft · 发现页原型</title>
+  <link rel="stylesheet" href="magazine.css">
+</head>
+<body>
+<svg aria-hidden="true" class="symbols" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="spark" viewBox="0 0 24 24"><path d="m12 3 2.6 6.4L21 12l-6.4 2.6L12 21l-2.6-6.4L3 12l6.4-2.6Z"/></symbol>
+<symbol id="compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m16 8-2.5 5.5L8 16l2.5-5.5Z"/></symbol>
+<symbol id="activity" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+<symbol id="heart" viewBox="0 0 24 24"><path d="M20.5 5.5a5 5 0 0 0-7 0L12 7l-1.5-1.5a5 5 0 0 0-7 7L12 21l8.5-8.5a5 5 0 0 0 0-7Z"/></symbol>
+<symbol id="download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+<symbol id="search-icon" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+<symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+<symbol id="expand" viewBox="0 0 24 24"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></symbol>
+<symbol id="moon" viewBox="0 0 24 24"><path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z"/></symbol>
+<symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+<symbol id="arrow" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="book" viewBox="0 0 24 24"><path d="M4 4h6l2 2 2-2h6v16h-6l-2 1-2-1H4ZM12 6v15"/></symbol>
+</defs></svg>
+  <nav class="rail" aria-label="主导航">
+    <a class="monogram" href="magazine.html" aria-label="发现页首页">s.</a>
+    <div class="nav-items">
+      <button class="nav-item active" data-page="journal" aria-current="page"><svg><use href="#compass"/></svg>发现</button>
+      <button class="nav-item" data-page="works"><svg><use href="#grid"/></svg>作品</button>
+      <button class="nav-item" data-page="saved"><svg><use href="#heart"/></svg>收藏</button>
+    </div>
+    <div class="rail-bottom"><button id="theme" aria-label="切换深浅主题" aria-pressed="false"><svg><use href="#moon"/></svg></button><a href="index.html" title="对比画廊版" aria-label="打开第一套画廊设计">01</a></div>
+  </nav>
+  <div class="shell">
+    <header class="utility"><span class="utility-note">Pixiv-Shaft</span><label class="search"><svg aria-hidden="true"><use href="#search-icon"/></svg><input type="search" id="query" aria-label="搜索示例作品" placeholder="搜索作品、分类或 ID"><kbd>/</kbd></label><button id="about" class="edition">预览设置</button></header>
+    <main id="main">
+      <section id="journal">
+        <div class="masthead"><div><div class="overline">DISCOVER</div><h1>发现<i aria-hidden="true">✳</i></h1><p>按主题浏览作品与专题。</p></div><div class="issue"><strong>03</strong><span>示例分类</span></div></div>
+        <div class="section-rule"><span><i></i> 主题推荐</span><span>本地作品与示例分类</span><span>功能预览</span></div>
+        <section class="cover" aria-label="风景专题">
+          <div class="cover-copy"><div class="overline">LANDSCAPES</div><h2>风景作品<br><em>光线与色彩</em></h2><p>查看风景分类中的作品，可打开详情或收藏。</p><button class="solid-button" data-collection="风景">查看风景作品 <span>↗</span></button><div class="cover-index"><span>01</span><div></div><span>03</span></div></div>
+          <figure class="cover-art"><button data-art="13534647" aria-label="查看封面作品完整图片"><img src="magazine-assets/dusk.jpg" alt="蓝紫与粉色晚霞映在水田中，远处有两个人物" fetchpriority="high"><span class="image-open">查看作品 ↗</span></button><figcaption><span><b>作品预览</b></span><span>ILLUST. 13534647</span></figcaption></figure>
+          <aside class="contents"><div class="overline">CATEGORIES</div><h3>作品分类</h3><button class="contents-item" data-collection="风景"><span class="num">01</span><span><b>风景</b><small>场景与环境</small></span><span>↗</span></button><button class="contents-item" data-collection="人物"><span class="num">02</span><span><b>人物</b><small>人物创作</small></span><span>↗</span></button><button class="contents-item" data-collection="幻想"><span class="num">03</span><span><b>幻想</b><small>幻想题材</small></span><span>↗</span></button><div class="editor-note"><p>分类用于布局演示，实际标签以原作页面为准。</p></div></aside>
+        </section>
+        <section class="stories"><div class="section-heading"><div><span class="overline">COLLECTIONS</span><h2>分类浏览</h2></div><button class="text-button" data-page="works">浏览全部作品 ↗</button></div><div class="story-grid" id="stories"></div></section>
+        <section class="interlude"><div><h2>随机浏览</h2><p>从当前示例数据中打开一幅作品。</p></div><button class="text-button" id="random-art">打开作品 ↗</button></section>
+        <section class="daily"><div class="section-heading"><div><span class="overline">ARTWORKS</span><h2>作品浏览</h2></div><button class="text-button" id="shuffle">换一组 ↻</button></div><div class="daily-grid" id="daily"></div></section>
+      </section>
+      <section id="collection" hidden><button id="back-journal" class="text-button">← 返回发现</button><div class="collection-heading"><div class="overline" id="collection-kicker">COLLECTION</div><h1 id="collection-title">全部作品</h1><p id="collection-description">查看当前分类中的作品。</p></div><div class="collection-filters"><div role="group" aria-label="作品分类"><button class="filter active" data-filter="全部">全部</button><button class="filter" data-filter="风景">风景</button><button class="filter" data-filter="人物">人物</button><button class="filter" data-filter="幻想">幻想</button></div><span id="result-count"></span></div><div class="preview-state" id="preview-state" role="status" hidden></div><div class="collection-grid" id="collection-grid"></div><div class="empty" id="empty" hidden><span>✳</span><h2>暂无作品</h2><p id="empty-text">请调整关键词或分类。</p><button id="clear-filters" class="v3-button tonal">查看全部作品</button></div></section>
+      <footer><a href="magazine.html">Pixiv-Shaft</a><span>图片归原作者所有 · 主题、标题与分类为设计演示</span><a href="index.html">画廊原型 ↗</a></footer>
+    </main>
+  </div>
+  <dialog id="art-dialog" aria-label="作品查看器"><div class="art-stage"><div class="stage-top"><span>作品预览</span><button id="close-art" class="icon-button" aria-label="关闭作品">×</button></div><div class="art-canvas" id="art-canvas"><img id="art-image" alt="作品完整预览"></div><div class="stage-bottom"><button id="previous" class="icon-button" aria-label="上一幅作品">←</button><span id="position"></span><button id="next" class="icon-button" aria-label="下一幅作品">→</button><button id="zoom" class="text-button">放大 ＋</button></div></div><aside class="art-info"><div class="overline">ARTWORK DETAILS</div><h2 id="art-title"></h2><p id="art-id"></p><div class="divider"></div><div class="info-tags" id="art-tags"></div><p class="art-description">可收藏当前作品，或打开 Pixiv 查看原作。</p><button id="save-art" class="solid-button">♡ 收藏作品</button><a id="source" class="text-button" target="_blank" rel="noopener noreferrer">查看原作与作者 ↗</a><p class="demo-note">作品标题为演示文案，作者与实际作品信息请查看 Pixiv 原始页面。收藏仅用于本次原型体验。</p><button id="more-like-this" class="text-button">查看同类作品 →</button></aside></dialog>
+  <dialog id="about-dialog" class="about-dialog"><button id="close-about" class="icon-button" aria-label="关闭说明">×</button><span class="overline">PREVIEW SETTINGS</span><h2>预览设置</h2><p>发现页布局示例，使用与画廊相同的 V3 字体、主题色和组件。</p><p>点击封面、专题或作品体验浏览；左侧进入作品与收藏，左下切换深浅主题。支持 / 搜索、Esc 关闭、← → 切图。</p><p>这是离线设计原型，未连接账号与业务接口。标题和专题为演示文案，画作版权归原作者所有。</p><div id="preview-controls"></div><a class="text-button" href="index.html">打开画廊原型 ↗</a></dialog>
+  <div id="notice" role="status"></div>
+  <script src="preview.js"></script><script src="data.js"></script><script src="magazine.js"></script>
+</body>
+</html>
