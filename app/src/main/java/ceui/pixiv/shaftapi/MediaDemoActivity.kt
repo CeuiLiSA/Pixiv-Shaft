@@ -32,6 +32,7 @@ class MediaDemoActivity : AppCompatActivity() {
     private lateinit var select: Button
     private lateinit var download: Button
     private var latestMediaId: String? = null
+    private var latestDownloadUrl: MediaDownloadUrlResponse? = null
     private val http = OkHttpClient()
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -116,22 +117,15 @@ class MediaDemoActivity : AppCompatActivity() {
                             "服务端返回的图片宽高不匹配"
                         }
                         trace.event("success", "mediaId=${media.id} contentType=${media.contentType} size=${media.size} width=${media.width} height=${media.height}")
+                        logPreviewUrl(MediaDownloadUrlResponse(media.id, media.url, media.expiresAt), trace)
+                        media
                     }
-                    init.mediaId
                 }
-                latestMediaId = result
-                status.text = "上传完成：$result"
+                latestMediaId = result.id
+                latestDownloadUrl = MediaDownloadUrlResponse(result.id, result.url, result.expiresAt)
+                status.text = "上传完成：${result.id}"
                 download.visibility = Button.VISIBLE
-                trace.event("upload_finished", "mediaId=$result")
-                // Fetch preview metadata immediately; opening the browser still requires a tap.
-                try {
-                    requestDownloadUrl(result, trace)
-                } catch (error: CancellationException) {
-                    throw error
-                } catch (error: Exception) {
-                    trace.failure(error)
-                    status.text = "上传完成：$result\n预览地址获取失败，请点击下载按钮重试"
-                }
+                trace.event("upload_finished", "mediaId=${result.id}")
             } catch (error: CancellationException) {
                 trace.event("cancelled")
                 throw error
@@ -152,8 +146,17 @@ class MediaDemoActivity : AppCompatActivity() {
         status.text = "正在申请下载地址…"
         lifecycleScope.launch {
             try {
-                // Always request a fresh URL: the previous preview signature may have expired.
-                val result = requestDownloadUrl(mediaId, trace)
+                // Reuse completion's URL while valid; refresh shortly before its signature expires.
+                val cached = latestDownloadUrl?.takeIf {
+                    it.mediaId == mediaId && it.expiresAt > System.currentTimeMillis() + 5_000L
+                }
+                val result = if (cached != null) {
+                    trace.stage("cached_preview", "mediaId=$mediaId")
+                    logPreviewUrl(cached, trace)
+                    cached
+                } else {
+                    requestDownloadUrl(mediaId, trace).also { latestDownloadUrl = it }
+                }
                 trace.stage("open_browser", "host=${result.url.toHttpUrlOrNull()?.host}")
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(result.url)))
                 status.text = "已打开 COS 直连下载地址"
@@ -176,9 +179,15 @@ class MediaDemoActivity : AppCompatActivity() {
     ): MediaDownloadUrlResponse {
         trace.stage("download_url", "GET ${ClientManager.MEDIA_API_HOST}v1/media/$mediaId/download-url mediaId=$mediaId")
         val result = withContext(Dispatchers.IO) { Client.mediaAPI.downloadUrl(mediaId) }
+        logPreviewUrl(result, trace)
+        return result
+    }
+
+    private fun logPreviewUrl(result: MediaDownloadUrlResponse, trace: MediaUploadTrace) {
         val host = result.url.toHttpUrlOrNull()?.host
         trace.event("success", "mediaId=${result.mediaId} host=$host expiresAt=${result.expiresAt} hostMatchesExpected=${host == "media.pixshaft.com"}")
-        return result
+        // Debug-only, explicitly requested for copying the complete signed preview URL.
+        trace.event("preview_url", "url=${result.url}")
     }
 
     private inner class UriRequestBody(

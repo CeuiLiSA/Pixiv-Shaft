@@ -61,6 +61,8 @@ data class MediaObject(
     val width: Int? = null,
     val height: Int? = null,
     val createdAt: String,
+    val url: String,
+    val expiresAt: Long,
 )
 
 data class MediaDownloadUrlResponse(

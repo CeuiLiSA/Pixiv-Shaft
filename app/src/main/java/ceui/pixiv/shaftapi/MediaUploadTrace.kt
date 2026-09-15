@@ -5,7 +5,7 @@ import retrofit2.HttpException
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicInteger
 
-/** Debug-only trace. Never log signed URLs, credentials, file paths or response bodies. */
+/** Debug-only trace. Only preview_url includes its signed URL for manual preview diagnostics. */
 internal class MediaUploadTrace(private val operation: String) {
     private val id = nextId.incrementAndGet()
     private val started = System.nanoTime()
