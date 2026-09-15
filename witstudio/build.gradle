@@ -51,9 +51,11 @@ dependencies {
     // 用 implementation 的话消费方必须自己另外声明才编得过。
     // 版本逐条对齐 :app，避免同一依赖两个版本并存。
     //
-    // 今天真正用到的只有 appcompat（WitDialog : AppCompatDialog、
-    // WitRoundButton : AppCompatButton）和 core-ktx 的 View 扩展。
+    // appcompat 提供 Dialog/Button 基类，Material 提供 BottomSheet 行为，
+    // core-ktx 提供 View 和窗口安全区扩展。
     api libs.androidxAppcompat
+    // Public WitBottomSheet API extends Material's dialog; reuse its drag/nested-scroll behavior.
+    api libs.material
 
     implementation libs.androidxCore
 

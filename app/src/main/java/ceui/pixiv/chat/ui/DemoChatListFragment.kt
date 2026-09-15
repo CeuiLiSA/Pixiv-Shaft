@@ -191,7 +191,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         )
         binding.btnEmoji.setOnClickListener {
             ceui.pixiv.sticker.StickerPicker.show(requireContext()) { sticker ->
-                if (view == null || !isAdded) return@show
+                if (this@DemoChatListFragment.view == null || !isAdded) return@show
                 viewLifecycleOwner.lifecycleScope.launch {
                     viewModel.sendText(getString(R.string.sticker_message), stickerId = sticker.stickerId)
                 }

@@ -271,6 +271,7 @@ Hero 插图可使用两张相互遮叠的票卡，参考旋转 -14° / +12°，�
 | 主 / 次按钮底 | `V3Palette.pillPrimary / pillSecondary` | 正文色独立配套验证；工厂仅生成背景，不代表已处理全部控件状态 |
 | 设置分段行 | [`WitRowStyle.kt`](../witstudio/src/main/java/ceui/pixiv/witstudio/theme/WitRowStyle.kt) | 用 `rowBackground(index,total)`，整组完成后 `applyThemedRowBg(root)` |
 | 对话框 | [`witstudio/dialog`](../witstudio/src/main/java/ceui/pixiv/witstudio/dialog) | 复用已有 WitDialog 系列，避免造另一套不跟主题的弹窗 |
+| 底部选择器 | [`WitBottomSheet`](../witstudio/src/main/java/ceui/pixiv/witstudio/dialog/WitBottomSheet.kt) | 主题表面与安全区由 witstudio 管理，拖拽与嵌套滚动复用 Material；内容高度有界，分类使用有选中态的 tab，不用独立按钮拼接 |
 | 圆角 / 按压基础控件 | [`witstudio/widget`](../witstudio/src/main/java/ceui/pixiv/witstudio/widget) | 优先现有实现，补充而非复制整套基础设施 |
 | 现有 V3 资源别名 | [`app/values/colors.xml`](../app/src/main/res/values/colors.xml) | `v3_*` 基础色引用 `wit_*`；页面业务色不反向塞进通用 UI 库 |
 
@@ -313,3 +314,5 @@ Web 参考值和 Android 当前基础色**不完全相同**，这里统一的是
 这份文档是 **设计决策入口**；新 Web 原型的变量在 `mockup/v3-design-system/tokens.css`、基础组件在 `components.css`；Android 的运行时资源继续以 `witstudio` 为准。App 推介原型保留已确认的布局与自身样式；本次按用户要求同步采用 Montserrat 并完善字号层级，未重构为新组件库。
 
 调整通用风格时同步更新规范、套件与图鉴；改变已确认页面的视觉另行按任务范围处理。只属于一页的业务，不上升为全局规范。新增规则要有一个可看的例子和明确适用范围，避免积累抽象形容词。
+
+贴纸选择器的分段分类以小说阅读器设置为准：复用 reader segment 轨道与选中背景，42dp 视觉高度、48dp 触控高度，整体按文案收紧；选中底使用宿主主色。贴纸选择器不显示标题，左侧主题色文字关闭与右上角分类同排。滚动内容延伸到导航栏区域，由滚动容器自身的 bottom padding 保留到底后的安全距离，clipToPadding=false；不要给整张 sheet 垫出固定底部空白条。

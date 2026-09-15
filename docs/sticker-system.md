@@ -83,3 +83,13 @@ adb -s 37261FDJH004FJ logcat -v time -s Sticker-System
 `panel_open`、`sticker_selected`、`installation_failed` / `local_file_failed`。
 每个资源版本首次读取 64/128 档分别记录 `local_resource_resolved source=LOCAL`，包含尺寸和本地文件路径。
 进度日志最多每两秒一条；错误保留异常及文件或贴纸 ID，日志不含会话凭证。
+
+## 选择器容器与滚动
+
+选择器使用 witstudio 的 `WitBottomSheet`，复用 Material 的拖拽、返回与嵌套滚动。
+手机贴底、宽屏最大 640dp。内容高度有界，网格自行滚动。贴纸 sheet 表面不垫底部安全区，RecyclerView 的 bottom padding 为导航栏/键盘 inset + 8dp，clipToPadding=false；滚动中图片可经过手势区域，到底时最后一排完整停在安全区上方。
+分类直接复用小说阅读器 bg_reader_segment_track / bg_reader_segment_option：42dp 轨道、36dp 选中块，外围保留 48dp 热区；宽度随文字收紧，长文案时横向滚动。选中背景使用宿主 colorPrimary，文字使用 V3Palette.onPrimary，避免 Material 指示器默认 tint。不显示标题；左侧关闭与右上角分类在同一行。
+同一 sheet 只建立一个 RecyclerView 和 adapter，目录仅整理一次，分别保存三个分类的滚动位置；重复点击当前 tab 不触发刷新。
+选择器关闭时取消观察，图片离屏即清理 Glide 请求；未挂载的 View 不解码图片。每格 48dp（8dp 内边距，图像约 32dp），Pixel 8 约 8 列、6 行；只读取 64 档本地资源。
+
+选择器测试覆盖日夜、320dp 窄屏、两倍字号、Ready/Failed 门禁、tab adapter 复用和重复点击无刷新；使用原生图形引擎验证四种主题的选中底与宿主主色一致，正常字号轨道保留 48dp 热区且不撑满整行。

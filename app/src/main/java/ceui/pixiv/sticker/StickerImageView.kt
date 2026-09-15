@@ -26,7 +26,8 @@ class StickerImageView @JvmOverloads constructor(context: Context, attrs: Attrib
         id = stickerId
         this.resourceSize = resourceSize
         contentDescription = name?.takeIf { it.isNotBlank() } ?: context.getString(R.string.sticker_title)
-        render(StickerRepository.state.value)
+        // RecyclerView may bind cached/off-screen holders. Start decoding only when visible.
+        if (isAttachedToWindow) render(StickerRepository.state.value)
         if (stickerId != null && isAttachedToWindow && StickerRepository.state.value is StickerState.Idle) StickerRepository.prepare()
     }
 
