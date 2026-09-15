@@ -72,6 +72,7 @@ class MediaDemoActivity : AppCompatActivity() {
                     return@launch
                 }
                 select.isEnabled = false
+                download.isEnabled = false
                 progress.visibility = ProgressBar.VISIBLE
                 progress.progress = 0
                 status.text = "正在申请直传地址…"
@@ -110,6 +111,7 @@ class MediaDemoActivity : AppCompatActivity() {
                                 width = bounds.outWidth, height = bounds.outHeight,
                             )
                         )
+                        trace.event("response", "mediaId=${media.id} contentType=${media.contentType} size=${media.size} width=${media.width} height=${media.height} createdAt=${media.createdAt}")
                         check(media.width == bounds.outWidth && media.height == bounds.outHeight) {
                             "服务端返回的图片宽高不匹配"
                         }
@@ -120,8 +122,16 @@ class MediaDemoActivity : AppCompatActivity() {
                 latestMediaId = result
                 status.text = "上传完成：$result"
                 download.visibility = Button.VISIBLE
-                download.isEnabled = true
                 trace.event("upload_finished", "mediaId=$result")
+                // Fetch preview metadata immediately; opening the browser still requires a tap.
+                try {
+                    requestDownloadUrl(result, trace)
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    trace.failure(error)
+                    status.text = "上传完成：$result\n预览地址获取失败，请点击下载按钮重试"
+                }
             } catch (error: CancellationException) {
                 trace.event("cancelled")
                 throw error
@@ -130,6 +140,7 @@ class MediaDemoActivity : AppCompatActivity() {
                 status.text = "上传失败：${error.message ?: "未知错误"}"
             } finally {
                 select.isEnabled = true
+                download.isEnabled = latestMediaId != null
             }
         }
     }
@@ -141,9 +152,8 @@ class MediaDemoActivity : AppCompatActivity() {
         status.text = "正在申请下载地址…"
         lifecycleScope.launch {
             try {
-                trace.stage("download_url", "GET ${ClientManager.MEDIA_API_HOST}v1/media/$mediaId/download-url mediaId=$mediaId")
-                val result = withContext(Dispatchers.IO) { Client.mediaAPI.downloadUrl(mediaId) }
-                trace.event("success", "mediaId=${result.mediaId} expiresAt=${result.expiresAt}")
+                // Always request a fresh URL: the previous preview signature may have expired.
+                val result = requestDownloadUrl(mediaId, trace)
                 trace.stage("open_browser", "host=${result.url.toHttpUrlOrNull()?.host}")
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(result.url)))
                 status.text = "已打开 COS 直连下载地址"
@@ -158,6 +168,17 @@ class MediaDemoActivity : AppCompatActivity() {
                 download.isEnabled = true
             }
         }
+    }
+
+    private suspend fun requestDownloadUrl(
+        mediaId: String,
+        trace: MediaUploadTrace,
+    ): MediaDownloadUrlResponse {
+        trace.stage("download_url", "GET ${ClientManager.MEDIA_API_HOST}v1/media/$mediaId/download-url mediaId=$mediaId")
+        val result = withContext(Dispatchers.IO) { Client.mediaAPI.downloadUrl(mediaId) }
+        val host = result.url.toHttpUrlOrNull()?.host
+        trace.event("success", "mediaId=${result.mediaId} host=$host expiresAt=${result.expiresAt} hostMatchesExpected=${host == "media.pixshaft.com"}")
+        return result
     }
 
     private inner class UriRequestBody(
