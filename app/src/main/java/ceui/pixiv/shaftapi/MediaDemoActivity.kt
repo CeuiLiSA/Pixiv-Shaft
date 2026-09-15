@@ -10,10 +10,14 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import ceui.lisa.R
 import ceui.pixiv.api.Client
+import ceui.pixiv.api.ClientManager
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -30,7 +34,7 @@ class MediaDemoActivity : AppCompatActivity() {
     private val http = OkHttpClient()
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) upload(uri)
+        if (uri != null) upload(uri) else MediaUploadTrace("picker").event("cancelled")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,42 +44,57 @@ class MediaDemoActivity : AppCompatActivity() {
         progress = findViewById(R.id.media_demo_progress)
         select = findViewById(R.id.media_demo_select)
         download = findViewById(R.id.media_demo_download)
-        select.setOnClickListener { pickImage.launch("image/*") }
+        select.setOnClickListener {
+            MediaUploadTrace("picker").event("open", "type=image/*")
+            pickImage.launch("image/*")
+        }
         download.setOnClickListener { openDownloadUrl() }
     }
 
     private fun upload(uri: Uri) {
-        val type = contentResolver.getType(uri) ?: run {
-            status.text = "无法识别图片类型"
-            return
-        }
-        val size = contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use {
-            if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else -1L
-        } ?: -1L
-        if (size <= 0L || size > 25L * 1024 * 1024) {
-            status.text = "图片大小无效（最大 25 MB）"
-            return
-        }
-        select.isEnabled = false
-        progress.visibility = ProgressBar.VISIBLE
-        progress.progress = 0
-        status.text = "正在申请直传地址…"
+        val trace = MediaUploadTrace("upload")
         lifecycleScope.launch {
             try {
+                trace.stage("metadata", "scheme=${uri.scheme} provider=${uri.authority}")
+                val type = contentResolver.getType(uri) ?: run {
+                    trace.event("rejected", "reason=unknown_content_type")
+                    status.text = "无法识别图片类型"
+                    return@launch
+                }
+                val size = contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use {
+                    if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else -1L
+                } ?: -1L
+                trace.event("result", "contentType=$type size=$size maxBytes=${25L * 1024 * 1024}")
+                if (size <= 0L || size > 25L * 1024 * 1024) {
+                    trace.event("rejected", "reason=invalid_size")
+                    status.text = "图片大小无效（最大 25 MB）"
+                    return@launch
+                }
+                select.isEnabled = false
+                progress.visibility = ProgressBar.VISIBLE
+                progress.progress = 0
+                status.text = "正在申请直传地址…"
                 val result = withContext(Dispatchers.IO) {
+                    trace.stage("init", "POST ${ClientManager.PIXSHAFT_API_HOST}v1/media/upload/init scene=demo contentType=$type size=$size")
                     val init = Client.mediaAPI.initUpload(MediaUploadInitRequest("demo", type, size))
-                    val body = UriRequestBody(uri, type, size) { sent ->
+                    trace.event("success", "mediaId=${init.mediaId} method=${init.method} expiresAt=${init.expiresAt} headerCount=${init.headers.size}")
+                    trace.stage("cos_upload", "mediaId=${init.mediaId}")
+                    val body = UriRequestBody(uri, type, size, trace) { sent ->
                         runOnUiThread { progress.progress = (sent * 100 / size).toInt() }
                     }
                     val request = Request.Builder().url(init.uploadUrl).put(body).apply {
                         init.headers.forEach { (key, value) -> header(key, value) }
                     }.build()
+                    trace.event("request", "method=${request.method} host=${request.url.host} size=$size connectTimeoutMs=${http.connectTimeoutMillis} writeTimeoutMs=${http.writeTimeoutMillis} readTimeoutMs=${http.readTimeoutMillis}")
                     http.newCall(request).execute().use { response ->
+                        trace.event("response", "http=${response.code} protocol=${response.protocol} requestId=${response.header("x-cos-request-id")} etag=${response.header("ETag")}")
                         check(response.isSuccessful) { "COS 上传失败：HTTP ${response.code}" }
                         val etag = response.header("ETag")
-                        Client.mediaAPI.completeUpload(
+                        trace.stage("complete", "POST ${ClientManager.PIXSHAFT_API_HOST}v1/media/upload/complete mediaId=${init.mediaId} contentType=$type size=$size etag=$etag")
+                        val media = Client.mediaAPI.completeUpload(
                             MediaUploadCompleteRequest(init.mediaId, init.objectKey, type, size, etag)
                         )
+                        trace.event("success", "mediaId=${media.id} contentType=${media.contentType} size=${media.size} width=${media.width} height=${media.height}")
                     }
                     init.mediaId
                 }
@@ -83,7 +102,12 @@ class MediaDemoActivity : AppCompatActivity() {
                 status.text = "上传完成：$result"
                 download.visibility = Button.VISIBLE
                 download.isEnabled = true
+                trace.event("upload_finished", "mediaId=$result")
+            } catch (error: CancellationException) {
+                trace.event("cancelled")
+                throw error
             } catch (error: Exception) {
+                trace.failure(error)
                 status.text = "上传失败：${error.message ?: "未知错误"}"
             } finally {
                 select.isEnabled = true
@@ -93,14 +117,23 @@ class MediaDemoActivity : AppCompatActivity() {
 
     private fun openDownloadUrl() {
         val mediaId = latestMediaId ?: return
+        val trace = MediaUploadTrace("download_url")
         download.isEnabled = false
         status.text = "正在申请下载地址…"
         lifecycleScope.launch {
             try {
+                trace.stage("download_url", "GET ${ClientManager.PIXSHAFT_API_HOST}v1/media/$mediaId/download-url mediaId=$mediaId")
                 val result = withContext(Dispatchers.IO) { Client.mediaAPI.downloadUrl(mediaId) }
+                trace.event("success", "mediaId=${result.mediaId} expiresAt=${result.expiresAt}")
+                trace.stage("open_browser", "host=${result.url.toHttpUrlOrNull()?.host}")
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(result.url)))
                 status.text = "已打开 COS 直连下载地址"
+                trace.event("success")
+            } catch (error: CancellationException) {
+                trace.event("cancelled")
+                throw error
             } catch (error: Exception) {
+                trace.failure(error)
                 status.text = "下载地址获取失败：${error.message ?: "未知错误"}"
             } finally {
                 download.isEnabled = true
@@ -112,23 +145,44 @@ class MediaDemoActivity : AppCompatActivity() {
         private val uri: Uri,
         private val contentType: String,
         private val length: Long,
+        private val trace: MediaUploadTrace,
         private val onProgress: (Long) -> Unit,
     ) : RequestBody() {
         override fun contentType() = contentType.toMediaType()
         override fun contentLength() = length
         override fun writeTo(sink: BufferedSink) {
             var sent = 0L
-            contentResolver.openInputStream(uri).use { input ->
-                checkNotNull(input) { "无法读取图片" }
-                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                while (true) {
-                    val read = input.read(buffer)
-                    if (read < 0) break
-                    sink.write(buffer, 0, read)
-                    sent += read
-                    onProgress(sent)
+            val started = System.nanoTime()
+            var lastLogAt = started
+            var lastPercent = 0L
+            trace.event("body_start", "size=$length")
+            // Reset progress bookkeeping on every writeTo, including OkHttp retries.
+            try {
+                contentResolver.openInputStream(uri).use { input ->
+                    checkNotNull(input) { "无法读取图片" }
+                    trace.event("stream_opened")
+                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read < 0) break
+                        sink.write(buffer, 0, read)
+                        sent += read
+                        val now = System.nanoTime()
+                        val percent = sent * 100 / length
+                        if (percent >= lastPercent + 10 || now - lastLogAt >= 1_000_000_000L) {
+                            val elapsedMs = ((now - started) / 1_000_000).coerceAtLeast(1)
+                            trace.event("progress", "sent=$sent total=$length percent=$percent bodyMs=$elapsedMs bytesPerSecond=${sent * 1000 / elapsedMs}")
+                            lastLogAt = now
+                            lastPercent = percent
+                        }
+                        onProgress(sent)
+                    }
                 }
+            } catch (error: Exception) {
+                trace.event("body_failed", "sent=$sent expected=$length type=${error.javaClass.simpleName} bodyMs=${(System.nanoTime() - started) / 1_000_000}")
+                throw error
             }
+            trace.event("body_finished", "sent=$sent expected=$length sizeMatches=${sent == length} bodyMs=${(System.nanoTime() - started) / 1_000_000}")
         }
     }
 }
