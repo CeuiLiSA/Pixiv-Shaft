@@ -96,7 +96,7 @@ class PlazaFigmaRenderTest {
                                 ),
                         )
                     val view = PostView(context) { 42L }
-                    view.bind(post, false, detail, {}, {}, { _, _ -> })
+                    view.bind(post, false, detail, {}, {}, { _, _, _ -> })
                     val width = context.dp(390)
                     fun layout() {
                         view.measure(
@@ -157,7 +157,7 @@ class PlazaFigmaRenderTest {
                                         false,
                                         {},
                                         {},
-                                        { _, _ -> },
+                                        { _, _, _ -> },
                                         comment = true,
                                     )
                                 }

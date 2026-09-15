@@ -1,7 +1,6 @@
 package ceui.lisa.activities
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
@@ -14,43 +13,47 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
+import ceui.lisa.core.ManagerReactive
+import ceui.lisa.database.AppDatabase
+import ceui.lisa.database.DownloadEntity
 import ceui.lisa.databinding.ActivityImageDetailBinding
+import ceui.lisa.databinding.ViewV3FabBarBinding
+import ceui.lisa.download.FileCreator
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.fragments.FragmentImageDetail
 import ceui.lisa.helper.ImageViewerTransition
 import ceui.lisa.helper.PageTransformerHelper
-import ceui.lisa.view.DragDismissLayout
-import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
-import ceui.pixiv.witstudio.popup.WitMenuPopup
-import ceui.lisa.core.ManagerReactive
-import ceui.lisa.database.AppDatabase
-import ceui.lisa.database.DownloadEntity
-import ceui.lisa.databinding.ViewV3FabBarBinding
-import ceui.lisa.download.FileCreator
+import ceui.lisa.view.DragDismissLayout
+import ceui.lisa.view.SeamlessCircularProgressIndicator
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.cache.ObjectPool
-import ceui.pixiv.services.appServices
-import ceui.pixiv.ui.detail.DownloadFab
-import ceui.pixiv.ui.detail.V3FabBarController
-import ceui.pixiv.wallpaper.WallpaperSetter
-import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.download.DownloadsRegistry
-import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.download.ExifKeywordWriter
+import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.imageloader.ImageLoaderV3
+import ceui.pixiv.services.appServices
+import ceui.pixiv.snapshot.AutoSnapshotRepository
+import ceui.pixiv.snapshot.SnapshotManagerFragment
+import ceui.pixiv.snapshot.SnapshotRepository
+import ceui.pixiv.snapshot.SnapshotRuntimeCache
+import ceui.pixiv.snapshot.SnapshotViewerData
+import ceui.pixiv.snapshot.localizeIllust
+import ceui.pixiv.ui.detail.DownloadFab
+import ceui.pixiv.ui.detail.V3FabBarController
+import ceui.pixiv.ui.navigation.TemplateRoute
+import ceui.pixiv.ui.share.saveArtworkPoster
 import ceui.pixiv.ui.translate.ComicTextDetectorModel
 import ceui.pixiv.ui.translate.ComicTextDetectorModelManager
 import ceui.pixiv.ui.translate.MangaOcrModel
 import ceui.pixiv.ui.translate.MangaOcrModelManager
 import ceui.pixiv.ui.translate.MangaTranslatePrepSheet
-import ceui.pixiv.ui.share.saveArtworkPoster
 import ceui.pixiv.ui.upscale.BackgroundRemover
 import ceui.pixiv.ui.upscale.ModelPickerDialog
 import ceui.pixiv.ui.upscale.RembgModel
@@ -60,47 +63,42 @@ import ceui.pixiv.ui.upscale.UpscaleStatus
 import ceui.pixiv.ui.upscale.UpscaleTask
 import ceui.pixiv.ui.upscale.UpscaleTaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
-import ceui.pixiv.witstudio.theme.V3Palette
-import ceui.pixiv.snapshot.AutoSnapshotRepository
-import ceui.pixiv.snapshot.SnapshotManagerFragment
-import ceui.pixiv.snapshot.SnapshotRepository
-import ceui.pixiv.snapshot.SnapshotRuntimeCache
-import ceui.pixiv.snapshot.SnapshotViewerData
-import ceui.pixiv.snapshot.localizeIllust
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
-import com.blankj.utilcode.util.BarUtils
-import ceui.lisa.view.SeamlessCircularProgressIndicator
+import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.wallpaper.WallpaperSetter
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
+import ceui.pixiv.witstudio.popup.WitMenuPopup
+import ceui.pixiv.witstudio.theme.V3Palette
+import com.blankj.utilcode.util.BarUtils
 import java.io.File
 import java.io.FileInputStream
 import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
 import java.util.Locale
-import kotlin.coroutines.resume
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
-import ceui.pixiv.ui.navigation.TemplateRoute
 
-/**
- * 图片二级详情
- */
+/** 图片二级详情 */
 class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     var mIllust: Illust? = null
         private set
 
     val isSnapshotMode: Boolean
         get() = "快照大图" == intent.getStringExtra("dataType")
+
     private val translationViewModel by viewModels<ImageTranslationViewModel>()
 
     private var localIllust: List<String>? = ArrayList()
     private var currentPage: TextView? = null
     private var downloadSingle: TextView? = null
+    internal var plazaImageSource: ceui.pixiv.plaza.ui.PlazaImageSource? = null
+        private set
+
     private var index = 0
     private val viewModel by viewModels<ToggleToolnarViewModel>()
 
@@ -141,10 +139,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         if (Shaft.sSettings.isKeepStatusBarWhenViewImage) {
             baseBind!!.viewPager.setPadding(0, BarUtils.getStatusBarHeight(), 0, 0)
         }
-        val windowInsetsController = WindowInsetsControllerCompat(
-            window,
-            window.decorView
-        )
+        val windowInsetsController =
+            WindowInsetsControllerCompat(
+                window,
+                window.decorView,
+            )
         val btnAi = findViewById<View>(R.id.btn_ai_menu)
         ViewCompat.setOnApplyWindowInsetsListener(btnAi) { v, windowInsets ->
             val statusBarHeight = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top
@@ -191,72 +190,94 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 val illust = mIllust ?: return@setOnClickListener
                 // 动图(ugoira)的 original 是 zip,画质增强/抠图没法处理,不展示这两项(对齐 V3 详情页)。
                 val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
-                actions += getString(R.string.artwork_poster_save) to {
-                    saveArtworkPoster(illust, baseBind!!.viewPager.currentItem)
-                }
+                actions +=
+                    getString(R.string.artwork_poster_save) to
+                        {
+                            saveArtworkPoster(illust, baseBind!!.viewPager.currentItem)
+                        }
                 if (!illust.isGif()) {
-                    actions += getString(R.string.string_ai_upscale) to {
-                        ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
-                            performAiUpscale(illust, baseBind!!.viewPager.currentItem, model)
-                        }
-                    }
-                    actions += getString(R.string.string_ai_rembg) to {
-                        RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
-                            performAiRembg(illust, baseBind!!.viewPager.currentItem, model)
-                        }
-                    }
+                    actions +=
+                        getString(R.string.string_ai_upscale) to
+                            {
+                                ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model
+                                    ->
+                                    performAiUpscale(
+                                        illust,
+                                        baseBind!!.viewPager.currentItem,
+                                        model,
+                                    )
+                                }
+                            }
+                    actions +=
+                        getString(R.string.string_ai_rembg) to
+                            {
+                                RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) {
+                                    model ->
+                                    performAiRembg(illust, baseBind!!.viewPager.currentItem, model)
+                                }
+                            }
                 }
-                actions += getString(R.string.string_ai_manga_translate_inline) to {
-                    performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
-                }
+                actions +=
+                    getString(R.string.string_ai_manga_translate_inline) to
+                        {
+                            performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
+                        }
                 if (illust.page_count > 1) {
-                    actions += getString(R.string.string_ai_manga_translate_batch) to {
-                        performAiMangaTranslateBatch(illust)
-                    }
+                    actions +=
+                        getString(R.string.string_ai_manga_translate_batch) to
+                            {
+                                performAiMangaTranslateBatch(illust)
+                            }
                 }
-                actions += getString(R.string.string_ai_manga_translate_manual) to {
-                    performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
-                }
-                actions += getString(R.string.string_set_wallpaper) to {
-                    performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
-                }
-                WitMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _ ->
+                actions +=
+                    getString(R.string.string_ai_manga_translate_manual) to
+                        {
+                            performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
+                        }
+                actions +=
+                    getString(R.string.string_set_wallpaper) to
+                        {
+                            performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
+                        }
+                WitMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _
+                    ->
                     actions[index].second()
                 }
             }
-            baseBind!!.viewPager.adapter = object : FragmentPagerAdapter(
-                supportFragmentManager
-            ) {
-                override fun getItem(i: Int): Fragment {
-                    return FragmentImageDetail.newInstance(i)
-                }
+            baseBind!!.viewPager.adapter =
+                object : FragmentPagerAdapter(supportFragmentManager) {
+                    override fun getItem(i: Int): Fragment {
+                        return FragmentImageDetail.newInstance(i)
+                    }
 
-                override fun getCount(): Int {
-                    return mIllust!!.page_count
+                    override fun getCount(): Int {
+                        return mIllust!!.page_count
+                    }
                 }
-            }
             baseBind!!.viewPager.currentItem = index
             setupFabBar()
             checkDownload(index)
-            baseBind!!.viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
-                override fun onPageScrolled(i: Int, v: Float, i1: Int) {
-                }
+            baseBind!!
+                .viewPager
+                .addOnPageChangeListener(
+                    object : ViewPager.OnPageChangeListener {
+                        override fun onPageScrolled(i: Int, v: Float, i1: Int) {}
 
-                override fun onPageSelected(i: Int) {
-                    checkDownload(i)
-                    currentPage?.setText(
-                        String.format(
-                            Locale.getDefault(),
-                            "第 %d/%d P",
-                            i + 1,
-                            mIllust!!.page_count
-                        )
-                    )
-                }
+                        override fun onPageSelected(i: Int) {
+                            checkDownload(i)
+                            currentPage?.setText(
+                                String.format(
+                                    Locale.getDefault(),
+                                    "第 %d/%d P",
+                                    i + 1,
+                                    mIllust!!.page_count,
+                                )
+                            )
+                        }
 
-                override fun onPageScrollStateChanged(i: Int) {
-                }
-            })
+                        override fun onPageScrollStateChanged(i: Int) {}
+                    }
+                )
             if (mIllust!!.page_count == 1) {
                 currentPage?.setVisibility(View.INVISIBLE)
             } else {
@@ -265,10 +286,12 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                         Locale.getDefault(),
                         "第 %d/%d P",
                         index + 1,
-                        mIllust!!.page_count
+                        mIllust!!.page_count,
                     )
                 )
             }
+        } else if (ceui.pixiv.plaza.ui.PlazaImageViewer.DATA_TYPE == dataType) {
+            setupPlazaViewer()
         } else if (isSnapshotMode) {
             // 快照大图：复用现有查看器，只读本地快照文件，仅隐藏下载按钮。
             findViewById<View>(R.id.download_this_one).visibility = View.GONE
@@ -285,14 +308,13 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 finish()
                 return
             }
-            baseBind!!.viewPager.adapter = object : FragmentPagerAdapter(
-                supportFragmentManager
-            ) {
-                override fun getItem(i: Int): Fragment =
-                    FragmentImageDetail.newInstance(singleUrl, singleTitle)
+            baseBind!!.viewPager.adapter =
+                object : FragmentPagerAdapter(supportFragmentManager) {
+                    override fun getItem(i: Int): Fragment =
+                        FragmentImageDetail.newInstance(singleUrl, singleTitle)
 
-                override fun getCount(): Int = 1
-            }
+                    override fun getCount(): Int = 1
+                }
         } else if ("下载详情" == dataType) {
             findViewById<View>(R.id.btn_ai_menu).visibility = View.GONE
             findViewById<View>(R.id.fab_bar_row).visibility = View.GONE
@@ -303,44 +325,47 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             localIllust = intent.getSerializableExtra("illust") as List<String>?
             index = intent.getIntExtra("index", 0)
 
-            baseBind!!.viewPager.adapter = object : FragmentPagerAdapter(
-                supportFragmentManager
-            ) {
-                override fun getItem(i: Int): Fragment {
-                    return FragmentImageDetail.newInstance(localIllust!![i])
-                }
+            baseBind!!.viewPager.adapter =
+                object : FragmentPagerAdapter(supportFragmentManager) {
+                    override fun getItem(i: Int): Fragment {
+                        return FragmentImageDetail.newInstance(localIllust!![i])
+                    }
 
-                override fun getCount(): Int {
-                    return localIllust!!.size
-                }
-            }
-            currentPage?.setVisibility(View.INVISIBLE)
-            baseBind!!.viewPager.currentItem = index
-            baseBind!!.viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
-                override fun onPageScrolled(i: Int, v: Float, i1: Int) {
-                }
-
-                override fun onPageSelected(i: Int) {
-                    try {
-                        downloadSingle?.setText(
-                            String.format(
-                                "%s%s", getString(R.string.file_path),
-                                URLDecoder.decode(localIllust!![i], "utf-8")
-                            )
-                        )
-                    } catch (e: UnsupportedEncodingException) {
-                        e.printStackTrace()
+                    override fun getCount(): Int {
+                        return localIllust!!.size
                     }
                 }
+            currentPage?.setVisibility(View.INVISIBLE)
+            baseBind!!.viewPager.currentItem = index
+            baseBind!!
+                .viewPager
+                .addOnPageChangeListener(
+                    object : ViewPager.OnPageChangeListener {
+                        override fun onPageScrolled(i: Int, v: Float, i1: Int) {}
 
-                override fun onPageScrollStateChanged(i: Int) {
-                }
-            })
+                        override fun onPageSelected(i: Int) {
+                            try {
+                                downloadSingle?.setText(
+                                    String.format(
+                                        "%s%s",
+                                        getString(R.string.file_path),
+                                        URLDecoder.decode(localIllust!![i], "utf-8"),
+                                    )
+                                )
+                            } catch (e: UnsupportedEncodingException) {
+                                e.printStackTrace()
+                            }
+                        }
+
+                        override fun onPageScrollStateChanged(i: Int) {}
+                    }
+                )
             try {
                 downloadSingle?.setText(
                     String.format(
-                        "%s%s", getString(R.string.file_path),
-                        URLDecoder.decode(localIllust!![index], "utf-8")
+                        "%s%s",
+                        getString(R.string.file_path),
+                        URLDecoder.decode(localIllust!![index], "utf-8"),
                     )
                 )
             } catch (e: UnsupportedEncodingException) {
@@ -350,23 +375,71 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     /**
-     * 装配小红书式全屏弹窗转场:根布局(透明窗口上的黑底 + 竖向手势层)在图片到顶/底后
-     * 接管继续外拉，驱动 ViewPager 跟手位移/缩小,黑底与工具条透明度交给 [ImageViewerTransition];
-     * 松手过阈值走统一收场(缩回缩略图矩形或沿手势方向淡出),否则回弹。进场从发起端带来的
-     * [EXTRA_ENTER_BOUNDS] 缩略图矩形展开,没带则居中放大淡入。
+     * 装配小红书式全屏弹窗转场:根布局(透明窗口上的黑底 + 竖向手势层)在图片到顶/底后 接管继续外拉，驱动 ViewPager 跟手位移/缩小,黑底与工具条透明度交给
+     * [ImageViewerTransition]; 松手过阈值走统一收场(缩回缩略图矩形或沿手势方向淡出),否则回弹。进场从发起端带来的 [EXTRA_ENTER_BOUNDS]
+     * 缩略图矩形展开,没带则居中放大淡入。
      */
 
-    /**
-     * 快照大图查看器：复用现有 ImageDetailActivity / FragmentImageDetail，
-     * 但数据源全部来自快照本地文件，隐藏下载/收藏/AI 入口。
-     */
+    /** Posts reuse the same pager and gestures with an account-scoped media source. */
+    private fun setupPlazaViewer() {
+        val images = ceui.pixiv.plaza.ui.PlazaImageViewer.images(intent)
+        if (images.isEmpty()) {
+            finish()
+            return
+        }
+        plazaImageSource =
+            ceui.pixiv.plaza.ui.PlazaImageSource(
+                intent.getLongExtra(ceui.pixiv.plaza.ui.PlazaImageViewer.EXTRA_POST, 0),
+                images,
+                intent.getLongExtra(ceui.pixiv.plaza.ui.PlazaImageViewer.EXTRA_VIEWER, 0),
+            )
+        findViewById<View>(R.id.btn_ai_menu).visibility = View.GONE
+        findViewById<View>(R.id.fab_bar).visibility = View.GONE
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.bottom_rela)) { view, insets ->
+            view.setPadding(
+                view.paddingLeft,
+                view.paddingTop,
+                view.paddingRight,
+                insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom,
+            )
+            insets
+        }
+        findViewById<View>(R.id.download_this_one).visibility = View.GONE
+        currentPage = findViewById(R.id.current_page)
+        index = intent.getIntExtra("index", 0).coerceIn(images.indices)
+        baseBind!!.viewPager.adapter =
+            object :
+                FragmentPagerAdapter(
+                    supportFragmentManager,
+                    BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT,
+                ) {
+                override fun getItem(position: Int): Fragment =
+                    FragmentImageDetail.newInstance(position)
+
+                override fun getCount(): Int = images.size
+            }
+        baseBind!!.viewPager.currentItem = index
+        fun showPosition(position: Int) {
+            currentPage?.text = getString(R.string.plaza_image_position, position + 1, images.size)
+        }
+        showPosition(index)
+        baseBind!!
+            .viewPager
+            .addOnPageChangeListener(
+                object : ViewPager.SimpleOnPageChangeListener() {
+                    override fun onPageSelected(position: Int) = showPosition(position)
+                }
+            )
+    }
+
     private fun setupSnapshotViewer() {
         val snapshotId = intent.getStringExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
         if (snapshotId.isNullOrEmpty()) {
             finish()
             return
         }
-        val snapshotIsAuto = intent.getBooleanExtra(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false)
+        val snapshotIsAuto =
+            intent.getBooleanExtra(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false)
         val cached = SnapshotRuntimeCache.get(snapshotId)
         if (cached != null) {
             bindSnapshotViewer(cached)
@@ -375,22 +448,26 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         lifecycleScope.launch {
             // 快照可能已被管理页删掉 / manifest 损坏 —— loadViewerData 会抛。
             // 裸 launch 里逃逸的异常直接崩进程,这里就地兜住:提示 + 关页。
-            val data = try {
-                withContext(Dispatchers.IO) {
-                    if (snapshotIsAuto) {
-                        AutoSnapshotRepository.loadAutoViewerData(applicationContext, snapshotId)
-                    } else {
-                        SnapshotRepository.loadViewerData(applicationContext, snapshotId)
+            val data =
+                try {
+                    withContext(Dispatchers.IO) {
+                        if (snapshotIsAuto) {
+                            AutoSnapshotRepository.loadAutoViewerData(
+                                applicationContext,
+                                snapshotId,
+                            )
+                        } else {
+                            SnapshotRepository.loadViewerData(applicationContext, snapshotId)
+                        }
                     }
+                } catch (ce: kotlinx.coroutines.CancellationException) {
+                    throw ce
+                } catch (e: Exception) {
+                    Timber.w(e, "[Snapshot] open image viewer failed, id=%s", snapshotId)
+                    Common.showToast(getString(R.string.snapshot_open_failed, e.message ?: ""))
+                    finish()
+                    return@launch
                 }
-            } catch (ce: kotlinx.coroutines.CancellationException) {
-                throw ce
-            } catch (e: Exception) {
-                Timber.w(e, "[Snapshot] open image viewer failed, id=%s", snapshotId)
-                Common.showToast(getString(R.string.snapshot_open_failed, e.message ?: ""))
-                finish()
-                return@launch
-            }
             SnapshotRuntimeCache.put(snapshotId, data)
             bindSnapshotViewer(data)
         }
@@ -403,35 +480,44 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         // 译图仓库按作品分桶，不 bind 的话「翻译整部」跑完了本页也收不到产物(译图不回显)。
         translationViewModel.bindIllust(bean.id.toLong())
         val pageCount = bean.page_count.coerceAtLeast(1)
-        baseBind!!.viewPager.adapter = object : FragmentPagerAdapter(
-            supportFragmentManager
-        ) {
-            override fun getItem(i: Int): Fragment {
-                return FragmentImageDetail.newInstance(i)
-            }
+        baseBind!!.viewPager.adapter =
+            object : FragmentPagerAdapter(supportFragmentManager) {
+                override fun getItem(i: Int): Fragment {
+                    return FragmentImageDetail.newInstance(i)
+                }
 
-            override fun getCount(): Int = pageCount
-        }
+                override fun getCount(): Int = pageCount
+            }
         baseBind!!.viewPager.currentItem = index.coerceIn(0, pageCount - 1)
         currentPage?.apply {
             if (pageCount <= 1) {
                 visibility = View.INVISIBLE
             } else {
                 visibility = View.VISIBLE
-                text = String.format(
-                    Locale.getDefault(), "第 %d/%d P", index.coerceIn(0, pageCount - 1) + 1, pageCount
-                )
+                text =
+                    String.format(
+                        Locale.getDefault(),
+                        "第 %d/%d P",
+                        index.coerceIn(0, pageCount - 1) + 1,
+                        pageCount,
+                    )
             }
         }
-        baseBind!!.viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
-            override fun onPageScrolled(i: Int, v: Float, i1: Int) = Unit
-            override fun onPageSelected(i: Int) {
-                currentPage?.setText(
-                    String.format(Locale.getDefault(), "第 %d/%d P", i + 1, pageCount)
-                )
-            }
-            override fun onPageScrollStateChanged(i: Int) = Unit
-        })
+        baseBind!!
+            .viewPager
+            .addOnPageChangeListener(
+                object : ViewPager.OnPageChangeListener {
+                    override fun onPageScrolled(i: Int, v: Float, i1: Int) = Unit
+
+                    override fun onPageSelected(i: Int) {
+                        currentPage?.setText(
+                            String.format(Locale.getDefault(), "第 %d/%d P", i + 1, pageCount)
+                        )
+                    }
+
+                    override fun onPageScrollStateChanged(i: Int) = Unit
+                }
+            )
         setupSnapshotFabBar()
         setupSnapshotAiMenu()
     }
@@ -458,68 +544,84 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         btnAiMenu.setOnClickListener { anchor ->
             val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
             if (!illust.isGif()) {
-                actions += getString(R.string.string_ai_upscale) to {
-                    ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
-                        performAiUpscale(illust, baseBind!!.viewPager.currentItem, model)
-                    }
-                }
-                actions += getString(R.string.string_ai_rembg) to {
-                    RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
-                        performAiRembg(illust, baseBind!!.viewPager.currentItem, model)
-                    }
-                }
+                actions +=
+                    getString(R.string.string_ai_upscale) to
+                        {
+                            ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
+                                performAiUpscale(illust, baseBind!!.viewPager.currentItem, model)
+                            }
+                        }
+                actions +=
+                    getString(R.string.string_ai_rembg) to
+                        {
+                            RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model
+                                ->
+                                performAiRembg(illust, baseBind!!.viewPager.currentItem, model)
+                            }
+                        }
             }
-            actions += getString(R.string.string_ai_manga_translate_inline) to {
-                performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
-            }
+            actions +=
+                getString(R.string.string_ai_manga_translate_inline) to
+                    {
+                        performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
+                    }
             if (illust.page_count > 1) {
-                actions += getString(R.string.string_ai_manga_translate_batch) to {
-                    performAiMangaTranslateBatch(illust)
-                }
+                actions +=
+                    getString(R.string.string_ai_manga_translate_batch) to
+                        {
+                            performAiMangaTranslateBatch(illust)
+                        }
             }
-            actions += getString(R.string.string_ai_manga_translate_manual) to {
-                performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
-            }
-            actions += getString(R.string.string_set_wallpaper) to {
-                performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
-            }
+            actions +=
+                getString(R.string.string_ai_manga_translate_manual) to
+                    {
+                        performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
+                    }
+            actions +=
+                getString(R.string.string_set_wallpaper) to
+                    {
+                        performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
+                    }
             WitMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _ ->
                 actions[index].second()
             }
         }
     }
+
     private fun setupViewerTransition(btnAi: View) {
         val rootLayout = baseBind!!.root as DragDismissLayout
         val chrome = listOfNotNull(baseBind?.bottomRela, btnAi)
-        val transition = ImageViewerTransition(
-            rootLayout,
-            baseBind!!.viewPager,
-            chrome,
-            intent.getIntArrayExtra(EXTRA_ENTER_BOUNDS),
-        )
+        val transition =
+            ImageViewerTransition(
+                rootLayout,
+                baseBind!!.viewPager,
+                chrome,
+                intent.getIntArrayExtra(EXTRA_ENTER_BOUNDS),
+            )
         viewerTransition = transition
         entryOrientation = resources.configuration.orientation
         rootLayout.dragTargetView = baseBind!!.viewPager
-        rootLayout.callback = object : DragDismissLayout.Callback {
-            override fun canStartDismissDrag(direction: DragDismissLayout.Direction): Boolean =
-                currentImageFragment()?.canSwipeToDismiss(direction) ?: true
+        rootLayout.callback =
+            object : DragDismissLayout.Callback {
+                override fun canStartDismissDrag(direction: DragDismissLayout.Direction): Boolean =
+                    currentImageFragment()?.canSwipeToDismiss(direction) ?: true
 
-            override fun onDismissDragUpdate(fraction: Float) =
-                transition.onDragProgress(fraction)
+                override fun onDismissDragUpdate(fraction: Float) =
+                    transition.onDragProgress(fraction)
 
-            override fun onDismissDragRelease(
-                shouldDismiss: Boolean,
-                direction: DragDismissLayout.Direction,
-                velocityY: Float,
-            ) {
-                // AI 翻译烧着 Token 时手势收掉也要走二次确认,与返回键同一闸口
-                if (shouldDismiss && !maybeConfirmAiExit()) {
-                    dismissViewer(direction)
-                } else {
-                    transition.springBack()
+                override fun onDismissDragRelease(
+                    shouldDismiss: Boolean,
+                    direction: DragDismissLayout.Direction,
+                    velocityY: Float,
+                ) {
+                    // AI 翻译烧着 Token 时手势收掉也要走二次确认,与返回键同一闸口
+                    if (shouldDismiss && !maybeConfirmAiExit()) {
+                        dismissViewer(direction)
+                    } else {
+                        transition.springBack()
+                    }
                 }
             }
-        }
         if (restoredFromSavedState) {
             transition.showImmediately()
         } else {
@@ -534,8 +636,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         ) as? FragmentImageDetail
 
     /**
-     * 「二级详情」装配底部下载 + 收藏胶囊(布局/着色/顺序偏好/底距逻辑与一级 V3 详情页
-     * 共用 [V3FabBarController];点击语义归本页:下载 = 保存**当前页**,收藏 = 收藏整个作品)。
+     * 「二级详情」装配底部下载 + 收藏胶囊(布局/着色/顺序偏好/底距逻辑与一级 V3 详情页 共用 [V3FabBarController];点击语义归本页:下载 =
+     * 保存**当前页**,收藏 = 收藏整个作品)。
      */
     private fun setupFabBar() {
         val fabBind = ViewV3FabBarBinding.bind(findViewById(R.id.fab_bar))
@@ -564,9 +666,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 autoLikeAfterDownloadIfNeeded(illust, fabBar)
                 return@setOnClick
             }
-            val imageUrl = IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
-                ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
-                ?: return@setOnClick
+            val imageUrl =
+                IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
+                    ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
+                    ?: return@setOnClick
             lifecycleScope.launch {
                 IllustCaptionExporter.export(illust)
                 val ok = saveLoadedIllustPage(illust, page, imageUrl)
@@ -591,8 +694,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     /** 收藏/取消收藏作用于整个作品:优先取 ObjectPool 里的权威 bean(与一级详情共享乐观态),退回 intent 副本。 */
-    private fun likeTargetIllust(): Illust? =
-        mIllust?.let { ObjectPool.get<Illust>(it.id.toLong()).value ?: it }
+    private fun likeTargetIllust(): Illust? = mIllust?.let {
+        ObjectPool.get<Illust>(it.id.toLong()).value ?: it
+    }
 
     private fun autoLikeAfterDownloadIfNeeded(illust: Illust, fabBar: V3FabBarController) {
         if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
@@ -604,9 +708,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     private fun checkDownload(i: Int) {
         val illust = mIllust ?: return
         lifecycleScope.launch {
-            val downloaded = withContext(Dispatchers.IO) {
-                Common.isIllustDownloaded(illust, i)
-            }
+            val downloaded =
+                withContext(Dispatchers.IO) {
+                    Common.isIllustDownloaded(illust, i)
+                }
             // 快速翻页时旧页的 DB 探测可能晚于新页返回,过期结果不能盖掉当前页的状态
             if (baseBind?.viewPager?.currentItem != i) return@launch
             // 对齐一级 V3 详情页:已下载的页显示绿色「已下载」勾,而不是把按钮藏起来
@@ -615,24 +720,25 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     /**
-     * 「保存这一张」：复用大图页已加载的原图(与显示层同一 imageloader 共享任务,不重新下载),走**新**下载后端
-     * [DownloadsRegistry] 按用户命名模板/存储配置写盘;并记一条 [DownloadEntity]，让「已下载」列表与详情本地复用
-     * (findDownloadedPageUri 仍查 DB)保持一致。按钮隐藏靠 [Common.isIllustDownloaded] → 新后端 `exists()` 自动生效。
-     * 不再走旧 `IllustDownload` / 不重下原图。
+     * 「保存这一张」：复用大图页已加载的原图(与显示层同一 imageloader 共享任务,不重新下载),走**新**下载后端 [DownloadsRegistry]
+     * 按用户命名模板/存储配置写盘;并记一条 [DownloadEntity]，让「已下载」列表与详情本地复用 (findDownloadedPageUri 仍查 DB)保持一致。按钮隐藏靠
+     * [Common.isIllustDownloaded] → 新后端 `exists()` 自动生效。 不再走旧 `IllustDownload` / 不重下原图。
      */
     private suspend fun saveLoadedIllustPage(illust: Illust, page: Int, imageUrl: String): Boolean =
         withContext(Dispatchers.IO) {
-            val file = try {
-                ImageLoaderV3.obtain(imageUrl).awaitFile()
-            } catch (e: Exception) {
-                Timber.w(e, "[ImageDetail] save: await loaded file failed page=%d", page)
-                null
-            } ?: return@withContext false
+            val file =
+                try {
+                    ImageLoaderV3.obtain(imageUrl).awaitFile()
+                } catch (e: Exception) {
+                    Timber.w(e, "[ImageDetail] save: await loaded file failed page=%d", page)
+                    null
+                } ?: return@withContext false
 
             runCatching {
                 // open() 返回 null = Skip 策略且文件已存在 → 视为已保存,无需重写。
-                val handle = DownloadsRegistry.downloads.open(DownloadItems.illustPage(illust, page))
-                    ?: return@runCatching true
+                val handle =
+                    DownloadsRegistry.downloads.open(DownloadItems.illustPage(illust, page))
+                        ?: return@runCatching true
                 try {
                     handle.stream.use { out -> FileInputStream(file).use { it.copyTo(out) } }
                     handle.onFinish()
@@ -649,28 +755,30 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                             this@ImageDetailActivity,
                             handle.uri,
                             FileCreator.customFileName(illust, page),
-                            illust.tags.orEmpty().mapNotNull { it?.name }
+                            illust.tags.orEmpty().mapNotNull { it?.name },
                         )
                     }
                 }
                 // 与 Manager 成功分支一致地写库(fileName 用 FileCreator=模板命名,filePath 用写盘 uri)。
-                val entity = DownloadEntity().apply {
-                    illustGson = Shaft.sGson.toJson(illust)
-                    fileName = FileCreator.customFileName(illust, page)
-                    downloadTime = System.currentTimeMillis()
-                    filePath = handle.uri.toString()
-                    // v41 的 page 列 —— 与 Manager 成功分支一致，让按 (illustId, page) 的
-                    // 查询也能命中「保存这一张」写下的记录。
-                    this.page = page
-                }
+                val entity =
+                    DownloadEntity().apply {
+                        illustGson = Shaft.sGson.toJson(illust)
+                        fileName = FileCreator.customFileName(illust, page)
+                        downloadTime = System.currentTimeMillis()
+                        filePath = handle.uri.toString()
+                        // v41 的 page 列 —— 与 Manager 成功分支一致，让按 (illustId, page) 的
+                        // 查询也能命中「保存这一张」写下的记录。
+                        this.page = page
+                    }
                 // insertDownload 会从 illustGson 顶层 id 补上 illustId（走 v38 索引）。
                 AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownload(entity)
                 ManagerReactive.pokeDoneTable()
                 true
-            }.getOrElse { ex ->
-                Timber.e(ex, "[ImageDetail] saveLoadedIllustPage failed page=%d", page)
-                false
             }
+                .getOrElse { ex ->
+                    Timber.e(ex, "[ImageDetail] saveLoadedIllustPage failed page=%d", page)
+                    false
+                }
         }
 
     override fun initData() {
@@ -682,37 +790,38 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         // (ImageViewerTransition.onBackGestureProgress);取消弹回;提交走统一收场,
         // 从当前缩放态接着缩回缩略图矩形/淡出,不跳变。
         // 不带 owner 注册(与 TemplateActivity 同理):垫在所有 Fragment callback 之下。
-        onBackPressedDispatcher.addCallback(object : OnBackPressedCallback(true) {
-            override fun handleOnBackStarted(backEvent: BackEventCompat) {
-                viewerTransition?.onBackGestureStarted()
-            }
-
-            override fun handleOnBackProgressed(backEvent: BackEventCompat) {
-                viewerTransition?.onBackGestureProgress(
-                    backEvent.progress,
-                    fromLeftEdge = backEvent.swipeEdge == BackEventCompat.EDGE_LEFT,
-                )
-            }
-
-            override fun handleOnBackCancelled() {
-                viewerTransition?.springBack()
-            }
-
-            override fun handleOnBackPressed() {
-                if (maybeConfirmAiExit()) {
-                    // 手势已经把内容缩下去了,弹确认框时先复位,选「继续翻译」才不会停在半缩状态
-                    viewerTransition?.springBack()
-                    return
+        onBackPressedDispatcher.addCallback(
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackStarted(backEvent: BackEventCompat) {
+                    viewerTransition?.onBackGestureStarted()
                 }
-                finishViewer()
+
+                override fun handleOnBackProgressed(backEvent: BackEventCompat) {
+                    viewerTransition?.onBackGestureProgress(
+                        backEvent.progress,
+                        fromLeftEdge = backEvent.swipeEdge == BackEventCompat.EDGE_LEFT,
+                    )
+                }
+
+                override fun handleOnBackCancelled() {
+                    viewerTransition?.springBack()
+                }
+
+                override fun handleOnBackPressed() {
+                    if (maybeConfirmAiExit()) {
+                        // 手势已经把内容缩下去了,弹确认框时先复位,选「继续翻译」才不会停在半缩状态
+                        viewerTransition?.springBack()
+                        return
+                    }
+                    finishViewer()
+                }
             }
-        })
+        )
     }
 
     /**
-     * AI 翻译已向接口发过 POST(有 Token 成本)时,返回/手势退出前弹二次确认,
-     * 防止手滑退出白烧 Token。确认退出才取消流水线;选「继续翻译」则留在页面。
-     * Google 免费端点 / 还没发请求的阶段不弹,直接走原退出逻辑。
+     * AI 翻译已向接口发过 POST(有 Token 成本)时,返回/手势退出前弹二次确认, 防止手滑退出白烧 Token。确认退出才取消流水线;选「继续翻译」则留在页面。 Google
+     * 免费端点 / 还没发请求的阶段不弹,直接走原退出逻辑。
      */
     private fun maybeConfirmAiExit(): Boolean {
         if (!translationViewModel.shouldConfirmAiExit()) return false
@@ -722,12 +831,14 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             .addAction(
                 0,
                 getString(R.string.ai_translate_exit_confirm_stay),
-                WitDialogAction.ACTION_PROP_NEGATIVE
-            ) { dialog, _ -> dialog.dismiss() }
+                WitDialogAction.ACTION_PROP_NEGATIVE,
+            ) { dialog, _ ->
+                dialog.dismiss()
+            }
             .addAction(
                 0,
                 getString(R.string.ai_translate_exit_confirm_exit),
-                WitDialogAction.ACTION_PROP_POSITIVE
+                WitDialogAction.ACTION_PROP_POSITIVE,
             ) { dialog, _ ->
                 dialog.dismiss()
                 translationViewModel.cancelActiveWorkflow()
@@ -743,15 +854,20 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     /**
-     * 收场:还停在进入那一页且没转过屏 → 缩回缩略图矩形;翻到别的页/转过屏后矩形已对不上,
-     * 沿关闭手势方向淡出。动画播完才真正 finish(透明主题 windowAnimationStyle=@null,系统不再叠动画)。
+     * 收场:还停在进入那一页且没转过屏 → 缩回缩略图矩形;翻到别的页/转过屏后矩形已对不上, 沿关闭手势方向淡出。动画播完才真正 finish(透明主题
+     * windowAnimationStyle=@null,系统不再叠动画)。
      */
-    private fun dismissViewer(direction: DragDismissLayout.Direction = DragDismissLayout.Direction.DOWN) {
-        val transition = viewerTransition ?: run {
-            mActivity.finish()
-            return
-        }
-        val backToBounds = index == baseBind?.viewPager?.currentItem &&
+    private fun dismissViewer(
+        direction: DragDismissLayout.Direction = DragDismissLayout.Direction.DOWN
+    ) {
+        val transition =
+            viewerTransition
+                ?: run {
+                    mActivity.finish()
+                    return
+                }
+        val backToBounds =
+            index == baseBind?.viewPager?.currentItem &&
                 resources.configuration.orientation == entryOrientation
         transition.playExit(backToBounds, direction) { mActivity.finish() }
     }
@@ -768,8 +884,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     private fun performAiRembg(illust: Illust, pageIndex: Int, model: RembgModel) {
-        val imageUrl = IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
-            ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE) ?: return
+        val imageUrl =
+            IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
+                ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE)
+                ?: return
 
         val overlayRoot = findViewById<View>(R.id.ai_overlay_root) ?: return
         val loadingState = findViewById<View>(R.id.ai_loading_state)
@@ -790,27 +908,40 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         // 复用大图页已加载的原图(与显示层同一共享任务),不重新下载。
         val task = ImageLoaderV3.obtain(imageUrl)
         lifecycleScope.launch {
-            val file = try {
-                task.awaitFile()
-            } catch (e: Exception) {
-                overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
-                    overlayRoot.visibility = View.GONE
-                }.start()
-                Common.showToast(R.string.string_ai_rembg_failed)
-                return@launch
-            }
-            val result = BackgroundRemover.removeBackground(this@ImageDetailActivity, file, model) { percent ->
-                runOnUiThread {
-                    progressRing.isIndeterminate = false
-                    progressText.visibility = View.VISIBLE
-                    val p = (percent * 100).toInt()
-                    progressRing.setProgressCompat(p, true)
-                    progressText.text = "$p%"
+            val file =
+                try {
+                    task.awaitFile()
+                } catch (e: Exception) {
+                    overlayRoot
+                        .animate()
+                        .alpha(0f)
+                        .setDuration(300)
+                        .withEndAction {
+                            overlayRoot.visibility = View.GONE
+                        }
+                        .start()
+                    Common.showToast(R.string.string_ai_rembg_failed)
+                    return@launch
                 }
-            }
-            overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
-                overlayRoot.visibility = View.GONE
-            }.start()
+            val result =
+                BackgroundRemover.removeBackground(this@ImageDetailActivity, file, model) { percent
+                    ->
+                    runOnUiThread {
+                        progressRing.isIndeterminate = false
+                        progressText.visibility = View.VISIBLE
+                        val p = (percent * 100).toInt()
+                        progressRing.setProgressCompat(p, true)
+                        progressText.text = "$p%"
+                    }
+                }
+            overlayRoot
+                .animate()
+                .alpha(0f)
+                .setDuration(300)
+                .withEndAction {
+                    overlayRoot.visibility = View.GONE
+                }
+                .start()
             if (result != null) {
                 val intent = Intent(this@ImageDetailActivity, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REMBG_HIGHLIGHT.key)
@@ -824,9 +955,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     /**
-     * AI 菜单「翻译漫画」入口。所有重活搬到了 [ImageTranslationViewModel],
-     * 这里只负责模型存在性检查 + 拉图 + 把 File 喂给 VM。
-     * Overlay UI 由 [observeTranslationStatus] 单独驱动。
+     * AI 菜单「翻译漫画」入口。所有重活搬到了 [ImageTranslationViewModel], 这里只负责模型存在性检查 + 拉图 + 把 File 喂给 VM。 Overlay
+     * UI 由 [observeTranslationStatus] 单独驱动。
      */
     private fun performAiMangaTranslateInline(illust: Illust, pageIndex: Int) {
         val ocrModel = MangaOcrModel.MANGA_OCR_BASE
@@ -836,19 +966,25 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         if (!ocrReady || !ctdReady) {
             // 首次准备 sheet 把两次下载顺序串起来,完成后回调里直接重入翻译流水线 ——
             // 用户全程不离开 ImageDetailActivity,零跳转。
-            if (supportFragmentManager.findFragmentByTag(MangaTranslatePrepSheet.TAG) != null) return
+            if (supportFragmentManager.findFragmentByTag(MangaTranslatePrepSheet.TAG) != null)
+                return
             val sheet = MangaTranslatePrepSheet()
             sheet.setOnReady { performAiMangaTranslateInline(illust, pageIndex) }
             sheet.show(supportFragmentManager, MangaTranslatePrepSheet.TAG)
             return
         }
-        if (translationViewModel.running.value == true || appServices().mangaBatchTranslateCenter.isRunning) {
+        if (
+            translationViewModel.running.value == true ||
+                appServices().mangaBatchTranslateCenter.isRunning
+        ) {
             Common.showToast(R.string.string_ai_translate_in_progress)
             return
         }
 
-        val imageUrl = IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
-            ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE) ?: return
+        val imageUrl =
+            IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
+                ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE)
+                ?: return
 
         lifecycleScope.launch {
             val file = awaitLoadedFile(imageUrl)
@@ -864,10 +1000,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     /**
-     * AI 菜单「翻译整部」入口(issue #925):模型就绪检查与单页共用同一 prep sheet,通过后把
-     * 每一页的 original(缺则 large)url 按页序交给进程级 [ceui.pixiv.ui.translate.MangaBatchTranslateCenter] 整批跑。
-     * 任务不跟本页生命周期走:进度在每个页面都挂着的悬浮小窗里,退出看图页也继续,
-     * 回来译图都在(本页 Fragment 观察的就是中心里这部作品的桶)。
+     * AI 菜单「翻译整部」入口(issue #925):模型就绪检查与单页共用同一 prep sheet,通过后把 每一页的 original(缺则 large)url 按页序交给进程级
+     * [ceui.pixiv.ui.translate.MangaBatchTranslateCenter] 整批跑。
+     * 任务不跟本页生命周期走:进度在每个页面都挂着的悬浮小窗里,退出看图页也继续, 回来译图都在(本页 Fragment 观察的就是中心里这部作品的桶)。
      */
     private fun performAiMangaTranslateBatch(illust: Illust) {
         val ocrModel = MangaOcrModel.MANGA_OCR_BASE
@@ -875,29 +1010,33 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         val ocrReady = MangaOcrModelManager.isModelReady(this, ocrModel)
         val ctdReady = ComicTextDetectorModelManager.isModelReady(this, ctdModel)
         if (!ocrReady || !ctdReady) {
-            if (supportFragmentManager.findFragmentByTag(MangaTranslatePrepSheet.TAG) != null) return
+            if (supportFragmentManager.findFragmentByTag(MangaTranslatePrepSheet.TAG) != null)
+                return
             val sheet = MangaTranslatePrepSheet()
             sheet.setOnReady { performAiMangaTranslateBatch(illust) }
             sheet.show(supportFragmentManager, MangaTranslatePrepSheet.TAG)
             return
         }
-        if (translationViewModel.running.value == true || appServices().mangaBatchTranslateCenter.isRunning) {
+        if (
+            translationViewModel.running.value == true ||
+                appServices().mangaBatchTranslateCenter.isRunning
+        ) {
             Common.showToast(R.string.string_ai_translate_in_progress)
             return
         }
-        val urls = (0 until illust.page_count).map { page ->
-            IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
-                ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
-        }
+        val urls =
+            (0 until illust.page_count).map { page ->
+                IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
+                    ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
+            }
         if (!appServices().mangaBatchTranslateCenter.start(illust, urls, ocrModel, ctdModel)) {
             Common.showToast(R.string.string_ai_translate_in_progress)
         }
     }
 
     /**
-     * AI 菜单「圈选翻译」入口(issue #891)。模型就绪检查复用「翻译漫画」那套(同一 prep
-     * sheet,本机只下一次),通过后只往 VM 投一个圈选请求,真正的框选 + 流水线由当前页
-     * [FragmentImageDetail] 接管 —— Activity 不直接持 Fragment 引用,也不碰图片触摸。
+     * AI 菜单「圈选翻译」入口(issue #891)。模型就绪检查复用「翻译漫画」那套(同一 prep sheet,本机只下一次),通过后只往 VM 投一个圈选请求,真正的框选 +
+     * 流水线由当前页 [FragmentImageDetail] 接管 —— Activity 不直接持 Fragment 引用,也不碰图片触摸。
      */
     private fun performAiMangaTranslateManual(illust: Illust, pageIndex: Int) {
         val ocrModel = MangaOcrModel.MANGA_OCR_BASE
@@ -905,34 +1044,42 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         val ocrReady = MangaOcrModelManager.isModelReady(this, ocrModel)
         val ctdReady = ComicTextDetectorModelManager.isModelReady(this, ctdModel)
         if (!ocrReady || !ctdReady) {
-            if (supportFragmentManager.findFragmentByTag(MangaTranslatePrepSheet.TAG) != null) return
+            if (supportFragmentManager.findFragmentByTag(MangaTranslatePrepSheet.TAG) != null)
+                return
             val sheet = MangaTranslatePrepSheet()
             sheet.setOnReady { performAiMangaTranslateManual(illust, pageIndex) }
             sheet.show(supportFragmentManager, MangaTranslatePrepSheet.TAG)
             return
         }
-        if (translationViewModel.running.value == true || appServices().mangaBatchTranslateCenter.isRunning) {
+        if (
+            translationViewModel.running.value == true ||
+                appServices().mangaBatchTranslateCenter.isRunning
+        ) {
             Common.showToast(R.string.string_ai_translate_in_progress)
             return
         }
         translationViewModel.requestManualSelection(pageIndex)
     }
 
-    /**
-     * VM.status 单一来源驱动 overlay:非 null 显示并刷状态/进度,null 淡出隐藏。
-     */
+    /** VM.status 单一来源驱动 overlay:非 null 显示并刷状态/进度,null 淡出隐藏。 */
     private fun observeTranslationStatus() {
         translationViewModel.status.observe(this) { status ->
             val overlayRoot = findViewById<View>(R.id.ai_overlay_root) ?: return@observe
             val statusText = findViewById<TextView>(R.id.ai_status_text)
-            val progressRing = findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring)
+            val progressRing =
+                findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring)
             val progressText = findViewById<TextView>(R.id.ai_progress_text)
 
             if (status == null) {
                 if (overlayRoot.visibility == View.VISIBLE) {
-                    overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
-                        overlayRoot.visibility = View.GONE
-                    }.start()
+                    overlayRoot
+                        .animate()
+                        .alpha(0f)
+                        .setDuration(300)
+                        .withEndAction {
+                            overlayRoot.visibility = View.GONE
+                        }
+                        .start()
                 }
                 return@observe
             }
@@ -958,9 +1105,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
     }
 
-    /**
-     * 等图片下载/缓存就绪。复用大图页显示层的同一共享任务:已加载直接返回、否则等它下完,不重复下载。
-     */
+    /** 等图片下载/缓存就绪。复用大图页显示层的同一共享任务:已加载直接返回、否则等它下完,不重复下载。 */
     private suspend fun awaitLoadedFile(imageUrl: String): File? =
         try {
             ImageLoaderV3.obtain(imageUrl).awaitFile()
@@ -978,15 +1123,29 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     private fun performAiUpscale(illust: Illust, pageIndex: Int, model: UpscaleModel) {
-        val imageUrl = IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
-            ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE) ?: return
+        val imageUrl =
+            IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
+                ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE)
+                ?: return
 
         // 复用大图页已加载的原图(与显示层同一共享任务),不重新下载。
         val loadTask = ImageLoaderV3.obtain(imageUrl)
         lifecycleScope.launch {
-            val file = try { loadTask.awaitFile() } catch (e: Exception) { return@launch }
+            val file =
+                try {
+                    loadTask.awaitFile()
+                } catch (e: Exception) {
+                    return@launch
+                }
             val key = UpscaleTask.illustKey(illust.id * 100 + pageIndex)
-            val task = UpscaleTaskPool.startTask(key, this@ImageDetailActivity, file, file.absolutePath, model)
+            val task =
+                UpscaleTaskPool.startTask(
+                    key,
+                    this@ImageDetailActivity,
+                    file,
+                    file.absolutePath,
+                    model,
+                )
             observeUpscaleTask(task)
         }
     }
@@ -1013,9 +1172,14 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             UpscaleTaskPool.removeTask(task.taskKey)
         }
         dismiss.setOnClickListener {
-            overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
-                overlayRoot.visibility = View.GONE
-            }.start()
+            overlayRoot
+                .animate()
+                .alpha(0f)
+                .setDuration(300)
+                .withEndAction {
+                    overlayRoot.visibility = View.GONE
+                }
+                .start()
             UpscaleTaskPool.removeTask(task.taskKey)
         }
 
@@ -1029,16 +1193,34 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                         overlayRoot.alpha = 0f
                         overlayRoot.animate().alpha(1f).setDuration(300).start()
                     }
-                    statusText.text = getString(R.string.string_ai_upscale_running, task.model.displayName)
+                    statusText.text =
+                        getString(R.string.string_ai_upscale_running, task.model.displayName)
                 }
                 UpscaleStatus.Done -> {
                     val result = task.resultFile.value
-                    if (result != null && lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
-                        overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
-                            overlayRoot.visibility = View.GONE
-                        }.start()
-                        val intent = android.content.Intent(this@ImageDetailActivity, TemplateActivity::class.java)
-                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.UPSCALE_COMPARE.key)
+                    if (
+                        result != null &&
+                            lifecycle.currentState.isAtLeast(
+                                androidx.lifecycle.Lifecycle.State.RESUMED
+                            )
+                    ) {
+                        overlayRoot
+                            .animate()
+                            .alpha(0f)
+                            .setDuration(300)
+                            .withEndAction {
+                                overlayRoot.visibility = View.GONE
+                            }
+                            .start()
+                        val intent =
+                            android.content.Intent(
+                                this@ImageDetailActivity,
+                                TemplateActivity::class.java,
+                            )
+                        intent.putExtra(
+                            TemplateActivity.EXTRA_FRAGMENT,
+                            TemplateRoute.UPSCALE_COMPARE.key,
+                        )
                         intent.putExtra("upscaled_path", result.absolutePath)
                         intent.putExtra("original_path", task.originalFilePath)
                         startActivity(intent)
@@ -1051,9 +1233,14 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     }
                 }
                 UpscaleStatus.Failed -> {
-                    overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
-                        overlayRoot.visibility = View.GONE
-                    }.start()
+                    overlayRoot
+                        .animate()
+                        .alpha(0f)
+                        .setDuration(300)
+                        .withEndAction {
+                            overlayRoot.visibility = View.GONE
+                        }
+                        .start()
                     Common.showToast(R.string.string_ai_upscale_failed)
                     UpscaleTaskPool.removeTask(task.taskKey)
                 }

@@ -120,7 +120,7 @@ internal fun Context.openObject(type: String?, id: Long) {
 internal class PostAdapter(
     private val onLike: (PlazaPost) -> Unit,
     private val onDelete: (PlazaPost) -> Unit,
-    private val onImage: (PlazaPost, Int) -> Unit,
+    private val onImage: (PlazaPost, Int, View) -> Unit,
     private val detailId: Long = 0,
     private val onReact: (PlazaPost, String) -> Unit = { _, _ -> },
 ) :
@@ -259,7 +259,7 @@ internal class PostView(
         detail: Boolean,
         onLike: (PlazaPost) -> Unit,
         onDelete: (PlazaPost) -> Unit,
-        onImage: (PlazaPost, Int) -> Unit,
+        onImage: (PlazaPost, Int, View) -> Unit,
         onReact: (PlazaPost, String) -> Unit = { _, _ -> },
         comment: Boolean = false,
     ) {
@@ -347,8 +347,10 @@ internal class PostView(
         reference.layoutParams =
             (reference.layoutParams as LayoutParams).apply { width = LayoutParams.WRAP_CONTENT }
         images.isVisible = post.images.isNotEmpty()
-        images.onMeasured = { bindImages(post.images) { index -> onImage(post, index) } }
-        bindImages(post.images) { index -> onImage(post, index) }
+        images.onMeasured = {
+            bindImages(post.images) { index, photo -> onImage(post, index, photo) }
+        }
+        bindImages(post.images) { index, photo -> onImage(post, index, photo) }
         reactions.removeAllViews()
         fun chip(
             text: String,
@@ -644,7 +646,7 @@ internal class PostView(
             )
     }
 
-    private fun bindImages(items: List<PlazaImage>, click: (Int) -> Unit) {
+    private fun bindImages(items: List<PlazaImage>, click: (Int, View) -> Unit) {
         val viewer = viewerUid()
         val old = renderedImages
         val sameContent =
@@ -666,7 +668,7 @@ internal class PostView(
                 for (c in 0 until row.childCount) {
                     val photo = row.getChildAt(c) as ImageView
                     val position = index++
-                    photo.setOnClickListener { click(position) }
+                    photo.setOnClickListener { click(position, photo) }
                     val request =
                         com.bumptech.glide.request.target.DrawableImageViewTarget(photo).request
                     if (
@@ -737,7 +739,7 @@ internal class PostView(
                     LayoutParams(width, height).apply { if (column > 0) marginStart = gap },
                 )
                 loadPhoto(photo, image, viewer, width, height)
-                photo.setOnClickListener { click(rowIndex * columns + column) }
+                photo.setOnClickListener { click(rowIndex * columns + column, photo) }
             }
             images.addView(row, LayoutParams(-1, -2).apply { if (rowIndex > 0) topMargin = gap })
         }

@@ -36,7 +36,7 @@ class PlazaLayoutTest {
         val context = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.AppTheme)
         val post = PlazaPost(1, 42, "Author", "Body", 1, null, null, null, 0, 0, false, emptyList())
         val view = PostView(context) { 42L }
-        view.bind(post, false, false, {}, {}, { _, _ -> }, comment = true)
+        view.bind(post, false, false, {}, {}, { _, _, _ -> }, comment = true)
         val body =
             (0 until view.childCount).map(view::getChildAt).filterIsInstance<TextView>().first {
                 it.text == "Body"
@@ -45,7 +45,7 @@ class PlazaLayoutTest {
             context.dp(44),
             (body.layoutParams as android.widget.LinearLayout.LayoutParams).marginStart,
         )
-        view.bind(post, false, false, {}, {}, { _, _ -> })
+        view.bind(post, false, false, {}, {}, { _, _, _ -> })
         assertEquals(0, (body.layoutParams as android.widget.LinearLayout.LayoutParams).marginStart)
         assertTrue((body.layoutParams as android.widget.LinearLayout.LayoutParams).topMargin >= 0)
         view.clear()
@@ -111,7 +111,7 @@ class PlazaLayoutTest {
                         )
                     },
                 )
-            view.bind(post, false, false, {}, {}, { _, _ -> })
+            view.bind(post, false, false, {}, {}, { _, _, _ -> })
             val width = context.dp(widthDp)
             fun layout() {
                 view.measure(

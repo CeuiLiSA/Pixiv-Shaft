@@ -21,6 +21,13 @@ class PlazaFragment : PlazaTimelineFragment()
 open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
     private val model: PlazaTimelineViewModel by viewModels()
     private var recycler: RecyclerView? = null
+    private var imageViewerOpen = false
+    private val imageViewer =
+        registerForActivityResult(
+            androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+        ) {
+            imageViewerOpen = false
+        }
     protected open val postId
         get() = 0L
 
@@ -162,8 +169,9 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
             .show()
     }
 
-    private fun preview(post: PlazaPost, index: Int) {
-        if (childFragmentManager.findFragmentByTag("images") != null) return
-        PlazaImageViewer.newInstance(post, index).show(childFragmentManager, "images")
+    private fun preview(post: PlazaPost, index: Int, thumbnail: View) {
+        if (imageViewerOpen || index !in post.images.indices) return
+        imageViewerOpen = true
+        imageViewer.launch(PlazaImageViewer.intent(requireContext(), post, index, thumbnail))
     }
 }

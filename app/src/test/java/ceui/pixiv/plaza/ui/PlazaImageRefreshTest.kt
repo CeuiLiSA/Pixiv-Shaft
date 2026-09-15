@@ -84,7 +84,7 @@ class PlazaImageRefreshTest {
     fun `rotated signature retains loaded image and updates viewer click data`() {
         val context = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.AppTheme)
         val view = PostView(context) { 42L }
-        view.bind(post(listOf(image)), false, true, {}, {}, { _, _ -> })
+        view.bind(post(listOf(image)), false, true, {}, {}, { _, _, _ -> })
         layout(view)
         val original = photo(view)
         Glide.with(original).clear(original)
@@ -95,7 +95,18 @@ class PlazaImageRefreshTest {
         val refreshed =
             post(listOf(image.copy(url = image.url.replace("old", "new"), expiresAt = 99999)))
         var opened: PlazaPost? = null
-        view.bind(refreshed, false, true, {}, {}, { p, _ -> opened = p })
+        var clickedView: android.view.View? = null
+        view.bind(
+            refreshed,
+            false,
+            true,
+            {},
+            {},
+            { p, _, thumbnail ->
+                opened = p
+                clickedView = thumbnail
+            },
+        )
         layout(view)
         assertSame(original, photo(view))
         assertSame(drawable, photo(view).drawable)
@@ -103,13 +114,14 @@ class PlazaImageRefreshTest {
         assertFalse(request.cleared)
         original.performClick()
         assertEquals(refreshed, opened)
+        assertSame(original, clickedView)
         view.bind(
             post(listOf(image.copy(mediaId = "another-image"))),
             false,
             true,
             {},
             {},
-            { _, _ -> },
+            { _, _, _ -> },
         )
         layout(view)
         assertNotSame(original, photo(view))
@@ -121,14 +133,14 @@ class PlazaImageRefreshTest {
     fun `failed request retries with refreshed signature without replacing the image view`() {
         val context = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.AppTheme)
         val view = PostView(context) { 42L }
-        view.bind(post(listOf(image)), false, true, {}, {}, { _, _ -> })
+        view.bind(post(listOf(image)), false, true, {}, {}, { _, _, _ -> })
         layout(view)
         val original = photo(view)
         Glide.with(original).clear(original)
         val failed = CompletedRequest(false)
         DrawableImageViewTarget(original).request = failed
         val refreshed = image.copy(url = image.url.replace("old", "fresh"), expiresAt = 999999)
-        view.bind(post(listOf(refreshed)), false, true, {}, {}, { _, _ -> })
+        view.bind(post(listOf(refreshed)), false, true, {}, {}, { _, _, _ -> })
         assertSame(original, photo(view))
         assertTrue(failed.cleared)
         assertNotSame(failed, DrawableImageViewTarget(original).request)
@@ -158,11 +170,11 @@ class PlazaImageRefreshTest {
         val activity = controller.get()
         val view = PostView(activity) { 42L }
         activity.setContentView(view)
-        view.bind(post(listOf(image)), false, true, {}, {}, { _, _ -> })
+        view.bind(post(listOf(image)), false, true, {}, {}, { _, _, _ -> })
         layout(view)
         controller.pause().stop().destroy()
         assertTrue(activity.isDestroyed)
-        PostAdapter({}, {}, { _, _ -> }).onViewRecycled(PostAdapter.Holder(view))
+        PostAdapter({}, {}, { _, _, _ -> }).onViewRecycled(PostAdapter.Holder(view))
         assertEquals(0, grid(view).childCount)
     }
 }
