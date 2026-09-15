@@ -49,8 +49,8 @@ data class MediaUploadCompleteRequest(
     val size: Long,
     val etag: String? = null,
     val sha256: String? = null,
-    val width: Int? = null,
-    val height: Int? = null,
+    val width: Int,
+    val height: Int,
 )
 
 data class MediaObject(

@@ -1,6 +1,7 @@
 package ceui.pixiv.shaftapi
 
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -75,6 +76,18 @@ class MediaDemoActivity : AppCompatActivity() {
                 progress.progress = 0
                 status.text = "正在申请直传地址…"
                 val result = withContext(Dispatchers.IO) {
+                    trace.stage("image_bounds")
+                    // Read encoded dimensions only: decodeStream returns null and allocates no bitmap pixels.
+                    val bounds = BitmapFactory.Options().apply {
+                        inJustDecodeBounds = true
+                        inScaled = false
+                    }
+                    contentResolver.openInputStream(uri).use { input ->
+                        checkNotNull(input) { "无法读取图片" }
+                        BitmapFactory.decodeStream(input, null, bounds)
+                    }
+                    check(bounds.outWidth > 0 && bounds.outHeight > 0) { "无法解析图片宽高" }
+                    trace.event("success", "width=${bounds.outWidth} height=${bounds.outHeight}")
                     trace.stage("init", "POST ${ClientManager.MEDIA_API_HOST}v1/media/upload/init scene=demo contentType=$type size=$size")
                     val init = Client.mediaAPI.initUpload(MediaUploadInitRequest("demo", type, size))
                     trace.event("success", "mediaId=${init.mediaId} method=${init.method} expiresAt=${init.expiresAt} headerCount=${init.headers.size}")
@@ -90,10 +103,16 @@ class MediaDemoActivity : AppCompatActivity() {
                         trace.event("response", "http=${response.code} protocol=${response.protocol} requestId=${response.header("x-cos-request-id")} etag=${response.header("ETag")}")
                         check(response.isSuccessful) { "COS 上传失败：HTTP ${response.code}" }
                         val etag = response.header("ETag")
-                        trace.stage("complete", "POST ${ClientManager.MEDIA_API_HOST}v1/media/upload/complete mediaId=${init.mediaId} contentType=$type size=$size etag=$etag")
+                        trace.stage("complete", "POST ${ClientManager.MEDIA_API_HOST}v1/media/upload/complete mediaId=${init.mediaId} contentType=$type size=$size etag=$etag width=${bounds.outWidth} height=${bounds.outHeight}")
                         val media = Client.mediaAPI.completeUpload(
-                            MediaUploadCompleteRequest(init.mediaId, init.objectKey, type, size, etag)
+                            MediaUploadCompleteRequest(
+                                init.mediaId, init.objectKey, type, size, etag,
+                                width = bounds.outWidth, height = bounds.outHeight,
+                            )
                         )
+                        check(media.width == bounds.outWidth && media.height == bounds.outHeight) {
+                            "服务端返回的图片宽高不匹配"
+                        }
                         trace.event("success", "mediaId=${media.id} contentType=${media.contentType} size=${media.size} width=${media.width} height=${media.height}")
                     }
                     init.mediaId
