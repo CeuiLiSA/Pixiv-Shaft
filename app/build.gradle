@@ -335,6 +335,9 @@ dependencies {
     // net.csdn.roundview.RoundImageView is inflated directly by comment/plaza XML layouts.
     implementation libs.roundView
     implementation libs.okhttp
+    // Tencent's current COS Android XML SDK. The backend still supplies STS
+    // credentials; no permanent COS secret belongs in the APK.
+    implementation libs.cosAndroid
     // SSE 标准解析(AiTranslator 流式翻译):与 okhttp 同版本,按规范处理多行 data/CRLF/注释行
     implementation libs.okhttpSse
 

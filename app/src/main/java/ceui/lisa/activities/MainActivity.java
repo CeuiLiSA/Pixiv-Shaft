@@ -590,6 +590,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
                 new DrawerEntry(R.id.nav_debug_bulk_dl, R.string.debug_bulk_dl_entry, experimentalAllowed),
                 new DrawerEntry(R.id.nav_saf_perf_test, R.string.saf_perf_test_entry, experimentalAllowed),
                 new DrawerEntry(R.id.nav_network_test, R.string.nav_network_test_entry, experimentalAllowed),
+                new DrawerEntry(R.id.nav_media_demo, R.string.media_demo_entry, experimentalAllowed),
                 new DrawerEntry(R.id.nav_spark_ai, R.string.spark_ai_entry, experimentalAllowed),
                 new DrawerEntry(R.id.nav_tag_popular_export, R.string.tag_popular_export_entry, isDebugBuild),
                 // 中心页那个「Web 首页」chip 至今是 showComingSoon() 占位,StreetMainFragment
@@ -783,6 +784,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding> implements 
                 intent.putExtra(Params.TITLE, getString(R.string.fanbox_entry));
                 intent.putExtra(Params.PREFER_PRESERVE, true);
             }
+        } else if (id == R.id.nav_media_demo) {
+            intent = new Intent(mContext, ceui.pixiv.shaftapi.MediaDemoActivity.class);
         } else if (id == R.id.nav_chat_room) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.CHAT.key);

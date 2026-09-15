@@ -15,6 +15,7 @@ import ceui.pixiv.auth.AuthSessionManager
 import ceui.pixiv.safe.auth.BearerInterceptor
 import ceui.pixiv.safe.auth.TokenAuthenticator
 import ceui.pixiv.shaftapi.PixshaftApi
+import ceui.pixiv.shaftapi.MediaApi
 import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.shaftapi.TranslateUserAgentInterceptor
 import okhttp3.Dns
@@ -104,6 +105,14 @@ object Client {
     // so plain system DNS/TLS — no custom Dns like moonAPI needs.
     val pixshaft: PixshaftApi by lazy {
         clientManager.createPixshaftService(PixshaftApi::class.java)
+    }
+
+    /**
+     * Media metadata and short-lived COS upload/download authorisation.
+     * Object bytes do not pass through the Tokyo API.
+     */
+    val mediaAPI: MediaApi by lazy {
+        clientManager.createPixshaftService(MediaApi::class.java)
     }
 }
 

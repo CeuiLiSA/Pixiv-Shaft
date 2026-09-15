@@ -146,6 +146,9 @@
             android:theme="@style/SplashTheme"
             android:windowSoftInputMode="adjustPan" />
         <activity
+            android:name="ceui.pixiv.shaftapi.MediaDemoActivity"
+            android:theme="@style/SplashTheme" />
+        <activity
             android:name=".activities.RankActivity"
             android:enableOnBackInvokedCallback="true"
             android:theme="@style/SplashTheme" />
