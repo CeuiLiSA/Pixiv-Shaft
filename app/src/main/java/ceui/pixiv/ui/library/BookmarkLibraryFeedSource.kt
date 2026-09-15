@@ -99,6 +99,11 @@ class BookmarkLibraryFeedSource(
         }
         // 不足一页 = 到底了。注意判据是**查回来的行数**而不是映射后的条目数：
         // 中间夹着几条反序列化失败的坏行时，用条目数会提前判定到底，把后面的收藏全吞掉。
+        //
+        // ⚠️ 补齐期间（书架还没 firstCompletedAt）这条 null 是**假的**：表每 5 秒就长 30 行，
+        // 而 feeds 框架收到 null 就把 reachedEnd 钉死、从此不再问数据源要数据。所以 UI 层在
+        // 「库里比屏幕上多、且用户已在末尾」时会用 adoptCursor + loadMore 把游标重新打开，
+        // 见 `BookmarkLibraryUi.refreshIfStale` 里的「尾部续页」。别把那段当成冗余删掉。
         val nextCursor = if (rows.size < PAGE_SIZE) null else (offset + rows.size).toString()
         return FeedPage(items, nextCursor)
     }

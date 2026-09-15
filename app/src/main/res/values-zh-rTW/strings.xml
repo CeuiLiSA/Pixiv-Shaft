@@ -2900,6 +2900,8 @@
     <string name="bookmark_library_sync_queued">收藏鏡像已排隊，等待下一個同步視窗</string>
     <string name="bookmark_library_sync_cooldown">已暫停同步以避開 pixiv 頻率限制，稍後自動繼續</string>
     <string name="bookmark_library_rebuild">重建本地鏡像</string>
+    <string name="bookmark_library_rebuild_sim">重建本地鏡像（模擬）</string>
+    <string name="bookmark_library_rebuild_sim_restore">還原模擬前的本地收藏庫</string>
     <string name="bookmark_library_filter_title">篩選與排序</string>
     <string name="bookmark_library_filter_reset">清空</string>
     <string name="bookmark_library_filter_apply">查看 %1$s 件</string>
@@ -2908,6 +2910,7 @@
     <string name="bookmark_chip_random">隨機</string>
     <string name="bookmark_chip_filter">篩選</string>
     <string name="bookmark_chip_filter_count">篩選 · %1$d</string>
+    <string name="bookmark_chip_syncing">補齊中 · 篩選稍後可用</string>
     <string name="bookmark_chip_clear">清空篩選</string>
     <string name="bookmark_sort_bookmark_newest">收藏時間 · 新→舊</string>
     <string name="bookmark_sort_bookmark_oldest">收藏時間 · 舊→新</string>

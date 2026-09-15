@@ -2902,6 +2902,8 @@
     <string name="bookmark_library_sync_queued">Kopyalama sırada, sonraki pencerede sürecek</string>
     <string name="bookmark_library_sync_cooldown">pixiv sınırlarına takılmamak için duraklatıldı</string>
     <string name="bookmark_library_rebuild">Yerel kopyayı yeniden oluştur</string>
+    <string name="bookmark_library_rebuild_sim">Yerel kopyayı yeniden kur (simülasyon)</string>
+    <string name="bookmark_library_rebuild_sim_restore">Simülasyon öncesine dön</string>
     <string name="bookmark_library_filter_title">Filtre ve sıralama</string>
     <string name="bookmark_library_filter_reset">Temizle</string>
     <string name="bookmark_library_filter_apply">%1$s öğeyi göster</string>
@@ -2910,6 +2912,7 @@
     <string name="bookmark_chip_random">Karıştır</string>
     <string name="bookmark_chip_filter">Filtreler</string>
     <string name="bookmark_chip_filter_count">Filtreler · %1$d</string>
+    <string name="bookmark_chip_syncing">Kopyalanıyor · filtreler kapalı</string>
     <string name="bookmark_chip_clear">Filtreleri temizle</string>
     <string name="bookmark_sort_bookmark_newest">Yer imi · en yeni</string>
     <string name="bookmark_sort_bookmark_oldest">Yer imi · en eski</string>

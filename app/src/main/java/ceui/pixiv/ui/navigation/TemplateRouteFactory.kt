@@ -405,15 +405,16 @@ object TemplateRouteFactory {
                     intent.requireString("name"),
                     intent.requireString("key"),
                 )
-            // 「我的插画收藏」有两种落点：本地镜像已经完整同步过一次 → 直接进本地库
-            // （能倒序、能按标签/作者/年份筛，而服务端接口给不了这些）；还没同步完 → 老的双 tab 页。
+            // 「我的插画收藏」有两种落点：本地库**可用**（书架注册过，或当场就能注册）→ 直接进
+            // 本地库；否则 → 老的双 tab 页兜底。判据刻意不是「全量补齐完成」，理由见
+            // shouldOpenBookmarkLibrary 的注释。
             // 带 Params.FLAG 的 intent 是本地库自己的「原始收藏列表」入口发来的，必须原样给老页面，
             // 否则用户从库里点进去会被立刻重定向回来，两个页面互相踢皮球。
             TemplateRoute.MY_ILLUST_COLLECTION -> {
                 val wantsClassic = intent.getBooleanExtra(ceui.lisa.utils.Params.FLAG, false)
                 if (
                     !wantsClassic &&
-                        isBookmarkMirrorReady(ceui.pixiv.db.mirror.MirrorContentType.ILLUST)
+                        shouldOpenBookmarkLibrary(ceui.pixiv.db.mirror.MirrorContentType.ILLUST)
                 ) {
                     ceui.pixiv.ui.library.BookmarkLibraryFragment.newInstance()
                 } else {
@@ -425,7 +426,7 @@ object TemplateRouteFactory {
                 val wantsClassic = intent.getBooleanExtra(ceui.lisa.utils.Params.FLAG, false)
                 if (
                     !wantsClassic &&
-                        isBookmarkMirrorReady(ceui.pixiv.db.mirror.MirrorContentType.NOVEL)
+                        shouldOpenBookmarkLibrary(ceui.pixiv.db.mirror.MirrorContentType.NOVEL)
                 ) {
                     ceui.pixiv.ui.library.NovelBookmarkLibraryFragment.newInstance()
                 } else {
@@ -623,22 +624,43 @@ object TemplateRouteFactory {
 }
 
 /**
- * 当前账号在这个内容类型下的「公开收藏」在本地镜像里是不是已经完整了。
+ * 当前账号在这个内容类型下的「公开收藏」该不该直接进本地收藏库。
  *
- * 是一次主键点查（表里最多四行），够便宜到可以摆在导航路径上；任何异常都按「没就绪」处理， 让入口回落到原始列表 —— 导航绝不能因为一个附加功能而崩。判据用**公开**书架：收藏库
- * 默认落在它上面，悄悄收藏那半边进去以后可以就地切。
+ * **判据刻意不是「全量补齐完成」**（那个判断叫 `isFirstSyncDone`，页面自己拿去决定筛选能不能开）。
+ * 本地库是**流式可用**的：第一页在网络 RTT 内就落库，之后每 5 秒一页；页面早在设计时就为
+ * 「补齐中」准备好了表达（顶部进度条 + 「正在后台补齐」空态 + 空→有货自动上屏）。拿「补齐完成」
+ * 当进门条件的结果是：首次点击必然进旧版，用户得退出去重进（等几分钟到几十分钟）才看得到新版。
+ *
+ * 所以只要功能开着，且满足下面任一条就进本地库：
+ * - 这个书架**注册过**（本地库现在就有东西可看，哪怕只有一页）；
+ * - **当前有网** —— 有网就能当场注册并开始回填，页面几秒内就会有内容。
+ *
+ * 真正需要回落旧版兜底的只剩三种：总开关关掉（本地表不会再更新）、从没镜像过且当前离线
+ * （新版只能给一片空白）、读库异常。判据用**公开**书架：收藏库默认落在它上面，
+ * 悄悄收藏那半边进去以后可以就地切。
  */
-private fun isBookmarkMirrorReady(contentType: ceui.pixiv.db.mirror.MirrorContentType): Boolean {
+private fun shouldOpenBookmarkLibrary(contentType: ceui.pixiv.db.mirror.MirrorContentType): Boolean {
+    // 关掉镜像后本地表会一直停在原地，这种时候只有旧页面是对的。
+    if (ceui.lisa.activities.Shaft.sSettings?.isBookmarkMirrorEnabled != true) return false
     val uid = ceui.pixiv.session.SessionManager.loggedInUid
     if (uid <= 0L) return false
-    return ceui.lisa.activities.Shaft.getContext()
+    val registered = ceui.lisa.activities.Shaft.getContext()
         .appServices()
         .bookmarkMirror
-        .isShelfReady(
+        .isShelfRegistered(
             ceui.pixiv.db.mirror.BookmarkShelf(
                 ownerUid = uid,
                 contentType = contentType,
                 restrict = ceui.pixiv.db.mirror.MirrorRestrict.PUBLIC,
             )
         )
+    return registered || isOnline()
 }
+
+/** 有网 = 引擎能发请求（回填的第一页就会在路上）。与 BookmarkMirrorService 里那份同源。 */
+private fun isOnline(): Boolean = ceui.lisa.activities.Shaft.getContext()
+    .appServices()
+    .networkStateManager
+    .networkState
+    .value
+    ?.isOnline == true
