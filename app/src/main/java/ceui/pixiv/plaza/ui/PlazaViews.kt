@@ -446,6 +446,28 @@ internal class PostView(
             onLike(post)
         }
         post.reactions.forEach { reaction ->
+            if (reaction.stickerId != null) {
+                val row = LinearLayout(context).apply {
+                    gravity = Gravity.CENTER_VERTICAL
+                    background = V3Palette.from(context).pillSecondary(context.dp(18).toFloat())
+                    setPadding(context.dp(8), context.dp(4), context.dp(8), context.dp(4))
+                    minimumHeight = context.dp(48)
+                    isFocusable = true
+                    contentDescription = context.getString(R.string.plaza_react_emoji, context.getString(R.string.sticker_title))
+                    isSelected = reaction.selected
+                    alpha = if (reaction.selected) 1f else .8f
+                    setOnClickListener { onReact(post, reaction.emoji) }
+                }
+                row.addView(ceui.pixiv.sticker.StickerImageView(context).apply {
+                    bind(reaction.stickerId, resourceSize = 64)
+                }, LinearLayout.LayoutParams(context.dp(32), context.dp(32)))
+                row.addView(context.label(java.text.NumberFormat.getIntegerInstance(context.resources.configuration.locales[0]).format(reaction.count), 13f))
+                reactions.addView(row, com.google.android.flexbox.FlexboxLayout.LayoutParams(-2, -2).apply {
+                    marginEnd = context.dp(4)
+                    bottomMargin = context.dp(4)
+                })
+                return@forEach
+            }
             chip(
                 "${reaction.emoji} ${java.text.NumberFormat.getIntegerInstance(context.resources.configuration.locales[0]).format(reaction.count)}",
                 selected = reaction.selected,
@@ -459,13 +481,9 @@ internal class PostView(
             R.drawable.ic_plaza_figma_reaction,
             description = context.getString(R.string.plaza_add_reaction),
         ) {
-            val emoji = arrayOf("👀", "💪", "👌", "😂", "🤔")
-            ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder(context)
-                .addItems(emoji) { dialog, index ->
-                    dialog.dismiss()
-                    onReact(post, emoji[index])
-                }
-                .show()
+            ceui.pixiv.sticker.StickerPicker.show(context) { sticker ->
+                onReact(post, "sticker:${sticker.stickerId}")
+            }
         }
         chip(
             "",

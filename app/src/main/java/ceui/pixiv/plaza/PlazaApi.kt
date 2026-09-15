@@ -11,7 +11,7 @@ data class PlazaImage(
     val expiresAt: Long,
 )
 
-data class PlazaReaction(val emoji: String, val count: Int, val selected: Boolean)
+data class PlazaReaction(val emoji: String, val count: Int, val selected: Boolean, val stickerId: Long? = null)
 
 data class PlazaCommentPreview(
     val id: Long,
@@ -79,6 +79,12 @@ interface PlazaApi {
 
     @DELETE("v1/plaza/posts/{id}/reactions/{emoji}")
     suspend fun unreact(@Path("id") id: Long, @Path("emoji") emoji: String): PlazaPost
+
+    @PUT("v1/plaza/posts/{id}/reactions/stickers/{stickerId}")
+    suspend fun reactSticker(@Path("id") id: Long, @Path("stickerId") stickerId: Long): PlazaPost
+
+    @DELETE("v1/plaza/posts/{id}/reactions/stickers/{stickerId}")
+    suspend fun unreactSticker(@Path("id") id: Long, @Path("stickerId") stickerId: Long): PlazaPost
 
     @DELETE("v1/plaza/posts/{id}") suspend fun delete(@Path("id") id: Long): DeletePost
 }

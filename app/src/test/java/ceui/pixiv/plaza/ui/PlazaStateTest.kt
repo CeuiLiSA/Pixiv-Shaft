@@ -219,6 +219,8 @@ class PlazaStateTest {
         override suspend fun react(id: Long, emoji: String) = post(id)
 
         override suspend fun unreact(id: Long, emoji: String) = post(id)
+        override suspend fun reactSticker(id: Long, stickerId: Long) = post(id)
+        override suspend fun unreactSticker(id: Long, stickerId: Long) = post(id)
 
         override suspend fun delete(id: Long) = DeletePost(true)
     }

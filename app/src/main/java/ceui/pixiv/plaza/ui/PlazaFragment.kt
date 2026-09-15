@@ -91,13 +91,9 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
                     reply = { ctx.openComposer(postId) },
                     react = {
                         model.state.value.parent?.let { post ->
-                            val emoji = arrayOf("👀", "💪", "👌", "😂", "🤔")
-                            WitDialog.MenuDialogBuilder(ctx)
-                                .addItems(emoji) { d, i ->
-                                    d.dismiss()
-                                    model.react(post, emoji[i])
-                                }
-                                .show()
+                            ceui.pixiv.sticker.StickerPicker.show(ctx) { sticker ->
+                                model.react(post, "sticker:${sticker.stickerId}")
+                            }
                         }
                     },
                     comments = {

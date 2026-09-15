@@ -169,10 +169,13 @@ constructor(
                 mutable.value.items.find { it.id == post.id }
                     ?: mutable.value.parent?.takeIf { it.id == post.id }
                     ?: return@mutate
-            val updated =
-                if (current.reactions.any { it.emoji == emoji && it.selected })
-                    api.unreact(post.id, emoji)
-                else api.react(post.id, emoji)
+            val stickerId = emoji.takeIf { it.startsWith("sticker:") }?.substringAfter(':')?.toLongOrNull()
+            val selected = current.reactions.any { it.emoji == emoji && it.selected }
+            val updated = if (stickerId != null) {
+                if (selected) api.unreactSticker(post.id, stickerId) else api.reactSticker(post.id, stickerId)
+            } else {
+                if (selected) api.unreact(post.id, emoji) else api.react(post.id, emoji)
+            }
             mutable.value =
                 mutable.value.copy(
                     items = mutable.value.items.map { if (it.id == post.id) updated else it },
