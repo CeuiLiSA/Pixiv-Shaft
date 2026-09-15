@@ -206,8 +206,9 @@
         tools:text="3 条新消息"
         tools:visibility="visible" />
 
-    <ceui.pixiv.chat.ui.EmojiPanelView
+    <ceui.pixiv.sticker.InlineStickerContainer
         android:id="@+id/emoji_panel"
+        android:background="@color/v3_menu_bg"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:visibility="gone"

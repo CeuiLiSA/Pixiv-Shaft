@@ -44,59 +44,76 @@ object StickerPicker {
         prepare()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
         val dialog = WitBottomSheet(context)
-        val content = PickerContent(context, prepare) { dialog.dismiss() }
+        val content = PickerContent(context, prepare, close = { dialog.dismiss() })
         dialog.setSheetContent(content, padBottomInset = false)
         ViewCompat.setAccessibilityPaneTitle(content, context.getString(R.string.sticker_title))
         dialog.setOnDismissListener { scope.cancel() }
         dialog.show()
         scope.launch {
-            var displayed: String? = null
             stateFlow.collect { state ->
-                when (state) {
-                    is StickerState.Ready -> if (displayed != state.data.generation) {
-                        StickerLog.i("panel_open generation=%s", state.data.generation)
-                        content.body.removeAllViews()
-                        // No grid, thumbnail requests or catalog flattening before the global gate.
-                        val panel = StickerPanel(context, state.data) {
-                            val current = stateFlow.value as? StickerState.Ready
+                content.render(state, { stateFlow.value }) {
+                    dialog.dismiss()
+                    onSelected(it)
+                }
+            }
+        }
+
+        return dialog
+    }
+
+    internal class PickerContent(
+        context: Context,
+        prepare: () -> Unit,
+        private val inline: Boolean = false,
+        close: (() -> Unit)? = null,
+    ) : LinearLayout(context) {
+        private var displayed: String? = null
+        private var cachedGeneration: String? = null
+        private var cachedPanel: StickerPanel? = null
+
+        fun render(state: StickerState, currentState: () -> StickerState, selected: (Sticker) -> Unit) {
+            when (state) {
+                is StickerState.Ready -> if (displayed != state.data.generation) {
+                    StickerLog.i("panel_open inline=%s generation=%s", inline, state.data.generation)
+                    body.removeAllViews()
+                    // No grid, thumbnail requests or catalog flattening before the global gate.
+                    val panel = cachedPanel?.takeIf { cachedGeneration == state.data.generation }
+                        ?: StickerPanel(context, state.data, applyBottomInset = !inline) {
+                            val current = currentState() as? StickerState.Ready
                             if (current?.data?.generation == state.data.generation) {
-                                dialog.dismiss()
                                 StickerLog.i("sticker_selected id=%d", it.stickerId)
-                                onSelected(it)
+                                selected(it)
                             }
                         }
-                        content.body.addView(panel)
-                        content.tabSlot.removeAllViews()
-                        content.tabSlot.addView(panel.tabs, FrameLayout.LayoutParams(-2, -2, Gravity.END or Gravity.CENTER_VERTICAL))
-                        displayed = state.data.generation
+                    cachedPanel = panel
+                    cachedGeneration = state.data.generation
+                    body.addView(panel)
+                    tabSlot.removeAllViews()
+                    tabSlot.addView(panel.tabs, FrameLayout.LayoutParams(-2, -2, Gravity.END or Gravity.CENTER_VERTICAL))
+                    displayed = state.data.generation
+                }
+                else -> {
+                    if (displayed != null || loading.parent == null) {
+                        body.removeAllViews()
+                        tabSlot.removeAllViews()
+                        body.addView(loading)
+                        displayed = null
+                        StickerLog.i("panel_blocked state=%s", state.javaClass.simpleName)
                     }
-                    else -> {
-                        if (displayed != null || content.loading.parent == null) {
-                            content.body.removeAllViews()
-                            content.tabSlot.removeAllViews()
-                            content.body.addView(content.loading)
-                            displayed = null
-                            StickerLog.i("panel_blocked state=%s", state.javaClass.simpleName)
-                        }
-                        content.spinner.visibility = if (state is StickerState.Failed) View.GONE else View.VISIBLE
-                        content.retry.visibility = if (state is StickerState.Failed) View.VISIBLE else View.GONE
-                        content.status.text = when (state) {
-                            is StickerState.Failed -> context.getString(R.string.sticker_failed, state.error.localizedMessage ?: state.error.javaClass.simpleName)
-                            is StickerState.Loading -> when (state.phase) {
-                                "download" -> context.getString(R.string.sticker_downloading, if (state.total == 0L) 0 else (100 * state.bytes / state.total).toInt())
-                                "extract" -> context.getString(R.string.sticker_extracting)
-                                else -> context.getString(R.string.sticker_checking)
-                            }
+                    spinner.visibility = if (state is StickerState.Failed) View.GONE else View.VISIBLE
+                    retry.visibility = if (state is StickerState.Failed) View.VISIBLE else View.GONE
+                    status.text = when (state) {
+                        is StickerState.Failed -> context.getString(R.string.sticker_failed, state.error.localizedMessage ?: state.error.javaClass.simpleName)
+                        is StickerState.Loading -> when (state.phase) {
+                            "download" -> context.getString(R.string.sticker_downloading, if (state.total == 0L) 0 else (100 * state.bytes / state.total).toInt())
+                            "extract" -> context.getString(R.string.sticker_extracting)
                             else -> context.getString(R.string.sticker_checking)
                         }
+                        else -> context.getString(R.string.sticker_checking)
                     }
                 }
             }
         }
-        return dialog
-    }
-
-    private class PickerContent(context: Context, prepare: () -> Unit, close: () -> Unit) : LinearLayout(context) {
         val body = FrameLayout(context)
         val tabSlot = FrameLayout(context)
         val spinner = ProgressBar(context)
@@ -130,8 +147,8 @@ object StickerPicker {
             val header = LinearLayout(context).apply {
                 gravity = Gravity.CENTER_VERTICAL
                 setPadding(0, 0, dp(context, 20), 0)
-                minimumHeight = dp(context, 56)
-                addView(TextView(context).apply {
+                minimumHeight = dp(context, if (inline) 48 else 56)
+                if (close != null) addView(TextView(context).apply {
                     setText(R.string.sticker_close)
                     textSize = 16f
                     gravity = Gravity.CENTER_VERTICAL
@@ -151,6 +168,10 @@ object StickerPicker {
             body.addView(loading, FrameLayout.LayoutParams(-1, -1))
         }
         override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+            if (inline) {
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+                return
+            }
             val desired = minOf(dp(context, 420), (resources.displayMetrics.heightPixels * .68f).toInt())
             val height = if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED) desired
                 else minOf(desired, MeasureSpec.getSize(heightMeasureSpec))
@@ -159,8 +180,8 @@ object StickerPicker {
     }
 }
 
-/** One grid; lists and scroll positions are retained for the lifetime of this sheet. */
-internal class StickerPanel(context: Context, ready: StickerStore.Ready, selected: (Sticker) -> Unit) : LinearLayout(context) {
+/** One grid; lists and scroll positions are retained for the lifetime of the picker. */
+internal class StickerPanel(context: Context, ready: StickerStore.Ready, applyBottomInset: Boolean = true, selected: (Sticker) -> Unit) : LinearLayout(context) {
     private val lists = StickerCatalog.TYPES.map { ready.catalog.packs.getValue(it).stickers() }
     private val positions = arrayOfNulls<Parcelable>(lists.size)
     private var selectedIndex = 0
@@ -175,7 +196,7 @@ internal class StickerPanel(context: Context, ready: StickerStore.Ready, selecte
         setItemViewCacheSize(0) // Detached animated stickers must not keep decoders running.
         clipToPadding = false
         setPadding(dp(context, 12), dp(context, 12), dp(context, 12), dp(context, 8))
-        ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+        if (applyBottomInset) ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
             val bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime()).bottom
             view.updatePadding(bottom = dp(context, 8) + bottom)
             insets

@@ -21,6 +21,72 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], application = Application::class)
 class StickerPickerTest {
+    @Test fun `inline picker gates readiness detaches when hidden and reuses tabs on reopen`() {
+        val activity = Robolectric.buildActivity(Activity::class.java).setup().get()
+        val owner = object : androidx.lifecycle.LifecycleOwner {
+            val registry = androidx.lifecycle.LifecycleRegistry(this)
+            override val lifecycle: androidx.lifecycle.Lifecycle get() = registry
+        }
+        try {
+            owner.registry.currentState = androidx.lifecycle.Lifecycle.State.STARTED
+            val context = ContextThemeWrapper(activity, R.style.AppTheme_Index0)
+            val container = InlineStickerContainer(context).apply { visibility = View.GONE }
+            activity.setContentView(container)
+            val state = MutableStateFlow<StickerState>(StickerState.Loading())
+            var prepares = 0
+            val picker = InlineStickerPicker(context, container, owner, state, {
+                prepares++
+                state.value = StickerState.Loading()
+            }, {})
+            container.onPanelVisibilityChanged = picker::setActive
+            shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(0, prepares)
+            container.visibility = View.VISIBLE
+            shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(1, prepares)
+            assertTrue(descendants(container).none { it is RecyclerView })
+            val catalog = StickerCatalog(StickerVersions(emptyList()),
+                StickerCatalog.TYPES.associateWith { StickerPack(emptyList(), emptyList(), emptyList()) })
+            val ready = StickerState.Ready(StickerStore.Ready("verified", catalog, emptyMap()))
+            state.value = ready
+            shadowOf(Looper.getMainLooper()).idle()
+            container.measure(View.MeasureSpec.makeMeasureSpec(dp(context, 320), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(dp(context, 270), View.MeasureSpec.EXACTLY))
+            container.layout(0, 0, container.measuredWidth, container.measuredHeight)
+            val grid = descendants(container).filterIsInstance<RecyclerView>().single()
+            val tabs = descendants(container).filterIsInstance<StickerCategoryTabs>().single()
+            assertEquals(dp(context, 270), container.getChildAt(0).height)
+            assertTrue(descendants(container).filterIsInstance<android.widget.TextView>()
+                .none { it.text == context.getString(R.string.sticker_close) })
+            tabs.select(2)
+            // The chat coordinator owns the navigation/IME insets: do not add them a second time.
+            val insets = androidx.core.view.WindowInsetsCompat.Builder()
+                .setInsets(androidx.core.view.WindowInsetsCompat.Type.ime(), androidx.core.graphics.Insets.of(0, 0, 0, dp(context, 300))).build()
+            androidx.core.view.ViewCompat.dispatchApplyWindowInsets(grid, insets)
+            assertEquals(dp(context, 8), grid.paddingBottom)
+            container.visibility = View.GONE
+            shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(0, container.childCount)
+            container.visibility = View.VISIBLE
+            shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(descendants(container).none { it is RecyclerView })
+            state.value = ready
+            shadowOf(Looper.getMainLooper()).idle()
+            assertSame(grid, descendants(container).filterIsInstance<RecyclerView>().single())
+            assertTrue(descendants(tabs).filterIsInstance<android.widget.TextView>().last().isSelected)
+            owner.registry.currentState = androidx.lifecycle.Lifecycle.State.CREATED
+            shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(0, container.childCount)
+            state.value = StickerState.Failed(java.io.IOException("Local files removed while in background"))
+            owner.registry.currentState = androidx.lifecycle.Lifecycle.State.STARTED
+            shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(descendants(container).none { it is RecyclerView })
+            owner.registry.currentState = androidx.lifecycle.Lifecycle.State.DESTROYED
+            shadowOf(Looper.getMainLooper()).idle()
+            assertEquals(0, container.childCount)
+        } finally { activity.finish() }
+    }
+
     @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
     @Test fun `reader segment backgrounds follow host theme and stay compact`() {
         val activity = Robolectric.buildActivity(Activity::class.java).setup().get()

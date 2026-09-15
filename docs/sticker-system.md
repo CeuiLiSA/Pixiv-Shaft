@@ -86,7 +86,7 @@ adb -s 37261FDJH004FJ logcat -v time -s Sticker-System
 
 ## 选择器容器与滚动
 
-选择器使用 witstudio 的 `WitBottomSheet`，复用 Material 的拖拽、返回与嵌套滚动。
+Post 使用 witstudio 的 `WitBottomSheet`，复用 Material 的拖拽、返回与嵌套滚动。聊天使用输入框下方的内嵌选择器，复用旧版 `BottomPanelCoordinator` 的键盘切换、返回关闭、消息区点击收起和键盘高度。两种入口共用加载门禁、分类与本地资源网格。
 手机贴底、宽屏最大 640dp。内容高度有界，网格自行滚动。贴纸 sheet 表面不垫底部安全区，RecyclerView 的 bottom padding 为导航栏/键盘 inset + 8dp，clipToPadding=false；滚动中图片可经过手势区域，到底时最后一排完整停在安全区上方。
 分类直接复用小说阅读器 bg_reader_segment_track / bg_reader_segment_option：42dp 轨道、36dp 选中块，外围保留 48dp 热区；宽度随文字收紧，长文案时横向滚动。选中背景使用宿主 colorPrimary，文字使用 V3Palette.onPrimary，避免 Material 指示器默认 tint。不显示标题；左侧关闭与右上角分类在同一行。
 同一 sheet 只建立一个 RecyclerView 和 adapter，目录仅整理一次，分别保存三个分类的滚动位置；重复点击当前 tab 不触发刷新。
@@ -95,3 +95,5 @@ adb -s 37261FDJH004FJ logcat -v time -s Sticker-System
 选择器测试覆盖日夜、320dp 窄屏、两倍字号、Ready/Failed 门禁、tab adapter 复用和重复点击无刷新；使用原生图形引擎验证四种主题的选中底与宿主主色一致，正常字号轨道保留 48dp 热区且不撑满整行。
 
 聊天消息贴纸显示为 64dp，继续读取本地 128 像素资源；双方贴纸均无气泡背景、阴影和内边距。带引用时仅引用块保留主题浅色底与可读文字，发送状态和长按操作照常保留。
+
+聊天内嵌面板没有关闭行、拖拽条或遮罩，发送贴纸后保持展开。导航栏留白由原有键盘协调器单独负责，网格不重复添加 IME inset。隐藏面板或页面停止时移除内容 View，释放 Glide 请求；同一资源版本重新检查就绪后复用三个分类的滚动位置。

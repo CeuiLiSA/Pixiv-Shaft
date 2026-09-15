@@ -115,6 +115,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
 
     /** Emoji ↔ keyboard coordinator; kept so "reply" can pop the keyboard through the same state machine. */
     private var panelCoordinator: BottomPanelCoordinator? = null
+    private var inlineStickers: ceui.pixiv.sticker.InlineStickerPicker? = null
 
     /** Whether the composer's reply strip is currently shown (drives the show/hide animation). */
     private var replyBarShown = false
@@ -175,6 +176,12 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         setupToolbar(title = initialTitle, showBack = true)
 
         // ── Bottom panel (emoji ↔ keyboard) ──────────────────────────
+        val inline = ceui.pixiv.sticker.InlineStickerPicker(
+            requireContext(), binding.emojiPanel, viewLifecycleOwner,
+        ) { sticker -> sendSticker(sticker.stickerId) }
+        inlineStickers = inline
+        // Keep the grid until the coordinator actually hides the panel after IME animation.
+        binding.emojiPanel.onPanelVisibilityChanged = inline::setActive
         panelCoordinator = attachBottomPanel(
             host = object : PanelHost {
                 override val panelRoot get() = binding.root
@@ -189,14 +196,6 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
                 }
             },
         )
-        binding.btnEmoji.setOnClickListener {
-            ceui.pixiv.sticker.StickerPicker.show(requireContext()) { sticker ->
-                if (this@DemoChatListFragment.view == null || !isAdded) return@show
-                viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.sendText(getString(R.string.sticker_message), stickerId = sticker.stickerId)
-                }
-            }
-        }
 
         // ── Input ────────────────────────────────────────────────────
         setupInput()
@@ -607,6 +606,21 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         }
     }
 
+    private fun sendSticker(stickerId: Long) {
+        if (!wsConnected || rateLimitCoolDown || (isGlobalRoom && globalSendClosed)) {
+            Toaster.showShort("发送失败,请稍后重试")
+            return
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            if (!viewModel.sendText(getString(R.string.sticker_message), stickerId = stickerId)) {
+                Toaster.showShort("发送失败,请稍后重试")
+                return@launch
+            }
+            binding.btnEmoji.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            scrollToBottomOnNextUpdate = true
+        }
+    }
+
     /**
      * VM owns the full optimistic-send lifecycle (doc §4.3):
      * generates `client_msg_id`, writes the local row `state=Sending`,
@@ -855,6 +869,9 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     override fun onDestroyView() {
         view?.findViewById<RecyclerView>(R.id.recycler_view)?.adapter = null
         chatAdapter = null
+        inlineStickers?.setActive(false)
+        inlineStickers = null
+        panelCoordinator = null
         super.onDestroyView()
     }
 
