@@ -2889,6 +2889,8 @@
     <string name="bookmark_mirror_ready_title">ブックマークライブラリの準備ができました</string>
     <string name="bookmark_mirror_ready_message">%1$s 件をローカルに保存しました。古い順・タグ/作者/年での絞り込み・検索が使えます。</string>
     <string name="bookmark_mirror_ready_action">見てみる</string>
+    <string name="debug_mirror_banner_title">「ブックマークライブラリの準備ができました」バナーを表示</string>
+    <string name="debug_mirror_banner_desc">一度きりのフラグを消して案内を再表示。公開／非公開のコレクションを選べます</string>
     <string name="bookmark_library_title">ブックマークしたイラスト</string>
     <string name="bookmark_library_search_hint">タイトル / 作者 / タグ / ID を検索</string>
     <string name="bookmark_library_empty">ローカルに表示できるブックマークがありません</string>

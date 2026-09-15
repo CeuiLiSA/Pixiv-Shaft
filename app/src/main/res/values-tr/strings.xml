@@ -2892,6 +2892,8 @@
     <string name="bookmark_mirror_ready_title">Yer imi kitaplığı hazır</string>
     <string name="bookmark_mirror_ready_message">%1$s yer imi yerelde — artık en eskiden sırala, etikete/sanatçıya/yıla göre filtrele ve ara.</string>
     <string name="bookmark_mirror_ready_action">Aç</string>
+    <string name="debug_mirror_banner_title">“Yer imi kitaplığı hazır” bannerını göster</string>
+    <string name="debug_mirror_banner_desc">Tek seferlik işareti silip daveti yeniden gösterir; açık veya gizli rafı seçin</string>
     <string name="bookmark_library_title">Yer imlerindeki illüstrasyonlar</string>
     <string name="bookmark_library_search_hint">Başlık / sanatçı / etiket / ID ara</string>
     <string name="bookmark_library_empty">Yerelde gösterilecek yer imi yok</string>

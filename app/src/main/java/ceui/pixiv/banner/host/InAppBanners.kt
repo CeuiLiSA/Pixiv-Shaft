@@ -21,7 +21,6 @@ import com.bumptech.glide.Glide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -92,9 +91,18 @@ object InAppBanners {
         ChatBannerBridge(app, manager, scope).start()
 
         scope.launch {
-            manager.events
-                .filterIsInstance<BannerEvent.Tapped>()
-                .collect { handleTap(app, it.deepLink) }
+            manager.events.collect { event ->
+                // Two distinct events carry a deep link: the card body tap
+                // ([BannerEvent.Tapped]) and the action button
+                // ([BannerEvent.Action], e.g. the bookmark-library ready
+                // banner's "去看看"). Listening to Tapped only left the
+                // action button silently dismissing itself.
+                when (event) {
+                    is BannerEvent.Tapped -> handleTap(app, event.deepLink)
+                    is BannerEvent.Action -> handleTap(app, event.deepLink)
+                    else -> Unit
+                }
+            }
         }
 
         Timber.tag(TAG).i("InAppBanners bootstrap complete")

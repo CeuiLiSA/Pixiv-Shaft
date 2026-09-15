@@ -2892,6 +2892,8 @@
     <string name="bookmark_mirror_ready_title">Bookmark library ready</string>
     <string name="bookmark_mirror_ready_message">%1$s bookmarks mirrored locally — now you can sort oldest-first, filter by tag/artist/year, and search.</string>
     <string name="bookmark_mirror_ready_action">Open</string>
+    <string name="debug_mirror_banner_title">Trigger the “Bookmark library ready” banner</string>
+    <string name="debug_mirror_banner_desc">Clears the one-shot flag and replays the prompt; pick the public or private shelf</string>
     <string name="bookmark_library_title">My bookmarked illustrations</string>
     <string name="bookmark_library_search_hint">Search title / artist / tag / ID</string>
     <string name="bookmark_library_empty">Nothing mirrored locally yet</string>

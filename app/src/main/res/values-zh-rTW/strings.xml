@@ -2890,6 +2890,8 @@
     <string name="bookmark_mirror_ready_title">收藏庫已就緒</string>
     <string name="bookmark_mirror_ready_message">已在本地攢好 %1$s 件收藏，現在可以倒序、按標籤/作者/年份篩，還能全文搜。</string>
     <string name="bookmark_mirror_ready_action">去看看</string>
+    <string name="debug_mirror_banner_title">觸發「收藏庫已就緒」banner</string>
+    <string name="debug_mirror_banner_desc">清掉一次性標記並重放引導，公開或私人收藏可選</string>
     <string name="bookmark_library_title">我的插畫收藏</string>
     <string name="bookmark_library_search_hint">搜尋標題 / 作者 / 標籤 / ID</string>
     <string name="bookmark_library_empty">本地還沒有可瀏覽的收藏</string>
