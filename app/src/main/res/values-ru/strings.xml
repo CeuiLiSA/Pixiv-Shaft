@@ -2898,6 +2898,8 @@
     <string name="bookmark_mirror_ready_title">Библиотека закладок готова</string>
     <string name="bookmark_mirror_ready_message">%1$s закладок сохранено локально — теперь доступны сортировка от старых, фильтры и поиск.</string>
     <string name="bookmark_mirror_ready_action">Открыть</string>
+    <string name="debug_mirror_banner_title">Показать баннер «Библиотека закладок готова»</string>
+    <string name="debug_mirror_banner_desc">Сбрасывает одноразовый флаг и повторяет приглашение; выберите публичные или приватные закладки</string>
     <string name="bookmark_library_title">Иллюстрации в закладках</string>
     <string name="bookmark_library_search_hint">Поиск по названию / автору / тегу / ID</string>
     <string name="bookmark_library_empty">Локальная копия пока пуста</string>

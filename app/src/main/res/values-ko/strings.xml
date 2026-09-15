@@ -2889,6 +2889,8 @@
     <string name="bookmark_mirror_ready_title">북마크 보관함이 준비됐어요</string>
     <string name="bookmark_mirror_ready_message">%1$s개를 로컬에 저장했습니다. 오래된 순 정렬, 태그/작가/연도 필터, 검색을 쓸 수 있어요.</string>
     <string name="bookmark_mirror_ready_action">열어보기</string>
+    <string name="debug_mirror_banner_title">「북마크 보관함이 준비됐어요」배너 띄우기</string>
+    <string name="debug_mirror_banner_desc">일회성 플래그를 지우고 안내를 다시 표시합니다. 공개/비공개 보관함 선택</string>
     <string name="bookmark_library_title">북마크한 일러스트</string>
     <string name="bookmark_library_search_hint">제목 / 작가 / 태그 / ID 검색</string>
     <string name="bookmark_library_empty">로컬에 표시할 북마크가 없습니다</string>

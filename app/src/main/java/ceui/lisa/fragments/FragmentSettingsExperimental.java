@@ -23,6 +23,7 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
     @Override
     protected void initData() {
         bindWitGalleryRows();
+        bindDebugMirrorBannerRow();
 
         // 自动快照是本地离线能力，不涉及站外 UGC，所有渠道都显示。
         baseBind.autoSnapshotOnBookmark.setChecked(Shaft.sSettings.isAutoSnapshotOnBookmark());
@@ -132,6 +133,20 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         }
         baseBind.witGalleryRela.setOnClickListener(v ->
                 ceui.pixiv.ui.settings.WitDialogGallery.showWit(mContext));
+    }
+
+    /**
+     * 【临时·调试】手动弹一次「收藏库已就绪」引导 banner，用来验它的「去看看」按钮
+     * （正常路径要等整份回填跑完、且一辈子只弹一次）。
+     * 只在 debug 包出现；验完连同布局里那一行和 DebugMirrorBannerTrigger.kt 一起删。
+     */
+    private void bindDebugMirrorBannerRow() {
+        if (!ceui.lisa.BuildConfig.DEBUG) {
+            baseBind.debugMirrorBannerRela.setVisibility(View.GONE);
+            return;
+        }
+        baseBind.debugMirrorBannerRela.setOnClickListener(v ->
+                ceui.pixiv.ui.debug.DebugMirrorBannerTrigger.show(mContext));
     }
 
     private void bindFirebaseRow() {

@@ -3156,6 +3156,8 @@
     <string name="bookmark_mirror_ready_title">收藏库已就绪</string>
     <string name="bookmark_mirror_ready_message">已在本地攒好 %1$s 件收藏，现在可以倒序、按标签/作者/年份筛，还能全文搜。</string>
     <string name="bookmark_mirror_ready_action">去看看</string>
+    <string name="debug_mirror_banner_title">触发「收藏库已就绪」banner</string>
+    <string name="debug_mirror_banner_desc">清掉一次性标记并重放引导，公开或私人收藏可选</string>
     <string name="bookmark_library_title">我的插画收藏</string>
     <string name="bookmark_library_search_hint">搜索标题 / 作者 / 标签 / ID</string>
     <string name="bookmark_library_empty">本地还没有可浏览的收藏</string>
