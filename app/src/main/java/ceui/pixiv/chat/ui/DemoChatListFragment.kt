@@ -97,7 +97,12 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             ),
             historySource = HttpChatHistorySource(),
             stream = ShaftChatGateway.chatStream,
-            sender = ShaftChatGateway::send,
+            sender = object : ceui.pixiv.chat.vm.WsMsgSender {
+                override fun send(toUid: Long?, clientMsgId: String, text: String, illustId: Long?, replyTo: ceui.pixiv.chat.api.ChatReplyRef?) =
+                    ShaftChatGateway.send(toUid, clientMsgId, text, illustId, replyTo)
+                override fun sendSticker(toUid: Long?, clientMsgId: String, text: String, replyTo: ceui.pixiv.chat.api.ChatReplyRef?, stickerId: Long) =
+                    ShaftChatGateway.send(toUid, clientMsgId, text, replyTo = replyTo, stickerId = stickerId)
+            },
             typingSender = ShaftChatGateway::sendTyping,
             typingFrames = ShaftChatGateway.typingFrames,
         )
@@ -184,8 +189,13 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
                 }
             },
         )
-        binding.emojiPanel.onEmojiClick = { emoji ->
-            binding.etInput.text?.insert(binding.etInput.selectionStart, emoji)
+        binding.btnEmoji.setOnClickListener {
+            ceui.pixiv.sticker.StickerPicker.show(requireContext()) { sticker ->
+                if (view == null || !isAdded) return@show
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.sendText(getString(R.string.sticker_message), stickerId = sticker.stickerId)
+                }
+            }
         }
 
         // ── Input ────────────────────────────────────────────────────

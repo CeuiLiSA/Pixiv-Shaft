@@ -208,6 +208,11 @@ class ChatMessageAdapter(
 
         private val bubble: View = itemView.findViewById(R.id.bubble)
         private val tvContent: TextView = itemView.findViewById(R.id.tv_content)
+        private val stickerView = ceui.pixiv.sticker.StickerImageView(itemView.context).also { image ->
+            val container = tvContent.parent as android.widget.LinearLayout
+            val size = (128 * itemView.resources.displayMetrics.density).toInt()
+            container.addView(image, container.indexOfChild(tvContent), android.widget.LinearLayout.LayoutParams(size, size))
+        }
         private val tvTime: TextView = itemView.findViewById(R.id.tv_time)
         private val tvTimeGroup: TextView = itemView.findViewById(R.id.tv_time_group)
         private val ivAvatar: ImageView? = itemView.findViewById(R.id.iv_avatar)
@@ -246,6 +251,10 @@ class ChatMessageAdapter(
             // tablets stay balanced), render pure-emoji messages jumbo & bubble-
             // less, and linkify URLs.
             tvContent.text = text
+            tvContent.visibility = if (msg.stickerId == null) View.VISIBLE else View.GONE
+            stickerView.visibility = if (msg.stickerId != null) View.VISIBLE else View.GONE
+            stickerView.bind(msg.stickerId, resourceSize = 128)
+            stickerView.setOnLongClickListener { itemView.performLongClick() }
             val contentMax = (ctx.resources.displayMetrics.widthPixels * BUBBLE_WIDTH_RATIO).toInt()
             tvContent.maxWidth = contentMax
             // A quoted message forces the bubble chrome even for pure-emoji text —

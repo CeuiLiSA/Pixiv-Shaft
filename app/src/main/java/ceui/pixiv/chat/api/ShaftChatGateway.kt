@@ -393,12 +393,13 @@ object ShaftChatGateway {
         text: String,
         illustId: Long? = null,
         replyTo: ChatReplyRef? = null,
+        stickerId: Long? = null,
     ): Boolean {
         if (text.isEmpty()) return false
         val frame = if (toUid == null) {
-            ChatFrameEncoder.msgGlobal(clientMsgId, text, illustId, replyTo)
+            ChatFrameEncoder.msgGlobal(clientMsgId, text, illustId, replyTo, stickerId)
         } else {
-            ChatFrameEncoder.msg1v1(toUid, clientMsgId, text, illustId, replyTo)
+            ChatFrameEncoder.msg1v1(toUid, clientMsgId, text, illustId, replyTo, stickerId)
         }
         val accepted = manager.send(frame)
         if (accepted) {

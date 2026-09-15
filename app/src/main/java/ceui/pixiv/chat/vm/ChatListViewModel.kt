@@ -246,7 +246,8 @@ class ChatListViewModel(
      *  4. WS echo arrives later (via [stream]) → UPSERT same localKey
      *     `state=Delivered` (the echo path overwrites this row)
      */
-    suspend fun sendText(text: String, illustId: Long? = null): Boolean {
+    suspend fun sendText(text: String, illustId: Long? = null, stickerId: Long? = null): Boolean {
+        if (stickerId != null && stickerId <= 0) return false
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return false
         if (trimmed.length > MAX_TEXT_LENGTH) {
@@ -270,6 +271,7 @@ class ChatListViewModel(
             displayName = null,           // server fills on echo
             text = trimmed,
             illustId = illustId,
+            stickerId = stickerId,
             ts = now,
             state = SendState.Sending,
             // Optimistic quote from the local copy of the target; the echo
@@ -300,7 +302,7 @@ class ChatListViewModel(
         // latency when the echo arrives.
         inFlightSends[clientMsgId] = System.nanoTime()
 
-        val accepted = sender.send(
+        val accepted = if (stickerId != null) sender.sendSticker(toUid, clientMsgId, trimmed, replyRef, stickerId) else sender.send(
             toUid = toUid, clientMsgId = clientMsgId, text = trimmed,
             illustId = illustId, replyTo = replyRef,
         )
@@ -679,6 +681,8 @@ data class PeerTypingState(
  * a lambda that records calls.
  */
 fun interface WsMsgSender {
+    fun sendSticker(toUid: Long?, clientMsgId: String, text: String, replyTo: ChatReplyRef?, stickerId: Long): Boolean = false
+
     fun send(
         toUid: Long?,
         clientMsgId: String,
