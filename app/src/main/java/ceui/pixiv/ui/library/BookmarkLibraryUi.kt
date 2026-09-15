@@ -34,6 +34,7 @@ import ceui.pixiv.db.mirror.PageFilter
 import ceui.pixiv.db.mirror.ValidityFilter
 import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.FeedViewModel
+import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.navigation.TemplateRoute
 import com.blankj.utilcode.util.BarUtils
@@ -484,7 +485,13 @@ internal class BookmarkLibraryUi(
         // 已经有一次刷新在路上（换书架 / 换筛选刚发出去的那次）：此刻屏幕上本来就是旧的，
         // 而且正在被修。拿这份必然过期的 shown 去和新库比，只会得出一个恒真的结论，然后
         // 再排一次多余的刷新——真机实测「切到更小的书架」每次都因此连查两遍。
-        if (resetAfterGeneration != null) return
+        // 闸门判据用「刷新是否还在路上」而不是「resetAfterGeneration 是否非空」：
+        // resetAfterGeneration 只在「代号变了」时由 onListCommitted 清掉，而 refresh **失败**
+        // 时代号不会变、onListCommitted 也不会被调用，它就会永久非空 → 本方法从此早退 →
+        // 页面失去唯一自动对齐入口，停在上次成功提交的那一代（切到私人时恰好是空页，
+        // 导致永久空白，直到退出重进重建 VM）。判据改成 Loading 之后，刷新失败（refresh=Error）
+        // 也会放行，库里行数一变又能自动重查一次。
+        if (feedViewModel.uiState.value.refresh is LoadState.Loading) return
         if (viewModel.filter.value.hasAnyCondition) return
         val shown = itemCount()
         val stored = viewModel.totalCount.value ?: return
