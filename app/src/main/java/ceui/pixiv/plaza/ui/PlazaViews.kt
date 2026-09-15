@@ -71,10 +71,12 @@ internal class PostAdapter(private val onLike: (PlazaPost) -> Unit, private val 
     ListAdapter<PlazaPost, PostAdapter.Holder>(object : DiffUtil.ItemCallback<PlazaPost>() {
         override fun areItemsTheSame(a: PlazaPost,b: PlazaPost)=a.id==b.id
         override fun areContentsTheSame(a: PlazaPost,b: PlazaPost)=a==b
+        // Rebind in the same holder; default change cross-fades would blink the entire post.
+        override fun getChangePayload(oldItem:PlazaPost,newItem:PlazaPost):Any=Unit
     }) {
     var busy: Set<Long> = emptySet()
         set(value) { if(field!=value) { val changed=field+value; field=value
-            currentList.forEachIndexed { i,p -> if(p.id in changed) notifyItemChanged(i) } } }
+            currentList.forEachIndexed { i,p -> if(p.id in changed) notifyItemChanged(i,Unit) } } }
     override fun onCreateViewHolder(parent: ViewGroup,viewType: Int)=Holder(PostView(parent.context))
     override fun onBindViewHolder(holder: Holder,position: Int) {
         val post=getItem(position)
@@ -86,8 +88,11 @@ internal class PostAdapter(private val onLike: (PlazaPost) -> Unit, private val 
 
 /** Figma post-feed/post-detail: 16dp gutters, 50dp avatar, 12dp groups, 2dp media grid. */
 internal class PostView(context: Context,private val viewerUid: ()->Long={SessionManager.loggedInUid}) : LinearLayout(context) {
+    private val imageRequests=Glide.with(this)
+    private var renderedAvatar:Pair<Long,String?>?=null
     private var renderedImages: List<PlazaImage>?=null
     private var renderedWidth=-1
+    private var renderedViewerUid:Long?=null
     private var detailMode=false
     private val avatar=ImageView(context).apply {scaleType=ImageView.ScaleType.CENTER_CROP;clipToOutline=true}
     private val name=context.label("",15f,true)
@@ -130,8 +135,12 @@ internal class PostView(context: Context,private val viewerUid: ()->Long={Sessio
         name.text=post.displayName
         name.maxLines=1; name.ellipsize=android.text.TextUtils.TruncateAt.END
         setPadding(context.dp(16),context.dp(if(detail) 0 else 12),context.dp(16),context.dp(12))
-        Glide.with(avatar).load(post.avatarUrl?.let {ceui.lisa.utils.GlideUrlChild(it)})
-            .placeholder(R.drawable.chat_avatar_placeholder).circleCrop().into(avatar)
+        val avatarKey=post.uid to post.avatarUrl
+        if(renderedAvatar!=avatarKey) {
+            imageRequests.load(post.avatarUrl?.let {ceui.lisa.utils.GlideUrlChild(it)})
+                .placeholder(R.drawable.chat_avatar_placeholder).circleCrop().into(avatar)
+            renderedAvatar=avatarKey
+        }
         avatar.contentDescription="查看 ${post.displayName} 的主页"; avatar.setOnClickListener { context.openObject("user",post.uid) }
         time.text=java.text.SimpleDateFormat("MMM d, yyyy",java.util.Locale.getDefault()).format(java.util.Date(post.createdAt))
         title.text=post.title; title.isVisible=post.title.isNotBlank(); title.textSize=if(detail) 24f else 17f
@@ -191,7 +200,7 @@ internal class PostView(context: Context,private val viewerUid: ()->Long={Sessio
                 val row=LinearLayout(context).apply {gravity=Gravity.TOP}
                 val photo=ImageView(context).apply {scaleType=ImageView.ScaleType.CENTER_CROP;contentDescription="查看 ${preview.displayName} 的主页"
                     setOnClickListener {context.openObject("user",preview.uid)}}
-                Glide.with(photo).load(preview.avatarUrl?.let {ceui.lisa.utils.GlideUrlChild(it)}).placeholder(R.drawable.chat_avatar_placeholder).circleCrop().into(photo)
+                imageRequests.load(preview.avatarUrl?.let {ceui.lisa.utils.GlideUrlChild(it)}).placeholder(R.drawable.chat_avatar_placeholder).circleCrop().into(photo)
                 row.addView(photo,LayoutParams(context.dp(36),context.dp(36)).apply {marginEnd=context.dp(8)})
                 val content=LinearLayout(context).apply {orientation=VERTICAL}
                 content.addView(context.label(preview.displayName,15f,true))
@@ -233,8 +242,33 @@ internal class PostView(context: Context,private val viewerUid: ()->Long={Sessio
         if(commentsTitle.isVisible) canvas.drawLine(paddingLeft.toFloat(),commentsTitle.top-context.dp(8).toFloat(),(width-paddingRight).toFloat(),commentsTitle.top-context.dp(8).toFloat(),paint)
     }
     private fun bindImages(items:List<PlazaImage>,click:(Int)->Unit) {
-        if(renderedImages==items && renderedWidth==images.width) return
-        clearImages(); renderedImages=items; renderedWidth=images.width
+        val viewer=viewerUid()
+        val old=renderedImages
+        val sameContent=old!=null && old.size==items.size && old.indices.all {i ->
+            val a=old[i];val b=items[i]
+            a.mediaId==b.mediaId && a.width==b.width && a.height==b.height && a.contentType==b.contentType
+        }
+        if(sameContent && renderedWidth==images.width && renderedViewerUid==viewer) {
+            // Retain the drawable and in-flight request. Clicks must still receive the new URL.
+            var index=0
+            for(r in 0 until images.childCount) {
+                val row=images.getChildAt(r) as ViewGroup
+                for(c in 0 until row.childCount) {
+                    val photo=row.getChildAt(c) as ImageView
+                    val position=index++
+                    photo.setOnClickListener {click(position)}
+                    val request=com.bumptech.glide.request.target.DrawableImageViewTarget(photo).request
+                    if(request?.isComplete!=true && request?.isRunning!=true && old!![position].url!=items[position].url) {
+                        // A failed old signature must retry the latest transport URL.
+                        imageRequests.clear(photo)
+                        loadPhoto(photo,items[position],viewer,photo.layoutParams.width,photo.layoutParams.height)
+                    }
+                }
+            }
+            renderedImages=items
+            return
+        }
+        clearImages(); renderedImages=items; renderedWidth=images.width;renderedViewerUid=viewer
         if(images.width<=0 || items.isEmpty()) return
         val gap=context.dp(2)
         val columns=when(items.size) {1->1;2,4->2;else->3}
@@ -248,17 +282,21 @@ internal class PostView(context: Context,private val viewerUid: ()->Long={Sessio
                     contentDescription="图片 ${rowIndex*columns+column+1}，共 ${items.size} 张，点按查看"
                     background=GradientDrawable().apply { cornerRadius=context.dp(if(detailMode) 6 else 4).toFloat();setColor(V3Palette.from(context).alpha08) };clipToOutline=true }
                 row.addView(photo,LayoutParams(width,height).apply { if(column>0) marginStart=gap })
-                Glide.with(photo).load(image.url).override(width,height).error(android.R.drawable.ic_menu_report_image).into(photo)
+                loadPhoto(photo,image,viewer,width,height)
                 photo.setOnClickListener { click(rowIndex*columns+column) }
             }
             images.addView(row,LayoutParams(-1,-2).apply {if(rowIndex>0) topMargin=gap})
         }
     }
-    private fun clearImageRequests(v:View) {if(v is ImageView) Glide.with(v).clear(v);if(v is ViewGroup) for(i in 0 until v.childCount) clearImageRequests(v.getChildAt(i))}
+    private fun loadPhoto(photo:ImageView,image:PlazaImage,viewer:Long,width:Int,height:Int) {
+        imageRequests.load(image.url.takeIf {it.isNotBlank()}?.let {PlazaMediaUrl(image,viewer)}).override(width,height)
+            .dontAnimate().error(android.R.drawable.ic_menu_report_image).into(photo)
+    }
+    private fun clearImageRequests(v:View) {if(v is ImageView) imageRequests.clear(v);if(v is ViewGroup) for(i in 0 until v.childCount) clearImageRequests(v.getChildAt(i))}
     private fun clearImages() {
         clearImageRequests(images);images.removeAllViews()
     }
-    fun clear() { Glide.with(avatar).clear(avatar);clearImageRequests(comments);images.onMeasured=null;renderedImages=null;renderedWidth=-1;clearImages() }
+    fun clear() { imageRequests.clear(avatar);renderedAvatar=null;clearImageRequests(comments);images.onMeasured=null;renderedImages=null;renderedWidth=-1;renderedViewerUid=null;clearImages() }
 }
 internal fun Context.showPostMenu(post:PlazaPost,onDelete:(PlazaPost)->Unit) {
     val mine=post.uid==SessionManager.loggedInUid

@@ -17,10 +17,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import com.bumptech.glide.Glide
 
-/** URLs are reissued when opened, rather than trusting a stale five-minute feed signature. */
+/** Reuse valid signatures; renew expired ones while retaining media-based disk cache keys. */
 class PlazaImageViewer : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val ctx = requireContext()
+        val imageRequests=Glide.with(this)
         val root = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(Color.BLACK) }
         val bar = LinearLayout(ctx).apply { gravity = Gravity.CENTER_VERTICAL }
         val close = ctx.action("关闭"); close.setTextColor(Color.WHITE); close.background = null
@@ -51,9 +52,9 @@ class PlazaImageViewer : DialogFragment() {
                         override fun onBindViewHolder(holder: ImageHolder, position: Int) {
                             holder.photo.resetZoom()
                             holder.photo.contentDescription = "图片 ${position + 1}，双指缩放，左右滑动切换"
-                            Glide.with(holder.photo).load(images[position].url).error(android.R.drawable.ic_menu_report_image).into(holder.photo)
+                            imageRequests.load(images[position].url.takeIf {it.isNotBlank()}?.let {PlazaMediaUrl(images[position],ceui.pixiv.session.SessionManager.loggedInUid)}).dontAnimate().error(android.R.drawable.ic_menu_report_image).into(holder.photo)
                         }
-                        override fun onViewRecycled(holder: ImageHolder) { Glide.with(holder.photo).clear(holder.photo) }
+                        override fun onViewRecycled(holder: ImageHolder) { imageRequests.clear(holder.photo) }
                     }
                     pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
                         override fun onPageSelected(position: Int) { status.text = "${position + 1} / ${images.size}" }
