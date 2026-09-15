@@ -17,7 +17,7 @@
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
         android:background="?attr/colorSurfaceContainerHighest"
-        app:rRadius="10dp"
+        app:rRadius="16dp"
         tools:src="@mipmap/ic_launcher" />
 
     <!-- 缺失 meta (server 还没缓存这个 illust) 时显示 ID 占位,

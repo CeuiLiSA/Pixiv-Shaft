@@ -1,6 +1,5 @@
 package ceui.pixiv.plaza.ui
 
-import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -16,15 +15,19 @@ import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
+import ceui.lisa.fragments.BaseFragment
 import ceui.lisa.databinding.FragmentPlazaPostDetailBinding
 import ceui.lisa.network.PlazaPost
+import ceui.pixiv.chat.base.PagingFooterAdapter
+import ceui.pixiv.chat.base.PagingState
+import ceui.pixiv.chat.core.AppError
+import androidx.core.content.getSystemService
+import android.view.inputmethod.InputMethodManager
 import ceui.pixiv.chat.base.launchSuspend
 import com.hjq.toast.Toaster
 import ceui.pixiv.chat.base.viewBinding
 import ceui.pixiv.chat.base.viewModels
 import ceui.pixiv.session.SessionManager
-import com.blankj.utilcode.util.BarUtils
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 
@@ -51,6 +54,7 @@ class PlazaPostDetailFragment : Fragment(R.layout.fragment_plaza_post_detail) {
     private lateinit var commentsTitleAdapter: PlazaCommentsTitleAdapter
     private lateinit var commentsEmptyAdapter: PlazaCommentsEmptyAdapter
     private lateinit var commentsAdapter: PlazaCommentAdapter
+    private lateinit var commentsFooter: PagingFooterAdapter
 
     /**
      * TemplateActivity 在 manifest 里声明 `windowSoftInputMode="adjustPan"`,
@@ -66,17 +70,14 @@ class PlazaPostDetailFragment : Fragment(R.layout.fragment_plaza_post_detail) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // brand 色 + status bar top padding 必须 runtime —— M3 父 overlay 下
-        // XML 的 ?attr/colorPrimary 解出 baseline tone(不是用户主题色),
-        // fitsSystemWindows 又会被 EdgeToEdge 套进 nav inset 把 toolbar 撑高。
-        binding.toolbar.setBackgroundColor(Color.parseColor(Shaft.getThemeColor()))
-        binding.toolbar.updatePadding(top = BarUtils.getStatusBarHeight())
+        BaseFragment.applyToolbarInsets(requireActivity(), view)
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
         setupInsets()
         setupRecycler()
         setupInputBar()
+        binding.loadRetry.setOnClickListener { viewModel.retry() }
 
         launchSuspend {
             viewModel.state.collect { s ->
@@ -114,17 +115,25 @@ class PlazaPostDetailFragment : Fragment(R.layout.fragment_plaza_post_detail) {
     }
 
     private fun setupRecycler() {
+        lastBoundAuthorUid = -1L
         headerAdapter = PlazaPostHeaderAdapter(
             selfUid = SessionManager.loggedInUid,
             onMore = { post, anchor -> showMoreMenu(post, anchor) },
+            onLike = { viewModel.toggleLike(requireContext().applicationContext) },
+            onComment = {
+                binding.commentInput.requestFocus()
+                requireContext().getSystemService<InputMethodManager>()
+                    ?.showSoftInput(binding.commentInput, InputMethodManager.SHOW_IMPLICIT)
+            },
         )
         commentsTitleAdapter = PlazaCommentsTitleAdapter()
         commentsEmptyAdapter = PlazaCommentsEmptyAdapter()
         commentsAdapter = PlazaCommentAdapter(postAuthorUid = 0L)
             // postAuthorUid 在 post 加载后通过 rebuildCommentsAdapter 设;留 0L 占位
 
+        commentsFooter = PagingFooterAdapter().apply { onRetry = { viewModel.retryComments() } }
         val concat = ConcatAdapter(
-            headerAdapter, commentsTitleAdapter, commentsEmptyAdapter, commentsAdapter,
+            headerAdapter, commentsTitleAdapter, commentsEmptyAdapter, commentsAdapter, commentsFooter,
         )
         val layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.layoutManager = layoutManager
@@ -158,19 +167,27 @@ class PlazaPostDetailFragment : Fragment(R.layout.fragment_plaza_post_detail) {
 
     private fun trySend() {
         val text = binding.commentInput.text?.toString().orEmpty()
-        viewModel.postComment(requireContext(), text)
+        viewModel.postComment(requireContext().applicationContext, text)
     }
 
     private fun refreshSendEnabled() {
         val s = viewModel.state.value
         val hasText = (binding.commentInput.text?.toString()?.trim()?.isNotEmpty() == true)
-        binding.btnSend.isEnabled = hasText && !s.isSendingComment
+        binding.btnSend.isEnabled = hasText && !s.isSendingComment && !s.commentsLoading &&
+            !s.isLoading && !s.isGone && s.post != null && s.commentsError == null
+        binding.commentInput.isEnabled = !s.isSendingComment
         binding.btnSend.alpha = if (binding.btnSend.isEnabled) 1f else 0.4f
     }
 
     private var lastBoundAuthorUid: Long = -1L
 
     private fun renderState(s: PlazaPostDetailViewModel.UiState) {
+        val showLoadState = s.post == null && !s.isGone
+        binding.loadState.isVisible = showLoadState
+        binding.initialLoading.isVisible = s.isLoading
+        binding.loadRetry.isVisible = !s.isLoading && s.loadError != null
+        binding.loadMessage.text = if (s.isLoading) getString(R.string.plaza_loading)
+            else getString(R.string.plaza_load_failed, errorMessage(s.loadError))
         if (s.isGone) {
             binding.recyclerView.isVisible = false
             binding.bottomBar.isVisible = false
@@ -178,8 +195,8 @@ class PlazaPostDetailFragment : Fragment(R.layout.fragment_plaza_post_detail) {
             return
         }
         binding.goneText.isVisible = false
-        binding.recyclerView.isVisible = true
-        binding.bottomBar.isVisible = true
+        binding.recyclerView.isVisible = !showLoadState
+        binding.bottomBar.isVisible = s.post != null
 
         val post = s.post
         if (post != null) {
@@ -189,7 +206,7 @@ class PlazaPostDetailFragment : Fragment(R.layout.fragment_plaza_post_detail) {
                 lastBoundAuthorUid = post.uid
                 commentsAdapter = PlazaCommentAdapter(postAuthorUid = post.uid)
                 val concat = ConcatAdapter(
-                    headerAdapter, commentsTitleAdapter, commentsEmptyAdapter, commentsAdapter,
+                    headerAdapter, commentsTitleAdapter, commentsEmptyAdapter, commentsAdapter, commentsFooter,
                 )
                 binding.recyclerView.adapter = concat
             }
@@ -198,10 +215,25 @@ class PlazaPostDetailFragment : Fragment(R.layout.fragment_plaza_post_detail) {
 
         commentsTitleAdapter.setTotal(s.commentsTotal)
         commentsEmptyAdapter.setVisible(
-            !s.commentsLoading && s.comments.isEmpty() && s.post != null
+            !s.commentsLoading && s.commentsError == null && s.comments.isEmpty() && s.post != null
         )
         commentsAdapter.submitList(s.comments)
+        commentsFooter.setPagingState(when {
+            s.commentsLoading -> PagingState.LoadingMore
+            s.commentsError != null -> PagingState.Error(AppError.Unknown(errorMessage(s.commentsError)))
+            else -> PagingState.Idle
+        })
         refreshSendEnabled()
+    }
+
+    private fun errorMessage(code: String?): String = when (code) {
+        "network" -> getString(R.string.chat_error_network_unavailable)
+        else -> code.orEmpty()
+    }
+
+    override fun onDestroyView() {
+        binding.recyclerView.adapter = null
+        super.onDestroyView()
     }
 
     private fun showMoreMenu(post: PlazaPost, anchor: View) {
@@ -214,7 +246,7 @@ class PlazaPostDetailFragment : Fragment(R.layout.fragment_plaza_post_detail) {
                 0, R.string.plaza_delete_confirm_yes, WitDialogAction.ACTION_PROP_NEGATIVE
             ) { d, _ ->
                 d.dismiss()
-                viewModel.delete(requireContext(), SessionManager.loggedInUid)
+                viewModel.delete(requireContext().applicationContext, SessionManager.loggedInUid)
             }
             .show()
     }

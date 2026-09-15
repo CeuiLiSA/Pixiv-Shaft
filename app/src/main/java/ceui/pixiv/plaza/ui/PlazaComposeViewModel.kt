@@ -12,6 +12,7 @@ import ceui.lisa.network.ShaftApiV2Client
 import ceui.pixiv.api.Client
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.db.RecordType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,7 +59,7 @@ class PlazaComposeViewModel : ViewModel() {
     private val metaCache = mutableMapOf<Long, Illust>()
 
     fun attachIllust(id: Long) {
-        if (id <= 0L) return
+        if (_state.value.isSending || id <= 0L) return
         if (_state.value.attachedIllusts.contains(id)) return
         if (_state.value.attachedIllusts.size >= 9) return
         // metaCache 上次会话已有(用户 remove 再 add 同 id),直接把 thumb 推回 state,
@@ -77,6 +78,7 @@ class PlazaComposeViewModel : ViewModel() {
     }
 
     fun removeIllust(id: Long) {
+        if (_state.value.isSending) return
         _state.value = _state.value.copy(
             attachedIllusts = _state.value.attachedIllusts.filter { it != id },
             thumbUrls = _state.value.thumbUrls - id,
@@ -107,6 +109,8 @@ class PlazaComposeViewModel : ViewModel() {
                         )
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.w(e, "[PlazaCompose] prefetchMeta failed id=$id")
             }

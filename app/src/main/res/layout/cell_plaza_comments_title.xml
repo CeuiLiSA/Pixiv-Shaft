@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- "Comments (N)" 标题条。Figma 风:全宽淡背景 + 12sp 80% 文字。
-     紧接帖卡下面,把"帖子内容"跟"评论区"在视觉上分开。 -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/title"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/v3_surface_1"
-    android:paddingStart="18dp"
-    android:paddingTop="10dp"
-    android:paddingEnd="18dp"
-    android:paddingBottom="10dp"
-    android:textColor="@color/v3_text_2"
-    android:textSize="12sp"
-    tools:text="评论 (2457)" />
+    android:paddingStart="4dp"
+    android:paddingTop="20dp"
+    android:paddingEnd="4dp"
+    android:paddingBottom="16dp"
+    android:textColor="@color/v3_text_1"
+    android:fontFamily="@font/montserrat_bold"
+    android:textSize="20sp" />

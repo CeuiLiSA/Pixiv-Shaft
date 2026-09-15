@@ -95,6 +95,8 @@ class PlazaCommentsTitleAdapter : RecyclerView.Adapter<PlazaCommentsTitleAdapter
 class PlazaPostHeaderAdapter(
     private val selfUid: Long,
     private val onMore: ((PlazaPost, View) -> Unit)?,
+    private val onLike: () -> Unit,
+    private val onComment: () -> Unit,
 ) : RecyclerView.Adapter<PlazaPostHeaderAdapter.VH>() {
 
     private var post: PlazaPost? = null
@@ -125,6 +127,8 @@ class PlazaPostHeaderAdapter(
             onMore = onMore,
             onCardClick = null, // 已经在详情页里,卡片不再可点
         )
+        holder.binding.likeChip.setOnClickListener { onLike() }
+        holder.binding.commentChip.setOnClickListener { onComment() }
     }
 
     class VH(val binding: CellPlazaPostBinding) : RecyclerView.ViewHolder(binding.root)

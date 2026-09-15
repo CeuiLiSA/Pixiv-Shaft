@@ -207,7 +207,7 @@ private class AttachedIllustAdapter(
         when (holder) {
             is AttachedVH -> {
                 val id = items[position]
-                holder.bind(id, thumbUrls[id], onRemove)
+                holder.bind(id, thumbUrls[id], addEnabled, onRemove)
             }
             is AddVH -> holder.bind(addEnabled, onAdd)
         }
@@ -215,10 +215,12 @@ private class AttachedIllustAdapter(
 
     class AttachedVH(val binding: CellPlazaAttachedIllustBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(id: Long, thumbUrl: String?, onRemove: (Long) -> Unit) {
-            binding.btnRemove.setOnClickListener { onRemove(id) }
+        fun bind(id: Long, thumbUrl: String?, enabled: Boolean, onRemove: (Long) -> Unit) {
+            binding.btnRemove.isEnabled = enabled
+            binding.btnRemove.setOnClickListener { if (enabled) onRemove(id) }
             if (thumbUrl.isNullOrEmpty()) {
                 // meta 还没回来或 fetch 失败 — 用 ID 占位顶一下,thumb 来了 rebind 自然换图
+                Glide.with(binding.thumb).clear(binding.thumb)
                 binding.thumb.setImageDrawable(null)
                 binding.placeholderId.isVisible = true
                 binding.placeholderId.text = id.toString()

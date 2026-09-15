@@ -121,19 +121,20 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
             } else {
                 horizon();
             }
-            applyToolbarInsets(view);
+            applyToolbarInsets(mActivity, view);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void applyToolbarInsets(@NonNull View root) {
+    /** Shared with plain Fragments that use the settings toolbar layout. */
+    public static void applyToolbarInsets(@NonNull FragmentActivity activity, @NonNull View root) {
         View toolbar = root.findViewById(R.id.toolbar);
         if (toolbar == null || !toolbar.getFitsSystemWindows()) {
             return;
         }
-        if (mActivity instanceof ceui.lisa.activities.BaseActivity
-                && !((ceui.lisa.activities.BaseActivity<?>) mActivity).hideStatusBar()) {
+        if (activity instanceof ceui.lisa.activities.BaseActivity
+                && !((ceui.lisa.activities.BaseActivity<?>) activity).hideStatusBar()) {
             return;
         }
         ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, windowInsets) -> {

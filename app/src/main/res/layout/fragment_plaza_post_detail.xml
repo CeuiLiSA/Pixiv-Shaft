@@ -8,29 +8,25 @@
 
      评论列表跟帖卡用一个 RecyclerView 装,避免嵌套滚动(ScrollView 套 RV 会
      pre-measure 全部子项 → 评论一多就卡 / 内存爆)。 -->
-<androidx.constraintlayout.widget.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/colorSurface"
-    android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
 
-    <!-- background 在 Fragment runtime 涂 Shaft.getThemeColor() —— 父 root 套了
-         Material3 overlay,?attr/colorPrimary 解出 M3 baseline tone 不是用户选的主题色。
-         不用 fitsSystemWindows —— EdgeToEdge 下会把 nav inset 也当 bottom padding,
-         toolbar 撑高一截;runtime updatePadding(top=statusBarHeight) 替代。 -->
+    <!-- 与 fragment_settings_hub 使用相同 Toolbar，顶部 inset 由 BaseFragment 处理。 -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        android:background="?attr/colorPrimary"
         android:elevation="@dimen/six_dp"
         android:theme="@style/AppTheme.AppBarOverlay"
         app:popupTheme="@style/AppTheme.PopupOverlay"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
         app:title=" "
         app:titleTextColor="@android:color/white">
@@ -40,86 +36,121 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginEnd="@dimen/sixteen_dp"
-            android:ellipsize="end"
-            android:singleLine="true"
             android:text="@string/plaza_post_detail_title"
-            android:textColor="@color/always_white"
+            android:textColor="@color/white"
             android:textSize="18sp" />
     </androidx.appcompat.widget.Toolbar>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:clipToPadding="false"
-        android:overScrollMode="never"
-        app:layout_constraintBottom_toTopOf="@id/bottom_bar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar" />
-
-    <!-- not_found 占位。覆盖在 RecyclerView 之上,bottom_bar 一起隐藏。 -->
-    <TextView
-        android:id="@+id/gone_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/plaza_post_gone"
-        android:textColor="@color/v3_text_2"
-        android:textSize="14sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/recycler_view"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/recycler_view"
-        tools:visibility="visible" />
-
-    <!-- 底部输入条 (Figma 风):圆角输入框 + 发送按钮。 -->
-    <LinearLayout
-        android:id="@+id/bottom_bar"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="14dp"
-        android:paddingTop="10dp"
-        android:paddingEnd="6dp"
-        android:paddingBottom="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:theme="@style/Theme.Material3.DayNight.NoActionBar">
 
-        <EditText
-            android:id="@+id/comment_input"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
             android:layout_width="0dp"
-            android:layout_height="38dp"
-            android:layout_weight="1"
-            android:background="@drawable/bg_plaza_input"
-            android:hint="@string/plaza_comment_hint"
-            android:imeOptions="actionSend"
-            android:importantForAutofill="no"
-            android:inputType="text|textCapSentences|textMultiLine"
-            android:maxLength="300"
+            android:layout_height="0dp"
+            android:clipToPadding="false"
             android:paddingStart="16dp"
-            android:paddingTop="6dp"
             android:paddingEnd="16dp"
-            android:paddingBottom="6dp"
-            android:textColor="@color/v3_text_1"
-            android:textColorHint="@color/v3_text_3"
+            android:overScrollMode="never"
+            android:paddingTop="8dp"
+            android:paddingBottom="24dp"
+            app:layout_constraintBottom_toTopOf="@id/bottom_bar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/load_state"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="32dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/bottom_bar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+            <ProgressBar android:id="@+id/initial_loading"
+                android:layout_width="40dp" android:layout_height="40dp"
+                android:contentDescription="@string/plaza_loading" />
+            <TextView android:id="@+id/load_message"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:gravity="center" android:textSize="14sp"
+                android:layout_marginTop="16dp" android:textColor="@color/v3_text_2" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/load_retry"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" android:text="@string/retry" />
+        </LinearLayout>
+
+        <!-- not_found 占位。覆盖在 RecyclerView 之上,bottom_bar 一起隐藏。 -->
+        <TextView
+            android:id="@+id/gone_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/plaza_post_gone"
+            android:textColor="@color/v3_text_2"
             android:textSize="14sp"
-            tools:ignore="Autofill,LabelFor,TextFields" />
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/recycler_view"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/recycler_view"
+            tools:visibility="visible" />
 
-        <ImageButton
-            android:id="@+id/btn_send"
-            android:layout_width="42dp"
-            android:layout_height="42dp"
-            android:layout_marginStart="6dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/plaza_send"
-            android:enabled="false"
-            android:src="@drawable/ic_send_24"
-            app:tint="@color/v3_text_2" />
-    </LinearLayout>
+        <!-- 底部输入条 (Figma 风):圆角输入框 + 发送按钮。 -->
+        <LinearLayout
+            android:id="@+id/bottom_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/v3_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="10dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <EditText
+                android:id="@+id/comment_input"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:maxLines="4"
+                android:layout_weight="1"
+                android:background="@drawable/bg_plaza_input"
+                android:hint="@string/plaza_comment_hint"
+                android:imeOptions="actionSend"
+                android:importantForAutofill="no"
+                android:inputType="text|textCapSentences|textMultiLine"
+                android:paddingStart="16dp"
+                android:paddingTop="12dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="12dp"
+                android:textColor="@color/v3_text_1"
+                android:textColorHint="@color/v3_text_2"
+                android:textSize="14sp"
+                tools:ignore="Autofill,LabelFor,TextFields" />
+
+            <ImageButton
+                android:id="@+id/btn_send"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/plaza_send"
+                android:enabled="false"
+                android:src="@drawable/ic_send_24"
+                app:tint="@color/v3_text_2" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

@@ -94,6 +94,12 @@ internal fun bindPlazaPostCard(
     onCardClick: ((PlazaPost) -> Unit)?,
 ) {
     val ctx = binding.root.context
+    val palette = ceui.pixiv.witstudio.theme.V3Palette.from(ctx)
+    binding.card.background = android.graphics.drawable.GradientDrawable().apply {
+        cornerRadius = 22f * ctx.resources.displayMetrics.density
+        setColor(palette.cardFill)
+        setStroke((1f * ctx.resources.displayMetrics.density).toInt().coerceAtLeast(1), palette.cardHairline)
+    }
 
     binding.displayName.text = post.display_name ?: post.uid.toString()
     binding.postTime.text = formatRelativeTime(ctx, post.ts)
@@ -142,16 +148,20 @@ private fun bindActionChips(binding: CellPlazaPostBinding, post: PlazaPost) {
 
 private fun bindIllustGrid(binding: CellPlazaPostBinding, illusts: List<PlazaIllustRef>) {
     val container = binding.illustGrid
+    // Holder 可能被 RecyclerView 复用到不同宽度的 pane；始终保留测量回调，
+    // 让旋转/分屏后的真实容器宽度重新计算网格，同时先清掉旧帖的引用图。
+    container.onMeasured = { bindIllustGrid(binding, illusts) }
     container.removeAllViews()
     if (illusts.isEmpty()) {
         container.isVisible = false
         return
     }
     container.isVisible = true
+    if (container.width <= 0) return
 
     // 屏宽 - illust_grid 容器自身左右 18dp margin。新版 cell 没 CardView
     // 包装,直接铺满父宽,卡片间用 divider 分隔。
-    val cardWidth = container.resources.displayMetrics.widthPixels - 36.ppppx
+    val cardWidth = container.width
     val gap = 4.ppppx
 
     when (illusts.size) {

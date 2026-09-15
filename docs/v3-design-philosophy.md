@@ -270,6 +270,8 @@ Hero 插图可使用两张相互遮叠的票卡，参考旋转 -14° / +12°，�
 
 Web 参考值和 Android 当前基础色**不完全相同**，这里统一的是视觉关系。新规范不会自动重写全 App 颜色，也不要求把 Web 原型嵌入 WebView。新增全局角色应同时补日夜资源并检查既有使用处；页面局部表达从主题派生。
 
+普通内容页需要与设置页对齐的顶栏时，复用 `fragment_settings_hub.xml` 的 Toolbar：`wrap_content`、`fitsSystemWindows=true`、宿主 `colorPrimary`、居中 18sp 标题和同款返回图标，并调用 `BaseFragment.applyToolbarInsets(activity, root)`。Material3 完整主题仅放在顶栏下方的内容容器，避免覆盖用户主色；不要用固定 Toolbar 高度再叠加状态栏 padding。真机对照设置页核验标题位置、顶栏高度和主题色。
+
 至少验证预设主色中的紫/粉/青绿/亮黄和一个自定义 HEX。背景跟随主题不代表文字已经可读；尤其亮黄不能仅用固定 HSL 亮度猜测。字号用 sp，布局用 dp，支持字体缩放与 TalkBack。
 
 [Android 官方无障碍建议](https://developer.android.com/guide/topics/ui/accessibility/apps) 提供文字对比度与触控尺寸依据。本规范将关键操作热区设为至少 48dp；旧原型的装饰小字与局部 44px 控件不是豁免。

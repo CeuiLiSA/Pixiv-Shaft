@@ -1,7 +1,6 @@
 package ceui.pixiv.plaza.ui
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -12,7 +11,7 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
+import ceui.lisa.fragments.BaseFragment
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentPlazaBinding
 import ceui.pixiv.chat.base.PagingFooterAdapter
@@ -25,7 +24,6 @@ import ceui.lisa.network.PlazaPost
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.widgets.LoadMoreScrollListener
 import ceui.pixiv.widgets.applyV3RefreshTheme
-import com.blankj.utilcode.util.BarUtils
 import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
@@ -50,11 +48,7 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // brand 色 + status bar top padding 必须 runtime —— M3 父 overlay 下
-        // XML 的 ?attr/colorPrimary 解出 baseline tone(不是用户主题色),
-        // fitsSystemWindows 又会被 EdgeToEdge 套进 nav inset 把 toolbar 撑高。
-        binding.toolbar.setBackgroundColor(Color.parseColor(Shaft.getThemeColor()))
-        binding.toolbar.updatePadding(top = BarUtils.getStatusBarHeight())
+        BaseFragment.applyToolbarInsets(requireActivity(), view)
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
@@ -87,7 +81,7 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
             onCardClick = ::openDetail,
         )
         val footerAdapter = PagingFooterAdapter().apply {
-            onRetry = { viewModel.loadMore(requireContext()) }
+            onRetry = { viewModel.loadMore(requireContext().applicationContext) }
         }
         val concatAdapter = androidx.recyclerview.widget.ConcatAdapter(feedAdapter, footerAdapter)
 
@@ -97,14 +91,14 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
         // load-more 走 RecyclerView 滚动监听;SwipeRefreshLayout 只管下拉刷新,
         // 上拉翻页没有手势入口,重入由 viewModel.loadMore 自己守卫。
         binding.recyclerView.addOnScrollListener(
-            LoadMoreScrollListener({ viewModel.loadMore(requireContext()) })
+            LoadMoreScrollListener({ viewModel.loadMore(requireContext().applicationContext) })
         )
 
         binding.refreshLayout.applyV3RefreshTheme()
         binding.refreshLayout.setOnRefreshListener {
-            viewModel.load(requireContext(), isSwipeRefresh = true)
+            viewModel.load(requireContext().applicationContext, isSwipeRefresh = true)
         }
-        binding.errorRetry.setOnClickListener { viewModel.load(requireContext()) }
+        binding.errorRetry.setOnClickListener { viewModel.load(requireContext().applicationContext) }
 
         // 状态订阅 + 事件
         var previousFirstId: Long? = null
@@ -127,6 +121,7 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
                 } else {
                     feedAdapter.submitList(s.items)
                 }
+                binding.initialLoading.isVisible = s.isInitialLoading && s.items.isEmpty()
                 val whiteScreen = !s.isInitialLoading && s.items.isEmpty()
                 binding.emptyView.isVisible = whiteScreen && s.initialError == null
                 binding.errorLayout.isVisible = whiteScreen && s.initialError != null
@@ -156,7 +151,13 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
         }
 
         // 首次进来加载
-        if (savedInstanceState == null) viewModel.load(requireContext())
+        viewModel.ensureLoaded(requireContext().applicationContext)
+    }
+
+    override fun onDestroyView() {
+        binding.recyclerView.adapter = null
+        binding.recyclerView.clearOnScrollListeners()
+        super.onDestroyView()
     }
 
     private fun openDetail(post: PlazaPost) {
@@ -187,7 +188,7 @@ class PlazaFragment : Fragment(R.layout.fragment_plaza) {
                 0, R.string.plaza_delete_confirm_yes, WitDialogAction.ACTION_PROP_NEGATIVE
             ) { d, _ ->
                 d.dismiss()
-                viewModel.deletePost(requireContext(), post, SessionManager.loggedInUid)
+                viewModel.deletePost(requireContext().applicationContext, post, SessionManager.loggedInUid)
             }
             .show()
     }
