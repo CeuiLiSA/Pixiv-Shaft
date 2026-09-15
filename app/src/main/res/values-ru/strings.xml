@@ -2908,6 +2908,8 @@
     <string name="bookmark_library_sync_queued">Копирование в очереди, ждём следующего окна</string>
     <string name="bookmark_library_sync_cooldown">Пауза, чтобы не превысить лимиты pixiv</string>
     <string name="bookmark_library_rebuild">Пересоздать локальную копию</string>
+    <string name="bookmark_library_rebuild_sim">Перестроить локальную копию (имитация)</string>
+    <string name="bookmark_library_rebuild_sim_restore">Вернуть копию до имитации</string>
     <string name="bookmark_library_filter_title">Фильтры и сортировка</string>
     <string name="bookmark_library_filter_reset">Сбросить</string>
     <string name="bookmark_library_filter_apply">Показать %1$s</string>
@@ -2916,6 +2918,7 @@
     <string name="bookmark_chip_random">Вперемешку</string>
     <string name="bookmark_chip_filter">Фильтры</string>
     <string name="bookmark_chip_filter_count">Фильтры · %1$d</string>
+    <string name="bookmark_chip_syncing">Копирование · фильтры недоступны</string>
     <string name="bookmark_chip_clear">Сбросить фильтры</string>
     <string name="bookmark_sort_bookmark_newest">Закладки · сначала новые</string>
     <string name="bookmark_sort_bookmark_oldest">Закладки · сначала старые</string>

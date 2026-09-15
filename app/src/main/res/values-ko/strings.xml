@@ -2899,6 +2899,8 @@
     <string name="bookmark_library_sync_queued">동기화 대기 중입니다</string>
     <string name="bookmark_library_sync_cooldown">pixiv 요청 제한을 피하려고 일시 중지했습니다</string>
     <string name="bookmark_library_rebuild">로컬 미러 다시 만들기</string>
+    <string name="bookmark_library_rebuild_sim">로컬 미러 재구성(모의)</string>
+    <string name="bookmark_library_rebuild_sim_restore">모의 전 보관함으로 복원</string>
     <string name="bookmark_library_filter_title">필터 및 정렬</string>
     <string name="bookmark_library_filter_reset">지우기</string>
     <string name="bookmark_library_filter_apply">%1$s개 보기</string>
@@ -2907,6 +2909,7 @@
     <string name="bookmark_chip_random">셔플</string>
     <string name="bookmark_chip_filter">필터</string>
     <string name="bookmark_chip_filter_count">필터 · %1$d</string>
+    <string name="bookmark_chip_syncing">미러 동기화 중 · 필터 사용 불가</string>
     <string name="bookmark_chip_clear">필터 지우기</string>
     <string name="bookmark_sort_bookmark_newest">북마크 · 최신순</string>
     <string name="bookmark_sort_bookmark_oldest">북마크 · 오래된 순</string>

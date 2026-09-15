@@ -2899,6 +2899,8 @@
     <string name="bookmark_library_sync_queued">同期待ちです。次のウィンドウで再開します</string>
     <string name="bookmark_library_sync_cooldown">pixiv のレート制限を避けるため一時停止中です</string>
     <string name="bookmark_library_rebuild">ローカルミラーを再構築</string>
+    <string name="bookmark_library_rebuild_sim">ローカルミラーを再構築（模擬）</string>
+    <string name="bookmark_library_rebuild_sim_restore">模擬前のライブラリに戻す</string>
     <string name="bookmark_library_filter_title">絞り込みと並べ替え</string>
     <string name="bookmark_library_filter_reset">クリア</string>
     <string name="bookmark_library_filter_apply">%1$s 件を表示</string>
@@ -2907,6 +2909,7 @@
     <string name="bookmark_chip_random">シャッフル</string>
     <string name="bookmark_chip_filter">絞り込み</string>
     <string name="bookmark_chip_filter_count">絞り込み · %1$d</string>
+    <string name="bookmark_chip_syncing">ミラー同期中 · 絞り込み不可</string>
     <string name="bookmark_chip_clear">絞り込みをクリア</string>
     <string name="bookmark_sort_bookmark_newest">ブックマーク · 新しい順</string>
     <string name="bookmark_sort_bookmark_oldest">ブックマーク · 古い順</string>
