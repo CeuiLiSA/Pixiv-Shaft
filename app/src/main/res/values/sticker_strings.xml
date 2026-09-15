@@ -1,0 +1,13 @@
+<resources>
+    <string name="sticker_title">贴纸</string>
+    <string name="sticker_close">关闭</string>
+    <string name="sticker_retry">重试</string>
+    <string name="sticker_customized">精选</string>
+    <string name="sticker_static">表情</string>
+    <string name="sticker_animation">动态</string>
+    <string name="sticker_checking">正在检查贴纸资源…</string>
+    <string name="sticker_downloading">正在下载贴纸：%1$d%%</string>
+    <string name="sticker_extracting">正在校验并解压贴纸…</string>
+    <string name="sticker_failed">贴纸准备失败：%1$s</string>
+    <string name="sticker_message">[贴纸]</string>
+</resources>

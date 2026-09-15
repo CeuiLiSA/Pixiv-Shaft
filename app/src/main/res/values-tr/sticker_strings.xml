@@ -1,0 +1,13 @@
+<resources>
+    <string name="sticker_title">Çıkartmalar</string>
+    <string name="sticker_close">Kapat</string>
+    <string name="sticker_retry">Yeniden dene</string>
+    <string name="sticker_customized">Öne çıkanlar</string>
+    <string name="sticker_static">Emoji</string>
+    <string name="sticker_animation">Hareketli</string>
+    <string name="sticker_checking">Çıkartmalar kontrol ediliyor…</string>
+    <string name="sticker_downloading">Çıkartmalar indiriliyor: %1$d%%</string>
+    <string name="sticker_extracting">Çıkartmalar doğrulanıyor ve açılıyor…</string>
+    <string name="sticker_failed">Çıkartmalar hazırlanamadı: %1$s</string>
+    <string name="sticker_message">[Çıkartma]</string>
+</resources>
