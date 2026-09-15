@@ -1,24 +1,29 @@
 package ceui.pixiv.plaza.ui
 
-import ceui.lisa.network.*
-import kotlinx.coroutines.flow.Flow
+import ceui.pixiv.api.Client
+import ceui.pixiv.plaza.*
+import ceui.pixiv.session.SessionManager
+import kotlinx.coroutines.flow.MutableStateFlow
+import retrofit2.HttpException
 
-/** Plaza transport and cross-screen updates, replaceable in state regression tests. */
-open class PlazaRepository {
-    open val plazaPostsCreated: Flow<PlazaPost> get() = ShaftApiV2Client.plazaPostsCreated
-    open val plazaPostsDeleted: Flow<Long> get() = ShaftApiV2Client.plazaPostsDeleted
-    open val plazaPostsUpdated: Flow<PlazaPost> get() = ShaftApiV2Client.plazaPostsUpdated
-    open fun cachedPlazaPost(id: Long) = ShaftApiV2Client.cachedPlazaPost(id)
-    open fun broadcastPostUpdated(post: PlazaPost) = ShaftApiV2Client.broadcastPostUpdated(post)
-    open suspend fun listPlazaFeed(limit: Int, before: Long?, viewerUid: Long) =
-        ShaftApiV2Client.listPlazaFeed(limit, before, viewerUid)
-    open suspend fun getPlazaPost(id: Long, viewerUid: Long) =
-        ShaftApiV2Client.getPlazaPost(id, viewerUid)
-    open suspend fun listPlazaComments(postId: Long, limit: Int, before: Long?) =
-        ShaftApiV2Client.listPlazaComments(postId, limit, before)
-    open suspend fun createPlazaComment(uid: Long, postId: Long, text: String) =
-        ShaftApiV2Client.createPlazaComment(uid, postId, text)
-    open suspend fun likePlazaPost(uid: Long, postId: Long) = ShaftApiV2Client.likePlazaPost(uid, postId)
-    open suspend fun unlikePlazaPost(uid: Long, postId: Long) = ShaftApiV2Client.unlikePlazaPost(uid, postId)
-    open suspend fun deletePlazaPost(uid: Long, postId: Long) = ShaftApiV2Client.deletePlazaPost(uid, postId)
+/** Tokyo Bearer API. Revisions survive a stopped screen and force fresh signed image URLs. */
+internal object PlazaRepository {
+    val revision = MutableStateFlow(0L)
+    val api get() = Client.plazaAPI
+    fun changed() { revision.value += 1 }
+    fun requireAccount(uid: Long) {
+        check(uid > 0 && uid == SessionManager.loggedInUid) { "账号已变化，请重新打开广场" }
+    }
+}
+internal fun plazaError(error: Exception): String = when (error) {
+    is HttpException -> when (error.code()) {
+        401 -> "广场认证未完成，请重试"
+        404 -> "帖子已删除或不存在"
+        409 -> "发布结果待确认，请重试或刷新广场"
+        429 -> "操作太频繁，请稍后重试"
+        413 -> "图片或内容超过限制"
+        else -> "请求失败（${error.code()}），请重试"
+    }
+    is java.io.IOException -> "网络连接失败，请重试"
+    else -> error.message ?: "操作失败，请重试"
 }

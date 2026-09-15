@@ -5,7 +5,7 @@ import okhttp3.Response
 
 internal object AuthRoutes {
     fun requiresSession(path: String): Boolean =
-        path.contains("/v1/account/") || path.startsWith("/v1/media/") ||
+        path.contains("/v1/account/") || path.startsWith("/v1/media/") || path.startsWith("/v1/plaza/") ||
             path.endsWith("/v1/push/ack")
 }
 

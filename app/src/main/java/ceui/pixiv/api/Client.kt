@@ -114,6 +114,10 @@ object Client {
      * Media metadata and short-lived COS upload/download authorisation.
      * Object bytes do not pass through the Tokyo API.
      */
+    val plazaAPI: ceui.pixiv.plaza.PlazaApi by lazy {
+        clientManager.createMediaService(ceui.pixiv.plaza.PlazaApi::class.java)
+    }
+
     val mediaAPI: MediaApi by lazy {
         clientManager.createMediaService(MediaApi::class.java)
     }

@@ -1,251 +1,184 @@
 package ceui.pixiv.plaza.ui
 
-import android.annotation.SuppressLint
-import android.graphics.Color
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.text.Editable
 import android.text.InputType
-import android.text.TextWatcher
-import android.view.LayoutInflater
+import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
+import android.widget.*
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.Toolbar
+import androidx.core.view.isVisible
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.fragment.app.viewModels
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
-import ceui.lisa.databinding.CellPlazaAddIllustBinding
-import ceui.lisa.databinding.CellPlazaAttachedIllustBinding
-import ceui.lisa.databinding.FragmentPlazaComposeBinding
-import ceui.lisa.utils.GlideUrlChild
+import ceui.lisa.fragments.BaseFragment
 import ceui.pixiv.chat.base.launchSuspend
-import ceui.pixiv.chat.base.viewBinding
-import ceui.pixiv.chat.base.viewModels
-import ceui.pixiv.session.SessionManager
-import com.blankj.utilcode.util.BarUtils
-import com.bumptech.glide.Glide
-import com.hjq.toast.Toaster
+import ceui.pixiv.shaftapi.MediaHttpTransport
 import ceui.pixiv.witstudio.dialog.WitDialog
+import com.bumptech.glide.Glide
 
-/**
- * 发帖编辑器(ProjZ Post Compose 风格)。
- *
- * 顶 bar 自绘 ✕ + Submit 胶囊,不再走 Toolbar/menu。空文本时 Submit 自动 disable,
- * 提交进行中所有控件一起 disable。
- *
- * 已附 illust 显示在底部 108dp 横滑列,列尾常驻虚线「+」槽(达 9 张时 hide)。
- * MVP 添加 illust 走输入 ID 弹窗,server 校验存在性。
- */
-class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_compose) {
-
-    private val binding by viewBinding(FragmentPlazaComposeBinding::bind)
-    private val viewModel by viewModels { PlazaComposeViewModel() }
-
+class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_shell) {
+    private val model: PlazaComposeViewModel by viewModels()
+    private val picker = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(9)) { uris ->
+        uris.take(9).forEach { uri -> runCatching { requireContext().contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) } }
+        model.attach(uris)
+    }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // 从插画详情「分享至广场」入口进来时,带 ARG_PREFILL_ILLUST_ID 自动附上这张
-        // illust。只在首次创建(savedInstanceState=null)时附,旋屏重建别重复 attach
-        // (VM 已经持有 attachedIllusts)。
+        val ctx = requireContext()
+        model.avatarUrl=ceui.pixiv.session.SessionManager.loggedInUser?.profile_image_urls?.medium
         if (savedInstanceState == null) {
-            val prefilled = arguments?.getLong(ARG_PREFILL_ILLUST_ID, 0L) ?: 0L
-            if (prefilled > 0L) viewModel.attachIllust(prefilled)
+            model.replyTo = arguments?.getLong(ARG_REPLY_TO)?.takeIf { it > 0 }
+            val id = arguments?.getLong(ARG_PREFILL_ILLUST_ID) ?: 0L
+            if (id > 0 && model.state.value.objectId == null) model.reference(id, arguments?.getString(ARG_OBJECT_TYPE)?.takeIf { it in listOf("illust", "manga", "novel", "user") } ?: "illust")
         }
-
-        // top bar 走 brand 色 + 跟 setupToolbar 同套(Shaft.getThemeColor 是
-        // AppTheme.IndexX 的 colorPrimary)。XML 里的 ?attr/colorPrimary 是 Material3
-        // baseline 的 fallback,brand 色才是用户切主题选过的。
-        binding.topBar.setBackgroundColor(Color.parseColor(Shaft.getThemeColor()))
-
-        // BaseActivity 走 EdgeToEdge,顶 bar 自己接 status bar inset 作 top padding —
-        // 跟 setupToolbar 走的是同一招(BarUtils 兜底用在拿不到 dispatched inset 时)。
-        binding.topBar.updatePadding(top = BarUtils.getStatusBarHeight())
-        ViewCompat.setOnApplyWindowInsetsListener(binding.topBar) { v, insets ->
-            val top = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top
-            if (top > 0) v.updatePadding(top = top)
-            insets
+        val header=setupPlazaHeader(view,if(model.replyTo!=null) "回复" else "新帖子",true)
+        header.action.text="发布"
+        val frame=view.findViewById<FrameLayout>(R.id.plaza_content)
+        val scroll=androidx.core.widget.NestedScrollView(ctx).apply {isFillViewport=true;clipToPadding=false}
+        frame.addView(scroll,FrameLayout.LayoutParams(-1,-1,Gravity.CENTER_HORIZONTAL))
+        frame.addOnLayoutChangeListener { _,l,_,r,_,_,_,_,_ ->
+            val width=minOf(r-l,ctx.dp(720))
+            if(scroll.layoutParams.width!=width) scroll.layoutParams=FrameLayout.LayoutParams(width,-1,Gravity.CENTER_HORIZONTAL)
         }
-
-        binding.btnClose.setOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
+        val column=LinearLayout(ctx).apply {orientation=LinearLayout.VERTICAL;setPadding(ctx.dp(16),ctx.dp(16),ctx.dp(16),ctx.dp(24))}
+        scroll.addView(column)
+        fun divider() { column.addView(View(ctx).apply {setBackgroundColor(ceui.pixiv.witstudio.theme.V3Palette.from(ctx).cardHairline)},
+            LinearLayout.LayoutParams(-1,ctx.dp(1).coerceAtLeast(1)).apply {topMargin=ctx.dp(16);bottomMargin=ctx.dp(16)}) }
+        val title=EditText(ctx).apply {
+            hint="标题（选填）";textSize=24f;typeface=androidx.core.content.res.ResourcesCompat.getFont(ctx,R.font.plaza_inter_bold)
+            background=null;setPadding(0,0,0,0);isSingleLine=true;includeFontPadding=false;minHeight=ctx.dp(36);setText(model.title)
+            setTextColor(androidx.core.content.ContextCompat.getColor(ctx,R.color.v3_text_1))
+            setHintTextColor(androidx.core.content.ContextCompat.getColor(ctx,R.color.v3_text_3));isSaveEnabled=false
+            filters=arrayOf(android.text.InputFilter.LengthFilter(240));id=R.id.plaza_draft_title
         }
-        binding.btnSubmit.setOnClickListener { trySubmit() }
-        updateSubmitEnabled(textNonEmpty = false, sending = false)
-
-        // 字数计数(按 UTF-16 units 估算,提交时按 code point 严格校)
-        binding.textCounter.text = getString(R.string.plaza_text_count, 0)
-        binding.textInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                val codePoints = s?.toString()?.codePointCount(0, s.length) ?: 0
-                binding.textCounter.text = getString(R.string.plaza_text_count, codePoints)
-                updateSubmitEnabled(
-                    textNonEmpty = !s.isNullOrBlank(),
-                    sending = viewModel.state.value.isSending,
-                )
+        column.addView(title,LinearLayout.LayoutParams(-1,-2));divider()
+        val input=EditText(ctx).apply {
+            hint="分享你的想法…";textSize=15f;typeface=androidx.core.content.res.ResourcesCompat.getFont(ctx,R.font.plaza_inter_medium)
+            background=null;setPadding(0,0,0,0);gravity=Gravity.TOP;includeFontPadding=false;figmaLineHeight(1.5f);minHeight=ctx.dp(260)
+            inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+            typeface=androidx.core.content.res.ResourcesCompat.getFont(ctx,R.font.plaza_inter_medium);figmaLineHeight(1.5f)
+            setTextColor(androidx.core.content.ContextCompat.getColor(ctx,R.color.v3_text_2))
+            setHintTextColor(androidx.core.content.ContextCompat.getColor(ctx,R.color.v3_text_3))
+            setText(model.text);id=R.id.plaza_draft_text;isSaveEnabled=false;filters=arrayOf(android.text.InputFilter.LengthFilter(8000))
+        }
+        column.addView(input,LinearLayout.LayoutParams(-1,-2))
+        val photosLabel=ctx.label("",13f).apply {setTextColor(androidx.core.content.ContextCompat.getColor(ctx,R.color.v3_text_2));letterSpacing=.035f}
+        column.addView(photosLabel,LinearLayout.LayoutParams(-1,-2).apply {topMargin=ctx.dp(12);bottomMargin=ctx.dp(8)})
+        val horizontal=HorizontalScrollView(ctx).apply {isHorizontalScrollBarEnabled=false;clipToPadding=false}
+        val previews=LinearLayout(ctx).apply {orientation=LinearLayout.HORIZONTAL}
+        horizontal.addView(previews);column.addView(horizontal,LinearLayout.LayoutParams(-1,ctx.dp(80)))
+        divider()
+        val referenceHeader=LinearLayout(ctx).apply {gravity=Gravity.CENTER_VERTICAL}
+        referenceHeader.addView(ctx.label("引用作品 / 用户",13f),LinearLayout.LayoutParams(0,-2,1f))
+        val ref=ImageView(ctx).apply {setImageResource(R.drawable.ic_plaza_figma_chevron)
+            imageTintList=android.content.res.ColorStateList.valueOf(ceui.pixiv.witstudio.theme.V3Palette.from(ctx).floatingPillContent)
+            contentDescription="添加引用";isClickable=true;isFocusable=true}
+        referenceHeader.addView(ref,LinearLayout.LayoutParams(ctx.dp(20),ctx.dp(20)))
+        column.addView(referenceHeader);referenceHeader.setOnClickListener {chooseReference()};ref.setOnClickListener {chooseReference()}
+        val reference=ctx.label("",14f).apply {
+            setTextColor(ceui.pixiv.witstudio.theme.V3Palette.from(ctx).textAccent)
+            background=ceui.pixiv.witstudio.theme.V3Palette.from(ctx).pillSecondary(ctx.dp(8).toFloat())
+            setPadding(ctx.dp(8),ctx.dp(4),ctx.dp(8),ctx.dp(4));minHeight=ctx.dp(28)
+            setOnClickListener {model.reference(null,null)}
+        }
+        column.addView(reference,LinearLayout.LayoutParams(-2,-2).apply {topMargin=ctx.dp(8)})
+        divider()
+        val error=ctx.label("").apply {setPadding(0,ctx.dp(12),0,ctx.dp(12));accessibilityLiveRegion=View.ACCESSIBILITY_LIVE_REGION_POLITE}
+        column.addView(error)
+        header.trailing.setOnClickListener {model.send(ctx.applicationContext.contentResolver)}
+        fun updateSend() {
+            header.trailing.isEnabled=model.canSend();header.action.alpha=if(header.trailing.isEnabled) 1f else .4f
+            photosLabel.text="图片 (${model.state.value.images.size}/9)"
+            error.text=when {
+                model.text.codePointCount(0,model.text.length)>2000 -> "正文最多 2000 字"
+                model.title.codePointCount(0,model.title.length)>120 -> "标题最多 120 字"
+                else -> model.state.value.error.orEmpty()
             }
-        })
-
-        // 已附 illust 横滑 + 列尾常驻「+」槽
-        val attachedAdapter = AttachedIllustAdapter(
-            onRemove = viewModel::removeIllust,
-            onAdd = ::showAddIllustDialog,
-        )
-        binding.attachedList.layoutManager =
-            LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-        binding.attachedList.adapter = attachedAdapter
-
-        launchSuspend {
-            viewModel.state.collect { s ->
-                attachedAdapter.submit(
-                    newItems = s.attachedIllusts,
-                    thumbUrls = s.thumbUrls,
-                    addEnabled = !s.isSending,
-                )
-                binding.attachedLabel.text =
-                    getString(R.string.plaza_attached_count, s.attachedIllusts.size)
-                binding.textInput.isEnabled = !s.isSending
-                updateSubmitEnabled(
-                    textNonEmpty = !binding.textInput.text.isNullOrBlank(),
-                    sending = s.isSending,
-                )
-            }
+            error.isVisible=error.text.isNotEmpty()
         }
+        title.doAfterTextChanged {model.title=it?.toString().orEmpty();updateSend()}
+        input.doAfterTextChanged {model.text=it?.toString().orEmpty();updateSend()}
+        var rendered:List<String>?=null
+        val progressLabels=mutableMapOf<String,TextView>()
         launchSuspend {
-            viewModel.events.collect { ev ->
-                when (ev) {
-                    is PlazaComposeViewModel.Event.Toast -> Toaster.showShort(ev.message)
-                    PlazaComposeViewModel.Event.Sent -> {
-                        // Plaza 端 SharedFlow 已经 prepend 好新帖,回到 plaza 立即可见。
-                        requireActivity().finish()
+            model.state.collect {state ->
+                if(state.sentId!=null) {requireActivity().finish();return@collect}
+                updateSend();input.isEnabled=!state.sending;title.isEnabled=!state.sending
+                ref.isEnabled=!state.sending;referenceHeader.isEnabled=!state.sending;reference.isEnabled=!state.sending
+                reference.isVisible=state.objectId!=null;reference.text="${objectLabel(state.objectType)} #${state.objectId}   ×"
+                reference.contentDescription="移除 ${objectLabel(state.objectType)} ${state.objectId} 引用"
+                header.action.text=if(state.sending) "发布中" else "发布"
+                val keys=state.images.map {it.uri}
+                if(keys!=rendered) {
+                    previews.removeAllViews();progressLabels.clear();rendered=keys
+                    val add=FrameLayout(ctx).apply {
+                        contentDescription="添加图片，最多 9 张";tag="add";isClickable=true;isFocusable=true
+                        background=android.graphics.drawable.GradientDrawable().apply {
+                            cornerRadius=ctx.dp(6).toFloat();setColor(ceui.pixiv.witstudio.theme.V3Palette.from(ctx).cardFill)
+                            setStroke(ctx.dp(2),ceui.pixiv.witstudio.theme.V3Palette.from(ctx).cardHairline,ctx.dp(4).toFloat(),ctx.dp(3).toFloat()) }
+                        addView(ImageView(ctx).apply {setImageResource(R.drawable.ic_plaza_figma_add_photo)
+                            imageTintList=android.content.res.ColorStateList.valueOf(ceui.pixiv.witstudio.theme.V3Palette.from(ctx).floatingPillContent)},FrameLayout.LayoutParams(ctx.dp(20),ctx.dp(20),Gravity.CENTER))
+                        setOnClickListener {MediaHttpTransport.prewarm();picker.launch(androidx.activity.result.PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))}
+                    }
+                    if(keys.size<9) previews.addView(add,LinearLayout.LayoutParams(ctx.dp(80),ctx.dp(80)).apply {marginEnd=ctx.dp(5)})
+                    state.images.forEachIndexed {index,image ->
+                        val tile=FrameLayout(ctx).apply {background=ceui.pixiv.witstudio.theme.V3Palette.from(ctx).pillSecondary(ctx.dp(4).toFloat());clipToOutline=true}
+                        val thumb=ImageView(ctx).apply {scaleType=ImageView.ScaleType.CENTER_CROP;contentDescription="已选图片 ${index+1}"}
+                        tile.addView(thumb,FrameLayout.LayoutParams(-1,-1))
+                        Glide.with(thumb).load(Uri.parse(image.uri)).override(ctx.dp(80),ctx.dp(80)).into(thumb)
+                        val remove=ctx.figmaIcon(R.drawable.ic_plaza_figma_close,"移除图片 ${index+1}",true).apply {tag="remove";setOnClickListener {model.remove(image.uri)}}
+                        // Exported 20dp close circle, with a 40dp touch target inside the thumbnail.
+                        val surface=remove.getChildAt(0);surface.layoutParams=(surface.layoutParams as FrameLayout.LayoutParams).apply {width=ctx.dp(20);height=ctx.dp(20);gravity=Gravity.TOP or Gravity.END;topMargin=ctx.dp(3);marginEnd=ctx.dp(3)}
+                        remove.icon.layoutParams=(remove.icon.layoutParams as FrameLayout.LayoutParams).apply {width=ctx.dp(15);height=ctx.dp(15)}
+                        tile.addView(remove,FrameLayout.LayoutParams(ctx.dp(40),ctx.dp(40),Gravity.TOP or Gravity.END))
+                        val progress=ctx.label("",12f).apply {gravity=Gravity.CENTER;setTextColor(ceui.pixiv.witstudio.theme.V3Palette.from(ctx).onPrimary)
+                            setBackgroundColor(ceui.pixiv.witstudio.theme.V3Palette.from(ctx).primary)}
+                        progressLabels[image.uri]=progress;tile.addView(progress,FrameLayout.LayoutParams(-1,ctx.dp(20),Gravity.BOTTOM))
+                        previews.addView(tile,LinearLayout.LayoutParams(ctx.dp(80),ctx.dp(80)).apply {marginEnd=ctx.dp(5)})
                     }
                 }
+                state.images.forEach {image ->progressLabels[image.uri]?.apply {isVisible=state.sending||image.mediaId!=null;text=if(image.mediaId!=null) "已上传" else "${image.progress}%"}}
+                previews.findViewWithTag<View>("add")?.isEnabled=!state.sending
+                for(i in 0 until previews.childCount) previews.getChildAt(i).findViewWithTag<View>("remove")?.isEnabled=!state.sending
             }
         }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner,object:OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if(model.state.value.sending) WitDialog.MessageDialogBuilder(ctx).setMessage("正在发布，请等待结果。").addAction("知道了") {d,_->d.dismiss()}.show()
+                else if(model.title.isNotBlank()||model.text.isNotBlank()||model.state.value.images.isNotEmpty()||model.state.value.objectId!=null)
+                    WitDialog.MessageDialogBuilder(ctx).setMessage("放弃这条草稿？").addAction("继续编辑") {d,_->d.dismiss()}
+                        .addAction("放弃") {d,_->d.dismiss();requireActivity().finish()}.show()
+                else requireActivity().finish()
+            }
+        })
+        MediaHttpTransport.prewarm()
     }
-
-    private fun updateSubmitEnabled(textNonEmpty: Boolean, sending: Boolean) {
-        val enabled = textNonEmpty && !sending
-        binding.btnSubmit.isEnabled = enabled
-        // disabled / sending 时整体 dim,跟 Figma 的 40% 不透明 Submit 一致
-        binding.btnSubmit.alpha = if (enabled) 1f else 0.4f
+    private fun chooseReference() {
+        // Selection and ID stay explicit; a manga reference is not silently rewritten as illust.
+        WitDialog.MenuDialogBuilder(requireContext()).addItems(arrayOf("插画", "漫画", "小说", "用户")) { dialog, which ->
+            dialog.dismiss(); inputReference(listOf("illust", "manga", "novel", "user")[which])
+        }.show()
     }
-
-    private fun trySubmit() {
-        val uid = SessionManager.loggedInUid
-        if (uid <= 0L) {
-            Toaster.showShort(R.string.plaza_login_required)
-            return
-        }
-        viewModel.submit(requireContext(), binding.textInput.text?.toString() ?: "", uid)
-    }
-
-    private fun showAddIllustDialog() {
+    private fun inputReference(type: String) {
         val builder = WitDialog.EditTextDialogBuilder(requireContext())
-        builder.setTitle(R.string.plaza_attach_illust_by_id)
-            .setPlaceholder(getString(R.string.plaza_attach_illust_id_hint))
+        builder.setTitle("引用${objectLabel(type)}").setPlaceholder("输入 Pixiv ID")
             .setInputType(InputType.TYPE_CLASS_NUMBER)
-            .addAction(R.string.plaza_delete_cancel) { d, _ -> d.dismiss() }
-            .addAction(android.R.string.ok) { d, _ ->
-                val id = builder.editText.text?.toString()?.trim()?.toLongOrNull()
-                if (id != null && id > 0L) viewModel.attachIllust(id)
-                d.dismiss()
-            }
-            .show()
+            .addAction("取消") { d,_ -> d.dismiss() }
+            .addAction("添加") { d,_ ->
+                val id = builder.editText.text.toString().trim().toLongOrNull()
+                if (id != null && id in 1..Int.MAX_VALUE.toLong()) { model.reference(id,type); d.dismiss() }
+                else builder.editText.error = "请输入有效的 Pixiv ID"
+            }.show()
     }
-
     companion object {
-        /** TemplateActivity 走 EXTRA_FRAGMENT="发帖" 时附带这条:打开编辑器并预附 illust。 */
         const val ARG_PREFILL_ILLUST_ID = "plaza_compose_prefill_illust_id"
-    }
-}
-
-/**
- * 双视图类型 adapter:已附 illust + 列尾「+」槽。
- * 上限 9 张时列尾「+」隐藏(getItemCount 不再 +1)。
- */
-private class AttachedIllustAdapter(
-    private val onRemove: (Long) -> Unit,
-    private val onAdd: () -> Unit,
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-    private val items = mutableListOf<Long>()
-    private var thumbUrls: Map<Long, String> = emptyMap()
-    private var addEnabled = true
-
-    @SuppressLint("NotifyDataSetChanged")
-    fun submit(newItems: List<Long>, thumbUrls: Map<Long, String>, addEnabled: Boolean) {
-        items.clear()
-        items.addAll(newItems)
-        this.thumbUrls = thumbUrls
-        this.addEnabled = addEnabled
-        notifyDataSetChanged()
-    }
-
-    private fun hasAddTile(): Boolean = items.size < MAX_ITEMS
-
-    override fun getItemCount(): Int = items.size + if (hasAddTile()) 1 else 0
-
-    override fun getItemViewType(position: Int): Int =
-        if (hasAddTile() && position == items.size) VIEW_TYPE_ADD else VIEW_TYPE_ATTACHED
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val inflater = LayoutInflater.from(parent.context)
-        return if (viewType == VIEW_TYPE_ADD) {
-            AddVH(CellPlazaAddIllustBinding.inflate(inflater, parent, false))
-        } else {
-            AttachedVH(CellPlazaAttachedIllustBinding.inflate(inflater, parent, false))
-        }
-    }
-
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when (holder) {
-            is AttachedVH -> {
-                val id = items[position]
-                holder.bind(id, thumbUrls[id], addEnabled, onRemove)
-            }
-            is AddVH -> holder.bind(addEnabled, onAdd)
-        }
-    }
-
-    class AttachedVH(val binding: CellPlazaAttachedIllustBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun bind(id: Long, thumbUrl: String?, enabled: Boolean, onRemove: (Long) -> Unit) {
-            binding.btnRemove.isEnabled = enabled
-            binding.btnRemove.setOnClickListener { if (enabled) onRemove(id) }
-            if (thumbUrl.isNullOrEmpty()) {
-                // meta 还没回来或 fetch 失败 — 用 ID 占位顶一下,thumb 来了 rebind 自然换图
-                Glide.with(binding.thumb).clear(binding.thumb)
-                binding.thumb.setImageDrawable(null)
-                binding.placeholderId.isVisible = true
-                binding.placeholderId.text = id.toString()
-            } else {
-                binding.placeholderId.isVisible = false
-                Glide.with(binding.thumb.context)
-                    .load(GlideUrlChild(thumbUrl))
-                    .placeholder(android.R.color.transparent)
-                    .into(binding.thumb)
-            }
-        }
-    }
-
-    class AddVH(val binding: CellPlazaAddIllustBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-        fun bind(enabled: Boolean, onAdd: () -> Unit) {
-            binding.root.isEnabled = enabled
-            binding.root.alpha = if (enabled) 1f else 0.4f
-            binding.root.setOnClickListener { if (enabled) onAdd() }
-        }
-    }
-
-    companion object {
-        private const val VIEW_TYPE_ATTACHED = 1
-        private const val VIEW_TYPE_ADD = 2
-        private const val MAX_ITEMS = 9
+        const val ARG_OBJECT_TYPE = "plaza_object_type"
+        const val ARG_REPLY_TO = "plaza_reply_to"
     }
 }

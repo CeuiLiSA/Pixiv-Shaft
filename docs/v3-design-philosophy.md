@@ -39,6 +39,12 @@ Android 复用 witstudio 与 V3Palette，尺寸用 dp/sp，关键操作热区至
 先校验业务语义，再检查视觉一致性；遇到信息不足要明确示例或待定值。
 ```
 
+### 广场的专项设计基准（2026-09-15）
+
+广场列表、帖子详情和创建帖子由用户指定以 [Five Degrees 的 Post 区域](https://www.figma.com/design/XIelCCTiUHLjsJ9BbLmFy3/Five-Degrees?node-id=10025-6103) 为布局基准。该范围的元素位置、尺寸、间距、Inter 字重与图标遵循 Figma；颜色映射到现有 `V3Palette` 和日夜资源。此专项约定不替换其他 V3 页面的 Montserrat 或设置页导航栏。
+
+所有帖子公开，不呈现可见范围设置；图片上限为 9 张，Linked Quest 对应 Pixiv 作品或用户引用。系统状态栏、键盘及字体放大使用 Android 原生能力。对照记录见 [广场设计验收](plaza-design-review.md)。
+
 ## 哪些是固定的，哪些可以变化
 
 | 固定关系 | 可以随页面变化 |

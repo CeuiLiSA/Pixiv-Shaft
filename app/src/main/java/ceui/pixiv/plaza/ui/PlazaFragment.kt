@@ -1,195 +1,104 @@
 package ceui.pixiv.plaza.ui
 
-import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.*
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import ceui.lisa.R
 import ceui.lisa.fragments.BaseFragment
-import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.databinding.FragmentPlazaBinding
-import ceui.pixiv.chat.base.PagingFooterAdapter
-import ceui.pixiv.chat.base.PagingState
 import ceui.pixiv.chat.base.launchSuspend
-import ceui.pixiv.chat.base.viewBinding
-import ceui.pixiv.chat.base.viewModels
-import ceui.pixiv.chat.core.AppError
-import ceui.lisa.network.PlazaPost
-import ceui.pixiv.session.SessionManager
-import ceui.pixiv.widgets.LoadMoreScrollListener
-import ceui.pixiv.widgets.applyV3RefreshTheme
-import com.hjq.toast.Toaster
+import ceui.pixiv.plaza.PlazaPost
 import ceui.pixiv.witstudio.dialog.WitDialog
-import ceui.pixiv.witstudio.dialog.WitDialogAction
-import ceui.pixiv.ui.navigation.TemplateRoute
+import ceui.pixiv.widgets.applyV3RefreshTheme
+import kotlinx.coroutines.launch
 
-/**
- * 广场。Toolbar 右上 + → 进发帖页;右下 FAB 备份入口 (移动端 reach 友好)。
- *
- * 列表用 ConcatAdapter(feedAdapter, footerAdapter):
- *   - feedAdapter:数据
- *   - footerAdapter:loading more / error 状态
- * 这套跟 chat 一致,UI 一致 + 复用 chat 的状态机。
- *
- * 删帖入口在每条卡片右上 ⋯ 菜单里,且仅自己发的帖子才显示 (卡片 onMore
- * 时判断 post.uid == SessionManager.loggedInUid)。
- */
-class PlazaFragment : Fragment(R.layout.fragment_plaza) {
+class PlazaFragment : PlazaTimelineFragment()
 
-    private val binding by viewBinding(FragmentPlazaBinding::bind)
-    private val viewModel by viewModels { PlazaViewModel() }
-
+open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
+    private val model: PlazaTimelineViewModel by viewModels()
+    private var recycler: RecyclerView? = null
+    protected open val postId get() = 0L
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        BaseFragment.applyToolbarInsets(requireActivity(), view)
-        binding.toolbar.setNavigationOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
+        val ctx = requireContext()
+        val header=setupPlazaHeader(view,if(postId>0) "帖子详情" else "广场")
+        header.action.text="发帖"
+        header.trailing.setOnClickListener { ctx.openComposer() }
+        val frame = view.findViewById<FrameLayout>(R.id.plaza_content)
+        val column = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
+        frame.addView(column, FrameLayout.LayoutParams(-1, -1, Gravity.CENTER_HORIZONTAL))
+        // Keep text and media readable on wide panes without changing toolbar geometry.
+        frame.addOnLayoutChangeListener { _, l, _, r, _, _, _, _, _ ->
+            val width = minOf(r - l, ctx.dp(720))
+            if (column.layoutParams.width != width) column.layoutParams = FrameLayout.LayoutParams(width, -1, Gravity.CENTER_HORIZONTAL)
         }
-        binding.toolbar.setOnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_plaza_compose) {
-                openCompose(); true
-            } else false
-        }
-        binding.fabCompose.setOnClickListener { openCompose() }
-
-        // 适配 nav bar / 手势条: FAB marginBottom = XML 基础值 + bar inset,
-        // RecyclerView paddingBottom 同步往下加,让最后一条 plaza 卡片不被
-        // FAB 或者 nav bar 挡住。
-        val fabBaseMarginBottom = (binding.fabCompose.layoutParams as ViewGroup.MarginLayoutParams).bottomMargin
-        val rvBasePaddingBottom = binding.recyclerView.paddingBottom
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
-            val nav = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
-            (binding.fabCompose.layoutParams as ViewGroup.MarginLayoutParams).apply {
-                bottomMargin = fabBaseMarginBottom + nav
-                binding.fabCompose.layoutParams = this
+        val status = ctx.label("").apply { gravity = Gravity.CENTER; setPadding(ctx.dp(16), ctx.dp(12), ctx.dp(16), ctx.dp(12)) }
+        column.addView(status, LinearLayout.LayoutParams(-1, -2))
+        status.setOnClickListener { model.refresh() }
+        val refresh = SwipeRefreshLayout(ctx)
+        val list = RecyclerView(ctx).apply { layoutManager = LinearLayoutManager(ctx); clipToPadding = false; setPadding(0,0,0,ctx.dp(16)) }
+        recycler = list
+        refresh.addView(list); column.addView(refresh, LinearLayout.LayoutParams(-1, 0, 1f))
+        refresh.applyV3RefreshTheme(); refresh.setOnRefreshListener { model.refresh() }
+        val adapter = PostAdapter(model::like, ::confirmDelete, ::preview, postId, model::react)
+        list.adapter = adapter
+        list.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                if (dy >= 0 && (rv.layoutManager as LinearLayoutManager).findLastVisibleItemPosition() >= adapter.itemCount - 4) model.more()
             }
-            binding.recyclerView.updatePadding(bottom = rvBasePaddingBottom + nav)
-            insets
-        }
-
-        // 列表 + 分页
-        val feedAdapter = PlazaFeedAdapter(
-            selfUid = SessionManager.loggedInUid,
-            onMore = ::onPostMore,
-            onCardClick = ::openDetail,
-        )
-        val footerAdapter = PagingFooterAdapter().apply {
-            onRetry = { viewModel.loadMore(requireContext().applicationContext) }
-        }
-        val concatAdapter = androidx.recyclerview.widget.ConcatAdapter(feedAdapter, footerAdapter)
-
-        val layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerView.layoutManager = layoutManager
-        binding.recyclerView.adapter = concatAdapter
-        // load-more 走 RecyclerView 滚动监听;SwipeRefreshLayout 只管下拉刷新,
-        // 上拉翻页没有手势入口,重入由 viewModel.loadMore 自己守卫。
-        binding.recyclerView.addOnScrollListener(
-            LoadMoreScrollListener({ viewModel.loadMore(requireContext().applicationContext) })
-        )
-
-        binding.refreshLayout.applyV3RefreshTheme()
-        binding.refreshLayout.setOnRefreshListener {
-            viewModel.load(requireContext().applicationContext, isSwipeRefresh = true)
-        }
-        binding.errorRetry.setOnClickListener { viewModel.load(requireContext().applicationContext) }
-
-        // 状态订阅 + 事件
-        var previousFirstId: Long? = null
-        launchSuspend {
-            viewModel.state.collect { s ->
-                // Prepend 检测:旧 top 还在新列表中、但已不在 index 0 → 列表头插入了新条目
-                // (发帖成功 / 别人发新帖后 plaza 同步进来都会触发)。命中时 submitList
-                // commit 后强制滚到 0,否则 RecyclerView 默认会把视口锚在旧 top,新帖
-                // 被推到屏外用户看不见。
-                val currentFirstId = s.items.firstOrNull()?.id
-                val didPrepend = previousFirstId != null &&
-                    currentFirstId != null &&
-                    currentFirstId != previousFirstId &&
-                    s.items.indexOfFirst { it.id == previousFirstId } > 0
-                previousFirstId = currentFirstId
-                if (didPrepend) {
-                    feedAdapter.submitList(s.items) {
-                        if (view.isAttachedToWindow) binding.recyclerView.scrollToPosition(0)
-                    }
-                } else {
-                    feedAdapter.submitList(s.items)
+        })
+        var replyBar:PlazaReplyBar?=null
+        if(postId>0) {
+            replyBar=PlazaReplyBar(ctx,reply={ctx.openComposer(postId)},react={
+                model.state.value.parent?.let {post->
+                    val emoji=arrayOf("👀","💪","👌","😂","🤔")
+                    WitDialog.MenuDialogBuilder(ctx).addItems(emoji) {d,i->d.dismiss();model.react(post,emoji[i])}.show()
                 }
-                binding.initialLoading.isVisible = s.isInitialLoading && s.items.isEmpty()
-                val whiteScreen = !s.isInitialLoading && s.items.isEmpty()
-                binding.emptyView.isVisible = whiteScreen && s.initialError == null
-                binding.errorLayout.isVisible = whiteScreen && s.initialError != null
-                if (s.initialError != null) {
-                    binding.errorText.text = getString(R.string.plaza_load_failed, s.initialError)
-                }
-                binding.refreshLayout.isRefreshing = s.isRefreshing
-                footerAdapter.setPagingState(
-                    when (val p = s.paging) {
-                        PlazaViewModel.PlazaPagingState.Idle -> PagingState.Idle
-                        PlazaViewModel.PlazaPagingState.LoadingMore -> PagingState.LoadingMore
-                        PlazaViewModel.PlazaPagingState.EndReached -> PagingState.EndReached
-                        is PlazaViewModel.PlazaPagingState.Error ->
-                            // wrap into AppError.Unknown so footerAdapter renders the message
-                            PagingState.Error(AppError.Unknown(p.message))
-                    }
-                )
-            }
+            },comments={
+                if(adapter.itemCount>1) list.smoothScrollToPosition(1) else ctx.openComposer(postId)
+            })
+            column.addView(replyBar)
+            header.trailing.removeAllViews()
+            header.trailing.addView(ctx.figmaIcon(R.drawable.ic_plaza_figma_more,"更多操作",true).apply {isClickable=false;isFocusable=false})
+            header.trailing.setOnClickListener { model.state.value.parent?.let {ctx.showPostMenu(it,::confirmDelete)} }
         }
         launchSuspend {
-            viewModel.events.collect { ev ->
-                when (ev) {
-                    is PlazaViewModel.Event.Toast ->
-                        Toaster.showShort(ev.message)
+            model.state.collect { state ->
+                val posts = listOfNotNull(state.parent) + state.items
+                adapter.busy = state.busyIds
+                adapter.submitList(posts)
+                refresh.isRefreshing = state.loading
+                status.text = when {
+                    state.error != null -> state.error + " · 点按重试"
+                    state.loading && posts.isEmpty() -> "正在加载…"
+                    posts.isEmpty() -> if (postId > 0) "帖子已删除或不存在" else if (model.mine) "还没有发布帖子" else "还没有帖子，分享你的第一条动态"
+                    state.loadingMore -> "正在加载更多…"
+                    else -> ""
                 }
+                status.isVisible = status.text.isNotEmpty()
+                replyBar?.bind(state.parent,postId in state.busyIds)
             }
         }
-
-        // 首次进来加载
-        viewModel.ensureLoaded(requireContext().applicationContext)
     }
-
-    override fun onDestroyView() {
-        binding.recyclerView.adapter = null
-        binding.recyclerView.clearOnScrollListeners()
-        super.onDestroyView()
+    override fun onResume() { super.onResume(); model.enter(postId) }
+    override fun onDestroyView() { recycler?.adapter = null; recycler = null; super.onDestroyView() }
+    private fun confirmDelete(post: PlazaPost) {
+        WitDialog.MessageDialogBuilder(requireContext()).setMessage("删除这条帖子？")
+            .addAction("取消") { d, _ -> d.dismiss() }
+            .addAction("删除") { d, _ -> d.dismiss(); model.delete(post) }.show()
     }
-
-    private fun openDetail(post: PlazaPost) {
-        val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PLAZA_POST_DETAIL.key)
-        intent.putExtra(PlazaPostDetailFragment.EXTRA_POST_ID, post.id)
-        startActivity(intent)
-    }
-
-    private fun openCompose() {
-        if (SessionManager.loggedInUid <= 0L) {
-            Toaster.showShort(R.string.plaza_login_required)
-            return
-        }
-        val intent = Intent(requireContext(), TemplateActivity::class.java)
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PLAZA_COMPOSE.key)
-        startActivity(intent)
-    }
-
-    private fun onPostMore(post: PlazaPost, anchor: View) {
-        // 只有自己的帖子才会到这里 (PlazaFeedAdapter 已按 selfUid 隐藏 ⋯ 按钮)。
-        // MVP 只有「删除」一项,QMUI 风格统一全 app 弹窗。
-        if (post.uid != SessionManager.loggedInUid) return
-        WitDialog.MessageDialogBuilder(requireContext())
-            .setMessage(R.string.plaza_delete_confirm)
-            .addAction(R.string.plaza_delete_cancel) { d, _ -> d.dismiss() }
-            .addAction(
-                0, R.string.plaza_delete_confirm_yes, WitDialogAction.ACTION_PROP_NEGATIVE
-            ) { d, _ ->
-                d.dismiss()
-                viewModel.deletePost(requireContext().applicationContext, post, SessionManager.loggedInUid)
-            }
-            .show()
+    private fun preview(post: PlazaPost, index: Int) {
+        if (childFragmentManager.findFragmentByTag("images") != null) return
+        PlazaImageViewer.newInstance(post, index).show(childFragmentManager, "images")
     }
 }

@@ -1,218 +1,115 @@
 package ceui.pixiv.plaza.ui
 
-import android.content.Context
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStore
-import ceui.lisa.network.*
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableSharedFlow
+import android.app.Application
+import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
+import ceui.pixiv.plaza.*
+import ceui.pixiv.shaftapi.MediaObject
+import kotlinx.coroutines.*
 import kotlinx.coroutines.test.*
-import org.junit.After
+import org.junit.*
 import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28], application = android.app.Application::class)
+@Config(sdk = [35], application = Application::class)
 class PlazaStateTest {
     private val dispatcher = StandardTestDispatcher()
-    private val store = ViewModelStore()
-    private val context: Context get() = RuntimeEnvironment.getApplication()
-    private val repo = FakeRepository()
-
     @Before fun setup() { Dispatchers.setMain(dispatcher) }
-    @After fun teardown() {
-        store.clear()
-        dispatcher.scheduler.runCurrent()
-        Dispatchers.resetMain()
+    @After fun tearDown() { Dispatchers.resetMain() }
+    private fun post(id: Long, liked: Boolean = false) = PlazaPost(id, 42, "Alice", "hello", 1, null, null, null,
+        if (liked) 1 else 0, 0, liked, emptyList())
+
+    @Test fun `composer limits images restores draft and validates all object kinds`() = runTest(dispatcher) {
+        val saved = SavedStateHandle()
+        val api = FakeApi()
+        val vm = PlazaComposeViewModel(saved, api, {42}, {"Alice"}) { _,_,_ -> error("no upload") }
+        vm.attach((1..10).map { Uri.parse("content://images/$it") })
+        assertEquals(9, vm.state.value.images.size)
+        assertNotNull(vm.state.value.error)
+        vm.text = "😀".repeat(2000); assertTrue(vm.canSend())
+        vm.text += "😀"; assertFalse(vm.canSend())
+        vm.text = "draft"
+        for (kind in listOf("illust", "manga", "novel", "user")) { vm.reference(123, kind); assertEquals(kind, vm.state.value.objectType) }
+        val restored = PlazaComposeViewModel(saved, api, {42}, {"Alice"}) { _,_,_ -> error("no upload") }
+        assertEquals("draft", restored.text); assertEquals(9, restored.state.value.images.size)
+        assertEquals("user", restored.state.value.objectType)
     }
 
-    private inline fun <reified T : ViewModel> keep(vm: T): T {
-        val factory = object : ViewModelProvider.Factory {
-            @Suppress("UNCHECKED_CAST")
-            override fun <V : ViewModel> create(modelClass: Class<V>): V = vm as V
+    @Test fun `retry reuses uploaded images and same request id after a lost create response`() = runTest(dispatcher) {
+        val saved = SavedStateHandle()
+        val api = FakeApi()
+        var uploads = 0
+        val vm = PlazaComposeViewModel(saved, api, {42}, {"Alice"}) { _,_,onProgress ->
+            uploads++; onProgress(100); MediaObject("media-$uploads", "key", "image/jpeg", 3, 10, 20, "1", "https://media.pixshaft.com/a", 999)
         }
-        return ViewModelProvider(store, factory)[T::class.java]
+        vm.attach(listOf(Uri.parse("content://images/1"), Uri.parse("content://images/2")))
+        api.createFails = true
+        vm.send(RuntimeEnvironment.getApplication().contentResolver); runCurrent()
+        assertEquals(2, uploads); assertNotNull(vm.state.value.error)
+        api.createFails = false
+        vm.send(RuntimeEnvironment.getApplication().contentResolver); runCurrent()
+        assertEquals(2, uploads); assertEquals(api.creates[0].requestId, api.creates[1].requestId)
+        assertEquals(listOf("media-1", "media-2"), api.creates[1].mediaIds)
+        assertNotNull(vm.state.value.sentId)
     }
 
-    private fun feed() = keep(PlazaViewModel(repo) { 7L })
-    private fun detail() = keep(PlazaPostDetailViewModel(10L, repo) { 7L })
-    private fun runPending() = dispatcher.scheduler.runCurrent()
-    private fun enqueueFeed() = CompletableDeferred<PlazaResult<PlazaFeedResponse>>().also { repo.feeds.add(it) }
-
-    @Test fun `restored feed loads once and returning view keeps loaded data`() {
-        val response = enqueueFeed()
-        val vm = feed()
-        vm.ensureLoaded(context)
-        vm.ensureLoaded(context)
-        runPending()
-        assertEquals(1, repo.feedCalls.size)
-        response.complete(PlazaResult.Ok(PlazaFeedResponse(listOf(post(10)), null)))
-        runPending()
-        vm.ensureLoaded(context)
-        runPending()
-        assertEquals(1, repo.feedCalls.size)
-        assertFalse(vm.state.value.isInitialLoading)
+    @Test fun `account changes prevent publishing a previous accounts draft`() = runTest(dispatcher) {
+        var uid = 42L
+        val api = FakeApi()
+        val vm = PlazaComposeViewModel(SavedStateHandle(), api, {uid}, {"Alice"}) { _,_,_ -> error("no upload") }
+        vm.text = "draft"; uid = 99
+        vm.send(RuntimeEnvironment.getApplication().contentResolver); runCurrent()
+        assertTrue(api.creates.isEmpty()); assertNotNull(vm.state.value.error); assertEquals("draft",vm.text)
     }
 
-    @Test fun `refresh cancels old pagination and preserves new cursor`() {
-        val first = enqueueFeed()
-        val vm = feed()
-        vm.load(context)
-        first.complete(PlazaResult.Ok(PlazaFeedResponse(listOf(post(10)), 10)))
-        runPending()
-        val page = enqueueFeed()
-        vm.loadMore(context)
-        runPending()
-        val refresh = enqueueFeed()
-        vm.load(context, true)
-        runPending()
-        refresh.complete(PlazaResult.Ok(PlazaFeedResponse(listOf(post(30)), 30)))
-        page.complete(PlazaResult.Ok(PlazaFeedResponse(listOf(post(9)), 9)))
-        runPending()
-        assertEquals(listOf(30L), vm.state.value.items.map { it.id })
-        enqueueFeed()
-        vm.loadMore(context)
-        runPending()
-        assertEquals(listOf(null, 10L, null, 30L), repo.feedCalls)
+    @Test fun `refresh cancels stale pagination and failed likes leave counts unchanged`() = runTest(dispatcher) {
+        val api = FakeApi()
+        api.pages.add(CompletableDeferred(PlazaPage(listOf(post(3)), 3)))
+        val stale = CompletableDeferred<PlazaPage>(); api.pages.add(stale)
+        api.pages.add(CompletableDeferred(PlazaPage(listOf(post(4)), null)))
+        val vm = PlazaTimelineViewModel(SavedStateHandle(), api, {42})
+        vm.enter(); runCurrent(); vm.more(); runCurrent(); vm.refresh(); runCurrent()
+        stale.complete(PlazaPage(listOf(post(2)), null)); runCurrent()
+        assertEquals(listOf(4L), vm.state.value.items.map { it.id })
+        api.likeFails = true; vm.like(post(4)); runCurrent()
+        assertEquals(0, vm.state.value.items.single().likeCount)
+        assertTrue(vm.state.value.busyIds.isEmpty()); assertNotNull(vm.state.value.error)
     }
 
-    @Test fun `stale refresh cannot resurrect deleted posts or erase new posts`() {
-        val response = enqueueFeed()
-        val vm = feed()
-        vm.load(context)
-        runPending()
-        repo.plazaPostsCreated.tryEmit(post(12))
-        repo.plazaPostsDeleted.tryEmit(10)
-        runPending()
-        response.complete(PlazaResult.Ok(PlazaFeedResponse(listOf(post(10), post(9)), null)))
-        runPending()
-        assertEquals(listOf(12L, 9L), vm.state.value.items.map { it.id })
+    @Test fun `refresh during mutation waits and duplicate taps make one request`() = runTest(dispatcher) {
+        val api = FakeApi()
+        api.pages.add(CompletableDeferred(PlazaPage(listOf(post(4)), null)))
+        api.pages.add(CompletableDeferred(PlazaPage(listOf(post(4,true)), null)))
+        api.likeGate = CompletableDeferred()
+        val vm = PlazaTimelineViewModel(SavedStateHandle(), api, {42})
+        vm.enter(); runCurrent(); vm.like(post(4)); vm.like(post(4)); runCurrent()
+        vm.refresh(); runCurrent(); assertEquals(1, api.feedCalls)
+        api.likeGate!!.complete(post(4,true)); runCurrent()
+        assertEquals(1, api.likeCalls); assertEquals(2,api.feedCalls)
+        assertTrue(vm.state.value.items.single().liked)
     }
 
-    @Test fun `overlapping pages do not duplicate cards`() {
-        val first = enqueueFeed()
-        val vm = feed()
-        vm.load(context)
-        first.complete(PlazaResult.Ok(PlazaFeedResponse(listOf(post(10)), 10)))
-        runPending()
-        val page = enqueueFeed()
-        vm.loadMore(context)
-        page.complete(PlazaResult.Ok(PlazaFeedResponse(listOf(post(10), post(9)), null)))
-        runPending()
-        assertEquals(listOf(10L, 9L), vm.state.value.items.map { it.id })
-    }
-
-    @Test fun `failed detail is retryable without recreating its activity`() {
-        repo.postResponse = PlazaResult.Err(0, "network", null)
-        val vm = detail()
-        runPending()
-        assertEquals("network", vm.state.value.loadError)
-        assertNull(vm.state.value.post)
-        repo.postResponse = PlazaResult.Ok(post(10))
-        vm.retry()
-        runPending()
-        assertEquals(10L, vm.state.value.post?.id)
-        assertNull(vm.state.value.loadError)
-    }
-
-    @Test fun `comment load error remains an error and retry restores comments`() {
-        repo.commentsResponse = PlazaResult.Err(0, "network", null)
-        val vm = detail()
-        runPending()
-        assertEquals("network", vm.state.value.commentsError)
-        repo.commentsResponse = PlazaResult.Ok(PlazaCommentsResponse(10, 1, listOf(comment()), null))
-        vm.retryComments()
-        runPending()
-        assertNull(vm.state.value.commentsError)
-        assertEquals(1, vm.state.value.comments.size)
-    }
-
-    @Test fun `like failure preserves a simultaneously posted comment count`() {
-        val vm = detail()
-        runPending()
-        vm.toggleLike(context)
-        runPending()
-        vm.postComment(context, "hello")
-        runPending()
-        assertEquals(1, vm.state.value.post?.comment_count)
-        repo.like.complete(PlazaResult.Err(0, "network", null))
-        runPending()
-        assertEquals(1, vm.state.value.post?.comment_count)
-        assertEquals(0, vm.state.value.post?.like_count)
-        assertEquals(false, vm.state.value.post?.liked_by_viewer)
-        assertEquals(false, repo.lastBroadcast?.liked_by_viewer)
-        assertEquals(1, repo.lastBroadcast?.comment_count)
-    }
-
-    @Test fun `duplicate taps issue only one like request`() {
-        val vm = detail()
-        runPending()
-        vm.toggleLike(context)
-        vm.toggleLike(context)
-        runPending()
-        assertEquals(1, repo.likeCalls)
-        repo.like.complete(PlazaResult.Ok(PlazaLikeResponse(true, added = true, like_count = 1)))
-        runPending()
-        assertEquals(true, vm.state.value.post?.liked_by_viewer)
-        assertEquals(1, vm.state.value.post?.like_count)
-    }
-
-    @Test fun `deleted post is not restored by a late like failure`() {
-        val vm = detail()
-        runPending()
-        vm.toggleLike(context)
-        runPending()
-        repo.plazaPostsDeleted.tryEmit(10)
-        runPending()
-        repo.like.complete(PlazaResult.Err(0, "network", null))
-        runPending()
-        assertTrue(vm.state.value.isGone)
-        assertNull(vm.state.value.post)
-    }
-
-    private class FakeRepository : PlazaRepository() {
-        override val plazaPostsCreated = MutableSharedFlow<PlazaPost>(extraBufferCapacity = 8)
-        override val plazaPostsDeleted = MutableSharedFlow<Long>(extraBufferCapacity = 8)
-        override val plazaPostsUpdated = MutableSharedFlow<PlazaPost>(extraBufferCapacity = 8)
-        val feeds = ArrayDeque<CompletableDeferred<PlazaResult<PlazaFeedResponse>>>()
-        val feedCalls = mutableListOf<Long?>()
-        var postResponse: PlazaResult<PlazaPost> = PlazaResult.Ok(post(10))
-        var commentsResponse: PlazaResult<PlazaCommentsResponse> =
-            PlazaResult.Ok(PlazaCommentsResponse(10, 0, emptyList(), null))
-        val like = CompletableDeferred<PlazaResult<PlazaLikeResponse>>()
-        var likeCalls = 0
-        var lastBroadcast: PlazaPost? = null
-        override fun cachedPlazaPost(id: Long): PlazaPost? = null
-        override fun broadcastPostUpdated(post: PlazaPost) {
-            lastBroadcast = post
-            plazaPostsUpdated.tryEmit(post)
+    private inner class FakeApi : PlazaApi {
+        val pages = ArrayDeque<CompletableDeferred<PlazaPage>>()
+        val creates = mutableListOf<CreatePost>()
+        var createFails = false; var likeFails = false
+        var likeGate: CompletableDeferred<PlazaPost>? = null
+        var feedCalls = 0; var likeCalls = 0
+        override suspend fun feed(before: Long?, limit: Int, author: Long?, replyTo: Long?): PlazaPage {
+            feedCalls++; return pages.removeFirst().await()
         }
-        override suspend fun listPlazaFeed(limit: Int, before: Long?, viewerUid: Long): PlazaResult<PlazaFeedResponse> {
-            feedCalls += before
-            return feeds.removeFirst().await()
-        }
-        override suspend fun getPlazaPost(id: Long, viewerUid: Long) = postResponse
-        override suspend fun listPlazaComments(postId: Long, limit: Int, before: Long?) = commentsResponse
-        override suspend fun likePlazaPost(uid: Long, postId: Long): PlazaResult<PlazaLikeResponse> {
-            likeCalls++
-            return like.await()
-        }
-        override suspend fun createPlazaComment(uid: Long, postId: Long, text: String): PlazaResult<PlazaComment> =
-            PlazaResult.Ok(comment())
-    }
-
-    companion object {
-        private fun post(id: Long) = PlazaPost(id, 7, "author", "body", 1,
-            PlazaPostRefs(), liked_by_viewer = false)
-        private fun comment() = PlazaComment(1, 10, 7, "author", "hello", 1)
+        override suspend fun post(id: Long) = this@PlazaStateTest.post(id)
+        override suspend fun create(request: CreatePost): PlazaPost { creates += request; if (createFails) throw IOException("lost"); return post(10) }
+        override suspend fun like(id: Long): PlazaPost { likeCalls++; if (likeFails) throw IOException("offline"); return likeGate?.await() ?: post(id,true) }
+        override suspend fun unlike(id: Long) = post(id,false)
+        override suspend fun react(id: Long, emoji: String) = post(id)
+        override suspend fun unreact(id: Long, emoji: String) = post(id)
+        override suspend fun delete(id: Long) = DeletePost(true)
     }
 }

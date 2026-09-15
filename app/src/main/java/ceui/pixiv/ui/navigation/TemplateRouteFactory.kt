@@ -476,9 +476,11 @@ object TemplateRouteFactory {
         // 广场右上「+」入口不带,走空白编辑器。
         TemplateRoute.PLAZA_COMPOSE -> PlazaComposeFragment().apply {
             val prefillIllustId = intent.getLongExtra(PlazaComposeFragment.ARG_PREFILL_ILLUST_ID, 0L)
-            if (prefillIllustId > 0L) {
-                arguments = bundleOf(PlazaComposeFragment.ARG_PREFILL_ILLUST_ID to prefillIllustId)
-            }
+            arguments = bundleOf(
+                PlazaComposeFragment.ARG_PREFILL_ILLUST_ID to prefillIllustId,
+                PlazaComposeFragment.ARG_OBJECT_TYPE to intent.getStringExtra(PlazaComposeFragment.ARG_OBJECT_TYPE),
+                PlazaComposeFragment.ARG_REPLY_TO to intent.getLongExtra(PlazaComposeFragment.ARG_REPLY_TO, 0L),
+            )
         }
         // 从广场卡片点 illust 缩略走这条;只带 ILLUST_ID, ArtworkV3ViewModel 自己按 id lazy load。
         TemplateRoute.PLAZA_OPEN_ILLUST -> ArtworkV3Fragment.newInstance(intent.getIntExtra(Params.ILLUST_ID, 0))

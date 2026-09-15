@@ -1447,6 +1447,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                         ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_PREFILL_ILLUST_ID,
                         illust.id,
                     )
+                    intent.putExtra(ceui.pixiv.plaza.ui.PlazaComposeFragment.ARG_OBJECT_TYPE,
+                        if (illust.type == "manga") "manga" else "illust")
                     startActivity(intent)
                 }
             }
