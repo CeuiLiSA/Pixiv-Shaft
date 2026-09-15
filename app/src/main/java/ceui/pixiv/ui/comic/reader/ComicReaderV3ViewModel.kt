@@ -70,7 +70,7 @@ class ComicReaderV3ViewModel(val illustId: Long) : ViewModel() {
     private val jumpSeries = ComicReaderGraph.jumpSeriesUseCase
 
     fun load() {
-        if (_loadState.value is LoadState.Loading) return
+        if (_loadState.value is LoadState.Loading || _loadState.value is LoadState.Loaded) return
         _loadState.value = LoadState.Loading
         val cached = ObjectPool.getIllust(illustId).value
         if (cached != null) {

@@ -24,6 +24,7 @@ object ComicReaderSettings {
         object Brightness : ChangeEvent()
         object Interaction : ChangeEvent()
         object Image : ChangeEvent()
+        object Orientation : ChangeEvent()
     }
 
     enum class ReadingMode { Paged, Webtoon }
@@ -72,6 +73,10 @@ object ComicReaderSettings {
     var immersive: Boolean
         get() = store.decodeBool(K_IMMERSIVE, true)
         set(value) { store.encode(K_IMMERSIVE, value); emit(ChangeEvent.Interaction) }
+
+    var autoRotateImage: Boolean
+        get() = store.decodeBool(K_AUTO_ROTATE_IMAGE, false)
+        set(value) { store.encode(K_AUTO_ROTATE_IMAGE, value); emit(ChangeEvent.Orientation) }
 
     var tapZoneReversed: Boolean
         get() = store.decodeBool(K_TAP_REVERSED, false)
@@ -129,6 +134,7 @@ object ComicReaderSettings {
     private const val K_BRIGHTNESS = "c_brightness"
     private const val K_KEEP_SCREEN_ON = "c_keep_screen_on"
     private const val K_IMMERSIVE = "c_immersive"
+    private const val K_AUTO_ROTATE_IMAGE = "c_auto_rotate_image"
     private const val K_TAP_REVERSED = "c_tap_reversed"
     private const val K_VOLUME_FLIP = "c_volume_flip"
     private const val K_PRELOAD = "c_preload"

@@ -258,6 +258,18 @@
 
                 </RelativeLayout>
 
+                <RelativeLayout
+                    android:id="@+id/comic_reader_auto_rotate_image_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+                    <LinearLayout style="@style/M3SetTexts">
+                        <TextView style="@style/M3SetTitle" android:text="@string/comic_reader_auto_rotate_image" />
+                    </LinearLayout>
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/comic_reader_auto_rotate_image"
+                        style="@style/M3SetSwitch" />
+                </RelativeLayout>
+
                 <LinearLayout
                     android:id="@+id/double_tap_zoom_group"
                     android:layout_width="match_parent"

@@ -1591,6 +1591,7 @@
     <!-- 作品详情页里直接滑图时的常驻页码浮标(#1058)。纯数字，各语言一致。 -->
     <string name="artwork_page_indicator">%1$d / %2$d</string>
     <string name="comic_reader_jump_to_page">%1$d 페이지로 이동</string>
+    <string name="comic_reader_auto_rotate_image">가로 이미지 자동 회전</string>
     <string name="comic_reader_open_label">읽기 시작</string>
     <string name="comic_reader_load_failed">불러오기 실패: %1$s</string>
     <string name="comic_reader_no_pages">표시할 페이지가 없습니다</string>

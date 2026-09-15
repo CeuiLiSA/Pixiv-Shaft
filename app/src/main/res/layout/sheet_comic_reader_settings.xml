@@ -149,6 +149,14 @@
                 <View style="@style/ReaderRowDivider"/>
 
                 <include
+                    android:id="@+id/row_auto_rotate_image"
+                    layout="@layout/item_reader_setting_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <View style="@style/ReaderRowDivider"/>
+
+                <include
                     android:id="@+id/row_show_page_number"
                     layout="@layout/item_reader_setting_switch"
                     android:layout_width="match_parent"

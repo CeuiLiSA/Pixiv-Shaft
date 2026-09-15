@@ -137,9 +137,9 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 fragmentManager.beginTransaction()
                         .add(R.id.fragment_container, fragment)
                         .commit();
-                childFragment = fragment;
             }
         }
+        childFragment = fragment;
     }
 
     @Override

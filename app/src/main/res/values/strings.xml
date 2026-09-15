@@ -1748,6 +1748,7 @@
     <!-- 作品详情页里直接滑图时的常驻页码浮标(#1058)。纯数字，各语言一致。 -->
     <string name="artwork_page_indicator">%1$d / %2$d</string>
     <string name="comic_reader_jump_to_page">跳转到第 %1$d 页</string>
+    <string name="comic_reader_auto_rotate_image">看图自动横屏</string>
     <string name="comic_reader_open_label">进入阅读</string>
     <string name="comic_reader_load_failed">加载失败：%1$s</string>
     <string name="comic_reader_no_pages">该作品没有可阅读的页面</string>

@@ -146,6 +146,7 @@ object SettingsCatalog {
         add(Entry(VIEWING, "ugoira_auto_play_rela", R.string.ugoira_auto_play, keywords = "动图 自动播放 自动下载 播放 gif ugoira auto play download"))
         add(Entry(VIEWING, "keep_status_bar_when_view_image_rela", R.string.keep_status_bar_when_view_image, keywords = "状态栏 刘海 挖孔 全屏 沉浸 notch"))
         add(Entry(VIEWING, "illust_detail_keep_screen_on_rela", R.string.string_451, keywords = "常亮 息屏 熄屏 屏幕 keep screen on"))
+        add(Entry(VIEWING, "comic_reader_auto_rotate_image_rela", R.string.comic_reader_auto_rotate_image, keywords = "阅读器 漫画 横屏 横向 自动旋转 旋转 屏幕 orientation landscape comic reader"))
         add(Entry(VIEWING, "double_tap_zoom_mode_rela", R.string.double_tap_zoom_mode_title, keywords = "双击 放大 缩放 默认 三级 增量 智能 zoom"))
         add(Entry(VIEWING, "custom_zoom_scale_rela", R.string.custom_zoom_scale_title, R.string.custom_zoom_scale_link_text, keywords = "缩放 增量 倍率 三级 zoom scale"))
         add(Entry(VIEWING, "use_custom_long_press_reset_rela", R.string.use_custom_long_press_reset, R.string.use_custom_long_press_reset_link_text, keywords = "长按 复位 还原 复用 缩放 reset"))
