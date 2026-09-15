@@ -17,7 +17,7 @@ class ComicWindowController(
     savedState: Bundle? = null,
 ) {
     private val window get() = activity.window
-    private val originalOrientation = savedState?.getInt(KEY_ORIGINAL_ORIENTATION)
+    private val originalOrientation = savedState?.getInt(KEY_ORIGINAL_ORIENTATION, activity.requestedOrientation)
         ?: activity.requestedOrientation
     private var orientationOverridden = savedState?.getBoolean(KEY_ORIENTATION_OVERRIDDEN) ?: false
 
