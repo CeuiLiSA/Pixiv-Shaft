@@ -8,13 +8,11 @@ import ceui.lisa.R;
 /**
  * 侧边栏动作的唯一图标目录。
  *
- * <p>侧边栏和「我的」页会展示同一批动作。图标按动作而不是按页面配置，避免两个入口
- * 独立维护后出现语义漂移。未知动作使用中性的帮助图标，保证动态入口不会因图标缺失崩溃。</p>
+ * <p>侧边栏和「我的」页会展示同一批动作。图标按动作而不是按页面配置，避免两个入口 独立维护后出现语义漂移。未知动作使用中性的帮助图标，保证动态入口不会因图标缺失崩溃。
  */
 public final class DrawerIconCatalog {
 
-    private DrawerIconCatalog() {
-    }
+    private DrawerIconCatalog() {}
 
     @DrawableRes
     public static int iconFor(@IdRes int actionId) {

@@ -1,44 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        tools:node="remove" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove"/>
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28"
-        tools:node="replace" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission
-        android:name="android.permission.READ_PHONE_STATE"
-        tools:node="remove" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+        tools:node="replace"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="remove"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <!-- 收到 DM 消息时短震一下(ChatHapticBridge)。无 runtime grant 要求。 -->
-    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
     <!-- 「设为壁纸」在系统没有裁剪器时退回 WallpaperManager.setStream(WallpaperSetter)。normal 级,无 runtime grant。 -->
-    <uses-permission android:name="android.permission.SET_WALLPAPER" />
-
+    <uses-permission android:name="android.permission.SET_WALLPAPER"/>
     <queries>
-        <package android:name="com.sina.weibo" />
+        <package android:name="com.sina.weibo"/>
         <!-- Chrome Custom Tabs：Android 11+ 包可见性要求 -->
         <intent>
-            <action android:name="android.support.customtabs.action.CustomTabsService" />
+            <action android:name="android.support.customtabs.action.CustomTabsService"/>
         </intent>
         <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <category android:name="android.intent.category.BROWSABLE" />
-            <data android:scheme="https" />
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data android:scheme="https"/>
         </intent>
         <intent>
-            <action android:name="android.intent.action.ATTACH_DATA" />
-            <data android:mimeType="image/*" />
+            <action android:name="android.intent.action.ATTACH_DATA"/>
+            <data android:mimeType="image/*"/>
         </intent>
     </queries>
-
     <application
         android:name=".activities.Shaft"
         android:allowBackup="true"
@@ -56,20 +50,16 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="UnusedAttribute">
-
         <!-- issue #931: 声明使用 Activity Embedding 分栏（Android 14+ 系统按它放行嵌入） -->
         <property
             android:name="android.window.PROPERTY_ACTIVITY_EMBEDDING_SPLITS_ENABLED"
-            android:value="true" />
-
+            android:value="true"/>
         <!-- AppCompat per-app locale backport (Android 12-) -->
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"
             android:exported="false">
-            <meta-data
-                android:name="autoStoreLocales"
-                android:value="true" />
+            <meta-data android:name="autoStoreLocales" android:value="true"/>
         </service>
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -78,9 +68,8 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths" />
+                android:resource="@xml/provider_paths"/>
         </provider>
-
         <!-- Muzei 动态壁纸来源(issue #548)。authority 跟随 applicationId,debug/release 包不撞。
              exported + ACCESS_PROVIDER 签名级权限是 Muzei 的固定要求,只有 Muzei 本体能读。 -->
         <provider
@@ -91,11 +80,11 @@
             android:label="@string/muzei_provider_label"
             android:permission="com.google.android.apps.muzei.api.ACCESS_PROVIDER">
             <intent-filter>
-                <action android:name="com.google.android.apps.muzei.api.MuzeiArtProvider" />
+                <action android:name="com.google.android.apps.muzei.api.MuzeiArtProvider"/>
             </intent-filter>
             <meta-data
                 android:name="settingsActivity"
-                android:value="ceui.pixiv.muzei.MuzeiSettingsActivity" />
+                android:value="ceui.pixiv.muzei.MuzeiSettingsActivity"/>
         </provider>
         <!-- 让 Muzei 已缓存的壁纸出现在系统文件选择器 / Files 里(官方推荐附带) -->
         <provider
@@ -105,7 +94,7 @@
             android:grantUriPermissions="true"
             android:permission="android.permission.MANAGE_DOCUMENTS">
             <intent-filter>
-                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER"/>
             </intent-filter>
         </provider>
         <!-- Muzei 的「来源设置」入口指过来,必须 exported;也从 Shaft 设置 → 界面 进入 -->
@@ -113,50 +102,40 @@
             android:name="ceui.pixiv.muzei.MuzeiSettingsActivity"
             android:exported="true"
             android:label="@string/muzei_settings_title"
-            android:theme="@style/SplashTheme" />
-
+            android:theme="@style/SplashTheme"/>
         <activity
             android:name=".activities.MainActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:exported="true"
             android:theme="@style/SplashTheme">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="www.pixiv.net"
-                    android:path="/"
-                    android:scheme="http" />
-                <data
-                    android:host="www.pixiv.net"
-                    android:path="/"
-                    android:scheme="https" />
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:host="www.pixiv.net" android:path="/" android:scheme="http"/>
+                <data android:host="www.pixiv.net" android:path="/" android:scheme="https"/>
             </intent-filter>
         </activity>
         <activity
             android:name=".activities.TemplateActivity"
             android:theme="@style/SplashTheme"
-            android:windowSoftInputMode="adjustPan" />
+            android:windowSoftInputMode="adjustPan"/>
         <activity
             android:name="ceui.pixiv.shaftapi.MediaDemoActivity"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/AppTheme"/>
         <activity
             android:name=".activities.RankActivity"
             android:enableOnBackInvokedCallback="true"
-            android:theme="@style/SplashTheme" />
+            android:theme="@style/SplashTheme"/>
         <activity
             android:name=".activities.ImageDetailActivity"
             android:enableOnBackInvokedCallback="true"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            android:theme="@style/ImageViewerTheme" />
+            android:theme="@style/ImageViewerTheme"/>
         <activity
             android:name=".activities.OutWakeActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
@@ -164,170 +143,137 @@
             android:label="@string/out_wake_label"
             android:theme="@style/SplashTheme">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-                <data android:host="www.pixiv.net" />
-                <data android:host="touch.pixiv.net" />
-                <data android:host="pixiv.net" />
-                <data android:pathPrefix="/member_illust.php" />
-                <data android:pathPrefix="/novel/show.php" />
-                <data android:pathPrefix="/novel/member.php" />
-                <data android:pathPrefix="/member.php" />
-                <data android:pathPrefix="/premium/android" />
-                <data android:pathPrefix="/artworks/" />
-                <data android:pathPrefix="/en/artworks/" />
-                <data android:pathPrefix="/users/" />
-                <data android:pathPrefix="/en/users/" />
-                <data android:pathPrefix="/i/" />
-                <data android:pathPrefix="/u/" />
-                <data android:pathPrefix="/n/" />
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:host="www.pixiv.net"/>
+                <data android:host="touch.pixiv.net"/>
+                <data android:host="pixiv.net"/>
+                <data android:pathPrefix="/member_illust.php"/>
+                <data android:pathPrefix="/novel/show.php"/>
+                <data android:pathPrefix="/novel/member.php"/>
+                <data android:pathPrefix="/member.php"/>
+                <data android:pathPrefix="/premium/android"/>
+                <data android:pathPrefix="/artworks/"/>
+                <data android:pathPrefix="/en/artworks/"/>
+                <data android:pathPrefix="/users/"/>
+                <data android:pathPrefix="/en/users/"/>
+                <data android:pathPrefix="/i/"/>
+                <data android:pathPrefix="/u/"/>
+                <data android:pathPrefix="/n/"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-                <data android:host="www.pixiv.me" />
-                <data android:host="pixiv.me" />
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:host="www.pixiv.me"/>
+                <data android:host="pixiv.me"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="pixiv" />
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="pixiv"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="shaftintent" />
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="shaftintent"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="http" />
-                <data android:scheme="https" />
-                <data android:host="www.pixivision.net" />
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:host="www.pixivision.net"/>
             </intent-filter>
         </activity>
-
-        <meta-data
-            android:name="android.max_aspect"
-            android:value="2.4" />
-        <meta-data
-            android:name="notch.config"
-            android:value="portrait|landscape" />
-        <meta-data
-            android:name="ceui.lisa.core.GlideConfiguration"
-            android:value="GlideModule" />
-
+        <meta-data android:name="android.max_aspect" android:value="2.4"/>
+        <meta-data android:name="notch.config" android:value="portrait|landscape"/>
+        <meta-data android:name="ceui.lisa.core.GlideConfiguration" android:value="GlideModule"/>
         <activity
             android:name=".activities.SearchActivity"
             android:enableOnBackInvokedCallback="true"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:theme="@style/SplashTheme"
-            android:windowSoftInputMode="stateHidden" />
-        <activity android:name=".activities.VActivity"
-            android:enableOnBackInvokedCallback="true" />
+            android:windowSoftInputMode="stateHidden"/>
+        <activity android:name=".activities.VActivity" android:enableOnBackInvokedCallback="true"/>
         <activity
             android:name=".activities.UActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            android:theme="@style/SplashTheme" />
+            android:theme="@style/SplashTheme"/>
         <activity
             android:name=".activities.UserActivityV3"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            android:theme="@style/SplashTheme" />
+            android:theme="@style/SplashTheme"/>
         <activity
             android:name=".activities.OutReversActivity"
             android:exported="true"
             android:label="@string/string_311"
             android:theme="@style/SplashTheme">
             <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <data android:mimeType="image/*" />
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="image/*"/>
             </intent-filter>
         </activity>
         <activity
             android:name="ceui.pixiv.ui.slideshow.SlideshowActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|keyboardHidden"
-            android:theme="@style/SlideshowTheme" />
+            android:theme="@style/SlideshowTheme"/>
         <activity
             android:name="ceui.pixiv.ui.embedding.SplitPlaceholderActivity"
-            android:exported="false" />
-
+            android:exported="false"/>
         <receiver
             android:name="ceui.pixiv.widget.SpotlightWidgetProvider"
             android:exported="false"
             android:label="@string/v3_widget_spotlight_label">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
             </intent-filter>
-
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/v3_spotlight_widget_info" />
+                android:resource="@xml/v3_spotlight_widget_info"/>
         </receiver>
-
         <receiver
             android:name="ceui.pixiv.widget.DailyRankStripWidgetProvider"
             android:exported="false"
             android:label="@string/v3_widget_daily_rank_label">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
             </intent-filter>
-
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/v3_daily_rank_strip_widget_info" />
+                android:resource="@xml/v3_daily_rank_strip_widget_info"/>
         </receiver>
-
         <receiver
             android:name="ceui.pixiv.widget.RecommendStripWidgetProvider"
             android:exported="false"
             android:label="@string/v3_widget_recommend_strip_label">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
             </intent-filter>
-
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/v3_recommend_strip_widget_info" />
+                android:resource="@xml/v3_recommend_strip_widget_info"/>
         </receiver>
-
         <receiver
             android:name="ceui.pixiv.widget.RecommendCardWidgetProvider"
             android:exported="false"
             android:label="@string/v3_widget_recommend_card_label">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
             </intent-filter>
-
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/v3_recommend_card_widget_info" />
+                android:resource="@xml/v3_recommend_card_widget_info"/>
         </receiver>
-
-        <receiver
-            android:name="ceui.pixiv.widget.WidgetBookmarkReceiver"
-            android:exported="false" />
+        <receiver android:name="ceui.pixiv.widget.WidgetBookmarkReceiver" android:exported="false"/>
     </application>
-
 </manifest>

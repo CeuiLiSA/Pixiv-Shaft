@@ -12,30 +12,40 @@ class TokenAuthenticatorTest {
     @Test
     fun `media 401 refreshes the media provider without replaying again`() {
         val provider = FakeProvider(current = "media-old", refreshed = "media-new")
-        val response = unauthorized(
-            request("https://api.pixshaft.com/v1/media/upload/init", "media-old"),
-            reason = "access_token_expired",
-            refreshable = true,
-        )
+        val response =
+            unauthorized(
+                request("https://api.pixshaft.com/v1/media/upload/init", "media-old"),
+                reason = "access_token_expired",
+                refreshable = true,
+            )
         val authenticator = TokenAuthenticator(provider)
         val replay = authenticator.authenticate(null, response)!!
         assertEquals("api.pixshaft.com", replay.url.host)
         assertEquals("Bearer media-new", replay.header("Authorization"))
         assertEquals(1, provider.refreshCalls)
-        assertNull(authenticator.authenticate(null, unauthorized(
-            replay, "access_token_invalid", true, prior = response,
-        )))
+        assertNull(
+            authenticator.authenticate(
+                null,
+                unauthorized(
+                    replay,
+                    "access_token_invalid",
+                    true,
+                    prior = response,
+                ),
+            )
+        )
         assertEquals(1, provider.refreshCalls)
     }
 
     @Test
     fun `refreshable account 401 renews and replays with fresh bearer`() {
         val provider = FakeProvider(current = "old", refreshed = "new")
-        val response = unauthorized(
-            request("https://pixshaft.com/v1/account/translate", "old"),
-            reason = "access_token_expired",
-            refreshable = true,
-        )
+        val response =
+            unauthorized(
+                request("https://pixshaft.com/v1/account/translate", "old"),
+                reason = "access_token_expired",
+                refreshable = true,
+            )
 
         val replay = TokenAuthenticator(provider).authenticate(null, response)
 
@@ -47,17 +57,19 @@ class TokenAuthenticatorTest {
     @Test
     fun `second 401 is terminal and cannot loop`() {
         val provider = FakeProvider(current = "old", refreshed = "new")
-        val first = unauthorized(
-            request("https://pixshaft.com/v1/account/translate", "old"),
-            "access_token_expired",
-            true,
-        )
-        val second = unauthorized(
-            request("https://pixshaft.com/v1/account/translate", "new"),
-            "access_token_invalid",
-            true,
-            prior = first,
-        )
+        val first =
+            unauthorized(
+                request("https://pixshaft.com/v1/account/translate", "old"),
+                "access_token_expired",
+                true,
+            )
+        val second =
+            unauthorized(
+                request("https://pixshaft.com/v1/account/translate", "new"),
+                "access_token_invalid",
+                true,
+                prior = first,
+            )
 
         assertNull(TokenAuthenticator(provider).authenticate(null, second))
         assertEquals(0, provider.refreshCalls)
@@ -66,11 +78,12 @@ class TokenAuthenticatorTest {
     @Test
     fun `revoked session is cleared without refresh`() {
         val provider = FakeProvider(current = "old", refreshed = "new")
-        val response = unauthorized(
-            request("https://pixshaft.com/v1/account/translate", "old"),
-            "session_revoked",
-            false,
-        )
+        val response =
+            unauthorized(
+                request("https://pixshaft.com/v1/account/translate", "old"),
+                "session_revoked",
+                false,
+            )
 
         assertNull(TokenAuthenticator(provider).authenticate(null, response))
         assertEquals(1, provider.clearCalls)
@@ -80,11 +93,12 @@ class TokenAuthenticatorTest {
     @Test
     fun `missing session can bootstrap after auth-required 401`() {
         val provider = FakeProvider(current = null, bootstrap = "first")
-        val response = unauthorized(
-            request("https://pixshaft.com/v1/account/translate"),
-            "auth_required",
-            false,
-        )
+        val response =
+            unauthorized(
+                request("https://pixshaft.com/v1/account/translate"),
+                "auth_required",
+                false,
+            )
 
         val replay = TokenAuthenticator(provider).authenticate(null, response)
 
@@ -95,11 +109,12 @@ class TokenAuthenticatorTest {
     @Test
     fun `public route 401 is never treated as a session failure`() {
         val provider = FakeProvider(current = "old", refreshed = "new")
-        val response = unauthorized(
-            request("https://pixshaft.com/v1/config", "old"),
-            "access_token_expired",
-            true,
-        )
+        val response =
+            unauthorized(
+                request("https://pixshaft.com/v1/config", "old"),
+                "access_token_expired",
+                true,
+            )
 
         assertNull(TokenAuthenticator(provider).authenticate(null, response))
         assertEquals(0, provider.refreshCalls)
@@ -116,15 +131,16 @@ class TokenAuthenticatorTest {
         reason: String,
         refreshable: Boolean,
         prior: Response? = null,
-    ): Response = Response.Builder()
-        .request(request)
-        .protocol(Protocol.HTTP_1_1)
-        .code(401)
-        .message("Unauthorized")
-        .header("X-Pixshaft-Auth-Error", reason)
-        .header("X-Pixshaft-Auth-Refreshable", refreshable.toString())
-        .priorResponse(prior)
-        .build()
+    ): Response =
+        Response.Builder()
+            .request(request)
+            .protocol(Protocol.HTTP_1_1)
+            .code(401)
+            .message("Unauthorized")
+            .header("X-Pixshaft-Auth-Error", reason)
+            .header("X-Pixshaft-Auth-Refreshable", refreshable.toString())
+            .priorResponse(prior)
+            .build()
 
     private class FakeProvider(
         var current: String?,

@@ -1,1 +1,6 @@
-<resources><item name="plaza_draft_text" type="id" /><item name="plaza_image_pager" type="id" /><item name="plaza_draft_title" type="id" /></resources>
+<?xml version="1.0"?>
+<resources>
+    <item name="plaza_draft_text" type="id"/>
+    <item name="plaza_image_pager" type="id"/>
+    <item name="plaza_draft_title" type="id"/>
+</resources>

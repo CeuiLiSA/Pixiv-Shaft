@@ -12,17 +12,21 @@ class BearerInterceptorTest {
 
     @Test
     fun `protected route receives bearer and protocol version`() {
-        val paths = listOf(
-            "/v1/account/translate", "/v1/media/upload/init",
-            "/v1/media/upload/complete", "/v1/media/media-id/download-url",
-        )
+        val paths =
+            listOf(
+                "/v1/account/translate",
+                "/v1/media/upload/init",
+                "/v1/media/upload/complete",
+                "/v1/media/media-id/download-url",
+            )
         val server = MockWebServer()
         paths.forEach { _ -> server.enqueue(MockResponse().setResponseCode(200)) }
         server.start()
         try {
-            val client = OkHttpClient.Builder()
-                .addInterceptor(BearerInterceptor(FakeProvider("access-token")))
-                .build()
+            val client =
+                OkHttpClient.Builder()
+                    .addInterceptor(BearerInterceptor(FakeProvider("access-token")))
+                    .build()
 
             paths.forEach { path ->
                 client.newCall(Request.Builder().url(server.url(path)).build()).execute().close()
@@ -42,12 +46,12 @@ class BearerInterceptorTest {
         server.enqueue(MockResponse().setResponseCode(200))
         server.start()
         try {
-            val client = OkHttpClient.Builder()
-                .addInterceptor(BearerInterceptor(provider))
-                .build()
+            val client = OkHttpClient.Builder().addInterceptor(BearerInterceptor(provider)).build()
 
-            client.newCall(Request.Builder().url(server.url("/v1/config")).build())
-                .execute().close()
+            client
+                .newCall(Request.Builder().url(server.url("/v1/config")).build())
+                .execute()
+                .close()
 
             assertNull(server.takeRequest().getHeader("Authorization"))
             assertEquals(0, provider.bootstrapCalls)

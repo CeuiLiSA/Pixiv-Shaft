@@ -6,45 +6,47 @@ import ceui.lisa.http.AppApiTimeouts
 import ceui.lisa.http.CronetInterceptor
 import ceui.lisa.http.IPv4OnlyDns
 import ceui.lisa.http.WebApiTimeouts
+import ceui.pixiv.auth.AuthSessionManager
+import ceui.pixiv.auth.MediaAuthSessionManager
 import ceui.pixiv.network.FanboxHeaderInterceptor
 import ceui.pixiv.network.HeaderInterceptor
 import ceui.pixiv.network.RequestLogInterceptor
 import ceui.pixiv.network.TokenFetcherInterceptor
 import ceui.pixiv.network.WebHeaderInterceptor
-import ceui.pixiv.auth.AuthSessionManager
-import ceui.pixiv.auth.MediaAuthSessionManager
 import ceui.pixiv.safe.auth.BearerInterceptor
 import ceui.pixiv.safe.auth.SessionProvider
 import ceui.pixiv.safe.auth.TokenAuthenticator
-import ceui.pixiv.shaftapi.PixshaftApi
 import ceui.pixiv.shaftapi.MediaApi
 import ceui.pixiv.shaftapi.MediaHttpTransport
+import ceui.pixiv.shaftapi.PixshaftApi
 import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.shaftapi.TranslateUserAgentInterceptor
+import java.net.InetAddress
+import java.net.Proxy
+import java.util.concurrent.TimeUnit
 import okhttp3.Dns
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okio.Buffer
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.net.InetAddress
-import java.net.Proxy
-import java.util.concurrent.TimeUnit
 
 object Client {
 
     private val clientManager = ClientManager()
 
-    @Volatile
-    private var _appApi: API? = null
+    @Volatile private var _appApi: API? = null
 
-    val appApi: API get() {
-        return _appApi ?: synchronized(this) {
-            _appApi ?: clientManager.createAPPAPI(API::class.java).also {
-                _appApi = it
-            }
+    val appApi: API
+        get() {
+            return _appApi
+                ?: synchronized(this) {
+                    _appApi
+                        ?: clientManager.createAPPAPI(API::class.java).also {
+                            _appApi = it
+                        }
+                }
         }
-    }
 
     @Synchronized
     fun reset() {
@@ -56,49 +58,49 @@ object Client {
         _fanboxApi = null
     }
 
-    @Volatile
-    private var _fanboxApi: FanboxApi? = null
+    @Volatile private var _fanboxApi: FanboxApi? = null
 
-    val fanboxApi: FanboxApi get() {
-        val _api = _fanboxApi
-        return if (_api != null) {
-            _api
-        } else {
-            val impl = clientManager.createFanboxService(FanboxApi::class.java)
-            _fanboxApi = impl
-            impl
+    val fanboxApi: FanboxApi
+        get() {
+            val _api = _fanboxApi
+            return if (_api != null) {
+                _api
+            } else {
+                val impl = clientManager.createFanboxService(FanboxApi::class.java)
+                _fanboxApi = impl
+                impl
+            }
         }
-    }
 
-    @Volatile
-    private var _comicApi: ComicApi? = null
+    @Volatile private var _comicApi: ComicApi? = null
 
-    val comicApi: ComicApi get() {
-        val _api = _comicApi
-        return if (_api != null) {
-            _api
-        } else {
-            val impl = clientManager.createComicService(ComicApi::class.java)
-            _comicApi = impl
-            impl
+    val comicApi: ComicApi
+        get() {
+            val _api = _comicApi
+            return if (_api != null) {
+                _api
+            } else {
+                val impl = clientManager.createComicService(ComicApi::class.java)
+                _comicApi = impl
+                impl
+            }
         }
-    }
 
     // @Volatile:reset() 可能在设置页线程写,而读者散在各个 UI/IO 协程里 —— 没它切完直连开关
     // 有的线程还会拿到旧客户端。
-    @Volatile
-    private var _webApi: PixivWebApi? = null
+    @Volatile private var _webApi: PixivWebApi? = null
 
-    val webApi: PixivWebApi get() {
-        val _api = _webApi
-        return if (_api != null) {
-            _api
-        } else {
-            val impl = clientManager.createWebAPIService(PixivWebApi::class.java)
-            _webApi = impl
-            impl
+    val webApi: PixivWebApi
+        get() {
+            val _api = _webApi
+            return if (_api != null) {
+                _api
+            } else {
+                val impl = clientManager.createWebAPIService(PixivWebApi::class.java)
+                _webApi = impl
+                impl
+            }
         }
-    }
 
     val moonAPI: MoonAPI by lazy {
         clientManager.createMoonAPIService(MoonAPI::class.java)
@@ -111,8 +113,8 @@ object Client {
     }
 
     /**
-     * Media metadata and short-lived COS upload/download authorisation.
-     * Object bytes do not pass through the Tokyo API.
+     * Media metadata and short-lived COS upload/download authorisation. Object bytes do not pass
+     * through the Tokyo API.
      */
     val plazaAPI: ceui.pixiv.plaza.PlazaApi by lazy {
         clientManager.createMediaService(ceui.pixiv.plaza.PlazaApi::class.java)
@@ -152,10 +154,10 @@ class ClientManager {
         const val FANBOX_API_HOST = "https://api.fanbox.cc/"
 
         /**
-         * 所有 Web API 请求和 WebView 统一使用的 User-Agent。
-         * cf_clearance cookie 绑定 UA，WebView 和 OkHttp 必须一致。
+         * 所有 Web API 请求和 WebView 统一使用的 User-Agent。 cf_clearance cookie 绑定 UA，WebView 和 OkHttp 必须一致。
          */
-        const val WEB_USER_AGENT = "Mozilla/5.0 (Linux; Android 14; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.39 Mobile Safari/537.36"
+        const val WEB_USER_AGENT =
+            "Mozilla/5.0 (Linux; Android 14; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.6778.39 Mobile Safari/537.36"
 
         const val TOKEN_HEAD = "Bearer "
 
@@ -170,13 +172,11 @@ class ClientManager {
     }
 
     /**
-     * App API 代理（PxveAPI 风格），只给 [createAPPAPI] 用 —— 其余 client
-     * （web / pixshaft / comic / fanbox / moon）根本不发 app-api/oauth 请求，
-     * 挂上去只是一个恒放行的空拦截器。
+     * App API 代理（PxveAPI 风格），只给 [createAPPAPI] 用 —— 其余 client （web / pixshaft / comic / fanbox /
+     * moon）根本不发 app-api/oauth 请求， 挂上去只是一个恒放行的空拦截器。
      *
-     * 必须在 [applyDirectConnect] **之前**调用：改写后的域名（用户自建代理）不在
-     * Cronet 的精确 host allowlist 内，直连拦截器会放行给 OkHttp 的系统 DNS/TLS，
-     * 二者共存互不干扰。
+     * 必须在 [applyDirectConnect] **之前**调用：改写后的域名（用户自建代理）不在 Cronet 的精确 host allowlist 内，直连拦截器会放行给
+     * OkHttp 的系统 DNS/TLS， 二者共存互不干扰。
      */
     private fun applyAppApiProxy(builder: OkHttpClient.Builder) {
         if (Shaft.sSettings.isUseAppApiProxy) {
@@ -186,19 +186,22 @@ class ClientManager {
 
     private fun applyDirectConnect(builder: OkHttpClient.Builder) {
         if (Shaft.sSettings.isDirectConnect) {
-            builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
+            builder.addInterceptor(
+                CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext()))
+            )
         }
     }
 
     fun <T> createAPPAPI(service: Class<T>): T {
         // app-api 超时收敛到 AppApiTimeouts；
         // PxveAPI 代理开启时，AppApiProxyInterceptor 改写后的请求仍走本 client，同样生效。
-        val okhttpClientBuilder = OkHttpClient.Builder()
-            .connectTimeout(AppApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .writeTimeout(AppApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(AppApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .dns(IPv4OnlyDns)
-            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
+        val okhttpClientBuilder =
+            OkHttpClient.Builder()
+                .connectTimeout(AppApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .writeTimeout(AppApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(AppApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .dns(IPv4OnlyDns)
+                .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
         RequestLogInterceptor.installOn(okhttpClientBuilder, "Net/AppApi")
         okhttpClientBuilder.addInterceptor(HeaderInterceptor())
@@ -217,12 +220,13 @@ class ClientManager {
     fun <T> createWebAPIService(service: Class<T>): T {
         // www.pixiv.net 网页 ajax 用独立 WebApiTimeouts，不跟 app-api 混用；
         // 直连（Cronet）路径不改动，仍由 CronetInterceptor 自己处理。
-        val httpBuilder = OkHttpClient.Builder()
-            .connectTimeout(WebApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .writeTimeout(WebApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(WebApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .dns(IPv4OnlyDns)
-            .protocols(listOf(Protocol.HTTP_1_1))
+        val httpBuilder =
+            OkHttpClient.Builder()
+                .connectTimeout(WebApiTimeouts.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .writeTimeout(WebApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(WebApiTimeouts.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .dns(IPv4OnlyDns)
+                .protocols(listOf(Protocol.HTTP_1_1))
 
         RequestLogInterceptor.installOn(httpBuilder, "Net/WebApi")
         httpBuilder.addInterceptor(WebHeaderInterceptor())
@@ -249,63 +253,72 @@ class ClientManager {
         baseUrl: String,
         sessions: SessionProvider,
     ): T {
-        val httpBuilder = (if (baseUrl == MEDIA_API_HOST) MediaHttpTransport.apiClient.newBuilder()
-            else OkHttpClient.Builder())
-            // Fail fast when the history backend is down/overloaded so the UI can
-            // fall back to the local DB quickly instead of hanging ~10s.
-            .connectTimeout(6, TimeUnit.SECONDS)
-            .writeTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(8, TimeUnit.SECONDS)
-            .retryOnConnectionFailure(true)
-            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
-            // PixShaft Auth V2 is independent from Pixiv OAuth. The application
-            // interceptor attaches/bootstraps our short access token; OkHttp's
-            // Authenticator performs one single-flight refresh after an
-            // authoritative 401 and returns one replay request.
-            .addInterceptor(BearerInterceptor(sessions))
-            .authenticator(TokenAuthenticator(sessions))
-            .addInterceptor(TranslateUserAgentInterceptor())
-            // X-Shaft-Sign = HMAC-SHA256(被签消息, native SHAFT_EVENTS_HMAC)。签名规则集中在这里，
-            // 而不是散到各个 Retrofit 接口上：接口只声明「调什么」，不该顺带背着密码学。
-            //
-            //  - /v1/account/*：签**请求体**（邮箱备份/恢复、借号、遥测都在这条线上）
-            //  - /v1/push/ack ：同上签请求体。应用内推送的已读回执 —— 不签的话任何人都能
-            //    替别人「已读」，把一条推送从订户眼前抹掉。
-            //  - /v1/config   ：GET 没有 body，服务端拿 **uid 本身**当被签消息。这条路由
-            //    是公开的，签名只决定要不要附带订阅档位（档位是「谁在付钱」，不能让任何人
-            //    拿一个公开 uid 就查到）。不签照样能用，只是拿不到 plan —— 未登录的冷启动
-            //    正是这种情况。
-            //
-            // Auth V2 灰度期仍发旧 HMAC，让新 APK 可以先于后端上线；服务端有 Bearer 时
-            // 优先校验 Bearer，并要求 body.uid 与 token uid 一致。浏览历史仍不签。
-            // 空密钥（fork 构建）→ 不加旧头，但 Auth V2 仍可独立工作。
-            .addInterceptor { chain ->
-                val req = chain.request()
-                val path = req.url.encodedPath
-                val message = when {
-                    !ShaftHmac.isConfigured -> null
-                    path.contains("/v1/account/") || path.endsWith("/v1/push/ack") ->
-                        req.body?.let { body -> Buffer().also { body.writeTo(it) }.readUtf8() }
-                    path.endsWith("/v1/config") -> req.url.queryParameter("uid")
-                    else -> null
+        val httpBuilder =
+            (if (baseUrl == MEDIA_API_HOST) MediaHttpTransport.apiClient.newBuilder()
+                else OkHttpClient.Builder())
+                // Fail fast when the history backend is down/overloaded so the UI can
+                // fall back to the local DB quickly instead of hanging ~10s.
+                .connectTimeout(6, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(8, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
+                // PixShaft Auth V2 is independent from Pixiv OAuth. The application
+                // interceptor attaches/bootstraps our short access token; OkHttp's
+                // Authenticator performs one single-flight refresh after an
+                // authoritative 401 and returns one replay request.
+                .addInterceptor(BearerInterceptor(sessions))
+                .authenticator(TokenAuthenticator(sessions))
+                .addInterceptor(TranslateUserAgentInterceptor())
+                // X-Shaft-Sign = HMAC-SHA256(被签消息, native SHAFT_EVENTS_HMAC)。签名规则集中在这里，
+                // 而不是散到各个 Retrofit 接口上：接口只声明「调什么」，不该顺带背着密码学。
+                //
+                //  - /v1/account/*：签**请求体**（邮箱备份/恢复、借号、遥测都在这条线上）
+                //  - /v1/push/ack ：同上签请求体。应用内推送的已读回执 —— 不签的话任何人都能
+                //    替别人「已读」，把一条推送从订户眼前抹掉。
+                //  - /v1/config   ：GET 没有 body，服务端拿 **uid 本身**当被签消息。这条路由
+                //    是公开的，签名只决定要不要附带订阅档位（档位是「谁在付钱」，不能让任何人
+                //    拿一个公开 uid 就查到）。不签照样能用，只是拿不到 plan —— 未登录的冷启动
+                //    正是这种情况。
+                //
+                // Auth V2 灰度期仍发旧 HMAC，让新 APK 可以先于后端上线；服务端有 Bearer 时
+                // 优先校验 Bearer，并要求 body.uid 与 token uid 一致。浏览历史仍不签。
+                // 空密钥（fork 构建）→ 不加旧头，但 Auth V2 仍可独立工作。
+                .addInterceptor { chain ->
+                    val req = chain.request()
+                    val path = req.url.encodedPath
+                    val message =
+                        when {
+                            !ShaftHmac.isConfigured -> null
+                            path.contains("/v1/account/") || path.endsWith("/v1/push/ack") ->
+                                req.body?.let { body ->
+                                    Buffer().also { body.writeTo(it) }.readUtf8()
+                                }
+                            path.endsWith("/v1/config") -> req.url.queryParameter("uid")
+                            else -> null
+                        }
+                    if (message == null) {
+                        chain.proceed(req)
+                    } else {
+                        val sig = ShaftHmac.signHex(message)
+                        chain.proceed(req.newBuilder().header("X-Shaft-Sign", sig).build())
+                    }
                 }
-                if (message == null) {
-                    chain.proceed(req)
-                } else {
-                    val sig = ShaftHmac.signHex(message)
-                    chain.proceed(req.newBuilder().header("X-Shaft-Sign", sig).build())
+                // 云翻译是这条线上唯一「等一次 LLM 往返」的路由：上游一次要 10 秒上下，思考型
+                // 模型更久，8 秒的读超时会把每一次都掐死。只对这一条路径放宽，别的路由照旧快失败。
+                .addInterceptor { chain ->
+                    val req = chain.request()
+                    if (req.url.encodedPath.endsWith("/v1/account/translate")) {
+                        chain
+                            .withReadTimeout(
+                                PIXSHAFT_TRANSLATE_READ_TIMEOUT_SECONDS,
+                                TimeUnit.SECONDS,
+                            )
+                            .proceed(req)
+                    } else {
+                        chain.proceed(req)
+                    }
                 }
-            }
-            // 云翻译是这条线上唯一「等一次 LLM 往返」的路由：上游一次要 10 秒上下，思考型
-            // 模型更久，8 秒的读超时会把每一次都掐死。只对这一条路径放宽，别的路由照旧快失败。
-            .addInterceptor { chain ->
-                val req = chain.request()
-                if (req.url.encodedPath.endsWith("/v1/account/translate")) {
-                    chain.withReadTimeout(PIXSHAFT_TRANSLATE_READ_TIMEOUT_SECONDS, TimeUnit.SECONDS).proceed(req)
-                } else {
-                    chain.proceed(req)
-                }
-            }
         // pixshaft.com is our own backend, not a Pixiv host blocked by SNI. Sending it through
         // Cronet used to bypass the 6/8-second OkHttp timeouts above (Cronet had its own 30-second
         // wait) and also discarded OkHttp's connection retry behavior. Keep this client on the
@@ -319,18 +332,19 @@ class ClientManager {
     }
 
     /**
-     * pixiv COMIC。除了 baseUrl 之外和 [createAPPAPI] 完全一致 —— 同一套 Bearer、同一套
-     * 401/token 刷新逻辑,所以 [HeaderInterceptor] / [TokenFetcherInterceptor] 直接复用。
-     * comic.pixiv.net 和 app-api 一样在墙内不可达,必须跟着走直连。
+     * pixiv COMIC。除了 baseUrl 之外和 [createAPPAPI] 完全一致 —— 同一套 Bearer、同一套 401/token 刷新逻辑,所以
+     * [HeaderInterceptor] / [TokenFetcherInterceptor] 直接复用。 comic.pixiv.net 和 app-api
+     * 一样在墙内不可达,必须跟着走直连。
      */
     fun <T> createComicService(service: Class<T>): T {
         // comic.pixiv.net 也没有 IPv6 DNS 记录，同样用 IPv4OnlyDns 滤掉污染的 IPv6。
-        val httpBuilder = OkHttpClient.Builder()
-            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .dns(IPv4OnlyDns)
-            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
+        val httpBuilder =
+            OkHttpClient.Builder()
+                .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+                .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+                .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+                .dns(IPv4OnlyDns)
+                .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
         RequestLogInterceptor.installOn(httpBuilder, "Net/Comic")
         httpBuilder.addInterceptor(HeaderInterceptor())
@@ -346,16 +360,16 @@ class ClientManager {
     }
 
     /**
-     * pixiv FANBOX。不挂 [HeaderInterceptor](那套 Bearer 在 FANBOX 无效),只挂
-     * [FanboxHeaderInterceptor] 带 Origin + WebView cookie。api.fanbox.cc 在墙内不可达,
-     * 跟着走直连。
+     * pixiv FANBOX。不挂 [HeaderInterceptor](那套 Bearer 在 FANBOX 无效),只挂 [FanboxHeaderInterceptor] 带
+     * Origin + WebView cookie。api.fanbox.cc 在墙内不可达, 跟着走直连。
      */
     fun <T> createFanboxService(service: Class<T>): T {
-        val httpBuilder = OkHttpClient.Builder()
-            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
+        val httpBuilder =
+            OkHttpClient.Builder()
+                .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+                .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+                .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+                .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
 
         RequestLogInterceptor.installOn(httpBuilder, "Net/Fanbox")
         httpBuilder.addInterceptor(FanboxHeaderInterceptor())
@@ -370,26 +384,28 @@ class ClientManager {
     }
 
     fun <T> createMoonAPIService(service: Class<T>): T {
-        val moonDns = object : Dns {
-            override fun lookup(hostname: String): List<InetAddress> {
-                return if (hostname == MOON_BACKEND_HOSTNAME) {
-                    listOf(InetAddress.getByName(MOON_BACKEND_IP))
-                } else {
-                    Dns.SYSTEM.lookup(hostname)
+        val moonDns =
+            object : Dns {
+                override fun lookup(hostname: String): List<InetAddress> {
+                    return if (hostname == MOON_BACKEND_HOSTNAME) {
+                        listOf(InetAddress.getByName(MOON_BACKEND_IP))
+                    } else {
+                        Dns.SYSTEM.lookup(hostname)
+                    }
                 }
             }
-        }
 
-        val httpBuilder = OkHttpClient.Builder()
-            .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
-            .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
-            .dns(moonDns)
-            // 自建后端在国内,不走系统 HTTP 代理(Clash 等);
-            // 注意:这绕不过 Clash 的 TUN/VPN 模式,TUN 用户需要在 Clash 规则里
-            // 把 shaft.api / 111.229.197.181 设为 DIRECT。
-            .proxy(Proxy.NO_PROXY)
+        val httpBuilder =
+            OkHttpClient.Builder()
+                .connectTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+                .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+                .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
+                .protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
+                .dns(moonDns)
+                // 自建后端在国内,不走系统 HTTP 代理(Clash 等);
+                // 注意:这绕不过 Clash 的 TUN/VPN 模式,TUN 用户需要在 Clash 规则里
+                // 把 shaft.api / 111.229.197.181 设为 DIRECT。
+                .proxy(Proxy.NO_PROXY)
         return Retrofit.Builder()
             .baseUrl(MOON_API_HOST)
             .addConverterFactory(GsonConverterFactory.create())

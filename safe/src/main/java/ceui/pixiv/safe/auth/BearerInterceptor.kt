@@ -5,14 +5,14 @@ import okhttp3.Response
 
 internal object AuthRoutes {
     fun requiresSession(path: String): Boolean =
-        path.contains("/v1/account/") || path.startsWith("/v1/media/") || path.startsWith("/v1/plaza/") ||
+        path.contains("/v1/account/") ||
+            path.startsWith("/v1/media/") ||
+            path.startsWith("/v1/plaza/") ||
             path.endsWith("/v1/push/ack")
 }
 
 /** Adds the current token; all 401 recovery belongs to [TokenAuthenticator]. */
-class BearerInterceptor(
-    private val sessions: SessionProvider,
-) : Interceptor {
+class BearerInterceptor(private val sessions: SessionProvider) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
@@ -26,16 +26,18 @@ class BearerInterceptor(
         }
 
         val token = sessions.accessTokenOrBootstrap()
-        val authenticated = if (token.isNullOrBlank()) {
-            AuthLog.warning("bearer unavailable; continuing migration fallback path=$path")
-            request
-        } else {
-            AuthLog.debug("bearer attached path=$path")
-            request.newBuilder()
-                .header("Authorization", "Bearer $token")
-                .header("X-Pixshaft-Auth-Version", "2")
-                .build()
-        }
+        val authenticated =
+            if (token.isNullOrBlank()) {
+                AuthLog.warning("bearer unavailable; continuing migration fallback path=$path")
+                request
+            } else {
+                AuthLog.debug("bearer attached path=$path")
+                request
+                    .newBuilder()
+                    .header("Authorization", "Bearer $token")
+                    .header("X-Pixshaft-Auth-Version", "2")
+                    .build()
+            }
         return chain.proceed(authenticated)
     }
 }

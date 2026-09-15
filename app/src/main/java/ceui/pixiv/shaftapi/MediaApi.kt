@@ -10,20 +10,29 @@ import retrofit2.http.Tag
 /**
  * Media metadata and upload-authorisation API.
  *
- * The app never receives a COS permanent credential. The API returns a
- * short-lived upload URL (or SDK session in a future version), and the bytes
- * go directly from the device to COS. The Tokyo API stores only metadata.
+ * The app never receives a COS permanent credential. The API returns a short-lived upload URL (or
+ * SDK session in a future version), and the bytes go directly from the device to COS. The Tokyo API
+ * stores only metadata.
  */
 interface MediaApi {
 
     @POST("v1/media/upload/init")
-    suspend fun initUpload(@Body request: MediaUploadInitRequest, @Tag trace: MediaUploadTrace? = null): MediaUploadInitResponse
+    suspend fun initUpload(
+        @Body request: MediaUploadInitRequest,
+        @Tag trace: MediaUploadTrace? = null,
+    ): MediaUploadInitResponse
 
     @POST("v1/media/upload/complete")
-    suspend fun completeUpload(@Body request: MediaUploadCompleteRequest, @Tag trace: MediaUploadTrace? = null): MediaObject
+    suspend fun completeUpload(
+        @Body request: MediaUploadCompleteRequest,
+        @Tag trace: MediaUploadTrace? = null,
+    ): MediaObject
 
     @GET("v1/media/{mediaId}/download-url")
-    suspend fun downloadUrl(@Path("mediaId") mediaId: String, @Tag trace: MediaUploadTrace? = null): MediaDownloadUrlResponse
+    suspend fun downloadUrl(
+        @Path("mediaId") mediaId: String,
+        @Tag trace: MediaUploadTrace? = null,
+    ): MediaDownloadUrlResponse
 }
 
 data class MediaUploadInitRequest(
