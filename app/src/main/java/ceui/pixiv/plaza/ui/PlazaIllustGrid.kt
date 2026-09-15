@@ -5,8 +5,11 @@ import android.util.AttributeSet
 import android.widget.LinearLayout
 
 /** Rebuild children after layout, when the actual card width is available. */
-class PlazaIllustGrid @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null
+class PlazaIllustGrid
+@JvmOverloads
+constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
 ) : LinearLayout(context, attrs) {
     var onMeasured: ((Int) -> Unit)? = null
     private val rebind = Runnable { if (width > 0) onMeasured?.invoke(width) }

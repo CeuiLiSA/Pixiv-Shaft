@@ -15,64 +15,132 @@ import okio.BufferedSink
 
 /** Streams original bytes. Bounds decoding never allocates a pixel bitmap. */
 internal object MediaUploader {
-    suspend fun upload(resolver: ContentResolver, uri: Uri, onProgress: (Int) -> Unit): MediaObject = withContext(Dispatchers.IO) {
-        val trace = MediaUploadTrace("plaza_upload")
-        try {
-            trace.stage("metadata")
-            val type = resolver.getType(uri)
-            require(type in setOf("image/jpeg", "image/png", "image/webp", "image/gif")) { "支持 JPG、PNG、WebP 和 GIF 图片" }
-            val size = resolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use {
-                if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else -1L
-            } ?: -1L
-            require(size in 1..25L * 1024 * 1024) { "单张图片最大 25 MB，且必须能读取文件大小" }
-            trace.stage("image_bounds")
-            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true; inScaled = false }
-            resolver.openInputStream(uri).use { input ->
-                checkNotNull(input) { "无法读取图片，请重新选择" }
-                BitmapFactory.decodeStream(input, null, bounds)
-            }
-            require(bounds.outWidth > 0 && bounds.outHeight > 0) { "无法解析真实图片宽高，请重新选择" }
-            trace.event("success", "width=${bounds.outWidth} height=${bounds.outHeight} size=$size")
-            trace.stage("init")
-            val init = Client.mediaAPI.initUpload(MediaUploadInitRequest("plaza", type!!, size), trace)
-            check(init.method == "PUT") { "不支持的上传方式" }
-            trace.stage("cos_upload", "mediaId=${init.mediaId}")
-            val body = object : RequestBody() {
-                override fun contentType() = type.toMediaType()
-                override fun contentLength() = size
-                override fun writeTo(sink: BufferedSink) {
-                    val progress = MediaUploadProgress()
-                    resolver.openInputStream(uri).use { input ->
-                        checkNotNull(input) { "无法读取图片" }
-                        val buffer = ByteArray(64 * 1024)
-                        var sent = 0L
-                        while (true) {
-                            val read = input.read(buffer)
-                            if (read < 0) break
-                            sent += read
-                            check(sent <= size) { "图片内容已改变，请重新选择" }
-                            sink.write(buffer, 0, read)
-                            if (progress.shouldReport(sent, size, System.nanoTime())) onProgress((sent * 95 / size).toInt())
+    suspend fun upload(
+        resolver: ContentResolver,
+        uri: Uri,
+        onProgress: (Int) -> Unit,
+    ): MediaObject =
+        withContext(Dispatchers.IO) {
+            val trace = MediaUploadTrace("plaza_upload")
+            try {
+                trace.stage("metadata")
+                val type = resolver.getType(uri)
+                if (type !in setOf("image/jpeg", "image/png", "image/webp", "image/gif"))
+                    throw MediaUploadException(MediaUploadException.Reason.TYPE)
+                val reportedSize =
+                    resolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use {
+                        if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else -1L
+                    } ?: -1L
+                val size =
+                    if (reportedSize > 0) reportedSize
+                    else
+                        try {
+                            resolver.openAssetFileDescriptor(uri, "r")?.use { it.length } ?: -1L
+                        } catch (_: java.io.IOException) {
+                            -1L
                         }
-                        check(sent == size) { "图片内容已改变，请重新选择" }
+                trace.event(
+                    "result",
+                    "contentType=$type reportedSize=$reportedSize size=$size maxBytes=${25L * 1024 * 1024}",
+                )
+                if (size <= 0) throw MediaUploadException(MediaUploadException.Reason.SIZE_UNKNOWN)
+                if (size > 25L * 1024 * 1024)
+                    throw MediaUploadException(MediaUploadException.Reason.SIZE)
+                trace.stage("image_bounds")
+                val bounds =
+                    BitmapFactory.Options().apply {
+                        inJustDecodeBounds = true
+                        inScaled = false
                     }
+                resolver.openInputStream(uri).use { input ->
+                    if (input == null) throw MediaUploadException(MediaUploadException.Reason.READ)
+                    BitmapFactory.decodeStream(input, null, bounds)
                 }
+                if (bounds.outWidth <= 0 || bounds.outHeight <= 0)
+                    throw MediaUploadException(MediaUploadException.Reason.BOUNDS)
+                trace.event(
+                    "success",
+                    "width=${bounds.outWidth} height=${bounds.outHeight} size=$size",
+                )
+                trace.stage("init")
+                val init =
+                    Client.mediaAPI.initUpload(MediaUploadInitRequest("plaza", type!!, size), trace)
+                if (init.method != "PUT")
+                    throw MediaUploadException(MediaUploadException.Reason.METHOD)
+                trace.stage("cos_upload", "mediaId=${init.mediaId}")
+                val body =
+                    object : RequestBody() {
+                        override fun contentType() = type.toMediaType()
+
+                        override fun contentLength() = size
+
+                        override fun writeTo(sink: BufferedSink) {
+                            val progress = MediaUploadProgress()
+                            resolver.openInputStream(uri).use { input ->
+                                if (input == null)
+                                    throw MediaUploadException(MediaUploadException.Reason.READ)
+                                val buffer = ByteArray(64 * 1024)
+                                var sent = 0L
+                                while (true) {
+                                    val read = input.read(buffer)
+                                    if (read < 0) break
+                                    sent += read
+                                    if (sent > size)
+                                        throw MediaUploadException(
+                                            MediaUploadException.Reason.CHANGED
+                                        )
+                                    sink.write(buffer, 0, read)
+                                    if (progress.shouldReport(sent, size, System.nanoTime()))
+                                        onProgress((sent * 95 / size).toInt())
+                                }
+                                if (sent != size)
+                                    throw MediaUploadException(MediaUploadException.Reason.CHANGED)
+                            }
+                        }
+                    }
+                val request =
+                    Request.Builder()
+                        .url(init.uploadUrl)
+                        .tag(MediaUploadTrace::class.java, trace)
+                        .put(body)
+                        .apply { init.headers.forEach { (k, v) -> header(k, v) } }
+                        .build()
+                val etag =
+                    awaitOkHttpCall(MediaHttpTransport.storageClient.newCall(request)) { response ->
+                        trace.event("response", "http=${response.code} host=${request.url.host}")
+                        if (!response.isSuccessful)
+                            throw MediaUploadException(
+                                MediaUploadException.Reason.HTTP,
+                                response.code,
+                            )
+                        response.header("ETag")
+                    }
+                trace.stage("complete")
+                val media =
+                    Client.mediaAPI.completeUpload(
+                        MediaUploadCompleteRequest(
+                            init.mediaId,
+                            init.objectKey,
+                            type,
+                            size,
+                            etag,
+                            width = bounds.outWidth,
+                            height = bounds.outHeight,
+                        ),
+                        trace,
+                    )
+                if (media.width != bounds.outWidth || media.height != bounds.outHeight)
+                    throw MediaUploadException(MediaUploadException.Reason.DIMENSIONS)
+                trace.event(
+                    "success",
+                    "mediaId=${media.id} width=${media.width} height=${media.height} expiresAt=${media.expiresAt}",
+                )
+                trace.event("preview_url", "url=${media.url}")
+                onProgress(100)
+                media
+            } catch (e: Exception) {
+                trace.failure(e)
+                throw e
             }
-            val request = Request.Builder().url(init.uploadUrl).tag(MediaUploadTrace::class.java, trace).put(body)
-                .apply { init.headers.forEach { (k, v) -> header(k, v) } }.build()
-            val etag = awaitOkHttpCall(MediaHttpTransport.storageClient.newCall(request)) { response ->
-                trace.event("response", "http=${response.code} host=${request.url.host}")
-                check(response.isSuccessful) { "图片上传失败（${response.code}）" }
-                response.header("ETag")
-            }
-            trace.stage("complete")
-            val media = Client.mediaAPI.completeUpload(MediaUploadCompleteRequest(init.mediaId, init.objectKey, type, size,
-                etag, width = bounds.outWidth, height = bounds.outHeight), trace)
-            check(media.width == bounds.outWidth && media.height == bounds.outHeight) { "服务端图片尺寸不匹配" }
-            trace.event("success", "mediaId=${media.id} width=${media.width} height=${media.height} expiresAt=${media.expiresAt}")
-            trace.event("preview_url", "url=${media.url}")
-            onProgress(100)
-            media
-        } catch (e: Exception) { trace.failure(e); throw e }
-    }
+        }
 }

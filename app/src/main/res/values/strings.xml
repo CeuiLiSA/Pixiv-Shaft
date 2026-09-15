@@ -2590,7 +2590,6 @@
     <string name="setting_show_plaza_entry">首页侧边栏展示广场入口</string>
     <string name="plaza_title">广场</string>
     <string name="plaza_feed_description" translatable="false">看看大家正在分享的作品与想法</string>
-    <string name="plaza_loading" translatable="false">正在加载帖子</string>
     <string name="plaza_compose_title">发帖</string>
     <string name="plaza_send_post">发布</string>
     <string name="plaza_post_text_hint">分享你正在看的作品…</string>
