@@ -6,7 +6,7 @@ import timber.log.Timber
 import java.util.concurrent.atomic.AtomicInteger
 
 /** Debug-only trace. Only preview_url includes its signed URL for manual preview diagnostics. */
-internal class MediaUploadTrace(private val operation: String) {
+class MediaUploadTrace internal constructor(private val operation: String) {
     private val id = nextId.incrementAndGet()
     private val started = System.nanoTime()
     private var stage = "start"

@@ -88,7 +88,8 @@ internal object AuthNetwork {
     val mediaApi: AuthApi by lazy { createApi(ClientManager.MEDIA_API_HOST) }
 
     private fun createApi(baseUrl: String): AuthApi {
-        val client = OkHttpClient.Builder()
+        val client = (if (baseUrl == ClientManager.MEDIA_API_HOST)
+            ceui.pixiv.shaftapi.MediaHttpTransport.apiClient.newBuilder() else OkHttpClient.Builder())
             .connectTimeout(6, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)

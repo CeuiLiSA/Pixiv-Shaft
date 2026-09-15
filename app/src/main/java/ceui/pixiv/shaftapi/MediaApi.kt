@@ -5,6 +5,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Tag
 
 /**
  * Media metadata and upload-authorisation API.
@@ -16,13 +17,13 @@ import retrofit2.http.Path
 interface MediaApi {
 
     @POST("v1/media/upload/init")
-    suspend fun initUpload(@Body request: MediaUploadInitRequest): MediaUploadInitResponse
+    suspend fun initUpload(@Body request: MediaUploadInitRequest, @Tag trace: MediaUploadTrace? = null): MediaUploadInitResponse
 
     @POST("v1/media/upload/complete")
-    suspend fun completeUpload(@Body request: MediaUploadCompleteRequest): MediaObject
+    suspend fun completeUpload(@Body request: MediaUploadCompleteRequest, @Tag trace: MediaUploadTrace? = null): MediaObject
 
     @GET("v1/media/{mediaId}/download-url")
-    suspend fun downloadUrl(@Path("mediaId") mediaId: String): MediaDownloadUrlResponse
+    suspend fun downloadUrl(@Path("mediaId") mediaId: String, @Tag trace: MediaUploadTrace? = null): MediaDownloadUrlResponse
 }
 
 data class MediaUploadInitRequest(

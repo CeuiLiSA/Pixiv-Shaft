@@ -20,7 +20,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import okio.BufferedSink
@@ -33,7 +32,7 @@ class MediaDemoActivity : AppCompatActivity() {
     private lateinit var download: Button
     private var latestMediaId: String? = null
     private var latestDownloadUrl: MediaDownloadUrlResponse? = null
-    private val http = OkHttpClient()
+    private val http get() = MediaHttpTransport.storageClient
 
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) upload(uri) else MediaUploadTrace("picker").event("cancelled")
@@ -48,9 +47,11 @@ class MediaDemoActivity : AppCompatActivity() {
         download = findViewById(R.id.media_demo_download)
         select.setOnClickListener {
             MediaUploadTrace("picker").event("open", "type=image/*")
+            MediaHttpTransport.prewarm()
             pickImage.launch("image/*")
         }
         download.setOnClickListener { openDownloadUrl() }
+        MediaHttpTransport.prewarm()
     }
 
     private fun upload(uri: Uri) {
@@ -58,22 +59,28 @@ class MediaDemoActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 trace.stage("metadata", "scheme=${uri.scheme} provider=${uri.authority}")
-                val type = contentResolver.getType(uri) ?: run {
+                select.isEnabled = false
+                download.isEnabled = false
+                val metadata = withContext(Dispatchers.IO) {
+                    val type = contentResolver.getType(uri)
+                    val size = contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use {
+                        if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else -1L
+                    } ?: -1L
+                    type to size
+                }
+                val type = metadata.first
+                val size = metadata.second
+                if (type == null) {
                     trace.event("rejected", "reason=unknown_content_type")
                     status.text = "无法识别图片类型"
                     return@launch
                 }
-                val size = contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use {
-                    if (it.moveToFirst() && !it.isNull(0)) it.getLong(0) else -1L
-                } ?: -1L
                 trace.event("result", "contentType=$type size=$size maxBytes=${25L * 1024 * 1024}")
                 if (size <= 0L || size > 25L * 1024 * 1024) {
                     trace.event("rejected", "reason=invalid_size")
                     status.text = "图片大小无效（最大 25 MB）"
                     return@launch
                 }
-                select.isEnabled = false
-                download.isEnabled = false
                 progress.visibility = ProgressBar.VISIBLE
                 progress.progress = 0
                 status.text = "正在申请直传地址…"
@@ -91,35 +98,35 @@ class MediaDemoActivity : AppCompatActivity() {
                     check(bounds.outWidth > 0 && bounds.outHeight > 0) { "无法解析图片宽高" }
                     trace.event("success", "width=${bounds.outWidth} height=${bounds.outHeight}")
                     trace.stage("init", "POST ${ClientManager.MEDIA_API_HOST}v1/media/upload/init scene=demo contentType=$type size=$size")
-                    val init = Client.mediaAPI.initUpload(MediaUploadInitRequest("demo", type, size))
+                    val init = Client.mediaAPI.initUpload(MediaUploadInitRequest("demo", type, size), trace)
                     trace.event("success", "mediaId=${init.mediaId} method=${init.method} expiresAt=${init.expiresAt} headerCount=${init.headers.size}")
                     trace.stage("cos_upload", "mediaId=${init.mediaId}")
                     val body = UriRequestBody(uri, type, size, trace) { sent ->
                         runOnUiThread { progress.progress = (sent * 100 / size).toInt() }
                     }
-                    val request = Request.Builder().url(init.uploadUrl).put(body).apply {
+                    val request = Request.Builder().url(init.uploadUrl).tag(MediaUploadTrace::class.java, trace).put(body).apply {
                         init.headers.forEach { (key, value) -> header(key, value) }
                     }.build()
                     trace.event("request", "method=${request.method} host=${request.url.host} size=$size connectTimeoutMs=${http.connectTimeoutMillis} writeTimeoutMs=${http.writeTimeoutMillis} readTimeoutMs=${http.readTimeoutMillis}")
-                    http.newCall(request).execute().use { response ->
+                    val etag = http.newCall(request).execute().use { response ->
                         trace.event("response", "http=${response.code} protocol=${response.protocol} requestId=${response.header("x-cos-request-id")} etag=${response.header("ETag")}")
                         check(response.isSuccessful) { "COS 上传失败：HTTP ${response.code}" }
-                        val etag = response.header("ETag")
-                        trace.stage("complete", "POST ${ClientManager.MEDIA_API_HOST}v1/media/upload/complete mediaId=${init.mediaId} contentType=$type size=$size etag=$etag width=${bounds.outWidth} height=${bounds.outHeight}")
-                        val media = Client.mediaAPI.completeUpload(
-                            MediaUploadCompleteRequest(
-                                init.mediaId, init.objectKey, type, size, etag,
-                                width = bounds.outWidth, height = bounds.outHeight,
-                            )
-                        )
-                        trace.event("response", "mediaId=${media.id} contentType=${media.contentType} size=${media.size} width=${media.width} height=${media.height} createdAt=${media.createdAt}")
-                        check(media.width == bounds.outWidth && media.height == bounds.outHeight) {
-                            "服务端返回的图片宽高不匹配"
-                        }
-                        trace.event("success", "mediaId=${media.id} contentType=${media.contentType} size=${media.size} width=${media.width} height=${media.height}")
-                        logPreviewUrl(MediaDownloadUrlResponse(media.id, media.url, media.expiresAt), trace)
-                        media
+                        response.header("ETag")
                     }
+                    trace.stage("complete", "POST ${ClientManager.MEDIA_API_HOST}v1/media/upload/complete mediaId=${init.mediaId} contentType=$type size=$size etag=$etag width=${bounds.outWidth} height=${bounds.outHeight}")
+                    val media = Client.mediaAPI.completeUpload(
+                        MediaUploadCompleteRequest(
+                            init.mediaId, init.objectKey, type, size, etag,
+                            width = bounds.outWidth, height = bounds.outHeight,
+                        ), trace,
+                    )
+                    trace.event("response", "mediaId=${media.id} contentType=${media.contentType} size=${media.size} width=${media.width} height=${media.height} createdAt=${media.createdAt}")
+                    check(media.width == bounds.outWidth && media.height == bounds.outHeight) {
+                        "服务端返回的图片宽高不匹配"
+                    }
+                    trace.event("success", "mediaId=${media.id} contentType=${media.contentType} size=${media.size} width=${media.width} height=${media.height}")
+                    logPreviewUrl(MediaDownloadUrlResponse(media.id, media.url, media.expiresAt), trace)
+                    media
                 }
                 latestMediaId = result.id
                 latestDownloadUrl = MediaDownloadUrlResponse(result.id, result.url, result.expiresAt)
@@ -178,7 +185,7 @@ class MediaDemoActivity : AppCompatActivity() {
         trace: MediaUploadTrace,
     ): MediaDownloadUrlResponse {
         trace.stage("download_url", "GET ${ClientManager.MEDIA_API_HOST}v1/media/$mediaId/download-url mediaId=$mediaId")
-        val result = withContext(Dispatchers.IO) { Client.mediaAPI.downloadUrl(mediaId) }
+        val result = withContext(Dispatchers.IO) { Client.mediaAPI.downloadUrl(mediaId, trace) }
         logPreviewUrl(result, trace)
         return result
     }
@@ -204,13 +211,14 @@ class MediaDemoActivity : AppCompatActivity() {
             val started = System.nanoTime()
             var lastLogAt = started
             var lastPercent = 0L
+            val uiProgress = MediaUploadProgress()
             trace.event("body_start", "size=$length")
             // Reset progress bookkeeping on every writeTo, including OkHttp retries.
             try {
                 contentResolver.openInputStream(uri).use { input ->
                     checkNotNull(input) { "无法读取图片" }
                     trace.event("stream_opened")
-                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    val buffer = ByteArray(64 * 1024)
                     while (true) {
                         val read = input.read(buffer)
                         if (read < 0) break
@@ -224,7 +232,7 @@ class MediaDemoActivity : AppCompatActivity() {
                             lastLogAt = now
                             lastPercent = percent
                         }
-                        onProgress(sent)
+                        if (uiProgress.shouldReport(sent, length, now)) onProgress(sent)
                     }
                 }
             } catch (error: Exception) {

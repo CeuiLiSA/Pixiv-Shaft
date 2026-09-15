@@ -18,6 +18,7 @@ import ceui.pixiv.safe.auth.SessionProvider
 import ceui.pixiv.safe.auth.TokenAuthenticator
 import ceui.pixiv.shaftapi.PixshaftApi
 import ceui.pixiv.shaftapi.MediaApi
+import ceui.pixiv.shaftapi.MediaHttpTransport
 import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.shaftapi.TranslateUserAgentInterceptor
 import okhttp3.Dns
@@ -244,7 +245,8 @@ class ClientManager {
         baseUrl: String,
         sessions: SessionProvider,
     ): T {
-        val httpBuilder = OkHttpClient.Builder()
+        val httpBuilder = (if (baseUrl == MEDIA_API_HOST) MediaHttpTransport.apiClient.newBuilder()
+            else OkHttpClient.Builder())
             // Fail fast when the history backend is down/overloaded so the UI can
             // fall back to the local DB quickly instead of hanging ~10s.
             .connectTimeout(6, TimeUnit.SECONDS)
