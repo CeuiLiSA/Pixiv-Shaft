@@ -36,8 +36,12 @@ private class MmkvAuthKeyValueStore(
 class TokenStore internal constructor(
     private val store: AuthKeyValueStore,
     private val gson: Gson,
+    private val keyAlias: String = KEY_ALIAS,
 ) {
-    constructor() : this(MmkvAuthKeyValueStore(MMKV.mmkvWithID(STORE_ID)), Gson())
+    constructor(storeId: String = STORE_ID) : this(
+        MmkvAuthKeyValueStore(MMKV.mmkvWithID(storeId)), Gson(),
+        if (storeId == STORE_ID) KEY_ALIAS else "$storeId.aes",
+    )
 
     @Synchronized
     fun load(): AuthSession? {
@@ -138,11 +142,11 @@ class TokenStore internal constructor(
 
     private fun getOrCreateKey(): SecretKey {
         val keyStore = KeyStore.getInstance(KEYSTORE).apply { load(null) }
-        (keyStore.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
+        (keyStore.getKey(keyAlias, null) as? SecretKey)?.let { return it }
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, KEYSTORE)
         generator.init(
             KeyGenParameterSpec.Builder(
-                KEY_ALIAS,
+                keyAlias,
                 KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
             )
                 .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
@@ -157,7 +161,7 @@ class TokenStore internal constructor(
         runCatching {
             KeyStore.getInstance(KEYSTORE).apply {
                 load(null)
-                deleteEntry(KEY_ALIAS)
+                deleteEntry(keyAlias)
             }
         }
         store.removeValue(KEY_SESSION)

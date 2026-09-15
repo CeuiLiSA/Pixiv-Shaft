@@ -75,7 +75,7 @@ class MediaDemoActivity : AppCompatActivity() {
                 progress.progress = 0
                 status.text = "正在申请直传地址…"
                 val result = withContext(Dispatchers.IO) {
-                    trace.stage("init", "POST ${ClientManager.PIXSHAFT_API_HOST}v1/media/upload/init scene=demo contentType=$type size=$size")
+                    trace.stage("init", "POST ${ClientManager.MEDIA_API_HOST}v1/media/upload/init scene=demo contentType=$type size=$size")
                     val init = Client.mediaAPI.initUpload(MediaUploadInitRequest("demo", type, size))
                     trace.event("success", "mediaId=${init.mediaId} method=${init.method} expiresAt=${init.expiresAt} headerCount=${init.headers.size}")
                     trace.stage("cos_upload", "mediaId=${init.mediaId}")
@@ -90,7 +90,7 @@ class MediaDemoActivity : AppCompatActivity() {
                         trace.event("response", "http=${response.code} protocol=${response.protocol} requestId=${response.header("x-cos-request-id")} etag=${response.header("ETag")}")
                         check(response.isSuccessful) { "COS 上传失败：HTTP ${response.code}" }
                         val etag = response.header("ETag")
-                        trace.stage("complete", "POST ${ClientManager.PIXSHAFT_API_HOST}v1/media/upload/complete mediaId=${init.mediaId} contentType=$type size=$size etag=$etag")
+                        trace.stage("complete", "POST ${ClientManager.MEDIA_API_HOST}v1/media/upload/complete mediaId=${init.mediaId} contentType=$type size=$size etag=$etag")
                         val media = Client.mediaAPI.completeUpload(
                             MediaUploadCompleteRequest(init.mediaId, init.objectKey, type, size, etag)
                         )
@@ -122,7 +122,7 @@ class MediaDemoActivity : AppCompatActivity() {
         status.text = "正在申请下载地址…"
         lifecycleScope.launch {
             try {
-                trace.stage("download_url", "GET ${ClientManager.PIXSHAFT_API_HOST}v1/media/$mediaId/download-url mediaId=$mediaId")
+                trace.stage("download_url", "GET ${ClientManager.MEDIA_API_HOST}v1/media/$mediaId/download-url mediaId=$mediaId")
                 val result = withContext(Dispatchers.IO) { Client.mediaAPI.downloadUrl(mediaId) }
                 trace.event("success", "mediaId=${result.mediaId} expiresAt=${result.expiresAt}")
                 trace.stage("open_browser", "host=${result.url.toHttpUrlOrNull()?.host}")

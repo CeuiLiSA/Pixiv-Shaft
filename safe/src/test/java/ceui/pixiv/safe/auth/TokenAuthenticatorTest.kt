@@ -10,6 +10,25 @@ import org.junit.Test
 class TokenAuthenticatorTest {
 
     @Test
+    fun `media 401 refreshes the media provider without replaying again`() {
+        val provider = FakeProvider(current = "media-old", refreshed = "media-new")
+        val response = unauthorized(
+            request("https://api.pixshaft.com/v1/media/upload/init", "media-old"),
+            reason = "access_token_expired",
+            refreshable = true,
+        )
+        val authenticator = TokenAuthenticator(provider)
+        val replay = authenticator.authenticate(null, response)!!
+        assertEquals("api.pixshaft.com", replay.url.host)
+        assertEquals("Bearer media-new", replay.header("Authorization"))
+        assertEquals(1, provider.refreshCalls)
+        assertNull(authenticator.authenticate(null, unauthorized(
+            replay, "access_token_invalid", true, prior = response,
+        )))
+        assertEquals(1, provider.refreshCalls)
+    }
+
+    @Test
     fun `refreshable account 401 renews and replays with fresh bearer`() {
         val provider = FakeProvider(current = "old", refreshed = "new")
         val response = unauthorized(

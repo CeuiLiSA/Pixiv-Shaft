@@ -5,7 +5,8 @@ import okhttp3.Response
 
 internal object AuthRoutes {
     fun requiresSession(path: String): Boolean =
-        path.contains("/v1/account/") || path.endsWith("/v1/push/ack")
+        path.contains("/v1/account/") || path.startsWith("/v1/media/") ||
+            path.endsWith("/v1/push/ack")
 }
 
 /** Adds the current token; all 401 recovery belongs to [TokenAuthenticator]. */

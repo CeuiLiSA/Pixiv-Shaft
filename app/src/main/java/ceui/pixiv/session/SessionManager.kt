@@ -203,6 +203,7 @@ object SessionManager {
         val nextUid = next?.user?.id ?: 0L
         if (currentUid > 0L && currentUid != nextUid) {
             AuthSessionManager.logoutCurrentSession()
+            ceui.pixiv.auth.MediaAuthSessionManager.logoutCurrentSession()
         }
     }
 

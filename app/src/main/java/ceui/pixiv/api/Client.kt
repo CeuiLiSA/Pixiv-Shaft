@@ -12,7 +12,9 @@ import ceui.pixiv.network.RequestLogInterceptor
 import ceui.pixiv.network.TokenFetcherInterceptor
 import ceui.pixiv.network.WebHeaderInterceptor
 import ceui.pixiv.auth.AuthSessionManager
+import ceui.pixiv.auth.MediaAuthSessionManager
 import ceui.pixiv.safe.auth.BearerInterceptor
+import ceui.pixiv.safe.auth.SessionProvider
 import ceui.pixiv.safe.auth.TokenAuthenticator
 import ceui.pixiv.shaftapi.PixshaftApi
 import ceui.pixiv.shaftapi.MediaApi
@@ -112,7 +114,7 @@ object Client {
      * Object bytes do not pass through the Tokyo API.
      */
     val mediaAPI: MediaApi by lazy {
-        clientManager.createPixshaftService(MediaApi::class.java)
+        clientManager.createMediaService(MediaApi::class.java)
     }
 }
 
@@ -132,6 +134,7 @@ class ClientManager {
 
         // pixshaft-api: browse-history backend, real public domain.
         const val PIXSHAFT_API_HOST = "https://pixshaft.com/"
+        const val MEDIA_API_HOST = "https://api.pixshaft.com/"
 
         // 服务端 TRANSLATE_UPSTREAM_TIMEOUT_MS 默认 90s，这里比它多留 30s，让「上游超时」
         // 以服务端的 504 到达，而不是客户端先断线变成一句含糊的 timeout。
@@ -230,7 +233,17 @@ class ClientManager {
             .create(service)
     }
 
-    fun <T> createPixshaftService(service: Class<T>): T {
+    fun <T> createPixshaftService(service: Class<T>): T =
+        createFirstPartyService(service, PIXSHAFT_API_HOST, AuthSessionManager)
+
+    fun <T> createMediaService(service: Class<T>): T =
+        createFirstPartyService(service, MEDIA_API_HOST, MediaAuthSessionManager)
+
+    private fun <T> createFirstPartyService(
+        service: Class<T>,
+        baseUrl: String,
+        sessions: SessionProvider,
+    ): T {
         val httpBuilder = OkHttpClient.Builder()
             // Fail fast when the history backend is down/overloaded so the UI can
             // fall back to the local DB quickly instead of hanging ~10s.
@@ -243,8 +256,8 @@ class ClientManager {
             // interceptor attaches/bootstraps our short access token; OkHttp's
             // Authenticator performs one single-flight refresh after an
             // authoritative 401 and returns one replay request.
-            .addInterceptor(BearerInterceptor(AuthSessionManager))
-            .authenticator(TokenAuthenticator(AuthSessionManager))
+            .addInterceptor(BearerInterceptor(sessions))
+            .authenticator(TokenAuthenticator(sessions))
             .addInterceptor(TranslateUserAgentInterceptor())
             // X-Shaft-Sign = HMAC-SHA256(被签消息, native SHAFT_EVENTS_HMAC)。签名规则集中在这里，
             // 而不是散到各个 Retrofit 接口上：接口只声明「调什么」，不该顺带背着密码学。
@@ -292,7 +305,7 @@ class ClientManager {
         // wait) and also discarded OkHttp's connection retry behavior. Keep this client on the
         // ordinary system DNS/TLS path regardless of Pixiv's "direct connect" preference.
         return Retrofit.Builder()
-            .baseUrl(PIXSHAFT_API_HOST)
+            .baseUrl(baseUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .client(httpBuilder.build())
             .build()

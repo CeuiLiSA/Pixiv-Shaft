@@ -84,7 +84,10 @@ internal fun TokenResponse.toSession(
  * the token endpoint cannot be allowed to recursively refresh itself.
  */
 internal object AuthNetwork {
-    val api: AuthApi by lazy {
+    val api: AuthApi by lazy { createApi(ClientManager.PIXSHAFT_API_HOST) }
+    val mediaApi: AuthApi by lazy { createApi(ClientManager.MEDIA_API_HOST) }
+
+    private fun createApi(baseUrl: String): AuthApi {
         val client = OkHttpClient.Builder()
             .connectTimeout(6, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
@@ -112,8 +115,8 @@ internal object AuthNetwork {
             }
             .build()
 
-        Retrofit.Builder()
-            .baseUrl(ClientManager.PIXSHAFT_API_HOST)
+        return Retrofit.Builder()
+            .baseUrl(baseUrl)
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()

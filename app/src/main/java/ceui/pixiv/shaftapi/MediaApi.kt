@@ -1,5 +1,6 @@
 package ceui.pixiv.shaftapi
 
+import com.google.gson.annotations.SerializedName
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -53,7 +54,7 @@ data class MediaUploadCompleteRequest(
 )
 
 data class MediaObject(
-    val id: String,
+    @SerializedName("mediaId") val id: String,
     val objectKey: String,
     val contentType: String,
     val size: Long,

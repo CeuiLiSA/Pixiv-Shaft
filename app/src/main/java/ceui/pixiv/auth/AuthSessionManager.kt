@@ -18,10 +18,20 @@ import kotlinx.coroutines.launch
  * [SessionManager], which owns Pixiv's OAuth tokens and its unusual HTTP-400
  * refresh contract.
  */
-object AuthSessionManager : SessionProvider {
-    private const val BOOTSTRAP_BACKOFF_MS = 60_000L
+object AuthSessionManager : BackendSessionManager({ AuthNetwork.api }, { TokenStore() })
 
-    private val tokenStore: TokenStore by lazy { TokenStore() }
+// Tokyo checks opaque tokens against its own database. Main-API tokens cannot
+// authenticate media requests, and refreshing media must not replace the main session.
+object MediaAuthSessionManager : BackendSessionManager(
+    { AuthNetwork.mediaApi }, { TokenStore("pixshaft-media-auth-v2") },
+)
+
+open class BackendSessionManager internal constructor(
+    apiFactory: () -> AuthApi,
+    storeFactory: () -> TokenStore,
+) : SessionProvider {
+    private val api by lazy(apiFactory)
+    private val tokenStore by lazy(storeFactory)
     private val bootstrapLock = Any()
     private val loadLock = Any()
     private val logoutScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -106,7 +116,7 @@ object AuthSessionManager : SessionProvider {
         AuthLog.debug("server logout scheduled uid=${session.uid} generation=${session.generation}")
         logoutScope.launch {
             runCatching {
-                val response = AuthNetwork.api.logout(
+                val response = api.logout(
                     LogoutRequest(
                         refreshToken = session.refreshToken,
                         deviceId = session.deviceId,
@@ -173,7 +183,7 @@ object AuthSessionManager : SessionProvider {
 
     private fun createSession(uid: Long, deviceId: String): TokenResponse? {
         return try {
-            val response = AuthNetwork.api.createSession(
+            val response = api.createSession(
                 CreateSessionRequest(
                     uid = uid,
                     deviceId = deviceId,
@@ -206,7 +216,7 @@ object AuthSessionManager : SessionProvider {
         }.getOrNull() ?: return null
 
         return try {
-            val response = AuthNetwork.api.refreshSession(
+            val response = api.refreshSession(
                 attemptId,
                 RefreshSessionRequest(
                     refreshToken = session.refreshToken,
@@ -280,5 +290,9 @@ object AuthSessionManager : SessionProvider {
     }
     private fun <T> retrofit2.Response<T>.closeErrorBody() {
         errorBody()?.close()
+    }
+
+    private companion object {
+        const val BOOTSTRAP_BACKOFF_MS = 60_000L
     }
 }

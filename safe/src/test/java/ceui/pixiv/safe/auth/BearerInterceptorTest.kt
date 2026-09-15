@@ -12,21 +12,24 @@ class BearerInterceptorTest {
 
     @Test
     fun `protected route receives bearer and protocol version`() {
+        val paths = listOf(
+            "/v1/account/translate", "/v1/media/upload/init",
+            "/v1/media/upload/complete", "/v1/media/media-id/download-url",
+        )
         val server = MockWebServer()
-        server.enqueue(MockResponse().setResponseCode(200))
+        paths.forEach { _ -> server.enqueue(MockResponse().setResponseCode(200)) }
         server.start()
         try {
             val client = OkHttpClient.Builder()
                 .addInterceptor(BearerInterceptor(FakeProvider("access-token")))
                 .build()
 
-            client.newCall(
-                Request.Builder().url(server.url("/v1/account/translate")).build(),
-            ).execute().close()
-
-            val request = server.takeRequest()
-            assertEquals("Bearer access-token", request.getHeader("Authorization"))
-            assertEquals("2", request.getHeader("X-Pixshaft-Auth-Version"))
+            paths.forEach { path ->
+                client.newCall(Request.Builder().url(server.url(path)).build()).execute().close()
+                val request = server.takeRequest()
+                assertEquals(path, "Bearer access-token", request.getHeader("Authorization"))
+                assertEquals(path, "2", request.getHeader("X-Pixshaft-Auth-Version"))
+            }
         } finally {
             server.shutdown()
         }
