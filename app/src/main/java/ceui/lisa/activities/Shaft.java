@@ -34,6 +34,7 @@ import ceui.lisa.utils.Settings;
 import ceui.lisa.viewmodel.AppLevelState;
 import ceui.pixiv.services.ServicesProvider;
 import ceui.pixiv.db.EntityWrapper;
+import ceui.pixiv.debug.TimberFileLog;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.utils.NetworkStateManager;
 import ceui.pixiv.progress.ProgressTracker;
@@ -193,6 +194,32 @@ public class Shaft extends Application implements ServicesProvider {
     /**
      * Initialize the whole application.
      * */
+    /**
+     * 给「试验性 · 日志文件」包一层默认崩溃处理器：先把致命崩溃栈**同步**写进日志文件，
+     * 再原样交回原来的 handler，崩溃行为本身一点不变（Crashlytics 也在这条链上：它由
+     * FirebaseInitProvider 在 Application.onCreate 之前装好，所以这里捕获到的就是它）。
+     *
+     * **只在开关打开时才装**：关着的时候这一层对用户是纯负担 —— 多一层 lambda 不说，
+     * 更要紧的是 TimberFileLog 这个 object 会**等到崩溃那一刻**才第一次类初始化（建线程池 +
+     * 主线程 Handler），而崩溃现场（尤其 OOM）正是最不该再去申请资源的时候。
+     *
+     * 装得晚也不损失任何能力：日志文件是 maybeStart() 之后才异步打开的，在那之前
+     * logCrashNow 本来就是空操作。
+     */
+    private static void installCrashLogHandler() {
+        final Thread.UncaughtExceptionHandler originalCrashHandler =
+                Thread.getDefaultUncaughtExceptionHandler();
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
+            try {
+                TimberFileLog.INSTANCE.logCrashNow(thread.getName(), throwable);
+            } catch (Throwable ignored) {
+            }
+            if (originalCrashHandler != null) {
+                originalCrashHandler.uncaughtException(thread, throwable);
+            }
+        });
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -333,6 +360,11 @@ public class Shaft extends Application implements ServicesProvider {
         initMMKV(this);
         networkStateManager = new NetworkStateManager(this);
         sSettings = Local.getSettings();
+
+        if (sSettings.isLogFileEnabled()) {
+            TimberFileLog.INSTANCE.maybeStart();
+            installCrashLogHandler();
+        }
 
         // issue #865: 图片加速代理。在 mOkHttpClient 构建前把持久化的模式/自定义 host
         // 灌进 ImageHostManager —— requiresStandardClient() 靠它决定是否给图片客户端

@@ -209,6 +209,7 @@ object SettingsCatalog {
         }
         add(Entry(EXPERIMENTAL, "auto_snapshot_on_bookmark_rela", R.string.setting_auto_snapshot_on_bookmark, R.string.setting_auto_snapshot_on_bookmark_desc, keywords = "自动快照 离线快照 收藏 静默 后台 snapshot bookmark auto"))
         add(Entry(EXPERIMENTAL, "auto_snapshot_on_illust_manga_rela", R.string.setting_auto_snapshot_on_illust_manga, R.string.setting_auto_snapshot_on_illust_manga_desc, keywords = "自动快照 离线快照 插画 漫画 反复浏览 长时间驻留 静默 后台 snapshot auto behavior dwell revisit"))
+        add(Entry(EXPERIMENTAL, "log_file_enable_rela", R.string.setting_log_file_enable, R.string.setting_log_file_desc, keywords = "日志 文件 调试 落盘 log timber"))
         add(Entry(EXPERIMENTAL, "is_firebase_enable_rela", R.string.string_367, keywords = "统计 分析 隐私 数据收集 遥测 firebase analytics"))
     }
 
