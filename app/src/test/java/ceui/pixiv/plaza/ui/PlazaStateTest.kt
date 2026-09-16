@@ -9,6 +9,7 @@ import ceui.pixiv.feeds.cache.FeedFirstPageStore
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.plaza.*
 import ceui.pixiv.shaftapi.MediaObject
+import ceui.pixiv.shaftapi.MediaUploadResume
 import java.io.IOException
 import okhttp3.ResponseBody.Companion.toResponseBody
 import kotlinx.coroutines.*
@@ -100,7 +101,7 @@ class PlazaStateTest {
             val saved = SavedStateHandle()
             val api = FakeApi()
             val vm =
-                PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }) { _, _, _ ->
+                PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }) { _, _, _, _, _ ->
                     error("no upload")
                 }
             vm.attach((1..10).map { Uri.parse("content://images/$it") })
@@ -116,7 +117,7 @@ class PlazaStateTest {
                 assertEquals(kind, vm.state.value.objectType)
             }
             val restored =
-                PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }) { _, _, _ ->
+                PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }) { _, _, _, _, _ ->
                     error("no upload")
                 }
             assertEquals("draft", restored.text)
@@ -131,7 +132,7 @@ class PlazaStateTest {
             val api = FakeApi()
             var uploads = 0
             val vm =
-                PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }) { _, _, onProgress ->
+                PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }) { _, _, _, _, onProgress ->
                     uploads++
                     onProgress(100)
                     MediaObject(
@@ -162,11 +163,77 @@ class PlazaStateTest {
         }
 
     @Test
+    fun `a failed upload keeps its authorisation for the next attempt and drops it on success`() =
+        runTest(dispatcher) {
+            val saved = SavedStateHandle()
+            val api = FakeApi()
+            val seen = mutableListOf<MediaUploadResume?>()
+            var fails = true
+            val uploader:
+                suspend (
+                    android.content.ContentResolver, Uri, MediaUploadResume?,
+                    suspend (MediaUploadResume) -> Unit, (Int) -> Unit,
+                ) -> MediaObject =
+                { _, _, resume, onResume, _ ->
+                    seen += resume
+                    if (resume == null)
+                        onResume(
+                            MediaUploadResume(
+                                "media-1", "key", "https://media.pixshaft.com/put",
+                                mapOf("content-type" to "image/jpeg"), 999, "image/jpeg", 3,
+                            )
+                        )
+                    if (fails) throw IOException("timeout")
+                    MediaObject("media-1", "key", "image/jpeg", 3, 10, 20, "1", "https://media.pixshaft.com/a", 999)
+                }
+            val resolver = RuntimeEnvironment.getApplication().contentResolver
+            val vm = PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }, uploader)
+            vm.attach(listOf(Uri.parse("content://images/1")))
+            vm.send(resolver)
+            runCurrent()
+            assertNotNull(vm.state.value.error)
+            assertNull(vm.state.value.images.single().mediaId)
+            assertNotNull(saved.get<String>("resume:content://images/1"))
+
+            // Process recreation restores the same authorisation.
+            fails = false
+            val restored = PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }, uploader)
+            restored.send(resolver)
+            runCurrent()
+            assertEquals(listOf(null, "media-1"), seen.map { it?.mediaId })
+            assertEquals("media-1", saved.get<String>("media:content://images/1"))
+            assertNull(saved.get<String>("resume:content://images/1"))
+            assertEquals(listOf("media-1"), api.creates.single().mediaIds)
+        }
+
+    @Test
+    fun `expired media signatures refresh one post in place and never loop`() =
+        runTest(dispatcher) {
+            val api = FakeApi()
+            val stale = post(3).copy(images = listOf(PlazaImage("m-1", 10, 10, "image/jpeg", "https://media/old", 1)))
+            api.pages.add(CompletableDeferred(PlazaPage(listOf(stale), null)))
+            val vm = timeline(api)
+            vm.enter()
+            runCurrent()
+            assertEquals("https://media/old", vm.state.value.items.single().images.single().url)
+            val fresh = stale.copy(images = listOf(stale.images.single().copy(url = "https://media/new", expiresAt = Long.MAX_VALUE)))
+            api.postGate = CompletableDeferred(fresh)
+            vm.ensureFreshImages(stale)
+            vm.ensureFreshImages(stale)
+            runCurrent()
+            assertEquals(1, api.postCalls)
+            assertEquals("https://media/new", vm.state.value.items.single().images.single().url)
+            vm.ensureFreshImages(vm.state.value.items.single())
+            runCurrent()
+            assertEquals(1, api.postCalls)
+        }
+
+    @Test
     fun `inline reply retains failed draft and can send again after consuming success`() =
         runTest(dispatcher) {
             val api = FakeApi()
             val saved = SavedStateHandle()
-            val vm = PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }) { _, _, _ ->
+            val vm = PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }) { _, _, _, _, _ ->
                 error("no upload")
             }
             val resolver = RuntimeEnvironment.getApplication().contentResolver
@@ -198,7 +265,7 @@ class PlazaStateTest {
     @Test
     fun `changing reply target after a failure uses a new request id`() = runTest(dispatcher) {
         val api = FakeApi()
-        val vm = PlazaComposeViewModel(SavedStateHandle(), api, { 42 }, { "Alice" }) { _, _, _ ->
+        val vm = PlazaComposeViewModel(SavedStateHandle(), api, { 42 }, { "Alice" }) { _, _, _, _, _ ->
             error("no upload")
         }
         vm.replyTo = 7
@@ -220,7 +287,7 @@ class PlazaStateTest {
             var uid = 42L
             val api = FakeApi()
             val vm =
-                PlazaComposeViewModel(SavedStateHandle(), api, { uid }, { "Alice" }) { _, _, _ ->
+                PlazaComposeViewModel(SavedStateHandle(), api, { uid }, { "Alice" }) { _, _, _, _, _ ->
                     error("no upload")
                 }
             vm.text = "draft"

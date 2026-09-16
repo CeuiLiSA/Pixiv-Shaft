@@ -125,6 +125,8 @@ internal class PostAdapter(
     private val detailId: Long = 0,
     private val onReact: (PlazaPost, String) -> Unit = { _, _ -> },
     private val onReply: ((PlazaPost) -> Unit)? = null,
+    /** Every bind, including rebinds while scrolling: the hook that notices expired media URLs. */
+    private val onBind: (PlazaPost) -> Unit = {},
 ) :
     ListAdapter<PlazaPost, PostAdapter.Holder>(
         object : DiffUtil.ItemCallback<PlazaPost>() {
@@ -152,6 +154,7 @@ internal class PostAdapter(
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val post = getItem(position)
+        onBind(post)
         holder.view.bind(
             post,
             post.id in busy,

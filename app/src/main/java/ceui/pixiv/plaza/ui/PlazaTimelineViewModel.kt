@@ -318,6 +318,40 @@ constructor(
         }
     }
 
+    private val imageRefreshAt = mutableMapOf<Long, Long>()
+
+    /**
+     * Signed media URLs outlive the screen's own refresh window when the feed simply stays open.
+     * A post scrolled into view with an expired signature is re-fetched on its own, and the
+     * shared entry update swaps the URLs in place; Glide keeps already-cached bytes regardless.
+     * One attempt per post per window, so a device clock far ahead of the server cannot loop.
+     */
+    fun ensureFreshImages(post: PlazaPost) {
+        val now = System.currentTimeMillis()
+        if (post.images.none { it.expiresAt <= now + IMAGE_EXPIRY_MARGIN_MS }) return
+        val last = imageRefreshAt[post.id]
+        if (last != null && now - last < IMAGE_REFRESH_INTERVAL_MS) return
+        imageRefreshAt[post.id] = now
+        val account = uid
+        viewModelScope.launch {
+            try {
+                requireAccount(account)
+                val fresh = api.post(post.id)
+                requireAccount(account)
+                PlazaRepository.cache(fresh, account)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (e is retrofit2.HttpException && e.code() == 404 && account == currentUid()) {
+                    PlazaRepository.changed()
+                    PlazaRepository.invalidate(post.id, account)
+                }
+                // The stale tile already shows its error placeholder; a pull refresh still works.
+                Timber.d(e, "plaza: media signature refresh failed for post %d", post.id)
+            }
+        }
+    }
+
     /** Observe the same ObjectPool entries as other lists and detail pages, like artworks. */
     private fun observePosts() {
         val ids = (mutable.value.items.map { it.id } + listOfNotNull(postId.takeIf { it > 0 })).toSet()
@@ -349,4 +383,9 @@ constructor(
         super.onCleared()
     }
 
+    private companion object {
+        /** Same margin as PlazaImageSource: a URL about to expire is treated as expired. */
+        const val IMAGE_EXPIRY_MARGIN_MS = 5_000L
+        const val IMAGE_REFRESH_INTERVAL_MS = 30_000L
+    }
 }

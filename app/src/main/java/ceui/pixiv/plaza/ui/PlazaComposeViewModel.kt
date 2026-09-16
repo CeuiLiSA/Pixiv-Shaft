@@ -12,7 +12,9 @@ import ceui.pixiv.plaza.PlazaFailure
 import ceui.pixiv.plaza.PlazaMessage
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.shaftapi.MediaObject
+import ceui.pixiv.shaftapi.MediaUploadResume
 import ceui.pixiv.shaftapi.MediaUploader
+import com.google.gson.Gson
 import java.util.UUID
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -35,9 +37,20 @@ constructor(
     private val api: PlazaApi = PlazaRepository.api,
     private val currentUid: () -> Long = { SessionManager.loggedInUid },
     private val currentName: () -> String = { SessionManager.loggedInUser?.name.orEmpty() },
-    private val uploader: suspend (ContentResolver, Uri, (Int) -> Unit) -> MediaObject =
+    private val uploader:
+        suspend (
+            ContentResolver, Uri, MediaUploadResume?, suspend (MediaUploadResume) -> Unit, (Int) -> Unit,
+        ) -> MediaObject =
         MediaUploader::upload,
 ) : ViewModel() {
+    /** The pending upload authorisation of one draft image, kept until that image completes. */
+    private fun resumeKey(uri: String) = "resume:$uri"
+
+    private fun savedResume(uri: String): MediaUploadResume? =
+        saved.get<String>(resumeKey(uri))?.let { json ->
+            runCatching { Gson().fromJson(json, MediaUploadResume::class.java) }.getOrNull()
+        }
+
     private fun requireAccount() {
         if (owner <= 0 || owner != currentUid())
             throw PlazaFailure(PlazaMessage(R.string.plaza_account_changed))
@@ -177,11 +190,22 @@ constructor(
             try {
                 requireAccount()
                 // Sequential streaming bounds memory and avoids nine competing mobile uploads.
-                // Successful media IDs survive retries and process recreation.
+                // Successful media IDs survive retries and process recreation; so does a pending
+                // authorisation, so a retry finishes the same object instead of re-sending it.
                 for (image in mutable.value.images) {
                     if (image.mediaId != null) continue
                     val media =
-                        uploader(resolver, Uri.parse(image.uri)) { percent ->
+                        uploader(
+                            resolver,
+                            Uri.parse(image.uri),
+                            savedResume(image.uri),
+                            { resume ->
+                                // The uploader calls back from its IO context.
+                                withContext(Dispatchers.Main.immediate) {
+                                    saved[resumeKey(image.uri)] = Gson().toJson(resume)
+                                }
+                            },
+                        ) { percent ->
                             mutable.update { s ->
                                 s.copy(
                                     images =
@@ -194,6 +218,7 @@ constructor(
                         }
                     requireAccount()
                     saved["media:${image.uri}"] = media.id
+                    saved.remove<String>(resumeKey(image.uri))
                     mutable.update { s ->
                         s.copy(
                             images =

@@ -100,6 +100,7 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
         val adapter = PostAdapter(
             model::like, ::confirmDelete, ::preview, postId, model::react,
             onReply = if (postId > 0) ::startReply else null,
+            onBind = model::ensureFreshImages,
         )
         list.adapter = adapter
         list.addOnScrollListener(
