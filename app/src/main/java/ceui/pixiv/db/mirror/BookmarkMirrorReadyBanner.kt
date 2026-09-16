@@ -82,4 +82,19 @@ object BookmarkMirrorReadyBanner {
         }
         Timber.tag(TAG).i("[%s] 收藏库就绪引导 banner 已入队=%b（%d 件）", shelf.label, shown, rows)
     }
+
+    /**
+     * 【临时·调试】重放一次引导：先把「已弹过」的一次性标记清掉，再走一遍 [announce]。
+     *
+     * 存在的唯一理由：这条引导只在整份回填**翻到最后一页**那一刻弹一次，想验它的按钮就得先等
+     * 几十分钟回填 + 各种时机对齐；而且即使等到了，那个是真正的一次性——验砸了不重启就没第二次。
+     * 这里给「设置 · 试验性」里那个手动入口用（见 `DebugMirrorBannerTrigger`）。
+     *
+     * **用完即删**：与 `fragment_settings_experimental.xml` 的 `debug_mirror_banner_rela`、
+     * `FragmentSettingsExperimental` 里的绑定、`DebugMirrorBannerTrigger.kt` 一起删。
+     */
+    fun debugReplay(context: Context, shelf: BookmarkShelf, rows: Int) {
+        Shaft.getMMKV()?.encode(KEY_PREFIX + shelf.key, false)
+        announce(context, shelf, rows)
+    }
 }
