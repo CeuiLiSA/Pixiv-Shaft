@@ -2902,6 +2902,8 @@
     <string name="bookmark_library_sync_queued">Mirror queued, waiting for the next sync window</string>
     <string name="bookmark_library_sync_cooldown">Paused to stay under pixiv rate limits, resuming later</string>
     <string name="bookmark_library_rebuild">Rebuild local mirror</string>
+    <string name="bookmark_library_rebuild_sim">Rebuild local mirror (simulated)</string>
+    <string name="bookmark_library_rebuild_sim_restore">Restore library to pre-simulation</string>
     <string name="bookmark_library_filter_title">Filter &amp; sort</string>
     <string name="bookmark_library_filter_reset">Clear</string>
     <string name="bookmark_library_filter_apply">Show %1$s items</string>
@@ -2910,6 +2912,7 @@
     <string name="bookmark_chip_random">Shuffle</string>
     <string name="bookmark_chip_filter">Filters</string>
     <string name="bookmark_chip_filter_count">Filters · %1$d</string>
+    <string name="bookmark_chip_syncing">Mirroring · filters unavailable</string>
     <string name="bookmark_chip_clear">Clear filters</string>
     <string name="bookmark_sort_bookmark_newest">Bookmarked · newest</string>
     <string name="bookmark_sort_bookmark_oldest">Bookmarked · oldest</string>

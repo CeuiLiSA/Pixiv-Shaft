@@ -222,17 +222,24 @@ class BookmarkMirrorService(app: Context) {
     fun readState(shelf: BookmarkShelf): BookmarkMirrorStateEntity? = dao.findState(shelf.key)
 
     /**
-     * 这个书架**完整同步过至少一次**了吗 —— 也就是「本地这份能不能当作全量来用」。
+     * 这个书架**注册过**了吗 —— 也就是「点收藏入口该不该直接进本地库」。
      *
-     * 导航要用它决定点收藏入口是进本地库还是进原始列表，所以刻意做成同步的：那是主线程上
-     * 的一次主键点查，表里最多四行，代价远小于为它引一层异步。任何异常（库还没建好、
-     * 迁移中、磁盘故障）一律当作「没准备好」，让调用方回落到不依赖镜像的老路径 ——
+     * 刻意**不是**「全量补齐完成」。本地库是**流式可用**的：第一页在网络 RTT 内就落库，之后每
+     * 5 秒一页，页面自己会用顶部进度条与「正在后台补齐」的空态说清楚现在有多少。拿「补齐完成」
+     * 当进门条件，用户首次点击就必然进旧版，还得退出去重进（等几分钟到几十分钟）才看得到新版。
+     *
+     * 「这份表能不能当**全量**用」（筛选 / 排序 / 搜索的前提）是另一件事，由
+     * [BookmarkMirrorStateEntity.isFirstSyncDone] 表达，页面直接读 state Flow 那个字段，
+     * 本方法不重复提供 —— 留一个没人调的同义方法只会变成死代码。
+     *
+     * 同步 + 主键点查（表里最多四行），摆在导航路径上够便宜。任何异常（库还没建好、迁移中、
+     * 磁盘故障）一律按「没注册过」处理，让调用方回落到不依赖镜像的老路径 ——
      * 导航绝不能因为一个附加功能而崩。
      */
-    fun isShelfReady(shelf: BookmarkShelf): Boolean = try {
-        isFeatureEnabled() && dao.findState(shelf.key)?.isFirstSyncDone == true
+    fun isShelfRegistered(shelf: BookmarkShelf): Boolean = try {
+        isFeatureEnabled() && dao.findState(shelf.key) != null
     } catch (t: Throwable) {
-        Timber.tag(TAG).w(t, "读取书架就绪状态失败，按未就绪处理")
+        Timber.tag(TAG).w(t, "读取书架注册状态失败，按未注册处理")
         false
     }
 
