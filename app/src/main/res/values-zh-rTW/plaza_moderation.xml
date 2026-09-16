@@ -5,8 +5,8 @@
     <string name="plaza_block_user">封鎖作者</string>
     <string name="plaza_blocked_users">廣場封鎖名單</string>
     <string name="plaza_report_notice">請選擇檢舉原因。檢舉由審核人員處理，不會向作者公開檢舉人身分。</string>
-    <string name="plaza_report_details">補充說明（選填，其他原因必填，最多 1000 字）</string>
-    <string name="plaza_report_required">請選擇原因；選擇「其他」時請填寫說明。</string>
+    <string name="plaza_report_details">補充說明（選填，最多 1000 字）</string>
+    <string name="plaza_report_required">請選擇檢舉原因。</string>
     <string name="plaza_report_submit">提交檢舉</string>
     <string name="plaza_report_success">檢舉 #%1$d 已收到，將由審核人員處理。</string>
     <string name="plaza_report_sending">正在處理…</string>
@@ -28,8 +28,18 @@
         <item>仇恨言論</item>
         <item>騷擾或霸凌</item>
         <item>侵犯隱私</item>
-        <item>垃圾廣告或詐騙</item>
+        <item>廣告內容</item>
+        <item>垃圾訊息或詐騙</item>
         <item>違法內容</item>
         <item>其他</item>
     </string-array>
+    <string name="plaza_report_title">檢舉</string>
+    <string name="plaza_report_reason_title">檢舉原因（必選）</string>
+    <string name="plaza_report_details_title">補充說明（選填）</string>
+    <string name="plaza_report_details_hint">請描述你遇到的情況</string>
+    <string name="plaza_report_photos_title">照片證據（選填）</string>
+    <string name="plaza_report_photos_hint">最多新增 3 張照片，幫助審核人員了解情況。</string>
+    <string name="plaza_report_received_title">檢舉已送出</string>
+    <string name="plaza_report_target">貼文 #%1$d · 作者 %2$d</string>
+    <string name="plaza_report_finish">完成</string>
 </resources>

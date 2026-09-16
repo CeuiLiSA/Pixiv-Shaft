@@ -5,8 +5,8 @@
     <string name="plaza_block_user">Block author</string>
     <string name="plaza_blocked_users">Blocked plaza users</string>
     <string name="plaza_report_notice">Choose a reason. Reports are private and reviewed by our moderation team. Reporters are not identified to the author.</string>
-    <string name="plaza_report_details">Details (optional; required for Other, up to 1000 characters)</string>
-    <string name="plaza_report_required">Choose a reason and provide details if you select Other.</string>
+    <string name="plaza_report_details">Additional details (optional, up to 1000 characters)</string>
+    <string name="plaza_report_required">Please select a reason.</string>
     <string name="plaza_report_submit">Submit report</string>
     <string name="plaza_report_success">Report #%1$d received. Our moderation team will review it.</string>
     <string name="plaza_report_sending">Processing…</string>
@@ -27,9 +27,19 @@
         <item>Hate</item>
         <item>Harassment or bullying</item>
         <item>Privacy infringement</item>
+        <item>Advertising</item>
         <item>Spam or scams</item>
         <item>Illegal content</item>
         <item>Other</item>
     </string-array>
     <string name="plaza_report_reviewed">Report #%1$d has already been reviewed. No need to submit it again.</string>
+    <string name="plaza_report_title">Report</string>
+    <string name="plaza_report_reason_title">Reason (required)</string>
+    <string name="plaza_report_details_title">Additional details (optional)</string>
+    <string name="plaza_report_details_hint">Describe what happened</string>
+    <string name="plaza_report_photos_title">Photo evidence (optional)</string>
+    <string name="plaza_report_photos_hint">Add up to 3 photos to help moderators review your report.</string>
+    <string name="plaza_report_received_title">Report submitted</string>
+    <string name="plaza_report_target">Post #%1$d · Author %2$d</string>
+    <string name="plaza_report_finish">Done</string>
 </resources>

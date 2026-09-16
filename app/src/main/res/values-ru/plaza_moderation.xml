@@ -5,8 +5,8 @@
     <string name="plaza_block_user">Заблокировать автора</string>
     <string name="plaza_blocked_users">Заблокированные пользователи</string>
     <string name="plaza_report_notice">Выберите причину. Жалобу рассмотрят модераторы. Личность отправителя не раскрывается автору.</string>
-    <string name="plaza_report_details">Подробности (до 1000 символов; обязательны для причины «Другое»)</string>
-    <string name="plaza_report_required">Выберите причину. Для варианта «Другое» укажите подробности.</string>
+    <string name="plaza_report_details">Подробности (необязательно, до 1000 символов)</string>
+    <string name="plaza_report_required">Выберите причину жалобы.</string>
     <string name="plaza_report_submit">Отправить жалобу</string>
     <string name="plaza_report_success">Жалоба №%1$d получена. Её рассмотрят модераторы.</string>
     <string name="plaza_report_sending">Обработка…</string>
@@ -28,8 +28,18 @@
         <item>Ненависть</item>
         <item>Травля или домогательства</item>
         <item>Нарушение конфиденциальности</item>
+        <item>Реклама</item>
         <item>Спам или мошенничество</item>
         <item>Незаконный контент</item>
         <item>Другое</item>
     </string-array>
+    <string name="plaza_report_title">Жалоба</string>
+    <string name="plaza_report_reason_title">Причина (обязательно)</string>
+    <string name="plaza_report_details_title">Подробности (необязательно)</string>
+    <string name="plaza_report_details_hint">Опишите, что произошло</string>
+    <string name="plaza_report_photos_title">Фотографии (необязательно)</string>
+    <string name="plaza_report_photos_hint">Добавьте до 3 фотографий, которые помогут модераторам рассмотреть жалобу.</string>
+    <string name="plaza_report_received_title">Жалоба отправлена</string>
+    <string name="plaza_report_target">Публикация #%1$d · Автор %2$d</string>
+    <string name="plaza_report_finish">Готово</string>
 </resources>

@@ -532,6 +532,14 @@ object TemplateRouteFactory {
             // 显式「打开全员公屏」入口：会话列表点 Global 行用。不带 peer_uid 走 CHAT 会回到列表本身。
             TemplateRoute.CHAT_GLOBAL_ROOM -> DemoChatListFragment()
             TemplateRoute.PLAZA -> PlazaFragment()
+            TemplateRoute.PLAZA_REPORT -> ceui.pixiv.plaza.ui.PlazaReportFragment().apply {
+                arguments = bundleOf(
+                    "postId" to intent.getLongExtra("postId", 0L),
+                    "targetUid" to intent.getLongExtra("targetUid", 0L),
+                    "mode" to if (intent.getStringExtra("mode") == "user") "user" else "post",
+                    "owner" to intent.getLongExtra("owner", ceui.pixiv.session.SessionManager.loggedInUid),
+                )
+            }
             // 从插画 V3「分享至广场」入口进来会带 ILLUST_ID,需透传给 compose fragment 预附这张 illust;
             // 广场右上「+」入口不带,走空白编辑器。
             TemplateRoute.PLAZA_COMPOSE ->

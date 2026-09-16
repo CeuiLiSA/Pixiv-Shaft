@@ -58,7 +58,12 @@ data class CreatePost(
 
 data class DeletePost(val ok: Boolean)
 
-data class PlazaReportRequest(val targetType: String, val reason: String, val details: String)
+data class PlazaReportRequest(
+    val targetType: String,
+    val reason: String,
+    val details: String,
+    val mediaIds: List<String> = emptyList(),
+)
 data class PlazaReportReceipt(val id: Long, val status: String, val duplicate: Boolean)
 data class PlazaBlockedUser(val uid: Long, val displayName: String)
 data class PlazaBlocks(val items: List<PlazaBlockedUser>)
