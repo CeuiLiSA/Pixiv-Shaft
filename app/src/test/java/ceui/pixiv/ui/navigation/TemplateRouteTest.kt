@@ -174,6 +174,7 @@ class TemplateRouteTest {
             "PLAZA" to "广场",
             "PLAZA_COMPOSE" to "发帖",
             "PLAZA_REPORT" to "广场举报",
+            "PLAZA_BLOCKS" to "广场屏蔽名单",
             "PLAZA_OPEN_ILLUST" to "Plaza打开作品",
             "PLAZA_POST_DETAIL" to "Plaza帖子详情",
             "NOTIFICATION_CENTER" to "通知中心",

@@ -12,7 +12,7 @@
     <string name="plaza_report_sending">İşleniyor…</string>
     <string name="plaza_block_notice">Engelledikten sonra meydanda birbirinizin gönderi ve yorumlarını göremez veya bunlarla etkileşim kuramazsınız. Engellenen kullanıcılar listesinden engeli kaldırabilirsiniz.</string>
     <string name="plaza_block_success">Yazar meydanda engellendi.</string>
-    <string name="plaza_blocks_notice">Engelleme yalnızca meydan için geçerlidir. Engeli kaldırmak için kullanıcıya dokunun.</string>
+    <string name="plaza_blocks_notice">Engelleme yalnızca meydan için geçerlidir. Engel kaldırıldığında kullanıcının gönderileri ve yorumları yeniden görünür.</string>
     <string name="plaza_blocks_empty">Engellenen kullanıcı yok.</string>
     <string name="plaza_unblock_user">%1$s kullanıcısının engelini kaldır</string>
     <string name="plaza_policy_title">Meydan topluluk kuralları</string>
@@ -42,4 +42,5 @@
     <string name="plaza_report_received_title">Bildirim gönderildi</string>
     <string name="plaza_report_target">Gönderi #%1$d · Yazar %2$d</string>
     <string name="plaza_report_finish">Tamam</string>
+    <string name="plaza_unblock_action">Engeli kaldır</string>
 </resources>

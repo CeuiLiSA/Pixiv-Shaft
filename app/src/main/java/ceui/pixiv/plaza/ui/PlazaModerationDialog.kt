@@ -23,10 +23,11 @@ import ceui.pixiv.witstudio.theme.V3Palette
 import kotlinx.coroutines.launch
 
 internal fun Context.showPlazaModeration(postId: Long, uid: Long, mode: String) {
-    if (mode == "post" || mode == "user") {
+    if (mode == "post" || mode == "user" || mode == "blocks") {
         startActivity(android.content.Intent(this, ceui.lisa.activities.TemplateActivity::class.java).apply {
             putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT,
-                ceui.pixiv.ui.navigation.TemplateRoute.PLAZA_REPORT.key)
+                if (mode == "blocks") ceui.pixiv.ui.navigation.TemplateRoute.PLAZA_BLOCKS.key
+                else ceui.pixiv.ui.navigation.TemplateRoute.PLAZA_REPORT.key)
             putExtra("postId", postId)
             putExtra("targetUid", uid)
             putExtra("mode", mode)
@@ -43,22 +44,16 @@ internal fun Context.showPlazaModeration(postId: Long, uid: Long, mode: String) 
     }.show(manager, "plaza-moderation")
 }
 
-/** Only blocking and the block list use a dialog; reports have their own full page. */
+/** Blocking confirmation; reports and blocked users have their own full pages. */
 class PlazaModerationDialog : DialogFragment() {
     private val model: PlazaModerationModel by viewModels()
     private var status: TextView? = null
-    private var fields: LinearLayout? = null
     private var submit: WitDialogAction? = null
     private var cancel: WitDialogAction? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val ctx = requireContext()
         val palette = V3Palette.from(ctx)
-        val title = when (model.mode) {
-            "block" -> R.string.plaza_block_user
-            "blocks" -> R.string.plaza_blocked_users
-            else -> R.string.plaza_block_user
-        }
         val builder = object : WitDialog.CustomDialogBuilder(ctx) {
             override fun onCreateContent(dialog: WitDialog, parent: WitDialogView, context: Context): View {
                 val column = LinearLayout(context).apply {
@@ -72,18 +67,15 @@ class PlazaModerationDialog : DialogFragment() {
                     setTextColor(palette.textSecondary)
                     setLineSpacing(ctx.dp(4).toFloat(), 1f)
                 }
-                column.addView(label(getString(if (model.mode == "block") R.string.plaza_block_notice else R.string.plaza_blocks_notice)))
-                val content = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
-                fields = content
-                column.addView(content)
+                column.addView(label(getString(R.string.plaza_block_notice)))
                 status = label("").apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
                 column.addView(status)
                 return ScrollView(ctx).apply { addView(column) }
             }
         }
-        builder.setTitle(getString(title))
+        builder.setTitle(getString(R.string.plaza_block_user))
         cancel = WitDialogAction(getString(R.string.cancel)) { _, _ -> dismiss() }
-        submit = WitDialogAction(getString(if (model.mode == "blocks") R.string.plaza_retry else R.string.plaza_block_user)) { _, _ -> model.submit() }
+        submit = WitDialogAction(getString(R.string.plaza_block_user)) { _, _ -> model.submit() }
         builder.addAction(cancel).addAction(submit)
         return builder.create()
     }
@@ -105,8 +97,13 @@ class PlazaModerationDialog : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
+        // An older APK may have saved an open block-list dialog in its activity state.
+        if (model.mode == "blocks") {
+            requireContext().showPlazaModeration(0L, 0L, "blocks")
+            dismiss()
+            return
+        }
         render(model.state.value)
-        if (model.mode == "blocks") model.submit()
     }
 
     private fun render(state: ModerationState) {
@@ -116,26 +113,12 @@ class PlazaModerationDialog : DialogFragment() {
         status?.text = when {
             state.busy -> getString(R.string.plaza_report_sending)
             state.error != null -> state.error.resolve(requireContext())
-            model.mode == "blocks" && state.blocks.isEmpty() -> getString(R.string.plaza_blocks_empty)
             else -> ""
-        }
-        fun enable(view: View) {
-            view.isEnabled = !state.busy
-            if (view is android.view.ViewGroup) for (i in 0 until view.childCount) enable(view.getChildAt(i))
-        }
-        fields?.let(::enable)
-        if (model.mode == "blocks") fields?.let { column ->
-            column.removeAllViews()
-            state.blocks.forEach { user ->
-                column.addView(requireContext().pillButton(getString(R.string.plaza_unblock_user, user.displayName), false) {
-                    model.submit(user.uid)
-                }.apply { isEnabled = !state.busy })
-            }
         }
     }
 
     override fun onDestroyView() {
-        status = null; fields = null; submit = null; cancel = null
+        status = null; submit = null; cancel = null
         super.onDestroyView()
     }
 }

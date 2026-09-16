@@ -12,7 +12,7 @@
     <string name="plaza_report_sending">処理中…</string>
     <string name="plaza_block_notice">ブロックすると、広場でお互いの投稿やコメントが表示されなくなり、交流できなくなります。「広場のブロック一覧」で解除できます。</string>
     <string name="plaza_block_success">広場でこの投稿者をブロックしました。</string>
-    <string name="plaza_blocks_notice">ブロックは広場にのみ適用されます。ユーザーをタップすると解除できます。</string>
+    <string name="plaza_blocks_notice">ブロックは広場にのみ適用されます。解除すると、このユーザーの投稿とコメントが再び表示されます。</string>
     <string name="plaza_blocks_empty">ブロック中のユーザーはいません。</string>
     <string name="plaza_unblock_user">%1$s のブロックを解除</string>
     <string name="plaza_policy_title">広場のコミュニティガイドライン</string>
@@ -42,4 +42,5 @@
     <string name="plaza_report_received_title">報告を送信しました</string>
     <string name="plaza_report_target">投稿 #%1$d · 投稿者 %2$d</string>
     <string name="plaza_report_finish">完了</string>
+    <string name="plaza_unblock_action">ブロック解除</string>
 </resources>

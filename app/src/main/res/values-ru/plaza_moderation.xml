@@ -12,7 +12,7 @@
     <string name="plaza_report_sending">Обработка…</string>
     <string name="plaza_block_notice">После блокировки вы не сможете видеть публикации и комментарии друг друга или взаимодействовать в разделе «Площадь». Блокировку можно снять в списке заблокированных пользователей.</string>
     <string name="plaza_block_success">Автор заблокирован в разделе «Площадь».</string>
-    <string name="plaza_blocks_notice">Блокировка действует только в разделе «Площадь». Нажмите на пользователя, чтобы разблокировать его.</string>
+    <string name="plaza_blocks_notice">Блокировка действует только на площади. После разблокировки публикации и комментарии пользователя снова будут видны.</string>
     <string name="plaza_blocks_empty">Заблокированных пользователей нет.</string>
     <string name="plaza_unblock_user">Разблокировать %1$s</string>
     <string name="plaza_policy_title">Правила сообщества</string>
@@ -42,4 +42,5 @@
     <string name="plaza_report_received_title">Жалоба отправлена</string>
     <string name="plaza_report_target">Публикация #%1$d · Автор %2$d</string>
     <string name="plaza_report_finish">Готово</string>
+    <string name="plaza_unblock_action">Разблокировать</string>
 </resources>

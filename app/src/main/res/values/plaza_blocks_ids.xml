@@ -1,0 +1,4 @@
+<resources>
+    <string name="plaza_blocked_uid" translatable="false">UID %1$d</string>
+    <string name="plaza_blocks_state_message" translatable="false">%1$s\n%2$s</string>
+</resources>

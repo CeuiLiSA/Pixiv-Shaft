@@ -12,7 +12,7 @@
     <string name="plaza_report_sending">Processing…</string>
     <string name="plaza_block_notice">You will no longer see each other’s posts or comments in the plaza or interact with them. You can unblock this author from Blocked plaza users.</string>
     <string name="plaza_block_success">Author blocked in the plaza.</string>
-    <string name="plaza_blocks_notice">Blocking applies to the plaza. Tap a user to unblock them.</string>
+    <string name="plaza_blocks_notice">Blocking applies only to the plaza. Unblocking restores this user’s posts and comments.</string>
     <string name="plaza_blocks_empty">No blocked users.</string>
     <string name="plaza_unblock_user">Unblock %1$s</string>
     <string name="plaza_policy_title">Plaza community guidelines</string>
@@ -42,4 +42,5 @@
     <string name="plaza_report_received_title">Report submitted</string>
     <string name="plaza_report_target">Post #%1$d · Author %2$d</string>
     <string name="plaza_report_finish">Done</string>
+    <string name="plaza_unblock_action">Unblock</string>
 </resources>

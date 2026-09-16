@@ -532,6 +532,12 @@ object TemplateRouteFactory {
             // 显式「打开全员公屏」入口：会话列表点 Global 行用。不带 peer_uid 走 CHAT 会回到列表本身。
             TemplateRoute.CHAT_GLOBAL_ROOM -> DemoChatListFragment()
             TemplateRoute.PLAZA -> PlazaFragment()
+            TemplateRoute.PLAZA_BLOCKS -> ceui.pixiv.plaza.ui.PlazaBlockedUsersFragment().apply {
+                arguments = bundleOf(
+                    "mode" to "blocks",
+                    "owner" to intent.getLongExtra("owner", ceui.pixiv.session.SessionManager.loggedInUid),
+                )
+            }
             TemplateRoute.PLAZA_REPORT -> ceui.pixiv.plaza.ui.PlazaReportFragment().apply {
                 arguments = bundleOf(
                     "postId" to intent.getLongExtra("postId", 0L),

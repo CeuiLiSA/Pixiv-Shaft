@@ -12,7 +12,7 @@
     <string name="plaza_report_sending">正在處理…</string>
     <string name="plaza_block_notice">封鎖後，雙方在廣場中將無法看到彼此的貼文和留言，也無法互動。可在「廣場封鎖名單」中解除封鎖。</string>
     <string name="plaza_block_success">已在廣場封鎖該作者。</string>
-    <string name="plaza_blocks_notice">封鎖僅適用於廣場。點選使用者可解除封鎖。</string>
+    <string name="plaza_blocks_notice">封鎖僅適用於廣場。解除後將恢復顯示該使用者的貼文和留言。</string>
     <string name="plaza_blocks_empty">暫無封鎖的使用者。</string>
     <string name="plaza_unblock_user">解除封鎖 %1$s</string>
     <string name="plaza_policy_title">廣場社群規範</string>
@@ -42,4 +42,5 @@
     <string name="plaza_report_received_title">檢舉已送出</string>
     <string name="plaza_report_target">貼文 #%1$d · 作者 %2$d</string>
     <string name="plaza_report_finish">完成</string>
+    <string name="plaza_unblock_action">解除封鎖</string>
 </resources>

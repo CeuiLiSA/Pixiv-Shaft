@@ -27,7 +27,6 @@ internal data class ModerationState(
     val done: Boolean = false,
     val receiptId: Long? = null,
     val receiptStatus: String = "pending",
-    val blocks: List<PlazaBlockedUser> = emptyList(),
     val images: List<DraftImage> = emptyList(),
 )
 
@@ -76,7 +75,7 @@ internal class PlazaModerationModel @JvmOverloads constructor(
         state.value = state.value.copy(images = images)
     }
 
-    fun submit(unblockUid: Long? = null, resolver: ContentResolver? = null) {
+    fun submit(resolver: ContentResolver? = null) {
         if (state.value.busy || state.value.done) return
         if (mode in listOf("post", "user") && reason !in plazaReportReasons) {
             state.value = state.value.copy(error = PlazaMessage(R.string.plaza_report_required))
@@ -113,20 +112,6 @@ internal class PlazaModerationModel @JvmOverloads constructor(
                 PlazaRepository.mutate {
                     requireAccount()
                     when (mode) {
-                        "blocks" -> {
-                            if (unblockUid != null) {
-                                try {
-                                    check(api.unblock(unblockUid).ok)
-                                } finally {
-                                    // A lost response or account switch does not undo a server write.
-                                    safetyChanged(owner)
-                                }
-                                requireAccount()
-                            }
-                            val users = api.blocks().items
-                            requireAccount()
-                            state.value = state.value.copy(blocks = users)
-                        }
                         "block" -> {
                             val target = checkNotNull(saved.get<Long>("targetUid"))
                             try {
