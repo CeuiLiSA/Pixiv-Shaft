@@ -285,6 +285,22 @@ class PlazaFeedSourceTest {
         assertTrue(c.mine)
     }
 
+    @Test
+    fun `a scope restart records its own first page so the next resume stays put`() = runTest(dispatcher) {
+        val api = FakeApi().apply { pages.add(CompletableDeferred(PlazaPage(listOf(post(6080)), null))) }
+        val c = controller(api)
+        assertEquals(PlazaFeedController.Entry.NONE, c.enter())
+        assertTrue(c.selectMine(true))
+        // The page restarts the list itself instead of going through requestRefresh; a first
+        // page that lands is what records the revision and the load time.
+        assertEquals(PlazaFeedController.Entry.REFRESH, c.enter())
+        val vm = feed(c.source)
+        vm.refresh()
+        runCurrent()
+        assertEquals(listOf(42L), api.authors)
+        assertEquals(PlazaFeedController.Entry.NONE, c.enter())
+    }
+
     private class FakeStore(page: PlazaPage) : FeedFirstPageStore<PlazaPage> {
         var snapshot: CachedFirstPage<PlazaPage>? =
             CachedFirstPage(page, page.nextBefore?.toString(), 100)

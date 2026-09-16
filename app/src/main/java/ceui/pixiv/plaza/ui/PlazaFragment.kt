@@ -150,6 +150,9 @@ class PlazaFragment : FeedFragment(R.layout.fragment_plaza_feed) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Subscribes after FeedFragment's own collector, so every emission reaches
+                // syncPlazaState once the framework has finished painting that same state.
+                launch { feedViewModel.uiState.collect(::syncPlazaState) }
                 launch { controller.refreshRequests.collect { feedViewModel.refresh() } }
                 launch {
                     controller.busyIds.collect { busy ->
@@ -176,11 +179,17 @@ class PlazaFragment : FeedFragment(R.layout.fragment_plaza_feed) {
     /**
      * Restart the list for another scope: the old rows leave at once, the scope's disk
      * snapshot shows while the network first page loads, exactly as before the migration.
+     *
+     * Deliberately not routed through [refreshNow]: a scope restart must not be deferred behind
+     * an in-flight mutation, because the list has already been emptied and a deferred refresh
+     * would leave the page sitting on the "no posts yet" empty state until that mutation
+     * finishes. A stale page still cannot overwrite the mutation — [PlazaFeedSource] refetches
+     * any page whose revision moved while it was in flight.
      */
     private fun restartScope() {
         val vm = feedViewModel
         switchingScope = true
-        refreshNow()
+        vm.refresh()
         vm.adoptCursorAndMutateItems(null) { emptyList() }
         viewLifecycleOwner.lifecycleScope.launch {
             val restored =
@@ -220,19 +229,39 @@ class PlazaFragment : FeedFragment(R.layout.fragment_plaza_feed) {
         requireContext().showPlazaError(throwable.plazaMessage())
     }
 
-    override fun onListCommitted(state: FeedUiState) {
-        val ctx = context ?: return
+    /**
+     * The ring belongs to the user's pull gesture. Cold-start cache refreshes, resume refreshes,
+     * network-restored retries and scope switches load silently, as they did before the
+     * migration (docs/plaza-design-review.md, 2026-09-16).
+     */
+    override fun shouldShowRefreshSpinner(state: FeedUiState): Boolean =
+        userPulled && super.shouldShowRefreshSpinner(state)
+
+    /**
+     * The page's last word on each state, applied after the framework's `render` has painted it.
+     *
+     * This deliberately does not hang off `onListCommitted`: that callback rides
+     * `AsyncListDiffer.submitList`, which runs synchronously — before `render` touches any view —
+     * whenever the submitted list is the same instance as the current one. A plain refresh is
+     * exactly that case (only `refresh` flips to Loading, `items` keeps its instance), so
+     * corrections made there would be overwritten in the same pass, and the callback can also
+     * arrive after `onDestroyView` for an async diff.
+     */
+    private fun syncPlazaState(state: FeedUiState) {
+        val ctx = requireContext()
         val binding = feedBinding
-        // The refresh ring is the user's pull gesture only; cold-start cache refreshes, resume
-        // refreshes and scope switches load silently.
-        if (state.refresh !is LoadState.Loading) userPulled = false
-        binding.feedRefreshLayout.isRefreshing = userPulled && state.refresh is LoadState.Loading
-        if (state.refresh !is LoadState.Loading) switchingScope = false
+        if (state.refresh !is LoadState.Loading) {
+            userPulled = false
+            switchingScope = false
+        }
+        // A scope restart empties the list on purpose. Keep the first-screen skeleton instead of
+        // the framework's empty state, which would claim this account has no posts.
         if (switchingScope && state.items.isEmpty()) {
             binding.feedSkeleton.isVisible = true
             binding.feedStateContainer.isVisible = false
         }
-        // Plaza's own error copy (status-code and network mapping) in place of the host's.
+        // Plaza's own status-code copy: the host's shared mapping falls back to printing the
+        // Tokyo API's raw error body when it carries no user_message.
         if (state.showFullscreenError) {
             binding.feedStateText.text =
                 (state.refresh as LoadState.Error).throwable.plazaMessage().resolve(ctx) + "\n" +
