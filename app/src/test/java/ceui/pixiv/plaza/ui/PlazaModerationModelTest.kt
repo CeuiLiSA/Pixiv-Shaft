@@ -16,6 +16,7 @@ import java.io.IOException
 import android.net.Uri
 import org.robolectric.RuntimeEnvironment
 import ceui.pixiv.shaftapi.MediaObject
+import ceui.pixiv.shaftapi.MediaUploadResume
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -135,5 +136,58 @@ class PlazaModerationModelTest {
         assertTrue("receipt remains after process-style recreation",vm.state.value.done)
         vm.submit();runCurrent()
         assertEquals(2,reports)
+    }
+
+    @Test fun `failed photo upload preserves authorization and never submits a partial report`() = runTest(dispatcher) {
+        val saved = SavedStateHandle(mapOf("mode" to "post", "postId" to 1L, "targetUid" to 99L))
+        val pending = MediaUploadResume("pending-photo", "key", "https://example/upload", emptyMap(), Long.MAX_VALUE, "image/png", 100)
+        var attempts = 0
+        fun create() = PlazaModerationModel(saved, api, { uid }, {}, { _, _, resume, onResume, _ ->
+            attempts++
+            if (attempts == 1) {
+                assertNull(resume)
+                onResume(pending)
+                throw IOException("PUT response lost")
+            }
+            assertEquals(pending, resume)
+            MediaObject(id=pending.mediaId, objectKey="key", contentType="image/png", size=100,
+                width=100, height=100, createdAt="", url="https://example/image", expiresAt=Long.MAX_VALUE)
+        }).also { store.put("model", it) }
+        var vm = create().apply { reason = "advertising"; details = "optional context" }
+        vm.attach(listOf(Uri.parse("content://photos/1")))
+        vm.submit(resolver=RuntimeEnvironment.getApplication().contentResolver); runCurrent()
+        assertEquals(0, reports)
+        assertFalse(vm.state.value.busy)
+        assertNotNull(vm.state.value.error)
+        assertEquals("optional context", vm.details)
+        vm = create()
+        vm.submit(resolver=RuntimeEnvironment.getApplication().contentResolver); runCurrent()
+        assertEquals(2, attempts)
+        assertEquals(1, reports)
+        assertEquals(listOf(pending.mediaId), lastReport!!.mediaIds)
+        assertTrue(vm.state.value.done)
+    }
+
+    @Test fun `switching accounts during a photo upload stops remaining photos and report submission`() = runTest(dispatcher) {
+        val uploaded = CompletableDeferred<MediaObject>()
+        var uploads = 0
+        val vm = PlazaModerationModel(
+            SavedStateHandle(mapOf("mode" to "post", "postId" to 1L, "targetUid" to 99L)),
+            api, { uid }, {}, { _, _, _, _, _ -> uploads++; uploaded.await() },
+        ).also { store.put("model", it) }.apply { reason = "advertising" }
+        vm.attach(listOf(Uri.parse("content://photos/1"), Uri.parse("content://photos/2")))
+        vm.submit(resolver=RuntimeEnvironment.getApplication().contentResolver); runCurrent()
+        uid = 99L
+        uploaded.complete(MediaObject(id="media-1", objectKey="key", contentType="image/png", size=100,
+            width=100, height=100, createdAt="", url="https://example/image", expiresAt=Long.MAX_VALUE))
+        runCurrent()
+        assertEquals(1, uploads)
+        assertEquals(0, reports)
+        assertFalse(vm.state.value.done)
+        assertFalse(vm.state.value.busy)
+        assertNotNull(vm.state.value.error)
+        assertTrue(vm.state.value.images.all { it.mediaId == null })
+        vm.submit(resolver=RuntimeEnvironment.getApplication().contentResolver); runCurrent()
+        assertEquals(1, uploads)
     }
 }

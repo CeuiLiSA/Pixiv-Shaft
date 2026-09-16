@@ -1511,7 +1511,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             if (Dev.showPlazaShareInArtwork) {
                 item(
                     getString(R.string.plaza_share_illust_to_plaza),
-                    R.drawable.ic_plaza_forum_24,
+                    R.drawable.ic_plaza_feed_24,
                 ) {
                     val intent = Intent(requireContext(), TemplateActivity::class.java)
                     intent.putExtra(
