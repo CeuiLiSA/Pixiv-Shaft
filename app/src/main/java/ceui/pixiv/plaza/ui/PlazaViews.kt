@@ -360,6 +360,7 @@ internal class PostView(
             icon: Int? = null,
             selected: Boolean = false,
             description: String,
+            stickerId: Long? = null,
             click: () -> Unit,
         ) {
             val outer =
@@ -369,6 +370,7 @@ internal class PostView(
                     isClickable = true
                     isFocusable = true
                     isEnabled = !busy
+                    isSelected = selected
                     contentDescription = description
                     setOnClickListener { click() }
                 }
@@ -386,6 +388,21 @@ internal class PostView(
                             )
                         }
                 }
+            if (stickerId != null) {
+                // Figma reactions use an 18px emoji inside the shared 28px pill. The 64px
+                // decoded asset is only a quality tier, not the on-screen sticker size.
+                val size = android.util.TypedValue.applyDimension(
+                    android.util.TypedValue.COMPLEX_UNIT_SP,
+                    18f,
+                    resources.displayMetrics,
+                ).toInt()
+                inner.addView(
+                    ceui.pixiv.sticker.StickerImageView(context).apply {
+                        bind(stickerId, resourceSize = 64)
+                    },
+                    LayoutParams(size, size),
+                )
+            }
             if (icon != null)
                 inner.addView(
                     ImageView(context).apply {
@@ -399,7 +416,9 @@ internal class PostView(
                     LayoutParams(context.dp(20), context.dp(20)),
                 )
             if (text.isNotEmpty()) {
-                val split = if (icon == null) text.split(" ", limit = 2) else listOf(text.trim())
+                val split =
+                    if (icon == null && stickerId == null) text.split(" ", limit = 2)
+                    else listOf(text.trim())
                 split.forEachIndexed { index, value ->
                     inner.addView(
                         context
@@ -408,7 +427,8 @@ internal class PostView(
                                 if (selected) setTextColor(V3Palette.from(context).textAccent)
                             },
                         LayoutParams(-2, -2).apply {
-                            if (index > 0 || icon != null) marginStart = context.dp(4)
+                            if (index > 0 || icon != null || stickerId != null)
+                                marginStart = context.dp(4)
                         },
                     )
                 }
@@ -449,32 +469,18 @@ internal class PostView(
             onLike(post)
         }
         post.reactions.forEach { reaction ->
-            if (reaction.stickerId != null) {
-                val row = LinearLayout(context).apply {
-                    gravity = Gravity.CENTER_VERTICAL
-                    background = V3Palette.from(context).pillSecondary(context.dp(18).toFloat())
-                    setPadding(context.dp(8), context.dp(4), context.dp(8), context.dp(4))
-                    minimumHeight = context.dp(48)
-                    isFocusable = true
-                    contentDescription = context.getString(R.string.plaza_react_emoji, context.getString(R.string.sticker_title))
-                    isSelected = reaction.selected
-                    alpha = if (reaction.selected) 1f else .8f
-                    setOnClickListener { onReact(post, reaction.emoji) }
-                }
-                row.addView(ceui.pixiv.sticker.StickerImageView(context).apply {
-                    bind(reaction.stickerId, resourceSize = 64)
-                }, LinearLayout.LayoutParams(context.dp(32), context.dp(32)))
-                row.addView(context.label(java.text.NumberFormat.getIntegerInstance(context.resources.configuration.locales[0]).format(reaction.count), 13f))
-                reactions.addView(row, com.google.android.flexbox.FlexboxLayout.LayoutParams(-2, -2).apply {
-                    marginEnd = context.dp(4)
-                    bottomMargin = context.dp(4)
-                })
-                return@forEach
-            }
+            val count = java.text.NumberFormat.getIntegerInstance(
+                context.resources.configuration.locales[0],
+            ).format(reaction.count)
             chip(
-                "${reaction.emoji} ${java.text.NumberFormat.getIntegerInstance(context.resources.configuration.locales[0]).format(reaction.count)}",
+                if (reaction.stickerId != null) count else "${reaction.emoji} $count",
                 selected = reaction.selected,
-                description = context.getString(R.string.plaza_react_emoji, reaction.emoji),
+                description = context.getString(
+                    R.string.plaza_react_emoji,
+                    if (reaction.stickerId != null) context.getString(R.string.sticker_title)
+                    else reaction.emoji,
+                ),
+                stickerId = reaction.stickerId,
             ) {
                 onReact(post, reaction.emoji)
             }

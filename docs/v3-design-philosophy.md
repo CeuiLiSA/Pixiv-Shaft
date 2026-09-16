@@ -43,6 +43,8 @@ Android 复用 witstudio 与 V3Palette，尺寸用 dp/sp，关键操作热区至
 
 广场列表、帖子详情和创建帖子由用户指定以 [Five Degrees 的 Post 区域](https://www.figma.com/design/XIelCCTiUHLjsJ9BbLmFy3/Five-Degrees?node-id=10025-6103) 为布局基准。该范围的元素位置、尺寸、间距、Inter 字重与图标遵循 Figma；颜色映射到现有 `V3Palette` 和日夜资源。此专项约定不替换其他 V3 页面的 Montserrat 或设置页导航栏。
 
+广场列表、帖子和评论的回应统一使用 28dp 高胶囊（默认字号），18sp 表情或同尺寸贴纸、15sp Inter 计数、4dp 内部间距和胶囊间距、8dp 水平内边距；选中态复用主题浅底，不另加贴纸专属描边或大容器。贴纸的 64px 资源档位只决定清晰度，不决定显示尺寸；字号放大时与普通表情共同增高。依据 `10131:8487` 与 `10063:6767` 内的 Reaction Stack（2026-09-16）。
+
 所有帖子公开，不呈现可见范围设置；图片上限为 9 张，Linked Quest 对应 Pixiv 作品或用户引用。系统状态栏、键盘及字体放大使用 Android 原生能力。对照记录见 [广场设计验收](plaza-design-review.md)。
 
 ## 哪些是固定的，哪些可以变化
