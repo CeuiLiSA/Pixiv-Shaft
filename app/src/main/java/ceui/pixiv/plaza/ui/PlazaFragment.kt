@@ -125,9 +125,12 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
                 val posts = listOfNotNull(state.parent) + state.items
                 adapter.busy = state.busyIds
                 adapter.submitList(posts)
-                refresh.isRefreshing = state.loading
+                // SwipeRefreshLayout starts its spinner for the user's pull gesture.
+                // Loading cached content or comments must never start that animation.
+                if (!state.loading) refresh.isRefreshing = false
                 status.text =
                     when {
+                        state.restoringCache -> ""
                         state.error != null ->
                             ctx.getString(R.string.plaza_retry_message, state.error.resolve(ctx))
                         state.loading && posts.isEmpty() -> ctx.getString(R.string.plaza_loading)
