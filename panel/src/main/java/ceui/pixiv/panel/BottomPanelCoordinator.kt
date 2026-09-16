@@ -72,6 +72,7 @@ class BottomPanelCoordinator(
     private var dismissTouchListener: RecyclerView.OnItemTouchListener? = null
     private var hostWindow: Window? = null
     private val panelBasePaddingBottom = host.panelView.paddingBottom
+    private val composerBasePaddingBottom = host.panelComposerView?.paddingBottom ?: 0
 
     // ── Lifecycle ────────────────────────────────────────────────────────
 
@@ -131,10 +132,10 @@ class BottomPanelCoordinator(
         cancelPanelAnimation()
         applyPanelNavigationInset()
         val target = expandedPanelHeight()
-        // Transfer the navigation inset from the root to the panel before animating. Both sides of
+        // Transfer the navigation inset from the input bar/root to the panel before animating. Both sides of
         // the transfer occupy the same height, so the input row does not jump on the first frame.
         val start = if (host.panelView.isVisible) visiblePanelHeight() else navBarHeight
-        host.panelRoot.updatePadding(bottom = 0)
+        applyBottomInset(0)
         setPanelHeight(start)
         host.panelView.isVisible = true
         setState(PanelState.PANEL)
@@ -156,7 +157,7 @@ class BottomPanelCoordinator(
             return
         }
         applyPanelNavigationInset()
-        host.panelRoot.updatePadding(bottom = 0)
+        applyBottomInset(0)
         host.panelView.isVisible = true
         animatePanelHeight(start, end, ::finishHidingPanel)
     }
@@ -170,7 +171,7 @@ class BottomPanelCoordinator(
         val newPad = maxOf(oldPad - height, 0)
         setPanelHeight(height)
         host.panelView.isVisible = true
-        host.panelRoot.updatePadding(bottom = newPad)
+        applyBottomInset(newPad)
         host.panelView.requestLayout()
         setState(PanelState.PANEL)
         hideKeyboard()
@@ -203,7 +204,7 @@ class BottomPanelCoordinator(
             WindowInsetsCompat.Type.navigationBars()
         var isImeAnimating = false
 
-        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(root) { _, insets ->
             val imeVisible = insets.isVisible(WindowInsetsCompat.Type.ime())
             // 只在键盘不可见时采样导航栏高度:部分宿主(如 HyperOS)键盘弹起时会把 navigationBars
             // inset 也报成键盘高度,若照单全收会污染 navBarHeight——键盘→面板切换时
@@ -222,7 +223,7 @@ class BottomPanelCoordinator(
                 } else {
                     systemBottom
                 }
-                v.updatePadding(bottom = bottom)
+                applyBottomInset(bottom)
 
                 // Insets animation is optional: hardware keyboards, disabled system animations,
                 // and some OEM IMEs can update visibility without invoking onEnd(). Keep the
@@ -295,7 +296,7 @@ class BottomPanelCoordinator(
                     } else {
                         imeBottom
                     }
-                    root.updatePadding(bottom = bottom)
+                    applyBottomInset(bottom)
                     host.onAnchorContent()
                     return insets
                 }
@@ -339,6 +340,7 @@ class BottomPanelCoordinator(
                 }
             },
         )
+        ViewCompat.requestApplyInsets(root)
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
@@ -484,14 +486,14 @@ class BottomPanelCoordinator(
     private fun finishHidingPanel() {
         setPanelHeight(0)
         host.panelView.isVisible = false
-        host.panelRoot.updatePadding(bottom = navBarHeight)
+        applyBottomInset(navBarHeight)
         setState(PanelState.NONE)
     }
 
     private fun finishSwitchToKeyboard(keyboardBottom: Int) {
         // Transfer the occupied height before removing the panel. This is the no-animation/OEM
         // fallback as well as the normal animation end path, so both converge on one final frame.
-        host.panelRoot.updatePadding(bottom = keyboardBottom.coerceAtLeast(navBarHeight))
+        applyBottomInset(keyboardBottom.coerceAtLeast(navBarHeight))
         setPanelHeight(0)
         host.panelView.isVisible = false
         setState(PanelState.KEYBOARD)
@@ -502,6 +504,19 @@ class BottomPanelCoordinator(
         if (host.panelView.paddingBottom != bottom) {
             host.panelView.updatePadding(bottom = bottom)
         }
+    }
+
+    private fun applyBottomInset(bottom: Int) {
+        // Keep the total occupied height unchanged while moving the idle navigation inset inside
+        // the composer. The panel owns its own inset; an open IME stays outside the input bar.
+        val composer = host.panelComposerView
+        val composerInset = if (composer != null && !host.panelView.isVisible && bottom <= navBarHeight) {
+            bottom
+        } else {
+            0
+        }
+        composer?.updatePadding(bottom = composerBasePaddingBottom + composerInset)
+        host.panelRoot.updatePadding(bottom = bottom - composerInset)
     }
 
     private fun expandedPanelHeight(): Int = panelContentHeight() + navBarHeight

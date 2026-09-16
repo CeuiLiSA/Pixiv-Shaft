@@ -180,6 +180,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             host = object : PanelHost {
                 override val panelRoot get() = binding.root
                 override val panelView get() = binding.emojiPanel
+                override val panelComposerView get() = binding.composer.root
                 override val panelInputView get() = binding.composer.etInput
                 override val panelContentView get() = binding.recyclerView
                 override val panelToggleButton get() = binding.composer.btnEmoji

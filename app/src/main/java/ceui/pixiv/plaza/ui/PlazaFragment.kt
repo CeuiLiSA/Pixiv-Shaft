@@ -204,6 +204,7 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
         replyPanel = attachBottomPanel(object : PanelHost {
             override val panelRoot get() = root
             override val panelView get() = bar.emojiPanel
+            override val panelComposerView get() = input.root
             override val panelInputView get() = input.etInput
             override val panelContentView get() = list
             override val panelToggleButton get() = input.btnEmoji
