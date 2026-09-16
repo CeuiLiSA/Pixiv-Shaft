@@ -9,6 +9,16 @@ interface BannerManager {
     val events: SharedFlow<BannerEvent>
     val queueSize: StateFlow<Int>
 
+    /**
+     * 当前有没有 STARTED 的宿主能真的把 banner 画出来。
+     *
+     * 给**入队方**判「现在弹得出来吗」用：无宿主时入队的请求会被留到下一个宿主
+     * （见 [onHostStarted]），对一次性引导是对的，但对「只在当下有意义」的提示
+     * （聊天消息）就是补显 —— 那种提示应该在这里自己抑制掉，而不是让 manager
+     * 为它破坏保留语义。
+     */
+    val hasStartedHost: StateFlow<Boolean>
+
     fun enqueue(request: BannerRequest): Boolean
     fun dismiss(id: String, reason: BannerDismissReason = BannerDismissReason.Programmatic)
     fun dismissCategory(category: BannerCategory)

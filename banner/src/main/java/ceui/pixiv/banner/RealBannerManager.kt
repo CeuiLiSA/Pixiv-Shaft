@@ -44,6 +44,9 @@ class RealBannerManager(
     private val _queueSize = MutableStateFlow(0)
     override val queueSize: StateFlow<Int> = _queueSize.asStateFlow()
 
+    private val _hasStartedHost = MutableStateFlow(false)
+    override val hasStartedHost: StateFlow<Boolean> = _hasStartedHost.asStateFlow()
+
     @Volatile
     private var isShutdown: Boolean = false
 
@@ -144,6 +147,7 @@ class RealBannerManager(
         queue.clear()
         _queueSize.value = 0
         activeHostCount = 0
+        _hasStartedHost.value = false
         _state.value = BannerState.Shutdown
         scope.cancel()
         Timber.tag(TAG).i("BannerManager shut down")
@@ -212,6 +216,7 @@ class RealBannerManager(
     private fun handleHostStarted() {
         activeHostCount++
         if (activeHostCount == 1) {
+            _hasStartedHost.value = true
             Timber.tag(TAG).d("first host started; draining held banner queue")
             advanceIfIdle()
         }
@@ -220,6 +225,7 @@ class RealBannerManager(
     private fun handleHostStopped() {
         if (activeHostCount > 0) activeHostCount--
         if (activeHostCount == 0) {
+            _hasStartedHost.value = false
             Timber.tag(TAG).d("all hosts stopped; new banners will be held")
         }
     }
