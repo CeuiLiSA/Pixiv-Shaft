@@ -13,7 +13,7 @@ import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
-import ceui.lisa.databinding.ViewpagerWithTablayoutBinding
+import ceui.lisa.databinding.FragmentSnapshotManagerBinding
 import ceui.lisa.utils.Common
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
@@ -31,8 +31,10 @@ class SnapshotManagerFragment : Fragment() {
 
     private enum class SelectionPurpose { EXPORT, DELETE }
 
-    private var _binding: ViewpagerWithTablayoutBinding? = null
+    private var _binding: FragmentSnapshotManagerBinding? = null
     private val binding get() = checkNotNull(_binding)
+
+    private var quotaBanner: SnapshotQuotaBanner? = null
 
     private val importLauncher = registerForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
@@ -72,7 +74,7 @@ class SnapshotManagerFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View = ViewpagerWithTablayoutBinding.inflate(inflater, container, false).also { _binding = it }.root
+    ): View = FragmentSnapshotManagerBinding.inflate(inflater, container, false).also { _binding = it }.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -81,12 +83,19 @@ class SnapshotManagerFragment : Fragment() {
         binding.toolbarTitle.text = getString(R.string.snapshot_manager_title)
         binding.toolbar.setNavigationOnClickListener { requireActivity().finish() }
 
+        val quotaBanner = SnapshotQuotaBanner(this, binding).also {
+            this.quotaBanner = it
+            it.applyTheme()
+        }
+
         val tabs = listOf(
             getString(R.string.string_390) to null,   // 全部
             getString(R.string.type_illust) to "illust",
             getString(R.string.type_manga) to "manga",
         )
-        val fragments = tabs.map { (_, filter) -> SnapshotListFragment.newInstance(filter) }
+        val fragments = tabs.map { (_, filter) ->
+            SnapshotListFragment.newInstance(filter).apply { quotaBanner.attach(this) }
+        }
 
         binding.viewPager.adapter = object : FragmentPagerAdapter(
             childFragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT
@@ -146,11 +155,22 @@ class SnapshotManagerFragment : Fragment() {
         binding.viewPager.addOnPageChangeListener(object : ViewPager.SimpleOnPageChangeListener() {
             override fun onPageSelected(position: Int) {
                 if (inSelectionMode) exitSelectionMode()
+                quotaBanner?.onTabSelected(position)
             }
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+        // FragmentPagerAdapter 重建后可能复用旧 Fragment，回调要重新挂到实际实例上。
+        childFragmentManager.fragments
+            .filterIsInstance<SnapshotListFragment>()
+            .forEach { quotaBanner?.attach(it) }
+        quotaBanner?.onTabSelected(binding.viewPager.currentItem)
+    }
+
     override fun onDestroyView() {
+        quotaBanner = null
         super.onDestroyView()
         _binding = null
     }

@@ -2855,6 +2855,16 @@
     <!-- 자동 스냅샷 (실험 기능) -->
     <string name="setting_auto_snapshot_on_bookmark">북마크 시 오프라인 스냅샷 생성</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">작품을 북마크한 후 백그라운드에서 가벼운 오프라인 스냅샷을 자동 생성합니다 (실험 기능)</string>
+    <string name="setting_auto_snapshot_quota">자동 스냅샷 크기 제한</string>
+    <string name="setting_auto_snapshot_quota_desc">드래그하여 자동 스냅샷 전체 크기를 설정합니다. 왼쪽 끝은 10 MB, 오른쪽 끝은 무제한(실험적)</string>
+    <string name="setting_auto_snapshot_quota_value">%1$d MB</string>
+    <string name="setting_auto_snapshot_quota_value_gb">%1$s GB</string>
+    <string name="setting_auto_snapshot_quota_unlimited">무제한</string>
+    <string name="snapshot_quota_banner_title">자동 스냅샷 사용량</string>
+    <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
+    <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
+    <string name="setting_auto_snapshot_quota_dialog_hint">정수 MB 단위로 조정하며 오른쪽 끝은 무제한입니다</string>
+    <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">일러스트/만화 스냅샷 자동 생성</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">반복해서 보거나 오래 머문 일러스트/만화의 스냅샷을 조용히 생성합니다 (실험 기능)</string>
     <string name="snapshot_auto_badge">자동</string>

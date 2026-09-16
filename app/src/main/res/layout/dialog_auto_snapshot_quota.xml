@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="12dp">
+
+    <TextView
+        android:id="@+id/dialog_auto_snapshot_quota_value"
+        style="@style/textMontserratSemiBold"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:includeFontPadding="false"
+        android:textColor="?attr/colorPrimary"
+        android:textSize="32sp" />
+
+    <TextView
+        android:id="@+id/dialog_auto_snapshot_quota_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="@string/setting_auto_snapshot_quota_dialog_hint"
+        android:textColor="@color/v3_text_2"
+        android:textSize="13sp" />
+
+    <SeekBar
+        android:id="@+id/dialog_auto_snapshot_quota_slider"
+        style="@style/Widget.Reader.Slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:text="@string/setting_auto_snapshot_quota_range_min"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:text="@string/setting_auto_snapshot_quota_unlimited"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp" />
+    </RelativeLayout>
+</LinearLayout>

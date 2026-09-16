@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  快照管理页。结构与 viewpager_with_tablayout.xml 保持一致，只多一条「自动快照占用」。
+  占用条是 AppBarLayout 的滚动子项（scroll|enterAlways），所以它的收起 / 恢复
+  由 AppBarLayout 原生驱动，和 Toolbar 完全同步；不占用条时它按 Tab 切换整体隐藏。
+-->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <ceui.pixiv.widgets.TopInsetLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="?attr/colorPrimary">
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/app_bar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/colorPrimary">
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:theme="@style/AppTheme.AppBarOverlay"
+                    android:elevation="@dimen/six_dp"
+                    app:layout_scrollFlags="scroll|enterAlways"
+                    app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+                    app:popupTheme="@style/AppTheme.PopupOverlay"
+                    app:title=" "
+                    app:titleTextColor="@android:color/white">
+
+                    <TextView
+                        android:id="@+id/toolbar_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
+                </androidx.appcompat.widget.Toolbar>
+
+                <LinearLayout
+                    android:id="@+id/auto_snapshot_quota_banner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="8dp"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="10dp"
+                    app:layout_scrollFlags="scroll|enterAlways">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/auto_snapshot_quota_title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/snapshot_quota_banner_title"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/auto_snapshot_quota_value"
+                            style="@style/textMontserratSemiBold"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:gravity="end"
+                            android:singleLine="true"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <ProgressBar
+                        android:id="@+id/auto_snapshot_quota_progress"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp"
+                        android:layout_marginTop="8dp"
+                        android:max="1000"
+                        android:progressDrawable="@drawable/v3_progress_pill" />
+                </LinearLayout>
+
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/tab_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="35dp"
+                    android:background="?attr/colorPrimary"
+                    app:tabIndicatorColor="@android:color/white"
+                    app:tabIndicatorFullWidth="false"
+                    app:tabMode="fixed"
+                    app:tabSelectedTextColor="@android:color/white"
+                    app:tabTextColor="@color/light_new_primary_color" />
+            </com.google.android.material.appbar.AppBarLayout>
+
+            <androidx.viewpager.widget.ViewPager
+                android:id="@+id/view_pager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?android:attr/colorBackground"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </ceui.pixiv.widgets.TopInsetLinearLayout>
+</layout>

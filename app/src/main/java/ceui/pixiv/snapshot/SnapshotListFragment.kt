@@ -8,9 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
+
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
+
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -19,6 +21,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentSnapshotListBinding
 import ceui.lisa.databinding.ItemSnapshotBinding
+
 import ceui.lisa.fragments.HistorySelectBadge
 import ceui.lisa.utils.Common
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -29,6 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -62,6 +66,10 @@ class SnapshotListFragment : Fragment() {
 
     /** 选中数量变化回调，由宿主 Tabs 页驱动 selection toolbar。 */
     var onSelectionCountChanged: ((Int) -> Unit)? = null
+
+
+    /** 列表重新加载后回调，宿主用来重算占用条数值。 */
+    var onAutoSnapshotQuotaChanged: (() -> Unit)? = null
 
     private var pendingExportId: String? = null
 
@@ -149,8 +157,10 @@ class SnapshotListFragment : Fragment() {
             }
             binding.emptyHint.isVisible = all.isEmpty()
             if (resetScroll) snapshotList.scrollToPosition(0)
+            if (filter == null) onAutoSnapshotQuotaChanged?.invoke()
         }
     }
+
 
     fun enterSelectionMode(includeAuto: Boolean = false) {
         if (!hasItems(includeAuto)) return
@@ -479,3 +489,4 @@ private class SnapshotViewHolder(
         }
     }
 }
+
