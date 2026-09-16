@@ -2881,9 +2881,6 @@
     <string name="setting_log_file_desc">May affect performance\nLog file at %1$s</string>
     <string name="setting_log_file_no_file">Not generated yet</string>
     <string name="setting_log_file_share">Share log file</string>
-    <string name="setting_log_file_share_history_title">There are previously shared log files</string>
-    <string name="setting_log_file_share_since_last">Share newly generated logs</string>
-    <string name="setting_log_file_share_all">Merge previously shared and newly generated logs</string>
     <string name="setting_trigger_crash">Trigger a fatal error</string>
     <string name="setting_trigger_crash_desc">Crashes immediately to verify crash log capture</string>
     <string name="setting_log_file_share_failed">Failed to share log file</string>

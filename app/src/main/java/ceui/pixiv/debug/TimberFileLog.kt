@@ -9,35 +9,56 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.FileProvider
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
-import ceui.pixiv.download.DownloadsRegistry
-import ceui.pixiv.download.backend.StorageBackend
-import ceui.pixiv.download.config.OverwritePolicy
-import ceui.pixiv.download.model.Author
-import ceui.pixiv.download.model.Bucket
-import ceui.pixiv.download.model.ItemMeta
-import ceui.pixiv.download.model.RelativePath
-import ceui.pixiv.download.sanitize.FsSanitizer
-import ceui.pixiv.download.template.SafeTemplateRender
-import ceui.pixiv.witstudio.dialog.WitDialog
 import com.hjq.toast.Toaster
 import timber.log.Timber
 import java.io.File
+import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * 把 Timber 日志写入「日志文件」桶（[Bucket.Log]）的开关式文件日志。
- * 所有日志文件操作（打开/写入/关闭/合并）都在单线程 IO executor 上执行，
- * 避免在主线程做文件 I/O。
+ * 「试验性 · 日志文件」：把 Timber 日志落到**应用私有目录**，并在用户要求时导出分享。
+ *
+ * ## 为什么是私有目录，而不是「日志文件」桶（MediaStore）
+ *
+ * 这套东西存在的理由是**崩溃之后还能把日志拿出来**，而写进 MediaStore 做不到这一点：
+ * 桶里的行在 `onFinish()` 之前一直是 `IS_PENDING=1`，而崩溃时进程直接死，没人去 finish；
+ * 下一次冷启动 [ceui.pixiv.download.maintenance.MediaStoreOrphanCleaner] 会把上一会话遗留的
+ * pending 行**全部删掉**（issue #857 的打扫环节，它没法也不该分辨哪一行是日志）。
+ * 结果就是：唯一真正需要的那份日志，恰好是必定丢失的那份。
+ *
+ * 私有目录同时解决另外两件事：对没开这个开关的用户零可见性（不往他的「下载」目录里丢 txt），
+ * 以及不受外部存储权限 / 用户手动清理的影响。
+ *
+ * ## 轮转策略：一个滚动日志 + 分代，而不是「每次启动一个新文件」
+ *
+ * 「每启动一个文件 + 最多留 N 个」看着简单，但保留的是**最近 N 次启动**：用户崩溃之后再开
+ * 几次 app，崩溃日志就被挤掉了 —— 正好挤掉唯一有价值的那份。改成按**体积**轮转：
+ * 始终追加到 [CURRENT_NAME]，超过 [MAX_FILE_BYTES] 就整体降一代（`.1` → `.2` → …），
+ * 最老的一代删掉。于是「能回溯多久」取决于日志量而不是启动次数，崩溃日志能活到
+ * 之后又写满 [MAX_FILE_BYTES] × [KEEP_GENERATIONS] 为止。上限也是硬的：最多
+ * (KEEP_GENERATIONS + 1) × MAX_FILE_BYTES。
+ *
+ * ## 线程模型
+ *
+ * 打开 / 写入 / 轮转 / 导出全部在单线程 [ioExecutor] 上串行，主线程不碰磁盘；
+ * 唯一的例外是崩溃时的 [logCrashNow]，它必须在崩溃线程上同步写完并 flush
+ * —— 进程马上就没了，排队等 IO 线程等于不写。两者用同一把 [TimberFileTree] 内部锁互斥。
  */
 object TimberFileLog {
+
+    private const val TAG = "TimberFileLog"
+
+    /** 日志目录（相对 `filesDir`）。也用于设置页那行小字。 */
+    private const val LOG_DIR_NAME = "logs"
+
+    /** 待写入行数上限，约 2MB 量级的字符串；超过就丢，见 [enqueueLog]。 */
+    private const val MAX_PENDING_LINES = 10_000
 
     /**
      * 所有日志文件操作的串行执行器（daemon，不阻止进程退出）。
@@ -53,11 +74,6 @@ object TimberFileLog {
 
     private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
-    private const val TAG = "TimberFileLog"
-
-    /** 待写入行数上限，约 2MB 量级的字符串；超过就丢，见 [enqueueLog]。 */
-    private const val MAX_PENDING_LINES = 10_000
-
     /** 已入队待写、以及背压期间丢掉的行数，见 [enqueueLog]。 */
     private val pendingLines = AtomicInteger(0)
     private val droppedLines = AtomicInteger(0)
@@ -65,31 +81,20 @@ object TimberFileLog {
     @Volatile
     private var tree: TimberFileTree? = null
 
-    /**
-     * 本进程周期内创建过的日志文件 Uri（按创建顺序）。SAF 下不扫描目录，靠这份内存记录规避耗时扫描。
-     *
-     * ⚠️ 普通 ArrayList，**所有**读写必须持 `lifetimeUris` 这把锁：写在 IO 线程（每次开新日志
-     * 文件都会 [register]，分享后会立刻重开一个），读在主线程（[shareLogFile]）。
-     * 两边用不同的锁 = 一边 add 一边 toList，ArrayList 会抛 ConcurrentModificationException /
-     * 越界，而这条路径在主线程上，崩的是整个 app。
-     */
-    private val lifetimeUris = mutableListOf<Uri>()
+    /** 日志目录。`filesDir` 是应用私有的，卸载才清，系统不会替用户「打扫」。 */
+    private fun logDir(context: Context): File =
+        File(context.applicationContext.filesDir, LOG_DIR_NAME)
 
-    /** 已分享过的文件数量：`lifetimeUris` 前 [lastSharedCount] 个视为已分享。与 [lifetimeUris] 同锁。 */
-    private var lastSharedCount = 0
-
-    /** 进程启动时调用：异步在 IO 线程打开并 plant 文件 Tree；已开启则忽略。 */
-    fun maybeStart() {
-        ioExecutor.execute { maybeStartOnIoThread() }
+    /** 进程启动时调用：异步在 IO 线程打开日志文件并 plant 文件 Tree；已开启则忽略。 */
+    fun maybeStart(context: Context) {
+        val appContext = context.applicationContext
+        ioExecutor.execute { maybeStartOnIoThread(appContext) }
     }
 
-    private fun maybeStartOnIoThread() {
+    private fun maybeStartOnIoThread(appContext: Context) {
         if (tree != null) return
-        val treeToPlant = try {
-            TimberFileTree()
-        } catch (ignored: Throwable) {
-            null
-        } ?: return
+        val treeToPlant = runCatching { TimberFileTree(logDir(appContext)) }.getOrNull() ?: return
+        if (!treeToPlant.isOpen) return
         tree = treeToPlant
         try {
             Timber.plant(treeToPlant)
@@ -99,136 +104,81 @@ object TimberFileLog {
         }
     }
 
-    /** 记录新打开的日志文件 Uri（由 [TimberFileTree] 打开成功后调用，跑在 IO 线程）。 */
-    fun register(uri: Uri) {
-        synchronized(lifetimeUris) {
-            if (uri !in lifetimeUris) {
-                lifetimeUris += uri
-            }
-        }
-    }
+    /** 当前日志所在目录（相对应用私有目录，如 `files/logs`）；未启用/未打开时为 null。 */
+    fun currentFolderPath(): String? = if (tree?.isOpen == true) "files/$LOG_DIR_NAME" else null
 
-    /** 在 IO 线程执行：发布当前日志并重开新日志文件。调用方必须已在 IO executor 上。 */
-    private fun publishOnIoThread() {
-        stopOnIoThread()
-        if (Shaft.sSettings?.isLogFileEnabled == true) {
-            maybeStartOnIoThread()
-        }
-    }
-
-    private fun stopOnIoThread() {
-        val t = tree ?: return
-        tree = null
-        runCatching { Timber.uproot(t) }
-        t.close()
-    }
-
-    /** 当前日志文件所在文件夹，如 `Shaft/Logs`；未启用/打开完成前为 null。 */
-    fun currentFolderPath(): String? = tree?.currentFolderPath
-
-    /** 致命崩溃专用：同步写盘并 flush，不等 IO executor，避免进程被杀前丢失。 */
+    /**
+     * 致命崩溃专用：在崩溃线程上**同步**写盘并 flush，不排队。
+     *
+     * flush 到内核就够了：进程死了页缓存还在，日志照样落地；逐行 fsync 的代价则完全不成比例。
+     */
     fun logCrashNow(threadName: String, throwable: Throwable) {
         tree?.writeCrashNow(threadName, throwable)
     }
 
     /**
-     * 分享日志文件。
-     * 第一次分享直接分享当前文件；本进程周期内已分享过时，用项目弹窗质询：
-     *  - 分享新生成的日志；
-     *  - 合并历史分享与新生成再分享。
-     * 不扫描 SAF 目录，依赖 [lifetimeUris] 内存记录，避免 SAF 下耗时阻塞。
+     * 导出并分享全部日志。
+     *
+     * **永远分享合并出来的副本**，不把正在追加写的那个文件递出去：接收方读到一半我们还在写，
+     * 拿到的是个半截文件；而且分享给别的 app 的东西不该是我们的活动写入目标。
      */
     fun shareLogFile(context: Context) {
-        // 一次取齐快照：分成两次读会在「刚好又开了一个新日志文件」时拿到互相错位的
-        // all / lastSharedCount / size，算出错误的待分享区间。
-        val all: List<Uri>
-        val unshared: List<Uri>
-        synchronized(lifetimeUris) {
-            all = lifetimeUris.toList()
-            unshared = all.drop(lastSharedCount)
-        }
-        if (unshared.isEmpty()) {
-            toastShareFailed(context)
-            return
-        }
-        if (all.any { it.scheme != "content" }) {
-            toastShareFailed(context)
-            return
-        }
-        val allSizeBefore = all.size
-        if (lastSharedCount > 0) {
-            WitDialog.MenuDialogBuilder(context)
-                .setTitle(context.getString(R.string.setting_log_file_share_history_title))
-                .addItems(
-                    arrayOf(
-                        context.getString(R.string.setting_log_file_share_since_last),
-                        context.getString(R.string.setting_log_file_share_all)
-                    )
-                ) { dialog, which ->
-                    dialog.dismiss()
-                    // 点击弹窗选项后，才在 IO 线程触发 onFinish 发布，并合并/读取文件。
-                    shareFilesOnIo(context, if (which == 0) unshared else all, allSizeBefore)
-                }
-                .show()
-        } else {
-            shareFilesOnIo(context, unshared, allSizeBefore)
-        }
-    }
-
-    private fun shareFilesOnIo(context: Context, uris: List<Uri>, allSizeBefore: Int) {
+        val appContext = context.applicationContext
         ioExecutor.execute {
-            publishOnIoThread()
-            synchronized(lifetimeUris) { lastSharedCount = allSizeBefore }
-
-            val shareUri = if (uris.size > 1) {
-                mergeToSingleFile(context, uris)
-            } else {
-                uris.singleOrNull()
-            }
+            // 先把缓冲里的行落盘，否则导出的日志缺最新的一段（崩溃前那几行往往最关键）。
+            runCatching { tree?.flush() }
+            val uri = runCatching { exportMergedLog(appContext) }.getOrNull()
             mainHandler.post {
-                if (shareUri == null || shareUri.scheme != "content") {
+                if (uri == null) {
                     toastShareFailed(context)
-                    return@post
-                }
-                val send = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_STREAM, shareUri)
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                }
-                try {
-                    context.startActivity(
-                        Intent.createChooser(
-                            send,
-                            context.getString(R.string.setting_log_file_share)
-                        )
-                    )
-                } catch (e: Exception) {
-                    toastShareFailed(context)
+                } else {
+                    startShare(context, uri)
                 }
             }
         }
     }
 
-    /** 把多个日志文件内容合并成一个临时 txt，返回 FileProvider content:// Uri。 */
-    private fun mergeToSingleFile(context: Context, uris: List<Uri>): Uri? {
-        return try {
-            val base = context.externalCacheDir ?: return null
-            val dir = File(base, "logs").apply { mkdirs() }
-            val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-            val file = File(dir, "timber_merged_$stamp.txt")
-            file.bufferedWriter(Charsets.UTF_8).use { out ->
-                uris.forEachIndexed { index, uri ->
-                    context.contentResolver.openInputStream(uri)?.use { input ->
-                        if (index > 0) {
-                            out.write("\n\n===== next log =====\n\n")
-                        }
-                        input.bufferedReader(Charsets.UTF_8).use { it.copyTo(out) }
-                    }
-                }
+    /** 把现存的各代日志按时间顺序合并成一个临时 txt，返回它的 FileProvider uri。 */
+    private fun exportMergedLog(appContext: Context): Uri? {
+        val files = LogFileRotation.existingOldestFirst(logDir(appContext))
+        if (files.isEmpty()) return null
+        val shareDir = File(appContext.cacheDir, SHARE_DIR_NAME).apply { mkdirs() }
+        pruneOldShareFiles(shareDir)
+        val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val out = File(shareDir, "shaft-logs-$stamp.txt")
+        out.bufferedWriter(Charsets.UTF_8).use { writer ->
+            files.forEachIndexed { index, file ->
+                if (index > 0) writer.write("\n")
+                writer.write("===== ${file.name} =====\n")
+                runCatching { file.bufferedReader(Charsets.UTF_8).use { it.copyTo(writer) } }
             }
-            FileProvider.getUriForFile(context, context.packageName + ".provider", file)
+        }
+        return FileProvider.getUriForFile(appContext, appContext.packageName + ".provider", out)
+    }
+
+    /**
+     * 清掉上次分享留下的副本。只删**足够旧**的：接收方可能是延迟读取 uri 的（笔记类 app
+     * 常见），刚分享出去就删会让它读到空文件。
+     */
+    private fun pruneOldShareFiles(shareDir: File) {
+        val deadline = System.currentTimeMillis() - SHARE_FILE_TTL_MS
+        shareDir.listFiles()?.forEach { file ->
+            if (file.isFile && file.lastModified() < deadline) runCatching { file.delete() }
+        }
+    }
+
+    private fun startShare(context: Context, uri: Uri) {
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        try {
+            context.startActivity(
+                Intent.createChooser(send, context.getString(R.string.setting_log_file_share))
+            )
         } catch (e: Exception) {
-            null
+            toastShareFailed(context)
         }
     }
 
@@ -244,12 +194,18 @@ object TimberFileLog {
      * 全仓一千多个 Timber 调用点都会走到这里，格式化留在调用线程就是在 UI 线程上做
      * 无谓的分配。被背压丢掉的行因此连格式化的钱都不用花。
      *
-     * **背压**：executor 用的是无界队列，而落盘端每行一次 flush（SAF / MediaStore 尤其慢）。
-     * 日志速率长期高于落盘速率时，堆积的 Runnable 会把内存吃光。超过 [MAX_PENDING_LINES]
-     * 就丢弃并计数，等队列缓过来再补一行「丢了多少」——宁可日志缺一段，也不能因为
-     * 一个试验性开关把 app OOM 掉。
+     * **背压**：executor 用的是无界队列。日志速率长期高于落盘速率时，堆积的 Runnable 会把
+     * 内存吃光。超过 [MAX_PENDING_LINES] 就丢弃并计数，等队列缓过来再补一行「丢了多少」——
+     * 宁可日志缺一段，也不能因为一个试验性开关把 app OOM 掉。
      */
-    fun enqueueLog(tree: TimberFileTree, ms: Long, threadName: String, priority: Int, tag: String?, message: String) {
+    fun enqueueLog(
+        tree: TimberFileTree,
+        ms: Long,
+        threadName: String,
+        priority: Int,
+        tag: String?,
+        message: String,
+    ) {
         if (pendingLines.get() >= MAX_PENDING_LINES) {
             droppedLines.incrementAndGet()
             return
@@ -260,71 +216,138 @@ object TimberFileLog {
                 pendingLines.decrementAndGet()
                 val dropped = droppedLines.getAndSet(0)
                 if (dropped > 0) {
-                    tree.writeLine(tree.formatLine(ms, threadName, Log.WARN, TAG, "队列积压，丢弃了 $dropped 行日志"))
+                    tree.writeLine(
+                        tree.formatLine(ms, threadName, Log.WARN, TAG, "队列积压，丢弃了 $dropped 行日志")
+                    )
                 }
                 tree.writeLine(tree.formatLine(ms, threadName, priority, tag, message))
             }
         }.isSuccess
         if (!accepted) pendingLines.decrementAndGet()
     }
+
+    private const val SHARE_DIR_NAME = "log-share"
+
+    /** 分享副本的保留时长：比这更旧的在下次分享时清掉。 */
+    private const val SHARE_FILE_TTL_MS = 60 * 60 * 1000L
 }
 
 /**
- * 实际的 [Timber.Tree]：打开 `Bucket.Log` 桶的一个新文件并持续写入。
- * 构造（打开文件）与 [writeLine] / [close] 都运行在 [TimberFileLog] 的 IO executor 上。
+ * 实际的 [Timber.Tree]：向应用私有目录里的滚动日志追加，写满就分代轮转。
+ *
+ * 除 [writeCrashNow] 外的所有方法都跑在 [TimberFileLog] 的单线程 IO executor 上；
+ * [writeCrashNow] 来自崩溃线程，用 [lock] 与写入 / 轮转互斥。
  */
-class TimberFileTree : Timber.Tree() {
+class TimberFileTree internal constructor(private val dir: File) : Timber.Tree() {
 
-    private val writer: PrintWriter?
-    private val handle: StorageBackend.WriteHandle?
-    private val relPath: RelativePath?
+    /** 写入、轮转、关闭三者互斥。崩溃时的同步写也走它，所以必须是可重入的 monitor。 */
+    private val lock = Any()
+
+    /** @Volatile：[isOpen] 从主线程读（设置页那行小字），写入/轮转在 IO 线程。 */
+    @Volatile
+    private var writer: PrintWriter? = null
+
+    /** 只在持 [lock] 时读写。 */
+    private var currentFile: File? = null
+
+    /** 距上次查文件大小写了多少行，见 [rotateIfNeededLocked]。 */
+    private var linesSinceSizeCheck = 0
+
     private val startRealtime = SystemClock.elapsedRealtime()
 
-    /** 当前日志文件所在文件夹（如 `Shaft/Logs`）；打开失败为 null。 */
-    val currentFolderPath: String? get() = relPath?.directory?.joinToString("/")
-
     init {
-        var h: StorageBackend.WriteHandle? = null
-        var p: RelativePath? = null
-        var w: PrintWriter? = null
-        try {
-            val config = DownloadsRegistry.store.loadOrFallback()
-            val resolved = config.resolve(Bucket.Log)
-            val meta = ItemMeta(
-                id = 0L,
-                title = "log",
-                author = Author(0L, ""),
-                createdAt = Instant.now(),
+        synchronized(lock) { openCurrentLocked() }
+    }
+
+    val isOpen: Boolean get() = writer != null
+
+    private fun openCurrentLocked() {
+        val opened = runCatching {
+            dir.mkdirs()
+            val file = File(dir, LogFileRotation.CURRENT_NAME)
+            // append=true：跨进程重启接着写同一份，崩溃前那一段才不会被下一次启动覆盖掉。
+            val w = PrintWriter(OutputStreamWriter(FileOutputStream(file, true), Charsets.UTF_8), true)
+            file to w
+        }.getOrNull() ?: return
+        currentFile = opened.first
+        writer = opened.second
+        linesSinceSizeCheck = 0
+        // 会话分隔线：合并导出后一眼能看出哪段属于哪次启动。
+        runCatching {
+            opened.second.println(
+                "===== session start ${SimpleDateFormat(STAMP, Locale.US).format(Date())} pid=${android.os.Process.myPid()} ====="
             )
-            p = FsSanitizer.clean(
-                SafeTemplateRender.render(
-                    resolved.template,
-                    Bucket.Log,
-                    meta,
-                    "txt",
-                    config.pageNumbering,
-                )
-            )
-            h = DownloadsRegistry.downloads.openRaw(
-                Bucket.Log,
-                p,
-                "text/plain",
-                OverwritePolicy.Replace,
-            ) ?: error("openRaw returned null")
-            w = PrintWriter(OutputStreamWriter(h.stream, Charsets.UTF_8), true)
-        } catch (t: Throwable) {
-            runCatching { h?.onAbort() }
-            h = null
-            p = null
-            w = null
         }
-        handle = h
-        relPath = p
-        writer = w
-        if (w != null) {
-            TimberFileLog.register(h!!.uri)
-            log(Log.INFO, "TimberFileLog", "log file=${p!!.joinTo()}", null)
+    }
+
+    /**
+     * 写一行。跑在 IO 线程。
+     *
+     * 大小检查每 [SIZE_CHECK_EVERY_LINES] 行做一次：`File.length()` 是一次 stat，单行一次太亏，
+     * 而多写几百行再轮转对上限没有实质影响。
+     */
+    fun writeLine(line: String) {
+        synchronized(lock) {
+            val w = writer ?: return
+            runCatching { w.println(line) }
+            if (++linesSinceSizeCheck >= SIZE_CHECK_EVERY_LINES) {
+                linesSinceSizeCheck = 0
+                rotateIfNeededLocked()
+            }
         }
+    }
+
+    /** 把缓冲刷到内核。导出前调用，保证分享出去的日志包含最新那几行。 */
+    fun flush() {
+        synchronized(lock) { runCatching { writer?.flush() } }
+    }
+
+    /**
+     * 崩溃专用：在崩溃线程上同步写盘并 flush。
+     *
+     * 刻意不走 [TimberFileLog.enqueueLog]：进程马上就没了，排队等 IO 线程等于不写。
+     */
+    fun writeCrashNow(threadName: String, throwable: Throwable) {
+        val ms = SystemClock.elapsedRealtime() - startRealtime
+        val line = String.format(
+            Locale.US,
+            "[%8dms][%s][FATAL] %s",
+            ms,
+            threadName,
+            Log.getStackTraceString(throwable),
+        )
+        synchronized(lock) {
+            val w = writer ?: return
+            runCatching {
+                w.println(line)
+                w.flush()
+            }
+        }
+    }
+
+    fun close() {
+        synchronized(lock) {
+            val w = writer ?: return
+            runCatching { w.flush() }
+            runCatching { w.close() }
+            writer = null
+            currentFile = null
+        }
+    }
+
+    /**
+     * 当前文件写满就整体降一代：最老的一代删掉，其余依次后移，当前文件变成 `.1`，再开一个新的。
+     *
+     * 调用方必须持有 [lock]。
+     */
+    private fun rotateIfNeededLocked() {
+        val file = currentFile ?: return
+        if (runCatching { file.length() }.getOrDefault(0L) < MAX_FILE_BYTES) return
+        runCatching { writer?.flush() }
+        runCatching { writer?.close() }
+        writer = null
+        LogFileRotation.rotate(dir)
+        openCurrentLocked()
     }
 
     /**
@@ -352,7 +375,7 @@ class TimberFileTree : Timber.Tree() {
                 "[%8dms][%s][%c]",
                 ms,
                 threadName,
-                priorityChar(priority)
+                priorityChar(priority),
             )
         )
         if (!tag.isNullOrEmpty()) {
@@ -360,46 +383,6 @@ class TimberFileTree : Timber.Tree() {
         }
         sb.append(' ').append(message)
         return sb.toString()
-    }
-
-    /** 在 IO 线程写入一行。与崩溃同步写共用同一把锁，避免并发交错。 */
-    fun writeLine(line: String) {
-        val w = writer ?: return
-        synchronized(w) {
-            runCatching { w.println(line) }
-        }
-    }
-
-    /** 崩溃专用：在任意线程直接同步写盘并 flush，避免进程被杀前异步任务丢失。 */
-    fun writeCrashNow(threadName: String, throwable: Throwable) {
-        val w = writer ?: return
-        val ms = SystemClock.elapsedRealtime() - startRealtime
-        val sb = StringBuilder()
-        sb.append(
-            String.format(
-                Locale.US,
-                "[%8dms][%s][FATAL] %s",
-                ms,
-                threadName,
-                Log.getStackTraceString(throwable),
-            )
-        )
-        synchronized(w) {
-            runCatching {
-                w.println(sb)
-                w.flush()
-            }
-        }
-    }
-
-    fun close() {
-        val w = writer ?: return
-        runCatching { w.flush() }
-        runCatching { w.close() }
-        val h = handle
-        if (h != null) {
-            runCatching { h.onFinish() }
-        }
     }
 
     private fun priorityChar(priority: Int): Char = when (priority) {
@@ -410,5 +393,14 @@ class TimberFileTree : Timber.Tree() {
         Log.ERROR -> 'E'
         Log.ASSERT -> 'A'
         else -> '?'
+    }
+
+    companion object {
+        /** 单个日志文件写到多大就轮转。上限见 [LogFileRotation.KEEP_GENERATIONS]。 */
+        private const val MAX_FILE_BYTES = 2L * 1024 * 1024
+
+        private const val SIZE_CHECK_EVERY_LINES = 256
+
+        private const val STAMP = "yyyy-MM-dd HH:mm:ss"
     }
 }

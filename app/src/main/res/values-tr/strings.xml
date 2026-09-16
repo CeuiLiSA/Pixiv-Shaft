@@ -2863,9 +2863,6 @@
     <string name="setting_log_file_desc">Performansı etkileyebilir\nGünlük dosyası: %1$s</string>
     <string name="setting_log_file_no_file">Henüz oluşturulmadı</string>
     <string name="setting_log_file_share">Günlük dosyasını paylaş</string>
-    <string name="setting_log_file_share_history_title">Daha önce paylaşılmış günlük dosyaları var</string>
-    <string name="setting_log_file_share_since_last">Yeni oluşturulan günlükleri paylaş</string>
-    <string name="setting_log_file_share_all">Daha önce paylaşılan ve yeni oluşturulan günlükleri birleştir</string>
     <string name="setting_log_file_share_failed">Günlük dosyası paylaşılamadı</string>
     <string name="setting_trigger_crash">Ölümcül bir hata tetikle</string>
     <string name="setting_trigger_crash_desc">Tıklanınca hemen çöker (çökme günlüğü kaydını doğrulamak için)</string>

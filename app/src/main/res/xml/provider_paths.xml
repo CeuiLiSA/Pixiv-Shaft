@@ -3,6 +3,8 @@
     <cache-path name="shared_images_internal" path="images/"/>
     <cache-path name="reverse_search" path="reverse_search/"/>
     <cache-path name="wallpaper_share" path="wallpaper_share/"/>
+    <!-- 日志分享用的合并副本（试验性日志文件）。日志本体在 filesDir/logs，不对外暴露。 -->
+    <cache-path name="log_share" path="log-share/"/>
     <external-cache-path name="gif cache" path="."/>
     <external-cache-path name="shared_images" path="images/"/>
     <external-files-path name="apk_downloads" path="Download/"/>

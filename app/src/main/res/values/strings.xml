@@ -3141,9 +3141,6 @@
     <string name="setting_log_file_desc">可能影响性能\n日志文件在%1$s</string>
     <string name="setting_log_file_no_file">尚未生成</string>
     <string name="setting_log_file_share">分享日志文件</string>
-    <string name="setting_log_file_share_history_title">有历史分享过的日志文件</string>
-    <string name="setting_log_file_share_since_last">分享新生成的日志</string>
-    <string name="setting_log_file_share_all">合并历史分享与新生成再分享</string>
     <string name="setting_trigger_crash">引发一次致命错误</string>
     <string name="setting_trigger_crash_desc">点击后立即崩溃，用于验证崩溃日志落盘</string>
     <string name="setting_log_file_share_failed">分享日志文件失败</string>
