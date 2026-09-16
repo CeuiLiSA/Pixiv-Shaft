@@ -2,7 +2,7 @@
 <!-- 发出的消息 —— V3。竖向根:①时间分组胶囊(与收到气泡共用,居中,默认 GONE)
      ②气泡行(右对齐:气泡列 + 自己头像)。气泡底是主题色渐变,在 ChatMessageAdapter
      运行时铺(圆角 drawable + 品牌色,右上角小尾巴)。气泡内顶部可选引用块(quote,回复时显示)。
-     气泡下方右下角:发送状态(失败红叹号)+ 发送时间。 -->
+     气泡内部右下角:发送时间 + 发送状态(失败红叹号)。 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -110,49 +110,24 @@
 
                 </LinearLayout>
 
-                <!-- match_parent(而非 wrap_content):LinearLayout 在 wrap_content 父里只有当
-                     **所有**子 View 都 match_parent 时才按各自真实测量宽取最大值;否则 quote 这种
-                     match_parent 子 View 的宽度不计入气泡宽,引用块会被压成一条。TextView 在
-                     AT_MOST 下仍按文本期望宽测量,所以短消息的气泡照样收紧。 -->
-                <TextView
-                    android:id="@+id/tv_content"
+                <ceui.pixiv.chat.ui.ChatMessageBodyLayout
+                    android:id="@+id/message_body"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:lineSpacingExtra="3dp"
-                    android:textColor="@android:color/white"
-                    android:textIsSelectable="false"
-                    android:textSize="15sp"
-                    tools:text="I need to find a 2BR apartment in SF Mission district." />
+                    android:layout_height="wrap_content">
 
-            </LinearLayout>
+                    <TextView
+                        android:id="@+id/tv_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:lineSpacingExtra="3dp"
+                        android:textColor="@android:color/white"
+                        android:textIsSelectable="false"
+                        android:textSize="15sp"
+                        tools:text="I need to find a 2BR apartment in SF Mission district." />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:layout_marginEnd="4dp"
-                android:gravity="center_vertical|end"
-                android:orientation="horizontal">
+                    <include layout="@layout/chat_bubble_metadata" />
 
-                <ImageView
-                    android:id="@+id/iv_state"
-                    android:layout_width="14dp"
-                    android:layout_height="14dp"
-                    android:layout_marginEnd="3dp"
-                    android:importantForAccessibility="no"
-                    android:src="@drawable/ic_error_black_24dp"
-                    android:tint="@color/v3_danger"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
-
-                <TextView
-                    android:id="@+id/tv_time"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:includeFontPadding="false"
-                    android:textColor="@color/v3_text_3"
-                    android:textSize="11sp"
-                    tools:text="14:32" />
+                </ceui.pixiv.chat.ui.ChatMessageBodyLayout>
 
             </LinearLayout>
 

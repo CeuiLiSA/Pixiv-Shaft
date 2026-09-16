@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 收到的消息 —— V3。竖向根:①时间分组胶囊(间隔大/跨天时居中显示,默认 GONE)
-     ②气泡行(头像 + 昵称[仅公屏] + 气泡 + 气泡下方发送时间)。
+     ②气泡行(头像 + 昵称[仅公屏] + 气泡（正文末行右侧显示时间，空间不足时在气泡内换行）)。
      气泡用 LinearLayout + bg_chat_bubble_received(圆角 drawable),不用 MaterialCardView。
      气泡内顶部可选引用块(quote,回复某条消息时显示)。
      头像用 FrameLayout 包一层,匿名用户叠一个白色首字 monogram(tv_monogram)。
@@ -158,32 +158,26 @@
 
                 </LinearLayout>
 
-                <!-- match_parent(而非 wrap_content):LinearLayout 在 wrap_content 父里只有当
-                     **所有**子 View 都 match_parent 时才按各自真实测量宽取最大值;否则 quote 这种
-                     match_parent 子 View 的宽度不计入气泡宽,引用块会被压成一条。TextView 在
-                     AT_MOST 下仍按文本期望宽测量,所以短消息的气泡照样收紧。 -->
-                <TextView
-                    android:id="@+id/tv_content"
+                <ceui.pixiv.chat.ui.ChatMessageBodyLayout
+                    android:id="@+id/message_body"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:lineSpacingExtra="3dp"
-                    android:textColor="@color/v3_text_1"
-                    android:textIsSelectable="false"
-                    android:textSize="15sp"
-                    tools:text="Hi! Yes, it's still available." />
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/tv_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:lineSpacingExtra="3dp"
+                        android:textColor="@color/v3_text_1"
+                        android:textIsSelectable="false"
+                        android:textSize="15sp"
+                        tools:text="Hi! Yes, it's still available." />
+
+                    <include layout="@layout/chat_bubble_metadata" />
+
+                </ceui.pixiv.chat.ui.ChatMessageBodyLayout>
 
             </LinearLayout>
-
-            <TextView
-                android:id="@+id/tv_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginTop="3dp"
-                android:includeFontPadding="false"
-                android:textColor="@color/v3_text_3"
-                android:textSize="11sp"
-                tools:text="14:31" />
 
         </LinearLayout>
 
