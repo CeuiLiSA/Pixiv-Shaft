@@ -1,18 +1,18 @@
 package ceui.pixiv.plaza.ui
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.Gravity
 import android.view.MenuItem
 import android.view.View
-import android.widget.*
-import androidx.core.widget.doAfterTextChanged
-import ceui.pixiv.panel.BottomPanelCoordinator
-import ceui.pixiv.panel.PanelHost
-import ceui.pixiv.panel.WindowSoftInputModeLease
-import ceui.pixiv.panel.attachBottomPanel
-import ceui.pixiv.session.SessionManager
-import ceui.pixiv.sticker.InlineStickerPicker
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,13 +20,27 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import ceui.lisa.R
 import ceui.pixiv.chat.base.launchSuspend
+import ceui.pixiv.panel.BottomPanelCoordinator
+import ceui.pixiv.panel.PanelHost
+import ceui.pixiv.panel.WindowSoftInputModeLease
+import ceui.pixiv.panel.attachBottomPanel
 import ceui.pixiv.plaza.PlazaPost
+import ceui.pixiv.session.SessionManager
+import ceui.pixiv.sticker.InlineStickerPicker
+import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.theme.V3Palette
 
 class PlazaFragment : PlazaTimelineFragment()
 
+/**
+ * Plaza feed and post detail on one V3 "content" recipe: standard app toolbar, edge-to-edge
+ * hairline-separated post rows (as the novel and comment lists), a connected-segment filter in
+ * the toolbar, an extended FAB for the one primary action, and explicit skeleton / empty /
+ * error states instead of a status line.
+ */
 open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
     private val model: PlazaTimelineViewModel by viewModels()
     private val replyModel: PlazaComposeViewModel by viewModels()
@@ -46,6 +60,7 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val ctx = requireContext()
+        val palette = V3Palette.from(ctx)
         val toolbar =
             setupPlazaToolbar(
                 view,
@@ -62,47 +77,89 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
                 true
             }
         } else {
-            toolbar.menu.add(R.string.plaza_send_post)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-            toolbar.setOnMenuItemClickListener {
-                ctx.openComposer()
-                true
-            }
+            installFilter(toolbar)
         }
         val frame = view.findViewById<FrameLayout>(R.id.plaza_content)
         val column = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
         frame.addView(column, FrameLayout.LayoutParams(-1, -1, Gravity.CENTER_HORIZONTAL))
-        // Keep text and media readable on wide panes without changing toolbar geometry.
-        frame.addOnLayoutChangeListener { _, l, _, r, _, _, _, _, _ ->
-            val width = minOf(r - l, ctx.dp(720))
-            if (column.layoutParams.width != width)
-                column.layoutParams = FrameLayout.LayoutParams(width, -1, Gravity.CENTER_HORIZONTAL)
-        }
-        val status =
-            ctx.label("").apply {
-                gravity = Gravity.CENTER
-                setPadding(ctx.dp(16), ctx.dp(12), ctx.dp(16), ctx.dp(12))
-            }
-        column.addView(status, LinearLayout.LayoutParams(-1, -2))
-        status.setOnClickListener { model.refresh() }
+
+        // Content stage: list, first-screen skeleton and the state card share one slot so the
+        // pull-to-refresh gesture works on all of them.
+        val stage = FrameLayout(ctx)
         val refresh = SwipeRefreshLayout(ctx)
         val list =
             RecyclerView(ctx).apply {
                 layoutManager = LinearLayoutManager(ctx)
                 clipToPadding = false
-                setPadding(0, 0, 0, ctx.dp(16))
+                setPadding(0, 0, 0, ctx.dp(if (postId > 0) 16 else 96))
+                // Rows are edge-to-edge; only a full-bleed hairline separates them, drawn by
+                // the decoration so prepends and appends never miss a line. No item animator:
+                // like the download lists, updates snap instead of cross-fading or sliding.
+                addItemDecoration(BottomDividerDecoration(ctx, R.drawable.hairline_divider))
+                itemAnimator = null
             }
         recycler = list
-        refresh.addView(list)
+        val skeleton = PlazaSkeletonView(ctx).apply { isVisible = false }
+        val stateCard = PlazaStateCard(ctx).apply { isVisible = false }
+        stage.addView(list, FrameLayout.LayoutParams(-1, -1))
+        stage.addView(skeleton, FrameLayout.LayoutParams(-1, -1))
+        stage.addView(
+            stateCard,
+            FrameLayout.LayoutParams(-1, -2, Gravity.TOP).apply {
+                setMargins(ctx.dp(16), ctx.dp(24), ctx.dp(16), ctx.dp(16))
+            },
+        )
+        refresh.addView(stage)
+        refresh.setOnChildScrollUpCallback { _, _ -> list.isVisible && list.canScrollVertically(-1) }
         column.addView(refresh, LinearLayout.LayoutParams(-1, 0, 1f))
         refresh.applyV3RefreshTheme()
         refresh.setOnRefreshListener { model.refresh() }
-        val adapter = PostAdapter(
-            model::like, ::confirmDelete, ::preview, postId, model::react,
-            onReply = if (postId > 0) ::startReply else null,
-            onBind = model::ensureFreshImages,
-        )
+
+        // Footer under the list: paging spinner, or a retry pill when a later page fails.
+        val footer =
+            LinearLayout(ctx).apply {
+                gravity = Gravity.CENTER
+                setPadding(ctx.dp(16), ctx.dp(8), ctx.dp(16), ctx.dp(8))
+                isVisible = false
+            }
+        val footerProgress =
+            ProgressBar(ctx).apply {
+                indeterminateTintList = ColorStateList.valueOf(palette.primary)
+                isVisible = false
+            }
+        val footerRetry =
+            ctx.pillButton(ctx.getString(R.string.plaza_retry), primary = false) { model.refresh() }
+                .apply { isVisible = false }
+        footer.addView(footerProgress, LinearLayout.LayoutParams(ctx.dp(24), ctx.dp(24)))
+        footer.addView(footerRetry, LinearLayout.LayoutParams(-2, -2))
+        column.addView(footer, LinearLayout.LayoutParams(-1, -2))
+
+        val adapter =
+            PostAdapter(
+                model::like,
+                ::confirmDelete,
+                ::preview,
+                postId,
+                model::react,
+                onReply = if (postId > 0) ::startReply else null,
+                onBind = model::ensureFreshImages,
+            )
         list.adapter = adapter
+        val fab = if (postId == 0L) installComposeFab(frame, list) else null
+        // Keep text and media readable on wide panes without changing toolbar geometry.
+        frame.addOnLayoutChangeListener { _, l, _, r, _, _, _, _, _ ->
+            val width = minOf(r - l, ctx.dp(720))
+            if (column.layoutParams.width != width)
+                column.layoutParams = FrameLayout.LayoutParams(width, -1, Gravity.CENTER_HORIZONTAL)
+            fab?.let {
+                val margin = (r - l - width) / 2 + ctx.dp(16)
+                val lp = it.layoutParams as FrameLayout.LayoutParams
+                if (lp.marginEnd != margin) {
+                    lp.marginEnd = margin
+                    it.layoutParams = lp
+                }
+            }
+        }
         list.addOnScrollListener(
             object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
@@ -130,23 +187,144 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
                 // SwipeRefreshLayout starts its spinner for the user's pull gesture.
                 // Loading cached content or comments must never start that animation.
                 if (!state.loading) refresh.isRefreshing = false
-                status.text =
-                    when {
-                        state.restoringCache -> ""
-                        state.error != null ->
-                            ctx.getString(R.string.plaza_retry_message, state.error.resolve(ctx))
-                        state.loading && posts.isEmpty() -> ctx.getString(R.string.plaza_loading)
-                        posts.isEmpty() ->
-                            if (postId > 0) ctx.getString(R.string.plaza_not_found)
-                            else if (model.mine) ctx.getString(R.string.plaza_mine_empty)
-                            else ctx.getString(R.string.plaza_feed_empty)
-                        state.loadingMore -> ctx.getString(R.string.plaza_loading_more)
-                        else -> ""
-                    }
-                status.isVisible = status.text.isNotEmpty()
+                val firstLoad =
+                    posts.isEmpty() && state.error == null && (state.loading || state.restoringCache)
+                val emptyError = posts.isEmpty() && state.error != null
+                skeleton.isVisible = firstLoad
+                list.isVisible = posts.isNotEmpty()
+                when {
+                    firstLoad -> stateCard.hide()
+                    emptyError ->
+                        stateCard.show(
+                            R.drawable.ic_baseline_refresh_48,
+                            ctx.getString(R.string.plaza_load_error_title),
+                            state.error?.resolve(ctx),
+                            ctx.getString(R.string.plaza_retry),
+                        ) { model.refresh() }
+                    posts.isEmpty() && !state.loading ->
+                        when {
+                            postId > 0 ->
+                                stateCard.show(
+                                    R.drawable.ic_plaza_forum_24,
+                                    ctx.getString(R.string.plaza_not_found),
+                                    null,
+                                )
+                            model.mine ->
+                                stateCard.show(
+                                    R.drawable.ic_plaza_forum_24,
+                                    ctx.getString(R.string.plaza_mine_empty),
+                                    ctx.getString(R.string.plaza_mine_empty_desc),
+                                    ctx.getString(R.string.plaza_compose_title),
+                                ) { ctx.openComposer() }
+                            else ->
+                                stateCard.show(
+                                    R.drawable.ic_plaza_forum_24,
+                                    ctx.getString(R.string.plaza_empty_title),
+                                    ctx.getString(R.string.plaza_empty_desc),
+                                    ctx.getString(R.string.plaza_compose_title),
+                                ) { ctx.openComposer() }
+                        }
+                    else -> stateCard.hide()
+                }
+                // Comments of a cached post, or the next page, load below the visible content.
+                footerProgress.isVisible =
+                    posts.isNotEmpty() && (state.loadingMore || (state.loading && state.items.isEmpty()))
+                footerRetry.isVisible =
+                    posts.isNotEmpty() && state.error != null && !state.loading && !state.loadingMore
+                footer.isVisible = footerProgress.isVisible || footerRetry.isVisible
                 renderReplyComposer()
             }
         }
+    }
+
+    /** MD3-E connected segments on the coloured toolbar, as in the bookmark library. */
+    private fun installFilter(toolbar: Toolbar) {
+        val ctx = requireContext()
+        val title = toolbar.findViewById<TextView>(R.id.toolbar_title)
+        title.isVisible = false
+        val track =
+            LinearLayout(ctx).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setBackgroundResource(R.drawable.bg_toolbar_segment_track)
+                setPadding(ctx.dp(3), ctx.dp(3), ctx.dp(3), ctx.dp(3))
+            }
+        val options = mutableListOf<Pair<TextView, Boolean>>()
+        fun sync() = options.forEach { (option, mine) -> option.isSelected = mine == model.mine }
+        listOf(R.string.plaza_filter_all to false, R.string.plaza_filter_mine to true).forEach { (res, mine) ->
+            val option =
+                ctx.label(ctx.getString(res), 13f, 600).apply {
+                    setTextColor(ContextCompat.getColorStateList(ctx, R.color.toolbar_segment_text))
+                    setBackgroundResource(R.drawable.bg_toolbar_segment_option)
+                    gravity = Gravity.CENTER
+                    minWidth = ctx.dp(88)
+                    minHeight = ctx.dp(36)
+                    setPadding(ctx.dp(16), ctx.dp(7), ctx.dp(16), ctx.dp(7))
+                    isClickable = true
+                    isFocusable = true
+                    setOnClickListener {
+                        model.selectMine(mine)
+                        sync()
+                        recycler?.scrollToPosition(0)
+                    }
+                }
+            options += option to mine
+            track.addView(option, LinearLayout.LayoutParams(-2, -2))
+        }
+        sync()
+        toolbar.addView(track, Toolbar.LayoutParams(-2, -2, Gravity.CENTER))
+    }
+
+    /** Extended FAB: the feed's single strongest action, retreating while the user reads. */
+    private fun installComposeFab(frame: FrameLayout, list: RecyclerView): View {
+        val ctx = requireContext()
+        val fab =
+            ctx.pillButton(
+                ctx.getString(R.string.plaza_compose_title),
+                primary = true,
+                icon = R.drawable.ic_add_black_24dp,
+            ) { ctx.openComposer() }
+                .apply {
+                    minHeight = ctx.dp(52)
+                    setPadding(ctx.dp(20), 0, ctx.dp(24), 0)
+                    elevation = ctx.dpF(4f)
+                    outlineProvider = android.view.ViewOutlineProvider.BACKGROUND
+                }
+        frame.addView(
+            fab,
+            FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.END).apply {
+                setMargins(ctx.dp(16), ctx.dp(16), ctx.dp(16), ctx.dp(16))
+            },
+        )
+        var shown = true
+        fun setShown(value: Boolean) {
+            if (shown == value) return
+            shown = value
+            fab.animate().cancel()
+            if (!motionEnabled()) {
+                fab.isVisible = value
+                fab.scaleX = 1f
+                fab.scaleY = 1f
+                fab.alpha = 1f
+                return
+            }
+            if (value) fab.isVisible = true
+            fab.animate()
+                .scaleX(if (value) 1f else .8f)
+                .scaleY(if (value) 1f else .8f)
+                .alpha(if (value) 1f else 0f)
+                .setDuration(200)
+                .withEndAction { if (!value) fab.isVisible = false }
+                .start()
+        }
+        list.addOnScrollListener(
+            object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                    if (dy > ctx.dp(8)) setShown(false)
+                    else if (dy < -ctx.dp(8) || !rv.canScrollVertically(-1)) setShown(true)
+                }
+            }
+        )
+        return fab
     }
 
     override fun onResume() {

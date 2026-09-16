@@ -39,13 +39,19 @@ Android 复用 witstudio 与 V3Palette，尺寸用 dp/sp，关键操作热区至
 先校验业务语义，再检查视觉一致性；遇到信息不足要明确示例或待定值。
 ```
 
-### 广场的专项设计基准（2026-09-15）
+### 广场（2026-09-16 起按 V3 语言实现）
 
-广场列表、帖子详情和创建帖子的内容区以 [Five Degrees 的 Post 区域](https://www.figma.com/design/XIelCCTiUHLjsJ9BbLmFy3/Five-Degrees?node-id=10025-6103) 为布局基准。内容区的元素位置、尺寸、间距、Inter 字重与图标遵循 Figma；颜色映射到现有 `V3Palette` 和日夜资源。顶栏统一复用 Pixiv-Shaft 的 `toolbar_layout.xml`、`BaseFragment.applyToolbarInsets` 和标准菜单项，不照搬 Figma 导航栏，不自绘另一套返回/关闭按钮。此专项约定不替换其他 V3 页面的 Montserrat（2026-09-16 更新）。
+广场列表、帖子详情和创建帖子是 V3「作品 / 内容」配方的普通页面，**不再是 Figma 专项**。[Five Degrees 的 Post 区域](https://www.figma.com/design/XIelCCTiUHLjsJ9BbLmFy3/Five-Degrees?node-id=10025-6103) 只保留为内容区元素顺序与信息层级的参考；字体、图标、表面、圆角、动效与状态全部复用本文档和 `witstudio`：
 
-广场列表、帖子和评论的回应统一使用 28dp 高胶囊（默认字号），18sp 表情或同尺寸贴纸、15sp Inter 计数、4dp 内部间距和胶囊间距、8dp 水平内边距；选中态复用主题浅底，不另加贴纸专属描边或大容器。贴纸的 64px 资源档位只决定清晰度，不决定显示尺寸；字号放大时与普通表情共同增高。依据 `10131:8487` 与 `10063:6767` 内的 Reaction Stack（2026-09-16）。
+- **字体**：Montserrat 400/500/600/700 承担英文与数字，中文走系统回退；广场不再携带 Inter 字体文件。
+- **图标**：复用 app 现有图标（`ic_like_heart_*`、`ic_baseline_comment_24`、`chat_ic_emoji`、`ic_more_vert_black_24dp`、`ic_add_black_24dp`、`ic_close_black_24dp`、`ic_v3_chevron_24`），由 `V3Palette` 着色；不保留 Figma 导出的 `ic_plaza_figma_*`。
+- **表面**：列表帖子**无界平铺**，与小说卡列表、评论列表同款：不套卡底、edge-to-edge，左右 16dp、上下 14dp 内边距，条目间只有通栏 hairline（`BottomDividerDecoration` + `hairline_divider`），点按用 `selectableItemBackground` 同款矩形涟漪；详情页帖子直接坐在 `v3_bg` 上（内容优先），评论同样无界平铺（与插画评论列表一致：无卡底、通栏 hairline、左右 16dp、上下 12dp），不做连通分段行；创建页字段放在 22dp 卡片内，引用入口是单个 20dp 分段行。图片格子 12dp 圆角、间距 4dp，单图 16dp。
+- **回应**：32dp 视觉胶囊 + 48dp 触控热区；未选中 `alpha08` 底、次要文字色，选中 `alpha20` 底 + `alpha30` 描边 + `textAccent`；18sp 表情或同尺寸贴纸、14sp 等宽数字（`tnum`）。点赞心形按下一次 1.25 倍回弹，不循环。
+- **顶栏与主操作**：三页 include `toolbar_layout.xml`；列表页顶栏中央放「全部 / 我的」MD3-E 连通分段（`bg_toolbar_segment_*`，同书签库），主操作是右下角实色胶囊 Extended FAB「发帖」，向下滚动收起、上滚出现；详情页保留标准「更多」菜单；创建页「发布」仍是标准菜单项。
+- **状态**：首屏用 `FeedSkeletonView` 骨架（`PlazaSkeletonView`）而非文字；空 / 失败 / 不存在用同一张状态卡（虚线 hairline、17/17/17/7 图标容器、标题、一句说明、一个真实动作）；分页加载与评论加载在列表底部显示进度，分页失败给「重试」胶囊。
+- **动效**：广场所有列表 `itemAnimator = null`，条目更新直接就位，不做入场淡入、交叉淡化或位移（与下载管理列表同一取舍，作者明确不要列表动画）；只保留按钮与胶囊按下 0.96（胶囊 0.94）和点赞心形的一次回弹，系统关闭动画时跳过。
 
-广场列表的评论预览使用 `V3Palette.alpha08` 叠加 `cardFill` 的主题派生底色，保留 6dp 圆角；深浅模式均随用户主色变化。预览正文和回复入口以合成后的背景校正到至少 4.5:1 对比度，不使用白色或通用页面底色作为预览底（2026-09-16）。
+广场列表的评论预览使用 `V3Palette.alpha08` 叠加 `cardFill` 的主题派生底色，12dp 圆角；预览正文和回复入口以合成后的背景校正到至少 4.5:1 对比度，不使用白色或通用页面底色作为预览底。
 
 所有帖子公开，不呈现可见范围设置；图片上限为 9 张，Linked Quest 对应 Pixiv 作品或用户引用。系统状态栏、键盘及字体放大使用 Android 原生能力。对照记录见 [广场设计验收](plaza-design-review.md)。
 

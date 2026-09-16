@@ -77,4 +77,15 @@
     <string name="plaza_error_title">操作に失敗しました</string>
     <string name="plaza_preview_author">%1$s：</string>
     <string name="plaza_media_size_unknown">有効な画像サイズを読み取れません。選択し直してください。</string>
+    <string name="plaza_filter_all">すべて</string>
+    <string name="plaza_filter_mine">自分</string>
+    <string name="plaza_retry">再試行</string>
+    <string name="plaza_empty_title">まだ投稿がありません</string>
+    <string name="plaza_empty_desc">投稿を公開して、見ている作品や考えを共有しましょう。</string>
+    <string name="plaza_mine_empty_desc">あなたの投稿はここに表示されます。</string>
+    <string name="plaza_load_error_title">読み込みに失敗しました</string>
+    <string name="plaza_title_label">タイトル</string>
+    <string name="plaza_body_label">本文</string>
+    <string name="plaza_char_count">%1$d / %2$d</string>
+    <string name="plaza_reference_hint">Pixiv の作品またはユーザーを関連付ける</string>
 </resources>
