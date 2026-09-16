@@ -48,7 +48,7 @@ Android 复用 witstudio 与 V3Palette，尺寸用 dp/sp，关键操作热区至
 - **表面**：列表帖子**无界平铺**，与小说卡列表、评论列表同款：不套卡底、edge-to-edge，左右 16dp、上下 14dp 内边距，条目间只有通栏 hairline（`BottomDividerDecoration` + `hairline_divider`），点按用 `selectableItemBackground` 同款矩形涟漪；详情页帖子直接坐在 `v3_bg` 上（内容优先），评论同样无界平铺（与插画评论列表一致：无卡底、通栏 hairline、左右 16dp、上下 12dp），不做连通分段行；创建页字段放在 22dp 卡片内，引用入口是单个 20dp 分段行。图片格子 12dp 圆角、间距 4dp，单图 16dp。
 - **回应**：32dp 视觉胶囊 + 48dp 触控热区；未选中 `alpha08` 底、次要文字色，选中 `alpha20` 底 + `alpha30` 描边 + `textAccent`；18sp 表情或同尺寸贴纸、14sp 等宽数字（`tnum`）。点赞心形按下一次 1.25 倍回弹，不循环。
 - **顶栏与主操作**：三页 include `toolbar_layout.xml`；列表页顶栏中央放「全部 / 我的」MD3-E 连通分段（`bg_toolbar_segment_*`，同书签库），主操作是右下角实色胶囊 Extended FAB「发帖」，向下滚动收起、上滚出现；详情页保留标准「更多」菜单；创建页「发布」仍是标准菜单项。
-- **状态**：首屏用 `FeedSkeletonView` 骨架（`PlazaSkeletonView`）而非文字；空 / 失败 / 不存在用同一张状态卡（虚线 hairline、17/17/17/7 图标容器、标题、一句说明、一个真实动作）；分页加载与评论加载在列表底部显示进度，分页失败给「重试」胶囊。
+- **状态**：首屏用 `FeedSkeletonView` 骨架（`PlazaSkeletonView`）而非文字；空 / 失败 / 不存在照 feeds 框架 `fragment_feed.xml` 的空态做：120dp 插画（空态 `empty_img`、错误 `ic_feed_error`）以 `textAccent` 60% 着色、一句 14sp 次要文字、至多一个主色胶囊动作，在列表区域居中；帖子详情评论为空时，同一套空态放在「评论 (0)」标签下方，最小高度 320dp，随列表滚动，不做成一行小字；分页加载与评论加载在列表底部显示进度，分页失败给「重试」胶囊。
 - **动效**：广场所有列表 `itemAnimator = null`，条目更新直接就位，不做入场淡入、交叉淡化或位移（与下载管理列表同一取舍，作者明确不要列表动画）；只保留按钮与胶囊按下 0.96（胶囊 0.94）和点赞心形的一次回弹，系统关闭动画时跳过。
 
 广场列表的评论预览使用 `V3Palette.alpha08` 叠加 `cardFill` 的主题派生底色，12dp 圆角；预览正文和回复入口以合成后的背景校正到至少 4.5:1 对比度，不使用白色或通用页面底色作为预览底。

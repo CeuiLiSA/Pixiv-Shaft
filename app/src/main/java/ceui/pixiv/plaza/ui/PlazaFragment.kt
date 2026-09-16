@@ -100,13 +100,14 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
             }
         recycler = list
         val skeleton = PlazaSkeletonView(ctx).apply { isVisible = false }
-        val stateCard = PlazaStateCard(ctx).apply { isVisible = false }
+        // Feed empty / error state: centred in the content area, as the feeds framework does.
+        val stateCard = PlazaStateView(ctx).apply { isVisible = false }
         stage.addView(list, FrameLayout.LayoutParams(-1, -1))
         stage.addView(skeleton, FrameLayout.LayoutParams(-1, -1))
         stage.addView(
             stateCard,
-            FrameLayout.LayoutParams(-1, -2, Gravity.TOP).apply {
-                setMargins(ctx.dp(16), ctx.dp(24), ctx.dp(16), ctx.dp(16))
+            FrameLayout.LayoutParams(-2, -2, Gravity.CENTER).apply {
+                setMargins(ctx.dp(24), ctx.dp(24), ctx.dp(24), ctx.dp(24))
             },
         )
         refresh.addView(stage)
@@ -196,36 +197,40 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
                     firstLoad -> stateCard.hide()
                     emptyError ->
                         stateCard.show(
-                            R.drawable.ic_baseline_refresh_48,
-                            ctx.getString(R.string.plaza_load_error_title),
-                            state.error?.resolve(ctx),
+                            ceui.pixiv.feeds.R.drawable.ic_feed_error,
+                            ctx.getString(R.string.plaza_load_error_title) + "\n" +
+                                state.error?.resolve(ctx).orEmpty(),
                             ctx.getString(R.string.plaza_retry),
                         ) { model.refresh() }
                     posts.isEmpty() && !state.loading ->
                         when {
                             postId > 0 ->
                                 stateCard.show(
-                                    R.drawable.ic_plaza_forum_24,
+                                    R.mipmap.empty_img,
                                     ctx.getString(R.string.plaza_not_found),
-                                    null,
                                 )
                             model.mine ->
                                 stateCard.show(
-                                    R.drawable.ic_plaza_forum_24,
-                                    ctx.getString(R.string.plaza_mine_empty),
-                                    ctx.getString(R.string.plaza_mine_empty_desc),
+                                    R.mipmap.empty_img,
+                                    ctx.getString(R.string.plaza_mine_empty) + "\n" +
+                                        ctx.getString(R.string.plaza_mine_empty_desc),
                                     ctx.getString(R.string.plaza_compose_title),
                                 ) { ctx.openComposer() }
                             else ->
                                 stateCard.show(
-                                    R.drawable.ic_plaza_forum_24,
-                                    ctx.getString(R.string.plaza_empty_title),
-                                    ctx.getString(R.string.plaza_empty_desc),
+                                    R.mipmap.empty_img,
+                                    ctx.getString(R.string.plaza_empty_title) + "\n" +
+                                        ctx.getString(R.string.plaza_empty_desc),
                                     ctx.getString(R.string.plaza_compose_title),
                                 ) { ctx.openComposer() }
                         }
                     else -> stateCard.hide()
                 }
+                // A post whose comments have finished loading and came back empty shows the
+                // same empty state under "Comments (0)", inside the list so it scrolls with it.
+                adapter.emptyComments =
+                    postId > 0 && state.parent != null && state.items.isEmpty() &&
+                        !state.loading && !state.loadingMore && state.error == null
                 // Comments of a cached post, or the next page, load below the visible content.
                 footerProgress.isVisible =
                     posts.isNotEmpty() && (state.loadingMore || (state.loading && state.items.isEmpty()))

@@ -218,68 +218,53 @@ internal fun Context.pillButton(
     }
 }
 
-/** Empty / error / not-found card: icon box, title, one explanation and one real action. */
-internal class PlazaStateCard(context: Context) : LinearLayout(context) {
-    private val iconBox = FrameLayout(context)
-    private val icon = ImageView(context)
-    private val title = context.label("", 16f, 600).apply { gravity = Gravity.CENTER }
-    private val description =
+/**
+ * Empty / error / not-found state on the feeds-framework recipe (`fragment_feed.xml`):
+ * a 120dp illustration tinted with the readable accent at 60%, one 14sp explanation,
+ * and at most one real action. Used centred on the feed and under "Comments (0)" on a post.
+ */
+internal class PlazaStateView(context: Context) : LinearLayout(context) {
+    private val image =
+        ImageView(context).apply {
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+            imageTintList =
+                ColorStateList.valueOf(
+                    ColorUtils.setAlphaComponent(V3Palette.from(context).textAccent, 153)
+                )
+        }
+    private val text =
         context.label("", 14f, 400, context.color(R.color.v3_text_2)).apply {
             gravity = Gravity.CENTER
+            setPadding(context.dp(16), context.dp(16), context.dp(16), context.dp(16))
             lineHeightRatio(1.6f)
         }
     private var button: TextView? = null
 
     init {
-        val p = V3Palette.from(context)
         orientation = VERTICAL
-        gravity = Gravity.CENTER_HORIZONTAL
-        setPadding(context.dp(24), context.dp(32), context.dp(24), context.dp(32))
-        background =
-            GradientDrawable().apply {
-                cornerRadius = context.dpF(22f)
-                setColor(p.cardFill)
-                setStroke(
-                    context.hairlinePx(),
-                    p.cardHairline,
-                    context.dpF(6f),
-                    context.dpF(4f),
-                )
-            }
-        // 17/17/17/7 icon container: the one asymmetric shape V3 keeps for icon areas.
-        val r17 = context.dpF(17f)
-        val r7 = context.dpF(7f)
-        iconBox.background =
-            GradientDrawable().apply {
-                cornerRadii = floatArrayOf(r17, r17, r17, r17, r17, r17, r7, r7)
-                setColor(p.alpha15)
-            }
-        icon.imageTintList = ColorStateList.valueOf(p.textAccent)
-        icon.importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-        iconBox.addView(icon, FrameLayout.LayoutParams(context.dp(24), context.dp(24), Gravity.CENTER))
-        addView(iconBox, LayoutParams(context.dp(56), context.dp(56)))
-        addView(title, LayoutParams(-1, -2).apply { topMargin = context.dp(14) })
-        addView(description, LayoutParams(-1, -2).apply { topMargin = context.dp(8) })
-        ViewCompat.setAccessibilityHeading(title, true)
+        gravity = Gravity.CENTER
+        addView(
+            image,
+            LayoutParams(context.dp(120), context.dp(120)).apply { bottomMargin = context.dp(8) },
+        )
+        addView(text, LayoutParams(-2, -2))
     }
 
     fun show(
-        iconRes: Int,
-        titleText: String,
-        descriptionText: String?,
+        imageRes: Int,
+        message: CharSequence,
         actionText: String? = null,
         action: (() -> Unit)? = null,
     ) {
-        icon.setImageResource(iconRes)
-        title.text = titleText
-        description.text = descriptionText.orEmpty()
-        description.isVisible = !descriptionText.isNullOrEmpty()
+        image.setImageResource(imageRes)
+        text.text = message
         button?.let(::removeView)
         button = null
         if (actionText != null && action != null) {
             button =
                 context.pillButton(actionText, primary = true) { action() }.also {
-                    addView(it, LayoutParams(-2, -2).apply { topMargin = context.dp(20) })
+                    addView(it, LayoutParams(-2, -2).apply { topMargin = context.dp(4) })
                 }
         }
         isVisible = true
@@ -351,6 +336,16 @@ internal class PostAdapter(
             }
         }
 
+    /** Detail only: comments finished loading and there are none; rendered under the parent. */
+    var emptyComments: Boolean = false
+        set(value) {
+            if (field != value) {
+                field = value
+                val index = currentList.indexOfFirst { it.id == detailId }
+                if (index >= 0) notifyItemChanged(index, Unit)
+            }
+        }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
         Holder(PostView(parent.context))
 
@@ -367,6 +362,7 @@ internal class PostAdapter(
             onReact,
             detailId > 0 && detailId != post.id,
             onReply,
+            emptyComments = emptyComments && detailId == post.id,
         )
     }
 
@@ -419,6 +415,13 @@ internal class PostView(
     private val commentPreviewText = readablePreviewColor(context.color(R.color.v3_text_2))
     private val commentPreviewAccent = readablePreviewColor(palette.textAccent)
     private val commentsTitle = context.sectionLabel("")
+    // Under "Comments (0)" on the detail page: the feeds-style empty state, tall enough to read
+    // as a real area rather than a stray line (feeds centres it in a full pane).
+    private val commentsEmpty =
+        PlazaStateView(context).apply {
+            minimumHeight = context.dp(320)
+            isVisible = false
+        }
     private val commentFooter = context.label("", 12f, 500, context.color(R.color.v3_text_3))
 
     private fun readablePreviewColor(color: Int): Int {
@@ -461,6 +464,7 @@ internal class PostView(
         group(reactions)
         group(comments, 12)
         group(commentsTitle)
+        group(commentsEmpty, 0)
         group(commentFooter, 8)
         body.lineHeightRatio(1.6f)
         reference.background =
@@ -492,6 +496,7 @@ internal class PostView(
         onReact: (PlazaPost, String) -> Unit = { _, _ -> },
         comment: Boolean = false,
         onReply: ((PlazaPost) -> Unit)? = null,
+        emptyComments: Boolean = false,
     ) {
         if (detailMode != detail) {
             renderedImages = null
@@ -572,6 +577,9 @@ internal class PostView(
         bindComments(post, detail, comment, onReply)
         commentsTitle.isVisible = detail
         commentsTitle.text = context.getString(R.string.plaza_comments_title, post.replyCount)
+        if (detail && emptyComments)
+            commentsEmpty.show(R.mipmap.empty_img, context.getString(R.string.plaza_comments_empty))
+        else commentsEmpty.hide()
         if (comment) {
             (avatar.layoutParams as LayoutParams).apply {
                 width = context.dp(36)
