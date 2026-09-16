@@ -11,6 +11,15 @@ import ceui.pixiv.witstudio.theme.V3Palette
 internal fun ChatViewComposerBinding.applyChatComposerStyle() {
     val palette = chatPalette(root.context)
     val density = root.resources.displayMetrics.density
+    // FilledBox reserves extra top padding for a floating label even with hintEnabled=false.
+    // Normalize after inflation, including Material's large-font padding, without changing height.
+    val inputVerticalPadding = etInput.paddingTop + etInput.paddingBottom
+    etInput.setPaddingRelative(
+        etInput.paddingStart,
+        inputVerticalPadding / 2,
+        etInput.paddingEnd,
+        inputVerticalPadding - inputVerticalPadding / 2,
+    )
     btnSend.backgroundTintList = ColorStateList(
         arrayOf(intArrayOf(android.R.attr.state_enabled), intArrayOf()),
         intArrayOf(palette.primary, ColorUtils.setAlphaComponent(palette.primary, 0x40)),

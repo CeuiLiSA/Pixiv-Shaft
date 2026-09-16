@@ -22,6 +22,7 @@ import ceui.pixiv.chat.base.launchSuspend
 import ceui.pixiv.plaza.PlazaPost
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 
 class PlazaFragment : PlazaTimelineFragment()
 
@@ -251,7 +252,7 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
         WitDialog.MessageDialogBuilder(requireContext())
             .setMessage(getString(R.string.plaza_delete_confirm))
             .addAction(getString(R.string.cancel)) { d, _ -> d.dismiss() }
-            .addAction(getString(R.string.plaza_delete_confirm_yes)) { d, _ ->
+            .addAction(0, R.string.plaza_delete_confirm_yes, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 model.delete(post)
             }

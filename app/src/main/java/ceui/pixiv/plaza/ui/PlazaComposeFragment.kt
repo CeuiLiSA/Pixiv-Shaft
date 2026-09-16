@@ -17,6 +17,7 @@ import ceui.lisa.R
 import ceui.pixiv.chat.base.launchSuspend
 import ceui.pixiv.shaftapi.MediaHttpTransport
 import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import com.bumptech.glide.Glide
 
 class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_shell) {
@@ -427,7 +428,7 @@ class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_shell) {
                                 .addAction(ctx.getString(R.string.plaza_keep_editing)) { d, _ ->
                                     d.dismiss()
                                 }
-                                .addAction(ctx.getString(R.string.plaza_discard)) { d, _ ->
+                                .addAction(0, R.string.plaza_discard, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                                     d.dismiss()
                                     requireActivity().finish()
                                 }

@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -204,8 +205,25 @@ internal class PostView(
             flexWrap = com.google.android.flexbox.FlexWrap.WRAP
         }
     private val comments = LinearLayout(context).apply { orientation = VERTICAL }
+    private val commentPreviewFill = V3Palette.from(context).let {
+        ColorUtils.compositeColors(it.alpha08, it.cardFill)
+    }
+    private val commentPreviewText = readablePreviewColor(
+        ContextCompat.getColor(context, R.color.v3_text_2)
+    )
+    private val commentPreviewAccent = readablePreviewColor(V3Palette.from(context).textAccent)
     private val commentsTitle = context.label("", 15f)
     private val commentFooter = context.label("", 13f)
+
+    private fun readablePreviewColor(color: Int): Int {
+        val foreground = ColorUtils.compositeColors(color, commentPreviewFill)
+        val text = ContextCompat.getColor(context, R.color.v3_text_1)
+        for (step in 0..10) {
+            val candidate = ColorUtils.blendARGB(foreground, text, step / 10f)
+            if (ColorUtils.calculateContrast(candidate, commentPreviewFill) >= 4.5) return candidate
+        }
+        return text
+    }
 
     init {
         orientation = VERTICAL
@@ -251,7 +269,7 @@ internal class PostView(
         comments.background =
             GradientDrawable().apply {
                 cornerRadius = context.dp(6).toFloat()
-                setColor(ContextCompat.getColor(context, R.color.v3_bg))
+                setColor(commentPreviewFill)
             }
     }
 
@@ -508,7 +526,7 @@ internal class PostView(
             else
                 GradientDrawable().apply {
                     cornerRadius = context.dp(6).toFloat()
-                    setColor(ContextCompat.getColor(context, R.color.v3_bg))
+                    setColor(commentPreviewFill)
                 }
         val previewPadding = context.dp(if (comment) 0 else 12)
         comments.setPadding(previewPadding, previewPadding, previewPadding, previewPadding)
@@ -564,7 +582,7 @@ internal class PostView(
                 context.label("$prefix ${preview.text}", 15f).apply {
                     maxLines = 1
                     ellipsize = android.text.TextUtils.TruncateAt.END
-                    setTextColor(ContextCompat.getColor(context, R.color.v3_text_2))
+                    setTextColor(commentPreviewText)
                     text =
                         android.text.SpannableString(text).apply {
                             setSpan(
@@ -597,7 +615,7 @@ internal class PostView(
                         13f,
                     )
                     .apply {
-                        setTextColor(V3Palette.from(context).textAccent)
+                        setTextColor(if (comment) V3Palette.from(context).textAccent else commentPreviewAccent)
                         gravity = Gravity.CENTER_VERTICAL
                         setOnClickListener { context.openPost(post.id) }
                     },
@@ -815,7 +833,19 @@ internal fun Context.showPostMenu(post: PlazaPost, onDelete: (PlazaPost) -> Unit
     val mine = post.uid == SessionManager.loggedInUid
     val options =
         if (mine)
-            arrayOf(getString(R.string.plaza_share_text), getString(R.string.plaza_delete_post))
+            arrayOf(
+                getString(R.string.plaza_share_text),
+                android.text.SpannableString(getString(R.string.plaza_delete_post)).apply {
+                    setSpan(
+                        android.text.style.ForegroundColorSpan(
+                            ContextCompat.getColor(this@showPostMenu, R.color.v3_danger)
+                        ),
+                        0,
+                        length,
+                        android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                    )
+                },
+            )
         else arrayOf(getString(R.string.plaza_share_text), getString(R.string.plaza_view_author))
     ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder(this)
         .addItems(options) { dialog, index ->
