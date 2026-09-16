@@ -35,7 +35,8 @@ class PlazaNavigationTest {
             ActivityScenario.launch<TemplateActivity>(intent).use { scenario ->
                 instrumentation.waitForIdleSync()
                 scenario.onActivity { activity ->
-                    assertToolbar(activity)
+                    // The feed's single action is the compose FAB; only the detail has a menu.
+                    assertToolbar(activity, menuItems = if (route == TemplateRoute.PLAZA) 0 else 1)
                     assertFalse(activity.onBackPressedDispatcher.hasEnabledCallbacks())
                     val root = activity.findViewById<android.view.View>(R.id.fragment_container)
                     val bitmap = Bitmap.createBitmap(root.width, root.height, Bitmap.Config.ARGB_8888)
@@ -91,7 +92,7 @@ class PlazaNavigationTest {
         }
     }
 
-    private fun assertToolbar(activity: TemplateActivity) {
+    private fun assertToolbar(activity: TemplateActivity, menuItems: Int = 1) {
         val toolbar = activity.findViewById<Toolbar>(R.id.toolbar)
         assertNotNull(toolbar)
         val primary = TypedValue()
@@ -101,6 +102,6 @@ class PlazaNavigationTest {
             .getInsets(WindowInsetsCompat.Type.statusBars()).top
         assertEquals(statusBar, toolbar.paddingTop)
         assertEquals(0, toolbar.paddingBottom)
-        assertEquals(1, toolbar.menu.size())
+        assertEquals(menuItems, toolbar.menu.size())
     }
 }

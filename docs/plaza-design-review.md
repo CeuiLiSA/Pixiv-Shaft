@@ -110,3 +110,16 @@
 现在两处共用 `PlazaStateView`，逐项照抄 `feeds/fragment_feed.xml` 的 `feed_state_container`：120dp 插画（空态 `R.mipmap.empty_img`、错误态 feeds 的 `ic_feed_error`）以 `V3Palette.textAccent` 60% alpha 着色、14sp 次要色文案（内边距 16dp）、至多一个主色胶囊动作。列表空态 / 失败 / 不存在在内容区居中；详情页评论加载完成且为空时，`PostAdapter.emptyComments` 让父帖子把同一空态放在「评论 (0)」下方，最小高度 320dp，属于列表内容，随页面滚动，评论到来后自动收起。评论仍在加载、分页或失败时不显示空态，避免闪现。
 
 验证：GitHub Debug 编译通过，广场单测通过；Pixel 8 打开一条无评论帖子，滚到底部可见插画与「还没有评论,做第一个」占据合适区域。列表空态当前账号有帖子，未在真机触发。
+
+## 列表页迁到 feeds 框架（2026-09-16）
+
+第一步只迁帖子列表；详情页仍跑 `PlazaTimelineViewModel`（列表分支已从它的 Fragment 里拆掉，`PlazaTimelineFragment` 现在只服务详情）。目标是换底座不换表现：
+
+- `PlazaFragment : FeedFragment(R.layout.fragment_plaza_feed)`，布局 = `toolbar_layout` + `feed_root`，`plaza_content` / `plaza_column` 沿用 720dp 宽屏收窄和底部 Insets。
+- `PlazaFeedSource : FeedSource<Long>`：`loadFromCache` 读本账号本作用域的 Room 首屏快照并经 `restorePage` 校验（坏快照 / 读取途中账号变化 = 未命中）；`load` 在请求前后钉账号，响应期间修订号推进则重新拉取，成功帖子写入 ObjectPool，网络首屏（含空页）落盘、追加页不落盘。
+- `PlazaFeedController`（ViewModel）：`mine` 存 SavedState；`enter()` 复刻原 resume 策略（首次 NONE、修订号变化或超过 4 分钟 REFRESH、账号变化 SWITCH_SCOPE）；点赞 / 回应 / 删除单飞，`busyIds` 映射为条目的 `busy` 字段，变更期间的刷新请求推迟到变更结束再回放；错误走 `plazaError` 和一次性弹窗；`ensureFreshImages` 原样搬入。
+- 页面层保留：顶栏「全部 / 我的」分段、Extended FAB、通栏 hairline、`itemAnimator = null`、`PlazaSkeletonView`、V3 字体与主色胶囊的空态、`showPlazaError` 弹窗。刷新圈只在用户下拉时转（`onListCommitted` 里按 `userPulled` 收圈）；切换作用域或账号时清空列表、立即重刷并先显示该作用域的磁盘快照，切换期间用骨架占位；全屏错误文案用广场自己的状态码映射，分页失败同样弹一次窗。ObjectPool 观察者绑在 viewLifecycleOwner 上，随列表内容增减。
+- 由框架接管、与迁移前不同的行为：翻页按 `FeedPagingPolicy.Default` 节流（相邻页至少 1 秒，连翻 30 页后 footer 变「点击加载更多」）；分页进度 / 失败改为列表内的 `AppendFooter`；网络类全屏错误多一个「去网络测试」按钮；断网恢复自动重试；有内容时刷新失败仍是广场弹窗。
+- `PlazaNavigationTest` 原断言列表页顶栏有 1 个菜单项，那是「发布」菜单被 FAB 替代之前的口径，改为按路由区分。
+
+验证：GitHub Debug 编译、androidTest 编译通过；广场 69 项单测通过，其中新增 `PlazaFeedSourceTest` 12 项覆盖磁盘首屏先于网络、离线保留、只落网络首屏（含空页清旧快照）、坏快照回退、跨账号不泄漏、mine 作用域、修订号重拉、变更期间推迟刷新、失败点赞不改计数并只弹一次、删除墓碑、resume 策略。Pixel 8 真机对照：紫色主题下列表行、hairline、回应胶囊、评论预览、顶栏分段与 FAB 与迁移前截图一致；切到「我的」再切回「全部」两次都直接出内容、无刷新圈；从详情返回列表不重刷。未在真机触发列表空态、全屏错误与翻页预算耗尽，未发布、删除或回应帖子；仪器测试只做了编译，未在真机跑。

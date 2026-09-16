@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  广场帖子列表（feeds 框架版）：标准 toolbar_layout + feed_root。
+  plaza_content 承接 setupPlazaToolbar 分发的底部 Insets（与详情/发帖页的 fragment_plaza_shell
+  同名同责）；plaza_column 在宽屏上被代码收窄到 720dp 居中，列表、骨架、空态一起收窄，
+  FAB 由代码加进 plaza_content 右下角并按列宽对齐。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
+
+    <include layout="@layout/toolbar_layout" />
+
+    <FrameLayout
+        android:id="@+id/plaza_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <FrameLayout
+            android:id="@+id/plaza_column"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal">
+
+            <include
+                android:id="@+id/feed_root"
+                layout="@layout/fragment_feed"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+    </FrameLayout>
+</LinearLayout>
