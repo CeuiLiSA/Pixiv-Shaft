@@ -41,7 +41,7 @@ Android 复用 witstudio 与 V3Palette，尺寸用 dp/sp，关键操作热区至
 
 ### 广场的专项设计基准（2026-09-15）
 
-广场列表、帖子详情和创建帖子由用户指定以 [Five Degrees 的 Post 区域](https://www.figma.com/design/XIelCCTiUHLjsJ9BbLmFy3/Five-Degrees?node-id=10025-6103) 为布局基准。该范围的元素位置、尺寸、间距、Inter 字重与图标遵循 Figma；颜色映射到现有 `V3Palette` 和日夜资源。此专项约定不替换其他 V3 页面的 Montserrat 或设置页导航栏。
+广场列表、帖子详情和创建帖子的内容区以 [Five Degrees 的 Post 区域](https://www.figma.com/design/XIelCCTiUHLjsJ9BbLmFy3/Five-Degrees?node-id=10025-6103) 为布局基准。内容区的元素位置、尺寸、间距、Inter 字重与图标遵循 Figma；颜色映射到现有 `V3Palette` 和日夜资源。顶栏统一复用 Pixiv-Shaft 的 `toolbar_layout.xml`、`BaseFragment.applyToolbarInsets` 和标准菜单项，不照搬 Figma 导航栏，不自绘另一套返回/关闭按钮。此专项约定不替换其他 V3 页面的 Montserrat（2026-09-16 更新）。
 
 广场列表、帖子和评论的回应统一使用 28dp 高胶囊（默认字号），18sp 表情或同尺寸贴纸、15sp Inter 计数、4dp 内部间距和胶囊间距、8dp 水平内边距；选中态复用主题浅底，不另加贴纸专属描边或大容器。贴纸的 64px 资源档位只决定清晰度，不决定显示尺寸；字号放大时与普通表情共同增高。依据 `10131:8487` 与 `10063:6767` 内的 Reaction Stack（2026-09-16）。
 
@@ -285,6 +285,8 @@ Hero 插图可使用两张相互遮叠的票卡，参考旋转 -14° / +12°，�
 Web 参考值和 Android 当前基础色**不完全相同**，这里统一的是视觉关系。新规范不会自动重写全 App 颜色，也不要求把 Web 原型嵌入 WebView。新增全局角色应同时补日夜资源并检查既有使用处；页面局部表达从主题派生。
 
 普通内容页需要与设置页对齐的顶栏时，复用 `fragment_settings_hub.xml` 的 Toolbar：`wrap_content`、`fitsSystemWindows=true`、宿主 `colorPrimary`、居中 18sp 标题和同款返回图标，并调用 `BaseFragment.applyToolbarInsets(activity, root)`。Material3 完整主题仅放在顶栏下方的内容容器，避免覆盖用户主色；不要用固定 Toolbar 高度再叠加状态栏 padding。真机对照设置页核验标题位置、顶栏高度和主题色。
+
+独立内容页优先直接 include `toolbar_layout.xml`；顶栏消费 Insets 时，API 29 及以下通过现有 `ViewGroupCompat.installCompatInsetsDispatch` 保证内容区继续收到 Insets。页面跳转沿用统一宿主和系统预测性返回；只在草稿未保存、正在提交或面板需要收起时启用返回拦截，并随状态变化立即更新 enabled，禁止常开回调再在回调内部判断是否退出。`TemplateActivity` 显式开启 `enableOnBackInvokedCallback`，兼容 Android 13–15 的选择性启用机制。
 
 至少验证预设主色中的紫/粉/青绿/亮黄和一个自定义 HEX。背景跟随主题不代表文字已经可读；尤其亮黄不能仅用固定 HSL 亮度猜测。字号用 sp，布局用 dp，支持字体缩放与 TalkBack。
 

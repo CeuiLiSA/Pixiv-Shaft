@@ -67,6 +67,34 @@ class PlazaStateTest {
         )
 
     @Test
+    fun `back interception follows draft contents including unsendable drafts`() {
+        val vm = PlazaComposeViewModel(SavedStateHandle(), FakeApi(), { 42L }, { "Alice" })
+        assertFalse(vm.shouldInterceptBack())
+        vm.title = "title"
+        assertTrue(vm.shouldInterceptBack())
+        vm.title = ""
+        vm.text = "x".repeat(2001)
+        assertFalse(vm.canSend())
+        assertTrue(vm.shouldInterceptBack())
+        vm.text = " \n "
+        assertFalse(vm.shouldInterceptBack())
+        val uri = Uri.parse("content://draft/image")
+        vm.attach(listOf(uri))
+        assertTrue(vm.shouldInterceptBack())
+        vm.remove(uri.toString())
+        assertFalse(vm.shouldInterceptBack())
+        vm.reference(123L, "illust")
+        assertTrue(vm.shouldInterceptBack())
+        vm.reference(null, null)
+        assertFalse(vm.shouldInterceptBack())
+
+        val restored = PlazaComposeViewModel(
+            SavedStateHandle(mapOf("title" to "restored draft")), FakeApi(), { 42L }, { "Alice" },
+        )
+        assertTrue(restored.shouldInterceptBack())
+    }
+
+    @Test
     fun `composer limits images restores draft and validates all object kinds`() =
         runTest(dispatcher) {
             val saved = SavedStateHandle()

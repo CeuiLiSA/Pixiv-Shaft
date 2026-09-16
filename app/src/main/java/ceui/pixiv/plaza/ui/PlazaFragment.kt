@@ -2,6 +2,7 @@ package ceui.pixiv.plaza.ui
 
 import android.os.Bundle
 import android.view.Gravity
+import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.core.widget.doAfterTextChanged
@@ -45,15 +46,29 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val ctx = requireContext()
-        val header =
-            setupPlazaHeader(
+        val toolbar =
+            setupPlazaToolbar(
                 view,
                 if (postId > 0) ctx.getString(R.string.plaza_post_detail_title)
                 else ctx.getString(R.string.plaza_title),
                 bottomPanel = postId > 0,
             )
-        header.action.text = ctx.getString(R.string.plaza_send_post)
-        header.trailing.setOnClickListener { ctx.openComposer() }
+        if (postId > 0) {
+            toolbar.menu.add(R.string.plaza_more_menu)
+                .setIcon(R.drawable.ic_more_vert_black_24dp)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+            toolbar.setOnMenuItemClickListener {
+                model.state.value.parent?.let { ctx.showPostMenu(it, ::confirmDelete) }
+                true
+            }
+        } else {
+            toolbar.menu.add(R.string.plaza_send_post)
+                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+            toolbar.setOnMenuItemClickListener {
+                ctx.openComposer()
+                true
+            }
+        }
         val frame = view.findViewById<FrameLayout>(R.id.plaza_content)
         val column = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
         frame.addView(column, FrameLayout.LayoutParams(-1, -1, Gravity.CENTER_HORIZONTAL))
@@ -104,21 +119,6 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
             replyBar = bar
             column.addView(bar, LinearLayout.LayoutParams(-1, -2))
             setupReplyComposer(bar, column, list)
-            header.trailing.removeAllViews()
-            header.trailing.addView(
-                ctx.figmaIcon(
-                        R.drawable.ic_plaza_figma_more,
-                        ctx.getString(R.string.plaza_more_menu),
-                        true,
-                    )
-                    .apply {
-                        isClickable = false
-                        isFocusable = false
-                    }
-            )
-            header.trailing.setOnClickListener {
-                model.state.value.parent?.let { ctx.showPostMenu(it, ::confirmDelete) }
-            }
         }
         launchSuspend {
             model.state.collect { state ->

@@ -165,6 +165,11 @@ constructor(
                 mutable.value.images.isNotEmpty() ||
                 mutable.value.objectId != null)
 
+    /** Leave empty composers to the system's predictive back; protect drafts even when invalid. */
+    fun shouldInterceptBack(): Boolean =
+        mutable.value.sending || title.isNotBlank() || text.isNotBlank() ||
+            mutable.value.images.isNotEmpty() || mutable.value.objectId != null
+
     fun send(resolver: ContentResolver) {
         if (!canSend()) return
         mutable.value = mutable.value.copy(sending = true, error = null)

@@ -113,7 +113,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
     protected void initView() {
         // 返回键/返回手势:这里故意不挂任何 OnBackPressedCallback。
         //
-        // 预测式返回(targetSdk 35+ 默认开启)的跨 Activity / 回桌面动画只在「app 没向系统
+        // 预测式返回已在 manifest 为本 Activity 显式开启，不依赖 Android 16 的默认行为。
+        // 跨 Activity / 回桌面动画只在「app 没向系统
         // 注册任何返回回调」时才会播:只要 OnBackPressedDispatcher 里有一个 enabled 的
         // callback,AndroidX 就会向 WindowOnBackInvokedDispatcher 注册 OnBackInvokedCallback,
         // 系统随即放弃自己的动画,手势落下后只是干巴巴地回调 → 以前这里那个常开的兜底

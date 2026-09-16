@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.InputType
 import android.view.Gravity
+import android.view.MenuItem
 import android.view.View
 import android.widget.*
 import androidx.activity.OnBackPressedCallback
@@ -34,6 +35,34 @@ class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_shell) {
             model.attach(uris)
         }
 
+    private val backCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            val ctx = requireContext()
+            if (model.state.value.sending)
+                WitDialog.MessageDialogBuilder(ctx)
+                    .setMessage(ctx.getString(R.string.plaza_publishing_wait))
+                    .addAction(ctx.getString(R.string.plaza_understood)) { d, _ ->
+                        d.dismiss()
+                    }
+                    .show()
+            else if (model.shouldInterceptBack())
+                WitDialog.MessageDialogBuilder(ctx)
+                    .setMessage(ctx.getString(R.string.plaza_discard_confirm))
+                    .addAction(ctx.getString(R.string.plaza_keep_editing)) { d, _ ->
+                        d.dismiss()
+                    }
+                    .addAction(0, R.string.plaza_discard, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
+                        d.dismiss()
+                        requireActivity().finish()
+                    }
+                    .show()
+            else {
+                isEnabled = false
+                requireActivity().onBackPressedDispatcher.onBackPressed()
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val ctx = requireContext()
         model.avatarUrl = ceui.pixiv.session.SessionManager.loggedInUser?.profile_image_urls?.medium
@@ -48,14 +77,17 @@ class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_shell) {
                     } ?: "illust",
                 )
         }
-        val header =
-            setupPlazaHeader(
+        backCallback.isEnabled = model.shouldInterceptBack()
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backCallback)
+        val toolbar =
+            setupPlazaToolbar(
                 view,
                 if (model.replyTo != null) ctx.getString(R.string.plaza_reply)
                 else ctx.getString(R.string.plaza_compose_title),
-                true,
             )
-        header.action.text = ctx.getString(R.string.plaza_send_post)
+        val sendAction = toolbar.menu.add(R.string.plaza_send_post).apply {
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
         val frame = view.findViewById<FrameLayout>(R.id.plaza_content)
         val scroll =
             androidx.core.widget.NestedScrollView(ctx).apply {
@@ -201,10 +233,13 @@ class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_shell) {
                 accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
             }
         column.addView(error)
-        header.trailing.setOnClickListener { model.send(ctx.applicationContext.contentResolver) }
+        toolbar.setOnMenuItemClickListener {
+            model.send(ctx.applicationContext.contentResolver)
+            true
+        }
         fun updateSend() {
-            header.trailing.isEnabled = model.canSend()
-            header.action.alpha = if (header.trailing.isEnabled) 1f else .4f
+            sendAction.isEnabled = model.canSend()
+            backCallback.isEnabled = model.shouldInterceptBack()
             photosLabel.text =
                 ctx.getString(R.string.plaza_photos_count, model.state.value.images.size, 9)
             error.text =
@@ -259,7 +294,7 @@ class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_shell) {
                             it,
                         )
                     }
-                header.action.text =
+                sendAction.title =
                     if (state.sending) ctx.getString(R.string.plaza_publishing)
                     else ctx.getString(R.string.plaza_send_post)
                 val keys = state.images.map { it.uri }
@@ -404,39 +439,6 @@ class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_shell) {
                     ?.isEnabled = !state.sending
             }
         }
-        requireActivity()
-            .onBackPressedDispatcher
-            .addCallback(
-                viewLifecycleOwner,
-                object : OnBackPressedCallback(true) {
-                    override fun handleOnBackPressed() {
-                        if (model.state.value.sending)
-                            WitDialog.MessageDialogBuilder(ctx)
-                                .setMessage(ctx.getString(R.string.plaza_publishing_wait))
-                                .addAction(ctx.getString(R.string.plaza_understood)) { d, _ ->
-                                    d.dismiss()
-                                }
-                                .show()
-                        else if (
-                            model.title.isNotBlank() ||
-                                model.text.isNotBlank() ||
-                                model.state.value.images.isNotEmpty() ||
-                                model.state.value.objectId != null
-                        )
-                            WitDialog.MessageDialogBuilder(ctx)
-                                .setMessage(ctx.getString(R.string.plaza_discard_confirm))
-                                .addAction(ctx.getString(R.string.plaza_keep_editing)) { d, _ ->
-                                    d.dismiss()
-                                }
-                                .addAction(0, R.string.plaza_discard, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
-                                    d.dismiss()
-                                    requireActivity().finish()
-                                }
-                                .show()
-                        else requireActivity().finish()
-                    }
-                },
-            )
         MediaHttpTransport.prewarm()
     }
 
