@@ -39,12 +39,19 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 object TimberFileLog {
 
-    /** 所有日志文件操作的串行执行器（daemon，不阻止进程退出）。 */
-    private val ioExecutor = Executors.newSingleThreadExecutor { r ->
-        Thread(r, "timber-file-log").apply { isDaemon = true }
+    /**
+     * 所有日志文件操作的串行执行器（daemon，不阻止进程退出）。
+     *
+     * **惰性创建**：开关关着的用户也会碰到本对象（进「设置 · 试验性」那一页就会读
+     * [currentFolderPath]），不该为此白建一条线程挂在进程里。真正开始写日志时才建。
+     */
+    private val ioExecutor by lazy {
+        Executors.newSingleThreadExecutor { r ->
+            Thread(r, "timber-file-log").apply { isDaemon = true }
+        }
     }
 
-    private val mainHandler = Handler(Looper.getMainLooper())
+    private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
     private const val TAG = "TimberFileLog"
 

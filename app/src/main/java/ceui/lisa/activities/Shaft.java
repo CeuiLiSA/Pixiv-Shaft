@@ -187,11 +187,19 @@ public class Shaft extends Application implements ServicesProvider {
     /**
      * Initialize the whole application.
      * */
-    @Override
-    public void onCreate() {
-        super.onCreate();
-
-        // 包一层默认崩溃处理器：把致命崩溃栈同步写入文件日志（若有），再交回系统。
+    /**
+     * 给「试验性 · 日志文件」包一层默认崩溃处理器：先把致命崩溃栈**同步**写进日志文件，
+     * 再原样交回原来的 handler，崩溃行为本身一点不变（Crashlytics 也在这条链上：它由
+     * FirebaseInitProvider 在 Application.onCreate 之前装好，所以这里捕获到的就是它）。
+     *
+     * **只在开关打开时才装**：关着的时候这一层对用户是纯负担 —— 多一层 lambda 不说，
+     * 更要紧的是 TimberFileLog 这个 object 会**等到崩溃那一刻**才第一次类初始化（建线程池 +
+     * 主线程 Handler），而崩溃现场（尤其 OOM）正是最不该再去申请资源的时候。
+     *
+     * 装得晚也不损失任何能力：日志文件是 maybeStart() 之后才异步打开的，在那之前
+     * logCrashNow 本来就是空操作。
+     */
+    private static void installCrashLogHandler() {
         final Thread.UncaughtExceptionHandler originalCrashHandler =
                 Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
@@ -203,6 +211,11 @@ public class Shaft extends Application implements ServicesProvider {
                 originalCrashHandler.uncaughtException(thread, throwable);
             }
         });
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
 
         // Keep the main Looper alive across the GMS "Unknown calling package name"
         // SecurityException. GMS delivers it on the main thread's Handler, which
@@ -343,6 +356,7 @@ public class Shaft extends Application implements ServicesProvider {
 
         if (sSettings.isLogFileEnabled()) {
             TimberFileLog.INSTANCE.maybeStart();
+            installCrashLogHandler();
         }
 
         // issue #865: 图片加速代理。在 mOkHttpClient 构建前把持久化的模式/自定义 host
