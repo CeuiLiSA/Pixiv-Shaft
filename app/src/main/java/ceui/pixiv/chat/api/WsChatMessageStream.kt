@@ -167,6 +167,7 @@ internal fun ChatFrame.Msg.toChatMessageEntity(): ChatMessageEntity? {
         displayName = displayName,
         text = text,
         illustId = illustId,
+        stickerId = stickerId,
         ts = ts,
         state = SendState.Delivered,
         replyToUid = replyTo?.uid,

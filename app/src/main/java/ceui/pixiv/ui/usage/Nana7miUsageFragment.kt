@@ -728,6 +728,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         baseBind.plansSectionTitle.visibility = View.GONE
         baseBind.planRows.visibility = View.GONE
         baseBind.claimEntry.visibility = View.GONE
+        baseBind.usageMotto.visibility = View.GONE
 
         val host = baseBind.usageRows
         host.removeAllViews()
@@ -818,6 +819,7 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
         baseBind.plansSectionTitle.visibility = View.VISIBLE
         baseBind.planRows.visibility = View.VISIBLE
         baseBind.claimEntry.visibility = View.VISIBLE
+        baseBind.usageMotto.visibility = View.VISIBLE
 
         val host = baseBind.usageRows
         host.removeAllViews()

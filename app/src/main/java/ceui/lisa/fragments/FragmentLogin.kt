@@ -339,6 +339,14 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             addCategory(Intent.CATEGORY_BROWSABLE)
         }
         return pm.queryIntentActivities(browserProbe, PackageManager.MATCH_ALL)
+            // 能匹配网址不代表允许本应用启动：过滤未导出及缺少所需权限的组件。
+            .filter { resolveInfo ->
+                val activity = resolveInfo.activityInfo
+                val permission = activity.permission
+                activity.exported && (permission.isNullOrEmpty() ||
+                        pm.checkPermission(permission, BuildConfig.APPLICATION_ID) ==
+                        PackageManager.PERMISSION_GRANTED)
+            }
             // 同样按 scheme 通配注册的劫持类 App（电商 / 下载器）筛不出来，黑名单兜底。
             .filterNot { it.activityInfo.name in HIJACKER_ACTIVITY_NAMES }
             .map { resolveInfo ->
@@ -375,6 +383,9 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
                     startActivity(launchIntent)
                 } catch (_: ActivityNotFoundException) {
                     // 弹窗挂着的这段时间里目标浏览器可能刚好被卸载
+                    Common.showToast(getString(R.string.msg_no_browser))
+                } catch (_: SecurityException) {
+                    // 查询后权限可能变化，ROM 也可能在启动时施加额外限制。
                     Common.showToast(getString(R.string.msg_no_browser))
                 }
             }
@@ -697,6 +708,8 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             CustomTabsIntent.Builder().build().launchUrl(requireContext(), Uri.parse(url))
         } catch (_: ActivityNotFoundException) {
             Common.showToast("未找到浏览器")
+        } catch (_: SecurityException) {
+            Common.showToast(getString(R.string.msg_no_browser))
         }
     }
 

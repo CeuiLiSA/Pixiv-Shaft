@@ -241,6 +241,7 @@ class MeFragment : Fragment(R.layout.fragment_me) {
                 Entry(R.string.string_ai_upscale_standalone, R.id.nav_ai_upscale),
                 Entry(R.string.search_image_origin, R.id.nav_reverse),
                 Entry(R.string.latest_work, R.id.nav_new_work),
+                Entry(R.string.referral_entry, R.id.nav_referral_plan),
                 Entry(R.string.about_app, R.id.nav_share),
             ),
         )

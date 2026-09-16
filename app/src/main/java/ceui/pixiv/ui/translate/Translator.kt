@@ -5,10 +5,10 @@ import kotlinx.coroutines.ensureActive
 import timber.log.Timber
 import kotlin.coroutines.coroutineContext
 
-/** AI 翻译阶段(流式时可见):THINKING=模型思考中,GENERATING=正式生成译文。 */
-enum class AiTranslatePhase {
-    THINKING,
-    GENERATING,
+/** 流式进度与译文分开；reasoningContent 也可能只是上游发出的状态提示。 */
+sealed interface AiTranslatePhase {
+    data class Thinking(val reasoningContent: String = "") : AiTranslatePhase
+    data object Generating : AiTranslatePhase
 }
 
 interface Translator {
@@ -40,7 +40,7 @@ interface Translator {
             coroutineContext.ensureActive()
             onRequestSent?.invoke()
             val zh = try {
-                translate(text, outputLang)
+                translate(text, outputLang, onPhase)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

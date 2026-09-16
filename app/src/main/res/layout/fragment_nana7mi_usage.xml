@@ -125,7 +125,7 @@
                             android:id="@+id/translate_section_title"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="22dp"
+                            android:layout_marginTop="16dp"
                             android:paddingBottom="10dp"
                             android:paddingStart="4dp"
                             android:text="@string/cloud_translate_usage_section"
@@ -141,6 +141,22 @@
                             android:orientation="vertical"
                             android:visibility="gone"
                             tools:visibility="visible" />
+
+                        <TextView
+                            android:id="@+id/usage_motto"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="22dp"
+                            android:background="@drawable/bg_v3_surface"
+                            android:gravity="center"
+                            android:paddingStart="20dp"
+                            android:paddingTop="10dp"
+                            android:paddingEnd="20dp"
+                            android:paddingBottom="10dp"
+                            android:text="@string/nana7mi_usage_motto"
+                            android:textColor="@color/v3_text_2"
+                            android:textSize="13sp"
+                            android:fontFamily="@font/montserrat_semi_bold" />
 
                         <!--
                             订阅方案。放在额度读数和 UID **之下**：先让用户看见自己用到哪了、

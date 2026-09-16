@@ -1537,6 +1537,8 @@
     <string name="novel_chip_series_content_count">챕터 수  %1$s</string>
     <string name="novel_chip_series_char_count">총 글자 수  %1$s</string>
     <string name="setting_default_novel_format">기본 소설 다운로드 형식</string>
+    <string name="setting_novel_epub_on_images">소설에 일러스트가 있으면 EPUB로 저장</string>
+    <string name="setting_novel_epub_on_images_desc">기본 형식이 TXT인 경우 본문에 일러스트가 있으면 자동으로 EPUB로 내보냅니다</string>
     <string name="setting_default_image_resolution">기본 이미지 저장 해상도</string>
     <string name="option_always_ask">항상 묻기</string>
     <string name="msg_unknown_format">알 수 없는 형식: %s</string>
@@ -1589,6 +1591,7 @@
     <!-- 作品详情页里直接滑图时的常驻页码浮标(#1058)。纯数字，各语言一致。 -->
     <string name="artwork_page_indicator">%1$d / %2$d</string>
     <string name="comic_reader_jump_to_page">%1$d 페이지로 이동</string>
+    <string name="comic_reader_auto_rotate_image">가로 이미지 자동 회전</string>
     <string name="comic_reader_open_label">읽기 시작</string>
     <string name="comic_reader_load_failed">불러오기 실패: %1$s</string>
     <string name="comic_reader_no_pages">표시할 페이지가 없습니다</string>
@@ -2852,6 +2855,8 @@
     <!-- 자동 스냅샷 (실험 기능) -->
     <string name="setting_auto_snapshot_on_bookmark">북마크 시 오프라인 스냅샷 생성</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">작품을 북마크한 후 백그라운드에서 가벼운 오프라인 스냅샷을 자동 생성합니다 (실험 기능)</string>
+    <string name="setting_auto_snapshot_on_illust_manga">일러스트/만화 스냅샷 자동 생성</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">반복해서 보거나 오래 머문 일러스트/만화의 스냅샷을 조용히 생성합니다 (실험 기능)</string>
 
     <!-- 로그 파일 (실험) -->
     <string name="setting_log_file_enable">로그 파일 사용</string>
@@ -2896,6 +2901,8 @@
     <string name="bookmark_mirror_ready_title">북마크 보관함이 준비됐어요</string>
     <string name="bookmark_mirror_ready_message">%1$s개를 로컬에 저장했습니다. 오래된 순 정렬, 태그/작가/연도 필터, 검색을 쓸 수 있어요.</string>
     <string name="bookmark_mirror_ready_action">열어보기</string>
+    <string name="debug_mirror_banner_title">「북마크 보관함이 준비됐어요」배너 띄우기</string>
+    <string name="debug_mirror_banner_desc">일회성 플래그를 지우고 안내를 다시 표시합니다. 공개/비공개 보관함 선택</string>
     <string name="bookmark_library_title">북마크한 일러스트</string>
     <string name="bookmark_library_search_hint">제목 / 작가 / 태그 / ID 검색</string>
     <string name="bookmark_library_empty">로컬에 표시할 북마크가 없습니다</string>
@@ -2971,8 +2978,8 @@
 
     <!-- PixShaft 클라우드 번역 -->
     <string name="cloud_translate_title">PixShaft 클라우드 번역</string>
-    <string name="cloud_translate_desc">댓글·제목·태그·만화 번역을 PixShaft 서버의 AI 번역으로 처리합니다. 프록시 불필요, 사용량 한도 있음. 끄면 내장 Google 번역을 사용합니다. 사용자 지정 AI 번역이 켜져 있으면 그쪽이 우선합니다.</string>
-    <string name="cloud_translate_usage_section">AI 번역 한도</string>
+    <string name="cloud_translate_desc">댓글·제목·태그·만화 번역을 PixShaft 서버의 클라우드 번역으로 처리합니다. 프록시 불필요, 사용량 한도 있음. 끄면 내장 Google 번역을 사용합니다. 사용자 지정 AI 번역이 켜져 있으면 그쪽이 우선합니다.</string>
+    <string name="cloud_translate_usage_section">클라우드 번역 한도</string>
     <string name="cloud_translate_failed_title">클라우드 번역 실패</string>
     <string name="cloud_translate_quota_title">클라우드 번역 한도 도달</string>
     <string name="cloud_translate_quota_session">5시간 번역 한도를 모두 사용했습니다. %1$s 후 복구됩니다</string>
@@ -2980,5 +2987,18 @@
     <string name="cloud_translate_quota_unknown">번역 한도를 모두 사용했습니다. 잠시 후 다시 시도해 주세요</string>
     <string name="cloud_translate_usage_lt1">&lt;1%</string>
     <string name="cloud_translate_engine_line">현재 엔진: %1$s</string>
-    <string name="cloud_translate_usage_section_engine">AI 번역 한도 · %1$s</string>
+    <string name="cloud_translate_usage_section_engine">클라우드 번역 한도 · %1$s</string>
+    <string name="artwork_poster_save">작품 포스터 저장</string>
+    <string name="artwork_poster_generating">고해상도 작품 포스터 만드는 중…</string>
+    <string name="artwork_poster_saved">작품 포스터를 갤러리에 저장했습니다</string>
+    <string name="artwork_poster_failed">포스터를 만들지 못했습니다: %1$s</string>
+    <string name="artwork_poster_image_unavailable">작품 이미지를 사용할 수 없습니다</string>
+    <string name="artwork_poster_destination_unavailable">갤러리 파일을 만들 수 없습니다</string>
+    <string name="artwork_poster_encode_failed">포스터를 인코딩할 수 없습니다</string>
+    <string name="artwork_poster_unknown_author">알 수 없는 작가</string>
+    <string name="artwork_poster_untitled">제목 없음</string>
+    <string name="recommend_page_content">추천 페이지 표시 내용</string>
+    <string name="recommend_page_works_first">추천 작품 - 인기 태그</string>
+    <string name="recommend_page_tags_first">인기 태그 - 추천 작품</string>
+    <string name="recommend_page_content_desc">일러스트 및 소설 추천 페이지의 탭 순서를 변경합니다. 앱을 다시 시작하면 적용됩니다.</string>
 </resources>

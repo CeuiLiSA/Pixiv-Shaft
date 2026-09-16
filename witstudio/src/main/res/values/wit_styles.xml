@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="ThemeOverlay.Wit.BottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.Wit.BottomSheet</item>
+        <item name="enableEdgeToEdge">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- Compatible with AppCompat hosts that do not define Material3 motion attributes. -->
+    <style name="Widget.Wit.BottomSheet" parent="Widget.Design.BottomSheet.Modal" />
 
     <!--
       WitPopup 的窗口动画。三个 pivot 对应 QMUI 的 ANIM_GROW_FROM_CENTER / LEFT / RIGHT，

@@ -237,6 +237,8 @@ Shaft 本体永远免费、开源、无广告，全部功能不上锁 —— 包
 
 欢迎提 issue 和 pull request！
 
+设计或实现 V3 页面前，先读 [V3 设计哲学](../docs/v3-design-philosophy.md)，再看 [组件图鉴](../mockup/v3-design-system/index.html) 和 [页面模板](../mockup/v3-design-system/starter.html)。
+
 ### 🏆 主要贡献者
 
 <table>

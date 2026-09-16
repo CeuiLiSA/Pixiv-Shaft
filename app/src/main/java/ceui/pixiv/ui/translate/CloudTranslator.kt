@@ -7,7 +7,7 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.shaftapi.PixshaftApi
 import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.shaftapi.TranslateResult
-import ceui.pixiv.shaftapi.translateTexts
+import ceui.pixiv.shaftapi.translateTextsStreaming
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -22,8 +22,8 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.coroutineContext
 
 /**
- * PixShaft 云翻译：文本发给 pixshaft-api，由服务端转给它自己配的 OpenAI 兼容上游
- * （服务端 `src/translate.js`）。客户端只发 `texts + lang`，模型/提示词/思考参数都在服务端，
+ * PixShaft 云翻译：文本发给 pixshaft-api，由服务端选择腾讯 Transmart 或 GPT 上游
+ * （服务端 `src/translate.js`）。客户端只发 `texts + lang`，引擎与失败回退都在服务端，
  * 额度按源文本字符数扣两只桶（5 小时 + 每周），套餐倍率和热度排序共用。
  *
  * 和 [AiTranslator] 同一套分片/并发/回调纪律：按 [MAX_BATCH_CHARS] 切段、最多
@@ -101,11 +101,49 @@ object CloudTranslator : Translator {
         onRequestSent: (() -> Unit)? = null,
         onServerDisabled: (() -> Unit)? = null,
         fallback: Translator? = null,
+    ): List<String> {
+        if (inputs.isEmpty()) return emptyList()
+        // Blank bubbles need no network request. Identical labels are translated
+        // once per batch, then restored to every original position for the UI.
+        val positions = linkedMapOf<String, MutableList<Int>>()
+        inputs.forEachIndexed { index, text ->
+            if (text.isNotBlank()) positions.getOrPut(text) { mutableListOf() }.add(index)
+        }
+        if (positions.isEmpty()) {
+            onProgress?.invoke(inputs.size, inputs.size)
+            return inputs
+        }
+        val groups = positions.values.toList()
+        val blanks = inputs.size - groups.sumOf { it.size }
+        val completedCounts = groups.runningFold(blanks) { count, group -> count + group.size }
+        val translated = translateUniqueBatchWith(
+            api, uid, positions.keys.toList(), outputLang,
+            onItem = { index, text -> groups[index].forEach { onItem?.invoke(it, text) } },
+            onProgress = { done, _ -> onProgress?.invoke(completedCounts[done], inputs.size) },
+            onPhase, onRequestSent, onServerDisabled, fallback,
+        )
+        val results = inputs.map { if (it.isBlank()) it else "" }.toMutableList()
+        groups.forEachIndexed { index, group -> group.forEach { results[it] = translated[index] } }
+        return results
+    }
+
+    private suspend fun translateUniqueBatchWith(
+        api: PixshaftApi,
+        uid: Long,
+        inputs: List<String>,
+        outputLang: String,
+        onItem: ((Int, String) -> Unit)? = null,
+        onProgress: ((Int, Int) -> Unit)? = null,
+        onPhase: ((AiTranslatePhase) -> Unit)? = null,
+        onRequestSent: (() -> Unit)? = null,
+        onServerDisabled: (() -> Unit)? = null,
+        fallback: Translator? = null,
     ): List<String> = withContext(Dispatchers.IO) {
         if (inputs.isEmpty()) return@withContext emptyList()
         val lang = serverLangOf(outputLang)
         val results = MutableList(inputs.size) { "" }
         val ranges = chunkRanges(inputs, MAX_BATCH_CHARS, MAX_BATCH_ITEMS)
+        val phases = AiTranslator.PhaseAggregator(onPhase)
         val lastError = AtomicReference<Exception?>(null)
         // 额度用完 / 功能关闭 / 限流：同一个 uid 的其它分片必然同样失败，别再放出去烧限流额度。
         val stopAll = AtomicReference<Exception?>(null)
@@ -118,7 +156,6 @@ object CloudTranslator : Translator {
                         stopAll.get()?.let { return@withPermit null }
                         // 请求即将发出：业务侧从此刻起要拦退出（服务端已经在替我们烧上游 token）。
                         onRequestSent?.invoke()
-                        onPhase?.invoke(AiTranslatePhase.GENERATING)
                         val chars = slice.sumOf { it.length }
                         Timber.tag(TAG).i(
                             "→ POST /v1/account/translate uid=%d items=%d chars=%d lang=%s chunk=[%d,%d)",
@@ -126,10 +163,14 @@ object CloudTranslator : Translator {
                         )
                         // System.nanoTime 而不是 SystemClock：这段要在 JVM 单测里跑，android.os 没桩。
                         val started = System.nanoTime()
-                        val result = api.translateTexts(uid, slice, lang)
+                        val result = api.translateTextsStreaming(uid, slice, lang,
+                            onThinking = { phases.report(AiTranslatePhase.Thinking(it)) },
+                            onGenerating = { phases.report(AiTranslatePhase.Generating) },
+                        )
                         val ms = (System.nanoTime() - started) / 1_000_000
                         when (result) {
                             is TranslateResult.Success -> {
+                                Timber.tag(TAG).i("translation engine: %s", result.engine?.display ?: "unspecified")
                                 val session = result.quotas.firstOrNull { it.key == "session" }
                                 Timber.tag(TAG).i(
                                     "← 200 in %dms items=%d plan=%s session=%s/%s weekly=%s/%s",

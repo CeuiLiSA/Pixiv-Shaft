@@ -1,0 +1,67 @@
+@import url('./common.css');
+
+.app { display: flex; height: 100dvh; overflow: hidden; }
+.rail { flex-shrink: 0; }
+.workspace { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.content { display: flex; flex: 1; min-height: 0; gap: 0; }
+.feed { flex: 1; min-width: 0; padding: 32px; overflow: auto; container-type: inline-size; scrollbar-gutter: stable; }
+.page-heading { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 24px; }
+.page-heading h1 { margin-top: 8px; font-size: 32px; font-weight: 700; }
+.page-heading p { margin-top: 8px; font-size: 14px; color: var(--muted); }
+.density { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; border: 1px solid var(--line); border-radius: var(--radius-pill); padding: 0 12px; color: var(--muted); flex-shrink: 0; }
+.density select { min-height: 48px; border: 0; background: transparent; max-width: 100px; }
+.filterbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.tabs { display: flex; background: var(--surface-2); padding: 5px; border-radius: var(--radius-pill); flex-wrap: wrap; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 16px 24px; }
+.quiet { align-self: center; margin-inline-start: auto; font-size: 12px; color: var(--muted); }
+.gallery { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,var(--card)),1fr)); gap: 24px 16px; align-items: start; }
+.card { min-width: 0; border-radius: var(--radius-card); padding: 4px; border: 1px solid transparent; }
+.card.selected { border-color: var(--primary); background: var(--tint); }
+.art-open { width: 100%; display: block; border-radius: var(--radius-card); padding: 0; overflow: hidden; background: var(--surface-2); }
+.art-open img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; }
+.card-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 4px 0; }
+.meta-text { min-width: 0; }
+.card-title { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; line-height: 1.5; }
+.card-id { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.like { flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; color: var(--muted); }
+.like.saved { background: var(--tint); color: var(--on-tint); }
+.like.saved svg { fill: currentColor; }
+.detail { width: clamp(400px,34vw,480px); flex-shrink: 0; overflow: auto; background: var(--surface); border-inline-start: 1px solid var(--line); }
+.detail-head { position: sticky; top: 0; z-index: 2; padding: 8px 16px; display: flex; align-items: center; gap: 4px; background: var(--surface); border-bottom: 1px solid var(--line); }
+.detail-head > span { flex: 1; font-size: 14px; font-weight: 600; }
+.detail-art { padding: 20px; background: var(--surface-2); }
+.detail-art button { padding: 0; width: 100%; display: block; }
+.detail-art img { display: block; width: 100%; max-height: 45dvh; object-fit: contain; border-radius: var(--radius-card); }
+.detail-body { padding: 24px; }
+.detail-label { font-size: 11px; letter-spacing: 1.5px; font-weight: 600; color: var(--primary); }
+.detail-body h2 { font-size: 24px; font-weight: 700; margin-block: 10px 8px; overflow-wrap: anywhere; }
+.detail-id { font-size: 12px; color: var(--muted); }
+.author { margin-top: 20px; padding-block: 16px; border-block: 1px solid var(--line); font-size: 14px; }
+.author small { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+.detail-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+.detail-tags span { padding: 6px 12px; border-radius: var(--radius-pill); background: var(--tint); color: var(--on-tint); font-size: 12px; }
+.description { font-size: 14px; color: var(--muted); margin-block: 20px; }
+.detail-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.detail-actions > button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: var(--radius-pill); padding: 12px; }
+.detail-actions > button:not(.primary) { background: var(--tint); color: var(--on-tint); }
+.source-link { display: inline-flex; align-items: center; min-height: 48px; font-size: 12px; margin-top: 12px; }
+.related-label { margin: 24px 0 16px; font-size: 16px; font-weight: 600; }
+.related { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.related button { padding: 0; border-radius: 17px; overflow: hidden; }
+.related img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; }
+.viewer { width: 100vw; height: 100dvh; max-width: none; max-height: none; border: 0; border-radius: 0; background: #101014; color: #f3effa; }
+.viewer[open] { display: flex; flex-direction: column; }
+.viewer-top { min-height: 72px; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: 14px; }
+.viewer .icon { color: #f3effa; }
+.viewer .icon:hover { background: #34303e; }
+.viewer-canvas { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: auto; }
+.viewer-canvas img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+.viewer-canvas.zoomed { display: block; }
+.viewer-canvas.zoomed img { max-width: none; max-height: none; width: 160%; margin: auto; }
+.viewer-bottom { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 16px; font-size: 12px; }
+.reverse { transform: rotate(180deg); }
+@container(max-width: 600px) { .page-heading { align-items: start; flex-wrap: wrap; gap: 16px; } .page-heading h1 { font-size: 28px; } .quiet { display: none; } }
+@media(max-width: 1039px), (max-height: 479px) { .content.has-detail .feed { display: none; } .detail { width: 100%; border: 0; } .detail-body { max-width: 720px; margin: auto; } .detail-art img { max-height: 52dvh; } }
+@media(max-width: 759px) { .feed { padding: 24px 20px; } }
+@media(max-width: 599px) { .app { padding-bottom: calc(80px + env(safe-area-inset-bottom)); } .gallery { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px 10px; } .gallery.large { grid-template-columns: 1fr; } .card-meta { flex-wrap: wrap; } .card-id { overflow-wrap: anywhere; } .page-heading h1 { font-size: 28px; } .quiet { display: none; } .detail-body { padding: 20px; } }
+@media(max-width: 359px) { .feed { padding-inline: 16px; } .card-title { font-size: 14px; } }

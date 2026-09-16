@@ -15,6 +15,7 @@ import ceui.lisa.utils.Local
 import ceui.lisa.utils.Settings
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.translate.AiTranslator
+import ceui.pixiv.ui.translate.statusText
 import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
@@ -283,14 +284,32 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
         }
         val apiKey = binding.aiTranslateApiKey.text.toString().trim()
         val prompt = binding.aiTranslatePrompt.text.toString().trim()
+        val streaming = binding.aiTranslateStreamingSwitch.isChecked
 
+        val status = binding.aiTranslateTestStatus
+        status.visibility = View.VISIBLE
+        status.text = getString(R.string.string_translating)
         binding.aiTranslateTestBtn.showProgress()
-        viewLifecycleOwner.lifecycleScope.launch {
+        binding.aiTranslateTestBtn.isEnabled = false
+        val scope = viewLifecycleOwner.lifecycleScope
+        scope.launch {
+            var testing = true
             // CancellationException 必须重新抛出（测试期间退出页面 → scope 取消）：
             // 吞掉会继续访问已销毁的 binding 直接 crash —— 与 Aria2SettingsFragment 同款守卫。
             try {
-                val translated = AiTranslator.testConfig(baseUrl, apiKey, model, prompt)
+                val translated = AiTranslator.testConfig(
+                    baseUrl, apiKey, model, prompt,
+                    forceStreaming = streaming,
+                    onPhase = { phase ->
+                        scope.launch {
+                            if (testing) status.text = phase.statusText(status.context)
+                        }
+                    },
+                )
+                testing = false
                 binding.aiTranslateTestBtn.hideProgress()
+                binding.aiTranslateTestBtn.isEnabled = true
+                status.text = getString(R.string.ai_translate_test_success, translated)
                 Toaster.show(getString(R.string.ai_translate_test_success, translated))
             } catch (e: CancellationException) {
                 throw e
@@ -299,8 +318,13 @@ class AiTranslateSettingsFragment : Fragment(R.layout.fragment_ai_translate_sett
                 // 跑完,最终抛上来的是真实 IO 异常而不是 CancellationException —— 此时
                 // view 已销毁,碰 binding 必崩(FragmentViewBindingDelegate requireView)。
                 ensureActive()
+                testing = false
                 binding.aiTranslateTestBtn.hideProgress()
+                binding.aiTranslateTestBtn.isEnabled = true
+                status.text = getString(R.string.ai_translate_test_failed, e.message ?: e.toString())
                 Toaster.show(getString(R.string.ai_translate_test_failed, e.message ?: e.toString()))
+            } finally {
+                testing = false
             }
         }
     }

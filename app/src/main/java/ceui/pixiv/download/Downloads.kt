@@ -47,6 +47,20 @@ class Downloads(
     ) : this({ config }, backendFactory)
 
     fun plan(item: DownloadItem): Plan {
+        return plan(item, filenameSuffix = null)
+    }
+
+    /**
+     * Plan a rendered derivative beside [item]'s normal download. The active bucket template
+     * still owns the full directory and base filename; [filenameSuffix] is inserted immediately
+     * before the extension so the derivative cannot overwrite the original artwork.
+     */
+    fun planDerived(item: DownloadItem, filenameSuffix: String): Plan {
+        require(filenameSuffix.isNotBlank()) { "filenameSuffix must not be blank" }
+        return plan(item, filenameSuffix)
+    }
+
+    private fun plan(item: DownloadItem, filenameSuffix: String?): Plan {
         val resolved: ResolvedBucket = resolveBucket(item.bucket)
 
         // Resilient render: a malformed persisted template must not crash the
@@ -56,7 +70,7 @@ class Downloads(
         val raw: RelativePath = SafeTemplateRender.render(
             resolved.template, item.bucket, item.meta, item.ext, configProvider().pageNumbering,
         )
-        val cleaned: RelativePath = FsSanitizer.clean(raw)
+        val cleaned: RelativePath = FsSanitizer.clean(raw).withFilenameSuffix(filenameSuffix)
         val backend: StorageBackend = backendFactory(resolved.storage)
         val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, resolved.overwrite, item.mime)
         return Plan(item, finalPath, backend, resolved.overwrite, skip)
@@ -94,6 +108,13 @@ class Downloads(
      */
     fun open(item: DownloadItem): StorageBackend.WriteHandle? {
         val plan = plan(item)
+        if (plan.skip) return null
+        return plan.open()
+    }
+
+    /** [open] counterpart for a template-derived sibling file; see [planDerived]. */
+    fun openDerived(item: DownloadItem, filenameSuffix: String): StorageBackend.WriteHandle? {
+        val plan = planDerived(item, filenameSuffix)
         if (plan.skip) return null
         return plan.open()
     }
@@ -152,6 +173,50 @@ class Downloads(
             // 理论createFile后可以拿到自动重命名后的文件
             (if (backend.autoRenamesOnConflict) path else nextFreePath(path, backend)) to false
         }
+    }
+
+    private fun RelativePath.withFilenameSuffix(suffix: String?): RelativePath {
+        if (suffix == null) return this
+        val dot = filename.lastIndexOf('.')
+        val hasExtension = dot in 1 until filename.length - 1
+        val stem = if (hasExtension) filename.substring(0, dot) else filename
+        val safeSuffix = FsSanitizer.cleanSegment(suffix)
+        val suffixBytes = safeSuffix.toByteArray(Charsets.UTF_8).size
+        require(suffixBytes < FsSanitizer.MAX_SEGMENT_BYTES - 1) {
+            "filenameSuffix is too long"
+        }
+
+        // The template result has already been capped to MAX_SEGMENT_BYTES. Appending and then
+        // sanitizing again would truncate from the end of the stem, silently dropping the suffix
+        // for long titles. Reserve its bytes explicitly so a derivative can never collapse back
+        // onto the original filename (and overwrite the artwork under Replace policy).
+        val maxExtensionBytes = FsSanitizer.MAX_SEGMENT_BYTES - suffixBytes - 1
+        val extension = (if (hasExtension) filename.substring(dot) else "")
+            .truncateUtf8(maxExtensionBytes)
+            .takeUnless { it == "." }
+            .orEmpty()
+        val stemBytes = FsSanitizer.MAX_SEGMENT_BYTES - suffixBytes -
+            extension.toByteArray(Charsets.UTF_8).size
+        val derivedStem = stem.truncateUtf8(stemBytes).ifEmpty { FsSanitizer.FALLBACK_SEGMENT }
+        val derivedName = "$derivedStem$safeSuffix$extension"
+        return RelativePath(directory + derivedName)
+    }
+
+    private fun String.truncateUtf8(maxBytes: Int): String {
+        if (toByteArray(Charsets.UTF_8).size <= maxBytes) return this
+        val result = StringBuilder()
+        var used = 0
+        var index = 0
+        while (index < length) {
+            val codePoint = codePointAt(index)
+            val token = String(Character.toChars(codePoint))
+            val tokenBytes = token.toByteArray(Charsets.UTF_8).size
+            if (used + tokenBytes > maxBytes) break
+            result.append(token)
+            used += tokenBytes
+            index += Character.charCount(codePoint)
+        }
+        return result.toString()
     }
 
     /**

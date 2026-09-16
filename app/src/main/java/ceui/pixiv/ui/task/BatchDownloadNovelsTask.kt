@@ -13,6 +13,10 @@ import ceui.pixiv.ui.common.getTxtFileIdInDownloads
 import ceui.pixiv.ui.common.saveToDownloadsScopedStorage
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.model.RelativePath
+import ceui.pixiv.ui.novel.reader.export.ExportFormat
+import ceui.pixiv.ui.novel.reader.export.ExportResult
+import ceui.pixiv.ui.novel.reader.export.NovelExportManager
+import ceui.pixiv.ui.novel.reader.paginate.ContentParser
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -43,6 +47,7 @@ data class FailedNovel(
 class BatchDownloadNovelsTask(
     private val activity: FragmentActivity,
     private val novels: List<Novel>,
+    private val format: ExportFormat,
     private val onProgress: (done: Int, total: Int) -> Unit = { _, _ -> },
     private val onFinished: (failures: List<FailedNovel>) -> Unit,
     /**
@@ -109,6 +114,7 @@ class BatchDownloadNovelsTask(
         val total = seriesTotal.takeIf { seriesIndex != null }
         val destination: RelativePath = DownloadItems.novelDestinationFromLoxia(
             novel,
+            extOverride = format.extension,
             seriesOrder = seriesIndex,
             seriesTotal = total,
         )
@@ -116,7 +122,7 @@ class BatchDownloadNovelsTask(
 
         // Skip already-downloaded files. DownloadNovelTask uses the same
         // pre-check before it hits the network.
-        if (getTxtFileIdInDownloads(ctx, fileName) != null) {
+        if (format == ExportFormat.Txt && getTxtFileIdInDownloads(ctx, fileName) != null) {
             Timber.d("$fileName already exists, skipping")
             return
         }
@@ -124,6 +130,24 @@ class BatchDownloadNovelsTask(
         val html = Client.appApi.getNovelText(novel.id).string()
         val wNovel = WebNovelParser.parsePixivObject(html)?.novel
             ?: throw RuntimeException("invalid web novel")
+
+        // 非 TXT 格式直接复用阅读器导出链路，避免在批量下载里再维护一套 MD/EPUB/PDF 实现。
+        if (format != ExportFormat.Txt) {
+            val tokens = ContentParser.tokenize(wNovel)
+            when (val result = NovelExportManager.export(
+                context = ctx,
+                format = format,
+                novel = novel,
+                webNovel = wNovel,
+                tokens = tokens,
+                seriesOrder = seriesIndex,
+                seriesTotal = total,
+            )) {
+                is ExportResult.Success -> Unit
+                is ExportResult.Failure -> throw RuntimeException(result.message)
+            }
+            return
+        }
 
         val buffer = StringBuffer().apply {
             append("\n\n")

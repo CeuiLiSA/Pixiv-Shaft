@@ -23,12 +23,10 @@ import ceui.lisa.R;
 
 import java.util.UUID;
 
-
 public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragment {
 
     protected View rootView;
-    @NonNull
-    protected Layout baseBind;
+    @NonNull protected Layout baseBind;
     protected String className = getClass().getSimpleName() + " ";
 
     protected int mLayoutID = -1;
@@ -66,7 +64,7 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
 
             initModel();
 
-            //获取屏幕方向
+            // 获取屏幕方向
             if (getResources() != null) {
                 int ori = getResources().getConfiguration().orientation;
                 if (ori == Configuration.ORIENTATION_LANDSCAPE) {
@@ -82,9 +80,10 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(
+            @NonNull LayoutInflater inflater,
+            @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
         try {
             isInit = true;
             if (rootView != null) {
@@ -121,53 +120,44 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
             } else {
                 horizon();
             }
-            applyToolbarInsets(view);
+            applyToolbarInsets(mActivity, view);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void applyToolbarInsets(@NonNull View root) {
+    /** Shared with plain Fragments that use the settings toolbar layout. */
+    public static void applyToolbarInsets(@NonNull FragmentActivity activity, @NonNull View root) {
         View toolbar = root.findViewById(R.id.toolbar);
         if (toolbar == null || !toolbar.getFitsSystemWindows()) {
             return;
         }
-        if (mActivity instanceof ceui.lisa.activities.BaseActivity
-                && !((ceui.lisa.activities.BaseActivity<?>) mActivity).hideStatusBar()) {
+        if (activity instanceof ceui.lisa.activities.BaseActivity
+                && !((ceui.lisa.activities.BaseActivity<?>) activity).hideStatusBar()) {
             return;
         }
-        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, windowInsets) -> {
-            Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(v.getPaddingLeft(), insets.top, v.getPaddingRight(), 0);
-            return WindowInsetsCompat.CONSUMED;
-        });
+        ViewCompat.setOnApplyWindowInsetsListener(
+                toolbar,
+                (v, windowInsets) -> {
+                    Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(v.getPaddingLeft(), insets.top, v.getPaddingRight(), 0);
+                    return WindowInsetsCompat.CONSUMED;
+                });
     }
 
     protected abstract void initLayout();
 
-    protected void initBundle(Bundle bundle) {
+    protected void initBundle(Bundle bundle) {}
 
-    }
+    protected void initActivityBundle(Bundle bundle) {}
 
-    protected void initActivityBundle(Bundle bundle) {
+    protected void initView() {}
 
-    }
+    protected void initData() {}
 
-    protected void initView() {
+    public void horizon() {}
 
-    }
-
-    protected void initData() {
-
-    }
-
-    public void horizon() {
-
-    }
-
-    public void vertical() {
-
-    }
+    public void vertical() {}
 
     public void finish() {
         if (mActivity != null) {
@@ -175,9 +165,7 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
         }
     }
 
-    public void initModel() {
-
-    }
+    public void initModel() {}
 
     protected long tryParseId(String str) {
         try {

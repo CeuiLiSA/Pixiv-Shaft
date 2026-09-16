@@ -1,0 +1,13 @@
+<resources>
+    <string name="sticker_title">Стикеры</string>
+    <string name="sticker_close">Закрыть</string>
+    <string name="sticker_retry">Повторить</string>
+    <string name="sticker_customized">Избранное</string>
+    <string name="sticker_static">Эмодзи</string>
+    <string name="sticker_animation">Анимация</string>
+    <string name="sticker_checking">Проверка стикеров…</string>
+    <string name="sticker_downloading">Загрузка стикеров: %1$d%%</string>
+    <string name="sticker_extracting">Проверка и распаковка стикеров…</string>
+    <string name="sticker_failed">Не удалось подготовить стикеры: %1$s</string>
+    <string name="sticker_message">[Стикер]</string>
+</resources>

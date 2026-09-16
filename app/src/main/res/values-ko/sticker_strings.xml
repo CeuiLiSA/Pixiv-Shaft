@@ -1,0 +1,13 @@
+<resources>
+    <string name="sticker_title">스티커</string>
+    <string name="sticker_close">닫기</string>
+    <string name="sticker_retry">다시 시도</string>
+    <string name="sticker_customized">추천</string>
+    <string name="sticker_static">이모지</string>
+    <string name="sticker_animation">움직이는 스티커</string>
+    <string name="sticker_checking">스티커 확인 중…</string>
+    <string name="sticker_downloading">스티커 다운로드 중: %1$d%%</string>
+    <string name="sticker_extracting">스티커 확인 및 압축 해제 중…</string>
+    <string name="sticker_failed">스티커 준비 실패: %1$s</string>
+    <string name="sticker_message">[스티커]</string>
+</resources>

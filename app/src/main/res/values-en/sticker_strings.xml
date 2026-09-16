@@ -1,0 +1,13 @@
+<resources>
+    <string name="sticker_title">Stickers</string>
+    <string name="sticker_close">Close</string>
+    <string name="sticker_retry">Retry</string>
+    <string name="sticker_customized">Featured</string>
+    <string name="sticker_static">Emoji</string>
+    <string name="sticker_animation">Animated</string>
+    <string name="sticker_checking">Checking sticker resources…</string>
+    <string name="sticker_downloading">Downloading stickers: %1$d%%</string>
+    <string name="sticker_extracting">Verifying and extracting stickers…</string>
+    <string name="sticker_failed">Could not prepare stickers: %1$s</string>
+    <string name="sticker_message">[Sticker]</string>
+</resources>

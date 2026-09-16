@@ -13,7 +13,6 @@ import ceui.pixiv.services.requireEntityWrapper
 import ceui.pixiv.ui.bulk.BulkSelectHandoff
 import ceui.pixiv.ui.bulk.NovelBulkSelectHandoff
 import ceui.pixiv.ui.detail.showV3Menu
-import ceui.pixiv.ui.task.BatchDownloadNovelsTask
 import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
@@ -109,21 +108,7 @@ internal fun NovelFeedFragment.showNovelCardMenu(
         // 下载这一篇：复用批量/系列下载同一条落盘链路（BatchDownloadNovelsTask），
         // 不灌 download_queue——小说下载本来就不走那张表。
         item(getString(R.string.string_339), R.drawable.ic_file_download_black_24dp) {
-            BatchDownloadNovelsTask(
-                activity = requireActivity(),
-                novels = listOf(novel),
-                onFinished = { failures ->
-                    if (isAdded) {
-                        Common.showToast(
-                            if (failures.isEmpty()) {
-                                getString(R.string.batch_download_all_ok)
-                            } else {
-                                getString(R.string.batch_download_some_failed, failures.size)
-                            }
-                        )
-                    }
-                },
-            )
+            startNovelDownload(novel)
         }
         val watchLaterLabel = getString(
             if (inWatchLater) R.string.watch_later_remove else R.string.watch_later_add

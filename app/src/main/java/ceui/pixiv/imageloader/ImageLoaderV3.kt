@@ -1,6 +1,11 @@
 package ceui.pixiv.imageloader
 
+import androidx.annotation.WorkerThread
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.runBlocking
+import timber.log.Timber
 import java.io.File
+import java.util.function.IntConsumer
 
 /**
  * V3 图片加载系统的对外门面(entry point)。
@@ -36,4 +41,46 @@ object ImageLoaderV3 {
     /** 无副作用窥探某 url 已下好的文件(占位链/缓存命中用)。 */
     @JvmStatic
     fun peekFile(url: String): File? = ImageTaskRegistry.peekFile(url)
+
+    /**
+     * Blocking bridge for Manager's DownloadTask IO worker. Join the display fetch, then copy its
+     * completed file through the normal save backend. A miss keeps Manager's own resumable path.
+     * Interrupting this waiter cancels only its collection, never the process-owned image task.
+     */
+    @JvmStatic
+    @WorkerThread
+    @Throws(InterruptedException::class)
+    fun awaitExistingFile(url: String, onProgress: IntConsumer): File? {
+        val task = ImageTaskRegistry.peekTask(url) ?: return null
+        when (task.state.value) {
+            ImageLoadState.Idle, is ImageLoadState.Error -> return null
+            else -> Unit
+        }
+        return awaitExistingFile(task, onProgress)
+    }
+
+    internal fun awaitExistingFile(task: ImageLoadTask, onProgress: IntConsumer): File {
+        val url = task.request.url
+        Timber.tag("SharedImageDownload").d(
+            "JOIN image=%s state=%s", url.substringAfterLast('/'), task.state.value,
+        )
+        try {
+            return runBlocking {
+                task.awaitFile { onProgress.accept(it) }
+            }.also {
+                Timber.tag("SharedImageDownload").d(
+                    "READY image=%s bytes=%d", url.substringAfterLast('/'), it.length(),
+                )
+            }
+        } catch (cancelled: InterruptedException) {
+            Timber.tag("SharedImageDownload").d("WAIT_CANCELLED image=%s", url.substringAfterLast('/'))
+            throw cancelled
+        } catch (cancelled: CancellationException) {
+            Timber.tag("SharedImageDownload").d("WAIT_CANCELLED image=%s", url.substringAfterLast('/'))
+            throw cancelled
+        } catch (error: Exception) {
+            Timber.tag("SharedImageDownload").w(error, "WAIT_FAILED image=%s", url.substringAfterLast('/'))
+            throw error
+        }
+    }
 }

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-accent="violet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f7fc">
+  <title>App 推荐计划 · Pixiv-Shaft</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.6 6.4L21 12l-6.4 2.6L12 21l-2.6-6.4L3 12l6.4-2.6Z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m4-13v6m-3-3h6"/></symbol>
+    <symbol id="i-stack" viewBox="0 0 24 24"><rect x="7" y="3" width="13" height="15" rx="3"/><path d="M16 21H6a3 3 0 0 1-3-3V8m7 5 3-3 4 4m-6-7h.01"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="m10 9 5 3-5 3Z"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 5h18v5a2 2 0 0 0 0 4v5H3v-5a2 2 0 0 0 0-4Zm12 0v3m0 3v2m0 3v3"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.6 14A9 9 0 0 1 10 3.4 9 9 0 1 0 20.6 14Z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10h.01"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+  </defs></svg>
+  <aside class="rail" aria-label="计划导航">
+    <a class="brand" href="#" aria-label="App 推荐计划首页">p<span>.</span></a>
+    <div class="rail-links">
+      <button class="rail-item selected" data-view="tasks" aria-current="page"><svg><use href="#i-spark"/></svg><span>App 推荐</span></button>
+      <button class="rail-item" data-view="wallet"><svg><use href="#i-ticket"/></svg><span>我的卡包</span></button>
+      <button class="rail-item" data-action="rules"><svg><use href="#i-info"/></svg><span>活动规则</span></button>
+    </div>
+    <div class="rail-bottom"><div class="avatar" aria-label="示例用户">C</div><span>PIXIV SHAFT</span></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar">
+      <div class="breadcrumb">Pixiv-Shaft <span>/</span> <strong>App 推荐计划</strong></div>
+      <div class="top-actions"><span class="prototype-label">交互原型 · 示例数据</span><button class="icon-button" data-action="theme" aria-label="切换深色模式" title="切换深浅主题"><svg><use href="#i-moon"/></svg></button><button class="avatar small" data-view="wallet" aria-label="查看卡包">C</button></div>
+    </header>
+    <main>
+      <section class="page-heading"><div><div class="eyebrow">REFERRAL PROGRAM</div><h1>App 推荐计划<span class="heading-dot">✳</span></h1><p>完成推荐任务，可获 7 天或 30 天 PRO。</p></div><button class="text-button rules-top" data-action="rules">活动规则 <svg><use href="#i-arrow"/></svg></button></section>
+      <section class="hero" aria-label="App 推荐计划介绍">
+        <div class="hero-copy"><div class="hero-tag"><span></span> 7 天 / 30 天体验卡</div><h2>推荐 Pixiv-Shaft<br>领取 <span class="underline">PRO 体验卡</span></h2><p>邀请好友或发布 App 推荐内容。<br>完成对应任务后领取。</p><button class="primary hero-button" data-action="invite">邀请好友 <svg><use href="#i-arrow"/></svg></button><div class="hero-footnote">首次邀请达标后<br>双方各获 7 天 PRO</div></div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="art-star">✳</div><div class="mini-star">✦</div><div class="art-dot"></div>
+          <div class="art-card week"><div class="art-card-top">EXPERIENCE PASS <svg><use href="#i-spark"/></svg></div><div class="art-pro">PRO<span>PASS</span></div><div class="art-card-bottom"><b>7<span>天</span></b><span>7 天使用期<br>7-DAY ACCESS</span></div><div class="ticket-dash"></div></div>
+          <div class="art-card month"><div class="art-card-top">EXPERIENCE PASS <svg><use href="#i-spark"/></svg></div><div class="art-pro">PRO<span>PASS</span></div><div class="art-card-bottom"><b>30<span>天</span></b><span>30 天使用期<br>30-DAY ACCESS</span></div><div class="ticket-dash"></div></div>
+          <div class="art-sticker">PRO<br><b>体验</b><span>✧</span></div>
+        </div>
+      </section>
+      <div class="content-grid">
+        <section class="task-section">
+          <div class="section-heading"><div><h2 id="section-title">推荐任务 <span id="task-count">04</span></h2><p id="section-subtitle">查看任务要求与完成进度。</p></div><span class="season">每项限领一次</span></div>
+          <div class="tabs" role="tablist" aria-label="任务筛选"><button role="tab" id="tab-all" aria-controls="task-list" aria-selected="true" data-filter="all">全部任务 <span>4</span></button><button role="tab" id="tab-progress" aria-controls="task-list" aria-selected="false" tabindex="-1" data-filter="progress">进行中</button><button role="tab" id="tab-ready" aria-controls="task-list" aria-selected="false" tabindex="-1" data-filter="ready">可领取 <span id="ready-count">1</span></button></div>
+          <div id="task-list" class="task-list" role="tabpanel" aria-labelledby="tab-all"></div>
+          <div id="wallet-list" class="wallet-list" hidden></div>
+          <div class="gentle-note"><svg><use href="#i-heart"/></svg><span>内容审核不设粉丝数或点赞数门槛。</span></div>
+        </section>
+        <aside class="side-column">
+          <section class="reward-summary"><div class="summary-heading"><span>奖励概览</span><svg><use href="#i-ticket"/></svg></div><div class="reward-number"><strong id="earned-days">0</strong><span>天 PRO 已领取</span><span class="tiny-star">✳</span></div><div class="summary-stats"><div><strong id="invited-count">1</strong><span>有效邀请</span></div><div><strong id="wallet-count">0</strong><span>待激活卡片</span></div><div><strong id="claimable-count">1</strong><span>待领取奖励</span></div></div><button class="wallet-button" data-view="wallet">查看卡包 <svg><use href="#i-arrow"/></svg></button><p>领取后 30 天内激活 · 不自动续费</p></section>
+          <section class="journey"><div class="eyebrow">HOW IT WORKS</div><h3>参与流程</h3><ol><li><span>01</span><div><strong>选择任务</strong><p>查看邀请或内容发布要求</p></div></li><li><span>02</span><div><strong>完成并验证</strong><p>邀请记录自动验证，发布内容需提交审核</p></div></li><li><span>03</span><div><strong>领取体验卡</strong><p>领取至卡包，激活后开始计时</p></div></li></ol><button class="text-button" data-action="materials">推荐内容参考 <svg><use href="#i-arrow"/></svg></button></section>
+          <div class="friend-note"><span>✺</span><p>领取后 30 天内激活。<br>激活后开始计时。</p><span class="signature">PIXIV-SHAFT</span></div>
+        </aside>
+      </div>
+      <footer><span>预览版本，暂不发放奖励。</span><div><button data-action="demo">演示控制台</button><span>·</span><button data-action="palette" aria-label="切换主题强调色">主题配色 <i class="color-dot"></i></button></div></footer>
+    </main>
+  </div>
+  <nav class="mobile-nav" aria-label="底部导航"><button class="selected" data-view="tasks"><svg><use href="#i-spark"/></svg>推荐任务</button><button data-view="wallet"><svg><use href="#i-ticket"/></svg>我的卡包 <span id="mobile-wallet-count">0</span></button></nav>
+  <dialog id="sheet" aria-labelledby="sheet-title"><div class="sheet-handle"></div><button class="icon-button close-sheet" data-action="close" aria-label="关闭弹窗"><svg><use href="#i-close"/></svg></button><div id="sheet-content"></div></dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

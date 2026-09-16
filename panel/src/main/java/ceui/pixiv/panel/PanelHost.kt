@@ -19,6 +19,12 @@ interface PanelHost {
     /** The bottom panel view (emoji, sticker, etc.) below the input bar. */
     val panelView: View
 
+    /**
+     * Input-bar container whose background extends behind the navigation bar when both the IME
+     * and panel are closed. Its original bottom padding is preserved. Null keeps root padding.
+     */
+    val panelComposerView: View? get() = null
+
     /** Input view to focus when switching to keyboard. Null for voice-only panels. */
     val panelInputView: View?
 

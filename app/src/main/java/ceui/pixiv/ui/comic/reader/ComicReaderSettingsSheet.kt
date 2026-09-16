@@ -148,6 +148,9 @@ class ComicReaderSettingsSheet : BottomSheetDialogFragment() {
         binding.rowImmersive.bindSwitch(
             getString(R.string.comic_reader_immersive), ComicReaderSettings.immersive,
         ) { ComicReaderSettings.immersive = it }
+        binding.rowAutoRotateImage.bindSwitch(
+            getString(R.string.comic_reader_auto_rotate_image), ComicReaderSettings.autoRotateImage,
+        ) { ComicReaderSettings.autoRotateImage = it }
         binding.rowShowPageNumber.bindSwitch(
             getString(R.string.comic_reader_show_page_number), ComicReaderSettings.showPageNumber,
         ) { ComicReaderSettings.showPageNumber = it }

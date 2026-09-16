@@ -175,6 +175,31 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/recommend_page_order_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="0dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/recommend_page_content" />
+
+                        <TextView
+                            android:id="@+id/recommend_page_order"
+                            style="@style/M3SetDesc"
+                            android:textColor="?attr/colorPrimary" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/recommend_page_content_desc" />
+                    </LinearLayout>
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/main_view_r18_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_mid">

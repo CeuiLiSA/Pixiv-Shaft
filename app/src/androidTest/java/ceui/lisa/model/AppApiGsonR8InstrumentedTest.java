@@ -24,6 +24,8 @@ import ceui.pixiv.api.API;
 import ceui.pixiv.api.model.Illust;
 import ceui.pixiv.cache.ObjectPool;
 import ceui.pixiv.snapshot.SnapshotManifest;
+import ceui.pixiv.snapshot.AutoSnapshotBehaviorRecord;
+import ceui.pixiv.snapshot.AutoSnapshotDwellSample;
 import ceui.pixiv.ui.user.RequestPlanText;
 import ceui.pixiv.ui.user.UserRequestPlansResponse;
 import retrofit2.http.GET;
@@ -52,6 +54,16 @@ public final class AppApiGsonR8InstrumentedTest {
         assertNotNull(RequestPlanText.class.getDeclaredField("translation"));
         assertNotNull(SnapshotManifest.class.getDeclaredField("snapshotId"));
         assertNotNull(DownloadItem.class.getDeclaredField("url"));
+    }
+
+    @Test
+    public void autoSnapshotBehaviorSchemaSurvivesR8() throws Exception {
+        for (String field : new String[]{"illustId", "type", "recentVisits", "visitCount",
+                "lastDwellMs", "recentDwells", "lastAutoSnapshotAt", "lastTriggerSignal", "schemaVersion"}) {
+            assertNotNull(AutoSnapshotBehaviorRecord.class.getDeclaredField(field));
+        }
+        assertNotNull(AutoSnapshotDwellSample.class.getDeclaredField("at"));
+        assertNotNull(AutoSnapshotDwellSample.class.getDeclaredField("ms"));
     }
 
     @Test

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-accent="violet">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>V3 页面模板 · 新页面从这里开始</title>
+  <!-- Copy to mockup/your-page/index.html, then use ../v3-design-system/components.css. -->
+  <link rel="stylesheet" href="components.css">
+  <script src="demo.js" defer></script>
+</head>
+<body>
+<main class="v3-page">
+  <header class="v3-topbar">
+    <a class="v3-brand" href="index.html">Pixiv-Shaft / V3 页面模板</a>
+    <div class="v3-actions"><a class="v3-button text" href="index.html">组件图鉴 ↗</a><button class="v3-button outline" data-toggle-theme>切换深色</button></div>
+  </header>
+  <!-- 1. Say what this page is for. Keep business terms explicit. -->
+  <section class="v3-heading">
+    <p class="v3-eyebrow">YOUR NEXT PAGE STARTS HERE</p>
+    <h1>新页面，从这里开始。</h1>
+    <p>这是可复制的运营页骨架，替换业务内容即可开始。当前按钮只演示交互。</p>
+  </section>
+  <!-- 2. Optional hero. Remove this section for a dense management/settings page. -->
+  <section class="v3-hero">
+    <div>
+      <span class="v3-badge">一句简短的业务标签</span>
+      <h2>讲清楚价值，<br>让下一步自然发生。</h2>
+      <p class="v3-muted">用一两句话解释用户可以做什么、完成后得到什么。重要条件留在可读的正文中。</p>
+      <div class="v3-actions"><button class="v3-button" data-open-dialog>开始示例流程 →</button></div>
+    </div>
+    <div class="v3-hero-art" aria-hidden="true"><div class="v3-orbit"></div><span class="v3-star">✳</span><div class="v3-sticker">V3<small>YOUR NEXT STEP</small></div></div>
+  </section>
+  <!-- 3. Main task/content + optional summary. Both become one column on small screens. -->
+  <div class="v3-content">
+    <section>
+      <div class="v3-section-head"><div><h2>你的主要内容</h2><p>同一分区只保留一个最强操作。</p></div></div>
+      <article class="v3-card">
+        <div class="v3-card-head">
+          <span class="v3-icon-box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 2.6 6.4L21 12l-6.4 2.6L12 21l-2.6-6.4L3 12l6.4-2.6Z"/></svg></span>
+          <div class="v3-card-copy"><div class="v3-meta">示例类别 · 进行中</div><h3>一张内容清楚的操作卡</h3><p>把标题、条件、当前状态和下一步放在一起。先复用结构，再填入自己的业务。</p></div>
+          <span class="v3-badge">示例</span>
+        </div>
+        <div class="v3-card-foot">
+          <div class="v3-progress"><div class="v3-progress-label"><span>已完成步骤</span><span>1 / 3</span></div><progress value="1" max="3" aria-label="已完成步骤：1 / 3"></progress></div>
+          <button class="v3-button tonal" data-open-dialog>继续示例 →</button>
+        </div>
+      </article>
+      <div class="v3-section"><h2>实现前先补齐状态</h2><p class="v3-muted" style="margin-top:12px">连接业务请求后，明确加载、空、失败、处理中和成功状态。前端按钮点击不等于任务已完成。</p></div>
+    </section>
+    <aside class="v3-summary">
+      <h3>有意义的汇总</h3>
+      <div class="v3-number"><strong>03</strong><span>个示例步骤</span></div>
+      <p class="v3-muted">数字与单位分层，不为了填满侧栏增加无关指标。</p>
+      <div class="v3-actions" style="margin-top:20px"><a class="v3-button outline" href="../../docs/v3-design-philosophy.md">查阅设计规范 ↗</a></div>
+    </aside>
+  </div>
+  <footer class="v3-footer"><span>使用 Montserrat；中文回退系统中文字体。</span><a href="README.md">模板复制说明</a></footer>
+</main>
+<dialog class="v3-dialog" id="demo-dialog" aria-labelledby="dialog-title">
+  <p class="v3-eyebrow">ONE CLEAR NEXT STEP</p>
+  <h2 id="dialog-title">接下来，发生什么？</h2>
+  <p class="v3-muted">这是演示面板。正式使用时写清楚操作影响，再连接真实业务状态。</p>
+  <label class="v3-field">示例输入<input placeholder="填入你的页面名称" maxlength="60"></label>
+  <div class="v3-actions"><button class="v3-button" data-confirm-demo>确认示例</button><button class="v3-button outline" data-close-dialog>关闭</button></div>
+  <p class="v3-feedback" role="status" aria-live="polite"></p>
+</dialog>
+</body>
+</html>

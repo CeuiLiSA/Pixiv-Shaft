@@ -114,9 +114,16 @@ object NovelAutoDownload {
                 NovelTextCache.put(novel.id, it)
             }
         }
+        // 只有显式默认 TXT 才能转 EPUB；“每次询问”在后台回退 TXT，其他默认格式原样使用。
+        val configuredFormat = NovelExportManager.resolveConfiguredFormat() ?: ExportFormat.Txt
+        val format = if (NovelExportManager.shouldAutoEpubForDefaultTxt(configuredFormat, entry.tokens)) {
+            ExportFormat.Epub
+        } else {
+            configuredFormat
+        }
         when (val result = NovelExportManager.export(
             context = context,
-            format = ExportFormat.Txt,
+            format = format,
             novel = novel,
             webNovel = entry.webNovel,
             tokens = entry.tokens,

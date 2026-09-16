@@ -25,6 +25,8 @@ on:
 env:
   ORIGINAL_PROJECT: "CeuiLiSA/Pixiv-Shaft"
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
+  # Injected only into the build process; never store this value in the repository.
+  CODEX_SPARK_API_KEY: ${{ secrets.CODEX_SPARK_API_KEY }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -113,6 +115,15 @@ jobs:
             exit 1
           fi
           echo "SHAFT_EVENTS_HMAC fingerprint OK"
+
+      - name: Verify Spark API key
+        if: github.repository == env.ORIGINAL_PROJECT && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork)
+        run: |
+          if [ -z "$CODEX_SPARK_API_KEY" ]; then
+            echo "::error::CODEX_SPARK_API_KEY secret is empty; Spark would be disabled in the APK"
+            exit 1
+          fi
+          echo "Spark API key is configured"
 
       # 单测跑在打包之前，红了就不出产物。只跑 debug 变体：release 变体的
       # 测试代码相同，多跑一遍只是白费 R8 前的编译时间。

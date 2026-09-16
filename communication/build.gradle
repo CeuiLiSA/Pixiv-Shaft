@@ -1,0 +1,13 @@
+apply plugin: 'java-library'
+apply plugin: 'org.jetbrains.kotlin.jvm'
+
+kotlin {
+    jvmToolchain(17)
+    explicitApi()
+}
+
+dependencies {
+    api libs.coroutinesCore
+    testImplementation libs.junit4
+    testImplementation libs.coroutinesTest
+}

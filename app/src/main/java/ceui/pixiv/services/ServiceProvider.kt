@@ -31,6 +31,9 @@ import com.tencent.mmkv.MMKV
  *   不要再新增 Kotlin `object` 单例来承载有状态的服务。
  */
 interface ServicesProvider {
+    /** 通用进程内通信容器；业务在组合根创建类型化 topic，再按读写能力注入。 */
+    val communicationScope: ceui.pixiv.communication.CommunicationScope
+
     val prefStore: MMKV
     val networkStateManager: NetworkStateManager
     val entityWrapper: EntityWrapper

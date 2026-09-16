@@ -6,7 +6,7 @@ import ceui.lisa.utils.Common
 import ceui.pixiv.ui.common.launchSuspend
 import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.currentTranslator
-import ceui.pixiv.ui.translate.onThinkingPhase
+import ceui.pixiv.ui.translate.onceThinkingPhase
 import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
 import ceui.pixiv.ui.translate.showTranslatedDialog
 import kotlinx.coroutines.CancellationException
@@ -35,7 +35,7 @@ fun Fragment.translateComment(text: String?) {
  */
 internal suspend fun Fragment.translateTextOrPrompt(src: String): String? {
     val translated = try {
-        currentTranslator().translate(src, appTranslateTargetLang(), onPhase = onThinkingPhase)
+        currentTranslator().translate(src, appTranslateTargetLang(), onPhase = onceThinkingPhase())
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {

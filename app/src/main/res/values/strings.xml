@@ -64,6 +64,7 @@
     <string name="latest_work">最新</string>
     <string name="search">搜索</string>
     <string name="develop">开发者预览</string>
+    <string name="media_demo_entry">COS 图片直传 Demo</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -1684,6 +1685,8 @@
     <string name="novel_chip_series_char_count">总字数  %1$s</string>
 
     <string name="setting_default_novel_format">默认小说下载格式</string>
+    <string name="setting_novel_epub_on_images">小说有插图时存EPUB</string>
+    <string name="setting_novel_epub_on_images_desc">默认导出格式为 TXT 时，检测到正文插图自动改用 EPUB 导出</string>
     <string name="setting_default_image_resolution">默认图片保存清晰度</string>
     <string name="option_always_ask">每次询问</string>
     <string name="msg_unknown_format">未知格式: %s</string>
@@ -1746,6 +1749,7 @@
     <!-- 作品详情页里直接滑图时的常驻页码浮标(#1058)。纯数字，各语言一致。 -->
     <string name="artwork_page_indicator">%1$d / %2$d</string>
     <string name="comic_reader_jump_to_page">跳转到第 %1$d 页</string>
+    <string name="comic_reader_auto_rotate_image">看图自动横屏</string>
     <string name="comic_reader_open_label">进入阅读</string>
     <string name="comic_reader_load_failed">加载失败：%1$s</string>
     <string name="comic_reader_no_pages">该作品没有可阅读的页面</string>
@@ -2309,6 +2313,7 @@
 
     <!-- 网络测试-->
     <string name="nav_network_test_entry">网络测试</string>
+    <string name="spark_ai_entry">Spark AI 实验室</string>
     <string name="network_test_subtitle">连通性 · DNS 污染 · TLS 握手诊断</string>
     <string name="network_test_run">开始测试</string>
     <string name="network_test_running">测试中…</string>
@@ -2584,6 +2589,7 @@
     <string name="setting_chat_room_entry_warning">键政封永久</string>
     <string name="setting_show_plaza_entry">首页侧边栏展示广场入口</string>
     <string name="plaza_title">广场</string>
+    <string name="plaza_feed_description" translatable="false">看看大家正在分享的作品与想法</string>
     <string name="plaza_compose_title">发帖</string>
     <string name="plaza_send_post">发布</string>
     <string name="plaza_post_text_hint">分享你正在看的作品…</string>
@@ -3010,6 +3016,7 @@
 
     <!-- 借号用量页（服务端两只配额桶的只读视图） -->
     <string name="nana7mi_usage_title">使用情况</string>
+    <string name="nana7mi_usage_motto">失败是成功之母\n充钱是成功支付</string>
     <string name="nana7mi_usage_section">搜索按热度排序额度</string>
     <string name="nana7mi_usage_window_session">当前时段</string>
     <string name="nana7mi_usage_window_weekly">每周额度</string>
@@ -3126,6 +3133,8 @@
     <!-- 自动快照（试验性） -->
     <string name="setting_auto_snapshot_on_bookmark">收藏时生成离线快照</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">收藏作品后在后台静默生成一份轻量离线快照（试验性）</string>
+    <string name="setting_auto_snapshot_on_illust_manga">插画/漫画自动生成快照</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">对反复浏览与长时间驻留的插画/漫画静默生成快照（试验性）</string>
 
     <!-- 日志文件（试验性） -->
     <string name="setting_log_file_enable">启用日志文件</string>
@@ -3159,6 +3168,8 @@
     <string name="bookmark_mirror_ready_title">收藏库已就绪</string>
     <string name="bookmark_mirror_ready_message">已在本地攒好 %1$s 件收藏，现在可以倒序、按标签/作者/年份筛，还能全文搜。</string>
     <string name="bookmark_mirror_ready_action">去看看</string>
+    <string name="debug_mirror_banner_title">触发「收藏库已就绪」banner</string>
+    <string name="debug_mirror_banner_desc">清掉一次性标记并重放引导，公开或私人收藏可选</string>
     <string name="bookmark_library_title">我的插画收藏</string>
     <string name="bookmark_library_search_hint">搜索标题 / 作者 / 标签 / ID</string>
     <string name="bookmark_library_empty">本地还没有可浏览的收藏</string>
@@ -3234,8 +3245,8 @@
 
     <!-- PixShaft 云翻译（服务端代理的 AI 翻译，pixshaft-api src/translate.js） -->
     <string name="cloud_translate_title">PixShaft 云翻译</string>
-    <string name="cloud_translate_desc">评论、标题、标签与漫画翻译走 PixShaft 服务器的 AI 翻译，无需代理，有用量额度；关闭则使用内置 Google 翻译。已启用自定义 AI 翻译时优先自定义。</string>
-    <string name="cloud_translate_usage_section">AI 翻译额度</string>
+    <string name="cloud_translate_desc">评论、标题、标签与漫画翻译走 PixShaft 服务器的云翻译，无需代理，有用量额度；关闭则使用内置 Google 翻译。已启用自定义 AI 翻译时优先自定义。</string>
+    <string name="cloud_translate_usage_section">云翻译额度</string>
     <string name="cloud_translate_failed_title">云翻译失败</string>
     <string name="cloud_translate_quota_title">云翻译额度已用完</string>
     <string name="cloud_translate_quota_session">五小时翻译额度已用完，%1$s后恢复</string>
@@ -3243,5 +3254,18 @@
     <string name="cloud_translate_quota_unknown">翻译额度已用完，请稍后再试</string>
     <string name="cloud_translate_usage_lt1">&lt;1%</string>
     <string name="cloud_translate_engine_line">当前引擎：%1$s</string>
-    <string name="cloud_translate_usage_section_engine">AI 翻译额度 · %1$s</string>
+    <string name="cloud_translate_usage_section_engine">云翻译额度 · %1$s</string>
+    <string name="artwork_poster_save">保存作品海报</string>
+    <string name="artwork_poster_generating">正在生成高清作品海报…</string>
+    <string name="artwork_poster_saved">作品海报已保存到相册</string>
+    <string name="artwork_poster_failed">海报生成失败：%1$s</string>
+    <string name="artwork_poster_image_unavailable">作品图片不可用</string>
+    <string name="artwork_poster_destination_unavailable">无法创建相册文件</string>
+    <string name="artwork_poster_encode_failed">海报编码失败</string>
+    <string name="artwork_poster_unknown_author">未知作者</string>
+    <string name="artwork_poster_untitled">无题</string>
+    <string name="recommend_page_content">推荐页面展示内容</string>
+    <string name="recommend_page_works_first">推荐作品-热门标签</string>
+    <string name="recommend_page_tags_first">热门标签-推荐作品</string>
+    <string name="recommend_page_content_desc">调整插画和小说推荐页的页签顺序，重启后生效</string>
 </resources>

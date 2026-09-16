@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
@@ -13,6 +14,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecyNovelSeriesOfUserBinding
 import ceui.pixiv.api.Client
+import ceui.pixiv.chat.base.viewModels
 import ceui.lisa.model.ListNovelSeries
 import ceui.lisa.models.NovelSeriesItem
 import ceui.lisa.utils.Common
@@ -31,6 +33,7 @@ import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.novel.CrossSeriesDownloadOptionsSheet
 import ceui.pixiv.ui.novel.NovelSeriesFragment
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
+import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.ui.ExportFormatCallback
 import ceui.pixiv.ui.novel.reader.ui.ExportSheet
 import ceui.pixiv.ui.task.CrossSeriesDownloadTask
@@ -40,6 +43,12 @@ import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlin.math.floor
 import ceui.pixiv.ui.navigation.TemplateRoute
+
+/** 跨系列下载的待确认请求，跨旋转保留在 Fragment ViewModel 中。 */
+class CrossSeriesDownloadRequestViewModel : ViewModel() {
+    var pendingSeriesList: List<NovelSeriesItem>? = null
+    var mergeAll: Boolean = false
+}
 
 /**
  * 某作者「小说系列」总览页（feeds 框架版，替代 legacy [ceui.lisa.fragments.FragmentNovelSeries] +
@@ -55,12 +64,15 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  *   - 选择下载：多选系列，每个系列各自合并为独立文件；
  *   - 全部下载：全部系列，每个各自合并为独立文件；
  *   - 合并下载：全部系列合并为唯一一个文件。
- * 选完模式再弹 [ExportSheet] 选输出格式（TXT/MD/PDF/EPUB），回调走 [CrossSeriesDownloadTask]。
+ * 选完模式后按「默认小说下载格式」直接执行或弹格式选择（TXT/MD/PDF/EPUB），
+ * 回调走 [CrossSeriesDownloadTask]。
  * 该流程只依赖 [allItems]（当前列表快照）/ activity / childFragmentManager / isAdded，与 legacy 等价。
  */
 class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
+
+    private val novelDownloadRequest by viewModels { CrossSeriesDownloadRequestViewModel() }
 
     /**
      * 两种形态,对齐 [UserNovelFeedFragment]:
@@ -217,16 +229,16 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
         builder.create().show()
     }
 
-    /**
-     * 用户在 [CrossSeriesDownloadOptionsSheet] 选完模式后，再弹 [ExportSheet] 选输出格式。
-     * 把"要做什么"暂存到 [pendingMergeAction]，等 sheet 回调 [onExportFormatChosen] 拿到 format 再真正启动 task。
-     */
-    private var pendingMergeAction: ((ExportFormat) -> Unit)? = null
-
     private fun runPerSeries(seriesList: List<NovelSeriesItem>) {
         if (!isAdded) return
-        pendingMergeAction = { format -> startPerSeries(seriesList, format) }
-        ExportSheet().show(childFragmentManager, ExportSheet.TAG)
+        val format = NovelExportManager.resolveConfiguredFormat()
+        if (format != null) {
+            startPerSeries(seriesList, format)
+        } else {
+            novelDownloadRequest.pendingSeriesList = seriesList
+            novelDownloadRequest.mergeAll = false
+            ExportSheet().show(childFragmentManager, ExportSheet.TAG)
+        }
     }
 
     private fun runMergeAll() {
@@ -236,13 +248,26 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
             return
         }
         if (!isAdded) return
-        pendingMergeAction = { format -> startMergeAll(list, format) }
-        ExportSheet().show(childFragmentManager, ExportSheet.TAG)
+        val format = NovelExportManager.resolveConfiguredFormat()
+        if (format != null) {
+            startMergeAll(list, format)
+        } else {
+            novelDownloadRequest.pendingSeriesList = list
+            novelDownloadRequest.mergeAll = true
+            ExportSheet().show(childFragmentManager, ExportSheet.TAG)
+        }
     }
 
     override fun onExportFormatChosen(format: ExportFormat) {
-        pendingMergeAction?.invoke(format)
-        pendingMergeAction = null
+        val seriesList = novelDownloadRequest.pendingSeriesList
+        val mergeAll = novelDownloadRequest.mergeAll
+        novelDownloadRequest.pendingSeriesList = null
+        novelDownloadRequest.mergeAll = false
+        if (mergeAll) {
+            startMergeAll(seriesList ?: allItems(), format)
+        } else if (seriesList != null) {
+            startPerSeries(seriesList, format)
+        }
     }
 
     private fun startPerSeries(seriesList: List<NovelSeriesItem>, format: ExportFormat) {

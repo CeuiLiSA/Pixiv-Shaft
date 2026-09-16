@@ -6,18 +6,25 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.downloadProbeDispatcher
 import ceui.lisa.database.hasDownloadRecord
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.communication.StateSource
+import ceui.pixiv.download.DownloadRecordStateSource
 import ceui.pixiv.utils.fetchFullIllustDetail
 import ceui.pixiv.utils.fetchIllustPageDimensions
 import ceui.pixiv.utils.hasTrustedCaption
 import ceui.pixiv.utils.isFullDetail
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -29,10 +36,12 @@ import timber.log.Timber
  * off the main thread — on Android 11+ SAF queries per page add up fast, and for
  * multi-P works this was ANR'ing the detail screen on entry (issue #835).
  */
-class FragmentIllustViewModel(private val illustId: Long) : ViewModel() {
+class FragmentIllustViewModel(
+    private val illustId: Long,
+    downloadStates: StateSource<Long, Boolean>,
+) : ViewModel() {
 
-    private val _hasDownload = MutableLiveData<Boolean>()
-    val hasDownload: LiveData<Boolean> = _hasDownload
+    val downloadState = downloadStates.observe(illustId)
 
     // ── 每页真实宽高(网页 ajax /ajax/illust/{id}/pages)──
     // 与 ArtworkV3ViewModel 同一套:多 P 时提前拿到每页宽高,让顶部大图下载前就按真 ratio 摆准高度。
@@ -76,33 +85,50 @@ class FragmentIllustViewModel(private val illustId: Long) : ViewModel() {
         }
     }
 
-    /** Kick off an async download-state refresh. Result lands on [hasDownload]. */
-    fun refreshDownloadState(context: Context) {
-        val appContext = context.applicationContext
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val illust = ObjectPool.get<Illust>(illustId).value
-                    ?: return@launch
-                val hasLocalFile = Common.isIllustDownloaded(illust)
-                // hasDownloadRecord 走 v38 的 illustId 索引（O(log n)），不再扫 2GB illustGson blob；
-                // 存量回填未完成时才退回旧 LIKE 兜底。仍串行到单车道 dispatcher 兜底旧库/回填窗口期。
-                val hasRecord = if (hasLocalFile) false else withContext(downloadProbeDispatcher) {
-                    AppDatabase
-                        .getAppDatabase(appContext)
-                        .downloadDao()
-                        .hasDownloadRecord(illust.id.toLong())
-                }
-                _hasDownload.postValue(hasLocalFile || hasRecord)
-            } catch (e: Exception) {
-                Timber.w(e, "refreshDownloadState failed illustId=%d", illustId)
-            }
-        }
-    }
+    class Factory(private val illustId: Long, context: Context) : ViewModelProvider.Factory {
+        private val appContext = context.applicationContext
 
-    class Factory(private val illustId: Long) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return FragmentIllustViewModel(illustId) as T
+            val states = DownloadRecordStateSource(
+                invalidations = { id ->
+                    // Only this work's indexed record presence can invalidate a table-driven probe.
+                    // Unrelated downloads must not repeat SAF/legacy LIKE scans for the open work.
+                    val recordChanges = DownloadRecordStateSource.recordChanges(
+                        id, ManagerReactive.doneTableInvalidations,
+                    ) { key ->
+                        withContext(downloadProbeDispatcher) {
+                            AppDatabase.getAppDatabase(appContext).downloadDao()
+                                .hasDownloadRecordByIllustIdIndexed(key)
+                        }
+                    }
+                    // Bookmark/view counters cannot affect a saved path. Preserve real metadata
+                    // changes (title, author, page URLs, etc.) and the initial/reopened-page probe.
+                    val fileMetadata = ObjectPool.get<Illust>(id).asFlow()
+                        .map { it.copy(is_bookmarked = null, total_bookmarks = null, total_view = null) }
+                        .distinctUntilChanged()
+                    combine(
+                        recordChanges,
+                        fileMetadata,
+                    ) { _, _ -> Unit }.conflate()
+                },
+                probe = { id ->
+                    val illust = ObjectPool.get<Illust>(id).value
+                    withContext(downloadProbeDispatcher) {
+                        // Indexed record lookup first. Downloaded multi-page works never need an
+                        // expensive page-by-page SAF scan on entry. Keep legacy backfill support.
+                        val hasRecord = AppDatabase.getAppDatabase(appContext)
+                            .downloadDao().hasDownloadRecord(id)
+                        val hasLocalFile = !hasRecord && illust != null && Common.isIllustDownloaded(illust)
+                        Timber.tag(DownloadRecordStateSource.LOG_TAG).d(
+                            "probe illustId=%d record=%s localFile=%s fileProbeSkipped=%s",
+                            id, hasRecord, hasLocalFile, hasRecord,
+                        )
+                        hasRecord || hasLocalFile
+                    }
+                },
+            )
+            return FragmentIllustViewModel(illustId, states) as T
         }
     }
 }

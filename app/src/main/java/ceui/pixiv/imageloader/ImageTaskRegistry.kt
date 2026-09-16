@@ -76,6 +76,10 @@ object ImageTaskRegistry {
         return file.takeIf { it.exists() && it.length() > 0 }
     }
 
+    /** Lookup only: saving can join an existing display task without starting a new fetch. */
+    @Synchronized
+    internal fun peekTask(url: String): ImageLoadTask? = taskMap[url]
+
     @Synchronized
     fun remove(url: String) {
         val removed = taskMap.remove(url)

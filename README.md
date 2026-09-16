@@ -237,6 +237,8 @@ More in the [FAQ](./FAQ.md) · [install FAQ](./FAQ-install.md) · [download path
 
 Contributions are welcome! Feel free to open issues or submit pull requests.
 
+For V3 UI work, start with the [V3 design philosophy](docs/v3-design-philosophy.md), [component gallery](mockup/v3-design-system/index.html), and [page starter](mockup/v3-design-system/starter.html).
+
 ### 🏆 Top Contributors
 
 <table>

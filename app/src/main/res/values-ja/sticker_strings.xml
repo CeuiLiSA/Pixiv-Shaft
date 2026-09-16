@@ -1,0 +1,13 @@
+<resources>
+    <string name="sticker_title">スタンプ</string>
+    <string name="sticker_close">閉じる</string>
+    <string name="sticker_retry">再試行</string>
+    <string name="sticker_customized">おすすめ</string>
+    <string name="sticker_static">絵文字</string>
+    <string name="sticker_animation">アニメーション</string>
+    <string name="sticker_checking">スタンプを確認中…</string>
+    <string name="sticker_downloading">スタンプをダウンロード中：%1$d%%</string>
+    <string name="sticker_extracting">スタンプを検証・展開中…</string>
+    <string name="sticker_failed">スタンプを準備できませんでした：%1$s</string>
+    <string name="sticker_message">[スタンプ]</string>
+</resources>

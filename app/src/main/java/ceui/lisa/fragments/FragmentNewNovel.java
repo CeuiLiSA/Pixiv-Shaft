@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
@@ -27,6 +28,7 @@ public class FragmentNewNovel extends BaseFragment<ViewpagerWithTablayoutBinding
 
     @Override
     public void initView() {
+        final boolean hotTagsFirst = Shaft.sSettings.isRecommendHotTagsFirst();
         final String[] TITLES = new String[]{
                 Shaft.getContext().getString(R.string.recommend_illust),
                 Shaft.getContext().getString(R.string.hot_tag)
@@ -39,6 +41,14 @@ public class FragmentNewNovel extends BaseFragment<ViewpagerWithTablayoutBinding
                 new RecmdNovelFeedFragment(),
                 HotTagsFeedFragment.newInstance(Params.TYPE_NOVEL)
         };
+        if (hotTagsFirst) {
+            String title = TITLES[0];
+            TITLES[0] = TITLES[1];
+            TITLES[1] = title;
+            Fragment fragment = mFragments[0];
+            mFragments[0] = mFragments[1];
+            mFragments[1] = fragment;
+        }
         baseBind.toolbarTitle.setText(R.string.type_novel);
         baseBind.toolbar.setNavigationOnClickListener(v -> finish());
         baseBind.toolbar.inflateMenu(R.menu.fragment_left);
@@ -60,6 +70,21 @@ public class FragmentNewNovel extends BaseFragment<ViewpagerWithTablayoutBinding
             @Override
             public Fragment getItem(int i) {
                 return mFragments[i];
+            }
+
+            // 身份跟随内容而非位置，避免改顺序后恢复出标题与内容不一致的页签。
+            @Override
+            public long getItemId(int position) {
+                return hotTagsFirst ? 1 - position : position;
+            }
+
+            @NonNull
+            @Override
+            public Object instantiateItem(@NonNull ViewGroup container, int position) {
+                Fragment fragment = (Fragment) super.instantiateItem(container, position);
+                // 恢复时复用的 Fragment 也要交给重选回顶和首页刷新。
+                mFragments[position] = fragment;
+                return fragment;
             }
 
             @Override

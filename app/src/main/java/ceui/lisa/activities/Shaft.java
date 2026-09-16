@@ -75,6 +75,8 @@ public class Shaft extends Application implements ServicesProvider {
     private ceui.pixiv.ui.fanbox.FanboxWebBridge fanboxWebBridge;
     private ceui.pixiv.ui.bulk.QueueDownloadManager queueDownloadManager;
     private ceui.pixiv.actions.PixivActionQueue pixivActionQueue;
+    private final ceui.pixiv.communication.CommunicationScope communicationScope =
+            new ceui.pixiv.communication.CommunicationScope();
     private ceui.pixiv.db.discovery.ProfileManager profileManager;
     private ceui.pixiv.db.discovery.DiscoveryPool discoveryPool;
     private ceui.pixiv.actions.AccountOnlineReportOutbox accountOnlineReportOutbox;
@@ -84,6 +86,11 @@ public class Shaft extends Application implements ServicesProvider {
     private ceui.pixiv.db.mirror.BookmarkMirrorService bookmarkMirror;
 
     private EntityWrapper entityWrapper;
+
+    @Override
+    public ceui.pixiv.communication.CommunicationScope getCommunicationScope() {
+        return communicationScope;
+    }
 
     /**
      * 主线程一直不 idle 时的兜底延时，只为「永远等不到 idle」这个病态情况存在。

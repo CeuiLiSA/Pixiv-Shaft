@@ -26,6 +26,7 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         bindWitGalleryRows();
         bindLogFileRow();
         bindTriggerCrashRow();
+        bindDebugMirrorBannerRow();
 
         // 自动快照是本地离线能力，不涉及站外 UGC，所有渠道都显示。
         baseBind.autoSnapshotOnBookmark.setChecked(Shaft.sSettings.isAutoSnapshotOnBookmark());
@@ -39,6 +40,19 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         });
         baseBind.autoSnapshotOnBookmarkRela.setOnClickListener(v ->
                 baseBind.autoSnapshotOnBookmark.performClick());
+
+        // 插画/漫画自动生成快照：只记录并生成本地行为信号，不涉及站外 UGC。
+        baseBind.autoSnapshotOnIllustManga.setChecked(Shaft.sSettings.isAutoSnapshotOnIllustManga());
+        baseBind.autoSnapshotOnIllustManga.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setAutoSnapshotOnIllustManga(isChecked);
+                Local.setSettings(Shaft.sSettings);
+                Common.showToast(getString(R.string.string_428));
+            }
+        });
+        baseBind.autoSnapshotOnIllustMangaRela.setOnClickListener(v ->
+                baseBind.autoSnapshotOnIllustManga.performClick());
 
         // google(Play)渠道:聊天室 / 广场是站外 UGC 入口,合规起见整组不出现。认 IS_LITE
         // 而不是 debug 口径 —— lite 的 debug 包同样没有,与 SettingsCatalog 索引一致。
@@ -159,6 +173,20 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
      */
     private void crashDeep() {
         crashDeep();
+    }
+
+    /**
+     * 【临时·调试】手动弹一次「收藏库已就绪」引导 banner，用来验它的「去看看」按钮
+     * （正常路径要等整份回填跑完、且一辈子只弹一次）。
+     * 只在 debug 包出现；验完连同布局里那一行和 DebugMirrorBannerTrigger.kt 一起删。
+     */
+    private void bindDebugMirrorBannerRow() {
+        if (!ceui.lisa.BuildConfig.DEBUG) {
+            baseBind.debugMirrorBannerRela.setVisibility(View.GONE);
+            return;
+        }
+        baseBind.debugMirrorBannerRela.setOnClickListener(v ->
+                ceui.pixiv.ui.debug.DebugMirrorBannerTrigger.show(mContext));
     }
 
     private void bindFirebaseRow() {

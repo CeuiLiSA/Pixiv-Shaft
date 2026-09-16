@@ -37,7 +37,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
     // (reply_to_uid / reply_to_cmid / reply_to_display_name / reply_to_text)
     // added via MIGRATION_2_3 (ALTER TABLE ADD COLUMN), preserving the local
     // cache and any optimistic Sending/Failed rows across the upgrade.
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class ChatDatabase : RoomDatabase() {
@@ -54,13 +54,19 @@ abstract class ChatDatabase : RoomDatabase() {
                     ChatDatabase::class.java,
                     "chat.db",
                 )
-                    .addMigrations(MIGRATION_2_3)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
                     // Safety net for any path MIGRATION_* doesn't cover (e.g. a
                     // downgrade); chat is a cache, so dropping it is acceptable.
                     .fallbackToDestructiveMigration()
                     .build()
                     .also { instance = it }
             }
+
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE chat_messages ADD COLUMN sticker_id INTEGER")
+            }
+        }
 
         /** Additive reply-to columns; all nullable so existing rows need no backfill. */
         private val MIGRATION_2_3 = object : Migration(2, 3) {

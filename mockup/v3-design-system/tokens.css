@@ -1,0 +1,119 @@
+/* Approved V3 App referral palette. Rose/teal are accent variants, not status colors. */
+:root{
+  color-scheme:light;
+  --bg:#f8f7fc;
+  --surface:#fff;
+  --surface-2:#f0eef6;
+  --surface-3:#e9e5f2;
+  --ink:#262331;
+  --muted:#716c80;
+  --primary:#6a4bc5;
+  --primary-ink:#fff;
+  --tint:#eae2ff;
+  --on-tint:#493478;
+  --line:#e7e3ee;
+  --glass:rgba(248,247,252,.84);
+  --green:#386746;
+  --green-bg:#e9f1e5;
+  --hero:#eae3f7;
+  --shadow:0 24px 64px #3225520b;
+  --spring:cubic-bezier(.2,.85,.25,1.25)}
+
+[data-theme=dark]{
+  color-scheme:dark;
+  --bg:#101014;
+  --surface:#1b1a20;
+  --surface-2:#24222b;
+  --surface-3:#302b3a;
+  --ink:#f3effa;
+  --muted:#b0a8bd;
+  --primary:#c5afff;
+  --primary-ink:#30204e;
+  --tint:#3c2e56;
+  --on-tint:#dfd0ff;
+  --line:#34303e;
+  --glass:rgba(16,16,20,.84);
+  --green:#b7d8ab;
+  --green-bg:#283527;
+  --hero:#282236;
+  --shadow:0 24px 64px #0002}
+
+[data-accent=rose]{
+  --primary:#a43b65;
+  --tint:#fce0eb;
+  --on-tint:#782745;
+  --hero:#f6e6ed}
+
+[data-accent=rose][data-theme=dark]{
+  --primary:#f5accc;
+  --tint:#502a3c;
+  --on-tint:#ffd5e6;
+  --hero:#32232d}
+
+[data-accent=teal]{
+  --primary:#28665e;
+  --tint:#d9efe8;
+  --on-tint:#225b50;
+  --hero:#deeee7}
+
+[data-accent=teal][data-theme=dark]{
+  --primary:#9adacc;
+  --tint:#26473e;
+  --on-tint:#c4f3e5;
+  --hero:#202f2b}
+
+
+/* V3 reusable geometry, typography and motion. See docs/v3-design-philosophy.md.
+   CSS px are Web units. Android uses dp/sp and existing witstudio theme roles. */
+:root {
+  --font-ui: 'Montserrat', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', -apple-system, BlinkMacSystemFont, sans-serif;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --radius-small: 12px;
+  --radius-icon: 17px;
+  --radius-card: 22px;
+  --radius-panel: 24px;
+  --radius-hero: 30px;
+  --radius-sheet: 30px;
+  --radius-pill: 999px;
+  --duration-fast: 160ms;
+  --duration-state: 200ms;
+  --duration-emphasis: 300ms;
+  --duration-enter: 350ms;
+  --ease-standard: cubic-bezier(.2, 0, 0, 1);
+  --press-scale: .96;
+  --touch-min: 48px;
+  --type-display: clamp(28px, 3.2vw, 40px);
+  --type-title: 32px;
+  --type-section: 20px;
+  --type-card: 15px;
+  --type-body: 14px;
+  --type-label: 12px;
+  --type-caption: 11px;
+  --on-hero: #625b72;
+  --danger: #a93443;
+  --danger-bg: #fde9eb;
+  --warning: #755a16;
+  --warning-bg: #f6edd0;
+  --info: #516795;
+  --info-bg: #e6edf9;
+}
+[data-theme=dark] {
+  --on-hero: #b0a8bd;
+  --danger: #ffb2b9;
+  --danger-bg: #49272e;
+  --warning: #ead18d;
+  --warning-bg: #41391f;
+  --info: #b4c7ee;
+  --info-bg: #293248;
+}
+@media (max-width: 760px) {
+  :root { --type-title: 28px; --radius-hero: 26px; --radius-sheet: 28px; }
+}

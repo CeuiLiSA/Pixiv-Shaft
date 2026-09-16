@@ -111,6 +111,12 @@ data class NovelSeriesCardFeedItem(
     override val feedKey: Any get() = novel.id
 }
 
+/** 多选态变化（进入/退出多选、勾选/取消勾选）的增量刷新 payload，避免重绑图片。 */
+internal object NovelSeriesSelectionPayload {
+    fun canBindSelectionOnly(payloads: List<Any>): Boolean =
+        payloads.isNotEmpty() && payloads.all { it === this }
+}
+
 // ── FeedSource：首页 = 头部条目 + 章节卡；后续页 = 仅章节卡（游标 = next_url）──
 
 class NovelSeriesFeedSource(private val seriesId: Long) : FeedSource<String> {
@@ -250,6 +256,18 @@ fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3
             cell.binding.novelCover.clearGlideOnRecycle()
             cell.binding.authorAvatar.clearGlideOnRecycle()
         },
+        changePayload = { oldItem, newItem ->
+            if (oldItem.novel == newItem.novel) NovelSeriesSelectionPayload else null
+        },
+        bindPayloads = { cell, payloads ->
+            // RecyclerView 会合并多次更新；混入全量刷新标记时必须回退，不能漏绑小说内容。
+            if (NovelSeriesSelectionPayload.canBindSelectionOnly(payloads)) {
+                bindNovelSeriesCardSelection(cell.binding, cell.item)
+                true
+            } else {
+                false
+            }
+        },
     ) { cell ->
         val b = cell.binding
         val novel = cell.item.novel
@@ -308,16 +326,7 @@ fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3
         }
 
         // multi-select indicator
-        b.selectIndicator.isVisible = cell.item.isMultiSelectMode
-        if (cell.item.isMultiSelectMode) {
-            if (cell.item.isSelected) {
-                b.selectIndicator.setImageResource(R.drawable.ic_check_circle_black_24dp)
-                b.selectIndicator.clearColorFilter()
-            } else {
-                b.selectIndicator.setImageResource(R.drawable.ic_checkbox_off)
-                b.selectIndicator.setColorFilter(ctx.getColor(R.color.v3_text_3))
-            }
-        }
+        bindNovelSeriesCardSelection(b, cell.item)
 
         b.root.setOnClick { sender ->
             if (cell.item.isMultiSelectMode) {
@@ -329,6 +338,19 @@ fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3
         }
         applyCardTouchScale(b.root, 0.98f)
     }
+
+private fun bindNovelSeriesCardSelection(b: CellNovelV3Binding, item: NovelSeriesCardFeedItem) {
+    b.selectIndicator.isVisible = item.isMultiSelectMode
+    if (item.isMultiSelectMode) {
+        if (item.isSelected) {
+            b.selectIndicator.setImageResource(R.drawable.ic_check_circle_black_24dp)
+            b.selectIndicator.clearColorFilter()
+        } else {
+            b.selectIndicator.setImageResource(R.drawable.ic_checkbox_off)
+            b.selectIndicator.setColorFilter(b.root.context.getColor(R.color.v3_text_3))
+        }
+    }
+}
 
 private fun bindNovelCardBookmark(
     b: CellNovelV3Binding,

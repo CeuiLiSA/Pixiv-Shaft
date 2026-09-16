@@ -81,6 +81,7 @@ class HttpChatHistorySource(
             displayName = item.display_name,
             text = item.text,
             illustId = item.illust_id,
+            stickerId = item.sticker_id,
             ts = item.ts,
             state = SendState.Delivered,
             replyToUid = item.reply_to?.uid,

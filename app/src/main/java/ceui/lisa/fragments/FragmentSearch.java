@@ -15,6 +15,7 @@ import android.webkit.URLUtil;
 import android.widget.TextView;
 
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -208,6 +209,8 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                         .setTipWord(getString(R.string.string_429))
                         .create();
                 tipDialog.show();
+                // 绑定发起请求时的视图，避免旧请求在视图重建后继续跳转。
+                Lifecycle requestLifecycle = getViewLifecycleOwner().getLifecycle();
                 //先假定为作品id
                 PixivOperate.getIllustByID(tryParseId(trimmedKeyword), mContext, new Callback<Void>() {
                     @Override
@@ -219,6 +222,10 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     @Override
                     public void doSomething(Void t) {
                         tipDialog.dismiss();
+                        if (!isAdded() || requestLifecycle.getCurrentState() == Lifecycle.State.DESTROYED
+                                || mActivity.isFinishing() || mActivity.isDestroyed()) {
+                            return;
+                        }
                         PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_USERID);
                         Intent intent = new Intent(mContext, UActivity.class);
                         intent.putExtra(Params.USER_ID, (long) Common.safeUserId(trimmedKeyword));

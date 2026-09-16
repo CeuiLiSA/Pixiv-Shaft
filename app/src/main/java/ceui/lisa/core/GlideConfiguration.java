@@ -16,6 +16,8 @@ import java.io.InputStream;
 import ceui.lisa.activities.Shaft;
 import ceui.pixiv.snapshot.SnapshotLocalStreamLoader;
 import ceui.pixiv.snapshot.SnapshotLocalFileLoader;
+import ceui.pixiv.sticker.LocalSticker;
+import ceui.pixiv.sticker.StickerModelLoader;
 
 @GlideModule
 @Excludes(com.bumptech.glide.integration.okhttp3.OkHttpLibraryGlideModule.class)
@@ -40,6 +42,7 @@ public class GlideConfiguration extends AppGlideModule {
         //普通图片加载只多一次前缀比较(SnapshotLocalStreamLoader.handles),不进快照逻辑、不碰磁盘。
         registry.prepend(GlideUrl.class, InputStream.class, new SnapshotLocalStreamLoader.Factory());
         registry.prepend(GlideUrl.class, File.class, new SnapshotLocalFileLoader.Factory());
+        registry.append(LocalSticker.class, InputStream.class, new StickerModelLoader.Factory());
     }
 
     @Override

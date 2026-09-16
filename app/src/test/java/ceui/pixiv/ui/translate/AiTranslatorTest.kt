@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.translate
 
+import ceui.lisa.R
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -225,13 +226,78 @@ class AiTranslatorTest {
             onPhase = { phases.add(it) },
         )
         assertEquals("你好，世界！", out)
-        assertEquals(listOf(AiTranslatePhase.THINKING, AiTranslatePhase.GENERATING), phases.toList())
+        assertEquals(listOf(AiTranslatePhase.Thinking("让我想想"), AiTranslatePhase.Generating), phases.toList())
 
         val recorded = server.takeRequest()
         assertEquals("Bearer sk-test", recorded.getHeader("Authorization"))
         val sent = org.json.JSONObject(recorded.body.readUtf8())
         assertEquals(true, sent.getBoolean("stream"))
         assertTrue(sent.has("stream_options"))
+    }
+
+    @Test
+    fun `上游提示分片合并且心跳不进入译文`() = runBlocking {
+        val phases = CopyOnWriteArrayList<AiTranslatePhase>()
+        server.enqueue(MockResponse().setHeader("Content-Type", "text/event-stream").setBody(
+            "data: {\"choices\":[{\"delta\":{\"reasoning_content\":\"推理已转发\"}}]}\n\n" +
+                ": keep-alive\n\n" +
+                "data: {\"choices\":[{\"delta\":{\"reasoning_content\":\"上游端点\"}}]}\n\n" +
+                "data: {\"choices\":[{\"delta\":{\"content\":\"你好\"}}]}\n\n" +
+                "data: {\"choices\":[{\"delta\":{\"reasoning_content\":\"晚到的提示\"}}]}\n\n" +
+                "data: [DONE]\n\n"
+        ))
+        val out = AiTranslator.testConfig(baseUrl(), "", "m", "p", forceStreaming = true, onPhase = { phases.add(it) })
+        assertEquals("你好", out)
+        assertEquals(listOf(
+            AiTranslatePhase.Thinking("推理已转发"),
+            AiTranslatePhase.Thinking("推理已转发上游端点"),
+            AiTranslatePhase.Generating,
+        ), phases.toList())
+    }
+
+    @Test
+    fun `逐字上游提示只弹一次完整阶段提示`() = runBlocking {
+        val notices = CopyOnWriteArrayList<Int>()
+        server.enqueue(sse(
+            """{"choices":[{"delta":{"reasoning_content":"推"}}]}""",
+            """{"choices":[{"delta":{"reasoning_content":"理已转发上游端点"}}]}""",
+            """{"choices":[{"delta":{"content":"你好"}}]}""", "[DONE]",
+        ))
+        val out = AiTranslator.testConfig(
+            baseUrl(), "", "m", "p", forceStreaming = true,
+            onPhase = onceThinkingPhase { notices.add(it) },
+        )
+        assertEquals("你好", out)
+        assertEquals(listOf(R.string.ai_translate_thinking), notices.toList())
+    }
+
+    @Test
+    fun `长推理仅保留最近提示且不会截断 emoji`() = runBlocking {
+        val phases = CopyOnWriteArrayList<AiTranslatePhase>()
+        val reasoning = "早".repeat(300) + "😀" + "新".repeat(239)
+        server.enqueue(sse(
+            """{"choices":[{"delta":{"reasoning_content":${org.json.JSONObject.quote(reasoning)}}}]}""",
+            """{"choices":[{"delta":{"content":"你好"}}]}""", "[DONE]",
+        ))
+        assertEquals("你好", AiTranslator.testConfig(baseUrl(), "", "m", "p", forceStreaming = true, onPhase = { phases.add(it) }))
+        assertEquals(AiTranslatePhase.Thinking("新".repeat(239)), phases.first())
+    }
+
+    @Test
+    fun `批量阶段转发更新去重且出译文后不倒退`() {
+        val phases = mutableListOf<AiTranslatePhase>()
+        val aggregator = AiTranslator.PhaseAggregator { phases.add(it) }
+        aggregator.report(AiTranslatePhase.Thinking("已转发"))
+        aggregator.report(AiTranslatePhase.Thinking("已转发"))
+        aggregator.report(AiTranslatePhase.Thinking("等待上游"))
+        aggregator.report(AiTranslatePhase.Generating)
+        aggregator.report(AiTranslatePhase.Thinking("另一分片仍在等待"))
+        aggregator.report(AiTranslatePhase.Generating)
+        assertEquals(listOf(
+            AiTranslatePhase.Thinking("已转发"),
+            AiTranslatePhase.Thinking("等待上游"),
+            AiTranslatePhase.Generating,
+        ), phases)
     }
 
     @Test

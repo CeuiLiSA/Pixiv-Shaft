@@ -16,6 +16,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
@@ -24,6 +25,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.ItemBigReadButtonBinding
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.api.Client
+import ceui.pixiv.chat.base.viewModels as directViewModel
 import ceui.loxia.Novel
 import ceui.pixiv.api.model.NovelSeriesResp
 import ceui.pixiv.widgets.ProgressIndicator
@@ -42,6 +44,7 @@ import ceui.pixiv.ui.detail.seriesAuthorRenderer
 import ceui.pixiv.ui.detail.seriesCaptionRenderer
 import ceui.pixiv.ui.detail.seriesSectionLabelRenderer
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
+import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.ui.ExportFormatCallback
 import ceui.pixiv.ui.novel.reader.ui.ExportSheet
 import ceui.pixiv.ui.task.BatchDownloadNovelsTask
@@ -55,9 +58,24 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
+import kotlin.coroutines.resume
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
+
+/** 系列下载的待确认动作，跨旋转保留在 Fragment ViewModel 中。 */
+class NovelSeriesDownloadRequestViewModel : ViewModel() {
+    var pendingAction: PendingAction? = null
+
+    enum class PendingAction {
+        MERGE,
+        BATCH_SELECTED,
+        DOWNLOAD_ALL,
+    }
+}
 
 /**
  * 小说系列 V3 详情页（feeds 框架版）。hero + 作者 + 档案 + 简介 + 「作品列表」标题 + 章节卡。
@@ -81,6 +99,8 @@ class NovelSeriesFragment :
     }
 
     private val selectionModel by viewModels<NovelSeriesSelectionViewModel>()
+
+    private val novelDownloadRequest by directViewModel { NovelSeriesDownloadRequestViewModel() }
 
     private var singleDownloadBtn: View? = null
     private var multiSelectBar: View? = null
@@ -189,7 +209,9 @@ class NovelSeriesFragment :
             textSize = 15f
             gravity = Gravity.CENTER
             setTypeface(typeface, Typeface.BOLD)
-            background = palette.pillSecondary(28 * density, (1 * density).toInt())
+            // 用不透明 cardFill 代替半透明 pillSecondary：多选条悬浮在列表上，
+            // 半透明底会透出下方章节封面，textAccent 文字难以辨认。
+            background = palette.settingsCardBg(28 * density, (1 * density).toInt())
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
                 .apply { marginEnd = (10 * density).toInt() }
             setOnClick { onClickSelectAllToggle() }
@@ -243,22 +265,45 @@ class NovelSeriesFragment :
         .filterIsInstance<NovelSeriesHeroFeedItem>().firstOrNull()?.series
 
     /**
-     * 合并下载：只负责弹格式选择，真正的动作在 [onExportFormatChosen] 里按当时的 VM 状态重建。
-     *
-     * 刻意**不**把动作攒成一个 `pendingMergeAction` 闭包挂在 Fragment 字段上：[ExportSheet] 是
-     * DialogFragment，旋转 / 切深色会重建宿主 Fragment，而对话框由 FragmentManager 自动恢复并
-     * 回调到**新**实例上——旧实例的字段连同闭包一起没了，用户选完格式点确定会静默无反应。
-     * 合并要用的数据（系列详情、已加载章节）全都住在比 view 长命的 VM 里，现取即可。
+     * 合并下载：有默认格式直接走快路径；默认“每次询问”时弹 [ExportSheet]。
+     * 默认 TXT 且开启「有插图时存 EPUB」时，抓完章节后由 [startMergeDownload] 弹 TXT/EPUB 质询。
      */
     private fun launchMergeDownload() {
         if (heroDetail() == null) {
             Toaster.show(getString(R.string.merge_download_failed_empty))
             return
         }
-        ExportSheet().show(childFragmentManager, ExportSheet.TAG)
+        val format = NovelExportManager.resolveConfiguredFormat()
+        if (format != null) {
+            startMergeDownload(format, allowAutoEpub = true)
+        } else {
+            novelDownloadRequest.pendingAction = NovelSeriesDownloadRequestViewModel.PendingAction.MERGE
+            ExportSheet().show(childFragmentManager, ExportSheet.TAG)
+        }
     }
 
     override fun onExportFormatChosen(format: ExportFormat) {
+        val action = novelDownloadRequest.pendingAction
+        novelDownloadRequest.pendingAction = null
+        when (action) {
+            NovelSeriesDownloadRequestViewModel.PendingAction.BATCH_SELECTED -> {
+                val novels = selectedNovels()
+                val ordered = loadedNovels().distinctBy { it.id }
+                if (novels.isNotEmpty()) {
+                    startBatchDownloadSelected(novels, ordered, format)
+                }
+            }
+            NovelSeriesDownloadRequestViewModel.PendingAction.DOWNLOAD_ALL -> {
+                launchDownloadAll(format)
+            }
+            NovelSeriesDownloadRequestViewModel.PendingAction.MERGE -> {
+                startMergeDownload(format)
+            }
+            null -> Unit
+        }
+    }
+
+    private fun startMergeDownload(format: ExportFormat, allowAutoEpub: Boolean = false) {
         val detail = heroDetail()
         if (detail == null) {
             Toaster.show(getString(R.string.merge_download_failed_empty))
@@ -271,6 +316,8 @@ class NovelSeriesFragment :
             knownNovels = dedup,
             format = format,
             stopSignal = stopSignal,
+            allowAutoEpub = allowAutoEpub,
+            confirmFormat = if (allowAutoEpub) { _ -> askMergeTxtOrEpub() } else null,
         )
         val config = FetchProgressDialog.Config(
             title = "merge-novel-series",
@@ -297,6 +344,41 @@ class NovelSeriesFragment :
         FetchProgressDialog.show(requireActivity().supportFragmentManager, flow, config)
     }
 
+    private suspend fun askMergeTxtOrEpub(): ExportFormat? = withContext(Dispatchers.Main) {
+        var dialog: WitDialog? = null
+        try {
+            suspendCancellableCoroutine { cont ->
+                if (!isAdded) {
+                    cont.resume(null)
+                    return@suspendCancellableCoroutine
+                }
+                val created = WitDialog.MenuDialogBuilder(requireContext())
+                    .setTitle(getString(R.string.setting_novel_epub_on_images))
+                    .addItems(
+                        arrayOf(getString(R.string.format_txt), getString(R.string.format_epub)),
+                    ) { d, which ->
+                        if (cont.isActive) {
+                            cont.resume(if (which == 0) ExportFormat.Txt else ExportFormat.Epub)
+                        }
+                        d.dismiss()
+                    }
+                    .addAction(getString(R.string.action_cancel)) { d, _ ->
+                        if (cont.isActive) cont.resume(null)
+                        d.dismiss()
+                    }
+                    .create()
+                dialog = created
+                created.setOnDismissListener {
+                    if (cont.isActive) cont.resume(null)
+                }
+                created.show()
+            }
+        } finally {
+            // Activity 销毁会取消抓取协程；同步关闭依附旧 Activity 的窗口。
+            dialog?.dismiss()
+        }
+    }
+
     private fun launchBatchDownloadSelected() {
         val novels = selectedNovels()
         if (novels.isEmpty()) {
@@ -306,9 +388,20 @@ class NovelSeriesFragment :
         // 系列位置按已加载的完整章节序列算，不能按选中子集的下标算——
         // 勾选第 3、5、9 章时，文件名 / 信息头里要的是 3、5、9 而不是 1、2、3。
         val ordered = loadedNovels().distinctBy { it.id }
+        val format = NovelExportManager.resolveConfiguredFormat()
+        if (format != null) {
+            startBatchDownloadSelected(novels, ordered, format)
+        } else {
+            novelDownloadRequest.pendingAction = NovelSeriesDownloadRequestViewModel.PendingAction.BATCH_SELECTED
+            ExportSheet().show(childFragmentManager, ExportSheet.TAG)
+        }
+    }
+
+    private fun startBatchDownloadSelected(novels: List<Novel>, ordered: List<Novel>, format: ExportFormat) {
         BatchDownloadNovelsTask(
             activity = requireActivity(),
             novels = novels,
+            format = format,
             onFinished = { failures -> onBatchDownloadFinished(failures) },
             seriesPositions = seriesPositionsOf(ordered),
             seriesTotal = seriesTotalCount(loadedCount = ordered.size),
@@ -350,6 +443,16 @@ class NovelSeriesFragment :
     }
 
     private fun launchDownloadAll() {
+        val format = NovelExportManager.resolveConfiguredFormat()
+        if (format != null) {
+            launchDownloadAll(format)
+        } else {
+            novelDownloadRequest.pendingAction = NovelSeriesDownloadRequestViewModel.PendingAction.DOWNLOAD_ALL
+            ExportSheet().show(childFragmentManager, ExportSheet.TAG)
+        }
+    }
+
+    private fun launchDownloadAll(format: ExportFormat) {
         object : FetchAllTask<Novel, NovelSeriesResp>(
             requireActivity(),
             taskFullName = "下载系列小说全部作品-${seriesId}",
@@ -367,6 +470,7 @@ class NovelSeriesFragment :
                 BatchDownloadNovelsTask(
                     activity = requireActivity(),
                     novels = results,
+                    format = format,
                     onFinished = { failures -> onBatchDownloadFinished(failures) },
                     seriesPositions = seriesPositionsOf(ordered),
                     seriesTotal = ordered.size,

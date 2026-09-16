@@ -61,6 +61,7 @@ viewPagerTransforms = "2.0.24"
 window = "1.5.1"
 work = "2.9.1"
 zoomImage = "1.4.0"
+cosAndroid = "5.9.52"
 
 [libraries]
 androidxAnnotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
@@ -94,6 +95,8 @@ agentwebCore = { module = "com.github.Justson.AgentWeb:agentweb-core", version.r
 circleImageView = { module = "de.hdodenhof:circleimageview", version.ref = "circleImageView" }
 colorPicker = { module = "com.jaredrummler:colorpicker", version.ref = "colorPicker" }
 coroutinesAndroid = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
+coroutinesCore = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+androidxLifecycleRuntimeTesting = { module = "androidx.lifecycle:lifecycle-runtime-testing", version.ref = "lifecycle" }
 coroutinesTest = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 cronet = { module = "org.chromium.net:cronet-embedded", version.ref = "cronet" }
 desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
@@ -136,3 +139,4 @@ toaster = { module = "com.github.getActivity:Toaster", version.ref = "toaster" }
 utilCode = { module = "com.blankj:utilcodex", version.ref = "utilCode" }
 viewPagerTransforms = { module = "com.ToxicBakery.viewpager.transforms:view-pager-transforms", version.ref = "viewPagerTransforms" }
 zoomImage = { module = "io.github.panpf.zoomimage:zoomimage-view-sketch4", version.ref = "zoomImage" }
+cosAndroid = { module = "com.qcloud.cos:cos-android", version.ref = "cosAndroid" }

@@ -38,6 +38,19 @@ object DownloadItems {
     }
 
     /**
+     * 作品海报是原插画的派生图片：沿用 Illust 桶、作者/标题/页码元数据和用户模板，
+     * Canvas 成品固定输出为 JPEG。调用方通过 Downloads.openDerived 添加防冲突后缀。
+     */
+    @JvmStatic
+    fun illustPoster(illust: Illust, pageIndex: Int): DownloadItem = DownloadItem(
+        bucket = Bucket.Illust,
+        ext = "jpg",
+        mime = "image/jpeg",
+        sourceUrl = "",
+        meta = metaOf(illust, pageIndex),
+    )
+
+    /**
      * 动图成品(存进用户相册的那一份)。格式随「动图保存格式」设置走 —— 默认 mp4。
      *
      * 模板里写死的 `.gif` 后缀会被 [ceui.pixiv.download.Downloads] 按 [DownloadItem.ext]

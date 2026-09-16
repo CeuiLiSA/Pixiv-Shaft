@@ -1537,6 +1537,8 @@
     <string name="novel_chip_series_content_count">Chapters  %1$s</string>
     <string name="novel_chip_series_char_count">Total length  %1$s</string>
     <string name="setting_default_novel_format">Default novel download format</string>
+    <string name="setting_novel_epub_on_images">Save as EPUB when novel has illustrations</string>
+    <string name="setting_novel_epub_on_images_desc">When default format is TXT, automatically export EPUB if the text contains illustrations</string>
     <string name="setting_default_image_resolution">Default image save resolution</string>
     <string name="option_always_ask">Always ask</string>
     <string name="msg_unknown_format">Unknown format: %s</string>
@@ -1589,6 +1591,7 @@
     <!-- 作品详情页里直接滑图时的常驻页码浮标(#1058)。纯数字，各语言一致。 -->
     <string name="artwork_page_indicator">%1$d / %2$d</string>
     <string name="comic_reader_jump_to_page">Jump to page %1$d</string>
+    <string name="comic_reader_auto_rotate_image">Auto-rotate landscape for wide images</string>
     <string name="comic_reader_open_label">Open reader</string>
     <string name="comic_reader_load_failed">Failed to load: %1$s</string>
     <string name="comic_reader_no_pages">No pages to read</string>
@@ -2755,6 +2758,7 @@
 
     <!-- 借号用量页（服务端两只配额桶的只读视图） -->
     <string name="nana7mi_usage_title">Usage</string>
+    <string name="nana7mi_usage_motto">Failure is the mother of success\nPaying is a successful payment</string>
     <string name="nana7mi_usage_section">Search-by-popularity limits</string>
     <string name="nana7mi_usage_window_session">Current session</string>
     <string name="nana7mi_usage_window_weekly">Weekly limit</string>
@@ -2869,6 +2873,8 @@
     <!-- Auto snapshot (experimental) -->
     <string name="setting_auto_snapshot_on_bookmark">Create offline snapshot on bookmark</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">Quietly create a lightweight offline snapshot after you bookmark a work (experimental)</string>
+    <string name="setting_auto_snapshot_on_illust_manga">Auto-create snapshots for illustrations/manga</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">Quietly create snapshots for illustrations/manga you revisit or dwell on for a long time (experimental)</string>
 
     <!-- Log file (experimental) -->
     <string name="setting_log_file_enable">Enable log file</string>
@@ -2898,6 +2904,8 @@
     <string name="bookmark_mirror_ready_title">Bookmark library ready</string>
     <string name="bookmark_mirror_ready_message">%1$s bookmarks mirrored locally — now you can sort oldest-first, filter by tag/artist/year, and search.</string>
     <string name="bookmark_mirror_ready_action">Open</string>
+    <string name="debug_mirror_banner_title">Trigger the “Bookmark library ready” banner</string>
+    <string name="debug_mirror_banner_desc">Clears the one-shot flag and replays the prompt; pick the public or private shelf</string>
     <string name="bookmark_library_title">My bookmarked illustrations</string>
     <string name="bookmark_library_search_hint">Search title / artist / tag / ID</string>
     <string name="bookmark_library_empty">Nothing mirrored locally yet</string>
@@ -2973,8 +2981,8 @@
 
     <!-- PixShaft cloud translation -->
     <string name="cloud_translate_title">PixShaft Cloud Translation</string>
-    <string name="cloud_translate_desc">Translate comments, titles, tags and manga through PixShaft\'s AI translation server — no proxy needed, with a usage allowance. Off = the built-in Google translation. A custom AI translation, when enabled, takes priority.</string>
-    <string name="cloud_translate_usage_section">AI translation limits</string>
+    <string name="cloud_translate_desc">Translate comments, titles, tags and manga through PixShaft\'s cloud translation server — no proxy needed, with a usage allowance. Off = the built-in Google translation. A custom AI translation, when enabled, takes priority.</string>
+    <string name="cloud_translate_usage_section">Cloud translation limits</string>
     <string name="cloud_translate_failed_title">Cloud translation failed</string>
     <string name="cloud_translate_quota_title">Cloud translation limit reached</string>
     <string name="cloud_translate_quota_session">5-hour translation limit reached, back in %1$s</string>
@@ -2982,5 +2990,18 @@
     <string name="cloud_translate_quota_unknown">Translation limit reached, please try again later</string>
     <string name="cloud_translate_usage_lt1">&lt;1%</string>
     <string name="cloud_translate_engine_line">Current engine: %1$s</string>
-    <string name="cloud_translate_usage_section_engine">AI translation limits · %1$s</string>
+    <string name="cloud_translate_usage_section_engine">Cloud translation limits · %1$s</string>
+    <string name="artwork_poster_save">Save artwork poster</string>
+    <string name="artwork_poster_generating">Creating a high-resolution artwork poster…</string>
+    <string name="artwork_poster_saved">Artwork poster saved to your gallery</string>
+    <string name="artwork_poster_failed">Couldn’t create poster: %1$s</string>
+    <string name="artwork_poster_image_unavailable">Artwork image is unavailable</string>
+    <string name="artwork_poster_destination_unavailable">Couldn’t create a gallery file</string>
+    <string name="artwork_poster_encode_failed">Couldn’t encode the poster</string>
+    <string name="artwork_poster_unknown_author">Unknown artist</string>
+    <string name="artwork_poster_untitled">Untitled</string>
+    <string name="recommend_page_content">Recommendation page content</string>
+    <string name="recommend_page_works_first">Recommended works - Trending tags</string>
+    <string name="recommend_page_tags_first">Trending tags - Recommended works</string>
+    <string name="recommend_page_content_desc">Change the tab order on illustration and novel recommendation pages. Restart the app to apply.</string>
 </resources>

@@ -1,5 +1,6 @@
 package ceui.lisa.database;
 
+import android.database.Cursor;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -213,20 +214,13 @@ public interface DownloadDao {
     @Query("UPDATE illust_download_table SET fileName = :newFileName, filePath = :newFilePath WHERE fileName = :oldFileName")
     void renameDownload(String oldFileName, String newFileName, String newFilePath);
 
-    @Query("SELECT * FROM illust_downloading_table")
-    List<DownloadingEntity> getAllDownloading();
+    @Query("SELECT IFNULL(MAX(rowid), 0) FROM illust_downloading_table")
+    long getDownloadingHighWaterMark();
 
-    /**
-     * 取最近 :limit 条（裁剪防 OOM），但按**入队顺序**（rowid ASC）返回 ——
-     * Manager.restore 会原样重建 content，直接 DESC 会让冷启动后整条队列倒序下载。
-     */
-    @Query("SELECT * FROM illust_downloading_table WHERE rowid IN "
-            + "(SELECT rowid FROM illust_downloading_table ORDER BY rowid DESC LIMIT :limit) "
-            + "ORDER BY rowid ASC")
-    List<DownloadingEntity> getRecentDownloading(int limit);
-
-    @Query("DELETE FROM illust_downloading_table WHERE rowid NOT IN (SELECT rowid FROM illust_downloading_table ORDER BY rowid DESC LIMIT :keep)")
-    void trimDownloading(int keep);
+    /** Keyset paging keeps enqueue order when earlier rows are deleted during recovery. */
+    @Query("SELECT rowid, taskGson FROM illust_downloading_table "
+            + "WHERE rowid > :after AND rowid <= :through ORDER BY rowid ASC LIMIT :limit")
+    Cursor getDownloadingBatch(long after, long through, int limit);
 
     /**
      *

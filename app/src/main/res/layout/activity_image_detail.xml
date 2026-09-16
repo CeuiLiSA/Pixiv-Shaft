@@ -86,5 +86,11 @@
 
         </FrameLayout>
 
+        <!-- AI 进度层(翻译漫画/圈选翻译/AI 放大/抠图共用)挂在 Activity 根布局上,全局唯一。
+             若随各页 FragmentImageDetail 各带一份,同 id 会有多份,Activity 的
+             findViewById 命中的是 ViewPager 中 child 顺序第一个(通常是相邻页),
+             转圈 + 状态文本就叠到了看不见的页上,表现为「有概率不显示」。 -->
+        <include layout="@layout/view_ai_upscale_overlay" />
+
     </ceui.lisa.view.DragDismissLayout>
 </layout>

@@ -11,6 +11,7 @@ import ceui.pixiv.download.model.Bucket
 import ceui.pixiv.download.model.DownloadItem
 import ceui.pixiv.download.model.ItemMeta
 import ceui.pixiv.download.model.RelativePath
+import ceui.pixiv.download.sanitize.FsSanitizer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -75,6 +76,34 @@ class DownloadsFacadeTest {
         val facade = Downloads(configWith(), { FakeBackend() })
         val plan = facade.plan(dirtyItem)
         assertEquals(listOf("d", "a_.._b_c 1.png"), plan.path.segments)
+    }
+
+    @Test fun `derived image keeps custom illust path and suffixes the rendered filename`() {
+        val facade = Downloads(
+            configWith(template = "Custom/{author}/{id}_{title}.{ext}"),
+            { FakeBackend() },
+        )
+        val poster = item.copy(ext = "jpg", mime = "image/jpeg")
+        val plan = facade.planDerived(poster, "_share")
+        assertEquals(listOf("Custom", "b", "1_a_share.jpg"), plan.path.segments)
+    }
+
+    @Test fun `derived suffix survives filename byte cap and cannot collapse onto original`() {
+        val facade = Downloads(
+            configWith(template = "Custom/{title}.{ext}", overwrite = OverwritePolicy.Replace),
+            { FakeBackend() },
+        )
+        val longTitleItem = item.copy(
+            ext = "jpg",
+            mime = "image/jpeg",
+            meta = meta.copy(title = "x".repeat(260)),
+        )
+        val original = facade.plan(longTitleItem).path.filename
+        val derived = facade.planDerived(longTitleItem, "_share").path.filename
+
+        assertTrue(derived.endsWith("_share.jpg"))
+        assertTrue(derived.toByteArray(Charsets.UTF_8).size <= FsSanitizer.MAX_SEGMENT_BYTES)
+        assertTrue(derived != original)
     }
 
     @Test fun `rename policy picks next free name`() {

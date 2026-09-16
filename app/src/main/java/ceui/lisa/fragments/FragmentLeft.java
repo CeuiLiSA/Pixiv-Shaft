@@ -11,6 +11,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import ceui.lisa.R;
+import ceui.lisa.BuildConfig;
+import ceui.pixiv.ui.recommend.DailyRecommendationsFragment;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.SystemBarMetrics;
@@ -64,14 +66,31 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
 
     @Override
     public void lazyData() {
-        String[] TITLES = new String[]{
+        final boolean hotTagsFirst = Shaft.sSettings.isRecommendHotTagsFirst();
+        final String[] TITLES = BuildConfig.IS_LITE ? new String[]{
                 Shaft.getContext().getString(R.string.recommend_illust),
                 Shaft.getContext().getString(R.string.hot_tag)
+        } : new String[]{
+                getString(R.string.recommend_illust),
+                getString(R.string.hot_tag),
+                getString(R.string.daily_recommendations)
         };
-        mFragments = new Fragment[]{
+        mFragments = BuildConfig.IS_LITE ? new Fragment[]{
                 RecmdIllustFeedFragment.newInstance(RecmdIllustFeedFragment.TYPE_ILLUST),
                 HotTagsFeedFragment.newInstance(Params.TYPE_ILLUST)
+        } : new Fragment[]{
+                RecmdIllustFeedFragment.newInstance(RecmdIllustFeedFragment.TYPE_ILLUST),
+                HotTagsFeedFragment.newInstance(Params.TYPE_ILLUST),
+                new DailyRecommendationsFragment()
         };
+        if (hotTagsFirst) {
+            String title = TITLES[0];
+            TITLES[0] = TITLES[1];
+            TITLES[1] = title;
+            Fragment fragment = mFragments[0];
+            mFragments[0] = mFragments[1];
+            mFragments[1] = fragment;
+        }
         // BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT：热门标签 tab 靠 onResume 懒加载，
         // 只有真正可见才发请求（对齐 legacy FragmentHotTag 的 userVisibleHint 语义）
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager(),
@@ -80,6 +99,21 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
             @Override
             public Fragment getItem(int i) {
                 return mFragments[i];
+            }
+
+            // 身份跟随内容而非位置，避免改顺序后恢复出标题与内容不一致的页签。
+            @Override
+            public long getItemId(int position) {
+                return hotTagsFirst && position < 2 ? 1 - position : position;
+            }
+
+            @NonNull
+            @Override
+            public Object instantiateItem(@NonNull ViewGroup container, int position) {
+                Fragment fragment = (Fragment) super.instantiateItem(container, position);
+                // 恢复时复用的 Fragment 也要交给重选回顶和首页刷新。
+                mFragments[position] = fragment;
+                return fragment;
             }
 
             @Override

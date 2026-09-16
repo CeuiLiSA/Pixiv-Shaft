@@ -75,6 +75,7 @@ sealed interface ChatFrame {
         val illustId: Long?,
         val ts: Long,
         val replyTo: ChatReplyRef? = null,
+        val stickerId: Long? = null,
     ) : ChatFrame
 
     /**
@@ -188,6 +189,7 @@ object ChatFrameDecoder {
                     clientMsgId = obj.get("client_msg_id")?.asStringOrNull(),
                     text = obj.get("text")?.asStringOrNull(),
                     illustId = obj.get("illust_id")?.asLongOrNull(),
+                    stickerId = obj.get("sticker_id")?.asLongOrNull(),
                     ts = ts,
                     replyTo = obj.get("reply_to")?.let(::decodeReplyTo),
                 )
@@ -287,6 +289,7 @@ object ChatFrameEncoder {
         text: String,
         illustId: Long? = null,
         replyTo: ChatReplyRef? = null,
+        stickerId: Long? = null,
     ): String {
         val esc = escapeJsonString(text)
         val idEsc = escapeJsonString(clientMsgId)
@@ -297,6 +300,7 @@ object ChatFrameEncoder {
             append(esc)
             append('"')
             if (illustId != null) append(""","illust_id":""").append(illustId)
+            if (stickerId != null) append(",\"sticker_id\":\"").append(stickerId).append('"')
             appendReplyTo(replyTo)
             append('}')
         }
@@ -317,6 +321,7 @@ object ChatFrameEncoder {
         text: String,
         illustId: Long? = null,
         replyTo: ChatReplyRef? = null,
+        stickerId: Long? = null,
     ): String {
         val esc = escapeJsonString(text)
         val idEsc = escapeJsonString(clientMsgId)
@@ -329,6 +334,7 @@ object ChatFrameEncoder {
             append(esc)
             append('"')
             if (illustId != null) append(""","illust_id":""").append(illustId)
+            if (stickerId != null) append(",\"sticker_id\":\"").append(stickerId).append('"')
             appendReplyTo(replyTo)
             append('}')
         }

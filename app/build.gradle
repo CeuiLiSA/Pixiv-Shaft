@@ -86,8 +86,8 @@ android {
         applicationId "ceui.pixiv"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 42500
-        versionName "4.9.2"
+        versionCode 42600
+        versionName "4.9.3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             // Production remains arm64-only. CI can request x86_64 so instrumented tests run on
@@ -100,6 +100,13 @@ android {
         // forks build with an empty native key and keep the historical disabled behavior.
         buildConfigField "String", "SHAFT_EVENTS_BASE_URL",
             '"' + (project.findProperty('SHAFT_EVENTS_BASE_URL') ?: 'http://36.138.103.18:30009') + '"'
+        // Spark credential is injected by CI or the developer's private local key file.
+        // It is intentionally embedded in the APK because Spark is a client feature; the
+        // server still enforces quotas and can revoke the credential.
+        def sparkKeyFile = file("/Users/ceuilisa/keys/pixiv-shaft/ai-api-key")
+        def localSparkKey = sparkKeyFile.exists() ? sparkKeyFile.text.trim() : ''
+        buildConfigField "String", "CODEX_SPARK_API_KEY",
+            '"' + (project.findProperty('CODEX_SPARK_API_KEY') ?: System.getenv('CODEX_SPARK_API_KEY') ?: localSparkKey).replace('"', '\\"') + '"'
 
         externalNativeBuild {
             cmake {
@@ -219,6 +226,9 @@ android {
         viewBinding = true
         buildConfig = true // 启用 BuildConfig
     }
+    testOptions {
+        unitTests.includeAndroidResources = true
+    }
     packagingOptions {
         jniLibs {
             useLegacyPackaging = true
@@ -260,6 +270,7 @@ dependencies {
     // 版本分别对齐主依赖的 okhttp 4.12.0 / 传递解析出的 coroutines 1.10.2
     testImplementation libs.mockWebServer
     testImplementation libs.coroutinesTest
+    testImplementation libs.androidxLifecycleRuntimeTesting
     testImplementation libs.androidxArchCoreTesting
     testImplementation libs.robolectric
     // JVM 单测里 android.jar 的 org.json 是 Stub!,真实现放前面顶掉(AiTranslator 测试用)
@@ -279,6 +290,8 @@ dependencies {
     implementation libs.androidxRecyclerView
     implementation libs.androidxSwipeRefreshLayout
     implementation libs.material
+    implementation libs.androidxLifecycleRuntime
+    implementation libs.coroutinesAndroid
     implementation libs.androidxLifecycleLiveData
     implementation libs.androidxLifecycleViewModel
     implementation libs.androidxCore
@@ -322,6 +335,9 @@ dependencies {
     // net.csdn.roundview.RoundImageView is inflated directly by comment/plaza XML layouts.
     implementation libs.roundView
     implementation libs.okhttp
+    // Tencent's current COS Android XML SDK. The backend still supplies STS
+    // credentials; no permanent COS secret belongs in the APK.
+    implementation libs.cosAndroid
     // SSE 标准解析(AiTranslator 流式翻译):与 okhttp 同版本,按规范处理多行 data/CRLF/注释行
     implementation libs.okhttpSse
 
@@ -351,6 +367,7 @@ dependencies {
     // First-party token storage + OkHttp Bearer/401 machinery. This module has
     // no dependency on :app or Pixiv business models.
     implementation project(path: ':safe')
+    implementation project(path: ':communication')
     implementation libs.mmkv
     // 部分华为等 OEM 上 libmmkv.so 偶发 dlopen "not found"，ReLinker 兜底从 APK 抠 .so 按绝对路径加载。
     implementation libs.relinker

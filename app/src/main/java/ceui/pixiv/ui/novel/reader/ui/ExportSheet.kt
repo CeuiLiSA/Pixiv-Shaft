@@ -14,6 +14,11 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 interface ExportFormatCallback {
     fun onExportFormatChosen(format: ExportFormat)
+
+    /** FragmentManager 会恢复 tag，宿主可据此区分详情导出和列表卡片下载。 */
+    fun onExportFormatChosen(format: ExportFormat, sourceTag: String?) {
+        onExportFormatChosen(format)
+    }
 }
 
 class ExportSheet : BottomSheetDialogFragment() {
@@ -37,7 +42,7 @@ class ExportSheet : BottomSheetDialogFragment() {
         )
         binding.list.layoutManager = LinearLayoutManager(requireContext())
         binding.list.adapter = Adapter(rows) { format ->
-            (parentFragment as? ExportFormatCallback)?.onExportFormatChosen(format)
+            (parentFragment as? ExportFormatCallback)?.onExportFormatChosen(format, tag)
             dismissAllowingStateLoss()
         }
         return binding.root

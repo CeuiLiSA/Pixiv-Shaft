@@ -259,6 +259,29 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/novel_epub_on_images_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid"
+                    android:visibility="gone">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/setting_novel_epub_on_images" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/setting_novel_epub_on_images_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/novel_epub_on_images"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/novel_header_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_bottom">

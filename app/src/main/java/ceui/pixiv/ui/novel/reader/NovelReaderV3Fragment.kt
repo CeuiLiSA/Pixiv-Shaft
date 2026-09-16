@@ -41,6 +41,7 @@ import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
+import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.model.HighlightColor
 import ceui.pixiv.ui.novel.reader.model.HighlightSpan
 import ceui.pixiv.ui.novel.reader.model.SearchHit
@@ -799,10 +800,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     Toaster.showShort(getString(R.string.msg_novel_not_ready))
                     return@item
                 }
-                val defaultFormat = Shaft.sSettings.defaultNovelExportFormat
-                val format = ExportFormat.entries.firstOrNull { it.name == defaultFormat }
+                val format = NovelExportManager.resolveConfiguredFormat()
                 if (format != null) {
-                    executeExport(format)
+                    executeExport(format, allowAutoEpub = true)
                 } else {
                     showExportSheet()
                 }
@@ -818,10 +818,10 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         executeExport(format)
     }
 
-    private fun executeExport(format: ExportFormat) {
+    private fun executeExport(format: ExportFormat, allowAutoEpub: Boolean = false) {
         Toaster.showShort(getString(R.string.msg_export_start, getString(format.displayNameResId)))
         viewLifecycleOwner.lifecycleScope.launch {
-            when (val result = viewModel.exportNovel(format)) {
+            when (val result = viewModel.exportNovel(format, allowAutoEpub)) {
                 is ExportResult.Success -> Toaster.showLong(getString(R.string.msg_export_success, result.displayPath))
                 is ExportResult.Failure -> Toaster.showLong(getString(R.string.msg_export_fail, result.message))
             }

@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -23,6 +24,7 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.actions.PixivActions
+import ceui.pixiv.chat.base.viewModels
 import ceui.pixiv.ui.common.tintMenuIconsWhite
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.download.DownloadExportLinks
@@ -36,6 +38,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ceui.pixiv.ui.navigation.TemplateRoute
+
+/** 批量选择页的交接数据缓存，跨旋转保留，避免重复 take 导致列表空态。 */
+private class BulkSelectRequestViewModel : ViewModel() {
+    var source: List<Illust>? = null
+    var items: List<SelectableItem>? = null
+}
 
 /**
  * V3 风格批量操作 · 多选页。
@@ -64,6 +72,8 @@ class BulkSelectV3Fragment : Fragment() {
         }
     }
 
+    private val bulkViewModel by viewModels { BulkSelectRequestViewModel() }
+
     private val items = mutableListOf<SelectableItem>()
     private val adapter: BulkSelectAdapter by lazy {
         BulkSelectAdapter(items) { pos -> toggleAt(pos) }
@@ -81,6 +91,15 @@ class BulkSelectV3Fragment : Fragment() {
     private lateinit var hint: TextView
     private lateinit var btnConfirm: Button
     private lateinit var btnBookmarkActions: View
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (bulkViewModel.source == null) {
+            bulkViewModel.source = IllustBulkSelectHandoff.take(
+                arguments?.getString(BulkSelectHandoff.ARG_HANDOFF_KEY)
+            )
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -127,7 +146,8 @@ class BulkSelectV3Fragment : Fragment() {
         grid.adapter = adapter
 
         // 取列表 —— 大列表（10000+）SelectableItem 构造也搬 IO 避免主线程长时间循环。
-        val raw = IllustBulkSelectHandoff.take(arguments?.getString(BulkSelectHandoff.ARG_HANDOFF_KEY))
+        // 只允许首次创建时 take；旋转重建从 ViewModel 恢复，避免重复 take 变成空态。
+        val raw = bulkViewModel.source
         if (raw.isNullOrEmpty()) {
             hint.text = getString(R.string.bulk_select_no_items)
             btnConfirm.isEnabled = false
@@ -141,18 +161,29 @@ class BulkSelectV3Fragment : Fragment() {
         hint.text = getString(R.string.bulk_select_loading)
         btnConfirm.isEnabled = false
         setBookmarkActionsEnabled(false)
-        viewLifecycleOwner.lifecycleScope.launch {
-            val prepared = withContext(Dispatchers.IO) {
-                raw.map { illust ->
-                    // ugoira 现在也走批量队列（独立 consumer 管线），不再 disable。
-                    // 默认不选（issue #922），用户点选要的，或 toolbar 一键全选。
-                    SelectableItem(illust, selected = false, selectable = true)
-                }
-            }
+
+        val restored = bulkViewModel.items
+        if (restored != null) {
             items.clear()
-            items.addAll(prepared)
+            items.addAll(restored)
+            bulkViewModel.items = items
             adapter.notifyDataSetChanged()
             refreshHeaderAndCta()
+        } else {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val prepared = withContext(Dispatchers.IO) {
+                    raw.map { illust ->
+                        // ugoira 现在也走批量队列（独立 consumer 管线），不再 disable。
+                        // 默认不选（issue #922），用户点选要的，或 toolbar 一键全选。
+                        SelectableItem(illust, selected = false, selectable = true)
+                    }
+                }
+                items.clear()
+                items.addAll(prepared)
+                bulkViewModel.items = items
+                adapter.notifyDataSetChanged()
+                refreshHeaderAndCta()
+            }
         }
 
         btnConfirm.setOnClickListener {

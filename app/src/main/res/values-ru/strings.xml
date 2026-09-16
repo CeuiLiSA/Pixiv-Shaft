@@ -1537,6 +1537,8 @@
     <string name="novel_chip_series_content_count">Глав  %1$s</string>
     <string name="novel_chip_series_char_count">Общий объём  %1$s</string>
     <string name="setting_default_novel_format">Формат загрузки романов по умолчанию</string>
+    <string name="setting_novel_epub_on_images">Сохранять как EPUB, если в новелле есть иллюстрации</string>
+    <string name="setting_novel_epub_on_images_desc">Если формат по умолчанию TXT, при наличии иллюстраций в тексте автоматически экспортировать в EPUB</string>
     <string name="setting_default_image_resolution">Качество при скачивании</string>
     <string name="option_always_ask">Всегда спрашивать</string>
     <string name="msg_unknown_format">Неизвестный формат: %s</string>
@@ -1589,6 +1591,7 @@
     <!-- 作品详情页里直接滑图时的常驻页码浮标(#1058)。纯数字，各语言一致。 -->
     <string name="artwork_page_indicator">%1$d / %2$d</string>
     <string name="comic_reader_jump_to_page">Перейти к странице %1$d</string>
+    <string name="comic_reader_auto_rotate_image">Автоповорот для широких изображений</string>
     <string name="comic_reader_open_label">Открыть в читалке</string>
     <string name="comic_reader_load_failed">Не удалось загрузить: %1$s</string>
     <string name="comic_reader_no_pages">Нет страниц для чтения</string>
@@ -2852,6 +2855,8 @@
     <!-- Автоматический снимок (экспериментально) -->
     <string name="setting_auto_snapshot_on_bookmark">Создавать офлайн-снимок при добавлении в закладки</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">Тихо создавать лёгкий офлайн-снимок после добавления работы в закладки (экспериментально)</string>
+    <string name="setting_auto_snapshot_on_illust_manga">Автосоздание снимков иллюстраций/манги</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">Тихо создавать снимки для часто просматриваемых иллюстраций/манги и работ с долгим просмотром (экспериментально)</string>
 
     <!-- Файл журнала (экспериментально) -->
     <string name="setting_log_file_enable">Включить файл журнала</string>
@@ -2905,6 +2910,8 @@
     <string name="bookmark_mirror_ready_title">Библиотека закладок готова</string>
     <string name="bookmark_mirror_ready_message">%1$s закладок сохранено локально — теперь доступны сортировка от старых, фильтры и поиск.</string>
     <string name="bookmark_mirror_ready_action">Открыть</string>
+    <string name="debug_mirror_banner_title">Показать баннер «Библиотека закладок готова»</string>
+    <string name="debug_mirror_banner_desc">Сбрасывает одноразовый флаг и повторяет приглашение; выберите публичные или приватные закладки</string>
     <string name="bookmark_library_title">Иллюстрации в закладках</string>
     <string name="bookmark_library_search_hint">Поиск по названию / автору / тегу / ID</string>
     <string name="bookmark_library_empty">Локальная копия пока пуста</string>
@@ -2980,8 +2987,8 @@
 
     <!-- Облачный перевод PixShaft -->
     <string name="cloud_translate_title">Облачный перевод PixShaft</string>
-    <string name="cloud_translate_desc">Комментарии, названия, теги и манга переводятся ИИ на сервере PixShaft — без прокси, с лимитом использования. Выключено = встроенный Google Переводчик. Включённый пользовательский ИИ-перевод имеет приоритет.</string>
-    <string name="cloud_translate_usage_section">Лимиты ИИ-перевода</string>
+    <string name="cloud_translate_desc">Комментарии, названия, теги и манга переводятся на сервере PixShaft — без прокси, с лимитом использования. Выключено = встроенный Google Переводчик. Включённый пользовательский ИИ-перевод имеет приоритет.</string>
+    <string name="cloud_translate_usage_section">Лимиты облачного перевода</string>
     <string name="cloud_translate_failed_title">Облачный перевод не удался</string>
     <string name="cloud_translate_quota_title">Лимит облачного перевода исчерпан</string>
     <string name="cloud_translate_quota_session">5-часовой лимит перевода исчерпан, восстановится через %1$s</string>
@@ -2989,5 +2996,18 @@
     <string name="cloud_translate_quota_unknown">Лимит перевода исчерпан, попробуйте позже</string>
     <string name="cloud_translate_usage_lt1">&lt;1%</string>
     <string name="cloud_translate_engine_line">Текущий движок: %1$s</string>
-    <string name="cloud_translate_usage_section_engine">Лимиты ИИ-перевода · %1$s</string>
+    <string name="cloud_translate_usage_section_engine">Лимиты облачного перевода · %1$s</string>
+    <string name="artwork_poster_save">Сохранить постер работы</string>
+    <string name="artwork_poster_generating">Создание постера в высоком разрешении…</string>
+    <string name="artwork_poster_saved">Постер сохранён в галерею</string>
+    <string name="artwork_poster_failed">Не удалось создать постер: %1$s</string>
+    <string name="artwork_poster_image_unavailable">Изображение работы недоступно</string>
+    <string name="artwork_poster_destination_unavailable">Не удалось создать файл в галерее</string>
+    <string name="artwork_poster_encode_failed">Не удалось закодировать постер</string>
+    <string name="artwork_poster_unknown_author">Неизвестный автор</string>
+    <string name="artwork_poster_untitled">Без названия</string>
+    <string name="recommend_page_content">Содержимое страницы рекомендаций</string>
+    <string name="recommend_page_works_first">Рекомендуемые работы - Популярные теги</string>
+    <string name="recommend_page_tags_first">Популярные теги - Рекомендуемые работы</string>
+    <string name="recommend_page_content_desc">Порядок вкладок на страницах рекомендаций иллюстраций и романов. Для применения перезапустите приложение.</string>
 </resources>

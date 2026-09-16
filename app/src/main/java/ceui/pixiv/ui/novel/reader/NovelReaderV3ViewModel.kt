@@ -499,12 +499,18 @@ class NovelReaderV3ViewModel(
 
     // ---- Export --------------------------------------------------------------
 
-    suspend fun exportNovel(format: ExportFormat): ExportResult {
+    suspend fun exportNovel(format: ExportFormat, allowAutoEpub: Boolean = false): ExportResult {
         val loaded = _loadState.value as? LoadState.Loaded
             ?: return ExportResult.Failure(ctx().getString(R.string.msg_novel_not_ready))
+        // 仅默认 TXT 快路径允许静默切 EPUB；手动在“每次询问”里选 TXT 不切。
+        val actualFormat = if (allowAutoEpub && NovelExportManager.shouldAutoEpubForDefaultTxt(format, loaded.tokens)) {
+            ExportFormat.Epub
+        } else {
+            format
+        }
         return NovelExportManager.export(
             context = Shaft.getContext(),
-            format = format,
+            format = actualFormat,
             novel = loaded.novel,
             webNovel = loaded.webNovel,
             tokens = loaded.tokens,

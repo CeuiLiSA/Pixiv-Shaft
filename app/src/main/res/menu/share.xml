@@ -22,6 +22,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_save_poster"
+        android:orderInCategory="100"
+        android:title="@string/artwork_poster_save"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_snapshot"
         android:orderInCategory="100"
         android:title="@string/snapshot_create"

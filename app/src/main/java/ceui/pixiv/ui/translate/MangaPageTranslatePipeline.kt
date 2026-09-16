@@ -104,15 +104,9 @@ object MangaPageTranslatePipeline {
         return Outcome.Done(outFile)
     }
 
-    /** 流式阶段回调:思考中 → 「AI 思考中…」,开始出译文 → 回到「翻译中…」。 */
+    /** 优先展示上游状态；开始出译文后恢复翻译中，不把 reasoning 写入译文。 */
     fun translatePhaseStage(app: Context, phase: AiTranslatePhase): Stage =
-        Stage(
-            if (phase == AiTranslatePhase.THINKING) {
-                app.getString(R.string.ai_translate_thinking)
-            } else {
-                app.getString(R.string.ocr_translating)
-            }
-        )
+        Stage(phase.statusText(app))
 
     /**
      * 解码原图(短边自动降采样到 [MAX_RENDER_SHORT_SIDE] 以内防 OOM),

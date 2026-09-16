@@ -100,6 +100,9 @@ data class ChatMessageEntity(
 
     @ColumnInfo(name = "reply_to_text")
     val replyToText: String? = null,
+
+    @ColumnInfo(name = "sticker_id")
+    val stickerId: Long? = null,
 ) {
     /** True when this message quotes another one (whether or not the original still exists). */
     val isReply: Boolean get() = replyToCmid != null

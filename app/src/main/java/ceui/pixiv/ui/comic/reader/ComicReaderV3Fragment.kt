@@ -2,6 +2,7 @@ package ceui.pixiv.ui.comic.reader
 
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -24,6 +25,8 @@ import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.ShareIllust
 import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.imageloader.ImageLoaderV3
+import ceui.pixiv.imageloader.ImageLoadState
 import ceui.pixiv.services.requireNetworkStateManager
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.ui.common.viewBinding
@@ -34,6 +37,11 @@ import com.github.panpf.zoomimage.zoom.ContentScaleCompat
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.collectLatest
 import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
@@ -61,12 +69,13 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
     private lateinit var current: ComicViewport
 
     private lateinit var retryController: PageLoadRetryController
+    private var orientationJob: Job? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         chrome = ComicChrome(binding.comicTopBar.root, binding.comicBottomBar.root, requireActivity().window)
-        windowController = ComicWindowController(requireActivity().window, binding.comicRoot, binding.comicWarmOverlay)
+        windowController = ComicWindowController(requireActivity(), binding.comicRoot, binding.comicWarmOverlay, savedInstanceState)
         windowController.apply()
         applyComicLoadingTint()
         chrome.applySystemBars()
@@ -120,6 +129,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         viewModel.currentPage.observe(viewLifecycleOwner) { idx ->
             updateProgressUi(idx)
             pagesProvider.currentIndex = idx
+            updateImageOrientation()
         }
 
         ComicReaderSettings.changes.observe(viewLifecycleOwner) { event ->
@@ -127,6 +137,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
             // 用户上次会话改过设置后立刻进入 reader），此时 [current] 还没初始化。
             // 所有依赖 current 的分支都需要 isInitialized 守卫。
             when (event) {
+                ComicReaderSettings.ChangeEvent.Orientation -> updateImageOrientation()
                 ComicReaderSettings.ChangeEvent.Layout -> {
                     pagedViewport.applyTransformer()
                     pagedViewport.applyDirection()
@@ -144,6 +155,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
                     chrome.applySystemBars()
                 }
                 ComicReaderSettings.ChangeEvent.Image -> {
+                    updateImageOrientation()
                     viewModel.onImageSettingsChanged()
                     if (::current.isInitialized) {
                         val idx = current.currentIndex()
@@ -296,6 +308,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
             pagesProvider.title = state.illust.title.orEmpty()
             applyReadingMode(state.pages, viewModel.currentPage.value ?: 0)
             retryController.refresh()
+            updateImageOrientation()
         }
     }
 
@@ -464,11 +477,55 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
     override fun onResume() {
         super.onResume()
         viewModel.onSessionStart()
+        updateImageOrientation()
     }
 
     override fun onPause() {
+        orientationJob?.cancel()
         super.onPause()
         viewModel.onSessionFlush()
+    }
+
+    private fun updateImageOrientation() {
+        orientationJob?.cancel()
+        if (!isResumed) return
+        if (!ComicReaderSettings.autoRotateImage) {
+            windowController.restoreOrientation()
+            return
+        }
+        val state = viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded ?: return
+        val index = viewModel.currentPage.value ?: 0
+        val page = state.pages.getOrNull(index) ?: return
+        orientationJob = viewLifecycleOwner.lifecycleScope.launch {
+            // 快速翻页时只处理停留的这一页；复用图片加载任务，不额外下载或重试。
+            delay(400)
+            ImageLoaderV3.obtain(viewModel.urlForPage(page)).state.collectLatest { imageState ->
+                if (imageState !is ImageLoadState.Success) return@collectLatest
+                val bounds = withContext(Dispatchers.IO) {
+                    BitmapFactory.Options().apply {
+                        inJustDecodeBounds = true
+                        BitmapFactory.decodeFile(imageState.file.absolutePath, this)
+                    }
+                }
+                if (isResumed && viewModel.currentPage.value == index && ComicReaderSettings.autoRotateImage) {
+                    windowController.applyImageOrientation(bounds.outWidth, bounds.outHeight)
+                }
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (::windowController.isInitialized) windowController.saveState(outState)
+    }
+
+    override fun onDestroyView() {
+        orientationJob?.cancel()
+        // Activity finish 自然恢复下面页面的方向；配置重建期间不能还原，否则会来回旋转。
+        if (!requireActivity().isChangingConfigurations && !requireActivity().isFinishing) {
+            windowController.restoreOrientation()
+        }
+        super.onDestroyView()
     }
 
     private fun resolveIllustId(): Long = arguments?.getLong(ARG_ILLUST_ID, 0L) ?: 0L

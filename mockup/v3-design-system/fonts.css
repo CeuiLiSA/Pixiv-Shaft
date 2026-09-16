@@ -1,0 +1,7 @@
+/* Reuse the repository's existing Montserrat assets, no duplicate font downloads.
+   These relative paths resolve from this stylesheet. Copy assets with it when exporting. */
+@font-face { font-family: Montserrat; font-style: normal; font-weight: 400; font-display: swap; src: url('../../app/src/main/res/font/montserrat_regular.ttf') format('truetype'); }
+@font-face { font-family: Montserrat; font-style: normal; font-weight: 500; font-display: swap; src: url('../../app/src/main/res/font/montserrat_medium.ttf') format('truetype'); }
+@font-face { font-family: Montserrat; font-style: normal; font-weight: 600; font-display: swap; src: url('../../app/src/main/res/font/montserrat_semi_bold.ttf') format('truetype'); }
+@font-face { font-family: Montserrat; font-style: normal; font-weight: 700; font-display: swap; src: url('../../app/src/main/res/font/montserrat_bold.ttf') format('truetype'); }
+@font-face { font-family: Montserrat; font-style: normal; font-weight: 800; font-display: swap; src: url('../../app/src/main/res/font/montserrat_extra_bold.ttf') format('truetype'); }

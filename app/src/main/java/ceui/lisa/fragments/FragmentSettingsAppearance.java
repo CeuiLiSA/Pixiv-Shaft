@@ -237,6 +237,30 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     .show();
         });
 
+        // 推荐页面展示内容（插画、小说共用）。与首页导航顺序一样重启后生效。
+        final String[] recommendPageOrders = new String[]{
+                getString(R.string.recommend_page_works_first),
+                getString(R.string.recommend_page_tags_first)
+        };
+        baseBind.recommendPageOrder.setText(
+                recommendPageOrders[Shaft.sSettings.isRecommendHotTagsFirst() ? 1 : 0]);
+        baseBind.recommendPageOrderRela.setOnClickListener(v -> {
+            final int index = Shaft.sSettings.isRecommendHotTagsFirst() ? 1 : 0;
+            new WitDialog.CheckableDialogBuilder(mActivity)
+                    .setTitle(R.string.recommend_page_content)
+                    .setCheckedIndex(index)
+                    .addItems(recommendPageOrders, (dialog, which) -> {
+                        if (which != index) {
+                            Shaft.sSettings.setRecommendHotTagsFirst(which == 1);
+                            Local.setSettings(Shaft.sSettings);
+                            baseBind.recommendPageOrder.setText(recommendPageOrders[which]);
+                            Common.showToast(getString(R.string.please_restart_app));
+                        }
+                        dialog.dismiss();
+                    })
+                    .show();
+        });
+
         // 首页底部页签顺序
         setOrderName();
         baseBind.orderSelect.setOnClickListener(v -> {

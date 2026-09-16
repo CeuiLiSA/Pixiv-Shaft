@@ -104,6 +104,12 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
             }
             baseBind.defaultNovelFormat.setText(NOVEL_FORMAT_NAMES[idx]);
         }
+        baseBind.novelEpubOnImages.setChecked(Shaft.sSettings.isDefaultNovelExportEpubOnImages());
+        baseBind.novelEpubOnImages.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setDefaultNovelExportEpubOnImages(isChecked);
+            Local.setSettings(Shaft.sSettings);
+        });
+        refreshNovelEpubOnImagesRow();
         baseBind.defaultNovelFormatRela.setOnClickListener(v -> {
             int checkedIdx = 0;
             String cur = Shaft.sSettings.getDefaultNovelExportFormat();
@@ -118,6 +124,7 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
                             Shaft.sSettings.setDefaultNovelExportFormat(NOVEL_FORMAT_VALUES[which]);
                             baseBind.defaultNovelFormat.setText(NOVEL_FORMAT_NAMES[which]);
                             Local.setSettings(Shaft.sSettings);
+                            refreshNovelEpubOnImagesRow();
                             dialog.dismiss();
                         }
                     })
@@ -462,6 +469,12 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
             return 1;
         }
         return 0;
+    }
+
+    private void refreshNovelEpubOnImagesRow() {
+        if (baseBind == null) return;
+        boolean visible = "Txt".equals(Shaft.sSettings.getDefaultNovelExportFormat());
+        baseBind.novelEpubOnImagesRela.setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
     private void refreshStorageLabel() {

@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.task
 
 import android.content.Context
+import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
 import ceui.loxia.Novel
 import ceui.pixiv.api.Client
@@ -42,6 +43,8 @@ class MergeDownloadNovelSeriesTask(context: Context) {
         knownNovels: List<Novel>,
         format: ExportFormat,
         stopSignal: AtomicBoolean,
+        allowAutoEpub: Boolean = false,
+        confirmFormat: (suspend (ExportFormat) -> ExportFormat?)? = null,
     ): Flow<FetchEvent> = flow {
         val startedAt = System.currentTimeMillis()
         val seriesId = seriesDetail.id
@@ -111,13 +114,29 @@ class MergeDownloadNovelSeriesTask(context: Context) {
             return@flow
         }
 
+        // ── 2.5) 默认 TXT + 开启「有插图时存 EPUB」：检测到插图后交给 UI 质询 ──
+        var effectiveFormat = format
+        if (allowAutoEpub && format == ExportFormat.Txt &&
+            Shaft.sSettings.isDefaultNovelExportEpubOnImages &&
+            chapters.any { it.webNovel?.let(::hasIllustrations) == true }
+        ) {
+            emit(FetchEvent.Log("> 检测到插图，询问导出格式…"))
+            val chosen = confirmFormat?.invoke(format)
+            if (chosen == null) {
+                emit(FetchEvent.Log("> 用户取消 · 未生成文件"))
+                emit(FetchEvent.Errored("用户取消 · 未生成文件", chapters.size))
+                return@flow
+            }
+            effectiveFormat = chosen
+        }
+
         // ── 3) 写文件 ──
         // 目录 + 文件名全部由「小说系列 · 合并下载」模板渲染（issue #964）。章节数
         // 报实抓到的那个：用户中途停止时产物就是截短版，文件名不该谎报全集。
         val destination = DownloadItems.novelSeriesMergeDestination(
             seriesDetail = seriesDetail,
             chapterCount = chapters.size,
-            ext = format.extension,
+            ext = effectiveFormat.extension,
             r18 = allNovels.any { (it.x_restrict ?: 0) > 0 },
         )
         val mergeName = destination.filename
@@ -131,7 +150,7 @@ class MergeDownloadNovelSeriesTask(context: Context) {
             chapters = chapters,
             documentId = "novel_series_$seriesId",
         )
-        val writer = MergedNovelWriters.forFormat(format)
+        val writer = MergedNovelWriters.forFormat(effectiveFormat)
         val ok = writer.write(ctx, content, destination) { key, bytes ->
             emit(FetchEvent.ImageFetched(key, bytes))
         }
@@ -208,3 +227,6 @@ class MergeDownloadNovelSeriesTask(context: Context) {
         const val SERIES_PAGE_DELAY_MS = 1000L
     }
 }
+
+private fun hasIllustrations(webNovel: WebNovel): Boolean =
+    !webNovel.illusts.isNullOrEmpty() || !webNovel.images.isNullOrEmpty()

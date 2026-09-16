@@ -23,7 +23,7 @@ fun translateTag(context: Context, scope: CoroutineScope, name: String) {
     Common.showToast(R.string.string_translating)
     scope.launch {
         val translated = try {
-            currentTranslator().translate(src, appTranslateTargetLang(), onPhase = onThinkingPhase)
+            currentTranslator().translate(src, appTranslateTargetLang(), onPhase = onceThinkingPhase())
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

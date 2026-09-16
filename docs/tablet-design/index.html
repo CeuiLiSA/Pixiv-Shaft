@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-accent="violet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shaft · 平板画廊设计</title>
+<link rel="stylesheet" href="style.css">
+<body>
+<svg aria-hidden="true" class="symbols" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="spark" viewBox="0 0 24 24"><path d="m12 3 2.6 6.4L21 12l-6.4 2.6L12 21l-2.6-6.4L3 12l6.4-2.6Z"/></symbol>
+<symbol id="compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m16 8-2.5 5.5L8 16l2.5-5.5Z"/></symbol>
+<symbol id="activity" viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></symbol>
+<symbol id="heart" viewBox="0 0 24 24"><path d="M20.5 5.5a5 5 0 0 0-7 0L12 7l-1.5-1.5a5 5 0 0 0-7 7L12 21l8.5-8.5a5 5 0 0 0 0-7Z"/></symbol>
+<symbol id="download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+<symbol id="search-icon" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+<symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+<symbol id="expand" viewBox="0 0 24 24"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></symbol>
+<symbol id="moon" viewBox="0 0 24 24"><path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z"/></symbol>
+<symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+<symbol id="arrow" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="book" viewBox="0 0 24 24"><path d="M4 4h6l2 2 2-2h6v16h-6l-2 1-2-1H4ZM12 6v15"/></symbol>
+</defs></svg>
+<div class="app">
+ <nav class="rail" aria-label="主导航">
+  <a href="index.html" class="brand" aria-label="Shaft 首页">s<span>•</span></a>
+  <div class="destinations">
+   <button class="nav active" data-route="推荐" aria-current="page"><svg><use href="#spark"/></svg><span>推荐</span></button>
+   <button class="nav" data-route="发现"><svg><use href="#compass"/></svg><span>发现</span></button>
+   <button class="nav" data-route="动态"><svg><use href="#activity"/></svg><span>动态</span></button>
+   <div class="rail-line"></div>
+   <button class="nav" data-route="收藏"><svg><use href="#heart"/></svg><span>收藏</span></button>
+   <button class="nav" id="downloads"><svg><use href="#download"/></svg><span>下载</span></button>
+  </div>
+  <div class="rail-bottom"><button class="icon" id="theme" aria-label="切换深浅主题"><svg><use href="#moon"/></svg></button><button class="avatar" id="account" aria-label="原型说明">S</button></div>
+ </nav>
+ <div class="workspace">
+  <header class="topbar"><div class="wordmark">Pixiv-Shaft</div><label class="search"><svg><use href="#search-icon"/></svg><input id="search" type="search" placeholder="搜索作品、标签或作品 ID" aria-label="搜索示例作品"><kbd>/</kbd></label><button class="concept" id="preview-settings">预览设置</button></header>
+  <div class="content" id="content">
+   <main class="feed" id="feed">
+    <div class="page-heading"><div><div class="eyebrow" id="eyebrow">ARTWORK FEED</div><h1 id="page-title">推荐作品</h1><p id="subtitle">浏览作品，选择后查看详情。</p></div><div class="density"><svg><use href="#grid"/></svg><select id="density" aria-label="图片密度"><option value="normal">舒适</option><option value="compact">紧凑</option><option value="large">大图</option></select></div></div>
+    <div class="filterbar"><div class="tabs" role="group" aria-label="作品排序"><button class="tab active" data-tab="全部">为你推荐</button><button class="tab" data-tab="热门">热门作品</button></div><span class="count" id="count"></span></div>
+    <div class="chips" role="group" aria-label="作品标签"><button class="chip active" data-tag="全部">全部</button><button class="chip" data-tag="风景">风景</button><button class="chip" data-tag="人物">人物</button><button class="chip" data-tag="幻想">幻想</button><span class="quiet">本地示例</span></div>
+    <div class="preview-state" id="preview-state" role="status" hidden></div>
+    <div class="gallery" id="gallery"></div>
+    <div class="empty" id="empty" hidden><svg><use href="#heart"/></svg><h2>暂无作品</h2><p>可清除筛选或查看全部作品。</p><button class="v3-button tonal" id="clear-filters">查看全部作品</button></div>
+    <footer><a href="magazine.html">发现页原型 ↗</a> <span>本地交互原型 · 标题与分类为演示数据</span></footer>
+   </main>
+   <aside class="detail" id="detail" aria-label="作品详情" hidden></aside>
+  </div>
+ </div>
+</div>
+<dialog class="viewer" id="viewer" aria-label="作品查看器"><div class="viewer-top"><span id="viewer-title"></span><button class="icon" id="exit-viewer" aria-label="退出沉浸看图"><svg><use href="#close"/></svg></button></div><div class="viewer-canvas"><img id="viewer-image" alt="作品大图"></div><div class="viewer-bottom"><button class="icon" id="prev" aria-label="上一幅"><svg class="reverse"><use href="#arrow"/></svg></button><span id="viewer-index"></span><button class="icon" id="next" aria-label="下一幅"><svg><use href="#arrow"/></svg></button><button id="zoom" class="pill">放大</button></div></dialog>
+<dialog class="info-dialog" id="info" aria-label="预览设置"><button id="close-info" class="icon close-info" aria-label="关闭"><svg><use href="#close"/></svg></button><div id="info-body"></div></dialog>
+<div class="toast" id="toast" role="status"></div>
+<script src="preview.js"></script><script src="data.js"></script><script src="app.js"></script>
+</body></html>

@@ -1539,6 +1539,8 @@
     <string name="novel_chip_series_content_count">章節數  %1$s</string>
     <string name="novel_chip_series_char_count">總字數  %1$s</string>
     <string name="setting_default_novel_format">預設小說下載格式</string>
+    <string name="setting_novel_epub_on_images">小說有插圖時存EPUB</string>
+    <string name="setting_novel_epub_on_images_desc">預設匯出格式為 TXT 時，偵測到正文插圖自動改用 EPUB 匯出</string>
     <string name="setting_default_image_resolution">預設圖片儲存清晰度</string>
     <string name="option_always_ask">每次詢問</string>
     <string name="msg_unknown_format">未知格式：%s</string>
@@ -1591,6 +1593,7 @@
     <!-- 作品详情页里直接滑图时的常驻页码浮标(#1058)。纯数字，各语言一致。 -->
     <string name="artwork_page_indicator">%1$d / %2$d</string>
     <string name="comic_reader_jump_to_page">跳至第 %1$d 頁</string>
+    <string name="comic_reader_auto_rotate_image">看圖自動橫屏</string>
     <string name="comic_reader_open_label">進入閱讀</string>
     <string name="comic_reader_load_failed">載入失敗：%1$s</string>
     <string name="comic_reader_no_pages">此作品沒有可閱讀的頁面</string>
@@ -2868,6 +2871,8 @@
     <!-- 自動快照（實驗性） -->
     <string name="setting_auto_snapshot_on_bookmark">收藏時產生離線快照</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">收藏作品後在背景靜默產生一份輕量離線快照（實驗性）</string>
+    <string name="setting_auto_snapshot_on_illust_manga">插畫/漫畫自動產生快照</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">對反覆瀏覽與長時間駐留的插畫/漫畫靜默產生快照（實驗性）</string>
 
     <!-- 日誌檔案（實驗性） -->
     <string name="setting_log_file_enable">啟用日誌檔案</string>
@@ -2897,6 +2902,8 @@
     <string name="bookmark_mirror_ready_title">收藏庫已就緒</string>
     <string name="bookmark_mirror_ready_message">已在本地攢好 %1$s 件收藏，現在可以倒序、按標籤/作者/年份篩，還能全文搜。</string>
     <string name="bookmark_mirror_ready_action">去看看</string>
+    <string name="debug_mirror_banner_title">觸發「收藏庫已就緒」banner</string>
+    <string name="debug_mirror_banner_desc">清掉一次性標記並重放引導，公開或私人收藏可選</string>
     <string name="bookmark_library_title">我的插畫收藏</string>
     <string name="bookmark_library_search_hint">搜尋標題 / 作者 / 標籤 / ID</string>
     <string name="bookmark_library_empty">本地還沒有可瀏覽的收藏</string>
@@ -2972,8 +2979,8 @@
 
     <!-- PixShaft 雲翻譯 -->
     <string name="cloud_translate_title">PixShaft 雲翻譯</string>
-    <string name="cloud_translate_desc">留言、標題、標籤與漫畫翻譯改走 PixShaft 伺服器的 AI 翻譯，無需代理，有用量額度；關閉則使用內建 Google 翻譯。已啟用自訂 AI 翻譯時優先自訂。</string>
-    <string name="cloud_translate_usage_section">AI 翻譯額度</string>
+    <string name="cloud_translate_desc">留言、標題、標籤與漫畫翻譯改走 PixShaft 伺服器的雲端翻譯，無需代理，有用量額度；關閉則使用內建 Google 翻譯。已啟用自訂 AI 翻譯時優先自訂。</string>
+    <string name="cloud_translate_usage_section">雲端翻譯額度</string>
     <string name="cloud_translate_failed_title">雲翻譯失敗</string>
     <string name="cloud_translate_quota_title">雲翻譯額度已用完</string>
     <string name="cloud_translate_quota_session">五小時翻譯額度已用完，%1$s後恢復</string>
@@ -2981,5 +2988,18 @@
     <string name="cloud_translate_quota_unknown">翻譯額度已用完，請稍後再試</string>
     <string name="cloud_translate_usage_lt1">&lt;1%</string>
     <string name="cloud_translate_engine_line">目前引擎：%1$s</string>
-    <string name="cloud_translate_usage_section_engine">AI 翻譯額度 · %1$s</string>
+    <string name="cloud_translate_usage_section_engine">雲端翻譯額度 · %1$s</string>
+    <string name="artwork_poster_save">儲存作品海報</string>
+    <string name="artwork_poster_generating">正在產生高畫質作品海報…</string>
+    <string name="artwork_poster_saved">作品海報已儲存到相簿</string>
+    <string name="artwork_poster_failed">海報產生失敗：%1$s</string>
+    <string name="artwork_poster_image_unavailable">作品圖片無法使用</string>
+    <string name="artwork_poster_destination_unavailable">無法建立相簿檔案</string>
+    <string name="artwork_poster_encode_failed">海報編碼失敗</string>
+    <string name="artwork_poster_unknown_author">未知作者</string>
+    <string name="artwork_poster_untitled">無題</string>
+    <string name="recommend_page_content">推薦頁面顯示內容</string>
+    <string name="recommend_page_works_first">推薦作品-熱門標籤</string>
+    <string name="recommend_page_tags_first">熱門標籤-推薦作品</string>
+    <string name="recommend_page_content_desc">調整插畫和小說推薦頁的分頁順序，重新啟動後生效</string>
 </resources>

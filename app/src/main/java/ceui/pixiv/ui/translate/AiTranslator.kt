@@ -460,10 +460,12 @@ object AiTranslator : Translator {
                 } catch (e2: Exception) {
                     // 仍失败(如网关连 stream=true 都不认)→降级非流式
                     Timber.w(e2, "AiTranslator: stream retry failed, falling back to non-stream")
+                    onPhase?.invoke(AiTranslatePhase.Generating)
                     nonStreamChatCompletion(endpoint, apiKey, model, body, readTimeout, client = client)
                 }
             } catch (e: Exception) {
                 Timber.w(e, "AiTranslator: stream failed, falling back to non-stream")
+                onPhase?.invoke(AiTranslatePhase.Generating)
                 nonStreamChatCompletion(endpoint, apiKey, model, body, readTimeout, client = client)
             }
         }
@@ -514,20 +516,21 @@ object AiTranslator : Translator {
                 client ?: clientFor(REAL_CONNECT_TIMEOUT_SECONDS, readTimeout, Dns.SYSTEM)
             )
                 .newEventSource(builder.build(), object : EventSourceListener() {
-                    private var thinking = false
                     private var generating = false
                     private var done = false
                     private var finished = false
                     private var chunks = 0
                     private var usage: JSONObject? = null
                     private val content = StringBuilder()
-                    private val reasoning = StringBuilder()
+                    private var reasoningChars = 0
+                    private var reasoningPreview = ""
 
                     override fun onOpen(eventSource: EventSource, response: Response) {
                         Timber.d("AiTranslator: stream opened %s", endpoint)
                     }
 
                     override fun onEvent(eventSource: EventSource, id: String?, type: String?, data: String) {
+                        if (!cont.isActive || done || finished) return
                         if (data == "[DONE]") {
                             done = true
                             // 部分网关在 [DONE] 后不关流,主动断开避免挂到 readTimeout
@@ -544,10 +547,13 @@ object AiTranslator : Translator {
                             ?: return
                         val reasoningDelta = delta.optStringOrEmpty("reasoning_content")
                         if (reasoningDelta.isNotEmpty()) {
-                            reasoning.append(reasoningDelta)
-                            if (!thinking) {
-                                thinking = true
-                                onPhase?.invoke(AiTranslatePhase.THINKING)
+                            reasoningChars += reasoningDelta.length
+                            if (!generating) {
+                                reasoningPreview = (reasoningPreview + reasoningDelta).takeLast(240)
+                                    .dropWhile { Character.isLowSurrogate(it) }
+                                if (reasoningPreview.isNotBlank()) {
+                                    onPhase?.invoke(AiTranslatePhase.Thinking(reasoningPreview.trim()))
+                                }
                             }
                         }
                         val contentDelta = delta.optStringOrEmpty("content")
@@ -555,7 +561,7 @@ object AiTranslator : Translator {
                             content.append(contentDelta)
                             if (!generating) {
                                 generating = true
-                                onPhase?.invoke(AiTranslatePhase.GENERATING)
+                                onPhase?.invoke(AiTranslatePhase.Generating)
                             }
                         }
                         chunks++
@@ -584,7 +590,7 @@ object AiTranslator : Translator {
                         val result = content.toString()
                         if (result.isBlank()) {
                             val err = IOException(
-                                "empty stream completion: reasoning=${reasoning.length} chars, chunks=$chunks"
+                                "empty stream completion: reasoning=$reasoningChars chars, chunks=$chunks"
                             )
                             Timber.w(err, "AiTranslator: empty stream after %d ms", elapsedMs)
                             resumeWithFailure(cont, err)
@@ -592,7 +598,7 @@ object AiTranslator : Translator {
                         }
                         Timber.d(
                             "AiTranslator: stream done | chunks=%d content=%d chars reasoning=%d chars",
-                            chunks, content.length, reasoning.length
+                            chunks, content.length, reasoningChars
                         )
                         logTokenStats(
                             promptTokens = usage?.optInt("prompt_tokens", -1) ?: -1,
@@ -602,7 +608,7 @@ object AiTranslator : Translator {
                                 ?: usage?.optInt("reasoning_tokens", -1)
                                 ?: -1,
                             elapsedMs = elapsedMs,
-                            reasoningContentLen = reasoning.length,
+                            reasoningContentLen = reasoningChars,
                         )
                         cont.resumeWith(Result.success(result))
                     }
@@ -822,17 +828,19 @@ object AiTranslator : Translator {
     }
 
     /** 并发 chunk 的阶段聚合:只升不降,任一请求在思考 → 思考中,任一在生成 → 生成中。 */
-    private class PhaseAggregator(private val onPhase: ((AiTranslatePhase) -> Unit)?) {
+    internal class PhaseAggregator(private val onPhase: ((AiTranslatePhase) -> Unit)?) {
         private val lock = Any()
         private var maxLevel = 0 // 0 无阶段,1 思考中,2 生成中
+        private var lastPhase: AiTranslatePhase? = null
 
         fun report(phase: AiTranslatePhase) {
             if (onPhase == null) return
-            val level = if (phase == AiTranslatePhase.THINKING) 1 else 2
+            val level = if (phase is AiTranslatePhase.Thinking) 1 else 2
             synchronized(lock) {
-                if (level > maxLevel) {
+                if (level >= maxLevel && phase != lastPhase) {
                     maxLevel = level
-                    onPhase(if (level == 1) AiTranslatePhase.THINKING else AiTranslatePhase.GENERATING)
+                    lastPhase = phase
+                    onPhase(phase)
                 }
             }
         }

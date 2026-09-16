@@ -12,6 +12,7 @@ import ceui.pixiv.api.model.GifInfoResponse
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.api.model.UserPreview
 import ceui.pixiv.api.model.UserResponse
+import ceui.pixiv.plaza.PlazaPostCacheEntry
 import com.google.gson.Gson
 import java.io.Serializable
 import kotlin.reflect.KClass
@@ -247,6 +248,9 @@ object ObjectPool {
             }
             UserResponse::class -> {
                 ObjectSpec.UserProfile
+            }
+            PlazaPostCacheEntry::class -> {
+                ObjectSpec.PLAZA_POST
             }
             else -> {
                 ObjectSpec.UNKNOWN

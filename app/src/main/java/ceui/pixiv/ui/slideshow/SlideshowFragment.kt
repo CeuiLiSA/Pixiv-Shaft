@@ -15,6 +15,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
@@ -125,9 +126,10 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
     }
 
     private fun applySystemBarInsets() {
-        view?.setOnApplyWindowInsetsListener { _, insets ->
-            val sb = WindowInsetsCompat.toWindowInsetsCompat(insets)
-                .getInsets(WindowInsetsCompat.Type.systemBars())
+        val root = view ?: return
+        // 首页在旧系统启用兼容分发后，FragmentContainerView 只保留 ViewCompat 注册的监听器。
+        ViewCompat.setOnApplyWindowInsetsListener(root) { _, insets ->
+            val sb = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             topBar.updatePadding(top = sb.top + 12.ppppx)
             bottomBar.updatePadding(bottom = sb.bottom + 20.ppppx)
             insets

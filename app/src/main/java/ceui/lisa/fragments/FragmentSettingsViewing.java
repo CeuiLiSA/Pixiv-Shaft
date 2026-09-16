@@ -25,6 +25,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Settings;
 import ceui.pixiv.ui.navigation.TemplateRoute;
+import ceui.pixiv.ui.comic.reader.ComicReaderSettings;
 
 /** 设置 · 看图与详情 */
 public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettingsViewingBinding> {
@@ -191,6 +192,12 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         });
         baseBind.illustDetailKeepScreenOnRela.setOnClickListener(v ->
                 baseBind.illustDetailKeepScreenOn.performClick());
+
+        baseBind.comicReaderAutoRotateImage.setChecked(ComicReaderSettings.INSTANCE.getAutoRotateImage());
+        baseBind.comicReaderAutoRotateImage.setOnCheckedChangeListener((buttonView, isChecked) ->
+                ComicReaderSettings.INSTANCE.setAutoRotateImage(isChecked));
+        baseBind.comicReaderAutoRotateImageRela.setOnClickListener(v ->
+                baseBind.comicReaderAutoRotateImage.performClick());
 
         // 插画大图双击缩放行为：默认 / 三级 / 增量
         updateDoubleTapZoomModeLabel();

@@ -337,7 +337,9 @@ public class Settings {
 
     private boolean autoDownloadAfterStar = false; // 收藏后自动下载
 
-    private boolean autoSnapshotOnBookmark = false; // 试验性：收藏时生成离线快照
+    private volatile boolean autoSnapshotOnBookmark = false; // 试验性：收藏时生成离线快照
+
+    private volatile boolean autoSnapshotOnIllustManga = false; // 试验性：插画/漫画自动生成快照
 
     private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
 
@@ -450,6 +452,17 @@ public class Settings {
     // 冷启动时是否自动刷新首页推荐插画（issue #955），默认开启（保持本地优先的原语义）。
     // 关掉后冷启命中磁盘快照就停在快照上，由用户下拉刷新才拉新内容
     private boolean autoRefreshHomeFeed = true;
+
+    // 推荐页页签顺序：默认推荐作品在前；插画和小说共用，重启后生效。
+    private boolean recommendHotTagsFirst = false;
+
+    public boolean isRecommendHotTagsFirst() {
+        return recommendHotTagsFirst;
+    }
+
+    public void setRecommendHotTagsFirst(boolean recommendHotTagsFirst) {
+        this.recommendHotTagsFirst = recommendHotTagsFirst;
+    }
 
     /** @deprecated legacy display-name language；仅供 AppLocalesBootstrap 一次性迁移读取，请使用 {@link ceui.pixiv.i18n.AppLocales}。 */
     @Deprecated
@@ -998,6 +1011,14 @@ public class Settings {
         this.autoSnapshotOnBookmark = autoSnapshotOnBookmark;
     }
 
+    public boolean isAutoSnapshotOnIllustManga() {
+        return autoSnapshotOnIllustManga;
+    }
+
+    public void setAutoSnapshotOnIllustManga(boolean autoSnapshotOnIllustManga) {
+        this.autoSnapshotOnIllustManga = autoSnapshotOnIllustManga;
+    }
+
     public boolean isShowOriginalPreviewImage() {
         return showOriginalPreviewImage;
     }
@@ -1533,6 +1554,17 @@ public class Settings {
 
     public void setDefaultNovelExportFormat(String defaultNovelExportFormat) {
         this.defaultNovelExportFormat = defaultNovelExportFormat;
+    }
+
+    // 默认导出格式为 Txt 时，正文含插图自动改用 Epub（默认关闭）
+    private boolean defaultNovelExportEpubOnImages = false;
+
+    public boolean isDefaultNovelExportEpubOnImages() {
+        return defaultNovelExportEpubOnImages;
+    }
+
+    public void setDefaultNovelExportEpubOnImages(boolean defaultNovelExportEpubOnImages) {
+        this.defaultNovelExportEpubOnImages = defaultNovelExportEpubOnImages;
     }
 
     // "" = 原图（当前默认行为），否则存 Params.IMAGE_RESOLUTION_* 值
