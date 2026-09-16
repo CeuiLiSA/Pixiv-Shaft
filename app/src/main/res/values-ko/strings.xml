@@ -2863,9 +2863,6 @@
     <string name="setting_log_file_desc">성능에 영향을 줄 수 있음\n로그 파일 위치: %1$s</string>
     <string name="setting_log_file_no_file">아직 생성되지 않음</string>
     <string name="setting_log_file_share">로그 파일 공유</string>
-    <string name="setting_log_file_share_history_title">이전에 공유한 로그 파일이 있습니다</string>
-    <string name="setting_log_file_share_since_last">새로 생성된 로그 공유</string>
-    <string name="setting_log_file_share_all">이전에 공유한 로그와 새로 생성된 로그를 합쳐서 공유</string>
     <string name="setting_log_file_share_failed">로그 파일 공유 실패</string>
     <string name="setting_trigger_crash">치명적인 오류 발생시키기</string>
     <string name="setting_trigger_crash_desc">클릭하면 즉시 크래시됩니다(크래시 로그 기록 확인용)</string>

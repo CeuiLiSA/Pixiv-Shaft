@@ -2879,9 +2879,6 @@
     <string name="setting_log_file_desc">可能影響效能\n日誌檔案在%1$s</string>
     <string name="setting_log_file_no_file">尚未產生</string>
     <string name="setting_log_file_share">分享日誌檔案</string>
-    <string name="setting_log_file_share_history_title">有歷史分享過的日誌檔案</string>
-    <string name="setting_log_file_share_since_last">分享新產生的日誌</string>
-    <string name="setting_log_file_share_all">合併歷史分享與新產生再分享</string>
     <string name="setting_trigger_crash">觸發一次致命錯誤</string>
     <string name="setting_trigger_crash_desc">點擊後立即崩潰，用於驗證崩潰日誌落盤</string>
     <string name="setting_log_file_share_failed">分享日誌檔案失敗</string>

@@ -362,7 +362,7 @@ public class Shaft extends Application implements ServicesProvider {
         sSettings = Local.getSettings();
 
         if (sSettings.isLogFileEnabled()) {
-            TimberFileLog.INSTANCE.maybeStart();
+            TimberFileLog.INSTANCE.maybeStart(this);
             installCrashLogHandler();
         }
 
