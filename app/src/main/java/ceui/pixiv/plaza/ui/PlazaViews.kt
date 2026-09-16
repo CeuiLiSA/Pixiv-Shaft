@@ -123,6 +123,7 @@ internal class PostAdapter(
     private val onImage: (PlazaPost, Int, View) -> Unit,
     private val detailId: Long = 0,
     private val onReact: (PlazaPost, String) -> Unit = { _, _ -> },
+    private val onReply: ((PlazaPost) -> Unit)? = null,
 ) :
     ListAdapter<PlazaPost, PostAdapter.Holder>(
         object : DiffUtil.ItemCallback<PlazaPost>() {
@@ -159,6 +160,7 @@ internal class PostAdapter(
             onImage,
             onReact,
             detailId > 0 && detailId != post.id,
+            onReply,
         )
     }
 
@@ -262,6 +264,7 @@ internal class PostView(
         onImage: (PlazaPost, Int, View) -> Unit,
         onReact: (PlazaPost, String) -> Unit = { _, _ -> },
         comment: Boolean = false,
+        onReply: ((PlazaPost) -> Unit)? = null,
     ) {
         if (detailMode != detail) {
             renderedImages = null
@@ -490,7 +493,7 @@ internal class PostView(
             R.drawable.ic_plaza_figma_comment,
             description = context.getString(R.string.plaza_reply_post),
         ) {
-            context.openComposer(post.id)
+            if (onReply != null) onReply(post) else context.openPost(post.id)
         }
         for (i in 0 until comments.childCount) clearImageRequests(comments.getChildAt(i))
         comments.removeAllViews()
@@ -536,7 +539,7 @@ internal class PostView(
                 )
                 content.addView(
                     context.label(context.getString(R.string.plaza_reply), 13f).apply {
-                        setOnClickListener { context.openComposer(preview.id) }
+                        setOnClickListener { context.openPost(preview.id) }
                     },
                     LayoutParams(-2, -2).apply { topMargin = context.dp(8) },
                 )
@@ -605,7 +608,9 @@ internal class PostView(
                 ),
             )
         commentFooter.setTextColor(ContextCompat.getColor(context, R.color.v3_text_3))
-        commentFooter.setOnClickListener { context.openComposer(post.id) }
+        commentFooter.setOnClickListener {
+            if (onReply != null) onReply(post) else context.openPost(post.id)
+        }
         commentsTitle.isVisible = detail
         commentsTitle.text = context.getString(R.string.plaza_comments_title, post.replyCount)
         if (comment) {

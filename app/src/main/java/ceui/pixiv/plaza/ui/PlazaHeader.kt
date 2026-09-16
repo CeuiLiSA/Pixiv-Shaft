@@ -84,6 +84,7 @@ internal fun Fragment.setupPlazaHeader(
     root: View,
     title: String,
     compose: Boolean = false,
+    bottomPanel: Boolean = false,
 ): PlazaHeader {
     val header = root.findViewById<PlazaHeader>(R.id.plaza_header)
     header.title.text = title
@@ -107,7 +108,7 @@ internal fun Fragment.setupPlazaHeader(
             insets
                 .getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
                 .bottom
-        content.setPadding(0, 0, 0, bottom)
+        if (!bottomPanel) content.setPadding(0, 0, 0, bottom)
         insets
     }
     ViewCompat.requestApplyInsets(root)

@@ -115,6 +115,59 @@ class PlazaStateTest {
         }
 
     @Test
+    fun `inline reply retains failed draft and can send again after consuming success`() =
+        runTest(dispatcher) {
+            val api = FakeApi()
+            val saved = SavedStateHandle()
+            val vm = PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }) { _, _, _ ->
+                error("no upload")
+            }
+            val resolver = RuntimeEnvironment.getApplication().contentResolver
+            vm.replyTo = 7
+            vm.text = "reply"
+            api.createFails = true
+            vm.send(resolver)
+            vm.send(resolver)
+            runCurrent()
+            assertEquals(1, api.creates.size)
+            assertNull(vm.consumeSentReply())
+            assertEquals("reply", vm.text)
+            assertEquals(7L, api.creates.single().replyTo)
+
+            api.createFails = false
+            vm.send(resolver)
+            runCurrent()
+            assertEquals(api.creates[0].requestId, api.creates[1].requestId)
+            assertEquals(10L, vm.consumeSentReply())
+            assertNull(vm.consumeSentReply())
+            assertEquals("", vm.text)
+            assertFalse(vm.canSend())
+            vm.text = "reply"
+            vm.send(resolver)
+            runCurrent()
+            assertNotEquals(api.creates[1].requestId, api.creates[2].requestId)
+        }
+
+    @Test
+    fun `changing reply target after a failure uses a new request id`() = runTest(dispatcher) {
+        val api = FakeApi()
+        val vm = PlazaComposeViewModel(SavedStateHandle(), api, { 42 }, { "Alice" }) { _, _, _ ->
+            error("no upload")
+        }
+        vm.replyTo = 7
+        vm.text = "reply"
+        api.createFails = true
+        vm.send(RuntimeEnvironment.getApplication().contentResolver)
+        runCurrent()
+        vm.replyTo = 8
+        api.createFails = false
+        vm.send(RuntimeEnvironment.getApplication().contentResolver)
+        runCurrent()
+        assertEquals(8L, api.creates.last().replyTo)
+        assertNotEquals(api.creates[0].requestId, api.creates[1].requestId)
+    }
+
+    @Test
     fun `account changes prevent publishing a previous accounts draft`() =
         runTest(dispatcher) {
             var uid = 42L

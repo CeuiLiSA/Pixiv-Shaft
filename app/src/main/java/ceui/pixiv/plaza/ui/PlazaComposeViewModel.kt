@@ -95,8 +95,29 @@ constructor(
     var replyTo: Long?
         get() = saved["replyTo"]
         set(value) {
-            saved["replyTo"] = value
+            if (!mutable.value.sending && replyTo != value) {
+                saved["replyTo"] = value
+                invalidateRequest()
+            }
         }
+
+    var replyName: String
+        get() = saved["replyName"] ?: ""
+        set(value) { saved["replyName"] = value }
+
+    var replyPreview: String
+        get() = saved["replyPreview"] ?: ""
+        set(value) { saved["replyPreview"] = value }
+
+    /** A persistent reply composer stays open after a successful send. */
+    fun consumeSentReply(): Long? {
+        val id = mutable.value.sentId ?: return null
+        if (mutable.value.sending) return null
+        saved["text"] = ""
+        invalidateRequest()
+        mutable.value = mutable.value.copy(sentId = null)
+        return id
+    }
 
     private val owner: Long = saved.get<Long>("owner") ?: currentUid().also { saved["owner"] = it }
 

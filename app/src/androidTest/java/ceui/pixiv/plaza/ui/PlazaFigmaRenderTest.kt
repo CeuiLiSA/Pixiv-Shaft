@@ -162,7 +162,7 @@ class PlazaFigmaRenderTest {
                                     )
                                 }
                         )
-                        screen.addView(PlazaReplyBar(context, {}, {}, {}).apply { bind(post) })
+                        screen.addView(PlazaReplyBar(context))
                     }
                     screen.measure(
                         View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),

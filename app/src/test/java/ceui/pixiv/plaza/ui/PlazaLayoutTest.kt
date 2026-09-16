@@ -52,25 +52,28 @@ class PlazaLayoutTest {
     }
 
     @Test
-    fun `detail counters update and footer stays within a narrow large font screen`() {
+    fun `detail composer keeps text and send reachable on narrow screens with large fonts`() {
         val app = RuntimeEnvironment.getApplication()
-        val config =
-            android.content.res.Configuration(app.resources.configuration).apply { fontScale = 2f }
-        val context = ContextThemeWrapper(app.createConfigurationContext(config), R.style.AppTheme)
-        val footer = PlazaReplyBar(context, {}, {}, {})
-        footer.bind(
-            PlazaPost(1, 42, "Author", "Body", 1, null, null, null, 9999, 8888, false, emptyList())
-        )
-        footer.measure(
-            View.MeasureSpec.makeMeasureSpec(context.dp(320), View.MeasureSpec.EXACTLY),
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-        )
-        footer.layout(0, 0, footer.measuredWidth, footer.measuredHeight)
-        assertTrue(footer.getChildAt(0).width > 0)
-        assertTrue(footer.getChildAt(2).right <= footer.width - footer.paddingRight)
-        footer.bind(null)
-        assertFalse(footer.getChildAt(0).isEnabled)
-        assertFalse(footer.getChildAt(1).isEnabled)
+        for (dark in listOf(false, true)) for (scale in listOf(1f, 2f)) {
+            val config = android.content.res.Configuration(app.resources.configuration).apply {
+                fontScale = scale
+                uiMode = if (dark) android.content.res.Configuration.UI_MODE_NIGHT_YES
+                    else android.content.res.Configuration.UI_MODE_NIGHT_NO
+            }
+            val context = ContextThemeWrapper(app.createConfigurationContext(config), R.style.AppTheme)
+            val footer = PlazaReplyBar(context)
+            footer.composer.etInput.setText("很长的评论 long reply ".repeat(30))
+            footer.composer.replyBar.visibility = View.VISIBLE
+            footer.composer.tvReplyBarName.text = "回复 很长的名字".repeat(10)
+            footer.measure(
+                View.MeasureSpec.makeMeasureSpec(context.dp(320), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            )
+            footer.layout(0, 0, footer.measuredWidth, footer.measuredHeight)
+            assertTrue(footer.composer.etInput.width > 0)
+            assertTrue(footer.composer.btnSend.right <= footer.width)
+            assertEquals(View.GONE, footer.emojiPanel.visibility)
+        }
     }
 
     @Test

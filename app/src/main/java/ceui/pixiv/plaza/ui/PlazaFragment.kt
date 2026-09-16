@@ -4,6 +4,13 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.widget.*
+import androidx.core.widget.doAfterTextChanged
+import ceui.pixiv.panel.BottomPanelCoordinator
+import ceui.pixiv.panel.PanelHost
+import ceui.pixiv.panel.WindowSoftInputModeLease
+import ceui.pixiv.panel.attachBottomPanel
+import ceui.pixiv.session.SessionManager
+import ceui.pixiv.sticker.InlineStickerPicker
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -20,6 +27,10 @@ class PlazaFragment : PlazaTimelineFragment()
 
 open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
     private val model: PlazaTimelineViewModel by viewModels()
+    private val replyModel: PlazaComposeViewModel by viewModels()
+    private var replyBar: PlazaReplyBar? = null
+    private var replyPanel: BottomPanelCoordinator? = null
+    private var softInputLease: WindowSoftInputModeLease.Handle? = null
     private var recycler: RecyclerView? = null
     private var imageViewerOpen = false
     private val imageViewer =
@@ -38,6 +49,7 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
                 view,
                 if (postId > 0) ctx.getString(R.string.plaza_post_detail_title)
                 else ctx.getString(R.string.plaza_title),
+                bottomPanel = postId > 0,
             )
         header.action.text = ctx.getString(R.string.plaza_send_post)
         header.trailing.setOnClickListener { ctx.openComposer() }
@@ -69,7 +81,10 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
         column.addView(refresh, LinearLayout.LayoutParams(-1, 0, 1f))
         refresh.applyV3RefreshTheme()
         refresh.setOnRefreshListener { model.refresh() }
-        val adapter = PostAdapter(model::like, ::confirmDelete, ::preview, postId, model::react)
+        val adapter = PostAdapter(
+            model::like, ::confirmDelete, ::preview, postId, model::react,
+            onReply = if (postId > 0) ::startReply else null,
+        )
         list.adapter = adapter
         list.addOnScrollListener(
             object : RecyclerView.OnScrollListener() {
@@ -83,25 +98,11 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
                 }
             }
         )
-        var replyBar: PlazaReplyBar? = null
         if (postId > 0) {
-            replyBar =
-                PlazaReplyBar(
-                    ctx,
-                    reply = { ctx.openComposer(postId) },
-                    react = {
-                        model.state.value.parent?.let { post ->
-                            ceui.pixiv.sticker.StickerPicker.show(ctx) { sticker ->
-                                model.react(post, "sticker:${sticker.stickerId}")
-                            }
-                        }
-                    },
-                    comments = {
-                        if (adapter.itemCount > 1) list.smoothScrollToPosition(1)
-                        else ctx.openComposer(postId)
-                    },
-                )
-            column.addView(replyBar)
+            val bar = PlazaReplyBar(ctx)
+            replyBar = bar
+            column.addView(bar, LinearLayout.LayoutParams(-1, -2))
+            setupReplyComposer(bar, column, list)
             header.trailing.removeAllViews()
             header.trailing.addView(
                 ctx.figmaIcon(
@@ -138,7 +139,7 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
                         else -> ""
                     }
                 status.isVisible = status.text.isNotEmpty()
-                replyBar?.bind(state.parent, postId in state.busyIds)
+                renderReplyComposer()
             }
         }
     }
@@ -146,12 +147,100 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
     override fun onResume() {
         super.onResume()
         model.enter(postId)
+        if (postId > 0 && softInputLease == null) {
+            softInputLease = WindowSoftInputModeLease.acquireAdjustResize(requireActivity().window)
+        }
+    }
+
+    override fun onPause() {
+        softInputLease?.release()
+        softInputLease = null
+        super.onPause()
     }
 
     override fun onDestroyView() {
+        softInputLease?.release()
+        softInputLease = null
+        replyBar?.emojiPanel?.onPanelVisibilityChanged = null
+        replyBar = null
+        replyPanel = null
         recycler?.adapter = null
         recycler = null
         super.onDestroyView()
+    }
+
+    private fun setupReplyComposer(bar: PlazaReplyBar, root: View, list: RecyclerView) {
+        val input = bar.composer
+        if (replyModel.replyTo == null) replyModel.replyTo = postId
+        replyModel.avatarUrl = SessionManager.loggedInUser?.profile_image_urls?.medium
+        input.etInput.setText(replyModel.text)
+        input.etInput.setSelection(replyModel.text.length)
+        input.etInput.doAfterTextChanged {
+            replyModel.text = it?.toString().orEmpty()
+            renderReplyComposer()
+        }
+        input.btnSend.setOnClickListener {
+            if (model.state.value.parent != null) {
+                replyModel.send(requireContext().contentResolver)
+                renderReplyComposer()
+            }
+        }
+        input.btnReplyBarClose.setOnClickListener {
+            if (!replyModel.state.value.sending) {
+                replyModel.replyTo = postId
+                renderReplyComposer()
+            }
+        }
+        // Keep the existing post-reaction semantics while sharing chat's inline picker.
+        val stickers = InlineStickerPicker(requireContext(), bar.emojiPanel, viewLifecycleOwner) { sticker ->
+            if (!replyModel.state.value.sending) {
+                model.state.value.parent?.let { model.react(it, "sticker:${sticker.stickerId}") }
+            }
+        }
+        bar.emojiPanel.onPanelVisibilityChanged = stickers::setActive
+        replyPanel = attachBottomPanel(object : PanelHost {
+            override val panelRoot get() = root
+            override val panelView get() = bar.emojiPanel
+            override val panelInputView get() = input.etInput
+            override val panelContentView get() = list
+            override val panelToggleButton get() = input.btnEmoji
+            override val panelToggleIconRes get() = R.drawable.chat_ic_emoji
+            override val keyboardToggleIconRes get() = R.drawable.chat_ic_keyboard
+        })
+        renderReplyComposer()
+        launchSuspend {
+            replyModel.state.collect {
+                replyModel.takeErrorForAlert()?.let(requireContext()::showPlazaError)
+                if (replyModel.consumeSentReply() != null) {
+                    input.etInput.text?.clear()
+                    replyModel.replyTo = postId
+                    model.refresh()
+                }
+                renderReplyComposer()
+            }
+        }
+    }
+
+    private fun startReply(post: PlazaPost) {
+        if (replyBar == null || replyModel.state.value.sending) return
+        replyModel.replyTo = post.id
+        replyModel.replyName = post.displayName
+        replyModel.replyPreview = post.text.ifBlank { post.title }
+        renderReplyComposer()
+        replyPanel?.switchToKeyboard()
+    }
+
+    private fun renderReplyComposer() {
+        val input = replyBar?.composer ?: return
+        val sending = replyModel.state.value.sending
+        val available = model.state.value.parent != null
+        input.etInput.isEnabled = available && !sending
+        input.btnSend.isEnabled = available && replyModel.canSend()
+        input.btnEmoji.isEnabled = available && !sending
+        input.btnReplyBarClose.isEnabled = !sending
+        input.replyBar.isVisible = replyModel.replyTo != null && replyModel.replyTo != postId
+        input.tvReplyBarName.text = getString(R.string.chat_reply_bar_title, replyModel.replyName)
+        input.tvReplyBarText.text = replyModel.replyPreview.replace('\n', ' ')
     }
 
     private fun confirmDelete(post: PlazaPost) {
