@@ -121,7 +121,10 @@ class Downloads(
         val policy = overwrite ?: resolved.overwrite
         val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, policy, mime)
         if (skip) return null
-        return if (resolved.overwrite == OverwritePolicy.Replace) {
+        // 用 policy 而不是 resolved.overwrite：调用方显式传了 Replace 时，前面的
+        // applyOverwritePolicy 已经按「原地覆盖」放行（不改名、不跳过），这里若还按用户的
+        // 全局策略走 open()，同名文件就会被后端自动改名成 "xxx (1).txt" —— 强制覆盖失效。
+        return if (policy == OverwritePolicy.Replace) {
             backend.replace(finalPath, mime)
         } else {
             backend.open(finalPath, mime)

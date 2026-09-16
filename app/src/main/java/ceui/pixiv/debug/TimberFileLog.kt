@@ -30,6 +30,7 @@ import java.time.Instant
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * 把 Timber 日志写入「日志文件」桶（[Bucket.Log]）的开关式文件日志。
@@ -45,14 +46,29 @@ object TimberFileLog {
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    private const val TAG = "TimberFileLog"
+
+    /** 待写入行数上限，约 2MB 量级的字符串；超过就丢，见 [enqueueLog]。 */
+    private const val MAX_PENDING_LINES = 10_000
+
+    /** 已入队待写、以及背压期间丢掉的行数，见 [enqueueLog]。 */
+    private val pendingLines = AtomicInteger(0)
+    private val droppedLines = AtomicInteger(0)
+
     @Volatile
     private var tree: TimberFileTree? = null
 
-    /** 本进程周期内创建过的日志文件 Uri（按创建顺序）。SAF 下不扫描目录，靠这份内存记录规避耗时扫描。 */
+    /**
+     * 本进程周期内创建过的日志文件 Uri（按创建顺序）。SAF 下不扫描目录，靠这份内存记录规避耗时扫描。
+     *
+     * ⚠️ 普通 ArrayList，**所有**读写必须持 `lifetimeUris` 这把锁：写在 IO 线程（每次开新日志
+     * 文件都会 [register]，分享后会立刻重开一个），读在主线程（[shareLogFile]）。
+     * 两边用不同的锁 = 一边 add 一边 toList，ArrayList 会抛 ConcurrentModificationException /
+     * 越界，而这条路径在主线程上，崩的是整个 app。
+     */
     private val lifetimeUris = mutableListOf<Uri>()
 
-    /** 已分享过的文件数量：`lifetimeUris` 前 [lastSharedCount] 个视为已分享。 */
-    @Volatile
+    /** 已分享过的文件数量：`lifetimeUris` 前 [lastSharedCount] 个视为已分享。与 [lifetimeUris] 同锁。 */
     private var lastSharedCount = 0
 
     /** 进程启动时调用：异步在 IO 线程打开并 plant 文件 Tree；已开启则忽略。 */
@@ -76,11 +92,12 @@ object TimberFileLog {
         }
     }
 
-    /** 记录新打开的日志文件 Uri（由 [TimberFileTree] 打开成功后调用）。 */
-    @Synchronized
+    /** 记录新打开的日志文件 Uri（由 [TimberFileTree] 打开成功后调用，跑在 IO 线程）。 */
     fun register(uri: Uri) {
-        if (uri !in lifetimeUris) {
-            lifetimeUris += uri
+        synchronized(lifetimeUris) {
+            if (uri !in lifetimeUris) {
+                lifetimeUris += uri
+            }
         }
     }
 
@@ -115,8 +132,14 @@ object TimberFileLog {
      * 不扫描 SAF 目录，依赖 [lifetimeUris] 内存记录，避免 SAF 下耗时阻塞。
      */
     fun shareLogFile(context: Context) {
-        val all = synchronized(lifetimeUris) { lifetimeUris.toList() }
-        val unshared = all.drop(lastSharedCount)
+        // 一次取齐快照：分成两次读会在「刚好又开了一个新日志文件」时拿到互相错位的
+        // all / lastSharedCount / size，算出错误的待分享区间。
+        val all: List<Uri>
+        val unshared: List<Uri>
+        synchronized(lifetimeUris) {
+            all = lifetimeUris.toList()
+            unshared = all.drop(lastSharedCount)
+        }
         if (unshared.isEmpty()) {
             toastShareFailed(context)
             return
@@ -125,7 +148,7 @@ object TimberFileLog {
             toastShareFailed(context)
             return
         }
-        val allSizeBefore = synchronized(lifetimeUris) { lifetimeUris.size }
+        val allSizeBefore = all.size
         if (lastSharedCount > 0) {
             WitDialog.MenuDialogBuilder(context)
                 .setTitle(context.getString(R.string.setting_log_file_share_history_title))
@@ -148,7 +171,7 @@ object TimberFileLog {
     private fun shareFilesOnIo(context: Context, uris: List<Uri>, allSizeBefore: Int) {
         ioExecutor.execute {
             publishOnIoThread()
-            lastSharedCount = allSizeBefore
+            synchronized(lifetimeUris) { lastSharedCount = allSizeBefore }
 
             val shareUri = if (uris.size > 1) {
                 mergeToSingleFile(context, uris)
@@ -206,11 +229,36 @@ object TimberFileLog {
         Toaster.show(context.getString(R.string.setting_log_file_share_failed))
     }
 
-    /** 由 [TimberFileTree.log] 调用：把格式化好的日志行投递到 IO 线程写入。 */
-    fun enqueueLog(tree: TimberFileTree, line: String) {
-        ioExecutor.execute {
-            tree.writeLine(line)
+    /**
+     * 由 [TimberFileTree.log] 调用：把一行日志投递到 IO 线程写入。
+     *
+     * **调用线程（绝大多数情况下是主线程）上只做两件便宜的事**：读一次 elapsedRealtime、
+     * 读一次线程名，然后入队。`String.format` 与拼接都挪到 IO 线程 —— 打开这个开关之后
+     * 全仓一千多个 Timber 调用点都会走到这里，格式化留在调用线程就是在 UI 线程上做
+     * 无谓的分配。被背压丢掉的行因此连格式化的钱都不用花。
+     *
+     * **背压**：executor 用的是无界队列，而落盘端每行一次 flush（SAF / MediaStore 尤其慢）。
+     * 日志速率长期高于落盘速率时，堆积的 Runnable 会把内存吃光。超过 [MAX_PENDING_LINES]
+     * 就丢弃并计数，等队列缓过来再补一行「丢了多少」——宁可日志缺一段，也不能因为
+     * 一个试验性开关把 app OOM 掉。
+     */
+    fun enqueueLog(tree: TimberFileTree, ms: Long, threadName: String, priority: Int, tag: String?, message: String) {
+        if (pendingLines.get() >= MAX_PENDING_LINES) {
+            droppedLines.incrementAndGet()
+            return
         }
+        pendingLines.incrementAndGet()
+        val accepted = runCatching {
+            ioExecutor.execute {
+                pendingLines.decrementAndGet()
+                val dropped = droppedLines.getAndSet(0)
+                if (dropped > 0) {
+                    tree.writeLine(tree.formatLine(ms, threadName, Log.WARN, TAG, "队列积压，丢弃了 $dropped 行日志"))
+                }
+                tree.writeLine(tree.formatLine(ms, threadName, priority, tag, message))
+            }
+        }.isSuccess
+        if (!accepted) pendingLines.decrementAndGet()
     }
 }
 
@@ -272,24 +320,39 @@ class TimberFileTree : Timber.Tree() {
         }
     }
 
+    /**
+     * 跑在**调用线程**（任意线程，多数是主线程）：只取时间戳和线程名这两个必须就地读的值，
+     * 其余一律交给 IO 线程，见 [TimberFileLog.enqueueLog]。
+     */
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-        val sb = StringBuilder()
-        val ms = SystemClock.elapsedRealtime() - startRealtime
+        TimberFileLog.enqueueLog(
+            tree = this,
+            ms = SystemClock.elapsedRealtime() - startRealtime,
+            threadName = Thread.currentThread().name,
+            priority = priority,
+            tag = tag,
+            // Timber 已在 prepareLog 阶段把 throwable 栈拼进 message，这里不要再重复追加。
+            message = message,
+        )
+    }
+
+    /** 拼成最终的一行。跑在 IO 线程。 */
+    fun formatLine(ms: Long, threadName: String, priority: Int, tag: String?, message: String): String {
+        val sb = StringBuilder(message.length + 48)
         sb.append(
             String.format(
                 Locale.US,
                 "[%8dms][%s][%c]",
                 ms,
-                Thread.currentThread().name,
+                threadName,
                 priorityChar(priority)
             )
         )
         if (!tag.isNullOrEmpty()) {
             sb.append('[').append(tag).append(']')
         }
-        // Timber 已在 prepareLog 阶段把 throwable 栈拼进 message，这里不要再重复追加。
         sb.append(' ').append(message)
-        TimberFileLog.enqueueLog(this, sb.toString())
+        return sb.toString()
     }
 
     /** 在 IO 线程写入一行。与崩溃同步写共用同一把锁，避免并发交错。 */

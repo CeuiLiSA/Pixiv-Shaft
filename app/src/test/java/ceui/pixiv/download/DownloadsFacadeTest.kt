@@ -96,6 +96,29 @@ class DownloadsFacadeTest {
         assertTrue("nothing deleted during plan", backend.deleted.isEmpty())
     }
 
+    /**
+     * `openRaw(overwrite = Replace)` 必须真的走 backend.replace()，不能因为用户的全局
+     * 覆盖策略不是 Replace 就退回 open() —— 那样同名文件会被后端自动改名成 "xxx (1)"，
+     * 「强制覆盖」失效（文件日志就是靠这个参数保证每次写的是模板指定的那个名字）。
+     *
+     * 判据用 deleted：默认的 replace() 实现是 exists → delete → open，而直接 open() 不删。
+     * FakeBackend.open 照例抛错（纯 JVM 测试造不出 android.net.Uri），所以只断言到 delete 为止。
+     */
+    @Test fun `openRaw honours the explicit overwrite argument over the configured policy`() {
+        val backend = FakeBackend()
+        backend.seed("d/x.txt")
+        val facade = Downloads(configWith(overwrite = OverwritePolicy.Rename), { backend })
+        runCatching {
+            facade.openRaw(
+                Bucket.Novel,
+                RelativePath.parse("d/x.txt"),
+                "text/plain",
+                OverwritePolicy.Replace,
+            )
+        }
+        assertEquals(listOf(listOf("d", "x.txt")), backend.deleted.map { it.segments })
+    }
+
     @Test fun `skip policy marks plan and returns untouched path when file exists`() {
         val backend = FakeBackend()
         backend.seed("d/a 1.png")
