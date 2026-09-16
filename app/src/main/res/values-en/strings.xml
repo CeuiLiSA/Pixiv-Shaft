@@ -3001,4 +3001,6 @@
     <string name="recommend_page_works_first">Recommended works - Trending tags</string>
     <string name="recommend_page_tags_first">Trending tags - Recommended works</string>
     <string name="recommend_page_content_desc">Change the tab order on illustration and novel recommendation pages. Restart the app to apply.</string>
+    <string name="media_demo_entry">COS image direct upload demo</string>
+    <string name="spark_ai_entry">Spark AI Lab</string>
 </resources>

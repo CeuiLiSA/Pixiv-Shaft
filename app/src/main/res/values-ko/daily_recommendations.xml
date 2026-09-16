@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_recommendations">오늘의 추천</string>
+    <string name="daily_recommendations_intro">이 기기의 북마크와 팔로우를 바탕으로 매일 일러스트를 추천합니다. 아래로 당겨 다시 불러올 수 있습니다.</string>
+    <string name="daily_recommendations_personalized">%1$s · 북마크와 팔로우를 바탕으로 추천하며, 다음 날 베이징 시간 자정에 갱신됩니다.</string>
+    <string name="daily_recommendations_popular">%1$s · 취향 기록이 부족하여 인기 작품을 먼저 표시합니다.</string>
+    <string name="daily_recommendations_login">오늘의 추천을 보려면 로그인해 주세요</string>
+    <string name="daily_recommendations_unavailable">오늘의 추천을 사용할 수 없습니다. 나중에 아래로 당겨 다시 시도해 주세요</string>
+    <string name="daily_recommendations_empty">오늘은 필터 조건에 맞는 추천 작품이 없습니다. 나중에 아래로 당겨 다시 시도해 주세요.</string>
+    <string name="daily_recommendations_expired">추천이 갱신되었습니다. 아래로 당겨 새로고침한 후 계속 감상해 주세요</string>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_recommendations">每日推薦</string>
+    <string name="daily_recommendations_intro">參考本裝置的收藏與關注，每天更新一組插畫。下拉可重新載入。</string>
+    <string name="daily_recommendations_personalized">%1$s · 根據收藏與關注推薦，次日北京時間零點更新。</string>
+    <string name="daily_recommendations_popular">%1$s · 偏好紀錄不足，先顯示熱門作品。</string>
+    <string name="daily_recommendations_login">請登入後查看每日推薦</string>
+    <string name="daily_recommendations_unavailable">每日推薦暫時無法使用，請稍後下拉重試</string>
+    <string name="daily_recommendations_empty">今天尚無符合篩選條件的推薦作品，可稍後下拉重試。</string>
+    <string name="daily_recommendations_expired">推薦已更新，請下拉重新整理後繼續瀏覽</string>
+</resources>

@@ -3001,4 +3001,7 @@
     <string name="recommend_page_works_first">Önerilen eserler - Popüler etiketler</string>
     <string name="recommend_page_tags_first">Popüler etiketler - Önerilen eserler</string>
     <string name="recommend_page_content_desc">İllüstrasyon ve roman öneri sayfalarındaki sekme sırasını değiştirir. Uygulamak için uygulamayı yeniden başlatın.</string>
+    <string name="media_demo_entry">COS doğrudan görsel yükleme demosu</string>
+    <string name="spark_ai_entry">Spark AI Laboratuvarı</string>
+    <string name="nana7mi_usage_motto">Başarısızlık başarının anasıdır\nBakiye yüklemek başarılı bir ödemedir</string>
 </resources>

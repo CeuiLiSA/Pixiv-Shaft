@@ -3007,4 +3007,7 @@
     <string name="recommend_page_works_first">Рекомендуемые работы - Популярные теги</string>
     <string name="recommend_page_tags_first">Популярные теги - Рекомендуемые работы</string>
     <string name="recommend_page_content_desc">Порядок вкладок на страницах рекомендаций иллюстраций и романов. Для применения перезапустите приложение.</string>
+    <string name="media_demo_entry">Демо прямой загрузки изображений в COS</string>
+    <string name="spark_ai_entry">Лаборатория Spark AI</string>
+    <string name="nana7mi_usage_motto">Неудача — мать успеха\nПополнение — успешный платёж</string>
 </resources>

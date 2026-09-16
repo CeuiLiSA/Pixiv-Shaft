@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_recommendations">Günün önerileri</string>
+    <string name="daily_recommendations_intro">Bu cihazdaki yer imleri ve takiplerinize göre her gün yenilenen illüstrasyon seçkisi. Yeniden yüklemek için aşağı çekin.</string>
+    <string name="daily_recommendations_personalized">%1$s · Yer imleri ve takiplerinize göre önerilir. Ertesi gün Pekin saatiyle gece yarısında yenilenir.</string>
+    <string name="daily_recommendations_popular">%1$s · Tercih geçmişi yetersiz olduğu için önce popüler eserler gösteriliyor.</string>
+    <string name="daily_recommendations_login">Günün önerilerini görmek için giriş yapın</string>
+    <string name="daily_recommendations_unavailable">Günün önerileri şu anda kullanılamıyor. Daha sonra aşağı çekerek yeniden deneyin</string>
+    <string name="daily_recommendations_empty">Bugün filtrelerinize uyan öneri yok. Daha sonra aşağı çekerek yeniden deneyin.</string>
+    <string name="daily_recommendations_expired">Öneriler değişti. Göz atmaya devam etmeden önce aşağı çekerek yenileyin</string>
+</resources>

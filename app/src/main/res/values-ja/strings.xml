@@ -2998,4 +2998,7 @@
     <string name="recommend_page_works_first">おすすめ作品 - 人気のタグ</string>
     <string name="recommend_page_tags_first">人気のタグ - おすすめ作品</string>
     <string name="recommend_page_content_desc">イラストと小説のおすすめページのタブ順を変更します。アプリの再起動後に反映されます。</string>
+    <string name="media_demo_entry">COS 画像直接アップロードデモ</string>
+    <string name="spark_ai_entry">Spark AI ラボ</string>
+    <string name="nana7mi_usage_motto">失敗は成功のもと\n課金は支払いの成功</string>
 </resources>
