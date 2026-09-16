@@ -125,6 +125,12 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
         footer.addView(footerRetry, LinearLayout.LayoutParams(-2, -2))
         column.addView(footer, LinearLayout.LayoutParams(-1, -2))
 
+        launchSuspend {
+            var seen = PlazaRepository.safetyRevision.value
+            PlazaRepository.safetyRevision.collect { revision ->
+                if (seen != revision) { seen = revision; model.refresh() }
+            }
+        }
         val adapter =
             PostAdapter(
                 model::like,
@@ -238,7 +244,7 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
         }
         input.btnSend.setOnClickListener {
             if (model.state.value.parent != null) {
-                replyModel.send(requireContext().contentResolver)
+                requireContext().withPlazaPolicy { replyModel.send(requireContext().contentResolver) }
                 renderReplyComposer()
             }
         }

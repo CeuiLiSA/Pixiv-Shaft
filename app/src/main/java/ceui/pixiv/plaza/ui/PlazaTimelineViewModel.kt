@@ -138,7 +138,7 @@ constructor(
                     }
                     requireAccount(account)
                     restoredFirstPage = true
-                    if (snapshot != null && mutable.value.items.isEmpty()) {
+                    if (snapshot != null && requestRevision == PlazaRepository.revision.value && mutable.value.items.isEmpty()) {
                         val restored = try {
                             PlazaRepository.restorePage(snapshot.payload, account, snapshot.savedAtMillis)
                         } catch (e: Exception) {
@@ -199,6 +199,10 @@ constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                if (account == currentUid() && requestRevision != PlazaRepository.revision.value) {
+                    refresh(forcePost = false)
+                    return@launch
+                }
                 if (fetchingParent && account == currentUid() &&
                     e is retrofit2.HttpException && e.code() == 404) {
                     // Reject older list/comment responses that could otherwise revive this entry.
@@ -332,17 +336,20 @@ constructor(
         val last = imageRefreshAt[post.id]
         if (last != null && now - last < IMAGE_REFRESH_INTERVAL_MS) return
         imageRefreshAt[post.id] = now
+        val requestRevision = PlazaRepository.revision.value
         val account = uid
         viewModelScope.launch {
             try {
                 requireAccount(account)
                 val fresh = api.post(post.id)
                 requireAccount(account)
+                if (requestRevision != PlazaRepository.revision.value) return@launch
                 PlazaRepository.cache(fresh, account)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (e is retrofit2.HttpException && e.code() == 404 && account == currentUid()) {
+                if (e is retrofit2.HttpException && e.code() == 404 && account == currentUid() &&
+                    requestRevision == PlazaRepository.revision.value) {
                     PlazaRepository.changed()
                     PlazaRepository.invalidate(post.id, account)
                 }

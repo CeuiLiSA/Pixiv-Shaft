@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plaza_report_post">Пожаловаться на публикацию или комментарий</string>
+    <string name="plaza_report_user">Пожаловаться на автора</string>
+    <string name="plaza_block_user">Заблокировать автора</string>
+    <string name="plaza_blocked_users">Заблокированные пользователи</string>
+    <string name="plaza_report_notice">Выберите причину. Жалобу рассмотрят модераторы. Личность отправителя не раскрывается автору.</string>
+    <string name="plaza_report_details">Подробности (до 1000 символов; обязательны для причины «Другое»)</string>
+    <string name="plaza_report_required">Выберите причину. Для варианта «Другое» укажите подробности.</string>
+    <string name="plaza_report_submit">Отправить жалобу</string>
+    <string name="plaza_report_success">Жалоба №%1$d получена. Её рассмотрят модераторы.</string>
+    <string name="plaza_report_sending">Обработка…</string>
+    <string name="plaza_block_notice">После блокировки вы не сможете видеть публикации и комментарии друг друга или взаимодействовать в разделе «Площадь». Блокировку можно снять в списке заблокированных пользователей.</string>
+    <string name="plaza_block_success">Автор заблокирован в разделе «Площадь».</string>
+    <string name="plaza_blocks_notice">Блокировка действует только в разделе «Площадь». Нажмите на пользователя, чтобы разблокировать его.</string>
+    <string name="plaza_blocks_empty">Заблокированных пользователей нет.</string>
+    <string name="plaza_unblock_user">Разблокировать %1$s</string>
+    <string name="plaza_policy_title">Правила сообщества</string>
+    <string name="plaza_policy_accept">Принять и опубликовать</string>
+    <string name="plaza_policy_required">Перед публикацией примите актуальные правила сообщества.</string>
+    <string name="plaza_forbidden">Сейчас это действие недоступно. Возможно, ваш аккаунт ограничен.</string>
+    <string name="plaza_policy_body">Публикации и комментарии общедоступны. Запрещены сексуальный контент, сексуальное насилие над детьми и их эксплуатация, насилие и угрозы, ненависть, травля, раскрытие личных данных без согласия, мошенничество, спам и незаконный контент. Публикуйте только материалы, которыми вы вправе делиться.\n\nВ меню дополнительных действий можно пожаловаться на публикации, комментарии и авторов, а также заблокировать пользователей. Модераторы могут удалить нарушающий правила контент или запретить автору публиковать в разделе «Площадь». Жалобы не раскрываются автору и рассматриваются модераторами. Выбирая «Принять и опубликовать», вы соглашаетесь с этими правилами (2026-09-16).</string>
+    <string name="plaza_report_reviewed">Жалоба №%1$d уже рассмотрена. Повторная отправка не требуется.</string>
+    <string-array name="plaza_report_reasons">
+        <item>Безопасность детей</item>
+        <item>Сексуальный контент</item>
+        <item>Насилие или угрозы</item>
+        <item>Ненависть</item>
+        <item>Травля или домогательства</item>
+        <item>Нарушение конфиденциальности</item>
+        <item>Спам или мошенничество</item>
+        <item>Незаконный контент</item>
+        <item>Другое</item>
+    </string-array>
+</resources>

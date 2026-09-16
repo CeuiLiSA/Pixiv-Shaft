@@ -81,6 +81,18 @@ object ObjectPool {
     val size: Int
         get() = synchronized(lock) { store.size }
 
+    /** Main thread: safety changes invalidate every retained plaza view, including offscreen details. */
+    fun invalidatePlaza(viewerUid: Long, revision: Long) {
+        val entries = synchronized(lock) {
+            store.values.mapNotNull { live ->
+                (live.value as? PlazaPostCacheEntry)?.takeIf { it.viewerUid == viewerUid }?.let { live to it }
+            }
+        }
+        entries.forEach { (live, entry) ->
+            live.value = PlazaPostCacheEntry(entry.id, viewerUid, null, System.currentTimeMillis(), revision)
+        }
+    }
+
     fun putUserPreview(preview: UserPreview) {
         preview.user?.let { user ->
             update(user)

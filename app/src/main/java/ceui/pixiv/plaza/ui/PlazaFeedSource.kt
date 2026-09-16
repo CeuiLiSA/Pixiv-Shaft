@@ -66,7 +66,9 @@ internal class PlazaFeedSource(
         val account = currentUid()
         if (account <= 0) return null
         val store = firstPageCache(mine(), account) ?: return null
+        val safetyRevision = PlazaRepository.safetyRevision.value
         val snapshot = store.read() ?: return null
+        if (safetyRevision != PlazaRepository.safetyRevision.value) return null
         // The account may have switched during the disk read: that snapshot must neither be
         // shown to nor pooled for the new account.
         requireAccount(account)
@@ -277,17 +279,20 @@ constructor(
         val last = imageRefreshAt[post.id]
         if (last != null && now - last < IMAGE_REFRESH_INTERVAL_MS) return
         imageRefreshAt[post.id] = now
+        val requestRevision = PlazaRepository.revision.value
         val account = currentUid()
         viewModelScope.launch {
             try {
                 requireAccount(account)
                 val fresh = api.post(post.id)
                 requireAccount(account)
+                if (requestRevision != PlazaRepository.revision.value) return@launch
                 PlazaRepository.cache(fresh, account)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                if (e is retrofit2.HttpException && e.code() == 404 && account == currentUid()) {
+                if (e is retrofit2.HttpException && e.code() == 404 && account == currentUid() &&
+                    requestRevision == PlazaRepository.revision.value) {
                     PlazaRepository.changed()
                     PlazaRepository.invalidate(post.id, account)
                 }

@@ -269,7 +269,7 @@ class PlazaComposeFragment : Fragment(R.layout.fragment_plaza_shell) {
             }
         column.addView(error)
         toolbar.setOnMenuItemClickListener {
-            model.send(ctx.applicationContext.contentResolver)
+            ctx.withPlazaPolicy { model.send(ctx.applicationContext.contentResolver) }
             true
         }
         fun updateSend() {

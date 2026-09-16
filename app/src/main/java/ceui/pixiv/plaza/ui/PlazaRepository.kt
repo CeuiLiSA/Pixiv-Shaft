@@ -19,8 +19,22 @@ internal object PlazaRepository {
     private val mutationMutex = Mutex()
     private val snapshotWriteMutex = Mutex()
     val revision = MutableStateFlow(0L)
+    val safetyRevision = MutableStateFlow(0L)
     val api
         get() = Client.plazaAPI
+
+    // A new cache namespace prevents old disk pages resurfacing after a block, even offline.
+    private fun safetyEpoch(uid: Long): Long = ceui.lisa.activities.Shaft.getContext()
+        .getSharedPreferences("plaza-safety", android.content.Context.MODE_PRIVATE).getLong("epoch:$uid", 0)
+
+    fun safetyChanged(uid: Long) {
+        val prefs = ceui.lisa.activities.Shaft.getContext()
+            .getSharedPreferences("plaza-safety", android.content.Context.MODE_PRIVATE)
+        prefs.edit().putLong("epoch:$uid", safetyEpoch(uid) + 1).apply()
+        changed()
+        ObjectPool.invalidatePlaza(uid, revision.value)
+        safetyRevision.value += 1
+    }
 
     fun changed() {
         revision.value += 1
@@ -36,7 +50,7 @@ internal object PlazaRepository {
 
     /** Reuse the shared Room first-page snapshots, pinned to the request's account. */
     fun firstPageCache(mine: Boolean, viewerUid: Long) = feedFirstPageCache(
-        slot = if (mine) "plaza-mine" else "plaza-all",
+        slot = (if (mine) "plaza-mine" else "plaza-all") + ":${safetyEpoch(viewerUid)}",
         type = PlazaPage::class.java,
         accountId = { viewerUid },
     )
@@ -146,6 +160,8 @@ internal fun plazaError(error: Exception): PlazaMessage =
                 404 -> PlazaMessage(R.string.plaza_not_found)
                 409 -> PlazaMessage(R.string.plaza_conflict_error)
                 429 -> PlazaMessage(R.string.plaza_rate_error)
+                422 -> PlazaMessage(R.string.plaza_policy_required)
+                403 -> PlazaMessage(R.string.plaza_forbidden)
                 413 -> PlazaMessage(R.string.plaza_size_error)
                 else -> PlazaMessage(R.string.plaza_http_error, listOf(error.code()))
             }

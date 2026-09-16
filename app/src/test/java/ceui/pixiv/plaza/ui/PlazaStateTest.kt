@@ -807,6 +807,26 @@ class PlazaStateTest {
         }
     }
 
+    @Test
+    fun `late blocked detail response cannot erase a post restored by unblocking`() = runTest(dispatcher) {
+        val original = post(6301)
+        val gate = CompletableDeferred<PlazaPost>()
+        val api = FakeApi().apply {
+            postGate = gate
+            pages.add(CompletableDeferred(PlazaPage(emptyList(), null)))
+        }
+        val detail = timeline(api)
+        detail.enter(original.id); runCurrent()
+        PlazaRepository.changed()
+        val fresh = original.copy(text = "restored after unblock")
+        PlazaRepository.cache(fresh, 42)
+        gate.completeExceptionally(retrofit2.HttpException(retrofit2.Response.error<Any>(404, okhttp3.ResponseBody.create(null, ""))))
+        runCurrent()
+        assertSame(fresh, PlazaRepository.cachedEntry(original.id, 42)?.post)
+        assertSame(fresh, detail.state.value.parent)
+        assertNull(detail.state.value.error)
+    }
+
     private class FakeStore(page: PlazaPage) : FeedFirstPageStore<PlazaPage> {
         var snapshot: CachedFirstPage<PlazaPage>? = CachedFirstPage(page, page.nextBefore?.toString(), 100)
         var reads = 0
@@ -828,6 +848,11 @@ class PlazaStateTest {
     }
 
     private inner class FakeApi : PlazaApi {
+        override suspend fun report(id: Long, body: ceui.pixiv.plaza.PlazaReportRequest): ceui.pixiv.plaza.PlazaReportReceipt = error("unused")
+        override suspend fun blocks(): ceui.pixiv.plaza.PlazaBlocks = error("unused")
+        override suspend fun block(uid: Long): ceui.pixiv.plaza.DeletePost = error("unused")
+        override suspend fun unblock(uid: Long): ceui.pixiv.plaza.DeletePost = error("unused")
+
         val pages = ArrayDeque<CompletableDeferred<PlazaPage>>()
         val creates = mutableListOf<CreatePost>()
         var createFails = false

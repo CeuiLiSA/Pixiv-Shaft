@@ -1078,11 +1078,15 @@ internal fun Context.showPostMenu(post: PlazaPost, onDelete: (PlazaPost) -> Unit
                     )
                 },
             )
-        else arrayOf(getString(R.string.plaza_share_text), getString(R.string.plaza_view_author))
+        else arrayOf(getString(R.string.plaza_share_text), getString(R.string.plaza_view_author),
+            getString(R.string.plaza_report_post), getString(R.string.plaza_report_user),
+            getString(R.string.plaza_block_user))
     WitDialog.MenuDialogBuilder(this)
         .addItems(options) { dialog, index ->
             dialog.dismiss()
-            if (index == 1) {
+            if (index >= 2) {
+                showPlazaModeration(post.id, post.uid, listOf("post", "user", "block")[index - 2])
+            } else if (index == 1) {
                 if (mine) onDelete(post) else openObject("user", post.uid)
             } else
                 startActivity(

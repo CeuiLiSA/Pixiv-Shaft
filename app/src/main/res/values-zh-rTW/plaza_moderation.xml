@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plaza_report_post">檢舉貼文或留言</string>
+    <string name="plaza_report_user">檢舉作者</string>
+    <string name="plaza_block_user">封鎖作者</string>
+    <string name="plaza_blocked_users">廣場封鎖名單</string>
+    <string name="plaza_report_notice">請選擇檢舉原因。檢舉由審核人員處理，不會向作者公開檢舉人身分。</string>
+    <string name="plaza_report_details">補充說明（選填，其他原因必填，最多 1000 字）</string>
+    <string name="plaza_report_required">請選擇原因；選擇「其他」時請填寫說明。</string>
+    <string name="plaza_report_submit">提交檢舉</string>
+    <string name="plaza_report_success">檢舉 #%1$d 已收到，將由審核人員處理。</string>
+    <string name="plaza_report_sending">正在處理…</string>
+    <string name="plaza_block_notice">封鎖後，雙方在廣場中將無法看到彼此的貼文和留言，也無法互動。可在「廣場封鎖名單」中解除封鎖。</string>
+    <string name="plaza_block_success">已在廣場封鎖該作者。</string>
+    <string name="plaza_blocks_notice">封鎖僅適用於廣場。點選使用者可解除封鎖。</string>
+    <string name="plaza_blocks_empty">暫無封鎖的使用者。</string>
+    <string name="plaza_unblock_user">解除封鎖 %1$s</string>
+    <string name="plaza_policy_title">廣場社群規範</string>
+    <string name="plaza_policy_accept">同意並發布</string>
+    <string name="plaza_policy_required">發布前請同意最新廣場社群規範。</string>
+    <string name="plaza_forbidden">暫時無法執行此廣場操作，你的帳號可能受到限制。</string>
+    <string name="plaza_policy_body">貼文和留言公開可見。禁止發布色情內容、兒童性虐待或剝削內容、暴力或威脅、仇恨、騷擾、未經同意的隱私資訊、詐騙、垃圾廣告及違法內容。請僅發布你有權分享的內容。\n\n你可以在更多選單中檢舉貼文、留言和作者，也可封鎖使用者。審核人員可下架違規內容或禁止帳號使用廣場。檢舉資訊不向作者公開，由審核人員處理。點選「同意並發布」即表示接受本規範（2026-09-16）。</string>
+    <string name="plaza_report_reviewed">檢舉 #%1$d 已處理，無需重複提交。</string>
+    <string-array name="plaza_report_reasons">
+        <item>兒童安全</item>
+        <item>色情內容</item>
+        <item>暴力或威脅</item>
+        <item>仇恨言論</item>
+        <item>騷擾或霸凌</item>
+        <item>侵犯隱私</item>
+        <item>垃圾廣告或詐騙</item>
+        <item>違法內容</item>
+        <item>其他</item>
+    </string-array>
+</resources>

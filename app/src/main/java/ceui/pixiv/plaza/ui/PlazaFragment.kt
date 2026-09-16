@@ -122,6 +122,10 @@ class PlazaFragment : FeedFragment(R.layout.fragment_plaza_feed) {
         val ctx = requireContext()
         val toolbar = setupPlazaToolbar(view, ctx.getString(R.string.plaza_title))
         installFilter(toolbar)
+        toolbar.menu.add(R.string.plaza_blocked_users).setOnMenuItemClickListener {
+            ctx.showPlazaModeration(0, 0, "blocks")
+            true
+        }
         styleStateViews()
         // Every refresh entry point goes through the controller so it waits for a mutation.
         feedBinding.feedRefreshLayout.setOnRefreshListener {
@@ -154,6 +158,12 @@ class PlazaFragment : FeedFragment(R.layout.fragment_plaza_feed) {
                 // syncPlazaState once the framework has finished painting that same state.
                 launch { feedViewModel.uiState.collect(::syncPlazaState) }
                 launch { controller.refreshRequests.collect { feedViewModel.refresh() } }
+                launch {
+                    var seen = PlazaRepository.safetyRevision.value
+                    PlazaRepository.safetyRevision.collect { revision ->
+                        if (revision != seen) { seen = revision; refreshNow() }
+                    }
+                }
                 launch {
                     controller.busyIds.collect { busy ->
                         feedViewModel.updateItems<PlazaPostItem> { item ->

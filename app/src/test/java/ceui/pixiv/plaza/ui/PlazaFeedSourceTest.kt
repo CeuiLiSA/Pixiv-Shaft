@@ -322,9 +322,45 @@ class PlazaFeedSourceTest {
         }
     }
 
+    @Test
+    fun `safety change during disk read discards old posts`() = runTest(dispatcher) {
+        val gate = CompletableDeferred<Unit>()
+        val cached = post(6099)
+        val cache = FakeStore(PlazaPage(listOf(cached), null)).apply { readGate = gate }
+        val source = source(FakeApi(), cache = { _, _ -> cache })
+        val pending = async { source.loadFromCache() }
+        runCurrent()
+        PlazaRepository.safetyRevision.value += 1
+        gate.complete(Unit)
+        assertNull(pending.await())
+        assertNull(PlazaRepository.cachedEntry(cached.id, 42))
+    }
+
+    @Test
+    fun `late blocked image response cannot erase a post restored by unblocking`() = runTest(dispatcher) {
+        val old = post(6201).copy(images = listOf(PlazaImage("image", 10, 10, "image/png", "https://example.invalid/img", 0)))
+        val gate = CompletableDeferred<PlazaPost>()
+        val api = FakeApi().apply { postGate = gate }
+        val c = controller(api)
+        PlazaRepository.cache(old, 42)
+        c.ensureFreshImages(old); runCurrent()
+        PlazaRepository.changed()
+        val fresh = old.copy(text = "restored after unblock", images = emptyList())
+        PlazaRepository.cache(fresh, 42)
+        gate.completeExceptionally(retrofit2.HttpException(retrofit2.Response.error<Any>(404, okhttp3.ResponseBody.create(null, ""))))
+        runCurrent()
+        assertSame(fresh, PlazaRepository.cachedEntry(old.id, 42)?.post)
+    }
+
     private inner class FakeApi : PlazaApi {
+        override suspend fun report(id: Long, body: ceui.pixiv.plaza.PlazaReportRequest): ceui.pixiv.plaza.PlazaReportReceipt = error("unused")
+        override suspend fun blocks(): ceui.pixiv.plaza.PlazaBlocks = error("unused")
+        override suspend fun block(uid: Long): ceui.pixiv.plaza.DeletePost = error("unused")
+        override suspend fun unblock(uid: Long): ceui.pixiv.plaza.DeletePost = error("unused")
+
         val pages = ArrayDeque<CompletableDeferred<PlazaPage>>()
         val authors = mutableListOf<Long?>()
+        var postGate: CompletableDeferred<PlazaPost>? = null
         var likeFails = false
         var likeGate: CompletableDeferred<PlazaPost>? = null
         var feedCalls = 0
@@ -336,7 +372,7 @@ class PlazaFeedSourceTest {
             return pages.removeFirst().await()
         }
 
-        override suspend fun post(id: Long): PlazaPost = this@PlazaFeedSourceTest.post(id)
+        override suspend fun post(id: Long): PlazaPost = postGate?.await() ?: this@PlazaFeedSourceTest.post(id)
 
         override suspend fun create(request: CreatePost): PlazaPost = this@PlazaFeedSourceTest.post(10)
 
