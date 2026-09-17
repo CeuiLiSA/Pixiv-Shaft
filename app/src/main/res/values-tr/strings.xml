@@ -1520,6 +1520,7 @@
     <string name="saf_grant_success">İzin verildi</string>
     <string name="saf_no_file_picker">Sistem dosya yöneticisi bulunamadı; SAF dizini yetkilendirilemiyor</string>
     <string name="download_settings_save_failed">İndirme ayarları kaydedilemedi: %1$s</string>
+    <string name="download_enqueue_failed">İndirme görevi oluşturulamadı: %1$s</string>
     <string name="header_preset_save_failed">Başlık ön ayarı kaydedilemedi: %1$s</string>
     <string name="novel_chip_id">Eser ID  %1$s</string>
     <string name="novel_chip_author">Yazar  %1$s</string>

@@ -1522,6 +1522,7 @@
     <string name="saf_grant_success">授權成功</string>
     <string name="saf_no_file_picker">未找到系統檔案管理器，無法授權 SAF 目錄</string>
     <string name="download_settings_save_failed">下載設定儲存失敗：%1$s</string>
+    <string name="download_enqueue_failed">下載任務建立失敗：%1$s</string>
     <string name="header_preset_save_failed">資訊頭預設儲存失敗：%1$s</string>
     <string name="novel_chip_id">作品ID  %1$s</string>
     <string name="novel_chip_author">作者  %1$s</string>

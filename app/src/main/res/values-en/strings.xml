@@ -1520,6 +1520,7 @@
     <string name="saf_grant_success">Permission granted</string>
     <string name="saf_no_file_picker">No system file picker found; cannot grant SAF directory</string>
     <string name="download_settings_save_failed">Failed to save download settings: %1$s</string>
+    <string name="download_enqueue_failed">Failed to create the download task: %1$s</string>
     <string name="header_preset_save_failed">Failed to save header preset: %1$s</string>
     <string name="novel_chip_id">Novel ID  %1$s</string>
     <string name="novel_chip_author">Author  %1$s</string>

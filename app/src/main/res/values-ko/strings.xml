@@ -1520,6 +1520,7 @@
     <string name="saf_grant_success">권한이 부여되었습니다</string>
     <string name="saf_no_file_picker">시스템 파일 관리자를 찾을 수 없어 SAF 디렉터리를 인증할 수 없습니다</string>
     <string name="download_settings_save_failed">다운로드 설정 저장 실패: %1$s</string>
+    <string name="download_enqueue_failed">다운로드 작업 생성 실패: %1$s</string>
     <string name="header_preset_save_failed">헤더 프리셋 저장 실패: %1$s</string>
     <string name="novel_chip_id">작품 ID  %1$s</string>
     <string name="novel_chip_author">작가  %1$s</string>

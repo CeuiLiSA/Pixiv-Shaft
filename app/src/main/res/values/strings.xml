@@ -1666,6 +1666,7 @@
     <string name="saf_grant_success">授权成功</string>
     <string name="saf_no_file_picker">未找到系统文件管理器，无法授权 SAF 目录</string>
     <string name="download_settings_save_failed">下载设置保存失败：%1$s</string>
+    <string name="download_enqueue_failed">下载任务创建失败：%1$s</string>
     <string name="header_preset_save_failed">信息头预设保存失败：%1$s</string>
 
     <string name="novel_chip_id">作品ID  %1$s</string>

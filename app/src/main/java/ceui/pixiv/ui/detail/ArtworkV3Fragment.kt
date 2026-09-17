@@ -45,6 +45,7 @@ import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.download.DownloadRecordStateSource
 import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
@@ -1314,7 +1315,19 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         fabBarController.applyDownloadOrderPreference()
 
         chromeBind.fabBar.fabDownloadContainer.setOnClick {
-            val illust = ObjectPool.get<Illust>(illustId).value ?: return@setOnClick
+            // 下载 FAB 的两条 bean 缺失早退(这里 + ViewModel.triggerDownload)会让点击彻底
+            // 无声无息 —— issue #1105「点了下载什么都没发生」就是这个形态。经典详情页
+            // (FragmentIllust.setupDownloadButton)一直有这条点击日志，V3 侧补齐，好让
+            // 「点击没到」和「点击到了但入队被丢」在日志里分得开。
+            val illust = ObjectPool.get<Illust>(illustId).value ?: run {
+                Timber.tag(DownloadRecordStateSource.LOG_TAG)
+                    .w("click dropped illustId=%d reason=bean_missing", illustId)
+                return@setOnClick
+            }
+            Timber.tag(DownloadRecordStateSource.LOG_TAG).d(
+                "click illustId=%d pages=%d resolution=%s",
+                illustId, illust.page_count, IllustDownload.defaultImageResolution(),
+            )
             artworkViewModel.triggerDownload(requireActivity() as? BaseActivity<*>)
             if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
                 fabBarController.setBookmarked(true)
