@@ -26,6 +26,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.api.Client
 import ceui.pixiv.db.queue.WorkType
+import ceui.pixiv.ui.common.highlightItemAt
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
@@ -217,30 +218,9 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
                 }
                 else -> list.scrollToPosition(pos)
             }
-            highlightItemAt(pos, 5)
+            list.highlightItemAt(pos, 5, scale = 1.08f, durationMs = 220L)
         }, 200L)
     }
-
-    private fun highlightItemAt(adapterPos: Int, triesLeft: Int) {
-        val list = _feedListOrNull() ?: return
-        val vh = list.findViewHolderForAdapterPosition(adapterPos)
-        if (vh == null) {
-            if (triesLeft > 0) {
-                list.postDelayed({ highlightItemAt(adapterPos, triesLeft - 1) }, 100L)
-            }
-            return
-        }
-        val v = vh.itemView
-        v.animate().cancel()
-        v.scaleX = 1f
-        v.scaleY = 1f
-        v.animate().scaleX(1.08f).scaleY(1.08f).setDuration(220L)
-            .withEndAction {
-                v.animate().scaleX(1f).scaleY(1f).setDuration(220L).start()
-            }.start()
-    }
-
-    private fun _feedListOrNull(): RecyclerView? = if (view == null) null else feedBinding.feedListView
 
     // ── toolbar(独立形态)────────────────────────────────────────────
     private fun setupToolbar(view: View) {

@@ -294,6 +294,7 @@ constructor(
                 requireAccount()
                 PlazaRepository.changed()
                 PlazaRepository.cache(post, owner)
+                PlazaRepository.noteSent(post, owner)
                 mutable.value = mutable.value.copy(sentId = post.id)
             } catch (e: CancellationException) {
                 throw e

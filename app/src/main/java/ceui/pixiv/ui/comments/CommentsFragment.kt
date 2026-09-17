@@ -31,6 +31,7 @@ import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.widgets.ProgressTextButton
 import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.launchSuspend
+import ceui.pixiv.ui.common.highlightItemAt
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
@@ -199,28 +200,7 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
         if (view == null) return
         val listView = feedBinding.feedListView
         listView.smoothScrollToPosition(0)
-        highlightItemAt(listView, 0, HIGHLIGHT_MAX_RETRIES)
-    }
-
-    private fun highlightItemAt(listView: RecyclerView, adapterPos: Int, triesLeft: Int) {
-        if (view == null) return
-        val holder = listView.findViewHolderForAdapterPosition(adapterPos)
-        if (holder == null) {
-            if (triesLeft > 0) {
-                listView.postDelayed(
-                    { highlightItemAt(listView, adapterPos, triesLeft - 1) },
-                    HIGHLIGHT_RETRY_DELAY_MS,
-                )
-            }
-            return
-        }
-        val target = holder.itemView
-        target.animate().cancel()
-        target.scaleX = 1f
-        target.scaleY = 1f
-        target.animate().scaleX(1.05f).scaleY(1.05f).setDuration(200L)
-            .withEndAction { target.animate().scaleX(1f).scaleY(1f).setDuration(200L).start() }
-            .start()
+        listView.highlightItemAt(0, HIGHLIGHT_MAX_RETRIES, HIGHLIGHT_RETRY_DELAY_MS)
     }
 
     private suspend fun performDelete(commentId: Long, parentCommentId: Long) {

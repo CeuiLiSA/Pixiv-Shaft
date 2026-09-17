@@ -40,6 +40,24 @@ internal object PlazaRepository {
         revision.value += 1
     }
 
+    /**
+     * The post the composer just published, handed to the feed once so it can show it at the
+     * top immediately, scroll there and highlight it, instead of leaving the row above the
+     * viewport after the in-place refresh. Only top-level posts: a reply lives on its parent's
+     * page, which refreshes itself. Pinned to the account that posted.
+     */
+    private var sent: Pair<Long, PlazaPost>? = null
+
+    fun noteSent(post: PlazaPost, viewerUid: Long) {
+        if (post.replyTo == null) sent = viewerUid to post
+    }
+
+    fun consumeSent(viewerUid: Long): PlazaPost? {
+        val (uid, post) = sent ?: return null
+        sent = null
+        return post.takeIf { uid == viewerUid && viewerUid > 0 }
+    }
+
     /** Full mutation responses must be applied in order across list/detail ViewModels. */
     suspend fun <T> mutate(action: suspend () -> T): T = mutationMutex.withLock { action() }
 

@@ -37,6 +37,7 @@ import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.theme.*
+import ceui.pixiv.ui.common.highlightItemAt
 import ceui.pixiv.witstudio.theme.V3Palette
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -67,6 +68,9 @@ class PlazaFragment : FeedFragment(R.layout.fragment_plaza_feed) {
     /** True while the list restarts for another scope (all / mine / account); shows the skeleton. */
     private var switchingScope = false
     private var alertedAppendError: LoadState.Error? = null
+
+    /** The just-published post waiting to be seen at the top; see [onResume] / [onListCommitted]. */
+    private var pendingHighlightPostId: Long? = null
     private val observers = mutableMapOf<Long, Observer<PlazaPostCacheEntry>>()
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out androidx.viewbinding.ViewBinding>> =
@@ -221,11 +225,39 @@ class PlazaFragment : FeedFragment(R.layout.fragment_plaza_feed) {
 
     override fun onResume() {
         super.onResume()
+        showSentPost()
         when (controller.enter()) {
             PlazaFeedController.Entry.SWITCH_SCOPE -> restartScope()
             PlazaFeedController.Entry.REFRESH -> refreshNow()
             PlazaFeedController.Entry.NONE -> Unit
         }
+    }
+
+    /**
+     * The composer's response is the complete post, so it goes to the top of the list right
+     * away (the refresh that [controller] schedules for the moved revision only reconciles).
+     * Scrolling waits for [onListCommitted]: mutateItems only changes the StateFlow, and the
+     * adapter reflects it after the diff commit, so scrolling now would target stale content.
+     */
+    private fun showSentPost() {
+        val post = PlazaRepository.consumeSent(SessionManager.loggedInUid) ?: return
+        pendingHighlightPostId = post.id
+        feedViewModel.mutateItems { items ->
+            listOf(PlazaPostItem(post)) + items.filterNot { (it as? PlazaPostItem)?.post?.id == post.id }
+        }
+    }
+
+    override fun onListCommitted(state: FeedUiState) {
+        val targetId = pendingHighlightPostId ?: return
+        val top = state.items.firstOrNull() as? PlazaPostItem
+        if (top?.post?.id != targetId) return
+        pendingHighlightPostId = null
+        val list = feedBinding.feedListView
+        // Deep in the feed a smooth scroll would crawl through every row; jump instead and let
+        // the bounce alone say "here it is".
+        val first = (list.layoutManager as? LinearLayoutManager)?.findFirstVisibleItemPosition() ?: 0
+        if (first > SMOOTH_SCROLL_MAX_ROWS) list.scrollToPosition(0) else list.smoothScrollToPosition(0)
+        list.highlightItemAt(0, HIGHLIGHT_MAX_RETRIES)
     }
 
     override fun onNetworkRestored() {
@@ -448,6 +480,14 @@ class PlazaFragment : FeedFragment(R.layout.fragment_plaza_feed) {
         imageViewerOpen = true
         imageViewer.launch(PlazaImageViewer.intent(requireContext(), post, index, thumbnail))
     }
+
+    private companion object {
+        /** Beyond this many rows above the viewport, jump to the top instead of smooth-scrolling. */
+        const val SMOOTH_SCROLL_MAX_ROWS = 12
+        /** Covers a full smooth scroll plus the next layout pass, at 100ms per retry. */
+        const val HIGHLIGHT_MAX_RETRIES = 30
+    }
+
 }
 
 /** feeds hands over a Throwable; plaza's mapping wants the Exception it usually is. */

@@ -905,6 +905,39 @@ class PlazaStateTest {
             assertNotNull(offline.state.value.sentId)
         }
 
+    @Test
+    fun `a published top-level post is handed to the feed once, replies and other accounts get nothing`() =
+        runTest(dispatcher) {
+            val api = FakeApi()
+            val resolver = RuntimeEnvironment.getApplication().contentResolver
+            // Process-wide slot: drain whatever an earlier test's send left behind.
+            PlazaRepository.consumeSent(42)
+            val vm = PlazaComposeViewModel(SavedStateHandle(), api, { 42 }, { "Alice" }) { _, _, _, _, _ ->
+                error("no upload")
+            }
+            vm.text = "hello"
+            vm.send(resolver)
+            runCurrent()
+            assertNull(PlazaRepository.consumeSent(43))
+            // Consumed by the wrong account is gone for good: it must never surface elsewhere.
+            assertNull(PlazaRepository.consumeSent(42))
+            vm.consumeSentReply()
+            vm.text = "again"
+            vm.send(resolver)
+            runCurrent()
+            assertEquals(10L, PlazaRepository.consumeSent(42)?.id)
+            assertNull(PlazaRepository.consumeSent(42))
+            val reply = PlazaComposeViewModel(SavedStateHandle(), api, { 42 }, { "Alice" }) { _, _, _, _, _ ->
+                error("no upload")
+            }
+            reply.replyTo = 7
+            reply.text = "reply"
+            reply.send(resolver)
+            runCurrent()
+            assertNotNull(reply.state.value.sentId)
+            assertNull(PlazaRepository.consumeSent(42))
+        }
+
     private inner class FakeApi : PlazaApi {
         override suspend fun report(id: Long, body: ceui.pixiv.plaza.PlazaReportRequest): ceui.pixiv.plaza.PlazaReportReceipt = error("unused")
         override suspend fun blocks(): ceui.pixiv.plaza.PlazaBlocks = error("unused")
@@ -943,7 +976,7 @@ class PlazaStateTest {
         override suspend fun create(request: CreatePost): PlazaPost {
             creates += request
             if (createFails) throw IOException("lost")
-            return this@PlazaStateTest.post(10)
+            return this@PlazaStateTest.post(10).copy(replyTo = request.replyTo)
         }
 
         override suspend fun like(id: Long): PlazaPost {
