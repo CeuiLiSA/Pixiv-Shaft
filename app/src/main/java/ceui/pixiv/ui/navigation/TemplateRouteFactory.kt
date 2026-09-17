@@ -54,10 +54,7 @@ import ceui.pixiv.ui.collection.LikeNovelFeedFragment
 import ceui.pixiv.ui.comic.ComicTopFeedFragment
 import ceui.pixiv.ui.comic.reader.ComicReaderV3Fragment
 import ceui.pixiv.ui.comments.CommentsFragment
-import ceui.pixiv.ui.debug.BulkDownloadDebugFragment
 import ceui.pixiv.ui.debug.NetworkTestFragment
-import ceui.pixiv.ui.debug.PopularTagExportFragment
-import ceui.pixiv.ui.debug.SafPerfTestFragment
 import ceui.pixiv.ui.detail.ArtworkV3Fragment
 import ceui.pixiv.ui.detail.IllustSeriesFragment
 import ceui.pixiv.ui.detail.RelatedIllustFeedFragment
@@ -105,7 +102,6 @@ import ceui.pixiv.ui.settings.Aria2SettingsFragment
 import ceui.pixiv.ui.settings.DownloadPathSettingsFragment
 import ceui.pixiv.ui.settings.NovelHeaderSettingsFragment
 import ceui.pixiv.ui.settings.ThemeColorFeedFragment
-import ceui.pixiv.ui.spark.SparkAiFragment
 import ceui.pixiv.ui.synonym.SynonymDictFragment
 import ceui.pixiv.ui.translate.ComicTextDetectorDownloadFragment
 import ceui.pixiv.ui.translate.MangaOcrDownloadFragment
@@ -378,7 +374,6 @@ object TemplateRouteFactory {
             TemplateRoute.DOWNLOAD_PATH_SETTINGS -> DownloadPathSettingsFragment()
             TemplateRoute.ARIA2_SETTINGS -> Aria2SettingsFragment()
             TemplateRoute.AI_TRANSLATE_SETTINGS -> AiTranslateSettingsFragment()
-            TemplateRoute.SPARK_AI -> SparkAiFragment()
             TemplateRoute.NOVEL_HEADER_SETTINGS -> NovelHeaderSettingsFragment()
             // 旧 key 是线上契约不能删；已移除的空捐赠页安全降级到关于页。
             TemplateRoute.DONATE -> FragmentAboutApp()
@@ -516,10 +511,7 @@ object TemplateRouteFactory {
             TemplateRoute.TRENDING_ARTISTS -> TrendingArtistsFragment.newInstance()
             TemplateRoute.UGOIRA_RANK -> UgoiraRankFragment.newInstance()
             TemplateRoute.EVENT_HISTORY -> FragmentEventHistory()
-            TemplateRoute.DEBUG_BULK_DOWNLOAD -> BulkDownloadDebugFragment()
-            TemplateRoute.DEBUG_SAF_PERF -> SafPerfTestFragment()
             TemplateRoute.DEBUG_NETWORK_TEST -> NetworkTestFragment()
-            TemplateRoute.DEBUG_POPULAR_TAG_EXPORT -> PopularTagExportFragment()
             // 同义词词典管理页（issue #904 按标签收藏优化）
             TemplateRoute.SYNONYM_DICT -> SynonymDictFragment()
             // peer_uid > 0 → 与该 pixiv 用户 1v1；否则 → 会话列表（全员公屏 + 本地碰过的 1v1）。

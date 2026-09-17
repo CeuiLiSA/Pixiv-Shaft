@@ -641,25 +641,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                             R.string.plaza_drawer_entry,
                             experimentalAllowed && Shaft.sSettings.isShowPlazaEntry()),
                     new DrawerEntry(
-                            R.id.nav_debug_bulk_dl,
-                            R.string.debug_bulk_dl_entry,
-                            experimentalAllowed),
-                    new DrawerEntry(
-                            R.id.nav_saf_perf_test,
-                            R.string.saf_perf_test_entry,
-                            experimentalAllowed),
-                    new DrawerEntry(
                             R.id.nav_network_test,
                             R.string.nav_network_test_entry,
                             experimentalAllowed),
-                    new DrawerEntry(
-                            R.id.nav_media_demo, R.string.media_demo_entry, experimentalAllowed),
-                    new DrawerEntry(
-                            R.id.nav_spark_ai, R.string.spark_ai_entry, experimentalAllowed),
-                    new DrawerEntry(
-                            R.id.nav_tag_popular_export,
-                            R.string.tag_popular_export_entry,
-                            isDebugBuild),
                     // 中心页那个「Web 首页」chip 至今是 showComingSoon() 占位,StreetMainFragment
                     // 一直没有可用入口。而网页登录(同步 PHPSESSID)只能从这个页面走,拉黑、按 tag
                     // 筛画师作品都指着它 —— 没入口等于那些功能对普通用户是死的。用 !isLite 而不是
@@ -760,9 +744,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         } else if (id == R.id.nav_discovery) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DISCOVERY.key);
-        } else if (id == R.id.nav_spark_ai) {
-            intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SPARK_AI.key);
         } else if (id == R.id.nav_share) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ABOUT.key);
@@ -820,19 +801,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         } else if (id == R.id.nav_local_novel) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.LOCAL_NOVEL_LIBRARY.key);
-        } else if (id == R.id.nav_debug_bulk_dl) {
-            intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DEBUG_BULK_DOWNLOAD.key);
-        } else if (id == R.id.nav_saf_perf_test) {
-            intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DEBUG_SAF_PERF.key);
         } else if (id == R.id.nav_network_test) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DEBUG_NETWORK_TEST.key);
-        } else if (id == R.id.nav_tag_popular_export) {
-            intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(
-                    TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.DEBUG_POPULAR_TAG_EXPORT.key);
         } else if (id == R.id.nav_web_home) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_HOME.key);
@@ -852,8 +823,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 intent.putExtra(Params.TITLE, getString(R.string.fanbox_entry));
                 intent.putExtra(Params.PREFER_PRESERVE, true);
             }
-        } else if (id == R.id.nav_media_demo) {
-            intent = new Intent(mContext, ceui.pixiv.shaftapi.MediaDemoActivity.class);
         } else if (id == R.id.nav_chat_room) {
             intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.CHAT.key);

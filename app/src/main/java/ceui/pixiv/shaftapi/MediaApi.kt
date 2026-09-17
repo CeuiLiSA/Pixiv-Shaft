@@ -2,9 +2,7 @@ package ceui.pixiv.shaftapi
 
 import com.google.gson.annotations.SerializedName
 import retrofit2.http.Body
-import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.Path
 import retrofit2.http.Tag
 
 /**
@@ -27,12 +25,6 @@ interface MediaApi {
         @Body request: MediaUploadCompleteRequest,
         @Tag trace: MediaUploadTrace? = null,
     ): MediaObject
-
-    @GET("v1/media/{mediaId}/download-url")
-    suspend fun downloadUrl(
-        @Path("mediaId") mediaId: String,
-        @Tag trace: MediaUploadTrace? = null,
-    ): MediaDownloadUrlResponse
 }
 
 data class MediaUploadInitRequest(
@@ -71,12 +63,6 @@ data class MediaObject(
     val width: Int? = null,
     val height: Int? = null,
     val createdAt: String,
-    val url: String,
-    val expiresAt: Long,
-)
-
-data class MediaDownloadUrlResponse(
-    val mediaId: String,
     val url: String,
     val expiresAt: Long,
 )
