@@ -2879,7 +2879,7 @@
     <string name="snapshot_quota_banner_title">自動快照占用</string>
     <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
-    <string name="setting_auto_snapshot_quota_dialog_hint">以整數 MB 調整；拖到最右表示不限制</string>
+    <string name="setting_auto_snapshot_quota_dialog_hint">以整數 MB 調整；拖到最右表示不限制。調小後會立即清理超出的舊自動快照</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">插畫/漫畫自動產生快照</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">對反覆瀏覽與長時間駐留的插畫/漫畫靜默產生快照（實驗性）</string>

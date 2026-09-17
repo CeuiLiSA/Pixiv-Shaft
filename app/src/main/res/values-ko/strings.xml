@@ -2863,7 +2863,7 @@
     <string name="snapshot_quota_banner_title">자동 스냅샷 사용량</string>
     <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
-    <string name="setting_auto_snapshot_quota_dialog_hint">정수 MB 단위로 조정하며 오른쪽 끝은 무제한입니다</string>
+    <string name="setting_auto_snapshot_quota_dialog_hint">정수 MB 단위로 조정하며 오른쪽 끝은 무제한입니다. 값을 줄이면 한도를 넘는 오래된 자동 스냅샷을 즉시 삭제합니다</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">일러스트/만화 스냅샷 자동 생성</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">반복해서 보거나 오래 머문 일러스트/만화의 스냅샷을 조용히 생성합니다 (실험 기능)</string>

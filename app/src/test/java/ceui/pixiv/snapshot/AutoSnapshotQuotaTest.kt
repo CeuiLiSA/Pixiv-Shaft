@@ -15,10 +15,35 @@ class AutoSnapshotQuotaTest {
         assertEquals(200, AutoSnapshotQuota.clampLimitMb(200))
     }
 
+    /** 哨兵要原样活着；介于有限量程上限和哨兵之间的值收到有限上限，不能悄悄变成「不限」。 */
+    @Test
+    fun `out of range limit clamps to the finite maximum`() {
+        assertEquals(
+            AutoSnapshotQuota.UNLIMITED_LIMIT_MB,
+            AutoSnapshotQuota.clampLimitMb(AutoSnapshotQuota.UNLIMITED_LIMIT_MB),
+        )
+        assertEquals(
+            AutoSnapshotQuota.MAX_LIMIT_MB,
+            AutoSnapshotQuota.clampLimitMb(AutoSnapshotQuota.MAX_LIMIT_MB),
+        )
+        assertEquals(
+            AutoSnapshotQuota.MAX_LIMIT_MB,
+            AutoSnapshotQuota.clampLimitMb(AutoSnapshotQuota.MAX_LIMIT_MB + 1),
+        )
+        assertEquals(
+            AutoSnapshotQuota.MAX_LIMIT_MB,
+            AutoSnapshotQuota.clampLimitMb(AutoSnapshotQuota.UNLIMITED_LIMIT_MB - 1),
+        )
+    }
+
     @Test
     fun `max bytes map the unlimited sentinel to long max`() {
         assertEquals(200L * 1024 * 1024, AutoSnapshotQuota.maxBytesForLimit(200))
         assertEquals(10L * 1024 * 1024, AutoSnapshotQuota.maxBytesForLimit(10))
+        assertEquals(
+            100L * 1024 * 1024 * 1024,
+            AutoSnapshotQuota.maxBytesForLimit(AutoSnapshotQuota.MAX_LIMIT_MB),
+        )
         assertEquals(
             Long.MAX_VALUE,
             AutoSnapshotQuota.maxBytesForLimit(AutoSnapshotQuota.UNLIMITED_LIMIT_MB),
@@ -35,6 +60,47 @@ class AutoSnapshotQuotaTest {
                 AutoSnapshotQuota.SLIDER_STEPS,
             ),
         )
+    }
+
+    /**
+     * 「不限」只占最后一档：倒数第二档必须还是有限值，而且正好是有限量程的上限。
+     * 否则滑条右侧会出现一片「取到了但其实等于不限」的死区。
+     */
+    @Test
+    fun `unlimited occupies only the last slider step`() {
+        assertEquals(
+            AutoSnapshotQuota.MAX_LIMIT_MB,
+            AutoSnapshotQuota.limitMbForProgress(
+                AutoSnapshotQuota.SLIDER_STEPS - 1,
+                AutoSnapshotQuota.SLIDER_STEPS,
+            ),
+        )
+        assertEquals(
+            AutoSnapshotQuota.SLIDER_STEPS - 1,
+            AutoSnapshotQuota.progressForLimitMb(
+                AutoSnapshotQuota.MAX_LIMIT_MB,
+                AutoSnapshotQuota.SLIDER_STEPS,
+            ),
+        )
+        assertEquals(
+            AutoSnapshotQuota.SLIDER_STEPS,
+            AutoSnapshotQuota.progressForLimitMb(
+                AutoSnapshotQuota.UNLIMITED_LIMIT_MB,
+                AutoSnapshotQuota.SLIDER_STEPS,
+            ),
+        )
+    }
+
+    /** 有限量程内的每一档都必须是真能用上的值，不能冒出比 100 GB 还大的数。 */
+    @Test
+    fun `every finite step stays inside the usable range`() {
+        for (progress in 0 until AutoSnapshotQuota.SLIDER_STEPS) {
+            val value = AutoSnapshotQuota.limitMbForProgress(progress, AutoSnapshotQuota.SLIDER_STEPS)
+            assertTrue(
+                "progress=$progress value=$value",
+                value in AutoSnapshotQuota.MIN_LIMIT_MB..AutoSnapshotQuota.MAX_LIMIT_MB,
+            )
+        }
     }
 
     @Test
@@ -60,42 +126,19 @@ class AutoSnapshotQuotaTest {
         }
         assertEquals(AutoSnapshotQuota.UNLIMITED_LIMIT_MB, previous)
     }
+
+    /**
+     * 单段对数刻度本身就把常用值摊开了：1 GB 在中点、10 GB 在 3/4 处。
+     * 这正是原来那套「10 MB–10 GB 占 75%」分段想要的效果，所以分段可以不要。
+     */
     @Test
-    fun `10 mb to 10240 mb occupies three quarters of slider`() {
-        assertEquals(
-            0f,
-            AutoSnapshotQuota.fractionForLimitMb(AutoSnapshotQuota.MIN_LIMIT_MB),
-            0f,
-        )
-        assertEquals(
-            0.75f,
-            AutoSnapshotQuota.fractionForLimitMb(AutoSnapshotQuota.STANDARD_RANGE_MAX_MB),
-            0.0001f,
-        )
-        assertEquals(
-            1f,
-            AutoSnapshotQuota.fractionForLimitMb(AutoSnapshotQuota.UNLIMITED_LIMIT_MB),
-            0f,
-        )
-        assertEquals(
-            AutoSnapshotQuota.STANDARD_RANGE_MAX_MB,
-            AutoSnapshotQuota.limitMbForFraction(0.75f),
-        )
-        assertEquals(
-            AutoSnapshotQuota.SLIDER_STEPS * 3 / 4,
-            AutoSnapshotQuota.progressForLimitMb(
-                AutoSnapshotQuota.STANDARD_RANGE_MAX_MB,
-                AutoSnapshotQuota.SLIDER_STEPS,
-            ),
-        )
-        assertEquals(
-            AutoSnapshotQuota.STANDARD_RANGE_MAX_MB,
-            AutoSnapshotQuota.limitMbForProgress(
-                AutoSnapshotQuota.SLIDER_STEPS * 3 / 4,
-                AutoSnapshotQuota.SLIDER_STEPS,
-            ),
-        )
+    fun `log scale spreads the everyday values`() {
+        assertEquals(0f, AutoSnapshotQuota.fractionForLimitMb(AutoSnapshotQuota.MIN_LIMIT_MB), 0f)
+        assertEquals(0.5f, AutoSnapshotQuota.fractionForLimitMb(1024), 0.01f)
+        assertEquals(0.75f, AutoSnapshotQuota.fractionForLimitMb(10 * 1024), 0.01f)
+        assertEquals(1f, AutoSnapshotQuota.fractionForLimitMb(AutoSnapshotQuota.MAX_LIMIT_MB), 0f)
     }
+
     /** 真的没有占用时必须是 0，不能凭空报出一份。 */
     @Test
     fun `zero bytes display as zero mb`() {
