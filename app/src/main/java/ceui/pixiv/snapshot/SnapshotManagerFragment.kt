@@ -166,7 +166,7 @@ class SnapshotManagerFragment : Fragment() {
         childFragmentManager.fragments
             .filterIsInstance<SnapshotListFragment>()
             .forEach { quotaBanner?.attach(it) }
-        quotaBanner?.onTabSelected(binding.viewPager.currentItem)
+        quotaBanner?.onResumed(binding.viewPager.currentItem)
     }
 
     override fun onDestroyView() {

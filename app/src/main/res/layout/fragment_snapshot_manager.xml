@@ -66,21 +66,28 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
+                        <!--
+                          被挤压的必须是标题而不是数值：土耳其语标题「Otomatik anlık görüntü
+                          kullanımı」在 360dp 窄屏上就已经吃掉整行，数值反过来被省略成
+                          「0.48 M…」—— 而这条 banner 存在的唯一理由就是那个数值。
+                          所以 weight 给标题，数值保持 wrap_content 先拿够自己的宽度。
+                        -->
                         <TextView
                             android:id="@+id/auto_snapshot_quota_title"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:singleLine="true"
                             android:text="@string/snapshot_quota_banner_title"
                             android:textSize="12sp" />
 
                         <TextView
                             android:id="@+id/auto_snapshot_quota_value"
                             style="@style/textMontserratSemiBold"
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="10dp"
-                            android:layout_weight="1"
-                            android:ellipsize="end"
                             android:gravity="end"
                             android:singleLine="true"
                             android:textSize="13sp" />

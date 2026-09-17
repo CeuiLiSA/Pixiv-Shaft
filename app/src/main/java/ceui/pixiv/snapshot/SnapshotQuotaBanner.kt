@@ -58,15 +58,29 @@ internal class SnapshotQuotaBanner(
     }
 
     fun onTabSelected(position: Int) {
-        val banner = binding.autoSnapshotQuotaBanner
+        applyVisibility(position)
         if (position == 0) {
-            banner.visibility = View.VISIBLE
             // 切回「全部」时让 Toolbar + 占用条回到展开态，避免停在上一个 Tab 的收起位置。
             binding.appBar.setExpanded(true, true)
             refresh()
-        } else {
-            banner.visibility = View.GONE
         }
+    }
+
+    /**
+     * 页面 resume（从快照详情返回等）：只对齐可见性与数值，**不碰 AppBar 的收起位置**。
+     *
+     * 展开是「换了个 Tab」才成立的理由；走 [onTabSelected] 的话，每次看完一张快照返回
+     * 都会把已经收起的 Toolbar + 占用条动画顶开，而列表这边是刻意保留滚动位置的
+     * （见 SnapshotListFragment.onResume），两边对不上。
+     */
+    fun onResumed(position: Int) {
+        applyVisibility(position)
+        if (position == 0) refresh()
+    }
+
+    private fun applyVisibility(position: Int) {
+        binding.autoSnapshotQuotaBanner.visibility =
+            if (position == 0) View.VISIBLE else View.GONE
     }
 
     private fun refresh() {
