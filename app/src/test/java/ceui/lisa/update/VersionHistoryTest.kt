@@ -126,6 +126,13 @@ class VersionHistoryTest {
             card.bind(ReleaseItem(release("v4.9.2", body = "只改了一处小问题"), false, false), markwon) {}
             layout()
             assertFalse(toggle.isVisible())
+
+            // 换行多但渲染出来很短（Markdown 的软换行会并成一段）：绑定时按长度猜会猜错，
+            // 量完之后必须自己把按钮收掉，否则就是一颗按了没反应的按钮。
+            val softBreaks = "修了一个问题\n又修一个\n还修一个\n再修一个\n最后一个\n收工\n"
+            card.bind(ReleaseItem(release("v3.2.13", body = softBreaks), false, false), markwon) {}
+            layout()
+            assertFalse("短说明不该留一颗按了没反应的按钮", toggle.isVisible())
         } finally {
             controller.pause().stop().destroy()
         }

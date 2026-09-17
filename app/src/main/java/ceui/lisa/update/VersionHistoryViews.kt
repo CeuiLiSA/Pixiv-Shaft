@@ -3,7 +3,6 @@ package ceui.lisa.update
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.text.TextUtils
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
@@ -36,13 +35,12 @@ import io.noties.markwon.Markwon
 private const val COLLAPSED_LINES = 6
 
 /**
- * 这段更新说明值不值得折叠。
+ * 绑定时先猜这段说明会不会超过 [COLLAPSED_LINES] 行。
  *
- * 判据取原始 Markdown 的**行数和长度**，不去量渲染后的行数：`TextView` 要等布局完才知道
- * 有没有被截断，而那时再显隐按钮会让卡片高度在滚动中跳一下；`Layout.getEllipsisCount` /
- * `getLineEnd` 在 Markwon 的多段 Spanned 上又都测不出截断（真机实测两者都判成「没截断」，
- * 按钮因此整片消失）。GitHub 的 release body 一律是「标题 + 分节 + 若干条目」，
- * 这个判据在真实数据上和「渲染后超过 6 行」完全一致。
+ * 只是**初值**：真正的判据是量完之后 `Layout` 的最后一行有没有停在文本末尾之前
+ * （见 [ReleaseCardView.onMeasure]）。猜一手是为了让绝大多数卡第一次量就对，
+ * 不用在测量里改可见性再量第二遍。判据取原始 Markdown 的长度和行数，
+ * GitHub 的 release body 一律是「标题 + 分节 + 若干条目」，这个初值基本都命中。
  */
 private fun CharSequence.worthCollapsing(): Boolean =
     length > 200 || count { it == '\n' } >= COLLAPSED_LINES
@@ -155,7 +153,10 @@ internal class ReleaseCardView(ctx: Context) : LinearLayout(ctx) {
     private val title = ctx.label("", 16f, 600).apply { lineHeightRatio(1.5f) }
     private val body = ctx.label("", 14f, 400, ctx.color(R.color.v3_text_2)).apply {
         lineHeightRatio(1.7f)
-        ellipsize = TextUtils.TruncateAt.END
+        // 刻意不设 ellipsize：设了之后 Layout 会被截到 maxLines、末行并进剩余文字，
+        // onMeasure 里就再也数不出「完整内容有多少行」（详见 [onMeasure]）。
+        // 代码块底会往上下各多画 6dp，正文留出同量 padding，末尾那块不会被裁掉。
+        setPadding(0, ctx.dp(6), 0, ctx.dp(6))
     }
     private val size = ctx.label("", 12f, 500, ctx.color(R.color.v3_text_2)).apply {
         fontFeatureSettings = "tnum"
@@ -174,6 +175,9 @@ internal class ReleaseCardView(ctx: Context) : LinearLayout(ctx) {
         addView(size, LayoutParams(0, -2, 1f))
         addView(toggle, LayoutParams(-2, -2).apply { marginStart = ctx.dp(12) })
     }
+
+    /** 当前条目是不是展开态：展开时不必再核对截断。 */
+    private var expanded = false
 
     init {
         orientation = VERTICAL
@@ -223,9 +227,12 @@ internal class ReleaseCardView(ctx: Context) : LinearLayout(ctx) {
         } else {
             body.setText(R.string.update_no_changelog)
         }
-        val collapsible = changelog?.worthCollapsing() == true
-        body.maxLines = if (item.expanded || !collapsible) Int.MAX_VALUE else COLLAPSED_LINES
-        toggle.isVisible = collapsible
+        expanded = item.expanded
+        body.maxLines = if (item.expanded) Int.MAX_VALUE else COLLAPSED_LINES
+        toggle.isVisible = item.expanded || changelog?.worthCollapsing() == true
+        // 没得展开的卡连涟漪都不该有。
+        isClickable = toggle.isVisible
+        isFocusable = toggle.isVisible
 
         val apk = AppUpdateChecker.findApkAsset(release)
         size.isVisible = apk != null
@@ -244,12 +251,33 @@ internal class ReleaseCardView(ctx: Context) : LinearLayout(ctx) {
         }
         toggle.setCompoundDrawablesRelative(null, null, arrow, null)
         toggle.setOnClickListener { onToggle(item) }
-        // 整张卡是同一个动作的大点击区；没得展开时连涟漪都不该有。
-        // 刻意不给卡片设 contentDescription：那会把整张卡合并成一个读屏节点，
-        // 更新说明就读不到了——动作的名字由胶囊自己的文案承担。
-        setOnClickListener { if (collapsible) onToggle(item) }
-        isClickable = collapsible
-        isFocusable = collapsible
+        // 整张卡是同一个动作的大点击区。刻意不给卡片设 contentDescription：
+        // 那会把整张卡合并成一个读屏节点，更新说明就读不到了——动作的名字由胶囊的文案承担。
+        setOnClickListener { if (toggle.isVisible) onToggle(item) }
+    }
+
+    /**
+     * 按钮显隐的最终判据：折叠态下正文是不是真超过了 [COLLAPSED_LINES] 行。
+     *
+     * 放在测量里核对，而不是 `post` 到下一帧——后者会让卡片在滚动中先矮一下再长高。
+     * 判据就是 `TextView.getLineCount()`：`maxLines` 只在 `ellipsize != null` 时才会把
+     * `Layout` 本身截短，没有 ellipsize 时 Layout 仍然排完整篇、只是不画超出的行，
+     * 于是这个行数就是「完整内容有多少行」（实测 6 行的卡 `lineCount` 是 14）。
+     * 反过来，`getEllipsisCount` / `getLineEnd` 两个判据都靠不住：设了 ellipsize 之后
+     * 末行会把剩下的文字并进来，`getLineEnd(最后一行)` 恒等于文本长度。
+     * [bind] 已按文本长度猜过一手，这里通常什么都不用改；猜错了才改一次可见性再量一遍。
+     */
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        if (expanded) return
+        if (body.layout == null) return
+        val truncated = body.lineCount > COLLAPSED_LINES
+        if (truncated != toggle.isVisible) {
+            toggle.isVisible = truncated
+            isClickable = truncated
+            isFocusable = truncated
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        }
     }
 }
 

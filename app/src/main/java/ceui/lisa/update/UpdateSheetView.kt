@@ -45,6 +45,8 @@ internal class UpdateSheetView(ctx: Context) : LinearLayout(ctx) {
     }
     private val changelog = ctx.label("", 14f, 400, ctx.color(R.color.v3_text_2)).apply {
         lineHeightRatio(1.7f)
+        // 同版本历史：给代码块底的上下溢出留位置。
+        setPadding(0, ctx.dp(6), 0, ctx.dp(6))
     }
     private val assetInfo = ctx.label("", 12f, 500, ctx.color(R.color.v3_text_2)).apply {
         fontFeatureSettings = "tnum"
