@@ -48,6 +48,12 @@ import ceui.pixiv.ui.navigation.TemplateRoute;
  *   热度标签(本地策展)→ 最新 → 特辑(pixivision)→ 本月收藏 → 当前最热 → 更多分类。
  * 每条货架横向缩略图,数据在 {@link DiscoverViewModel};「查看全部」跳原来的整页,零新后端。
  * 本月收藏 / 当前最热走自建 shaft-api-v2,Lite 渠道整段不展示。
+ *
+ * 「更多分类」最后一枚 chip 是「热门搜索」
+ * （{@link ceui.pixiv.ui.prime.CorpusTagsFragment} → {@link ceui.pixiv.ui.prime.CorpusTagDetailFragment}）：
+ * 和上面的「热度标签」是同一种两级货架,但那份目录是一年前策展、随 APK 发布的 202 个标签,
+ * 这份来自 pixshaft-api 的作品库 —— 搜索缓存每回填一页就往里沉淀 30 个作品,所以它**每天都在
+ * 自己变厚**。同属自建后端,Lite 不展示。
  */
 public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
 
@@ -111,6 +117,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
             baseBind.catTrendingArtists.setVisibility(View.GONE);
             baseBind.catUgoiraRank.setVisibility(View.GONE);
             baseBind.catPixivComic.setVisibility(View.GONE);
+            baseBind.catCorpusLibrary.setVisibility(View.GONE);
         }
 
         // ── 「查看全部」跳原来的整页 ──
@@ -143,6 +150,8 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         baseBind.catFollowNovel.setOnClickListener(v -> openFragment(TemplateRoute.FOLLOWING_NOVELS));
         baseBind.catDiscovery.setOnClickListener(v -> openFragment(TemplateRoute.DISCOVERY));
         baseBind.catNiceFriend.setOnClickListener(v -> openFragment(TemplateRoute.NICE_FRIEND_ILLUSTS));
+        // 热门搜索:标签目录由搜索缓存逐日沉淀,谁搜出来的都算数,看的人不占额度。
+        baseBind.catCorpusLibrary.setOnClickListener(v -> openFragment(TemplateRoute.CORPUS_LIBRARY));
 
         // Web 首页:仅 github 渠道(占位 Coming soon),Lite 整个 chip GONE。
         if (BuildConfig.IS_LITE) {
@@ -177,6 +186,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         styleCatChip(baseBind.catDiscovery, palette, R.drawable.ic_baseline_explore_24);
         styleCatChip(baseBind.catWeb, palette, R.drawable.ic_setcat_globe);
         styleCatChip(baseBind.catNiceFriend, palette, R.drawable.ic_baseline_how_to_reg_24);
+        styleCatChip(baseBind.catCorpusLibrary, palette, R.drawable.ic_setcat_search);
 
         discoverVM = new ViewModelProvider(this).get(DiscoverViewModel.class);
         discoverVM.getPrimeTags().observe(getViewLifecycleOwner(), this::bindTagRail);

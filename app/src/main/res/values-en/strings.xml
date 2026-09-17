@@ -504,6 +504,8 @@
     <string name="string_272">Twitter ID：</string>
     <string name="string_273">Self introduction:</string>
     <string name="string_274">illustrations / cartoons of P Friends</string>
+    <string name="corpus_library">Trending Searches</string>
+    <string name="corpus_tag_work_count">%1$s works</string>
     <string name="nice_friend_works">P Friends\' Works</string>
     <string name="feed_count_range">%1$d–%2$d of %3$d</string>
     <string name="pivision_read_article">Read article ›</string>

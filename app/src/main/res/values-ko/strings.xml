@@ -504,6 +504,8 @@
     <string name="string_272">Twitter ID:</string>
     <string name="string_273">자기소개:</string>
     <string name="string_274">좋 은 P 친구 의 삽화 / 만화 작품</string>
+    <string name="corpus_library">인기 검색</string>
+    <string name="corpus_tag_work_count">%1$s개 작품</string>
     <string name="nice_friend_works">좋은 P 친구의 작품</string>
     <string name="feed_count_range">%1$d–%2$d / 전체 %3$d</string>
     <string name="pivision_read_article">특집 읽기 ›</string>

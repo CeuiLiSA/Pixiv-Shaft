@@ -526,6 +526,8 @@
     <string name="string_272">Twitter ID：</string>
     <string name="string_273">自我介绍：</string>
     <string name="string_274">好P友的插画/漫画作品</string>
+    <string name="corpus_library">热门搜索</string>
+    <string name="corpus_tag_work_count">%1$s 件作品</string>
     <string name="nice_friend_works">好P友作品</string>
     <string name="feed_count_range">%1$d–%2$d,共 %3$d</string>
     <string name="pivision_read_article">阅读特辑 ›</string>

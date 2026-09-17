@@ -79,6 +79,8 @@ import ceui.pixiv.ui.novel.NovelTextFragment
 import ceui.pixiv.ui.novel.local.LocalLibraryFragment
 import ceui.pixiv.ui.novel.reader.NovelReaderV3Fragment
 import ceui.pixiv.ui.pinned.PinnedTabsFragment
+import ceui.pixiv.ui.prime.CorpusTagDetailFragment
+import ceui.pixiv.ui.prime.CorpusTagsFragment
 import ceui.pixiv.ui.prime.PrimeTagDetailFragment
 import ceui.pixiv.ui.prime.PrimeTagsFragment
 import ceui.pixiv.ui.recommend.AI_ONLY
@@ -405,6 +407,11 @@ object TemplateRouteFactory {
                 PrimeTagDetailFragment.newInstance(
                     intent.requireString("name"),
                     intent.requireString("key"),
+                )
+            TemplateRoute.CORPUS_LIBRARY -> CorpusTagsFragment()
+            TemplateRoute.CORPUS_TAG_DETAIL ->
+                CorpusTagDetailFragment.newInstance(
+                    intent.requireString(CorpusTagsFragment.ARG_TAG),
                 )
             // 「我的插画收藏」有两种落点：本地镜像已经完整同步过一次 → 直接进本地库
             // （能倒序、能按标签/作者/年份筛，而服务端接口给不了这些）；还没同步完 → 老的双 tab 页。
