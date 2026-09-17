@@ -17,13 +17,12 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentSettingsExperimentalBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.pixiv.snapshot.AutoSnapshotEngine;
 import ceui.pixiv.snapshot.AutoSnapshotQuota;
-import ceui.pixiv.snapshot.AutoSnapshotRepository;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import ceui.pixiv.witstudio.dialog.WitDialogView;
 import ceui.pixiv.witstudio.theme.V3Palette;
-import timber.log.Timber;
 
 /** 设置 · 试验性 */
 public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentSettingsExperimentalBinding> {
@@ -208,35 +207,13 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
                 Local.setSettings(Shaft.sSettings);
                 Common.showToast(getString(R.string.string_428));
                 refreshAutoSnapshotQuotaLabel();
-                enforceAutoSnapshotQuotaAsync();
+                // 上限改小后立刻按新值淘汰一次，否则要等下一次自动生成才收，
+                // 管理页会一直显示「180 MB / 10 MB」，看起来像这个设置没生效。
+                AutoSnapshotEngine.INSTANCE.onAutoQuotaLimitChanged();
             }
             dialog.dismiss();
         });
         builder.show();
-    }
-
-    /**
-     * 上限一改就按新值淘汰一次。
-     *
-     * <p>淘汰原本只挂在「又生成了一份自动快照」之后（AutoSnapshotEngine），于是把上限从
-     * 200 MB 拖到 10 MB 之后什么都不会发生：管理页照旧显示「180 MB / 10 MB」、进度条顶格，
-     * 要等下一次自动生成才收 —— 在用户看来就是这个设置没生效。
-     *
-     * <p>删的只有自动快照（正式快照本来就不参与配额），而且走的就是引擎那条
-     * {@code enforceAutoQuota}，不是这里另起一套淘汰规则。放子线程：listAuto 会 walk
-     * 整个快照目录，重度用户上 GB，在点击回调里同步跑就是 ANR。
-     */
-    private void enforceAutoSnapshotQuotaAsync() {
-        final Context appContext = mContext.getApplicationContext();
-        new Thread(() -> {
-            try {
-                AutoSnapshotRepository.INSTANCE.enforceAutoQuota(appContext);
-            } catch (Throwable t) {
-                // 子线程里逃逸出去就是整个进程崩。没收干净的代价只是本轮超额，
-                // 下次生成快照时还会再收一次。
-                Timber.w(t, "[Snapshot] enforce quota after limit change failed");
-            }
-        }, "auto-snapshot-quota").start();
     }
 
     /** WitDialog 的自定义内容：标题下的大数值 + V3 滑条 + 两端说明。 */

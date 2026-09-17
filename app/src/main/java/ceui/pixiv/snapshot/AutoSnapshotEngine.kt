@@ -77,6 +77,24 @@ object AutoSnapshotEngine {
         return visit
     }
 
+    /**
+     * 用户在设置里改了自动快照总大小上限：按新值立刻淘汰一次。
+     *
+     * 淘汰本来只挂在「又生成了一份」之后，于是把上限从 200 MB 拖到 10 MB 之后什么都不会
+     * 发生，在用户看来就是这个设置没生效。
+     *
+     * 走引擎自己的 scope 和 [generationPermit]：快照目录的增删只由这一个许可串行化，
+     * 另起一条线程去 enforce 就会和正在生成的那一轮抢同一批目录。scope 带
+     * CoroutineExceptionHandler，这里不需要再兜一层 try。
+     */
+    fun onAutoQuotaLimitChanged() {
+        scope.launch {
+            generationPermit.withPermit {
+                AutoSnapshotRepository.enforceAutoQuota(Shaft.getContext())
+            }
+        }
+    }
+
     /** 详情页离开（onPause）时调用：记录停留时长，并检查是否达到长时间驻留阈值。 */
     fun onArtworkPageHidden(visit: ArtworkVisit?) {
         val dwellMs = visit?.finish(SystemClock.elapsedRealtime()) ?: return
