@@ -80,6 +80,7 @@ internal object PlazaRepository {
                 requireNotNull(preview.displayName)
                 requireNotNull(preview.text)
             }
+            post.objectExtensions?.illust?.let { require(it.id > 0) }
         }
         return page.items.mapNotNull { restore(it, viewerUid, savedAt) }
     }

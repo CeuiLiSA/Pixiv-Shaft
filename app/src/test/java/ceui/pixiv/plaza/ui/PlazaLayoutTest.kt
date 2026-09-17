@@ -92,7 +92,7 @@ class PlazaLayoutTest {
     fun `recycling a comment as a post restores content alignment`() {
         val context = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.AppTheme)
         val post = PlazaPost(1, 42, "Author", "Body", 1, null, null, null, 0, 0, false, emptyList())
-        val view = PostView(context) { 42L }
+        val view = PostView(context, { 42L })
         view.bind(post, false, false, {}, {}, { _, _, _ -> }, comment = true)
         val body =
             (0 until view.childCount).map(view::getChildAt).filterIsInstance<TextView>().first {
@@ -146,7 +146,7 @@ class PlazaLayoutTest {
                 }
             val context =
                 ContextThemeWrapper(app.createConfigurationContext(config), R.style.AppTheme)
-            val view = PostView(context) { 42L }
+            val view = PostView(context, { 42L })
             val post =
                 PlazaPost(
                     1,

@@ -1,5 +1,6 @@
 package ceui.pixiv.plaza
 
+import ceui.pixiv.api.model.Illust
 import retrofit2.http.*
 
 data class PlazaImage(
@@ -10,6 +11,13 @@ data class PlazaImage(
     val url: String,
     val expiresAt: Long,
 )
+
+/**
+ * What a post carries about its linked Pixiv object beyond the id, so readers never fetch it.
+ * Only the JSON travels: the pages inside are pximg URLs each reader loads on its own connection.
+ * Absent on posts that link nothing, or a novel / user, or were made before this existed.
+ */
+data class PlazaObjectExtensions(val illust: Illust? = null)
 
 data class PlazaReaction(val emoji: String, val count: Int, val selected: Boolean, val stickerId: Long? = null)
 
@@ -39,6 +47,7 @@ data class PlazaPost(
     val reactions: List<PlazaReaction> = emptyList(),
     val commentsPreview: List<PlazaCommentPreview> = emptyList(),
     val avatarUrl: String? = null,
+    val objectExtensions: PlazaObjectExtensions? = null,
 )
 
 data class PlazaPage(val items: List<PlazaPost>, val nextBefore: Long?)
@@ -54,6 +63,7 @@ data class CreatePost(
     val title: String = "",
     val avatarUrl: String? = null,
     val policyVersion: String = "2026-09-16",
+    val objectExtensions: PlazaObjectExtensions? = null,
 )
 
 data class DeletePost(val ok: Boolean)

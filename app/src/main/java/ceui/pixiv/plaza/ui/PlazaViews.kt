@@ -38,9 +38,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.utils.GlideUrlChild
-import ceui.pixiv.plaza.PlazaImage
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.plaza.PlazaPost
+import ceui.pixiv.plaza.linkedPages
+import ceui.pixiv.plaza.linkedWork
+import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.sticker.StickerImageView
 import ceui.pixiv.sticker.StickerPicker
@@ -50,12 +54,26 @@ import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.theme.*
 import ceui.pixiv.witstudio.theme.V3Palette
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.bumptech.glide.request.target.DrawableImageViewTarget
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayout
 import java.text.DateFormat
 import java.text.NumberFormat
 import java.util.Date
+import jp.wasabeef.glide.transformations.BlurTransformation
+
+/** Same blur as the artwork feeds' spoiler tiles (IllustStaggerRenderer). */
+private const val LINKED_WORK_BLUR_RADIUS = 25
+private const val LINKED_WORK_BLUR_SAMPLING = 3
+
+/**
+ * A linked work is masked by the feeds' own rule (muted, or AI under the blur setting) and,
+ * because the plaza is one public feed for every account, also when the work is R-18.
+ */
+internal fun linkedWorkSpoilered(work: Illust): Boolean =
+    work.isR18File() || IllustMuteStore.isMuted(work.id) || IllustNovelFilter.shouldBlurAi(work)
 
 /**
  * Empty / error / not-found state on the feeds-framework recipe (`fragment_feed.xml`):
@@ -221,13 +239,29 @@ internal class PostAdapter(
 internal class PostView(
     context: Context,
     private val viewerUid: () -> Long = { SessionManager.loggedInUid },
+    private val spoilered: (Illust) -> Boolean = ::linkedWorkSpoilered,
 ) : LinearLayout(context) {
+    /**
+     * One cell of the media grid: an upload (signed media URL, opens the plaza viewer) or a page
+     * of the linked work (pximg URL loaded on the reader's own connection, opens the artwork).
+     * [key] decides whether a rebind can keep the ImageView; [url] alone changing means the same
+     * bytes behind a rotated signature, so only a failed request reloads.
+     */
+    private class Tile(
+        val key: String,
+        val width: Int,
+        val height: Int,
+        val url: String,
+        val blur: Boolean,
+        val model: () -> GlideUrl?,
+        val open: (View) -> Unit,
+    )
+
     private val palette = V3Palette.from(context)
     private val imageRequests = Glide.with(this)
     private var renderedAvatar: Pair<Long, String?>? = null
-    private var renderedImages: List<PlazaImage>? = null
+    private var renderedTiles: List<Tile>? = null
     private var renderedWidth = -1
-    private var renderedViewerUid: Long? = null
     private var detailMode = false
     private val avatar =
         ImageView(context).apply {
@@ -338,7 +372,7 @@ internal class PostView(
         emptyComments: Boolean = false,
     ) {
         if (detailMode != detail) {
-            renderedImages = null
+            renderedTiles = null
             detailMode = detail
         }
         applySurface(detail, comment)
@@ -407,11 +441,10 @@ internal class PostView(
         }
         reference.layoutParams =
             (reference.layoutParams as LayoutParams).apply { width = LayoutParams.WRAP_CONTENT }
-        images.isVisible = post.images.isNotEmpty()
-        images.onMeasured = {
-            bindImages(post.images) { index, photo -> onImage(post, index, photo) }
-        }
-        bindImages(post.images) { index, photo -> onImage(post, index, photo) }
+        val tiles = tilesOf(post, onImage)
+        images.isVisible = tiles.isNotEmpty()
+        images.onMeasured = { bindImages(tiles) }
+        bindImages(tiles)
         bindReactions(post, busy, onLike, onReact, onReply)
         bindComments(post, detail, comment, onReply)
         commentsTitle.isVisible = detail
@@ -771,21 +804,59 @@ internal class PostView(
         }
     }
 
-    private fun bindImages(items: List<PlazaImage>, click: (Int, View) -> Unit) {
-        val viewer = viewerUid()
-        val old = renderedImages
+    /**
+     * Uploads are the author's choice of media and win outright; the linked work only fills
+     * in when there are none, and its images never pass through plaza storage.
+     */
+    private fun tilesOf(post: PlazaPost, onImage: (PlazaPost, Int, View) -> Unit): List<Tile> {
+        if (post.images.isNotEmpty()) {
+            val viewer = viewerUid()
+            return post.images.mapIndexed { index, image ->
+                Tile(
+                    key = "media:$viewer:${image.mediaId}",
+                    width = image.width,
+                    height = image.height,
+                    url = image.url,
+                    blur = false,
+                    model = {
+                        image.url.takeIf { it.isNotBlank() }?.let { PlazaMediaUrl(image, viewer) }
+                    },
+                ) { photo ->
+                    onImage(post, index, photo)
+                }
+            }
+        }
+        val work = post.linkedWork() ?: return emptyList()
+        val pages = work.linkedPages()
+        if (pages.isEmpty()) return emptyList()
+        val blur = spoilered(work)
+        return pages.map { page ->
+            // A lone page is shown at full width, where pixiv's 600x1200 "large" holds up.
+            val url = if (pages.size == 1) page.large?.takeIf { it.isNotBlank() } ?: page.medium else page.medium
+            Tile(
+                key = "work:${work.id}:${page.index}",
+                width = if (page.index == 0) work.width.coerceAtLeast(1) else 1,
+                height = if (page.index == 0) work.height.coerceAtLeast(1) else 1,
+                url = url,
+                blur = blur,
+                model = { GlideUrlChild(url) },
+            ) {
+                context.openObject(post.objectType, work.id)
+            }
+        }
+    }
+
+    private fun bindImages(items: List<Tile>) {
+        val old = renderedTiles
         val sameContent =
             old != null &&
                 old.size == items.size &&
                 old.indices.all { i ->
                     val a = old[i]
                     val b = items[i]
-                    a.mediaId == b.mediaId &&
-                        a.width == b.width &&
-                        a.height == b.height &&
-                        a.contentType == b.contentType
+                    a.key == b.key && a.width == b.width && a.height == b.height && a.blur == b.blur
                 }
-        if (sameContent && renderedWidth == images.width && renderedViewerUid == viewer) {
+        if (sameContent && renderedWidth == images.width) {
             // Retain the drawable and in-flight request. Clicks must still receive the new URL.
             var index = 0
             for (r in 0 until images.childCount) {
@@ -793,32 +864,26 @@ internal class PostView(
                 for (c in 0 until row.childCount) {
                     val photo = row.getChildAt(c) as ImageView
                     val position = index++
-                    photo.setOnClickListener { click(position, photo) }
+                    val tile = items[position]
+                    photo.setOnClickListener { tile.open(photo) }
                     val request = DrawableImageViewTarget(photo).request
                     if (
                         request?.isComplete != true &&
                             request?.isRunning != true &&
-                            old!![position].url != items[position].url
+                            old!![position].url != tile.url
                     ) {
                         // A failed old signature must retry the latest transport URL.
                         imageRequests.clear(photo)
-                        loadPhoto(
-                            photo,
-                            items[position],
-                            viewer,
-                            photo.layoutParams.width,
-                            photo.layoutParams.height,
-                        )
+                        loadPhoto(photo, tile, photo.layoutParams.width, photo.layoutParams.height)
                     }
                 }
             }
-            renderedImages = items
+            renderedTiles = items
             return
         }
         clearImages()
-        renderedImages = items
+        renderedTiles = items
         renderedWidth = images.width
-        renderedViewerUid = viewer
         if (images.width <= 0 || items.isEmpty()) return
         val gap = context.dp(4)
         val columns =
@@ -830,14 +895,14 @@ internal class PostView(
         val tileWidth = (images.width - gap * (columns - 1)) / columns
         items.chunked(columns).forEachIndexed { rowIndex, rowItems ->
             val row = LinearLayout(context)
-            rowItems.forEachIndexed { column, image ->
+            rowItems.forEachIndexed { column, tile ->
                 val width =
-                    if (items.size == 1 && image.height > image.width && !detailMode)
+                    if (items.size == 1 && tile.height > tile.width && !detailMode)
                         (images.width * .55f).toInt()
                     else tileWidth
                 val height =
                     if (items.size == 1)
-                        (width.toFloat() * image.height / image.width.coerceAtLeast(1))
+                        (width.toFloat() * tile.height / tile.width.coerceAtLeast(1))
                             .toInt()
                             .coerceAtMost(context.dp(if (detailMode) 900 else 480))
                     else tileWidth
@@ -858,26 +923,25 @@ internal class PostView(
                     photo,
                     LayoutParams(width, height).apply { if (column > 0) marginStart = gap },
                 )
-                loadPhoto(photo, image, viewer, width, height)
-                photo.setOnClickListener { click(rowIndex * columns + column, photo) }
+                loadPhoto(photo, tile, width, height)
+                photo.setOnClickListener { tile.open(photo) }
             }
             images.addView(row, LayoutParams(-1, -2).apply { if (rowIndex > 0) topMargin = gap })
         }
     }
 
-    private fun loadPhoto(
-        photo: ImageView,
-        image: PlazaImage,
-        viewer: Long,
-        width: Int,
-        height: Int,
-    ) {
-        imageRequests
-            .load(image.url.takeIf { it.isNotBlank() }?.let { PlazaMediaUrl(image, viewer) })
-            .override(width, height)
-            .dontAnimate()
-            .error(android.R.drawable.ic_menu_report_image)
-            .into(photo)
+    private fun loadPhoto(photo: ImageView, tile: Tile, width: Int, height: Int) {
+        var request = imageRequests.load(tile.model()).override(width, height).dontAnimate()
+        if (tile.blur) {
+            // Glide decodes straight to a blurred bitmap; the transform is part of the cache key.
+            request =
+                request.apply(
+                    bitmapTransform(
+                        BlurTransformation(LINKED_WORK_BLUR_RADIUS, LINKED_WORK_BLUR_SAMPLING)
+                    )
+                )
+        }
+        request.error(android.R.drawable.ic_menu_report_image).into(photo)
     }
 
     private fun clearImageRequests(v: View) {
@@ -895,9 +959,8 @@ internal class PostView(
         renderedAvatar = null
         clearImageRequests(comments)
         images.onMeasured = null
-        renderedImages = null
+        renderedTiles = null
         renderedWidth = -1
-        renderedViewerUid = null
         clearImages()
     }
 }

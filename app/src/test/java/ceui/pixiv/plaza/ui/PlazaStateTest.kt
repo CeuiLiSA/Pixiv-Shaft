@@ -187,7 +187,7 @@ class PlazaStateTest {
                     MediaObject("media-1", "key", "image/jpeg", 3, 10, 20, "1", "https://media.pixshaft.com/a", 999)
                 }
             val resolver = RuntimeEnvironment.getApplication().contentResolver
-            val vm = PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }, uploader)
+            val vm = PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }, uploader = uploader)
             vm.attach(listOf(Uri.parse("content://images/1")))
             vm.send(resolver)
             runCurrent()
@@ -197,7 +197,7 @@ class PlazaStateTest {
 
             // Process recreation restores the same authorisation.
             fails = false
-            val restored = PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }, uploader)
+            val restored = PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }, uploader = uploader)
             restored.send(resolver)
             runCurrent()
             assertEquals(listOf(null, "media-1"), seen.map { it?.mediaId })
@@ -846,6 +846,64 @@ class PlazaStateTest {
             snapshot = CachedFirstPage(response, nextCursor, System.currentTimeMillis())
         }
     }
+
+    @Test
+    fun `sending attaches the linked illust once, reuses it on retry, and skips it when unavailable`() =
+        runTest(dispatcher) {
+            val saved = SavedStateHandle()
+            val api = FakeApi()
+            val resolver = RuntimeEnvironment.getApplication().contentResolver
+            var resolved = mutableListOf<Long>()
+            var work: ceui.pixiv.api.model.Illust? =
+                ceui.pixiv.api.model.Illust(
+                    id = 123, width = 10, height = 20, page_count = 1, caption = "dropped",
+                    image_urls = ceui.loxia.ImageUrls(medium = "https://i.pximg.net/c/540x540_70/p0.jpg"),
+                )
+            val vm =
+                PlazaComposeViewModel(saved, api, { 42 }, { "Alice" }, { id -> resolved += id; work }) { _, _, _, _, _ ->
+                    error("no upload")
+                }
+            vm.reference(123, "manga")
+            api.createFails = true
+            vm.send(resolver)
+            runCurrent()
+            assertEquals(123L, api.creates.single().objectExtensions?.illust?.id)
+            assertEquals("dropped", api.creates.single().objectExtensions?.illust?.caption)
+            // A retry after a lost response must send the identical payload without asking again.
+            api.createFails = false
+            work = work!!.copy(total_bookmarks = 99)
+            vm.send(resolver)
+            runCurrent()
+            assertEquals(listOf(123L), resolved)
+            assertEquals(api.creates[0].objectExtensions, api.creates[1].objectExtensions)
+            assertNotNull(vm.state.value.sentId)
+            // One in-memory slot, re-resolved only when the reference changes.
+            vm.consumeSentReply()
+            vm.reference(124, "illust")
+            work = work!!.copy(id = 124)
+            vm.send(resolver)
+            runCurrent()
+            assertEquals(listOf(123L, 124L), resolved)
+            assertEquals(124L, api.creates.last().objectExtensions?.illust?.id)
+            // Only illust / manga carry a work; a novel link is a capsule only.
+            val novel = PlazaComposeViewModel(SavedStateHandle(), api, { 42 }, { "Alice" }, { error("not asked") }) { _, _, _, _, _ ->
+                error("no upload")
+            }
+            novel.reference(5, "novel")
+            novel.send(resolver)
+            runCurrent()
+            assertNull(api.creates.last().objectExtensions)
+            // An unreachable work never blocks the post.
+            val offline = PlazaComposeViewModel(SavedStateHandle(), api, { 42 }, { "Alice" }, { throw IOException("offline") }) { _, _, _, _, _ ->
+                error("no upload")
+            }
+            offline.reference(9, "illust")
+            offline.send(resolver)
+            runCurrent()
+            assertEquals(9L, api.creates.last().objectId)
+            assertNull(api.creates.last().objectExtensions)
+            assertNotNull(offline.state.value.sentId)
+        }
 
     private inner class FakeApi : PlazaApi {
         override suspend fun report(id: Long, body: ceui.pixiv.plaza.PlazaReportRequest): ceui.pixiv.plaza.PlazaReportReceipt = error("unused")

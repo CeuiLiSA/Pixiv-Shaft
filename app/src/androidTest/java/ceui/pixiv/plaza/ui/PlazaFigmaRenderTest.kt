@@ -95,7 +95,7 @@ class PlazaFigmaRenderTest {
                                     ),
                                 ),
                         )
-                    val view = PostView(context) { 42L }
+                    val view = PostView(context, { 42L })
                     view.bind(post, false, detail, {}, {}, { _, _, _ -> })
                     val width = context.dp(390)
                     fun layout() {
@@ -140,7 +140,7 @@ class PlazaFigmaRenderTest {
                     screen.addView(view)
                     if (detail) {
                         screen.addView(
-                            PostView(context) { 42L }
+                            PostView(context, { 42L })
                                 .apply {
                                     bind(
                                         post.copy(
