@@ -504,6 +504,8 @@
     <string name="string_272">Twitter:</string>
     <string name="string_273">Kendini tanıt:</string>
     <string name="string_274">P-Arkadaşlar\'ın illüstrasyonları / mangaları</string>
+    <string name="corpus_library">Popüler Aramalar</string>
+    <string name="corpus_tag_work_count">%1$s eser</string>
     <string name="nice_friend_works">P-Arkadaş Eserleri</string>
     <string name="feed_count_range">%1$d–%2$d / %3$d</string>
     <string name="pivision_read_article">Yazıyı oku ›</string>

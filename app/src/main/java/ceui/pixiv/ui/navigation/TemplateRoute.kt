@@ -96,6 +96,10 @@ enum class TemplateRoute(@JvmField val key: String) {
     PRIME_TAGS("PrimeTagsList"),
     PINNED_CONTENT("PinnedContentTabs"),
     PRIME_TAG_DETAIL("PrimeTagDetail"),
+    /** 「热门搜索」标签目录：pixshaft-api 作品库，由搜索缓存逐日沉淀而来。 */
+    CORPUS_LIBRARY("CorpusLibrary"),
+    /** 「热门搜索」里某个标签的作品。 */
+    CORPUS_TAG_DETAIL("CorpusTagDetail"),
     MY_ILLUST_COLLECTION("我的插画收藏"),
     MY_NOVEL_COLLECTION("我的小说收藏"),
     /** 收藏库：本地收藏镜像的浏览/筛选页（倒序、按标签/作者/年份筛、全文搜、随机漫游）。 */

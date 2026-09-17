@@ -103,6 +103,46 @@ interface PixshaftApi {
         @Query("limit") limit: Int,
     ): PrimeTagIllustPage
 
+    /**
+     * 一页「大家搜过的」作品。
+     *
+     * 数据是 pixshaft-api 的作品库：借号搜索缓存每回填一页，服务端就把那 30 个作品拆出来、
+     * 按 id 去重存进去。缓存页一天后不再当搜索结果用，作品本身留着，所以这份列表每天都在
+     * 长——而服务端全程不请求 pixiv，也不消耗任何人的额度。
+     *
+     * [cursor] 是上一页的 [CorpusWorkPage.next_cursor]：不透明，不要自己拼；null 表示从头开始，
+     * 服务端认不出来的游标也当从头开始（翻页位置而已，丢了最多重来一页）。返回 null 即到底。
+     *
+     * [r18] 是给服务端的**分级上限**（0 全年龄 / 1 含 R-18 / 2 含 R-18G），只用来省流量：
+     * 库里一半以上是 R-18，用户关着的时候没必要下行再丢掉。最终权威仍是客户端的
+     * [ceui.lisa.helper.IllustNovelFilter]，两边都过一遍。
+     */
+    @GET("v1/corpus/works")
+    suspend fun corpusWorks(
+        @Query("limit") limit: Int,
+        @Query("cursor") cursor: String? = null,
+        @Query("r18") r18: Int = 0,
+        @Query("tag") tag: String? = null,
+        @Query("min_bookmarks") minBookmarks: Int? = null,
+    ): CorpusWorkPage
+
+    /**
+     * 作品库的标签目录：每个标签 + 它背后的作品数 + 三张预览方图。
+     *
+     * 和「热度标签」的目录不同，这份不在 APK 里——它每天都在长（[minWorks] 以上的标签目前
+     * 四千多个，热度标签是一年前策展的 202 个），所以只能来自服务端。预览图由服务端在建库
+     * 时按收藏数取好，这里不需要再为每个标签单独请求。
+     */
+    @GET("v1/corpus/tags")
+    suspend fun corpusTags(
+        @Query("limit") limit: Int,
+        @Query("min_works") minWorks: Int? = null,
+    ): CorpusTagList
+
+    /** 作品库规模，只为在标题下写一句「已收录 N 件」，失败就不显示。 */
+    @GET("v1/corpus/stats")
+    suspend fun corpusStats(): CorpusStats
+
     // ── account backup / Nana7mi ──
     // All account calls are signed with X-Shaft-Sign by the OkHttp interceptor in
     // ClientManager (the `/v1/account/` path match). Server: src/account.js.
@@ -262,6 +302,35 @@ interface PixshaftApi {
  * 一页 Prime 标签插画。[illusts] 是快照里 pixiv 原样的作品对象，和实时搜索结果同一个模型；
  * [next_offset] 是下一页游标，null = 该标签已翻完。
  */
+/**
+ * 一页作品库。游标分页：库是六位数条目且每天在长，offset 翻到深处要先走完前面所有条目，
+ * 游标则是「上一页最后一条的位置」，第 200 页和第 1 页一样快。
+ */
+/** 标签目录一页。服务端只回有预览图的标签，所以不会出现点进去空空如也的货架。 */
+data class CorpusTagList(
+    val tags: List<CorpusTag> = emptyList(),
+)
+
+data class CorpusTag(
+    val name: String = "",
+    val count: Int = 0,
+    val preview: List<String> = emptyList(),
+)
+
+data class CorpusWorkPage(
+    val illusts: List<Illust> = emptyList(),
+    val limit: Int = 0,
+    val next_cursor: String? = null,
+)
+
+/** `/v1/corpus/stats`。库不可用时服务端回 503，这里拿不到就当没有。 */
+data class CorpusStats(
+    val illusts: Int = 0,
+    val novels: Int = 0,
+    val artists: Int = 0,
+    val tags: Int = 0,
+)
+
 data class PrimeTagIllustPage(
     val key: String = "",
     val tag: Tag? = null,

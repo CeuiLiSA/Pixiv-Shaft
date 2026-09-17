@@ -504,6 +504,8 @@
     <string name="string_272">Twitter ID ：</string>
     <string name="string_273">自己紹介</string>
     <string name="string_274">マイピクのイラスト・漫画作品</string>
+    <string name="corpus_library">人気の検索</string>
+    <string name="corpus_tag_work_count">%1$s 件</string>
     <string name="nice_friend_works">マイピクの作品</string>
     <string name="feed_count_range">%1$d–%2$d / 全 %3$d</string>
     <string name="pivision_read_article">特集を読む ›</string>
