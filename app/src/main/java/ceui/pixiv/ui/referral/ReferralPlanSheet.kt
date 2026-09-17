@@ -165,17 +165,20 @@ class ReferralPlanSheet : V3BottomSheetBase() {
             }
         }
 
-        fun reward(days: Int) {
+        fun reward(days: Int, tier: String) {
             val card = u.column().apply {
                 background = u.shape(u.colors.hero, 24f)
                 setPadding(u.dp(24), u.dp(22), u.dp(24), u.dp(22))
             }
-            u.add(card, u.text("PRO / EXPERIENCE PASS", 10f, 600, u.colors.onHero))
+            u.add(card, u.text("$tier / EXPERIENCE PASS", 10f, 600, u.colors.onHero))
             val number = u.row()
             u.add(number, u.text(days.toString(), 58f, 800, u.colors.ink), width = -2)
             u.add(number, u.text(R.string.referral_day_unit, 15f, 600, u.colors.onHero).apply { setPadding(u.dp(10), 0, 0, 0) }, width = -2)
             u.add(card, number, top = 10)
-            u.add(card, u.text(if (days <= 7) R.string.referral_card_week else R.string.referral_card_month, 17f, 600), top = 6)
+            u.add(card, u.text(
+                u.s(if (days <= 7) R.string.referral_card_week else R.string.referral_card_month, tier),
+                17f, 600,
+            ), top = 6)
             u.add(card, u.text(R.string.referral_card_hint, 11f, 400, u.colors.onHero), top = 14)
             u.add(content, card, top = 22)
         }
@@ -187,7 +190,10 @@ class ReferralPlanSheet : V3BottomSheetBase() {
                 val view = snapshot.view(task)
                 val status = view?.status ?: ReferralStatus.NEW
                 title(copy.title); body(copy.description)
-                u.add(content, u.text(u.s(R.string.referral_days_pro, view?.days ?: task.days), 24f, 700, u.colors.primary), top = 20)
+                u.add(content, u.text(
+                    u.s(R.string.referral_days_pro, view?.days ?: task.days, planLabel(view?.plan)),
+                    24f, 700, u.colors.primary,
+                ), top = 20)
                 if (status == ReferralStatus.PENDING) body(R.string.referral_review_note)
                 if (status == ReferralStatus.REJECTED) {
                     body(R.string.referral_rejected_note)
@@ -214,10 +220,12 @@ class ReferralPlanSheet : V3BottomSheetBase() {
             }
 
             ReferralSheetKind.CLAIM -> {
-                val days = snapshot.view(task)?.days ?: task.days
+                val view = snapshot.view(task)
+                val days = view?.days ?: task.days
+                val tier = planLabel(view?.plan)
                 title(R.string.referral_claim_title)
-                body(R.string.referral_claim_desc, u.s(task.copy().title), days)
-                reward(days)
+                body(R.string.referral_claim_desc, u.s(task.copy().title), days, tier)
+                reward(days, tier)
                 val button = action(R.string.referral_claim_confirm, true) {}
                 button.setOnClickListener {
                     run(button, { go(ReferralSheetKind.CLAIMED) }) { model.claim(task) }
@@ -229,16 +237,18 @@ class ReferralPlanSheet : V3BottomSheetBase() {
             ReferralSheetKind.CLAIMED -> {
                 title(R.string.referral_claim_success)
                 val card = snapshot.card(task)
-                body(R.string.referral_claim_success_note, card?.days ?: task.days, date(card?.expiresAt ?: 0))
-                reward(card?.days ?: task.days)
+                val tier = planLabel(card?.plan ?: snapshot.view(task)?.plan)
+                body(R.string.referral_claim_success_note, card?.days ?: task.days, tier, date(card?.expiresAt ?: 0))
+                reward(card?.days ?: task.days, tier)
                 action(R.string.referral_go_wallet, true) { wallet() }
                 action(R.string.referral_continue) { dismiss() }
             }
 
             ReferralSheetKind.ACTIVATE -> {
                 val card = snapshot.card(task)
-                title(R.string.referral_activate_title, card?.days ?: task.days)
-                reward(card?.days ?: task.days)
+                val tier = planLabel(card?.plan)
+                title(R.string.referral_activate_title, card?.days ?: task.days, tier)
+                reward(card?.days ?: task.days, tier)
                 body(R.string.referral_activate_desc,
                     date(maxOf(System.currentTimeMillis(), snapshot.activeUntil) + (card?.days ?: task.days) * DAY_MS))
                 val button = action(R.string.referral_activate_confirm, true) {}
@@ -256,9 +266,10 @@ class ReferralPlanSheet : V3BottomSheetBase() {
 
             ReferralSheetKind.ACTIVATED -> {
                 val card = snapshot.card(task)
+                val tier = planLabel(card?.plan)
                 title(R.string.referral_activate_success)
-                body(R.string.referral_activate_success_desc, card?.days ?: task.days, date(snapshot.activeUntil))
-                reward(card?.days ?: task.days)
+                body(R.string.referral_activate_success_desc, card?.days ?: task.days, tier, date(snapshot.activeUntil))
+                reward(card?.days ?: task.days, tier)
                 action(R.string.referral_ok, true) { dismiss() }
             }
 

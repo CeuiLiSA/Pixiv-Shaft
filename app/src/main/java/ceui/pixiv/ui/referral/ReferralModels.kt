@@ -49,6 +49,8 @@ internal data class ReferralCard(
     /** 服务端的卡片 id —— 激活要用它，本地不能自己编。 */
     val id: Long,
     val task: ReferralTask,
+    /** 这张卡发的档位（`pro` / `max`）。**卡面印什么以它为准**，不能写死。 */
+    val plan: String,
     val days: Int,
     val claimedAt: Long,
     val expiresAt: Long,
@@ -60,6 +62,8 @@ internal data class ReferralTaskView(
     val status: ReferralStatus,
     val progress: Int,
     val target: Int,
+    /** 这项任务发的档位（`pro` / `max`）。重任务发 Max，入门任务发 Pro。 */
+    val plan: String,
     val days: Int,
     /** 这一期开着没有。关着的任务照常显示条件，但不能提交也不能领。 */
     val enabled: Boolean,
@@ -109,6 +113,19 @@ internal data class ReferralSnapshot(
         get() = cards.isNotEmpty() || tasks.any { it.status == ReferralStatus.READY }
 }
 
+/**
+ * 卡面、按钮上印的那个档位名。
+ *
+ * **只认写死的两档，不直接用服务端给的串。** 这几个字要塞进卡面标题和按钮里，服务端
+ * 哪天返回一个长名字就会把版式挤坏；而这个版本不认识的新档位宁可退回 PRO —— 少说一
+ * 个词是小事，印一个用户看不懂的标签是大事。同一条规矩在 [ceui.pixiv.shaftapi.Nana7miPlan.badgeLabel]
+ * 上也用着。
+ */
+internal fun planLabel(plan: String?): String = when (plan) {
+    "max" -> "MAX"
+    else -> "PRO"
+}
+
 /** 服务端回答 → 页面模型。字段缺失一律按「服务端没说」兜底，不往上抛。 */
 internal fun ReferralStateResponse.toSnapshot(): ReferralSnapshot {
     val byKey = tasks.orEmpty().mapNotNull { dto ->
@@ -118,6 +135,7 @@ internal fun ReferralStateResponse.toSnapshot(): ReferralSnapshot {
             status = ReferralStatus.of(dto.status),
             progress = (dto.progress ?: 0).coerceAtLeast(0),
             target = (dto.target ?: task.target).coerceAtLeast(1),
+            plan = dto.plan.orEmpty(),
             days = dto.days ?: task.days,
             // 服务端没说就当开着：一个老服务端不返回这个字段时，页面不该把所有任务锁死。
             enabled = dto.enabled ?: true,
@@ -151,6 +169,7 @@ private fun ReferralRewardDto.toCard(): ReferralCard? {
     return ReferralCard(
         id = id,
         task = task,
+        plan = plan.orEmpty(),
         days = days ?: task.days,
         claimedAt = issuedAt ?: 0L,
         expiresAt = expiresAt ?: 0L,

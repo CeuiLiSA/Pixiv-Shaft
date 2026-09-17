@@ -413,7 +413,11 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
 
     private fun walletCard(u: ReferralUi, card: ReferralCard) = card(u).apply {
         val now = System.currentTimeMillis()
-        u.add(this, u.text(if (card.days <= 7) R.string.referral_card_week else R.string.referral_card_month, 18f, 600))
+        val tier = planLabel(card.plan)
+        u.add(this, u.text(
+            u.s(if (card.days <= 7) R.string.referral_card_week else R.string.referral_card_month, tier),
+            18f, 600,
+        ))
         u.add(this, u.text(u.s(R.string.referral_card_from, u.s(card.task.copy().title)), 12f, color = u.colors.muted), top = 10)
         val caption = when {
             card.activatedAt > 0 -> u.s(R.string.referral_card_active, date(card.activatedAt))
@@ -422,7 +426,7 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         }
         u.add(this, u.text(caption, 12f, color = u.colors.muted), top = 10)
         if (card.activatedAt == 0L && card.expiresAt > now) u.add(this,
-            u.button(u.s(R.string.referral_activate, card.days), primary = true) { actions.open(ReferralSheetKind.ACTIVATE, card.task) }, top = 16)
+            u.button(u.s(R.string.referral_activate, card.days, tier), primary = true) { actions.open(ReferralSheetKind.ACTIVATE, card.task) }, top = 16)
     }
 
     private fun buildBottom(u: ReferralUi, state: ReferralUiState) {
