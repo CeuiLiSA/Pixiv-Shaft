@@ -119,7 +119,10 @@ internal class UpdateSheetView(ctx: Context) : LinearLayout(ctx) {
                 },
                 LayoutParams(-1, -2),
             )
-            val scroll = BoundedScrollView(ctx, ctx.dp(280)).apply {
+            // 上限同时看屏幕：横屏(411dp 高)下固定 280dp 会把主操作挤出屏幕外，而 sheet 已经
+            // 展开到顶、根布局又不可滚，用户就点不到「下载更新」了。
+            val logMaxHeight = minOf(ctx.dp(280), (ctx.resources.displayMetrics.heightPixels * .3f).toInt())
+            val scroll = BoundedScrollView(ctx, logMaxHeight).apply {
                 isVerticalFadingEdgeEnabled = true
                 setFadingEdgeLength(ctx.dp(16))
                 addView(changelog, LayoutParams(-1, -2))

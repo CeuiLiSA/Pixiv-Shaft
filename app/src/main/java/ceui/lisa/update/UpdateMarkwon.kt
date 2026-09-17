@@ -12,6 +12,8 @@ import android.text.style.LeadingMarginSpan
 import android.text.style.LineBackgroundSpan
 import android.text.style.RelativeSizeSpan
 import android.text.style.TypefaceSpan
+import android.util.LruCache
+import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
 import ceui.lisa.R
@@ -74,6 +76,26 @@ internal fun markwonFor(context: Context): Markwon {
             }
         })
         .build()
+}
+
+/**
+ * 解析好的更新说明按 tag 缓存，专给列表用。
+ *
+ * Markdown 解析是**主线程上 onBind 里**的活：Pixel 8 上实测一条说明 0.5–21ms（2.4KB 的
+ * v4.5.2 是 21ms），一帧预算才 16.6ms，甩一下列表就是连着几条一起解析——不缓存就是肉眼可见
+ * 的掉帧。缓存的是 [Markwon.toMarkdown] 的产物，贴的时候走 [Markwon.setParsedMarkdown]，
+ * 插件的 beforeSetText / afterSetText 钩子照跑。
+ *
+ * 容量按滚动局部性给 24 条（整页 100 条全留会白占内存）；缓存跟着列表视图走，视图销毁即回收。
+ */
+internal class ChangelogRenderer(private val markwon: Markwon) {
+
+    private val cache = LruCache<String, Spanned>(24)
+
+    fun apply(view: TextView, key: String, markdown: String) {
+        val parsed = cache.get(key) ?: markwon.toMarkdown(markdown).also { cache.put(key, it) }
+        markwon.setParsedMarkdown(view, parsed)
+    }
 }
 
 /**

@@ -166,6 +166,9 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         val ctx = requireContext().applicationContext
         val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
+        // 失败后点「重试」会第二次走到这里：不先摘掉上一个，它就再也没人注销
+        //（onDestroyView 只认得字段里最后那一个），连着 Fragment 一起留在 AMS 里。
+        unregisterDownloadReceiver()
         downloadReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 val received = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
@@ -387,15 +390,19 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
+    private fun unregisterDownloadReceiver() {
+        val receiver = downloadReceiver ?: return
+        downloadReceiver = null
+        try {
+            requireContext().applicationContext.unregisterReceiver(receiver)
+        } catch (_: Exception) {
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         stopProgressPolling()
         sheet = null
-        downloadReceiver?.let {
-            try {
-                requireContext().applicationContext.unregisterReceiver(it)
-            } catch (_: Exception) {}
-        }
-        downloadReceiver = null
+        unregisterDownloadReceiver()
     }
 }

@@ -3,11 +3,13 @@ package ceui.lisa.update
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
@@ -29,7 +31,6 @@ import ceui.pixiv.witstudio.theme.pillButton
 import ceui.pixiv.witstudio.theme.pressScale
 import ceui.pixiv.witstudio.theme.ripple
 import ceui.pixiv.witstudio.theme.shape
-import io.noties.markwon.Markwon
 
 /** 折叠时的更新说明行数；超过这个数才折叠，也才出「展开」按钮。 */
 private const val COLLAPSED_LINES = 6
@@ -179,6 +180,12 @@ internal class ReleaseCardView(ctx: Context) : LinearLayout(ctx) {
     /** 当前条目是不是展开态：展开时不必再核对截断。 */
     private var expanded = false
 
+    // 绑定跑在滚动里，这几样每次重造纯属浪费：徽标底两种、箭头两个，构造时就位。
+    private val currentBadgeBg = shape(999f, palette.alpha15)
+    private val latestBadgeBg = shape(999f, ctx.color(R.color.v3_surface_2))
+    private val arrowDown = ctx.expandArrow(R.drawable.ic_baseline_keyboard_arrow_down_24)
+    private val arrowUp = ctx.expandArrow(R.drawable.ic_keyboard_arrow_up_black_24dp)
+
     init {
         orientation = VERTICAL
         layoutParams = RecyclerView.LayoutParams(-1, -2).apply { bottomMargin = ctx.dp(12) }
@@ -198,7 +205,7 @@ internal class ReleaseCardView(ctx: Context) : LinearLayout(ctx) {
         addView(footer, LayoutParams(-1, -2).apply { topMargin = ctx.dp(14) })
     }
 
-    fun bind(item: ReleaseItem, markwon: Markwon, onToggle: (ReleaseItem) -> Unit) {
+    fun bind(item: ReleaseItem, notes: ChangelogRenderer, onToggle: (ReleaseItem) -> Unit) {
         val release = item.release
         versionTag.text = release.tagName
 
@@ -207,11 +214,11 @@ internal class ReleaseCardView(ctx: Context) : LinearLayout(ctx) {
             // 装着的那一版是用户在这一页最关心的一件事，给它整页仅有的一处主题浅底。
             badge.setText(R.string.update_current_version)
             badge.setTextColor(palette.textAccent)
-            badge.background = shape(999f, palette.alpha15)
+            badge.background = currentBadgeBg
         } else if (item.isLatest) {
             badge.setText(R.string.update_latest_label)
             badge.setTextColor(context.color(R.color.v3_text_2))
-            badge.background = shape(999f, context.color(R.color.v3_surface_2))
+            badge.background = latestBadgeBg
         }
 
         date.text = release.publishedAt?.takeIf { it.isNotBlank() }
@@ -223,16 +230,13 @@ internal class ReleaseCardView(ctx: Context) : LinearLayout(ctx) {
 
         val changelog = release.body?.takeIf { it.isNotBlank() }
         if (changelog != null) {
-            markwon.setMarkdown(body, changelog)
+            notes.apply(body, release.tagName, changelog)
         } else {
             body.setText(R.string.update_no_changelog)
         }
         expanded = item.expanded
         body.maxLines = if (item.expanded) Int.MAX_VALUE else COLLAPSED_LINES
         toggle.isVisible = item.expanded || changelog?.worthCollapsing() == true
-        // 没得展开的卡连涟漪都不该有。
-        isClickable = toggle.isVisible
-        isFocusable = toggle.isVisible
 
         val apk = AppUpdateChecker.findApkAsset(release)
         size.isVisible = apk != null
@@ -241,19 +245,17 @@ internal class ReleaseCardView(ctx: Context) : LinearLayout(ctx) {
         toggle.setText(
             if (item.expanded) R.string.version_history_collapse else R.string.version_history_expand
         )
-        val arrow = ContextCompat.getDrawable(
-            context,
-            if (item.expanded) R.drawable.ic_keyboard_arrow_up_black_24dp
-            else R.drawable.ic_baseline_keyboard_arrow_down_24,
-        )?.mutate()?.apply {
-            setTint(palette.textAccent)
-            setBounds(0, 0, context.dp(16), context.dp(16))
-        }
-        toggle.setCompoundDrawablesRelative(null, null, arrow, null)
+        toggle.setCompoundDrawablesRelative(
+            null, null, if (item.expanded) arrowUp else arrowDown, null,
+        )
         toggle.setOnClickListener { onToggle(item) }
         // 整张卡是同一个动作的大点击区。刻意不给卡片设 contentDescription：
         // 那会把整张卡合并成一个读屏节点，更新说明就读不到了——动作的名字由胶囊的文案承担。
-        setOnClickListener { if (toggle.isVisible) onToggle(item) }
+        setOnClickListener { onToggle(item) }
+        // ⚠️ 必须排在 setOnClickListener 之后：那个方法会把 view 强行置成 clickable，
+        // 写在它前面等于没写——没得展开的卡照样按出一圈涟漪，按了又什么都不发生。
+        isClickable = toggle.isVisible
+        isFocusable = toggle.isVisible
     }
 
     /**
@@ -280,6 +282,13 @@ internal class ReleaseCardView(ctx: Context) : LinearLayout(ctx) {
         }
     }
 }
+
+/** 胶囊末端的箭头：16dp、主题强调色，随卡片构造一次。 */
+private fun Context.expandArrow(@DrawableRes icon: Int): Drawable? =
+    ContextCompat.getDrawable(this, icon)?.mutate()?.apply {
+        setTint(V3Palette.from(this@expandArrow).textAccent)
+        setBounds(0, 0, dp(16), dp(16))
+    }
 
 /** 小号次级胶囊：12sp 文字 + 末端箭头，34dp 高，只用在卡角上。 */
 private fun Context.expandPill(): TextView {

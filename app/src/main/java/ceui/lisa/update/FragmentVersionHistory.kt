@@ -37,8 +37,10 @@ class FragmentVersionHistory : FeedFragment(R.layout.fragment_version_history) {
         get() = getString(R.string.version_history_empty)
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
-        // 随视图创建一次：Markwon 持有 context，不能挂到比 view 更长的生命周期上。
+        // 随视图创建一次：Markwon 和解析缓存都持有 context / Spanned，不能挂到比 view 更长的
+        // 生命周期上。缓存的必要性见 [ChangelogRenderer]。
         val markwon = markwonFor(requireContext())
+        val notes = ChangelogRenderer(markwon)
         return listOf(
             feedRenderer<VersionSummaryItem, VersionSummaryBinding>(
                 inflate = { _, parent, _ -> VersionSummaryBinding(VersionSummaryView(parent.context)) },
@@ -52,7 +54,7 @@ class FragmentVersionHistory : FeedFragment(R.layout.fragment_version_history) {
                 inflate = { _, parent, _ -> ReleaseCardBinding(ReleaseCardView(parent.context)) },
                 changePayload = { _, _ -> Unit },
             ) { cell ->
-                cell.binding.root.bind(cell.item, markwon, ::toggleExpanded)
+                cell.binding.root.bind(cell.item, notes, ::toggleExpanded)
             },
         )
     }

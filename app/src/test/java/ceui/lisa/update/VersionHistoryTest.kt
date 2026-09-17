@@ -90,7 +90,7 @@ class VersionHistoryTest {
         ctx.setTheme(R.style.AppTheme)
         controller.setup()
         try {
-            val markwon = markwonFor(ctx)
+            val markwon = ChangelogRenderer(markwonFor(ctx))
             val card = ReleaseCardView(ctx)
             val width = minOf(ctx.resources.displayMetrics.widthPixels, ctx.dp(720)) - ctx.dp(40)
             fun layout() {
@@ -110,6 +110,7 @@ class VersionHistoryTest {
             val collapseLabel = ctx.getString(R.string.version_history_collapse)
             val toggle = texts(card).single { it.text == expandLabel || it.text == collapseLabel }
             assertTrue("展开按钮要能看见", toggle.isVisible())
+            assertTrue("能展开的卡整张都是点击区", card.isClickable)
             // 折叠态下更新说明不许整篇铺开。
             val collapsedHeight = card.measuredHeight
 
@@ -133,6 +134,9 @@ class VersionHistoryTest {
             card.bind(ReleaseItem(release("v3.2.13", body = softBreaks), false, false), markwon) {}
             layout()
             assertFalse("短说明不该留一颗按了没反应的按钮", toggle.isVisible())
+            // setOnClickListener 会把 view 强行置成 clickable，顺序写反就会留下一张按了
+            // 没反应、却照样按出涟漪的卡。
+            assertFalse("没得展开的卡不该还是点击区", card.isClickable)
         } finally {
             controller.pause().stop().destroy()
         }
