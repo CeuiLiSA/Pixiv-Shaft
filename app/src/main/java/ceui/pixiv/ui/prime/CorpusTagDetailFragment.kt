@@ -16,6 +16,8 @@ import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 「热门搜索」里一个标签的作品 —— 二级页。
@@ -46,10 +48,15 @@ class CorpusTagDetailFragment : IllustFeedFragment(R.layout.fragment_toolbar_fee
                 r18 = maxRestrict,
                 tag = tag,
             )
-            FeedPage(
-                page.illusts.mapNotNull { illust -> IllustFeedItem.of(illust) },
-                page.next_cursor,
-            )
+            // IllustFeedItem.of 走全局过滤，而 judgeTag/judgeUserID 各是**每个作品一次**
+            // 同步 Room 查询 + 把每条屏蔽规则 Gson 反序列化一遍。FeedViewModel 在
+            // viewModelScope（主线程）上调 load，Retrofit 的 suspend 恢复后仍在主线程——
+            // 一页 30 条就是 60 次主线程磁盘读，翻页时直接掉帧。FeedSource 的契约写的是
+            // 「自己做重 IO / 解析要切 Dispatchers」，PixivFeedSource 也是这么做的。
+            val items = withContext(Dispatchers.Default) {
+                page.illusts.mapNotNull { illust -> IllustFeedItem.of(illust) }
+            }
+            FeedPage(items, page.next_cursor)
         }
     }
 
