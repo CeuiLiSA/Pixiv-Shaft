@@ -4,12 +4,17 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
 import android.os.Build
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.ReplacementSpan
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -200,6 +205,72 @@ public fun Context.pillButton(
         isFocusable = true
         setOnClickListener { action() }
         pressScale()
+    }
+}
+
+/**
+ * 给胶囊按钮设「图标 + 文字」，图标跟着文字走。
+ *
+ * [pillButton] 的 icon 参数走的是 compound drawable，而它永远画在 view 的 padding 边缘：
+ * 按钮一拉到整行宽，图标就钉在最左边、文字仍居中，两者分家（真机上就是这个样子）。
+ * 宽度等于内容的胶囊（如广场的 Extended FAB）没这个问题，所以那条路径保持不动；
+ * 整宽胶囊改用本方法，把图标做成行内 span，和文字一起居中。
+ *
+ * 图标取当前文字色，跟随按钮的前景（实色胶囊是 onPrimary，浅色胶囊是 textAccent）。
+ */
+@JvmOverloads
+public fun TextView.setTextWithIcon(
+    text: CharSequence,
+    @DrawableRes icon: Int?,
+    sizeDp: Int = 18,
+    gapDp: Int = 8,
+) {
+    val drawable = icon?.let { ContextCompat.getDrawable(context, it) }?.mutate()
+    if (drawable == null) {
+        setText(text)
+        return
+    }
+    val side = context.dp(sizeDp)
+    drawable.setTint(currentTextColor)
+    drawable.setBounds(0, 0, side, side)
+    val builder = SpannableStringBuilder(" ").apply {
+        setSpan(InlineIconSpan(drawable, context.dp(gapDp)), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        append(text)
+    }
+    setText(builder)
+}
+
+/** 行内图标：按行高垂直居中，末端留一段与文字的间距。 */
+private class InlineIconSpan(
+    private val drawable: Drawable,
+    private val gapPx: Int,
+) : ReplacementSpan() {
+
+    override fun getSize(
+        paint: Paint,
+        text: CharSequence?,
+        start: Int,
+        end: Int,
+        fm: Paint.FontMetricsInt?,
+    ): Int = drawable.bounds.width() + gapPx
+
+    override fun draw(
+        canvas: Canvas,
+        text: CharSequence?,
+        start: Int,
+        end: Int,
+        x: Float,
+        top: Int,
+        y: Int,
+        bottom: Int,
+        paint: Paint,
+    ) {
+        val metrics = paint.fontMetricsInt
+        val centerY = y + (metrics.descent + metrics.ascent) / 2f
+        canvas.save()
+        canvas.translate(x, centerY - drawable.bounds.height() / 2f)
+        drawable.draw(canvas)
+        canvas.restore()
     }
 }
 

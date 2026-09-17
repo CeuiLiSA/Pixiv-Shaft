@@ -25,6 +25,7 @@ import ceui.pixiv.witstudio.theme.pillButton
 import ceui.pixiv.witstudio.theme.pressScale
 import ceui.pixiv.witstudio.theme.ripple
 import ceui.pixiv.witstudio.theme.sectionLabel
+import ceui.pixiv.witstudio.theme.setTextWithIcon
 import ceui.pixiv.witstudio.theme.shape
 import io.noties.markwon.Markwon
 
@@ -70,8 +71,8 @@ internal class UpdateSheetView(ctx: Context) : LinearLayout(ctx) {
         addView(progressText, LayoutParams(-1, -2).apply { topMargin = ctx.dp(8) })
     }
 
-    /** 唯一的实色主操作：下载 → 下载中 → 安装 / 重试，文案与点击都由宿主换。 */
-    val primary: TextView = ctx.pillButton("", icon = R.drawable.ic_file_download_black_24dp) {}
+    /** 唯一的实色主操作：下载 → 下载中 → 安装 / 重试，文案、图标与点击都由宿主换。 */
+    val primary: TextView = ctx.pillButton("") {}
 
     /** 低优先级入口：只有文字，没有底色，不跟主操作抢。 */
     val later: TextView = ctx.textAction(ctx.getString(R.string.update_later), palette.textAccent)
@@ -82,7 +83,8 @@ internal class UpdateSheetView(ctx: Context) : LinearLayout(ctx) {
 
     init {
         orientation = VERTICAL
-        setPadding(ctx.dp(24), ctx.dp(8), ctx.dp(24), ctx.dp(12))
+        // 顶部与左右同量：8dp 时标题几乎贴着 sheet 的 28dp 圆角，读起来像没留边。
+        setPadding(ctx.dp(24), ctx.dp(24), ctx.dp(24), ctx.dp(12))
 
         val head = LinearLayout(ctx).apply {
             orientation = HORIZONTAL
@@ -119,9 +121,10 @@ internal class UpdateSheetView(ctx: Context) : LinearLayout(ctx) {
                 },
                 LayoutParams(-1, -2),
             )
-            // 上限同时看屏幕：横屏(411dp 高)下固定 280dp 会把主操作挤出屏幕外，而 sheet 已经
-            // 展开到顶、根布局又不可滚，用户就点不到「下载更新」了。
-            val logMaxHeight = minOf(ctx.dp(280), (ctx.resources.displayMetrics.heightPixels * .3f).toInt())
+            // 上限同时看屏幕高：sheet 展开到顶就没得再高，根布局又不可滚，日志区占多了
+            // 底下的动作就被挤出屏幕。横屏(411dp 高)下 280dp 会切掉整排次操作，30% 只够
+            // 保住主操作，22% 才连「稍后 / 跳过此版本」一起留在屏幕内（真机横屏实测）。
+            val logMaxHeight = minOf(ctx.dp(280), (ctx.resources.displayMetrics.heightPixels * .22f).toInt())
             val scroll = BoundedScrollView(ctx, logMaxHeight).apply {
                 isVerticalFadingEdgeEnabled = true
                 setFadingEdgeLength(ctx.dp(16))
@@ -170,14 +173,10 @@ internal class UpdateSheetView(ctx: Context) : LinearLayout(ctx) {
         @DrawableRes icon: Int = R.drawable.ic_file_download_black_24dp,
         onClick: (() -> Unit)? = null,
     ) {
-        primary.setText(text)
+        // 图标走行内 span：整宽胶囊上 compound drawable 会被钉在最左边，和居中的文字分家。
+        primary.setTextWithIcon(context.getString(text), icon)
         primary.isEnabled = enabled
         primary.alpha = if (enabled) 1f else .6f
-        val glyph = ContextCompat.getDrawable(context, icon)?.mutate()?.apply {
-            setTint(palette.onPrimary)
-            setBounds(0, 0, context.dp(18), context.dp(18))
-        }
-        primary.setCompoundDrawablesRelative(glyph, null, null, null)
         primary.setOnClickListener(onClick?.let { action -> OnClickListener { action() } })
     }
 

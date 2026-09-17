@@ -30,6 +30,7 @@ import ceui.pixiv.witstudio.theme.lineHeightRatio
 import ceui.pixiv.witstudio.theme.pillButton
 import ceui.pixiv.witstudio.theme.pressScale
 import ceui.pixiv.witstudio.theme.ripple
+import ceui.pixiv.witstudio.theme.setTextWithIcon
 import ceui.pixiv.witstudio.theme.shape
 
 /** 折叠时的更新说明行数；超过这个数才折叠，也才出「展开」按钮。 */
@@ -64,7 +65,7 @@ internal class VersionSummaryView(ctx: Context) : LinearLayout(ctx) {
     private val statusText = ctx.label("", 14f, 400, ctx.color(R.color.v3_text_2)).apply {
         lineHeightRatio(1.6f)
     }
-    private val action = ctx.pillButton("", icon = R.drawable.ic_file_download_black_24dp) {}
+    private val action = ctx.pillButton("") {}
 
     init {
         orientation = VERTICAL
@@ -115,7 +116,11 @@ internal class VersionSummaryView(ctx: Context) : LinearLayout(ctx) {
             statusText.text = if (size > 0) "$found · ${formatApkSize(size)}" else found
             statusIcon.setImageResource(R.drawable.ic_file_download_black_24dp)
             statusIcon.imageTintList = ColorStateList.valueOf(palette.textAccent)
-            action.text = context.getString(R.string.version_history_update_action, update.versionName)
+            // 整宽胶囊的图标必须行内放，compound drawable 会被钉在最左边。
+            action.setTextWithIcon(
+                context.getString(R.string.version_history_update_action, update.versionName),
+                R.drawable.ic_file_download_black_24dp,
+            )
             action.setOnClickListener { onUpdate(update) }
             action.isVisible = true
         } else {
