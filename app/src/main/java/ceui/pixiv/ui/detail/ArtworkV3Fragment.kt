@@ -80,6 +80,7 @@ import ceui.pixiv.ui.upscale.IllustAiHelper
 import ceui.pixiv.ui.upscale.ModelPickerDialog
 import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.combineLatest
+import ceui.pixiv.utils.isHostStillResumed
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.utils.toTagsBeans
@@ -104,6 +105,12 @@ import timber.log.Timber
  */
 class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private var autoSnapshotVisit: AutoSnapshotEngine.ArtworkVisit? = null
+
+    /**
+     * 本页实例是否已经计过一次「进入」：切后台回来、横滑滑回都不重复计。
+     * 过 onSaveInstanceState 带过旋屏重建 —— 否则旋几次就能凭空凑满「反复进入」阈值。
+     */
+    private var autoSnapshotEntered = false
 
     internal val snapshotId: String?
         get() = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
@@ -425,6 +432,16 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        autoSnapshotEntered = savedInstanceState?.getBoolean(KEY_AUTO_SNAPSHOT_ENTERED, false) ?: false
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_AUTO_SNAPSHOT_ENTERED, autoSnapshotEntered)
+    }
+
     override fun onResume() {
         super.onResume()
         if (isSnapshotMode) {
@@ -435,11 +452,16 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             applySnapshotBookmarkState()
             return
         }
-        autoSnapshotVisit =
-            AutoSnapshotEngine.onArtworkPageVisible(
-                illustId = illustId,
-                type = ObjectPool.get<Illust>(illustId).value?.type,
-            )
+        // 凭证还在手里说明上一次「可见」还没结算（进二级大图页再回来）：表继续走，不重开、不重复计进入。
+        if (autoSnapshotVisit == null) {
+            autoSnapshotVisit =
+                AutoSnapshotEngine.onArtworkPageVisible(
+                    illustId = illustId,
+                    type = ObjectPool.get<Illust>(illustId).value?.type,
+                    countAsEntry = !autoSnapshotEntered,
+                )
+            autoSnapshotEntered = true
+        }
         artworkViewModel.onPageVisible()
         artworkViewModel.refreshDownloadFab()
         refreshCachedOriginalPages()
@@ -456,14 +478,37 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     override fun onPause() {
         if (!isSnapshotMode) {
-            AutoSnapshotEngine.onArtworkPageHidden(autoSnapshotVisit)
+            // 宿主还 RESUMED ⇒ 是「本页被降级」（横滑到相邻作品 / 进程内导航离开），视觉真的走了，
+            // 结算并评估。被自家半透明层（二级大图页及更上层）盖住、或切后台时宿主自己先 paused，
+            // 这里什么都不做：计时继续走，不结算也不评估。
+            if (autoSnapshotVisit != null && isHostStillResumed()) {
+                settleAutoSnapshot(evaluate = true)
+            }
             artworkViewModel.pauseDownloadFab()
         }
-        autoSnapshotVisit = null
         super.onPause()
     }
 
+    /**
+     * 结算并停表。凭证只消费一次，所以 onStop 之后接着来的 onDestroyView 是空操作。
+     *
+     * [evaluate] 为假用于旋屏：视觉没离开，不该触发生成，但停留确实发生了，记下来不丢。
+     */
+    private fun settleAutoSnapshot(evaluate: Boolean) {
+        val visit = autoSnapshotVisit ?: return
+        autoSnapshotVisit = null
+        AutoSnapshotEngine.onArtworkPageLeft(visit, evaluate)
+    }
+
+    override fun onStop() {
+        // 宿主停止 = 切后台 / 页面结束；旋屏也走这里，但不算离开，只结算不评估。
+        settleAutoSnapshot(evaluate = activity?.isChangingConfigurations != true)
+        super.onStop()
+    }
+
     override fun onDestroyView() {
+        // 兜底：页面被销毁（pager 页回收 / 进程内导航销毁）时把还没结算的那一段交出去。
+        settleAutoSnapshot(evaluate = true)
         commentComposer = null
         composerActive = false
         fabShown = true
@@ -1570,6 +1615,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     companion object {
         private const val FAB_ANIMATION_DURATION_MS = 200L
+
+        /** 旋屏重建时把「已计过进入」带过去，见 autoSnapshotEntered。 */
+        private const val KEY_AUTO_SNAPSHOT_ENTERED = "auto_snapshot_entered"
 
         @JvmStatic
         fun newInstance(illustId: Int): ArtworkV3Fragment {

@@ -2831,7 +2831,7 @@
     <string name="setting_auto_snapshot_quota_dialog_hint">Adjust in whole MB; drag fully right for unlimited. Lowering it removes the oldest auto snapshots over the new limit right away</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">Auto-create snapshots for illustrations/manga</string>
-    <string name="setting_auto_snapshot_on_illust_manga_desc">Quietly create snapshots for illustrations/manga you revisit or dwell on for a long time (experimental)</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">Quietly create snapshots for illustrations/manga you open repeatedly or dwell on for a long time (experimental)</string>
 
     <!-- Log file (experimental) -->
     <string name="setting_log_file_enable">Enable log file</string>

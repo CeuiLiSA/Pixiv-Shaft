@@ -2829,7 +2829,7 @@
     <string name="setting_auto_snapshot_quota_dialog_hint">以整數 MB 調整；拖到最右表示不限制。調小後會立即清理超出的舊自動快照</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">插畫/漫畫自動產生快照</string>
-    <string name="setting_auto_snapshot_on_illust_manga_desc">對反覆瀏覽與長時間駐留的插畫/漫畫靜默產生快照（實驗性）</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">對反覆進入與長時間駐留的插畫/漫畫靜默產生快照（實驗性）</string>
 
     <!-- 日誌檔案（實驗性） -->
     <string name="setting_log_file_enable">啟用日誌檔案</string>

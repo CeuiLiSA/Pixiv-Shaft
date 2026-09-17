@@ -2813,7 +2813,7 @@
     <string name="setting_auto_snapshot_quota_dialog_hint">整数 MB 単位で調整。右端までドラッグすると無制限。小さくすると超過分の古い自動スナップショットをすぐに削除します</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">イラスト・漫画のスナップショットを自動作成</string>
-    <string name="setting_auto_snapshot_on_illust_manga_desc">繰り返し閲覧した、または長く滞在したイラスト・漫画を静かにスナップショット化します（試験的）</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">繰り返し開いた、または長く滞在したイラスト・漫画を静かにスナップショット化します（試験的）</string>
 
     <!-- ログファイル（試験的） -->
     <string name="setting_log_file_enable">ログファイルを有効にする</string>
