@@ -10,6 +10,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.viewModels
@@ -19,7 +20,6 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.witstudio.dialog.*
-import ceui.pixiv.witstudio.theme.V3Palette
 import kotlinx.coroutines.launch
 
 internal fun Context.showPlazaModeration(postId: Long, uid: Long, mode: String) {
@@ -53,29 +53,34 @@ class PlazaModerationDialog : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val ctx = requireContext()
-        val palette = V3Palette.from(ctx)
         val builder = object : WitDialog.CustomDialogBuilder(ctx) {
+            // 与举报页同一套 V3 语言：图标容器交代动作类别，说明和状态共用次要文字色。
             override fun onCreateContent(dialog: WitDialog, parent: WitDialogView, context: Context): View {
                 val column = LinearLayout(context).apply {
                     orientation = LinearLayout.VERTICAL
-                    setPadding(ctx.dp(24), ctx.dp(12), ctx.dp(24), ctx.dp(16))
+                    setPadding(ctx.dp(24), ctx.dp(8), ctx.dp(24), ctx.dp(16))
                 }
-                fun label(text: String) = TextView(ctx).apply {
-                    this.text = text
-                    textSize = 14f
-                    typeface = androidx.core.content.res.ResourcesCompat.getFont(ctx, R.font.montserrat_regular)
-                    setTextColor(palette.textSecondary)
-                    setLineSpacing(ctx.dp(4).toFloat(), 1f)
+                column.addView(
+                    ctx.iconTile(R.drawable.ic_not_interested_black_24dp),
+                    LinearLayout.LayoutParams(ctx.dp(48), ctx.dp(48)),
+                )
+                column.addView(
+                    ctx.label(getString(R.string.plaza_block_notice), 14f, 400, ctx.color(R.color.v3_text_2))
+                        .apply { lineHeightRatio(1.7f) },
+                    LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(16) },
+                )
+                status = ctx.label("", 13f, 500, ctx.color(R.color.v3_text_2)).apply {
+                    lineHeightRatio(1.5f)
+                    accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
                 }
-                column.addView(label(getString(R.string.plaza_block_notice)))
-                status = label("").apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
-                column.addView(status)
+                column.addView(status, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(10) })
                 return ScrollView(ctx).apply { addView(column) }
             }
         }
         builder.setTitle(getString(R.string.plaza_block_user))
         cancel = WitDialogAction(getString(R.string.cancel)) { _, _ -> dismiss() }
         submit = WitDialogAction(getString(R.string.plaza_block_user)) { _, _ -> model.submit() }
+            .prop(WitDialogAction.ACTION_PROP_POSITIVE)
         builder.addAction(cancel).addAction(submit)
         return builder.create()
     }
@@ -110,11 +115,16 @@ class PlazaModerationDialog : DialogFragment() {
         isCancelable = !state.busy
         cancel?.setEnabled(!state.busy)
         submit?.setEnabled(!state.busy && !state.done)
+        status?.setTextColor(
+            if (state.error != null) requireContext().color(R.color.v3_danger)
+            else requireContext().color(R.color.v3_text_2)
+        )
         status?.text = when {
             state.busy -> getString(R.string.plaza_report_sending)
             state.error != null -> state.error.resolve(requireContext())
             else -> ""
         }
+        status?.isVisible = !status?.text.isNullOrEmpty()
     }
 
     override fun onDestroyView() {

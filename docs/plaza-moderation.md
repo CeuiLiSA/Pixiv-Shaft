@@ -68,3 +68,63 @@
 本轮仅在 `app/src/test/java/ceui/pixiv/plaza/ui/PlazaBlockedUsersTest.kt` 增加三项回归：旧名单弹窗恢复后只跳转一次并移除自身；Activity 重建保留同一个 feeds ViewModel，进行中的解除完成后进入空态且不重复拉取；退出时取消进行中的请求，即使期间切换账号，也只使原账号安全缓存失效。没有为测试修改生产代码。
 
 `compileGoogleDebugKotlin`、28 项屏蔽名单/举报/路由测试与 `lintGoogleDebug` 通过；Lint 有 396 项既有/建议类警告，baseline 未改。日志位于本机 `/tmp/plaza-blocks-launch-review.log`。local 模式保留工作区改动，未自动 commit/push，也未改动服务器。
+
+## 举报页与屏蔽名单视觉重做（2026-09-17）
+
+只动呈现层，举报/屏蔽的数据流、账号校验、缓存失效与回执语义一律不变：`PlazaModerationModel`、
+`PlazaBlocksController`、`PlazaApi` 和后端没有改动。视觉规则写在
+[V3 设计哲学](v3-design-philosophy.md) 的广场段落，这里只记实现落点与验收。
+
+新增 `app/src/main/java/ceui/pixiv/plaza/ui/PlazaModerationViews.kt`，放三页共用的 V3 构件：
+17/17/17/7 图标容器、分区标题加「必选 / 选填」小标、单选行末端指示器（`StateListDrawable`：
+未选描边圈 / 选中实心圆加对勾）、86dp 成功徽章、说明卡、等分方格容器、虚线添加槽、首字母头像、
+行内小号胶囊。`PlazaReportFragment` 与 `PlazaBlockedUsersFragment` 只组合这些构件。
+
+- **举报页**：原因行改为连通分段行加末端指示器，`buttonDrawable = null` 去掉系统圆点但仍是
+  `RadioButton`，读屏、分组和 `RadioGroup` 状态恢复不变。补充说明的卡片底挪到外层容器
+  （`plaza_report_details_card`），输入框自身透明，字数计数进卡内右下。证据照片改成三个等分
+  方格，下一个空位就是添加槽（`plaza_report_add_photos` 挪到这个槽上），独立的添加胶囊删除。
+  提交区上方加 hairline。提交成功整页换成成功徽章 + 标题 + 举报编号。
+- **文案**：`plaza_report_{reason,details,photos}_title` 改名为 `*_label` 并去掉括号里的条件，
+  条件改由小标承担；新增 `plaza_report_target_label`、`plaza_form_required`、`plaza_form_optional`、
+  `plaza_report_target_author`（举报作者时不再显示无关的帖子编号），七种语言同步。已无引用的
+  `plaza_report_details` 删除。
+- **屏蔽名单**：新增 `fragment_plaza_blocks.xml`（`plaza_column` 改竖排），列表之上常驻说明卡，
+  空态因此简化为 `plaza_blocks_empty` 一句。条目改成横排：首字母头像 + 用户名/UID + 末端解除胶囊，
+  骨架同步改成同构的行。`PlazaBlockedUserView.onMeasure` 给胶囊设行宽上限（卡内宽度 42%），
+  只改 LayoutParams 字段不调 `setLayoutParams`，量尺寸期间不触发 `requestLayout`，判据不随调整
+  变化所以不会来回翻转。
+- **屏蔽确认弹窗**：内容换成同一套图标容器 + 说明，确认动作用 `ACTION_PROP_POSITIVE`
+  （屏蔽可解除，不是不可逆操作，不用 danger 样式）；错误时状态行转 danger 色。
+- **配色**：说明性正文从主题派生的 `textSecondary` 换成中性 `v3_text_2`。主题色只留给主操作、
+  选中态和图标容器——长段落染成主题色在真机上读起来像链接。
+
+验收：`:app:testGoogleDebugUnitTest --tests 'ceui.pixiv.plaza.ui.*' --tests 'ceui.pixiv.ui.navigation.*'`
+101 项通过；`:app:lintGoogleDebug` 通过，0 error、397 warning，baseline 未改（新增的两条是
+`fragment_plaza_blocks.xml` 的 Overdraw/UselessParent，与既有 `fragment_plaza_feed.xml` 同型）。
+测试同步更新：举报页改为断言卡片容器带主题底、添加槽可点且带无障碍描述、选中后只有一项被选；
+屏蔽条目补断言用户名列在 200% 字体 / 320dp 下仍留得住至少 64dp。
+
+Pixel 8 实测（github debug）：举报帖子 / 举报作者两种模式、原因选中态、补充说明与证据格、
+屏蔽名单（含既有记录）在浅色与深色下各截图核对。为了在不发生产举报的前提下打开未导出的
+`TemplateActivity`，构建期临时给它加过 `android:exported="true"`，验完已还原并重装，
+`am start` 现在按预期被 Permission Denial 拒掉。屏蔽确认弹窗因为当前账号的广场列表为空
+（自身 UID 在屏蔽名单里）没有真机路径，只过了编译与单测，未做真机视觉核对。
+未提交任何生产举报，未改动服务器。
+
+### 本轮 launch review 修掉的四条
+
+1. **辅助文字对比度不够**：「必选 / 选填」小标、举报对象标签、字数计数、输入框提示原本用
+   `v3_text_3`（33% alpha），合成后实测 **2.05:1**，远低于规范要求的 4.5:1，真机上几乎读不出来。
+   四处改为 `v3_text_2`（约 4.3:1）；规则写回 V3 设计哲学。
+2. **证据缩略图在宽屏上糊**：格子宽度改成跟着列宽走以后，`Glide.override(dp(160))` 这个写死的解码
+   尺寸在 720dp 宽屏列（每格约 220dp）下不够用——审核人员最需要看清的那张图反而是糊的。
+   去掉 override，交给 Glide 按 View 实测尺寸取。
+3. **成功徽章顶角被裁**：徽章转了 -8°，画出来的范围比 layout 框上下各多约 6dp，而父容器默认
+   `clipChildren` + `clipToPadding` 会沿 32dp 顶部 padding 边把那两个角削平。容器关掉两个 clip。
+4. **骨架与真实条目对不齐**：屏蔽名单骨架只算了列表 20dp padding、漏了卡片 16dp padding，
+   解除胶囊比真实位置往右多 16dp，加载完成时会看到它左跳一下。左右各按 36dp 起算。
+
+修完重跑：`compileGoogleDebugKotlin` 通过，101 项测试通过，`lintGoogleDebug` 0 error / 397 warning
+（baseline 未改）。Pixel 8 复验三张证据照片在去掉 override 后正常加载、小标与计数已能读清。
+成功徽章仍没有真机路径（要真发一条生产举报才到得了），裁切修复只有代码层依据。

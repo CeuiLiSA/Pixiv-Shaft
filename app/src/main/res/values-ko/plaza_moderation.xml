@@ -5,7 +5,6 @@
     <string name="plaza_block_user">작성자 차단</string>
     <string name="plaza_blocked_users">광장 차단 목록</string>
     <string name="plaza_report_notice">신고 사유를 선택해 주세요. 신고는 검토 담당자가 처리하며 신고자의 신원은 작성자에게 공개되지 않습니다.</string>
-    <string name="plaza_report_details">추가 설명 (선택, 최대 1000자)</string>
     <string name="plaza_report_required">신고 사유를 선택해 주세요.</string>
     <string name="plaza_report_submit">신고 제출</string>
     <string name="plaza_report_success">신고 #%1$d 접수가 완료되었습니다. 검토 담당자가 확인합니다.</string>
@@ -34,13 +33,17 @@
         <item>기타</item>
     </string-array>
     <string name="plaza_report_title">신고</string>
-    <string name="plaza_report_reason_title">신고 사유 (필수)</string>
-    <string name="plaza_report_details_title">추가 설명 (선택)</string>
+    <string name="plaza_report_reason_label">신고 사유</string>
+    <string name="plaza_report_details_label">추가 설명</string>
     <string name="plaza_report_details_hint">어떤 상황인지 설명해 주세요</string>
-    <string name="plaza_report_photos_title">증거 사진 (선택)</string>
+    <string name="plaza_report_photos_label">증거 사진</string>
     <string name="plaza_report_photos_hint">검토에 도움이 되는 사진을 최대 3장 추가할 수 있습니다.</string>
     <string name="plaza_report_received_title">신고가 접수되었습니다</string>
     <string name="plaza_report_target">게시물 #%1$d · 작성자 %2$d</string>
     <string name="plaza_report_finish">완료</string>
     <string name="plaza_unblock_action">차단 해제</string>
+    <string name="plaza_report_target_label">신고 대상</string>
+    <string name="plaza_form_required">필수</string>
+    <string name="plaza_form_optional">선택</string>
+    <string name="plaza_report_target_author">작성자 %1$d</string>
 </resources>

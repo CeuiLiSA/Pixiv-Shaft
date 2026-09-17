@@ -1,6 +1,7 @@
 <resources>
     <item name="plaza_report_scroll" type="id"/>
     <item name="plaza_report_details_input" type="id"/>
+    <item name="plaza_report_details_card" type="id"/>
     <item name="plaza_report_add_photos" type="id"/>
     <item name="plaza_report_submit_button" type="id"/>
     <item name="plaza_report_receipt" type="id"/>

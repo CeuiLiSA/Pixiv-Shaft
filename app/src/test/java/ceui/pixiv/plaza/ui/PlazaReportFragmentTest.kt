@@ -70,11 +70,17 @@ class PlazaReportFragmentTest {
             assertTrue(views.filterIsInstance<RadioButton>().all { it.minHeight >= activity.dp(48) })
             assertTrue(views.filterIsInstance<RadioButton>().none { it.isChecked })
             val input=fragment.requireView().findViewById<EditText>(R.id.plaza_report_details_input)
-            assertNotNull(input.background)
+            // 卡片底挪到外层容器上，输入框自己透明：两层圆角叠在一起会在四角描出一圈深边。
+            assertNotNull(fragment.requireView().findViewById<View>(R.id.plaza_report_details_card).background)
             assertTrue(input.minimumHeight >= activity.dp(168))
+            // 证据区没有单独的添加胶囊，下一个空格子本身就是添加槽。
+            val addSlot=fragment.requireView().findViewById<View>(R.id.plaza_report_add_photos)
+            assertTrue(addSlot.isClickable)
+            assertEquals(activity.getString(R.string.plaza_add_photos,3),addSlot.contentDescription)
             val submit=fragment.requireView().findViewById<TextView>(R.id.plaza_report_submit_button)
             assertFalse(submit.isEnabled)
             views.filterIsInstance<RadioButton>().last().performClick()
+            assertEquals(1,views.filterIsInstance<RadioButton>().count { it.isChecked })
             assertTrue("Other reason permits an empty description",submit.isEnabled)
             views.filterIsInstance<EditText>().single().setText("举报说明保留")
             controller.recreate()

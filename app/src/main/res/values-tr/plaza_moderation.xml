@@ -5,7 +5,6 @@
     <string name="plaza_block_user">Yazarı engelle</string>
     <string name="plaza_blocked_users">Meydanda engellenen kullanıcılar</string>
     <string name="plaza_report_notice">Bir neden seçin. Bildirimler moderasyon ekibi tarafından incelenir. Bildirimi yapan kişinin kimliği yazara açıklanmaz.</string>
-    <string name="plaza_report_details">Ek açıklama (isteğe bağlı, en fazla 1000 karakter)</string>
     <string name="plaza_report_required">Lütfen bir bildirim nedeni seçin.</string>
     <string name="plaza_report_submit">Bildirimi gönder</string>
     <string name="plaza_report_success">%1$d numaralı bildirim alındı. Moderasyon ekibi inceleyecek.</string>
@@ -34,13 +33,17 @@
         <item>Diğer</item>
     </string-array>
     <string name="plaza_report_title">Bildir</string>
-    <string name="plaza_report_reason_title">Neden (zorunlu)</string>
-    <string name="plaza_report_details_title">Ek açıklama (isteğe bağlı)</string>
+    <string name="plaza_report_reason_label">Neden</string>
+    <string name="plaza_report_details_label">Ek açıklama</string>
     <string name="plaza_report_details_hint">Ne olduğunu açıklayın</string>
-    <string name="plaza_report_photos_title">Fotoğraf kanıtı (isteğe bağlı)</string>
+    <string name="plaza_report_photos_label">Fotoğraf kanıtı</string>
     <string name="plaza_report_photos_hint">Moderatörlerin incelemesine yardımcı olmak için en fazla 3 fotoğraf ekleyin.</string>
     <string name="plaza_report_received_title">Bildirim gönderildi</string>
     <string name="plaza_report_target">Gönderi #%1$d · Yazar %2$d</string>
     <string name="plaza_report_finish">Tamam</string>
     <string name="plaza_unblock_action">Engeli kaldır</string>
+    <string name="plaza_report_target_label">Şikâyet edilen</string>
+    <string name="plaza_form_required">Zorunlu</string>
+    <string name="plaza_form_optional">İsteğe bağlı</string>
+    <string name="plaza_report_target_author">Yazar %1$d</string>
 </resources>

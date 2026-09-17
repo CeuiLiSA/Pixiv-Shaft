@@ -287,6 +287,8 @@ class PlazaBlockedUsersTest {
             assertTrue(name.height >= name.layout.height)
             val action = texts.single { it.isClickable }
             assertTrue(action.height >= ctx.dp(48))
+            // 胶囊有行宽上限：大字体下它自己换行，用户名列不会被挤成一列单字。
+            assertTrue("name column ${name.width}px", name.width >= ctx.dp(64))
             action.performClick()
             assertEquals(99L, removed)
             row.bind(PlazaBlockedUserItem(user, busy = true)) { removed = it }
