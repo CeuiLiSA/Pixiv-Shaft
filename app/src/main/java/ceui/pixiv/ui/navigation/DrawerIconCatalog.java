@@ -61,7 +61,7 @@ public final class DrawerIconCatalog {
         } else if (actionId == R.id.nav_chat_room) {
             return R.drawable.ic_chat_black_24dp;
         } else if (actionId == R.id.nav_plaza) {
-            return R.drawable.ic_plaza_forum_24;
+            return R.drawable.ic_plaza_feed_24;
         } else if (actionId == R.id.nav_debug_bulk_dl) {
             return R.drawable.ic_file_download_done_24dp;
         } else if (actionId == R.id.nav_saf_perf_test) {

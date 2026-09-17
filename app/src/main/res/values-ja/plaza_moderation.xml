@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plaza_report_post">投稿・コメントを報告</string>
+    <string name="plaza_report_user">投稿者を報告</string>
+    <string name="plaza_block_user">投稿者をブロック</string>
+    <string name="plaza_blocked_users">広場のブロック一覧</string>
+    <string name="plaza_report_notice">理由を選択してください。報告は審査担当者が確認します。報告者の情報は投稿者に公開されません。</string>
+    <string name="plaza_report_details">補足説明（任意、最大1000文字）</string>
+    <string name="plaza_report_required">報告理由を選択してください。</string>
+    <string name="plaza_report_submit">報告を送信</string>
+    <string name="plaza_report_success">報告 #%1$d を受け付けました。審査担当者が確認します。</string>
+    <string name="plaza_report_sending">処理中…</string>
+    <string name="plaza_block_notice">ブロックすると、広場でお互いの投稿やコメントが表示されなくなり、交流できなくなります。「広場のブロック一覧」で解除できます。</string>
+    <string name="plaza_block_success">広場でこの投稿者をブロックしました。</string>
+    <string name="plaza_blocks_notice">ブロックは広場にのみ適用されます。解除すると、このユーザーの投稿とコメントが再び表示されます。</string>
+    <string name="plaza_blocks_empty">ブロック中のユーザーはいません。</string>
+    <string name="plaza_unblock_user">%1$s のブロックを解除</string>
+    <string name="plaza_policy_title">広場のコミュニティガイドライン</string>
+    <string name="plaza_policy_accept">同意して投稿</string>
+    <string name="plaza_policy_required">投稿する前に、最新の広場のコミュニティガイドラインに同意してください。</string>
+    <string name="plaza_forbidden">この操作は現在利用できません。アカウントが制限されている可能性があります。</string>
+    <string name="plaza_policy_body">投稿とコメントは公開されます。性的コンテンツ、児童の性的虐待や搾取、暴力や脅迫、ヘイト、嫌がらせ、同意のない個人情報の公開、詐欺、スパム、違法なコンテンツは禁止です。共有する権利のあるコンテンツのみ投稿してください。\n\nその他メニューから投稿・コメント・投稿者を報告したり、ユーザーをブロックしたりできます。審査担当者は違反コンテンツの削除や広場への投稿権限の停止を行うことがあります。報告は投稿者に公開されず、審査担当者が確認します。「同意して投稿」を選ぶと、本ガイドライン（2026-09-16）に同意したものとします。</string>
+    <string name="plaza_report_reviewed">報告 #%1$d は処理済みです。再送信は不要です。</string>
+    <string-array name="plaza_report_reasons">
+        <item>児童の安全</item>
+        <item>性的コンテンツ</item>
+        <item>暴力・脅迫</item>
+        <item>ヘイト</item>
+        <item>嫌がらせ・いじめ</item>
+        <item>プライバシー侵害</item>
+        <item>広告コンテンツ</item>
+        <item>スパムや詐欺</item>
+        <item>違法コンテンツ</item>
+        <item>その他</item>
+    </string-array>
+    <string name="plaza_report_title">報告</string>
+    <string name="plaza_report_reason_title">報告理由（必須）</string>
+    <string name="plaza_report_details_title">補足説明（任意）</string>
+    <string name="plaza_report_details_hint">状況を説明してください</string>
+    <string name="plaza_report_photos_title">証拠写真（任意）</string>
+    <string name="plaza_report_photos_hint">審査の参考となる写真を最大3枚追加できます。</string>
+    <string name="plaza_report_received_title">報告を送信しました</string>
+    <string name="plaza_report_target">投稿 #%1$d · 投稿者 %2$d</string>
+    <string name="plaza_report_finish">完了</string>
+    <string name="plaza_unblock_action">ブロック解除</string>
+</resources>

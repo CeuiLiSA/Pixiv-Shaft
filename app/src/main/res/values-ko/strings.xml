@@ -2867,6 +2867,15 @@
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">일러스트/만화 스냅샷 자동 생성</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">반복해서 보거나 오래 머문 일러스트/만화의 스냅샷을 조용히 생성합니다 (실험 기능)</string>
+
+    <!-- 로그 파일 (실험) -->
+    <string name="setting_log_file_enable">로그 파일 사용</string>
+    <string name="setting_log_file_desc">성능에 영향을 줄 수 있음\n로그 파일 위치: %1$s</string>
+    <string name="setting_log_file_no_file">아직 생성되지 않음</string>
+    <string name="setting_log_file_share">로그 파일 공유</string>
+    <string name="setting_log_file_share_failed">로그 파일 공유 실패</string>
+    <string name="setting_trigger_crash">치명적인 오류 발생시키기</string>
+    <string name="setting_trigger_crash_desc">클릭하면 즉시 크래시됩니다(크래시 로그 기록 확인용)</string>
     <string name="snapshot_auto_badge">자동</string>
     <string name="snapshot_promote">일반 스냅샷으로 전환</string>
     <string name="snapshot_promote_title">일반 스냅샷으로 전환</string>
@@ -2899,6 +2908,8 @@
     <string name="bookmark_mirror_ready_title">북마크 보관함이 준비됐어요</string>
     <string name="bookmark_mirror_ready_message">%1$s개를 로컬에 저장했습니다. 오래된 순 정렬, 태그/작가/연도 필터, 검색을 쓸 수 있어요.</string>
     <string name="bookmark_mirror_ready_action">열어보기</string>
+    <string name="debug_mirror_banner_title">「북마크 보관함이 준비됐어요」배너 띄우기</string>
+    <string name="debug_mirror_banner_desc">일회성 플래그를 지우고 안내를 다시 표시합니다. 공개/비공개 보관함 선택</string>
     <string name="bookmark_library_title">북마크한 일러스트</string>
     <string name="bookmark_library_search_hint">제목 / 작가 / 태그 / ID 검색</string>
     <string name="bookmark_library_empty">로컬에 표시할 북마크가 없습니다</string>
@@ -2997,4 +3008,7 @@
     <string name="recommend_page_works_first">추천 작품 - 인기 태그</string>
     <string name="recommend_page_tags_first">인기 태그 - 추천 작품</string>
     <string name="recommend_page_content_desc">일러스트 및 소설 추천 페이지의 탭 순서를 변경합니다. 앱을 다시 시작하면 적용됩니다.</string>
+    <string name="media_demo_entry">COS 이미지 직접 업로드 데모</string>
+    <string name="spark_ai_entry">Spark AI 실험실</string>
+    <string name="nana7mi_usage_motto">실패는 성공의 어머니\n충전은 성공한 결제</string>
 </resources>

@@ -78,4 +78,15 @@
     <string name="plaza_error_title">İşlem başarısız</string>
     <string name="plaza_preview_author">%1$s:</string>
     <string name="plaza_media_size_unknown">Geçerli görsel boyutu okunamıyor. Yeniden seçin.</string>
+    <string name="plaza_filter_all">Tümü</string>
+    <string name="plaza_filter_mine">Benim</string>
+    <string name="plaza_retry">Yeniden dene</string>
+    <string name="plaza_empty_title">Henüz gönderi yok</string>
+    <string name="plaza_empty_desc">Bir gönderi paylaşarak izlediğin eserleri ve düşüncelerini anlat.</string>
+    <string name="plaza_mine_empty_desc">Paylaştığın gönderiler burada görünür.</string>
+    <string name="plaza_load_error_title">Yüklenemedi</string>
+    <string name="plaza_title_label">Başlık</string>
+    <string name="plaza_body_label">Metin</string>
+    <string name="plaza_char_count">%1$d / %2$d</string>
+    <string name="plaza_reference_hint">Bir Pixiv eseri veya kullanıcısı bağla</string>
 </resources>

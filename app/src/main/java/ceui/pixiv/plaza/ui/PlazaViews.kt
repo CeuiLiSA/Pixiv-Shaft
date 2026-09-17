@@ -1,70 +1,180 @@
 package ceui.pixiv.plaza.ui
 
+import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.RippleDrawable
+import android.os.Build
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextUtils
+import android.text.format.DateUtils
+import android.text.style.ForegroundColorSpan
+import android.util.TypedValue
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.view.animation.OvershootInterpolator
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.ColorUtils
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
+import androidx.core.widget.TextViewCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
+import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.plaza.PlazaImage
 import ceui.pixiv.plaza.PlazaPost
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.sticker.StickerImageView
+import ceui.pixiv.sticker.StickerPicker
 import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.notification.routeNotificationTargetUrl
+import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.theme.V3Palette
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.DrawableImageViewTarget
+import com.google.android.flexbox.FlexWrap
+import com.google.android.flexbox.FlexboxLayout
+import java.text.DateFormat
+import java.text.NumberFormat
+import java.util.Date
+
+// ── V3 primitives shared by the three plaza pages ───────────────────────────
+// Type, surfaces, press response and touch targets follow docs/v3-design-philosophy.md:
+// Montserrat for Latin and digits, cardFill 22dp cards with a hairline, connected 20/5 rows,
+// pill actions, 0.96 press scale, 48dp hot zones. Nothing here is plaza-specific styling.
 
 internal fun Context.dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
-internal fun Context.label(value: String, size: Float = 14f, bold: Boolean = false) =
-    TextView(this).apply {
+internal fun Context.dpF(value: Float) = value * resources.displayMetrics.density
+
+internal fun Context.color(id: Int) = ContextCompat.getColor(this, id)
+
+/** Montserrat carries Latin and digits; CJK falls back to the system font, as on every V3 page. */
+internal fun Context.v3Font(weight: Int): Typeface =
+    ResourcesCompat.getFont(
+        this,
+        when {
+            weight >= 700 -> R.font.montserrat_bold
+            weight >= 600 -> R.font.montserrat_semi_bold
+            weight >= 500 -> R.font.montserrat_medium
+            else -> R.font.montserrat_regular
+        },
+    ) ?: Typeface.DEFAULT
+
+internal fun Context.label(
+    value: CharSequence,
+    size: Float = 14f,
+    weight: Int = 400,
+    color: Int = color(R.color.v3_text_1),
+): TextView =
+    AppCompatTextView(this).apply {
         text = value
         textSize = size
-        setTextColor(ContextCompat.getColor(context, R.color.v3_text_1))
-        typeface =
-            ResourcesCompat.getFont(
-                context,
-                if (bold) R.font.plaza_inter_semi_bold else R.font.plaza_inter_regular,
-            )
+        typeface = v3Font(weight)
+        setTextColor(color)
         includeFontPadding = false
+        if (Build.VERSION.SDK_INT >= 28) isFallbackLineSpacing = true
     }
 
-internal fun Context.action(value: String, primary: Boolean = false) =
-    label(value, 14f, true).apply {
-        val p = V3Palette.from(context)
-        gravity = Gravity.CENTER
-        minHeight = dp(48)
-        setPadding(dp(12), dp(8), dp(12), dp(8))
-        background =
-            if (primary) p.pillPrimary(dp(20).toFloat()) else p.pillSecondary(dp(20).toFloat())
-        setTextColor(if (primary) p.onPrimary else p.textAccent)
-        isClickable = true
-        isFocusable = true
-    }
-
-internal fun TextView.figmaLineHeight(multiplier: Float) {
+internal fun TextView.lineHeightRatio(multiplier: Float) {
     setLineSpacing(0f, 1f)
-    androidx.core.widget.TextViewCompat.setLineHeight(this, (textSize * multiplier).toInt())
+    TextViewCompat.setLineHeight(this, (textSize * multiplier).toInt())
 }
 
-internal class FigmaIcon(context: Context, drawable: Int, description: String, circle: Boolean) :
-    FrameLayout(context) {
+/** Section label shared with the V3 artwork page (`item_v3_section_label`). */
+internal fun Context.sectionLabel(value: CharSequence): TextView =
+    label(value, 12f, 700, color(R.color.v3_text_3)).apply {
+        isAllCaps = true
+        letterSpacing = .12f
+        ViewCompat.setAccessibilityHeading(this, true)
+    }
+
+internal fun motionEnabled(): Boolean =
+    Build.VERSION.SDK_INT < 26 || ValueAnimator.areAnimatorsEnabled()
+
+/** V3 press response: scale to 0.96 on touch, release in 200ms; off when animations are off. */
+@SuppressLint("ClickableViewAccessibility")
+internal fun View.pressScale(scale: Float = .96f) {
+    setOnTouchListener { v, event ->
+        if (motionEnabled()) {
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN ->
+                    v.animate().scaleX(scale).scaleY(scale).setDuration(120).start()
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
+            }
+        }
+        false
+    }
+}
+
+internal fun Context.hairlinePx() = dp(1).coerceAtLeast(1)
+
+internal fun shape(radiusPx: Float, fill: Int, stroke: Int? = null, strokePx: Int = 0) =
+    GradientDrawable().apply {
+        cornerRadius = radiusPx
+        setColor(fill)
+        if (stroke != null && strokePx > 0) setStroke(strokePx, stroke)
+    }
+
+internal fun Context.ripple(content: Drawable?, mask: Drawable): RippleDrawable =
+    RippleDrawable(ColorStateList.valueOf(V3Palette.from(this).alpha20), content, mask)
+
+/** 22dp content card: theme-tinted fill and a 12% hairline, near-zero elevation. */
+internal fun Context.card(radius: Int = 22): GradientDrawable {
+    val p = V3Palette.from(this)
+    return shape(dpF(radius.toFloat()), p.cardFill, p.cardHairline, hairlinePx())
+}
+
+internal fun Context.cardSurface(radius: Int = 22): RippleDrawable =
+    ripple(card(radius), shape(dpF(radius.toFloat()), Color.WHITE))
+
+/** Connected segmented row: 20dp outer corners, 5dp inner corners, 2dp gap between rows. */
+internal fun Context.rowShape(index: Int, total: Int, fill: Int? = null): GradientDrawable {
+    val p = V3Palette.from(this)
+    val outer = dpF(20f)
+    val inner = dpF(5f)
+    val top = if (index <= 0) outer else inner
+    val bottom = if (index >= total - 1) outer else inner
+    return GradientDrawable().apply {
+        cornerRadii = floatArrayOf(top, top, top, top, bottom, bottom, bottom, bottom)
+        setColor(fill ?: p.cardFill)
+        setStroke(hairlinePx(), p.cardHairline)
+    }
+}
+
+internal fun Context.rowSurface(index: Int, total: Int): RippleDrawable =
+    ripple(rowShape(index, total), rowShape(index, total, Color.WHITE))
+
+/** 48dp icon button with a circular ripple; the glyph reads as a theme-tinted idle control. */
+internal class IconButton(
+    context: Context,
+    drawable: Int,
+    description: String,
+    tint: Int = V3Palette.from(context).floatingPillContent,
+) : FrameLayout(context) {
     val icon =
         ImageView(context).apply {
             setImageResource(drawable)
-            imageTintList =
-                android.content.res.ColorStateList.valueOf(
-                    V3Palette.from(context).floatingPillContent
-                )
+            imageTintList = ColorStateList.valueOf(tint)
         }
 
     init {
@@ -73,17 +183,97 @@ internal class FigmaIcon(context: Context, drawable: Int, description: String, c
         contentDescription = description
         isClickable = true
         isFocusable = true
-        val surface = FrameLayout(context)
-        if (circle)
-            surface.background =
-                V3Palette.from(context).pillSecondary(context.dp(20).toFloat(), context.dp(1))
-        surface.addView(icon, LayoutParams(context.dp(24), context.dp(24), Gravity.CENTER))
-        addView(surface, LayoutParams(context.dp(40), context.dp(40), Gravity.CENTER))
+        background = context.ripple(null, shape(999f, Color.WHITE))
+        addView(icon, LayoutParams(context.dp(22), context.dp(22), Gravity.CENTER))
     }
 }
 
-internal fun Context.figmaIcon(drawable: Int, description: String, circle: Boolean = false) =
-    FigmaIcon(this, drawable, description, circle)
+/** Pill action: primary = solid theme colour, tonal = 20% tint with a 30% stroke. */
+internal fun Context.pillButton(
+    text: CharSequence,
+    primary: Boolean = true,
+    icon: Int? = null,
+    action: () -> Unit,
+): TextView {
+    val p = V3Palette.from(this)
+    val fill = if (primary) p.pillPrimary(999f) else p.pillSecondary(999f, hairlinePx())
+    return label(text, 14f, 600, if (primary) p.onPrimary else p.textAccent).apply {
+        gravity = Gravity.CENTER
+        minHeight = dp(48)
+        minWidth = dp(48)
+        setPadding(dp(20), dp(10), dp(20), dp(10))
+        background = ripple(fill, shape(999f, Color.WHITE))
+        icon?.let {
+            val d = ContextCompat.getDrawable(context, it)?.mutate()?.apply {
+                setTint(currentTextColor)
+                setBounds(0, 0, dp(18), dp(18))
+            }
+            setCompoundDrawablesRelative(d, null, null, null)
+            compoundDrawablePadding = dp(8)
+        }
+        isClickable = true
+        isFocusable = true
+        setOnClickListener { action() }
+        pressScale()
+    }
+}
+
+/**
+ * Empty / error / not-found state on the feeds-framework recipe (`fragment_feed.xml`):
+ * a 120dp illustration tinted with the readable accent at 60%, one 14sp explanation,
+ * and at most one real action. Used centred on the feed and under "Comments (0)" on a post.
+ */
+internal class PlazaStateView(context: Context) : LinearLayout(context) {
+    private val image =
+        ImageView(context).apply {
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+            imageTintList =
+                ColorStateList.valueOf(
+                    ColorUtils.setAlphaComponent(V3Palette.from(context).textAccent, 153)
+                )
+        }
+    private val text =
+        context.label("", 14f, 400, context.color(R.color.v3_text_2)).apply {
+            gravity = Gravity.CENTER
+            setPadding(context.dp(16), context.dp(16), context.dp(16), context.dp(16))
+            lineHeightRatio(1.6f)
+        }
+    private var button: TextView? = null
+
+    init {
+        orientation = VERTICAL
+        gravity = Gravity.CENTER
+        addView(
+            image,
+            LayoutParams(context.dp(120), context.dp(120)).apply { bottomMargin = context.dp(8) },
+        )
+        addView(text, LayoutParams(-2, -2))
+    }
+
+    fun show(
+        imageRes: Int,
+        message: CharSequence,
+        actionText: String? = null,
+        action: (() -> Unit)? = null,
+    ) {
+        image.setImageResource(imageRes)
+        text.text = message
+        button?.let(::removeView)
+        button = null
+        if (actionText != null && action != null) {
+            button =
+                context.pillButton(actionText, primary = true) { action() }.also {
+                    addView(it, LayoutParams(-2, -2).apply { topMargin = context.dp(4) })
+                }
+        }
+        isVisible = true
+    }
+
+    fun hide() {
+        isVisible = false
+    }
+}
 
 internal fun Context.openPost(id: Long) =
     startActivity(
@@ -111,9 +301,7 @@ internal fun Context.objectLabel(type: String?) =
 
 internal fun Context.openObject(type: String?, id: Long) {
     routeNotificationTargetUrl(
-        "pixiv://${when(type) { "user" -> "users"
- "novel" -> "novels"
- else -> "illusts" }}/$id"
+        "pixiv://${when (type) { "user" -> "users"; "novel" -> "novels"; else -> "illusts" }}/$id"
     )
 }
 
@@ -123,6 +311,9 @@ internal class PostAdapter(
     private val onImage: (PlazaPost, Int, View) -> Unit,
     private val detailId: Long = 0,
     private val onReact: (PlazaPost, String) -> Unit = { _, _ -> },
+    private val onReply: ((PlazaPost) -> Unit)? = null,
+    /** Every bind, including rebinds while scrolling: the hook that notices expired media URLs. */
+    private val onBind: (PlazaPost) -> Unit = {},
 ) :
     ListAdapter<PlazaPost, PostAdapter.Holder>(
         object : DiffUtil.ItemCallback<PlazaPost>() {
@@ -145,11 +336,22 @@ internal class PostAdapter(
             }
         }
 
+    /** Detail only: comments finished loading and there are none; rendered under the parent. */
+    var emptyComments: Boolean = false
+        set(value) {
+            if (field != value) {
+                field = value
+                val index = currentList.indexOfFirst { it.id == detailId }
+                if (index >= 0) notifyItemChanged(index, Unit)
+            }
+        }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
         Holder(PostView(parent.context))
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val post = getItem(position)
+        onBind(post)
         holder.view.bind(
             post,
             post.id in busy,
@@ -159,6 +361,8 @@ internal class PostAdapter(
             onImage,
             onReact,
             detailId > 0 && detailId != post.id,
+            onReply,
+            emptyComments = emptyComments && detailId == post.id,
         )
     }
 
@@ -169,11 +373,17 @@ internal class PostAdapter(
     class Holder(val view: PostView) : RecyclerView.ViewHolder(view)
 }
 
-/** Figma post-feed/post-detail: 16dp gutters, 50dp avatar, 12dp groups, 2dp media grid. */
+/**
+ * One post in three roles: an edge-to-edge feed row (hairline-separated, like the novel and
+ * comment lists), the content-first parent on the detail page, and a connected 20/5 comment row
+ * under it. The child order is stable (heading first, the image grid a direct child) so
+ * recycling between roles only re-applies spacing and surfaces.
+ */
 internal class PostView(
     context: Context,
     private val viewerUid: () -> Long = { SessionManager.loggedInUid },
 ) : LinearLayout(context) {
+    private val palette = V3Palette.from(context)
     private val imageRequests = Glide.with(this)
     private var renderedAvatar: Pair<Long, String?>? = null
     private var renderedImages: List<PlazaImage>? = null
@@ -185,41 +395,58 @@ internal class PostView(
             scaleType = ImageView.ScaleType.CENTER_CROP
             clipToOutline = true
         }
-    private val name = context.label("", 15f, true)
-    private val time = context.label("", 13f)
+    private val name = context.label("", 15f, 600)
+    private val time = context.label("", 12f, 500, context.color(R.color.v3_text_3))
     private val more =
-        context.figmaIcon(
-            R.drawable.ic_plaza_figma_more,
+        IconButton(
+            context,
+            R.drawable.ic_more_vert_black_24dp,
             context.getString(R.string.plaza_more_menu),
+            context.color(R.color.v3_text_3),
         )
     private val heading = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
-    private val title = context.label("", 17f, true)
-    private val body = context.label("", 15f)
+    private val title = context.label("", 16f, 600)
+    private val body = context.label("", 15f, 400, context.color(R.color.v3_text_2))
     private val images = PlazaIllustGrid(context).apply { orientation = VERTICAL }
-    private val reference = context.label("", 14f)
-    private val reactions =
-        com.google.android.flexbox.FlexboxLayout(context).apply {
-            flexWrap = com.google.android.flexbox.FlexWrap.WRAP
-        }
+    private val reference = context.label("", 13f, 600, palette.textAccent)
+    private val reactions = FlexboxLayout(context).apply { flexWrap = FlexWrap.WRAP }
     private val comments = LinearLayout(context).apply { orientation = VERTICAL }
-    private val commentsTitle = context.label("", 15f)
-    private val commentFooter = context.label("", 13f)
+    private val commentPreviewFill = ColorUtils.compositeColors(palette.alpha08, palette.cardFill)
+    private val commentPreviewText = readablePreviewColor(context.color(R.color.v3_text_2))
+    private val commentPreviewAccent = readablePreviewColor(palette.textAccent)
+    private val commentsTitle = context.sectionLabel("")
+    // Under "Comments (0)" on the detail page: the feeds-style empty state, tall enough to read
+    // as a real area rather than a stray line (feeds centres it in a full pane).
+    private val commentsEmpty =
+        PlazaStateView(context).apply {
+            minimumHeight = context.dp(320)
+            isVisible = false
+        }
+    private val commentFooter = context.label("", 12f, 500, context.color(R.color.v3_text_3))
+
+    private fun readablePreviewColor(color: Int): Int {
+        val foreground = ColorUtils.compositeColors(color, commentPreviewFill)
+        val text = context.color(R.color.v3_text_1)
+        for (step in 0..10) {
+            val candidate = ColorUtils.blendARGB(foreground, text, step / 10f)
+            if (ColorUtils.calculateContrast(candidate, commentPreviewFill) >= 4.5) return candidate
+        }
+        return text
+    }
 
     init {
         orientation = VERTICAL
         layoutParams = RecyclerView.LayoutParams(-1, -2)
-        setPadding(context.dp(16), context.dp(12), context.dp(16), context.dp(12))
-        setBackgroundColor(V3Palette.from(context).cardFill)
-        avatar.background = V3Palette.from(context).pillSecondary(context.dp(25).toFloat())
+        avatar.background = palette.pillSecondary(context.dpF(25f), context.hairlinePx())
         heading.addView(
             avatar,
-            LayoutParams(context.dp(50), context.dp(50)).apply { marginEnd = context.dp(12) },
+            LayoutParams(context.dp(48), context.dp(48)).apply { marginEnd = context.dp(12) },
         )
         val identity =
             LinearLayout(context).apply {
                 orientation = VERTICAL
                 addView(name)
-                addView(time, LayoutParams(-1, -2).apply { topMargin = context.dp(4) })
+                addView(time, LayoutParams(-1, -2).apply { topMargin = context.dp(3) })
             }
         heading.addView(identity, LayoutParams(0, -2, 1f))
         heading.addView(
@@ -237,20 +464,26 @@ internal class PostView(
         group(reactions)
         group(comments, 12)
         group(commentsTitle)
+        group(commentsEmpty, 0)
         group(commentFooter, 8)
-        body.setTextColor(ContextCompat.getColor(context, R.color.v3_text_2))
-        body.figmaLineHeight(1.35f)
-        time.setTextColor(ContextCompat.getColor(context, R.color.v3_text_3))
-        reference.setTextColor(V3Palette.from(context).textAccent)
-        reference.background = V3Palette.from(context).pillSecondary(context.dp(8).toFloat())
-        reference.setPadding(context.dp(8), context.dp(6), context.dp(8), context.dp(6))
-        reference.minHeight = context.dp(32)
+        body.lineHeightRatio(1.6f)
+        reference.background =
+            context.ripple(
+                shape(context.dpF(12f), palette.alpha08, palette.alpha15, context.hairlinePx()),
+                shape(context.dpF(12f), Color.WHITE),
+            )
+        reference.gravity = Gravity.CENTER_VERTICAL
+        reference.setPadding(context.dp(12), context.dp(8), context.dp(10), context.dp(8))
+        reference.minHeight = context.dp(40)
+        ContextCompat.getDrawable(context, R.drawable.ic_v3_chevron_24)?.mutate()?.let {
+            it.setTint(palette.textAccent)
+            it.setBounds(0, 0, context.dp(16), context.dp(16))
+            reference.setCompoundDrawablesRelative(null, null, it, null)
+            reference.compoundDrawablePadding = context.dp(4)
+        }
+        reference.pressScale()
         comments.setPadding(context.dp(12), context.dp(12), context.dp(12), context.dp(12))
-        comments.background =
-            GradientDrawable().apply {
-                cornerRadius = context.dp(6).toFloat()
-                setColor(ContextCompat.getColor(context, R.color.v3_bg))
-            }
+        commentsTitle.setPadding(0, context.dp(12), 0, 0)
     }
 
     fun bind(
@@ -262,28 +495,21 @@ internal class PostView(
         onImage: (PlazaPost, Int, View) -> Unit,
         onReact: (PlazaPost, String) -> Unit = { _, _ -> },
         comment: Boolean = false,
+        onReply: ((PlazaPost) -> Unit)? = null,
+        emptyComments: Boolean = false,
     ) {
         if (detailMode != detail) {
             renderedImages = null
             detailMode = detail
         }
-        setBackgroundColor(
-            if (detail || comment) ContextCompat.getColor(context, R.color.v3_bg)
-            else V3Palette.from(context).cardFill
-        )
+        applySurface(detail, comment)
         name.text = post.displayName
         name.maxLines = 1
-        name.ellipsize = android.text.TextUtils.TruncateAt.END
-        setPadding(
-            context.dp(16),
-            context.dp(if (detail) 0 else 12),
-            context.dp(16),
-            context.dp(12),
-        )
+        name.ellipsize = TextUtils.TruncateAt.END
         val avatarKey = post.uid to post.avatarUrl
         if (renderedAvatar != avatarKey) {
             imageRequests
-                .load(post.avatarUrl?.let { ceui.lisa.utils.GlideUrlChild(it) })
+                .load(post.avatarUrl?.let { GlideUrlChild(it) })
                 .placeholder(R.drawable.chat_avatar_placeholder)
                 .circleCrop()
                 .into(avatar)
@@ -292,25 +518,22 @@ internal class PostView(
         avatar.contentDescription = context.getString(R.string.plaza_view_profile, post.displayName)
         avatar.setOnClickListener { context.openObject("user", post.uid) }
         time.text =
-            java.text.DateFormat.getDateInstance(
-                    java.text.DateFormat.MEDIUM,
-                    context.resources.configuration.locales[0],
-                )
-                .format(java.util.Date(post.createdAt))
+            DateFormat.getDateInstance(DateFormat.MEDIUM, context.resources.configuration.locales[0])
+                .format(Date(post.createdAt))
         title.text = post.title
         title.isVisible = post.title.isNotBlank()
-        title.textSize = if (detail) 24f else 17f
-        title.typeface =
-            ResourcesCompat.getFont(
-                context,
-                if (detail) R.font.plaza_inter_bold else R.font.plaza_inter_semi_bold,
-            )
-        title.figmaLineHeight(1.2f)
+        title.textSize = if (detail) 24f else 16f
+        title.typeface = context.v3Font(if (detail) 700 else 600)
+        title.lineHeightRatio(if (detail) 1.3f else 1.4f)
         title.maxLines = if (detail) Int.MAX_VALUE else 2
+        title.ellipsize = TextUtils.TruncateAt.END
         body.text = post.text
         body.isVisible = post.text.isNotBlank()
-        body.maxLines = if (detail || comment) Int.MAX_VALUE else 2
-        body.ellipsize = android.text.TextUtils.TruncateAt.END
+        body.textSize = if (detail) 16f else 15f
+        body.setTextColor(context.color(if (detail) R.color.v3_text_1 else R.color.v3_text_2))
+        body.maxLines = if (detail || comment) Int.MAX_VALUE else 3
+        body.ellipsize = TextUtils.TruncateAt.END
+        body.lineHeightRatio(if (detail) 1.7f else 1.6f)
         fun spacing(v: View, gap: Int, start: Int = 0) {
             v.layoutParams =
                 (v.layoutParams as LayoutParams).apply {
@@ -318,14 +541,13 @@ internal class PostView(
                     marginStart = context.dp(start)
                 }
         }
-        spacing(title, if (detail) 16 else 8)
-        spacing(body, if (post.title.isBlank()) 12 else 4)
+        spacing(title, if (detail) 16 else 12)
+        spacing(body, if (post.title.isBlank()) 12 else 6)
         spacing(images, if (detail) 16 else 12)
         spacing(reference, if (detail) 16 else 12)
-        spacing(reactions, if (detail) 16 else 12)
-        spacing(comments, 8)
-        spacing(commentsTitle, 16)
-        body.figmaLineHeight(1.35f)
+        spacing(reactions, if (detail) 12 else 8)
+        spacing(comments, 12)
+        spacing(commentsTitle, 20)
         setOnClickListener { if (!detail) context.openPost(post.id) }
         more.isVisible = !detail
         more.isEnabled = !busy
@@ -351,156 +573,260 @@ internal class PostView(
             bindImages(post.images) { index, photo -> onImage(post, index, photo) }
         }
         bindImages(post.images) { index, photo -> onImage(post, index, photo) }
+        bindReactions(post, busy, onLike, onReact, onReply)
+        bindComments(post, detail, comment, onReply)
+        commentsTitle.isVisible = detail
+        commentsTitle.text = context.getString(R.string.plaza_comments_title, post.replyCount)
+        if (detail && emptyComments)
+            commentsEmpty.show(R.mipmap.empty_img, context.getString(R.string.plaza_comments_empty))
+        else commentsEmpty.hide()
+        if (comment) {
+            (avatar.layoutParams as LayoutParams).apply {
+                width = context.dp(36)
+                height = context.dp(36)
+                marginEnd = context.dp(8)
+                avatar.layoutParams = this
+            }
+            time.isVisible = false
+            name.textSize = 14f
+            more.isVisible = false
+            heading.gravity = Gravity.TOP
+            listOf(title, body, images, reference, reactions, comments, commentFooter).forEach { v ->
+                spacing(
+                    v,
+                    if (v == body && post.title.isBlank()) -16
+                    else if (v == body) 4 else if (v == commentFooter) 8 else 12,
+                    44,
+                )
+            }
+        } else {
+            (avatar.layoutParams as LayoutParams).apply {
+                width = context.dp(48)
+                height = context.dp(48)
+                marginEnd = context.dp(12)
+                avatar.layoutParams = this
+            }
+            name.textSize = 15f
+            time.isVisible = true
+            heading.gravity = Gravity.CENTER_VERTICAL
+        }
+    }
+
+    private fun applySurface(detail: Boolean, comment: Boolean) {
+        val lp = layoutParams as? ViewGroup.MarginLayoutParams
+        when {
+            detail -> {
+                background = null
+                foreground = null
+                isClickable = false
+                isFocusable = false
+                setPadding(context.dp(16), context.dp(8), context.dp(16), context.dp(8))
+                lp?.setMargins(0, 0, 0, 0)
+            }
+            comment -> {
+                // Comments are edge-to-edge like the artwork comment list; hairlines come from
+                // the list decoration.
+                background = null
+                foreground = context.ripple(null, shape(0f, Color.WHITE))
+                isClickable = true
+                isFocusable = true
+                setPadding(context.dp(16), context.dp(12), context.dp(16), context.dp(12))
+                lp?.setMargins(0, 0, 0, 0)
+            }
+            else -> {
+                // Feed rows are edge-to-edge like the novel and comment lists: no card, the
+                // hairline between rows comes from the list's BottomDividerDecoration.
+                background = null
+                foreground =
+                    context.ripple(null, shape(0f, Color.WHITE))
+                isClickable = true
+                isFocusable = true
+                setPadding(context.dp(16), context.dp(14), context.dp(16), context.dp(14))
+                lp?.setMargins(0, 0, 0, 0)
+            }
+        }
+        if (lp != null) layoutParams = lp
+    }
+
+    private fun bindReactions(
+        post: PlazaPost,
+        busy: Boolean,
+        onLike: (PlazaPost) -> Unit,
+        onReact: (PlazaPost, String) -> Unit,
+        onReply: ((PlazaPost) -> Unit)?,
+    ) {
         reactions.removeAllViews()
+        val numbers = NumberFormat.getIntegerInstance(context.resources.configuration.locales[0])
         fun chip(
             text: String,
             icon: Int? = null,
             selected: Boolean = false,
             description: String,
-            click: () -> Unit,
+            stickerId: Long? = null,
+            iconTint: Int? = null,
+            click: (ImageView?) -> Unit,
         ) {
+            // 32dp visual pill inside a 48dp touch target; selected = tint fill + stroke.
             val outer =
                 FrameLayout(context).apply {
-                    minimumHeight = context.dp(28)
-                    minimumWidth = context.dp(44)
+                    minimumHeight = context.dp(48)
+                    minimumWidth = context.dp(48)
                     isClickable = true
                     isFocusable = true
                     isEnabled = !busy
+                    isSelected = selected
+                    alpha = if (busy) .6f else 1f
                     contentDescription = description
-                    setOnClickListener { click() }
+                    pressScale(.94f)
                 }
             val inner =
                 LinearLayout(context).apply {
                     minimumWidth = context.dp(44)
                     gravity = Gravity.CENTER
-                    setPadding(context.dp(8), 0, context.dp(8), 0)
+                    isDuplicateParentStateEnabled = true
+                    setPadding(context.dp(12), 0, context.dp(12), 0)
                     background =
-                        GradientDrawable().apply {
-                            cornerRadius = context.dp(40).toFloat()
-                            setColor(
-                                if (selected) V3Palette.from(context).alpha20
-                                else V3Palette.from(context).alpha08
-                            )
-                        }
+                        context.ripple(
+                            if (selected)
+                                shape(999f, palette.alpha20, palette.alpha30, context.hairlinePx())
+                            else shape(999f, palette.alpha08),
+                            shape(999f, Color.WHITE),
+                        )
                 }
-            if (icon != null)
+            var glyph: ImageView? = null
+            if (stickerId != null) {
+                // The 64px asset is a quality tier; on screen the sticker matches an 18sp emoji.
+                val size =
+                    TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_SP,
+                        18f,
+                        resources.displayMetrics,
+                    ).toInt()
                 inner.addView(
+                    StickerImageView(context).apply { bind(stickerId, resourceSize = 64) },
+                    LayoutParams(size, size),
+                )
+            }
+            if (icon != null) {
+                glyph =
                     ImageView(context).apply {
                         setImageResource(icon)
                         imageTintList =
-                            android.content.res.ColorStateList.valueOf(
-                                if (selected) V3Palette.from(context).textAccent
-                                else ContextCompat.getColor(context, R.color.v3_text_2)
+                            ColorStateList.valueOf(
+                                iconTint
+                                    ?: if (selected) palette.textAccent
+                                    else context.color(R.color.v3_text_2)
                             )
-                    },
-                    LayoutParams(context.dp(20), context.dp(20)),
-                )
+                    }
+                inner.addView(glyph, LayoutParams(context.dp(20), context.dp(20)))
+            }
             if (text.isNotEmpty()) {
-                val split = if (icon == null) text.split(" ", limit = 2) else listOf(text.trim())
+                val split =
+                    if (icon == null && stickerId == null) text.split(" ", limit = 2)
+                    else listOf(text.trim())
                 split.forEachIndexed { index, value ->
+                    val emoji = split.size == 2 && index == 0
                     inner.addView(
                         context
-                            .label(value, if (split.size == 2 && index == 0) 18f else 15f)
-                            .apply {
-                                if (selected) setTextColor(V3Palette.from(context).textAccent)
-                            },
+                            .label(
+                                value,
+                                if (emoji) 18f else 14f,
+                                if (emoji) 400 else 600,
+                                if (selected) palette.textAccent
+                                else context.color(R.color.v3_text_2),
+                            )
+                            .apply { if (!emoji) fontFeatureSettings = "tnum" },
                         LayoutParams(-2, -2).apply {
-                            if (index > 0 || icon != null) marginStart = context.dp(4)
+                            if (index > 0 || icon != null || stickerId != null)
+                                marginStart = context.dp(6)
                         },
                     )
                 }
             }
+            outer.setOnClickListener { click(glyph) }
             outer.addView(
                 inner,
                 FrameLayout.LayoutParams(
                     -2,
                     context
-                        .dp(28)
+                        .dp(32)
                         .coerceAtLeast(
-                            (context.resources.configuration.fontScale * context.dp(28)).toInt()
+                            (context.resources.configuration.fontScale * context.dp(32)).toInt()
                         ),
                     Gravity.CENTER,
                 ),
             )
             reactions.addView(
                 outer,
-                com.google.android.flexbox.FlexboxLayout.LayoutParams(-2, -2).apply {
-                    marginEnd = context.dp(4)
-                    bottomMargin = context.dp(4)
-                },
+                FlexboxLayout.LayoutParams(-2, -2).apply { marginEnd = context.dp(4) },
             )
         }
         chip(
-            if (post.likeCount > 0)
-                java.text.NumberFormat.getIntegerInstance(
-                        context.resources.configuration.locales[0]
-                    )
-                    .format(post.likeCount)
-            else "",
-            if (post.liked) R.drawable.ic_plaza_figma_heart
-            else R.drawable.ic_plaza_figma_heart_outline,
+            if (post.likeCount > 0) numbers.format(post.likeCount) else "",
+            if (post.liked) R.drawable.ic_like_heart_fill else R.drawable.ic_like_heart_outline,
             post.liked,
             if (post.liked) context.getString(R.string.plaza_unlike)
             else context.getString(R.string.plaza_like),
-        ) {
+            iconTint = if (post.liked) context.color(R.color.v3_pink) else null,
+        ) { glyph ->
+            // One short bounce on the heart; the count follows the server response.
+            if (glyph != null && motionEnabled()) {
+                glyph.animate().cancel()
+                glyph.scaleX = 1f
+                glyph.scaleY = 1f
+                glyph.animate().scaleX(1.25f).scaleY(1.25f).setDuration(120)
+                    .withEndAction {
+                        glyph.animate().scaleX(1f).scaleY(1f).setDuration(220)
+                            .setInterpolator(OvershootInterpolator()).start()
+                    }
+                    .start()
+            }
             onLike(post)
         }
         post.reactions.forEach { reaction ->
-            if (reaction.stickerId != null) {
-                val row = LinearLayout(context).apply {
-                    gravity = Gravity.CENTER_VERTICAL
-                    background = V3Palette.from(context).pillSecondary(context.dp(18).toFloat())
-                    setPadding(context.dp(8), context.dp(4), context.dp(8), context.dp(4))
-                    minimumHeight = context.dp(48)
-                    isFocusable = true
-                    contentDescription = context.getString(R.string.plaza_react_emoji, context.getString(R.string.sticker_title))
-                    isSelected = reaction.selected
-                    alpha = if (reaction.selected) 1f else .8f
-                    setOnClickListener { onReact(post, reaction.emoji) }
-                }
-                row.addView(ceui.pixiv.sticker.StickerImageView(context).apply {
-                    bind(reaction.stickerId, resourceSize = 64)
-                }, LinearLayout.LayoutParams(context.dp(32), context.dp(32)))
-                row.addView(context.label(java.text.NumberFormat.getIntegerInstance(context.resources.configuration.locales[0]).format(reaction.count), 13f))
-                reactions.addView(row, com.google.android.flexbox.FlexboxLayout.LayoutParams(-2, -2).apply {
-                    marginEnd = context.dp(4)
-                    bottomMargin = context.dp(4)
-                })
-                return@forEach
-            }
+            val count = numbers.format(reaction.count)
             chip(
-                "${reaction.emoji} ${java.text.NumberFormat.getIntegerInstance(context.resources.configuration.locales[0]).format(reaction.count)}",
+                if (reaction.stickerId != null) count else "${reaction.emoji} $count",
                 selected = reaction.selected,
-                description = context.getString(R.string.plaza_react_emoji, reaction.emoji),
+                description =
+                    context.getString(
+                        R.string.plaza_react_emoji,
+                        if (reaction.stickerId != null) context.getString(R.string.sticker_title)
+                        else reaction.emoji,
+                    ),
+                stickerId = reaction.stickerId,
             ) {
                 onReact(post, reaction.emoji)
             }
         }
         chip(
             "",
-            R.drawable.ic_plaza_figma_reaction,
+            R.drawable.chat_ic_emoji,
             description = context.getString(R.string.plaza_add_reaction),
         ) {
-            ceui.pixiv.sticker.StickerPicker.show(context) { sticker ->
+            StickerPicker.show(context) { sticker ->
                 onReact(post, "sticker:${sticker.stickerId}")
             }
         }
         chip(
-            "",
-            R.drawable.ic_plaza_figma_comment,
+            if (post.replyCount > 0 && detailMode.not()) numbers.format(post.replyCount) else "",
+            R.drawable.ic_baseline_comment_24,
             description = context.getString(R.string.plaza_reply_post),
         ) {
-            context.openComposer(post.id)
+            if (onReply != null) onReply(post) else context.openPost(post.id)
         }
+    }
+
+    private fun bindComments(
+        post: PlazaPost,
+        detail: Boolean,
+        comment: Boolean,
+        onReply: ((PlazaPost) -> Unit)?,
+    ) {
         for (i in 0 until comments.childCount) clearImageRequests(comments.getChildAt(i))
         comments.removeAllViews()
         comments.background =
-            if (comment) null
-            else
-                GradientDrawable().apply {
-                    cornerRadius = context.dp(6).toFloat()
-                    setColor(ContextCompat.getColor(context, R.color.v3_bg))
-                }
+            if (comment) null else shape(context.dpF(12f), commentPreviewFill)
         val previewPadding = context.dp(if (comment) 0 else 12)
         comments.setPadding(previewPadding, previewPadding, previewPadding, previewPadding)
         comments.isVisible = !detail && post.commentsPreview.isNotEmpty()
@@ -515,30 +841,32 @@ internal class PostView(
                         setOnClickListener { context.openObject("user", preview.uid) }
                     }
                 imageRequests
-                    .load(preview.avatarUrl?.let { ceui.lisa.utils.GlideUrlChild(it) })
+                    .load(preview.avatarUrl?.let { GlideUrlChild(it) })
                     .placeholder(R.drawable.chat_avatar_placeholder)
                     .circleCrop()
                     .into(photo)
                 row.addView(
                     photo,
-                    LayoutParams(context.dp(36), context.dp(36)).apply {
+                    LayoutParams(context.dp(32), context.dp(32)).apply {
                         marginEnd = context.dp(8)
                     },
                 )
                 val content = LinearLayout(context).apply { orientation = VERTICAL }
-                content.addView(context.label(preview.displayName, 15f, true))
+                content.addView(context.label(preview.displayName, 14f, 600))
                 content.addView(
-                    context.label(preview.text, 15f).apply {
-                        figmaLineHeight(1.35f)
-                        setTextColor(ContextCompat.getColor(context, R.color.v3_text_2))
+                    context.label(preview.text, 14f, 400, context.color(R.color.v3_text_2)).apply {
+                        lineHeightRatio(1.5f)
                     },
                     LayoutParams(-1, -2).apply { topMargin = context.dp(2) },
                 )
                 content.addView(
-                    context.label(context.getString(R.string.plaza_reply), 13f).apply {
-                        setOnClickListener { context.openComposer(preview.id) }
-                    },
-                    LayoutParams(-2, -2).apply { topMargin = context.dp(8) },
+                    context.label(context.getString(R.string.plaza_reply), 12f, 600, palette.textAccent)
+                        .apply {
+                            minHeight = context.dp(32)
+                            gravity = Gravity.CENTER_VERTICAL
+                            setOnClickListener { context.openPost(preview.id) }
+                        },
+                    LayoutParams(-2, -2).apply { topMargin = context.dp(4) },
                 )
                 row.addView(content, LayoutParams(0, -2, 1f))
                 row.setOnClickListener { context.openPost(preview.id) }
@@ -552,19 +880,16 @@ internal class PostView(
             }
             val prefix = context.getString(R.string.plaza_preview_author, preview.displayName)
             val text =
-                context.label("$prefix ${preview.text}", 15f).apply {
+                context.label("$prefix ${preview.text}", 14f, 400, commentPreviewText).apply {
                     maxLines = 1
-                    ellipsize = android.text.TextUtils.TruncateAt.END
-                    setTextColor(ContextCompat.getColor(context, R.color.v3_text_2))
+                    ellipsize = TextUtils.TruncateAt.END
                     text =
-                        android.text.SpannableString(text).apply {
+                        SpannableString(text).apply {
                             setSpan(
-                                android.text.style.ForegroundColorSpan(
-                                    ContextCompat.getColor(context, R.color.v3_text_1)
-                                ),
+                                ForegroundColorSpan(context.color(R.color.v3_text_1)),
                                 0,
                                 prefix.length,
-                                0,
+                                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
                             )
                         }
                     setOnClickListener { context.openPost(preview.id) }
@@ -585,83 +910,26 @@ internal class PostView(
                             post.replyCount,
                             post.replyCount,
                         ),
-                        13f,
+                        12f,
+                        600,
+                        if (comment) palette.textAccent else commentPreviewAccent,
                     )
                     .apply {
-                        setTextColor(V3Palette.from(context).textAccent)
                         gravity = Gravity.CENTER_VERTICAL
+                        minHeight = context.dp(32)
                         setOnClickListener { context.openPost(post.id) }
                     },
-                LayoutParams(-2, -2).apply { topMargin = context.dp(12) },
+                LayoutParams(-2, -2).apply { topMargin = context.dp(8) },
             )
         commentFooter.isVisible = comment
         commentFooter.text =
             context.getString(
                 R.string.plaza_reply_time,
-                android.text.format.DateUtils.getRelativeTimeSpanString(
-                    context,
-                    post.createdAt,
-                    false,
-                ),
+                DateUtils.getRelativeTimeSpanString(context, post.createdAt, false),
             )
-        commentFooter.setTextColor(ContextCompat.getColor(context, R.color.v3_text_3))
-        commentFooter.setOnClickListener { context.openComposer(post.id) }
-        commentsTitle.isVisible = detail
-        commentsTitle.text = context.getString(R.string.plaza_comments_title, post.replyCount)
-        if (comment) {
-            (avatar.layoutParams as LayoutParams).apply {
-                width = context.dp(36)
-                height = context.dp(36)
-                marginEnd = context.dp(8)
-                avatar.layoutParams = this
-            }
-            time.isVisible = false
-            name.textSize = 15f
-            more.isVisible = false
-            heading.gravity = Gravity.TOP
-            listOf(title, body, images, reference, reactions, comments, commentFooter).forEach { v
-                ->
-                spacing(
-                    v,
-                    if (v == body && post.title.isBlank()) -16
-                    else if (v == body) 4 else if (v == commentFooter) 8 else 12,
-                    44,
-                )
-            }
-        } else {
-            (avatar.layoutParams as LayoutParams).apply {
-                width = context.dp(50)
-                height = context.dp(50)
-                marginEnd = context.dp(12)
-                avatar.layoutParams = this
-            }
-            time.isVisible = true
-            heading.gravity = Gravity.CENTER_VERTICAL
+        commentFooter.setOnClickListener {
+            if (onReply != null) onReply(post) else context.openPost(post.id)
         }
-    }
-
-    override fun dispatchDraw(canvas: android.graphics.Canvas) {
-        super.dispatchDraw(canvas)
-        val paint =
-            android.graphics.Paint().apply {
-                color = V3Palette.from(context).cardHairline
-                strokeWidth = context.dp(1).coerceAtLeast(1).toFloat()
-            }
-        canvas.drawLine(
-            paddingLeft.toFloat(),
-            height - 1f,
-            (width - paddingRight).toFloat(),
-            height - 1f,
-            paint,
-        )
-        if (commentsTitle.isVisible)
-            canvas.drawLine(
-                paddingLeft.toFloat(),
-                commentsTitle.top - context.dp(8).toFloat(),
-                (width - paddingRight).toFloat(),
-                commentsTitle.top - context.dp(8).toFloat(),
-                paint,
-            )
     }
 
     private fun bindImages(items: List<PlazaImage>, click: (Int, View) -> Unit) {
@@ -687,8 +955,7 @@ internal class PostView(
                     val photo = row.getChildAt(c) as ImageView
                     val position = index++
                     photo.setOnClickListener { click(position, photo) }
-                    val request =
-                        com.bumptech.glide.request.target.DrawableImageViewTarget(photo).request
+                    val request = DrawableImageViewTarget(photo).request
                     if (
                         request?.isComplete != true &&
                             request?.isRunning != true &&
@@ -714,12 +981,11 @@ internal class PostView(
         renderedWidth = images.width
         renderedViewerUid = viewer
         if (images.width <= 0 || items.isEmpty()) return
-        val gap = context.dp(2)
+        val gap = context.dp(4)
         val columns =
             when (items.size) {
                 1 -> 1
-                2,
-                4 -> 2
+                2, 4 -> 2
                 else -> 3
             }
         val tileWidth = (images.width - gap * (columns - 1)) / columns
@@ -728,14 +994,14 @@ internal class PostView(
             rowItems.forEachIndexed { column, image ->
                 val width =
                     if (items.size == 1 && image.height > image.width && !detailMode)
-                        (images.width * .35f).toInt()
+                        (images.width * .55f).toInt()
                     else tileWidth
                 val height =
                     if (items.size == 1)
                         (width.toFloat() * image.height / image.width.coerceAtLeast(1))
                             .toInt()
-                            .coerceAtMost(context.dp(900))
-                    else if (columns == 3) (tileWidth * 110f / 118f).toInt() else tileWidth
+                            .coerceAtMost(context.dp(if (detailMode) 900 else 480))
+                    else tileWidth
                 val photo =
                     ImageView(context).apply {
                         scaleType = ImageView.ScaleType.CENTER_CROP
@@ -746,10 +1012,7 @@ internal class PostView(
                                 items.size,
                             )
                         background =
-                            GradientDrawable().apply {
-                                cornerRadius = context.dp(if (detailMode) 6 else 4).toFloat()
-                                setColor(V3Palette.from(context).alpha08)
-                            }
+                            shape(context.dpF(if (items.size == 1) 16f else 12f), palette.alpha08)
                         clipToOutline = true
                     }
                 row.addView(
@@ -804,12 +1067,26 @@ internal fun Context.showPostMenu(post: PlazaPost, onDelete: (PlazaPost) -> Unit
     val mine = post.uid == SessionManager.loggedInUid
     val options =
         if (mine)
-            arrayOf(getString(R.string.plaza_share_text), getString(R.string.plaza_delete_post))
-        else arrayOf(getString(R.string.plaza_share_text), getString(R.string.plaza_view_author))
-    ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder(this)
+            arrayOf(
+                getString(R.string.plaza_share_text),
+                SpannableString(getString(R.string.plaza_delete_post)).apply {
+                    setSpan(
+                        ForegroundColorSpan(color(R.color.v3_danger)),
+                        0,
+                        length,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                    )
+                },
+            )
+        else arrayOf(getString(R.string.plaza_share_text), getString(R.string.plaza_view_author),
+            getString(R.string.plaza_report_post), getString(R.string.plaza_report_user),
+            getString(R.string.plaza_block_user))
+    WitDialog.MenuDialogBuilder(this)
         .addItems(options) { dialog, index ->
             dialog.dismiss()
-            if (index == 1) {
+            if (index >= 2) {
+                showPlazaModeration(post.id, post.uid, listOf("post", "user", "block")[index - 2])
+            } else if (index == 1) {
                 if (mine) onDelete(post) else openObject("user", post.uid)
             } else
                 startActivity(

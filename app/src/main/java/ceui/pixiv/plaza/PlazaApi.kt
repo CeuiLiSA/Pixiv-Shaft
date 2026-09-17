@@ -53,11 +53,29 @@ data class CreatePost(
     val replyTo: Long? = null,
     val title: String = "",
     val avatarUrl: String? = null,
+    val policyVersion: String = "2026-09-16",
 )
 
 data class DeletePost(val ok: Boolean)
 
+data class PlazaReportRequest(
+    val targetType: String,
+    val reason: String,
+    val details: String,
+    val mediaIds: List<String> = emptyList(),
+)
+data class PlazaReportReceipt(val id: Long, val status: String, val duplicate: Boolean)
+data class PlazaBlockedUser(val uid: Long, val displayName: String)
+data class PlazaBlocks(val items: List<PlazaBlockedUser>)
+
 interface PlazaApi {
+    @POST("v1/plaza/posts/{id}/reports")
+    suspend fun report(@Path("id") id: Long, @Body body: PlazaReportRequest): PlazaReportReceipt
+
+    @GET("v1/plaza/blocks") suspend fun blocks(): PlazaBlocks
+    @PUT("v1/plaza/blocks/{uid}") suspend fun block(@Path("uid") uid: Long): DeletePost
+    @DELETE("v1/plaza/blocks/{uid}") suspend fun unblock(@Path("uid") uid: Long): DeletePost
+
     @GET("v1/plaza/posts")
     suspend fun feed(
         @Query("before") before: Long? = null,

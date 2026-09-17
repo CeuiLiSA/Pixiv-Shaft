@@ -1,0 +1,17 @@
+<resources>
+    <item name="plaza_report_scroll" type="id"/>
+    <item name="plaza_report_details_input" type="id"/>
+    <item name="plaza_report_add_photos" type="id"/>
+    <item name="plaza_report_submit_button" type="id"/>
+    <item name="plaza_report_receipt" type="id"/>
+    <item name="plaza_reason_child" type="id"/>
+    <item name="plaza_reason_sexual" type="id"/>
+    <item name="plaza_reason_violence" type="id"/>
+    <item name="plaza_reason_hate" type="id"/>
+    <item name="plaza_reason_harassment" type="id"/>
+    <item name="plaza_reason_privacy" type="id"/>
+    <item name="plaza_reason_advertising" type="id"/>
+    <item name="plaza_reason_spam" type="id"/>
+    <item name="plaza_reason_illegal" type="id"/>
+    <item name="plaza_reason_other" type="id"/>
+</resources>

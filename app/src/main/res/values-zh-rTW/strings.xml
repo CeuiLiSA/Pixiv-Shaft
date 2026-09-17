@@ -2883,6 +2883,15 @@
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">插畫/漫畫自動產生快照</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">對反覆瀏覽與長時間駐留的插畫/漫畫靜默產生快照（實驗性）</string>
+
+    <!-- 日誌檔案（實驗性） -->
+    <string name="setting_log_file_enable">啟用日誌檔案</string>
+    <string name="setting_log_file_desc">可能影響效能\n日誌檔案在%1$s</string>
+    <string name="setting_log_file_no_file">尚未產生</string>
+    <string name="setting_log_file_share">分享日誌檔案</string>
+    <string name="setting_trigger_crash">觸發一次致命錯誤</string>
+    <string name="setting_trigger_crash_desc">點擊後立即崩潰，用於驗證崩潰日誌落盤</string>
+    <string name="setting_log_file_share_failed">分享日誌檔案失敗</string>
     <string name="snapshot_auto_badge">自動</string>
     <string name="snapshot_promote">轉為正式快照</string>
     <string name="snapshot_promote_title">轉為正式快照</string>
@@ -2900,6 +2909,8 @@
     <string name="bookmark_mirror_ready_title">收藏庫已就緒</string>
     <string name="bookmark_mirror_ready_message">已在本地攢好 %1$s 件收藏，現在可以倒序、按標籤/作者/年份篩，還能全文搜。</string>
     <string name="bookmark_mirror_ready_action">去看看</string>
+    <string name="debug_mirror_banner_title">觸發「收藏庫已就緒」banner</string>
+    <string name="debug_mirror_banner_desc">清掉一次性標記並重放引導，公開或私人收藏可選</string>
     <string name="bookmark_library_title">我的插畫收藏</string>
     <string name="bookmark_library_search_hint">搜尋標題 / 作者 / 標籤 / ID</string>
     <string name="bookmark_library_empty">本地還沒有可瀏覽的收藏</string>
@@ -2998,4 +3009,7 @@
     <string name="recommend_page_works_first">推薦作品-熱門標籤</string>
     <string name="recommend_page_tags_first">熱門標籤-推薦作品</string>
     <string name="recommend_page_content_desc">調整插畫和小說推薦頁的分頁順序，重新啟動後生效</string>
+    <string name="media_demo_entry">COS 圖片直傳示範</string>
+    <string name="spark_ai_entry">Spark AI 實驗室</string>
+    <string name="nana7mi_usage_motto">失敗是成功之母\n儲值是成功付款</string>
 </resources>

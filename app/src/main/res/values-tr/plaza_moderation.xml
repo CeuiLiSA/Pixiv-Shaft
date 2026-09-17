@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plaza_report_post">Gönderiyi veya yorumu bildir</string>
+    <string name="plaza_report_user">Yazarı bildir</string>
+    <string name="plaza_block_user">Yazarı engelle</string>
+    <string name="plaza_blocked_users">Meydanda engellenen kullanıcılar</string>
+    <string name="plaza_report_notice">Bir neden seçin. Bildirimler moderasyon ekibi tarafından incelenir. Bildirimi yapan kişinin kimliği yazara açıklanmaz.</string>
+    <string name="plaza_report_details">Ek açıklama (isteğe bağlı, en fazla 1000 karakter)</string>
+    <string name="plaza_report_required">Lütfen bir bildirim nedeni seçin.</string>
+    <string name="plaza_report_submit">Bildirimi gönder</string>
+    <string name="plaza_report_success">%1$d numaralı bildirim alındı. Moderasyon ekibi inceleyecek.</string>
+    <string name="plaza_report_sending">İşleniyor…</string>
+    <string name="plaza_block_notice">Engelledikten sonra meydanda birbirinizin gönderi ve yorumlarını göremez veya bunlarla etkileşim kuramazsınız. Engellenen kullanıcılar listesinden engeli kaldırabilirsiniz.</string>
+    <string name="plaza_block_success">Yazar meydanda engellendi.</string>
+    <string name="plaza_blocks_notice">Engelleme yalnızca meydan için geçerlidir. Engel kaldırıldığında kullanıcının gönderileri ve yorumları yeniden görünür.</string>
+    <string name="plaza_blocks_empty">Engellenen kullanıcı yok.</string>
+    <string name="plaza_unblock_user">%1$s kullanıcısının engelini kaldır</string>
+    <string name="plaza_policy_title">Meydan topluluk kuralları</string>
+    <string name="plaza_policy_accept">Kabul et ve yayınla</string>
+    <string name="plaza_policy_required">Yayınlamadan önce güncel meydan topluluk kurallarını kabul edin.</string>
+    <string name="plaza_forbidden">Bu işlem şu anda kullanılamıyor. Hesabınız kısıtlanmış olabilir.</string>
+    <string name="plaza_policy_body">Gönderiler ve yorumlar herkese açıktır. Cinsel içerik, çocukların cinsel istismarı veya sömürüsü, şiddet veya tehdit, nefret, taciz, izinsiz özel bilgi paylaşımı, dolandırıcılık, spam ve yasa dışı içerik yasaktır. Yalnızca paylaşma hakkına sahip olduğunuz içerikleri yayınlayın.\n\nDiğer menüsünden gönderileri, yorumları ve yazarları bildirebilir, kullanıcıları engelleyebilirsiniz. Moderatörler kuralları ihlal eden içerikleri kaldırabilir veya yazarın meydanda yayın yapmasını yasaklayabilir. Bildirimler yazara açıklanmaz ve moderatörler tarafından incelenir. Kabul et ve yayınla seçeneğini seçerek bu kuralları (2026-09-16) kabul edersiniz.</string>
+    <string name="plaza_report_reviewed">%1$d numaralı bildirim zaten incelendi. Tekrar göndermeniz gerekmez.</string>
+    <string-array name="plaza_report_reasons">
+        <item>Çocuk güvenliği</item>
+        <item>Cinsel içerik</item>
+        <item>Şiddet veya tehdit</item>
+        <item>Nefret söylemi</item>
+        <item>Taciz veya zorbalık</item>
+        <item>Gizlilik ihlali</item>
+        <item>Reklam içeriği</item>
+        <item>Spam veya dolandırıcılık</item>
+        <item>Yasa dışı içerik</item>
+        <item>Diğer</item>
+    </string-array>
+    <string name="plaza_report_title">Bildir</string>
+    <string name="plaza_report_reason_title">Neden (zorunlu)</string>
+    <string name="plaza_report_details_title">Ek açıklama (isteğe bağlı)</string>
+    <string name="plaza_report_details_hint">Ne olduğunu açıklayın</string>
+    <string name="plaza_report_photos_title">Fotoğraf kanıtı (isteğe bağlı)</string>
+    <string name="plaza_report_photos_hint">Moderatörlerin incelemesine yardımcı olmak için en fazla 3 fotoğraf ekleyin.</string>
+    <string name="plaza_report_received_title">Bildirim gönderildi</string>
+    <string name="plaza_report_target">Gönderi #%1$d · Yazar %2$d</string>
+    <string name="plaza_report_finish">Tamam</string>
+    <string name="plaza_unblock_action">Engeli kaldır</string>
+</resources>

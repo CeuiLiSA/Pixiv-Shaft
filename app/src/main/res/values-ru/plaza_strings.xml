@@ -80,4 +80,15 @@
     <string name="plaza_error_title">Ошибка</string>
     <string name="plaza_preview_author">%1$s:</string>
     <string name="plaza_media_size_unknown">Не удалось определить размер изображения. Выберите его заново.</string>
+    <string name="plaza_filter_all">Все</string>
+    <string name="plaza_filter_mine">Мои</string>
+    <string name="plaza_retry">Повторить</string>
+    <string name="plaza_empty_title">Пока нет постов</string>
+    <string name="plaza_empty_desc">Опубликуйте пост, чтобы поделиться работами и мыслями.</string>
+    <string name="plaza_mine_empty_desc">Здесь будут ваши опубликованные посты.</string>
+    <string name="plaza_load_error_title">Не удалось загрузить</string>
+    <string name="plaza_title_label">Заголовок</string>
+    <string name="plaza_body_label">Текст</string>
+    <string name="plaza_char_count">%1$d / %2$d</string>
+    <string name="plaza_reference_hint">Привяжите работу или пользователя Pixiv</string>
 </resources>

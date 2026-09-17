@@ -129,14 +129,23 @@ class Downloads(
      * bypass template rendering. New code should prefer [plan] / [open] via a
      * typed [DownloadItem].
      */
-    fun openRaw(bucket: Bucket, rawPath: RelativePath, mime: String): StorageBackend.WriteHandle? {
+    fun openRaw(
+        bucket: Bucket,
+        rawPath: RelativePath,
+        mime: String,
+        overwrite: OverwritePolicy? = null,
+    ): StorageBackend.WriteHandle? {
         require(bucket != Bucket.TempCache) { "openRaw is not intended for TempCache" }
         val resolved = configProvider().resolve(bucket)
         val cleaned = FsSanitizer.clean(rawPath)
         val backend = backendFactory(resolved.storage)
-        val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, resolved.overwrite, mime)
+        val policy = overwrite ?: resolved.overwrite
+        val (finalPath, skip) = applyOverwritePolicy(cleaned, backend, policy, mime)
         if (skip) return null
-        return if (resolved.overwrite == OverwritePolicy.Replace) {
+        // 用 policy 而不是 resolved.overwrite：调用方显式传了 Replace 时，前面的
+        // applyOverwritePolicy 已经按「原地覆盖」放行（不改名、不跳过），这里若还按用户的
+        // 全局策略走 open()，同名文件就会被后端自动改名成 "xxx (1).txt" —— 强制覆盖失效。
+        return if (policy == OverwritePolicy.Replace) {
             backend.replace(finalPath, mime)
         } else {
             backend.open(finalPath, mime)

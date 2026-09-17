@@ -36,7 +36,8 @@ class ChatStickerBubbleTest {
                 fun bind(msg: ChatMessageEntity) = holder.bind(msg, null, message, false, 1,
                     palette, palette.primary, palette.primary, null, null)
                 val bubble = holder.itemView.findViewById<LinearLayout>(R.id.bubble)
-                val image = (0 until bubble.childCount).map(bubble::getChildAt).filterIsInstance<StickerImageView>().single()
+                val body = holder.itemView.findViewById<ChatMessageBodyLayout>(R.id.message_body)
+                val image = (0 until body.childCount).map(body::getChildAt).filterIsInstance<StickerImageView>().single()
                 bind(message)
                 assertNotNull(bubble.background)
                 bind(message.copy(stickerId = 123, replyToCmid = "quoted", replyToUid = 2, replyToText = "quoted text"))

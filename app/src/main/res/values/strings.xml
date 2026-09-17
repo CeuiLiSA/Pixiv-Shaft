@@ -3145,6 +3145,15 @@
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">插画/漫画自动生成快照</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">对反复浏览与长时间驻留的插画/漫画静默生成快照（试验性）</string>
+
+    <!-- 日志文件（试验性） -->
+    <string name="setting_log_file_enable">启用日志文件</string>
+    <string name="setting_log_file_desc">可能影响性能\n日志文件在%1$s</string>
+    <string name="setting_log_file_no_file">尚未生成</string>
+    <string name="setting_log_file_share">分享日志文件</string>
+    <string name="setting_trigger_crash">引发一次致命错误</string>
+    <string name="setting_trigger_crash_desc">点击后立即崩溃，用于验证崩溃日志落盘</string>
+    <string name="setting_log_file_share_failed">分享日志文件失败</string>
     <string name="snapshot_auto_badge">自动</string>
     <string name="snapshot_promote">转为正式快照</string>
     <string name="snapshot_promote_title">转为正式快照</string>
@@ -3166,6 +3175,8 @@
     <string name="bookmark_mirror_ready_title">收藏库已就绪</string>
     <string name="bookmark_mirror_ready_message">已在本地攒好 %1$s 件收藏，现在可以倒序、按标签/作者/年份筛，还能全文搜。</string>
     <string name="bookmark_mirror_ready_action">去看看</string>
+    <string name="debug_mirror_banner_title">触发「收藏库已就绪」banner</string>
+    <string name="debug_mirror_banner_desc">清掉一次性标记并重放引导，公开或私人收藏可选</string>
     <string name="bookmark_library_title">我的插画收藏</string>
     <string name="bookmark_library_search_hint">搜索标题 / 作者 / 标签 / ID</string>
     <string name="bookmark_library_empty">本地还没有可浏览的收藏</string>

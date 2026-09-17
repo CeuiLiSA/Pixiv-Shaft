@@ -17,6 +17,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentSettingsExperimentalBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.pixiv.debug.TimberFileLog;
 import ceui.pixiv.snapshot.AutoSnapshotEngine;
 import ceui.pixiv.snapshot.AutoSnapshotQuota;
 import ceui.pixiv.witstudio.dialog.WitDialog;
@@ -35,6 +36,9 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
     @Override
     protected void initData() {
         bindWitGalleryRows();
+        bindLogFileRow();
+        bindTriggerCrashRow();
+        bindDebugMirrorBannerRow();
 
         // 自动快照是本地离线能力，不涉及站外 UGC，所有渠道都显示。
         baseBind.autoSnapshotOnBookmark.setChecked(Shaft.sSettings.isAutoSnapshotOnBookmark());
@@ -146,6 +150,57 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         }
         baseBind.witGalleryRela.setOnClickListener(v ->
                 ceui.pixiv.ui.settings.WitDialogGallery.showWit(mContext));
+    }
+
+    private void bindLogFileRow() {
+        baseBind.logFileEnable.setChecked(Shaft.sSettings.isLogFileEnabled());
+        String folder = TimberFileLog.INSTANCE.currentFolderPath();
+        baseBind.logFilePath.setText(getString(
+                R.string.setting_log_file_desc,
+                folder != null ? folder : getString(R.string.setting_log_file_no_file)));
+
+        baseBind.logFileShare.setOnClickListener(v ->
+                TimberFileLog.INSTANCE.shareLogFile(mContext));
+
+        baseBind.logFileEnable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setLogFileEnabled(isChecked);
+                Local.setSettings(Shaft.sSettings);
+                Common.showToast(getString(R.string.please_restart_app), 2);
+            }
+        });
+        baseBind.logFileEnableRela.setOnClickListener(v ->
+                baseBind.logFileEnable.performClick());
+    }
+
+    private void bindTriggerCrashRow() {
+        if (!ceui.lisa.BuildConfig.DEBUG) {
+            baseBind.triggerCrashRela.setVisibility(View.GONE);
+            return;
+        }
+        baseBind.triggerCrashRela.setOnClickListener(v -> crashDeep());
+    }
+
+    /**
+     * 无限递归触发 StackOverflowError：Error 而非 Exception，catch(Exception) 抓不到，且必走未捕获异常处理器。
+     */
+    private void crashDeep() {
+        crashDeep();
+    }
+
+    /**
+     * 【临时·调试】手动弹一次「收藏库已就绪」引导 banner，用来验它的「去看看」按钮
+     * （正常路径要等整份回填跑完、且一辈子只弹一次）。
+     * 只在 debug 包出现；验完连同布局里那一行和 DebugMirrorBannerTrigger.kt 一起删。
+     */
+    private void bindDebugMirrorBannerRow() {
+        if (!ceui.lisa.BuildConfig.DEBUG) {
+            baseBind.debugMirrorBannerRela.setVisibility(View.GONE);
+            return;
+        }
+        baseBind.debugMirrorBannerRela.setOnClickListener(v ->
+                ceui.pixiv.ui.debug.DebugMirrorBannerTrigger.show(mContext));
     }
 
     private void bindFirebaseRow() {

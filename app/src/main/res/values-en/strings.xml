@@ -2885,6 +2885,15 @@
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">Auto-create snapshots for illustrations/manga</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">Quietly create snapshots for illustrations/manga you revisit or dwell on for a long time (experimental)</string>
+
+    <!-- Log file (experimental) -->
+    <string name="setting_log_file_enable">Enable log file</string>
+    <string name="setting_log_file_desc">May affect performance\nLog file at %1$s</string>
+    <string name="setting_log_file_no_file">Not generated yet</string>
+    <string name="setting_log_file_share">Share log file</string>
+    <string name="setting_trigger_crash">Trigger a fatal error</string>
+    <string name="setting_trigger_crash_desc">Crashes immediately to verify crash log capture</string>
+    <string name="setting_log_file_share_failed">Failed to share log file</string>
     <string name="snapshot_auto_badge">Auto</string>
     <string name="snapshot_promote">Convert to regular snapshot</string>
     <string name="snapshot_promote_title">Convert to Regular Snapshot</string>
@@ -2902,6 +2911,8 @@
     <string name="bookmark_mirror_ready_title">Bookmark library ready</string>
     <string name="bookmark_mirror_ready_message">%1$s bookmarks mirrored locally — now you can sort oldest-first, filter by tag/artist/year, and search.</string>
     <string name="bookmark_mirror_ready_action">Open</string>
+    <string name="debug_mirror_banner_title">Trigger the “Bookmark library ready” banner</string>
+    <string name="debug_mirror_banner_desc">Clears the one-shot flag and replays the prompt; pick the public or private shelf</string>
     <string name="bookmark_library_title">My bookmarked illustrations</string>
     <string name="bookmark_library_search_hint">Search title / artist / tag / ID</string>
     <string name="bookmark_library_empty">Nothing mirrored locally yet</string>
@@ -3000,4 +3011,6 @@
     <string name="recommend_page_works_first">Recommended works - Trending tags</string>
     <string name="recommend_page_tags_first">Trending tags - Recommended works</string>
     <string name="recommend_page_content_desc">Change the tab order on illustration and novel recommendation pages. Restart the app to apply.</string>
+    <string name="media_demo_entry">COS image direct upload demo</string>
+    <string name="spark_ai_entry">Spark AI Lab</string>
 </resources>

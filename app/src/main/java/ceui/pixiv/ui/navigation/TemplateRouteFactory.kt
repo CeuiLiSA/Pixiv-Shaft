@@ -37,6 +37,7 @@ import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.chat.ui.ChatRoomListFragment
 import ceui.pixiv.chat.ui.DemoChatListFragment
+import ceui.pixiv.db.mirror.trackBookmarkShelfVisit
 import ceui.pixiv.plaza.ui.PlazaComposeFragment
 import ceui.pixiv.plaza.ui.PlazaFragment
 import ceui.pixiv.plaza.ui.PlazaPostDetailFragment
@@ -417,6 +418,7 @@ object TemplateRouteFactory {
                 ) {
                     ceui.pixiv.ui.library.BookmarkLibraryFragment.newInstance()
                 } else {
+                    trackOwnBookmarkShelfVisit(ceui.pixiv.db.mirror.MirrorContentType.ILLUST)
                     FragmentCollection.newInstance(0)
                 }
             }
@@ -429,6 +431,7 @@ object TemplateRouteFactory {
                 ) {
                     ceui.pixiv.ui.library.NovelBookmarkLibraryFragment.newInstance()
                 } else {
+                    trackOwnBookmarkShelfVisit(ceui.pixiv.db.mirror.MirrorContentType.NOVEL)
                     FragmentCollection.newInstance(1)
                 }
             }
@@ -529,6 +532,20 @@ object TemplateRouteFactory {
             // 显式「打开全员公屏」入口：会话列表点 Global 行用。不带 peer_uid 走 CHAT 会回到列表本身。
             TemplateRoute.CHAT_GLOBAL_ROOM -> DemoChatListFragment()
             TemplateRoute.PLAZA -> PlazaFragment()
+            TemplateRoute.PLAZA_BLOCKS -> ceui.pixiv.plaza.ui.PlazaBlockedUsersFragment().apply {
+                arguments = bundleOf(
+                    "mode" to "blocks",
+                    "owner" to intent.getLongExtra("owner", ceui.pixiv.session.SessionManager.loggedInUid),
+                )
+            }
+            TemplateRoute.PLAZA_REPORT -> ceui.pixiv.plaza.ui.PlazaReportFragment().apply {
+                arguments = bundleOf(
+                    "postId" to intent.getLongExtra("postId", 0L),
+                    "targetUid" to intent.getLongExtra("targetUid", 0L),
+                    "mode" to if (intent.getStringExtra("mode") == "user") "user" else "post",
+                    "owner" to intent.getLongExtra("owner", ceui.pixiv.session.SessionManager.loggedInUid),
+                )
+            }
             // 从插画 V3「分享至广场」入口进来会带 ILLUST_ID,需透传给 compose fragment 预附这张 illust;
             // 广场右上「+」入口不带,走空白编辑器。
             TemplateRoute.PLAZA_COMPOSE ->
@@ -620,6 +637,23 @@ object TemplateRouteFactory {
         requireNotNull(IntentCompat.getSerializableExtra(this, key, clazz)) {
             "TemplateActivity route requires ${clazz.simpleName} extra '$key'"
         }
+}
+
+/**
+ * 把「用户正在打开自己的这个收藏页」记进镜像系统 —— 也就是注册这个书架。
+ *
+ * 老的双 tab 页自己会在 onResume 里注册（见 `LikeIllustFeedFragment`），但那已经是**页面画出来
+ * 之后**的事：判定「进新版还是旧版」发生得比它更早，于是首次点击触发的那一次注册永远晚一步。
+ * 在这里补一次，镜像从「用户点了入口」这一刻就开始跑，不再依赖那个即将被替代的旧页面真的被渲染。
+ *
+ * 走的是同一条入口函数（`trackBookmarkShelfVisit`）：隐私边界（只对**自己的**收藏生效）与
+ * 「没打开过悄悄收藏就绝不注册悄悄收藏」这两条判断都在它里面，这里不另开口子，所以只注册公开书架。
+ */
+private fun trackOwnBookmarkShelfVisit(contentType: ceui.pixiv.db.mirror.MirrorContentType) {
+    val uid = ceui.pixiv.session.SessionManager.loggedInUid
+    if (uid <= 0L) return
+    ceui.lisa.activities.Shaft.getContext()
+        .trackBookmarkShelfVisit(uid, Params.TYPE_PUBLIC, contentType)
 }
 
 /**

@@ -141,6 +141,8 @@ enum class TemplateRoute(@JvmField val key: String) {
     CHAT_GLOBAL_ROOM("聊天-全员公屏"),
     PLAZA("广场"),
     PLAZA_COMPOSE("发帖"),
+    PLAZA_REPORT("广场举报"),
+    PLAZA_BLOCKS("广场屏蔽名单"),
     PLAZA_OPEN_ILLUST("Plaza打开作品"),
     PLAZA_POST_DETAIL("Plaza帖子详情"),
     NOTIFICATION_CENTER("通知中心"),

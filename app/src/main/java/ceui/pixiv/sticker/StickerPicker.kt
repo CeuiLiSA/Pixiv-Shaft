@@ -1,9 +1,13 @@
 package ceui.pixiv.sticker
 
 import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.RippleDrawable
 import android.content.res.ColorStateList
 import android.graphics.drawable.InsetDrawable
-import android.os.Parcelable
 import android.view.Gravity
 import android.view.KeyEvent
 import android.util.TypedValue
@@ -16,6 +20,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnAttach
@@ -24,6 +29,8 @@ import androidx.core.view.AccessibilityDelegateCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
+import kotlin.math.abs
 import ceui.lisa.R
 import ceui.pixiv.witstudio.dialog.WitBottomSheet
 import ceui.pixiv.witstudio.theme.V3Palette
@@ -89,7 +96,7 @@ object StickerPicker {
                     cachedGeneration = state.data.generation
                     body.addView(panel)
                     tabSlot.removeAllViews()
-                    tabSlot.addView(panel.tabs, FrameLayout.LayoutParams(-2, -2, Gravity.END or Gravity.CENTER_VERTICAL))
+                    tabSlot.addView(panel.tabs, FrameLayout.LayoutParams(-2, -2, Gravity.START or Gravity.CENTER_VERTICAL))
                     displayed = state.data.generation
                 }
                 else -> {
@@ -146,8 +153,9 @@ object StickerPicker {
             val palette = V3Palette.from(context)
             val header = LinearLayout(context).apply {
                 gravity = Gravity.CENTER_VERTICAL
-                setPadding(0, 0, dp(context, 20), 0)
+                setPadding(dp(context, 20), 0, 0, 0)
                 minimumHeight = dp(context, if (inline) 48 else 56)
+                addView(tabSlot, LayoutParams(0, -2, 1f))
                 if (close != null) addView(TextView(context).apply {
                     setText(R.string.sticker_close)
                     textSize = 16f
@@ -161,7 +169,6 @@ object StickerPicker {
                     isFocusable = true
                     setOnClickListener { close() }
                 }, LayoutParams(-2, -2))
-                addView(tabSlot, LayoutParams(0, -2, 1f))
             }
             addView(header, LayoutParams(-1, -2))
             addView(body, LayoutParams(-1, 0, 1f))
@@ -180,57 +187,106 @@ object StickerPicker {
     }
 }
 
-/** One grid; lists and scroll positions are retained for the lifetime of the picker. */
+/** Each category owns its grid, preserving vertical scroll position across horizontal swipes. */
 internal class StickerPanel(context: Context, ready: StickerStore.Ready, applyBottomInset: Boolean = true, selected: (Sticker) -> Unit) : LinearLayout(context) {
-    private val lists = StickerCatalog.TYPES.map { ready.catalog.packs.getValue(it).stickers() }
-    private val positions = arrayOfNulls<Parcelable>(lists.size)
-    private var selectedIndex = 0
-    private val adapter = StickerAdapter(lists.first(), selected)
-    private val manager = GridLayoutManager(context, 4).apply { isItemPrefetchEnabled = false }
-    val tabs = StickerCategoryTabs(context, ::select)
-    private val grid = RecyclerView(context).apply {
-        layoutManager = manager
-        adapter = this@StickerPanel.adapter
-        itemAnimator = null
-        setHasFixedSize(true)
-        setItemViewCacheSize(0) // Detached animated stickers must not keep decoders running.
-        clipToPadding = false
-        setPadding(dp(context, 12), dp(context, 12), dp(context, 12), dp(context, 8))
-        if (applyBottomInset) ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
-            val bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime()).bottom
-            view.updatePadding(bottom = dp(context, 8) + bottom)
-            insets
+    private val grids = StickerCatalog.TYPES.map { type ->
+        RecyclerView(context).apply {
+            layoutManager = GridLayoutManager(context, 4).apply { isItemPrefetchEnabled = false }
+            adapter = StickerAdapter(ready.catalog.packs.getValue(type).stickers(), selected)
+            itemAnimator = null
+            setHasFixedSize(true)
+            setItemViewCacheSize(0)
+            clipToPadding = false
+            setPadding(dp(context, 12), dp(context, 12), dp(context, 12), dp(context, 8))
+            if (applyBottomInset) ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
+                val bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime()).bottom
+                view.updatePadding(bottom = dp(context, 8) + bottom)
+                insets
+            }
+            doOnAttach { ViewCompat.requestApplyInsets(it) }
         }
-        doOnAttach { ViewCompat.requestApplyInsets(it) }
     }
+    private val pager = ViewPager2(context)
+    val tabs = StickerCategoryTabs(context) { pager.setCurrentItem(it, true) }
+
     init {
         orientation = VERTICAL
-        addView(grid, LayoutParams(-1, 0, 1f))
+        pager.adapter = object : RecyclerView.Adapter<PageHolder>() {
+            override fun getItemCount() = grids.size
+            override fun getItemViewType(position: Int) = position
+            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+                PageHolder(FrameLayout(parent.context).apply {
+                    layoutParams = ViewGroup.LayoutParams(-1, -1)
+                })
+            override fun onBindViewHolder(holder: PageHolder, position: Int) {
+                val grid = grids[position]
+                if (grid.parent !== holder.frame) {
+                    (grid.parent as? ViewGroup)?.removeView(grid)
+                    holder.frame.removeAllViews()
+                    holder.frame.addView(grid, FrameLayout.LayoutParams(-1, -1))
+                }
+            }
+            override fun onViewRecycled(holder: PageHolder) { holder.frame.removeAllViews() }
+        }
+        pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+                tabs.setScrollPosition(position, positionOffset)
+            }
+            override fun onPageSelected(position: Int) {
+                tabs.setSelectedIndex(position)
+                StickerLog.d("panel_tab type=%s", StickerCatalog.TYPES[position])
+            }
+            override fun onPageScrollStateChanged(state: Int) {
+                if (state == ViewPager2.SCROLL_STATE_IDLE) tabs.setScrollPosition(pager.currentItem, 0f)
+            }
+        })
+        addView(pager, LayoutParams(-1, 0, 1f))
     }
-    private fun select(index: Int) {
-        if (index == selectedIndex) return
-        grid.stopScroll()
-        positions[selectedIndex] = manager.onSaveInstanceState()
-        selectedIndex = index
-        adapter.replace(lists[index])
-        positions[index]?.let(manager::onRestoreInstanceState) ?: manager.scrollToPositionWithOffset(0, 0)
-        StickerLog.d("panel_tab type=%s items=%d", StickerCatalog.TYPES[index], lists[index].size)
-    }
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        val columns = ((w - grid.paddingLeft - grid.paddingRight) / dp(context, 48)).coerceIn(3, 12)
-        if (manager.spanCount != columns) manager.spanCount = columns
+        grids.forEach { grid ->
+            val columns = ((w - grid.paddingLeft - grid.paddingRight) / dp(context, 48)).coerceIn(3, 12)
+            val manager = grid.layoutManager as GridLayoutManager
+            if (manager.spanCount != columns) manager.spanCount = columns
+        }
     }
+
+    private class PageHolder(val frame: FrameLayout) : RecyclerView.ViewHolder(frame)
 }
 
 /** Reader settings' 42dp track / 36dp segment, inset inside 48dp touch targets. */
 internal class StickerCategoryTabs(context: Context, private val onSelected: (Int) -> Unit) : HorizontalScrollView(context) {
     private val cells = ArrayList<TextView>(3)
     private var selectedIndex = 0
+    private var scrollPosition = 0f
+    private val palette = V3Palette.from(context)
+    private val normalTextColor = ContextCompat.getColor(context, R.color.v3_text_1)
+    private val indicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.primary }
+    private val indicatorBounds = RectF()
+    private val row = object : LinearLayout(context) {
+        override fun dispatchDraw(canvas: Canvas) {
+            if (cells.isNotEmpty()) {
+                val start = scrollPosition.toInt().coerceIn(cells.indices)
+                val end = (start + 1).coerceAtMost(cells.lastIndex)
+                val offset = scrollPosition - start
+                val from = cells[start]
+                val to = cells[end]
+                indicatorBounds.set(
+                    from.left + (to.left - from.left) * offset,
+                    dp(context, 6).toFloat(),
+                    from.right + (to.right - from.right) * offset,
+                    height - dp(context, 6).toFloat(),
+                )
+                val radius = dp(context, 11).toFloat()
+                canvas.drawRoundRect(indicatorBounds, radius, radius, indicatorPaint)
+            }
+            super.dispatchDraw(canvas)
+        }
+    }
     init {
         isHorizontalScrollBarEnabled = false
-        val palette = V3Palette.from(context)
-        val row = LinearLayout(context).apply {
+        row.apply {
             background = InsetDrawable(ContextCompat.getDrawable(context, R.drawable.bg_reader_segment_track), 0, dp(context, 3), 0, dp(context, 3))
             setPadding(dp(context, 3), 0, dp(context, 3), 0)
         }
@@ -244,11 +300,18 @@ internal class StickerCategoryTabs(context: Context, private val onSelected: (In
                 setSingleLine()
                 minWidth = dp(context, 64)
                 minimumHeight = dp(context, 48)
-                // Reuse the reader's selected-state drawable, including its rounded ripple mask.
-                background = InsetDrawable(ContextCompat.getDrawable(context, R.drawable.bg_reader_segment_option), 0, dp(context, 6), 0, dp(context, 6))
+                // The shared indicator moves beneath labels; each label only draws its ripple.
+                val rippleColor = TypedValue().also {
+                    context.theme.resolveAttribute(android.R.attr.colorControlHighlight, it, true)
+                }.data
+                val mask = GradientDrawable().apply {
+                    cornerRadius = dp(context, 11).toFloat()
+                    setColor(android.graphics.Color.WHITE)
+                }
+                background = InsetDrawable(RippleDrawable(ColorStateList.valueOf(rippleColor), null, mask),
+                    0, dp(context, 6), 0, dp(context, 6))
                 setPadding(dp(context, 16), dp(context, 6), dp(context, 16), dp(context, 6))
-                setTextColor(ColorStateList(arrayOf(intArrayOf(android.R.attr.state_selected), intArrayOf()),
-                    intArrayOf(palette.onPrimary, ContextCompat.getColor(context, R.color.v3_text_1))))
+                setTextColor(if (index == 0) palette.onPrimary else normalTextColor)
                 isSelected = index == 0
                 isFocusable = true
                 setOnClickListener { select(index) }
@@ -281,22 +344,38 @@ internal class StickerCategoryTabs(context: Context, private val onSelected: (In
     }
     fun select(index: Int) {
         if (index !in cells.indices || index == selectedIndex) return
-        cells[selectedIndex].isSelected = false
-        selectedIndex = index
-        cells[index].isSelected = true
+        setSelectedIndex(index)
         onSelected(index)
+    }
+
+    fun setSelectedIndex(index: Int) {
+        if (index !in cells.indices) return
+        selectedIndex = index
+        cells.forEachIndexed { i, cell -> cell.isSelected = i == index }
+    }
+
+    /** Driven by the pager for dragging, settling, reversing and cancelled swipes alike. */
+    fun setScrollPosition(position: Int, offset: Float) {
+        scrollPosition = (position + offset).coerceIn(0f, cells.lastIndex.toFloat())
+        cells.forEachIndexed { index, cell ->
+            val coverage = (1f - abs(index - scrollPosition)).coerceIn(0f, 1f)
+            cell.setTextColor(ColorUtils.blendARGB(normalTextColor, palette.onPrimary, coverage))
+        }
+        row.invalidate()
+        // Keep the moving selection visible when translated labels or large fonts overflow.
+        val from = cells[scrollPosition.toInt()]
+        val to = cells[(scrollPosition.toInt() + 1).coerceAtMost(cells.lastIndex)]
+        val fraction = scrollPosition % 1f
+        val center = (from.left + from.right) / 2f * (1f - fraction) + (to.left + to.right) / 2f * fraction
+        scrollTo((center - width / 2f).toInt().coerceAtLeast(0), 0)
     }
 }
 
-private class StickerAdapter(private var items: List<Sticker>, private val selected: (Sticker) -> Unit) : RecyclerView.Adapter<StickerAdapter.Holder>() {
+private class StickerAdapter(private val items: List<Sticker>, private val selected: (Sticker) -> Unit) : RecyclerView.Adapter<StickerAdapter.Holder>() {
     init { setHasStableIds(true) }
     class Holder(val image: StickerImageView) : RecyclerView.ViewHolder(image)
     override fun getItemCount() = items.size
     override fun getItemId(position: Int) = items[position].stickerId
-    fun replace(next: List<Sticker>) {
-        items = next
-        notifyDataSetChanged() // A different category; no whole-list diff or change animation.
-    }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = Holder(StickerImageView(parent.context).apply {
         layoutParams = ViewGroup.LayoutParams(-1, dp(context, 48))
         setPadding(dp(context, 8), dp(context, 8), dp(context, 8), dp(context, 8))

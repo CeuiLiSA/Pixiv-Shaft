@@ -130,13 +130,13 @@ class PlazaFigmaRenderTest {
                                 androidx.core.content.ContextCompat.getColor(context, R.color.v3_bg)
                             )
                         }
-                    screen.addView(
-                        PlazaHeader(context).apply {
-                            title.text = if (detail) "帖子详情" else "广场"
-                            action.text = if (detail) "更多" else "发帖"
-                        },
-                        android.widget.LinearLayout.LayoutParams(-1, 64),
-                    )
+                    android.view.LayoutInflater.from(context)
+                        .inflate(R.layout.toolbar_layout, screen, true)
+                    screen.findViewById<android.widget.TextView>(R.id.toolbar_title).text =
+                        if (detail) "帖子详情" else "广场"
+                    screen.findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+                        .menu.add(if (detail) "更多" else "发帖")
+                        .setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS)
                     screen.addView(view)
                     if (detail) {
                         screen.addView(
@@ -162,7 +162,7 @@ class PlazaFigmaRenderTest {
                                     )
                                 }
                         )
-                        screen.addView(PlazaReplyBar(context, {}, {}, {}).apply { bind(post) })
+                        screen.addView(PlazaReplyBar(context))
                     }
                     screen.measure(
                         View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),

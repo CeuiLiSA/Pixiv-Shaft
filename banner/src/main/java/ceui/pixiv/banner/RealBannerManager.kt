@@ -44,11 +44,21 @@ class RealBannerManager(
     private val _queueSize = MutableStateFlow(0)
     override val queueSize: StateFlow<Int> = _queueSize.asStateFlow()
 
+    private val _hasStartedHost = MutableStateFlow(false)
+    override val hasStartedHost: StateFlow<Boolean> = _hasStartedHost.asStateFlow()
+
     @Volatile
     private var isShutdown: Boolean = false
 
     private var started: Boolean = false
     private var autoDismissJob: Job? = null
+
+    /**
+     * Presenters currently in STARTED. Main-thread confined like [queue].
+     * A request may only enter `Presenting` while this is > 0; otherwise
+     * `present()` holds it back and no auto-dismiss clock is started.
+     */
+    private var activeHostCount: Int = 0
 
     override fun start() {
         check(!isShutdown) { "BannerManager is shut down" }
@@ -58,6 +68,16 @@ class RealBannerManager(
         }
         started = true
         Timber.tag(TAG).i("BannerManager started (maxQueueSize=$maxQueueSize)")
+    }
+
+    override fun onHostStarted() {
+        if (isShutdown) return
+        scope.launch { handleHostStarted() }
+    }
+
+    override fun onHostStopped() {
+        if (isShutdown) return
+        scope.launch { handleHostStopped() }
     }
 
     override fun enqueue(request: BannerRequest): Boolean {
@@ -126,6 +146,8 @@ class RealBannerManager(
         autoDismissJob = null
         queue.clear()
         _queueSize.value = 0
+        activeHostCount = 0
+        _hasStartedHost.value = false
         _state.value = BannerState.Shutdown
         scope.cancel()
         Timber.tag(TAG).i("BannerManager shut down")
@@ -191,8 +213,29 @@ class RealBannerManager(
         }
     }
 
+    private fun handleHostStarted() {
+        activeHostCount++
+        if (activeHostCount == 1) {
+            _hasStartedHost.value = true
+            Timber.tag(TAG).d("first host started; draining held banner queue")
+            advanceIfIdle()
+        }
+    }
+
+    private fun handleHostStopped() {
+        if (activeHostCount > 0) activeHostCount--
+        if (activeHostCount == 0) {
+            _hasStartedHost.value = false
+            Timber.tag(TAG).d("all hosts stopped; new banners will be held")
+        }
+    }
+
     private fun advanceIfIdle() {
         if (queue.currentRequest() != null) return
+        if (activeHostCount == 0) {
+            _state.value = BannerState.Idle
+            return
+        }
         val next = queue.pollNext() ?: run {
             _state.value = BannerState.Idle
             return
@@ -202,6 +245,13 @@ class RealBannerManager(
     }
 
     private fun present(request: BannerRequest) {
+        if (activeHostCount == 0) {
+            queue.pushFront(request)
+            _queueSize.value = queue.size()
+            _state.value = BannerState.Idle
+            Timber.tag(TAG).d("no started host; holding %s for the next one", request.id)
+            return
+        }
         queue.markPresenting(request)
         _state.value = BannerState.Presenting(request)
         _events.tryEmit(BannerEvent.Shown(request.id))

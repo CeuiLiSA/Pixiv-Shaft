@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_recommendations">今日のおすすめ</string>
+    <string name="daily_recommendations_intro">この端末のブックマークとフォローを参考に、毎日イラストを更新します。下に引くと再読み込みできます。</string>
+    <string name="daily_recommendations_personalized">%1$s · ブックマークとフォローに基づくおすすめです。翌日の北京時間 0 時に更新されます。</string>
+    <string name="daily_recommendations_popular">%1$s · 好みの記録が少ないため、人気作品を表示しています。</string>
+    <string name="daily_recommendations_login">ログインして今日のおすすめを見る</string>
+    <string name="daily_recommendations_unavailable">今日のおすすめは現在利用できません。しばらくしてから下に引いて再試行してください</string>
+    <string name="daily_recommendations_empty">今日はフィルター条件に合うおすすめ作品がありません。しばらくしてから下に引いて再試行してください。</string>
+    <string name="daily_recommendations_expired">おすすめが更新されました。下に引いて更新してから閲覧を続けてください</string>
+</resources>

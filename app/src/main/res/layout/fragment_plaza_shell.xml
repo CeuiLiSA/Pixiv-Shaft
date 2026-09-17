@@ -5,10 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/v3_bg"
     android:orientation="vertical">
-    <ceui.pixiv.plaza.ui.PlazaHeader
-        android:id="@+id/plaza_header"
-        android:layout_width="match_parent"
-        android:layout_height="64dp"/>
+    <include layout="@layout/toolbar_layout"/>
     <FrameLayout
         android:id="@+id/plaza_content"
         android:layout_width="match_parent"

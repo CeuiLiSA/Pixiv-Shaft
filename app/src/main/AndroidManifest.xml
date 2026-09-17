@@ -122,6 +122,7 @@
         </activity>
         <activity
             android:name=".activities.TemplateActivity"
+            android:enableOnBackInvokedCallback="true"
             android:theme="@style/SplashTheme"
             android:windowSoftInputMode="adjustPan"/>
         <activity

@@ -146,6 +146,9 @@ public class Settings {
     //是否启用 FIREBASE_ANALYTICS_COLLECTION
     private boolean isFirebaseEnable = true;
 
+    //是否启用 Timber 日志写入「日志文件」桶（试验性，重启生效）
+    private boolean logFileEnabled = false;
+
     private long currentProgress = 0L;
 
     public long getCurrentProgress() {
@@ -571,6 +574,14 @@ public class Settings {
 
     public void setFirebaseEnable(boolean firebaseEnable) {
         isFirebaseEnable = firebaseEnable;
+    }
+
+    public boolean isLogFileEnabled() {
+        return logFileEnabled;
+    }
+
+    public void setLogFileEnabled(boolean logFileEnabled) {
+        this.logFileEnabled = logFileEnabled;
     }
 
     public void setThemeType(AppCompatActivity activity, ThemeHelper.ThemeType themeType) {

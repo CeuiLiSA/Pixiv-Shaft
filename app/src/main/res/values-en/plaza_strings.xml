@@ -78,4 +78,15 @@
     <string name="plaza_error_title">Action failed</string>
     <string name="plaza_preview_author">%1$s:</string>
     <string name="plaza_media_size_unknown">Cannot read a valid image size. Please select it again.</string>
+    <string name="plaza_filter_all">All</string>
+    <string name="plaza_filter_mine">Mine</string>
+    <string name="plaza_retry">Retry</string>
+    <string name="plaza_empty_title">No posts yet</string>
+    <string name="plaza_empty_desc">Publish a post to share the works and thoughts you are following.</string>
+    <string name="plaza_mine_empty_desc">Posts you publish will appear here.</string>
+    <string name="plaza_load_error_title">Could not load</string>
+    <string name="plaza_title_label">Title</string>
+    <string name="plaza_body_label">Text</string>
+    <string name="plaza_char_count">%1$d / %2$d</string>
+    <string name="plaza_reference_hint">Link a Pixiv work or user</string>
 </resources>

@@ -8,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.*
@@ -53,8 +55,9 @@ class StickerPickerTest {
             container.measure(View.MeasureSpec.makeMeasureSpec(dp(context, 320), View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(dp(context, 270), View.MeasureSpec.EXACTLY))
             container.layout(0, 0, container.measuredWidth, container.measuredHeight)
-            val grid = descendants(container).filterIsInstance<RecyclerView>().single()
+            val grid = descendants(container).filterIsInstance<RecyclerView>().first { it.layoutManager is GridLayoutManager }
             val tabs = descendants(container).filterIsInstance<StickerCategoryTabs>().single()
+            val pager = descendants(container).filterIsInstance<ViewPager2>().single()
             assertEquals(dp(context, 270), container.getChildAt(0).height)
             assertTrue(descendants(container).filterIsInstance<android.widget.TextView>()
                 .none { it.text == context.getString(R.string.sticker_close) })
@@ -72,7 +75,8 @@ class StickerPickerTest {
             assertTrue(descendants(container).none { it is RecyclerView })
             state.value = ready
             shadowOf(Looper.getMainLooper()).idle()
-            assertSame(grid, descendants(container).filterIsInstance<RecyclerView>().single())
+            assertSame(pager, descendants(container).filterIsInstance<ViewPager2>().single())
+            assertEquals(2, pager.currentItem)
             assertTrue(descendants(tabs).filterIsInstance<android.widget.TextView>().last().isSelected)
             owner.registry.currentState = androidx.lifecycle.Lifecycle.State.CREATED
             shadowOf(Looper.getMainLooper()).idle()
@@ -106,11 +110,14 @@ class StickerPickerTest {
                     tabs.select(index)
                     val cell = cells[index]
                     assertTrue(cell.isSelected)
-                    val ripple = (cell.background as android.graphics.drawable.InsetDrawable).drawable as android.graphics.drawable.RippleDrawable
-                    val selected = ripple.getDrawable(1).current as android.graphics.drawable.GradientDrawable
+                    tabs.setScrollPosition(index, 0f)
+                    val bitmap = android.graphics.Bitmap.createBitmap(track.width, track.height, android.graphics.Bitmap.Config.ARGB_8888)
+                    track.draw(android.graphics.Canvas(bitmap))
                     val palette = ceui.pixiv.witstudio.theme.V3Palette.from(context)
-                    assertEquals("Selected fill must equal the host primary", palette.primary, selected.color!!.defaultColor)
+                    assertEquals("Moving fill must equal the host primary", palette.primary,
+                        bitmap.getPixel(cell.left + cell.width / 2, dp(context, 8)))
                     assertEquals(palette.onPrimary, cell.currentTextColor)
+                    bitmap.recycle()
                 }
             }
         } finally { activity.finish() }
@@ -138,7 +145,7 @@ class StickerPickerTest {
                     root.measure(View.MeasureSpec.makeMeasureSpec(dp(context, 320), View.MeasureSpec.EXACTLY),
                         View.MeasureSpec.makeMeasureSpec(dp(context, 640), View.MeasureSpec.AT_MOST))
                     root.layout(0, 0, root.measuredWidth, root.measuredHeight)
-                    val grid = descendants(root).filterIsInstance<RecyclerView>().single()
+                    val grid = descendants(root).filterIsInstance<RecyclerView>().first { it.layoutManager is GridLayoutManager }
                     assertTrue("Grid has usable height", grid.measuredHeight > 0)
                     assertFalse("No visible title row", descendants(root).filterIsInstance<android.widget.TextView>()
                         .any { it.text == context.getString(R.string.sticker_title) })
@@ -151,7 +158,8 @@ class StickerPickerTest {
                     tabs.getGlobalVisibleRect(tabBounds)
                     close.getGlobalVisibleRect(closeBounds)
                     assertTrue("Tabs share the close row", tabBounds.top < closeBounds.bottom && closeBounds.top < tabBounds.bottom)
-                    assertTrue("Tabs are to the right of close", tabBounds.left >= closeBounds.right)
+                    assertTrue("Tabs are to the left of close", tabBounds.right <= closeBounds.left)
+                    assertEquals("Tabs use the shared left inset", dp(context, 20), tabBounds.left)
                     val insets = androidx.core.view.WindowInsetsCompat.Builder()
                         .setInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars(), androidx.core.graphics.Insets.of(0, 0, 0, dp(context, 24))).build()
                     val sheet = dialog.findViewById<ViewGroup>(com.google.android.material.R.id.design_bottom_sheet)!!
@@ -167,10 +175,13 @@ class StickerPickerTest {
                     })
                     tabs.select(2)
                     tabs.select(2)
-                    assertSame("Switching tabs reuses the grid adapter", adapter, grid.adapter)
-                    assertEquals("Reselection does not rebind visible images", 1, changes)
+                    val pager = descendants(root).filterIsInstance<ViewPager2>().single()
+                    assertEquals(2, pager.currentItem)
+                    assertSame("Each page retains its grid adapter", adapter, grid.adapter)
+                    assertEquals("Switching categories does not replace grid contents", 0, changes)
                     tabs.select(0)
-                    assertEquals(2, changes)
+                    assertEquals(0, pager.currentItem)
+                    assertEquals(0, changes)
                     // A real scroll layout verifies the final row can clear the gesture bar.
                     grid.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                         override fun getItemCount() = 100
@@ -190,6 +201,44 @@ class StickerPickerTest {
                     shadowOf(Looper.getMainLooper()).idle()
                     assertEquals(0, descendants(root).filterIsInstance<RecyclerView>().size)
                 } finally { dialog.dismiss() }
+            }
+        } finally { activity.finish() }
+    }
+
+
+    @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
+    @Test fun `indicator follows fractional progress in both directions and cancelled drags`() {
+        val activity = Robolectric.buildActivity(Activity::class.java).setup().get()
+        try {
+            for (rtl in listOf(false, true)) for (dark in listOf(false, true)) for (scale in listOf(1f, 2f)) {
+                val config = Configuration(activity.resources.configuration).apply {
+                    fontScale = scale
+                    uiMode = if (dark) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
+                }
+                val context = ContextThemeWrapper(activity.createConfigurationContext(config), R.style.AppTheme_Index0)
+                val tabs = StickerCategoryTabs(context) {}
+                tabs.layoutDirection = if (rtl) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
+                tabs.measure(View.MeasureSpec.makeMeasureSpec(dp(context, 280), View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(dp(context, 100), View.MeasureSpec.AT_MOST))
+                tabs.layout(0, 0, tabs.measuredWidth, tabs.measuredHeight)
+                val track = tabs.getChildAt(0)
+                val cells = descendants(track).filterIsInstance<android.widget.TextView>()
+                val primary = ceui.pixiv.witstudio.theme.V3Palette.from(context).primary
+                val bitmap = android.graphics.Bitmap.createBitmap(track.width, track.height, android.graphics.Bitmap.Config.ARGB_8888)
+                for (progress in listOf(0f, .25f, .5f, .75f, 1f, 1.5f, 2f, 1.5f, 1f, .5f, 0f)) {
+                    val index = progress.toInt()
+                    val offset = progress - index
+                    tabs.setScrollPosition(index, offset)
+                    track.draw(android.graphics.Canvas(bitmap))
+                    val from = cells[index]
+                    val to = cells[(index + 1).coerceAtMost(2)]
+                    val expectedCenter = ((from.left + from.right) * (1 - offset) + (to.left + to.right) * offset) / 2
+                    val colored = (0 until bitmap.width).filter { bitmap.getPixel(it, dp(context, 8)) == primary }
+                    assertTrue("Indicator exists at $progress", colored.isNotEmpty())
+                    assertEquals("Indicator continuously follows page position $progress", expectedCenter,
+                        (colored.first() + colored.last()) / 2f, 2f)
+                }
+                bitmap.recycle()
             }
         } finally { activity.finish() }
     }

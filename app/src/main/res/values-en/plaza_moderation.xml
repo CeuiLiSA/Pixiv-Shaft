@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plaza_report_post">Report post or comment</string>
+    <string name="plaza_report_user">Report author</string>
+    <string name="plaza_block_user">Block author</string>
+    <string name="plaza_blocked_users">Blocked plaza users</string>
+    <string name="plaza_report_notice">Choose a reason. Reports are private and reviewed by our moderation team. Reporters are not identified to the author.</string>
+    <string name="plaza_report_details">Additional details (optional, up to 1000 characters)</string>
+    <string name="plaza_report_required">Please select a reason.</string>
+    <string name="plaza_report_submit">Submit report</string>
+    <string name="plaza_report_success">Report #%1$d received. Our moderation team will review it.</string>
+    <string name="plaza_report_sending">Processing…</string>
+    <string name="plaza_block_notice">You will no longer see each other’s posts or comments in the plaza or interact with them. You can unblock this author from Blocked plaza users.</string>
+    <string name="plaza_block_success">Author blocked in the plaza.</string>
+    <string name="plaza_blocks_notice">Blocking applies only to the plaza. Unblocking restores this user’s posts and comments.</string>
+    <string name="plaza_blocks_empty">No blocked users.</string>
+    <string name="plaza_unblock_user">Unblock %1$s</string>
+    <string name="plaza_policy_title">Plaza community guidelines</string>
+    <string name="plaza_policy_accept">Accept and publish</string>
+    <string name="plaza_policy_required">Please accept the current plaza community guidelines before publishing.</string>
+    <string name="plaza_forbidden">This plaza action is unavailable. Your account may be restricted.</string>
+    <string name="plaza_policy_body">Posts and comments are public. Do not publish sexual content; child sexual abuse or exploitation; violence or threats; hate; harassment; private information without consent; scams, spam or illegal content. Only share content you have the right to publish.\n\nYou can report posts, comments and authors, and block users in the More menu. Moderators may remove content or suspend plaza access. Reports are private and are reviewed by moderators. By selecting Accept and publish, you agree to these rules (2026-09-16).</string>
+    <string-array name="plaza_report_reasons">
+        <item>Child safety</item>
+        <item>Sexual content</item>
+        <item>Violence or threats</item>
+        <item>Hate</item>
+        <item>Harassment or bullying</item>
+        <item>Privacy infringement</item>
+        <item>Advertising</item>
+        <item>Spam or scams</item>
+        <item>Illegal content</item>
+        <item>Other</item>
+    </string-array>
+    <string name="plaza_report_reviewed">Report #%1$d has already been reviewed. No need to submit it again.</string>
+    <string name="plaza_report_title">Report</string>
+    <string name="plaza_report_reason_title">Reason (required)</string>
+    <string name="plaza_report_details_title">Additional details (optional)</string>
+    <string name="plaza_report_details_hint">Describe what happened</string>
+    <string name="plaza_report_photos_title">Photo evidence (optional)</string>
+    <string name="plaza_report_photos_hint">Add up to 3 photos to help moderators review your report.</string>
+    <string name="plaza_report_received_title">Report submitted</string>
+    <string name="plaza_report_target">Post #%1$d · Author %2$d</string>
+    <string name="plaza_report_finish">Done</string>
+    <string name="plaza_unblock_action">Unblock</string>
+</resources>

@@ -21,4 +21,6 @@ object ObjectSpec {
     // 是两套独立命名空间，会在 (id, POST) 上撞键，导致 get<Novel> 取到 Illust 后
     // ClassCastException。User 已完成单模型迁移，KUser 现在是唯一用户对象池类型。
     const val KNovel = 9
+
+    const val PLAZA_POST = 10
 }

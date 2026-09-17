@@ -12,6 +12,7 @@ import ceui.pixiv.api.model.GifInfoResponse
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.api.model.UserPreview
 import ceui.pixiv.api.model.UserResponse
+import ceui.pixiv.plaza.PlazaPostCacheEntry
 import com.google.gson.Gson
 import java.io.Serializable
 import kotlin.reflect.KClass
@@ -79,6 +80,18 @@ object ObjectPool {
     /** 当前池内条目数，只供日志 / 调试。 */
     val size: Int
         get() = synchronized(lock) { store.size }
+
+    /** Main thread: safety changes invalidate every retained plaza view, including offscreen details. */
+    fun invalidatePlaza(viewerUid: Long, revision: Long) {
+        val entries = synchronized(lock) {
+            store.values.mapNotNull { live ->
+                (live.value as? PlazaPostCacheEntry)?.takeIf { it.viewerUid == viewerUid }?.let { live to it }
+            }
+        }
+        entries.forEach { (live, entry) ->
+            live.value = PlazaPostCacheEntry(entry.id, viewerUid, null, System.currentTimeMillis(), revision)
+        }
+    }
 
     fun putUserPreview(preview: UserPreview) {
         preview.user?.let { user ->
@@ -247,6 +260,9 @@ object ObjectPool {
             }
             UserResponse::class -> {
                 ObjectSpec.UserProfile
+            }
+            PlazaPostCacheEntry::class -> {
+                ObjectSpec.PLAZA_POST
             }
             else -> {
                 ObjectSpec.UNKNOWN
