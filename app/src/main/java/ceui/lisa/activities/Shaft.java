@@ -83,6 +83,8 @@ public class Shaft extends Application implements ServicesProvider {
     private ceui.pixiv.actions.Nana7miSearchTelemetry nana7miSearchTelemetry;
     private ceui.pixiv.config.RemoteAppConfig remoteAppConfig;
     private ceui.pixiv.events.EventReporter eventReporter;
+    private ceui.pixiv.chat.api.ShaftChatGateway chatGateway;
+    private ceui.pixiv.sticker.StickerRepository stickerRepository;
     private ceui.pixiv.db.mirror.BookmarkMirrorService bookmarkMirror;
 
     private EntityWrapper entityWrapper;
@@ -392,6 +394,8 @@ public class Shaft extends Application implements ServicesProvider {
         nana7miSearchTelemetry = new ceui.pixiv.actions.Nana7miSearchTelemetry(this);
         remoteAppConfig = new ceui.pixiv.config.RemoteAppConfig(this);
         eventReporter = new ceui.pixiv.events.EventReporter(this);
+        chatGateway = new ceui.pixiv.chat.api.ShaftChatGateway(this);
+        stickerRepository = new ceui.pixiv.sticker.StickerRepository(this);
         bookmarkMirror = new ceui.pixiv.db.mirror.BookmarkMirrorService(this);
 
         SessionManager.INSTANCE.initialize();
@@ -639,7 +643,7 @@ public class Shaft extends Application implements ServicesProvider {
         // 全局复用,生命周期与进程一致(匿名协议没有"退登")。必须在
         // EventReporter.start 之后,因为 ShaftHmacAuthProvider 要靠
         // currentClientId() 签 URL,init 同步把 clientId 写好。
-        step("ShaftChatGateway", () -> ceui.pixiv.chat.api.ShaftChatGateway.INSTANCE.bootstrap(this));
+        step("ShaftChatGateway", chatGateway::bootstrap);
 
         // In-app banner system. 必须在 ShaftChatGateway.bootstrap 之后,
         // ChatBannerBridge 订阅 gateway.incoming。
@@ -698,7 +702,7 @@ public class Shaft extends Application implements ServicesProvider {
 
         // 贴纸资源预热。**只读本地**：没装过就什么都不做（不发一个请求、不下一个字节），
         // 已经装好的则在这里把校验跑完，免得用户第一次点开贴纸面板要干等几秒。
-        step("StickerWarmUp", ceui.pixiv.sticker.StickerWarmUp::trigger);
+        step("StickerWarmUp", () -> ceui.pixiv.sticker.StickerWarmUp.trigger(stickerRepository));
 
         // 同义词词典内置数据自动导入（issue #904）：启动 15 秒后后台静默导入，只导一次
         // （flag 记 MMKV 设备本地，不随 Settings 同步）。合并导入不覆盖用户已有词典。
@@ -999,5 +1003,15 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public @NotNull ceui.pixiv.events.EventReporter getEventReporter() {
         return eventReporter;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.chat.api.ShaftChatGateway getChatGateway() {
+        return chatGateway;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.sticker.StickerRepository getStickerRepository() {
+        return stickerRepository;
     }
 }

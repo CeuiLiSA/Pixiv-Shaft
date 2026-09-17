@@ -32,6 +32,7 @@ import androidx.viewpager2.widget.ViewPager2
 import ceui.pixiv.witstudio.theme.v3Font
 import kotlin.math.abs
 import ceui.lisa.R
+import ceui.pixiv.services.appServices
 import ceui.pixiv.witstudio.dialog.WitBottomSheet
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.widget.WitRoundButton
@@ -43,8 +44,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 object StickerPicker {
-    fun show(context: Context, onSelected: (Sticker) -> Unit) =
-        show(context, StickerRepository.state, { StickerRepository.prepare(recheck = true) }, onSelected)
+    fun show(context: Context, onSelected: (Sticker) -> Unit): WitBottomSheet {
+        val repository = context.appServices().stickerRepository
+        return show(context, repository.state, { repository.prepare(recheck = true) }, onSelected)
+    }
 
     internal fun show(context: Context, stateFlow: StateFlow<StickerState>, prepare: () -> Unit, onSelected: (Sticker) -> Unit): WitBottomSheet {
         StickerLog.i("panel_requested state=%s", stateFlow.value.javaClass.simpleName)

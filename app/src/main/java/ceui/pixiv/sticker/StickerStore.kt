@@ -10,7 +10,7 @@ import java.util.zip.CRC32
 import java.util.zip.ZipFile
 
 /** Disk transaction used only on Dispatchers.IO, serialized by StickerRepository. */
-internal class StickerStore(private val root: File, private val event: (String) -> Unit = {}) {
+class StickerStore(private val root: File, private val event: (String) -> Unit = {}) {
     private val gson = Gson()
     private data class ExtractedFile(val path: String, val size: Long, val crc: Long)
     private data class Extraction(val sha256: String, val files: List<ExtractedFile>)

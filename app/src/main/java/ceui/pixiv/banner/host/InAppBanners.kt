@@ -17,6 +17,7 @@ import ceui.pixiv.banner.BannerManager
 import ceui.pixiv.banner.BannerViewBinder
 import ceui.pixiv.banner.DefaultBannerViewBinder
 import ceui.pixiv.banner.RealBannerManager
+import ceui.pixiv.services.appServices
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -88,7 +89,7 @@ object InAppBanners {
             installer.installNow(it)
         }
 
-        ChatBannerBridge(app, manager, scope).start()
+        ChatBannerBridge(app, manager, scope, app.appServices().chatGateway).start()
 
         scope.launch {
             manager.events.collect { event ->

@@ -1,6 +1,6 @@
 package ceui.pixiv.sticker
 
-import ceui.lisa.activities.Shaft
+import android.app.Application
 import ceui.pixiv.shaftapi.MediaHttpTransport
 import com.google.gson.Gson
 import java.io.File
@@ -20,21 +20,27 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.Request
 
-internal sealed interface StickerState {
+sealed interface StickerState {
     data object Idle : StickerState
     data class Loading(val phase: String = "catalog", val bytes: Long = 0, val total: Long = 0) : StickerState
     data class Ready(val data: StickerStore.Ready) : StickerState
     data class Failed(val error: Exception) : StickerState
 }
 
-/** One installation per process, shared by chat and plaza; independent of login. */
-internal object StickerRepository {
+/**
+ * One installation per process, shared by chat and plaza; independent of login.
+ *
+ * 进程级服务，由 [ceui.lisa.activities.Shaft] 构造并经
+ * [ceui.pixiv.services.ServicesProvider.stickerRepository] 取用（不是 Kotlin `object`，
+ * 见 ServicesProvider 的注释）。构造函数只存 [app]：磁盘目录、两个 OkHttpClient 全部
+ * `by lazy`，冷启动一分钱不花，第一次真的要贴纸时才建。
+ */
+class StickerRepository(private val app: Application) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val mutableState = MutableStateFlow<StickerState>(StickerState.Idle)
     val state = mutableState.asStateFlow()
-    private val store by lazy { StickerStore(File(Shaft.getContext().noBackupFilesDir, "stickers")) { event -> StickerLog.i(event) } }
-    const val TAG = "Sticker-System"
-    private val gson = Gson()
+    private val store by lazy { StickerStore(File(app.noBackupFilesDir, "stickers")) { event -> StickerLog.i(event) } }
+    private val gson by lazy { Gson() }
     private val loggedLocalGenerations = java.util.concurrent.atomic.AtomicReferenceArray<String>(2)
     private var job: Job? = null
     private var warmJob: Job? = null
@@ -47,9 +53,13 @@ internal object StickerRepository {
      * process that cold-starts on a valid installation would never discover a new pack.
      */
     @Volatile private var versionChecked = false
-    private val api = MediaHttpTransport.apiClient.newBuilder().callTimeout(30, TimeUnit.SECONDS).build()
-    private val storage = MediaHttpTransport.storageClient.newBuilder()
-        .followRedirects(false).followSslRedirects(false).callTimeout(10, TimeUnit.MINUTES).build()
+    // by lazy（原先靠 `object` 的类初始化来延迟）：构造发生在 Application.onCreate，
+    // 两个 OkHttpClient 和上面那个 Gson 都不能被拽进冷启动路径。
+    private val api by lazy { MediaHttpTransport.apiClient.newBuilder().callTimeout(30, TimeUnit.SECONDS).build() }
+    private val storage by lazy {
+        MediaHttpTransport.storageClient.newBuilder()
+            .followRedirects(false).followSslRedirects(false).callTimeout(10, TimeUnit.MINUTES).build()
+    }
 
     /**
      * Cold-start warm-up: publish an installation that is already on disk, and do nothing

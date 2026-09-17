@@ -45,6 +45,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * ## Lifecycle
  *
+ * 进程级服务，由 [ceui.lisa.activities.Shaft] 构造并经
+ * [ceui.pixiv.services.ServicesProvider.chatGateway] 取用（不是 Kotlin `object`，
+ * 见 ServicesProvider 的注释）。构造函数只存 [app]，一分钱活不干。
+ *
  * - [bootstrap] is called once from
  *   [ceui.lisa.activities.Shaft] after
  *   [ceui.pixiv.events.EventReporter.start] (so `clientId` is available
@@ -63,11 +67,13 @@ import java.util.concurrent.atomic.AtomicBoolean
  * [WebSocketState] on tag `"ChatHB"`. Connected = healthy. Reconnecting /
  * Idle / Disconnected = something to look at.
  */
-object ShaftChatGateway {
+class ShaftChatGateway(private val app: Application) {
 
-    private const val TAG = "Chat-Gateway"
-    private const val TAG_HB = "Chat-Heartbeat"
-    private const val TAG_RAW = "Chat-Raw"
+    private companion object {
+        private const val TAG = "Chat-Gateway"
+        private const val TAG_HB = "Chat-Heartbeat"
+        private const val TAG_RAW = "Chat-Raw"
+    }
 
     private val bootstrapped = AtomicBoolean(false)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -115,7 +121,7 @@ object ShaftChatGateway {
      * Idempotent. Safe to call from `Application.onCreate` after
      * `EventReporter.start`. Subsequent calls are no-ops.
      */
-    fun bootstrap(app: Application) {
+    fun bootstrap() {
         if (!bootstrapped.compareAndSet(false, true)) return
 
         // Activation tracks pixiv login. Server requires `uid > 0` for the

@@ -9,7 +9,8 @@ import org.junit.Test
 
 class StickerWireTest {
     @Test fun `Glide resource key follows requested archive size independently of screen pixels`() {
-        val loader = StickerModelLoader()
+        // key 只由 model 决定,这条路径根本不该去取 repository。
+        val loader = StickerModelLoader { error("key derivation must not resolve the repository") }
         val small = LocalSticker(650863185465585230L, "generation", 64)
         val large = small.copy(resourceSize = 128)
         val options = com.bumptech.glide.load.Options()

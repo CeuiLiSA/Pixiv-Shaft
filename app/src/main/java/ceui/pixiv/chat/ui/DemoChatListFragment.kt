@@ -31,7 +31,6 @@ import ceui.pixiv.chat.api.ChatConversationsRepository
 import ceui.pixiv.chat.api.ChatFrame
 import ceui.pixiv.chat.api.ChatThreadId
 import ceui.pixiv.chat.api.HttpChatHistorySource
-import ceui.pixiv.chat.api.ShaftChatGateway
 import ceui.pixiv.chat.base.PagingFooterAdapter
 import ceui.pixiv.chat.base.launchSuspend
 import ceui.pixiv.panel.BottomPanelCoordinator
@@ -44,6 +43,7 @@ import ceui.pixiv.chat.data.ChatDatabase
 import ceui.pixiv.chat.data.ChatMessageEntity
 import ceui.pixiv.chat.data.RoomChatMessageStore
 import ceui.pixiv.chat.vm.ChatListViewModel
+import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.websocket.WebSocketState
 import com.hjq.toast.Toaster
@@ -55,7 +55,7 @@ import timber.log.Timber
 /**
  * Chat screen wired to shaft-api-v2's uid-routing chat WebSocket.
  *
- * The WS itself is app-scoped — owned by [ShaftChatGateway] on top of
+ * The WS itself is app-scoped — owned by [ceui.pixiv.chat.api.ShaftChatGateway] on top of
  * [ceui.pixiv.websocket.WebSocketManager]. This fragment opens a per-room
  * view onto the existing connection:
  *
@@ -64,8 +64,8 @@ import timber.log.Timber
  *    derived locally via `ChatThreadId.oneOnOneThreadId(selfUid, peerUid)`
  *
  *  - history: [HttpChatHistorySource] → `GET /api/v1/chat/history?room=...`
- *  - live:    [ShaftChatGateway.chatStream] (filtered by computed room)
- *  - send:    optimistic local write → [ShaftChatGateway.send] → WS echo
+ *  - live:    [ceui.pixiv.chat.api.ShaftChatGateway.chatStream] (filtered by computed room)
+ *  - send:    optimistic local write → [ceui.pixiv.chat.api.ShaftChatGateway.send] → WS echo
  *             flips local row Sending → Delivered (doc §4.3)
  *
  * `reverseLayout = true` puts position 0 at the bottom of the screen
@@ -81,6 +81,9 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         if (v > 0L) v else null
     }
 
+    /** 进程级聊天网关（[ceui.pixiv.services.ServicesProvider.chatGateway]）。 */
+    private val gateway by lazy { requireContext().appServices().chatGateway }
+
     private val viewModel: ChatListViewModel by viewModels {
         val appCtx = requireContext().applicationContext
         ChatListViewModel(
@@ -90,15 +93,15 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
                 ChatDatabase.getInstance(appCtx).chatMessageDao()
             ),
             historySource = HttpChatHistorySource(),
-            stream = ShaftChatGateway.chatStream,
+            stream = gateway.chatStream,
             sender = object : ceui.pixiv.chat.vm.WsMsgSender {
                 override fun send(toUid: Long?, clientMsgId: String, text: String, illustId: Long?, replyTo: ceui.pixiv.chat.api.ChatReplyRef?) =
-                    ShaftChatGateway.send(toUid, clientMsgId, text, illustId, replyTo)
+                    gateway.send(toUid, clientMsgId, text, illustId, replyTo)
                 override fun sendSticker(toUid: Long?, clientMsgId: String, text: String, replyTo: ceui.pixiv.chat.api.ChatReplyRef?, stickerId: Long) =
-                    ShaftChatGateway.send(toUid, clientMsgId, text, replyTo = replyTo, stickerId = stickerId)
+                    gateway.send(toUid, clientMsgId, text, replyTo = replyTo, stickerId = stickerId)
             },
-            typingSender = ShaftChatGateway::sendTyping,
-            typingFrames = ShaftChatGateway.typingFrames,
+            typingSender = gateway::sendTyping,
+            typingFrames = gateway.typingFrames,
         )
     }
 
@@ -565,7 +568,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      * re-enable live. Tracked for all rooms but only *gates* the global room.
      */
     private suspend fun observeGlobalSendState() {
-        ShaftChatGateway.globalSendEnabled.collect { enabled ->
+        gateway.globalSendEnabled.collect { enabled ->
             globalSendClosed = !enabled
             refreshSendEnabled()
         }
@@ -626,7 +629,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     }
 
     private suspend fun observeConnection() {
-        ShaftChatGateway.state.collect { state ->
+        gateway.state.collect { state ->
             wsConnected = state is WebSocketState.Connected
             refreshSendEnabled()
         }
@@ -642,7 +645,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      * back rate_limited resets the cool-down timer rather than stacking.
      */
     private suspend fun observeServerErrors() {
-        ShaftChatGateway.errorFrames.collectLatest { err ->
+        gateway.errorFrames.collectLatest { err ->
             // global_send_disabled = 管理员关闭了公共聊天室发言:重试无意义,这条
             // 消息从未被接受,直接移除该乐观行(否则会留一条看着像已发的气泡)。
             // 其余错误维持"标记 Failed"语义(用户可重试),cmid==null 时 VM 兜底
@@ -699,7 +702,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      * from FATAL_CLOSE_CODES; user must explicitly come back).
      */
     private suspend fun observeReplacedByOtherDevice() {
-        ShaftChatGateway.replacedByOtherDevice.collect {
+        gateway.replacedByOtherDevice.collect {
             Toaster.showLong("账号在其它设备登录,聊天已断开")
         }
     }
@@ -711,7 +714,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      * so they aren't left wondering why the input is greyed out forever.
      */
     private suspend fun observeFatalAuth() {
-        ShaftChatGateway.fatalAuth.collect {
+        gateway.fatalAuth.collect {
             Toaster.showLong("聊天认证失败 — 请检查系统时间是否正确,或重新登录")
         }
     }
@@ -815,7 +818,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         super.onResume()
         // Authoritatively tell ChatBannerBridge which room is foreground so it
         // suppresses banners for it (vs the bridge guessing from Activity state).
-        ShaftChatGateway.enterChatRoom(viewModel.room)
+        gateway.enterChatRoom(viewModel.room)
         val window = requireActivity().window
         previousSoftInputMode = window.attributes.softInputMode
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
@@ -824,7 +827,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     override fun onPause() {
         super.onPause()
         // Guarded exit tolerates resume/pause reordering across a room switch.
-        ShaftChatGateway.exitChatRoom(viewModel.room)
+        gateway.exitChatRoom(viewModel.room)
         if (previousSoftInputMode != INVALID_SOFT_INPUT_MODE) {
             requireActivity().window.setSoftInputMode(previousSoftInputMode)
             previousSoftInputMode = INVALID_SOFT_INPUT_MODE

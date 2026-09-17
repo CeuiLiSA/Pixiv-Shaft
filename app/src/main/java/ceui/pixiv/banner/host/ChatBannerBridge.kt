@@ -61,6 +61,7 @@ class ChatBannerBridge(
     private val context: Context,
     private val bannerManager: BannerManager,
     private val scope: CoroutineScope,
+    private val gateway: ShaftChatGateway,
 ) {
 
     /** uid → avatar url. Only successful lookups are cached; failures retry on the next message. */
@@ -71,7 +72,7 @@ class ChatBannerBridge(
     fun start() {
         if (job != null) return
         job = scope.launch {
-            ShaftChatGateway.incoming
+            gateway.incoming
                 .filterIsInstance<IncomingMessage.Text>()
                 .map { ChatFrameDecoder.decode(it.text) }
                 .filterIsInstance<ChatFrame.Msg>()
@@ -187,7 +188,7 @@ class ChatBannerBridge(
      * banners slip through while the user was sitting in the global room.
      */
     private fun isViewingRoom(msgRoom: String): Boolean =
-        ShaftChatGateway.foregroundChatRoom == msgRoom
+        gateway.foregroundChatRoom == msgRoom
 
     /**
      * 现在有没有宿主能把 banner 真的画出来。

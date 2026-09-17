@@ -19,8 +19,8 @@ object StickerWarmUp {
     private val fired = AtomicBoolean(false)
 
     @JvmStatic
-    fun trigger() {
+    fun trigger(repository: StickerRepository) {
         if (!fired.compareAndSet(false, true)) return
-        StickerRepository.warmUp()
+        repository.warmUp()
     }
 }
