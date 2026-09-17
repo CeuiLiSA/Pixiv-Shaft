@@ -13,6 +13,7 @@ import java.util.Map;
 
 import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
+import ceui.pixiv.snapshot.AutoSnapshotQuota;
 /**
  * A class about all the application settings.
  * */
@@ -340,6 +341,9 @@ public class Settings {
     private volatile boolean autoSnapshotOnBookmark = false; // 试验性：收藏时生成离线快照
 
     private volatile boolean autoSnapshotOnIllustManga = false; // 试验性：插画/漫画自动生成快照
+
+    /** 试验性：自动快照总大小上限（MB）；默认等于旧硬编码 200 MB。 */
+    private volatile int autoSnapshotMaxMb = AutoSnapshotQuota.DEFAULT_LIMIT_MB;
 
     private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
 
@@ -1017,6 +1021,14 @@ public class Settings {
 
     public void setAutoSnapshotOnIllustManga(boolean autoSnapshotOnIllustManga) {
         this.autoSnapshotOnIllustManga = autoSnapshotOnIllustManga;
+    }
+
+    public int getAutoSnapshotMaxMb() {
+        return AutoSnapshotQuota.clampLimitMb(autoSnapshotMaxMb);
+    }
+
+    public void setAutoSnapshotMaxMb(int autoSnapshotMaxMb) {
+        this.autoSnapshotMaxMb = AutoSnapshotQuota.clampLimitMb(autoSnapshotMaxMb);
     }
 
     public boolean isShowOriginalPreviewImage() {

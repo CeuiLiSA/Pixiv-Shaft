@@ -3133,6 +3133,16 @@
     <!-- 自动快照（试验性） -->
     <string name="setting_auto_snapshot_on_bookmark">收藏时生成离线快照</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">收藏作品后在后台静默生成一份轻量离线快照（试验性）</string>
+    <string name="setting_auto_snapshot_quota">自动快照大小上限</string>
+    <string name="setting_auto_snapshot_quota_desc">拖动调整自动快照总大小；最左 10 MB，最右不限制（试验性）</string>
+    <string name="setting_auto_snapshot_quota_value">%1$d MB</string>
+    <string name="setting_auto_snapshot_quota_value_gb">%1$s GB</string>
+    <string name="setting_auto_snapshot_quota_unlimited">不限</string>
+    <string name="snapshot_quota_banner_title">自动快照占用</string>
+    <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
+    <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
+    <string name="setting_auto_snapshot_quota_dialog_hint">按整数 MB 调整；拖到最右表示不限制。调小后会立即清理超出的旧自动快照</string>
+    <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">插画/漫画自动生成快照</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">对反复浏览与长时间驻留的插画/漫画静默生成快照（试验性）</string>
 

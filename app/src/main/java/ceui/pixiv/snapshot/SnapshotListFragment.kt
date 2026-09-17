@@ -63,6 +63,9 @@ class SnapshotListFragment : Fragment() {
     /** 选中数量变化回调，由宿主 Tabs 页驱动 selection toolbar。 */
     var onSelectionCountChanged: ((Int) -> Unit)? = null
 
+    /** 列表重新加载后回调，宿主用来重算占用条数值。 */
+    var onAutoSnapshotQuotaChanged: (() -> Unit)? = null
+
     private var pendingExportId: String? = null
 
     private val exportLauncher = registerForActivityResult(
@@ -149,6 +152,7 @@ class SnapshotListFragment : Fragment() {
             }
             binding.emptyHint.isVisible = all.isEmpty()
             if (resetScroll) snapshotList.scrollToPosition(0)
+            if (filter == null) onAutoSnapshotQuotaChanged?.invoke()
         }
     }
 

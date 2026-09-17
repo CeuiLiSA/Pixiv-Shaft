@@ -2873,6 +2873,16 @@
     <!-- Auto snapshot (experimental) -->
     <string name="setting_auto_snapshot_on_bookmark">Create offline snapshot on bookmark</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">Quietly create a lightweight offline snapshot after you bookmark a work (experimental)</string>
+    <string name="setting_auto_snapshot_quota">Auto snapshot size limit</string>
+    <string name="setting_auto_snapshot_quota_desc">Drag to set the total auto snapshot size; 10 MB minimum, unlimited at the far right (experimental)</string>
+    <string name="setting_auto_snapshot_quota_value">%1$d MB</string>
+    <string name="setting_auto_snapshot_quota_value_gb">%1$s GB</string>
+    <string name="setting_auto_snapshot_quota_unlimited">Unlimited</string>
+    <string name="snapshot_quota_banner_title">Auto snapshots</string>
+    <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
+    <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
+    <string name="setting_auto_snapshot_quota_dialog_hint">Adjust in whole MB; drag fully right for unlimited. Lowering it removes the oldest auto snapshots over the new limit right away</string>
+    <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">Auto-create snapshots for illustrations/manga</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">Quietly create snapshots for illustrations/manga you revisit or dwell on for a long time (experimental)</string>
 

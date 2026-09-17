@@ -2855,6 +2855,16 @@
     <!-- Otomatik anlık görüntü (deneysel) -->
     <string name="setting_auto_snapshot_on_bookmark">Yer imine eklendiğinde çevrimdışı anlık görüntü oluştur</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">Bir eseri yer imine ekledikten sonra arka planda sessizce hafif bir çevrimdışı anlık görüntü oluşturur (deneysel)</string>
+    <string name="setting_auto_snapshot_quota">Otomatik anlık görüntü boyut sınırı</string>
+    <string name="setting_auto_snapshot_quota_desc">Otomatik anlık görüntü toplam boyutunu ayarlamak için sürükleyin; solda 10 MB, sağ uçta sınırsız (deneysel)</string>
+    <string name="setting_auto_snapshot_quota_value">%1$d MB</string>
+    <string name="setting_auto_snapshot_quota_value_gb">%1$s GB</string>
+    <string name="setting_auto_snapshot_quota_unlimited">Sınırsız</string>
+    <string name="snapshot_quota_banner_title">Otomatik anlık görüntü kullanımı</string>
+    <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
+    <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
+    <string name="setting_auto_snapshot_quota_dialog_hint">Tam sayı MB olarak ayarlayın; sınırsız için en sağa sürükleyin. Değeri düşürürseniz yeni sınırı aşan eski otomatik anlık görüntüler hemen silinir</string>
+    <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
     <string name="setting_auto_snapshot_on_illust_manga">İllüstrasyon/manga için otomatik anlık görüntü oluştur</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">Tekrar baktığınız veya uzun süre kaldığınız illüstrasyon/manga için sessizce anlık görüntü oluşturur (deneysel)</string>
 

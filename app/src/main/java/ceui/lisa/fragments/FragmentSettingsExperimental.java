@@ -1,8 +1,14 @@
 package ceui.lisa.fragments;
 
+import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+import java.text.DecimalFormat;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 
@@ -12,6 +18,12 @@ import ceui.lisa.databinding.FragmentSettingsExperimentalBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.pixiv.debug.TimberFileLog;
+import ceui.pixiv.snapshot.AutoSnapshotEngine;
+import ceui.pixiv.snapshot.AutoSnapshotQuota;
+import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
+import ceui.pixiv.witstudio.dialog.WitDialogView;
+import ceui.pixiv.witstudio.theme.V3Palette;
 
 /** 设置 · 试验性 */
 public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentSettingsExperimentalBinding> {
@@ -40,6 +52,8 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         });
         baseBind.autoSnapshotOnBookmarkRela.setOnClickListener(v ->
                 baseBind.autoSnapshotOnBookmark.performClick());
+
+        bindAutoSnapshotQuotaRow();
 
         // 插画/漫画自动生成快照：只记录并生成本地行为信号，不涉及站外 UGC。
         baseBind.autoSnapshotOnIllustManga.setChecked(Shaft.sSettings.isAutoSnapshotOnIllustManga());
@@ -202,5 +216,109 @@ public class FragmentSettingsExperimental extends SettingsPageFragment<FragmentS
         });
         baseBind.isFirebaseEnableRela.setOnClickListener(v ->
                 baseBind.isFirebaseEnable.performClick());
+    }
+
+    private void bindAutoSnapshotQuotaRow() {
+        refreshAutoSnapshotQuotaLabel();
+        baseBind.autoSnapshotQuotaRela.setOnClickListener(v -> showAutoSnapshotQuotaDialog());
+    }
+
+    private void refreshAutoSnapshotQuotaLabel() {
+        baseBind.autoSnapshotQuota.setText(
+                autoSnapshotQuotaLabel(mContext, Shaft.sSettings.getAutoSnapshotMaxMb()));
+    }
+
+    private static String autoSnapshotQuotaLabel(Context context, int limitMb) {
+        if (limitMb == AutoSnapshotQuota.UNLIMITED_LIMIT_MB) {
+            return context.getString(R.string.setting_auto_snapshot_quota_unlimited);
+        }
+        if (limitMb < 1024) {
+            return context.getString(R.string.setting_auto_snapshot_quota_value, limitMb);
+        }
+        String gb = new DecimalFormat("0.##").format(limitMb / 1024d);
+        return context.getString(R.string.setting_auto_snapshot_quota_value_gb, gb);
+    }
+
+    /**
+     * 大小上限入口：WitDialog 承载一条可拖动滑条，拖到最右是「不限制」。
+     * 中间值走对数刻度，否则默认 200 MB 会挤在 2 PB 量程的最左端。
+     */
+    private void showAutoSnapshotQuotaDialog() {
+        QuotaDialogBuilder builder = new QuotaDialogBuilder(mActivity);
+        builder.setTitle(R.string.setting_auto_snapshot_quota);
+        builder.addAction(R.string.string_cancel, (dialog, which) -> dialog.dismiss());
+        builder.addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_POSITIVE, (dialog, which) -> {
+            SeekBar slider = builder.slider;
+            if (slider == null) {
+                dialog.dismiss();
+                return;
+            }
+            int chosen = builder.sliderTouched
+                    ? AutoSnapshotQuota.limitMbForProgress(
+                            slider.getProgress(), AutoSnapshotQuota.SLIDER_STEPS)
+                    : builder.initialLimitMb;
+            if (chosen != Shaft.sSettings.getAutoSnapshotMaxMb()) {
+                Shaft.sSettings.setAutoSnapshotMaxMb(chosen);
+                Local.setSettings(Shaft.sSettings);
+                Common.showToast(getString(R.string.string_428));
+                refreshAutoSnapshotQuotaLabel();
+                // 上限改小后立刻按新值淘汰一次，否则要等下一次自动生成才收，
+                // 管理页会一直显示「180 MB / 10 MB」，看起来像这个设置没生效。
+                AutoSnapshotEngine.INSTANCE.onAutoQuotaLimitChanged();
+            }
+            dialog.dismiss();
+        });
+        builder.show();
+    }
+
+    /** WitDialog 的自定义内容：标题下的大数值 + V3 滑条 + 两端说明。 */
+    private static final class QuotaDialogBuilder extends WitDialog.CustomDialogBuilder {
+
+        private SeekBar slider;
+        private TextView valueText;
+        private int initialLimitMb;
+        private boolean sliderTouched;
+
+        private QuotaDialogBuilder(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected View onCreateContent(WitDialog dialog, WitDialogView parent, Context context) {
+            View content = LayoutInflater.from(context)
+                    .inflate(R.layout.dialog_auto_snapshot_quota, parent, false);
+            slider = content.findViewById(R.id.dialog_auto_snapshot_quota_slider);
+            valueText = content.findViewById(R.id.dialog_auto_snapshot_quota_value);
+            valueText.setTextColor(V3Palette.from(context).getTextAccent());
+
+            int current = Shaft.sSettings.getAutoSnapshotMaxMb();
+            initialLimitMb = current;
+            int initialProgress = AutoSnapshotQuota.progressForLimitMb(
+                    current, AutoSnapshotQuota.SLIDER_STEPS);
+            slider.setMax(AutoSnapshotQuota.SLIDER_STEPS);
+            slider.setProgress(initialProgress);
+            valueText.setText(autoSnapshotQuotaLabel(context, current));
+
+            slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser) {
+                        sliderTouched = true;
+                    }
+                    int limitMb = AutoSnapshotQuota.limitMbForProgress(
+                            progress, AutoSnapshotQuota.SLIDER_STEPS);
+                    valueText.setText(autoSnapshotQuotaLabel(context, limitMb));
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+            return content;
+        }
     }
 }
