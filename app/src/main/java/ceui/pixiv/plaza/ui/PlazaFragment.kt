@@ -251,6 +251,9 @@ class PlazaFragment : FeedFragment(R.layout.fragment_plaza_feed) {
         val targetId = pendingHighlightPostId ?: return
         val top = state.items.firstOrNull() as? PlazaPostItem
         if (top?.post?.id != targetId) return
+        // The diff commits on a later frame; the user may have left the page by then. Keep the
+        // pending id so a recreated view still gets its scroll and bounce.
+        if (view == null) return
         pendingHighlightPostId = null
         val list = feedBinding.feedListView
         // Deep in the feed a smooth scroll would crawl through every row; jump instead and let
