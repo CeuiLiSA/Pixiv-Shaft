@@ -60,6 +60,30 @@ Android 复用 witstudio 与 V3Palette，尺寸用 dp/sp，关键操作热区至
 
 所有帖子公开，不呈现可见范围设置；图片上限为 9 张，Linked Quest 对应 Pixiv 作品或用户引用。系统状态栏、键盘及字体放大使用 Android 原生能力。对照记录见 [广场设计验收](plaza-design-review.md)。
 
+### 版本历史与更新弹窗（2026-09-17 起按 V3 语言实现）
+
+`ceui.lisa.update` 整包按 V3 重做，是「下载 / 历史 / 管理」配方的样板：
+
+- **版本历史**跑在 feeds 框架上（`FragmentVersionHistory : FeedFragment`，数据源 `VersionHistorySource`）。
+  GitHub 的 releases 一次返回完整一页，`nextCursor` 恒为 null；首屏骨架（`VersionHistorySkeletonView`
+  画的是卡片内容而不是实心板）、下拉刷新、空态、失败重试与断网恢复重试全部由框架承担，页面只留
+  顶栏、720dp 限宽和卡片长相。列表 `itemAnimator = null`。
+- 列表第一条是**紧凑汇总卡**：17/17/17/7 图标容器 + 「当前版本」+ 版本号（Montserrat 700、`tnum`），
+  一条 hairline 之下是状态行，整页唯一的实色主操作「更新到 vX.Y.Z」就在它下面。已是最新时**不摆按钮**
+  （没有下一步就不该有一颗按不动的胶囊，改成绿色对勾加一句话）；Google Play 渠道换成「请通过商店更新」。
+- **发布卡**是 22dp 卡片：版本号 → 一枚状态小标（装着的那一版用主题浅底的「当前版本」，最新一版用中性
+  `v3_surface_2` 的「最新」，一张卡只有一枚）→ 右端日期 → Markdown 更新说明 → 末端「安装包大小 + 展开胶囊」。
+  说明默认折叠 6 行，展开入口是一颗 34dp 的次级胶囊加箭头——只画一行小字加箭头在满是 Markdown 的卡里
+  读不出是个按钮。要不要折叠按**原始 Markdown 的长度和行数**判定：`Layout.getEllipsisCount` /
+  `getLineEnd` 在 Markwon 的多段 Spanned 上都测不出截断（真机实测两者都判成「没截断」，按钮整片消失），
+  而等布局完再显隐按钮会让卡片在滚动中跳高度。
+- **更新弹窗**是 V3 弹窗配方：顶角 28dp 的 sheet，图标容器 + 标题 + 「4.9.2 → 4.9.3」版本对比 →
+  更新日志卡（高度有上限、自带渐隐边）→ 安装包名与大小 → 4dp 进度条 → 贴底的实色主操作
+  （下载 / 下载中 / 安装 / 重试，各自带图标）→ 「稍后」「跳过此版本」两个纯文字入口。下载一旦开始，
+  「跳过此版本」就收起。下载、校验与安装授权的逻辑没有改动。
+- 两处的 Markdown 共用 `markwonFor(context)`：标题只比正文大一点，链接与行内代码走 `textAccent`，
+  代码块坐在 `v3_surface_2` 上。
+
 ## 哪些是固定的，哪些可以变化
 
 | 固定关系 | 可以随页面变化 |
@@ -287,6 +311,8 @@ Hero 插图可使用两张相互遮叠的票卡，参考旋转 -14° / +12°，�
 | 页面底、基础表面、文字、语义色 | [`wit_colors.xml`](../witstudio/src/main/res/values/wit_colors.xml) 与 [夜间版本](../witstudio/src/main/res/values-night/wit_colors.xml) | 是现有 Android 基础色权威；透明表面需叠在正确底上 |
 | 用户主题强调、卡片底、细描边、强调文字 | [`V3Palette.kt`](../witstudio/src/main/java/ceui/pixiv/witstudio/theme/V3Palette.kt) | `V3Palette.from(context)` 从宿主主色派生；`textAccent` 有对比度校正 |
 | 主 / 次按钮底 | `V3Palette.pillPrimary / pillSecondary` | 正文色独立配套验证；工厂仅生成背景，不代表已处理全部控件状态 |
+| 代码搭页面的公共零件 | [`V3Views.kt`](../witstudio/src/main/java/ceui/pixiv/witstudio/theme/V3Views.kt) | `dp / label / card / rowShape / pillButton / iconTile / noticeCard / pressScale` 等；2026-09-17 从广场内部提升到 witstudio，新页面直接 import，不要再抄一份 |
+| Montserrat 字体文件 | [`witstudio/res/font`](../witstudio/src/main/res/font) | V3 的英文与数字字体归设计系统；Kotlin 里取字体一律走 `Context.v3Font(weight)`，别再 `ResourcesCompat.getFont(R.font.montserrat_*)` |
 | 设置分段行 | [`WitRowStyle.kt`](../witstudio/src/main/java/ceui/pixiv/witstudio/theme/WitRowStyle.kt) | 用 `rowBackground(index,total)`，整组完成后 `applyThemedRowBg(root)` |
 | 对话框 | [`witstudio/dialog`](../witstudio/src/main/java/ceui/pixiv/witstudio/dialog) | 复用已有 WitDialog 系列，避免造另一套不跟主题的弹窗 |
 | 底部选择器 | [`WitBottomSheet`](../witstudio/src/main/java/ceui/pixiv/witstudio/dialog/WitBottomSheet.kt) | 主题表面与安全区由 witstudio 管理，拖拽与嵌套滚动复用 Material；内容高度有界，分类使用有选中态的 tab，不用独立按钮拼接 |

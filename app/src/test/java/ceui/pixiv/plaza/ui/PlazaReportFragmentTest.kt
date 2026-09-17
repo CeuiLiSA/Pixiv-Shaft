@@ -7,6 +7,7 @@ import android.widget.TextView
 import ceui.lisa.activities.TemplateActivity
 import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.navigation.TemplateRouteFactory
+import ceui.pixiv.witstudio.theme.*
 import org.robolectric.Shadows.shadowOf
 import android.view.View
 import android.view.ViewGroup

@@ -1126,6 +1126,10 @@
     <string name="update_latest_label">最新</string>
     <string name="version_history">版本历史</string>
     <string name="version_history_empty">暂无版本记录</string>
+    <string name="version_history_up_to_date">已是最新版本</string>
+    <string name="version_history_update_action">更新到 %1$s</string>
+    <string name="version_history_expand">展开更新说明</string>
+    <string name="version_history_collapse">收起更新说明</string>
     <string name="update_channel_google">Google Play 版本，请通过商店更新</string>
     <string name="timeline_today">今天</string>
     <string name="timeline_yesterday">昨天</string>

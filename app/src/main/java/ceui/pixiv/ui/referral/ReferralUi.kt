@@ -21,12 +21,12 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.PathParser
 import androidx.core.view.ViewCompat
 import ceui.lisa.R
 import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.witstudio.theme.v3Font
 import kotlin.math.roundToInt
 
 /** Page-scoped roles: calibrated against the approved mockup, hue follows the host V3 theme. */
@@ -118,15 +118,7 @@ internal class ReferralUi(val context: Context, val colors: ReferralColors) {
     fun dp(value: Int) = (value * density).roundToInt()
     fun dp(value: Float) = value * density
     fun s(@StringRes id: Int, vararg args: Any) = context.getString(id, *args)
-    fun font(weight: Int): Typeface = fonts.getOrPut(weight) {
-        ResourcesCompat.getFont(context, when (weight) {
-            800 -> R.font.montserrat_extra_bold
-            700 -> R.font.montserrat_bold
-            600 -> R.font.montserrat_semi_bold
-            500 -> R.font.montserrat_medium
-            else -> R.font.montserrat_regular
-        }) ?: Typeface.DEFAULT
-    }
+    fun font(weight: Int): Typeface = fonts.getOrPut(weight) { context.v3Font(weight) }
     fun text(value: CharSequence, size: Float = 14f, weight: Int = 400, color: Int = colors.ink) =
         AppCompatTextView(context).apply {
             text = value; textSize = size; typeface = font(weight); setTextColor(color)

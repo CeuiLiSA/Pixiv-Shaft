@@ -18,36 +18,12 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import ceui.lisa.R
+import ceui.pixiv.witstudio.theme.*
 import ceui.pixiv.witstudio.theme.V3Palette
 
 // V3 pieces shared by the report form, the block confirmation and the block list.
 // Shapes, type and hot zones come from docs/v3-design-philosophy.md: 22dp cards, connected
 // 20/5 rows, 17/17/17/7 icon containers, the one-off success badge, pill actions, 48dp targets.
-
-/** 类别图标容器：17/17/17/7 圆角的主题浅底，只在图标区出现，是页面里唯一的异形。 */
-internal fun Context.iconTile(
-    icon: Int,
-    size: Int = 48,
-    tint: Int = V3Palette.from(this).textAccent,
-    fill: Int = V3Palette.from(this).alpha15,
-): FrameLayout {
-    val r = dpF(17f)
-    val cut = dpF(7f)
-    return FrameLayout(this).apply {
-        background = GradientDrawable().apply {
-            cornerRadii = floatArrayOf(r, r, r, r, r, r, cut, cut)
-            setColor(fill)
-        }
-        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-        addView(
-            ImageView(context).apply {
-                setImageResource(icon)
-                imageTintList = ColorStateList.valueOf(tint)
-            },
-            FrameLayout.LayoutParams(dp(size / 2), dp(size / 2), Gravity.CENTER),
-        )
-    }
-}
 
 /** 分区标题 + 末端的「必选 / 选填」小标，让表单一眼看出哪一段不能跳过。 */
 internal fun Context.formSection(title: CharSequence, tag: CharSequence, required: Boolean): LinearLayout {
@@ -131,28 +107,6 @@ internal class PlazaSuccessBadge(context: Context) : FrameLayout(context) {
     }
 }
 
-/** 一行说明 + 图标的浅色提示卡，用于页面主区之前交代规则。 */
-internal fun Context.noticeCard(icon: Int, text: CharSequence): LinearLayout {
-    val palette = V3Palette.from(this)
-    return LinearLayout(this).apply {
-        orientation = LinearLayout.HORIZONTAL
-        background = card(22)
-        setPadding(dp(16), dp(16), dp(16), dp(16))
-        addView(
-            ImageView(context).apply {
-                setImageResource(icon)
-                imageTintList = ColorStateList.valueOf(palette.textAccent)
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            },
-            LinearLayout.LayoutParams(dp(20), dp(20)).apply { topMargin = dp(2) },
-        )
-        addView(
-            label(text, 13f, 400, color(R.color.v3_text_2)).apply { lineHeightRatio(1.6f) },
-            LinearLayout.LayoutParams(0, -2, 1f).apply { marginStart = dp(12) },
-        )
-    }
-}
-
 /** 正方形容器：证据照片按列宽等分，三格在 320dp 和宽屏上都保持同一比例。 */
 internal class SquareFrameLayout(context: Context) : FrameLayout(context) {
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -205,9 +159,3 @@ internal class MonogramView(context: Context) : View(context) {
     }
 }
 
-/** 末端小号胶囊动作：行内用，仍保证 48dp 热区。 */
-internal fun Context.compactPill(text: CharSequence, action: () -> Unit): TextView =
-    pillButton(text, primary = false, action = action).apply {
-        textSize = 13f
-        setPadding(dp(16), dp(10), dp(16), dp(10))
-    }

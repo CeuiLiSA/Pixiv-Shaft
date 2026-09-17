@@ -36,6 +36,7 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.theme.*
 import ceui.pixiv.witstudio.theme.V3Palette
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch

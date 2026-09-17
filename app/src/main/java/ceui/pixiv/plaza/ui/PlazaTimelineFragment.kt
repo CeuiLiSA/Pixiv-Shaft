@@ -28,6 +28,7 @@ import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.widgets.applyV3RefreshTheme
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.theme.*
 import ceui.pixiv.witstudio.theme.V3Palette
 
 /**

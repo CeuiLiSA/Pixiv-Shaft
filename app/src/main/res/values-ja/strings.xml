@@ -1061,6 +1061,10 @@
     <string name="update_latest_label">最新</string>
     <string name="version_history">バージョン履歴</string>
     <string name="version_history_empty">バージョン履歴はありません</string>
+    <string name="version_history_up_to_date">すでに最新バージョンです</string>
+    <string name="version_history_update_action">%1$s に更新</string>
+    <string name="version_history_expand">更新内容をすべて表示</string>
+    <string name="version_history_collapse">更新内容を折りたたむ</string>
     <string name="update_channel_google">Google Play 版です。ストアから更新してください</string>
     <string name="timeline_today">今日</string>
     <string name="timeline_yesterday">昨日</string>

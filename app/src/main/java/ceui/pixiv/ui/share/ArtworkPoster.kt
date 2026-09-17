@@ -19,7 +19,6 @@ import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.PathParser
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -33,6 +32,7 @@ import ceui.pixiv.api.model.Illust
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.theme.v3Font
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -239,12 +239,9 @@ internal data class ArtworkPosterTypography(
 ) {
     companion object {
         fun from(context: Context): ArtworkPosterTypography = ArtworkPosterTypography(
-            medium = ResourcesCompat.getFont(context, R.font.montserrat_medium)
-                ?: Typeface.create("sans-serif-medium", Typeface.NORMAL),
-            semiBold = ResourcesCompat.getFont(context, R.font.montserrat_semi_bold)
-                ?: Typeface.create("sans-serif", Typeface.BOLD),
-            bold = ResourcesCompat.getFont(context, R.font.montserrat_bold)
-                ?: Typeface.create("sans-serif", Typeface.BOLD),
+            medium = context.v3Font(500),
+            semiBold = context.v3Font(600),
+            bold = context.v3Font(700),
         )
 
         fun system(): ArtworkPosterTypography = ArtworkPosterTypography(

@@ -1061,6 +1061,10 @@
     <string name="update_latest_label">Latest</string>
     <string name="version_history">Version history</string>
     <string name="version_history_empty">No version history</string>
+    <string name="version_history_up_to_date">You are on the latest version</string>
+    <string name="version_history_update_action">Update to %1$s</string>
+    <string name="version_history_expand">Show full notes</string>
+    <string name="version_history_collapse">Collapse notes</string>
     <string name="update_channel_google">Google Play version. Please update through the store</string>
     <string name="timeline_today">Today</string>
     <string name="timeline_yesterday">Yesterday</string>

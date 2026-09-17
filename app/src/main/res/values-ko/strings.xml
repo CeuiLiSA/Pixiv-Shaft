@@ -1061,6 +1061,10 @@
     <string name="update_latest_label">최신</string>
     <string name="version_history">버전 기록</string>
     <string name="version_history_empty">버전 기록이 없습니다</string>
+    <string name="version_history_up_to_date">이미 최신 버전입니다</string>
+    <string name="version_history_update_action">%1$s(으)로 업데이트</string>
+    <string name="version_history_expand">업데이트 내용 전체 보기</string>
+    <string name="version_history_collapse">업데이트 내용 접기</string>
     <string name="update_channel_google">Google Play 버전입니다. 스토어에서 업데이트해 주세요</string>
     <string name="timeline_today">오늘</string>
     <string name="timeline_yesterday">어제</string>

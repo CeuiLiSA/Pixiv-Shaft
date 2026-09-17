@@ -19,7 +19,6 @@ import android.widget.HorizontalScrollView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -30,6 +29,7 @@ import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import ceui.pixiv.witstudio.theme.v3Font
 import kotlin.math.abs
 import ceui.lisa.R
 import ceui.pixiv.witstudio.dialog.WitBottomSheet
@@ -128,7 +128,7 @@ object StickerPicker {
             textSize = 15f
             gravity = Gravity.CENTER
             setTextColor(ContextCompat.getColor(context, R.color.v3_text_2))
-            typeface = ResourcesCompat.getFont(context, R.font.montserrat_regular)
+            typeface = context.v3Font(400)
         }
         val retry = WitRoundButton(context).apply {
             setText(R.string.sticker_retry)
@@ -290,7 +290,7 @@ internal class StickerCategoryTabs(context: Context, private val onSelected: (In
             background = InsetDrawable(ContextCompat.getDrawable(context, R.drawable.bg_reader_segment_track), 0, dp(context, 3), 0, dp(context, 3))
             setPadding(dp(context, 3), 0, dp(context, 3), 0)
         }
-        val font = ResourcesCompat.getFont(context, R.font.montserrat_medium)
+        val font = context.v3Font(500)
         listOf(R.string.sticker_customized, R.string.sticker_static, R.string.sticker_animation).forEachIndexed { index, label ->
             val cell = TextView(context).apply {
                 setText(label)

@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.witstudio.dialog.*
+import ceui.pixiv.witstudio.theme.*
 import kotlinx.coroutines.launch
 
 internal fun Context.showPlazaModeration(postId: Long, uid: Long, mode: String) {

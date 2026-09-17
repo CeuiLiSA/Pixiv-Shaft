@@ -1061,6 +1061,10 @@
     <string name="update_latest_label">Последняя</string>
     <string name="version_history">История версий</string>
     <string name="version_history_empty">История версий пуста</string>
+    <string name="version_history_up_to_date">Установлена последняя версия</string>
+    <string name="version_history_update_action">Обновить до %1$s</string>
+    <string name="version_history_expand">Показать все изменения</string>
+    <string name="version_history_collapse">Свернуть изменения</string>
     <string name="update_channel_google">Версия из Google Play. Обновляйте через магазин</string>
     <string name="timeline_today">Сегодня</string>
     <string name="timeline_yesterday">Вчера</string>

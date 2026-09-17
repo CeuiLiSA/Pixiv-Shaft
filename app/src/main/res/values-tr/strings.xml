@@ -1061,6 +1061,10 @@
     <string name="update_latest_label">En yeni</string>
     <string name="version_history">Sürüm geçmişi</string>
     <string name="version_history_empty">Sürüm kaydı yok</string>
+    <string name="version_history_up_to_date">En son sürümü kullanıyorsunuz</string>
+    <string name="version_history_update_action">%1$s sürümüne güncelle</string>
+    <string name="version_history_expand">Tüm notları göster</string>
+    <string name="version_history_collapse">Notları daralt</string>
     <string name="update_channel_google">Google Play sürümü. Lütfen mağaza üzerinden güncelleyin</string>
     <string name="timeline_today">Bugün</string>
     <string name="timeline_yesterday">Dün</string>

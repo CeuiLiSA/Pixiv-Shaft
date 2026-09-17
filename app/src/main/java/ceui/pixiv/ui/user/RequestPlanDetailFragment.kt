@@ -9,7 +9,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.TextView
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -33,6 +32,7 @@ import ceui.loxia.User
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.witstudio.theme.v3Font
 import com.bumptech.glide.Glide
 import com.google.android.flexbox.FlexboxLayout
 import java.text.NumberFormat
@@ -297,10 +297,7 @@ class RequestPlanDetailFragment : Fragment(R.layout.fragment_request_plan_detail
             text = if (on) "✓ $label" else label
             textSize = 12.5f
             includeFontPadding = false
-            typeface = ResourcesCompat.getFont(
-                context,
-                if (on) R.font.montserrat_semi_bold else R.font.montserrat_medium,
-            )
+            typeface = context.v3Font(if (on) 600 else 500)
             val padH = (14 * dp).toInt()
             val padV = (7 * dp).toInt()
             setPadding(padH, padV, padH, padV)
