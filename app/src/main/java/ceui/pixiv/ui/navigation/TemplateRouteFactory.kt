@@ -142,7 +142,12 @@ object TemplateRouteFactory {
     @JvmStatic
     fun create(route: TemplateRoute, intent: Intent): Fragment =
         when (route) {
-            TemplateRoute.REFERRAL_PLAN -> ceui.pixiv.ui.referral.ReferralPlanFragment()
+            // 邀请码可能从 shaftintent://referral?code=… 带进来（落地页上「已经装了？直接
+            // 打开 App」那个按钮）。带进来就直接弹绑定框，省掉用户自己找入口。
+            TemplateRoute.REFERRAL_PLAN ->
+                ceui.pixiv.ui.referral.ReferralPlanFragment.newInstance(
+                    intent.getStringExtra(ceui.pixiv.ui.referral.ReferralPlanFragment.ARG_CODE),
+                )
             TemplateRoute.LOGIN -> FragmentLogin()
             TemplateRoute.RELATED_ILLUSTS ->
                 RelatedIllustFeedFragment.newInstance(

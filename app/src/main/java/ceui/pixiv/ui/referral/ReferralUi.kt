@@ -189,6 +189,11 @@ internal fun ReferralTask.copy() = when (this) {
     ReferralTask.CIRCLE -> ReferralTaskCopy(R.string.referral_circle_title, R.string.referral_circle_category,
         R.string.referral_circle_description, R.string.referral_circle_caption, R.string.referral_circle_steps,
         R.string.referral_circle_condition, ReferralIcon.HEART)
+    // 见面礼不是一件要去做的事，所以它没有步骤也没有完成条件 —— 它只会作为一张卡
+    // 出现在被邀请人的卡包里（卡面用 title，其余字段那里用不到）。
+    ReferralTask.WELCOME -> ReferralTaskCopy(R.string.referral_welcome_title, R.string.referral_invite_category,
+        R.string.referral_welcome_description, R.string.referral_welcome_description, R.string.referral_welcome_description,
+        R.string.referral_welcome_description, ReferralIcon.TICKET)
 }
 
 internal val ReferralStatus.label: Int get() = when (this) {

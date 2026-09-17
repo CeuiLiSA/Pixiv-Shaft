@@ -579,7 +579,14 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     new DrawerEntry(R.id.novel_markers, R.string.core_string_novel_marker),
                     new DrawerEntry(R.id.follow_user, R.string.string_321),
                     new DrawerEntry(R.id.nav_fans, R.string.string_322),
-                    new DrawerEntry(R.id.nav_referral_plan, R.string.referral_entry),
+                    // 推介计划:活动关着时整行不出现,而不是点进去看见一页「暂未开放」。
+                    // 开关来自 /v1/config(服务端 .env 改完 reload 即生效,不用发版);Lite 恒关。
+                    new DrawerEntry(
+                            R.id.nav_referral_plan,
+                            R.string.referral_entry,
+                            ceui.pixiv.services.ServiceProviderKt.appServices(this)
+                                    .getRemoteAppConfig()
+                                    .getReferralEnabled()),
                 });
 
         // 借号用量:服务端两只配额桶的只读视图,紧贴「我的」之后、「记录与管理」之前 ——
