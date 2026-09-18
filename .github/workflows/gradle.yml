@@ -269,7 +269,8 @@ jobs:
 
           echo "TAG_BRANCH=$TAG_BRANCH" >> $GITHUB_ENV
           echo "Detected branch: $TAG_BRANCH"
-          git checkout "origin/$TAG_BRANCH"
+          # Branch detection only selects the APK name; always build the tagged revision.
+          git checkout --detach "$TAG_COMMIT"
           git submodule update --init --recursive
 
       - name: Build release apk
