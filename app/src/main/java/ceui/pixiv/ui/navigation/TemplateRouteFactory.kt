@@ -86,6 +86,7 @@ import ceui.pixiv.ui.prime.PrimeTagsFragment
 import ceui.pixiv.ui.recommend.AI_ONLY
 import ceui.pixiv.ui.recommend.ArtistRankFeedFragment
 import ceui.pixiv.ui.recommend.BookmarkRankFragment
+import ceui.pixiv.ui.recommend.DailyRecommendationsFragment
 import ceui.pixiv.ui.recommend.FragmentEventHistory
 import ceui.pixiv.ui.recommend.FragmentRecentRecommend
 import ceui.pixiv.ui.recommend.FragmentSiteRecommend
@@ -521,6 +522,7 @@ object TemplateRouteFactory {
             // shaft-api-v2 discover/most-bookmarked?type=novel&length=long|medium|short
             TemplateRoute.NOVEL_LENGTH_RANK -> NovelLengthRankFragment.newInstance()
             TemplateRoute.TRENDING_ARTISTS -> TrendingArtistsFragment.newInstance()
+            TemplateRoute.DAILY_RECOMMENDATIONS -> DailyRecommendationsFragment()
             TemplateRoute.UGOIRA_RANK -> UgoiraRankFragment.newInstance()
             TemplateRoute.EVENT_HISTORY -> FragmentEventHistory()
             TemplateRoute.DEBUG_NETWORK_TEST -> NetworkTestFragment()

@@ -4,6 +4,7 @@ import android.app.Application
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -48,14 +49,20 @@ class DailyRecommendationsFragment : IllustFeedFragment(R.layout.fragment_daily_
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // A header wraps feed_root, so the bare-feed inset hook does not apply here.
+        val toolbar = view.findViewById<Toolbar>(R.id.toolbar)
+        view.findViewById<TextView>(R.id.toolbar_title).setText(R.string.daily_recommendations)
+        toolbar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
+        // This standalone page handles status/navigation insets once, outside the feed.
+        toolbar.fitsSystemWindows = false
         val list = view.findViewById<View>(ceui.pixiv.feeds.R.id.feed_list_view)
         val bottomPadding = list.paddingBottom
-        ViewCompat.setOnApplyWindowInsetsListener(list) { v, insets ->
-            v.updatePadding(bottom = bottomPadding + insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom)
+        ViewCompat.setOnApplyWindowInsetsListener(view) { _, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            toolbar.updatePadding(top = bars.top)
+            list.updatePadding(bottom = bottomPadding + bars.bottom)
             insets
         }
-        ViewCompat.requestApplyInsets(list)
+        ViewCompat.requestApplyInsets(view)
         val summary = view.findViewById<TextView>(R.id.daily_summary)
         SessionManager.loggedInAccount.observe(viewLifecycleOwner) { account ->
             val uid = account?.user?.id ?: 0L

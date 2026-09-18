@@ -98,7 +98,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         setupRail(baseBind.siteRail, 4, 180);
         setupRail(baseBind.recentRail, 4, 180);
 
-        // 本月收藏 / 当前最热 / Shaft 榜单 / 长篇小说 / 人气画师
+        // 本月收藏 / 当前最热 / Shaft 榜单 / 长篇小说 / 人气画师 / 每日推荐
         // 走自建 shaft-api-v2,Lite 渠道不展示 —— GONE。
         // pixiv 漫画(comic.pixiv.net)虽然不依赖自建后端,但同样是 app-api 之外的站外内容源,
         // 和 Web 首页 / FANBOX 一个口径:Lite 不出现。
@@ -108,6 +108,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
             baseBind.shaftRankSection.setVisibility(View.GONE);
             baseBind.catNovelLengthRank.setVisibility(View.GONE);
             baseBind.catTrendingArtists.setVisibility(View.GONE);
+            baseBind.catDailyRecommendations.setVisibility(View.GONE);
             baseBind.catPixivComic.setVisibility(View.GONE);
             baseBind.catCorpusLibrary.setVisibility(View.GONE);
         }
@@ -138,6 +139,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         // ── 更多分类 ──
         baseBind.catNovelLengthRank.setOnClickListener(v -> openFragment(TemplateRoute.NOVEL_LENGTH_RANK));
         baseBind.catTrendingArtists.setOnClickListener(v -> openFragment(TemplateRoute.TRENDING_ARTISTS));
+        baseBind.catDailyRecommendations.setOnClickListener(v -> openFragment(TemplateRoute.DAILY_RECOMMENDATIONS));
         baseBind.catPixivComic.setOnClickListener(v -> openFragment(TemplateRoute.PIXIV_COMIC));
         baseBind.catWalk.setOnClickListener(v -> openFragment(TemplateRoute.WALKTHROUGH));
         baseBind.catFollowNovel.setOnClickListener(v -> openFragment(TemplateRoute.FOLLOWING_NOVELS));
@@ -175,6 +177,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         styleCatChip(baseBind.catNovelLengthRank, palette, R.drawable.ic_baseline_menu_book_24);
         styleCatChip(baseBind.catSfwRank, palette, R.drawable.ic_check_circle_black_24dp);
         styleCatChip(baseBind.catTrendingArtists, palette, R.drawable.outline_whatshot_24);
+        styleCatChip(baseBind.catDailyRecommendations, palette, R.drawable.ic_date_range_black_24dp);
         styleCatChip(baseBind.catUgoiraRank, palette, R.drawable.ic_baseline_play_arrow_24);
         styleCatChip(baseBind.catWalk, palette, R.drawable.ic_collections_black_24dp);
         styleCatChip(baseBind.catPixivComic, palette, R.drawable.ic_baseline_palette_24);

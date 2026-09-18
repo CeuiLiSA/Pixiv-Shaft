@@ -133,6 +133,7 @@ enum class TemplateRoute(@JvmField val key: String) {
     MONTH_RANK("新作榜"),
     NOVEL_LENGTH_RANK("长篇小说榜"),
     TRENDING_ARTISTS("人气画师"),
+    DAILY_RECOMMENDATIONS("每日推荐"),
     UGOIRA_RANK("动图榜"),
     EVENT_HISTORY("操作记录"),
     DEBUG_NETWORK_TEST("网络测试"),

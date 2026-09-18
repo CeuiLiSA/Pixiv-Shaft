@@ -281,6 +281,8 @@ Hero 插图可使用两张相互遮叠的票卡。推荐计划使用后层奶油
 - 同层按钮保持相近高度，文字长就换布局；不要把整行操作压成难读的小字。图标按钮提供名称，装饰图标不重复朗读文字。
 - 分类 Tab 对应多页内容时，点击与左右滑动共用同一分页状态；指示滑块连续跟随拖动进度，反向拖动和取消手势也同步回退。各页保留独立滚动位置，长标签或大字体下让选中项保持可见。表情选择器的 Tab 统一靠起始侧排列，BottomSheet 的关闭按钮位于同一行末端。
 
+每日推荐入口位于发现页「其他分类」，紧随「人气画师」，沿用主题色分类按钮；点击进入带标题和返回按钮的独立页面。首页推荐区只保留「推荐作品 / 热门标签」两个 Tab，并保留用户配置的顺序；Lite 渠道不显示每日推荐入口（2026-09-18）。
+
 ### 发现页底部交流入口（2026-09-18）
 
 `FragmentCenter` 在榜单之后展示「交流与分享」，由原生 [DiscoverSocialSection](../app/src/main/java/ceui/pixiv/ui/discovery/DiscoverSocialSection.kt) 和 [DiscoverSocialArtView](../app/src/main/java/ceui/pixiv/ui/discovery/DiscoverSocialArtView.kt) 实现。聊天室使用叠放气泡，社区使用错落帖卡与心形贴片；装饰为静态 Canvas 图形，文字使用原生 TextView、Montserrat 与系统中文回退。两张卡各为一个可聚焦的按钮，箭头属于同一热区。只保留 `pressScale` 短促按压与涟漪，尊重系统动画设置。
