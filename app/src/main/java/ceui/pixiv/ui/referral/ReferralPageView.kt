@@ -2,6 +2,7 @@ package ceui.pixiv.ui.referral
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Rect
 import android.os.Build
 import android.view.Gravity
 import android.view.View
@@ -23,7 +24,6 @@ import kotlin.math.roundToInt
 
 internal interface ReferralPageActions {
     fun back()
-    fun tab(tab: ReferralTab)
     fun filter(filter: ReferralFilter)
     fun open(kind: ReferralSheetKind, task: ReferralTask? = null, cardId: Long? = null)
     fun campaign(campaign: String)
@@ -44,7 +44,10 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
     private var ui: ReferralUi? = null
     private var systemTop = 0
     private var systemBottom = 0
-    private var sectionsY = 0
+    private var walletSection: View? = null
+    private val walletBounds = Rect()
+    private var pendingScrollY: Int? = null
+    private var walletScrollRequested = false
     private var lastWide = false
 
     init {
@@ -73,9 +76,25 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         if (wide != lastWide) post { lastState?.let(::render) }
     }
 
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        // 刷新和「查看奖励」可能发生在同一帧。等新布局完成后统一定位，显式导航优先，
+        // 避免恢复旧滚动位置的回调把用户刚选的卡包位置覆盖掉。
+        val section = walletSection
+        val restoreY = pendingScrollY
+        if (walletScrollRequested && section != null) {
+            section.getDrawingRect(walletBounds)
+            contentHost.offsetDescendantRectToMyCoords(section, walletBounds)
+            scroll.scrollTo(0, walletBounds.top)
+        } else if (restoreY != null) {
+            scroll.scrollTo(0, restoreY)
+        }
+        walletScrollRequested = false
+        pendingScrollY = null
+    }
+
     fun render(state: ReferralUiState) {
-        val oldScroll = scroll.scrollY
-        val changedTab = lastState?.tab != null && lastState?.tab != state.tab
+        if (pendingScrollY == null) pendingScrollY = scroll.scrollY
         lastState = state
         val colors = ReferralColors(context, state.darkOverride, state.accentOverride)
         val u = ReferralUi(context, colors)
@@ -85,6 +104,7 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         lastWide = wide
         setBackgroundColor(colors.bg); statusScrim.setBackgroundColor(colors.bg)
         contentHost.removeAllViews()
+        walletSection = null
         // 还没拿到服务端的答案之前，画一句「加载中」而不是一个「零奖励」的空活动 ——
         // 后者看起来像「你什么都没有」，而真相是「还不知道」。失败同理：要给重试，
         // 不能让人对着一个静止的空页面猜是不是坏了。
@@ -96,6 +116,7 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         // 激活是照常放行的（见 referral.js 的 claimReferralReward）。
         val settling = !state.snapshot.enabled && state.snapshot.hasSomethingToSettle
         if (state.snapshot.tasks.isEmpty() || (!state.snapshot.enabled && !settling)) {
+            walletScrollRequested = false
             val placeholder = when {
                 state.loading -> u.s(R.string.referral_loading) to null
                 // 未登录时直接接到登录流程，保留深链邀请码。
@@ -154,54 +175,59 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         val main = if (wide) u.row().apply { gravity = Gravity.TOP } else u.column()
         u.add(body, main, top = 29)
         val tasks = u.column()
-        if (wide) u.add(main, tasks, width = 0, weight = 1f) else u.add(main, tasks)
-        if (state.tab == ReferralTab.TASKS) {
-            sectionHeader(u, tasks, u.s(R.string.referral_tasks), u.s(R.string.referral_tasks_subtitle), "04")
-            u.add(tasks, filters(u, state), top = 19)
-            val visible = ReferralTask.LISTED.filter { task -> when (state.filter) {
-                ReferralFilter.ALL -> true
-                ReferralFilter.READY -> state.snapshot.status(task) == ReferralStatus.READY
-                ReferralFilter.PROGRESS -> state.snapshot.status(task) in listOf(ReferralStatus.PROGRESS, ReferralStatus.PENDING, ReferralStatus.REJECTED)
-            } }
-            if (visible.isEmpty()) u.add(tasks, empty(u,
-                if (state.filter == ReferralFilter.READY) R.string.referral_empty_ready else R.string.referral_empty_progress,
-                if (state.filter == ReferralFilter.READY) R.string.referral_empty_ready_desc else R.string.referral_empty_progress_desc,
-            ) { actions.filter(ReferralFilter.ALL) }, top = 13)
-            visible.forEach { u.add(tasks, taskCard(u, it, state.snapshot), top = 12) }
-        } else {
-            sectionHeader(u, tasks, u.s(R.string.referral_wallet), u.s(R.string.referral_wallet_subtitle), state.snapshot.cards.size.toString().padStart(2, '0'))
-            val now = System.currentTimeMillis()
-            if (state.snapshot.activeUntil > now) u.add(tasks,
-                note(u, u.s(R.string.referral_active_until, date(state.snapshot.activeUntil))), top = 20)
-            if (state.snapshot.cards.isEmpty()) u.add(tasks, empty(u,
-                R.string.referral_wallet_empty, R.string.referral_wallet_empty_desc,
-                arrayOf(state.snapshot.cardValidDays),
-            ) { actions.tab(ReferralTab.TASKS) }, top = 24)
-            state.snapshot.cards.forEach { u.add(tasks, walletCard(u, it), top = 16) }
-            // 卡包不是死胡同：进来的路是右边那张统计卡上的「查看卡包」，回去的路得自己给。
-            // 空卡包的那张占位卡里已经有一个了，这里补的是「有卡」的那一半。
-            if (state.snapshot.cards.isNotEmpty()) u.add(tasks,
-                u.button(R.string.referral_go_tasks, outline = true, icon = ReferralIcon.BACK) { actions.tab(ReferralTab.TASKS) }, top = 20)
+        val rewards = u.column().apply {
+            u.add(this, summary(u, state.snapshot))
+            val wallet = wallet(u, state.snapshot)
+            walletSection = wallet
+            u.add(this, wallet, top = 24)
         }
+        if (wide) {
+            u.add(main, tasks, width = 0, weight = 1f)
+            u.add(main, rewards, width = u.dp(288))
+            (rewards.layoutParams as LinearLayout.LayoutParams).marginStart = u.dp(30)
+        } else {
+            // 到账的卡直接可见；任务筛选只影响下面的任务列表。
+            u.add(main, rewards)
+            u.add(main, tasks, top = 32)
+        }
+        sectionHeader(u, tasks, u.s(R.string.referral_tasks), u.s(R.string.referral_tasks_subtitle), "04")
+        u.add(tasks, filters(u, state), top = 19)
+        val visible = ReferralTask.LISTED.filter { task -> when (state.filter) {
+            ReferralFilter.ALL -> true
+            ReferralFilter.READY -> state.snapshot.status(task) == ReferralStatus.READY
+            ReferralFilter.PROGRESS -> state.snapshot.status(task) in listOf(ReferralStatus.PROGRESS, ReferralStatus.PENDING, ReferralStatus.REJECTED)
+        } }
+        if (visible.isEmpty()) u.add(tasks, empty(u,
+            if (state.filter == ReferralFilter.READY) R.string.referral_empty_ready else R.string.referral_empty_progress,
+            if (state.filter == ReferralFilter.READY) R.string.referral_empty_ready_desc else R.string.referral_empty_progress_desc,
+        ) { actions.filter(ReferralFilter.ALL) }, top = 13)
+        visible.forEach { u.add(tasks, taskCard(u, it, state.snapshot), top = 12) }
         u.add(tasks, u.text(R.string.referral_gentle, 10f, color = colors.muted).apply {
             gravity = Gravity.CENTER; setPadding(0, u.dp(8), 0, u.dp(8))
             setCompoundDrawablesRelativeWithIntrinsicBounds(u.icon(ReferralIcon.HEART, colors.muted, 13), null, null, null)
             compoundDrawablePadding = u.dp(6)
         }, top = 16)
-        val side = u.column()
-        if (wide) {
-            u.add(main, side, width = u.dp(288))
-            (side.layoutParams as LinearLayout.LayoutParams).marginStart = u.dp(30)
-        } else u.add(main, side, top = 20)
-        u.add(side, summary(u, state.snapshot))
-        u.add(side, journey(u), top = 28)
+        u.add(if (wide) rewards else main, journey(u), top = 28)
         u.add(body, footer(u, state.snapshot), top = 24)
         applyInsets()
-        body.post {
-            sectionsY = body.top + main.top
-            scroll.scrollTo(0, if (changedTab) sectionsY else oldScroll)
-        }
         ViewCompat.requestApplyInsets(this)
+    }
+
+    /** 奖励已经在当前页面；领取反馈和「查看奖励」只定位，不再切换页面。 */
+    fun showWallet() {
+        if (walletSection == null) return
+        walletScrollRequested = true
+        requestLayout()
+    }
+
+    private fun wallet(u: ReferralUi, state: ReferralSnapshot) = u.column().apply {
+        sectionHeader(u, this, u.s(R.string.referral_wallet), u.s(R.string.referral_wallet_subtitle), state.cards.size.toString().padStart(2, '0'))
+        if (state.activeUntil > System.currentTimeMillis()) u.add(this,
+            note(u, u.s(R.string.referral_active_until, date(state.activeUntil))), top = 20)
+        if (state.cards.isEmpty()) u.add(this, empty(u,
+            R.string.referral_wallet_empty, R.string.referral_wallet_empty_desc, arrayOf(state.cardValidDays),
+        ), top = 16)
+        state.cards.forEach { u.add(this, walletCard(u, it), top = 16) }
     }
 
     private fun topBar(u: ReferralUi) = u.row().apply {
@@ -371,7 +397,7 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         }
         val button = u.button(action, primary = status == ReferralStatus.READY,
             icon = if (status == ReferralStatus.READY) ReferralIcon.TICKET else ReferralIcon.ARROW) {
-            if (status == ReferralStatus.CLAIMED) actions.tab(ReferralTab.WALLET)
+            if (status == ReferralStatus.CLAIMED) showWallet()
             else actions.open(if (status == ReferralStatus.READY) ReferralSheetKind.CLAIM else ReferralSheetKind.TASK, task)
         }
         button.contentDescription = u.s(action) + "：" + u.s(info.title)
@@ -403,7 +429,6 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
             u.add(stats, col, width = 0, weight = 1f)
         }
         u.add(this, stats, top = 18)
-        u.add(this, u.button(R.string.referral_open_wallet, outline = true, icon = ReferralIcon.ARROW) { actions.tab(ReferralTab.WALLET) }, top = 23)
         u.add(this, u.text(u.s(R.string.referral_expiry_hint, state.cardValidDays), 11f, color = u.colors.muted).apply { gravity = Gravity.CENTER }, top = 13)
     }
 
@@ -442,12 +467,12 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         }
     }
 
-    private fun empty(u: ReferralUi, title: Int, description: Int, args: Array<Any> = emptyArray(), action: () -> Unit) = card(u).apply {
+    private fun empty(u: ReferralUi, title: Int, description: Int, args: Array<Any> = emptyArray(), action: (() -> Unit)? = null) = card(u).apply {
         setPadding(u.dp(24), u.dp(36), u.dp(24), u.dp(36))
         u.add(this, u.text("✧", 40f, 400, u.colors.primary).apply { gravity = Gravity.CENTER })
         u.add(this, u.text(title, 16f, 600).apply { gravity = Gravity.CENTER }, top = 12)
         u.add(this, u.text(u.s(description, *args), 13f, color = u.colors.muted).apply { gravity = Gravity.CENTER }, top = 10)
-        u.add(this, u.button(R.string.referral_go_tasks, primary = true, action = action), top = 20)
+        if (action != null) u.add(this, u.button(R.string.referral_go_tasks, primary = true, action = action), top = 20)
     }
 
     private fun note(u: ReferralUi, value: String) = u.text(value, 12f, color = u.colors.muted).apply {

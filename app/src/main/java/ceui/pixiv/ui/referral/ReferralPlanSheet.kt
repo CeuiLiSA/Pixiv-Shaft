@@ -182,7 +182,7 @@ class ReferralPlanSheet : V3BottomSheetBase() {
             u.add(card, u.text(R.string.referral_card_hint, 11f, 400, u.colors.onHero), top = 14)
             u.add(content, card, top = 22)
         }
-        fun wallet() { model.tab(ReferralTab.WALLET); dismiss() }
+        fun wallet() { (parentFragment as? ReferralPlanFragment)?.showWallet(); dismiss() }
 
         when (kind) {
             ReferralSheetKind.TASK -> {

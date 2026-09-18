@@ -14,14 +14,14 @@ const tasks = [
 function freshState(){return {version:3, theme:'light', accent:'violet', effective:1, retained:0, status:{invite:'ready',recommend:'new',tutorial:'new',circle:'progress'}, submissions:{}, wallet:[], activeUntil:0};}
 let state = freshState();
 try {const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)); if(saved?.version===3 && Array.isArray(saved.wallet) && tasks.every(t => ['new','progress','pending','rejected','ready','claimed'].includes(saved.status?.[t.id]))) state={...state,...saved};} catch {}
-let currentView='tasks', currentFilter='all', toastTimer, lastTrigger;
+let currentFilter='all', toastTimer, lastTrigger;
 const sheet=$('#sheet');
 function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}}
 function applyTheme(){document.documentElement.dataset.theme=state.theme;document.documentElement.dataset.accent=state.accent;$('[data-action="theme"]').setAttribute('aria-label',state.theme==='dark'?'切换浅色模式':'切换深色模式');$('meta[name="theme-color"]').content=state.theme==='dark'?'#101014':'#f8f7fc';}
 function toast(message){$('#toast').textContent=message;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),3200);}
 function openSheet(html){if(!sheet.open)lastTrigger=document.activeElement;$('#sheet-content').innerHTML=html;if(!sheet.open)sheet.showModal();sheet.scrollTop=0;}
 function closeSheet(){sheet.close();}
-sheet.addEventListener('close',()=>{if(lastTrigger?.isConnected)lastTrigger.focus();});
+sheet.addEventListener('close',()=>{if(lastTrigger?.isConnected)lastTrigger.focus({preventScroll:true});});
 sheet.addEventListener('click',event=>{if(event.target===sheet){const r=sheet.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closeSheet();}});
 const statusText={new:'未开始',progress:'进行中',pending:'审核中',rejected:'需补充',ready:'可领取',claimed:'已领取'};
 const ctaText={new:'查看任务',progress:'查看进度',pending:'查看审核',rejected:'补充内容',ready:'领取奖励',claimed:'查看奖励'};
@@ -32,11 +32,7 @@ function render(){
   $('#earned-days').textContent=state.wallet.reduce((sum,c)=>sum+c.days,0);
   $('#invited-count').textContent=state.effective;
   const unused=state.wallet.filter(c=>!c.activatedAt&&c.expiresAt>Date.now()).length;
-  $('#wallet-count').textContent=unused;$('#mobile-wallet-count').textContent=unused;$('#claimable-count').textContent=ready;$('#ready-count').textContent=ready;
-  document.querySelectorAll('[data-view]').forEach(button=>{const active=button.dataset.view===currentView;button.classList.toggle('selected',active);if(active)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
-  $('.tabs').hidden=currentView==='wallet';$('#task-list').hidden=currentView==='wallet';$('#wallet-list').hidden=currentView!=='wallet';$('.season').textContent=currentView==='wallet'?'自主激活 · 不自动续费':'每项限领一次';
-  $('#section-title').innerHTML=currentView==='wallet'?`我的卡包 <span>${String(state.wallet.length).padStart(2,'0')}</span>`:'推荐任务 <span>04</span>';
-  $('#section-subtitle').textContent=currentView==='wallet'?'查看已领取的体验卡及激活状态。':'查看任务要求与完成进度。';
+  $('#wallet-count').textContent=unused;$('#claimable-count').textContent=ready;$('#ready-count').textContent=ready;
   document.querySelectorAll('[data-filter]').forEach(button=>{const selected=button.dataset.filter===currentFilter;button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;});
   $('#task-list').setAttribute('aria-labelledby',`tab-${currentFilter}`);
   const visible=tasks.filter(t=>currentFilter==='all'||(currentFilter==='ready'?state.status[t.id]==='ready':['progress','pending','rejected'].includes(state.status[t.id])));
@@ -50,24 +46,32 @@ function render(){
 function dateText(time){return new Date(time).toLocaleDateString('zh-CN',{year:'numeric',month:'numeric',day:'numeric'});}
 function dateTimeText(time){return new Date(time).toLocaleString('zh-CN',{year:'numeric',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});}
 function renderWallet(){
+  $('#wallet-total').textContent=String(state.wallet.length).padStart(2,'0');
   const active=state.activeUntil>Date.now()?`<div class="note-box">当前会员体验至 ${dateTimeText(state.activeUntil)}。激活新卡将从此时间顺延。</div>`:'';
   $('#wallet-list').innerHTML=state.wallet.length?active+state.wallet.map(card=>{
     const expired=!card.activatedAt&&card.expiresAt<=Date.now();
     return `<article class="wallet-card"><div class="wallet-card-top"><h3>${card.plan} ${card.days} 天体验卡</h3><div class="reward-pill"><b>${card.days}</b> 天</div></div><p>来自「${tasks.find(t=>t.id===card.taskId)?.title||'推荐任务'}」</p><p>${card.activatedAt?`已于 ${dateText(card.activatedAt)} 激活 · 权益已顺延`:expired?'已过激活期限':`请于 ${dateTimeText(card.expiresAt)} 前激活`}</p>${card.activatedAt||expired?`<span class="eyebrow">${expired?'已过期':'已激活'}</span>`:`<button class="primary" data-activate="${card.id}">激活 ${card.days} 天 ${card.plan} ${icon('arrow')}</button>`}</article>`;
-  }).join(''):`<div class="empty-state">${icon('ticket')}<h3>暂无体验卡</h3><p>完成任务后，可在任务页领取。<br>领取后 30 天内激活。</p><button class="primary" data-view="tasks">查看任务 ${icon('arrow')}</button></div>`;
+  }).join(''):`<div class="empty-state">${icon('ticket')}<h3>暂无体验卡</h3><p>完成推荐任务后即可领取体验卡。<br>领取后 30 天内激活。</p></div>`;
 }
-function setView(view){currentView=view;render();if(sheet.open)closeSheet();$('.task-section').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});}
+function scrollToSection(section){
+  const heading=$(section==='wallet'?'#wallet-title':'#section-title');
+  // Same-page navigation: keep both sections visible and move focus after closing the sheet.
+  lastTrigger=heading;
+  if(sheet.open)closeSheet();
+  heading.focus({preventScroll:true});
+  heading.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+}
 function showTask(id){
   const task=tasks.find(t=>t.id===id);if(!task)return;
   const status=state.status[id];
-  if(status==='claimed'){setView('wallet');return;}
+  if(status==='claimed'){scrollToSection('wallet');return;}
   if(status==='ready'){showClaim(id);return;}
   const progress=id==='circle'?`<div class="note-box">已有效邀请 ${state.effective} 人，其中 ${state.retained} / 3 人达成持续活跃。仅展示汇总状态，保护好友隐私。</div>`:'';
   const review=status==='pending'?'<div class="note-box">内容已提交，预计 2 个工作日内反馈。通过后即可领取；若需补充，会展示具体原因。原型中可在「演示控制台」模拟审核结果。</div>':status==='rejected'?'<div class="note-box">需补充：请明确标注 Pixiv-Shaft 名称，补充有效的 App 下载安装入口与活动奖励说明。补充后可重新提交。</div>':'';
   openSheet(`<div class="eyebrow">${task.category} · ${task.tag}</div><h2 id="sheet-title">${task.title}</h2><div class="detail-reward"><strong>${task.days}<small> 天</small></strong><div><b>${task.plan} 体验卡</b><p>完成后领取，30 天内自主激活</p></div></div>${progress}${review}<h3>完成条件</h3><ol class="detail-steps">${task.steps.map(s=>`<li>${s}</li>`).join('')}</ol><div class="note-box">${task.condition}</div>${['recommend','tutorial'].includes(id)?status==='pending'?'<button class="sheet-secondary" data-action="close">知道了</button>':`<button class="primary" data-submit-form="${id}">${status==='rejected'?'补充并重新提交':'提交内容链接'} ${icon('arrow')}</button>`:`<button class="primary" data-action="invite">邀请好友 ${icon('arrow')}</button>`}`);
 }
 function showClaim(id){const task=tasks.find(t=>t.id===id);openSheet(`<div class="celebration"><div class="success-shape">${icon('check')}</div><div class="eyebrow">EXPERIENCE PASS</div><h2 id="sheet-title">任务已完成</h2><p class="lead">「${task.title}」已完成<br>可领取 ${task.days} 天 ${task.plan} 体验卡。</p></div><div class="detail-reward"><strong>${task.days}<small> 天</small></strong><div><b>${task.plan} ${task.days} 天体验卡</b><p>激活后开始计时 · 不自动续费</p></div></div><button class="primary" data-claim="${id}">领取体验卡 ${icon('ticket')}</button><p style="text-align:center;margin-top:12px;font-size:10px">领取后 30 天内激活，可顺延现有体验权益。</p>`);}
-function claim(id){if(state.status[id]!=='ready')return;const task=tasks.find(t=>t.id===id);state.status[id]='claimed';state.wallet.push({id:`${id}-${Date.now()}`,taskId:id,plan:task.plan,days:task.days,claimedAt:Date.now(),expiresAt:Date.now()+30*DAY,activatedAt:0});render();openSheet(`<div class="celebration"><div class="success-shape">${icon('ticket')}</div><div class="eyebrow">REWARD CLAIMED</div><h2 id="sheet-title">已存入卡包</h2><p class="lead">${task.days} 天 ${task.plan} 体验卡已领取。<br>激活期限：${dateTimeText(state.wallet.at(-1).expiresAt)}</p></div><button class="primary" data-view="wallet">查看卡包 ${icon('arrow')}</button><button class="sheet-secondary" data-action="close">返回任务</button>`);}
+function claim(id){if(state.status[id]!=='ready')return;const task=tasks.find(t=>t.id===id);state.status[id]='claimed';state.wallet.push({id:`${id}-${Date.now()}`,taskId:id,plan:task.plan,days:task.days,claimedAt:Date.now(),expiresAt:Date.now()+30*DAY,activatedAt:0});render();openSheet(`<div class="celebration"><div class="success-shape">${icon('ticket')}</div><div class="eyebrow">REWARD CLAIMED</div><h2 id="sheet-title">已存入卡包</h2><p class="lead">${task.days} 天 ${task.plan} 体验卡已领取。<br>激活期限：${dateTimeText(state.wallet.at(-1).expiresAt)}</p></div><button class="primary" data-scroll="wallet">查看卡包 ${icon('arrow')}</button><button class="sheet-secondary" data-action="close">返回任务</button>`);}
 function showActivate(id){const card=state.wallet.find(c=>c.id===id);if(!card||card.activatedAt)return;if(card.expiresAt<=Date.now()){render();return toast('这张卡已过激活期限');}const end=Math.max(Date.now(),state.activeUntil)+card.days*DAY;openSheet(`<div class="eyebrow">ACTIVATE ${card.plan}</div><h2 id="sheet-title">激活 ${card.days} 天 ${card.plan}</h2><p class="lead">${state.activeUntil>Date.now()?'你已有体验权益，新卡会从当前结束时间顺延。':'激活后开始计时。'}<br>预计体验至 ${dateTimeText(end)}。</p><div class="note-box">本原型只演示权益状态，不会更改真实账号。正式版激活需服务端确认；体验卡不自动续费。</div><button class="primary" data-confirm-activate="${card.id}">确认激活 ${icon('spark')}</button><button class="sheet-secondary" data-action="close">暂不激活</button>`);}
 function activate(id){const card=state.wallet.find(c=>c.id===id);if(!card||card.activatedAt)return;if(card.expiresAt<=Date.now()){closeSheet();render();return toast('这张卡已过激活期限');}card.activatedAt=Date.now();state.activeUntil=Math.max(Date.now(),state.activeUntil)+card.days*DAY;render();openSheet(`<div class="celebration"><div class="success-shape">${icon('spark')}</div><h2 id="sheet-title">已激活</h2><p class="lead">${card.days} 天 ${card.plan} 体验已激活（演示）。<br>体验至 ${dateTimeText(state.activeUntil)}。</p></div><button class="primary" data-action="close">完成 ${icon('arrow')}</button>`);}
 function showInvite(){openSheet(`<div class="eyebrow">INVITE A FRIEND</div><h2 id="sheet-title">邀请好友使用 Pixiv-Shaft</h2><p class="lead">首次邀请达标后，双方各获 7 天 PRO。<br>好友需为新用户，无需付费。</p><div class="detail-reward">${icon('user')}<div><b>双方各获 7 天 PRO</b><p>新用户在 7 天内使用 2 天，并完成一次收藏</p></div></div><div class="link-box"><b>示例邀请码</b>SHAFT-C7K2</div><div class="note-box">邀请功能暂未开放。以下文案仅供预览，分享不会计入奖励。</div><button class="primary" data-action="copy-invite">复制邀请文案 ${icon('copy')}</button><button class="sheet-secondary" data-action="invite-progress">查看邀请进度</button>`);}
@@ -80,7 +84,7 @@ function showMaterials(){openSheet(`<div class="eyebrow">SHARE PIXIV-SHAFT</div>
 function showDemo(){openSheet(`<div class="eyebrow">PROTOTYPE CONTROLS</div><h2 id="sheet-title">演示控制台</h2><p class="lead">仅改变本浏览器的示例数据，用于评审完整流程。不会发出邀请、提交审核或发放真实会员权益。</p><div class="demo-row"><div>有效邀请 ${state.effective} 人<small>新好友达到首次体验条件</small></div><button data-sim="invite">增加 1 人</button></div><div class="demo-row"><div>持续活跃 ${state.retained} / 3 人<small>不得超过有效邀请人数</small></div><button data-sim="retained" ${state.retained>=Math.min(state.effective,3)?'disabled':''}>达标 1 人</button></div>${tasks.filter(t=>['recommend','tutorial'].includes(t.id)).map(t=>`<div class="demo-row"><div>${t.title}<small>${statusText[state.status[t.id]]}</small></div><div style="display:flex;gap:5px"><button data-review="${t.id}:ready" ${state.status[t.id]!=='pending'?'disabled':''}>通过</button><button data-review="${t.id}:rejected" ${state.status[t.id]!=='pending'?'disabled':''}>需补充</button></div></div>`).join('')}<button class="sheet-secondary" data-action="reset-confirm">重置全部演示数据</button>`);}
 document.addEventListener('click',event=>{
   const button=event.target.closest('button');if(!button||button.disabled)return;const d=button.dataset;
-  if(d.view){setView(d.view);return;}
+  if(d.scroll){scrollToSection(d.scroll);return;}
   if(d.filter){currentFilter=d.filter;render();document.querySelector(`[role="tab"][data-filter="${currentFilter}"]`)?.focus();return;}
   if(d.task){showTask(d.task);return;}if(d.claim){claim(d.claim);return;}if(d.activate){showActivate(d.activate);return;}if(d.confirmActivate){activate(d.confirmActivate);return;}if(d.submitForm){showForm(d.submitForm);return;}
   if(d.sim){if(d.sim==='invite'){state.effective++;if(state.status.invite!=='claimed')state.status.invite='ready';}else if(state.retained<Math.min(state.effective,3)){state.retained++;if(state.retained>=3&&state.status.circle!=='claimed')state.status.circle='ready';}render();showDemo();return;}
@@ -97,7 +101,7 @@ document.addEventListener('click',event=>{
     case 'copy-promo':copy('Pixiv-Shaft 使用体验\n功能：[介绍实际使用过的功能]\n体验：[优点、不足和适用场景]\n截图：[添加 App 功能截图]\n下载：[填写官方下载或邀请入口]\n活动说明：参与 App 推荐计划，内容审核通过可获得 PRO 体验卡。\n[请补全后发布。当前活动尚未开放。]');break;
     case 'demo':showDemo();break;
     case 'reset-confirm':openSheet('<div class="eyebrow">RESET DEMO</div><h2 id="sheet-title">重置演示数据？</h2><p class="lead">清空本浏览器的演示推广记录、体验卡与激活记录，恢复初始示例任务。</p><button class="primary" data-action="reset">重置演示</button><button class="sheet-secondary" data-action="close">保留当前进度</button>');break;
-    case 'reset':{const {theme,accent}=state;state={...freshState(),theme,accent};currentView='tasks';currentFilter='all';render();closeSheet();toast('已恢复初始演示数据');break;}
+    case 'reset':{const {theme,accent}=state;state={...freshState(),theme,accent};currentFilter='all';render();closeSheet();toast('已恢复初始演示数据');break;}
   }
 });
 $('.tabs').addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();const filters=['all','progress','ready'];let i=filters.indexOf(currentFilter);i=event.key==='Home'?0:event.key==='End'?2:(i+(event.key==='ArrowRight'?1:2))%3;currentFilter=filters[i];render();$(`#tab-${currentFilter}`).focus();});

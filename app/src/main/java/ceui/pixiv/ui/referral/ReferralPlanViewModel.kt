@@ -13,12 +13,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-internal enum class ReferralTab { TASKS, WALLET }
 internal enum class ReferralFilter { ALL, PROGRESS, READY }
 
 internal data class ReferralUiState(
     val snapshot: ReferralSnapshot,
-    val tab: ReferralTab,
     val filter: ReferralFilter,
     val darkOverride: Boolean?,
     val accentOverride: Int?,
@@ -35,7 +33,7 @@ internal data class ReferralUiState(
  * 响应都带回整页状态，所以成功后直接覆盖，从不本地推演 —— 这一页对应的是真的 PRO
  * 天数，本地推演一旦和服务端错开，用户看到的就是一个不存在的奖励。
  *
- * tab / filter / 配色存在 [SavedStateHandle] 里（进程死掉也还在），快照不存：它是服务端
+ * filter / 配色存在 [SavedStateHandle] 里（进程死掉也还在），快照不存：它是服务端
  * 的答案，重建时重新问一次即可，存下来只会在下次打开时先闪一帧过期数据。
  */
 internal class ReferralPlanViewModel @JvmOverloads constructor(
@@ -59,7 +57,6 @@ internal class ReferralPlanViewModel @JvmOverloads constructor(
 
     private fun current() = ReferralUiState(
         snapshot,
-        enumValueOr(saved["tab"], ReferralTab.TASKS),
         enumValueOr(saved["filter"], ReferralFilter.ALL),
         saved["dark"], saved["accent"],
         loading, error,
@@ -182,7 +179,6 @@ internal class ReferralPlanViewModel @JvmOverloads constructor(
         refresh()
     }
 
-    fun tab(tab: ReferralTab) { saved["tab"] = tab.name; publish() }
     fun filter(filter: ReferralFilter) { saved["filter"] = filter.name; publish() }
     fun appearance(dark: Boolean?, accent: Int?) { saved["dark"] = dark; saved["accent"] = accent; publish() }
     /** 重绘用：卡片有效期倒计时按当前时间算，回到前台时要重算一次。 */

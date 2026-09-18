@@ -85,7 +85,7 @@
     <string name="referral_go_wallet">パスを見る</string>
     <string name="referral_wallet_subtitle">受け取った体験パスと有効化状況を確認できます。</string>
     <string name="referral_wallet_empty">体験パスはまだありません</string>
-    <string name="referral_wallet_empty_desc">タスクを達成すると、タスクページで受け取れます。\n受け取り後 %1$d 日以内に有効化してください。</string>
+    <string name="referral_wallet_empty_desc">紹介タスクを達成すると体験パスを受け取れます。\n受け取り後 %1$d 日以内に有効化してください。</string>
     <string name="referral_go_tasks">タスクを見る</string>
     <string name="referral_empty_ready">受け取れる報酬はありません</string>
     <string name="referral_empty_ready_desc">タスクの達成と認証が完了すると、ここで受け取れます。</string>

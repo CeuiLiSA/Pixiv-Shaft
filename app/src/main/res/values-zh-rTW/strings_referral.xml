@@ -85,7 +85,7 @@
     <string name="referral_go_wallet">查看卡包</string>
     <string name="referral_wallet_subtitle">查看已領取的體驗卡及啟用狀態。</string>
     <string name="referral_wallet_empty">尚無體驗卡</string>
-    <string name="referral_wallet_empty_desc">完成任務後，可在任務頁領取。\n領取後 %1$d 天內啟用。</string>
+    <string name="referral_wallet_empty_desc">完成推薦任務後即可領取體驗卡。\n領取後 %1$d 天內啟用。</string>
     <string name="referral_go_tasks">查看任務</string>
     <string name="referral_empty_ready">尚無可領取獎勵</string>
     <string name="referral_empty_ready_desc">任務完成並通過驗證後，可在此領取。</string>

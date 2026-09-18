@@ -40,7 +40,6 @@ class ReferralPlanFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         ReferralPageView(requireContext(), object : ReferralPageActions {
             override fun back() { requireActivity().onBackPressedDispatcher.onBackPressed() }
-            override fun tab(tab: ReferralTab) { model.tab(tab) }
             override fun filter(filter: ReferralFilter) { model.filter(filter) }
             override fun retry() {
                 if (SessionManager.isLoggedIn) model.refresh() else {
@@ -62,6 +61,8 @@ class ReferralPlanFragment : Fragment() {
         if (childFragmentManager.isStateSaved || childFragmentManager.findFragmentByTag(SHEET) != null) return
         ReferralPlanSheet.newInstance(kind, task, code, cardId).show(childFragmentManager, SHEET)
     }
+
+    internal fun showWallet() { (view as? ReferralPageView)?.showWallet() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         model.state.observe(viewLifecycleOwner) { state ->
@@ -91,7 +92,7 @@ class ReferralPlanFragment : Fragment() {
         if (!state.snapshot.enabled || state.snapshot.inviterUid != null || state.snapshot.view(ReferralTask.INVITE)?.enabled != true) return
         // 问过一次就不再问，**不管有没有找到码**。
         //
-        // 只在「找到了」时才置位过一版，那样每一次状态更新（切 tab、换筛选、领完卡刷新）
+        // 只在「找到了」时才置位过一版，那样每一次状态更新（换筛选、领完卡刷新）
         // 都会再读一次剪贴板 —— 而 Android 12 起每次读别的 App 复制的内容都会弹一条
         // 系统提示。用户在这一页上点几下就被弹几次。
         asked = true

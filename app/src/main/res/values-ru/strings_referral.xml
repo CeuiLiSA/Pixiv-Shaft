@@ -85,7 +85,7 @@
     <string name="referral_go_wallet">Открыть абонементы</string>
     <string name="referral_wallet_subtitle">Полученные пробные абонементы и состояние активации.</string>
     <string name="referral_wallet_empty">Пробных абонементов пока нет</string>
-    <string name="referral_wallet_empty_desc">Выполните задание и заберите абонемент на странице заданий.\nАктивируйте в течение %1$d дней после получения.</string>
+    <string name="referral_wallet_empty_desc">Выполните задание программы рекомендаций и получите абонемент.\nАктивируйте в течение %1$d дней после получения.</string>
     <string name="referral_go_tasks">Открыть задания</string>
     <string name="referral_empty_ready">Нет доступных наград</string>
     <string name="referral_empty_ready_desc">Здесь можно забрать награду после выполнения и проверки задания.</string>

@@ -20,7 +20,6 @@ import org.robolectric.annotation.Config
 class ReferralHeroLayoutTest {
     private val actions = object : ReferralPageActions {
         override fun back() = Unit
-        override fun tab(tab: ReferralTab) = Unit
         override fun filter(filter: ReferralFilter) = Unit
         override fun open(kind: ReferralSheetKind, task: ReferralTask?, cardId: Long?) = Unit
         override fun campaign(campaign: String) = Unit
@@ -47,7 +46,7 @@ class ReferralHeroLayoutTest {
             page.render(ReferralUiState(
                 ReferralSnapshot(enabled = true, inviteUrl = "https://example.com/invite",
                     tasks = listOf(ReferralTaskView(ReferralTask.INVITE, ReferralStatus.NEW, 0, 1, "pro", 7, true, null, null))),
-                ReferralTab.TASKS, ReferralFilter.ALL, widthDp == 800, null, false, null))
+                ReferralFilter.ALL, widthDp == 800, null, false, null))
             measure()
             val art = page.descendants().filterIsInstance<ReferralHeroArtView>().single()
             val hero = generateSequence(art.parent as ViewGroup) { it.parent as? ViewGroup }

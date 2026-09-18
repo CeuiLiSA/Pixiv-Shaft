@@ -85,7 +85,7 @@
     <string name="referral_go_wallet">View passes</string>
     <string name="referral_wallet_subtitle">Check your claimed passes and their activation status.</string>
     <string name="referral_wallet_empty">No trial passes yet</string>
-    <string name="referral_wallet_empty_desc">Complete a task to claim a pass on the task page.\nActivate within %1$d days of claiming.</string>
+    <string name="referral_wallet_empty_desc">Complete a referral task to claim a pass.\nActivate within %1$d days of claiming.</string>
     <string name="referral_go_tasks">View tasks</string>
     <string name="referral_empty_ready">No rewards to claim</string>
     <string name="referral_empty_ready_desc">Claim rewards here once tasks are completed and verified.</string>

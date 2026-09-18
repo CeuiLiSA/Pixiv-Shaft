@@ -85,7 +85,7 @@
     <string name="referral_go_wallet">查看卡包</string>
     <string name="referral_wallet_subtitle">查看已领取的体验卡及激活状态。</string>
     <string name="referral_wallet_empty">暂无体验卡</string>
-    <string name="referral_wallet_empty_desc">完成任务后，可在任务页领取。\n领取后 %1$d 天内激活。</string>
+    <string name="referral_wallet_empty_desc">完成推荐任务后即可领取体验卡。\n领取后 %1$d 天内激活。</string>
     <string name="referral_go_tasks">查看任务</string>
     <string name="referral_empty_ready">暂无可领取奖励</string>
     <string name="referral_empty_ready_desc">任务完成并通过验证后，可在此领取。</string>

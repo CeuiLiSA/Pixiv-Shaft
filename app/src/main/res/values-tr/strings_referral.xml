@@ -85,7 +85,7 @@
     <string name="referral_go_wallet">Kartları görüntüle</string>
     <string name="referral_wallet_subtitle">Aldığınız deneme kartlarını ve etkinleştirme durumlarını inceleyin.</string>
     <string name="referral_wallet_empty">Henüz deneme kartı yok</string>
-    <string name="referral_wallet_empty_desc">Bir görevi tamamladıktan sonra görev sayfasından alabilirsiniz.\nAldıktan sonra %1$d gün içinde etkinleştirin.</string>
+    <string name="referral_wallet_empty_desc">Bir öneri görevini tamamlayarak deneme kartı alabilirsiniz.\nAldıktan sonra %1$d gün içinde etkinleştirin.</string>
     <string name="referral_go_tasks">Görevleri görüntüle</string>
     <string name="referral_empty_ready">Alınabilecek ödül yok</string>
     <string name="referral_empty_ready_desc">Görev tamamlanıp doğrulandığında ödülünüzü buradan alabilirsiniz.</string>

@@ -98,3 +98,25 @@ h1 { font-weight: 700; letter-spacing: -.6px; }
   .hero-button { margin-top: 0; min-height: 48px; padding-inline: 16px; gap: 10px; }
   .hero-button svg { width: 16px; height: 16px; }
 }
+
+/* Referral tasks and passes share one page; only task filters replace list content. */
+.content-grid { grid-template-areas: "tasks rewards" "tasks journey"; grid-template-rows: auto 1fr; row-gap: 28px; }
+.task-section { grid-area: tasks; min-width: 0; }
+.rewards-column { grid-area: rewards; min-width: 0; }
+.side-column { grid-area: journey; min-width: 0; }
+.wallet-section { margin-top: 24px; }
+.wallet-list { margin-top: 16px; }
+#wallet-title, #section-title { scroll-margin-top: 24px; }
+.wallet-card-top { gap: 12px; align-items: flex-start; }
+.wallet-card-top h3 { min-width: 0; overflow-wrap: anywhere; }
+.wallet-card-top .reward-pill { flex-shrink: 0; }
+@media (min-width: 761px) and (max-width: 980px) {
+  .content-grid { grid-template-columns: minmax(0, 1fr) 268px; }
+  .side-column { display: block; }
+}
+@media (max-width: 760px) {
+  .content-grid { gap: 32px; }
+  .journey { padding-top: 0; }
+  footer { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+  #toast { bottom: calc(24px + env(safe-area-inset-bottom)); }
+}

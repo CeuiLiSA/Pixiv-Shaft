@@ -85,7 +85,7 @@
     <string name="referral_go_wallet">이용권 보기</string>
     <string name="referral_wallet_subtitle">받은 체험권과 활성화 상태를 확인하세요.</string>
     <string name="referral_wallet_empty">아직 체험권이 없습니다</string>
-    <string name="referral_wallet_empty_desc">미션 완료 후 미션 페이지에서 받을 수 있습니다.\n수령 후 %1$d일 이내에 활성화해 주세요.</string>
+    <string name="referral_wallet_empty_desc">추천 미션을 완료하면 체험권을 받을 수 있습니다.\n수령 후 %1$d일 이내에 활성화해 주세요.</string>
     <string name="referral_go_tasks">미션 보기</string>
     <string name="referral_empty_ready">받을 수 있는 보상이 없습니다</string>
     <string name="referral_empty_ready_desc">미션을 완료하고 확인을 통과하면 여기에서 받을 수 있습니다.</string>
