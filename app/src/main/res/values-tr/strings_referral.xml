@@ -6,7 +6,7 @@
     <string name="referral_eyebrow">TAVSİYE PROGRAMI</string>
     <string name="referral_heading">Uygulama Tavsiye Programı</string>
     <string name="referral_intro">Tavsiye görevlerini tamamla, PRO veya MAX kartı kazan.</string>
-    <string name="referral_hero_tag">7 / 30 günlük deneme kartları</string>
+    <string name="referral_hero_tag">7 günlük deneme kartları</string>
     <string name="referral_hero_title">Pixiv-Shaft’ı tavsiye edin\nPRO deneme kartı kazanın</string>
     <string name="referral_hero_body">Arkadaşlarınızı davet edin veya uygulamayı tanıtan içerik yayımlayın.\nİlgili görevi tamamladıktan sonra kartınızı alın.</string>
     <string name="referral_invite_action">Arkadaş davet et</string>
@@ -129,7 +129,6 @@
     <string name="referral_copy_template">Tavsiye yazısı taslağını kopyala</string>
     <string name="referral_template">Pixiv-Shaft deneyimim\nÖzellik: [gerçekten kullandığın bir özellik]\nİzlenim: [artıları, eksileri, kime uygun]\nEkran görüntüleri: [uygulama görüntüleri ekle]\nİndirme: [resmî indirme veya kendi davet bağlantın]\nEtkinlik hakkında: App Tavsiye Programı’nda onaylanan içerikler üyelik deneme kartı kazandırır.</string>
     <string name="referral_week_caption">7 günlük kullanım</string>
-    <string name="referral_month_caption">30 günlük kullanım</string>
     <string name="referral_day_unit">gün</string>
     <string name="referral_pass_badge">PRO</string>
     <string name="referral_trial_badge">Deneme</string>

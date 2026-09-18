@@ -6,7 +6,7 @@
     <string name="referral_eyebrow">추천 프로그램</string>
     <string name="referral_heading">앱 추천 프로그램</string>
     <string name="referral_intro">추천 미션을 완료하면 PRO 또는 MAX 체험권을 받습니다.</string>
-    <string name="referral_hero_tag">7일 / 30일 체험권</string>
+    <string name="referral_hero_tag">7일 체험권</string>
     <string name="referral_hero_title">Pixiv-Shaft를 추천하고\nPRO 체험권 받기</string>
     <string name="referral_hero_body">친구를 초대하거나 앱 추천 콘텐츠를 게시하세요.\n해당 미션을 완료하면 받을 수 있습니다.</string>
     <string name="referral_invite_action">친구 초대</string>
@@ -129,7 +129,6 @@
     <string name="referral_copy_template">추천 게시물 개요 복사</string>
     <string name="referral_template">Pixiv-Shaft 사용 후기\n기능: [실제로 써 본 기능]\n사용감: [장점, 아쉬운 점, 어울리는 사람]\n스크린샷: [앱 화면 첨부]\n다운로드: [공식 다운로드 또는 내 초대 링크]\n이벤트 안내: App 추천 프로그램에서 심사를 통과하면 멤버십 체험권을 받습니다.</string>
     <string name="referral_week_caption">7일 이용</string>
-    <string name="referral_month_caption">30일 이용</string>
     <string name="referral_day_unit">일</string>
     <string name="referral_pass_badge">PRO</string>
     <string name="referral_trial_badge">체험</string>

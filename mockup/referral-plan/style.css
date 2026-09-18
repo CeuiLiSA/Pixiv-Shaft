@@ -61,3 +61,40 @@ h1 { font-weight: 700; letter-spacing: -.6px; }
   .page-heading > div { width: 100%; }
   .page-heading .rules-top { position: absolute; top: -12px; right: 0; margin: 0; white-space: nowrap; }
 }
+
+/* Referral artwork has a measured slot; both seven-day passes stay inside it. */
+.hero { display: block; min-height: 0; }
+.hero-copy { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 24px; padding: 32px 36px; }
+.hero-tag { grid-column: 1; justify-self: start; }
+.hero h2, .hero-copy > p { grid-column: 1; }
+.hero-copy > p, .hero-footnote { max-width: none; }
+.hero-footer { display: contents; }
+.hero-actions { grid-column: 1; }
+.hero .hero-art { position: relative; grid-column: 2; grid-row: 1 / span 4; align-self: center; justify-self: center; width: 100%; max-width: 428px; height: auto; min-height: 0; aspect-ratio: 428 / 370; top: auto; right: auto; transform: none; opacity: 1; container-type: inline-size; }
+.hero-deck { position: absolute; inset: 0; }
+.hero .art-card { width: 50%; height: 71.351%; padding: 4.907cqw; border-radius: 4.206cqw; box-shadow: 0 1.4cqw 2.8cqw #32255219; }
+.hero .art-card.week { left: 5.607%; top: 6.486%; transform: rotate(-8deg); }
+.hero .art-card.month { left: 41.589%; top: 20.541%; transform: rotate(8deg); }
+.hero .art-card-top { font-size: 1.636cqw; letter-spacing: .304cqw; }
+.hero .art-card-top svg { width: 4.206cqw; height: 4.206cqw; }
+.hero .art-pro { font-size: 13.084cqw; margin-top: 5.841cqw; letter-spacing: -.467cqw; }
+.hero .art-pro > span { font-size: 2.57cqw; letter-spacing: 1.168cqw; margin-top: 1.402cqw; }
+.hero .art-card-bottom { margin-top: 8.411cqw; }
+.hero .art-card-bottom > b { font-size: 9.112cqw; letter-spacing: -.467cqw; }
+.hero .art-card-bottom > b > span { font-size: 2.804cqw; margin-left: .935cqw; }
+.hero .art-card-bottom > span { font-size: 1.869cqw; letter-spacing: .023cqw; }
+.hero .ticket-dash { bottom: 19.159cqw; }
+.hero .ticket-dash::before, .hero .ticket-dash::after { width: 3.738cqw; height: 3.738cqw; top: -1.869cqw; left: -1.869cqw; }
+.hero .ticket-dash::after { left: auto; right: -1.869cqw; }
+.hero .orbit { left: 3.271%; top: 17.297%; width: 92.056%; height: 66.216%; transform: rotate(-12deg); }
+.hero .orbit-two { left: 7.009%; top: 20.27%; width: 84.112%; height: 60.811%; transform: rotate(15deg); }
+.hero .art-star { left: 85.981%; top: 2.973%; right: auto; font-size: 8.411cqw; line-height: 1; }
+.hero .mini-star, .hero .art-dot { display: none; }
+@media (max-width: 760px) {
+  .hero-copy { display: block; padding: 26px 24px 25px; }
+  .hero-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 20px; }
+  .hero-actions { flex: 1 0 112px; min-width: 0; }
+  .hero .hero-art { flex: 0 0 196px; width: 196px; margin-inline: auto; }
+  .hero-button { margin-top: 0; min-height: 48px; padding-inline: 16px; gap: 10px; }
+  .hero-button svg { width: 16px; height: 16px; }
+}

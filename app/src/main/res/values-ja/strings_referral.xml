@@ -6,7 +6,7 @@
     <string name="referral_eyebrow">紹介プログラム</string>
     <string name="referral_heading">アプリ紹介プログラム</string>
     <string name="referral_intro">紹介タスクを達成すると PRO または MAX の体験パスがもらえます。</string>
-    <string name="referral_hero_tag">7 日間 / 30 日間の体験パス</string>
+    <string name="referral_hero_tag">7 日間の体験パス</string>
     <string name="referral_hero_title">Pixiv-Shaft を紹介して\nPRO 体験パスを獲得</string>
     <string name="referral_hero_body">友達を招待するか、アプリの紹介記事を投稿。\nタスクを達成すると受け取れます。</string>
     <string name="referral_invite_action">友達を招待</string>
@@ -129,7 +129,6 @@
     <string name="referral_copy_template">紹介記事の構成をコピー</string>
     <string name="referral_template">Pixiv-Shaft の使用感\n機能：[実際に使った機能]\n感想：[良い点・不満点・向いている人]\nスクリーンショット：[アプリの画面を添付]\nダウンロード：[公式ダウンロードまたは自分の招待リンク]\n企画について：App 紹介プログラムで審査を通過するとメンバーシップ体験パスがもらえます。</string>
     <string name="referral_week_caption">7 日間利用可能</string>
-    <string name="referral_month_caption">30 日間利用可能</string>
     <string name="referral_day_unit">日</string>
     <string name="referral_pass_badge">PRO</string>
     <string name="referral_trial_badge">体験</string>

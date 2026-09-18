@@ -62,7 +62,7 @@ internal class ReferralColors(context: Context, darkOverride: Boolean?, accentOv
     val peachBg = mode("#F9E9E0", "#423027")
     val blue = mode("#516795", "#B4C7EE")
     val blueBg = mode("#E6EDF9", "#293248")
-    val artMonth = themed("#C5B0EC")
+    val artMax = themed("#C5B0EC")
     val artInk = themed("#33244E")
 
     private fun contrast(foreground: Int, background: Int): Int {

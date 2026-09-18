@@ -224,8 +224,6 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
     }
 
     private fun hero(u: ReferralUi, wide: Boolean, snapshot: ReferralSnapshot): View {
-        val frame = FrameLayout(context).apply { background = u.shape(u.colors.hero, 26f); clipToOutline = true }
-        frame.addView(ReferralHeroArtView(context, u), LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         val copy = u.column().apply { setPadding(u.dp(if (wide) 36 else 24), u.dp(26), u.dp(24), u.dp(25)) }
         val tag = u.text("•  " + u.s(R.string.referral_hero_tag), 9f, 500, u.colors.onTint).apply {
             setPadding(u.dp(11), u.dp(7), u.dp(11), u.dp(7)); background = u.shape(u.colors.bg, 999f)
@@ -235,19 +233,53 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
             setLineSpacing(0f, 1.15f)
             TextViewCompat.setLineHeight(this, (textSize * 1.4f).roundToInt())
         }, top = 15)
-        val narrow = resources.configuration.fontScale <= 1.1f && !wide
         u.add(copy, u.text(R.string.referral_hero_body, 12f, color = u.colors.onHero).apply {
             TextViewCompat.setLineHeight(this, (textSize * 1.95f).roundToInt())
-        }, width = if (narrow) u.dp(185) else LayoutParams.MATCH_PARENT, top = 13)
-        if (snapshot.inviteUrl != null) u.add(copy, u.button(R.string.referral_invite_action, primary = true, icon = ReferralIcon.ARROW) { actions.open(ReferralSheetKind.INVITE) },
-            width = LayoutParams.WRAP_CONTENT, top = 24)
-        u.add(copy, u.text(R.string.referral_hero_note, 12f, color = u.colors.onHero).apply {
+        }, top = 13)
+        val actionsColumn = u.column()
+        if (snapshot.inviteUrl != null) u.add(actionsColumn,
+            u.button(R.string.referral_invite_action, primary = true, icon = ReferralIcon.ARROW) { actions.open(ReferralSheetKind.INVITE) },
+            width = LayoutParams.WRAP_CONTENT)
+        u.add(actionsColumn, u.text(R.string.referral_hero_note, 12f, color = u.colors.onHero).apply {
             TextViewCompat.setLineHeight(this, (textSize * 1.7f).roundToInt())
-        }, width = if (narrow) u.dp(185) else LayoutParams.MATCH_PARENT, top = 12)
-        // At large font sizes keep the text readable; decoration remains a separate noninteractive layer.
-        if (resources.configuration.fontScale > 1.1f) frame.getChildAt(0).alpha = .13f
-        frame.addView(copy, LayoutParams(if (wide) u.dp(430) else LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
-        return frame
+        }, top = 12)
+        val art = ReferralHeroArtView(context, u)
+        // Both columns participate in measurement: cards never sit underneath readable copy.
+        val hero = if (wide && resources.configuration.fontScale <= 1.1f) {
+            u.add(copy, actionsColumn, top = 24)
+            u.row().apply {
+                u.add(this, copy, width = 0, weight = 1f)
+                addView(art, LinearLayout.LayoutParams(0, u.dp(320), 1f).apply { rightMargin = u.dp(24) })
+            }
+        } else {
+            val footer = object : LinearLayout(context) {
+                override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+                    val roomForColumns = MeasureSpec.getSize(widthMeasureSpec) >=
+                        u.dp(208) + u.dp(112f * resources.configuration.fontScale)
+                    orientation = if (roomForColumns) HORIZONTAL else VERTICAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    (actionsColumn.layoutParams as LinearLayout.LayoutParams).apply {
+                        width = if (roomForColumns) 0 else LayoutParams.MATCH_PARENT
+                        weight = if (roomForColumns) 1f else 0f
+                    }
+                    (art.layoutParams as LinearLayout.LayoutParams).apply {
+                        width = if (roomForColumns) u.dp(196) else LayoutParams.MATCH_PARENT
+                        height = u.dp(if (roomForColumns) 180 else 220)
+                        leftMargin = if (roomForColumns) u.dp(12) else 0
+                        topMargin = if (roomForColumns) 0 else u.dp(16)
+                    }
+                    super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+                }
+            }.apply {
+                addView(actionsColumn, LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+                addView(art, LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, u.dp(220)))
+            }
+            u.add(copy, footer, top = 20)
+            copy
+        }
+        hero.background = u.shape(u.colors.hero, 26f)
+        hero.clipToOutline = true
+        return hero
     }
 
     private fun sectionHeader(u: ReferralUi, parent: LinearLayout, title: String, subtitle: String, count: String) {

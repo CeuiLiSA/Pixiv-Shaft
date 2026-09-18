@@ -6,7 +6,7 @@
     <string name="referral_eyebrow">REFERRAL PROGRAM</string>
     <string name="referral_heading">App Referral Program</string>
     <string name="referral_intro">Complete referral tasks to earn PRO or MAX passes.</string>
-    <string name="referral_hero_tag">7-day / 30-day trial passes</string>
+    <string name="referral_hero_tag">7-day trial passes</string>
     <string name="referral_hero_title">Recommend Pixiv-Shaft\nGet a PRO trial pass</string>
     <string name="referral_hero_body">Invite friends or publish a post about the app.\nClaim your pass after completing a task.</string>
     <string name="referral_invite_action">Invite friends</string>
@@ -129,7 +129,6 @@
     <string name="referral_copy_template">Copy post outline</string>
     <string name="referral_template">My experience with Pixiv-Shaft\nFeature: [a feature you actually used]\nImpressions: [what works, what does not, who it suits]\nScreenshots: [add app screenshots]\nDownload: [official download or your invite link]\nAbout the program: posts approved under the App Referral Program earn a membership trial pass.</string>
     <string name="referral_week_caption">7-day access</string>
-    <string name="referral_month_caption">30-day access</string>
     <string name="referral_day_unit">days</string>
     <string name="referral_pass_badge">PRO</string>
     <string name="referral_trial_badge">Trial</string>

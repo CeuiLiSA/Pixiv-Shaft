@@ -6,7 +6,7 @@
     <string name="referral_eyebrow">ПРОГРАММА РЕКОМЕНДАЦИЙ</string>
     <string name="referral_heading">Программа рекомендаций приложения</string>
     <string name="referral_intro">Выполняйте задания программы и получайте пропуска PRO или MAX.</string>
-    <string name="referral_hero_tag">Пробные абонементы на 7 / 30 дней</string>
+    <string name="referral_hero_tag">Пробные абонементы на 7 дней</string>
     <string name="referral_hero_title">Рекомендуйте Pixiv-Shaft\nПолучите пробный абонемент PRO</string>
     <string name="referral_hero_body">Приглашайте друзей или публикуйте рекомендации приложения.\nЗаберите абонемент после выполнения задания.</string>
     <string name="referral_invite_action">Пригласить друзей</string>
@@ -129,7 +129,6 @@
     <string name="referral_copy_template">Скопировать план публикации</string>
     <string name="referral_template">Мой опыт с Pixiv-Shaft\nФункция: [чем вы реально пользовались]\nВпечатления: [плюсы, минусы, кому подойдёт]\nСкриншоты: [добавьте снимки экрана]\nСкачать: [официальная ссылка или ваша ссылка-приглашение]\nОб акции: одобренные материалы в программе рекомендаций приносят пробный пропуск.</string>
     <string name="referral_week_caption">Доступ на 7 дней</string>
-    <string name="referral_month_caption">Доступ на 30 дней</string>
     <string name="referral_day_unit">дн.</string>
     <string name="referral_pass_badge">PRO</string>
     <string name="referral_trial_badge">Пробный</string>

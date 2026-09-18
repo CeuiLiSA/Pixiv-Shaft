@@ -6,7 +6,7 @@
     <string name="referral_eyebrow">REFERRAL PROGRAM</string>
     <string name="referral_heading">App 推薦計畫</string>
     <string name="referral_intro">完成推薦任務，可獲 PRO 或 MAX 體驗卡。</string>
-    <string name="referral_hero_tag">7 天 / 30 天體驗卡</string>
+    <string name="referral_hero_tag">7 天體驗卡</string>
     <string name="referral_hero_title">推薦 Pixiv-Shaft\n領取 PRO 體驗卡</string>
     <string name="referral_hero_body">邀請好友或發布 App 推薦內容。\n完成對應任務後領取。</string>
     <string name="referral_invite_action">邀請好友</string>
@@ -129,7 +129,6 @@
     <string name="referral_copy_template">複製推薦貼文大綱</string>
     <string name="referral_template">Pixiv-Shaft 使用體驗\n功能：[介紹實際使用過的功能]\n體驗：[優點、不足和適用場景]\n截圖：[新增 App 功能截圖]\n下載：[填寫官方下載或你的專屬邀請連結]\n活動說明：參與 App 推薦計畫，內容審核通過可獲得會員體驗卡。</string>
     <string name="referral_week_caption">7 天使用期</string>
-    <string name="referral_month_caption">30 天使用期</string>
     <string name="referral_day_unit">天</string>
     <string name="referral_pass_badge">PRO</string>
     <string name="referral_trial_badge">體驗</string>
