@@ -1981,6 +1981,7 @@
     <string name="experimental_section">Experimental</string>
     <string name="site_recommend">This Month\'s Bookmarks</string>
     <string name="current_hot">Trending Now</string>
+    <string name="shaft_rankings">Shaft Rankings</string>
     <string name="artist_rank">Top Artists</string>
     <string name="artist_rank_title">Artist Bookmark Leaderboard</string>
     <string name="artist_avg_rank">Avg Bookmarks</string>

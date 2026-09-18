@@ -1981,6 +1981,7 @@
     <string name="experimental_section">実験的</string>
     <string name="site_recommend">今月のブックマーク</string>
     <string name="current_hot">急上昇</string>
+    <string name="shaft_rankings">Shaft ランキング</string>
     <string name="artist_rank">絵師ランキング</string>
     <string name="artist_rank_title">絵師ブックマーク総合ランキング</string>
     <string name="artist_avg_rank">平均ランキング</string>

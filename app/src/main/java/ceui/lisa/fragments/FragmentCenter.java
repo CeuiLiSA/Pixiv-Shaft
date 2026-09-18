@@ -15,9 +15,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import ceui.pixiv.witstudio.dialog.WitDialog;
-import ceui.pixiv.witstudio.dialog.WitDialogAction;
-
 import java.util.List;
 
 import ceui.lisa.BuildConfig;
@@ -45,7 +42,7 @@ import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /**
  * 「发现」tab —— V3 内容货架版。侧边栏「发现」分组的内容直接铺进这里:
- *   热度标签(本地策展)→ 最新 → 特辑(pixivision)→ 本月收藏 → 当前最热 → 更多分类。
+ *   热度标签(本地策展)→ 最新 → 特辑(pixivision)→ 本月收藏 → 当前最热 → 更多分类 → Shaft 榜单。
  * 每条货架横向缩略图,数据在 {@link DiscoverViewModel};「查看全部」跳原来的整页,零新后端。
  * 本月收藏 / 当前最热走自建 shaft-api-v2,Lite 渠道整段不展示。
  *
@@ -95,27 +92,16 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         setupRail(baseBind.siteRail, 4, 180);
         setupRail(baseBind.recentRail, 4, 180);
 
-        // 本月收藏 / 当前最热 / 画师榜 / 均分榜 / 浏览量榜 / 收藏榜 / AI 榜 / 年代榜
+        // 本月收藏 / 当前最热 / Shaft 榜单 / 长篇小说 / 人气画师
         // 走自建 shaft-api-v2,Lite 渠道不展示 —— GONE。
         // pixiv 漫画(comic.pixiv.net)虽然不依赖自建后端,但同样是 app-api 之外的站外内容源,
         // 和 Web 首页 / FANBOX 一个口径:Lite 不出现。
         if (BuildConfig.IS_LITE) {
             baseBind.siteSection.setVisibility(View.GONE);
             baseBind.recentSection.setVisibility(View.GONE);
-            baseBind.catArtistRank.setVisibility(View.GONE);
-            baseBind.catArtistAvgRank.setVisibility(View.GONE);
-            baseBind.catViewRank.setVisibility(View.GONE);
-            baseBind.catBookmarkRank.setVisibility(View.GONE);
-            baseBind.catAiRank.setVisibility(View.GONE);
-            baseBind.catYearRank.setVisibility(View.GONE);
-            baseBind.catTagRank.setVisibility(View.GONE);
-            baseBind.catWallpaperRank.setVisibility(View.GONE);
-            baseBind.catSeriesRank.setVisibility(View.GONE);
-            baseBind.catMonthRank.setVisibility(View.GONE);
+            baseBind.shaftRankSection.setVisibility(View.GONE);
             baseBind.catNovelLengthRank.setVisibility(View.GONE);
-            baseBind.catSfwRank.setVisibility(View.GONE);
             baseBind.catTrendingArtists.setVisibility(View.GONE);
-            baseBind.catUgoiraRank.setVisibility(View.GONE);
             baseBind.catPixivComic.setVisibility(View.GONE);
             baseBind.catCorpusLibrary.setVisibility(View.GONE);
         }
@@ -130,11 +116,10 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         baseBind.bigManga.setOnClickListener(v -> openFragment(TemplateRoute.RECOMMENDED_MANGA));
         baseBind.bigNovel.setOnClickListener(v -> openFragmentKeepStatusBar(TemplateRoute.RECOMMENDED_NOVELS));
 
-        // ── 更多分类:旧跳转卡降级成一排 chip ──
+        // ── Shaft 榜单 ──
         baseBind.catArtistRank.setOnClickListener(v -> openFragment(TemplateRoute.ARTIST_RANK));
         baseBind.catArtistAvgRank.setOnClickListener(v -> openFragment(TemplateRoute.ARTIST_AVG_RANK));
         baseBind.catViewRank.setOnClickListener(v -> openFragment(TemplateRoute.VIEW_RANK));
-        baseBind.catPixivComic.setOnClickListener(v -> openFragment(TemplateRoute.PIXIV_COMIC));
         baseBind.catBookmarkRank.setOnClickListener(v -> openFragment(TemplateRoute.BOOKMARK_RANK));
         baseBind.catAiRank.setOnClickListener(v -> openFragment(TemplateRoute.AI_RANK));
         baseBind.catYearRank.setOnClickListener(v -> openFragment(TemplateRoute.YEAR_RANK));
@@ -142,10 +127,12 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         baseBind.catWallpaperRank.setOnClickListener(v -> openFragment(TemplateRoute.WALLPAPER_RANK));
         baseBind.catSeriesRank.setOnClickListener(v -> openFragment(TemplateRoute.SERIES_RANK));
         baseBind.catMonthRank.setOnClickListener(v -> openFragment(TemplateRoute.MONTH_RANK));
-        baseBind.catNovelLengthRank.setOnClickListener(v -> openFragment(TemplateRoute.NOVEL_LENGTH_RANK));
         baseBind.catSfwRank.setOnClickListener(v -> openFragment(TemplateRoute.SFW_RANK));
-        baseBind.catTrendingArtists.setOnClickListener(v -> openFragment(TemplateRoute.TRENDING_ARTISTS));
         baseBind.catUgoiraRank.setOnClickListener(v -> openFragment(TemplateRoute.UGOIRA_RANK));
+        // ── 更多分类 ──
+        baseBind.catNovelLengthRank.setOnClickListener(v -> openFragment(TemplateRoute.NOVEL_LENGTH_RANK));
+        baseBind.catTrendingArtists.setOnClickListener(v -> openFragment(TemplateRoute.TRENDING_ARTISTS));
+        baseBind.catPixivComic.setOnClickListener(v -> openFragment(TemplateRoute.PIXIV_COMIC));
         baseBind.catWalk.setOnClickListener(v -> openFragment(TemplateRoute.WALKTHROUGH));
         baseBind.catFollowNovel.setOnClickListener(v -> openFragment(TemplateRoute.FOLLOWING_NOVELS));
         baseBind.catDiscovery.setOnClickListener(v -> openFragment(TemplateRoute.DISCOVERY));
@@ -153,14 +140,16 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         // 热门搜索:标签目录由搜索缓存逐日沉淀,谁搜出来的都算数,看的人不占额度。
         baseBind.catCorpusLibrary.setOnClickListener(v -> openFragment(TemplateRoute.CORPUS_LIBRARY));
 
-        // Web 首页:仅 github 渠道(占位 Coming soon),Lite 整个 chip GONE。
+        // Web 首页 / pixiv FANBOX:仅在发现页展示,由首页统一处理跳转与登录分流,Lite 不展示。
         if (BuildConfig.IS_LITE) {
             baseBind.catWeb.setVisibility(View.GONE);
+            baseBind.catFanbox.setVisibility(View.GONE);
         } else {
-            baseBind.catWeb.setOnClickListener(v -> showComingSoon());
+            baseBind.catWeb.setOnClickListener(v -> openMainEntry(R.id.nav_web_home));
+            baseBind.catFanbox.setOnClickListener(v -> openMainEntry(R.id.nav_fanbox));
         }
 
-        // 更多分类 chip 提升存在感:主题色 tint 胶囊 + accent 文字 + 前导图标,跟随主题色、日夜双模,
+        // 更多分类 / Shaft 榜单 chip 提升存在感:主题色 tint 胶囊 + accent 文字 + 前导图标,跟随主题色、日夜双模,
         // 从原来"淡灰几乎隐形"变成清晰可点(pillSecondary=20% 主题色底 + 30% 描边,不刺眼)。
         V3Palette palette = V3Palette.from(mContext);
         // 漫画 / 小说 大卡:主题色 tint 卡底(seriesStripBg,~35% 主题色)+ 实心图标底(seriesIconBg),
@@ -182,9 +171,11 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         styleCatChip(baseBind.catTrendingArtists, palette, R.drawable.outline_whatshot_24);
         styleCatChip(baseBind.catUgoiraRank, palette, R.drawable.ic_baseline_play_arrow_24);
         styleCatChip(baseBind.catWalk, palette, R.drawable.ic_collections_black_24dp);
+        styleCatChip(baseBind.catPixivComic, palette, R.drawable.ic_baseline_palette_24);
         styleCatChip(baseBind.catFollowNovel, palette, R.drawable.ic_baseline_bookmark_24);
         styleCatChip(baseBind.catDiscovery, palette, R.drawable.ic_baseline_explore_24);
         styleCatChip(baseBind.catWeb, palette, R.drawable.ic_setcat_globe);
+        styleCatChip(baseBind.catFanbox, palette, R.drawable.ic_setcat_heart);
         styleCatChip(baseBind.catNiceFriend, palette, R.drawable.ic_baseline_how_to_reg_24);
         styleCatChip(baseBind.catCorpusLibrary, palette, R.drawable.ic_setcat_search);
 
@@ -266,7 +257,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
     }
 
     /**
-     * 把「更多分类」的淡灰 chip 提升成主题色 tint 胶囊:20% 主题色底 + 30% 描边 + accent 文字 + 前导图标,
+     * 把「更多分类 / Shaft 榜单」的淡灰 chip 提升成主题色 tint 胶囊:20% 主题色底 + 30% 描边 + accent 文字 + 前导图标,
      * 全程跟随主题色、日夜双模。图标统一压到 17dp 并用 accent tint,和文字同色。
      */
     private void styleCatChip(TextView chip, V3Palette palette, int iconRes) {
@@ -309,12 +300,10 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         startActivity(intent);
     }
 
-    private void showComingSoon() {
-        new WitDialog.MessageDialogBuilder(mActivity)
-                .setTitle("Web 首页")
-                .setMessage("Coming soon...")
-                .addAction("OK", (dialog, index) -> dialog.dismiss())
-                .show();
+    private void openMainEntry(int actionId) {
+        if (mActivity instanceof MainActivity) {
+            ((MainActivity) mActivity).handleDrawerAction(actionId);
+        }
     }
 
     @Override

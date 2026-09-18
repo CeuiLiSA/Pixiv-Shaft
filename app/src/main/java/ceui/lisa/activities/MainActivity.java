@@ -652,16 +652,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                             R.id.nav_network_test,
                             R.string.nav_network_test_entry,
                             experimentalAllowed),
-                    // 中心页那个「Web 首页」chip 至今是 showComingSoon() 占位,StreetMainFragment
-                    // 一直没有可用入口。而网页登录(同步 PHPSESSID)只能从这个页面走,拉黑、按 tag
-                    // 筛画师作品都指着它 —— 没入口等于那些功能对普通用户是死的。用 !isLite 而不是
-                    // experimentalAllowed:后者在 Lite debug 下仍然放行,和 FragmentCenter 那个直接
-                    // 认 IS_LITE 的同名 chip 对不齐,Lite 就是所有 buildType 都不出现。
-                    new DrawerEntry(R.id.nav_web_home, R.string.street_title, !isLite),
-                    // FANBOX 没有官方 App,网页那套 API 里 post.info 还被 Cloudflare 挡了非浏览器
-                    // 客户端(正文得靠 FanboxWebBridge 从 WebView 里发)。Lite 不出现:同渠道口径,
-                    // Play 版不带这类站外付费内容入口。
-                    new DrawerEntry(R.id.nav_fanbox, R.string.fanbox_entry, !isLite),
                 });
     }
 
@@ -711,8 +701,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     }
 
     /**
-     * 侧边栏 / MeFragment 共用的入口分发。switch 跟 menu/activity_main_drawer.xml 的 id 对齐; MeFragment 直接传
-     * R.id.xxx 走这里,避免两边维护同样的跳转。
+     * 侧边栏 / MeFragment / FragmentCenter 共用的入口分发,跟 menu/activity_main_drawer.xml 的 id 对齐; 调用方直接传
+     * R.id.xxx 走这里,避免多处维护同样的跳转。
      */
     @SuppressLint("NonConstantResourceId")
     public void handleDrawerAction(int id) {

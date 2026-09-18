@@ -1981,6 +1981,7 @@
     <string name="experimental_section">Экспериментальное</string>
     <string name="site_recommend">Закладки за месяц</string>
     <string name="current_hot">Сейчас в тренде</string>
+    <string name="shaft_rankings">Рейтинги Shaft</string>
     <string name="artist_rank">Топ художников</string>
     <string name="artist_rank_title">Рейтинг художников по закладкам</string>
     <string name="artist_avg_rank">По среднему</string>

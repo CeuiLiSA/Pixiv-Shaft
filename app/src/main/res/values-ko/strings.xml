@@ -1981,6 +1981,7 @@
     <string name="experimental_section">실험적</string>
     <string name="site_recommend">이번 달 북마크</string>
     <string name="current_hot">지금 인기</string>
+    <string name="shaft_rankings">Shaft 순위</string>
     <string name="artist_rank">작가 순위</string>
     <string name="artist_rank_title">작가 북마크 종합 순위</string>
     <string name="artist_avg_rank">평균 순위</string>
