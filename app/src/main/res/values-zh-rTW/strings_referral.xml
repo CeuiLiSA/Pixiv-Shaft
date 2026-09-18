@@ -165,7 +165,7 @@
     <string name="referral_bind_hint">例如 K7M2QX4P</string>
     <string name="referral_bind_lead">輸入朋友給你的 8 位邀請碼。綁定後不可更改，每人只能綁定一位邀請人。</string>
     <string name="referral_bind_paste">貼上剪貼簿裡的邀請碼</string>
-    <string name="referral_bind_success">已綁定</string>
+    <string name="referral_bind_success">接受邀請成功</string>
     <string name="referral_bind_success_desc">接下來正常使用 App：在 %1$d 天內於 %2$d 個不同曆日使用，並收藏至少一次，即可獲得 7 天 PRO。邀請人的獎勵依其任務進度結算。</string>
     <string name="referral_bind_title">填寫邀請碼</string>
     <string name="referral_bound_already">你已綁定邀請人（UID %1$d）。</string>

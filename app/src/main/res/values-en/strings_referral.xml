@@ -165,7 +165,7 @@
     <string name="referral_bind_hint">e.g. K7M2QX4P</string>
     <string name="referral_bind_lead">Enter the 8-character invite code a friend gave you. Linking cannot be changed, and each person can link only one referrer.</string>
     <string name="referral_bind_paste">Paste the invite code from the clipboard</string>
-    <string name="referral_bind_success">Linked</string>
+    <string name="referral_bind_success">Invitation accepted</string>
     <string name="referral_bind_success_desc">Use the app on %2$d different calendar days within %1$d days and bookmark at least once to earn 7 days of PRO. Your referrer earns rewards according to their task progress.</string>
     <string name="referral_bind_title">Enter invite code</string>
     <string name="referral_bound_already">You are linked to referrer UID %1$d.</string>

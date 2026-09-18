@@ -165,7 +165,7 @@
     <string name="referral_bind_hint">Например, K7M2QX4P</string>
     <string name="referral_bind_lead">Введите 8-значный код приглашения от друга. Привязку нельзя изменить, и привязать можно только одного пригласившего.</string>
     <string name="referral_bind_paste">Вставить код приглашения из буфера обмена</string>
-    <string name="referral_bind_success">Привязано</string>
+    <string name="referral_bind_success">Приглашение принято</string>
     <string name="referral_bind_success_desc">Пользуйтесь приложением в разные календарные дни (не менее %2$d за %1$d дней) и добавьте работу в закладки, чтобы получить 7 дней PRO. Награда пригласившего зависит от выполнения его заданий.</string>
     <string name="referral_bind_title">Введите код приглашения</string>
     <string name="referral_bound_already">Вы привязаны к пригласившему (UID %1$d).</string>

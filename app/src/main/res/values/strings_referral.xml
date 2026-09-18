@@ -168,7 +168,7 @@
     <string name="referral_bind_confirm">绑定邀请人</string>
     <string name="referral_bind_paste">粘贴剪贴板里的邀请码</string>
     <string name="referral_bind_detected">检测到邀请码 %1$s</string>
-    <string name="referral_bind_success">已绑定</string>
+    <string name="referral_bind_success">接受邀请成功</string>
     <string name="referral_bind_success_desc">接下来正常使用 App：在 %1$d 天内于 %2$d 个不同自然日使用，并收藏至少一次，即可获得 7 天 PRO。邀请人的奖励按其任务进度结算。</string>
     <string name="referral_bound_already">你已绑定邀请人（UID %1$d）。</string>
     <string name="referral_welcome_title">新人见面礼</string>

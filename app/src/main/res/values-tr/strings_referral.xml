@@ -165,7 +165,7 @@
     <string name="referral_bind_hint">Örn. K7M2QX4P</string>
     <string name="referral_bind_lead">Arkadaşının verdiği 8 karakterlik davet kodunu gir. Bağlantı sonradan değiştirilemez ve herkes yalnızca bir kişiyi davet eden olarak bağlayabilir.</string>
     <string name="referral_bind_paste">Panodaki davet kodunu yapıştır</string>
-    <string name="referral_bind_success">Bağlandı</string>
+    <string name="referral_bind_success">Davet kabul edildi</string>
     <string name="referral_bind_success_desc">%1$d gün içinde %2$d farklı takvim gününde uygulamayı kullanın ve en az bir kez yer imi ekleyerek 7 günlük PRO kazanın. Davet eden kişinin ödülleri görev ilerlemesine göre verilir.</string>
     <string name="referral_bind_title">Davet kodunu gir</string>
     <string name="referral_bound_already">Davet edenle (UID %1$d) bağlantın kurulmuş.</string>

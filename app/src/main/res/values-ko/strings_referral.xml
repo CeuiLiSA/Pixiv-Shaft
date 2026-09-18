@@ -165,7 +165,7 @@
     <string name="referral_bind_hint">예: K7M2QX4P</string>
     <string name="referral_bind_lead">친구에게 받은 8자리 초대 코드를 입력하세요. 등록 후에는 변경할 수 없고, 초대자는 한 명만 등록할 수 있습니다.</string>
     <string name="referral_bind_paste">클립보드의 초대 코드 붙여넣기</string>
-    <string name="referral_bind_success">등록 완료</string>
+    <string name="referral_bind_success">초대를 수락했습니다</string>
     <string name="referral_bind_success_desc">%1$d일 이내 서로 다른 날짜에 %2$d일 사용하고 한 번 이상 북마크하면 PRO 7일을 받을 수 있습니다. 초대자의 보상은 미션 진행 상황에 따라 지급됩니다.</string>
     <string name="referral_bind_title">초대 코드 입력</string>
     <string name="referral_bound_already">초대자(UID %1$d)를 이미 등록했습니다.</string>

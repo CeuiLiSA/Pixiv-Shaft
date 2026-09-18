@@ -165,7 +165,7 @@
     <string name="referral_bind_hint">例：K7M2QX4P</string>
     <string name="referral_bind_lead">友だちからもらった 8 桁の招待コードを入力してください。登録後は変更できず、招待者は 1 人だけ登録できます。</string>
     <string name="referral_bind_paste">クリップボードの招待コードを貼り付け</string>
-    <string name="referral_bind_success">登録しました</string>
+    <string name="referral_bind_success">招待を承諾しました</string>
     <string name="referral_bind_success_desc">%1$d 日以内の異なる %2$d 暦日に利用し、1 回以上ブックマークすると、7 日間の PRO を獲得できます。招待者の報酬はタスクの達成状況に応じて付与されます。</string>
     <string name="referral_bind_title">招待コードを入力</string>
     <string name="referral_bound_already">招待者（UID %1$d）を登録済みです。</string>
