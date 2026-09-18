@@ -16,8 +16,8 @@ import org.junit.Test
 /**
  * [CfBlockDetector] 的纯 JVM 回归。
  *
- * 样本全部来自 2026-09-18 对 `app-api.pixiv.net` 的实测抓取（根目录
- * `CF403样本-响应头.txt` / `CF403样本-响应体.html`），不是构造出来的理想数据。
+ * 样本全部来自 2026-09-18 对 `app-api.pixiv.net` 的实测抓取（真实响应头与拦截页正文），
+ * 不是构造出来的理想数据。
  * 这组用例的价值就在于把「实测长什么样」钉住，尤其是那条反直觉的：
  * **源站自己也会返回 text/html**。
  */
@@ -98,7 +98,7 @@ class CfBlockDetectorTest {
     private val origin403Body =
         """{"error":{"user_message":"公開制限エラーです。","message":"","reason":"","user_message_details":{}}}"""
 
-    /** 拦截页正文里的真实标记（取自 `CF403样本-响应体.html`）。 */
+    /** 拦截页正文里的真实标记（取自实测抓取的 CF 定制拦截页）。 */
     private val cfPageBody =
         """<html><head><title>pixiv</title></head><body>""" +
             """<div data-trans-key="block_waf:title">ブロックされました</div>""" +
@@ -257,7 +257,7 @@ class CfBlockDetectorTest {
         // 挤在最后几 KB。早先的标记组最早也要到第 367953 字节才出现，在嗅探窗口内
         // 一个都命中不了 —— 正文通路形同虚设。
         //
-        // 夹具 cf403_head_window.html 是真实拦截页（根目录 CF403样本-响应体.html）的前 8 KB。
+        // 夹具 cf403_head_window.html 就是那张真实拦截页的前 8 KB。
         val head = javaClass.getResourceAsStream("/cf403_head_window.html")
             ?.bufferedReader()
             ?.use { it.readText() }

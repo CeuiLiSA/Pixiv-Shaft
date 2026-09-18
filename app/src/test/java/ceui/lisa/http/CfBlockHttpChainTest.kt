@@ -209,7 +209,7 @@ class CfBlockHttpChainTest {
         .setHeader("Server", "nginx")
         .setBody(CF_PAGE_BODY)
 
-    /** CF 拦截 403 的实测头集合（见根目录 CF403样本-响应头.txt）。 */
+    /** CF 拦截 403 的实测头集合（2026-09-18 抓自 `app-api.pixiv.net`）。 */
     private fun cfBlockResponse(): MockResponse = MockResponse()
         .setResponseCode(403)
         .setHeader("Content-Type", "text/html; charset=UTF-8")
@@ -225,7 +225,7 @@ class CfBlockHttpChainTest {
 
     companion object {
         /**
-         * 拦截页正文的真实标记（取自 CF403样本-响应体.html）。
+         * 拦截页正文的真实标记（取自实测抓取的 CF 定制拦截页）。
          *
          * 用 Kotlin 原样字符串（`"""`）而不是逐字符转义 —— 里面全是 HTML 的引号，转义写极易出错。
          * 判据只认那几个标记，引号长什么样不影响判定。
@@ -236,7 +236,7 @@ class CfBlockHttpChainTest {
                 """<script>gtag("event","block_waf",{event_category:"cloudflare-custom-page"});</script>""" +
                 """</body></html>"""
 
-        /** 源站 403 的真实正文（见根目录 源站403样本.txt）。 */
+        /** 源站 403 的真实正文（2026-09-18 实测）。 */
         const val ORIGIN_403_BODY: String =
             """{"error":{"user_message":"公開制限エラーです。","message":"","reason":"","user_message_details":{}}}"""
     }
