@@ -98,7 +98,10 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
      * 只影响**入口要不要出现** —— 活动关着时侧边栏那一行就不该在，而不是点进去看见
      * 一页「暂未开放」。真正的判定全在服务端，这个开关骗不到任何奖励。
      */
+    @Volatile
     private var referral = DEFAULT_REFERRAL
+    private val referralLive = MutableLiveData<Boolean>()
+    val referralEnabledLive: LiveData<Boolean> get() = referralLive
 
     private val planLive = MutableLiveData<Nana7miPlan?>()
 
@@ -259,6 +262,7 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         referral = !BuildConfig.IS_LITE && runCatching {
             store.getBoolean(referralKey(uid), DEFAULT_REFERRAL)
         }.getOrDefault(DEFAULT_REFERRAL)
+        referralLive.postValue(referral)
         cloudTranslateEngine = runCatching {
             store.getString(KEY_CLOUD_TRANSLATE_ENGINE, null)?.let { gson.fromJson(it, CloudTranslateEngine::class.java) }
         }.getOrNull()
@@ -346,6 +350,7 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         response.referralEnabled?.let { on ->
             referral = !BuildConfig.IS_LITE && on
             runCatching { store.putBoolean(referralKey(uid), referral) }
+            referralLive.postValue(referral)
         }
         val enabled = if (BuildConfig.IS_LITE) false else response.nana7miSearchEnabled
         if (enabled == null) {

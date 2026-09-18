@@ -78,7 +78,6 @@ internal class ReferralColors(context: Context, darkOverride: Boolean?, accentOv
 }
 
 internal enum class ReferralIcon(val path: String) {
-    SPARK("M12,3 L14.6,9.4 L21,12 L14.6,14.6 L12,21 L9.4,14.6 L3,12 L9.4,9.4 Z"),
     ARROW("M5,12 L19,12 M13,6 L19,12 L13,18"),
     BACK("M19,12 L5,12 M11,6 L5,12 L11,18"),
     USER("M12,8 A3,3 0,1 1,6,8 A3,3 0,1 1,12,8 M3,20 L3,18 A6,6 0,0 1,15,18 L15,20 M19,7 L19,13 M16,10 L22,10"),

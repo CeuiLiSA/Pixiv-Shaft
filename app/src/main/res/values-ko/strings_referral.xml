@@ -18,7 +18,6 @@
     <string name="referral_progress">진행 중</string>
     <string name="referral_ready">수령 가능</string>
     <string name="referral_wallet">내 이용권</string>
-    <string name="referral_nav_tasks">추천 미션</string>
     <string name="referral_rules">프로그램 규칙</string>
     <string name="referral_summary">보상 현황</string>
     <string name="referral_earned">일 체험 획득</string>
@@ -26,7 +25,7 @@
     <string name="referral_unused">활성화 대기 이용권</string>
     <string name="referral_unclaimed">미수령 보상</string>
     <string name="referral_open_wallet">이용권 보기</string>
-    <string name="referral_expiry_hint">수령 후 30일 이내 활성화 · 자동 갱신 없음</string>
+    <string name="referral_expiry_hint">수령 후 %1$d일 이내 활성화 · 자동 갱신 없음</string>
     <string name="referral_journey_eyebrow">참여 방법</string>
     <string name="referral_journey_title">참여 절차</string>
     <string name="referral_step1">미션 선택</string>
@@ -86,7 +85,7 @@
     <string name="referral_go_wallet">이용권 보기</string>
     <string name="referral_wallet_subtitle">받은 체험권과 활성화 상태를 확인하세요.</string>
     <string name="referral_wallet_empty">아직 체험권이 없습니다</string>
-    <string name="referral_wallet_empty_desc">미션 완료 후 미션 페이지에서 받을 수 있습니다.\n수령 후 30일 이내에 활성화해 주세요.</string>
+    <string name="referral_wallet_empty_desc">미션 완료 후 미션 페이지에서 받을 수 있습니다.\n수령 후 %1$d일 이내에 활성화해 주세요.</string>
     <string name="referral_go_tasks">미션 보기</string>
     <string name="referral_empty_ready">받을 수 있는 보상이 없습니다</string>
     <string name="referral_empty_ready_desc">미션을 완료하고 확인을 통과하면 여기에서 받을 수 있습니다.</string>
@@ -137,7 +136,7 @@
     <string name="referral_invite_category">친구 초대</string>
     <string name="referral_invite_description">친구가 앱을 설치하고 이용 조건을 충족하면 두 사람 모두 PRO 7일을 받습니다.</string>
     <string name="referral_invite_caption">이용 조건을 충족한 친구</string>
-    <string name="referral_invite_steps">앱을 사용해 본 적이 없는 친구에게 Pixiv-Shaft 전용 초대 링크를 공유하세요.\n친구가 앱을 설치하고 로그인한 후 직접 초대를 연결하고, 7일 이내에 서로 다른 날짜에 2일 동안 핵심 기능을 사용하며 북마크를 한 번 이상 해야 합니다.\n시스템 확인을 통과하면 나와 친구가 각각 7일 체험권을 받습니다.</string>
+    <string name="referral_invite_steps">앱을 사용해 본 적이 없는 친구에게 Pixiv-Shaft 전용 초대 링크를 공유하세요.\n친구가 앱을 설치하고 로그인한 후 직접 초대를 연결하고, %1$d일 이내에 서로 다른 날짜에 %2$d일 동안 핵심 기능을 사용하며 북마크를 한 번 이상 해야 합니다.\n시스템 확인을 통과하면 나와 친구가 각각 7일 체험권을 받습니다.</string>
     <string name="referral_recommend_title">앱 추천 게시물 작성</string>
     <string name="referral_recommend_category">콘텐츠 추천</string>
     <string name="referral_recommend_description">이용 후기에 앱 스크린샷과 다운로드 링크를 첨부하세요. 심사를 통과하면 PRO 7일을 받을 수 있습니다.</string>
@@ -154,11 +153,11 @@
     <string name="referral_circle_category">꾸준한 이용</string>
     <string name="referral_circle_description">신규 사용자 3명이 모두 지속 활동 조건을 충족하면 MAX 30일.</string>
     <string name="referral_circle_caption">꾸준한 이용 조건을 충족한 친구</string>
-    <string name="referral_circle_steps">서로 다른 신규 사용자 3명을 초대하여 앱을 설치하고 유효한 이용 조건을 완료하게 하세요.\n각 친구는 첫 14일 동안 서로 다른 날짜에 3일 이상 핵심 기능을 이용해야 하며, 그중 하루는 8~14일 차여야 합니다.\n3명 모두 조건을 충족하면 PRO 30일 체험권 한 장을 받을 수 있습니다.</string>
+    <string name="referral_circle_steps">서로 다른 신규 사용자 3명을 초대하여 앱을 설치하고 유효한 이용 조건을 완료하게 하세요.\n각 친구는 첫 %1$d일 동안 서로 다른 날짜에 %2$d일 이상 핵심 기능을 이용해야 하며, 그중 하루는 %3$d~%1$d일 차여야 합니다.\n3명 모두 조건을 충족하면 MAX 30일 체험권 한 장을 받을 수 있습니다.</string>
     <string name="referral_circle_condition">첫 유효 초대도 이 미션에 포함할 수 있지만 꾸준한 이용 조건을 추가로 충족해야 합니다. 이번 프로그램 기간에는 한 번만 완료할 수 있습니다.</string>
     <string name="referral_rules_title">프로그램 규칙</string>
-    <string name="referral_rules_body">체험 기간\n주간 이용권은 7 × 24시간, 월간 이용권은 30 × 24시간입니다. 수령 후 30일 이내에 활성화해야 하며, 기한이 지나도 자동 활성화되지 않고 자동 갱신도 없습니다.\n\n수령 횟수\n첫 유효 초대와 앱 추천 게시물은 각각 7일, 입문 가이드와 꾸준히 이용하는 친구 3명은 각각 30일을 보상으로 제공합니다. 이번 기간에 최대 74일을 받을 수 있으며, 초대된 신규 사용자는 별도로 7일을 한 번 받을 수 있습니다.\n\n유효한 초대 조건\n신규 사용자가 앱을 설치하고 로그인한 후 한 명의 초대자에게 직접 연결해야 합니다. 7일 이내 서로 다른 날짜에 2일 이용하고 북마크를 한 번 이상 해야 합니다. 꾸준한 이용은 첫 14일 동안 3일 활동해야 하며, 그중 하루는 8~14일 차여야 합니다.\n\n수령과 활성화\n수령 가능한 이용권을 보관함에 저장한 다음 직접 활성화하세요. 활성화 시 같은 등급의 기존 혜택이 연장되며 유료 이용 일수를 덮어쓰지 않습니다. 상위 등급 회원의 적용 규칙은 정식 프로그램에서 명확히 안내됩니다.\n\n심사와 보완\n영업일 기준 2일 이내에 결과를 안내할 예정입니다. 구체적인 보완 사유를 표시하며 재제출할 수 있습니다. 팔로워 수나 좋아요 수로 판단하지 않고 긍정적인 평가도 요구하지 않습니다.\n\n공정한 참여\n자기 초대, 대량 계정, 중복 콘텐츠, 스팸성 게시를 금지합니다. 이상 활동은 수동으로 재검토하며 네트워크 공유만으로 거절하지 않습니다.\n\n위 규칙은 미리보기용이며, 정식 프로그램에는 출시 시 공개되는 규칙이 적용됩니다.</string>
-    <string name="referral_invite_condition">신규 사용자가 7일 이내에 2일 이용하고 북마크 1회 완료</string>
+    <string name="referral_rules_body">체험 기간\n주간 이용권은 7 × 24시간, 월간 이용권은 30 × 24시간입니다. 수령 후 %6$d일 이내에 활성화해야 하며, 기한이 지나도 자동 활성화되지 않고 자동 갱신도 없습니다.\n\n수령 횟수\n첫 유효 초대와 앱 추천 게시물은 각각 7일, 입문 가이드와 꾸준히 이용하는 친구 3명은 각각 30일을 보상으로 제공합니다. 이번 기간에 최대 74일을 받을 수 있으며, 초대된 신규 사용자는 별도로 7일을 한 번 받을 수 있습니다.\n\n유효한 초대 조건\n신규 사용자가 앱을 설치하고 로그인한 후 한 명의 초대자에게 직접 연결해야 합니다. %1$d일 이내 서로 다른 날짜에 %2$d일 이용하고 북마크를 한 번 이상 해야 합니다. 꾸준한 이용은 첫 %3$d일 동안 %4$d일 활동해야 하며, 그중 하루는 %5$d~%3$d일 차여야 합니다.\n\n수령과 활성화\n수령 가능한 이용권을 보관함에 저장한 다음 직접 활성화하세요. 활성화 시 같은 등급의 기존 혜택이 연장되며 유료 이용 일수를 덮어쓰지 않습니다. Max 이용 중에는 PRO 체험권을 활성화할 수 없으며, 활성화 기한이 Max 만료 이후로 연장됩니다.\n\n심사와 보완\n영업일 기준 2일 이내에 결과를 안내할 예정입니다. 구체적인 보완 사유를 표시하며 재제출할 수 있습니다. 팔로워 수나 좋아요 수로 판단하지 않고 긍정적인 평가도 요구하지 않습니다.\n\n공정한 참여\n자기 초대, 대량 계정, 중복 콘텐츠, 스팸성 게시를 금지합니다. 이상 활동은 수동으로 재검토하며 네트워크 공유만으로 거절하지 않습니다.\n\n참여 조건 충족 여부는 서버 기록을 기준으로 합니다. 프로그램이 변경되거나 종료되어도 이미 획득한 보상은 유지됩니다.</string>
+    <string name="referral_invite_condition">신규 사용자가 %1$d일 이내에 %2$d일 이용하고 북마크 1회 완료</string>
     <string name="referral_cancel">취소</string>
     <string name="referral_bind_confirm">초대자 등록</string>
     <string name="referral_bind_detected">초대 코드 %1$s를 확인했습니다</string>
@@ -168,7 +167,7 @@
     <string name="referral_bind_lead">친구에게 받은 8자리 초대 코드를 입력하세요. 등록 후에는 변경할 수 없고, 초대자는 한 명만 등록할 수 있습니다.</string>
     <string name="referral_bind_paste">클립보드의 초대 코드 붙여넣기</string>
     <string name="referral_bind_success">등록 완료</string>
-    <string name="referral_bind_success_desc">이제 평소처럼 앱을 쓰면 됩니다. 7일 안에 2일 사용하고 한 번 이상 북마크하면 나와 초대자가 각각 7일 PRO를 받습니다.</string>
+    <string name="referral_bind_success_desc">%1$d일 이내 서로 다른 날짜에 %2$d일 사용하고 한 번 이상 북마크하면 PRO 7일을 받을 수 있습니다. 초대자의 보상은 미션 진행 상황에 따라 지급됩니다.</string>
     <string name="referral_bind_title">초대 코드 입력</string>
     <string name="referral_bound_already">초대자(UID %1$d)를 이미 등록했습니다.</string>
     <string name="referral_closed_desc">추천 프로그램이 현재 진행 중이 아닙니다. 시작되면 여기에서 미션과 보상을 확인할 수 있습니다.</string>
@@ -200,9 +199,10 @@
     <string name="referral_loading">불러오는 중…</string>
     <string name="referral_retry">다시 시도</string>
     <string name="referral_task_disabled">이번 회차에는 이 미션이 열려 있지 않습니다.</string>
-    <string name="referral_welcome_description">초대자가 조건을 달성하면 자동으로 지급됩니다. 따로 할 일은 없습니다.</string>
+    <string name="referral_welcome_description">초대받은 사용자의 이용 조건을 충족하면 보관함에 자동 지급됩니다. 초대자의 수령을 기다릴 필요가 없습니다.</string>
     <string name="referral_welcome_title">신규 사용자 선물</string>
     <string name="referral_closed_banner">이번 회차가 종료되어 새로운 초대는 받지 않습니다. 이미 받은 이용권은 계속 활성화할 수 있고, 이미 조건을 충족한 보상도 계속 받을 수 있습니다.</string>
     <string name="referral_bound_rejected">이 초대는 심사를 통과하지 못해 보상이 지급되지 않습니다. 오판이라고 생각되면 공식 사이트나 피드백 채널로 이의를 제기할 수 있습니다.</string>
     <string name="referral_login_required">추천 프로그램에 참여하려면 먼저 Pixiv 계정으로 로그인하세요.</string>
+    <string name="referral_campaign">캠페인: %1$s</string>
 </resources>

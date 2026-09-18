@@ -18,7 +18,6 @@
     <string name="referral_progress">In progress</string>
     <string name="referral_ready">Ready to claim</string>
     <string name="referral_wallet">My passes</string>
-    <string name="referral_nav_tasks">Referral tasks</string>
     <string name="referral_rules">Program rules</string>
     <string name="referral_summary">Reward overview</string>
     <string name="referral_earned">trial days claimed</string>
@@ -26,7 +25,7 @@
     <string name="referral_unused">Passes to activate</string>
     <string name="referral_unclaimed">Unclaimed rewards</string>
     <string name="referral_open_wallet">View passes</string>
-    <string name="referral_expiry_hint">Activate within 30 days of claiming · No auto-renewal</string>
+    <string name="referral_expiry_hint">Activate within %1$d days of claiming · No auto-renewal</string>
     <string name="referral_journey_eyebrow">HOW IT WORKS</string>
     <string name="referral_journey_title">How to participate</string>
     <string name="referral_step1">Choose a task</string>
@@ -86,7 +85,7 @@
     <string name="referral_go_wallet">View passes</string>
     <string name="referral_wallet_subtitle">Check your claimed passes and their activation status.</string>
     <string name="referral_wallet_empty">No trial passes yet</string>
-    <string name="referral_wallet_empty_desc">Complete a task to claim a pass on the task page.\nActivate within 30 days of claiming.</string>
+    <string name="referral_wallet_empty_desc">Complete a task to claim a pass on the task page.\nActivate within %1$d days of claiming.</string>
     <string name="referral_go_tasks">View tasks</string>
     <string name="referral_empty_ready">No rewards to claim</string>
     <string name="referral_empty_ready_desc">Claim rewards here once tasks are completed and verified.</string>
@@ -137,7 +136,7 @@
     <string name="referral_invite_category">Friend invitation</string>
     <string name="referral_invite_description">Once your friend installs the app and meets the usage requirements, both get 7 days of PRO.</string>
     <string name="referral_invite_caption">Friends who meet usage requirements</string>
-    <string name="referral_invite_steps">Share your dedicated Pixiv-Shaft invitation link with a friend who has never used the app.\nThey must install the app, sign in, explicitly link the invitation, and use core features on two different calendar days within 7 days, including at least one bookmark.\nAfter verification, you and your friend each receive a 7-day trial pass.</string>
+    <string name="referral_invite_steps">Share your dedicated Pixiv-Shaft invitation link with a friend who has never used the app.\nThey must install the app, sign in, explicitly link the invitation, and use core features on %2$d different calendar days within %1$d days, including at least one bookmark.\nAfter verification, you and your friend each receive a 7-day trial pass.</string>
     <string name="referral_recommend_title">Publish an app recommendation</string>
     <string name="referral_recommend_category">Content recommendation</string>
     <string name="referral_recommend_description">Share your experience with app screenshots and a download link. Earn 7 days of PRO after approval.</string>
@@ -154,11 +153,11 @@
     <string name="referral_circle_category">Continued use</string>
     <string name="referral_circle_description">Earn 30 days of MAX once 3 new users all stay consistently active.</string>
     <string name="referral_circle_caption">Friends with continued activity</string>
-    <string name="referral_circle_steps">Invite 3 different new users to install the app and complete the qualifying usage requirements.\nEach friend must use core features on at least 3 different calendar days in their first 14 days, including at least one day during days 8–14.\nOnce all 3 qualify, claim a 30-day PRO trial pass.</string>
+    <string name="referral_circle_steps">Invite 3 different new users to install the app and complete the qualifying usage requirements.\nEach friend must use core features on at least %2$d different calendar days in their first %1$d days, including at least one day during days %3$d–%1$d.\nOnce all 3 qualify, claim a 30-day MAX trial pass.</string>
     <string name="referral_circle_condition">Your first qualifying referral can count toward this task if they also meet the continued activity requirements. This task can be completed once per program period.</string>
     <string name="referral_rules_title">Program rules</string>
-    <string name="referral_rules_body">Trial duration\nA weekly pass lasts 7 × 24 hours; a monthly pass lasts 30 × 24 hours. Activate within 30 days of claiming. Expired passes do not activate automatically. No auto-renewal.\n\nClaim limits\nThe first qualifying referral and an app recommendation post each earn 7 days; an introductory tutorial and 3 consistently active friends each earn 30 days. Earn up to 74 days this period. Invited new users can separately receive 7 days once.\n\nQualifying referrals\nNew users must install the app, sign in and explicitly link to a single referrer; use the app on two different calendar days within 7 days and bookmark at least once. Continued activity also requires 3 active days within the first 14 days, including one during days 8–14.\n\nClaiming and activation\nOnce a pass is claimable, save it to your wallet and activate it when ready. Activation extends existing benefits of the same tier without replacing paid days. Rules for higher-tier members will be clarified in the official program.\n\nReview and updates\nExpect feedback within 2 business days. Specific reasons for additional details will be shown, and resubmission is supported. Follower counts, like counts and positive reviews are not required.\n\nFair participation\nSelf-referrals, bulk accounts, duplicate content and spam are prohibited. Unusual activity receives manual review; shared networks alone are not grounds for rejection.\n\nThese rules are a preview. The rules published at launch will apply to the official program.</string>
-    <string name="referral_invite_condition">New users must use the app on 2 days within 7 days and bookmark once</string>
+    <string name="referral_rules_body">Trial duration\nA weekly pass lasts 7 × 24 hours; a monthly pass lasts 30 × 24 hours. Activate within %6$d days of claiming. Expired passes do not activate automatically. No auto-renewal.\n\nClaim limits\nThe first qualifying referral and an app recommendation post each earn 7 days; an introductory tutorial and 3 consistently active friends each earn 30 days. Earn up to 74 days this period. Invited new users can separately receive 7 days once.\n\nQualifying referrals\nNew users must install the app, sign in and explicitly link to a single referrer; use the app on %2$d different calendar days within %1$d days and bookmark at least once. Continued activity also requires %4$d active days within the first %3$d days, including one during days %5$d–%3$d.\n\nClaiming and activation\nOnce a pass is claimable, save it to your wallet and activate it when ready. Activation extends existing benefits of the same tier without replacing paid days. PRO passes cannot be activated during Max membership; their activation deadline extends beyond the Max expiry date.\n\nReview and updates\nExpect feedback within 2 business days. Specific reasons for additional details will be shown, and resubmission is supported. Follower counts, like counts and positive reviews are not required.\n\nFair participation\nSelf-referrals, bulk accounts, duplicate content and spam are prohibited. Unusual activity receives manual review; shared networks alone are not grounds for rejection.\n\nEligibility is based on server records. The program may change or end; rewards already earned remain valid.</string>
+    <string name="referral_invite_condition">New users must use the app on %2$d days within %1$d days and bookmark once</string>
     <string name="referral_cancel">Cancel</string>
     <string name="referral_bind_confirm">Link referrer</string>
     <string name="referral_bind_detected">Invite code %1$s detected</string>
@@ -168,7 +167,7 @@
     <string name="referral_bind_lead">Enter the 8-character invite code a friend gave you. Linking cannot be changed, and each person can link only one referrer.</string>
     <string name="referral_bind_paste">Paste the invite code from the clipboard</string>
     <string name="referral_bind_success">Linked</string>
-    <string name="referral_bind_success_desc">Just use the app as usual from here: use it on 2 days within 7 days and bookmark at least once, and you and your referrer each get 7 days of PRO.</string>
+    <string name="referral_bind_success_desc">Use the app on %2$d different calendar days within %1$d days and bookmark at least once to earn 7 days of PRO. Your referrer earns rewards according to their task progress.</string>
     <string name="referral_bind_title">Enter invite code</string>
     <string name="referral_bound_already">You are linked to referrer UID %1$d.</string>
     <string name="referral_closed_desc">The referral program is not running right now. Tasks and rewards will show up here once it opens.</string>
@@ -200,9 +199,10 @@
     <string name="referral_loading">Loading…</string>
     <string name="referral_retry">Retry</string>
     <string name="referral_task_disabled">This task is not open this round.</string>
-    <string name="referral_welcome_description">Arrives automatically once your referrer qualifies. Nothing to do.</string>
+    <string name="referral_welcome_description">Added to your wallet automatically when you meet the invited-user requirements; your referrer does not need to claim first.</string>
     <string name="referral_welcome_title">Welcome gift</string>
     <string name="referral_closed_banner">This round has ended and no new referrals are accepted. Passes you already claimed can still be activated, and rewards you already qualified for can still be claimed.</string>
     <string name="referral_bound_rejected">This referral did not pass review, so it will not earn any reward. If you believe this is a mistake, you can appeal through the website or the feedback channel.</string>
     <string name="referral_login_required">Sign in to your Pixiv account to take part in the referral program.</string>
+    <string name="referral_campaign">Campaign: %1$s</string>
 </resources>

@@ -8,7 +8,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicLong
 
 /**
  * 「这个账号今天收藏过」的信标。
@@ -17,9 +16,8 @@ import java.util.concurrent.atomic.AtomicLong
  * 而「有效邀请」的判定里有这一条（7 天内两个自然日在用 + 至少收藏过一次），所以只能由
  * 这里说一声。
  *
- * 这个 bit **造不出一个活跃日来** —— 服务端只用它给一个本来就有服务端流量的自然日打标记。
- * 伪造它也省不下什么：真要刷，得先有一个能登录的 Pixiv 账号、装上 App、连着用两天。成本
- * 在账号，不在这个 bit。
+ * 服务端会把收藏成功信标计入当天活跃。客户端信标不能独立证明 Pixiv 收藏，
+ * 防刷仍需要服务端验证账号归属并复核异常参与。
  *
  * 三条约束，改这里时别丢：
  *  - **一天最多一次。** 判定只需要「这天收藏过」这一个布尔值，第二次报没有任何新信息，
@@ -34,18 +32,39 @@ object ReferralActivityReporter {
     )
     private val repository by lazy { ReferralRepository() }
 
-    /** 上一次上报落在哪一天（按设备本地时区切；精确到天就够，不必和服务端的时区对齐）。 */
-    private val reportedDay = AtomicLong(-1L)
+    private val gate = ReferralBookmarkGate()
 
-    /** 用户刚收藏了一次。取消收藏不算 —— 判定说的是「收藏过」。 */
-    fun onBookmark() {
+    /** 仅由队列的成功回调调用，uid 是动作入队时的归属。 */
+    fun onBookmark(uid: Long) {
         if (!Shaft.getContext().appServices().remoteAppConfig.referralEnabled) return
-        if (!SessionManager.isLoggedIn) return
-        val today = System.currentTimeMillis() / 86_400_000L
-        val previous = reportedDay.get()
-        if (previous == today) return
-        // 收藏会在不同线程上连点。CAS 输了说明另一个线程正在发同一条，就不发第二条了。
-        if (!reportedDay.compareAndSet(previous, today)) return
-        scope.launch { repository.reportBookmark() }
+        if (!SessionManager.isLoggedIn || uid != SessionManager.loggedInUid) return
+        val day = (System.currentTimeMillis() + 8 * 3_600_000L) / 86_400_000L
+        if (!gate.begin(uid, day)) return
+        scope.launch {
+            var success = false
+            try {
+                if (uid == SessionManager.loggedInUid) success = repository.reportBookmark(uid)
+            } finally {
+                gate.complete(uid, day, success)
+            }
+        }
+    }
+}
+
+/** 同账号、同自然日去重；失败释放占位，其他账号的收藏不会被吞掉。 */
+internal class ReferralBookmarkGate {
+    private val inFlight = mutableSetOf<Pair<Long, Long>>()
+    private val reported = mutableSetOf<Pair<Long, Long>>()
+
+    @Synchronized fun begin(uid: Long, day: Long): Boolean {
+        reported.removeAll { it.second != day }
+        val key = uid to day
+        return key !in reported && inFlight.add(key)
+    }
+
+    @Synchronized fun complete(uid: Long, day: Long, success: Boolean) {
+        val key = uid to day
+        inFlight.remove(key)
+        if (success) reported.add(key)
     }
 }

@@ -7,7 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
 import ceui.pixiv.session.SessionManager
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 internal enum class ReferralTab { TASKS, WALLET }
 internal enum class ReferralFilter { ALL, PROGRESS, READY }
@@ -34,8 +38,13 @@ internal data class ReferralUiState(
  * tab / filter / 配色存在 [SavedStateHandle] 里（进程死掉也还在），快照不存：它是服务端
  * 的答案，重建时重新问一次即可，存下来只会在下次打开时先闪一帧过期数据。
  */
-internal class ReferralPlanViewModel(private val saved: SavedStateHandle) : ViewModel() {
-    private val repository = ReferralRepository()
+internal class ReferralPlanViewModel @JvmOverloads constructor(
+    private val saved: SavedStateHandle,
+    private val repository: ReferralRepository = ReferralRepository(),
+    private val currentUid: () -> Long = { if (SessionManager.isLoggedIn) SessionManager.loggedInUid else 0L },
+) : ViewModel() {
+    private val requests = Mutex()
+    private var ownerUid: Long = saved["ownerUid"] ?: currentUid()
     private var snapshot = ReferralSnapshot()
     private var loading = true
     private var error: ReferralFailure? = null
@@ -44,6 +53,7 @@ internal class ReferralPlanViewModel(private val saved: SavedStateHandle) : View
     val value: ReferralUiState get() = mutable.value!!
 
     init {
+        saved["ownerUid"] = ownerUid
         refresh()
     }
 
@@ -85,24 +95,92 @@ internal class ReferralPlanViewModel(private val saved: SavedStateHandle) : View
     }
 
     fun refresh() {
+        if (!viewModelScope.isActive) return
+        val uid = currentUid()
+        if (uid != ownerUid) {
+            ownerUid = uid
+            saved["ownerUid"] = uid
+            saved["campaign"] = null
+            snapshot = ReferralSnapshot()
+            loading = true
+            error = null
+            publish()
+        }
         // 没登录就别打这条路由：它只收 Auth V2 的 token，而未登录时拿不到 token，
         // 结果是一个 401 和一句「登录状态还没准备好，请稍后重试」—— 用户会照着它
         // 一直重试一件永远不会成的事。真正该说的是「先登录」。
-        if (!SessionManager.isLoggedIn) {
+        if (uid <= 0L) {
+            snapshot = ReferralSnapshot()
             loading = false
             error = ReferralFailure(LOGIN_REQUIRED, R.string.referral_login_required)
             publish()
             return
         }
-        viewModelScope.launch { apply(repository.load()) }
+        val campaign: String? = saved["campaign"]
+        viewModelScope.launch { request { repository.load(campaign) } }
+    }
+
+    /** 读写串行，旧的刷新不能覆盖刚领取的卡。离开弹窗取消写请求后也补拉服务端状态。 */
+    private suspend fun request(block: suspend (Long) -> ReferralResult<ReferralSnapshot>): ReferralFailure? {
+        val uid = currentUid()
+        return requests.withLock {
+            if (uid != currentUid() || uid != ownerUid || uid <= 0L) {
+                refresh()
+                return@withLock ReferralFailure(LOGIN_REQUIRED, R.string.referral_login_required)
+            }
+            try {
+                val result = block(uid)
+                val responseUid = (result as? ReferralResult.Success)?.value?.uid
+                if (uid != currentUid()) {
+                    snapshot = ReferralSnapshot()
+                    refresh()
+                    return@withLock ReferralFailure(LOGIN_REQUIRED, R.string.referral_login_required)
+                }
+                if (responseUid != null && responseUid != uid) {
+                    snapshot = ReferralSnapshot()
+                    return@withLock apply(ReferralResult.Failure(
+                        ReferralFailure("uid_forbidden", R.string.referral_error_auth),
+                    ))
+                }
+                val selected: String? = saved["campaign"]
+                if (result is ReferralResult.Success && selected != null && result.value.campaign != selected) {
+                    return@withLock null
+                }
+                apply(result)
+            } catch (ce: CancellationException) {
+                refresh()
+                throw ce
+            }
+        }
     }
 
     /** 下面四个都返回「失败原因，或 null 表示成功」，让弹窗能就地说出那一句话。 */
-    suspend fun bind(code: String): ReferralFailure? = apply(repository.bind(code))
-    suspend fun claim(task: ReferralTask): ReferralFailure? = apply(repository.claim(task))
-    suspend fun activate(cardId: Long): ReferralFailure? = apply(repository.activate(cardId))
-    suspend fun submit(task: ReferralTask, url: String, description: String): ReferralFailure? =
-        apply(repository.submit(task, url, description))
+    suspend fun bind(code: String): ReferralFailure? {
+        val campaign = snapshot.campaign
+        return request { uid -> repository.bind(code, campaign, uid) }
+    }
+    suspend fun claim(task: ReferralTask): ReferralFailure? {
+        val campaign = snapshot.campaign
+        return request { uid -> repository.claim(task, campaign, uid) }
+    }
+    suspend fun activate(cardId: Long): ReferralFailure? {
+        val campaign = snapshot.campaign
+        return request { uid -> repository.activate(cardId, campaign, uid) }
+    }
+    suspend fun submit(task: ReferralTask, url: String, description: String): ReferralFailure? {
+        val campaign = snapshot.campaign
+        return request { uid -> repository.submit(task, url, description, campaign, uid) }
+    }
+
+    fun campaign(campaign: String) {
+        if (snapshot.campaign == campaign) return
+        saved["campaign"] = campaign
+        snapshot = ReferralSnapshot()
+        error = null
+        loading = true
+        publish()
+        refresh()
+    }
 
     fun tab(tab: ReferralTab) { saved["tab"] = tab.name; publish() }
     fun filter(filter: ReferralFilter) { saved["filter"] = filter.name; publish() }

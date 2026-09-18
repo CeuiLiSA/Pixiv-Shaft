@@ -185,6 +185,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         RemoteAppConfig remoteAppConfig =
                 ((ServicesProvider) getApplication()).getRemoteAppConfig();
         remoteAppConfig.getNana7miPlanLive().observe(this, plan -> bindPlanBadge());
+        remoteAppConfig.getReferralEnabledLive().observe(this, enabled -> buildDrawerMenu());
         // 应用内推送(付费用户公告)也是这次冷启动配置捎回来的,同样异步落地。只弹一次、
         // 弹过就回执,去重和让路(评分框)都在 InAppPushCenter 里。
         remoteAppConfig
@@ -1010,6 +1011,15 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         SessionManager.INSTANCE.syncLoggedInProfileIfNeeded();
         // 发现入口(画像)/ 聊天室 / 广场开关可能在别的页面变化,回来时重建抽屉
         buildDrawerMenu();
+        if (SessionManager.INSTANCE.isLoggedIn()) {
+            String referralCode = ceui.pixiv.ui.referral.ReferralPendingInvite.consume();
+            if (referralCode != null) {
+                Intent referral = new Intent(this, TemplateActivity.class);
+                referral.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REFERRAL_PLAN.key);
+                referral.putExtra(ceui.pixiv.ui.referral.ReferralPlanFragment.ARG_CODE, referralCode);
+                startActivity(referral);
+            }
+        }
     }
 
     @Override

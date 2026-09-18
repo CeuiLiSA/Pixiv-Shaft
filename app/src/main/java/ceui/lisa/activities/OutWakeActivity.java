@@ -241,6 +241,11 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
      * 规则过时了」变成一个查不出来的静默失败。带不进去的最坏情况是用户自己再粘一次。
      */
     private void openReferral(String code) {
+        if (!SessionManager.INSTANCE.isLoggedIn()) {
+            ceui.pixiv.ui.referral.ReferralPendingInvite.remember(code);
+            backToLoginScreen();
+            return;
+        }
         Intent intent = new Intent(mContext, TemplateActivity.class);
         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REFERRAL_PLAN.key);
         if (!TextUtils.isEmpty(code)) {

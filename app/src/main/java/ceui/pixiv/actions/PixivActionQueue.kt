@@ -18,6 +18,7 @@ import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.db.mirror.MirrorRestrict
 import ceui.pixiv.events.EventReporter
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.referral.ReferralActivityReporter
 import ceui.pixiv.snapshot.AutoSnapshotEngine
 import ceui.pixiv.websocket.AppNetworkMonitor
 import ceui.pixiv.websocket.NetworkMonitor
@@ -226,6 +227,7 @@ class PixivActionQueue(app: Context) {
         when (action.type) {
             PixivActionTypes.ILLUST_BOOKMARK -> {
                 val payload = action.parsePayload<BookmarkPayload>() ?: return unparsable(action)
+                if (payload.bookmark) action.owner.toLongOrNull()?.let(ReferralActivityReporter::onBookmark)
                 // meta 兜底链:Illust 池 → API。
                 // 队列化之前(4.8.3)点击路径自带 API 兜底;收编进队列后只读 Illust 池,
                 // 池里没有的收藏事件全部无 meta 上报,操作记录页整页读不出条目(#1010),
@@ -280,6 +282,7 @@ class PixivActionQueue(app: Context) {
 
             PixivActionTypes.NOVEL_BOOKMARK -> {
                 val payload = action.parsePayload<BookmarkPayload>() ?: return unparsable(action)
+                if (payload.bookmark) action.owner.toLongOrNull()?.let(ReferralActivityReporter::onBookmark)
                 // 统一 Novel 池命中优先，进程重启后的补发再走 API 兜底。
                 val novel = ObjectPool.get<Novel>(payload.id).value
                     ?: withContext(Dispatchers.IO) {

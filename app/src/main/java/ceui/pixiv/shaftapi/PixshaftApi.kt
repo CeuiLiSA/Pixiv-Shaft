@@ -313,7 +313,10 @@ interface PixshaftApi {
      * 代价是真金白银（一次有效邀请 14 天预算，换一堆 Lite 包里根本用不上的权益）。
      */
     @GET("v1/referral/state")
-    suspend fun referralState(@Header("X-Shaft-Flavor") flavor: String): Response<ReferralStateResponse>
+    suspend fun referralState(
+        @Header("X-Shaft-Flavor") flavor: String,
+        @Query("campaign") campaign: String? = null,
+    ): Response<ReferralStateResponse>
 
     /** 新人绑定邀请人。一次性、不可改。 */
     @POST("v1/referral/bind")
@@ -364,6 +367,7 @@ interface PixshaftApi {
 data class ReferralStateResponse(
     val uid: Long? = null,
     val campaign: String? = null,
+    val campaigns: List<String>? = null,
     /** 活动开着没有。关着时 [code] 也是 null —— 服务端不会给谁凭空生成邀请码。 */
     val enabled: Boolean? = null,
     val serverTime: Long? = null,
@@ -382,6 +386,16 @@ data class ReferralStateResponse(
     val plan: Nana7miPlan? = null,
     /** 自己买的 / 领的那一档 PRO 到什么时候。新激活的卡从这里往后顺延。 */
     val activeUntil: Long? = null,
+    val rules: ReferralRulesDto? = null,
+)
+
+data class ReferralRulesDto(
+    val qualifyWindowDays: Int? = null,
+    val qualifyActiveDays: Int? = null,
+    val retainWindowDays: Int? = null,
+    val retainActiveDays: Int? = null,
+    val retainLateFromDay: Int? = null,
+    val cardValidDays: Int? = null,
 )
 
 data class ReferralBoundTo(
@@ -420,11 +434,11 @@ data class ReferralRewardDto(
     val grantedUntil: Long? = null,
 )
 
-data class ReferralBindReq(val code: String)
-data class ReferralClaimReq(val task: String)
-data class ReferralActivateReq(val id: Long)
-data class ReferralSubmitReq(val task: String, val url: String, val description: String)
-data class ReferralActivityReq(val bookmarked: Boolean)
+data class ReferralBindReq(val code: String, val campaign: String? = null, val uid: Long? = null)
+data class ReferralClaimReq(val task: String, val campaign: String? = null, val uid: Long? = null)
+data class ReferralActivateReq(val id: Long, val campaign: String? = null, val uid: Long? = null)
+data class ReferralSubmitReq(val task: String, val url: String, val description: String, val campaign: String? = null, val uid: Long? = null)
+data class ReferralActivityReq(val bookmarked: Boolean, val uid: Long)
 
 /** 每个写操作都把整页新状态捎回来，省掉一次往返。 */
 data class ReferralActionResponse(
