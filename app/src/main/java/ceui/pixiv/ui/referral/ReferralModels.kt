@@ -14,8 +14,8 @@ import ceui.pixiv.shaftapi.ReferralStateResponse
 internal enum class ReferralTask(val key: String, val days: Int, val target: Int = 1) {
     INVITE("invite", 7),
     RECOMMEND("recommend", 7),
-    TUTORIAL("tutorial", 30),
-    CIRCLE("circle", 30, 3),
+    TUTORIAL("tutorial", 7),
+    CIRCLE("circle", 7, 3),
 
     /**
      * 被邀请人的见面礼。**不出现在任务列表里** —— 它不是一件要去做的事，是首位有效邀请
@@ -26,7 +26,7 @@ internal enum class ReferralTask(val key: String, val days: Int, val target: Int
 
     companion object {
         /** 任务列表里真正列出来的四项，顺序就是页面顺序。 */
-        val LISTED = listOf(INVITE, RECOMMEND, TUTORIAL, CIRCLE)
+        val LISTED = listOf(INVITE, RECOMMEND, CIRCLE, TUTORIAL)
         fun of(key: String?): ReferralTask? = entries.firstOrNull { it.key == key }
     }
 }
