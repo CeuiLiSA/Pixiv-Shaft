@@ -1,0 +1,4 @@
+interface:
+  display_name: "Genupdate · Pixiv-Shaft 发版"
+  short_description: "Pixiv-Shaft 发版：版本、精简日志、标签与 CI 自动发布"
+  default_prompt: "使用 $genupdate，按 Pixiv-Shaft 当前发版流程准备版本和精简更新日志，并完成已授权的发布步骤。"
