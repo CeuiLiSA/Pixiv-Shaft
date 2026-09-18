@@ -19,6 +19,7 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.feeds.cache.feedFirstPageCache
 import ceui.pixiv.plaza.PlazaApi
 import ceui.pixiv.plaza.PlazaPage
+import ceui.pixiv.witstudio.theme.dp
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred

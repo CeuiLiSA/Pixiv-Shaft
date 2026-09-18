@@ -12,6 +12,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import ceui.lisa.R
 import ceui.pixiv.plaza.*
+import ceui.pixiv.witstudio.theme.dp
 import com.bumptech.glide.Glide
 import java.io.File
 import org.junit.Assert.*
