@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discover_social_title">소통과 공유</string>
+    <string name="discover_community_title">커뮤니티</string>
+    <string name="discover_chat_description">공개 채팅 · 개인 메시지</string>
+    <string name="discover_community_description">작품 공유 · 토론 참여</string>
+    <string name="discover_chat_action">채팅 열기</string>
+    <string name="discover_community_action">광장 보기</string>
+</resources>

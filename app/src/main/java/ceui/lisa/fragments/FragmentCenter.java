@@ -84,6 +84,12 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
 
         // 底部安全区:首页底栏浮在内容之上且会跟随滚动收起,页面铺满整屏,末尾靠 padding 让位。
         BottomSafeInsets.applyTo(baseBind.discoverScroll);
+        baseBind.socialSection.setEntryClickListeners(
+                v -> openFragment(TemplateRoute.CHAT),
+                v -> openFragment(TemplateRoute.PLAZA));
+        // Social entries are always available in supported channels; no per-entry switches.
+        baseBind.socialSection.setVisibility(
+                BuildConfig.IS_LITE && !BuildConfig.DEBUG ? View.GONE : View.VISIBLE);
 
         // ── 货架 RecyclerView 初始化(横向,固定高)。先挂骨架图占位,数据到达后 bindXxxRail 换真实
         //    adapter —— rail 高度全程不变,页面没有任何高度跳动。骨架卡宽与真实卡一致(标签 120 / 插画 180)。──

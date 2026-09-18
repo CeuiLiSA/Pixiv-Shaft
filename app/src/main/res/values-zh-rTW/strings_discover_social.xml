@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discover_social_title">交流與分享</string>
+    <string name="discover_community_title">社群</string>
+    <string name="discover_chat_description">公屏閒聊 · 私訊交流</string>
+    <string name="discover_community_description">分享作品 · 參與討論</string>
+    <string name="discover_chat_action">進入聊天</string>
+    <string name="discover_community_action">瀏覽廣場</string>
+</resources>

@@ -96,10 +96,7 @@ class ChatBannerBridge(
         val selfUid = SessionManager.loggedInUid
         if (selfUid != 0L && msg.uid == selfUid) return null
         val isGlobal = msg.room == ChatThreadId.ROOM_GLOBAL
-        // 试验性开关只 gate 公开/全局房 banner(默认关)。1v1 私信 banner **故意不 gate**:
-        // 私信入口是用户主页的「发消息」按钮(UserActivityV3,独立于侧边栏「聊天室入口」开关),
-        // 是用户主动发起的会话;若按聊天室入口开关把回复通知静默掉,反而是更严重的 bug。
-        // ⚠️ 别为了「一致性」把这条收紧成 !showChatRoomEntry 就 return —— 会吞掉私信通知。
+        // 横幅开关只控制公开/全局房(默认关)，不影响用户主动发起的 1v1 私信通知。
         if (isGlobal && !publicChatBannerEnabled()) {
             return null
         }
@@ -206,16 +203,14 @@ class ChatBannerBridge(
         return false
     }
 
-    // 公开聊天室 push banner 同时受两个「试验性」开关约束:聊天室入口本身开启,且 banner 开关开启。
-    // 任一关闭都不弹,因此设置页隐藏 push 行时即使其值残留为 true 也不会误弹。
-    //
-    // lite(google/Play)渠道直接判死:那边设置页没有这两个开关(见 FragmentSettingsExperimental),
+    // 入口默认展示；公开聊天室横幅仍只在用户主动开启横幅开关时显示。
+    // lite(google/Play)渠道直接判死:那边设置页没有横幅开关(见 FragmentSettingsExperimental),
     // 而开关值会随「设置备份还原」/ 云同步从 github 包带过来 —— 只认设置的话,Play 用户会收到
-    // 一个自己关不掉的全局房 banner。这里只压全局房,1v1 私信 banner 仍照常(理由见上面的 ⚠️)。
+    // 一个自己关不掉的全局房 banner。这里只压全局房,1v1 私信 banner 仍照常。
     private fun publicChatBannerEnabled(): Boolean {
         if (ceui.lisa.BuildConfig.IS_LITE) return false
         val settings = ceui.lisa.activities.Shaft.sSettings ?: return false
-        return settings.isShowChatRoomEntry && settings.isShowChatRoomPushBanner
+        return settings.isShowChatRoomPushBanner
     }
 
     companion object {

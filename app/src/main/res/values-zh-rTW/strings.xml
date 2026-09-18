@@ -2287,10 +2287,7 @@
     <string name="chat_error_serialization">伺服器返回的資料無效</string>
     <string name="chat_error_unknown">發生錯誤</string>
     <string name="plaza_drawer_entry">廣場</string>
-    <string name="setting_show_chat_room_entry">首頁側邊欄顯示聊天室入口</string>
     <string name="setting_show_chat_room_push_banner">顯示公開聊天室新訊息 APP 內 push banner</string>
-    <string name="setting_chat_room_entry_warning">鍵政封永久</string>
-    <string name="setting_show_plaza_entry">首頁側邊欄顯示廣場入口</string>
     <string name="plaza_title">廣場</string>
     <string name="plaza_compose_title">發文</string>
     <string name="plaza_send_post">發布</string>

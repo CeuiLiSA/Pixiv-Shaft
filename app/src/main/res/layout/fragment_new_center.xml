@@ -889,6 +889,12 @@
 
                     </LinearLayout>
 
+                    <ceui.pixiv.ui.discovery.DiscoverSocialSection
+                        android:id="@+id/socialSection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone" />
+
                 </LinearLayout>
 
             </androidx.core.widget.NestedScrollView>

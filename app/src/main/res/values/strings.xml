@@ -2540,10 +2540,7 @@
 
     <!-- Plaza (shaft-plaza-api;debug 入口,MainActivity 里按 BuildConfig.DEBUG gate) -->
     <string name="plaza_drawer_entry">广场</string>
-    <string name="setting_show_chat_room_entry">首页侧边栏展示聊天室入口</string>
     <string name="setting_show_chat_room_push_banner">展示公开聊天室新消息 APP 内 push banner</string>
-    <string name="setting_chat_room_entry_warning">键政封永久</string>
-    <string name="setting_show_plaza_entry">首页侧边栏展示广场入口</string>
     <string name="plaza_title">广场</string>
     <string name="plaza_feed_description" translatable="false">看看大家正在分享的作品与想法</string>
     <string name="plaza_compose_title">发帖</string>

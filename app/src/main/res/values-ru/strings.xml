@@ -2271,10 +2271,7 @@
     <string name="chat_error_serialization">Сервер вернул некорректные данные.</string>
     <string name="chat_error_unknown">Что-то пошло не так.</string>
     <string name="plaza_drawer_entry">Площадка</string>
-    <string name="setting_show_chat_room_entry">Показывать вход в чат в боковом меню главной</string>
     <string name="setting_show_chat_room_push_banner">Показывать баннер о новых сообщениях общего чата внутри приложения</string>
-    <string name="setting_chat_room_entry_warning">Обсуждение политики = вечный бан</string>
-    <string name="setting_show_plaza_entry">Показывать вход на Площадку в боковом меню главной</string>
     <string name="plaza_title">Площадка</string>
     <string name="plaza_compose_title">Новый пост</string>
     <string name="plaza_send_post">Опубликовать</string>

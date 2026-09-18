@@ -542,7 +542,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     /**
      * 重建侧边栏分组(MD3-E 分段样式,同设置页)。所有入口的可见性门控收口在这里: - 发现:画像完备(PROFILE_READY 广播 / onResume 时重建) -
-     * 试验性分区:github 渠道 release 保留(其中 聊天室/广场 跟「设置 - 试验性」开关, 标签热度导出 仅 debug);google play 渠道为合规起见整段隐藏。
+     * 试验性分区:github 渠道 release 保留(标签热度导出仅 debug);google play 渠道为合规起见整段隐藏。
      * - 当前最热 / 站长推荐 / 操作记录 / 通知中心:服务端或官方 API 依赖,google flavor 不展示。
      * 行按可见项重新生成,分段圆角(top/mid/bottom/single)永远贴合,不存在隐藏行破角问题。
      */
@@ -640,14 +640,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                             experimentalAllowed && discoveryReady),
                     new DrawerEntry(
                             R.id.nav_local_novel, R.string.local_novel_entry, experimentalAllowed),
-                    new DrawerEntry(
-                            R.id.nav_chat_room,
-                            R.string.chat_drawer_entry,
-                            experimentalAllowed && Shaft.sSettings.isShowChatRoomEntry()),
-                    new DrawerEntry(
-                            R.id.nav_plaza,
-                            R.string.plaza_drawer_entry,
-                            experimentalAllowed && Shaft.sSettings.isShowPlazaEntry()),
                     new DrawerEntry(
                             R.id.nav_network_test,
                             R.string.nav_network_test_entry,
@@ -999,7 +991,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         // 回到前台时静默拉一次自己的资料(去抖 + 失败静默),在站外换头像后也能自动更新;
         // 侧边栏账号区由 loggedInAccount 观察者负责重绑。
         SessionManager.INSTANCE.syncLoggedInProfileIfNeeded();
-        // 发现入口(画像)/ 聊天室 / 广场开关可能在别的页面变化,回来时重建抽屉
+        // 发现入口(画像)可能在别的页面变化,回来时重建抽屉
         buildDrawerMenu();
         if (SessionManager.INSTANCE.isLoggedIn()) {
             String referralCode = ceui.pixiv.ui.referral.ReferralPendingInvite.consume();

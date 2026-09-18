@@ -2271,10 +2271,7 @@
     <string name="chat_error_serialization">サーバーから無効なデータを受信しました。</string>
     <string name="chat_error_unknown">エラーが発生しました。</string>
     <string name="plaza_drawer_entry">広場</string>
-    <string name="setting_show_chat_room_entry">ホームのサイドバーにチャットルーム入口を表示</string>
     <string name="setting_show_chat_room_push_banner">公開チャットルームの新着メッセージをアプリ内 push バナーで表示</string>
-    <string name="setting_chat_room_entry_warning">政治の話題は永久BAN</string>
-    <string name="setting_show_plaza_entry">ホームのサイドバーに広場入口を表示</string>
     <string name="plaza_title">広場</string>
     <string name="plaza_compose_title">投稿</string>
     <string name="plaza_send_post">投稿する</string>

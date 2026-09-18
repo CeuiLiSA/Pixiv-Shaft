@@ -1590,22 +1590,8 @@ public class Settings {
         this.defaultImageResolution = defaultImageResolution;
     }
 
-    // 试验性:首页侧边栏展示「聊天室」入口,默认关闭
-    private boolean showChatRoomEntry = false;
-
-    // 试验性:展示公开聊天室新消息的 APP 内 push banner,默认关闭(仅在 showChatRoomEntry 开启时有意义)
+    // 试验性:展示公开聊天室新消息的 APP 内 push banner,默认关闭。
     private boolean showChatRoomPushBanner = false;
-
-    // 试验性:首页侧边栏展示「广场」入口,默认关闭
-    private boolean showPlazaEntry = false;
-
-    public boolean isShowChatRoomEntry() {
-        return showChatRoomEntry;
-    }
-
-    public void setShowChatRoomEntry(boolean showChatRoomEntry) {
-        this.showChatRoomEntry = showChatRoomEntry;
-    }
 
     public boolean isShowChatRoomPushBanner() {
         return showChatRoomPushBanner;
@@ -1613,14 +1599,6 @@ public class Settings {
 
     public void setShowChatRoomPushBanner(boolean showChatRoomPushBanner) {
         this.showChatRoomPushBanner = showChatRoomPushBanner;
-    }
-
-    public boolean isShowPlazaEntry() {
-        return showPlazaEntry;
-    }
-
-    public void setShowPlazaEntry(boolean showPlazaEntry) {
-        this.showPlazaEntry = showPlazaEntry;
     }
 
     public float getCustomZoomAddScale() {

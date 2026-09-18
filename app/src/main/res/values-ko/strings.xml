@@ -2271,10 +2271,7 @@
     <string name="chat_error_serialization">서버에서 잘못된 데이터를 받았습니다.</string>
     <string name="chat_error_unknown">오류가 발생했습니다.</string>
     <string name="plaza_drawer_entry">광장</string>
-    <string name="setting_show_chat_room_entry">홈 사이드바에 채팅방 입구 표시</string>
     <string name="setting_show_chat_room_push_banner">공개 채팅방 새 메시지를 앱 내 푸시 배너로 표시</string>
-    <string name="setting_chat_room_entry_warning">정치 이야기는 영구 정지</string>
-    <string name="setting_show_plaza_entry">홈 사이드바에 광장 입구 표시</string>
     <string name="plaza_title">광장</string>
     <string name="plaza_compose_title">새 글</string>
     <string name="plaza_send_post">게시</string>

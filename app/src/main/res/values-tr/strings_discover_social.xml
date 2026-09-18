@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discover_social_title">Sohbet ve paylaşım</string>
+    <string name="discover_community_title">Topluluk</string>
+    <string name="discover_chat_description">Genel sohbet · Özel mesajlar</string>
+    <string name="discover_community_description">Eser paylaşın · Tartışmalara katılın</string>
+    <string name="discover_chat_action">Sohbeti aç</string>
+    <string name="discover_community_action">Meydanı aç</string>
+</resources>
