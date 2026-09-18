@@ -33,7 +33,6 @@ internal class ReferralHeroArtView(context: Context, private val ui: ReferralUi)
             star(canvas, 190f, -5f, 44f, c.onTint, 6)
             ticket(canvas, -35f, 10f, -14f, false)
             ticket(canvas, 55f, 90f, 12f, true)
-            sticker(canvas, 10f, 225f)
         } else {
             canvas.translate(widthDp - 450f, 30f)
             orbit(canvas, 0f, 25f, 390f, 270f, -27f)
@@ -41,7 +40,6 @@ internal class ReferralHeroArtView(context: Context, private val ui: ReferralUi)
             star(canvas, 365f, 25f, 46f, c.onTint, 6)
             ticket(canvas, 20f, 10f, -14f, false)
             ticket(canvas, 190f, 55f, 12f, true)
-            sticker(canvas, 112f, 250f)
         }
         canvas.restoreToCount(save)
     }
@@ -65,7 +63,7 @@ internal class ReferralHeroArtView(context: Context, private val ui: ReferralUi)
         val ink = if (month) c.artInk else Color.parseColor("#423650")
         text(canvas, "EXPERIENCE PASS", 21f, 34f, 7f, 600, ink)
         star(canvas, 183f, 29f, 8f, ink, 4)
-        text(canvas, "PRO", 21f, 114f, 56f, 800, ink)
+        text(canvas, if (month) "MAX" else "PRO", 21f, 114f, 56f, 800, ink)
         text(canvas, "P A S S", 22f, 132f, 11f, 500, ink)
         paint.color = ink; paint.alpha = 65; paint.strokeWidth = 1f
         paint.pathEffect = DashPathEffect(floatArrayOf(3f, 3f), 0f)
@@ -77,20 +75,6 @@ internal class ReferralHeroArtView(context: Context, private val ui: ReferralUi)
         text(canvas, ui.s(R.string.referral_day_unit), if (month) 76f else 48f, 231f, 12f, 400, ink)
         text(canvas, ui.s(if (month) R.string.referral_month_caption else R.string.referral_week_caption), 104f, 211f, 8f, 400, ink)
         text(canvas, if (month) "30-DAY ACCESS" else "7-DAY ACCESS", 104f, 224f, 6.7f, 400, ink)
-        canvas.restoreToCount(save)
-    }
-
-    private fun sticker(canvas: Canvas, x: Float, y: Float) {
-        val save = canvas.save(); canvas.translate(x, y); canvas.rotate(-9f, 43f, 43f)
-        paint.color = Color.parseColor("#DBEDB4")
-        val path = Path().apply {
-            addRoundRect(RectF(0f, 0f, 86f, 86f), floatArrayOf(28f, 28f, 39f, 39f, 26f, 26f, 34f, 34f), Path.Direction.CW)
-        }
-        canvas.drawPath(path, paint)
-        val ink = Color.parseColor("#425232")
-        text(canvas, ui.s(R.string.referral_pass_badge), 27f, 37f, 13f, 500, ink)
-        text(canvas, ui.s(R.string.referral_trial_badge), 22f, 61f, 18f, 700, ink)
-        star(canvas, 68f, 20f, 5f, ink, 4)
         canvas.restoreToCount(save)
     }
 
