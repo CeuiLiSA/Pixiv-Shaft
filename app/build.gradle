@@ -86,8 +86,8 @@ android {
         applicationId "ceui.pixiv"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 42600
-        versionName "4.9.3"
+        versionCode 42700
+        versionName "4.9.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             // Production remains arm64-only. CI can request x86_64 so instrumented tests run on
