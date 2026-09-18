@@ -2956,4 +2956,13 @@
     <string name="recommend_page_works_first">Recommended works - Trending tags</string>
     <string name="recommend_page_tags_first">Trending tags - Recommended works</string>
     <string name="recommend_page_content_desc">Change the tab order on illustration and novel recommendation pages. Restart the app to apply.</string>
+    <!-- Cloudflare 403 鉴别与引导：见 CfBlockDetector / CfBlockGuide -->
+    <string name="cf_block_title">Blocked by Cloudflare</string>
+    <string name="cf_block_message_direct">Cloudflare rejected the request from your current network. Switch to another network and retry, for example from Wi-Fi to mobile data.</string>
+    <string name="cf_block_message_proxy">Cloudflare rejected the request from your current proxy node. Switch to another node or route and retry.</string>
+    <string name="cf_block_ip_direct">Current exit IP: %1$s</string>
+    <string name="cf_block_ip_proxy">Proxy entry IP: %1$s</string>
+    <string name="cf_block_short_direct">Blocked by Cloudflare, switch to another network</string>
+    <string name="cf_block_short_proxy">Blocked by Cloudflare, switch to another proxy node</string>
+    <string name="network_test_pxve_cf_blocked">Failed · %1$dms · HTTP %2$d (blocked by Cloudflare, not a forwarding issue)</string>
 </resources>

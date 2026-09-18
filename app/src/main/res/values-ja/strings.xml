@@ -2954,4 +2954,13 @@
     <string name="recommend_page_tags_first">人気のタグ - おすすめ作品</string>
     <string name="recommend_page_content_desc">イラストと小説のおすすめページのタブ順を変更します。アプリの再起動後に反映されます。</string>
     <string name="nana7mi_usage_motto">失敗は成功のもと\n課金は支払いの成功</string>
+    <!-- Cloudflare 403 鉴别与引导：见 CfBlockDetector / CfBlockGuide -->
+    <string name="cf_block_title">Cloudflare によりブロックされました</string>
+    <string name="cf_block_message_direct">現在のネットワークからのリクエストが Cloudflare により拒否されました。別のネットワーク（例：Wi-Fi からモバイルデータ通信）に切り替えて再試行してください。</string>
+    <string name="cf_block_message_proxy">現在のプロキシノードからのリクエストが Cloudflare により拒否されました。別のノードまたは回線に切り替えて再試行してください。</string>
+    <string name="cf_block_ip_direct">現在の出口 IP：%1$s</string>
+    <string name="cf_block_ip_proxy">プロキシ入口 IP：%1$s</string>
+    <string name="cf_block_short_direct">Cloudflare にブロックされました。ネットワークを変更してください</string>
+    <string name="cf_block_short_proxy">Cloudflare にブロックされました。ノードを変更してください</string>
+    <string name="network_test_pxve_cf_blocked">異常 · %1$dms · HTTP %2$d（Cloudflare によるブロック。転送経路の問題ではありません）</string>
 </resources>

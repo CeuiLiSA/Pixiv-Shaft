@@ -7,6 +7,7 @@ import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AppApiProxyInterceptor
+import ceui.lisa.http.CfBlockDetector
 import ceui.lisa.http.CronetInterceptor
 import ceui.lisa.http.HttpDns
 import ceui.lisa.http.IPv4OnlyDns
@@ -1236,8 +1237,13 @@ class NetworkTestViewModel : ViewModel() {
             client.newCall(requestBuilder.build()).execute().use { resp ->
                 val ms = System.currentTimeMillis() - t0
                 val code = resp.code
-                val ok = code in 200..499 && code != 404
+                // Cloudflare 拦截必须从「缺凭证的预期响应」里摘出来：403 本来落在通过区间内，
+                // 代理节点被 CF 拦时这里会亮绿灯说「转发链路通」，而用户那边其实完全用不了 ——
+                // 同一件事的另一张脸。判定见 CfBlockDetector。
+                val cfBlocked = CfBlockDetector.isCfBlock(resp)
+                val ok = !cfBlocked && code in 200..499 && code != 404
                 val detail = when {
+                    cfBlocked -> strRes(R.string.network_test_pxve_cf_blocked, ms, code)
                     code == 404 -> strRes(R.string.network_test_pxve_not_found, ms, code, strRes(pathLabelRes))
                     code in 200..299 -> strRes(R.string.network_test_pxve_ok_2xx, ms, code)
                     code == 400 || code == 401 || code == 403 -> strRes(R.string.network_test_pxve_ok_auth, ms, code)
@@ -1245,7 +1251,10 @@ class NetworkTestViewModel : ViewModel() {
                     else -> strRes(R.string.network_test_pxve_fail_status, ms, code)
                 }
                 updateStep(idx, stepIdx, detail, if (ok) StepStatus.OK else StepStatus.FAIL)
-                log("PxveAPI ${strRes(pathLabelRes)}: $method HTTP $code · ${ms}ms")
+                log(
+                    "PxveAPI ${strRes(pathLabelRes)}: $method HTTP $code · ${ms}ms" +
+                        if (cfBlocked) " · Cloudflare 拦截（非转发链路问题）" else ""
+                )
                 return ok
             }
         } catch (e: Exception) {

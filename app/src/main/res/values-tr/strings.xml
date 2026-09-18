@@ -2957,4 +2957,13 @@
     <string name="recommend_page_tags_first">Popüler etiketler - Önerilen eserler</string>
     <string name="recommend_page_content_desc">İllüstrasyon ve roman öneri sayfalarındaki sekme sırasını değiştirir. Uygulamak için uygulamayı yeniden başlatın.</string>
     <string name="nana7mi_usage_motto">Başarısızlık başarının anasıdır\nBakiye yüklemek başarılı bir ödemedir</string>
+    <!-- Cloudflare 403 鉴别与引导：见 CfBlockDetector / CfBlockGuide -->
+    <string name="cf_block_title">Cloudflare tarafından engellendi</string>
+    <string name="cf_block_message_direct">Cloudflare mevcut ağınızdan gelen isteği reddetti. Başka bir ağa geçip yeniden deneyin, örneğin Wi-Fi yerine mobil veri.</string>
+    <string name="cf_block_message_proxy">Cloudflare mevcut proxy düğümünüzden gelen isteği reddetti. Başka bir düğüm veya hat seçip yeniden deneyin.</string>
+    <string name="cf_block_ip_direct">Geçerli çıkış IP adresi: %1$s</string>
+    <string name="cf_block_ip_proxy">Proxy giriş IP adresi: %1$s</string>
+    <string name="cf_block_short_direct">Cloudflare engelledi, ağı değiştirin</string>
+    <string name="cf_block_short_proxy">Cloudflare engelledi, düğümü değiştirin</string>
+    <string name="network_test_pxve_cf_blocked">Hata · %1$dms · HTTP %2$d (Cloudflare engeli, aktarım sorunu değil)</string>
 </resources>

@@ -1,6 +1,8 @@
 package ceui.pixiv.actions
 
 import ceui.lisa.activities.Shaft
+import ceui.lisa.http.CfBlockDetector
+import ceui.lisa.http.CfBlockGuide
 import ceui.pixiv.actionqueue.ActionHandler
 import ceui.pixiv.actionqueue.ActionOutcome
 import ceui.pixiv.actionqueue.PendingAction
@@ -43,6 +45,20 @@ internal data class FollowPayload(
 )
 
 /**
+ * CF 拦截失败时给用户看的那句原因。
+ *
+ * [ActionOutcome.Fail.reason] 会被 `PixivActionQueue` 拼进 `msg_operation_fail`（"操作失败：%s"）
+ * **直接弹给用户**，所以这里必须是本地化文案，不能是 `"HTTP 403"` 这类诊断串 ——
+ * 那样用户只知道自己失败了，不知道该去换网络。方向（换网络 / 换节点）由 [CfBlockGuide] 分叉。
+ *
+ * 取不到 Context（理论上只在 Application 初始化之前）时退回诊断串，不抛：
+ * 一条失败提示的措辞不值得让动作队列崩掉。
+ */
+private fun cfBlockReason(raw: okhttp3.Response): String =
+    Shaft.getContext()?.getString(CfBlockGuide.shortMessage(CfBlockGuide.isProxyMode(raw)))
+        ?: "HTTP 403 (Cloudflare)"
+
+/**
  * 把异常翻译成队列能理解的结局。
  *
  * 三个维度，每个都独立影响用户看到的结果：
@@ -55,6 +71,7 @@ internal data class FollowPayload(
  * @param isOnline 失败发生时设备是否还有网。断网判定只用来「不扣预算」，判错了最坏也就是
  *                 多扣一次或多试几轮，不会丢动作。
  */
+
 internal fun Throwable.toActionOutcome(isOnline: Boolean): ActionOutcome = when (this) {
     is HttpException -> when (val code = code()) {
         // 唯一确定属于账号级速率限制的码：整队一起等，别的动作照发只会接着撞。
@@ -79,7 +96,29 @@ internal fun Throwable.toActionOutcome(isOnline: Boolean): ActionOutcome = when 
         // 都会 400，而 SessionManager 并不会因此把 isLoggedIn 翻成 false，gate 拦不住。
         // 若按整队冷却算，一次会话失效就能让队列以「每 7.5 分钟弹一次收藏失败」的节奏
         // 空转几小时；按单条算，坏行各自收敛成终态失败，互不连累。
-        400, 401, 403 -> ActionOutcome.Retry(cause = this, scope = RetryScope.ACTION)
+        400, 401 -> ActionOutcome.Retry(cause = this, scope = RetryScope.ACTION)
+        // 403 分两种，结局不同。
+        //
+        // **Cloudflare 拦截**：不是「服务端暂时不接受」，而是这个网络环境已经被 CF 挡住。
+        // 重试必然还是被拦，只会多打几次 CF —— 若这次拦截是速率型的，重试等于自己加重。
+        // 直接终态失败，并把「换网络 / 换节点」交给 CfBlockGuide 的那次引导去说。
+        //
+        // 这条路径**不经过** ErrorCtrl / getHumanReadableMessage（动作队列自己 catch 并映射
+        // 结局），所以引导必须在这里触发一次 —— 否则用户点了收藏、撞上 CF 拦截，
+        // 只会看到一句「操作失败」，永远等不到那句该换网络的话。配额由 CfBlockGuide 内部把关。
+        //
+        // **源站的 403**（非公开作品 / 限年龄 / 被拉黑）：语义是「你没有权限」，不是
+        // 「网络不对」。保持原有行为不动 —— 它同样会被有限的预算收敛成终态失败，
+        // 而改动它属于另一件事。
+        403 -> {
+            val cfRaw = CfBlockDetector.rawResponseOf(this)
+            if (cfRaw != null && CfBlockDetector.isCfBlock(cfRaw)) {
+                CfBlockGuide.maybeGuide(cfRaw)
+                ActionOutcome.Fail(cfBlockReason(cfRaw), this)
+            } else {
+                ActionOutcome.Retry(cause = this, scope = RetryScope.ACTION)
+            }
+        }
         else -> ActionOutcome.Fail("HTTP $code", this)
     }
     // 断网 / 超时 / 连接被重置。
