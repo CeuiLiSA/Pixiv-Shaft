@@ -11,6 +11,7 @@ import ceui.pixiv.api.model.StreetResponse
 import ceui.pixiv.api.model.UserTagIllustBody
 import ceui.pixiv.api.model.UserTagNovelBody
 import ceui.pixiv.api.model.UserWorkTag
+import ceui.pixiv.api.model.WebDiscoveryBody
 import ceui.pixiv.api.model.WebIllustBody
 import ceui.pixiv.api.model.WebIllustPage
 import ceui.pixiv.api.model.WebNovelSearchBody
@@ -26,6 +27,13 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface PixivWebApi {
+
+    /** 官网 /discovery：每次返回一批新推荐，没有 page / offset / next_url。使用网页 cookie。 */
+    @GET("/ajax/discovery/artworks")
+    suspend fun getDiscoveryArtworks(
+        @Query("mode") mode: String,
+        @Query("limit") limit: Int = 60,
+    ): WebResponse<WebDiscoveryBody>
 
     //
 

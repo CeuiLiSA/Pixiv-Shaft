@@ -2954,4 +2954,9 @@
     <string name="recommend_page_tags_first">인기 태그 - 추천 작품</string>
     <string name="recommend_page_content_desc">일러스트 및 소설 추천 페이지의 탭 순서를 변경합니다. 앱을 다시 시작하면 적용됩니다.</string>
     <string name="nana7mi_usage_motto">실패는 성공의 어머니\n충전은 성공한 결제</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">웹 발견</string>
+    <string name="web_discovery_login_needed">추천 작품을 보려면 앱과 동일한 계정으로 pixiv 웹사이트에 로그인하세요.</string>
+    <string name="web_discovery_web_login">웹 로그인</string>
 </resources>

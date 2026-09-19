@@ -2955,4 +2955,9 @@
     <string name="recommend_page_tags_first">熱門標籤-推薦作品</string>
     <string name="recommend_page_content_desc">調整插畫和小說推薦頁的分頁順序，重新啟動後生效</string>
     <string name="nana7mi_usage_motto">失敗是成功之母\n儲值是成功付款</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">官網發現</string>
+    <string name="web_discovery_login_needed">請使用與 App 相同的 pixiv 帳號登入網頁，以查看推薦作品。</string>
+    <string name="web_discovery_web_login">網頁登入</string>
 </resources>

@@ -2957,4 +2957,9 @@
     <string name="recommend_page_tags_first">Popüler etiketler - Önerilen eserler</string>
     <string name="recommend_page_content_desc">İllüstrasyon ve roman öneri sayfalarındaki sekme sırasını değiştirir. Uygulamak için uygulamayı yeniden başlatın.</string>
     <string name="nana7mi_usage_motto">Başarısızlık başarının anasıdır\nBakiye yüklemek başarılı bir ödemedir</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">Web Keşfet</string>
+    <string name="web_discovery_login_needed">Önerilen eserleri görmek için pixiv web sitesinde uygulamayla aynı hesapla oturum açın.</string>
+    <string name="web_discovery_web_login">Web oturumu aç</string>
 </resources>
