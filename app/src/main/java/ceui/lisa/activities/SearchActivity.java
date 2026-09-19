@@ -10,11 +10,13 @@ import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.URLUtil;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.android.material.appbar.AppBarLayout;
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
@@ -60,6 +62,11 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     private long mExitTime;
     private final java.util.List<String> committedTags = new java.util.ArrayList<>();
     private SearchHintViewModel hintViewModel;
+    // 动画的目标状态；淡出期间 View 仍是 VISIBLE，不能用它判断是否需要重新显示。
+    private boolean mHintListShown;
+    /** Toolbar 原始的 layout_scrollFlags（补全浮层钉住搜索栏时要还原）。 */
+    private int mToolbarScrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
+            | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS;
 
     @Override
     protected void initBundle(Bundle bundle) {
@@ -378,6 +385,12 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             }
         });
 
+        // 记下 Toolbar 原始的 scrollFlags —— 补全浮层可见时要临时摘掉，见 setSearchBarCollapsible
+        ViewGroup.LayoutParams toolbarLp = baseBind.toolbar.getLayoutParams();
+        if (toolbarLp instanceof AppBarLayout.LayoutParams) {
+            mToolbarScrollFlags = ((AppBarLayout.LayoutParams) toolbarLp).getScrollFlags();
+        }
+
         // ── Autocomplete hint list ──────────────────────────────────────
         // Position hint list right below the toolbar (above tabs + content)
         baseBind.toolbar.post(() -> {
@@ -508,10 +521,18 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     }
 
     private void animateHintList(boolean show) {
+        if (mHintListShown == show) return;
+        mHintListShown = show;
+        // 取消旧动画及其结束回调，避免快速切换显隐时旧回调隐藏新提示或释放搜索栏。
+        baseBind.hintList.animate().cancel();
         if (show) {
-            if (baseBind.hintList.getVisibility() == View.VISIBLE) return;
-            baseBind.hintList.setAlpha(0f);
-            baseBind.hintList.setTranslationY(-24f);
+            // 浮层马上要露出来：把搜索栏钉住。浮层的 topMargin 是 toolbar.getBottom() 的静态
+            // 快照，搜索栏一被滚动收起，锚点就落空、浮层与搜索栏脱钩。
+            setSearchBarCollapsible(false);
+            if (baseBind.hintList.getVisibility() != View.VISIBLE) {
+                baseBind.hintList.setAlpha(0f);
+                baseBind.hintList.setTranslationY(-24f);
+            }
             baseBind.hintList.setVisibility(View.VISIBLE);
             baseBind.hintList.animate()
                     .alpha(1f)
@@ -520,15 +541,17 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     .setInterpolator(new android.view.animation.DecelerateInterpolator())
                     .start();
         } else {
-            if (baseBind.hintList.getVisibility() != View.VISIBLE) return;
+            // 淡出期间浮层仍可见，直到动画结束才释放锚点。
             baseBind.hintList.animate()
                     .alpha(0f)
                     .translationY(-16f)
                     .setDuration(160)
                     .setInterpolator(new android.view.animation.AccelerateInterpolator())
                     .withEndAction(() -> {
+                        if (mHintListShown) return;
                         baseBind.hintList.setVisibility(View.GONE);
                         baseBind.hintList.setTranslationY(0f);
+                        setSearchBarCollapsible(true);
                     })
                     .start();
         }
@@ -541,6 +564,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
      * 刻意**不**发 nowGo —— 编辑是准备动作，等用户改完回车再搜。
      */
     private void editTagFromChip(String name) {
+        commitPendingInputAsChip();
         committedTags.remove(name);
         refreshChipsUI();
         EditText ed = baseBind.searchTagsFlow.getEditor();
@@ -555,6 +579,59 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             }
         }
         pushKeywordFromChipsAndInput();
+    }
+
+    /**
+     * 把输入框里未提交的文本收口成一个 chip，避免被随后的 {@code setText} 静默吃掉。
+     *
+     * 触发场景：输入框里已经有内容（正在编辑某个标签，或者正在打字），此时又去编辑另一个
+     * 标签 —— 直接 {@code setText(name)} 会覆盖它，那段文本连同它在 keyword 里的那一份一起
+     * 消失（keyword 是「chips + 输入框文本」拼出来的），用户只看到结果变了却不知道原因。
+     *
+     * 为什么静默保留、不弹窗询问：触发频率高（输入框非空是常态）、代价低（丢的是搜索词、
+     * 不是草稿）、而且那段文本本来就已经在 keyword 里。弹窗会逼用户现场理解「清空 / 保留」
+     * 的语义，为一个随手一点的动作付这份认知成本不划算。
+     *
+     * 先归位成 chip 之后，keyword 的术语集合不变，所以不会出现「点一下标签，搜索结果莫名
+     * 变了」。内容为空、或内容已是既有 chip 时什么都不做（后者避免造出重复 chip）。
+     */
+    private void commitPendingInputAsChip() {
+        EditText ed = baseBind.searchTagsFlow.getEditor();
+        if (ed == null) return;
+        String pending = ed.getText().toString().trim();
+        if (pending.isEmpty() || committedTags.contains(pending)) return;
+        committedTags.add(pending);
+    }
+
+    /**
+     * 补全浮层可见时把搜索栏钉住（不可收起），收起后恢复。
+     *
+     * 浮层的位置是 {@code toolbar.getBottom()} 的静态快照（见 initData 里那段 post 定位），
+     * 所以搜索栏一旦被滚动收起，锚点就落空 —— 浮层悬在原处、与搜索栏脱钩，而浮层下方露出的
+     * 内容还在继续滚。
+     *
+     * 做法是把 Toolbar 的 {@code layout_scrollFlags} 摘成 0：AppBarLayout 的
+     * {@code getTotalScrollRange()} 扫到第一个不带 SCROLL 的子项就 break，于是 range 归零、
+     * {@code hasScrollableChildren()} 为 false、Behavior 的 {@code canScrollChildren()} 不成立，
+     * nested scroll 一律不消费 —— AppBar 收不起来，而内容照常滚动（不会出现「滚了却被吃掉」
+     * 的抖动）。range 缓存在 onMeasure / onLayout 里失效，所以下面这次 setLayoutParams 触发的
+     * 重新布局足以让新 flags 生效。
+     *
+     * {@code setExpanded} 请求在下一次布局中展开，确保已有折叠偏移也归零。
+     * 内容区随 range 同步重新测量；FeedBackToTopFab 的底距补偿也随之更新。
+     */
+    private void setSearchBarCollapsible(boolean collapsible) {
+        ViewGroup.LayoutParams lp = baseBind.toolbar.getLayoutParams();
+        if (!(lp instanceof AppBarLayout.LayoutParams)) return;
+        AppBarLayout.LayoutParams alp = (AppBarLayout.LayoutParams) lp;
+        int target = collapsible ? mToolbarScrollFlags : 0;
+        // 幂等：值没变就不白折腾一次布局
+        if (alp.getScrollFlags() == target) return;
+        if (!collapsible) {
+            baseBind.appBar.setExpanded(true, false);
+        }
+        alp.setScrollFlags(target);
+        baseBind.toolbar.setLayoutParams(alp);
     }
 
     /**

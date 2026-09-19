@@ -59,6 +59,7 @@ import ceui.pixiv.ui.detail.ArtworkV3Fragment
 import ceui.pixiv.ui.detail.IllustSeriesFragment
 import ceui.pixiv.ui.detail.RelatedIllustFeedFragment
 import ceui.pixiv.ui.discovery.DiscoveryFeedFragment
+import ceui.pixiv.ui.discovery.WebDiscoveryFragment
 import ceui.pixiv.ui.download.DownloadManagerV3Fragment
 import ceui.pixiv.ui.dynamic.FollowingNovelFeedFragment
 import ceui.pixiv.ui.fanbox.FanboxHomeFragment
@@ -496,6 +497,7 @@ object TemplateRouteFactory {
                 FragmentMarkdown.newInstance(intent.getStringExtra(Params.URL))
             TemplateRoute.VERSION_HISTORY -> FragmentVersionHistory()
             TemplateRoute.DISCOVERY -> DiscoveryFeedFragment()
+            TemplateRoute.WEB_DISCOVERY -> WebDiscoveryFragment()
             TemplateRoute.RECENT_RECOMMEND -> FragmentRecentRecommend()
             TemplateRoute.SITE_RECOMMEND -> FragmentSiteRecommend()
             TemplateRoute.ARTIST_RANK -> ArtistRankFeedFragment.newInstance("total")
