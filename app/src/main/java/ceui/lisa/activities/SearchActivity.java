@@ -135,11 +135,17 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         }
         baseBind.searchTagsFlow.setShowRemoveIcon(true);
         refreshChipsUI();
+        // 点 × = 删除该 chip，并用剩余标签立即重搜。
         baseBind.searchTagsFlow.setOnTagClick(name -> {
             committedTags.remove(name);
             refreshChipsUI();
             pushKeywordFromChipsAndInput();
             triggerSearchIfNotEmpty();
+            return kotlin.Unit.INSTANCE;
+        });
+        // 点正文（非 × 区）= 还原到输入框编辑，不立刻重搜——编辑是准备动作，回车才搜。
+        baseBind.searchTagsFlow.setOnTagBodyClick(name -> {
+            editTagFromChip(name);
             return kotlin.Unit.INSTANCE;
         });
         baseBind.searchTagsFlow.setOnTagLongClick(name -> {
@@ -529,6 +535,29 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     }
 
     /**
+     * 把一个 chip 还原回输入框：移除该 chip、文本回填、聚焦并唤起键盘，最后同步 keyword。
+     *
+     * 两个入口共用：胶囊正文点击（initView 里的 onTagBodyClick）与长按菜单的「编辑」。
+     * 刻意**不**发 nowGo —— 编辑是准备动作，等用户改完回车再搜。
+     */
+    private void editTagFromChip(String name) {
+        committedTags.remove(name);
+        refreshChipsUI();
+        EditText ed = baseBind.searchTagsFlow.getEditor();
+        if (ed != null) {
+            ed.setText(name);
+            ed.setSelection(name.length());
+            ed.requestFocus();
+            InputMethodManager imm = (InputMethodManager) mContext
+                    .getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showSoftInput(ed, InputMethodManager.SHOW_IMPLICIT);
+            }
+        }
+        pushKeywordFromChipsAndInput();
+    }
+
+    /**
      * 长按 chip 弹出的居中菜单：复制文本 / 删除 / 编辑。
      * 编辑＝把 chip 还原回输入框、移除该 chip、聚焦输入框唤起键盘，让用户改完再回车提交。
      */
@@ -548,20 +577,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                         pushKeywordFromChipsAndInput();
                         triggerSearchIfNotEmpty();
                     } else if (which == 2) {
-                        committedTags.remove(name);
-                        refreshChipsUI();
-                        EditText ed = baseBind.searchTagsFlow.getEditor();
-                        if (ed != null) {
-                            ed.setText(name);
-                            ed.setSelection(name.length());
-                            ed.requestFocus();
-                            InputMethodManager imm = (InputMethodManager) mContext
-                                    .getSystemService(Context.INPUT_METHOD_SERVICE);
-                            if (imm != null) {
-                                imm.showSoftInput(ed, InputMethodManager.SHOW_IMPLICIT);
-                            }
-                        }
-                        pushKeywordFromChipsAndInput();
+                        editTagFromChip(name);
                     }
                     dialog.dismiss();
                 })

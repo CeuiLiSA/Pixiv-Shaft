@@ -95,6 +95,12 @@ class V3TagFlowView @JvmOverloads constructor(
     var onTagLongClick: ((name: String) -> Unit)? = null
 
     /**
+     * 正文点击回调 —— 仅当 [showRemoveIcon] = true 且点击落在非 × 区域时使用。
+     * 为 null 时回退到 [onTagClick]，不显示 × 的调用方行为完全不变。
+     */
+    var onTagBodyClick: ((name: String) -> Unit)? = null
+
+    /**
      * 当 host 能提供「固定 tag」语义时（详情页知道当前 illust）赋值。
      * 接收 (tag 名, 译名, 新的 pinned 状态)；view 内部已查过 DB 当前状态并切换。
      * 非空时长按菜单会多一条「固定/取消固定」项。
@@ -215,6 +221,12 @@ class V3TagFlowView @JvmOverloads constructor(
     val editor: EditText?
         get() = if (showRemoveIcon) ensureEditor() else null
 
+    /**
+     * × 图标边长（px）。渲染与命中判定共用同一来源，避免两处各写一个 14 各自漂移。
+     */
+    private val closeIconSize: Int
+        get() = if (showRemoveIcon) CLOSE_ICON_DP.ppppx else 0
+
     init {
         alignItems = AlignItems.FLEX_START
         // flexWrap 由 XML / caller 决定；不在 init 里强塞，避免 `app:flexWrap="nowrap"` 被覆盖。
@@ -258,7 +270,7 @@ class V3TagFlowView @JvmOverloads constructor(
         val hPad = if (compact) 10.ppppx else 14.ppppx
         val vPad = if (compact) 4.ppppx else 7.ppppx
         val gap = if (compact) 6.ppppx else 8.ppppx
-        val closeIconSize = if (showRemoveIcon) 14.ppppx else 0
+        // closeIconSize 走同名属性——渲染与 × 命中判定共用，见 isInRemoveZone
         // 单行模式（NOWRAP）下不需要 bottom margin，也不给最后一个 chip 留 end margin——
         // 它只会把输入框顶得离内容偏远。
         val isSingleRow = flexWrap == com.google.android.flexbox.FlexWrap.NOWRAP
@@ -278,6 +290,9 @@ class V3TagFlowView @JvmOverloads constructor(
                 idx == lastIndex -> 0
                 else -> gap
             }
+            // 触摸落点（chip 本地坐标）：OnTouchListener 记录，OnClickListener 消费。
+            // 触摸监听恒返回 false，长按判定链完整保留。
+            var lastTouchX = -1f
             val tv = TextView(context).apply {
                 val translationSuffix =
                     if (showTranslation && !translated.isNullOrBlank()) "  $translated" else ""
@@ -328,16 +343,27 @@ class V3TagFlowView @JvmOverloads constructor(
                     // 交给外层 HorizontalScrollView 滚动。
                     flexShrink = 0f
                 }
+                // 编辑模式（showRemoveIcon）下胶囊分两个热区：尾部 × 删除、正文交给
+                // onTagBodyClick（搜索栏里是「还原到输入框编辑」），落点用 DOWN 记录的 x 判定。
+                // lastTouchX < 0（performClick / 无障碍点击，没有触摸信息）回退到 onTagClick，
+                // 保持既有语义。
                 setOnClickListener {
-                    val custom = onTagClick
-                    if (custom != null) {
-                        custom.invoke(name)
+                    val bodyClick = onTagBodyClick
+                    val tapOnBody = showRemoveIcon && bodyClick != null && lastTouchX >= 0f
+                        && !isInRemoveZone(this, lastTouchX)
+                    if (tapOnBody) {
+                        bodyClick?.invoke(name)
                     } else {
-                        val intent = Intent(context, SearchActivity::class.java).apply {
-                            putExtra(Params.KEY_WORD, name)
-                            putExtra(Params.INDEX, searchIndex)
+                        val custom = onTagClick
+                        if (custom != null) {
+                            custom.invoke(name)
+                        } else {
+                            val intent = Intent(context, SearchActivity::class.java).apply {
+                                putExtra(Params.KEY_WORD, name)
+                                putExtra(Params.INDEX, searchIndex)
+                            }
+                            context.startActivity(intent)
                         }
-                        context.startActivity(intent)
                     }
                 }
                 // 长按回调晚读：渲染时 onTagLongClick 可能尚未 set（SearchActivity 里先
@@ -353,7 +379,7 @@ class V3TagFlowView @JvmOverloads constructor(
                     true
                 }
             }
-            applyTouchScale(tv, 0.94f)
+            applyTouchScale(tv, 0.94f) { x -> lastTouchX = x }
             addView(tv)
         }
 
@@ -534,16 +560,66 @@ class V3TagFlowView @JvmOverloads constructor(
         Toaster.showShort(R.string.string_383)
     }
 
-    private fun applyTouchScale(view: View, scale: Float) {
+    /**
+     * 按压缩放反馈。**恒返回 false** —— 不能消费事件，否则 [View.onTouchEvent] 不再执行，
+     * 长按菜单会直接失效。[onDown] 把落点交给调用方（chip 的 × / 正文命中判定）。
+     */
+    private fun applyTouchScale(view: View, scale: Float, onDown: ((Float) -> Unit)? = null) {
         view.setOnTouchListener { v, event ->
             when (event.action) {
-                MotionEvent.ACTION_DOWN ->
+                MotionEvent.ACTION_DOWN -> {
+                    onDown?.invoke(event.x)
                     v.animate().scaleX(scale).scaleY(scale).setDuration(200).start()
+                }
 
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL ->
+                MotionEvent.ACTION_UP ->
                     v.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
+
+                // 手势被打断（横滚抢走事件等）：缩放复位，同时把落点清掉，
+                // 免得之后一次无障碍 performClick 拿到上一次的残留坐标。
+                MotionEvent.ACTION_CANCEL -> {
+                    onDown?.invoke(-1f)
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(200).start()
+                }
             }
             false
         }
+    }
+
+    /**
+     * 点击落点是否落在尾部 × 区。
+     *
+     * 布局事实（见 [renderPairs]）：胶囊尾部依次是 `paddingEnd` 内边距、`closeIconSize`
+     * 的图标，图标左侧隔着 `compoundDrawablePadding` 才是文字。于是
+     * 「宽度 − paddingEnd − (图标 + 图标间距)」正好落在文字右边缘 —— 以它为界向右即 × 区，
+     * 不会把任何文字算进去（[REMOVE_HIT_SLOP_DP] 可再向右扩一点余量）。
+     * RTL 下图标在左，用 `paddingEnd` + layoutDirection 镜像同一套算法。
+     */
+    private fun isInRemoveZone(chip: TextView, x: Float): Boolean {
+        val padEnd = chip.paddingEnd
+        // compoundDrawablePadding 是 TextView 的 API，而 chip 本身就是 TextView，
+        // 参数按 TextView 收口，比在 View 上做向下转型干净。
+        val iconZone = closeIconSize + chip.compoundDrawablePadding
+        // 短标签（如单字 tag）的胶囊宽度本来就只比图标大一点，再用「不超过一半」封顶，
+        // 保证正文总留得下一段可点区域。
+        val limit = (chip.width / 2 - padEnd).coerceAtLeast(iconZone)
+        val zone = (iconZone + REMOVE_HIT_SLOP_DP.ppppx).coerceAtMost(limit)
+        return if (chip.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
+            x <= padEnd + zone
+        } else {
+            x >= chip.width - padEnd - zone
+        }
+    }
+
+    private companion object {
+        /** × 图标边长（dp）。 */
+        const val CLOSE_ICON_DP = 14
+
+        /**
+         * × 命中区在「图标 + 图标间距」之外额外扩展的余量（dp）。
+         * 0 = 命中区正好是胶囊右侧不含文字的那一段，正文不会被误判成删除；
+         * 调大更好点中，代价是最右侧若干 dp 的文字归入 × 区。
+         */
+        const val REMOVE_HIT_SLOP_DP = 0
     }
 }
