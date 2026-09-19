@@ -85,7 +85,7 @@ object UgoiraEngine {
     private const val MAX_CONCURRENT = 2
 
     // 划走后多久没人看就取消后台任务。来回滑动在宽限期内不会误杀。
-    private const val ABANDON_GRACE_MS = 12000L
+    private const val ABANDON_GRACE_MS = 30_000L
 
     // 引擎级 scope:SupervisorJob 让单条失败不拖垮别条;不随任何 Fragment 取消。
     private val engineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

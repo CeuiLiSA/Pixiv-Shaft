@@ -112,7 +112,7 @@ class UgoiraZipResumeTest {
             }
             fail("page cancellation must propagate")
         } catch (_: CancellationException) {
-            // 模拟引擎取消，无需在测试中等 12 秒。
+            // 模拟引擎取消，无需在测试中等待无人观察的宽限期。
         }
         val offset = part.length()
         assertTrue(offset in 1 until payload.size.toLong())
