@@ -124,6 +124,30 @@ class UgoiraZipResumeTest {
         assertEquals("bytes=$offset-", server.takeRequest().getHeader("Range"))
     }
 
+    @Test fun `repeated cancellations advance the same prefix without duplicating bytes`() = runBlocking {
+        var offset = 0L
+        repeat(3) {
+            server.enqueue(if (offset == 0L) full() else tail(offset))
+            val previous = offset
+            val job = Job()
+            try {
+                withContext(job) {
+                    downloadZipTo(url, target, client) { if (part.length() > previous) job.cancel() }
+                }
+                fail("cancellation must propagate")
+            } catch (_: CancellationException) { }
+            val request = server.takeRequest()
+            assertEquals(if (previous == 0L) null else "bytes=$previous-", request.getHeader("Range"))
+            offset = part.length()
+            assertTrue(offset > previous && offset < payload.size)
+            assertArrayEquals(payload.copyOf(offset.toInt()), part.readBytes())
+            assertFalse(target.exists())
+        }
+        server.enqueue(tail(offset))
+        downloadZipTo(url, target, client)
+        assertComplete()
+    }
+
     @Test fun `server ignoring Range replaces partial instead of appending`() = runBlocking {
         seed()
         server.enqueue(full())
@@ -139,6 +163,49 @@ class UgoiraZipResumeTest {
         downloadZipTo(url, target, client)
         assertComplete(changed)
         assertEquals(etag, server.takeRequest().getHeader("If-Range"))
+    }
+
+    @Test fun `changed representation interrupted again resumes only the new version`() = runBlocking {
+        seed()
+        val changed = ByteArray(payload.size) { ((it + 71) % 251).toByte() }
+        val newTag = "\"ugoira-v2\""
+        server.enqueue(full(changed).setHeader("ETag", newTag)
+            .setSocketPolicy(SocketPolicy.DISCONNECT_DURING_RESPONSE_BODY))
+        try {
+            downloadZipTo(url, target, client)
+            fail("disconnected response must fail")
+        } catch (_: IOException) { }
+        val offset = part.length().toInt()
+        assertTrue(offset in 1 until changed.size)
+        assertArrayEquals(changed.copyOf(offset), part.readBytes())
+        assertEquals(newTag, StageStore.readManifest(meta)?.validator)
+        assertEquals(etag, server.takeRequest().getHeader("If-Range"))
+
+        server.enqueue(tail(offset.toLong()).setHeader("ETag", newTag)
+            .setBody(Buffer().write(changed, offset, changed.size - offset)))
+        downloadZipTo(url, target, client)
+        assertComplete(changed)
+        assertEquals(newTag, server.takeRequest().getHeader("If-Range"))
+    }
+
+    @Test fun `failed full fallback preserves the previous valid prefix`() = runBlocking {
+        seed()
+        server.enqueue(tail(4096).removeHeader("Content-Range"))
+        server.enqueue(MockResponse().setResponseCode(503))
+        try {
+            downloadZipTo(url, target, client)
+            fail("failed fallback must propagate")
+        } catch (_: IOException) { }
+        assertArrayEquals(payload.copyOf(4096), part.readBytes())
+        assertEquals(etag, StageStore.readManifest(meta)?.validator)
+        assertFalse(target.exists())
+        assertEquals("bytes=4096-", server.takeRequest().getHeader("Range"))
+        assertNull(server.takeRequest().getHeader("Range"))
+
+        server.enqueue(tail(4096))
+        downloadZipTo(url, target, client)
+        assertComplete()
+        assertEquals("bytes=4096-", server.takeRequest().getHeader("Range"))
     }
 
     @Test fun `invalid partial responses fall back once without Range`() = runBlocking {
@@ -201,6 +268,26 @@ class UgoiraZipResumeTest {
         downloadZipTo(url, target, client)
         assertComplete()
         assertEquals(1, server.requestCount)
+    }
+
+    @Test fun `failed final file replacement preserves complete bytes for retry`() = runBlocking {
+        assertTrue(target.mkdir())
+        File(target, "block-replacement").writeText("keep")
+        server.enqueue(full())
+        try {
+            downloadZipTo(url, target, client)
+            fail("a nonempty directory must prevent file replacement")
+        } catch (_: IOException) { }
+        assertArrayEquals(payload, part.readBytes())
+        assertEquals(etag, StageStore.readManifest(meta)?.validator)
+        server.takeRequest()
+        assertTrue(target.deleteRecursively())
+
+        server.enqueue(MockResponse().setResponseCode(416)
+            .setHeader("Content-Range", "bytes */${payload.size}").setHeader("ETag", etag))
+        downloadZipTo(url, target, client)
+        assertComplete()
+        assertEquals("bytes=${payload.size}-", server.takeRequest().getHeader("Range"))
     }
 
     @Test fun `unknown initial length still reuses complete bytes after resumed transfer is cancelled`() = runBlocking {
@@ -366,5 +453,23 @@ class UgoiraZipResumeTest {
             assertFalse(target.exists())
             assertEquals(4096L, part.length())
         }
+    }
+
+    @Test fun `oversized chunked range is never committed or reused as a prefix`() = runBlocking {
+        seed()
+        val tooLong = Buffer().write(payload, 4096, payload.size - 4096).writeUtf8("extra")
+        server.enqueue(tail(4096).setChunkedBody(tooLong, 1024))
+        try {
+            downloadZipTo(url, target, client)
+            fail("oversized range must fail")
+        } catch (_: IOException) {
+            assertFalse(target.exists())
+            assertNull(StageStore.readManifest(meta))
+        }
+        server.takeRequest()
+        server.enqueue(full())
+        downloadZipTo(url, target, client)
+        assertComplete()
+        assertNull(server.takeRequest().getHeader("Range"))
     }
 }
