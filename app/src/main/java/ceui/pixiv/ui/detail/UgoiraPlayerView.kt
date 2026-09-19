@@ -43,7 +43,11 @@ import ceui.pixiv.ui.bulk.UgoiraProgress
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.ui.bulk.UgoiraFrames
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.github.panpf.zoomimage.ZoomImageView
 import com.github.panpf.zoomimage.util.IntSizeCompat
 import com.github.panpf.zoomimage.view.util.applyTransform
@@ -245,6 +249,20 @@ class UgoiraPlayerView @JvmOverloads constructor(
         glide.clear(imageView)
 
         var builder = glide.load(large).dontTransform().placeholder(placeholder).error(placeholder)
+            .listener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean,
+                ): Boolean {
+                    // 失败后仍保留占位尺寸供视频缩放，但占位图不代表预览已加载；再次进入时允许重试。
+                    if (previewIllustId == illust.id) previewIllustId = null
+                    return false
+                }
+
+                override fun onResourceReady(
+                    resource: Drawable, model: Any, target: Target<Drawable>?,
+                    dataSource: DataSource, isFirstResource: Boolean,
+                ) = false
+            })
         if (mediumUrl != null) {
             // 有 medium：它大概率已在列表缓存，秒出打底；large 到位后直接替换，不做淡入。
             builder = builder.thumbnail(glide.load(GlideUrlChild(mediumUrl)).dontTransform())

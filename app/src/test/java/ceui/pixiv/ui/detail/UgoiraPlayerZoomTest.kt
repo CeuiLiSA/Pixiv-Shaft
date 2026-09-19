@@ -17,12 +17,18 @@ import androidx.lifecycle.LifecycleRegistry
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.Settings
+import ceui.loxia.ImageUrls
 import ceui.pixiv.api.model.Illust
 import com.blankj.utilcode.util.Utils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.GlideBuilder
+import com.bumptech.glide.request.target.DrawableImageViewTarget
 import com.github.panpf.zoomimage.util.OffsetCompat
 import kotlinx.coroutines.runBlocking
+import okhttp3.OkHttpClient
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import okio.Buffer
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -35,10 +41,18 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.util.ReflectionHelpers
 import java.time.Duration
+import java.util.Base64
+import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [24, 35])
+@Config(sdk = [24, 35], application = UgoiraPlayerZoomTest.TestApplication::class)
 class UgoiraPlayerZoomTest {
+    class TestApplication : Shaft() {
+        private val client by lazy { OkHttpClient() }
+        override fun onCreate() = Unit
+        override fun getOkHttpClient() = client
+    }
+
     private lateinit var host: Activity
     private lateinit var parent: InterceptParent
     private lateinit var player: UgoiraPlayerView
@@ -174,6 +188,44 @@ class UgoiraPlayerZoomTest {
         assertEquals(800, player.imageView.zoomable.contentSizeState.value.width)
         doubleTap()
         assertTrue(player.imageView.zoomable.userTransformState.value.scaleX > 1f)
+    }
+
+    @Test
+    fun `failed preview retries on rebind while successful preview is retained`() {
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setResponseCode(503))
+            server.enqueue(MockResponse().setHeader("Content-Type", "image/png").setBody(Buffer().write(
+                Base64.getDecoder().decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1sAAAAASUVORK5CYII=")
+            )))
+            val work = illust.copy(id = 1123, image_urls = ImageUrls(large = server.url("/preview.png").toString()))
+            val target = DrawableImageViewTarget(player.imageView)
+            player.bind(owner, work, maxHeight = 600)
+            layout(400, 600)
+            awaitUi { target.request?.isRunning == false }
+            assertEquals(1, server.requestCount)
+            assertFalse(requireNotNull(target.request).isComplete)
+            // A failed download must still leave a valid canvas for hardware video gestures.
+            assertEquals(800, player.imageView.zoomable.contentSizeState.value.width)
+            doubleTap()
+            assertTrue(player.imageView.zoomable.userTransformState.value.scaleX > 1f)
+
+            player.bind(owner, work, maxHeight = 600)
+            awaitUi { target.request?.isComplete == true }
+            assertEquals(2, server.requestCount)
+            val completed = target.request
+            player.bind(owner, work, maxHeight = 600)
+            assertSame(completed, target.request)
+            assertEquals(2, server.requestCount)
+        }
+    }
+
+    private fun awaitUi(condition: () -> Boolean) {
+        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5)
+        while (!condition() && System.nanoTime() < deadline) {
+            idle()
+            Thread.sleep(10)
+        }
+        assertTrue("Glide request did not reach the expected state", condition())
     }
 
     private fun showFrame() {
