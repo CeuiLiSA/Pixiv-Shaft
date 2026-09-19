@@ -298,6 +298,8 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                         return;
                     }
                     if (result != null) {
+                        // 备份已替换 Settings；同步额度及其重启前未生效状态。
+                        refreshImageCacheQuotaLabel();
                         Common.showToast(getString(R.string.restore_success));
                         if (!SessionManager.INSTANCE.isLoggedIn()) {
                             maybePromptRestoreAccount(result.getUserEntityList());

@@ -12,9 +12,9 @@ package ceui.pixiv.cache
  */
 object ImageCacheQuotaState {
 
-    /** Glide 初始化时读到的上限（MB）。Glide 没初始化过就保持默认值。 */
+    /** Glide 初始化时读到的上限（MB）；null 表示还没有创建缓存配置。 */
     @Volatile
-    private var appliedLimitMb: Int = ImageCacheQuota.DEFAULT_LIMIT_MB
+    private var appliedLimitMb: Int? = null
 
     /** 由 GlideConfiguration.applyOptions 在 Glide 初始化时调用，记下真正生效的值。 */
     @JvmStatic
@@ -24,6 +24,9 @@ object ImageCacheQuotaState {
 
     /** 设置里的值还没生效（改过但没重启）。两边都先 clamp，避免拿未规范化的值去比。 */
     @JvmStatic
-    fun isPendingRestart(currentSettingMb: Int): Boolean =
-        ImageCacheQuota.clampLimitMb(currentSettingMb) != appliedLimitMb
+    fun isPendingRestart(currentSettingMb: Int): Boolean {
+        // 首次加载图片才初始化 Glide；此前改设置会直接被首次初始化读取，无需重启。
+        val applied = appliedLimitMb ?: return false
+        return ImageCacheQuota.clampLimitMb(currentSettingMb) != applied
+    }
 }
