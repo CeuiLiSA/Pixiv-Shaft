@@ -62,6 +62,8 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     private long mExitTime;
     private final java.util.List<String> committedTags = new java.util.ArrayList<>();
     private SearchHintViewModel hintViewModel;
+    // 动画的目标状态；淡出期间 View 仍是 VISIBLE，不能用它判断是否需要重新显示。
+    private boolean mHintListShown;
     /** Toolbar 原始的 layout_scrollFlags（补全浮层钉住搜索栏时要还原）。 */
     private int mToolbarScrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
             | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS;
@@ -513,13 +515,18 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     }
 
     private void animateHintList(boolean show) {
+        if (mHintListShown == show) return;
+        mHintListShown = show;
+        // 取消旧动画及其结束回调，避免快速切换显隐时旧回调隐藏新提示或释放搜索栏。
+        baseBind.hintList.animate().cancel();
         if (show) {
-            if (baseBind.hintList.getVisibility() == View.VISIBLE) return;
             // 浮层马上要露出来：把搜索栏钉住。浮层的 topMargin 是 toolbar.getBottom() 的静态
             // 快照，搜索栏一被滚动收起，锚点就落空、浮层与搜索栏脱钩。
             setSearchBarCollapsible(false);
-            baseBind.hintList.setAlpha(0f);
-            baseBind.hintList.setTranslationY(-24f);
+            if (baseBind.hintList.getVisibility() != View.VISIBLE) {
+                baseBind.hintList.setAlpha(0f);
+                baseBind.hintList.setTranslationY(-24f);
+            }
             baseBind.hintList.setVisibility(View.VISIBLE);
             baseBind.hintList.animate()
                     .alpha(1f)
@@ -528,18 +535,17 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     .setInterpolator(new android.view.animation.DecelerateInterpolator())
                     .start();
         } else {
-            if (baseBind.hintList.getVisibility() != View.VISIBLE) return;
-            // 浮层收起：搜索栏恢复可收起。放在动画之前而不是 withEndAction 里 —— 保证
-            // 「浮层不可见 ⇒ 搜索栏可收起」在任何路径下都成立，不依赖动画回调是否跑完。
-            setSearchBarCollapsible(true);
+            // 淡出期间浮层仍可见，直到动画结束才释放锚点。
             baseBind.hintList.animate()
                     .alpha(0f)
                     .translationY(-16f)
                     .setDuration(160)
                     .setInterpolator(new android.view.animation.AccelerateInterpolator())
                     .withEndAction(() -> {
+                        if (mHintListShown) return;
                         baseBind.hintList.setVisibility(View.GONE);
                         baseBind.hintList.setTranslationY(0f);
+                        setSearchBarCollapsible(true);
                     })
                     .start();
         }
@@ -559,12 +565,8 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
      * 的抖动）。range 缓存在 onMeasure / onLayout 里失效，所以下面这次 setLayoutParams 触发的
      * 重新布局足以让新 flags 生效。
      *
-     * 顺序不能反：必须先把 AppBar 恢复到展开态再摘 flags。反过来的话 range 已经是 0，
-     * {@code setExpanded} 就成了空操作，搜索栏会停在半收起的位置。
-     *
-     * 已知副作用：range 归零会连带影响「回顶悬浮钮」—— FeedBackToTopFab 用
-     * {@code appBar.getTotalScrollRange()} 算 FAB 的 bottomMargin，所以开启该悬浮钮
-     * （设置里默认关）的用户，在浮层出现 / 消失时会看到 FAB 位置跳一下。
+     * {@code setExpanded} 请求在下一次布局中展开，确保已有折叠偏移也归零。
+     * 内容区随 range 同步重新测量；FeedBackToTopFab 的底距补偿也随之更新。
      */
     private void setSearchBarCollapsible(boolean collapsible) {
         ViewGroup.LayoutParams lp = baseBind.toolbar.getLayoutParams();
