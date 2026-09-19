@@ -1981,6 +1981,7 @@
     <string name="experimental_section">Экспериментальное</string>
     <string name="site_recommend">Закладки за месяц</string>
     <string name="current_hot">Сейчас в тренде</string>
+    <string name="shaft_rankings">Рейтинги Shaft</string>
     <string name="artist_rank">Топ художников</string>
     <string name="artist_rank_title">Рейтинг художников по закладкам</string>
     <string name="artist_avg_rank">По среднему</string>
@@ -2270,10 +2271,7 @@
     <string name="chat_error_serialization">Сервер вернул некорректные данные.</string>
     <string name="chat_error_unknown">Что-то пошло не так.</string>
     <string name="plaza_drawer_entry">Площадка</string>
-    <string name="setting_show_chat_room_entry">Показывать вход в чат в боковом меню главной</string>
     <string name="setting_show_chat_room_push_banner">Показывать баннер о новых сообщениях общего чата внутри приложения</string>
-    <string name="setting_chat_room_entry_warning">Обсуждение политики = вечный бан</string>
-    <string name="setting_show_plaza_entry">Показывать вход на Площадку в боковом меню главной</string>
     <string name="plaza_title">Площадка</string>
     <string name="plaza_compose_title">Новый пост</string>
     <string name="plaza_send_post">Опубликовать</string>
@@ -2812,6 +2810,13 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s МБ</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">Целые МБ; перетащите вправо до конца, чтобы снять ограничение. При уменьшении старые автоснимки сверх нового лимита удаляются сразу</string>
     <string name="setting_auto_snapshot_quota_range_min">10 МБ</string>
+    <string name="setting_image_cache_quota">Ожидаемый лимит кэша изображений</string>
+    <string name="setting_image_cache_quota_value">%1$d МБ</string>
+    <string name="setting_image_cache_quota_value_gb">%1$s ГБ</string>
+    <string name="setting_image_cache_quota_dialog_hint">Вступает в силу после перезапуска приложения; старый кэш изображений сверх лимита удаляется автоматически</string>
+    <string name="setting_image_cache_quota_range_min">100 МБ</string>
+    <string name="setting_image_cache_quota_range_max">1 ГБ</string>
+    <string name="setting_image_cache_quota_pending">%1$s (не применено)</string>
     <string name="setting_auto_snapshot_on_illust_manga">Автосоздание снимков иллюстраций/манги</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">Тихо создавать снимки для часто открываемых иллюстраций/манги и работ с долгим просмотром (экспериментально)</string>
 
@@ -2965,4 +2970,9 @@
     <string name="recommend_page_tags_first">Популярные теги - Рекомендуемые работы</string>
     <string name="recommend_page_content_desc">Порядок вкладок на страницах рекомендаций иллюстраций и романов. Для применения перезапустите приложение.</string>
     <string name="nana7mi_usage_motto">Неудача — мать успеха\nПополнение — успешный платёж</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">Находки pixiv</string>
+    <string name="web_discovery_login_needed">Чтобы увидеть рекомендованные работы, войдите на сайт pixiv с той же учётной записью, что и в приложении.</string>
+    <string name="web_discovery_web_login">Вход на сайт</string>
 </resources>

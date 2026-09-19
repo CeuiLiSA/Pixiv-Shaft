@@ -182,7 +182,7 @@ class ReferralPlanSheet : V3BottomSheetBase() {
             u.add(card, u.text(R.string.referral_card_hint, 11f, 400, u.colors.onHero), top = 14)
             u.add(content, card, top = 22)
         }
-        fun wallet() { model.tab(ReferralTab.WALLET); dismiss() }
+        fun wallet() { (parentFragment as? ReferralPlanFragment)?.showWallet(); dismiss() }
 
         when (kind) {
             ReferralSheetKind.TASK -> {
@@ -203,7 +203,8 @@ class ReferralPlanSheet : V3BottomSheetBase() {
                 }
                 if (view?.enabled == false) body(R.string.referral_task_disabled)
                 u.add(content, u.text(R.string.referral_how, 15f, 600), top = 22)
-                u.s(copy.steps).split('\n').forEachIndexed { index, step ->
+                val ruleArgs = if (task == ReferralTask.CIRCLE) snapshot.retainRuleArgs else snapshot.ruleArgs
+                u.s(copy.steps, *ruleArgs).split('\n').forEachIndexed { index, step ->
                     u.add(content, u.text("${index + 1}. $step", 13f).apply { setLineSpacing(0f, 1.7f) }, top = 12)
                 }
                 body(copy.condition)
@@ -213,6 +214,7 @@ class ReferralPlanSheet : V3BottomSheetBase() {
                     status == ReferralStatus.CLAIMED -> action(R.string.referral_go_wallet, true) { wallet() }
                     status == ReferralStatus.PENDING -> action(R.string.referral_ok, true) { dismiss() }
                     view?.enabled == false -> action(R.string.referral_ok, true) { dismiss() }
+                    !snapshot.enabled -> action(R.string.referral_ok, true) { dismiss() }
                     else -> action(if (invites) R.string.referral_invite_action else R.string.referral_submit, true) {
                         go(if (invites) ReferralSheetKind.INVITE else ReferralSheetKind.FORM)
                     }
@@ -245,7 +247,7 @@ class ReferralPlanSheet : V3BottomSheetBase() {
             }
 
             ReferralSheetKind.ACTIVATE -> {
-                val card = snapshot.card(task)
+                val card = snapshot.cards.firstOrNull { it.id == requireArguments().getLong("cardId") }
                 val tier = planLabel(card?.plan)
                 title(R.string.referral_activate_title, card?.days ?: task.days, tier)
                 reward(card?.days ?: task.days, tier)
@@ -265,7 +267,7 @@ class ReferralPlanSheet : V3BottomSheetBase() {
             }
 
             ReferralSheetKind.ACTIVATED -> {
-                val card = snapshot.card(task)
+                val card = snapshot.cards.firstOrNull { it.id == requireArguments().getLong("cardId") }
                 val tier = planLabel(card?.plan)
                 title(R.string.referral_activate_success)
                 body(R.string.referral_activate_success_desc, card?.days ?: task.days, tier, date(snapshot.activeUntil))
@@ -276,7 +278,7 @@ class ReferralPlanSheet : V3BottomSheetBase() {
             ReferralSheetKind.INVITE -> {
                 title(R.string.referral_invite_title); body(R.string.referral_invite_lead)
                 u.add(content, u.text(R.string.referral_invite_benefit, 24f, 700, u.colors.primary), top = 24)
-                body(R.string.referral_invite_condition)
+                body(R.string.referral_invite_condition, *snapshot.ruleArgs)
                 val code = snapshot.code
                 val link = snapshot.inviteUrl
                 // 活动结束后服务端不再发邀请码（也不该再有人被邀请进来）。那句「把下面的
@@ -336,7 +338,9 @@ class ReferralPlanSheet : V3BottomSheetBase() {
                 u.add(content, u.text(R.string.referral_bind_field, 12f, 600), top = 20)
                 u.add(content, field, top = 8)
                 // 落地页进页面时就把码写进了剪贴板，所以这里绝大多数情况下是一键完成。
-                clipboardCode()?.let { pasted ->
+                // 但自己的码不给粘：分享过一次之后剪贴板里躺着的就是它，填进去只会
+                // 换来一句 self_referral。
+                clipboardCode()?.takeIf { it != snapshot.code }?.let { pasted ->
                     action(R.string.referral_bind_paste) { field.setText(pasted) }
                 }
                 u.add(content, error, top = 12)
@@ -350,7 +354,7 @@ class ReferralPlanSheet : V3BottomSheetBase() {
             }
 
             ReferralSheetKind.BOUND -> {
-                title(R.string.referral_bind_success); body(R.string.referral_bind_success_desc)
+                title(R.string.referral_bind_success); body(R.string.referral_bind_success_desc, *snapshot.ruleArgs)
                 snapshot.inviterUid?.let { bodyText(u.s(R.string.referral_bound_already, it)) }
                 action(R.string.referral_ok, true) { dismiss() }
             }
@@ -408,7 +412,7 @@ class ReferralPlanSheet : V3BottomSheetBase() {
                 action(R.string.referral_ok, true) { dismiss() }
             }
 
-            ReferralSheetKind.RULES -> { title(R.string.referral_rules_title); body(R.string.referral_rules_body); notice() }
+            ReferralSheetKind.RULES -> { title(R.string.referral_rules_title); body(R.string.referral_rules_body, *snapshot.ruleArgs); notice() }
 
             ReferralSheetKind.MATERIALS -> {
                 title(R.string.referral_material_title); body(R.string.referral_material_lead)
@@ -448,9 +452,9 @@ class ReferralPlanSheet : V3BottomSheetBase() {
     companion object {
         internal const val DAY_MS = 86_400_000L
 
-        internal fun newInstance(kind: ReferralSheetKind, task: ReferralTask?, code: String? = null) =
+        internal fun newInstance(kind: ReferralSheetKind, task: ReferralTask?, code: String? = null, cardId: Long? = null) =
             ReferralPlanSheet().apply {
-                arguments = bundleOf("kind" to kind.name, "task" to task?.name, "code" to code)
+                arguments = bundleOf("kind" to kind.name, "task" to task?.name, "code" to code, "cardId" to cardId)
             }
     }
 }

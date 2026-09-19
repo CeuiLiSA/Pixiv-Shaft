@@ -3,7 +3,7 @@
      旧版是「一堆跳转卡」;这版把侧边栏「发现」分组的真实内容直接铺进 tab:每个板块 = 标题 +
      「查看全部」+ 横向缩略图货架,一屏纵向滚动。全部复用现有 repo,「查看全部」跳原来的整页。
      · 顶部 header 固定不滚(抽屉 + 大标题「发现」+ 搜索图标),下方货架滚动。
-     · 货架顺序:热度标签(本地策展)→ 最新 → 特辑(pixivision)→ 当前最热 → 本月收藏 → 更多分类。
+     · 货架顺序:热度标签(本地策展)→ 最新 → 特辑(pixivision)→ 当前最热 → 本月收藏 → 更多分类 → Shaft 榜单。
      · 本月收藏 / 当前最热走自建 shaft-api-v2,Lite 渠道整段 GONE(代码里按 BuildConfig.IS_LITE)。
      · 缩略图货架卡复用排行榜 hero 卡样式(recy_rank_illust_horizontal / recy_discover_tag):
        圆角 16 + 底部 scrim + 白标题,日夜自适应。 -->
@@ -430,14 +430,17 @@
 
                     </LinearLayout>
 
-                    <!-- ============ 更多分类(旧跳转卡降级成一排 chip) ============ -->
+                    <!-- ============ 更多分类 ============ -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="20dp"
+                        android:layout_marginEnd="20dp"
                         android:layout_marginTop="24dp"
                         android:layout_marginBottom="12dp"
+                        android:fontFamily="@font/montserrat_bold"
                         android:letterSpacing="0.06"
+                        android:lineSpacingExtra="3sp"
                         android:text="@string/string_76"
                         android:textColor="@color/v3_text_2"
                         android:textSize="13sp"
@@ -468,60 +471,6 @@
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
-                        <TextView
-                            android:id="@+id/catArtistRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/artist_rank"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/catArtistAvgRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/artist_avg_rank"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/catViewRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/view_rank"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
                         <!-- pixiv 漫画官方连载首页(comic.pixiv.net,复用主 app 的 token) -->
                         <TextView
                             android:id="@+id/catPixivComic"
@@ -538,206 +487,6 @@
                             android:paddingBottom="9dp"
                             android:stateListAnimator="@animator/button_press_scale"
                             android:text="@string/pixiv_comic"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <!-- 收藏榜 / AI 榜 / 年代榜:shaft-api-v2 discover/most-bookmarked,Lite 里 GONE -->
-                        <TextView
-                            android:id="@+id/catBookmarkRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/bookmark_rank"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/catAiRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/ai_rank"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/catYearRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/year_rank"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/catTagRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/tag_rank"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/catWallpaperRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/wallpaper_rank"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <!-- 系列榜 / 新作榜 / 长篇小说榜:shaft-api-v2 discover/series & most-bookmarked?month/length,Lite 里 GONE -->
-                        <TextView
-                            android:id="@+id/catSeriesRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/series_rank"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/catMonthRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/month_rank"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/catNovelLengthRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/novel_length_rank"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/catSfwRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/sfw_rank"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/catTrendingArtists"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/trending_artists"
-                            android:textColor="@color/v3_text_1"
-                            android:textSize="13sp" />
-
-                        <TextView
-                            android:id="@+id/catUgoiraRank"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="9dp"
-                            android:layout_marginBottom="9dp"
-                            android:background="@drawable/bg_v3_chip"
-                            android:clickable="true"
-                            android:focusable="true"
-                            android:paddingStart="15dp"
-                            android:paddingTop="9dp"
-                            android:paddingEnd="15dp"
-                            android:paddingBottom="9dp"
-                            android:stateListAnimator="@animator/button_press_scale"
-                            android:text="@string/ugoira_rank"
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
@@ -777,7 +526,28 @@
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
-                        <!-- Web 首页:仅 github 渠道,Lite 里 GONE(占位功能,Coming soon) -->
+                        <TextView
+                            android:id="@+id/catWebDiscovery"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:fontFamily="@font/montserrat_semi_bold"
+                            android:minHeight="48dp"
+                            android:gravity="center"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/web_discovery_title"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <!-- Web 首页 / pixiv FANBOX:从侧边栏迁入此处,Lite 里 GONE -->
                         <TextView
                             android:id="@+id/catWeb"
                             android:layout_width="wrap_content"
@@ -793,6 +563,24 @@
                             android:paddingBottom="9dp"
                             android:stateListAnimator="@animator/button_press_scale"
                             android:text="@string/street_title"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/catFanbox"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/fanbox_entry"
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
@@ -833,7 +621,318 @@
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
+                        <TextView
+                            android:id="@+id/catNovelLengthRank"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/novel_length_rank"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/catTrendingArtists"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/trending_artists"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/catDailyRecommendations"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/daily_recommendations"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
                     </com.google.android.flexbox.FlexboxLayout>
+
+                    <!-- ============ Shaft 榜单(自建后端,Lite 整段 GONE) ============ -->
+                    <LinearLayout
+                        android:id="@+id/shaftRankSection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="20dp"
+                            android:layout_marginEnd="20dp"
+                            android:layout_marginTop="24dp"
+                            android:layout_marginBottom="12dp"
+                            android:fontFamily="@font/montserrat_bold"
+                            android:letterSpacing="0.06"
+                            android:lineSpacingExtra="3sp"
+                            android:text="@string/shaft_rankings"
+                            android:textColor="@color/v3_text_2"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <com.google.android.flexbox.FlexboxLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="20dp"
+                            android:layout_marginEnd="20dp"
+                            app:flexWrap="wrap">
+
+                            <TextView
+                                android:id="@+id/catArtistRank"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="9dp"
+                                android:layout_marginBottom="9dp"
+                                android:background="@drawable/bg_v3_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="15dp"
+                                android:paddingTop="9dp"
+                                android:paddingEnd="15dp"
+                                android:paddingBottom="9dp"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:text="@string/artist_rank"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/catArtistAvgRank"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="9dp"
+                                android:layout_marginBottom="9dp"
+                                android:background="@drawable/bg_v3_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="15dp"
+                                android:paddingTop="9dp"
+                                android:paddingEnd="15dp"
+                                android:paddingBottom="9dp"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:text="@string/artist_avg_rank"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/catViewRank"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="9dp"
+                                android:layout_marginBottom="9dp"
+                                android:background="@drawable/bg_v3_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="15dp"
+                                android:paddingTop="9dp"
+                                android:paddingEnd="15dp"
+                                android:paddingBottom="9dp"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:text="@string/view_rank"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp" />
+
+                            <!-- 收藏榜 / AI 榜 / 年代榜:shaft-api-v2 discover/most-bookmarked,Lite 里 GONE -->
+                            <TextView
+                                android:id="@+id/catBookmarkRank"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="9dp"
+                                android:layout_marginBottom="9dp"
+                                android:background="@drawable/bg_v3_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="15dp"
+                                android:paddingTop="9dp"
+                                android:paddingEnd="15dp"
+                                android:paddingBottom="9dp"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:text="@string/bookmark_rank"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/catAiRank"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="9dp"
+                                android:layout_marginBottom="9dp"
+                                android:background="@drawable/bg_v3_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="15dp"
+                                android:paddingTop="9dp"
+                                android:paddingEnd="15dp"
+                                android:paddingBottom="9dp"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:text="@string/ai_rank"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/catYearRank"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="9dp"
+                                android:layout_marginBottom="9dp"
+                                android:background="@drawable/bg_v3_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="15dp"
+                                android:paddingTop="9dp"
+                                android:paddingEnd="15dp"
+                                android:paddingBottom="9dp"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:text="@string/year_rank"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/catTagRank"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="9dp"
+                                android:layout_marginBottom="9dp"
+                                android:background="@drawable/bg_v3_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="15dp"
+                                android:paddingTop="9dp"
+                                android:paddingEnd="15dp"
+                                android:paddingBottom="9dp"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:text="@string/tag_rank"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/catWallpaperRank"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="9dp"
+                                android:layout_marginBottom="9dp"
+                                android:background="@drawable/bg_v3_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="15dp"
+                                android:paddingTop="9dp"
+                                android:paddingEnd="15dp"
+                                android:paddingBottom="9dp"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:text="@string/wallpaper_rank"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp" />
+
+                            <!-- 系列榜 / 新作榜:shaft-api-v2 discover/series & most-bookmarked?month,Lite 里 GONE -->
+                            <TextView
+                                android:id="@+id/catSeriesRank"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="9dp"
+                                android:layout_marginBottom="9dp"
+                                android:background="@drawable/bg_v3_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="15dp"
+                                android:paddingTop="9dp"
+                                android:paddingEnd="15dp"
+                                android:paddingBottom="9dp"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:text="@string/series_rank"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/catMonthRank"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="9dp"
+                                android:layout_marginBottom="9dp"
+                                android:background="@drawable/bg_v3_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="15dp"
+                                android:paddingTop="9dp"
+                                android:paddingEnd="15dp"
+                                android:paddingBottom="9dp"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:text="@string/month_rank"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/catSfwRank"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="9dp"
+                                android:layout_marginBottom="9dp"
+                                android:background="@drawable/bg_v3_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="15dp"
+                                android:paddingTop="9dp"
+                                android:paddingEnd="15dp"
+                                android:paddingBottom="9dp"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:text="@string/sfw_rank"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/catUgoiraRank"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="9dp"
+                                android:layout_marginBottom="9dp"
+                                android:background="@drawable/bg_v3_chip"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:paddingStart="15dp"
+                                android:paddingTop="9dp"
+                                android:paddingEnd="15dp"
+                                android:paddingBottom="9dp"
+                                android:stateListAnimator="@animator/button_press_scale"
+                                android:text="@string/ugoira_rank"
+                                android:textColor="@color/v3_text_1"
+                                android:textSize="13sp" />
+
+                        </com.google.android.flexbox.FlexboxLayout>
+
+                    </LinearLayout>
+
+                    <ceui.pixiv.ui.discovery.DiscoverSocialSection
+                        android:id="@+id/socialSection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone" />
 
                 </LinearLayout>
 

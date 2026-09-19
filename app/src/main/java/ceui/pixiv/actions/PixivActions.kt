@@ -13,7 +13,6 @@ import ceui.loxia.Novel
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.session.SessionManager
-import ceui.pixiv.ui.referral.ReferralActivityReporter
 import ceui.pixiv.ui.task.NovelAutoDownload
 import ceui.pixiv.widgets.RateAppManager
 import kotlinx.coroutines.CancellationException
@@ -248,9 +247,6 @@ object PixivActions {
     ) {
         writeIllustBookmarkLocally(illustId, bookmark, illust)
         if (bookmark) RateAppManager.onUserEngaged()
-        // 推介计划里「有效邀请」要求新人至少收藏过一次。收藏发生在 Pixiv，pixshaft 的
-        // 服务器看不见，只能由这里说一声；一天最多发一次，静默失败。
-        if (bookmark) ReferralActivityReporter.onBookmark()
 
         actionQueue.enqueue(
             ActionRequest(
@@ -376,7 +372,6 @@ object PixivActions {
     private fun applyNovelBookmark(novel: Novel, bookmark: Boolean, restrict: String) {
         writeNovelBookmarkLocally(novel.id, bookmark, novel)
         if (bookmark) RateAppManager.onUserEngaged()
-        if (bookmark) ReferralActivityReporter.onBookmark()
 
         actionQueue.enqueue(
             ActionRequest(

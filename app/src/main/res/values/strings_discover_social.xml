@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="discover_chat_entry" type="id" />
+    <item name="discover_community_entry" type="id" />
+    <string name="discover_social_title">交流与分享</string>
+    <string name="discover_community_title">社区</string>
+    <string name="discover_chat_description">公屏闲聊 · 私信交流</string>
+    <string name="discover_community_description">分享作品 · 参与讨论</string>
+    <string name="discover_chat_action">进入聊天</string>
+    <string name="discover_community_action">浏览广场</string>
+</resources>

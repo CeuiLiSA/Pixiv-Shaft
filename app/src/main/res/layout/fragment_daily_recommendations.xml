@@ -5,6 +5,8 @@
     android:orientation="vertical"
     android:background="@color/v3_bg">
 
+    <include layout="@layout/toolbar_layout" />
+
     <TextView
         android:id="@+id/daily_summary"
         android:layout_width="match_parent"

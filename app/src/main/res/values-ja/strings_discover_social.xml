@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discover_social_title">交流と共有</string>
+    <string name="discover_community_title">コミュニティ</string>
+    <string name="discover_chat_description">公開チャット・個別メッセージ</string>
+    <string name="discover_community_description">作品を共有・話題に参加</string>
+    <string name="discover_chat_action">チャットを開く</string>
+    <string name="discover_community_action">広場を見る</string>
+</resources>

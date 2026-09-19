@@ -1981,6 +1981,7 @@
     <string name="experimental_section">Deneysel</string>
     <string name="site_recommend">Bu Ayın Yer İmleri</string>
     <string name="current_hot">Şu An Popüler</string>
+    <string name="shaft_rankings">Shaft Sıralamaları</string>
     <string name="artist_rank">En İyi Sanatçılar</string>
     <string name="artist_rank_title">Sanatçı Beğeni Sıralaması</string>
     <string name="artist_avg_rank">Ortalama</string>
@@ -2270,10 +2271,7 @@
     <string name="chat_error_serialization">Sunucudan geçersiz veri alındı.</string>
     <string name="chat_error_unknown">Bir hata oluştu.</string>
     <string name="plaza_drawer_entry">Meydan</string>
-    <string name="setting_show_chat_room_entry">Sohbet odası girişini ana ekran kenar çubuğunda göster</string>
     <string name="setting_show_chat_room_push_banner">Herkese açık sohbet odasındaki yeni mesajlar için uygulama içi push banner göster</string>
-    <string name="setting_chat_room_entry_warning">Siyaset konuşmak kalıcı yasak demektir</string>
-    <string name="setting_show_plaza_entry">Meydan girişini ana ekran kenar çubuğunda göster</string>
     <string name="plaza_title">Meydan</string>
     <string name="plaza_compose_title">Yeni Gönderi</string>
     <string name="plaza_send_post">Gönder</string>
@@ -2812,6 +2810,13 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">Tam sayı MB olarak ayarlayın; sınırsız için en sağa sürükleyin. Değeri düşürürseniz yeni sınırı aşan eski otomatik anlık görüntüler hemen silinir</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
+    <string name="setting_image_cache_quota">Beklenen görsel önbelleği sınırı</string>
+    <string name="setting_image_cache_quota_value">%1$d MB</string>
+    <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
+    <string name="setting_image_cache_quota_dialog_hint">Uygulama yeniden başlatıldıktan sonra geçerli olur; sınırı aşan eski görsel önbelleği otomatik olarak temizlenir</string>
+    <string name="setting_image_cache_quota_range_min">100 MB</string>
+    <string name="setting_image_cache_quota_range_max">1 GB</string>
+    <string name="setting_image_cache_quota_pending">%1$s (henüz uygulanmadı)</string>
     <string name="setting_auto_snapshot_on_illust_manga">İllüstrasyon/manga için otomatik anlık görüntü oluştur</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">Tekrar girdiğiniz veya uzun süre kaldığınız illüstrasyon/manga için sessizce anlık görüntü oluşturur (deneysel)</string>
 
@@ -2959,4 +2964,9 @@
     <string name="recommend_page_tags_first">Popüler etiketler - Önerilen eserler</string>
     <string name="recommend_page_content_desc">İllüstrasyon ve roman öneri sayfalarındaki sekme sırasını değiştirir. Uygulamak için uygulamayı yeniden başlatın.</string>
     <string name="nana7mi_usage_motto">Başarısızlık başarının anasıdır\nBakiye yüklemek başarılı bir ödemedir</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">Web Keşfet</string>
+    <string name="web_discovery_login_needed">Önerilen eserleri görmek için pixiv web sitesinde uygulamayla aynı hesapla oturum açın.</string>
+    <string name="web_discovery_web_login">Web oturumu aç</string>
 </resources>

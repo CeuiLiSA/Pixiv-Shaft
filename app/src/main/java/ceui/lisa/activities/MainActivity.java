@@ -185,6 +185,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         RemoteAppConfig remoteAppConfig =
                 ((ServicesProvider) getApplication()).getRemoteAppConfig();
         remoteAppConfig.getNana7miPlanLive().observe(this, plan -> bindPlanBadge());
+        remoteAppConfig.getReferralEnabledLive().observe(this, enabled -> buildDrawerMenu());
         // 应用内推送(付费用户公告)也是这次冷启动配置捎回来的,同样异步落地。只弹一次、
         // 弹过就回执,去重和让路(评分框)都在 InAppPushCenter 里。
         remoteAppConfig
@@ -541,7 +542,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     /**
      * 重建侧边栏分组(MD3-E 分段样式,同设置页)。所有入口的可见性门控收口在这里: - 发现:画像完备(PROFILE_READY 广播 / onResume 时重建) -
-     * 试验性分区:github 渠道 release 保留(其中 聊天室/广场 跟「设置 - 试验性」开关, 标签热度导出 仅 debug);google play 渠道为合规起见整段隐藏。
+     * 试验性分区:github 渠道 release 保留(标签热度导出仅 debug);google play 渠道为合规起见整段隐藏。
      * - 当前最热 / 站长推荐 / 操作记录 / 通知中心:服务端或官方 API 依赖,google flavor 不展示。
      * 行按可见项重新生成,分段圆角(top/mid/bottom/single)永远贴合,不存在隐藏行破角问题。
      */
@@ -579,18 +580,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     new DrawerEntry(R.id.novel_markers, R.string.core_string_novel_marker),
                     new DrawerEntry(R.id.follow_user, R.string.string_321),
                     new DrawerEntry(R.id.nav_fans, R.string.string_322),
-                    // 推介计划:活动关着时整行不出现,而不是点进去看见一页「暂未开放」。
-                    // 开关来自 /v1/config(服务端 .env 改完 reload 即生效,不用发版);Lite 恒关。
-                    new DrawerEntry(
-                            R.id.nav_referral_plan,
-                            R.string.referral_entry,
-                            ceui.pixiv.services.ServiceProviderKt.appServices(this)
-                                    .getRemoteAppConfig()
-                                    .getReferralEnabled()),
                 });
 
-        // 借号用量:服务端两只配额桶的只读视图,紧贴「我的」之后、「记录与管理」之前 ——
-        // 它是「查自己用了多少」,不属于任何一组功能入口。渠道口径跟着借号功能本身走
+        // 「搜索按热度排序」分组:用量查询与领取体验卡的推介计划放在一起。
+        // 紧贴「我的」之后、「记录与管理」之前。渠道口径跟着借号功能本身走
         // (google flavor 整个借号搜索都不出现),所以是 !isLite 而不是 experimentalAllowed:
         // 后者在 Lite debug 下仍会放行,会给一个功能不存在的包留下查不到东西的入口。
         if (!isLite) {
@@ -600,6 +593,14 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     new DrawerEntry[] {
                         new DrawerEntry(
                                 R.id.nav_nana7mi_usage, R.string.nana7mi_usage_title, true, "NEW"),
+                        // 开关来自 /v1/config;活动入口关闭时隐藏此行。
+                        new DrawerEntry(
+                                R.id.nav_referral_plan,
+                                R.string.referral_entry,
+                                ceui.pixiv.services.ServiceProviderKt.appServices(this)
+                                        .getRemoteAppConfig()
+                                        .getReferralEnabled(),
+                                "NEW"),
                     });
         }
 
@@ -640,27 +641,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     new DrawerEntry(
                             R.id.nav_local_novel, R.string.local_novel_entry, experimentalAllowed),
                     new DrawerEntry(
-                            R.id.nav_chat_room,
-                            R.string.chat_drawer_entry,
-                            experimentalAllowed && Shaft.sSettings.isShowChatRoomEntry()),
-                    new DrawerEntry(
-                            R.id.nav_plaza,
-                            R.string.plaza_drawer_entry,
-                            experimentalAllowed && Shaft.sSettings.isShowPlazaEntry()),
-                    new DrawerEntry(
                             R.id.nav_network_test,
                             R.string.nav_network_test_entry,
                             experimentalAllowed),
-                    // 中心页那个「Web 首页」chip 至今是 showComingSoon() 占位,StreetMainFragment
-                    // 一直没有可用入口。而网页登录(同步 PHPSESSID)只能从这个页面走,拉黑、按 tag
-                    // 筛画师作品都指着它 —— 没入口等于那些功能对普通用户是死的。用 !isLite 而不是
-                    // experimentalAllowed:后者在 Lite debug 下仍然放行,和 FragmentCenter 那个直接
-                    // 认 IS_LITE 的同名 chip 对不齐,Lite 就是所有 buildType 都不出现。
-                    new DrawerEntry(R.id.nav_web_home, R.string.street_title, !isLite),
-                    // FANBOX 没有官方 App,网页那套 API 里 post.info 还被 Cloudflare 挡了非浏览器
-                    // 客户端(正文得靠 FanboxWebBridge 从 WebView 里发)。Lite 不出现:同渠道口径,
-                    // Play 版不带这类站外付费内容入口。
-                    new DrawerEntry(R.id.nav_fanbox, R.string.fanbox_entry, !isLite),
                 });
     }
 
@@ -710,8 +693,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     }
 
     /**
-     * 侧边栏 / MeFragment 共用的入口分发。switch 跟 menu/activity_main_drawer.xml 的 id 对齐; MeFragment 直接传
-     * R.id.xxx 走这里,避免两边维护同样的跳转。
+     * 侧边栏 / MeFragment / FragmentCenter 共用的入口分发,跟 menu/activity_main_drawer.xml 的 id 对齐; 调用方直接传
+     * R.id.xxx 走这里,避免多处维护同样的跳转。
      */
     @SuppressLint("NonConstantResourceId")
     public void handleDrawerAction(int id) {
@@ -1008,8 +991,17 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         // 回到前台时静默拉一次自己的资料(去抖 + 失败静默),在站外换头像后也能自动更新;
         // 侧边栏账号区由 loggedInAccount 观察者负责重绑。
         SessionManager.INSTANCE.syncLoggedInProfileIfNeeded();
-        // 发现入口(画像)/ 聊天室 / 广场开关可能在别的页面变化,回来时重建抽屉
+        // 发现入口(画像)可能在别的页面变化,回来时重建抽屉
         buildDrawerMenu();
+        if (SessionManager.INSTANCE.isLoggedIn()) {
+            String referralCode = ceui.pixiv.ui.referral.ReferralPendingInvite.consume();
+            if (referralCode != null) {
+                Intent referral = new Intent(this, TemplateActivity.class);
+                referral.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REFERRAL_PLAN.key);
+                referral.putExtra(ceui.pixiv.ui.referral.ReferralPlanFragment.ARG_CODE, referralCode);
+                startActivity(referral);
+            }
+        }
     }
 
     @Override

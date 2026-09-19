@@ -54,6 +54,57 @@
 -keep,allowobfuscation class ceui.lisa.http.CloudFlareDNSResponse
 -keep,allowobfuscation class ceui.lisa.http.CloudFlareDNSResponse$*
 
+# Plaza / sticker JSON lives outside the legacy model packages above. These types are
+# instantiated reflectively by Gson (including cached pages and sticker manifests). R8 full
+# mode otherwise turns PlazaPage into an abstract, fieldless class and renames request keys.
+# Preserve only wire/cache model identities and their field names, not screens or repositories.
+-keep,allowobfuscation class ceui.pixiv.plaza.PlazaImage
+-keep,allowobfuscation class ceui.pixiv.plaza.PlazaObjectExtensions
+-keep,allowobfuscation class ceui.pixiv.plaza.PlazaReaction
+-keep,allowobfuscation class ceui.pixiv.plaza.PlazaCommentPreview
+-keep,allowobfuscation class ceui.pixiv.plaza.PlazaPost
+-keep,allowobfuscation class ceui.pixiv.plaza.PlazaPage
+-keep,allowobfuscation class ceui.pixiv.plaza.CreatePost
+-keep,allowobfuscation class ceui.pixiv.plaza.DeletePost
+-keep,allowobfuscation class ceui.pixiv.plaza.PlazaReportRequest
+-keep,allowobfuscation class ceui.pixiv.plaza.PlazaReportReceipt
+-keep,allowobfuscation class ceui.pixiv.plaza.PlazaBlockedUser
+-keep,allowobfuscation class ceui.pixiv.plaza.PlazaBlocks
+-keep,allowobfuscation class ceui.pixiv.sticker.StickerVersion
+-keep,allowobfuscation class ceui.pixiv.sticker.StickerVersions
+-keep,allowobfuscation class ceui.pixiv.sticker.StickerResource
+-keep,allowobfuscation class ceui.pixiv.sticker.StickerMedia
+-keep,allowobfuscation class ceui.pixiv.sticker.Sticker
+-keep,allowobfuscation class ceui.pixiv.sticker.StickerGroup
+-keep,allowobfuscation class ceui.pixiv.sticker.StickerPackage
+-keep,allowobfuscation class ceui.pixiv.sticker.StickerPack
+-keep,allowobfuscation class ceui.pixiv.sticker.StickerCatalog
+-keep,allowobfuscation class ceui.pixiv.sticker.StickerStore$Extraction
+-keep,allowobfuscation class ceui.pixiv.sticker.StickerStore$ExtractedFile
+-keepclassmembers class ceui.pixiv.plaza.PlazaImage { <fields>; }
+-keepclassmembers class ceui.pixiv.plaza.PlazaObjectExtensions { <fields>; }
+-keepclassmembers class ceui.pixiv.plaza.PlazaReaction { <fields>; }
+-keepclassmembers class ceui.pixiv.plaza.PlazaCommentPreview { <fields>; }
+-keepclassmembers class ceui.pixiv.plaza.PlazaPost { <fields>; }
+-keepclassmembers class ceui.pixiv.plaza.PlazaPage { <fields>; }
+-keepclassmembers class ceui.pixiv.plaza.CreatePost { <fields>; }
+-keepclassmembers class ceui.pixiv.plaza.DeletePost { <fields>; }
+-keepclassmembers class ceui.pixiv.plaza.PlazaReportRequest { <fields>; }
+-keepclassmembers class ceui.pixiv.plaza.PlazaReportReceipt { <fields>; }
+-keepclassmembers class ceui.pixiv.plaza.PlazaBlockedUser { <fields>; }
+-keepclassmembers class ceui.pixiv.plaza.PlazaBlocks { <fields>; }
+-keepclassmembers class ceui.pixiv.sticker.StickerVersion { <fields>; }
+-keepclassmembers class ceui.pixiv.sticker.StickerVersions { <fields>; }
+-keepclassmembers class ceui.pixiv.sticker.StickerResource { <fields>; }
+-keepclassmembers class ceui.pixiv.sticker.StickerMedia { <fields>; }
+-keepclassmembers class ceui.pixiv.sticker.Sticker { <fields>; }
+-keepclassmembers class ceui.pixiv.sticker.StickerGroup { <fields>; }
+-keepclassmembers class ceui.pixiv.sticker.StickerPackage { <fields>; }
+-keepclassmembers class ceui.pixiv.sticker.StickerPack { <fields>; }
+-keepclassmembers class ceui.pixiv.sticker.StickerCatalog { <fields>; }
+-keepclassmembers class ceui.pixiv.sticker.StickerStore$Extraction { <fields>; }
+-keepclassmembers class ceui.pixiv.sticker.StickerStore$ExtractedFile { <fields>; }
+
 # Persisted/imported JSON models outside the network model packages. Their field names are an
 # on-disk compatibility contract across app upgrades, so preserving them also protects old backups.
 -keepclassmembers class ceui.lisa.utils.Settings { <fields>; }

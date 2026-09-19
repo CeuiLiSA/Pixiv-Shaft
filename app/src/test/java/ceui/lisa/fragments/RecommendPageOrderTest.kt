@@ -12,7 +12,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.viewpager.widget.ViewPager
-import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentLeftBinding
@@ -92,10 +91,8 @@ class RecommendPageOrderTest {
                         pager = binding.viewPager
                     }
                     val adapter = pager.adapter as FragmentPagerAdapter
-                    // 「每日推荐」是插画侧非 LITE 渠道额外追加的第三页（FragmentLeft.lazyData），
-                    // 排在可交换的「推荐 / 热门标签」之后、不参与顺序切换，所以下面仍只校验前两页。
-                    // 小说侧（FragmentNewNovel）没有这一页，两个渠道都是 2 页。
-                    assertEquals(if (!novel && !BuildConfig.IS_LITE) 3 else 2, adapter.count)
+                    // 每日推荐独立放在发现页，插画与小说都只保留推荐 / 热门标签。
+                    assertEquals(2, adapter.count)
                     for (position in 0..1) {
                         val isTags = (position == 0) == tagsFirst
                         assertEquals(context.getString(if (isTags) R.string.hot_tag else R.string.recommend_illust),

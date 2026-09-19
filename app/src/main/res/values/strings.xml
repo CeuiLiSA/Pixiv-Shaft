@@ -2191,6 +2191,7 @@
     <string name="wit_gallery_desc" translatable="false">调试用：逐一打开每种弹窗形态，验日夜与主题色</string>
     <string name="site_recommend">本月收藏</string>
     <string name="current_hot">当前最热</string>
+    <string name="shaft_rankings">Shaft 榜单</string>
     <string name="artist_rank">画师榜</string>
     <string name="artist_rank_title">画师收藏总榜</string>
     <string name="artist_avg_rank">画师均分榜</string>
@@ -2539,10 +2540,7 @@
 
     <!-- Plaza (shaft-plaza-api;debug 入口,MainActivity 里按 BuildConfig.DEBUG gate) -->
     <string name="plaza_drawer_entry">广场</string>
-    <string name="setting_show_chat_room_entry">首页侧边栏展示聊天室入口</string>
     <string name="setting_show_chat_room_push_banner">展示公开聊天室新消息 APP 内 push banner</string>
-    <string name="setting_chat_room_entry_warning">键政封永久</string>
-    <string name="setting_show_plaza_entry">首页侧边栏展示广场入口</string>
     <string name="plaza_title">广场</string>
     <string name="plaza_feed_description" translatable="false">看看大家正在分享的作品与想法</string>
     <string name="plaza_compose_title">发帖</string>
@@ -3088,6 +3086,13 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">按整数 MB 调整；拖到最右表示不限制。调小后会立即清理超出的旧自动快照</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
+    <string name="setting_image_cache_quota">图片缓存预期上限</string>
+    <string name="setting_image_cache_quota_value">%1$d MB</string>
+    <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
+    <string name="setting_image_cache_quota_dialog_hint">重启 App 后生效，超出上限后将自动清理旧的图片缓存</string>
+    <string name="setting_image_cache_quota_range_min">100 MB</string>
+    <string name="setting_image_cache_quota_range_max">1 GB</string>
+    <string name="setting_image_cache_quota_pending">%1$s（未生效）</string>
     <string name="setting_auto_snapshot_on_illust_manga">插画/漫画自动生成快照</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">对反复进入与长时间驻留的插画/漫画静默生成快照（试验性）</string>
 
@@ -3220,4 +3225,9 @@
     <string name="recommend_page_works_first">推荐作品-热门标签</string>
     <string name="recommend_page_tags_first">热门标签-推荐作品</string>
     <string name="recommend_page_content_desc">调整插画和小说推荐页的页签顺序，重启后生效</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">官网发现</string>
+    <string name="web_discovery_login_needed">请使用与 App 相同的 pixiv 账号登录网页，以查看推荐作品。</string>
+    <string name="web_discovery_web_login">网页登录</string>
 </resources>

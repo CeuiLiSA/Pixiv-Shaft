@@ -54,37 +54,9 @@
                 android:paddingEnd="16dp">
 
                 <RelativeLayout
-                    android:id="@+id/show_chat_room_entry_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_single">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            android:id="@+id/show_chat_room_entry_mark"
-                            style="@style/M3SetTitle"
-                            android:text="@string/setting_show_chat_room_entry" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/setting_chat_room_entry_warning" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/show_chat_room_entry"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <Space
-                    android:id="@+id/show_chat_room_push_banner_divider"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp" />
-
-                <RelativeLayout
                     android:id="@+id/show_chat_room_push_banner_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
+                    android:background="@drawable/wit_row_single">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -95,24 +67,6 @@
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/show_chat_room_push_banner"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/show_plaza_entry_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_bottom">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/setting_show_plaza_entry" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/show_plaza_entry"
                         style="@style/M3SetSwitch" />
 
                 </RelativeLayout>

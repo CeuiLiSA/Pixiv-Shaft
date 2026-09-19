@@ -1981,6 +1981,7 @@
     <string name="experimental_section">실험적</string>
     <string name="site_recommend">이번 달 북마크</string>
     <string name="current_hot">지금 인기</string>
+    <string name="shaft_rankings">Shaft 순위</string>
     <string name="artist_rank">작가 순위</string>
     <string name="artist_rank_title">작가 북마크 종합 순위</string>
     <string name="artist_avg_rank">평균 순위</string>
@@ -2270,10 +2271,7 @@
     <string name="chat_error_serialization">서버에서 잘못된 데이터를 받았습니다.</string>
     <string name="chat_error_unknown">오류가 발생했습니다.</string>
     <string name="plaza_drawer_entry">광장</string>
-    <string name="setting_show_chat_room_entry">홈 사이드바에 채팅방 입구 표시</string>
     <string name="setting_show_chat_room_push_banner">공개 채팅방 새 메시지를 앱 내 푸시 배너로 표시</string>
-    <string name="setting_chat_room_entry_warning">정치 이야기는 영구 정지</string>
-    <string name="setting_show_plaza_entry">홈 사이드바에 광장 입구 표시</string>
     <string name="plaza_title">광장</string>
     <string name="plaza_compose_title">새 글</string>
     <string name="plaza_send_post">게시</string>
@@ -2812,6 +2810,13 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">정수 MB 단위로 조정하며 오른쪽 끝은 무제한입니다. 값을 줄이면 한도를 넘는 오래된 자동 스냅샷을 즉시 삭제합니다</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
+    <string name="setting_image_cache_quota">이미지 캐시 예상 상한</string>
+    <string name="setting_image_cache_quota_value">%1$d MB</string>
+    <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
+    <string name="setting_image_cache_quota_dialog_hint">앱을 다시 시작한 뒤 적용되며, 한도를 넘는 오래된 이미지 캐시는 자동으로 정리됩니다</string>
+    <string name="setting_image_cache_quota_range_min">100 MB</string>
+    <string name="setting_image_cache_quota_range_max">1 GB</string>
+    <string name="setting_image_cache_quota_pending">%1$s (미적용)</string>
     <string name="setting_auto_snapshot_on_illust_manga">일러스트/만화 스냅샷 자동 생성</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">반복해서 들어가거나 오래 머문 일러스트/만화의 스냅샷을 조용히 생성합니다 (실험 기능)</string>
 
@@ -2956,4 +2961,9 @@
     <string name="recommend_page_tags_first">인기 태그 - 추천 작품</string>
     <string name="recommend_page_content_desc">일러스트 및 소설 추천 페이지의 탭 순서를 변경합니다. 앱을 다시 시작하면 적용됩니다.</string>
     <string name="nana7mi_usage_motto">실패는 성공의 어머니\n충전은 성공한 결제</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">웹 발견</string>
+    <string name="web_discovery_login_needed">추천 작품을 보려면 앱과 동일한 계정으로 pixiv 웹사이트에 로그인하세요.</string>
+    <string name="web_discovery_web_login">웹 로그인</string>
 </resources>

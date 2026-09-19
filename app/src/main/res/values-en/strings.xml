@@ -1981,6 +1981,7 @@
     <string name="experimental_section">Experimental</string>
     <string name="site_recommend">This Month\'s Bookmarks</string>
     <string name="current_hot">Trending Now</string>
+    <string name="shaft_rankings">Shaft Rankings</string>
     <string name="artist_rank">Top Artists</string>
     <string name="artist_rank_title">Artist Bookmark Leaderboard</string>
     <string name="artist_avg_rank">Avg Bookmarks</string>
@@ -2287,10 +2288,7 @@
     <string name="chat_error_serialization">Received invalid data from server.</string>
     <string name="chat_error_unknown">Something went wrong.</string>
     <string name="plaza_drawer_entry">Plaza</string>
-    <string name="setting_show_chat_room_entry">Show chat room entry in home sidebar</string>
     <string name="setting_show_chat_room_push_banner">Show in-app push banner for new public chat room messages</string>
-    <string name="setting_chat_room_entry_warning">Discussing politics = permanent ban</string>
-    <string name="setting_show_plaza_entry">Show plaza entry in home sidebar</string>
     <string name="plaza_title">Plaza</string>
     <string name="plaza_compose_title">New Post</string>
     <string name="plaza_send_post">Post</string>
@@ -2830,6 +2828,13 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">Adjust in whole MB; drag fully right for unlimited. Lowering it removes the oldest auto snapshots over the new limit right away</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
+    <string name="setting_image_cache_quota">Expected image cache limit</string>
+    <string name="setting_image_cache_quota_value">%1$d MB</string>
+    <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
+    <string name="setting_image_cache_quota_dialog_hint">Takes effect after restarting the app; old image cache over the limit is cleaned up automatically</string>
+    <string name="setting_image_cache_quota_range_min">100 MB</string>
+    <string name="setting_image_cache_quota_range_max">1 GB</string>
+    <string name="setting_image_cache_quota_pending">%1$s (not applied yet)</string>
     <string name="setting_auto_snapshot_on_illust_manga">Auto-create snapshots for illustrations/manga</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">Quietly create snapshots for illustrations/manga you open repeatedly or dwell on for a long time (experimental)</string>
 
@@ -2958,4 +2963,9 @@
     <string name="recommend_page_works_first">Recommended works - Trending tags</string>
     <string name="recommend_page_tags_first">Trending tags - Recommended works</string>
     <string name="recommend_page_content_desc">Change the tab order on illustration and novel recommendation pages. Restart the app to apply.</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">Web Discovery</string>
+    <string name="web_discovery_login_needed">Sign in to the pixiv website with the same account as the app to see recommended works.</string>
+    <string name="web_discovery_web_login">Web sign-in</string>
 </resources>

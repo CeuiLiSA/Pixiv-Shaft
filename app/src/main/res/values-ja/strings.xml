@@ -1981,6 +1981,7 @@
     <string name="experimental_section">実験的</string>
     <string name="site_recommend">今月のブックマーク</string>
     <string name="current_hot">急上昇</string>
+    <string name="shaft_rankings">Shaft ランキング</string>
     <string name="artist_rank">絵師ランキング</string>
     <string name="artist_rank_title">絵師ブックマーク総合ランキング</string>
     <string name="artist_avg_rank">平均ランキング</string>
@@ -2270,10 +2271,7 @@
     <string name="chat_error_serialization">サーバーから無効なデータを受信しました。</string>
     <string name="chat_error_unknown">エラーが発生しました。</string>
     <string name="plaza_drawer_entry">広場</string>
-    <string name="setting_show_chat_room_entry">ホームのサイドバーにチャットルーム入口を表示</string>
     <string name="setting_show_chat_room_push_banner">公開チャットルームの新着メッセージをアプリ内 push バナーで表示</string>
-    <string name="setting_chat_room_entry_warning">政治の話題は永久BAN</string>
-    <string name="setting_show_plaza_entry">ホームのサイドバーに広場入口を表示</string>
     <string name="plaza_title">広場</string>
     <string name="plaza_compose_title">投稿</string>
     <string name="plaza_send_post">投稿する</string>
@@ -2812,6 +2810,13 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">整数 MB 単位で調整。右端までドラッグすると無制限。小さくすると超過分の古い自動スナップショットをすぐに削除します</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
+    <string name="setting_image_cache_quota">画像キャッシュの想定上限</string>
+    <string name="setting_image_cache_quota_value">%1$d MB</string>
+    <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
+    <string name="setting_image_cache_quota_dialog_hint">アプリ再起動後に有効になり、上限を超えた古い画像キャッシュは自動的に削除されます</string>
+    <string name="setting_image_cache_quota_range_min">100 MB</string>
+    <string name="setting_image_cache_quota_range_max">1 GB</string>
+    <string name="setting_image_cache_quota_pending">%1$s（未反映）</string>
     <string name="setting_auto_snapshot_on_illust_manga">イラスト・漫画のスナップショットを自動作成</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">繰り返し開いた、または長く滞在したイラスト・漫画を静かにスナップショット化します（試験的）</string>
 
@@ -2956,4 +2961,9 @@
     <string name="recommend_page_tags_first">人気のタグ - おすすめ作品</string>
     <string name="recommend_page_content_desc">イラストと小説のおすすめページのタブ順を変更します。アプリの再起動後に反映されます。</string>
     <string name="nana7mi_usage_motto">失敗は成功のもと\n課金は支払いの成功</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">ウェブ版ディスカバリー</string>
+    <string name="web_discovery_login_needed">おすすめ作品を見るには、アプリと同じアカウントで pixiv のウェブサイトにログインしてください。</string>
+    <string name="web_discovery_web_login">ウェブログイン</string>
 </resources>

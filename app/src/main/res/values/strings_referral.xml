@@ -6,7 +6,7 @@
     <string name="referral_eyebrow">REFERRAL PROGRAM</string>
     <string name="referral_heading">App 推荐计划</string>
     <string name="referral_intro">完成推荐任务，可获 PRO 或 MAX 体验卡。</string>
-    <string name="referral_hero_tag">7 天 / 30 天体验卡</string>
+    <string name="referral_hero_tag">7 天 PRO / MAX 体验卡</string>
     <string name="referral_hero_title">推荐 Pixiv-Shaft\n领取 PRO 体验卡</string>
     <string name="referral_hero_body">邀请好友或发布 App 推荐内容。\n完成对应任务后领取。</string>
     <string name="referral_invite_action">邀请好友</string>
@@ -18,7 +18,6 @@
     <string name="referral_progress">进行中</string>
     <string name="referral_ready">可领取</string>
     <string name="referral_wallet">我的卡包</string>
-    <string name="referral_nav_tasks">推荐任务</string>
     <string name="referral_rules">活动规则</string>
     <string name="referral_summary">奖励概览</string>
     <string name="referral_earned">天体验已领取</string>
@@ -26,7 +25,7 @@
     <string name="referral_unused">待激活卡片</string>
     <string name="referral_unclaimed">待领取奖励</string>
     <string name="referral_open_wallet">查看卡包</string>
-    <string name="referral_expiry_hint">领取后 30 天内激活 · 不自动续费</string>
+    <string name="referral_expiry_hint">领取后 %1$d 天内激活 · 不自动续费</string>
     <string name="referral_journey_eyebrow">HOW IT WORKS</string>
     <string name="referral_journey_title">参与流程</string>
     <string name="referral_step1">选择任务</string>
@@ -86,7 +85,7 @@
     <string name="referral_go_wallet">查看卡包</string>
     <string name="referral_wallet_subtitle">查看已领取的体验卡及激活状态。</string>
     <string name="referral_wallet_empty">暂无体验卡</string>
-    <string name="referral_wallet_empty_desc">完成任务后，可在任务页领取。\n领取后 30 天内激活。</string>
+    <string name="referral_wallet_empty_desc">完成推荐任务后即可领取体验卡。\n领取后 %1$d 天内激活。</string>
     <string name="referral_go_tasks">查看任务</string>
     <string name="referral_empty_ready">暂无可领取奖励</string>
     <string name="referral_empty_ready_desc">任务完成并通过验证后，可在此领取。</string>
@@ -130,14 +129,13 @@
     <string name="referral_copy_template">复制推荐帖提纲</string>
     <string name="referral_template">Pixiv-Shaft 使用体验\n功能：[介绍实际使用过的功能]\n体验：[优点、不足和适用场景]\n截图：[添加 App 功能截图]\n下载：[填写官方下载或你的专属邀请链接]\n活动说明：参与 App 推介计划，内容审核通过可获得会员体验卡。</string>
     <string name="referral_week_caption">7 天使用期</string>
-    <string name="referral_month_caption">30 天使用期</string>
     <string name="referral_day_unit">天</string>
     <string name="referral_pass_badge">PRO</string>
     <string name="referral_trial_badge">体验</string>
     <string name="referral_invite_category">好友邀请</string>
     <string name="referral_invite_description">好友安装并完成使用要求后，双方各获 7 天 PRO。</string>
     <string name="referral_invite_caption">完成使用要求的好友</string>
-    <string name="referral_invite_steps">把 Pixiv-Shaft 专属邀请入口分享给一位还没用过 App 的朋友。\n好友安装 App、登录并主动绑定邀请，在 7 天内于两个不同自然日使用核心功能；至少完成一次收藏。\n系统验证通过后，你与好友各获得一张 7 天体验卡。</string>
+    <string name="referral_invite_steps">把 Pixiv-Shaft 专属邀请入口分享给一位还没用过 App 的朋友。\n好友安装 App、登录并主动绑定邀请，在 %1$d 天内于%2$d 个不同自然日使用核心功能；至少完成一次收藏。\n系统验证通过后，你与好友各获得一张 7 天体验卡。</string>
     <string name="referral_recommend_title">发布 App 推荐帖</string>
     <string name="referral_recommend_category">内容推荐</string>
     <string name="referral_recommend_description">发布使用体验，附 App 截图和下载入口。审核通过可获 7 天 PRO。</string>
@@ -146,19 +144,19 @@
     <string name="referral_recommend_condition">审核检查介绍是否真实、下载入口是否有效、内容是否原创且公开可访问。预计 2 个工作日内反馈。</string>
     <string name="referral_tutorial_title">发布 App 使用教程</string>
     <string name="referral_tutorial_category">使用教程</string>
-    <string name="referral_tutorial_description">以图文或视频介绍安装与操作步骤。审核通过可获 30 天 MAX。</string>
+    <string name="referral_tutorial_description">以图文或视频介绍安装与操作步骤。审核通过可获 7 天 MAX。</string>
     <string name="referral_tutorial_caption">App 教程审核</string>
     <string name="referral_tutorial_steps">介绍 Pixiv-Shaft 适合谁、如何下载安装，以及一项核心功能的实际操作。\n发布原创图文（至少 300 字与 3 张 App 操作截图），或不少于 60 秒的 App 实操视频。\n附官方下载安装入口或专属邀请入口，说明奖励关系，提交公开链接等待审核。</string>
     <string name="referral_tutorial_condition">不限平台，不要求正面评价或点赞数。教程须真实可复现，不能与推荐帖任务使用同一份内容。预计 2 个工作日内反馈。</string>
     <string name="referral_circle_title">邀请 3 位活跃好友</string>
     <string name="referral_circle_category">持续使用</string>
-    <string name="referral_circle_description">3 位新用户均达到持续活跃要求后，可获 30 天 MAX。</string>
+    <string name="referral_circle_description">3 位新用户均达到持续活跃要求后，可获 7 天 MAX。</string>
     <string name="referral_circle_caption">好友达成持续活跃</string>
-    <string name="referral_circle_steps">邀请 3 位不同的新用户安装 App 并完成有效体验。\n每位好友在前 14 天内至少 3 个不同自然日使用核心功能，且有 1 天发生在第 8–14 天。\n3 位好友均达标后，领取一张 30 天 PRO 体验卡。</string>
+    <string name="referral_circle_steps">邀请 3 位不同的新用户安装 App 并完成有效体验。\n每位好友在前 %1$d 天内至少 %2$d 个不同自然日使用核心功能，且有 1 天发生在第 %3$d–%1$d 天。\n3 位好友均达标后，领取一张 7 天 MAX 体验卡。</string>
     <string name="referral_circle_condition">首位有效邀请可以计入本任务，但须额外满足持续活跃条件。本期仅可完成一次。</string>
     <string name="referral_rules_title">活动规则</string>
-    <string name="referral_rules_body">体验时长\n一周卡为 7 × 24 小时，一个月卡为 30 × 24 小时。领取后 30 天内激活，过期不自动激活，不自动续费。\n\n领取次数\n首位有效邀请与 App 推荐帖各奖励 7 天 PRO；上手教程与 3 位持续活跃好友各奖励 30 天 MAX。本期最多获 74 天，受邀新人另获一次 7 天。\n\n有效邀请条件\n新用户安装 App、登录并主动绑定唯一邀请人；7 天内使用两个不同自然日，并至少收藏一次。持续活跃还需前 14 天内活跃 3 天，其中 1 天在第 8–14 天。\n\n领取与激活\n卡片进入可领取状态后，先存入卡包再自主激活。激活时顺延已有同档权益，不覆盖付费天数。更高档会员的适用规则须在正式活动中明确。\n\n审核与补充\n预计 2 个工作日内反馈。展示具体补充原因并支持重提，不以粉丝数或点赞数判定，不要求正面评价。\n\n公平参与\n禁止自邀、批量账号、重复内容和骚扰式发布。异常人工复核，不仅凭共享网络拒绝。\n\n最终解释以服务端记录为准。活动可能调整或结束，已获得的奖励不受影响。</string>
-    <string name="referral_invite_condition">新用户在 7 天内使用 2 天，并完成一次收藏</string>
+    <string name="referral_rules_body">体验时长\n所有任务奖励均为 7 × 24 小时，按任务发放 PRO 或 MAX 体验卡。领取后 %6$d 天内激活，过期不自动激活，不自动续费。\n\n领取次数\n首位有效邀请与 App 推荐帖各奖励 7 天 PRO；3 位持续活跃好友与上手教程各奖励 7 天 MAX。本期最多获 28 天，受邀新人另获一次 7 天 PRO。\n\n有效邀请条件\n新用户安装 App、登录并主动绑定唯一邀请人；%1$d 天内使用%2$d 个不同自然日，并至少收藏一次。持续活跃还需前 %3$d 天内活跃 %4$d 天，其中 1 天在第 %5$d–%3$d 天。\n\n领取与激活\n卡片进入可领取状态后，先存入卡包再自主激活。激活时顺延已有同档权益，不覆盖付费天数。Max 期间不能激活 PRO 卡，卡片有效期会顺延到 Max 到期之后。\n\n审核与补充\n预计 2 个工作日内反馈。展示具体补充原因并支持重提，不以粉丝数或点赞数判定，不要求正面评价。\n\n公平参与\n禁止自邀、批量账号、重复内容和骚扰式发布。异常人工复核，不仅凭共享网络拒绝。\n\n最终解释以服务端记录为准。活动可能调整或结束，已获得的奖励不受影响。</string>
+    <string name="referral_invite_condition">新用户在 %1$d 天内使用 %2$d 天，并完成一次收藏</string>
     <string name="referral_cancel">取消</string>
 
     <!-- 绑定邀请人：分享链路上最关键、也最容易掉人的一步 -->
@@ -170,11 +168,11 @@
     <string name="referral_bind_confirm">绑定邀请人</string>
     <string name="referral_bind_paste">粘贴剪贴板里的邀请码</string>
     <string name="referral_bind_detected">检测到邀请码 %1$s</string>
-    <string name="referral_bind_success">已绑定</string>
-    <string name="referral_bind_success_desc">接下来正常使用 App 就好：7 天内有 2 天用过、并收藏过一次，你和邀请人各得 7 天 PRO。</string>
+    <string name="referral_bind_success">接受邀请成功</string>
+    <string name="referral_bind_success_desc">接下来正常使用 App：在 %1$d 天内于 %2$d 个不同自然日使用，并收藏至少一次，即可获得 7 天 PRO。邀请人的奖励按其任务进度结算。</string>
     <string name="referral_bound_already">你已绑定邀请人（UID %1$d）。</string>
     <string name="referral_welcome_title">新人见面礼</string>
-    <string name="referral_welcome_description">你的邀请人达标后自动到账，无需任何操作。</string>
+    <string name="referral_welcome_description">你完成受邀使用条件后自动存入卡包，无需等待邀请人领取。</string>
     <string name="referral_closed_banner">本期活动已结束，不再接受新的邀请。已领取的体验卡仍可正常激活，已达标的奖励仍可领取。</string>
     <string name="referral_bound_rejected">这条邀请关系经复核未通过，不会产生奖励。若认为是误判，可通过官网或反馈渠道申诉。</string>
     <string name="referral_login_required">请先登录 Pixiv 账号，再参与推介计划。</string>
@@ -210,4 +208,5 @@
     <string name="referral_error_bad_description">内容说明至少 20 字。</string>
     <string name="referral_error_pending">这项内容正在审核中，审核期间不能修改。</string>
     <string name="referral_error_approved">这项内容已经通过审核，去任务页领取奖励吧。</string>
+    <string name="referral_campaign">活动：%1$s</string>
 </resources>

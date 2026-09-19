@@ -2,7 +2,9 @@ package ceui.pixiv.ui.referral
 
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.pixiv.api.Client
+import ceui.pixiv.services.appServices
 import ceui.pixiv.shaftapi.ReferralActionResponse
 import ceui.pixiv.shaftapi.ReferralActivateReq
 import ceui.pixiv.shaftapi.ReferralActivityReq
@@ -51,36 +53,55 @@ internal data class ReferralFailure(
     val stale: Boolean = false,
 )
 
-internal class ReferralRepository(private val api: () -> ceui.pixiv.shaftapi.PixshaftApi = { Client.pixshaft }) {
+internal class ReferralRepository(
+    private val api: () -> ceui.pixiv.shaftapi.PixshaftApi = { Client.pixshaft },
+    private val updatePlan: (Long, ceui.pixiv.shaftapi.Nana7miPlan) -> Unit = { uid, plan ->
+        Shaft.getContext().appServices().remoteAppConfig.updateNana7miPlan(uid, plan)
+    },
+) {
 
     /** 渠道随每条请求上报：Lite 不参加这个活动，而那道闸在服务端（见 [PixshaftApi]）。 */
     private val flavor: String get() = BuildConfig.FLAVOR
 
-    suspend fun load(): ReferralResult<ReferralSnapshot> =
-        call { api().referralState(flavor) }.map { it.toSnapshot() }
+    suspend fun load(campaign: String? = null): ReferralResult<ReferralSnapshot> =
+        call { api().referralState(flavor, campaign) }.map { snapshot(it) }
 
-    suspend fun bind(code: String): ReferralResult<ReferralSnapshot> =
-        action { api().referralBind(flavor, ReferralBindReq(code.trim().uppercase())) }
+    suspend fun bind(code: String, campaign: String? = null, uid: Long? = null): ReferralResult<ReferralSnapshot> =
+        action { api().referralBind(flavor, ReferralBindReq(code.trim().uppercase(), campaign, uid)) }
 
-    suspend fun claim(task: ReferralTask): ReferralResult<ReferralSnapshot> =
-        action { api().referralClaim(flavor, ReferralClaimReq(task.key)) }
+    suspend fun claim(task: ReferralTask, campaign: String? = null, uid: Long? = null): ReferralResult<ReferralSnapshot> =
+        action { api().referralClaim(flavor, ReferralClaimReq(task.key, campaign, uid)) }
 
-    suspend fun activate(cardId: Long): ReferralResult<ReferralSnapshot> =
-        action { api().referralActivate(flavor, ReferralActivateReq(cardId)) }
+    suspend fun activate(cardId: Long, campaign: String? = null, uid: Long? = null): ReferralResult<ReferralSnapshot> =
+        action { api().referralActivate(flavor, ReferralActivateReq(cardId, campaign, uid)) }
 
-    suspend fun submit(task: ReferralTask, url: String, description: String): ReferralResult<ReferralSnapshot> =
-        action { api().referralSubmit(flavor, ReferralSubmitReq(task.key, url.trim(), description.trim())) }
+    suspend fun submit(task: ReferralTask, url: String, description: String, campaign: String? = null, uid: Long? = null): ReferralResult<ReferralSnapshot> =
+        action { api().referralSubmit(flavor, ReferralSubmitReq(task.key, url.trim(), description.trim(), campaign, uid)) }
 
     /**
      * 「刚收藏了一次」。**静默**：它只是给达标判定补一个位，失败了不该打断用户正在做的事，
      * 也不该弹任何东西。下一次收藏会再报一遍。
      */
-    suspend fun reportBookmark() {
-        runCatching { api().referralActivity(flavor, ReferralActivityReq(bookmarked = true)) }
+    suspend fun reportBookmark(uid: Long): Boolean = try {
+        api().referralActivity(flavor, ReferralActivityReq(bookmarked = true, uid = uid)).isSuccessful
+    } catch (ce: CancellationException) {
+        throw ce
+    } catch (_: Exception) {
+        false
     }
 
     private suspend fun action(block: suspend () -> Response<ReferralActionResponse>): ReferralResult<ReferralSnapshot> =
-        call(block).map { it.state?.toSnapshot() ?: ReferralSnapshot() }
+        when (val result = call(block)) {
+            is ReferralResult.Failure -> result
+            is ReferralResult.Success -> result.value.state?.let { ReferralResult.Success(snapshot(it)) }
+                ?: ReferralResult.Failure(ReferralFailure(null, R.string.referral_error_generic, stale = true))
+        }
+
+    private fun snapshot(response: ceui.pixiv.shaftapi.ReferralStateResponse): ReferralSnapshot {
+        val uid = response.uid
+        if (uid != null && uid > 0L) response.plan?.let { updatePlan(uid, it) }
+        return response.toSnapshot()
+    }
 
     private inline fun <T, R> ReferralResult<T>.map(transform: (T) -> R): ReferralResult<R> =
         when (this) {
@@ -121,6 +142,7 @@ internal class ReferralRepository(private val api: () -> ceui.pixiv.shaftapi.Pix
     }
 
     private fun messageFor(code: String?): Int = when (code) {
+        "uid_forbidden" -> R.string.referral_error_auth
         "self_referral" -> R.string.referral_error_self
         "already_bound" -> R.string.referral_error_already_bound
         "unknown_code", "bad_code" -> R.string.referral_error_bad_code

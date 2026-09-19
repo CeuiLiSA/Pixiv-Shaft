@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.referral
 
 import ceui.pixiv.shaftapi.ReferralRewardDto
+import ceui.pixiv.shaftapi.ReferralRulesDto
 import ceui.pixiv.shaftapi.ReferralStateResponse
 
 /**
@@ -13,8 +14,8 @@ import ceui.pixiv.shaftapi.ReferralStateResponse
 internal enum class ReferralTask(val key: String, val days: Int, val target: Int = 1) {
     INVITE("invite", 7),
     RECOMMEND("recommend", 7),
-    TUTORIAL("tutorial", 30),
-    CIRCLE("circle", 30, 3),
+    TUTORIAL("tutorial", 7),
+    CIRCLE("circle", 7, 3),
 
     /**
      * 被邀请人的见面礼。**不出现在任务列表里** —— 它不是一件要去做的事，是首位有效邀请
@@ -25,7 +26,7 @@ internal enum class ReferralTask(val key: String, val days: Int, val target: Int
 
     companion object {
         /** 任务列表里真正列出来的四项，顺序就是页面顺序。 */
-        val LISTED = listOf(INVITE, RECOMMEND, TUTORIAL, CIRCLE)
+        val LISTED = listOf(INVITE, RECOMMEND, CIRCLE, TUTORIAL)
         fun of(key: String?): ReferralTask? = entries.firstOrNull { it.key == key }
     }
 }
@@ -73,8 +74,12 @@ internal data class ReferralTaskView(
 )
 
 internal data class ReferralSnapshot(
-    /** 活动开着没有。关着时页面只展示规则，所有操作按钮都不出现。 */
+    val uid: Long? = null,
+    val campaign: String? = null,
+    val campaigns: List<String> = emptyList(),
+    /** 活动开着没有。关着时保留已有参与记录的结算入口。 */
     val enabled: Boolean = false,
+    val rules: ReferralRulesDto = ReferralRulesDto(),
     /** 自己的邀请码与可分享链接。活动关着、或还没登录时为 null。 */
     val code: String? = null,
     val inviteUrl: String? = null,
@@ -92,6 +97,16 @@ internal data class ReferralSnapshot(
     /** 自己那一档 PRO 到什么时候。新激活的卡从这里往后顺延。 */
     val activeUntil: Long = 0,
 ) {
+    /** 规则文案与服务端同源；旧服务端未提供时才使用原始规则。 */
+    val ruleArgs: Array<Any> get() = arrayOf(
+        rules.qualifyWindowDays ?: 7, rules.qualifyActiveDays ?: 2,
+        rules.retainWindowDays ?: 14, rules.retainActiveDays ?: 3,
+        rules.retainLateFromDay ?: 8, rules.cardValidDays ?: 30,
+    )
+    val retainRuleArgs: Array<Any> get() = arrayOf(
+        rules.retainWindowDays ?: 14, rules.retainActiveDays ?: 3, rules.retainLateFromDay ?: 8,
+    )
+    val cardValidDays: Int get() = rules.cardValidDays ?: 30
     fun view(task: ReferralTask): ReferralTaskView? = tasks.firstOrNull { it.task == task }
     fun status(task: ReferralTask): ReferralStatus = view(task)?.status ?: ReferralStatus.NEW
     fun progress(task: ReferralTask): Int = view(task)?.progress ?: 0
@@ -110,7 +125,8 @@ internal data class ReferralSnapshot(
      * 就等于把那些卡吞了。
      */
     val hasSomethingToSettle: Boolean
-        get() = cards.isNotEmpty() || tasks.any { it.status == ReferralStatus.READY }
+        get() = cards.isNotEmpty() || inviterUid != null || pendingInvites > 0 || flaggedInvites > 0 ||
+            campaigns.size > 1 || tasks.any { it.status != ReferralStatus.NEW }
 }
 
 /**
@@ -144,7 +160,11 @@ internal fun ReferralStateResponse.toSnapshot(): ReferralSnapshot {
         )
     }.toMap()
     return ReferralSnapshot(
+        uid = uid,
+        campaign = campaign,
+        campaigns = campaigns.orEmpty(),
         enabled = enabled == true,
+        rules = rules ?: ReferralRulesDto(),
         code = code?.takeIf { it.isNotBlank() },
         inviteUrl = inviteUrl?.takeIf { it.isNotBlank() },
         inviterUid = boundTo?.inviterUid?.takeIf { it > 0L },

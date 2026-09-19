@@ -59,6 +59,7 @@ import ceui.pixiv.ui.detail.ArtworkV3Fragment
 import ceui.pixiv.ui.detail.IllustSeriesFragment
 import ceui.pixiv.ui.detail.RelatedIllustFeedFragment
 import ceui.pixiv.ui.discovery.DiscoveryFeedFragment
+import ceui.pixiv.ui.discovery.WebDiscoveryFragment
 import ceui.pixiv.ui.download.DownloadManagerV3Fragment
 import ceui.pixiv.ui.dynamic.FollowingNovelFeedFragment
 import ceui.pixiv.ui.fanbox.FanboxHomeFragment
@@ -86,6 +87,7 @@ import ceui.pixiv.ui.prime.PrimeTagsFragment
 import ceui.pixiv.ui.recommend.AI_ONLY
 import ceui.pixiv.ui.recommend.ArtistRankFeedFragment
 import ceui.pixiv.ui.recommend.BookmarkRankFragment
+import ceui.pixiv.ui.recommend.DailyRecommendationsFragment
 import ceui.pixiv.ui.recommend.FragmentEventHistory
 import ceui.pixiv.ui.recommend.FragmentRecentRecommend
 import ceui.pixiv.ui.recommend.FragmentSiteRecommend
@@ -495,6 +497,7 @@ object TemplateRouteFactory {
                 FragmentMarkdown.newInstance(intent.getStringExtra(Params.URL))
             TemplateRoute.VERSION_HISTORY -> FragmentVersionHistory()
             TemplateRoute.DISCOVERY -> DiscoveryFeedFragment()
+            TemplateRoute.WEB_DISCOVERY -> WebDiscoveryFragment()
             TemplateRoute.RECENT_RECOMMEND -> FragmentRecentRecommend()
             TemplateRoute.SITE_RECOMMEND -> FragmentSiteRecommend()
             TemplateRoute.ARTIST_RANK -> ArtistRankFeedFragment.newInstance("total")
@@ -521,6 +524,7 @@ object TemplateRouteFactory {
             // shaft-api-v2 discover/most-bookmarked?type=novel&length=long|medium|short
             TemplateRoute.NOVEL_LENGTH_RANK -> NovelLengthRankFragment.newInstance()
             TemplateRoute.TRENDING_ARTISTS -> TrendingArtistsFragment.newInstance()
+            TemplateRoute.DAILY_RECOMMENDATIONS -> DailyRecommendationsFragment()
             TemplateRoute.UGOIRA_RANK -> UgoiraRankFragment.newInstance()
             TemplateRoute.EVENT_HISTORY -> FragmentEventHistory()
             TemplateRoute.DEBUG_NETWORK_TEST -> NetworkTestFragment()
