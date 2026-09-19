@@ -348,9 +348,11 @@ class V3TagFlowView @JvmOverloads constructor(
                 // lastTouchX < 0（performClick / 无障碍点击，没有触摸信息）回退到 onTagClick，
                 // 保持既有语义。
                 setOnClickListener {
+                    val touchX = lastTouchX
+                    lastTouchX = -1f
                     val bodyClick = onTagBodyClick
-                    val tapOnBody = showRemoveIcon && bodyClick != null && lastTouchX >= 0f
-                        && !isInRemoveZone(this, lastTouchX)
+                    val tapOnBody = showRemoveIcon && bodyClick != null && touchX >= 0f
+                        && !isInRemoveZone(this, touchX)
                     if (tapOnBody) {
                         bodyClick?.invoke(name)
                     } else {
@@ -370,6 +372,8 @@ class V3TagFlowView @JvmOverloads constructor(
                 // refreshChipsUI 再 setOnTagLongClick），所以监听器无条件挂、回调在长按
                 // 触发时再取——和 onTagClick 同套路。
                 setOnLongClickListener {
+                    // 长按已消费这次手势，后续键盘/读屏点击不能复用本次按下的落点。
+                    lastTouchX = -1f
                     val handler = onTagLongClick
                     if (handler != null) {
                         handler.invoke(name)
