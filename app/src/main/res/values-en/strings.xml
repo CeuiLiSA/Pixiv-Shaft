@@ -2956,4 +2956,9 @@
     <string name="recommend_page_works_first">Recommended works - Trending tags</string>
     <string name="recommend_page_tags_first">Trending tags - Recommended works</string>
     <string name="recommend_page_content_desc">Change the tab order on illustration and novel recommendation pages. Restart the app to apply.</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">Web Discovery</string>
+    <string name="web_discovery_login_needed">Sign in to the pixiv website with the same account as the app to see recommended works.</string>
+    <string name="web_discovery_web_login">Web sign-in</string>
 </resources>

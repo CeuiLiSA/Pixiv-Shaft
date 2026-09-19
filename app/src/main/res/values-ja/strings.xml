@@ -2954,4 +2954,9 @@
     <string name="recommend_page_tags_first">人気のタグ - おすすめ作品</string>
     <string name="recommend_page_content_desc">イラストと小説のおすすめページのタブ順を変更します。アプリの再起動後に反映されます。</string>
     <string name="nana7mi_usage_motto">失敗は成功のもと\n課金は支払いの成功</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">ウェブ版ディスカバリー</string>
+    <string name="web_discovery_login_needed">おすすめ作品を見るには、アプリと同じアカウントで pixiv のウェブサイトにログインしてください。</string>
+    <string name="web_discovery_web_login">ウェブログイン</string>
 </resources>
