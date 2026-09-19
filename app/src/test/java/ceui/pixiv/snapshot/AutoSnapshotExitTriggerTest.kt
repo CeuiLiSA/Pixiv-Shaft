@@ -18,7 +18,7 @@ class AutoSnapshotExitTriggerTest {
     fun `short dwell without revisit signal triggers nothing`() {
         val record = AutoSnapshotBehaviorRecord(illustId = 42L).withVisit(now)
 
-        assertNull(AutoSnapshotEngine.exitTriggerSignal(dwellMs = 10_000L, record = record))
+        assertNull(AutoSnapshotEngine.exitTriggerSignal(dwellMs = 10_000L, record = record, now = now + 2_000L))
     }
 
     @Test
@@ -36,12 +36,12 @@ class AutoSnapshotExitTriggerTest {
             .withVisit(now)
             .withVisit(now + 1_000L)
 
-        assertNull(AutoSnapshotEngine.exitTriggerSignal(dwellMs = 1_000L, record = twoVisits))
+        assertNull(AutoSnapshotEngine.exitTriggerSignal(dwellMs = 1_000L, record = twoVisits, now = now + 2_000L))
 
         val threeVisits = twoVisits.withVisit(now + 2_000L)
         assertEquals(
             AutoSnapshotBehaviorStore.SIGNAL_REVISIT,
-            AutoSnapshotEngine.exitTriggerSignal(dwellMs = 1_000L, record = threeVisits),
+            AutoSnapshotEngine.exitTriggerSignal(dwellMs = 1_000L, record = threeVisits, now = now + 2_000L),
         )
     }
 
@@ -54,8 +54,23 @@ class AutoSnapshotExitTriggerTest {
 
         assertEquals(
             AutoSnapshotBehaviorStore.SIGNAL_DWELL,
-            AutoSnapshotEngine.exitTriggerSignal(dwellMs = 60_000L, record = record),
+            AutoSnapshotEngine.exitTriggerSignal(dwellMs = 60_000L, record = record, now = now + 2_000L),
         )
+    }
+
+    @Test
+    fun `resuming an existing page does not count expired or future entries`() {
+        val window = AutoSnapshotBehaviorStore.WINDOW_MS
+        val record = AutoSnapshotBehaviorRecord(
+            illustId = 42L,
+            recentVisits = listOf(now - window - 1L, now - window, now),
+        )
+        assertNull(AutoSnapshotEngine.exitTriggerSignal(1_000L, record, now))
+        assertEquals(
+            AutoSnapshotBehaviorStore.SIGNAL_REVISIT,
+            AutoSnapshotEngine.exitTriggerSignal(1_000L, record.copy(recentVisits = listOf(now - window, now - 1L, now)), now),
+        )
+        assertNull(AutoSnapshotEngine.exitTriggerSignal(1_000L, record.copy(recentVisits = listOf(now, now + 1L, now + 2L)), now))
     }
 
     @Test

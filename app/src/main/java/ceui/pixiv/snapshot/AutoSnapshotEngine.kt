@@ -131,7 +131,7 @@ object AutoSnapshotEngine {
                 evaluate,
             )
             if (!evaluate) return@launch
-            val signal = exitTriggerSignal(dwellMs, AutoSnapshotBehaviorStore.read(visit.illustId))
+            val signal = exitTriggerSignal(dwellMs, AutoSnapshotBehaviorStore.read(visit.illustId), now)
                 ?: return@launch
             Timber.tag(TAG).i(
                 "auto snapshot trigger, illustId=%d, signal=%s, dwellMs=%d",
@@ -148,9 +148,14 @@ object AutoSnapshotEngine {
      *
      * 停留时长用本次结算值而不是记录里的 lastDwellMs —— 行为库写失败时不该顺带把触发也判丢。
      */
-    internal fun exitTriggerSignal(dwellMs: Long, record: AutoSnapshotBehaviorRecord?): String? = when {
+    internal fun exitTriggerSignal(
+        dwellMs: Long,
+        record: AutoSnapshotBehaviorRecord?,
+        now: Long = System.currentTimeMillis(),
+    ): String? = when {
         dwellMs >= DWELL_THRESHOLD_MS -> AutoSnapshotBehaviorStore.SIGNAL_DWELL
-        (record?.recentVisits?.size ?: 0) >= REVISIT_THRESHOLD -> AutoSnapshotBehaviorStore.SIGNAL_REVISIT
+        // 同一页恢复时不再 recordVisit，旧访问必须在结算时重新检查 7 天窗口。
+        (record?.recentVisits?.count { now - it in 0..AutoSnapshotBehaviorStore.WINDOW_MS } ?: 0) >= REVISIT_THRESHOLD -> AutoSnapshotBehaviorStore.SIGNAL_REVISIT
         else -> null
     }
 
