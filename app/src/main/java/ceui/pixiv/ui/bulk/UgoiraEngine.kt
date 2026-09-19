@@ -822,8 +822,10 @@ internal suspend fun downloadZipTo(
             }
             if (r.code == 416) {
                 // 仅凭大小相同不能证明资源没变；还要响应校验器与原记录相同。
+                // 首次 chunked 响应可能没给总长，此时以 416 的总长与已存字节数确认完整。
                 return@use existing > 0 && range?.start == -1L && range.total == existing &&
-                    manifest?.total == existing && responseValidator == manifest.validator &&
+                    manifest != null && (manifest.total < 0 || manifest.total == existing) &&
+                    responseValidator == manifest.validator &&
                     temp.length() == existing
             }
             val append = r.code == 206
@@ -880,9 +882,12 @@ internal suspend fun downloadZipTo(
                     readTotal += n
                     reportProgress()
                 }
-                if (readTotal == 0L || (total >= 0 && readTotal != total) || temp.length() != readTotal) {
-                    meta.delete() // 不完整或被外部清理过的文件不能在下次伪装成可续传前缀。
-                    throw IOException("zip length mismatch: ${temp.length()} / $total")
+                val storedLength = temp.length()
+                if (readTotal == 0L || (total >= 0 && readTotal != total) || storedLength != readTotal) {
+                    // 顺序写入的短响应仍是有效前缀，保留 validator 给下一次续传。
+                    // 文件被外部清理或字节超过声明总长时，才放弃这个断点。
+                    if (storedLength != readTotal || (total >= 0 && readTotal > total)) meta.delete()
+                    throw IOException("zip length mismatch: $storedLength / $total")
                 }
             }
             true

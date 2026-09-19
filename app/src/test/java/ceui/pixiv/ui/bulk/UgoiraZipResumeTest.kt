@@ -203,6 +203,39 @@ class UgoiraZipResumeTest {
         assertEquals(1, server.requestCount)
     }
 
+    @Test fun `unknown initial length still reuses complete bytes after resumed transfer is cancelled`() = runBlocking {
+        server.enqueue(full().setChunkedBody(Buffer().write(payload), 1024)
+            .setSocketPolicy(SocketPolicy.DISCONNECT_DURING_RESPONSE_BODY))
+        try {
+            downloadZipTo(url, target, client)
+            fail("disconnected response must fail")
+        } catch (_: IOException) { }
+        assertEquals(-1L, StageStore.readManifest(meta)?.total)
+        assertTrue(part.length() in 1 until payload.size.toLong())
+        server.takeRequest()
+
+        server.enqueue(tail(part.length()).removeHeader("ETag"))
+        val job = Job()
+        try {
+            withContext(job) {
+                downloadZipTo(url, target, client) { if (it == 100) job.cancel() }
+            }
+            fail("cancellation before commit must propagate")
+        } catch (_: CancellationException) { }
+        assertArrayEquals(payload, part.readBytes())
+        assertFalse(target.exists())
+        server.takeRequest()
+
+        server.enqueue(MockResponse().setResponseCode(416)
+            .setHeader("Content-Range", "bytes */${payload.size}").setHeader("ETag", etag))
+        // 已有完整文件不应再发全量请求；错误实现会碰到这个 503。
+        server.enqueue(MockResponse().setResponseCode(503))
+        downloadZipTo(url, target, client)
+        assertComplete()
+        assertEquals("bytes=${payload.size}-", server.takeRequest().getHeader("Range"))
+        assertEquals(3, server.requestCount)
+    }
+
     @Test fun `416 with an incomplete file or unconfirmed representation restarts`() = runBlocking {
         for ((size, validator) in listOf(4096 to etag, payload.size to "\"changed\"", payload.size to null)) {
             seed(size)
@@ -300,21 +333,27 @@ class UgoiraZipResumeTest {
         assertEquals(etag, server.takeRequest().getHeader("If-Range"))
     }
 
-    @Test fun `chunked full download succeeds but truncated range never commits`() = runBlocking {
+    @Test fun `chunked full download succeeds and short range keeps a resumable prefix`() = runBlocking {
         server.enqueue(MockResponse().setChunkedBody(Buffer().write(payload), 1024))
         downloadZipTo(url, target, client)
         assertComplete()
         server.takeRequest()
 
         seed()
-        server.enqueue(tail(4096).setChunkedBody("truncated", 4))
+        server.enqueue(tail(4096).setChunkedBody(Buffer().write(payload, 4096, 4096), 1024))
         try {
             downloadZipTo(url, target, client)
             fail("incomplete range must not commit")
         } catch (_: IOException) {
             assertFalse(target.exists())
-            assertNull(StageStore.readManifest(meta))
+            assertArrayEquals(payload.copyOf(8192), part.readBytes())
+            assertEquals(etag, StageStore.readManifest(meta)?.validator)
         }
+        server.takeRequest()
+        server.enqueue(tail(8192))
+        downloadZipTo(url, target, client)
+        assertComplete()
+        assertEquals("bytes=8192-", server.takeRequest().getHeader("Range"))
     }
 
     @Test fun `unexpected content encoding preserves partial without committing`() = runBlocking {
