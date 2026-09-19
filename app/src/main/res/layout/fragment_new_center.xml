@@ -526,6 +526,27 @@
                             android:textColor="@color/v3_text_1"
                             android:textSize="13sp" />
 
+                        <TextView
+                            android:id="@+id/catWebDiscovery"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="9dp"
+                            android:layout_marginBottom="9dp"
+                            android:background="@drawable/bg_v3_chip"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:fontFamily="@font/montserrat_semi_bold"
+                            android:minHeight="48dp"
+                            android:gravity="center"
+                            android:paddingStart="15dp"
+                            android:paddingTop="9dp"
+                            android:paddingEnd="15dp"
+                            android:paddingBottom="9dp"
+                            android:stateListAnimator="@animator/button_press_scale"
+                            android:text="@string/web_discovery_title"
+                            android:textColor="@color/v3_text_1"
+                            android:textSize="13sp" />
+
                         <!-- Web 首页 / pixiv FANBOX:从侧边栏迁入此处,Lite 里 GONE -->
                         <TextView
                             android:id="@+id/catWeb"

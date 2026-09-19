@@ -115,6 +115,7 @@ enum class TemplateRoute(@JvmField val key: String) {
     MARKDOWN("Markdown"),
     VERSION_HISTORY("版本历史"),
     DISCOVERY("发现"),
+    WEB_DISCOVERY("官网发现"),
     RECENT_RECOMMEND("当前最热"),
     SITE_RECOMMEND("站长推荐"),
     ARTIST_RANK("画师榜"),
