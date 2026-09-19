@@ -2828,8 +2828,15 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">Adjust in whole MB; drag fully right for unlimited. Lowering it removes the oldest auto snapshots over the new limit right away</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
+    <string name="setting_image_cache_quota">Expected image cache limit</string>
+    <string name="setting_image_cache_quota_value">%1$d MB</string>
+    <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
+    <string name="setting_image_cache_quota_dialog_hint">Takes effect after restarting the app; old image cache over the limit is cleaned up automatically</string>
+    <string name="setting_image_cache_quota_range_min">100 MB</string>
+    <string name="setting_image_cache_quota_range_max">1 GB</string>
+    <string name="setting_image_cache_quota_pending">%1$s (not applied yet)</string>
     <string name="setting_auto_snapshot_on_illust_manga">Auto-create snapshots for illustrations/manga</string>
-    <string name="setting_auto_snapshot_on_illust_manga_desc">Quietly create snapshots for illustrations/manga you revisit or dwell on for a long time (experimental)</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">Quietly create snapshots for illustrations/manga you open repeatedly or dwell on for a long time (experimental)</string>
 
     <!-- Log file (experimental) -->
     <string name="setting_log_file_enable">Enable log file</string>
@@ -2965,4 +2972,9 @@
     <string name="cf_block_short_direct">Blocked by Cloudflare, switch to another network</string>
     <string name="cf_block_short_proxy">Blocked by Cloudflare, switch to another proxy node</string>
     <string name="network_test_pxve_cf_blocked">Failed · %1$dms · HTTP %2$d (blocked by Cloudflare, not a forwarding issue)</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">Web Discovery</string>
+    <string name="web_discovery_login_needed">Sign in to the pixiv website with the same account as the app to see recommended works.</string>
+    <string name="web_discovery_web_login">Web sign-in</string>
 </resources>

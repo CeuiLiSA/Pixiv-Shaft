@@ -2810,8 +2810,15 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">정수 MB 단위로 조정하며 오른쪽 끝은 무제한입니다. 값을 줄이면 한도를 넘는 오래된 자동 스냅샷을 즉시 삭제합니다</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
+    <string name="setting_image_cache_quota">이미지 캐시 예상 상한</string>
+    <string name="setting_image_cache_quota_value">%1$d MB</string>
+    <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
+    <string name="setting_image_cache_quota_dialog_hint">앱을 다시 시작한 뒤 적용되며, 한도를 넘는 오래된 이미지 캐시는 자동으로 정리됩니다</string>
+    <string name="setting_image_cache_quota_range_min">100 MB</string>
+    <string name="setting_image_cache_quota_range_max">1 GB</string>
+    <string name="setting_image_cache_quota_pending">%1$s (미적용)</string>
     <string name="setting_auto_snapshot_on_illust_manga">일러스트/만화 스냅샷 자동 생성</string>
-    <string name="setting_auto_snapshot_on_illust_manga_desc">반복해서 보거나 오래 머문 일러스트/만화의 스냅샷을 조용히 생성합니다 (실험 기능)</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">반복해서 들어가거나 오래 머문 일러스트/만화의 스냅샷을 조용히 생성합니다 (실험 기능)</string>
 
     <!-- 로그 파일 (실험) -->
     <string name="setting_log_file_enable">로그 파일 사용</string>
@@ -2963,4 +2970,9 @@
     <string name="cf_block_short_direct">Cloudflare에 차단되었습니다. 네트워크를 변경하세요</string>
     <string name="cf_block_short_proxy">Cloudflare에 차단되었습니다. 노드를 변경하세요</string>
     <string name="network_test_pxve_cf_blocked">비정상 · %1$dms · HTTP %2$d (Cloudflare 차단, 전달 경로 문제 아님)</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">웹 발견</string>
+    <string name="web_discovery_login_needed">추천 작품을 보려면 앱과 동일한 계정으로 pixiv 웹사이트에 로그인하세요.</string>
+    <string name="web_discovery_web_login">웹 로그인</string>
 </resources>

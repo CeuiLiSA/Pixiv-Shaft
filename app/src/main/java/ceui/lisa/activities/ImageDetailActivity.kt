@@ -188,7 +188,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             btnAiMenu.visibility = View.VISIBLE
             btnAiMenu.setOnClickListener { anchor ->
                 val illust = mIllust ?: return@setOnClickListener
-                // 动图(ugoira)的 original 是 zip,画质增强/抠图没法处理,不展示这两项(对齐 V3 详情页)。
+                // 动图只保留作品分享；画质增强、翻译和静态壁纸都需要可处理的静图原图。
                 val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
                 actions +=
                     getString(R.string.artwork_poster_save) to
@@ -216,29 +216,29 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                                     performAiRembg(illust, baseBind!!.viewPager.currentItem, model)
                                 }
                             }
-                }
-                actions +=
-                    getString(R.string.string_ai_manga_translate_inline) to
-                        {
-                            performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
-                        }
-                if (illust.page_count > 1) {
                     actions +=
-                        getString(R.string.string_ai_manga_translate_batch) to
+                        getString(R.string.string_ai_manga_translate_inline) to
                             {
-                                performAiMangaTranslateBatch(illust)
+                                performAiMangaTranslateInline(illust, baseBind!!.viewPager.currentItem)
+                            }
+                    if (illust.page_count > 1) {
+                        actions +=
+                            getString(R.string.string_ai_manga_translate_batch) to
+                                {
+                                    performAiMangaTranslateBatch(illust)
+                                }
+                    }
+                    actions +=
+                        getString(R.string.string_ai_manga_translate_manual) to
+                            {
+                                performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
+                            }
+                    actions +=
+                        getString(R.string.string_set_wallpaper) to
+                            {
+                                performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
                             }
                 }
-                actions +=
-                    getString(R.string.string_ai_manga_translate_manual) to
-                        {
-                            performAiMangaTranslateManual(illust, baseBind!!.viewPager.currentItem)
-                        }
-                actions +=
-                    getString(R.string.string_set_wallpaper) to
-                        {
-                            performSetWallpaper(illust, baseBind!!.viewPager.currentItem)
-                        }
                 WitMenuPopup.show(this, anchor, actions.map { it.first }.toTypedArray()) { index, _
                     ->
                     actions[index].second()

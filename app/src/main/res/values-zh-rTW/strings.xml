@@ -2826,8 +2826,15 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">以整數 MB 調整；拖到最右表示不限制。調小後會立即清理超出的舊自動快照</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
+    <string name="setting_image_cache_quota">圖片快取預期上限</string>
+    <string name="setting_image_cache_quota_value">%1$d MB</string>
+    <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
+    <string name="setting_image_cache_quota_dialog_hint">重啟 App 後生效，超出上限後將自動清理舊的圖片快取</string>
+    <string name="setting_image_cache_quota_range_min">100 MB</string>
+    <string name="setting_image_cache_quota_range_max">1 GB</string>
+    <string name="setting_image_cache_quota_pending">%1$s（未生效）</string>
     <string name="setting_auto_snapshot_on_illust_manga">插畫/漫畫自動產生快照</string>
-    <string name="setting_auto_snapshot_on_illust_manga_desc">對反覆瀏覽與長時間駐留的插畫/漫畫靜默產生快照（實驗性）</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">對反覆進入與長時間駐留的插畫/漫畫靜默產生快照（實驗性）</string>
 
     <!-- 日誌檔案（實驗性） -->
     <string name="setting_log_file_enable">啟用日誌檔案</string>
@@ -2964,4 +2971,9 @@
     <string name="cf_block_short_direct">網路環境被 Cloudflare 攔截，請更換網路</string>
     <string name="cf_block_short_proxy">代理節點被 Cloudflare 攔截，請更換節點</string>
     <string name="network_test_pxve_cf_blocked">異常 · %1$dms · HTTP %2$d（Cloudflare 攔截，非轉發鏈路問題）</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">官網發現</string>
+    <string name="web_discovery_login_needed">請使用與 App 相同的 pixiv 帳號登入網頁，以查看推薦作品。</string>
+    <string name="web_discovery_web_login">網頁登入</string>
 </resources>

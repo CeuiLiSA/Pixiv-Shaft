@@ -2810,8 +2810,15 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s МБ</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">Целые МБ; перетащите вправо до конца, чтобы снять ограничение. При уменьшении старые автоснимки сверх нового лимита удаляются сразу</string>
     <string name="setting_auto_snapshot_quota_range_min">10 МБ</string>
+    <string name="setting_image_cache_quota">Ожидаемый лимит кэша изображений</string>
+    <string name="setting_image_cache_quota_value">%1$d МБ</string>
+    <string name="setting_image_cache_quota_value_gb">%1$s ГБ</string>
+    <string name="setting_image_cache_quota_dialog_hint">Вступает в силу после перезапуска приложения; старый кэш изображений сверх лимита удаляется автоматически</string>
+    <string name="setting_image_cache_quota_range_min">100 МБ</string>
+    <string name="setting_image_cache_quota_range_max">1 ГБ</string>
+    <string name="setting_image_cache_quota_pending">%1$s (не применено)</string>
     <string name="setting_auto_snapshot_on_illust_manga">Автосоздание снимков иллюстраций/манги</string>
-    <string name="setting_auto_snapshot_on_illust_manga_desc">Тихо создавать снимки для часто просматриваемых иллюстраций/манги и работ с долгим просмотром (экспериментально)</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">Тихо создавать снимки для часто открываемых иллюстраций/манги и работ с долгим просмотром (экспериментально)</string>
 
     <!-- Файл журнала (экспериментально) -->
     <string name="setting_log_file_enable">Включить файл журнала</string>
@@ -2972,4 +2979,9 @@
     <string name="cf_block_short_direct">Заблокировано Cloudflare — смените сеть</string>
     <string name="cf_block_short_proxy">Заблокировано Cloudflare — смените узел</string>
     <string name="network_test_pxve_cf_blocked">Ошибка · %1$dms · HTTP %2$d (блокировка Cloudflare, проблема не в маршруте)</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">Находки pixiv</string>
+    <string name="web_discovery_login_needed">Чтобы увидеть рекомендованные работы, войдите на сайт pixiv с той же учётной записью, что и в приложении.</string>
+    <string name="web_discovery_web_login">Вход на сайт</string>
 </resources>

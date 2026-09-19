@@ -145,6 +145,7 @@ class TemplateRouteTest {
             "MARKDOWN" to "Markdown",
             "VERSION_HISTORY" to "版本历史",
             "DISCOVERY" to "发现",
+            "WEB_DISCOVERY" to "官网发现",
             "RECENT_RECOMMEND" to "当前最热",
             "SITE_RECOMMEND" to "站长推荐",
             "ARTIST_RANK" to "画师榜",
