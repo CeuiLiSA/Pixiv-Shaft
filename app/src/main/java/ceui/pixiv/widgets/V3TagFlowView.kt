@@ -12,7 +12,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.TextView
@@ -247,12 +246,6 @@ class V3TagFlowView @JvmOverloads constructor(
     }
 
     private fun renderPairs(pairs: List<Pair<String, String?>>) {
-        // 整体重建会把编辑器摘出视图树 → 焦点丢失（issue #1118）。先记下状态，末尾原样恢复。
-        // 非编辑模式下 _editor 为 null，这里全是空操作，不影响其它调用方。
-        val hadEditorFocus = _editor?.hasFocus() == true
-        val editorSelStart = _editor?.selectionStart?.coerceAtLeast(0) ?: 0
-        val editorSelEnd = _editor?.selectionEnd?.coerceAtLeast(0) ?: 0
-
         val prevCount = lastPairs.size
         lastPairs = pairs
         // 译文色每次渲染算一次（不在 chip 循环里逐个算），并进签名：设置页改完色回来同一组
@@ -268,7 +261,11 @@ class V3TagFlowView @JvmOverloads constructor(
         lastSignature = sig
         val grew = pairs.size > prevCount
 
-        removeAllViews()
+        // 编辑器保持挂载，直接保留焦点、选区与输入法 composing 状态（#1118）。
+        // 只重建标签；焦点仍在不代表键盘可见，不能在这里强行 showSoftInput。
+        for (i in childCount - 1 downTo 0) {
+            if (!showRemoveIcon || getChildAt(i) !== _editor) removeViewAt(i)
+        }
         val density = context.resources.displayMetrics.density
         val tagBgState = palette.tagLockedBg(999f * density).constantState
 
@@ -439,8 +436,13 @@ class V3TagFlowView @JvmOverloads constructor(
 
         if (showRemoveIcon) {
             val ed = ensureEditor()
-            (ed.parent as? ViewGroup)?.removeView(ed)
-            addView(ed)
+            if (ed.parent === this) {
+                // 新标签追加在后面，将编辑器移到末尾即可，无需 detach/attach。
+                bringChildToFront(ed)
+            } else {
+                (ed.parent as? ViewGroup)?.removeView(ed)
+                addView(ed)
+            }
         }
 
         // 新追加 chip 时把外层 HSV 滚到末尾，不让新 commit 的 chip 躲到屏幕外。
@@ -449,9 +451,6 @@ class V3TagFlowView @JvmOverloads constructor(
                 hsv.post { hsv.fullScroll(View.FOCUS_RIGHT) }
             }
         }
-
-        // 放在最后：重建期间掉掉的焦点与 IME，等整段重建彻底结束后再还给用户。
-        restoreEditorFocus(hadEditorFocus, editorSelStart, editorSelEnd)
     }
 
     private fun ensureEditor(): EditText {
@@ -478,31 +477,6 @@ class V3TagFlowView @JvmOverloads constructor(
         }
         _editor = ed
         return ed
-    }
-
-    /**
-     * 把编辑器的焦点与选区还给用户。
-     *
-     * [renderPairs] 走 `removeAllViews()` 整体重建，编辑器（编辑模式下挂在末尾）会被一起
-     * 摘出视图树 —— `ViewGroup.removeView` 对持有焦点的子 view 会调 `clearFocus()`，于是
-     * 焦点和 IME 一起掉：删掉一个 chip 后想接着改标签，得再点一次输入框（issue #1118）。
-     *
-     * **只在重建前编辑器确实持有焦点时才恢复**，绝不无条件 `requestFocus()` —— 否则用户
-     * 主动收起键盘之后再动一下 chip，键盘会自己弹回来。
-     */
-    private fun restoreEditorFocus(hadFocus: Boolean, selStart: Int, selEnd: Int) {
-        if (!hadFocus) return
-        val ed = _editor ?: return
-        if (ed.parent == null) return
-        ed.requestFocus()
-        // setSelection 落在 [0, length] 之外会被忽略；重建前后文本长度理论上不变，
-        // 但恢复点晚于重建，仍按当前长度夹一次。
-        val len = ed.text?.length ?: 0
-        val start = selStart.coerceIn(0, len)
-        val end = selEnd.coerceIn(0, len)
-        ed.setSelection(minOf(start, end), maxOf(start, end))
-        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-        imm?.showSoftInput(ed, InputMethodManager.SHOW_IMPLICIT)
     }
 
     private fun showTagActionMenu(name: String, translated: String?) {
