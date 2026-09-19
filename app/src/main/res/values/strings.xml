@@ -3225,6 +3225,15 @@
     <string name="recommend_page_works_first">推荐作品-热门标签</string>
     <string name="recommend_page_tags_first">热门标签-推荐作品</string>
     <string name="recommend_page_content_desc">调整插画和小说推荐页的页签顺序，重启后生效</string>
+    <!-- Cloudflare 403 鉴别与引导：见 CfBlockDetector / CfBlockGuide -->
+    <string name="cf_block_title">网络环境被 Cloudflare 拦截</string>
+    <string name="cf_block_message_direct">pixiv 的 Cloudflare 拒绝了当前网络环境的请求。请更换网络后重试，例如从 Wi-Fi 切到移动数据。</string>
+    <string name="cf_block_message_proxy">当前代理节点被 Cloudflare 拒绝。请更换代理节点或线路后重试。</string>
+    <string name="cf_block_ip_direct">当前出口 IP：%1$s</string>
+    <string name="cf_block_ip_proxy">代理入口 IP：%1$s</string>
+    <string name="cf_block_short_direct">网络环境被 Cloudflare 拦截，请更换网络</string>
+    <string name="cf_block_short_proxy">代理节点被 Cloudflare 拦截，请更换节点</string>
+    <string name="network_test_pxve_cf_blocked">异常 · %1$dms · HTTP %2$d（Cloudflare 拦截，非转发链路问题）</string>
 
     <!-- 官网 Discovery：独立于本地发现候选池。 -->
     <string name="web_discovery_title">官网发现</string>

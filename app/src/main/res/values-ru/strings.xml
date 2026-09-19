@@ -2970,6 +2970,15 @@
     <string name="recommend_page_tags_first">Популярные теги - Рекомендуемые работы</string>
     <string name="recommend_page_content_desc">Порядок вкладок на страницах рекомендаций иллюстраций и романов. Для применения перезапустите приложение.</string>
     <string name="nana7mi_usage_motto">Неудача — мать успеха\nПополнение — успешный платёж</string>
+    <!-- Cloudflare 403 鉴别与引导：见 CfBlockDetector / CfBlockGuide -->
+    <string name="cf_block_title">Заблокировано Cloudflare</string>
+    <string name="cf_block_message_direct">Cloudflare отклонил запрос из вашей текущей сети. Переключитесь на другую сеть (например, с Wi-Fi на мобильные данные) и повторите.</string>
+    <string name="cf_block_message_proxy">Cloudflare отклонил запрос с текущего прокси-узла. Смените узел или маршрут и повторите.</string>
+    <string name="cf_block_ip_direct">Текущий IP выхода: %1$s</string>
+    <string name="cf_block_ip_proxy">IP входа прокси: %1$s</string>
+    <string name="cf_block_short_direct">Заблокировано Cloudflare — смените сеть</string>
+    <string name="cf_block_short_proxy">Заблокировано Cloudflare — смените узел</string>
+    <string name="network_test_pxve_cf_blocked">Ошибка · %1$dms · HTTP %2$d (блокировка Cloudflare, проблема не в маршруте)</string>
 
     <!-- 官网 Discovery：独立于本地发现候选池。 -->
     <string name="web_discovery_title">Находки pixiv</string>

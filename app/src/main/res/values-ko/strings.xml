@@ -2961,6 +2961,15 @@
     <string name="recommend_page_tags_first">인기 태그 - 추천 작품</string>
     <string name="recommend_page_content_desc">일러스트 및 소설 추천 페이지의 탭 순서를 변경합니다. 앱을 다시 시작하면 적용됩니다.</string>
     <string name="nana7mi_usage_motto">실패는 성공의 어머니\n충전은 성공한 결제</string>
+    <!-- Cloudflare 403 鉴别与引导：见 CfBlockDetector / CfBlockGuide -->
+    <string name="cf_block_title">Cloudflare에 의해 차단되었습니다</string>
+    <string name="cf_block_message_direct">현재 네트워크 환경의 요청이 Cloudflare에 의해 거부되었습니다. 다른 네트워크(예: Wi-Fi에서 모바일 데이터로)로 전환한 뒤 다시 시도하세요.</string>
+    <string name="cf_block_message_proxy">현재 프록시 노드의 요청이 Cloudflare에 의해 거부되었습니다. 다른 노드나 회선으로 전환한 뒤 다시 시도하세요.</string>
+    <string name="cf_block_ip_direct">현재 출구 IP: %1$s</string>
+    <string name="cf_block_ip_proxy">프록시 진입 IP: %1$s</string>
+    <string name="cf_block_short_direct">Cloudflare에 차단되었습니다. 네트워크를 변경하세요</string>
+    <string name="cf_block_short_proxy">Cloudflare에 차단되었습니다. 노드를 변경하세요</string>
+    <string name="network_test_pxve_cf_blocked">비정상 · %1$dms · HTTP %2$d (Cloudflare 차단, 전달 경로 문제 아님)</string>
 
     <!-- 官网 Discovery：独立于本地发现候选池。 -->
     <string name="web_discovery_title">웹 발견</string>

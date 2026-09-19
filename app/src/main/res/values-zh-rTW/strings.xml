@@ -2962,6 +2962,15 @@
     <string name="recommend_page_tags_first">熱門標籤-推薦作品</string>
     <string name="recommend_page_content_desc">調整插畫和小說推薦頁的分頁順序，重新啟動後生效</string>
     <string name="nana7mi_usage_motto">失敗是成功之母\n儲值是成功付款</string>
+    <!-- Cloudflare 403 鉴别与引导：见 CfBlockDetector / CfBlockGuide -->
+    <string name="cf_block_title">網路環境被 Cloudflare 攔截</string>
+    <string name="cf_block_message_direct">pixiv 的 Cloudflare 拒絕了目前網路環境的請求。請更換網路後重試，例如從 Wi-Fi 切換到行動數據。</string>
+    <string name="cf_block_message_proxy">目前的代理節點被 Cloudflare 拒絕。請更換代理節點或線路後重試。</string>
+    <string name="cf_block_ip_direct">目前出口 IP：%1$s</string>
+    <string name="cf_block_ip_proxy">代理入口 IP：%1$s</string>
+    <string name="cf_block_short_direct">網路環境被 Cloudflare 攔截，請更換網路</string>
+    <string name="cf_block_short_proxy">代理節點被 Cloudflare 攔截，請更換節點</string>
+    <string name="network_test_pxve_cf_blocked">異常 · %1$dms · HTTP %2$d（Cloudflare 攔截，非轉發鏈路問題）</string>
 
     <!-- 官网 Discovery：独立于本地发现候选池。 -->
     <string name="web_discovery_title">官網發現</string>
