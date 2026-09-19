@@ -2960,6 +2960,6 @@
 
     <!-- 官网 Discovery：独立于本地发现候选池。 -->
     <string name="web_discovery_title">Web Keşfet</string>
-    <string name="web_discovery_login_needed">Size önerilen eserleri görmek için pixiv web sitesinde oturum açın.</string>
+    <string name="web_discovery_login_needed">Önerilen eserleri görmek için pixiv web sitesinde uygulamayla aynı hesapla oturum açın.</string>
     <string name="web_discovery_web_login">Web oturumu aç</string>
 </resources>

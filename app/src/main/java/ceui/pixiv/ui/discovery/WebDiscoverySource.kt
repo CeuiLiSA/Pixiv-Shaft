@@ -5,7 +5,6 @@ import ceui.pixiv.api.model.Illust
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
-import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.IllustFeedItem
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
@@ -29,12 +28,12 @@ enum class WebDiscoveryMode(val apiValue: String) {
 class WebDiscoverySource(
     private val api: PixivWebApi,
     private val mode: WebDiscoveryMode,
-    private val hasWebSession: () -> Boolean = { SessionManager.hasWebCookie },
+    private val hasWebSession: () -> Boolean = { WebDiscoverySession.isCurrentAccount },
     // 当前页的三态筛选优先于全局 R18 过滤；屏蔽作者、标签和 AI 过滤照常生效。
     private val toItem: (Illust) -> FeedItem? = { IllustFeedItem.of(it, skipR18Filter = true) },
 ) : FeedSource<String> {
     override suspend fun load(cursor: String?): FeedPage<String> {
-        // 没有网页会话时显示登录动作，避免静默拿匿名推荐冒充当前账号的 discovery。
+        // 无同账号网页会话时显示登录动作，避免推荐和收藏状态串号。
         if (!hasWebSession()) return FeedPage(emptyList(), null)
         val response = api.getDiscoveryArtworks(mode.apiValue)
         if (response.error == true) {

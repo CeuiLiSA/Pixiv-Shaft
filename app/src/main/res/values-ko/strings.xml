@@ -2957,6 +2957,6 @@
 
     <!-- 官网 Discovery：独立于本地发现候选池。 -->
     <string name="web_discovery_title">웹 발견</string>
-    <string name="web_discovery_login_needed">pixiv 웹사이트에 로그인하면 추천 작품을 볼 수 있습니다.</string>
+    <string name="web_discovery_login_needed">추천 작품을 보려면 앱과 동일한 계정으로 pixiv 웹사이트에 로그인하세요.</string>
     <string name="web_discovery_web_login">웹 로그인</string>
 </resources>

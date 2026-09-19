@@ -5,8 +5,8 @@ import ceui.lisa.R
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.feeds.FeedItem
+import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.feeds.feedViewModels
-import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 
@@ -29,32 +29,21 @@ class WebDiscoveryFeedFragment : IllustFeedFragment() {
             ?.let { IllustFeedItem.of(it, skipR18Filter = true) }
 
     override val emptyStateText: CharSequence
-        get() = if (SessionManager.hasWebCookie) super.emptyStateText
+        get() = if (WebDiscoverySession.isCurrentAccount) super.emptyStateText
         else getString(R.string.web_discovery_login_needed)
 
     override val emptyStateAction: Pair<CharSequence, () -> Unit>?
-        get() = if (SessionManager.hasWebCookie) null else {
+        get() = if (WebDiscoverySession.isCurrentAccount) null else {
             getString(R.string.street_web_login_confirm) to {
                 (requireParentFragment() as WebDiscoveryFragment).openWebLogin()
             }
         }
 
-    private var needsSessionRefresh = false
-
     fun onWebLoginReturned() {
-        needsSessionRefresh = true
-        if (isResumed) refreshSession()
-    }
-
-    override fun onResume() {
-        // 在基类 ensureStarted 前消费会话更新，首次登录回来只请求一次。
-        if (needsSessionRefresh) refreshSession()
-        super.onResume()
-    }
-
-    private fun refreshSession() {
-        needsSessionRefresh = false
-        // 登录可能切换了网页账号，清除上一会话内容后再拉取。
+        val state = feedViewModel.uiState.value
+        if (!state.hasLoadedOnce && state.refresh is LoadState.Idle) return
+        // 已访问的页立即在 VM 中换代，取消旧请求；不能把刷新留在会因重建丢失的 Fragment 标记里。
+        // 未访问的页仍由基类首次 RESUMED 时加载。
         feedViewModel.mutateItems { emptyList() }
         feedViewModel.refresh()
     }
