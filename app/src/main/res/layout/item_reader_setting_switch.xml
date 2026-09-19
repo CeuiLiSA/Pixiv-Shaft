@@ -21,8 +21,10 @@
             android:textColor="@color/v3_text_1"
             android:textSize="15sp"/>
 
+        <!-- 同一面板里多行 <include> 复用本布局，行内 @id/switch_control 因此重复。视图树的 saved state 是按 view id 拍平进同一个 SparseArray 的，同 id 后写覆盖先写，恢复时每一行都拿到最后一行的值；CompoundButton 恢复状态走 setChecked()，又会回调 OnCheckedChangeListener，把设置项逐个写坏(#1117)。面板每次打开都按存储重新 bind，不需要视图状态恢复。 -->
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/switch_control"
-            style="@style/M3SetSwitch"/>
+            style="@style/M3SetSwitch"
+            android:saveEnabled="false"/>
     </RelativeLayout>
 </layout>
