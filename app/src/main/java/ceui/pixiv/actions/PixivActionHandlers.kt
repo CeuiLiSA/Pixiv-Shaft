@@ -112,7 +112,7 @@ internal fun Throwable.toActionOutcome(isOnline: Boolean): ActionOutcome = when 
         // 而改动它属于另一件事。
         403 -> {
             val cfRaw = CfBlockDetector.rawResponseOf(this)
-            if (cfRaw != null && CfBlockDetector.isCfBlock(cfRaw)) {
+            if (cfRaw != null && CfBlockDetector.isCfBlock(this)) {
                 CfBlockGuide.maybeGuide(cfRaw)
                 ActionOutcome.Fail(cfBlockReason(cfRaw), this)
             } else {

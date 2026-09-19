@@ -153,6 +153,16 @@ class CfBlockHttpChainTest {
     }
 
     @Test
+    fun `异常入口识别代理转发的拦截页且不消费错误正文`() {
+        server.enqueue(relayedCfBlockResponse())
+        val e = expectHttpException()
+
+        assertTrue(CfBlockDetector.isCfBlock(e))
+        assertTrue("同一异常再次分类仍应命中", CfBlockDetector.isCfBlock(e))
+        assertEquals(CF_PAGE_BODY, e.response()!!.errorBody()!!.string())
+    }
+
+    @Test
     fun `源站 403 走同一条链路不判为 CF`() {
         server.enqueue(
             MockResponse()

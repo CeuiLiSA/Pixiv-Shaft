@@ -1,12 +1,16 @@
 package ceui.lisa.http
 
 import android.app.Activity
+import androidx.annotation.MainThread
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.JavaAsync
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import com.blankj.utilcode.util.ActivityUtils
+import com.blankj.utilcode.util.AppUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -16,7 +20,6 @@ import okhttp3.Protocol
 import okhttp3.Request
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Cloudflare 403 的一次性引导弹窗。
@@ -24,10 +27,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  * ## 只弹一次，且是**内存态**
  *
  * 按产品要求：宿主生命期内只出现一次，进程被杀即忘（不落盘、不跨启动）。所以这里就是
- * 一个 [AtomicBoolean]，不用 MMKV / SharedPreferences。重装、重启进程都会重置 —— 这是
+ * 一个内存态会话，不用 MMKV / SharedPreferences。重装、重启进程都会重置 —— 这是
  * 期望行为，不是缺陷。
  *
- * **配额只在真正弹出前才消费**：拿不到前台 Activity 就原样退出、不占用这一次机会。
+ * **配额只在真正弹出后才消费**：拿不到前台 Activity 就原样退出、不占用这一次机会。
  * 否则一次后台请求就能把整台设备唯一的提示名额烧掉。
  *
  * ## 「换干净网络」在两种模式下含义不同
@@ -55,8 +58,8 @@ object CfBlockGuide {
     private const val TRACE_PATH = "/cdn-cgi/trace"
     private const val TRACE_TIMEOUT_SECONDS = 3L
 
-    /** 进程级唯一配额。CAS 成功即「已消费」。 */
-    private val prompted = AtomicBoolean(false)
+    /** 只在主线程操作；查询中的请求合并，弹出成功后才消费进程级配额。 */
+    private val session = CfBlockGuideSession<Activity>()
 
     /**
      * 判定为 CF 拦截后调用。**不保证一定弹**（拿不到前台 Activity 时静默放弃），
@@ -67,7 +70,6 @@ object CfBlockGuide {
      */
     @JvmStatic
     fun maybeGuide(response: okhttp3.Response?) {
-        if (prompted.get()) return
         // 已经在主线程就立即执行（Main.immediate），否则先切回主线程：
         // ActivityUtils.getTopActivity() 与弹窗都必须在主线程碰。
         JavaAsync.appScope.launch { runGuide(response) }
@@ -78,21 +80,23 @@ object CfBlockGuide {
      * 早退若写成 `return@launch`，就成了「lambda 末表达式上的多余标签返回」。
      */
     private suspend fun runGuide(response: okhttp3.Response?) {
-        if (prompted.get()) return
-
-        val activity = ActivityUtils.getTopActivity()
-        if (activity == null || activity.isFinishing || activity.isDestroyed) {
-            Timber.tag(TAG).d("没有可用的前台 Activity，保留这次提示机会")
-            return
-        }
-        // 真正的消费点：确认能弹了才占名额。
-        if (!prompted.compareAndSet(false, true)) return
-
         val proxyMode = isProxyMode(response)
-        val traceHost = response?.request?.url
+        session.run(
+            findHost = ::foregroundActivity,
+            fetchIp = { withContext(Dispatchers.IO) { fetchTraceIp(response?.request?.url) } },
+            show = { activity, ip -> show(activity, proxyMode, ip) },
+        )
+    }
 
-        val ip = withContext(Dispatchers.IO) { fetchTraceIp(traceHost) }
-        show(activity, proxyMode, ip)
+    private fun foregroundActivity(): Activity? {
+        // getTopActivity 在后台也可能返回最后一个 Activity，不能单独代表前台。
+        if (!AppUtils.isAppForeground()) return null
+        val activity = ActivityUtils.getTopActivity() ?: return null
+        if (activity.isFinishing || activity.isDestroyed) return null
+        if (activity is LifecycleOwner &&
+            !activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+        ) return null
+        return activity
     }
 
     /** 给 toast / 页面内文案用的短句，方向同样按模式分叉。 */
@@ -114,8 +118,8 @@ object CfBlockGuide {
         return host != PIXIV_APP_API_HOST
     }
 
-    private fun show(activity: Activity, proxyMode: Boolean, ip: String?) {
-        if (activity.isFinishing || activity.isDestroyed) return
+    private fun show(activity: Activity, proxyMode: Boolean, ip: String?): Boolean {
+        if (activity.isFinishing || activity.isDestroyed) return false
 
         val message = buildString {
             append(
@@ -134,7 +138,7 @@ object CfBlockGuide {
             }
         }
 
-        try {
+        return try {
             WitDialog.MessageDialogBuilder(activity)
                 .setTitle(R.string.cf_block_title)
                 .setMessage(message)
@@ -142,9 +146,11 @@ object CfBlockGuide {
                     d.dismiss()
                 }
                 .show()
+                .isShowing
         } catch (e: Exception) {
             // 弹窗失败不该连坐调用方：调用方那边已经改成本地化文案了。
             Timber.tag(TAG).w(e, "show cf block dialog failed")
+            false
         }
     }
 
@@ -210,5 +216,29 @@ object CfBlockGuide {
             builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
         }
         return builder.build()
+    }
+}
+
+/** 主线程上的一次性引导状态；异步查询期间不保留 Activity，弹出失败允许下次再试。 */
+internal class CfBlockGuideSession<Host : Any> {
+    private enum class State { IDLE, PREPARING, SHOWN }
+    private var state = State.IDLE
+
+    @MainThread
+    suspend fun run(
+        findHost: () -> Host?,
+        fetchIp: suspend () -> String?,
+        show: (Host, String?) -> Boolean,
+    ) {
+        if (state != State.IDLE || findHost() == null) return
+        state = State.PREPARING
+        try {
+            val ip = fetchIp()
+            // 查询期间可能旋转、导航或退到后台，必须重新取宿主。
+            val host = findHost() ?: return
+            if (show(host, ip)) state = State.SHOWN
+        } finally {
+            if (state == State.PREPARING) state = State.IDLE
+        }
     }
 }

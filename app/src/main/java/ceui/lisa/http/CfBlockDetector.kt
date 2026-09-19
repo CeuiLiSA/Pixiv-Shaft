@@ -152,7 +152,7 @@ object CfBlockDetector {
     }
 
     /**
-     * 异常版入口：把 [retrofit2.HttpException] 解到最底层的 okhttp 响应再判。
+     * 异常版入口：使用 Retrofit 保留的 errorBody，非破坏性地嗅探正文。
      *
      * 非 HTTP 异常（断网 / 超时 / 反序列化）取不到响应头，一律返回 false ——
      * CF 判定要真实的响应头，猜不得。
@@ -160,7 +160,10 @@ object CfBlockDetector {
     @JvmStatic
     fun isCfBlock(e: Throwable): Boolean {
         val raw = rawResponseOf(e) ?: return false
-        return isCfBlock(raw)
+        val errorBody = (e as retrofit2.HttpException).response()?.errorBody()
+        // raw.body 是 Retrofit 的 NoContentResponseBody；替换后复用有界 peek，
+        // 不消费 errorBody，后续错误提示和重复分类仍可读取它。
+        return isCfBlock(raw.newBuilder().body(errorBody).build())
     }
 
     /**
