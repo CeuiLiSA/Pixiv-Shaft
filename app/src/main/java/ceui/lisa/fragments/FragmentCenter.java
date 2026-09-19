@@ -144,6 +144,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         baseBind.catWalk.setOnClickListener(v -> openFragment(TemplateRoute.WALKTHROUGH));
         baseBind.catFollowNovel.setOnClickListener(v -> openFragment(TemplateRoute.FOLLOWING_NOVELS));
         baseBind.catDiscovery.setOnClickListener(v -> openFragment(TemplateRoute.DISCOVERY));
+        baseBind.catWebDiscovery.setOnClickListener(v -> openFragment(TemplateRoute.WEB_DISCOVERY));
         baseBind.catNiceFriend.setOnClickListener(v -> openFragment(TemplateRoute.NICE_FRIEND_ILLUSTS));
         // 热门搜索:标签目录由搜索缓存逐日沉淀,谁搜出来的都算数,看的人不占额度。
         baseBind.catCorpusLibrary.setOnClickListener(v -> openFragment(TemplateRoute.CORPUS_LIBRARY));
@@ -151,6 +152,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         // Web 首页 / pixiv FANBOX:仅在发现页展示,由首页统一处理跳转与登录分流,Lite 不展示。
         if (BuildConfig.IS_LITE) {
             baseBind.catWeb.setVisibility(View.GONE);
+            baseBind.catWebDiscovery.setVisibility(View.GONE);
             baseBind.catFanbox.setVisibility(View.GONE);
         } else {
             baseBind.catWeb.setOnClickListener(v -> openMainEntry(R.id.nav_web_home));
@@ -183,6 +185,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         styleCatChip(baseBind.catPixivComic, palette, R.drawable.ic_baseline_palette_24);
         styleCatChip(baseBind.catFollowNovel, palette, R.drawable.ic_baseline_bookmark_24);
         styleCatChip(baseBind.catDiscovery, palette, R.drawable.ic_baseline_explore_24);
+        styleCatChip(baseBind.catWebDiscovery, palette, R.drawable.ic_setcat_globe);
         styleCatChip(baseBind.catWeb, palette, R.drawable.ic_setcat_globe);
         styleCatChip(baseBind.catFanbox, palette, R.drawable.ic_setcat_heart);
         styleCatChip(baseBind.catNiceFriend, palette, R.drawable.ic_baseline_how_to_reg_24);

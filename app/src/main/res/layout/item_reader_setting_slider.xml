@@ -23,12 +23,14 @@
             android:textColor="@color/v3_text_1"
             android:textSize="15sp"/>
 
+        <!-- 同 item_reader_setting_switch：行内 @id/seek_bar 重复，恢复时会互相覆盖，这里直接不存视图状态(#1117)。 -->
         <SeekBar
             android:id="@+id/seek_bar"
             style="@style/Widget.Reader.Slider"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:saveEnabled="false"/>
 
         <TextView
             android:id="@+id/value_text"

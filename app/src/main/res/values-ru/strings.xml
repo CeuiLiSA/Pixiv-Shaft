@@ -2970,4 +2970,9 @@
     <string name="recommend_page_tags_first">Популярные теги - Рекомендуемые работы</string>
     <string name="recommend_page_content_desc">Порядок вкладок на страницах рекомендаций иллюстраций и романов. Для применения перезапустите приложение.</string>
     <string name="nana7mi_usage_motto">Неудача — мать успеха\nПополнение — успешный платёж</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">Находки pixiv</string>
+    <string name="web_discovery_login_needed">Чтобы увидеть рекомендованные работы, войдите на сайт pixiv с той же учётной записью, что и в приложении.</string>
+    <string name="web_discovery_web_login">Вход на сайт</string>
 </resources>
