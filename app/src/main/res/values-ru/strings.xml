@@ -2818,7 +2818,7 @@
     <string name="setting_image_cache_quota_range_max">1 ГБ</string>
     <string name="setting_image_cache_quota_pending">%1$s (не применено)</string>
     <string name="setting_auto_snapshot_on_illust_manga">Автосоздание снимков иллюстраций/манги</string>
-    <string name="setting_auto_snapshot_on_illust_manga_desc">Тихо создавать снимки для часто просматриваемых иллюстраций/манги и работ с долгим просмотром (экспериментально)</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">Тихо создавать снимки для часто открываемых иллюстраций/манги и работ с долгим просмотром (экспериментально)</string>
 
     <!-- Файл журнала (экспериментально) -->
     <string name="setting_log_file_enable">Включить файл журнала</string>

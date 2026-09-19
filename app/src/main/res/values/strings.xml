@@ -3094,7 +3094,7 @@
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s（未生效）</string>
     <string name="setting_auto_snapshot_on_illust_manga">插画/漫画自动生成快照</string>
-    <string name="setting_auto_snapshot_on_illust_manga_desc">对反复浏览与长时间驻留的插画/漫画静默生成快照（试验性）</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">对反复进入与长时间驻留的插画/漫画静默生成快照（试验性）</string>
 
     <!-- 日志文件（试验性） -->
     <string name="setting_log_file_enable">启用日志文件</string>

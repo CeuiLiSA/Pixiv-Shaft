@@ -2836,7 +2836,7 @@
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s (not applied yet)</string>
     <string name="setting_auto_snapshot_on_illust_manga">Auto-create snapshots for illustrations/manga</string>
-    <string name="setting_auto_snapshot_on_illust_manga_desc">Quietly create snapshots for illustrations/manga you revisit or dwell on for a long time (experimental)</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">Quietly create snapshots for illustrations/manga you open repeatedly or dwell on for a long time (experimental)</string>
 
     <!-- Log file (experimental) -->
     <string name="setting_log_file_enable">Enable log file</string>

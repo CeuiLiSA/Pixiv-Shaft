@@ -2818,7 +2818,7 @@
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s（未反映）</string>
     <string name="setting_auto_snapshot_on_illust_manga">イラスト・漫画のスナップショットを自動作成</string>
-    <string name="setting_auto_snapshot_on_illust_manga_desc">繰り返し閲覧した、または長く滞在したイラスト・漫画を静かにスナップショット化します（試験的）</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">繰り返し開いた、または長く滞在したイラスト・漫画を静かにスナップショット化します（試験的）</string>
 
     <!-- ログファイル（試験的） -->
     <string name="setting_log_file_enable">ログファイルを有効にする</string>
