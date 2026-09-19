@@ -3218,4 +3218,9 @@
     <string name="recommend_page_works_first">推荐作品-热门标签</string>
     <string name="recommend_page_tags_first">热门标签-推荐作品</string>
     <string name="recommend_page_content_desc">调整插画和小说推荐页的页签顺序，重启后生效</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">官网发现</string>
+    <string name="web_discovery_login_needed">登录 pixiv 网页后，即可浏览为你推荐的作品。</string>
+    <string name="web_discovery_web_login">网页登录</string>
 </resources>
