@@ -2877,6 +2877,7 @@
     <string name="bookmark_library_filter_apply">%1$s개 보기</string>
     <string name="bookmark_library_filter_apply_pending">결과 보기</string>
     <string name="bookmark_chip_oldest_first">오래된 순</string>
+    <string name="bookmark_chip_syncing">미러 동기화 중 · 필터 사용 불가</string>
     <string name="bookmark_chip_random">셔플</string>
     <string name="bookmark_chip_filter">필터</string>
     <string name="bookmark_chip_filter_count">필터 · %1$d</string>

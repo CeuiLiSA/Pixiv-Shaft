@@ -222,17 +222,16 @@ class BookmarkMirrorService(app: Context) {
     fun readState(shelf: BookmarkShelf): BookmarkMirrorStateEntity? = dao.findState(shelf.key)
 
     /**
-     * 这个书架**完整同步过至少一次**了吗 —— 也就是「本地这份能不能当作全量来用」。
-     *
-     * 导航要用它决定点收藏入口是进本地库还是进原始列表，所以刻意做成同步的：那是主线程上
-     * 的一次主键点查，表里最多四行，代价远小于为它引一层异步。任何异常（库还没建好、
-     * 迁移中、磁盘故障）一律当作「没准备好」，让调用方回落到不依赖镜像的老路径 ——
-     * 导航绝不能因为一个附加功能而崩。
+     * 已注册的书架可直接浏览；首次在线访问也可进入，由页面注册并开始回填。
+     * 全量完成只决定筛选是否开放，不再是进入收藏库的门槛。
+     * 先点查数据库，再判断联网：读库失败必须回落原始列表，不能被在线条件掩盖。
      */
-    fun isShelfReady(shelf: BookmarkShelf): Boolean = try {
-        isFeatureEnabled() && dao.findState(shelf.key)?.isFirstSyncDone == true
+    fun canOpenLibrary(shelf: BookmarkShelf): Boolean = try {
+        isFeatureEnabled() && (dao.findState(shelf.key) != null || isOnline())
+    } catch (ce: CancellationException) {
+        throw ce
     } catch (t: Throwable) {
-        Timber.tag(TAG).w(t, "读取书架就绪状态失败，按未就绪处理")
+        Timber.tag(TAG).w(t, "读取书架状态失败，回落原始收藏列表")
         false
     }
 

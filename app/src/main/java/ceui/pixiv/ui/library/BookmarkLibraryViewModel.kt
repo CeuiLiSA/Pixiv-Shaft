@@ -6,6 +6,7 @@ import ceui.pixiv.db.mirror.BookmarkAuthorFacet
 import ceui.pixiv.db.mirror.BookmarkFilter
 import ceui.pixiv.db.mirror.BookmarkMirrorStateEntity
 import ceui.pixiv.db.mirror.BookmarkShelf
+import ceui.pixiv.db.mirror.BookmarkSort
 import ceui.pixiv.db.mirror.BookmarkTagFacet
 import ceui.pixiv.db.mirror.BookmarkYearFacet
 import kotlinx.coroutines.CancellationException
@@ -51,6 +52,30 @@ class BookmarkLibraryViewModel : ViewModel() {
     private val _mirrorState = MutableStateFlow<BookmarkMirrorStateEntity?>(null)
     val mirrorState: StateFlow<BookmarkMirrorStateEntity?> = _mirrorState.asStateFlow()
 
+    private var loadedFilter: BookmarkFilter? = null
+    private var loadedOffset = 0
+    private var loadedWhileSyncing = false
+
+    /** SQL 已消费的行数，包含被屏蔽或无法解析的行，不能用可见卡片数代替。 */
+    internal val consumedRows: Int?
+        get() = loadedOffset.takeIf { loadedFilter == _filter.value }
+
+    internal fun recordLoadedPage(filter: BookmarkFilter, offset: Int, syncing: Boolean) {
+        loadedFilter = filter
+        loadedOffset = offset
+        loadedWhileSyncing = syncing
+    }
+
+    /** 即使最后一批回填同时把状态改成已完成，也要续上读取时尚未补齐的尾页。 */
+    internal fun growingTailCursor(stored: Int): String? {
+        val current = _filter.value
+        val consumed = consumedRows ?: return null
+        return consumed.toString().takeIf {
+            loadedWhileSyncing && stored > consumed &&
+                current.sort == BookmarkSort.BOOKMARK_NEWEST && !current.hasAnyCondition
+        }
+    }
+
     private val _tagFacets = MutableStateFlow<List<BookmarkTagFacet>>(emptyList())
     val tagFacets: StateFlow<List<BookmarkTagFacet>> = _tagFacets.asStateFlow()
 
@@ -87,6 +112,8 @@ class BookmarkLibraryViewModel : ViewModel() {
         if (bound && shelf == next) return false
         bound = true
         shelf = next
+        _mirrorState.value = null
+        loadedFilter = null
         _filter.value = BookmarkFilter(
             shelfKey = next.key,
             sort = _filter.value.sort,
@@ -110,9 +137,15 @@ class BookmarkLibraryViewModel : ViewModel() {
      */
     fun updateFilter(transform: (BookmarkFilter) -> BookmarkFilter): Boolean {
         val old = _filter.value
-        val next = transform(old)
+        // 补齐前只有最新一段收藏，不能让筛选或倒序把它伪装成完整结果。
+        val next = if (_mirrorState.value?.isFirstSyncDone == true) {
+            transform(old)
+        } else {
+            BookmarkFilter(shelfKey = old.shelfKey)
+        }
         if (next == old) return false
         _filter.value = next
+        loadedFilter = null
         Timber.tag(TAG).d(
             "筛选变更 sort=%s kw='%s' tags=%d 排除=%d 作者=%d 类型=%s",
             next.sort, next.keyword, next.tagNames.size, next.excludedTagNames.size,
@@ -128,8 +161,10 @@ class BookmarkLibraryViewModel : ViewModel() {
         BookmarkFilter(shelfKey = current.shelfKey, sort = current.sort, randomSeed = current.randomSeed)
     }
 
-    fun setMirrorState(state: BookmarkMirrorStateEntity?) {
+    /** 返回是否因未补齐而复位了条件；调用方据此重查列表。 */
+    fun setMirrorState(state: BookmarkMirrorStateEntity?): Boolean {
         _mirrorState.value = state
+        return state?.isFirstSyncDone != true && updateFilter { it }
     }
 
     /**

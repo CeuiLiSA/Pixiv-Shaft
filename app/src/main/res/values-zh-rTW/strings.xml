@@ -2878,6 +2878,7 @@
     <string name="bookmark_library_filter_apply">查看 %1$s 件</string>
     <string name="bookmark_library_filter_apply_pending">查看結果</string>
     <string name="bookmark_chip_oldest_first">倒序</string>
+    <string name="bookmark_chip_syncing">補齊中 · 篩選稍後可用</string>
     <string name="bookmark_chip_random">隨機</string>
     <string name="bookmark_chip_filter">篩選</string>
     <string name="bookmark_chip_filter_count">篩選 · %1$d</string>

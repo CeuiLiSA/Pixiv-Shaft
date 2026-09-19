@@ -3142,6 +3142,7 @@
     <string name="bookmark_library_filter_apply">查看 %1$s 件</string>
     <string name="bookmark_library_filter_apply_pending">查看结果</string>
     <string name="bookmark_chip_oldest_first">倒序</string>
+    <string name="bookmark_chip_syncing">补齐中 · 筛选稍后可用</string>
     <string name="bookmark_chip_random">随机</string>
     <string name="bookmark_chip_filter">筛选</string>
     <string name="bookmark_chip_filter_count">筛选 · %1$d</string>

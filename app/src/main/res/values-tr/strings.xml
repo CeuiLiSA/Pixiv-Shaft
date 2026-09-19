@@ -2880,6 +2880,7 @@
     <string name="bookmark_library_filter_apply">%1$s öğeyi göster</string>
     <string name="bookmark_library_filter_apply_pending">Sonuçları göster</string>
     <string name="bookmark_chip_oldest_first">En eski önce</string>
+    <string name="bookmark_chip_syncing">Kopyalanıyor · filtreler kapalı</string>
     <string name="bookmark_chip_random">Karıştır</string>
     <string name="bookmark_chip_filter">Filtreler</string>
     <string name="bookmark_chip_filter_count">Filtreler · %1$d</string>

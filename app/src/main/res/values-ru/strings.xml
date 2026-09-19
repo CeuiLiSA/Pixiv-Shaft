@@ -2886,6 +2886,7 @@
     <string name="bookmark_library_filter_apply">Показать %1$s</string>
     <string name="bookmark_library_filter_apply_pending">Показать результаты</string>
     <string name="bookmark_chip_oldest_first">Сначала старые</string>
+    <string name="bookmark_chip_syncing">Копирование · фильтры недоступны</string>
     <string name="bookmark_chip_random">Вперемешку</string>
     <string name="bookmark_chip_filter">Фильтры</string>
     <string name="bookmark_chip_filter_count">Фильтры · %1$d</string>

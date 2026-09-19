@@ -415,15 +415,14 @@ object TemplateRouteFactory {
                 CorpusTagDetailFragment.newInstance(
                     intent.requireString(CorpusTagsFragment.ARG_TAG),
                 )
-            // 「我的插画收藏」有两种落点：本地镜像已经完整同步过一次 → 直接进本地库
-            // （能倒序、能按标签/作者/年份筛，而服务端接口给不了这些）；还没同步完 → 老的双 tab 页。
+            // 已注册或首次在线访问 → 进入本地库，边回填边浏览；全量完成后再开放筛选。
             // 带 Params.FLAG 的 intent 是本地库自己的「原始收藏列表」入口发来的，必须原样给老页面，
             // 否则用户从库里点进去会被立刻重定向回来，两个页面互相踢皮球。
             TemplateRoute.MY_ILLUST_COLLECTION -> {
                 val wantsClassic = intent.getBooleanExtra(ceui.lisa.utils.Params.FLAG, false)
                 if (
                     !wantsClassic &&
-                        isBookmarkMirrorReady(ceui.pixiv.db.mirror.MirrorContentType.ILLUST)
+                        shouldOpenBookmarkLibrary(ceui.pixiv.db.mirror.MirrorContentType.ILLUST)
                 ) {
                     ceui.pixiv.ui.library.BookmarkLibraryFragment.newInstance()
                 } else {
@@ -436,7 +435,7 @@ object TemplateRouteFactory {
                 val wantsClassic = intent.getBooleanExtra(ceui.lisa.utils.Params.FLAG, false)
                 if (
                     !wantsClassic &&
-                        isBookmarkMirrorReady(ceui.pixiv.db.mirror.MirrorContentType.NOVEL)
+                        shouldOpenBookmarkLibrary(ceui.pixiv.db.mirror.MirrorContentType.NOVEL)
                 ) {
                     ceui.pixiv.ui.library.NovelBookmarkLibraryFragment.newInstance()
                 } else {
@@ -665,18 +664,15 @@ private fun trackOwnBookmarkShelfVisit(contentType: ceui.pixiv.db.mirror.MirrorC
 }
 
 /**
- * 当前账号在这个内容类型下的「公开收藏」在本地镜像里是不是已经完整了。
- *
- * 是一次主键点查（表里最多四行），够便宜到可以摆在导航路径上；任何异常都按「没就绪」处理， 让入口回落到原始列表 —— 导航绝不能因为一个附加功能而崩。判据用**公开**书架：收藏库
- * 默认落在它上面，悄悄收藏那半边进去以后可以就地切。
+ * 收藏库默认进入公开书架；只有用户切到悄悄收藏后，才注册私人书架。
  */
-private fun isBookmarkMirrorReady(contentType: ceui.pixiv.db.mirror.MirrorContentType): Boolean {
+private fun shouldOpenBookmarkLibrary(contentType: ceui.pixiv.db.mirror.MirrorContentType): Boolean {
     val uid = ceui.pixiv.session.SessionManager.loggedInUid
     if (uid <= 0L) return false
     return ceui.lisa.activities.Shaft.getContext()
         .appServices()
         .bookmarkMirror
-        .isShelfReady(
+        .canOpenLibrary(
             ceui.pixiv.db.mirror.BookmarkShelf(
                 ownerUid = uid,
                 contentType = contentType,

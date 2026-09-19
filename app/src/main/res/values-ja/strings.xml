@@ -2877,6 +2877,7 @@
     <string name="bookmark_library_filter_apply">%1$s 件を表示</string>
     <string name="bookmark_library_filter_apply_pending">結果を表示</string>
     <string name="bookmark_chip_oldest_first">古い順</string>
+    <string name="bookmark_chip_syncing">ミラー同期中 · 絞り込み不可</string>
     <string name="bookmark_chip_random">シャッフル</string>
     <string name="bookmark_chip_filter">絞り込み</string>
     <string name="bookmark_chip_filter_count">絞り込み · %1$d</string>

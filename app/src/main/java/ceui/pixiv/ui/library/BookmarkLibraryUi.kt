@@ -71,6 +71,7 @@ internal class BookmarkLibraryUi(
     private var randomChip: TextView? = null
     private var filterChip: TextView? = null
     private var clearChip: TextView? = null
+    private var syncingChip: TextView? = null
 
     private var pendingSearch: Runnable? = null
     private var destroyed = false
@@ -96,6 +97,8 @@ internal class BookmarkLibraryUi(
     private val context get() = fragment.requireContext()
 
     private val isIllust get() = contentType == MirrorContentType.ILLUST
+
+    private fun isShelfComplete(): Boolean = viewModel.mirrorState.value?.isFirstSyncDone == true
 
     // ─────────────────────────── 装配 ───────────────────────────
 
@@ -153,6 +156,7 @@ internal class BookmarkLibraryUi(
         randomChip = null
         filterChip = null
         clearChip = null
+        syncingChip = null
     }
 
     // ─────────────────────────── 对外 ───────────────────────────
@@ -172,6 +176,7 @@ internal class BookmarkLibraryUi(
     }
 
     fun onListCommitted(state: FeedUiState) {
+        resumeGrowingTail()
         // 认代号而不是认一个布尔标记：onListCommitted 每次提交都会来，**包括往下滑追加的页**。
         // 用布尔的话，只要有一次「置了标记但那一代刷新没提交上来」（连续快切时前一次 refresh
         // 会被后一次 cancel），残留的 true 就会被下一次追加页消费掉 —— 用户正滑到一半，
@@ -199,7 +204,7 @@ internal class BookmarkLibraryUi(
     fun emptyStateText(): CharSequence = when {
         viewModel.filter.value.hasAnyCondition ->
             context.getString(R.string.bookmark_library_empty_filtered)
-        viewModel.mirrorState.value?.isFirstSyncDone == false ->
+        !isShelfComplete() ->
             context.getString(R.string.bookmark_library_empty_syncing)
         else -> context.getString(R.string.bookmark_library_empty)
     }
@@ -291,8 +296,7 @@ internal class BookmarkLibraryUi(
         context.appServices().bookmarkMirror
             .ensureShelf(next, reason = "收藏库切换到${next.restrict.apiValue}")
         renderShelfSwitch()
-        renderChips()
-        applyMirrorState()
+        applyMirrorState(refresh = false)
         applyFilterChange()
     }
 
@@ -312,8 +316,11 @@ internal class BookmarkLibraryUi(
             override fun afterTextChanged(s: Editable?) {
                 val keyword = s?.toString().orEmpty()
                 pendingSearch?.let { input.removeCallbacks(it) }
+                pendingSearch = null
+                if (!isShelfComplete()) return
                 val task = Runnable {
-                    if (destroyed) return@Runnable
+                    pendingSearch = null
+                    if (destroyed || !isShelfComplete()) return@Runnable
                     if (viewModel.updateFilter { it.copy(keyword = keyword) }) applyFilterChange()
                 }
                 pendingSearch = task
@@ -355,6 +362,10 @@ internal class BookmarkLibraryUi(
             binding.searchInput.setText("")
             if (viewModel.clearConditions()) applyFilterChange()
         }
+        syncingChip = addChip(row, context.getString(R.string.bookmark_chip_syncing)) {}.apply {
+            isClickable = false
+            isFocusable = false
+        }
         renderChips()
     }
 
@@ -378,6 +389,19 @@ internal class BookmarkLibraryUi(
         }
 
     private fun renderChips() {
+        val complete = isShelfComplete()
+        binding.searchInput.isEnabled = complete
+        syncingChip?.visibility = if (complete) View.GONE else View.VISIBLE
+        listOfNotNull(sortChip, reverseChip, randomChip, filterChip)
+            .forEach { it.visibility = if (complete) View.VISIBLE else View.GONE }
+        if (!complete) {
+            pendingSearch?.let { binding.searchInput.removeCallbacks(it) }
+            pendingSearch = null
+            binding.searchInput.setText("")
+            binding.searchInput.clearFocus()
+            clearChip?.visibility = View.GONE
+            return
+        }
         val filter = viewModel.filter.value
         // 条件被别处清空了（筛选面板里的「清空」），搜索框要跟着空掉。
         // 只做「清空」这一个方向、且只在框里确实还有字时动手：绝不拿 filter 去覆盖用户
@@ -428,6 +452,8 @@ internal class BookmarkLibraryUi(
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.filter.collectLatest { renderChips() } }
+                // 行数变化可能发生在读页途中；加载结束后补判一次，避免最后一批永远不上屏。
+                launch { feedViewModel.uiState.collectLatest { resumeGrowingTail() } }
                 launch {
                     // 进度条上的「已 N 件」跟着镜像行数走；顺带在这里判「屏幕上的内容是不是
                     // 已经过期」——必须挂在 totalCount 上而不是 observeOwnerCount 上，因为
@@ -498,8 +524,18 @@ internal class BookmarkLibraryUi(
         val previous = lastKnownStored
         lastKnownStored = stored
 
+        // 回填只向尾部增长，优先续接，避免最后一页同步完成时整表刷新并跳回顶部。
+        if (feedViewModel.uiState.value.refresh is LoadState.Idle &&
+            viewModel.growingTailCursor(stored) != null) {
+            resumeGrowingTail()
+            return
+        }
+
         val clearedWhileShown = stored == 0 && shown > 0
-        val emptyButStored = shown == 0 && stored > 0
+        val consumed = viewModel.consumedRows
+        val emptyButStored = shown == 0 && stored > 0 &&
+            (consumed == null || consumed < stored ||
+                feedViewModel.uiState.value.refresh is LoadState.Error)
         // 库里多出了东西，而用户正停在列表顶部 → 直接让它上屏。
         // 三个条件缺一不可：
         // - **多出来**（而不是变少）：变少是取消收藏，卡片原地留着（见类文档）；
@@ -520,11 +556,34 @@ internal class BookmarkLibraryUi(
         applyFilterChange()
     }
 
+    /** 重开暂时到底的游标；用户尚未触底时只准备游标，继续由 feeds 的预取触发翻页。 */
+    private fun resumeGrowingTail() {
+        if (destroyed) return
+        val state = feedViewModel.uiState.value
+        if (!state.hasLoadedOnce || state.refresh !is LoadState.Idle ||
+            state.append !is LoadState.Idle || state.appendPaused) return
+        val stored = viewModel.totalCount.value ?: return
+        val cursor = viewModel.growingTailCursor(stored) ?: return
+        if (state.reachedEnd) {
+            // 非空游标却 reachedEnd 表示空页追载触及上限，不得绕过 feeds 的保护。
+            if (feedViewModel.currentCursor != null) return
+            feedViewModel.adoptCursor(cursor)
+        }
+        if (!listView.canScrollVertically(1)) feedViewModel.loadMore()
+    }
+
     /** 从最近一份状态列表里挑出**当前**书架那条，喂给 VM 并重画进度条。 */
-    private fun applyMirrorState() {
+    private fun applyMirrorState(refresh: Boolean = true) {
         val key = viewModel.shelf.key
-        viewModel.setMirrorState(latestStates.firstOrNull { it.shelfKey == key })
+        val wasComplete = isShelfComplete()
+        val reset = viewModel.setMirrorState(latestStates.firstOrNull { it.shelfKey == key })
+        if (reset && refresh) applyFilterChange()
         renderSyncBanner()
+        // 同步进度变化不该清掉搜索框里还在防抖的输入，只在控件可用性变化时重画。
+        if (reset || wasComplete != isShelfComplete()) renderChips()
+        if (feedViewModel.uiState.value.showEmptyState) {
+            binding.feedRoot.feedStateText.text = emptyStateText()
+        }
     }
 
     private fun renderSyncBanner() {
