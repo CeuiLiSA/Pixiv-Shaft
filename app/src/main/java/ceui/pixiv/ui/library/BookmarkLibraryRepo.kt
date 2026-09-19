@@ -9,6 +9,7 @@ import ceui.pixiv.db.mirror.BookmarkFilter
 import ceui.pixiv.db.mirror.BookmarkMirrorDao
 import ceui.pixiv.db.mirror.BookmarkMirrorEntity
 import ceui.pixiv.db.mirror.BookmarkMirrorQuery
+import ceui.pixiv.db.mirror.BookmarkShelfStats
 import ceui.pixiv.db.mirror.BookmarkTagFacet
 import ceui.pixiv.db.mirror.BookmarkYearFacet
 import kotlinx.coroutines.Dispatchers
@@ -62,7 +63,8 @@ object BookmarkLibraryRepo {
         dao.yearFacets(shelfKey)
     }
 
-    suspend fun totalRows(shelfKey: String): Int = withContext(Dispatchers.IO) { dao.countOf(shelfKey) }
+    suspend fun shelfStats(shelfKey: String): BookmarkShelfStats =
+        withContext(Dispatchers.IO) { dao.shelfStats(shelfKey) }
 
     /**
      * 行 → [Illust]。

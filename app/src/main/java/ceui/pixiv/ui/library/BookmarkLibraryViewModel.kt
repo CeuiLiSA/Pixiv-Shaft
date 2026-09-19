@@ -54,24 +54,37 @@ class BookmarkLibraryViewModel : ViewModel() {
 
     private var loadedFilter: BookmarkFilter? = null
     private var loadedOffset = 0
-    private var loadedWhileSyncing = false
+    private var loadedTailSeq: Long? = null
+    private var oldestStoredSeq: Long? = null
+    private var exhaustedAtCount: Int? = null
 
     /** SQL 已消费的行数，包含被屏蔽或无法解析的行，不能用可见卡片数代替。 */
     internal val consumedRows: Int?
         get() = loadedOffset.takeIf { loadedFilter == _filter.value }
 
-    internal fun recordLoadedPage(filter: BookmarkFilter, offset: Int, syncing: Boolean) {
+    internal fun recordLoadedPage(
+        filter: BookmarkFilter,
+        offset: Int,
+        lastBookmarkSeq: Long?,
+        exhaustedAtCount: Int?,
+    ) {
+        loadedTailSeq = lastBookmarkSeq ?: loadedTailSeq.takeIf { loadedFilter == filter && offset > 0 }
         loadedFilter = filter
         loadedOffset = offset
-        loadedWhileSyncing = syncing
+        this.exhaustedAtCount = exhaustedAtCount
     }
 
     /** 即使最后一批回填同时把状态改成已完成，也要续上读取时尚未补齐的尾页。 */
     internal fun growingTailCursor(stored: Int): String? {
         val current = _filter.value
         val consumed = consumedRows ?: return null
+        val oldest = oldestStoredSeq ?: return null
+        val tail = loadedTailSeq
         return consumed.toString().takeIf {
-            loadedWhileSyncing && stored > consumed &&
+            // 同步完成或初始状态尚未返回时，也按真实排序边界判断，不能把表头新增当成尾部回填。
+            stored > consumed && (tail == null || oldest < tail) &&
+                // 这份计数下已读到不足一页：等新计数再打开，避免过期计数驱动空页死循环。
+                stored != exhaustedAtCount &&
                 current.sort == BookmarkSort.BOOKMARK_NEWEST && !current.hasAnyCondition
         }
     }
@@ -114,6 +127,7 @@ class BookmarkLibraryViewModel : ViewModel() {
         shelf = next
         _mirrorState.value = null
         loadedFilter = null
+        oldestStoredSeq = null
         _filter.value = BookmarkFilter(
             shelfKey = next.key,
             sort = _filter.value.sort,
@@ -163,7 +177,9 @@ class BookmarkLibraryViewModel : ViewModel() {
 
     /** 返回是否因未补齐而复位了条件；调用方据此重查列表。 */
     fun setMirrorState(state: BookmarkMirrorStateEntity?): Boolean {
+        val wasComplete = _mirrorState.value?.isFirstSyncDone == true
         _mirrorState.value = state
+        if (!wasComplete && state?.isFirstSyncDone == true) refreshFacets()
         return state?.isFirstSyncDone != true && updateFilter { it }
     }
 
@@ -184,7 +200,9 @@ class BookmarkLibraryViewModel : ViewModel() {
         countJob = viewModelScope.launch {
             try {
                 _resultCount.value = BookmarkLibraryRepo.count(current)
-                _totalCount.value = BookmarkLibraryRepo.totalRows(current.shelfKey)
+                val stats = BookmarkLibraryRepo.shelfStats(current.shelfKey)
+                oldestStoredSeq = stats.oldestBookmarkSeq
+                _totalCount.value = stats.total
             } catch (ce: CancellationException) {
                 throw ce
             } catch (t: Throwable) {

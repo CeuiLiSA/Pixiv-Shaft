@@ -16,6 +16,7 @@ import ceui.lisa.databinding.FragmentBookmarkLibraryBinding
 import ceui.lisa.utils.Settings
 import ceui.loxia.Novel
 import ceui.loxia.Tag
+import ceui.loxia.User
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.db.mirror.*
 import ceui.pixiv.feeds.FeedViewModel
@@ -28,6 +29,7 @@ import com.google.gson.Gson
 import java.lang.reflect.Proxy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -107,6 +109,61 @@ class BookmarkLibraryStreamingTest {
         db.bookmarkMirrorDao().insertRows(rows)
     }
 
+    private suspend fun updateCount(library: BookmarkLibraryViewModel, expected: Int) {
+        library.onMirrorChanged()
+        ReflectionHelpers.getField<Job>(library, "countJob").join()
+        assertEquals(expected, library.totalCount.value)
+    }
+
+    @Test
+    fun `new head bookmark after sync completion is not mistaken for backfill`() = runTest(dispatcher) {
+        val shelf = shelf()
+        val library = model(shelf)
+        insert(shelf, 1..30)
+        val source = BookmarkLibraryFeedSource(library, shelf.contentType)
+        updateCount(library, 30)
+        source.load(null)
+        library.setMirrorState(state(shelf, complete = true))
+        insert(shelf, 0..0)
+        updateCount(library, 31)
+        assertNull("新增表头应走顶部刷新，不能用 offset 30 重读旧尾项", library.growingTailCursor(31))
+    }
+
+    @Test
+    fun `stale count cannot repeatedly reopen an already queried short page`() = runTest(dispatcher) {
+        val shelf = shelf()
+        val library = model(shelf)
+        insert(shelf, 1..60)
+        updateCount(library, 60)
+        // 计数已经到达 UI，随后取消收藏；下一次异步计数尚未回来。
+        for (id in 31L..60L) db.bookmarkMirrorDao().deleteTarget(shelf.ownerUid, shelf.contentType.code, id)
+        val source = BookmarkLibraryFeedSource(library, shelf.contentType)
+        assertEquals(30, source.load(null).items.size)
+        assertNull("同一份过期计数不得再次打开已查过的空尾页", library.growingTailCursor(60))
+        insert(shelf, 31..90)
+        updateCount(library, 90)
+        assertEquals("30", library.growingTailCursor(90))
+    }
+
+    @Test
+    fun `first sync completion populates filter tags and authors from the newly filled shelf`() = runTest(dispatcher) {
+        val shelf = shelf()
+        val library = model(shelf)
+        ReflectionHelpers.getField<Job>(library, "facetJob").join()
+        assertTrue(library.tagFacets.value.isEmpty())
+        val row = BookmarkMirrorMapper.fromIllust(
+            shelf,
+            Illust(id = 1L, tags = listOf(Tag(name = "landscape")), user = User(id = 42L, name = "Artist")),
+            -1L, 1, 0L,
+        )
+        db.bookmarkMirrorDao().writePage(listOf(row.row), row.tags)
+        updateCount(library, 1)
+        library.setMirrorState(state(shelf, complete = true))
+        ReflectionHelpers.getField<Job>(library, "facetJob").join()
+        assertEquals(1, library.tagFacets.value.size)
+        assertEquals(1, library.authorFacets.value.size)
+    }
+
     @Test
     fun `short filtered pages resume at SQL offset including the final sync batch`() = runTest(dispatcher) {
         for (type in MirrorContentType.entries) {
@@ -115,6 +172,7 @@ class BookmarkLibraryStreamingTest {
             val source = BookmarkLibraryFeedSource(library, type)
             insert(shelf, 1..29, hidden = true)
             insert(shelf, 30..30)
+            updateCount(library, 30)
             val first = source.load(null)
             assertEquals(listOf(30L), first.items.map { it.feedKey })
             assertNull(first.nextCursor)
@@ -123,6 +181,7 @@ class BookmarkLibraryStreamingTest {
 
             insert(shelf, 31..45)
             library.setMirrorState(state(shelf, complete = true))
+            updateCount(library, 45)
             assertEquals("30", library.growingTailCursor(45))
             val tail = source.load(library.growingTailCursor(45))
             assertEquals((31L..45L).toList(), tail.items.map { it.feedKey })
@@ -136,13 +195,16 @@ class BookmarkLibraryStreamingTest {
         val shelf = shelf()
         val library = model(shelf)
         val source = BookmarkLibraryFeedSource(library, shelf.contentType)
+        updateCount(library, 0)
         assertTrue(source.load(null).items.isEmpty())
         assertNull(library.growingTailCursor(0))
         insert(shelf, 1..30, hidden = true)
+        updateCount(library, 30)
         assertEquals("0", library.growingTailCursor(30))
         assertTrue(source.load("0").items.isEmpty())
         assertNull(library.growingTailCursor(30))
         insert(shelf, 31..31)
+        updateCount(library, 31)
         assertEquals("30", library.growingTailCursor(31))
         assertEquals(31L, source.load("30").items.single().feedKey)
     }

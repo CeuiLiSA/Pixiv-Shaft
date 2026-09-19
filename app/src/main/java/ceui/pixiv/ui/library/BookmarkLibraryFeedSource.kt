@@ -61,7 +61,7 @@ class BookmarkLibraryFeedSource(
     override suspend fun load(cursor: String?): FeedPage<String> {
         val offset = cursor?.toIntOrNull() ?: 0
         val filter = viewModel.filter.value
-        val syncing = viewModel.mirrorState.value?.isFirstSyncDone != true
+        val knownCount = viewModel.totalCount.value
         if (filter.shelfKey.isEmpty()) {
             // VM 还没 bind（理论上不会：Fragment 在 onViewCreated 里先 bind）。
             // 与其抛，不如给一页空的：页面会显示空态而不是错误态。
@@ -102,7 +102,10 @@ class BookmarkLibraryFeedSource(
         // 中间夹着几条反序列化失败的坏行时，用条目数会提前判定到底，把后面的收藏全吞掉。
         val nextCursor = if (rows.size < PAGE_SIZE) null else (offset + rows.size).toString()
         // 记住原始 SQL offset，尾页落库后从这里续接，不能从过滤后的 items.size 续接。
-        viewModel.recordLoadedPage(filter, offset + rows.size, syncing)
+        viewModel.recordLoadedPage(
+            filter, offset + rows.size, rows.lastOrNull()?.bookmarkSeq,
+            exhaustedAtCount = knownCount.takeIf { rows.size < PAGE_SIZE },
+        )
         return FeedPage(items, nextCursor)
     }
 
