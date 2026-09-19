@@ -85,4 +85,5 @@ internal fun ArtworkV3Fragment.artworkUgoiraRenderer() =
             ?: return@feedRenderer
         val maxHeight = (resources.displayMetrics.heightPixels * 0.7f).toInt()
         cell.binding.root.bind(viewLifecycleOwner, illust, maxHeight)
+        cell.binding.root.setOnClickListener { openUgoiraViewer(it, illust) }
     }
