@@ -261,7 +261,11 @@ class V3TagFlowView @JvmOverloads constructor(
         lastSignature = sig
         val grew = pairs.size > prevCount
 
-        removeAllViews()
+        // 编辑器保持挂载，直接保留焦点、选区与输入法 composing 状态（#1118）。
+        // 只重建标签；焦点仍在不代表键盘可见，不能在这里强行 showSoftInput。
+        for (i in childCount - 1 downTo 0) {
+            if (!showRemoveIcon || getChildAt(i) !== _editor) removeViewAt(i)
+        }
         val density = context.resources.displayMetrics.density
         val tagBgState = palette.tagLockedBg(999f * density).constantState
 
@@ -432,8 +436,13 @@ class V3TagFlowView @JvmOverloads constructor(
 
         if (showRemoveIcon) {
             val ed = ensureEditor()
-            (ed.parent as? ViewGroup)?.removeView(ed)
-            addView(ed)
+            if (ed.parent === this) {
+                // 新标签追加在后面，将编辑器移到末尾即可，无需 detach/attach。
+                bringChildToFront(ed)
+            } else {
+                (ed.parent as? ViewGroup)?.removeView(ed)
+                addView(ed)
+            }
         }
 
         // 新追加 chip 时把外层 HSV 滚到末尾，不让新 commit 的 chip 躲到屏幕外。
