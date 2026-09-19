@@ -1,11 +1,24 @@
 package ceui.pixiv.ui.discovery
 
+import androidx.lifecycle.ViewModelStore
 import ceui.pixiv.api.PixivWebApi
+import ceui.pixiv.feeds.FeedUiState
+import ceui.pixiv.feeds.FeedViewModel
+import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.utils.isFullDetail
 import java.io.IOException
+import java.util.concurrent.Executors
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.yield
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
@@ -15,17 +28,26 @@ import org.junit.Test
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class WebDiscoverySourceTest {
     private lateinit var server: MockWebServer
     private lateinit var api: PixivWebApi
+    private val viewModelStore = ViewModelStore()
+    private val mainDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
     @Before fun setUp() {
+        Dispatchers.setMain(mainDispatcher)
         server = MockWebServer().apply { start() }
         api = Retrofit.Builder().baseUrl(server.url("/"))
             .addConverterFactory(GsonConverterFactory.create()).build().create(PixivWebApi::class.java)
     }
 
-    @After fun tearDown() { server.shutdown() }
+    @After fun tearDown() {
+        runBlocking(mainDispatcher) { viewModelStore.clear() }
+        Dispatchers.resetMain()
+        mainDispatcher.close()
+        server.shutdown()
+    }
 
     private fun source(mode: WebDiscoveryMode = WebDiscoveryMode.ALL, loggedIn: Boolean = true) =
         WebDiscoverySource(api, mode, { loggedIn }) { IllustFeedItem(it) }
@@ -40,6 +62,66 @@ class WebDiscoverySourceTest {
     private fun enqueue(vararg works: String) {
         server.enqueue(MockResponse().setHeader("Content-Type", "application/json")
             .setBody("""{"error":false,"body":{"thumbnails":{"illust":[${works.joinToString(",")}]}}}"""))
+    }
+
+    private fun feed(mode: WebDiscoveryMode = WebDiscoveryMode.ALL) =
+        FeedViewModel(source(mode), autoLoad = false).also {
+            viewModelStore.put("discovery", it)
+        }
+
+    private suspend fun FeedViewModel<String>.awaitLoaded(): FeedUiState = withTimeout(10_000) {
+        // VM 和测试操作在同一线程排队；先让新请求发出 Loading，再等其终态。
+        yield()
+        uiState.first {
+            it.hasLoadedOnce && it.refresh !is LoadState.Loading && it.append !is LoadState.Loading
+        }.also {
+            assertEquals(LoadState.Idle, it.refresh)
+            assertEquals(LoadState.Idle, it.append)
+        }
+    }
+
+    @Test fun `scroll loads new works across short overlapping and duplicate discovery batches`() = runBlocking(mainDispatcher) {
+        enqueue(artwork(1), artwork(2))
+        enqueue(artwork(2), artwork(3))
+        enqueue(artwork(3), artwork(2))
+        enqueue(artwork(4))
+        val feed = feed()
+        feed.ensureLoaded()
+        assertEquals(listOf(1L, 2L), feed.awaitLoaded().items.map { it.feedKey })
+
+        feed.loadMore()
+        assertEquals(listOf(1L, 2L, 3L), feed.awaitLoaded().items.map { it.feedKey })
+        feed.loadMore()
+        val appended = feed.awaitLoaded()
+        assertEquals(listOf(1L, 2L, 3L, 4L), appended.items.map { it.feedKey })
+        assertFalse(appended.reachedEnd)
+        assertFalse(appended.appendPaused)
+        assertEquals(4, server.requestCount)
+        repeat(4) {
+            val url = server.takeRequest().requestUrl!!
+            assertEquals("/ajax/discovery/artworks", url.encodedPath)
+            assertEquals(setOf("mode", "limit"), url.queryParameterNames)
+            assertEquals("all", url.queryParameter("mode"))
+        }
+    }
+
+    @Test fun `age filtering does not strand the first screen or later scrolling on empty batches`() = runBlocking(mainDispatcher) {
+        enqueue(artwork(1, 1))
+        enqueue(artwork(2))
+        enqueue(artwork(3, 2))
+        enqueue(artwork(4))
+        val feed = feed(WebDiscoveryMode.SAFE)
+        feed.ensureLoaded()
+        assertEquals(listOf(2L), feed.awaitLoaded().items.map { it.feedKey })
+
+        feed.loadMore()
+        val appended = feed.awaitLoaded()
+        assertEquals(listOf(2L, 4L), appended.items.map { it.feedKey })
+        assertFalse(appended.reachedEnd)
+        assertEquals(4, server.requestCount)
+        repeat(4) {
+            assertEquals("safe", server.takeRequest().requestUrl!!.queryParameter("mode"))
+        }
     }
 
     @Test fun `short batches continue requesting the official source without page parameters`() = runBlocking {
