@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 data class MirrorIdSeq(val targetId: Long, val bookmarkSeq: Long)
 
 /** 同一次读取中的行数与最旧收藏序号，用于区分表头新增和尾部回填。 */
-data class BookmarkShelfStats(val total: Int, val oldestBookmarkSeq: Long?)
+data class BookmarkShelfStats(val total: Int, val oldestBookmarkSeq: Long?, val newestBookmarkSeq: Long?)
 
 /**
  * 收藏镜像的读写口。
@@ -116,8 +116,12 @@ interface BookmarkMirrorDao {
     @Query("SELECT COUNT(*) FROM bookmark_mirror_table WHERE shelfKey = :shelfKey")
     fun countOf(shelfKey: String): Int
 
-    @Query("SELECT COUNT(*) AS total, MIN(bookmarkSeq) AS oldestBookmarkSeq FROM bookmark_mirror_table WHERE shelfKey = :shelfKey")
+    @Query("SELECT COUNT(*) AS total, MIN(bookmarkSeq) AS oldestBookmarkSeq, MAX(bookmarkSeq) AS newestBookmarkSeq FROM bookmark_mirror_table WHERE shelfKey = :shelfKey")
     fun shelfStats(shelfKey: String): BookmarkShelfStats
+
+    /** 默认顺序的续页锚定收藏序号，前面新增 / 删除行不会使下一页漂移。 */
+    @Query("SELECT * FROM bookmark_mirror_table WHERE shelfKey = :shelfKey AND bookmarkSeq < :afterSeq ORDER BY bookmarkSeq DESC LIMIT :limit")
+    fun rowsAfter(shelfKey: String, afterSeq: Long, limit: Int): List<BookmarkMirrorEntity>
 
     @Query("SELECT COUNT(*) FROM bookmark_mirror_table WHERE shelfKey = :shelfKey")
     fun observeCount(shelfKey: String): Flow<Int>

@@ -33,10 +33,15 @@ object BookmarkLibraryRepo {
     private val dao: BookmarkMirrorDao
         get() = AppDatabase.getAppDatabase(Shaft.getContext()).bookmarkMirrorDao()
 
-    suspend fun page(filter: BookmarkFilter, limit: Int, offset: Int): List<BookmarkMirrorEntity> =
+    suspend fun page(filter: BookmarkFilter, limit: Int, offset: Int, afterSeq: Long? = null): List<BookmarkMirrorEntity> =
         withContext(Dispatchers.IO) {
             val startedAt = System.nanoTime()
-            val rows = dao.rawRows(BookmarkMirrorQuery.rows(filter, limit, offset))
+            val rows = if (afterSeq != null) {
+                check(filter.sort == ceui.pixiv.db.mirror.BookmarkSort.BOOKMARK_NEWEST && !filter.hasAnyCondition)
+                dao.rowsAfter(filter.shelfKey, afterSeq, limit)
+            } else {
+                dao.rawRows(BookmarkMirrorQuery.rows(filter, limit, offset))
+            }
             Timber.tag(TAG).d(
                 "查询 offset=%d limit=%d sort=%s → %d 行，耗时 %dms",
                 offset, limit, filter.sort, rows.size, (System.nanoTime() - startedAt) / 1_000_000,

@@ -6,6 +6,7 @@ import ceui.pixiv.db.mirror.BookmarkAuthorFacet
 import ceui.pixiv.db.mirror.BookmarkFilter
 import ceui.pixiv.db.mirror.BookmarkMirrorStateEntity
 import ceui.pixiv.db.mirror.BookmarkShelf
+import ceui.pixiv.db.mirror.BookmarkShelfStats
 import ceui.pixiv.db.mirror.BookmarkSort
 import ceui.pixiv.db.mirror.BookmarkTagFacet
 import ceui.pixiv.db.mirror.BookmarkYearFacet
@@ -44,9 +45,9 @@ class BookmarkLibraryViewModel : ViewModel() {
     private val _resultCount = MutableStateFlow<Int?>(null)
     val resultCount: StateFlow<Int?> = _resultCount.asStateFlow()
 
-    /** 这个书架本地一共镜像了多少件（不受筛选影响）。 */
-    private val _totalCount = MutableStateFlow<Int?>(null)
-    val totalCount: StateFlow<Int?> = _totalCount.asStateFlow()
+    /** 行数与首尾边界一起发射：取消旧收藏 + 回填新页可能恰好不改变总数。 */
+    private val _shelfStats = MutableStateFlow<BookmarkShelfStats?>(null)
+    val shelfStats: StateFlow<BookmarkShelfStats?> = _shelfStats.asStateFlow()
 
     /** 后台镜像的同步状态（进度条 / 「还在补齐」提示）。 */
     private val _mirrorState = MutableStateFlow<BookmarkMirrorStateEntity?>(null)
@@ -55,8 +56,9 @@ class BookmarkLibraryViewModel : ViewModel() {
     private var loadedFilter: BookmarkFilter? = null
     private var loadedOffset = 0
     private var loadedTailSeq: Long? = null
-    private var oldestStoredSeq: Long? = null
-    private var exhaustedAtCount: Int? = null
+    private var loadedHeadSeq: Long? = null
+    private var headCheckedAt: BookmarkShelfStats? = null
+    private var exhaustedAt: BookmarkShelfStats? = null
 
     /** SQL 已消费的行数，包含被屏蔽或无法解析的行，不能用可见卡片数代替。 */
     internal val consumedRows: Int?
@@ -66,25 +68,43 @@ class BookmarkLibraryViewModel : ViewModel() {
         filter: BookmarkFilter,
         offset: Int,
         lastBookmarkSeq: Long?,
-        exhaustedAtCount: Int?,
+        firstBookmarkSeq: Long?,
+        firstPage: Boolean,
+        queriedStats: BookmarkShelfStats?,
+        exhaustedAt: BookmarkShelfStats?,
     ) {
+        if (firstPage || loadedFilter != filter) {
+            loadedHeadSeq = null
+            headCheckedAt = queriedStats
+        }
+        if (loadedHeadSeq == null) loadedHeadSeq = firstBookmarkSeq
         loadedTailSeq = lastBookmarkSeq ?: loadedTailSeq.takeIf { loadedFilter == filter && offset > 0 }
         loadedFilter = filter
         loadedOffset = offset
-        this.exhaustedAtCount = exhaustedAtCount
+        this.exhaustedAt = exhaustedAt
     }
 
+    /** 未读旧页不代表只有尾部回填；表头新增应在用户停在顶部时刷新。 */
+    internal val hasNewHead: Boolean
+        get() {
+            if (consumedRows == null || _filter.value.sort != BookmarkSort.BOOKMARK_NEWEST) return false
+            val head = loadedHeadSeq ?: return false
+            val stats = _shelfStats.value ?: return false
+            return stats != headCheckedAt && (stats.newestBookmarkSeq ?: return false) > head
+        }
+
     /** 即使最后一批回填同时把状态改成已完成，也要续上读取时尚未补齐的尾页。 */
-    internal fun growingTailCursor(stored: Int): String? {
+    internal fun growingTailCursor(): String? {
         val current = _filter.value
         val consumed = consumedRows ?: return null
-        val oldest = oldestStoredSeq ?: return null
+        val stats = _shelfStats.value ?: return null
+        val oldest = stats.oldestBookmarkSeq ?: return null
         val tail = loadedTailSeq
-        return consumed.toString().takeIf {
+        return BookmarkLibraryCursor(consumed, tail).toString().takeIf {
             // 同步完成或初始状态尚未返回时，也按真实排序边界判断，不能把表头新增当成尾部回填。
-            stored > consumed && (tail == null || oldest < tail) &&
-                // 这份计数下已读到不足一页：等新计数再打开，避免过期计数驱动空页死循环。
-                stored != exhaustedAtCount &&
+            (tail == null || oldest < tail) &&
+                // 相同首尾边界下已读到不足一页：等存储快照变化，避免过期统计驱动空页死循环。
+                stats != exhaustedAt &&
                 current.sort == BookmarkSort.BOOKMARK_NEWEST && !current.hasAnyCondition
         }
     }
@@ -127,7 +147,6 @@ class BookmarkLibraryViewModel : ViewModel() {
         shelf = next
         _mirrorState.value = null
         loadedFilter = null
-        oldestStoredSeq = null
         _filter.value = BookmarkFilter(
             shelfKey = next.key,
             sort = _filter.value.sort,
@@ -135,7 +154,7 @@ class BookmarkLibraryViewModel : ViewModel() {
         )
         Timber.tag(TAG).d("切换到书架 %s", next.label)
         _resultCount.value = null
-        _totalCount.value = null
+        _shelfStats.value = null
         _tagFacets.value = emptyList()
         _authorFacets.value = emptyList()
         _yearFacets.value = emptyList()
@@ -200,9 +219,7 @@ class BookmarkLibraryViewModel : ViewModel() {
         countJob = viewModelScope.launch {
             try {
                 _resultCount.value = BookmarkLibraryRepo.count(current)
-                val stats = BookmarkLibraryRepo.shelfStats(current.shelfKey)
-                oldestStoredSeq = stats.oldestBookmarkSeq
-                _totalCount.value = stats.total
+                _shelfStats.value = BookmarkLibraryRepo.shelfStats(current.shelfKey)
             } catch (ce: CancellationException) {
                 throw ce
             } catch (t: Throwable) {

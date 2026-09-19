@@ -269,7 +269,7 @@ internal class BookmarkLibraryUi(
         context.appServices().bookmarkMirror.rebuildShelf(shelf)
         // **刻意不在这里刷新**：清空发生在 rebuildShelf 自己的协程里，这里立刻刷只会
         // 读到清空前的数据（真机复现过：清空 2 行之后 2ms，那次查询读到的还是 2 行）。
-        // 交给 [refreshIfStale] —— 清空落库后 totalCount 会掉到 0，它自然会把屏幕对齐，
+        // 交给 [refreshIfStale] —— 清空落库后统计中的行数会掉到 0，它自然会把屏幕对齐，
         // 回填补进来之后再对齐一次。少一次抢跑的刷新，也就少一个需要兜的时序。
     }
 
@@ -456,9 +456,9 @@ internal class BookmarkLibraryUi(
                 launch { feedViewModel.uiState.collectLatest { resumeGrowingTail() } }
                 launch {
                     // 进度条上的「已 N 件」跟着镜像行数走；顺带在这里判「屏幕上的内容是不是
-                    // 已经过期」——必须挂在 totalCount 上而不是 observeOwnerCount 上，因为
-                    // 后者发射时 refreshCounts 才刚启动，读到的还是旧计数。
-                    viewModel.totalCount.collectLatest {
+                    // 已经过期」——等当前书架的统计查完再判断。观察首尾边界和行数，
+                    // 取消旧收藏与回填恰好抵消时，总数不变也要唤醒续页。
+                    viewModel.shelfStats.collectLatest {
                         renderSyncBanner()
                         refreshIfStale()
                     }
@@ -520,13 +520,15 @@ internal class BookmarkLibraryUi(
         if (feedViewModel.uiState.value.refresh is LoadState.Loading) return
         if (viewModel.filter.value.hasAnyCondition) return
         val shown = itemCount()
-        val stored = viewModel.totalCount.value ?: return
+        val stored = viewModel.shelfStats.value?.total ?: return
         val previous = lastKnownStored
         lastKnownStored = stored
 
+        if (refreshNewHeadIfNeeded()) return
+
         // 回填只向尾部增长，优先续接，避免最后一页同步完成时整表刷新并跳回顶部。
         if (feedViewModel.uiState.value.refresh is LoadState.Idle &&
-            viewModel.growingTailCursor(stored) != null) {
+            viewModel.growingTailCursor() != null) {
             resumeGrowingTail()
             return
         }
@@ -559,17 +561,27 @@ internal class BookmarkLibraryUi(
     /** 重开暂时到底的游标；用户尚未触底时只准备游标，继续由 feeds 的预取触发翻页。 */
     private fun resumeGrowingTail() {
         if (destroyed) return
+        if (refreshNewHeadIfNeeded()) return
         val state = feedViewModel.uiState.value
         if (!state.hasLoadedOnce || state.refresh !is LoadState.Idle ||
             state.append !is LoadState.Idle || state.appendPaused) return
-        val stored = viewModel.totalCount.value ?: return
-        val cursor = viewModel.growingTailCursor(stored) ?: return
+        val cursor = viewModel.growingTailCursor() ?: return
         if (state.reachedEnd) {
             // 非空游标却 reachedEnd 表示空页追载触及上限，不得绕过 feeds 的保护。
             if (feedViewModel.currentCursor != null) return
             feedViewModel.adoptCursor(cursor)
         }
         if (!listView.canScrollVertically(1)) feedViewModel.loadMore()
+    }
+
+    /** 读页途中到达的新表头也要补判；旧尾页尚未读完不能遮住这次新增。 */
+    private fun refreshNewHeadIfNeeded(): Boolean {
+        val state = feedViewModel.uiState.value
+        if (!state.hasLoadedOnce || state.refresh !is LoadState.Idle || !isShelfComplete() ||
+            viewModel.filter.value.hasAnyCondition || !viewModel.hasNewHead ||
+            listView.canScrollVertically(-1)) return false
+        applyFilterChange()
+        return true
     }
 
     /** 从最近一份状态列表里挑出**当前**书架那条，喂给 VM 并重画进度条。 */
@@ -588,7 +600,7 @@ internal class BookmarkLibraryUi(
 
     private fun renderSyncBanner() {
         val state = viewModel.mirrorState.value
-        val total = viewModel.totalCount.value ?: 0
+        val total = viewModel.shelfStats.value?.total ?: 0
         // 补齐过一次之后这条就永远不再出现 —— 「同步完成过一次，以后只维护」的界面表达。
         val syncing = state != null && !state.isFirstSyncDone
         binding.syncBanner.visibility = if (syncing) View.VISIBLE else View.GONE
