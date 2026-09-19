@@ -142,11 +142,17 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         }
         baseBind.searchTagsFlow.setShowRemoveIcon(true);
         refreshChipsUI();
+        // 点 × = 删除该 chip，并用剩余标签立即重搜。
         baseBind.searchTagsFlow.setOnTagClick(name -> {
             committedTags.remove(name);
             refreshChipsUI();
             pushKeywordFromChipsAndInput();
             triggerSearchIfNotEmpty();
+            return kotlin.Unit.INSTANCE;
+        });
+        // 点正文（非 × 区）= 还原到输入框编辑，不立刻重搜——编辑是准备动作，回车才搜。
+        baseBind.searchTagsFlow.setOnTagBodyClick(name -> {
+            editTagFromChip(name);
             return kotlin.Unit.INSTANCE;
         });
         baseBind.searchTagsFlow.setOnTagLongClick(name -> {
@@ -554,7 +560,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     /**
      * 把一个 chip 还原回输入框：移除该 chip、文本回填、聚焦并唤起键盘，最后同步 keyword。
      *
-     * 标签「编辑」动作的唯一收口，长按菜单的「编辑」项走这里。
+     * 两个入口共用：胶囊正文点击（initView 里的 onTagBodyClick）与长按菜单的「编辑」。
      * 刻意**不**发 nowGo —— 编辑是准备动作，等用户改完回车再搜。
      */
     private void editTagFromChip(String name) {
