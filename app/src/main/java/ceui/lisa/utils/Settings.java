@@ -13,6 +13,7 @@ import java.util.Map;
 
 import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
+import ceui.pixiv.cache.ImageCacheQuota;
 import ceui.pixiv.snapshot.AutoSnapshotQuota;
 /**
  * A class about all the application settings.
@@ -344,6 +345,9 @@ public class Settings {
 
     /** 试验性：自动快照总大小上限（MB）；默认等于旧硬编码 200 MB。 */
     private volatile int autoSnapshotMaxMb = AutoSnapshotQuota.DEFAULT_LIMIT_MB;
+
+    /** 图片缓存「预期上限」（MB）；只在 Glide 初始化时生效，改完需重启 App。默认 = Glide 原生 250 MB。 */
+    private volatile int imageCacheMaxMb = ImageCacheQuota.DEFAULT_LIMIT_MB;
 
     private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
 
@@ -1029,6 +1033,14 @@ public class Settings {
 
     public void setAutoSnapshotMaxMb(int autoSnapshotMaxMb) {
         this.autoSnapshotMaxMb = AutoSnapshotQuota.clampLimitMb(autoSnapshotMaxMb);
+    }
+
+    public int getImageCacheMaxMb() {
+        return ImageCacheQuota.clampLimitMb(imageCacheMaxMb);
+    }
+
+    public void setImageCacheMaxMb(int imageCacheMaxMb) {
+        this.imageCacheMaxMb = ImageCacheQuota.clampLimitMb(imageCacheMaxMb);
     }
 
     public boolean isShowOriginalPreviewImage() {

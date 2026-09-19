@@ -197,6 +197,7 @@ object SettingsCatalog {
         add(Entry(DATA, "clear_image_cache", R.string.string_101, keywords = "缓存 清理 空间 占用 图片 cache"))
         add(Entry(DATA, "clear_gif_cache", R.string.string_102, keywords = "缓存 清理 gif 动图 cache"))
         add(Entry(DATA, "clear_bulk_download_cache", R.string.clear_bulk_download_cache, keywords = "批量下载 数据库 清理 占用 瘦身 空间 cache"))
+        add(Entry(DATA, "image_cache_quota_rela", R.string.setting_image_cache_quota, keywords = "图片缓存 缓存 上限 预期 占用 空间 自动清理 淘汰 大小 cache limit size quota"))
 
         // 试验性
         // 公开聊天室横幅开关在 google(Play) 渠道不出现——认 IS_LITE

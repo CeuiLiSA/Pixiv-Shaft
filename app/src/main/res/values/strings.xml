@@ -3086,6 +3086,13 @@
     <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
     <string name="setting_auto_snapshot_quota_dialog_hint">按整数 MB 调整；拖到最右表示不限制。调小后会立即清理超出的旧自动快照</string>
     <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
+    <string name="setting_image_cache_quota">图片缓存预期上限</string>
+    <string name="setting_image_cache_quota_value">%1$d MB</string>
+    <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
+    <string name="setting_image_cache_quota_dialog_hint">重启 App 后生效，超出上限后将自动清理旧的图片缓存</string>
+    <string name="setting_image_cache_quota_range_min">100 MB</string>
+    <string name="setting_image_cache_quota_range_max">1 GB</string>
+    <string name="setting_image_cache_quota_pending">%1$s（未生效）</string>
     <string name="setting_auto_snapshot_on_illust_manga">插画/漫画自动生成快照</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">对反复浏览与长时间驻留的插画/漫画静默生成快照（试验性）</string>
 
