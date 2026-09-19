@@ -552,6 +552,52 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     }
 
     /**
+     * 把一个 chip 还原回输入框：移除该 chip、文本回填、聚焦并唤起键盘，最后同步 keyword。
+     *
+     * 标签「编辑」动作的唯一收口，长按菜单的「编辑」项走这里。
+     * 刻意**不**发 nowGo —— 编辑是准备动作，等用户改完回车再搜。
+     */
+    private void editTagFromChip(String name) {
+        commitPendingInputAsChip();
+        committedTags.remove(name);
+        refreshChipsUI();
+        EditText ed = baseBind.searchTagsFlow.getEditor();
+        if (ed != null) {
+            ed.setText(name);
+            ed.setSelection(name.length());
+            ed.requestFocus();
+            InputMethodManager imm = (InputMethodManager) mContext
+                    .getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showSoftInput(ed, InputMethodManager.SHOW_IMPLICIT);
+            }
+        }
+        pushKeywordFromChipsAndInput();
+    }
+
+    /**
+     * 把输入框里未提交的文本收口成一个 chip，避免被随后的 {@code setText} 静默吃掉。
+     *
+     * 触发场景：输入框里已经有内容（正在编辑某个标签，或者正在打字），此时又去编辑另一个
+     * 标签 —— 直接 {@code setText(name)} 会覆盖它，那段文本连同它在 keyword 里的那一份一起
+     * 消失（keyword 是「chips + 输入框文本」拼出来的），用户只看到结果变了却不知道原因。
+     *
+     * 为什么静默保留、不弹窗询问：触发频率高（输入框非空是常态）、代价低（丢的是搜索词、
+     * 不是草稿）、而且那段文本本来就已经在 keyword 里。弹窗会逼用户现场理解「清空 / 保留」
+     * 的语义，为一个随手一点的动作付这份认知成本不划算。
+     *
+     * 先归位成 chip 之后，keyword 的术语集合不变，所以不会出现「点一下标签，搜索结果莫名
+     * 变了」。内容为空、或内容已是既有 chip 时什么都不做（后者避免造出重复 chip）。
+     */
+    private void commitPendingInputAsChip() {
+        EditText ed = baseBind.searchTagsFlow.getEditor();
+        if (ed == null) return;
+        String pending = ed.getText().toString().trim();
+        if (pending.isEmpty() || committedTags.contains(pending)) return;
+        committedTags.add(pending);
+    }
+
+    /**
      * 补全浮层可见时把搜索栏钉住（不可收起），收起后恢复。
      *
      * 浮层的位置是 {@code toolbar.getBottom()} 的静态快照（见 initData 里那段 post 定位），
@@ -602,20 +648,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                         pushKeywordFromChipsAndInput();
                         triggerSearchIfNotEmpty();
                     } else if (which == 2) {
-                        committedTags.remove(name);
-                        refreshChipsUI();
-                        EditText ed = baseBind.searchTagsFlow.getEditor();
-                        if (ed != null) {
-                            ed.setText(name);
-                            ed.setSelection(name.length());
-                            ed.requestFocus();
-                            InputMethodManager imm = (InputMethodManager) mContext
-                                    .getSystemService(Context.INPUT_METHOD_SERVICE);
-                            if (imm != null) {
-                                imm.showSoftInput(ed, InputMethodManager.SHOW_IMPLICIT);
-                            }
-                        }
-                        pushKeywordFromChipsAndInput();
+                        editTagFromChip(name);
                     }
                     dialog.dismiss();
                 })
