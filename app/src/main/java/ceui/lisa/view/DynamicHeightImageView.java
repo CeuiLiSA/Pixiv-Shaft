@@ -18,10 +18,28 @@ public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatI
     private ScaleType tmpScaleType;
     private boolean fitPortraitInViewport;
     @Nullable private RecyclerView viewport;
+    private int viewportPaddingLeft;
+    private int viewportPaddingTop;
+    private int viewportPaddingRight;
+    private int viewportPaddingBottom;
     private final Runnable resizeToViewport = this::requestLayout;
     private final OnLayoutChangeListener viewportLayoutListener =
             (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-                if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
+                int paddingLeft = v.getPaddingLeft();
+                int paddingTop = v.getPaddingTop();
+                int paddingRight = v.getPaddingRight();
+                int paddingBottom = v.getPaddingBottom();
+                boolean paddingChanged = paddingLeft != viewportPaddingLeft
+                        || paddingTop != viewportPaddingTop
+                        || paddingRight != viewportPaddingRight
+                        || paddingBottom != viewportPaddingBottom;
+                viewportPaddingLeft = paddingLeft;
+                viewportPaddingTop = paddingTop;
+                viewportPaddingRight = paddingRight;
+                viewportPaddingBottom = paddingBottom;
+                boolean sizeChanged = right - left != oldRight - oldLeft
+                        || bottom - top != oldBottom - oldTop;
+                if (isWidePane(right - left) && (sizeChanged || paddingChanged)) {
                     removeCallbacks(resizeToViewport);
                     post(resizeToViewport);
                 }
@@ -43,6 +61,10 @@ public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatI
         for (ViewParent parent = getParent(); parent != null; parent = parent.getParent()) {
             if (parent instanceof RecyclerView) {
                 viewport = (RecyclerView) parent;
+                viewportPaddingLeft = viewport.getPaddingLeft();
+                viewportPaddingTop = viewport.getPaddingTop();
+                viewportPaddingRight = viewport.getPaddingRight();
+                viewportPaddingBottom = viewport.getPaddingBottom();
                 viewport.addOnLayoutChangeListener(viewportLayoutListener);
                 break;
             }
@@ -53,6 +75,13 @@ public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatI
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         updateViewport();
+        // A recycled holder can be measured while detached, when the viewport has a
+        // different height (for example after a fold or rotation). Re-request the
+        // child measurement after restoring the viewport listener so the cached
+        // measured height cannot survive the reattach.
+        if (fitPortraitInViewport && viewport != null && isWidePane(viewport.getWidth())) {
+            requestLayout();
+        }
     }
 
     @Override
@@ -60,6 +89,10 @@ public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatI
         removeCallbacks(resizeToViewport);
         if (viewport != null) viewport.removeOnLayoutChangeListener(viewportLayoutListener);
         viewport = null;
+        viewportPaddingLeft = 0;
+        viewportPaddingTop = 0;
+        viewportPaddingRight = 0;
+        viewportPaddingBottom = 0;
         super.onDetachedFromWindow();
     }
 
@@ -188,7 +221,7 @@ public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatI
             // two-pane layouts can all have a different width from the physical display.
             // Very tall artwork keeps its readable, vertically scrolling presentation.
             if (fitPortraitInViewport && viewport != null
-                    && width / getResources().getDisplayMetrics().density >= WIDE_PANE_DP
+                    && isWidePane(width)
                     && mHeightRatio > 1f && mHeightRatio < LONG_IMAGE_RATIO) {
                 int available = viewport.getHeight() - viewport.getPaddingTop() - viewport.getPaddingBottom();
                 if (available > 0) height = Math.min(height, available);
@@ -201,5 +234,9 @@ public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatI
         else {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         }
+    }
+
+    private boolean isWidePane(int widthPx) {
+        return widthPx / getResources().getDisplayMetrics().density >= WIDE_PANE_DP;
     }
 }

@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -71,6 +73,31 @@ class PortraitViewportTest {
         assertEquals(base.measuredHeight, hd.measuredHeight)
     }
 
+    @Test
+    fun `cached page uses current viewport after resizing while offscreen`() = withImages(pageCount = 3) { list, base, hd ->
+        layout(list, 800, 900)
+        assertEquals(900, base.measuredHeight)
+        list.scrollToPosition(2)
+        layout(list, 800, 900)
+        assertFalse(base.isAttachedToWindow)
+
+        layout(list, 800, 700)
+        list.scrollToPosition(0)
+        layout(list, 800, 700)
+        assertTrue(base.isAttachedToWindow)
+        assertEquals(700, base.measuredHeight)
+        assertEquals(base.measuredHeight, hd.measuredHeight)
+    }
+
+    @Test
+    fun `inset padding changes update available viewport`() = withImages { list, base, hd ->
+        layout(list, 800, 900)
+        list.setPadding(0, 0, 0, 100)
+        layout(list, 800, 900)
+        assertEquals(800, base.measuredHeight)
+        assertEquals(base.measuredHeight, hd.measuredHeight)
+    }
+
     private fun layout(list: RecyclerView, width: Int, height: Int) {
         // Keep the host's subsequent traversal from restoring its default 320dp window.
         list.layoutParams = list.layoutParams.apply {
@@ -86,7 +113,7 @@ class PortraitViewportTest {
         }
     }
 
-    private fun withImages(check: (RecyclerView, DynamicHeightImageView, DynamicHeightImageView) -> Unit) {
+    private fun withImages(pageCount: Int = 1, check: (RecyclerView, DynamicHeightImageView, DynamicHeightImageView) -> Unit) {
         val host = Robolectric.buildActivity(FragmentActivity::class.java)
         host.get().setTheme(R.style.AppTheme)
         host.setup()
@@ -103,11 +130,26 @@ class PortraitViewportTest {
             val list = RecyclerView(activity).apply {
                 layoutManager = LinearLayoutManager(activity)
                 adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-                    override fun getItemCount() = 1
+                    private var firstCreated = false
+                    override fun getItemCount() = pageCount
                     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-                        frame.layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                        val item = if (!firstCreated) {
+                            firstCreated = true
+                            frame
+                        } else {
+                            LayoutInflater.from(activity).inflate(R.layout.recy_illust_detail, parent, false).apply {
+                                for (id in listOf(R.id.illust, R.id.illust_hd)) {
+                                    findViewById<DynamicHeightImageView>(id).apply {
+                                        setHeightRatio(1.5f)
+                                        setFitPortraitInViewport(true)
+                                        visibility = View.VISIBLE
+                                    }
+                                }
+                            }
+                        }
+                        item.layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT)
-                        return object : RecyclerView.ViewHolder(frame) {}
+                        return object : RecyclerView.ViewHolder(item) {}
                     }
                     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) = Unit
                 }
