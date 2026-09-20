@@ -202,6 +202,7 @@ abstract class FeedFragment(
             onNearEnd = { if (loadMoreEnabled) feedViewModel.loadMore() },
         )
         feedAdapter = adapter
+        lastCommittedGeneration = null
 
         val layoutManager = onCreateLayoutManager()
         // 首屏骨架图：按布局挑一种（瀑布流 / 竖向小说卡），null = 本页不用骨架 → render 里走转圈圈。
@@ -382,8 +383,8 @@ abstract class FeedFragment(
      * （如新评论发出后滚回顶部高亮）在子类覆写，而不是自己拍延迟猜时机。默认 no-op。 */
     protected open fun onListCommitted(state: FeedUiState) {}
 
-    /** 上一次 render 提交过的整代代号，用于识别「这次是换了一代」。随 view 重建归零（那时 adapter 也是空的）。 */
-    private var lastRenderedGeneration: Int = 0
+    /** 当前 adapter 已完成提交的代号；重装列表时清空，首次提交保留视图恢复的滚动位置。 */
+    private var lastCommittedGeneration: Int? = null
 
     /** [installList] 记下的 itemAnimator 真值（含子类在 onListReady 里关掉动画的情形）。 */
     private var listItemAnimator: RecyclerView.ItemAnimator? = null
@@ -420,18 +421,26 @@ abstract class FeedFragment(
         listView.itemAnimator = null
         adapter.submitList(null)
         adapter.submitList(displayList) {
-            resetToTop(listView)
             // view 可能在这一帧后就销毁；listView 是捕获的强引用，post 照常跑，只是往一个已 detach
             // 的列表上设回 animator——无害且不泄漏（listView 随 view 一起回收）。
             listView.post { listView.itemAnimator = listItemAnimator }
-            afterListCommitted(state)
+            afterListCommitted(adapter, state)
         }
     }
 
     /**
-     * 两条提交路径（DiffUtil / 整代清空重填）的共同收口：先回调子类，再补一次触底预取检查。
+     * 两条提交路径的共同收口：刷新换代后回顶，再回调子类并补检触底预取。
      */
-    private fun afterListCommitted(state: FeedUiState) {
+    private fun afterListCommitted(adapter: FeedAdapter, state: FeedUiState) {
+        // 旧 view / rebuildList 换下来的 adapter 仍可能有后台 diff 在收尾。
+        if (feedAdapter !== adapter) return
+        // 头插新条目也走 DiffUtil，它会保留旧卡片的 anchor，把新内容留在屏幕外。
+        // 回顶取决于刷新换代，不取决于是否清空重填；翻页和局部修改不推进代号。
+        // 只在 commit 后记代号：后续 submitList 可能抢先提交，取消前一次的回调。
+        if (lastCommittedGeneration != null && lastCommittedGeneration != state.refreshGeneration) {
+            resetToTop(feedBinding.feedListView)
+        }
+        lastCommittedGeneration = state.refreshGeneration
         onListCommitted(state)
         rearmPaginationIfNearEnd()
     }
@@ -510,16 +519,15 @@ abstract class FeedFragment(
             else -> state.items
         }
         // 整代替换（下拉刷新 / 冷启的缓存→网络）**且新旧两代真的会撕**时才绕开 DiffUtil，
-        // 见 [FeedUiState.refreshGeneration] 和 [wouldScrambleAcrossGenerations]。
+        // 见 [FeedUiState.refreshGeneration] 和 [needsCleanSwapAcrossGenerations]。
         // adapter 还空着（首屏、旋转重建、rebuildList 换过 adapter）时没有「旧代」可撕。
-        val newGeneration = state.refreshGeneration != lastRenderedGeneration
-        lastRenderedGeneration = state.refreshGeneration
+        val newGeneration = state.refreshGeneration != lastCommittedGeneration
         if (newGeneration && adapter.itemCount > 0 && displayList.isNotEmpty() &&
             needsCleanSwapAcrossGenerations(adapter.currentList, displayList)
         ) {
             commitNewGeneration(adapter, displayList, state)
         } else {
-            adapter.submitList(displayList) { afterListCommitted(state) }
+            adapter.submitList(displayList) { afterListCommitted(adapter, state) }
         }
 
         val binding = feedBinding
