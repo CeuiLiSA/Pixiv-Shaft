@@ -31,6 +31,9 @@
             <data android:scheme="https"/>
         </intent>
         <intent>
+            <action android:name="android.intent.action.TTS_SERVICE"/>
+        </intent>
+        <intent>
             <action android:name="android.intent.action.ATTACH_DATA"/>
             <data android:mimeType="image/*"/>
         </intent>

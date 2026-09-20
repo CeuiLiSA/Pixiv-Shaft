@@ -83,9 +83,12 @@ import ceui.pixiv.ui.novel.reader.ui.SearchHitsSheet
 import ceui.pixiv.ui.novel.reader.ui.SeriesListSheet
 import ceui.pixiv.ui.novel.reader.ui.SeriesNavCallback
 import ceui.pixiv.ui.novel.reader.tts.NovelTtsController
+import ceui.pixiv.ui.novel.reader.tts.NovelTtsText
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.navigation.TemplateRoute
@@ -121,7 +124,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private var searchRegex: Boolean = false
     private var activeSelection: TextSelection? = null
     private var annotationSpans: List<HighlightSpan> = emptyList()
-    private var ttsState: String = NovelTtsController.lastState
+    private val ttsSessionId: String
+        get() = "novel:${resolveNovelId()}"
+    private var ttsState: String = NovelTtsController.playbackState.forSession(ttsSessionId)
     private var ttsReceiverRegistered = false
 
     private val requestTtsNotificationPermission = registerForActivityResult(
@@ -138,9 +143,15 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private val ttsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action != NovelTtsController.ACTION_STATE) return
-            NovelTtsController.updateState(intent)
-            ttsState = NovelTtsController.lastState
-            intent.getStringExtra(NovelTtsController.EXTRA_ERROR)?.let { Toaster.showShort(it) }
+            val sessionId = intent.getStringExtra(NovelTtsController.EXTRA_SESSION_ID)
+            val incomingState = intent.getStringExtra(NovelTtsController.EXTRA_STATE) ?: NovelTtsController.STATE_IDLE
+            // The service updates the process snapshot before sending this
+            // broadcast. Keep the receiver side-effect free so a delayed
+            // broadcast cannot roll the snapshot back to an older state.
+            ttsState = if (sessionId == ttsSessionId) incomingState else NovelTtsController.STATE_IDLE
+            if (sessionId == ttsSessionId) {
+                intent.getStringExtra(NovelTtsController.EXTRA_ERROR)?.let { Toaster.showShort(it) }
+            }
         }
     }
 
@@ -164,6 +175,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        ttsState = NovelTtsController.playbackState.forSession(ttsSessionId)
         ContextCompat.registerReceiver(
             requireContext(),
             ttsReceiver,
@@ -859,8 +871,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     private fun handleTtsAction() {
         when (ttsState) {
-            NovelTtsController.STATE_PLAYING -> NovelTtsController.pause(requireContext())
-            NovelTtsController.STATE_PAUSED -> NovelTtsController.resume(requireContext())
+            NovelTtsController.STATE_PLAYING -> NovelTtsController.pause(requireContext(), ttsSessionId)
+            NovelTtsController.STATE_PAUSED -> NovelTtsController.resume(requireContext(), ttsSessionId)
             else -> startTtsFromReader()
         }
     }
@@ -882,15 +894,30 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             return
         }
         val start = {
-            NovelTtsController.start(
-                context = appContext,
-                title = title,
-                text = text,
-                speed = ReaderSettings.ttsSpeed,
-                pitch = ReaderSettings.ttsPitch,
-                engine = ReaderSettings.ttsEngine,
-                voice = ReaderSettings.ttsVoice,
-            )
+            lifecycleScope.launch {
+                // Splitting a long local TXT can allocate thousands of short
+                // utterances; keep that work off the UI thread.
+                val segments = withContext(Dispatchers.Default) { NovelTtsText.split(text) }
+                try {
+                    NovelTtsController.start(
+                        context = appContext,
+                        sessionId = ttsSessionId,
+                        title = title,
+                        segments = segments,
+                        speed = ReaderSettings.ttsSpeed,
+                        pitch = ReaderSettings.ttsPitch,
+                        engine = ReaderSettings.ttsEngine,
+                        voice = ReaderSettings.ttsVoice,
+                    )
+                } catch (ex: IllegalStateException) {
+                    Timber.w(ex, "TTS foreground service start rejected")
+                    if (isAdded) Toaster.showShort(getString(R.string.reader_tts_init_failed))
+                } catch (ex: SecurityException) {
+                    Timber.w(ex, "TTS foreground service permission rejected")
+                    if (isAdded) Toaster.showShort(getString(R.string.reader_tts_init_failed))
+                }
+            }
+            Unit
         }
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(appContext, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -909,7 +936,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 item(getString(R.string.reader_tts_speed_value, value), R.drawable.ic_reader_settings) {
                     ReaderSettings.ttsSpeed = value
                     if (ttsState == NovelTtsController.STATE_PLAYING || ttsState == NovelTtsController.STATE_PAUSED) {
-                        NovelTtsController.setSpeed(requireContext(), value)
+                        NovelTtsController.setSpeed(requireContext(), ttsSessionId, value)
                     }
                 }
             }
