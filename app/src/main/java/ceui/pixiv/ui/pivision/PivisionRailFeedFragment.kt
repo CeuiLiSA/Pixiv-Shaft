@@ -60,6 +60,9 @@ class PivisionRailFeedFragment : FeedFragment(R.layout.fragment_pivision_rail_fe
     // SmartRefreshLayout);legacy 也只在 onFirstLoaded 开过 refresh、实际点不到。
     override val refreshEnabled: Boolean = false
 
+    // 缓存更新 / 宿主刷新后展示最新特辑，不能让 DiffUtil 把旧首卡留在原位。
+    override val resetScrollOnRefresh: Boolean = true
+
     override fun onCreateLayoutManager(): RecyclerView.LayoutManager {
         return LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
     }

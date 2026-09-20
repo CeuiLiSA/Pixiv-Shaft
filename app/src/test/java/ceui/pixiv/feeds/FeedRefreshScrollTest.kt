@@ -82,10 +82,35 @@ class FeedRefreshScrollTest {
 
     @Test
     fun `clean replacement still returns to the start`() {
-        open()
+        open(resetOnRefresh = false)
         scrollTo(4)
         refreshWith(rows(101..112))
         assertAtStart(101)
+    }
+
+    @Test
+    fun `default background refresh with unchanged data preserves the reading position`() {
+        open(resetOnRefresh = false)
+        scrollTo(4)
+        refreshWith(rows(1..12))
+        assertEquals(4, fragment.manager.findFirstVisibleItemPosition())
+    }
+
+    @Test
+    fun `default background refresh after deletion preserves the reading position`() {
+        open(resetOnRefresh = false)
+        scrollTo(4)
+        refreshWith(rows(1..12).filterNot { it.feedKey == 10 })
+        assertEquals(4, fragment.manager.findFirstVisibleItemPosition())
+    }
+
+    @Test
+    fun `default background refresh with prepends preserves the visible card`() {
+        open(resetOnRefresh = false)
+        scrollTo(4)
+        refreshWith(rows(101, 102, 103) + rows(1..12))
+        assertEquals(7, fragment.manager.findFirstVisibleItemPosition())
+        assertEquals("5", (fragment.manager.findViewByPosition(7) as TextView).text.toString())
     }
 
     @Test
@@ -124,11 +149,15 @@ class FeedRefreshScrollTest {
         assertEquals(4, fragment.manager.findFirstVisibleItemPosition())
     }
 
-    private fun open(orientation: Int = RecyclerView.HORIZONTAL, cached: Boolean = false) {
+    private fun open(
+        orientation: Int = RecyclerView.HORIZONTAL,
+        cached: Boolean = false,
+        resetOnRefresh: Boolean = true,
+    ) {
         activity = Robolectric.buildActivity(FragmentActivity::class.java)
         activity.get().setTheme(R.style.AppTheme)
         activity.setup()
-        fragment = TestFeedFragment().apply {
+        fragment = (if (resetOnRefresh) ResettingFeedFragment() else TestFeedFragment()).apply {
             this.orientation = orientation
             if (cached) source.cached = page(rows(1..12))
             else source.results.trySend(Result.success(page(rows(1..12))))
@@ -204,7 +233,11 @@ class FeedRefreshScrollTest {
         override suspend fun load(cursor: String?): FeedPage<String> = results.receive().getOrThrow()
     }
 
-    class TestFeedFragment : FeedFragment() {
+    class ResettingFeedFragment : TestFeedFragment() {
+        override val resetScrollOnRefresh = true
+    }
+
+    open class TestFeedFragment : FeedFragment() {
         val source = QueueSource()
         var orientation = RecyclerView.HORIZONTAL
         var committed: FeedUiState? = null
