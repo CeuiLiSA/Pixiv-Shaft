@@ -1180,6 +1180,7 @@
     <string name="reader_tts_stop">停止</string>
     <string name="reader_tts_empty">読み上げる本文がありません</string>
     <string name="reader_tts_init_failed">システム TTS の初期化に失敗しました</string>
+    <string name="reader_tts_language_unavailable">この言語の音声データがありません。システムの TTS 設定でインストールしてから再試行してください</string>
     <string name="reader_tts_speak_failed">システム TTS の再生に失敗しました</string>
     <string name="reader_desc_prev_chapter">前の章</string>
     <string name="reader_desc_next_chapter">次の章</string>

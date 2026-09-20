@@ -1283,6 +1283,7 @@
     <string name="reader_tts_stop">停止</string>
     <string name="reader_tts_empty">没有可朗读的正文</string>
     <string name="reader_tts_init_failed">系统 TTS 初始化失败</string>
+    <string name="reader_tts_language_unavailable">系统 TTS 缺少对应语言语音包，请在系统 TTS 设置中安装后重试</string>
     <string name="reader_tts_speak_failed">系统 TTS 播放失败</string>
     <string name="reader_desc_prev_chapter">上一章</string>
     <string name="reader_desc_next_chapter">下一章</string>

@@ -24,6 +24,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import ceui.lisa.R
 import timber.log.Timber
+import java.util.Locale
 
 /**
  * Owns platform TTS and its queue for background reading. All state mutations
@@ -43,6 +44,7 @@ class NovelTtsService : Service() {
     private var speed = 1f
     private var pitch = 1f
     private var voice: String? = null
+    private var localeTag: String? = null
     private var initialized = false
     private var destroyed = false
     private var foreground = false
@@ -113,6 +115,7 @@ class NovelTtsService : Service() {
         speed = payload.speed.coerceIn(0.5f, 2f)
         pitch = payload.pitch.coerceIn(0.5f, 2f)
         voice = payload.voice?.takeIf { it.isNotBlank() }
+        localeTag = payload.localeTag?.takeIf { it.isNotBlank() }
         state = NovelTtsController.STATE_PREPARING
         // Foreground promotion precedes initialization / focus requests (API 35+).
         try {
@@ -163,12 +166,25 @@ class NovelTtsService : Service() {
             initialized = true
             tts?.setOnUtteranceProgressListener(listener)
             tts?.setAudioAttributes(audioAttributes)
+            val requestedLocale = localeTag?.let(Locale::forLanguageTag)
+            if (requestedLocale != null) {
+                val availability = tts?.isLanguageAvailable(requestedLocale)
+                    ?: TextToSpeech.LANG_NOT_SUPPORTED
+                val setResult = tts?.setLanguage(requestedLocale) ?: TextToSpeech.ERROR
+                if (availability < TextToSpeech.LANG_AVAILABLE || setResult < 0) {
+                    finishSpeech(getString(R.string.reader_tts_language_unavailable))
+                    return
+                }
+            }
             tts?.setPitch(pitch)
             tts?.setSpeechRate(speed)
-            // Preserve the engine's configured default language/voice. The app's
-            // UI locale can differ and might not be installed in this engine.
+            // A stored voice must belong to the requested language. Otherwise a
+            // previous Chinese voice selection could override Japanese detection.
             voice?.let { requested ->
-                tts?.voices?.firstOrNull { it.name == requested }?.let { tts?.voice = it }
+                tts?.voices?.firstOrNull {
+                    it.name == requested &&
+                        (requestedLocale == null || it.locale.language == requestedLocale.language)
+                }?.let { tts?.voice = it }
             }
         } catch (ex: RuntimeException) {
             Timber.w(ex, "TTS configuration failed")

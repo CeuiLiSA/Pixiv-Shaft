@@ -897,7 +897,10 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             lifecycleScope.launch {
                 // Splitting a long local TXT can allocate thousands of short
                 // utterances; keep that work off the UI thread.
-                val segments = withContext(Dispatchers.Default) { NovelTtsText.split(text) }
+                val locale = NovelTtsText.detectLocale(text)
+                val segments = withContext(Dispatchers.Default) {
+                    NovelTtsText.split(text, NovelTtsText.maxCharsFor(locale))
+                }
                 try {
                     NovelTtsController.start(
                         context = appContext,
@@ -908,6 +911,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                         pitch = ReaderSettings.ttsPitch,
                         engine = ReaderSettings.ttsEngine,
                         voice = ReaderSettings.ttsVoice,
+                        localeTag = locale.toLanguageTag(),
                     )
                 } catch (ex: IllegalStateException) {
                     Timber.w(ex, "TTS foreground service start rejected")

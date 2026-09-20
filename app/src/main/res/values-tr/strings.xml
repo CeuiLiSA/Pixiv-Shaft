@@ -1180,6 +1180,7 @@
     <string name="reader_tts_stop">Durdur</string>
     <string name="reader_tts_empty">Okunacak metin yok</string>
     <string name="reader_tts_init_failed">Sistem TTS başlatılamadı</string>
+    <string name="reader_tts_language_unavailable">Bu dil için ses verisi bulunamadı. Sistem TTS ayarlarından yükleyip tekrar deneyin.</string>
     <string name="reader_tts_speak_failed">Sistem TTS oynatma hatası</string>
     <string name="reader_desc_prev_chapter">Önceki bölüm</string>
     <string name="reader_desc_next_chapter">Sonraki bölüm</string>

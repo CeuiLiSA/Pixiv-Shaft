@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.novel.reader.tts
 
 import ceui.pixiv.ui.novel.reader.model.ContentToken
+import java.util.Locale
 
 /**
  * Converts reader tokens to speech-safe text and keeps utterances below the
@@ -11,8 +12,22 @@ object NovelTtsText {
 
     /** Android engines commonly reject utterances above roughly 4,000 chars. */
     const val DEFAULT_MAX_CHARS = 3_500
+    /** Japanese voices sound more natural when the engine receives shorter turns. */
+    const val JAPANESE_MAX_CHARS = 1_800
 
     data class Segment(val text: String)
+
+    /** Selects a speech locale from the script instead of the app/device UI locale. */
+    fun detectLocale(text: String, fallback: Locale = Locale.getDefault()): Locale {
+        return if (text.any { it in '\u3040'..'\u309F' || it in '\u30A0'..'\u30FF' }) {
+            Locale.JAPAN
+        } else {
+            fallback
+        }
+    }
+
+    fun maxCharsFor(locale: Locale): Int =
+        if (locale.language == Locale.JAPANESE.language) JAPANESE_MAX_CHARS else DEFAULT_MAX_CHARS
 
     fun fromTokens(
         tokens: List<ContentToken>,

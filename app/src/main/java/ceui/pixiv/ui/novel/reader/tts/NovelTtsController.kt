@@ -44,9 +44,10 @@ object NovelTtsController {
         pitch: Float,
         engine: String?,
         voice: String?,
+        localeTag: String? = null,
     ) {
         val payloadId = NovelTtsPayloadStore.put(
-            NovelTtsPayloadStore.Payload(sessionId, title, segments, speed, pitch, engine, voice),
+            NovelTtsPayloadStore.Payload(sessionId, title, segments, speed, pitch, engine, voice, localeTag),
         )
         var sent = false
         try {
@@ -87,6 +88,7 @@ internal object NovelTtsPayloadStore {
         val pitch: Float,
         val engine: String?,
         val voice: String?,
+        val localeTag: String? = null,
     )
 
     private var pending: Pair<String, Payload>? = null

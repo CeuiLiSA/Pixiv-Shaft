@@ -4,6 +4,7 @@ import ceui.pixiv.ui.novel.reader.model.ContentToken
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.Locale
 
 class NovelTtsTextTest {
 
@@ -34,5 +35,21 @@ class NovelTtsTextTest {
 
         assertEquals(listOf("甲甲甲。", "乙乙乙！", "丙丙丙？丁丁丁"), parts)
         assertTrue(parts.all { it.length <= 7 })
+    }
+
+    @Test
+    fun japaneseScriptSelectsJapaneseLocaleAndShorterTurns() {
+        val locale = NovelTtsText.detectLocale("これは日本語の本文です。")
+
+        assertEquals(Locale.JAPAN, locale)
+        assertEquals(NovelTtsText.JAPANESE_MAX_CHARS, NovelTtsText.maxCharsFor(locale))
+    }
+
+    @Test
+    fun textWithoutJapaneseKanaKeepsFallbackLocale() {
+        val fallback = Locale.US
+
+        assertEquals(fallback, NovelTtsText.detectLocale("An English paragraph.", fallback))
+        assertEquals(NovelTtsText.DEFAULT_MAX_CHARS, NovelTtsText.maxCharsFor(fallback))
     }
 }

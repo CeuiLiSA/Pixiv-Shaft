@@ -1180,6 +1180,7 @@
     <string name="reader_tts_stop">Stop</string>
     <string name="reader_tts_empty">No text to read</string>
     <string name="reader_tts_init_failed">System TTS initialization failed</string>
+    <string name="reader_tts_language_unavailable">The voice data for this language is missing. Install it in system TTS settings and try again.</string>
     <string name="reader_tts_speak_failed">System TTS playback failed</string>
     <string name="reader_desc_prev_chapter">Previous chapter</string>
     <string name="reader_desc_next_chapter">Next chapter</string>

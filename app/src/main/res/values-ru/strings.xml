@@ -1180,6 +1180,7 @@
     <string name="reader_tts_stop">Остановить</string>
     <string name="reader_tts_empty">Нет текста для чтения</string>
     <string name="reader_tts_init_failed">Не удалось запустить системный TTS</string>
+    <string name="reader_tts_language_unavailable">Нет голосовых данных для этого языка. Установите их в настройках системного TTS и повторите попытку.</string>
     <string name="reader_tts_speak_failed">Ошибка воспроизведения системного TTS</string>
     <string name="reader_desc_prev_chapter">Предыдущая глава</string>
     <string name="reader_desc_next_chapter">Следующая глава</string>

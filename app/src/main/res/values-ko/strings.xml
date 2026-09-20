@@ -1180,6 +1180,7 @@
     <string name="reader_tts_stop">중지</string>
     <string name="reader_tts_empty">읽을 본문이 없습니다</string>
     <string name="reader_tts_init_failed">시스템 TTS 초기화 실패</string>
+    <string name="reader_tts_language_unavailable">이 언어의 음성 데이터가 없습니다. 시스템 TTS 설정에서 설치한 후 다시 시도하세요.</string>
     <string name="reader_tts_speak_failed">시스템 TTS 재생 실패</string>
     <string name="reader_desc_prev_chapter">이전 장</string>
     <string name="reader_desc_next_chapter">다음 장</string>
