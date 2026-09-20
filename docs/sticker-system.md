@@ -10,7 +10,7 @@
 flowchart LR
   A[打开贴纸入口] --> B[检查本地完成标记与文件]
   B -->|未就绪| C[Tokyo 获取版本和目录 JSON]
-  C --> D[COS 下载全部 4 个 ZIP]
+  C --> D[按 SHA-256 从 GitHub Release 下载全部 4 个 ZIP]
   D --> E[长度与 SHA-256 校验]
   E --> F[安全解压与逐文件 CRC 校验]
   F --> G[写入全部完成标记]
@@ -22,9 +22,42 @@ flowchart LR
 
 API 为 `https://api.pixshaft.com/f/v1/stickers-version` 和
 `https://api.pixshaft.com/f/v1/stickers?type=customized|static|animation`。
-ZIP URL 必须指向 `shaft-1300933917.cos.ap-osaka.myqcloud.com/public/stickers/`，
-下载客户端拒绝重定向。Tokyo 不存储或转发 ZIP 字节。
-`pkgList` 保持原有字段，补充 `size` 和 `sha256` 供完整性校验。
+`pkgList.url` 仍保留原 COS 地址，作为旧客户端协议与本地目录的身份字段；
+新版不会请求这个地址，而是通过 `StickerDownloadSource` 将 `pkgList.sha256` 映射到：
+
+```text
+https://github.com/CeuiLiSA/Pixiv-Shaft/releases/download/sticker-assets/<sha256>.zip
+```
+
+下载允许 GitHub 到 `release-assets.githubusercontent.com` 的 HTTPS 重定向，每一跳均检查
+域名和协议；不回退到 COS。`size`、SHA-256 和解压 CRC 校验继续生效。
+Tokyo 只返回小体积 JSON，不存储或转发 ZIP 字节。
+
+目录、资源版本、磁盘 generation 和包 SHA-256 都不因换源改变，已经安装的资源直接复用；
+缺失或损坏的包从 GitHub 修复。旧版仍下载 COS，用户升级后新下载才切换到 GitHub；
+不要直接删除旧 COS 对象或把原 API 的 URL 改为 GitHub，否则旧版的域名校验会失败。
+
+## GitHub 资源发布
+
+[资源 Release](https://github.com/CeuiLiSA/Pixiv-Shaft/releases/tag/sticker-assets)
+存放四份原始 ZIP（总计 134,101,508 字节），以及原样保留 64 位 ID 的目录快照、版本与校验清单。
+ZIP 以完整 SHA-256 命名，附件标签标明原始路径；目录快照名含内容版本摘要。
+此资源 Release 保持 pre-release 且不标记 Latest，不影响 App 的正式版更新检测。
+
+本机发布命令（需要 Python 3.11+ 和已登录的 `gh`）：
+
+```sh
+python3 scripts/publish_sticker_assets.py \
+  /path/to/fived-stickers /path/to/pixshaft-api/resources/sticker \
+  /tmp/sticker-release --publish
+```
+
+不加 `--publish` 时只在本地准备文件。脚本先核对目录引用、ZIP 大小、SHA-256 和 CRC，
+再创建草稿、上传并核对 GitHub 服务端摘要，发布后验证全部附件的匿名完整下载。
+重跑会跳过摘要相同的已有附件，拒绝覆盖不同内容，整个流程不读取或写入 COS。
+将来更新资源时，先把新增 SHA-256 对应的 ZIP 发布到此 Release 并验证，再部署新目录；
+旧 ZIP 保留，保证持有旧目录的客户端仍可修复资源。若启用 GitHub immutable releases，
+需要为新资源另建 Release 并同步调整客户端的 `RELEASE_BASE`，不能覆盖已有资源。
 
 ## 三层标记
 

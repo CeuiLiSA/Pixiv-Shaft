@@ -57,8 +57,7 @@ class StickerRepository(private val app: Application) {
     // 两个 OkHttpClient 和上面那个 Gson 都不能被拽进冷启动路径。
     private val api by lazy { MediaHttpTransport.apiClient.newBuilder().callTimeout(30, TimeUnit.SECONDS).build() }
     private val storage by lazy {
-        MediaHttpTransport.storageClient.newBuilder()
-            .followRedirects(false).followSslRedirects(false).callTimeout(10, TimeUnit.MINUTES).build()
+        StickerDownloadSource.client(MediaHttpTransport.storageClient)
     }
 
     /**
@@ -203,8 +202,8 @@ class StickerRepository(private val app: Application) {
     }
 
     private fun download(pkg: StickerPackage, destination: File, progress: (Long) -> Unit) {
-        // Catalog.validate() has already restricted this URL to the public COS prefix.
-        storage.newCall(Request.Builder().url(pkg.url).build()).execute().use { response ->
+        // Keep legacy catalogs/cache identities intact, but never request their COS URLs.
+        storage.newCall(Request.Builder().url(StickerDownloadSource.url(pkg)).build()).execute().use { response ->
             if (!response.isSuccessful) throw IOException("Sticker ZIP HTTP ${response.code}")
             val body = response.body ?: throw IOException("Empty sticker ZIP")
             if (body.contentLength() >= 0 && body.contentLength() != pkg.size) throw IOException("Sticker ZIP length mismatch")

@@ -86,6 +86,26 @@ class StickerStoreTest {
         assertTrue(store.hasReadyMarker(ready.generation))
     }
 
+    @Test fun `legacy COS catalog reuses installed files and repairs only missing ZIP via GitHub`() {
+        val catalog = catalog()
+        val root = folder.newFolder()
+        val store = StickerStore(root)
+        val installed = store.prepare(catalog, ::download, { _, _, _ -> })
+        assertEquals(installed.generation, store.reopen()!!.generation)
+        val missing = catalog.packages().last()
+        assertTrue(File(root, "packages/${missing.sha256}/archive.zip").delete())
+        var downloads = 0
+        val repaired = store.prepare(store.savedCatalog()!!, { pkg, target, progress ->
+            downloads++
+            assertEquals(missing.sha256, pkg.sha256)
+            assertEquals("${StickerDownloadSource.RELEASE_BASE}${missing.sha256}.zip", StickerDownloadSource.url(pkg))
+            download(pkg, target, progress)
+        }, { _, _, _ -> })
+        assertEquals(1, downloads)
+        assertEquals(installed.generation, repaired.generation)
+        assertTrue(store.isUnchanged(repaired))
+    }
+
     @Test fun `missing or corrupted extracted files are repaired locally before ready`() {
         val catalog = catalog()
         val root = folder.newFolder()

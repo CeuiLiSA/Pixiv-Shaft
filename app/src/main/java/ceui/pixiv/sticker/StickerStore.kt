@@ -63,7 +63,7 @@ class StickerStore(private val root: File, private val event: (String) -> Unit =
                 partial.delete()
                 try {
                     progress("download", completed, total)
-                    event("download_start url=${pkg.url} destination=${partial.path}")
+                    event("download_start url=${StickerDownloadSource.url(pkg)} destination=${partial.path}")
                     download(pkg, partial) { bytes -> checkCancelled(); progress("download", completed + bytes, total) }
                     check(partial.length() == pkg.size && hash(partial, checkCancelled) == pkg.sha256) { "Sticker ZIP checksum mismatch" }
                     check(partial.renameTo(zip)) { "Cannot commit sticker ZIP" }

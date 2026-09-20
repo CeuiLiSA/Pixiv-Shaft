@@ -37,7 +37,9 @@ data class StickerCatalog(val versions: StickerVersions, val packs: Map<String, 
         for (pkg in entries) {
             val uri = URI(pkg.url)
             require(uri.scheme == "https" && uri.host == COS_HOST && uri.port == -1 && uri.userInfo == null && uri.query == null && uri.fragment == null)
-            require(uri.path.startsWith("/public/stickers/") && uri.path.endsWith(".zip")) { "ZIP must be downloaded directly from COS" }
+            // This is the legacy wire/cache identity. StickerDownloadSource resolves the
+            // actual GitHub asset by checksum, including for catalogs saved by older apps.
+            require(uri.path.startsWith("/public/stickers/") && uri.path.endsWith(".zip")) { "Invalid legacy sticker package URL" }
             require(pkg.size in 1..MAX_ZIP_BYTES && pkg.sha256.matches(Regex("[a-f0-9]{64}"))) { "Missing ZIP integrity information" }
             require(pkg.path.matches(Regex("(?:emoji|sticker/animation)/(?:64|128)")))
         }
