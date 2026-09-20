@@ -2979,4 +2979,5 @@
     <string name="web_discovery_title">Web Keşfet</string>
     <string name="web_discovery_login_needed">Önerilen eserleri görmek için pixiv web sitesinde uygulamayla aynı hesapla oturum açın.</string>
     <string name="web_discovery_web_login">Web oturumu aç</string>
+    <string name="tag_menu_author_works">Bu yazarın bu etikete sahip eserleri</string>
 </resources>

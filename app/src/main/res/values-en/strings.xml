@@ -2978,4 +2978,5 @@
     <string name="web_discovery_title">Web Discovery</string>
     <string name="web_discovery_login_needed">Sign in to the pixiv website with the same account as the app to see recommended works.</string>
     <string name="web_discovery_web_login">Web sign-in</string>
+    <string name="tag_menu_author_works">Works by this author with this tag</string>
 </resources>

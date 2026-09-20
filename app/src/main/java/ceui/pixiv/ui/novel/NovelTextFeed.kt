@@ -553,6 +553,15 @@ fun novelTagsRenderer(
         val b = cell.binding
         slots.getOrPut(cell) { CellObserverSlot(lifecycleOwner) }
             .rebind(ObjectPool.get<Novel>(cell.item.novelId)) { novel ->
+                b.tagsFlow.onViewAuthorWorks = novel?.user?.id?.takeIf { it > 0L }?.let { userId ->
+                    { name ->
+                        b.root.context.startActivity(Intent(b.root.context, TemplateActivity::class.java).apply {
+                            putExtra(Params.USER_ID, userId)
+                            putExtra(Params.KEY_WORD, name)
+                            putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.USER_NOVELS_BY_TAG.key)
+                        })
+                    }
+                }
                 b.tagsFlow.setTags(novel?.tags.orEmpty())
             }
     }

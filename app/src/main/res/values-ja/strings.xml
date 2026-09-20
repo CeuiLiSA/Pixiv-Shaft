@@ -2976,4 +2976,5 @@
     <string name="web_discovery_title">ウェブ版ディスカバリー</string>
     <string name="web_discovery_login_needed">おすすめ作品を見るには、アプリと同じアカウントで pixiv のウェブサイトにログインしてください。</string>
     <string name="web_discovery_web_login">ウェブログイン</string>
+    <string name="tag_menu_author_works">この作者の同じタグの作品</string>
 </resources>

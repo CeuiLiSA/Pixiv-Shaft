@@ -2985,4 +2985,5 @@
     <string name="web_discovery_title">Находки pixiv</string>
     <string name="web_discovery_login_needed">Чтобы увидеть рекомендованные работы, войдите на сайт pixiv с той же учётной записью, что и в приложении.</string>
     <string name="web_discovery_web_login">Вход на сайт</string>
+    <string name="tag_menu_author_works">Работы этого автора с этим тегом</string>
 </resources>

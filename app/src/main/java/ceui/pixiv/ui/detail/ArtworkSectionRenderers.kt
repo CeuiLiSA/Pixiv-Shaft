@@ -439,6 +439,7 @@ internal fun ArtworkV3Fragment.tagsRenderer() =
             b.tagsFlow.overflowActionText = null
             b.tagsFlow.onOverflowClick = null
             b.tagsFlow.onPinTag = null
+            b.tagsFlow.onViewAuthorWorks = null
             b.tagsFlow.onTagClick = {
                 Common.showToast(getString(R.string.snapshot_unsupported_toast))
             }
@@ -446,6 +447,22 @@ internal fun ArtworkV3Fragment.tagsRenderer() =
                 Common.copy(requireContext(), name)
             }
         } else {
+            b.tagsFlow.onTagClick = null
+            b.tagsFlow.onTagLongClick = null
+            // 作者与类型来自当前作品；进入详情、展开菜单均不请求标签统计（#1102）。
+            b.tagsFlow.onViewAuthorWorks = illust.user?.id?.takeIf { it > 0L }?.let { userId ->
+                { name ->
+                    startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
+                        putExtra(Params.USER_ID, userId)
+                        putExtra(Params.KEY_WORD, name)
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, if (illust.isManga()) {
+                            TemplateRoute.USER_MANGA_BY_TAG.key
+                        } else {
+                            TemplateRoute.USER_ILLUSTS_BY_TAG.key
+                        })
+                    })
+                }
+            }
             b.tagsFlow.overflowActionIcon = R.drawable.ic_add_black_24dp
             b.tagsFlow.overflowActionText = getString(R.string.work_tag_edit_entry)
             b.tagsFlow.onOverflowClick = {

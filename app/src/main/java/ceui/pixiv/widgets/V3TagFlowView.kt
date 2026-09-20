@@ -107,6 +107,9 @@ class V3TagFlowView @JvmOverloads constructor(
      */
     var onPinTag: ((name: String, translated: String?, newPinned: Boolean) -> Unit)? = null
 
+    /** 详情页提供作者筛选入口；只在选中菜单项时调用，不预取作品或数量（#1102）。 */
+    var onViewAuthorWorks: ((name: String) -> Unit)? = null
+
     /** Show a trailing × icon on each chip — for editable/removable chip rows. */
     var showRemoveIcon: Boolean = false
         set(value) {
@@ -481,7 +484,7 @@ class V3TagFlowView @JvmOverloads constructor(
 
     private fun showTagActionMenu(name: String, translated: String?) {
         val hasTranslation = !translated.isNullOrBlank()
-        // 顺序：原文 / 译文（可选）/ 翻译 / 固定（host 提供 onPinTag 才有）/ 添加为同义词 / 屏蔽
+        // 顺序：原文 / 译文（可选）/ 翻译 / 固定 / 添加为同义词 / 屏蔽 / 该作者相关作品
         val labels = mutableListOf<String>()
         val actions = mutableListOf<() -> Unit>()
         labels.add(context.getString(R.string.v3_tag_menu_copy_original))
@@ -529,6 +532,11 @@ class V3TagFlowView @JvmOverloads constructor(
         } else {
             labels.add(context.getString(R.string.v3_tag_menu_mute))
             actions.add { muteTag(name, translated) }
+        }
+
+        onViewAuthorWorks?.let { handler ->
+            labels.add(context.getString(R.string.tag_menu_author_works))
+            actions.add { handler(name) }
         }
 
         // 标题写明按中的是哪个 tag（issue #1003：列表卡片的 chip 小，容易误按）。

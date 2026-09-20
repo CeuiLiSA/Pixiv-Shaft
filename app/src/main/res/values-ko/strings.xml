@@ -2976,4 +2976,5 @@
     <string name="web_discovery_title">웹 발견</string>
     <string name="web_discovery_login_needed">추천 작품을 보려면 앱과 동일한 계정으로 pixiv 웹사이트에 로그인하세요.</string>
     <string name="web_discovery_web_login">웹 로그인</string>
+    <string name="tag_menu_author_works">이 작가의 같은 태그 작품</string>
 </resources>

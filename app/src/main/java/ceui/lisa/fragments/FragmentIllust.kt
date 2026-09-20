@@ -94,7 +94,7 @@ import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import ceui.pixiv.witstudio.dialog.WitDialog.CheckableDialogBuilder
-import ceui.pixiv.witstudio.dialog.WitDialog.MessageDialogBuilder
+import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
 import com.zhy.view.flowlayout.FlowLayout
 import com.zhy.view.flowlayout.TagAdapter
 import kotlinx.coroutines.Dispatchers
@@ -662,9 +662,9 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             val searchEntity =
                 PixivOperate.getSearchHistory(tagName, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD)
             val isPinned = searchEntity != null && searchEntity.isPinned
-            val tagMenuBuilder = MessageDialogBuilder(mContext)
+            val tagMenuBuilder = MenuDialogBuilder(mContext)
                 .setTitle(tagName)
-                .addAction(if (isPinned) getString(R.string.string_443) else getString(R.string.string_442)) { dialog, index ->
+                .addItem(if (isPinned) getString(R.string.string_443) else getString(R.string.string_442)) { dialog, index ->
                     val nextPinned = !isPinned
                     val previewJson =
                         if (nextPinned) buildPinnedTagPreviewJson(tagBean, illust) else null
@@ -674,20 +674,34 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                     Common.showToast(R.string.operate_success)
                     dialog.dismiss()
                 }
-                .addAction(getString(R.string.string_120)) { dialog, index ->
+                .addItem(getString(R.string.string_120)) { dialog, index ->
                     Common.copy(mContext, tagName)
                     dialog.dismiss()
                 }
                 // 翻译原文（#1054），与 V3 长按菜单同一入口
-                .addAction(getString(R.string.string_translate_caption)) { dialog, index ->
+                .addItem(getString(R.string.string_translate_caption)) { dialog, index ->
                     translateTag(mContext, viewLifecycleOwner.lifecycleScope, tagName)
                     dialog.dismiss()
                 }
             // 同义词词典（issue #904）功能总开关：默认关闭，关闭时菜单与本功能存在之前完全一致
             if (Shaft.sSettings.isSynonymDictEnabled) {
-                tagMenuBuilder.addAction(getString(R.string.synonym_add_as_synonym)) { dialog, index ->
+                tagMenuBuilder.addItem(getString(R.string.synonym_add_as_synonym)) { dialog, index ->
                     // 长按标签加入词典，备注自动填译文
                     SynonymOperate.showAddAsSynonymDialog(mContext, tagName, tagBean.translated_name)
+                    dialog.dismiss()
+                }
+            }
+            illust.user?.id?.takeIf { it > 0L }?.let { userId ->
+                tagMenuBuilder.addItem(getString(R.string.tag_menu_author_works)) { dialog, _ ->
+                    startActivity(Intent(mContext, TemplateActivity::class.java).apply {
+                        putExtra(Params.USER_ID, userId)
+                        putExtra(Params.KEY_WORD, tagName)
+                        putExtra(TemplateActivity.EXTRA_FRAGMENT, if (illust.isManga()) {
+                            TemplateRoute.USER_MANGA_BY_TAG.key
+                        } else {
+                            TemplateRoute.USER_ILLUSTS_BY_TAG.key
+                        })
+                    })
                     dialog.dismiss()
                 }
             }
