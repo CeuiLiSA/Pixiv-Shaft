@@ -358,6 +358,8 @@ public class WitDialog @JvmOverloads constructor(
             val itemHeight = WitDisplay.dp2px(context, WitDialogMetrics.MENU_ITEM_HEIGHT_DP)
             items.forEachIndexed { index, (text, listener) ->
                 val itemView = WitMenuItemView(context, itemStyle, text, palette)
+                // 长文案 / 大字体允许换行撑高，52dp 只作为最小触控高度（#1102）。
+                itemView.minimumHeight = itemHeight
                 itemView.menuIndex = index
                 itemView.setListener { clickedIndex ->
                     onItemClick(clickedIndex)
@@ -365,7 +367,9 @@ public class WitDialog @JvmOverloads constructor(
                 }
                 layout.addView(
                     itemView,
-                    LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, itemHeight),
+                    LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ),
                 )
                 itemViews.add(itemView)
             }

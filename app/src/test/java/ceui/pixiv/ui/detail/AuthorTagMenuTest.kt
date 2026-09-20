@@ -51,6 +51,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadows.ShadowDialog
 import org.robolectric.util.ReflectionHelpers
 
@@ -207,9 +208,10 @@ class AuthorTagMenuTest {
 
     @Test
     @Config(qualifiers = "w320dp-h640dp")
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
     fun `author menu label fits narrow screens in both themes with larger fonts and long tags`() {
         for (night in listOf(Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_YES)) {
-            for (scale in listOf(1f, 1.3f)) {
+            for (scale in listOf(1f, 1.3f, 2f)) {
                 for (language in listOf("zh", "en", "ja", "ko", "ru", "tr", "zh-TW")) {
                     val config = Configuration(host.resources.configuration).apply {
                         uiMode = Configuration.UI_MODE_TYPE_NORMAL or night
