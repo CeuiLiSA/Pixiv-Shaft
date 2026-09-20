@@ -414,8 +414,11 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
 
         // 回收重绑先退出全景(scaleType / 触摸监听还原),再由下面的尺寸判定决定要不要重新进。
         resetPanorama(holder);
-        // 统一 FIT_CENTER:有了每页真 ratio,展示盒与图同比,不letterbox也不裁切(旧代码后续页用
-        // CENTER_CROP 只是为掩盖「高度靠解码后才定」的临时错比,现在不需要)。
+        boolean fitPortrait = "illust".equals(allIllust.getType());
+        holder.baseBind.illust.setFitPortraitInViewport(fitPortrait);
+        holder.baseBind.illustHd.setFitPortraitInViewport(fitPortrait);
+        // FIT_CENTER preserves the composition, including side margins when a wide
+        // detail pane caps portrait height to its viewport. Manga keeps natural height.
         holder.baseBind.illust.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
         boolean changeSize; // = ratio 未知,需等图解码后由 rememberDecodedRatio 定 ratio
