@@ -12,6 +12,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="remove"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <!-- 收到 DM 消息时短震一下(ChatHapticBridge)。无 runtime grant 要求。 -->
     <uses-permission android:name="android.permission.VIBRATE"/>
@@ -61,6 +63,10 @@
             android:exported="false">
             <meta-data android:name="autoStoreLocales" android:value="true"/>
         </service>
+        <service
+            android:name="ceui.pixiv.ui.novel.reader.tts.NovelTtsService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"/>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

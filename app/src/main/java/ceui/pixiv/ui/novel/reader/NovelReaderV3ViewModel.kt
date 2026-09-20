@@ -37,6 +37,7 @@ import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.feature.SearchEngine
 import ceui.pixiv.ui.novel.reader.model.SearchHit
 import ceui.pixiv.ui.novel.reader.paginate.ChapterOutlineEntry
+import ceui.pixiv.ui.novel.reader.tts.NovelTtsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.android.asCoroutineDispatcher
@@ -552,6 +553,20 @@ class NovelReaderV3ViewModel(
                 }
             }
         }
+    }
+
+    /**
+     * Speech text follows the same token stream as the visible reader but
+     * omits image/jump markup. A source offset lets the reader start near the
+     * current page without sending the entire novel through TTS again.
+     */
+    fun buildTtsText(startCharIndex: Int = 0): String? {
+        val loaded = _loadState.value as? LoadState.Loaded ?: return null
+        return NovelTtsText.fromTokens(
+            tokens = loaded.tokens,
+            title = loaded.webNovel.title,
+            startCharIndex = startCharIndex.coerceAtLeast(0),
+        )
     }
 
     // ---- Chapter outline ----------------------------------------------------

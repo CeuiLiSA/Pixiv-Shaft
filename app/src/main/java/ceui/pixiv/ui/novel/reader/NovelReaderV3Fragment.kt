@@ -3,13 +3,18 @@ package ceui.pixiv.ui.novel.reader
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.BroadcastReceiver
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
+import android.os.Build
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.graphics.ColorUtils
+import androidx.core.content.ContextCompat
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -77,6 +82,7 @@ import ceui.pixiv.ui.novel.reader.ui.SearchHitSheetCallback
 import ceui.pixiv.ui.novel.reader.ui.SearchHitsSheet
 import ceui.pixiv.ui.novel.reader.ui.SeriesListSheet
 import ceui.pixiv.ui.novel.reader.ui.SeriesNavCallback
+import ceui.pixiv.ui.novel.reader.tts.NovelTtsController
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -115,6 +121,28 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private var searchRegex: Boolean = false
     private var activeSelection: TextSelection? = null
     private var annotationSpans: List<HighlightSpan> = emptyList()
+    private var ttsState: String = NovelTtsController.lastState
+    private var ttsReceiverRegistered = false
+
+    private val requestTtsNotificationPermission = registerForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { pending ->
+        val action = pendingTtsStart
+        pendingTtsStart = null
+        // TTS itself remains usable when notification permission is denied; the
+        // foreground notification is simply hidden on Android 13+.
+        action?.invoke()
+    }
+    private var pendingTtsStart: (() -> Unit)? = null
+
+    private val ttsReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action != NovelTtsController.ACTION_STATE) return
+            NovelTtsController.updateState(intent)
+            ttsState = NovelTtsController.lastState
+            intent.getStringExtra(NovelTtsController.EXTRA_ERROR)?.let { Toaster.showShort(it) }
+        }
+    }
 
     private var lastPushedSnapshot: ReaderSettings.Snapshot? = null
     private var lastPushedWidth: Int = 0
@@ -135,6 +163,14 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        ContextCompat.registerReceiver(
+            requireContext(),
+            ttsReceiver,
+            IntentFilter(NovelTtsController.ACTION_STATE),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+        ttsReceiverRegistered = true
 
         val rv = NovelReaderView(requireContext()).also {
             it.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
@@ -767,6 +803,17 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     /** 阅读器自身的菜单项（书签 / 保存位置 / 追更 / 导出），由 [showTopMoreMenu] 两个分支共用。 */
     private fun V3MenuBuilder.addReaderMenuItems() {
+        val ttsLabel = when (ttsState) {
+            NovelTtsController.STATE_PLAYING -> R.string.reader_menu_tts_pause
+            NovelTtsController.STATE_PAUSED -> R.string.reader_menu_tts_resume
+            else -> R.string.reader_menu_tts_start
+        }
+        item(getString(ttsLabel), if (ttsState == NovelTtsController.STATE_PLAYING) R.drawable.ic_baseline_pause_24 else R.drawable.ic_baseline_play_arrow_24) {
+            handleTtsAction()
+        }
+        item(getString(R.string.reader_menu_tts_speed), R.drawable.ic_reader_settings) {
+            showTtsSpeedMenu()
+        }
         item(getString(R.string.menu_bookmarks), R.drawable.ic_baseline_bookmark_24) {
             showBookmarksSheet()
         }
@@ -805,6 +852,65 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     executeExport(format, allowAutoEpub = true)
                 } else {
                     showExportSheet()
+                }
+            }
+        }
+    }
+
+    private fun handleTtsAction() {
+        when (ttsState) {
+            NovelTtsController.STATE_PLAYING -> NovelTtsController.pause(requireContext())
+            NovelTtsController.STATE_PAUSED -> NovelTtsController.resume(requireContext())
+            else -> startTtsFromReader()
+        }
+    }
+
+    private fun startTtsFromReader() {
+        val appContext = requireContext().applicationContext
+        val loaded = viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded
+        val title = loaded?.novel?.title ?: loaded?.webNovel?.title.orEmpty()
+        val startCharIndex = scrollReaderView
+            ?.takeIf { it.visibility == View.VISIBLE }
+            ?.currentCharIndex()
+            ?: run {
+                val pageIndex = readerView?.currentPageIndex() ?: 0
+                viewModel.pagination.value?.pages?.getOrNull(pageIndex)?.charStart ?: 0
+            }
+        val text = viewModel.buildTtsText(startCharIndex)
+        if (text.isNullOrBlank()) {
+            Toaster.showShort(getString(R.string.reader_tts_empty))
+            return
+        }
+        val start = {
+            NovelTtsController.start(
+                context = appContext,
+                title = title,
+                text = text,
+                speed = ReaderSettings.ttsSpeed,
+                pitch = ReaderSettings.ttsPitch,
+                engine = ReaderSettings.ttsEngine,
+                voice = ReaderSettings.ttsVoice,
+            )
+        }
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(appContext, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            pendingTtsStart = start
+            requestTtsNotificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            start()
+        }
+    }
+
+    private fun showTtsSpeedMenu() {
+        val options = listOf(0.75f, 1f, 1.25f, 1.5f, 2f)
+        showV3Menu("NovelTtsSpeedMenu") {
+            options.forEach { value ->
+                item(getString(R.string.reader_tts_speed_value, value), R.drawable.ic_reader_settings) {
+                    ReaderSettings.ttsSpeed = value
+                    if (ttsState == NovelTtsController.STATE_PLAYING || ttsState == NovelTtsController.STATE_PAUSED) {
+                        NovelTtsController.setSpeed(requireContext(), value)
+                    }
                 }
             }
         }
@@ -1241,6 +1347,10 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     // ---- Lifecycle -----------------------------------------------------------
 
     override fun onDestroyView() {
+        if (ttsReceiverRegistered) {
+            context?.let { ctx -> runCatching { ctx.unregisterReceiver(ttsReceiver) } }
+            ttsReceiverRegistered = false
+        }
         super.onDestroyView()
         imageSource?.clear()
         imageSource = null
