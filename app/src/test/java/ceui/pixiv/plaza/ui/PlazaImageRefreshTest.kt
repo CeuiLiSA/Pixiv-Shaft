@@ -9,6 +9,7 @@ import androidx.appcompat.view.ContextThemeWrapper
 import androidx.fragment.app.FragmentActivity
 import ceui.lisa.R
 import ceui.pixiv.plaza.*
+import ceui.pixiv.witstudio.theme.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.Request
 import com.bumptech.glide.request.target.DrawableImageViewTarget
@@ -83,7 +84,7 @@ class PlazaImageRefreshTest {
     @Test
     fun `rotated signature retains loaded image and updates viewer click data`() {
         val context = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.AppTheme)
-        val view = PostView(context) { 42L }
+        val view = PostView(context, { 42L })
         view.bind(post(listOf(image)), false, true, {}, {}, { _, _, _ -> })
         layout(view)
         val original = photo(view)
@@ -132,7 +133,7 @@ class PlazaImageRefreshTest {
     @Test
     fun `failed request retries with refreshed signature without replacing the image view`() {
         val context = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.AppTheme)
-        val view = PostView(context) { 42L }
+        val view = PostView(context, { 42L })
         view.bind(post(listOf(image)), false, true, {}, {}, { _, _, _ -> })
         layout(view)
         val original = photo(view)
@@ -162,13 +163,68 @@ class PlazaImageRefreshTest {
         )
     }
 
+    private fun linkedWork(pages: Int) =
+        ceui.pixiv.api.model.Illust(
+            id = 123,
+            width = 1200,
+            height = 1600,
+            page_count = pages,
+            image_urls = ceui.loxia.ImageUrls(medium = "https://i.pximg.net/c/540x540_70/p0.jpg",
+                large = "https://i.pximg.net/c/600x1200_90/p0.jpg"),
+            meta_pages = if (pages > 1) (0 until pages).map {
+                ceui.pixiv.api.model.MetaPage(ceui.loxia.ImageUrls(medium = "https://i.pximg.net/c/540x540_70/p$it.jpg"))
+            } else null,
+        )
+
+    private fun tiles(view: PostView) =
+        (0 until grid(view).childCount).sumOf { (grid(view).getChildAt(it) as ViewGroup).childCount }
+
+    @Test
+    fun `a linked work stands in for missing uploads and yields to them`() {
+        val context = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.AppTheme)
+        var masked = 0
+        val view = PostView(context, { 42L }) { masked++; false }
+        val linked = post(emptyList()).copy(objectId = 123, objectType = "manga",
+            objectExtensions = PlazaObjectExtensions(linkedWork(4)))
+        var opened = 0
+        view.bind(linked, false, true, {}, {}, { _, _, _ -> opened++ })
+        layout(view)
+        assertEquals(4, tiles(view))
+        assertTrue(grid(view).isShown || grid(view).visibility == View.VISIBLE)
+        assertEquals(1, masked)
+        // Rebinding the same work keeps the tiles (and their requests) instead of rebuilding.
+        val first = photo(view)
+        view.bind(linked, false, true, {}, {}, { _, _, _ -> opened++ })
+        layout(view)
+        assertSame(first, photo(view))
+        // A single page lays out with the work's own aspect ratio.
+        view.bind(linked.copy(objectExtensions = PlazaObjectExtensions(linkedWork(1))), false, true, {}, {}, { _, _, _ -> })
+        layout(view)
+        assertEquals(1, tiles(view))
+        assertEquals(photo(view).layoutParams.width * 4 / 3, photo(view).layoutParams.height)
+        // Uploads are what the author chose to show: the linked work drops back to its capsule.
+        view.bind(linked.copy(images = listOf(image)), false, true, {}, {}, { _, _, _ -> opened++ })
+        layout(view)
+        assertEquals(1, tiles(view))
+        photo(view).performClick()
+        assertEquals(1, opened)
+        // Without a medium URL there is nothing to render, so the grid disappears entirely.
+        view.bind(linked.copy(objectExtensions = PlazaObjectExtensions(
+            linkedWork(1).copy(image_urls = ceui.loxia.ImageUrls(large = "https://i.pximg.net/l.jpg")))),
+            false, true, {}, {}, { _, _, _ -> })
+        layout(view)
+        assertEquals(0, tiles(view))
+        assertEquals(View.GONE, grid(view).visibility)
+        view.clear()
+    }
+
     @Test
     fun `recycling after activity destruction only clears existing requests`() {
         val controller = Robolectric.buildActivity(FragmentActivity::class.java)
         controller.get().setTheme(R.style.AppTheme)
         controller.setup()
         val activity = controller.get()
-        val view = PostView(activity) { 42L }
+        val view = PostView(activity, { 42L })
         activity.setContentView(view)
         view.bind(post(listOf(image)), false, true, {}, {}, { _, _, _ -> })
         layout(view)

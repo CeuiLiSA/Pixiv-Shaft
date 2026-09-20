@@ -111,8 +111,8 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         // 宿主的 onViewCreated（bind 的地方）**通常**先于本方法，但这是 FragmentManager 的
         // 内部状态推进顺序，不是契约。赌它 = 拿一个 UninitializedPropertyAccessException
         // 换一点代码量。恢复出来的空 sheet 本来也没有价值，直接关掉最干净。
-        if (!viewModel.bound) {
-            Timber.tag(TAG).w("VM 尚未绑定书架，关闭恢复出来的筛选面板")
+        if (!viewModel.bound || viewModel.mirrorState.value?.isFirstSyncDone != true) {
+            Timber.tag(TAG).w("书架尚未补齐，关闭恢复出来的筛选面板")
             dismissAllowingStateLoss()
             return
         }
@@ -133,6 +133,11 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.mirrorState.collectLatest {
+                        if (it?.isFirstSyncDone != true) dismissAllowingStateLoss()
+                    }
+                }
                 launch { viewModel.resultCount.collectLatest { updateApplyText(it) } }
                 // facet 是异步算出来的：标签/作者两节先出骨架、算完再填，不阻塞面板打开
                 launch { viewModel.tagFacets.collectLatest { rebuildTagChips() } }

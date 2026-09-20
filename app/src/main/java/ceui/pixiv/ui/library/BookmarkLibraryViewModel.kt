@@ -6,6 +6,8 @@ import ceui.pixiv.db.mirror.BookmarkAuthorFacet
 import ceui.pixiv.db.mirror.BookmarkFilter
 import ceui.pixiv.db.mirror.BookmarkMirrorStateEntity
 import ceui.pixiv.db.mirror.BookmarkShelf
+import ceui.pixiv.db.mirror.BookmarkShelfStats
+import ceui.pixiv.db.mirror.BookmarkSort
 import ceui.pixiv.db.mirror.BookmarkTagFacet
 import ceui.pixiv.db.mirror.BookmarkYearFacet
 import kotlinx.coroutines.CancellationException
@@ -43,13 +45,69 @@ class BookmarkLibraryViewModel : ViewModel() {
     private val _resultCount = MutableStateFlow<Int?>(null)
     val resultCount: StateFlow<Int?> = _resultCount.asStateFlow()
 
-    /** 这个书架本地一共镜像了多少件（不受筛选影响）。 */
-    private val _totalCount = MutableStateFlow<Int?>(null)
-    val totalCount: StateFlow<Int?> = _totalCount.asStateFlow()
+    /** 行数与首尾边界一起发射：取消旧收藏 + 回填新页可能恰好不改变总数。 */
+    private val _shelfStats = MutableStateFlow<BookmarkShelfStats?>(null)
+    val shelfStats: StateFlow<BookmarkShelfStats?> = _shelfStats.asStateFlow()
 
     /** 后台镜像的同步状态（进度条 / 「还在补齐」提示）。 */
     private val _mirrorState = MutableStateFlow<BookmarkMirrorStateEntity?>(null)
     val mirrorState: StateFlow<BookmarkMirrorStateEntity?> = _mirrorState.asStateFlow()
+
+    private var loadedFilter: BookmarkFilter? = null
+    private var loadedOffset = 0
+    private var loadedTailSeq: Long? = null
+    private var loadedHeadSeq: Long? = null
+    private var headCheckedAt: BookmarkShelfStats? = null
+    private var exhaustedAt: BookmarkShelfStats? = null
+
+    /** SQL 已消费的行数，包含被屏蔽或无法解析的行，不能用可见卡片数代替。 */
+    internal val consumedRows: Int?
+        get() = loadedOffset.takeIf { loadedFilter == _filter.value }
+
+    internal fun recordLoadedPage(
+        filter: BookmarkFilter,
+        offset: Int,
+        lastBookmarkSeq: Long?,
+        firstBookmarkSeq: Long?,
+        firstPage: Boolean,
+        queriedStats: BookmarkShelfStats?,
+        exhaustedAt: BookmarkShelfStats?,
+    ) {
+        if (firstPage || loadedFilter != filter) {
+            loadedHeadSeq = null
+            headCheckedAt = queriedStats
+        }
+        if (loadedHeadSeq == null) loadedHeadSeq = firstBookmarkSeq
+        loadedTailSeq = lastBookmarkSeq ?: loadedTailSeq.takeIf { loadedFilter == filter && offset > 0 }
+        loadedFilter = filter
+        loadedOffset = offset
+        this.exhaustedAt = exhaustedAt
+    }
+
+    /** 未读旧页不代表只有尾部回填；表头新增应在用户停在顶部时刷新。 */
+    internal val hasNewHead: Boolean
+        get() {
+            if (consumedRows == null || _filter.value.sort != BookmarkSort.BOOKMARK_NEWEST) return false
+            val head = loadedHeadSeq ?: return false
+            val stats = _shelfStats.value ?: return false
+            return stats != headCheckedAt && (stats.newestBookmarkSeq ?: return false) > head
+        }
+
+    /** 即使最后一批回填同时把状态改成已完成，也要续上读取时尚未补齐的尾页。 */
+    internal fun growingTailCursor(): String? {
+        val current = _filter.value
+        val consumed = consumedRows ?: return null
+        val stats = _shelfStats.value ?: return null
+        val oldest = stats.oldestBookmarkSeq ?: return null
+        val tail = loadedTailSeq
+        return BookmarkLibraryCursor(consumed, tail).toString().takeIf {
+            // 同步完成或初始状态尚未返回时，也按真实排序边界判断，不能把表头新增当成尾部回填。
+            (tail == null || oldest < tail) &&
+                // 相同首尾边界下已读到不足一页：等存储快照变化，避免过期统计驱动空页死循环。
+                stats != exhaustedAt &&
+                current.sort == BookmarkSort.BOOKMARK_NEWEST && !current.hasAnyCondition
+        }
+    }
 
     private val _tagFacets = MutableStateFlow<List<BookmarkTagFacet>>(emptyList())
     val tagFacets: StateFlow<List<BookmarkTagFacet>> = _tagFacets.asStateFlow()
@@ -87,6 +145,8 @@ class BookmarkLibraryViewModel : ViewModel() {
         if (bound && shelf == next) return false
         bound = true
         shelf = next
+        _mirrorState.value = null
+        loadedFilter = null
         _filter.value = BookmarkFilter(
             shelfKey = next.key,
             sort = _filter.value.sort,
@@ -94,7 +154,7 @@ class BookmarkLibraryViewModel : ViewModel() {
         )
         Timber.tag(TAG).d("切换到书架 %s", next.label)
         _resultCount.value = null
-        _totalCount.value = null
+        _shelfStats.value = null
         _tagFacets.value = emptyList()
         _authorFacets.value = emptyList()
         _yearFacets.value = emptyList()
@@ -110,9 +170,15 @@ class BookmarkLibraryViewModel : ViewModel() {
      */
     fun updateFilter(transform: (BookmarkFilter) -> BookmarkFilter): Boolean {
         val old = _filter.value
-        val next = transform(old)
+        // 补齐前只有最新一段收藏，不能让筛选或倒序把它伪装成完整结果。
+        val next = if (_mirrorState.value?.isFirstSyncDone == true) {
+            transform(old)
+        } else {
+            BookmarkFilter(shelfKey = old.shelfKey)
+        }
         if (next == old) return false
         _filter.value = next
+        loadedFilter = null
         Timber.tag(TAG).d(
             "筛选变更 sort=%s kw='%s' tags=%d 排除=%d 作者=%d 类型=%s",
             next.sort, next.keyword, next.tagNames.size, next.excludedTagNames.size,
@@ -128,8 +194,12 @@ class BookmarkLibraryViewModel : ViewModel() {
         BookmarkFilter(shelfKey = current.shelfKey, sort = current.sort, randomSeed = current.randomSeed)
     }
 
-    fun setMirrorState(state: BookmarkMirrorStateEntity?) {
+    /** 返回是否因未补齐而复位了条件；调用方据此重查列表。 */
+    fun setMirrorState(state: BookmarkMirrorStateEntity?): Boolean {
+        val wasComplete = _mirrorState.value?.isFirstSyncDone == true
         _mirrorState.value = state
+        if (!wasComplete && state?.isFirstSyncDone == true) refreshFacets()
+        return state?.isFirstSyncDone != true && updateFilter { it }
     }
 
     /**
@@ -149,7 +219,7 @@ class BookmarkLibraryViewModel : ViewModel() {
         countJob = viewModelScope.launch {
             try {
                 _resultCount.value = BookmarkLibraryRepo.count(current)
-                _totalCount.value = BookmarkLibraryRepo.totalRows(current.shelfKey)
+                _shelfStats.value = BookmarkLibraryRepo.shelfStats(current.shelfKey)
             } catch (ce: CancellationException) {
                 throw ce
             } catch (t: Throwable) {

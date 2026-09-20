@@ -4,9 +4,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import android.view.View
@@ -14,7 +11,6 @@ import android.view.WindowManager
 import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.graphics.ColorUtils
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
@@ -26,7 +22,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.UActivity
 import ceui.lisa.databinding.ChatFragmentDemoListBinding
 import ceui.lisa.utils.GlideUrlChild
@@ -36,7 +31,6 @@ import ceui.pixiv.chat.api.ChatConversationsRepository
 import ceui.pixiv.chat.api.ChatFrame
 import ceui.pixiv.chat.api.ChatThreadId
 import ceui.pixiv.chat.api.HttpChatHistorySource
-import ceui.pixiv.chat.api.ShaftChatGateway
 import ceui.pixiv.chat.base.PagingFooterAdapter
 import ceui.pixiv.chat.base.launchSuspend
 import ceui.pixiv.panel.BottomPanelCoordinator
@@ -49,7 +43,7 @@ import ceui.pixiv.chat.data.ChatDatabase
 import ceui.pixiv.chat.data.ChatMessageEntity
 import ceui.pixiv.chat.data.RoomChatMessageStore
 import ceui.pixiv.chat.vm.ChatListViewModel
-import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.websocket.WebSocketState
 import com.hjq.toast.Toaster
@@ -61,7 +55,7 @@ import timber.log.Timber
 /**
  * Chat screen wired to shaft-api-v2's uid-routing chat WebSocket.
  *
- * The WS itself is app-scoped — owned by [ShaftChatGateway] on top of
+ * The WS itself is app-scoped — owned by [ceui.pixiv.chat.api.ShaftChatGateway] on top of
  * [ceui.pixiv.websocket.WebSocketManager]. This fragment opens a per-room
  * view onto the existing connection:
  *
@@ -70,8 +64,8 @@ import timber.log.Timber
  *    derived locally via `ChatThreadId.oneOnOneThreadId(selfUid, peerUid)`
  *
  *  - history: [HttpChatHistorySource] → `GET /api/v1/chat/history?room=...`
- *  - live:    [ShaftChatGateway.chatStream] (filtered by computed room)
- *  - send:    optimistic local write → [ShaftChatGateway.send] → WS echo
+ *  - live:    [ceui.pixiv.chat.api.ShaftChatGateway.chatStream] (filtered by computed room)
+ *  - send:    optimistic local write → [ceui.pixiv.chat.api.ShaftChatGateway.send] → WS echo
  *             flips local row Sending → Delivered (doc §4.3)
  *
  * `reverseLayout = true` puts position 0 at the bottom of the screen
@@ -87,6 +81,9 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         if (v > 0L) v else null
     }
 
+    /** 进程级聊天网关（[ceui.pixiv.services.ServicesProvider.chatGateway]）。 */
+    private val gateway by lazy { requireContext().appServices().chatGateway }
+
     private val viewModel: ChatListViewModel by viewModels {
         val appCtx = requireContext().applicationContext
         ChatListViewModel(
@@ -96,15 +93,15 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
                 ChatDatabase.getInstance(appCtx).chatMessageDao()
             ),
             historySource = HttpChatHistorySource(),
-            stream = ShaftChatGateway.chatStream,
+            stream = gateway.chatStream,
             sender = object : ceui.pixiv.chat.vm.WsMsgSender {
                 override fun send(toUid: Long?, clientMsgId: String, text: String, illustId: Long?, replyTo: ceui.pixiv.chat.api.ChatReplyRef?) =
-                    ShaftChatGateway.send(toUid, clientMsgId, text, illustId, replyTo)
+                    gateway.send(toUid, clientMsgId, text, illustId, replyTo)
                 override fun sendSticker(toUid: Long?, clientMsgId: String, text: String, replyTo: ceui.pixiv.chat.api.ChatReplyRef?, stickerId: Long) =
-                    ShaftChatGateway.send(toUid, clientMsgId, text, replyTo = replyTo, stickerId = stickerId)
+                    gateway.send(toUid, clientMsgId, text, replyTo = replyTo, stickerId = stickerId)
             },
-            typingSender = ShaftChatGateway::sendTyping,
-            typingFrames = ShaftChatGateway.typingFrames,
+            typingSender = gateway::sendTyping,
+            typingFrames = gateway.typingFrames,
         )
     }
 
@@ -186,9 +183,10 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             host = object : PanelHost {
                 override val panelRoot get() = binding.root
                 override val panelView get() = binding.emojiPanel
-                override val panelInputView get() = binding.etInput
+                override val panelComposerView get() = binding.composer.root
+                override val panelInputView get() = binding.composer.etInput
                 override val panelContentView get() = binding.recyclerView
-                override val panelToggleButton get() = binding.btnEmoji
+                override val panelToggleButton get() = binding.composer.btnEmoji
                 override val panelToggleIconRes get() = R.drawable.chat_ic_emoji
                 override val keyboardToggleIconRes get() = R.drawable.chat_ic_keyboard
                 override fun onAnchorContent() {
@@ -448,31 +446,13 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     private fun startReply(localKey: String) {
         val msg = viewModel.messages.value.find { it.localKey == localKey } ?: return
         viewModel.setReplyTarget(msg)
-        panelCoordinator?.switchToKeyboard() ?: binding.etInput.requestFocus()
+        panelCoordinator?.switchToKeyboard() ?: binding.composer.etInput.requestFocus()
     }
 
     private fun setupReplyBar() {
-        val ctx = requireContext()
-        val d = resources.displayMetrics.density
-        val palette = chatPalette(ctx)
-        // The fragment instance can outlive its view (back stack / tablet panes);
-        // a fresh view always starts with the strip hidden, so resync the flag or
-        // showReplyBar() would early-return against a GONE view.
         replyBarShown = false
-        binding.replyBar.visibility = View.GONE
-        // Brand 8% tonal container + 15% hairline, 16dp — same family as the
-        // in-bubble quote block (12dp) one step up the radius ladder.
-        binding.replyBar.background = GradientDrawable().apply {
-            cornerRadius = 16 * d
-            setColor(V3Palette.withAlpha(palette.primary, if (palette.isDark) 0.14f else 0.08f))
-            setStroke(maxOf(1, (0.5f * d).toInt()), V3Palette.withAlpha(palette.primary, 0.15f))
-        }
-        binding.replyBarAccent.background = GradientDrawable().apply {
-            cornerRadius = 999f
-            setColor(palette.primary)
-        }
-        binding.tvReplyBarName.setTextColor(palette.textAccent)
-        binding.btnReplyBarClose.setOnClickListener {
+        binding.composer.replyBar.visibility = View.GONE
+        binding.composer.btnReplyBarClose.setOnClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             viewModel.clearReplyTarget()
         }
@@ -490,8 +470,8 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
                 !target.displayName.isNullOrBlank() -> target.displayName
                 else -> "匿名_${target.uid}"
             }
-            binding.tvReplyBarName.text = getString(R.string.chat_reply_bar_title, name)
-            binding.tvReplyBarText.text = target.text.orEmpty().replace('\n', ' ')
+            binding.composer.tvReplyBarName.text = getString(R.string.chat_reply_bar_title, name)
+            binding.composer.tvReplyBarText.text = target.text.orEmpty().replace('\n', ' ')
             showReplyBar()
         }
     }
@@ -500,7 +480,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         if (replyBarShown) return
         replyBarShown = true
         val d = resources.displayMetrics.density
-        binding.replyBar.apply {
+        binding.composer.replyBar.apply {
             animate().cancel()
             alpha = 0f
             translationY = 8 * d
@@ -514,12 +494,12 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
 
     private fun hideReplyBar() {
         if (!replyBarShown) {
-            binding.replyBar.visibility = View.GONE
+            binding.composer.replyBar.visibility = View.GONE
             return
         }
         replyBarShown = false
         val d = resources.displayMetrics.density
-        binding.replyBar.apply {
+        binding.composer.replyBar.apply {
             animate().cancel()
             animate().alpha(0f).translationY(6 * d)
                 .setDuration(140L)
@@ -550,20 +530,8 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     // ── Input bar ───────────────────────────────────────────────────────
 
     private fun setupInput() {
-        // Brand-tint the send button. This screen overlays a full Material3
-        // theme (for its StateLayout), which shadows colorPrimary with the M3
-        // baseline tone — so the default Filled button would render M3 purple,
-        // clashing with the brand-green toolbar + sent bubbles. Pull the real
-        // brand colour (same source as the bubbles) and build a state list that
-        // still dims when the button is disabled.
-        runCatching { Color.parseColor(Shaft.getThemeColor()) }.getOrNull()?.let { brand ->
-            binding.btnSend.backgroundTintList = ColorStateList(
-                arrayOf(intArrayOf(android.R.attr.state_enabled), intArrayOf()),
-                intArrayOf(brand, ColorUtils.setAlphaComponent(brand, 0x40)),
-            )
-            binding.btnSend.iconTint = ColorStateList.valueOf(Color.WHITE)
-        }
-        binding.etInput.doAfterTextChanged { text ->
+        binding.composer.applyChatComposerStyle()
+        binding.composer.etInput.doAfterTextChanged { text ->
             refreshSendEnabled()
             // Outbound typing signal — DM-only, VM short-circuits global.
             // VM debounces internally (~4s between start frames), so it's
@@ -576,7 +544,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
                 viewModel.notifyTyping()
             }
         }
-        binding.btnSend.setOnClickListener { sendMessage() }
+        binding.composer.btnSend.setOnClickListener { sendMessage() }
         refreshSendEnabled()
     }
 
@@ -585,10 +553,10 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         // message is never optimistically appended in the first place (vs the
         // reactive removal fallback in observeServerErrors). 1v1 is never gated.
         val closed = isGlobalRoom && globalSendClosed
-        val hasText = !binding.etInput.text.isNullOrBlank()
-        binding.btnSend.isEnabled = hasText && wsConnected && !rateLimitCoolDown && !closed
-        binding.etInput.isEnabled = !closed
-        binding.etInput.hint = getString(
+        val hasText = !binding.composer.etInput.text.isNullOrBlank()
+        binding.composer.btnSend.isEnabled = hasText && wsConnected && !rateLimitCoolDown && !closed
+        binding.composer.etInput.isEnabled = !closed
+        binding.composer.etInput.hint = getString(
             if (closed) R.string.chat_global_closed_hint else R.string.chat_input_hint
         )
     }
@@ -600,7 +568,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      * re-enable live. Tracked for all rooms but only *gates* the global room.
      */
     private suspend fun observeGlobalSendState() {
-        ShaftChatGateway.globalSendEnabled.collect { enabled ->
+        gateway.globalSendEnabled.collect { enabled ->
             globalSendClosed = !enabled
             refreshSendEnabled()
         }
@@ -616,7 +584,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
                 Toaster.showShort("发送失败,请稍后重试")
                 return@launch
             }
-            binding.btnEmoji.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            binding.composer.btnEmoji.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             scrollToBottomOnNextUpdate = true
         }
     }
@@ -629,7 +597,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      * for the immediate Toast + input clear.
      */
     private fun sendMessage() {
-        val text = binding.etInput.text?.toString()?.trim() ?: return
+        val text = binding.composer.etInput.text?.toString()?.trim() ?: return
         if (text.isEmpty()) return
         viewLifecycleOwner.lifecycleScope.launch {
             val accepted = viewModel.sendText(text)
@@ -637,11 +605,11 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
                 Toaster.showShort("发送失败,请稍后重试")
                 return@launch
             }
-            binding.btnSend.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            binding.composer.btnSend.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
             // `.clear()` triggers TextWatcher synchronously → the
             // doAfterTextChanged listener calls notifyTypingStop() in the
             // same call stack. No explicit follow-up call needed here.
-            binding.etInput.text?.clear()
+            binding.composer.etInput.text?.clear()
             scrollToBottomOnNextUpdate = true
         }
     }
@@ -661,7 +629,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     }
 
     private suspend fun observeConnection() {
-        ShaftChatGateway.state.collect { state ->
+        gateway.state.collect { state ->
             wsConnected = state is WebSocketState.Connected
             refreshSendEnabled()
         }
@@ -677,7 +645,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      * back rate_limited resets the cool-down timer rather than stacking.
      */
     private suspend fun observeServerErrors() {
-        ShaftChatGateway.errorFrames.collectLatest { err ->
+        gateway.errorFrames.collectLatest { err ->
             // global_send_disabled = 管理员关闭了公共聊天室发言:重试无意义,这条
             // 消息从未被接受,直接移除该乐观行(否则会留一条看着像已发的气泡)。
             // 其余错误维持"标记 Failed"语义(用户可重试),cmid==null 时 VM 兜底
@@ -734,7 +702,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      * from FATAL_CLOSE_CODES; user must explicitly come back).
      */
     private suspend fun observeReplacedByOtherDevice() {
-        ShaftChatGateway.replacedByOtherDevice.collect {
+        gateway.replacedByOtherDevice.collect {
             Toaster.showLong("账号在其它设备登录,聊天已断开")
         }
     }
@@ -746,7 +714,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
      * so they aren't left wondering why the input is greyed out forever.
      */
     private suspend fun observeFatalAuth() {
-        ShaftChatGateway.fatalAuth.collect {
+        gateway.fatalAuth.collect {
             Toaster.showLong("聊天认证失败 — 请检查系统时间是否正确,或重新登录")
         }
     }
@@ -850,7 +818,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         super.onResume()
         // Authoritatively tell ChatBannerBridge which room is foreground so it
         // suppresses banners for it (vs the bridge guessing from Activity state).
-        ShaftChatGateway.enterChatRoom(viewModel.room)
+        gateway.enterChatRoom(viewModel.room)
         val window = requireActivity().window
         previousSoftInputMode = window.attributes.softInputMode
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
@@ -859,7 +827,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
     override fun onPause() {
         super.onPause()
         // Guarded exit tolerates resume/pause reordering across a room switch.
-        ShaftChatGateway.exitChatRoom(viewModel.room)
+        gateway.exitChatRoom(viewModel.room)
         if (previousSoftInputMode != INVALID_SOFT_INPUT_MODE) {
             requireActivity().window.setSoftInputMode(previousSoftInputMode)
             previousSoftInputMode = INVALID_SOFT_INPUT_MODE

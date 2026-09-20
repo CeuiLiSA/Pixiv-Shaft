@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_recommendations">Рекомендации дня</string>
+    <string name="daily_recommendations_intro">Ежедневная подборка иллюстраций на основе закладок и подписок на этом устройстве. Потяните вниз для перезагрузки.</string>
+    <string name="daily_recommendations_personalized">%1$s · На основе закладок и подписок. Обновление в полночь следующего дня по пекинскому времени.</string>
+    <string name="daily_recommendations_popular">%1$s · Данных о предпочтениях пока мало, поэтому показаны популярные работы.</string>
+    <string name="daily_recommendations_login">Войдите, чтобы увидеть рекомендации дня</string>
+    <string name="daily_recommendations_unavailable">Рекомендации дня временно недоступны. Позже потяните вниз, чтобы повторить попытку</string>
+    <string name="daily_recommendations_empty">Сегодня нет рекомендаций, соответствующих фильтрам. Позже потяните вниз, чтобы повторить попытку.</string>
+    <string name="daily_recommendations_expired">Рекомендации изменились. Потяните вниз для обновления, прежде чем продолжить просмотр</string>
+</resources>

@@ -21,12 +21,12 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.PathParser
 import androidx.core.view.ViewCompat
 import ceui.lisa.R
 import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.witstudio.theme.v3Font
 import kotlin.math.roundToInt
 
 /** Page-scoped roles: calibrated against the approved mockup, hue follows the host V3 theme. */
@@ -62,7 +62,7 @@ internal class ReferralColors(context: Context, darkOverride: Boolean?, accentOv
     val peachBg = mode("#F9E9E0", "#423027")
     val blue = mode("#516795", "#B4C7EE")
     val blueBg = mode("#E6EDF9", "#293248")
-    val artMonth = themed("#C5B0EC")
+    val artMax = themed("#C5B0EC")
     val artInk = themed("#33244E")
 
     private fun contrast(foreground: Int, background: Int): Int {
@@ -78,7 +78,6 @@ internal class ReferralColors(context: Context, darkOverride: Boolean?, accentOv
 }
 
 internal enum class ReferralIcon(val path: String) {
-    SPARK("M12,3 L14.6,9.4 L21,12 L14.6,14.6 L12,21 L9.4,14.6 L3,12 L9.4,9.4 Z"),
     ARROW("M5,12 L19,12 M13,6 L19,12 L13,18"),
     BACK("M19,12 L5,12 M11,6 L5,12 L11,18"),
     USER("M12,8 A3,3 0,1 1,6,8 A3,3 0,1 1,12,8 M3,20 L3,18 A6,6 0,0 1,15,18 L15,20 M19,7 L19,13 M16,10 L22,10"),
@@ -118,15 +117,7 @@ internal class ReferralUi(val context: Context, val colors: ReferralColors) {
     fun dp(value: Int) = (value * density).roundToInt()
     fun dp(value: Float) = value * density
     fun s(@StringRes id: Int, vararg args: Any) = context.getString(id, *args)
-    fun font(weight: Int): Typeface = fonts.getOrPut(weight) {
-        ResourcesCompat.getFont(context, when (weight) {
-            800 -> R.font.montserrat_extra_bold
-            700 -> R.font.montserrat_bold
-            600 -> R.font.montserrat_semi_bold
-            500 -> R.font.montserrat_medium
-            else -> R.font.montserrat_regular
-        }) ?: Typeface.DEFAULT
-    }
+    fun font(weight: Int): Typeface = fonts.getOrPut(weight) { context.v3Font(weight) }
     fun text(value: CharSequence, size: Float = 14f, weight: Int = 400, color: Int = colors.ink) =
         AppCompatTextView(context).apply {
             text = value; textSize = size; typeface = font(weight); setTextColor(color)
@@ -197,6 +188,11 @@ internal fun ReferralTask.copy() = when (this) {
     ReferralTask.CIRCLE -> ReferralTaskCopy(R.string.referral_circle_title, R.string.referral_circle_category,
         R.string.referral_circle_description, R.string.referral_circle_caption, R.string.referral_circle_steps,
         R.string.referral_circle_condition, ReferralIcon.HEART)
+    // 见面礼不是一件要去做的事，所以它没有步骤也没有完成条件 —— 它只会作为一张卡
+    // 出现在被邀请人的卡包里（卡面用 title，其余字段那里用不到）。
+    ReferralTask.WELCOME -> ReferralTaskCopy(R.string.referral_welcome_title, R.string.referral_invite_category,
+        R.string.referral_welcome_description, R.string.referral_welcome_description, R.string.referral_welcome_description,
+        R.string.referral_welcome_description, ReferralIcon.TICKET)
 }
 
 internal val ReferralStatus.label: Int get() = when (this) {

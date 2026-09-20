@@ -1,156 +1,469 @@
 package ceui.pixiv.plaza.ui
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
-import android.widget.*
+import android.view.ViewOutlineProvider
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import ceui.lisa.R
-import ceui.pixiv.chat.base.launchSuspend
+import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.feeds.FeedFragment
+import ceui.pixiv.feeds.FeedItem
+import ceui.pixiv.feeds.FeedRenderer
+import ceui.pixiv.feeds.FeedSkeletonView
+import ceui.pixiv.feeds.FeedUiState
+import ceui.pixiv.feeds.LoadState
+import ceui.pixiv.feeds.feedRenderer
+import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.feeds.updateItems
 import ceui.pixiv.plaza.PlazaPost
-import ceui.pixiv.widgets.applyV3RefreshTheme
+import ceui.pixiv.plaza.PlazaPostCacheEntry
+import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.theme.*
+import ceui.pixiv.ui.common.highlightItemAt
+import ceui.pixiv.witstudio.theme.V3Palette
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
-class PlazaFragment : PlazaTimelineFragment()
+/**
+ * Plaza feed on the feeds framework. The framework owns paging, pull-to-refresh, the disk
+ * first page on cold start, the skeleton, empty / error states and network-restored retries;
+ * [PlazaFeedController] owns the all / mine scope, the resume policy, mutations and their busy
+ * marker. The page keeps the same shell as before the migration: the standard app toolbar with
+ * the connected all / mine segments, edge-to-edge hairline rows, the extended "post" FAB, and
+ * plaza's own error copy and alert dialogs.
+ */
+class PlazaFragment : FeedFragment(R.layout.fragment_plaza_feed) {
+    private val controller: PlazaFeedController by viewModels()
 
-open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
-    private val model: PlazaTimelineViewModel by viewModels()
-    private var recycler: RecyclerView? = null
+    // The source captures only the controller ViewModel, never this Fragment or its views.
+    override val feedViewModel by feedViewModels { controller.source }
+
     private var imageViewerOpen = false
     private val imageViewer =
-        registerForActivityResult(
-            androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
-        ) {
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             imageViewerOpen = false
         }
-    protected open val postId
-        get() = 0L
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val ctx = requireContext()
-        val header =
-            setupPlazaHeader(
-                view,
-                if (postId > 0) ctx.getString(R.string.plaza_post_detail_title)
-                else ctx.getString(R.string.plaza_title),
-            )
-        header.action.text = ctx.getString(R.string.plaza_send_post)
-        header.trailing.setOnClickListener { ctx.openComposer() }
-        val frame = view.findViewById<FrameLayout>(R.id.plaza_content)
-        val column = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
-        frame.addView(column, FrameLayout.LayoutParams(-1, -1, Gravity.CENTER_HORIZONTAL))
-        // Keep text and media readable on wide panes without changing toolbar geometry.
-        frame.addOnLayoutChangeListener { _, l, _, r, _, _, _, _, _ ->
-            val width = minOf(r - l, ctx.dp(720))
-            if (column.layoutParams.width != width)
-                column.layoutParams = FrameLayout.LayoutParams(width, -1, Gravity.CENTER_HORIZONTAL)
-        }
-        val status =
-            ctx.label("").apply {
-                gravity = Gravity.CENTER
-                setPadding(ctx.dp(16), ctx.dp(12), ctx.dp(16), ctx.dp(12))
-            }
-        column.addView(status, LinearLayout.LayoutParams(-1, -2))
-        status.setOnClickListener { model.refresh() }
-        val refresh = SwipeRefreshLayout(ctx)
-        val list =
-            RecyclerView(ctx).apply {
-                layoutManager = LinearLayoutManager(ctx)
-                clipToPadding = false
-                setPadding(0, 0, 0, ctx.dp(16))
-            }
-        recycler = list
-        refresh.addView(list)
-        column.addView(refresh, LinearLayout.LayoutParams(-1, 0, 1f))
-        refresh.applyV3RefreshTheme()
-        refresh.setOnRefreshListener { model.refresh() }
-        val adapter = PostAdapter(model::like, ::confirmDelete, ::preview, postId, model::react)
-        list.adapter = adapter
-        list.addOnScrollListener(
-            object : RecyclerView.OnScrollListener() {
-                override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
-                    if (
-                        dy >= 0 &&
-                            (rv.layoutManager as LinearLayoutManager)
-                                .findLastVisibleItemPosition() >= adapter.itemCount - 4
-                    )
-                        model.more()
-                }
+    /** True between the user's pull and the end of that refresh; only then does the ring spin. */
+    private var userPulled = false
+
+    /** True while the list restarts for another scope (all / mine / account); shows the skeleton. */
+    private var switchingScope = false
+    private var alertedAppendError: LoadState.Error? = null
+
+    /** The just-published post waiting to be seen at the top; see [onResume] / [onListCommitted]. */
+    private var pendingHighlightPostId: Long? = null
+    private val observers = mutableMapOf<Long, Observer<PlazaPostCacheEntry>>()
+
+    override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out androidx.viewbinding.ViewBinding>> =
+        listOf(
+            feedRenderer<PlazaPostItem, PostViewBinding>(
+                inflate = { _, parent, _ -> PostViewBinding(PostView(parent.context)) },
+                recycle = { it.binding.root.clear() },
+                // Rebind in place; a non-null payload also keeps any change cross-fade away.
+                changePayload = { _, _ -> Unit },
+            ) { cell ->
+                val item = cell.item
+                controller.ensureFreshImages(item.post)
+                cell.binding.root.bind(
+                    item.post,
+                    item.busy,
+                    false,
+                    controller::like,
+                    ::confirmDelete,
+                    ::preview,
+                    controller::react,
+                )
             }
         )
-        var replyBar: PlazaReplyBar? = null
-        if (postId > 0) {
-            replyBar =
-                PlazaReplyBar(
-                    ctx,
-                    reply = { ctx.openComposer(postId) },
-                    react = {
-                        model.state.value.parent?.let { post ->
-                            ceui.pixiv.sticker.StickerPicker.show(ctx) { sticker ->
-                                model.react(post, "sticker:${sticker.stickerId}")
-                            }
-                        }
-                    },
-                    comments = {
-                        if (adapter.itemCount > 1) list.smoothScrollToPosition(1)
-                        else ctx.openComposer(postId)
-                    },
-                )
-            column.addView(replyBar)
-            header.trailing.removeAllViews()
-            header.trailing.addView(
-                ctx.figmaIcon(
-                        R.drawable.ic_plaza_figma_more,
-                        ctx.getString(R.string.plaza_more_menu),
-                        true,
-                    )
-                    .apply {
-                        isClickable = false
-                        isFocusable = false
-                    }
-            )
-            header.trailing.setOnClickListener {
-                model.state.value.parent?.let { ctx.showPostMenu(it, ::confirmDelete) }
+
+    override fun onCreateLayoutManager(): RecyclerView.LayoutManager =
+        LinearLayoutManager(requireContext())
+
+    override fun onCreateSkeletonView(layoutManager: RecyclerView.LayoutManager): FeedSkeletonView =
+        PlazaSkeletonView(requireContext())
+
+    override fun onListReady(listView: RecyclerView) {
+        val ctx = requireContext()
+        // Rows are edge-to-edge; only a full-bleed hairline separates them, drawn by the
+        // decoration so prepends and appends never miss a line. No item animator: like the
+        // download lists, updates snap instead of cross-fading or sliding.
+        listView.addItemDecoration(BottomDividerDecoration(ctx, R.drawable.hairline_divider))
+        listView.itemAnimator = null
+        listView.clipToPadding = false
+        listView.setPadding(0, 0, 0, ctx.dp(96))
+        listView.overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
+    }
+
+    override val emptyStateText: CharSequence
+        get() =
+            if (controller.mine)
+                getString(R.string.plaza_mine_empty) + "\n" + getString(R.string.plaza_mine_empty_desc)
+            else getString(R.string.plaza_empty_title) + "\n" + getString(R.string.plaza_empty_desc)
+
+    override val emptyStateAction: Pair<CharSequence, () -> Unit>
+        get() = getString(R.string.plaza_compose_title) to { requireContext().openComposer() }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val ctx = requireContext()
+        val toolbar = setupPlazaToolbar(view, ctx.getString(R.string.plaza_title))
+        installFilter(toolbar)
+        toolbar.menu.add(R.string.plaza_blocked_users).setOnMenuItemClickListener {
+            ctx.showPlazaModeration(0, 0, "blocks")
+            true
+        }
+        styleStateViews()
+        // Every refresh entry point goes through the controller so it waits for a mutation.
+        feedBinding.feedRefreshLayout.setOnRefreshListener {
+            userPulled = true
+            refreshNow()
+        }
+        feedBinding.feedStateText.setOnClickListener { refreshNow() }
+
+        val content = view.findViewById<FrameLayout>(R.id.plaza_content)
+        val column = view.findViewById<View>(R.id.plaza_column)
+        val fab = installComposeFab(content, feedBinding.feedListView)
+        // Keep text and media readable on wide panes without changing toolbar geometry.
+        content.addOnLayoutChangeListener { _, l, _, r, _, _, _, _, _ ->
+            val width = minOf(r - l, ctx.dp(720))
+            if (column.layoutParams.width != width) {
+                column.layoutParams =
+                    FrameLayout.LayoutParams(width, -1, Gravity.CENTER_HORIZONTAL)
+            }
+            val margin = (r - l - width) / 2 + ctx.dp(16)
+            val lp = fab.layoutParams as FrameLayout.LayoutParams
+            if (lp.marginEnd != margin) {
+                lp.marginEnd = margin
+                fab.layoutParams = lp
             }
         }
-        launchSuspend {
-            model.state.collect { state ->
-                model.takeErrorForAlert()?.let(ctx::showPlazaError)
-                val posts = listOfNotNull(state.parent) + state.items
-                adapter.busy = state.busyIds
-                adapter.submitList(posts)
-                refresh.isRefreshing = state.loading
-                status.text =
-                    when {
-                        state.error != null ->
-                            ctx.getString(R.string.plaza_retry_message, state.error.resolve(ctx))
-                        state.loading && posts.isEmpty() -> ctx.getString(R.string.plaza_loading)
-                        posts.isEmpty() ->
-                            if (postId > 0) ctx.getString(R.string.plaza_not_found)
-                            else if (model.mine) ctx.getString(R.string.plaza_mine_empty)
-                            else ctx.getString(R.string.plaza_feed_empty)
-                        state.loadingMore -> ctx.getString(R.string.plaza_loading_more)
-                        else -> ""
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Subscribes after FeedFragment's own collector, so every emission reaches
+                // syncPlazaState once the framework has finished painting that same state.
+                launch { feedViewModel.uiState.collect(::syncPlazaState) }
+                launch { controller.refreshRequests.collect { feedViewModel.refresh() } }
+                launch {
+                    var seen = PlazaRepository.safetyRevision.value
+                    PlazaRepository.safetyRevision.collect { revision ->
+                        if (revision != seen) { seen = revision; refreshNow() }
                     }
-                status.isVisible = status.text.isNotEmpty()
-                replyBar?.bind(state.parent, postId in state.busyIds)
+                }
+                launch {
+                    controller.busyIds.collect { busy ->
+                        feedViewModel.updateItems<PlazaPostItem> { item ->
+                            val b = item.post.id in busy
+                            if (item.busy == b) item else item.copy(busy = b)
+                        }
+                    }
+                }
+                launch {
+                    controller.error.collect {
+                        controller.takeErrorForAlert()?.let(ctx::showPlazaError)
+                    }
+                }
+            }
+        }
+    }
+
+    /** Runs a refresh now unless a mutation is in flight; then the controller replays it. */
+    private fun refreshNow() {
+        if (controller.requestRefresh()) feedViewModel.refresh()
+    }
+
+    /**
+     * Restart the list for another scope: the old rows leave at once, the scope's disk
+     * snapshot shows while the network first page loads, exactly as before the migration.
+     *
+     * Deliberately not routed through [refreshNow]: a scope restart must not be deferred behind
+     * an in-flight mutation, because the list has already been emptied and a deferred refresh
+     * would leave the page sitting on the "no posts yet" empty state until that mutation
+     * finishes. A stale page still cannot overwrite the mutation — [PlazaFeedSource] refetches
+     * any page whose revision moved while it was in flight.
+     */
+    private fun restartScope() {
+        val vm = feedViewModel
+        switchingScope = true
+        vm.refresh()
+        vm.adoptCursorAndMutateItems(null) { emptyList() }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val restored =
+                try {
+                    controller.source.loadFromCache()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    null
+                } ?: return@launch
+            val state = vm.uiState.value
+            // Never let a late snapshot replace a network page that already arrived.
+            if (state.items.isEmpty() && (switchingScope || state.refresh is LoadState.Error)) {
+                vm.adoptCursorAndMutateItems(restored.nextCursor) { restored.items }
             }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        model.enter(postId)
+        showSentPost()
+        when (controller.enter()) {
+            PlazaFeedController.Entry.SWITCH_SCOPE -> restartScope()
+            PlazaFeedController.Entry.REFRESH -> refreshNow()
+            PlazaFeedController.Entry.NONE -> Unit
+        }
+    }
+
+    /**
+     * The composer's response is the complete post, so it goes to the top of the list right
+     * away (the refresh that [controller] schedules for the moved revision only reconciles).
+     * Scrolling waits for [onListCommitted]: mutateItems only changes the StateFlow, and the
+     * adapter reflects it after the diff commit, so scrolling now would target stale content.
+     */
+    private fun showSentPost() {
+        val post = PlazaRepository.consumeSent(SessionManager.loggedInUid) ?: return
+        pendingHighlightPostId = post.id
+        feedViewModel.mutateItems { items ->
+            listOf(PlazaPostItem(post)) + items.filterNot { (it as? PlazaPostItem)?.post?.id == post.id }
+        }
+    }
+
+    override fun onListCommitted(state: FeedUiState) {
+        val targetId = pendingHighlightPostId ?: return
+        val top = state.items.firstOrNull() as? PlazaPostItem
+        if (top?.post?.id != targetId) return
+        // The diff commits on a later frame; the user may have left the page by then. Keep the
+        // pending id so a recreated view still gets its scroll and bounce.
+        if (view == null) return
+        pendingHighlightPostId = null
+        val list = feedBinding.feedListView
+        // Deep in the feed a smooth scroll would crawl through every row; jump instead and let
+        // the bounce alone say "here it is".
+        val first = (list.layoutManager as? LinearLayoutManager)?.findFirstVisibleItemPosition() ?: 0
+        if (first > SMOOTH_SCROLL_MAX_ROWS) list.scrollToPosition(0) else list.smoothScrollToPosition(0)
+        list.highlightItemAt(0, HIGHLIGHT_MAX_RETRIES)
+    }
+
+    override fun onNetworkRestored() {
+        val state = feedViewModel.uiState.value
+        when {
+            state.showFullscreenError -> refreshNow()
+            state.append is LoadState.Error -> feedViewModel.retryAppend()
+        }
+    }
+
+    override fun onRefreshFailedWithContent(throwable: Throwable) {
+        requireContext().showPlazaError(throwable.plazaMessage())
+    }
+
+    /**
+     * The ring belongs to the user's pull gesture. Cold-start cache refreshes, resume refreshes,
+     * network-restored retries and scope switches load silently, as they did before the
+     * migration (docs/plaza-design-review.md, 2026-09-16).
+     */
+    override fun shouldShowRefreshSpinner(state: FeedUiState): Boolean =
+        userPulled && super.shouldShowRefreshSpinner(state)
+
+    /**
+     * The page's last word on each state, applied after the framework's `render` has painted it.
+     *
+     * This deliberately does not hang off `onListCommitted`: that callback rides
+     * `AsyncListDiffer.submitList`, which runs synchronously — before `render` touches any view —
+     * whenever the submitted list is the same instance as the current one. A plain refresh is
+     * exactly that case (only `refresh` flips to Loading, `items` keeps its instance), so
+     * corrections made there would be overwritten in the same pass, and the callback can also
+     * arrive after `onDestroyView` for an async diff.
+     */
+    private fun syncPlazaState(state: FeedUiState) {
+        val ctx = requireContext()
+        val binding = feedBinding
+        if (state.refresh !is LoadState.Loading) {
+            userPulled = false
+            switchingScope = false
+        }
+        // A scope restart empties the list on purpose. Keep the first-screen skeleton instead of
+        // the framework's empty state, which would claim this account has no posts.
+        if (switchingScope && state.items.isEmpty()) {
+            binding.feedSkeleton.isVisible = true
+            binding.feedStateContainer.isVisible = false
+        }
+        // Plaza's own status-code copy: the host's shared mapping falls back to printing the
+        // Tokyo API's raw error body when it carries no user_message.
+        if (state.showFullscreenError) {
+            binding.feedStateText.text =
+                (state.refresh as LoadState.Error).throwable.plazaMessage().resolve(ctx) + "\n" +
+                    getString(ceui.pixiv.feeds.R.string.feed_error_tap_retry)
+        }
+        val appendError = state.append as? LoadState.Error
+        if (appendError != null && appendError !== alertedAppendError) {
+            alertedAppendError = appendError
+            ctx.showPlazaError(appendError.throwable.plazaMessage())
+        }
+        syncObservers(state.items)
+    }
+
+    /** Observe the same ObjectPool entries as the detail page; edits land in the feed rows. */
+    private fun syncObservers(items: List<FeedItem>) {
+        val ids = items.mapNotNullTo(HashSet()) { (it as? PlazaPostItem)?.post?.id }
+        (observers.keys - ids).forEach { id ->
+            observers.remove(id)?.let { ObjectPool.get<PlazaPostCacheEntry>(id).removeObserver(it) }
+        }
+        (ids - observers.keys).forEach { id ->
+            val observer = Observer<PlazaPostCacheEntry> { entry -> onPooledEntry(id, entry) }
+            observers[id] = observer
+            ObjectPool.get<PlazaPostCacheEntry>(id).observe(viewLifecycleOwner, observer)
+        }
+    }
+
+    private fun onPooledEntry(id: Long, entry: PlazaPostCacheEntry) {
+        val uid = controller.account
+        if (entry.viewerUid != uid || uid != SessionManager.loggedInUid) return
+        feedViewModel.mutateItems { list ->
+            val index = list.indexOfFirst { it is PlazaPostItem && it.post.id == id }
+            if (index < 0) return@mutateItems list
+            val item = list[index] as PlazaPostItem
+            val post = entry.post
+            when {
+                post == null -> list.filterIndexed { i, _ -> i != index }
+                item.post === post -> list
+                else -> ArrayList(list).also { it[index] = item.copy(post = post) }
+            }
+        }
+    }
+
+    /** The framework's state views in plaza's V3 type and pill, as the pages looked before. */
+    private fun styleStateViews() {
+        val ctx = requireContext()
+        val p = V3Palette.from(ctx)
+        feedBinding.feedStateText.apply {
+            typeface = ctx.v3Font(400)
+            textSize = 14f
+            setTextColor(ctx.color(R.color.v3_text_2))
+            lineHeightRatio(1.6f)
+        }
+        feedBinding.feedStateAction.apply {
+            typeface = ctx.v3Font(600)
+            textSize = 14f
+            setTextColor(p.onPrimary)
+            background = ctx.ripple(p.pillPrimary(999f), shape(999f, Color.WHITE))
+            minHeight = ctx.dp(48)
+            setPadding(ctx.dp(20), ctx.dp(10), ctx.dp(20), ctx.dp(10))
+            pressScale()
+        }
+    }
+
+    /** MD3-E connected segments on the coloured toolbar, as in the bookmark library. */
+    private fun installFilter(toolbar: Toolbar) {
+        val ctx = requireContext()
+        toolbar.findViewById<TextView>(R.id.toolbar_title).isVisible = false
+        val track =
+            LinearLayout(ctx).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setBackgroundResource(R.drawable.bg_toolbar_segment_track)
+                setPadding(ctx.dp(3), ctx.dp(3), ctx.dp(3), ctx.dp(3))
+            }
+        val options = mutableListOf<Pair<TextView, Boolean>>()
+        fun sync() = options.forEach { (option, mine) -> option.isSelected = mine == controller.mine }
+        listOf(R.string.plaza_filter_all to false, R.string.plaza_filter_mine to true).forEach { (res, mine) ->
+            val option =
+                ctx.label(ctx.getString(res), 13f, 600).apply {
+                    setTextColor(ContextCompat.getColorStateList(ctx, R.color.toolbar_segment_text))
+                    setBackgroundResource(R.drawable.bg_toolbar_segment_option)
+                    gravity = Gravity.CENTER
+                    minWidth = ctx.dp(88)
+                    minHeight = ctx.dp(36)
+                    setPadding(ctx.dp(16), ctx.dp(7), ctx.dp(16), ctx.dp(7))
+                    isClickable = true
+                    isFocusable = true
+                    setOnClickListener {
+                        if (!controller.selectMine(mine)) return@setOnClickListener
+                        sync()
+                        feedBinding.feedListView.scrollToPosition(0)
+                        restartScope()
+                    }
+                }
+            options += option to mine
+            track.addView(option, LinearLayout.LayoutParams(-2, -2))
+        }
+        sync()
+        toolbar.addView(track, Toolbar.LayoutParams(-2, -2, Gravity.CENTER))
+    }
+
+    /** Extended FAB: the feed's single strongest action, retreating while the user reads. */
+    private fun installComposeFab(frame: FrameLayout, list: RecyclerView): View {
+        val ctx = requireContext()
+        val fab =
+            ctx.pillButton(
+                ctx.getString(R.string.plaza_compose_title),
+                primary = true,
+                icon = R.drawable.ic_add_black_24dp,
+            ) { ctx.openComposer() }
+                .apply {
+                    minHeight = ctx.dp(52)
+                    setPadding(ctx.dp(20), 0, ctx.dp(24), 0)
+                    elevation = ctx.dpF(4f)
+                    outlineProvider = ViewOutlineProvider.BACKGROUND
+                }
+        frame.addView(
+            fab,
+            FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.END).apply {
+                setMargins(ctx.dp(16), ctx.dp(16), ctx.dp(16), ctx.dp(16))
+            },
+        )
+        var shown = true
+        fun setShown(value: Boolean) {
+            if (shown == value) return
+            shown = value
+            fab.animate().cancel()
+            if (!motionEnabled()) {
+                fab.isVisible = value
+                fab.scaleX = 1f
+                fab.scaleY = 1f
+                fab.alpha = 1f
+                return
+            }
+            if (value) fab.isVisible = true
+            fab.animate()
+                .scaleX(if (value) 1f else .8f)
+                .scaleY(if (value) 1f else .8f)
+                .alpha(if (value) 1f else 0f)
+                .setDuration(200)
+                .withEndAction { if (!value) fab.isVisible = false }
+                .start()
+        }
+        list.addOnScrollListener(
+            object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
+                    if (dy > ctx.dp(8)) setShown(false)
+                    else if (dy < -ctx.dp(8) || !rv.canScrollVertically(-1)) setShown(true)
+                }
+            }
+        )
+        return fab
     }
 
     override fun onDestroyView() {
-        recycler?.adapter = null
-        recycler = null
+        // Lifecycle-bound observers are already detached; only the bookkeeping remains.
+        observers.clear()
         super.onDestroyView()
     }
 
@@ -158,9 +471,9 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
         WitDialog.MessageDialogBuilder(requireContext())
             .setMessage(getString(R.string.plaza_delete_confirm))
             .addAction(getString(R.string.cancel)) { d, _ -> d.dismiss() }
-            .addAction(getString(R.string.plaza_delete_confirm_yes)) { d, _ ->
+            .addAction(0, R.string.plaza_delete_confirm_yes, WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
-                model.delete(post)
+                controller.delete(post)
             }
             .show()
     }
@@ -170,4 +483,15 @@ open class PlazaTimelineFragment : Fragment(R.layout.fragment_plaza_shell) {
         imageViewerOpen = true
         imageViewer.launch(PlazaImageViewer.intent(requireContext(), post, index, thumbnail))
     }
+
+    private companion object {
+        /** Beyond this many rows above the viewport, jump to the top instead of smooth-scrolling. */
+        const val SMOOTH_SCROLL_MAX_ROWS = 12
+        /** Covers a full smooth scroll plus the next layout pass, at 100ms per retry. */
+        const val HIGHLIGHT_MAX_RETRIES = 30
+    }
+
 }
+
+/** feeds hands over a Throwable; plaza's mapping wants the Exception it usually is. */
+internal fun Throwable.plazaMessage() = plazaError(this as? Exception ?: Exception(this))

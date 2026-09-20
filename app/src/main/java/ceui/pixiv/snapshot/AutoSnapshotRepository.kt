@@ -1,6 +1,7 @@
 package ceui.pixiv.snapshot
 
 import android.content.Context
+import ceui.lisa.activities.Shaft
 import java.io.File
 
 /**
@@ -11,8 +12,6 @@ import java.io.File
  */
 object AutoSnapshotRepository {
 
-    /** 本次试验硬编码的自动快照总大小上限。 */
-    private const val AUTO_SNAPSHOT_MAX_BYTES = 200L * 1024 * 1024
 
     fun listAuto(context: Context): List<AutoSnapshotSummary> {
         return SnapshotRepository.root(context).listFiles()
@@ -63,12 +62,17 @@ object AutoSnapshotRepository {
     fun deleteAuto(context: Context, snapshotId: String): Boolean =
         SnapshotRepository.delete(context, snapshotId)
 
-    /** 统计所有自动快照大小，超过硬编码阈值后按 createdAt 从旧到新淘汰，直到总大小低于阈值。 */
+    /** 统计所有自动快照大小，超过当前用户设置的上限后按 createdAt 从旧到新淘汰，直到总大小低于阈值。 */
     fun enforceAutoQuota(context: Context) {
+        enforceAutoQuota(context, AutoSnapshotQuota.maxBytesForLimit(Shaft.sSettings.autoSnapshotMaxMb))
+    }
+
+    /** 允许调用方直接传入字节上限；最右端哨兵已由 [AutoSnapshotQuota] 换算为不限制。 */
+    fun enforceAutoQuota(context: Context, maxBytes: Long) {
         var autos = listAuto(context)
         while (autos.isNotEmpty()) {
             val total = autos.sumOf { it.totalSize }
-            if (total <= AUTO_SNAPSHOT_MAX_BYTES) break
+            if (total <= maxBytes) break
             val oldest = autos.minByOrNull { it.manifest.createdAt } ?: break
             // 删除失败（deleteRecursively 半途出错等）必须退出：这一份下轮还会被选中，
             // 继续循环就是永不推进的全库扫描死循环。宁可本轮超额，等下次生成再收。

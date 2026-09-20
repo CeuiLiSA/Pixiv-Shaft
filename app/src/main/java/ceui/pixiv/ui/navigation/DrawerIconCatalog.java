@@ -61,17 +61,9 @@ public final class DrawerIconCatalog {
         } else if (actionId == R.id.nav_chat_room) {
             return R.drawable.ic_chat_black_24dp;
         } else if (actionId == R.id.nav_plaza) {
-            return R.drawable.ic_plaza_forum_24;
-        } else if (actionId == R.id.nav_debug_bulk_dl) {
-            return R.drawable.ic_file_download_done_24dp;
-        } else if (actionId == R.id.nav_saf_perf_test) {
-            return R.drawable.ic_baseline_data_usage_24;
+            return R.drawable.ic_plaza_feed_24;
         } else if (actionId == R.id.nav_network_test) {
             return R.drawable.ic_baseline_dns_24;
-        } else if (actionId == R.id.nav_spark_ai) {
-            return R.drawable.baseline_auto_awesome_24;
-        } else if (actionId == R.id.nav_tag_popular_export) {
-            return R.drawable.ic_v3_export_24;
         } else if (actionId == R.id.nav_referral_plan) {
             return R.drawable.ic_share_black_24dp;
         } else if (actionId == R.id.nav_nana7mi_usage) {
@@ -80,8 +72,6 @@ public final class DrawerIconCatalog {
             return R.drawable.ic_setcat_globe;
         } else if (actionId == R.id.nav_fanbox) {
             return R.drawable.ic_setcat_heart;
-        } else if (actionId == R.id.nav_media_demo) {
-            return R.drawable.ic_file_download_black_24dp;
         } else if (actionId == R.id.nav_prime_tags || actionId == R.id.nav_current_hot) {
             return R.drawable.outline_whatshot_24;
         } else if (actionId == R.id.nav_new_work) {

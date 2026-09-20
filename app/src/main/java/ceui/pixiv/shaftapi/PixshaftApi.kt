@@ -103,6 +103,46 @@ interface PixshaftApi {
         @Query("limit") limit: Int,
     ): PrimeTagIllustPage
 
+    /**
+     * 一页「大家搜过的」作品。
+     *
+     * 数据是 pixshaft-api 的作品库：借号搜索缓存每回填一页，服务端就把那 30 个作品拆出来、
+     * 按 id 去重存进去。缓存页一天后不再当搜索结果用，作品本身留着，所以这份列表每天都在
+     * 长——而服务端全程不请求 pixiv，也不消耗任何人的额度。
+     *
+     * [cursor] 是上一页的 [CorpusWorkPage.next_cursor]：不透明，不要自己拼；null 表示从头开始，
+     * 服务端认不出来的游标也当从头开始（翻页位置而已，丢了最多重来一页）。返回 null 即到底。
+     *
+     * [r18] 是给服务端的**分级上限**（0 全年龄 / 1 含 R-18 / 2 含 R-18G），只用来省流量：
+     * 库里一半以上是 R-18，用户关着的时候没必要下行再丢掉。最终权威仍是客户端的
+     * [ceui.lisa.helper.IllustNovelFilter]，两边都过一遍。
+     */
+    @GET("v1/corpus/works")
+    suspend fun corpusWorks(
+        @Query("limit") limit: Int,
+        @Query("cursor") cursor: String? = null,
+        @Query("r18") r18: Int = 0,
+        @Query("tag") tag: String? = null,
+        @Query("min_bookmarks") minBookmarks: Int? = null,
+    ): CorpusWorkPage
+
+    /**
+     * 作品库的标签目录：每个标签 + 它背后的作品数 + 三张预览方图。
+     *
+     * 和「热度标签」的目录不同，这份不在 APK 里——它每天都在长（[minWorks] 以上的标签目前
+     * 四千多个，热度标签是一年前策展的 202 个），所以只能来自服务端。预览图由服务端在建库
+     * 时按收藏数取好，这里不需要再为每个标签单独请求。
+     */
+    @GET("v1/corpus/tags")
+    suspend fun corpusTags(
+        @Query("limit") limit: Int,
+        @Query("min_works") minWorks: Int? = null,
+    ): CorpusTagList
+
+    /** 作品库规模，只为在标题下写一句「已收录 N 件」，失败就不显示。 */
+    @GET("v1/corpus/stats")
+    suspend fun corpusStats(): CorpusStats
+
     // ── account backup / Nana7mi ──
     // All account calls are signed with X-Shaft-Sign by the OkHttp interceptor in
     // ClientManager (the `/v1/account/` path match). Server: src/account.js.
@@ -256,12 +296,194 @@ interface PixshaftApi {
     /** Backup: unbind — delete this account's cloud backup. */
     @POST("v1/account/bind/delete")
     suspend fun bindDelete(@Body body: UidReq): BindDeleteAck
+
+    // ── App 推介计划 ──────────────────────────────────────────────────────
+    //
+    // 这一组**只**走 Auth V2 的 Bearer（见 safe 模块的 AuthRoutes）：uid 从 token 里
+    // 取，请求体里不带。别处那把旧 HMAC 是打在 APK 里的共享密钥，谁都能替任何人说话，
+    // 而这条路的尽头是真的发出去几天 PRO。
+    //
+    // 每个写操作都顺带把整页状态回给客户端，所以领完 / 激活完不需要再拉一次。
+
+    /**
+     * 推介页要画的一切：邀请码、任务与进度、卡包、当前 PRO 到期时间。
+     *
+     * 每条推介路由都带 `X-Shaft-Flavor`：Lite（Play 渠道）不参加这个活动，而**那道闸
+     * 必须在服务端** —— 客户端侧的入口虽然按 flavor 藏了，深链却绕得过去，而绕过去的
+     * 代价是真金白银（一次有效邀请 14 天预算，换一堆 Lite 包里根本用不上的权益）。
+     */
+    @GET("v1/referral/state")
+    suspend fun referralState(
+        @Header("X-Shaft-Flavor") flavor: String,
+        @Query("campaign") campaign: String? = null,
+    ): Response<ReferralStateResponse>
+
+    /** 新人绑定邀请人。一次性、不可改。 */
+    @POST("v1/referral/bind")
+    suspend fun referralBind(
+        @Header("X-Shaft-Flavor") flavor: String,
+        @Body body: ReferralBindReq,
+    ): Response<ReferralActionResponse>
+
+    /** 已达标的任务 → 卡包里的一张体验卡。 */
+    @POST("v1/referral/claim")
+    suspend fun referralClaim(
+        @Header("X-Shaft-Flavor") flavor: String,
+        @Body body: ReferralClaimReq,
+    ): Response<ReferralActionResponse>
+
+    /** 消费一张卡，PRO 天数真的到账。 */
+    @POST("v1/referral/activate")
+    suspend fun referralActivate(
+        @Header("X-Shaft-Flavor") flavor: String,
+        @Body body: ReferralActivateReq,
+    ): Response<ReferralActionResponse>
+
+    /** 内容任务投稿，等人工审核。 */
+    @POST("v1/referral/submit")
+    suspend fun referralSubmit(
+        @Header("X-Shaft-Flavor") flavor: String,
+        @Body body: ReferralSubmitReq,
+    ): Response<ReferralActionResponse>
+
+    /**
+     * 活跃 / 收藏信标。
+     *
+     * 收藏发生在 Pixiv，pixshaft 的服务器不在那条链路上，这是它唯一能知道「这个人今天
+     * 收藏过」的方式。这个 bit 只能给一个本来就有服务端流量的自然日打标记，造不出一天来。
+     */
+    @POST("v1/referral/activity")
+    suspend fun referralActivity(
+        @Header("X-Shaft-Flavor") flavor: String,
+        @Body body: ReferralActivityReq,
+    ): Response<Unit>
 }
+
+// ── 推介计划的线上模型 ────────────────────────────────────────────────────
+//
+// 每个字段都可空：这是服务端随时可能加字段的接口，解析不能因为少一个键就把整页掀了。
+// 语义一律「服务端没说」，由 [ceui.pixiv.ui.referral] 里的映射决定怎么兜底。
+
+data class ReferralStateResponse(
+    val uid: Long? = null,
+    val campaign: String? = null,
+    val campaigns: List<String>? = null,
+    /** 活动开着没有。关着时 [code] 也是 null —— 服务端不会给谁凭空生成邀请码。 */
+    val enabled: Boolean? = null,
+    val serverTime: Long? = null,
+    /** 自己的 8 位邀请码，和可以直接分享出去的链接。 */
+    val code: String? = null,
+    val inviteUrl: String? = null,
+    /** 我是被谁邀请的。非 null = 已经绑过，绑定入口就不该再出现。 */
+    val boundTo: ReferralBoundTo? = null,
+    /** 有效邀请数 / 持续活跃数 / 还没达标的 / 被标记等复核的。只有汇总，没有好友明细。 */
+    val effective: Int? = null,
+    val retained: Int? = null,
+    val pending: Int? = null,
+    val flagged: Int? = null,
+    val tasks: List<ReferralTaskState>? = null,
+    val rewards: List<ReferralRewardDto>? = null,
+    val plan: Nana7miPlan? = null,
+    /** 自己买的 / 领的那一档 PRO 到什么时候。新激活的卡从这里往后顺延。 */
+    val activeUntil: Long? = null,
+    val rules: ReferralRulesDto? = null,
+)
+
+data class ReferralRulesDto(
+    val qualifyWindowDays: Int? = null,
+    val qualifyActiveDays: Int? = null,
+    val retainWindowDays: Int? = null,
+    val retainActiveDays: Int? = null,
+    val retainLateFromDay: Int? = null,
+    val cardValidDays: Int? = null,
+)
+
+data class ReferralBoundTo(
+    val inviterUid: Long? = null,
+    val boundAt: Long? = null,
+    /** `ok` / `flagged` / `rejected`。被拒的绑定永远不会有奖励，页面必须说出来。 */
+    val reviewState: String? = null,
+)
+
+data class ReferralTaskState(
+    /** `invite` / `recommend` / `tutorial` / `circle`。这个版本不认识的一律忽略。 */
+    val key: String? = null,
+    val days: Int? = null,
+    val plan: String? = null,
+    val target: Int? = null,
+    val progress: Int? = null,
+    /** `new` / `progress` / `pending` / `rejected` / `ready` / `claimed` */
+    val status: String? = null,
+    /** 这一期开着没有。关着的任务照常显示，但不能提交也不能领。 */
+    val enabled: Boolean? = null,
+    /** 被退回时审核员写的理由，原样显示给用户。 */
+    val reviewNote: String? = null,
+    val submittedUrl: String? = null,
+    val submittedAt: Long? = null,
+)
+
+data class ReferralRewardDto(
+    val id: Long? = null,
+    val task: String? = null,
+    val plan: String? = null,
+    val days: Int? = null,
+    val issuedAt: Long? = null,
+    /** 领到手之后要在这之前激活，过期作废。 */
+    val expiresAt: Long? = null,
+    val activatedAt: Long? = null,
+    val grantedUntil: Long? = null,
+)
+
+data class ReferralBindReq(val code: String, val campaign: String? = null, val uid: Long? = null)
+data class ReferralClaimReq(val task: String, val campaign: String? = null, val uid: Long? = null)
+data class ReferralActivateReq(val id: Long, val campaign: String? = null, val uid: Long? = null)
+data class ReferralSubmitReq(val task: String, val url: String, val description: String, val campaign: String? = null, val uid: Long? = null)
+data class ReferralActivityReq(val bookmarked: Boolean, val uid: Long)
+
+/** 每个写操作都把整页新状态捎回来，省掉一次往返。 */
+data class ReferralActionResponse(
+    val state: ReferralStateResponse? = null,
+    val reward: ReferralRewardDto? = null,
+    val inviterUid: Long? = null,
+    /** 服务端拒绝时的机器可读原因；成功时为 null。 */
+    val error: String? = null,
+    /** `higher_tier_active` 时服务端顺延后的卡片有效期。 */
+    val expiresAt: Long? = null,
+)
 
 /**
  * 一页 Prime 标签插画。[illusts] 是快照里 pixiv 原样的作品对象，和实时搜索结果同一个模型；
  * [next_offset] 是下一页游标，null = 该标签已翻完。
  */
+/**
+ * 一页作品库。游标分页：库是六位数条目且每天在长，offset 翻到深处要先走完前面所有条目，
+ * 游标则是「上一页最后一条的位置」，第 200 页和第 1 页一样快。
+ */
+/** 标签目录一页。服务端只回有预览图的标签，所以不会出现点进去空空如也的货架。 */
+data class CorpusTagList(
+    val tags: List<CorpusTag> = emptyList(),
+)
+
+data class CorpusTag(
+    val name: String = "",
+    val count: Int = 0,
+    val preview: List<String> = emptyList(),
+)
+
+data class CorpusWorkPage(
+    val illusts: List<Illust> = emptyList(),
+    val limit: Int = 0,
+    val next_cursor: String? = null,
+)
+
+/** `/v1/corpus/stats`。库不可用时服务端回 503，这里拿不到就当没有。 */
+data class CorpusStats(
+    val illusts: Int = 0,
+    val novels: Int = 0,
+    val artists: Int = 0,
+    val tags: Int = 0,
+)
+
 data class PrimeTagIllustPage(
     val key: String = "",
     val tag: Tag? = null,
@@ -302,6 +524,11 @@ data class AppConfigResponse(
     val cloudTranslateEnabled: Boolean? = null,
     /** 云翻译当前用的厂商和模型全名（「OpenAI · gpt-5.4-mini」），功能关着时为 null。纯展示。 */
     val cloudTranslateEngine: CloudTranslateEngine? = null,
+    /**
+     * App 推介计划开着。缺失 = 老服务端，客户端保留上次答案（默认关）——入口通向的是
+     * 发真 PRO 天数的活动，不能因为「没被宣告过」就默认亮着。
+     */
+    val referralEnabled: Boolean? = null,
     val serverTime: Long? = null,
 )
 

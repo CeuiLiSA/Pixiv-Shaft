@@ -6,12 +6,28 @@ import ceui.pixiv.feeds.FeedPagingPolicy
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.db.mirror.AgeFilter
 import ceui.pixiv.db.mirror.AiFilter
+import ceui.pixiv.db.mirror.BookmarkSort
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.NovelFeedItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+
+/** 默认顺序带稳定的收藏序号；其他排序仍用 offset。游标只在本地列表内流转。 */
+internal data class BookmarkLibraryCursor(val consumed: Int, val afterSeq: Long? = null) {
+    override fun toString(): String = afterSeq?.let { "$consumed@$it" } ?: consumed.toString()
+
+    companion object {
+        fun parse(value: String?): BookmarkLibraryCursor {
+            val parts = value?.split('@', limit = 2).orEmpty()
+            return BookmarkLibraryCursor(
+                parts.firstOrNull()?.toIntOrNull() ?: 0,
+                parts.getOrNull(1)?.toLongOrNull(),
+            )
+        }
+    }
+}
 
 /**
  * 收藏库的数据源：**纯本地**，一次查一页镜像表。
@@ -20,15 +36,14 @@ import timber.log.Timber
  *
  * 本页复用 [ceui.pixiv.ui.common.IllustFeedFragment]（白拿标准瀑布流卡、长按菜单、
  * 详情回传、收藏红心广播同步），而它把游标类型钉死成 `String`。本地分页真正需要的
- * 只是一个 offset，所以这里把 offset 编码进字符串。
+ * 是本地分页位置，所以这里把已读行数与默认排序的收藏序号编码进字符串。
  * 页面同时把 `detailContinuationCursor` 覆写成 null —— 详情页的续拉会把游标当
  * `@Url` 直接请求，本地 offset 绝不能流到那条路上去。
  *
- * ## 为什么用 offset 而不是 keyset
+ * ## 分页边界
  *
- * 排序键是用户随手换的（收藏顺序 / 发布时间 / 热度 / 字数 / 随机…），keyset 要为每种
- * 排序各写一套「上一页最后一行的值」的比较条件，复杂度和出错面都不成比例。而本地表在
- * 一次浏览会话里几乎不动（后台镜像每 5 秒才可能写一次），offset 漂移的风险极低；
+ * 默认收藏顺序按上一页最后一条的 bookmarkSeq 续读：边同步边浏览时，用户可能取消已读
+ * 收藏或新增表头，行数 offset 会随之漂移、跳过未读内容。其他排序 / 筛选仍使用 offset；
  * 每种排序又都补了 `targetId DESC` 作全序兜底键（见 [ceui.pixiv.db.mirror.BookmarkMirrorQuery]），
  * 并列行的次序不会在两次查询之间抖动。
  *
@@ -59,15 +74,18 @@ class BookmarkLibraryFeedSource(
 ) : FeedSource<String> {
 
     override suspend fun load(cursor: String?): FeedPage<String> {
-        val offset = cursor?.toIntOrNull() ?: 0
+        val position = BookmarkLibraryCursor.parse(cursor)
+        val offset = position.consumed
         val filter = viewModel.filter.value
+        val knownStats = viewModel.shelfStats.value
+        val stableOrder = filter.sort == BookmarkSort.BOOKMARK_NEWEST && !filter.hasAnyCondition
         if (filter.shelfKey.isEmpty()) {
             // VM 还没 bind（理论上不会：Fragment 在 onViewCreated 里先 bind）。
             // 与其抛，不如给一页空的：页面会显示空态而不是错误态。
             Timber.tag(TAG).w("VM 尚未绑定书架，返回空页")
             return FeedPage(emptyList(), null)
         }
-        val rows = BookmarkLibraryRepo.page(filter, PAGE_SIZE, offset)
+        val rows = BookmarkLibraryRepo.page(filter, PAGE_SIZE, offset, position.afterSeq.takeIf { stableOrder })
         // ⚠️ 必须切线程：[FeedViewModel] 是在 viewModelScope（**主线程**）里直接 await
         // `source.load()` 的，`load` 里没有 withContext 的那部分就是主线程代码。一页 60 条
         // 完整 Illust JSON 的 gson 反序列化在中端机上是几十到上百毫秒，落在滚动路径上就是
@@ -99,12 +117,17 @@ class BookmarkLibraryFeedSource(
         }
         // 不足一页 = 到底了。注意判据是**查回来的行数**而不是映射后的条目数：
         // 中间夹着几条反序列化失败的坏行时，用条目数会提前判定到底，把后面的收藏全吞掉。
-        //
-        // ⚠️ 补齐期间（书架还没 firstCompletedAt）这条 null 是**假的**：表每 5 秒就长 30 行，
-        // 而 feeds 框架收到 null 就把 reachedEnd 钉死、从此不再问数据源要数据。所以 UI 层在
-        // 「库里比屏幕上多、且用户已在末尾」时会用 adoptCursor + loadMore 把游标重新打开，
-        // 见 `BookmarkLibraryUi.refreshIfStale` 里的「尾部续页」。别把那段当成冗余删掉。
-        val nextCursor = if (rows.size < PAGE_SIZE) null else (offset + rows.size).toString()
+        val nextCursor = if (rows.size < PAGE_SIZE) null else BookmarkLibraryCursor(
+            offset + rows.size, rows.last().bookmarkSeq.takeIf { stableOrder },
+        ).toString()
+        // 锚点取原始 SQL 行，不能取被全局屏蔽规则过滤后的卡片。
+        viewModel.recordLoadedPage(
+            filter, offset + rows.size, rows.lastOrNull()?.bookmarkSeq,
+            firstBookmarkSeq = rows.firstOrNull()?.bookmarkSeq,
+            firstPage = cursor == null,
+            queriedStats = knownStats,
+            exhaustedAt = knownStats.takeIf { rows.size < PAGE_SIZE },
+        )
         return FeedPage(items, nextCursor)
     }
 

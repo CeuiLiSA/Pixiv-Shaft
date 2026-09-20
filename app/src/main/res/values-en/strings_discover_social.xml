@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discover_social_title">Chat and share</string>
+    <string name="discover_community_title">Community</string>
+    <string name="discover_chat_description">Public chat · Direct messages</string>
+    <string name="discover_community_description">Share artwork · Join discussions</string>
+    <string name="discover_chat_action">Open chat</string>
+    <string name="discover_community_action">Browse plaza</string>
+</resources>

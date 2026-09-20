@@ -12,6 +12,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import ceui.lisa.R
 import ceui.pixiv.plaza.*
+import ceui.pixiv.witstudio.theme.dp
 import com.bumptech.glide.Glide
 import java.io.File
 import org.junit.Assert.*
@@ -95,7 +96,7 @@ class PlazaFigmaRenderTest {
                                     ),
                                 ),
                         )
-                    val view = PostView(context) { 42L }
+                    val view = PostView(context, { 42L })
                     view.bind(post, false, detail, {}, {}, { _, _, _ -> })
                     val width = context.dp(390)
                     fun layout() {
@@ -130,17 +131,17 @@ class PlazaFigmaRenderTest {
                                 androidx.core.content.ContextCompat.getColor(context, R.color.v3_bg)
                             )
                         }
-                    screen.addView(
-                        PlazaHeader(context).apply {
-                            title.text = if (detail) "帖子详情" else "广场"
-                            action.text = if (detail) "更多" else "发帖"
-                        },
-                        android.widget.LinearLayout.LayoutParams(-1, 64),
-                    )
+                    android.view.LayoutInflater.from(context)
+                        .inflate(R.layout.toolbar_layout, screen, true)
+                    screen.findViewById<android.widget.TextView>(R.id.toolbar_title).text =
+                        if (detail) "帖子详情" else "广场"
+                    screen.findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+                        .menu.add(if (detail) "更多" else "发帖")
+                        .setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS)
                     screen.addView(view)
                     if (detail) {
                         screen.addView(
-                            PostView(context) { 42L }
+                            PostView(context, { 42L })
                                 .apply {
                                     bind(
                                         post.copy(
@@ -162,7 +163,7 @@ class PlazaFigmaRenderTest {
                                     )
                                 }
                         )
-                        screen.addView(PlazaReplyBar(context, {}, {}, {}).apply { bind(post) })
+                        screen.addView(PlazaReplyBar(context))
                     }
                     screen.measure(
                         View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),

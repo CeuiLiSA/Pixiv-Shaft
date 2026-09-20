@@ -92,6 +92,17 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
     @Volatile
     private var plan: Nana7miPlan? = null
 
+    /**
+     * App 推介计划在服务端开着。
+     *
+     * 只影响**入口要不要出现** —— 活动关着时侧边栏那一行就不该在，而不是点进去看见
+     * 一页「暂未开放」。真正的判定全在服务端，这个开关骗不到任何奖励。
+     */
+    @Volatile
+    private var referral = DEFAULT_REFERRAL
+    private val referralLive = MutableLiveData<Boolean>()
+    val referralEnabledLive: LiveData<Boolean> get() = referralLive
+
     private val planLive = MutableLiveData<Nana7miPlan?>()
 
     /**
@@ -163,6 +174,17 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         get() {
             refreshIfStale()
             return cloudTranslate
+        }
+
+    /**
+     * 推介计划开着没有。Lite 恒为 false：奖励是 PRO 天数，而 Lite 连档位都拿不到，
+     * 给它一个通向自己没有的东西的入口只是在浪费用户的一次点击。
+     */
+    val referralEnabled: Boolean
+        get() {
+            if (BuildConfig.IS_LITE) return false
+            refreshIfStale()
+            return referral
         }
 
     /** 设置页和用量页展示用的「OpenAI · gpt-5.4-mini」；没拉到过就是 null，别画空标签。 */
@@ -237,6 +259,10 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         cloudTranslate = runCatching {
             store.getBoolean(translateKey(uid), DEFAULT_CLOUD_TRANSLATE)
         }.getOrDefault(DEFAULT_CLOUD_TRANSLATE)
+        referral = !BuildConfig.IS_LITE && runCatching {
+            store.getBoolean(referralKey(uid), DEFAULT_REFERRAL)
+        }.getOrDefault(DEFAULT_REFERRAL)
+        referralLive.postValue(referral)
         cloudTranslateEngine = runCatching {
             store.getString(KEY_CLOUD_TRANSLATE_ENGINE, null)?.let { gson.fromJson(it, CloudTranslateEngine::class.java) }
         }.getOrNull()
@@ -319,6 +345,13 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
                 else store.putString(KEY_CLOUD_TRANSLATE_ENGINE, gson.toJson(cloudTranslateEngine))
             }
         }
+        // 推介入口：服务端没说（老服务端）就保留旧值，默认关。活动是要发钱的，
+        // 入口不能因为「没被宣告过」就默认亮着。
+        response.referralEnabled?.let { on ->
+            referral = !BuildConfig.IS_LITE && on
+            runCatching { store.putBoolean(referralKey(uid), referral) }
+            referralLive.postValue(referral)
+        }
         val enabled = if (BuildConfig.IS_LITE) false else response.nana7miSearchEnabled
         if (enabled == null) {
             Timber.tag(TAG).d(
@@ -375,6 +408,8 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
 
     private fun translateKey(uid: Long) = KEY_CLOUD_TRANSLATE_PREFIX + uid
 
+    private fun referralKey(uid: Long) = KEY_REFERRAL_PREFIX + uid
+
     private val gson by lazy { Gson() }
 
     private companion object {
@@ -383,9 +418,11 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         const val KEY_NANA7MI_SEARCH_PREFIX = "nana7mi_search_enabled_"
         const val KEY_NANA7MI_PLAN_PREFIX = "nana7mi_plan_"
         const val KEY_CLOUD_TRANSLATE_PREFIX = "cloud_translate_enabled_"
+        const val KEY_REFERRAL_PREFIX = "referral_enabled_"
         const val KEY_CLOUD_TRANSLATE_ENGINE = "cloud_translate_engine"
         // 服务端没宣告过之前不打这条路由：老服务端对它是 404。
         const val DEFAULT_CLOUD_TRANSLATE = false
+        const val DEFAULT_REFERRAL = false
         // 没拿到服务端许可之前不开：这是灰度中的功能，默认关比默认开安全。
         const val DEFAULT_NANA7MI_SEARCH = false
         const val RETRY_COOLDOWN_MS = 5 * 60 * 1000L

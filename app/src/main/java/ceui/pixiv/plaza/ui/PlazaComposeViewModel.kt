@@ -6,16 +6,29 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ceui.lisa.R
+import ceui.pixiv.api.model.Illust
+import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.plaza.CreatePost
 import ceui.pixiv.plaza.PlazaApi
 import ceui.pixiv.plaza.PlazaFailure
 import ceui.pixiv.plaza.PlazaMessage
+import ceui.pixiv.plaza.PlazaObjectExtensions
+import ceui.pixiv.plaza.plazaExtensions
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.utils.fetchFullIllustDetail
+import ceui.pixiv.utils.isFullDetail
 import ceui.pixiv.shaftapi.MediaObject
+import ceui.pixiv.shaftapi.MediaUploadResume
 import ceui.pixiv.shaftapi.MediaUploader
+import com.google.gson.Gson
 import java.util.UUID
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import timber.log.Timber
+
+/** The linked work as the app already holds it, else one detail fetch (null when unavailable). */
+internal suspend fun resolveLinkedWork(id: Long): Illust? =
+    ObjectPool.get<Illust>(id).value?.takeIf { it.isFullDetail() } ?: fetchFullIllustDetail(id)
 
 internal data class DraftImage(val uri: String, val mediaId: String? = null, val progress: Int = 0)
 
@@ -35,9 +48,21 @@ constructor(
     private val api: PlazaApi = PlazaRepository.api,
     private val currentUid: () -> Long = { SessionManager.loggedInUid },
     private val currentName: () -> String = { SessionManager.loggedInUser?.name.orEmpty() },
-    private val uploader: suspend (ContentResolver, Uri, (Int) -> Unit) -> MediaObject =
+    private val linkedWork: suspend (Long) -> Illust? = ::resolveLinkedWork,
+    private val uploader:
+        suspend (
+            ContentResolver, Uri, MediaUploadResume?, suspend (MediaUploadResume) -> Unit, (Int) -> Unit,
+        ) -> MediaObject =
         MediaUploader::upload,
 ) : ViewModel() {
+    /** The pending upload authorisation of one draft image, kept until that image completes. */
+    private fun resumeKey(uri: String) = "resume:$uri"
+
+    private fun savedResume(uri: String): MediaUploadResume? =
+        saved.get<String>(resumeKey(uri))?.let { json ->
+            runCatching { Gson().fromJson(json, MediaUploadResume::class.java) }.getOrNull()
+        }
+
     private fun requireAccount() {
         if (owner <= 0 || owner != currentUid())
             throw PlazaFailure(PlazaMessage(R.string.plaza_account_changed))
@@ -95,8 +120,29 @@ constructor(
     var replyTo: Long?
         get() = saved["replyTo"]
         set(value) {
-            saved["replyTo"] = value
+            if (!mutable.value.sending && replyTo != value) {
+                saved["replyTo"] = value
+                invalidateRequest()
+            }
         }
+
+    var replyName: String
+        get() = saved["replyName"] ?: ""
+        set(value) { saved["replyName"] = value }
+
+    var replyPreview: String
+        get() = saved["replyPreview"] ?: ""
+        set(value) { saved["replyPreview"] = value }
+
+    /** A persistent reply composer stays open after a successful send. */
+    fun consumeSentReply(): Long? {
+        val id = mutable.value.sentId ?: return null
+        if (mutable.value.sending) return null
+        saved["text"] = ""
+        invalidateRequest()
+        mutable.value = mutable.value.copy(sentId = null)
+        return id
+    }
 
     private val owner: Long = saved.get<Long>("owner") ?: currentUid().also { saved["owner"] = it }
 
@@ -135,6 +181,33 @@ constructor(
         invalidateRequest()
     }
 
+    /**
+     * The linked illust / manga travels with the post so readers show its pages without asking
+     * Pixiv. Resolved once per reference and kept in memory only: a full work can run past
+     * 100 KiB, too much for saved state, and the server keeps it out of the idempotency hash,
+     * so a retry after process death may simply resolve again. Unavailable (offline, deleted,
+     * no medium URL) means the post goes out without it and readers see only the capsule.
+     */
+    private var linkedCache: Pair<String, PlazaObjectExtensions>? = null
+
+    private suspend fun linkedExtensions(id: Long?, type: String?): PlazaObjectExtensions? {
+        if (id == null || type != "illust" && type != "manga") return null
+        val key = "$type:$id"
+        linkedCache?.takeIf { it.first == key }?.let { return it.second }
+        val work =
+            try {
+                linkedWork(id)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "plaza linked work %d unavailable; posting the capsule only", id)
+                null
+            }
+        val extensions = work?.plazaExtensions() ?: return null
+        linkedCache = key to extensions
+        return extensions
+    }
+
     fun canSend(): Boolean =
         !mutable.value.sending &&
             title.codePointCount(0, title.length) <= 120 &&
@@ -144,6 +217,11 @@ constructor(
                 mutable.value.images.isNotEmpty() ||
                 mutable.value.objectId != null)
 
+    /** Leave empty composers to the system's predictive back; protect drafts even when invalid. */
+    fun shouldInterceptBack(): Boolean =
+        mutable.value.sending || title.isNotBlank() || text.isNotBlank() ||
+            mutable.value.images.isNotEmpty() || mutable.value.objectId != null
+
     fun send(resolver: ContentResolver) {
         if (!canSend()) return
         mutable.value = mutable.value.copy(sending = true, error = null)
@@ -151,11 +229,22 @@ constructor(
             try {
                 requireAccount()
                 // Sequential streaming bounds memory and avoids nine competing mobile uploads.
-                // Successful media IDs survive retries and process recreation.
+                // Successful media IDs survive retries and process recreation; so does a pending
+                // authorisation, so a retry finishes the same object instead of re-sending it.
                 for (image in mutable.value.images) {
                     if (image.mediaId != null) continue
                     val media =
-                        uploader(resolver, Uri.parse(image.uri)) { percent ->
+                        uploader(
+                            resolver,
+                            Uri.parse(image.uri),
+                            savedResume(image.uri),
+                            { resume ->
+                                // The uploader calls back from its IO context.
+                                withContext(Dispatchers.Main.immediate) {
+                                    saved[resumeKey(image.uri)] = Gson().toJson(resume)
+                                }
+                            },
+                        ) { percent ->
                             mutable.update { s ->
                                 s.copy(
                                     images =
@@ -168,6 +257,7 @@ constructor(
                         }
                     requireAccount()
                     saved["media:${image.uri}"] = media.id
+                    saved.remove<String>(resumeKey(image.uri))
                     mutable.update { s ->
                         s.copy(
                             images =
@@ -184,6 +274,8 @@ constructor(
                     saved.get<String>("requestId")
                         ?: UUID.randomUUID().toString().also { saved["requestId"] = it }
                 val s = mutable.value
+                val extensions = linkedExtensions(s.objectId, s.objectType)
+                requireAccount()
                 val post =
                     api.create(
                         CreatePost(
@@ -196,10 +288,13 @@ constructor(
                             replyTo,
                             title.trim(),
                             avatarUrl,
+                            objectExtensions = extensions,
                         )
                     )
                 requireAccount()
                 PlazaRepository.changed()
+                PlazaRepository.cache(post, owner)
+                PlazaRepository.noteSent(post, owner)
                 mutable.value = mutable.value.copy(sentId = post.id)
             } catch (e: CancellationException) {
                 throw e

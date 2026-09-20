@@ -10,7 +10,7 @@ import java.util.zip.CRC32
 import java.util.zip.ZipFile
 
 /** Disk transaction used only on Dispatchers.IO, serialized by StickerRepository. */
-internal class StickerStore(private val root: File, private val event: (String) -> Unit = {}) {
+class StickerStore(private val root: File, private val event: (String) -> Unit = {}) {
     private val gson = Gson()
     private data class ExtractedFile(val path: String, val size: Long, val crc: Long)
     private data class Extraction(val sha256: String, val files: List<ExtractedFile>)
@@ -131,6 +131,17 @@ internal class StickerStore(private val root: File, private val event: (String) 
                 inventory.add(VerifiedFile(file, file.length(), file.lastModified()))
             }
         }
+        val images = resolveImages(catalog)
+        checkCancelled()
+        atomicWrite(File(root, "catalog.json"), raw)
+        // The only operation which opens the panel gate, after all ZIPs AND files.
+        atomicWrite(readyMarker, generation)
+        event("gate_ready generation=$generation packages=${packages.size} stickers=${images.size} marker=${readyMarker.path}")
+        progress("ready", total, total)
+        return Ready(generation, catalog, images, inventory)
+    }
+
+    private fun resolveImages(catalog: StickerCatalog): Map<Long, List<Pair<Int, File>>> {
         val images = linkedMapOf<Long, List<Pair<Int, File>>>()
         for (pack in catalog.packs.values) for (sticker in pack.stickers()) {
             val local = pack.pkgList.map { pkg ->
@@ -143,12 +154,67 @@ internal class StickerStore(private val root: File, private val event: (String) 
             }
             images[sticker.stickerId] = local
         }
+        return images
+    }
+
+    /**
+     * Warm start for an installation a previous process already completed.
+     *
+     * Read-only by construction: no download, no extraction, no marker is written or
+     * deleted, so a device with no installation - or half of one - is left exactly as it
+     * was and just gets null back. The ready marker is the proof that every SHA-256 and
+     * CRC32 was checked once; re-proving it costs seconds of hashing over hundreds of MB,
+     * so reopening settles for each file's identity (presence and exact size), the same
+     * standard [isUnchanged] already applies to an in-process reopen.
+     */
+    fun reopen(checkCancelled: () -> Unit = {}): Ready? {
+        if (!File(root, "ready.json").isFile) return null
+        val catalog = try { savedCatalog() } catch (error: Exception) {
+            event("reopen_skipped reason=invalid_catalog")
+            return null
+        } ?: return null
+        val generation = hash(gson.toJson(catalog).toByteArray())
+        if (!hasReadyMarker(generation)) {
+            event("reopen_skipped reason=stale_marker generation=$generation")
+            return null
+        }
+        val inventory = ArrayList<VerifiedFile>()
+        for (pkg in catalog.packages()) {
+            checkCancelled()
+            val dir = File(root, "packages/${pkg.sha256}")
+            val zip = File(dir, "archive.zip")
+            val downloaded = File(dir, "downloaded.json")
+            val extracted = File(dir, "extracted.json")
+            if (!zip.isFile || zip.length() != pkg.size || !downloaded.isFile || !extracted.isFile) {
+                event("reopen_skipped reason=incomplete_package path=${dir.path}")
+                return null
+            }
+            val extraction = try { gson.fromJson(extracted.readText(), Extraction::class.java) } catch (_: Exception) { null }
+            if (extraction == null || extraction.sha256 != pkg.sha256 || extraction.files.isEmpty()) {
+                event("reopen_skipped reason=invalid_extraction path=${extracted.path}")
+                return null
+            }
+            val files = File(dir, "files")
+            for (record in extraction.files) {
+                checkCancelled()
+                val file = try { safeChild(files, record.path) } catch (error: Exception) {
+                    event("reopen_skipped reason=unsafe_path")
+                    return null
+                }
+                if (!file.isFile || file.length() != record.size) {
+                    event("reopen_skipped reason=missing_file path=${file.path}")
+                    return null
+                }
+                inventory.add(VerifiedFile(file, record.size, file.lastModified()))
+            }
+            for (file in listOf(zip, downloaded, extracted)) inventory.add(VerifiedFile(file, file.length(), file.lastModified()))
+        }
+        val images = try { resolveImages(catalog) } catch (error: Exception) {
+            event("reopen_skipped reason=${error.javaClass.simpleName}")
+            return null
+        }
         checkCancelled()
-        atomicWrite(File(root, "catalog.json"), raw)
-        // The only operation which opens the panel gate, after all ZIPs AND files.
-        atomicWrite(readyMarker, generation)
-        event("gate_ready generation=$generation packages=${packages.size} stickers=${images.size} marker=${readyMarker.path}")
-        progress("ready", total, total)
+        event("reopen_ready generation=$generation packages=${catalog.packages().size} stickers=${images.size} files=${inventory.size}")
         return Ready(generation, catalog, images, inventory)
     }
 

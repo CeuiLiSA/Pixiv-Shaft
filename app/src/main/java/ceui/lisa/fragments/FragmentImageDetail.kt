@@ -9,6 +9,7 @@ import android.text.TextUtils
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -35,10 +36,12 @@ import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.common.deleteImageById
 import ceui.pixiv.ui.common.getImageIdInGallery
 import ceui.pixiv.ui.common.saveImageToGallery
+import ceui.pixiv.ui.detail.UgoiraPlayerView
 import ceui.pixiv.ui.translate.MangaOcrModel
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.utils.setOnClick
 import com.github.panpf.sketch.loadImage
+import com.github.panpf.zoomimage.ZoomImageView
 import com.github.panpf.zoomimage.util.IntSizeCompat
 import com.github.panpf.zoomimage.util.OffsetCompat
 import com.github.panpf.zoomimage.util.isNotEmpty
@@ -56,6 +59,10 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
+    private var ugoiraPlayer: UgoiraPlayerView? = null
+    private val gestureImage: ZoomImageView
+        get() = ugoiraPlayer?.imageView ?: baseBind.image
+
     private var index = 0
     private var url: String? = null
     private var saveName: String? = null
@@ -138,6 +145,11 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
      */
     override fun onDestroyView() {
         isAnimated = false
+        ugoiraPlayer?.let {
+            it.recycle()
+            resetZoomLevelMemory()
+            lastZoomContentSize = IntSizeCompat.Zero
+        }
         plazaLoadJob?.cancel()
         plazaLoadJob = null
         super.onDestroyView()
@@ -154,7 +166,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                     if (!isGestureTargetAlive) return true
                     if (isAnimated) return true
                     isAnimated = true
-                    val zoomable = baseBind.image.zoomable
+                    val zoomable = gestureImage.zoomable
                     val contentPoint = zoomable.touchPointToContentPointF(OffsetCompat(e.x, e.y))
                     viewLifecycleOwner.lifecycleScope.launch {
                         if (isScaleMax) {
@@ -199,7 +211,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                 override fun onLongPress(e: MotionEvent) {
                     if (!isGestureTargetAlive) return
                     if (!isAnimated && Shaft.sSettings.isUseCustomLongPressReset) {
-                        val zoomable = baseBind.image.zoomable
+                        val zoomable = gestureImage.zoomable
                         val contentPoint =
                             zoomable.touchPointToContentPointF(OffsetCompat(e.x, e.y))
                         if (viewModel.isFullscreenMode.value == true) {
@@ -237,7 +249,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                 DragDismissLayout.Direction.UP -> 1
                 DragDismissLayout.Direction.DOWN -> -1
             }
-        return !baseBind.image.canScrollVertically(scrollDirection)
+        return !gestureImage.canScrollVertically(scrollDirection)
     }
 
     public override fun initBundle(bundle: Bundle) {
@@ -252,6 +264,14 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
     @SuppressLint("ClickableViewAccessibility")
     override fun initView() {
+        if (mIllust?.isGif() == true && ugoiraPlayer == null) {
+            baseBind.image.visibility = View.GONE
+            ugoiraPlayer = UgoiraPlayerView(requireContext()).also { player ->
+                (baseBind.root as ViewGroup).addView(player, 0, ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT,
+                ))
+            }
+        }
         baseBind.emptyActionButton.setOnClickListener { v: View? -> loadImage() }
         // 插画二级详情保持屏幕常亮
         if (Shaft.sSettings.isIllustDetailKeepScreenOn) {
@@ -261,9 +281,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             Settings.DOUBLE_TAP_ZOOM_MODE_THREE_LEVEL -> {
                 // 三级继续走库原生 switchScale，只通过自定义 ScalesCalculator 修正 mediumScale，
                 // 避免库原生跳档逻辑在大间距时从最小档直接跳到最大档。
-                baseBind.image.zoomable.setThreeStepScale(true)
-                baseBind.image.zoomable.setScalesCalculator(NoSkipThreeStepScalesCalculator())
-                baseBind.image.onViewTapListener = OnViewTapListener { _, _ ->
+                gestureImage.zoomable.setThreeStepScale(true)
+                gestureImage.zoomable.setScalesCalculator(NoSkipThreeStepScalesCalculator())
+                gestureImage.onViewTapListener = OnViewTapListener { _, _ ->
                     if (!isGestureTargetAlive) return@OnViewTapListener
                     viewModel.toggleFullscreen()
                 }
@@ -271,19 +291,19 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             }
             Settings.DOUBLE_TAP_ZOOM_MODE_INCREMENTAL -> {
                 // PR#900 路径：禁用 ZoomImage 自带双击缩放，改走自家 GestureDetector
-                baseBind.image.zoomable.setThreeStepScale(false)
-                baseBind.image.zoomable.setScalesCalculator(ScalesCalculator.Dynamic)
-                baseBind.image.zoomable.setDisabledGestureTypes(
-                    baseBind.image.zoomable.disabledGestureTypesState.value or
+                gestureImage.zoomable.setThreeStepScale(false)
+                gestureImage.zoomable.setScalesCalculator(ScalesCalculator.Dynamic)
+                gestureImage.zoomable.setDisabledGestureTypes(
+                    gestureImage.zoomable.disabledGestureTypesState.value or
                         GestureType.DOUBLE_TAP_SCALE
                 )
                 setupCustomDoubleTapTouchListener()
             }
             else -> {
                 // 默认路径：onViewTapListener → setReadMode 的顺序与改前完全一致
-                baseBind.image.zoomable.setThreeStepScale(false)
-                baseBind.image.zoomable.setScalesCalculator(ScalesCalculator.Dynamic)
-                baseBind.image.onViewTapListener = OnViewTapListener { _, _ ->
+                gestureImage.zoomable.setThreeStepScale(false)
+                gestureImage.zoomable.setScalesCalculator(ScalesCalculator.Dynamic)
+                gestureImage.onViewTapListener = OnViewTapListener { _, _ ->
                     // 线上崩溃点：ZoomImage 的 onSingleTapConfirmed 经 Handler 延迟派发，
                     // 打到已 detach 的 fragment 上时 viewModel 会走 requireActivity() 抛 ISE。
                     if (!isGestureTargetAlive) return@OnViewTapListener
@@ -293,33 +313,25 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             }
         }
         // 长图阅读模式：自动填满宽度、从顶部开始，无需手动双击放大再滑动
-        baseBind.image.zoomable.setReadMode(ReadMode.Default)
+        gestureImage.zoomable.setReadMode(if (ugoiraPlayer == null) ReadMode.Default else null)
 
         // large 占位切 original 时，保留用户已经做的缩放/平移，避免原图到位后被弹回 fit
-        baseBind.image.zoomable.setKeepTransformWhenSameAspectRatioContentSizeChanged(true)
+        gestureImage.zoomable.setKeepTransformWhenSameAspectRatioContentSizeChanged(true)
     }
 
     /** 增量模式自定义双击路径的触摸分发：单指交给 GestureDetector，多指交回 ZoomImage。 */
     @SuppressLint("ClickableViewAccessibility")
     private fun setupCustomDoubleTapTouchListener() {
-        baseBind.image.setOnTouchListener { v, event ->
+        gestureImage.setOnTouchListener { v, event ->
             // 还是要阻止可能存在误触打断到动画的
             if (event.pointerCount == 1) {
                 gestureDetector.onTouchEvent(event)
             } else {
                 // 多指（双指缩放/拖拽）：取消 gestureDetector 的待处理长按事件
                 // 通过发送一个 ACTION_CANCEL 来阻止长按触发
-                gestureDetector.onTouchEvent(
-                    MotionEvent.obtain(
-                            event.downTime,
-                            event.eventTime,
-                            MotionEvent.ACTION_CANCEL,
-                            event.x,
-                            event.y,
-                            event.metaState,
-                        )
-                        .also { it.recycle() }
-                )
+                val cancel = MotionEvent.obtain(event).apply { action = MotionEvent.ACTION_CANCEL }
+                gestureDetector.onTouchEvent(cancel)
+                cancel.recycle()
                 v.onTouchEvent(event)
             }
         }
@@ -335,9 +347,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
      */
     private fun setupLibraryLongPressReset() {
         if (!Shaft.sSettings.isUseCustomLongPressReset) return
-        baseBind.image.onViewLongPressListener = OnViewLongPressListener { _, offset ->
+        gestureImage.onViewLongPressListener = OnViewLongPressListener { _, offset ->
             if (isGestureTargetAlive && Shaft.sSettings.isUseCustomLongPressReset) {
-                val zoomable = baseBind.image.zoomable
+                val zoomable = gestureImage.zoomable
                 val contentPoint = zoomable.touchPointToContentPointF(offset)
                 if (viewModel.isFullscreenMode.value == true) {
                     viewModel.toggleFullscreen()
@@ -365,7 +377,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         if (Shaft.sSettings.getDoubleTapZoomMode() == Settings.DOUBLE_TAP_ZOOM_MODE_INCREMENTAL) {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    baseBind.image.zoomable.contentSizeState.collect { size ->
+                    gestureImage.zoomable.contentSizeState.collect { size ->
                         if (!size.isNotEmpty()) return@collect
                         if (lastZoomContentSize.isNotEmpty() && size != lastZoomContentSize) {
                             resetZoomLevelMemory()
@@ -489,6 +501,11 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         val plazaSource = (activity as? ImageDetailActivity)?.plazaImageSource
         if (plazaSource != null) {
             loadPlazaImage(plazaSource)
+            return
+        }
+        val animatedIllust = mIllust?.takeIf { it.isGif() }
+        if (animatedIllust != null) {
+            ugoiraPlayer?.bind(viewLifecycleOwner, animatedIllust, maxHeight = 0, fitToViewport = true)
             return
         }
         val isUrlMode = mIllust == null && !TextUtils.isEmpty(url)

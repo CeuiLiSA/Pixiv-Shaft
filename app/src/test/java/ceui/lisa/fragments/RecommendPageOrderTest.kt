@@ -91,6 +91,7 @@ class RecommendPageOrderTest {
                         pager = binding.viewPager
                     }
                     val adapter = pager.adapter as FragmentPagerAdapter
+                    // 每日推荐独立放在发现页，插画与小说都只保留推荐 / 热门标签。
                     assertEquals(2, adapter.count)
                     for (position in 0..1) {
                         val isTags = (position == 0) == tagsFirst

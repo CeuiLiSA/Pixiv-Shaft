@@ -249,13 +249,12 @@ class MeFragment : Fragment(R.layout.fragment_me) {
         val out = mutableListOf(mine, quickAccess, others)
 
         // 试验性分区:
-        //   github 渠道 release 保留 批量下载 Debug + 操作记录 + 站长推荐(对齐 MainActivity drawer 可见性);其它仅 debug。
+        //   github 渠道 release 保留 操作记录 + 站长推荐(对齐 MainActivity drawer 可见性);其它仅 debug。
         //   google play 渠道为合规起见整段不出现,且服务端依赖入口(站长推荐 / 操作记录)在任何 google build 都不展示。
         val isLite = BuildConfig.IS_LITE
         if (!(isLite && !BuildConfig.DEBUG)) {
             val experimentalEntries = mutableListOf(
                 Entry(R.string.local_novel_entry, R.id.nav_local_novel),
-                Entry(R.string.debug_bulk_dl_entry, R.id.nav_debug_bulk_dl),
             )
             // 站长推荐 / 操作记录:非 google 渠道常驻(release 也放出);google flavor 合规起见不展示。
             if (!isLite) {

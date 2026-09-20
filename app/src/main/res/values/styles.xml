@@ -658,12 +658,13 @@
         <item name="android:clickable">true</item>
     </style>
 
-    <!-- 行内文字列（标题+描述），给右侧开关/值留出空间 -->
+    <!-- 行内文字列（标题+描述），给右侧开关/值留出空间。
+         72dp = 开关实测宽度 64dp（SwitchCompat 取 2×thumb 固有宽 32dp，比 track 声明的 52dp 宽）+ 8dp 间隙。 -->
     <style name="M3SetTexts">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_centerVertical">true</item>
-        <item name="android:layout_marginEnd">64dp</item>
+        <item name="android:layout_marginEnd">72dp</item>
         <item name="android:orientation">vertical</item>
     </style>
 

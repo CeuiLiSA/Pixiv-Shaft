@@ -30,19 +30,14 @@
     <item type="id" name="nav_notifications"/>
     <item type="id" name="nav_ai_upscale"/>
     <item type="id" name="nav_local_novel"/>
-    <item type="id" name="nav_debug_bulk_dl"/>
-    <item type="id" name="nav_saf_perf_test"/>
     <item type="id" name="nav_network_test"/>
-    <item type="id" name="nav_spark_ai"/>
     <item type="id" name="nav_current_hot"/>
     <item type="id" name="nav_site_recommend"/>
     <item type="id" name="nav_event_history"/>
     <item type="id" name="nav_chat_room"/>
     <item type="id" name="nav_plaza"/>
-    <item type="id" name="nav_tag_popular_export"/>
     <item type="id" name="nav_web_home"/>
     <item type="id" name="nav_fanbox"/>
-    <item type="id" name="nav_media_demo"/>
     <item type="id" name="initial_insets"/>
     <item type="id" name="action_bar_item"/>
     <item type="id" name="nav_graph_unique_fragment"/>

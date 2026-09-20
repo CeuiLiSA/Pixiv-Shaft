@@ -8,6 +8,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import ceui.pixiv.services.appServices
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -18,8 +19,8 @@ internal class InlineStickerPicker(
     context: Context,
     container: FrameLayout,
     owner: LifecycleOwner,
-    state: StateFlow<StickerState> = StickerRepository.state,
-    prepare: () -> Unit = { StickerRepository.prepare(recheck = true) },
+    state: StateFlow<StickerState> = context.appServices().stickerRepository.state,
+    prepare: () -> Unit = { context.appServices().stickerRepository.prepare(recheck = true) },
     selected: (Sticker) -> Unit,
 ) {
     private val active = MutableStateFlow(false)

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plaza_report_post">게시물 또는 댓글 신고</string>
+    <string name="plaza_report_user">작성자 신고</string>
+    <string name="plaza_block_user">작성자 차단</string>
+    <string name="plaza_blocked_users">광장 차단 목록</string>
+    <string name="plaza_report_notice">신고 사유를 선택해 주세요. 신고는 검토 담당자가 처리하며 신고자의 신원은 작성자에게 공개되지 않습니다.</string>
+    <string name="plaza_report_required">신고 사유를 선택해 주세요.</string>
+    <string name="plaza_report_submit">신고 제출</string>
+    <string name="plaza_report_success">신고 #%1$d 접수가 완료되었습니다. 검토 담당자가 확인합니다.</string>
+    <string name="plaza_report_sending">처리 중…</string>
+    <string name="plaza_block_notice">차단하면 광장에서 서로의 게시물과 댓글을 보거나 상호작용할 수 없습니다. 광장 차단 목록에서 차단을 해제할 수 있습니다.</string>
+    <string name="plaza_block_success">광장에서 작성자를 차단했습니다.</string>
+    <string name="plaza_blocks_notice">차단은 광장에만 적용됩니다. 차단을 해제하면 이 사용자의 게시물과 댓글이 다시 표시됩니다.</string>
+    <string name="plaza_blocks_empty">차단한 사용자가 없습니다.</string>
+    <string name="plaza_unblock_user">%1$s 차단 해제</string>
+    <string name="plaza_policy_title">광장 커뮤니티 가이드라인</string>
+    <string name="plaza_policy_accept">동의하고 게시</string>
+    <string name="plaza_policy_required">게시하기 전에 최신 광장 커뮤니티 가이드라인에 동의해 주세요.</string>
+    <string name="plaza_forbidden">현재 이 광장 작업을 수행할 수 없습니다. 계정이 제한되었을 수 있습니다.</string>
+    <string name="plaza_policy_body">게시물과 댓글은 공개됩니다. 성적 콘텐츠, 아동 성적 학대 또는 착취, 폭력이나 위협, 혐오, 괴롭힘, 동의 없는 개인정보 공개, 사기, 스팸 및 불법 콘텐츠를 게시할 수 없습니다. 공유할 권리가 있는 콘텐츠만 게시해 주세요.\n\n더보기 메뉴에서 게시물, 댓글 및 작성자를 신고하거나 사용자를 차단할 수 있습니다. 검토 담당자는 위반 콘텐츠를 삭제하거나 광장 게시 권한을 정지할 수 있습니다. 신고는 작성자에게 공개되지 않으며 검토 담당자가 처리합니다. 동의하고 게시를 선택하면 본 가이드라인(2026-09-16)에 동의하게 됩니다.</string>
+    <string name="plaza_report_reviewed">신고 #%1$d 검토가 완료되었습니다. 다시 제출할 필요가 없습니다.</string>
+    <string-array name="plaza_report_reasons">
+        <item>아동 안전</item>
+        <item>성적 콘텐츠</item>
+        <item>폭력 또는 위협</item>
+        <item>혐오 발언</item>
+        <item>괴롭힘 또는 따돌림</item>
+        <item>사생활 침해</item>
+        <item>광고 콘텐츠</item>
+        <item>스팸 또는 사기</item>
+        <item>불법 콘텐츠</item>
+        <item>기타</item>
+    </string-array>
+    <string name="plaza_report_title">신고</string>
+    <string name="plaza_report_reason_label">신고 사유</string>
+    <string name="plaza_report_details_label">추가 설명</string>
+    <string name="plaza_report_details_hint">어떤 상황인지 설명해 주세요</string>
+    <string name="plaza_report_photos_label">증거 사진</string>
+    <string name="plaza_report_photos_hint">검토에 도움이 되는 사진을 최대 3장 추가할 수 있습니다.</string>
+    <string name="plaza_report_received_title">신고가 접수되었습니다</string>
+    <string name="plaza_report_target">게시물 #%1$d · 작성자 %2$d</string>
+    <string name="plaza_report_finish">완료</string>
+    <string name="plaza_unblock_action">차단 해제</string>
+    <string name="plaza_report_target_label">신고 대상</string>
+    <string name="plaza_form_required">필수</string>
+    <string name="plaza_form_optional">선택</string>
+    <string name="plaza_report_target_author">작성자 %1$d</string>
+</resources>

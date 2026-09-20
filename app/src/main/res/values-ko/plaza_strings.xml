@@ -77,4 +77,15 @@
     <string name="plaza_error_title">작업 실패</string>
     <string name="plaza_preview_author">%1$s:</string>
     <string name="plaza_media_size_unknown">유효한 이미지 크기를 읽을 수 없습니다. 다시 선택해 주세요.</string>
+    <string name="plaza_filter_all">전체</string>
+    <string name="plaza_filter_mine">내 글</string>
+    <string name="plaza_retry">다시 시도</string>
+    <string name="plaza_empty_title">아직 게시물이 없습니다</string>
+    <string name="plaza_empty_desc">게시물을 올려 보고 있는 작품과 생각을 공유하세요.</string>
+    <string name="plaza_mine_empty_desc">내가 올린 게시물이 여기에 표시됩니다.</string>
+    <string name="plaza_load_error_title">불러오지 못했습니다</string>
+    <string name="plaza_title_label">제목</string>
+    <string name="plaza_body_label">본문</string>
+    <string name="plaza_char_count">%1$d / %2$d</string>
+    <string name="plaza_reference_hint">Pixiv 작품 또는 사용자 연결</string>
 </resources>

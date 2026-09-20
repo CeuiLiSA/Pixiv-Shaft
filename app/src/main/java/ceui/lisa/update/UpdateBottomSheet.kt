@@ -16,26 +16,24 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.utils.Common
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import io.noties.markwon.AbstractMarkwonPlugin
-import io.noties.markwon.Markwon
-import io.noties.markwon.core.MarkwonTheme
 import java.io.File
+import java.util.Locale
 
+/**
+ * 「发现新版本」弹窗：长相全在 [UpdateSheetView]（V3 弹窗配方），这里只管
+ * DownloadManager 的入队 / 续接 / 进度轮询 / 完整性校验 / 安装授权。
+ */
 class UpdateBottomSheet : BottomSheetDialogFragment() {
 
     private var release: GitHubRelease? = null
@@ -44,6 +42,9 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
     private var progressRunnable: Runnable? = null
     private var downloadReceiver: BroadcastReceiver? = null
     private var pendingInstallFile: File? = null
+
+    /** 随视图创建 / 销毁；轮询回调一律先取它，拿不到就说明视图已经没了。 */
+    private var sheet: UpdateSheetView? = null
 
     private val installPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -72,90 +73,53 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
-        return inflater.inflate(R.layout.dialog_app_update, container, false)
-    }
+    ): View = UpdateSheetView(requireContext()).also { sheet = it }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val rel = release ?: run { dismiss(); return }
+        val sheet = sheet ?: return
 
-        val versionText = view.findViewById<TextView>(R.id.update_version_info)
-        val changelogText = view.findViewById<TextView>(R.id.update_changelog)
-        val progressContainer = view.findViewById<LinearLayout>(R.id.progress_container)
-        val progressBar = view.findViewById<ProgressBar>(R.id.download_progress)
-        val progressText = view.findViewById<TextView>(R.id.progress_text)
-        val btnDownload = view.findViewById<Button>(R.id.btn_download)
-        val btnLater = view.findViewById<Button>(R.id.btn_later)
-        val btnSkip = view.findViewById<Button>(R.id.btn_skip_version)
-
-        val remoteVersion = rel.tagName.removePrefix("v").removePrefix("V")
-        versionText.text = getString(R.string.update_version_format, BuildConfig.VERSION_NAME, remoteVersion)
-
-        val textColor = ContextCompat.getColor(requireContext(), R.color.rank_text_color)
-        val markwon = Markwon.builder(requireContext())
-            .usePlugin(object : AbstractMarkwonPlugin() {
-                override fun configureTheme(builder: MarkwonTheme.Builder) {
-                    builder.headingTextSizeMultipliers(floatArrayOf(1.3f, 1.15f, 1.05f, 1f, 0.9f, 0.85f))
-                    builder.linkColor(ContextCompat.getColor(requireContext(), R.color.user_name_horizontal))
-                }
-            })
-            .build()
-        val body = rel.body
-        if (!body.isNullOrBlank()) {
-            markwon.setMarkdown(changelogText, body)
-        } else {
-            changelogText.setText(R.string.update_no_changelog)
-        }
-
-        btnLater.setOnClickListener { dismiss() }
-
-        btnSkip.setOnClickListener {
-            AppUpdateChecker.skipVersion(remoteVersion)
+        sheet.bind(BuildConfig.VERSION_NAME, rel, markwonFor(requireContext()))
+        sheet.setPrimary(R.string.update_download, enabled = true) { beginDownload(rel) }
+        sheet.later.setOnClickListener { dismiss() }
+        sheet.skip.setOnClickListener {
+            AppUpdateChecker.skipVersion(rel.versionName)
             Common.showToast(getString(R.string.update_version_skipped))
             dismiss()
         }
 
-        btnDownload.setOnClickListener {
-            val asset = AppUpdateChecker.findApkAsset(rel)
-            if (asset == null) {
-                openInBrowser(rel.htmlUrl ?: "https://github.com/${GitHubApi.OWNER}/${GitHubApi.REPO}/releases/latest")
-                return@setOnClickListener
-            }
+        restoreOngoingDownload(rel.tagName)
 
-            btnDownload.isEnabled = false
-            btnDownload.setText(R.string.update_downloading)
-            btnSkip.visibility = View.GONE
-            progressContainer.visibility = View.VISIBLE
-
-            startDownload(asset, progressBar, progressText, btnDownload, progressContainer)
-        }
-
-        restoreOngoingDownload(rel.tagName, progressBar, progressText, btnDownload, btnSkip, progressContainer)
-
-        // Expand the bottom sheet fully
         (dialog as? BottomSheetDialog)?.apply {
             behavior.state = BottomSheetBehavior.STATE_EXPANDED
             behavior.skipCollapsed = true
-            // Apply navigation bar padding for safe area
-            window?.let { window ->
-                ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
-                    val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-                    v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, navBar.bottom)
-                    insets
-                }
+            // 安全区由内容自己垫：sheet 贴到屏幕底，动作胶囊不能压在手势条上。
+            val basePadding = view.paddingBottom
+            ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
+                val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+                v.updatePadding(bottom = basePadding + navBar.bottom)
+                insets
             }
+            ViewCompat.requestApplyInsets(view)
         }
     }
 
-    private fun startDownload(
-        asset: GitHubAsset,
-        progressBar: ProgressBar,
-        progressText: TextView,
-        btnDownload: Button,
-        progressContainer: LinearLayout
-    ) {
+    /** 主操作按下：没有 apk 资产就退回浏览器打开 release 页。 */
+    private fun beginDownload(rel: GitHubRelease) {
+        val asset = AppUpdateChecker.findApkAsset(rel)
+        if (asset == null) {
+            openInBrowser(rel.htmlUrl ?: releasesUrl())
+            return
+        }
+        val sheet = sheet ?: return
+        sheet.setPrimary(R.string.update_downloading, enabled = false)
+        sheet.showProgress()
+        startDownload(asset)
+    }
+
+    private fun startDownload(asset: GitHubAsset) {
         val ctx = requireContext().applicationContext
         val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val tag = release?.tagName ?: ""
@@ -170,12 +134,12 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
                 DownloadManager.STATUS_PENDING,
                 DownloadManager.STATUS_RUNNING,
                 DownloadManager.STATUS_PAUSED -> {
-                    attachToDownload(existingId, apkFile, progressBar, progressText, btnDownload, progressContainer)
+                    attachToDownload(existingId, apkFile)
                     return
                 }
                 DownloadManager.STATUS_SUCCESSFUL -> {
                     if (apkFile.exists()) {
-                        onDownloadSuccess(apkFile, progressBar, progressText, btnDownload)
+                        onDownloadSuccess(apkFile)
                         return
                     }
                 }
@@ -194,26 +158,22 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
 
         val newId = dm.enqueue(request)
         AppUpdateChecker.saveOngoingDownload(newId, tag)
-        attachToDownload(newId, apkFile, progressBar, progressText, btnDownload, progressContainer)
+        attachToDownload(newId, apkFile)
     }
 
-    private fun attachToDownload(
-        id: Long,
-        apkFile: File,
-        progressBar: ProgressBar,
-        progressText: TextView,
-        btnDownload: Button,
-        progressContainer: LinearLayout
-    ) {
+    private fun attachToDownload(id: Long, apkFile: File) {
         downloadId = id
         val ctx = requireContext().applicationContext
         val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
 
+        // 失败后点「重试」会第二次走到这里：不先摘掉上一个，它就再也没人注销
+        //（onDestroyView 只认得字段里最后那一个），连着 Fragment 一起留在 AMS 里。
+        unregisterDownloadReceiver()
         downloadReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 val received = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
                 if (received == downloadId) {
-                    onDownloadSuccess(apkFile, progressBar, progressText, btnDownload)
+                    onDownloadSuccess(apkFile)
                 }
             }
         }
@@ -230,33 +190,38 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
             )
         }
 
-        startProgressPolling(dm, progressBar, progressText, btnDownload, progressContainer, apkFile)
+        startProgressPolling(dm, apkFile)
     }
 
-    private fun onDownloadSuccess(
-        apkFile: File,
-        progressBar: ProgressBar,
-        progressText: TextView,
-        btnDownload: Button
-    ) {
+    private fun onDownloadSuccess(apkFile: File) {
         stopProgressPolling()
         AppUpdateChecker.clearOngoingDownload()
+        val sheet = sheet ?: return
         // DM 在某些 OEM 上会把"网络中断时截断的文件"也标成 STATUS_SUCCESSFUL,
         // 装出来就是"解析包出错"。拿 GitHub asset.size 兜个底
         if (!isApkComplete(apkFile)) {
             if (apkFile.exists()) apkFile.delete()
             Common.showToast(getString(R.string.update_apk_invalid))
-            progressBar.progress = 0
-            progressText.setText(R.string.update_download_failed)
-            btnDownload.isEnabled = true
-            btnDownload.setText(R.string.update_retry)
+            sheet.resetProgress()
+            sheet.setProgressMessage(R.string.update_download_failed)
+            sheet.setPrimary(R.string.update_retry, enabled = true) { retryDownload() }
             return
         }
-        progressBar.progress = 100
-        progressText.text = "100%"
-        btnDownload.isEnabled = true
-        btnDownload.setText(R.string.update_install)
-        btnDownload.setOnClickListener { installApk(apkFile) }
+        sheet.setProgress(100, "100%")
+        sheet.setPrimary(
+            R.string.update_install,
+            enabled = true,
+            icon = R.drawable.ic_file_download_done_24dp,
+        ) { installApk(apkFile) }
+    }
+
+    private fun retryDownload() {
+        val rel = release ?: return
+        val asset = AppUpdateChecker.findApkAsset(rel) ?: return
+        val sheet = sheet ?: return
+        sheet.setPrimary(R.string.update_downloading, enabled = false)
+        sheet.resetProgress()
+        startDownload(asset)
     }
 
     private fun isApkComplete(apkFile: File): Boolean {
@@ -281,39 +246,32 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         return -1
     }
 
-    private fun restoreOngoingDownload(
-        versionTag: String,
-        progressBar: ProgressBar,
-        progressText: TextView,
-        btnDownload: Button,
-        btnSkip: Button,
-        progressContainer: LinearLayout
-    ) {
+    private fun restoreOngoingDownload(versionTag: String) {
         val ctx = requireContext().applicationContext
         val downloadDir = ctx.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: return
         val apkFile = File(downloadDir, APK_FILE_NAME)
         val existingId = AppUpdateChecker.getOngoingDownloadId(versionTag)
         if (existingId == -1L) return
+        val sheet = sheet ?: return
 
         val dm = ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         when (queryDownloadStatus(dm, existingId)) {
             DownloadManager.STATUS_PENDING,
             DownloadManager.STATUS_RUNNING,
             DownloadManager.STATUS_PAUSED -> {
-                btnDownload.isEnabled = false
-                btnDownload.setText(R.string.update_downloading)
-                btnSkip.visibility = View.GONE
-                progressContainer.visibility = View.VISIBLE
-                attachToDownload(existingId, apkFile, progressBar, progressText, btnDownload, progressContainer)
+                sheet.setPrimary(R.string.update_downloading, enabled = false)
+                sheet.showProgress()
+                attachToDownload(existingId, apkFile)
             }
             DownloadManager.STATUS_SUCCESSFUL -> {
                 if (isApkComplete(apkFile)) {
-                    btnSkip.visibility = View.GONE
-                    progressContainer.visibility = View.VISIBLE
-                    progressBar.progress = 100
-                    progressText.text = "100%"
-                    btnDownload.setText(R.string.update_install)
-                    btnDownload.setOnClickListener { installApk(apkFile) }
+                    sheet.showProgress()
+                    sheet.setProgress(100, "100%")
+                    sheet.setPrimary(
+            R.string.update_install,
+            enabled = true,
+            icon = R.drawable.ic_file_download_done_24dp,
+        ) { installApk(apkFile) }
                 } else {
                     if (apkFile.exists()) apkFile.delete()
                     AppUpdateChecker.clearOngoingDownload()
@@ -329,17 +287,11 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    private fun startProgressPolling(
-        dm: DownloadManager,
-        progressBar: ProgressBar,
-        progressText: TextView,
-        btnDownload: Button,
-        progressContainer: LinearLayout,
-        apkFile: File
-    ) {
+    private fun startProgressPolling(dm: DownloadManager, apkFile: File) {
         progressRunnable = object : Runnable {
             override fun run() {
                 if (downloadId == -1L) return
+                val sheet = sheet ?: return
                 val query = DownloadManager.Query().setFilterById(downloadId)
                 var cursor: Cursor? = null
                 try {
@@ -357,29 +309,26 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
                             DownloadManager.STATUS_RUNNING -> {
                                 if (totalBytes > 0) {
                                     val percent = (bytesDownloaded * 100 / totalBytes).toInt()
-                                    progressBar.progress = percent
-                                    val downloadedMB = bytesDownloaded / 1048576f
-                                    val totalMB = totalBytes / 1048576f
-                                    progressText.text = String.format("%.1fMB / %.1fMB (%d%%)", downloadedMB, totalMB, percent)
+                                    sheet.setProgress(
+                                        percent,
+                                        String.format(
+                                            Locale.getDefault(),
+                                            "%.1f MB / %.1f MB (%d%%)",
+                                            bytesDownloaded / 1048576f,
+                                            totalBytes / 1048576f,
+                                            percent,
+                                        ),
+                                    )
                                 }
                             }
                             DownloadManager.STATUS_SUCCESSFUL -> {
-                                onDownloadSuccess(apkFile, progressBar, progressText, btnDownload)
+                                onDownloadSuccess(apkFile)
                                 return
                             }
                             DownloadManager.STATUS_FAILED -> {
                                 AppUpdateChecker.clearOngoingDownload()
-                                progressText.setText(R.string.update_download_failed)
-                                btnDownload.isEnabled = true
-                                btnDownload.setText(R.string.update_retry)
-                                btnDownload.setOnClickListener {
-                                    val rel = release ?: return@setOnClickListener
-                                    val asset = AppUpdateChecker.findApkAsset(rel) ?: return@setOnClickListener
-                                    btnDownload.isEnabled = false
-                                    btnDownload.setText(R.string.update_downloading)
-                                    progressBar.progress = 0
-                                    startDownload(asset, progressBar, progressText, btnDownload, progressContainer)
-                                }
+                                sheet.setProgressMessage(R.string.update_download_failed)
+                                sheet.setPrimary(R.string.update_retry, enabled = true) { retryDownload() }
                                 return
                             }
                         }
@@ -425,11 +374,12 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
             startActivity(intent)
         } catch (_: Exception) {
             Common.showToast(getString(R.string.update_install_failed))
-            val fallback = release?.htmlUrl
-                ?: "https://github.com/${GitHubApi.OWNER}/${GitHubApi.REPO}/releases/latest"
-            openInBrowser(fallback)
+            openInBrowser(release?.htmlUrl ?: releasesUrl())
         }
     }
+
+    private fun releasesUrl(): String =
+        "https://github.com/${GitHubApi.OWNER}/${GitHubApi.REPO}/releases/latest"
 
     private fun openInBrowser(url: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
@@ -440,14 +390,19 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
+    private fun unregisterDownloadReceiver() {
+        val receiver = downloadReceiver ?: return
+        downloadReceiver = null
+        try {
+            requireContext().applicationContext.unregisterReceiver(receiver)
+        } catch (_: Exception) {
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         stopProgressPolling()
-        downloadReceiver?.let {
-            try {
-                requireContext().applicationContext.unregisterReceiver(it)
-            } catch (_: Exception) {}
-        }
-        downloadReceiver = null
+        sheet = null
+        unregisterDownloadReceiver()
     }
 }

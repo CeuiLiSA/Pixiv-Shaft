@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plaza_report_post">举报帖子或评论</string>
+    <string name="plaza_report_user">举报作者</string>
+    <string name="plaza_block_user">屏蔽作者</string>
+    <string name="plaza_blocked_users">广场屏蔽名单</string>
+    <string name="plaza_report_notice">请选择举报原因。举报由审核人员处理，不会向作者公开举报人身份。</string>
+    <string name="plaza_report_required">请选择举报原因。</string>
+    <string name="plaza_report_submit">提交举报</string>
+    <string name="plaza_report_success">举报 #%1$d 已收到，将由审核人员处理。</string>
+    <string name="plaza_report_sending">正在处理…</string>
+    <string name="plaza_block_notice">屏蔽后，双方在广场中将无法看到彼此的帖子和评论，也无法互动。可在「广场屏蔽名单」中解除屏蔽。</string>
+    <string name="plaza_block_success">已在广场屏蔽该作者。</string>
+    <string name="plaza_blocks_notice">屏蔽仅作用于广场。解除后将恢复显示该用户的帖子和评论。</string>
+    <string name="plaza_blocks_empty">暂无屏蔽用户。</string>
+    <string name="plaza_unblock_user">解除屏蔽 %1$s</string>
+    <string name="plaza_policy_title">广场社区规范</string>
+    <string name="plaza_policy_accept">同意并发布</string>
+    <string name="plaza_policy_required">发布前请同意最新广场社区规范。</string>
+    <string name="plaza_forbidden">暂时无法执行此广场操作，你的账号可能受到限制。</string>
+    <string name="plaza_policy_body">帖子和评论公开可见。禁止发布色情内容、儿童性虐待或剥削内容、暴力或威胁、仇恨、骚扰、未经同意的隐私信息、诈骗、垃圾广告及违法内容。请仅发布你有权分享的内容。\n\n你可以在更多菜单中举报帖子、评论和作者，也可屏蔽用户。审核人员可下架违规内容或禁止账号使用广场。举报信息不向作者公开，由审核人员处理。点击「同意并发布」即表示接受本规范（2026-09-16）。</string>
+    <string-array name="plaza_report_reasons">
+        <item>儿童安全</item>
+        <item>色情内容</item>
+        <item>暴力或威胁</item>
+        <item>仇恨言论</item>
+        <item>骚扰或霸凌</item>
+        <item>侵犯隐私</item>
+        <item>广告内容</item>
+        <item>垃圾信息或诈骗</item>
+        <item>违法内容</item>
+        <item>其他</item>
+    </string-array>
+    <string name="plaza_report_reviewed">举报 #%1$d 已处理，无需重复提交。</string>
+    <string name="plaza_report_title">举报</string>
+    <string name="plaza_report_reason_label">举报原因</string>
+    <string name="plaza_report_details_label">补充说明</string>
+    <string name="plaza_report_details_hint">请描述你遇到的情况</string>
+    <string name="plaza_report_photos_label">照片证据</string>
+    <string name="plaza_report_photos_hint">最多添加 3 张照片，帮助审核人员了解情况。</string>
+    <string name="plaza_report_received_title">举报已提交</string>
+    <string name="plaza_report_target">帖子 #%1$d · 作者 %2$d</string>
+    <string name="plaza_report_finish">完成</string>
+    <string name="plaza_unblock_action">解除屏蔽</string>
+    <string name="plaza_report_target_label">举报对象</string>
+    <string name="plaza_form_required">必选</string>
+    <string name="plaza_form_optional">选填</string>
+    <string name="plaza_report_target_author">作者 %1$d</string>
+</resources>

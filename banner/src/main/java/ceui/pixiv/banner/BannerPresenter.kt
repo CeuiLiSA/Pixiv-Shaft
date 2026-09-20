@@ -33,7 +33,12 @@ internal class BannerPresenter(
     fun attach() {
         collectJob = lifecycle.coroutineScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                manager.state.collect { state -> renderState(state) }
+                manager.onHostStarted()
+                try {
+                    manager.state.collect { state -> renderState(state) }
+                } finally {
+                    manager.onHostStopped()
+                }
             }
         }
     }

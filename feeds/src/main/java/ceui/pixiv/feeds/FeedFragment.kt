@@ -318,6 +318,17 @@ abstract class FeedFragment(
         }
     }
 
+    /**
+     * 这一帧要不要转下拉刷新圈。默认「刷新中且已经出过首屏」——首屏自己有骨架 / 转圈兜底。
+     *
+     * 需要区分「用户下拉」和「程序化刷新」（冷启缓存→网络、resume 重刷、换数据源）的页面覆写它，
+     * 让后者静默加载：框架自己分不出这两者（[FeedViewModel.refresh] 不带来源），而**事后**把
+     * `isRefreshing` 改回 false 是没用的 —— [androidx.swiperefreshlayout.widget.SwipeRefreshLayout]
+     * 的 true→false 会播一次缩圈动画，反而留下一闪。所以这个决定必须在这里、赋值之前做。
+     */
+    protected open fun shouldShowRefreshSpinner(state: FeedUiState): Boolean =
+        state.refresh is LoadState.Loading && state.hasLoadedOnce
+
     /** 屏幕上有内容时刷新失败的提示，默认轻提示出人话文案；子类可覆盖。 */
     protected open fun onRefreshFailedWithContent(throwable: Throwable) {
         val context = requireContext()
@@ -512,8 +523,7 @@ abstract class FeedFragment(
         }
 
         val binding = feedBinding
-        binding.feedRefreshLayout.isRefreshing =
-            state.refresh is LoadState.Loading && state.hasLoadedOnce
+        binding.feedRefreshLayout.isRefreshing = shouldShowRefreshSpinner(state)
 
         // 首屏加载：瀑布流 → 骨架图，其它 → 转圈圈。骨架 View 靠自身 isShown 自管 shimmer 动画。
         val showSkeleton = skeletonEnabled && state.showFullscreenLoading

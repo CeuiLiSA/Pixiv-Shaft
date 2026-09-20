@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discover_social_title">Общение и публикации</string>
+    <string name="discover_community_title">Сообщество</string>
+    <string name="discover_chat_description">Общий чат · Личные сообщения</string>
+    <string name="discover_community_description">Делитесь работами и обсуждайте их</string>
+    <string name="discover_chat_action">Открыть чат</string>
+    <string name="discover_community_action">Открыть ленту</string>
+</resources>

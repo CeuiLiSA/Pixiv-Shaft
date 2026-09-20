@@ -2422,16 +2422,6 @@
             column="175"/>
     </issue>
 
-    <issue
-        id="Typos"
-        message="Repeated word &quot;tekrar&quot; in message: possible typo"
-        errorLine1="    &lt;string name=&quot;saf_perf_test_payload_label&quot;>Test görseli (herhangi bir görsel seçin, aynı içerik tekrar tekrar yazılır)&lt;/string>"
-        errorLine2="                                                                                                    ^">
-        <location
-            file="src/main/res/values-tr/strings.xml"
-            line="1982"
-            column="101"/>
-    </issue>
 
     <issue
         id="Untranslatable"
@@ -4127,93 +4117,13 @@
             column="5"/>
     </issue>
 
-    <issue
-        id="PluralsCandidate"
-        message="Formatting %d followed by words (&quot;bytes&quot;): This should probably be a plural rather than a string"
-        errorLine1="    &lt;string name=&quot;saf_perf_test_payload_loaded&quot;>Loaded %1$d bytes · %2$s&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-en/strings.xml"
-            line="1984"
-            column="5"/>
-    </issue>
 
-    <issue
-        id="PluralsCandidate"
-        message="Formatting %d followed by words (&quot;writes&quot;): This should probably be a plural rather than a string"
-        errorLine1="    &lt;string name=&quot;saf_perf_test_start&quot;>Start benchmark with %1$d writes&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-en/strings.xml"
-            line="1996"
-            column="5"/>
-    </issue>
 
-    <issue
-        id="PluralsCandidate"
-        message="Formatting %d followed by words (&quot;images&quot;): This should probably be a plural rather than a string"
-        errorLine1="    &lt;string name=&quot;saf_perf_test_progress&quot;>[%1$d/%2$d] Total %3$.2fs · Last %4$d images %5$.2fs (%6$.1f/s) · Average %7$.1f/s&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-en/strings.xml"
-            line="2002"
-            column="5"/>
-    </issue>
 
-    <issue
-        id="PluralsCandidate"
-        message="Formatting %d followed by words (&quot;images&quot;): This should probably be a plural rather than a string"
-        errorLine1="    &lt;string name=&quot;saf_perf_test_done&quot;>Completed %1$d images in %2$.2fs, average %3$.1f/s&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-en/strings.xml"
-            line="2003"
-            column="5"/>
-    </issue>
 
-    <issue
-        id="PluralsCandidate"
-        message="Formatting %d followed by words (&quot;failed&quot;): This should probably be a plural rather than a string"
-        errorLine1="    &lt;string name=&quot;saf_perf_test_failed&quot;>Image %1$d / %2$d failed: %3$s %4$s&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-en/strings.xml"
-            line="2005"
-            column="5"/>
-    </issue>
 
-    <issue
-        id="PluralsCandidate"
-        message="Formatting %d followed by words (&quot;items&quot;): This should probably be a plural rather than a string"
-        errorLine1="    &lt;string name=&quot;saf_perf_test_purge_done&quot;>Deleted %1$d / %2$d items (listing %3$.2fs, total %4$.2fs)&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-en/strings.xml"
-            line="2009"
-            column="5"/>
-    </issue>
 
-    <issue
-        id="PluralsCandidate"
-        message="Formatting %d followed by words (&quot;children&quot;): This should probably be a plural rather than a string"
-        errorLine1="    &lt;string name=&quot;saf_perf_test_diag_root&quot;>[1] root.listFiles(): %1$d children, %2$.1f ms&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-en/strings.xml"
-            line="2013"
-            column="5"/>
-    </issue>
 
-    <issue
-        id="PluralsCandidate"
-        message="Formatting %d followed by words (&quot;children&quot;): This should probably be a plural rather than a string"
-        errorLine1="    &lt;string name=&quot;saf_perf_test_diag_subdir&quot;>[2] ShaftPerfTest/.listFiles(): %1$d children, %2$.1f ms&lt;/string>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-en/strings.xml"
-            line="2014"
-            column="5"/>
-    </issue>
 
     <issue
         id="PluralsCandidate"
@@ -6208,16 +6118,6 @@
             column="5"/>
     </issue>
 
-    <issue
-        id="Overdraw"
-        message="Possible overdraw: Root element paints background `@color/f5_to_deep_dark` with a theme that also paints a background (inferred theme is `@style/AppTheme`)"
-        errorLine1="    android:background=&quot;@color/f5_to_deep_dark&quot;"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_bulk_download_debug.xml"
-            line="13"
-            column="5"/>
-    </issue>
 
     <issue
         id="Overdraw"
@@ -6395,16 +6295,6 @@
             column="5"/>
     </issue>
 
-    <issue
-        id="Overdraw"
-        message="Possible overdraw: Root element paints background `@color/v3_bg` with a theme that also paints a background (inferred theme is `@style/AppTheme`)"
-        errorLine1="    android:background=&quot;@color/v3_bg&quot;"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_popular_tag_export.xml"
-            line="16"
-            column="5"/>
-    </issue>
 
     <issue
         id="Overdraw"
@@ -6439,16 +6329,6 @@
             column="5"/>
     </issue>
 
-    <issue
-        id="Overdraw"
-        message="Possible overdraw: Root element paints background `@color/f5_to_deep_dark` with a theme that also paints a background (inferred theme is `@style/AppTheme`)"
-        errorLine1="    android:background=&quot;@color/f5_to_deep_dark&quot;"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_saf_perf_test.xml"
-            line="11"
-            column="5"/>
-    </issue>
 
     <issue
         id="Overdraw"
@@ -12672,71 +12552,11 @@
             column="57"/>
     </issue>
 
-    <issue
-        id="TypographyDashes"
-        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
-        errorLine1="    &lt;string name=&quot;tag_popular_export_pages_label&quot;>Pages (1-30)&lt;/string>"
-        errorLine2="                                                  ~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-en/strings.xml"
-            line="2355"
-            column="51"/>
-    </issue>
 
-    <issue
-        id="TypographyDashes"
-        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
-        errorLine1="    &lt;string name=&quot;tag_popular_export_pages_label&quot;>ページ数(1-30)&lt;/string>"
-        errorLine2="                                                  ~~~~~~~~~~">
-        <location
-            file="src/main/res/values-ja/strings.xml"
-            line="2355"
-            column="51"/>
-    </issue>
 
-    <issue
-        id="TypographyDashes"
-        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
-        errorLine1="    &lt;string name=&quot;tag_popular_export_pages_label&quot;>페이지 수 (1-30)&lt;/string>"
-        errorLine2="                                                  ~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-ko/strings.xml"
-            line="2355"
-            column="51"/>
-    </issue>
 
-    <issue
-        id="TypographyDashes"
-        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
-        errorLine1="    &lt;string name=&quot;tag_popular_export_pages_label&quot;>Страницы (1-30)&lt;/string>"
-        errorLine2="                                                  ~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-ru/strings.xml"
-            line="2355"
-            column="51"/>
-    </issue>
 
-    <issue
-        id="TypographyDashes"
-        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
-        errorLine1="    &lt;string name=&quot;tag_popular_export_pages_label&quot;>Sayfa (1-30)&lt;/string>"
-        errorLine2="                                                  ~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-tr/strings.xml"
-            line="2355"
-            column="51"/>
-    </issue>
 
-    <issue
-        id="TypographyDashes"
-        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
-        errorLine1="    &lt;string name=&quot;tag_popular_export_pages_label&quot;>頁數(1-30)&lt;/string>"
-        errorLine2="                                                  ~~~~~~~~">
-        <location
-            file="src/main/res/values-zh-rTW/strings.xml"
-            line="2357"
-            column="51"/>
-    </issue>
 
     <issue
         id="TypographyDashes"
@@ -12804,16 +12624,6 @@
             column="43"/>
     </issue>
 
-    <issue
-        id="TypographyDashes"
-        message="Replace &quot;-&quot; with an &quot;en dash&quot; character (–, &amp;#8211;) ?"
-        errorLine1="    &lt;string name=&quot;tag_popular_export_pages_label&quot;>页数(1-30)&lt;/string>"
-        errorLine2="                                                  ~~~~~~~~">
-        <location
-            file="src/main/res/values/strings.xml"
-            line="2614"
-            column="51"/>
-    </issue>
 
     <issue
         id="TypographyDashes"
@@ -13046,38 +12856,8 @@
             column="46"/>
     </issue>
 
-    <issue
-        id="TypographyEllipsis"
-        message="Replace &quot;...&quot; with ellipsis character (…, &amp;#8230;) ?"
-        errorLine1="    &lt;string name=&quot;saf_perf_test_status_purging&quot;>Cleaning...&lt;/string>"
-        errorLine2="                                                ~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-en/strings.xml"
-            line="1999"
-            column="49"/>
-    </issue>
 
-    <issue
-        id="TypographyEllipsis"
-        message="Replace &quot;...&quot; with ellipsis character (…, &amp;#8230;) ?"
-        errorLine1="    &lt;string name=&quot;saf_perf_test_cancelling&quot;>Stopping...&lt;/string>"
-        errorLine2="                                            ~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-en/strings.xml"
-            line="2001"
-            column="45"/>
-    </issue>
 
-    <issue
-        id="TypographyEllipsis"
-        message="Replace &quot;...&quot; with ellipsis character (…, &amp;#8230;) ?"
-        errorLine1="    &lt;string name=&quot;saf_perf_test_status_diag&quot;>Diagnosing...&lt;/string>"
-        errorLine2="                                             ~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/values-en/strings.xml"
-            line="2012"
-            column="46"/>
-    </issue>
 
     <issue
         id="TypographyEllipsis"
@@ -13111,115 +12891,15 @@
             file="src/main/res/drawable-xhdpi"/>
     </issue>
 
-    <issue
-        id="ButtonStyle"
-        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
-        errorLine1="        &lt;Button"
-        errorLine2="         ~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_bulk_download_debug.xml"
-            line="71"
-            column="10"/>
-    </issue>
 
-    <issue
-        id="ButtonStyle"
-        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
-        errorLine1="        &lt;Button"
-        errorLine2="         ~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_bulk_download_debug.xml"
-            line="79"
-            column="10"/>
-    </issue>
 
-    <issue
-        id="ButtonStyle"
-        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
-        errorLine1="        &lt;Button"
-        errorLine2="         ~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_saf_perf_test.xml"
-            line="91"
-            column="10"/>
-    </issue>
 
-    <issue
-        id="ButtonStyle"
-        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
-        errorLine1="        &lt;Button"
-        errorLine2="         ~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_saf_perf_test.xml"
-            line="99"
-            column="10"/>
-    </issue>
 
-    <issue
-        id="ButtonStyle"
-        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
-        errorLine1="        &lt;Button"
-        errorLine2="         ~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_saf_perf_test.xml"
-            line="107"
-            column="10"/>
-    </issue>
 
-    <issue
-        id="ButtonStyle"
-        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
-        errorLine1="        &lt;Button"
-        errorLine2="         ~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_saf_perf_test.xml"
-            line="115"
-            column="10"/>
-    </issue>
 
-    <issue
-        id="ButtonStyle"
-        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
-        errorLine1="        &lt;Button"
-        errorLine2="         ~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_saf_perf_test.xml"
-            line="131"
-            column="10"/>
-    </issue>
 
-    <issue
-        id="ButtonStyle"
-        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
-        errorLine1="        &lt;Button"
-        errorLine2="         ~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_saf_perf_test.xml"
-            line="139"
-            column="10"/>
-    </issue>
 
-    <issue
-        id="ButtonStyle"
-        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
-        errorLine1="        &lt;Button"
-        errorLine2="         ~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_saf_perf_test.xml"
-            line="147"
-            column="10"/>
-    </issue>
 
-    <issue
-        id="ButtonStyle"
-        message="Buttons in button bars should be borderless; use `style=&quot;?android:attr/buttonBarButtonStyle&quot;` (and `?android:attr/buttonBarStyle` on the parent)"
-        errorLine1="        &lt;Button"
-        errorLine2="         ~~~~~~">
-        <location
-            file="src/main/res/layout/fragment_saf_perf_test.xml"
-            line="155"
-            column="10"/>
-    </issue>
 
     <issue
         id="SmallSp"

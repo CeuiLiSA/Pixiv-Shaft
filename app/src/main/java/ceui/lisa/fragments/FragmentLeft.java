@@ -11,8 +11,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import ceui.lisa.R;
-import ceui.lisa.BuildConfig;
-import ceui.pixiv.ui.recommend.DailyRecommendationsFragment;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.SystemBarMetrics;
@@ -67,21 +65,13 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
     @Override
     public void lazyData() {
         final boolean hotTagsFirst = Shaft.sSettings.isRecommendHotTagsFirst();
-        final String[] TITLES = BuildConfig.IS_LITE ? new String[]{
-                Shaft.getContext().getString(R.string.recommend_illust),
-                Shaft.getContext().getString(R.string.hot_tag)
-        } : new String[]{
+        final String[] TITLES = new String[]{
                 getString(R.string.recommend_illust),
-                getString(R.string.hot_tag),
-                getString(R.string.daily_recommendations)
+                getString(R.string.hot_tag)
         };
-        mFragments = BuildConfig.IS_LITE ? new Fragment[]{
+        mFragments = new Fragment[]{
                 RecmdIllustFeedFragment.newInstance(RecmdIllustFeedFragment.TYPE_ILLUST),
                 HotTagsFeedFragment.newInstance(Params.TYPE_ILLUST)
-        } : new Fragment[]{
-                RecmdIllustFeedFragment.newInstance(RecmdIllustFeedFragment.TYPE_ILLUST),
-                HotTagsFeedFragment.newInstance(Params.TYPE_ILLUST),
-                new DailyRecommendationsFragment()
         };
         if (hotTagsFirst) {
             String title = TITLES[0];

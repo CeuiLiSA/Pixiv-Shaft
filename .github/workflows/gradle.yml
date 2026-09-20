@@ -25,8 +25,6 @@ on:
 env:
   ORIGINAL_PROJECT: "CeuiLiSA/Pixiv-Shaft"
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g"
-  # Injected only into the build process; never store this value in the repository.
-  CODEX_SPARK_API_KEY: ${{ secrets.CODEX_SPARK_API_KEY }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -115,15 +113,6 @@ jobs:
             exit 1
           fi
           echo "SHAFT_EVENTS_HMAC fingerprint OK"
-
-      - name: Verify Spark API key
-        if: github.repository == env.ORIGINAL_PROJECT && (github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork)
-        run: |
-          if [ -z "$CODEX_SPARK_API_KEY" ]; then
-            echo "::error::CODEX_SPARK_API_KEY secret is empty; Spark would be disabled in the APK"
-            exit 1
-          fi
-          echo "Spark API key is configured"
 
       # 单测跑在打包之前，红了就不出产物。只跑 debug 变体：release 变体的
       # 测试代码相同，多跑一遍只是白费 R8 前的编译时间。
@@ -280,7 +269,8 @@ jobs:
 
           echo "TAG_BRANCH=$TAG_BRANCH" >> $GITHUB_ENV
           echo "Detected branch: $TAG_BRANCH"
-          git checkout "origin/$TAG_BRANCH"
+          # Branch detection only selects the APK name; always build the tagged revision.
+          git checkout --detach "$TAG_COMMIT"
           git submodule update --init --recursive
 
       - name: Build release apk
@@ -322,7 +312,7 @@ jobs:
 
       - name: Draft release
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION_TAG }}
           name: ${{ env.VERSION_TAG }}
@@ -331,6 +321,8 @@ jobs:
             ${{ env.APK_NAME }}
           draft: false
           prerelease: false
+          # 4.9.4 按发布要求保留现有 Latest，其他版本沿用自动标记。
+          make_latest: ${{ github.ref_name != 'v4.9.4' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

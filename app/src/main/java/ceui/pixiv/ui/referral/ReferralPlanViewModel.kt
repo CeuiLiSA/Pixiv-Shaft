@@ -1,93 +1,194 @@
 package ceui.pixiv.ui.referral
 
-import android.os.Bundle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import ceui.lisa.R
+import ceui.pixiv.session.SessionManager
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
-internal enum class ReferralTab { TASKS, WALLET }
 internal enum class ReferralFilter { ALL, PROGRESS, READY }
+
 internal data class ReferralUiState(
     val snapshot: ReferralSnapshot,
-    val tab: ReferralTab,
     val filter: ReferralFilter,
     val darkOverride: Boolean?,
     val accentOverride: Int?,
+    /** 首次加载还没回来。此时页面画骨架，而不是画一个「零奖励」的空活动。 */
+    val loading: Boolean,
+    /** 加载失败时那句话；成功后清掉。 */
+    val error: ReferralFailure?,
 )
 
-/** Retains the local demo across view recreation/process restoration, isolated from member APIs. */
-internal class ReferralPlanViewModel(private val saved: SavedStateHandle) : ViewModel() {
-    private val repository = ReferralDemoRepository(restore(saved[KEY]))
+/**
+ * 推介页的状态持有者。
+ *
+ * 所有奖励判定都在服务端，这里只负责「什么时候去问」和「把答案发出去」。每个写操作的
+ * 响应都带回整页状态，所以成功后直接覆盖，从不本地推演 —— 这一页对应的是真的 PRO
+ * 天数，本地推演一旦和服务端错开，用户看到的就是一个不存在的奖励。
+ *
+ * filter / 配色存在 [SavedStateHandle] 里（进程死掉也还在），快照不存：它是服务端
+ * 的答案，重建时重新问一次即可，存下来只会在下次打开时先闪一帧过期数据。
+ */
+internal class ReferralPlanViewModel @JvmOverloads constructor(
+    private val saved: SavedStateHandle,
+    private val repository: ReferralRepository = ReferralRepository(),
+    private val currentUid: () -> Long = { if (SessionManager.isLoggedIn) SessionManager.loggedInUid else 0L },
+) : ViewModel() {
+    private val requests = Mutex()
+    private var ownerUid: Long = saved["ownerUid"] ?: currentUid()
+    private var snapshot = ReferralSnapshot()
+    private var loading = true
+    private var error: ReferralFailure? = null
     private val mutable = MutableLiveData(current())
     val state: LiveData<ReferralUiState> = mutable
     val value: ReferralUiState get() = mutable.value!!
 
+    init {
+        saved["ownerUid"] = ownerUid
+        refresh()
+    }
+
     private fun current() = ReferralUiState(
-        repository.snapshot,
-        enumValueOr(saved["tab"], ReferralTab.TASKS),
+        snapshot,
         enumValueOr(saved["filter"], ReferralFilter.ALL),
         saved["dark"], saved["accent"],
+        loading, error,
     )
 
-    fun tab(tab: ReferralTab) { saved["tab"] = tab.name; publish() }
-    fun filter(filter: ReferralFilter) { saved["filter"] = filter.name; publish() }
-    fun appearance(dark: Boolean?, accent: Int?) { saved["dark"] = dark; saved["accent"] = accent; publish() }
-    fun submit(task: ReferralTask, url: String, description: String, confirmed: Boolean): Boolean =
-        repository.submit(task, url, description, confirmed).also { if (it) publish() }
-    fun review(task: ReferralTask, approved: Boolean) { if (repository.review(task, approved)) publish() }
-    fun claim(task: ReferralTask): Boolean = repository.claim(task, System.currentTimeMillis()).also { if (it) publish() }
-    fun activate(task: ReferralTask): Boolean = repository.activate(task, System.currentTimeMillis()).also { if (it) publish() }
-    fun addInvite() { repository.addInvite(); publish() }
-    fun addRetained() { repository.addRetained(); publish() }
-    fun reset() { repository.reset(); saved["tab"] = ReferralTab.TASKS.name; saved["filter"] = ReferralFilter.ALL.name; publish() }
-    fun refreshTime() { mutable.value = current() }
-
     private fun publish() {
-        val snapshot = repository.snapshot
-        saved[KEY] = Bundle().apply {
-            putStringArrayList("statuses", ArrayList(ReferralTask.entries.map { snapshot.status(it).name }))
-            putInt("effective", snapshot.effective)
-            putInt("retained", snapshot.retained)
-            putLong("activeUntil", snapshot.activeUntil)
-            putParcelableArrayList("cards", ArrayList(snapshot.cards.map { card -> Bundle().apply {
-                putString("task", card.task.name); putLong("claimed", card.claimedAt)
-                putLong("expires", card.expiresAt); putLong("activated", card.activatedAt)
-            } }))
-            putBundle("submissions", Bundle().apply { snapshot.submissions.forEach { (task, data) ->
-                putBundle(task.name, Bundle().apply { putString("url", data.url); putString("description", data.description) })
-            } })
-        }
         mutable.value = current()
     }
 
+    /**
+     * 应用结果。成功就用服务端的整页状态覆盖，失败**不动快照** —— 一次网络抖动不该把
+     * 用户已经看到的进度抹掉。
+     */
+    private fun apply(result: ReferralResult<ReferralSnapshot>): ReferralFailure? {
+        loading = false
+        return when (result) {
+            is ReferralResult.Success -> {
+                snapshot = result.value
+                error = null
+                publish()
+                null
+            }
+            is ReferralResult.Failure -> {
+                error = result.failure
+                publish()
+                // 冲突类失败说明服务端那边已经变了（最典型的是 higher_tier_active：
+                // 它是**改完卡的有效期之后**才拒绝的）。不重拉的话，弹窗说着「有效期
+                // 已顺延」，后面那张卡上印的还是旧日期。
+                if (result.failure.stale) refresh()
+                result.failure
+            }
+        }
+    }
+
+    fun refresh() {
+        if (!viewModelScope.isActive) return
+        val uid = currentUid()
+        if (uid != ownerUid) {
+            ownerUid = uid
+            saved["ownerUid"] = uid
+            saved["campaign"] = null
+            snapshot = ReferralSnapshot()
+            loading = true
+            error = null
+            publish()
+        }
+        // 没登录就别打这条路由：它只收 Auth V2 的 token，而未登录时拿不到 token，
+        // 结果是一个 401 和一句「登录状态还没准备好，请稍后重试」—— 用户会照着它
+        // 一直重试一件永远不会成的事。真正该说的是「先登录」。
+        if (uid <= 0L) {
+            snapshot = ReferralSnapshot()
+            loading = false
+            error = ReferralFailure(LOGIN_REQUIRED, R.string.referral_login_required)
+            publish()
+            return
+        }
+        val campaign: String? = saved["campaign"]
+        viewModelScope.launch { request { repository.load(campaign) } }
+    }
+
+    /** 读写串行，旧的刷新不能覆盖刚领取的卡。离开弹窗取消写请求后也补拉服务端状态。 */
+    private suspend fun request(block: suspend (Long) -> ReferralResult<ReferralSnapshot>): ReferralFailure? {
+        val uid = currentUid()
+        return requests.withLock {
+            if (uid != currentUid() || uid != ownerUid || uid <= 0L) {
+                refresh()
+                return@withLock ReferralFailure(LOGIN_REQUIRED, R.string.referral_login_required)
+            }
+            try {
+                val result = block(uid)
+                val responseUid = (result as? ReferralResult.Success)?.value?.uid
+                if (uid != currentUid()) {
+                    snapshot = ReferralSnapshot()
+                    refresh()
+                    return@withLock ReferralFailure(LOGIN_REQUIRED, R.string.referral_login_required)
+                }
+                if (responseUid != null && responseUid != uid) {
+                    snapshot = ReferralSnapshot()
+                    return@withLock apply(ReferralResult.Failure(
+                        ReferralFailure("uid_forbidden", R.string.referral_error_auth),
+                    ))
+                }
+                val selected: String? = saved["campaign"]
+                if (result is ReferralResult.Success && selected != null && result.value.campaign != selected) {
+                    return@withLock null
+                }
+                apply(result)
+            } catch (ce: CancellationException) {
+                refresh()
+                throw ce
+            }
+        }
+    }
+
+    /** 下面四个都返回「失败原因，或 null 表示成功」，让弹窗能就地说出那一句话。 */
+    suspend fun bind(code: String): ReferralFailure? {
+        val campaign = snapshot.campaign
+        return request { uid -> repository.bind(code, campaign, uid) }
+    }
+    suspend fun claim(task: ReferralTask): ReferralFailure? {
+        val campaign = snapshot.campaign
+        return request { uid -> repository.claim(task, campaign, uid) }
+    }
+    suspend fun activate(cardId: Long): ReferralFailure? {
+        val campaign = snapshot.campaign
+        return request { uid -> repository.activate(cardId, campaign, uid) }
+    }
+    suspend fun submit(task: ReferralTask, url: String, description: String): ReferralFailure? {
+        val campaign = snapshot.campaign
+        return request { uid -> repository.submit(task, url, description, campaign, uid) }
+    }
+
+    fun campaign(campaign: String) {
+        if (snapshot.campaign == campaign) return
+        saved["campaign"] = campaign
+        snapshot = ReferralSnapshot()
+        error = null
+        loading = true
+        publish()
+        refresh()
+    }
+
+    fun filter(filter: ReferralFilter) { saved["filter"] = filter.name; publish() }
+    fun appearance(dark: Boolean?, accent: Int?) { saved["dark"] = dark; saved["accent"] = accent; publish() }
+    /** 重绘用：卡片有效期倒计时按当前时间算，回到前台时要重算一次。 */
+    fun refreshTime() = publish()
+
     companion object {
-        private const val KEY = "referral_preview_v1"
+        /** 「没登录」不是一次可以重试的失败 —— 页面据此不画重试按钮。 */
+        const val LOGIN_REQUIRED = "login_required"
+
         private inline fun <reified T : Enum<T>> enumValueOr(name: String?, fallback: T): T =
             enumValues<T>().firstOrNull { it.name == name } ?: fallback
-
-        private fun restore(bundle: Bundle?): ReferralSnapshot {
-            if (bundle == null) return ReferralSnapshot()
-            return runCatching {
-                val statuses = bundle.getStringArrayList("statuses") ?: return ReferralSnapshot()
-                require(statuses.size == ReferralTask.entries.size)
-                @Suppress("DEPRECATION")
-                val cards = bundle.getParcelableArrayList<Bundle>("cards").orEmpty().map { card ->
-                    ReferralCard(ReferralTask.valueOf(card.getString("task")!!), card.getLong("claimed"),
-                        card.getLong("expires"), card.getLong("activated"))
-                }
-                val submissions = bundle.getBundle("submissions")
-                ReferralSnapshot(
-                    statuses = ReferralTask.entries.associateWith { ReferralStatus.valueOf(statuses[it.ordinal]) },
-                    effective = bundle.getInt("effective", 1).coerceIn(1, 99),
-                    retained = bundle.getInt("retained").coerceIn(0, minOf(3, bundle.getInt("effective", 1))),
-                    cards = cards,
-                    submissions = ReferralTask.entries.mapNotNull { task -> submissions?.getBundle(task.name)?.let {
-                        task to ReferralSubmission(it.getString("url").orEmpty(), it.getString("description").orEmpty())
-                    } }.toMap(),
-                    activeUntil = bundle.getLong("activeUntil"),
-                )
-            }.getOrDefault(ReferralSnapshot())
-        }
     }
 }

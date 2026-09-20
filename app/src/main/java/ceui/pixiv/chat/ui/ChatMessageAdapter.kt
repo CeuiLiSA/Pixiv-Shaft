@@ -42,8 +42,8 @@ import java.util.Locale
  *  - **Received** (msg.uid != selfUid) → left-aligned surface bubble + peer avatar
  *
  * Timestamps live in two places (this is the "where to show send time" answer):
- *  1. a **per-bubble clock** (`HH:mm`) under every bubble, aligned to the
- *     bubble's side — so every message's exact time is one glance away; and
+ *  1. a **per-bubble clock** (`HH:mm`) inside the bottom-right corner, sharing
+ *     the final line when it fits (beside bare stickers/emoji); and
  *  2. a **centred time-group chip** (`今天 14:30` / `3/9 14:30`) shown above the
  *     first message of a new time cluster (gap > 5 min or a new calendar day),
  *     computed from the chronologically-older neighbour. No synthetic list
@@ -209,14 +209,15 @@ class ChatMessageAdapter(
         private val bubble: View = itemView.findViewById(R.id.bubble)
         private val tvContent: TextView = itemView.findViewById(R.id.tv_content)
         private val stickerView = ceui.pixiv.sticker.StickerImageView(itemView.context).also { image ->
-            val container = tvContent.parent as android.widget.LinearLayout
+            val container = tvContent.parent as ChatMessageBodyLayout
             // Keep the local 128px asset compact on high-density screens.
             val size = (64 * itemView.resources.displayMetrics.density).toInt()
-            container.addView(image, container.indexOfChild(tvContent), android.widget.LinearLayout.LayoutParams(size, size).apply {
+            container.addView(image, container.indexOfChild(tvContent), android.widget.FrameLayout.LayoutParams(size, size).apply {
                 gravity = if (isSent) android.view.Gravity.END else android.view.Gravity.START
             })
         }
         private val tvTime: TextView = itemView.findViewById(R.id.tv_time)
+        private val metadata: View = itemView.findViewById(R.id.message_meta)
         private val tvTimeGroup: TextView = itemView.findViewById(R.id.tv_time_group)
         private val ivAvatar: ImageView? = itemView.findViewById(R.id.iv_avatar)
         private val tvMonogram: TextView? = itemView.findViewById(R.id.tv_monogram) // received anon
@@ -264,6 +265,17 @@ class ChatMessageAdapter(
             // the quote block needs a surface to sit on.
             val jumbo = msg.stickerId == null && !msg.isReply && isJumboEmoji(text)
             val bareContent = msg.stickerId != null || jumbo
+            tvContent.setTextColor(if (isSent && !bareContent) Color.WHITE
+                else ContextCompat.getColor(ctx, R.color.v3_text_1))
+            tvTime.setTextColor(if (isSent && !bareContent) 0xD9FFFFFF.toInt()
+                else ContextCompat.getColor(ctx, R.color.v3_text_2))
+            if (bareContent) {
+                metadata.setBackgroundResource(R.drawable.bg_chat_time_chip)
+                metadata.setPadding((4 * d).toInt(), (2 * d).toInt(), (4 * d).toInt(), (2 * d).toInt())
+            } else {
+                metadata.background = null
+                metadata.setPadding(0, 0, 0, 0)
+            }
             bindQuote(msg, selfUid, palette, quoteAccent, contentMax, d, onQuoteClick)
             val hasLinks = !jumbo && LinkifyCompat.addLinks(tvContent, Linkify.WEB_URLS)
             if (hasLinks) {

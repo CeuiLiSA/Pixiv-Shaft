@@ -2,6 +2,7 @@ package ceui.pixiv.ui.referral
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Rect
 import android.os.Build
 import android.view.Gravity
 import android.view.View
@@ -13,7 +14,6 @@ import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.TextViewCompat
@@ -24,10 +24,12 @@ import kotlin.math.roundToInt
 
 internal interface ReferralPageActions {
     fun back()
-    fun tab(tab: ReferralTab)
     fun filter(filter: ReferralFilter)
-    fun open(kind: ReferralSheetKind, task: ReferralTask? = null)
+    fun open(kind: ReferralSheetKind, task: ReferralTask? = null, cardId: Long? = null)
+    fun campaign(campaign: String)
     fun toggleTheme()
+    /** 首次加载失败后的重试。 */
+    fun retry()
 }
 
 /** Native layout corresponding to mockup/referral-plan; no web rendering or bitmap UI. */
@@ -37,19 +39,20 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         id = R.id.referral_scroll
     }
     private val contentHost = FrameLayout(context)
-    private val bottom = LinearLayout(context).apply { gravity = Gravity.CENTER; orientation = LinearLayout.HORIZONTAL }
     private val statusScrim = View(context)
     private var lastState: ReferralUiState? = null
     private var ui: ReferralUi? = null
     private var systemTop = 0
     private var systemBottom = 0
-    private var sectionsY = 0
+    private var walletSection: View? = null
+    private val walletBounds = Rect()
+    private var pendingScrollY: Int? = null
+    private var walletScrollRequested = false
     private var lastWide = false
 
     init {
         scroll.addView(contentHost, FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
         addView(scroll, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
-        addView(bottom, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.BOTTOM))
         addView(statusScrim, LayoutParams(LayoutParams.MATCH_PARENT, 0, Gravity.TOP))
         ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
@@ -62,8 +65,7 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
 
     private fun applyInsets() {
         val u = ui ?: return
-        scroll.setPadding(0, systemTop, 0, u.dp(96) + systemBottom)
-        bottom.setPadding(u.dp(15), u.dp(10), u.dp(15), u.dp(10) + systemBottom)
+        scroll.setPadding(0, systemTop, 0, u.dp(24) + systemBottom)
         statusScrim.layoutParams.height = systemTop
         statusScrim.requestLayout()
     }
@@ -74,9 +76,25 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         if (wide != lastWide) post { lastState?.let(::render) }
     }
 
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        // 刷新和「查看奖励」可能发生在同一帧。等新布局完成后统一定位，显式导航优先，
+        // 避免恢复旧滚动位置的回调把用户刚选的卡包位置覆盖掉。
+        val section = walletSection
+        val restoreY = pendingScrollY
+        if (walletScrollRequested && section != null) {
+            section.getDrawingRect(walletBounds)
+            contentHost.offsetDescendantRectToMyCoords(section, walletBounds)
+            scroll.scrollTo(0, walletBounds.top)
+        } else if (restoreY != null) {
+            scroll.scrollTo(0, restoreY)
+        }
+        walletScrollRequested = false
+        pendingScrollY = null
+    }
+
     fun render(state: ReferralUiState) {
-        val oldScroll = scroll.scrollY
-        val changedTab = lastState?.tab != null && lastState?.tab != state.tab
+        if (pendingScrollY == null) pendingScrollY = scroll.scrollY
         lastState = state
         val colors = ReferralColors(context, state.darkOverride, state.accentOverride)
         val u = ReferralUi(context, colors)
@@ -85,8 +103,44 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         val wide = available >= 760
         lastWide = wide
         setBackgroundColor(colors.bg); statusScrim.setBackgroundColor(colors.bg)
-        bottom.background = u.shape(ColorUtils.setAlphaComponent(colors.bg, 245), 0f, colors.line)
         contentHost.removeAllViews()
+        walletSection = null
+        // 还没拿到服务端的答案之前，画一句「加载中」而不是一个「零奖励」的空活动 ——
+        // 后者看起来像「你什么都没有」，而真相是「还不知道」。失败同理：要给重试，
+        // 不能让人对着一个静止的空页面猜是不是坏了。
+        // 占位页的条件：没有任务数据（还在加载 / 出错），或者活动关着**而且他手上没有
+        // 任何要了结的东西**。
+        //
+        // 后半句是关键：关一期活动的那一刻总有人攥着还没激活的卡（领取后有 30 天激活
+        // 期），把页面无条件换成「活动未开放」就等于把那些卡吞了 —— 服务端那边领取和
+        // 激活是照常放行的（见 referral.js 的 claimReferralReward）。
+        val settling = !state.snapshot.enabled && state.snapshot.hasSomethingToSettle
+        if (state.snapshot.tasks.isEmpty() || (!state.snapshot.enabled && !settling)) {
+            walletScrollRequested = false
+            val placeholder = when {
+                state.loading -> u.s(R.string.referral_loading) to null
+                // 未登录时直接接到登录流程，保留深链邀请码。
+                state.error != null ->
+                    u.s(state.error.messageRes) to
+                        if (state.error.code == ReferralPlanViewModel.LOGIN_REQUIRED) R.string.go_to_login else R.string.referral_retry
+                !state.snapshot.enabled -> u.s(R.string.referral_closed_desc) to null
+                else -> u.s(R.string.referral_loading) to null
+            }
+            val page = u.column().apply { setPadding(u.dp(20), u.dp(18), u.dp(20), u.dp(18)) }
+            contentHost.addView(page, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+            u.add(page, topBar(u), height = u.dp(64))
+            u.add(page, u.heading(u.text(
+                if (state.loading || state.error != null) u.s(R.string.referral_heading)
+                else u.s(R.string.referral_closed_title), 28f, 700)), top = 24)
+            u.add(page, u.text(placeholder.first, 13f, color = colors.muted), top = 12)
+            placeholder.second?.let { label ->
+                u.add(page, u.button(label, primary = true) { actions.retry() },
+                    width = LayoutParams.WRAP_CONTENT, top = 20)
+            }
+            applyInsets()
+            ViewCompat.requestApplyInsets(this)
+            return
+        }
         val page = u.column()
         contentHost.addView(page, LayoutParams(if (available > 1180) u.dp(1180) else LayoutParams.MATCH_PARENT,
             LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.CENTER_HORIZONTAL))
@@ -94,55 +148,86 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         val body = u.column().apply { setPadding(u.dp(if (wide) 36 else 20), u.dp(18), u.dp(if (wide) 36 else 20), 0) }
         u.add(page, body)
         u.add(body, heading(u))
-        u.add(body, hero(u, wide), top = 23)
+        if (state.snapshot.campaigns.size > 1) {
+            val choices = u.row()
+            state.snapshot.campaigns.forEach { campaign ->
+                u.add(choices, u.button(u.s(R.string.referral_campaign, campaign), outline = true) {
+                    actions.campaign(campaign)
+                }.apply { isEnabled = campaign != state.snapshot.campaign }, width = -2)
+            }
+            u.add(body, HorizontalScrollView(context).apply { addView(choices) }, top = 14)
+        }
+        state.error?.let { failure ->
+            u.add(body, note(u, u.s(failure.messageRes)), top = 12)
+            u.add(body, u.button(R.string.referral_retry) { actions.retry() }, top = 8)
+        }
+        // 活动已结束但他还有东西没兑现：说清楚「还能做什么」，而不是让他对着一个
+        // 邀请按钮点了才发现新人已经加不进来了。
+        if (settling) u.add(body, note(u, u.s(R.string.referral_closed_banner)), top = 16)
+        // 这条绑定被复核拒了：奖励永远不会来。不说的话他会一直等。
+        if (state.snapshot.inviteRejected) {
+            u.add(body, note(u, u.s(R.string.referral_bound_rejected)).apply {
+                setTextColor(colors.danger)
+            }, top = 16)
+        }
+        u.add(body, hero(u, wide, state.snapshot), top = 23)
 
         val main = if (wide) u.row().apply { gravity = Gravity.TOP } else u.column()
         u.add(body, main, top = 29)
         val tasks = u.column()
-        if (wide) u.add(main, tasks, width = 0, weight = 1f) else u.add(main, tasks)
-        if (state.tab == ReferralTab.TASKS) {
-            sectionHeader(u, tasks, u.s(R.string.referral_tasks), u.s(R.string.referral_tasks_subtitle), "04")
-            u.add(tasks, filters(u, state), top = 19)
-            val visible = ReferralTask.entries.filter { task -> when (state.filter) {
-                ReferralFilter.ALL -> true
-                ReferralFilter.READY -> state.snapshot.status(task) == ReferralStatus.READY
-                ReferralFilter.PROGRESS -> state.snapshot.status(task) in listOf(ReferralStatus.PROGRESS, ReferralStatus.PENDING, ReferralStatus.REJECTED)
-            } }
-            if (visible.isEmpty()) u.add(tasks, empty(u,
-                if (state.filter == ReferralFilter.READY) R.string.referral_empty_ready else R.string.referral_empty_progress,
-                if (state.filter == ReferralFilter.READY) R.string.referral_empty_ready_desc else R.string.referral_empty_progress_desc,
-            ) { actions.filter(ReferralFilter.ALL) }, top = 13)
-            visible.forEach { u.add(tasks, taskCard(u, it, state.snapshot), top = 12) }
-        } else {
-            sectionHeader(u, tasks, u.s(R.string.referral_wallet), u.s(R.string.referral_wallet_subtitle), state.snapshot.cards.size.toString().padStart(2, '0'))
-            val now = System.currentTimeMillis()
-            if (state.snapshot.activeUntil > now) u.add(tasks,
-                note(u, u.s(R.string.referral_active_until, date(state.snapshot.activeUntil))), top = 20)
-            if (state.snapshot.cards.isEmpty()) u.add(tasks, empty(u,
-                R.string.referral_wallet_empty, R.string.referral_wallet_empty_desc,
-            ) { actions.tab(ReferralTab.TASKS) }, top = 24)
-            state.snapshot.cards.forEach { u.add(tasks, walletCard(u, it), top = 16) }
+        val rewards = u.column().apply {
+            u.add(this, summary(u, state.snapshot))
+            val wallet = wallet(u, state.snapshot)
+            walletSection = wallet
+            u.add(this, wallet, top = 24)
         }
+        if (wide) {
+            u.add(main, tasks, width = 0, weight = 1f)
+            u.add(main, rewards, width = u.dp(288))
+            (rewards.layoutParams as LinearLayout.LayoutParams).marginStart = u.dp(30)
+        } else {
+            // 到账的卡直接可见；任务筛选只影响下面的任务列表。
+            u.add(main, rewards)
+            u.add(main, tasks, top = 32)
+        }
+        sectionHeader(u, tasks, u.s(R.string.referral_tasks), u.s(R.string.referral_tasks_subtitle), "04")
+        u.add(tasks, filters(u, state), top = 19)
+        val visible = ReferralTask.LISTED.filter { task -> when (state.filter) {
+            ReferralFilter.ALL -> true
+            ReferralFilter.READY -> state.snapshot.status(task) == ReferralStatus.READY
+            ReferralFilter.PROGRESS -> state.snapshot.status(task) in listOf(ReferralStatus.PROGRESS, ReferralStatus.PENDING, ReferralStatus.REJECTED)
+        } }
+        if (visible.isEmpty()) u.add(tasks, empty(u,
+            if (state.filter == ReferralFilter.READY) R.string.referral_empty_ready else R.string.referral_empty_progress,
+            if (state.filter == ReferralFilter.READY) R.string.referral_empty_ready_desc else R.string.referral_empty_progress_desc,
+        ) { actions.filter(ReferralFilter.ALL) }, top = 13)
+        visible.forEach { u.add(tasks, taskCard(u, it, state.snapshot), top = 12) }
         u.add(tasks, u.text(R.string.referral_gentle, 10f, color = colors.muted).apply {
             gravity = Gravity.CENTER; setPadding(0, u.dp(8), 0, u.dp(8))
             setCompoundDrawablesRelativeWithIntrinsicBounds(u.icon(ReferralIcon.HEART, colors.muted, 13), null, null, null)
             compoundDrawablePadding = u.dp(6)
         }, top = 16)
-        val side = u.column()
-        if (wide) {
-            u.add(main, side, width = u.dp(288))
-            (side.layoutParams as LinearLayout.LayoutParams).marginStart = u.dp(30)
-        } else u.add(main, side, top = 20)
-        u.add(side, summary(u, state.snapshot))
-        u.add(side, journey(u), top = 28)
-        u.add(body, footer(u), top = 24)
-        buildBottom(u, state)
+        u.add(if (wide) rewards else main, journey(u), top = 28)
+        u.add(body, footer(u, state.snapshot), top = 24)
         applyInsets()
-        body.post {
-            sectionsY = body.top + main.top
-            scroll.scrollTo(0, if (changedTab) sectionsY else oldScroll)
-        }
         ViewCompat.requestApplyInsets(this)
+    }
+
+    /** 奖励已经在当前页面；领取反馈和「查看奖励」只定位，不再切换页面。 */
+    fun showWallet() {
+        if (walletSection == null) return
+        walletScrollRequested = true
+        requestLayout()
+    }
+
+    private fun wallet(u: ReferralUi, state: ReferralSnapshot) = u.column().apply {
+        sectionHeader(u, this, u.s(R.string.referral_wallet), u.s(R.string.referral_wallet_subtitle), state.cards.size.toString().padStart(2, '0'))
+        if (state.activeUntil > System.currentTimeMillis()) u.add(this,
+            note(u, u.s(R.string.referral_active_until, date(state.activeUntil))), top = 20)
+        if (state.cards.isEmpty()) u.add(this, empty(u,
+            R.string.referral_wallet_empty, R.string.referral_wallet_empty_desc, arrayOf(state.cardValidDays),
+        ), top = 16)
+        state.cards.forEach { u.add(this, walletCard(u, it), top = 16) }
     }
 
     private fun topBar(u: ReferralUi) = u.row().apply {
@@ -164,9 +249,7 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         u.add(this, u.text(R.string.referral_intro, 12f, color = u.colors.muted), top = 10)
     }
 
-    private fun hero(u: ReferralUi, wide: Boolean): View {
-        val frame = FrameLayout(context).apply { background = u.shape(u.colors.hero, 26f); clipToOutline = true }
-        frame.addView(ReferralHeroArtView(context, u), LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+    private fun hero(u: ReferralUi, wide: Boolean, snapshot: ReferralSnapshot): View {
         val copy = u.column().apply { setPadding(u.dp(if (wide) 36 else 24), u.dp(26), u.dp(24), u.dp(25)) }
         val tag = u.text("•  " + u.s(R.string.referral_hero_tag), 9f, 500, u.colors.onTint).apply {
             setPadding(u.dp(11), u.dp(7), u.dp(11), u.dp(7)); background = u.shape(u.colors.bg, 999f)
@@ -176,19 +259,53 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
             setLineSpacing(0f, 1.15f)
             TextViewCompat.setLineHeight(this, (textSize * 1.4f).roundToInt())
         }, top = 15)
-        val narrow = resources.configuration.fontScale <= 1.1f && !wide
         u.add(copy, u.text(R.string.referral_hero_body, 12f, color = u.colors.onHero).apply {
             TextViewCompat.setLineHeight(this, (textSize * 1.95f).roundToInt())
-        }, width = if (narrow) u.dp(185) else LayoutParams.MATCH_PARENT, top = 13)
-        u.add(copy, u.button(R.string.referral_invite_action, primary = true, icon = ReferralIcon.ARROW) { actions.open(ReferralSheetKind.INVITE) },
-            width = LayoutParams.WRAP_CONTENT, top = 24)
-        u.add(copy, u.text(R.string.referral_hero_note, 12f, color = u.colors.onHero).apply {
+        }, top = 13)
+        val actionsColumn = u.column()
+        if (snapshot.inviteUrl != null) u.add(actionsColumn,
+            u.button(R.string.referral_invite_action, primary = true, icon = ReferralIcon.ARROW) { actions.open(ReferralSheetKind.INVITE) },
+            width = LayoutParams.WRAP_CONTENT)
+        u.add(actionsColumn, u.text(R.string.referral_hero_note, 12f, color = u.colors.onHero).apply {
             TextViewCompat.setLineHeight(this, (textSize * 1.7f).roundToInt())
-        }, width = if (narrow) u.dp(185) else LayoutParams.MATCH_PARENT, top = 12)
-        // At large font sizes keep the text readable; decoration remains a separate noninteractive layer.
-        if (resources.configuration.fontScale > 1.1f) frame.getChildAt(0).alpha = .13f
-        frame.addView(copy, LayoutParams(if (wide) u.dp(430) else LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
-        return frame
+        }, top = 12)
+        val art = ReferralHeroArtView(context, u)
+        // Both columns participate in measurement: cards never sit underneath readable copy.
+        val hero = if (wide && resources.configuration.fontScale <= 1.1f) {
+            u.add(copy, actionsColumn, top = 24)
+            u.row().apply {
+                u.add(this, copy, width = 0, weight = 1f)
+                addView(art, LinearLayout.LayoutParams(0, u.dp(320), 1f).apply { rightMargin = u.dp(24) })
+            }
+        } else {
+            val footer = object : LinearLayout(context) {
+                override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+                    val roomForColumns = MeasureSpec.getSize(widthMeasureSpec) >=
+                        u.dp(208) + u.dp(112f * resources.configuration.fontScale)
+                    orientation = if (roomForColumns) HORIZONTAL else VERTICAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    (actionsColumn.layoutParams as LinearLayout.LayoutParams).apply {
+                        width = if (roomForColumns) 0 else LayoutParams.MATCH_PARENT
+                        weight = if (roomForColumns) 1f else 0f
+                    }
+                    (art.layoutParams as LinearLayout.LayoutParams).apply {
+                        width = if (roomForColumns) u.dp(196) else LayoutParams.MATCH_PARENT
+                        height = u.dp(if (roomForColumns) 180 else 220)
+                        leftMargin = if (roomForColumns) u.dp(12) else 0
+                        topMargin = if (roomForColumns) 0 else u.dp(16)
+                    }
+                    super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+                }
+            }.apply {
+                addView(actionsColumn, LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+                addView(art, LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, u.dp(220)))
+            }
+            u.add(copy, footer, top = 20)
+            copy
+        }
+        hero.background = u.shape(u.colors.hero, 26f)
+        hero.clipToOutline = true
+        return hero
     }
 
     private fun sectionHeader(u: ReferralUi, parent: LinearLayout, title: String, subtitle: String, count: String) {
@@ -244,7 +361,7 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         u.add(text, u.text(info.description, 12f, color = u.colors.muted).apply {
             TextViewCompat.setLineHeight(this, (textSize * 1.8f).roundToInt())
         }, top = 7)
-        u.add(top, u.text(u.s(R.string.referral_days, task.days), 12f, 700, u.colors.onTint).apply {
+        u.add(top, u.text(u.s(R.string.referral_days, state.view(task)?.days ?: task.days), 12f, 700, u.colors.onTint).apply {
             background = u.shape(u.colors.surface2, 10f); setPadding(u.dp(7), u.dp(7), u.dp(7), u.dp(7))
         }, width = LayoutParams.WRAP_CONTENT)
         u.add(card, top)
@@ -258,13 +375,14 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         }
         val progressLabel = u.row()
         u.add(progressLabel, u.text(caption, 11f, color = u.colors.muted), width = 0, weight = 1f)
-        u.add(progressLabel, u.text(u.s(R.string.referral_progress_format, state.progress(task), task.target), 11f), width = LayoutParams.WRAP_CONTENT)
+        val target = state.target(task)
+        u.add(progressLabel, u.text(u.s(R.string.referral_progress_format, state.progress(task), target), 11f), width = LayoutParams.WRAP_CONTENT)
         u.add(progress, progressLabel)
         val track = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
-            max = task.target; this.progress = state.progress(task)
+            max = target; this.progress = state.progress(task)
             progressTintList = android.content.res.ColorStateList.valueOf(if (status == ReferralStatus.READY) u.colors.green else u.colors.primary)
             progressBackgroundTintList = android.content.res.ColorStateList.valueOf(u.colors.surface3)
-            contentDescription = u.s(caption) + " " + u.s(R.string.referral_progress_format, state.progress(task), task.target)
+            contentDescription = u.s(caption) + " " + u.s(R.string.referral_progress_format, state.progress(task), target)
         }
         u.add(progress, track, height = u.dp(4), top = 8)
         val horizontal = foot.orientation == LinearLayout.HORIZONTAL
@@ -279,7 +397,7 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         }
         val button = u.button(action, primary = status == ReferralStatus.READY,
             icon = if (status == ReferralStatus.READY) ReferralIcon.TICKET else ReferralIcon.ARROW) {
-            if (status == ReferralStatus.CLAIMED) actions.tab(ReferralTab.WALLET)
+            if (status == ReferralStatus.CLAIMED) showWallet()
             else actions.open(if (status == ReferralStatus.READY) ReferralSheetKind.CLAIM else ReferralSheetKind.TASK, task)
         }
         button.contentDescription = u.s(action) + "：" + u.s(info.title)
@@ -311,8 +429,7 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
             u.add(stats, col, width = 0, weight = 1f)
         }
         u.add(this, stats, top = 18)
-        u.add(this, u.button(R.string.referral_open_wallet, outline = true, icon = ReferralIcon.ARROW) { actions.tab(ReferralTab.WALLET) }, top = 23)
-        u.add(this, u.text(R.string.referral_expiry_hint, 11f, color = u.colors.muted).apply { gravity = Gravity.CENTER }, top = 13)
+        u.add(this, u.text(u.s(R.string.referral_expiry_hint, state.cardValidDays), 11f, color = u.colors.muted).apply { gravity = Gravity.CENTER }, top = 13)
     }
 
     private fun journey(u: ReferralUi) = u.column().apply {
@@ -335,18 +452,27 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         u.add(this, u.button(R.string.referral_materials, outline = true, icon = ReferralIcon.ARROW) { actions.open(ReferralSheetKind.MATERIALS) }.apply { background = null }, top = 16)
     }
 
-    private fun footer(u: ReferralUi) = u.column().apply {
+    private fun footer(u: ReferralUi, snapshot: ReferralSnapshot) = u.column().apply {
         u.add(this, View(context).apply { setBackgroundColor(u.colors.line) }, height = u.dp(1))
         u.add(this, u.text(R.string.referral_footer, 10f, color = u.colors.muted).apply { gravity = Gravity.CENTER }, top = 22)
-        u.add(this, u.button(R.string.referral_demo_console, outline = true) { actions.open(ReferralSheetKind.DEMO) }.apply { background = null }, top = 8)
+        // 新人填邀请码的入口。绑定是一次性的，已经绑过的人再看到它只会点进去撞一句
+        // 「你已经绑过了」—— 那时候该显示的是他被谁邀请了。
+        if (snapshot.inviterUid == null && snapshot.enabled && snapshot.view(ReferralTask.INVITE)?.enabled == true) {
+            u.add(this, u.button(R.string.referral_bind_entry, outline = true) { actions.open(ReferralSheetKind.BIND) }, top = 10)
+        } else if (snapshot.inviteRejected) {
+            // 页顶已经用醒目的方式说过了，这里不重复。
+        } else if (snapshot.inviterUid != null) {
+            u.add(this, u.text(u.s(R.string.referral_bound_already, snapshot.inviterUid), 10f, color = u.colors.muted)
+                .apply { gravity = Gravity.CENTER }, top = 10)
+        }
     }
 
-    private fun empty(u: ReferralUi, title: Int, description: Int, action: () -> Unit) = card(u).apply {
+    private fun empty(u: ReferralUi, title: Int, description: Int, args: Array<Any> = emptyArray(), action: (() -> Unit)? = null) = card(u).apply {
         setPadding(u.dp(24), u.dp(36), u.dp(24), u.dp(36))
         u.add(this, u.text("✧", 40f, 400, u.colors.primary).apply { gravity = Gravity.CENTER })
         u.add(this, u.text(title, 16f, 600).apply { gravity = Gravity.CENTER }, top = 12)
-        u.add(this, u.text(description, 13f, color = u.colors.muted).apply { gravity = Gravity.CENTER }, top = 10)
-        u.add(this, u.button(R.string.referral_go_tasks, primary = true, action = action), top = 20)
+        u.add(this, u.text(u.s(description, *args), 13f, color = u.colors.muted).apply { gravity = Gravity.CENTER }, top = 10)
+        if (action != null) u.add(this, u.button(R.string.referral_go_tasks, primary = true, action = action), top = 20)
     }
 
     private fun note(u: ReferralUi, value: String) = u.text(value, 12f, color = u.colors.muted).apply {
@@ -355,7 +481,11 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
 
     private fun walletCard(u: ReferralUi, card: ReferralCard) = card(u).apply {
         val now = System.currentTimeMillis()
-        u.add(this, u.text(if (card.task.days == 7) R.string.referral_card_week else R.string.referral_card_month, 18f, 600))
+        val tier = planLabel(card.plan)
+        u.add(this, u.text(
+            u.s(if (card.days <= 7) R.string.referral_card_week else R.string.referral_card_month, tier),
+            18f, 600,
+        ))
         u.add(this, u.text(u.s(R.string.referral_card_from, u.s(card.task.copy().title)), 12f, color = u.colors.muted), top = 10)
         val caption = when {
             card.activatedAt > 0 -> u.s(R.string.referral_card_active, date(card.activatedAt))
@@ -364,23 +494,7 @@ internal class ReferralPageView(context: Context, private val actions: ReferralP
         }
         u.add(this, u.text(caption, 12f, color = u.colors.muted), top = 10)
         if (card.activatedAt == 0L && card.expiresAt > now) u.add(this,
-            u.button(u.s(R.string.referral_activate, card.task.days), primary = true) { actions.open(ReferralSheetKind.ACTIVATE, card.task) }, top = 16)
-    }
-
-    private fun buildBottom(u: ReferralUi, state: ReferralUiState) {
-        bottom.removeAllViews()
-        listOf(ReferralTab.TASKS to R.string.referral_nav_tasks, ReferralTab.WALLET to R.string.referral_wallet).forEach { (tab, label) ->
-            val selected = tab == state.tab
-            val button = u.button(label) { actions.tab(tab) }.apply {
-                isSelected = selected
-                background = u.shape(if (selected) u.colors.tint else Color.TRANSPARENT, 999f)
-                setTextColor(if (selected) u.colors.onTint else u.colors.muted)
-                setCompoundDrawablesRelativeWithIntrinsicBounds(u.icon(if (tab == ReferralTab.TASKS) ReferralIcon.SPARK else ReferralIcon.TICKET, currentTextColor, 19), null, null, null)
-                compoundDrawablePadding = u.dp(8)
-            }
-            u.add(bottom, button, width = LayoutParams.WRAP_CONTENT)
-            if (tab == ReferralTab.TASKS) u.add(bottom, View(context), width = u.dp(20), height = 1)
-        }
+            u.button(u.s(R.string.referral_activate, card.days, tier), primary = true) { actions.open(ReferralSheetKind.ACTIVATE, card.task, card.id) }, top = 16)
     }
 
     companion object {

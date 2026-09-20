@@ -112,6 +112,39 @@ class StickerStoreTest {
         assertFalse(File(root, "escape.png").exists())
     }
 
+    @Test fun `warm reopen republishes a finished install and never downloads`() {
+        val catalog = catalog()
+        val root = folder.newFolder()
+        val store = StickerStore(root)
+        assertNull("Nothing installed must stay untouched", store.reopen())
+        val installed = store.prepare(catalog, ::download, { _, _, _ -> })
+        val warm = store.reopen()!!
+        assertEquals(installed.generation, warm.generation)
+        assertEquals(installed.images.keys, warm.images.keys)
+        assertEquals(installed.inventory.size, warm.inventory.size)
+        assertTrue(store.isUnchanged(warm))
+        assertTrue(warm.file(650863185465585230L, 64)!!.path.contains("/emoji/64/"))
+    }
+
+    @Test fun `warm reopen refuses a closed gate or an incomplete install`() {
+        val catalog = catalog()
+        val root = folder.newFolder()
+        val store = StickerStore(root)
+        store.prepare(catalog, ::download, { _, _, _ -> })
+        val image = File(root, "packages/${catalog.packages().first().sha256}/files/${catalog.packages().first().path}/x.png")
+        val backup = image.readBytes()
+        assertTrue(image.delete())
+        assertNull("A missing image must not reopen", store.reopen())
+        image.writeBytes(backup.copyOf(backup.size - 1))
+        assertNull("A truncated image must not reopen", store.reopen())
+        image.writeBytes(backup)
+        assertNotNull(store.reopen())
+        assertTrue(File(root, "ready.json").delete())
+        assertNull("Without the gate there is nothing to reopen", store.reopen())
+        // Reading is all it ever does: the install is still exactly where prepare left it.
+        catalog.packages().forEach { assertTrue(File(root, "packages/${it.sha256}/archive.zip").isFile) }
+    }
+
     @Test fun `API host cannot be used for ZIP bytes and missing variants fail validation`() {
         val catalog = catalog()
         val bad = catalog.copy(packs = catalog.packs.mapValues { (_, pack) ->

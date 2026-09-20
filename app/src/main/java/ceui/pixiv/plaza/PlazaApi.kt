@@ -1,5 +1,6 @@
 package ceui.pixiv.plaza
 
+import ceui.pixiv.api.model.Illust
 import retrofit2.http.*
 
 data class PlazaImage(
@@ -10,6 +11,13 @@ data class PlazaImage(
     val url: String,
     val expiresAt: Long,
 )
+
+/**
+ * What a post carries about its linked Pixiv object beyond the id, so readers never fetch it.
+ * Only the JSON travels: the pages inside are pximg URLs each reader loads on its own connection.
+ * Absent on posts that link nothing, or a novel / user, or were made before this existed.
+ */
+data class PlazaObjectExtensions(val illust: Illust? = null)
 
 data class PlazaReaction(val emoji: String, val count: Int, val selected: Boolean, val stickerId: Long? = null)
 
@@ -39,6 +47,7 @@ data class PlazaPost(
     val reactions: List<PlazaReaction> = emptyList(),
     val commentsPreview: List<PlazaCommentPreview> = emptyList(),
     val avatarUrl: String? = null,
+    val objectExtensions: PlazaObjectExtensions? = null,
 )
 
 data class PlazaPage(val items: List<PlazaPost>, val nextBefore: Long?)
@@ -53,11 +62,30 @@ data class CreatePost(
     val replyTo: Long? = null,
     val title: String = "",
     val avatarUrl: String? = null,
+    val policyVersion: String = "2026-09-16",
+    val objectExtensions: PlazaObjectExtensions? = null,
 )
 
 data class DeletePost(val ok: Boolean)
 
+data class PlazaReportRequest(
+    val targetType: String,
+    val reason: String,
+    val details: String,
+    val mediaIds: List<String> = emptyList(),
+)
+data class PlazaReportReceipt(val id: Long, val status: String, val duplicate: Boolean)
+data class PlazaBlockedUser(val uid: Long, val displayName: String)
+data class PlazaBlocks(val items: List<PlazaBlockedUser>)
+
 interface PlazaApi {
+    @POST("v1/plaza/posts/{id}/reports")
+    suspend fun report(@Path("id") id: Long, @Body body: PlazaReportRequest): PlazaReportReceipt
+
+    @GET("v1/plaza/blocks") suspend fun blocks(): PlazaBlocks
+    @PUT("v1/plaza/blocks/{uid}") suspend fun block(@Path("uid") uid: Long): DeletePost
+    @DELETE("v1/plaza/blocks/{uid}") suspend fun unblock(@Path("uid") uid: Long): DeletePost
+
     @GET("v1/plaza/posts")
     suspend fun feed(
         @Query("before") before: Long? = null,

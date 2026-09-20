@@ -77,4 +77,15 @@
     <string name="plaza_error_title">操作失敗</string>
     <string name="plaza_preview_author">%1$s：</string>
     <string name="plaza_media_size_unknown">無法讀取有效的圖片大小，請重新選擇</string>
+    <string name="plaza_filter_all">全部</string>
+    <string name="plaza_filter_mine">我的</string>
+    <string name="plaza_retry">重試</string>
+    <string name="plaza_empty_title">暫無貼文</string>
+    <string name="plaza_empty_desc">發佈一則貼文，分享你正在看的作品與想法。</string>
+    <string name="plaza_mine_empty_desc">你發佈的貼文會顯示在這裡。</string>
+    <string name="plaza_load_error_title">載入失敗</string>
+    <string name="plaza_title_label">標題</string>
+    <string name="plaza_body_label">內文</string>
+    <string name="plaza_char_count">%1$d / %2$d</string>
+    <string name="plaza_reference_hint">關聯一件 Pixiv 作品或一位使用者</string>
 </resources>

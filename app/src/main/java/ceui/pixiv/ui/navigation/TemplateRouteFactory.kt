@@ -37,6 +37,7 @@ import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.chat.ui.ChatRoomListFragment
 import ceui.pixiv.chat.ui.DemoChatListFragment
+import ceui.pixiv.db.mirror.trackBookmarkShelfVisit
 import ceui.pixiv.plaza.ui.PlazaComposeFragment
 import ceui.pixiv.plaza.ui.PlazaFragment
 import ceui.pixiv.plaza.ui.PlazaPostDetailFragment
@@ -53,14 +54,12 @@ import ceui.pixiv.ui.collection.LikeNovelFeedFragment
 import ceui.pixiv.ui.comic.ComicTopFeedFragment
 import ceui.pixiv.ui.comic.reader.ComicReaderV3Fragment
 import ceui.pixiv.ui.comments.CommentsFragment
-import ceui.pixiv.ui.debug.BulkDownloadDebugFragment
 import ceui.pixiv.ui.debug.NetworkTestFragment
-import ceui.pixiv.ui.debug.PopularTagExportFragment
-import ceui.pixiv.ui.debug.SafPerfTestFragment
 import ceui.pixiv.ui.detail.ArtworkV3Fragment
 import ceui.pixiv.ui.detail.IllustSeriesFragment
 import ceui.pixiv.ui.detail.RelatedIllustFeedFragment
 import ceui.pixiv.ui.discovery.DiscoveryFeedFragment
+import ceui.pixiv.ui.discovery.WebDiscoveryFragment
 import ceui.pixiv.ui.download.DownloadManagerV3Fragment
 import ceui.pixiv.ui.dynamic.FollowingNovelFeedFragment
 import ceui.pixiv.ui.fanbox.FanboxHomeFragment
@@ -81,11 +80,14 @@ import ceui.pixiv.ui.novel.NovelTextFragment
 import ceui.pixiv.ui.novel.local.LocalLibraryFragment
 import ceui.pixiv.ui.novel.reader.NovelReaderV3Fragment
 import ceui.pixiv.ui.pinned.PinnedTabsFragment
+import ceui.pixiv.ui.prime.CorpusTagDetailFragment
+import ceui.pixiv.ui.prime.CorpusTagsFragment
 import ceui.pixiv.ui.prime.PrimeTagDetailFragment
 import ceui.pixiv.ui.prime.PrimeTagsFragment
 import ceui.pixiv.ui.recommend.AI_ONLY
 import ceui.pixiv.ui.recommend.ArtistRankFeedFragment
 import ceui.pixiv.ui.recommend.BookmarkRankFragment
+import ceui.pixiv.ui.recommend.DailyRecommendationsFragment
 import ceui.pixiv.ui.recommend.FragmentEventHistory
 import ceui.pixiv.ui.recommend.FragmentRecentRecommend
 import ceui.pixiv.ui.recommend.FragmentSiteRecommend
@@ -104,7 +106,6 @@ import ceui.pixiv.ui.settings.Aria2SettingsFragment
 import ceui.pixiv.ui.settings.DownloadPathSettingsFragment
 import ceui.pixiv.ui.settings.NovelHeaderSettingsFragment
 import ceui.pixiv.ui.settings.ThemeColorFeedFragment
-import ceui.pixiv.ui.spark.SparkAiFragment
 import ceui.pixiv.ui.synonym.SynonymDictFragment
 import ceui.pixiv.ui.translate.ComicTextDetectorDownloadFragment
 import ceui.pixiv.ui.translate.MangaOcrDownloadFragment
@@ -145,7 +146,12 @@ object TemplateRouteFactory {
     @JvmStatic
     fun create(route: TemplateRoute, intent: Intent): Fragment =
         when (route) {
-            TemplateRoute.REFERRAL_PLAN -> ceui.pixiv.ui.referral.ReferralPlanFragment()
+            // 邀请码可能从 shaftintent://referral?code=… 带进来（落地页上「已经装了？直接
+            // 打开 App」那个按钮）。带进来就直接弹绑定框，省掉用户自己找入口。
+            TemplateRoute.REFERRAL_PLAN ->
+                ceui.pixiv.ui.referral.ReferralPlanFragment.newInstance(
+                    intent.getStringExtra(ceui.pixiv.ui.referral.ReferralPlanFragment.ARG_CODE),
+                )
             TemplateRoute.LOGIN -> FragmentLogin()
             TemplateRoute.RELATED_ILLUSTS ->
                 RelatedIllustFeedFragment.newInstance(
@@ -377,7 +383,6 @@ object TemplateRouteFactory {
             TemplateRoute.DOWNLOAD_PATH_SETTINGS -> DownloadPathSettingsFragment()
             TemplateRoute.ARIA2_SETTINGS -> Aria2SettingsFragment()
             TemplateRoute.AI_TRANSLATE_SETTINGS -> AiTranslateSettingsFragment()
-            TemplateRoute.SPARK_AI -> SparkAiFragment()
             TemplateRoute.NOVEL_HEADER_SETTINGS -> NovelHeaderSettingsFragment()
             // 旧 key 是线上契约不能删；已移除的空捐赠页安全降级到关于页。
             TemplateRoute.DONATE -> FragmentAboutApp()
@@ -405,9 +410,12 @@ object TemplateRouteFactory {
                     intent.requireString("name"),
                     intent.requireString("key"),
                 )
-            // 「我的插画收藏」有两种落点：本地库**可用**（书架注册过，或当场就能注册）→ 直接进
-            // 本地库；否则 → 老的双 tab 页兜底。判据刻意不是「全量补齐完成」，理由见
-            // shouldOpenBookmarkLibrary 的注释。
+            TemplateRoute.CORPUS_LIBRARY -> CorpusTagsFragment()
+            TemplateRoute.CORPUS_TAG_DETAIL ->
+                CorpusTagDetailFragment.newInstance(
+                    intent.requireString(CorpusTagsFragment.ARG_TAG),
+                )
+            // 已注册或首次在线访问 → 进入本地库，边回填边浏览；全量完成后再开放筛选。
             // 带 Params.FLAG 的 intent 是本地库自己的「原始收藏列表」入口发来的，必须原样给老页面，
             // 否则用户从库里点进去会被立刻重定向回来，两个页面互相踢皮球。
             TemplateRoute.MY_ILLUST_COLLECTION -> {
@@ -418,6 +426,7 @@ object TemplateRouteFactory {
                 ) {
                     ceui.pixiv.ui.library.BookmarkLibraryFragment.newInstance()
                 } else {
+                    trackOwnBookmarkShelfVisit(ceui.pixiv.db.mirror.MirrorContentType.ILLUST)
                     FragmentCollection.newInstance(0)
                 }
             }
@@ -430,6 +439,7 @@ object TemplateRouteFactory {
                 ) {
                     ceui.pixiv.ui.library.NovelBookmarkLibraryFragment.newInstance()
                 } else {
+                    trackOwnBookmarkShelfVisit(ceui.pixiv.db.mirror.MirrorContentType.NOVEL)
                     FragmentCollection.newInstance(1)
                 }
             }
@@ -486,6 +496,7 @@ object TemplateRouteFactory {
                 FragmentMarkdown.newInstance(intent.getStringExtra(Params.URL))
             TemplateRoute.VERSION_HISTORY -> FragmentVersionHistory()
             TemplateRoute.DISCOVERY -> DiscoveryFeedFragment()
+            TemplateRoute.WEB_DISCOVERY -> WebDiscoveryFragment()
             TemplateRoute.RECENT_RECOMMEND -> FragmentRecentRecommend()
             TemplateRoute.SITE_RECOMMEND -> FragmentSiteRecommend()
             TemplateRoute.ARTIST_RANK -> ArtistRankFeedFragment.newInstance("total")
@@ -512,12 +523,10 @@ object TemplateRouteFactory {
             // shaft-api-v2 discover/most-bookmarked?type=novel&length=long|medium|short
             TemplateRoute.NOVEL_LENGTH_RANK -> NovelLengthRankFragment.newInstance()
             TemplateRoute.TRENDING_ARTISTS -> TrendingArtistsFragment.newInstance()
+            TemplateRoute.DAILY_RECOMMENDATIONS -> DailyRecommendationsFragment()
             TemplateRoute.UGOIRA_RANK -> UgoiraRankFragment.newInstance()
             TemplateRoute.EVENT_HISTORY -> FragmentEventHistory()
-            TemplateRoute.DEBUG_BULK_DOWNLOAD -> BulkDownloadDebugFragment()
-            TemplateRoute.DEBUG_SAF_PERF -> SafPerfTestFragment()
             TemplateRoute.DEBUG_NETWORK_TEST -> NetworkTestFragment()
-            TemplateRoute.DEBUG_POPULAR_TAG_EXPORT -> PopularTagExportFragment()
             // 同义词词典管理页（issue #904 按标签收藏优化）
             TemplateRoute.SYNONYM_DICT -> SynonymDictFragment()
             // peer_uid > 0 → 与该 pixiv 用户 1v1；否则 → 会话列表（全员公屏 + 本地碰过的 1v1）。
@@ -530,6 +539,20 @@ object TemplateRouteFactory {
             // 显式「打开全员公屏」入口：会话列表点 Global 行用。不带 peer_uid 走 CHAT 会回到列表本身。
             TemplateRoute.CHAT_GLOBAL_ROOM -> DemoChatListFragment()
             TemplateRoute.PLAZA -> PlazaFragment()
+            TemplateRoute.PLAZA_BLOCKS -> ceui.pixiv.plaza.ui.PlazaBlockedUsersFragment().apply {
+                arguments = bundleOf(
+                    "mode" to "blocks",
+                    "owner" to intent.getLongExtra("owner", ceui.pixiv.session.SessionManager.loggedInUid),
+                )
+            }
+            TemplateRoute.PLAZA_REPORT -> ceui.pixiv.plaza.ui.PlazaReportFragment().apply {
+                arguments = bundleOf(
+                    "postId" to intent.getLongExtra("postId", 0L),
+                    "targetUid" to intent.getLongExtra("targetUid", 0L),
+                    "mode" to if (intent.getStringExtra("mode") == "user") "user" else "post",
+                    "owner" to intent.getLongExtra("owner", ceui.pixiv.session.SessionManager.loggedInUid),
+                )
+            }
             // 从插画 V3「分享至广场」入口进来会带 ILLUST_ID,需透传给 compose fragment 预附这张 illust;
             // 广场右上「+」入口不带,走空白编辑器。
             TemplateRoute.PLAZA_COMPOSE ->
@@ -624,43 +647,36 @@ object TemplateRouteFactory {
 }
 
 /**
- * 当前账号在这个内容类型下的「公开收藏」该不该直接进本地收藏库。
+ * 把「用户正在打开自己的这个收藏页」记进镜像系统 —— 也就是注册这个书架。
  *
- * **判据刻意不是「全量补齐完成」**（那个判断叫 `isFirstSyncDone`，页面自己拿去决定筛选能不能开）。
- * 本地库是**流式可用**的：第一页在网络 RTT 内就落库，之后每 5 秒一页；页面早在设计时就为
- * 「补齐中」准备好了表达（顶部进度条 + 「正在后台补齐」空态 + 空→有货自动上屏）。拿「补齐完成」
- * 当进门条件的结果是：首次点击必然进旧版，用户得退出去重进（等几分钟到几十分钟）才看得到新版。
+ * 老的双 tab 页自己会在 onResume 里注册（见 `LikeIllustFeedFragment`），但那已经是**页面画出来
+ * 之后**的事：判定「进新版还是旧版」发生得比它更早，于是首次点击触发的那一次注册永远晚一步。
+ * 在这里补一次，镜像从「用户点了入口」这一刻就开始跑，不再依赖那个即将被替代的旧页面真的被渲染。
  *
- * 所以只要功能开着，且满足下面任一条就进本地库：
- * - 这个书架**注册过**（本地库现在就有东西可看，哪怕只有一页）；
- * - **当前有网** —— 有网就能当场注册并开始回填，页面几秒内就会有内容。
- *
- * 真正需要回落旧版兜底的只剩三种：总开关关掉（本地表不会再更新）、从没镜像过且当前离线
- * （新版只能给一片空白）、读库异常。判据用**公开**书架：收藏库默认落在它上面，
- * 悄悄收藏那半边进去以后可以就地切。
+ * 走的是同一条入口函数（`trackBookmarkShelfVisit`）：隐私边界（只对**自己的**收藏生效）与
+ * 「没打开过悄悄收藏就绝不注册悄悄收藏」这两条判断都在它里面，这里不另开口子，所以只注册公开书架。
+ */
+private fun trackOwnBookmarkShelfVisit(contentType: ceui.pixiv.db.mirror.MirrorContentType) {
+    val uid = ceui.pixiv.session.SessionManager.loggedInUid
+    if (uid <= 0L) return
+    ceui.lisa.activities.Shaft.getContext()
+        .trackBookmarkShelfVisit(uid, Params.TYPE_PUBLIC, contentType)
+}
+
+/**
+ * 收藏库默认进入公开书架；只有用户切到悄悄收藏后，才注册私人书架。
  */
 private fun shouldOpenBookmarkLibrary(contentType: ceui.pixiv.db.mirror.MirrorContentType): Boolean {
-    // 关掉镜像后本地表会一直停在原地，这种时候只有旧页面是对的。
-    if (ceui.lisa.activities.Shaft.sSettings?.isBookmarkMirrorEnabled != true) return false
     val uid = ceui.pixiv.session.SessionManager.loggedInUid
     if (uid <= 0L) return false
-    val registered = ceui.lisa.activities.Shaft.getContext()
+    return ceui.lisa.activities.Shaft.getContext()
         .appServices()
         .bookmarkMirror
-        .isShelfRegistered(
+        .canOpenLibrary(
             ceui.pixiv.db.mirror.BookmarkShelf(
                 ownerUid = uid,
                 contentType = contentType,
                 restrict = ceui.pixiv.db.mirror.MirrorRestrict.PUBLIC,
             )
         )
-    return registered || isOnline()
 }
-
-/** 有网 = 引擎能发请求（回填的第一页就会在路上）。与 BookmarkMirrorService 里那份同源。 */
-private fun isOnline(): Boolean = ceui.lisa.activities.Shaft.getContext()
-    .appServices()
-    .networkStateManager
-    .networkState
-    .value
-    ?.isOnline == true

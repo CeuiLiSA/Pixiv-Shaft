@@ -7,6 +7,7 @@ import ceui.lisa.viewmodel.AppLevelState
 import ceui.pixiv.actions.AccountOnlineReportOutbox
 import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.actions.PixivActionQueue
+import ceui.pixiv.chat.api.ShaftChatGateway
 import ceui.pixiv.config.RemoteAppConfig
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.db.discovery.DiscoveryPool
@@ -14,6 +15,7 @@ import ceui.pixiv.db.discovery.ProfileManager
 import ceui.pixiv.db.mirror.BookmarkMirrorService
 import ceui.pixiv.events.EventReporter
 import ceui.pixiv.ui.bulk.QueueDownloadManager
+import ceui.pixiv.sticker.StickerRepository
 import ceui.pixiv.ui.fanbox.FanboxWebBridge
 import ceui.pixiv.ui.translate.MangaBatchTranslateCenter
 import ceui.pixiv.ui.translate.MangaTranslateModels
@@ -73,6 +75,18 @@ interface ServicesProvider {
 
     /** shaft-events 埋点上报。 */
     val eventReporter: EventReporter
+
+    /**
+     * 聊天 WebSocket 网关。构造廉价（只存 Application），真正建连在
+     * [ShaftChatGateway.bootstrap]，由 Shaft 的延迟批在 [eventReporter] start 之后调。
+     */
+    val chatGateway: ShaftChatGateway
+
+    /**
+     * 贴纸安装（聊天与广场共用一份，与登录无关）。构造廉价，磁盘目录与两个
+     * OkHttpClient 都在首次真的要贴纸时才建。
+     */
+    val stickerRepository: StickerRepository
 
     /** 收藏镜像引擎：限速静默地把收藏列表整份镜像到本地，支撑倒序与花式筛选。 */
     val bookmarkMirror: BookmarkMirrorService

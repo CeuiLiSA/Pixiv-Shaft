@@ -19,7 +19,7 @@ import ceui.lisa.databinding.ChatFragmentRoomListBinding
 import ceui.pixiv.chat.api.ChatConversationsRepository
 import ceui.pixiv.chat.api.ChatFrame
 import ceui.pixiv.chat.api.ChatFrameDecoder
-import ceui.pixiv.chat.api.ShaftChatGateway
+import ceui.pixiv.services.appServices
 import ceui.pixiv.chat.base.setupToolbar
 import ceui.pixiv.chat.base.viewBinding
 import ceui.pixiv.chat.base.viewModels
@@ -93,7 +93,7 @@ class ChatRoomListFragment : Fragment(R.layout.chat_fragment_room_list) {
         // format — easier to unit-test by feeding it ChatFrame.Msg directly.
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                ShaftChatGateway.incoming
+                requireContext().appServices().chatGateway.incoming
                     .filterIsInstance<IncomingMessage.Text>()
                     .map { ChatFrameDecoder.decode(it.text) }
                     .filterIsInstance<ChatFrame.Msg>()

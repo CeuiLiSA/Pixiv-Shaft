@@ -122,11 +122,9 @@
         </activity>
         <activity
             android:name=".activities.TemplateActivity"
+            android:enableOnBackInvokedCallback="true"
             android:theme="@style/SplashTheme"
             android:windowSoftInputMode="adjustPan"/>
-        <activity
-            android:name="ceui.pixiv.shaftapi.MediaDemoActivity"
-            android:theme="@style/AppTheme"/>
         <activity
             android:name=".activities.RankActivity"
             android:enableOnBackInvokedCallback="true"

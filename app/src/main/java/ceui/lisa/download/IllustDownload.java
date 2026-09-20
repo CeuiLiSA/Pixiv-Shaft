@@ -36,6 +36,7 @@ import ceui.pixiv.api.model.Illust;
 import ceui.loxia.ImageUrls;
 import ceui.pixiv.api.model.MetaPage;
 import ceui.pixiv.cache.ObjectPool;
+import ceui.pixiv.download.DownloadRecordStateSource;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.IllustCaptionExporter;
 import ceui.pixiv.download.config.StorageChoice;
@@ -44,6 +45,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.PixivOps;
+import timber.log.Timber;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -462,8 +464,18 @@ public class IllustDownload {
         if (feedBack != null) {
             try {
                 feedBack.doSomething();
+            } catch (java.util.concurrent.CancellationException ce) {
+                // 取消不是失败,照本仓约定一律放行,不吞不弹。
+                throw ce;
             } catch (Exception e) {
-                e.printStackTrace();
+                // 这道 catch 兜的是「用户点了下载,但入队过程里抛了」。原先只 printStackTrace,
+                // 于是失败的表现跟什么都没发生一模一样:没 toast、没队列、没崩溃 —— issue #1105
+                // 那句「nothing even happens when click download」就是这个形态,且 release 包
+                // 没 plant Timber,连日志都要不到。现在留痕(试验性日志开关能落盘导出) + 明确
+                // 告知用户,下一份报告才可能带着原因回来。
+                Timber.tag(DownloadRecordStateSource.LOG_TAG).e(e, "enqueue threw, nothing was queued");
+                Common.showToast(Shaft.getContext().getString(R.string.download_enqueue_failed,
+                        e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
             }
         }
     }

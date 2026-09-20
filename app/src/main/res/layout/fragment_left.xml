@@ -59,7 +59,8 @@
                     app:tabIndicatorFullWidth="false"
                     app:tabIndicatorColor="@android:color/white"
                     app:tabSelectedTextColor="@android:color/white"
-                    app:tabMode="auto"
+                    app:tabMode="fixed"
+                    app:tabGravity="fill"
                     android:minHeight="48dp"
                     android:layout_height="wrap_content">
 

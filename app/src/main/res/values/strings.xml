@@ -64,7 +64,6 @@
     <string name="latest_work">最新</string>
     <string name="search">搜索</string>
     <string name="develop">开发者预览</string>
-    <string name="media_demo_entry">COS 图片直传 Demo</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -527,6 +526,8 @@
     <string name="string_272">Twitter ID：</string>
     <string name="string_273">自我介绍：</string>
     <string name="string_274">好P友的插画/漫画作品</string>
+    <string name="corpus_library">热门搜索</string>
+    <string name="corpus_tag_work_count">%1$s 件作品</string>
     <string name="nice_friend_works">好P友作品</string>
     <string name="feed_count_range">%1$d–%2$d,共 %3$d</string>
     <string name="pivision_read_article">阅读特辑 ›</string>
@@ -1126,6 +1127,10 @@
     <string name="update_latest_label">最新</string>
     <string name="version_history">版本历史</string>
     <string name="version_history_empty">暂无版本记录</string>
+    <string name="version_history_up_to_date">已是最新版本</string>
+    <string name="version_history_update_action">更新到 %1$s</string>
+    <string name="version_history_expand">展开更新说明</string>
+    <string name="version_history_collapse">收起更新说明</string>
     <string name="update_channel_google">Google Play 版本，请通过商店更新</string>
     <string name="timeline_today">今天</string>
     <string name="timeline_yesterday">昨天</string>
@@ -1666,6 +1671,7 @@
     <string name="saf_grant_success">授权成功</string>
     <string name="saf_no_file_picker">未找到系统文件管理器，无法授权 SAF 目录</string>
     <string name="download_settings_save_failed">下载设置保存失败：%1$s</string>
+    <string name="download_enqueue_failed">下载任务创建失败：%1$s</string>
     <string name="header_preset_save_failed">信息头预设保存失败：%1$s</string>
 
     <string name="novel_chip_id">作品ID  %1$s</string>
@@ -2185,6 +2191,7 @@
     <string name="wit_gallery_desc" translatable="false">调试用：逐一打开每种弹窗形态，验日夜与主题色</string>
     <string name="site_recommend">本月收藏</string>
     <string name="current_hot">当前最热</string>
+    <string name="shaft_rankings">Shaft 榜单</string>
     <string name="artist_rank">画师榜</string>
     <string name="artist_rank_title">画师收藏总榜</string>
     <string name="artist_avg_rank">画师均分榜</string>
@@ -2258,62 +2265,11 @@
     <string name="event_verb_download">下载了</string>
     <string name="event_verb_follow">关注了</string>
     <string name="event_verb_unfollow">取消关注</string>
-    <string name="debug_bulk_dl_entry">批量下载 Debug</string>
-    <string name="debug_bulk_dl_refresh">重新统计</string>
-    <string name="debug_bulk_dl_copy">复制结果</string>
-    <string name="debug_bulk_dl_copied">已复制到剪贴板</string>
-    <string name="debug_bulk_dl_running">正在统计…</string>
 
     <!-- SAF perf test (用来复现「文件超过 3 万后 SAF 下载变慢」的反馈) -->
-    <string name="saf_perf_test_entry">SAF 写入压测</string>
-    <string name="saf_perf_test_tree_label">测试目录 (SAF tree URI)</string>
-    <string name="saf_perf_test_tree_none">尚未选择 — 点下方「选目录」</string>
-    <string name="saf_perf_test_pick">选目录</string>
-    <string name="saf_perf_test_pick_image">选压测图</string>
-    <string name="saf_perf_test_payload_label">压测图 (任选一张,反复写入此内容)</string>
-    <string name="saf_perf_test_payload_none">尚未选图 — 点下方「选压测图」</string>
-    <string name="saf_perf_test_payload_loaded">已加载 %1$d 字节 · %2$s</string>
-    <string name="saf_perf_test_payload_failed">读图失败: %1$s</string>
-    <string name="saf_perf_test_need_payload">请先选一张压测图</string>
-    <string name="saf_perf_test_purge">清空目录</string>
-    <string name="saf_perf_test_run_1k">写 1k</string>
-    <string name="saf_perf_test_run_5k">写 5k</string>
-    <string name="saf_perf_test_run_30k">写 30k</string>
-    <string name="saf_perf_test_cancel">中止</string>
-    <string name="saf_perf_test_pick_ok">已选目录: %1$s</string>
-    <string name="saf_perf_test_pick_failed">无法获得目录权限: %1$s</string>
-    <string name="saf_perf_test_need_pick">请先选一个测试目录</string>
-    <string name="saf_perf_test_busy">已有任务在跑,中止后再开</string>
-    <string name="saf_perf_test_start">开始压测 %1$d 次写入</string>
-    <string name="saf_perf_test_status_idle">空闲</string>
-    <string name="saf_perf_test_status_running">运行中 %1$d / %2$d</string>
-    <string name="saf_perf_test_status_purging">清理中…</string>
-    <string name="saf_perf_test_status_purging_n">清理中 %1$d / %2$d</string>
-    <string name="saf_perf_test_cancelling">中止中…</string>
-    <string name="saf_perf_test_progress">[%1$d/%2$d] 累计 %3$.2fs · 最近 %4$d 张 %5$.2fs (%6$.1f /s) · 平均 %7$.1f /s</string>
-    <string name="saf_perf_test_done">完成 %1$d 张,共 %2$.2fs,平均 %3$.1f /s</string>
-    <string name="saf_perf_test_cancelled">已中止 %1$d / %2$d (耗时 %3$.2fs)</string>
-    <string name="saf_perf_test_failed">第 %1$d / %2$d 张失败: %3$s %4$s</string>
-    <string name="saf_perf_test_purge_start">开始清空测试目录</string>
-    <string name="saf_perf_test_purge_no_tree">SAF tree 不可访问</string>
-    <string name="saf_perf_test_purge_empty">测试目录不存在,无需清理</string>
-    <string name="saf_perf_test_purge_done">删除 %1$d / %2$d 个 (列目录 %3$.2fs,总耗时 %4$.2fs)</string>
-    <string name="saf_perf_test_diag">诊断</string>
-    <string name="saf_perf_test_diag_start">诊断 SAF 单次拆解</string>
-    <string name="saf_perf_test_status_diag">诊断中…</string>
-    <string name="saf_perf_test_diag_root">[1] root.listFiles(): %1$d 个子项,耗时 %2$.1f ms</string>
-    <string name="saf_perf_test_diag_subdir">[2] ShaftPerfTest/.listFiles(): %1$d 个子项,耗时 %2$.1f ms</string>
-    <string name="saf_perf_test_diag_subdir_absent">[2] ShaftPerfTest/ 还不存在 (跳过)</string>
-    <string name="saf_perf_test_diag_replace">[3] backend.replace 全程 (delete + ensureDir + createFile + write): %1$.1f ms</string>
-    <string name="saf_perf_test_diag_replace_failed">[3] backend.replace 失败: %1$s %2$s</string>
-    <string name="saf_perf_test_diag_raw">[4] 裸 createFile (复用 parent,跳过 delete/ensureDir): %1$.1f ms</string>
-    <string name="saf_perf_test_diag_raw_no_parent">[4] 无法定位 ShaftPerfTest/ (跳过)</string>
-    <string name="saf_perf_test_diag_raw_failed">[4] 裸 createFile 失败: %1$s %2$s</string>
-    <string name="saf_perf_test_diag_conclusion">→ 单次 listFiles(root) %1$.1f ms · backend.replace %2$.1f ms · 裸 createFile %3$.1f ms。差值是 backend 链路里的 listFiles 重复成本。</string>
 
     <!-- 网络测试-->
     <string name="nav_network_test_entry">网络测试</string>
-    <string name="spark_ai_entry">Spark AI 实验室</string>
     <string name="network_test_subtitle">连通性 · DNS 污染 · TLS 握手诊断</string>
     <string name="network_test_run">开始测试</string>
     <string name="network_test_running">测试中…</string>
@@ -2584,10 +2540,7 @@
 
     <!-- Plaza (shaft-plaza-api;debug 入口,MainActivity 里按 BuildConfig.DEBUG gate) -->
     <string name="plaza_drawer_entry">广场</string>
-    <string name="setting_show_chat_room_entry">首页侧边栏展示聊天室入口</string>
     <string name="setting_show_chat_room_push_banner">展示公开聊天室新消息 APP 内 push banner</string>
-    <string name="setting_chat_room_entry_warning">键政封永久</string>
-    <string name="setting_show_plaza_entry">首页侧边栏展示广场入口</string>
     <string name="plaza_title">广场</string>
     <string name="plaza_feed_description" translatable="false">看看大家正在分享的作品与想法</string>
     <string name="plaza_compose_title">发帖</string>
@@ -2691,16 +2644,6 @@
     <string name="view_history_import_success">导入成功，共 %1$d 条记录</string>
     <string name="view_history_import_failed">导入失败：%1$s</string>
     <!-- 标签热度导出 debug 页(仅 debug 侧边栏「试验性」可见) -->
-    <string name="tag_popular_export_entry">标签热度导出</string>
-    <string name="tag_popular_export_subtitle">输入 tag,以会员身份按热度(popular_desc)拉取前 N 页,导出 JSON 到 下载/Shaft</string>
-    <string name="tag_popular_export_tag_label">TAG 名称</string>
-    <string name="tag_popular_export_tag_hint">例如:原神</string>
-    <string name="tag_popular_export_pages_label">页数(1-30)</string>
-    <string name="tag_popular_export_pages_hint">10</string>
-    <string name="tag_popular_export_log_section">运行日志</string>
-    <string name="tag_popular_export_run">开始导出</string>
-    <string name="tag_popular_export_running">导出中…</string>
-    <string name="tag_popular_export_need_tag">请先输入 tag 名称</string>
     <!-- 插画大图：双击缩放行为三选一（默认/三级/增量），长按复位独立常显 -->
     <string name="double_tap_zoom_mode_title">插画大图双击缩放行为</string>
     <string name="double_tap_zoom_mode_default">默认</string>
@@ -3133,8 +3076,34 @@
     <!-- 自动快照（试验性） -->
     <string name="setting_auto_snapshot_on_bookmark">收藏时生成离线快照</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">收藏作品后在后台静默生成一份轻量离线快照（试验性）</string>
+    <string name="setting_auto_snapshot_quota">自动快照大小上限</string>
+    <string name="setting_auto_snapshot_quota_desc">拖动调整自动快照总大小；最左 10 MB，最右不限制（试验性）</string>
+    <string name="setting_auto_snapshot_quota_value">%1$d MB</string>
+    <string name="setting_auto_snapshot_quota_value_gb">%1$s GB</string>
+    <string name="setting_auto_snapshot_quota_unlimited">不限</string>
+    <string name="snapshot_quota_banner_title">自动快照占用</string>
+    <string name="snapshot_quota_banner_value">%1$s / %2$s</string>
+    <string name="snapshot_quota_size_mb_decimal">%1$s MB</string>
+    <string name="setting_auto_snapshot_quota_dialog_hint">按整数 MB 调整；拖到最右表示不限制。调小后会立即清理超出的旧自动快照</string>
+    <string name="setting_auto_snapshot_quota_range_min">10 MB</string>
+    <string name="setting_image_cache_quota">图片缓存预期上限</string>
+    <string name="setting_image_cache_quota_value">%1$d MB</string>
+    <string name="setting_image_cache_quota_value_gb">%1$s GB</string>
+    <string name="setting_image_cache_quota_dialog_hint">重启 App 后生效，超出上限后将自动清理旧的图片缓存</string>
+    <string name="setting_image_cache_quota_range_min">100 MB</string>
+    <string name="setting_image_cache_quota_range_max">1 GB</string>
+    <string name="setting_image_cache_quota_pending">%1$s（未生效）</string>
     <string name="setting_auto_snapshot_on_illust_manga">插画/漫画自动生成快照</string>
-    <string name="setting_auto_snapshot_on_illust_manga_desc">对反复浏览与长时间驻留的插画/漫画静默生成快照（试验性）</string>
+    <string name="setting_auto_snapshot_on_illust_manga_desc">对反复进入与长时间驻留的插画/漫画静默生成快照（试验性）</string>
+
+    <!-- 日志文件（试验性） -->
+    <string name="setting_log_file_enable">启用日志文件</string>
+    <string name="setting_log_file_desc">可能影响性能\n日志文件在%1$s</string>
+    <string name="setting_log_file_no_file">尚未生成</string>
+    <string name="setting_log_file_share">分享日志文件</string>
+    <string name="setting_trigger_crash">引发一次致命错误</string>
+    <string name="setting_trigger_crash_desc">点击后立即崩溃，用于验证崩溃日志落盘</string>
+    <string name="setting_log_file_share_failed">分享日志文件失败</string>
     <string name="snapshot_auto_badge">自动</string>
     <string name="snapshot_promote">转为正式快照</string>
     <string name="snapshot_promote_title">转为正式快照</string>
@@ -3156,6 +3125,8 @@
     <string name="bookmark_mirror_ready_title">收藏库已就绪</string>
     <string name="bookmark_mirror_ready_message">已在本地攒好 %1$s 件收藏，现在可以倒序、按标签/作者/年份筛，还能全文搜。</string>
     <string name="bookmark_mirror_ready_action">去看看</string>
+    <string name="debug_mirror_banner_title">触发「收藏库已就绪」banner</string>
+    <string name="debug_mirror_banner_desc">清掉一次性标记并重放引导，公开或私人收藏可选</string>
     <string name="bookmark_library_title">我的插画收藏</string>
     <string name="bookmark_library_search_hint">搜索标题 / 作者 / 标签 / ID</string>
     <string name="bookmark_library_empty">本地还没有可浏览的收藏</string>
@@ -3166,18 +3137,16 @@
     <string name="bookmark_library_sync_queued">收藏镜像已排队，等待下一个同步窗口</string>
     <string name="bookmark_library_sync_cooldown">已暂停同步以避开 pixiv 频控，稍后自动继续</string>
     <string name="bookmark_library_rebuild">重建本地镜像</string>
-    <string name="bookmark_library_rebuild_sim">重建本地镜像（模拟）</string>
-    <string name="bookmark_library_rebuild_sim_restore">恢复模拟前的本地库</string>
     <string name="bookmark_library_filter_title">筛选与排序</string>
     <string name="bookmark_library_filter_reset">清空</string>
     <string name="bookmark_library_filter_apply">查看 %1$s 件</string>
     <string name="bookmark_library_filter_apply_pending">查看结果</string>
     <string name="bookmark_chip_oldest_first">倒序</string>
+    <string name="bookmark_chip_syncing">补齐中 · 筛选稍后可用</string>
     <string name="bookmark_chip_random">随机</string>
     <string name="bookmark_chip_filter">筛选</string>
     <string name="bookmark_chip_filter_count">筛选 · %1$d</string>
     <string name="bookmark_chip_clear">清空筛选</string>
-    <string name="bookmark_chip_syncing">补齐中 · 筛选稍后可用</string>
     <string name="bookmark_sort_bookmark_newest">收藏时间 · 新→旧</string>
     <string name="bookmark_sort_bookmark_oldest">收藏时间 · 旧→新</string>
     <string name="bookmark_sort_created_newest">发布时间 · 新→旧</string>
@@ -3257,4 +3226,18 @@
     <string name="recommend_page_works_first">推荐作品-热门标签</string>
     <string name="recommend_page_tags_first">热门标签-推荐作品</string>
     <string name="recommend_page_content_desc">调整插画和小说推荐页的页签顺序，重启后生效</string>
+    <!-- Cloudflare 403 鉴别与引导：见 CfBlockDetector / CfBlockGuide -->
+    <string name="cf_block_title">网络环境被 Cloudflare 拦截</string>
+    <string name="cf_block_message_direct">pixiv 的 Cloudflare 拒绝了当前网络环境的请求。请更换网络后重试，例如从 Wi-Fi 切到移动数据。</string>
+    <string name="cf_block_message_proxy">当前代理节点被 Cloudflare 拒绝。请更换代理节点或线路后重试。</string>
+    <string name="cf_block_ip_direct">当前出口 IP：%1$s</string>
+    <string name="cf_block_ip_proxy">代理入口 IP：%1$s</string>
+    <string name="cf_block_short_direct">网络环境被 Cloudflare 拦截，请更换网络</string>
+    <string name="cf_block_short_proxy">代理节点被 Cloudflare 拦截，请更换节点</string>
+    <string name="network_test_pxve_cf_blocked">异常 · %1$dms · HTTP %2$d（Cloudflare 拦截，非转发链路问题）</string>
+
+    <!-- 官网 Discovery：独立于本地发现候选池。 -->
+    <string name="web_discovery_title">官网发现</string>
+    <string name="web_discovery_login_needed">请使用与 App 相同的 pixiv 账号登录网页，以查看推荐作品。</string>
+    <string name="web_discovery_web_login">网页登录</string>
 </resources>

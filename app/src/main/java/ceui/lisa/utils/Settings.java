@@ -13,6 +13,8 @@ import java.util.Map;
 
 import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
+import ceui.pixiv.cache.ImageCacheQuota;
+import ceui.pixiv.snapshot.AutoSnapshotQuota;
 /**
  * A class about all the application settings.
  * */
@@ -144,6 +146,9 @@ public class Settings {
 
     //是否启用 FIREBASE_ANALYTICS_COLLECTION
     private boolean isFirebaseEnable = true;
+
+    //是否启用 Timber 日志写入「日志文件」桶（试验性，重启生效）
+    private boolean logFileEnabled = false;
 
     private long currentProgress = 0L;
 
@@ -337,6 +342,12 @@ public class Settings {
     private volatile boolean autoSnapshotOnBookmark = false; // 试验性：收藏时生成离线快照
 
     private volatile boolean autoSnapshotOnIllustManga = false; // 试验性：插画/漫画自动生成快照
+
+    /** 试验性：自动快照总大小上限（MB）；默认等于旧硬编码 200 MB。 */
+    private volatile int autoSnapshotMaxMb = AutoSnapshotQuota.DEFAULT_LIMIT_MB;
+
+    /** 图片缓存「预期上限」（MB）；只在 Glide 初始化时生效，改完需重启 App。默认 = Glide 原生 250 MB。 */
+    private volatile int imageCacheMaxMb = ImageCacheQuota.DEFAULT_LIMIT_MB;
 
     private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
 
@@ -567,6 +578,14 @@ public class Settings {
 
     public void setFirebaseEnable(boolean firebaseEnable) {
         isFirebaseEnable = firebaseEnable;
+    }
+
+    public boolean isLogFileEnabled() {
+        return logFileEnabled;
+    }
+
+    public void setLogFileEnabled(boolean logFileEnabled) {
+        this.logFileEnabled = logFileEnabled;
     }
 
     public void setThemeType(AppCompatActivity activity, ThemeHelper.ThemeType themeType) {
@@ -1006,6 +1025,22 @@ public class Settings {
 
     public void setAutoSnapshotOnIllustManga(boolean autoSnapshotOnIllustManga) {
         this.autoSnapshotOnIllustManga = autoSnapshotOnIllustManga;
+    }
+
+    public int getAutoSnapshotMaxMb() {
+        return AutoSnapshotQuota.clampLimitMb(autoSnapshotMaxMb);
+    }
+
+    public void setAutoSnapshotMaxMb(int autoSnapshotMaxMb) {
+        this.autoSnapshotMaxMb = AutoSnapshotQuota.clampLimitMb(autoSnapshotMaxMb);
+    }
+
+    public int getImageCacheMaxMb() {
+        return ImageCacheQuota.clampLimitMb(imageCacheMaxMb);
+    }
+
+    public void setImageCacheMaxMb(int imageCacheMaxMb) {
+        this.imageCacheMaxMb = ImageCacheQuota.clampLimitMb(imageCacheMaxMb);
     }
 
     public boolean isShowOriginalPreviewImage() {
@@ -1567,22 +1602,8 @@ public class Settings {
         this.defaultImageResolution = defaultImageResolution;
     }
 
-    // 试验性:首页侧边栏展示「聊天室」入口,默认关闭
-    private boolean showChatRoomEntry = false;
-
-    // 试验性:展示公开聊天室新消息的 APP 内 push banner,默认关闭(仅在 showChatRoomEntry 开启时有意义)
+    // 试验性:展示公开聊天室新消息的 APP 内 push banner,默认关闭。
     private boolean showChatRoomPushBanner = false;
-
-    // 试验性:首页侧边栏展示「广场」入口,默认关闭
-    private boolean showPlazaEntry = false;
-
-    public boolean isShowChatRoomEntry() {
-        return showChatRoomEntry;
-    }
-
-    public void setShowChatRoomEntry(boolean showChatRoomEntry) {
-        this.showChatRoomEntry = showChatRoomEntry;
-    }
 
     public boolean isShowChatRoomPushBanner() {
         return showChatRoomPushBanner;
@@ -1590,14 +1611,6 @@ public class Settings {
 
     public void setShowChatRoomPushBanner(boolean showChatRoomPushBanner) {
         this.showChatRoomPushBanner = showChatRoomPushBanner;
-    }
-
-    public boolean isShowPlazaEntry() {
-        return showPlazaEntry;
-    }
-
-    public void setShowPlazaEntry(boolean showPlazaEntry) {
-        this.showPlazaEntry = showPlazaEntry;
     }
 
     public float getCustomZoomAddScale() {

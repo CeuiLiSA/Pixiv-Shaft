@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  广场屏蔽名单：标准 toolbar_layout + feed_root，和 fragment_plaza_feed 同一套骨架，
+  区别是 plaza_column 竖排，顶上留给代码插入一张说明卡（屏蔽只作用于广场），列表在它下面
+  占满剩余高度，空态与失败态仍然在列表区域内居中。plaza_column 在宽屏上被代码收窄到 720dp。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
+
+    <include layout="@layout/toolbar_layout" />
+
+    <FrameLayout
+        android:id="@+id/plaza_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/plaza_column"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <include
+                android:id="@+id/feed_root"
+                layout="@layout/fragment_feed"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

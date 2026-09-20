@@ -39,6 +39,12 @@ import java.util.UUID
  *  - Foreground activity is already showing the same chat room — the user
  *    is reading the conversation, an overlay would be redundant and obscure
  *    the very content they want to see.
+ *  - No STARTED banner host (app backgrounded, or the foreground Activity is
+ *    not a host) — the manager would hold the request for the next host, and
+ *    a chat banner that resurfaces later is wrong: by then the message is
+ *    already in the conversation, and the user may be sitting in that very
+ *    room (the room-suppression above is evaluated at enqueue time, so a
+ *    held banner would sail right past it).
  *
  * Newer messages in the same room use `Replace` (dedupKey="chat-<room>") so
  * they supersede the previous banner instead of stacking.
@@ -55,6 +61,7 @@ class ChatBannerBridge(
     private val context: Context,
     private val bannerManager: BannerManager,
     private val scope: CoroutineScope,
+    private val gateway: ShaftChatGateway,
 ) {
 
     /** uid → avatar url. Only successful lookups are cached; failures retry on the next message. */
@@ -65,7 +72,7 @@ class ChatBannerBridge(
     fun start() {
         if (job != null) return
         job = scope.launch {
-            ShaftChatGateway.incoming
+            gateway.incoming
                 .filterIsInstance<IncomingMessage.Text>()
                 .map { ChatFrameDecoder.decode(it.text) }
                 .filterIsInstance<ChatFrame.Msg>()
@@ -89,10 +96,7 @@ class ChatBannerBridge(
         val selfUid = SessionManager.loggedInUid
         if (selfUid != 0L && msg.uid == selfUid) return null
         val isGlobal = msg.room == ChatThreadId.ROOM_GLOBAL
-        // 试验性开关只 gate 公开/全局房 banner(默认关)。1v1 私信 banner **故意不 gate**:
-        // 私信入口是用户主页的「发消息」按钮(UserActivityV3,独立于侧边栏「聊天室入口」开关),
-        // 是用户主动发起的会话;若按聊天室入口开关把回复通知静默掉,反而是更严重的 bug。
-        // ⚠️ 别为了「一致性」把这条收紧成 !showChatRoomEntry 就 return —— 会吞掉私信通知。
+        // 横幅开关只控制公开/全局房(默认关)，不影响用户主动发起的 1v1 私信通知。
         if (isGlobal && !publicChatBannerEnabled()) {
             return null
         }
@@ -100,6 +104,7 @@ class ChatBannerBridge(
             Timber.tag(TAG).d("suppress banner: foreground is room=%s", msg.room)
             return null
         }
+        if (!hasBannerHost()) return null
         val body = msg.text?.takeIf { it.isNotBlank() }
             ?: msg.illustId?.let { context.getString(R.string.chat_banner_shared_illust) }
             ?: return null
@@ -114,7 +119,9 @@ class ChatBannerBridge(
         } else {
             avatarFor(msg.uid)?.let { BannerIcon.Url(it) } ?: PLACEHOLDER_ICON
         }
-        // 拉头像期间用户可能已经点进了这个房间（首屏正好在会话列表时最常见），再确认一次。
+        // 拉头像期间用户可能已经点进了这个房间（首屏正好在会话列表时最常见），再确认一次；
+        // 同样地，这最多 AVATAR_FETCH_TIMEOUT_MS 的等待里 app 也可能已经退到后台。
+        if (!hasBannerHost()) return null
         if (isViewingRoom(msg.room)) {
             Timber.tag(TAG).d("suppress banner after avatar fetch: foreground is room=%s", msg.room)
             return null
@@ -178,18 +185,32 @@ class ChatBannerBridge(
      * banners slip through while the user was sitting in the global room.
      */
     private fun isViewingRoom(msgRoom: String): Boolean =
-        ShaftChatGateway.foregroundChatRoom == msgRoom
+        gateway.foregroundChatRoom == msgRoom
 
-    // 公开聊天室 push banner 同时受两个「试验性」开关约束:聊天室入口本身开启,且 banner 开关开启。
-    // 任一关闭都不弹,因此设置页隐藏 push 行时即使其值残留为 true 也不会误弹。
-    //
-    // lite(google/Play)渠道直接判死:那边设置页没有这两个开关(见 FragmentSettingsExperimental),
+    /**
+     * 现在有没有宿主能把 banner 真的画出来。
+     *
+     * manager 在没有 STARTED 宿主时会把请求**保留**到下一个宿主（一次性引导必须这样，
+     * 否则后台完成回填那条引导就永久丢了）。但聊天 banner 的价值只在「消息刚到」那一刻：
+     * 补显时那条消息早就在会话列表里了，更糟的是用户很可能就停在那个房间——
+     * 「正在看这个房间就不弹」是**入队那一刻**算的，被保留下来的请求会绕过它。
+     * 所以这里自己掐掉，而不是让 manager 为聊天破坏保留语义（WS 后台仍在收，
+     * 消息一条不丢，用户回来在会话里照常看到）。
+     */
+    private fun hasBannerHost(): Boolean {
+        if (bannerManager.hasStartedHost.value) return true
+        Timber.tag(TAG).d("suppress banner: no started banner host")
+        return false
+    }
+
+    // 入口默认展示；公开聊天室横幅仍只在用户主动开启横幅开关时显示。
+    // lite(google/Play)渠道直接判死:那边设置页没有横幅开关(见 FragmentSettingsExperimental),
     // 而开关值会随「设置备份还原」/ 云同步从 github 包带过来 —— 只认设置的话,Play 用户会收到
-    // 一个自己关不掉的全局房 banner。这里只压全局房,1v1 私信 banner 仍照常(理由见上面的 ⚠️)。
+    // 一个自己关不掉的全局房 banner。这里只压全局房,1v1 私信 banner 仍照常。
     private fun publicChatBannerEnabled(): Boolean {
         if (ceui.lisa.BuildConfig.IS_LITE) return false
         val settings = ceui.lisa.activities.Shaft.sSettings ?: return false
-        return settings.isShowChatRoomEntry && settings.isShowChatRoomPushBanner
+        return settings.isShowChatRoomPushBanner
     }
 
     companion object {

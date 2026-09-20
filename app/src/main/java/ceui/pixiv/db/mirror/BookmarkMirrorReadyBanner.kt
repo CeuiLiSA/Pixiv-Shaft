@@ -37,13 +37,14 @@ object BookmarkMirrorReadyBanner {
             Timber.tag(TAG).d("[%s] 引导 banner 之前已经弹过，不再弹", shelf.label)
             return
         }
-        // **先落标记再弹**：反过来的话，enqueue 抛异常 / 当时没有前台宿主接住这条 banner，
-        // 标记就没写上，下次全量完成时又会弹一次。引导宁可漏一次，也不能重复打扰。
+        // **先落标记再弹**：反过来的话，enqueue 抛异常时标记就没写上，而下一次全量完成
+        // 不会再触发（firstCompletedAt 此时已落盘），这条引导反而可能永远不来。
+        // 无前台宿主时 manager 会把请求保留到下一个 STARTED 宿主，不再等于「漏一次」。
         prefs.encode(key, true)
 
         val deepLink = "shaft://bookmark-library" +
             "?restrict=${shelf.restrict.apiValue}&type=${shelf.contentType.code}"
-        val shown = runCatching {
+        val accepted = runCatching {
             InAppBanners.manager.enqueue(
                 BannerRequest.Text(
                     id = "bookmark-mirror-ready-${shelf.key}",
@@ -80,6 +81,21 @@ object BookmarkMirrorReadyBanner {
             Timber.tag(TAG).w(it, "[%s] 引导 banner 入队失败", shelf.label)
             false
         }
-        Timber.tag(TAG).i("[%s] 收藏库就绪引导 banner 已入队=%b（%d 件）", shelf.label, shown, rows)
+        Timber.tag(TAG).i("[%s] 收藏库就绪引导 banner 已受理=%b（%d 件）", shelf.label, accepted, rows)
+    }
+
+    /**
+     * 【临时·调试】重放一次引导：先把「已弹过」的一次性标记清掉，再走一遍 [announce]。
+     *
+     * 存在的唯一理由：这条引导只在整份回填**翻到最后一页**那一刻弹一次，想验它的按钮就得先等
+     * 几十分钟回填 + 各种时机对齐；而且即使等到了，那个是真正的一次性——验砸了不重启就没第二次。
+     * 这里给「设置 · 试验性」里那个手动入口用（见 `DebugMirrorBannerTrigger`）。
+     *
+     * **用完即删**：与 `fragment_settings_experimental.xml` 的 `debug_mirror_banner_rela`、
+     * `FragmentSettingsExperimental` 里的绑定、`DebugMirrorBannerTrigger.kt` 一起删。
+     */
+    fun debugReplay(context: Context, shelf: BookmarkShelf, rows: Int) {
+        Shaft.getMMKV()?.encode(KEY_PREFIX + shelf.key, false)
+        announce(context, shelf, rows)
     }
 }

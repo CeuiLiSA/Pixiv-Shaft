@@ -1,10 +1,12 @@
 package ceui.pixiv.ui.detail
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.graphics.Typeface
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
@@ -13,6 +15,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.Surface
 import android.view.TextureView
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -28,6 +31,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.activities.Shaft
+import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.R
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
@@ -39,7 +43,15 @@ import ceui.pixiv.ui.bulk.UgoiraProgress
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.ui.bulk.UgoiraFrames
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
+import com.github.panpf.zoomimage.ZoomImageView
+import com.github.panpf.zoomimage.util.IntSizeCompat
+import com.github.panpf.zoomimage.view.util.applyTransform
+import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -49,8 +61,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
- * 详情页内联 ugoira 播放 View —— 预览图打底 + 进度浮层([UgoiraEngine] 出片后
- * Glide `asGif` 原地播放,出错显示「重试」)。
+ * 作品页 / 大图页共用的 ugoira 播放 View：预览图打底，MP4 硬解或逐帧播放，
+ * 两条播放路径共用 ZoomImage 的缩放和平移，进度与播放按钮保持在画布上方。
  *
  * 慢阶段有真实进度:zip 下载走字节级 %,GIF 编码走帧级 %,浮层用**确定圆环(复用 item_progress)
  * + 百分比**显示,进度直接跳值、不做补间动画;meta/解压很快,环停在当前进度即可。文案复用现成
@@ -68,8 +80,13 @@ class UgoiraPlayerView @JvmOverloads constructor(
     // 主题色板(日夜双模):重试胶囊取当前主题色,和详情页「关注 / 下载」等 V3 按钮同源。
     private val palette = V3Palette.from(context)
 
-    private val imageView = ImageView(context).apply {
+    internal val imageView = ZoomImageView(context).apply {
         scaleType = ImageView.ScaleType.FIT_CENTER
+        zoomable.setThreeStepScale(false)
+        zoomable.setKeepTransformWhenSameAspectRatioContentSizeChanged(true)
+        onViewTapListener = OnViewTapListener { _, _ ->
+            if (isAttachedToWindow && boundIllust != null) this@UgoiraPlayerView.performClick()
+        }
     }
 
     /**
@@ -218,14 +235,37 @@ class UgoiraPlayerView @JvmOverloads constructor(
     private fun loadPreview(illust: Illust) {
         if (previewIllustId == illust.id && imageView.drawable != null) return
         previewIllustId = illust.id
-        val large = GlideUtil.getLargeImage(illust) ?: return
+        // 视频可能先于网络预览就绪，仍需有效的内容尺寸供 ZoomImage 计算缩放与平移边界。
+        val placeholder = imageView.drawable ?: object : ColorDrawable(android.graphics.Color.TRANSPARENT) {
+            override fun getIntrinsicWidth() = illust.width.coerceAtLeast(1)
+            override fun getIntrinsicHeight() = illust.height.coerceAtLeast(1)
+        }
+        val large = GlideUtil.getLargeImage(illust)
+        if (large == null) {
+            imageView.setImageDrawable(placeholder)
+            return
+        }
         val mediumUrl = illust.image_urls?.medium?.takeIf { it.isNotBlank() }
         glide.clear(imageView)
 
-        var builder = glide.load(large)
+        var builder = glide.load(large).dontTransform().placeholder(placeholder).error(placeholder)
+            .listener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?, model: Any?, target: Target<Drawable>, isFirstResource: Boolean,
+                ): Boolean {
+                    // 失败后仍保留占位尺寸供视频缩放，但占位图不代表预览已加载；再次进入时允许重试。
+                    if (previewIllustId == illust.id) previewIllustId = null
+                    return false
+                }
+
+                override fun onResourceReady(
+                    resource: Drawable, model: Any, target: Target<Drawable>?,
+                    dataSource: DataSource, isFirstResource: Boolean,
+                ) = false
+            })
         if (mediumUrl != null) {
             // 有 medium：它大概率已在列表缓存，秒出打底；large 到位后直接替换，不做淡入。
-            builder = builder.thumbnail(glide.load(GlideUrlChild(mediumUrl)))
+            builder = builder.thumbnail(glide.load(GlideUrlChild(mediumUrl)).dontTransform())
             builder.into(imageView)
         } else {
             // 没有 medium：等 large 从网络/硬盘到达后淡入。
@@ -245,6 +285,9 @@ class UgoiraPlayerView @JvmOverloads constructor(
     }
 
     private var job: Job? = null
+    private var transformJob: Job? = null
+    private var maxContentHeight = 0
+    private var fitToViewport = false
     private var player: FrameSequencePlayer? = null
 
     /** mp4 硬解播放器 + 它正在播的那一版(SurfaceTexture 晚于 playFrames 就绪时靠它补开播)。 */
@@ -284,6 +327,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
     init {
         addView(imageView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
         addView(textureView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+        textureView.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> applyVideoTransform() }
         textureView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(st: SurfaceTexture, w: Int, h: Int) {
                 val illust = boundIllust ?: return
@@ -318,7 +362,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
     }
 
     /** 绑定一条 ugoira。进入即自动拉数据 → 下载 → 解压 → 编码 → 播放。 */
-    fun bind(owner: LifecycleOwner, illust: Illust, maxHeight: Int) {
+    fun bind(owner: LifecycleOwner, illust: Illust, maxHeight: Int, fitToViewport: Boolean = false) {
         if (boundIllust?.id != illust.id) {
             pausePlayback()
             // 换了一条作品：旧的预览/帧画面不能残留，等新预览就位。
@@ -327,21 +371,21 @@ class UgoiraPlayerView @JvmOverloads constructor(
             previewIllustId = null
             glide.clear(imageView)
             imageView.setImageDrawable(null)
+            imageView.zoomable.reset()
         }
         if (boundOwner !== owner) {
             boundOwner?.lifecycle?.removeObserver(lifecycleObserver)
             boundOwner = owner
             owner.lifecycle.addObserver(lifecycleObserver)
+            transformJob?.cancel()
+            transformJob = owner.lifecycleScope.launch(Dispatchers.Main.immediate) {
+                imageView.zoomable.userTransformState.collect { applyVideoTransform() }
+            }
         }
         boundIllust = illust
-        // 高度按原图宽高比 * 屏宽,封顶 maxHeight —— 和 IllustAdapter / 老 ugora 页一致。
-        val w = illust.width.coerceAtLeast(1)
-        val h = illust.height.coerceAtLeast(1)
-        val screenW = resources.displayMetrics.widthPixels
-        var targetH = (screenW.toLong() * h / w).toInt()
-        if (maxHeight > 0 && targetH > maxHeight) targetH = maxHeight
-        imageView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, targetH)
-        textureView.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, targetH)
+        maxContentHeight = maxHeight
+        this.fitToViewport = fitToViewport
+        requestLayout()
 
         // 预览图打底(拿到 gif 前先显示首帧/大图)。同一 holder 的无关重绑不能把正在播的 GIF
         // 又替换回预览图。
@@ -375,9 +419,12 @@ class UgoiraPlayerView @JvmOverloads constructor(
      */
     fun recycle() {
         pausePlayback()
+        transformJob?.cancel()
+        transformJob = null
         boundOwner?.lifecycle?.removeObserver(lifecycleObserver)
         boundOwner = null
         boundIllust = null
+        setOnClickListener(null)
         autoHealedDir = null
         videoBrokenDir = null
         retryButton.setOnClickListener(null)
@@ -389,6 +436,7 @@ class UgoiraPlayerView @JvmOverloads constructor(
         previewIllustId = null
         glide.clear(imageView)
         imageView.setImageDrawable(null)
+        imageView.zoomable.reset()
     }
 
     private fun pausePlayback() {
@@ -618,12 +666,25 @@ class UgoiraPlayerView @JvmOverloads constructor(
         val scale = minOf(w.toFloat() / vw, h.toFloat() / vh)
         val matrix = Matrix()
         matrix.setScale(vw * scale / w, vh * scale / h, w / 2f, h / 2f)
+        // 视频先适应画布，再叠加与逐帧 ImageView 相同的用户变换；缩放不触碰解码器。
+        matrix.applyTransform(imageView.zoomable.userTransformState.value, IntSizeCompat(w, h), reset = false)
         textureView.setTransform(matrix)
     }
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        applyVideoTransform()
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        boundIllust?.let { illust ->
+            val contentWidth = (MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight).coerceAtLeast(1)
+            val height = if (fitToViewport) {
+                LayoutParams.MATCH_PARENT
+            } else {
+                val naturalHeight = (contentWidth.toLong() * illust.height.coerceAtLeast(1) /
+                    illust.width.coerceAtLeast(1)).coerceIn(1, Int.MAX_VALUE.toLong()).toInt()
+                if (maxContentHeight > 0) naturalHeight.coerceAtMost(maxContentHeight) else naturalHeight
+            }
+            imageView.layoutParams.height = height
+            textureView.layoutParams.height = height
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
     /**
@@ -701,6 +762,7 @@ class UgoiraPlayerAdapter(
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         holder.player.bind(owner, illust, maxHeight)
+        holder.player.setOnClickListener { openUgoiraViewer(it, illust) }
     }
 
     override fun onViewAttachedToWindow(holder: VH) {
@@ -724,4 +786,18 @@ class UgoiraPlayerAdapter(
     }
 
     override fun getItemCount(): Int = 1
+}
+
+/** V2 / V3 共用静图的大图宿主和进出场矩形。 */
+internal fun openUgoiraViewer(view: View, illust: Illust) {
+    val location = IntArray(2)
+    view.getLocationOnScreen(location)
+    view.context.startActivity(Intent(view.context, ImageDetailActivity::class.java).apply {
+        putExtra("illust", illust)
+        putExtra("dataType", "二级详情")
+        putExtra("index", 0)
+        putExtra(ImageDetailActivity.EXTRA_ENTER_BOUNDS, intArrayOf(
+            location[0], location[1], location[0] + view.width, location[1] + view.height,
+        ))
+    })
 }

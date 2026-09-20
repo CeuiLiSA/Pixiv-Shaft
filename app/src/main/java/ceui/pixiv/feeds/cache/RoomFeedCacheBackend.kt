@@ -58,16 +58,18 @@ internal val defaultFeedCacheBackend: FeedCacheBackend by lazy {
  *
  * @param slot 该 feed 的稳定标识（如 `"recmd-illust"`）；账号命名空间由本工厂自动拼上。
  * @param maxAge 超过多旧就不再闪缓存（默认 [DEFAULT_FEED_CACHE_MAX_AGE]）。
+ * @param accountId 默认读当前账号；跨挂起点的请求可绑定发起账号，避免落盘时串号。
  */
 fun <Resp : Any> feedFirstPageCache(
     slot: String,
     type: Class<Resp>,
     maxAge: Duration = DEFAULT_FEED_CACHE_MAX_AGE,
+    accountId: () -> Long = { SessionManager.loggedInUid },
 ): FeedFirstPageCache<Resp> = FeedFirstPageCache(
     slot = slot,
     type = type,
     maxAgeMillis = maxAge.inWholeMilliseconds,
     backend = defaultFeedCacheBackend,
     gson = Shaft.sGson,
-    accountId = { SessionManager.loggedInUid },
+    accountId = accountId,
 )

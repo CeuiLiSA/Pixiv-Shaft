@@ -14,7 +14,7 @@
 
 ## 部署拓扑
 
-- `pixshaft-api` 中 Spark 相关服务（`services/codex-spark-api`）和 media API 部署到 `ssh tokyo`。
+- `pixshaft-api` 中 media API 部署到 `ssh tokyo`。
 - 其他 `pixshaft-api` 服务统一部署到 `ssh pixshaft`。
-- Spark 公网入口为 `https://ai.pixshaft.com`；主 API 公网入口为 `https://pixshaft.com`。
+- 主 API 公网入口为 `https://pixshaft.com`。
 - Media API 公网入口为 `https://api.pixshaft.com`，使用 Tokyo 独立登录会话；图片字节通过 API 返回的 COS 签名地址直传。

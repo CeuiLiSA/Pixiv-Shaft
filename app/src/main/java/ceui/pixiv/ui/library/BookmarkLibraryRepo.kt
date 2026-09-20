@@ -9,6 +9,7 @@ import ceui.pixiv.db.mirror.BookmarkFilter
 import ceui.pixiv.db.mirror.BookmarkMirrorDao
 import ceui.pixiv.db.mirror.BookmarkMirrorEntity
 import ceui.pixiv.db.mirror.BookmarkMirrorQuery
+import ceui.pixiv.db.mirror.BookmarkShelfStats
 import ceui.pixiv.db.mirror.BookmarkTagFacet
 import ceui.pixiv.db.mirror.BookmarkYearFacet
 import kotlinx.coroutines.Dispatchers
@@ -32,10 +33,15 @@ object BookmarkLibraryRepo {
     private val dao: BookmarkMirrorDao
         get() = AppDatabase.getAppDatabase(Shaft.getContext()).bookmarkMirrorDao()
 
-    suspend fun page(filter: BookmarkFilter, limit: Int, offset: Int): List<BookmarkMirrorEntity> =
+    suspend fun page(filter: BookmarkFilter, limit: Int, offset: Int, afterSeq: Long? = null): List<BookmarkMirrorEntity> =
         withContext(Dispatchers.IO) {
             val startedAt = System.nanoTime()
-            val rows = dao.rawRows(BookmarkMirrorQuery.rows(filter, limit, offset))
+            val rows = if (afterSeq != null) {
+                check(filter.sort == ceui.pixiv.db.mirror.BookmarkSort.BOOKMARK_NEWEST && !filter.hasAnyCondition)
+                dao.rowsAfter(filter.shelfKey, afterSeq, limit)
+            } else {
+                dao.rawRows(BookmarkMirrorQuery.rows(filter, limit, offset))
+            }
             Timber.tag(TAG).d(
                 "查询 offset=%d limit=%d sort=%s → %d 行，耗时 %dms",
                 offset, limit, filter.sort, rows.size, (System.nanoTime() - startedAt) / 1_000_000,
@@ -62,7 +68,8 @@ object BookmarkLibraryRepo {
         dao.yearFacets(shelfKey)
     }
 
-    suspend fun totalRows(shelfKey: String): Int = withContext(Dispatchers.IO) { dao.countOf(shelfKey) }
+    suspend fun shelfStats(shelfKey: String): BookmarkShelfStats =
+        withContext(Dispatchers.IO) { dao.shelfStats(shelfKey) }
 
     /**
      * 行 → [Illust]。

@@ -4,38 +4,95 @@ import android.app.Application
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.view.ContextThemeWrapper
+import androidx.core.graphics.Insets
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import ceui.lisa.R
 import ceui.pixiv.plaza.*
+import ceui.pixiv.witstudio.theme.*
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Robolectric
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28, 35], application = Application::class)
 class PlazaLayoutTest {
     @Test
-    fun `plaza header follows Figma geometry`() {
+    fun `toolbar consumes only its own inset while content still receives keyboard and navigation`() {
+        val activity = Robolectric.buildActivity(ToolbarTestActivity::class.java).setup()
+        try {
+            val fragment = ToolbarTestFragment()
+            activity.get().supportFragmentManager.beginTransaction()
+                .add(android.R.id.content, fragment).commitNow()
+            val root = fragment.requireView()
+            fun applyInsets(ime: Int) {
+                // Before API 30, the framework carries the IME in the system-window bottom.
+                // A fresh legacy WindowInsets also avoids seeding from CONSUMED in Builder20.
+                val insets = if (android.os.Build.VERSION.SDK_INT < 30) {
+                    WindowInsetsCompat.toWindowInsetsCompat(
+                        android.view.WindowInsets::class.java
+                            .getConstructor(android.graphics.Rect::class.java)
+                            .newInstance(android.graphics.Rect(0, 24, 0, maxOf(16, ime)))
+                    )
+                } else {
+                    WindowInsetsCompat.Builder()
+                        .setInsets(WindowInsetsCompat.Type.statusBars(), Insets.of(0, 24, 0, 0))
+                        .setInsets(WindowInsetsCompat.Type.navigationBars(), Insets.of(0, 0, 0, 16))
+                        .setInsets(WindowInsetsCompat.Type.ime(), Insets.of(0, 0, 0, ime))
+                        .build()
+                }
+                ViewCompat.dispatchApplyWindowInsets(root, insets)
+            }
+            applyInsets(200)
+            assertEquals(24, root.findViewById<View>(R.id.toolbar).paddingTop)
+            assertEquals(0, root.findViewById<View>(R.id.toolbar).paddingBottom)
+            assertEquals(200, root.findViewById<View>(R.id.plaza_content).paddingBottom)
+            applyInsets(0)
+            assertEquals(16, root.findViewById<View>(R.id.plaza_content).paddingBottom)
+        } finally {
+            activity.pause().stop().destroy()
+        }
+    }
+
+    class ToolbarTestActivity : FragmentActivity() {
+        override fun onCreate(savedInstanceState: android.os.Bundle?) {
+            setTheme(R.style.AppTheme)
+            super.onCreate(savedInstanceState)
+            enableEdgeToEdge()
+        }
+    }
+
+    class ToolbarTestFragment : Fragment(R.layout.fragment_plaza_shell) {
+        override fun onViewCreated(view: View, savedInstanceState: android.os.Bundle?) {
+            setupPlazaToolbar(view, "广场")
+        }
+    }
+
+    @Test
+    fun `plaza uses the shared app toolbar`() {
         val context = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.AppTheme)
         val root = LayoutInflater.from(context).inflate(R.layout.fragment_plaza_shell, null)
-        val header = root.findViewById<PlazaHeader>(R.id.plaza_header)
-        assertEquals(context.dp(64), header.layoutParams.height)
-        assertEquals(context.dp(48), header.back.layoutParams.width)
-        assertEquals(
-            context.dp(68),
-            (header.title.layoutParams as android.widget.FrameLayout.LayoutParams).marginStart,
-        )
-        assertEquals(context.dp(33), header.action.layoutParams.height)
+        val toolbar = root.findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+        assertNotNull(toolbar)
+        assertNotNull(toolbar.navigationIcon)
+        assertTrue(toolbar.fitsSystemWindows)
+        assertEquals(android.view.ViewGroup.LayoutParams.WRAP_CONTENT, toolbar.layoutParams.height)
+        assertNotNull(toolbar.findViewById<TextView>(R.id.toolbar_title))
     }
 
     @Test
     fun `recycling a comment as a post restores content alignment`() {
         val context = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.AppTheme)
         val post = PlazaPost(1, 42, "Author", "Body", 1, null, null, null, 0, 0, false, emptyList())
-        val view = PostView(context) { 42L }
+        val view = PostView(context, { 42L })
         view.bind(post, false, false, {}, {}, { _, _, _ -> }, comment = true)
         val body =
             (0 until view.childCount).map(view::getChildAt).filterIsInstance<TextView>().first {
@@ -52,25 +109,28 @@ class PlazaLayoutTest {
     }
 
     @Test
-    fun `detail counters update and footer stays within a narrow large font screen`() {
+    fun `detail composer keeps text and send reachable on narrow screens with large fonts`() {
         val app = RuntimeEnvironment.getApplication()
-        val config =
-            android.content.res.Configuration(app.resources.configuration).apply { fontScale = 2f }
-        val context = ContextThemeWrapper(app.createConfigurationContext(config), R.style.AppTheme)
-        val footer = PlazaReplyBar(context, {}, {}, {})
-        footer.bind(
-            PlazaPost(1, 42, "Author", "Body", 1, null, null, null, 9999, 8888, false, emptyList())
-        )
-        footer.measure(
-            View.MeasureSpec.makeMeasureSpec(context.dp(320), View.MeasureSpec.EXACTLY),
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-        )
-        footer.layout(0, 0, footer.measuredWidth, footer.measuredHeight)
-        assertTrue(footer.getChildAt(0).width > 0)
-        assertTrue(footer.getChildAt(2).right <= footer.width - footer.paddingRight)
-        footer.bind(null)
-        assertFalse(footer.getChildAt(0).isEnabled)
-        assertFalse(footer.getChildAt(1).isEnabled)
+        for (dark in listOf(false, true)) for (scale in listOf(1f, 2f)) {
+            val config = android.content.res.Configuration(app.resources.configuration).apply {
+                fontScale = scale
+                uiMode = if (dark) android.content.res.Configuration.UI_MODE_NIGHT_YES
+                    else android.content.res.Configuration.UI_MODE_NIGHT_NO
+            }
+            val context = ContextThemeWrapper(app.createConfigurationContext(config), R.style.AppTheme)
+            val footer = PlazaReplyBar(context)
+            footer.composer.etInput.setText("很长的评论 long reply ".repeat(30))
+            footer.composer.replyBar.visibility = View.VISIBLE
+            footer.composer.tvReplyBarName.text = "回复 很长的名字".repeat(10)
+            footer.measure(
+                View.MeasureSpec.makeMeasureSpec(context.dp(320), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            )
+            footer.layout(0, 0, footer.measuredWidth, footer.measuredHeight)
+            assertTrue(footer.composer.etInput.width > 0)
+            assertTrue(footer.composer.btnSend.right <= footer.width)
+            assertEquals(View.GONE, footer.emojiPanel.visibility)
+        }
     }
 
     @Test
@@ -86,7 +146,7 @@ class PlazaLayoutTest {
                 }
             val context =
                 ContextThemeWrapper(app.createConfigurationContext(config), R.style.AppTheme)
-            val view = PostView(context) { 42L }
+            val view = PostView(context, { 42L })
             val post =
                 PlazaPost(
                     1,

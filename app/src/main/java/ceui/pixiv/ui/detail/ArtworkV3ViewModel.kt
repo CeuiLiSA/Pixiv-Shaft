@@ -15,6 +15,7 @@ import ceui.lisa.download.IllustDownload
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.download.DownloadRecordStateSource
 import ceui.pixiv.utils.fetchFullIllustDetail
 import ceui.pixiv.utils.fetchIllustPageDimensions
 import ceui.pixiv.utils.hasTrustedCaption
@@ -188,7 +189,13 @@ class ArtworkV3ViewModel(
      * @param activity 宿主 activity;取不到时降级为不带闸门的调用(分辨率仍然生效)。
      */
     fun triggerDownload(activity: BaseActivity<*>?) {
-        val illust = illustBean ?: return
+        // bean 还没进 ObjectPool 就点 FAB:整个下载什么都不做且毫无提示(issue #1105 的
+        // 症状形态)。至少留一条日志，别让下一份报告仍然只有「点了没反应」。
+        val illust = illustBean ?: run {
+            Timber.tag(DownloadRecordStateSource.LOG_TAG)
+                .w("triggerDownload dropped illustId=%d reason=bean_missing", illustId)
+            return
+        }
         downloadCheckJob?.cancel()
         downloadedCache = null
         val resolution = IllustDownload.defaultImageResolution()
