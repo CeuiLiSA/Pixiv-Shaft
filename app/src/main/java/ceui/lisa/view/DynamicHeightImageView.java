@@ -4,14 +4,64 @@ import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.view.ViewParent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatImageView {
 
+    private static final float WIDE_PANE_DP = 600f;
+    private static final float LONG_IMAGE_RATIO = 2.5f;
     private float mHeightRatio;
     private ScaleType tmpScaleType;
+    private boolean fitPortraitInViewport;
+    @Nullable private RecyclerView viewport;
+    private final Runnable resizeToViewport = this::requestLayout;
+    private final OnLayoutChangeListener viewportLayoutListener =
+            (v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
+                    removeCallbacks(resizeToViewport);
+                    post(resizeToViewport);
+                }
+            };
+
+    /** Opt-in for artwork detail only; feed thumbnails and manga retain natural height. */
+    public void setFitPortraitInViewport(boolean enabled) {
+        if (fitPortraitInViewport == enabled) return;
+        fitPortraitInViewport = enabled;
+        updateViewport();
+        requestLayout();
+    }
+
+    private void updateViewport() {
+        removeCallbacks(resizeToViewport);
+        if (viewport != null) viewport.removeOnLayoutChangeListener(viewportLayoutListener);
+        viewport = null;
+        if (!fitPortraitInViewport || !isAttachedToWindow()) return;
+        for (ViewParent parent = getParent(); parent != null; parent = parent.getParent()) {
+            if (parent instanceof RecyclerView) {
+                viewport = (RecyclerView) parent;
+                viewport.addOnLayoutChangeListener(viewportLayoutListener);
+                break;
+            }
+        }
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        updateViewport();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        removeCallbacks(resizeToViewport);
+        if (viewport != null) viewport.removeOnLayoutChangeListener(viewportLayoutListener);
+        viewport = null;
+        super.onDetachedFromWindow();
+    }
 
     /** 非 null = 全景模式(见 {@link #setPanorama}),图按内容区高度等比放大、按 {@link PanoramaPan#fraction} 横向偏移。 */
     @Nullable
@@ -134,6 +184,15 @@ public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatI
             // set the image views size
             int width = MeasureSpec.getSize(widthMeasureSpec);
             int height = (int) (width * mHeightRatio);
+            // Use the actual pane, not displayMetrics: folding, split-screen and tablet
+            // two-pane layouts can all have a different width from the physical display.
+            // Very tall artwork keeps its readable, vertically scrolling presentation.
+            if (fitPortraitInViewport && viewport != null
+                    && width / getResources().getDisplayMetrics().density >= WIDE_PANE_DP
+                    && mHeightRatio > 1f && mHeightRatio < LONG_IMAGE_RATIO) {
+                int available = viewport.getHeight() - viewport.getPaddingTop() - viewport.getPaddingBottom();
+                if (available > 0) height = Math.min(height, available);
+            }
             setMeasuredDimension(width, height);
             if(tmpScaleType != null && tmpScaleType != getScaleType()){
                 setScaleType(tmpScaleType);
