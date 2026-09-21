@@ -2158,6 +2158,11 @@
     <string name="network_test_path_cronet">Прямое Cronet/QUIC</string>
     <string name="network_test_path_fakeip">Стандартный TLS · через прокси (fake-ip)</string>
     <string name="network_test_path_cronet_bypass">Прямое Cronet/QUIC (обход локального DNS)</string>
+
+    <!-- Узел CDN (только официальный app-api.pixiv.net; доп. запрос после рукопожатия, сбой ничего не означает) -->
+    <string name="network_test_trace_step">Узел CDN · текущее положение -> узел</string>
+    <string name="network_test_trace_node">%1$s → %2$s</string>
+    <string name="network_test_trace_fail">Действительные поля не получены</string>
     <string name="network_test_web_step">Веб-запрос · /ajax/illust/%1$d</string>
     <string name="network_test_requesting">Запрос…</string>
     <string name="network_test_web_ok">HTTP %1$d · %2$dms · работа #%3$d вернула URL изображения</string>

@@ -2175,6 +2175,11 @@
     <string name="network_test_path_cronet">Direct Cronet/QUIC</string>
     <string name="network_test_path_fakeip">Standard TLS · proxy takeover (fake-ip)</string>
     <string name="network_test_path_cronet_bypass">Direct Cronet/QUIC (bypassing local DNS)</string>
+
+    <!-- CDN node (official app-api.pixiv.net only; extra request after the handshake, failure is not indicative) -->
+    <string name="network_test_trace_step">CDN node · current location -> node</string>
+    <string name="network_test_trace_node">%1$s → %2$s</string>
+    <string name="network_test_trace_fail">No valid field found</string>
     <string name="network_test_web_step">Web request · /ajax/illust/%1$d</string>
     <string name="network_test_requesting">Requesting…</string>
     <string name="network_test_web_ok">HTTP %1$d · %2$dms · artwork #%3$d returned image URL</string>

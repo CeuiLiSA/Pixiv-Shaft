@@ -2158,6 +2158,11 @@
     <string name="network_test_path_cronet">직접 연결 Cronet/QUIC</string>
     <string name="network_test_path_fakeip">표준 TLS · 프록시接管(fake-ip)</string>
     <string name="network_test_path_cronet_bypass">직접 연결 Cronet/QUIC(로컬 DNS 우회)</string>
+
+    <!-- CDN 연결 노드(공식 app-api.pixiv.net 전용. 핸드셰이크 이후의 추가 요청이라 실패는 참고할 수 없음) -->
+    <string name="network_test_trace_step">CDN 연결 노드 · 현재 위치 -> 노드</string>
+    <string name="network_test_trace_node">%1$s → %2$s</string>
+    <string name="network_test_trace_fail">유효한 필드를 가져오지 못함</string>
     <string name="network_test_web_step">웹 요청 · /ajax/illust/%1$d</string>
     <string name="network_test_requesting">요청 중…</string>
     <string name="network_test_web_ok">HTTP %1$d · %2$dms · 작품 #%3$d 이미지 URL 반환</string>

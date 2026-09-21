@@ -2158,6 +2158,11 @@
     <string name="network_test_path_cronet">直続 Cronet/QUIC</string>
     <string name="network_test_path_fakeip">標準 TLS · プロキシ接管（fake-ip）</string>
     <string name="network_test_path_cronet_bypass">直続 Cronet/QUIC（ローカル DNS 迂回）</string>
+
+    <!-- CDN 接続ノード（公式 app-api.pixiv.net のみ。ハンドシェイク後の追加リクエストで、失敗は参考にならない） -->
+    <string name="network_test_trace_step">CDN 接続ノード · 現在地 -> ノード</string>
+    <string name="network_test_trace_node">%1$s → %2$s</string>
+    <string name="network_test_trace_fail">有効なフィールドを取得できません</string>
     <string name="network_test_web_step">Web リクエスト · /ajax/illust/%1$d</string>
     <string name="network_test_requesting">リクエスト中…</string>
     <string name="network_test_web_ok">HTTP %1$d · %2$dms · 作品 #%3$d の画像 URL を取得</string>

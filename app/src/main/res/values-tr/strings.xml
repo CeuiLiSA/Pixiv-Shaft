@@ -2158,6 +2158,11 @@
     <string name="network_test_path_cronet">Doğrudan Cronet/QUIC</string>
     <string name="network_test_path_fakeip">Standart TLS · proxy devralma (fake-ip)</string>
     <string name="network_test_path_cronet_bypass">Doğrudan Cronet/QUIC (yerel DNS atlanıyor)</string>
+
+    <!-- CDN düğümü (yalnızca resmî app-api.pixiv.net; el sıkışmasından sonraki ek istek, başarısızlık belirleyici değil) -->
+    <string name="network_test_trace_step">CDN düğümü · mevcut konum -> düğüm</string>
+    <string name="network_test_trace_node">%1$s → %2$s</string>
+    <string name="network_test_trace_fail">Geçerli alan alınamadı</string>
     <string name="network_test_web_step">Web isteği · /ajax/illust/%1$d</string>
     <string name="network_test_requesting">İsteniyor…</string>
     <string name="network_test_web_ok">HTTP %1$d · %2$dms · #%3$d çalışması görsel URL\'si döndü</string>
