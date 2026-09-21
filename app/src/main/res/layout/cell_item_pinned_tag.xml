@@ -92,8 +92,8 @@
 
             <net.csdn.roundview.RoundImageView
                 android:id="@+id/illust_1"
+                android:background="@drawable/bg_tag_preview_placeholder"
                 loadSquareMedia="@{holder.illust0}"
-                visibleOrInvisible="@{holder.illust0 != null}"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 app:layout_constraintDimensionRatio="1:1"
@@ -103,8 +103,8 @@
 
             <net.csdn.roundview.RoundImageView
                 android:id="@+id/illust_2"
+                android:background="@drawable/bg_tag_preview_placeholder"
                 loadSquareMedia="@{holder.illust1}"
-                visibleOrInvisible="@{holder.illust1 != null}"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_marginHorizontal="4dp"
@@ -116,8 +116,8 @@
 
             <net.csdn.roundview.RoundImageView
                 android:id="@+id/illust_3"
+                android:background="@drawable/bg_tag_preview_placeholder"
                 loadSquareMedia="@{holder.illust2}"
-                visibleOrInvisible="@{holder.illust2 != null}"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 app:layout_constraintDimensionRatio="1:1"

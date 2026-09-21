@@ -70,11 +70,19 @@ fun ImageView.binding_loadUserIcon(user: User?) {
 
 @BindingAdapter("loadSquareMedia")
 fun ImageView.binding_loadSquareMedia(illust: Illust?) {
-    val url = illust?.image_urls?.square_medium ?: return
+    val url = illust?.image_urls?.square_medium?.takeIf { it.isNotBlank() }
+    if (url == null) {
+        // 标签卡固定保留三个预览槽；空槽必须清掉 RecyclerView 复用留下的上一张图，
+        // 让 XML 里的主题占位背景真正可见。
+        Glide.with(this).clear(this)
+        setImageDrawable(null)
+        return
+    }
     scaleType = ImageView.ScaleType.CENTER_CROP
     Glide.with(this)
         .load(GlideUrlChild(url))
-        .placeholder(R.drawable.image_place_holder_r2)
+        .placeholder(R.drawable.bg_tag_preview_placeholder)
+        .error(R.drawable.bg_tag_preview_placeholder)
         .into(this)
 }
 

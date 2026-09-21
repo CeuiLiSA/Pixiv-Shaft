@@ -17,6 +17,7 @@ import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedRenderer
+import ceui.pixiv.feeds.FeedSkeletonView
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
@@ -63,6 +64,10 @@ class CorpusTagsFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
         return listOf(corpusTagRenderer())
+    }
+
+    override fun onCreateSkeletonView(layoutManager: RecyclerView.LayoutManager): FeedSkeletonView {
+        return TagShelfSkeletonView(requireContext())
     }
 
     private fun corpusTagRenderer() = feedRenderer<CorpusTagItemHolder, CellItemCorpusTagBinding>(

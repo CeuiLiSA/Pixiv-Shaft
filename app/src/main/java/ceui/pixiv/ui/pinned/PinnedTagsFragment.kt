@@ -21,10 +21,12 @@ import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedRenderer
+import ceui.pixiv.feeds.FeedSkeletonView
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.utils.ppppx
+import ceui.pixiv.ui.prime.TagShelfSkeletonView
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
@@ -83,6 +85,10 @@ class PinnedTagsFragment : FeedFragment() {
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
         return listOf(pinnedTagRenderer())
+    }
+
+    override fun onCreateSkeletonView(layoutManager: RecyclerView.LayoutManager): FeedSkeletonView {
+        return TagShelfSkeletonView(requireContext(), style = TagShelfSkeletonView.Style.PINNED)
     }
 
     private fun pinnedTagRenderer() = feedRenderer<PinnedTagItemHolder, CellItemPinnedTagBinding>(
