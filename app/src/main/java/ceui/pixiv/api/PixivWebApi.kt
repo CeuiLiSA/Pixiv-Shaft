@@ -41,6 +41,7 @@ interface PixivWebApi {
     suspend fun getLegacyDiscoveryArtworks(
         @Query("mode") mode: String,
         @Query("max") max: Int = 18,
+        @Header("Cookie") cookie: String? = null,
     ): WebResponse<WebLegacyDiscoveryBody>
 
     //

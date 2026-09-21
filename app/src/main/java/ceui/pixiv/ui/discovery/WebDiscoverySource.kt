@@ -44,7 +44,9 @@ class WebDiscoverySource(
             }
             response.body?.thumbnails?.illust
         } else {
-            val response = api.getLegacyDiscoveryArtworks(mode.apiValue)
+            // WebHeaderInterceptor 默认会复用 MMKV 里的 cookie；这里必须显式清空，
+            // 否则退出或切换账号后会把旧账号的推荐带进匿名流。
+            val response = api.getLegacyDiscoveryArtworks(mode.apiValue, cookie = "")
             if (response.error == true) {
                 throw IOException(response.message?.takeIf { it.isNotBlank() } ?: "Discovery request failed")
             }

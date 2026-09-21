@@ -192,10 +192,12 @@ class WebDiscoverySourceTest {
     @Test fun `missing web session uses the anonymous legacy discovery source`() = runBlocking {
         enqueueLegacy(artwork(1), artwork(2))
         assertEquals(listOf(1L, 2L), source(loggedIn = false).load(null).items.map { it.feedKey })
-        val request = server.takeRequest().requestUrl!!
-        assertEquals("/ajax/illust/discovery", request.encodedPath)
-        assertEquals("all", request.queryParameter("mode"))
-        assertEquals("18", request.queryParameter("max"))
+        val request = server.takeRequest()
+        val url = request.requestUrl!!
+        assertEquals("/ajax/illust/discovery", url.encodedPath)
+        assertEquals("all", url.queryParameter("mode"))
+        assertEquals("18", url.queryParameter("max"))
+        assertEquals("", request.headers["Cookie"])
     }
 
     @Test fun `anonymous R18 feed asks for login instead of returning safe works`() = runBlocking {
