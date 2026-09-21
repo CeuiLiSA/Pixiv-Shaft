@@ -29,15 +29,16 @@ class WebDiscoveryFeedFragment : IllustFeedFragment() {
             ?.let { IllustFeedItem.of(it, skipR18Filter = true) }
 
     override val emptyStateText: CharSequence
-        get() = if (WebDiscoverySession.isCurrentAccount) super.emptyStateText
-        else getString(R.string.web_discovery_login_needed)
+        get() = if (mode == WebDiscoveryMode.R18 && !WebDiscoverySession.isCurrentAccount) {
+            getString(R.string.web_discovery_login_needed)
+        } else super.emptyStateText
 
     override val emptyStateAction: Pair<CharSequence, () -> Unit>?
-        get() = if (WebDiscoverySession.isCurrentAccount) null else {
+        get() = if (mode == WebDiscoveryMode.R18 && !WebDiscoverySession.isCurrentAccount) {
             getString(R.string.street_web_login_confirm) to {
                 (requireParentFragment() as WebDiscoveryFragment).openWebLogin()
             }
-        }
+        } else null
 
     fun onWebLoginReturned() {
         val state = feedViewModel.uiState.value

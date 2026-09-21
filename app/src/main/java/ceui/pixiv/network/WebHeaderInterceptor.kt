@@ -16,21 +16,24 @@ class WebHeaderInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         return chain.proceed(
-            addHeader(
-                request.newBuilder()
-            ).build()
+            addHeader(request).build()
         )
     }
 
-    private fun addHeader(before: Request.Builder): Request.Builder {
+    private fun addHeader(request: Request): Request.Builder {
         // 去重后再发：存量里可能是「匿名 PHPSESSID 在前、登录态在后」的重复串，原样发出去
         // 服务端只认前一条，等于白登录。见 SessionManager.normalizeWebCookie。
         val cookies = SessionManager.normalizeWebCookie(prefStore.getString(SessionManager.COOKIE_KEY, ""))
-        before.addHeader("accept-language", LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage())
+        val explicitCookie = request.header("Cookie")
+        val cookie = explicitCookie ?: cookies
+        return request.newBuilder()
+            .removeHeader("Cookie")
             .addHeader("Host", "www.pixiv.net")
-            .addHeader("Cookie", cookies)
             .addHeader("Referer", "https://www.pixiv.net/")
             .addHeader("User-Agent", ClientManager.WEB_USER_AGENT)
-        return before
+            .addHeader("accept-language", LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage())
+            .apply {
+                if (!cookie.isNullOrBlank()) addHeader("Cookie", cookie)
+            }
     }
 }
