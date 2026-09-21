@@ -2408,6 +2408,11 @@
     <string name="network_test_path_fakeip">标准 TLS · 代理接管（fake-ip）</string>
     <string name="network_test_path_cronet_bypass">直连 Cronet/QUIC（绕过本机 DNS）</string>
 
+    <!-- CDN 命中节点（仅官方 app-api.pixiv.net；位于握手之后的附加请求，失败不代表连通性） -->
+    <string name="network_test_trace_step">CDN 命中节点 · 当前位置 -> 节点</string>
+    <string name="network_test_trace_node">%1$s → %2$s</string>
+    <string name="network_test_trace_fail">未取到有效字段</string>
+
     <!-- 网页请求探测 -->
     <string name="network_test_web_step">网页请求 · /ajax/illust/%1$d</string>
     <string name="network_test_requesting">请求中…</string>

@@ -103,6 +103,55 @@ internal fun nat64EmbeddedIpv4Candidates(addr: Inet6Address): List<String> {
     return NAT64_V4_OFFSETS.map { idx -> idx.joinToString(".") { (b[it].toInt() and 0xFF).toString() } }
 }
 
+/**
+ * `/cdn-cgi/trace` 正文里本页关心的两个字段：`loc=`（Cloudflare 判定的客户端所在地区）与
+ * `colo=`（本次实际命中的边缘节点代码，如 NRT / LAX）。
+ */
+internal data class CdnTraceInfo(val loc: String?, val colo: String?)
+
+/**
+ * 从 Cloudflare trace 正文里取 [CdnTraceInfo]。
+ *
+ * 只认 `key=value` 行，值取**首个** `=` 之后的全部内容再去掉首尾空白 —— trace 正文里
+ * `uag=` 的值本身就可能带 `=`（如 `uag=Mozilla/5.0 (a=b)`），按 `split("=")` 取值会截断。
+ * 键名大小写不敏感；字段缺失或值为空一律 null（不编造）。
+ */
+internal fun parseCdnTrace(body: String): CdnTraceInfo {
+    var loc: String? = null
+    var colo: String? = null
+    body.lineSequence().forEach { line ->
+        val eq = line.indexOf('=')
+        if (eq <= 0) return@forEach
+        val value = line.substring(eq + 1).trim().takeIf { it.isNotEmpty() } ?: return@forEach
+        val key = line.substring(0, eq).trim()
+        when {
+            key.equals("loc", ignoreCase = true) -> loc = value
+            key.equals("colo", ignoreCase = true) -> colo = value
+        }
+    }
+    return CdnTraceInfo(loc, colo)
+}
+
+/**
+ * 原始日志里打印 trace 正文前的脱敏。
+ *
+ * **只处理 `ip=` 这一行**，其余字段原样保留 —— 两个坑都堵在这：
+ *   · [CfBlockDetector.maskIp] 是**盲脱敏**而不是 IP 探测器，对非地址输入它返回 `"*"`
+ *     （`maskIp("NRT") == "*"`）。拿「maskIp(v) != v」当判据，会把 `colo=` / `loc=` 一并抹掉；
+ *   · 按值猜同样不行：`uag=` 的 UA 串里可能带多个冒号，会落进 maskIp 的 IPv6 分支被误伤。
+ * 而 trace 正文里唯一的地址字段就是 `ip=`。
+ */
+internal fun maskTraceIps(body: String): String =
+    body.lineSequence().joinToString("\n") { line ->
+        val eq = line.indexOf('=')
+        val key = if (eq > 0) line.substring(0, eq).trim() else ""
+        if (eq > 0 && key.equals("ip", ignoreCase = true)) {
+            "$key=${CfBlockDetector.maskIp(line.substring(eq + 1))}"
+        } else {
+            line
+        }
+    }
+
 /** 单条步骤的语义状态，决定圆点 / pill 的颜色（在 Fragment 里按状态染 v3 颜色）。 */
 enum class StepStatus { INFO, OK, WARN, FAIL, RUNNING, HIGH_LATENCY, EXTREME_LATENCY }
 
@@ -161,6 +210,8 @@ data class NetworkAlert(val titleRes: Int, val message: String)
  *   4. 直连开启时额外做 ICMP/echo 可达性（代理下无意义，故仅直连）
  *   5. HTTPS 握手：持续 5s 多次采样，给 min/avg/max/抖动 + TLS/协议信息
  *   · www.pixiv.net 握手后再发一次真实网页请求（/ajax/illust/{样例}），验证 web 端点可用
+ *   · app-api.pixiv.net（官方域名）握手后再打一次 /cdn-cgi/trace，展示本次命中的 CDN 节点
+ *     （loc= 的值 → colo= 的值）；它排在握手之后，失败不代表连通性，只记录、不参与任何判定
  *   · 开启 PxveAPI 代理时，app-api 目标替换为用户填写的代理根地址，并追加
  *     /pixiv-app-api 与 /pixiv-oauth 两条转发路径的响应探测（https 在握手成功后测；
  *     Debug 模式允许 http 代理，跳过 HTTPS 握手直接测转发）
@@ -1038,6 +1089,12 @@ class NetworkTestViewModel : ViewModel() {
                 }
                 updateStep(idx, stepIdx, handshakeDetail(samples, fail, tls, cipher, proto, firstErr), StepStatus.RUNNING)
             }
+
+            // CDN 命中节点：握手之后的附加信息，失败不代表连通性（见 probeCdnTrace）。
+            // 只认官方 app-api.pixiv.net —— PxveAPI 代理目标的 host 是自建源，语义不同。
+            if (cfg.kind == TargetKind.APP_API && cfg.rootUrl == null) {
+                probeCdnTrace(idx, cfg, client)
+            }
         } finally {
             activeClients.remove(client)
             client.connectionPool.evictAll()
@@ -1090,6 +1147,64 @@ class NetworkTestViewModel : ViewModel() {
             sb.append(strRes(R.string.network_test_hs_reasons))
         }
         return sb.toString()
+    }
+
+    /**
+     * 握手之后的附加信息：向 Cloudflare 的 `/cdn-cgi/trace` 要一次「本次命中了哪个边缘节点」。
+     *
+     * **位置即语义**：它排在握手采样之后、复用握手那一个客户端（同一套 DNS 钉 IP、同一套拦截器），
+     * 所以它**不是连通性判据** —— 失败（超时 / 非 2xx / 正文没有 `colo=`）只落灰色 INFO，
+     * 不改卡片状态、不进总览判定。用途是排查「握手通、但某个 CF 节点有问题」这类场景。
+     * 展示口径：`loc=` 是 CF 判定的客户端地区，`colo=` 才是实际命中的节点，显示成「loc 的值 → colo 的值」。
+     *
+     * 只对**官方** app-api.pixiv.net 调用（PxveAPI 代理目标的 host 是自建源，
+     * 它的 trace 反映的是那一跳的边缘，语义不同，不在这里展示）。
+     */
+    private fun probeCdnTrace(idx: Int, cfg: TargetConfig, client: OkHttpClient) {
+        val stepIdx = work[idx].steps.size
+        addStep(
+            idx,
+            TestStep(strRes(R.string.network_test_trace_step), strRes(R.string.network_test_requesting), StepStatus.RUNNING),
+        )
+        // 复用握手客户端的 DNS 钉 IP / 拦截器 / 连接池，只覆盖 callTimeout。
+        // callTimeout 不能省：直连路径走 CronetInterceptor，它只认 callTimeout，
+        // connect/read/write 三个对它完全无效（同 CfBlockGuide.traceClient 踩过的坑），
+        // 少了它，一次卡住的 trace 能把采样窗口白拖 30 秒。
+        val traceClient = client.newBuilder()
+            .callTimeout(TRACE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .build()
+        try {
+            val request = Request.Builder().url("https://${cfg.host}${TRACE_PATH}").get().build()
+            traceClient.newCall(request).execute().use { resp ->
+                val body = resp.body?.string().orEmpty()
+                val info = parseCdnTrace(body)
+                val loc = info.loc
+                val colo = info.colo
+                log("CDN trace(${cfg.host}): HTTP ${resp.code}")
+                if (loc != null || colo != null) {
+                    // 完整的 trace 正文进原始日志，ip= 已脱敏。
+                    log(maskTraceIps(body.trimEnd()))
+                } else {
+                    // 不是 trace 正文（如被 CF 拦下的 HTML）：不整段灌进日志，只留个能辨认的头。
+                    val snippet = body.trim().take(TRACE_LOG_SNIPPET).replace('\n', ' ')
+                    log("CDN trace 正文非 trace 格式: ${maskTraceIps(snippet)}")
+                }
+                val detail = when {
+                    // 失败原因（HTTP 码 / 正文形态）只进原始日志：这一步失败不代表连通性，
+                    // 卡片上给一句统一说法就够，不必把内部原因摆进步骤。
+                    !resp.isSuccessful || colo == null -> strRes(R.string.network_test_trace_fail)
+                    loc != null -> strRes(R.string.network_test_trace_node, loc, colo)
+                    else -> colo
+                }
+                val status = if (resp.isSuccessful && colo != null) StepStatus.OK else StepStatus.INFO
+                updateStep(idx, stepIdx, detail, status)
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            val msg = e.javaClass.simpleName + (e.message?.let { ": $it" } ?: "")
+            updateStep(idx, stepIdx, strRes(R.string.network_test_trace_fail), StepStatus.INFO)
+            log("CDN trace 失败: $msg")
+        }
     }
 
     /**
@@ -1886,6 +2001,18 @@ class NetworkTestViewModel : ViewModel() {
         /** 转发路径探测用的原始 pixiv URL：交给 [AppApiProxyInterceptor.rewrite] 改写成代理地址。 */
         private const val APP_API_PROBE_URL = "https://app-api.pixiv.net/v1/illust/ranking?mode=day"
         private const val OAUTH_PROBE_URL = "https://oauth.secure.pixiv.net/auth/token"
+
+        /** Cloudflare 的 trace 端点：回显本次请求命中的边缘节点（`colo=`）与客户端地区（`loc=`）。 */
+        private const val TRACE_PATH = "/cdn-cgi/trace"
+
+        /**
+         * trace 请求的整体上限。**必须是 callTimeout** —— 直连路径走 [CronetInterceptor]，
+         * 它只认 callTimeout，connect/read/write 三个超时对它完全无效。
+         */
+        private const val TRACE_TIMEOUT_SECONDS = 5L
+
+        /** 非 trace 正文（如 CF 拦截页 HTML）进日志时的截断长度，避免整页 HTML 灌进原始日志。 */
+        private const val TRACE_LOG_SNIPPET = 200
 
         // 代理 fake-ip 模式返回的占位段：不可路由，命中即说明 DNS 被代理接管，测连通无意义。
         private val FAKE_IP_CIDRS = listOf(

@@ -2174,6 +2174,11 @@
     <string name="network_test_path_cronet">直連 Cronet/QUIC</string>
     <string name="network_test_path_fakeip">標準 TLS · 代理接管（fake-ip）</string>
     <string name="network_test_path_cronet_bypass">直連 Cronet/QUIC（繞過本機 DNS）</string>
+
+    <!-- CDN 命中節點（僅官方 app-api.pixiv.net；位於握手之後的附加請求，失敗不代表連線性） -->
+    <string name="network_test_trace_step">CDN 命中節點 · 目前位置 -> 節點</string>
+    <string name="network_test_trace_node">%1$s → %2$s</string>
+    <string name="network_test_trace_fail">未取得有效欄位</string>
     <string name="network_test_web_step">網頁請求 · /ajax/illust/%1$d</string>
     <string name="network_test_requesting">請求中…</string>
     <string name="network_test_web_ok">HTTP %1$d · %2$dms · 作品 #%3$d 已返回圖片位址</string>
