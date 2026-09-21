@@ -46,6 +46,9 @@ import org.robolectric.util.ReflectionHelpers
 class FollowingBookmarkFilterTest {
     private val dispatcher = StandardTestDispatcher()
     private lateinit var controller: ActivityController<FragmentActivity>
+    private var oldSettings: Settings? = null
+    private var oldGson: Gson? = null
+    private var oldMuteLoaded = false
     private var oldApi: API? = null
     private var illustPage = IllustResponse()
     private var novelPage = NovelResponse()
@@ -55,6 +58,9 @@ class FollowingBookmarkFilterTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
+        oldSettings = Shaft.sSettings
+        oldGson = Shaft.sGson
+        oldMuteLoaded = ReflectionHelpers.getField(IllustMuteStore, "loaded")
         Shaft.sSettings = Settings()
         Shaft.sGson = Gson()
         oldApi = ReflectionHelpers.getField(Client, "_appApi")
@@ -78,6 +84,9 @@ class FollowingBookmarkFilterTest {
     fun tearDown() {
         controller.destroy()
         ReflectionHelpers.setField(Client, "_appApi", oldApi)
+        ReflectionHelpers.setField(IllustMuteStore, "loaded", oldMuteLoaded)
+        Shaft.sSettings = oldSettings
+        Shaft.sGson = oldGson
         Dispatchers.resetMain()
     }
 
