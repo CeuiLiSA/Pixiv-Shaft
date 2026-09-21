@@ -64,6 +64,11 @@ class WebDiscoverySourceTest {
             .setBody("""{"error":false,"body":{"thumbnails":{"illust":[${works.joinToString(",")}]}}}"""))
     }
 
+    private fun enqueueLegacy(vararg works: String) {
+        server.enqueue(MockResponse().setHeader("Content-Type", "application/json")
+            .setBody("""{"error":false,"body":{"illusts":[${works.joinToString(",")}]}}"""))
+    }
+
     private fun feed(mode: WebDiscoveryMode = WebDiscoveryMode.ALL) =
         FeedViewModel(source(mode), autoLoad = false).also {
             viewModelStore.put("discovery", it)
@@ -184,8 +189,17 @@ class WebDiscoverySourceTest {
         assertNull(source.load(first.nextCursor).nextCursor)
     }
 
-    @Test fun `missing web session does not silently use anonymous recommendations`() = runBlocking {
-        assertTrue(source(loggedIn = false).load(null).items.isEmpty())
+    @Test fun `missing web session uses the anonymous legacy discovery source`() = runBlocking {
+        enqueueLegacy(artwork(1), artwork(2))
+        assertEquals(listOf(1L, 2L), source(loggedIn = false).load(null).items.map { it.feedKey })
+        val request = server.takeRequest().requestUrl!!
+        assertEquals("/ajax/illust/discovery", request.encodedPath)
+        assertEquals("all", request.queryParameter("mode"))
+        assertEquals("18", request.queryParameter("max"))
+    }
+
+    @Test fun `anonymous R18 feed asks for login instead of returning safe works`() = runBlocking {
+        assertTrue(source(WebDiscoveryMode.R18, loggedIn = false).load(null).items.isEmpty())
         assertEquals(0, server.requestCount)
     }
 

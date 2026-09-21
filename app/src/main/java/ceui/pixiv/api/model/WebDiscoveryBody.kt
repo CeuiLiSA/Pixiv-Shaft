@@ -9,6 +9,10 @@ data class WebDiscoveryBody(
     val thumbnails: WebDiscoveryThumbnails? = null,
 ) : Serializable
 
+data class WebLegacyDiscoveryBody(
+    val illusts: List<WebDiscoveryArtwork>? = null,
+) : Serializable
+
 data class WebDiscoveryThumbnails(
     val illust: List<WebDiscoveryArtwork>? = null,
 ) : Serializable

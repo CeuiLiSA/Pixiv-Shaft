@@ -33,14 +33,23 @@ class WebDiscoverySource(
     private val toItem: (Illust) -> FeedItem? = { IllustFeedItem.of(it, skipR18Filter = true) },
 ) : FeedSource<String> {
     override suspend fun load(cursor: String?): FeedPage<String> {
-        // 无同账号网页会话时显示登录动作，避免推荐和收藏状态串号。
-        if (!hasWebSession()) return FeedPage(emptyList(), null)
-        val response = api.getDiscoveryArtworks(mode.apiValue)
-        if (response.error == true) {
-            throw IOException(response.message?.takeIf { it.isNotBlank() } ?: "Discovery request failed")
-        }
-        val works = response.body?.thumbnails?.illust
-            ?: throw IOException("Missing discovery artworks")
+        val hasSession = hasWebSession()
+        // 新接口是按账号个性化的；没有网页会话时使用官网仍保留的匿名旧接口。
+        // 旧接口不支持匿名 R18，避免把全年龄结果伪装成 R18 信息流。
+        if (!hasSession && mode == WebDiscoveryMode.R18) return FeedPage(emptyList(), null)
+        val works = if (hasSession) {
+            val response = api.getDiscoveryArtworks(mode.apiValue)
+            if (response.error == true) {
+                throw IOException(response.message?.takeIf { it.isNotBlank() } ?: "Discovery request failed")
+            }
+            response.body?.thumbnails?.illust
+        } else {
+            val response = api.getLegacyDiscoveryArtworks(mode.apiValue)
+            if (response.error == true) {
+                throw IOException(response.message?.takeIf { it.isNotBlank() } ?: "Discovery request failed")
+            }
+            response.body?.illusts
+        } ?: throw IOException("Missing discovery artworks")
         val items = withContext(Dispatchers.Default) {
             works.asSequence()
                 .filter { it.id > 0 && it.userId > 0 && !it.isMasked && !it.url.isNullOrBlank() }

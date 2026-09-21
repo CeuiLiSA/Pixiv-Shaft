@@ -12,6 +12,7 @@ import ceui.pixiv.api.model.UserTagIllustBody
 import ceui.pixiv.api.model.UserTagNovelBody
 import ceui.pixiv.api.model.UserWorkTag
 import ceui.pixiv.api.model.WebDiscoveryBody
+import ceui.pixiv.api.model.WebLegacyDiscoveryBody
 import ceui.pixiv.api.model.WebIllustBody
 import ceui.pixiv.api.model.WebIllustPage
 import ceui.pixiv.api.model.WebNovelSearchBody
@@ -34,6 +35,13 @@ interface PixivWebApi {
         @Query("mode") mode: String,
         @Query("limit") limit: Int = 60,
     ): WebResponse<WebDiscoveryBody>
+
+    /** 官网旧版发现接口；无网页会话也能拉全年龄作品，每次最多 18 条。 */
+    @GET("/ajax/illust/discovery")
+    suspend fun getLegacyDiscoveryArtworks(
+        @Query("mode") mode: String,
+        @Query("max") max: Int = 18,
+    ): WebResponse<WebLegacyDiscoveryBody>
 
     //
 
