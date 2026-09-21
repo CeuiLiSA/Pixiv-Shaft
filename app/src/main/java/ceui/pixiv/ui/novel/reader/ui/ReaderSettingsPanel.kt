@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CompoundButton
 import android.widget.SeekBar
 import android.widget.TextView
 import ceui.lisa.R
@@ -48,6 +49,12 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
     private var _binding: FragmentReaderSettingsBinding? = null
     private val binding get() = _binding!!
 
+    /** 主题色环的 (presetId → 选中环) 映射，供生效主题变化时原地刷新。 */
+    private var themeRings: List<Pair<String, View>> = emptyList()
+
+    /** 「跟随系统暗色」开关视图，供程序性退出跟随（点配色）后回刷开关态。 */
+    private var followSwitch: CompoundButton? = null
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         // edgeToEdge:让 window 画到导航栏底下,内容背景才能延伸进底部 safe area。
         return BottomSheetDialog(
@@ -82,8 +89,42 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        // 拨「跟随系统暗色」开关会改生效主题，但那条 ChangeEvent.Theme 由阅读页消费；
+        // 面板自己不跟着刷新，色环就会停在开启前的配色上（issue #1132）。
+        // 点配色还可能程序性退出跟随（见 ReaderSettings.onThemePicked），所以开关态要一起回刷。
+        ReaderSettings.changes.observe(viewLifecycleOwner) { event ->
+            if (event == ReaderSettings.ChangeEvent.Theme) {
+                refreshThemeRings()
+                syncFollowSwitch()
+            }
+        }
+    }
+
+    /** 把色环重新落到当前生效主题上。 */
+    private fun refreshThemeRings() {
+        if (themeRings.isEmpty()) return
+        val effectiveId = ReaderSettings.effectiveTheme().id
+        themeRings.forEach { (id, ring) -> ring.isSelected = id == effectiveId }
+    }
+
+    /**
+     * 回刷「跟随系统暗色」开关。点一个不会生效的配色会让 [ReaderSettings.onThemePicked]
+     * 退出跟随，不回刷就会出现「开关显示开、实际已关」的假象。
+     *
+     * 只在值不一致时才赋值：赋值会走 [android.widget.CompoundButton.OnCheckedChangeListener]
+     * 回调回 ReaderSettings，虽然 setter 已对「值没变」提前返回，但没必要白跑一趟。
+     */
+    private fun syncFollowSwitch() {
+        val sw = followSwitch ?: return
+        val actual = ReaderSettings.followSystemDarkMode
+        if (sw.isChecked != actual) sw.isChecked = actual
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        followSwitch = null
         _binding = null
     }
 
@@ -128,6 +169,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         s.rowFollowSystemDark.bindSwitch(
             getString(R.string.setting_follow_dark), ReaderSettings.followSystemDarkMode,
         ) { ReaderSettings.followSystemDarkMode = it }
+        followSwitch = s.rowFollowSystemDark.switchControl
         s.rowUseSystemBrightness.bindSwitch(
             getString(R.string.setting_system_brightness), ReaderSettings.useSystemBrightness,
         ) { ReaderSettings.useSystemBrightness = it }
@@ -329,19 +371,25 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         inner.removeAllViews()
         val inflater = LayoutInflater.from(ctx)
         val rings = mutableListOf<Pair<String, View>>()
+        // 色环跟「生效主题」而不是 themeId：跟随开启时生效的可能是夜间或浅色记忆，
+        // 跟 themeId 会让色环停在用户旧选择上，与屏上正文不一致。
+        val effectiveId = ReaderSettings.effectiveTheme().id
         ReaderTheme.PRESETS.forEach { theme ->
             val item = ItemReaderThemeSwatchBinding.inflate(inflater, inner, false)
             item.swatchLabel.text = theme.displayName
             // 圆点颜色是数据(每个主题的背景色),tint 到 XML oval 上,不在运行时拼 drawable。
             item.swatchCircle.backgroundTintList = ColorStateList.valueOf(theme.backgroundColor)
-            item.swatchRing.isSelected = theme.id == ReaderSettings.themeId
+            item.swatchRing.isSelected = theme.id == effectiveId
             item.root.setOnClickListener {
-                ReaderSettings.themeId = theme.id
+                // onThemePicked 保证这次选择一定会上屏（不会生效时会退出跟随），
+                // 所以点完的生效主题就是被点的这个，色环直接落上去、不会回弹。
+                ReaderSettings.onThemePicked(theme.id)
                 rings.forEach { (id, ring) -> ring.isSelected = id == theme.id }
             }
             rings += theme.id to item.swatchRing
             inner.addView(item.root)
         }
+        themeRings = rings
     }
 
     // ---- Font picker ------------------------------------------------------

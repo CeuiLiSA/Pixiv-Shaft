@@ -218,7 +218,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         binding.root.keepScreenOn = ReaderSettings.keepScreenOn
 
         // 立即应用阅读器主题背景色，避免加载中显示白底
-        val theme = ReaderTheme.findPresetById(ReaderSettings.themeId) ?: ReaderTheme.KRAFT
+        val theme = ReaderSettings.effectiveTheme()
         binding.root.setBackgroundColor(theme.backgroundColor)
         applyLoadingTint(theme)
 
@@ -315,9 +315,12 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             ReaderSettingsPanel().show(childFragmentManager, ReaderSettingsPanel.TAG)
         }
         bb.onThemeToggleClick = {
-            val isDark = currentThemeIsDark()
-            ReaderSettings.themeId = if (isDark) ReaderTheme.KRAFT.id else ReaderTheme.NIGHT.id
-            bb.setDarkMode(!isDark)
+            // 目标 preset 按「当前生效主题」算，不能按 themeId —— 跟随开启时两者可能不同，
+            // 先退出跟随再算会算出反向结果，按钮点了等于没点。
+            val target = if (currentThemeIsDark()) ReaderTheme.KRAFT.id else ReaderTheme.NIGHT.id
+            // 与设置面板走同一条路径：不会生效的选择会自动退出跟随。
+            ReaderSettings.onThemePicked(target)
+            bb.setDarkMode(currentThemeIsDark())
         }
         bb.onSearchClick = {
             chrome.hide()
@@ -473,7 +476,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 -> {
                     pushStyleAndGeometryIfReady()
                     rebindScrollViewIfActive()
-                    val t = ReaderTheme.findPresetById(ReaderSettings.themeId) ?: ReaderTheme.KRAFT
+                    val t = ReaderSettings.effectiveTheme()
                     binding.root.setBackgroundColor(t.backgroundColor)
                     applyLoadingTint(t)
                     // showBottomProgress 走 Layout 事件,开关拨完立刻生效。
@@ -669,7 +672,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         val loaded = viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded ?: return
         val ctx = context ?: return
         val snapshot = ReaderSettings.snapshot()
-        val theme = ReaderTheme.findPresetById(snapshot.themeId) ?: ReaderTheme.KRAFT
+        val theme = ReaderSettings.effectiveTheme()
         val style = TypeStyle.from(ctx, snapshot, theme)
         val density = resources.displayMetrics.density
         val horizontal = ReaderSettings.horizontalMarginDp * density
@@ -718,7 +721,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     }
 
     private fun currentThemeIsDark(): Boolean =
-        ReaderTheme.findPresetById(ReaderSettings.themeId)?.isDark == true
+        ReaderSettings.effectiveTheme().isDark
 
     /** 进作品（小说）详情页，供顶栏「更多」菜单的「作品详情」项调用。 */
     private fun openNovelDetailPage() {
@@ -1333,7 +1336,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         val horizontal = ReaderSettings.horizontalMarginDp * density
         val verticalMargin = ReaderSettings.verticalMarginDp * density
         viewModel.updateLayout(
-            TypeStyle.from(ctx, snapshot, ReaderTheme.findPresetById(ReaderSettings.themeId) ?: ReaderTheme.KRAFT),
+            TypeStyle.from(ctx, snapshot, ReaderSettings.effectiveTheme()),
             PageGeometry(w, h, horizontal, maxOf(topInsetPx.toFloat(), verticalMargin), horizontal, maxOf(bottomInsetPx.toFloat(), verticalMargin)),
         )
     }
