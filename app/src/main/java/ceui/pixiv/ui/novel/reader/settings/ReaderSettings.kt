@@ -132,9 +132,12 @@ object ReaderSettings {
         get() = store.decodeBool(K_FOLLOW_DARK, false)
         set(value) {
             val was = followSystemDarkMode
+            // 值没变就直接返回：不写、不 emit。面板回刷开关时会用 isChecked 回调回来，
+            // 少了这道闸就会多一次无意义的 Theme 事件。
+            if (was == value) return
             writeFollowSilently(value)
             // 打开跟随的那一刻把用户当前配色记成浅色记忆；开关本身不碰 themeId。
-            if (value && !was) lightThemeMemoryId = lightPickOrFallback(themeId)
+            if (value) lightThemeMemoryId = lightPickOrFallback(themeId)
             emit(ChangeEvent.Theme)
         }
 

@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CompoundButton
 import android.widget.SeekBar
 import android.widget.TextView
 import ceui.lisa.R
@@ -51,6 +52,9 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
     /** 主题色环的 (presetId → 选中环) 映射，供生效主题变化时原地刷新。 */
     private var themeRings: List<Pair<String, View>> = emptyList()
 
+    /** 「跟随系统暗色」开关视图，供程序性退出跟随（点配色）后回刷开关态。 */
+    private var followSwitch: CompoundButton? = null
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         // edgeToEdge:让 window 画到导航栏底下,内容背景才能延伸进底部 safe area。
         return BottomSheetDialog(
@@ -89,8 +93,12 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         // 拨「跟随系统暗色」开关会改生效主题，但那条 ChangeEvent.Theme 由阅读页消费；
         // 面板自己不跟着刷新，色环就会停在开启前的配色上（issue #1132）。
+        // 点配色还可能程序性退出跟随（见 ReaderSettings.onThemePicked），所以开关态要一起回刷。
         ReaderSettings.changes.observe(viewLifecycleOwner) { event ->
-            if (event == ReaderSettings.ChangeEvent.Theme) refreshThemeRings()
+            if (event == ReaderSettings.ChangeEvent.Theme) {
+                refreshThemeRings()
+                syncFollowSwitch()
+            }
         }
     }
 
@@ -101,8 +109,22 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         themeRings.forEach { (id, ring) -> ring.isSelected = id == effectiveId }
     }
 
+    /**
+     * 回刷「跟随系统暗色」开关。点一个不会生效的配色会让 [ReaderSettings.onThemePicked]
+     * 退出跟随，不回刷就会出现「开关显示开、实际已关」的假象。
+     *
+     * 只在值不一致时才赋值：赋值会走 [android.widget.CompoundButton.OnCheckedChangeListener]
+     * 回调回 ReaderSettings，虽然 setter 已对「值没变」提前返回，但没必要白跑一趟。
+     */
+    private fun syncFollowSwitch() {
+        val sw = followSwitch ?: return
+        val actual = ReaderSettings.followSystemDarkMode
+        if (sw.isChecked != actual) sw.isChecked = actual
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        followSwitch = null
         _binding = null
     }
 
@@ -147,6 +169,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         s.rowFollowSystemDark.bindSwitch(
             getString(R.string.setting_follow_dark), ReaderSettings.followSystemDarkMode,
         ) { ReaderSettings.followSystemDarkMode = it }
+        followSwitch = s.rowFollowSystemDark.switchControl
         s.rowUseSystemBrightness.bindSwitch(
             getString(R.string.setting_system_brightness), ReaderSettings.useSystemBrightness,
         ) { ReaderSettings.useSystemBrightness = it }
