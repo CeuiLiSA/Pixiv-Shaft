@@ -1,5 +1,7 @@
 package ceui.pixiv.ui.novel.reader.settings
 
+import android.content.res.Configuration
+import android.content.res.Resources
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import ceui.pixiv.ui.novel.reader.model.FlipMode
@@ -129,9 +131,82 @@ object ReaderSettings {
     var followSystemDarkMode: Boolean
         get() = store.decodeBool(K_FOLLOW_DARK, false)
         set(value) {
-            store.encode(K_FOLLOW_DARK, value)
+            val was = followSystemDarkMode
+            writeFollowSilently(value)
+            // 打开跟随的那一刻把用户当前配色记成浅色记忆；开关本身不碰 themeId。
+            if (value && !was) lightThemeMemoryId = lightPickOrFallback(themeId)
             emit(ChangeEvent.Theme)
         }
+
+    /** 静默写跟随标志（不 emit）。同一次用户操作要改多个字段时，emit 统一放到最后。 */
+    private fun writeFollowSilently(value: Boolean) {
+        store.encode(K_FOLLOW_DARK, value)
+    }
+
+    /**
+     * 跟随系统暗色时，系统处于浅色侧要用的「浅色记忆」配色。持久化在独立 MMKV key
+     * `r_light_theme_memory`，与 [themeId] 相互独立：拨动跟随开关只决定「用不用
+     * themeId」，不修改它。
+     *
+     * 未记过（旧版本存量）时以当前 [themeId] 兜底，行为与不开跟随一致。
+     */
+    var lightThemeMemoryId: String
+        get() = lightPickOrFallback(store.decodeString(K_LIGHT_THEME_MEMORY, null) ?: themeId)
+        private set(value) {
+            store.encode(K_LIGHT_THEME_MEMORY, value)
+        }
+
+    /** 有效浅色配色：解析出深色预设（夜间 / 炭黑）或无效 id 时降级牛皮纸。 */
+    private fun lightPickOrFallback(id: String?): String =
+        if (id != null && ReaderTheme.findPresetById(id)?.isDark == false) id else ReaderTheme.KRAFT.id
+
+    /**
+     * 系统当前是否处于深色。
+     *
+     * **必须读 [Resources.getSystem()]，不能读任何 Context 的 resources。** AppCompat 的
+     * `setDefaultNightMode` / `setLocalNightMode` 会把日夜位写进 Activity（以及 Application，
+     * 见 `AppLocales.localeOnlyOverride` 的说明）的 Resources —— 读 Context 拿到的是「app 主题
+     * 模式」的结果，不是系统设置：应用级主题模式选「深色」时系统明明是浅色，Context 的 uiMode
+     * 也是 NIGHT_YES，阅读器就会错误地切成夜间；反之选「浅色」时永远不跟随。
+     */
+    private fun isSystemDark(): Boolean =
+        (Resources.getSystem().configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+
+    /**
+     * 有效阅读主题：不开跟随用用户选的 [themeId]；开了则由系统决定 ——
+     * 系统深色 → 夜间，系统浅色 → [lightThemeMemoryId]。
+     */
+    fun effectiveTheme(): ReaderTheme = when {
+        !followSystemDarkMode -> ReaderTheme.findPresetById(themeId) ?: ReaderTheme.KRAFT
+        isSystemDark() -> ReaderTheme.NIGHT
+        else -> ReaderTheme.findPresetById(lightThemeMemoryId) ?: ReaderTheme.KRAFT
+    }
+
+    /** 这次选择会不会真的上屏：只有「跟随开启 + 系统浅色 + 选的是浅色预设」才会。 */
+    private fun pickTakesEffect(id: String): Boolean =
+        followSystemDarkMode && !isSystemDark() &&
+            ReaderTheme.findPresetById(id)?.isDark == false
+
+    /**
+     * 用户显式选配色的唯一入口（设置面板色块、底栏日夜快捷键都走这里）。
+     *
+     * - 选择**会**生效时（跟随开启 + 系统浅色 + 浅色预设）：留在跟随内，同步刷新浅色记忆；
+     * - 选择**不会**生效时（跟随开启但系统深色，或选了夜间 / 炭黑）：视为一次显式手动覆盖，
+     *   退出跟随，让这次选择立刻上屏 —— 否则色环会回弹到生效主题，控件变成「点了没反应」。
+     *
+     * 退出跟随走 [writeFollowSilently]：emit 统一由最后的 [themeId] 赋值发出，
+     * 否则会先用旧 themeId 渲染一帧。
+     */
+    fun onThemePicked(id: String) {
+        // 点的是当前已经生效的配色（例如跟随 + 系统深色下点「夜间」）：不该顺手关掉跟随，
+        // 也不该动记忆，按无操作处理。
+        if (id == effectiveTheme().id) return
+        val takesEffect = pickTakesEffect(id)
+        if (followSystemDarkMode && !takesEffect) writeFollowSilently(false)
+        if (takesEffect) lightThemeMemoryId = id
+        themeId = id
+    }
 
     var backgroundImagePath: String?
         get() = store.decodeString(K_BG_IMAGE, null)
@@ -361,6 +436,7 @@ object ReaderSettings {
         themeId = themeId,
         customThemeId = customThemeId,
         followSystemDarkMode = followSystemDarkMode,
+        lightThemeMemoryId = lightThemeMemoryId,
         backgroundImagePath = backgroundImagePath,
         flipMode = flipMode,
         imagePlacement = imagePlacement,
@@ -381,6 +457,7 @@ object ReaderSettings {
         val themeId: String,
         val customThemeId: Int,
         val followSystemDarkMode: Boolean,
+        val lightThemeMemoryId: String,
         val backgroundImagePath: String?,
         val flipMode: FlipMode,
         val imagePlacement: ImagePlacement,
@@ -403,6 +480,7 @@ object ReaderSettings {
     private const val K_THEME_ID = "r_theme_id"
     private const val K_CUSTOM_THEME_ID = "r_custom_theme_id"
     private const val K_FOLLOW_DARK = "r_follow_dark"
+    private const val K_LIGHT_THEME_MEMORY = "r_light_theme_memory"
     private const val K_BG_IMAGE = "r_bg_image"
     private const val K_SYS_BRIGHTNESS = "r_sys_brightness"
     private const val K_BRIGHTNESS = "r_brightness"

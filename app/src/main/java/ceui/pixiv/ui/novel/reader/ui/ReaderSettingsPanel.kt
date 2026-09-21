@@ -48,6 +48,9 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
     private var _binding: FragmentReaderSettingsBinding? = null
     private val binding get() = _binding!!
 
+    /** 主题色环的 (presetId → 选中环) 映射，供生效主题变化时原地刷新。 */
+    private var themeRings: List<Pair<String, View>> = emptyList()
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         // edgeToEdge:让 window 画到导航栏底下,内容背景才能延伸进底部 safe area。
         return BottomSheetDialog(
@@ -80,6 +83,22 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         bindScreen(ctx)
         bindImage(ctx)
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        // 拨「跟随系统暗色」开关会改生效主题，但那条 ChangeEvent.Theme 由阅读页消费；
+        // 面板自己不跟着刷新，色环就会停在开启前的配色上（issue #1132）。
+        ReaderSettings.changes.observe(viewLifecycleOwner) { event ->
+            if (event == ReaderSettings.ChangeEvent.Theme) refreshThemeRings()
+        }
+    }
+
+    /** 把色环重新落到当前生效主题上。 */
+    private fun refreshThemeRings() {
+        if (themeRings.isEmpty()) return
+        val effectiveId = ReaderSettings.effectiveTheme().id
+        themeRings.forEach { (id, ring) -> ring.isSelected = id == effectiveId }
     }
 
     override fun onDestroyView() {
@@ -329,19 +348,25 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         inner.removeAllViews()
         val inflater = LayoutInflater.from(ctx)
         val rings = mutableListOf<Pair<String, View>>()
+        // 色环跟「生效主题」而不是 themeId：跟随开启时生效的可能是夜间或浅色记忆，
+        // 跟 themeId 会让色环停在用户旧选择上，与屏上正文不一致。
+        val effectiveId = ReaderSettings.effectiveTheme().id
         ReaderTheme.PRESETS.forEach { theme ->
             val item = ItemReaderThemeSwatchBinding.inflate(inflater, inner, false)
             item.swatchLabel.text = theme.displayName
             // 圆点颜色是数据(每个主题的背景色),tint 到 XML oval 上,不在运行时拼 drawable。
             item.swatchCircle.backgroundTintList = ColorStateList.valueOf(theme.backgroundColor)
-            item.swatchRing.isSelected = theme.id == ReaderSettings.themeId
+            item.swatchRing.isSelected = theme.id == effectiveId
             item.root.setOnClickListener {
-                ReaderSettings.themeId = theme.id
+                // onThemePicked 保证这次选择一定会上屏（不会生效时会退出跟随），
+                // 所以点完的生效主题就是被点的这个，色环直接落上去、不会回弹。
+                ReaderSettings.onThemePicked(theme.id)
                 rings.forEach { (id, ring) -> ring.isSelected = id == theme.id }
             }
             rings += theme.id to item.swatchRing
             inner.addView(item.root)
         }
+        themeRings = rings
     }
 
     // ---- Font picker ------------------------------------------------------
