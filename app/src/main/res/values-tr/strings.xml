@@ -156,7 +156,7 @@
     <string name="use_secure_dns_title">Güvenli DNS (DoH)</string>
     <string name="use_secure_dns_summary">Pixiv alan adlarını Cloudflare DoH ile çöz; yerel DNS\'iniz zaten güvenliyse kapatın</string>
     <string name="show_original_image">Orijinal resmi kullan</string>
-    <string name="delete_star_illust">Favorilere eklenenleri arama sonuçlarında gizle</string>
+    <string name="delete_star_illust">Takip akışında favorilere eklenen eserleri gizle</string>
     <string name="filter_rank_bookmarked">Sıralamada yer imlerine eklenmiş eserleri filtrele</string>
     <string name="save_view_history">Geçmişi kaydet</string>
     <string name="single_download_task">Sıralı indirme (Aynı anda tek dosya)</string>

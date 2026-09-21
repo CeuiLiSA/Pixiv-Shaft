@@ -67,7 +67,7 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
      * 基类那句默认（「pixiv 列表的游标本身就是 nextUrl，详情页划到底可以照着它继续请求」）隐含
      * 一个前提：**nextUrl 拉回来的东西就是本列表的结果集**。搜索不满足——搜索的结果集是由
      * [ceui.lisa.repo.SearchIllustRepo] 的 FilterMapper 流水线定义的（R-18 三态 / 仅看 AI /
-     * 收藏数门槛 / 隐藏已收藏），nextUrl 只是那条流水线的入料。
+     * 收藏数门槛），nextUrl 只是那条流水线的入料。
      *
      * 而详情 pager 的回传链复现不了这条流水线：VActivity 用的是裸 `Mapper`（不认 searchR18Restriction
      * / searchOnlyAi），回到本页 `feedItemFromBean` 默认走 [IllustFeedItem.of] →

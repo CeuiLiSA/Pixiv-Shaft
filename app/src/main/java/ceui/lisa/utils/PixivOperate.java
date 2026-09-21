@@ -521,26 +521,6 @@ public class PixivOperate {
         return AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getSearchEntity(id);
     }
 
-    //筛选作品，只留下未收藏的作品
-    public static List<Illust> getListWithoutBooked(ListIllust response) {
-        List<Illust> result = new ArrayList<>();
-        if (response == null) {
-            return result;
-        }
-
-        if (response.getList() == null || response.getList().size() == 0) {
-            return result;
-        }
-
-        for (Illust illustsBean : response.getList()) {
-            if (!illustsBean.isBookmarked()) {
-                result.add(illustsBean);
-            }
-        }
-
-        return result;
-    }
-
     //筛选作品，只留下收藏数达到标准的作品
     /** starSizeMax <= 0 表示上限不限（收藏量区间筛选只设了下限，或只有 users入り 关键字桶）。 */
     public static List<Illust> getListWithStarSize(ListIllust response, int starSize, int starSizeMax) {

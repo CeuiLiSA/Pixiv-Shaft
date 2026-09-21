@@ -132,7 +132,7 @@ object SettingsCatalog {
         add(Entry(BROWSING, "search_exit_confirm_rela", R.string.search_exit_confirm, R.string.search_exit_confirm_desc, keywords = "退出 返回 误触 二次确认 确认退出 弹窗 back exit confirm"))
         // 别名按整串子串匹配（同上），「回到顶部」「回顶刷新」「悬浮按钮」这些连写说法各铺一遍
         add(Entry(BROWSING, "feed_back_to_top_fab_rela", R.string.feed_back_to_top_fab, R.string.feed_back_to_top_fab_desc, keywords = "回顶 回到顶部 置顶 回顶刷新 刷新 悬浮按钮 悬浮球 浮动按钮 圆形按钮 搜索结果 画师主页 作者页 fab back to top scroll top refresh floating button"))
-        add(Entry(BROWSING, "delete_star_illust_rela", R.string.delete_star_illust, keywords = "搜索 已收藏 过滤 去重"))
+        add(Entry(BROWSING, "delete_star_illust_rela", R.string.delete_star_illust, keywords = "动态 已收藏 过滤 去重"))
         add(Entry(BROWSING, "synonym_dict_enable_rela", R.string.synonym_dict_enable, keywords = "同义词 词典 别名 标签翻译 synonym"))
         add(Entry(BROWSING, "synonym_dict_rela", R.string.synonym_dict_title, keywords = "同义词 词典 管理 导入 导出 合并 synonym"))
 

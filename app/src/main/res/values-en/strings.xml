@@ -156,7 +156,7 @@
     <string name="use_secure_dns_title">Secure DNS (DoH)</string>
     <string name="use_secure_dns_summary">Resolve Pixiv hosts via Cloudflare DoH; turn off if your local DNS is already trusted</string>
     <string name="show_original_image">Use original image</string>
-    <string name="delete_star_illust">Filter out bookmarked in search result</string>
+    <string name="delete_star_illust">Hide bookmarked works in following feed</string>
     <string name="filter_rank_bookmarked">Filter bookmarked works in rankings</string>
     <string name="save_view_history">Save browsing history</string>
     <string name="single_download_task">Keeping a job in the download (download order to ensure)</string>

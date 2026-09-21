@@ -168,7 +168,7 @@ public class Settings {
     //设置页面进场动画
     private boolean settingsAnimate = true;
 
-    //屏蔽，不显示已收藏的作品，默认不屏蔽
+    //动态页不显示已收藏的插画、漫画和小说，默认不屏蔽
     private boolean deleteStarIllust = false;
 
     //排行榜过滤已收藏的作品，默认过滤

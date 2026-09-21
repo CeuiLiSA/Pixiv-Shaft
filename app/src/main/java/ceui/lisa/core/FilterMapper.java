@@ -2,13 +2,12 @@ package ceui.lisa.core;
 
 import java.util.List;
 
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.ListIllust;
 import ceui.pixiv.api.model.Illust;
 import ceui.lisa.utils.PixivOperate;
 
 /**
- * 从列表中筛选掉（去掉)已收藏的作品
+ * 搜索结果按收藏数区间筛选作品
  */
 public class FilterMapper extends Mapper<ListIllust> {
 
@@ -20,12 +19,6 @@ public class FilterMapper extends Mapper<ListIllust> {
     @Override
     public ListIllust apply(ListIllust listIllust) {
         super.apply(listIllust);
-        if (Shaft.sSettings.isDeleteStarIllust()) {
-            //筛选作品，只留下未收藏的作品
-            List<Illust> tempList = PixivOperate.getListWithoutBooked(listIllust);
-            listIllust.setIllusts(tempList);
-        }
-
         if (filterStarSize && (starSizeLimit > 0 || starSizeMaxLimit > 0)) {
             //筛选作品，只留下收藏数符合筛选条件的作品
             List<Illust> tempList = PixivOperate.getListWithStarSize(listIllust, starSizeLimit, starSizeMaxLimit);

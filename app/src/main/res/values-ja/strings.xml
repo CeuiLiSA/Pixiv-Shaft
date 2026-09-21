@@ -156,7 +156,7 @@
     <string name="use_secure_dns_title">セキュア DNS（DoH）</string>
     <string name="use_secure_dns_summary">Cloudflare DoH で Pixiv ドメインを解決します。ローカル DNS が信頼できる場合はオフにできます</string>
     <string name="show_original_image">オリジナルの画質で表示</string>
-    <string name="delete_star_illust">すき！したイラストを検索結果から隠す</string>
+    <string name="delete_star_illust">フォロー新着でブックマーク済みの作品を非表示</string>
     <string name="filter_rank_bookmarked">ランキングでブックマーク済み作品を除外</string>
     <string name="save_view_history">閲覧履歴を保存</string>
     <string name="single_download_task">一つのタスクをダウンロードに保つ（ダウンロード順序を保証）</string>

@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
@@ -128,7 +129,10 @@ class FollowingNovelFeedFragment : NovelFeedFragment() {
 
         /** 页响应 → 条目。跑在 Default 线程、被 VM 长期持有，放伴生对象保证零捕获。 */
         private fun mapFollowingNovelPage(novels: List<Novel>): List<FeedItem> {
-            return novels.mapNotNull { NovelFeedItem.of(it) }
+            val hideBookmarked = Shaft.sSettings.isDeleteStarIllust
+            return novels.mapNotNull {
+                if (hideBookmarked && it.is_bookmarked == true) null else NovelFeedItem.of(it)
+            }
         }
     }
 }

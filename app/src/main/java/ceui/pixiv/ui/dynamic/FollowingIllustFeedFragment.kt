@@ -1,7 +1,5 @@
 package ceui.pixiv.ui.dynamic
 
-import android.os.Bundle
-import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -10,6 +8,7 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.api.Client
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSkeletonView
@@ -24,7 +23,7 @@ import ceui.pixiv.ui.common.IllustFeedItem
  * NetListFragment + RightRepo + IAdapter/TimelineAdapter 那一套）。
  * 宿主是 [ceui.lisa.fragments.FragmentRight]，装在它的 `illust_list_container` 里。
  *
- * 两件本页特有的事，其余（收藏、长按菜单、详情 pager 续拉回流、合池）全部继承自
+ * 本页特有的行为，其余（收藏、长按菜单、详情 pager 续拉回流、合池）全部继承自
  * [IllustFeedFragment]：
  *
  * 1. **筛选范围**（全部 / 公开 / 私人）：宿主的筛选条通过 [setRestrict] 推进来。
@@ -34,6 +33,7 @@ import ceui.pixiv.ui.common.IllustFeedItem
  * 2. **两种排布**：时间线（单列大卡）/ 瀑布流，由设置「关注动态布局模式」持久化，
  *    宿主的按钮切换后调 [applyLayoutMode] —— 只重装 Renderer + LayoutManager，
  *    数据留在 VM 里**不重拉**（对齐 legacy 换 adapter 的语义）。
+ * 3. **过滤已收藏**：与动态小说共用设置，只影响关注动态，刷新和每次续页时生效。
  */
 class FollowingIllustFeedFragment : IllustFeedFragment() {
 
@@ -50,9 +50,16 @@ class FollowingIllustFeedFragment : IllustFeedFragment() {
         // 取成局部 val:捕获的是 VM 实例(与 FeedViewModel 同 store、同寿命),不是 Fragment
         val holder = restrictViewModel
         pixivFeedSource({ Client.appApi.getFollowingIllusts(holder.restrict) }) { resp, _ ->
-            resp.displayList.mapNotNull { IllustFeedItem.of(it) }
+            resp.displayList.mapNotNull { followingItem(it) }
         }
     }
+
+    override fun feedItemFromBean(bean: Illust?): IllustFeedItem? = followingItem(bean)
+
+    // 详情 pager 的通用 Mapper 不认识动态专属过滤，开启时只浏览已过滤的列表快照；
+    // 下一页由本列表加载，避免已收藏作品从详情续读路径漏进来。
+    override val detailContinuationCursor: String?
+        get() = if (Shaft.sSettings.isDeleteStarIllust) null else super.detailContinuationCursor
 
     /**
      * 本列表嵌在动态页那张圆角 sheet 里，底色必须跟 sheet 一致，否则筛选条下方会裂出一道
@@ -124,5 +131,13 @@ class FollowingIllustFeedFragment : IllustFeedFragment() {
     /** 时间线 / 瀑布流切换后重装列表（宿主写完设置项再调）。数据不重拉。 */
     fun applyLayoutMode() {
         rebuildList()
+    }
+
+    companion object {
+        // 首屏、刷新、翻页和详情回传共用；不捕获 Fragment，开关在每次映射时读取。
+        private fun followingItem(illust: Illust?): IllustFeedItem? {
+            if (Shaft.sSettings.isDeleteStarIllust && illust?.isBookmarked == true) return null
+            return IllustFeedItem.of(illust)
+        }
     }
 }

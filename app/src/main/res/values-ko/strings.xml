@@ -156,7 +156,7 @@
     <string name="use_secure_dns_title">보안 DNS (DoH)</string>
     <string name="use_secure_dns_summary">Cloudflare DoH로 Pixiv 도메인을 확인합니다. 로컬 DNS를 이미 신뢰할 수 있다면 끄세요</string>
     <string name="show_original_image">사진 상세 전시 원 도</string>
-    <string name="delete_star_illust">검색 결과 필터 저장</string>
+    <string name="delete_star_illust">팔로우 피드에서 북마크한 작품 숨기기</string>
     <string name="filter_rank_bookmarked">랭킹에서 북마크한 작품 제외</string>
     <string name="save_view_history">브 라 우 징 기록 저장</string>
     <string name="single_download_task">한 작업 을 다운로드 중 으로 유지 합 니 다 (다운로드 순 서 를 보장 합 니 다)</string>

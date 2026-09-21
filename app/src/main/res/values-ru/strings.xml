@@ -156,7 +156,7 @@
     <string name="use_secure_dns_title">Защищённый DNS (DoH)</string>
     <string name="use_secure_dns_summary">Разрешать домены Pixiv через Cloudflare DoH; отключите, если локальному DNS уже можно доверять</string>
     <string name="show_original_image">Использовать оригинал изображения</string>
-    <string name="delete_star_illust">Скрывать уже добавленное в закладки из результатов поиска</string>
+    <string name="delete_star_illust">Скрывать произведения из закладок в ленте подписок</string>
     <string name="filter_rank_bookmarked">Исключать из рейтинга уже добавленные в закладки работы</string>
     <string name="save_view_history">Сохранять историю просмотров</string>
     <string name="single_download_task">Одна задача загрузки для сохранения порядка</string>

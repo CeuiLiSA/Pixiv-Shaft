@@ -156,7 +156,7 @@
     <string name="use_secure_dns_title">安全 DNS（DoH）</string>
     <string name="use_secure_dns_summary">透過 Cloudflare DoH 解析 Pixiv 網域；本機 DNS 已可信時可關閉</string>
     <string name="show_original_image">圖片詳情展示原圖</string>
-    <string name="delete_star_illust">搜尋結果過濾已收藏</string>
+    <string name="delete_star_illust">動態過濾已收藏</string>
     <string name="filter_rank_bookmarked">排行榜過濾已收藏</string>
     <string name="save_view_history">保存瀏覽歷史</string>
     <string name="single_download_task">保持一個任務在下載中（保證下載順序）</string>
