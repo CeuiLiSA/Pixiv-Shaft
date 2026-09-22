@@ -36,7 +36,7 @@ class Android10DownloadFactory22(
     private val plan = if (isGif) {
         null
     } else {
-        val newItem = DownloadItems.illustPage(item.illust, item.index)
+        val newItem = DownloadItems.illustPage(item.illust, item.index, item.url)
         DownloadsRegistry.downloads.plan(newItem)
     }
 
