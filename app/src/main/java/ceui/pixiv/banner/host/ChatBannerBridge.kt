@@ -2,6 +2,7 @@ package ceui.pixiv.banner.host
 
 import android.content.Context
 import android.util.LruCache
+import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.pixiv.api.Client
 import ceui.pixiv.banner.BannerCategory
@@ -34,6 +35,7 @@ import java.util.UUID
  * into a [BannerRequest.Text] on the [BannerManager].
  *
  * Suppression rules:
+ *  - Google/Play Lite never starts this bridge, for either public rooms or DMs.
  *  - User's own echo (`uid == SessionManager.loggedInUid`) — pointless to
  *    banner a message you just sent.
  *  - Foreground activity is already showing the same chat room — the user
@@ -70,7 +72,8 @@ class ChatBannerBridge(
     private var job: Job? = null
 
     fun start() {
-        if (job != null) return
+        // Lite 全量禁用聊天横幅；恢复完整版的设置也不能启用公屏或私信 banner。
+        if (BuildConfig.IS_LITE || job != null) return
         job = scope.launch {
             gateway.incoming
                 .filterIsInstance<IncomingMessage.Text>()
@@ -203,12 +206,9 @@ class ChatBannerBridge(
         return false
     }
 
-    // 入口默认展示；公开聊天室横幅仍只在用户主动开启横幅开关时显示。
-    // lite(google/Play)渠道直接判死:那边设置页没有横幅开关(见 FragmentSettingsExperimental),
-    // 而开关值会随「设置备份还原」/ 云同步从 github 包带过来 —— 只认设置的话,Play 用户会收到
-    // 一个自己关不掉的全局房 banner。这里只压全局房,1v1 私信 banner 仍照常。
+    // 非 Lite 渠道：公屏横幅需主动开启，私信不受这个开关影响。
+    // Lite 的公屏和私信统一在 start() 拦截，不订阅任何聊天 banner。
     private fun publicChatBannerEnabled(): Boolean {
-        if (ceui.lisa.BuildConfig.IS_LITE) return false
         val settings = ceui.lisa.activities.Shaft.sSettings ?: return false
         return settings.isShowChatRoomPushBanner
     }
