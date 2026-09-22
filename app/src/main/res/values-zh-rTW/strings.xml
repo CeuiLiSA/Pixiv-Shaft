@@ -839,6 +839,8 @@
     <string name="artwork_v3_fab_order_bookmark_left">左側收藏，右側下載</string>
     <string name="artwork_v3_comment_jump_title">跳轉評論區按鈕</string>
     <string name="artwork_v3_comment_jump_desc">懸浮膠囊中顯示一鍵跳到評論區的按鈕</string>
+    <string name="artwork_v3_auto_expand_title">多圖自動展開</string>
+    <string name="artwork_v3_auto_expand_desc">進入多圖作品時自動展開全部頁面，不再折疊為第一頁</string>
     <string name="string_452">下載限制類型</string>
     <string name="string_453">不自動下載</string>
     <string name="string_454">分享首圖</string>

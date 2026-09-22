@@ -296,7 +296,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 折叠态。二者不一致会出「p0 顶着展开胶囊、p1/p2 却已显示」的矛盾 UI。对齐 legacy(旋转即
         // 折叠):在任何页绑定前(此刻 uiState 尚未 render)把多出的页收回,保持与新 adapter 一致。
         ObjectPool.get<Illust>(illustId).value?.let { illust ->
-            if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count)) {
+            // 开了「多图自动展开」(#1090)就不再收回:列表保持全 P,新 adapter 也随之取展开态。
+            if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count) && !autoExpandEnabled()) {
                 feedViewModel.removeItems { it is ArtworkPageItem && it.pageIndex > 0 }
             }
         }
@@ -559,12 +560,16 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                         illust,
                         maxHeight,
                         artworkViewModel.forceOriginalPreview,
+                        initiallyExpanded = listHasAllPages(),
                         onComicReaderClick = { openComicReader() },
                         onExpandedChanged = { expanded -> onPagesExpandedChanged(expanded) },
                         onExpandPillLongClick = { openPagesPreview() },
                     )
                 // 悬浮「收起」胶囊点击 → 折叠(collapse() 触发 onExpandedChanged(false) → 收回页 + 回顶 + 藏胶囊)
                 chromeBind.collapsePill.setOnClickListener { collapsible.collapse() }
+                // 进页即展开态不会走 onExpandedChanged(true)，胶囊得由这里点亮：
+                // 长作品更需要一个「收起」出口，否则只能一路滑到底。
+                if (collapsible.isExpanded) showCollapsePill(animate = false)
                 collapsible
             } else {
                 object :
@@ -651,11 +656,13 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                         illust,
                         maxHeight,
                         false,
+                        initiallyExpanded = listHasAllPages(),
                         onComicReaderClick = null,
                         onExpandedChanged = { expanded -> onPagesExpandedChanged(expanded) },
                         onExpandPillLongClick = { openPagesPreview() },
                     )
                 chromeBind.collapsePill.setOnClickListener { collapsible.collapse() }
+                if (collapsible.isExpanded) showCollapsePill(animate = false)
                 collapsible
             } else {
                 IllustAdapter(activity, this, illust, maxHeight, false)
@@ -714,10 +721,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val pill = chromeBind.collapsePill
         pill.animate().cancel()
         if (expanded) {
-            pill.alpha = 0f
-            pill.visibility = View.VISIBLE
-            syncTopEndPill()
-            pill.animate().alpha(1f).setDuration(220).start()
+            showCollapsePill(animate = true)
             val pageCount = currentPageCount()
             if (pageCount <= 0) return
             feedViewModel.mutateItems { items ->
@@ -779,6 +783,34 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     /** 池 / 快照两条来源统一取当前作品的总页数;取不到给 0。 */
     private fun currentPageCount(): Int = currentIllust()?.page_count ?: 0
+
+    /** 设置「多图自动展开」(#1090)：开则数据源一次产出全 P，旋屏也不再收回。 */
+    private fun autoExpandEnabled(): Boolean = Shaft.sSettings.isArtworkV3AutoExpandMultiPage
+
+    /**
+     * 列表里是否已经摆着全部页 —— adapter 的「进页即展开」以**列表实际内容**为准，不直接读设置。
+     * 设置是进页那一刻的快照：进页后才打开开关再旋屏，列表仍只有 p0；若 adapter 照样按设置展开，
+     * 就会既不出「展开剩余 X 张」覆盖层、又没得展开，卡死在第一页。
+     */
+    private fun listHasAllPages(): Boolean {
+        val items = feedAdapter?.currentList ?: return false
+        // 折叠态只留 p0（DEFAULT_COLLAPSED），比它多就是已经摆成展开形状了。
+        return items.count { it is ArtworkPageItem } > CollapsibleIllustAdapter.DEFAULT_COLLAPSED
+    }
+
+    /**
+     * 让右上角「收起」胶囊出现。两处调用：用户点展开([onPagesExpandedChanged])走 220ms 淡入；
+     * 设置「多图自动展开」决定的进页初始态不走动效——那不是用户动作，不该有入场表演。
+     * alpha 先落到终值再显形，免得出现「先满亮、再淡入」的一帧。
+     */
+    private fun showCollapsePill(animate: Boolean) {
+        val pill = chromeBind.collapsePill
+        pill.animate().cancel()
+        if (animate) pill.alpha = 0f else pill.alpha = 1f
+        pill.visibility = View.VISIBLE
+        syncTopEndPill()
+        if (animate) pill.animate().alpha(1f).setDuration(220).start()
+    }
 
     /**
      * 右上角常驻页码浮标(#1058):不进阅读器、直接在详情页往下滑看多图时,标出「当前页 / 总页」。

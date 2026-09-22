@@ -837,6 +837,8 @@
     <string name="artwork_v3_fab_order_bookmark_left">Sol yer imi, sağ indir</string>
     <string name="artwork_v3_comment_jump_title">Yorumlara atla düğmesi</string>
     <string name="artwork_v3_comment_jump_desc">Yüzen çubukta yorum bölümüne hızlı geçiş düğmesini göster</string>
+    <string name="artwork_v3_auto_expand_title">Çok sayfalıyı otomatik aç</string>
+    <string name="artwork_v3_auto_expand_desc">Çok sayfalı bir eser açıldığında ilk sayfaya katlamak yerine tüm sayfaları göster</string>
     <string name="string_452">İndirme sınırı</string>
     <string name="string_453">Otomatik başlat</string>
     <string name="string_454">İlk resmi paylaş</string>

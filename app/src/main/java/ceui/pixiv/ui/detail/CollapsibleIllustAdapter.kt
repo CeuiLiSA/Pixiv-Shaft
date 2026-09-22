@@ -37,6 +37,15 @@ class CollapsibleIllustAdapter(
     maxHeight: Int,
     isForceOriginal: Boolean,
     private val collapsedCount: Int = DEFAULT_COLLAPSED,
+    /**
+     * 进页即展开态（issue #1090）。由宿主按**列表实际内容**决定，不直接读设置：数据源一次产出全 P
+     * 时列表已经是展开形状，这里只把状态对上，不发通知、也不回调 [onExpandedChanged]
+     * （「收起」胶囊由宿主自己点亮）。
+     *
+     * 与 [expand] 的差异只有「不再重扫下载库」——那一趟是给「先折叠、后下载、再展开」补的；构造时
+     * 那趟扫描本就按 page_count 全量走（见 IllustAdapter.scanLocalDownloads），进页即展开已覆盖。
+     */
+    initiallyExpanded: Boolean = false,
     var onComicReaderClick: (() -> Unit)? = null,
     var onExpandedChanged: ((expanded: Boolean) -> Unit)? = null,
     /**
@@ -47,7 +56,7 @@ class CollapsibleIllustAdapter(
     var onExpandPillLongClick: (() -> Boolean)? = null,
 ) : IllustAdapter(activity, fragment, illust, maxHeight, isForceOriginal) {
 
-    private var expanded = false
+    private var expanded = initiallyExpanded
 
     /** super 里 [maxHeight] 是 private,这里留一份给折叠封面兜高用(见 [floorCoverHeight])。 */
     private val coverMaxHeight: Int = maxHeight
