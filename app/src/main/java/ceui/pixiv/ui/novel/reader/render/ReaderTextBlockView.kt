@@ -100,10 +100,12 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
      * paragraphs) into a single TextView so the native selection can drag
      * across paragraph boundaries.
      *
-     * Between consecutive paragraphs we insert a single `\n` and stretch the
-     * descent of the line containing it via [ParagraphGapLineHeightSpan] to
-     * match [TypeStyle.paragraphSpacingPx] — inserting `\n\n` would add a
-     * whole extra row per boundary. First-line indent is reapplied via
+     * Between consecutive paragraphs we insert `\n\u200B\n` and stretch the
+     * descent of the marker line via [GapLineHeightSpan] to match the pixel
+     * gap the paginator budgeted ([TypeStyle.paragraphSpacingPx]). When that
+     * gap is zero we emit a bare `\n` instead: a marker line with no span
+     * falls back to one natural line height, which is what made a 0.0 setting
+     * render like the 0.8 default. First-line indent is reapplied via
      * [LeadingMarginSpan.Standard] against the sliced range (the original
      * layout's LeadingMarginSpan is lost when we call `.toString()`).
      * Line-break positions survive the merge because we preserve paint, width,
@@ -148,18 +150,24 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
             }
 
             if (idx < elements.size - 1) {
-                // Between paragraphs we emit `\n\u200B\n`: a terminating LF,
-                // a zero-width-space marker, and another LF. The ZWSP sits
-                // in its own single-line paragraph, so the line-height span
-                // below can target it without bleeding onto the surrounding
-                // text paragraphs.
+                // Zero paragraph spacing must mean zero. A marker line with no
+                // line-height span falls back to one natural line height, which
+                // is ~0.8 x fontHeight (the default), so a 0.0 setting rendered
+                // exactly like 0.8; the extra line was never budgeted by the
+                // paginator either, which clipped the page bottom. Emit a bare
+                // LF so a zero gap really costs zero height.
                 val pixelGap = (elements[idx + 1].top - element.bottom).coerceAtLeast(0f).roundToInt()
-                sb.append('\n')
-                val gapLineStart = sb.length
-                sb.append('\u200B')
-                val gapLineEnd = sb.length
-                sb.append('\n')
                 if (pixelGap > 0) {
+                    // `\n\u200B\n` — a terminating LF, a zero-width-space
+                    // marker, and another LF. The ZWSP sits in its own
+                    // single-line paragraph, so the line-height span below can
+                    // target it without bleeding onto the surrounding text
+                    // paragraphs.
+                    sb.append('\n')
+                    val gapLineStart = sb.length
+                    sb.append('\u200B')
+                    val gapLineEnd = sb.length
+                    sb.append('\n')
                     sb.setSpan(
                         AbsoluteSizeSpan(1),
                         gapLineStart, gapLineEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
@@ -168,6 +176,8 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
                         GapLineHeightSpan(pixelGap),
                         gapLineStart, gapLineEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
                     )
+                } else {
+                    sb.append('\n')
                 }
             }
         }
