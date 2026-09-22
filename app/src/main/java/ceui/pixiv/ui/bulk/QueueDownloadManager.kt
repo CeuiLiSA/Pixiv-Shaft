@@ -581,7 +581,9 @@ class QueueDownloadManager(app: Context) {
                 val i = infNeedingPage.nextPageToAdd
                 val ok = runCatching {
                     val di = DownloadItem(infNeedingPage.bean, i)
-                    di.url = IllustDownload.getUrl(infNeedingPage.bean, i)
+                    di.url = IllustDownload.getUrl(
+                        infNeedingPage.bean, i, IllustDownload.defaultImageResolution()
+                    )
                     di.showUrl = IllustDownload.getShowUrl(infNeedingPage.bean, i)
                     di.isSilent = true  // 批量 page 不逐条弹 Toast，跑空时统一弹汇总（issue #950）
                     Manager.get().addTask(di)

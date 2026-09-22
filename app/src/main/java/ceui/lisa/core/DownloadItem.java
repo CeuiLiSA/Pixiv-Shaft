@@ -83,6 +83,10 @@ public class DownloadItem implements Serializable {
     public void setUrl(String url) {
         Common.showLog("DownloadItem 准备下载：" + url);
         this.url = url;
+        if (!illust.isGif()) {
+            // 非原图可能是 JPEG，下载记录和 EXIF 判定也必须使用实际格式。
+            this.name = FileCreator.customFileName(illust, index, url);
+        }
     }
 
     public boolean isAutoSave() {

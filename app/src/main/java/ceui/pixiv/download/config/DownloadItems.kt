@@ -24,9 +24,11 @@ import java.time.format.DateTimeParseException
  */
 object DownloadItems {
 
+    /** Pass the task's selected URL so filename and MIME match the bytes being downloaded. */
     @JvmStatic
-    fun illustPage(illust: Illust, pageIndex: Int): DownloadItem {
-        val url = pageOriginalUrl(illust, pageIndex)
+    @JvmOverloads
+    fun illustPage(illust: Illust, pageIndex: Int, sourceUrl: String? = null): DownloadItem {
+        val url = sourceUrl?.takeIf { it.isNotBlank() } ?: pageOriginalUrl(illust, pageIndex)
         val ext = extractExt(url, fallback = "png")
         return DownloadItem(
             bucket = Bucket.Illust,
@@ -86,8 +88,9 @@ object DownloadItems {
      * directory structure / naming the user configured for local downloads.
      */
     @JvmStatic
-    fun illustRelativePath(illust: Illust, pageIndex: Int): RelativePath =
-        renderedPath(illustPage(illust, pageIndex))
+    @JvmOverloads
+    fun illustRelativePath(illust: Illust, pageIndex: Int, sourceUrl: String? = null): RelativePath =
+        renderedPath(illustPage(illust, pageIndex, sourceUrl))
 
     /**
      * Ugoira-bucket counterpart of [illustRelativePath] — the rendered ugoira

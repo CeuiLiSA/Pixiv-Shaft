@@ -52,7 +52,7 @@ object Aria2Dispatcher {
             fileUrl = item.url,
             // out = 用户当前命名模板渲染出的完整相对路径（目录 + 文件名），
             // 让 NAS 上的目录结构 / 文件名与本地下载完全一致
-            out = DownloadItems.illustRelativePath(item.illust, item.index).joinTo("/"),
+            out = DownloadItems.illustRelativePath(item.illust, item.index, item.url).joinTo("/"),
             dir = settings.aria2RemoteDir.trim(),
             // pixiv 图片 CDN 必须带 Referer，否则 403 —— 跟本地下载用同一个值
             headers = listOf("${Params.MAP_KEY}: ${Params.IMAGE_REFERER}"),

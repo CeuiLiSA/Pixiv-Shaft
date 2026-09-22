@@ -36,7 +36,7 @@ public class SAFactory implements DownloadFileFactory {
     public SAFactory(@NotNull Context context, DownloadItem item) {
         ceui.pixiv.download.model.DownloadItem newItem = item.getIllust().isGif()
                 ? DownloadItems.ugoiraZip(item.getIllust())
-                : DownloadItems.illustPage(item.getIllust(), item.getIndex());
+                : DownloadItems.illustPage(item.getIllust(), item.getIndex(), item.getUrl());
         mPlan = DownloadsRegistry.getDownloads().plan(newItem);
     }
 

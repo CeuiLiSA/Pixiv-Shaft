@@ -53,11 +53,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  *   [ceui.lisa.activities.Shaft] after
  *   [ceui.pixiv.events.EventReporter.start] (so `clientId` is available
  *   synchronously when the manager activates).
- * - Activation signal is a `StateFlow<Boolean>` pinned to `true` for the
- *   process lifetime. The chat is anonymous (uses `EventReporter.currentClientId()`
- *   not a pixiv login) so there's no "logout → close" event — the connection
- *   stays alive while the app process runs. **Cost**: idle radio/battery
- *   when the user is not on the chat screen.
+ * - Public flows can be observed before the deferred [bootstrap]: the manager
+ *   stays Idle and sends return `false` until it starts observing pixiv login.
+ *   The same manager and stream are retained when bootstrap runs, so early
+ *   subscribers continue receiving updates without re-subscribing.
  *
  * ## Heartbeat audit
  *
@@ -77,8 +76,7 @@ class ShaftChatGateway(private val app: Application) {
 
     private val bootstrapped = AtomicBoolean(false)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private lateinit var manager: WebSocketManager
-    private lateinit var stream: WsChatMessageStream
+    private val stream by lazy { WsChatMessageStream(manager.incoming) }
     private lateinit var persistDao: ChatMessageDao
 
     private val _fatalAuth = MutableSharedFlow<Unit>(
@@ -118,12 +116,11 @@ class ShaftChatGateway(private val app: Application) {
     }
 
     /**
-     * Idempotent. Safe to call from `Application.onCreate` after
-     * `EventReporter.start`. Subsequent calls are no-ops.
+     * A restored chat screen can read the flows before Shaft's idle init runs.
+     * Lazy construction is safe then: only bootstrap calls start(), so signing
+     * and connecting still wait for EventReporter.start and the login signal.
      */
-    fun bootstrap() {
-        if (!bootstrapped.compareAndSet(false, true)) return
-
+    private val manager by lazy {
         // Activation tracks pixiv login. Server requires `uid > 0` for the
         // HMAC handshake; without it ShaftHmacAuthProvider throws and
         // RobustWebSocketClient enters a permanent backoff loop. Driving
@@ -159,7 +156,7 @@ class ShaftChatGateway(private val app: Application) {
                 .distinctUntilChanged()
         }
 
-        manager = WebSocketManager(
+        WebSocketManager(
             loggedIn = ready,
             createClient = { _ ->
                 Timber.tag(TAG).i("createClient: building shaft chat WS (uid=%d)", SessionManager.loggedInUid)
@@ -170,13 +167,18 @@ class ShaftChatGateway(private val app: Application) {
             // connect attempt, so this placeholder URL is never used.
             config = WebSocketConfig(url = "ws://placeholder.invalid/"),
         )
+    }
+
+    /**
+     * Idempotent. Safe to call from `Application.onCreate` after
+     * `EventReporter.start`. Subsequent calls are no-ops.
+     */
+    fun bootstrap() {
+        if (!bootstrapped.compareAndSet(false, true)) return
+
         manager.start()
         Timber.tag(TAG).i("bootstrap complete — manager.start() invoked (loggedInUid=%d)", SessionManager.loggedInUid)
 
-        // Wire the shared stream that the chat fragment consumes. Built
-        // here so its hello/err side flows are app-scoped (a fragment that
-        // arrives mid-session can still see the last hello via replay=1).
-        stream = WsChatMessageStream(manager.incoming)
         persistDao = ChatDatabase.getInstance(app).chatMessageDao()
 
         // Route hello/err/typing/global_send_state ALWAYS-ON (not tied to a chat
@@ -362,11 +364,7 @@ class ShaftChatGateway(private val app: Application) {
      * dedicated message ("another device just logged in") instead of a
      * generic "disconnected".
      */
-    // `get()` accessor (not eager `val =`) so the property doesn't touch
-    // [manager] until after [bootstrap] has set it — eager evaluation runs
-    // inside the gateway's `<clinit>` and crashed with
-    // UninitializedPropertyAccessException ("manager has not been initialized")
-    // the first time Shaft.onCreate referenced the `object`.
+    // Keep manager construction lazy, like the other public flow getters.
     val replacedByOtherDevice: Flow<Unit>
         get() = manager.events
             .filterIsInstance<WebSocketEvent.Closed>()

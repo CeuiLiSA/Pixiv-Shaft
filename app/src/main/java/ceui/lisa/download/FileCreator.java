@@ -60,8 +60,12 @@ public class FileCreator {
     // createFile 碰撞探测（有真实 IO 和文件副作用），而这两个方法会被
     // DownloadItem 构造函数在主线程、以及浏览时的 scanLocalDownloads 逐页调用。
     public static String customFileName(Illust illustsBean, int index) {
+        return customFileName(illustsBean, index, null);
+    }
+
+    public static String customFileName(Illust illustsBean, int index, String sourceUrl) {
         return DownloadsRegistry.getDownloads()
-                .resolvePath(DownloadItems.illustPage(illustsBean, index))
+                .resolvePath(DownloadItems.illustPage(illustsBean, index, sourceUrl))
                 .getFilename();
     }
 
