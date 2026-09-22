@@ -496,6 +496,8 @@
         <item name="android:textColor">@color/v3_text_1</item>
     </style>
 
+    <!-- 日间开屏：蓝底 + 白蜗牛。夜间版在 values-night/styles.xml —— 深色模式下 ROM 会把启动窗口里的
+         亮色内容转暗（白蜗牛会被翻成纯黑），所以夜间换成深底 + 品牌蓝蜗牛，原因写在那边。 -->
     <style name="SplashTheme" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/splash_background</item>
         <!--        <item name="android:windowSplashScreenBrandingImage" tools:targetApi="s">-->

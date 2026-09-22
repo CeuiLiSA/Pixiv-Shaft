@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 夜间开屏：底色换成应用自己的夜间底色(@color/v3_bg → wit_bg 夜间值 #08080C，与 AppTheme 的
+         android:windowBackground 同源，开屏切到内容页不会闪出第三种颜色)，图标换成“透明底 + 品牌蓝蜗牛”
+         的夜间版(@drawable/splash_icon_shaft_night)。
+
+         为什么要这一条：深色模式下 ROM 会把启动窗口里的亮色内容转暗，日间那版白蜗牛会被翻成纯黑
+         （真机实测 logo 区域 #000000，背景蓝却分毫未动）；而 splash 窗口的视图用的是系统侧主题，
+         应用在 SplashTheme 上加 forceDarkAllowed 之类关不掉它，只能从图标自身绕开。
+
+         注意：这里必须把 values/styles.xml 里那几条 item 全部重写一遍 —— 资源限定符对 style 是整条
+         替换、不做属性合并，漏写哪条夜间就丢哪条。 -->
+    <style name="SplashTheme" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/v3_bg</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon_shaft_night</item>
+        <item name="windowSplashScreenAnimationDuration">200</item>
+        <item name="postSplashScreenTheme">@style/AppTheme</item>
+    </style>
+
+</resources>
