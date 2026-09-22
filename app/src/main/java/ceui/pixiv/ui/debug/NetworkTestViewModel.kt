@@ -1161,6 +1161,8 @@ class NetworkTestViewModel : ViewModel() {
      * 它的 trace 反映的是那一跳的边缘，语义不同，不在这里展示）。
      */
     private fun probeCdnTrace(idx: Int, cfg: TargetConfig, client: OkHttpClient) {
+        // 握手可能因退出页面而结束；cancelAll 只取消已有 Call，不能阻止这里再发新请求。
+        viewModelScope.ensureActive()
         val stepIdx = work[idx].steps.size
         addStep(
             idx,
@@ -1186,8 +1188,9 @@ class NetworkTestViewModel : ViewModel() {
                     log(maskTraceIps(body.trimEnd()))
                 } else {
                     // 不是 trace 正文（如被 CF 拦下的 HTML）：不整段灌进日志，只留个能辨认的头。
-                    val snippet = body.trim().take(TRACE_LOG_SNIPPET).replace('\n', ' ')
-                    log("CDN trace 正文非 trace 格式: ${maskTraceIps(snippet)}")
+                    // 先按完整行脱敏，再截断/折叠；否则非首行的 ip= 会失去键名边界而泄露。
+                    val snippet = maskTraceIps(body.trim()).take(TRACE_LOG_SNIPPET).replace('\n', ' ')
+                    log("CDN trace 正文非 trace 格式: $snippet")
                 }
                 val detail = when {
                     // 失败原因（HTTP 码 / 正文形态）只进原始日志：这一步失败不代表连通性，
