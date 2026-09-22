@@ -152,6 +152,56 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     private final Set<Integer> cachedOriginalShownPages = ConcurrentHashMap.newKeySet();
 
     /**
+     * V3 详情页的常驻槽位数：只有 p0。
+     *
+     * 「收起」只在 p ≥ 3 时才存在（见 CollapsibleIllustAdapter.shouldCollapse），所以 p0 一定有；
+     * 而收起的落点恒为 p0（两枚展开胶囊也硬判 position == 0），留住它就够了，p1 按普通页走。
+     */
+    public static final int PINNED_PAGE_COUNT = 1;
+
+    /**
+     * 是否启用常驻槽位。只有 V3 详情页开：它的 p0 独占一个 viewType（见 ArtworkPinnedFirstPageItem），
+     * 槽位不会被别页复用。legacy 详情页是同一个 adapter 的另一个使用方，那里不开。
+     */
+    private boolean keepPinnedPages = false;
+
+    public void setKeepPinnedPages(boolean keepPinnedPages) {
+        this.keepPinnedPages = keepPinnedPages;
+    }
+
+    /**
+     * 常驻槽位入口。holder 上留着的正是这一页 → 返回 true，调用方整条绑定都不用走；留的是别页 →
+     * 先把那张图丢掉再返回 false，免得新图到位前亮出上一页的画面。
+     *
+     * 为什么安全：回收时**不清 Glide 请求**，资源就一直挂在 target 上、引用计数不为 0，Glide
+     * 不会回收这张位图。自己另存一份裸 Bitmap 引用是错的 —— 那条路会在 draw 阶段撞上已回收的位图。
+     */
+    public boolean tryKeepPinnedPage(ViewHolder<RecyIllustDetailBinding> holder, int position) {
+        if (!keepPinnedPages) {
+            return false;
+        }
+        Object kept = holder.itemView.getTag(R.id.tag_kept_page_index);
+        if (kept instanceof Integer && ((Integer) kept) == position
+                && position < PINNED_PAGE_COUNT
+                && (holder.baseBind.illust.getDrawable() != null
+                || holder.baseBind.illustHd.getVisibility() == View.VISIBLE)) {
+            // 走常驻路径时**没有经过 onBindViewHolder**，而 boundBindings 正是 onViewRecycled
+            // 认出「这是哪一页」的唯一依据：不在这里补记，下一次回收就会因为查不到页码而走常规
+            // 清理 —— 槽位留了一格、下一跳又白留，滚动里表现为 p0 反复重下、收起时透底色。
+            boundBindings.entrySet().removeIf(e -> e.getValue() == holder.baseBind);
+            boundBindings.put(position, holder.baseBind);
+            return true;
+        }
+        if (kept != null) {
+            // 槽位被别页借走了：留着的那张图必须立刻丢掉。
+            fragmentRequestManager.clear(holder.baseBind.illust);
+            holder.baseBind.illust.setImageDrawable(null);
+            holder.itemView.setTag(R.id.tag_kept_page_index, null);
+        }
+        return false;
+    }
+
+    /**
      * 全景页(超宽图)集合。这种图按宽度缩后自然高只剩一条缝(17300×1750 在手机上约 110px,还压在
      * 状态栏底下),FIT_CENTER 塞进大黑盒也只是把缝挪个位置。全景页改为:盒高固定
      * {@link #panoramaBoxHeight},图放大到盒高、横向可拖(见 {@link DynamicHeightImageView#setPanorama});
@@ -359,6 +409,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     public void onViewRecycled(@NonNull ViewHolder<RecyIllustDetailBinding> holder) {
         super.onViewRecycled(holder);
         // 解除当前 binding 的绑定记录，避免已回收页被 onResume 直接回填。
+        // ⚠️ 这里只有 boundBindings 一个来源，别拿 holder.getAbsoluteAdapterPosition() 兜底：传进来的
+        // holder 是 renderer 在 recycle lambda 里新建的**薄壳**（ViewHolder(cell.binding)），
+        // mBindingAdapter / mOwnerRecyclerView 都是 null，那个 API 只会返回 NO_POSITION。
+        // 跳过 onBindViewHolder 的路径（常驻槽位）必须自己把登记补回来，见 tryKeepPinnedPage。
         Integer recycledPosition = boundBindings.entrySet().stream()
                 .filter(e -> e.getValue() == holder.baseBind)
                 .map(Map.Entry::getKey)
@@ -370,6 +424,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         // Detach this holder's LoadTask observers (see loadIllust) so they don't outlive
         // the bind and pile up on the per-URL task's LiveData.
         detachTaskObservers(holder);
+        if (keepPinnedPages && recycledPosition != null && recycledPosition < PINNED_PAGE_COUNT) {
+            // 常驻槽位(p0)：**故意不清图** —— 两层都不 clear、不置 GONE、tag 也不置空，让
+            // binding、Glide target 和已解码位图一起留下。位图因此始终被 Glide 的引用计数持有，
+            // 不会被回收。记下「这一格留的是哪一页」，供 tryKeepPinnedPage 判断原主有没有回来。
+            holder.itemView.setTag(R.id.tag_kept_page_index, recycledPosition);
+            return;
+        }
         // Cancel any in-flight Glide load targeting these ImageViews so a late-arriving
         // bitmap from the previous bind can't leak into the recycled holder.
         fragmentRequestManager.clear(holder.baseBind.illust);

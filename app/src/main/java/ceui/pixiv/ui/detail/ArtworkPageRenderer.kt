@@ -27,17 +27,66 @@ import ceui.pixiv.feeds.feedRenderer
 /**
  * 顶部静态图的一页。折叠时列表只含 pageIndex=0;展开后含 0..N-1。
  *
- * [rebindTick] 仅用于折叠回来时强制首页重绑(内容不变 DiffUtil 不会重绑,而 p0 的
- * 「展开剩余 X 张」覆盖层需要重现)——bump 一下即让 DiffUtil 判为内容变化、原地重绑。
- * feedKey 只认 pageIndex,身份不受 tick 影响。
+ * [rebindTick] 仅用于折叠回来时让首页的「展开剩余 X 张」覆盖层重现(内容不变 DiffUtil 不会
+ * 重绑)——bump 一下即判为内容变化,但那条变化只产出一条 overlay-only payload(见
+ * [PAYLOAD_EXPAND_OVERLAY_ONLY]),不重走取图。feedKey 只认 pageIndex,身份不受 tick 影响。
  */
-data class ArtworkPageItem(
+open class ArtworkPageItem(
     val illustId: Long,
     val pageIndex: Int,
     val rebindTick: Int = 0,
 ) : FeedItem {
     override val feedKey: Any get() = pageIndex
+
+    /** 换 tick 但**保住 javaClass**:viewType 就是类,换类等于换回收池的桶。 */
+    open fun withRebindTick(tick: Int): ArtworkPageItem =
+        ArtworkPageItem(illustId, pageIndex, tick)
+
+    // 不再是 data class 是**故意的**:常驻页要用 [ArtworkPinnedFirstPageItem] 单独占一个 viewType,
+    // 而 feeds 的 viewType 就是条目的 javaClass —— 想要子类就不能是 data class。equals 因此手写,
+    // 语义与原来的 data class 一致,只多一条「类型必须相同」。
+    override fun equals(other: Any?): Boolean =
+        other is ArtworkPageItem && other.javaClass == javaClass &&
+            other.illustId == illustId && other.pageIndex == pageIndex &&
+            other.rebindTick == rebindTick
+
+    override fun hashCode(): Int =
+        ((javaClass.hashCode() * 31 + illustId.hashCode()) * 31 + pageIndex) * 31 + rebindTick
 }
+
+/**
+ * p0 的条目 —— 收起回顶的落点,唯一被常驻的一页。与 [ArtworkPageItem] 分成两个类是刻意的。
+ *
+ * feeds 的 viewType 就是条目的 javaClass,而 RecyclerView 的回收池**按 viewType 分桶、取出是
+ * LIFO** —— 只有独立成类,这一格的 holder 才会独占一个桶,不跟普通页共用那几格 `mCachedViews`
+ * 窗口,也不会被后来的页顶掉。槽位因此能长住,而它留着的图仍由 Glide 的引用计数持有
+ * (见 `IllustAdapter` 的 `onViewRecycled` 对常驻页不清图),收起回顶才能一帧到位。
+ *
+ * 只保 p0:两枚胶囊(「展开剩余 X 张」「用阅读器看」)硬判 `position == 0`,且贴在 p0 那条 item
+ * 自己布局的下沿 —— 收起后的落点恒为 p0,p1 没有任何需要常驻的地方,它按普通页走(重载有淡入)。
+ *
+ * ⚠️ 真要保 p1 的话**必须再给它一个独立的类**,不能塞进这个类:同一个桶里躺两格时,取出来的
+ * 永远是最后进去的那格 —— p1 的 holder 会被拿去当 p0 用,`tryKeepPinnedPage` 判成错配、只能
+ * 清掉重下。分桶之后每桶只有一格,原主回来必然对上。
+ */
+class ArtworkPinnedFirstPageItem(
+    illustId: Long,
+    pageIndex: Int,
+    rebindTick: Int = 0,
+) : ArtworkPageItem(illustId, pageIndex, rebindTick) {
+    override fun withRebindTick(tick: Int) = ArtworkPinnedFirstPageItem(illustId, pageIndex, tick)
+}
+
+/**
+ * 按页号产出**正确的那一类**条目。别直接 `ArtworkPageItem(...)` —— 常驻页要是拿到了普通类,
+ * 它的 holder 就进了普通桶,常驻槽位整条失效。
+ */
+internal fun artworkPageItem(illustId: Long, pageIndex: Int, rebindTick: Int = 0): ArtworkPageItem =
+    if (pageIndex < IllustAdapter.PINNED_PAGE_COUNT) {
+        ArtworkPinnedFirstPageItem(illustId, pageIndex, rebindTick)
+    } else {
+        ArtworkPageItem(illustId, pageIndex, rebindTick)
+    }
 
 /** 顶部动图(ugoira):内联播放,单条目,无分页。 */
 data class ArtworkUgoiraItem(
@@ -46,10 +95,36 @@ data class ArtworkUgoiraItem(
     override val feedKey: Any get() = "artwork_ugoira"
 }
 
-internal fun ArtworkV3Fragment.artworkPageRenderer() =
-    feedRenderer<ArtworkPageItem, RecyIllustDetailBinding>(
+internal fun ArtworkV3Fragment.artworkPageRenderer() = pageRenderer<ArtworkPageItem>()
+
+/**
+ * 常驻页(p0)的 renderer:绑定逻辑与 [artworkPageRenderer] 逐字相同,只是条目类不同 —— 于是
+ * 它拿到自己的 viewType、独占回收池里一个桶,见 [ArtworkPinnedFirstPageItem]。
+ */
+internal fun ArtworkV3Fragment.artworkPinnedFirstPageRenderer() =
+    pageRenderer<ArtworkPinnedFirstPageItem>()
+
+/** 两个页 renderer 共用的一份绑定逻辑;两个入口只为拿不同的 viewType。 */
+private inline fun <reified T : ArtworkPageItem> ArtworkV3Fragment.pageRenderer() =
+    feedRenderer<T, RecyIllustDetailBinding>(
         inflate = RecyIllustDetailBinding::inflate,
         fullSpan = true,
+        // 折叠回来只会 bump [ArtworkPageItem.rebindTick]，唯一的目的是让 p0 的「展开剩余 X 张」
+        // 覆盖层重现。整条重绑会把大图请求一起重发——哪怕命中的是 Glide 内存缓存，也必然闪一帧
+        // 加载环——所以这里只发覆盖层 payload。
+        changePayload = { oldItem, newItem ->
+            if (oldItem.pageIndex == newItem.pageIndex && oldItem.illustId == newItem.illustId) {
+                PAYLOAD_EXPAND_OVERLAY_ONLY
+            } else {
+                null
+            }
+        },
+        bindPayloads = { cell, payloads ->
+            val delegate =
+                cell.itemView.getTag(R.id.tag_artwork_page_adapter) as? CollapsibleIllustAdapter
+            payloads.contains(PAYLOAD_EXPAND_OVERLAY_ONLY) &&
+                delegate?.bindOverlayOnly(ViewHolder(cell.binding), cell.item.pageIndex) == true
+        },
         recycle = { cell ->
             // 委托给同一个 adapter 清理(detach observer + clear Glide)。ViewHolder 只是薄壳,
             // 读的是 itemView tag,新建一个包住同一 binding 即可。delegate 存在 cell tag 上，
@@ -61,7 +136,19 @@ internal fun ArtworkV3Fragment.artworkPageRenderer() =
     ) { cell ->
         val adapter = ensurePageAdapter() ?: return@feedRenderer
         cell.itemView.setTag(R.id.tag_artwork_page_adapter, adapter)
-        adapter.onBindViewHolder(ViewHolder(cell.binding), cell.item.pageIndex)
+        val holder = ViewHolder(cell.binding)
+        // 常驻槽位命中:这一格留着的正是这一页的图(见 [ArtworkPinnedFirstPageItem] 与
+        // IllustAdapter 的 onViewRecycled),取图整条都不用走 —— 没有请求,也就没有环和底色。
+        if (adapter.tryKeepPinnedPage(holder, cell.item.pageIndex)) {
+            // 但**覆盖层不能跟着跳过**:它跟着折叠 / 展开变,折叠回来时那层 scrim 和
+            // 「展开剩余 X 张」「用阅读器看」两枚胶囊要重新出现。也不能指望 overlay-only
+            // payload —— 回收时 itemView 上的 adapter tag 被置空,bindPayloads 取不到 delegate
+            // 会返回 false,正是回退到这条路径来的。
+            (adapter as? CollapsibleIllustAdapter)
+                ?.refreshExpandOverlay(holder, cell.item.pageIndex)
+            return@feedRenderer
+        }
+        adapter.onBindViewHolder(holder, cell.item.pageIndex)
         if (isSnapshotMode) {
             // 点大图不在这里另起一份 intent:上一行的 adapter.onBindViewHolder 已经按
             // AbstractIllustAdapter.snapshotId 路由到「快照大图」了,而且它带了
@@ -87,3 +174,9 @@ internal fun ArtworkV3Fragment.artworkUgoiraRenderer() =
         cell.binding.root.bind(viewLifecycleOwner, illust, maxHeight)
         cell.binding.root.setOnClickListener { openUgoiraViewer(it, illust) }
     }
+
+/**
+ * 折叠回来时 p0 只需要刷新「展开剩余 X 张」覆盖层，不该重走取图。
+ * 消费方是 [artworkPageRenderer] 的 bindPayloads，兜底由框架负责（返回 false 即全量重绑）。
+ */
+private val PAYLOAD_EXPAND_OVERLAY_ONLY = Any()

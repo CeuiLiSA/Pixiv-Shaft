@@ -77,6 +77,38 @@ class CollapsibleIllustAdapter(
         onExpandedChanged?.invoke(true)
     }
 
+    /**
+     * 只把 p0 的「展开剩余 X 张」覆盖层刷新出来，不重走取图。
+     *
+     * 折叠回来时 [ArtworkPageItem.rebindTick] 会被 bump，好让 DiffUtil 判出内容变化。那条变化原先
+     * 直接走全量重绑，连大图请求一起重发——即使命中的是 Glide 内存缓存，也必然闪一帧加载环。
+     * 宿主改发 overlay-only payload 后走这里，图片一个字节都不动。
+     *
+     * 返回 false 时宿主必须退回全量绑定：holder 上还挂着图 URL 标记，才说明它本来就画着这一页；
+     * 刚创建 / 刚从池里取的 holder 标记是空的，跳过全量绑定会留下一张空白大图。
+     */
+    internal fun bindOverlayOnly(
+        holder: ViewHolder<RecyIllustDetailBinding>,
+        position: Int,
+    ): Boolean {
+        if (position != 0 || !isCollapsed) return false
+        if (holder.baseBind.illust.getTag(R.id.tag_image_url) == null) return false
+        bindExpandOverlay(holder, position, fadeIn = false)
+        return true
+    }
+
+    /**
+     * 只刷新 p0 的「展开剩余 X 张」覆盖层（折叠态才显示），不碰取图，也不判 holder 上有没有图。
+     *
+     * 两个调用点：折叠回来时宿主发的 overlay-only payload（见 [bindOverlayOnly]）；以及常驻槽位
+     * 命中时 —— 那条路径把整条绑定都跳过了，覆盖层状态不能跟着跳过，否则折叠回来时那层 scrim 与
+     * 两枚胶囊不会重现。
+     */
+    internal fun refreshExpandOverlay(holder: ViewHolder<RecyIllustDetailBinding>, position: Int) {
+        if (position != 0) return
+        bindExpandOverlay(holder, position, fadeIn = false)
+    }
+
     fun collapse() {
         if (!expanded) return
         val prev = itemCount

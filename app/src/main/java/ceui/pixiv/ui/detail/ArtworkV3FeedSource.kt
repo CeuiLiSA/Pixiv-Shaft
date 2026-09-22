@@ -121,7 +121,7 @@ class ArtworkV3FeedSource(
             if (illust.isGif()) return listOf(ArtworkUgoiraItem(illust.id))
             val pageCount = illust.page_count.coerceAtLeast(1)
             val visible = if (CollapsibleIllustAdapter.shouldCollapse(pageCount)) 1 else pageCount
-            return (0 until visible).map { ArtworkPageItem(illust.id, it) }
+            return (0 until visible).map { artworkPageItem(illust.id, it) }
         }
 
         /** header 区块条目,顺序对齐 legacy ArtworkV3ViewModel.doBuildHeaderItems。 */
