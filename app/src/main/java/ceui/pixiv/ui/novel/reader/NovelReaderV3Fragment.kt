@@ -479,6 +479,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     val t = ReaderSettings.effectiveTheme()
                     binding.root.setBackgroundColor(t.backgroundColor)
                     applyLoadingTint(t)
+                    bb.setDarkMode(t.isDark)
                     // showBottomProgress 走 Layout 事件,开关拨完立刻生效。
                     refreshProgressOverlay()
                 }
