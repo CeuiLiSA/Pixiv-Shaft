@@ -357,7 +357,12 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             so.setShown(true)
             // Let the overlay measure, then tell the scroll reader how much top
             // area is covered so search-hit centering avoids the hidden zone.
-            so.view.post { scrollReaderView?.topInset = so.view.height }
+            so.view.post {
+                if (so.isShown()) {
+                    scrollReaderView?.topInset = so.view.height
+                    runSearch(so.currentQuery())
+                }
+            }
         }
         bb.onSeekCommit = { pageIndex -> rv.goToPage(pageIndex, animate = false) }
         bb.onScrollSeekCommit = { fraction ->
@@ -366,7 +371,14 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     }
 
     private fun wireSearchOverlay(so: ReaderSearchOverlay, chrome: ReaderChrome) {
-        so.onQueryChanged = { runSearch(it) }
+        binding.readerSearchOverlay.editSearchQuery.setText(ReaderSettings.lastSearchQuery)
+        so.onQueryChanged = { query ->
+            // Restoring a hidden input must not search or move the reading position.
+            if (so.isShown()) {
+                ReaderSettings.lastSearchQuery = query
+                runSearch(query)
+            }
+        }
         so.onNext = { jumpToHit(1) }
         so.onPrev = { jumpToHit(-1) }
         so.onRegexToggle = { regex ->
@@ -382,7 +394,6 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
      *  习惯性连滑两次会误退 —— issue #1004。 */
     private fun closeSearch(so: ReaderSearchOverlay, chrome: ReaderChrome) {
         so.setShown(false)
-        so.clear()
         viewModel.clearSearch()
         scrollReaderView?.topInset = 0
         chrome.show()
