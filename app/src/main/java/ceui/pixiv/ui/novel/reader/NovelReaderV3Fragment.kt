@@ -638,6 +638,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     // ---- Scroll / paged mode switch ----------------------------------------
 
     private fun applyFlipMode(rv: NovelReaderView, chrome: ReaderChrome) {
+        rv.cancelPendingTaps()
+        scrollReaderView?.cancelTtsFollow()
         if (ReaderSettings.readingDirection == ReadingDirection.Vertical) {
             rv.visibility = View.GONE
             val sv = ensureScrollReaderView(chrome)
@@ -1492,6 +1494,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     }
 
     override fun onPause() {
+        readerView?.cancelPendingTaps()
         scrollReaderView?.cancelTtsFollow()
         super.onPause()
     }

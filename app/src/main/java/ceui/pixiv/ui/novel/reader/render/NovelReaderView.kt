@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -89,11 +90,7 @@ class NovelReaderView @JvmOverloads constructor(
     var onTextDoubleTap: ((charIndex: Int) -> Unit)? = null
         set(value) {
             field = value
-            if (value == null) {
-                pendingSingleTap?.let(::removeCallbacks)
-                pendingSingleTap = null
-                doubleTapChar = null
-            }
+            if (value == null) cancelPendingTaps()
         }
     val isUserInteracting: Boolean
         get() = touchActive || isDragging || pendingSingleTap != null || doubleTapChar != null || settleAnimator?.isRunning == true
@@ -212,9 +209,22 @@ class NovelReaderView @JvmOverloads constructor(
     fun totalPageCount(): Int = pages.size
     fun currentPage(): Page? = pages.getOrNull(currentIndex)
 
+    /** Delayed taps belong to the page and lifecycle in which they began. */
+    fun cancelPendingTaps() {
+        pendingSingleTap?.let(::removeCallbacks)
+        pendingSingleTap = null
+        doubleTapChar = null
+        val now = SystemClock.uptimeMillis()
+        MotionEvent.obtain(now, now, MotionEvent.ACTION_CANCEL, 0f, 0f, 0).let {
+            ttsGestures.onTouchEvent(it)
+            it.recycle()
+        }
+    }
+
     // ---- Internal ---------------------------------------------------------
 
     private fun refreshPages() {
+        cancelPendingTaps()
         val style = this.style ?: return
         val geom = this.geometry ?: return
         Timber.tag(TAG).d("refreshPages() currentIndex=$currentIndex / ${pages.size} (prev=${pages.getOrNull(currentIndex - 1) != null} next=${pages.getOrNull(currentIndex + 1) != null})")
@@ -229,6 +239,7 @@ class NovelReaderView @JvmOverloads constructor(
         if (direction == FlipDirection.Forward) nextView else prevView
 
     private fun programmaticFlip(direction: FlipDirection, animate: Boolean = true) {
+        cancelPendingTaps()
         Timber.tag(TAG).d("programmaticFlip direction=$direction animate=$animate currentIndex=$currentIndex canFlip=${canFlip(direction)}")
         if (!canFlip(direction)) {
             onEdgeHit?.invoke(direction)
@@ -548,9 +559,7 @@ class NovelReaderView @JvmOverloads constructor(
 
     private fun cancelAllGestures() {
         touchActive = false
-        pendingSingleTap?.let(::removeCallbacks)
-        pendingSingleTap = null
-        doubleTapChar = null
+        cancelPendingTaps()
         cancelSettle()
         isDragging = false
         dragProgress = 0f

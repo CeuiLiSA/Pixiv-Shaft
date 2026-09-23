@@ -106,6 +106,10 @@ class ReaderParagraphSpacingMigrationTest {
             values[key] = value
             return true
         }
+        @Implementation fun encode(key: String, value: Boolean): Boolean {
+            values[key] = value
+            return true
+        }
 
         companion object {
             val values = mutableMapOf<String, Any>()

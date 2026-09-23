@@ -20,7 +20,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.view.doOnNextLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.utils.GlideUrlChild
@@ -58,7 +57,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     var onTextDoubleTap: ((Int) -> Unit)? = null
     private var doubleTapChar: Int? = null
     private var ttsRange: IntRange? = null
-    private var followGeneration = 0
+    private var pendingTtsChar: Int? = null
     private var touchActive = false
     val isUserInteracting: Boolean
         get() = touchActive || scrollState != SCROLL_STATE_IDLE
@@ -180,7 +179,15 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        // Keep deferred speech navigation in this view until layout actually
+        // starts. LayoutManager's pending scroll cannot otherwise be cancelled
+        // when the user touches, pauses, or disables following before that frame.
+        val followChar = pendingTtsChar
+        pendingTtsChar = null
+        val followPosition = followChar?.takeUnless { isUserInteracting }?.let(::positionForCharIndex)
+        if (followPosition != null) lm.scrollToPositionWithOffset(followPosition, topInset)
         super.onLayout(changed, l, t, r, b)
+        if (followPosition != null && followChar != null) alignTtsLine(followPosition, followChar)
         // 每次布局完成后补报一次进度：初始那次 pushScrollProgressNow 走的是 post{}，
         // 可能赶在首帧内容排版前执行（此时 scrollRange 还是 0），而部分机型上首次布局
         // 不派发 onScrolled(0,0)——常驻进度就一直空着，直到用户手动滚动/呼出菜单
@@ -196,6 +203,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         geometry: PageGeometry,
         imageResolver: (ContentToken) -> String?,
     ) {
+        cancelTtsFollow()
         setBackgroundColor(style.backgroundColor)
         // Side padding = text margins (applies to every item); top/bottom
         // padding = end breathing room. clipToPadding=false lets content
@@ -213,6 +221,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     }
 
     fun scrollToCharIndex(charIndex: Int) {
+        cancelTtsFollow()
         val pos = positionForCharIndex(charIndex) ?: return
         post {
             val first = lm.findFirstVisibleItemPosition()
@@ -243,6 +252,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     }
 
     fun scrollByPage(forward: Boolean) {
+        cancelTtsFollow()
         val distance = (height * 0.9f).toInt()
         smoothScrollBy(0, if (forward) distance else -distance)
     }
@@ -256,6 +266,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
      * hair off the dragged value; that's expected for a variable-height list.
      */
     fun scrollToFraction(fraction: Float) {
+        cancelTtsFollow()
         val count = contentAdapter?.itemCount ?: return
         if (count <= 0) return
         val pos = (fraction.coerceIn(0f, 1f) * (count - 1)).roundToInt()
@@ -308,19 +319,16 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         return top >= paddingTop + topInset && bottom <= height - paddingBottom
     }
 
-    fun cancelTtsFollow() { followGeneration++ }
+    fun cancelTtsFollow() { pendingTtsChar = null }
 
     fun followTtsChar(charIndex: Int) {
-        val generation = ++followGeneration
+        cancelTtsFollow()
         if (isCharVisible(charIndex) || isUserInteracting) return
         val pos = positionForCharIndex(charIndex) ?: return
         val child = lm.findViewByPosition(pos) as? TextView
         if (child == null || child.layout == null) {
-            lm.scrollToPositionWithOffset(pos, topInset)
-            // The target paragraph must be laid out before locating its line.
-            doOnNextLayout {
-                if (isAttachedToWindow && generation == followGeneration) alignTtsLine(pos, charIndex)
-            }
+            pendingTtsChar = charIndex
+            requestLayout()
             return
         }
         alignTtsLine(pos, charIndex)
