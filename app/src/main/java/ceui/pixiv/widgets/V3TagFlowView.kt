@@ -41,7 +41,7 @@ internal fun resolveTagTranslationColor(palette: V3Palette): Int {
         index in ThemeColorCatalog.entries.indices -> ThemeColorCatalog.hexOf(index)
         else -> null
     } ?: return palette.textTag
-    return V3Palette(hex.toColorInt(), palette.isDark).textTag
+    return palette.tagTextColor(V3Palette(hex.toColorInt(), palette.isDark).textTag)
 }
 
 /** Pixiv 标签的业务入口。布局、主题、编辑器与选择能力统一由 witstudio 提供。 */

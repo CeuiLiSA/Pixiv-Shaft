@@ -1,20 +1,28 @@
 package ceui.pixiv.widgets
 
 import android.content.Context
+import android.app.Activity
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.os.Build
 import android.os.Parcelable
+import android.os.Looper
+import android.os.SystemClock
 import android.util.SparseArray
 import android.view.View
 import android.view.ViewGroup
+import android.view.MotionEvent
+import android.view.ViewConfiguration
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.view.children
+import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.toColorInt
 import ceui.lisa.R
+import ceui.pixiv.ui.settings.ThemeColorCatalog
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.widget.WitTagFlowView
 import ceui.pixiv.witstudio.widget.WitTagItem
@@ -24,10 +32,13 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Robolectric
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.io.File
+import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28, 35])
@@ -142,6 +153,50 @@ class WitTagFlowViewTest {
         flow.setTagNames(listOf("new"))
     }
 
+    @Test fun `history touch dispatch separates body delete and long press`() {
+        val actions = mutableListOf<String>()
+        val flow = flow().apply {
+            setOnItemClickListener { _, _ -> actions += "body" }
+            setOnItemRemoveListener { _, _ -> actions += "delete" }
+            setOnItemLongClickListener { _, _ -> actions += "menu"; true }
+            setItems(listOf(WitTagItem("a", "历史标签", removeDescription = "删除")))
+        }
+        val activity = Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            activity.get().setContentView(flow)
+            shadowOf(Looper.getMainLooper()).idle()
+            for (rtl in listOf(false, true)) {
+                flow.layoutDirection = if (rtl) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
+                size(flow)
+                val row = flow.getChildAt(0) as ViewGroup
+                val body = row.getChildAt(0)
+                val delete = row.children.filterIsInstance<ImageButton>().single()
+                fun gesture(target: View, longPress: Boolean = false) {
+                    val downTime = SystemClock.uptimeMillis()
+                    val x = row.left + target.left + target.width / 2f
+                    val y = row.top + target.top + target.height / 2f
+                    for (action in listOf(MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP)) {
+                        val event = MotionEvent.obtain(downTime, SystemClock.uptimeMillis(), action, x, y, 0)
+                        flow.dispatchTouchEvent(event)
+                        event.recycle()
+                        if (action == MotionEvent.ACTION_DOWN && longPress) {
+                            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(
+                                ViewConfiguration.getLongPressTimeout().toLong() + 100))
+                        }
+                    }
+                    shadowOf(Looper.getMainLooper()).idle()
+                }
+                actions.clear()
+                gesture(body)
+                gesture(delete)
+                gesture(body, longPress = true)
+                assertEquals("rtl=$rtl", listOf("body", "delete", "menu"), actions)
+            }
+        } finally {
+            activity.pause().stop().destroy()
+        }
+    }
+
     @Test fun `identical rebinding keeps views and action changes are read at click time`() {
         val flow = flow()
         val first = flow.getChildAt(0)
@@ -174,6 +229,25 @@ class WitTagFlowViewTest {
             flow.setSelectedKeys(setOf("b"))
             savePreview(flow, "theme-$dark")
         }
+    }
+
+    @Test fun `theme tag text stays readable on normal and selected chips`() {
+        val failures = mutableListOf<String>()
+        for (dark in listOf(false, true)) {
+            for (theme in ThemeColorCatalog.entries) {
+                val palette = V3Palette(theme.hex.toColorInt(), dark)
+                // V3 表面含选择态；搜索/旧详情的标签是动作模式，使用旧版页面底色。
+                val surfaces = listOf(palette.cardFill to palette.alpha08,
+                    palette.cardFill to palette.alpha20,
+                    (if (dark) 0xFF2A2A2A.toInt() else 0xFFFFFFFF.toInt()) to palette.alpha08)
+                for ((surface, tint) in surfaces) {
+                    val background = ColorUtils.compositeColors(tint, surface)
+                    val contrast = ColorUtils.calculateContrast(palette.textTag, background)
+                    if (contrast < 4.5) failures += "${theme.hex}, dark=$dark: $contrast"
+                }
+            }
+        }
+        assertTrue(failures.joinToString("\n"), failures.isEmpty())
     }
 
     @Test fun `long labels and independent delete fit narrow screens at large font in both directions`() {

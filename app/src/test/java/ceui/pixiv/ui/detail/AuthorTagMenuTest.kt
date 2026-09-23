@@ -204,6 +204,25 @@ class AuthorTagMenuTest {
             ?.let { if (it.isClickable) it else it.parent as? View }
 
     @Test
+    fun `independent translation colors stay readable on the host theme`() {
+        val failures = mutableListOf<String>()
+        for (dark in listOf(false, true)) {
+            for (theme in ceui.pixiv.ui.settings.ThemeColorCatalog.entries) {
+                val palette = ceui.pixiv.witstudio.theme.V3Palette(android.graphics.Color.parseColor(theme.hex), dark)
+                val background = androidx.core.graphics.ColorUtils.compositeColors(palette.alpha08,
+                    if (dark) 0xFF2A2A2A.toInt() else 0xFFFFFFFF.toInt())
+                for (translationIndex in ceui.pixiv.ui.settings.ThemeColorCatalog.entries.indices) {
+                    Shaft.sSettings.tagTranslationColorIndex = translationIndex
+                    val color = ceui.pixiv.widgets.resolveTagTranslationColor(palette)
+                    val contrast = androidx.core.graphics.ColorUtils.calculateContrast(color, background)
+                    if (contrast < 4.5) failures += "${theme.hex}, dark=$dark, translation=$translationIndex: $contrast"
+                }
+            }
+        }
+        assertTrue(failures.joinToString("\n"), failures.isEmpty())
+    }
+
+    @Test
     fun `snapshot tags preserve their copy-only long press`() {
         fragment.requireArguments().putString(SnapshotManagerFragment.ARG_SNAPSHOT_ID, "local")
         val flow = render(work("illust"))
@@ -219,12 +238,17 @@ class AuthorTagMenuTest {
             .setMaxLifecycle(legacy, Lifecycle.State.CREATED).commitNow()
         val binding = FragmentIllustBinding.inflate(LayoutInflater.from(host))
         ReflectionHelpers.setField(legacy, "baseBind", binding)
+        var initialMatchGeneration: Int? = null
         for ((type, route) in listOf(
             "illust" to TemplateRoute.USER_ILLUSTS_BY_TAG,
             "manga" to TemplateRoute.USER_MANGA_BY_TAG,
         )) {
             ReflectionHelpers.callInstanceMethod<Void>(legacy, "setupTags",
                 ReflectionHelpers.ClassParameter.from(Illust::class.java, work(type)))
+            // 收藏状态 / 作品类型回流不该重新匹配同一批标签，重绘会丢失同义词展开状态。
+            val matchGeneration = ReflectionHelpers.getField<Int>(binding.synonymMatch, "renderSeq")
+            if (initialMatchGeneration == null) initialMatchGeneration = matchGeneration
+            else assertEquals(initialMatchGeneration, matchGeneration)
             assertTrue(binding.illustTag.getChildAt(0).performLongClick())
             idle()
             val dialog = ShadowDialog.getLatestDialog()

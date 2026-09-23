@@ -129,6 +129,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     // 让「重建图片区」「重建标签区」「挂 sheet callback」「发头像 Glide 请求」这几件带视觉副作用的
     // 事只在真需要时做——否则收藏一下整页就闪一次(#962)。跟着 view 走,onDestroyView 里清掉。
     private var renderedImageSignature: String? = null
+    private var renderedSynonymTags: List<Pair<String?, String?>>? = null
+    private var renderedSynonymEnabled = false
     private var bottomSheetCallbackAttached = false
     private var pageProgressPillAttached = false
     private val pageProgressLocation = IntArray(2)
@@ -587,7 +589,14 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private fun setupTags(illust: Illust) {
         val tags = illust.tags.orEmpty().toTagsBeans()
         val flow = baseBind.illustTag
-        baseBind.synonymMatch.setWorkTags(tags)
+        val synonymTags = tags.map { it.name to it.translated_name }
+        val synonymEnabled = Shaft.sSettings.isSynonymDictEnabled
+        if (synonymTags != renderedSynonymTags || synonymEnabled != renderedSynonymEnabled) {
+            // 收藏回流只更新菜单闭包；重做同义词匹配会收起用户已展开的内容（#962）。
+            renderedSynonymTags = synonymTags
+            renderedSynonymEnabled = synonymEnabled
+            baseBind.synonymMatch.setWorkTags(tags)
+        }
         if (isSnapshotMode) {
             flow.overflowActionText = null
             flow.onOverflowClick = null
@@ -1093,6 +1102,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         pageProgressPillAttached = false
         pageProgressIndex = -1
         renderedImageSignature = null
+        renderedSynonymTags = null
         bottomSheetCallbackAttached = false
         sheetDeltaY = 0
         loadedAvatarUrl = null
