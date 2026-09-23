@@ -110,6 +110,18 @@ class ArtworkPageReuseTest {
     }
 
     @Test
+    fun `releasing for a replacement adapter keeps on-screen pages painted`() {
+        val adapter = delegate()
+        val first = boundPage(adapter)
+        val second = boundPage(adapter, 1)
+        adapter.release()
+        // Force-original swaps adapters while these pages are still visible; the new adapter
+        // rebinds them, and in original mode pages after p0 never paint a large placeholder.
+        assertNotNull(first.baseBind.illust.drawable)
+        assertNotNull(second.baseBind.illust.drawable)
+    }
+
+    @Test
     fun `ordinary pages still detach observers and clear images on recycle`() {
         val adapter = delegate()
         val holder = boundPage(adapter, 1)

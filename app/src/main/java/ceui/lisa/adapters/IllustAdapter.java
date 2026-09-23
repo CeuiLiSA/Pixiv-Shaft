@@ -302,8 +302,12 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         pageStatusListener = null;
         localPagesChangedListener = null;
         // 回收池不会再次回调已经回收的 p0；必须在 view 结束或更换 adapter 时主动释放它。
+        // 只动池里那一格（带回收标记）：屏上的页还在显示，「加载原图」换 adapter 时清掉它们的图，
+        // 原图模式不发 large 的后续页会一直灰底到原图下完。它们由新 adapter 重绑 / 正常回收接管。
         for (RecyIllustDetailBinding binding : new ArrayList<>(boundBindings.values())) {
-            onViewRecycled(new ViewHolder<>(binding));
+            if (binding.getRoot().getTag(R.id.tag_kept_page_index) != null) {
+                onViewRecycled(new ViewHolder<>(binding));
+            }
         }
         pageRatio.clear();
         overlaySizedPages.clear();
