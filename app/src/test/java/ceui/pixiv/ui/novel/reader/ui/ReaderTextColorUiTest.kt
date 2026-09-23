@@ -14,9 +14,17 @@ import androidx.appcompat.view.ContextThemeWrapper
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.room.Room
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.utils.Settings
+import ceui.pixiv.db.discovery.DiscoveryPool
+import ceui.pixiv.db.discovery.ProfileManager
+import ceui.pixiv.ui.novel.reader.NovelReaderV3Fragment
+import ceui.pixiv.ui.novel.reader.NovelReaderV3ViewModel
+import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
 import ceui.pixiv.ui.novel.reader.settings.ReaderParagraphSpacingMigrationTest.MemoryMMKV
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
 import ceui.pixiv.ui.novel.reader.settings.ReaderTheme
@@ -134,6 +142,54 @@ class ReaderTextColorUiTest {
             assertTextFits(section.findViewById(R.id.row_reset_text_color))
             val row = section.findViewById<ViewGroup>(R.id.row_text_color)
             for (i in 0 until row.childCount) assertTextFits(row.getChildAt(i) as TextView)
+        }
+    }
+
+    @Test fun `confirming and resetting text color pushes a new style through the paged reader cache`() {
+        val app = RuntimeEnvironment.getApplication()
+        shadowOf(app).grantPermissions("${app.packageName}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")
+        val db = Room.inMemoryDatabaseBuilder(app, AppDatabase::class.java).allowMainThreadQueries().build()
+        ReflectionHelpers.setStaticField(AppDatabase::class.java, "INSTANCE", db)
+        val model = NovelReaderV3ViewModel(1142L, DiscoveryPool(app, ProfileManager(app)))
+        // Keep network and pagination suspended; inspect what the real Fragment sends to its paginator.
+        ReflectionHelpers.getField<MutableLiveData<NovelReaderV3ViewModel.LoadState>>(model, "_loadState").value =
+            NovelReaderV3ViewModel.LoadState.Loading
+        val host = Robolectric.buildActivity(FragmentActivity::class.java)
+        host.get().setTheme(R.style.AppTheme)
+        host.setup()
+        try {
+            val reader = NovelReaderV3Fragment.newInstance(1142L)
+            ReflectionHelpers.setField(reader, "viewModel\$delegate", lazyOf(model))
+            host.get().supportFragmentManager.beginTransaction()
+                .add(android.R.id.content, reader, "reader").commitNow()
+            measure(reader.requireView(), 320, 640)
+            fun pushedStyle(): TypeStyle = ReflectionHelpers.getField(model, "pendingStyle")
+
+            for (preset in listOf(ReaderTheme.WHITE, ReaderTheme.NIGHT)) {
+                ReaderSettings.onThemePicked(preset.id)
+                assertEquals(preset.textColor, pushedStyle().textPaint.color)
+                reader.requireView().findViewById<View>(R.id.btn_settings).performClick()
+                reader.childFragmentManager.executePendingTransactions()
+                val panel = reader.childFragmentManager.findFragmentByTag(ReaderSettingsPanel.TAG) as ReaderSettingsPanel
+                panel.requireView().findViewById<View>(R.id.row_text_color).performClick()
+                panel.childFragmentManager.executePendingTransactions()
+                val picker = panel.childFragmentManager.fragments.filterIsInstance<CustomThemeColorSheet>().single()
+                val hex = if (preset.isDark) "#FFFFFF" else "#000000"
+                picker.requireView().findViewById<EditText>(R.id.hex_input).setText(hex)
+                picker.requireView().findViewById<View>(R.id.btn_confirm).performClick()
+                panel.childFragmentManager.executePendingTransactions()
+                assertEquals(Color.parseColor(hex), pushedStyle().textPaint.color)
+                assertEquals(Color.parseColor(hex), pushedStyle().chapterPaint.color)
+                panel.requireView().findViewById<View>(R.id.row_reset_text_color).performClick()
+                assertEquals(preset.textColor, pushedStyle().textPaint.color)
+                assertEquals(preset.chapterTitleColor, pushedStyle().chapterPaint.color)
+                panel.dismissNow()
+            }
+        } finally {
+            host.pause().stop().destroy()
+            ReflectionHelpers.callInstanceMethod<Void>(model, "onCleared")
+            AppDatabase.destroyInstance()
+            db.close()
         }
     }
 

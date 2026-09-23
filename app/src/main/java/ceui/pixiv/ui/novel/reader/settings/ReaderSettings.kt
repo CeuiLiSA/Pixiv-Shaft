@@ -530,6 +530,7 @@ object ReaderSettings {
         flipMode = flipMode,
         imagePlacement = imagePlacement,
         imageScaleMode = imageScaleMode,
+        customTextColor = customTextColor(effectiveTheme().id),
     )
 
     data class Snapshot(
@@ -551,6 +552,8 @@ object ReaderSettings {
         val flipMode: FlipMode,
         val imagePlacement: ImagePlacement,
         val imageScaleMode: ImageScaleMode,
+        // The paged reader deduplicates style updates by Snapshot equality, including color-only edits.
+        val customTextColor: Int? = null,
     )
 
     const val FONT_SIZE_MIN = 12

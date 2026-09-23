@@ -81,7 +81,7 @@
                 android:paddingTop="12dp"
                 android:paddingBottom="12dp"
                 android:text="@string/setting_text_color_reset"
-                android:textColor="?attr/colorPrimary"
+                android:textColor="@color/v3_text_1"
                 android:textSize="14sp"
                 android:visibility="gone" />
 

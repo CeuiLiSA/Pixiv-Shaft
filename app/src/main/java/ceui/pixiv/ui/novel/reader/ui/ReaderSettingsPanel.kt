@@ -34,6 +34,7 @@ import ceui.pixiv.ui.novel.reader.settings.ReaderTheme
 import ceui.pixiv.ui.settings.CustomThemeColor
 import ceui.pixiv.ui.settings.CustomThemeColorSheet
 import ceui.pixiv.utils.letDrawBehindNavBar
+import ceui.pixiv.witstudio.theme.V3Palette
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -187,6 +188,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
                 requestKey = TEXT_COLOR_REQUEST_PREFIX + theme.id,
             ).show(childFragmentManager, TEXT_COLOR_TAG)
         }
+        s.rowResetTextColor.setTextColor(V3Palette.from(ctx).textAccent)
         s.rowResetTextColor.setOnClickListener {
             ReaderSettings.setTextColor(ReaderSettings.effectiveTheme().id, null)
         }
