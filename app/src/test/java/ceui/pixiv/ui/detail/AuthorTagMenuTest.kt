@@ -38,6 +38,9 @@ import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.novel.NovelTagsFeedItem
 import ceui.pixiv.ui.novel.novelTagsRenderer
 import ceui.pixiv.widgets.V3TagFlowView
+import ceui.pixiv.utils.pinnedTagTranslation
+import ceui.lisa.utils.PixivOperate
+import ceui.lisa.utils.SearchTypeUtil
 import com.blankj.utilcode.util.Utils
 import java.lang.reflect.Proxy
 import java.util.Locale
@@ -147,6 +150,58 @@ class AuthorTagMenuTest {
         assertNull(authorAction(openMenu(flow)))
         assertTrue(requests.isEmpty())
     }
+
+    @Test
+    fun `search and novel feed menus include full tag actions and persist pin translation`() {
+        com.hjq.toast.Toaster.init(RuntimeEnvironment.getApplication())
+        val flow = V3TagFlowView(host).apply {
+            searchIndex = 1
+            showTranslation = false
+            setTags(listOf(Tag(name = "menu-1146", translated_name = "官方译名")))
+        }
+        assertFalse((flow.getChildAt(0) as TextView).text.contains("官方译名"))
+        var dialog = openMenu(flow)
+        for (label in listOf(R.string.v3_tag_menu_copy_original, R.string.v3_tag_menu_copy_translation,
+            R.string.string_translate_caption, R.string.v3_tag_menu_mute, R.string.string_442)) {
+            assertNotNull(menuAction(dialog, label))
+        }
+        assertNull(authorAction(dialog))
+        menuAction(dialog, R.string.string_442)!!.performClick()
+        val pinned = PixivOperate.getSearchHistory("menu-1146", SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD)
+        assertTrue(pinned.isPinned)
+        assertEquals("官方译名", pinnedTagTranslation(pinned.previewIllustsJson))
+        dialog = openMenu(flow)
+        assertNotNull(menuAction(dialog, R.string.string_443))
+        menuAction(dialog, R.string.string_443)!!.performClick()
+        assertFalse(PixivOperate.getSearchHistory("menu-1146", SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD).isPinned)
+        assertTrue(requests.isEmpty())
+    }
+
+    @Test
+    fun `discovery translation uses preference while original text follows palette`() {
+        Shaft.sSettings.tagTranslationColorIndex = 5
+        val flow = V3TagFlowView(host).apply {
+            setTags(listOf(Tag(name = "original-1146", translated_name = "官方译文")))
+        }
+        val label = flow.getChildAt(0) as TextView
+        val text = label.text as android.text.Spanned
+        val span = text.getSpans(0, text.length, android.text.style.ForegroundColorSpan::class.java).single()
+        val palette = ceui.pixiv.witstudio.theme.V3Palette.from(host)
+        assertEquals(palette.textTag, label.currentTextColor)
+        assertEquals(ceui.pixiv.widgets.resolveTagTranslationColor(palette), span.foregroundColor)
+        assertEquals("官方译文", text.subSequence(text.getSpanStart(span), text.getSpanEnd(span)).toString().trim())
+        Shaft.sSettings.setTagTranslationColorFollowTheme()
+        flow.setTags(listOf(Tag(name = "original-1146", translated_name = "官方译文")))
+        val refreshed = flow.getChildAt(0) as TextView
+        val refreshedText = refreshed.text as android.text.Spanned
+        assertEquals(refreshed.currentTextColor, refreshedText.getSpans(0, refreshedText.length,
+            android.text.style.ForegroundColorSpan::class.java).single().foregroundColor)
+    }
+
+    private fun menuAction(dialog: Dialog, label: Int): View? =
+        (dialog.window!!.decorView as ViewGroup).descendants.filterIsInstance<TextView>()
+            .firstOrNull { it.text.toString() == host.getString(label) }
+            ?.let { if (it.isClickable) it else it.parent as? View }
 
     @Test
     fun `snapshot tags preserve their copy-only long press`() {

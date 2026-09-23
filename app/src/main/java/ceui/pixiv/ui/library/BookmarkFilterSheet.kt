@@ -32,7 +32,11 @@ import ceui.pixiv.utils.screenHeight
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.zhy.view.flowlayout.FlowLayout
+import com.google.android.flexbox.FlexboxLayout
+import com.google.android.flexbox.FlexWrap
+import com.google.android.flexbox.AlignItems
+import ceui.pixiv.witstudio.widget.WitTagStyle
+import ceui.pixiv.witstudio.theme.V3Palette
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -87,8 +91,8 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
      */
     private val knownTagLabels = HashMap<String, Pair<String, String>>()
 
-    private var tagFlow: FlowLayout? = null
-    private var authorFlow: FlowLayout? = null
+    private var tagFlow: FlexboxLayout? = null
+    private var authorFlow: FlexboxLayout? = null
 
     /** 标签搜索框。「清空」要连它一起清 —— 见 [onViewCreated] 里 reset 的注释。 */
     private var tagSearchInput: EditText? = null
@@ -387,7 +391,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         }
         container.addView(row, matchWidth(topMarginDp = 8))
 
-        tagFlow = FlowLayout(requireContext()).also { container.addView(it, matchWidth(topMarginDp = 8)) }
+        tagFlow = newFlow().also { container.addView(it, matchWidth(topMarginDp = 8)) }
         rebuildTagChips()
     }
 
@@ -486,7 +490,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
 
     private fun buildAuthorSection(container: LinearLayout) {
         container.addView(sectionHeader(getString(R.string.bookmark_filter_section_author)))
-        authorFlow = FlowLayout(requireContext()).also { container.addView(it, matchWidth(topMarginDp = 8)) }
+        authorFlow = newFlow().also { container.addView(it, matchWidth(topMarginDp = 8)) }
         rebuildAuthorChips()
     }
 
@@ -525,7 +529,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
     ) {
         val container = binding.sectionsContainer
         container.addView(sectionHeader(title))
-        val flow = FlowLayout(requireContext())
+        val flow = newFlow()
         options.forEach { (value, label) ->
             val view = chip(label) {
                 applyChange { apply(it, value) }
@@ -545,7 +549,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
     ) {
         val container = binding.sectionsContainer
         container.addView(sectionHeader(title))
-        val flow = FlowLayout(requireContext())
+        val flow = newFlow()
         options.forEach { (value, label) ->
             val view = chip(label) {
                 applyChange { current ->
@@ -568,7 +572,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
     ) {
         val container = binding.sectionsContainer
         container.addView(sectionHeader(title))
-        val flow = FlowLayout(requireContext())
+        val flow = newFlow()
         val view = chip(label) {
             applyChange { apply(it, !selected(it)) }
             refreshAll()
@@ -601,21 +605,29 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         }
     }
 
+    private fun newFlow(): FlexboxLayout = FlexboxLayout(requireContext()).apply {
+        flexWrap = FlexWrap.WRAP
+        alignItems = AlignItems.FLEX_START
+    }
+
     private fun chip(text: CharSequence, onClick: (TextView) -> Unit): TextView =
         TextView(requireContext()).apply {
             this.text = text
             textSize = 13f
-            setTextColor(resources.getColorStateList(R.color.bookmark_chip_text, null))
-            setBackgroundResource(R.drawable.bg_bookmark_chip)
+            val palette = V3Palette.from(context)
+            WitTagStyle.applyText(this, palette)
+            background = WitTagStyle.background(palette, resources.displayMetrics.density)
+            minHeight = dp(48)
+            gravity = Gravity.CENTER_VERTICAL
             updatePadding(left = dp(14), right = dp(14), top = dp(7), bottom = dp(7))
             isClickable = true
             isFocusable = true
             setOnClickListener { onClick(this) }
-            // FlowLayout 的子 View 间距靠 margin，它不认 gap 属性
-            layoutParams = ViewGroup.MarginLayoutParams(
+            layoutParams = FlexboxLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
             ).also {
-                it.rightMargin = dp(8)
+                it.marginEnd = dp(8)
+                it.flexShrink = 0f
                 it.bottomMargin = dp(8)
             }
         }

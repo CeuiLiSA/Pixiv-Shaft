@@ -2,21 +2,13 @@ package ceui.lisa.fragments
 
 import android.content.Intent
 import android.text.TextUtils
-import android.view.LayoutInflater
 import android.view.View
-import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentUserRightBinding
-import ceui.lisa.databinding.TagItemBinding
 import ceui.lisa.utils.Params
-import ceui.lisa.utils.PixivOperate
 import ceui.lisa.viewmodel.UserViewModel
-import com.zhy.view.flowlayout.FlowLayout
-import com.zhy.view.flowlayout.TagAdapter
 import ceui.pixiv.ui.navigation.TemplateRoute
 
 class FragmentUserRight : BaseLazyFragment<FragmentUserRightBinding>() {
@@ -67,15 +59,8 @@ class FragmentUserRight : BaseLazyFragment<FragmentUserRightBinding>() {
         )
         content.add(getString(R.string.string_192)) //小说收藏
         content.add(getString(R.string.string_436)) //相关用户
-        baseBind.tagLayout.adapter = object : TagAdapter<String>(content) {
-            override fun getView(parent: FlowLayout, position: Int, s: String?): View {
-                val binding: TagItemBinding = DataBindingUtil.inflate(
-                    LayoutInflater.from(mContext), R.layout.tag_item, null, false
-                )
-                binding.tagName.text = s
-                return binding.root
-            }
-        }
+        baseBind.tagLayout.showHashPrefix = false
+        baseBind.tagLayout.setTagNames(content)
 //        baseBind.banUser.setOnCheckedChangeListener { buttonView, isChecked ->
 //            if (isChecked) {
 //                PixivOperate.muteUser(data.user)
@@ -89,7 +74,7 @@ class FragmentUserRight : BaseLazyFragment<FragmentUserRightBinding>() {
 //            baseBind.banUser.isChecked = isMuted == true
 //        }
 //        baseBind.banUserRela.setOnClickListener { baseBind.banUser.performClick() }
-        baseBind.tagLayout.setOnTagClickListener { _, position, _ ->
+        baseBind.tagLayout.setOnItemClickListener { _, position ->
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, data.user.userId)
             when {
@@ -119,7 +104,6 @@ class FragmentUserRight : BaseLazyFragment<FragmentUserRightBinding>() {
                 }
             }
             startActivity(intent)
-            true
         }
         if (!TextUtils.isEmpty(data.user.comment)) {
             baseBind.comment.visibility = View.VISIBLE

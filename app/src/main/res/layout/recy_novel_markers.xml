@@ -94,7 +94,8 @@
                 android:textSize="13sp">
             </TextView>
 
-            <com.zhy.view.flowlayout.TagFlowLayout
+            <ceui.pixiv.widgets.V3TagFlowView
+                app:flexWrap="wrap"
                 android:layout_width="match_parent"
                 android:id="@+id/novel_tag"
                 android:layout_below="@id/date"
@@ -104,7 +105,7 @@
                 android:layout_marginTop="@dimen/four_dp"
                 android:layout_height="wrap_content">
 
-            </com.zhy.view.flowlayout.TagFlowLayout>
+            </ceui.pixiv.widgets.V3TagFlowView>
 
             <TextView
                 android:id="@+id/how_many_word"

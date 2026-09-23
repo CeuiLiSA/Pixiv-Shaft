@@ -260,7 +260,7 @@
         tools:visibility="visible">
 
 
-        <com.google.android.flexbox.FlexboxLayout
+        <ceui.pixiv.widgets.V3TagFlowView
             android:id="@+id/tags_flow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

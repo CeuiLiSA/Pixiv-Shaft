@@ -64,8 +64,7 @@ ShaftFeedHost.install()
   `sort_locale_strings.py` 用 `--master` / `--target`。
 - **`:app:lintGithubDebug` 不再覆盖这 2500 行**：AGP 默认不 lint 依赖模块
   （`checkDependencies` 默认 false）。改了 `:feeds` 要单独跑 `./gradlew :feeds:lintDebug`。
-  没给 `:app` 打开 `checkDependencies`——那会把 `:models` / `:progressmanager` /
-  `:flowlayout-lib` 这些老模块的存量问题一起灌进本就是红的 app lint 里。
+  没给 `:app` 打开 `checkDependencies`——那会把 `:models` / `:progressmanager` 这些老模块的存量问题一起灌进本就是红的 app lint 里。
 
 ---
 

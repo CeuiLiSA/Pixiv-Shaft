@@ -19,13 +19,13 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import ceui.pixiv.witstudio.widget.WitTagItem;
+import ceui.pixiv.witstudio.widget.WitTagStyle;
+import ceui.pixiv.widgets.V3TagFlowView;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import ceui.pixiv.witstudio.dialog.WitTipDialog;
-import com.zhy.view.flowlayout.FlowLayout;
-import com.zhy.view.flowlayout.TagAdapter;
 import com.bumptech.glide.Glide;
-import com.zhy.view.flowlayout.TagFlowLayout;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,7 +45,6 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.databinding.FragmentSearchBinding;
 import ceui.lisa.databinding.RecyPinnedUserBinding;
-import ceui.lisa.databinding.RecySingleLineTextWithDeleteBinding;
 import ceui.lisa.http.LegacyApiCalls;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.ListTrendingtag;
@@ -309,41 +308,21 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void getHotTags() {
-        LegacyApiCalls.getHotTags(this, Params.TYPE_ILLUST, listTrendingtag -> {
-                        baseBind.hotTags.setAdapter(new TagAdapter<ListTrendingtag.TrendTagsBean>(
-                                listTrendingtag.getList().subList(0, 15)) {
-                            @Override
-                            public View getView(FlowLayout parent, int position, ListTrendingtag.TrendTagsBean trendTagsBean) {
-                                TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_line_text,
-                                        parent, false);
-                                if (!TextUtils.isEmpty(trendTagsBean.getTranslated_name())) {
-                                    tv.setText(String.format("%s/%s", trendTagsBean.getTag(), trendTagsBean.getTranslated_name()));
-                                } else {
-                                    tv.setText(trendTagsBean.getTag());
-                                }
-                                return tv;
-                            }
-                        });
-                        baseBind.hotTags.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
-                            @Override
-                            public boolean onTagClick(View view, int position, FlowLayout parent) {
-                                hintViewModel.hideHints();
-                                String keyword = listTrendingtag.getList().get(position).getTag();
-                                //PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
-                                Intent intent = new Intent(mContext, SearchActivity.class);
-                                intent.putExtra(Params.KEY_WORD, keyword);
-                                intent.putExtra(Params.INDEX, 0);
-                                startActivity(intent);
-                                return false;
-                            }
-                        });
-                        baseBind.hotTags.setOnTagLongClickListener(new TagFlowLayout.OnTagLongClickListener() {
-                            @Override
-                            public boolean onTagLongClick(View view, int position, FlowLayout parent) {
-                                Common.copy(mContext, listTrendingtag.getList().get(position).getTag());
-                                return true;
-                            }
-                        });
+        baseBind.hotTags.setOnTagActionsChanged(this::loadHistory);
+        baseBind.hotTags.setOnItemClickListener((item, position) -> {
+            hintViewModel.hideHints();
+            Intent intent = new Intent(mContext, SearchActivity.class);
+            intent.putExtra(Params.KEY_WORD, item.getName());
+            intent.putExtra(Params.INDEX, 0);
+            startActivity(intent);
+        });
+        LegacyApiCalls.getHotTags(this, Params.TYPE_ILLUST, response -> {
+            List<WitTagItem> items = new ArrayList<>();
+            List<ListTrendingtag.TrendTagsBean> tags = response.getList();
+            for (ListTrendingtag.TrendTagsBean tag : tags.subList(0, Math.min(15, tags.size()))) {
+                items.add(new WitTagItem(tag.getTag(), tag.getTag(), tag.getTranslated_name()));
+            }
+            baseBind.hotTags.setItems(items);
         });
     }
 
@@ -378,25 +357,27 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             return;
         }
         baseBind.pinnedUsersSection.setVisibility(View.VISIBLE);
-        baseBind.pinnedUsersFlow.setAdapter(new TagAdapter<User>(users) {
-            @Override
-            public View getView(FlowLayout parent, int position, User user) {
-                RecyPinnedUserBinding binding = DataBindingUtil.inflate(
-                        LayoutInflater.from(mContext), R.layout.recy_pinned_user, parent, false);
-                binding.userName.setText(user.getName());
-                Glide.with(binding.userAvatar).load(GlideUtil.getHead(user)).into(binding.userAvatar);
-                return binding.getRoot();
-            }
+        baseBind.pinnedUsersFlow.setShowHashPrefix(false);
+        baseBind.pinnedUsersFlow.setItemViewFactory((parent, item, position, palette) -> {
+            User user = users.get(position);
+            RecyPinnedUserBinding binding = DataBindingUtil.inflate(
+                    LayoutInflater.from(mContext), R.layout.recy_pinned_user, parent, false);
+            binding.userName.setText(user.getName());
+            WitTagStyle.applyText(binding.userName, palette);
+            Glide.with(binding.userAvatar).load(GlideUtil.getHead(user)).into(binding.userAvatar);
+            return binding.getRoot();
         });
-        baseBind.pinnedUsersFlow.setOnTagClickListener((view, position, parent) -> {
+        List<WitTagItem> items = new ArrayList<>();
+        for (User user : users) items.add(new WitTagItem(String.valueOf(user.getId()), user.getName()));
+        baseBind.pinnedUsersFlow.setItems(items);
+        baseBind.pinnedUsersFlow.setOnItemClickListener((item, position) -> {
             // 走 UActivity 而不是直接开 V3：新旧作者页的路由分发在 UActivity 里，
             // 这里硬指一个就会绕开用户的「使用新版作品页」开关。
             Intent intent = new Intent(mContext, UActivity.class);
             intent.putExtra(Params.USER_ID, users.get(position).getId());
             startActivity(intent);
-            return false;
         });
-        baseBind.pinnedUsersFlow.setOnTagLongClickListener((view, position, parent) ->
+        baseBind.pinnedUsersFlow.setOnItemLongClickListener((item, position) ->
                 showUnpinUserDialog(users.get(position)));
     }
 
@@ -425,13 +406,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             return;
         }
         baseBind.pinnedSection.setVisibility(View.VISIBLE);
-        baseBind.pinnedTagsFlow.setAdapter(buildTagAdapter(pinned));
-        baseBind.pinnedTagsFlow.setOnTagClickListener((view, position, parent) -> {
-            handleHistoryClick(pinned.get(position));
-            return false;
-        });
-        baseBind.pinnedTagsFlow.setOnTagLongClickListener((view, position, parent) ->
-                showHistoryActionDialog(pinned.get(position)));
+        bindHistoryFlow(baseBind.pinnedTagsFlow, pinned);
         baseBind.clearPinned.setOnClickListener(v -> new WitDialog.MessageDialogBuilder(getActivity())
                 .setTitle(getString(R.string.string_143))
                 .setMessage(getString(R.string.clear_pinned_tags_msg))
@@ -456,13 +431,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             return;
         }
         baseBind.historySection.setVisibility(View.VISIBLE);
-        baseBind.searchHistory.setAdapter(buildTagAdapter(history));
-        baseBind.searchHistory.setOnTagClickListener((view, position, parent) -> {
-            handleHistoryClick(history.get(position));
-            return false;
-        });
-        baseBind.searchHistory.setOnTagLongClickListener((view, position, parent) ->
-                showHistoryActionDialog(history.get(position)));
+        bindHistoryFlow(baseBind.searchHistory, history);
         baseBind.clearHistory.setOnClickListener(v -> new WitDialog.MessageDialogBuilder(getActivity())
                 .setTitle(getString(R.string.string_143))
                 .setMessage(getString(R.string.string_144))
@@ -476,29 +445,32 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 .show());
     }
 
-    private TagAdapter<SearchEntity> buildTagAdapter(final List<SearchEntity> data) {
-        return new TagAdapter<SearchEntity>(data) {
-            @Override
-            public View getView(FlowLayout parent, int position, SearchEntity searchEntity) {
-                RecySingleLineTextWithDeleteBinding binding = DataBindingUtil.inflate(
-                        LayoutInflater.from(mContext), R.layout.recy_single_line_text_with_delete,
-                        parent, false);
-                if (searchEntity.isPinned()) {
-                    binding.fixed.setVisibility(View.VISIBLE);
-                    binding.deleteItem.setVisibility(View.GONE);
-                } else {
-                    binding.fixed.setVisibility(View.GONE);
-                    binding.deleteItem.setVisibility(View.VISIBLE);
-                }
-                binding.tagTitle.setText(searchEntity.getKeyword());
-                binding.deleteItem.setOnClickListener(view -> {
-                    AppDatabase.getAppDatabase(mContext).searchDao().deleteSearchEntity(searchEntity);
-                    Common.showToast("删除成功");
-                    loadHistory();
-                });
-                return binding.getRoot();
+    private void bindHistoryFlow(V3TagFlowView flow, final List<SearchEntity> data) {
+        flow.setShowHashPrefix(false);
+        flow.setShowTranslation(false);
+        flow.setOnTagActionsChanged(this::loadHistory);
+        List<WitTagItem> items = new ArrayList<>();
+        for (SearchEntity entity : data) {
+            items.add(new WitTagItem(String.valueOf(entity.getId()), entity.getKeyword(),
+                    null, entity.isPinned() ? R.drawable.ic_fix_black_24dp : 0,
+                    entity.isPinned() ? null : getString(R.string.action_delete) + " " + entity.getKeyword()));
+        }
+        flow.setItems(items);
+        flow.setOnItemClickListener((item, position) -> handleHistoryClick(data.get(position)));
+        flow.setOnItemLongClickListener((item, position) -> {
+            SearchEntity entity = data.get(position);
+            if (entity.getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD) {
+                flow.showTagActionMenu(item.getName(), item.getTranslation());
+                return true;
             }
-        };
+            // ID、URL、作者名仍按原搜索类型处理，不能变成 Pixiv 标签的屏蔽/翻译入口。
+            return showHistoryActionDialog(entity);
+        });
+        flow.setOnItemRemoveListener((item, position) -> {
+            AppDatabase.getAppDatabase(mContext).searchDao().deleteSearchEntity(data.get(position));
+            Common.showToast(R.string.operate_success);
+            loadHistory();
+        });
     }
 
     private void handleHistoryClick(SearchEntity entity) {
