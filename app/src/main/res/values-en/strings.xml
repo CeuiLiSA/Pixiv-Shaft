@@ -1210,6 +1210,9 @@
     <string name="setting_font_weight">Font weight</string>
     <string name="setting_font_family">Font</string>
     <string name="setting_theme_preset">Palette</string>
+    <string name="setting_text_color">Text color</string>
+    <string name="setting_text_color_hint">Saved per reading theme for body text and chapter titles.</string>
+    <string name="setting_text_color_reset">Restore default text color</string>
     <string name="comic_group_read">Reading</string>
     <string name="setting_group_brightness">Brightness</string>
     <string name="setting_group_interaction">Controls</string>

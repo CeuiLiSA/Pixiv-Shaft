@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.SeekBar
 import android.widget.TextView
+import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentReaderSettingsBinding
 import ceui.lisa.databinding.ItemReaderFontChipBinding
@@ -30,6 +31,8 @@ import ceui.pixiv.ui.novel.reader.paginate.TypefaceProvider
 import ceui.pixiv.ui.novel.reader.settings.PresetFonts
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
 import ceui.pixiv.ui.novel.reader.settings.ReaderTheme
+import ceui.pixiv.ui.settings.CustomThemeColor
+import ceui.pixiv.ui.settings.CustomThemeColorSheet
 import ceui.pixiv.utils.letDrawBehindNavBar
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -91,6 +94,13 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        ReaderTheme.PRESETS.forEach { preset ->
+            childFragmentManager.setFragmentResultListener(TEXT_COLOR_REQUEST_PREFIX + preset.id, viewLifecycleOwner) { _, result ->
+                val hex = CustomThemeColor.normalize(result.getString(CustomThemeColorSheet.KEY_HEX))
+                    ?: return@setFragmentResultListener
+                ReaderSettings.setTextColor(preset.id, Color.parseColor(hex))
+            }
+        }
         // 拨「跟随系统暗色」开关会改生效主题，但那条 ChangeEvent.Theme 由阅读页消费；
         // 面板自己不跟着刷新，色环就会停在开启前的配色上（issue #1132）。
         // 点配色还可能程序性退出跟随（见 ReaderSettings.onThemePicked），所以开关态要一起回刷。
@@ -98,6 +108,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
             if (event == ReaderSettings.ChangeEvent.Theme) {
                 refreshThemeRings()
                 syncFollowSwitch()
+                refreshTextColor()
             }
         }
     }
@@ -166,6 +177,20 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
     private fun bindTheme(ctx: Context) {
         val s = binding.sectionTheme
         s.rowThemePicker.bindThemePicker(ctx)
+        s.rowTextColor.setOnClickListener {
+            if (childFragmentManager.findFragmentByTag(TEXT_COLOR_TAG) != null) return@setOnClickListener
+            val theme = ReaderSettings.effectiveTheme()
+            CustomThemeColorSheet.newInstance(
+                initialHex = CustomThemeColor.toHex(theme.textColor),
+                titleRes = R.string.setting_text_color,
+                textBackgroundColor = theme.backgroundColor,
+                requestKey = TEXT_COLOR_REQUEST_PREFIX + theme.id,
+            ).show(childFragmentManager, TEXT_COLOR_TAG)
+        }
+        s.rowResetTextColor.setOnClickListener {
+            ReaderSettings.setTextColor(ReaderSettings.effectiveTheme().id, null)
+        }
+        refreshTextColor()
         s.rowFollowSystemDark.bindSwitch(
             getString(R.string.setting_follow_dark), ReaderSettings.followSystemDarkMode,
         ) { ReaderSettings.followSystemDarkMode = it }
@@ -179,6 +204,12 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         s.rowWarmFilter.bindFloatSlider(
             getString(R.string.setting_warm_filter), 0f, 0.6f, 60, ReaderSettings.warmFilterStrength, digits = 2,
         ) { ReaderSettings.warmFilterStrength = it }
+    }
+
+    private fun refreshTextColor() {
+        val theme = ReaderSettings.effectiveTheme()
+        binding.sectionTheme.textColorValue.text = CustomThemeColor.toHex(theme.textColor)
+        binding.sectionTheme.rowResetTextColor.isVisible = ReaderSettings.customTextColor(theme.id) != null
     }
 
     private fun bindFlip(ctx: Context) {
@@ -418,5 +449,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
 
     companion object {
         const val TAG = "ReaderSettingsPanel"
+        private const val TEXT_COLOR_TAG = "ReaderTextColor"
+        private const val TEXT_COLOR_REQUEST_PREFIX = "reader_text_color_"
     }
 }

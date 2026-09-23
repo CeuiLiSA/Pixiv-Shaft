@@ -8,7 +8,9 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.StringRes
 import androidx.core.os.bundleOf
+import ceui.lisa.R
 import ceui.lisa.databinding.SheetCustomThemeColorBinding
 import ceui.pixiv.ui.search.v3.V3BottomSheetBase
 import ceui.pixiv.utils.setOnClick
@@ -17,8 +19,8 @@ import ceui.pixiv.utils.setOnClick
  * 自定义主题色 picker（issue #1014）。HSV 方块 + 色相条 + HEX 输入框三者互为镜像：
  * 动任意一个，另外两个和预览块立刻跟上。
  *
- * 结果通过 [KEY_HEX] 回传给 [ThemeColorFeedFragment]，由它写盘 + 重启进程 —— 这里不碰
- * Settings，picker 只负责「选出一个色」。
+ * 结果通过 [KEY_HEX] 回传调用方，picker 只负责「选出一个色」。默认预览色块；传入阅读背景
+ * 时预览该背景上的字色。阅读器使用独立 request key，保存行为仍由调用方决定。
  *
  * HSV 是这里唯一的状态源（[hue]/[saturation]/[value]），不存 int 色值：纯黑/纯白往回解 HSV
  * 时色相会塌成 0，用户拖到底再拖回来色相就丢了。
@@ -54,6 +56,8 @@ class CustomThemeColorSheet : V3BottomSheetBase() {
 
         binding.btnCancel.setTextColor(palette.textAccent)
         binding.btnConfirm.setTextColor(palette.textAccent)
+        binding.sheetTitle.setText(arguments?.getInt(ARG_TITLE, R.string.custom_theme_color_title)
+            ?: R.string.custom_theme_color_title)
 
         val hsv = FloatArray(3)
         Color.colorToHSV(initialColor(), hsv)
@@ -126,18 +130,22 @@ class CustomThemeColorSheet : V3BottomSheetBase() {
 
     private fun renderPreview() {
         val color = currentColor()
+        val textBackground = arguments?.takeIf { it.containsKey(ARG_TEXT_BACKGROUND) }
+            ?.getInt(ARG_TEXT_BACKGROUND)
         binding.preview.background = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             cornerRadius = 28f * resources.displayMetrics.density
-            setColor(color)
+            setColor(textBackground ?: color)
         }
-        binding.previewHex.text = CustomThemeColor.toHex(color)
-        binding.previewHex.setTextColor(contrastingTextColor(color))
+        val hex = CustomThemeColor.toHex(color)
+        binding.previewHex.text = if (textBackground == null) hex else "${binding.sheetTitle.text}\n$hex"
+        binding.previewHex.setTextColor(if (textBackground == null) contrastingTextColor(color) else color)
     }
 
     private fun commit() {
         val hex = CustomThemeColor.toHex(currentColor())
-        parentFragmentManager.setFragmentResult(REQUEST_KEY, bundleOf(KEY_HEX to hex))
+        val requestKey = arguments?.getString(ARG_REQUEST_KEY) ?: REQUEST_KEY
+        parentFragmentManager.setFragmentResult(requestKey, bundleOf(KEY_HEX to hex))
         dismissAllowingStateLoss()
     }
 
@@ -145,11 +153,25 @@ class CustomThemeColorSheet : V3BottomSheetBase() {
         const val REQUEST_KEY = "custom_theme_color"
         const val KEY_HEX = "hex"
         private const val ARG_INITIAL_HEX = "initial_hex"
+        private const val ARG_TITLE = "title"
+        private const val ARG_TEXT_BACKGROUND = "text_background"
+        private const val ARG_REQUEST_KEY = "request_key"
 
-        /** 指定打开时的初始色（`#RRGGBB`）；null / 非法时回落 [initialColor] 的默认规则。 */
-        fun newInstance(initialHex: String?): CustomThemeColorSheet =
+        /** 初始色为 `#RRGGBB`；textBackgroundColor 非空时以该色为底预览文字。 */
+        fun newInstance(
+            initialHex: String?,
+            @StringRes titleRes: Int = R.string.custom_theme_color_title,
+            textBackgroundColor: Int? = null,
+            requestKey: String = REQUEST_KEY,
+        ): CustomThemeColorSheet =
             CustomThemeColorSheet().apply {
-                arguments = bundleOf(ARG_INITIAL_HEX to initialHex)
+                arguments = bundleOf(
+                    ARG_INITIAL_HEX to initialHex,
+                    ARG_TITLE to titleRes,
+                    ARG_REQUEST_KEY to requestKey,
+                ).apply {
+                    if (textBackgroundColor != null) putInt(ARG_TEXT_BACKGROUND, textBackgroundColor)
+                }
             }
     }
 }

@@ -98,6 +98,7 @@ class ReaderParagraphSpacingMigrationTest {
     class MemoryMMKV {
         @Implementation fun count(): Long = values.size.toLong()
         @Implementation fun containsKey(key: String): Boolean = values.containsKey(key)
+        @Implementation fun removeValueForKey(key: String) { values.remove(key) }
         @Implementation fun decodeFloat(key: String, defaultValue: Float): Float = values[key] as? Float ?: defaultValue
         @Implementation fun decodeInt(key: String, defaultValue: Int): Int = values[key] as? Int ?: defaultValue
         @Implementation fun decodeBool(key: String, defaultValue: Boolean): Boolean = values[key] as? Boolean ?: defaultValue

@@ -1210,6 +1210,9 @@
     <string name="setting_font_weight">Насыщенность шрифта</string>
     <string name="setting_font_family">Шрифт</string>
     <string name="setting_theme_preset">Палитра</string>
+    <string name="setting_text_color">Цвет текста</string>
+    <string name="setting_text_color_hint">Сохраняется для каждой темы чтения и применяется к тексту и заголовкам глав.</string>
+    <string name="setting_text_color_reset">Вернуть исходный цвет текста</string>
     <string name="comic_group_read">Чтение</string>
     <string name="setting_group_brightness">Яркость</string>
     <string name="setting_group_interaction">Управление</string>

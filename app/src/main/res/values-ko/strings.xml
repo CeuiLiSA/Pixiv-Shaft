@@ -1210,6 +1210,9 @@
     <string name="setting_font_weight">두께</string>
     <string name="setting_font_family">글꼴</string>
     <string name="setting_theme_preset">색 구성</string>
+    <string name="setting_text_color">글자색</string>
+    <string name="setting_text_color_hint">읽기 테마별로 저장하며 본문과 장 제목에 적용됩니다.</string>
+    <string name="setting_text_color_reset">기본 글자색 복원</string>
     <string name="comic_group_read">읽기</string>
     <string name="setting_group_brightness">밝기</string>
     <string name="setting_group_interaction">조작</string>

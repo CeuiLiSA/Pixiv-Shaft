@@ -213,10 +213,27 @@ object ReaderSettings {
      * 有效阅读主题：不开跟随用用户选的 [themeId]；开了则由系统决定 ——
      * 系统深色 → 夜间，系统浅色 → [lightThemeMemoryId]。
      */
-    fun effectiveTheme(): ReaderTheme = when {
-        !followSystemDarkMode -> ReaderTheme.findPresetById(themeId) ?: ReaderTheme.KRAFT
-        isSystemDark() -> ReaderTheme.NIGHT
-        else -> ReaderTheme.findPresetById(lightThemeMemoryId) ?: ReaderTheme.KRAFT
+    fun effectiveTheme(): ReaderTheme {
+        val preset = when {
+            !followSystemDarkMode -> ReaderTheme.findPresetById(themeId) ?: ReaderTheme.KRAFT
+            isSystemDark() -> ReaderTheme.NIGHT
+            else -> ReaderTheme.findPresetById(lightThemeMemoryId) ?: ReaderTheme.KRAFT
+        }
+        val color = customTextColor(preset.id) ?: return preset
+        return preset.copy(textColor = color, chapterTitleColor = color)
+    }
+
+    /** 每种阅读配色独立记忆字色，避免浅色背景的深字带入夜间模式。 */
+    fun customTextColor(presetId: String): Int? {
+        val key = K_TEXT_COLOR_PREFIX + presetId
+        return if (store.containsKey(key)) store.decodeInt(key, 0) else null
+    }
+
+    /** 传入打开取色器时的配色 id，系统日夜切换后也不会误写另一套配色。null 恢复默认。 */
+    fun setTextColor(presetId: String, color: Int?) {
+        val key = K_TEXT_COLOR_PREFIX + presetId
+        if (color == null) store.removeValueForKey(key) else store.encode(key, color or 0xFF000000.toInt())
+        emit(ChangeEvent.Theme)
     }
 
     /** 这次选择会不会真的上屏：只有「跟随开启 + 系统浅色 + 选的是浅色预设」才会。 */
@@ -551,6 +568,7 @@ object ReaderSettings {
     private const val K_FONT_ID = "r_font_id"
     private const val K_FONT_WEIGHT = "r_font_weight"
     private const val K_THEME_ID = "r_theme_id"
+    private const val K_TEXT_COLOR_PREFIX = "r_text_color_"
     private const val K_CUSTOM_THEME_ID = "r_custom_theme_id"
     private const val K_FOLLOW_DARK = "r_follow_dark"
     private const val K_LIGHT_THEME_MEMORY = "r_light_theme_memory"

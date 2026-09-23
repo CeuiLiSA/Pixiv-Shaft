@@ -1210,6 +1210,9 @@
     <string name="setting_font_weight">ウェイト</string>
     <string name="setting_font_family">フォント</string>
     <string name="setting_theme_preset">配色</string>
+    <string name="setting_text_color">文字色</string>
+    <string name="setting_text_color_hint">配色ごとに保存し、本文と章タイトルに適用します。</string>
+    <string name="setting_text_color_reset">既定の文字色に戻す</string>
     <string name="comic_group_read">読み方</string>
     <string name="setting_group_brightness">明るさ</string>
     <string name="setting_group_interaction">操作</string>

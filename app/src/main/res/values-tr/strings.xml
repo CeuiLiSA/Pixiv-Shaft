@@ -1210,6 +1210,9 @@
     <string name="setting_font_weight">Ağırlık</string>
     <string name="setting_font_family">Yazı tipi</string>
     <string name="setting_theme_preset">Renk düzeni</string>
+    <string name="setting_text_color">Metin rengi</string>
+    <string name="setting_text_color_hint">Her okuma teması için kaydedilir; metne ve bölüm başlıklarına uygulanır.</string>
+    <string name="setting_text_color_reset">Varsayılan metin rengini geri yükle</string>
     <string name="comic_group_read">Okuma</string>
     <string name="setting_group_brightness">Parlaklık</string>
     <string name="setting_group_interaction">Kontroller</string>
