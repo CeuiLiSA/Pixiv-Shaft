@@ -455,6 +455,14 @@ object ReaderSettings {
             emit(ChangeEvent.Tts)
         }
 
+    // ---------- Search ----------
+    /** Remember the last input, including an explicit clear, across reader sessions. */
+    var lastSearchQuery: String
+        get() = store.decodeString(K_LAST_SEARCH_QUERY, "").orEmpty()
+        set(value) {
+            store.encode(K_LAST_SEARCH_QUERY, value)
+        }
+
     // ---------- Misc ----------
     var eyeBreakReminderMinutes: Int
         get() = store.decodeInt(K_EYE_REMIND, 30)
@@ -573,6 +581,7 @@ object ReaderSettings {
     private const val K_TTS_ENGINE = "r_tts_engine"
     private const val K_TTS_VOICE = "r_tts_voice"
     private const val K_TTS_SLEEP = "r_tts_sleep"
+    private const val K_LAST_SEARCH_QUERY = "r_last_search_query"
     private const val K_EYE_REMIND = "r_eye_remind"
     private const val K_TOUCH_LOCKED = "r_touch_locked"
     private const val K_DEBUG_OVERLAY = "r_debug_overlay"
