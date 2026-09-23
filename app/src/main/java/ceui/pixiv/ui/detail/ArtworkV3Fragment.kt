@@ -803,9 +803,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * 列表里是否已经摆着全部页 —— adapter 的「进页即展开」以**列表实际内容**为准，不直接读设置。
      * 设置是进页那一刻的快照：进页后才打开开关再旋屏，列表仍只有 p0；若 adapter 照样按设置展开，
      * 就会既不出「展开剩余 X 张」覆盖层、又没得展开，卡死在第一页。
+     * 用 VM 的最新条目：收起后的 diff 可能还没提交，此时「加载原图」重建 adapter 不能读旧的 currentList。
      */
     private fun listHasAllPages(): Boolean {
-        val items = feedAdapter?.currentList ?: return false
+        val items = feedViewModel.uiState.value.items
         // 折叠态只留 p0（DEFAULT_COLLAPSED），比它多就是已经摆成展开形状了。
         return items.count { it is ArtworkPageItem } > CollapsibleIllustAdapter.DEFAULT_COLLAPSED
     }
