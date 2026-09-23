@@ -9,15 +9,21 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.os.Build
+import android.graphics.drawable.RippleDrawable
+import android.content.res.ColorStateList
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.core.graphics.ColorUtils
 import androidx.core.content.ContextCompat
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -82,11 +88,16 @@ import ceui.pixiv.ui.novel.reader.ui.SearchHitSheetCallback
 import ceui.pixiv.ui.novel.reader.ui.SearchHitsSheet
 import ceui.pixiv.ui.novel.reader.ui.SeriesListSheet
 import ceui.pixiv.ui.novel.reader.ui.SeriesNavCallback
+import ceui.pixiv.ui.novel.reader.ui.showReaderTtsSettings
+import ceui.pixiv.witstudio.theme.dp
+import ceui.pixiv.witstudio.theme.pillButton
+import ceui.pixiv.witstudio.theme.shape
 import ceui.pixiv.ui.novel.reader.tts.NovelTtsController
 import ceui.pixiv.ui.novel.reader.tts.NovelTtsText
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -128,6 +139,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         get() = "novel:${resolveNovelId()}"
     private var ttsState: String = NovelTtsController.playbackState.forSession(ttsSessionId)
     private var ttsReceiverRegistered = false
+    private var ttsPageAction: TextView? = null
+    private var ttsStartJob: Job? = null
+    private var lastFollowedTtsRange: IntRange? = null
 
     private val requestTtsNotificationPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -144,11 +158,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action != NovelTtsController.ACTION_STATE) return
             val sessionId = intent.getStringExtra(NovelTtsController.EXTRA_SESSION_ID)
-            val incomingState = intent.getStringExtra(NovelTtsController.EXTRA_STATE) ?: NovelTtsController.STATE_IDLE
-            // The service updates the process snapshot before sending this
-            // broadcast. Keep the receiver side-effect free so a delayed
-            // broadcast cannot roll the snapshot back to an older state.
-            ttsState = if (sessionId == ttsSessionId) incomingState else NovelTtsController.STATE_IDLE
+            syncTtsState()
             if (sessionId == ttsSessionId) {
                 intent.getStringExtra(NovelTtsController.EXTRA_ERROR)?.let { Toaster.showShort(it) }
             }
@@ -199,7 +209,22 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         bottomBar = bb
         val ch = ReaderChrome(tb, bb)
         chrome = ch
-        ch.onVisibilityChanged = { refreshProgressOverlay() }
+        ch.onVisibilityChanged = {
+            refreshProgressOverlay()
+            refreshTtsPageAction()
+        }
+        ttsPageAction = requireContext().pillButton(getString(R.string.reader_tts_from_page), primary = false) {
+            startTtsFromReader()
+        }.also { button ->
+            button.visibility = View.GONE
+            binding.root.addView(button, FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
+            ).apply {
+                leftMargin = requireContext().dp(16)
+                rightMargin = requireContext().dp(16)
+                bottomMargin = bottomInsetPx + requireContext().dp(24)
+            })
+        }
         val so = ReaderSearchOverlay(binding.readerSearchOverlay)
 
         wireTopBar(tb)
@@ -220,6 +245,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         // 立即应用阅读器主题背景色，避免加载中显示白底
         val theme = ReaderSettings.effectiveTheme()
         binding.root.setBackgroundColor(theme.backgroundColor)
+        applyTtsActionTheme(theme)
         applyLoadingTint(theme)
 
         if (ReaderSettings.readingDirection == ReadingDirection.Vertical) {
@@ -267,6 +293,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout(),
             )
             val extraTop = (8 * resources.displayMetrics.density).toInt()
+            ttsPageAction?.updateLayoutParams<FrameLayout.LayoutParams> {
+                bottomMargin = bars.bottom + requireContext().dp(24)
+            }
             binding.readerTopBar.root.updatePadding(top = bars.top)
             binding.readerSearchOverlay.root.updatePadding(top = bars.top + extraTop)
             binding.readerBottomBar.root.updatePadding(bottom = bars.bottom)
@@ -289,6 +318,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         rv.onEdgeHit = { /* edge feedback: vibrate later */ }
         rv.onPageChanged = { index ->
             viewModel.onPageChanged(index)
+            refreshTtsPageAction()
             if (activeSelection != null) clearSelection()
         }
         rv.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
@@ -478,10 +508,12 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     rebindScrollViewIfActive()
                     val t = ReaderSettings.effectiveTheme()
                     binding.root.setBackgroundColor(t.backgroundColor)
+                    applyTtsActionTheme(t)
                     applyLoadingTint(t)
                     if (event == ReaderSettings.ChangeEvent.Theme) bb.setDarkMode(t.isDark)
                     // showBottomProgress 走 Layout 事件,开关拨完立刻生效。
                     refreshProgressOverlay()
+                    rebuildOverlays()
                 }
                 ReaderSettings.ChangeEvent.Flip -> applyFlipMode(rv, ch)
                 ReaderSettings.ChangeEvent.IllustMix -> {
@@ -490,10 +522,15 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     viewModel.onIllustMixSettingChanged()
                     rebindScrollViewIfActive()
                 }
+                ReaderSettings.ChangeEvent.Tts -> {
+                    lastFollowedTtsRange = null
+                    syncTtsState()
+                }
                 ReaderSettings.ChangeEvent.Interaction -> {
                     rv.setTouchLocked(ReaderSettings.touchLocked)
                     rv.setTapZoneReversed(ReaderSettings.tapZoneReversed)
                     binding.root.keepScreenOn = ReaderSettings.keepScreenOn
+                    syncTtsState()
                 }
                 else -> Unit
             }
@@ -523,6 +560,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             rv.setFlipMode(ReaderSettings.flipMode)
             bb.setProgress(pag.startPageIndex, pag.pages.size)
             setProgressPercent(pagedPercent(pag.startPageIndex, pag.pages.size))
+            lastFollowedTtsRange = null
+            syncTtsState()
         }
 
         viewModel.currentPageIndex.observe(viewLifecycleOwner) { index ->
@@ -582,9 +621,13 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 searchHits = hits,
                 annotations = annotationSpans,
                 selection = activeSelection,
+                ttsActiveRange = currentTtsRange().takeIf { ReaderSettings.ttsHighlight },
             ),
         )
-        scrollReaderView?.takeIf { it.visibility == View.VISIBLE }?.applySearchHighlights(hits)
+        scrollReaderView?.takeIf { it.visibility == View.VISIBLE }?.let {
+            it.applySearchHighlights(hits)
+            it.setTtsRange(currentTtsRange().takeIf { ReaderSettings.ttsHighlight })
+        }
     }
 
     private fun clearSelection() {
@@ -638,6 +681,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 // 进度条不联动). Paged mode is driven separately by currentPageIndex.
                 bottomBar?.setScrollProgress(progress)
                 setProgressPercent((progress.coerceIn(0f, 1f) * 100).toInt())
+                refreshTtsPageAction()
             }
 
             // Text selection — same menu as paged mode
@@ -697,6 +741,8 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         // currentChar == 0 (fresh entry, no saved progress) — otherwise the
         // scroll-listener wouldn't fire until the user first scrolls.
         sv.pushScrollProgressNow()
+        lastFollowedTtsRange = null
+        syncTtsState()
     }
 
     private fun togglePixivBookmark() {
@@ -822,13 +868,18 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         val ttsLabel = when (ttsState) {
             NovelTtsController.STATE_PLAYING -> R.string.reader_menu_tts_pause
             NovelTtsController.STATE_PAUSED -> R.string.reader_menu_tts_resume
-            else -> R.string.reader_menu_tts_start
+            else -> if (NovelTtsController.playbackState.isActive) R.string.reader_tts_from_page else R.string.reader_menu_tts_start
         }
         item(getString(ttsLabel), if (ttsState == NovelTtsController.STATE_PLAYING) R.drawable.ic_baseline_pause_24 else R.drawable.ic_baseline_play_arrow_24) {
             handleTtsAction()
         }
-        item(getString(R.string.reader_menu_tts_speed), R.drawable.ic_reader_settings) {
-            showTtsSpeedMenu()
+        if (NovelTtsController.playbackState.let { it.isActive && it.sessionId == ttsSessionId }) {
+            item(getString(R.string.reader_tts_from_page), R.drawable.ic_baseline_play_arrow_24) {
+                startTtsFromReader()
+            }
+        }
+        item(getString(R.string.reader_tts_settings), R.drawable.ic_reader_settings) {
+            showReaderTtsSettings(requireContext())
         }
         item(getString(R.string.menu_bookmarks), R.drawable.ic_baseline_bookmark_24) {
             showBookmarksSheet()
@@ -881,29 +932,30 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         }
     }
 
-    private fun startTtsFromReader() {
+    private fun startTtsFromReader(charIndex: Int? = null) {
         val appContext = requireContext().applicationContext
-        val loaded = viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded
-        val title = loaded?.novel?.title ?: loaded?.webNovel?.title.orEmpty()
-        val startCharIndex = scrollReaderView
+        val loaded = viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded ?: return
+        val title = loaded.novel?.title ?: loaded.webNovel.title.orEmpty()
+        val startCharIndex = charIndex ?: scrollReaderView
             ?.takeIf { it.visibility == View.VISIBLE }
             ?.currentCharIndex()
             ?: run {
                 val pageIndex = readerView?.currentPageIndex() ?: 0
                 viewModel.pagination.value?.pages?.getOrNull(pageIndex)?.charStart ?: 0
             }
-        val text = viewModel.buildTtsText(startCharIndex)
-        if (text.isNullOrBlank()) {
-            Toaster.showShort(getString(R.string.reader_tts_empty))
-            return
-        }
         val start = {
-            lifecycleScope.launch {
+            ttsStartJob?.cancel()
+            ttsStartJob = viewLifecycleOwner.lifecycleScope.launch {
                 // Splitting a long local TXT can allocate thousands of short
                 // utterances; keep that work off the UI thread.
-                val locale = NovelTtsText.detectLocale(text)
-                val segments = withContext(Dispatchers.Default) {
-                    NovelTtsText.split(text, NovelTtsText.maxCharsFor(locale))
+                val (locale, segments) = withContext(Dispatchers.Default) {
+                    val text = NovelTtsText.fromTokens(loaded.tokens, loaded.webNovel.title, startCharIndex)
+                    val locale = NovelTtsText.detectLocale(text)
+                    locale to NovelTtsText.segmentsFromTokens(loaded.tokens, startCharIndex, NovelTtsText.maxCharsFor(locale))
+                }
+                if (segments.isEmpty()) {
+                    Toaster.showShort(getString(R.string.reader_tts_empty))
+                    return@launch
                 }
                 try {
                     NovelTtsController.start(
@@ -937,18 +989,69 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         }
     }
 
-    private fun showTtsSpeedMenu() {
-        val options = listOf(0.75f, 1f, 1.25f, 1.5f, 2f)
-        showV3Menu("NovelTtsSpeedMenu") {
-            options.forEach { value ->
-                item(getString(R.string.reader_tts_speed_value, value), R.drawable.ic_reader_settings) {
-                    ReaderSettings.ttsSpeed = value
-                    if (ttsState == NovelTtsController.STATE_PLAYING || ttsState == NovelTtsController.STATE_PAUSED) {
-                        NovelTtsController.setSpeed(requireContext(), ttsSessionId, value)
-                    }
+    private fun currentTtsRange(): IntRange? = NovelTtsController.playbackState
+        .takeIf { it.sessionId == ttsSessionId && it.isActive }?.sourceRange
+
+    private fun syncTtsState() {
+        if (view == null) return
+        val playback = NovelTtsController.playbackState
+        ttsState = playback.forSession(ttsSessionId)
+        val doubleTap: ((Int) -> Unit)? = if (ReaderSettings.ttsDoubleTap && !ReaderSettings.touchLocked) {
+            { index ->
+                val tokens = (viewModel.loadState.value as? NovelReaderV3ViewModel.LoadState.Loaded)?.tokens.orEmpty()
+                NovelTtsText.paragraphStart(tokens, index)?.let { startTtsFromReader(it) }
+            }
+        } else null
+        readerView?.onTextDoubleTap = doubleTap
+        scrollReaderView?.onTextDoubleTap = doubleTap
+        rebuildOverlays()
+        val range = currentTtsRange()
+        val canFollow = ReaderSettings.ttsAutoPage && ttsState == NovelTtsController.STATE_PLAYING &&
+            isResumed && activeSelection == null && readerView?.isUserInteracting != true
+        if (!canFollow || range == null) {
+            scrollReaderView?.cancelTtsFollow()
+            lastFollowedTtsRange = null
+        }
+        if (range != null && range != lastFollowedTtsRange && canFollow) {
+            lastFollowedTtsRange = range
+            val sv = scrollReaderView?.takeIf { it.visibility == View.VISIBLE }
+            if (sv != null) sv.followTtsChar(range.first)
+            else {
+                val pages = viewModel.pagination.value?.pages.orEmpty()
+                val pageIndex = pages.indexOfFirst { page ->
+                    page.elements.any { range.first >= it.absoluteCharStart && range.first < it.absoluteCharEnd }
                 }
+                if (pageIndex >= 0) readerView?.goToPage(pageIndex)
             }
         }
+        refreshTtsPageAction()
+    }
+
+    private fun refreshTtsPageAction() {
+        val button = ttsPageAction ?: return
+        val playback = NovelTtsController.playbackState
+        val range = currentTtsRange()
+        val onThisPage = range != null && (scrollReaderView?.takeIf { it.visibility == View.VISIBLE }
+            ?.isCharVisible(range.first) ?: readerView?.currentPage()?.let { page ->
+                page.elements.any { range.first >= it.absoluteCharStart && range.first < it.absoluteCharEnd }
+            } ?: false)
+        val onOtherPage = playback.sessionId != ttsSessionId || (range != null && !onThisPage)
+        button.visibility = if (ReaderSettings.ttsShowPageAction && playback.isActive &&
+            onOtherPage && chrome?.isShown != true && viewModel.loadState.value is NovelReaderV3ViewModel.LoadState.Loaded
+        ) View.VISIBLE else View.GONE
+    }
+
+    private fun applyTtsActionTheme(theme: ReaderTheme) {
+        val button = ttsPageAction ?: return
+        // Reader day/night can differ from the app theme. Use an opaque reader
+        // surface so this floating action stays legible over text and images.
+        val fill = ColorUtils.compositeColors(ColorUtils.setAlphaComponent(theme.accentColor, 32), theme.backgroundColor)
+        button.setTextColor(theme.textColor)
+        button.background = RippleDrawable(
+            ColorStateList.valueOf(ColorUtils.setAlphaComponent(theme.accentColor, 48)),
+            shape(999f, fill, ColorUtils.setAlphaComponent(theme.accentColor, 80), requireContext().dp(1)),
+            shape(999f, android.graphics.Color.WHITE),
+        )
     }
 
     private fun showExportSheet() {
@@ -1381,7 +1484,23 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     // ---- Lifecycle -----------------------------------------------------------
 
+    override fun onResume() {
+        super.onResume()
+        lastFollowedTtsRange = null
+        syncTtsState()
+    }
+
+    override fun onPause() {
+        scrollReaderView?.cancelTtsFollow()
+        super.onPause()
+    }
+
     override fun onDestroyView() {
+        pendingTtsStart = null
+        ttsStartJob?.cancel()
+        ttsStartJob = null
+        ttsPageAction = null
+        lastFollowedTtsRange = null
         if (ttsReceiverRegistered) {
             context?.let { ctx -> runCatching { ctx.unregisterReceiver(ttsReceiver) } }
             ttsReceiverRegistered = false

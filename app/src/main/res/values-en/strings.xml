@@ -3001,4 +3001,13 @@
     <string name="web_discovery_login_needed">Sign in to the pixiv website with the same account as the app to see recommended works.</string>
     <string name="web_discovery_web_login">Web sign-in</string>
     <string name="tag_menu_author_works">Works by this author with this tag</string>
+
+    <!-- Novel read-aloud reader integration (#1139) -->
+    <string name="reader_tts_settings">Read-aloud settings</string>
+    <string name="reader_tts_from_page">Read from this page</string>
+    <string name="reader_tts_highlight">Highlight spoken text</string>
+    <string name="reader_tts_auto_page">Follow reading position</string>
+    <string name="reader_tts_double_tap">Double-tap text to seek</string>
+    <string name="reader_tts_show_page_action">Show read-from-page button on other pages</string>
+    <string name="reader_tts_follow_hint">Highlighting follows the speech engine’s range, or the spoken segment when ranges are unavailable. Following turns pages or scrolls within the current novel. Double-tap restarts the paragraph.</string>
 </resources>

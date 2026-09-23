@@ -2999,4 +2999,13 @@
     <string name="web_discovery_login_needed">おすすめ作品を見るには、アプリと同じアカウントで pixiv のウェブサイトにログインしてください。</string>
     <string name="web_discovery_web_login">ウェブログイン</string>
     <string name="tag_menu_author_works">この作者の同じタグの作品</string>
+
+    <!-- Novel read-aloud reader integration (#1139) -->
+    <string name="reader_tts_settings">読み上げ設定</string>
+    <string name="reader_tts_from_page">このページから読み上げ</string>
+    <string name="reader_tts_highlight">読み上げ中の文字を強調</string>
+    <string name="reader_tts_auto_page">読み上げ位置に自動追従</string>
+    <string name="reader_tts_double_tap">ダブルタップで読み上げ位置を変更</string>
+    <string name="reader_tts_show_page_action">他のページに読み上げ開始ボタンを常時表示</string>
+    <string name="reader_tts_follow_hint">音声エンジンの範囲に合わせて強調します。範囲情報がない場合は読み上げ区間を強調します。自動追従は現在の小説内でページ送りやスクロールを行います。ダブルタップで段落の先頭から読み直します。</string>
 </resources>

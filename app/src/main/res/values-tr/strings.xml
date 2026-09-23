@@ -3002,4 +3002,13 @@
     <string name="web_discovery_login_needed">Önerilen eserleri görmek için pixiv web sitesinde uygulamayla aynı hesapla oturum açın.</string>
     <string name="web_discovery_web_login">Web oturumu aç</string>
     <string name="tag_menu_author_works">Bu yazarın bu etikete sahip eserleri</string>
+
+    <!-- Novel read-aloud reader integration (#1139) -->
+    <string name="reader_tts_settings">Sesli okuma ayarları</string>
+    <string name="reader_tts_from_page">Bu sayfadan oku</string>
+    <string name="reader_tts_highlight">Okunan metni vurgula</string>
+    <string name="reader_tts_auto_page">Okuma konumunu takip et</string>
+    <string name="reader_tts_double_tap">Çift dokunarak okuma konumunu değiştir</string>
+    <string name="reader_tts_show_page_action">Diğer sayfalarda okuma düğmesini göster</string>
+    <string name="reader_tts_follow_hint">Vurgulama, ses motorunun bildirdiği aralığı veya aralık yoksa okunan parçayı izler. Otomatik takip, geçerli romanda sayfa çevirir veya kaydırır. Çift dokunma paragrafı baştan okur.</string>
 </resources>

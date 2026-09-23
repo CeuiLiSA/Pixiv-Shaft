@@ -20,6 +20,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.core.view.doOnNextLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.utils.GlideUrlChild
@@ -54,6 +55,10 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     var topInset: Int = 0
 
     var onCenterTap: (() -> Unit)? = null
+    var onTextDoubleTap: ((Int) -> Unit)? = null
+    private var doubleTapChar: Int? = null
+    private var ttsRange: IntRange? = null
+    private var followGeneration = 0
     var onImageTap: ((PageElement.Image) -> Unit)? = null
     var onJumpTap: ((target: Int) -> Unit)? = null
     var onCharIndexChanged: ((Int) -> Unit)? = null
@@ -74,6 +79,21 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     private var contentAdapter: ContentAdapter? = null
 
     private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onDoubleTap(e: MotionEvent): Boolean {
+            if (onTextDoubleTap == null || wasScrollingOnTouchDown) return false
+            val child = findChildViewUnder(e.x, e.y) ?: return false
+            val pos = getChildAdapterPosition(child)
+            val token = contentAdapter?.tokens?.getOrNull(pos) ?: return false
+            val tv = child as? TextView ?: return false
+            val offset = tv.textOffsetAt(e.x - child.x, e.y - child.y) ?: return false
+            doubleTapChar = when (token) {
+                is ContentToken.Paragraph -> token.textSourceStart + offset
+                is ContentToken.Chapter -> token.sourceStart
+                else -> return false
+            }
+            return true
+        }
+
         override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
             // 滚动中点击只负责停滚，不呼出菜单；等滚动完全停下后再单击才呼出（#1047）。
             if (wasScrollingOnTouchDown) {
@@ -120,6 +140,20 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             wasScrollingOnTouchDown = scrollState != SCROLL_STATE_IDLE
         }
         gestureDetector.onTouchEvent(ev)
+        val charIndex = doubleTapChar
+        if (charIndex != null) {
+            if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+                val cancel = MotionEvent.obtain(ev)
+                cancel.action = MotionEvent.ACTION_CANCEL
+                super.dispatchTouchEvent(cancel)
+                cancel.recycle()
+            }
+            if (ev.actionMasked == MotionEvent.ACTION_UP) {
+                doubleTapChar = null
+                onTextDoubleTap?.invoke(charIndex)
+            } else if (ev.actionMasked == MotionEvent.ACTION_CANCEL) doubleTapChar = null
+            return true
+        }
         return super.dispatchTouchEvent(ev)
     }
 
@@ -218,8 +252,63 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         // ones pick the hits up from the adapter in onBind.
         for (i in 0 until childCount) {
             val holder = getChildViewHolder(getChildAt(i)) as? ParagraphHolder ?: continue
-            holder.applyHighlights(hits)
+            holder.applyHighlights(hits + ttsHighlights())
         }
+    }
+
+    fun setTtsRange(range: IntRange?) {
+        ttsRange = range
+        applySearchHighlights(contentAdapter?.searchHits.orEmpty())
+        for (i in 0 until childCount) {
+            val child = getChildAt(i)
+            val token = contentAdapter?.tokens?.getOrNull(getChildAdapterPosition(child))
+            if (token is ContentToken.Chapter) applyChapterHighlight(child as TextView, token)
+        }
+    }
+
+    private fun ttsHighlights(): List<HighlightRange> = listOfNotNull(ttsRange?.let {
+        HighlightRange(it.first, it.last + 1, contentAdapter?.style?.highlightColor ?: 0)
+    })
+
+    /** Check the spoken line, not just the paragraph: one paragraph can span screens. */
+    fun isCharVisible(charIndex: Int): Boolean {
+        val pos = positionForCharIndex(charIndex) ?: return false
+        val child = lm.findViewByPosition(pos) as? TextView ?: return false
+        val token = contentAdapter?.tokens?.getOrNull(pos) ?: return false
+        val layout = child.layout ?: return false
+        val offset = (charIndex - anchorCharOf(token)).coerceIn(0, child.text.length)
+        val line = layout.getLineForOffset(offset)
+        val top = child.top + child.totalPaddingTop + layout.getLineTop(line)
+        val bottom = child.top + child.totalPaddingTop + layout.getLineBottom(line)
+        return top >= paddingTop + topInset && bottom <= height - paddingBottom
+    }
+
+    fun cancelTtsFollow() { followGeneration++ }
+
+    fun followTtsChar(charIndex: Int) {
+        val generation = ++followGeneration
+        if (isCharVisible(charIndex) || scrollState == SCROLL_STATE_DRAGGING) return
+        val pos = positionForCharIndex(charIndex) ?: return
+        val child = lm.findViewByPosition(pos) as? TextView
+        if (child == null || child.layout == null) {
+            lm.scrollToPositionWithOffset(pos, topInset)
+            // The target paragraph must be laid out before locating its line.
+            doOnNextLayout {
+                if (isAttachedToWindow && generation == followGeneration) alignTtsLine(pos, charIndex)
+            }
+            return
+        }
+        alignTtsLine(pos, charIndex)
+    }
+
+    private fun alignTtsLine(pos: Int, charIndex: Int) {
+        if (scrollState == SCROLL_STATE_DRAGGING) return
+        val child = lm.findViewByPosition(pos) as? TextView ?: return
+        val layout = child.layout ?: return
+        val token = contentAdapter?.tokens?.getOrNull(pos) ?: return
+        val offset = (charIndex - anchorCharOf(token)).coerceIn(0, child.text.length)
+        val lineTop = layout.getLineTop(layout.getLineForOffset(offset))
+        scrollBy(0, child.top + child.totalPaddingTop + lineTop - paddingTop - topInset)
     }
 
     // ---- Position helpers --------------------------------------------------
@@ -284,7 +373,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             when (val token = tokens[position]) {
-                is ContentToken.Paragraph -> (holder as ParagraphHolder).bind(token, style, searchHits)
+                is ContentToken.Paragraph -> (holder as ParagraphHolder).bind(token, style, searchHits + ttsHighlights())
                 is ContentToken.Chapter -> bindChapter(holder.itemView as AppCompatTextView, token, style)
                 is ContentToken.BlankLine -> Unit
                 is ContentToken.PageBreak -> Unit
@@ -296,6 +385,14 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
         override fun onViewRecycled(holder: ViewHolder) {
             if (holder is ParagraphHolder) holder.clearSelection()
+        }
+
+        override fun onViewAttachedToWindow(holder: ViewHolder) {
+            // RecyclerView's item cache can reattach a clean holder without
+            // onBind. Its highlights must still reflect the latest utterance.
+            if (holder is ParagraphHolder) holder.applyHighlights(searchHits + ttsHighlights())
+            val token = tokens.getOrNull(holder.bindingAdapterPosition)
+            if (token is ContentToken.Chapter) applyChapterHighlight(holder.itemView as TextView, token)
         }
     }
 
@@ -332,7 +429,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         }
 
         fun bind(token: ContentToken.Paragraph, style: TypeStyle, hits: List<HighlightRange>) {
-            boundSourceStart = token.sourceStart
+            boundSourceStart = token.textSourceStart
             val spannable = SpannableString(token.text)
             val indent = style.firstLineIndentPx.toInt()
             if (indent > 0 && token.text.isNotEmpty()) {
@@ -433,7 +530,16 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         }
 
     private fun bindChapter(tv: AppCompatTextView, token: ContentToken.Chapter, style: TypeStyle) {
-        tv.text = token.title
+        tv.text = SpannableString(token.title)
+        applyChapterHighlight(tv, token)
+    }
+
+    private fun applyChapterHighlight(tv: TextView, token: ContentToken.Chapter) {
+        val text = tv.text as? Spannable ?: return
+        text.getSpans(0, text.length, ScrollSearchSpan::class.java).forEach(text::removeSpan)
+        if (text.isNotEmpty() && ttsRange?.let { it.first < token.sourceEnd && it.last >= token.sourceStart } == true) {
+            text.setSpan(ScrollSearchSpan(contentAdapter?.style?.highlightColor ?: 0), 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
     }
 
     private fun buildChapterView(style: TypeStyle): AppCompatTextView =

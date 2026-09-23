@@ -3008,4 +3008,13 @@
     <string name="web_discovery_login_needed">Чтобы увидеть рекомендованные работы, войдите на сайт pixiv с той же учётной записью, что и в приложении.</string>
     <string name="web_discovery_web_login">Вход на сайт</string>
     <string name="tag_menu_author_works">Работы этого автора с этим тегом</string>
+
+    <!-- Novel read-aloud reader integration (#1139) -->
+    <string name="reader_tts_settings">Настройки чтения вслух</string>
+    <string name="reader_tts_from_page">Читать с этой страницы</string>
+    <string name="reader_tts_highlight">Выделять читаемый текст</string>
+    <string name="reader_tts_auto_page">Следовать за чтением</string>
+    <string name="reader_tts_double_tap">Двойное касание для перехода</string>
+    <string name="reader_tts_show_page_action">Показывать кнопку чтения на других страницах</string>
+    <string name="reader_tts_follow_hint">Выделяется диапазон, указанный речевым движком, или весь читаемый фрагмент, если диапазон недоступен. Автопереход перелистывает или прокручивает текущий роман. Двойное касание начинает абзац заново.</string>
 </resources>

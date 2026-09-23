@@ -236,6 +236,12 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
         return last.absoluteStart + (last.localEnd - last.localStart)
     }
 
+    fun absoluteCharAt(x: Float, y: Float): Int? {
+        val offset = textOffsetAt(x, y) ?: return null
+        val segment = segments.firstOrNull { offset in it.localStart until it.localEnd } ?: return null
+        return segment.absoluteStart + offset - segment.localStart
+    }
+
     private fun buildActionModeCallback(): ActionMode.Callback {
         return object : ActionMode.Callback {
             override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
@@ -414,4 +420,15 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
     override fun scrollBy(x: Int, y: Int) {
         super.scrollBy(x, 0)
     }
+}
+
+/** Hit-test actual text, excluding margins and paragraph spacers. */
+internal fun android.widget.TextView.textOffsetAt(x: Float, y: Float): Int? {
+    val textLayout = layout ?: return null
+    val localX = x - totalPaddingLeft + scrollX
+    val localY = y - totalPaddingTop + scrollY
+    if (localY < 0 || localY >= textLayout.height) return null
+    val line = textLayout.getLineForVertical(localY.toInt())
+    if (localX < textLayout.getLineLeft(line) || localX >= textLayout.getLineRight(line)) return null
+    return textLayout.getOffsetForHorizontal(line, localX).coerceAtMost(text.length - 1).takeIf { it >= 0 }
 }

@@ -25,8 +25,14 @@ object NovelTtsController {
     const val STATE_PAUSED = "paused"
     const val STATE_ERROR = "error"
 
-    data class PlaybackState(val sessionId: String? = null, val state: String = STATE_IDLE) {
+    data class PlaybackState(
+        val sessionId: String? = null,
+        val state: String = STATE_IDLE,
+        val sourceRange: IntRange? = null,
+    ) {
         fun forSession(id: String): String = if (sessionId == id) state else STATE_IDLE
+        val isActive: Boolean
+            get() = state == STATE_PREPARING || state == STATE_PLAYING || state == STATE_PAUSED
     }
 
     // Only the service writes playback state. A delayed UI broadcast must not

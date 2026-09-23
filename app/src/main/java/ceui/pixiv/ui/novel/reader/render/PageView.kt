@@ -85,9 +85,22 @@ class PageView @JvmOverloads constructor(
 
     private fun applyOverlayHighlightsToBlocks() {
         if (textBlocks.isEmpty()) return
+        val hits = overlays.searchHits + listOfNotNull(overlays.ttsActiveRange?.let {
+            HighlightRange(it.first, it.last + 1, style?.highlightColor ?: 0)
+        })
         for (block in textBlocks) {
-            block.applyOverlayHighlights(overlays.searchHits)
+            block.applyOverlayHighlights(hits)
         }
+    }
+
+    fun charIndexAt(x: Float, y: Float): Int? {
+        for (block in textBlocks) {
+            if (x < block.left || x >= block.right || y < block.top || y >= block.bottom) continue
+            return block.absoluteCharAt(x - block.left, y - block.top)
+        }
+        return page?.elements?.filterIsInstance<PageElement.Chapter>()
+            ?.firstOrNull { y >= it.top && y < it.bottom }
+            ?.absoluteCharStart
     }
 
     fun updateBitmapSource(source: ImageBitmapSource) {

@@ -3000,4 +3000,13 @@
     <string name="web_discovery_login_needed">請使用與 App 相同的 pixiv 帳號登入網頁，以查看推薦作品。</string>
     <string name="web_discovery_web_login">網頁登入</string>
     <string name="tag_menu_author_works">該作者相關作品</string>
+
+    <!-- Novel read-aloud reader integration (#1139) -->
+    <string name="reader_tts_settings">朗讀設定</string>
+    <string name="reader_tts_from_page">從本頁開始朗讀</string>
+    <string name="reader_tts_highlight">醒目標示正在朗讀的文字</string>
+    <string name="reader_tts_auto_page">朗讀時自動翻頁</string>
+    <string name="reader_tts_double_tap">雙擊文字切換朗讀位置</string>
+    <string name="reader_tts_show_page_action">在其他頁面常駐顯示朗讀入口</string>
+    <string name="reader_tts_follow_hint">醒目標示跟隨語音引擎提供的範圍；不支援範圍回呼時按朗讀片段標示。自動翻頁僅跟隨目前小說，縱向模式自動捲動。雙擊從所在段落開頭重讀。</string>
 </resources>

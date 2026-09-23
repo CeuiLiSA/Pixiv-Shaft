@@ -392,6 +392,34 @@ object ReaderSettings {
         }
 
     // ---------- TTS ----------
+    var ttsHighlight: Boolean
+        get() = store.decodeBool(K_TTS_HIGHLIGHT, true)
+        set(value) {
+            store.encode(K_TTS_HIGHLIGHT, value)
+            emit(ChangeEvent.Tts)
+        }
+
+    var ttsAutoPage: Boolean
+        get() = store.decodeBool(K_TTS_AUTO_PAGE, false)
+        set(value) {
+            store.encode(K_TTS_AUTO_PAGE, value)
+            emit(ChangeEvent.Tts)
+        }
+
+    var ttsDoubleTap: Boolean
+        get() = store.decodeBool(K_TTS_DOUBLE_TAP, false)
+        set(value) {
+            store.encode(K_TTS_DOUBLE_TAP, value)
+            emit(ChangeEvent.Tts)
+        }
+
+    var ttsShowPageAction: Boolean
+        get() = store.decodeBool(K_TTS_PAGE_ACTION, true)
+        set(value) {
+            store.encode(K_TTS_PAGE_ACTION, value)
+            emit(ChangeEvent.Tts)
+        }
+
     var ttsSpeed: Float
         get() = store.decodeFloat(K_TTS_SPEED, 1f).coerceIn(0.5f, 2.0f)
         set(value) {
@@ -536,6 +564,10 @@ object ReaderSettings {
     private const val K_IMG_SCALE = "r_img_scale"
     private const val K_PRELOAD_AHEAD = "r_preload_ahead"
     private const val K_ILLUST_MIX_SOURCE = "r_illust_mix_source"
+    private const val K_TTS_HIGHLIGHT = "r_tts_highlight"
+    private const val K_TTS_AUTO_PAGE = "r_tts_auto_page"
+    private const val K_TTS_DOUBLE_TAP = "r_tts_double_tap"
+    private const val K_TTS_PAGE_ACTION = "r_tts_page_action"
     private const val K_TTS_SPEED = "r_tts_speed"
     private const val K_TTS_PITCH = "r_tts_pitch"
     private const val K_TTS_ENGINE = "r_tts_engine"
