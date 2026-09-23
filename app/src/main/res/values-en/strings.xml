@@ -3010,4 +3010,6 @@
     <string name="reader_tts_double_tap">Double-tap text to seek</string>
     <string name="reader_tts_show_page_action">Show read-from-page button on other pages</string>
     <string name="reader_tts_follow_hint">Highlighting follows the speech engine’s range, or the spoken segment when ranges are unavailable. Following turns pages or scrolls within the current novel. Double-tap restarts the paragraph.</string>
+    <string name="search_history_delete_confirm">Delete “%1$s” from search history?</string>
+    <string name="search_tag_delete_confirm">Remove the tag “%1$s” from the current search?</string>
 </resources>

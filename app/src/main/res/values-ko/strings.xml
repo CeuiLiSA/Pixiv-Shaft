@@ -3008,4 +3008,6 @@
     <string name="reader_tts_double_tap">텍스트 두 번 탭으로 읽는 위치 변경</string>
     <string name="reader_tts_show_page_action">다른 페이지에 읽기 시작 버튼 표시</string>
     <string name="reader_tts_follow_hint">음성 엔진이 제공하는 범위를 강조하며, 범위 정보가 없으면 읽는 구간을 강조합니다. 자동 따라가기는 현재 소설 안에서 페이지를 넘기거나 스크롤합니다. 두 번 탭하면 문단 처음부터 다시 읽습니다.</string>
+    <string name="search_history_delete_confirm">검색 기록에서 「%1$s」을(를) 삭제할까요?</string>
+    <string name="search_tag_delete_confirm">현재 검색에서 태그 「%1$s」을(를) 삭제할까요?</string>
 </resources>

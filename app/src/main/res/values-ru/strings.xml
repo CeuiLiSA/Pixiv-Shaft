@@ -3017,4 +3017,6 @@
     <string name="reader_tts_double_tap">Двойное касание для перехода</string>
     <string name="reader_tts_show_page_action">Показывать кнопку чтения на других страницах</string>
     <string name="reader_tts_follow_hint">Выделяется диапазон, указанный речевым движком, или весь читаемый фрагмент, если диапазон недоступен. Автопереход перелистывает или прокручивает текущий роман. Двойное касание начинает абзац заново.</string>
+    <string name="search_history_delete_confirm">Удалить «%1$s» из истории поиска?</string>
+    <string name="search_tag_delete_confirm">Удалить тег «%1$s» из текущего поиска?</string>
 </resources>

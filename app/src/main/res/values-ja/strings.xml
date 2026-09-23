@@ -3008,4 +3008,6 @@
     <string name="reader_tts_double_tap">ダブルタップで読み上げ位置を変更</string>
     <string name="reader_tts_show_page_action">他のページに読み上げ開始ボタンを常時表示</string>
     <string name="reader_tts_follow_hint">音声エンジンの範囲に合わせて強調します。範囲情報がない場合は読み上げ区間を強調します。自動追従は現在の小説内でページ送りやスクロールを行います。ダブルタップで段落の先頭から読み直します。</string>
+    <string name="search_history_delete_confirm">検索履歴から「%1$s」を削除しますか？</string>
+    <string name="search_tag_delete_confirm">現在の検索からタグ「%1$s」を削除しますか？</string>
 </resources>

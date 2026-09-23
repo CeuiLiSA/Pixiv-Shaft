@@ -466,11 +466,21 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             // ID、URL、作者名仍按原搜索类型处理，不能变成 Pixiv 标签的屏蔽/翻译入口。
             return showHistoryActionDialog(entity);
         });
-        flow.setOnItemRemoveListener((item, position) -> {
-            AppDatabase.getAppDatabase(mContext).searchDao().deleteSearchEntity(data.get(position));
-            Common.showToast(R.string.operate_success);
-            loadHistory();
-        });
+        flow.setOnItemRemoveListener((item, position) -> confirmDeleteHistory(data.get(position)));
+    }
+
+    private void confirmDeleteHistory(SearchEntity entity) {
+        new WitDialog.MessageDialogBuilder(mContext)
+                .setTitle(R.string.action_delete)
+                .setMessage(getString(R.string.search_history_delete_confirm, entity.getKeyword()))
+                .addAction(R.string.string_142, (dialog, which) -> dialog.dismiss())
+                .addAction(0, R.string.action_delete, WitDialogAction.ACTION_PROP_NEGATIVE, (dialog, which) -> {
+                    dialog.dismiss();
+                    AppDatabase.getAppDatabase(mContext).searchDao().deleteSearchEntity(entity);
+                    Common.showToast(R.string.operate_success);
+                    if (getView() != null) loadHistory();
+                })
+                .show();
     }
 
     private void handleHistoryClick(SearchEntity entity) {

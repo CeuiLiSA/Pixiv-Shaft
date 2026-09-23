@@ -3011,4 +3011,6 @@
     <string name="reader_tts_double_tap">Çift dokunarak okuma konumunu değiştir</string>
     <string name="reader_tts_show_page_action">Diğer sayfalarda okuma düğmesini göster</string>
     <string name="reader_tts_follow_hint">Vurgulama, ses motorunun bildirdiği aralığı veya aralık yoksa okunan parçayı izler. Otomatik takip, geçerli romanda sayfa çevirir veya kaydırır. Çift dokunma paragrafı baştan okur.</string>
+    <string name="search_history_delete_confirm">Arama geçmişinden «%1$s» silinsin mi?</string>
+    <string name="search_tag_delete_confirm">«%1$s» etiketi mevcut aramadan kaldırılsın mı?</string>
 </resources>
