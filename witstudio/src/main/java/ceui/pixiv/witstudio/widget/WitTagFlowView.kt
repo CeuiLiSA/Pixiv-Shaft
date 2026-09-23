@@ -272,8 +272,9 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         textSize = if (compact) 11.5f else 13f
         WitTagStyle.applyText(this, palette)
         setTextColor(palette.textTag)
-        // 保留 V3 紧凑列表密度；正常操作项具有至少 48dp 高的热区。
-        minHeight = if (compact) 0 else 48.dp
+        // 输入框内的标签沿用按内容测量的高度，避免 48dp 下限撑大整个搜索栏。
+        // 紧凑列表同样保持原有密度，独立操作项保留 48dp 热区。
+        minHeight = if (compact || showRemoveIcon) 0 else 48.dp
         gravity = Gravity.CENTER_VERTICAL
         setPaddingRelative(if (compact) 10.dp else 14.dp, if (compact) 4.dp else 7.dp,
             if (compact) 10.dp else 14.dp, if (compact) 4.dp else 7.dp)
