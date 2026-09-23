@@ -49,6 +49,7 @@ import ceui.pixiv.download.DownloadRecordStateSource
 import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
+import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.updateItems
@@ -258,6 +259,17 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     override fun onCreateSkeletonView(
         layoutManager: RecyclerView.LayoutManager
     ): ceui.pixiv.feeds.FeedSkeletonView? = null
+
+    override fun onListCommitted(state: FeedUiState) {
+        super.onListCommitted(state)
+        // 自动展开保留了旋屏前的全 P 列表。视口若已在简介/评论区，不会绑定任何图片，
+        // 不能等 artworkPageRenderer 才接回「收起」入口；提交后即可按列表初始化展开态。
+        if (_chromeBind != null && pageAdapter == null &&
+            CollapsibleIllustAdapter.shouldCollapse(currentPageCount()) && listHasAllPages()
+        ) {
+            ensurePageAdapter()
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
