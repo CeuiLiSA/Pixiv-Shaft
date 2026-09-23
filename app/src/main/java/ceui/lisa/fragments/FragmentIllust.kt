@@ -467,6 +467,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private fun setupToolbarMenu(illust: Illust) {
         baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
+        if (!isSnapshotMode && !illust.isGif() && illust.page_count == 1) {
+            baseBind.toolbar.menu.add(R.string.comic_reader_enter_illust).setOnMenuItemClickListener {
+                startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMIC_READER.key)
+                    putExtra(Params.ILLUST_ID, illust.id)
+                })
+                true
+            }
+        }
         if (isSnapshotMode) {
             // 快照只读：溢出菜单只保留复制链接 / 分享首图 / 画质增强 / 智能抠图。
             intArrayOf(
@@ -788,6 +797,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         baseBind.pageProgressPill.setOnLongClickListener { v ->
             if (v.alpha < 0.5f) return@setOnLongClickListener false
             val illust = currentIllust() ?: return@setOnLongClickListener false
+            if (illust.isGif()) return@setOnLongClickListener false
             val models = if (isSnapshotMode) {
                 // 快照页的图在本地,缩略图别回网上取(离线打开时那边什么也拿不到)。
                 val data = snapshotViewerData ?: return@setOnLongClickListener false
@@ -795,7 +805,12 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             } else {
                 ArtworkThumbsSheet.networkModels(illust)
             }
-            if (!ArtworkThumbsSheet.show(this, models, pageProgressIndex.coerceAtLeast(0))) {
+            if (!ArtworkThumbsSheet.show(
+                    this,
+                    models,
+                    pageProgressIndex.coerceAtLeast(0),
+                    readerIllustId = illust.id.takeUnless { isSnapshotMode },
+                )) {
                 return@setOnLongClickListener false
             }
             v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)

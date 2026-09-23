@@ -904,6 +904,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 弹预览。返回是否真的弹了 —— 没弹就别把这次长按吃掉。 */
     private fun openPagesPreview(): Boolean {
         val illust = currentIllust() ?: return false
+        if (illust.isGif()) return false
         val models =
             if (isSnapshotMode) {
                 // 快照页的图在本地,缩略图别回网上取(离线打开时那边什么也拿不到)。
@@ -912,7 +913,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             } else {
                 ArtworkThumbsSheet.networkModels(illust)
             }
-        return ArtworkThumbsSheet.show(this, models, pageProgressIndex.coerceAtLeast(0))
+        return ArtworkThumbsSheet.show(
+            this,
+            models,
+            pageProgressIndex.coerceAtLeast(0),
+            readerIllustId = illust.id.takeUnless { isSnapshotMode },
+        )
     }
 
     /**
@@ -1547,6 +1553,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private fun showMoreMenu() {
         val illust = ObjectPool.get<Illust>(illustId).value ?: return
         showV3Menu {
+            if (!illust.isGif() && illust.page_count == 1) {
+                item(getString(R.string.comic_reader_enter_illust), R.drawable.ic_baseline_menu_book_24) {
+                    openComicReader()
+                }
+            }
             item(getString(R.string.share), R.drawable.ic_share_black_24dp) {
                 object : ShareIllust(requireContext(), illust) {
                         override fun onPrepare() {}

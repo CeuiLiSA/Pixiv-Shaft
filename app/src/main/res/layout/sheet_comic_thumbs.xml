@@ -1,20 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/reader_settings_sheet_bg"
     android:clipToOutline="true"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/comic_thumbs_title"
+    <com.google.android.flexbox.FlexboxLayout
+        android:id="@+id/comic_thumbs_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="@string/comic_reader_thumbs_title"
-        android:textColor="@color/rank_text_color"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        app:alignItems="center"
+        app:flexWrap="wrap"
+        app:justifyContent="space_between">
+
+        <TextView
+            android:id="@+id/comic_thumbs_title"
+            style="@style/textMontserratBold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:minHeight="48dp"
+            android:gravity="center_vertical"
+            android:lineSpacingMultiplier="1.4"
+            android:text="@string/comic_reader_thumbs_title"
+            android:textColor="@color/rank_text_color"
+            android:textSize="18sp"
+            app:layout_flexShrink="1" />
+    </com.google.android.flexbox.FlexboxLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/comic_thumbs_list"
