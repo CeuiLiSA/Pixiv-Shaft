@@ -278,7 +278,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             TYPE_CHAPTER -> SimpleHolder(buildChapterView(style))
             TYPE_SPACER -> SimpleHolder(buildSpacerView(style))
             TYPE_DIVIDER -> SimpleHolder(buildDividerView(style, geometry.contentWidth))
-            TYPE_IMAGE -> ImageHolder(context, style.paragraphSpacingPx.toInt())
+            TYPE_IMAGE -> ImageHolder(context, style.paragraphSpacingPx.roundToInt())
             else -> JumpHolder(buildJumpView(style))
         }
 
@@ -350,7 +350,9 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
                 null
             }
             tv.setTextIsSelectable(true)
-            tv.text = spannable
+            tv.text = TextMeasurer.wrapWithFixedLineHeight(
+                spannable, style.textPaint, style.lineSpacingMultiplier, style.lineSpacingExtra,
+            )
             applyHighlights(hits)
         }
 
@@ -424,10 +426,10 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             typeface = style.textPaint.typeface
             setTextColor(style.textPaint.color)
             letterSpacing = style.textPaint.letterSpacing
-            setLineSpacing(style.lineSpacingExtra, style.lineSpacingMultiplier)
+            setLineSpacing(0f, 1f)
             setBackgroundColor(Color.TRANSPARENT)
             highlightColor = style.selectionColor
-            layoutParams = itemParams(bottomMargin = style.paragraphSpacingPx.toInt())
+            layoutParams = itemParams(bottomMargin = style.paragraphSpacingPx.roundToInt())
         }
 
     private fun bindChapter(tv: AppCompatTextView, token: ContentToken.Chapter, style: TypeStyle) {
@@ -451,9 +453,9 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
     private fun buildSpacerView(style: TypeStyle): View {
         val h = style.paragraphSpacingPx.coerceAtLeast(
-            style.textPaint.fontMetrics.bottom - style.textPaint.fontMetrics.top,
+            style.textLineHeightPx.toFloat(),
         )
-        return View(context).apply { layoutParams = itemParams(height = h.toInt()) }
+        return View(context).apply { layoutParams = itemParams(height = h.roundToInt()) }
     }
 
     private fun buildDividerView(style: TypeStyle, contentWidth: Float): View {
@@ -495,8 +497,8 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             setPadding(padH, padV, padH, padV)
             val side = (style.textPaint.textSize * 2f).toInt()
             layoutParams = itemParams(
-                topMargin = style.paragraphSpacingPx.toInt(),
-                bottomMargin = style.paragraphSpacingPx.toInt(),
+                topMargin = style.paragraphSpacingPx.roundToInt(),
+                bottomMargin = style.paragraphSpacingPx.roundToInt(),
                 leftMargin = side,
                 rightMargin = side,
             )

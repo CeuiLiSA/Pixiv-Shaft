@@ -8,6 +8,7 @@ import ceui.pixiv.ui.novel.reader.model.ImagePlacement
 import ceui.pixiv.ui.novel.reader.model.ImageScaleMode
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
 import ceui.pixiv.ui.novel.reader.settings.ReaderTheme
+import kotlin.math.roundToInt
 
 /**
  * Derived style for layout passes. Build a fresh one whenever settings or theme
@@ -35,6 +36,8 @@ data class TypeStyle(
     val chapterBottomGapPx: Float,
 ) {
     val textSize: Float get() = textPaint.textSize
+    val textLineHeightPx: Int
+        get() = TextMeasurer.lineHeightPx(textPaint, lineSpacingMultiplier, lineSpacingExtra)
 
     companion object {
         fun from(context: Context, settings: ReaderSettings.Snapshot, theme: ReaderTheme): TypeStyle {
@@ -69,8 +72,10 @@ data class TypeStyle(
                 this.color = theme.secondaryTextColor
                 this.isFakeBoldText = false
             }
-            val fontHeight = textPaint.fontMetrics.bottom - textPaint.fontMetrics.top
-            val paragraphSpacing = fontHeight * settings.paragraphSpacingLines
+            // "1 line" means one rendered body line, including the user's line spacing.
+            // Round once here so pagination and every renderer budget the same pixels.
+            val paragraphSpacing = (TextMeasurer.lineHeightPx(textPaint, settings.lineSpacing)
+                * settings.paragraphSpacingLines).roundToInt().toFloat()
             val indentPx = textSizePx * settings.firstLineIndent
             val chapterHeight = chapterPaint.fontMetrics.bottom - chapterPaint.fontMetrics.top
             return TypeStyle(

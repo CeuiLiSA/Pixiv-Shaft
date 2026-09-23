@@ -2,14 +2,20 @@ package ceui.pixiv.ui.novel.reader.settings
 
 import android.content.res.Configuration
 import android.content.res.Resources
+import android.graphics.Paint
+import android.text.TextPaint
+import android.util.TypedValue
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.lisa.activities.Shaft
 import ceui.pixiv.ui.novel.reader.model.FlipMode
 import ceui.pixiv.ui.novel.reader.model.ReadingDirection
 import ceui.pixiv.ui.novel.reader.model.ImagePlacement
 import ceui.pixiv.ui.novel.reader.model.ImageScaleMode
 import ceui.pixiv.ui.novel.reader.model.NovelIllustSource
 import ceui.pixiv.ui.novel.reader.model.ScreenOrientation
+import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer
+import ceui.pixiv.ui.novel.reader.paginate.TypefaceProvider
 import com.tencent.mmkv.MMKV
 
 /**
@@ -58,9 +64,34 @@ object ReaderSettings {
         }
 
     var paragraphSpacingLines: Float
-        get() = store.decodeFloat(K_PARAGRAPH_SPACING, 0.8f).coerceIn(0f, 2.5f)
+        get() {
+            if (!store.containsKey(K_PARAGRAPH_SPACING_LINES)) {
+                // The old value counted font bounding boxes, not rendered body lines.
+                // Convert once using the saved typography; subsequent font/line-spacing
+                // changes must use the new unit rather than re-convert the old value.
+                val lines = if (store.containsKey(K_PARAGRAPH_SPACING)) {
+                    val context = Shaft.getContext()
+                    val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+                        typeface = TypefaceProvider.resolve(context, fontId, fontWeight, boldText)
+                        textSize = TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_SP, fontSizeSp.toFloat(),
+                            context.resources.displayMetrics,
+                        )
+                        isFakeBoldText = boldText && fontWeight < 500
+                    }
+                    val fm = paint.fontMetrics
+                    store.decodeFloat(K_PARAGRAPH_SPACING, 0.8f).coerceIn(0f, 2.5f) *
+                        (fm.bottom - fm.top) / TextMeasurer.lineHeightPx(paint, lineSpacing)
+                } else {
+                    // Approximately the old default at the default 1.6 body line spacing.
+                    0.6f
+                }
+                store.encode(K_PARAGRAPH_SPACING_LINES, lines.coerceIn(0f, 2.5f))
+            }
+            return store.decodeFloat(K_PARAGRAPH_SPACING_LINES, 0.6f).coerceIn(0f, 2.5f)
+        }
         set(value) {
-            store.encode(K_PARAGRAPH_SPACING, value.coerceIn(0f, 2.5f))
+            store.encode(K_PARAGRAPH_SPACING_LINES, value.coerceIn(0f, 2.5f))
             emit(ChangeEvent.Layout)
         }
 
@@ -473,6 +504,7 @@ object ReaderSettings {
     private const val K_FONT_SIZE = "r_font_size"
     private const val K_LINE_SPACING = "r_line_spacing"
     private const val K_PARAGRAPH_SPACING = "r_paragraph_spacing"
+    private const val K_PARAGRAPH_SPACING_LINES = "r_paragraph_spacing_lines"
     private const val K_H_MARGIN = "r_h_margin"
     private const val K_V_MARGIN = "r_v_margin"
     private const val K_INDENT = "r_indent"

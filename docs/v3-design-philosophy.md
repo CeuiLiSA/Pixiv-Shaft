@@ -156,6 +156,11 @@ Android 复用 witstudio 与 V3Palette，尺寸用 dp/sp，关键操作热区至
 
 ## 字体与阅读节奏
 
+小说阅读器的段间距以**当前正文渲染行高**为单位：1.0 等于一行，0.0 不额外留白；
+翻页和滚动共用包含用户行距的固定正文行高，源文本中的空行至少占一正文行。
+段间距统一四舍五入到整数像素后再排版和渲染，避免逐段累积误差。新默认值为 0.6 行；
+旧版显式保存的段间距按升级时的字体、字号和行距换算一次，在 0–2.5 行范围内保留原来的实际留白。
+
 **Montserrat 是 V3 的英文、数字与品牌字体。** 中文搭配 Noto Sans SC 或系统中文字体（苹方 / 系统 sans-serif），保持中文笔画与 Montserrat 的几何感协调。Montserrat 没有中文字形，不要期望单设它就能改变中文。
 
 Web 字体栈：`Montserrat, Noto Sans SC, PingFang SC, Microsoft YaHei, system sans-serif`。套件的 `fonts.css` 直接引用仓库已有 400/500/600/700/800 字重，因此离线不必回退英文；App 推介原型沿用 Google Fonts 加载机制并切换为 Montserrat。使用真实字重，`font-synthesis: none`，不要用描边或阴影假造粗体。

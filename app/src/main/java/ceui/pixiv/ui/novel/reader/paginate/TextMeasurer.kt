@@ -82,6 +82,13 @@ class TextMeasurer(context: Context) {
     }
 
     companion object {
+        /** Pixel height shared by body text, paragraph gaps and source blank lines. */
+        fun lineHeightPx(paint: TextPaint, multiplier: Float, extra: Float = 0f): Int {
+            val fm = paint.fontMetrics
+            val natural = (fm.descent - fm.ascent).coerceAtLeast(1f)
+            return (natural * multiplier.coerceAtLeast(0.8f) + extra).roundToInt().coerceAtLeast(1)
+        }
+
         /**
          * StaticLayout-based measurement. Used by non-TextView rendering paths
          * (currently PdfExporter, which draws text straight to a Canvas). The
@@ -169,10 +176,7 @@ class TextMeasurer(context: Context) {
             lineSpacingMultiplier: Float,
             lineSpacingExtra: Float,
         ): Spannable {
-            val fm = paint.fontMetrics
-            val natural = (fm.descent - fm.ascent).coerceAtLeast(1f)
-            val mult = lineSpacingMultiplier.coerceAtLeast(0.8f)
-            val targetHeight = (natural * mult + lineSpacingExtra).roundToInt().coerceAtLeast(1)
+            val targetHeight = lineHeightPx(paint, lineSpacingMultiplier, lineSpacingExtra)
             val spannable = when (text) {
                 is SpannableStringBuilder -> text
                 is Spannable -> text
