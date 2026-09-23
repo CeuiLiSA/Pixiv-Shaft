@@ -27,20 +27,23 @@ import ceui.pixiv.feeds.feedRenderer
 /**
  * 顶部静态图的一页。折叠时列表只含 pageIndex=0;展开后含 0..N-1。
  *
- * [rebindTick] 仅用于折叠回来时让首页的「展开剩余 X 张」覆盖层重现(内容不变 DiffUtil 不会
- * 重绑)——bump 一下即判为内容变化,但那条变化只产出一条 overlay-only payload(见
- * [PAYLOAD_EXPAND_OVERLAY_ONLY]),不重走取图。feedKey 只认 pageIndex,身份不受 tick 影响。
+ * [rebindTick] 驱动图片重绑（加载原图 / 本地下载刷新）；[overlayTick] 仅刷新折叠覆盖层。
+ * 两种更新必须分开，否则折叠态下的图片刷新会被覆盖层 payload 吞掉。
  */
 open class ArtworkPageItem(
     val illustId: Long,
     val pageIndex: Int,
     val rebindTick: Int = 0,
+    val overlayTick: Int = 0,
 ) : FeedItem {
     override val feedKey: Any get() = pageIndex
 
     /** 换 tick 但**保住 javaClass**:viewType 就是类,换类等于换回收池的桶。 */
     open fun withRebindTick(tick: Int): ArtworkPageItem =
-        ArtworkPageItem(illustId, pageIndex, tick)
+        ArtworkPageItem(illustId, pageIndex, tick, overlayTick)
+
+    open fun withOverlayTick(tick: Int): ArtworkPageItem =
+        ArtworkPageItem(illustId, pageIndex, rebindTick, tick)
 
     // 不再是 data class 是**故意的**:常驻页要用 [ArtworkPinnedFirstPageItem] 单独占一个 viewType,
     // 而 feeds 的 viewType 就是条目的 javaClass —— 想要子类就不能是 data class。equals 因此手写,
@@ -48,10 +51,10 @@ open class ArtworkPageItem(
     override fun equals(other: Any?): Boolean =
         other is ArtworkPageItem && other.javaClass == javaClass &&
             other.illustId == illustId && other.pageIndex == pageIndex &&
-            other.rebindTick == rebindTick
+            other.rebindTick == rebindTick && other.overlayTick == overlayTick
 
     override fun hashCode(): Int =
-        ((javaClass.hashCode() * 31 + illustId.hashCode()) * 31 + pageIndex) * 31 + rebindTick
+        (((javaClass.hashCode() * 31 + illustId.hashCode()) * 31 + pageIndex) * 31 + rebindTick) * 31 + overlayTick
 }
 
 /**
@@ -73,8 +76,10 @@ class ArtworkPinnedFirstPageItem(
     illustId: Long,
     pageIndex: Int,
     rebindTick: Int = 0,
-) : ArtworkPageItem(illustId, pageIndex, rebindTick) {
-    override fun withRebindTick(tick: Int) = ArtworkPinnedFirstPageItem(illustId, pageIndex, tick)
+    overlayTick: Int = 0,
+) : ArtworkPageItem(illustId, pageIndex, rebindTick, overlayTick) {
+    override fun withRebindTick(tick: Int) = ArtworkPinnedFirstPageItem(illustId, pageIndex, tick, overlayTick)
+    override fun withOverlayTick(tick: Int) = ArtworkPinnedFirstPageItem(illustId, pageIndex, rebindTick, tick)
 }
 
 /**
@@ -109,11 +114,10 @@ private inline fun <reified T : ArtworkPageItem> ArtworkV3Fragment.pageRenderer(
     feedRenderer<T, RecyIllustDetailBinding>(
         inflate = RecyIllustDetailBinding::inflate,
         fullSpan = true,
-        // 折叠回来只会 bump [ArtworkPageItem.rebindTick]，唯一的目的是让 p0 的「展开剩余 X 张」
-        // 覆盖层重现。整条重绑会把大图请求一起重发——哪怕命中的是 Glide 内存缓存，也必然闪一帧
-        // 加载环——所以这里只发覆盖层 payload。
+        // 只有纯折叠变化可以跳过取图；原图切换、本地下载刷新仍走全量绑定。
         changePayload = { oldItem, newItem ->
-            if (oldItem.pageIndex == newItem.pageIndex && oldItem.illustId == newItem.illustId) {
+            if (oldItem.pageIndex == newItem.pageIndex && oldItem.illustId == newItem.illustId &&
+                oldItem.rebindTick == newItem.rebindTick && oldItem.overlayTick != newItem.overlayTick) {
                 PAYLOAD_EXPAND_OVERLAY_ONLY
             } else {
                 null
@@ -122,7 +126,8 @@ private inline fun <reified T : ArtworkPageItem> ArtworkV3Fragment.pageRenderer(
         bindPayloads = { cell, payloads ->
             val delegate =
                 cell.itemView.getTag(R.id.tag_artwork_page_adapter) as? CollapsibleIllustAdapter
-            payloads.contains(PAYLOAD_EXPAND_OVERLAY_ONLY) &&
+            payloads.isNotEmpty() && payloads.all { it === PAYLOAD_EXPAND_OVERLAY_ONLY } &&
+                delegate === ensurePageAdapter() &&
                 delegate?.bindOverlayOnly(ViewHolder(cell.binding), cell.item.pageIndex) == true
         },
         recycle = { cell ->

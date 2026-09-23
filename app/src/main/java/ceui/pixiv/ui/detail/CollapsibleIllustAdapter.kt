@@ -80,7 +80,7 @@ class CollapsibleIllustAdapter(
     /**
      * 只把 p0 的「展开剩余 X 张」覆盖层刷新出来，不重走取图。
      *
-     * 折叠回来时 [ArtworkPageItem.rebindTick] 会被 bump，好让 DiffUtil 判出内容变化。那条变化原先
+     * 折叠回来时 [ArtworkPageItem.overlayTick] 会被 bump，好让 DiffUtil 判出内容变化。那条变化原先
      * 直接走全量重绑，连大图请求一起重发——即使命中的是 Glide 内存缓存，也必然闪一帧加载环。
      * 宿主改发 overlay-only payload 后走这里，图片一个字节都不动。
      *

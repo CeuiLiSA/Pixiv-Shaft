@@ -143,7 +143,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     private final Set<Integer> shownPages = ConcurrentHashMap.newKeySet();
 
     /**
-     * 当前仍绑定在屏上的页 binding（V3 feeds 委托模式），用于不重绑直接回填缓存原图。
+     * 当前绑定的页 binding（含 V3 回收池里保留的 p0），用于不重绑直接回填缓存原图。
      * 存 binding 而不是 ViewHolder：外层 renderer 每次 onBind/onRecycle 都 new 一个 ViewHolder 壳。
      */
     private final Map<Integer, RecyIllustDetailBinding> boundBindings = new ConcurrentHashMap<>();
@@ -177,19 +177,19 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * 不会回收这张位图。自己另存一份裸 Bitmap 引用是错的 —— 那条路会在 draw 阶段撞上已回收的位图。
      */
     public boolean tryKeepPinnedPage(ViewHolder<RecyIllustDetailBinding> holder, int position) {
-        if (!keepPinnedPages) {
+        if (!keepPinnedPages || released) {
             return false;
         }
         Object kept = holder.itemView.getTag(R.id.tag_kept_page_index);
         if (kept instanceof Integer && ((Integer) kept) == position
                 && position < PINNED_PAGE_COUNT
+                && boundBindings.get(position) == holder.baseBind
+                && holder.baseBind.reload.getVisibility() != View.VISIBLE
                 && (holder.baseBind.illust.getDrawable() != null
                 || holder.baseBind.illustHd.getVisibility() == View.VISIBLE)) {
-            // 走常驻路径时**没有经过 onBindViewHolder**，而 boundBindings 正是 onViewRecycled
-            // 认出「这是哪一页」的唯一依据：不在这里补记，下一次回收就会因为查不到页码而走常规
-            // 清理 —— 槽位留了一格、下一跳又白留，滚动里表现为 p0 反复重下、收起时透底色。
-            boundBindings.entrySet().removeIf(e -> e.getValue() == holder.baseBind);
-            boundBindings.put(position, holder.baseBind);
+            // 只消费一次回收标记，后续显式 notifyItemChanged（重试等）必须可以全量重绑。
+            // boundBindings 同时证明 holder 属于本 adapter，不能复用「加载原图」前的旧实例。
+            holder.itemView.setTag(R.id.tag_kept_page_index, null);
             return true;
         }
         if (kept != null) {
@@ -254,6 +254,12 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     /** 快照模式用：直接把某一页指向快照库里的本地文件，绑定时优先读本地、不走网络。 */
     public void putLocalPageUri(int page, @NonNull android.net.Uri uri) {
         localPageUris.put(page, uri);
+        invalidatePinnedPage(page);
+    }
+
+    private void invalidatePinnedPage(int page) {
+        RecyIllustDetailBinding binding = boundBindings.get(page);
+        if (binding != null) binding.getRoot().setTag(R.id.tag_kept_page_index, null);
     }
 
     /**
@@ -296,6 +302,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         released = true;
         pageStatusListener = null;
         localPagesChangedListener = null;
+        // 回收池不会再次回调已经回收的 p0；必须在 view 结束或更换 adapter 时主动释放它。
+        for (RecyIllustDetailBinding binding : new ArrayList<>(boundBindings.values())) {
+            onViewRecycled(new ViewHolder<>(binding));
+        }
         pageRatio.clear();
         overlaySizedPages.clear();
         shownPages.clear();
@@ -385,6 +395,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                 boolean changed = false;
                 for (Map.Entry<Integer, Uri> en : found.entrySet()) {
                     if (localPageUris.put(en.getKey(), en.getValue()) == null) {
+                        invalidatePinnedPage(en.getKey());
                         changed = true;
                     }
                 }
@@ -408,15 +419,21 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     @Override
     public void onViewRecycled(@NonNull ViewHolder<RecyIllustDetailBinding> holder) {
         super.onViewRecycled(holder);
-        // 解除当前 binding 的绑定记录，避免已回收页被 onResume 直接回填。
+        // 普通页解除绑定；p0 独占槽位保留绑定和原图观察，直到 release 或下次完整绑定。
         // ⚠️ 这里只有 boundBindings 一个来源，别拿 holder.getAbsoluteAdapterPosition() 兜底：传进来的
         // holder 是 renderer 在 recycle lambda 里新建的**薄壳**（ViewHolder(cell.binding)），
         // mBindingAdapter / mOwnerRecyclerView 都是 null，那个 API 只会返回 NO_POSITION。
-        // 跳过 onBindViewHolder 的路径（常驻槽位）必须自己把登记补回来，见 tryKeepPinnedPage。
         Integer recycledPosition = boundBindings.entrySet().stream()
                 .filter(e -> e.getValue() == holder.baseBind)
                 .map(Map.Entry::getKey)
                 .findFirst().orElse(null);
+        if (!released && keepPinnedPages && recycledPosition != null && recycledPosition < PINNED_PAGE_COUNT) {
+            // large 已显示时原图可能仍在下载。保留图也必须保留这一个 holder 的观察者，
+            // 否则复用早退后进度不再更新、下载完成也不会显示原图。数量固定为一页，
+            // 完整重绑会先 detachTaskObservers，release 则连同 Glide 请求一起释放。
+            holder.itemView.setTag(R.id.tag_kept_page_index, recycledPosition);
+            return;
+        }
         if (recycledPosition != null) {
             boundBindings.remove(recycledPosition);
             cachedOriginalShownPages.remove(recycledPosition);
@@ -424,17 +441,12 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         // Detach this holder's LoadTask observers (see loadIllust) so they don't outlive
         // the bind and pile up on the per-URL task's LiveData.
         detachTaskObservers(holder);
-        if (keepPinnedPages && recycledPosition != null && recycledPosition < PINNED_PAGE_COUNT) {
-            // 常驻槽位(p0)：**故意不清图** —— 两层都不 clear、不置 GONE、tag 也不置空，让
-            // binding、Glide target 和已解码位图一起留下。位图因此始终被 Glide 的引用计数持有，
-            // 不会被回收。记下「这一格留的是哪一页」，供 tryKeepPinnedPage 判断原主有没有回来。
-            holder.itemView.setTag(R.id.tag_kept_page_index, recycledPosition);
-            return;
-        }
+        holder.itemView.setTag(R.id.tag_kept_page_index, null);
         // Cancel any in-flight Glide load targeting these ImageViews so a late-arriving
         // bitmap from the previous bind can't leak into the recycled holder.
         fragmentRequestManager.clear(holder.baseBind.illust);
         fragmentRequestManager.clear(holder.baseBind.illustHd);
+        holder.baseBind.illust.setImageDrawable(null);
         holder.baseBind.illustHd.setImageDrawable(null);
         holder.baseBind.illustHd.setVisibility(View.GONE);
         holder.baseBind.illust.setTag(R.id.tag_image_url, null);
@@ -459,6 +471,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     @Override
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
         super.onBindViewHolder(holder, position);
+        holder.itemView.setTag(R.id.tag_kept_page_index, null);
         boundBindings.entrySet().removeIf(e -> e.getValue() == holder.baseBind);
         boundBindings.put(position, holder.baseBind);
         // 快照只读：长按下载会拿 shaftsnap:// 当远程地址去下,还可能顺带触发「下载即收藏」
