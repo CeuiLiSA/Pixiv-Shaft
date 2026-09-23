@@ -54,6 +54,13 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     var topInset: Int = 0
 
     var onCenterTap: (() -> Unit)? = null
+    var onTextDoubleTap: ((Int) -> Unit)? = null
+    private var doubleTapChar: Int? = null
+    private var ttsRange: IntRange? = null
+    private var pendingTtsChar: Int? = null
+    private var touchActive = false
+    val isUserInteracting: Boolean
+        get() = touchActive || scrollState != SCROLL_STATE_IDLE
     var onImageTap: ((PageElement.Image) -> Unit)? = null
     var onJumpTap: ((target: Int) -> Unit)? = null
     var onCharIndexChanged: ((Int) -> Unit)? = null
@@ -74,6 +81,21 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     private var contentAdapter: ContentAdapter? = null
 
     private val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onDoubleTap(e: MotionEvent): Boolean {
+            if (onTextDoubleTap == null || wasScrollingOnTouchDown) return false
+            val child = findChildViewUnder(e.x, e.y) ?: return false
+            val pos = getChildAdapterPosition(child)
+            val token = contentAdapter?.tokens?.getOrNull(pos) ?: return false
+            val tv = child as? TextView ?: return false
+            val offset = tv.textOffsetAt(e.x - child.x, e.y - child.y) ?: return false
+            doubleTapChar = when (token) {
+                is ContentToken.Paragraph -> token.textSourceStart + offset
+                is ContentToken.Chapter -> token.sourceStart
+                else -> return false
+            }
+            return true
+        }
+
         override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
             // 滚动中点击只负责停滚，不呼出菜单；等滚动完全停下后再单击才呼出（#1047）。
             if (wasScrollingOnTouchDown) {
@@ -114,17 +136,58 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+            touchActive = true
+            cancelTtsFollow()
             // 在手指落下前先记住 RecyclerView 是否还在滚动（super.dispatchTouchEvent 里
             // onInterceptTouchEvent 会把 SETTLING 改成 DRAGGING，ACTION_UP 后更是 IDLE，
             // 再晚就判不出来了），所以必须在这里、交给 super 之前读 scrollState（#1047）。
             wasScrollingOnTouchDown = scrollState != SCROLL_STATE_IDLE
         }
+        try {
+            return dispatchReaderTouch(ev)
+        } finally {
+            if (ev.actionMasked == MotionEvent.ACTION_UP || ev.actionMasked == MotionEvent.ACTION_CANCEL) {
+                touchActive = false
+            }
+        }
+    }
+
+    private fun dispatchReaderTouch(ev: MotionEvent): Boolean {
         gestureDetector.onTouchEvent(ev)
+        val charIndex = doubleTapChar
+        if (charIndex != null) {
+            if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+                val cancel = MotionEvent.obtain(ev)
+                cancel.action = MotionEvent.ACTION_CANCEL
+                super.dispatchTouchEvent(cancel)
+                cancel.recycle()
+            }
+            if (ev.actionMasked == MotionEvent.ACTION_UP) {
+                doubleTapChar = null
+                onTextDoubleTap?.invoke(charIndex)
+            } else if (ev.actionMasked == MotionEvent.ACTION_CANCEL) doubleTapChar = null
+            return true
+        }
         return super.dispatchTouchEvent(ev)
     }
 
+    override fun onDetachedFromWindow() {
+        touchActive = false
+        doubleTapChar = null
+        cancelTtsFollow()
+        super.onDetachedFromWindow()
+    }
+
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        // Keep deferred speech navigation in this view until layout actually
+        // starts. LayoutManager's pending scroll cannot otherwise be cancelled
+        // when the user touches, pauses, or disables following before that frame.
+        val followChar = pendingTtsChar
+        pendingTtsChar = null
+        val followPosition = followChar?.takeUnless { isUserInteracting }?.let(::positionForCharIndex)
+        if (followPosition != null) lm.scrollToPositionWithOffset(followPosition, topInset)
         super.onLayout(changed, l, t, r, b)
+        if (followPosition != null && followChar != null) alignTtsLine(followPosition, followChar)
         // 每次布局完成后补报一次进度：初始那次 pushScrollProgressNow 走的是 post{}，
         // 可能赶在首帧内容排版前执行（此时 scrollRange 还是 0），而部分机型上首次布局
         // 不派发 onScrolled(0,0)——常驻进度就一直空着，直到用户手动滚动/呼出菜单
@@ -140,6 +203,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         geometry: PageGeometry,
         imageResolver: (ContentToken) -> String?,
     ) {
+        cancelTtsFollow()
         setBackgroundColor(style.backgroundColor)
         // Side padding = text margins (applies to every item); top/bottom
         // padding = end breathing room. clipToPadding=false lets content
@@ -157,6 +221,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     }
 
     fun scrollToCharIndex(charIndex: Int) {
+        cancelTtsFollow()
         val pos = positionForCharIndex(charIndex) ?: return
         post {
             val first = lm.findFirstVisibleItemPosition()
@@ -173,7 +238,10 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
     fun jumpToCharIndex(charIndex: Int) {
         val pos = positionForCharIndex(charIndex) ?: return
-        post { lm.scrollToPositionWithOffset(pos, topInset) }
+        cancelTtsFollow()
+        // LayoutManager already defers positioning until layout. Posting an
+        // extra runnable lets an old restore override a newer speech target.
+        lm.scrollToPositionWithOffset(pos, topInset)
     }
 
     fun currentCharIndex(): Int {
@@ -184,6 +252,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     }
 
     fun scrollByPage(forward: Boolean) {
+        cancelTtsFollow()
         val distance = (height * 0.9f).toInt()
         smoothScrollBy(0, if (forward) distance else -distance)
     }
@@ -197,6 +266,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
      * hair off the dragged value; that's expected for a variable-height list.
      */
     fun scrollToFraction(fraction: Float) {
+        cancelTtsFollow()
         val count = contentAdapter?.itemCount ?: return
         if (count <= 0) return
         val pos = (fraction.coerceIn(0f, 1f) * (count - 1)).roundToInt()
@@ -218,8 +288,60 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         // ones pick the hits up from the adapter in onBind.
         for (i in 0 until childCount) {
             val holder = getChildViewHolder(getChildAt(i)) as? ParagraphHolder ?: continue
-            holder.applyHighlights(hits)
+            holder.applyHighlights(hits + ttsHighlights())
         }
+    }
+
+    fun setTtsRange(range: IntRange?) {
+        ttsRange = range
+        applySearchHighlights(contentAdapter?.searchHits.orEmpty())
+        for (i in 0 until childCount) {
+            val child = getChildAt(i)
+            val token = contentAdapter?.tokens?.getOrNull(getChildAdapterPosition(child))
+            if (token is ContentToken.Chapter) applyChapterHighlight(child as TextView, token)
+        }
+    }
+
+    private fun ttsHighlights(): List<HighlightRange> = listOfNotNull(ttsRange?.let {
+        HighlightRange(it.first, it.last + 1, contentAdapter?.style?.highlightColor ?: 0)
+    })
+
+    /** Check the spoken line, not just the paragraph: one paragraph can span screens. */
+    fun isCharVisible(charIndex: Int): Boolean {
+        val pos = positionForCharIndex(charIndex) ?: return false
+        val child = lm.findViewByPosition(pos) as? TextView ?: return false
+        val token = contentAdapter?.tokens?.getOrNull(pos) ?: return false
+        val layout = child.layout ?: return false
+        val offset = (charIndex - anchorCharOf(token)).coerceIn(0, child.text.length)
+        val line = layout.getLineForOffset(offset)
+        val top = child.top + child.totalPaddingTop + layout.getLineTop(line)
+        val bottom = child.top + child.totalPaddingTop + layout.getLineBottom(line)
+        return top >= paddingTop + topInset && bottom <= height - paddingBottom
+    }
+
+    fun cancelTtsFollow() { pendingTtsChar = null }
+
+    fun followTtsChar(charIndex: Int) {
+        cancelTtsFollow()
+        if (isCharVisible(charIndex) || isUserInteracting) return
+        val pos = positionForCharIndex(charIndex) ?: return
+        val child = lm.findViewByPosition(pos) as? TextView
+        if (child == null || child.layout == null) {
+            pendingTtsChar = charIndex
+            requestLayout()
+            return
+        }
+        alignTtsLine(pos, charIndex)
+    }
+
+    private fun alignTtsLine(pos: Int, charIndex: Int) {
+        if (isUserInteracting) return
+        val child = lm.findViewByPosition(pos) as? TextView ?: return
+        val layout = child.layout ?: return
+        val token = contentAdapter?.tokens?.getOrNull(pos) ?: return
+        val offset = (charIndex - anchorCharOf(token)).coerceIn(0, child.text.length)
+        val lineTop = layout.getLineTop(layout.getLineForOffset(offset))
+        scrollBy(0, child.top + child.totalPaddingTop + lineTop - paddingTop - topInset)
     }
 
     // ---- Position helpers --------------------------------------------------
@@ -278,13 +400,13 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             TYPE_CHAPTER -> SimpleHolder(buildChapterView(style))
             TYPE_SPACER -> SimpleHolder(buildSpacerView(style))
             TYPE_DIVIDER -> SimpleHolder(buildDividerView(style, geometry.contentWidth))
-            TYPE_IMAGE -> ImageHolder(context, style.paragraphSpacingPx.toInt())
+            TYPE_IMAGE -> ImageHolder(context, style.paragraphSpacingPx.roundToInt())
             else -> JumpHolder(buildJumpView(style))
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             when (val token = tokens[position]) {
-                is ContentToken.Paragraph -> (holder as ParagraphHolder).bind(token, style, searchHits)
+                is ContentToken.Paragraph -> (holder as ParagraphHolder).bind(token, style, searchHits + ttsHighlights())
                 is ContentToken.Chapter -> bindChapter(holder.itemView as AppCompatTextView, token, style)
                 is ContentToken.BlankLine -> Unit
                 is ContentToken.PageBreak -> Unit
@@ -296,6 +418,14 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
         override fun onViewRecycled(holder: ViewHolder) {
             if (holder is ParagraphHolder) holder.clearSelection()
+        }
+
+        override fun onViewAttachedToWindow(holder: ViewHolder) {
+            // RecyclerView's item cache can reattach a clean holder without
+            // onBind. Its highlights must still reflect the latest utterance.
+            if (holder is ParagraphHolder) holder.applyHighlights(searchHits + ttsHighlights())
+            val token = tokens.getOrNull(holder.bindingAdapterPosition)
+            if (token is ContentToken.Chapter) applyChapterHighlight(holder.itemView as TextView, token)
         }
     }
 
@@ -332,7 +462,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         }
 
         fun bind(token: ContentToken.Paragraph, style: TypeStyle, hits: List<HighlightRange>) {
-            boundSourceStart = token.sourceStart
+            boundSourceStart = token.textSourceStart
             val spannable = SpannableString(token.text)
             val indent = style.firstLineIndentPx.toInt()
             if (indent > 0 && token.text.isNotEmpty()) {
@@ -350,7 +480,9 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
                 null
             }
             tv.setTextIsSelectable(true)
-            tv.text = spannable
+            tv.text = TextMeasurer.wrapWithFixedLineHeight(
+                spannable, style.textPaint, style.lineSpacingMultiplier, style.lineSpacingExtra,
+            )
             applyHighlights(hits)
         }
 
@@ -424,14 +556,25 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             typeface = style.textPaint.typeface
             setTextColor(style.textPaint.color)
             letterSpacing = style.textPaint.letterSpacing
-            setLineSpacing(style.lineSpacingExtra, style.lineSpacingMultiplier)
+            setLineSpacing(0f, 1f)
             setBackgroundColor(Color.TRANSPARENT)
             highlightColor = style.selectionColor
-            layoutParams = itemParams(bottomMargin = style.paragraphSpacingPx.toInt())
+            layoutParams = itemParams(bottomMargin = style.paragraphSpacingPx.roundToInt())
         }
 
     private fun bindChapter(tv: AppCompatTextView, token: ContentToken.Chapter, style: TypeStyle) {
-        tv.text = token.title
+        // Unlike selectable paragraphs, titles otherwise use an immutable
+        // SpannedString buffer and cannot accept live highlight spans.
+        tv.setText(token.title, TextView.BufferType.SPANNABLE)
+        applyChapterHighlight(tv, token)
+    }
+
+    private fun applyChapterHighlight(tv: TextView, token: ContentToken.Chapter) {
+        val text = tv.text as? Spannable ?: return
+        text.getSpans(0, text.length, ScrollSearchSpan::class.java).forEach(text::removeSpan)
+        if (text.isNotEmpty() && ttsRange?.let { it.first < token.sourceEnd && it.last >= token.sourceStart } == true) {
+            text.setSpan(ScrollSearchSpan(contentAdapter?.style?.highlightColor ?: 0), 0, text.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
     }
 
     private fun buildChapterView(style: TypeStyle): AppCompatTextView =
@@ -451,9 +594,9 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
     private fun buildSpacerView(style: TypeStyle): View {
         val h = style.paragraphSpacingPx.coerceAtLeast(
-            style.textPaint.fontMetrics.bottom - style.textPaint.fontMetrics.top,
+            style.textLineHeightPx.toFloat(),
         )
-        return View(context).apply { layoutParams = itemParams(height = h.toInt()) }
+        return View(context).apply { layoutParams = itemParams(height = h.roundToInt()) }
     }
 
     private fun buildDividerView(style: TypeStyle, contentWidth: Float): View {
@@ -495,8 +638,8 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             setPadding(padH, padV, padH, padV)
             val side = (style.textPaint.textSize * 2f).toInt()
             layoutParams = itemParams(
-                topMargin = style.paragraphSpacingPx.toInt(),
-                bottomMargin = style.paragraphSpacingPx.toInt(),
+                topMargin = style.paragraphSpacingPx.roundToInt(),
+                bottomMargin = style.paragraphSpacingPx.roundToInt(),
                 leftMargin = side,
                 rightMargin = side,
             )

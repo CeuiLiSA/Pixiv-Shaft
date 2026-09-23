@@ -5,7 +5,7 @@ package ceui.pixiv.utils
 import ceui.lisa.models.TagsBean
 import ceui.loxia.Tag
 
-/** [Tag] → legacy [TagsBean]（TagAdapter / 屏蔽标签等旧入参仍使用 TagsBean）。 */
+/** [Tag] → legacy [TagsBean]（固定预览 / 屏蔽标签等旧入参仍使用 TagsBean）。 */
 fun Tag.toTagsBean(): TagsBean = TagsBean().also {
     it.name = name
     it.translated_name = translated_name

@@ -142,12 +142,9 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         }
         baseBind.searchTagsFlow.setShowRemoveIcon(true);
         refreshChipsUI();
-        // 点 × = 删除该 chip，并用剩余标签立即重搜。
+        // 点 × 先确认，确认删除后才用剩余标签重搜。
         baseBind.searchTagsFlow.setOnTagClick(name -> {
-            committedTags.remove(name);
-            refreshChipsUI();
-            pushKeywordFromChipsAndInput();
-            triggerSearchIfNotEmpty();
+            confirmRemoveTag(name);
             return kotlin.Unit.INSTANCE;
         });
         // 点正文（非 × 区）= 还原到输入框编辑，不立刻重搜——编辑是准备动作，回车才搜。
@@ -520,6 +517,22 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         }
     }
 
+    private void confirmRemoveTag(String name) {
+        new WitDialog.MessageDialogBuilder(mContext)
+                .setTitle(R.string.action_delete)
+                .setMessage(getString(R.string.search_tag_delete_confirm, name))
+                .addAction(R.string.string_142, (dialog, which) -> dialog.dismiss())
+                .addAction(0, R.string.action_delete, WitDialogAction.ACTION_PROP_NEGATIVE, (dialog, which) -> {
+                    dialog.dismiss();
+                    if (committedTags.remove(name)) {
+                        refreshChipsUI();
+                        pushKeywordFromChipsAndInput();
+                        triggerSearchIfNotEmpty();
+                    }
+                })
+                .show();
+    }
+
     private void animateHintList(boolean show) {
         if (mHintListShown == show) return;
         mHintListShown = show;
@@ -646,17 +659,14 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         };
         new WitDialog.MenuDialogBuilder(mContext)
                 .addItems(items, (dialog, which) -> {
+                    dialog.dismiss();
                     if (which == 0) {
                         Common.copy(mContext, name);
                     } else if (which == 1) {
-                        committedTags.remove(name);
-                        refreshChipsUI();
-                        pushKeywordFromChipsAndInput();
-                        triggerSearchIfNotEmpty();
+                        confirmRemoveTag(name);
                     } else if (which == 2) {
                         editTagFromChip(name);
                     }
-                    dialog.dismiss();
                 })
                 .show();
     }

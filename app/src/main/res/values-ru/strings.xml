@@ -837,6 +837,8 @@
     <string name="artwork_v3_fab_order_bookmark_left">Закладка слева, скачать справа</string>
     <string name="artwork_v3_comment_jump_title">Кнопка перехода к комментариям</string>
     <string name="artwork_v3_comment_jump_desc">Показывать на плавающей панели кнопку быстрого перехода к комментариям</string>
+    <string name="artwork_v3_auto_expand_title">Автораскрытие многостраничных работ</string>
+    <string name="artwork_v3_auto_expand_desc">Показывать все страницы сразу при открытии работы, не сворачивая до первой</string>
     <string name="string_452">Тип ограничения загрузки</string>
     <string name="string_453">Не запускать автоматически</string>
     <string name="string_454">Поделиться первым изображением</string>
@@ -1208,6 +1210,9 @@
     <string name="setting_font_weight">Насыщенность шрифта</string>
     <string name="setting_font_family">Шрифт</string>
     <string name="setting_theme_preset">Палитра</string>
+    <string name="setting_text_color">Цвет текста</string>
+    <string name="setting_text_color_hint">Сохраняется для каждой темы чтения и применяется к тексту и заголовкам глав.</string>
+    <string name="setting_text_color_reset">Вернуть исходный цвет текста</string>
     <string name="comic_group_read">Чтение</string>
     <string name="setting_group_brightness">Яркость</string>
     <string name="setting_group_interaction">Управление</string>
@@ -3006,4 +3011,15 @@
     <string name="web_discovery_login_needed">Чтобы увидеть рекомендованные работы, войдите на сайт pixiv с той же учётной записью, что и в приложении.</string>
     <string name="web_discovery_web_login">Вход на сайт</string>
     <string name="tag_menu_author_works">Работы этого автора с этим тегом</string>
+
+    <!-- Novel read-aloud reader integration (#1139) -->
+    <string name="reader_tts_settings">Настройки чтения вслух</string>
+    <string name="reader_tts_from_page">Читать с этой страницы</string>
+    <string name="reader_tts_highlight">Выделять читаемый текст</string>
+    <string name="reader_tts_auto_page">Следовать за чтением</string>
+    <string name="reader_tts_double_tap">Двойное касание для перехода</string>
+    <string name="reader_tts_show_page_action">Показывать кнопку чтения на других страницах</string>
+    <string name="reader_tts_follow_hint">Выделяется диапазон, указанный речевым движком, или весь читаемый фрагмент, если диапазон недоступен. Автопереход перелистывает или прокручивает текущий роман. Двойное касание начинает абзац заново.</string>
+    <string name="search_history_delete_confirm">Удалить «%1$s» из истории поиска?</string>
+    <string name="search_tag_delete_confirm">Удалить тег «%1$s» из текущего поиска?</string>
 </resources>

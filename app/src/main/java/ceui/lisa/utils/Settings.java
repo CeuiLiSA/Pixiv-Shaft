@@ -1549,6 +1549,17 @@ public class Settings {
         this.artworkV3ShowCommentJumpFab = artworkV3ShowCommentJumpFab;
     }
 
+    // 插画V3详情页：多图作品进页即自动展开剩余页面（issue #1090），默认关闭，设置里手动开启
+    private boolean artworkV3AutoExpandMultiPage = false;
+
+    public boolean isArtworkV3AutoExpandMultiPage() {
+        return artworkV3AutoExpandMultiPage;
+    }
+
+    public void setArtworkV3AutoExpandMultiPage(boolean artworkV3AutoExpandMultiPage) {
+        this.artworkV3AutoExpandMultiPage = artworkV3AutoExpandMultiPage;
+    }
+
     private String defaultUpscaleModel = "";
 
     public String getDefaultUpscaleModel() {

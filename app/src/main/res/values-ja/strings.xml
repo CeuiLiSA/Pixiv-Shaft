@@ -837,6 +837,8 @@
     <string name="artwork_v3_fab_order_bookmark_left">左ブックマーク、右ダウンロード</string>
     <string name="artwork_v3_comment_jump_title">コメント欄へジャンプするボタン</string>
     <string name="artwork_v3_comment_jump_desc">フローティングバーにコメント欄へ一気に移動するボタンを表示</string>
+    <string name="artwork_v3_auto_expand_title">複数ページを自動展開</string>
+    <string name="artwork_v3_auto_expand_desc">複数ページの作品を開いたとき、1枚目だけで折りたたまず全ページを表示します</string>
     <string name="string_452">ダウンロード制限</string>
     <string name="string_453">手動のみ</string>
     <string name="string_454">最初の画像を共有</string>
@@ -1208,6 +1210,9 @@
     <string name="setting_font_weight">ウェイト</string>
     <string name="setting_font_family">フォント</string>
     <string name="setting_theme_preset">配色</string>
+    <string name="setting_text_color">文字色</string>
+    <string name="setting_text_color_hint">配色ごとに保存し、本文と章タイトルに適用します。</string>
+    <string name="setting_text_color_reset">既定の文字色に戻す</string>
     <string name="comic_group_read">読み方</string>
     <string name="setting_group_brightness">明るさ</string>
     <string name="setting_group_interaction">操作</string>
@@ -2997,4 +3002,15 @@
     <string name="web_discovery_login_needed">おすすめ作品を見るには、アプリと同じアカウントで pixiv のウェブサイトにログインしてください。</string>
     <string name="web_discovery_web_login">ウェブログイン</string>
     <string name="tag_menu_author_works">この作者の同じタグの作品</string>
+
+    <!-- Novel read-aloud reader integration (#1139) -->
+    <string name="reader_tts_settings">読み上げ設定</string>
+    <string name="reader_tts_from_page">このページから読み上げ</string>
+    <string name="reader_tts_highlight">読み上げ中の文字を強調</string>
+    <string name="reader_tts_auto_page">読み上げ位置に自動追従</string>
+    <string name="reader_tts_double_tap">ダブルタップで読み上げ位置を変更</string>
+    <string name="reader_tts_show_page_action">他のページに読み上げ開始ボタンを常時表示</string>
+    <string name="reader_tts_follow_hint">音声エンジンの範囲に合わせて強調します。範囲情報がない場合は読み上げ区間を強調します。自動追従は現在の小説内でページ送りやスクロールを行います。ダブルタップで段落の先頭から読み直します。</string>
+    <string name="search_history_delete_confirm">検索履歴から「%1$s」を削除しますか？</string>
+    <string name="search_tag_delete_confirm">現在の検索からタグ「%1$s」を削除しますか？</string>
 </resources>

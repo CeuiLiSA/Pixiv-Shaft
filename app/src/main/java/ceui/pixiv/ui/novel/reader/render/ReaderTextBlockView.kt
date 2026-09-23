@@ -114,13 +114,7 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
     fun bindTextGroup(elements: List<PageElement.Text>, style: TypeStyle) {
         segments.clear()
         val sb = SpannableStringBuilder()
-        // Precompute the uniform text-line height that both the paginator
-        // and this renderer will pin to. Gap lines get their own smaller
-        // height. Kept consistent with [TextMeasurer.wrapWithFixedLineHeight].
-        val fm = style.textPaint.fontMetrics
-        val naturalLineHeight = (fm.descent - fm.ascent).coerceAtLeast(1f)
-        val textLineHeight = (naturalLineHeight * style.lineSpacingMultiplier.coerceAtLeast(0.8f)
-            + style.lineSpacingExtra).roundToInt().coerceAtLeast(1)
+        val textLineHeight = style.textLineHeightPx
         elements.forEachIndexed { idx, element ->
             val rawSlice = element.text.toString().trimEnd('\n')
 
@@ -152,8 +146,8 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
             if (idx < elements.size - 1) {
                 // Zero paragraph spacing must mean zero. A marker line with no
                 // line-height span falls back to one natural line height, which
-                // is ~0.8 x fontHeight (the default), so a 0.0 setting rendered
-                // exactly like 0.8; the extra line was never budgeted by the
+                // is ~0.8 x fontHeight (the old default), so a 0.0 setting rendered
+                // like the old default; the extra line was never budgeted by the
                 // paginator either, which clipped the page bottom. Emit a bare
                 // LF so a zero gap really costs zero height.
                 val pixelGap = (elements[idx + 1].top - element.bottom).coerceAtLeast(0f).roundToInt()
@@ -240,6 +234,12 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
         }
         val last = segments.last()
         return last.absoluteStart + (last.localEnd - last.localStart)
+    }
+
+    fun absoluteCharAt(x: Float, y: Float): Int? {
+        val offset = textOffsetAt(x, y) ?: return null
+        val segment = segments.firstOrNull { offset in it.localStart until it.localEnd } ?: return null
+        return segment.absoluteStart + offset - segment.localStart
     }
 
     private fun buildActionModeCallback(): ActionMode.Callback {
@@ -420,4 +420,15 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
     override fun scrollBy(x: Int, y: Int) {
         super.scrollBy(x, 0)
     }
+}
+
+/** Hit-test actual text, excluding margins and paragraph spacers. */
+internal fun android.widget.TextView.textOffsetAt(x: Float, y: Float): Int? {
+    val textLayout = layout ?: return null
+    val localX = x - totalPaddingLeft + scrollX
+    val localY = y - totalPaddingTop + scrollY
+    if (localY < 0 || localY >= textLayout.height) return null
+    val line = textLayout.getLineForVertical(localY.toInt())
+    if (localX < textLayout.getLineLeft(line) || localX >= textLayout.getLineRight(line)) return null
+    return textLayout.getOffsetForHorizontal(line, localX).coerceAtMost(text.length - 1).takeIf { it >= 0 }
 }

@@ -14,11 +14,9 @@ import android.text.TextUtils
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.HapticFeedbackConstants
-import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnLongClickListener
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
-import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -45,7 +43,6 @@ import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.common.IllustMuteStore
-import ceui.pixiv.ui.translate.translateTag
 import ceui.pixiv.ui.detail.ArtworkThumbsSheet
 import ceui.pixiv.ui.detail.TagEditSheet
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
@@ -55,7 +52,6 @@ import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.lisa.download.IllustDownload
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.models.ObjectSpec
-import ceui.lisa.models.TagsBean
 import ceui.lisa.notification.CallBackReceiver
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.SystemBarMetrics
@@ -84,7 +80,6 @@ import ceui.pixiv.snapshot.localizeIllust
 import ceui.pixiv.snapshot.showSnapshotCreateDialog
 import ceui.pixiv.ui.share.shareFirstImage
 import ceui.pixiv.ui.share.saveArtworkPoster
-import ceui.pixiv.ui.synonym.SynonymOperate
 import ceui.pixiv.ui.upscale.IllustAiHelper
 import ceui.pixiv.utils.buildPinnedTagPreviewJson
 import ceui.pixiv.utils.isHostStillResumed
@@ -94,9 +89,6 @@ import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import ceui.pixiv.witstudio.dialog.WitDialog.CheckableDialogBuilder
-import ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder
-import com.zhy.view.flowlayout.FlowLayout
-import com.zhy.view.flowlayout.TagAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -137,7 +129,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     // 让「重建图片区」「重建标签区」「挂 sheet callback」「发头像 Glide 请求」这几件带视觉副作用的
     // 事只在真需要时做——否则收藏一下整页就闪一次(#962)。跟着 view 走,onDestroyView 里清掉。
     private var renderedImageSignature: String? = null
-    private var renderedTagSignature: String? = null
+    private var renderedSynonymTags: List<Pair<String?, String?>>? = null
+    private var renderedSynonymEnabled = false
     private var bottomSheetCallbackAttached = false
     private var pageProgressPillAttached = false
     private val pageProgressLocation = IntArray(2)
@@ -467,6 +460,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private fun setupToolbarMenu(illust: Illust) {
         baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
+        if (!isSnapshotMode && !illust.isGif() && illust.page_count == 1) {
+            baseBind.toolbar.menu.add(R.string.comic_reader_enter_illust).setOnMenuItemClickListener {
+                startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMIC_READER.key)
+                    putExtra(Params.ILLUST_ID, illust.id)
+                })
+                true
+            }
+        }
         if (isSnapshotMode) {
             // 快照只读：溢出菜单只保留复制链接 / 分享首图 / 画质增强 / 智能抠图。
             intArrayOf(
@@ -585,128 +587,60 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     private fun setupTags(illust: Illust) {
-        // 标签区重建 = 整片 chip 全部拆掉重新 inflate,肉眼就是一次闪烁。池发射(收藏回流等)带不来
-        // 新标签,所以只在标签本身真的变了才重建;点击/长按监听照常重挂,始终闭包到最新的 bean(#962)。
-        val tagSignature = illust.tags.orEmpty().joinToString("|") {
-            "${it.name.orEmpty()}/${it.translated_name.orEmpty()}"
-        }
-        // issue #1023: 末尾多挂一格「编辑标签」,对齐网页版标签行末尾那个「+」。TagFlowLayout
-        // 没有 footer 概念,只能把它当第 tags.size 格来渲染,并在两个监听里按下标提前拦掉 ——
-        // 否则 illust.tags[position] 会越界。
         val tags = illust.tags.orEmpty().toTagsBeans()
-        if (isSnapshotMode) {
-            // 快照只读：标签区不渲染「编辑标签」入口，点击标签也不跳在线搜索。
+        val flow = baseBind.illustTag
+        val synonymTags = tags.map { it.name to it.translated_name }
+        val synonymEnabled = Shaft.sSettings.isSynonymDictEnabled
+        if (synonymTags != renderedSynonymTags || synonymEnabled != renderedSynonymEnabled) {
+            // 收藏回流只更新菜单闭包；重做同义词匹配会收起用户已展开的内容（#962）。
+            renderedSynonymTags = synonymTags
+            renderedSynonymEnabled = synonymEnabled
             baseBind.synonymMatch.setWorkTags(tags)
-            baseBind.illustTag.adapter = object : TagAdapter<TagsBean>(tags) {
-                override fun getView(parent: FlowLayout, position: Int, s: TagsBean): View {
-                    val tv = LayoutInflater.from(mContext).inflate(
-                        R.layout.recy_single_line_text_new, parent, false
-                    ) as TextView
-                    var tag = s.name
-                    if (!TextUtils.isEmpty(s.translated_name)) {
-                        tag = tag + "/" + s.translated_name
-                    }
-                    tv.text = tag
-                    return tv
-                }
-            }
-            baseBind.illustTag.setOnTagClickListener { _, _, _ -> snapshotUnsupportedToast(); true }
-            baseBind.illustTag.setOnTagLongClickListener { _, position, _ ->
-                val tagName = tags.getOrNull(position)?.name
-                if (!tagName.isNullOrEmpty()) Common.copy(mContext, tagName)
+        }
+        if (isSnapshotMode) {
+            flow.overflowActionText = null
+            flow.onOverflowClick = null
+            flow.onPinTag = null
+            flow.onViewAuthorWorks = null
+            flow.setOnItemClickListener { _, _ -> snapshotUnsupportedToast() }
+            flow.setOnItemLongClickListener { item, _ ->
+                if (item.name.isNotEmpty()) Common.copy(mContext, item.name)
                 true
             }
+            flow.setJavaTags(tags)
             return
         }
-        if (tagSignature != renderedTagSignature) {
-            renderedTagSignature = tagSignature
-            // 同义词词典「标签匹配关系」框（issue #904）
-            baseBind.synonymMatch.setWorkTags(tags)
-            baseBind.illustTag.adapter = object : TagAdapter<TagsBean>(tags + TagsBean()) {
-                override fun getView(parent: FlowLayout, position: Int, s: TagsBean): View {
-                    val tv = LayoutInflater.from(mContext).inflate(
-                        R.layout.recy_single_line_text_new, parent, false
-                    ) as TextView
-                    if (position >= tags.size) {
-                        tv.text = "+ " + mContext.getString(R.string.work_tag_edit_entry)
-                        return tv
-                    }
-                    var tag = s.name
-                    if (!TextUtils.isEmpty(s.translated_name)) {
-                        tag = tag + "/" + s.translated_name
-                    }
-                    tv.text = tag
-                    return tv
-                }
-            }
-        }
-        baseBind.illustTag.setOnTagClickListener { view, position, parent ->
-            if (position >= tags.size) {
-                // 不必监听变更:V2 的标签区跟着 ObjectPool 走,TagEditSheet 写完池
-                // 本页那条 observer 自然重跑 updateIllust,tagSignature 一变就重建 adapter。
-                TagEditSheet.show(childFragmentManager, illust.id.toLong())
-                return@setOnTagClickListener true
-            }
+        flow.overflowActionText = "+ " + getString(R.string.work_tag_edit_entry)
+        flow.onOverflowClick = { TagEditSheet.show(childFragmentManager, illust.id.toLong()) }
+        flow.setJavaTags(tags)
+        flow.setOnItemClickListener { _, position ->
             val intent = Intent(mContext, SearchActivity::class.java)
             intent.putExtra(Params.KEY_WORD, tags[position].name)
             intent.putExtra(Params.INDEX, 0)
             startActivity(intent)
-            true
         }
-        baseBind.illustTag.setOnTagLongClickListener { view, position, parent ->
-            if (position >= tags.size) {
-                return@setOnTagLongClickListener true
+        flow.setOnItemLongClickListener(null)
+        flow.onPinTag = { name, translated, pinned ->
+            val tag = ceui.lisa.models.TagsBean().apply {
+                this.name = name
+                this.translated_name = translated
             }
-            val tagBean = tags[position]
-            val tagName = tagBean.name
-            val searchEntity =
-                PixivOperate.getSearchHistory(tagName, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD)
-            val isPinned = searchEntity != null && searchEntity.isPinned
-            val tagMenuBuilder = MenuDialogBuilder(mContext)
-                .setTitle(tagName)
-                .addItem(if (isPinned) getString(R.string.string_443) else getString(R.string.string_442)) { dialog, index ->
-                    val nextPinned = !isPinned
-                    val previewJson =
-                        if (nextPinned) buildPinnedTagPreviewJson(tagBean, illust) else null
-                    PixivOperate.insertPinnedSearchHistory(
-                        tagName, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD, nextPinned, previewJson
-                    )
-                    Common.showToast(R.string.operate_success)
-                    dialog.dismiss()
-                }
-                .addItem(getString(R.string.string_120)) { dialog, index ->
-                    Common.copy(mContext, tagName)
-                    dialog.dismiss()
-                }
-                // 翻译原文（#1054），与 V3 长按菜单同一入口
-                .addItem(getString(R.string.string_translate_caption)) { dialog, index ->
-                    translateTag(mContext, viewLifecycleOwner.lifecycleScope, tagName)
-                    dialog.dismiss()
-                }
-            // 同义词词典（issue #904）功能总开关：默认关闭，关闭时菜单与本功能存在之前完全一致
-            if (Shaft.sSettings.isSynonymDictEnabled) {
-                tagMenuBuilder.addItem(getString(R.string.synonym_add_as_synonym)) { dialog, index ->
-                    // 长按标签加入词典，备注自动填译文
-                    SynonymOperate.showAddAsSynonymDialog(mContext, tagName, tagBean.translated_name)
-                    dialog.dismiss()
-                }
-            }
-            illust.user?.id?.takeIf { it > 0L }?.let { userId ->
-                tagMenuBuilder.addItem(getString(R.string.tag_menu_author_works)) { dialog, _ ->
-                    startActivity(Intent(mContext, TemplateActivity::class.java).apply {
-                        putExtra(Params.USER_ID, userId)
-                        putExtra(Params.KEY_WORD, tagName)
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, if (illust.isManga()) {
-                            TemplateRoute.USER_MANGA_BY_TAG.key
-                        } else {
-                            TemplateRoute.USER_ILLUSTS_BY_TAG.key
-                        })
+            PixivOperate.insertPinnedSearchHistory(name, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD,
+                pinned, if (pinned) buildPinnedTagPreviewJson(tag, illust) else null)
+            Common.showToast(R.string.operate_success)
+        }
+        flow.onViewAuthorWorks = illust.user?.id?.takeIf { it > 0L }?.let { userId ->
+            { tagName ->
+                startActivity(Intent(mContext, TemplateActivity::class.java).apply {
+                    putExtra(Params.USER_ID, userId)
+                    putExtra(Params.KEY_WORD, tagName)
+                    putExtra(TemplateActivity.EXTRA_FRAGMENT, if (illust.isManga()) {
+                        TemplateRoute.USER_MANGA_BY_TAG.key
+                    } else {
+                        TemplateRoute.USER_ILLUSTS_BY_TAG.key
                     })
-                    dialog.dismiss()
-                }
+                })
             }
-            tagMenuBuilder.create().show()
-            true
         }
     }
 
@@ -788,6 +722,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         baseBind.pageProgressPill.setOnLongClickListener { v ->
             if (v.alpha < 0.5f) return@setOnLongClickListener false
             val illust = currentIllust() ?: return@setOnLongClickListener false
+            if (illust.isGif()) return@setOnLongClickListener false
             val models = if (isSnapshotMode) {
                 // 快照页的图在本地,缩略图别回网上取(离线打开时那边什么也拿不到)。
                 val data = snapshotViewerData ?: return@setOnLongClickListener false
@@ -795,7 +730,12 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             } else {
                 ArtworkThumbsSheet.networkModels(illust)
             }
-            if (!ArtworkThumbsSheet.show(this, models, pageProgressIndex.coerceAtLeast(0))) {
+            if (!ArtworkThumbsSheet.show(
+                    this,
+                    models,
+                    pageProgressIndex.coerceAtLeast(0),
+                    readerIllustId = illust.id.takeUnless { isSnapshotMode },
+                )) {
                 return@setOnLongClickListener false
             }
             v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
@@ -1162,7 +1102,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         pageProgressPillAttached = false
         pageProgressIndex = -1
         renderedImageSignature = null
-        renderedTagSignature = null
+        renderedSynonymTags = null
         bottomSheetCallbackAttached = false
         sheetDeltaY = 0
         loadedAvatarUrl = null

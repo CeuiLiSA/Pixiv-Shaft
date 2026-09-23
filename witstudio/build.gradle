@@ -56,6 +56,8 @@ dependencies {
     api libs.androidxAppcompat
     // Public WitBottomSheet API extends Material's dialog; reuse its drag/nested-scroll behavior.
     api libs.material
+    // WitTagFlowView 的公开父类；与 app 原有 V3 标签流共用同一布局引擎。
+    api libs.flexbox
 
     implementation libs.androidxCore
 

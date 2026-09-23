@@ -5,7 +5,9 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
+import android.os.SystemClock
 import android.util.AttributeSet
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.VelocityTracker
 import android.view.ViewConfiguration
@@ -59,17 +61,24 @@ class NovelReaderView @JvmOverloads constructor(
     private var dragStartY = 0f
     private var dragDownTime = 0L
     private var isDragging = false
+    private var touchActive = false
     private var dragProgress = 0f
     private var dragDirection: FlipDirection = FlipDirection.Forward
     private var velocityTracker: VelocityTracker? = null
     private val slop = ViewConfiguration.get(context).scaledTouchSlop
     private val tapMaxDurationMs = 220L
     private val tapMaxDistancePx = slop * 1.25f
-    private val doubleTapMaxMs = 260L
-
-    private var lastTapUpTime = 0L
-    private var lastTapX = 0f
-    private var lastTapY = 0f
+    private var pendingSingleTap: Runnable? = null
+    private var doubleTapChar: Int? = null
+    private val ttsGestures = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onDoubleTap(e: MotionEvent): Boolean {
+            if (onTextDoubleTap == null || touchLocked || isDragging || settleAnimator?.isRunning == true) return false
+            doubleTapChar = currentView.charIndexAt(e.x, e.y) ?: return false
+            pendingSingleTap?.let(::removeCallbacks)
+            pendingSingleTap = null
+            return true
+        }
+    })
 
     private var settleAnimator: ValueAnimator? = null
     private var touchLocked: Boolean = false
@@ -78,7 +87,13 @@ class NovelReaderView @JvmOverloads constructor(
     // Listeners
     var onTapCenter: (() -> Unit)? = null
     var onPageChanged: ((Int) -> Unit)? = null
-    var onDoubleTapAt: ((x: Float, y: Float) -> Unit)? = null
+    var onTextDoubleTap: ((charIndex: Int) -> Unit)? = null
+        set(value) {
+            field = value
+            if (value == null) cancelPendingTaps()
+        }
+    val isUserInteracting: Boolean
+        get() = touchActive || isDragging || pendingSingleTap != null || doubleTapChar != null || settleAnimator?.isRunning == true
     var onEdgeHit: ((FlipDirection) -> Unit)? = null
     var onImageTap: ((PageElement.Image) -> Unit)? = null
     var onJumpTap: ((PageElement.Jump) -> Unit)? = null
@@ -194,9 +209,22 @@ class NovelReaderView @JvmOverloads constructor(
     fun totalPageCount(): Int = pages.size
     fun currentPage(): Page? = pages.getOrNull(currentIndex)
 
+    /** Delayed taps belong to the page and lifecycle in which they began. */
+    fun cancelPendingTaps() {
+        pendingSingleTap?.let(::removeCallbacks)
+        pendingSingleTap = null
+        doubleTapChar = null
+        val now = SystemClock.uptimeMillis()
+        MotionEvent.obtain(now, now, MotionEvent.ACTION_CANCEL, 0f, 0f, 0).let {
+            ttsGestures.onTouchEvent(it)
+            it.recycle()
+        }
+    }
+
     // ---- Internal ---------------------------------------------------------
 
     private fun refreshPages() {
+        cancelPendingTaps()
         val style = this.style ?: return
         val geom = this.geometry ?: return
         Timber.tag(TAG).d("refreshPages() currentIndex=$currentIndex / ${pages.size} (prev=${pages.getOrNull(currentIndex - 1) != null} next=${pages.getOrNull(currentIndex + 1) != null})")
@@ -211,6 +239,7 @@ class NovelReaderView @JvmOverloads constructor(
         if (direction == FlipDirection.Forward) nextView else prevView
 
     private fun programmaticFlip(direction: FlipDirection, animate: Boolean = true) {
+        cancelPendingTaps()
         Timber.tag(TAG).d("programmaticFlip direction=$direction animate=$animate currentIndex=$currentIndex canFlip=${canFlip(direction)}")
         if (!canFlip(direction)) {
             onEdgeHit?.invoke(direction)
@@ -293,6 +322,46 @@ class NovelReaderView @JvmOverloads constructor(
         return false
     }
 
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            touchActive = true
+            // A new gesture owns the page, even when it is too far from the
+            // previous tap to qualify as a double tap.
+            pendingSingleTap?.let(::removeCallbacks)
+            pendingSingleTap = null
+        }
+        try {
+            return dispatchReaderTouch(event)
+        } finally {
+            if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+                touchActive = false
+            }
+        }
+    }
+
+    private fun dispatchReaderTouch(event: MotionEvent): Boolean {
+        if (onTextDoubleTap != null) ttsGestures.onTouchEvent(event)
+        val charIndex = doubleTapChar
+        if (charIndex != null) {
+            // Cancel native word selection on the second DOWN. The first tap's
+            // page turn is still pending, so both taps address the same text.
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                val cancel = MotionEvent.obtain(event)
+                cancel.action = MotionEvent.ACTION_CANCEL
+                super.dispatchTouchEvent(cancel)
+                cancel.recycle()
+            }
+            if (event.actionMasked == MotionEvent.ACTION_UP) {
+                doubleTapChar = null
+                onTextDoubleTap?.invoke(charIndex)
+            } else if (event.actionMasked == MotionEvent.ACTION_CANCEL) {
+                doubleTapChar = null
+            }
+            return true
+        }
+        return super.dispatchTouchEvent(event)
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (touchLocked) return false
         velocityTracker?.addMovement(event)
@@ -366,16 +435,18 @@ class NovelReaderView @JvmOverloads constructor(
     }
 
     private fun handleTap(x: Float, y: Float) {
-        val now = System.currentTimeMillis()
-        val isDoubleTap = (now - lastTapUpTime) <= doubleTapMaxMs &&
-            kotlin.math.hypot(x - lastTapX, y - lastTapY) < tapMaxDistancePx * 2
-        lastTapUpTime = now
-        lastTapX = x
-        lastTapY = y
-        if (isDoubleTap) {
-            onDoubleTapAt?.invoke(x, y)
-            return
+        if (onTextDoubleTap != null && currentView.charIndexAt(x, y) != null) {
+            pendingSingleTap?.let(::removeCallbacks)
+            pendingSingleTap = Runnable {
+                pendingSingleTap = null
+                handleSingleTap(x, y)
+            }.also { postDelayed(it, ViewConfiguration.getDoubleTapTimeout().toLong()) }
+        } else {
+            handleSingleTap(x, y)
         }
+    }
+
+    private fun handleSingleTap(x: Float, y: Float) {
         // Image hit-test precedes tap-zones: single-tap on an image opens the
         // standalone viewer (pixiv illust page or image detail, decided by host).
         val hit = findImageAt(x, y)
@@ -487,6 +558,8 @@ class NovelReaderView @JvmOverloads constructor(
     }
 
     private fun cancelAllGestures() {
+        touchActive = false
+        cancelPendingTaps()
         cancelSettle()
         isDragging = false
         dragProgress = 0f

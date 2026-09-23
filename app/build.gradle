@@ -353,7 +353,6 @@ dependencies {
     // 只管键盘与面板互斥的高度动画，面板内容与草稿在宿主侧，见 ceui.pixiv.ui.comments。
     implementation project(path: ':panel')
     implementation project(path: ':progressmanager')
-    implementation project(path: ':flowlayout-lib')
     implementation project(path: ':actionqueue')
     implementation project(path: ':witstudio')
     // First-party token storage + OkHttp Bearer/401 machinery. This module has

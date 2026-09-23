@@ -114,6 +114,19 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         baseBind.artworkV3CommentJumpRela.setOnClickListener(v ->
                 baseBind.artworkV3CommentJump.performClick());
 
+        // V3详情页 多图作品自动展开剩余页（issue #1090），默认关闭
+        baseBind.artworkV3AutoExpand.setChecked(Shaft.sSettings.isArtworkV3AutoExpandMultiPage());
+        baseBind.artworkV3AutoExpand.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setArtworkV3AutoExpandMultiPage(isChecked);
+                Common.showToast(getString(R.string.string_428));
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.artworkV3AutoExpandRela.setOnClickListener(v ->
+                baseBind.artworkV3AutoExpand.performClick());
+
         // 作品二级详情翻页模式
         String[] transformerNames = PageTransformerHelper.getTransformerNames();
         baseBind.transformType.setText(transformerNames[PageTransformerHelper.getCurrentTransformerIndex()]);
@@ -265,6 +278,7 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         baseBind.artworkV3FabOrderRela.setVisibility(visibility);
         baseBind.artworkV3FabOrderDivider.setVisibility(visibility);
         baseBind.artworkV3CommentJumpRela.setVisibility(visibility);
+        baseBind.artworkV3AutoExpandRela.setVisibility(visibility);
     }
 
     private void updateDoubleTapZoomModeLabel() {

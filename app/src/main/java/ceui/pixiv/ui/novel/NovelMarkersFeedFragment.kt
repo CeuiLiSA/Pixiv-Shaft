@@ -2,9 +2,7 @@ package ceui.pixiv.ui.novel
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
@@ -19,7 +17,6 @@ import ceui.lisa.models.MarkedNovelItem
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
-import ceui.loxia.Tag
 import ceui.lisa.view.LinearItemDecoration
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
@@ -37,8 +34,6 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
-import com.zhy.view.flowlayout.FlowLayout
-import com.zhy.view.flowlayout.TagAdapter
 import java.util.Locale
 import ceui.pixiv.ui.navigation.TemplateRoute
 
@@ -96,9 +91,8 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
                 val marker = cell.item.marker
                 PixivOperate.postNovelMarker(marker.novel_marker, marker.novel.id.toInt(), cell.binding.mark)
             }
-            cell.binding.novelTag.setOnTagClickListener { _, position, _ ->
+            cell.binding.novelTag.setOnItemClickListener { _, position ->
                 openTagSearch(cell.item.marker, position)
-                true
             }
         },
         recycle = { cell ->
@@ -123,14 +117,10 @@ class NovelMarkersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         b.author.text = novel.user?.name.orEmpty()
         b.howManyWord.text = String.format(Locale.getDefault(), "%d字", novel.text_length)
         b.bookmarkCount.text = novel.total_bookmarks.toString()
-        b.novelTag.setAdapter(object : TagAdapter<Tag>(novel.tags.orEmpty()) {
-            override fun getView(parent: FlowLayout, position: Int, tag: Tag): View {
-                val tv = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.recy_single_line_text_new, parent, false) as TextView
-                tv.text = tag.name
-                return tv
-            }
-        })
+        b.novelTag.compact = true
+        b.novelTag.showTranslation = false
+        b.novelTag.searchIndex = 1
+        b.novelTag.setTags(novel.tags.orEmpty())
         rowGlide.load(GlideUtil.getUrl(novel.image_urls?.findMaxSizeUrl())).into(b.cover)
         rowGlide.load(GlideUtil.getHead(novel.user)).into(b.userHead)
     }

@@ -2,14 +2,20 @@ package ceui.pixiv.ui.novel.reader.settings
 
 import android.content.res.Configuration
 import android.content.res.Resources
+import android.graphics.Paint
+import android.text.TextPaint
+import android.util.TypedValue
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import ceui.lisa.activities.Shaft
 import ceui.pixiv.ui.novel.reader.model.FlipMode
 import ceui.pixiv.ui.novel.reader.model.ReadingDirection
 import ceui.pixiv.ui.novel.reader.model.ImagePlacement
 import ceui.pixiv.ui.novel.reader.model.ImageScaleMode
 import ceui.pixiv.ui.novel.reader.model.NovelIllustSource
 import ceui.pixiv.ui.novel.reader.model.ScreenOrientation
+import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer
+import ceui.pixiv.ui.novel.reader.paginate.TypefaceProvider
 import com.tencent.mmkv.MMKV
 
 /**
@@ -58,9 +64,36 @@ object ReaderSettings {
         }
 
     var paragraphSpacingLines: Float
-        get() = store.decodeFloat(K_PARAGRAPH_SPACING, 0.8f).coerceIn(0f, 2.5f)
+        get() {
+            if (!store.containsKey(K_PARAGRAPH_SPACING_LINES)) {
+                // The old value counted font bounding boxes, not rendered body lines.
+                // Convert once using the saved typography; subsequent font/line-spacing
+                // changes must use the new unit rather than re-convert the old value.
+                // A user who only changed line spacing/font still used the old implicit
+                // 0.8 default. Only a completely empty settings store is a fresh install.
+                val lines = if (store.count() > 0L) {
+                    val context = Shaft.getContext()
+                    val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+                        typeface = TypefaceProvider.resolve(context, fontId, fontWeight, boldText)
+                        textSize = TypedValue.applyDimension(
+                            TypedValue.COMPLEX_UNIT_SP, fontSizeSp.toFloat(),
+                            context.resources.displayMetrics,
+                        )
+                        isFakeBoldText = boldText && fontWeight < 500
+                    }
+                    val fm = paint.fontMetrics
+                    store.decodeFloat(K_PARAGRAPH_SPACING, 0.8f).coerceIn(0f, 2.5f) *
+                        (fm.bottom - fm.top) / TextMeasurer.lineHeightPx(paint, lineSpacing)
+                } else {
+                    // Approximately the old default at the default 1.6 body line spacing.
+                    0.6f
+                }
+                store.encode(K_PARAGRAPH_SPACING_LINES, lines.coerceIn(0f, 2.5f))
+            }
+            return store.decodeFloat(K_PARAGRAPH_SPACING_LINES, 0.6f).coerceIn(0f, 2.5f)
+        }
         set(value) {
-            store.encode(K_PARAGRAPH_SPACING, value.coerceIn(0f, 2.5f))
+            store.encode(K_PARAGRAPH_SPACING_LINES, value.coerceIn(0f, 2.5f))
             emit(ChangeEvent.Layout)
         }
 
@@ -180,10 +213,27 @@ object ReaderSettings {
      * 有效阅读主题：不开跟随用用户选的 [themeId]；开了则由系统决定 ——
      * 系统深色 → 夜间，系统浅色 → [lightThemeMemoryId]。
      */
-    fun effectiveTheme(): ReaderTheme = when {
-        !followSystemDarkMode -> ReaderTheme.findPresetById(themeId) ?: ReaderTheme.KRAFT
-        isSystemDark() -> ReaderTheme.NIGHT
-        else -> ReaderTheme.findPresetById(lightThemeMemoryId) ?: ReaderTheme.KRAFT
+    fun effectiveTheme(): ReaderTheme {
+        val preset = when {
+            !followSystemDarkMode -> ReaderTheme.findPresetById(themeId) ?: ReaderTheme.KRAFT
+            isSystemDark() -> ReaderTheme.NIGHT
+            else -> ReaderTheme.findPresetById(lightThemeMemoryId) ?: ReaderTheme.KRAFT
+        }
+        val color = customTextColor(preset.id) ?: return preset
+        return preset.copy(textColor = color, chapterTitleColor = color)
+    }
+
+    /** 每种阅读配色独立记忆字色，避免浅色背景的深字带入夜间模式。 */
+    fun customTextColor(presetId: String): Int? {
+        val key = K_TEXT_COLOR_PREFIX + presetId
+        return if (store.containsKey(key)) store.decodeInt(key, 0) else null
+    }
+
+    /** 传入打开取色器时的配色 id，系统日夜切换后也不会误写另一套配色。null 恢复默认。 */
+    fun setTextColor(presetId: String, color: Int?) {
+        val key = K_TEXT_COLOR_PREFIX + presetId
+        if (color == null) store.removeValueForKey(key) else store.encode(key, color or 0xFF000000.toInt())
+        emit(ChangeEvent.Theme)
     }
 
     /** 这次选择会不会真的上屏：只有「跟随开启 + 系统浅色 + 选的是浅色预设」才会。 */
@@ -359,6 +409,34 @@ object ReaderSettings {
         }
 
     // ---------- TTS ----------
+    var ttsHighlight: Boolean
+        get() = store.decodeBool(K_TTS_HIGHLIGHT, true)
+        set(value) {
+            store.encode(K_TTS_HIGHLIGHT, value)
+            emit(ChangeEvent.Tts)
+        }
+
+    var ttsAutoPage: Boolean
+        get() = store.decodeBool(K_TTS_AUTO_PAGE, false)
+        set(value) {
+            store.encode(K_TTS_AUTO_PAGE, value)
+            emit(ChangeEvent.Tts)
+        }
+
+    var ttsDoubleTap: Boolean
+        get() = store.decodeBool(K_TTS_DOUBLE_TAP, false)
+        set(value) {
+            store.encode(K_TTS_DOUBLE_TAP, value)
+            emit(ChangeEvent.Tts)
+        }
+
+    var ttsShowPageAction: Boolean
+        get() = store.decodeBool(K_TTS_PAGE_ACTION, true)
+        set(value) {
+            store.encode(K_TTS_PAGE_ACTION, value)
+            emit(ChangeEvent.Tts)
+        }
+
     var ttsSpeed: Float
         get() = store.decodeFloat(K_TTS_SPEED, 1f).coerceIn(0.5f, 2.0f)
         set(value) {
@@ -392,6 +470,14 @@ object ReaderSettings {
         set(value) {
             store.encode(K_TTS_SLEEP, value)
             emit(ChangeEvent.Tts)
+        }
+
+    // ---------- Search ----------
+    /** Remember the last input, including an explicit clear, across reader sessions. */
+    var lastSearchQuery: String
+        get() = store.decodeString(K_LAST_SEARCH_QUERY, "").orEmpty()
+        set(value) {
+            store.encode(K_LAST_SEARCH_QUERY, value)
         }
 
     // ---------- Misc ----------
@@ -444,6 +530,7 @@ object ReaderSettings {
         flipMode = flipMode,
         imagePlacement = imagePlacement,
         imageScaleMode = imageScaleMode,
+        customTextColor = customTextColor(effectiveTheme().id),
     )
 
     data class Snapshot(
@@ -465,6 +552,8 @@ object ReaderSettings {
         val flipMode: FlipMode,
         val imagePlacement: ImagePlacement,
         val imageScaleMode: ImageScaleMode,
+        // The paged reader deduplicates style updates by Snapshot equality, including color-only edits.
+        val customTextColor: Int? = null,
     )
 
     const val FONT_SIZE_MIN = 12
@@ -473,6 +562,7 @@ object ReaderSettings {
     private const val K_FONT_SIZE = "r_font_size"
     private const val K_LINE_SPACING = "r_line_spacing"
     private const val K_PARAGRAPH_SPACING = "r_paragraph_spacing"
+    private const val K_PARAGRAPH_SPACING_LINES = "r_paragraph_spacing_lines"
     private const val K_H_MARGIN = "r_h_margin"
     private const val K_V_MARGIN = "r_v_margin"
     private const val K_INDENT = "r_indent"
@@ -481,6 +571,7 @@ object ReaderSettings {
     private const val K_FONT_ID = "r_font_id"
     private const val K_FONT_WEIGHT = "r_font_weight"
     private const val K_THEME_ID = "r_theme_id"
+    private const val K_TEXT_COLOR_PREFIX = "r_text_color_"
     private const val K_CUSTOM_THEME_ID = "r_custom_theme_id"
     private const val K_FOLLOW_DARK = "r_follow_dark"
     private const val K_LIGHT_THEME_MEMORY = "r_light_theme_memory"
@@ -502,11 +593,16 @@ object ReaderSettings {
     private const val K_IMG_SCALE = "r_img_scale"
     private const val K_PRELOAD_AHEAD = "r_preload_ahead"
     private const val K_ILLUST_MIX_SOURCE = "r_illust_mix_source"
+    private const val K_TTS_HIGHLIGHT = "r_tts_highlight"
+    private const val K_TTS_AUTO_PAGE = "r_tts_auto_page"
+    private const val K_TTS_DOUBLE_TAP = "r_tts_double_tap"
+    private const val K_TTS_PAGE_ACTION = "r_tts_page_action"
     private const val K_TTS_SPEED = "r_tts_speed"
     private const val K_TTS_PITCH = "r_tts_pitch"
     private const val K_TTS_ENGINE = "r_tts_engine"
     private const val K_TTS_VOICE = "r_tts_voice"
     private const val K_TTS_SLEEP = "r_tts_sleep"
+    private const val K_LAST_SEARCH_QUERY = "r_last_search_query"
     private const val K_EYE_REMIND = "r_eye_remind"
     private const val K_TOUCH_LOCKED = "r_touch_locked"
     private const val K_DEBUG_OVERLAY = "r_debug_overlay"

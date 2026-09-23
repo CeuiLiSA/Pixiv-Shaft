@@ -91,11 +91,6 @@ class ReaderSearchOverlay(private val binding: LayoutReaderSearchOverlayBinding)
         if (changed) onShownChanged?.invoke(shown)
     }
 
-    fun clear() {
-        binding.editSearchQuery.text = null
-        setCount(0, 0)
-    }
-
     fun currentQuery(): String = binding.editSearchQuery.text?.toString().orEmpty()
 
     fun setCount(currentIndex: Int, total: Int) {

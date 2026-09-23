@@ -36,6 +36,7 @@ class NovelTtsService : Service() {
     private var currentIndex = 0
     private var currentOffset = 0
     private var utteranceOffset = 0
+    private var sourceRange: IntRange? = null
     private var generation = 0L
     private var engineGeneration = 0L
     private var activeUtterance: String? = null
@@ -112,6 +113,7 @@ class NovelTtsService : Service() {
         segments = payload.segments
         currentIndex = 0
         currentOffset = 0
+        sourceRange = null
         speed = payload.speed.coerceIn(0.5f, 2f)
         pitch = payload.pitch.coerceIn(0.5f, 2f)
         voice = payload.voice?.takeIf { it.isNotBlank() }
@@ -231,7 +233,13 @@ class NovelTtsService : Service() {
         !destroyed && state == NovelTtsController.STATE_PLAYING && id != null && id == activeUtterance
 
     private val listener = object : UtteranceProgressListener() {
-        override fun onStart(utteranceId: String?) = Unit
+        override fun onStart(utteranceId: String?) {
+            mainHandler.post {
+                if (!isCurrent(utteranceId)) return@post
+                sourceRange = segments[currentIndex].sourceRange(utteranceOffset)
+                publishState(updateNotification = false)
+            }
+        }
 
         override fun onDone(utteranceId: String?) {
             mainHandler.post {
@@ -258,6 +266,8 @@ class NovelTtsService : Service() {
                 val length = segments[currentIndex].text.length - utteranceOffset
                 if (start in 0 until length && end in (start + 1)..length) {
                     currentOffset = maxOf(currentOffset, utteranceOffset + start)
+                    sourceRange = segments[currentIndex].sourceRange(utteranceOffset + start, utteranceOffset + end)
+                    publishState(updateNotification = false)
                 }
             }
         }
@@ -288,6 +298,7 @@ class NovelTtsService : Service() {
         releaseTts()
         abandonAudioFocus()
         segments = emptyList()
+        sourceRange = null
         state = if (error == null) NovelTtsController.STATE_IDLE else NovelTtsController.STATE_ERROR
         foreground = false
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -340,15 +351,15 @@ class NovelTtsService : Service() {
         hasAudioFocus = false
     }
 
-    private fun publishState(error: String? = null) {
-        NovelTtsController.playbackState = NovelTtsController.PlaybackState(sessionId, state)
+    private fun publishState(error: String? = null, updateNotification: Boolean = true) {
+        NovelTtsController.playbackState = NovelTtsController.PlaybackState(sessionId, state, sourceRange)
         sendBroadcast(Intent(NovelTtsController.ACTION_STATE).apply {
             setPackage(packageName)
             putExtra(NovelTtsController.EXTRA_STATE, state)
             putExtra(NovelTtsController.EXTRA_SESSION_ID, sessionId)
             putExtra(NovelTtsController.EXTRA_ERROR, error)
         })
-        if (foreground) getSystemService(NotificationManager::class.java)?.notify(NOTIFICATION_ID, notification())
+        if (foreground && updateNotification) getSystemService(NotificationManager::class.java)?.notify(NOTIFICATION_ID, notification())
     }
 
     private fun notification(): Notification {
@@ -392,6 +403,7 @@ class NovelTtsService : Service() {
         abandonAudioFocus()
         releaseTts()
         segments = emptyList()
+        sourceRange = null
         foreground = false
         stopForeground(STOP_FOREGROUND_REMOVE)
         if (state != NovelTtsController.STATE_ERROR) {

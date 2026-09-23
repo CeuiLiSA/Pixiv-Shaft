@@ -55,7 +55,10 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
         binding.count.text = getString(R.string.search_hits_count, hits.size)
         val surfaceSubtle = ContextCompat.getColor(requireContext(), R.color.v3_surface_1)
         binding.list.layoutManager = LinearLayoutManager(requireContext())
-        binding.list.adapter = Adapter(hits, query, currentIndex, surfaceSubtle, parentFragment as? SearchHitSheetCallback) {
+        binding.list.adapter = Adapter(
+            hits, query, currentIndex, result.sourceLength, surfaceSubtle,
+            parentFragment as? SearchHitSheetCallback,
+        ) {
             dismissAllowingStateLoss()
         }
         listView = binding.list
@@ -86,6 +89,7 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
         private val hits: List<SearchHit>,
         private val query: String,
         private val currentIndex: Int,
+        private val sourceLength: Int,
         private val surfaceSubtle: Int,
         private val callback: SearchHitSheetCallback?,
         private val dismiss: () -> Unit,
@@ -103,6 +107,9 @@ class SearchHitsSheet : BottomSheetDialogFragment() {
         override fun onBindViewHolder(holder: VH, position: Int) {
             val hit = hits[position]
             holder.binding.index.text = "${position + 1}"
+            // 与搜索命中的原文偏移共用坐标，不依赖字号、分页或滚动模式。
+            val percent = hit.absoluteStart.toLong() * 100 / sourceLength.coerceAtLeast(1)
+            holder.binding.progress.text = "${percent}%"
 
             val snippetText = hit.snippet
             val spannable = SpannableString(snippetText)

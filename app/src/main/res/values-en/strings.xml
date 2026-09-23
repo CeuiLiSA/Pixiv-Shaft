@@ -837,6 +837,8 @@
     <string name="artwork_v3_fab_order_bookmark_left">Bookmark left, download right</string>
     <string name="artwork_v3_comment_jump_title">Jump-to-comments button</string>
     <string name="artwork_v3_comment_jump_desc">Show a button in the floating pill that jumps to the comments section</string>
+    <string name="artwork_v3_auto_expand_title">Auto-expand multi-page works</string>
+    <string name="artwork_v3_auto_expand_desc">Show every page as soon as a multi-page work opens, instead of folding to the first page</string>
     <string name="string_452">Download limit type</string>
     <string name="string_453">Do not auto start</string>
     <string name="string_454">Share first image</string>
@@ -1208,6 +1210,9 @@
     <string name="setting_font_weight">Font weight</string>
     <string name="setting_font_family">Font</string>
     <string name="setting_theme_preset">Palette</string>
+    <string name="setting_text_color">Text color</string>
+    <string name="setting_text_color_hint">Saved per reading theme for body text and chapter titles.</string>
+    <string name="setting_text_color_reset">Restore default text color</string>
     <string name="comic_group_read">Reading</string>
     <string name="setting_group_brightness">Brightness</string>
     <string name="setting_group_interaction">Controls</string>
@@ -2999,4 +3004,15 @@
     <string name="web_discovery_login_needed">Sign in to the pixiv website with the same account as the app to see recommended works.</string>
     <string name="web_discovery_web_login">Web sign-in</string>
     <string name="tag_menu_author_works">Works by this author with this tag</string>
+
+    <!-- Novel read-aloud reader integration (#1139) -->
+    <string name="reader_tts_settings">Read-aloud settings</string>
+    <string name="reader_tts_from_page">Read from this page</string>
+    <string name="reader_tts_highlight">Highlight spoken text</string>
+    <string name="reader_tts_auto_page">Follow reading position</string>
+    <string name="reader_tts_double_tap">Double-tap text to seek</string>
+    <string name="reader_tts_show_page_action">Show read-from-page button on other pages</string>
+    <string name="reader_tts_follow_hint">Highlighting follows the speech engine’s range, or the spoken segment when ranges are unavailable. Following turns pages or scrolls within the current novel. Double-tap restarts the paragraph.</string>
+    <string name="search_history_delete_confirm">Delete “%1$s” from search history?</string>
+    <string name="search_tag_delete_confirm">Remove the tag “%1$s” from the current search?</string>
 </resources>

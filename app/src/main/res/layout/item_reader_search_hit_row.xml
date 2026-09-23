@@ -6,6 +6,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:baselineAligned="false"
         android:gravity="center_vertical"
         android:background="?attr/selectableItemBackground"
         android:paddingStart="16dp"
@@ -15,8 +16,9 @@
 
         <TextView
             android:id="@+id/index"
-            android:layout_width="32dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minWidth="32dp"
             android:textColor="@color/v3_text_3"
             android:textSize="12sp"/>
 
@@ -30,5 +32,16 @@
             android:maxLines="2"
             android:textColor="@color/v3_text_1"
             android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/progress"
+            style="@style/textMontserratRegular"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="8dp"
+            android:lineSpacingMultiplier="1.6"
+            android:textColor="@color/v3_text_2"
+            android:textSize="12sp"/>
     </LinearLayout>
 </layout>

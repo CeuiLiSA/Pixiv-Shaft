@@ -110,7 +110,7 @@ class Paginator(
 
             is ContentToken.BlankLine -> {
                 if (currentElements.isNotEmpty()) {
-                    val gap = style.paragraphSpacingPx.coerceAtLeast(style.textPaint.fontMetrics.bottom - style.textPaint.fontMetrics.top)
+                    val gap = style.paragraphSpacingPx.coerceAtLeast(style.textLineHeightPx.toFloat())
                     val space = PageElement.Space(
                         top = currentY,
                         bottom = currentY + gap,

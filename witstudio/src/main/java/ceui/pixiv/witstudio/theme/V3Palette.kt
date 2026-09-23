@@ -96,9 +96,16 @@ public class V3Palette @JvmOverloads public constructor(
         withAlpha(ensureLightEnough(primary, 0.72f), 0.90f)
     else withAlpha(ensureDarkEnough(primary, 0.35f), 0.90f)
 
-    /** Tag locked text */
-    @ColorInt public val textTag: Int = if (isDark) ensureLightEnough(primary, 0.70f)
-        else ensureDarkEnough(primary, 0.38f)
+    /** 标签文字按选中态的 20% 染色底校正；仅限制 HSL 亮度会让浅色黄/绿标签难以阅读。 */
+    @ColorInt public val textTag: Int = tagTextColor(
+        if (isDark) ensureLightEnough(primary, 0.70f) else ensureDarkEnough(primary, 0.38f),
+    )
+
+    /** 译文可独立选色，仍须按当前主题的标签底色校验，而非译文色自己的背景。 */
+    @ColorInt
+    public fun tagTextColor(@ColorInt color: Int): Int = ensureContrastAgainst(
+        color, ColorUtils.compositeColors(alpha20, cardFill), goLighter = isDark,
+    )
 
     /** Series label text */
     @ColorInt public val textSeries: Int = if (isDark)

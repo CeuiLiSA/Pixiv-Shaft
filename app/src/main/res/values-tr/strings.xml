@@ -837,6 +837,8 @@
     <string name="artwork_v3_fab_order_bookmark_left">Sol yer imi, sağ indir</string>
     <string name="artwork_v3_comment_jump_title">Yorumlara atla düğmesi</string>
     <string name="artwork_v3_comment_jump_desc">Yüzen çubukta yorum bölümüne hızlı geçiş düğmesini göster</string>
+    <string name="artwork_v3_auto_expand_title">Çok sayfalıyı otomatik aç</string>
+    <string name="artwork_v3_auto_expand_desc">Çok sayfalı bir eser açıldığında ilk sayfaya katlamak yerine tüm sayfaları göster</string>
     <string name="string_452">İndirme sınırı</string>
     <string name="string_453">Otomatik başlat</string>
     <string name="string_454">İlk resmi paylaş</string>
@@ -1208,6 +1210,9 @@
     <string name="setting_font_weight">Ağırlık</string>
     <string name="setting_font_family">Yazı tipi</string>
     <string name="setting_theme_preset">Renk düzeni</string>
+    <string name="setting_text_color">Metin rengi</string>
+    <string name="setting_text_color_hint">Her okuma teması için kaydedilir; metne ve bölüm başlıklarına uygulanır.</string>
+    <string name="setting_text_color_reset">Varsayılan metin rengini geri yükle</string>
     <string name="comic_group_read">Okuma</string>
     <string name="setting_group_brightness">Parlaklık</string>
     <string name="setting_group_interaction">Kontroller</string>
@@ -3000,4 +3005,15 @@
     <string name="web_discovery_login_needed">Önerilen eserleri görmek için pixiv web sitesinde uygulamayla aynı hesapla oturum açın.</string>
     <string name="web_discovery_web_login">Web oturumu aç</string>
     <string name="tag_menu_author_works">Bu yazarın bu etikete sahip eserleri</string>
+
+    <!-- Novel read-aloud reader integration (#1139) -->
+    <string name="reader_tts_settings">Sesli okuma ayarları</string>
+    <string name="reader_tts_from_page">Bu sayfadan oku</string>
+    <string name="reader_tts_highlight">Okunan metni vurgula</string>
+    <string name="reader_tts_auto_page">Okuma konumunu takip et</string>
+    <string name="reader_tts_double_tap">Çift dokunarak okuma konumunu değiştir</string>
+    <string name="reader_tts_show_page_action">Diğer sayfalarda okuma düğmesini göster</string>
+    <string name="reader_tts_follow_hint">Vurgulama, ses motorunun bildirdiği aralığı veya aralık yoksa okunan parçayı izler. Otomatik takip, geçerli romanda sayfa çevirir veya kaydırır. Çift dokunma paragrafı baştan okur.</string>
+    <string name="search_history_delete_confirm">Arama geçmişinden «%1$s» silinsin mi?</string>
+    <string name="search_tag_delete_confirm">«%1$s» etiketi mevcut aramadan kaldırılsın mı?</string>
 </resources>

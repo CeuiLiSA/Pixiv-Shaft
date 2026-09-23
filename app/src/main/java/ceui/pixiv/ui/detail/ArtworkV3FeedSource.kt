@@ -120,7 +120,11 @@ class ArtworkV3FeedSource(
         fun buildArtworkPageItems(illust: Illust): List<FeedItem> {
             if (illust.isGif()) return listOf(ArtworkUgoiraItem(illust.id))
             val pageCount = illust.page_count.coerceAtLeast(1)
-            val visible = if (CollapsibleIllustAdapter.shouldCollapse(pageCount)) 1 else pageCount
+            // 设置里开了「多图自动展开」(#1090)就一次产出全 P：折叠态从一开始就不存在，
+            // 于是没有插入通知、没有「展开剩余 X 张」覆盖层。默认仍是只出 p0。
+            val autoExpand = Shaft.sSettings.isArtworkV3AutoExpandMultiPage
+            val visible =
+                if (CollapsibleIllustAdapter.shouldCollapse(pageCount) && !autoExpand) 1 else pageCount
             return (0 until visible).map { artworkPageItem(illust.id, it) }
         }
 

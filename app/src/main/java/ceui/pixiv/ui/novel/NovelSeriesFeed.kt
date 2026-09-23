@@ -1,28 +1,20 @@
 package ceui.pixiv.ui.novel
 
-import android.content.Intent
 import android.content.res.ColorStateList
-import android.text.Spannable
-import android.text.SpannableString
-import android.text.style.ForegroundColorSpan
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
-import android.widget.TextView
 import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ceui.lisa.R
-import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.CellNovelSeriesHeroBinding
 import ceui.lisa.databinding.CellNovelSeriesProfileBinding
 import ceui.lisa.databinding.CellNovelV3Binding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
-import ceui.lisa.utils.Params
 import ceui.lisa.utils.ShareIllust
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.api.Client
@@ -33,7 +25,6 @@ import ceui.pixiv.api.model.NovelSeriesResp
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.widgets.ProgressImageButton
 import ceui.pixiv.widgets.ProgressIndicator
-import ceui.pixiv.widgets.resolveTagTranslationColor
 import ceui.pixiv.ui.common.findActionReceiverOrNull
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
@@ -50,10 +41,8 @@ import ceui.pixiv.ui.detail.SeriesCaptionFeedItem
 import ceui.pixiv.ui.detail.SeriesSectionLabelFeedItem
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.clearGlideOnRecycle
-import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
-import com.google.android.flexbox.FlexboxLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.NumberFormat
@@ -309,7 +298,7 @@ fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3
         b.badgeOriginal.isVisible = novel.is_original == true
         b.badgeAi.isVisible = novel.novel_ai_type == 2
 
-        bindNovelCardTags(b, novel, palette)
+        bindNovelCardTags(b, novel)
         // 绑定时从 ObjectPool 读最新收藏态/收藏数：卡片回收复用后不会回退成加载时的旧值。
         val pooled = ObjectPool.get<Novel>(novel.id).value ?: novel
         bindNovelCardBookmark(b, pooled.is_bookmarked == true, pooled.total_bookmarks, fmt)
@@ -366,9 +355,8 @@ private fun bindNovelCardBookmark(
     if (totalBookmarks != null) b.bookmarkCount.text = fmt.format(totalBookmarks)
 }
 
-private fun bindNovelCardTags(b: CellNovelV3Binding, novel: Novel, palette: V3Palette) {
+private fun bindNovelCardTags(b: CellNovelV3Binding, novel: Novel) {
     val tags = novel.tags
-    val ctx = b.root.context
     // 与主力小说卡同一套设置（#982/#1047/#1089）：「小说列表显示标签」关闭时整体隐藏；
     // 译文默认关闭、可单独开启；「小说列表标签折叠」开启时超 6 个折叠成「+N」。
     if (tags.isNullOrEmpty() || !Shaft.sSettings.isShowNovelCardTags) {
@@ -376,63 +364,12 @@ private fun bindNovelCardTags(b: CellNovelV3Binding, novel: Novel, palette: V3Pa
         return
     }
     b.tagsSection.isVisible = true
-    b.tagsFlow.removeAllViews()
-    val density = ctx.resources.displayMetrics.density
-    val tagBg = palette.tagLockedBg(999f * density).constantState
-    val maxTags = if (Shaft.sSettings.isCollapseNovelCardTags) 6 else -1
-    val showTranslations = Shaft.sSettings.isShowNovelCardTagTranslations
-    val translationColor = resolveTagTranslationColor(palette)
-    val visibleTags = if (maxTags > 0) tags.take(maxTags) else tags
-    visibleTags.forEach { tag ->
-        val tv = TextView(ctx)
-        val translationSuffix = tag.translated_name
-            ?.takeIf { showTranslations && it.isNotBlank() }
-            ?.let { "  $it" }
-            .orEmpty()
-        val fullText = "# ${tag.name ?: ""}$translationSuffix"
-        tv.text = SpannableString(fullText).apply {
-            if (translationSuffix.isNotEmpty()) {
-                setSpan(
-                    ForegroundColorSpan(translationColor),
-                    fullText.length - translationSuffix.length,
-                    fullText.length,
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE,
-                )
-            }
-        }
-        tv.textSize = 11f
-        tv.setTextColor(palette.textTag)
-        tv.background = tagBg?.newDrawable()?.mutate()
-        tv.setPaddingRelative(10.ppppx, 5.ppppx, 10.ppppx, 5.ppppx)
-        val lp = FlexboxLayout.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-        )
-        lp.setMargins(0, 0, 6.ppppx, 6.ppppx)
-        lp.flexShrink = 0f
-        tv.layoutParams = lp
-        tv.setOnClickListener {
-            val intent = Intent(ctx, SearchActivity::class.java)
-                .putExtra(Params.KEY_WORD, tag.name)
-                .putExtra(Params.INDEX, 1)
-            ctx.startActivity(intent)
-        }
-        applyCardTouchScale(tv, 0.94f)
-        b.tagsFlow.addView(tv)
-    }
-    if (maxTags > 0 && tags.size > maxTags) {
-        val overflow = TextView(ctx)
-        overflow.text = "+${tags.size - maxTags}"
-        overflow.textSize = 11f
-        overflow.setTextColor(palette.textSecondary)
-        overflow.background = tagBg?.newDrawable()?.mutate()
-        overflow.setPaddingRelative(10.ppppx, 5.ppppx, 10.ppppx, 5.ppppx)
-        val overflowLp = FlexboxLayout.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-        )
-        overflowLp.setMargins(0, 0, 6.ppppx, 6.ppppx)
-        overflowLp.flexShrink = 0f
-        overflow.layoutParams = overflowLp
-        b.tagsFlow.addView(overflow)
+    b.tagsFlow.apply {
+        compact = true
+        searchIndex = 1
+        showTranslation = Shaft.sSettings.isShowNovelCardTagTranslations
+        maxTags = if (Shaft.sSettings.isCollapseNovelCardTags) 6 else -1
+        setTags(tags)
     }
 }
 

@@ -20,11 +20,9 @@ import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
  * [PageView] and go through TextView's own selection/rendering, so they are
  * NOT drawn here.
  *
- * Persistent overlays on text (annotations, search hits, TTS active range)
- * were previously drawn on the canvas via the paginator's StaticLayout. That
- * path is gone — the next iteration of those features must draw on top of
- * the hosting [ReaderTextBlockView] (via spans or a custom onDraw) so they
- * land on the exact pixel the TextView just rendered.
+ * Search and TTS highlights on body text use spans on [ReaderTextBlockView]
+ * so they match its actual layout. Chapter highlights are drawn here along
+ * with their canvas-rendered text.
  */
 object PageRenderer {
 
@@ -84,23 +82,30 @@ object PageRenderer {
         page: Page,
         paddingLeft: Float,
         style: TypeStyle,
-        @Suppress("UNUSED_PARAMETER") overlays: PageOverlays,
+        overlays: PageOverlays,
         imageSource: ImageBitmapSource,
     ) {
         for (element in page.elements) {
             when (element) {
                 is PageElement.Text -> Unit
-                is PageElement.Chapter -> drawChapter(canvas, element, paddingLeft, style)
+                is PageElement.Chapter -> {
+                    if (overlays.ttsActiveRange?.let { it.first < element.absoluteCharEnd && it.last >= element.absoluteCharStart } == true) {
+                        backgroundPaint.color = style.highlightColor
+                        for (line in 0 until element.layout.lineCount) {
+                            canvas.drawRect(paddingLeft + element.layout.getLineLeft(line),
+                                element.top + element.layout.getLineTop(line),
+                                paddingLeft + element.layout.getLineRight(line),
+                                element.top + element.layout.getLineBottom(line), backgroundPaint)
+                        }
+                    }
+                    drawChapter(canvas, element, paddingLeft, style)
+                }
                 is PageElement.Image -> drawImage(canvas, element, paddingLeft, style, imageSource)
                 is PageElement.Space -> Unit
                 is PageElement.Jump -> drawJump(canvas, element, paddingLeft, style)
             }
         }
-        // TODO(v3): re-wire annotations / search / TTS overlays on top of the
-        // hosting ReaderTextBlockView (via spans or a custom overlay pass) so
-        // their rects land on TextView's own pixels. The old canvas path
-        // depended on the paginator exposing a StaticLayout, which it no
-        // longer does.
+        // TODO(v3): re-wire saved annotations on the hosting ReaderTextBlockView.
     }
 
     private fun drawChapter(

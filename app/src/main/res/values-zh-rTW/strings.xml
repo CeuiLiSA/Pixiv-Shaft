@@ -839,6 +839,8 @@
     <string name="artwork_v3_fab_order_bookmark_left">左側收藏，右側下載</string>
     <string name="artwork_v3_comment_jump_title">跳轉評論區按鈕</string>
     <string name="artwork_v3_comment_jump_desc">懸浮膠囊中顯示一鍵跳到評論區的按鈕</string>
+    <string name="artwork_v3_auto_expand_title">多圖自動展開</string>
+    <string name="artwork_v3_auto_expand_desc">進入多圖作品時自動展開全部頁面，不再折疊為第一頁</string>
     <string name="string_452">下載限制類型</string>
     <string name="string_453">不自動下載</string>
     <string name="string_454">分享首圖</string>
@@ -1210,6 +1212,9 @@
     <string name="setting_font_weight">字重</string>
     <string name="setting_font_family">字型</string>
     <string name="setting_theme_preset">配色</string>
+    <string name="setting_text_color">文字顏色</string>
+    <string name="setting_text_color_hint">依目前配色儲存，用於內文和章節標題。</string>
+    <string name="setting_text_color_reset">恢復預設字色</string>
     <string name="comic_group_read">閱讀</string>
     <string name="setting_group_brightness">亮度</string>
     <string name="setting_group_interaction">操作</string>
@@ -2998,4 +3003,15 @@
     <string name="web_discovery_login_needed">請使用與 App 相同的 pixiv 帳號登入網頁，以查看推薦作品。</string>
     <string name="web_discovery_web_login">網頁登入</string>
     <string name="tag_menu_author_works">該作者相關作品</string>
+
+    <!-- Novel read-aloud reader integration (#1139) -->
+    <string name="reader_tts_settings">朗讀設定</string>
+    <string name="reader_tts_from_page">從本頁開始朗讀</string>
+    <string name="reader_tts_highlight">醒目標示正在朗讀的文字</string>
+    <string name="reader_tts_auto_page">朗讀時自動翻頁</string>
+    <string name="reader_tts_double_tap">雙擊文字切換朗讀位置</string>
+    <string name="reader_tts_show_page_action">在其他頁面常駐顯示朗讀入口</string>
+    <string name="reader_tts_follow_hint">醒目標示跟隨語音引擎提供的範圍；不支援範圍回呼時按朗讀片段標示。自動翻頁僅跟隨目前小說，縱向模式自動捲動。雙擊從所在段落開頭重讀。</string>
+    <string name="search_history_delete_confirm">從搜尋歷史中刪除「%1$s」？</string>
+    <string name="search_tag_delete_confirm">從目前搜尋中刪除標籤「%1$s」？</string>
 </resources>
