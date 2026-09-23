@@ -102,12 +102,13 @@ class NovelReaderV3ViewModel(
     data class SearchResult(
         val hits: List<SearchHit>,
         val currentIndex: Int,
+        val sourceLength: Int,
     ) {
         val total: Int get() = hits.size
         val currentHit: SearchHit? get() = hits.getOrNull(currentIndex)
 
         companion object {
-            val EMPTY = SearchResult(emptyList(), -1)
+            val EMPTY = SearchResult(emptyList(), -1, 0)
         }
     }
 
@@ -398,7 +399,7 @@ class NovelReaderV3ViewModel(
         val pages = _pagination.value?.pages.orEmpty()
         val annotated = SearchEngine.annotatePageIndices(rawHits, pages)
         val idx = if (annotated.isEmpty()) -1 else 0
-        _searchResult.value = SearchResult(annotated, idx)
+        _searchResult.value = SearchResult(annotated, idx, source.length)
     }
 
     fun nextSearchHit(): SearchHit? {
