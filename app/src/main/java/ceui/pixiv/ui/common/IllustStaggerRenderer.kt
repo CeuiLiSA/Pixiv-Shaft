@@ -4,7 +4,6 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.view.HapticFeedbackConstants
 import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
@@ -21,6 +20,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.ui.recommend.bindTrendingScore
 import ceui.pixiv.utils.playLikePressHaptic
+import ceui.pixiv.utils.playUnlikeHaptic
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -379,7 +379,7 @@ private fun playLikeBurst(binding: RecyIllustStaggerBinding) {
 
 /** 取消收藏：静态爱心一个干脆的回弹缩放，不放烟花；触感只给单下轻 tick。 */
 private fun playUnlikeShrink(button: ImageView) {
-    button.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+    playUnlikeHaptic(button)
     button.animate().cancel()
     button.scaleX = 0.6f
     button.scaleY = 0.6f

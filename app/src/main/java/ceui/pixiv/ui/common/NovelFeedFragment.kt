@@ -43,6 +43,7 @@ import ceui.pixiv.ui.novel.reader.ui.ExportSheet
 import ceui.pixiv.ui.recommend.bindTrendingScore
 import ceui.pixiv.ui.task.BatchDownloadNovelsTask
 import ceui.pixiv.utils.playLikePressHaptic
+import ceui.pixiv.utils.playUnlikeHaptic
 import ceui.pixiv.utils.pinHostGlide
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
@@ -576,11 +577,11 @@ abstract class NovelFeedFragment(
         val target = novel.is_bookmarked != true
         // 乐观：当帧翻心（异步 updateItems 至少要等 ListAdapter diff 落地一两帧）
         renderNovelLike(cell.binding.like, target)
-        // 收藏触感（与插画卡共用 playLikePressHaptic）：收藏给 iOS 3D-touch 段落感,取消给单下轻 tick
+        // 收藏和取消收藏的触感都受设置开关控制。
         if (target) {
             playLikePressHaptic(cell.binding.like)
         } else {
-            cell.binding.like.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+            playUnlikeHaptic(cell.binding.like)
         }
         applyNovelBookmark(novelId, target)
         // 跨列表同步的 LIKED_NOVEL 广播由 PixivActions 内部发（与插画那支同一套写法）——

@@ -2880,6 +2880,8 @@
 
     <!-- ============ 收藏库 / Bookmark library ============ -->
     <string name="settings_bookmark_mirror">북마크 로컬 미러</string>
+    <string name="settings_like_haptic">북마크 버튼 진동 피드백</string>
+    <string name="settings_like_haptic_desc">시스템 촉각 피드백도 함께 켜야 할 수 있습니다</string>
     <string name="bookmark_library_menu_entry">조건으로 둘러보기</string>
     <string name="bookmark_library_open_classic">원본 북마크 목록</string>
     <string name="bookmark_mirror_ready_title">북마크 보관함이 준비됐어요</string>

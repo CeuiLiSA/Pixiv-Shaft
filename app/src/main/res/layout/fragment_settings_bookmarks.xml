@@ -107,6 +107,29 @@
 
                 </RelativeLayout>
 
+                <!-- 收藏和取消收藏共用的触感反馈开关。 -->
+                <RelativeLayout
+                    android:id="@+id/like_haptic_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/settings_like_haptic" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/settings_like_haptic_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/like_haptic"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
                 <RelativeLayout
                     android:id="@+id/filter_invalid_bookmarks_rela"
                     style="@style/M3SetRow"

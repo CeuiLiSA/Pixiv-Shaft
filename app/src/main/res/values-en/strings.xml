@@ -2883,6 +2883,8 @@
 
     <!-- ============ Bookmark library (local mirror browser) ============ -->
     <string name="settings_bookmark_mirror">Local bookmark mirror</string>
+    <string name="settings_like_haptic">Vibration feedback for the bookmark button</string>
+    <string name="settings_like_haptic_desc">System touch feedback may also need to be turned on</string>
     <string name="bookmark_library_menu_entry">Browse with filters</string>
     <string name="bookmark_library_open_classic">Original bookmark list</string>
     <string name="bookmark_mirror_ready_title">Bookmark library ready</string>
