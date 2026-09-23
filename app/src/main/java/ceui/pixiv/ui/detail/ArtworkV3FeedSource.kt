@@ -125,7 +125,7 @@ class ArtworkV3FeedSource(
             val autoExpand = Shaft.sSettings.isArtworkV3AutoExpandMultiPage
             val visible =
                 if (CollapsibleIllustAdapter.shouldCollapse(pageCount) && !autoExpand) 1 else pageCount
-            return (0 until visible).map { ArtworkPageItem(illust.id, it) }
+            return (0 until visible).map { artworkPageItem(illust.id, it) }
         }
 
         /** header 区块条目,顺序对齐 legacy ArtworkV3ViewModel.doBuildHeaderItems。 */

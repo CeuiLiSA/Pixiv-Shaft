@@ -514,9 +514,11 @@ internal fun ArtworkV3Fragment.artistRenderer() =
         b.artistHandle.setOnLongClickListener {
             Common.copy(ctx, b.artistHandle.text?.toString().orEmpty()); true
         }
-        illustGlide.load(GlideUtil.getUrl(user.profile_image_urls?.medium))
-            .error(R.drawable.no_profile)
-            .into(b.artistAvatar)
+        // 走仓库既有的头像加载口:它自带「同一 URL 就直接 return、不重发请求」的短路
+        // (见 [binding_loadUserIcon]),挑的还是 findMaxSizeUrl 而不是 medium。
+        // 作者栏是 viewType 独占的(整页只有这一条),复用时格子上留着的必然还是这张头像 ——
+        // 重绑本来就不该让它重走一次解码 / 淡入。
+        b.artistAvatar.binding_loadUserIcon(user)
 
         applyTouchScale(b.artistCard)
 

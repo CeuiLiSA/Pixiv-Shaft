@@ -657,6 +657,7 @@
     <string name="string_393">作品二级详情翻页模式</string>
     <item name="tag_image_url" type="id"></item>
     <item name="tag_task_observers" type="id"></item>
+    <item name="tag_kept_page_index" type="id"></item>
     <item name="tag_artwork_page_adapter" type="id"></item>
     <string name="string_394">文本</string>
     <string name="string_395">关键词</string>

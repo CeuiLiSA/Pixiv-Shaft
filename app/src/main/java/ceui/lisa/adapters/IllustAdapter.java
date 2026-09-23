@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -143,13 +144,67 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     private final Set<Integer> shownPages = ConcurrentHashMap.newKeySet();
 
     /**
-     * 当前仍绑定在屏上的页 binding（V3 feeds 委托模式），用于不重绑直接回填缓存原图。
+     * 当前绑定的页 binding（含 V3 回收池里保留的 p0），用于不重绑直接回填缓存原图。
      * 存 binding 而不是 ViewHolder：外层 renderer 每次 onBind/onRecycle 都 new 一个 ViewHolder 壳。
      */
     private final Map<Integer, RecyIllustDetailBinding> boundBindings = new ConcurrentHashMap<>();
 
+    /** 本次绑定实际使用的本地文件；无记录表示网络图。与扫描后来发现的文件分开比较。 */
+    private final Map<RecyIllustDetailBinding, Uri> boundLocalPageUris = new HashMap<>();
+
     /** 已对当前 holder 显示过缓存原图 overlay 的页码，避免 onResume 重复触发淡入。 */
     private final Set<Integer> cachedOriginalShownPages = ConcurrentHashMap.newKeySet();
+
+    /**
+     * V3 详情页的常驻槽位数：只有 p0。
+     *
+     * 「收起」只在 p ≥ 3 时才存在（见 CollapsibleIllustAdapter.shouldCollapse），所以 p0 一定有；
+     * 而收起的落点恒为 p0（两枚展开胶囊也硬判 position == 0），留住它就够了，p1 按普通页走。
+     */
+    public static final int PINNED_PAGE_COUNT = 1;
+
+    /**
+     * 是否启用常驻槽位。只有 V3 详情页开：它的 p0 独占一个 viewType（见 ArtworkPinnedFirstPageItem），
+     * 槽位不会被别页复用。legacy 详情页是同一个 adapter 的另一个使用方，那里不开。
+     */
+    private boolean keepPinnedPages = false;
+
+    public void setKeepPinnedPages(boolean keepPinnedPages) {
+        this.keepPinnedPages = keepPinnedPages;
+    }
+
+    /**
+     * 常驻槽位入口。holder 上留着的正是这一页 → 返回 true，调用方整条绑定都不用走；留的是别页 →
+     * 先把那张图丢掉再返回 false，免得新图到位前亮出上一页的画面。
+     *
+     * 为什么安全：回收时**不清 Glide 请求**，资源就一直挂在 target 上、引用计数不为 0，Glide
+     * 不会回收这张位图。自己另存一份裸 Bitmap 引用是错的 —— 那条路会在 draw 阶段撞上已回收的位图。
+     */
+    public boolean tryKeepPinnedPage(ViewHolder<RecyIllustDetailBinding> holder, int position) {
+        if (!keepPinnedPages || released) {
+            return false;
+        }
+        Object kept = holder.itemView.getTag(R.id.tag_kept_page_index);
+        if (kept instanceof Integer && ((Integer) kept) == position
+                && position < PINNED_PAGE_COUNT
+                && boundBindings.get(position) == holder.baseBind
+                && Objects.equals(localPageUris.get(position), boundLocalPageUris.get(holder.baseBind))
+                && holder.baseBind.reload.getVisibility() != View.VISIBLE
+                && (holder.baseBind.illust.getDrawable() != null
+                || holder.baseBind.illustHd.getVisibility() == View.VISIBLE)) {
+            // 只消费一次回收标记，后续显式 notifyItemChanged（重试等）必须可以全量重绑。
+            // boundBindings 同时证明 holder 属于本 adapter，不能复用「加载原图」前的旧实例。
+            holder.itemView.setTag(R.id.tag_kept_page_index, null);
+            return true;
+        }
+        if (kept != null) {
+            // 槽位被别页借走了：留着的那张图必须立刻丢掉。
+            fragmentRequestManager.clear(holder.baseBind.illust);
+            holder.baseBind.illust.setImageDrawable(null);
+            holder.itemView.setTag(R.id.tag_kept_page_index, null);
+        }
+        return false;
+    }
 
     /**
      * 全景页(超宽图)集合。这种图按宽度缩后自然高只剩一条缝(17300×1750 在手机上约 110px,还压在
@@ -246,10 +301,15 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         released = true;
         pageStatusListener = null;
         localPagesChangedListener = null;
+        // 回收池不会再次回调已经回收的 p0；必须在 view 结束或更换 adapter 时主动释放它。
+        for (RecyIllustDetailBinding binding : new ArrayList<>(boundBindings.values())) {
+            onViewRecycled(new ViewHolder<>(binding));
+        }
         pageRatio.clear();
         overlaySizedPages.clear();
         shownPages.clear();
         boundBindings.clear();
+        boundLocalPageUris.clear();
         cachedOriginalShownPages.clear();
         mainHandler.removeCallbacksAndMessages(null);
     }
@@ -358,11 +418,21 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     @Override
     public void onViewRecycled(@NonNull ViewHolder<RecyIllustDetailBinding> holder) {
         super.onViewRecycled(holder);
-        // 解除当前 binding 的绑定记录，避免已回收页被 onResume 直接回填。
+        // 普通页解除绑定；p0 独占槽位保留绑定和原图观察，直到 release 或下次完整绑定。
+        // ⚠️ 这里只有 boundBindings 一个来源，别拿 holder.getAbsoluteAdapterPosition() 兜底：传进来的
+        // holder 是 renderer 在 recycle lambda 里新建的**薄壳**（ViewHolder(cell.binding)），
+        // mBindingAdapter / mOwnerRecyclerView 都是 null，那个 API 只会返回 NO_POSITION。
         Integer recycledPosition = boundBindings.entrySet().stream()
                 .filter(e -> e.getValue() == holder.baseBind)
                 .map(Map.Entry::getKey)
                 .findFirst().orElse(null);
+        if (!released && keepPinnedPages && recycledPosition != null && recycledPosition < PINNED_PAGE_COUNT) {
+            // large 已显示时原图可能仍在下载。保留图也必须保留这一个 holder 的观察者，
+            // 否则复用早退后进度不再更新、下载完成也不会显示原图。数量固定为一页，
+            // 完整重绑会先 detachTaskObservers，release 则连同 Glide 请求一起释放。
+            holder.itemView.setTag(R.id.tag_kept_page_index, recycledPosition);
+            return;
+        }
         if (recycledPosition != null) {
             boundBindings.remove(recycledPosition);
             cachedOriginalShownPages.remove(recycledPosition);
@@ -370,10 +440,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         // Detach this holder's LoadTask observers (see loadIllust) so they don't outlive
         // the bind and pile up on the per-URL task's LiveData.
         detachTaskObservers(holder);
+        boundLocalPageUris.remove(holder.baseBind);
+        holder.itemView.setTag(R.id.tag_kept_page_index, null);
         // Cancel any in-flight Glide load targeting these ImageViews so a late-arriving
         // bitmap from the previous bind can't leak into the recycled holder.
         fragmentRequestManager.clear(holder.baseBind.illust);
         fragmentRequestManager.clear(holder.baseBind.illustHd);
+        holder.baseBind.illust.setImageDrawable(null);
         holder.baseBind.illustHd.setImageDrawable(null);
         holder.baseBind.illustHd.setVisibility(View.GONE);
         holder.baseBind.illust.setTag(R.id.tag_image_url, null);
@@ -398,6 +471,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     @Override
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
         super.onBindViewHolder(holder, position);
+        holder.itemView.setTag(R.id.tag_kept_page_index, null);
         boundBindings.entrySet().removeIf(e -> e.getValue() == holder.baseBind);
         boundBindings.put(position, holder.baseBind);
         // 快照只读：长按下载会拿 shaftsnap:// 当远程地址去下,还可能顺带触发「下载即收藏」
@@ -637,10 +711,14 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
 
         // 命中已下载的本地文件就直读，跳过网络 LoadTask —— 详情页展开多图复用下载结果。
         Uri localUri = localPageUris.get(position);
+        // 记录真正用于取图的来源。仅清回收标记不够：扫描到文件后的异步 diff 会把
+        // mCachedViews 里的旧 holder 再回收一次，重新写回那个标记，但旧图仍是网络预览。
         if (localUri != null) {
+            boundLocalPageUris.put(holder.baseBind, localUri);
             loadFromLocalFile(holder, position, changeSize, localUri);
             return;
         }
+        boundLocalPageUris.remove(holder.baseBind);
         loadFromNetwork(holder, position, changeSize);
     }
 

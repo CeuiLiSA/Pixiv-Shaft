@@ -202,6 +202,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 预览里点了一页、但那一页还被折叠着:展开后的条目一落地就补跳过去。 */
     private var pendingPageJump: Int? = null
 
+    /** 收起后欠着的一次回顶:等「隐藏页被移除」的通知到了再发,理由见 [drainCollapseResetScroll]。 */
+    private var pendingCollapseResetScroll = false
+
     /** 解析好的完整简介(#965):折叠态显示的是截断文本,展开/重绑时从这里取回全文。 */
     internal var descFullCaption: CharSequence? = null
 
@@ -213,6 +216,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {
         return listOf(
             artworkPageRenderer(),
+            artworkPinnedFirstPageRenderer(),
             artworkUgoiraRenderer(),
             heroRenderer(),
             seriesRenderer(),
@@ -238,18 +242,31 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         listView.addItemDecoration(RelatedOnlySpaceDecoration(8.ppppx, spanCount))
         // header 区块(fullSpan)在 notifyItemChanged 时的默认变更动画会打乱 SGLM 的 fullSpan 追踪。
         listView.itemAnimator = null
+        // 多留几格「刚滑出去的 holder」。RecyclerView 对缓存里的 holder 不调 onViewRecycled、
+        // 也不清 Glide 请求,滑回来(含收起回顶)直接复用,连图都还在,不会先露一帧页面底色。
+        // 这才是「保住已画好的位图」的安全做法:位图仍归 Glide 的引用计数管着。自己存一份裸
+        // Bitmap 引用是错的——Glide 回收它时我们还在画,draw 阶段直接崩 Canvas。
+        // 6 格按「收起前一般只往下翻几页」定;调大只是多占内存,语义不变。
+        listView.setItemViewCacheSize(6)
         // 跳评论(#970)基线收敛:懒加载区块每次落地(change/insert)都可能触发 end-gap 修正,
         // 数据一变就再对一次。观察者随本次 install 的 adapter 一起活/一起丢,不需手动反注册。
         feedAdapter?.registerAdapterDataObserver(
             object : RecyclerView.AdapterDataObserver() {
                 override fun onItemRangeChanged(positionStart: Int, itemCount: Int) {
                     scheduleCommentsRealign()
+                    // 快速展开再收起可能合并成仅覆盖层变化，没有 removal 通知。
+                    drainCollapseResetScroll()
                 }
 
                 override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
                     scheduleCommentsRealign()
                     // 展开多图产出的页条目也是从这里落地的,长按预览欠着的那一跳在此接上(#1085)。
                     drainPendingPageJump()
+                }
+
+                override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
+                    // 收起产出的移除落地了:回顶在这里发,和它被同一次 layout 消费,两者才是一帧。
+                    drainCollapseResetScroll()
                 }
             }
         )
@@ -530,6 +547,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // render 的数据落地就会把新列表拽去评论区。
         commentsJumpRealign = false
         pendingPageJump = null
+        pendingCollapseResetScroll = false
         pageProgressIndex = -1
         pageAdapter?.release()
         pageAdapter = null
@@ -610,6 +628,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     }
                 }
             }
+        // p0 的 holder 常驻:见 IllustAdapter.setKeepPinnedPages 与 ArtworkPinnedFirstPageItem。
+        adapter.setKeepPinnedPages(true)
         adapter.setPageStatusListener { position, status ->
             retryController.reportStatus(position, status)
         }
@@ -618,7 +638,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             // notifyDataSetChanged 无效。下载记录扫描命中后 bump tick，让外层 FeedAdapter 重绑。
             if (_chromeBind != null) {
                 feedViewModel.updateItems<ArtworkPageItem> {
-                    it.copy(rebindTick = it.rebindTick + 1)
+                    it.withRebindTick(it.rebindTick + 1)
                 }
             }
         }
@@ -687,6 +707,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         for (i in 0 until pageCount) {
             data.pageFile(i)?.let { file -> adapter.putLocalPageUri(i, Uri.fromFile(file)) }
         }
+        adapter.setKeepPinnedPages(true)
         adapter.setPageStatusListener { _, _ -> }
         adapter.setLocalPagesChangedListener(null)
         pageAdapter = adapter
@@ -713,7 +734,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (wasExpanded) {
             (newAdapter as? CollapsibleIllustAdapter)?.expand()
         }
-        feedViewModel.updateItems<ArtworkPageItem> { it.copy(rebindTick = it.rebindTick + 1) }
+        feedViewModel.updateItems<ArtworkPageItem> { it.withRebindTick(it.rebindTick + 1) }
     }
 
     private fun openComicReader() {
@@ -733,6 +754,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val pill = chromeBind.collapsePill
         pill.animate().cancel()
         if (expanded) {
+            pendingCollapseResetScroll = false
             showCollapsePill(animate = true)
             val pageCount = currentPageCount()
             if (pageCount <= 0) return
@@ -742,7 +764,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 val toAdd =
                     (1 until pageCount)
                         .filter { it !in existing }
-                        .map { ArtworkPageItem(illustId, it) }
+                        .map { artworkPageItem(illustId, it) }
                 if (toAdd.isEmpty()) return@mutateItems items
                 val insertAt = items.indexOfLast { it is ArtworkPageItem } + 1
                 items.subList(0, insertAt) + toAdd + items.subList(insertAt, items.size)
@@ -761,21 +783,26 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     syncTopEndPill()
                 }
                 .start()
-            // 一次编辑同时:删掉隐藏页 + bump 首页 rebindTick(强制 DiffUtil 原地重绑 p0,
+            pendingPageJump = null
+            pendingCollapseResetScroll = isViewingPages()
+            // 一次编辑同时:删掉隐藏页 + bump 首页 overlayTick(强制 DiffUtil 原地重绑 p0,
             // 让「展开剩余 X 张」覆盖层重现)。不用 notifyItemChanged/post,避免与在飞的 diff 抢。
             feedViewModel.mutateItems { items ->
                 items.mapNotNull { item ->
                     when {
                         item is ArtworkPageItem && item.pageIndex > 0 -> null
                         item is ArtworkPageItem && item.pageIndex == 0 ->
-                            item.copy(rebindTick = item.rebindTick + 1)
+                            item.withOverlayTick(item.overlayTick + 1)
                         else -> item
                     }
                 }
             }
-            val lm = feedBinding.feedListView.layoutManager
-            if (lm is StaggeredGridLayoutManager) lm.scrollToPositionWithOffset(0, 0)
-            else feedBinding.feedListView.scrollToPosition(0)
+            // 收起后回不回顶，取决于用户此刻在不在页块里。已经滑到简介 / 评论 / 相关作品时
+            // 把画面弹回第一张是反直觉的——他要的是把图折起来，不是回到顶；而且这一弹会连带
+            // 把刚滑出去的信息区条目重新绑一遍（作者头像会重发一次请求）。RecyclerView 把视口
+            // 锚在当前可见条目上，删除它上方的内容不会让画面跳，所以「不动」就是对的。
+            // 回顶本身欠到「移除落地」时再发,见 [drainCollapseResetScroll]:此刻列表还是旧的 N 条,
+            // 当场滚会先滚在一份还没缩短的内容上,顶部那条旧页会先亮一帧。
         }
     }
 
@@ -823,6 +850,21 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         pill.visibility = View.VISIBLE
         syncTopEndPill()
         if (animate) pill.animate().alpha(1f).setDuration(220).start()
+    }
+
+    /**
+     * 视口里还有页条目 —— 用户正在看图。收起只在此时才回顶，见 [onPagesExpandedChanged]。
+     * 拿不到列表 / 布局管理器时按 true 处理，退回「一律回顶」的旧行为。
+     */
+    private fun isViewingPages(): Boolean {
+        if (_chromeBind == null) return true
+        val items = feedAdapter?.currentList ?: return true
+        val listView = feedBinding.feedListView
+        val lm = listView.layoutManager ?: return true
+        for (i in 0 until listView.childCount) {
+            if (items.getOrNull(lm.getPosition(listView.getChildAt(i))) is ArtworkPageItem) return true
+        }
+        return false
     }
 
     /**
@@ -927,6 +969,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      */
     private fun jumpToPage(index: Int) {
         commentsJumpRealign = false
+        pendingCollapseResetScroll = false
         if (scrollToPageItem(index)) return
         val collapsible = pageAdapter as? CollapsibleIllustAdapter ?: return
         if (collapsible.isExpanded) return
@@ -961,6 +1004,29 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             if (pendingPageJump != index || _chromeBind == null) return@post
             if (scrollToPageItem(index)) pendingPageJump = null
         }
+    }
+
+    /**
+     * 收起欠着的那次回顶。
+     *
+     * 必须等「隐藏页被移除」的通知到了才发,而且是**当场设 pending scroll、不 post**:
+     * `submitList` 的 diff 在后台线程算,它的增删通知先于这一帧的排版到达;这里设下的
+     * pending position 会和那次移除被同一次 layout 一起消费——回顶与收起因此落在同一帧。
+     *
+     * 反过来,在点击那一刻就滚(原先的做法)会先滚在一份还没缩短的旧内容上:用户先看到顶部的
+     * 旧页,下一帧它才被标题 / 作者替掉,就是那半屏闪。
+     */
+    private fun drainCollapseResetScroll() {
+        if (!pendingCollapseResetScroll) return
+        // 其他区块也会移除条目；只有折叠列表真正落地才能消费这次回顶。
+        if ((pageAdapter as? CollapsibleIllustAdapter)?.isCollapsed != true) return
+        if (feedAdapter?.currentList?.any { it is ArtworkPageItem && it.pageIndex > 0 } != false) return
+        pendingCollapseResetScroll = false
+        // 在飞的 submitList 可能在 onDestroyView 之后才派发,那时候 feedBinding 已经不在了。
+        if (_chromeBind == null) return
+        val lm = feedBinding.feedListView.layoutManager
+        if (lm is StaggeredGridLayoutManager) lm.scrollToPositionWithOffset(0, 0)
+        else feedBinding.feedListView.scrollToPosition(0)
     }
 
     /**
