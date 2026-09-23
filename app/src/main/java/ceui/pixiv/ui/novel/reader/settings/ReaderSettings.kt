@@ -69,7 +69,9 @@ object ReaderSettings {
                 // The old value counted font bounding boxes, not rendered body lines.
                 // Convert once using the saved typography; subsequent font/line-spacing
                 // changes must use the new unit rather than re-convert the old value.
-                val lines = if (store.containsKey(K_PARAGRAPH_SPACING)) {
+                // A user who only changed line spacing/font still used the old implicit
+                // 0.8 default. Only a completely empty settings store is a fresh install.
+                val lines = if (store.count() > 0L) {
                     val context = Shaft.getContext()
                     val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
                         typeface = TypefaceProvider.resolve(context, fontId, fontWeight, boldText)

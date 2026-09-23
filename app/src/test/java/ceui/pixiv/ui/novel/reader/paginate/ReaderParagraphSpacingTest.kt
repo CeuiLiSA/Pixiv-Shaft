@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.novel.reader.paginate
 
 import android.app.Application
+import android.content.res.Configuration
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -129,6 +130,38 @@ class ReaderParagraphSpacingTest {
             val expectedBlank = maxOf(lineHeight, style.paragraphSpacingPx.roundToInt())
             assertEquals(expectedBlank.toFloat(), space.bottom - space.top, 0f)
             assertEquals(expectedBlank, views[1].layoutParams.height)
+        }
+    }
+
+    @Test fun `rendered gaps follow the selected fraction of a body line after font scaling`() {
+        val tokens = listOf(ContentToken.Paragraph(0, 2, "正文"), ContentToken.Paragraph(3, 5, "正文"))
+        for (fontScale in listOf(1f, 2f)) {
+            val configuration = Configuration(context.resources.configuration).apply { this.fontScale = fontScale }
+            val scaledContext = ContextThemeWrapper(context.createConfigurationContext(configuration), R.style.AppTheme)
+            for (spacing in listOf(1f, 1.6f, 2.8f)) {
+                val gaps = listOf(0f, 0.8f, 1f).map { gap ->
+                    val style = TypeStyle.from(scaledContext,
+                        settings(spacing = spacing, gap = gap).copy(firstLineIndent = 2), ReaderTheme.WHITE)
+                    val page = Paginator(tokens, geometry().copy(height = 2000), style, TextMeasurer(scaledContext))
+                        .paginate().single()
+                    val view = ReaderTextBlockView(scaledContext).apply {
+                        layoutParams = ViewGroup.LayoutParams(480, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        bindTextGroup(page.textElements, style)
+                        measure(View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
+                            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+                    }
+                    val layout = view.layout
+                    val nextLine = layout.getLineForOffset(view.text.toString().lastIndexOf("正文"))
+                    val bodyHeight = layout.getLineBottom(0) - layout.getLineTop(0)
+                    val actualGap = layout.getLineTop(nextLine) - layout.getLineBottom(0)
+                    assertEquals("fontScale=$fontScale spacing=$spacing gap=$gap",
+                        (bodyHeight * gap).roundToInt(), actualGap)
+                    actualGap
+                }
+                assertEquals(0, gaps[0])
+                assertTrue(gaps[1] > gaps[0])
+                assertTrue(gaps[2] > gaps[1])
+            }
         }
     }
 

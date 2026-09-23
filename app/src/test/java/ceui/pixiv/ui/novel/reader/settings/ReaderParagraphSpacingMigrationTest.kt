@@ -74,9 +74,29 @@ class ReaderParagraphSpacingMigrationTest {
         assertEquals(migrated.coerceIn(0f, 2.5f), migrated, 0f)
     }
 
+    @Test fun `saved typography also migrates an implicit old paragraph default`() {
+        val context = RuntimeEnvironment.getApplication()
+        for (spacing in listOf(1f, 1.6f, 2.8f)) {
+            MemoryMMKV.values.clear()
+            // Never touched paragraph spacing: the old reader still used 0.8 font boxes.
+            MemoryMMKV.values["r_line_spacing"] = spacing
+            val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+                textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 18f, context.resources.displayMetrics)
+            }
+            val fm = paint.fontMetrics
+            val oldPixels = ((fm.bottom - fm.top) * 0.8f).roundToInt()
+            val migrated = ReaderSettings.paragraphSpacingLines
+            assertEquals("implicit default, line spacing=$spacing", oldPixels,
+                (migrated * TextMeasurer.lineHeightPx(paint, spacing)).roundToInt())
+            MemoryMMKV.values["r_line_spacing"] = 1.2f
+            assertEquals(migrated, ReaderSettings.paragraphSpacingLines, 0f)
+        }
+    }
+
     /** Replace only MMKV's JNI storage; exercise the real ReaderSettings migration. */
     @Implements(MMKV::class, isInAndroidSdk = false)
     class MemoryMMKV {
+        @Implementation fun count(): Long = values.size.toLong()
         @Implementation fun containsKey(key: String): Boolean = values.containsKey(key)
         @Implementation fun decodeFloat(key: String, defaultValue: Float): Float = values[key] as? Float ?: defaultValue
         @Implementation fun decodeInt(key: String, defaultValue: Int): Int = values[key] as? Int ?: defaultValue
