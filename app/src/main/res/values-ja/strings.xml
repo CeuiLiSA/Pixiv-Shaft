@@ -837,6 +837,8 @@
     <string name="artwork_v3_fab_order_bookmark_left">左ブックマーク、右ダウンロード</string>
     <string name="artwork_v3_comment_jump_title">コメント欄へジャンプするボタン</string>
     <string name="artwork_v3_comment_jump_desc">フローティングバーにコメント欄へ一気に移動するボタンを表示</string>
+    <string name="artwork_v3_auto_expand_title">複数ページを自動展開</string>
+    <string name="artwork_v3_auto_expand_desc">複数ページの作品を開いたとき、1枚目だけで折りたたまず全ページを表示します</string>
     <string name="string_452">ダウンロード制限</string>
     <string name="string_453">手動のみ</string>
     <string name="string_454">最初の画像を共有</string>

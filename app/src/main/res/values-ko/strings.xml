@@ -837,6 +837,8 @@
     <string name="artwork_v3_fab_order_bookmark_left">왼쪽 북마크, 오른쪽 다운로드</string>
     <string name="artwork_v3_comment_jump_title">댓글로 이동 버튼</string>
     <string name="artwork_v3_comment_jump_desc">플로팅 바에 댓글 영역으로 바로 이동하는 버튼 표시</string>
+    <string name="artwork_v3_auto_expand_title">여러 장 자동 펼치기</string>
+    <string name="artwork_v3_auto_expand_desc">여러 장 작품을 열 때 첫 장으로 접지 않고 모든 페이지를 바로 표시합니다</string>
     <string name="string_452">다운로드 제한 유형</string>
     <string name="string_453">자동 시작 안 함</string>
     <string name="string_454">첫 번째 이미지 공유</string>
