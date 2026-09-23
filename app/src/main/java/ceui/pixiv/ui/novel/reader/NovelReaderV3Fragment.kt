@@ -1006,15 +1006,16 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         scrollReaderView?.onTextDoubleTap = doubleTap
         rebuildOverlays()
         val range = currentTtsRange()
+        val sv = scrollReaderView?.takeIf { it.visibility == View.VISIBLE }
+        val userInteracting = sv?.isUserInteracting ?: (readerView?.isUserInteracting == true)
         val canFollow = ReaderSettings.ttsAutoPage && ttsState == NovelTtsController.STATE_PLAYING &&
-            isResumed && activeSelection == null && readerView?.isUserInteracting != true
+            isResumed && activeSelection == null && !userInteracting
         if (!canFollow || range == null) {
             scrollReaderView?.cancelTtsFollow()
             lastFollowedTtsRange = null
         }
         if (range != null && range != lastFollowedTtsRange && canFollow) {
             lastFollowedTtsRange = range
-            val sv = scrollReaderView?.takeIf { it.visibility == View.VISIBLE }
             if (sv != null) sv.followTtsChar(range.first)
             else {
                 val pages = viewModel.pagination.value?.pages.orEmpty()

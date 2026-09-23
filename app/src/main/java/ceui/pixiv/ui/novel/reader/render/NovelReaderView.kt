@@ -60,6 +60,7 @@ class NovelReaderView @JvmOverloads constructor(
     private var dragStartY = 0f
     private var dragDownTime = 0L
     private var isDragging = false
+    private var touchActive = false
     private var dragProgress = 0f
     private var dragDirection: FlipDirection = FlipDirection.Forward
     private var velocityTracker: VelocityTracker? = null
@@ -95,7 +96,7 @@ class NovelReaderView @JvmOverloads constructor(
             }
         }
     val isUserInteracting: Boolean
-        get() = isDragging || pendingSingleTap != null || doubleTapChar != null || settleAnimator?.isRunning == true
+        get() = touchActive || isDragging || pendingSingleTap != null || doubleTapChar != null || settleAnimator?.isRunning == true
     var onEdgeHit: ((FlipDirection) -> Unit)? = null
     var onImageTap: ((PageElement.Image) -> Unit)? = null
     var onJumpTap: ((PageElement.Jump) -> Unit)? = null
@@ -311,6 +312,23 @@ class NovelReaderView @JvmOverloads constructor(
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            touchActive = true
+            // A new gesture owns the page, even when it is too far from the
+            // previous tap to qualify as a double tap.
+            pendingSingleTap?.let(::removeCallbacks)
+            pendingSingleTap = null
+        }
+        try {
+            return dispatchReaderTouch(event)
+        } finally {
+            if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+                touchActive = false
+            }
+        }
+    }
+
+    private fun dispatchReaderTouch(event: MotionEvent): Boolean {
         if (onTextDoubleTap != null) ttsGestures.onTouchEvent(event)
         val charIndex = doubleTapChar
         if (charIndex != null) {
@@ -529,6 +547,7 @@ class NovelReaderView @JvmOverloads constructor(
     }
 
     private fun cancelAllGestures() {
+        touchActive = false
         pendingSingleTap?.let(::removeCallbacks)
         pendingSingleTap = null
         doubleTapChar = null

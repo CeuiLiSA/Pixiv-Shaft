@@ -134,6 +134,124 @@ class ReaderTtsRenderingTest {
         } finally { host.pause().stop().destroy() }
     }
 
+    @Test fun `scroll chapter highlights can be added and removed after binding`() {
+        val style = TypeStyle.from(context, settings(), ReaderTheme.WHITE)
+        val view = NovelScrollReaderView(context)
+        val chapter = ContentToken.Chapter(100, 120, "Chapter one")
+        view.bind(listOf(chapter), style, PageGeometry(320, 480, 16f, 16f, 16f, 16f)) { null }
+        layout(view)
+        val title = view.getChildAt(0) as TextView
+        view.setTtsRange(100..119)
+        val content = title.text as Spanned
+        assertEquals(1, content.getSpans(0, content.length, BackgroundColorSpan::class.java).size)
+        view.setTtsRange(null)
+        assertTrue(content.getSpans(0, content.length, BackgroundColorSpan::class.java).isEmpty())
+    }
+
+    @Test fun `a held touch blocks automatic page following before a drag starts`() {
+        val view = NovelReaderView(context)
+        layout(view)
+        val down = SystemClock.uptimeMillis()
+        sendTouch(view, down, MotionEvent.ACTION_DOWN, 160f, 200f)
+        assertTrue(view.isUserInteracting)
+        sendTouch(view, down, MotionEvent.ACTION_CANCEL, 160f, 200f)
+        assertFalse(view.isUserInteracting)
+    }
+
+    @Test fun `a held touch blocks scroll following before RecyclerView starts dragging`() {
+        val host = Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val ctx = ContextThemeWrapper(host.get(), R.style.AppTheme)
+            val text = "Long paragraph words. ".repeat(300)
+            val view = NovelScrollReaderView(ctx)
+            view.bind(listOf(ContentToken.Paragraph(0, text.length, text)),
+                TypeStyle.from(ctx, settings(), ReaderTheme.WHITE),
+                PageGeometry(320, 480, 16f, 16f, 16f, 16f)) { null }
+            host.get().setContentView(view)
+            layout(view)
+            val before = view.getChildAt(0).top
+            val down = SystemClock.uptimeMillis()
+            sendTouch(view, down, MotionEvent.ACTION_DOWN, 160f, 200f)
+            view.followTtsChar(1000)
+            layout(view)
+            assertEquals(before, view.getChildAt(0).top)
+            sendTouch(view, down, MotionEvent.ACTION_CANCEL, 160f, 200f)
+            view.followTtsChar(1000)
+            layout(view)
+            assertTrue(view.isCharVisible(1000))
+        } finally { host.pause().stop().destroy() }
+    }
+
+    private fun sendTouch(view: View, down: Long, action: Int, x: Float, y: Float) {
+        MotionEvent.obtain(down, SystemClock.uptimeMillis(), action, x, y, 0).let {
+            view.dispatchTouchEvent(it)
+            it.recycle()
+        }
+    }
+
+    @Test fun `a pending text tap cannot turn the page during a later hold elsewhere`() {
+        val host = Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val ctx = ContextThemeWrapper(host.get(), R.style.AppTheme)
+            val text = "Readable text with enough words for many pages. ".repeat(100)
+            val style = TypeStyle.from(ctx, settings(), ReaderTheme.WHITE)
+            val geo = PageGeometry(320, 480, 16f, 16f, 16f, 16f)
+            val pages = Paginator(listOf(ContentToken.Paragraph(0, text.length, text)), geo, style, TextMeasurer(ctx)).paginate()
+            val view = NovelReaderView(ctx)
+            view.setStyle(style, geo)
+            view.setFlipMode(FlipMode.None)
+            view.bind(pages, 1)
+            view.onTextDoubleTap = { fail("The second touch is outside double-tap slop") }
+            host.get().setContentView(view)
+            layout(view)
+            val page = view.children.filterIsInstance<PageView>().single { it.currentPage()?.index == 1 }
+            val block = page.children.filterIsInstance<ReaderTextBlockView>().first()
+            val x = block.left + block.layout.getPrimaryHorizontal(2)
+            val y = block.top + (block.layout.getLineTop(0) + block.layout.getLineBottom(0)) / 2f
+            val firstDown = SystemClock.uptimeMillis()
+            sendTouch(view, firstDown, MotionEvent.ACTION_DOWN, x, y)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(40))
+            sendTouch(view, firstDown, MotionEvent.ACTION_UP, x, y)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(60))
+            val secondDown = SystemClock.uptimeMillis()
+            sendTouch(view, secondDown, MotionEvent.ACTION_DOWN, x, y + 250f)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(350))
+            assertEquals(1, view.currentPageIndex())
+            sendTouch(view, secondDown, MotionEvent.ACTION_CANCEL, x, y + 250f)
+        } finally { host.pause().stop().destroy() }
+    }
+
+    @Test fun `following after a rebind wins over restoring the old reading position`() {
+        val host = Robolectric.buildActivity(Activity::class.java).setup()
+        try {
+            val ctx = ContextThemeWrapper(host.get(), R.style.AppTheme)
+            val tokens = (0 until 30).map { index ->
+                ContentToken.Paragraph(index * 100, (index + 1) * 100, "Spoken words. ".repeat(7))
+            }
+            val style = TypeStyle.from(ctx, settings(), ReaderTheme.WHITE)
+            val geo = PageGeometry(320, 480, 16f, 16f, 16f, 16f)
+            val view = NovelScrollReaderView(ctx)
+            view.bind(tokens, style, geo) { null }
+            host.get().setContentView(view)
+            layout(view)
+            // Fragment restores the viewport and then syncs the active speech
+            // when a font/theme change rebuilds the scroll adapter.
+            view.bind(tokens, style, geo) { null }
+            view.jumpToCharIndex(100)
+            view.followTtsChar(2000)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100))
+            layout(view)
+            assertTrue(view.isCharVisible(2000))
+            // A later explicit jump also cancels a speech alignment that is
+            // waiting for its off-screen paragraph to be laid out.
+            view.followTtsChar(2900)
+            view.jumpToCharIndex(100)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100))
+            layout(view)
+            assertTrue(view.isCharVisible(100))
+        } finally { host.pause().stop().destroy() }
+    }
+
     @Test fun `double tapping text seeks without first turning the page`() {
         val host = Robolectric.buildActivity(Activity::class.java).setup()
         try {

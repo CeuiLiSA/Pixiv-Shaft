@@ -59,6 +59,9 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     private var doubleTapChar: Int? = null
     private var ttsRange: IntRange? = null
     private var followGeneration = 0
+    private var touchActive = false
+    val isUserInteracting: Boolean
+        get() = touchActive || scrollState != SCROLL_STATE_IDLE
     var onImageTap: ((PageElement.Image) -> Unit)? = null
     var onJumpTap: ((target: Int) -> Unit)? = null
     var onCharIndexChanged: ((Int) -> Unit)? = null
@@ -134,11 +137,23 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+            touchActive = true
+            cancelTtsFollow()
             // 在手指落下前先记住 RecyclerView 是否还在滚动（super.dispatchTouchEvent 里
             // onInterceptTouchEvent 会把 SETTLING 改成 DRAGGING，ACTION_UP 后更是 IDLE，
             // 再晚就判不出来了），所以必须在这里、交给 super 之前读 scrollState（#1047）。
             wasScrollingOnTouchDown = scrollState != SCROLL_STATE_IDLE
         }
+        try {
+            return dispatchReaderTouch(ev)
+        } finally {
+            if (ev.actionMasked == MotionEvent.ACTION_UP || ev.actionMasked == MotionEvent.ACTION_CANCEL) {
+                touchActive = false
+            }
+        }
+    }
+
+    private fun dispatchReaderTouch(ev: MotionEvent): Boolean {
         gestureDetector.onTouchEvent(ev)
         val charIndex = doubleTapChar
         if (charIndex != null) {
@@ -155,6 +170,13 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             return true
         }
         return super.dispatchTouchEvent(ev)
+    }
+
+    override fun onDetachedFromWindow() {
+        touchActive = false
+        doubleTapChar = null
+        cancelTtsFollow()
+        super.onDetachedFromWindow()
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
@@ -207,7 +229,10 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
     fun jumpToCharIndex(charIndex: Int) {
         val pos = positionForCharIndex(charIndex) ?: return
-        post { lm.scrollToPositionWithOffset(pos, topInset) }
+        cancelTtsFollow()
+        // LayoutManager already defers positioning until layout. Posting an
+        // extra runnable lets an old restore override a newer speech target.
+        lm.scrollToPositionWithOffset(pos, topInset)
     }
 
     fun currentCharIndex(): Int {
@@ -287,7 +312,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
     fun followTtsChar(charIndex: Int) {
         val generation = ++followGeneration
-        if (isCharVisible(charIndex) || scrollState == SCROLL_STATE_DRAGGING) return
+        if (isCharVisible(charIndex) || isUserInteracting) return
         val pos = positionForCharIndex(charIndex) ?: return
         val child = lm.findViewByPosition(pos) as? TextView
         if (child == null || child.layout == null) {
@@ -302,7 +327,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     }
 
     private fun alignTtsLine(pos: Int, charIndex: Int) {
-        if (scrollState == SCROLL_STATE_DRAGGING) return
+        if (isUserInteracting) return
         val child = lm.findViewByPosition(pos) as? TextView ?: return
         val layout = child.layout ?: return
         val token = contentAdapter?.tokens?.getOrNull(pos) ?: return
@@ -530,7 +555,9 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         }
 
     private fun bindChapter(tv: AppCompatTextView, token: ContentToken.Chapter, style: TypeStyle) {
-        tv.text = SpannableString(token.title)
+        // Unlike selectable paragraphs, titles otherwise use an immutable
+        // SpannedString buffer and cannot accept live highlight spans.
+        tv.setText(token.title, TextView.BufferType.SPANNABLE)
         applyChapterHighlight(tv, token)
     }
 
