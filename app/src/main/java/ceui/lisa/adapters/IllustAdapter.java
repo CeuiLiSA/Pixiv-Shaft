@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -148,6 +149,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      */
     private final Map<Integer, RecyIllustDetailBinding> boundBindings = new ConcurrentHashMap<>();
 
+    /** 本次绑定实际使用的本地文件；无记录表示网络图。与扫描后来发现的文件分开比较。 */
+    private final Map<RecyIllustDetailBinding, Uri> boundLocalPageUris = new HashMap<>();
+
     /** 已对当前 holder 显示过缓存原图 overlay 的页码，避免 onResume 重复触发淡入。 */
     private final Set<Integer> cachedOriginalShownPages = ConcurrentHashMap.newKeySet();
 
@@ -184,6 +188,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         if (kept instanceof Integer && ((Integer) kept) == position
                 && position < PINNED_PAGE_COUNT
                 && boundBindings.get(position) == holder.baseBind
+                && Objects.equals(localPageUris.get(position), boundLocalPageUris.get(holder.baseBind))
                 && holder.baseBind.reload.getVisibility() != View.VISIBLE
                 && (holder.baseBind.illust.getDrawable() != null
                 || holder.baseBind.illustHd.getVisibility() == View.VISIBLE)) {
@@ -254,12 +259,6 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     /** 快照模式用：直接把某一页指向快照库里的本地文件，绑定时优先读本地、不走网络。 */
     public void putLocalPageUri(int page, @NonNull android.net.Uri uri) {
         localPageUris.put(page, uri);
-        invalidatePinnedPage(page);
-    }
-
-    private void invalidatePinnedPage(int page) {
-        RecyIllustDetailBinding binding = boundBindings.get(page);
-        if (binding != null) binding.getRoot().setTag(R.id.tag_kept_page_index, null);
     }
 
     /**
@@ -310,6 +309,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         overlaySizedPages.clear();
         shownPages.clear();
         boundBindings.clear();
+        boundLocalPageUris.clear();
         cachedOriginalShownPages.clear();
         mainHandler.removeCallbacksAndMessages(null);
     }
@@ -395,7 +395,6 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                 boolean changed = false;
                 for (Map.Entry<Integer, Uri> en : found.entrySet()) {
                     if (localPageUris.put(en.getKey(), en.getValue()) == null) {
-                        invalidatePinnedPage(en.getKey());
                         changed = true;
                     }
                 }
@@ -441,6 +440,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         // Detach this holder's LoadTask observers (see loadIllust) so they don't outlive
         // the bind and pile up on the per-URL task's LiveData.
         detachTaskObservers(holder);
+        boundLocalPageUris.remove(holder.baseBind);
         holder.itemView.setTag(R.id.tag_kept_page_index, null);
         // Cancel any in-flight Glide load targeting these ImageViews so a late-arriving
         // bitmap from the previous bind can't leak into the recycled holder.
@@ -711,10 +711,14 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
 
         // 命中已下载的本地文件就直读，跳过网络 LoadTask —— 详情页展开多图复用下载结果。
         Uri localUri = localPageUris.get(position);
+        // 记录真正用于取图的来源。仅清回收标记不够：扫描到文件后的异步 diff 会把
+        // mCachedViews 里的旧 holder 再回收一次，重新写回那个标记，但旧图仍是网络预览。
         if (localUri != null) {
+            boundLocalPageUris.put(holder.baseBind, localUri);
             loadFromLocalFile(holder, position, changeSize, localUri);
             return;
         }
+        boundLocalPageUris.remove(holder.baseBind);
         loadFromNetwork(holder, position, changeSize);
     }
 

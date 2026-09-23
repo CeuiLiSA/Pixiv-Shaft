@@ -161,6 +161,26 @@ class ArtworkPageReuseTest {
     }
 
     @Test
+    fun `recycling after local file arrival must not restore stale preview reuse`() {
+        val adapter = delegate()
+        val holder = boundPage(adapter)
+        // The scan invalidates the image first. The resulting asynchronous diff then evicts
+        // this updated holder from RecyclerView's item cache into the recycled pool.
+        adapter.putLocalPageUri(0, Uri.parse("file:///downloaded-original.png"))
+        adapter.onViewRecycled(holder)
+        assertFalse(adapter.tryKeepPinnedPage(holder, 0))
+    }
+
+    @Test
+    fun `first page bound from the current local file can still be retained`() {
+        val adapter = delegate()
+        adapter.putLocalPageUri(0, Uri.parse("file:///downloaded-original.png"))
+        val holder = boundPage(adapter)
+        adapter.onViewRecycled(holder)
+        assertTrue(adapter.tryKeepPinnedPage(holder, 0))
+    }
+
+    @Test
     fun `reuse is consumed once so later explicit rebind is not swallowed`() {
         val adapter = delegate()
         val holder = boundPage(adapter)
