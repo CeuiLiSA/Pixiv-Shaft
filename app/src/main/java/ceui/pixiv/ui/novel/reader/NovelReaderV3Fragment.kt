@@ -559,6 +559,11 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 loadWatchlistStateForSeries(seriesId)
                 pushStyleAndGeometryIfReady()
                 rebindScrollViewIfActive()
+                // A restored query may have been opened before the text arrived.
+                // Paged mode waits for pagination below so the hit can be reached.
+                if (so.isShown() && ReaderSettings.readingDirection == ReadingDirection.Vertical) {
+                    runSearch(so.currentQuery())
+                }
             }
         }
 
@@ -573,6 +578,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             setProgressPercent(pagedPercent(pag.startPageIndex, pag.pages.size))
             lastFollowedTtsRange = null
             syncTtsState()
+            if (so.isShown()) {
+                runSearch(so.currentQuery(), currentIndex = viewModel.searchResult.value?.currentIndex ?: 0)
+            }
         }
 
         viewModel.currentPageIndex.observe(viewLifecycleOwner) { index ->
@@ -1177,8 +1185,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         }
     }
 
-    private fun runSearch(query: String) {
+    private fun runSearch(query: String, currentIndex: Int = 0) {
         viewModel.performSearch(query, searchRegex)
+        if (currentIndex > 0) viewModel.setSearchIndex(currentIndex)
         viewModel.searchResult.value?.currentHit?.let { goToHitDirect(it) }
     }
 
