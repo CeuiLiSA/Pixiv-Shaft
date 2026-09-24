@@ -289,6 +289,22 @@ class WitTagFlowViewTest {
         assertTrue(flow.getChildAt(0).height < 32 * density)
     }
 
+    @Test fun `history rows share the normal pill height and the transparent edge is not padding`() {
+        val flow = flow().apply {
+            setItems(listOf(WitTagItem("a", "西装", removeDescription = "删除"), WitTagItem("b", "普通标签")))
+        }
+        val density = flow.resources.displayMetrics.density
+        size(flow)
+        val history = flow.getChildAt(0) as ViewGroup
+        val normal = flow.getChildAt(1)
+        assertEquals(0, history.paddingTop)
+        assertEquals(normal.height, history.height)
+        assertTrue("hit=${history.height}", history.height < 56 * density)
+        val delete = history.children.filterIsInstance<ImageButton>().single()
+        assertEquals(history.height, delete.height)
+        assertFalse(delete.background is InsetDrawable)
+    }
+
     @Test fun `alignment margins gone and unbounded width use the shared flexbox engine`() {
         val flow = flow().apply { setTagNames(listOf("one", "two", "three")) }
         flow.getChildAt(1).visibility = View.GONE

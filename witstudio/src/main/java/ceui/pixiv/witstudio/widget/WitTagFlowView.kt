@@ -3,9 +3,12 @@ package ceui.pixiv.witstudio.widget
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.ColorStateList
 import android.content.res.Configuration
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.InsetDrawable
+import android.graphics.drawable.RippleDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
@@ -23,6 +26,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.HorizontalScrollView
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
@@ -234,17 +238,21 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         if (item.leadingIcon != 0) setLeadingIcon(label, item.leadingIcon, palette)
         if (item.removeDescription != null) {
             // 历史记录删除是独立按钮；正文搜索和长按菜单不抢它的事件。
+            // 删除键与正文同坐一颗胶囊：自身不画底，16dp 图标，48dp 热区落在透明上下沿与胶囊末端。
+            label.setPaddingRelative(label.paddingStart, label.paddingTop, 0, label.paddingBottom)
             return LinearLayout(context).apply {
                 gravity = Gravity.CENTER_VERTICAL
                 addView(label, LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f))
                 addView(ImageButton(context).apply {
                     contentDescription = item.removeDescription
                     setImageResource(R.drawable.wit_ic_tag_close)
-                    imageTintList = android.content.res.ColorStateList.valueOf(palette.textAccent)
-                    background = chipBackground(palette, touchEdge)
-                    setPadding(14.dp, 14.dp, 14.dp, 14.dp)
+                    scaleType = ImageView.ScaleType.FIT_CENTER
+                    imageTintList = ColorStateList.valueOf(palette.textTag)
+                    background = RippleDrawable(ColorStateList.valueOf(palette.alpha20), null, null)
+                        .apply { radius = 18.dp }
+                    setPaddingRelative(16.dp, 0, 14.dp, 0)
                     setOnClickListener { removeListener?.onItemClick(item, position) }
-                }, LinearLayout.LayoutParams(48.dp, 48.dp))
+                }, LinearLayout.LayoutParams(48.dp, LayoutParams.MATCH_PARENT))
             }
         }
         if (showRemoveIcon) {
@@ -281,14 +289,28 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         // 紧凑列表同样保持原有密度；普通标签的 48dp 只是热区，多出的部分落在透明上下沿。
         minHeight = if (compact || showRemoveIcon) 0 else 48.dp
         gravity = Gravity.CENTER_VERTICAL
-        val vertical = (if (compact) 4.dp else 7.dp) + touchEdge
+        // 带透明沿的普通标签内边距取 6dp：中文回退字体行高约 20dp，单行正好落在 48dp 热区、32dp 可见胶囊；
+        // 换行后文字与胶囊上下仍留 6dp。
+        val vertical = when {
+            compact -> 4.dp
+            touchEdge > 0 -> 6.dp + touchEdge
+            else -> 7.dp
+        }
         setPaddingRelative(if (compact) 10.dp else 14.dp, vertical,
             if (compact) 10.dp else 14.dp, vertical)
     }
 
     private fun chipBackground(palette: V3Palette, edge: Int): Drawable {
         val pill = WitTagStyle.background(palette, resources.displayMetrics.density)
-        return if (edge == 0) pill else InsetDrawable(pill, 0, edge, 0, edge)
+        if (edge == 0) return pill
+        // 透明沿只属于绘制区域；InsetDrawable 默认把 inset 报成 padding，会覆盖条目自己的内边距，
+        // 让历史行在 48dp 内容外再多出 16dp，可见胶囊被撑到 48dp。
+        return object : InsetDrawable(pill, 0, edge, 0, edge) {
+            override fun getPadding(padding: Rect): Boolean {
+                padding.setEmpty()
+                return false
+            }
+        }
     }
 
     private fun setLeadingIcon(view: TextView, icon: Int, palette: V3Palette) {
