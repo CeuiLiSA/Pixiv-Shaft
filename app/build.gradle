@@ -306,6 +306,7 @@ dependencies {
     implementation libs.androidxRoomKtx
     kapt libs.androidxRoomCompiler
     implementation libs.agentwebCore
+    implementation libs.androidxWebkit
     implementation libs.rebound
     implementation libs.htmlTextView
     implementation libs.materialDateTimePicker

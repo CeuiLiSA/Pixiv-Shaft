@@ -14,6 +14,7 @@ import android.webkit.WebViewClient
 import androidx.annotation.MainThread
 import ceui.lisa.BuildConfig
 import ceui.lisa.utils.Common
+import ceui.pixiv.ui.web.disableMediaIntegrityApi
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -122,6 +123,7 @@ class FanboxWebBridge(app: Context) {
         view.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
+            disableMediaIntegrityApi()
             // UA 保持 WebView 自己那份,**别换成 ClientManager.WEB_USER_AGENT** ——
             // 那个常量钉死在 Chrome/131,而设备上的 WebView 是另一个版本,声称的版本号和真实
             // TLS/HTTP2 指纹对不上正是 CF 判机器人的典型信号。这条通不通没单独验过,

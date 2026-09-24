@@ -91,6 +91,7 @@ class WebFragment : Fragment(R.layout.fragment_web) {
 
         val webSettings: WebSettings = binding.webView.settings
         webSettings.userAgentString = ClientManager.WEB_USER_AGENT
+        webSettings.disableMediaIntegrityApi()
         val refreshLayout = binding.refreshLayout
 
         binding.webView.webViewClient = object : WebViewClient() {

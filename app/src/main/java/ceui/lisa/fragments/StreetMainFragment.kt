@@ -39,6 +39,7 @@ import ceui.pixiv.api.model.StreetPickup
 import ceui.pixiv.api.model.StreetThumbnail
 import ceui.pixiv.api.model.StreetTrendTag
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.web.disableMediaIntegrityApi
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.widgets.LoadMoreScrollListener
 import ceui.pixiv.widgets.applyV3RefreshTheme
@@ -289,6 +290,7 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.userAgentString = ClientManager.WEB_USER_AGENT
+            settings.disableMediaIntegrityApi()
         }
         loginWebView = webView
 
@@ -371,6 +373,7 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.userAgentString = ua
+            settings.disableMediaIntegrityApi()
         }
         loginWebView = webView
 
