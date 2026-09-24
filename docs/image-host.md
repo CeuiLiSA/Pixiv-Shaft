@@ -9,7 +9,7 @@
 [issue #865](https://github.com/CeuiLiSA/Pixiv-Shaft/issues/865) 要求把图片域名抽象成可切换的 host：
 
 - 默认 Pixiv 官方（`i.pximg.net` / `s.pximg.net`）
-- Pixiv Cat（`i.pixiv.cat` / `s.pixiv.cat`）
+- Pixiv Cat（仅 `i.pixiv.cat`；`s.pixiv.cat` 不存在，镜像模式下 `s.pximg.net` 保持原样，见 [#1152](https://github.com/CeuiLiSA/Pixiv-Shaft/issues/1152)）
 - 自定义反代（用户输入完整前缀，例如 `https://your.proxy[/optional/path]`）
 
 动机：部分网络环境下走 No-SNI 直连 i.pximg.net 体验差（特别是 GIF），自建反代或 pixivcat 反而更快。`Settings.java` 里其实有个 `usePixivCat` 字段（line 126），但**没有任何消费者**——历史欠账，本任务一并清理。
