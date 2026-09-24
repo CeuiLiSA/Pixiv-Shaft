@@ -37,7 +37,6 @@ import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.navigation.TemplateRoute
-import com.blankj.utilcode.util.BarUtils
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -141,6 +140,10 @@ internal class BookmarkLibraryUi(
      */
     private fun setUpPullToRefresh() {
         val refreshLayout = binding.feedRoot.feedRefreshLayout
+        // 顶栏收起时先把下拉交给 AppBarLayout 展开，否则列表已在顶部时会抢先触发刷新。
+        refreshLayout.setOnChildScrollUpCallback { _, _ ->
+            binding.appBar.top < 0 || listView.canScrollVertically(-1)
+        }
         refreshLayout.setOnRefreshListener {
             context.appServices().bookmarkMirror.syncNow(viewModel.shelf, reason = "下拉刷新")
             applyFilterChange()
@@ -211,19 +214,12 @@ internal class BookmarkLibraryUi(
 
     // ─────────────────────────── 接线 ───────────────────────────
 
-    /**
-     * fragment_toolbar_feed 那套 AppCompat toolbar 的自装版（`setUpToolbar` 只吃
-     * FragmentToolbarFeedBinding，本页有自己的骨架）。
-     * BaseActivity 开了 EdgeToEdge：状态栏 inset 走 BarUtils 手动 padding，不用
-     * fitsSystemWindows（会把 status + nav 两个 inset 都当 padding 套上）；
-     * 底部导航栏的高度让给列表，不然最后一排卡片压在手势条底下。
-     */
+    /** 顶部 inset 由根布局承担；这里处理返回键和列表底部安全区。 */
     private fun setUpToolbar() {
-        binding.toolbar.updatePadding(top = BarUtils.getStatusBarHeight())
         binding.toolbar.setNavigationOnClickListener { fragment.requireActivity().finish() }
-        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.coordinator) { _, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            listView.updatePadding(0, 0, 0, insets.bottom)
+            listView.updatePadding(bottom = insets.bottom)
             WindowInsetsCompat.CONSUMED
         }
     }
