@@ -2857,6 +2857,21 @@
 
     <!-- Günlük dosyası (deneysel) -->
     <string name="setting_log_file_enable">Günlük dosyasını etkinleştir</string>
+    <string name="setting_predictive_back">Tahmini geri</string>
+    <string name="setting_predictive_back_desc">Her ekran için sistem tahmini geri animasyonunun kullanılıp kullanılmayacağını seçin. Kapalı ekranlar klasik geri kullanır. Bazı sistemlerde geri animasyonu bozuksa (titreme, arkadaki sayfanın yanlış olması, açıklanamayan düz renkli kenar), sorunu daraltmak için ekranları buradan kapatın.</string>
+    <string name="setting_predictive_back_dialog_hint">Açık = sistem tahmini geri animasyonu. Kapalı = klasik geri.</string>
+    <string name="setting_predictive_back_help">Yardım</string>
+    <string name="setting_predictive_back_group_system">Sistem tahmini geri</string>
+    <string name="setting_predictive_back_group_drawer">Uygulama kendi çiziyor</string>
+    <string name="setting_predictive_back_item_main">Ana sayfa</string>
+    <string name="setting_predictive_back_item_drawer">Kenar çubuğu hareketi</string>
+    <string name="setting_predictive_back_group_experimental">Deneysel</string>
+    <string name="setting_predictive_back_item_any_page">Kenar çubuğundan açılan sayfadan dönerken tahmini animasyonu bastırıp titremeyi gider</string>
+    <string name="setting_predictive_back_item_template">Genel sayfalar</string>
+    <string name="setting_predictive_back_item_rank">Sıralamalar</string>
+    <string name="setting_predictive_back_item_detail">Çizim ayrıntısı</string>
+    <string name="setting_predictive_back_item_search">Arama sonuçları</string>
+    <string name="setting_predictive_back_item_viewer">Çoklu görsel görüntüleyici</string>
     <string name="setting_log_file_desc">Performansı etkileyebilir\nGünlük dosyası: %1$s</string>
     <string name="setting_log_file_no_file">Henüz oluşturulmadı</string>
     <string name="setting_log_file_share">Günlük dosyasını paylaş</string>

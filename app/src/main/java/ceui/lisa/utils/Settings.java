@@ -150,6 +150,27 @@ public class Settings {
     //是否启用 Timber 日志写入「日志文件」桶（试验性，重启生效）
     private boolean logFileEnabled = false;
 
+    //哪些 Activity 改用传统返回（不用系统预测动画）。存**类名**的集合。
+    //PredictiveBackSuppressor 读取它：命中的 Activity 会挂一个「常开」的
+    //OnBackPressedCallback，AndroidX 随即向系统注册 OnBackInvokedCallback，
+    //系统便放弃自己的预测动画——用来绕开部分系统预测动画的坏适配
+    //（如 OriginOS 5 把侧边栏展开态误当底页，返回时左半屏闪烁）。
+    //默认**空集合** = 全部维持预测返回。老用户 JSON 里没有这个字段，Gson 走无参构造，
+    //初始值就是空集合，行为与升级前完全一致。
+    private LinkedHashSet<String> predictiveBackDisabledActivities = new LinkedHashSet<>();
+
+    //侧边栏（抽屉）的预测式返回跟手动画是**应用自绘**的（见 DrawerPredictiveBack），
+    //不属于系统预测动画，所以单独一个开关。关闭后抽屉不再跟手，直接走 DrawerLayout
+    //自带的关闭动画。默认 true（= 维持现状）。
+    private boolean drawerPredictiveBackEnabled = true;
+
+    //[实验] 尝试抑制「进入任意页后返回」时的闪烁,默认关。
+    //打开后 PredictiveBackSuppressor 会把所有 Activity 纳入,并在每次页面 resume 后
+    //冗余地 setEnabled 一次 —— 借 AndroidX「无条件 updateEnabledCallbacks」把系统的
+    //sendCancelIfRunning 注入进去,掐掉下一次返回的预测动画(闪烁随动画出现)。
+    //在 OriginOS 5 上实测有效;其它 ROM 上属于未验证行为,所以默认关。
+    private boolean suppressBackFlickerAnyPage = false;
+
     private long currentProgress = 0L;
 
     public long getCurrentProgress() {
@@ -589,6 +610,35 @@ public class Settings {
 
     public void setLogFileEnabled(boolean logFileEnabled) {
         this.logFileEnabled = logFileEnabled;
+    }
+
+    public LinkedHashSet<String> getPredictiveBackDisabledActivities() {
+        if (predictiveBackDisabledActivities == null) {
+            predictiveBackDisabledActivities = new LinkedHashSet<>();
+        }
+        return predictiveBackDisabledActivities;
+    }
+
+    public void setPredictiveBackDisabledActivities(LinkedHashSet<String> predictiveBackDisabledActivities) {
+        this.predictiveBackDisabledActivities = predictiveBackDisabledActivities == null
+                ? new LinkedHashSet<>()
+                : predictiveBackDisabledActivities;
+    }
+
+    public boolean isDrawerPredictiveBackEnabled() {
+        return drawerPredictiveBackEnabled;
+    }
+
+    public void setDrawerPredictiveBackEnabled(boolean drawerPredictiveBackEnabled) {
+        this.drawerPredictiveBackEnabled = drawerPredictiveBackEnabled;
+    }
+
+    public boolean isSuppressBackFlickerAnyPage() {
+        return suppressBackFlickerAnyPage;
+    }
+
+    public void setSuppressBackFlickerAnyPage(boolean suppressBackFlickerAnyPage) {
+        this.suppressBackFlickerAnyPage = suppressBackFlickerAnyPage;
     }
 
     public void setThemeType(AppCompatActivity activity, ThemeHelper.ThemeType themeType) {

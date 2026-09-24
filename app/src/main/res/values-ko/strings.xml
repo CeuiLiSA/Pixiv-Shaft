@@ -2857,6 +2857,21 @@
 
     <!-- 로그 파일 (실험) -->
     <string name="setting_log_file_enable">로그 파일 사용</string>
+    <string name="setting_predictive_back">예측형 뒤로 가기</string>
+    <string name="setting_predictive_back_desc">화면별로 시스템 예측형 뒤로 가기 애니메이션 사용 여부를 선택합니다. 끈 화면은 기존 뒤로 가기를 사용합니다. 일부 시스템에서 뒤로 가기 애니메이션이 이상할 때(깜빡임 / 배경 페이지 이상 / 원인 불명의 단색 테두리) 화면별로 좁혀 볼 수 있습니다.</string>
+    <string name="setting_predictive_back_dialog_hint">켜짐 = 시스템 예측형 뒤로 가기 사용 / 꺼짐 = 기존 뒤로 가기 사용.</string>
+    <string name="setting_predictive_back_help">설명</string>
+    <string name="setting_predictive_back_group_system">시스템 예측형 뒤로 가기</string>
+    <string name="setting_predictive_back_group_drawer">앱 자체 애니메이션</string>
+    <string name="setting_predictive_back_item_main">홈</string>
+    <string name="setting_predictive_back_item_drawer">사이드바 제스처</string>
+    <string name="setting_predictive_back_group_experimental">실험</string>
+    <string name="setting_predictive_back_item_any_page">사이드바에서 연 페이지에서 돌아올 때 예측 애니메이션을 억제하여 깜빡임 해결</string>
+    <string name="setting_predictive_back_item_template">범용 페이지</string>
+    <string name="setting_predictive_back_item_rank">랭킹</string>
+    <string name="setting_predictive_back_item_detail">일러스트 상세</string>
+    <string name="setting_predictive_back_item_search">검색 결과</string>
+    <string name="setting_predictive_back_item_viewer">다중 이미지 뷰어</string>
     <string name="setting_log_file_desc">성능에 영향을 줄 수 있음\n로그 파일 위치: %1$s</string>
     <string name="setting_log_file_no_file">아직 생성되지 않음</string>
     <string name="setting_log_file_share">로그 파일 공유</string>

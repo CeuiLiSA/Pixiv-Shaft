@@ -3134,6 +3134,21 @@
 
     <!-- 日志文件（试验性） -->
     <string name="setting_log_file_enable">启用日志文件</string>
+    <string name="setting_predictive_back">预测性返回</string>
+    <string name="setting_predictive_back_desc">按页面选择是否使用系统预测返回动画；关掉的页面改用传统返回。部分系统返回动画异常（闪烁 / 底页异常 / 不明纯色边）时可逐页排查。</string>
+    <string name="setting_predictive_back_dialog_hint">开启 = 使用系统预测返回动画；关闭改用传统返回。</string>
+    <string name="setting_predictive_back_help">说明</string>
+    <string name="setting_predictive_back_group_system">系统预测返回</string>
+    <string name="setting_predictive_back_group_drawer">应用自绘</string>
+    <string name="setting_predictive_back_item_main">主页</string>
+    <string name="setting_predictive_back_item_drawer">侧边栏手势</string>
+    <string name="setting_predictive_back_group_experimental">实验</string>
+    <string name="setting_predictive_back_item_any_page">抑制从侧边栏进入任意页返回时的预测动画以解闪烁</string>
+    <string name="setting_predictive_back_item_template">通用页面</string>
+    <string name="setting_predictive_back_item_rank">排行榜</string>
+    <string name="setting_predictive_back_item_detail">插画详情</string>
+    <string name="setting_predictive_back_item_search">搜索结果</string>
+    <string name="setting_predictive_back_item_viewer">多图浏览</string>
     <string name="setting_log_file_desc">可能影响性能\n日志文件在%1$s</string>
     <string name="setting_log_file_no_file">尚未生成</string>
     <string name="setting_log_file_share">分享日志文件</string>

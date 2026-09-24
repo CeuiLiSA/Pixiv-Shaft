@@ -6,23 +6,41 @@ import static ceui.lisa.helper.ThemeHelper.ThemeType.LIGHT_MODE;
 
 import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 
 import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
+import ceui.pixiv.witstudio.dialog.WitDialogView;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.ImageDetailActivity;
+import ceui.lisa.activities.MainActivity;
+import ceui.lisa.activities.RankActivity;
+import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsAppearanceBinding;
 import ceui.lisa.helper.NavigationLocationHelper;
+import ceui.lisa.helper.PredictiveBackSuppressor;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
@@ -42,8 +60,142 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         mLayoutID = R.layout.fragment_settings_appearance;
     }
 
+    private void refreshPredictiveBackSummary() {
+        Set<String> disabled = Shaft.sSettings.getPredictiveBackDisabledActivities();
+        List<Class<?>> targets = PredictiveBackSuppressor.TARGET_ORDER;
+        int enabled = 0;
+        for (Class<?> activityClass : targets) {
+            if (!disabled.contains(activityClass.getName())) {
+                enabled++;
+            }
+        }
+        baseBind.predictiveBackSummary.setText(enabled + "/" + targets.size());
+    }
+
+    private void showPredictiveBackDialog() {
+        PredictiveBackDialogBuilder builder = new PredictiveBackDialogBuilder(mActivity);
+        builder.setTitle(R.string.setting_predictive_back);
+        builder.addAction(R.string.string_cancel, (dialog, which) -> dialog.dismiss());
+        builder.addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_POSITIVE, (dialog, which) -> {
+            builder.apply();
+            refreshPredictiveBackSummary();
+            dialog.dismiss();
+        });
+        builder.show();
+    }
+
+    private static int predictiveBackLabelRes(Class<?> activityClass) {
+        if (activityClass == TemplateActivity.class) {
+            return R.string.setting_predictive_back_item_template;
+        }
+        if (activityClass == RankActivity.class) {
+            return R.string.setting_predictive_back_item_rank;
+        }
+        if (activityClass == ImageDetailActivity.class) {
+            return R.string.setting_predictive_back_item_detail;
+        }
+        if (activityClass == SearchActivity.class) {
+            return R.string.setting_predictive_back_item_search;
+        }
+        if (activityClass == MainActivity.class) {
+            return R.string.setting_predictive_back_item_main;
+        }
+        return R.string.setting_predictive_back_item_viewer;
+    }
+
+    /**
+     * 逐页开关弹窗，分两组：
+     * 组一「系统预测返回」逐 Activity 控制系统预测动画，清单来自
+     * {@link PredictiveBackSuppressor#TARGET_ORDER}，不另抄一份避免漂移；
+     * 组二「应用自绘」是侧边栏那套自绘跟手动画（{@code DrawerPredictiveBack}），
+     * 与系统动画是两个维度，所以单独一组、单独开关。
+     * 标题用人类可读名，副标题挂 Activity 类名，部分系统排查时能直接对上。
+     * 改动在「确定」时才落盘（与本页配额弹窗一致），「取消」原样丢弃。
+     */
+    private static final class PredictiveBackDialogBuilder extends WitDialog.CustomDialogBuilder {
+
+        private final List<SwitchCompat> switches = new ArrayList<>();
+        private final List<Class<?>> activityClasses = new ArrayList<>();
+        private SwitchCompat drawerToggle;
+        private SwitchCompat anyPageToggle;
+
+        private PredictiveBackDialogBuilder(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected View onCreateContent(WitDialog dialog, WitDialogView parent, Context context) {
+            View content = LayoutInflater.from(context)
+                    .inflate(R.layout.dialog_predictive_back, parent, false);
+            LinearLayout rows = content.findViewById(R.id.pb_rows);
+            ImageView help = content.findViewById(R.id.pb_help);
+            TextView helpText = content.findViewById(R.id.pb_help_text);
+            help.setOnClickListener(v -> helpText.setVisibility(
+                    helpText.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE));
+            Set<String> disabled = Shaft.sSettings.getPredictiveBackDisabledActivities();
+            for (Class<?> activityClass : PredictiveBackSuppressor.TARGET_ORDER) {
+                View row = LayoutInflater.from(context)
+                        .inflate(R.layout.dialog_predictive_back_row, rows, false);
+                TextView title = row.findViewById(R.id.pb_row_title);
+                title.setText(predictiveBackLabelRes(activityClass));
+                TextView className = row.findViewById(R.id.pb_row_class);
+                className.setText(activityClass.getSimpleName());
+                SwitchCompat toggle = row.findViewById(R.id.pb_row_switch);
+                toggle.setChecked(!disabled.contains(activityClass.getName()));
+                switches.add(toggle);
+                activityClasses.add(activityClass);
+                rows.addView(row);
+            }
+
+            // 第二组：应用自绘的侧边栏跟手动画，与系统预测动画是两个维度。
+            LinearLayout drawerRows = content.findViewById(R.id.pb_drawer_rows);
+            View drawerRow = LayoutInflater.from(context)
+                    .inflate(R.layout.dialog_predictive_back_row, drawerRows, false);
+            TextView drawerTitle = drawerRow.findViewById(R.id.pb_row_title);
+            drawerTitle.setText(R.string.setting_predictive_back_item_drawer);
+            TextView drawerClass = drawerRow.findViewById(R.id.pb_row_class);
+            drawerClass.setText(MainActivity.class.getSimpleName());
+            drawerToggle = drawerRow.findViewById(R.id.pb_row_switch);
+            drawerToggle.setChecked(Shaft.sSettings.isDrawerPredictiveBackEnabled());
+            drawerRows.addView(drawerRow);
+
+            // 第三组：实验。副标题留空 —— 它不是一个 Activity。
+            LinearLayout experimentalRows = content.findViewById(R.id.pb_experimental_rows);
+            View anyPageRow = LayoutInflater.from(context)
+                    .inflate(R.layout.dialog_predictive_back_row, experimentalRows, false);
+            TextView anyPageTitle = anyPageRow.findViewById(R.id.pb_row_title);
+            anyPageTitle.setText(R.string.setting_predictive_back_item_any_page);
+            anyPageToggle = anyPageRow.findViewById(R.id.pb_row_switch);
+            anyPageToggle.setChecked(Shaft.sSettings.isSuppressBackFlickerAnyPage());
+            experimentalRows.addView(anyPageRow);
+            return content;
+        }
+
+        private void apply() {
+            LinkedHashSet<String> disabled = new LinkedHashSet<>();
+            for (int i = 0; i < switches.size(); i++) {
+                if (!switches.get(i).isChecked()) {
+                    disabled.add(activityClasses.get(i).getName());
+                }
+            }
+            Shaft.sSettings.setPredictiveBackDisabledActivities(disabled);
+            if (drawerToggle != null) {
+                Shaft.sSettings.setDrawerPredictiveBackEnabled(drawerToggle.isChecked());
+            }
+            if (anyPageToggle != null) {
+                Shaft.sSettings.setSuppressBackFlickerAnyPage(anyPageToggle.isChecked());
+            }
+            Local.setSettings(Shaft.sSettings);
+            PredictiveBackSuppressor.syncAll();
+        }
+    }
+
     @Override
     protected void initData() {
+        // 预测性返回（逐页）：行右侧显示「启用数/总数」，点击弹窗逐项切换。
+        baseBind.predictiveBackRela.setOnClickListener(v -> showPredictiveBackDialog());
+        refreshPredictiveBackSummary();
+
         // 主题模式
         baseBind.themeMode.setText(Shaft.sSettings.getThemeType().toDisplayString(mContext));
         baseBind.themeModeRela.setOnClickListener(v -> {
