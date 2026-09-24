@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.drawable.InsetDrawable
 import android.os.Build
 import android.os.Parcelable
 import android.os.Looper
@@ -39,6 +40,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import java.io.File
 import java.time.Duration
+import kotlin.math.roundToInt
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28, 35])
@@ -269,6 +271,22 @@ class WitTagFlowViewTest {
             assertTrue((history.getChildAt(0) as TextView).lineCount > 1)
             savePreview(flow, "large-font-rtl-$rtl", 220)
         }
+    }
+
+    @Test fun `normal tags keep a content sized pill inside the 48dp touch target`() {
+        val flow = flow()
+        val density = flow.resources.displayMetrics.density
+        size(flow)
+        val chip = flow.getChildAt(0)
+        val pill = chip.background as InsetDrawable
+        pill.setBounds(0, 0, chip.width, chip.height)
+        val visible = pill.drawable!!.bounds.height()
+        assertTrue("hit=${chip.height}", chip.height >= (48 * density).roundToInt())
+        assertTrue("visible=$visible", visible < 40 * density)
+        flow.compact = true
+        size(flow)
+        assertFalse(flow.getChildAt(0).background is InsetDrawable)
+        assertTrue(flow.getChildAt(0).height < 32 * density)
     }
 
     @Test fun `alignment margins gone and unbounded width use the shared flexbox engine`() {

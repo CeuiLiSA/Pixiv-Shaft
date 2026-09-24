@@ -4,6 +4,8 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.InsetDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
@@ -105,6 +107,8 @@ public open class WitTagFlowView @JvmOverloads public constructor(
     public val editor: EditText? get() = if (showRemoveIcon) ensureEditor() else null
     private val Int.dp: Int get() = (this * resources.displayMetrics.density).roundToInt()
     private val closeIconSize: Int get() = if (showRemoveIcon) 14.dp else 0
+    /** 普通标签的透明上下沿：可见胶囊按内容测量（约 32dp），整颗仍保留 48dp 热区。 */
+    private val touchEdge: Int get() = if (compact || showRemoveIcon) 0 else 8.dp
 
     init { alignItems = AlignItems.FLEX_START }
 
@@ -175,10 +179,11 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         val visible = if (maxTags > 0) items.take(maxTags) else items
         if (maxTags > 0 && maxLine != -1) maxLine = -1
         visible.forEachIndexed { position, item ->
-            val view = itemViewFactory?.createView(this, item, position, palette)
-                ?: createItem(item, position, palette, translation)
-            view.background = WitTagStyle.background(palette, resources.displayMetrics.density)
-            view.layoutParams = chipLayoutParams(position == visible.lastIndex)
+            val custom = itemViewFactory?.createView(this, item, position, palette)
+            val view = custom ?: createItem(item, position, palette, translation)
+            val edge = if (custom == null) touchEdge else 0
+            view.background = chipBackground(palette, edge)
+            view.layoutParams = chipLayoutParams(position == visible.lastIndex, edge)
             if (view !is TextView || !showRemoveIcon) {
                 view.setOnClickListener { click(item, position) }
                 view.setOnLongClickListener { longClick(item, position) }
@@ -200,8 +205,8 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         if (actionText != null) {
             val action = newText(actionText, palette).apply {
                 setTextColor(if (onOverflowClick != null) palette.textAccent else palette.textSecondary)
-                background = WitTagStyle.background(palette, resources.displayMetrics.density)
-                layoutParams = chipLayoutParams(true)
+                background = chipBackground(palette, touchEdge)
+                layoutParams = chipLayoutParams(true, touchEdge)
                 if (onOverflowClick != null) {
                     overflowActionIcon?.let { setLeadingIcon(this, it, palette) }
                     setOnClickListener { onOverflowClick?.invoke() }
@@ -236,7 +241,7 @@ public open class WitTagFlowView @JvmOverloads public constructor(
                     contentDescription = item.removeDescription
                     setImageResource(R.drawable.wit_ic_tag_close)
                     imageTintList = android.content.res.ColorStateList.valueOf(palette.textAccent)
-                    background = WitTagStyle.background(palette, resources.displayMetrics.density)
+                    background = chipBackground(palette, touchEdge)
                     setPadding(14.dp, 14.dp, 14.dp, 14.dp)
                     setOnClickListener { removeListener?.onItemClick(item, position) }
                 }, LinearLayout.LayoutParams(48.dp, 48.dp))
@@ -273,11 +278,17 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         WitTagStyle.applyText(this, palette)
         setTextColor(palette.textTag)
         // 输入框内的标签沿用按内容测量的高度，避免 48dp 下限撑大整个搜索栏。
-        // 紧凑列表同样保持原有密度，独立操作项保留 48dp 热区。
+        // 紧凑列表同样保持原有密度；普通标签的 48dp 只是热区，多出的部分落在透明上下沿。
         minHeight = if (compact || showRemoveIcon) 0 else 48.dp
         gravity = Gravity.CENTER_VERTICAL
-        setPaddingRelative(if (compact) 10.dp else 14.dp, if (compact) 4.dp else 7.dp,
-            if (compact) 10.dp else 14.dp, if (compact) 4.dp else 7.dp)
+        val vertical = (if (compact) 4.dp else 7.dp) + touchEdge
+        setPaddingRelative(if (compact) 10.dp else 14.dp, vertical,
+            if (compact) 10.dp else 14.dp, vertical)
+    }
+
+    private fun chipBackground(palette: V3Palette, edge: Int): Drawable {
+        val pill = WitTagStyle.background(palette, resources.displayMetrics.density)
+        return if (edge == 0) pill else InsetDrawable(pill, 0, edge, 0, edge)
     }
 
     private fun setLeadingIcon(view: TextView, icon: Int, palette: V3Palette) {
@@ -290,11 +301,12 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         }
     }
 
-    private fun chipLayoutParams(last: Boolean): LayoutParams =
+    private fun chipLayoutParams(last: Boolean, edge: Int = 0): LayoutParams =
         LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
             val gap = if (compact) 6.dp else 8.dp
             marginEnd = if (flexWrap == FlexWrap.NOWRAP && last) 0 else gap
-            bottomMargin = if (flexWrap == FlexWrap.NOWRAP) 0 else gap
+            // 上下透明沿已隔开相邻两行的可见胶囊，行距不再叠加。
+            bottomMargin = if (flexWrap == FlexWrap.NOWRAP) 0 else (gap - 2 * edge).coerceAtLeast(0)
             flexShrink = 0f
         }
 
