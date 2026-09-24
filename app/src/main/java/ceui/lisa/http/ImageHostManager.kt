@@ -32,11 +32,11 @@ package ceui.lisa.http
  *     prefix is replaced wholesale; the remaining path/query is preserved.
  *     This lets a user point at a proxy mounted under a sub-path.
  *
- *   - PIXIV_CAT maps both i.pximg.net → i.pixiv.cat and s.pximg.net →
- *     s.pixiv.cat. pixiv.cat reverse-proxies both subdomains, so the s.* URLs
- *     used for placeholder/profile images (Params.IMAGE_UNKNOWN,
- *     Params.HEAD_UNKNOWN, GlideUtil.DEFAULT_HEAD_IMAGE,
- *     UserFollowingFragment.NO_PROFILE_IMG) ride along.
+ *   - PIXIV_CAT / PIXIV_RE / PIXIV_NL only map i.pximg.net → i.pixiv.*.
+ *     These mirrors do NOT serve s.pximg.net: s.pixiv.cat/.re/.nl are NXDOMAIN
+ *     and i.pixiv.* 404s on /common/... paths. So s.pximg.net URLs (comment
+ *     stamps & emoji, placeholder/profile images) stay on the original host
+ *     (issue #1152).
  */
 object ImageHostManager {
 
@@ -47,13 +47,10 @@ object ImageHostManager {
     private const val PXIMG_I = "i.pximg.net"
     private const val PXIMG_S = "s.pximg.net"
     private const val PIXIV_CAT_I = "i.pixiv.cat"
-    private const val PIXIV_CAT_S = "s.pixiv.cat"
     // pixiv.re / pixiv.nl: pixiv.cat 的备用镜像(同 i.pximg.net 路径反代)。
     // pixiv.cat 主域名在中国大陆被墙,pixiv.re 为大陆推荐镜像(issue #865 追加)。
     private const val PIXIV_RE_I = "i.pixiv.re"
-    private const val PIXIV_RE_S = "s.pixiv.re"
     private const val PIXIV_NL_I = "i.pixiv.nl"
-    private const val PIXIV_NL_S = "s.pixiv.nl"
 
     @Volatile private var mode: Mode = Mode.PIXIV
     @Volatile private var customHost: String = ""
@@ -103,18 +100,10 @@ object ImageHostManager {
 
         return when (mode) {
             Mode.PIXIV -> url
-            Mode.PIXIV_CAT -> {
-                val mapped = if (host == PXIMG_I) PIXIV_CAT_I else PIXIV_CAT_S
-                url.substring(0, hostStart) + mapped + url.substring(pathStart)
-            }
-            Mode.PIXIV_RE -> {
-                val mapped = if (host == PXIMG_I) PIXIV_RE_I else PIXIV_RE_S
-                url.substring(0, hostStart) + mapped + url.substring(pathStart)
-            }
-            Mode.PIXIV_NL -> {
-                val mapped = if (host == PXIMG_I) PIXIV_NL_I else PIXIV_NL_S
-                url.substring(0, hostStart) + mapped + url.substring(pathStart)
-            }
+            // 镜像只反代 i.pximg.net;s.pximg.net 没有对应镜像域名，保持原样(issue #1152)。
+            Mode.PIXIV_CAT -> if (host == PXIMG_I) url.substring(0, hostStart) + PIXIV_CAT_I + url.substring(pathStart) else url
+            Mode.PIXIV_RE -> if (host == PXIMG_I) url.substring(0, hostStart) + PIXIV_RE_I + url.substring(pathStart) else url
+            Mode.PIXIV_NL -> if (host == PXIMG_I) url.substring(0, hostStart) + PIXIV_NL_I + url.substring(pathStart) else url
             Mode.CUSTOM -> {
                 if (customHost.isEmpty()) url
                 else customHost + url.substring(pathStart)

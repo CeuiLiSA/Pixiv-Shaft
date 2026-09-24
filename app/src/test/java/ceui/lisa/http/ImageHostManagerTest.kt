@@ -49,12 +49,11 @@ class ImageHostManagerTest {
         )
     }
 
-    @Test fun `PIXIV_CAT maps s_pximg to s_pixiv_cat (placeholder ride-along)`() {
+    // issue #1152: s.pixiv.cat/.re/.nl 不存在(NXDOMAIN)，s.pximg.net 必须保持原样。
+    @Test fun `PIXIV_CAT leaves s_pximg unchanged`() {
         ImageHostManager.setMode(Mode.PIXIV_CAT)
-        assertEquals(
-            "https://s.pixiv.cat/common/images/no_profile.png",
-            ImageHostManager.rewrite("https://s.pximg.net/common/images/no_profile.png")
-        )
+        val url = "https://s.pximg.net/common/images/no_profile.png"
+        assertEquals(url, ImageHostManager.rewrite(url))
     }
 
     @Test fun `PIXIV_CAT preserves query string`() {
@@ -81,12 +80,10 @@ class ImageHostManagerTest {
         )
     }
 
-    @Test fun `PIXIV_RE maps s_pximg to s_pixiv_re`() {
+    @Test fun `PIXIV_RE leaves s_pximg stamp unchanged`() {
         ImageHostManager.setMode(Mode.PIXIV_RE)
-        assertEquals(
-            "https://s.pixiv.re/common/images/no_profile.png",
-            ImageHostManager.rewrite("https://s.pximg.net/common/images/no_profile.png")
-        )
+        val url = "https://s.pximg.net/common/images/stamp/generated-stamps/101_s.jpg?20180605"
+        assertEquals(url, ImageHostManager.rewrite(url))
     }
 
     @Test fun `PIXIV_RE preserves query string and does not touch unknown hosts`() {
@@ -105,16 +102,14 @@ class ImageHostManagerTest {
 
     // --- PIXIV_NL (backup mirror) -------------------------------------------
 
-    @Test fun `PIXIV_NL maps i_pximg and s_pximg to pixiv_nl`() {
+    @Test fun `PIXIV_NL maps i_pximg to pixiv_nl and leaves s_pximg unchanged`() {
         ImageHostManager.setMode(Mode.PIXIV_NL)
         assertEquals(
             "https://i.pixiv.nl/img/x.jpg",
             ImageHostManager.rewrite("https://i.pximg.net/img/x.jpg")
         )
-        assertEquals(
-            "https://s.pixiv.nl/common/images/no_profile.png",
-            ImageHostManager.rewrite("https://s.pximg.net/common/images/no_profile.png")
-        )
+        val url = "https://s.pximg.net/common/images/no_profile.png"
+        assertEquals(url, ImageHostManager.rewrite(url))
     }
 
     // --- CUSTOM --------------------------------------------------------------
