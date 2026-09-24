@@ -128,7 +128,8 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
 
             @Override
             public void onReselect(int index, View view) {
-                // 点当前这项 = 用户想回到自己已经在看的东西,什么也不用做
+                // 再点当前这项 = 仅回顶,不重拉(对齐首页顶栏 tab 的再点回顶,#1154)
+                scrollActiveListToTop();
             }
         });
 
