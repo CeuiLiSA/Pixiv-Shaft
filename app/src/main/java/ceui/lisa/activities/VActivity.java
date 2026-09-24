@@ -83,7 +83,10 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                         if (exist == null) {
                             ObjectPool.INSTANCE.updateIllust(illustsBean);
                         }
-                        if (Shaft.sSettings.isUseArtworkV3()) {
+                        // 平板（values-sw600dp）上一律用新的平板详情排版，不再出现旧详情页（#1087）；
+                        // 手机仍按「使用新版详情页」设置选择
+                        if (Shaft.sSettings.isUseArtworkV3()
+                                || getResources().getBoolean(R.bool.artwork_tablet_stage)) {
                             return ArtworkV3Fragment.newInstance(illustsBean.getId());
                         } else {
                             return FragmentIllust.newInstance((int) illustsBean.getId());

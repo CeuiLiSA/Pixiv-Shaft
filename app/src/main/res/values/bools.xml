@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <bool name="is_night_mode">false</bool>
+    <!-- 作品详情用平板排版（作品舞台 + 信息栏，#1087）；values-sw600dp 覆写为 true，与 layout-sw600dp 同步 -->
+    <bool name="artwork_tablet_stage">false</bool>
 </resources>

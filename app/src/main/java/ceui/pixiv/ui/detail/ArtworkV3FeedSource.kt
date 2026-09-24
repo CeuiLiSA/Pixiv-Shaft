@@ -36,6 +36,8 @@ import timber.log.Timber
  */
 class ArtworkV3FeedSource(
     private val illustId: Long,
+    /** false = 平板排版：作品图由舞台渲染（ArtworkTabletStage），列表里不出图片条目。 */
+    private val includePages: Boolean = true,
 ) : FeedSource<String> {
 
     override suspend fun load(cursor: String?): FeedPage<String> {
@@ -54,7 +56,8 @@ class ArtworkV3FeedSource(
         Timber.tag(ARTWORK_LAZY_TAG).d(
             "进页只出「大图 + header」,不拉 related/comments/authorWorks illustId=%d", illustId,
         )
-        return FeedPage(buildArtworkPageItems(illust) + buildArtworkHeaderItems(illust), null)
+        val pages = if (includePages) buildArtworkPageItems(illust) else emptyList()
+        return FeedPage(pages + buildArtworkHeaderItems(illust), null)
     }
 
     /**

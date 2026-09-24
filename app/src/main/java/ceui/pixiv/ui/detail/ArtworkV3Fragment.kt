@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
 import android.graphics.Rect
 import android.net.Uri
 import android.os.Bundle
@@ -135,7 +136,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (snapshot != null) {
             SnapshotArtworkFeedSource(snapshot, snapshotAuto)
         } else {
-            ArtworkV3FeedSource(requireArguments().getInt("illust_id").toLong())
+            // 平板（layout-sw600dp）的作品图在舞台里，列表只出信息区块；折叠屏开合跨过
+            // 600dp 时这个 VM 活下来，差异由 reconcilePageItems 在视图重建时对齐
+            ArtworkV3FeedSource(
+                requireArguments().getInt("illust_id").toLong(),
+                includePages = !resources.getBoolean(R.bool.artwork_tablet_stage),
+            )
         }
     }
 
@@ -179,6 +185,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 整页屏蔽遮罩是否正盖着。盖着时底部胶囊一律收起，见 [setMuteMaskActive]。 */
     private var muteMaskActive = false
 
+    /** 宽窗口排版的作品舞台（#1087）；手机排版与快照模式为 null，作品图照旧是列表条目。 */
+    private var tabletStage: ArtworkTabletStage? = null
+
     private var sectionLoader: SectionLoader<ArtworkSection>? = null
     private var artistObservedUserId: Long = 0L
     private var muteObserved = false
@@ -210,6 +219,13 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     // 关闭下拉刷新(详情页 feeds 版不支持)
     override val refreshEnabled: Boolean = false
+
+    // 宽窗口：列表铺在半透明信息栏上，自己不画底色（信息栏的底色由 ArtworkTabletStage 给）
+    override val feedRootBackgroundColor: Int
+        get() = if (usesTabletStage()) Color.TRANSPARENT else super.feedRootBackgroundColor
+
+    private fun usesTabletStage(): Boolean =
+        !isSnapshotMode && resources.getBoolean(R.bool.artwork_tablet_stage)
 
     // ── 列表装配 ────────────────────────────────────────────────────────────
 
@@ -278,6 +294,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     override fun onListCommitted(state: FeedUiState) {
         super.onListCommitted(state)
+        // 出错后重试等重新加载，数据源仍按建 VM 时的排版出图；和当前排版不一致时对齐一次
+        if (_chromeBind != null) reconcilePageItems()
         // 自动展开保留了旋屏前的全 P 列表。视口若已在简介/评论区，不会绑定任何图片，
         // 不能等 artworkPageRenderer 才接回「收起」入口；提交后即可按列表初始化展开态。
         if (_chromeBind != null && pageAdapter == null &&
@@ -291,8 +309,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         super.onViewCreated(view, savedInstanceState)
         _chromeBind = FragmentArtworkV3Binding.bind(view)
         _fabBarController = V3FabBarController(chromeBind.fabBar)
-        attachPageProgressPill()
-        attachPagesPreview()
+        setUpTabletStage()
+        if (tabletStage == null) {
+            // 页码浮标 / 长按预览都是「列表里的图片页」的配件；舞台自带页码条，不挂
+            attachPageProgressPill()
+            attachPagesPreview()
+        }
         if (isSnapshotMode) {
             // 快照只读：保留收藏/关注按钮用于展示“那一刻”的状态，但点击一律无动作。
             chromeBind.fabBar.root.isVisible = true
@@ -379,6 +401,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 顺带接住 caption 后台补拉的落地(见 ArtworkV3ViewModel.ensureTrustedCaption)。
         ObjectPool.get<Illust>(illustId).observe(viewLifecycleOwner) { illust ->
             illust ?: return@observe
+            tabletStage?.bind(illust)
             syncDescSection(illust.caption, illust.title)
             attachMuteObserver(illust)
             val authorId = illust.user?.id ?: return@observe
@@ -537,6 +560,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     }
 
     override fun onDestroyView() {
+        tabletStage?.release()
+        tabletStage = null
         // 兜底：页面被销毁（pager 页回收 / 进程内导航销毁）时把还没结算的那一段交出去。
         settleAutoSnapshot(evaluate = true)
         commentComposer = null
@@ -726,6 +751,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 先置位再动 adapter：若首帧大图还没懒建（pageAdapter == null），
         // 后续 ensurePageAdapter() 也会带着这个开关创建，点击不丢。
         artworkViewModel.forceOriginalPreview = true
+        tabletStage?.reloadPages()
         val old = pageAdapter ?: return
         val wasExpanded = (old as? CollapsibleIllustAdapter)?.isExpanded == true
         old.release()
@@ -876,7 +902,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * 一页都不在屏幕上了(滑到简介 / 评论 / 相关作品)就收起——那时已经不是在「看图」。 折叠态(3P+ 未展开)只有 p0 在列表里,读数照样是「1 / N」,和 web 端一致。
      */
     private fun refreshPageProgressPill() {
-        if (_chromeBind == null) return
+        // 平板舞台自带页码读数；列表里没有图片条目，不必每帧滚动都遍历子 view
+        if (_chromeBind == null || tabletStage != null) return
         val pill = chromeBind.pageProgressPill
         val total = currentPageCount()
         // 单图 / 动图没有「第几页」可言
@@ -1429,10 +1456,70 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     // ── inset ──────────────────────────────────────────────────────────────
 
+    /**
+     * 平板排版（layout-sw600dp，#1087）：作品进舞台，列表 / 胶囊在信息栏里。
+     * 返回与更多菜单挪到舞台左右上角，信息栏不再有顶栏。快照模式的页面数据来自快照本身，
+     * 仍按手机排版把图放在列表里（舞台收起、信息栏铺满）。
+     */
+    private fun setUpTabletStage() {
+        // 手机布局没有这几个 view：tabletStage 保持 null，但仍要对齐图片条目（见 reconcilePageItems）
+        val stage = chromeBind.tabletStage
+        val infoColumn = chromeBind.tabletInfoColumn
+        val backdrop = chromeBind.tabletBackdrop
+        val scrim = chromeBind.tabletBackdropScrim
+        if (stage == null || infoColumn == null || backdrop == null || scrim == null) {
+            // 手机排版
+        } else if (!usesTabletStage()) {
+            stage.isVisible = false
+            backdrop.isVisible = false
+            scrim.isVisible = false
+        } else {
+            tabletStage = ArtworkTabletStage(
+                fragment = this,
+                stage = stage,
+                infoColumn = infoColumn,
+                backdrop = backdrop,
+                scrim = scrim,
+                forceOriginal = { artworkViewModel.forceOriginalPreview },
+                onBack = { requireActivity().finish() },
+                onMore = { chromeBind.navMore.performClick() },
+                onOpenReader = { openComicReader() },
+            )
+            // 返回 / 更多都在舞台上；信息栏不要顶栏，标题直接从栏顶开始
+            chromeBind.toolbar.isVisible = false
+            ObjectPool.get<Illust>(illustId).value?.let { tabletStage?.bind(it) }
+        }
+        reconcilePageItems()
+    }
+
+    /**
+     * 列表里「有没有作品图条目」要和当前排版一致。数据源按建 VM 时的排版决定出不出图，而 VM
+     * 会跨配置变化存活：折叠屏开合、平板分屏缩窄会跨过 sw600dp，这时补上或拿掉图片条目。
+     * 手机永远不跨，一致时是 no-op。
+     */
+    private fun reconcilePageItems() {
+        if (isSnapshotMode) return
+        val staged = tabletStage != null
+        feedViewModel.mutateItems { items ->
+            val hasPages = items.any { it is ArtworkPageItem || it is ArtworkUgoiraItem }
+            when {
+                staged && hasPages ->
+                    items.filterNot { it is ArtworkPageItem || it is ArtworkUgoiraItem }
+                !staged && !hasPages && items.any { it is ArtworkHeroItem } -> {
+                    val illust = ObjectPool.get<Illust>(illustId).value
+                    if (illust == null) items else ArtworkV3FeedSource.buildArtworkPageItems(illust) + items
+                }
+                else -> items
+            }
+        }
+    }
+
     private fun handleSystemInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(chromeBind.toolbar) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars())
-            v.setPadding(v.paddingLeft, insets.top, v.paddingRight, v.paddingBottom)
+            // 宽窗口上下排布时信息栏从半屏处开始，顶栏不贴状态栏
+            val top = if (tabletStage?.sideBySide == false) 0 else insets.top
+            v.setPadding(v.paddingLeft, top, v.paddingRight, v.paddingBottom)
             windowInsets
         }
         // 胶囊底距(导航栏 inset + 24dp)与二级大图页共用同一套逻辑,保证两页落点一致
@@ -1442,7 +1529,17 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         listView.clipToPadding = false
         ViewCompat.setOnApplyWindowInsetsListener(listView) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, insets.bottom)
+            // 宽窗口列表第一项是标题而不是大图：首帧布局前就让出状态栏（并排时信息栏贴屏幕顶）
+            // 和一点呼吸空间（布局后再加的话，clipToPadding=false 的列表会把第一项留在原位）
+            val top = tabletStage?.let { stage ->
+                val status = if (stage.sideBySide) {
+                    windowInsets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+                } else {
+                    0
+                }
+                status + 16.ppppx
+            } ?: v.paddingTop
+            v.setPadding(v.paddingLeft, top, v.paddingRight, insets.bottom)
             windowInsets
         }
         // 右上角胶囊行(页码浮标 + 「收起」)钉在顶栏(toolbar + 可选重试横幅)之下(见 #881)

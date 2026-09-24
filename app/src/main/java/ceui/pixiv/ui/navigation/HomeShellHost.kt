@@ -11,9 +11,10 @@ import ceui.pixiv.witstudio.theme.dp
 /**
  * 首页（MainActivity）对各 tab 公开的排版形态：窗口够宽时底栏换成 [HomeNavigationRail]（#1087）。
  *
- * 形态跟随**当前窗口**的可用宽度，不看设备型号或横竖屏——分屏、Activity Embedding 双栏里的
- * 窄窗口照样是手机排版。MainActivity 自己处理 screenSize 配置变化、不重建，所以 tab 页要
- * 订阅这个值，而不是在 onCreateView 里读一次。
+ * 只在平板上换形态：窗口最小宽度 >= 600dp（手机横竖屏都不命中，手机 UI 完全不变），且当前
+ * 可用宽度也 >= 600dp（平板分屏、Activity Embedding 双栏里的窄窗口仍是手机排版）。
+ * MainActivity 自己处理 screenSize 配置变化、不重建，所以 tab 页要订阅这个值，而不是在
+ * onCreateView 里读一次。
  */
 interface HomeShellHost {
 
@@ -22,12 +23,13 @@ interface HomeShellHost {
 
     companion object {
 
-        /** 可用窗口宽度达到这个值才换侧栏：Android 窗口尺寸档位里 medium 的下限。 */
+        /** 平板判定与侧栏的宽度下限：Android 窗口尺寸档位里 medium 的下限。 */
         const val RAIL_MIN_WIDTH_DP = 600
 
         @JvmStatic
         fun isRailWidth(configuration: Configuration): Boolean =
-            configuration.screenWidthDp >= RAIL_MIN_WIDTH_DP
+            configuration.smallestScreenWidthDp >= RAIL_MIN_WIDTH_DP &&
+                configuration.screenWidthDp >= RAIL_MIN_WIDTH_DP
 
         /** tab 页订阅宿主形态；宿主不是首页（比如被别处复用）时按手机排版回调一次。 */
         @JvmStatic
