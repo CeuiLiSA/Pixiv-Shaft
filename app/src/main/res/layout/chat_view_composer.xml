@@ -86,30 +86,33 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingHorizontal="12dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
         android:paddingVertical="10dp">
 
+        <!-- 48dp 热区,24dp 图标位置与原 12dp 边距 + 40dp 按钮时一致。着色见 ChatComposerStyle。 -->
         <ImageButton
             android:id="@+id/btn_emoji"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_gravity="center_vertical"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:scaleType="centerInside"
             android:src="@drawable/chat_ic_emoji"
             android:contentDescription="表情" />
 
+        <!-- 底色、光标与文字色由 ChatComposerStyle 按主题运行时铺。 -->
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/input_layout"
             style="@style/Widget.Material3.TextInputLayout.FilledBox.Dense"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="6dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginStart="2dp"
+            android:layout_marginEnd="4dp"
             app:hintEnabled="false"
             app:boxStrokeWidth="0dp"
             app:boxStrokeWidthFocused="0dp"
-            app:boxBackgroundColor="@color/chat_received_bubble"
             app:boxCornerRadiusBottomEnd="22dp"
             app:boxCornerRadiusBottomStart="22dp"
             app:boxCornerRadiusTopEnd="22dp"
@@ -128,14 +131,18 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- 48dp 热区,四边 4dp inset 画出 40dp 正圆(M3 IconButton 默认只有左右 inset,
+             会被压成 32×40 的椭圆)。 -->
         <com.google.android.material.button.MaterialButton
             style="@style/Widget.Material3.Button.IconButton.Filled"
             android:id="@+id/btn_send"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_gravity="center_vertical"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
+            android:insetLeft="4dp"
+            android:insetTop="4dp"
+            android:insetRight="4dp"
+            android:insetBottom="4dp"
             android:enabled="false"
             app:cornerRadius="20dp"
             app:icon="@drawable/chat_ic_send"

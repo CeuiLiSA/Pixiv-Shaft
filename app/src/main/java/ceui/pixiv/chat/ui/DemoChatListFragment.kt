@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.lisa.R
 import ceui.lisa.activities.UActivity
 import ceui.lisa.databinding.ChatFragmentDemoListBinding
@@ -381,6 +382,8 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
         MessageActionsSheet.newInstance(
             localKey = msg.localKey,
             content = msg.text,
+            // Own messages need no name; others show who is being quoted, as on the bubble.
+            sender = msg.displayName.takeIf { msg.uid != SessionManager.loggedInUid },
             canReply = ChatListViewModel.canReplyTo(msg),
         ).show(childFragmentManager, MessageActionsSheet.TAG)
     }
@@ -420,7 +423,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
             .setTitle("删除消息")
             .setMessage("确定要删除这条消息吗？")
             .addAction("取消") { d, _ -> d.dismiss() }
-            .addAction("删除") { d, _ ->
+            .addAction(0, "删除", WitDialogAction.ACTION_PROP_NEGATIVE) { d, _ ->
                 d.dismiss()
                 deleteMessage(localKey)
             }
@@ -531,6 +534,7 @@ class DemoChatListFragment : Fragment(R.layout.chat_fragment_demo_list) {
 
     private fun setupInput() {
         binding.composer.applyChatComposerStyle()
+        binding.emojiPanel.setBackgroundColor(chatPalette(requireContext()).chatComposerSurface())
         binding.composer.etInput.doAfterTextChanged { text ->
             refreshSendEnabled()
             // Outbound typing signal — DM-only, VM short-circuits global.

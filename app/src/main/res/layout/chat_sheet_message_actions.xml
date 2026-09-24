@@ -1,118 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 长按消息的操作菜单,坐在 WitBottomSheet 的主题表面上(拖拽条、安全区由它管)。
+     结构:消息引用块 → 复制 / 回复 / 转发 连通分段行(外角 20、内角 5、行隙 2)→ 独立的删除行。
+     所有底色与强调色由 MessageActionsSheet 按聊天主题色运行时铺,日夜跟随资源。 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingBottom="8dp"
-    android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+    android:paddingStart="16dp"
+    android:paddingTop="4dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp">
 
-    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal" />
-
-    <TextView
-        android:id="@+id/tv_preview"
+    <!-- 与输入栏引用条同一语汇:3dp 主题色强调条 + 主题浅底容器。 -->
+    <LinearLayout
+        android:id="@+id/preview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:maxLines="2"
-        android:paddingHorizontal="24dp"
-        android:paddingBottom="12dp"
-        android:textAppearance="?attr/textAppearanceBodySmall"
-        android:textColor="?attr/colorOnSurfaceVariant" />
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginHorizontal="16dp"
-        android:background="?attr/colorOutlineVariant" />
+        <View
+            android:id="@+id/preview_accent"
+            android:layout_width="3dp"
+            android:layout_height="match_parent" />
 
-    <LinearLayout
-        android:id="@+id/action_copy"
-        style="@style/Chat.ActionRow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:importantForAccessibility="no"
-            android:src="@drawable/chat_ic_content_copy" />
-
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:text="@string/chat_action_copy"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_sender"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:singleLine="true"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:text="匿名_95864319"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/tv_preview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:lineSpacingMultiplier="1.3"
+                android:maxLines="3"
+                android:textColor="@color/v3_text_1"
+                android:textSize="15sp"
+                tools:text="晚上睡不着来把战争雷霆越玩越精神" />
+
+        </LinearLayout>
+
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/action_reply"
-        style="@style/Chat.ActionRow"
+        android:id="@+id/action_group"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="vertical">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:importantForAccessibility="no"
-            android:src="@drawable/chat_ic_reply" />
+        <include
+            android:id="@+id/action_copy"
+            layout="@layout/chat_item_message_action" />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:text="@string/chat_action_reply"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
+        <include
+            android:id="@+id/action_reply"
+            layout="@layout/chat_item_message_action" />
+
+        <include
+            android:id="@+id/action_forward"
+            layout="@layout/chat_item_message_action" />
+
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/action_forward"
-        style="@style/Chat.ActionRow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:importantForAccessibility="no"
-            android:src="@drawable/chat_ic_forward" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:text="@string/chat_action_forward"
-            android:textAppearance="?attr/textAppearanceBodyLarge" />
-    </LinearLayout>
-
-    <LinearLayout
+    <!-- 破坏性操作单独成组,和常用操作隔开一段,避免顺手误点。 -->
+    <include
         android:id="@+id/action_delete"
-        style="@style/Chat.ActionRow"
+        layout="@layout/chat_item_message_action"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:importantForAccessibility="no"
-            android:src="@drawable/chat_ic_delete"
-            app:tint="?attr/colorError" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:text="@string/chat_action_delete"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="?attr/colorError" />
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp" />
 
 </LinearLayout>
