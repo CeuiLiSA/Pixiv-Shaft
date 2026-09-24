@@ -115,7 +115,7 @@ class CommentsComposerViewModel(
         }
     }
 
-    /** 「表情贴图」选中即单发:comment 恒为空、只带 stamp_id(对齐官方 App 抓包行为,
+    /** 「表情贴图」确认后单发(面板里点选、再点同一张,见 [CommentStampPickerAdapter]):comment 恒为空、只带 stamp_id(对齐官方 App 抓包行为,
      * 与打字互斥),沿用当前回复目标(若有)。 */
     suspend fun sendStamp(stampId: Long): SentComment? {
         if (!sendMutex.tryLock()) return null
