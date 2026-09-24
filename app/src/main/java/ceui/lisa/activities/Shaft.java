@@ -448,6 +448,10 @@ public class Shaft extends Application implements ServicesProvider {
 
         ThemeHelper.applyTheme(null, sSettings.getThemeType());
 
+        // 标签原文辨识度：两条存在设备本地 MMKV（TagLegibilityPrefs），witstudio 不依赖 :app、
+        // 读不到它，只能在启动时把强度单向推过去。设置页改动后会再推一次。
+        ceui.pixiv.ui.settings.TagLegibilityPrefs.applyToWitStudio();
+
         // Toast 必须同步初始化：Common.showToast 遍布全 app，首帧路径上（未登录提示、
         // deep link 解析失败等）就可能弹，晚于它初始化就是一次没人看见的 toast。
         // 自身只有 ~2ms，不值得为它冒这个险。

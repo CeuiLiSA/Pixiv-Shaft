@@ -555,6 +555,15 @@
     <string name="tag_translation_color">標籤譯文顏色</string>
     <string name="tag_translation_color_follow_theme">跟隨主題</string>
     <string name="tag_translation_color_pick_from_theme_page">從主題色彩頁中選擇</string>
+    <string name="tag_legibility_boost">標籤原文亮暗度</string>
+    <string name="tag_legibility_boost_hint">左側為原始效果，右側隨滑桿即時變化\n過高的值會讓膠囊的填充色顯得變淡（深色）或變濃（淺色）</string>
+    <string name="tag_legibility_boost_summary">%1$s · %2$s</string>
+    <string name="tag_legibility_boost_light">白天</string>
+    <string name="tag_legibility_boost_dark">黑暗</string>
+    <string name="tag_legibility_boost_none_light">不壓暗</string>
+    <string name="tag_legibility_boost_none_dark">不提亮</string>
+    <string name="tag_legibility_boost_percent_light">壓暗 %1$d%%</string>
+    <string name="tag_legibility_boost_percent_dark">提亮 %1$d%%</string>
     <string name="string_325">點擊設定</string>
     <string name="string_326">開始</string>
     <string name="string_327">暫停</string>

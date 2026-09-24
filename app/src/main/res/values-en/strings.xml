@@ -553,6 +553,15 @@
     <string name="tag_translation_color">Tag translation color</string>
     <string name="tag_translation_color_follow_theme">Follow theme</string>
     <string name="tag_translation_color_pick_from_theme_page">Choose from theme color page</string>
+    <string name="tag_legibility_boost">Tag text brightness</string>
+    <string name="tag_legibility_boost_hint">Left is the original; right follows the slider\nA high value makes the chip fill look paler (dark) or deeper (light)</string>
+    <string name="tag_legibility_boost_summary">%1$s · %2$s</string>
+    <string name="tag_legibility_boost_light">Light</string>
+    <string name="tag_legibility_boost_dark">Dark</string>
+    <string name="tag_legibility_boost_none_light">No darkening</string>
+    <string name="tag_legibility_boost_none_dark">No brightening</string>
+    <string name="tag_legibility_boost_percent_light">Darken %1$d%%</string>
+    <string name="tag_legibility_boost_percent_dark">Brighten %1$d%%</string>
     <string name="string_325">Go to settings</string>
     <string name="string_326">start</string>
     <string name="string_327">Suspend</string>

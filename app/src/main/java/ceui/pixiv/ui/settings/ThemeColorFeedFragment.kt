@@ -122,6 +122,10 @@ class ThemeColorFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         }
         if (item.index == Shaft.sSettings.themeIndex) return
         Shaft.sSettings.themeIndex = item.index
+        // 换主题色后整套派生色都变了，旧的辨识度增强值语义不再对应，一起归零。
+        // 两条在设备本地 MMKV（TagLegibilityPrefs），不经 Local.setSettings。
+        TagLegibilityPrefs.reset()
+        TagLegibilityPrefs.applyToWitStudio()
         Local.setSettings(Shaft.sSettings)
         Common.restart()
         Common.showToast(getString(R.string.string_428), 2)
@@ -134,6 +138,9 @@ class ThemeColorFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         if (alreadyUsing) return
         Shaft.sSettings.customThemeColor = hex
         Shaft.sSettings.themeIndex = CustomThemeColor.INDEX
+        // 同 onPickColor：换主题色即把两条辨识度归零（设备本地 MMKV）。
+        TagLegibilityPrefs.reset()
+        TagLegibilityPrefs.applyToWitStudio()
         Local.setSettings(Shaft.sSettings)
         Common.restart()
         Common.showToast(getString(R.string.string_428), 2)

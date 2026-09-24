@@ -32,16 +32,17 @@ import ceui.pixiv.witstudio.widget.WitTagItem
 import com.hjq.toast.Toaster
 
 internal fun resolveTagTranslationColor(palette: V3Palette): Int {
-    val settings = Shaft.sSettings ?: return palette.textTag
-    if (settings.isTagTranslationColorFollowTheme) return palette.textTag
+    // 译文属"非原文"：一律走未增强口径，用户设的颜色不该被增强静默改掉。
+    val settings = Shaft.sSettings ?: return palette.textTagAux
+    if (settings.isTagTranslationColorFollowTheme) return palette.textTagAux
     val index = settings.tagTranslationColorIndex
     val hex = when {
         index == CustomThemeColor.INDEX ->
             CustomThemeColor.normalize(settings.tagTranslationColorCustomHex)
         index in ThemeColorCatalog.entries.indices -> ThemeColorCatalog.hexOf(index)
         else -> null
-    } ?: return palette.textTag
-    return palette.tagTextColor(V3Palette(hex.toColorInt(), palette.isDark).textTag)
+    } ?: return palette.textTagAux
+    return palette.tagAuxTextColor(V3Palette(hex.toColorInt(), palette.isDark).textTag)
 }
 
 /** Pixiv 标签的业务入口。布局、主题、编辑器与选择能力统一由 witstudio 提供。 */

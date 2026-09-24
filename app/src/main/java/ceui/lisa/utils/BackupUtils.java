@@ -125,6 +125,10 @@ public class BackupUtils {
      * 流式导出：JSON 直接写进 target，浏览历史分页读、逐条写。字段名与旧版
      * {@code Shaft.sGson.toJson(BackupEntity)} 完全一致，新旧备份文件互认（#981）。
      * 必须在工作线程调用（读库 + 文件 IO）。
+     *
+     * 不具备跨设备性的设置（如「标签原文亮暗度」）不在这里排除 —— 它们根本不在
+     * {@link Settings} 里，走设备本地的 MMKV（见 {@code TagLegibilityPrefs}），
+     * 于是导出侧不需要任何排除名单。
      */
     public static void writeBackupToFile(Context context, boolean backupViewHistory, File target) throws IOException {
         AppDatabase appDatabase = AppDatabase.getAppDatabase(context);

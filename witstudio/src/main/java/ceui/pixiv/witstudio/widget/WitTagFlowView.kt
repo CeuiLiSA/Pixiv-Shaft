@@ -86,6 +86,18 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         set(value) { if (field != value) { field = value; invalidateItems() } }
     public var showHashPrefix: Boolean = true
         set(value) { if (field != value) { field = value; invalidateItems() } }
+
+    /**
+     * 原文是否跟随「标签原文亮暗度」增强（[V3Palette.tagLegibilityBoost]）。默认跟随。
+     *
+     * 只有坐在**宿主自备浅色面**上的标签流才需要关掉它。增强的目标值是按「页面底 + 自身
+     * 20% 染色填充」标定的（深色下把原文提亮），浅底上提亮只会让原文更糊：搜索栏的输入区是
+     * 硬编码纯白胶囊（`search_et_bg`，无夜间变体），实测输入文字对白底的 APCA 对比度会从
+     * 2.73 掉到 1.44。关掉后该处所有颜色回到增强之前的值，**逐位相同**。
+     */
+    public var followTagLegibilityBoost: Boolean = true
+        set(value) { if (field != value) { field = value; invalidateItems() } }
+
     public var maxTags: Int = -1
         set(value) { if (field != value) { field = value; invalidateItems() } }
     public var onOverflowClick: (() -> Unit)? = null
@@ -150,7 +162,7 @@ public open class WitTagFlowView @JvmOverloads public constructor(
     /** 同一个 Context 原地换主题时由宿主调用；重新挂载和配置变化也会自动刷新。 */
     public fun refreshTheme() { invalidateItems() }
 
-    protected open fun translationColor(palette: V3Palette): Int = palette.textTag
+    protected open fun translationColor(palette: V3Palette): Int = palette.textTagAux
     protected open fun onDefaultTagClick(item: WitTagItem): Unit = Unit
     protected open fun onDefaultTagLongClick(item: WitTagItem): Boolean = false
 
@@ -169,10 +181,21 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         renderItems()
     }
 
+    /**
+     * 本视图渲染用的调色板。不跟随增强时把强度**清零**（而不是"少增强一点"）：0 档的值与
+     * 增强功能存在之前逐位相同，所以关掉的场合外观零变化。
+     */
+    private fun paletteForRender(): V3Palette {
+        val global = V3Palette.from(context)
+        return if (followTagLegibilityBoost) global else V3Palette(global.primary, global.isDark, 0f)
+    }
+
     private fun renderItems() {
-        val palette = V3Palette.from(context)
+        val palette = paletteForRender()
         val translation = translationColor(palette)
-        val next = RenderSignature(items, palette.primary, palette.isDark, translation, flexWrap)
+        val next = RenderSignature(
+            items, palette.primary, palette.isDark, translation, flexWrap, palette.tagLegibilityBoost,
+        )
         if (signature == next) return
         signature = next
         // 不 detach 编辑器：保住焦点、反向选区、composing 文本与用户隐藏的键盘。
@@ -247,7 +270,8 @@ public open class WitTagFlowView @JvmOverloads public constructor(
                     contentDescription = item.removeDescription
                     setImageResource(R.drawable.wit_ic_tag_close)
                     scaleType = ImageView.ScaleType.FIT_CENTER
-                    imageTintList = ColorStateList.valueOf(palette.textTag)
+                    // 删除键是"非原文"：用未增强的 textTagAux，拉高辨识度时它不动。
+                    imageTintList = ColorStateList.valueOf(palette.textTagAux)
                     background = RippleDrawable(ColorStateList.valueOf(palette.alpha20), null, null)
                         .apply { radius = 18.dp }
                     setPaddingRelative(16.dp, 0, 14.dp, 0)
@@ -258,7 +282,7 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         if (showRemoveIcon) {
             val close = AppCompatResources.getDrawable(context, R.drawable.wit_ic_tag_close)?.mutate()
             close?.setBounds(0, 0, closeIconSize, closeIconSize)
-            close?.setTint(palette.textTag)
+            close?.setTint(palette.textTagAux)
             label.setCompoundDrawablesRelative(null, null, close, null)
             label.compoundDrawablePadding = 4.dp
             label.setPaddingRelative(label.paddingStart, label.paddingTop,
@@ -435,8 +459,13 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         setSelectedKeys(state.getStringArrayList("selected").orEmpty().toSet())
     }
 
+    /**
+     * 重绘判定。**必须显式带上 [V3Palette.tagLegibilityBoost]**：译文本月改成不跟随增强
+     * （[V3Palette.textTagAux]）之后，签名里已经没有别的字段会随增强变化了 —— 漏掉它，
+     * 用户拉滑条时已挂载的标签流不会重绘，原文颜色也就跟着不更新。
+     */
     private data class RenderSignature(
         val items: List<WitTagItem>, val primary: Int, val dark: Boolean,
-        val translation: Int, val wrap: Int,
+        val translation: Int, val wrap: Int, val boost: Float,
     )
 }

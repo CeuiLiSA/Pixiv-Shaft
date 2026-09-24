@@ -94,6 +94,26 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/tag_legibility_boost_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/tag_legibility_boost" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tag_legibility_boost"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/tag_translation_color_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_mid">

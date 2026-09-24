@@ -28,7 +28,12 @@ package ceui.pixiv.witstudio
  *    parent，`applyStyle` 会把那个主题的 `colorPrimary` 一起拖进来盖掉宿主的，模块立刻
  *    不再跟随主题档。代价是每个需要的属性都得在 overlay 里显式声明，没有继承可依赖。
  *
- * 这两条合起来的效果：同一份组件代码在迁移期的 AppCompat/QMUI 主题下和迁移后的
+ * 3. **唯一一个非主题属性的运行时输入是 [ceui.pixiv.witstudio.theme.V3TagLegibility]。**
+ *    标签原文辨识度增强的强度由宿主在设置加载 / 变更时写进去。它刻意不走 `?attr/`——
+ *    用户要在设置页实时调它，而主题属性是静态的。这不破坏上面两条：没有新增任何主题依赖，
+ *    主题重挂时本模块依然零改动。把它当"运行时可变的输入"，别往主题属性上搬。
+ *
+ * 这三条合起来的效果：同一份组件代码在迁移期的 AppCompat/QMUI 主题下和迁移后的
  * Material3 主题下都正确，主题重挂那一步本模块**零改动**。
  */
 public object WitStudio {

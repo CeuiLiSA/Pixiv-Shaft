@@ -553,6 +553,15 @@
     <string name="tag_translation_color">タグ翻訳色</string>
     <string name="tag_translation_color_follow_theme">テーマに従う</string>
     <string name="tag_translation_color_pick_from_theme_page">テーマカラーページから選択</string>
+    <string name="tag_legibility_boost">タグ原文の明暗度</string>
+    <string name="tag_legibility_boost_hint">左が元の表示、右がスライダーに連動\n値が高すぎるとカプセルの塗りが淡く（ダーク）／濃く（ライト）見えます</string>
+    <string name="tag_legibility_boost_summary">%1$s · %2$s</string>
+    <string name="tag_legibility_boost_light">ライト</string>
+    <string name="tag_legibility_boost_dark">ダーク</string>
+    <string name="tag_legibility_boost_none_light">暗くしない</string>
+    <string name="tag_legibility_boost_none_dark">明るくしない</string>
+    <string name="tag_legibility_boost_percent_light">暗くする %1$d%%</string>
+    <string name="tag_legibility_boost_percent_dark">明るくする %1$d%%</string>
     <string name="string_325">設定を開く</string>
     <string name="string_326">開始</string>
     <string name="string_327">停止</string>
