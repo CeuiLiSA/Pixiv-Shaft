@@ -20,6 +20,7 @@ import ceui.lisa.activities.Shaft
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.witstudio.theme.pressScale
 import com.google.android.material.appbar.AppBarLayout
 
 /**
@@ -79,6 +80,9 @@ object FeedBackToTopFab {
         val palette = V3Palette.from(root.context)
         fab.background = palette.floatingPillBg(999f * root.resources.displayMetrics.density)
         fab.imageTintList = ColorStateList.valueOf(palette.floatingPillContent)
+        // 按压反馈走 V3 的 pressScale(缩到 0.96):前景放 borderless 水波纹会按 View 的方形
+        // bounds 裁,四角露在圆形背景外,按下时是一块方块(详见布局注释)。
+        fab.pressScale()
         root.addView(fab)
 
         // 底距 = 导航栏 inset + 16dp:宿主全是 EdgeToEdge,列表铺到屏幕底,不补会压在导航栏上
