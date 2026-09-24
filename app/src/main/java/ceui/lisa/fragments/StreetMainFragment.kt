@@ -27,6 +27,7 @@ import ceui.lisa.databinding.ItemStreetContentBinding
 import ceui.lisa.databinding.ItemStreetRailBinding
 import ceui.lisa.databinding.ItemStreetRailTagBinding
 import ceui.lisa.databinding.ItemStreetRailWorkBinding
+import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.pixiv.api.Client
@@ -140,8 +141,9 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
     override fun initView() {
         baseBind.toolbar.setNavigationOnClickListener { activity?.finish() }
         baseBind.toolbarTitle.text = getString(R.string.street_title)
+        // 列数随列表宽度自适应（平板 / 横屏多排几列，#1087），手机竖屏仍是 STREET_SPAN_COUNT
         baseBind.recyclerView.layoutManager =
-            StaggeredGridLayoutManager(STREET_SPAN_COUNT, StaggeredGridLayoutManager.VERTICAL)
+            StaggeredManager.adaptive(requireContext(), STREET_SPAN_COUNT)
         baseBind.recyclerView.adapter = adapter
         // 内容边距分两半：列表出这 6dp，卡片自己的 layout_margin 出另 6dp —— 加起来是 V3 的
         // 12dp，而卡与卡之间自然是 12dp 沟。通栏货架吃到的只有列表这 6dp，它内部再补 6dp，
@@ -779,7 +781,9 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
             val listWidth = baseBind.recyclerView.layoutManager?.width?.takeIf { it > 0 }
                 ?: resources.displayMetrics.widthPixels
             val inner = listWidth - LIST_EDGE_DP.ppppx * 2
-            return (inner / STREET_SPAN_COUNT - CARD_MARGIN_DP.ppppx * 2).coerceAtLeast(1)
+            val spanCount = (baseBind.recyclerView.layoutManager as? StaggeredGridLayoutManager)
+                ?.spanCount ?: STREET_SPAN_COUNT
+            return (inner / spanCount - CARD_MARGIN_DP.ppppx * 2).coerceAtLeast(1)
         }
 
     private data class ThumbDisplay(val url: String?, val heightRatio: Float)

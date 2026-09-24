@@ -38,6 +38,7 @@ import ceui.lisa.view.HorizontalSpaceDecoration;
 import ceui.pixiv.ui.discovery.DiscoverViewModel;
 import ceui.pixiv.ui.prime.PrimeTagIndexItem;
 import ceui.pixiv.ui.navigation.BottomSafeInsets;
+import ceui.pixiv.ui.navigation.HomeShellHost;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /**
@@ -81,6 +82,9 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
             }
         });
         baseBind.searchBar.setOnClickListener(v -> openFragment(TemplateRoute.SEARCH));
+        // 宽窗口下侧边导航栏自带菜单入口，标题行不再放抽屉按钮（#1087）
+        HomeShellHost.observe(
+                this, railShown -> HomeShellHost.adaptHeaderRow(baseBind.drawerButton, railShown));
 
         // 底部安全区:首页底栏浮在内容之上且会跟随滚动收起,页面铺满整屏,末尾靠 padding 让位。
         BottomSafeInsets.applyTo(baseBind.discoverScroll);

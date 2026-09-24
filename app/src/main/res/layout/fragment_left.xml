@@ -20,6 +20,66 @@
         </ImageView>
 
 
+        <!-- 宽窗口（侧边导航栏在显示，#1087）时换成 V3 页头：与「发现」「动态」同款标题行
+             + 「推荐作品 / 热门标签」分段切换；紫色 Toolbar 与 TabLayout 在宽窗口下隐藏，
+             切换逻辑见 FragmentLeft.applyRailMode。 -->
+        <LinearLayout
+            android:id="@+id/wide_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/v3_bg"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="18dp"
+                android:paddingEnd="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:letterSpacing="-0.02"
+                    android:text="@string/recommend"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/wide_search"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/search"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/ic_search_black_24dp"
+                    app:tint="@color/v3_text_1" />
+
+            </LinearLayout>
+
+            <!-- 外层 FrameLayout 给分段控件兜宽度上限，理由同 fragment_new_right 的 dynamic_type_toggle -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginBottom="8dp">
+
+                <ceui.lisa.view.SegmentedToggleLayout
+                    android:id="@+id/wide_tabs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:stl_textSize="16sp" />
+
+            </FrameLayout>
+
+        </LinearLayout>
+
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">

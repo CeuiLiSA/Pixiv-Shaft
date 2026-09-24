@@ -134,6 +134,10 @@
     <string name="v3_widget_hide_refresh_button_desc">숨기면 새로고침 간격에 따라 자동으로만 바뀝니다</string>
     <string name="tablet_split_screen">태블릿 2단 레이아웃</string>
     <string name="tablet_split_screen_desc">태블릿 등 큰 화면에서 목록과 상세를 좌우로 나눠 표시합니다. 태블릿에서만 적용되며 변경 후 앱을 다시 시작해야 합니다</string>
+    <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
+    <string name="rail_bookmarks">북마크</string>
+    <string name="rail_downloads">다운로드</string>
+    <string name="rail_open_menu">메뉴 열기</string>
     <string name="novel_tag">소설 꼬리표</string>
     <string name="hot_tag">인기 태그</string>
     <string name="ranking_illust">순위표</string>

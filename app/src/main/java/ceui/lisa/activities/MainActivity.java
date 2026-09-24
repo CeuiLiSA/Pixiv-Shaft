@@ -9,6 +9,7 @@ import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,7 +18,6 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -41,6 +41,8 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 
@@ -68,17 +70,17 @@ import ceui.pixiv.shaftapi.Nana7miPlan;
 import ceui.pixiv.ui.me.MeFragment;
 import ceui.pixiv.ui.navigation.BottomBarAutoHide;
 import ceui.pixiv.ui.navigation.DrawerIconCatalog;
+import ceui.pixiv.ui.navigation.HomeShellHost;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 
 import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 /** 主页 */
 public class MainActivity extends BaseActivity<ActivityCoverBinding>
-        implements ColdStartSplashHost {
+        implements ColdStartSplashHost, HomeShellHost {
 
     public static final String[] ALL_SELECT_WAY = new String[] {"图库选图", "文件管理器选图"};
     private long mExitTime;
@@ -90,6 +92,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     // 与 baseFragments 一一对应的底部菜单 item id;TAB 顺序可配置后,
     // id 和位置的关系不再固定,所有 id<->position 换算都查这张表
     private int[] tabMenuIds = null;
+
+    /** 宽窗口下侧边导航栏代替底栏（#1087），见 {@link #applyNavigationMode}。 */
+    private final MutableLiveData<Boolean> navigationRailShown = new MutableLiveData<>(false);
 
     /** 最近一次已持久化的底部导航位置；用于去重，避免同一位置反复写 MMKV。 */
     private int lastPersistedNavigationPosition = -1;
@@ -207,52 +212,21 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     }
                 });
         baseBind.navigationView.setOnNavigationItemSelectedListener(
-                new BottomNavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                        if (tabMenuIds == null) {
-                            return false;
-                        }
-                        for (int i = 0; i < tabMenuIds.length; i++) {
-                            if (tabMenuIds[i] == item.getItemId()) {
-                                baseBind.viewPager.setCurrentItem(i);
-                                return true;
-                            }
-                        }
-                        return false;
-                    }
-                });
+                item -> selectTabByMenuId(item.getItemId()));
         baseBind.navigationView.setOnNavigationItemReselectedListener(
-                new BottomNavigationView.OnNavigationItemReselectedListener() {
-                    @Override
-                    public void onNavigationItemReselected(@NonNull MenuItem item) {
-                        if (item.getItemId() == R.id.action_1) {
-                            for (Fragment baseFragment : baseFragments) {
-                                if (baseFragment instanceof FragmentLeft) {
-                                    ((FragmentLeft) baseFragment).forceRefresh();
-                                }
-                            }
-                        } else if (item.getItemId() == R.id.action_2) {
-                            for (Fragment baseFragment : baseFragments) {
-                                if (baseFragment instanceof FragmentCenter) {
-                                    ((FragmentCenter) baseFragment).forceRefresh();
-                                }
-                            }
-                        } else if (item.getItemId() == R.id.action_3) {
-                            for (Fragment baseFragment : baseFragments) {
-                                if (baseFragment instanceof FragmentRight) {
-                                    ((FragmentRight) baseFragment).forceRefresh();
-                                }
-                            }
-                        } else if (item.getItemId() == R.id.action_4) {
-                            for (Fragment baseFragment : baseFragments) {
-                                if (baseFragment instanceof FragmentViewPager) {
-                                    ((FragmentViewPager) baseFragment).forceRefresh();
-                                }
-                            }
-                        }
+                item -> refreshTabByMenuId(item.getItemId()));
+        baseBind.navigationRail.setOnMenuClickListener(
+                v -> getDrawer().openDrawer(GravityCompat.START, true));
+        baseBind.navigationRail.setDestinationListener(
+                (id, reselected) -> {
+                    if (reselected) {
+                        refreshTabByMenuId(id);
+                    } else {
+                        selectTabByMenuId(id);
                     }
                 });
+        baseBind.navigationRail.setShortcutListener(this::handleDrawerAction);
+        applyNavigationMode(getResources().getConfiguration());
         baseBind.viewPager.addOnPageChangeListener(
                 new ViewPager.OnPageChangeListener() {
                     @Override
@@ -263,6 +237,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     public void onPageSelected(int position) {
                         if (tabMenuIds != null && position < tabMenuIds.length) {
                             baseBind.navigationView.setSelectedItemId(tabMenuIds[position]);
+                            baseBind.navigationRail.setSelectedItemId(tabMenuIds[position]);
                         }
                         // 换 tab 必须把底栏放回来:收起状态下滑到别的 tab,否则没底栏可点。
                         bottomBarAutoHide.reveal();
@@ -334,6 +309,70 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 });
     }
 
+    /** 底栏 / 侧栏点了某个 tab：切到它对应的页。 */
+    private boolean selectTabByMenuId(int menuId) {
+        if (tabMenuIds == null) {
+            return false;
+        }
+        for (int i = 0; i < tabMenuIds.length; i++) {
+            if (tabMenuIds[i] == menuId) {
+                baseBind.viewPager.setCurrentItem(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** 底栏 / 侧栏重复点当前 tab：刷新该页。 */
+    private void refreshTabByMenuId(int menuId) {
+        if (baseFragments == null) {
+            return;
+        }
+        for (Fragment baseFragment : baseFragments) {
+            if (menuId == R.id.action_1 && baseFragment instanceof FragmentLeft) {
+                ((FragmentLeft) baseFragment).forceRefresh();
+            } else if (menuId == R.id.action_2 && baseFragment instanceof FragmentCenter) {
+                ((FragmentCenter) baseFragment).forceRefresh();
+            } else if (menuId == R.id.action_3 && baseFragment instanceof FragmentRight) {
+                ((FragmentRight) baseFragment).forceRefresh();
+            } else if (menuId == R.id.action_4 && baseFragment instanceof FragmentViewPager) {
+                ((FragmentViewPager) baseFragment).forceRefresh();
+            }
+        }
+    }
+
+    @NonNull
+    @Override
+    public LiveData<Boolean> getNavigationRailShown() {
+        return navigationRailShown;
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        applyNavigationMode(newConfig);
+    }
+
+    /**
+     * 按当前窗口宽度在底栏与侧边导航栏之间二选一（#1087）。本 Activity 声明了 screenSize 等
+     * configChanges、不随旋转 / 分屏 / 双栏展开重建，所以在 onConfigurationChanged 里重新判断。
+     * 切换后重发一次 inset：底栏隐藏时内容区不再需要让出底栏高度。
+     */
+    private void applyNavigationMode(@NonNull Configuration configuration) {
+        boolean rail = HomeShellHost.isRailWidth(configuration);
+        if (rail == Boolean.TRUE.equals(navigationRailShown.getValue())) {
+            return;
+        }
+        baseBind.navigationRail.setVisibility(rail ? View.VISIBLE : View.GONE);
+        baseBind.navigationView.setVisibility(rail ? View.GONE : View.VISIBLE);
+        if (!rail && bottomBarAutoHide != null) {
+            // 宽窗口期间底栏可能停在「收起」位置，回到手机排版时放回来
+            bottomBarAutoHide.reveal();
+        }
+        navigationRailShown.setValue(rail);
+        ViewCompat.requestApplyInsets(baseBind.contentHost);
+    }
+
     private boolean isDrawerOpen() {
         return baseBind.drawerLayout.isDrawerOpen(GravityCompat.START);
     }
@@ -366,7 +405,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 (v, windowInsets) -> {
                     Insets navBars =
                             windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
-                    int bottom = Math.max(navBars.bottom, baseBind.navigationView.getHeight());
+                    int barHeight =
+                            baseBind.navigationView.getVisibility() == View.VISIBLE
+                                    ? baseBind.navigationView.getHeight()
+                                    : 0;
+                    int bottom = Math.max(navBars.bottom, barHeight);
                     return new WindowInsetsCompat.Builder(windowInsets)
                             .setInsets(
                                     WindowInsetsCompat.Type.navigationBars(),
@@ -416,6 +459,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             tabMenuIds[position] = TAB_MENU_IDS[tab];
             menu.add(Menu.NONE, TAB_MENU_IDS[tab], Menu.NONE, TAB_TITLES[tab])
                     .setIcon(TAB_ICONS[tab]);
+            baseBind.navigationRail.addDestination(
+                    TAB_MENU_IDS[tab], TAB_TITLES[tab], TAB_ICONS[tab]);
             position++;
         }
         if (showR18Tab) {
@@ -423,6 +468,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             tabMenuIds[position] = R.id.action_4;
             menu.add(Menu.NONE, R.id.action_4, Menu.NONE, R.string.string_r)
                     .setIcon(R.drawable.ic_xiongbu);
+            baseBind.navigationRail.addDestination(
+                    R.id.action_4, R.string.string_r, R.drawable.ic_xiongbu);
             position++;
         }
         if (showMeTab) {
@@ -430,7 +477,16 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             tabMenuIds[position] = R.id.action_5;
             menu.add(Menu.NONE, R.id.action_5, Menu.NONE, R.string.me_tab)
                     .setIcon(R.drawable.ic_me);
+            baseBind.navigationRail.addDestination(
+                    R.id.action_5, R.string.me_tab, R.drawable.ic_me);
         }
+        // 侧栏分割线下的快捷入口（原型的「收藏 / 下载」），与侧边菜单同一套分发
+        baseBind.navigationRail.addShortcut(
+                R.id.illust_star,
+                R.string.rail_bookmarks,
+                DrawerIconCatalog.iconFor(R.id.illust_star));
+        baseBind.navigationRail.addShortcut(
+                nav_gallery, R.string.rail_downloads, DrawerIconCatalog.iconFor(nav_gallery));
         baseBind.viewPager.setAdapter(
                 new FragmentPagerAdapter(getSupportFragmentManager()) {
                     @Override
@@ -451,6 +507,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 Shaft.getMMKV().getInt(Params.MAIN_ACTIVITY_NAVIGATION_POSITION, -1);
         persistNavigationPosition(navigationInitPosition);
         baseBind.viewPager.setCurrentItem(navigationInitPosition);
+        // 落在第 0 页时 setCurrentItem 不回调 onPageSelected，侧栏选中态要自己补上
+        baseBind.navigationRail.setSelectedItemId(tabMenuIds[navigationInitPosition]);
         Manager.get().restore();
 
         // Show rate dialog after a short delay to avoid disrupting app startup.

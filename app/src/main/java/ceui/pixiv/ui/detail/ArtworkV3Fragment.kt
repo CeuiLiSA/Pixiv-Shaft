@@ -237,9 +237,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     // 「对齐 legacy / Recmd / Artwork」——两份并存只会让下次调 gap 策略时漏改一处。
 
     override fun onListReady(listView: RecyclerView) {
-        val spanCount = Shaft.sSettings.lineCount.coerceAtLeast(1)
-        // 相关作品瀑布流间距对齐外面的推荐插画流(SpacesItemDecoration 也是 8dp);列数跟随设置。
-        listView.addItemDecoration(RelatedOnlySpaceDecoration(8.ppppx, spanCount))
+        // 相关作品瀑布流间距对齐外面的推荐插画流(SpacesItemDecoration 也是 8dp);列数随列表宽度自适应。
+        listView.addItemDecoration(RelatedOnlySpaceDecoration(8.ppppx))
         // header 区块(fullSpan)在 notifyItemChanged 时的默认变更动画会打乱 SGLM 的 fullSpan 追踪。
         listView.itemAnimator = null
         // 多留几格「刚滑出去的 holder」。RecyclerView 对缓存里的 holder 不调 onViewRecycled、
@@ -1719,7 +1718,6 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      */
     private class RelatedOnlySpaceDecoration(
         private val space: Int,
-        private val spanCount: Int,
     ) : RecyclerView.ItemDecoration() {
         override fun getItemOffsets(
             outRect: Rect,
@@ -1729,6 +1727,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         ) {
             val lp = view.layoutParams
             if (lp !is StaggeredGridLayoutManager.LayoutParams || lp.isFullSpan) return
+            val spanCount = (parent.layoutManager as? StaggeredGridLayoutManager)?.spanCount ?: 1
             outRect.bottom = space
             val spanIndex = lp.spanIndex
             outRect.left = if (spanIndex == 0) space else space / 2

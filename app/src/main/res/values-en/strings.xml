@@ -134,6 +134,10 @@
     <string name="v3_widget_hide_refresh_button_desc">Once hidden, the artwork only changes on the refresh interval</string>
     <string name="tablet_split_screen">Tablet two-pane layout</string>
     <string name="tablet_split_screen_desc">Show the list and the detail side by side on tablets and other large screens. Tablets only; restart the app after changing it</string>
+    <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
+    <string name="rail_bookmarks">Bookmarks</string>
+    <string name="rail_downloads">Downloads</string>
+    <string name="rail_open_menu">Open menu</string>
     <string name="novel_tag">Novel tags</string>
     <string name="hot_tag">Popular Tags</string>
     <string name="ranking_illust">Popular</string>

@@ -134,6 +134,10 @@
     <string name="v3_widget_hide_refresh_button_desc">隠すと更新間隔にしたがって自動で切り替わるだけになります</string>
     <string name="tablet_split_screen">タブレットの2画面レイアウト</string>
     <string name="tablet_split_screen_desc">タブレットなどの大画面で一覧と詳細を左右に並べて表示します。タブレットのみ有効で、変更後はアプリの再起動が必要です</string>
+    <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
+    <string name="rail_bookmarks">ブックマーク</string>
+    <string name="rail_downloads">ダウンロード</string>
+    <string name="rail_open_menu">メニューを開く</string>
     <string name="novel_tag">小説のタグ</string>
     <string name="hot_tag">人気のタグ</string>
     <string name="ranking_illust">ランキング</string>

@@ -25,6 +25,7 @@ import ceui.pixiv.ui.dynamic.DynamicPageViewModel;
 import ceui.pixiv.ui.dynamic.FollowingIllustFeedFragment;
 import ceui.pixiv.ui.dynamic.FollowingNovelFeedFragment;
 import ceui.pixiv.ui.user.RecmdUserRailFeedFragment;
+import ceui.pixiv.ui.navigation.HomeShellHost;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /**
@@ -94,6 +95,9 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SEARCH.key);
             startActivity(intent);
         });
+        // 宽窗口下侧边导航栏自带菜单入口，标题行不再放抽屉按钮（#1087）
+        HomeShellHost.observe(
+                this, railShown -> HomeShellHost.adaptHeaderRow(baseBind.drawerButton, railShown));
         baseBind.seeMore.setOnClickListener(v -> openRecmdUserPage());
 
         // 筛选条:视图重建后先按页面状态回填选中态(控件自身默认是「全部」),再挂监听,

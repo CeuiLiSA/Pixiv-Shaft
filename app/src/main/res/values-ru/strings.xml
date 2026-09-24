@@ -134,6 +134,10 @@
     <string name="v3_widget_hide_refresh_button_desc">После скрытия иллюстрация меняется только по интервалу обновления</string>
     <string name="tablet_split_screen">Двухпанельный режим на планшете</string>
     <string name="tablet_split_screen_desc">Показывать список и подробности рядом на планшетах и других больших экранах. Только для планшетов; после изменения перезапустите приложение</string>
+    <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
+    <string name="rail_bookmarks">Закладки</string>
+    <string name="rail_downloads">Загрузки</string>
+    <string name="rail_open_menu">Открыть меню</string>
     <string name="novel_tag">Теги новелл</string>
     <string name="hot_tag">Популярные теги</string>
     <string name="ranking_illust">Популярное</string>

@@ -1,6 +1,6 @@
 # V3 平板界面设计
 
-本目录按 [V3 设计哲学](../v3-design-philosophy.md) 重写，版本日期为 2026-09-09。交付范围包括画廊、发现页、共享样式、交互脚本、状态演示和截图；Android 产品代码尚未接入本方案。
+本目录按 [V3 设计哲学](../v3-design-philosophy.md) 重写，版本日期为 2026-09-09。交付范围包括画廊、发现页、共享样式、交互脚本、状态演示和截图；Android 已接入第一阶段（侧边导航栏、宽窗口页头、自适应列数、去掉双栏空占位），见下文「Android 接手位置与实施顺序」。
 
 ## 页面与使用方式
 
@@ -100,18 +100,28 @@ cardWidth = (contentWidth - (columns - 1) * gap) / columns
 
 ## Android 接手位置与实施顺序
 
-以下为当前代码核对结果，属于实施建议。本轮不修改这些产品路径。
+### 第一阶段：已实施（2026-09-24，issue #1087）
+
+形态只看**当前窗口**的可用宽度（`Configuration.screenWidthDp`），不看设备型号或横竖屏。`MainActivity` 声明了 screenSize 等 configChanges、不重建，旋转、分屏和双栏展开后在 `onConfigurationChanged` 重新判断。
+
+| 位置 | 行为 |
+| --- | --- |
+| [HomeShellHost.kt](../../app/src/main/java/ceui/pixiv/ui/navigation/HomeShellHost.kt) | 可用宽度 ≥600dp（Android medium 档下限）时侧栏代替底栏；tab 页通过 `HomeShellHost.observe` 订阅形态 |
+| [HomeNavigationRail.kt](../../app/src/main/java/ceui/pixiv/ui/navigation/HomeNavigationRail.kt) | 88dp 侧栏：顶部菜单按钮 → 与底栏同序的 tab（含 R18 / 我的开关）→ 分割线 → 「收藏 / 下载」快捷入口。选中项 `V3Palette.alpha15` 底 + `textAccent` 字，22dp 圆角，热区 ≥64dp；条目多于窗口高度时整列滚动；替整页吃掉起始侧与上下系统 inset。AppTheme 是 AppCompat，不使用 Material `NavigationRailView` |
+| [FragmentLeft.java](../../app/src/main/java/ceui/lisa/fragments/FragmentLeft.java) | 宽窗口隐藏紫色 Toolbar 与 TabLayout，换成「推荐」标题行 + 「推荐作品 / 热门标签」分段切换；手机排版不变 |
+| FragmentCenter / FragmentRight | 宽窗口隐藏标题行里的抽屉按钮（菜单入口在侧栏），标题对齐 24dp 页边距 |
+| [StaggeredManager.java](../../app/src/main/java/ceui/lisa/helper/StaggeredManager.java) + [AdaptiveStaggerColumns.kt](../../app/src/main/java/ceui/pixiv/ui/common/AdaptiveStaggerColumns.kt) | 瀑布流列数按列表自身宽度计算：「每行几列」2/3/4 视为 360dp 上的列数（最小卡宽 180/120/90dp），更宽时保持卡片物理尺寸多排几列，窄时不少于设置值。在 `LayoutManager.onMeasure` 改列数，同一帧生效。覆盖推荐流、通用插画流、浏览历史、详情页相关作品、广场 |
+| [SpacesItemDecoration.java](../../app/src/main/java/ceui/lisa/view/SpacesItemDecoration.java) | 按 LayoutManager 实际列数给间距（边缘 8dp、中缝 8dp），不再只认 2/3/4 列 |
+| [TabletActivityEmbedding.kt](../../app/src/main/java/ceui/pixiv/ui/embedding/TabletActivityEmbedding.kt) | 删除 `SplitPlaceholderRule` 与占位 Activity：没打开详情时首页独占整窗（显示侧栏），打开详情后首页落在 3/7 窄栏、自动回到底栏排版 |
+
+### 第二阶段：待实施
+
+以 Views / Fragment 在首页内增加「列表 + 400–480dp 详情」宿主，继承主入口排序、R18/“我的”开关与渠道能力门控。新宿主与旧 Activity Embedding 规则必须互斥，避免重复分栏。时间线模式（单列大卡）在宽窗口下需限宽，目前仍铺满。
 
 | 位置 | 当前行为 | 后续实施 |
 | --- | --- | --- |
-| [TabletActivityEmbedding.kt](../../app/src/main/java/ceui/pixiv/ui/embedding/TabletActivityEmbedding.kt) | 用户开关默认关闭，sw ≥600dp 时注册；3:4 比例；无选择时有 `SplitPlaceholderRule` | 先处理空占位；保留手机 organizer 防护与 Activity 结束语义 |
-| [IllustFeedFragment.kt](../../app/src/main/java/ceui/pixiv/ui/common/IllustFeedFragment.kt) | 列数与图片请求宽度读取 `Shaft.sSettings.lineCount` | 统一 pane 宽度计算、LayoutManager 与图片请求尺寸 |
-| [SpacesItemDecoration.java](../../app/src/main/java/ceui/lisa/view/SpacesItemDecoration.java) | 间距逻辑按 2/3/4 列分别计算 | 与自适应列数一起重构，不能只改 LayoutManager |
-| [StreetMainFragment.kt](../../app/src/main/java/ceui/lisa/fragments/StreetMainFragment.kt) | 旧页面有独立网格路径 | 明确覆盖范围，逐条验收 |
 | [V3Palette.kt](../../witstudio/src/main/java/ceui/pixiv/witstudio/theme/V3Palette.kt) | 宿主主题派生色和对比度处理 | 复用真实 App 主题；不以 Web HEX 替换全局资源 |
 | [WitRowStyle.kt](../../witstudio/src/main/java/ceui/pixiv/witstudio/theme/WitRowStyle.kt) | 设置分段行 | 设置分类采用 20/5 外内角与 2dp 行隙 |
-
-第一阶段修复空占位、列数与间距，复用现有可选 embedding 路径。第二阶段以 Views / Fragment 增加统一导航和详情宿主，继承主入口排序、R18/“我的”开关与渠道能力门控。新宿主与旧 Activity Embedding 规则必须互斥，避免重复分栏。
 
 详情嵌入前检查 `activity.finish()`、`TemplateActivity` 跳转、返回广播、Insets 和工具栏所有权。不要把 `(MainActivity, *)` 放宽为 `(*, *)`；现有注释已记录链式跳转与 finish 连带关闭问题。多 Activity 向统一宿主的迁移须明确 pane 内替换、pane 内推进和全屏路由。
 

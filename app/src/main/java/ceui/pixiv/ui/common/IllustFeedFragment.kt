@@ -79,14 +79,19 @@ abstract class IllustFeedFragment(
 
     /**
      * 瀑布流当前列宽（px）。renderer 用它给 Glide 显式 override 请求尺寸。
-     * 取 LayoutManager 实时宽度（measure 先于绑定，旋转后已是新方向的值），首帧兜底屏宽。
+     * 取 LayoutManager 实时宽度与列数（measure 先于绑定，旋转/分栏后已是新值），首帧兜底屏宽。
      */
     internal val illustColumnWidthPx: Int
         get() {
             val listWidth = feedBinding.feedListView.layoutManager?.width?.takeIf { it > 0 }
                 ?: resources.displayMetrics.widthPixels
-            return (listWidth / Shaft.sSettings.lineCount).coerceAtLeast(1)
+            return (listWidth / illustSpanCount).coerceAtLeast(1)
         }
+
+    /** 瀑布流当前列数：随列表宽度自适应（[StaggeredManager.adaptive]），不等于「每行几列」设置。 */
+    internal val illustSpanCount: Int
+        get() = (feedBinding.feedListView.layoutManager as? StaggeredGridLayoutManager)?.spanCount
+            ?: Shaft.sSettings.lineCount
 
     /**
      * 详情 pager 回传的 bean 建条目的钩子。R18 专属榜单等「本页语义就是看 R18」的
@@ -141,10 +146,7 @@ abstract class IllustFeedFragment(
     }
 
     override fun onCreateLayoutManager(): RecyclerView.LayoutManager {
-        return StaggeredManager(
-            Shaft.sSettings.lineCount,
-            RecyclerView.VERTICAL,
-        ).apply {
+        return StaggeredManager.adaptive(requireContext(), Shaft.sSettings.lineCount).apply {
             // GAP_HANDLING_NONE 对齐 legacy / Recmd / Artwork：SGLM 默认 gap 策略在刷新换代时
             // 会把首行 item decoration 的 top 间距误判成“顶部有洞”，清 lookup 重排，造成左列空出、
             // 首卡跑右、列间距闪跳。纯瀑布流页统一关掉，避免这类跨代重排。

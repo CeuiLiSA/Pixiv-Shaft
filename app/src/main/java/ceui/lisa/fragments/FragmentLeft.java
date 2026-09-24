@@ -2,25 +2,31 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.SystemBarMetrics;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentLeftBinding;
 import ceui.lisa.utils.MyOnTabSelectedListener;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
+import ceui.lisa.view.OnCheckChangeListener;
 import ceui.pixiv.feeds.FeedFragment;
 import ceui.pixiv.ui.home.RecmdIllustFeedFragment;
+import ceui.pixiv.ui.navigation.HomeShellHost;
 import ceui.pixiv.ui.trending.HotTagsFeedFragment;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 
@@ -52,31 +58,48 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_search) {
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SEARCH.key);
-                    startActivity(intent);
+                    openSearch();
                     return true;
                 }
                 return false;
             }
         });
+        baseBind.wideSearch.setOnClickListener(v -> openSearch());
+        HomeShellHost.observe(this, this::applyRailMode);
+    }
+
+    private void openSearch() {
+        Intent intent = new Intent(mContext, TemplateActivity.class);
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SEARCH.key);
+        startActivity(intent);
+    }
+
+    /**
+     * 宽窗口（首页显示侧边导航栏）用 V3 页头，手机排版保留紫色 Toolbar + TabLayout（#1087）。
+     * AppBarLayout 本身不隐藏、只收起里面两行：ViewPager 的 appbar_scrolling_view_behavior 以它为
+     * 依赖定位，GONE 掉的依赖会留下过期的 bottom，内容就被推到错误的位置。
+     */
+    private void applyRailMode(boolean railShown) {
+        baseBind.toolbar.setVisibility(railShown ? View.GONE : View.VISIBLE);
+        baseBind.tabLayout.setVisibility(railShown ? View.GONE : View.VISIBLE);
+        baseBind.wideHeader.setVisibility(railShown ? View.VISIBLE : View.GONE);
+        baseBind.head.setBackgroundColor(railShown
+                ? ContextCompat.getColor(mContext, R.color.v3_bg)
+                : Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
     }
 
     @Override
     public void lazyData() {
         final boolean hotTagsFirst = Shaft.sSettings.isRecommendHotTagsFirst();
-        final String[] TITLES = new String[]{
-                getString(R.string.recommend_illust),
-                getString(R.string.hot_tag)
-        };
+        final int[] TITLE_RES = new int[]{R.string.recommend_illust, R.string.hot_tag};
         mFragments = new Fragment[]{
                 RecmdIllustFeedFragment.newInstance(RecmdIllustFeedFragment.TYPE_ILLUST),
                 HotTagsFeedFragment.newInstance(Params.TYPE_ILLUST)
         };
         if (hotTagsFirst) {
-            String title = TITLES[0];
-            TITLES[0] = TITLES[1];
-            TITLES[1] = title;
+            int title = TITLE_RES[0];
+            TITLE_RES[0] = TITLE_RES[1];
+            TITLE_RES[1] = title;
             Fragment fragment = mFragments[0];
             mFragments[0] = mFragments[1];
             mFragments[1] = fragment;
@@ -108,18 +131,42 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
 
             @Override
             public int getCount() {
-                return TITLES.length;
+                return TITLE_RES.length;
             }
 
             @NonNull
             @Override
             public CharSequence getPageTitle(int position) {
-                return TITLES[position];
+                return getString(TITLE_RES[position]);
             }
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
         MyOnTabSelectedListener listener = new MyOnTabSelectedListener(mFragments);
         baseBind.tabLayout.addOnTabSelectedListener(listener);
+
+        // 宽窗口页头的分段切换：与 TabLayout 共用同一个 ViewPager，点击切页、重复点回顶，
+        // 左右滑动时回填选中态
+        baseBind.wideTabs.setSegments(TITLE_RES);
+        baseBind.wideTabs.setCurrentState(baseBind.viewPager.getCurrentItem());
+        baseBind.wideTabs.setListener(new OnCheckChangeListener() {
+            @Override
+            public void onSelect(int index, View view) {
+                baseBind.viewPager.setCurrentItem(index);
+            }
+
+            @Override
+            public void onReselect(int index, View view) {
+                if (mFragments[index] instanceof FeedFragment) {
+                    ((FeedFragment) mFragments[index]).scrollToTop();
+                }
+            }
+        });
+        baseBind.viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+                baseBind.wideTabs.setCurrentState(position);
+            }
+        });
     }
 
     public void forceRefresh() {

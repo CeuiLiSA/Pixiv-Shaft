@@ -134,6 +134,10 @@
     <string name="v3_widget_hide_refresh_button_desc">Gizlendiğinde eser yalnızca yenileme aralığında değişir</string>
     <string name="tablet_split_screen">Tablette iki bölmeli düzen</string>
     <string name="tablet_split_screen_desc">Tablet gibi büyük ekranlarda listeyi ve ayrıntıları yan yana gösterir. Yalnızca tablette geçerlidir; değiştirdikten sonra uygulamayı yeniden başlatın</string>
+    <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
+    <string name="rail_bookmarks">Yer İşaretleri</string>
+    <string name="rail_downloads">İndirilenler</string>
+    <string name="rail_open_menu">Menüyü aç</string>
     <string name="novel_tag">Roman Etiketleri</string>
     <string name="hot_tag">Popüler Etiketler</string>
     <string name="ranking_illust">Popüler</string>
