@@ -3,6 +3,7 @@ package ceui.pixiv.ui.novel.reader.render
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Paint
+import android.os.SystemClock
 import android.text.Selection
 import android.text.Spannable
 import android.text.SpannableString
@@ -17,6 +18,7 @@ import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
+import android.view.ViewConfiguration
 import androidx.appcompat.widget.AppCompatTextView
 import ceui.pixiv.ui.novel.reader.model.PageElement
 import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer
@@ -78,6 +80,8 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
     private var downX: Float = 0f
     private var downY: Float = 0f
     private var downTime: Long = 0L
+    private var lastUpUptime: Long = 0L
+    private var swallowingDoubleTap = false
 
     init {
         // Layout-affecting settings (padding, break strategy, hyphenation,
@@ -373,6 +377,12 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
      *
      * A bare tap means: DOWN and UP within a short time and small travel,
      * with no selection created or dismissed.
+     *
+     * Blocks are pooled across page flips, so the platform Editor sees two
+     * quick page-turn taps as a double tap and selects a word on the new page
+     * (#1150). A DOWN inside the double-tap window never reaches TextView;
+     * selection is long-press only. Editor measures the window with
+     * [SystemClock.uptimeMillis] at UP, and our timestamp is never earlier.
      */
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val hadSelectionAtDown = selectionStart != selectionEnd
@@ -380,9 +390,14 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
             downX = event.x
             downY = event.y
             downTime = System.currentTimeMillis()
+            swallowingDoubleTap = !hadSelectionAtDown &&
+                SystemClock.uptimeMillis() - lastUpUptime <= ViewConfiguration.getDoubleTapTimeout()
         }
-        val handled = super.onTouchEvent(event)
+        val handled = swallowingDoubleTap || super.onTouchEvent(event)
+        if (event.actionMasked == MotionEvent.ACTION_CANCEL) swallowingDoubleTap = false
         if (event.actionMasked == MotionEvent.ACTION_UP) {
+            lastUpUptime = SystemClock.uptimeMillis()
+            swallowingDoubleTap = false
             val nowHasSelection = selectionStart != selectionEnd
             if (!hadSelectionAtDown && !nowHasSelection) {
                 val elapsed = System.currentTimeMillis() - downTime
