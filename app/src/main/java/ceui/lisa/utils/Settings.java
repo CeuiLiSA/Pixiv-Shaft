@@ -225,6 +225,9 @@ public class Settings {
     //列表页面是否显示收藏按钮
     private boolean showLikeButton = true;
 
+    //收藏按钮振动反馈，默认开启
+    private boolean likeHapticEnable = true;
+
     //小说卡片是否显示标签
     private boolean showNovelCardTags = true;
 
@@ -889,6 +892,14 @@ public class Settings {
 
     public void setShowLikeButton(boolean pShowLikeButton) {
         showLikeButton = pShowLikeButton;
+    }
+
+    public boolean isLikeHapticEnable() {
+        return likeHapticEnable;
+    }
+
+    public void setLikeHapticEnable(boolean likeHapticEnable) {
+        this.likeHapticEnable = likeHapticEnable;
     }
 
     public String getFileNameJson() {

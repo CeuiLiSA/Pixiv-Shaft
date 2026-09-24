@@ -2881,6 +2881,8 @@
 
     <!-- ============ 收藏库 / Bookmark library ============ -->
     <string name="settings_bookmark_mirror">收藏庫本地鏡像</string>
+    <string name="settings_like_haptic">收藏按鈕振動回饋</string>
+    <string name="settings_like_haptic_desc">可能需要同時開啟系統的觸感回饋</string>
     <string name="bookmark_library_menu_entry">按條件瀏覽收藏</string>
     <string name="bookmark_library_open_classic">原始收藏列表</string>
     <string name="bookmark_mirror_ready_title">收藏庫已就緒</string>

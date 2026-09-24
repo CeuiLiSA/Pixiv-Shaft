@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.View
 import androidx.core.content.ContextCompat
+import ceui.lisa.activities.Shaft
 
 /** 收藏触感反馈的日志 tag（看设备实际走了哪档模拟）。 */
 private const val HAPTIC_TAG = "LikeHaptic"
@@ -15,6 +16,9 @@ private const val HAPTIC_TAG = "LikeHaptic"
 private const val LIKE_HAPTIC_PRESS_SCALE = 0.8f
 private const val LIKE_HAPTIC_GAP_MS = 200
 private const val LIKE_HAPTIC_RELEASE_SCALE = 0.1f
+
+/** 设置尚未加载时沿用原有的振动行为。 */
+private fun isLikeHapticEnabled(): Boolean = Shaft.sSettings?.isLikeHapticEnable ?: true
 
 /**
  * 收藏「按下」触感（插画卡 / 小说卡共用）：模拟 iOS 3D Touch 的段落感——先「重而长」
@@ -25,6 +29,7 @@ private const val LIKE_HAPTIC_RELEASE_SCALE = 0.1f
  * 再往下退化成 KEYBOARD_TAP + 轻 CLOCK_TICK。
  */
 fun playLikePressHaptic(view: View) {
+    if (!isLikeHapticEnabled()) return
     val vibrator = ContextCompat.getSystemService(view.context, Vibrator::class.java)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && vibrator != null &&
         vibrator.areAllPrimitivesSupported(
@@ -48,6 +53,7 @@ fun playLikePressHaptic(view: View) {
                 .compose()
         )
         view.postDelayed({
+            if (!isLikeHapticEnabled()) return@postDelayed
             vibrator.vibrate(
                 VibrationEffect.startComposition()
                     .addPrimitive(
@@ -76,6 +82,7 @@ fun playLikePressHaptic(view: View) {
                 .compose()
         )
         view.postDelayed({
+            if (!isLikeHapticEnabled()) return@postDelayed
             vibrator.vibrate(
                 VibrationEffect.startComposition()
                     .addPrimitive(
@@ -101,7 +108,17 @@ fun playLikePressHaptic(view: View) {
         Log.d(HAPTIC_TAG, "fallback: KEYBOARD_TAP + 100ms + CLOCK_TICK")
         view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         view.postDelayed(
-            { view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK) }, 100L
+            {
+                if (isLikeHapticEnabled()) {
+                    view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                }
+            }, 100L
         )
     }
+}
+
+/** 取消收藏的单下轻触感，与收藏共用设置开关。 */
+fun playUnlikeHaptic(view: View) {
+    if (!isLikeHapticEnabled()) return
+    view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
 }

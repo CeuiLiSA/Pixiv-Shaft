@@ -3146,6 +3146,8 @@
 
     <!-- ============ 收藏库（本地收藏镜像的浏览/筛选页） ============ -->
     <string name="settings_bookmark_mirror">收藏库本地镜像</string>
+    <string name="settings_like_haptic">收藏按钮振动反馈</string>
+    <string name="settings_like_haptic_desc">可能需要同时开启系统的触感反馈</string>
     <string name="bookmark_library_menu_entry">按条件浏览收藏</string>
     <string name="bookmark_library_open_classic">原始收藏列表</string>
     <string name="bookmark_mirror_ready_title">收藏库已就绪</string>
