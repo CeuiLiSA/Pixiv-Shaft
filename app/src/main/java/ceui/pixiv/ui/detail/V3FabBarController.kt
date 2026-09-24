@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
+import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import ceui.lisa.R
@@ -93,10 +94,13 @@ class V3FabBarController(val binding: ViewV3FabBarBinding) {
      * 居中时顺序按「下载/收藏顺序」设置;靠左 / 靠右时收藏心固定在贴屏幕边的外侧(单手拇指
      * 最容易够到),其余段镜像排开,评论段(#970)落在靠屏幕内侧的一端。
      *
-     * @param sideMargin 靠边时胶囊到父容器边的距离。胶囊的父容器须是 FrameLayout。
+     * @param sideMargin 靠边时胶囊到父容器边的距离(另叠加侧边系统栏 inset,见 [applySideMargins])。
+     *                   胶囊的父容器须是 FrameLayout。
      */
     fun applyLayoutPreference(sideMargin: Int) {
         val position = Shaft.sSettings.artworkV3FabPosition
+        this.position = position
+        this.sideMargin = sideMargin
         val bar = binding.root
         val lp = bar.layoutParams as FrameLayout.LayoutParams
         lp.gravity = (lp.gravity and Gravity.VERTICAL_GRAVITY_MASK) or when (position) {
@@ -104,9 +108,8 @@ class V3FabBarController(val binding: ViewV3FabBarBinding) {
             Settings.ARTWORK_V3_FAB_POSITION_RIGHT -> Gravity.END
             else -> Gravity.CENTER_HORIZONTAL
         }
-        lp.marginStart = if (position == Settings.ARTWORK_V3_FAB_POSITION_LEFT) sideMargin else 0
-        lp.marginEnd = if (position == Settings.ARTWORK_V3_FAB_POSITION_RIGHT) sideMargin else 0
         bar.layoutParams = lp
+        applySideMargins()
 
         val download = binding.fabDownloadContainer
         val divider = binding.fabDivider
@@ -125,9 +128,34 @@ class V3FabBarController(val binding: ViewV3FabBarBinding) {
         ordered.forEach(bar::addView)
     }
 
+    private var position = Settings.ARTWORK_V3_FAB_POSITION_CENTER
+    private var sideMargin = 0
+    private var sideInsets = Insets.NONE
+
+    /**
+     * 靠边时的左右边距 = [sideMargin] + 那一侧的系统栏 / 挖孔 inset:两页都是 edge-to-edge,
+     * 横屏三键导航的导航栏在侧边,不让开会压住外侧的收藏心。居中时两侧边距归零。
+     */
+    private fun applySideMargins() {
+        val bar = binding.root
+        val lp = bar.layoutParams as ViewGroup.MarginLayoutParams
+        val rtl = bar.layoutDirection == View.LAYOUT_DIRECTION_RTL
+        val start = if (position == Settings.ARTWORK_V3_FAB_POSITION_LEFT) {
+            sideMargin + if (rtl) sideInsets.right else sideInsets.left
+        } else 0
+        val end = if (position == Settings.ARTWORK_V3_FAB_POSITION_RIGHT) {
+            sideMargin + if (rtl) sideInsets.left else sideInsets.right
+        } else 0
+        if (lp.marginStart != start || lp.marginEnd != end) {
+            lp.marginStart = start
+            lp.marginEnd = end
+            bar.layoutParams = lp
+        }
+    }
+
     /**
      * 距底部 = 导航栏 inset + 24dp。一级 V3 与二级大图页都必须走这里,
-     * 保证两页胶囊到屏幕底部的距离一致。
+     * 保证两页胶囊到屏幕底部的距离一致。同一份 inset 顺带喂给靠边时的左右边距。
      *
      * @param target 吃这份底距的 view,默认胶囊本身;二级大图页传胶囊 + 页码所在的整行,
      *               让页码跟着胶囊一起动。target 的父容器须能可靠响应 bottomMargin
@@ -143,6 +171,10 @@ class V3FabBarController(val binding: ViewV3FabBarBinding) {
                 lp.bottomMargin = bottom
                 v.layoutParams = lp
             }
+            sideInsets = windowInsets.getInsets(
+                WindowInsetsCompat.Type.navigationBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            applySideMargins()
             windowInsets
         }
     }
