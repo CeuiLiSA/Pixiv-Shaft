@@ -83,6 +83,7 @@ class NovelReaderView @JvmOverloads constructor(
     private var settleAnimator: ValueAnimator? = null
     private var touchLocked: Boolean = false
     private var tapReversed: Boolean = false
+    private var tapAllForward: Boolean = false
 
     // Listeners
     var onTapCenter: (() -> Unit)? = null
@@ -176,6 +177,11 @@ class NovelReaderView @JvmOverloads constructor(
 
     fun setTapZoneReversed(reversed: Boolean) {
         tapReversed = reversed
+    }
+
+    /** One-handed mode: both side zones flip forward; the center still toggles chrome. */
+    fun setTapAllForward(enabled: Boolean) {
+        tapAllForward = enabled
     }
 
     fun bind(pages: List<Page>, initialIndex: Int = 0) {
@@ -464,8 +470,8 @@ class NovelReaderView @JvmOverloads constructor(
         // Single-tap zones: thirds horizontally.
         val third = width / 3f
         when {
-            x < third -> if (tapReversed) flipForward() else flipBackward()
-            x > width - third -> if (tapReversed) flipBackward() else flipForward()
+            x < third -> if (tapReversed || tapAllForward) flipForward() else flipBackward()
+            x > width - third -> if (tapReversed && !tapAllForward) flipBackward() else flipForward()
             else -> onTapCenter?.invoke()
         }
     }

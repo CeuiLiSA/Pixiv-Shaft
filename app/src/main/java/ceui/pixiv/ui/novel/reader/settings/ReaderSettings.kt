@@ -323,6 +323,13 @@ object ReaderSettings {
             emit(ChangeEvent.Interaction)
         }
 
+    var tapAllForward: Boolean
+        get() = store.decodeBool(K_TAP_ALL_FORWARD, false)
+        set(value) {
+            store.encode(K_TAP_ALL_FORWARD, value)
+            emit(ChangeEvent.Interaction)
+        }
+
     var autoPageIntervalSec: Int
         get() = store.decodeInt(K_AUTO_PAGE_INTERVAL, 15).coerceIn(5, 60)
         set(value) {
@@ -583,6 +590,7 @@ object ReaderSettings {
     private const val K_FLIP_MODE = "r_flip_mode"
     private const val K_VOLUME_FLIP = "r_volume_flip"
     private const val K_TAP_REVERSED = "r_tap_reversed"
+    private const val K_TAP_ALL_FORWARD = "r_tap_all_forward"
     private const val K_AUTO_PAGE_INTERVAL = "r_auto_page_interval"
     private const val K_ORIENTATION = "r_orientation"
     private const val K_IMMERSIVE = "r_immersive"

@@ -1230,6 +1230,7 @@
     <string name="setting_flip_none">없음</string>
     <string name="setting_volume_flip">볼륨 키로 넘기기</string>
     <string name="setting_tap_reversed">좌우 탭 반전</string>
+    <string name="setting_tap_all_forward">한 손 모드: 양쪽 탭 모두 다음 페이지</string>
     <string name="setting_auto_page_interval">자동 넘김 간격</string>
     <string name="setting_orientation">방향</string>
     <string name="setting_orientation_auto">자동</string>

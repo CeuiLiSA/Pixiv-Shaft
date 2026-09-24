@@ -244,6 +244,9 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         s.rowTapZoneReversed.bindSwitch(
             getString(R.string.setting_tap_reversed), ReaderSettings.tapZoneReversed,
         ) { ReaderSettings.tapZoneReversed = it }
+        s.rowTapAllForward.bindSwitch(
+            getString(R.string.setting_tap_all_forward), ReaderSettings.tapAllForward,
+        ) { ReaderSettings.tapAllForward = it }
         s.rowAutoPageInterval.bindIntSlider(
             getString(R.string.setting_auto_page_interval), 5, 60, ReaderSettings.autoPageIntervalSec, "s",
         ) { ReaderSettings.autoPageIntervalSec = it }

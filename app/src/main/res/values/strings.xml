@@ -1336,6 +1336,7 @@
     <string name="setting_flip_none">无</string>
     <string name="setting_volume_flip">音量键翻页</string>
     <string name="setting_tap_reversed">反转左右点击区</string>
+    <string name="setting_tap_all_forward">单手模式：点击两侧都翻下一页</string>
     <string name="setting_auto_page_interval">自动翻页间隔</string>
     <string name="setting_orientation">方向</string>
     <string name="setting_orientation_auto">自动</string>

@@ -1230,6 +1230,7 @@
     <string name="setting_flip_none">None</string>
     <string name="setting_volume_flip">Volume key flip</string>
     <string name="setting_tap_reversed">Reverse tap zones</string>
+    <string name="setting_tap_all_forward">One-handed: tap either side for next page</string>
     <string name="setting_auto_page_interval">Auto-flip interval</string>
     <string name="setting_orientation">Orientation</string>
     <string name="setting_orientation_auto">Auto</string>

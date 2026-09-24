@@ -53,6 +53,14 @@
             <View style="@style/ReaderRowDivider"/>
 
             <include
+                android:id="@+id/row_tap_all_forward"
+                layout="@layout/item_reader_setting_switch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <View style="@style/ReaderRowDivider"/>
+
+            <include
                 android:id="@+id/row_auto_page_interval"
                 layout="@layout/item_reader_setting_slider"
                 android:layout_width="match_parent"

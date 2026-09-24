@@ -1230,6 +1230,7 @@
     <string name="setting_flip_none">Yok</string>
     <string name="setting_volume_flip">Ses tuşlarıyla çevir</string>
     <string name="setting_tap_reversed">Dokunma bölgelerini ters çevir</string>
+    <string name="setting_tap_all_forward">Tek el modu: iki yana dokunmak sonraki sayfaya geçer</string>
     <string name="setting_auto_page_interval">Otomatik çevirme aralığı</string>
     <string name="setting_orientation">Yön</string>
     <string name="setting_orientation_auto">Otomatik</string>

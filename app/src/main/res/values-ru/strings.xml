@@ -1230,6 +1230,7 @@
     <string name="setting_flip_none">Нет</string>
     <string name="setting_volume_flip">Перелистывать кнопками громкости</string>
     <string name="setting_tap_reversed">Поменять зоны нажатия местами</string>
+    <string name="setting_tap_all_forward">Одной рукой: касание любой стороны — следующая страница</string>
     <string name="setting_auto_page_interval">Интервал автоперелистывания</string>
     <string name="setting_orientation">Ориентация</string>
     <string name="setting_orientation_auto">Авто</string>

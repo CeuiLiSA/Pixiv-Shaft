@@ -240,6 +240,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
         rv.setTouchLocked(ReaderSettings.touchLocked)
         rv.setTapZoneReversed(ReaderSettings.tapZoneReversed)
+        rv.setTapAllForward(ReaderSettings.tapAllForward)
         binding.root.keepScreenOn = ReaderSettings.keepScreenOn
 
         // 立即应用阅读器主题背景色，避免加载中显示白底
@@ -540,6 +541,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 ReaderSettings.ChangeEvent.Interaction -> {
                     rv.setTouchLocked(ReaderSettings.touchLocked)
                     rv.setTapZoneReversed(ReaderSettings.tapZoneReversed)
+                    rv.setTapAllForward(ReaderSettings.tapAllForward)
                     binding.root.keepScreenOn = ReaderSettings.keepScreenOn
                     syncTtsState()
                 }

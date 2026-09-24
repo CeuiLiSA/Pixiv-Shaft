@@ -1230,6 +1230,7 @@
     <string name="setting_flip_none">なし</string>
     <string name="setting_volume_flip">音量キーでめくる</string>
     <string name="setting_tap_reversed">左右タップ反転</string>
+    <string name="setting_tap_all_forward">片手モード：左右どちらのタップでも次ページ</string>
     <string name="setting_auto_page_interval">自動めくり間隔</string>
     <string name="setting_orientation">向き</string>
     <string name="setting_orientation_auto">自動</string>
