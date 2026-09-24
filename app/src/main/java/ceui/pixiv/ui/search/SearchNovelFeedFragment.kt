@@ -73,6 +73,7 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
                 nana7miOutbox = services.accountOnlineReportOutbox,
                 nana7miTelemetryService = services.nana7miSearchTelemetry,
                 remoteAppConfig = services.remoteAppConfig,
+                bookmarkMirror = services.bookmarkMirror,
             )
         }
     }

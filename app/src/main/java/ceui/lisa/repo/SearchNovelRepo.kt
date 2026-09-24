@@ -15,6 +15,7 @@ import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.actions.observeFirstOrRun
 import ceui.pixiv.actions.trackOrRun
 import ceui.pixiv.config.RemoteAppConfig
+import ceui.pixiv.db.mirror.BookmarkMirrorService
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.search.SortType
 import ceui.pixiv.ui.search.v3.DurationBucket
@@ -57,6 +58,7 @@ class SearchNovelRepo @JvmOverloads constructor(
     private val nana7miOutbox: AccountOnlineReportOutbox,
     private val nana7miTelemetryService: Nana7miSearchTelemetry,
     private val remoteAppConfig: RemoteAppConfig,
+    private val bookmarkMirror: BookmarkMirrorService,
 ) {
 
     /** 下一页游标（`next_url`），由调用方在翻页前写入；对齐旧 RemoteRepo 的同名属性。 */
@@ -350,7 +352,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                         }
                     }.also { page ->
                         Nana7miSearchCache.store(cacheKind, cacheKey, page, "novel_official_search")
-                    }.withViewerBookmarkState()
+                    }.withViewerBookmarkState(bookmarkMirror)
                 }
             } catch (ce: CancellationException) {
                 throw ce
@@ -383,7 +385,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                         borrowedUid = null,
                         reason = null,
                         eventId = firstRequestId,
-                    ) { cached.withViewerBookmarkState() }
+                    ) { cached.withViewerBookmarkState(bookmarkMirror) }
                 }
             },
         ) { telemetry.observeFirstOrRun { borrowedFlow() } }
@@ -444,7 +446,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                     borrowedUid = null,
                     reason = null,
                     eventId = nextRequestId,
-                ) { cached.withViewerBookmarkState() }
+                ) { cached.withViewerBookmarkState(bookmarkMirror) }
             },
         ) {
             Nana7miSearchSerial.run("novel_next") { lease ->
@@ -483,7 +485,7 @@ class SearchNovelRepo @JvmOverloads constructor(
                             api.getNextNovelWithAuth(authorization, nextPageUrl)
                         }.also { page ->
                             Nana7miSearchCache.store(cacheKind, cacheKey, page, "novel_official_search_next")
-                        }.withViewerBookmarkState()
+                        }.withViewerBookmarkState(bookmarkMirror)
                     }
                 } catch (ce: CancellationException) {
                     throw ce

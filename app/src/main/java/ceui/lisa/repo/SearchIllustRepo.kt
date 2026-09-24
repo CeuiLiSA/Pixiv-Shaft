@@ -15,6 +15,7 @@ import ceui.pixiv.actions.Nana7miSearchTelemetry
 import ceui.pixiv.actions.observeFirstOrRun
 import ceui.pixiv.actions.trackOrRun
 import ceui.pixiv.config.RemoteAppConfig
+import ceui.pixiv.db.mirror.BookmarkMirrorService
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.search.SortType
 import ceui.pixiv.ui.search.v3.DurationBucket
@@ -61,6 +62,7 @@ class SearchIllustRepo @JvmOverloads constructor(
     private val nana7miOutbox: AccountOnlineReportOutbox,
     private val nana7miTelemetryService: Nana7miSearchTelemetry,
     private val remoteAppConfig: RemoteAppConfig,
+    private val bookmarkMirror: BookmarkMirrorService,
 ) {
 
     /** 下一页游标（`next_url`），由调用方在翻页前写入；对齐旧 RemoteRepo 的同名属性。 */
@@ -336,7 +338,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                     }.also { page ->
                         // 只回填真正借号打到的官方结果；回退页（preview / 直连）不是同一个东西。
                         Nana7miSearchCache.store(cacheKind, cacheKey, page, "official_search")
-                    }.withViewerBookmarkState()
+                    }.withViewerBookmarkState(bookmarkMirror)
                 }
             } catch (ce: CancellationException) {
                 throw ce
@@ -371,7 +373,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                         borrowedUid = null,
                         reason = null,
                         eventId = firstRequestId,
-                    ) { cached.withViewerBookmarkState() }
+                    ) { cached.withViewerBookmarkState(bookmarkMirror) }
                 }
             },
         ) { telemetry.observeFirstOrRun { borrowedFlow() } }
@@ -433,7 +435,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                     borrowedUid = null,
                     reason = null,
                     eventId = nextRequestId,
-                ) { cached.withViewerBookmarkState() }
+                ) { cached.withViewerBookmarkState(bookmarkMirror) }
             },
         ) {
             Nana7miSearchSerial.run("illust_next") { lease ->
@@ -472,7 +474,7 @@ class SearchIllustRepo @JvmOverloads constructor(
                             api.getNextIllustWithAuth(authorization, nextPageUrl)
                         }.also { page ->
                             Nana7miSearchCache.store(cacheKind, cacheKey, page, "official_search_next")
-                        }.withViewerBookmarkState()
+                        }.withViewerBookmarkState(bookmarkMirror)
                     }
                 } catch (ce: CancellationException) {
                     throw ce

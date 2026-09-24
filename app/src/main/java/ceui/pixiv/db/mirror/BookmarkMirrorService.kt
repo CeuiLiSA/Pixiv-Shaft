@@ -25,6 +25,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import timber.log.Timber
 import java.io.IOException
@@ -220,6 +221,28 @@ class BookmarkMirrorService(app: Context) {
 
     /** 阻塞式读一份状态快照（调用方负责切 IO）。 */
     fun readState(shelf: BookmarkShelf): BookmarkMirrorStateEntity? = dao.findState(shelf.key)
+
+    /**
+     * 这批作品里当前账号收藏过的那些（按镜像，公开/悄悄都算）。搜索结果校正收藏态用（#1063）。
+     *
+     * 只能回答「是」：回填没跑完、或在别的设备刚收藏还没被维护到时，不在表里 ≠ 没收藏。
+     * 功能关闭 / 未登录 / 读库失败都返回空集，调用方退回原有判断。
+     */
+    suspend fun bookmarkedAmong(contentType: MirrorContentType, targetIds: List<Long>): Set<Long> {
+        if (targetIds.isEmpty() || !isFeatureEnabled()) return emptySet()
+        val uid = SessionManager.loggedInUid
+        if (uid <= 0L) return emptySet()
+        return withContext(Dispatchers.IO) {
+            try {
+                dao.mirroredAmong(uid, contentType.code, targetIds).toSet()
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (t: Throwable) {
+                Timber.tag(TAG).w(t, "读取镜像收藏态失败，搜索结果按未知处理")
+                emptySet()
+            }
+        }
+    }
 
     /**
      * 已注册的书架可直接浏览；首次在线访问也可进入，由页面注册并开始回填。
