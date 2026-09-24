@@ -676,6 +676,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 bean?.let { fabBar.setBookmarked(it.isBookmarked) }
             }
         }
+        // 当前页译图产出 / 被清掉时,下载按钮的保存对象随之切换,状态跟着刷新
+        translationViewModel.translatedPaths.observe(this) {
+            baseBind?.viewPager?.currentItem?.let(::checkDownload)
+        }
 
         fabBind.fabDownloadContainer.setOnClick {
             val illust = likeTargetIllust() ?: return@setOnClick
@@ -684,6 +688,20 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 // ugoira/gif 要 zip→帧→gif 渲染,简单文件拷贝救不了,保留原下载链路(它做 unzipAndPlay)。
                 IllustDownload.downloadIllustCertainPage(illust, page, mContext as BaseActivity<*>)
                 autoLikeAfterDownloadIfNeeded(illust, fabBar)
+                return@setOnClick
+            }
+            // 这一页正显示译图:保存的就是看到的那张(原分辨率译图),不是底下的原图
+            val translated = translatedFileOf(page)
+            if (translated != null) {
+                lifecycleScope.launch {
+                    if (saveTranslatedPage(illust, page, translated)) {
+                        Common.showToast(R.string.string_181)
+                        if (baseBind?.viewPager?.currentItem == page) {
+                            fabBar.renderDownload(DownloadFab.Done)
+                        }
+                        autoLikeAfterDownloadIfNeeded(illust, fabBar)
+                    }
+                }
                 return@setOnClick
             }
             val imageUrl =
@@ -727,6 +745,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     private fun checkDownload(i: Int) {
         val illust = mIllust ?: return
+        // 译图页的下载按钮保存的是译图,原图的「已下载」不代表译图存过,别亮绿勾误导
+        if (translatedFileOf(i) != null) {
+            fabBar?.renderDownload(DownloadFab.Idle)
+            return
+        }
         lifecycleScope.launch {
             val downloaded =
                 withContext(Dispatchers.IO) {
@@ -734,10 +757,47 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 }
             // 快速翻页时旧页的 DB 探测可能晚于新页返回,过期结果不能盖掉当前页的状态
             if (baseBind?.viewPager?.currentItem != i) return@launch
+            // 探测期间这页的译图到位了(重进看图页时译图在 onStart 才投影过来):按钮已按译图刷成 Idle
+            if (translatedFileOf(i) != null) return@launch
             // 对齐一级 V3 详情页:已下载的页显示绿色「已下载」勾,而不是把按钮藏起来
             fabBar?.renderDownload(if (downloaded) DownloadFab.Done else DownloadFab.Idle)
         }
     }
+
+    /** 这一页当前显示的译图文件(看图页只要有译图就替换显示);没有译图返回 null。 */
+    private fun translatedFileOf(page: Int): File? =
+        translationViewModel.translatedPaths.value?.get(page)?.let(::File)?.takeIf { it.exists() }
+
+    /**
+     * 保存译图:按用户插画模板命名并加 [TRANSLATED_FILENAME_SUFFIX],与原图并存、互不覆盖。
+     * 译图是派生图片,不写「已下载」库 —— 那张表的记录会被详情页当原图本地副本复用。
+     */
+    private suspend fun saveTranslatedPage(illust: Illust, page: Int, file: File): Boolean =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                // open 返回 null = Skip 策略且同名译图已存在 → 视为已保存
+                val handle =
+                    DownloadsRegistry.downloads.openDerived(
+                        DownloadItems.illustTranslated(illust, page),
+                        TRANSLATED_FILENAME_SUFFIX,
+                    ) ?: return@runCatching true
+                try {
+                    handle.stream.use { out -> FileInputStream(file).use { it.copyTo(out) } }
+                    handle.onFinish()
+                } catch (t: Throwable) {
+                    handle.onAbort()
+                    throw t
+                }
+                true
+            }
+                .getOrElse { ex ->
+                    Timber.e(ex, "[ImageDetail] saveTranslatedPage failed page=%d", page)
+                    Common.showToast(
+                        getString(R.string.save_image_failed, ex.message ?: ex.javaClass.simpleName)
+                    )
+                    false
+                }
+        }
 
     /**
      * 「保存这一张」：复用大图页已加载的原图(与显示层同一 imageloader 共享任务,不重新下载),走**新**下载后端 [DownloadsRegistry]
@@ -1284,5 +1344,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     companion object {
         /** 进场缩略图矩形(屏幕坐标 [left, top, right, bottom]),发起端可选携带;没带则居中淡入。 */
         const val EXTRA_ENTER_BOUNDS = "enter_bounds"
+
+        /** 译图文件名后缀,插在用户模板文件名与扩展名之间,避免覆盖原图。 */
+        private const val TRANSLATED_FILENAME_SUFFIX = "_translated"
     }
 }

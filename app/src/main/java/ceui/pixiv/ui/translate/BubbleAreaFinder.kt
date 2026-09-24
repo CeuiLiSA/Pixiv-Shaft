@@ -5,6 +5,7 @@ import android.graphics.Color
 import ceui.pixiv.ui.upscale.OcrTextRegion
 import timber.log.Timber
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
  * 把 OCR 文本框扩到气泡内部的可写 AABB。
@@ -17,6 +18,8 @@ import kotlin.math.abs
  * 假设:气泡内部基本单色(纯白/淡灰),轮廓是连续非背景像素。
  * 失效场景:气泡内有 screentone / 渐变 / 角色透写,扩展会过早或过晚停;
  * 极端 ellipsoidal 气泡四角不是 bg 但行采样仍 >= [ROW_BG_RATIO] 会越界一点点。
+ *
+ * 像素常量按参考分辨率调过,更高分辨率的底图由调用方传 `pxScale` 等比放大。
  */
 object BubbleAreaFinder {
 
@@ -34,8 +37,12 @@ object BubbleAreaFinder {
 
     /**
      * 计算扩展后的 inclusive 整数 AABB [x0, y0, x1, y1]。
+     *
+     * @param pxScale 底图相对参考分辨率的像素密度倍数
      */
-    fun expand(bitmap: Bitmap, region: OcrTextRegion, bgColor: Int): IntArray {
+    fun expand(bitmap: Bitmap, region: OcrTextRegion, bgColor: Int, pxScale: Float = 1f): IntArray {
+        val maxExpand = (MAX_EXPAND_PX * pxScale).roundToInt().coerceAtLeast(1)
+        val sampleStep = (SAMPLE_STEP * pxScale).roundToInt().coerceAtLeast(1)
         val W = bitmap.width
         val H = bitmap.height
         val xs = region.corners.map { it.first }
@@ -48,10 +55,10 @@ object BubbleAreaFinder {
 
         // 一次性把 region + MAX_EXPAND 范围的像素抓进 IntArray,后续按数组采样
         // 避开 getPixel 单像素 JNI 反复调用,几百万次差异肉眼可感
-        val wx0 = (x0 - MAX_EXPAND_PX).coerceIn(0, W - 1)
-        val wy0 = (y0 - MAX_EXPAND_PX).coerceIn(0, H - 1)
-        val wx1 = (x1 + MAX_EXPAND_PX).coerceIn(0, W - 1)
-        val wy1 = (y1 + MAX_EXPAND_PX).coerceIn(0, H - 1)
+        val wx0 = (x0 - maxExpand).coerceIn(0, W - 1)
+        val wy0 = (y0 - maxExpand).coerceIn(0, H - 1)
+        val wx1 = (x1 + maxExpand).coerceIn(0, W - 1)
+        val wy1 = (y1 + maxExpand).coerceIn(0, H - 1)
         val ww = wx1 - wx0 + 1
         val wh = wy1 - wy0 + 1
         val buf = IntArray(ww * wh)
@@ -73,22 +80,22 @@ object BubbleAreaFinder {
             if (y < 0 || y >= H) return false
             var bg = 0; var total = 0
             var x = fromX
-            while (x <= toX) { if (isBg(x, y)) bg++; total++; x += SAMPLE_STEP }
+            while (x <= toX) { if (isBg(x, y)) bg++; total++; x += sampleStep }
             return total > 0 && bg.toFloat() / total >= ROW_BG_RATIO
         }
         fun colOk(x: Int, fromY: Int, toY: Int): Boolean {
             if (x < 0 || x >= W) return false
             var bg = 0; var total = 0
             var y = fromY
-            while (y <= toY) { if (isBg(x, y)) bg++; total++; y += SAMPLE_STEP }
+            while (y <= toY) { if (isBg(x, y)) bg++; total++; y += sampleStep }
             return total > 0 && bg.toFloat() / total >= ROW_BG_RATIO
         }
 
         var s: Int
-        s = 0; while (s < MAX_EXPAND_PX && y0 > 0 && rowOk(y0 - 1, x0, x1)) { y0--; s++ }
-        s = 0; while (s < MAX_EXPAND_PX && y1 < H - 1 && rowOk(y1 + 1, x0, x1)) { y1++; s++ }
-        s = 0; while (s < MAX_EXPAND_PX && x0 > 0 && colOk(x0 - 1, y0, y1)) { x0--; s++ }
-        s = 0; while (s < MAX_EXPAND_PX && x1 < W - 1 && colOk(x1 + 1, y0, y1)) { x1++; s++ }
+        s = 0; while (s < maxExpand && y0 > 0 && rowOk(y0 - 1, x0, x1)) { y0--; s++ }
+        s = 0; while (s < maxExpand && y1 < H - 1 && rowOk(y1 + 1, x0, x1)) { y1++; s++ }
+        s = 0; while (s < maxExpand && x0 > 0 && colOk(x0 - 1, y0, y1)) { x0--; s++ }
+        s = 0; while (s < maxExpand && x1 < W - 1 && colOk(x1 + 1, y0, y1)) { x1++; s++ }
 
         Timber.d(
             "BubbleAreaFinder: AABB [%d,%d %dx%d] → [%d,%d %dx%d]",

@@ -3,7 +3,6 @@ package ceui.lisa.activities
 import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -32,7 +31,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.io.FileOutputStream
 
 /**
  * 二级详情「翻译漫画」一站式 pipeline:OCR → Google batch 翻译 → 译文回填到原图气泡位置 →
@@ -42,7 +40,7 @@ import java.io.FileOutputStream
  * - [running] 防重入 — 同一时间只跑一个 pipeline,UI 看着标志决定 toast 拦截
  * - [status] 单一来源驱动 overlay UI(文字 + 进度环);null 表示无任务,UI 隐藏 overlay
  * - [translatedPaths] pageIndex → 译图路径,Fragment 观察后切图
- * - 大图自动 downsample(短边 ≤ [MangaPageTranslatePipeline.MAX_RENDER_SHORT_SIDE])防 OOM,region 坐标等比缩放跟随
+ * - 译图尽量按原分辨率出图(见 [MangaPageTranslatePipeline.decodeRenderBase]),内存不够才降采样
  * - 同一页二次翻译会把旧产物文件 delete 掉,避免 cacheDir 累积
  */
 class ImageTranslationViewModel(application: Application) : AndroidViewModel(application) {
@@ -317,7 +315,7 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
             // 5. 擦字 + 回填到底图,产出新 PNG
             _status.postValue(Stage(app.getString(R.string.ocr_writeback_running)))
             val outFile = withContext(Dispatchers.IO) {
-                runCatching { renderManualOnto(app, ocr.base, pageIndex, ocr.region.copy(text = ocr.text), translated) }
+                runCatching { renderManualOnto(app, ocr.renderBase, pageIndex, ocr.region.copy(text = ocr.text), translated) }
                     .onFailure { Timber.e(it, "manual: render failed") }.getOrNull()
             }
             if (outFile == null) {
@@ -326,20 +324,25 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
             }
             publishTranslated(pageIndex, outFile.absolutePath)
         } finally {
-            ocr.base.recycle()
+            ocr.renderBase.bitmap.recycle()
         }
     }
 
-    /** 圈选 OCR 的中间产物:[base] 是解码出的底图(调用方负责 recycle)。 */
-    private class ManualOcr(val base: Bitmap, val region: OcrTextRegion, val text: String)
+    /** 圈选 OCR 的中间产物:[renderBase] 持有解码出的底图(调用方负责 recycle)。 */
+    private class ManualOcr(
+        val renderBase: MangaPageTranslatePipeline.RenderBase,
+        val region: OcrTextRegion,
+        val text: String,
+    )
 
     /**
-     * 解码底图(短边降采样到 [MangaPageTranslatePipeline.MAX_RENDER_SHORT_SIDE] 防 OOM)→ 把归一化矩形换算成像素框 →
+     * 解码底图(与自动回填同口径,尽量原分辨率)→ 把归一化矩形换算成像素框 →
      * crop 出来喂 manga-ocr。region 直接构造在「底图像素坐标系」下,后续擦/填都在这套坐标里,
      * 不再有 sample 还原那一层。框太小 / 解码失败返回 null。
      */
     private suspend fun recognizeManualRegion(file: File, l: Float, t: Float, r: Float, b: Float): ManualOcr? {
-        val base = decodeSampled(file, MangaPageTranslatePipeline.MAX_RENDER_SHORT_SIDE) ?: return null
+        val renderBase = MangaPageTranslatePipeline.decodeRenderBase(app, file) ?: return null
+        val base = renderBase.bitmap
         var keep = false
         try {
             val w = base.width
@@ -378,7 +381,7 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
                 recogConfidence = result.confidence,
             )
             keep = true
-            return ManualOcr(base, region, result.text.trim())
+            return ManualOcr(renderBase, region, result.text.trim())
         } finally {
             if (!keep) base.recycle()
         }
@@ -397,47 +400,19 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
     }
 
     /**
-     * 在底图上擦掉选区原文(无 mask,走颜色阈值兜底)再把译文排进**用户框定的区域**,
-     * 存成新 PNG。不做气泡扩展 —— 圈选场景所见即所得。
+     * 在底图上原地擦掉选区原文(无 mask,走颜色阈值兜底)再把译文排进**用户框定的区域**,
+     * 存成新 PNG。不做气泡扩展 —— 圈选场景所见即所得。底图由调用方回收。
      */
     private fun renderManualOnto(
         app: Context,
-        base: Bitmap,
+        base: MangaPageTranslatePipeline.RenderBase,
         pageIndex: Int,
         region: OcrTextRegion,
         translated: String,
     ): File {
-        val erased = TextEraser.eraseText(base, listOf(region), null)
-        try {
-            val canvas = Canvas(erased)
-            TextRenderer.renderTranslations(canvas, listOf(region), mapOf(0 to translated))
-            val out = File(
-                app.cacheDir,
-                "manga_translated_p${pageIndex}_${System.currentTimeMillis()}.png"
-            )
-            FileOutputStream(out).use { erased.compress(Bitmap.CompressFormat.PNG, 100, it) }
-            Timber.d("ManualWriteBack: saved → %s", out.absolutePath)
-            return out
-        } finally {
-            erased.recycle()
-        }
-    }
-
-    /** 短边降采样解码,短边压到 [maxShort] 以内防 OOM。与自动流水线同口径。 */
-    private fun decodeSampled(file: File, maxShort: Int): Bitmap? {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(file.absolutePath, bounds)
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
-        val shortSide = minOf(bounds.outWidth, bounds.outHeight)
-        var sample = 1
-        while (shortSide / sample > maxShort) sample *= 2
-        return BitmapFactory.decodeFile(
-            file.absolutePath,
-            BitmapFactory.Options().apply {
-                inSampleSize = sample
-                inPreferredConfig = Bitmap.Config.ARGB_8888
-            }
-        )
+        TextEraser.eraseText(base.bitmap, listOf(region), null, base.pxScale)
+        TextRenderer.renderTranslations(Canvas(base.bitmap), listOf(region), mapOf(0 to translated), base.pxScale)
+        return MangaPageTranslatePipeline.writeTranslatedPng(app, base.bitmap, pageIndex)
     }
 
     private fun publishTranslated(pageIndex: Int, newPath: String) {

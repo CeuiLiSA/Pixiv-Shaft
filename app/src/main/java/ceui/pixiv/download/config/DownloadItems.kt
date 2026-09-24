@@ -53,6 +53,19 @@ object DownloadItems {
     )
 
     /**
+     * 漫画翻译回填后的译图，同样是原插画的派生图片：沿用 Illust 桶和用户模板，
+     * 流水线产物固定是无损 PNG。调用方通过 Downloads.openDerived 添加防冲突后缀。
+     */
+    @JvmStatic
+    fun illustTranslated(illust: Illust, pageIndex: Int): DownloadItem = DownloadItem(
+        bucket = Bucket.Illust,
+        ext = "png",
+        mime = "image/png",
+        sourceUrl = "",
+        meta = metaOf(illust, pageIndex),
+    )
+
+    /**
      * 动图成品(存进用户相册的那一份)。格式随「动图保存格式」设置走 —— 默认 mp4。
      *
      * 模板里写死的 `.gif` 后缀会被 [ceui.pixiv.download.Downloads] 按 [DownloadItem.ext]

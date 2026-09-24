@@ -58,15 +58,12 @@ fun OcrTextRegion.scaledBy(factor: Float): OcrTextRegion {
  * [MangaOcr.recognize] 的返回值。
  *
  * @property regions 文本 region 列表,坐标系是「原图」(已乘 sample 还原)
- * @property textMask 像素级文本 mask,坐标系是「OCR-sampled bitmap」(即 原图 / [ocrSample])。
- *  调用方按相同 sample 解码自己的 bitmap → mask 自然对齐;dim 不匹配时调用方应该回退到无 mask 路径。
- *  null = 模型未提供 mask 输出。
- * @property ocrSample OCR 时用的 inSampleSize,调用方用相同值解 bitmap 才能跟 mask 对齐
+ * @property textMask 像素级文本 mask,覆盖整页,分辨率是 OCR 降采样后的 bitmap;
+ *  回填底图分辨率不同也没关系,TextEraser 按比例取样。null = 模型未提供 mask 输出。
  */
 data class MangaOcrResult(
     val regions: List<OcrTextRegion>,
     val textMask: TextMask?,
-    val ocrSample: Int,
 )
 
 object MangaOcr {
@@ -235,7 +232,7 @@ object MangaOcr {
                     finalRegions.size, sample, sample0.cx, sample0.cy, sample0.width, sample0.height
                 )
             }
-            MangaOcrResult(regions = finalRegions, textMask = detResult.textMask, ocrSample = sample)
+            MangaOcrResult(regions = finalRegions, textMask = detResult.textMask)
         } catch (e: CancellationException) {
             // 取消不是 OCR 失败:重抛给上层按「翻译取消」处理,别记成 error 日志
             throw e
