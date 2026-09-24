@@ -832,6 +832,11 @@
     <string name="string_449">Reset</string>
     <string name="string_450">Thumbnail display large image</string>
     <string name="string_451">Keep screen on in illust detail</string>
+    <string name="artwork_v3_fab_position_title">Floating button position</string>
+    <string name="artwork_v3_fab_position_desc">When docked to a side, the bookmark button sits on the outer edge for easier one-handed use</string>
+    <string name="artwork_v3_fab_position_center">Center</string>
+    <string name="artwork_v3_fab_position_left">Left</string>
+    <string name="artwork_v3_fab_position_right">Right</string>
     <string name="artwork_v3_fab_order_title">Download / bookmark button order</string>
     <string name="artwork_v3_fab_order_download_left">Download left, bookmark right</string>
     <string name="artwork_v3_fab_order_bookmark_left">Bookmark left, download right</string>

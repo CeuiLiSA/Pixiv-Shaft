@@ -832,6 +832,11 @@
     <string name="string_449">Сбросить</string>
     <string name="string_450">Показывать большие (Large) миниатюры</string>
     <string name="string_451">Не выключать экран на странице иллюстрации</string>
+    <string name="artwork_v3_fab_position_title">Положение плавающих кнопок</string>
+    <string name="artwork_v3_fab_position_desc">У края кнопка «Закладка» стоит с внешней стороны — удобнее нажимать одной рукой</string>
+    <string name="artwork_v3_fab_position_center">По центру</string>
+    <string name="artwork_v3_fab_position_left">Слева</string>
+    <string name="artwork_v3_fab_position_right">Справа</string>
     <string name="artwork_v3_fab_order_title">Порядок кнопок «Скачать» и «Закладка»</string>
     <string name="artwork_v3_fab_order_download_left">Скачать слева, закладка справа</string>
     <string name="artwork_v3_fab_order_bookmark_left">Закладка слева, скачать справа</string>

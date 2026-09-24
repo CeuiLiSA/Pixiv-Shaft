@@ -832,6 +832,11 @@
     <string name="string_449">초기화</string>
     <string name="string_450">썸네일 디스플레이 큰 이미지</string>
     <string name="string_451">illust 세부 사항에서 화면 유지</string>
+    <string name="artwork_v3_fab_position_title">플로팅 버튼 위치</string>
+    <string name="artwork_v3_fab_position_desc">가장자리에 두면 북마크 버튼이 바깥쪽에 있어 한 손으로 누르기 쉽습니다</string>
+    <string name="artwork_v3_fab_position_center">가운데</string>
+    <string name="artwork_v3_fab_position_left">왼쪽</string>
+    <string name="artwork_v3_fab_position_right">오른쪽</string>
     <string name="artwork_v3_fab_order_title">다운로드/북마크 버튼 순서</string>
     <string name="artwork_v3_fab_order_download_left">왼쪽 다운로드, 오른쪽 북마크</string>
     <string name="artwork_v3_fab_order_bookmark_left">왼쪽 북마크, 오른쪽 다운로드</string>

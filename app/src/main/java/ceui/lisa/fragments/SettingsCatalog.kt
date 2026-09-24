@@ -138,6 +138,7 @@ object SettingsCatalog {
 
         // 看图与详情（FAB 顺序行随 V3 开关显隐，紧贴 V3 行）
         add(Entry(VIEWING, "illust_detail_v3_rela", R.string.illust_detail_v3, keywords = "v3 沉浸式 详情页 新版 详情"))
+        add(Entry(VIEWING, "artwork_v3_fab_position_rela", R.string.artwork_v3_fab_position_title, R.string.artwork_v3_fab_position_desc, keywords = "按钮位置 收藏按钮 下载按钮 靠左 靠右 居中 单手 悬浮胶囊 fab position one hand"))
         add(Entry(VIEWING, "artwork_v3_fab_order_rela", R.string.artwork_v3_fab_order_title, keywords = "按钮顺序 下载按钮 收藏按钮 左右 fab"))
         add(Entry(VIEWING, "artwork_v3_auto_expand_rela", R.string.artwork_v3_auto_expand_title, R.string.artwork_v3_auto_expand_desc, keywords = "多图 多P 多页 自动展开 展开剩余 第一页 多张 expand multi page"))
         add(Entry(VIEWING, "detail_panel_collapsed_rela", R.string.detail_panel_collapsed_default, R.string.detail_panel_collapsed_default_desc, keywords = "折叠 收起 默认折叠 默认收起 作品详情 作品档案 详情面板 档案 collapse fold details profile"))

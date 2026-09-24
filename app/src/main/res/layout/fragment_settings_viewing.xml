@@ -77,6 +77,30 @@
                     android:layout_height="0dp" />
 
                 <RelativeLayout
+                    android:id="@+id/artwork_v3_fab_position_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/artwork_v3_fab_position_title" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/artwork_v3_fab_position_desc" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/artwork_v3_fab_position_select"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/artwork_v3_fab_order_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_mid">

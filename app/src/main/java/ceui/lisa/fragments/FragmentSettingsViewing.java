@@ -75,6 +75,34 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         });
         baseBind.detailPanelCollapsedRela.setOnClickListener(v -> baseBind.detailPanelCollapsed.performClick());
 
+        // V3详情页 悬浮胶囊位置（issue #1090）：居中 / 靠左 / 靠右
+        updateArtworkV3FabPositionLabel();
+        baseBind.artworkV3FabPositionSelect.setOnClickListener(v -> {
+            final int index = Shaft.sSettings.getArtworkV3FabPosition();
+            String[] items = new String[]{
+                    getString(R.string.artwork_v3_fab_position_center),
+                    getString(R.string.artwork_v3_fab_position_left),
+                    getString(R.string.artwork_v3_fab_position_right),
+            };
+            new WitDialog.CheckableDialogBuilder(mActivity)
+                    .setCheckedIndex(index)
+                    .addItems(items, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if (which != index) {
+                                Shaft.sSettings.setArtworkV3FabPosition(which);
+                                Local.setSettings(Shaft.sSettings);
+                                updateArtworkV3FabPositionLabel();
+                                applyArtworkV3FabOrderRowVisibility(Shaft.sSettings.isUseArtworkV3(), true);
+                            }
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
+        });
+        baseBind.artworkV3FabPositionRela.setOnClickListener(v ->
+                baseBind.artworkV3FabPositionSelect.performClick());
+
         // V3详情页 下载/收藏按钮顺序
         updateArtworkV3FabOrderLabel();
         baseBind.artworkV3FabOrderSelect.setOnClickListener(v -> {
@@ -258,6 +286,22 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         setupCustomZoomScaleAdjust();
     }
 
+    private void updateArtworkV3FabPositionLabel() {
+        int labelRes;
+        switch (Shaft.sSettings.getArtworkV3FabPosition()) {
+            case Settings.ARTWORK_V3_FAB_POSITION_LEFT:
+                labelRes = R.string.artwork_v3_fab_position_left;
+                break;
+            case Settings.ARTWORK_V3_FAB_POSITION_RIGHT:
+                labelRes = R.string.artwork_v3_fab_position_right;
+                break;
+            default:
+                labelRes = R.string.artwork_v3_fab_position_center;
+                break;
+        }
+        baseBind.artworkV3FabPositionSelect.setText(labelRes);
+    }
+
     private void updateArtworkV3FabOrderLabel() {
         boolean downloadLeft = Shaft.sSettings.isArtworkV3FabDownloadOnLeft();
         baseBind.artworkV3FabOrderSelect.setText(downloadLeft
@@ -275,7 +319,10 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
                 TransitionManager.beginDelayedTransition((ViewGroup) parent, transition);
             }
         }
-        baseBind.artworkV3FabOrderRela.setVisibility(visibility);
+        baseBind.artworkV3FabPositionRela.setVisibility(visibility);
+        // 胶囊靠边时收藏心固定在外侧，顺序设置不生效，只在居中时露出（#1090）
+        boolean centered = Shaft.sSettings.getArtworkV3FabPosition() == Settings.ARTWORK_V3_FAB_POSITION_CENTER;
+        baseBind.artworkV3FabOrderRela.setVisibility(v3Enabled && centered ? View.VISIBLE : View.GONE);
         baseBind.artworkV3FabOrderDivider.setVisibility(visibility);
         baseBind.artworkV3CommentJumpRela.setVisibility(visibility);
         baseBind.artworkV3AutoExpandRela.setVisibility(visibility);

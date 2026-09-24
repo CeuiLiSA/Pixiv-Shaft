@@ -2,7 +2,9 @@ package ceui.lisa.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.BackEventCompat
@@ -29,6 +31,7 @@ import ceui.lisa.helper.PageTransformerHelper
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
+import ceui.lisa.utils.Settings
 import ceui.lisa.view.DragDismissLayout
 import ceui.lisa.view.SeamlessCircularProgressIndicator
 import ceui.pixiv.api.model.Illust
@@ -528,12 +531,29 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         val fabBar = V3FabBarController(fabBind)
         this.fabBar = fabBar
         fabBar.applyPalette(V3Palette.from(this))
+        applyFabBarLayout(fabBar)
         fabBar.attachBottomInsetMargin(findViewById(R.id.fab_bar_row))
         fabBind.fabDownloadContainer.visibility = View.GONE
         fabBind.fabDivider.visibility = View.GONE
         fabBind.fabBookmark.setOnClickListener { /* 快照只读，不触发收藏 */ }
         fabBind.fabBookmark.setOnLongClickListener { true }
         fabBar.setBookmarked(mIllust?.isBookmarked ?: false)
+    }
+
+    /**
+     * 胶囊位置 + 顺序偏好(#1090)。左右留白已由外层 bottom_rela 的 20dp 内边距给出,胶囊自身不加边距;
+     * 胶囊靠右时页码让到左边,否则两者会叠在同一行的右端。
+     */
+    private fun applyFabBarLayout(fabBar: V3FabBarController) {
+        fabBar.applyLayoutPreference(sideMargin = 0)
+        val pageLabel = findViewById<View>(R.id.current_page)
+        val lp = pageLabel.layoutParams as FrameLayout.LayoutParams
+        lp.gravity = if (Shaft.sSettings.artworkV3FabPosition == Settings.ARTWORK_V3_FAB_POSITION_RIGHT) {
+            Gravity.START
+        } else {
+            Gravity.END
+        }
+        pageLabel.layoutParams = lp
     }
 
     /** 快照大图保留 AI 菜单（数据源为本地快照文件），不显示下载相关动作。 */
@@ -645,7 +665,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         this.fabBar = fabBar
         // 胶囊配色与一级 V3 详情页同一套规则(V3Palette 派生,日夜双模),不用 XML 里的深色默认值
         fabBar.applyPalette(V3Palette.from(this))
-        fabBar.applyDownloadOrderPreference()
+        applyFabBarLayout(fabBar)
         // 底距落在「胶囊 + 页码」整行上,页码跟着胶囊一起动
         fabBar.attachBottomInsetMargin(findViewById(R.id.fab_bar_row))
 

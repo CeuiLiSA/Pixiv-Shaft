@@ -1571,6 +1571,26 @@ public class Settings {
         this.artworkV3AutoExpandMultiPage = artworkV3AutoExpandMultiPage;
     }
 
+    // 插画V3详情页 / 二级大图页：悬浮胶囊水平位置（issue #1090）。
+    // 0=居中（默认），1=靠左，2=靠右；靠边时收藏心固定在外侧，下载/收藏顺序设置只在居中时生效。
+    public static final int ARTWORK_V3_FAB_POSITION_CENTER = 0;
+    public static final int ARTWORK_V3_FAB_POSITION_LEFT = 1;
+    public static final int ARTWORK_V3_FAB_POSITION_RIGHT = 2;
+
+    private int artworkV3FabPosition = ARTWORK_V3_FAB_POSITION_CENTER;
+
+    public int getArtworkV3FabPosition() {
+        if (artworkV3FabPosition < ARTWORK_V3_FAB_POSITION_CENTER ||
+                artworkV3FabPosition > ARTWORK_V3_FAB_POSITION_RIGHT) {
+            return ARTWORK_V3_FAB_POSITION_CENTER;
+        }
+        return artworkV3FabPosition;
+    }
+
+    public void setArtworkV3FabPosition(int artworkV3FabPosition) {
+        this.artworkV3FabPosition = artworkV3FabPosition;
+    }
+
     private String defaultUpscaleModel = "";
 
     public String getDefaultUpscaleModel() {

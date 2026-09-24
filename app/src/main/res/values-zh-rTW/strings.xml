@@ -834,6 +834,11 @@
     <string name="string_449">重置</string>
     <string name="string_450">縮略圖顯示大圖</string>
     <string name="string_451">插畫二級詳情保持屏幕常亮</string>
+    <string name="artwork_v3_fab_position_title">懸浮按鈕位置</string>
+    <string name="artwork_v3_fab_position_desc">靠邊時收藏按鈕在最外側，單手更好按</string>
+    <string name="artwork_v3_fab_position_center">置中</string>
+    <string name="artwork_v3_fab_position_left">靠左</string>
+    <string name="artwork_v3_fab_position_right">靠右</string>
     <string name="artwork_v3_fab_order_title">下載/收藏按鈕順序</string>
     <string name="artwork_v3_fab_order_download_left">左側下載，右側收藏</string>
     <string name="artwork_v3_fab_order_bookmark_left">左側收藏，右側下載</string>

@@ -307,6 +307,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 true
             }
             fabBarController.applyPalette(palette)
+            fabBarController.applyLayoutPreference(sideMargin = 20.ppppx)
             applySnapshotBookmarkState()
             chromeBind.composerRoot.isVisible = false
             chromeBind.navMore.isVisible = false
@@ -1473,8 +1474,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private fun setupNavBar() {
         chromeBind.toolbar.setNavigationOnClickListener { requireActivity().finish() }
 
-        // 下载 / 收藏顺序偏好
-        fabBarController.applyDownloadOrderPreference()
+        // 胶囊位置 + 下载 / 收藏顺序偏好;靠边时离屏幕边 20dp,与二级大图页那一行的左右留白一致
+        fabBarController.applyLayoutPreference(sideMargin = 20.ppppx)
 
         chromeBind.fabBar.fabDownloadContainer.setOnClick {
             // 下载 FAB 的两条 bean 缺失早退(这里 + ViewModel.triggerDownload)会让点击彻底
