@@ -58,6 +58,7 @@ import ceui.loxia.User;
 import ceui.pixiv.services.ServiceProviderKt;
 import ceui.pixiv.ui.pinned.PinnedUsers;
 import ceui.pixiv.ui.search.SearchHintViewModel;
+import ceui.pixiv.ui.navigation.BottomSafeInsets;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 
 
@@ -81,6 +82,8 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
         headParams.height = SystemBarMetrics.statusBarHeight(mContext);
         baseBind.head.setLayoutParams(headParams);
+        // 内容铺到手势条下：底部在 24dp 留白之外再让出导航栏，最后一行标签不贴底。
+        BottomSafeInsets.applyTo(baseBind.scrollView);
         hintViewModel = new ViewModelProvider(this).get(SearchHintViewModel.class);
         setupHintObservers();
         baseBind.inputBox.addTextChangedListener(new TextWatcher() {
