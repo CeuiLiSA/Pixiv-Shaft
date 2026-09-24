@@ -3,6 +3,7 @@ package ceui.pixiv.chat.ui
 import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
+import android.os.Build
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
@@ -45,7 +46,10 @@ internal fun ChatViewComposerBinding.applyChatComposerStyle() {
             ),
         )
     }
-    inputLayout.cursorColor = ColorStateList.valueOf(palette.textAccent)
+    // Cursor tint is API 29+; older devices keep the default cursor.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        inputLayout.cursorColor = ColorStateList.valueOf(palette.textAccent)
+    }
     // Keep a disabled state: the input is locked while a public room is closed or a post
     // reply is sending, and full-strength text would read as still editable.
     val text2 = ContextCompat.getColor(context, R.color.v3_text_2)
