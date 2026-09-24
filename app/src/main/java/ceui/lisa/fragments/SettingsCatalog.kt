@@ -154,9 +154,10 @@ object SettingsCatalog {
 
         // 收藏与互动
         add(Entry(BOOKMARKS, "show_like_button_rela", R.string.string_335, keywords = "私密收藏 非公开 私人 private bookmark"))
-        add(Entry(BOOKMARKS, "like_haptic_rela", R.string.settings_like_haptic, R.string.settings_like_haptic_desc, keywords = "振动 震动 触感反馈 震动反馈 收藏振动 收藏震动 关掉振动 haptic vibration"))
         add(Entry(BOOKMARKS, "private_follow_rela", R.string.private_follow_by_default, keywords = "私密关注 悄悄关注 非公开 私人 关注 private follow"))
         add(Entry(BOOKMARKS, "hide_star_bar_rela", R.string.string_371, keywords = "隐藏 收藏按钮 我的收藏"))
+        // 别名按整串子串匹配，「关闭震动」「收藏按钮震动」这类连写说法各铺一遍
+        add(Entry(BOOKMARKS, "like_haptic_rela", R.string.settings_like_haptic, R.string.settings_like_haptic_desc, keywords = "振动 震动 触感 触觉 震感 手感 马达 触感反馈 震动反馈 收藏振动 收藏震动 收藏按钮震动 爱心 点赞 关掉振动 关掉震动 关闭振动 关闭震动 不要震动 haptic vibration vibrate"))
         add(Entry(BOOKMARKS, "filter_invalid_bookmarks_rela", R.string.filter_invalid_bookmarks, keywords = "失效 无效 404 收藏夹 已删除作品"))
         add(Entry(BOOKMARKS, "select_all_tag_rela", R.string.string_372, keywords = "标签 全选 tag 收藏"))
         add(Entry(BOOKMARKS, "show_related_when_star_rela", R.string.string_396, keywords = "相关作品 关联 推荐 related"))
