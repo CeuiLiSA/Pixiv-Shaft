@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -332,6 +333,21 @@ public class Shaft extends Application implements ServicesProvider {
                     if (t.getMessage() != null
                             && t.getMessage().contains("shell-induced crash")) {
                         Timber.w(t, "Suppressed shell-induced crash on main thread");
+                        continue;
+                    }
+                    // 系统长按提示（tooltip）的布局在个别 ROM 上打不开：TooltipPopup 构造时
+                    // inflate framework 自己的 com.android.internal.R.layout.tooltip
+                    // (#0x1090176)，AssetManager 解析到的 apk 里没有这个文件，抛
+                    // Resources$NotFoundException（cause 是 FileNotFoundException）。
+                    // 应用从不自己设 tooltip，是 AppCompat/Material 给 Toolbar 菜单图标、
+                    // TabLayout、BottomNavigationView 等自动挂上的，长按/悬停时经
+                    // CheckForLongPress / mShowTooltipRunnable 投到主线程 Handler。
+                    // 异常抛在 TooltipPopup 赋值之前，View 的 tooltip 状态保持干净，
+                    // 少一个提示气泡好过崩进程。必须带 TooltipPopup 帧才放过，
+                    // 不吞应用自己的资源缺失。
+                    if (t instanceof Resources.NotFoundException
+                            && hasStackFrame(t, "com.android.internal.view.TooltipPopup")) {
+                        Timber.w(t, "Suppressed framework tooltip layout NotFoundException on main thread");
                         continue;
                     }
                     Thread.UncaughtExceptionHandler h =
