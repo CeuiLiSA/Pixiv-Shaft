@@ -444,7 +444,8 @@ internal class ArtworkTabletStage(
                     }
 
                     override fun onLoadFailed(errorDrawable: Drawable?) {
-                        holder.image.setImageDrawable(errorDrawable)
+                        // 大图失败时别把已经垫上的缩略图清掉：没有错误图就留着它（点开全屏会重新取原图）
+                        if (errorDrawable != null) holder.image.setImageDrawable(errorDrawable)
                     }
 
                     override fun onResourceCleared(placeholder: Drawable?) {
