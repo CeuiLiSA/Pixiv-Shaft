@@ -58,6 +58,7 @@ class CommentComposerController private constructor(
         override fun onPageSelected(position: Int) {
             val stampSelected = position == STAMP_PAGE
             styleTabs(stampSelected)
+            if (!stampSelected) stampAdapter.clearSelection()
             if (stampSelected && !stampsLoaded && !stampsLoading) {
                 stampsLoading = true
                 fragment.launchSuspend {
@@ -87,6 +88,7 @@ class CommentComposerController private constructor(
                 override val keyboardToggleIconRes get() = R.drawable.chat_ic_keyboard
                 override fun onPanelStateChanged(state: PanelState) {
                     if (state != PanelState.NONE) view.showInputBar()
+                    if (state != PanelState.PANEL) stampAdapter.clearSelection()
                     onStateChanged(state)
                 }
                 override fun onPanelDismissStarted(state: PanelState) {
@@ -101,7 +103,7 @@ class CommentComposerController private constructor(
                 }
             },
         )
-        setUpEmojiPanel()
+        setUpEmojiPanel(palette)
         setUpTextInput()
         fragment.viewLifecycleOwner.lifecycle.addObserver(this)
     }
@@ -188,7 +190,7 @@ class CommentComposerController private constructor(
         }
     }
 
-    private fun setUpEmojiPanel() {
+    private fun setUpEmojiPanel(palette: V3Palette) {
         val kaomojiAdapter = CommentEmojiPickerAdapter { code ->
             val editable = view.commentInput.text ?: return@CommentEmojiPickerAdapter
             val start = view.commentInput.selectionStart.coerceIn(0, editable.length)
@@ -198,8 +200,9 @@ class CommentComposerController private constructor(
             view.commentInput.setSelection(replaceStart + code.length)
         }
 
-        stampAdapter = CommentStampPickerAdapter { stamp ->
+        stampAdapter = CommentStampPickerAdapter(palette) { stamp ->
             if (!beginSend()) return@CommentStampPickerAdapter
+            stampAdapter.clearSelection()
             panelCoordinator.dismiss()
             fragment.launchSuspend {
                 try {

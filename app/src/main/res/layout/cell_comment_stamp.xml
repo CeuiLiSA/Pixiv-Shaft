@@ -2,21 +2,55 @@
 <!-- 评论输入框「表情贴图」选择面板的单格:贴纸本身是远程方图(jpg,不带透明底)。格子必须是
      圆角正方形——列宽由 GridLayoutManager(4 列)决定,固定 dp 高会被拉成矩形,故用
      ConstraintLayout + dimensionRatio=1:1 让高度恒等于列宽(同 item_illust_square 的 1:1 打法),
-     圆角仍走全仓通用的 RoundImageView rRadius。 -->
+     圆角仍走全仓通用的 RoundImageView rRadius。
+     选中态(#1147,学 LINE「点一下选中、再点一下发送」):stamp_ring 是贴图外 2dp 间隙的主题色描边,
+     stamp_send_badge 是右上角主题实色圆底 + 纸飞机。两者都只改 alpha,不参与布局尺寸变化。 -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:foreground="@drawable/v3_ripple_card14"
-    android:padding="6dp">
+    android:contentDescription="@string/comment_emoji_tab_stamp"
+    android:foreground="@drawable/v3_ripple_card14">
 
     <net.csdn.roundview.RoundImageView
         android:id="@+id/stamp_image"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_margin="6dp"
+        android:importantForAccessibility="no"
         android:scaleType="centerCrop"
         app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:rRadius="12dp" />
+
+    <View
+        android:id="@+id/stamp_ring"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="2dp"
+        android:alpha="0"
+        android:importantForAccessibility="no"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/stamp_send_badge"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:alpha="0"
+        android:importantForAccessibility="no"
+        android:padding="6dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/chat_ic_send"
+        app:layout_constraintEnd_toEndOf="@id/stamp_image"
+        app:layout_constraintTop_toTopOf="@id/stamp_image"
+        tools:alpha="1" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
