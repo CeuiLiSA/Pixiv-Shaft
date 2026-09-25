@@ -141,6 +141,10 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             }
         }
         baseBind.searchTagsFlow.setShowRemoveIcon(true);
+        // 搜索栏的输入区是硬编码纯白胶囊（search_et_bg，无夜间变体），不是页面底 + 自身
+        // 20% 染色填充 —— 「标签原文亮暗度」的目标值按后者标定，深色下提亮只会让原文更糊。
+        // 该处一律用未增强的颜色（与增强功能存在之前逐位相同）。
+        baseBind.searchTagsFlow.setFollowTagLegibilityBoost(false);
         refreshChipsUI();
         // 点 × 先确认，确认删除后才用剩余标签重搜。
         baseBind.searchTagsFlow.setOnTagClick(name -> {

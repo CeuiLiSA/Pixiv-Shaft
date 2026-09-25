@@ -557,6 +557,16 @@
     <string name="tag_translation_color">Цвет перевода тега</string>
     <string name="tag_translation_color_follow_theme">Следовать теме</string>
     <string name="tag_translation_color_pick_from_theme_page">Выбрать на странице цветов темы</string>
+    <string name="tag_legibility_boost">Яркость текста тегов</string>
+    <string name="tag_legibility_boost_hint">Слева — исходный вид, справа — по ползунку\nСлишком высокое значение делает заливку капсулы бледнее (тёмная) или насыщеннее (светлая)</string>
+    <string name="tag_legibility_boost_summary">%1$s · %2$s</string>
+    <string name="tag_legibility_boost_light">Светлая</string>
+    <string name="tag_legibility_boost_dark">Тёмная</string>
+    <string name="tag_legibility_boost_none_light">Без затемнения</string>
+    <string name="tag_legibility_boost_none_dark">Без осветления</string>
+    <string name="tag_legibility_boost_percent_light">Затемнить на %1$d%%</string>
+    <string name="tag_legibility_boost_percent_dark">Осветлить на %1$d%%</string>
+    <string name="tag_legibility_boost_preview_tag"># Пример тега</string>
     <string name="string_325">Перейти к настройкам</string>
     <string name="string_326">Начать</string>
     <string name="string_327">Приостановить</string>

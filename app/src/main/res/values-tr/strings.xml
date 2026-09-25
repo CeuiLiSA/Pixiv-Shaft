@@ -557,6 +557,16 @@
     <string name="tag_translation_color">Etiket çeviri rengi</string>
     <string name="tag_translation_color_follow_theme">Temayı takip et</string>
     <string name="tag_translation_color_pick_from_theme_page">Tema renk sayfasından seç</string>
+    <string name="tag_legibility_boost">Etiket metni parlaklığı</string>
+    <string name="tag_legibility_boost_hint">Sol özgün hâli, sağ kaydırıcıya göre değişir\nÇok yüksek değer, kapsül dolgusunu daha soluk (koyu) veya daha koyu (açık) gösterir</string>
+    <string name="tag_legibility_boost_summary">%1$s · %2$s</string>
+    <string name="tag_legibility_boost_light">Açık</string>
+    <string name="tag_legibility_boost_dark">Koyu</string>
+    <string name="tag_legibility_boost_none_light">Koyulaştırma yok</string>
+    <string name="tag_legibility_boost_none_dark">Aydınlatma yok</string>
+    <string name="tag_legibility_boost_percent_light">%1$d%% koyulaştır</string>
+    <string name="tag_legibility_boost_percent_dark">%1$d%% aydınlat</string>
+    <string name="tag_legibility_boost_preview_tag"># Örnek etiket</string>
     <string name="string_325">Ayarlara git</string>
     <string name="string_326">Başlat</string>
     <string name="string_327">Durdur</string>

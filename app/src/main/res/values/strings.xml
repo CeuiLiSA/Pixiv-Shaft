@@ -579,6 +579,16 @@
     <string name="string_323">我的好P友</string>
     <string name="string_324">主题色彩</string>
     <string name="tag_translation_color">标签译文颜色</string>
+    <string name="tag_legibility_boost">标签原文亮暗度</string>
+    <string name="tag_legibility_boost_hint">左侧为原始效果，右侧随滑条实时变化\n过高的值会让胶囊的填充色显得变淡（深色）或变浓（浅色）</string>
+    <string name="tag_legibility_boost_summary">%1$s · %2$s</string>
+    <string name="tag_legibility_boost_light">白天</string>
+    <string name="tag_legibility_boost_dark">黑暗</string>
+    <string name="tag_legibility_boost_none_light">不压暗</string>
+    <string name="tag_legibility_boost_none_dark">不提亮</string>
+    <string name="tag_legibility_boost_percent_light">压暗 %1$d%%</string>
+    <string name="tag_legibility_boost_percent_dark">提亮 %1$d%%</string>
+    <string name="tag_legibility_boost_preview_tag"># 示例标签</string>
     <string name="tag_translation_color_follow_theme">跟随主题</string>
     <string name="tag_translation_color_pick_from_theme_page">从主题色彩页中选择</string>
     <string name="string_325">点击设置</string>

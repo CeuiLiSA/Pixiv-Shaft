@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
+import kotlin.math.abs
 
 /**
  * 从当前主题的 `?attr/colorPrimary` 派生出整套 V3 配色。
@@ -29,6 +30,11 @@ import androidx.core.graphics.ColorUtils
 public class V3Palette @JvmOverloads public constructor(
     @ColorInt public val primary: Int,
     public val isDark: Boolean = true,
+    /**
+     * 标签原文辨识度增强强度，0f = 不增强。正常由 [V3TagLegibility] 在 [from] 里注入；
+     * 显式传参用于设置页弹窗的实时预览（预览要按另一套深浅渲染，不能读全局）。
+     */
+    public val tagLegibilityBoost: Float = 0f,
 ) {
 
     // ── derived alphas ──────────────────────────────────────────────
@@ -96,14 +102,35 @@ public class V3Palette @JvmOverloads public constructor(
         withAlpha(ensureLightEnough(primary, 0.72f), 0.90f)
     else withAlpha(ensureDarkEnough(primary, 0.35f), 0.90f)
 
-    /** 标签文字按选中态的 20% 染色底校正；仅限制 HSL 亮度会让浅色黄/绿标签难以阅读。 */
+    /** 标签原文按选中态的 20% 染色底校正；仅限制 HSL 亮度会让浅色黄/绿标签难以阅读。 */
     @ColorInt public val textTag: Int = tagTextColor(
         if (isDark) ensureLightEnough(primary, 0.70f) else ensureDarkEnough(primary, 0.38f),
     )
 
     /** 译文可独立选色，仍须按当前主题的标签底色校验，而非译文色自己的背景。 */
     @ColorInt
-    public fun tagTextColor(@ColorInt color: Int): Int = ensureContrastAgainst(
+    public fun tagTextColor(@ColorInt color: Int): Int {
+        val bg = ColorUtils.compositeColors(alpha20, cardFill)
+        val base = ensureContrastAgainst(color, bg, goLighter = isDark)
+        return enhanceLegibility(base, bg, goLighter = isDark, boost = tagLegibilityBoost)
+    }
+
+    /**
+     * [textTag] 的**未增强**版本 —— 胶囊内非原文元素（删除键 / 关闭键 / 标签译文）用它。
+     *
+     * 「提升标签原文辨识度」只应改原文。实测这几处若跟着一起变淡，整颗胶囊会被读成"填充也
+     * 变淡了" —— 置顶胶囊因为图钉走 [textAccent] 不跟随，反而给整颗留了个饱和的紫色锚点，
+     * 所以只有它"看起来只有文本变"。其余胶囊需要 × / 译文当同样的锚点。
+     *
+     * 取 0 档的值，因此与开启增强之前**逐位相同**：增强前后这些元素纹丝不动。
+     */
+    @ColorInt public val textTagAux: Int = tagAuxTextColor(
+        if (isDark) ensureLightEnough(primary, 0.70f) else ensureDarkEnough(primary, 0.38f),
+    )
+
+    /** [tagTextColor] 的未增强版本，给胶囊内的非原文元素用。 */
+    @ColorInt
+    public fun tagAuxTextColor(@ColorInt color: Int): Int = ensureContrastAgainst(
         color, ColorUtils.compositeColors(alpha20, cardFill), goLighter = isDark,
     )
 
@@ -316,7 +343,7 @@ public class V3Palette @JvmOverloads public constructor(
             val nightMode = context.resources.configuration.uiMode and
                     Configuration.UI_MODE_NIGHT_MASK
             val isDark = nightMode == Configuration.UI_MODE_NIGHT_YES
-            return V3Palette(primary, isDark)
+            return V3Palette(primary, isDark, V3TagLegibility.boostFor(isDark))
         }
 
         @JvmStatic
@@ -381,6 +408,47 @@ public class V3Palette @JvmOverloads public constructor(
                 hsl[2] = (hsl[2] + if (goLighter) 0.02f else -0.02f).coerceIn(0f, 1f)
                 result = ColorUtils.HSLToColor(hsl)
                 if (ColorUtils.calculateContrast(result, opaqueBg) >= minRatio) return result
+                if (hsl[2] <= 0f || hsl[2] >= 1f) return result
+            }
+            return result
+        }
+
+        /**
+         * 在 [ensureContrastAgainst] 的 4.5 保底之上，按 [boost] 把标签原文往 APCA 正文线推。
+         *
+         * boost = 0 时逐位返回 [base]，零回归；boost = 1 时把「现状到正文线的距离」整个走完，
+         * 方向始终是更亮 / 更暗，幅度由离线的距离决定：深色下紫档 43.4 → 75、青绿 79.1 → 83.3、
+         * 盛夏黄 75.5 → 76.0。
+         *
+         * 目标取 `现状 + boost × |75 − 现状|`，用绝对值而**不是** `max(0, …)` 钳位：钳位会让
+         * 距离为负的那一侧目标正好等于现状，被下面那句 `if (target <= current) return base`
+         * 原样返回 —— 滑条从 0 拉到 100% 也不换色，看起来像设置没生效。现在滑条对每一档都有响应。
+         *
+         * 只推 HSL 的 L、保持色相与饱和度，代价是文字彩度随 boost 上升而下降：
+         * 深色 #686bdd 从 #9395E7（|Lc| 43.4）一路到 #D4D4F5（|Lc| 75）。
+         *
+         * 步长 0.005 / 上限 120 步：APCA 对近白段敏感，比 [ensureContrastAgainst] 的 0.02 细一档。
+         */
+        @ColorInt
+        private fun enhanceLegibility(
+            @ColorInt base: Int,
+            @ColorInt bg: Int,
+            goLighter: Boolean,
+            boost: Float,
+        ): Int {
+            val strength = boost.coerceIn(0f, 1f)
+            if (strength <= 0f) return base
+            val opaqueBg = bg or (0xFF shl 24)
+            val current = abs(ApcaContrast.lc(base, opaqueBg))
+            val target = current + strength * abs(ApcaContrast.BODY_TEXT_MIN - current)
+            if (target <= current) return base
+            val hsl = FloatArray(3)
+            ColorUtils.colorToHSL(base, hsl)
+            var result = base
+            repeat(120) {
+                hsl[2] = (hsl[2] + if (goLighter) 0.005f else -0.005f).coerceIn(0f, 1f)
+                result = ColorUtils.HSLToColor(hsl)
+                if (abs(ApcaContrast.lc(result, opaqueBg)) >= target) return result
                 if (hsl[2] <= 0f || hsl[2] >= 1f) return result
             }
             return result

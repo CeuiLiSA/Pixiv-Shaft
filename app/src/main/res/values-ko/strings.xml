@@ -557,6 +557,16 @@
     <string name="tag_translation_color">태그 번역 색상</string>
     <string name="tag_translation_color_follow_theme">테마 따르기</string>
     <string name="tag_translation_color_pick_from_theme_page">테마 색상 페이지에서 선택</string>
+    <string name="tag_legibility_boost">태그 원문 명암도</string>
+    <string name="tag_legibility_boost_hint">왼쪽은 원본, 오른쪽은 슬라이더에 따라 변경\n값이 너무 높으면 캡슐 배경이 더 옅게(다크) 또는 더 진하게(라이트) 보입니다</string>
+    <string name="tag_legibility_boost_summary">%1$s · %2$s</string>
+    <string name="tag_legibility_boost_light">라이트</string>
+    <string name="tag_legibility_boost_dark">다크</string>
+    <string name="tag_legibility_boost_none_light">어둡게 안 함</string>
+    <string name="tag_legibility_boost_none_dark">밝게 안 함</string>
+    <string name="tag_legibility_boost_percent_light">어둡게 %1$d%%</string>
+    <string name="tag_legibility_boost_percent_dark">밝게 %1$d%%</string>
+    <string name="tag_legibility_boost_preview_tag"># 예시 태그</string>
     <string name="string_325">클릭 설정</string>
     <string name="string_326">시작 하 다.</string>
     <string name="string_327">잠시 멈추다.</string>

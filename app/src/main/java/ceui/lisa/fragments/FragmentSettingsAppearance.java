@@ -9,20 +9,27 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.graphics.drawable.GradientDrawable;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.content.ContextCompat;
 
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
 import ceui.pixiv.witstudio.dialog.WitDialogView;
+import ceui.pixiv.witstudio.theme.V3Palette;
+import ceui.pixiv.witstudio.widget.WitTagStyle;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +52,7 @@ import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.pixiv.ui.settings.CustomThemeColor;
+import ceui.pixiv.ui.settings.TagLegibilityPrefs;
 import ceui.pixiv.ui.settings.ThemeColorCatalog;
 import ceui.pixiv.ui.settings.ThemeColorFeedFragment;
 import ceui.pixiv.widget.RecommendCardWidgetProvider;
@@ -234,6 +242,10 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.THEME_COLOR.key);
             startActivity(intent);
         });
+
+        // 提升标签原文辨识度：白天 / 黑暗各一条滑条，各自独立、互不影响
+        setTagLegibilityBoostName();
+        baseBind.tagLegibilityBoostRela.setOnClickListener(v -> showTagLegibilityBoostDialog());
 
         // 标签译文颜色（#1047-5）：跟随主题 or 从主题色彩页中选择
         setTagTranslationColorName();
@@ -597,6 +609,208 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             return;
         }
         baseBind.tagTranslationColor.setText(getString(ThemeColorCatalog.nameResOf(Shaft.sSettings.getTagTranslationColorIndex())));
+    }
+
+    /**
+     * 右侧值**同时显示两条**（白天在前、黑暗在后）。只显示当前模式那条的话，翻深浅时文案会变，
+     * 用户容易误以为设置丢了；而且弹窗里另一模式的样板会露出差异，与"当前那条是 0"自相矛盾。
+     *
+     * 两条用**不同动词**：白天是「压暗」、黑暗是「提亮」—— 同一个滑条在两种模式下把原文推向
+     * 相反方向（浅色模式压深、深色模式提亮），共用一个动词会让人以为滑条方向反了。
+     */
+    private void setTagLegibilityBoostName() {
+        baseBind.tagLegibilityBoost.setText(getString(
+                R.string.tag_legibility_boost_summary,
+                tagLegibilityBoostLabel(mActivity, false, TagLegibilityPrefs.light()),
+                tagLegibilityBoostLabel(mActivity, true, TagLegibilityPrefs.dark())));
+    }
+
+    /**
+     * 值文案按模式分流：白天「不压暗 / 压暗 XX%」，黑暗「不提亮 / 提亮 XX%」。
+     * 声明成静态是为了让弹窗里那个私有 Builder 也能直接用。
+     */
+    private static String tagLegibilityBoostLabel(Context context, boolean dark, int value) {
+        if (value <= 0) {
+            return context.getString(dark
+                    ? R.string.tag_legibility_boost_none_dark
+                    : R.string.tag_legibility_boost_none_light);
+        }
+        return context.getString(dark
+                ? R.string.tag_legibility_boost_percent_dark
+                : R.string.tag_legibility_boost_percent_light, value);
+    }
+
+    private void showTagLegibilityBoostDialog() {
+        TagLegibilityBoostDialogBuilder builder = new TagLegibilityBoostDialogBuilder(mActivity);
+        builder.setTitle(R.string.tag_legibility_boost);
+        builder.addAction(R.string.string_cancel, (dialog, which) -> dialog.dismiss());
+        builder.addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_POSITIVE, (dialog, which) -> {
+            // save() 直接写设备本地的 MMKV，没有单独的「落盘」步骤；随后推给 witstudio。
+            // 已经渲染出来的标签胶囊要等视图重建才换色，与「标签译文颜色」同款取舍 ——
+            // 不为一次滑条调整重启进程。
+            TagLegibilityPrefs.save(builder.lightBoost(), builder.darkBoost());
+            TagLegibilityPrefs.applyToWitStudio();
+            setTagLegibilityBoostName();
+            dialog.dismiss();
+        });
+        builder.show();
+    }
+
+    /**
+     * 「提升标签原文辨识度」弹窗：白天 / 黑暗两条滑条，各自带一组实时预览胶囊。
+     *
+     * 每行固定渲染**两颗**胶囊 —— 左边永远是 k=0 的原始效果，右边随滑条变化，"提升前 / 后"
+     * 同时可见，不用来回拖对比。两行各自按自己的模式渲染（用 `V3Palette(primary, isDark,
+     * boost)` 显式指定），所以在深色模式下打开弹窗也能看到白天的效果。
+     *
+     * 拖动只改右侧胶囊的文字色，不重建视图 —— 每 tick 重建会掉帧。
+     */
+    private static final class TagLegibilityBoostDialogBuilder extends WitDialog.CustomDialogBuilder {
+
+        private SeekBar lightSlider;
+        private SeekBar darkSlider;
+        private TextView lightValue;
+        private TextView darkValue;
+        private TextView lightLive;
+        private TextView darkLive;
+        private int initialLight;
+        private int initialDark;
+
+        private TagLegibilityBoostDialogBuilder(Context context) {
+            super(context);
+        }
+
+        /** 弹窗内容没建起来时（onCreateContent 未跑）回落到进入时的值，避免误写 0。 */
+        int lightBoost() {
+            return lightSlider != null ? lightSlider.getProgress() : initialLight;
+        }
+
+        int darkBoost() {
+            return darkSlider != null ? darkSlider.getProgress() : initialDark;
+        }
+
+        @Override
+        protected View onCreateContent(WitDialog dialog, WitDialogView parent, Context context) {
+            View content = LayoutInflater.from(context)
+                    .inflate(R.layout.dialog_tag_legibility_boost, parent, false);
+            final int primary = V3Palette.from(context).getPrimary();
+
+            // 预览胶囊的底是半透明染色，实际颜色由身后的面决定，所以样板必须铺**真实页面底**
+            // （`fragment_center`）—— 铺 cardFill 的话，样板和 App 里坐在页面底上的实物渲染
+            // 出来不是一回事，样板就失去参照意义。两行各按自己的模式取日夜资源，浅色模式下也
+            // 能看到"黑暗"那行的真实底色。
+            final int previewPad = dp(context, 10);
+            LinearLayout lightPreview = content.findViewById(R.id.tag_legibility_light_preview);
+            LinearLayout darkPreview = content.findViewById(R.id.tag_legibility_dark_preview);
+            lightPreview.setBackground(previewSurface(context, pageSurface(context, false)));
+            darkPreview.setBackground(previewSurface(context, pageSurface(context, true)));
+            lightPreview.setPadding(previewPad, previewPad, previewPad, previewPad);
+            darkPreview.setPadding(previewPad, previewPad, previewPad, previewPad);
+
+            lightSlider = content.findViewById(R.id.tag_legibility_light_slider);
+            darkSlider = content.findViewById(R.id.tag_legibility_dark_slider);
+            lightValue = content.findViewById(R.id.tag_legibility_light_value);
+            darkValue = content.findViewById(R.id.tag_legibility_dark_value);
+            lightLive = bindPreviewRow(
+                    content.findViewById(R.id.tag_legibility_light_preview), context, primary, false);
+            darkLive = bindPreviewRow(
+                    content.findViewById(R.id.tag_legibility_dark_preview), context, primary, true);
+
+            initialLight = TagLegibilityPrefs.light();
+            initialDark = TagLegibilityPrefs.dark();
+            lightSlider.setProgress(initialLight);
+            darkSlider.setProgress(initialDark);
+            renderRow(false, initialLight, lightValue, lightLive, primary);
+            renderRow(true, initialDark, darkValue, darkLive, primary);
+
+            lightSlider.setOnSeekBarChangeListener(new SimpleSeekListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    renderRow(false, progress, lightValue, lightLive, primary);
+                }
+            });
+            darkSlider.setOnSeekBarChangeListener(new SimpleSeekListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    renderRow(true, progress, darkValue, darkLive, primary);
+                }
+            });
+            return content;
+        }
+
+        /** 放两颗胶囊：左边永远 k=0，右边是当前值；返回右边那颗供拖动时改色。 */
+        private TextView bindPreviewRow(LinearLayout row, Context context, int primary, boolean isDark) {
+            row.removeAllViews();
+            row.addView(buildChip(context, new V3Palette(primary, isDark, 0f)));
+            TextView live = buildChip(context, new V3Palette(primary, isDark, 0f));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.setMarginStart(dp(context, 12));
+            row.addView(live, lp);
+            return live;
+        }
+
+        private TextView buildChip(Context context, V3Palette palette) {
+            TextView chip = new TextView(context);
+            // 资源里已带 "# " 前缀，与真实胶囊（showHashPrefix）一致。
+            chip.setText(R.string.tag_legibility_boost_preview_tag);
+            chip.setTextSize(13f);
+            chip.setPadding(dp(context, 14), dp(context, 7), dp(context, 14), dp(context, 7));
+            WitTagStyle.applyText(chip, palette);
+            // applyText 设的是 textAccent；真实胶囊（WitTagFlowView.newText）紧接着会用
+            // textTag 覆盖它。样板必须走同一条路 —— 否则左样板是 textAccent、右样板是
+            // textTag，两颗样板在 k=0 时就长得不一样（实测 #8183E3 vs #9395E7）。
+            chip.setTextColor(palette.getTextTag());
+            chip.setBackground(WitTagStyle.background(
+                    palette, context.getResources().getDisplayMetrics().density));
+            return chip;
+        }
+
+        /** 滑条、数值文案、右侧胶囊三者同步。 */
+        private void renderRow(boolean isDark, int progress, TextView value, TextView live, int primary) {
+            Context context = value.getContext();
+            value.setText(tagLegibilityBoostLabel(context, isDark, progress));
+            live.setTextColor(new V3Palette(primary, isDark, progress / 100f).getTextTag());
+        }
+
+        private static int dp(Context context, int value) {
+            return Math.round(value * context.getResources().getDisplayMetrics().density);
+        }
+
+        /**
+         * 预览胶囊脚下的那块底 —— 用**真实页面底**（`fragment_center`）而不是 cardFill。
+         *
+         * 胶囊的染色底是半透明的，实际颜色由身后的面决定：App 里标签坐在页面底（深色
+         * `#2A2A2A`）上，比 cardFill（深色 `#1F1F26`）更亮，铺 cardFill 的样板会渲染成另一种
+         * 样子。这里按行的模式取对应的日夜资源，样板即所见。
+         */
+        private static int pageSurface(Context context, boolean isDark) {
+            Configuration config = new Configuration(context.getResources().getConfiguration());
+            config.uiMode = (config.uiMode & ~Configuration.UI_MODE_NIGHT_MASK)
+                    | (isDark ? Configuration.UI_MODE_NIGHT_YES : Configuration.UI_MODE_NIGHT_NO);
+            return ContextCompat.getColor(
+                    context.createConfigurationContext(config), R.color.fragment_center);
+        }
+
+        /** 预览胶囊脚下的那块底，圆角与卡片一致。 */
+        private static GradientDrawable previewSurface(Context context, int color) {
+            GradientDrawable surface = new GradientDrawable();
+            surface.setShape(GradientDrawable.RECTANGLE);
+            surface.setCornerRadius(dp(context, 12));
+            surface.setColor(color);
+            return surface;
+        }
+
+        /** 只关心 onProgressChanged，起止回调留空。 */
+        private abstract static class SimpleSeekListener implements SeekBar.OnSeekBarChangeListener {
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        }
     }
 
     private void showTagTranslationColorDialog() {
