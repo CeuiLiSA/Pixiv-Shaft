@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import androidx.activity.ComponentActivity;
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.OnBackPressedDispatcher;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -32,7 +33,7 @@ import ceui.lisa.activities.VActivity;
  * {@link OnBackPressedCallback}，AndroidX 就会向 {@code WindowOnBackInvokedDispatcher}
  * 注册 {@code OnBackInvokedCallback}；系统一旦发现 App 自己注册了回调，就放弃它自己的
  * 跨 Activity / 回桌面预测动画，手势落下后只是干巴巴地回调。因此「挂一个常开回调、
- * 在回调里 finish()」等价于关掉预测动画。
+ * 在回调里交回默认返回」等价于关掉预测动画。
  *
  * <p>这是本项目验证过的既有手法，反面教训见 {@code TemplateActivity#initView}：那里原本
  * 就有一个常开兜底 callback，把全 app 几乎所有页面的预测式返回都掐死了，后来被移除。
@@ -158,16 +159,19 @@ public final class PredictiveBackSuppressor implements Application.ActivityLifec
             if (INSTALLED.containsKey(activity)) {
                 return;
             }
+            OnBackPressedDispatcher dispatcher = ((ComponentActivity) activity).getOnBackPressedDispatcher();
             OnBackPressedCallback callback = new OnBackPressedCallback(false) {
                 @Override
                 public void handleOnBackPressed() {
-                    // 只有没有任何更高优先级的拦截时才会走到这里，直接结束当前页。
-                    if (!activity.isFinishing()) {
-                        activity.finish();
-                    }
+                    // 只有没有任何更高优先级的拦截时才会走到这里。这里只负责「不让系统播动画」,
+                    // 返回本身交回 Activity 默认实现,不能自己 finish():launcher 根页(MainActivity
+                    // 「再按一次退出」窗口内)默认是 moveTaskToBack,finish 会把主页销毁掉。
+                    setEnabled(false);
+                    dispatcher.onBackPressed();
+                    setEnabled(true);
                 }
             };
-            ((ComponentActivity) activity).getOnBackPressedDispatcher().addCallback(callback);
+            dispatcher.addCallback(callback);
             INSTALLED.put(activity, callback);
             // [实验] 紧跟在侧边栏点击之后创建的 Activity 认作"从侧边栏进入"。
             // 标记必须在算 suppress 之前打 —— shouldSuppressActivity 会把它算进去,

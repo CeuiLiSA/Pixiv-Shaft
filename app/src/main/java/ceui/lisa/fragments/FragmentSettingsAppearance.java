@@ -168,7 +168,8 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
             anyPageToggle = anyPageRow.findViewById(R.id.pb_row_switch);
             anyPageToggle.setChecked(Shaft.sSettings.isSuppressBackFlickerAnyPage());
             experimentalRows.addView(anyPageRow);
-            return content;
+            // 8 行开关 + 说明,横屏/大字号下会超出弹窗最大高度,必须可滚动,否则「确定」被挤出屏幕。
+            return wrapWithScroll(content);
         }
 
         private void apply() {

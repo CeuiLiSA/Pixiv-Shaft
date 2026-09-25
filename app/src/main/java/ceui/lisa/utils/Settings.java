@@ -165,9 +165,8 @@ public class Settings {
     private boolean drawerPredictiveBackEnabled = true;
 
     //[实验] 尝试抑制「进入任意页后返回」时的闪烁,默认关。
-    //打开后 PredictiveBackSuppressor 会把所有 Activity 纳入,并在每次页面 resume 后
-    //冗余地 setEnabled 一次 —— 借 AndroidX「无条件 updateEnabledCallbacks」把系统的
-    //sendCancelIfRunning 注入进去,掐掉下一次返回的预测动画(闪烁随动画出现)。
+    //打开后 PredictiveBackSuppressor 会把所有 Activity 纳入,侧边栏行点击后紧接着创建的
+    //那个 Activity 整条生命周期保持回调 enabled,系统便不播预测动画(闪烁随动画出现)。
     //在 OriginOS 5 上实测有效;其它 ROM 上属于未验证行为,所以默认关。
     private boolean suppressBackFlickerAnyPage = false;
 
