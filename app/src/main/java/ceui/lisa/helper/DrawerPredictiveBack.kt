@@ -67,7 +67,12 @@ class DrawerPredictiveBack(
         if (!tracking) return
         if (progress > EPSILON) {
             // 真进度到手 —— 兜底(如果有)立刻作废,回到逐帧跟手。
-            fallback = false
+            // 还在往 FALLBACK_PROGRESS 滑的动画必须一起停掉,否则它逐帧覆盖真实进度,
+            // 滑完还停在固定值,下一个样本再猛地拉回手指位置。
+            if (fallback) {
+                fallback = false
+                cancelAnimator()
+            }
             apply(progress)
             return
         }
