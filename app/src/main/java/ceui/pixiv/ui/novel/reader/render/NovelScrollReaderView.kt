@@ -12,6 +12,7 @@ import android.util.TypedValue
 import android.view.ActionMode
 import android.view.GestureDetector
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -54,6 +55,9 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     var topInset: Int = 0
 
     var onCenterTap: (() -> Unit)? = null
+    /** 防误触开启时的长按，由宿主呼出菜单（#1159）。 */
+    var onLockedLongPress: (() -> Unit)? = null
+    private var touchLocked = false
     var onTextDoubleTap: ((Int) -> Unit)? = null
     private var doubleTapChar: Int? = null
     private var ttsRange: IntRange? = null
@@ -105,13 +109,15 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             // 纵向滚动没有左右翻页语义，整屏单击都呼出菜单——不是横向那套三分区
             //（只留中间一竖条反直觉，#1038）。落在插画/跳转按钮上的点击让给它们自己的
             // onClick，避免「打开大图的同时菜单也弹出来」。
-            val child = findChildViewUnder(e.x, e.y)
-            if (child != null) {
-                val holder = getChildViewHolder(child)
-                if (holder is ImageHolder || holder is JumpHolder) return false
-            }
+            if (hitsOwnClickTarget(e)) return false
             onCenterTap?.invoke()
             return true
+        }
+
+        override fun onLongPress(e: MotionEvent) {
+            if (!touchLocked || wasScrollingOnTouchDown || hitsOwnClickTarget(e)) return
+            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            onLockedLongPress?.invoke()
         }
     })
 
@@ -171,6 +177,20 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         return super.dispatchTouchEvent(ev)
     }
 
+    override fun onInterceptTouchEvent(e: MotionEvent): Boolean {
+        val intercepted = super.onInterceptTouchEvent(e)
+        // 防误触：文字段落不接手势，长按不进原生选区、段内链接不响应，滚动由 RecyclerView
+        // 自己的 onTouchEvent 接管；插画/跳转按钮照常下发给它们的 onClick（#1159）。
+        if (touchLocked && e.actionMasked == MotionEvent.ACTION_DOWN && !hitsOwnClickTarget(e)) return true
+        return intercepted
+    }
+
+    /** 插画/跳转按钮有自己的 onClick，落在上面的手势不归阅读器处理。 */
+    private fun hitsOwnClickTarget(e: MotionEvent): Boolean {
+        val holder = findChildViewUnder(e.x, e.y)?.let(::getChildViewHolder)
+        return holder is ImageHolder || holder is JumpHolder
+    }
+
     override fun onDetachedFromWindow() {
         touchActive = false
         doubleTapChar = null
@@ -196,6 +216,10 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     }
 
     // ---- Public API --------------------------------------------------------
+
+    fun setTouchLocked(locked: Boolean) {
+        touchLocked = locked
+    }
 
     fun bind(
         tokens: List<ContentToken>,

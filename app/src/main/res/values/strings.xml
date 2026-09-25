@@ -1365,7 +1365,7 @@
     <string name="setting_keep_screen_on">屏幕常亮</string>
     <string name="setting_show_top_progress">显示顶部进度条</string>
     <string name="setting_show_bottom_progress">底部显示阅读进度</string>
-    <string name="setting_touch_locked">锁定触控（防误触）</string>
+    <string name="setting_touch_locked">防误触（长按呼出菜单）</string>
     <string name="setting_eye_break">护眼提醒</string>
     <string name="setting_image_placement">垂直位置</string>
     <string name="setting_image_top">顶部</string>

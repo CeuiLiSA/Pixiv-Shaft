@@ -8,6 +8,7 @@ import android.graphics.Canvas
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.GestureDetector
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.VelocityTracker
 import android.view.ViewConfiguration
@@ -79,6 +80,15 @@ class NovelReaderView @JvmOverloads constructor(
             return true
         }
     })
+    private var lockedLongPressed = false
+    private val lockedGestures = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+        override fun onLongPress(e: MotionEvent) {
+            if (isDragging || settleAnimator?.isRunning == true) return
+            lockedLongPressed = true
+            performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+            onLockedLongPress?.invoke()
+        }
+    })
 
     private var settleAnimator: ValueAnimator? = null
     private var touchLocked: Boolean = false
@@ -87,6 +97,8 @@ class NovelReaderView @JvmOverloads constructor(
 
     // Listeners
     var onTapCenter: (() -> Unit)? = null
+    /** 防误触开启时的长按，由宿主呼出菜单（#1159）。 */
+    var onLockedLongPress: (() -> Unit)? = null
     var onPageChanged: ((Int) -> Unit)? = null
     var onTextDoubleTap: ((charIndex: Int) -> Unit)? = null
         set(value) {
@@ -286,7 +298,9 @@ class NovelReaderView @JvmOverloads constructor(
     // ---- Touch pipeline ---------------------------------------------------
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        if (touchLocked) return false
+        // 防误触：整个手势不下发给文字块，否则 onBlockBareTap 绕过锁照样翻页/呼出菜单，
+        // 长按也会进原生选区。翻页、图片/跳转命中都由本 View 的 onTouchEvent 自己处理（#1159）。
+        if (touchLocked) return true
         when (ev.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 Timber.tag(TAG).v("intercept DOWN at (${ev.x}, ${ev.y})")
@@ -346,6 +360,10 @@ class NovelReaderView @JvmOverloads constructor(
     }
 
     private fun dispatchReaderTouch(event: MotionEvent): Boolean {
+        if (touchLocked) {
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) lockedLongPressed = false
+            lockedGestures.onTouchEvent(event)
+        }
         if (onTextDoubleTap != null) ttsGestures.onTouchEvent(event)
         val charIndex = doubleTapChar
         if (charIndex != null) {
@@ -369,7 +387,6 @@ class NovelReaderView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (touchLocked) return false
         velocityTracker?.addMovement(event)
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
@@ -395,6 +412,8 @@ class NovelReaderView @JvmOverloads constructor(
                     }
                     return true
                 } else {
+                    // 长按已呼出菜单，手指接着滑动不再翻页。
+                    if (lockedLongPressed) return true
                     val dx = event.x - dragStartX
                     val dy = event.y - dragStartY
                     if (abs(dx) > slop && abs(dx) > abs(dy)) {
@@ -566,6 +585,12 @@ class NovelReaderView @JvmOverloads constructor(
     private fun cancelAllGestures() {
         touchActive = false
         cancelPendingTaps()
+        lockedLongPressed = false
+        val now = SystemClock.uptimeMillis()
+        MotionEvent.obtain(now, now, MotionEvent.ACTION_CANCEL, 0f, 0f, 0).let {
+            lockedGestures.onTouchEvent(it)
+            it.recycle()
+        }
         cancelSettle()
         isDragging = false
         dragProgress = 0f

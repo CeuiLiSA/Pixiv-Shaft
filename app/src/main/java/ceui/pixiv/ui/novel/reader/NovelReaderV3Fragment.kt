@@ -312,8 +312,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
 
     private fun wireReaderView(rv: NovelReaderView, chrome: ReaderChrome) {
         rv.onTapCenter = {
-            if (activeSelection != null) clearSelection() else chrome.toggle()
+            if (activeSelection != null) clearSelection() else onReaderTap(chrome)
         }
+        rv.onLockedLongPress = { chrome.show() }
         rv.onImageTap = { image -> openImageElement(image) }
         rv.onJumpTap = { jump -> handleJumpTap(jump.target) }
         rv.onEdgeHit = { /* edge feedback: vibrate later */ }
@@ -540,6 +541,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                 }
                 ReaderSettings.ChangeEvent.Interaction -> {
                     rv.setTouchLocked(ReaderSettings.touchLocked)
+                    scrollReaderView?.setTouchLocked(ReaderSettings.touchLocked)
                     rv.setTapZoneReversed(ReaderSettings.tapZoneReversed)
                     rv.setTapAllForward(ReaderSettings.tapAllForward)
                     binding.root.keepScreenOn = ReaderSettings.keepScreenOn
@@ -688,6 +690,12 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         updateLoadingVisibility()
     }
 
+    /** 防误触开启时单击只收起菜单，呼出改为长按（#1159）。 */
+    private fun onReaderTap(chrome: ReaderChrome) {
+        if (ReaderSettings.touchLocked && !chrome.isShown) return
+        chrome.toggle()
+    }
+
     private fun ensureScrollReaderView(chrome: ReaderChrome): NovelScrollReaderView {
         scrollReaderView?.let { return it }
         return NovelScrollReaderView(requireContext()).also { sv ->
@@ -695,7 +703,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             sv.visibility = View.GONE
             binding.readerStage.addView(sv)
             scrollReaderView = sv
-            sv.onCenterTap = { chrome.toggle() }
+            sv.onCenterTap = { onReaderTap(chrome) }
+            sv.onLockedLongPress = { chrome.show() }
+            sv.setTouchLocked(ReaderSettings.touchLocked)
             sv.onImageTap = { image -> openImageElement(image) }
             sv.onJumpTap = { target -> handleJumpTap(target) }
             sv.onCharIndexChanged = { charIndex -> viewModel.onScrollPositionChanged(charIndex) }
