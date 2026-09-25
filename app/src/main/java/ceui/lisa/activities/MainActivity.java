@@ -56,6 +56,7 @@ import ceui.lisa.fragments.FragmentViewPager;
 import ceui.lisa.helper.DrawerLayoutHelper;
 import ceui.lisa.helper.DrawerPredictiveBack;
 import ceui.lisa.helper.NavigationLocationHelper;
+import ceui.lisa.helper.PredictiveBackSuppressor;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -262,6 +263,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         // 否则走双击退出。targetSdk 35+ 后预测式返回默认开启,系统不再回调 onKeyDown,
         // 必须用 OnBackPressedDispatcher 接管。
         //
+        // 本 Activity 已在 manifest 显式声明 enableOnBackInvokedCallback="true":部分 ROM 不认
+        // AOSP 的默认值,不显式声明时只给 handleOnBackPressed,抽屉那套跟手动画(需要
+        // started/progressed)会静默失效、退化成 DrawerLayout 自带的关闭动画。
+        // 抽屉跟手动画本身可在「设置 · 界面 · 预测性返回」里单独关掉(应用自绘口径)。
+        //
         // 预测式「回桌面」动画只在 app 没注册任何返回回调时才播,所以第一次按返回 toast 之后
         // 把这个 callback 关掉 2 秒(refreshMainBackCallback):第二次返回直接交给系统,
         // 跟手的回桌面预览照常播;2 秒过了再重新接管。抽屉开着时始终接管。
@@ -271,13 +277,18 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 new OnBackPressedCallback(true) {
                     @Override
                     public void handleOnBackStarted(@NonNull BackEventCompat backEvent) {
-                        if (isDrawerOpen()) drawerPredictiveBack.onStarted();
+                        // 关掉自绘开关时不 start,tracking 保持 false,
+                        // close() 自然落到 DrawerLayout 自带的关闭动画。
+                        if (isDrawerOpen() && Shaft.sSettings.isDrawerPredictiveBackEnabled()) {
+                            drawerPredictiveBack.onStarted();
+                        }
                     }
 
                     @Override
                     public void handleOnBackProgressed(@NonNull BackEventCompat backEvent) {
-                        if (isDrawerOpen())
+                        if (isDrawerOpen() && Shaft.sSettings.isDrawerPredictiveBackEnabled()) {
                             drawerPredictiveBack.onProgressed(backEvent.getProgress());
+                        }
                     }
 
                     @Override
@@ -735,6 +746,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             }
             row.setOnClickListener(
                     v -> {
+                        // [实验] 武装点放在这里而不是 handleDrawerAction 里:那个方法还与
+                        // MeFragment / FragmentCenter 共用,只有这里是真正的"从侧边栏进入"。
+                        PredictiveBackSuppressor.armDrawerLaunch();
                         handleDrawerAction(entry.id);
                         baseBind.drawerLayout.closeDrawer(GravityCompat.START);
                     });

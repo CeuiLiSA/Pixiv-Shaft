@@ -2857,6 +2857,21 @@
 
     <!-- Файл журнала (экспериментально) -->
     <string name="setting_log_file_enable">Включить файл журнала</string>
+    <string name="setting_predictive_back">Прогнозный возврат</string>
+    <string name="setting_predictive_back_desc">Выбор для каждого экрана: использовать системную анимацию прогнозного возврата. Отключённые экраны используют классический возврат. Если на некоторых системах анимация возврата работает неправильно (мерцание, неверная страница позади, необъяснимая однотонная полоса), отключайте экраны здесь, чтобы локализовать проблему.</string>
+    <string name="setting_predictive_back_dialog_hint">Вкл. — системная анимация прогнозного возврата. Выкл. — классический возврат.</string>
+    <string name="setting_predictive_back_help">Справка</string>
+    <string name="setting_predictive_back_group_system">Системная анимация</string>
+    <string name="setting_predictive_back_group_drawer">Рисуется приложением</string>
+    <string name="setting_predictive_back_item_main">Главная</string>
+    <string name="setting_predictive_back_item_drawer">Жест из бокового меню</string>
+    <string name="setting_predictive_back_group_experimental">Эксперимент</string>
+    <string name="setting_predictive_back_item_any_page">Подавить анимацию прогнозного возврата со страницы из бокового меню, чтобы убрать мерцание</string>
+    <string name="setting_predictive_back_item_template">Общие страницы</string>
+    <string name="setting_predictive_back_item_rank">Рейтинги</string>
+    <string name="setting_predictive_back_item_detail">Просмотр иллюстрации</string>
+    <string name="setting_predictive_back_item_search">Результаты поиска</string>
+    <string name="setting_predictive_back_item_viewer">Просмотр нескольких изображений</string>
     <string name="setting_log_file_desc">Может повлиять на производительность\nФайл журнала: %1$s</string>
     <string name="setting_log_file_no_file">Ещё не создан</string>
     <string name="setting_log_file_share">Поделиться файлом журнала</string>

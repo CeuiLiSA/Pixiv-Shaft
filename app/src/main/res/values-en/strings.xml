@@ -2875,6 +2875,21 @@
 
     <!-- Log file (experimental) -->
     <string name="setting_log_file_enable">Enable log file</string>
+    <string name="setting_predictive_back">Predictive back</string>
+    <string name="setting_predictive_back_desc">Choose per screen whether to use the system predictive back animation. Screens turned off use the classic back. If the back animation misbehaves on some systems (flicker, wrong page behind, unexplained solid-color edge), turn screens off here to narrow it down.</string>
+    <string name="setting_predictive_back_dialog_hint">On = system predictive back animation. Off = classic back.</string>
+    <string name="setting_predictive_back_help">Help</string>
+    <string name="setting_predictive_back_group_system">System predictive back</string>
+    <string name="setting_predictive_back_group_drawer">Drawn by the app</string>
+    <string name="setting_predictive_back_item_main">Home</string>
+    <string name="setting_predictive_back_item_drawer">Sidebar gesture</string>
+    <string name="setting_predictive_back_group_experimental">Experimental</string>
+    <string name="setting_predictive_back_item_any_page">Suppress the predictive animation when returning from a sidebar page, to fix flicker</string>
+    <string name="setting_predictive_back_item_template">Generic pages</string>
+    <string name="setting_predictive_back_item_rank">Rankings</string>
+    <string name="setting_predictive_back_item_detail">Artwork detail</string>
+    <string name="setting_predictive_back_item_search">Search results</string>
+    <string name="setting_predictive_back_item_viewer">Multi-image viewer</string>
     <string name="setting_log_file_desc">May affect performance\nLog file at %1$s</string>
     <string name="setting_log_file_no_file">Not generated yet</string>
     <string name="setting_log_file_share">Share log file</string>
