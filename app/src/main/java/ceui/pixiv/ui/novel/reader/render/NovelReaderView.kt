@@ -360,10 +360,10 @@ class NovelReaderView @JvmOverloads constructor(
     }
 
     private fun dispatchReaderTouch(event: MotionEvent): Boolean {
-        if (touchLocked) {
-            if (event.actionMasked == MotionEvent.ACTION_DOWN) lockedLongPressed = false
-            lockedGestures.onTouchEvent(event)
-        }
+        // 每个手势都清：长按呼出菜单后常见的下一步就是进设置关掉防误触，
+        // 只在锁定时清会让它一直为 true，解锁后空白处滑动翻页全部失效。
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) lockedLongPressed = false
+        if (touchLocked) lockedGestures.onTouchEvent(event)
         if (onTextDoubleTap != null) ttsGestures.onTouchEvent(event)
         val charIndex = doubleTapChar
         if (charIndex != null) {
