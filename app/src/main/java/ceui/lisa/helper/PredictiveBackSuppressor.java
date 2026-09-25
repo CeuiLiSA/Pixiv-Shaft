@@ -97,6 +97,27 @@ public final class PredictiveBackSuppressor implements Application.ActivityLifec
     private static final WeakHashMap<Activity, Boolean> DRAWER_LAUNCHED = new WeakHashMap<>();
 
     /**
+     * 「本进程启动后是否发生过导航」—— 用来近似判断当前 ROM 的预测返回有没有 primed。
+     *
+     * <p>某些 ROM 只在系统侧存在有效预测返回目标时才投递真实 progress;而任何一次导航
+     * (侧边栏选项 / 详情页 / 搜索页都算)都会让它进入 primed。所以在 MainActivity 上做抽屉
+     * 手势时,「本进程还没创建过 MainActivity 以外的 Activity」≈「ROM 处于未 primed 窗口」
+     * ≈「这一场手势只会拿到 progress 恒为 0 的 stub」。
+     *
+     * <p>这是启发式而非已证实的机制,正常设备冷启动后同样会命中,所以使用方必须能自愈:
+     * 先等一小段真实进度再兜底,任何时候收到 progress > 0 都立刻放弃兜底
+     * (见 {@code DrawerPredictiveBack})。
+     *
+     * <p>只在进程内单向置位、不重置:实测「进一次页面再回来」的 primed 是持久的。
+     */
+    private static volatile boolean navigatedSinceProcessStart = false;
+
+    /** 见 {@link #navigatedSinceProcessStart}。 */
+    public static boolean hasNavigatedSinceProcessStart() {
+        return navigatedSinceProcessStart;
+    }
+
+    /**
      * [实验] 侧边栏(抽屉)点了某项时调用 —— 挂在 MainActivity#addDrawerSection 的行点击里,
      * 而不是 handleDrawerAction 里:后者与 MeFragment / FragmentCenter 共用,只有前者
      * 才真的算"从侧边栏进入"。
@@ -147,6 +168,11 @@ public final class PredictiveBackSuppressor implements Application.ActivityLifec
 
     @Override
     public void onActivityPreCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
+        // 必须放在下面所有 early-return 之前:创建过 MainActivity 以外的 Activity
+        // 就算发生过一次导航,也就是 ROM 已 primed(见 navigatedSinceProcessStart)。
+        if (activity.getClass() != MainActivity.class) {
+            navigatedSinceProcessStart = true;
+        }
         if (!(activity instanceof ComponentActivity)) {
             return;
         }
@@ -207,7 +233,7 @@ public final class PredictiveBackSuppressor implements Application.ActivityLifec
     @Override
     public void onActivityResumed(@NonNull Activity activity) {
         // 抑制只在 onActivityPreCreated 里设定一次,这里不需要做事。
-        // (曾在此注入过 sendCancelIfRunning,已否证 —— 见 分析报告-预测性返回.md §2.6)
+        // (曾在此注入过 sendCancelIfRunning 想做「主动预热」,实测无效,已否证。)
     }
 
     @Override

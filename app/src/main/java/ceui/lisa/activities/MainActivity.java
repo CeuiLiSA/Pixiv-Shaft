@@ -280,7 +280,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                         // 关掉自绘开关时不 start,tracking 保持 false,
                         // close() 自然落到 DrawerLayout 自带的关闭动画。
                         if (isDrawerOpen() && Shaft.sSettings.isDrawerPredictiveBackEnabled()) {
-                            drawerPredictiveBack.onStarted();
+                            // 本进程还没发生过任何导航 → 该 ROM 可能尚未 primed,这一场手势只会拿到
+                            // progress 恒为 0 的 stub,跟手无从驱动。那就允许退化成固定比例的预测
+                            // 返回预览;DrawerPredictiveBack 会先等一小段真实进度,等到了就照常跟手,
+                            // 所以正常设备上判错也看不出来。
+                            boolean unprimedWindow =
+                                    !PredictiveBackSuppressor.hasNavigatedSinceProcessStart();
+                            drawerPredictiveBack.onStarted(unprimedWindow);
                         }
                     }
 
