@@ -103,6 +103,19 @@ class PredictiveBackSuppressorTest {
     }
 
     @Test
+    fun `delegating to the default back keeps the suppressor armed`() {
+        // 回调把返回交回 Activity 默认实现(launcher 根页是 moveTaskToBack、页面还活着),
+        // 交完必须重新 enabled,否则下一次手势系统又会播预测动画。
+        val activity = install(Robolectric.buildActivity(TemplateActivity::class.java).get())
+        setPredictiveBackDisabled(TemplateActivity::class.java)
+
+        activity.onBackPressedDispatcher.onBackPressed()
+
+        assertTrue(activity.onBackPressedDispatcher.hasEnabledCallbacks())
+        suppressor.onActivityDestroyed(activity)
+    }
+
+    @Test
     fun `re-enabling a page restores the predictive path`() {
         val activity = install(Robolectric.buildActivity(TemplateActivity::class.java).get())
 
