@@ -28,10 +28,10 @@ import retrofit2.HttpException
 import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
- * issue #959: pixiv 官方「拉黑」(网页端 ブロック)。
+ * issue #959: pixiv 官方黑名单（アクセスブロック，网页端 ブロック)。
  *
  * **和「屏蔽」不是一回事**：屏蔽([ceui.lisa.utils.PixivOperate.muteUser])是纯本地过滤,只让自己
- * 看不见对方作品;拉黑是写到 pixiv 账号上的,对方从此无法关注 / 收藏 / 评论 / 私信你。所以这里必须
+ * 看不见对方作品;黑名单是写到 pixiv 账号上的,对方从此无法关注 / 收藏 / 评论 / 私信你。所以这里必须
  * 真的打网络接口,而不是往本地库里塞一条。
  *
  * 官方 App 没有这个功能,只有网页端有,接口是 `/ajax/block/save`(POST,JSON)——因此:
@@ -40,8 +40,8 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  *  - 需要 www.pixiv.net 通 —— 直连支持见 [ceui.lisa.http.CronetInterceptor] 的 host 映射,
  *    和 [ceui.pixiv.api.ClientManager.createWebAPIService] 里挂上的直连拦截器。
  *
- * issue #1162: 拉黑不影响 pixiv 的推荐流，对方作品照样会刷到,所以确认框里多给一个「拉黑并屏蔽其作品」,
- * 拉黑成功后顺手写一条本地屏蔽。拉黑(黑名单)普通会员也能加很多个,本地屏蔽不占 pixiv 的屏蔽(ミュート)名额,
+ * issue #1162: 黑名单不影响 pixiv 的推荐流，对方作品照样会刷到,所以确认框里多给一个「加入黑名单并屏蔽其作品」,
+ * 加入成功后顺手写一条本地屏蔽。黑名单普通会员也能加很多个,本地屏蔽不占 pixiv 的屏蔽(ミュート)名额,
  * 两者合并不会挤掉任何官方额度。
  *
  * V2([ceui.lisa.activities.UActivity])和 V3([ceui.lisa.activities.UserActivityV3])两棵树共用本
@@ -61,13 +61,13 @@ object PixivBlockOperate {
     }
 
     /**
-     * 画师页「更多」菜单里的入口：先读当前拉黑态,再按状态弹确认框。
+     * 画师页「更多」菜单里的入口：先读当前黑名单态,再按状态弹确认框。
      *
-     * 拉黑态不在进页面时预取 —— 那要给每次打开画师页多加一次网络请求,而这个功能是低频操作,
+     * 黑名单态不在进页面时预取 —— 那要给每次打开画师页多加一次网络请求,而这个功能是低频操作,
      * 点开菜单再查够用。
      *
-     * @param isMuted 本地是否已屏蔽该作者;已屏蔽就不再提供「拉黑并屏蔽」。
-     * @param onMuted 「拉黑并屏蔽」成功写入本地屏蔽后回调，宿主据此同步屏蔽开关和列表。
+     * @param isMuted 本地是否已屏蔽该作者;已屏蔽就不再提供「加入黑名单并屏蔽」。
+     * @param onMuted 「加入黑名单并屏蔽」成功写入本地屏蔽后回调，宿主据此同步屏蔽开关和列表。
      */
     fun showBlockDialog(
         activity: AppCompatActivity,
@@ -81,7 +81,7 @@ object PixivBlockOperate {
             return
         }
         val userId = user.id
-        // 名字空着时用 ID 兜,免得确认框读成「拉黑「」后…」。
+        // 名字空着时用 ID 兜,免得确认框读成「将「」加入黑名单后…」。
         val name = user.name.orEmpty().ifBlank { userId.toString() }
 
         val loading = WitTipDialog.Builder(activity)
@@ -130,7 +130,7 @@ object PixivBlockOperate {
         if (response.error == true) {
             throw RuntimeException(response.message.orEmpty().ifEmpty { "block/list failed" })
         }
-        // target_id 查询下目标本人必在返回里(isTarget=true)。真拿不到时按「未拉黑」处理:
+        // target_id 查询下目标本人必在返回里(isTarget=true)。真拿不到时按「不在黑名单」处理:
         // 用户点确认后接口会自己拒绝,总好过卡在这里什么都做不了。
         return response.body?.block_items
             ?.firstOrNull { it.isTarget || it.userId == userId.toString() }
@@ -181,7 +181,7 @@ object PixivBlockOperate {
         builder.create().show()
     }
 
-    /** @param onMuted 非空表示「拉黑并屏蔽」:拉黑成功后再写本地屏蔽，并回调它。 */
+    /** @param onMuted 非空表示「加入黑名单并屏蔽」:加入成功后再写本地屏蔽，并回调它。 */
     private fun performSave(
         activity: AppCompatActivity,
         user: User,
@@ -199,7 +199,7 @@ object PixivBlockOperate {
             try {
                 withContext(Dispatchers.IO) {
                     saveBlock(user.id, block, retried = false)
-                    // 拉黑一成功就紧跟着落本地屏蔽:放到 withContext 外面的话，页面在请求途中被关掉时
+                    // 加入黑名单一成功就紧跟着落本地屏蔽:放到 withContext 外面的话，页面在请求途中被关掉时
                     // lifecycleScope 已取消,withContext 返回即抛 CancellationException,这一条就丢了。
                     if (onMuted != null) PixivOperate.muteUser(user, false)
                 }
@@ -233,7 +233,7 @@ object PixivBlockOperate {
 
     /**
      * csrf 失效时 pixiv 回的是 **HTTP 403**(不是 200 + `error:true`),所以清 token 重来只能挂在
-     * [HttpException] 上。业务性失败(已拉黑 / 不能拉黑自己 …)才走 `error:true` —— 那种情况**绝不能**
+     * [HttpException] 上。业务性失败(已加入黑名单 / 不能加入自己 …)才走 `error:true` —— 那种情况**绝不能**
      * 清 token:这份 token 是「Web 首页」等功能共用的,清掉等于顺手把别人也弄坏,而直连下
      * [CsrfTokenProvider.fetch] 未必抓得回来(Cloudflare 可能对裸请求下 JS challenge),
      * 只能重走一次网页登录。

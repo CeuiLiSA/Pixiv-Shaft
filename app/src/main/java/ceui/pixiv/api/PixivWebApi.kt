@@ -218,7 +218,7 @@ interface PixivWebApi {
     ): StreetResponse
 
     /**
-     * issue #959: 读某个画师当前的 pixiv 官方拉黑态。带 target_id 时返回的
+     * issue #959: 读某个画师当前的 pixiv 官方黑名单（アクセスブロック）态。带 target_id 时返回的
      * block_items 里必含目标本人一条(isTarget=true),看它的 isBlocked 即可。
      * 需要网页 cookie。
      */
@@ -231,7 +231,7 @@ interface PixivWebApi {
     ): WebResponse<BlockListBody>
 
     /**
-     * issue #959: 拉黑 / 取消拉黑某画师(pixiv 账号级,不是本地屏蔽)。
+     * issue #959: 把某画师加入 / 移出黑名单（アクセスブロック，pixiv 账号级,不是本地屏蔽)。
      * 需要网页 cookie + x-csrf-token。
      */
     @POST("/ajax/block/save")

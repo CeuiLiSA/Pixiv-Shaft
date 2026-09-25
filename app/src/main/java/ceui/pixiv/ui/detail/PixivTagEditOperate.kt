@@ -22,7 +22,7 @@ import retrofit2.HttpException
  * www.pixiv.net 直连可达。
  *
  * **不预取权限。** 「我能不能编辑这个作品的标签」只有网页那条接口知道,为它给每次打开详情页
- * 多发一个请求不划算(和拉黑态同一笔账),所以入口无条件显示,点开才查,查出来不可编辑再解释。
+ * 多发一个请求不划算(和黑名单态同一笔账),所以入口无条件显示,点开才查,查出来不可编辑再解释。
  *
  * 本对象只管**网络与数据**,一个 View 都不碰;UI 全在 [TagEditSheet]。V2
  * ([ceui.lisa.fragments.FragmentIllust]) 和 V3 ([ArtworkV3Fragment]) 两棵树共用同一张 sheet。
@@ -46,7 +46,7 @@ object PixivTagEditOperate {
      * 只能挂在 [HttpException] 上。
      *
      * **但这条接口的 400 不等于 csrf 失效**:标签已满 10 个、编辑过于频繁同样是 400(见
-     * [withPixivMessage])。所以重试前**不能** [CsrfTokenProvider.clear] —— 这份 token 是拉黑、
+     * [withPixivMessage])。所以重试前**不能** [CsrfTokenProvider.clear] —— 这份 token 是黑名单、
      * Web 首页等功能共用的,而直连下 [CsrfTokenProvider.fetch] 未必抓得回来(Cloudflare 可能对裸
      * 请求下 JS challenge),清完抓不回就等于顺手把别人弄坏了。改成直接现抓一份覆盖:抓到就拿新的
      * 重试,抓不到则旧 token 原样保留,重试照发、失败照样能把 pixiv 的原话带回给用户。

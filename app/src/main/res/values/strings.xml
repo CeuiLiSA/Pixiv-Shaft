@@ -2922,18 +2922,18 @@
     <string name="string_rife_download_title">下载 RIFE 补帧模型</string>
     <string name="string_rife_download_subtitle">%1$s 需要额外下载以启用动图 AI 补帧</string>
     <string name="string_rife_download_done">补帧模型下载完成</string>
-    <!-- issue #959: pixiv 官方拉黑（网页端 ブロック），区别于纯本地的「屏蔽」 -->
-    <string name="pixiv_block_menu">拉黑此画师…</string>
-    <string name="pixiv_block_title">拉黑</string>
-    <string name="pixiv_block_message">拉黑「%1$s」后，对方将无法关注你、收藏或评论你的作品，也无法给你发私信。\n\n这会写入你的账号，和本地「屏蔽」不是一回事。</string>
-    <string name="pixiv_unblock_message">「%1$s」已在你的拉黑名单里，要取消拉黑吗？</string>
-    <string name="pixiv_block_action">拉黑</string>
-    <string name="pixiv_unblock_action">取消拉黑</string>
-    <string name="pixiv_block_done">已拉黑「%1$s」</string>
-    <string name="pixiv_block_and_mute_action">拉黑并屏蔽其作品</string>
-    <string name="pixiv_block_and_mute_done">已拉黑「%1$s」并屏蔽其作品</string>
-    <string name="pixiv_unblock_done">已取消拉黑「%1$s」</string>
-    <string name="pixiv_block_checking">正在查询拉黑状态…</string>
+    <!-- issue #959: pixiv 官方黑名单（アクセスブロック，网页端 ブロック），区别于纯本地的「屏蔽」 -->
+    <string name="pixiv_block_menu">加入黑名单…</string>
+    <string name="pixiv_block_title">黑名单</string>
+    <string name="pixiv_block_message">将「%1$s」加入黑名单后，对方将无法关注你、收藏或评论你的作品，也无法给你发私信。\n\n这会写入你的账号，和本地「屏蔽」不是一回事。</string>
+    <string name="pixiv_unblock_message">「%1$s」已在你的黑名单里，要解除吗？</string>
+    <string name="pixiv_block_action">加入黑名单</string>
+    <string name="pixiv_unblock_action">解除黑名单</string>
+    <string name="pixiv_block_done">已将「%1$s」加入黑名单</string>
+    <string name="pixiv_block_and_mute_action">加入黑名单并屏蔽其作品</string>
+    <string name="pixiv_block_and_mute_done">已将「%1$s」加入黑名单并屏蔽其作品</string>
+    <string name="pixiv_unblock_done">已将「%1$s」移出黑名单</string>
+    <string name="pixiv_block_checking">正在查询黑名单状态…</string>
     <string name="pixiv_block_submitting">正在提交…</string>
     <string name="pixiv_block_need_web_login">该功能通过网页接口实现，需要额外进行一次网页登录。</string>
     <!-- 画师页 chip 来自 app-api、筛选走网页 ajax，两边可见范围可能不一致；只给线索不下断言，

@@ -49,7 +49,7 @@ object SessionManager {
 
     /**
      * 网页版会话是否已同步。OAuth 登录只拿到 app-api 的 token，网页 cookie 得用户在 「Web 首页」里登录一次才写进来（见
-     * [ceui.pixiv.ui.web.WebFragment]）。 匿名身份下 www.pixiv.net 的 ajax 只返回全年龄作品，所以依赖网页接口的功能 （拉黑、按 tag
+     * [ceui.pixiv.ui.web.WebFragment]）。 匿名身份下 www.pixiv.net 的 ajax 只返回全年龄作品，所以依赖网页接口的功能 （黑名单、按 tag
      * 筛画师作品…）要先判这一条。
      */
     val hasWebCookie: Boolean

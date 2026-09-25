@@ -76,9 +76,12 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  *（头像 + 名字 + 开关）。一个具体的人该有脸、有名字、有一个明确的开关，把他压成一枚
  * 只有文字的胶囊，既认不出是谁，也让人以为作者和标签是同一类东西。
  *
- * 这里**只有本地屏蔽，没有 pixiv 官方的「拉黑」**（[ceui.pixiv.ui.user.PixivBlockOperate]）。
- * 拉黑要发网络请求、会失败、且一般用户全站只有 1 个额度，塞进「勾一下→保存」这套即时可逆的
- * 开关语义里必然骗人；它继续留在画师主页的菜单里。
+ * 这里**只有本地屏蔽，没有 pixiv 官方的黑名单（アクセスブロック）**（[ceui.pixiv.ui.user.PixivBlockOperate]）。
+ * 黑名单是账号级的网络操作：会失败，也不是「勾一下→保存」这种本地即时可逆的开关，塞进来必然骗人；
+ * 它继续留在画师主页的菜单里。
+ *
+ * 别和 pixiv 的**屏蔽设置（ミュート，`/ajax/mute`）**混为一谈：「标签或用户只留 1 件」是那条的限制，
+ * 而那条从未接入 shaft；黑名单（アクセスブロック）对一般用户也是**多个**名额。
  */
 class MuteTagSheet : BottomSheetDialogFragment() {
 
