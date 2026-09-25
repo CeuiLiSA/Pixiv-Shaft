@@ -557,6 +557,16 @@
     <string name="tag_translation_color">Tag translation color</string>
     <string name="tag_translation_color_follow_theme">Follow theme</string>
     <string name="tag_translation_color_pick_from_theme_page">Choose from theme color page</string>
+    <string name="tag_legibility_boost">Tag text brightness</string>
+    <string name="tag_legibility_boost_hint">Left is the original; right follows the slider\nA high value makes the chip fill look paler (dark) or deeper (light)</string>
+    <string name="tag_legibility_boost_summary">%1$s · %2$s</string>
+    <string name="tag_legibility_boost_light">Light</string>
+    <string name="tag_legibility_boost_dark">Dark</string>
+    <string name="tag_legibility_boost_none_light">No darkening</string>
+    <string name="tag_legibility_boost_none_dark">No brightening</string>
+    <string name="tag_legibility_boost_percent_light">Darken %1$d%%</string>
+    <string name="tag_legibility_boost_percent_dark">Brighten %1$d%%</string>
+    <string name="tag_legibility_boost_preview_tag"># Sample tag</string>
     <string name="string_325">Go to settings</string>
     <string name="string_326">start</string>
     <string name="string_327">Suspend</string>
@@ -2667,6 +2677,8 @@
     <string name="pixiv_block_action">Block</string>
     <string name="pixiv_unblock_action">Unblock</string>
     <string name="pixiv_block_done">Blocked “%1$s”</string>
+    <string name="pixiv_block_and_mute_action">Block and mute their works</string>
+    <string name="pixiv_block_and_mute_done">Blocked “%1$s” and muted their works</string>
     <string name="pixiv_unblock_done">Unblocked “%1$s”</string>
     <string name="pixiv_block_checking">Checking block status…</string>
     <string name="pixiv_block_submitting">Submitting…</string>
@@ -2875,6 +2887,21 @@
 
     <!-- Log file (experimental) -->
     <string name="setting_log_file_enable">Enable log file</string>
+    <string name="setting_predictive_back">Predictive back</string>
+    <string name="setting_predictive_back_desc">Choose per screen whether to use the system predictive back animation. Screens turned off use the classic back. If the back animation misbehaves on some systems (flicker, wrong page behind, unexplained solid-color edge), turn screens off here to narrow it down.</string>
+    <string name="setting_predictive_back_dialog_hint">On = system predictive back animation. Off = classic back.</string>
+    <string name="setting_predictive_back_help">Help</string>
+    <string name="setting_predictive_back_group_system">System predictive back</string>
+    <string name="setting_predictive_back_group_drawer">Drawn by the app</string>
+    <string name="setting_predictive_back_item_main">Home</string>
+    <string name="setting_predictive_back_item_drawer">Sidebar gesture</string>
+    <string name="setting_predictive_back_group_experimental">Experimental</string>
+    <string name="setting_predictive_back_item_any_page">Suppress the predictive animation when returning from a sidebar page, to fix flicker</string>
+    <string name="setting_predictive_back_item_template">Generic pages</string>
+    <string name="setting_predictive_back_item_rank">Rankings</string>
+    <string name="setting_predictive_back_item_detail">Artwork detail</string>
+    <string name="setting_predictive_back_item_search">Search results</string>
+    <string name="setting_predictive_back_item_viewer">Multi-image viewer</string>
     <string name="setting_log_file_desc">May affect performance\nLog file at %1$s</string>
     <string name="setting_log_file_no_file">Not generated yet</string>
     <string name="setting_log_file_share">Share log file</string>

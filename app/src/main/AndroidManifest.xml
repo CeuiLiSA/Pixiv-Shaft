@@ -115,6 +115,7 @@
         <activity
             android:name=".activities.MainActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:enableOnBackInvokedCallback="true"
             android:exported="true"
             android:theme="@style/SplashTheme">
             <intent-filter>

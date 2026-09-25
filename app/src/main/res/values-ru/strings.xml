@@ -557,6 +557,16 @@
     <string name="tag_translation_color">Цвет перевода тега</string>
     <string name="tag_translation_color_follow_theme">Следовать теме</string>
     <string name="tag_translation_color_pick_from_theme_page">Выбрать на странице цветов темы</string>
+    <string name="tag_legibility_boost">Яркость текста тегов</string>
+    <string name="tag_legibility_boost_hint">Слева — исходный вид, справа — по ползунку\nСлишком высокое значение делает заливку капсулы бледнее (тёмная) или насыщеннее (светлая)</string>
+    <string name="tag_legibility_boost_summary">%1$s · %2$s</string>
+    <string name="tag_legibility_boost_light">Светлая</string>
+    <string name="tag_legibility_boost_dark">Тёмная</string>
+    <string name="tag_legibility_boost_none_light">Без затемнения</string>
+    <string name="tag_legibility_boost_none_dark">Без осветления</string>
+    <string name="tag_legibility_boost_percent_light">Затемнить на %1$d%%</string>
+    <string name="tag_legibility_boost_percent_dark">Осветлить на %1$d%%</string>
+    <string name="tag_legibility_boost_preview_tag"># Пример тега</string>
     <string name="string_325">Перейти к настройкам</string>
     <string name="string_326">Начать</string>
     <string name="string_327">Приостановить</string>
@@ -2650,6 +2660,8 @@
     <string name="pixiv_block_action">Заблокировать</string>
     <string name="pixiv_unblock_action">Разблокировать</string>
     <string name="pixiv_block_done">«%1$s» заблокирован</string>
+    <string name="pixiv_block_and_mute_action">Заблокировать и скрыть работы</string>
+    <string name="pixiv_block_and_mute_done">«%1$s» заблокирован, работы скрыты</string>
     <string name="pixiv_unblock_done">«%1$s» разблокирован</string>
     <string name="pixiv_block_checking">Проверка статуса блокировки…</string>
     <string name="pixiv_block_submitting">Отправка…</string>
@@ -2857,6 +2869,21 @@
 
     <!-- Файл журнала (экспериментально) -->
     <string name="setting_log_file_enable">Включить файл журнала</string>
+    <string name="setting_predictive_back">Прогнозный возврат</string>
+    <string name="setting_predictive_back_desc">Выбор для каждого экрана: использовать системную анимацию прогнозного возврата. Отключённые экраны используют классический возврат. Если на некоторых системах анимация возврата работает неправильно (мерцание, неверная страница позади, необъяснимая однотонная полоса), отключайте экраны здесь, чтобы локализовать проблему.</string>
+    <string name="setting_predictive_back_dialog_hint">Вкл. — системная анимация прогнозного возврата. Выкл. — классический возврат.</string>
+    <string name="setting_predictive_back_help">Справка</string>
+    <string name="setting_predictive_back_group_system">Системная анимация</string>
+    <string name="setting_predictive_back_group_drawer">Рисуется приложением</string>
+    <string name="setting_predictive_back_item_main">Главная</string>
+    <string name="setting_predictive_back_item_drawer">Жест из бокового меню</string>
+    <string name="setting_predictive_back_group_experimental">Эксперимент</string>
+    <string name="setting_predictive_back_item_any_page">Подавить анимацию прогнозного возврата со страницы из бокового меню, чтобы убрать мерцание</string>
+    <string name="setting_predictive_back_item_template">Общие страницы</string>
+    <string name="setting_predictive_back_item_rank">Рейтинги</string>
+    <string name="setting_predictive_back_item_detail">Просмотр иллюстрации</string>
+    <string name="setting_predictive_back_item_search">Результаты поиска</string>
+    <string name="setting_predictive_back_item_viewer">Просмотр нескольких изображений</string>
     <string name="setting_log_file_desc">Может повлиять на производительность\nФайл журнала: %1$s</string>
     <string name="setting_log_file_no_file">Ещё не создан</string>
     <string name="setting_log_file_share">Поделиться файлом журнала</string>

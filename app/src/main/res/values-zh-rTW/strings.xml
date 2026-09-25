@@ -559,6 +559,16 @@
     <string name="tag_translation_color">標籤譯文顏色</string>
     <string name="tag_translation_color_follow_theme">跟隨主題</string>
     <string name="tag_translation_color_pick_from_theme_page">從主題色彩頁中選擇</string>
+    <string name="tag_legibility_boost">標籤原文亮暗度</string>
+    <string name="tag_legibility_boost_hint">左側為原始效果，右側隨滑桿即時變化\n過高的值會讓膠囊的填充色顯得變淡（深色）或變濃（淺色）</string>
+    <string name="tag_legibility_boost_summary">%1$s · %2$s</string>
+    <string name="tag_legibility_boost_light">白天</string>
+    <string name="tag_legibility_boost_dark">黑暗</string>
+    <string name="tag_legibility_boost_none_light">不壓暗</string>
+    <string name="tag_legibility_boost_none_dark">不提亮</string>
+    <string name="tag_legibility_boost_percent_light">壓暗 %1$d%%</string>
+    <string name="tag_legibility_boost_percent_dark">提亮 %1$d%%</string>
+    <string name="tag_legibility_boost_preview_tag"># 範例標籤</string>
     <string name="string_325">點擊設定</string>
     <string name="string_326">開始</string>
     <string name="string_327">暫停</string>
@@ -2666,6 +2676,8 @@
     <string name="pixiv_block_action">封鎖</string>
     <string name="pixiv_unblock_action">解除封鎖</string>
     <string name="pixiv_block_done">已封鎖「%1$s」</string>
+    <string name="pixiv_block_and_mute_action">封鎖並隱藏其作品</string>
+    <string name="pixiv_block_and_mute_done">已封鎖「%1$s」並隱藏其作品</string>
     <string name="pixiv_unblock_done">已解除封鎖「%1$s」</string>
     <string name="pixiv_block_checking">正在查詢封鎖狀態…</string>
     <string name="pixiv_block_submitting">正在提交…</string>
@@ -2873,6 +2885,21 @@
 
     <!-- 日誌檔案（實驗性） -->
     <string name="setting_log_file_enable">啟用日誌檔案</string>
+    <string name="setting_predictive_back">預測性返回</string>
+    <string name="setting_predictive_back_desc">按頁面選擇是否使用系統預測返回動畫；關掉的頁面改用傳統返回。部分系統返回動畫異常（閃爍 / 底頁異常 / 不明純色邊）時可逐頁排查。</string>
+    <string name="setting_predictive_back_dialog_hint">開啟 = 使用系統預測返回動畫；關閉改用傳統返回。</string>
+    <string name="setting_predictive_back_help">說明</string>
+    <string name="setting_predictive_back_group_system">系統預測返回</string>
+    <string name="setting_predictive_back_group_drawer">應用自繪</string>
+    <string name="setting_predictive_back_item_main">首頁</string>
+    <string name="setting_predictive_back_item_drawer">側邊欄手勢</string>
+    <string name="setting_predictive_back_group_experimental">實驗</string>
+    <string name="setting_predictive_back_item_any_page">抑制從側邊欄進入任意頁返回時的預測動畫以解閃爍</string>
+    <string name="setting_predictive_back_item_template">通用頁面</string>
+    <string name="setting_predictive_back_item_rank">排行榜</string>
+    <string name="setting_predictive_back_item_detail">插畫詳情</string>
+    <string name="setting_predictive_back_item_search">搜尋結果</string>
+    <string name="setting_predictive_back_item_viewer">多圖瀏覽</string>
     <string name="setting_log_file_desc">可能影響效能\n日誌檔案在%1$s</string>
     <string name="setting_log_file_no_file">尚未產生</string>
     <string name="setting_log_file_share">分享日誌檔案</string>

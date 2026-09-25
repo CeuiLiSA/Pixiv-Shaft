@@ -557,6 +557,16 @@
     <string name="tag_translation_color">Etiket çeviri rengi</string>
     <string name="tag_translation_color_follow_theme">Temayı takip et</string>
     <string name="tag_translation_color_pick_from_theme_page">Tema renk sayfasından seç</string>
+    <string name="tag_legibility_boost">Etiket metni parlaklığı</string>
+    <string name="tag_legibility_boost_hint">Sol özgün hâli, sağ kaydırıcıya göre değişir\nÇok yüksek değer, kapsül dolgusunu daha soluk (koyu) veya daha koyu (açık) gösterir</string>
+    <string name="tag_legibility_boost_summary">%1$s · %2$s</string>
+    <string name="tag_legibility_boost_light">Açık</string>
+    <string name="tag_legibility_boost_dark">Koyu</string>
+    <string name="tag_legibility_boost_none_light">Koyulaştırma yok</string>
+    <string name="tag_legibility_boost_none_dark">Aydınlatma yok</string>
+    <string name="tag_legibility_boost_percent_light">%1$d%% koyulaştır</string>
+    <string name="tag_legibility_boost_percent_dark">%1$d%% aydınlat</string>
+    <string name="tag_legibility_boost_preview_tag"># Örnek etiket</string>
     <string name="string_325">Ayarlara git</string>
     <string name="string_326">Başlat</string>
     <string name="string_327">Durdur</string>
@@ -2650,6 +2660,8 @@
     <string name="pixiv_block_action">Engelle</string>
     <string name="pixiv_unblock_action">Engeli kaldır</string>
     <string name="pixiv_block_done">“%1$s” engellendi</string>
+    <string name="pixiv_block_and_mute_action">Engelle ve eserlerini gizle</string>
+    <string name="pixiv_block_and_mute_done">“%1$s” engellendi, eserleri gizlendi</string>
     <string name="pixiv_unblock_done">“%1$s” engeli kaldırıldı</string>
     <string name="pixiv_block_checking">Engelleme durumu kontrol ediliyor…</string>
     <string name="pixiv_block_submitting">Gönderiliyor…</string>
@@ -2857,6 +2869,21 @@
 
     <!-- Günlük dosyası (deneysel) -->
     <string name="setting_log_file_enable">Günlük dosyasını etkinleştir</string>
+    <string name="setting_predictive_back">Tahmini geri</string>
+    <string name="setting_predictive_back_desc">Her ekran için sistem tahmini geri animasyonunun kullanılıp kullanılmayacağını seçin. Kapalı ekranlar klasik geri kullanır. Bazı sistemlerde geri animasyonu bozuksa (titreme, arkadaki sayfanın yanlış olması, açıklanamayan düz renkli kenar), sorunu daraltmak için ekranları buradan kapatın.</string>
+    <string name="setting_predictive_back_dialog_hint">Açık = sistem tahmini geri animasyonu. Kapalı = klasik geri.</string>
+    <string name="setting_predictive_back_help">Yardım</string>
+    <string name="setting_predictive_back_group_system">Sistem tahmini geri</string>
+    <string name="setting_predictive_back_group_drawer">Uygulama kendi çiziyor</string>
+    <string name="setting_predictive_back_item_main">Ana sayfa</string>
+    <string name="setting_predictive_back_item_drawer">Kenar çubuğu hareketi</string>
+    <string name="setting_predictive_back_group_experimental">Deneysel</string>
+    <string name="setting_predictive_back_item_any_page">Kenar çubuğundan açılan sayfadan dönerken tahmini animasyonu bastırıp titremeyi gider</string>
+    <string name="setting_predictive_back_item_template">Genel sayfalar</string>
+    <string name="setting_predictive_back_item_rank">Sıralamalar</string>
+    <string name="setting_predictive_back_item_detail">Çizim ayrıntısı</string>
+    <string name="setting_predictive_back_item_search">Arama sonuçları</string>
+    <string name="setting_predictive_back_item_viewer">Çoklu görsel görüntüleyici</string>
     <string name="setting_log_file_desc">Performansı etkileyebilir\nGünlük dosyası: %1$s</string>
     <string name="setting_log_file_no_file">Henüz oluşturulmadı</string>
     <string name="setting_log_file_share">Günlük dosyasını paylaş</string>

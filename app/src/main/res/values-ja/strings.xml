@@ -557,6 +557,16 @@
     <string name="tag_translation_color">タグ翻訳色</string>
     <string name="tag_translation_color_follow_theme">テーマに従う</string>
     <string name="tag_translation_color_pick_from_theme_page">テーマカラーページから選択</string>
+    <string name="tag_legibility_boost">タグ原文の明暗度</string>
+    <string name="tag_legibility_boost_hint">左が元の表示、右がスライダーに連動\n値が高すぎるとカプセルの塗りが淡く（ダーク）／濃く（ライト）見えます</string>
+    <string name="tag_legibility_boost_summary">%1$s · %2$s</string>
+    <string name="tag_legibility_boost_light">ライト</string>
+    <string name="tag_legibility_boost_dark">ダーク</string>
+    <string name="tag_legibility_boost_none_light">暗くしない</string>
+    <string name="tag_legibility_boost_none_dark">明るくしない</string>
+    <string name="tag_legibility_boost_percent_light">暗くする %1$d%%</string>
+    <string name="tag_legibility_boost_percent_dark">明るくする %1$d%%</string>
+    <string name="tag_legibility_boost_preview_tag"># サンプルタグ</string>
     <string name="string_325">設定を開く</string>
     <string name="string_326">開始</string>
     <string name="string_327">停止</string>
@@ -2650,6 +2660,8 @@
     <string name="pixiv_block_action">ブロック</string>
     <string name="pixiv_unblock_action">ブロック解除</string>
     <string name="pixiv_block_done">「%1$s」をブロックしました</string>
+    <string name="pixiv_block_and_mute_action">ブロックして作品もミュート</string>
+    <string name="pixiv_block_and_mute_done">「%1$s」をブロックし、作品をミュートしました</string>
     <string name="pixiv_unblock_done">「%1$s」のブロックを解除しました</string>
     <string name="pixiv_block_checking">ブロック状態を確認中…</string>
     <string name="pixiv_block_submitting">送信中…</string>
@@ -2857,6 +2869,21 @@
 
     <!-- ログファイル（試験的） -->
     <string name="setting_log_file_enable">ログファイルを有効にする</string>
+    <string name="setting_predictive_back">予測的戻る</string>
+    <string name="setting_predictive_back_desc">画面ごとにシステムの予測的戻るアニメーションを使うか選べます。オフにした画面は従来の戻るになります。一部のシステムで戻るアニメーションがおかしい場合（ちらつき／背景ページの異常／原因不明の単色の縁）は、ここで画面ごとに切り分けられます。</string>
+    <string name="setting_predictive_back_dialog_hint">オン＝システムの予測的戻るを使用／オフ＝従来の戻るを使用。</string>
+    <string name="setting_predictive_back_help">説明</string>
+    <string name="setting_predictive_back_group_system">システムの予測的戻る</string>
+    <string name="setting_predictive_back_group_drawer">アプリ独自描画</string>
+    <string name="setting_predictive_back_item_main">ホーム</string>
+    <string name="setting_predictive_back_item_drawer">サイドバー操作</string>
+    <string name="setting_predictive_back_group_experimental">実験</string>
+    <string name="setting_predictive_back_item_any_page">サイドバーから開いたページの戻る時の予測アニメーションを抑制してちらつきを解消</string>
+    <string name="setting_predictive_back_item_template">汎用ページ</string>
+    <string name="setting_predictive_back_item_rank">ランキング</string>
+    <string name="setting_predictive_back_item_detail">イラスト詳細</string>
+    <string name="setting_predictive_back_item_search">検索結果</string>
+    <string name="setting_predictive_back_item_viewer">複数画像ビューア</string>
     <string name="setting_log_file_desc">パフォーマンスに影響する可能性があります\nログファイル: %1$s</string>
     <string name="setting_log_file_no_file">未生成</string>
     <string name="setting_log_file_share">ログファイルを共有</string>

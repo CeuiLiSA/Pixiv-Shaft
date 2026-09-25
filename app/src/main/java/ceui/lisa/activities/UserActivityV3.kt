@@ -799,9 +799,10 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             // issue #959: pixiv 账号级黑名单（アクセスブロック）,和上面那条纯本地的「屏蔽」是两回事,菜单里并列摆着。
             labels.add(getString(R.string.pixiv_block_menu))
             actions.add {
-                ceui.pixiv.ui.user.PixivBlockOperate.showBlockDialog(
-                    this, data.user.id, data.user.name.orEmpty()
-                )
+                ceui.pixiv.ui.user.PixivBlockOperate.showBlockDialog(this, data.user, isMuted) {
+                    mUserViewModel.isUserMuted.value = true
+                    mUserViewModel.refreshEvent.value = Event(100, 0L)
+                }
             }
         }
         if (labels.isEmpty()) return
