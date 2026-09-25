@@ -3,12 +3,16 @@ package ceui.pixiv.db.mirror
 import ceui.lisa.utils.Params
 
 /**
- * 一个可镜像的「收藏书架」= 谁的收藏 × 什么内容 × 什么可见性。
+ * 一个可镜像的「书架」= 谁的列表 × 什么内容 × 什么可见性。
  *
  * 整套镜像系统（表、引擎、查询）都以 [BookmarkShelf] 为分区单位，**不是**围绕
- * 「我的插画公开收藏」这一种情况写死的：插画/小说、公开/悄悄收藏（private）各自
- * 是一个独立书架，各自有独立的续传游标与完成标记，互不干扰；将来要镜像别人的
+ * 「我的插画公开收藏」这一种情况写死的：插画/小说收藏、关注的用户，公开/悄悄（private）
+ * 各自是一个独立书架，各自有独立的续传游标与完成标记，互不干扰；将来要镜像别人的
  * 收藏（画师主页的收藏 tab）也只是多一个 ownerUid，不需要动引擎。
+ *
+ * 「关注」也叫书架而不另起一套：pixiv 的关注列表和收藏列表是同一种东西 —— 按时间倒序、
+ * 分公开/私人、只能顺着 next_url 翻 —— 引擎、续传、限速、全量重扫一行都不用分叉，
+ * 差别只在翻页接口（[BookmarkShelfFetcher]）和摊平哪些列（[BookmarkMirrorMapper]）。
  *
  * [key] 是入库的分区列（`bookmark_mirror_table.shelfKey`），所有查询的第一个
  * WHERE 条件、所有复合索引的第一列都是它——一张表存 N 个书架，但每次查询只在
@@ -38,7 +42,7 @@ data class BookmarkShelf(
             return BookmarkShelf(uid, type, restrict)
         }
 
-        /** 当前登录用户的四个书架（插画/小说 × 公开/悄悄收藏）。 */
+        /** 某账号的全部书架（每种内容类型 × 公开/悄悄）。 */
         fun allOf(ownerUid: Long): List<BookmarkShelf> =
             MirrorContentType.entries.flatMap { type ->
                 MirrorRestrict.entries.map { restrict -> BookmarkShelf(ownerUid, type, restrict) }
@@ -52,6 +56,8 @@ data class BookmarkShelf(
 enum class MirrorContentType(val code: Int, val tag: String) {
     ILLUST(0, "illust"),
     NOVEL(1, "novel"),
+    /** 关注的用户（`/v1/user/following`）。一行 = 一位关注的用户，payload 是 `UserPreview`。 */
+    USER(2, "user"),
     ;
 
     companion object {
@@ -62,8 +68,8 @@ enum class MirrorContentType(val code: Int, val tag: String) {
 /**
  * 收藏可见性。[apiValue] 直接是 pixiv 的 `restrict` 参数值，[code] 是入库值（不能改）。
  *
- * PRIVATE 就是「悄悄收藏」：它与 PUBLIC 是**两条互不相交的列表**（pixiv 的
- * `/v1/user/bookmarks/…` 一次只回一种），所以必须是两个书架，不能靠一列布尔混在一起
+ * PRIVATE 就是「悄悄收藏 / 私人关注」：它与 PUBLIC 是**两条互不相交的列表**（pixiv 的
+ * `/v1/user/bookmarks/…`、`/v1/user/following` 一次只回一种），所以必须是两个书架，不能靠一列布尔混在一起
  * ——混在一起就没法各自记续传游标，也没法各自判「同步完成过一次」。
  */
 enum class MirrorRestrict(val code: Int, val apiValue: String) {

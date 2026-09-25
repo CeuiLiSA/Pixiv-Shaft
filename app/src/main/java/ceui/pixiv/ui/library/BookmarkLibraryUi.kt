@@ -21,35 +21,31 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentBookmarkLibraryBinding
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
-import ceui.pixiv.db.mirror.AgeFilter
-import ceui.pixiv.db.mirror.AiFilter
-import ceui.pixiv.db.mirror.BookmarkFilter
 import ceui.pixiv.db.mirror.BookmarkMirrorStateEntity
 import ceui.pixiv.db.mirror.BookmarkShelf
 import ceui.pixiv.db.mirror.BookmarkSort
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.db.mirror.MirrorPhase
 import ceui.pixiv.db.mirror.MirrorRestrict
-import ceui.pixiv.db.mirror.PageFilter
-import ceui.pixiv.db.mirror.ValidityFilter
 import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.services.appServices
-import ceui.pixiv.ui.navigation.TemplateRoute
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Locale
 
 /**
- * 收藏库页面的全部接线，插画版与小说版**共用同一份**。
+ * 本地库页面的全部接线，插画收藏、小说收藏、关注三个版本**共用同一份**。
  *
  * 为什么单独成一个类而不是放进某个基类：插画列表继承 [ceui.pixiv.ui.common.IllustFeedFragment]、
- * 小说列表继承 [ceui.pixiv.ui.common.NovelFeedFragment]（两套完全不同的卡片、点击语义、
- * 骨架图和 LayoutManager），Kotlin 又没有多继承。要么把这三百多行复制两份、从此各自漂移，
+ * 小说列表继承 [ceui.pixiv.ui.common.NovelFeedFragment]、关注列表继承
+ * [ceui.pixiv.ui.common.UserFeedFragment]（三套完全不同的卡片、点击语义、骨架图和
+ * LayoutManager），Kotlin 又没有多继承。要么把这三百多行复制三份、从此各自漂移，
  * 要么抽成一个只依赖「binding + 列表 VM + feed VM」的普通类 —— 后者显然更划算：
- * 两个页面的差异其实只有「一行 payload 解析成插画卡还是小说卡」这一处。
+ * 页面之间的逻辑差异只有「一行 payload 解析成哪种卡」这一处，其余只是文案与可选项，
+ * 集中在 [LibraryProfile]。
  *
  * 生命周期跟着 **view** 走：宿主在 onViewCreated 建、onDestroyView 调 [destroy]。
  * 所有可变的视图态（chip 引用、状态快照、待重置代号）都收在这里，宿主自己不留。
@@ -95,7 +91,7 @@ internal class BookmarkLibraryUi(
 
     private val context get() = fragment.requireContext()
 
-    private val isIllust get() = contentType == MirrorContentType.ILLUST
+    private val profile = LibraryProfile.of(contentType)
 
     private fun isShelfComplete(): Boolean = viewModel.mirrorState.value?.isFirstSyncDone == true
 
@@ -205,11 +201,9 @@ internal class BookmarkLibraryUi(
      * 条件筛没了 / 镜像还没补到这个书架 / 是真的一件都没收藏。
      */
     fun emptyStateText(): CharSequence = when {
-        viewModel.filter.value.hasAnyCondition ->
-            context.getString(R.string.bookmark_library_empty_filtered)
-        !isShelfComplete() ->
-            context.getString(R.string.bookmark_library_empty_syncing)
-        else -> context.getString(R.string.bookmark_library_empty)
+        viewModel.filter.value.hasAnyCondition -> context.getString(profile.emptyFiltered)
+        !isShelfComplete() -> context.getString(R.string.bookmark_library_empty_syncing)
+        else -> context.getString(profile.empty)
     }
 
     // ─────────────────────────── 接线 ───────────────────────────
@@ -228,7 +222,7 @@ internal class BookmarkLibraryUi(
         // 「原始收藏列表」是留给「我要看服务端原本的样子」的退路：本页展示的是本地镜像
         //（顺序是本地重排的，内容取的是镜像时冻结的快照）。公开/私人本页已经能直接切，
         // 所以这条退路只为「原序 + 最新」这两点存在。
-        binding.toolbar.menu.add(0, MENU_CLASSIC, 0, R.string.bookmark_library_open_classic)
+        binding.toolbar.menu.add(0, MENU_CLASSIC, 0, profile.openClassic)
         binding.toolbar.menu.add(0, MENU_REBUILD, 1, R.string.bookmark_library_rebuild)
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -246,14 +240,13 @@ internal class BookmarkLibraryUi(
     }
 
     /**
-     * 打开原始的双 tab 收藏页。带 [Params.FLAG] 标记，那边据此**不再**把入口重定向回本页，
+     * 打开原始的双 tab 收藏 / 关注页。带 [Params.FLAG] 标记，那边据此**不再**把入口重定向回本页，
      * 否则用户从本页点进去会被立刻弹回来，两个页面互相踢皮球。
      */
     private fun openClassicCollection() {
-        val route = if (isIllust) TemplateRoute.MY_ILLUST_COLLECTION else TemplateRoute.MY_NOVEL_COLLECTION
         fragment.startActivity(
             Intent(context, TemplateActivity::class.java).apply {
-                putExtra(TemplateActivity.EXTRA_FRAGMENT, route.key)
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, profile.classicRoute.key)
                 putExtra(Params.FLAG, true)
             }
         )
@@ -274,8 +267,8 @@ internal class BookmarkLibraryUi(
      * 注册进镜像（`trackBookmarkShelfVisit` 同款的隐私边界：没主动看过就不会去拉）。
      */
     private fun setUpShelfSwitch() {
-        binding.shelfPublic.setText(if (isIllust) R.string.public_like_illust else R.string.public_like_novel)
-        binding.shelfPrivate.setText(if (isIllust) R.string.private_like_illust else R.string.private_like_novel)
+        binding.shelfPublic.setText(profile.publicShelf)
+        binding.shelfPrivate.setText(profile.privateShelf)
         binding.shelfPublic.setOnClickListener { switchShelf(MirrorRestrict.PUBLIC) }
         binding.shelfPrivate.setOnClickListener { switchShelf(MirrorRestrict.PRIVATE) }
         renderShelfSwitch()
@@ -305,6 +298,7 @@ internal class BookmarkLibraryUi(
 
     private fun setUpSearch() {
         val input = binding.searchInput
+        input.setHint(profile.searchHint)
         input.setText(viewModel.filter.value.keyword)
         input.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
@@ -405,13 +399,13 @@ internal class BookmarkLibraryUi(
         val input = binding.searchInput
         if (filter.keyword.isEmpty() && input.text.isNotEmpty()) input.setText("")
 
-        sortChip?.text = context.getString(sortLabelRes(filter.sort))
+        sortChip?.text = context.getString(profile.sortLabel(filter.sort))
         // 排序 chip 只在「不是默认排序」时点亮：默认态点亮一片，选中态就不再是信息了
         sortChip?.isActivated = filter.sort != BookmarkSort.BOOKMARK_NEWEST
         reverseChip?.isActivated = filter.sort == BookmarkSort.BOOKMARK_OLDEST
         randomChip?.isActivated = filter.sort.isRandom
 
-        val conditions = countConditions(filter)
+        val conditions = filter.activeConditionCount
         filterChip?.text = if (conditions > 0) {
             context.getString(R.string.bookmark_chip_filter_count, conditions)
         } else {
@@ -420,26 +414,6 @@ internal class BookmarkLibraryUi(
         filterChip?.isActivated = conditions > 0
         // 「清空」只在真有东西可清时出现：常驻一个永远灰着的按钮只是噪音
         clearChip?.visibility = if (filter.hasAnyCondition) View.VISIBLE else View.GONE
-    }
-
-    /** chip 上那个数字：用户开了几个筛选维度。排序不算——它不减少结果。 */
-    private fun countConditions(filter: BookmarkFilter): Int {
-        var count = 0
-        if (filter.keyword.isNotBlank()) count++
-        if (filter.tagNames.isNotEmpty()) count++
-        if (filter.excludedTagNames.isNotEmpty()) count++
-        if (filter.authorIds.isNotEmpty()) count++
-        if (filter.workTypes.isNotEmpty()) count++
-        if (filter.orientations.isNotEmpty()) count++
-        if (filter.ai != AiFilter.ANY) count++
-        if (filter.age != AgeFilter.ANY) count++
-        if (filter.pages != PageFilter.ANY) count++
-        if (filter.validity != ValidityFilter.ANY) count++
-        if (filter.minBookmarks != null || filter.maxBookmarks != null) count++
-        if (filter.minTextLength != null || filter.maxTextLength != null) count++
-        if (filter.createdFromMs != null || filter.createdToMs != null) count++
-        if (filter.seriesOnly) count++
-        return count
     }
 
     private fun observeState() {
@@ -609,29 +583,12 @@ internal class BookmarkLibraryUi(
             state.cooldownUntil > System.currentTimeMillis() ->
                 context.getString(R.string.bookmark_library_sync_cooldown)
             state.phase == MirrorPhase.BACKFILLING ->
-                context.getString(R.string.bookmark_library_syncing, formatCount(total))
-            else -> context.getString(R.string.bookmark_library_sync_queued)
+                context.getString(profile.syncing, formatCount(total))
+            else -> context.getString(profile.syncQueued)
         }
         // 转圈只在真的在补的时候转；离线/冷却时停下来，别让一个永远转着的圈暗示「马上就好」
         binding.syncSpinner.visibility =
             if (offline || state.cooldownUntil > System.currentTimeMillis()) View.INVISIBLE else View.VISIBLE
-    }
-
-    private fun sortLabelRes(sort: BookmarkSort): Int = when (sort) {
-        BookmarkSort.BOOKMARK_NEWEST -> R.string.bookmark_sort_bookmark_newest
-        BookmarkSort.BOOKMARK_OLDEST -> R.string.bookmark_sort_bookmark_oldest
-        BookmarkSort.CREATED_NEWEST -> R.string.bookmark_sort_created_newest
-        BookmarkSort.CREATED_OLDEST -> R.string.bookmark_sort_created_oldest
-        BookmarkSort.POPULAR_DESC -> R.string.bookmark_sort_popular_desc
-        BookmarkSort.POPULAR_ASC -> R.string.bookmark_sort_popular_asc
-        BookmarkSort.VIEWS_DESC -> R.string.bookmark_sort_views_desc
-        BookmarkSort.PAGES_DESC -> R.string.bookmark_sort_pages_desc
-        BookmarkSort.RATIO_TALLEST -> R.string.bookmark_sort_ratio_tallest
-        BookmarkSort.RATIO_WIDEST -> R.string.bookmark_sort_ratio_widest
-        BookmarkSort.LENGTH_DESC -> R.string.bookmark_sort_length_desc
-        BookmarkSort.LENGTH_ASC -> R.string.bookmark_sort_length_asc
-        BookmarkSort.TITLE_ASC -> R.string.bookmark_sort_title_asc
-        BookmarkSort.RANDOM -> R.string.bookmark_sort_random
     }
 
     private fun formatCount(value: Int): String = String.format(Locale.getDefault(), "%,d", value)

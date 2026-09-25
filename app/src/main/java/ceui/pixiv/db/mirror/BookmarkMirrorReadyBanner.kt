@@ -27,7 +27,7 @@ object BookmarkMirrorReadyBanner {
 
     private const val TAG = "BookmarkMirror"
 
-    /** MMKV key 前缀。带书架键 = 插画/小说、公开/悄悄各自最多一次。 */
+    /** MMKV key 前缀。带书架键 = 插画/小说/关注、公开/悄悄各自最多一次。 */
     private const val KEY_PREFIX = "bookmark_mirror_ready_announced_"
 
     fun announce(context: Context, shelf: BookmarkShelf, rows: Int) {
@@ -42,22 +42,25 @@ object BookmarkMirrorReadyBanner {
         // 无前台宿主时 manager 会把请求保留到下一个 STARTED 宿主，不再等于「漏一次」。
         prefs.encode(key, true)
 
+        val isUser = shelf.contentType == MirrorContentType.USER
         val deepLink = "shaft://bookmark-library" +
             "?restrict=${shelf.restrict.apiValue}&type=${shelf.contentType.code}"
         val accepted = runCatching {
             InAppBanners.manager.enqueue(
                 BannerRequest.Text(
                     id = "bookmark-mirror-ready-${shelf.key}",
-                    title = context.getString(R.string.bookmark_mirror_ready_title),
+                    title = context.getString(
+                        if (isUser) R.string.following_mirror_ready_title else R.string.bookmark_mirror_ready_title
+                    ),
                     message = context.getString(
-                        R.string.bookmark_mirror_ready_message,
+                        if (isUser) R.string.following_mirror_ready_message else R.string.bookmark_mirror_ready_message,
                         String.format(Locale.getDefault(), "%,d", rows),
                     ),
                     caption = context.getString(
-                        if (shelf.contentType == MirrorContentType.NOVEL) {
-                            R.string.string_320
-                        } else {
-                            R.string.bookmark_library_title
+                        when (shelf.contentType) {
+                            MirrorContentType.ILLUST -> R.string.bookmark_library_title
+                            MirrorContentType.NOVEL -> R.string.string_320
+                            MirrorContentType.USER -> R.string.string_321
                         }
                     ),
                     // 用 app 自己的图标：这条不是某个作品/某个人发来的消息，而是**应用**

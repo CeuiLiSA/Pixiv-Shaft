@@ -3008,6 +3008,31 @@
     <string name="bookmark_filter_tag_mode_any">Любой из тегов</string>
     <string name="bookmark_filter_tag_empty">Больше нет тегов для уточнения</string>
     <string name="bookmark_filter_author_empty">Нет авторов для фильтрации</string>
+    <string name="following_library_menu_entry">Подписки с фильтрами</string>
+    <string name="following_library_open_classic">Исходный список подписок</string>
+    <string name="following_library_search_hint">Поиск по имени / аккаунту / ID / недавним тегам</string>
+    <string name="following_library_empty">Локально пока нет подписок</string>
+    <string name="following_library_empty_filtered">Нет пользователей по этим фильтрам</string>
+    <string name="following_library_syncing">Фоновое копирование подписок · уже %1$s</string>
+    <string name="following_library_sync_queued">Копирование подписок ждёт следующего окна синхронизации</string>
+    <string name="following_library_total_count">Всего: %1$s</string>
+    <string name="following_library_filter_apply">Показать: %1$s</string>
+    <string name="bookmark_library_total_count">Всего: %1$s</string>
+    <string name="following_sort_followed_newest">Подписка · сначала новые</string>
+    <string name="following_sort_followed_oldest">Подписка · сначала старые</string>
+    <string name="following_sort_active_newest">Последняя публикация · сначала новые</string>
+    <string name="following_sort_active_oldest">Последняя публикация · сначала старые</string>
+    <string name="following_sort_name_asc">Имя · A→Z</string>
+    <string name="following_filter_section_year">Год последней публикации</string>
+    <string name="following_filter_tag_hint">По нескольким последним работам пользователя. Нажмите — включить, удерживайте — исключить</string>
+    <string name="following_mirror_ready_title">Библиотека подписок готова</string>
+    <string name="following_mirror_ready_message">Локально сохранено подписок: %1$s. Теперь можно сортировать от старых и по последней публикации, искать по имени и недавним тегам.</string>
+    <string name="bookmark_filter_group_works">Работы</string>
+    <string name="bookmark_filter_group_popularity_time">Популярность и время</string>
+    <string name="bookmark_filter_group_time">Время</string>
+    <string name="bookmark_filter_active_count">Фильтров: %1$d</string>
+    <string name="bookmark_filter_none_active">Без фильтров</string>
+    <string name="bookmark_filter_tag_mode_label">Между несколькими тегами</string>
 
     <!-- Облачный перевод PixShaft -->
     <string name="cloud_translate_title">Облачный перевод PixShaft</string>

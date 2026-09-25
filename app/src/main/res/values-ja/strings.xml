@@ -2999,6 +2999,31 @@
     <string name="bookmark_filter_tag_mode_any">いずれか含む</string>
     <string name="bookmark_filter_tag_empty">これ以上絞り込めるタグがありません</string>
     <string name="bookmark_filter_author_empty">絞り込める作者がいません</string>
+    <string name="following_library_menu_entry">条件でフォローを見る</string>
+    <string name="following_library_open_classic">元のフォロー一覧</string>
+    <string name="following_library_search_hint">名前 / アカウント / ID / 最近のタグで検索</string>
+    <string name="following_library_empty">ローカルに表示できるフォローがまだありません</string>
+    <string name="following_library_empty_filtered">条件に合うユーザーがいません</string>
+    <string name="following_library_syncing">フォローをバックグラウンドで同期中 · %1$s 人</string>
+    <string name="following_library_sync_queued">フォローの同期は次の同期枠を待っています</string>
+    <string name="following_library_total_count">全 %1$s 人</string>
+    <string name="following_library_filter_apply">%1$s 人を表示</string>
+    <string name="bookmark_library_total_count">全 %1$s 件</string>
+    <string name="following_sort_followed_newest">フォロー日 · 新しい順</string>
+    <string name="following_sort_followed_oldest">フォロー日 · 古い順</string>
+    <string name="following_sort_active_newest">最終投稿 · 新しい順</string>
+    <string name="following_sort_active_oldest">最終投稿 · 古い順</string>
+    <string name="following_sort_name_asc">名前 · A→Z</string>
+    <string name="following_filter_section_year">最終投稿の年</string>
+    <string name="following_filter_tag_hint">各ユーザーの最近の数作品から集計。タップで絞り込み、長押しで除外</string>
+    <string name="following_mirror_ready_title">フォローライブラリの準備完了</string>
+    <string name="following_mirror_ready_message">%1$s 人のフォローをローカルに保存しました。古い順・最終投稿順の並べ替えと、名前や最近のタグでの検索が使えます。</string>
+    <string name="bookmark_filter_group_works">作品</string>
+    <string name="bookmark_filter_group_popularity_time">人気と時期</string>
+    <string name="bookmark_filter_group_time">時期</string>
+    <string name="bookmark_filter_active_count">%1$d 件の絞り込み中</string>
+    <string name="bookmark_filter_none_active">絞り込みなし</string>
+    <string name="bookmark_filter_tag_mode_label">複数タグの条件</string>
 
     <!-- PixShaft クラウド翻訳 -->
     <string name="cloud_translate_title">PixShaft クラウド翻訳</string>

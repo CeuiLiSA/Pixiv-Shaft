@@ -4,6 +4,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.loxia.Novel
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.UserPreview
 import ceui.pixiv.db.mirror.BookmarkAuthorFacet
 import ceui.pixiv.db.mirror.BookmarkFilter
 import ceui.pixiv.db.mirror.BookmarkMirrorDao
@@ -17,7 +18,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
- * 收藏库页面的读侧门面：把 [BookmarkMirrorQuery] 拼出来的 SQL 跑掉，并把行还原成 [Illust]。
+ * 本地库页面的读侧门面：把 [BookmarkMirrorQuery] 拼出来的 SQL 跑掉，并把行还原成
+ * [Illust] / [Novel] / [UserPreview]。
  *
  * 全部方法 main-safe（内部切 IO）。**不持有任何 Fragment / View**，可以安全地被
  * ViewModel 和 FeedSource 长期持有。
@@ -81,6 +83,9 @@ object BookmarkLibraryRepo {
 
     /** 行 → [Novel]。容错策略同 [toIllust]。 */
     fun toNovel(row: BookmarkMirrorEntity): Novel? = deserialize(row, Novel::class.java)
+
+    /** 关注书架的行 → [UserPreview]。容错策略同 [toIllust]。 */
+    fun toUserPreview(row: BookmarkMirrorEntity): UserPreview? = deserialize(row, UserPreview::class.java)
 
     private fun <T> deserialize(row: BookmarkMirrorEntity, clazz: Class<T>): T? = runCatching {
         Shaft.sGson.fromJson(row.payloadJson, clazz)

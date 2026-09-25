@@ -2999,6 +2999,31 @@
     <string name="bookmark_filter_tag_mode_any">하나라도 일치</string>
     <string name="bookmark_filter_tag_empty">더 좁힐 태그가 없습니다</string>
     <string name="bookmark_filter_author_empty">필터링할 작가가 없습니다</string>
+    <string name="following_library_menu_entry">조건으로 팔로우 보기</string>
+    <string name="following_library_open_classic">원래 팔로우 목록</string>
+    <string name="following_library_search_hint">이름 / 계정 / ID / 최근 태그 검색</string>
+    <string name="following_library_empty">로컬에 표시할 팔로우가 아직 없습니다</string>
+    <string name="following_library_empty_filtered">조건에 맞는 사용자가 없습니다</string>
+    <string name="following_library_syncing">팔로우를 백그라운드에서 동기화하는 중 · %1$s명</string>
+    <string name="following_library_sync_queued">팔로우 동기화가 다음 동기화 시간을 기다리는 중입니다</string>
+    <string name="following_library_total_count">총 %1$s명</string>
+    <string name="following_library_filter_apply">%1$s명 보기</string>
+    <string name="bookmark_library_total_count">총 %1$s개</string>
+    <string name="following_sort_followed_newest">팔로우 날짜 · 최신순</string>
+    <string name="following_sort_followed_oldest">팔로우 날짜 · 오래된순</string>
+    <string name="following_sort_active_newest">최근 투고 · 최신순</string>
+    <string name="following_sort_active_oldest">최근 투고 · 오래된순</string>
+    <string name="following_sort_name_asc">이름 · A→Z</string>
+    <string name="following_filter_section_year">최근 투고 연도</string>
+    <string name="following_filter_tag_hint">사용자별 최근 몇 개 작품에서 집계합니다. 탭하면 포함, 길게 누르면 제외</string>
+    <string name="following_mirror_ready_title">팔로우 라이브러리 준비 완료</string>
+    <string name="following_mirror_ready_message">팔로우한 사용자 %1$s명을 로컬에 저장했습니다. 오래된순·최근 투고순 정렬과 이름·최근 태그 검색을 쓸 수 있습니다.</string>
+    <string name="bookmark_filter_group_works">작품</string>
+    <string name="bookmark_filter_group_popularity_time">인기와 시기</string>
+    <string name="bookmark_filter_group_time">시기</string>
+    <string name="bookmark_filter_active_count">필터 %1$d개 사용 중</string>
+    <string name="bookmark_filter_none_active">필터 없음</string>
+    <string name="bookmark_filter_tag_mode_label">여러 태그 사이</string>
 
     <!-- PixShaft 클라우드 번역 -->
     <string name="cloud_translate_title">PixShaft 클라우드 번역</string>

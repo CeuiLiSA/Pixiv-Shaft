@@ -51,12 +51,29 @@ data class BookmarkFilter(
 ) {
     /** 除了书架本身，用户还额外加了条件吗（界面上「清空筛选」按钮的可用性）。 */
     val hasAnyCondition: Boolean
-        get() = keyword.isNotBlank() || tagNames.isNotEmpty() || excludedTagNames.isNotEmpty() ||
-            authorIds.isNotEmpty() || workTypes.isNotEmpty() || orientations.isNotEmpty() ||
-            ai != AiFilter.ANY || age != AgeFilter.ANY || pages != PageFilter.ANY ||
-            validity != ANY_VALIDITY || minBookmarks != null || maxBookmarks != null ||
-            minTextLength != null || maxTextLength != null ||
-            createdFromMs != null || createdToMs != null || seriesOnly
+        get() = activeConditionCount > 0
+
+    /**
+     * 用户开了几个筛选**维度**（界面上「筛选 · N」那个数）。排序不算 —— 它不减少结果；
+     * 同一维度里选了几项也只算一个（三个标签是一个「标签」条件）。
+     */
+    val activeConditionCount: Int
+        get() = listOf(
+            keyword.isNotBlank(),
+            tagNames.isNotEmpty(),
+            excludedTagNames.isNotEmpty(),
+            authorIds.isNotEmpty(),
+            workTypes.isNotEmpty(),
+            orientations.isNotEmpty(),
+            ai != AiFilter.ANY,
+            age != AgeFilter.ANY,
+            pages != PageFilter.ANY,
+            validity != ANY_VALIDITY,
+            minBookmarks != null || maxBookmarks != null,
+            minTextLength != null || maxTextLength != null,
+            createdFromMs != null || createdToMs != null,
+            seriesOnly,
+        ).count { it }
 
     companion object {
         val ANY_VALIDITY = ValidityFilter.ANY

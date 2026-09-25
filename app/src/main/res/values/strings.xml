@@ -3265,6 +3265,31 @@
     <string name="bookmark_filter_tag_mode_any">任一满足</string>
     <string name="bookmark_filter_tag_empty">当前结果里没有可继续下钻的标签</string>
     <string name="bookmark_filter_author_empty">当前结果里没有可筛选的作者</string>
+    <string name="following_library_menu_entry">按条件浏览关注</string>
+    <string name="following_library_open_classic">原始关注列表</string>
+    <string name="following_library_search_hint">搜索名字 / 账号 / ID / 最近作品标签</string>
+    <string name="following_library_empty">本地还没有可浏览的关注</string>
+    <string name="following_library_empty_filtered">没有符合条件的用户</string>
+    <string name="following_library_syncing">正在后台补齐关注镜像 · 已 %1$s 位</string>
+    <string name="following_library_sync_queued">关注镜像已排队，等待下一个同步窗口</string>
+    <string name="following_library_total_count">共 %1$s 位</string>
+    <string name="following_library_filter_apply">查看 %1$s 位</string>
+    <string name="bookmark_library_total_count">共 %1$s 件</string>
+    <string name="following_sort_followed_newest">关注时间 · 新→旧</string>
+    <string name="following_sort_followed_oldest">关注时间 · 旧→新</string>
+    <string name="following_sort_active_newest">最近投稿 · 新→旧</string>
+    <string name="following_sort_active_oldest">最近投稿 · 旧→新</string>
+    <string name="following_sort_name_asc">名字 · A→Z</string>
+    <string name="following_filter_section_year">最近投稿年份</string>
+    <string name="following_filter_tag_hint">取自每位用户最近的几件作品。点一下只看，长按排除</string>
+    <string name="following_mirror_ready_title">关注库已就绪</string>
+    <string name="following_mirror_ready_message">已在本地整理好 %1$s 位关注的用户，现在可以倒序、按最近投稿排序，也能按名字和最近作品的标签搜索。</string>
+    <string name="bookmark_filter_group_works">作品</string>
+    <string name="bookmark_filter_group_popularity_time">人气与时间</string>
+    <string name="bookmark_filter_group_time">时间</string>
+    <string name="bookmark_filter_active_count">已启用 %1$d 项筛选</string>
+    <string name="bookmark_filter_none_active">未启用筛选</string>
+    <string name="bookmark_filter_tag_mode_label">多个标签之间</string>
 
     <!-- PixShaft 云翻译（服务端代理的 AI 翻译，pixshaft-api src/translate.js） -->
     <string name="cloud_translate_title">PixShaft 云翻译</string>

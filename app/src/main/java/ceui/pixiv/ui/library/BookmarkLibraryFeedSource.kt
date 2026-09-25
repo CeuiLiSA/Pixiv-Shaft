@@ -10,6 +10,7 @@ import ceui.pixiv.db.mirror.BookmarkSort
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.NovelFeedItem
+import ceui.pixiv.ui.common.UserFeedItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -69,7 +70,7 @@ internal data class BookmarkLibraryCursor(val consumed: Int, val afterSeq: Long?
  */
 class BookmarkLibraryFeedSource(
     private val viewModel: BookmarkLibraryViewModel,
-    /** 决定每行 payload 解析成插画卡还是小说卡。同一张表、同一套查询，只有这一步不同。 */
+    /** 决定每行 payload 解析成插画卡、小说卡还是用户卡。同一张表、同一套查询，只有这一步不同。 */
     private val contentType: MirrorContentType,
 ) : FeedSource<String> {
 
@@ -112,6 +113,11 @@ class BookmarkLibraryFeedSource(
                                 skipSpamFilter = true,
                             )
                         }
+                    // 对齐原关注列表（toUserFeedItems）：不套作品屏蔽规则，只丢没有身份的坏行
+                    MirrorContentType.USER ->
+                        BookmarkLibraryRepo.toUserPreview(row)
+                            ?.takeIf { it.user != null }
+                            ?.let(::UserFeedItem)
                 }
             }
         }

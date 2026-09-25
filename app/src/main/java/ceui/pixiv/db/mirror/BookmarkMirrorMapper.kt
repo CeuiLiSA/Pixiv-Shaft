@@ -4,13 +4,14 @@ import ceui.lisa.activities.Shaft
 import ceui.loxia.Novel
 import ceui.loxia.Tag
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.UserPreview
 import timber.log.Timber
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /**
- * 网络模型（[Illust] / [Novel]）→ 镜像行 + 标签行。
+ * 网络模型（[Illust] / [Novel] / [UserPreview]）→ 镜像行 + 标签行。
  *
  * 这里是**唯一**决定「哪些字段被摊平成可筛选列」的地方。加一个筛选维度 = 在
  * [BookmarkMirrorEntity] 加一列 + 在这里填上 + 在 [BookmarkMirrorQuery] 加一个条件，
@@ -130,6 +131,68 @@ object BookmarkMirrorMapper {
         )
     }
 
+    /**
+     * 一位关注的用户。作品维度的列（页数、画幅、人气、分级…）对人没有意义，一律填「未知」，
+     * 筛选面板也不会给用户书架露出那些节；借用的只有三处，都是有真实语义的：
+     *
+     * - [BookmarkMirrorEntity.createDateMs] = 预览作品里**最新一件的发布时间**，即「最近投稿」。
+     *   `/v1/user/following` 附带的预览就是对方最近的作品，于是「发布时间」排序在这个书架上
+     *   就是「最近有更新 / 最久没更新」—— 清理多年不更新的关注，正是这份镜像能给的东西。
+     * - 标签表 = 预览作品的标签并集，回答「我关注的人最近在画什么」。只覆盖最近几件，
+     *   面板上会写明这一点，不冒充画师的全部标签。
+     * - [BookmarkMirrorEntity.authorId] = 用户自己，纯数字关键词按 uid 命中不用另写分支。
+     */
+    fun fromUserPreview(
+        shelf: BookmarkShelf,
+        preview: UserPreview,
+        bookmarkSeq: Long,
+        generation: Int,
+        now: Long,
+    ): MirrorRow {
+        val user = requireNotNull(preview.user) { "关注预览缺少 user" }
+        val works = preview.illusts.map { it.tags.orEmpty() to it.create_date } +
+            preview.novels.orEmpty().map { it.tags.orEmpty() to it.create_date }
+        val tags = works.flatMap { it.first }
+        val tagRows = tagRows(shelf, user.id, tags)
+        val name = user.name.orEmpty()
+        return MirrorRow(
+            row = BookmarkMirrorEntity(
+                shelfKey = shelf.key,
+                targetId = user.id,
+                ownerUid = shelf.ownerUid,
+                contentType = shelf.contentType.code,
+                restrictCode = shelf.restrict.code,
+                bookmarkSeq = bookmarkSeq,
+                payloadJson = Shaft.sGson.toJson(preview),
+                title = name,
+                authorId = user.id,
+                authorName = name,
+                workType = WORK_TYPE_USER,
+                pageCount = 0,
+                width = 0,
+                height = 0,
+                aspectRatio = 0f,
+                orientation = ORIENTATION_UNKNOWN,
+                totalBookmarks = 0,
+                totalView = 0,
+                textLength = 0,
+                createDateMs = works.maxOfOrNull { parseCreateDate(it.second) } ?: 0L,
+                aiType = 0,
+                xRestrict = 0,
+                sanityLevel = 0,
+                isVisible = true,
+                isMuted = preview.is_muted == true,
+                seriesId = 0L,
+                tagCount = tagRows.size,
+                // 作者名那一格放 pixiv 账号（@xxx）：用户记得住的往往是账号而不是昵称
+                searchText = buildSearchText(name, user.account.orEmpty(), tags),
+                syncedAt = now,
+                generation = generation,
+            ),
+            tags = tagRows,
+        )
+    }
+
     private fun tagRows(shelf: BookmarkShelf, targetId: Long, tags: List<Tag>): List<BookmarkMirrorTagEntity> {
         if (tags.isEmpty()) return emptyList()
         // distinctBy：主键含 tagName，同一作品重名标签（pixiv 偶发）会在一次 insert 里
@@ -192,6 +255,9 @@ object BookmarkMirrorMapper {
             0L
         }
     }
+
+    /** 关注书架的 [BookmarkMirrorEntity.workType]。 */
+    const val WORK_TYPE_USER = "user"
 
     const val ORIENTATION_UNKNOWN = 0
     const val ORIENTATION_LANDSCAPE = 1

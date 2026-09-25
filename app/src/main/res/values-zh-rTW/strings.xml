@@ -3000,6 +3000,31 @@
     <string name="bookmark_filter_tag_mode_any">任一滿足</string>
     <string name="bookmark_filter_tag_empty">目前結果裡沒有可繼續下鑽的標籤</string>
     <string name="bookmark_filter_author_empty">目前結果裡沒有可篩選的作者</string>
+    <string name="following_library_menu_entry">按條件瀏覽關注</string>
+    <string name="following_library_open_classic">原始關注列表</string>
+    <string name="following_library_search_hint">搜尋名稱 / 帳號 / ID / 近期作品標籤</string>
+    <string name="following_library_empty">本機還沒有可瀏覽的關注</string>
+    <string name="following_library_empty_filtered">沒有符合條件的使用者</string>
+    <string name="following_library_syncing">正在背景補齊關注鏡像 · 已 %1$s 位</string>
+    <string name="following_library_sync_queued">關注鏡像已排隊，等待下一個同步時段</string>
+    <string name="following_library_total_count">共 %1$s 位</string>
+    <string name="following_library_filter_apply">查看 %1$s 位</string>
+    <string name="bookmark_library_total_count">共 %1$s 件</string>
+    <string name="following_sort_followed_newest">關注時間 · 新→舊</string>
+    <string name="following_sort_followed_oldest">關注時間 · 舊→新</string>
+    <string name="following_sort_active_newest">最近投稿 · 新→舊</string>
+    <string name="following_sort_active_oldest">最近投稿 · 舊→新</string>
+    <string name="following_sort_name_asc">名稱 · A→Z</string>
+    <string name="following_filter_section_year">最近投稿年份</string>
+    <string name="following_filter_tag_hint">取自每位使用者最近的幾件作品。點一下只看，長按排除</string>
+    <string name="following_mirror_ready_title">關注庫已就緒</string>
+    <string name="following_mirror_ready_message">已在本機整理好 %1$s 位關注的使用者，現在可以倒序、按最近投稿排序，也能按名稱和近期作品的標籤搜尋。</string>
+    <string name="bookmark_filter_group_works">作品</string>
+    <string name="bookmark_filter_group_popularity_time">人氣與時間</string>
+    <string name="bookmark_filter_group_time">時間</string>
+    <string name="bookmark_filter_active_count">已啟用 %1$d 項篩選</string>
+    <string name="bookmark_filter_none_active">未啟用篩選</string>
+    <string name="bookmark_filter_tag_mode_label">多個標籤之間</string>
 
     <!-- PixShaft 雲翻譯 -->
     <string name="cloud_translate_title">PixShaft 雲翻譯</string>

@@ -4,7 +4,8 @@ import androidx.room.Entity
 import androidx.room.Index
 
 /**
- * 收藏镜像的一行 = 某个书架（[BookmarkShelf]）里的一件作品。
+ * 收藏镜像的一行 = 某个书架（[BookmarkShelf]）里的一件作品（关注书架里则是一位用户，
+ * 作品维度的列填「未知」，借用哪几列见 `BookmarkMirrorMapper.fromUserPreview`）。
  *
  * ## 为什么要有这张表
  *
@@ -82,14 +83,14 @@ data class BookmarkMirrorEntity(
     /** 收藏顺序序号，越大越新。见类文档。 */
     val bookmarkSeq: Long,
 
-    /** 完整的 `ceui.pixiv.api.model.Illust` / `ceui.loxia.Novel` JSON，渲染时才反序列化。 */
+    /** 完整的 `Illust` / `Novel` / `UserPreview` JSON，渲染时才反序列化。 */
     val payloadJson: String,
 
     // ── 去规范化的筛选/排序列 ──────────────────────────────────────────────
     val title: String,
     val authorId: Long,
     val authorName: String,
-    /** `illust` / `manga` / `ugoira` / `novel`。 */
+    /** `illust` / `manga` / `ugoira` / `novel` / `user`。 */
     val workType: String,
     /** 插画页数；小说恒 1。 */
     val pageCount: Int,

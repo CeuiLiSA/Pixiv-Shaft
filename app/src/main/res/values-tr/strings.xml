@@ -3002,6 +3002,31 @@
     <string name="bookmark_filter_tag_mode_any">Herhangi biri eşleşsin</string>
     <string name="bookmark_filter_tag_empty">Daraltacak başka etiket yok</string>
     <string name="bookmark_filter_author_empty">Filtrelenecek sanatçı yok</string>
+    <string name="following_library_menu_entry">Takip edilenleri filtreyle gör</string>
+    <string name="following_library_open_classic">Orijinal takip listesi</string>
+    <string name="following_library_search_hint">Ad / hesap / ID / son etiketlerde ara</string>
+    <string name="following_library_empty">Yerelde henüz görüntülenecek takip yok</string>
+    <string name="following_library_empty_filtered">Bu filtrelere uyan kullanıcı yok</string>
+    <string name="following_library_syncing">Takip edilenler arka planda kopyalanıyor · şu ana kadar %1$s</string>
+    <string name="following_library_sync_queued">Takip kopyası bir sonraki eşitleme aralığını bekliyor</string>
+    <string name="following_library_total_count">%1$s kullanıcı</string>
+    <string name="following_library_filter_apply">%1$s kullanıcıyı göster</string>
+    <string name="bookmark_library_total_count">%1$s öğe</string>
+    <string name="following_sort_followed_newest">Takip tarihi · en yeni</string>
+    <string name="following_sort_followed_oldest">Takip tarihi · en eski</string>
+    <string name="following_sort_active_newest">Son paylaşım · en yeni</string>
+    <string name="following_sort_active_oldest">Son paylaşım · en eski</string>
+    <string name="following_sort_name_asc">Ad · A→Z</string>
+    <string name="following_filter_section_year">Son paylaşım yılı</string>
+    <string name="following_filter_tag_hint">Her kullanıcının son birkaç eserinden alınır. Dahil etmek için dokunun, hariç tutmak için basılı tutun</string>
+    <string name="following_mirror_ready_title">Takip kitaplığı hazır</string>
+    <string name="following_mirror_ready_message">Takip ettiğiniz %1$s kullanıcı yerelde kopyalandı; artık en eskiden veya son paylaşıma göre sıralayabilir, ada ve son etiketlere göre arayabilirsiniz.</string>
+    <string name="bookmark_filter_group_works">Eserler</string>
+    <string name="bookmark_filter_group_popularity_time">Popülerlik ve zaman</string>
+    <string name="bookmark_filter_group_time">Zaman</string>
+    <string name="bookmark_filter_active_count">%1$d filtre açık</string>
+    <string name="bookmark_filter_none_active">Filtre yok</string>
+    <string name="bookmark_filter_tag_mode_label">Birden çok etiket arasında</string>
 
     <!-- PixShaft bulut çevirisi -->
     <string name="cloud_translate_title">PixShaft Bulut Çevirisi</string>

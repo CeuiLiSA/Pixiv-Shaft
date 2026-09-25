@@ -19,11 +19,13 @@ import ceui.loxia.Novel
 import ceui.loxia.Tag
 import ceui.loxia.User
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.UserPreview
 import ceui.pixiv.db.mirror.*
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.FeedPagingPolicy
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.LoadState
+import ceui.pixiv.ui.common.UserFeedItem
 import ceui.pixiv.services.ServicesProvider
 import ceui.pixiv.utils.NetworkStateManager
 import com.google.gson.Gson
@@ -109,6 +111,14 @@ class BookmarkLibraryStreamingTest {
                     shelf, Novel(id = id.toLong(), title = "work $id", tags = tags, visible = true),
                     -id.toLong(), 1, 0L,
                 )
+                MirrorContentType.USER -> BookmarkMirrorMapper.fromUserPreview(
+                    shelf,
+                    UserPreview(
+                        user = User(id = id.toLong(), name = "user $id"),
+                        illusts = listOf(Illust(id = id * 10L, title = "work $id", tags = tags, visible = true)),
+                    ),
+                    -id.toLong(), 1, 0L,
+                )
             }.row
         }
         db.bookmarkMirrorDao().insertRows(rows)
@@ -128,6 +138,26 @@ class BookmarkLibraryStreamingTest {
         }
         return BookmarkLibraryUi(Fragment(), binding, list, library, feed, library.shelf.contentType,
             itemCount = { feed.uiState.value.items.size })
+    }
+
+    @Test
+    fun `following shelf streams user cards through the shared source without work filters`() = runTest(dispatcher) {
+        val shelf = shelf(MirrorContentType.USER)
+        val library = model(shelf)
+        // 预览作品带 R-18 标签：关注书架一行是一个人，作品屏蔽规则不该把人藏掉（对齐原关注列表）
+        insert(shelf, 1..70, hidden = true)
+        updateCount(library, 70)
+        val source = BookmarkLibraryFeedSource(library, shelf.contentType)
+
+        val first = source.load(null)
+        assertEquals(60, first.items.size)
+        assertTrue(first.items.all { it is UserFeedItem })
+        assertEquals((1L..60L).toList(), first.items.map { it.feedKey })
+        assertEquals("user 1", (first.items.first() as UserFeedItem).user?.name)
+
+        val second = source.load(first.nextCursor)
+        assertEquals((61L..70L).toList(), second.items.map { it.feedKey })
+        assertNull(second.nextCursor)
     }
 
     @Test
@@ -388,7 +418,8 @@ class BookmarkLibraryStreamingTest {
 
     @Test
     fun `short filtered pages resume at SQL offset including the final sync batch`() = runTest(dispatcher) {
-        for (type in MirrorContentType.entries) {
+        // 只有作品书架套全局屏蔽；关注书架不藏人，见 following shelf streams user cards…
+        for (type in listOf(MirrorContentType.ILLUST, MirrorContentType.NOVEL)) {
             val shelf = shelf(type)
             val library = model(shelf)
             val source = BookmarkLibraryFeedSource(library, type)

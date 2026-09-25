@@ -3,40 +3,32 @@ package ceui.pixiv.ui.library
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.core.view.updatePadding
+import androidx.core.view.isEmpty
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.Lifecycle
 import ceui.lisa.R
 import ceui.lisa.databinding.SheetBookmarkFilterBinding
-import ceui.lisa.utils.DensityUtil
 import ceui.pixiv.db.mirror.AgeFilter
 import ceui.pixiv.db.mirror.AiFilter
 import ceui.pixiv.db.mirror.BookmarkFilter
 import ceui.pixiv.db.mirror.BookmarkMirrorMapper
 import ceui.pixiv.db.mirror.BookmarkSort
 import ceui.pixiv.db.mirror.BookmarkYearFacet
-import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.db.mirror.PageFilter
 import ceui.pixiv.db.mirror.ValidityFilter
 import ceui.pixiv.utils.makeSheetTransparentAndFillNavBar
 import ceui.pixiv.utils.screenHeight
+import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.flexbox.FlexboxLayout
-import com.google.android.flexbox.FlexWrap
-import com.google.android.flexbox.AlignItems
-import ceui.pixiv.witstudio.widget.WitTagStyle
-import ceui.pixiv.witstudio.theme.V3Palette
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -45,23 +37,25 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 /**
- * 收藏库的「筛选与排序」面板。
+ * 本地库（收藏 / 关注）的「筛选与排序」面板。V3 + MD3-E，零件见 [LibraryFilterViews]。
+ *
+ * ## 版式
+ *
+ * 照规范的 Sheet 配方：标题 → 当前状态（书架总数 · 开了几项筛选）→ 条件 → 主操作。
+ * 条件按「排序 / 作品 / 人气与时间 / 标签 / 作者」分进几张 22dp 分组卡，卡内一行一个维度；
+ * 互斥的档位是连通选择组，可叠加的是带勾的胶囊，开关是开关行 —— 控件形状本身就说明了
+ * 「只能选一个 / 可以选几个 / 开或关」，不用再靠文字解释。
+ *
+ * 哪几节出现由书架的 [LibraryProfile] 决定：关注书架里一行是一个人，没有分级、人气、作者
+ * 这些作品维度，只留排序、最近投稿年份和（取自最近作品的）标签。
  *
  * ## 交互取舍
  *
- * - **即时生效，没有「取消」**：每点一下就写进 VM、命中数当场变，底部 CTA 只是
- *   「看结果去」。筛选是探索行为，不是填表单——先看到结果变化再决定下一步，比
- *   「攒一堆条件再提交、错了从头再来」快得多。要退回原样有标题行的「清空」。
- * - **标签点一下是「要」，长按是「不要」**：排除是低频但关键的动作（想看某个画师
- *   但不想看某个系列），给它一个独立的按钮会让每个标签 chip 变成两个控件；藏在长按里
- *   既不占地方，触发时又用危险色明确回显。
- * - **标签云是共现的**：列出来的标签永远是「在当前结果里还剩多少件」，所以一路往下
- *   点绝不会点出 0 条结果——这正是 facet 检索比自由输入好用的地方。
- *
- * ## 为什么各节是代码生成的
- *
- * 十几个维度写成 XML 就是十几段几乎一样的复制粘贴，加一个维度要动三处。这里用
- * [singleChoiceSection] / [multiChoiceSection] 两个声明式构造器，加维度 = 加一段调用。
+ * - **即时生效，没有「取消」**：每点一下就写进 VM、命中数当场变，底部主操作只是
+ *   「看结果去」。筛选是探索行为，不是填表单。要退回原样有标题行的「清空」。
+ * - **标签点一下是「要」，长按是「不要」**：排除是低频但关键的动作，给它独立按钮会让每个
+ *   标签变成两个控件；藏在长按里，触发时用危险色明确回显。
+ * - **标签云是共现的**：列出来的永远是「在当前结果里还剩多少件」，一路往下点绝不会点出 0 条。
  */
 class BookmarkFilterSheet : BottomSheetDialogFragment() {
 
@@ -78,7 +72,11 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
     private var _binding: SheetBookmarkFilterBinding? = null
     private val binding get() = _binding!!
 
-    /** 每次条件变更后把所有 chip 的选中态刷一遍（chip 数量在百级，一次全刷远比精确定位便宜）。 */
+    private var views: LibraryFilterViews? = null
+
+    private val profile: LibraryProfile get() = LibraryProfile.of(viewModel.shelf.contentType)
+
+    /** 每次条件变更后把所有控件的选中态刷一遍（控件数量在百级，一次全刷远比精确定位便宜）。 */
     private val refreshers = mutableListOf<() -> Unit>()
 
     /** 标签搜索框里的当前文本（只过滤已经算好的标签云，不打库）。 */
@@ -86,8 +84,8 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
 
     /**
      * 见过的标签名 → 展示名/译名。**被排除的标签不会出现在 facet 结果里**（facet 算的是
-     * 当前结果里还剩什么，而排除掉的东西按定义已经不在结果里了），没有这份缓存，用户
-     * 一旦长按排除某个标签就再也看不到那个 chip、也就没法取消排除。
+     * 当前结果里还剩什么），没有这份缓存，用户一旦长按排除某个标签就再也看不到那个胶囊、
+     * 也就没法取消排除。
      */
     private val knownTagLabels = HashMap<String, Pair<String, String>>()
 
@@ -113,19 +111,23 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         // 进程被杀后系统会连着子 FragmentManager 一起恢复这张 sheet，而 VM 是全新的：
         // 宿主的 onViewCreated（bind 的地方）**通常**先于本方法，但这是 FragmentManager 的
-        // 内部状态推进顺序，不是契约。赌它 = 拿一个 UninitializedPropertyAccessException
-        // 换一点代码量。恢复出来的空 sheet 本来也没有价值，直接关掉最干净。
+        // 内部状态推进顺序，不是契约。恢复出来的空 sheet 本来也没有价值，直接关掉最干净。
         if (!viewModel.bound || viewModel.mirrorState.value?.isFirstSyncDone != true) {
             Timber.tag(TAG).w("书架尚未补齐，关闭恢复出来的筛选面板")
             dismissAllowingStateLoss()
             return
         }
+        val parts = LibraryFilterViews(requireContext()).also { views = it }
+        parts.styleResetAction(binding.resetButton)
+        parts.stylePrimaryAction(binding.applyButton)
+        androidx.core.view.ViewCompat.setAccessibilityHeading(binding.sheetTitle, true)
+
         buildSections()
         binding.resetButton.setOnClickListener {
             if (viewModel.clearConditions()) {
                 // 两个搜索框都要跟着空掉：条件已经清了，框里却还留着字，界面就在说谎
                 //（而且用户接着敲一个字，整串旧关键词会连着新字一起被重新应用）。
-                // 宿主那个搜索框由宿主自己同步（见 BookmarkLibraryFragment.renderChips）。
+                // 宿主那个搜索框由宿主自己同步（见 BookmarkLibraryUi.renderChips）。
                 tagQuery = ""
                 tagSearchInput?.setText("")
                 notifyHost()
@@ -143,12 +145,13 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
                     }
                 }
                 launch { viewModel.resultCount.collectLatest { updateApplyText(it) } }
+                launch { viewModel.shelfStats.collectLatest { renderHeader() } }
                 // facet 是异步算出来的：标签/作者两节先出骨架、算完再填，不阻塞面板打开
                 launch { viewModel.tagFacets.collectLatest { rebuildTagChips() } }
                 launch { viewModel.authorFacets.collectLatest { rebuildAuthorChips() } }
                 // 年份分区要等 facet 算完才建得出来。**只在年份真的变了时才重建**：
                 // StateFlow 订阅时会立刻重放当前值，无条件重建等于一开面板就把刚建好的
-                // 十几节全部推倒重来一遍；后台补进新数据时同理，会把用户正在调的面板
+                // 各节全部推倒重来；后台补进新数据时同理，会把用户正在调的面板
                 // 连滚动位置带标签搜索框一起清掉。
                 launch {
                     viewModel.yearFacets.collectLatest { years ->
@@ -176,26 +179,103 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         tagFlow = null
         authorFlow = null
         tagSearchInput = null
+        views = null
         _binding = null
     }
 
-    // ─────────────────────────── 各节 ───────────────────────────
+    // ─────────────────────────── 各组 ───────────────────────────
 
     private fun buildSections() {
+        val parts = views ?: return
         val container = binding.sectionsContainer
         container.removeAllViews()
         refreshers.clear()
+        tagFlow = null
+        authorFlow = null
+        tagSearchInput = null
         builtYears = viewModel.yearFacets.value
-        val isIllust = viewModel.shelf.contentType == MirrorContentType.ILLUST
+        val profile = profile
 
-        singleChoiceSection(
-            title = getString(R.string.bookmark_filter_section_sort),
-            options = sortOptions(isIllust),
-            selected = { it.sort },
-        ) { filter, value -> filter.copy(sort = value, randomSeed = freshSeedIfRandom(filter, value)) }
+        group(getString(R.string.bookmark_filter_section_sort)) { card ->
+            singleChoice(
+                card,
+                title = null,
+                options = profile.sorts.map { it to getString(profile.sortLabel(it)) },
+                selected = { it.sort },
+            ) { filter, value -> filter.copy(sort = value, randomSeed = freshSeedIfRandom(filter, value)) }
+        }
 
-        if (isIllust) {
-            multiChoiceSection(
+        if (profile.hasWorkFilters) {
+            group(getString(R.string.bookmark_filter_group_works)) { card -> buildWorkRows(card, profile) }
+        }
+
+        val timeGroup = if (profile.hasWorkFilters) {
+            R.string.bookmark_filter_group_popularity_time
+        } else {
+            R.string.bookmark_filter_group_time
+        }
+        group(getString(timeGroup)) { card ->
+            if (profile.hasWorkFilters) {
+                singleChoice(
+                    card,
+                    title = getString(R.string.bookmark_filter_section_popularity),
+                    options = POPULARITY_STEPS.map { step ->
+                        step to if (step == null) {
+                            getString(R.string.bookmark_filter_any)
+                        } else {
+                            getString(R.string.bookmark_filter_popularity_min, formatCount(step))
+                        }
+                    },
+                    selected = { it.minBookmarks },
+                ) { filter, value -> filter.copy(minBookmarks = value) }
+            }
+            val years = builtYears
+            if (years.isNotEmpty()) {
+                singleChoice(
+                    card,
+                    title = getString(profile.yearSection),
+                    options = buildList {
+                        add(null to getString(R.string.bookmark_filter_any))
+                        years.forEach { facet ->
+                            add(facet.year to getString(R.string.bookmark_filter_year_item, facet.year, facet.hitCount))
+                        }
+                    },
+                    selected = { filter -> filter.createdFromMs?.let(::yearOf) },
+                ) { filter, year ->
+                    if (year == null) {
+                        filter.copy(createdFromMs = null, createdToMs = null)
+                    } else {
+                        filter.copy(createdFromMs = yearStartMs(year), createdToMs = yearStartMs(year + 1) - 1)
+                    }
+                }
+            }
+            if (profile.hasWorkFilters) {
+                val (row, switch) = parts.switchRow(getString(R.string.bookmark_filter_series_only)) { checked ->
+                    applyChange { it.copy(seriesOnly = checked) }
+                    refreshAll()
+                }
+                parts.row(card, title = null, control = row)
+                refreshers += { switch.isChecked = viewModel.filter.value.seriesOnly }
+            }
+        }
+
+        group(getString(R.string.bookmark_filter_section_tags)) { card -> buildTagRows(card, profile) }
+
+        if (profile.hasWorkFilters) {
+            group(getString(R.string.bookmark_filter_section_author)) { card ->
+                authorFlow = parts.newFlow().also { parts.row(card, title = null, control = it) }
+                rebuildAuthorChips()
+            }
+        }
+
+        refreshAll()
+    }
+
+    /** 作品维度：类型 / 画幅 / 页数（插画）或字数（小说），以及分级 / AI / 作品状态。 */
+    private fun buildWorkRows(card: LinearLayout, profile: LibraryProfile) {
+        if (profile.isIllust) {
+            multiChoice(
+                card,
                 title = getString(R.string.bookmark_filter_section_type),
                 options = listOf(
                     "illust" to getString(R.string.bookmark_filter_type_illust),
@@ -205,7 +285,8 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
                 selected = { it.workTypes.toSet() },
             ) { filter, values -> filter.copy(workTypes = values.toList()) }
 
-            multiChoiceSection(
+            multiChoice(
+                card,
                 title = getString(R.string.bookmark_filter_section_shape),
                 options = listOf(
                     BookmarkMirrorMapper.ORIENTATION_LANDSCAPE to getString(R.string.bookmark_filter_shape_landscape),
@@ -215,7 +296,8 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
                 selected = { it.orientations.toSet() },
             ) { filter, values -> filter.copy(orientations = values.toList()) }
 
-            singleChoiceSection(
+            singleChoice(
+                card,
                 title = getString(R.string.bookmark_filter_section_pages),
                 options = listOf(
                     PageFilter.ANY to getString(R.string.bookmark_filter_any),
@@ -226,9 +308,10 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             ) { filter, value -> filter.copy(pages = value) }
         }
 
-        if (!isIllust) {
+        if (profile.isNovel) {
             // 小说侧「人气」之外最实用的那一维：想找长篇 / 想找一口气看完的短篇。
-            singleChoiceSection(
+            singleChoice(
+                card,
                 title = getString(R.string.bookmark_filter_section_length),
                 options = LENGTH_STEPS.map { step ->
                     step to if (step == null) {
@@ -241,7 +324,8 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             ) { filter, value -> filter.copy(minTextLength = value) }
         }
 
-        singleChoiceSection(
+        singleChoice(
+            card,
             title = getString(R.string.bookmark_filter_section_age),
             options = listOf(
                 AgeFilter.ANY to getString(R.string.bookmark_filter_any),
@@ -252,7 +336,8 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             selected = { it.age },
         ) { filter, value -> filter.copy(age = value) }
 
-        singleChoiceSection(
+        singleChoice(
+            card,
             title = getString(R.string.bookmark_filter_section_ai),
             options = listOf(
                 AiFilter.ANY to getString(R.string.bookmark_filter_any),
@@ -262,7 +347,8 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             selected = { it.ai },
         ) { filter, value -> filter.copy(ai = value) }
 
-        singleChoiceSection(
+        singleChoice(
+            card,
             title = getString(R.string.bookmark_filter_section_state),
             options = listOf(
                 ValidityFilter.ANY to getString(R.string.bookmark_filter_any),
@@ -273,104 +359,16 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             ),
             selected = { it.validity },
         ) { filter, value -> filter.copy(validity = value) }
-
-        singleChoiceSection(
-            title = getString(R.string.bookmark_filter_section_popularity),
-            options = POPULARITY_STEPS.map { step ->
-                step to if (step == null) {
-                    getString(R.string.bookmark_filter_any)
-                } else {
-                    getString(R.string.bookmark_filter_popularity_min, formatCount(step))
-                }
-            },
-            selected = { it.minBookmarks },
-        ) { filter, value -> filter.copy(minBookmarks = value) }
-
-        val years = builtYears
-        if (years.isNotEmpty()) {
-            singleChoiceSection(
-                title = getString(R.string.bookmark_filter_section_year),
-                options = buildList {
-                    add(null to getString(R.string.bookmark_filter_any))
-                    years.forEach { facet ->
-                        add(facet.year to getString(R.string.bookmark_filter_year_item, facet.year, facet.hitCount))
-                    }
-                },
-                selected = { filter -> filter.createdFromMs?.let(::yearOf) },
-            ) { filter, year ->
-                if (year == null) {
-                    filter.copy(createdFromMs = null, createdToMs = null)
-                } else {
-                    filter.copy(createdFromMs = yearStartMs(year), createdToMs = yearStartMs(year + 1) - 1)
-                }
-            }
-        }
-
-        toggleSection(
-            title = getString(R.string.bookmark_filter_section_series),
-            label = getString(R.string.bookmark_filter_series_only),
-            selected = { it.seriesOnly },
-        ) { filter, value -> filter.copy(seriesOnly = value) }
-
-        buildTagSection(container)
-        buildAuthorSection(container)
-
-        refreshAll()
-    }
-
-    /** 排序项。随机每次重选都换一个种子，用户点第二下「随机」就是重新洗牌。 */
-    private fun sortOptions(isIllust: Boolean): List<Pair<BookmarkSort, String>> = buildList {
-        add(BookmarkSort.BOOKMARK_NEWEST to getString(R.string.bookmark_sort_bookmark_newest))
-        add(BookmarkSort.BOOKMARK_OLDEST to getString(R.string.bookmark_sort_bookmark_oldest))
-        add(BookmarkSort.CREATED_NEWEST to getString(R.string.bookmark_sort_created_newest))
-        add(BookmarkSort.CREATED_OLDEST to getString(R.string.bookmark_sort_created_oldest))
-        add(BookmarkSort.POPULAR_DESC to getString(R.string.bookmark_sort_popular_desc))
-        add(BookmarkSort.POPULAR_ASC to getString(R.string.bookmark_sort_popular_asc))
-        add(BookmarkSort.VIEWS_DESC to getString(R.string.bookmark_sort_views_desc))
-        if (isIllust) {
-            add(BookmarkSort.PAGES_DESC to getString(R.string.bookmark_sort_pages_desc))
-            add(BookmarkSort.RATIO_TALLEST to getString(R.string.bookmark_sort_ratio_tallest))
-            add(BookmarkSort.RATIO_WIDEST to getString(R.string.bookmark_sort_ratio_widest))
-        } else {
-            add(BookmarkSort.LENGTH_DESC to getString(R.string.bookmark_sort_length_desc))
-            add(BookmarkSort.LENGTH_ASC to getString(R.string.bookmark_sort_length_asc))
-        }
-        add(BookmarkSort.TITLE_ASC to getString(R.string.bookmark_sort_title_asc))
-        add(BookmarkSort.RANDOM to getString(R.string.bookmark_sort_random))
     }
 
     private fun freshSeedIfRandom(filter: BookmarkFilter, value: BookmarkSort): Long =
         if (value.isRandom) System.currentTimeMillis() else filter.randomSeed
 
-    private fun buildTagSection(container: LinearLayout) {
-        container.addView(sectionHeader(getString(R.string.bookmark_filter_section_tags)))
-        container.addView(sectionHint(getString(R.string.bookmark_filter_tag_hint)))
-
-        // 「同时满足 / 任一满足」：多标签的默认意图是收窄（AND），但「这几个系列随便哪个都行」
-        // 也是真实需求，一个 chip 就能表达，不值得为它做二级菜单。
-        val modeChip = chip(getString(R.string.bookmark_filter_tag_mode_all)) { chipView ->
-            val nowAll = !viewModel.filter.value.tagMatchAll
-            applyChange { it.copy(tagMatchAll = nowAll) }
-            chipView.text = getString(
-                if (nowAll) R.string.bookmark_filter_tag_mode_all else R.string.bookmark_filter_tag_mode_any
-            )
-        }
-        refreshers += {
-            val all = viewModel.filter.value.tagMatchAll
-            modeChip.text = getString(
-                if (all) R.string.bookmark_filter_tag_mode_all else R.string.bookmark_filter_tag_mode_any
-            )
-            modeChip.isActivated = viewModel.filter.value.tagNames.size > 1
-        }
-
-        val search = EditText(requireContext()).apply {
-            setBackgroundResource(R.drawable.bg_v3_chip)
-            hint = getString(R.string.bookmark_filter_tag_search_hint)
-            isSingleLine = true
-            setTextColor(resources.getColor(R.color.v3_text_1, null))
-            setHintTextColor(resources.getColor(R.color.v3_text_3, null))
-            textSize = 13f
-            updatePadding(left = dp(14), right = dp(14), top = dp(9), bottom = dp(9))
+    /** 标签组：规则说明 + 搜索框 +（选了两个以上才出现的）匹配方式 + 标签云。 */
+    private fun buildTagRows(card: LinearLayout, profile: LibraryProfile) {
+        val parts = views ?: return
+        val search = parts.searchField(getString(R.string.bookmark_filter_tag_search_hint)).apply {
+            setText(tagQuery)
             addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
@@ -381,49 +379,57 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             })
         }
         tagSearchInput = search
-        val row = LinearLayout(requireContext()).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            addView(search, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
-            addView(modeChip, LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
-            ).also { it.leftMargin = dp(8) })
-        }
-        container.addView(row, matchWidth(topMarginDp = 8))
+        parts.row(card, title = null, hint = getString(profile.tagHint), control = search)
 
-        tagFlow = newFlow().also { container.addView(it, matchWidth(topMarginDp = 8)) }
+        // 「同时满足 / 任一满足」只在选了两个以上标签时才有意义，之前出现只是噪音。
+        val modes = listOf(true, false)
+        val modeGroup = parts.segmentedGroup(
+            listOf(
+                getString(R.string.bookmark_filter_tag_mode_all),
+                getString(R.string.bookmark_filter_tag_mode_any),
+            ),
+        ) { index ->
+            applyChange { it.copy(tagMatchAll = modes[index]) }
+            refreshAll()
+        }
+        val modeRow = parts.row(
+            card,
+            title = getString(R.string.bookmark_filter_tag_mode_label),
+            control = modeGroup.view,
+            divider = false,
+        )
+        refreshers += {
+            val filter = viewModel.filter.value
+            modeRow.visibility = if (filter.tagNames.size > 1) View.VISIBLE else View.GONE
+            modeGroup.select(modes.indexOf(filter.tagMatchAll))
+        }
+
+        tagFlow = parts.newFlow().also { parts.row(card, title = null, control = it, divider = false) }
         rebuildTagChips()
     }
 
     private fun rebuildTagChips() {
         val flow = tagFlow ?: return
+        val parts = views ?: return
         flow.removeAllViews()
         val filter = viewModel.filter.value
         val facets = viewModel.tagFacets.value
         facets.forEach { knownTagLabels[it.tagName] = it.displayName to it.translatedName }
 
-        // 排除掉的标签不在 facet 里（见 knownTagLabels），得自己补一份「幽灵 chip」出来，
+        // 排除掉的标签不在 facet 里（见 knownTagLabels），得自己补一份「幽灵胶囊」出来，
         // 否则排除就是个单向操作，取消不掉。
         val entries = buildList {
             filter.excludedTagNames.forEach { name ->
                 val (display, translated) = knownTagLabels[name] ?: (name to "")
-                add(TagChipEntry(name, display, translated, hitCount = null, excluded = true))
+                add(TagChipEntry(name, display, translated, hitCount = null))
             }
             facets.forEach { facet ->
-                add(
-                    TagChipEntry(
-                        tagName = facet.tagName,
-                        displayName = facet.displayName,
-                        translatedName = facet.translatedName,
-                        hitCount = facet.hitCount,
-                        excluded = false,
-                    )
-                )
+                add(TagChipEntry(facet.tagName, facet.displayName, facet.translatedName, facet.hitCount))
             }
         }
-            // 已选中的钉在最前：标签云会随着每次下钻整体重排，选中的 chip 一旦被挤到
+            // 已选中的钉在最前：标签云会随着每次下钻整体重排，选中的胶囊一旦被挤到
             // 几十个之后，用户就找不到自己刚点了什么、也退不回去了。
-            .sortedByDescending { it.excluded || it.tagName in filter.tagNames }
+            .sortedByDescending { it.tagName in filter.excludedTagNames || it.tagName in filter.tagNames }
             .filter { entry ->
                 tagQuery.isEmpty() ||
                     entry.tagName.contains(tagQuery) ||
@@ -431,21 +437,19 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             }
 
         if (entries.isEmpty()) {
-            flow.addView(sectionHint(getString(R.string.bookmark_filter_tag_empty)))
+            flow.addView(parts.hint(getString(R.string.bookmark_filter_tag_empty)))
             return
         }
         entries.take(TAG_CHIP_LIMIT).forEach { entry ->
             val included = entry.tagName in filter.tagNames
             val excluded = entry.tagName in filter.excludedTagNames
             val label = buildString {
-                if (excluded) append('−')
                 append(entry.displayName)
                 if (entry.translatedName.isNotEmpty() && entry.translatedName != entry.displayName) {
                     append(" · ").append(entry.translatedName)
                 }
-                entry.hitCount?.let { append("  ").append(it) }
             }
-            val view = chip(label) {
+            val chip = parts.filterChip(label, entry.hitCount) {
                 applyChange { current ->
                     // 点击在「不选 → 包含 → 不选」之间转；排除态点一下直接回到不选
                     when {
@@ -455,8 +459,9 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
                     }
                 }
                 rebuildTagChips()
+                refreshAll()
             }
-            view.setOnLongClickListener {
+            chip.setOnLongClickListener {
                 applyChange { current ->
                     if (excluded) {
                         current.copy(excludedTagNames = current.excludedTagNames - entry.tagName)
@@ -468,44 +473,35 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
                     }
                 }
                 rebuildTagChips()
+                refreshAll()
                 true
             }
-            view.isActivated = included
-            if (excluded) {
-                view.setBackgroundResource(R.drawable.bg_bookmark_chip_excluded)
-                view.setTextColor(resources.getColor(android.R.color.white, null))
-            }
-            flow.addView(view)
+            parts.renderChip(chip, selected = included, excluded = excluded)
+            flow.addView(chip)
         }
     }
 
-    /** 标签云里的一枚 chip。[hitCount] 为 null = 被排除的「幽灵项」，它已经不在结果里了。 */
+    /** 标签云里的一枚胶囊。[hitCount] 为 null = 被排除的「幽灵项」，它已经不在结果里了。 */
     private class TagChipEntry(
         val tagName: String,
         val displayName: String,
         val translatedName: String,
         val hitCount: Int?,
-        val excluded: Boolean,
     )
-
-    private fun buildAuthorSection(container: LinearLayout) {
-        container.addView(sectionHeader(getString(R.string.bookmark_filter_section_author)))
-        authorFlow = newFlow().also { container.addView(it, matchWidth(topMarginDp = 8)) }
-        rebuildAuthorChips()
-    }
 
     private fun rebuildAuthorChips() {
         val flow = authorFlow ?: return
+        val parts = views ?: return
         flow.removeAllViews()
         val filter = viewModel.filter.value
         val facets = viewModel.authorFacets.value
         if (facets.isEmpty()) {
-            flow.addView(sectionHint(getString(R.string.bookmark_filter_author_empty)))
+            flow.addView(parts.hint(getString(R.string.bookmark_filter_author_empty)))
             return
         }
         facets.forEach { facet ->
             val selected = facet.authorId in filter.authorIds
-            val view = chip("${facet.authorName}  ${facet.hitCount}") {
+            val chip = parts.filterChip(facet.authorName, facet.hitCount) {
                 applyChange { current ->
                     current.copy(
                         authorIds = if (selected) current.authorIds - facet.authorId
@@ -513,73 +509,66 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
                     )
                 }
                 rebuildAuthorChips()
+                refreshAll()
             }
-            view.isActivated = selected
-            flow.addView(view)
+            parts.renderChip(chip, selected = selected)
+            flow.addView(chip)
         }
     }
 
-    // ───────────────────── 声明式的节构造器 ─────────────────────
+    // ───────────────────── 声明式的行构造器 ─────────────────────
 
-    private fun <T> singleChoiceSection(
-        title: String,
+    /** 一组 = 卡外的组标题 + 一张分组卡。卡里一行都没有（比如关注书架还没有年份）就整组不出。 */
+    private fun group(title: String, build: (LinearLayout) -> Unit) {
+        val parts = views ?: return
+        val container = binding.sectionsContainer
+        val card = parts.groupCard()
+        build(card)
+        if (card.isEmpty()) return
+        container.addView(parts.groupHeader(title, first = container.isEmpty()))
+        container.addView(card)
+    }
+
+    private fun <T> singleChoice(
+        card: LinearLayout,
+        title: String?,
         options: List<Pair<T, String>>,
         selected: (BookmarkFilter) -> T,
         apply: (BookmarkFilter, T) -> BookmarkFilter,
     ) {
-        val container = binding.sectionsContainer
-        container.addView(sectionHeader(title))
-        val flow = newFlow()
-        options.forEach { (value, label) ->
-            val view = chip(label) {
-                applyChange { apply(it, value) }
-                refreshAll()
-            }
-            refreshers += { view.isActivated = selected(viewModel.filter.value) == value }
-            flow.addView(view)
+        val parts = views ?: return
+        val group = parts.segmentedGroup(options.map { it.second }) { index ->
+            applyChange { apply(it, options[index].first) }
+            refreshAll()
         }
-        container.addView(flow, matchWidth(topMarginDp = 8))
+        parts.row(card, title, control = group.view)
+        refreshers += {
+            val current = selected(viewModel.filter.value)
+            group.select(options.indexOfFirst { it.first == current })
+        }
     }
 
-    private fun <T> multiChoiceSection(
+    private fun <T> multiChoice(
+        card: LinearLayout,
         title: String,
         options: List<Pair<T, String>>,
         selected: (BookmarkFilter) -> Set<T>,
         apply: (BookmarkFilter, Set<T>) -> BookmarkFilter,
     ) {
-        val container = binding.sectionsContainer
-        container.addView(sectionHeader(title))
-        val flow = newFlow()
+        val parts = views ?: return
+        val flow = parts.newFlow()
         options.forEach { (value, label) ->
-            val view = chip(label) {
+            val chip = parts.filterChip(label) {
                 applyChange { current ->
                     val now = selected(current)
                     apply(current, if (value in now) now - value else now + value)
                 }
                 refreshAll()
             }
-            refreshers += { view.isActivated = value in selected(viewModel.filter.value) }
-            flow.addView(view)
+            refreshers += { parts.renderChip(chip, value in selected(viewModel.filter.value)) }
+            flow.addView(chip)
         }
-        container.addView(flow, matchWidth(topMarginDp = 8))
-    }
-
-    private fun toggleSection(
-        title: String,
-        label: String,
-        selected: (BookmarkFilter) -> Boolean,
-        apply: (BookmarkFilter, Boolean) -> BookmarkFilter,
-    ) {
-        val container = binding.sectionsContainer
-        container.addView(sectionHeader(title))
-        val flow = newFlow()
-        val view = chip(label) {
-            applyChange { apply(it, !selected(it)) }
-            refreshAll()
-        }
-        refreshers += { view.isActivated = selected(viewModel.filter.value) }
-        flow.addView(view)
-        container.addView(flow, matchWidth(topMarginDp = 8))
+        parts.row(card, title, control = flow)
     }
 
     // ─────────────────────────── 零件 ───────────────────────────
@@ -594,64 +583,37 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
 
     private fun refreshAll() {
         refreshers.forEach { it() }
+        renderHeader()
         updateApplyText(viewModel.resultCount.value)
+    }
+
+    /** 标题下那行当前状态 + 「清空」的可用性。 */
+    private fun renderHeader() {
+        val b = _binding ?: return
+        val filter = viewModel.filter.value
+        val conditions = filter.activeConditionCount
+        val active = if (conditions > 0) {
+            getString(R.string.bookmark_filter_active_count, conditions)
+        } else {
+            getString(R.string.bookmark_filter_none_active)
+        }
+        val total = viewModel.shelfStats.value?.total
+        b.summaryText.text = if (total == null) {
+            active
+        } else {
+            "${getString(profile.totalCount, formatCount(total))} · $active"
+        }
+        b.resetButton.isEnabled = filter.hasAnyCondition
+        b.resetButton.alpha = if (filter.hasAnyCondition) 1f else DISABLED_ALPHA
     }
 
     private fun updateApplyText(count: Int?) {
         _binding?.applyButton?.text = if (count == null) {
             getString(R.string.bookmark_library_filter_apply_pending)
         } else {
-            getString(R.string.bookmark_library_filter_apply, formatCount(count))
+            getString(profile.showResults, formatCount(count))
         }
     }
-
-    private fun newFlow(): FlexboxLayout = FlexboxLayout(requireContext()).apply {
-        flexWrap = FlexWrap.WRAP
-        alignItems = AlignItems.FLEX_START
-    }
-
-    private fun chip(text: CharSequence, onClick: (TextView) -> Unit): TextView =
-        TextView(requireContext()).apply {
-            this.text = text
-            textSize = 13f
-            val palette = V3Palette.from(context)
-            WitTagStyle.applyText(this, palette)
-            background = WitTagStyle.background(palette, resources.displayMetrics.density)
-            minHeight = dp(48)
-            gravity = Gravity.CENTER_VERTICAL
-            updatePadding(left = dp(14), right = dp(14), top = dp(7), bottom = dp(7))
-            isClickable = true
-            isFocusable = true
-            setOnClickListener { onClick(this) }
-            layoutParams = FlexboxLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
-            ).also {
-                it.marginEnd = dp(8)
-                it.flexShrink = 0f
-                it.bottomMargin = dp(8)
-            }
-        }
-
-    private fun sectionHeader(title: String): TextView = TextView(requireContext()).apply {
-        text = title
-        textSize = 13f
-        setTextColor(resources.getColor(R.color.v3_text_3, null))
-        layoutParams = matchWidth(topMarginDp = 14)
-    }
-
-    private fun sectionHint(text: String): TextView = TextView(requireContext()).apply {
-        this.text = text
-        textSize = 12f
-        setTextColor(resources.getColor(R.color.v3_text_3, null))
-        layoutParams = matchWidth(topMarginDp = 4)
-    }
-
-    private fun matchWidth(topMarginDp: Int): LinearLayout.LayoutParams =
-        LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
-        ).also { it.topMargin = dp(topMarginDp) }
-
-    private fun dp(value: Int): Int = DensityUtil.dp2px(value.toFloat())
 
     private fun yearOf(epochMs: Long): Int = Calendar.getInstance().apply { timeInMillis = epochMs }.get(Calendar.YEAR)
 
@@ -661,9 +623,12 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
     }.timeInMillis
 
     companion object {
-        private const val MAX_HEIGHT_FRACTION = 0.86
+        private const val MAX_HEIGHT_FRACTION = 0.88
 
-        /** 标签云一次最多铺这么多 chip：再多一屏也看不完，还会把 sheet 撑得滚不到底。 */
+        /** 没有可清的条件时「清空」的透明度：看得见在哪，但明确点不了。 */
+        private const val DISABLED_ALPHA = 0.38f
+
+        /** 标签云一次最多铺这么多胶囊：再多一屏也看不完，还会把 sheet 撑得滚不到底。 */
         private const val TAG_CHIP_LIMIT = 60
 
         /** 人气档位。用预设档而不是数字输入框：用户脑子里就是「几千收藏以上」这种量级。 */

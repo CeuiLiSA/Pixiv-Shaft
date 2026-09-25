@@ -313,8 +313,24 @@ class PixivActionQueue(app: Context) {
                 } else {
                     profileManager.onUnfollowUser(payload.userId)
                 }
+                syncFollowMirror(payload)
             }
         }
+    }
+
+    /**
+     * 关注 / 取关被确认后同步进关注镜像（与 [syncBookmarkMirror] 同一个理由放在确认之后）。
+     *
+     * 关注要一份 [User] 才能入库；池里没有就放弃这一条，下一次增量维护会在表头扫到它。
+     */
+    private fun syncFollowMirror(payload: FollowPayload) {
+        val mirror = app.appServices().bookmarkMirror
+        if (!payload.follow) {
+            mirror.onUnbookmarked(MirrorContentType.USER, payload.userId)
+            return
+        }
+        val user = ObjectPool.get<User>(payload.userId).value ?: return
+        mirror.onUserFollowed(user, MirrorRestrict.ofApiValue(payload.restrict))
     }
 
 
@@ -349,6 +365,8 @@ class PixivActionQueue(app: Context) {
                 val bean = ObjectPool.get<Novel>(payload.id).value ?: novelOrNull ?: return
                 mirror.onNovelBookmarked(bean.withBookmarked(true), restrict)
             }
+            // 关注不走收藏动作，见 syncFollowMirror
+            MirrorContentType.USER -> Unit
         }
     }
 

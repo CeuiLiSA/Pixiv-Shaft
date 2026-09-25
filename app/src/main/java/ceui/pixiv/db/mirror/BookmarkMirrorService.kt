@@ -4,7 +4,9 @@ import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
 import ceui.loxia.Novel
+import ceui.loxia.User
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.UserPreview
 import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
 import kotlinx.coroutines.CancellationException
@@ -44,8 +46,12 @@ import kotlin.random.Random
  *
  * ## 三条铁律
  *
- * 1. **绝不触发 pixiv 频控。** 全局串行（`limitedParallelism(1)`）：无论有几个书架在排队，
- *    同一时刻只有一个请求在飞，页与页之间恒定 [PAGE_INTERVAL_MS]（默认 5 秒 = 12 次/分，
+ * 1. **绝不触发 pixiv 频控。** 全局串行：整个进程只有一个引擎、一条 [loop]，翻页请求只从
+ *    [runOnePage] 发出，而它只被这条循环一页一页地顺序调用 —— 无论排队的是插画收藏、小说收藏
+ *    还是关注，公开还是悄悄，同一时刻只有一个请求在飞；手上的一轮（回填 / 维护 / 重扫）没跑完不会换书架
+ *    （见 [pickJob]，只有这一轮失败挂起时才会让位）。
+ *    `limitedParallelism(1)` 保护的是引擎内部状态；它在挂起点会让出，所以串行的保证来自
+ *    单循环，不是来自它。页与页之间恒定 [PAGE_INTERVAL_MS]（默认 5 秒 = 12 次/分，
  *    大约是 pixiv 读接口配额的十分之一）再叠随机抖动。真撞上 429 时不只是退避——
  *    **本次进程内的每页间隔会被永久放大**（[intervalMultiplier]），宁可慢一倍也不再撞第二次。
  * 2. **静默。** 不弹窗、不发通知、不占前台、不打断任何操作；出错只进 Timber。
@@ -77,7 +83,11 @@ import kotlin.random.Random
  * 往前挪，用户不用了它就停在断点上。
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class BookmarkMirrorService(app: Context) {
+class BookmarkMirrorService @JvmOverloads constructor(
+    app: Context,
+    /** 书架 → 翻页实现。只为单测留的缝：生产恒为 [fetcherFor]。 */
+    private val fetchers: (BookmarkShelf) -> BookmarkShelfFetcher = ::fetcherFor,
+) {
 
     private val appContext: Context = app.applicationContext
 
@@ -306,7 +316,22 @@ class BookmarkMirrorService(app: Context) {
     }
 
     /**
-     * 取消收藏被确认后就地删除。
+     * 关注被服务端确认成功后就地插到关注书架表头。
+     *
+     * 手上只有 [User]、没有 `/v1/user/following` 附带的三张预览作品，所以先以空预览入库
+     * （卡片照常可点、可取关，只是预览格暂时留空）。不必为它补一次请求：下次打开关注库时
+     * 的增量维护会走到表头，按 id 认出这一行、原序号不动地把整份预览刷新进来。
+     */
+    fun onUserFollowed(user: User, restrict: MirrorRestrict) {
+        upsertLocally(MirrorContentType.USER, user.id, restrict) { shelf, seq, generation, now ->
+            BookmarkMirrorMapper.fromUserPreview(
+                shelf, UserPreview(user = user.copy(is_followed = true)), seq, generation, now,
+            )
+        }
+    }
+
+    /**
+     * 取消收藏 / 取消关注被确认后就地删除。
      *
      * 跨公开/悄悄两个书架删：调用点拿到的 restrict 是「本次操作用的默认可见性」，
      * 未必是当初收藏时用的那个，按它删会漏。作品 id 上有索引，两架一起删也是两次点查。
@@ -516,7 +541,7 @@ class BookmarkMirrorService(app: Context) {
 
         val startedAt = System.currentTimeMillis()
         val fetched: Result<FetchedPage> = try {
-            Result.success(fetcherFor(shelf).load(run.cursor))
+            Result.success(fetchers(shelf).load(run.cursor))
         } catch (ce: CancellationException) {
             throw ce
         } catch (t: Throwable) {

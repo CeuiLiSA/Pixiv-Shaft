@@ -443,7 +443,7 @@ object TemplateRouteFactory {
                     FragmentCollection.newInstance(1)
                 }
             }
-            // 收藏库：按 contentType 分流到插画版 / 小说版（两者页面接线共用 BookmarkLibraryUi，
+            // 本地库：按 contentType 分流到插画 / 小说 / 关注版（页面接线共用 BookmarkLibraryUi，
             // 只是列表基类和卡片不同）。restrict 决定落在公开还是悄悄那个书架上。
             TemplateRoute.BOOKMARK_LIBRARY -> {
                 val starType =
@@ -456,16 +456,33 @@ object TemplateRouteFactory {
                             0,
                         )
                     ) ?: ceui.pixiv.db.mirror.MirrorContentType.ILLUST
-                if (type == ceui.pixiv.db.mirror.MirrorContentType.NOVEL) {
-                    ceui.pixiv.ui.library.NovelBookmarkLibraryFragment.newInstance(
-                        starType = starType
-                    )
-                } else {
-                    ceui.pixiv.ui.library.BookmarkLibraryFragment.newInstance(starType = starType)
+                when (type) {
+                    ceui.pixiv.db.mirror.MirrorContentType.ILLUST ->
+                        ceui.pixiv.ui.library.BookmarkLibraryFragment.newInstance(starType = starType)
+                    ceui.pixiv.db.mirror.MirrorContentType.NOVEL ->
+                        ceui.pixiv.ui.library.NovelBookmarkLibraryFragment.newInstance(
+                            starType = starType
+                        )
+                    ceui.pixiv.db.mirror.MirrorContentType.USER ->
+                        ceui.pixiv.ui.library.FollowingLibraryFragment.newInstance(
+                            starType = starType
+                        )
                 }
             }
             TemplateRoute.WATCHLIST -> FragmentCollection.newInstance(3)
-            TemplateRoute.MY_FOLLOWING -> FragmentCollection.newInstance(2)
+            // 关注入口与收藏入口同一条规则（理由见上面 MY_ILLUST_COLLECTION 的注释）。
+            TemplateRoute.MY_FOLLOWING -> {
+                val wantsClassic = intent.getBooleanExtra(ceui.lisa.utils.Params.FLAG, false)
+                if (
+                    !wantsClassic &&
+                        shouldOpenBookmarkLibrary(ceui.pixiv.db.mirror.MirrorContentType.USER)
+                ) {
+                    ceui.pixiv.ui.library.FollowingLibraryFragment.newInstance()
+                } else {
+                    trackOwnBookmarkShelfVisit(ceui.pixiv.db.mirror.MirrorContentType.USER)
+                    FragmentCollection.newInstance(2)
+                }
+            }
             TemplateRoute.NOVEL_MARKERS -> NovelMarkersFeedFragment()
             // 设置 → 标签译文颜色 也复用本页，通过 extra 切成选择器模式。
             TemplateRoute.THEME_COLOR ->
@@ -664,7 +681,7 @@ private fun trackOwnBookmarkShelfVisit(contentType: ceui.pixiv.db.mirror.MirrorC
 }
 
 /**
- * 收藏库默认进入公开书架；只有用户切到悄悄收藏后，才注册私人书架。
+ * 本地库默认进入公开书架；只有用户切到悄悄收藏 / 私人关注后，才注册私人书架。
  */
 private fun shouldOpenBookmarkLibrary(contentType: ceui.pixiv.db.mirror.MirrorContentType): Boolean {
     val uid = ceui.pixiv.session.SessionManager.loggedInUid

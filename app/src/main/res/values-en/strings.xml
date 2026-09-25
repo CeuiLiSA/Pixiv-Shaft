@@ -3002,6 +3002,31 @@
     <string name="bookmark_filter_tag_mode_any">Match any</string>
     <string name="bookmark_filter_tag_empty">No further tags to drill into</string>
     <string name="bookmark_filter_author_empty">No artists to filter by</string>
+    <string name="following_library_menu_entry">Browse follows with filters</string>
+    <string name="following_library_open_classic">Original following list</string>
+    <string name="following_library_search_hint">Search name / account / ID / recent tags</string>
+    <string name="following_library_empty">No follows available locally yet</string>
+    <string name="following_library_empty_filtered">No users match these filters</string>
+    <string name="following_library_syncing">Mirroring your follows in the background · %1$s so far</string>
+    <string name="following_library_sync_queued">Following mirror queued for the next sync window</string>
+    <string name="following_library_total_count">%1$s users</string>
+    <string name="following_library_filter_apply">Show %1$s users</string>
+    <string name="bookmark_library_total_count">%1$s items</string>
+    <string name="following_sort_followed_newest">Followed · newest first</string>
+    <string name="following_sort_followed_oldest">Followed · oldest first</string>
+    <string name="following_sort_active_newest">Last posted · newest first</string>
+    <string name="following_sort_active_oldest">Last posted · oldest first</string>
+    <string name="following_sort_name_asc">Name · A to Z</string>
+    <string name="following_filter_section_year">Year of last post</string>
+    <string name="following_filter_tag_hint">From each user\'s latest few works. Tap to include, long-press to exclude</string>
+    <string name="following_mirror_ready_title">Following library ready</string>
+    <string name="following_mirror_ready_message">%1$s followed users mirrored locally — now you can sort oldest-first or by last post, and search by name or recent tags.</string>
+    <string name="bookmark_filter_group_works">Works</string>
+    <string name="bookmark_filter_group_popularity_time">Popularity &amp; time</string>
+    <string name="bookmark_filter_group_time">Time</string>
+    <string name="bookmark_filter_active_count">Filters on: %1$d</string>
+    <string name="bookmark_filter_none_active">No filters on</string>
+    <string name="bookmark_filter_tag_mode_label">Between multiple tags</string>
 
     <!-- PixShaft cloud translation -->
     <string name="cloud_translate_title">PixShaft Cloud Translation</string>

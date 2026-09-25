@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  收藏库「筛选与排序」bottom sheet 壳。
+  本地库（收藏 / 关注）「筛选与排序」bottom sheet 壳。V3 + MD3-E（docs/v3-design-philosophy.md）。
 
-  只放骨架（把手 / 标题行 / 滚动容器 / 底部提交条），一节一节的筛选项由 Kotlin 按
-  BookmarkFilterSections 声明式生成 —— 维度有十几个，写成 XML 是十几段几乎一样的
-  复制粘贴，加一个维度要改三处；用一份声明表生成，加维度就是加一行。
+  只放骨架：把手 → 标题行（标题 + 当前状态 + 清空）→ 可滚动的分组卡片 → 底部主操作。
+  一组一组的筛选项由 BookmarkFilterSheet 按书架的 LibraryProfile 用 LibraryFilterViews
+  声明式生成 —— 维度有十几个，写成 XML 是十几段几乎一样的复制粘贴。
 
-  chrome 约定（theme overlay / edgeToEdge / maxHeight / 透明 sheet 容器）照抄
-  sheet_rank_picker.xml。
+  顺序照规范的 Sheet 配方：标题 → 当前状态 → 条件 → 主操作。表面是 v3_bg + 顶角 28dp，
+  条件装在 22dp 的 cardFill 分组卡里，主操作是整宽实色胶囊，文案永远带实时命中数。
 
   ⚠️ **根上刻意不套 `Theme.Material3.DayNight.NoActionBar`**。那是一个**完整 theme**
   （不是 ThemeOverlay），套上去会把 app 自己的 `colorPrimary` 整个换成 M3 的默认紫 ——
-  于是本 sheet 里所有 `?attr/colorPrimary`（选中的 chip、底部提交条）都不再跟随用户选的
-  主题色，而是永远是紫的。用户换成玫红主题后一眼就能看出提交条颜色对不上（真机复现）。
-  代价是把手和分割线不能用 M3 组件，各自用一个 View + shape 自绘，见下。
+  本 sheet 里所有从 V3Palette 派生的颜色就不再跟随用户选的主题色。把手因此自绘。
   dialog 自身的 theme（getTheme()）是 ThemeOverlay，overlay 只叠不换，colorPrimary 照常继承。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -30,7 +28,8 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="8dp"
-        android:background="@drawable/bg_sheet_drag_handle" />
+        android:background="@drawable/bg_sheet_drag_handle"
+        android:importantForAccessibility="no" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -38,67 +37,78 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="24dp"
+        android:paddingTop="8dp"
         android:paddingEnd="16dp"
         android:paddingBottom="12dp">
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/bookmark_library_filter_title"
-            android:textColor="@color/v3_text_1"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:orientation="vertical">
 
-        <!-- 「清空」放在标题行右侧而不是底部：它是**撤销**，跟底部的「确认」是相反意图，
-             挨在一起最容易误触。 -->
+            <TextView
+                android:id="@+id/sheet_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/montserrat_bold"
+                android:text="@string/bookmark_library_filter_title"
+                android:textColor="@color/v3_text_1"
+                android:textSize="22sp" />
+
+            <!-- 当前状态：书架总数 · 开了几项筛选。命中数在底部主操作上，这里不重复。 -->
+            <TextView
+                android:id="@+id/summary_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/montserrat_medium"
+                android:textColor="@color/v3_text_2"
+                android:textSize="13sp"
+                tools:text="共 3,210 件 · 已启用 2 项筛选" />
+        </LinearLayout>
+
+        <!-- 「清空」放在标题行末端而不是底部：它是撤销，跟底部的确认是相反意图，挨在一起最容易误触。
+             样式（浅色胶囊、48dp 热区、无条件时置灰）由代码按 V3Palette 设置。 -->
         <TextView
             android:id="@+id/reset_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_v3_chip"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="7dp"
-            android:text="@string/bookmark_library_filter_reset"
-            android:textColor="@color/v3_text_2"
-            android:textSize="13sp" />
+            android:layout_marginStart="12dp"
+            android:text="@string/bookmark_library_filter_reset" />
     </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/v3_border_1" />
-
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/sections_scroll"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        android:fadingEdgeLength="16dp"
+        android:requiresFadingEdge="vertical">
 
         <LinearLayout
             android:id="@+id/sections_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="20dp"
-            android:paddingTop="8dp"
+            android:paddingHorizontal="16dp"
             android:paddingBottom="16dp" />
     </androidx.core.widget.NestedScrollView>
 
-    <!-- 提交条：MD3-E 的大圆角实底 CTA。文案永远带**实时命中数**——用户在上面每点一下，
-         这个数就变一次，不用关掉 sheet 才知道自己筛出了什么。 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/v3_border_1" />
+
+    <!-- 主操作：整宽实色胶囊。文案永远带**实时命中数**——上面每点一下这个数就变一次，
+         不用关掉 sheet 才知道自己筛出了什么。背景 / 字色 / 按压由代码按 V3Palette 设置。 -->
     <TextView
         android:id="@+id/apply_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="20dp"
-        android:background="@drawable/bg_bookmark_apply"
-        android:gravity="center"
-        android:paddingVertical="16dp"
-        android:textColor="@android:color/white"
-        android:textSize="15sp"
-        android:textStyle="bold"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="16dp"
         tools:text="查看 1,204 件" />
 </LinearLayout>

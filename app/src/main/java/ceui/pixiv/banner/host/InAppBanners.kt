@@ -121,8 +121,8 @@ object InAppBanners {
     }
 
     /**
-     * `shaft://bookmark-library?restrict=public|private&type=0|1` → 收藏库，
-     * 落在指定的那个书架上（type：0=插画 1=小说，见 MirrorContentType.code）。
+     * `shaft://bookmark-library?restrict=public|private&type=0|1|2` → 收藏库 / 关注库，
+     * 落在指定的那个书架上（type：0=插画 1=小说 2=关注，见 MirrorContentType.code）。
      */
     private suspend fun openBookmarkLibrary(app: Application, uri: Uri) {
         val activity = foreground.current()

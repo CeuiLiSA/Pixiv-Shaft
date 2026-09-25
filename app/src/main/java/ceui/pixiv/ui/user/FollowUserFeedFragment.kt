@@ -15,6 +15,8 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.api.Client
 import ceui.pixiv.chat.base.toUserMessage
+import ceui.pixiv.db.mirror.MirrorContentType
+import ceui.pixiv.db.mirror.trackBookmarkShelfVisit
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.common.UserFeedFragment
@@ -106,6 +108,17 @@ class FollowUserFeedFragment : UserFeedFragment() {
                 false
             }
         }
+    }
+
+    /**
+     * 打开**自己**的关注列表 = 开启这个书架的本地镜像（关注库），与收藏页同一个入口函数，
+     * 隐私边界也同一条：别人的「正在关注」不镜像。放 onResume 的理由同
+     * [ceui.pixiv.ui.collection.LikeIllustFeedFragment.onResume]：宿主 pager 会提前建好私人关注
+     * tab，却只 RESUME 当前页，没点开过私人关注就不注册私人书架。
+     */
+    override fun onResume() {
+        super.onResume()
+        requireContext().trackBookmarkShelfVisit(userId, starType, MirrorContentType.USER)
     }
 
     /**
