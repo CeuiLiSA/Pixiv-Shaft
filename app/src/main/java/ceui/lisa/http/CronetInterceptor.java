@@ -95,7 +95,7 @@ public class CronetInterceptor implements Interceptor {
 
     private static CronetEngine buildEngine(Context context) {
         // www.pixiv.net 与 API 域名同在 Cloudflare 上,同一组 anycast IP 按 SNI 分流即可命中
-        // (issue #959:拉黑等网页端专属接口要在直连下可用)。
+        // (issue #959:黑名单等网页端专属接口要在直连下可用)。
         String rules = "MAP app-api.pixiv.net " + CF_IP_PRIMARY + ","
                 + " MAP oauth.secure.pixiv.net " + CF_IP_PRIMARY + ","
                 + " MAP www.pixiv.net " + CF_IP_PRIMARY;

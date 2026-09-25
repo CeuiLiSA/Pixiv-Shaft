@@ -47,7 +47,7 @@ object CsrfTokenProvider {
             .writeTimeout(WebApiTimeouts.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .dns(IPv4OnlyDns)
         // issue #959: 直连下 www.pixiv.net 同样打不通,token 兜底抓取必须走 Cronet,
-        // 否则「拉黑」在没梯子时永远卡在「CSRF token 未就绪」。每次现建:直连开关随时可切。
+        // 否则黑名单（アクセスブロック）在没梯子时永远卡在「CSRF token 未就绪」。每次现建:直连开关随时可切。
         if (Shaft.sSettings?.isDirectConnect == true) {
             builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
         }
@@ -84,7 +84,7 @@ object CsrfTokenProvider {
     private fun parseToken(html: String): String? {
         // 引号写成可选转义：pixiv 改版到 Next.js 后 token 埋在 __NEXT_DATA__ 的**嵌套 JSON
         // 字符串**里，原文是 \"token\":\"<32hex>\"。按裸引号匹配三条 pattern 会一起落空，
-        // 这条 OkHttp 兜底链路(拉黑用的就是它)于是恒返 null。与 StreetMainFragment 的
+        // 这条 OkHttp 兜底链路(黑名单用的就是它)于是恒返 null。与 StreetMainFragment 的
         // EXTRACT_TOKEN_JS 用同一形态。
         val tokenRegex = Regex("""token\\?"\s*:\s*\\?"([a-f0-9]{32})""")
 

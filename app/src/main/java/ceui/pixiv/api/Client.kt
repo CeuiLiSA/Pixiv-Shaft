@@ -231,7 +231,7 @@ class ClientManager {
         RequestLogInterceptor.installOn(httpBuilder, "Net/WebApi")
         httpBuilder.addInterceptor(WebHeaderInterceptor())
         // issue #959: www.pixiv.net 也走直连(Cronet QUIC + CF IP),否则网页端专属功能
-        // (拉黑、Web 首页、按 tag 筛作品…)在没梯子的网络上一律超时。
+        // (黑名单、Web 首页、按 tag 筛作品…)在没梯子的网络上一律超时。
         applyDirectConnect(httpBuilder)
 
         return Retrofit.Builder()

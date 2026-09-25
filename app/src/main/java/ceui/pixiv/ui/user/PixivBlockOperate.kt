@@ -25,10 +25,10 @@ import retrofit2.HttpException
 import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
- * issue #959: pixiv 官方「拉黑」(网页端 ブロック)。
+ * issue #959: pixiv 官方黑名单（アクセスブロック，网页端 ブロック)。
  *
  * **和「屏蔽」不是一回事**：屏蔽([ceui.lisa.utils.PixivOperate.muteUser])是纯本地过滤,只让自己
- * 看不见对方作品;拉黑是写到 pixiv 账号上的,对方从此无法关注 / 收藏 / 评论 / 私信你。所以这里必须
+ * 看不见对方作品;黑名单是写到 pixiv 账号上的,对方从此无法关注 / 收藏 / 评论 / 私信你。所以这里必须
  * 真的打网络接口,而不是往本地库里塞一条。
  *
  * 官方 App 没有这个功能,只有网页端有,接口是 `/ajax/block/save`(POST,JSON)——因此:
@@ -54,9 +54,9 @@ object PixivBlockOperate {
     }
 
     /**
-     * 画师页「更多」菜单里的入口：先读当前拉黑态,再按状态弹确认框。
+     * 画师页「更多」菜单里的入口：先读当前黑名单态,再按状态弹确认框。
      *
-     * 拉黑态不在进页面时预取 —— 那要给每次打开画师页多加一次网络请求,而这个功能是低频操作,
+     * 黑名单态不在进页面时预取 —— 那要给每次打开画师页多加一次网络请求,而这个功能是低频操作,
      * 点开菜单再查够用。
      */
     fun showBlockDialog(activity: AppCompatActivity, userId: Long, userName: String) {
@@ -65,7 +65,7 @@ object PixivBlockOperate {
             showWebLoginNeeded(activity)
             return
         }
-        // 名字空着时用 ID 兜,免得确认框读成「拉黑「」后…」。
+        // 名字空着时用 ID 兜,免得确认框读成「将「」加入黑名单后…」。
         val name = userName.ifBlank { userId.toString() }
 
         val loading = WitTipDialog.Builder(activity)
@@ -114,7 +114,7 @@ object PixivBlockOperate {
         if (response.error == true) {
             throw RuntimeException(response.message.orEmpty().ifEmpty { "block/list failed" })
         }
-        // target_id 查询下目标本人必在返回里(isTarget=true)。真拿不到时按「未拉黑」处理:
+        // target_id 查询下目标本人必在返回里(isTarget=true)。真拿不到时按「不在黑名单」处理:
         // 用户点确认后接口会自己拒绝,总好过卡在这里什么都做不了。
         return response.body?.block_items
             ?.firstOrNull { it.isTarget || it.userId == userId.toString() }
@@ -187,7 +187,7 @@ object PixivBlockOperate {
 
     /**
      * csrf 失效时 pixiv 回的是 **HTTP 403**(不是 200 + `error:true`),所以清 token 重来只能挂在
-     * [HttpException] 上。业务性失败(已拉黑 / 不能拉黑自己 …)才走 `error:true` —— 那种情况**绝不能**
+     * [HttpException] 上。业务性失败(已加入黑名单 / 不能加入自己 …)才走 `error:true` —— 那种情况**绝不能**
      * 清 token:这份 token 是「Web 首页」等功能共用的,清掉等于顺手把别人也弄坏,而直连下
      * [CsrfTokenProvider.fetch] 未必抓得回来(Cloudflare 可能对裸请求下 JS challenge),
      * 只能重走一次网页登录。

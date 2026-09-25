@@ -540,9 +540,9 @@ data class WebResponse<T> (
     val body: T? = null,
 ) : Serializable
 
-// issue #959: pixiv 官方「拉黑」(网页端 ブロック,不是本地屏蔽)。
+// issue #959: pixiv 官方黑名单（アクセスブロック,网页端 ブロック,不是本地屏蔽)。
 // /ajax/block/list?target_id=N 会把目标本人也放进 block_items,那一条 isTarget=true,
-// 读它的 isBlocked 就是当前拉黑态 —— 不必翻完整张名单。
+// 读它的 isBlocked 就是当前黑名单态 —— 不必翻完整张名单。
 data class BlockListBody(
     val block_items: List<BlockItem>? = null,
     val has_more_blocks: Boolean = false,
