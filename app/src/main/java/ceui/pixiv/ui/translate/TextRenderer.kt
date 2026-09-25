@@ -12,6 +12,8 @@ import timber.log.Timber
  *
  * Supports both horizontal and vertical text layout,
  * auto-sizes the font to fit the bubble dimensions.
+ *
+ * 字号上下限是参考分辨率下的像素值,更高分辨率的底图由调用方传 `pxScale` 等比放大。
  */
 object TextRenderer {
 
@@ -29,11 +31,13 @@ object TextRenderer {
      * @param canvas The canvas to draw on (already has text erased)
      * @param regions The OCR-detected text regions
      * @param translations Map of region index to translated text
+     * @param pxScale canvas 相对参考分辨率的像素密度倍数,放大字号上下限
      */
     fun renderTranslations(
         canvas: Canvas,
         regions: List<OcrTextRegion>,
-        translations: Map<Int, String>
+        translations: Map<Int, String>,
+        pxScale: Float = 1f,
     ) {
         val paint = Paint().apply {
             color = Color.BLACK
@@ -96,7 +100,7 @@ object TextRenderer {
             // 译文一律横排:日文竖排气泡翻出中文/俄文等目标语言后,继续竖排极不自然,
             // 业界翻译工具(manga-image-translator / BallonsTranslator)默认行为也是如此。
             renderHorizontalText(canvas, paint, strokePaint, text,
-                regionLeft + padX, regionTop + padY, innerWidth, innerHeight)
+                regionLeft + padX, regionTop + padY, innerWidth, innerHeight, pxScale)
             drawn++
         }
         Timber.d("TextRenderer: drew %d/%d translations", drawn, regions.size)
@@ -107,11 +111,13 @@ object TextRenderer {
      */
     private fun renderHorizontalText(
         canvas: Canvas, paint: Paint, strokePaint: Paint,
-        text: String, left: Float, top: Float, width: Float, height: Float
+        text: String, left: Float, top: Float, width: Float, height: Float, pxScale: Float,
     ) {
-        var fontSize = fitHorizontalFontSize(paint, text, width, height)
+        var fontSize = fitHorizontalFontSize(
+            paint, text, width, height, MIN_FONT_SIZE * pxScale, MAX_FONT_SIZE * pxScale,
+        )
         // 二分上限不达标的兜底:线性再砍小防溢出
-        fontSize = scaleDownToFit(paint, text, fontSize, width, height)
+        fontSize = scaleDownToFit(paint, text, fontSize, width, height, ABSOLUTE_MIN_FONT_SIZE * pxScale)
         paint.textSize = fontSize
         strokePaint.textSize = fontSize
         strokePaint.strokeWidth = fontSize * 0.08f
@@ -137,7 +143,7 @@ object TextRenderer {
 
     /**
      * 二分得到的 [seedSize] 可能仍超出框架(初始 lo=MIN 都塞不下时,二分会原样返回 MIN)。
-     * 这里再线性砍 0.85 倍,直到真的塞下;到 [ABSOLUTE_MIN_FONT_SIZE] 还塞不下就保留。
+     * 这里再线性砍 0.85 倍,直到真的塞下;到 [absoluteMin] 还塞不下就保留。
      */
     private fun scaleDownToFit(
         paint: Paint,
@@ -145,6 +151,7 @@ object TextRenderer {
         seedSize: Float,
         width: Float,
         height: Float,
+        absoluteMin: Float,
     ): Float {
         var size = seedSize
         // 至多砍 20 次,size = 6 * 0.85^20 ≈ 0.23,远低于 ABSOLUTE_MIN
@@ -154,8 +161,8 @@ object TextRenderer {
             val fits = lines.size * size * LINE_SPACING_MULT <= height + 1f &&
                 lines.all { paint.measureText(it) <= width + 1f }
             if (fits) return size
-            if (size <= ABSOLUTE_MIN_FONT_SIZE) return ABSOLUTE_MIN_FONT_SIZE
-            size = (size * 0.85f).coerceAtLeast(ABSOLUTE_MIN_FONT_SIZE)
+            if (size <= absoluteMin) return absoluteMin
+            size = (size * 0.85f).coerceAtLeast(absoluteMin)
         }
         return size
     }
@@ -163,9 +170,11 @@ object TextRenderer {
     /**
      * Find the largest font size that fits the text within the given horizontal area.
      */
-    private fun fitHorizontalFontSize(paint: Paint, text: String, width: Float, height: Float): Float {
-        var lo = MIN_FONT_SIZE
-        var hi = MAX_FONT_SIZE
+    private fun fitHorizontalFontSize(
+        paint: Paint, text: String, width: Float, height: Float, minSize: Float, maxSize: Float,
+    ): Float {
+        var lo = minSize
+        var hi = maxSize
         var best = lo
 
         while (hi - lo > 0.5f) {

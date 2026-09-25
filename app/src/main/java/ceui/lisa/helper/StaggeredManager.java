@@ -6,11 +6,22 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
+import ceui.pixiv.ui.common.AdaptiveStaggerColumns;
+
 public class StaggeredManager extends StaggeredGridLayoutManager {
+
+    private static final int TABLET_MIN_WIDTH_DP = 600;
+
+    /** &gt; 0 时列数随列表宽度自适应，以它为手机上的列数，见 {@link #adaptive}；0 = 固定列数。 */
+    private int adaptiveBaseColumns = 0;
+    private float density = 1f;
+    @Nullable private RecyclerView attachedView;
 
     public StaggeredManager(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
@@ -18,6 +29,58 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
 
     public StaggeredManager(int spanCount, int orientation) {
         super(spanCount, orientation);
+    }
+
+    /**
+     * 竖向瀑布流：平板上列数按列表实际宽度计算（{@link AdaptiveStaggerColumns}），
+     * 手机上（横竖屏都算）固定为 baseColumns，行为与改动前一致。
+     * 列表宽度变化（旋转、分栏、导航栏在底栏与侧栏间切换）时在测量阶段改列数，同一帧生效。
+     */
+    public static StaggeredManager adaptive(Context context, int baseColumns) {
+        StaggeredManager manager = new StaggeredManager(Math.max(1, baseColumns), VERTICAL);
+        manager.adaptiveBaseColumns = Math.max(1, baseColumns);
+        manager.density = context.getResources().getDisplayMetrics().density;
+        return manager;
+    }
+
+    @Override
+    public void onAttachedToWindow(RecyclerView view) {
+        super.onAttachedToWindow(view);
+        attachedView = view;
+    }
+
+    @Override
+    public void onDetachedFromWindow(RecyclerView view, RecyclerView.Recycler recycler) {
+        super.onDetachedFromWindow(view, recycler);
+        attachedView = null;
+    }
+
+    @Override
+    public void onMeasure(@NonNull RecyclerView.Recycler recycler, @NonNull RecyclerView.State state,
+                          int widthSpec, int heightSpec) {
+        // 放在 onMeasure：RecyclerView 在这里还没进入 layout，setSpanCount 合法，
+        // 随后的 onLayout 直接按新列数排版。挪到 layout 回调里改会晚一帧，而且那次 requestLayout 会丢。
+        // 宽度 <= 0 的测量不算数：父布局的预测量（如 ViewPager 被 UNSPECIFIED 量出 0 宽后再用
+        // EXACTLY 0 量每一页）如果也改列数，同一帧里就会在 N 列与设置值之间来回切，整列表重排闪烁。
+        // 只在平板（最小宽度 >= 600dp）上按宽度加列；手机横竖屏一律按「每行几列」设置，与改动前一致。
+        // 读的是当前配置而不是建 LayoutManager 时的：首页不随折叠屏开合重建。没 attach 时不动。
+        if (adaptiveBaseColumns > 0 && attachedView != null && !attachedView.isComputingLayout()) {
+            int columns = adaptiveBaseColumns;
+            boolean tablet = attachedView.getResources().getConfiguration().smallestScreenWidthDp
+                    >= TABLET_MIN_WIDTH_DP;
+            int contentPx = View.MeasureSpec.getSize(widthSpec) - getPaddingLeft() - getPaddingRight();
+            if (tablet) {
+                if (View.MeasureSpec.getMode(widthSpec) == View.MeasureSpec.UNSPECIFIED || contentPx <= 0) {
+                    columns = getSpanCount();
+                } else {
+                    columns = AdaptiveStaggerColumns.columnsFor(contentPx / density, adaptiveBaseColumns);
+                }
+            }
+            if (columns != getSpanCount()) {
+                setSpanCount(columns);
+            }
+        }
+        super.onMeasure(recycler, state, widthSpec, heightSpec);
     }
 
     @Override

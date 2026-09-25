@@ -134,6 +134,10 @@
     <string name="v3_widget_hide_refresh_button_desc">После скрытия иллюстрация меняется только по интервалу обновления</string>
     <string name="tablet_split_screen">Двухпанельный режим на планшете</string>
     <string name="tablet_split_screen_desc">Показывать список и подробности рядом на планшетах и других больших экранах. Только для планшетов; после изменения перезапустите приложение</string>
+    <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
+    <string name="rail_bookmarks">Закладки</string>
+    <string name="rail_downloads">Загрузки</string>
+    <string name="rail_open_menu">Открыть меню</string>
     <string name="novel_tag">Теги новелл</string>
     <string name="hot_tag">Популярные теги</string>
     <string name="ranking_illust">Популярное</string>
@@ -842,6 +846,11 @@
     <string name="string_449">Сбросить</string>
     <string name="string_450">Показывать большие (Large) миниатюры</string>
     <string name="string_451">Не выключать экран на странице иллюстрации</string>
+    <string name="artwork_v3_fab_position_title">Положение плавающих кнопок</string>
+    <string name="artwork_v3_fab_position_desc">У края кнопка «Закладка» стоит с внешней стороны — удобнее нажимать одной рукой</string>
+    <string name="artwork_v3_fab_position_center">По центру</string>
+    <string name="artwork_v3_fab_position_left">Слева</string>
+    <string name="artwork_v3_fab_position_right">Справа</string>
     <string name="artwork_v3_fab_order_title">Порядок кнопок «Скачать» и «Закладка»</string>
     <string name="artwork_v3_fab_order_download_left">Скачать слева, закладка справа</string>
     <string name="artwork_v3_fab_order_bookmark_left">Закладка слева, скачать справа</string>
@@ -2858,6 +2867,21 @@
 
     <!-- Файл журнала (экспериментально) -->
     <string name="setting_log_file_enable">Включить файл журнала</string>
+    <string name="setting_predictive_back">Прогнозный возврат</string>
+    <string name="setting_predictive_back_desc">Выбор для каждого экрана: использовать системную анимацию прогнозного возврата. Отключённые экраны используют классический возврат. Если на некоторых системах анимация возврата работает неправильно (мерцание, неверная страница позади, необъяснимая однотонная полоса), отключайте экраны здесь, чтобы локализовать проблему.</string>
+    <string name="setting_predictive_back_dialog_hint">Вкл. — системная анимация прогнозного возврата. Выкл. — классический возврат.</string>
+    <string name="setting_predictive_back_help">Справка</string>
+    <string name="setting_predictive_back_group_system">Системная анимация</string>
+    <string name="setting_predictive_back_group_drawer">Рисуется приложением</string>
+    <string name="setting_predictive_back_item_main">Главная</string>
+    <string name="setting_predictive_back_item_drawer">Жест из бокового меню</string>
+    <string name="setting_predictive_back_group_experimental">Эксперимент</string>
+    <string name="setting_predictive_back_item_any_page">Подавить анимацию прогнозного возврата со страницы из бокового меню, чтобы убрать мерцание</string>
+    <string name="setting_predictive_back_item_template">Общие страницы</string>
+    <string name="setting_predictive_back_item_rank">Рейтинги</string>
+    <string name="setting_predictive_back_item_detail">Просмотр иллюстрации</string>
+    <string name="setting_predictive_back_item_search">Результаты поиска</string>
+    <string name="setting_predictive_back_item_viewer">Просмотр нескольких изображений</string>
     <string name="setting_log_file_desc">Может повлиять на производительность\nФайл журнала: %1$s</string>
     <string name="setting_log_file_no_file">Ещё не создан</string>
     <string name="setting_log_file_share">Поделиться файлом журнала</string>

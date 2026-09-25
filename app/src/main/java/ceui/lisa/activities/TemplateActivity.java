@@ -111,7 +111,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
 
     @Override
     protected void initView() {
-        // 返回键/返回手势:这里故意不挂任何 OnBackPressedCallback。
+        // 返回键/返回手势:这里不挂任何常开的 OnBackPressedCallback。
         //
         // 预测式返回已在 manifest 为本 Activity 显式开启，不依赖 Android 16 的默认行为。
         // 跨 Activity / 回桌面动画只在「app 没向系统
@@ -120,10 +120,17 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
         // 系统随即放弃自己的动画,手势落下后只是干巴巴地回调 → 以前这里那个常开的兜底
         // callback 把全 app 几乎所有页面的预测式返回都掐死了。
         //
+        // 这个「掐死动画」的能力现在被收进了「设置 · 界面 · 预测性返回」弹窗,由
+        // PredictiveBackSuppressor 按 Activity 逐项管理:它在本 Activity 上挂的 callback
+        // 默认是 disabled 的(所以 hasEnabledCallbacks() 仍是 false、预测返回照常),只有用户
+        // 在弹窗里把本页关掉才会 setEnabled(true),用传统返回换掉部分系统上表现很差的
+        // 预测动画。它是在 onActivityPreCreated 挂的,位于 dispatcher 栈底,优先级最低。
+        //
         // 没有 callback 时系统走 Activity 默认返回(finishAfterTransition),动画由系统负责。
         // 需要拦返回的页面(网页历史后退、阅读器收顶底栏、未保存确认…)各自在 Fragment 里
         // 注册 callback,并且只在「真的有东西可拦」时才 setEnabled(true) —— 必须提前维护好
         // enabled,系统在手势开始那一刻就决定播不播动画,handleOnBackPressed 里再判断已经晚了。
+        // 后注册的优先级更高,所以这些页面级拦截不会被上面那个全局回调吃掉。
         // 子 Fragment 返回栈由 FragmentManager 自带的 callback 处理(本 app 没有 addToBackStack)。
     }
 

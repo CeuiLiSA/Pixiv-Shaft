@@ -2,14 +2,12 @@ package ceui.pixiv.ui.embedding
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import androidx.window.embedding.ActivityFilter
 import androidx.window.embedding.ActivityRule
 import androidx.window.embedding.RuleController
 import androidx.window.embedding.SplitAttributes
 import androidx.window.embedding.SplitPairFilter
 import androidx.window.embedding.SplitPairRule
-import androidx.window.embedding.SplitPlaceholderRule
 import androidx.window.embedding.SplitRule
 import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.activities.MainActivity
@@ -22,6 +20,7 @@ import ceui.pixiv.ui.slideshow.SlideshowActivity
  * 本仓是多 Activity 架构（首页 MainActivity 之上叠 VActivity / UActivity /
  * SearchActivity / TemplateActivity …），所以不重写任何导航，只声明分栏规则，
  * 由 WindowManager 把同一个 task 里的 Activity 摆成左 3/7 列表 + 右 4/7 详情。
+ * 没打开详情时首页独占整窗，不放占位页（#1087：右侧 4/7 只有一个淡 Logo，信息流被挤在 3/7 里）。
  * 默认关闭，由设置 · 界面 ·「平板双栏布局」开关控制（Settings.tabletSplitScreen）；
  * 规则只在开关打开且是平板（sw >= 600dp）时注册，手机完全不注册（原因见 [install]，issue #1002）。
  * 已注册的设备上，窗口宽度 < 600dp（平板分屏后的窄窗）时规则不激活；
@@ -75,16 +74,6 @@ object TabletActivityEmbedding {
             .setFinishSecondaryWithPrimary(SplitRule.FinishBehavior.ALWAYS)
             .build()
 
-        // 首页没打开任何内容时右栏放占位页，保持 3/7 + 4/7 的稳定布局。
-        val placeholder = SplitPlaceholderRule.Builder(
-            setOf(ActivityFilter(ComponentName(context, MainActivity::class.java), null)),
-            Intent(context, SplitPlaceholderActivity::class.java)
-        )
-            .setDefaultSplitAttributes(splitAttributes)
-            .setMinWidthDp(SPLIT_MIN_WIDTH_DP)
-            .setFinishPrimaryWithPlaceholder(SplitRule.FinishBehavior.ADJACENT)
-            .build()
-
         // 沉浸式查看器始终铺满整窗，不塞进 4/7 的格子里。
         val fullscreenViewers = ActivityRule.Builder(
             setOf(
@@ -96,6 +85,6 @@ object TabletActivityEmbedding {
             .build()
 
         RuleController.getInstance(context)
-            .setRules(setOf(contentSplit, placeholder, fullscreenViewers))
+            .setRules(setOf(contentSplit, fullscreenViewers))
     }
 }

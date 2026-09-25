@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  平板（sw600dp：平板、折叠屏展开；手机横竖屏都不命中）作品详情（#1087）。与手机版 layout/fragment_artwork_v3.xml 共用全部 id 与逻辑，
+  只换排版：作品不再作为列表顶部的大图，而是放进独立的「舞台」(tablet_stage)，由
+  ArtworkTabletStage 渲染（按原比例完整显示、多页上下翻、点开全屏）；原来的列表、顶栏、悬浮胶囊、
+  评论输入整体装进信息栏(tablet_info_column)。窗口宽于高时舞台在左、信息栏在右，否则舞台在上、信息栏在下，
+  由 ArtworkTabletStage.arrange 按当前宽高排布。最底层是同一张图的模糊放大做整页环境色。
+  屏蔽遮罩与 AI 覆盖层仍挂在根上，盖住整页（含舞台）。
+  改手机版布局里 chrome 的结构时，这里的 tablet_info_column 要同步。
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg">
+
+    <ImageView
+        android:id="@+id/tablet_backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <View
+        android:id="@+id/tablet_backdrop_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <FrameLayout
+        android:id="@+id/tablet_stage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false" />
+
+    <FrameLayout
+        android:id="@+id/tablet_info_column"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <include
+            android:id="@+id/feed_root"
+            layout="@layout/fragment_feed"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <LinearLayout
+            android:id="@+id/top_overlay_column"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_collapseMode="pin"
+                app:navigationIcon="@drawable/ic_arrow_back_white_shadow">
+
+                <TextView
+                    android:id="@+id/toolbar_title"
+                    style="@style/textMontserratBold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:alpha="0.0"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="18sp" />
+
+                <ImageView
+                    android:id="@+id/nav_more"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="@null"
+                    android:padding="10dp"
+                    android:src="@drawable/ic_more_vert_black_24dp"
+                    app:tint="@color/v3_text_1" />
+            </androidx.appcompat.widget.Toolbar>
+
+            <LinearLayout
+                android:id="@+id/page_status_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#CCFF6B6B"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/page_status_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/page_status_retry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:text="@string/image_load_status_retry_all"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 右上角悬浮胶囊:一枚,里面是「收起」(仅多图展开中) + 「当前页 / 总页」读数。
+             两段各自显隐,胶囊本身只要有一段有内容就在(见 syncTopEndPill)。
+             topMargin 运行时由 top_overlay_column.bottom 驱动(见 handleSystemInsets)。 -->
+        <LinearLayout
+            android:id="@+id/top_end_pill_row"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_v3_expand_pill"
+            android:elevation="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="7dp"
+            android:paddingBottom="7dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <!-- 「收起」:仅多图展开中可见,整枚胶囊里只有这一段可点。 -->
+            <LinearLayout
+                android:id="@+id/collapse_pill"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginEnd="6dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_keyboard_arrow_up_black_24dp"
+                    app:tint="#FFFFFF" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.02"
+                    android:text="@string/v3_collapse_pages_title"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- 两段之间的间隔单独用一个 Space,不挂成谁的 margin:LinearLayout 里 GONE 的子 View
+                 自己不占位,但它**前一个可见兄弟**的 marginEnd 照常生效 —— 挂在任一段身上,都会在
+                 另一段隐藏时让胶囊往那一侧多出 10dp、左右不对称。见 syncTopEndPill。 -->
+            <Space
+                android:id="@+id/top_end_pill_gap"
+                android:layout_width="10dp"
+                android:layout_height="1dp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <!-- 常驻页码读数(#1058):多图作品直接在详情页往下滑时,标出正被它盖着的那一页。 -->
+            <TextView
+                android:id="@+id/page_progress_pill"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.02"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="4 / 10"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <!-- Floating action bar (download + bookmark),与二级大图页共用,见 view_v3_fab_bar.xml -->
+        <include
+            android:id="@+id/fab_bar"
+            layout="@layout/view_v3_fab_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="24dp" />
+
+        <!-- 评论输入浮层:平时不常驻(整条透明、输入栏 GONE),点评论区「留下你的评论吧」入口才浮出。 -->
+        <LinearLayout
+            android:id="@+id/composer_root"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:orientation="vertical">
+
+            <ceui.pixiv.ui.comments.CommentComposerView
+                android:id="@+id/comment_composer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- 已屏蔽遮罩(对齐经典 fragment_illust 的 abandoned_frame):作品/画师命中屏蔽记录时全屏盖住
+         整页(含 chrome)。clickable 挡住底下列表——经典是直接隐藏 content_frame,这里内容仍在。 -->
+    <FrameLayout
+        android:id="@+id/abandoned_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <!-- 遮罩底：糊掉的作品图 + spoiler 粒子(与瀑布流「屏蔽此作品」同一套观感),
+             取代原来的一块纯黑。按钮排在它后面,盖在上面照常点。 -->
+        <ceui.pixiv.widget.SpoilerBlurView
+            android:id="@+id/abandoned_spoiler"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ceui.pixiv.widgets.ProgressTextButton
+                android:id="@+id/cancel_mute_illust"
+                style="@style/BlueShiningButton"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+                android:layout_marginBottom="20dp"
+                android:paddingHorizontal="20dp"
+                android:text="@string/action_unmute_work" />
+
+            <ceui.pixiv.widgets.ProgressTextButton
+                android:id="@+id/cancel_mute_user"
+                style="@style/BlueShiningButton"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+                android:layout_marginBottom="20dp"
+                android:paddingHorizontal="20dp"
+                android:text="@string/action_unmute_user" />
+
+            <ceui.pixiv.widgets.ProgressTextButton
+                android:id="@+id/leave"
+                style="@style/RedShiningButton"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+                android:layout_marginBottom="20dp"
+                android:paddingHorizontal="20dp"
+                android:text="@string/action_leave_page" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- AI 画质增强 / 智能抠图共用覆盖层(加载中进度 + 完成态),与经典 FragmentIllust 同一份布局。 -->
+    <include
+        layout="@layout/view_ai_upscale_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>

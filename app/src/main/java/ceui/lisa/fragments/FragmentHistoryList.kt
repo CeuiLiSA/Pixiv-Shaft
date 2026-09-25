@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -64,13 +65,15 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
 
     /**
      * 插画历史当前列宽（px），与标准瀑布流 IllustFeedFragment.illustColumnWidthPx 同源：
-     * 取 LayoutManager 实时宽度，首帧兜底屏宽，按用户「每行几列」设置分列。
+     * 取 LayoutManager 实时宽度与列数（列数随列表宽度自适应），首帧兜底屏宽。
      */
     internal val historyColumnWidthPx: Int
         get() {
             val listWidth = feedBinding.feedListView.layoutManager?.width?.takeIf { it > 0 }
                 ?: resources.displayMetrics.widthPixels
-            return (listWidth / Shaft.sSettings.lineCount).coerceAtLeast(1)
+            val spanCount = (feedBinding.feedListView.layoutManager as? StaggeredGridLayoutManager)
+                ?.spanCount ?: Shaft.sSettings.lineCount
+            return (listWidth / spanCount).coerceAtLeast(1)
         }
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> =
@@ -81,8 +84,8 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
         // 曾经这里硬编码成 2，是唯一一条自成一派、无视该设置的插画列表。小说历史是竖向单列卡。
         // 用 StaggeredManager 而不是裸 StaggeredGridLayoutManager：后者存在的理由就是吞掉
         // AOSP predictive-layout 在 fling + 插页同帧时的内部崩溃。
-        val spanCount = if (historyType == TYPE_NOVEL) 1 else Shaft.sSettings.lineCount
-        return StaggeredManager(spanCount, RecyclerView.VERTICAL)
+        if (historyType == TYPE_NOVEL) return StaggeredManager(1, RecyclerView.VERTICAL)
+        return StaggeredManager.adaptive(requireContext(), Shaft.sSettings.lineCount)
     }
 
     override fun onListReady(listView: RecyclerView) {

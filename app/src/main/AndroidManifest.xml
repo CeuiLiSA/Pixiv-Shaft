@@ -115,6 +115,7 @@
         <activity
             android:name=".activities.MainActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:enableOnBackInvokedCallback="true"
             android:exported="true"
             android:theme="@style/SplashTheme">
             <intent-filter>
@@ -234,9 +235,6 @@
             android:name="ceui.pixiv.ui.slideshow.SlideshowActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|keyboardHidden"
             android:theme="@style/SlideshowTheme"/>
-        <activity
-            android:name="ceui.pixiv.ui.embedding.SplitPlaceholderActivity"
-            android:exported="false"/>
         <receiver
             android:name="ceui.pixiv.widget.SpotlightWidgetProvider"
             android:exported="false"

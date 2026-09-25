@@ -134,6 +134,10 @@
     <string name="v3_widget_hide_refresh_button_desc">숨기면 새로고침 간격에 따라 자동으로만 바뀝니다</string>
     <string name="tablet_split_screen">태블릿 2단 레이아웃</string>
     <string name="tablet_split_screen_desc">태블릿 등 큰 화면에서 목록과 상세를 좌우로 나눠 표시합니다. 태블릿에서만 적용되며 변경 후 앱을 다시 시작해야 합니다</string>
+    <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
+    <string name="rail_bookmarks">북마크</string>
+    <string name="rail_downloads">다운로드</string>
+    <string name="rail_open_menu">메뉴 열기</string>
     <string name="novel_tag">소설 꼬리표</string>
     <string name="hot_tag">인기 태그</string>
     <string name="ranking_illust">순위표</string>
@@ -842,6 +846,11 @@
     <string name="string_449">초기화</string>
     <string name="string_450">썸네일 디스플레이 큰 이미지</string>
     <string name="string_451">illust 세부 사항에서 화면 유지</string>
+    <string name="artwork_v3_fab_position_title">플로팅 버튼 위치</string>
+    <string name="artwork_v3_fab_position_desc">가장자리에 두면 북마크 버튼이 바깥쪽에 있어 한 손으로 누르기 쉽습니다</string>
+    <string name="artwork_v3_fab_position_center">가운데</string>
+    <string name="artwork_v3_fab_position_left">왼쪽</string>
+    <string name="artwork_v3_fab_position_right">오른쪽</string>
     <string name="artwork_v3_fab_order_title">다운로드/북마크 버튼 순서</string>
     <string name="artwork_v3_fab_order_download_left">왼쪽 다운로드, 오른쪽 북마크</string>
     <string name="artwork_v3_fab_order_bookmark_left">왼쪽 북마크, 오른쪽 다운로드</string>
@@ -2858,6 +2867,21 @@
 
     <!-- 로그 파일 (실험) -->
     <string name="setting_log_file_enable">로그 파일 사용</string>
+    <string name="setting_predictive_back">예측형 뒤로 가기</string>
+    <string name="setting_predictive_back_desc">화면별로 시스템 예측형 뒤로 가기 애니메이션 사용 여부를 선택합니다. 끈 화면은 기존 뒤로 가기를 사용합니다. 일부 시스템에서 뒤로 가기 애니메이션이 이상할 때(깜빡임 / 배경 페이지 이상 / 원인 불명의 단색 테두리) 화면별로 좁혀 볼 수 있습니다.</string>
+    <string name="setting_predictive_back_dialog_hint">켜짐 = 시스템 예측형 뒤로 가기 사용 / 꺼짐 = 기존 뒤로 가기 사용.</string>
+    <string name="setting_predictive_back_help">설명</string>
+    <string name="setting_predictive_back_group_system">시스템 예측형 뒤로 가기</string>
+    <string name="setting_predictive_back_group_drawer">앱 자체 애니메이션</string>
+    <string name="setting_predictive_back_item_main">홈</string>
+    <string name="setting_predictive_back_item_drawer">사이드바 제스처</string>
+    <string name="setting_predictive_back_group_experimental">실험</string>
+    <string name="setting_predictive_back_item_any_page">사이드바에서 연 페이지에서 돌아올 때 예측 애니메이션을 억제하여 깜빡임 해결</string>
+    <string name="setting_predictive_back_item_template">범용 페이지</string>
+    <string name="setting_predictive_back_item_rank">랭킹</string>
+    <string name="setting_predictive_back_item_detail">일러스트 상세</string>
+    <string name="setting_predictive_back_item_search">검색 결과</string>
+    <string name="setting_predictive_back_item_viewer">다중 이미지 뷰어</string>
     <string name="setting_log_file_desc">성능에 영향을 줄 수 있음\n로그 파일 위치: %1$s</string>
     <string name="setting_log_file_no_file">아직 생성되지 않음</string>
     <string name="setting_log_file_share">로그 파일 공유</string>

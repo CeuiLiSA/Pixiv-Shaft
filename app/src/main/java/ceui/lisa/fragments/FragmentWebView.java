@@ -64,6 +64,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.view.ContextMenuTitleView;
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.ui.web.WebViewMediaIntegrityKt;
 import com.tencent.mmkv.MMKV;
 
 import static android.app.Activity.RESULT_OK;
@@ -245,6 +246,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         settings.setBuiltInZoomControls(true);
         settings.setDisplayZoomControls(false);
         settings.setUseWideViewPort(true);
+        WebViewMediaIntegrityKt.disableMediaIntegrityApi(settings);
         registerForContextMenu(mWebView);
         // 复制链接文本
         final Handler handler = new LongClickHandler(this);

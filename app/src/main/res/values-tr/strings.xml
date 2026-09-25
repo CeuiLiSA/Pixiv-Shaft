@@ -134,6 +134,10 @@
     <string name="v3_widget_hide_refresh_button_desc">Gizlendiğinde eser yalnızca yenileme aralığında değişir</string>
     <string name="tablet_split_screen">Tablette iki bölmeli düzen</string>
     <string name="tablet_split_screen_desc">Tablet gibi büyük ekranlarda listeyi ve ayrıntıları yan yana gösterir. Yalnızca tablette geçerlidir; değiştirdikten sonra uygulamayı yeniden başlatın</string>
+    <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
+    <string name="rail_bookmarks">Yer İşaretleri</string>
+    <string name="rail_downloads">İndirilenler</string>
+    <string name="rail_open_menu">Menüyü aç</string>
     <string name="novel_tag">Roman Etiketleri</string>
     <string name="hot_tag">Popüler Etiketler</string>
     <string name="ranking_illust">Popüler</string>
@@ -842,6 +846,11 @@
     <string name="string_449">Sıfırla</string>
     <string name="string_450">Küçük resimleri büyük göster</string>
     <string name="string_451">Resim sayfasında ekranı açık tut</string>
+    <string name="artwork_v3_fab_position_title">Yüzen düğme konumu</string>
+    <string name="artwork_v3_fab_position_desc">Kenara yaslandığında yer imi düğmesi dış tarafta olur, tek elle basmak kolaylaşır</string>
+    <string name="artwork_v3_fab_position_center">Ortada</string>
+    <string name="artwork_v3_fab_position_left">Solda</string>
+    <string name="artwork_v3_fab_position_right">Sağda</string>
     <string name="artwork_v3_fab_order_title">İndirme/yer imi düğme sırası</string>
     <string name="artwork_v3_fab_order_download_left">Sol indir, sağ yer imi</string>
     <string name="artwork_v3_fab_order_bookmark_left">Sol yer imi, sağ indir</string>
@@ -2858,6 +2867,21 @@
 
     <!-- Günlük dosyası (deneysel) -->
     <string name="setting_log_file_enable">Günlük dosyasını etkinleştir</string>
+    <string name="setting_predictive_back">Tahmini geri</string>
+    <string name="setting_predictive_back_desc">Her ekran için sistem tahmini geri animasyonunun kullanılıp kullanılmayacağını seçin. Kapalı ekranlar klasik geri kullanır. Bazı sistemlerde geri animasyonu bozuksa (titreme, arkadaki sayfanın yanlış olması, açıklanamayan düz renkli kenar), sorunu daraltmak için ekranları buradan kapatın.</string>
+    <string name="setting_predictive_back_dialog_hint">Açık = sistem tahmini geri animasyonu. Kapalı = klasik geri.</string>
+    <string name="setting_predictive_back_help">Yardım</string>
+    <string name="setting_predictive_back_group_system">Sistem tahmini geri</string>
+    <string name="setting_predictive_back_group_drawer">Uygulama kendi çiziyor</string>
+    <string name="setting_predictive_back_item_main">Ana sayfa</string>
+    <string name="setting_predictive_back_item_drawer">Kenar çubuğu hareketi</string>
+    <string name="setting_predictive_back_group_experimental">Deneysel</string>
+    <string name="setting_predictive_back_item_any_page">Kenar çubuğundan açılan sayfadan dönerken tahmini animasyonu bastırıp titremeyi gider</string>
+    <string name="setting_predictive_back_item_template">Genel sayfalar</string>
+    <string name="setting_predictive_back_item_rank">Sıralamalar</string>
+    <string name="setting_predictive_back_item_detail">Çizim ayrıntısı</string>
+    <string name="setting_predictive_back_item_search">Arama sonuçları</string>
+    <string name="setting_predictive_back_item_viewer">Çoklu görsel görüntüleyici</string>
     <string name="setting_log_file_desc">Performansı etkileyebilir\nGünlük dosyası: %1$s</string>
     <string name="setting_log_file_no_file">Henüz oluşturulmadı</string>
     <string name="setting_log_file_share">Günlük dosyasını paylaş</string>

@@ -134,6 +134,10 @@
     <string name="v3_widget_hide_refresh_button_desc">隠すと更新間隔にしたがって自動で切り替わるだけになります</string>
     <string name="tablet_split_screen">タブレットの2画面レイアウト</string>
     <string name="tablet_split_screen_desc">タブレットなどの大画面で一覧と詳細を左右に並べて表示します。タブレットのみ有効で、変更後はアプリの再起動が必要です</string>
+    <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
+    <string name="rail_bookmarks">ブックマーク</string>
+    <string name="rail_downloads">ダウンロード</string>
+    <string name="rail_open_menu">メニューを開く</string>
     <string name="novel_tag">小説のタグ</string>
     <string name="hot_tag">人気のタグ</string>
     <string name="ranking_illust">ランキング</string>
@@ -842,6 +846,11 @@
     <string name="string_449">リセット</string>
     <string name="string_450">高画質でサムネイルを読み込み</string>
     <string name="string_451">詳細ページ表示中は画面を切らない</string>
+    <string name="artwork_v3_fab_position_title">フローティングボタンの位置</string>
+    <string name="artwork_v3_fab_position_desc">端に寄せるとブックマークボタンが外側に来て、片手で押しやすくなります</string>
+    <string name="artwork_v3_fab_position_center">中央</string>
+    <string name="artwork_v3_fab_position_left">左寄せ</string>
+    <string name="artwork_v3_fab_position_right">右寄せ</string>
     <string name="artwork_v3_fab_order_title">ダウンロード／ブックマークボタン順序</string>
     <string name="artwork_v3_fab_order_download_left">左ダウンロード、右ブックマーク</string>
     <string name="artwork_v3_fab_order_bookmark_left">左ブックマーク、右ダウンロード</string>
@@ -2858,6 +2867,21 @@
 
     <!-- ログファイル（試験的） -->
     <string name="setting_log_file_enable">ログファイルを有効にする</string>
+    <string name="setting_predictive_back">予測的戻る</string>
+    <string name="setting_predictive_back_desc">画面ごとにシステムの予測的戻るアニメーションを使うか選べます。オフにした画面は従来の戻るになります。一部のシステムで戻るアニメーションがおかしい場合（ちらつき／背景ページの異常／原因不明の単色の縁）は、ここで画面ごとに切り分けられます。</string>
+    <string name="setting_predictive_back_dialog_hint">オン＝システムの予測的戻るを使用／オフ＝従来の戻るを使用。</string>
+    <string name="setting_predictive_back_help">説明</string>
+    <string name="setting_predictive_back_group_system">システムの予測的戻る</string>
+    <string name="setting_predictive_back_group_drawer">アプリ独自描画</string>
+    <string name="setting_predictive_back_item_main">ホーム</string>
+    <string name="setting_predictive_back_item_drawer">サイドバー操作</string>
+    <string name="setting_predictive_back_group_experimental">実験</string>
+    <string name="setting_predictive_back_item_any_page">サイドバーから開いたページの戻る時の予測アニメーションを抑制してちらつきを解消</string>
+    <string name="setting_predictive_back_item_template">汎用ページ</string>
+    <string name="setting_predictive_back_item_rank">ランキング</string>
+    <string name="setting_predictive_back_item_detail">イラスト詳細</string>
+    <string name="setting_predictive_back_item_search">検索結果</string>
+    <string name="setting_predictive_back_item_viewer">複数画像ビューア</string>
     <string name="setting_log_file_desc">パフォーマンスに影響する可能性があります\nログファイル: %1$s</string>
     <string name="setting_log_file_no_file">未生成</string>
     <string name="setting_log_file_share">ログファイルを共有</string>

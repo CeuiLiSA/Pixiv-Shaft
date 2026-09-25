@@ -134,6 +134,10 @@
     <string name="v3_widget_hide_refresh_button_desc">Once hidden, the artwork only changes on the refresh interval</string>
     <string name="tablet_split_screen">Tablet two-pane layout</string>
     <string name="tablet_split_screen_desc">Show the list and the detail side by side on tablets and other large screens. Tablets only; restart the app after changing it</string>
+    <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
+    <string name="rail_bookmarks">Bookmarks</string>
+    <string name="rail_downloads">Downloads</string>
+    <string name="rail_open_menu">Open menu</string>
     <string name="novel_tag">Novel tags</string>
     <string name="hot_tag">Popular Tags</string>
     <string name="ranking_illust">Popular</string>
@@ -842,6 +846,11 @@
     <string name="string_449">Reset</string>
     <string name="string_450">Thumbnail display large image</string>
     <string name="string_451">Keep screen on in illust detail</string>
+    <string name="artwork_v3_fab_position_title">Floating button position</string>
+    <string name="artwork_v3_fab_position_desc">When docked to a side, the bookmark button sits on the outer edge for easier one-handed use</string>
+    <string name="artwork_v3_fab_position_center">Center</string>
+    <string name="artwork_v3_fab_position_left">Left</string>
+    <string name="artwork_v3_fab_position_right">Right</string>
     <string name="artwork_v3_fab_order_title">Download / bookmark button order</string>
     <string name="artwork_v3_fab_order_download_left">Download left, bookmark right</string>
     <string name="artwork_v3_fab_order_bookmark_left">Bookmark left, download right</string>
@@ -2876,6 +2885,21 @@
 
     <!-- Log file (experimental) -->
     <string name="setting_log_file_enable">Enable log file</string>
+    <string name="setting_predictive_back">Predictive back</string>
+    <string name="setting_predictive_back_desc">Choose per screen whether to use the system predictive back animation. Screens turned off use the classic back. If the back animation misbehaves on some systems (flicker, wrong page behind, unexplained solid-color edge), turn screens off here to narrow it down.</string>
+    <string name="setting_predictive_back_dialog_hint">On = system predictive back animation. Off = classic back.</string>
+    <string name="setting_predictive_back_help">Help</string>
+    <string name="setting_predictive_back_group_system">System predictive back</string>
+    <string name="setting_predictive_back_group_drawer">Drawn by the app</string>
+    <string name="setting_predictive_back_item_main">Home</string>
+    <string name="setting_predictive_back_item_drawer">Sidebar gesture</string>
+    <string name="setting_predictive_back_group_experimental">Experimental</string>
+    <string name="setting_predictive_back_item_any_page">Suppress the predictive animation when returning from a sidebar page, to fix flicker</string>
+    <string name="setting_predictive_back_item_template">Generic pages</string>
+    <string name="setting_predictive_back_item_rank">Rankings</string>
+    <string name="setting_predictive_back_item_detail">Artwork detail</string>
+    <string name="setting_predictive_back_item_search">Search results</string>
+    <string name="setting_predictive_back_item_viewer">Multi-image viewer</string>
     <string name="setting_log_file_desc">May affect performance\nLog file at %1$s</string>
     <string name="setting_log_file_no_file">Not generated yet</string>
     <string name="setting_log_file_share">Share log file</string>

@@ -15,6 +15,13 @@ description: "[Pixiv-Shaft] 拿到一个 bug（issue 链接、issue 号或崩溃
 - commit message 用中文：`fix(scope): 一句话说清改了什么 (#N)`，scope 照抄 git log 里已有的（`image` / `download` / `net` / `novel` / `user` / `chat` / `search` / `lint` / `res` …）
 - **改动范围必须等于 bug 范围**，不夹带顺手重构
 
+## Codex 环境须知
+
+- **参数**：用户消息里 `$divebug` 后面跟的就是输入——issue URL、`953` / `#953` 这样的裸号，或直接贴的崩溃栈。
+- **进度可见**：开场用 `update_plan` 把 Phase 1–7 列成计划，每完成一个 phase 更新一次，不跳步；Phase 1 读完 issue 后，把「🐛 症状摘要 + issue 链接」写进 `update_plan` 的 explanation（见 Phase 1）。
+- **沙箱**：`gh`、`curl` 截图、`git push` 要网络；`git commit` 要写 `.git`；`./gradlew` 要写 `~/.gradle` 并可能下载依赖。被沙箱拦下时**按审批流程申请提权后重跑同一条命令**，不要换一条绕过沙箱的命令，也不要因为被拦就跳过校验或落地。
+- **改文件**用 `apply_patch`，搜代码用 `rg`。
+
 ## Phase 1 — 把 issue 拉全
 
 别只信标题，也别只信最后一条评论。
@@ -25,20 +32,21 @@ gh issue view <N> --repo CeuiLiSA/Pixiv-Shaft --json title,body,state,createdAt,
 
 - **读 body**，不是读标题。复现步骤、期望 vs 实际、截图、崩溃栈全在 body 里。
 - **读评论，但要分辨噪音**。路人评论经常在描述*另一个*问题；**原报告人的 body 才是唯一事实源**。
-- **截图必须看**：`curl -sL <url> -o /tmp/divebug-<N>-1.png`，然后用 Codex 的本地图片查看能力打开。视觉证据经常直接推翻文字描述。
+- **截图必须看**：body 里的 `https://github.com/user-attachments/...` 图片逐张 `curl -sL <url> -o /tmp/divebug-<N>-1.png`，再用 `view_image` 打开。视觉证据经常直接推翻文字描述。
 - **崩溃栈要看清是哪个变体**：`applicationIdSuffix` 是 `.cshaft` = debug 包，`.pshaft` = release 包；`IS_LITE` 为 true 表示 google(Play) 渠道。
 - **记下报告人的 app 版本**。对着一个早就修过的版本报 bug 是常态——先 `git log --oneline <tag>..HEAD -- <相关目录>` 看看是不是已经修了。
 - issue 也可能其实是个外部 PR（本仓有活跃外部贡献者）。是 PR 就走 `gh pr view <N>`，先看它的 diff 再决定是补它还是自己重写。
 
 body 稀到没法动手（只有一句「用不了」）→ **停下来问清楚**，不要猜着修。
 
-**把一句中文摘要钉在本次处理过程里。** 读完 issue 后，向用户发一条简短进度更新：只写一句「症状」（不是 root cause），约 30 字以内、大白话，例如：
+**把一句中文摘要钉在眼前。** 读完 issue 后，写一句「症状」（不是 root cause），≤ 30 字左右、大白话，放进 `update_plan` 的 explanation，第二行是完整 issue 链接；同时作为一条进度更新发给用户：
 
 ```text
 🐛 旧版下载的图片在新版里识别不出已下载状态
+🔗 https://github.com/CeuiLiSA/Pixiv-Shaft/issues/953
 ```
 
-Codex 没有 Claude Code 项目级 `statusLine` 协议，不要复制或调用 `.claude/skills/divebug/statusline.sh`；用这条进度更新保持「我在修什么」清晰可见。
+后续每次 `update_plan` 都带着这两行，整个 run 里「我在修什么」一直可见。Codex 没有 Claude Code 的 `statusLine` 协议，不要调用 `.claude/skills/divebug/statusline.sh`，也不必写它用的 `/tmp/divebug-summary-<N>.txt`。
 
 ## Phase 2 — 追代码路径
 
@@ -63,7 +71,7 @@ Codex 没有 Claude Code 项目级 `statusLine` 协议，不要复制或调用 `
   - V2 有 → 去 V3 找同名对应物（反之亦然）
   - 一个 holder / fragment / adapter 有 → grep 出所有兄弟一起看
   - **一次 commit 修全部实例**。修一半 = 用户第二次来报同一个 bug。
-- 看仓库说明（如 `AGENTS.md`、`MEMORY.md`）里有没有约束这次修法的项目惯例；文件不存在就跳过。
+- 看仓库说明（`AGENTS.md`、`CLAUDE.md`）里有没有约束这次修法的项目惯例；文件不存在就跳过。
 
 ## Phase 4 — 最小修复
 
@@ -93,20 +101,24 @@ export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 | 纯逻辑（下载/网络/feed/websocket 等有测试覆盖的） | `./gradlew :app:testGithubDebugUnitTest`，并考虑**补一个复现该 bug 的测试** |
 | 纯 UI / 布局 | 编译过 ≠ 长得对——**明确告诉用户你没有真机渲染验证过** |
 
+没跑的任务写「未运行（原因）」，**不能写成通过**。
+
 提交前 `git diff` 自己的改动，专门找：误碰的无关文件、忘删的调试 log、漏清的 import。
 
 ## Phase 6 — 落地
 
 ```bash
-git status                       # 先看有没有无关的脏文件
-git add <file1> <file2>          # 按显式路径 stage，永远不要 git add -A
+git status --short               # 先看有没有无关的脏文件
+git add <file1> <file2>          # 按显式路径 stage，永远不要 git add -A / git commit -a
+git status --short               # 再扫一眼，staged 的只能是自己那几个文件
 git commit -m "fix(scope): 中文一句话 (#N)"
 git push origin classic
 ```
 
 - **`git add -A` 会把用户手上的在做工作静默打包进你的 bugfix commit。** 显式路径，每次。
 - **commit subject 里带上 issue 号** `(#N)`，GitHub 才会自动关联。
-- commit trailer 遵循当前会话明确给出的署名约定；不要照搬 Claude 专属的 `Claude-Session` trailer，也不要凭空编造 Codex 署名。
+- commit trailer 遵循当前会话 / 仓库明确给出的署名约定；没有约定就不加。不要照搬 Claude 专属的 `Co-Authored-By: Claude …` / `Claude-Session` trailer，也不要凭空编造 Codex 署名。
+- push 被拒（远端有新提交）→ `git pull --rebase origin classic` 后再推，**不 force push**；rebase 冲突落在别人的文件上就停下来问。
 - **不 amend 已 push 的 commit**。修错了就再推一个。
 - **不用 `--no-verify` 绕 hook**，hook 挂了就去修 hook。
 - 修完想让用户装包验证 → 让他本机 build，**不要替他跑 `assembleGithubRelease`**（耗时长 + 签名钥匙在他手里，和 `$genupdate` 同一条约定）。
@@ -134,6 +146,7 @@ git push origin classic
 - 为了「保留原设计意图」而选了个别扭的修法——有时候原设计本身就是 bug，删掉才是修。
 - 把 bugfix 和本地在做的改动一起 commit。`git diff --stat` 先看，只 stage 自己的。
 - 加个 catch 把异常吞掉当修复。
+- 沙箱拦了 `gradlew` / `git commit` / `git push` 就跳过，然后报告「已修复」。被拦就申请提权重跑，跑不了就如实写未完成。
 
 ## 卡住了
 

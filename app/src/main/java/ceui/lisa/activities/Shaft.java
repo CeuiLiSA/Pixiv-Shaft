@@ -472,6 +472,12 @@ public class Shaft extends Application implements ServicesProvider {
         // 必须在第一个 Activity 创建前注册,否则首屏收不到。
         registerActivityLifecycleCallbacks(new ceui.pixiv.ui.translate.MangaBatchFloatInstaller());
 
+        // 「预测性返回」开关:关闭时给 manifest 里声明了
+        // enableOnBackInvokedCallback 的 Activity 挂常开返回回调,让系统放弃预测动画。
+        // 必须在这里注册——onActivityPreCreated 要早于 Fragment 自己注册返回拦截,
+        // 晚一步优先级就反了,草稿保护/退出确认会被全局回调抢先吃掉。
+        registerActivityLifecycleCallbacks(new ceui.lisa.helper.PredictiveBackSuppressor());
+
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(@NonNull Activity activity, Bundle savedInstanceState) {

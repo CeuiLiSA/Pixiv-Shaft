@@ -18,7 +18,6 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.activities.UActivity
 import ceui.lisa.activities.VActivity
@@ -917,8 +916,8 @@ internal fun ArtworkV3Fragment.relatedHeaderRenderer() =
             ctx.startActivity(intent)
         }
         b.relatedLoadingContainer.isVisible = item.state == null
-        // 插画侧走瀑布流骨架(列数跟随设置),转圈只留给复用本布局的小说详情
-        b.relatedSkeleton.spanCount = Shaft.sSettings.lineCount
+        // 插画侧走瀑布流骨架(列数与下方相关作品瀑布流一致),转圈只留给复用本布局的小说详情
+        b.relatedSkeleton.spanCount = illustSpanCount
         b.relatedSkeleton.isVisible = true
         b.relatedLoadingSpinner.isVisible = false
         b.relatedSeeMore.isVisible = item.state == true

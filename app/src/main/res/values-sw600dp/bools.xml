@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 与 layout-sw600dp/fragment_artwork_v3.xml 同一个限定符：平板（最小宽度 >= 600dp）上作品详情走舞台 + 信息栏排版；手机横屏不命中 -->
+    <bool name="artwork_tablet_stage">true</bool>
+</resources>

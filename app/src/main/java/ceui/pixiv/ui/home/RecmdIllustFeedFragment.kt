@@ -175,7 +175,7 @@ open class RecmdIllustFeedFragment(
 
     override fun onCreateLayoutManager(): RecyclerView.LayoutManager {
         // GAP_HANDLING_NONE 对齐 legacy：带整行 header 的瀑布流开 gap 策略会在回滚时重排跳动
-        return StaggeredManager(Shaft.sSettings.lineCount, RecyclerView.VERTICAL).apply {
+        return StaggeredManager.adaptive(requireContext(), Shaft.sSettings.lineCount).apply {
             gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_NONE
         }
     }

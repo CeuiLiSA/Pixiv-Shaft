@@ -6,8 +6,6 @@ import android.view.View;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import ceui.lisa.activities.Shaft;
-
 public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
 
     private final int space;
@@ -18,63 +16,24 @@ public class SpacesItemDecoration extends RecyclerView.ItemDecoration {
 
     @Override
     public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-
         outRect.bottom = space;
-        int position = parent.getChildAdapterPosition(view);
-        StaggeredGridLayoutManager.LayoutParams params = (StaggeredGridLayoutManager.LayoutParams) view.getLayoutParams();
+        applyColumnOffsets(outRect, view, parent.getChildAdapterPosition(view), parent, space);
+    }
 
-
-        if (Shaft.sSettings.getLineCount() == 2) {
-            if (position == 0 || position == 1) {
-                outRect.top = space;
-            }
-
-            if (params.getSpanIndex() % 2 != 0) {
-                //右边
-                outRect.left = space / 2;
-                outRect.right = space;
-            } else {
-                //左边
-                outRect.left = space;
-                outRect.right = space / 2;
-            }
-        } else if (Shaft.sSettings.getLineCount() == 3) {
-            if (position == 0 || position == 1 || position == 2) {
-                outRect.top = space;
-            }
-
-            if (params.getSpanIndex() % 3 == 0) {
-                //左边
-                outRect.left = space;
-                outRect.right = space / 2;
-            } else if(params.getSpanIndex() % 3 == 1) {
-                //中间
-                outRect.left = space / 2;
-                outRect.right = space / 2;
-            }else if(params.getSpanIndex() % 3 == 2) {
-                //右边
-                outRect.left = space / 2;
-                outRect.right = space;
-            }
-        } else if (Shaft.sSettings.getLineCount() == 4) {
-            if (position == 0 || position == 1 || position == 2 || position == 3) {
-                outRect.top = space;
-            }
-
-
-            if (params.getSpanIndex() % 4 == 0) {
-                //左边
-                outRect.left = space;
-                outRect.right = space / 2;
-            } else if(params.getSpanIndex() % 4 == 1 || params.getSpanIndex() % 4 == 2) {
-                //中间
-                outRect.left = space / 2;
-                outRect.right = space / 2;
-            } else if(params.getSpanIndex() % 4 == 3) {
-                //右边
-                outRect.left = space / 2;
-                outRect.right = space;
-            }
+    /**
+     * 按瀑布流**当前**列数给左右与首行顶部间距：两侧边缘 space、中缝两边各 space/2。
+     * 列数读 LayoutManager 而不是「每行几列」设置——列数会随列表宽度自适应（#1087）。
+     */
+    static void applyColumnOffsets(Rect outRect, View view, int position, RecyclerView parent, int space) {
+        if (!(parent.getLayoutManager() instanceof StaggeredGridLayoutManager)) return;
+        int spanCount = ((StaggeredGridLayoutManager) parent.getLayoutManager()).getSpanCount();
+        StaggeredGridLayoutManager.LayoutParams params =
+                (StaggeredGridLayoutManager.LayoutParams) view.getLayoutParams();
+        if (position >= 0 && position < spanCount) {
+            outRect.top = space;
         }
+        int spanIndex = params.getSpanIndex();
+        outRect.left = spanIndex == 0 ? space : space / 2;
+        outRect.right = spanIndex == spanCount - 1 ? space : space / 2;
     }
 }

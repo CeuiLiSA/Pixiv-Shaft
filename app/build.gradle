@@ -229,6 +229,13 @@ android {
             excludes += ['META-INF/MANIFEST.MF']
         }
     }
+    bundle {
+        abi {
+            // 只发 arm64 一个 ABI，拆 split 零收益；拆了之后 Play 包被人只转存 base.apk 侧载，
+            // 所有 .so 都随 split_config.arm64_v8a.apk 丢掉，MMKV 初始化直接启动崩溃。
+            enableSplit = false
+        }
+    }
 
     namespace = 'ceui.lisa'
     kotlinOptions {
@@ -306,6 +313,7 @@ dependencies {
     implementation libs.androidxRoomKtx
     kapt libs.androidxRoomCompiler
     implementation libs.agentwebCore
+    implementation libs.androidxWebkit
     implementation libs.rebound
     implementation libs.htmlTextView
     implementation libs.materialDateTimePicker
