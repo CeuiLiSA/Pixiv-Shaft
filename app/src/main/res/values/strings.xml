@@ -584,7 +584,7 @@
     <string name="tag_legibility_boost_none_dark">不提亮</string>
     <string name="tag_legibility_boost_percent_light">压暗 %1$d%%</string>
     <string name="tag_legibility_boost_percent_dark">提亮 %1$d%%</string>
-    <string name="tag_legibility_boost_preview_tag">示例标签</string>
+    <string name="tag_legibility_boost_preview_tag"># 示例标签</string>
     <string name="tag_translation_color_follow_theme">跟随主题</string>
     <string name="tag_translation_color_pick_from_theme_page">从主题色彩页中选择</string>
     <string name="string_325">点击设置</string>

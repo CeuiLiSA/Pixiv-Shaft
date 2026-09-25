@@ -564,7 +564,7 @@
     <string name="tag_legibility_boost_none_dark">不提亮</string>
     <string name="tag_legibility_boost_percent_light">壓暗 %1$d%%</string>
     <string name="tag_legibility_boost_percent_dark">提亮 %1$d%%</string>
-    <string name="tag_legibility_boost_preview_tag">範例標籤</string>
+    <string name="tag_legibility_boost_preview_tag"># 範例標籤</string>
     <string name="string_325">點擊設定</string>
     <string name="string_326">開始</string>
     <string name="string_327">暫停</string>

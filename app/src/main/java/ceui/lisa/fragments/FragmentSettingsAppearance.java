@@ -606,8 +606,8 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
 
         private TextView buildChip(Context context, V3Palette palette) {
             TextView chip = new TextView(context);
-            // 与真实胶囊（showHashPrefix）同样带 "# " 前缀。
-            chip.setText("# " + context.getString(R.string.tag_legibility_boost_preview_tag));
+            // 资源里已带 "# " 前缀，与真实胶囊（showHashPrefix）一致。
+            chip.setText(R.string.tag_legibility_boost_preview_tag);
             chip.setTextSize(13f);
             chip.setPadding(dp(context, 14), dp(context, 7), dp(context, 14), dp(context, 7));
             WitTagStyle.applyText(chip, palette);
