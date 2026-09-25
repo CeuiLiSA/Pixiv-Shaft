@@ -562,6 +562,7 @@
     <string name="tag_legibility_boost_none_dark">明るくしない</string>
     <string name="tag_legibility_boost_percent_light">暗くする %1$d%%</string>
     <string name="tag_legibility_boost_percent_dark">明るくする %1$d%%</string>
+    <string name="tag_legibility_boost_preview_tag">サンプルタグ</string>
     <string name="string_325">設定を開く</string>
     <string name="string_326">開始</string>
     <string name="string_327">停止</string>

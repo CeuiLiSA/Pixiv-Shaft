@@ -562,6 +562,7 @@
     <string name="tag_legibility_boost_none_dark">밝게 안 함</string>
     <string name="tag_legibility_boost_percent_light">어둡게 %1$d%%</string>
     <string name="tag_legibility_boost_percent_dark">밝게 %1$d%%</string>
+    <string name="tag_legibility_boost_preview_tag">예시 태그</string>
     <string name="string_325">클릭 설정</string>
     <string name="string_326">시작 하 다.</string>
     <string name="string_327">잠시 멈추다.</string>

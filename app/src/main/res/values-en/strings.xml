@@ -562,6 +562,7 @@
     <string name="tag_legibility_boost_none_dark">No brightening</string>
     <string name="tag_legibility_boost_percent_light">Darken %1$d%%</string>
     <string name="tag_legibility_boost_percent_dark">Brighten %1$d%%</string>
+    <string name="tag_legibility_boost_preview_tag">Sample tag</string>
     <string name="string_325">Go to settings</string>
     <string name="string_326">start</string>
     <string name="string_327">Suspend</string>

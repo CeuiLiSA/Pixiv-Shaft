@@ -521,8 +521,6 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
      */
     private static final class TagLegibilityBoostDialogBuilder extends WitDialog.CustomDialogBuilder {
 
-        private static final String PREVIEW_TAG = "# 示例标签";
-
         private SeekBar lightSlider;
         private SeekBar darkSlider;
         private TextView lightValue;
@@ -608,7 +606,8 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
 
         private TextView buildChip(Context context, V3Palette palette) {
             TextView chip = new TextView(context);
-            chip.setText(PREVIEW_TAG);
+            // 与真实胶囊（showHashPrefix）同样带 "# " 前缀。
+            chip.setText("# " + context.getString(R.string.tag_legibility_boost_preview_tag));
             chip.setTextSize(13f);
             chip.setPadding(dp(context, 14), dp(context, 7), dp(context, 14), dp(context, 7));
             WitTagStyle.applyText(chip, palette);

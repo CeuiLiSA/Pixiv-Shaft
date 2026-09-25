@@ -562,6 +562,7 @@
     <string name="tag_legibility_boost_none_dark">Без осветления</string>
     <string name="tag_legibility_boost_percent_light">Затемнить на %1$d%%</string>
     <string name="tag_legibility_boost_percent_dark">Осветлить на %1$d%%</string>
+    <string name="tag_legibility_boost_preview_tag">Пример тега</string>
     <string name="string_325">Перейти к настройкам</string>
     <string name="string_326">Начать</string>
     <string name="string_327">Приостановить</string>

@@ -562,6 +562,7 @@
     <string name="tag_legibility_boost_none_dark">Aydınlatma yok</string>
     <string name="tag_legibility_boost_percent_light">%1$d%% koyulaştır</string>
     <string name="tag_legibility_boost_percent_dark">%1$d%% aydınlat</string>
+    <string name="tag_legibility_boost_preview_tag">Örnek etiket</string>
     <string name="string_325">Ayarlara git</string>
     <string name="string_326">Başlat</string>
     <string name="string_327">Durdur</string>
