@@ -104,9 +104,9 @@ public final class PredictiveBackSuppressor implements Application.ActivityLifec
      * 手势时,「本进程还没创建过 MainActivity 以外的 Activity」≈「ROM 处于未 primed 窗口」
      * ≈「这一场手势只会拿到 progress 恒为 0 的 stub」。
      *
-     * <p>这是启发式而非已证实的机制,所以使用方必须能自愈:一旦真收到 progress > 0 就立刻
-     * 放弃兜底(见 {@code DrawerPredictiveBack#onProgressed})。判错的最坏后果是手势开头
-     * 闪一帧固定位移。
+     * <p>这是启发式而非已证实的机制,正常设备冷启动后同样会命中,所以使用方必须能自愈:
+     * 先等一小段真实进度再兜底,任何时候收到 progress > 0 都立刻放弃兜底
+     * (见 {@code DrawerPredictiveBack})。
      *
      * <p>只在进程内单向置位、不重置:实测「进一次页面再回来」的 primed 是持久的。
      */

@@ -26,11 +26,12 @@ import androidx.drawerlayout.widget.DrawerLayout
  *
  * 某些 ROM 在「未 primed」状态下只投递 started + 恰好 3 个 progress = 0.0 的 stub,逐帧数据
  * 一概没有 —— 此时任何跟手动画都无从驱动。跟手只是表现手段、不是目的,所以这类手势退化成
- * 固定比例的预测返回预览:[onStarted] 带 fallback = true 时直接推到 [FALLBACK_PROGRESS],
- * 不再理会后续的 0 进度样本。
+ * 固定比例的预测返回预览:[onStarted] 带 fallback = true 时,若 [FALLBACK_DELAY_MS] 内
+ * 一个真实进度都没等到,就滑到 [FALLBACK_PROGRESS],并不再理会后续的 0 进度样本。
  *
- * 兜底可自愈:一旦真收到 progress > 0,立刻放弃固定值、切回逐帧跟手。所以调用方判断失误
- * (其实已 primed)最多只损失手势开头的一帧。
+ * 先等再滑,是因为调用方的「未 primed」只是启发式:正常设备冷启动后的首个手势同样会被判进
+ * 兜底,而它的真实进度几十毫秒内就到。等这一小段,正常设备就完全看不到兜底;真收不到进度的
+ * ROM 只是晚这么一点点才出反馈。滑动途中(或之后)收到 progress > 0 也会立刻切回逐帧跟手。
  */
 class DrawerPredictiveBack(
     private val drawerLayout: DrawerLayout,
@@ -47,9 +48,9 @@ class DrawerPredictiveBack(
     /**
      * 手势开始。
      *
-     * @param fallback 是否已知这一场手势拿不到有效进度(ROM 未 primed,见类注释)。为 true 时
-     *   立刻推到 [FALLBACK_PROGRESS],并且不再被 progress = 0 的样本拉回;一旦收到
-     *   progress > 0 仍会切回跟手。
+     * @param fallback 这一场手势是否很可能拿不到有效进度(ROM 未 primed,见类注释)。为 true 时
+     *   [FALLBACK_DELAY_MS] 内没等到真实进度就推到 [FALLBACK_PROGRESS],且不再被 progress = 0
+     *   的样本拉回;任何时候收到 progress > 0 都会切回跟手。
      */
     fun onStarted(fallback: Boolean = false) {
         cancelAnimator()
@@ -57,9 +58,9 @@ class DrawerPredictiveBack(
         this.fallback = fallback
         apply(0f)
         if (fallback) {
-            // 从 0 滑到固定值而不是瞬移:既是更自然的「预览」观感,也让「其实已 primed」时
-            // 被真实进度打断掉的位移尽量小。
-            animateTo(FALLBACK_PROGRESS)
+            // 延迟启动:期间真进度一到,onProgressed 会把这个还没开始的动画取消掉。
+            // 从 0 滑到固定值而不是瞬移,是更自然的「预览」观感。
+            animateTo(FALLBACK_PROGRESS, startDelay = FALLBACK_DELAY_MS)
         }
     }
 
@@ -67,7 +68,7 @@ class DrawerPredictiveBack(
         if (!tracking) return
         if (progress > EPSILON) {
             // 真进度到手 —— 兜底(如果有)立刻作废,回到逐帧跟手。
-            // 还在往 FALLBACK_PROGRESS 滑的动画必须一起停掉,否则它逐帧覆盖真实进度,
+            // 还在等待 / 正往 FALLBACK_PROGRESS 滑的动画必须一起停掉,否则它逐帧覆盖真实进度,
             // 滑完还停在固定值,下一个样本再猛地拉回手指位置。
             if (fallback) {
                 fallback = false
@@ -121,10 +122,11 @@ class DrawerPredictiveBack(
         return if (absolute and Gravity.HORIZONTAL_GRAVITY_MASK == Gravity.RIGHT) 1f else -1f
     }
 
-    private fun animateTo(target: Float, onEnd: (() -> Unit)? = null) {
+    private fun animateTo(target: Float, startDelay: Long = 0L, onEnd: (() -> Unit)? = null) {
         cancelAnimator()
         animator = ValueAnimator.ofFloat(progress, target).apply {
             duration = (ANIM_DURATION * kotlin.math.abs(target - progress)).toLong().coerceAtLeast(MIN_ANIM_DURATION)
+            this.startDelay = startDelay
             addUpdateListener { apply(it.animatedValue as Float) }
             addListener(object : AnimatorListenerAdapter() {
                 private var cancelled = false
@@ -148,6 +150,12 @@ class DrawerPredictiveBack(
 
         /** 兜底比例:拿不到进度时固定把抽屉推到这里。纯观感参数,按手感调。 */
         const val FALLBACK_PROGRESS = 0.35f
+
+        /**
+         * 兜底前先等真实进度的时间。实测已 primed 时首个真实进度约在手势开始后 56ms 到达,
+         * 取其两倍左右留余量;再长,收不到进度的 ROM 上反馈就显得迟钝。
+         */
+        const val FALLBACK_DELAY_MS = 120L
 
         /** 小于它就算「没有有效进度」。 */
         const val EPSILON = 1e-3f
