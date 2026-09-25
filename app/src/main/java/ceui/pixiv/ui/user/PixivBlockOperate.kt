@@ -197,7 +197,12 @@ object PixivBlockOperate {
         activity.lifecycleScope.launch {
             var failure: Throwable? = null
             try {
-                withContext(Dispatchers.IO) { saveBlock(user.id, block, retried = false) }
+                withContext(Dispatchers.IO) {
+                    saveBlock(user.id, block, retried = false)
+                    // 拉黑一成功就紧跟着落本地屏蔽:放到 withContext 外面的话，页面在请求途中被关掉时
+                    // lifecycleScope 已取消,withContext 返回即抛 CancellationException,这一条就丢了。
+                    if (onMuted != null) PixivOperate.muteUser(user, false)
+                }
             } catch (ce: CancellationException) {
                 throw ce
             } catch (ex: Throwable) {
@@ -205,9 +210,7 @@ object PixivBlockOperate {
             } finally {
                 loading.safeDismiss()
             }
-            // 拉黑已经写进账号了，本地屏蔽不该因为页面在请求途中被关掉而丢,所以在存活检查之前落库。
             val alsoMute = failure == null && onMuted != null
-            if (alsoMute) PixivOperate.muteUser(user, false)
             if (!activity.isAlive()) return@launch
             val err = failure
             if (err != null) {
