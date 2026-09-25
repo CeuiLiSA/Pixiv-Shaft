@@ -128,7 +128,6 @@ jobs:
           :banner:testDebugUnitTest
           :panel:testDebugUnitTest
           :models:testDebugUnitTest
-          :flowlayout-lib:testDebugUnitTest
           :progressmanager:testDebugUnitTest
           :safe:testDebugUnitTest
           :witstudio:testDebugUnitTest
@@ -156,7 +155,6 @@ jobs:
           :banner:lintDebug
           :panel:lintDebug
           :models:lintDebug
-          :flowlayout-lib:lintDebug
           :progressmanager:lintDebug
           :safe:lintDebug
           :witstudio:lintDebug
@@ -175,7 +173,6 @@ jobs:
             banner/build/reports/lint-results-debug.xml
             panel/build/reports/lint-results-debug.xml
             models/build/reports/lint-results-debug.xml
-            flowlayout-lib/build/reports/lint-results-debug.xml
             progressmanager/build/reports/lint-results-debug.xml
             safe/build/reports/lint-results-debug.xml
             witstudio/build/reports/lint-results-debug.xml
