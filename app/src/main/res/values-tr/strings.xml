@@ -2660,6 +2660,8 @@
     <string name="pixiv_block_action">Engelle</string>
     <string name="pixiv_unblock_action">Engeli kaldır</string>
     <string name="pixiv_block_done">“%1$s” engellendi</string>
+    <string name="pixiv_block_and_mute_action">Engelle ve eserlerini gizle</string>
+    <string name="pixiv_block_and_mute_done">“%1$s” engellendi, eserleri gizlendi</string>
     <string name="pixiv_unblock_done">“%1$s” engeli kaldırıldı</string>
     <string name="pixiv_block_checking">Engelleme durumu kontrol ediliyor…</string>
     <string name="pixiv_block_submitting">Gönderiliyor…</string>

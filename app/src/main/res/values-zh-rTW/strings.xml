@@ -2676,6 +2676,8 @@
     <string name="pixiv_block_action">封鎖</string>
     <string name="pixiv_unblock_action">解除封鎖</string>
     <string name="pixiv_block_done">已封鎖「%1$s」</string>
+    <string name="pixiv_block_and_mute_action">封鎖並隱藏其作品</string>
+    <string name="pixiv_block_and_mute_done">已封鎖「%1$s」並隱藏其作品</string>
     <string name="pixiv_unblock_done">已解除封鎖「%1$s」</string>
     <string name="pixiv_block_checking">正在查詢封鎖狀態…</string>
     <string name="pixiv_block_submitting">正在提交…</string>

@@ -2930,6 +2930,8 @@
     <string name="pixiv_block_action">拉黑</string>
     <string name="pixiv_unblock_action">取消拉黑</string>
     <string name="pixiv_block_done">已拉黑「%1$s」</string>
+    <string name="pixiv_block_and_mute_action">拉黑并屏蔽其作品</string>
+    <string name="pixiv_block_and_mute_done">已拉黑「%1$s」并屏蔽其作品</string>
     <string name="pixiv_unblock_done">已取消拉黑「%1$s」</string>
     <string name="pixiv_block_checking">正在查询拉黑状态…</string>
     <string name="pixiv_block_submitting">正在提交…</string>

@@ -2660,6 +2660,8 @@
     <string name="pixiv_block_action">차단</string>
     <string name="pixiv_unblock_action">차단 해제</string>
     <string name="pixiv_block_done">“%1$s”을(를) 차단했습니다</string>
+    <string name="pixiv_block_and_mute_action">차단하고 작품도 뮤트</string>
+    <string name="pixiv_block_and_mute_done">“%1$s”을(를) 차단하고 작품을 뮤트했습니다</string>
     <string name="pixiv_unblock_done">“%1$s”의 차단을 해제했습니다</string>
     <string name="pixiv_block_checking">차단 상태 확인 중…</string>
     <string name="pixiv_block_submitting">전송 중…</string>

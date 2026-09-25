@@ -9,6 +9,8 @@ import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
+import ceui.lisa.utils.PixivOperate
+import ceui.loxia.User
 import ceui.pixiv.api.model.BlockSaveRequest
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.CsrfTokenProvider
@@ -16,6 +18,7 @@ import ceui.pixiv.chat.base.toUserMessage
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.dialog.WitDialogBuilder
 import ceui.pixiv.witstudio.dialog.WitTipDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +39,10 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  *  - 需要 **x-csrf-token**,缺失时走 [CsrfTokenProvider.fetch] 现抓;
  *  - 需要 www.pixiv.net 通 —— 直连支持见 [ceui.lisa.http.CronetInterceptor] 的 host 映射,
  *    和 [ceui.pixiv.api.ClientManager.createWebAPIService] 里挂上的直连拦截器。
+ *
+ * issue #1162: 拉黑不影响 pixiv 的推荐流，对方作品照样会刷到,所以确认框里多给一个「拉黑并屏蔽其作品」,
+ * 拉黑成功后顺手写一条本地屏蔽。拉黑(黑名单)普通会员也能加很多个,本地屏蔽不占 pixiv 的屏蔽(ミュート)名额,
+ * 两者合并不会挤掉任何官方额度。
  *
  * V2([ceui.lisa.activities.UActivity])和 V3([ceui.lisa.activities.UserActivityV3])两棵树共用本
  * 文件的入口,不要各自复制一份。
@@ -58,15 +65,24 @@ object PixivBlockOperate {
      *
      * 拉黑态不在进页面时预取 —— 那要给每次打开画师页多加一次网络请求,而这个功能是低频操作,
      * 点开菜单再查够用。
+     *
+     * @param isMuted 本地是否已屏蔽该作者;已屏蔽就不再提供「拉黑并屏蔽」。
+     * @param onMuted 「拉黑并屏蔽」成功写入本地屏蔽后回调，宿主据此同步屏蔽开关和列表。
      */
-    fun showBlockDialog(activity: AppCompatActivity, userId: Long, userName: String) {
+    fun showBlockDialog(
+        activity: AppCompatActivity,
+        user: User,
+        isMuted: Boolean,
+        onMuted: () -> Unit,
+    ) {
         if (!activity.isAlive()) return
         if (!SessionManager.hasWebCookie) {
             showWebLoginNeeded(activity)
             return
         }
+        val userId = user.id
         // 名字空着时用 ID 兜,免得确认框读成「拉黑「」后…」。
-        val name = userName.ifBlank { userId.toString() }
+        val name = user.name.orEmpty().ifBlank { userId.toString() }
 
         val loading = WitTipDialog.Builder(activity)
             .setTipWord(activity.getString(R.string.pixiv_block_checking))
@@ -93,7 +109,7 @@ object PixivBlockOperate {
                 return@launch
             }
             if (isBlocked == null) return@launch
-            showConfirm(activity, userId, name, isBlocked)
+            showConfirm(activity, user, name, isBlocked, isMuted, onMuted)
         }
     }
 
@@ -123,11 +139,13 @@ object PixivBlockOperate {
 
     private fun showConfirm(
         activity: AppCompatActivity,
-        userId: Long,
+        user: User,
         userName: String,
         isBlocked: Boolean,
+        isMuted: Boolean,
+        onMuted: () -> Unit,
     ) {
-        WitDialog.MessageDialogBuilder(activity)
+        val builder = WitDialog.MessageDialogBuilder(activity)
             .setTitle(R.string.pixiv_block_title)
             .setMessage(
                 activity.getString(
@@ -135,24 +153,41 @@ object PixivBlockOperate {
                     userName,
                 )
             )
-            .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-            .addAction(
-                0,
-                if (isBlocked) R.string.pixiv_unblock_action else R.string.pixiv_block_action,
-                WitDialogAction.ACTION_PROP_POSITIVE,
-            ) { dialog, _ ->
-                dialog.dismiss()
-                performSave(activity, userId, userName, block = !isBlocked)
-            }
-            .create()
-            .show()
+        if (!isBlocked && !isMuted) {
+            // 三个按钮横排放不下，竖排时主操作放最上面。
+            builder
+                .setActionContainerOrientation(WitDialogBuilder.VERTICAL)
+                .addAction(0, R.string.pixiv_block_and_mute_action, WitDialogAction.ACTION_PROP_POSITIVE) { dialog, _ ->
+                    dialog.dismiss()
+                    performSave(activity, user, userName, block = true, onMuted = onMuted)
+                }
+                .addAction(R.string.pixiv_block_action) { dialog, _ ->
+                    dialog.dismiss()
+                    performSave(activity, user, userName, block = true, onMuted = null)
+                }
+                .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+        } else {
+            builder
+                .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+                .addAction(
+                    0,
+                    if (isBlocked) R.string.pixiv_unblock_action else R.string.pixiv_block_action,
+                    WitDialogAction.ACTION_PROP_POSITIVE,
+                ) { dialog, _ ->
+                    dialog.dismiss()
+                    performSave(activity, user, userName, block = !isBlocked, onMuted = null)
+                }
+        }
+        builder.create().show()
     }
 
+    /** @param onMuted 非空表示「拉黑并屏蔽」:拉黑成功后再写本地屏蔽，并回调它。 */
     private fun performSave(
         activity: AppCompatActivity,
-        userId: Long,
+        user: User,
         userName: String,
         block: Boolean,
+        onMuted: (() -> Unit)?,
     ) {
         val loading = WitTipDialog.Builder(activity)
             .setTipWord(activity.getString(R.string.pixiv_block_submitting))
@@ -162,7 +197,7 @@ object PixivBlockOperate {
         activity.lifecycleScope.launch {
             var failure: Throwable? = null
             try {
-                withContext(Dispatchers.IO) { saveBlock(userId, block, retried = false) }
+                withContext(Dispatchers.IO) { saveBlock(user.id, block, retried = false) }
             } catch (ce: CancellationException) {
                 throw ce
             } catch (ex: Throwable) {
@@ -170,15 +205,23 @@ object PixivBlockOperate {
             } finally {
                 loading.safeDismiss()
             }
+            // 拉黑已经写进账号了，本地屏蔽不该因为页面在请求途中被关掉而丢,所以在存活检查之前落库。
+            val alsoMute = failure == null && onMuted != null
+            if (alsoMute) PixivOperate.muteUser(user, false)
             if (!activity.isAlive()) return@launch
             val err = failure
             if (err != null) {
                 reportFailure(activity, err)
                 return@launch
             }
+            if (alsoMute) onMuted?.invoke()
             Common.showToast(
                 activity.getString(
-                    if (block) R.string.pixiv_block_done else R.string.pixiv_unblock_done,
+                    when {
+                        alsoMute -> R.string.pixiv_block_and_mute_done
+                        block -> R.string.pixiv_block_done
+                        else -> R.string.pixiv_unblock_done
+                    },
                     userName,
                 )
             )

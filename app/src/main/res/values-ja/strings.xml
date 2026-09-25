@@ -2660,6 +2660,8 @@
     <string name="pixiv_block_action">ブロック</string>
     <string name="pixiv_unblock_action">ブロック解除</string>
     <string name="pixiv_block_done">「%1$s」をブロックしました</string>
+    <string name="pixiv_block_and_mute_action">ブロックして作品もミュート</string>
+    <string name="pixiv_block_and_mute_done">「%1$s」をブロックし、作品をミュートしました</string>
     <string name="pixiv_unblock_done">「%1$s」のブロックを解除しました</string>
     <string name="pixiv_block_checking">ブロック状態を確認中…</string>
     <string name="pixiv_block_submitting">送信中…</string>

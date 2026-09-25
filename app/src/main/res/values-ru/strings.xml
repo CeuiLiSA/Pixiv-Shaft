@@ -2660,6 +2660,8 @@
     <string name="pixiv_block_action">Заблокировать</string>
     <string name="pixiv_unblock_action">Разблокировать</string>
     <string name="pixiv_block_done">«%1$s» заблокирован</string>
+    <string name="pixiv_block_and_mute_action">Заблокировать и скрыть работы</string>
+    <string name="pixiv_block_and_mute_done">«%1$s» заблокирован, работы скрыты</string>
     <string name="pixiv_unblock_done">«%1$s» разблокирован</string>
     <string name="pixiv_block_checking">Проверка статуса блокировки…</string>
     <string name="pixiv_block_submitting">Отправка…</string>
