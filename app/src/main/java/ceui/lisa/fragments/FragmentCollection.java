@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -165,6 +166,19 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             @Override
             public CharSequence getPageTitle(int position) {
                 return CHINESE_TITLES[position];
+            }
+
+            /**
+             * Activity 重建 / 进程恢复后，pager 复用的是 FragmentManager 恢复出来的子页，
+             * 而不是上面 initView 刚 new 的 allPages[i]——那份孤儿永不 attach，「我的关注」
+             * 的跳页、重选 tab 回顶对着它调全是静默空操作。把真正挂上的实例写回数组。
+             */
+            @NonNull
+            @Override
+            public Object instantiateItem(@NonNull ViewGroup container, int position) {
+                Fragment fragment = (Fragment) super.instantiateItem(container, position);
+                allPages[position] = fragment;
+                return fragment;
             }
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);

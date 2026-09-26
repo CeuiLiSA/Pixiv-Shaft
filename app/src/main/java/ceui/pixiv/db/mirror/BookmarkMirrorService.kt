@@ -278,7 +278,9 @@ class BookmarkMirrorService @JvmOverloads constructor(
             Timber.tag(TAG).w("重建书架 %s：清空 %d 行并重新回填", shelf.label, dao.countOf(shelf.key))
             dao.clearShelf(shelf.key)
             dao.upsertState(newState(shelf, System.currentTimeMillis()))
-            activeRun = null
+            // 只丢这个书架自己的那一轮：别的书架正在跑的增量已经消费掉了「该维护」标记，
+            // 清掉它的 activeRun 会让那轮只补了一页就被静默放弃。
+            if (activeRun?.shelf == shelf) activeRun = null
             kick("rebuild")
         }
     }
@@ -335,9 +337,11 @@ class BookmarkMirrorService @JvmOverloads constructor(
      *
      * 跨公开/悄悄两个书架删：调用点拿到的 restrict 是「本次操作用的默认可见性」，
      * 未必是当初收藏时用的那个，按它删会漏。作品 id 上有索引，两架一起删也是两次点查。
+     *
+     * **不看功能开关**：删本地行不发请求，而开关关着时留下的行在重新打开后会一直冒充
+     * 「仍在收藏」（收藏库里还在、搜索结果回填红心），直到 14 天后的全量重扫才被发现。
      */
     fun onUnbookmarked(contentType: MirrorContentType, targetId: Long) {
-        if (!isFeatureEnabled()) return
         val uid = SessionManager.loggedInUid
         if (uid <= 0L) return
         scope.launch {
@@ -431,7 +435,10 @@ class BookmarkMirrorService @JvmOverloads constructor(
         if (uid <= 0L) return Tick.Idle
         if (!isOnline()) {
             Timber.tag(TAG).v("离线，暂停镜像")
-            return Tick.Idle
+            // 不回 Idle：网络恢复不写任何表、也没人会 kick，睡满 IDLE_POLL_MS 就等于断一次网
+            // 回填白停一刻钟，收藏库上那句「恢复联网后会自动继续补齐」也不成立。
+            // 短间隔自己看一眼网络状态（只读内存里的 LiveData 值，不查库不发请求）。
+            return Tick.Wait(OFFLINE_POLL_MS)
         }
 
         val now = System.currentTimeMillis()
@@ -1055,6 +1062,9 @@ class BookmarkMirrorService @JvmOverloads constructor(
 
         /** 空闲时的兜底心跳（正常靠 [kick] 唤醒，这个只防信号丢失）。 */
         private const val IDLE_POLL_MS = 15 * 60_000L
+
+        /** 离线时多久看一次网络恢复了没有。 */
+        private const val OFFLINE_POLL_MS = 30_000L
 
         /** 例行增量的最小间隔。 */
         private const val MAINTENANCE_INTERVAL_MS = 6 * 60 * 60_000L

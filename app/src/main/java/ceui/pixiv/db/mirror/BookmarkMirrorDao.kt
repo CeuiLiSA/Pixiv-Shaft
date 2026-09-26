@@ -161,9 +161,14 @@ interface BookmarkMirrorDao {
     @RawQuery(observedEntities = [BookmarkMirrorEntity::class, BookmarkMirrorTagEntity::class])
     fun rawAuthorFacets(query: SupportSQLiteQuery): List<BookmarkAuthorFacet>
 
-    /** 「我收藏过的年份」——年份筛选器的可选项，顺带给出每年多少件。 */
+    /**
+     * 「我收藏过的年份」——年份筛选器的可选项，顺带给出每年多少件。
+     *
+     * 按**本地时区**切年：选中某一年时筛选面板按本地日历算区间，这里若按 UTC 切，
+     * 元旦前后发布的作品会被数进相邻那一年，chip 上的件数与点进去的结果对不上。
+     */
     @Query(
-        "SELECT CAST(strftime('%Y', createDateMs / 1000, 'unixepoch') AS INTEGER) AS year, COUNT(*) AS hitCount " +
+        "SELECT CAST(strftime('%Y', createDateMs / 1000, 'unixepoch', 'localtime') AS INTEGER) AS year, COUNT(*) AS hitCount " +
             "FROM bookmark_mirror_table WHERE shelfKey = :shelfKey AND createDateMs > 0 " +
             "GROUP BY year ORDER BY year DESC"
     )
