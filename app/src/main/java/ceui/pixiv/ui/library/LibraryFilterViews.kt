@@ -152,6 +152,11 @@ internal class LibraryFilterViews(private val context: Context) {
         fun select(index: Int) {
             options.forEachIndexed { i, option -> option.setChosen(i == index) }
         }
+
+        /** 就地换文案（选项个数与顺序不变时用，免得为几个数字重建整组）。 */
+        fun setLabels(labels: List<CharSequence>) {
+            options.forEachIndexed { i, option -> labels.getOrNull(i)?.let { option.text = it } }
+        }
     }
 
     private fun segment(text: CharSequence): TextView = context.label(text, 14f, 500, idleText).apply {

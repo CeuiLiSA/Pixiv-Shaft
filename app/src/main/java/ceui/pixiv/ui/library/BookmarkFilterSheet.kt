@@ -98,6 +98,9 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
     /** 上次建各节时用的年份列表。只有它变了才值得推倒重建（见 [onViewCreated] 的收集器）。 */
     private var builtYears: List<BookmarkYearFacet> = emptyList()
 
+    /** 年份那一组的单选控件。年份集合没变、只是件数变了时就地改文案，不推倒整张面板。 */
+    private var yearGroup: LibraryFilterViews.SegmentedGroup? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -149,13 +152,19 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
                 // facet 是异步算出来的：标签/作者两节先出骨架、算完再填，不阻塞面板打开
                 launch { viewModel.tagFacets.collectLatest { rebuildTagChips() } }
                 launch { viewModel.authorFacets.collectLatest { rebuildAuthorChips() } }
-                // 年份分区要等 facet 算完才建得出来。**只在年份真的变了时才重建**：
+                // 年份分区要等 facet 算完才建得出来。**只在年份集合真的变了时才重建**：
                 // StateFlow 订阅时会立刻重放当前值，无条件重建等于一开面板就把刚建好的
                 // 各节全部推倒重来；后台补进新数据时同理，会把用户正在调的面板
-                // 连滚动位置带标签搜索框一起清掉。
+                // 连滚动位置带标签搜索框一起清掉。只是某年件数变了（增量维护补进一件收藏、
+                // 关注库刷新了某人的最近投稿）就只改那几个文案。
                 launch {
                     viewModel.yearFacets.collectLatest { years ->
-                        if (years != builtYears) buildSections()
+                        when {
+                            years == builtYears -> Unit
+                            yearGroup != null && years.map { it.year } == builtYears.map { it.year } ->
+                                relabelYears(years)
+                            else -> buildSections()
+                        }
                     }
                 }
             }
@@ -179,6 +188,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         tagFlow = null
         authorFlow = null
         tagSearchInput = null
+        yearGroup = null
         views = null
         _binding = null
     }
@@ -193,6 +203,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         tagFlow = null
         authorFlow = null
         tagSearchInput = null
+        yearGroup = null
         builtYears = viewModel.yearFacets.value
         val profile = profile
 
@@ -231,14 +242,12 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             }
             val years = builtYears
             if (years.isNotEmpty()) {
-                singleChoice(
+                yearGroup = singleChoice(
                     card,
                     title = getString(profile.yearSection),
                     options = buildList {
                         add(null to getString(R.string.bookmark_filter_any))
-                        years.forEach { facet ->
-                            add(facet.year to getString(R.string.bookmark_filter_year_item, facet.year, facet.hitCount))
-                        }
+                        years.forEach { facet -> add(facet.year to yearLabel(facet)) }
                     },
                     selected = { filter -> filter.createdFromMs?.let(::yearOf) },
                 ) { filter, year ->
@@ -359,6 +368,15 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             ),
             selected = { it.validity },
         ) { filter, value -> filter.copy(validity = value) }
+    }
+
+    private fun yearLabel(facet: BookmarkYearFacet): String =
+        getString(R.string.bookmark_filter_year_item, facet.year, facet.hitCount)
+
+    /** 年份集合与已建的一致，只刷新每一项的件数（第 0 项是「不限」）。 */
+    private fun relabelYears(years: List<BookmarkYearFacet>) {
+        builtYears = years
+        yearGroup?.setLabels(listOf(getString(R.string.bookmark_filter_any)) + years.map(::yearLabel))
     }
 
     private fun freshSeedIfRandom(filter: BookmarkFilter, value: BookmarkSort): Long =
@@ -535,8 +553,8 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         options: List<Pair<T, String>>,
         selected: (BookmarkFilter) -> T,
         apply: (BookmarkFilter, T) -> BookmarkFilter,
-    ) {
-        val parts = views ?: return
+    ): LibraryFilterViews.SegmentedGroup? {
+        val parts = views ?: return null
         val group = parts.segmentedGroup(options.map { it.second }) { index ->
             applyChange { apply(it, options[index].first) }
             refreshAll()
@@ -546,6 +564,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             val current = selected(viewModel.filter.value)
             group.select(options.indexOfFirst { it.first == current })
         }
+        return group
     }
 
     private fun <T> multiChoice(
