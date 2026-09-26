@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="AlwaysShowAction">
+    <!-- 置顶当前搜索的全部标签（标签组合），状态由 SearchPinController 维护，默认隐藏 -->
+    <item
+        android:id="@+id/action_pin"
+        android:icon="@drawable/ic_pin_outline_24"
+        android:orderInCategory="90"
+        android:title="@string/search_pin_action"
+        android:visible="false"
+        app:showAsAction="always" />
     <item
         android:id="@+id/action_filter"
         android:icon="@drawable/ic_baseline_filter_24"

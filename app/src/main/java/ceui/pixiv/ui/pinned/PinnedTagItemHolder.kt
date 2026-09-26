@@ -41,9 +41,18 @@ class PinnedTagItemHolder(val entity: SearchEntity) : FeedItem {
 
     val hasPreview: Boolean = listOfNotNull(illust0, illust1, illust2).isNotEmpty()
 
-    /** translated_name 有内容时，name 才显示在副标题；否则上面那行已经是 name，副标题隐藏避免重复。*/
-    val showSubtitle: Boolean = !parsed?.tagTranslated.isNullOrBlank() &&
-        parsed?.tagTranslated != tag.name
+    /** keyword 按空格拆出的词。多于一个就是搜索结果页置顶的「标签组合」（pixez#1364）。*/
+    val terms: List<String> = splitSearchTerms(entity.keyword)
+
+    val isCombo: Boolean = terms.size > 1
+
+    /** 取消置顶确认框里的名字：组合写成「原神 + 胡桃」，单个标签照旧用 keyword 原文。*/
+    val displayName: String = if (isCombo) searchTermsDisplayName(terms) else entity.keyword.orEmpty()
+
+    /** translated_name 有内容时，name 才显示在副标题；否则上面那行已经是 name，副标题隐藏避免重复。
+     *  组合的副标题是「N 个标签的组合」，恒显示。*/
+    val showSubtitle: Boolean = isCombo || (!parsed?.tagTranslated.isNullOrBlank() &&
+        parsed?.tagTranslated != tag.name)
 }
 
 // ── previewIllustsJson 解析 ──

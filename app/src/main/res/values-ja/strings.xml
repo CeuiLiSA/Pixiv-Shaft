@@ -3077,4 +3077,14 @@
     <string name="reader_tts_follow_hint">音声エンジンの範囲に合わせて強調します。範囲情報がない場合は読み上げ区間を強調します。自動追従は現在の小説内でページ送りやスクロールを行います。ダブルタップで段落の先頭から読み直します。</string>
     <string name="search_history_delete_confirm">検索履歴から「%1$s」を削除しますか？</string>
     <string name="search_tag_delete_confirm">現在の検索からタグ「%1$s」を削除しますか？</string>
+    <!-- 搜索结果页顶栏图钉：置顶当前搜索的标签（组合）。ceui.pixiv.ui.search.SearchPinController -->
+    <string name="search_pin_action">この検索をピン留め</string>
+    <string name="search_unpin_action">ピン留めを解除</string>
+    <string name="search_pinned_snack">「%1$s」をピン留めしました</string>
+    <string name="search_unpinned_snack">「%1$s」のピン留めを解除しました</string>
+    <string name="search_pin_snack_view">表示</string>
+    <string name="search_pin_snack_undo">元に戻す</string>
+    <plurals name="pinned_tag_combo_count">
+        <item quantity="other">%1$d 個のタグの組み合わせ</item>
+    </plurals>
 </resources>

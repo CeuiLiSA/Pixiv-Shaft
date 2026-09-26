@@ -3078,4 +3078,14 @@
     <string name="reader_tts_follow_hint">醒目標示跟隨語音引擎提供的範圍；不支援範圍回呼時按朗讀片段標示。自動翻頁僅跟隨目前小說，縱向模式自動捲動。雙擊從所在段落開頭重讀。</string>
     <string name="search_history_delete_confirm">從搜尋歷史中刪除「%1$s」？</string>
     <string name="search_tag_delete_confirm">從目前搜尋中刪除標籤「%1$s」？</string>
+    <!-- 搜索结果页顶栏图钉：置顶当前搜索的标签（组合）。ceui.pixiv.ui.search.SearchPinController -->
+    <string name="search_pin_action">釘選此搜尋</string>
+    <string name="search_unpin_action">取消釘選</string>
+    <string name="search_pinned_snack">已釘選「%1$s」</string>
+    <string name="search_unpinned_snack">已取消釘選「%1$s」</string>
+    <string name="search_pin_snack_view">查看</string>
+    <string name="search_pin_snack_undo">復原</string>
+    <plurals name="pinned_tag_combo_count">
+        <item quantity="other">%1$d 個標籤的組合</item>
+    </plurals>
 </resources>

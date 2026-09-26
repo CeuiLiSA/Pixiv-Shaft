@@ -9,6 +9,7 @@ import ceui.lisa.model.ListIllust
 import ceui.lisa.repo.SearchIllustRepo
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
+import ceui.pixiv.api.model.Illust
 import ceui.pixiv.services.appServices
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
@@ -114,6 +115,17 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
             }
         }
     }
+
+    /**
+     * 当前结果的头几张作品，给置顶卡片当预览（[SearchPinController]）。只取已经显示在屏上的
+     * 这一代结果；还没加载过就是空，置顶照样成立，只是卡片不带图。
+     */
+    fun previewIllusts(limit: Int): List<Illust> =
+        feedViewModel.uiState.value.items.asSequence()
+            .filterIsInstance<IllustFeedItem>()
+            .map { it.illust }
+            .take(limit)
+            .toList()
 
     override fun onResume() {
         // 先快照切换前的加载状态：super.onResume() 会为从未加载的页面执行

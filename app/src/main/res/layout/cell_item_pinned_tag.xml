@@ -5,6 +5,8 @@
   bg_drawer_item_pill ripple + 20dp/16dp 内距，卡间距由列表的 LinearItemDecoration(12dp) 给）——
   两个 tab 是同一页的左右页，卡片不能长得不一样。
   信息层级：译名/标签名 16sp bold / v3_text_1 → 原名副标题 13sp / v3_text_2 → 预览图。
+  标签组合（pixez#1364）：标题是「原神 + 胡桃」、「+」用 textAccent，最多两行；副标题「N 个标签的组合」。
+  标题 / 副标题的文字与行数由 PinnedTagsFragment 的 renderer 按单标签 / 组合分别设置，不走 data binding。
 -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -49,7 +51,6 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:text="@{holder.tag.translated_name != null ? holder.tag.translated_name : holder.tag.name}"
                     android:textColor="@color/v3_text_1"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -61,10 +62,8 @@
                     android:layout_marginTop="4dp"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:text="@{holder.tag.name}"
                     android:textColor="@color/v3_text_2"
-                    android:textSize="13sp"
-                    android:visibility="@{holder.showSubtitle ? View.VISIBLE : View.GONE}" />
+                    android:textSize="13sp" />
             </LinearLayout>
 
             <ImageView

@@ -3079,4 +3079,15 @@
     <string name="reader_tts_follow_hint">Highlighting follows the speech engine’s range, or the spoken segment when ranges are unavailable. Following turns pages or scrolls within the current novel. Double-tap restarts the paragraph.</string>
     <string name="search_history_delete_confirm">Delete “%1$s” from search history?</string>
     <string name="search_tag_delete_confirm">Remove the tag “%1$s” from the current search?</string>
+    <!-- 搜索结果页顶栏图钉：置顶当前搜索的标签（组合）。ceui.pixiv.ui.search.SearchPinController -->
+    <string name="search_pin_action">Pin this search</string>
+    <string name="search_unpin_action">Unpin</string>
+    <string name="search_pinned_snack">Pinned “%1$s”</string>
+    <string name="search_unpinned_snack">Unpinned “%1$s”</string>
+    <string name="search_pin_snack_view">View</string>
+    <string name="search_pin_snack_undo">Undo</string>
+    <plurals name="pinned_tag_combo_count">
+        <item quantity="one">Combination of %1$d tag</item>
+        <item quantity="other">Combination of %1$d tags</item>
+    </plurals>
 </resources>

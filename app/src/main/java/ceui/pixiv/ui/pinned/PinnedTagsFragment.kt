@@ -2,7 +2,11 @@ package ceui.pixiv.ui.pinned
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
 import android.view.View
+import androidx.core.text.inSpans
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -12,7 +16,6 @@ import ceui.lisa.R
 import ceui.lisa.activities.SearchActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.database.SearchEntity
 import ceui.lisa.databinding.CellItemPinnedTagBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
@@ -29,6 +32,7 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.ui.prime.TagShelfSkeletonView
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
+import ceui.pixiv.witstudio.theme.V3Palette
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -106,15 +110,46 @@ class PinnedTagsFragment : FeedFragment() {
                     putExtra(Params.INDEX, 0)
                 })
             }
-            cell.binding.deletePin.setOnClickListener { onClickDeletePinnedTag(cell.item.entity) }
+            cell.binding.deletePin.setOnClickListener { onClickDeletePinnedTag(cell.item) }
         },
     ) { cell ->
         cell.binding.holder = cell.item
+        bindTitles(cell.binding, cell.item)
     }
 
-    private fun onClickDeletePinnedTag(entity: SearchEntity) {
+    /**
+     * 标题与副标题。单个标签：译名（没有就原名）+ 原名副标题。标签组合（pixez#1364）：
+     * 「原神 + 胡桃」，连接的「+」用主题强调色把几个词分开读，最多两行；副标题「N 个标签的组合」。
+     */
+    private fun bindTitles(binding: CellItemPinnedTagBinding, item: PinnedTagItemHolder) {
+        val res = binding.root.resources
+        if (item.isCombo) {
+            val accent = V3Palette.from(binding.root.context).textAccent
+            binding.pinnedTagTitle.maxLines = 2
+            binding.pinnedTagTitle.text = SpannableStringBuilder().apply {
+                item.terms.forEachIndexed { index, term ->
+                    if (index > 0) {
+                        append(" ")
+                        inSpans(ForegroundColorSpan(accent)) { append("+") }
+                        append(" ")
+                    }
+                    append(term)
+                }
+            }
+            binding.pinnedTagSubtitle.text =
+                res.getQuantityString(R.plurals.pinned_tag_combo_count, item.terms.size, item.terms.size)
+        } else {
+            binding.pinnedTagTitle.maxLines = 1
+            binding.pinnedTagTitle.text = item.tag.translated_name ?: item.tag.name
+            binding.pinnedTagSubtitle.text = item.tag.name
+        }
+        binding.pinnedTagSubtitle.isVisible = item.showSubtitle
+    }
+
+    private fun onClickDeletePinnedTag(item: PinnedTagItemHolder) {
         val ctx = context ?: return
-        val displayName = entity.keyword.orEmpty()
+        val entity = item.entity
+        val displayName = item.displayName
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.string_143)
             .setMessage(getString(R.string.unpin_tag_confirm_message, displayName))

@@ -3077,4 +3077,14 @@
     <string name="reader_tts_follow_hint">음성 엔진이 제공하는 범위를 강조하며, 범위 정보가 없으면 읽는 구간을 강조합니다. 자동 따라가기는 현재 소설 안에서 페이지를 넘기거나 스크롤합니다. 두 번 탭하면 문단 처음부터 다시 읽습니다.</string>
     <string name="search_history_delete_confirm">검색 기록에서 「%1$s」을(를) 삭제할까요?</string>
     <string name="search_tag_delete_confirm">현재 검색에서 태그 「%1$s」을(를) 삭제할까요?</string>
+    <!-- 搜索结果页顶栏图钉：置顶当前搜索的标签（组合）。ceui.pixiv.ui.search.SearchPinController -->
+    <string name="search_pin_action">이 검색 고정</string>
+    <string name="search_unpin_action">고정 해제</string>
+    <string name="search_pinned_snack">「%1$s」을(를) 고정했습니다</string>
+    <string name="search_unpinned_snack">「%1$s」 고정을 해제했습니다</string>
+    <string name="search_pin_snack_view">보기</string>
+    <string name="search_pin_snack_undo">실행 취소</string>
+    <plurals name="pinned_tag_combo_count">
+        <item quantity="other">태그 %1$d개 조합</item>
+    </plurals>
 </resources>

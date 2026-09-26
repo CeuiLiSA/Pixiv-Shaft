@@ -3080,4 +3080,15 @@
     <string name="reader_tts_follow_hint">Vurgulama, ses motorunun bildirdiği aralığı veya aralık yoksa okunan parçayı izler. Otomatik takip, geçerli romanda sayfa çevirir veya kaydırır. Çift dokunma paragrafı baştan okur.</string>
     <string name="search_history_delete_confirm">Arama geçmişinden «%1$s» silinsin mi?</string>
     <string name="search_tag_delete_confirm">«%1$s» etiketi mevcut aramadan kaldırılsın mı?</string>
+    <!-- 搜索结果页顶栏图钉：置顶当前搜索的标签（组合）。ceui.pixiv.ui.search.SearchPinController -->
+    <string name="search_pin_action">Bu aramayı sabitle</string>
+    <string name="search_unpin_action">Sabitlemeyi kaldır</string>
+    <string name="search_pinned_snack">«%1$s» sabitlendi</string>
+    <string name="search_unpinned_snack">«%1$s» sabitlemesi kaldırıldı</string>
+    <string name="search_pin_snack_view">Görüntüle</string>
+    <string name="search_pin_snack_undo">Geri al</string>
+    <plurals name="pinned_tag_combo_count">
+        <item quantity="one">%1$d etiketlik kombinasyon</item>
+        <item quantity="other">%1$d etiketlik kombinasyon</item>
+    </plurals>
 </resources>

@@ -3086,4 +3086,17 @@
     <string name="reader_tts_follow_hint">Выделяется диапазон, указанный речевым движком, или весь читаемый фрагмент, если диапазон недоступен. Автопереход перелистывает или прокручивает текущий роман. Двойное касание начинает абзац заново.</string>
     <string name="search_history_delete_confirm">Удалить «%1$s» из истории поиска?</string>
     <string name="search_tag_delete_confirm">Удалить тег «%1$s» из текущего поиска?</string>
+    <!-- 搜索结果页顶栏图钉：置顶当前搜索的标签（组合）。ceui.pixiv.ui.search.SearchPinController -->
+    <string name="search_pin_action">Закрепить этот поиск</string>
+    <string name="search_unpin_action">Открепить</string>
+    <string name="search_pinned_snack">«%1$s» закреплено</string>
+    <string name="search_unpinned_snack">«%1$s» откреплено</string>
+    <string name="search_pin_snack_view">Открыть</string>
+    <string name="search_pin_snack_undo">Отменить</string>
+    <plurals name="pinned_tag_combo_count">
+        <item quantity="one">Сочетание из %1$d тега</item>
+        <item quantity="few">Сочетание из %1$d тегов</item>
+        <item quantity="many">Сочетание из %1$d тегов</item>
+        <item quantity="other">Сочетание из %1$d тега</item>
+    </plurals>
 </resources>

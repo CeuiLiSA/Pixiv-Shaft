@@ -3342,4 +3342,15 @@
     <string name="reader_tts_follow_hint">高亮跟随语音引擎提供的范围；不支持范围回调时按朗读片段高亮。自动翻页仅跟随当前小说，纵向模式自动滚动。双击从所在段落开头重读。</string>
     <string name="search_history_delete_confirm">从搜索历史中删除「%1$s」？</string>
     <string name="search_tag_delete_confirm">从当前搜索中删除标签「%1$s」？</string>
+    <!-- 搜索结果页顶栏图钉：置顶当前搜索的标签（组合）。ceui.pixiv.ui.search.SearchPinController -->
+    <string name="search_pin_action">置顶此搜索</string>
+    <string name="search_unpin_action">取消置顶</string>
+    <string name="search_pinned_snack">已置顶「%1$s」</string>
+    <string name="search_unpinned_snack">已取消置顶「%1$s」</string>
+    <string name="search_pin_snack_view">查看</string>
+    <string name="search_pin_snack_undo">撤销</string>
+    <plurals name="pinned_tag_combo_count">
+        <item quantity="one">%1$d 个标签的组合</item>
+        <item quantity="other">%1$d 个标签的组合</item>
+    </plurals>
 </resources>

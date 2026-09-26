@@ -36,6 +36,8 @@ import ceui.lisa.adapters.SearchHintAdapter;
 import ceui.lisa.databinding.FragmentNewSearchBinding;
 import ceui.pixiv.ui.search.SearchIllustFeedFragment;
 import ceui.pixiv.ui.search.SearchNovelFeedFragment;
+import ceui.pixiv.ui.search.SearchPinController;
+import ceui.pixiv.ui.pinned.PinnedSearchTermsKt;
 import ceui.pixiv.ui.search.SearchRiskPolicy;
 import ceui.pixiv.ui.search.SearchUserFeedFragment;
 import ceui.lisa.interfaces.Callback;
@@ -61,6 +63,9 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     private int mPosition = 0;
     private long mExitTime;
     private final java.util.List<String> committedTags = new java.util.ArrayList<>();
+    /** 最近一次真正发起搜索的关键字；置顶时只有它与 chip 行一致，插画 tab 的结果才能当预览图。 */
+    private String lastSearchedKeyword;
+    private SearchPinController pinController;
     private SearchHintViewModel hintViewModel;
     // 动画的目标状态；淡出期间 View 仍是 VISIBLE，不能用它判断是否需要重新显示。
     private boolean mHintListShown;
@@ -105,6 +110,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         if (keyword == null) return;
         final String trimmed = keyword.trim();
         if (trimmed.isEmpty()) return;
+        lastSearchedKeyword = trimmed;
         // 写库甩到 IO 线程：insertSearchHistory 是主键读 + 单条插入，search_table 极小虽轻，
         // 政策判断也留在这里，首次进搜索页即使后台预热尚未完成也不阻塞主线程。
         // initModel / nowGo 都跑在主线程，统一挪开不碰主线程 Room（对齐本仓
@@ -233,9 +239,17 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             }
         });
         baseBind.toolbar.inflateMenu(R.menu.illust_filter);
+        // 顶栏图钉：置顶 chip 行里的整组标签（pixez#1364「收藏标签组合」）
+        pinController = new SearchPinController(this, baseBind.toolbar, baseBind.topParent,
+                () -> new java.util.ArrayList<>(committedTags),
+                this::pinPreviewIllusts);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.action_pin) {
+                    pinController.toggle();
+                    return true;
+                }
                 if (item.getItemId() == R.id.action_filter) {
                     Common.hideKeyboard(mActivity);
                     if (mPosition == 0 || mPosition == 1) {
@@ -478,6 +492,23 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     protected void onResume() {
         super.onResume();
         refreshExitConfirmCallback();
+        // 可能刚在「我置顶的内容」里取消了这组的置顶，回来要跟上
+        if (pinController != null) pinController.refresh();
+    }
+
+    /**
+     * 置顶卡片的预览图：插画 tab 当前结果的头 3 张。chip 行改过但还没重新搜索时，屏上的结果
+     * 属于上一组关键字，不能拿来给这一组当封面，宁可不带图。
+     */
+    private java.util.List<ceui.pixiv.api.model.Illust> pinPreviewIllusts() {
+        // 按 FragmentPagerAdapter 的 tag 取：重建后 allPages 是空的，但子页已由 FragmentManager 恢复
+        Fragment illustTab = getSupportFragmentManager()
+                .findFragmentByTag("android:switcher:" + baseBind.viewPager.getId() + ":0");
+        if (!(illustTab instanceof SearchIllustFeedFragment)
+                || !PinnedSearchTermsKt.splitSearchTerms(lastSearchedKeyword).equals(committedTags)) {
+            return java.util.Collections.emptyList();
+        }
+        return ((SearchIllustFeedFragment) illustTab).previewIllusts(3);
     }
 
     /**
@@ -495,6 +526,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
     private void refreshChipsUI() {
         baseBind.searchTagsFlow.setTagNames(new java.util.ArrayList<>(committedTags));
+        if (pinController != null) pinController.refresh();
     }
 
     private String joinedChips() {
