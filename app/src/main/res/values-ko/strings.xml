@@ -808,6 +808,7 @@
     <string name="string_ai_ocr_recognizing">인식 %1$d / %2$d</string>
     <string name="string_ai_ocr_done">인식 완료</string>
     <string name="string_ai_ocr_failed">인식 실패</string>
+    <string name="string_ai_image_not_ready">원본 이미지가 아직 준비되지 않았습니다. 기다려 주세요</string>
     <string name="string_ai_ocr_empty">텍스트가 인식되지 않았습니다</string>
     <string name="ocr_translating">번역 중…</string>
     <string name="ocr_writeback_running">합성 중…</string>

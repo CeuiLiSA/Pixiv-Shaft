@@ -6,7 +6,8 @@ import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
-import ceui.pixiv.imageloader.ImageLoaderV3
+import ceui.pixiv.imageloader.PageImageSourceResolver
+import ceui.pixiv.imageloader.awaitFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -230,7 +231,7 @@ class MangaBatchTranslateCenter(app: Context, private val models: MangaTranslate
             post(MangaPageTranslatePipeline.Stage(app.getString(R.string.string_ai_manga_batch_loading_image)))
             val url = pageUrls[pageIndex]
             val file = if (url == null) null else try {
-                ImageLoaderV3.obtain(url).awaitFile()
+                PageImageSourceResolver.resolve(app, illust, pageIndex, url).awaitFile(app)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

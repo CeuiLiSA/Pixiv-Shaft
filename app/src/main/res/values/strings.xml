@@ -838,6 +838,7 @@
     <string name="string_ai_ocr_recognizing">识别 %1$d / %2$d</string>
     <string name="string_ai_ocr_done">识别完成</string>
     <string name="string_ai_ocr_failed">识别失败</string>
+    <string name="string_ai_image_not_ready">原图未就绪，请等待</string>
     <string name="string_ai_ocr_empty">未识别到文字</string>
     <string name="ocr_translating">翻译中…</string>
     <string name="ocr_writeback_running">回填中…</string>

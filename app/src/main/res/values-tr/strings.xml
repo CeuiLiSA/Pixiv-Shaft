@@ -808,6 +808,7 @@
     <string name="string_ai_ocr_recognizing">Tanıma %1$d / %2$d</string>
     <string name="string_ai_ocr_done">Tanıma tamamlandı</string>
     <string name="string_ai_ocr_failed">Tanıma başarısız</string>
+    <string name="string_ai_image_not_ready">Orijinal görsel henüz hazır değil, lütfen bekleyin</string>
     <string name="string_ai_ocr_empty">Metin bulunamadı</string>
     <string name="ocr_translating">Çevriliyor…</string>
     <string name="ocr_writeback_running">Basılıyor…</string>
