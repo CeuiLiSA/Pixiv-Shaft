@@ -14,6 +14,7 @@ import okhttp3.Call
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody
+import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.util.concurrent.Executor
@@ -34,8 +35,8 @@ import java.util.concurrent.Executors
  *    被永久遗弃，GC 后 OkHttp 报 "A connection to https://i.pximg.net/ was leaked"。
  *
  * 修复：[LeakSafeOkHttpStreamFetcher.cancel] 时把已到达的 stream/body 一并关掉。
- * 取消后的加载结果本来就会被整体丢弃；cancel 撞上引擎写盘缓存正在读同一条流时，
- * 关流的 drain 会抛 "Unbalanced enter/exit"，由 [LeakSafeOkHttpStreamFetcher.closeLocked] 就地吞掉。
+ * 取消后的加载结果本来就会被整体丢弃；cancel 可能撞上引擎正在另一线程读同一条流写盘缓存，
+ * 所以交出去的流经 [ReadCloseExclusiveInputStream] 让读与关互斥，见其注释。
  */
 class LeakSafeOkHttpUrlLoader(private val client: Call.Factory) : ModelLoader<GlideUrl, InputStream> {
 
@@ -120,7 +121,9 @@ class LeakSafeOkHttpStreamFetcher(
             }
             localStream = if (response.isSuccessful) {
                 val body = checkNotNull(responseBody)
-                ContentLengthInputStream.obtain(body.byteStream(), body.contentLength()).also {
+                ReadCloseExclusiveInputStream(
+                    ContentLengthInputStream.obtain(body.byteStream(), body.contentLength())
+                ).also {
                     stream = it
                 }
             } else {
@@ -154,9 +157,9 @@ class LeakSafeOkHttpStreamFetcher(
         // 暂存在 SourceGenerator.dataToCache 里的流再无人问津 —— 关闭它归还连接。
         // 但关 body 会 drain 剩余字节（HTTP/1）或发 RST_STREAM（HTTP/2）以复用/释放连接，都是 socket I/O：
         // - cancel() 由 Glide.clear() 在主线程调用，主线程直接关会 NetworkOnMainThreadException，故挪后台；
-        // - 引擎可能同时在另一线程读同一条 okio source 写盘缓存，与关流撞车会从 AsyncTimeout 抛
-        //   IllegalStateException("Unbalanced enter/exit")。closeLocked 内部已按 close 逐个吞，这里再兜
-        //   一层 Throwable：cleanupExecutor 是裸线程池，任务里逃逸的异常会走 uncaughtHandler 崩掉进程。
+        // - 引擎可能同时在另一线程读这条流，关流会等它当前这次 read 退出（上面的 call.cancel() 已关
+        //   socket，阻塞的 read 会立即抛错退出），见 [ReadCloseExclusiveInputStream]；
+        // - 再兜一层 Throwable：cleanupExecutor 是裸线程池，任务里逃逸的异常会走 uncaughtHandler 崩掉进程。
         cleanupExecutor.execute {
             try {
                 synchronized(lock) {
@@ -169,12 +172,11 @@ class LeakSafeOkHttpStreamFetcher(
     }
 
     private fun closeLocked() {
-        // stream 与 responseBody 共用同一条 okhttp source。cancel() 关流与引擎写盘缓存可能并发：
-        // 引擎在另一线程读 stream 写缓存的同时，这里关流触发的 drain（Util.discard → skipAll →
-        // read）会 enter() 那条正被读着的 AsyncTimeout，抛 IllegalStateException("Unbalanced
-        // enter/exit")。这次加载已取消、结果整体丢弃，连接也由 cancel() 里的 call.cancel() 负责拆掉，
-        // 关流纯属 best-effort —— 两处 close 都就地吞掉，否则异常会从 cleanupExecutor 线程逃逸崩掉进程
-        // （历史上在主线程同步关流时，它更会顺着 Glide 的 onStop 生命周期观察者崩掉 Activity.onStop）。
+        // stream 与 responseBody 共用同一条 okhttp source，必须先关 stream：它与引擎的 read 互斥，
+        // 关完 source 已 closed，responseBody.close() 随之是 no-op，不会绕过互斥再碰一次 buffer。
+        // 这次加载已取消、结果整体丢弃，连接也由 cancel() 里的 call.cancel() 负责拆掉，关流纯属
+        // best-effort（drain 撞上已关的 socket 会抛）—— 两处 close 都就地吞掉，否则异常会从
+        // cleanupExecutor 线程逃逸崩掉进程。
         try {
             stream?.close()
         } catch (_: Exception) {
@@ -190,6 +192,54 @@ class LeakSafeOkHttpStreamFetcher(
     }
 
     override fun getDataClass(): Class<InputStream> = InputStream::class.java
+
+    /**
+     * 让引擎的读与 [cancel] 的后台关流互斥。okio 的 Buffer / Segment 链表不是线程安全的：
+     * 关流的 drain（Util.discard → skipAll → read）与引擎写盘缓存的 read 同时从同一个 Buffer
+     * 取段、回收段，会把同一个 Segment 两次还进进程全局的 SegmentPool。之后任何一条无关连接
+     * 拿到这个段都可能 size 记账错乱，抛 AIOOBE(okio checkOffsetAndCount / AsyncTimeout.write)
+     * —— 线上甚至崩在尚未入池的新连接建代理隧道（RealConnection.createTunnel）时。
+     * 关闭之后的读抛 IOException（引擎按加载失败处理），不再碰已关闭的 okio source。
+     */
+    internal class ReadCloseExclusiveInputStream(delegate: InputStream) : FilterInputStream(delegate) {
+
+        private var closed = false
+
+        @Synchronized
+        override fun read(): Int {
+            ensureOpen()
+            return super.read()
+        }
+
+        @Synchronized
+        override fun read(b: ByteArray, off: Int, len: Int): Int {
+            ensureOpen()
+            return super.read(b, off, len)
+        }
+
+        @Synchronized
+        override fun skip(n: Long): Long {
+            ensureOpen()
+            return super.skip(n)
+        }
+
+        @Synchronized
+        override fun available(): Int {
+            ensureOpen()
+            return super.available()
+        }
+
+        @Synchronized
+        override fun close() {
+            if (closed) return
+            closed = true
+            super.close()
+        }
+
+        private fun ensureOpen() {
+            if (closed) throw IOException("stream closed")
+        }
+    }
 
     override fun getDataSource(): DataSource = DataSource.REMOTE
 

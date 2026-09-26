@@ -198,6 +198,47 @@ class LeakSafeOkHttpStreamFetcherTest {
         }
     }
 
+    /**
+     * 回归 okio SegmentPool 被写坏（线上 AIOOBE：okio checkOffsetAndCount / AsyncTimeout.write，
+     * 连尚未入池的新连接 createTunnel 都会中招）：cancel() 的后台关流 drain 与引擎的 read 同时操作
+     * 同一个 okio Buffer，同一 Segment 被两次回收进全局池。交出去的流必须让读与关互斥 ——
+     * 这里用会探测重入的 delegate 直接断言关流不会与进行中的 read 交叠，且关后再读抛 IOException。
+     */
+    @Test
+    fun `交出去的流 - 关流等进行中的 read 退出且关后读抛 IOException`() {
+        val inRead = CountDownLatch(1)
+        val releaseRead = CountDownLatch(1)
+        var overlapped = false
+        var reading = false
+        val delegate = object : InputStream() {
+            override fun read(): Int {
+                reading = true
+                inRead.countDown()
+                releaseRead.await(5, TimeUnit.SECONDS)
+                reading = false
+                return 'x'.code
+            }
+
+            override fun close() {
+                if (reading) overlapped = true
+            }
+        }
+        val stream = LeakSafeOkHttpStreamFetcher.ReadCloseExclusiveInputStream(delegate)
+
+        val reader = Thread { stream.read() }
+        reader.start()
+        assertTrue(inRead.await(5, TimeUnit.SECONDS))
+        val closer = Thread { stream.close() }
+        closer.start()
+        Thread.sleep(50) // 给 closer 抢在 read 退出前闯进 delegate.close() 的机会
+        releaseRead.countDown()
+        reader.join(5_000)
+        closer.join(5_000)
+
+        assertTrue("关流不能与进行中的 read 交叠操作同一条 okio source", !overlapped)
+        assertTrue(runCatching { stream.read() }.exceptionOrNull() is java.io.IOException)
+    }
+
     @Test
     fun `响应到达后正常 cleanup - 幂等且不影响 cancel 再次关闭`() {
         server.enqueue(MockResponse().setBody("abc"))
