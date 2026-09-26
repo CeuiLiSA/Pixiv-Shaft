@@ -808,6 +808,7 @@
     <string name="string_ai_ocr_recognizing">Распознаём %1$d / %2$d</string>
     <string name="string_ai_ocr_done">Распознавание завершено</string>
     <string name="string_ai_ocr_failed">Не удалось распознать текст</string>
+    <string name="string_ai_image_not_ready">Оригинал ещё не готов, подождите</string>
     <string name="string_ai_ocr_empty">Текст не найден</string>
     <string name="ocr_translating">Перевод…</string>
     <string name="ocr_writeback_running">Отрисовка…</string>

@@ -18,18 +18,18 @@ import ceui.lisa.R
 import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.activities.ImageTranslationViewModel
 import ceui.lisa.activities.Shaft
-import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentImageDetailBinding
-import ceui.lisa.download.FileCreator
 import ceui.lisa.download.IllustDownload
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.Settings
 import ceui.lisa.view.DragDismissLayout
 import ceui.pixiv.api.model.Illust
-import ceui.pixiv.download.RecordedPageProbe
+import ceui.pixiv.download.DownloadedPageIndex
 import ceui.pixiv.imageloader.Disposable
 import ceui.pixiv.imageloader.ImageLoadState
 import ceui.pixiv.imageloader.ImageLoaderV3
+import ceui.pixiv.imageloader.PageImageSourceResolver
+import ceui.pixiv.imageloader.awaitFile
 import ceui.pixiv.imageloader.observeState
 import ceui.pixiv.plaza.ui.showPlazaError
 import ceui.pixiv.services.appServices
@@ -471,27 +471,49 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             IllustDownload.getUrl(illust, index, Params.IMAGE_RESOLUTION_ORIGINAL)
                 ?: IllustDownload.getUrl(illust, index, Params.IMAGE_RESOLUTION_LARGE)
                 ?: return
-        // 只读已加载好的原图,图已显示、正常都是命中,不触发多余下载
-        val file = ImageLoaderV3.peekFile(imageUrl)
-        if (file == null) {
-            Toaster.showShort(R.string.string_ai_ocr_failed)
-            return
-        }
-        val started =
-            translationViewModel.startManualRegion(
-                file,
-                index,
-                l,
-                t,
-                r,
-                b,
-                MangaOcrModel.MANGA_OCR_BASE,
-            )
-        if (!started) {
-            Toaster.showShort(R.string.string_ai_translate_in_progress)
+        // 圈选松手那一刻不能把用户丢进静默等待：只认本地（已缓存 / 已下载 / 本地 URL），
+        // allowNetwork = false 保证一个网络动作都不发，未命中就立刻给结果。
+        viewLifecycleOwner.lifecycleScope.launch {
+            val ctx = context ?: return@launch
+            val file =
+                PageImageSourceResolver.resolve(ctx, illust, index, imageUrl, allowNetwork = false)
+                    .awaitFile(ctx)
+            if (file == null) {
+                Toaster.showShort(R.string.string_ai_image_not_ready)
+                return@launch
+            }
+            val started =
+                translationViewModel.startManualRegion(
+                    file,
+                    index,
+                    l,
+                    t,
+                    r,
+                    b,
+                    MangaOcrModel.MANGA_OCR_BASE,
+                )
+            if (!started) {
+                Toaster.showShort(R.string.string_ai_translate_in_progress)
+            }
         }
     }
 
+    /**
+     * 二级看图页的取图分流。**有意不走 [PageImageSourceResolver]** —— 这里的三段式与那套四规则等价，
+     * 而重写它要动 zoomimage 的 transform 状态、large→原图竞态（[originalShown] / [largeDisposable]）
+     * 与观察者生命周期，收益只是少两个守卫，不划算。逐条对应关系（改这里前请先核对还成立）：
+     *
+     * - 第 1 段 `content://` 特判 ＝ 规则 1
+     * - `isSnapshotMode` 守卫 ＝ 规则 1 的 `shaftsnap://`。快照把 url 改写成存档地址，渲染层由 Glide
+     *   本地读，所以快照模式**不会**发网络请求；守卫的真正作用是「别让下载记录顶掉存档」。
+     * - `peekFile(imageUrl) == null` 前置 ＝ 规则 2。原图已在任务表里就跳过查库走同步快路径，零 DB 开销。
+     * - 协程里的 `DownloadedPageIndex.page()` ＝ 规则 3
+     * - 兜底 `loadFromNetwork` ＝ 规则 4
+     *
+     * 所以这四种情况都不会出现「本地已有却单飞网络请求」。**前提**是上面的等价关系不被改坏 ——
+     * 一旦给 `isSnapshotMode` 加了别的语义、或 url 模式开始出现 Glide 认不出的本地路径形态，
+     * 就得回头把这段换成 `resolve()`。
+     */
     private fun loadImage() {
         baseBind.emptyFrame.visibility = View.GONE
         // 重新加载（重试 / onViewCreated 再进）时复位「large 占位 → 原图」竞态状态。
@@ -529,8 +551,8 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         }
 
         // 这一页原图若已下载到本地，直读本地文件秒展示，跳过 TaskPool 重新下原图。
-        // 与一级详情页 IllustAdapter.scanLocalDownloads 同源：按 FileCreator.customFileName
-        // （= 下载写库的 fileName）主键精确查 illust_download_table，命中即用 Sketch 直读。
+        // 判定统一走 DownloadedPageIndex —— 与一级详情页 B 的批量扫描是**同一份规则**，
+        // 不再各写一遍两段式。命中即用 Sketch 直读。
         // 修复用户反馈：多 P 未展开时点下载已下好原图，进二级详情大图却仍走进度条重新下原图。
         //
         // 仅当原图还没在查看器缓存里时才查库：正常浏览(原图已在 TaskPool 缓存)直接走原同步
@@ -548,7 +570,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             // （peekFile 命中，通常是「展示原图」开时 B 已下好）则不进本分支，直接秒显原图，无需占位。
             showLargePlaceholder(illust, imageUrl)
             viewLifecycleOwner.lifecycleScope.launch {
-                val localUri = withContext(Dispatchers.IO) { findDownloadedPageUri(illust, index) }
+                val localUri = DownloadedPageIndex.page(requireContext(), illust, index)
                 if (localUri != null) {
                     Timber.d("[ImageDetail] local download HIT index=$index uri=$localUri")
                     loadFromLocal(localUri, imageUrl, isUrlMode)
@@ -698,32 +720,6 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                     }
                 }
             }
-    }
-
-    /**
-     * 按页码查 illust_download_table 里这一页已下载文件的 Uri（content:// 或 file://）。
-     *
-     * 两条路，都走索引，大下载库下都是 O(log n)：
-     * 1. `(illustId, page)` 复合索引（v41）—— 跟文件叫什么名字无关，用户换过命名模板、 或记录是 `DownloadImporter`
-     *    从旧版命名的文件扫进来的（issue #953），照样命中。
-     * 2. 落空时退回 [FileCreator.customFileName] + 主键查询 —— v41 之前的存量行 page 还是 -1（回填没跑完 /
-     *    文件名解析不出页码），得靠这条兜。
-     *
-     * 返回 null 表示这页没下过 / 记录损坏，调用方回退网络。须在 IO 线程调用。
-     */
-    private fun findDownloadedPageUri(illust: Illust, page: Int): Uri? {
-        return try {
-            val context = Shaft.getContext()
-            RecordedPageProbe.findUsableUri(context, illust.id.toLong(), page)
-                ?: AppDatabase.getAppDatabase(context)
-                    .downloadDao()
-                    .getDownloadByFileName(FileCreator.customFileName(illust, page))
-                    ?.filePath
-                    ?.let { RecordedPageProbe.usableUri(context, it) }
-        } catch (e: Exception) {
-            Timber.w(e, "[ImageDetail] findDownloadedPageUri failed page=%d", page)
-            null
-        }
     }
 
     companion object {

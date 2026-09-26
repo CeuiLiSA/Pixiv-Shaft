@@ -40,7 +40,8 @@ import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.ExifKeywordWriter
 import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.download.config.DownloadItems
-import ceui.pixiv.imageloader.ImageLoaderV3
+import ceui.pixiv.imageloader.PageImageSourceResolver
+import ceui.pixiv.imageloader.awaitFile
 import ceui.pixiv.services.appServices
 import ceui.pixiv.snapshot.AutoSnapshotRepository
 import ceui.pixiv.snapshot.SnapshotManagerFragment
@@ -808,7 +809,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         withContext(Dispatchers.IO) {
             val file =
                 try {
-                    ImageLoaderV3.obtain(imageUrl).awaitFile()
+                    PageImageSourceResolver.resolve(this@ImageDetailActivity, illust, page, imageUrl)
+                        .awaitFile(this@ImageDetailActivity)
                 } catch (e: Exception) {
                     Timber.w(e, "[ImageDetail] save: await loaded file failed page=%d", page)
                     null
@@ -985,12 +987,14 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         progressRing.isIndeterminate = true
         progressText.visibility = View.GONE
 
-        // 复用大图页已加载的原图(与显示层同一共享任务),不重新下载。
-        val task = ImageLoaderV3.obtain(imageUrl)
+        // 复用大图页已加载的原图(与显示层同一共享任务),不重新下载；本地已下载这一页则直接用本地文件。
         lifecycleScope.launch {
             val file =
                 try {
-                    task.awaitFile()
+                    PageImageSourceResolver.resolve(this@ImageDetailActivity, illust, pageIndex, imageUrl)
+                        .awaitFile(this@ImageDetailActivity)
+                        // url 非空时 resolve 不会给 Unavailable；真出现就按加载失败走同一个兜底。
+                        ?: error("no page image source: $imageUrl")
                 } catch (e: Exception) {
                     overlayRoot
                         .animate()
@@ -1067,7 +1071,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 ?: return
 
         lifecycleScope.launch {
-            val file = awaitLoadedFile(imageUrl)
+            val file = awaitLoadedFile(illust, pageIndex, imageUrl)
             if (file == null) {
                 Common.showToast(R.string.string_ai_ocr_failed)
                 return@launch
@@ -1185,10 +1189,13 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
     }
 
-    /** 等图片下载/缓存就绪。复用大图页显示层的同一共享任务:已加载直接返回、否则等它下完,不重复下载。 */
-    private suspend fun awaitLoadedFile(imageUrl: String): File? =
+    /**
+     * 等这一页的图就绪。优先本地（已下载 / 已缓存 / 本地 URL），没有再复用大图页显示层的
+     * 同一共享任务:已加载直接返回、否则等它下完,不重复下载。
+     */
+    private suspend fun awaitLoadedFile(illust: Illust, page: Int, imageUrl: String): File? =
         try {
-            ImageLoaderV3.obtain(imageUrl).awaitFile()
+            PageImageSourceResolver.resolve(this, illust, page, imageUrl).awaitFile(this)
         } catch (e: CancellationException) {
             // 页面销毁导致协程取消:重抛,别把「取消」当成加载失败弹「识别失败」
             throw e
@@ -1208,13 +1215,19 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE)
                 ?: return
 
-        // 复用大图页已加载的原图(与显示层同一共享任务),不重新下载。
-        val loadTask = ImageLoaderV3.obtain(imageUrl)
+        // 复用大图页已加载的原图(与显示层同一共享任务),不重新下载；本地已下载这一页则直接用本地文件。
         lifecycleScope.launch {
             val file =
                 try {
-                    loadTask.awaitFile()
+                    PageImageSourceResolver.resolve(this@ImageDetailActivity, illust, pageIndex, imageUrl)
+                        .awaitFile(this@ImageDetailActivity)
+                        // url 非空时 resolve 不会给 Unavailable；真出现就按加载失败走同一个兜底。
+                        ?: error("no page image source: $imageUrl")
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
+                    // 以前这里静默 return，点了「超分」什么都不发生，用户看不出是失败了。
+                    Common.showToast(R.string.string_ai_upscale_failed)
                     return@launch
                 }
             val key = UpscaleTask.illustKey(illust.id * 100 + pageIndex)

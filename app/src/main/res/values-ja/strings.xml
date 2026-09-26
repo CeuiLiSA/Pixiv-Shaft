@@ -808,6 +808,7 @@
     <string name="string_ai_ocr_recognizing">認識 %1$d / %2$d</string>
     <string name="string_ai_ocr_done">認識完了</string>
     <string name="string_ai_ocr_failed">認識に失敗しました</string>
+    <string name="string_ai_image_not_ready">原画の準備ができていません。お待ちください</string>
     <string name="string_ai_ocr_empty">テキストが見つかりません</string>
     <string name="ocr_translating">翻訳中…</string>
     <string name="ocr_writeback_running">焼き込み中…</string>

@@ -25,8 +25,8 @@ import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.ShareIllust
 import ceui.pixiv.cache.ObjectPool
-import ceui.pixiv.imageloader.ImageLoaderV3
-import ceui.pixiv.imageloader.ImageLoadState
+import ceui.pixiv.imageloader.PageImageSourceResolver
+import ceui.pixiv.imageloader.awaitFile
 import ceui.pixiv.services.requireNetworkStateManager
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.ui.common.viewBinding
@@ -37,11 +37,12 @@ import com.github.panpf.zoomimage.zoom.ContentScaleCompat
 import com.hjq.toast.Toaster
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.flow.collectLatest
+import timber.log.Timber
 import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
@@ -178,6 +179,10 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
     private fun newAdapter(): ComicPagerAdapter = ComicPagerAdapter(
         lifecycleOwner = viewLifecycleOwner,
         urlResolver = { page -> viewModel.urlForPage(page) },
+        pageSourceResolver = { page, url ->
+            val illust = (viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded)?.illust
+            PageImageSourceResolver.resolve(requireContext(), illust, page.index, url)
+        },
         contentScaleProvider = {
             when (ComicReaderSettings.fitMode) {
                 ComicReaderSettings.FitMode.FitWidth -> ContentScaleCompat.Companion.FillWidth
@@ -497,19 +502,30 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         val index = viewModel.currentPage.value ?: 0
         val page = state.pages.getOrNull(index) ?: return
         orientationJob = viewLifecycleOwner.lifecycleScope.launch {
-            // 快速翻页时只处理停留的这一页；复用图片加载任务，不额外下载或重试。
+            // 快速翻页时只处理停留的这一页；走统一的来源判定：本地已下载 / 已缓存就直接读，
+            // 不额外下载（需要网络时才等共享任务下完）。
             delay(400)
-            ImageLoaderV3.obtain(viewModel.urlForPage(page)).state.collectLatest { imageState ->
-                if (imageState !is ImageLoadState.Success) return@collectLatest
-                val bounds = withContext(Dispatchers.IO) {
-                    BitmapFactory.Options().apply {
-                        inJustDecodeBounds = true
-                        BitmapFactory.decodeFile(imageState.file.absolutePath, this)
-                    }
+            val illust = (viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded)?.illust
+                ?: return@launch
+            val file =
+                try {
+                    PageImageSourceResolver.resolve(
+                        requireContext(), illust, page.index, viewModel.urlForPage(page),
+                    ).awaitFile(requireContext())
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    Timber.tag("ComicReaderV3").w(error, "orientation probe failed page=%d", page.index)
+                    null
+                } ?: return@launch
+            val bounds = withContext(Dispatchers.IO) {
+                BitmapFactory.Options().apply {
+                    inJustDecodeBounds = true
+                    BitmapFactory.decodeFile(file.absolutePath, this)
                 }
-                if (isResumed && viewModel.currentPage.value == index && ComicReaderSettings.autoRotateImage) {
-                    windowController.applyImageOrientation(bounds.outWidth, bounds.outHeight)
-                }
+            }
+            if (isResumed && viewModel.currentPage.value == index && ComicReaderSettings.autoRotateImage) {
+                windowController.applyImageOrientation(bounds.outWidth, bounds.outHeight)
             }
         }
     }

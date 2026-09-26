@@ -5,11 +5,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import ceui.lisa.activities.Shaft
 import ceui.lisa.download.IllustDownload
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Params
 import ceui.pixiv.api.Client
 import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.imageloader.PageImageSourceResolver
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -64,7 +66,7 @@ class ComicReaderV3ViewModel(val illustId: Long) : ViewModel() {
     val events: SharedFlow<UiEvent> = _events.asSharedFlow()
 
     private val statsTracker = ComicStatsTracker(illustId, ComicReaderGraph.statsRepository)
-    private val prefetcher = ComicPagePrefetcher()
+    private val prefetcher = ComicPagePrefetcher(viewModelScope)
     private val addBookmark = ComicReaderGraph.addBookmarkUseCase
     private val flushSession = ComicReaderGraph.flushSessionStatsUseCase
     private val jumpSeries = ComicReaderGraph.jumpSeriesUseCase
@@ -107,7 +109,7 @@ class ComicReaderV3ViewModel(val illustId: Long) : ViewModel() {
         val resume = ComicReaderProgressStore.lastPage(illustId).coerceIn(0, (pages.size - 1).coerceAtLeast(0))
         _currentPage.postValue(resume)
         prefetcher.reset()
-        prefetcher.prefetchAround(pages, resume)
+        prefetcher.prefetchAround(pages, resume, ::resolvePage)
     }
 
     // ---- Intent API（Fragment 只调这些方法） -------------------------------
@@ -119,7 +121,7 @@ class ComicReaderV3ViewModel(val illustId: Long) : ViewModel() {
         val total = (_loadState.value as? LoadState.Loaded)?.pages?.size ?: return
         ComicReaderProgressStore.savePage(illustId, index, total)
         if (previous != index) statsTracker.recordFlip()
-        (_loadState.value as? LoadState.Loaded)?.pages?.let { prefetcher.prefetchAround(it, index) }
+        (_loadState.value as? LoadState.Loaded)?.pages?.let { prefetcher.prefetchAround(it, index, ::resolvePage) }
     }
 
     /** 用户主动 step（左/右点击区 / 音量键）。返回是否成功翻页（用于让 UI 决定边界反馈）。 */
@@ -141,11 +143,20 @@ class ComicReaderV3ViewModel(val illustId: Long) : ViewModel() {
         statsTracker.flush(_currentPage.value ?: 0, total)
     }
 
+    /**
+     * 预取一页：交给统一的来源判定。本地已下载 / 本地 URL / 已缓存时它什么都不做（不需要下），
+     * 需要网络时它内部已经 `obtain` 过、下载就排上队了 —— 这正是预取要的效果。
+     */
+    private suspend fun resolvePage(page: ComicPage, url: String) {
+        val illust = (_loadState.value as? LoadState.Loaded)?.illust ?: return
+        PageImageSourceResolver.resolve(Shaft.getContext(), illust, page.index, url)
+    }
+
     /** 设置 Image 类变更时（fitMode / loadOriginal）触发预取重算。 */
     fun onImageSettingsChanged() {
         val pages = (_loadState.value as? LoadState.Loaded)?.pages ?: return
         prefetcher.reset()
-        prefetcher.prefetchAround(pages, _currentPage.value ?: 0)
+        prefetcher.prefetchAround(pages, _currentPage.value ?: 0, ::resolvePage)
     }
 
     /** 加书签 intent：成功 → events 推送 Toast；失败 → 静默或 toast。 */

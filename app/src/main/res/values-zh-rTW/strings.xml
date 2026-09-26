@@ -810,6 +810,7 @@
     <string name="string_ai_ocr_recognizing">辨識 %1$d / %2$d</string>
     <string name="string_ai_ocr_done">辨識完成</string>
     <string name="string_ai_ocr_failed">辨識失敗</string>
+    <string name="string_ai_image_not_ready">原圖未就緒，請稍候</string>
     <string name="string_ai_ocr_empty">未辨識到文字</string>
     <string name="ocr_translating">翻譯中…</string>
     <string name="ocr_writeback_running">回填中…</string>

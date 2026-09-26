@@ -1,26 +1,28 @@
 package ceui.pixiv.ui.slideshow
 
+import ceui.pixiv.api.model.Illust
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
 class SlideshowStoreTest {
 
+    private fun slide(url: String) =
+        SlideshowStore.Slide(url = url, title = "title", illust = Illust(id = 42L), page = 0)
+
     @Test
     fun `put snapshots mutable input lists`() {
-        val urls = mutableListOf("first")
-        val titles = mutableListOf("title")
+        val slides = mutableListOf(slide("first"))
         val id = SlideshowStore.put(
-            SlideshowStore.Session(urls, titles, startIndex = 0, random = false)
+            SlideshowStore.Session(slides, startIndex = 0, random = false)
         )
 
         try {
-            urls += "second"
-            titles.clear()
+            slides += slide("second")
 
             val stored = SlideshowStore.get(id)
-            assertEquals(listOf("first"), stored?.urls)
-            assertEquals(listOf("title"), stored?.titles)
+            assertEquals(listOf("first"), stored?.slides?.map { it.url })
+            assertEquals(listOf("title"), stored?.slides?.map { it.title })
         } finally {
             SlideshowStore.remove(id)
         }
@@ -31,8 +33,7 @@ class SlideshowStoreTest {
         val ids = List(9) { index ->
             SlideshowStore.put(
                 SlideshowStore.Session(
-                    urls = listOf("url-$index"),
-                    titles = emptyList(),
+                    slides = listOf(slide("url-$index")),
                     startIndex = 0,
                     random = false,
                 )

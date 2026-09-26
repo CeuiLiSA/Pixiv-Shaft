@@ -21,7 +21,9 @@ import androidx.lifecycle.Observer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -45,11 +47,7 @@ import timber.log.Timber;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.DownloadDao;
-import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
-import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.IllustDownload;
 import ceui.pixiv.api.model.Illust;
 import ceui.lisa.transformer.LargeBitmapScaleTransformer;
@@ -58,7 +56,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUrlChild;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import ceui.pixiv.download.RecordedPageProbe;
+import ceui.pixiv.download.DownloadedPageIndex;
 import ceui.pixiv.utils.SketchPreloader;
 import ceui.lisa.view.DynamicHeightImageView;
 import ceui.lisa.view.PanoramaDragListener;
@@ -321,8 +319,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     /**
      * 后台扫描该作品已下载的页 → 本地文件 Uri。命中后回主线程刷新，绑定时优先走本地。
      * 调两次：构造时(覆盖「打开前就下好了」)、展开时(覆盖「未展开时下载，再展开」)。
-     * 页码 → 文件名用 {@link FileCreator#customFileName}，与下载时写库的 fileName 同源，
-     * 所以是精确的逐页匹配，不依赖文件名字典序，分图缺页也不会错位。
+     *
+     * 两段式规则（v41 复合索引 + fileName 主键兜底）**不在这里**，收在
+     * {@link DownloadedPageIndex} 一份里；本方法只负责三件属于这个类的事：增量复用、回主线程
+     * 提交、以及生命周期守卫。
+     *
+     * 扫描不再中途响应 released —— 结果由 post 回主线程时按 released 丢弃。一趟扫描是毫秒级，
+     * 不值得为它单开一条取消通道。
      */
     public void scanLocalDownloads() {
         final Illust illust = allIllust;
@@ -340,55 +343,16 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         LOCAL_SCAN_EXECUTOR.execute(() -> {
             if (released) return;
             // 展开时会再扫一次，以发现“构造后新下载”的页。已经验过可读的页直接复用，
-            // 避免多 P 作品重复 openFileDescriptor。
-            final Map<Integer, Uri> found = new HashMap<>(localPageUris);
+            // 避免多 P 作品重复 openFileDescriptor —— 快照一份传进去，别把活视图带过线程边界。
+            final Set<Integer> alreadyKnown = new HashSet<>(localPageUris.keySet());
+            Map<Integer, Uri> scanned = Collections.emptyMap();
             try {
-                DownloadDao dao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao();
-
-                // 先按 (illustId, page) 查（v41 复合索引）。这条路跟文件叫什么名字无关，
-                // 所以用户换过命名模板、或记录是 DownloadImporter 从旧版命名的文件扫进来
-                // 的（issue #953），照样命中。
-                for (ceui.lisa.database.DownloadedPage e : dao.getDownloadedPages(illustId)) {
-                    if (released) return;
-                    if (e == null || e.filePath == null || e.filePath.isEmpty()) continue;
-                    int page = e.page;
-                    if (page < 0 || page >= pageCount || found.containsKey(page)) continue;
-                    Uri usable = RecordedPageProbe.usableUri(mContext, e.filePath);
-                    if (usable != null) {
-                        // 查询按下载时间倒序；同一页有重复记录时保留第一条仍可打开的，
-                        // 不让较新的孤儿行遮住仍完好的旧文件。
-                        found.put(page, usable);
-                    }
-                }
-
-                // 再用旧的 fileName 主键路补漏：v41 之前的存量行 page 还是 -1
-                // （DownloadPageBackfill 没跑完 / 文件名解析不出页码）。只补上面没查到的页。
-                final List<String> fileNames = new ArrayList<>(pageCount);
-                final Map<String, Integer> pageByFileName = new HashMap<>(pageCount);
-                for (int i = 0; i < pageCount; i++) {
-                    if (released) return;
-                    if (found.containsKey(i)) continue;
-                    String fileName = FileCreator.customFileName(illust, i);
-                    fileNames.add(fileName);
-                    pageByFileName.put(fileName, i);
-                }
-                if (!fileNames.isEmpty()) {
-                    // 单次 IN 查询取代 N 次 Room 调用。Pixiv 多 P 上限远低于 SQLite 变量上限。
-                    for (DownloadEntity e : dao.getDownloadsByFileNames(fileNames)) {
-                        if (released) return;
-                        if (e != null && e.getFilePath() != null && !e.getFilePath().isEmpty()) {
-                            Integer page = pageByFileName.get(e.getFileName());
-                            Uri usable = RecordedPageProbe.usableUri(mContext, e.getFilePath());
-                            if (page != null && usable != null) {
-                                found.put(page, usable);
-                            }
-                        }
-                    }
-                }
+                scanned = DownloadedPageIndex.pagesBlocking(mContext, illust, pageCount, alreadyKnown);
             } catch (Throwable t) {
                 Timber.w(t, "[IllustAdapter] scanLocalDownloads failed, id=%d", illustId);
             }
             if (released) return;
+            final Map<Integer, Uri> found = scanned;
             mainHandler.post(() -> {
                 if (released) return;
                 localScanRunning = false;
@@ -696,6 +660,24 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     }
 
     /**
+     * 详情页取图分流。**有意不走 PageImageSourceResolver** —— 这里的判定与那套四规则等价，而重写它要动
+     * 回收池、#912 观察者解绑、多 P 省流量策略与 boundLocalPageUris 那套「记录真正用于取图的来源」的
+     * 簿记，收益只是流程形状统一，不划算。逐条对应关系（改这里前请先核对还成立）：
+     *
+     * <ul>
+     *   <li>{@code localPageUris} 命中 ＝ 规则 3（批量形状：scanLocalDownloads 一次 IN 查询覆盖全作品）</li>
+     *   <li>{@code loadFromNetwork} 里 {@code peekFile(originalUrl)} 的 bonus 覆盖 ＝ 规则 2</li>
+     *   <li>快照模式由宿主 {@code putLocalPageUri} 预置的本地页 ＝ 规则 1</li>
+     *   <li>其余 {@code obtain} ＝ 规则 4</li>
+     * </ul>
+     *
+     * <p>⚠️ <b>已知窗口</b>：{@code scanLocalDownloads()} 是异步的（构造时提交到 LOCAL_SCAN_EXECUTOR）。
+     * 若首个 bind 早于扫描返回，已下载的页会先走一次 {@code loadFromNetwork}；扫描回来后的
+     * {@code notifyDataSetChanged} 重绑再用本地文件把它盖掉。也就是说「本地已有」的页在最开始的
+     * 一两个 bind 上<b>可能</b>白发一次网络请求。这是「批量扫描 + 同步渲染」这个形状自带的，
+     * <b>不是漏抄规则</b> —— 换成逐页 await 的来源判定（同样是异步）也修不掉；要修得让首屏 bind
+     * 先等扫描结果。
+     *
      * @param holder
      * @param position
      * @param changeSize 是否自动计算宽高

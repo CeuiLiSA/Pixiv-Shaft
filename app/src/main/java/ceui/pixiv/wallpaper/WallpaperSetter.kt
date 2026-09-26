@@ -10,7 +10,8 @@ import ceui.lisa.download.IllustDownload
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.pixiv.api.model.Illust
-import ceui.pixiv.imageloader.ImageLoaderV3
+import ceui.pixiv.imageloader.PageImageSourceResolver
+import ceui.pixiv.imageloader.awaitFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -26,7 +27,8 @@ import java.io.File
  * 退回 [WallpaperManager.setStream] 直接同时铺到主屏与锁屏(`allowBackup=true`,
  * 系统按屏幕比例居中裁切)。
  *
- * 图片文件复用 [ImageLoaderV3] 的共享加载任务:大图页已加载就直接取,不重复下载。
+ * 图片文件优先取本地（已下载 / 已缓存），没有再复用共享加载任务:大图页已加载就直接取,
+ * 不重复下载。来源判定统一走 [PageImageSourceResolver]。
  */
 object WallpaperSetter {
 
@@ -42,7 +44,17 @@ object WallpaperSetter {
             Common.showToast(R.string.string_set_wallpaper_failed)
             return
         }
-        val file = awaitLoadedFile(imageUrl)
+        val file =
+            try {
+                PageImageSourceResolver.resolve(activity, illust, pageIndex, imageUrl)
+                    .awaitFile(activity)
+            } catch (e: CancellationException) {
+                // 页面销毁导致协程取消:重抛,别把「取消」当成加载失败弹 toast
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "[Wallpaper] load image failed url=%s", imageUrl)
+                null
+            }
         if (file == null) {
             Common.showToast(R.string.string_set_wallpaper_failed)
             return
@@ -56,17 +68,6 @@ object WallpaperSetter {
         }
         applyUri(activity, uri)
     }
-
-    private suspend fun awaitLoadedFile(imageUrl: String): File? =
-        try {
-            ImageLoaderV3.obtain(imageUrl).awaitFile()
-        } catch (e: CancellationException) {
-            // 页面销毁导致协程取消:重抛,别把「取消」当成加载失败弹 toast
-            throw e
-        } catch (e: Exception) {
-            Timber.w(e, "[Wallpaper] load image failed url=%s", imageUrl)
-            null
-        }
 
     private fun copyToShareCache(activity: Activity, source: File, imageUrl: String): Uri {
         val dir = File(activity.cacheDir, CACHE_DIR).apply {

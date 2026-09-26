@@ -13,7 +13,8 @@ import ceui.lisa.download.IllustDownload
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
-import ceui.pixiv.imageloader.ImageLoaderV3
+import ceui.pixiv.imageloader.PageImageSourceResolver
+import ceui.pixiv.imageloader.awaitFile
 import ceui.lisa.view.SeamlessCircularProgressIndicator
 import kotlinx.coroutines.launch
 import ceui.pixiv.ui.navigation.TemplateRoute
@@ -51,11 +52,13 @@ class IllustAiHelper(
         progressRing.isIndeterminate = true
         progressText.visibility = View.GONE
 
-        // 复用详情页(IllustAdapter)已加载的原图,与显示层同一共享任务,不重新下载。
-        val task = ImageLoaderV3.obtain(imageUrl)
+        // 复用详情页(IllustAdapter)已加载的原图,与显示层同一共享任务,不重新下载；
+        // 本地已下载这一页时直接用本地文件，不再走网络。
         lifecycleOwner.lifecycleScope.launch {
             val file = try {
-                task.awaitFile()
+                PageImageSourceResolver.resolve(context, illust, 0, imageUrl).awaitFile(context)
+                    // url 非空时 resolve 不会给 Unavailable；真出现就按加载失败走同一个兜底。
+                    ?: error("no page image source: $imageUrl")
             } catch (e: Exception) {
                 overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
                     overlayRoot.visibility = View.GONE
@@ -92,10 +95,18 @@ class IllustAiHelper(
         val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
             ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
 
-        // 复用详情页(IllustAdapter)已加载的原图,与显示层同一共享任务,不重新下载。
-        val loadTask = ImageLoaderV3.obtain(imageUrl)
+        // 复用详情页(IllustAdapter)已加载的原图,与显示层同一共享任务,不重新下载；
+        // 本地已下载这一页时直接用本地文件，不再走网络。
         lifecycleOwner.lifecycleScope.launch {
-            val file = try { loadTask.awaitFile() } catch (e: Exception) { return@launch }
+            val file = try {
+                PageImageSourceResolver.resolve(context, illust, 0, imageUrl).awaitFile(context)
+                    // url 非空时 resolve 不会给 Unavailable；真出现就按加载失败走同一个兜底。
+                    ?: error("no page image source: $imageUrl")
+            } catch (e: Exception) {
+                // 以前这里静默 return，点了「超分」什么都不发生，用户看不出是失败了。
+                Common.showToast(R.string.string_ai_upscale_failed)
+                return@launch
+            }
             val key = UpscaleTask.illustKey(illust.id)
             val task = UpscaleTaskPool.startTask(key, context, file, file.absolutePath, model)
             observeUpscaleTask(task)

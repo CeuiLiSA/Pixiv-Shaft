@@ -20,10 +20,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.pixiv.imageloader.Disposable
 import ceui.pixiv.imageloader.ImageLoadState
-import ceui.pixiv.imageloader.ImageLoaderV3
+import ceui.pixiv.imageloader.PageImageSource
+import ceui.pixiv.imageloader.PageImageSourceResolver
+import ceui.pixiv.imageloader.awaitFile
 import ceui.pixiv.imageloader.observeState
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
@@ -31,6 +34,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
 import kotlin.random.Random
@@ -101,14 +105,14 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
         sessionId = arguments?.getString(SlideshowActivity.EXTRA_SESSION_ID)
             ?: requireActivity().intent?.getStringExtra(SlideshowActivity.EXTRA_SESSION_ID)
         val s = sessionId?.let { SlideshowStore.get(it) }
-        if (s == null || s.urls.isEmpty()) {
+        if (s == null || s.slides.isEmpty()) {
             Timber.w("[Slideshow] missing session, finishing")
             requireActivity().finish()
             return
         }
         session = s
 
-        sequence = buildSequence(s.urls.size, s.startIndex, s.random)
+        sequence = buildSequence(s.slides.size, s.startIndex, s.random)
         positionInSequence = 0
         updateIndicator()
 
@@ -173,35 +177,50 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
     private fun showCurrentImage(initial: Boolean) {
         val s = session ?: return
         val idx = sequence.getOrNull(positionInSequence) ?: return
-        val url = s.urls.getOrNull(idx) ?: return
+        val slide = s.slides.getOrNull(idx) ?: return
 
         loadEpoch += 1
         val myEpoch = loadEpoch
 
         // Always make sure download is queued.
-        ensurePreload(url)
-        val task = ImageLoaderV3.obtain(url, s.titles.getOrNull(idx).orEmpty())
-        // 上一次失败的任务在(重新)展示时重来一次，对齐旧 TaskPool「取到 errored 即重下」，避免卡在黑屏。
-        if (task.state.value is ImageLoadState.Error) task.retry()
-        val cached = task.currentFile
-        if (cached != null && cached.exists()) {
-            if (initial) displayFirstImage(cached) else performTransition(cached)
-            return
-        }
-        // Need to wait. Show the loading dim only on initial / manual jumps so auto-advance
-        // stays seamless (the previous image keeps playing).
-        loadingOverlay.isVisible = true
-        // 摘掉上一张还在等的观察，避免长时间放映累积 collector。
-        pendingLoad?.dispose()
-        pendingLoad = task.observeState(viewLifecycleOwner) { state ->
-            if (myEpoch != loadEpoch) return@observeState
-            val file = (state as? ImageLoadState.Success)?.file ?: return@observeState
-            if (!file.exists()) return@observeState
-            if (!isAdded || view == null) return@observeState
-            // One-shot: bump the epoch so any duplicate emit (shouldn't happen but be safe) is
-            // ignored.
-            loadEpoch += 1
-            if (initial) displayFirstImage(file) else performTransition(file)
+        ensurePreload(slide)
+        // 判定统一走 PageImageSourceResolver：本地已下载 / 本地 URL / 已缓存 → 直读，不再重新下载。
+        // 判定是挂起的（要查下载库），回来时可能已经翻页或收场 —— 全靠 loadEpoch 兜住。
+        viewLifecycleOwner.lifecycleScope.launch {
+            val ctx = context ?: return@launch
+            val source = PageImageSourceResolver.resolve(ctx, slide.illust, slide.page, slide.url)
+            if (myEpoch != loadEpoch) return@launch
+            if (source is PageImageSource.Local) {
+                // 有真实文件就零拷贝；content:// 这种只有可读流的才落一份到 cache。
+                val file = source.awaitFile(ctx) ?: return@launch
+                if (myEpoch != loadEpoch) return@launch
+                if (!file.exists()) return@launch
+                if (initial) displayFirstImage(file) else performTransition(file)
+                return@launch
+            }
+            val task = (source as? PageImageSource.Remote)?.task ?: return@launch
+            // 上一次失败的任务在(重新)展示时重来一次，对齐旧 TaskPool「取到 errored 即重下」，避免卡在黑屏。
+            if (task.state.value is ImageLoadState.Error) task.retry()
+            val cached = task.currentFile
+            if (cached != null && cached.exists()) {
+                if (initial) displayFirstImage(cached) else performTransition(cached)
+                return@launch
+            }
+            // Need to wait. Show the loading dim only on initial / manual jumps so auto-advance
+            // stays seamless (the previous image keeps playing).
+            loadingOverlay.isVisible = true
+            // 摘掉上一张还在等的观察，避免长时间放映累积 collector。
+            pendingLoad?.dispose()
+            pendingLoad = task.observeState(viewLifecycleOwner) { state ->
+                if (myEpoch != loadEpoch) return@observeState
+                val file = (state as? ImageLoadState.Success)?.file ?: return@observeState
+                if (!file.exists()) return@observeState
+                if (!isAdded || view == null) return@observeState
+                // One-shot: bump the epoch so any duplicate emit (shouldn't happen but be safe) is
+                // ignored.
+                loadEpoch += 1
+                if (initial) displayFirstImage(file) else performTransition(file)
+            }
         }
     }
 
@@ -244,7 +263,7 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
         val nextPos = positionInSequence + 1
         if (nextPos >= sequence.size) {
             if (s.random) {
-                sequence = buildSequence(s.urls.size, sequence[0], true)
+                sequence = buildSequence(s.slides.size, sequence[0], true)
             }
             positionInSequence = 0
         } else {
@@ -314,13 +333,20 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
             val pos = positionInSequence + i
             if (pos >= sequence.size) break
             val idx = sequence.getOrNull(pos) ?: break
-            val url = s.urls.getOrNull(idx) ?: break
-            ensurePreload(url)
+            val slide = s.slides.getOrNull(idx) ?: break
+            ensurePreload(slide)
         }
     }
 
-    private fun ensurePreload(url: String) {
-        ImageLoaderV3.obtain(url)
+    /**
+     * 预取一张：交给统一的来源判定。本地已下载 / 本地 URL / 已缓存时它什么都不做（不需要下），
+     * 需要网络时它内部已经 `obtain` 过、下载就排上队了 —— 这正是预取要的效果。
+     */
+    private fun ensurePreload(slide: SlideshowStore.Slide) {
+        val ctx = context ?: return
+        viewLifecycleOwner.lifecycleScope.launch {
+            PageImageSourceResolver.resolve(ctx, slide.illust, slide.page, slide.url)
+        }
     }
 
     /**
@@ -451,7 +477,7 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
     private fun updateIndicator() {
         val s = session ?: return
         val idx = sequence.getOrNull(positionInSequence) ?: return
-        val title = s.titles.getOrNull(idx)?.takeIf { it.isNotBlank() }
+        val title = s.slides.getOrNull(idx)?.title?.takeIf { it.isNotBlank() }
         indicatorText.text = if (title != null) {
             "${positionInSequence + 1} / ${sequence.size}  ·  $title"
         } else {
