@@ -816,13 +816,25 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     null
                 } ?: return@withContext false
 
+            // 这一页已下载时,本地来源可能正是这次要写的目标本身(同模板同路径)。替换策略下后端会先删 /
+            // 截断目标再写,边读边写就把用户的原图抹成 0 字节。私有目录之外的来源先落一份副本再写。
+            val staged =
+                if (file.isInsideAppPrivateDir()) null
+                else runCatching {
+                    File.createTempFile("save_src", null, cacheDir).also { file.copyTo(it, overwrite = true) }
+                }.getOrElse {
+                    Timber.w(it, "[ImageDetail] save: stage local source failed page=%d", page)
+                    return@withContext false
+                }
+            val source = staged ?: file
+
             runCatching {
                 // open() 返回 null = Skip 策略且文件已存在 → 视为已保存,无需重写。
                 val handle =
                     DownloadsRegistry.downloads.open(DownloadItems.illustPage(illust, page))
                         ?: return@runCatching true
                 try {
-                    handle.stream.use { out -> FileInputStream(file).use { it.copyTo(out) } }
+                    handle.stream.use { out -> FileInputStream(source).use { it.copyTo(out) } }
                     handle.onFinish()
                 } catch (t: Throwable) {
                     handle.onAbort()
@@ -861,7 +873,16 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     Timber.e(ex, "[ImageDetail] saveLoadedIllustPage failed page=%d", page)
                     false
                 }
+                .also { staged?.delete() }
         }
+
+    /** 查看器缓存 / 快照存档都在私有目录里,不可能是下载后端的写入目标,无需另拷一份。 */
+    private fun File.isInsideAppPrivateDir(): Boolean {
+        val path = canonicalPath
+        return listOfNotNull(cacheDir, filesDir, externalCacheDir).any {
+            path.startsWith(it.canonicalPath + File.separator)
+        }
+    }
 
     override fun initData() {
         // 返回键/返回手势与下拉收掉共用 dismissViewer 收场动画。targetSdk 35+ 后预测式返回

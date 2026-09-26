@@ -16,6 +16,7 @@ import ceui.lisa.utils.Params
 import ceui.pixiv.imageloader.PageImageSourceResolver
 import ceui.pixiv.imageloader.awaitFile
 import ceui.lisa.view.SeamlessCircularProgressIndicator
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import ceui.pixiv.ui.navigation.TemplateRoute
 
@@ -102,6 +103,9 @@ class IllustAiHelper(
                 PageImageSourceResolver.resolve(context, illust, 0, imageUrl).awaitFile(context)
                     // url 非空时 resolve 不会给 Unavailable；真出现就按加载失败走同一个兜底。
                     ?: error("no page image source: $imageUrl")
+            } catch (e: CancellationException) {
+                // 等图期间离开页面:重抛,别把「取消」当成加载失败弹 toast
+                throw e
             } catch (e: Exception) {
                 // 以前这里静默 return，点了「超分」什么都不发生，用户看不出是失败了。
                 Common.showToast(R.string.string_ai_upscale_failed)

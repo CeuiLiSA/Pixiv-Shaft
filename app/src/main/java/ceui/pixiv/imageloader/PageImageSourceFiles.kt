@@ -48,7 +48,15 @@ private suspend fun copyLocalUriToCache(context: Context, uri: Uri): File? =
             if (target.isFile && target.length() > 0) return@runCatching target
             pruneCacheDir(dir)
             val source = context.contentResolver.openInputStream(uri) ?: return@runCatching null
-            source.use { input -> target.outputStream().use { input.copyTo(it) } }
+            // 先写临时名、写完再改名：上面的命中判断只看「存在且非空」，拷到一半断流 / 进程被杀
+            // 留在正式名下的半截文件会被此后每一次 awaitFile 当成完好的原图交出去。
+            val partial = File(dir, target.name + ".part")
+            try {
+                source.use { input -> partial.outputStream().use { input.copyTo(it) } }
+                if (partial.length() <= 0 || !partial.renameTo(target)) return@runCatching null
+            } finally {
+                partial.delete()
+            }
             target.takeIf { it.isFile && it.length() > 0 }
         }.getOrElse { error ->
             Timber.tag(TAG).w(error, "本地 uri 落文件失败 uri=%s", uri)
