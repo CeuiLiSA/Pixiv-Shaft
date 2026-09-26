@@ -47,11 +47,13 @@ private suspend fun copyLocalUriToCache(context: Context, uri: Uri): File? =
             val target = File(dir, cacheFileName(uri))
             if (target.isFile && target.length() > 0) return@runCatching target
             pruneCacheDir(dir)
-            val source = context.contentResolver.openInputStream(uri) ?: return@runCatching null
             // 先写临时名、写完再改名：上面的命中判断只看「存在且非空」，拷到一半断流 / 进程被杀
             // 留在正式名下的半截文件会被此后每一次 awaitFile 当成完好的原图交出去。
-            val partial = File(dir, target.name + ".part")
+            // 临时名每次唯一：同一页可能被两个 AI 功能同时取，共用一个临时名会互相截断、互删。
+            // 进程被杀留下的临时文件照样计入 pruneCacheDir 的份数，会被清掉。
+            val partial = File.createTempFile(target.nameWithoutExtension, ".part", dir)
             try {
+                val source = context.contentResolver.openInputStream(uri) ?: return@runCatching null
                 source.use { input -> partial.outputStream().use { input.copyTo(it) } }
                 if (partial.length() <= 0 || !partial.renameTo(target)) return@runCatching null
             } finally {
