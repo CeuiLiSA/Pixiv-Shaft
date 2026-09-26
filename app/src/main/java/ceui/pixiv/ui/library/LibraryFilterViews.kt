@@ -134,7 +134,9 @@ internal class LibraryFilterViews(private val context: Context) {
             newFlow()
         }
         container.background = shape(context.dpF(24f), context.color(R.color.v3_surface_2))
-        container.setPadding(trackPad, trackPad, trackPad, trackPad)
+        // 上下不留轨道内边距：那 4dp 由每一项自己的透明沿承担（见 [segment]），
+        // 可见轨道仍是 4 + 40 + 4 = 48dp，热区却是整整 48dp。
+        container.setPadding(trackPad, 0, trackPad, 0)
         val options = labels.mapIndexed { index, text ->
             segment(text).also { option ->
                 option.setOnClickListener { onSelect(index) }
@@ -159,17 +161,23 @@ internal class LibraryFilterViews(private val context: Context) {
         }
     }
 
+    /**
+     * 连通组里的一项：热区 48dp（项目规范的最小值），可见的选中底色与涟漪只有 40dp ——
+     * 上下各 [SEGMENT_EDGE] 的透明沿同 [filterChip] 的做法。
+     */
     private fun segment(text: CharSequence): TextView = context.label(text, 14f, 500, idleText).apply {
         gravity = Gravity.CENTER
-        minHeight = context.dp(40)
+        minHeight = context.dp(48)
         maxLines = 2
-        setPadding(context.dp(14), context.dp(8), context.dp(14), context.dp(8))
         val radius = context.dpF(20f)
+        val edge = context.dp(SEGMENT_EDGE)
+        // 背景先设、内边距后设：InsetDrawable 会把 inset 报成 View 的 padding，顺序反了就被它覆盖。
         background = RippleDrawable(
             ColorStateList.valueOf(palette.alpha20),
-            selectedStates(shape(radius, selectedFill, palette.alpha30, context.hairlinePx())),
-            shape(radius, Color.WHITE),
+            InsetDrawable(selectedStates(shape(radius, selectedFill, palette.alpha30, context.hairlinePx())), 0, edge, 0, edge),
+            InsetDrawable(shape(radius, Color.WHITE), 0, edge, 0, edge),
         )
+        setPadding(context.dp(14), context.dp(8) + edge, context.dp(14), context.dp(8) + edge)
         setTextColor(stateColors(selectedText, mutedText))
         isClickable = true
         isFocusable = true
@@ -394,6 +402,9 @@ internal class LibraryFilterViews(private val context: Context) {
     private companion object {
         /** 等分整行的上限：再多每段就挤不下两个汉字 + 大字体了。 */
         const val EQUAL_SEGMENT_LIMIT = 4
+
+        /** 连通组每一项上下的透明沿（dp）：40dp 可见底色 + 2 × 4dp = 48dp 热区。 */
+        const val SEGMENT_EDGE = 4
         const val FADE_MS = 180
     }
 }
