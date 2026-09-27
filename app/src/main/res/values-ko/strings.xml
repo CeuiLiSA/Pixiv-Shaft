@@ -1780,6 +1780,7 @@
     <string name="dlmgr_active_empty_title">진행 중인 다운로드가 없습니다</string>
     <string name="dlmgr_active_empty_hint">큐 항목이 자동으로 여기로 이동하며\n페이지별 실시간 진행 상황을 표시합니다</string>
     <string name="dlmgr_active_action_resume_all">모두 재개</string>
+    <string name="download_paused_low_storage">저장 공간이 부족합니다(남은 공간 %1$s). 모든 다운로드를 일시 중지했습니다. 공간을 확보한 뒤 다운로드 관리에서 「모두 재개」를 눌러 주세요</string>
     <string name="dlmgr_active_action_pause_all">모두 일시 정지</string>
     <string name="dlmgr_active_action_clear">지우기</string>
     <string name="dlmgr_active_status_downloading_n">%1$d개 다운로드 중</string>

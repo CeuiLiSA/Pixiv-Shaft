@@ -51,6 +51,7 @@ import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.api.model.Illust;
 import ceui.pixiv.download.RecordedPageProbe;
 import ceui.pixiv.download.StageStore;
+import ceui.pixiv.download.StorageSpaceGuard;
 import ceui.pixiv.download.aria2.Aria2Dispatcher;
 import ceui.pixiv.imageloader.ImageLoaderV3;
 import ceui.pixiv.progress.ProgressTracker;
@@ -653,6 +654,14 @@ public class Manager {
             return;
         }
 
+        // 空间不够就整体暂停，不往快满的盘上开新文件（pixez#1361）；aria2 落在远端，不受影响，
+        // 所以放在它之后。这条保持 DOWNLOADING 且没有传输句柄，「全部继续」时由
+        // resurrectIfStranded 复位重派。
+        if (!StorageSpaceGuard.hasRoomForDownload(context)) {
+            StorageSpaceGuard.pauseDownloadsForLowStorage(context);
+            return;
+        }
+
         Common.showLog("Manager 下载单个 当前进度" + downloadItem.getNonius());
 
         // SAF factory 创建、文件查询、insert 全部在 IO 线程执行，
@@ -1036,6 +1045,12 @@ public class Manager {
             // （只删自己刚创建的那条；pre-existing 文件不动）。
             try { factory.abandonWrite(); } catch (Exception ignored) {}
             complete(downloadItem, false);
+            // 写到一半盘满了：剩下的任务照样会一条条失败，不如整体停下等用户清理（pixez#1361）。
+            // 不只认 ENOSPC 原文——有的 provider 把它包成别的 IOException，所以再按余量复查一次。
+            if (StorageSpaceGuard.isOutOfSpace(throwable)
+                    || !StorageSpaceGuard.hasRoomForDownload(context)) {
+                StorageSpaceGuard.pauseDownloadsForLowStorage(context);
+            }
             {
                 //通知 DOWNLOAD_ING 有一项下载失败
                 Intent intent = new Intent(Params.DOWNLOAD_ING);
@@ -1293,7 +1308,9 @@ public class Manager {
             }
             pumpBytes(inputStream, outputStream, downloadItem, passSize, totalSize, cachedFile != null, emitter);
             if (emitter.isDisposed()) return;
-            closeQuietly(outputStream); outputStream = null;
+            // 成功路径上的 close 不能吞：盘快满时缓冲里最后一段可能到 close 才真正落盘失败，
+            // 吞掉就会把截断的文件当成下载成功记进「已完成」（pixez#1361）。抛出去走 onError 清理。
+            outputStream.close(); outputStream = null;
             emitter.onNext(targetUri.toString());
             emitter.onComplete();
         } finally {
@@ -1384,6 +1401,9 @@ public class Manager {
                 mediaOut.write(copyBuf, 0, n);
             }
             mediaOut.flush();
+            // 同 runDirectTransfer：close 失败 = 目标文件没写全，必须让 commit 失败而不是悄悄吞掉。
+            mediaOut.close();
+            mediaOut = null;
         } finally {
             closeQuietly(mediaOut);
             closeQuietly(stageIn);

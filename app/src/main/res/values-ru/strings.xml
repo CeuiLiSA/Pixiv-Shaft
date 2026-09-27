@@ -1780,6 +1780,7 @@
     <string name="dlmgr_active_empty_title">Нет активных загрузок</string>
     <string name="dlmgr_active_empty_hint">Элементы из очереди появятся здесь автоматически\nПрогресс по страницам показывается в реальном времени</string>
     <string name="dlmgr_active_action_resume_all">Возобновить все</string>
+    <string name="download_paused_low_storage">Недостаточно места (осталось %1$s). Все загрузки приостановлены. Освободите место и нажмите «Возобновить все» в менеджере загрузок</string>
     <string name="dlmgr_active_action_pause_all">Поставить все на паузу</string>
     <string name="dlmgr_active_action_clear">Очистить</string>
     <string name="dlmgr_active_status_downloading_n">Скачивается: %1$d</string>

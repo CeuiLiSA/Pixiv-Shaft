@@ -1780,6 +1780,7 @@
     <string name="dlmgr_active_empty_title">進行中のダウンロードはありません</string>
     <string name="dlmgr_active_empty_hint">キューの項目は自動的にここへ移動し\nページ単位の進捗を表示します</string>
     <string name="dlmgr_active_action_resume_all">すべて再開</string>
+    <string name="download_paused_low_storage">ストレージの空き容量が不足しています（残り %1$s）。すべてのダウンロードを一時停止しました。空き容量を確保してから、ダウンロード管理で「すべて再開」をタップしてください</string>
     <string name="dlmgr_active_action_pause_all">すべて一時停止</string>
     <string name="dlmgr_active_action_clear">クリア</string>
     <string name="dlmgr_active_status_downloading_n">%1$d 件ダウンロード中</string>

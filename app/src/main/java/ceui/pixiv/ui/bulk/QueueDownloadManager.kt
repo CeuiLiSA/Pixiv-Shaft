@@ -17,6 +17,7 @@ import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.db.queue.WorkType
 import ceui.pixiv.download.StageStore
+import ceui.pixiv.download.StorageSpaceGuard
 import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.download.maintenance.MediaStoreOrphanCleaner
 import kotlinx.coroutines.CoroutineScope
@@ -659,6 +660,15 @@ class QueueDownloadManager(app: Context) {
             //
             // dispatchUgoira 同时维护 ugoiraInFlightRowIds，避免主循环把同一行重复
             // launch。row.id 必然唯一（PRIMARY KEY），用作幂等 key。
+            //
+            // 剩余空间（pixez#1361）：插画页进 Manager 时逐页查（aria2 转发的不查），动图不进
+            // Manager，只能在这里拦。此刻行还是 PENDING，直接返回即原样留在队列里。先同步
+            // pause() —— fillSlots 下一轮顶部就停手，不会趁主线程那次暂停还没落地把同一行再拉一遍。
+            if (!StorageSpaceGuard.hasRoomForDownload(appContext)) {
+                pause()
+                StorageSpaceGuard.pauseDownloadsForLowStorage(appContext)
+                return false
+            }
             dispatchUgoira(row, bean)
             return false
         }
