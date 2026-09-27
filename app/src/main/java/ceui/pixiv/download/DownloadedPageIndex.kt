@@ -26,6 +26,11 @@ import timber.log.Timber
  *
  * 两段都复用 [RecordedPageProbe] 验「文件确实还在」，孤儿记录不参与命中。
  *
+ * **动图（ugoira）一律不命中**：它在库里记的是 `(illustId, page = 0)` 的成品 `.gif` / `.mp4`
+ * （见 [UgoiraDownloadRecord]），不是任何一「页」的静态图。消费方拿 page 0 要的是首帧 jpg ——
+ * 交出 mp4 会让超分 / 抠图 / 设壁纸拿视频当图片解码。一级详情页的批量扫描原本就对动图早退，
+ * 规则收拢到这里时这条守卫必须跟着一起收进来。
+ *
  * ⚠️ 与 `Common.isIllustDownloaded` / `FileCreator.isExist` / `Downloads.existsAt` 是**两套不同
  * 语义**，不要合并：那套按**当前命名模板**算出的路径探文件系统、不查下载记录，服务的是
  * 「下载按钮状态 / 已下载探针」，输出 boolean 而非可渲染来源，也正是 issue #953 那个坑的来源。
@@ -72,6 +77,7 @@ object DownloadedPageIndex {
         pageCount: Int,
         skip: Set<Int>,
     ): Map<Int, Uri> {
+        if (illust.isGif()) return emptyMap()
         val appContext = context.applicationContext
         val found = HashMap<Int, Uri>()
         try {
@@ -117,7 +123,7 @@ object DownloadedPageIndex {
      * 返回 null 表示这页没下过 / 记录损坏 / 文件已被删，调用方回退网络。主线程安全（内部切 IO）。
      */
     suspend fun page(context: Context, illust: Illust, page: Int): Uri? =
-        withContext(Dispatchers.IO) {
+        if (illust.isGif()) null else withContext(Dispatchers.IO) {
             val appContext = context.applicationContext
             try {
                 RecordedPageProbe.findUsableUri(appContext, illust.id, page)

@@ -1,6 +1,7 @@
 package ceui.pixiv.download
 
 import android.app.Application
+import android.net.Uri
 import androidx.room.Room
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.AppDatabase
@@ -8,6 +9,7 @@ import ceui.lisa.database.DownloadEntity
 import ceui.lisa.download.FileCreator
 import ceui.lisa.utils.Settings
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.testing.ReadablePageFiles
 import com.google.gson.Gson
 import kotlinx.coroutines.test.runTest
@@ -115,13 +117,23 @@ class DownloadedPageIndexTest {
         assertEquals(fresh, found[1])
     }
 
-    private fun insertRow(fileName: String, filePath: String, page: Int) {
+    @Test
+    fun `ugoira product is never handed out as a page image`() = runTest {
+        val ugoira = Illust(id = 4343L, title = "u", page_count = 1, type = ObjectType.GIF)
+        // 动图成品（gif / mp4）按 (illustId, page = 0) 入库 —— 它不是第 0 页的静态图。
+        insertRow(fileName = "u.mp4", filePath = ReadablePageFiles.readable().toString(), page = 0, owner = ugoira)
+
+        assertNull(DownloadedPageIndex.page(app, ugoira, 0))
+        assertEquals(emptyMap<Int, Uri>(), DownloadedPageIndex.pages(app, ugoira, pageCount = 1))
+    }
+
+    private fun insertRow(fileName: String, filePath: String, page: Int, owner: Illust = illust) {
         db.downloadDao().insertDownload(
             DownloadEntity().apply {
                 this.fileName = fileName
                 this.filePath = filePath
                 this.page = page
-                this.illustGson = Shaft.sGson.toJson(illust)
+                this.illustGson = Shaft.sGson.toJson(owner)
                 this.downloadTime = System.currentTimeMillis()
             },
         )
