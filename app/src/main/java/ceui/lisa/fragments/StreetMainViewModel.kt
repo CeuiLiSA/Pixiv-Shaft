@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.CsrfTokenProvider
 import ceui.pixiv.api.model.StreetContent
@@ -102,21 +103,50 @@ class StreetMainViewModel : ViewModel() {
      * 货架（carousel / tags_carousel）要跨页去重：翻页请求只带「看过哪些作品」（vhi/vhn/…），
      * 没有任何字段能告诉服务端货架已经给过了，于是**每一页都会原样再下发一次**「精选新作」
      * 和热门标签 —— 不拦就是同一条货架在列表里刷屏。按 listType 认，一次会话里只留第一条。
+     *
+     * 热门标签货架里已屏蔽的标签摘掉（pixez#1182），摘空了整条货架不出。
      */
     private fun renderable(contents: List<StreetContent>?): List<StreetContent> =
-        contents.orEmpty().filter { c ->
+        contents.orEmpty().mapNotNull { c ->
             when (c.kind) {
-                in AD_KINDS -> false
-                in WORK_KINDS -> c.thumbnails?.firstOrNull() != null
+                in AD_KINDS -> null
+                in WORK_KINDS -> c.takeIf { c.thumbnails?.firstOrNull() != null }
                 // 货架空了就没什么可展开的，通栏一条空标题反而突兀
-                KIND_CAROUSEL ->
+                KIND_CAROUSEL -> c.takeIf {
                     !c.thumbnails.isNullOrEmpty() &&
                         seenRails.add("$KIND_CAROUSEL:${c.listType ?: c.title.orEmpty()}")
+                }
+                // 先判重再滤：每一页都会重发这条货架，已经出过就不必再查一遍屏蔽表
                 KIND_TAGS_CAROUSEL ->
-                    !c.trendTags.isNullOrEmpty() && seenRails.add(KIND_TAGS_CAROUSEL)
-                else -> false
+                    if (c.trendTags.isNullOrEmpty() || KIND_TAGS_CAROUSEL in seenRails) {
+                        null
+                    } else {
+                        c.withoutMutedTags()
+                            .takeIf { !it.trendTags.isNullOrEmpty() }
+                            ?.also { seenRails.add(KIND_TAGS_CAROUSEL) }
+                    }
+                else -> null
             }
         }
+
+    /**
+     * 标签和封面在响应里按下标一一对应（见 StreetMainFragment.TrendTagAdapter），
+     * 必须成对摘掉，否则后面的标签全都配错图。
+     */
+    private fun StreetContent.withoutMutedTags(): StreetContent {
+        val tags = trendTags.orEmpty()
+        val mutedTags = IllustNovelFilter.getMutedTags()
+        val keptIndices = tags.indices.filter {
+            !IllustNovelFilter.isTagNameMuted(tags[it].name, mutedTags)
+        }
+        if (keptIndices.size == tags.size) return this
+        val covers = thumbnails.orEmpty()
+        return copy(
+            trendTags = keptIndices.map { tags[it] },
+            // 封面比标签少时（适配器那边按缺图处理）只取有封面的前缀，不能把后面的封面往前挤
+            thumbnails = keptIndices.takeWhile { it < covers.size }.map { covers[it] },
+        )
+    }
 
     private fun buildRequest(refresh: Boolean): StreetRequest {
         return if (refresh) {

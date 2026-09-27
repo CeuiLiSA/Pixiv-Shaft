@@ -10,6 +10,7 @@ import ceui.lisa.activities.VActivity
 import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.RecyTagGridBinding
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.GlideUtil
@@ -60,8 +61,10 @@ class HotTagsFeedFragment : FeedFragment() {
         pixivFeedSource({ Client.appApi.trendingTags(contentType) }) { resp, _ ->
             // 先滤掉无标签名的脏数据：feedKey 取的就是标签名，多条空名会全塌成同一个身份被框架
             // 的 dedupByIdentity 静默丢到只剩一条；何况没有名字的标签本来也点不出搜索结果。
+            // 已屏蔽的标签也不再摆出来（pixez#1182）；先滤再编号，头图始终落在第一个可见标签上。
+            val mutedTags = IllustNovelFilter.getMutedTags()
             resp.trend_tags
-                .filter { !it.tag.isNullOrEmpty() }
+                .filter { !it.tag.isNullOrEmpty() && !IllustNovelFilter.isTagNameMuted(it.tag, mutedTags) }
                 .mapIndexed { index, trendingTag ->
                     val bean = trendingTag.illust
                     if (index == 0) {

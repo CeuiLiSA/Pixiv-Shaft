@@ -54,7 +54,7 @@ class V3TagFlowView @JvmOverloads constructor(
     var searchIndex: Int = 0
     var onPinTag: ((name: String, translated: String?, newPinned: Boolean) -> Unit)? = null
     var onViewAuthorWorks: ((name: String) -> Unit)? = null
-    /** 搜索首页在固定状态变化后刷新；详情和 feed 无需额外处理。 */
+    /** 搜索首页在固定 / 屏蔽状态变化后刷新（固定区、热门标签行）；详情和 feed 无需额外处理。 */
     var onTagActionsChanged: Runnable? = null
 
     override fun setItems(values: List<WitTagItem>) {
@@ -140,10 +140,16 @@ class V3TagFlowView @JvmOverloads constructor(
             .getTagMuteEntityByID(name.hashCode()) != null
         if (alreadyMuted) {
             labels.add(context.getString(R.string.v3_tag_menu_unmute))
-            actions.add { unMuteTag(name, translated) }
+            actions.add {
+                unMuteTag(name, translated)
+                onTagActionsChanged?.run()
+            }
         } else {
             labels.add(context.getString(R.string.v3_tag_menu_mute))
-            actions.add { muteTag(name, translated) }
+            actions.add {
+                muteTag(name, translated)
+                onTagActionsChanged?.run()
+            }
         }
 
         onViewAuthorWorks?.let { handler ->

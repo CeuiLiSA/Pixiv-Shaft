@@ -122,19 +122,7 @@ public class IllustNovelFilter {
         if (TextUtils.isEmpty(tagString)) {
             return false;
         }
-
-        List<TagsBean> temp = getMutedTags();
-        for (TagsBean bean : temp) {
-            if (bean.isEffective()) {
-                String name = "*#" + bean.getName() + ",";
-                if (bean.getFilter_mode() == 0 && tagString.contains(name)) {
-                    return true;
-                } else if (bean.getFilter_mode() == 1 && Pattern.compile(bean.getName()).matcher(tagString).find()) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return matchesMutedTags(tagString, getMutedTags());
     }
 
     public static boolean judgeTag(Novel illustsBean) {
@@ -142,16 +130,33 @@ public class IllustNovelFilter {
         if (TextUtils.isEmpty(tagString)) {
             return false;
         }
+        return matchesMutedTags(tagString, getMutedTags());
+    }
 
-        List<TagsBean> temp = getMutedTags();
-        for (TagsBean bean : temp) {
+    /**
+     * 单个标签名是否命中「屏蔽标签」规则。给只有标签、没有作品的地方用——热门标签页、搜索页的
+     * 热门标签行（pixez#1182：屏蔽过的 tag 仍然摆在推荐标签里，一点就搜出来）。
+     *
+     * <p>口径与 {@link #judgeTag(Illust)} 完全一致：把这一个名字拼成同款 {@code *#name,} 串再过
+     * 同一套规则——普通模式按整名匹配，正则模式在串上 find，未生效的规则不参与。
+     *
+     * <p>{@code mutedTags} 由调用方取一次 {@link #getMutedTags()} 传进来：过滤一整列标签时不必每个名字查一遍库。
+     */
+    public static boolean isTagNameMuted(String tagName, List<TagsBean> mutedTags) {
+        if (tagName == null || tagName.isEmpty()) {
+            return false;
+        }
+        return matchesMutedTags("*#" + tagName + ",", mutedTags);
+    }
+
+    /** 标签串（{@code *#a,*#b,} 格式）是否命中任一条生效中的屏蔽规则。 */
+    static boolean matchesMutedTags(String tagString, List<TagsBean> mutedTags) {
+        for (TagsBean bean : mutedTags) {
             if (bean.isEffective()) {
                 String name = "*#" + bean.getName() + ",";
                 if (bean.getFilter_mode() == 0 && tagString.contains(name)) {
-//                    illustsBean.setShield(true);
                     return true;
                 } else if (bean.getFilter_mode() == 1 && Pattern.compile(bean.getName()).matcher(tagString).find()) {
-//                    illustsBean.setShield(true);
                     return true;
                 }
             }

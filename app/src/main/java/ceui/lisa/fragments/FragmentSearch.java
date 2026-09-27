@@ -45,9 +45,11 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.databinding.FragmentSearchBinding;
 import ceui.lisa.databinding.RecyPinnedUserBinding;
+import ceui.lisa.helper.IllustNovelFilter;
 import ceui.lisa.http.LegacyApiCalls;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.ListTrendingtag;
+import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
@@ -67,6 +69,8 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     private SearchHintViewModel hintViewModel;
     /** 当前这一排置顶作者。取消置顶要就地摘掉一条重绑（异步落库赶不上立刻重查 DB）。 */
     private List<User> pinnedUsers = Collections.emptyList();
+    /** 接口给的热门标签原样留一份：屏蔽设定一变就按新规则重滤，不必再请求一次。 */
+    private List<ListTrendingtag.TrendTagsBean> hotTagSource = Collections.emptyList();
     private int searchType = SearchTypeUtil.defaultSearchType;
     private boolean hasSwitchSearchType = false;
 
@@ -311,7 +315,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void getHotTags() {
-        baseBind.hotTags.setOnTagActionsChanged(this::loadHistory);
+        baseBind.hotTags.setOnTagActionsChanged(this::onTagActionsChanged);
         baseBind.hotTags.setOnItemClickListener((item, position) -> {
             hintViewModel.hideHints();
             Intent intent = new Intent(mContext, SearchActivity.class);
@@ -320,19 +324,45 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             startActivity(intent);
         });
         LegacyApiCalls.getHotTags(this, Params.TYPE_ILLUST, response -> {
-            List<WitTagItem> items = new ArrayList<>();
             List<ListTrendingtag.TrendTagsBean> tags = response.getList();
-            for (ListTrendingtag.TrendTagsBean tag : tags.subList(0, Math.min(15, tags.size()))) {
-                items.add(new WitTagItem(tag.getTag(), tag.getTag(), tag.getTranslated_name()));
-            }
-            baseBind.hotTags.setItems(items);
+            hotTagSource = tags != null ? tags : Collections.emptyList();
+            bindHotTags();
         });
+    }
+
+    /**
+     * 热门标签行：滤掉已屏蔽的标签（pixez#1182）后取前 15 个。先滤后截，屏蔽掉几个也仍然摆满一行。
+     * 屏蔽规则可能在别处被改（设置页、作品详情、本页长按），所以 onResume 与标签菜单操作后都重滤一遍。
+     */
+    private void bindHotTags() {
+        if (hotTagSource.isEmpty()) {
+            return;
+        }
+        List<TagsBean> mutedTags = IllustNovelFilter.getMutedTags();
+        List<WitTagItem> items = new ArrayList<>();
+        for (ListTrendingtag.TrendTagsBean tag : hotTagSource) {
+            if (items.size() >= 15) {
+                break;
+            }
+            if (IllustNovelFilter.isTagNameMuted(tag.getTag(), mutedTags)) {
+                continue;
+            }
+            items.add(new WitTagItem(tag.getTag(), tag.getTag(), tag.getTranslated_name()));
+        }
+        baseBind.hotTags.setItems(items);
+    }
+
+    /** 本页任一标签行里固定 / 屏蔽了标签：历史行的固定区与热门标签行都要跟着变。 */
+    private void onTagActionsChanged() {
+        loadHistory();
+        bindHotTags();
     }
 
     @Override
     public void onResume() {
         super.onResume();
         loadHistory();
+        bindHotTags();
         predictSearchType();
     }
 
@@ -451,7 +481,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     private void bindHistoryFlow(V3TagFlowView flow, final List<SearchEntity> data) {
         flow.setShowHashPrefix(false);
         flow.setShowTranslation(false);
-        flow.setOnTagActionsChanged(this::loadHistory);
+        flow.setOnTagActionsChanged(this::onTagActionsChanged);
         List<WitTagItem> items = new ArrayList<>();
         for (SearchEntity entity : data) {
             items.add(new WitTagItem(String.valueOf(entity.getId()), entity.getKeyword(),
