@@ -565,16 +565,20 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                 !illust.isGif() &&
                 ImageLoaderV3.peekFile(imageUrl) == null
         ) {
-            // 原图尚未就绪（典型：一级详情页 B「展示原图」关，只显了 large）。先用 B 已加载的 large
-            // 秒铺底，原图并行下好再盖上——避免大图页只剩一个转圈的空白等待。原图已在缓存
+            // 原图尚未就绪（典型：一级详情页 B「展示原图」关，只显了 large）。原图已在缓存
             // （peekFile 命中，通常是「展示原图」开时 B 已下好）则不进本分支，直接秒显原图，无需占位。
-            showLargePlaceholder(illust, imageUrl)
+            //
+            // 先查下载库、落空才铺 large 占位：占位的 large 只有 B 真显示过的页才在 Glide 磁盘缓存里，
+            // 多 P 折叠着的后几页从没显示过，先铺占位就等于给一张本地已下好的页单飞一次网络请求。
+            // 一次查库是毫秒级，本地命中直接显原图，用不着占位。
             viewLifecycleOwner.lifecycleScope.launch {
                 val localUri = DownloadedPageIndex.page(requireContext(), illust, index)
                 if (localUri != null) {
                     Timber.d("[ImageDetail] local download HIT index=$index uri=$localUri")
                     loadFromLocal(localUri, imageUrl, isUrlMode)
                 } else {
+                    // 用 B 已加载的 large 秒铺底，原图并行下好再盖上 —— 避免大图页只剩一个转圈的空白等待。
+                    showLargePlaceholder(illust, imageUrl)
                     loadFromNetwork(imageUrl, isUrlMode)
                 }
             }
