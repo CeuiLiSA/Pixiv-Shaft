@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
+import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.RecyIllustStaggerBinding
@@ -222,6 +223,9 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
         if (bean.page_count > 1) {
             cell.binding.pSize.text = String.format(Locale.getDefault(), "%dP", bean.page_count)
         }
+        // 宽图角标：详情页会进全景（横向可拖）的图。缩略图按 0.6 钳比例居中裁，两侧内容在卡上看不到
+        cell.binding.pWide.isVisible = !bean.isGif() &&
+                IllustAdapter.isPanoramaSize(cell.binding.root.resources, bean.width, bean.height)
         cell.binding.pGif.isVisible = bean.isGif()
         cell.binding.r18Badge.isVisible = bean.isR18File()
         cell.binding.createdByAi.isVisible = bean.isCreatedByAI()
@@ -237,7 +241,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
 
 /**
  * 屏蔽态下把**叠在作品图上的整层**藏掉：收藏爱心（连同它的爆发动画层）和角标行
- * （站长推荐 / R-18 / 页数 / GIF / AI / NEW）。对齐小说卡的 `applyNovelSpoilerMask`。
+ * （站长推荐 / R-18 / 页数 / 宽图 / GIF / AI / NEW）。对齐小说卡的 `applyNovelSpoilerMask`。
  *
  * 少了这一步，屏蔽只糊了图：R-18、页数、AI 这些信息照样写在卡上（图糊了角标还在就漏了一半），
  * 而且爱心还能点——能给一件自己刚屏蔽掉的作品收藏，长按还能进「按标签收藏」。

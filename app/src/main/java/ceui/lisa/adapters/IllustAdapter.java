@@ -1,5 +1,6 @@
 package ceui.lisa.adapters;
 
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -581,10 +582,27 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     }
 
     private boolean isPanoramaRatio(float ratio) {
-        if (ratio <= 0f || panoramaBoxHeight <= 0) {
+        return isPanoramaRatio(ratio, imageSize, panoramaBoxHeight);
+    }
+
+    private static boolean isPanoramaRatio(float ratio, int imageWidth, int boxHeight) {
+        if (ratio <= 0f || boxHeight <= 0) {
             return false;
         }
-        return imageSize * ratio < panoramaBoxHeight * PANORAMA_MIN_GAIN;
+        return imageWidth * ratio < boxHeight * PANORAMA_MIN_GAIN;
+    }
+
+    /**
+     * 按宽高预判这张图进详情页会不会走全景(横向可拖)。给瀑布流缩略图的「W」角标用:
+     * 和详情页同一套阈值,角标亮 = 点进去真能左右拖。盒高取默认 280dp(详情页的 maxHeight
+     * 是列表高度,实际都高于它)。只看得到首页宽高,多 P 的后续页不在判定内。
+     */
+    public static boolean isPanoramaSize(@NonNull Resources res, int width, int height) {
+        if (width <= 0 || height <= 0) {
+            return false;
+        }
+        return isPanoramaRatio((float) height / width,
+                res.getDisplayMetrics().widthPixels, SizeUtils.dp2px(PANORAMA_BOX_HEIGHT_DP));
     }
 
     /**
