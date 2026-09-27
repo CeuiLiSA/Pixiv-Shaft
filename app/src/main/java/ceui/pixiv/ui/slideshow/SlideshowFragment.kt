@@ -26,7 +26,6 @@ import ceui.pixiv.imageloader.Disposable
 import ceui.pixiv.imageloader.ImageLoadState
 import ceui.pixiv.imageloader.PageImageSource
 import ceui.pixiv.imageloader.PageImageSourceResolver
-import ceui.pixiv.imageloader.awaitFile
 import ceui.pixiv.imageloader.observeState
 import ceui.pixiv.utils.ppppx
 import com.bumptech.glide.Glide
@@ -182,20 +181,18 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
         loadEpoch += 1
         val myEpoch = loadEpoch
 
-        // Always make sure download is queued.
-        ensurePreload(slide)
-        // 判定统一走 PageImageSourceResolver：本地已下载 / 本地 URL / 已缓存 → 直读，不再重新下载。
+        // 判定统一走 PageImageSourceResolver：本地已下载 / 本地 URL / 已缓存 → 直读，不再重新下载；
+        // 需要网络时它内部已经 obtain 过，下载就排上队了，不必再单独 ensurePreload 一次（那会多查一遍库）。
         // 判定是挂起的（要查下载库），回来时可能已经翻页或收场 —— 全靠 loadEpoch 兜住。
         viewLifecycleOwner.lifecycleScope.launch {
             val ctx = context ?: return@launch
             val source = PageImageSourceResolver.resolve(ctx, slide.illust, slide.page, slide.url)
             if (myEpoch != loadEpoch) return@launch
             if (source is PageImageSource.Local) {
-                // 有真实文件就零拷贝；content:// 这种只有可读流的才落一份到 cache。
-                val file = source.awaitFile(ctx) ?: return@launch
-                if (myEpoch != loadEpoch) return@launch
-                if (!file.exists()) return@launch
-                if (initial) displayFirstImage(file) else performTransition(file)
+                // renderModel 恒为 Uri（file:// / content://），Glide 直接认，全程零拷贝。
+                // 别走 awaitFile：那会把 MediaStore 里的每一张原图都拷进 cache 再显示。
+                val model = source.renderModel
+                if (initial) displayFirstImage(model) else performTransition(model)
                 return@launch
             }
             val task = (source as? PageImageSource.Remote)?.task ?: return@launch
@@ -224,7 +221,8 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
         }
     }
 
-    private fun displayFirstImage(file: File) {
+    /** @param model Glide 能直接加载的来源：下载好的 [File]，或本地已有页的 [android.net.Uri]。 */
+    private fun displayFirstImage(model: Any) {
         crossfadeAnim?.cancel(); crossfadeAnim = null
         frontKenBurns?.cancel(); frontKenBurns = null
         backKenBurns?.cancel(); backKenBurns = null
@@ -237,7 +235,7 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
         val target = imageA
         val totalKenBurnsMs = DISPLAY_DURATION_MS + CROSSFADE_DURATION_MS
         val expectedEpoch = loadEpoch
-        loadIntoImageView(target, file, expectedEpoch, onFail = { /* genuine fail: stay on black, observer-side will retry */ }) {
+        loadIntoImageView(target, model, expectedEpoch, onFail = { /* genuine fail: stay on black, observer-side will retry */ }) {
             if (!isAdded || view == null) return@loadIntoImageView
             loadingOverlay.isVisible = false
             target.alpha = 0f
@@ -281,14 +279,14 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
      * Cross-fade from the current front view to the new file. Both images' Ken Burns animations
      * run during the overlap. After the fade completes the old front becomes the back.
      */
-    private fun performTransition(file: File) {
+    private fun performTransition(model: Any) {
         loadingOverlay.isVisible = false
         val newFront = if (frontIsA) imageB else imageA
         val oldFront = if (frontIsA) imageA else imageB
         val expectedEpoch = loadEpoch
 
         loadIntoImageView(
-            newFront, file, expectedEpoch,
+            newFront, model, expectedEpoch,
             // Genuine load failure on the current image: skip to the next one rather than
             // crossfading to nothing. The previous image keeps playing in the meantime.
             onFail = { if (expectedEpoch == loadEpoch && !isPaused) advanceToNext() }
@@ -359,14 +357,14 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
      */
     private fun loadIntoImageView(
         target: ImageView,
-        file: File,
+        model: Any,
         expectedEpoch: Long,
         onFail: () -> Unit = {},
         onReady: () -> Unit,
     ) {
         if (!isAdded || activity == null || view == null) return
         Glide.with(this)
-            .load(file)
+            .load(model)
             .dontAnimate()
             .listener(object : RequestListener<android.graphics.drawable.Drawable> {
                 override fun onLoadFailed(
@@ -375,7 +373,7 @@ class SlideshowFragment : Fragment(R.layout.fragment_slideshow) {
                     t: Target<android.graphics.drawable.Drawable>,
                     isFirstResource: Boolean
                 ): Boolean {
-                    Timber.w(e, "[Slideshow] Glide failed for ${file.path}")
+                    Timber.w(e, "[Slideshow] Glide failed for $model")
                     target.post {
                         if (expectedEpoch != loadEpoch || !isAdded) return@post
                         onFail()
