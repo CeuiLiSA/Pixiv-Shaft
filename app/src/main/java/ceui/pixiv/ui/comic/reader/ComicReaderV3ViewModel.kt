@@ -105,11 +105,14 @@ class ComicReaderV3ViewModel(val illustId: Long) : ViewModel() {
                 originalUrl = IllustDownload.getUrl(illust, i, Params.IMAGE_RESOLUTION_ORIGINAL),
             )
         }
-        _loadState.postValue(LoadState.Loaded(illust, pages))
+        val loaded = LoadState.Loaded(illust, pages)
+        _loadState.postValue(loaded)
         val resume = ComicReaderProgressStore.lastPage(illustId).coerceIn(0, (pages.size - 1).coerceAtLeast(0))
         _currentPage.postValue(resume)
         prefetcher.reset()
-        prefetcher.prefetchAround(pages, resume, ::resolvePage)
+        // postValue 要到下一轮主线程消息才落地，这里 _loadState.value 还是 Loading —— 直接把刚构造的
+        // loaded 交出去，别让预取回头读 LiveData（读到 Loading 会整轮静默跳过，且指纹已记下、不会重来）。
+        prefetchAround(loaded, resume)
     }
 
     // ---- Intent API（Fragment 只调这些方法） -------------------------------
@@ -121,7 +124,7 @@ class ComicReaderV3ViewModel(val illustId: Long) : ViewModel() {
         val total = (_loadState.value as? LoadState.Loaded)?.pages?.size ?: return
         ComicReaderProgressStore.savePage(illustId, index, total)
         if (previous != index) statsTracker.recordFlip()
-        (_loadState.value as? LoadState.Loaded)?.pages?.let { prefetcher.prefetchAround(it, index, ::resolvePage) }
+        (_loadState.value as? LoadState.Loaded)?.let { prefetchAround(it, index) }
     }
 
     /** 用户主动 step（左/右点击区 / 音量键）。返回是否成功翻页（用于让 UI 决定边界反馈）。 */
@@ -144,19 +147,22 @@ class ComicReaderV3ViewModel(val illustId: Long) : ViewModel() {
     }
 
     /**
-     * 预取一页：交给统一的来源判定。本地已下载 / 本地 URL / 已缓存时它什么都不做（不需要下），
+     * 预取交给统一的来源判定。本地已下载 / 本地 URL / 已缓存时它什么都不做（不需要下），
      * 需要网络时它内部已经 `obtain` 过、下载就排上队了 —— 这正是预取要的效果。
+     *
+     * 作品由调用方显式传入，不回头读 [_loadState]：首轮预取发生在 postValue 落地之前。
      */
-    private suspend fun resolvePage(page: ComicPage, url: String) {
-        val illust = (_loadState.value as? LoadState.Loaded)?.illust ?: return
-        PageImageSourceResolver.resolve(Shaft.getContext(), illust, page.index, url)
+    private fun prefetchAround(state: LoadState.Loaded, index: Int) {
+        prefetcher.prefetchAround(state.pages, index) { page, url ->
+            PageImageSourceResolver.resolve(Shaft.getContext(), state.illust, page.index, url)
+        }
     }
 
     /** 设置 Image 类变更时（fitMode / loadOriginal）触发预取重算。 */
     fun onImageSettingsChanged() {
-        val pages = (_loadState.value as? LoadState.Loaded)?.pages ?: return
+        val state = _loadState.value as? LoadState.Loaded ?: return
         prefetcher.reset()
-        prefetcher.prefetchAround(pages, _currentPage.value ?: 0, ::resolvePage)
+        prefetchAround(state, _currentPage.value ?: 0)
     }
 
     /** 加书签 intent：成功 → events 推送 Toast；失败 → 静默或 toast。 */

@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.comic.reader
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
  */
 class ComicPagePrefetcher(private val scope: CoroutineScope) {
     private var lastFingerprint: Long = -1L
+    private var prefetchJob: Job? = null
 
     fun prefetchAround(
         pages: List<ComicReaderV3ViewModel.ComicPage>,
@@ -32,7 +34,10 @@ class ComicPagePrefetcher(private val scope: CoroutineScope) {
         val fp = (currentIndex.toLong() shl 33) or (end.toLong() shl 1) or (if (original) 1L else 0L)
         if (fp == lastFingerprint) return
         lastFingerprint = fp
-        scope.launch {
+        // 每页的判定要查下载库（挂起）。快速翻页时上一轮还没排完的页已经不在窗口里了，取消掉，
+        // 别让一串过期的判定堆着跑；已经排上队的下载任务不受影响。
+        prefetchJob?.cancel()
+        prefetchJob = scope.launch {
             for (i in (currentIndex + 1)..end) {
                 val page = pages.getOrNull(i) ?: break
                 prefetch(page, if (original) page.originalUrl else page.previewUrl)
