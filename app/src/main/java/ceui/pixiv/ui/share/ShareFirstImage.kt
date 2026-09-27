@@ -9,9 +9,10 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.download.IllustDownload
 import ceui.pixiv.api.model.Illust
-import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
-import com.bumptech.glide.Glide
+import ceui.pixiv.imageloader.PageImageSourceResolver
+import ceui.pixiv.imageloader.awaitFile
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -19,23 +20,23 @@ import timber.log.Timber
 import java.io.File
 
 // 分享首图（多 P 也只发 p0，与菜单文案 R.string.string_454 一致）。
-// 用 Glide.asFile() 取磁盘缓存的原始字节，不经过 Bitmap 解码 / PNG 再压缩 ——
-// 既避开原图尺寸下 .asBitmap() 的 OOM 风险，也保留原始格式与画质。
+// 来源走统一的 PageImageSourceResolver：本地已下载 / 看图页已加载好的原图直接用，不再单独走一遍
+// 网络；直接拿原始字节，不经过 Bitmap 解码 / PNG 再压缩 —— 既避开原图尺寸下 .asBitmap() 的 OOM
+// 风险，也保留原始格式与画质。
 fun Fragment.shareFirstImage(illust: Illust) {
     val ctx = context ?: return
     val url = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL) ?: return
 
     viewLifecycleOwner.lifecycleScope.launch {
         val uri = runCatching {
-            withContext(Dispatchers.IO) {
-                val cached = Glide.with(ctx.applicationContext)
-                    .asFile()
-                    .load(GlideUrlChild(url))
-                    .submit()
-                    .get()
-                copyToShareCache(ctx, cached, illust.id, url)
-            }
-        }.onFailure { Timber.e(it, "[shareFirstImage] failed illustId=${illust.id}") }
+            val source = PageImageSourceResolver.resolve(ctx, illust, 0, url).awaitFile(ctx)
+                ?: error("no page image source: $url")
+            withContext(Dispatchers.IO) { copyToShareCache(ctx, source, illust.id, url) }
+        }.onFailure {
+            // 页面销毁导致的取消照样往上抛，别当成失败打 error 日志。
+            if (it is CancellationException) throw it
+            Timber.e(it, "[shareFirstImage] failed illustId=${illust.id}")
+        }
             .getOrNull() ?: return@launch
 
         val mime = ctx.contentResolver.getType(uri) ?: "image/*"

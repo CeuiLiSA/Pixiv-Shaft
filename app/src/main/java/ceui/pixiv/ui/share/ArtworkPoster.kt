@@ -29,6 +29,8 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.imageloader.PageImageSourceResolver
+import ceui.pixiv.imageloader.awaitFile
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -109,7 +111,7 @@ private const val TAG = "ArtworkPoster"
 
 internal object ArtworkPosterExporter {
 
-    fun export(context: Context, illust: Illust, pageIndex: Int): Uri {
+    suspend fun export(context: Context, illust: Illust, pageIndex: Int): Uri {
         val safePage = pageIndex.coerceIn(0, (illust.page_count - 1).coerceAtLeast(0))
         val artworkUrl = IllustDownload.getUrl(
             illust,
@@ -122,7 +124,7 @@ internal object ArtworkPosterExporter {
         var avatar: Bitmap? = null
         var poster: Bitmap? = null
         try {
-            artwork = loadBitmap(context, artworkUrl, MAX_ARTWORK_DECODE_SIZE)
+            artwork = loadArtwork(context, illust, safePage, artworkUrl)
             avatar = illust.user?.profile_image_urls?.findMaxSizeUrl()?.let { url ->
                 runCatching { loadBitmap(context, url, MAX_AVATAR_DECODE_SIZE) }
                     .onFailure { Timber.tag(TAG).w(it, "avatar unavailable uid=%d", illust.user?.id ?: 0L) }
@@ -178,9 +180,15 @@ internal object ArtworkPosterExporter {
     }
 
     /**
-     * 先让 BitmapFactory 只读尺寸，再用 2 的幂采样；禁止把一张上亿像素的原图完整解进堆里。
-     * 最长边压到预算以内：作品图最多约 16MB，且 2048px 仍高于海报内图片的 1560px 上限。
+     * 作品图走统一的 [PageImageSourceResolver]：本地已下载 / 看图页已加载好的原图直接解码，
+     * 不再单独走 Glide 网络缓存重下一遍（多 P 的某一页、2048px 解码预算下也一样）。
      */
+    private suspend fun loadArtwork(context: Context, illust: Illust, page: Int, url: String): Bitmap {
+        val file = PageImageSourceResolver.resolve(context, illust, page, url).awaitFile(context)
+            ?: error(context.getString(R.string.artwork_poster_image_unavailable))
+        return decodeSampled(file, MAX_ARTWORK_DECODE_SIZE)
+    }
+
     private fun loadBitmap(context: Context, rawUrl: String, maxSide: Int): Bitmap {
         val model: Any = when {
             rawUrl.startsWith("content://") || rawUrl.startsWith("file://") -> Uri.parse(rawUrl)
@@ -193,7 +201,14 @@ internal object ArtworkPosterExporter {
         } finally {
             Glide.with(context).clear(target)
         }
+        return decodeSampled(file, maxSide)
+    }
 
+    /**
+     * 先让 BitmapFactory 只读尺寸，再用 2 的幂采样；禁止把一张上亿像素的原图完整解进堆里。
+     * 最长边压到预算以内：作品图最多约 16MB，且 2048px 仍高于海报内图片的 1560px 上限。
+     */
+    private fun decodeSampled(file: File, maxSide: Int): Bitmap {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
         check(bounds.outWidth > 0 && bounds.outHeight > 0) { "Invalid image data" }
