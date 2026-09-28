@@ -2606,6 +2606,19 @@
     <string name="app_api_proxy_tip">Enter the proxy root address including the https:// prefix. Requests are forwarded to the /pixiv-app-api and /pixiv-oauth paths automatically. Clear the field to stop using a proxy.</string>
     <string name="app_api_proxy_help_desc">Proxy usage notes and security warning</string>
     <string name="app_api_proxy_warning">Security warning: once the proxy is enabled, your account token (Authorization) is relayed through the proxy server, and an untrusted proxy can steal your account this way. Only use a proxy you host yourself or fully trust.\n\nSelf-hosting (PxveAPI):\n· Original project (Deno): github.com/asadahimeka/pxve-api\n· Vercel deployment (Node port): github.com/susulqx/pxve-api\nAfter deploying, enter your proxy domain in the field above.</string>
+    <!-- GitHub accelerator (gh-proxy style): inserted before the https:// of https://*.github.com -->
+    <string name="github_proxy_title">GitHub accelerator</string>
+    <string name="github_proxy_summary">Accelerates resources fetched from GitHub (updates, models, stickers); other requests are unaffected</string>
+    <string name="github_proxy_none">Disabled</string>
+    <string name="github_proxy_custom">Custom address</string>
+    <string name="github_proxy_custom_hint">https://your-accelerator-address</string>
+    <string name="github_proxy_invalid">Invalid accelerator address: it must be an https:// domain without a query string or #fragment</string>
+    <string name="github_proxy_test_desc">Network test</string>
+    <string name="github_proxy_help_desc">Help</string>
+    <string name="github_proxy_test_testing">Testing…</string>
+    <string name="github_proxy_test_ok">Reachable · %1$dms</string>
+    <string name="github_proxy_test_http">Abnormal · HTTP %1$d · %2$dms</string>
+    <string name="github_proxy_test_fail">Unreachable · %1$s</string>
     <string name="comment_emoji_picker">Emoji</string>
     <string name="comment_emoji_tab_kaomoji">Emoji</string>
     <string name="comment_emoji_tab_stamp">Stickers</string>

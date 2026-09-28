@@ -2884,6 +2884,19 @@
     <string name="app_api_proxy_tip">填写代理根地址，需包含 https:// 前缀；请求将自动转发至 /pixiv-app-api 与 /pixiv-oauth 路径。清空则恢复不代理。</string>
     <string name="app_api_proxy_help_desc">代理使用说明与安全提醒</string>
     <string name="app_api_proxy_warning">安全提醒：开启代理后，账号令牌（Authorization）会经代理服务器转发，来历不明的代理可借此窃取你的账号。请仅使用自己搭建或完全信任的代理服务。\n\n自建（PxveAPI）：\n· 原项目（Deno 版）：github.com/asadahimeka/pxve-api\n· Vercel 在线部署版（Node 移植）：github.com/susulqx/pxve-api\n部署后将你的代理域名填入上方输入框。</string>
+    <!-- GitHub 加速地址（gh-proxy 风格）：在 https://*.github.com 的 https:// 前插入加速地址 -->
+    <string name="github_proxy_title">github加速地址</string>
+    <string name="github_proxy_summary">加速从 GitHub 拉取的资源（更新、模型、表情包），不影响其他网络请求</string>
+    <string name="github_proxy_none">不使用</string>
+    <string name="github_proxy_custom">自定义地址</string>
+    <string name="github_proxy_custom_hint">https://你的加速地址</string>
+    <string name="github_proxy_invalid">加速地址无效：需为 https:// 域名，且不能带 query 或 #fragment</string>
+    <string name="github_proxy_test_desc">网络测试</string>
+    <string name="github_proxy_help_desc">说明</string>
+    <string name="github_proxy_test_testing">测试中…</string>
+    <string name="github_proxy_test_ok">可达 · %1$dms</string>
+    <string name="github_proxy_test_http">异常 · HTTP %1$d · %2$dms</string>
+    <string name="github_proxy_test_fail">不可达 · %1$s</string>
     <string name="comment_emoji_picker">表情</string>
     <string name="comment_emoji_tab_kaomoji">绘文字</string>
     <string name="comment_emoji_tab_stamp">表情贴图</string>

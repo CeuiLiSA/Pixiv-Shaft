@@ -17,12 +17,14 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsNetworkBinding;
 import ceui.lisa.http.AppApiProxyInterceptor;
+import ceui.lisa.http.GithubProxy;
 import ceui.lisa.http.HttpDns;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.pixiv.api.Client;
 import ceui.pixiv.ui.navigation.TemplateRoute;
+import ceui.pixiv.ui.settings.GithubProxyDialog;
 
 /** 设置 · 网络 */
 public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettingsNetworkBinding> {
@@ -87,6 +89,13 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
         //地址非空即启用（Settings#isUseAppApiProxy 由地址派生），为空显示「不代理」。
         refreshAppApiProxySummary();
         baseBind.appApiProxyRela.setOnClickListener(v -> promptAppApiProxy());
+
+        //GitHub 加速地址（gh-proxy 风格）：与 PxveAPI 代理同组的分段末行，空 = 不使用。
+        //与 PxveAPI 代理不同，这里改完**立刻生效**：前缀是在每次请求前读设置拼的
+        //（GithubProxy.currentPrefix），没有需要重建的客户端，也不用重启。
+        refreshGithubProxySummary();
+        baseBind.githubProxyRela.setOnClickListener(v ->
+                GithubProxyDialog.show(mContext, this::refreshGithubProxySummary));
 
         //缩略图是否显示大图
         baseBind.showLargeThumbnailImage.setChecked(Shaft.sSettings.isShowLargeThumbnailImage());
@@ -265,5 +274,17 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                         getString(R.string.app_api_proxy_warning))
                 .addAction(R.string.sure, (dialog, index) -> dialog.dismiss())
                 .show();
+    }
+
+    // ── GitHub 加速地址（gh-proxy 风格） ───────────────────────────────
+    // 使用方式就是在 https://*.github.com 的 https:// 之前插入加速地址，插入点全部收在
+    // ceui.lisa.http.GithubProxy 里（「不使用」时原样返回）。这里只负责显示当前选择。
+
+    private void refreshGithubProxySummary() {
+        String prefix = GithubProxy.currentPrefix();
+        baseBind.githubProxyValue.setText(
+                TextUtils.isEmpty(prefix)
+                        ? getString(R.string.github_proxy_none)
+                        : GithubProxy.displayName(prefix));
     }
 }

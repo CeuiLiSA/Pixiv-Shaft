@@ -226,6 +226,12 @@ public class Settings {
     //其余请求原样放行给直连，二者互不干扰。
     private String appApiProxy = "";
 
+    //GitHub 加速地址（gh-proxy 风格）。githubProxy: 加速站根地址（https://host[/path]；空 = 不使用）。
+    //使用方式就是在 https://*.github.com 资源的 https:// 之前插入它，见 ceui.lisa.http.GithubProxy。
+    //只影响「从 GitHub 拉取」的那几条链路（检查更新 / 下载 APK / AI 模型 / 表情包资源），
+    //Pixiv、主 API（pixshaft.com）、图片反代一概不经过它，所以可以随时改、不用重启。
+    private String githubProxy = "";
+
     //缩略图图片显示大图
     private boolean showLargeThumbnailImage = false;
 
@@ -769,6 +775,15 @@ public class Settings {
 
     public void setAppApiProxy(String appApiProxy) {
         this.appApiProxy = appApiProxy;
+    }
+
+    /** GitHub 加速地址（已保存的原始字符串）；空 = 不使用，见 {@link ceui.lisa.http.GithubProxy}。 */
+    public String getGithubProxy() {
+        return githubProxy == null ? "" : githubProxy;
+    }
+
+    public void setGithubProxy(String githubProxy) {
+        this.githubProxy = githubProxy;
     }
 
     public void setSearchFilter(String searchFilter) {

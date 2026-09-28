@@ -2589,6 +2589,19 @@
     <string name="app_api_proxy_tip">Proxy kök adresini https:// ön ekiyle birlikte girin. İstekler otomatik olarak /pixiv-app-api ve /pixiv-oauth yollarına iletilir. Alanı boşaltırsanız proxy kullanılmaz.</string>
     <string name="app_api_proxy_help_desc">Proxy kullanım açıklaması ve güvenlik uyarısı</string>
     <string name="app_api_proxy_warning">Güvenlik uyarısı: Proxy açıldığında hesap belirteciniz (Authorization) proxy sunucusundan geçer. Güvenilmeyen bir proxy bunu kullanarak hesabınızı çalabilir. Yalnızca kendi kurduğunuz veya tamamen güvendiğiniz bir proxy kullanın.\n\nKendiniz kurun (PxveAPI):\n· Özgün proje (Deno): github.com/asadahimeka/pxve-api\n· Vercel dağıtımı (Node uyarlaması): github.com/susulqx/pxve-api\nDağıtımdan sonra proxy alan adınızı yukarıdaki alana girin.</string>
+    <!-- GitHub hızlandırıcı (gh-proxy tarzı): https://*.github.com adresinin https:// öncesine eklenir -->
+    <string name="github_proxy_title">GitHub hızlandırıcı</string>
+    <string name="github_proxy_summary">GitHub\'dan indirilen kaynakları (güncelleme, model, çıkartma) hızlandırır; diğer istekleri etkilemez</string>
+    <string name="github_proxy_none">Kullanma</string>
+    <string name="github_proxy_custom">Özel adres</string>
+    <string name="github_proxy_custom_hint">https://hizlandirici-adresiniz</string>
+    <string name="github_proxy_invalid">Geçersiz hızlandırıcı adresi: https:// alan adı olmalı, sorgu dizesi veya #parça içermemeli</string>
+    <string name="github_proxy_test_desc">Ağ testi</string>
+    <string name="github_proxy_help_desc">Yardım</string>
+    <string name="github_proxy_test_testing">Test ediliyor…</string>
+    <string name="github_proxy_test_ok">Ulaşılabilir · %1$dms</string>
+    <string name="github_proxy_test_http">Anormal · HTTP %1$d · %2$dms</string>
+    <string name="github_proxy_test_fail">Ulaşılamıyor · %1$s</string>
     <string name="comment_emoji_picker">Emoji</string>
     <string name="comment_emoji_tab_kaomoji">Emoji</string>
     <string name="comment_emoji_tab_stamp">Çıkartmalar</string>
