@@ -31,7 +31,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-
+                <!-- 输入框底色是硬编码纯白胶囊（@drawable/search_et_bg 的 solid 写死
+                     @color/white，也没有 drawable-night 变体），所以框内颜色必须恒定：
+                     一旦留空让 hint 回落到主题，AppCompat DayNight 的深色分支会经
+                     android:textColorHint 指向 abc_hint_foreground_material_dark —— 一个半透明
+                     近白色（框架同名色 hint_foreground_material_dark 即 50% 白 #80ffffff），
+                     压在白底上就是白底白字；@color/rank_text_color 同样是日夜双值
+                     （#2c333c / #A9A9A9），夜间一样退化成浅灰压白底。
+                     textColor 取原日间值 #2c333c，textColorHint 取左侧搜索图标的 #999999。 -->
                 <EditText
                     android:id="@+id/input_box"
                     android:layout_width="match_parent"
@@ -51,7 +58,8 @@
                     android:paddingStart="@dimen/twelve_dp"
                     android:paddingEnd="36dp"
                     android:singleLine="true"
-                    android:textColor="@color/rank_text_color"
+                    android:textColor="#2c333c"
+                    android:textColorHint="#999999"
                     android:textSize="14sp">
 
 
