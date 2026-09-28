@@ -127,14 +127,17 @@ class ComicReaderV3ViewModel(val illustId: Long) : ViewModel() {
         (_loadState.value as? LoadState.Loaded)?.let { prefetchAround(it, index) }
     }
 
-    /** 用户主动 step（左/右点击区 / 音量键）。返回是否成功翻页（用于让 UI 决定边界反馈）。 */
-    fun stepPage(forward: Boolean): Boolean {
-        val total = (_loadState.value as? LoadState.Loaded)?.pages?.size ?: return false
+    /**
+     * 用户主动 step（左/右点击区 / 音量键）的目标页；已到边界返回 null。
+     *
+     * 只算不写：由调用方让容器翻过去，容器回调 [onPageChanged] 才落当前页。这里要是先写了
+     * [_currentPage]，[onPageChanged] 会因「页没变」提前返回，进度不存、预取不往前推。
+     */
+    fun stepTarget(forward: Boolean): Int? {
+        val total = (_loadState.value as? LoadState.Loaded)?.pages?.size ?: return null
         val cur = _currentPage.value ?: 0
         val target = if (forward) cur + 1 else cur - 1
-        if (target !in 0 until total) return false
-        _currentPage.value = target
-        return true
+        return target.takeIf { it in 0 until total }
     }
 
     /** session 起始：onResume 调一次。计时由 ViewModel 持有，旋转 Fragment 不重置。 */

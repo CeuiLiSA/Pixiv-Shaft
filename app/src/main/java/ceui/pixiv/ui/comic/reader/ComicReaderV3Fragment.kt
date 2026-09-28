@@ -375,9 +375,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
 
     private fun stepAndApply(forward: Boolean) {
         if (!::current.isInitialized) return
-        if (viewModel.stepPage(forward)) {
-            current.jumpTo(viewModel.currentPage.value ?: 0)
-        }
+        viewModel.stepTarget(forward)?.let { current.jumpTo(it) }
     }
 
     // ---- Menus / Sheets -----------------------------------------------------
@@ -473,10 +471,8 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
     fun handleVolumeKey(keyCode: Int): Boolean {
         if (!ComicReaderSettings.volumeKeyFlip) return false
         if (!::current.isInitialized) return false
-        val forward = keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
-        return if (viewModel.stepPage(forward)) {
-            current.jumpTo(viewModel.currentPage.value ?: 0); true
-        } else true
+        stepAndApply(forward = keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
+        return true
     }
 
     override fun onResume() {
