@@ -1524,8 +1524,9 @@ public class Settings {
 
     // ── 二级大图「上/下拖动退出」灵敏度 ──────────────────────────────────────
     // 三个值一一对应 DragDismissLayout 的三个可注入阈值；默认值必须与
-    // DragDismissLayout.DEFAULT_* 保持一致。Gson 反序列化旧备份时新字段是 0，
-    // 所以 getter 一律带范围钳制，越界回落到默认，避免坏数据把页面拖坏。
+    // DragDismissLayout.DEFAULT_* 保持一致。旧备份缺这几个 key 时 Gson 走无参构造，
+    // 字段初始化器照跑，读出来就是默认值；getter 的范围校验防的是手改备份、
+    // 或以后收窄可调范围后磁盘上残留的越界值——越界回落默认，而不是夹到边界。
 
     /** 松手判定收掉的拖拽距离阈值（相对本布局高度）。越小越灵敏。 */
     public static final float VIEWER_DISMISS_DISTANCE_DEFAULT = 0.18f;
@@ -1603,8 +1604,9 @@ public class Settings {
     }
 
     /**
-     * 「放大大图后禁用拖动退出」：开启后只有最小缩放（适应视图）时才允许起手竖向拖拽退出，
-     * 放大状态下的上下拖留给画面平移，避免误触退出。boolean 默认 false，旧备份反序列化后即为关闭。
+     * 「放大大图后禁用拖动退出」：开启后只有处在打开时的初始缩放才允许起手竖向拖拽退出，
+     * 放大状态下的上下拖留给画面平移，避免误触退出。默认关闭。
+     * 字段名是已落盘的 JSON key，语义从「最小缩放」放宽成「初始缩放」后也不改名。
      */
     private boolean viewerDismissOnlyAtMinScale = false;
 

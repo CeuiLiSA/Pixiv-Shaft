@@ -3129,5 +3129,5 @@
     <string name="viewer_dismiss_unsaved_discard">저장 안 함</string>
     <string name="viewer_dismiss_unsaved_save">저장하고 나가기</string>
     <string name="viewer_dismiss_only_at_min_scale">확대 시 드래그 종료 사용 안 함</string>
-    <string name="viewer_dismiss_only_at_min_scale_desc">켜면 최소 배율일 때만 드래그로 닫을 수 있습니다. 확대 상태에서는 위아래 드래그가 화면 이동이 됩니다.</string>
+    <string name="viewer_dismiss_only_at_min_scale_desc">켜면 확대 상태에서는 위아래 드래그가 화면 이동이 됩니다. 처음 열었을 때 크기로 돌아오면 드래그로 닫을 수 있습니다.</string>
 </resources>

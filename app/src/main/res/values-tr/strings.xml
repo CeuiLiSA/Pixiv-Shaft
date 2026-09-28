@@ -3133,5 +3133,5 @@
     <string name="viewer_dismiss_unsaved_discard">Kaydetme</string>
     <string name="viewer_dismiss_unsaved_save">Kaydet ve çık</string>
     <string name="viewer_dismiss_only_at_min_scale">Yakınlaştırınca sürükleyerek kapatmayı kapat</string>
-    <string name="viewer_dismiss_only_at_min_scale_desc">Açıkken yalnızca en küçük yakınlaştırmada sürükleyerek çıkabilirsiniz. Yakınlaştırılmışken yukarı veya aşağı sürükleme görüntüyü kaydırır.</string>
+    <string name="viewer_dismiss_only_at_min_scale_desc">Açıkken, yakınlaştırılmış görüntüde yukarı veya aşağı sürükleme görüntüyü kaydırır. Sürükleyerek çıkmak için görüntüyü açıldığı boyuta döndürün.</string>
 </resources>

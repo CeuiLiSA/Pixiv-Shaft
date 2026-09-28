@@ -215,7 +215,7 @@ class ViewerDismissTuningFragment : Fragment(R.layout.fragment_viewer_dismiss_tu
         refresh()
     }
 
-    /** 「放大大图后禁用拖动退出」：开启后只有最小缩放（适应视图）时才允许起手竖向拖拽退出。 */
+    /** 「放大大图后禁用拖动退出」：开启后只有处在打开时的初始缩放才允许起手竖向拖拽退出。 */
     private fun bindDismissPrecondition() {
         binding.viewerDismissOnlyAtMinScale.isChecked = Shaft.sSettings.isViewerDismissOnlyAtMinScale
         binding.viewerDismissOnlyAtMinScale.setOnCheckedChangeListener { _, isChecked ->

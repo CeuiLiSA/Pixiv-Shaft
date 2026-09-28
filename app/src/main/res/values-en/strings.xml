@@ -3132,5 +3132,5 @@
     <string name="viewer_dismiss_unsaved_discard">Discard</string>
     <string name="viewer_dismiss_unsaved_save">Save and leave</string>
     <string name="viewer_dismiss_only_at_min_scale">Disable drag-to-dismiss when zoomed</string>
-    <string name="viewer_dismiss_only_at_min_scale_desc">When on, you can only drag to exit at minimum zoom. While zoomed in, dragging up or down pans the image instead.</string>
+    <string name="viewer_dismiss_only_at_min_scale_desc">When on, dragging up or down pans a zoomed-in image. Drag to exit works again once the image is back to the size it opened at.</string>
 </resources>

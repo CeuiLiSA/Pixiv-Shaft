@@ -3130,5 +3130,5 @@
     <string name="viewer_dismiss_unsaved_discard">不儲存</string>
     <string name="viewer_dismiss_unsaved_save">儲存並離開</string>
     <string name="viewer_dismiss_only_at_min_scale">放大後停用拖曳退出</string>
-    <string name="viewer_dismiss_only_at_min_scale_desc">開啟後只有最小縮放（適應畫面）時才能拖曳退出，放大後上下拖只平移畫面，避免誤觸退出。</string>
+    <string name="viewer_dismiss_only_at_min_scale_desc">開啟後，圖片放大時上下拖只平移畫面；回到開啟時的大小才能拖曳退出，避免誤觸。</string>
 </resources>

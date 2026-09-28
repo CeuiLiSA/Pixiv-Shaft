@@ -3141,5 +3141,5 @@
     <string name="viewer_dismiss_unsaved_discard">Не сохранять</string>
     <string name="viewer_dismiss_unsaved_save">Сохранить и выйти</string>
     <string name="viewer_dismiss_only_at_min_scale">Запретить смахивание при увеличении</string>
-    <string name="viewer_dismiss_only_at_min_scale_desc">Если включено, закрыть смахиванием можно только при минимальном масштабе. В увеличенном виде смахивание вверх или вниз перемещает изображение.</string>
+    <string name="viewer_dismiss_only_at_min_scale_desc">Если включено, в увеличенном виде смахивание вверх или вниз перемещает изображение. Закрыть смахиванием можно, вернув исходный размер.</string>
 </resources>

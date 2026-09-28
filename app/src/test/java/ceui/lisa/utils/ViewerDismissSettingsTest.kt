@@ -18,8 +18,8 @@ import org.robolectric.annotation.Config
  * 盯两件事：
  *  1. 默认值就是出厂手感，且必须与 `DragDismissLayout.DEFAULT_*` 对齐
  *     （另一侧的一致性断言在 `DragDismissLayoutSensitivityTest` 里）；
- *  2. Gson 反序列化老备份时新字段是 0 / false，getter 必须把越界值钳回默认，
- *     否则老用户一升级就被一个 0 阈值把页面拖坏。
+ *  2. 旧备份缺 key 时读出默认值；磁盘上的越界值（手改备份、以后收窄可调范围）
+ *     由 getter 回落默认，而不是夹到边界。
  *
  * 走 Robolectric 而不是纯 JVM：`Settings` 的 static 字段要 blankj `PathUtils` 取外部路径，
  * 没有 Android 环境时类初始化直接抛 ExceptionInInitializerError。
@@ -110,17 +110,31 @@ class ViewerDismissSettingsTest {
     }
 
     /**
-     * 老版本导出的备份里没有 `viewerDismiss*` 三个字段。Gson 用 Unsafe 建对象、不跑字段初始化器，
-     * 反序列化后它们是 0——getter 必须把它钳回默认，否则用户一升级就被 0 阈值拖坏。
+     * 老版本导出的备份里没有 `viewerDismiss*` 字段。`Settings` 有无参构造，Gson 会调用它，
+     * 字段初始化器照跑，缺的 key 就是默认值。这条同时钉住「无参构造不能删」：删了 Gson 改走
+     * Unsafe，缩放反馈会变成 0——而 0 在合法范围内，getter 兜不住，老用户会丢掉缩小反馈。
      */
     @Test
-    fun `老备份反序列化后新字段为 0，getter 回落默认`() {
+    fun `老备份缺 key 时读出默认值`() {
         val restored = Gson().fromJson("""{"themeIndex":1}""", Settings::class.java)
 
         assertEquals(Settings.VIEWER_DISMISS_DISTANCE_DEFAULT, restored.viewerDismissDistance, 0f)
         assertEquals(Settings.VIEWER_DISMISS_VELOCITY_DEFAULT, restored.viewerDismissVelocity, 0f)
         assertEquals(Settings.VIEWER_DISMISS_SCALE_SHRINK_DEFAULT, restored.viewerDismissScaleShrink, 0f)
         assertFalse(restored.isViewerDismissOnlyAtMinScale)
+    }
+
+    /** 磁盘上的越界值（手改备份 / 以后收窄范围后的残留）读出来回落默认，不夹到边界。 */
+    @Test
+    fun `磁盘上的越界值读出来回落默认`() {
+        val restored = Gson().fromJson(
+            """{"viewerDismissDistance":0.9,"viewerDismissVelocity":50,"viewerDismissScaleShrink":-1}""",
+            Settings::class.java,
+        )
+
+        assertEquals(Settings.VIEWER_DISMISS_DISTANCE_DEFAULT, restored.viewerDismissDistance, 0f)
+        assertEquals(Settings.VIEWER_DISMISS_VELOCITY_DEFAULT, restored.viewerDismissVelocity, 0f)
+        assertEquals(Settings.VIEWER_DISMISS_SCALE_SHRINK_DEFAULT, restored.viewerDismissScaleShrink, 0f)
     }
 
     /** 调过的值要能原样往返：不能在一次「存 → 读」之后悄悄变回默认。 */

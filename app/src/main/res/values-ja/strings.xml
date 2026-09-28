@@ -3129,5 +3129,5 @@
     <string name="viewer_dismiss_unsaved_discard">保存しない</string>
     <string name="viewer_dismiss_unsaved_save">保存して離れる</string>
     <string name="viewer_dismiss_only_at_min_scale">拡大中はドラッグ終了を無効化</string>
-    <string name="viewer_dismiss_only_at_min_scale_desc">オンにすると、最小倍率のときだけドラッグで閉じられます。拡大中は上下のドラッグが画面の移動になります。</string>
+    <string name="viewer_dismiss_only_at_min_scale_desc">オンにすると、拡大中は上下のドラッグが画面の移動になります。開いたときの大きさに戻すと、ドラッグで閉じられます。</string>
 </resources>
