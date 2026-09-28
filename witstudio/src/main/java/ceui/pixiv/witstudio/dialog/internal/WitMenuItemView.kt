@@ -49,6 +49,34 @@ internal class WitMenuItemView(
         gravity = Gravity.START or Gravity.CENTER_VERTICAL
     }
 
+    /**
+     * 行下方的第二行说明（加速地址连通性 / 延迟这类实时状态）。
+     *
+     * 默认 GONE：不收状态时这一行的渲染与「从来没有这个 View」完全一致 ——
+     * 52dp 最小行高、文字纵向居中、右侧勾的位置都不变，所以既有的纯菜单调用点零影响。
+     */
+    private val statusView = AppCompatTextView(context).apply {
+        visibility = GONE
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, WitDialogMetrics.MENU_ITEM_STATUS_TEXT_SP)
+        setTextColor(ContextCompat.getColor(context, R.color.wit_text_3))
+        gravity = Gravity.START or Gravity.CENTER_VERTICAL
+    }
+
+    /** 标题 + 状态的竖排文字列；两种文字都在这一列里，行内只剩「勾 / 正文字列 / 勾」三段。 */
+    private val textColumn = LinearLayout(context).apply {
+        orientation = VERTICAL
+        gravity = Gravity.CENTER_VERTICAL
+        addView(
+            textView,
+            LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
+        )
+        addView(
+            statusView,
+            LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                .apply { topMargin = WitDisplay.dp2px(context, WitDialogMetrics.MENU_ITEM_STATUS_SPACE_DP) },
+        )
+    }
+
     /** MARK 用右侧的勾，CHECK 用左侧的方框；TEXT 两个都没有。 */
     private val indicator: AppCompatImageView? = when (style) {
         Style.TEXT -> null
@@ -70,20 +98,38 @@ internal class WitMenuItemView(
         val space = WitDisplay.dp2px(context, WitDialogMetrics.MENU_MARK_SPACE_DP)
         when (style) {
             Style.TEXT -> {
-                addView(textView, LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                addView(textColumn, LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             }
             Style.MARK -> {
-                addView(textView, LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                addView(textColumn, LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
                 addView(indicator, LayoutParams(size, size).apply { marginStart = space })
             }
             Style.CHECK -> {
                 addView(indicator, LayoutParams(size, size).apply { marginEnd = space })
-                addView(textView, LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                addView(textColumn, LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             }
         }
         syncIndicator()
 
         setOnClickListener { listener?.onClick(menuIndex) }
+    }
+
+    /**
+     * 设置 / 清空副标题。传 null 或空串即收起（行高回到单行）。
+     *
+     * [colorInt] 为 null 时用默认的 `wit_text_3`；调用方要给「可达 / 不可达」上色就传自己的语义色。
+     */
+    fun setStatus(text: CharSequence?, colorInt: Int?) {
+        if (text.isNullOrEmpty()) {
+            // 连文字一起清掉，不只是 GONE：GONE 的 View 不渲染，但留着上一轮的状态文本，
+            // 「这行现在有没有副标题」在视图树里就读不出来了（复用时会被旧文字误导）。
+            statusView.text = null
+            statusView.visibility = GONE
+            return
+        }
+        statusView.text = text
+        statusView.setTextColor(colorInt ?: ContextCompat.getColor(context, R.color.wit_text_3))
+        statusView.visibility = VISIBLE
     }
 
     fun setListener(listener: OnItemClick?) {

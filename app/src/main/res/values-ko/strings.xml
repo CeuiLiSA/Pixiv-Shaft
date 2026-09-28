@@ -2589,6 +2589,19 @@
     <string name="app_api_proxy_tip">프록시 루트 주소를 https:// 접두사와 함께 입력하세요. 요청은 자동으로 /pixiv-app-api 및 /pixiv-oauth 경로로 전달됩니다. 비우면 프록시를 사용하지 않습니다.</string>
     <string name="app_api_proxy_help_desc">프록시 사용 설명 및 보안 안내</string>
     <string name="app_api_proxy_warning">보안 안내: 프록시를 켜면 계정 토큰(Authorization)이 프록시 서버를 거칩니다. 신뢰할 수 없는 프록시는 이를 이용해 계정을 탈취할 수 있습니다. 직접 구축했거나 완전히 신뢰하는 프록시만 사용하세요.\n\n직접 구축(PxveAPI):\n· 원본 프로젝트(Deno): github.com/asadahimeka/pxve-api\n· Vercel 배포판(Node 이식): github.com/susulqx/pxve-api\n배포한 뒤 위 입력란에 프록시 도메인을 입력하세요.</string>
+    <!-- GitHub 가속 주소(gh-proxy 계열): https://*.github.com 의 https:// 앞에 삽입 -->
+    <string name="github_proxy_title">GitHub 가속 주소</string>
+    <string name="github_proxy_summary">GitHub에서 받는 리소스(업데이트·모델·스티커)를 가속합니다. 다른 요청에는 영향을 주지 않습니다</string>
+    <string name="github_proxy_none">사용 안 함</string>
+    <string name="github_proxy_custom">사용자 지정 주소</string>
+    <string name="github_proxy_custom_hint">https://가속 주소</string>
+    <string name="github_proxy_invalid">주소가 올바르지 않습니다: https:// 도메인이어야 하며 쿼리나 #프래그먼트를 포함할 수 없습니다</string>
+    <string name="github_proxy_test_desc">네트워크 테스트</string>
+    <string name="github_proxy_help_desc">설명</string>
+    <string name="github_proxy_test_testing">테스트 중…</string>
+    <string name="github_proxy_test_ok">연결 가능 · %1$dms</string>
+    <string name="github_proxy_test_http">이상 · HTTP %1$d · %2$dms</string>
+    <string name="github_proxy_test_fail">연결 불가 · %1$s</string>
     <string name="comment_emoji_picker">이모티콘</string>
     <string name="comment_emoji_tab_kaomoji">이모티콘</string>
     <string name="comment_emoji_tab_stamp">스티커</string>

@@ -62,6 +62,19 @@ internal object WitDialogMetrics {
     const val MENU_MARK_SIZE_DP: Int = 22
     const val MENU_MARK_SPACE_DP: Int = 12
 
+    /** 菜单行下方的副标题（连通性 / 延迟这类实时状态）。收起时行高与从前完全一致。 */
+    const val MENU_ITEM_STATUS_TEXT_SP: Float = 12f
+    const val MENU_ITEM_STATUS_SPACE_DP: Int = 2
+
+    /** 菜单顶部的可折叠说明行（配合标题栏那颗问号图标）。默认收起，收起时不建视图。 */
+    const val MENU_HINT_TEXT_SP: Float = 13f
+    const val MENU_HINT_PADDING_TOP_DP: Int = 2
+    const val MENU_HINT_PADDING_BOTTOM_DP: Int = 6
+
+    /** 标题栏右侧图标：【24dp 图形 + 8dp 内衬 = 40dp 热区】，图形右缘落在 24dp 栏距上。 */
+    const val TITLE_ACTION_GRAPHIC_DP: Int = 24
+    const val TITLE_ACTION_PADDING_DP: Int = 8
+
     /** 菜单容器上下留白。有标题 / 有按钮时各自收窄，避免出现双份留白。 */
     const val MENU_CONTAINER_PADDING_VERTICAL_DP: Int = 12
     const val MENU_CONTAINER_PADDING_TOP_WHEN_TITLE_DP: Int = 4

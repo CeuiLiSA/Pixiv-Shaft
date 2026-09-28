@@ -2589,6 +2589,19 @@
     <string name="app_api_proxy_tip">Укажите корневой адрес прокси с префиксом https://. Запросы будут автоматически перенаправлены на пути /pixiv-app-api и /pixiv-oauth. Очистите поле, чтобы отключить прокси.</string>
     <string name="app_api_proxy_help_desc">Описание прокси и предупреждение о безопасности</string>
     <string name="app_api_proxy_warning">Предупреждение: при включённом прокси токен аккаунта (Authorization) проходит через прокси-сервер. Ненадёжный прокси может таким образом украсть ваш аккаунт. Используйте только собственный или полностью доверенный прокси.\n\nСвой сервер (PxveAPI):\n· Исходный проект (Deno): github.com/asadahimeka/pxve-api\n· Развёртывание на Vercel (порт на Node): github.com/susulqx/pxve-api\nПосле развёртывания укажите домен прокси в поле выше.</string>
+    <!-- Ускоритель GitHub (в стиле gh-proxy): вставляется перед https:// в https://*.github.com -->
+    <string name="github_proxy_title">Ускоритель GitHub</string>
+    <string name="github_proxy_summary">Ускоряет ресурсы, загружаемые с GitHub (обновления, модели, стикеры); на остальные запросы не влияет</string>
+    <string name="github_proxy_none">Не использовать</string>
+    <string name="github_proxy_custom">Свой адрес</string>
+    <string name="github_proxy_custom_hint">https://адрес-ускорителя</string>
+    <string name="github_proxy_invalid">Неверный адрес ускорителя: требуется домен https:// без строки запроса и #фрагмента</string>
+    <string name="github_proxy_test_desc">Проверка сети</string>
+    <string name="github_proxy_help_desc">Справка</string>
+    <string name="github_proxy_test_testing">Проверка…</string>
+    <string name="github_proxy_test_ok">Доступно · %1$dмс</string>
+    <string name="github_proxy_test_http">Ошибка · HTTP %1$d · %2$dмс</string>
+    <string name="github_proxy_test_fail">Недоступно · %1$s</string>
     <string name="comment_emoji_picker">Эмодзи</string>
     <string name="comment_emoji_tab_kaomoji">Эмодзи</string>
     <string name="comment_emoji_tab_stamp">Стикеры</string>

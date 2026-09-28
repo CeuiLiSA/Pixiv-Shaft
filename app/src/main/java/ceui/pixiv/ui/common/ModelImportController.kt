@@ -8,6 +8,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
+import ceui.lisa.http.GithubProxy
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -94,7 +95,9 @@ class ModelImportController(
     }
 
     private fun copyLink(ctx: Context, model: DownloadableModel) {
-        val url = model.downloadUrl ?: return
+        // 复制出去的是「当前设置下真能下到」的那条地址：加速地址跟着一起带上，
+        // 否则在被墙的网络里用户拿原始 GitHub 链接去浏览器照样下不动。
+        val url = GithubProxy.wrap(model.downloadUrl ?: return)
         if (ClipBoardUtils.setPrimaryClip(ctx, ClipData.newPlainText("model-download-link", url))) {
             Common.showToast(ctx.getString(R.string.msg_link_copied))
         }

@@ -1,6 +1,7 @@
 package ceui.lisa.update
 
 import ceui.lisa.BuildConfig
+import ceui.lisa.http.GithubProxy
 import ceui.lisa.http.Retro
 import com.google.gson.GsonBuilder
 import com.tencent.mmkv.MMKV
@@ -20,8 +21,13 @@ object AppUpdateChecker {
     private val api: GitHubApi by lazy {
         val client = Retro.getLogClient()
             .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
+                val original = chain.request()
+                // 从 GitHub 拉取的请求统一在这里插一次加速前缀（「不使用」时原样返回，见 GithubProxy）。
+                // 放在拦截器而不是改 BASE_URL：baseUrl 是构建期定死的，用户改完加速地址就得
+                // 重建这个 Retrofit；拦截器每次请求现读设置，改完立刻生效。
+                val request = original.newBuilder()
                     .header("Accept", "application/vnd.github+json")
+                    .url(GithubProxy.wrap(original.url))
                     .build()
                 chain.proceed(request)
             }

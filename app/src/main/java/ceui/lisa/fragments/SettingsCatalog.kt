@@ -77,6 +77,7 @@ object SettingsCatalog {
         add(Entry(NETWORK, "direct_connect_rela", R.string.open_direct_connection, R.string.see_pixiv_ez, keywords = "直连 代理 免代理 翻墙 梯子 vpn sni direct proxy"))
         add(Entry(NETWORK, "use_secure_dns_rela", R.string.use_secure_dns_title, R.string.use_secure_dns_summary, keywords = "dns doh cloudflare 域名解析 加密dns"))
         add(Entry(NETWORK, "image_host_rela", R.string.image_host_title, keywords = "图片代理 加速 反代 镜像 自定义域名 pixiv.cat pixiv.re pximg image proxy mirror"))
+        add(Entry(NETWORK, "github_proxy_rela", R.string.github_proxy_title, R.string.github_proxy_summary, keywords = "github 加速 加速地址 加速站 代理 镜像 更新 下载 模型 表情包 gh-proxy proxy mirror accelerator"))
         add(Entry(NETWORK, "show_large_thumbnail_image_rela", R.string.string_450, R.string.string_334, keywords = "缩略图 大图 画质 流量 省流 加载速度 thumbnail"))
         add(Entry(NETWORK, "show_original_preview_image_rela", R.string.string_413, R.string.string_334, keywords = "原图 高清 画质 详情大图 加载 original"))
 

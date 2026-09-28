@@ -95,7 +95,9 @@ class MainImagePickerTest {
         val label = (dialog.window!!.decorView as ViewGroup).descendants
             .filterIsInstance<TextView>()
             .single { it.text.toString() == MainActivity.ALL_SELECT_WAY[which] }
-        assertTrue((label.parent as View).performClick())
+        // 菜单行是文字的最近可点击祖先：文字与行之间可能隔着副标题列，不能写死 parent。
+        val row = generateSequence(label as View) { it.parent as? View }.first { it.isClickable }
+        assertTrue(row.performClick())
         return dialog
     }
 

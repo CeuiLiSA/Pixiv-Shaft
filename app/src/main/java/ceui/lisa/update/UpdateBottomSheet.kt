@@ -23,6 +23,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
+import ceui.lisa.http.GithubProxy
 import ceui.lisa.utils.Common
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -150,7 +151,8 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
 
         if (apkFile.exists()) apkFile.delete()
 
-        val request = DownloadManager.Request(Uri.parse(asset.downloadUrl))
+        // APK 资产地址来自 GitHub API，加速地址在这里插一次（「不使用」时原样返回）。
+        val request = DownloadManager.Request(Uri.parse(GithubProxy.wrap(asset.downloadUrl)))
             .setTitle(getString(R.string.update_download_title))
             .setDescription("Shaft $tag")
             .setDestinationInExternalFilesDir(ctx, Environment.DIRECTORY_DOWNLOADS, APK_FILE_NAME)

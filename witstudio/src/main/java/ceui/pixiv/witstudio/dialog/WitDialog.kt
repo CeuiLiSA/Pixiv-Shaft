@@ -308,6 +308,10 @@ public class WitDialog @JvmOverloads constructor(
         private val items = mutableListOf<Pair<CharSequence, DialogInterface.OnClickListener?>>()
         private val itemViews = mutableListOf<WitMenuItemView>()
 
+        private var mHint: CharSequence? = null
+        private var mHintView: AppCompatTextView? = null
+        private var mHintExpanded: Boolean = false
+
         @Suppress("UNCHECKED_CAST")
         private fun selfMenu(): T = this as T
 
@@ -336,6 +340,44 @@ public class WitDialog @JvmOverloads constructor(
             itemViews.getOrNull(index)?.isChecked = checked
         }
 
+        /**
+         * 给第 [index] 行挂一行副标题（连通性 / 延迟这类实时状态），传 null 即收起。
+         *
+         * ⚠️ 行视图是在 [onCreateContent] 里才建出来的，所以**必须在 `create()` 之后调用**；
+         * 在那之前调等于什么都没做（不抛异常，静默无效）。
+         */
+        public fun setItemStatus(index: Int, text: CharSequence?, colorInt: Int? = null): T =
+            selfMenu().also { itemViews.getOrNull(index)?.setStatus(text, colorInt) }
+
+        /**
+         * 菜单顶部一行**可折叠**说明，默认收起 —— 配标题栏那颗问号图标用。
+         *
+         * 先例是「预测性返回」弹窗里的 `?`（`dialog_predictive_back.xml` 的 `pb_help` 与
+         * `pb_help_text`）：解释文字平时不占留白，点开才出现。这里把那条交互收进弹窗套件，
+         * 于是宿主只要 [setHintExpanded] 一下，不用自己往菜单内容里塞 View。
+         *
+         * 传 null / 空串即整行不存在：内容区与从前逐像素一致。
+         */
+        public fun setCollapsibleHint(text: CharSequence?): T = selfMenu().also {
+            mHint = text
+            mHintView?.text = text
+            syncHint()
+        }
+
+        /** 展开 / 收起说明行；没有说明行时是 no-op。 */
+        public fun setHintExpanded(expanded: Boolean): T = selfMenu().also {
+            mHintExpanded = expanded
+            syncHint()
+        }
+
+        /** 说明行当前是否**真的**展开着（没设说明、或说明是空串时恒为 false）。 */
+        public val isHintExpanded: Boolean get() = mHintView?.visibility == View.VISIBLE
+
+        private fun syncHint() {
+            val view = mHintView ?: return
+            view.visibility = if (mHintExpanded && !mHint.isNullOrEmpty()) View.VISIBLE else View.GONE
+        }
+
         override fun onCreateContent(
             dialog: WitDialog,
             parent: WitDialogView,
@@ -353,6 +395,32 @@ public class WitDialog @JvmOverloads constructor(
                 else WitDialogMetrics.MENU_CONTAINER_PADDING_VERTICAL_DP,
             )
             layout.setPadding(0, padTop, 0, padBottom)
+
+            // 可折叠说明：默认 GONE 且是内容列的第一个孩子，展开时顶在菜单之上。
+            mHintView = mHint?.takeIf { it.isNotEmpty() }?.let { hint ->
+                AppCompatTextView(context).apply {
+                    text = hint
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, WitDialogMetrics.MENU_HINT_TEXT_SP)
+                    setTextColor(ContextCompat.getColor(context, R.color.wit_text_2))
+                    val padH = WitDisplay.dp2px(context, WitDialogMetrics.PADDING_HORIZONTAL_DP)
+                    setPadding(
+                        padH,
+                        WitDisplay.dp2px(context, WitDialogMetrics.MENU_HINT_PADDING_TOP_DP),
+                        padH,
+                        WitDisplay.dp2px(context, WitDialogMetrics.MENU_HINT_PADDING_BOTTOM_DP),
+                    )
+                    visibility = View.GONE
+                }.also { view ->
+                    layout.addView(
+                        view,
+                        LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ),
+                    )
+                }
+            }
+            syncHint()
 
             itemViews.clear()
             val itemHeight = WitDisplay.dp2px(context, WitDialogMetrics.MENU_ITEM_HEIGHT_DP)

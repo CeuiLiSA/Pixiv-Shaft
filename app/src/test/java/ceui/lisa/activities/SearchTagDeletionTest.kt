@@ -109,7 +109,9 @@ class SearchTagDeletionTest {
         val menu = ShadowDialog.getLatestDialog()
         val menuText = (menu.window!!.decorView as ViewGroup).descendants.filterIsInstance<TextView>()
             .first { it.text == host.getString(R.string.tag_action_delete) }
-        (if (menuText.isClickable) menuText else menuText.parent as android.view.View).performClick()
+        // 菜单行是文字的最近可点击祖先：文字与行之间可能隔着副标题列，不能写死 parent。
+        generateSequence(menuText as android.view.View) { it.parent as? android.view.View }
+            .first { it.isClickable }.performClick()
         assertFalse(menu.isShowing)
         val confirmation = latestConfirmation()
         assertEquals(listOf("keep", "remove"), chips)

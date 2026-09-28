@@ -3,6 +3,7 @@ package ceui.pixiv.ui.common
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import ceui.lisa.http.GithubProxy
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
@@ -15,7 +16,6 @@ import java.io.FileOutputStream
 import java.io.RandomAccessFile
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
-import kotlin.coroutines.coroutineContext
 
 abstract class ModelDownloadManager {
 
@@ -48,7 +48,8 @@ abstract class ModelDownloadManager {
         val url = model.downloadUrl ?: return@withContext false
         val tempZip = File(context.cacheDir, "model_dl_${model.assetDir}.zip")
         try {
-            val request = Request.Builder().url(url).build()
+            // 模型包都托管在 GitHub release 上：加速地址在这里插一次（「不使用」时原样返回）。
+            val request = Request.Builder().url(GithubProxy.wrap(url)).build()
             val response = client.newCall(request).execute()
 
             if (!response.isSuccessful) {
