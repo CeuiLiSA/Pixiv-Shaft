@@ -70,8 +70,31 @@ class ViewerDismissTuningFragment : Fragment(R.layout.fragment_viewer_dismiss_tu
         binding.viewerDismissResetBtn.setOnClickListener { resetToDefault() }
         binding.viewerDismissSaveBtn.setOnClickListener { save() }
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backCallback)
-        saved = currentSnapshot()
+        // 改动住在内存 Settings 里、不随 Fragment 重建消失：旋转 / 切深色后若拿当前值当快照，
+        // 未保存改动会被当成已保存，返回不再质询，还会被其他设置页的 Local.setSettings 顺手落盘。
+        saved = savedInstanceState?.restoreSnapshot() ?: currentSnapshot()
         refreshBackCallback()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        saved?.let { snap ->
+            outState.putFloatArray(
+                STATE_SAVED_VALUES,
+                floatArrayOf(snap.distance, snap.velocity, snap.scaleShrink),
+            )
+            outState.putBoolean(STATE_SAVED_ONLY_AT_MIN_SCALE, snap.onlyAtMinScale)
+        }
+    }
+
+    private fun Bundle.restoreSnapshot(): ViewerDismissSnapshot? {
+        val values = getFloatArray(STATE_SAVED_VALUES)?.takeIf { it.size == 3 } ?: return null
+        return ViewerDismissSnapshot(
+            values[0],
+            values[1],
+            values[2],
+            getBoolean(STATE_SAVED_ONLY_AT_MIN_SCALE),
+        )
     }
 
     private fun setUpToolbar() {
@@ -288,5 +311,7 @@ class ViewerDismissTuningFragment : Fragment(R.layout.fragment_viewer_dismiss_tu
 
     private companion object {
         const val PRIME_SQUARE_DIR = "prime_square"
+        const val STATE_SAVED_VALUES = "viewer_dismiss_saved_values"
+        const val STATE_SAVED_ONLY_AT_MIN_SCALE = "viewer_dismiss_saved_only_at_min_scale"
     }
 }

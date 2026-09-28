@@ -8,7 +8,7 @@ import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.ActivityViewerDismissTestBinding
 import ceui.lisa.helper.ImageViewerTransition
-import ceui.lisa.helper.isAtMinScale
+import ceui.lisa.helper.isAtInitialScale
 import ceui.lisa.view.DragDismissLayout
 import com.github.panpf.sketch.loadImage
 
@@ -72,7 +72,7 @@ class ViewerDismissTestActivity : BaseActivity<ActivityViewerDismissTestBinding?
                 override fun canStartDismissDrag(direction: DragDismissLayout.Direction): Boolean {
                     // 与 FragmentImageDetail.canSwipeToDismiss 同一判定：图片已到顶（上拉）/
                     // 已到底（下拉）才让父布局接管，否则手势留给图片自己平移。
-                    if (Shaft.sSettings.isViewerDismissOnlyAtMinScale && !image.isAtMinScale()) return false
+                    if (Shaft.sSettings.isViewerDismissOnlyAtMinScale && !image.isAtInitialScale()) return false
                     val scrollDirection =
                         when (direction) {
                             DragDismissLayout.Direction.UP -> 1
