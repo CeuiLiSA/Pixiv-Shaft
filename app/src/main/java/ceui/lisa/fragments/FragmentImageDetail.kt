@@ -20,6 +20,7 @@ import ceui.lisa.activities.ImageTranslationViewModel
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentImageDetailBinding
 import ceui.lisa.download.IllustDownload
+import ceui.lisa.helper.isAtMinScale
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.Settings
 import ceui.lisa.view.DragDismissLayout
@@ -244,6 +245,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     fun canSwipeToDismiss(direction: DragDismissLayout.Direction): Boolean {
         if (view == null || baseBind == null) return false
         if (baseBind.manualSelectionOverlay.visibility == View.VISIBLE) return false
+        // 「放大大图后禁用拖动退出」：开启后只有最小缩放时才允许起手退出，
+        // 放大状态下的上下拖留给画面平移，避免误触退出。
+        if (Shaft.sSettings.isViewerDismissOnlyAtMinScale && !gestureImage.isAtMinScale()) return false
         val scrollDirection =
             when (direction) {
                 DragDismissLayout.Direction.UP -> 1

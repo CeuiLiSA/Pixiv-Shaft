@@ -322,6 +322,26 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
+                    <!-- 大图拖动退出控制：点击进入灵敏度测试页（三个阈值实时体验与调节） -->
+                    <RelativeLayout
+                        android:id="@+id/viewer_dismiss_tuning_rela"
+                        style="@style/M3SetRow"
+                        android:background="@drawable/wit_row_mid">
+
+                        <LinearLayout
+                            style="@style/M3SetTexts"
+                            android:layout_marginEnd="130dp">
+
+                            <TextView
+                                android:id="@+id/viewer_dismiss_tuning_title"
+                                style="@style/M3SetTitle"
+                                android:text="@string/viewer_dismiss_tuning_title" />
+                        </LinearLayout>
+
+                        <TextView style="@style/M3SetArrow" />
+
+                    </RelativeLayout>
+
                     <RelativeLayout
                         android:id="@+id/double_tap_zoom_mode_rela"
                         style="@style/M3SetRow"

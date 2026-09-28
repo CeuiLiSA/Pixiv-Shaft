@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <!-- 与 activity_image_detail.xml 同构：根布局 = 竖向拖拽关闭手势层，黑底画在它身上，
+         透明窗口下由转场/拖拽驱动其 alpha。区别只是内容从 ViewPager 换成单张测试图，
+         手势判定与转场（DragDismissLayout + ImageViewerTransition）和真实二级大图页完全共用。 -->
+    <ceui.lisa.view.DragDismissLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black">
+
+        <com.github.panpf.zoomimage.SketchZoomImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter" />
+
+    </ceui.lisa.view.DragDismissLayout>
+</layout>

@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  大图拖动退出控制（测试页）：工具栏 → 测试用图（点进精简大图页）→ 三个灵敏度调节条 →
+  恢复默认 / 保存。拖拽退出的手感由精简大图页与真实二级大图页共用同一套
+  DragDismissLayout + ImageViewerTransition，这里只负责调参与试。
+
+  视觉沿用 V3 设置页配方：v3_bg 底 + bg_v3_card 卡片 + 胶囊动作，与
+  AiTranslateSettingsFragment 同一套零件（含未保存返回质询）。
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg">
+
+    <include
+        android:id="@+id/toolbar_layout"
+        layout="@layout/toolbar_layout" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_layout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="32dp">
+
+            <!-- 说明 + 测试用图 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_v3_card"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/textMontserratBold"
+                    android:text="@string/viewer_dismiss_tuning_title"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:lineSpacingMultiplier="1.35"
+                    android:text="@string/viewer_dismiss_tuning_intro"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="13sp" />
+
+                <ImageView
+                    android:id="@+id/viewer_dismiss_test_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_v3_chip"
+                    android:clickable="true"
+                    android:contentDescription="@string/viewer_dismiss_tuning_image_desc"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:scaleType="centerCrop" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/viewer_dismiss_tuning_image_hint"
+                    android:textColor="@color/v3_text_3"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+            <!-- 拖动退出的前置条件 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_v3_card"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/viewer_dismiss_only_at_min_scale"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="16sp" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/viewer_dismiss_only_at_min_scale"
+                        style="@style/M3SetSwitch" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:lineSpacingMultiplier="1.3"
+                    android:text="@string/viewer_dismiss_only_at_min_scale_desc"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+            <!-- 三个灵敏度调节条 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_v3_card"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="@string/viewer_dismiss_section_tuning"
+                    android:textColor="@color/v3_text_1"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:lineSpacingMultiplier="1.3"
+                    android:text="@string/viewer_dismiss_section_tuning_desc"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="12sp" />
+
+                <!-- 拖动距离阈值 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:minHeight="52dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:minWidth="76dp"
+                        android:text="@string/viewer_dismiss_distance_label"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="14sp" />
+
+                    <SeekBar
+                        android:id="@+id/viewer_dismiss_distance_seek"
+                        style="@style/Widget.Reader.Slider"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:saveEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/viewer_dismiss_distance_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:maxLines="1"
+                        android:minWidth="56dp"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <!-- 快速外甩速度阈值 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="52dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:minWidth="76dp"
+                        android:text="@string/viewer_dismiss_velocity_label"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="14sp" />
+
+                    <SeekBar
+                        android:id="@+id/viewer_dismiss_velocity_seek"
+                        style="@style/Widget.Reader.Slider"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:saveEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/viewer_dismiss_velocity_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:maxLines="1"
+                        android:minWidth="56dp"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <!-- 拖满时的缩放反馈强度 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="52dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:minWidth="76dp"
+                        android:text="@string/viewer_dismiss_scale_label"
+                        android:textColor="@color/v3_text_1"
+                        android:textSize="14sp" />
+
+                    <SeekBar
+                        android:id="@+id/viewer_dismiss_scale_seek"
+                        style="@style/Widget.Reader.Slider"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:saveEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/viewer_dismiss_scale_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:maxLines="1"
+                        android:minWidth="56dp"
+                        android:textColor="?attr/colorPrimary"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- 恢复默认 / 保存 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:gravity="end"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/viewer_dismiss_reset_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_v3_pill_secondary"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:minHeight="44dp"
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="11dp"
+                    android:text="@string/viewer_dismiss_reset"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/viewer_dismiss_save_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_v3_pill_primary"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:minHeight="44dp"
+                    android:paddingHorizontal="22dp"
+                    android:paddingVertical="11dp"
+                    android:text="@string/viewer_dismiss_save"
+                    android:textColor="@color/white"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

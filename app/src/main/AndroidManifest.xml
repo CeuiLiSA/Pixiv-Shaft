@@ -140,6 +140,13 @@
             android:enableOnBackInvokedCallback="true"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
             android:theme="@style/ImageViewerTheme"/>
+        <!-- 「大图拖动退出控制」测试页点图后进入的精简大图页：与 ImageDetailActivity 同主题同手势，
+             只去掉下载 / 收藏胶囊、页码与 AI 入口。 -->
+        <activity
+            android:name="ceui.pixiv.ui.settings.ViewerDismissTestActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:theme="@style/ImageViewerTheme"/>
         <activity
             android:name=".activities.OutWakeActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"

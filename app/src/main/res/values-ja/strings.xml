@@ -3111,4 +3111,23 @@
     <plurals name="pinned_tag_combo_count">
         <item quantity="other">%1$d 個のタグの組み合わせ</item>
     </plurals>
+    <!-- 大画像のドラッグ終了設定（設定 → 表示）：調整ページ + 簡易ビューア。 -->
+    <string name="viewer_dismiss_tuning_title">大画像のドラッグ終了設定</string>
+    <string name="viewer_dismiss_tuning_intro">大画像ページは上下にドラッグすると閉じられます。感覚は人それぞれなので、ここで3つのしきい値を調整し、下の画像をタップしてすぐ試せます。</string>
+    <string name="viewer_dismiss_tuning_image_desc">テスト画像</string>
+    <string name="viewer_dismiss_tuning_image_hint">画像をタップして大画像を開き、上下にドラッグして終了を試す</string>
+    <string name="viewer_dismiss_section_tuning">感度</string>
+    <string name="viewer_dismiss_section_tuning_desc">変更はすぐ反映されます。上の画像をタップして試し、納得したら「保存」を押してください。</string>
+    <string name="viewer_dismiss_distance_label">ドラッグ距離</string>
+    <string name="viewer_dismiss_velocity_label">フリック速度</string>
+    <string name="viewer_dismiss_scale_label">縮小フィードバック</string>
+    <string name="viewer_dismiss_reset">デフォルトに戻す</string>
+    <string name="viewer_dismiss_save">保存</string>
+    <string name="viewer_dismiss_saved">保存しました</string>
+    <string name="viewer_dismiss_unsaved_title">未保存の変更</string>
+    <string name="viewer_dismiss_unsaved_message">感度の調整がまだ保存されていません。このまま離れると失われます。</string>
+    <string name="viewer_dismiss_unsaved_discard">保存しない</string>
+    <string name="viewer_dismiss_unsaved_save">保存して離れる</string>
+    <string name="viewer_dismiss_only_at_min_scale">拡大中はドラッグ終了を無効化</string>
+    <string name="viewer_dismiss_only_at_min_scale_desc">オンにすると、最小倍率のときだけドラッグで閉じられます。拡大中は上下のドラッグが画面の移動になります。</string>
 </resources>

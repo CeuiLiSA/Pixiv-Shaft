@@ -622,6 +622,12 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         viewerTransition = transition
         entryOrientation = resources.configuration.orientation
         rootLayout.dragTargetView = baseBind!!.viewPager
+        // 「上/下拖动退出」灵敏度走用户设置（设置 → 浏览设置 → 大图拖动退出控制）。
+        // 默认值与 DragDismissLayout.DEFAULT_* 一致，用户没调过就是原有手感。
+        val dismissSettings = Shaft.sSettings
+        rootLayout.dismissDistanceFraction = dismissSettings.viewerDismissDistance
+        rootLayout.flingDismissVelocityDp = dismissSettings.viewerDismissVelocity
+        rootLayout.maxDragScaleShrink = dismissSettings.viewerDismissScaleShrink
         rootLayout.callback =
             object : DragDismissLayout.Callback {
                 override fun canStartDismissDrag(direction: DragDismissLayout.Direction): Boolean =

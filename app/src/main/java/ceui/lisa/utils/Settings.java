@@ -1522,6 +1522,100 @@ public class Settings {
         this.useThreeLevelZoo = this.doubleTapZoomMode == DOUBLE_TAP_ZOOM_MODE_THREE_LEVEL;
     }
 
+    // ── 二级大图「上/下拖动退出」灵敏度 ──────────────────────────────────────
+    // 三个值一一对应 DragDismissLayout 的三个可注入阈值；默认值必须与
+    // DragDismissLayout.DEFAULT_* 保持一致。Gson 反序列化旧备份时新字段是 0，
+    // 所以 getter 一律带范围钳制，越界回落到默认，避免坏数据把页面拖坏。
+
+    /** 松手判定收掉的拖拽距离阈值（相对本布局高度）。越小越灵敏。 */
+    public static final float VIEWER_DISMISS_DISTANCE_DEFAULT = 0.18f;
+    public static final float VIEWER_DISMISS_DISTANCE_MIN = 0.05f;
+    public static final float VIEWER_DISMISS_DISTANCE_MAX = 0.50f;
+
+    /** 快速外甩判定收掉的速度阈值，单位 dp/s。越小越灵敏。 */
+    public static final float VIEWER_DISMISS_VELOCITY_DEFAULT = 1200f;
+    public static final float VIEWER_DISMISS_VELOCITY_MIN = 300f;
+    public static final float VIEWER_DISMISS_VELOCITY_MAX = 4000f;
+
+    /** 拖满时内容缩小比例（跟手阶段的视觉反馈强度）。越大反馈越强。 */
+    public static final float VIEWER_DISMISS_SCALE_SHRINK_DEFAULT = 0.3f;
+    public static final float VIEWER_DISMISS_SCALE_SHRINK_MIN = 0f;
+    public static final float VIEWER_DISMISS_SCALE_SHRINK_MAX = 0.6f;
+
+    private float viewerDismissDistance = VIEWER_DISMISS_DISTANCE_DEFAULT;
+
+    private float viewerDismissVelocity = VIEWER_DISMISS_VELOCITY_DEFAULT;
+
+    private float viewerDismissScaleShrink = VIEWER_DISMISS_SCALE_SHRINK_DEFAULT;
+
+    public float getViewerDismissDistance() {
+        if (viewerDismissDistance < VIEWER_DISMISS_DISTANCE_MIN
+                || viewerDismissDistance > VIEWER_DISMISS_DISTANCE_MAX) {
+            return VIEWER_DISMISS_DISTANCE_DEFAULT;
+        }
+        return viewerDismissDistance;
+    }
+
+    public void setViewerDismissDistance(float viewerDismissDistance) {
+        if (Float.isNaN(viewerDismissDistance)
+                || viewerDismissDistance < VIEWER_DISMISS_DISTANCE_MIN
+                || viewerDismissDistance > VIEWER_DISMISS_DISTANCE_MAX) {
+            this.viewerDismissDistance = VIEWER_DISMISS_DISTANCE_DEFAULT;
+        } else {
+            this.viewerDismissDistance = viewerDismissDistance;
+        }
+    }
+
+    public float getViewerDismissVelocity() {
+        if (viewerDismissVelocity < VIEWER_DISMISS_VELOCITY_MIN
+                || viewerDismissVelocity > VIEWER_DISMISS_VELOCITY_MAX) {
+            return VIEWER_DISMISS_VELOCITY_DEFAULT;
+        }
+        return viewerDismissVelocity;
+    }
+
+    public void setViewerDismissVelocity(float viewerDismissVelocity) {
+        if (Float.isNaN(viewerDismissVelocity)
+                || viewerDismissVelocity < VIEWER_DISMISS_VELOCITY_MIN
+                || viewerDismissVelocity > VIEWER_DISMISS_VELOCITY_MAX) {
+            this.viewerDismissVelocity = VIEWER_DISMISS_VELOCITY_DEFAULT;
+        } else {
+            this.viewerDismissVelocity = viewerDismissVelocity;
+        }
+    }
+
+    public float getViewerDismissScaleShrink() {
+        if (viewerDismissScaleShrink < VIEWER_DISMISS_SCALE_SHRINK_MIN
+                || viewerDismissScaleShrink > VIEWER_DISMISS_SCALE_SHRINK_MAX) {
+            return VIEWER_DISMISS_SCALE_SHRINK_DEFAULT;
+        }
+        return viewerDismissScaleShrink;
+    }
+
+    public void setViewerDismissScaleShrink(float viewerDismissScaleShrink) {
+        if (Float.isNaN(viewerDismissScaleShrink)
+                || viewerDismissScaleShrink < VIEWER_DISMISS_SCALE_SHRINK_MIN
+                || viewerDismissScaleShrink > VIEWER_DISMISS_SCALE_SHRINK_MAX) {
+            this.viewerDismissScaleShrink = VIEWER_DISMISS_SCALE_SHRINK_DEFAULT;
+        } else {
+            this.viewerDismissScaleShrink = viewerDismissScaleShrink;
+        }
+    }
+
+    /**
+     * 「放大大图后禁用拖动退出」：开启后只有最小缩放（适应视图）时才允许起手竖向拖拽退出，
+     * 放大状态下的上下拖留给画面平移，避免误触退出。boolean 默认 false，旧备份反序列化后即为关闭。
+     */
+    private boolean viewerDismissOnlyAtMinScale = false;
+
+    public boolean isViewerDismissOnlyAtMinScale() {
+        return viewerDismissOnlyAtMinScale;
+    }
+
+    public void setViewerDismissOnlyAtMinScale(boolean viewerDismissOnlyAtMinScale) {
+        this.viewerDismissOnlyAtMinScale = viewerDismissOnlyAtMinScale;
+    }
+
     @Deprecated
     public boolean isUseCustomDoubleTapZoom() {
         return useCustomDoubleTapZoom;

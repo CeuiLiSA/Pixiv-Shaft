@@ -3111,4 +3111,23 @@
     <plurals name="pinned_tag_combo_count">
         <item quantity="other">태그 %1$d개 조합</item>
     </plurals>
+    <!-- 큰 이미지 드래그 종료 설정(설정 → 보기): 조정 페이지 + 간이 뷰어. -->
+    <string name="viewer_dismiss_tuning_title">큰 이미지 드래그 종료 설정</string>
+    <string name="viewer_dismiss_tuning_intro">큰 이미지 화면에서는 위아래로 드래그하면 닫힙니다. 감도는 사람마다 다르니 여기서 세 가지 값을 조정하고, 아래 이미지를 눌러 바로 시험해 보세요.</string>
+    <string name="viewer_dismiss_tuning_image_desc">테스트 이미지</string>
+    <string name="viewer_dismiss_tuning_image_hint">이미지를 눌러 큰 이미지를 열고, 위아래로 드래그해 종료를 시험</string>
+    <string name="viewer_dismiss_section_tuning">감도</string>
+    <string name="viewer_dismiss_section_tuning_desc">변경은 즉시 적용됩니다. 위 이미지를 눌러 시험해 보고, 만족스러우면 「저장」을 누르세요.</string>
+    <string name="viewer_dismiss_distance_label">드래그 거리</string>
+    <string name="viewer_dismiss_velocity_label">튕김 속도</string>
+    <string name="viewer_dismiss_scale_label">축소 피드백</string>
+    <string name="viewer_dismiss_reset">기본값으로</string>
+    <string name="viewer_dismiss_save">저장</string>
+    <string name="viewer_dismiss_saved">저장됨</string>
+    <string name="viewer_dismiss_unsaved_title">저장되지 않은 변경</string>
+    <string name="viewer_dismiss_unsaved_message">감도 조정이 아직 저장되지 않았습니다. 그대로 나가면 사라집니다.</string>
+    <string name="viewer_dismiss_unsaved_discard">저장 안 함</string>
+    <string name="viewer_dismiss_unsaved_save">저장하고 나가기</string>
+    <string name="viewer_dismiss_only_at_min_scale">확대 시 드래그 종료 사용 안 함</string>
+    <string name="viewer_dismiss_only_at_min_scale_desc">켜면 최소 배율일 때만 드래그로 닫을 수 있습니다. 확대 상태에서는 위아래 드래그가 화면 이동이 됩니다.</string>
 </resources>
