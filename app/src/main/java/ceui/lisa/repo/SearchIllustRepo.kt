@@ -77,6 +77,10 @@ class SearchIllustRepo @JvmOverloads constructor(
     @Volatile
     private var nana7miTelemetry: Nana7miSearchTelemetry.Flow? = null
 
+    /** 本轮首屏定下的缓存容忍度，翻页沿用——翻页期间跨了午夜也不该让同一轮列表换一套规则。 */
+    @Volatile
+    private var cacheMaxAgeMs = Nana7miSearchCache.MAX_AGE_FRESH_MS
+
     /** 首屏请求。挂起点全在网络 / 借号里，调用方不必再切 IO。 */
     suspend fun initApi(): ListIllust {
         // 每轮首屏使用全新会话。即使上一轮请求取消得较晚，它也只能更新旧会话，不能把
@@ -128,6 +132,13 @@ class SearchIllustRepo @JvmOverloads constructor(
         // 投稿期间相对档当场算 today−N（每次 initApi 都重算,跨午夜窗口自动跟随今天）;
         // bucket 为空时回落到自定义起止日期
         val (effectiveStartDate, effectiveEndDate) = resolveDateRange()
+        val firstMaxAgeMs = Nana7miSearchCache.maxAgeMsFor(
+            sortType,
+            effectiveStartDate,
+            effectiveEndDate,
+            LocalDate.now(),
+        )
+        cacheMaxAgeMs = firstMaxAgeMs
 
         // 默认档「标签部分一致」不传 search_target，让标题命中也能搜到（#906）——
         // 见 [SearchTarget.toQueryValue] 注释。
@@ -355,7 +366,7 @@ class SearchIllustRepo @JvmOverloads constructor(
             key = cacheKey,
             page = Nana7miSearchCache.Page.FIRST,
             requestId = firstRequestId,
-            maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
+            maxAgeMs = firstMaxAgeMs,
             type = ListIllust::class.java,
             stage = "official_search",
             hit = { cached ->
@@ -424,7 +435,7 @@ class SearchIllustRepo @JvmOverloads constructor(
             key = cacheKey,
             page = Nana7miSearchCache.Page.NEXT,
             requestId = nextRequestId,
-            maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
+            maxAgeMs = cacheMaxAgeMs,
             type = ListIllust::class.java,
             stage = "official_search_next",
             hit = { cached ->

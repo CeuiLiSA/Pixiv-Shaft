@@ -72,6 +72,10 @@ class SearchNovelRepo @JvmOverloads constructor(
     @Volatile
     private var nana7miTelemetry: Nana7miSearchTelemetry.Flow? = null
 
+    /** 本轮首屏定下的缓存容忍度，翻页沿用——翻页期间跨了午夜也不该让同一轮列表换一套规则。 */
+    @Volatile
+    private var cacheMaxAgeMs = Nana7miSearchCache.MAX_AGE_FRESH_MS
+
     fun mapper(): ResponseMapper<ListNovel> = filterMapper
 
     /** 首屏请求。挂起点全在网络 / 借号里，调用方不必再切 IO。 */
@@ -111,6 +115,13 @@ class SearchNovelRepo @JvmOverloads constructor(
         // 投稿期间相对档当场算 today−N(每次 initApi 都重算,跨午夜窗口自动跟随今天);
         // bucket 为空时回落到自定义起止日期
         val (effectiveStartDate, effectiveEndDate) = resolveDateRange()
+        val firstMaxAgeMs = Nana7miSearchCache.maxAgeMsFor(
+            sortType,
+            effectiveStartDate,
+            effectiveEndDate,
+            LocalDate.now(),
+        )
+        cacheMaxAgeMs = firstMaxAgeMs
 
         // 小说端点与插画不同：不传 search_target 时服务端按纯字面 keyword 匹配，
         // 标签同义词/译名不展开（#1038——搜「원신」搜不到 tag「原神」的小说；插画端点
@@ -367,7 +378,7 @@ class SearchNovelRepo @JvmOverloads constructor(
             key = cacheKey,
             page = Nana7miSearchCache.Page.FIRST,
             requestId = firstRequestId,
-            maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
+            maxAgeMs = firstMaxAgeMs,
             type = ListNovel::class.java,
             stage = "novel_official_search",
             hit = { cached ->
@@ -435,7 +446,7 @@ class SearchNovelRepo @JvmOverloads constructor(
             key = cacheKey,
             page = Nana7miSearchCache.Page.NEXT,
             requestId = nextRequestId,
-            maxAgeMs = Nana7miSearchCache.maxAgeMsFor(sortType),
+            maxAgeMs = cacheMaxAgeMs,
             type = ListNovel::class.java,
             stage = "novel_official_search_next",
             hit = { cached ->

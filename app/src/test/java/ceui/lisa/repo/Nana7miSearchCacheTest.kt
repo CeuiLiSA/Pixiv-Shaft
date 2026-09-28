@@ -2,6 +2,7 @@ package ceui.lisa.repo
 
 import ceui.lisa.model.ListIllust
 import ceui.lisa.model.ListNovel
+import ceui.pixiv.ui.search.v3.DurationBucket
 import ceui.pixiv.shaftapi.Nana7miSearchCacheLookupReq
 import ceui.pixiv.shaftapi.Nana7miSearchCacheLookupResp
 import ceui.pixiv.shaftapi.Nana7miSearchCacheStoreReq
@@ -21,6 +22,7 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.time.LocalDate
 
 class Nana7miSearchCacheTest {
 
@@ -90,11 +92,41 @@ class Nana7miSearchCacheTest {
     }
 
     @Test
-    fun `popular sorts tolerate hours of staleness, date sorts only minutes`() {
-        assertEquals(12L * 3_600_000L, Nana7miSearchCache.maxAgeMsFor("popular_desc"))
-        assertEquals(12L * 3_600_000L, Nana7miSearchCache.maxAgeMsFor("popular_male_desc"))
-        assertEquals(30L * 60_000L, Nana7miSearchCache.maxAgeMsFor("date_desc"))
-        assertEquals(30L * 60_000L, Nana7miSearchCache.maxAgeMsFor(null))
+    fun `popular sort tolerance shrinks as the window reaches closer to today`() {
+        val today = LocalDate.of(2026, 9, 28)
+        fun popular(start: String?, end: String?, sort: String = "popular_desc") =
+            Nana7miSearchCache.maxAgeMsFor(sort, start, end, today)
+        val hour = 3_600_000L
+        // 点 tag 进搜索页的默认档：不限期间
+        assertEquals(7 * 24 * hour, popular(null, null))
+        assertEquals(7 * 24 * hour, popular(null, null, sort = "popular_male_desc"))
+        assertEquals("only an end bound is still all-time", 7 * 24 * hour, popular(null, "2026-09-28"))
+        // 相对档，按 DurationBucket.toDateRange 的实际输出
+        val range = { b: DurationBucket -> b.toDateRange(today) }
+        assertEquals(30 * 60_000L, range(DurationBucket.Last24Hours).let { popular(it.first, it.second) })
+        assertEquals(2 * hour, range(DurationBucket.LastWeek).let { popular(it.first, it.second) })
+        assertEquals(12 * hour, range(DurationBucket.LastMonth).let { popular(it.first, it.second) })
+        assertEquals(24 * hour, range(DurationBucket.LastHalfYear).let { popular(it.first, it.second) })
+        assertEquals(24 * hour, range(DurationBucket.LastYear).let { popular(it.first, it.second) })
+        // 自定义期间
+        assertEquals(30 * 60_000L, popular("2026-09-28", "2026-09-28"))
+        assertEquals(7 * 24 * hour, popular("2020-01-01", "2026-09-28"))
+        assertEquals("a window that closed a month ago is settled", 7 * 24 * hour, popular("2026-08-01", "2026-08-10"))
+        assertEquals(2 * hour, popular("2026-09-22", "2026-09-24"))
+        // 解析不了就最严
+        assertEquals(30 * 60_000L, popular("garbage", "2026-09-28"))
+        assertEquals(30 * 60_000L, popular(null, "garbage"))
+    }
+
+    @Test
+    fun `date sorts stay fresh unless the whole window ended over a week ago`() {
+        val today = LocalDate.of(2026, 9, 28)
+        val fresh = 30 * 60_000L
+        assertEquals(fresh, Nana7miSearchCache.maxAgeMsFor("date_desc", null, null, today))
+        assertEquals(fresh, Nana7miSearchCache.maxAgeMsFor("date_asc", "2020-01-01", null, today))
+        assertEquals(fresh, Nana7miSearchCache.maxAgeMsFor("date_desc", "2026-09-01", "2026-09-21", today))
+        assertEquals(24 * 3_600_000L, Nana7miSearchCache.maxAgeMsFor("date_desc", "2026-09-01", "2026-09-20", today))
+        assertEquals(fresh, Nana7miSearchCache.maxAgeMsFor(null, null, null, today))
     }
 
     // ── decode：命中页要能原样变回 Retrofit 会给的模型 ──

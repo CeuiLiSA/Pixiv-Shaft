@@ -20,6 +20,9 @@ import timber.log.Timber
 import java.net.URI
 import java.net.URLEncoder
 import java.security.MessageDigest
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -48,22 +51,63 @@ internal object Nana7miSearchCache {
     /** 规范串的版本前缀：改了参数拼法就升它，老 key 自然作废，不会串页。 */
     private const val KEY_VERSION = "v1"
 
-    /** 人气类排序一天里变化很小；date 排序（带喜欢数筛选才会借号）新作会往前插，容忍度低得多。 */
-    private const val MAX_AGE_POPULAR_MS = 12L * 3_600_000L
-    private const val MAX_AGE_DATE_MS = 30L * 60_000L
+    private const val HOUR_MS = 3_600_000L
+    private const val DAY_MS = 24L * HOUR_MS
+
+    /** 结果随时会变的搜索（窗口里有今天/昨天的作品、或按时间排序）：只合并几乎同时发起的同一搜索。 */
+    const val MAX_AGE_FRESH_MS = 30L * 60_000L
+
+    /** 与服务端 `SEARCH_CACHE_SERVE_MAX_AGE_MS` 同值：再长服务端也会截断。 */
+    const val MAX_AGE_STABLE_MS = 7L * DAY_MS
 
     private val gson = Gson()
     private data class FillKey(val uid: Long, val kind: Kind, val key: String)
     private val fillTokens = ConcurrentHashMap<FillKey, String>()
     private const val MAX_PENDING_FILLS = 64
 
-    fun maxAgeMsFor(sortType: String?): Long = when (sortType) {
-        PixivSearchParamUtil.POPULAR_SORT_VALUE,
-        SortType.POPULAR_MALE_DESC,
-        SortType.POPULAR_FEMALE_DESC,
-        -> MAX_AGE_POPULAR_MS
+    /**
+     * 这次搜索能接受多旧的缓存页。[startDate]/[endDate] 是**实际发出去**的 YYYY-MM-DD（相对档
+     * 已按今天算好），null = 不传。
+     *
+     * 人气排序：排名的变化速度取决于窗口里的作品有多新——刚发的作品几小时就能冲进前排，一年前的
+     * 作品一周也挪不了几位。所以按窗口往回能伸到多远分档：不限期间（点 tag 进搜索页的默认档）或
+     * 整个窗口都在一个月以前 → 7 天；近一年 → 1 天；近一月 → 12 小时；近一周 → 2 小时；
+     * 近 24 小时 → 30 分钟。窗口以今天结尾时 key 本身带日期、跨天自然换 key，这里只管当天之内。
+     *
+     * 时间排序（非会员只有带喜欢数筛选才会借号）：列表头就是最新的作品，窗口伸到最近一周的一律
+     * 30 分钟；只有整个窗口已经结束一周以上才放宽到 1 天（新作进不来，只剩跨过喜欢数门槛的零星插入）。
+     *
+     * 日期解析不了就按最严的一档处理：宁可少命中，不给出逻辑不对的结果。
+     */
+    fun maxAgeMsFor(
+        sortType: String?,
+        startDate: String?,
+        endDate: String?,
+        today: LocalDate,
+    ): Long {
+        val daysSinceEnd = if (endDate == null) 0L else daysBefore(endDate, today) ?: return MAX_AGE_FRESH_MS
+        val popular = sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE ||
+                sortType == SortType.POPULAR_MALE_DESC ||
+                sortType == SortType.POPULAR_FEMALE_DESC
+        if (!popular) {
+            return if (endDate != null && daysSinceEnd > 7) DAY_MS else MAX_AGE_FRESH_MS
+        }
+        if (startDate == null || daysSinceEnd >= 30) return MAX_AGE_STABLE_MS
+        val daysSinceStart = daysBefore(startDate, today) ?: return MAX_AGE_FRESH_MS
+        return when {
+            daysSinceStart <= 2 -> MAX_AGE_FRESH_MS
+            daysSinceStart <= 8 -> 2L * HOUR_MS
+            daysSinceStart <= 32 -> 12L * HOUR_MS
+            daysSinceStart <= 366 -> DAY_MS
+            else -> MAX_AGE_STABLE_MS
+        }
+    }
 
-        else -> MAX_AGE_DATE_MS
+    /** [date] 在 [today] 之前多少天（未来日期为负）；不是 YYYY-MM-DD 返回 null。 */
+    private fun daysBefore(date: String, today: LocalDate): Long? = try {
+        ChronoUnit.DAYS.between(LocalDate.parse(date), today)
+    } catch (_: DateTimeParseException) {
+        null
     }
 
     /**
@@ -166,11 +210,12 @@ internal object Nana7miSearchCache {
             fillTokens[fillKey] = body.storeToken
         }
         Timber.tag(LOG_TAG).d(
-            "stage=%s cache=%s key=%s age_ms=%s",
+            "stage=%s cache=%s key=%s age_ms=%s max_age_ms=%d",
             stage,
             if (decoded != null) "hit" else "miss",
             key.take(12),
             body?.ageMs?.toString() ?: "-",
+            maxAgeMs,
         )
         return decoded
     }
