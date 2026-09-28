@@ -201,7 +201,7 @@ class AuthorTagMenuTest {
     private fun menuAction(dialog: Dialog, label: Int): View? =
         (dialog.window!!.decorView as ViewGroup).descendants.filterIsInstance<TextView>()
             .firstOrNull { it.text.toString() == host.getString(label) }
-            ?.let { if (it.isClickable) it else it.parent as? View }
+            ?.clickableRow()
 
     @Test
     fun `independent translation colors stay readable on the host theme`() {
@@ -309,7 +309,7 @@ class AuthorTagMenuTest {
                         .filterIsInstance<TextView>().first {
                             it.text == context.getString(R.string.tag_menu_author_works)
                         }
-                    val row = text.parent as ViewGroup
+                    val row = text.clickableRow()!!
                     assertTrue("$language, night=$night, scale=$scale: row outside menu",
                         row.left >= 0 && row.right <= (row.parent as View).width)
                     assertTrue("$language, night=$night, scale=$scale: text clipped",
@@ -337,11 +337,15 @@ class AuthorTagMenuTest {
         return ShadowDialog.getLatestDialog()
     }
 
+    /** 菜单行是文字的最近可点击祖先；文字与行之间可能隔着副标题列，不能写死 `parent`。 */
+    private fun View.clickableRow(): View? =
+        generateSequence(this) { it.parent as? View }.firstOrNull { it.isClickable }
+
     private fun authorAction(dialog: Dialog): View? =
         (dialog.window!!.decorView as ViewGroup).descendants
             .filterIsInstance<TextView>()
             .firstOrNull { it.text == host.getString(R.string.tag_menu_author_works) }
-            ?.let { if (it.isClickable) it else it.parent as? View }
+            ?.clickableRow()
 
     private fun work(type: String) = Illust(
         id = 1102L, type = type, user = User(id = 3_000_000_001L),
