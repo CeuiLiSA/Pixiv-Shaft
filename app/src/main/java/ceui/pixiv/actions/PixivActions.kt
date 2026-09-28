@@ -421,6 +421,28 @@ object PixivActions {
         )
     }
 
+    /**
+     * 已关注的人在公开关注 ↔ 悄悄关注之间切换（#1166，「已关注」按钮长按）。
+     *
+     * pixiv 没有单独的改可见性接口，`user/follow/add` 带新 restrict 重发一次即可。
+     * 和 [setUserFollow] 共用 dedupeKey，与同一人的关注 / 取关仍是「只留最后一次」。
+     * 只动可见性：`is_followed` 本来就是 true，UI 靠 [FollowVisibility.changes] 重绘。
+     */
+    fun switchFollowVisibility(userId: Long) {
+        val restrict =
+            if (FollowVisibility.isPrivate(userId)) Params.TYPE_PUBLIC else Params.TYPE_PRIVATE
+        FollowVisibility.writeLocal(userId, restrict)
+        actionQueue.enqueue(
+            ActionRequest(
+                type = PixivActionTypes.USER_FOLLOW,
+                dedupeKey = "${PixivActionTypes.USER_FOLLOW}:$userId",
+                payload = Shaft.sGson.toJson(
+                    FollowPayload(userId, follow = true, restrict = restrict, visibilityOnly = true)
+                ),
+            )
+        )
+    }
+
     // ── 本地状态写入（乐观更新与队列回滚共用同一份，保证两边覆盖的表示完全一致）──────
 
     /**

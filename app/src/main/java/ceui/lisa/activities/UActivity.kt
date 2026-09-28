@@ -124,6 +124,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
                 unfollowUser(it, userId)
             }
             baseBind.unfollow.setOnLongClickListener {
+                PixivActions.switchFollowVisibility(userId)
                 true
             }
         } else {

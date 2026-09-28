@@ -359,6 +359,10 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.unfollow.setOnClick {
                 unfollowUser(it, userId)
             }
+            baseBind.unfollow.setOnLongClickListener {
+                PixivActions.switchFollowVisibility(userId)
+                true
+            }
         } else {
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true

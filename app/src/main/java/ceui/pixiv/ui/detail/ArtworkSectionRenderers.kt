@@ -557,8 +557,9 @@ private fun ArtworkV3Fragment.bindArtistFollowState(
         b.followBtn.text = ctx.getString(followedLabelRes(userId))
         palette.applyUnfollowBtn(b.followBtn)
         b.followBtn.setOnClick { unfollowUser(it as ProgressTextButton, userId) }
-        b.followBtn.setOnLongClickListener(null)
-        b.followBtn.isLongClickable = false
+        b.followBtn.setOnLongClickListener {
+            PixivActions.switchFollowVisibility(userId); true
+        }
     } else {
         b.followBtn.text = ctx.getString(R.string.follow)
         palette.applyFollowBtn(b.followBtn)

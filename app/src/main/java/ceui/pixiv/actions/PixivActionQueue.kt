@@ -304,6 +304,11 @@ class PixivActionQueue(app: Context) {
 
             PixivActionTypes.USER_FOLLOW -> {
                 val payload = action.parsePayload<FollowPayload>() ?: return unparsable(action)
+                if (payload.visibilityOnly) {
+                    // 只是换了可见性，不是新关注：不埋点、不再给画像加一次关注分，镜像换书架即可。
+                    syncFollowMirror(payload)
+                    return
+                }
                 // reportFollowUser 自己做 ObjectPool 命中→getUserProfile 兜底的解析，
                 // 调用方不用先把 User 取到手 —— 省掉了 UActivity 里那次「等 profile 回来
                 // 才敢关注」的等待，那期间页面被销毁的话意图就丢了。
@@ -418,6 +423,12 @@ class PixivActionQueue(app: Context) {
 
             PixivActionTypes.USER_FOLLOW -> {
                 val payload = action.parsePayload<FollowPayload>() ?: return unparsable(action)
+                if (payload.visibilityOnly) {
+                    // 关注本身没动过，只有可见性要退回「不知道」—— 回滚成取关就把人弄丢了。
+                    FollowVisibility.clearLocal(payload.userId)
+                    Common.showToast(app.getString(R.string.msg_operation_fail, event.reason))
+                    return
+                }
                 val user = ObjectPool.get<User>(payload.userId).value
                 // 与收藏那支同样的守卫：当前关注态已经不是我们乐观写进去的那个值时就别动它
                 //（提示照弹 —— 用户仍然需要知道这次关注没成）。

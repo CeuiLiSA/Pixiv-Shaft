@@ -463,7 +463,10 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             baseBind.unfollow.isVisible = true
             baseBind.unfollow.text = getString(followedLabelRes(userId))
             baseBind.unfollow.setOnClick { unfollowUser(it, userId) }
-            baseBind.unfollow.setOnLongClickListener { true }
+            baseBind.unfollow.setOnLongClickListener {
+                PixivActions.switchFollowVisibility(userId)
+                true
+            }
         } else {
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true

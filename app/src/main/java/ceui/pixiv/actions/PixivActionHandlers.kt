@@ -42,6 +42,8 @@ internal data class FollowPayload(
     val userId: Long,
     val follow: Boolean,
     val restrict: String,
+    /** 已关注的人只改公开 / 悄悄可见性（#1166）：不是一次新关注，成功不埋点，失败只退可见性。 */
+    val visibilityOnly: Boolean = false,
 )
 
 /**
