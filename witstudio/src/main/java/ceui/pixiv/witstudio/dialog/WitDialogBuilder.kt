@@ -1,6 +1,7 @@
 package ceui.pixiv.witstudio.dialog
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.Gravity
@@ -8,14 +9,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import ceui.pixiv.witstudio.R
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.WitDisplay
+import kotlin.math.roundToInt
 
 /**
  * 所有弹窗 builder 的基类，替代 `QMUIDialogBuilder`。
@@ -45,6 +49,15 @@ public abstract class WitDialogBuilder<T : WitDialogBuilder<T>>(
     protected val mActions: MutableList<WitDialogAction> = mutableListOf()
     protected var mDialog: WitDialog? = null
 
+    /** 标题右侧的图标动作（帮助 / 网络测试这类轻型动作），见 [addTitleAction]。 */
+    private class TitleAction(
+        @DrawableRes val iconRes: Int,
+        val contentDescription: CharSequence?,
+        val listener: View.OnClickListener?,
+    )
+
+    private val mTitleActions = mutableListOf<TitleAction>()
+
     private var cancelable: Boolean = true
     private var canceledOnTouchOutside: Boolean = true
     private var actionContainerOrientation: Int = HORIZONTAL
@@ -66,6 +79,24 @@ public abstract class WitDialogBuilder<T : WitDialogBuilder<T>>(
     /** [HORIZONTAL]（默认，右对齐一行）或 [VERTICAL]（整宽竖向堆叠，按钮文案长时用）。 */
     public fun setActionContainerOrientation(orientation: Int): T =
         self().also { actionContainerOrientation = orientation }
+
+    /**
+     * 往标题右侧加一个图标按钮 —— 「帮助」「网络测试」这类不占按钮位的轻型动作。
+     *
+     * 可以加多个：按调用顺序**从左到右**排，最右边那个（最后调用的）的图形右缘与标题左缘
+     * 共用同一条 `24dp` 栏距 —— 图形按 [WitDialogMetrics.TITLE_ACTION_GRAPHIC_DP] 的 24dp 画，
+     * 外面套 [WitDialogMetrics.TITLE_ACTION_PADDING_DP] 的内衬凑到 40dp 热区（够到 MD3 触控下限）。
+     * 标题的文字区会自行让开这一串图标，长标题不会钻到图标底下。
+     *
+     * 调用方若自己覆写 [onCreateTitle] 塞图标，请改走这里，别再手搓 FrameLayout。
+     */
+    public fun addTitleAction(
+        @DrawableRes iconRes: Int,
+        contentDescription: CharSequence?,
+        listener: View.OnClickListener?,
+    ): T = self().also {
+        mTitleActions.add(TitleAction(iconRes, contentDescription, listener))
+    }
 
     // ── addAction 全家（重载与 QMUI 一一对应）───────────────────────
 
@@ -201,7 +232,7 @@ public abstract class WitDialogBuilder<T : WitDialogBuilder<T>>(
         context: Context,
     ): View? {
         if (!hasTitle()) return null
-        return AppCompatTextView(context).apply {
+        val title = AppCompatTextView(context).apply {
             text = mTitle
             setTextSize(TypedValue.COMPLEX_UNIT_SP, WitDialogMetrics.TITLE_TEXT_SP)
             setTextColor(ContextCompat.getColor(context, R.color.wit_text_1))
@@ -215,6 +246,75 @@ public abstract class WitDialogBuilder<T : WitDialogBuilder<T>>(
                 0,
             )
         }
+        if (mTitleActions.isEmpty()) return title
+        return wrapTitleWithActions(title, context)
+    }
+
+    /**
+     * 把标题和右侧那一串图标装进同一个容器。
+     *
+     * 标题自带「左右各 24dp + 顶部 24dp」的内边距。直接塞进 [FrameLayout] 再让图标 CENTER_VERTICAL，
+     * 居中的就是「文字 + 24dp 顶部内边距」这个盒子，图标会比标题的视觉中心高出 12dp；同时 paddingEnd
+     * 只作用于标题自己，图标会一路贴到卡片右缘。所以把**纵向和右侧**内边距上移到容器：
+     * 容器的内容区正好剩下文字本身，居中才对得上，右侧栏距也才由容器统一决定。
+     *
+     * 图标排成一行贴着容器右缘，所以容器只留「24dp 栏距 − 图标自身 8dp 内衬」的右边距；
+     * 标题再加一份「图标总宽」的右内边距，文字因此永远停在图标左边，不会钻到下面。
+     */
+    private fun wrapTitleWithActions(title: View, context: Context): View {
+        val density = context.resources.displayMetrics.density
+        val graphic = (WitDialogMetrics.TITLE_ACTION_GRAPHIC_DP * density).roundToInt()
+        val inner = (WitDialogMetrics.TITLE_ACTION_PADDING_DP * density).roundToInt()
+        val box = graphic + inner * 2
+
+        val titleTop = title.paddingTop
+        val titleEnd = title.paddingEnd
+        title.setPadding(title.paddingStart, 0, mTitleActions.size * box, title.paddingBottom)
+
+        val container = FrameLayout(context)
+        // 右内边距扣掉图标自身的 8dp 内衬，让 24dp 图形的右缘落在跟标题左缘同一条 24dp 栏距上
+        // （对齐的是图形，不是 40dp 的点击热区）。
+        container.setPadding(0, titleTop, (titleEnd - inner).coerceAtLeast(0), 0)
+
+        container.addView(
+            title,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.START or Gravity.CENTER_VERTICAL,
+            ),
+        )
+
+        val row = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        mTitleActions.forEach { action ->
+            row.addView(actionIcon(action, context, box, inner))
+        }
+        container.addView(
+            row,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.END or Gravity.CENTER_VERTICAL,
+            ),
+        )
+        return container
+    }
+
+    private fun actionIcon(
+        action: TitleAction,
+        context: Context,
+        box: Int,
+        inner: Int,
+    ): AppCompatImageView = AppCompatImageView(context).apply {
+        setImageResource(action.iconRes)
+        imageTintList = ColorStateList.valueOf(palette.textAccent)
+        contentDescription = action.contentDescription
+        setPadding(inner, inner, inner, inner)
+        setOnClickListener(action.listener)
+        layoutParams = LinearLayout.LayoutParams(box, box)
     }
 
     protected abstract fun onCreateContent(

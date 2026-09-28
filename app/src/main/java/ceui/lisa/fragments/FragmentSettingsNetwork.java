@@ -1,23 +1,16 @@
 package ceui.lisa.fragments;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-
-import androidx.annotation.NonNull;
 
 import ceui.pixiv.witstudio.dialog.WitDialog;
-import ceui.pixiv.witstudio.dialog.WitDialogView;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -221,55 +214,15 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
     }
 
     private void promptAppApiProxy() {
-        // 帮助按钮移到弹窗标题栏右上角：点击「使用 PxveAPI 代理」弹出输入框，
+        // 帮助按钮在弹窗标题栏右上角：点击「使用 PxveAPI 代理」弹出输入框，
         // 标题栏右侧提供帮助图标，点击后展示填写规范 + 安全警示。
-        final WitDialog.EditTextDialogBuilder builder = new WitDialog.EditTextDialogBuilder(mContext) {
-            @Override
-            protected View onCreateTitle(@NonNull WitDialog dialog,
-                                         @NonNull WitDialogView parent,
-                                         @NonNull Context context) {
-                View title = super.onCreateTitle(dialog, parent, context);
-                if (title == null) {
-                    return null;
-                }
-                float density = context.getResources().getDisplayMetrics().density;
-                int helpSize = Math.round(40 * density);
-                int helpPadding = Math.round(8 * density);
-
-                FrameLayout container = new FrameLayout(context);
-
-                // super 返回的标题 view 自带 24dp 左右 + 24dp 顶部内边距。直接塞进 FrameLayout
-                // 再让图标 CENTER_VERTICAL，居中的就是「文字 + 24dp 顶部内边距」这个盒子，
-                // 图标会比标题的视觉中心高出 12dp；同时 paddingEnd 只作用于标题自己，
-                // 图标会一路贴到卡片右缘。所以把纵向和右侧内边距上移到容器：
-                // 容器的内容区正好剩下文字本身，居中才对得上。
-                int titleTop = title.getPaddingTop();
-                int titleEnd = title.getPaddingEnd();
-                title.setPadding(title.getPaddingStart(), 0, 0, title.getPaddingBottom());
-                // 右内边距扣掉图标自身的 8dp 内衬，让 24dp 图形的右缘落在跟标题左缘
-                // 同一条 24dp 栏距上（对齐的是图形，不是 40dp 的点击热区）。
-                container.setPadding(0, titleTop, Math.max(0, titleEnd - helpPadding), 0);
-
-                FrameLayout.LayoutParams titleLp = new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT);
-                titleLp.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
-                container.addView(title, titleLp);
-
-                ImageView help = new ImageView(context);
-                help.setImageResource(R.drawable.ic_help_outline_black_24dp);
-                help.setColorFilter(context.getColor(R.color.v3_text_2));
-                help.setContentDescription(getString(R.string.app_api_proxy_help_desc));
-                help.setPadding(helpPadding, helpPadding, helpPadding, helpPadding);
-                help.setOnClickListener(v -> showAppApiProxyHelp());
-                FrameLayout.LayoutParams helpLp = new FrameLayout.LayoutParams(helpSize, helpSize);
-                helpLp.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
-                container.addView(help, helpLp);
-
-                return container;
-            }
-        };
+        // 图标装配（40dp 热区 / 24dp 栏距对齐）由 WitDialogBuilder.addTitleAction 提供，
+        // 与 github 加速地址那边的「网络测试」图标共用同一条实现。
+        final WitDialog.EditTextDialogBuilder builder = new WitDialog.EditTextDialogBuilder(mContext);
         builder.setTitle(R.string.app_api_proxy_title)
+                .addTitleAction(R.drawable.ic_help_outline_black_24dp,
+                        getString(R.string.app_api_proxy_help_desc),
+                        v -> showAppApiProxyHelp())
                 .setPlaceholder(getString(R.string.app_api_proxy_hint))
                 .setDefaultText(Shaft.sSettings.getAppApiProxy())
                 .setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI)
