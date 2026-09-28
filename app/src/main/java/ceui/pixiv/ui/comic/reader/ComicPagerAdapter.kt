@@ -89,6 +89,8 @@ class ComicPagerAdapter(
                 override fun onViewTap(view: android.view.View, touchPoint: OffsetCompat) {
                     val w = binding.image.width
                     val zone = when {
+                        // 放大看细节时点边缘是在找位置，不是要翻页(#1172 误触)：一律按中间处理。
+                        binding.image.zoomable.userTransformState.value.scaleX > 1f + ZOOMED_EPSILON -> TapZone.Center
                         w <= 0 -> TapZone.Center
                         touchPoint.x < w / 3f -> TapZone.Left
                         touchPoint.x > w * 2f / 3f -> TapZone.Right
@@ -195,6 +197,9 @@ class ComicPagerAdapter(
     }
 
     companion object {
+        /** userTransform 是相对「适应屏幕」基准的倍率；留一点余量，别把回弹残差当成放大。 */
+        private const val ZOOMED_EPSILON = 0.01f
+
         private val DIFF = object : DiffUtil.ItemCallback<ComicReaderV3ViewModel.ComicPage>() {
             override fun areItemsTheSame(a: ComicReaderV3ViewModel.ComicPage, b: ComicReaderV3ViewModel.ComicPage) = a.index == b.index
             override fun areContentsTheSame(a: ComicReaderV3ViewModel.ComicPage, b: ComicReaderV3ViewModel.ComicPage) = a == b

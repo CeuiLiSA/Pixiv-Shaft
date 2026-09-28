@@ -16,7 +16,9 @@ sealed interface ComicViewport {
 
     fun activate(pages: List<ComicReaderV3ViewModel.ComicPage>, resumeIndex: Int)
     fun deactivate()
-    fun jumpTo(index: Int)
+
+    /** [animated] 只给逐页翻（点击区 / 音量键）用；跳页（进度条 / 书签 / 页面预览）一律瞬移。 */
+    fun jumpTo(index: Int, animated: Boolean = false)
     fun currentIndex(): Int
 }
 
@@ -60,7 +62,8 @@ class PagedViewport(
     }
 
     override fun deactivate() { pager.isVisible = false }
-    override fun jumpTo(index: Int) { pager.setCurrentItem(index, false) }
+    // 平滑滚动会走当前的 page transformer，点击翻页和手指滑动是同一套动画(#1172)。
+    override fun jumpTo(index: Int, animated: Boolean) { pager.setCurrentItem(index, animated) }
     override fun currentIndex(): Int = pager.currentItem
 }
 
@@ -94,6 +97,7 @@ class WebtoonViewport(
     }
 
     override fun deactivate() { recyclerView.isVisible = false }
-    override fun jumpTo(index: Int) { layoutManager.scrollToPositionWithOffset(index, 0) }
+    // 条漫点击不翻页，只有音量键会逐页走到这里；整屏长图平滑滚不是「翻页」，照旧直接对齐。
+    override fun jumpTo(index: Int, animated: Boolean) { layoutManager.scrollToPositionWithOffset(index, 0) }
     override fun currentIndex(): Int = layoutManager.findFirstVisibleItemPosition().coerceAtLeast(0)
 }

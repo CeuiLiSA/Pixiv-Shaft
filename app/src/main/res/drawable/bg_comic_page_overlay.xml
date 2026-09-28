@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 漫画阅读器贴底页码(#1172)：只留描边不铺底，少挡画面；文字的可读性交给 TextView 的阴影。
+     描边用浅灰：黑底白底两种阅读背景上都看得见。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <stroke
+        android:width="1dp"
+        android:color="#CCC8C8C8" />
+    <corners android:radius="100dp" />
+</shape>

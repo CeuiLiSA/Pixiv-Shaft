@@ -43,6 +43,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 import ceui.pixiv.ui.navigation.TemplateRoute
 
 /**
@@ -71,11 +72,20 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
 
     private lateinit var retryController: PageLoadRetryController
     private var orientationJob: Job? = null
+    private var chromeAutoHideJob: Job? = null
+
+    /** 打开阅读器后操作栏只自动收起这一次(#1172)；操作栏被收起过、或用户碰过它，就不再自动收。 */
+    private var chromeAutoHidePending = true
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         chrome = ComicChrome(binding.comicTopBar.root, binding.comicBottomBar.root, requireActivity().window)
+        // 「看图自动横屏」每转一次都会重建页面；操作栏的显隐要跟过去，不能每转一次就重新弹出来。
+        savedInstanceState?.let {
+            chromeAutoHidePending = it.getBoolean(KEY_CHROME_AUTO_HIDE_PENDING, true)
+            if (!it.getBoolean(KEY_CHROME_SHOWN, true)) chrome.setShown(false)
+        }
         windowController = ComicWindowController(requireActivity(), binding.comicRoot, binding.comicWarmOverlay, savedInstanceState)
         windowController.apply()
         applyComicLoadingTint()
@@ -119,7 +129,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
             override fun onProgressChanged(s: SeekBar?, p: Int, fromUser: Boolean) {
                 if (fromUser) jumpToPage(p)
             }
-            override fun onStartTrackingTouch(s: SeekBar?) = Unit
+            override fun onStartTrackingTouch(s: SeekBar?) = cancelChromeAutoHide()
             override fun onStopTrackingTouch(s: SeekBar?) = Unit
         })
 
@@ -208,24 +218,30 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
 
     // ---- Wiring -------------------------------------------------------------
 
+    /** 操作栏上的按钮：用户碰过操作栏就不再自动收起它。 */
+    private fun View.setOnChromeClickListener(action: () -> Unit) = setOnClickListener {
+        cancelChromeAutoHide()
+        action()
+    }
+
     private fun wireTopBar() {
-        binding.comicTopBar.comicBack.setOnClickListener { activity?.finish() }
-        binding.comicTopBar.comicShare.setOnClickListener { shareCurrentIllust() }
-        binding.comicTopBar.comicMore.setOnClickListener { showOverflowMenu() }
-        binding.comicTopBar.pageStatusRetry.setOnClickListener { retryController.retryAllFailed() }
+        binding.comicTopBar.comicBack.setOnChromeClickListener { activity?.finish() }
+        binding.comicTopBar.comicShare.setOnChromeClickListener { shareCurrentIllust() }
+        binding.comicTopBar.comicMore.setOnChromeClickListener { showOverflowMenu() }
+        binding.comicTopBar.pageStatusRetry.setOnChromeClickListener { retryController.retryAllFailed() }
     }
 
     private fun wireBottomBar() {
         // 翻页方向不再放底栏(#1042 的误触源头),只在「阅读设置」面板里改；
         // 系列上一篇/下一篇挪进顶栏 ⋮ 菜单(showOverflowMenu)。
-        binding.comicBottomBar.comicBtnPages.setOnClickListener { showThumbsSheet() }
-        binding.comicBottomBar.comicBtnSettings.setOnClickListener {
+        binding.comicBottomBar.comicBtnPages.setOnChromeClickListener { showThumbsSheet() }
+        binding.comicBottomBar.comicBtnSettings.setOnChromeClickListener {
             ComicReaderSettingsSheet().show(childFragmentManager, ComicReaderSettingsSheet.TAG)
         }
-        binding.comicBottomBar.comicBtnTheme.setOnClickListener {
+        binding.comicBottomBar.comicBtnTheme.setOnChromeClickListener {
             ComicReaderSettings.backgroundDark = !ComicReaderSettings.backgroundDark
         }
-        binding.comicBottomBar.comicBtnSeriesList.setOnClickListener { showSeriesListSheet() }
+        binding.comicBottomBar.comicBtnSeriesList.setOnChromeClickListener { showSeriesListSheet() }
     }
 
     /**
@@ -241,6 +257,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
             }
         }
         chrome.onShownChanged = { shown ->
+            cancelChromeAutoHide()
             cb.isEnabled = shown
             refreshPageOverlay()
         }
@@ -314,7 +331,24 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
             applyReadingMode(state.pages, viewModel.currentPage.value ?: 0)
             retryController.refresh()
             updateImageOrientation()
+            scheduleChromeAutoHide()
         }
+    }
+
+    /** 首次打开时操作栏无操作 [CHROME_AUTO_HIDE_MS] 后自动收起(#1172)，从内容加载好开始计时。 */
+    private fun scheduleChromeAutoHide() {
+        if (!chromeAutoHidePending || !chrome.shown) return
+        chromeAutoHideJob?.cancel()
+        chromeAutoHideJob = viewLifecycleOwner.lifecycleScope.launch {
+            delay(CHROME_AUTO_HIDE_MS)
+            chrome.setShown(false)
+        }
+    }
+
+    private fun cancelChromeAutoHide() {
+        chromeAutoHidePending = false
+        chromeAutoHideJob?.cancel()
+        chromeAutoHideJob = null
     }
 
     private fun applyReadingMode(pages: List<ComicReaderV3ViewModel.ComicPage>, resumeIndex: Int) {
@@ -363,6 +397,10 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         if (ComicReaderSettings.readingMode == ComicReaderSettings.ReadingMode.Webtoon) {
             chrome.toggle(); return
         }
+        // 操作栏展开时点哪儿都只收起它，不翻页(#1172 误触)；放大中的页已由 adapter 报成 Center。
+        if (chrome.shown) {
+            chrome.setShown(false); return
+        }
         val left = if (ComicReaderSettings.tapZoneReversed) ComicPagerAdapter.TapZone.Right else ComicPagerAdapter.TapZone.Left
         val right = if (ComicReaderSettings.tapZoneReversed) ComicPagerAdapter.TapZone.Left else ComicPagerAdapter.TapZone.Right
         when (zone) {
@@ -375,7 +413,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
 
     private fun stepAndApply(forward: Boolean) {
         if (!::current.isInitialized) return
-        viewModel.stepTarget(forward)?.let { current.jumpTo(it) }
+        viewModel.stepTarget(forward)?.let { current.jumpTo(it, animated = true) }
     }
 
     // ---- Menus / Sheets -----------------------------------------------------
@@ -503,32 +541,52 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
             delay(400)
             val illust = (viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded)?.illust
                 ?: return@launch
-            val file =
-                try {
-                    PageImageSourceResolver.resolve(
-                        requireContext(), illust, page.index, viewModel.urlForPage(page),
-                    ).awaitFile(requireContext())
-                } catch (cancelled: CancellationException) {
-                    throw cancelled
-                } catch (error: Exception) {
-                    Timber.tag("ComicReaderV3").w(error, "orientation probe failed page=%d", page.index)
-                    null
-                } ?: return@launch
-            val bounds = withContext(Dispatchers.IO) {
-                BitmapFactory.Options().apply {
-                    inJustDecodeBounds = true
-                    BitmapFactory.decodeFile(file.absolutePath, this)
-                }
-            }
+            val bounds = quickPageBounds(illust, page) ?: awaitPageBounds(illust, page) ?: return@launch
             if (isResumed && viewModel.currentPage.value == index && ComicReaderSettings.autoRotateImage) {
-                windowController.applyImageOrientation(bounds.outWidth, bounds.outHeight)
+                windowController.applyImageOrientation(bounds.first, bounds.second)
             }
         }
+    }
+
+    /**
+     * 不等这一页下完就能知道的尺寸(#1172)：首页用作品元数据里的宽高；其余页看预览图是否已在本地
+     * （详情页多半看过）。都没有返回 null，由 [awaitPageBounds] 兜底。
+     */
+    private suspend fun quickPageBounds(illust: Illust, page: ComicReaderV3ViewModel.ComicPage): Pair<Int, Int>? {
+        if (page.index == 0 && illust.width > 0 && illust.height > 0) return illust.width to illust.height
+        val preview = PageImageSourceResolver.resolveCheap(page.previewUrl)?.file ?: return null
+        return decodeBounds(preview)
+    }
+
+    private suspend fun awaitPageBounds(illust: Illust, page: ComicReaderV3ViewModel.ComicPage): Pair<Int, Int>? {
+        val file =
+            try {
+                PageImageSourceResolver.resolve(
+                    requireContext(), illust, page.index, viewModel.urlForPage(page),
+                ).awaitFile(requireContext())
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                Timber.tag("ComicReaderV3").w(error, "orientation probe failed page=%d", page.index)
+                null
+            } ?: return null
+        return decodeBounds(file)
+    }
+
+    /** 只读文件头拿宽高；解不出来(坏文件)返回 null。 */
+    private suspend fun decodeBounds(file: File): Pair<Int, Int>? = withContext(Dispatchers.IO) {
+        val options = BitmapFactory.Options().apply {
+            inJustDecodeBounds = true
+            BitmapFactory.decodeFile(file.absolutePath, this)
+        }
+        (options.outWidth to options.outHeight).takeIf { it.first > 0 && it.second > 0 }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         if (::windowController.isInitialized) windowController.saveState(outState)
+        if (::chrome.isInitialized) outState.putBoolean(KEY_CHROME_SHOWN, chrome.shown)
+        outState.putBoolean(KEY_CHROME_AUTO_HIDE_PENDING, chromeAutoHidePending)
     }
 
     override fun onDestroyView() {
@@ -544,6 +602,9 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
 
     companion object {
         private const val ARG_ILLUST_ID = "illust_id"
+        private const val KEY_CHROME_SHOWN = "comic_chrome_shown"
+        private const val KEY_CHROME_AUTO_HIDE_PENDING = "comic_chrome_auto_hide_pending"
+        private const val CHROME_AUTO_HIDE_MS = 3_000L
 
         @JvmStatic
         fun newInstance(illustId: Long): ComicReaderV3Fragment = ComicReaderV3Fragment().apply {

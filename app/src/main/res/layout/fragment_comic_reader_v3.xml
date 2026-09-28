@@ -65,9 +65,12 @@
         android:layout_marginBottom="14dp"
         android:textColor="#FFFFFF"
         android:textSize="13sp"
+        android:textStyle="bold"
+        android:shadowColor="#B3000000"
+        android:shadowRadius="4"
         android:paddingHorizontal="10dp"
         android:paddingVertical="3dp"
-        android:background="@drawable/bg_page_count_overlay" />
+        android:background="@drawable/bg_comic_page_overlay" />
 
     <include
         android:id="@+id/comic_top_bar"
