@@ -3026,6 +3026,28 @@
     <string name="bookmark_filter_active_count">필터 %1$d개 사용 중</string>
     <string name="bookmark_filter_none_active">필터 없음</string>
     <string name="bookmark_filter_tag_mode_label">여러 태그 사이</string>
+    <string name="bookmark_sort_key_bookmarked">북마크</string>
+    <string name="bookmark_sort_key_created">게시일</string>
+    <string name="bookmark_sort_key_popular">인기</string>
+    <string name="bookmark_sort_key_views">조회수</string>
+    <string name="bookmark_sort_key_pages">페이지</string>
+    <string name="bookmark_sort_key_ratio">화면 비율</string>
+    <string name="bookmark_sort_key_length">글자 수</string>
+    <string name="bookmark_sort_key_title">제목</string>
+    <string name="following_sort_key_followed">팔로우 날짜</string>
+    <string name="following_sort_key_active">최근 투고</string>
+    <string name="following_sort_key_name">이름</string>
+    <string name="bookmark_sort_dir_newest">최신순</string>
+    <string name="bookmark_sort_dir_oldest">오래된 순</string>
+    <string name="bookmark_sort_dir_high">높은 순</string>
+    <string name="bookmark_sort_dir_low">낮은 순</string>
+    <string name="bookmark_sort_dir_tallest">세로로 긴 순</string>
+    <string name="bookmark_sort_dir_widest">가로로 긴 순</string>
+    <string name="bookmark_sort_dir_long">긴 순</string>
+    <string name="bookmark_sort_dir_short">짧은 순</string>
+    <string name="bookmark_filter_year">%1$d년</string>
+    <string name="bookmark_filter_tag_show_all">모두 보기 (%1$d)</string>
+    <string name="bookmark_filter_tag_show_less">접기</string>
 
     <!-- PixShaft 클라우드 번역 -->
     <string name="cloud_translate_title">PixShaft 클라우드 번역</string>

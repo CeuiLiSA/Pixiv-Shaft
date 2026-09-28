@@ -3035,6 +3035,28 @@
     <string name="bookmark_filter_active_count">Фильтров: %1$d</string>
     <string name="bookmark_filter_none_active">Без фильтров</string>
     <string name="bookmark_filter_tag_mode_label">Между несколькими тегами</string>
+    <string name="bookmark_sort_key_bookmarked">Закладки</string>
+    <string name="bookmark_sort_key_created">Публикация</string>
+    <string name="bookmark_sort_key_popular">Популярность</string>
+    <string name="bookmark_sort_key_views">Просмотры</string>
+    <string name="bookmark_sort_key_pages">Страницы</string>
+    <string name="bookmark_sort_key_ratio">Формат</string>
+    <string name="bookmark_sort_key_length">Объём</string>
+    <string name="bookmark_sort_key_title">Название</string>
+    <string name="following_sort_key_followed">Подписка</string>
+    <string name="following_sort_key_active">Последняя публикация</string>
+    <string name="following_sort_key_name">Имя</string>
+    <string name="bookmark_sort_dir_newest">Сначала новые</string>
+    <string name="bookmark_sort_dir_oldest">Сначала старые</string>
+    <string name="bookmark_sort_dir_high">По убыванию</string>
+    <string name="bookmark_sort_dir_low">По возрастанию</string>
+    <string name="bookmark_sort_dir_tallest">Сначала вытянутые</string>
+    <string name="bookmark_sort_dir_widest">Сначала широкие</string>
+    <string name="bookmark_sort_dir_long">Сначала длинные</string>
+    <string name="bookmark_sort_dir_short">Сначала короткие</string>
+    <string name="bookmark_filter_year">%1$d</string>
+    <string name="bookmark_filter_tag_show_all">Показать все (%1$d)</string>
+    <string name="bookmark_filter_tag_show_less">Свернуть</string>
 
     <!-- Облачный перевод PixShaft -->
     <string name="cloud_translate_title">Облачный перевод PixShaft</string>

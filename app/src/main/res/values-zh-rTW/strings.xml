@@ -3027,6 +3027,28 @@
     <string name="bookmark_filter_active_count">已啟用 %1$d 項篩選</string>
     <string name="bookmark_filter_none_active">未啟用篩選</string>
     <string name="bookmark_filter_tag_mode_label">多個標籤之間</string>
+    <string name="bookmark_sort_key_bookmarked">收藏時間</string>
+    <string name="bookmark_sort_key_created">發佈時間</string>
+    <string name="bookmark_sort_key_popular">人氣</string>
+    <string name="bookmark_sort_key_views">瀏覽量</string>
+    <string name="bookmark_sort_key_pages">頁數</string>
+    <string name="bookmark_sort_key_ratio">寬高比</string>
+    <string name="bookmark_sort_key_length">字數</string>
+    <string name="bookmark_sort_key_title">標題</string>
+    <string name="following_sort_key_followed">關注時間</string>
+    <string name="following_sort_key_active">最近投稿</string>
+    <string name="following_sort_key_name">名稱</string>
+    <string name="bookmark_sort_dir_newest">新→舊</string>
+    <string name="bookmark_sort_dir_oldest">舊→新</string>
+    <string name="bookmark_sort_dir_high">高→低</string>
+    <string name="bookmark_sort_dir_low">低→高</string>
+    <string name="bookmark_sort_dir_tallest">最豎長在前</string>
+    <string name="bookmark_sort_dir_widest">最橫扁在前</string>
+    <string name="bookmark_sort_dir_long">長→短</string>
+    <string name="bookmark_sort_dir_short">短→長</string>
+    <string name="bookmark_filter_year">%1$d 年</string>
+    <string name="bookmark_filter_tag_show_all">顯示全部 %1$d 個</string>
+    <string name="bookmark_filter_tag_show_less">收起</string>
 
     <!-- PixShaft 雲翻譯 -->
     <string name="cloud_translate_title">PixShaft 雲翻譯</string>

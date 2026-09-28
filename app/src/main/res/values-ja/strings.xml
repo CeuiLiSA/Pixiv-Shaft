@@ -3026,6 +3026,28 @@
     <string name="bookmark_filter_active_count">%1$d 件の絞り込み中</string>
     <string name="bookmark_filter_none_active">絞り込みなし</string>
     <string name="bookmark_filter_tag_mode_label">複数タグの条件</string>
+    <string name="bookmark_sort_key_bookmarked">ブックマーク日</string>
+    <string name="bookmark_sort_key_created">投稿日</string>
+    <string name="bookmark_sort_key_popular">人気</string>
+    <string name="bookmark_sort_key_views">閲覧数</string>
+    <string name="bookmark_sort_key_pages">ページ数</string>
+    <string name="bookmark_sort_key_ratio">縦横比</string>
+    <string name="bookmark_sort_key_length">文字数</string>
+    <string name="bookmark_sort_key_title">タイトル</string>
+    <string name="following_sort_key_followed">フォロー日</string>
+    <string name="following_sort_key_active">最終投稿</string>
+    <string name="following_sort_key_name">名前</string>
+    <string name="bookmark_sort_dir_newest">新しい順</string>
+    <string name="bookmark_sort_dir_oldest">古い順</string>
+    <string name="bookmark_sort_dir_high">高い順</string>
+    <string name="bookmark_sort_dir_low">低い順</string>
+    <string name="bookmark_sort_dir_tallest">縦長順</string>
+    <string name="bookmark_sort_dir_widest">横長順</string>
+    <string name="bookmark_sort_dir_long">長い順</string>
+    <string name="bookmark_sort_dir_short">短い順</string>
+    <string name="bookmark_filter_year">%1$d 年</string>
+    <string name="bookmark_filter_tag_show_all">すべて表示（%1$d）</string>
+    <string name="bookmark_filter_tag_show_less">閉じる</string>
 
     <!-- PixShaft クラウド翻訳 -->
     <string name="cloud_translate_title">PixShaft クラウド翻訳</string>

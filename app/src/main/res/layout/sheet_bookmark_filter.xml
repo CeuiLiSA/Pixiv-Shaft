@@ -7,7 +7,8 @@
   声明式生成 —— 维度有十几个，写成 XML 是十几段几乎一样的复制粘贴。
 
   顺序照规范的 Sheet 配方：标题 → 当前状态 → 条件 → 主操作。表面是 v3_bg + 顶角 28dp，
-  条件装在 22dp 的 cardFill 分组卡里，主操作是整宽实色胶囊，文案永远带实时命中数。
+  条件分组无界平铺在表面上（不套卡片），左右 24dp 留白由每一行自己带 —— 横滑的年份行要满宽，
+  所以 sections_container 本身不设水平内边距。主操作是整宽实色胶囊，文案永远带实时命中数。
 
   ⚠️ **根上刻意不套 `Theme.Material3.DayNight.NoActionBar`**。那是一个**完整 theme**
   （不是 ThemeOverlay），套上去会把 app 自己的 `colorPrimary` 整个换成 M3 的默认紫 ——
@@ -69,7 +70,7 @@
         </LinearLayout>
 
         <!-- 「清空」放在标题行末端而不是底部：它是撤销，跟底部的确认是相反意图，挨在一起最容易误触。
-             样式（浅色胶囊、48dp 热区、无条件时置灰）由代码按 V3Palette 设置。 -->
+             样式（有条件时是带重置图标的浅色胶囊，无条件时退成一行弱化文字）由代码按 V3Palette 设置。 -->
         <TextView
             android:id="@+id/reset_button"
             android:layout_width="wrap_content"
@@ -92,8 +93,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="16dp"
-            android:paddingBottom="16dp" />
+            android:paddingBottom="24dp" />
     </androidx.core.widget.NestedScrollView>
 
     <View
@@ -107,7 +107,7 @@
         android:id="@+id/apply_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
+        android:layout_marginHorizontal="24dp"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="16dp"
         tools:text="查看 1,204 件" />

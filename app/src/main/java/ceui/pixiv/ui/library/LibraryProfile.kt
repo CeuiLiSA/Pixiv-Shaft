@@ -74,6 +74,49 @@ internal class LibraryProfile private constructor(
         }
     }
 
+    /**
+     * 面板里的一个排序依据：同一个键下的 1–2 个方向（[sorts] 第一个是切到该依据时的默认方向）。
+     * 面板把排序拆成「依据」胶囊 + 「方向」连通组，而不是把十几个「键 · 方向」组合平铺出来。
+     */
+    class SortKey(@StringRes val label: Int, val sorts: List<BookmarkSort>)
+
+    /** 按 [sorts] 的顺序把同一依据的方向归到一起。 */
+    val sortKeys: List<SortKey> by lazy {
+        sorts.groupBy { sortKeyLabel(it) }.map { (label, group) -> SortKey(label, group) }
+    }
+
+    @StringRes
+    private fun sortKeyLabel(sort: BookmarkSort): Int {
+        val user = contentType == MirrorContentType.USER
+        return when (sort) {
+            BookmarkSort.BOOKMARK_NEWEST, BookmarkSort.BOOKMARK_OLDEST ->
+                if (user) R.string.following_sort_key_followed else R.string.bookmark_sort_key_bookmarked
+            BookmarkSort.CREATED_NEWEST, BookmarkSort.CREATED_OLDEST ->
+                if (user) R.string.following_sort_key_active else R.string.bookmark_sort_key_created
+            BookmarkSort.POPULAR_DESC, BookmarkSort.POPULAR_ASC -> R.string.bookmark_sort_key_popular
+            BookmarkSort.VIEWS_DESC -> R.string.bookmark_sort_key_views
+            BookmarkSort.PAGES_DESC -> R.string.bookmark_sort_key_pages
+            BookmarkSort.RATIO_TALLEST, BookmarkSort.RATIO_WIDEST -> R.string.bookmark_sort_key_ratio
+            BookmarkSort.LENGTH_DESC, BookmarkSort.LENGTH_ASC -> R.string.bookmark_sort_key_length
+            BookmarkSort.TITLE_ASC -> if (user) R.string.following_sort_key_name else R.string.bookmark_sort_key_title
+            BookmarkSort.RANDOM -> R.string.bookmark_sort_random
+        }
+    }
+
+    /** 方向连通组里的文案。只有一个方向的依据（浏览量、页数、标题、随机）不显示方向组。 */
+    @StringRes
+    fun sortDirectionLabel(sort: BookmarkSort): Int = when (sort) {
+        BookmarkSort.BOOKMARK_NEWEST, BookmarkSort.CREATED_NEWEST -> R.string.bookmark_sort_dir_newest
+        BookmarkSort.BOOKMARK_OLDEST, BookmarkSort.CREATED_OLDEST -> R.string.bookmark_sort_dir_oldest
+        BookmarkSort.POPULAR_DESC, BookmarkSort.VIEWS_DESC, BookmarkSort.PAGES_DESC -> R.string.bookmark_sort_dir_high
+        BookmarkSort.POPULAR_ASC -> R.string.bookmark_sort_dir_low
+        BookmarkSort.RATIO_TALLEST -> R.string.bookmark_sort_dir_tallest
+        BookmarkSort.RATIO_WIDEST -> R.string.bookmark_sort_dir_widest
+        BookmarkSort.LENGTH_DESC -> R.string.bookmark_sort_dir_long
+        BookmarkSort.LENGTH_ASC -> R.string.bookmark_sort_dir_short
+        BookmarkSort.TITLE_ASC, BookmarkSort.RANDOM -> sortLabel(sort)
+    }
+
     companion object {
 
         private val WORK_SORTS_HEAD = listOf(

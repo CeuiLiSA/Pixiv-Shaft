@@ -3029,6 +3029,28 @@
     <string name="bookmark_filter_active_count">Filters on: %1$d</string>
     <string name="bookmark_filter_none_active">No filters on</string>
     <string name="bookmark_filter_tag_mode_label">Between multiple tags</string>
+    <string name="bookmark_sort_key_bookmarked">Bookmarked</string>
+    <string name="bookmark_sort_key_created">Posted</string>
+    <string name="bookmark_sort_key_popular">Popularity</string>
+    <string name="bookmark_sort_key_views">Views</string>
+    <string name="bookmark_sort_key_pages">Pages</string>
+    <string name="bookmark_sort_key_ratio">Aspect</string>
+    <string name="bookmark_sort_key_length">Length</string>
+    <string name="bookmark_sort_key_title">Title</string>
+    <string name="following_sort_key_followed">Followed</string>
+    <string name="following_sort_key_active">Last posted</string>
+    <string name="following_sort_key_name">Name</string>
+    <string name="bookmark_sort_dir_newest">Newest first</string>
+    <string name="bookmark_sort_dir_oldest">Oldest first</string>
+    <string name="bookmark_sort_dir_high">High to low</string>
+    <string name="bookmark_sort_dir_low">Low to high</string>
+    <string name="bookmark_sort_dir_tallest">Tallest first</string>
+    <string name="bookmark_sort_dir_widest">Widest first</string>
+    <string name="bookmark_sort_dir_long">Longest first</string>
+    <string name="bookmark_sort_dir_short">Shortest first</string>
+    <string name="bookmark_filter_year">%1$d</string>
+    <string name="bookmark_filter_tag_show_all">Show all %1$d</string>
+    <string name="bookmark_filter_tag_show_less">Show less</string>
 
     <!-- PixShaft cloud translation -->
     <string name="cloud_translate_title">PixShaft Cloud Translation</string>

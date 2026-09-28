@@ -3029,6 +3029,28 @@
     <string name="bookmark_filter_active_count">%1$d filtre açık</string>
     <string name="bookmark_filter_none_active">Filtre yok</string>
     <string name="bookmark_filter_tag_mode_label">Birden çok etiket arasında</string>
+    <string name="bookmark_sort_key_bookmarked">Yer imi</string>
+    <string name="bookmark_sort_key_created">Yayın</string>
+    <string name="bookmark_sort_key_popular">Popülerlik</string>
+    <string name="bookmark_sort_key_views">Görüntülenme</string>
+    <string name="bookmark_sort_key_pages">Sayfa</string>
+    <string name="bookmark_sort_key_ratio">En boy</string>
+    <string name="bookmark_sort_key_length">Uzunluk</string>
+    <string name="bookmark_sort_key_title">Başlık</string>
+    <string name="following_sort_key_followed">Takip tarihi</string>
+    <string name="following_sort_key_active">Son paylaşım</string>
+    <string name="following_sort_key_name">Ad</string>
+    <string name="bookmark_sort_dir_newest">En yeni</string>
+    <string name="bookmark_sort_dir_oldest">En eski</string>
+    <string name="bookmark_sort_dir_high">Azalan</string>
+    <string name="bookmark_sort_dir_low">Artan</string>
+    <string name="bookmark_sort_dir_tallest">En dikey önce</string>
+    <string name="bookmark_sort_dir_widest">En yatay önce</string>
+    <string name="bookmark_sort_dir_long">En uzun</string>
+    <string name="bookmark_sort_dir_short">En kısa</string>
+    <string name="bookmark_filter_year">%1$d</string>
+    <string name="bookmark_filter_tag_show_all">Tümünü göster (%1$d)</string>
+    <string name="bookmark_filter_tag_show_less">Daha az göster</string>
 
     <!-- PixShaft bulut çevirisi -->
     <string name="cloud_translate_title">PixShaft Bulut Çevirisi</string>

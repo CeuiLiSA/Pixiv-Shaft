@@ -42,8 +42,9 @@ import kotlin.math.roundToInt
  * ## 版式
  *
  * 照规范的 Sheet 配方：标题 → 当前状态（书架总数 · 开了几项筛选）→ 条件 → 主操作。
- * 条件按「排序 / 作品 / 人气与时间 / 标签 / 作者」分进几张 22dp 分组卡，卡内一行一个维度；
- * 互斥的档位是连通选择组，可叠加的是带勾的胶囊，开关是开关行 —— 控件形状本身就说明了
+ * 条件按「排序 / 作品 / 人气与时间 / 标签 / 作者」分组，无界平铺在 Sheet 底上（不套卡片），
+ * 组内一行一个维度；排序拆成「依据」胶囊 + 「方向」连通组。
+ * 少量互斥档位是连通按钮组，多档位是单选胶囊，可叠加的是带勾的胶囊，开关是开关行 —— 控件形状本身就说明了
  * 「只能选一个 / 可以选几个 / 开或关」，不用再靠文字解释。
  *
  * 哪几节出现由书架的 [LibraryProfile] 决定：关注书架里一行是一个人，没有分级、人气、作者
@@ -99,7 +100,10 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
     private var builtYears: List<BookmarkYearFacet> = emptyList()
 
     /** 年份那一组的单选控件。年份集合没变、只是件数变了时就地改文案，不推倒整张面板。 */
-    private var yearGroup: LibraryFilterViews.SegmentedGroup? = null
+    private var yearGroup: LibraryFilterViews.ChoiceGroup? = null
+
+    /** 标签云是否展开到 [TAG_CHIP_LIMIT] 个；默认只铺 [TAG_CHIP_COLLAPSED] 个。 */
+    private var tagsExpanded = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -121,7 +125,6 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             return
         }
         val parts = LibraryFilterViews(requireContext()).also { views = it }
-        parts.styleResetAction(binding.resetButton)
         parts.stylePrimaryAction(binding.applyButton)
         androidx.core.view.ViewCompat.setAccessibilityHeading(binding.sheetTitle, true)
 
@@ -207,17 +210,10 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         builtYears = viewModel.yearFacets.value
         val profile = profile
 
-        group(getString(R.string.bookmark_filter_section_sort)) { card ->
-            singleChoice(
-                card,
-                title = null,
-                options = profile.sorts.map { it to getString(profile.sortLabel(it)) },
-                selected = { it.sort },
-            ) { filter, value -> filter.copy(sort = value, randomSeed = freshSeedIfRandom(filter, value)) }
-        }
+        group(getString(R.string.bookmark_filter_section_sort)) { section -> buildSortRows(section, profile) }
 
         if (profile.hasWorkFilters) {
-            group(getString(R.string.bookmark_filter_group_works)) { card -> buildWorkRows(card, profile) }
+            group(getString(R.string.bookmark_filter_group_works)) { section -> buildWorkRows(section, profile) }
         }
 
         val timeGroup = if (profile.hasWorkFilters) {
@@ -225,10 +221,10 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         } else {
             R.string.bookmark_filter_group_time
         }
-        group(getString(timeGroup)) { card ->
+        group(getString(timeGroup)) { section ->
             if (profile.hasWorkFilters) {
                 singleChoice(
-                    card,
+                    section,
                     title = getString(R.string.bookmark_filter_section_popularity),
                     options = POPULARITY_STEPS.map { step ->
                         step to if (step == null) {
@@ -243,13 +239,14 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             val years = builtYears
             if (years.isNotEmpty()) {
                 yearGroup = singleChoice(
-                    card,
+                    section,
                     title = getString(profile.yearSection),
-                    options = buildList {
+                    options = buildList<Pair<Int?, CharSequence>> {
                         add(null to getString(R.string.bookmark_filter_any))
                         years.forEach { facet -> add(facet.year to yearLabel(facet)) }
                     },
                     selected = { filter -> filter.createdFromMs?.let(::yearOf) },
+                    scroll = true,
                 ) { filter, year ->
                     if (year == null) {
                         filter.copy(createdFromMs = null, createdToMs = null)
@@ -263,16 +260,16 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
                     applyChange { it.copy(seriesOnly = checked) }
                     refreshAll()
                 }
-                parts.row(card, title = null, control = row)
+                parts.row(section, title = null, control = row)
                 refreshers += { switch.isChecked = viewModel.filter.value.seriesOnly }
             }
         }
 
-        group(getString(R.string.bookmark_filter_section_tags)) { card -> buildTagRows(card, profile) }
+        group(getString(R.string.bookmark_filter_section_tags)) { section -> buildTagRows(section, profile) }
 
         if (profile.hasWorkFilters) {
-            group(getString(R.string.bookmark_filter_section_author)) { card ->
-                authorFlow = parts.newFlow().also { parts.row(card, title = null, control = it) }
+            group(getString(R.string.bookmark_filter_section_author)) { section ->
+                authorFlow = parts.newFlow().also { parts.row(section, title = null, control = it) }
                 rebuildAuthorChips()
             }
         }
@@ -280,11 +277,50 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         refreshAll()
     }
 
+    /**
+     * 排序 = 「依据」胶囊 + 「方向」连通组。依据只有一个方向（浏览量、页数、标题、随机）时
+     * 方向组收起；切换依据时落到它的默认方向。再点一次「随机」换一个种子，重新洗一遍。
+     */
+    private fun buildSortRows(section: LinearLayout, profile: LibraryProfile) {
+        val parts = views ?: return
+        val keys = profile.sortKeys
+        val keyGroup = parts.choiceChips(keys.map { getString(it.label) }) { index ->
+            val key = keys[index]
+            applyChange { filter ->
+                val target = if (filter.sort in key.sorts) filter.sort else key.sorts.first()
+                if (target == filter.sort && !target.isRandom) filter
+                else filter.copy(sort = target, randomSeed = freshSeedIfRandom(filter, target))
+            }
+            refreshAll()
+        }
+        parts.row(section, title = null, control = keyGroup.view)
+
+        val directionGroup = parts.connectedGroup(listOf("", "")) { index ->
+            val key = keys.firstOrNull { viewModel.filter.value.sort in it.sorts } ?: return@connectedGroup
+            key.sorts.getOrNull(index)?.let { sort -> applyChange { it.copy(sort = sort) } }
+            refreshAll()
+        }
+        val directionRow = parts.row(section, title = null, control = directionGroup.view)
+        refreshers += {
+            val sort = viewModel.filter.value.sort
+            val keyIndex = keys.indexOfFirst { sort in it.sorts }
+            keyGroup.select(keyIndex)
+            val key = keys.getOrNull(keyIndex)
+            if (key != null && key.sorts.size > 1) {
+                directionRow.visibility = View.VISIBLE
+                directionGroup.setLabels(key.sorts.map { getString(profile.sortDirectionLabel(it)) })
+                directionGroup.select(key.sorts.indexOf(sort))
+            } else {
+                directionRow.visibility = View.GONE
+            }
+        }
+    }
+
     /** 作品维度：类型 / 画幅 / 页数（插画）或字数（小说），以及分级 / AI / 作品状态。 */
-    private fun buildWorkRows(card: LinearLayout, profile: LibraryProfile) {
+    private fun buildWorkRows(section: LinearLayout, profile: LibraryProfile) {
         if (profile.isIllust) {
             multiChoice(
-                card,
+                section,
                 title = getString(R.string.bookmark_filter_section_type),
                 options = listOf(
                     "illust" to getString(R.string.bookmark_filter_type_illust),
@@ -295,7 +331,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             ) { filter, values -> filter.copy(workTypes = values.toList()) }
 
             multiChoice(
-                card,
+                section,
                 title = getString(R.string.bookmark_filter_section_shape),
                 options = listOf(
                     BookmarkMirrorMapper.ORIENTATION_LANDSCAPE to getString(R.string.bookmark_filter_shape_landscape),
@@ -306,7 +342,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             ) { filter, values -> filter.copy(orientations = values.toList()) }
 
             singleChoice(
-                card,
+                section,
                 title = getString(R.string.bookmark_filter_section_pages),
                 options = listOf(
                     PageFilter.ANY to getString(R.string.bookmark_filter_any),
@@ -320,7 +356,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         if (profile.isNovel) {
             // 小说侧「人气」之外最实用的那一维：想找长篇 / 想找一口气看完的短篇。
             singleChoice(
-                card,
+                section,
                 title = getString(R.string.bookmark_filter_section_length),
                 options = LENGTH_STEPS.map { step ->
                     step to if (step == null) {
@@ -334,7 +370,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         }
 
         singleChoice(
-            card,
+            section,
             title = getString(R.string.bookmark_filter_section_age),
             options = listOf(
                 AgeFilter.ANY to getString(R.string.bookmark_filter_any),
@@ -346,7 +382,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         ) { filter, value -> filter.copy(age = value) }
 
         singleChoice(
-            card,
+            section,
             title = getString(R.string.bookmark_filter_section_ai),
             options = listOf(
                 AiFilter.ANY to getString(R.string.bookmark_filter_any),
@@ -357,7 +393,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         ) { filter, value -> filter.copy(ai = value) }
 
         singleChoice(
-            card,
+            section,
             title = getString(R.string.bookmark_filter_section_state),
             options = listOf(
                 ValidityFilter.ANY to getString(R.string.bookmark_filter_any),
@@ -370,20 +406,21 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         ) { filter, value -> filter.copy(validity = value) }
     }
 
-    private fun yearLabel(facet: BookmarkYearFacet): String =
-        getString(R.string.bookmark_filter_year_item, facet.year, facet.hitCount)
+    private fun yearLabel(facet: BookmarkYearFacet): CharSequence =
+        views?.chipLabel(getString(R.string.bookmark_filter_year, facet.year), count = facet.hitCount)
+            ?: getString(R.string.bookmark_filter_year_item, facet.year, facet.hitCount)
 
     /** 年份集合与已建的一致，只刷新每一项的件数（第 0 项是「不限」）。 */
     private fun relabelYears(years: List<BookmarkYearFacet>) {
         builtYears = years
-        yearGroup?.setLabels(listOf(getString(R.string.bookmark_filter_any)) + years.map(::yearLabel))
+        yearGroup?.setLabels(listOf<CharSequence>(getString(R.string.bookmark_filter_any)) + years.map(::yearLabel))
     }
 
     private fun freshSeedIfRandom(filter: BookmarkFilter, value: BookmarkSort): Long =
         if (value.isRandom) System.currentTimeMillis() else filter.randomSeed
 
     /** 标签组：规则说明 + 搜索框 +（选了两个以上才出现的）匹配方式 + 标签云。 */
-    private fun buildTagRows(card: LinearLayout, profile: LibraryProfile) {
+    private fun buildTagRows(section: LinearLayout, profile: LibraryProfile) {
         val parts = views ?: return
         val search = parts.searchField(getString(R.string.bookmark_filter_tag_search_hint)).apply {
             setText(tagQuery)
@@ -397,11 +434,11 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             })
         }
         tagSearchInput = search
-        parts.row(card, title = null, hint = getString(profile.tagHint), control = search)
+        parts.row(section, title = null, hint = getString(profile.tagHint), control = search)
 
         // 「同时满足 / 任一满足」只在选了两个以上标签时才有意义，之前出现只是噪音。
         val modes = listOf(true, false)
-        val modeGroup = parts.segmentedGroup(
+        val modeGroup = parts.connectedGroup(
             listOf(
                 getString(R.string.bookmark_filter_tag_mode_all),
                 getString(R.string.bookmark_filter_tag_mode_any),
@@ -411,10 +448,9 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             refreshAll()
         }
         val modeRow = parts.row(
-            card,
+            section,
             title = getString(R.string.bookmark_filter_tag_mode_label),
             control = modeGroup.view,
-            divider = false,
         )
         refreshers += {
             val filter = viewModel.filter.value
@@ -422,7 +458,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             modeGroup.select(modes.indexOf(filter.tagMatchAll))
         }
 
-        tagFlow = parts.newFlow().also { parts.row(card, title = null, control = it, divider = false) }
+        tagFlow = parts.newFlow().also { parts.row(section, title = null, control = it) }
         rebuildTagChips()
     }
 
@@ -458,16 +494,14 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             flow.addView(parts.hint(getString(R.string.bookmark_filter_tag_empty)))
             return
         }
-        entries.take(TAG_CHIP_LIMIT).forEach { entry ->
+        // 默认只铺一小屏；搜索时全部铺开（搜索本身已经把范围收窄了）。
+        val collapsible = tagQuery.isEmpty() && entries.size > TAG_CHIP_COLLAPSED
+        val shown = if (collapsible && !tagsExpanded) TAG_CHIP_COLLAPSED else TAG_CHIP_LIMIT
+        entries.take(shown).forEach { entry ->
             val included = entry.tagName in filter.tagNames
             val excluded = entry.tagName in filter.excludedTagNames
-            val label = buildString {
-                append(entry.displayName)
-                if (entry.translatedName.isNotEmpty() && entry.translatedName != entry.displayName) {
-                    append(" · ").append(entry.translatedName)
-                }
-            }
-            val chip = parts.filterChip(label, entry.hitCount) {
+            val label = parts.chipLabel(entry.displayName, entry.translatedName, entry.hitCount)
+            val chip = parts.filterChip(label) {
                 applyChange { current ->
                     // 点击在「不选 → 包含 → 不选」之间转；排除态点一下直接回到不选
                     when {
@@ -496,6 +530,17 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             }
             parts.renderChip(chip, selected = included, excluded = excluded)
             flow.addView(chip)
+        }
+        if (collapsible) {
+            val text = if (tagsExpanded) {
+                getString(R.string.bookmark_filter_tag_show_less)
+            } else {
+                getString(R.string.bookmark_filter_tag_show_all, minOf(entries.size, TAG_CHIP_LIMIT))
+            }
+            flow.addView(parts.expandChip(text, tagsExpanded) {
+                tagsExpanded = !tagsExpanded
+                rebuildTagChips()
+            })
         }
     }
 
@@ -536,30 +581,38 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
 
     // ───────────────────── 声明式的行构造器 ─────────────────────
 
-    /** 一组 = 卡外的组标题 + 一张分组卡。卡里一行都没有（比如关注书架还没有年份）就整组不出。 */
+    /** 一组 = 组标题 + 平铺的几行。一行都没有（比如关注书架还没有年份）就整组不出。 */
     private fun group(title: String, build: (LinearLayout) -> Unit) {
         val parts = views ?: return
         val container = binding.sectionsContainer
-        val card = parts.groupCard()
-        build(card)
-        if (card.isEmpty()) return
+        val group = parts.group()
+        build(group)
+        if (group.isEmpty()) return
         container.addView(parts.groupHeader(title, first = container.isEmpty()))
-        container.addView(card)
+        container.addView(group)
     }
 
+    /** 单选：≤ 4 档用连通组，更多档用胶囊（[scroll] = 单行横滑）。 */
     private fun <T> singleChoice(
-        card: LinearLayout,
+        section: LinearLayout,
         title: String?,
-        options: List<Pair<T, String>>,
+        options: List<Pair<T, CharSequence>>,
         selected: (BookmarkFilter) -> T,
+        scroll: Boolean = false,
         apply: (BookmarkFilter, T) -> BookmarkFilter,
-    ): LibraryFilterViews.SegmentedGroup? {
+    ): LibraryFilterViews.ChoiceGroup? {
         val parts = views ?: return null
-        val group = parts.segmentedGroup(options.map { it.second }) { index ->
+        val onSelect: (Int) -> Unit = { index ->
             applyChange { apply(it, options[index].first) }
             refreshAll()
         }
-        parts.row(card, title, control = group.view)
+        val labels = options.map { it.second }
+        val group = if (!scroll && options.size <= CONNECTED_LIMIT) {
+            parts.connectedGroup(labels, onSelect)
+        } else {
+            parts.choiceChips(labels, scroll, onSelect)
+        }
+        parts.row(section, title, control = group.view)
         refreshers += {
             val current = selected(viewModel.filter.value)
             group.select(options.indexOfFirst { it.first == current })
@@ -568,7 +621,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
     }
 
     private fun <T> multiChoice(
-        card: LinearLayout,
+        section: LinearLayout,
         title: String,
         options: List<Pair<T, String>>,
         selected: (BookmarkFilter) -> Set<T>,
@@ -587,7 +640,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
             refreshers += { parts.renderChip(chip, value in selected(viewModel.filter.value)) }
             flow.addView(chip)
         }
-        parts.row(card, title, control = flow)
+        parts.row(section, title, control = flow)
     }
 
     // ─────────────────────────── 零件 ───────────────────────────
@@ -622,8 +675,7 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
         } else {
             "${getString(profile.totalCount, formatCount(total))} · $active"
         }
-        b.resetButton.isEnabled = filter.hasAnyCondition
-        b.resetButton.alpha = if (filter.hasAnyCondition) 1f else DISABLED_ALPHA
+        views?.renderResetAction(b.resetButton, filter.hasAnyCondition)
     }
 
     private fun updateApplyText(count: Int?) {
@@ -644,11 +696,14 @@ class BookmarkFilterSheet : BottomSheetDialogFragment() {
     companion object {
         private const val MAX_HEIGHT_FRACTION = 0.88
 
-        /** 没有可清的条件时「清空」的透明度：看得见在哪，但明确点不了。 */
-        private const val DISABLED_ALPHA = 0.38f
+        /** 单选用连通组的上限：再多每段就挤不下两个汉字 + 大字体了，改用胶囊。 */
+        private const val CONNECTED_LIMIT = 4
 
         /** 标签云一次最多铺这么多胶囊：再多一屏也看不完，还会把 sheet 撑得滚不到底。 */
         private const val TAG_CHIP_LIMIT = 60
+
+        /** 标签云收起时铺多少个：大约一屏，剩下的点「显示全部」。 */
+        private const val TAG_CHIP_COLLAPSED = 24
 
         /** 人气档位。用预设档而不是数字输入框：用户脑子里就是「几千收藏以上」这种量级。 */
         private val POPULARITY_STEPS: List<Int?> = listOf(null, 500, 2_000, 10_000, 30_000)
