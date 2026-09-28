@@ -401,8 +401,8 @@ public class Settings {
     /** 桌面小组件换图间隔（分钟），只作用于推荐类小组件；日榜固定 6 小时。WorkManager 下限 15。 */
     private int widgetRefreshIntervalMinutes = 30;
 
-    /** 平板大屏双栏（Activity Embedding，#931）。默认关闭，只有平板打开后才注册分栏规则。 */
-    private boolean tabletSplitScreen = false;
+    /** 平板适配排版（侧边导航栏 / 瀑布流按宽度加列 / 作品舞台详情，#1087），见 TabletLayout。默认关闭。 */
+    private boolean tabletLayout = false;
 
     /** 隐藏小组件上浮在封面之上的收藏按钮（#1013：挡画面） */
     private boolean widgetHideBookmarkButton = false;
@@ -1229,12 +1229,12 @@ public class Settings {
         this.widgetRefreshIntervalMinutes = minutes;
     }
 
-    public boolean isTabletSplitScreen() {
-        return tabletSplitScreen;
+    public boolean isTabletLayout() {
+        return tabletLayout;
     }
 
-    public void setTabletSplitScreen(boolean enable) {
-        this.tabletSplitScreen = enable;
+    public void setTabletLayout(boolean enable) {
+        this.tabletLayout = enable;
     }
 
     public boolean isWidgetHideBookmarkButton() {

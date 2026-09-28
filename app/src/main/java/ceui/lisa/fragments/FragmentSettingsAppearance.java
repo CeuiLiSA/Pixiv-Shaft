@@ -532,15 +532,14 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         });
         baseBind.mainViewR18Rela.setOnClickListener(v -> baseBind.mainViewR18.performClick());
 
-        // 平板双栏（#931）：规则只能在进程启动时注册一次，所以改完必须重启
-        baseBind.tabletSplitScreen.setChecked(Shaft.sSettings.isTabletSplitScreen());
-        baseBind.tabletSplitScreen.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            Shaft.sSettings.setTabletSplitScreen(isChecked);
+        // 平板适配排版（#1087，见 TabletLayout）：各处渲染时读，首页回到前台即重排，不用重启
+        baseBind.tabletLayout.setChecked(Shaft.sSettings.isTabletLayout());
+        baseBind.tabletLayout.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setTabletLayout(isChecked);
             Local.setSettings(Shaft.sSettings);
-            Common.showToast(getString(R.string.please_restart_app), 2);
         });
-        baseBind.tabletSplitScreenRela.setOnClickListener(
-                v -> baseBind.tabletSplitScreen.performClick());
+        baseBind.tabletLayoutRela.setOnClickListener(
+                v -> baseBind.tabletLayout.performClick());
     }
 
     private boolean hasWidget(Class<?> providerClass) {

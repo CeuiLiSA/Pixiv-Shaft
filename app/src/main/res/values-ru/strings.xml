@@ -132,8 +132,8 @@
     <string name="v3_widget_hide_bookmark_button_desc">Кнопка перекрывает обложку — без неё иллюстрация видна целиком</string>
     <string name="v3_widget_hide_refresh_button">Скрыть кнопку обновления в виджете</string>
     <string name="v3_widget_hide_refresh_button_desc">После скрытия иллюстрация меняется только по интервалу обновления</string>
-    <string name="tablet_split_screen">Двухпанельный режим на планшете</string>
-    <string name="tablet_split_screen_desc">Показывать список и подробности рядом на планшетах и других больших экранах. Только для планшетов; после изменения перезапустите приложение</string>
+    <string name="tablet_layout">Макет для планшета</string>
+    <string name="tablet_layout_desc">На планшетах и других больших экранах: боковая панель навигации, лента с числом колонок по ширине экрана и страница работы с раздельной компоновкой. Если выключено, используется макет телефона. Только для планшетов</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">Закладки</string>
     <string name="rail_downloads">Загрузки</string>

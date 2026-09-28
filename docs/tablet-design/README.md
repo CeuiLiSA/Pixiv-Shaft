@@ -102,7 +102,7 @@ cardWidth = (contentWidth - (columns - 1) * gap) / columns
 
 ### 第一阶段：已实施（2026-09-24，issue #1087）
 
-只在平板上生效：窗口最小宽度（`smallestScreenWidthDp`）>= 600dp，手机横竖屏都不命中，手机 UI 与改动前一致；平板分屏或 Activity Embedding 双栏里可用宽度 < 600dp 时也回到手机排版。`MainActivity` 声明了 screenSize 等 configChanges、不重建，旋转、分屏和双栏展开后在 `onConfigurationChanged` 重新判断。
+只在平板上生效：窗口最小宽度（`smallestScreenWidthDp`）>= 600dp，且设置 · 界面 ·「平板适配排版」开着（默认关，判定收口在 [TabletLayout.kt](../../app/src/main/java/ceui/pixiv/ui/common/TabletLayout.kt)）；手机横竖屏都不命中，手机 UI 与改动前一致；平板分屏里可用宽度 < 600dp 时也回到手机排版。关掉开关的平板与手机排版一致。`MainActivity` 声明了 screenSize 等 configChanges、不重建，旋转和分屏后在 `onConfigurationChanged` 重新判断，从设置切回首页时在 `onResume` 重新判断。旧的 Activity Embedding 双栏已删除。
 
 | 位置 | 行为 |
 | --- | --- |
@@ -112,7 +112,6 @@ cardWidth = (contentWidth - (columns - 1) * gap) / columns
 | FragmentCenter / FragmentRight | 宽窗口隐藏标题行里的抽屉按钮（菜单入口在侧栏），标题对齐 24dp 页边距 |
 | [StaggeredManager.java](../../app/src/main/java/ceui/lisa/helper/StaggeredManager.java) + [AdaptiveStaggerColumns.kt](../../app/src/main/java/ceui/pixiv/ui/common/AdaptiveStaggerColumns.kt) | 平板上瀑布流列数按列表自身宽度计算（手机固定为「每行几列」）：「每行几列」2/3/4 视为 360dp 上的列数（最小卡宽 180/120/90dp），更宽时保持卡片物理尺寸多排几列，窄时不少于设置值。在 `LayoutManager.onMeasure` 改列数，同一帧生效。覆盖推荐流、通用插画流、浏览历史、详情页相关作品、广场 |
 | [SpacesItemDecoration.java](../../app/src/main/java/ceui/lisa/view/SpacesItemDecoration.java) | 按 LayoutManager 实际列数给间距（边缘 8dp、中缝 8dp），不再只认 2/3/4 列 |
-| [TabletActivityEmbedding.kt](../../app/src/main/java/ceui/pixiv/ui/embedding/TabletActivityEmbedding.kt) | 删除 `SplitPlaceholderRule` 与占位 Activity：没打开详情时首页独占整窗（显示侧栏），打开详情后首页落在 3/7 窄栏、自动回到底栏排版 |
 
 ### 第二阶段：平板作品详情（2026-09-24，issue #1087）
 
@@ -122,7 +121,7 @@ cardWidth = (contentWidth - (columns - 1) * gap) / columns
 | --- | --- |
 | [layout-sw600dp/fragment_artwork_v3.xml](../../app/src/main/res/layout-sw600dp/fragment_artwork_v3.xml) | 与手机版共用全部 id；最底层整页模糊环境色 → 作品舞台 `tablet_stage` → 信息栏 `tablet_info_column`（原列表、胶囊、评论输入整体装入）；屏蔽遮罩与 AI 覆盖层盖整页 |
 | [ArtworkTabletStage.kt](../../app/src/main/java/ceui/pixiv/ui/detail/ArtworkTabletStage.kt) | 窗口宽于高：舞台在左、信息栏在右（窗口 36%，400–520dp）；否则舞台占上 52%、信息栏在下。作品上下贴满舞台、按原比例居中不裁切，先用列表缩略图垫底再换大图；多页上下翻 + 侧边页码条 + 「当前 / 总页」；动图原地播放；返回 / 更多为舞台两角的玻璃圆钮；多页作品有阅读器入口。点作品进全屏大图 |
-| [ArtworkV3Fragment.kt](../../app/src/main/java/ceui/pixiv/ui/detail/ArtworkV3Fragment.kt) | `values-sw600dp` 的 `artwork_tablet_stage` 为 true 时数据源不产出图片条目（`ArtworkV3FeedSource.includePages`）；信息栏不要顶栏，列表首帧前让出状态栏；VM 跨折叠屏开合存活时由 `reconcilePageItems` 补上 / 拿掉图片条目；快照模式仍按手机排版 |
+| [ArtworkV3Fragment.kt](../../app/src/main/java/ceui/pixiv/ui/detail/ArtworkV3Fragment.kt) | `TabletLayout.isEnabled` 为 true 时数据源不产出图片条目（`ArtworkV3FeedSource.includePages`）；信息栏不要顶栏，列表首帧前让出状态栏；VM 跨折叠屏开合存活时由 `reconcilePageItems` 补上 / 拿掉图片条目；快照模式与关掉开关的平板仍按手机排版（sw600dp 布局里舞台收起、信息栏铺满） |
 
 信息栏里的区块（标题、画师、简介、标签、数据、作品详情、评论、作者作品、相关作品）与全部操作沿用手机版实现，后续按平板规格继续调整字级与留白。
 

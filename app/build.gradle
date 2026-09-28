@@ -294,8 +294,6 @@ dependencies {
     implementation libs.androidxLifecycleLiveData
     implementation libs.androidxLifecycleViewModel
     implementation libs.androidxCore
-    // issue #931: 平板大屏双栏（Activity Embedding 分栏规则）
-    implementation libs.androidxWindow
     // 原本由 navigation-fragment-ktx 传递引入,移除 Navigation 后需直接声明,
     // 提供 Fragment.viewModels() / activityViewModels() 等 KTX 扩展。
     implementation libs.androidxFragment

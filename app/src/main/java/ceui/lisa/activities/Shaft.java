@@ -400,19 +400,6 @@ public class Shaft extends Application implements ServicesProvider {
 
         SessionManager.INSTANCE.initialize();
 
-        // issue #931: 平板大屏双栏（Activity Embedding）。默认关闭，install 内先看
-        // Settings.tabletSplitScreen 开关；打开后规则必须在任何 Activity
-        // 拉起前注册好，冷启动首帧才是左 3/7 信息流 + 右 4/7 详情；手机（sw < 600dp）
-        // 在 install 内直接跳过注册——挂上 organizer 会让手机回前台偶发卡 5 秒（#1002）。
-        // 守卫理由同上面的 WorkManager：AE 要触碰 OEM 的 WM Extensions（HarmonyOS/EMUI
-        // 这层出过 #853 类怪癖），一个纯可选的平板增强不配让全量用户启动崩溃——
-        // 注册失败就退回没有分栏的老行为。
-        try {
-            ceui.pixiv.ui.embedding.TabletActivityEmbedding.INSTANCE.install(this);
-        } catch (Throwable t) {
-            Timber.w(t, "Activity Embedding rule install failed, tablet split disabled");
-        }
-
         // 批量下载持久化队列（v33）：冷启动恢复 + 单并发消费循环。
         //
         // ⚠️ 不能挪进延迟批：init 内部在发现有 PENDING 行时会调

@@ -259,7 +259,7 @@
                 </RelativeLayout>
 
                 <RelativeLayout
-                    android:id="@+id/tablet_split_screen_rela"
+                    android:id="@+id/tablet_layout_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_bottom">
 
@@ -267,15 +267,15 @@
 
                         <TextView
                             style="@style/M3SetTitle"
-                            android:text="@string/tablet_split_screen" />
+                            android:text="@string/tablet_layout" />
 
                         <TextView
                             style="@style/M3SetDesc"
-                            android:text="@string/tablet_split_screen_desc" />
+                            android:text="@string/tablet_layout_desc" />
                     </LinearLayout>
 
                     <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/tablet_split_screen"
+                        android:id="@+id/tablet_layout"
                         style="@style/M3SetSwitch" />
 
                 </RelativeLayout>

@@ -71,6 +71,7 @@ import ceui.pixiv.ui.comments.CommentsComposerViewModel
 import ceui.pixiv.ui.comments.SentComment
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustMuteStore
+import ceui.pixiv.ui.common.TabletLayout
 import ceui.pixiv.ui.common.staggerIllustRenderer
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.pixiv.ui.navigation.TemplateRoute
@@ -136,11 +137,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (snapshot != null) {
             SnapshotArtworkFeedSource(snapshot, snapshotAuto)
         } else {
-            // 平板（layout-sw600dp）的作品图在舞台里，列表只出信息区块；折叠屏开合跨过
-            // 600dp 时这个 VM 活下来，差异由 reconcilePageItems 在视图重建时对齐
+            // 平板排版（layout-sw600dp + 设置开着）的作品图在舞台里，列表只出信息区块；折叠屏
+            // 开合跨过 600dp 时这个 VM 活下来，差异由 reconcilePageItems 在视图重建时对齐
             ArtworkV3FeedSource(
                 requireArguments().getInt("illust_id").toLong(),
-                includePages = !resources.getBoolean(R.bool.artwork_tablet_stage),
+                includePages = !TabletLayout.isEnabled(resources.configuration),
             )
         }
     }
@@ -224,8 +225,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     override val feedRootBackgroundColor: Int
         get() = if (usesTabletStage()) Color.TRANSPARENT else super.feedRootBackgroundColor
 
+    // TabletLayout 的最小宽度判定与 layout-sw600dp 限定符是同一条线：命中时舞台 view 必然存在；
+    // 平板上关掉「平板适配排版」时仍拿到 sw600dp 布局，舞台收起、信息栏铺满，等同手机排版
     private fun usesTabletStage(): Boolean =
-        !isSnapshotMode && resources.getBoolean(R.bool.artwork_tablet_stage)
+        !isSnapshotMode && TabletLayout.isEnabled(resources.configuration)
 
     // ── 列表装配 ────────────────────────────────────────────────────────────
 
@@ -1457,9 +1460,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     // ── inset ──────────────────────────────────────────────────────────────
 
     /**
-     * 平板排版（layout-sw600dp，#1087）：作品进舞台，列表 / 胶囊在信息栏里。
-     * 返回与更多菜单挪到舞台左右上角，信息栏不再有顶栏。快照模式的页面数据来自快照本身，
-     * 仍按手机排版把图放在列表里（舞台收起、信息栏铺满）。
+     * 平板排版（layout-sw600dp + 「平板适配排版」开着，#1087）：作品进舞台，列表 / 胶囊在信息栏里。
+     * 返回与更多菜单挪到舞台左右上角，信息栏不再有顶栏。快照模式的页面数据来自快照本身、
+     * 关掉开关的平板，都按手机排版把图放在列表里（舞台收起、信息栏铺满）。
      */
     private fun setUpTabletStage() {
         // 手机布局没有这几个 view：tabletStage 保持 null，但仍要对齐图片条目（见 reconcilePageItems）

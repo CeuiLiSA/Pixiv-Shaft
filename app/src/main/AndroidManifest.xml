@@ -55,10 +55,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="UnusedAttribute">
-        <!-- issue #931: 声明使用 Activity Embedding 分栏（Android 14+ 系统按它放行嵌入） -->
-        <property
-            android:name="android.window.PROPERTY_ACTIVITY_EMBEDDING_SPLITS_ENABLED"
-            android:value="true"/>
         <!-- AppCompat per-app locale backport (Android 12-) -->
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"

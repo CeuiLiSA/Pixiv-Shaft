@@ -6,13 +6,14 @@ import android.view.ViewGroup
 import androidx.core.util.Consumer
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
+import ceui.pixiv.ui.common.TabletLayout
 import ceui.pixiv.witstudio.theme.dp
 
 /**
  * 首页（MainActivity）对各 tab 公开的排版形态：窗口够宽时底栏换成 [HomeNavigationRail]（#1087）。
  *
- * 只在平板上换形态：窗口最小宽度 >= 600dp（手机横竖屏都不命中，手机 UI 完全不变），且当前
- * 可用宽度也 >= 600dp（平板分屏、Activity Embedding 双栏里的窄窗口仍是手机排版）。
+ * 只在平板上换形态：[TabletLayout] 命中（最小宽度 >= 600dp 且「平板适配排版」开着，手机横竖屏
+ * 都不命中），且当前可用宽度也 >= 600dp（平板分屏里的窄窗口仍是手机排版）。
  * MainActivity 自己处理 screenSize 配置变化、不重建，所以 tab 页要订阅这个值，而不是在
  * onCreateView 里读一次。
  */
@@ -23,13 +24,10 @@ interface HomeShellHost {
 
     companion object {
 
-        /** 平板判定与侧栏的宽度下限：Android 窗口尺寸档位里 medium 的下限。 */
-        const val RAIL_MIN_WIDTH_DP = 600
-
         @JvmStatic
         fun isRailWidth(configuration: Configuration): Boolean =
-            configuration.smallestScreenWidthDp >= RAIL_MIN_WIDTH_DP &&
-                configuration.screenWidthDp >= RAIL_MIN_WIDTH_DP
+            TabletLayout.isEnabled(configuration) &&
+                configuration.screenWidthDp >= TabletLayout.MIN_WIDTH_DP
 
         /** tab 页订阅宿主形态；宿主不是首页（比如被别处复用）时按手机排版回调一次。 */
         @JvmStatic

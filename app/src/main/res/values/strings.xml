@@ -141,8 +141,8 @@
     <string name="v3_widget_hide_bookmark_button_desc">按钮浮在封面上，隐藏后画面更完整</string>
     <string name="v3_widget_hide_refresh_button">隐藏小组件刷新按钮</string>
     <string name="v3_widget_hide_refresh_button_desc">隐藏后只按换图间隔自动换图</string>
-    <string name="tablet_split_screen">平板双栏布局</string>
-    <string name="tablet_split_screen_desc">在平板等大屏设备上左右分栏显示列表与详情，仅平板生效，切换后需重启应用</string>
+    <string name="tablet_layout">平板适配排版</string>
+    <string name="tablet_layout_desc">在平板等大屏设备上使用侧边导航栏、按屏幕宽度自动加列的瀑布流和左右排布的作品详情；关闭后与手机排版一致，仅平板生效</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">收藏</string>
     <string name="rail_downloads">下载</string>

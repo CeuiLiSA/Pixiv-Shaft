@@ -19,6 +19,7 @@ import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.ActivityViewPagerBinding;
 import ceui.lisa.fragments.FragmentIllust;
 import ceui.lisa.fragments.FragmentImageDetail;
+import ceui.pixiv.ui.common.TabletLayout;
 import ceui.pixiv.ui.detail.ArtworkV3Fragment;
 import ceui.lisa.helper.DeduplicateArrayList;
 import ceui.lisa.http.LegacyApiCalls;
@@ -83,10 +84,10 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                         if (exist == null) {
                             ObjectPool.INSTANCE.updateIllust(illustsBean);
                         }
-                        // 平板（values-sw600dp）上一律用新的平板详情排版，不再出现旧详情页（#1087）；
-                        // 手机仍按「使用新版详情页」设置选择
+                        // 平板排版下一律用新的平板详情排版，不再出现旧详情页（#1087）；
+                        // 手机与关掉「平板适配排版」的平板仍按「使用新版详情页」设置选择
                         if (Shaft.sSettings.isUseArtworkV3()
-                                || getResources().getBoolean(R.bool.artwork_tablet_stage)) {
+                                || TabletLayout.isEnabled(getResources().getConfiguration())) {
                             return ArtworkV3Fragment.newInstance(illustsBean.getId());
                         } else {
                             return FragmentIllust.newInstance((int) illustsBean.getId());
