@@ -41,6 +41,7 @@ public class Local {
         Settings settings = Shaft.sGson.fromJson(settingsString, Settings.class);
         if (settings != null) {
             Settings.migrateLegacyDoubleTapZoom(settings);
+            Settings.migrateLegacyLongPressBehavior(settings);
         }
         return settings == null ? new Settings() : settings;
     }
@@ -48,6 +49,7 @@ public class Local {
     public static void setSettings(Settings settings) {
         if (settings != null) {
             Settings.migrateLegacyDoubleTapZoom(settings);
+            Settings.migrateLegacyLongPressBehavior(settings);
         }
         String settingsGson = Shaft.sGson.toJson(settings);
         SharedPreferences.Editor editor = Shaft.sPreferences.edit();

@@ -2697,8 +2697,13 @@
     <string name="double_tap_zoom_mode_default">默认</string>
     <string name="double_tap_zoom_mode_three_level">三级</string>
     <string name="double_tap_zoom_mode_incremental">增量</string>
-    <string name="use_custom_long_press_reset">启用长按复原</string>
-    <string name="use_custom_long_press_reset_link_text">放至最大后不会循环至最小。配合增量使用最佳</string>
+    <string name="long_press_behavior_title">插画大图长按行为</string>
+    <string name="long_press_behavior_none">无</string>
+    <string name="long_press_behavior_shrink_one_level">优先缩小一级</string>
+    <string name="long_press_behavior_reset_min">复原至最小</string>
+    <string name="long_press_behavior_hint">优先缩小一级：优先退到比当前小的一档，如寻不到就会退到初始缩放\n复原至最小：长按直接退到初始缩放</string>
+    <string name="long_press_behavior_help_desc">说明</string>
+    <string name="double_tap_zoom_max_reached_shrink">已至最大，长按缩小一级</string>
     <string name="double_tap_zoom_max_reached">已至最大，长按复原</string>
     <string name="double_tap_zoom_max_reached2">已至最大，再次双击将缩至最小</string>
     <!-- 插画二级详情：增量倍率调节 + 三级智能缩放（PR#901） -->

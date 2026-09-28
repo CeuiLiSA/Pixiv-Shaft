@@ -271,15 +271,39 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
                     .show();
         });
 
-        //长按复位：始终显示在双击缩放行为下方，默认关闭
-        baseBind.useCustomLongPressReset.setChecked(Shaft.sSettings.isUseCustomLongPressReset());
-        baseBind.useCustomLongPressReset.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Shaft.sSettings.setUseCustomLongPressReset(isChecked);
-                Common.showToast(getString(R.string.string_428));
-                Local.setSettings(Shaft.sSettings);
-            }
+        // 大图长按行为：无 / 优先缩小一级 / 复原至最小，始终显示在双击缩放行为下方
+        updateLongPressBehaviorLabel();
+        baseBind.longPressBehaviorRela.setOnClickListener(v -> {
+            final int current = Shaft.sSettings.getLongPressBehavior();
+            // 选项顺序必须与 Settings.LONG_PRESS_BEHAVIOR_* 的取值一致：which 直接当行为值用
+            String[] longPressBehaviorNames = new String[]{
+                    getString(R.string.long_press_behavior_none),
+                    getString(R.string.long_press_behavior_shrink_one_level),
+                    getString(R.string.long_press_behavior_reset_min),
+            };
+            // 参考「GitHub 加速地址」：行上只留标题与当前值，解释小字挪进弹窗，
+            // 标题栏右侧问号点开才展开；标题复用设置项名。
+            WitDialog.CheckableDialogBuilder builder =
+                    new WitDialog.CheckableDialogBuilder(mActivity)
+                            .setTitle(R.string.long_press_behavior_title)
+                            .setCheckedIndex(current)
+                            .setCollapsibleHint(getString(R.string.long_press_behavior_hint));
+            builder.addTitleAction(
+                    R.drawable.ic_help_outline_black_24dp,
+                    getString(R.string.long_press_behavior_help_desc),
+                    action -> builder.setHintExpanded(!builder.isHintExpanded()));
+            builder.addItems(longPressBehaviorNames, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (which != current) {
+                        Shaft.sSettings.setLongPressBehavior(which);
+                        Common.showToast(getString(R.string.string_428));
+                        Local.setSettings(Shaft.sSettings);
+                        updateLongPressBehaviorLabel();
+                    }
+                    dialog.dismiss();
+                }
+            }).show();
         });
 
         // 初始化缩放增量数值调节
@@ -346,10 +370,26 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         updateDoubleTapZoomDependentVisibility();
     }
 
+    private void updateLongPressBehaviorLabel() {
+        int labelRes;
+        switch (Shaft.sSettings.getLongPressBehavior()) {
+            case Settings.LONG_PRESS_BEHAVIOR_SHRINK_ONE_LEVEL:
+                labelRes = R.string.long_press_behavior_shrink_one_level;
+                break;
+            case Settings.LONG_PRESS_BEHAVIOR_RESET_MIN:
+                labelRes = R.string.long_press_behavior_reset_min;
+                break;
+            default:
+                labelRes = R.string.long_press_behavior_none;
+                break;
+        }
+        baseBind.longPressBehaviorValue.setText(labelRes);
+    }
+
     private void updateDoubleTapZoomDependentVisibility() {
         boolean isIncremental = Shaft.sSettings.getDoubleTapZoomMode() == Settings.DOUBLE_TAP_ZOOM_MODE_INCREMENTAL;
-        // 参考直连开关的显隐方式：仅增量模式时「缩放增量」行插入在双击行为与长按复位之间，
-        // 把长按复位行向下挤压；默认/三级模式时隐藏该行，长按复位行直接跟在双击行为下方。
+        // 参考直连开关的显隐方式：仅增量模式时「缩放增量」行插入在双击行为与大图长按行为之间，
+        // 把大图长按行为行向下挤压；默认/三级模式时隐藏该行，大图长按行为行直接跟在双击行为下方。
         baseBind.customZoomScaleRela.setVisibility(isIncremental ? View.VISIBLE : View.GONE);
     }
 

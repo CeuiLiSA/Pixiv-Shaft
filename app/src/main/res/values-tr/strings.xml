@@ -2419,8 +2419,13 @@
     <string name="double_tap_zoom_mode_default">Varsayılan</string>
     <string name="double_tap_zoom_mode_three_level">3 seviye</string>
     <string name="double_tap_zoom_mode_incremental">Kademeli</string>
-    <string name="use_custom_long_press_reset">Basılı tutarak sıfırlamayı etkinleştir</string>
-    <string name="use_custom_long_press_reset_link_text">Maksimuma ulaşınca minimuma geri dönmez. Kademeli yakınlaştırmayla birlikte kullanmak en iyisidir</string>
+    <string name="long_press_behavior_title">İllüstrasyon büyük görüntüsünde uzun basma davranışı</string>
+    <string name="long_press_behavior_none">Yok</string>
+    <string name="long_press_behavior_shrink_one_level">Önce bir kademe küçült</string>
+    <string name="long_press_behavior_reset_min">Minimuma sıfırla</string>
+    <string name="long_press_behavior_hint">Önce bir kademe küçült: bir küçük kademeye iner, yoksa başlangıç ölçeğine döner\nMinimuma sıfırla: uzun basma doğrudan başlangıç ölçeğine döner</string>
+    <string name="long_press_behavior_help_desc">Yardım</string>
+    <string name="double_tap_zoom_max_reached_shrink">Maksimuma ulaşıldı, basılı tutunca bir kademe küçülür</string>
     <string name="double_tap_zoom_max_reached">Maksimuma ulaşıldı — sıfırlamak için basılı tutun</string>
     <string name="double_tap_zoom_max_reached2">Maksimuma ulaşıldı. Tekrar çift dokunmak minimuma küçültür</string>
     <string name="custom_zoom_scale_title">Yakınlaştırma artışı</string>

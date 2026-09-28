@@ -403,27 +403,21 @@
                     </RelativeLayout>
 
                     <RelativeLayout
-                        android:id="@+id/use_custom_long_press_reset_rela"
+                        android:id="@+id/long_press_behavior_rela"
                         style="@style/M3SetRow"
                         android:background="@drawable/wit_row_bottom">
 
                         <LinearLayout style="@style/M3SetTexts">
 
                             <TextView
-                                android:id="@+id/use_custom_long_press_reset_title"
+                                android:id="@+id/long_press_behavior_title"
                                 style="@style/M3SetTitle"
-                                android:text="@string/use_custom_long_press_reset" />
-
-                            <TextView
-                                android:id="@+id/use_custom_long_press_reset_link"
-                                style="@style/M3SetDesc"
-                                android:text="@string/use_custom_long_press_reset_link_text"
-                                android:textColor="?attr/colorPrimary" />
+                                android:text="@string/long_press_behavior_title" />
                         </LinearLayout>
 
-                        <androidx.appcompat.widget.SwitchCompat
-                            android:id="@+id/use_custom_long_press_reset"
-                            style="@style/M3SetSwitch" />
+                        <TextView
+                            android:id="@+id/long_press_behavior_value"
+                            style="@style/M3SetValue" />
 
                     </RelativeLayout>
 

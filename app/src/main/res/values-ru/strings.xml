@@ -2419,8 +2419,13 @@
     <string name="double_tap_zoom_mode_default">По умолчанию</string>
     <string name="double_tap_zoom_mode_three_level">Три уровня</string>
     <string name="double_tap_zoom_mode_incremental">Пошаговый</string>
-    <string name="use_custom_long_press_reset">Включить сброс долгим нажатием</string>
-    <string name="use_custom_long_press_reset_link_text">После максимального масштаба не возвращаться циклом к минимальному. Лучше всего работает с пошаговым зумом</string>
+    <string name="long_press_behavior_title">Поведение долгого нажатия при просмотре иллюстрации</string>
+    <string name="long_press_behavior_none">Нет</string>
+    <string name="long_press_behavior_shrink_one_level">Сначала уменьшить на один шаг</string>
+    <string name="long_press_behavior_reset_min">Сбросить до минимума</string>
+    <string name="long_press_behavior_hint">Сначала уменьшить на один шаг: перейти на одну ступень меньше, а если её нет — к исходному масштабу\nСбросить до минимума: долгое нажатие возвращает сразу к исходному масштабу</string>
+    <string name="long_press_behavior_help_desc">Справка</string>
+    <string name="double_tap_zoom_max_reached_shrink">Достигнут максимум, долгое нажатие уменьшит на шаг</string>
     <string name="double_tap_zoom_max_reached">Достигнут максимальный масштаб — зажмите, чтобы сбросить</string>
     <string name="double_tap_zoom_max_reached2">Достигнут максимум; коснитесь дважды ещё раз, чтобы уменьшить до минимума</string>
     <string name="custom_zoom_scale_title">Шаг увеличения</string>
