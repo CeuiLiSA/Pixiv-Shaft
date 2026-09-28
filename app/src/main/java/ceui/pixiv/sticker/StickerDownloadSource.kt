@@ -22,7 +22,7 @@ internal object StickerDownloadSource {
         return GithubProxy.wrap("$RELEASE_BASE${pkg.sha256}.zip")
     }
 
-    fun allows(url: HttpUrl): Boolean {
+    fun allows(url: HttpUrl, proxyPrefix: String = GithubProxy.currentPrefix()): Boolean {
         if (!url.isHttps || url.port != 443 || url.username.isNotEmpty() ||
             url.password.isNotEmpty() || url.fragment != null) return false
         if (url.host == RELEASE_CDN_HOST) return true
@@ -31,7 +31,12 @@ internal object StickerDownloadSource {
         // 也不会有别的主机靠 path 里塞一个 GitHub 地址混成合法下载源。
         val name = url.encodedPath.substringAfterLast('/')
         if (!name.endsWith(".zip") || !digest.matches(name.removeSuffix(".zip"))) return false
-        return url.toString() == GithubProxy.wrap(RELEASE_BASE + name)
+        if (url.toString() == GithubProxy.insert(proxyPrefix, RELEASE_BASE + name)) return true
+        // 加速站自己还会再跳一次：hk. / edgeone.gh-proxy.com 302 到 *.gh-proxy.org，且把 path 里的
+        // `https://` 折成 `https:/`。首跳固定是 [url]，之后每一跳都出自已被用户信任的加速站，
+        // 所以这里不绑主机，只要求它仍指向同一个内容寻址资产。
+        return GithubProxy.normalize(proxyPrefix) != null && url.query == null &&
+            url.encodedPath.endsWith("/" + RELEASE_BASE.removePrefix("https://") + name)
     }
 
     fun client(base: OkHttpClient): OkHttpClient = base.newBuilder()

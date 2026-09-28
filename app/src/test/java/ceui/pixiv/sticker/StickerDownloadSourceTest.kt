@@ -36,6 +36,24 @@ class StickerDownloadSourceTest {
         }
     }
 
+    @Test fun `proxied downloads permit the proxy's own redirect to the same asset`() {
+        val direct = "${StickerDownloadSource.RELEASE_BASE}$checksum.zip"
+        val proxy = "https://hk.gh-proxy.com"
+        // hk. / edgeone.gh-proxy.com 实测会 302 到 .org，并把 path 里的 `//` 折成 `/`。
+        for (url in listOf("$proxy/$direct",
+            "https://hk.gh-proxy.org/${direct.replace("https://", "https:/")}",
+            "https://hk.gh-proxy.org/$direct")) {
+            assertTrue(url, StickerDownloadSource.allows(url.toHttpUrl(), proxy))
+            assertFalse(url, StickerDownloadSource.allows(url.toHttpUrl(), ""))
+        }
+        for (url in listOf("https://hk.gh-proxy.org/${direct.replace(checksum, "unknown")}",
+            "https://hk.gh-proxy.org/${direct.replace("CeuiLiSA/", "someone/")}",
+            "https://hk.gh-proxy.org/$direct?x=1",
+            "https://evil.test/$checksum.zip")) {
+            assertFalse(url, StickerDownloadSource.allows(url.toHttpUrl(), proxy))
+        }
+    }
+
     @Test fun `only the sticker client follows HTTPS redirects`() {
         val base = OkHttpClient.Builder().followRedirects(false).build()
         val client = StickerDownloadSource.client(base)
