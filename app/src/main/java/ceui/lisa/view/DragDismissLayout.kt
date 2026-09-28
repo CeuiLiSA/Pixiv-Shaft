@@ -51,6 +51,24 @@ class DragDismissLayout @JvmOverloads constructor(
     /** 进场/回弹/收场动画期间置 true,禁止手势插一脚。 */
     var dragSuspended = false
 
+    /**
+     * 松手判定收掉的拖拽距离阈值(相对本布局高度)。宿主可按用户设置覆盖。
+     * 越小越灵敏,默认 [DEFAULT_DISMISS_DISTANCE_FRACTION]。
+     */
+    var dismissDistanceFraction = DEFAULT_DISMISS_DISTANCE_FRACTION
+
+    /**
+     * 快速外甩判定收掉的速度阈值,单位 dp/s。宿主可按用户设置覆盖。
+     * 越小越灵敏,默认 [DEFAULT_FLING_DISMISS_VELOCITY_DP]。
+     */
+    var flingDismissVelocityDp = DEFAULT_FLING_DISMISS_VELOCITY_DP
+
+    /**
+     * 拖满时内容缩小比例(默认 0.3 → 缩到 0.7 倍),即跟手阶段的视觉反馈强度。
+     * 宿主可按用户设置覆盖,默认 [DEFAULT_MAX_DRAG_SCALE_SHRINK]。
+     */
+    var maxDragScaleShrink = DEFAULT_MAX_DRAG_SCALE_SHRINK
+
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private var velocityTracker: VelocityTracker? = null
     private var downX = 0f
@@ -187,9 +205,9 @@ class DragDismissLayout @JvmOverloads constructor(
                 val dy = ev.y - dragStartY
                 val directedDistance = dy * dragDirection.sign
                 val directedVelocity = velocityY * dragDirection.sign
-                val flingThreshold = FLING_DISMISS_VELOCITY_DP * resources.displayMetrics.density
+                val flingThreshold = flingDismissVelocityDp * resources.displayMetrics.density
                 val shouldDismiss = directedDistance > 0f &&
-                        (directedDistance > height * DISMISS_DISTANCE_FRACTION ||
+                        (directedDistance > height * dismissDistanceFraction ||
                                 directedVelocity > flingThreshold)
                 endDrag(shouldDismiss, velocityY)
             }
@@ -211,7 +229,7 @@ class DragDismissLayout @JvmOverloads constructor(
         // 拦截后反向拖过原点时只给轻微阻尼，不触发缩小/关闭。
         val ty = if (directedDistance >= 0f) dy else dy * 0.2f
         val fraction = (max(0f, directedDistance) / (height * 0.4f)).coerceIn(0f, 1f)
-        val scale = 1f - MAX_DRAG_SCALE_SHRINK * fraction
+        val scale = 1f - maxDragScaleShrink * fraction
         target.translationX = dx
         target.translationY = ty
         target.scaleX = scale
@@ -220,13 +238,13 @@ class DragDismissLayout @JvmOverloads constructor(
     }
 
     companion object {
-        /** 松手判定收掉的拖拽距离阈值(相对本布局高度)。 */
-        private const val DISMISS_DISTANCE_FRACTION = 0.18f
+        /** 默认松手距离阈值(相对本布局高度):0.18。 */
+        const val DEFAULT_DISMISS_DISTANCE_FRACTION = 0.18f
 
-        /** 快速外甩判定收掉的速度阈值,单位 dp/s。 */
-        private const val FLING_DISMISS_VELOCITY_DP = 1200f
+        /** 默认外甩速度阈值,单位 dp/s:1200。 */
+        const val DEFAULT_FLING_DISMISS_VELOCITY_DP = 1200f
 
-        /** 拖满时内容缩小到 1 - 0.3 = 0.7 倍。 */
-        private const val MAX_DRAG_SCALE_SHRINK = 0.3f
+        /** 默认拖满缩小比例:0.3(缩到 0.7 倍)。 */
+        const val DEFAULT_MAX_DRAG_SCALE_SHRINK = 0.3f
     }
 }

@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.transition.AutoTransition;
@@ -19,6 +20,7 @@ import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsViewingBinding;
 import ceui.lisa.helper.PageTransformerHelper;
 import ceui.lisa.utils.Common;
@@ -239,6 +241,13 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
                 ComicReaderSettings.INSTANCE.setAutoRotateImage(isChecked));
         baseBind.comicReaderAutoRotateImageRela.setOnClickListener(v ->
                 baseBind.comicReaderAutoRotateImage.performClick());
+
+        // 大图拖动退出控制：点进测试页实时调节三个灵敏度阈值（距离 / 甩速 / 缩放反馈）。
+        baseBind.viewerDismissTuningRela.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.VIEWER_DISMISS_TUNING.key);
+            startActivity(intent);
+        });
 
         // 插画大图双击缩放行为：默认 / 三级 / 增量
         updateDoubleTapZoomModeLabel();

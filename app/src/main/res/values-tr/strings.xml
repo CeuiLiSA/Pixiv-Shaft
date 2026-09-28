@@ -3128,4 +3128,23 @@
         <item quantity="one">%1$d etiketlik kombinasyon</item>
         <item quantity="other">%1$d etiketlik kombinasyon</item>
     </plurals>
+    <!-- Görüntüleyici sürükleme ayarı (Ayarlar → Görünüm): ayar sayfası + sade görüntüleyici. -->
+    <string name="viewer_dismiss_tuning_title">Sürükleyerek kapatma ayarı</string>
+    <string name="viewer_dismiss_tuning_intro">Tam ekran görüntüleyicide yukarı veya aşağı sürükleyerek çıkabilirsiniz. Hassasiyet kişiden kişiye değişir; üç eşiği buradan ayarlayın ve hemen denemek için aşağıdaki görsele dokunun.</string>
+    <string name="viewer_dismiss_tuning_image_desc">Test görseli</string>
+    <string name="viewer_dismiss_tuning_image_hint">Görüntüleyiciyi açmak için görsele dokunun, sonra çıkmak için yukarı veya aşağı sürükleyin</string>
+    <string name="viewer_dismiss_section_tuning">Hassasiyet</string>
+    <string name="viewer_dismiss_section_tuning_desc">Değişiklikler anında geçerli olur — denemek için yukarıdaki görsele dokunun. Kalıcı olması için “Kaydet”e dokunun.</string>
+    <string name="viewer_dismiss_distance_label">Sürükleme mesafesi</string>
+    <string name="viewer_dismiss_velocity_label">Savurma hızı</string>
+    <string name="viewer_dismiss_scale_label">Ölçek geri bildirimi</string>
+    <string name="viewer_dismiss_reset">Varsayılana dön</string>
+    <string name="viewer_dismiss_save">Kaydet</string>
+    <string name="viewer_dismiss_saved">Kaydedildi</string>
+    <string name="viewer_dismiss_unsaved_title">Kaydedilmemiş değişiklikler</string>
+    <string name="viewer_dismiss_unsaved_message">Hassasiyet ayarlarınız henüz kaydedilmedi. Şimdi çıkarsanız kaybolur.</string>
+    <string name="viewer_dismiss_unsaved_discard">Kaydetme</string>
+    <string name="viewer_dismiss_unsaved_save">Kaydet ve çık</string>
+    <string name="viewer_dismiss_only_at_min_scale">Yakınlaştırınca sürükleyerek kapatmayı kapat</string>
+    <string name="viewer_dismiss_only_at_min_scale_desc">Açıkken, yakınlaştırılmış görüntüde yukarı veya aşağı sürükleme görüntüyü kaydırır. Sürükleyerek çıkmak için görüntüyü açıldığı boyuta döndürün.</string>
 </resources>

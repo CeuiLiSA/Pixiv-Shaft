@@ -3390,4 +3390,24 @@
         <item quantity="one">%1$d 个标签的组合</item>
         <item quantity="other">%1$d 个标签的组合</item>
     </plurals>
+
+    <!-- 大图拖动退出控制（设置 → 浏览设置）：测试页 + 精简大图页。 -->
+    <string name="viewer_dismiss_tuning_title">大图拖动退出控制</string>
+    <string name="viewer_dismiss_tuning_intro">二级大图页上下拖动即可退出。手感因人而异，这里能把三个阈值调到自己顺手，点下面的图就能立刻试。</string>
+    <string name="viewer_dismiss_tuning_image_desc">测试用图</string>
+    <string name="viewer_dismiss_tuning_image_hint">点击图片进入大图，上下拖动体验退出</string>
+    <string name="viewer_dismiss_section_tuning">灵敏度</string>
+    <string name="viewer_dismiss_section_tuning_desc">改动即时生效，点上方图片进大图就能试；满意后点「保存」才会长期记住。</string>
+    <string name="viewer_dismiss_distance_label">拖动距离</string>
+    <string name="viewer_dismiss_velocity_label">外甩速度</string>
+    <string name="viewer_dismiss_scale_label">缩放反馈</string>
+    <string name="viewer_dismiss_reset">恢复默认</string>
+    <string name="viewer_dismiss_save">保存</string>
+    <string name="viewer_dismiss_saved">已保存</string>
+    <string name="viewer_dismiss_unsaved_title">改动尚未保存</string>
+    <string name="viewer_dismiss_unsaved_message">当前的灵敏度调整还没保存，直接离开会丢失。</string>
+    <string name="viewer_dismiss_unsaved_discard">不保存</string>
+    <string name="viewer_dismiss_unsaved_save">保存并离开</string>
+    <string name="viewer_dismiss_only_at_min_scale">放大大图后禁用拖动退出</string>
+    <string name="viewer_dismiss_only_at_min_scale_desc">开启后，图片放大时上下拖只平移画面；回到打开时的大小才能拖动退出，避免误触。</string>
 </resources>

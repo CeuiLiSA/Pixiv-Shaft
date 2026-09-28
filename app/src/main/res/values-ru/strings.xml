@@ -3136,4 +3136,23 @@
         <item quantity="many">Сочетание из %1$d тегов</item>
         <item quantity="other">Сочетание из %1$d тега</item>
     </plurals>
+    <!-- Настройка смахивания в просмотрщике (Настройки → Просмотр): страница настройки + упрощённый просмотрщик. -->
+    <string name="viewer_dismiss_tuning_title">Настройка смахивания</string>
+    <string name="viewer_dismiss_tuning_intro">В полноэкранном просмотрщике изображение закрывается смахиванием вверх или вниз. Чувствительность у всех разная — настройте три порога здесь и нажмите на изображение ниже, чтобы сразу попробовать.</string>
+    <string name="viewer_dismiss_tuning_image_desc">Тестовое изображение</string>
+    <string name="viewer_dismiss_tuning_image_hint">Нажмите на изображение, чтобы открыть просмотрщик, и смахните вверх или вниз</string>
+    <string name="viewer_dismiss_section_tuning">Чувствительность</string>
+    <string name="viewer_dismiss_section_tuning_desc">Изменения применяются сразу — нажмите на изображение выше, чтобы проверить. Нажмите «Сохранить», чтобы сохранить их.</string>
+    <string name="viewer_dismiss_distance_label">Дистанция смахивания</string>
+    <string name="viewer_dismiss_velocity_label">Скорость броска</string>
+    <string name="viewer_dismiss_scale_label">Обратная связь масштаба</string>
+    <string name="viewer_dismiss_reset">Сбросить</string>
+    <string name="viewer_dismiss_save">Сохранить</string>
+    <string name="viewer_dismiss_saved">Сохранено</string>
+    <string name="viewer_dismiss_unsaved_title">Есть несохранённые изменения</string>
+    <string name="viewer_dismiss_unsaved_message">Настройки чувствительности не сохранены. Если выйти сейчас, они будут потеряны.</string>
+    <string name="viewer_dismiss_unsaved_discard">Не сохранять</string>
+    <string name="viewer_dismiss_unsaved_save">Сохранить и выйти</string>
+    <string name="viewer_dismiss_only_at_min_scale">Запретить смахивание при увеличении</string>
+    <string name="viewer_dismiss_only_at_min_scale_desc">Если включено, в увеличенном виде смахивание вверх или вниз перемещает изображение. Закрыть смахиванием можно, вернув исходный размер.</string>
 </resources>
