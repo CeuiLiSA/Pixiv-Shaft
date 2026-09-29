@@ -339,7 +339,10 @@ public class V3Palette @JvmOverloads public constructor(
         /** Resolve the palette from the current theme's colorPrimary */
         @JvmStatic
         public fun from(context: Context): V3Palette {
-            val primary = resolveThemeAttribute(context, androidx.appcompat.R.attr.colorPrimary)
+            // 主题色是实底角色，派生色和对比度校正都按不透明算（calculateContrast 遇半透明
+            // 背景直接抛异常）；线上见过解出 #FE847730 这种带 alpha 的 colorPrimary，这里抹平。
+            val primary = resolveThemeAttribute(context, androidx.appcompat.R.attr.colorPrimary) or
+                    (0xFF shl 24)
             val nightMode = context.resources.configuration.uiMode and
                     Configuration.UI_MODE_NIGHT_MASK
             val isDark = nightMode == Configuration.UI_MODE_NIGHT_YES
