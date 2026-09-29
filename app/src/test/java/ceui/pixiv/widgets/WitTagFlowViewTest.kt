@@ -261,10 +261,13 @@ class WitTagFlowViewTest {
                     WitTagItem("b", "long history repeated words repeated words", removeDescription = "删除")))
             }
             size(flow, 220)
+            // 透明沿按设计可叠出容器，可见胶囊必须留在内容区内。
+            val edge = (8 * flow.resources.displayMetrics.density).roundToInt()
             flow.children.forEach {
                 assertTrue("left=${it.left}", it.left >= flow.paddingLeft)
                 assertTrue("right=${it.right}", it.right <= flow.width - flow.paddingRight)
-                assertTrue(it.bottom <= flow.height - flow.paddingBottom)
+                assertTrue(it.top + edge >= flow.paddingTop)
+                assertTrue(it.bottom - edge <= flow.height - flow.paddingBottom)
             }
             val history = flow.getChildAt(1) as ViewGroup
             assertTrue(history.getChildAt(0).width > 0)
@@ -287,6 +290,23 @@ class WitTagFlowViewTest {
         size(flow)
         assertFalse(flow.getChildAt(0).background is InsetDrawable)
         assertTrue(flow.getChildAt(0).height < 32 * density)
+    }
+
+    @Test fun `wrapped rows overlap their transparent edges so visible pills sit one gap apart`() {
+        val flow = flow().apply { setTagNames(List(6) { "标签标签标签$it" }) }
+        val density = flow.resources.displayMetrics.density
+        size(flow)
+        val rows = flow.children.map { it.top }.distinct().toList()
+        assertTrue("rows=$rows", rows.size >= 2)
+        val first = flow.getChildAt(0)
+        val next = flow.children.first { it.top == rows[1] }
+        val edge = (8 * density).roundToInt()
+        assertTrue("hit=${first.height}", first.height >= (48 * density).roundToInt())
+        val visibleGap = (next.top + edge) - (first.bottom - edge)
+        assertEquals((8 * density).roundToInt().toFloat(), visibleGap.toFloat(), 1f)
+        // 首行上方与末行下方的留白相同（各为半个 gap）。
+        val last = flow.getChildAt(flow.childCount - 1)
+        assertEquals((first.top + edge).toFloat(), (flow.height - (last.bottom - edge)).toFloat(), 1f)
     }
 
     @Test fun `history rows share the normal pill height and the transparent edge is not padding`() {

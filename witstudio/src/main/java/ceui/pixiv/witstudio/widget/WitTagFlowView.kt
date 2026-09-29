@@ -261,7 +261,8 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         if (item.leadingIcon != 0) setLeadingIcon(label, item.leadingIcon, palette)
         if (item.removeDescription != null) {
             // 历史记录删除是独立按钮；正文搜索和长按菜单不抢它的事件。
-            // 删除键与正文同坐一颗胶囊：自身不画底，16dp 图标，48dp 热区落在透明上下沿与胶囊末端。
+            // 删除键与正文同坐一颗胶囊：自身不画底，32dp 宽、18dp 图标框（叉形约 10dp），
+            // 叉到正文约 8dp、到胶囊末端约 14dp 与起始内边距对称；高度随透明上下沿取满 48dp。
             label.setPaddingRelative(label.paddingStart, label.paddingTop, 0, label.paddingBottom)
             return LinearLayout(context).apply {
                 gravity = Gravity.CENTER_VERTICAL
@@ -273,10 +274,10 @@ public open class WitTagFlowView @JvmOverloads public constructor(
                     // 删除键是"非原文"：用未增强的 textTagAux，拉高辨识度时它不动。
                     imageTintList = ColorStateList.valueOf(palette.textTagAux)
                     background = RippleDrawable(ColorStateList.valueOf(palette.alpha20), null, null)
-                        .apply { radius = 18.dp }
-                    setPaddingRelative(16.dp, 0, 14.dp, 0)
+                        .apply { radius = 16.dp }
+                    setPaddingRelative(4.dp, 0, 10.dp, 0)
                     setOnClickListener { removeListener?.onItemClick(item, position) }
-                }, LinearLayout.LayoutParams(48.dp, LayoutParams.MATCH_PARENT))
+                }, LinearLayout.LayoutParams(32.dp, LayoutParams.MATCH_PARENT))
             }
         }
         if (showRemoveIcon) {
@@ -351,8 +352,13 @@ public open class WitTagFlowView @JvmOverloads public constructor(
         LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
             val gap = if (compact) 6.dp else 8.dp
             marginEnd = if (flexWrap == FlexWrap.NOWRAP && last) 0 else gap
-            // 上下透明沿已隔开相邻两行的可见胶囊，行距不再叠加。
-            bottomMargin = if (flexWrap == FlexWrap.NOWRAP) 0 else (gap - 2 * edge).coerceAtLeast(0)
+            if (flexWrap != FlexWrap.NOWRAP) {
+                // 换行时相邻两行的透明沿互相叠入（负边距上下均分），可见胶囊行距与横向间距同为 gap；
+                // 每颗仍是 48dp 高，重叠带的触摸交给后加入的下一行，整片区域没有死区。
+                val overlap = gap - 2 * edge
+                topMargin = if (edge == 0) 0 else overlap / 2
+                bottomMargin = if (edge == 0) gap else overlap - overlap / 2
+            }
             flexShrink = 0f
         }
 
