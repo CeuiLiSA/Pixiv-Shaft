@@ -3205,4 +3205,15 @@
         <item quantity="many">Снято %d отметок</item>
         <item quantity="other">Снято %d отметки</item>
     </plurals>
+    <!-- 动图逐帧页 · 片段 -->
+    <string name="ugoira_frames_mode_frame">Кадр</string>
+    <string name="ugoira_frames_mode_clip">Фрагмент</string>
+    <string name="ugoira_frames_set_in">Сделать началом</string>
+    <string name="ugoira_frames_set_out">Сделать концом</string>
+    <string name="ugoira_frames_clip_info">Кадры %1$d–%2$d · всего %3$d · %4$s</string>
+    <string name="ugoira_frames_export">Экспорт %s</string>
+    <string name="ugoira_frames_exporting">Экспорт %d%%</string>
+    <string name="ugoira_frames_clip_saved">Фрагмент сохранён</string>
+    <string name="ugoira_frames_clip_gif_fallback">Не удалось создать MP4, сохранено как GIF</string>
+    <string name="ugoira_frames_export_failed">Не удалось экспортировать: %1$s</string>
 </resources>

@@ -398,6 +398,12 @@ object UgoiraEngine {
         } ?: playable
     }
 
+    /**
+     * 借 pipeline 的 mp4 压制闸门跑一段编码。硬件编码器实例是设备级稀缺资源,和 pipeline 并发
+     * configure 失败会被 [UgoiraVideoEncoder] 当成「本机不支持」,把整个会话的 mp4 播放 / 保存都关掉。
+     */
+    internal suspend fun <T> withVideoEncoder(block: suspend () -> T): T = videoGate.withPermit { block() }
+
     /** 观察者 +1,拿到(或新建)共享任务;撤销任何待触发的「划走取消」。 */
     private fun acquireJob(illust: Illust): Deferred<UgoiraFrames> = synchronized(lock) {
         val id = illust.id

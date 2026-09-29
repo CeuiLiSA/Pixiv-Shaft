@@ -70,6 +70,8 @@ import timber.log.Timber
  * - **Google 相册「导出帧」**：拖动松手吸附到帧、逐帧震动、原画质导出；
  * - **VN / InShot**：上一帧 / 下一帧步进，按住连续步进；0.25×～2× 变速播放；
  * - **剪辑软件的标记**：长按胶片或点书签标记多帧，一次存下。
+ * - **剪辑软件的 `[ ]` 裁剪**：切到「片段」，拖时间轴两端的括号把手（或用「设为起点 / 终点」按钮）
+ *   圈出一段，循环预览这一段，导出成 GIF / MP4 保存或分享。
  *
  * 页面结构按 V3「作品 / 内容」配方：内容（舞台）优先 → 关键信息（时间码、帧序号）→ 轻控件 → 一个最强操作
  * （「保存此帧」实色胶囊）。宽屏横放时舞台在左、控制台在右。
@@ -103,6 +105,12 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
     private lateinit var speedButton: TextView
     private lateinit var shareButton: ImageView
     private lateinit var saveButton: TextView
+    private lateinit var modeGroup: ceui.pixiv.ui.library.LibraryFilterViews.ChoiceGroup
+    private lateinit var formatGroup: ceui.pixiv.ui.library.LibraryFilterViews.ChoiceGroup
+    private lateinit var setInButton: ImageView
+    private lateinit var setOutButton: ImageView
+
+    private val clipMode: Boolean get() = model.clipMode.value
 
     private var playing = false
     private var positionMs = 0f
@@ -118,7 +126,13 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
             val total = (model.load.value as? FramesLoad.Ready)?.frames?.totalMs ?: return
             if (lastFrameNs != 0L) {
                 val dt = (frameTimeNanos - lastFrameNs) / 1_000_000f * model.speed
-                positionMs = (positionMs + dt) % total
+                positionMs = if (clipMode) {
+                    // 片段模式只在 [ ] 里循环。
+                    val (a, b) = timeline.trimSpanMs()
+                    a + ((positionMs - a + dt) % (b - a)).let { if (it < 0) it + (b - a) else it }
+                } else {
+                    (positionMs + dt) % total
+                }
             }
             lastFrameNs = frameTimeNanos
             timeline.setPosition(positionMs)
@@ -155,6 +169,10 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
                 launch { model.marks.collect { renderMarks(it) } }
                 launch { model.speedIndex.collect { renderSpeed() } }
                 launch { model.thumbTick.collect { timeline.refreshThumbs() } }
+                launch { model.clipMode.collect { renderMode() } }
+                launch { model.trim.collect { renderTrim() } }
+                launch { model.clipAsMp4.collect { formatGroup.select(if (it) 1 else 0); renderSaveLabel() } }
+                launch { model.clipExport.collect(::renderClipExport) }
             }
         }
     }
@@ -179,8 +197,11 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
         val wide = cfg.screenWidthDp >= 600 && cfg.screenWidthDp > cfg.screenHeightDp
         val controls = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
+            addView(modeGroup.view, LinearLayout.LayoutParams(-1, -2).apply {
+                leftMargin = ctx.dp(16); rightMargin = ctx.dp(16); topMargin = ctx.dp(if (wide) 0 else 8)
+            })
             addView(info, LinearLayout.LayoutParams(-1, -2).apply {
-                leftMargin = ctx.dp(20); rightMargin = ctx.dp(16); topMargin = ctx.dp(if (wide) 0 else 16)
+                leftMargin = ctx.dp(20); rightMargin = ctx.dp(16); topMargin = ctx.dp(8)
             })
             addView(timeline, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(12) })
             addView(transport, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(4) })
@@ -297,16 +318,31 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
             fontFeatureSettings = "tnum"
             setPadding(0, ctx.dp(4), 0, 0)
         }
-        val timeRow = LinearLayout(ctx).apply {
-            orientation = LinearLayout.HORIZONTAL
-            addView(timecode)
-            addView(duration, LinearLayout.LayoutParams(-2, -2).apply { marginStart = ctx.dp(6) })
+        // 末端还要放标记汇总 / 「GIF | MP4」：320dp 窄屏或放大字体时，总时长整体换到下一行，
+        // 而不是被横向 LinearLayout 挤成断在半截的两行。
+        val timeRow = com.google.android.flexbox.FlexboxLayout(ctx).apply {
+            flexWrap = com.google.android.flexbox.FlexWrap.WRAP
+            alignItems = com.google.android.flexbox.AlignItems.BASELINE
+            addView(timecode.apply { maxLines = 1 })
+            addView(duration.apply { maxLines = 1 }, com.google.android.flexbox.FlexboxLayout.LayoutParams(-2, -2).apply {
+                marginStart = ctx.dp(6)
+                flexShrink = 0f
+            })
         }
         val left = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
             addView(timeRow)
             addView(frameInfo)
         }
+        // 「选帧 | 片段」与「GIF | MP4」都是 ≤ 4 个互斥档位：沿用收藏库筛选面板的 MD3-E 连通按钮组。
+        val choices = ceui.pixiv.ui.library.LibraryFilterViews(ctx)
+        modeGroup = choices.connectedGroup(
+            listOf(getString(R.string.ugoira_frames_mode_frame), getString(R.string.ugoira_frames_mode_clip)),
+        ) { model.setClipMode(it == 1) }
+        formatGroup = choices.connectedGroup(
+            listOf(getString(R.string.setting_ugoira_save_format_gif), getString(R.string.setting_ugoira_save_format_mp4)),
+        ) { model.setClipFormat(it == 1) }
+        formatGroup.view.contentDescription = getString(R.string.setting_ugoira_save_format)
         marksChip = ctx.label("", 13f, 600, palette.textAccent).apply {
             gravity = Gravity.CENTER_VERTICAL
             minHeight = ctx.dp(48)
@@ -321,6 +357,7 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
             gravity = Gravity.CENTER_VERTICAL
             addView(left, LinearLayout.LayoutParams(0, -2, 1f))
             addView(marksChip, LinearLayout.LayoutParams(-2, -2).apply { marginStart = ctx.dp(12) })
+            addView(formatGroup.view, LinearLayout.LayoutParams(ctx.dp(132), -2).apply { marginStart = ctx.dp(12) })
         }
     }
 
@@ -341,6 +378,12 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
             setPadding(ctx.dp(18), ctx.dp(18), ctx.dp(18), ctx.dp(18))
             // renderPlayState 只在第一次播放 / 暂停时才跑，初始名称得在这里给，否则读屏报「未加标签的按钮」。
             contentDescription = getString(R.string.ugoira_frames_play)
+        }
+        setInButton = roundIcon(ctx, R.drawable.ic_trim_in_24, ink, 48) { setTrimEdge(start = true) }.apply {
+            contentDescription = getString(R.string.ugoira_frames_set_in)
+        }
+        setOutButton = roundIcon(ctx, R.drawable.ic_trim_out_24, ink, 48) { setTrimEdge(start = false) }.apply {
+            contentDescription = getString(R.string.ugoira_frames_set_out)
         }
         speedButton = ctx.label("1×", 14f, 700).apply {
             gravity = Gravity.CENTER
@@ -363,11 +406,14 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
             fun add(v: View, size: Int, gap: Int) = addView(v, LinearLayout.LayoutParams(ctx.dp(size), ctx.dp(size)).apply {
                 marginStart = ctx.dp(gap)
             })
+            // 选帧模式两端是「标记 / 速度」，片段模式换成「设为起点 / 设为终点」，按钮位置不变。
             add(markButton, 48, 0)
+            add(setInButton, 48, 0)
             add(prevButton, 48, 12)
             add(playButton, 64, 16)
             add(nextButton, 48, 16)
             addView(speedButton, LinearLayout.LayoutParams(-2, ctx.dp(48)).apply { marginStart = ctx.dp(12) })
+            add(setOutButton, 48, 12)
         }
     }
 
@@ -394,7 +440,8 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
         val ready = state is FramesLoad.Ready
         loadingBox.isVisible = state is FramesLoad.Loading
         failedBox.isVisible = state is FramesLoad.Failed
-        listOf<View>(markButton, prevButton, playButton, nextButton, speedButton, shareButton, saveButton, timeline)
+        // 模式切换不在列表里：加载中切模式无害，而连通组的容器禁用不了子段，压暗了反而「看着不能点、点了有反应」。
+        listOf<View>(markButton, setInButton, setOutButton, prevButton, playButton, nextButton, speedButton, shareButton, saveButton, timeline)
             .forEach {
                 it.isEnabled = ready
                 it.alpha = if (ready) 1f else .38f
@@ -409,6 +456,7 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
                     timeline.snapTo(model.index.value, animate = false, fromUser = false)
                     positionMs = timeline.positionMs
                 }
+                renderTrim()
                 duration.text = "/ " + formatTime(frames.totalMs.toLong())
                 renderIndex()
             }
@@ -440,12 +488,7 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
         val frames = (model.load.value as? FramesLoad.Ready)?.frames ?: return
         val i = model.index.value.coerceIn(0, frames.files.size - 1)
         timecode.text = formatTime(timeline.startOf(i))
-        val parts = mutableListOf(
-            getString(R.string.ugoira_frames_counter, i + 1, frames.files.size),
-            getString(R.string.ugoira_frames_delay, frames.delaysMs[i]),
-        )
-        if (frames.interpolated) parts += getString(R.string.ugoira_frames_interpolated)
-        frameInfo.text = parts.joinToString("  ·  ")
+        renderInfo()
         prevButton.isEnabled = i > 0
         nextButton.isEnabled = i < frames.files.size - 1
         prevButton.alpha = if (prevButton.isEnabled) 1f else .38f
@@ -453,9 +496,88 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
         renderMarkState()
     }
 
+    /** 信息行第二行：选帧模式报当前帧，片段模式报范围、帧数与时长。 */
+    private fun renderInfo() {
+        val frames = (model.load.value as? FramesLoad.Ready)?.frames ?: return
+        val i = model.index.value.coerceIn(0, frames.files.size - 1)
+        val range = model.trimRange()
+        val parts = mutableListOf<String>()
+        if (clipMode && range != null) {
+            val ms = frames.delaysMs.subList(range.first, range.last + 1).sum()
+            parts += getString(
+                R.string.ugoira_frames_clip_info,
+                range.first + 1, range.last + 1, range.last - range.first + 1,
+                String.format(Locale.US, "%.2f s", ms / 1000f),
+            )
+        } else {
+            parts += getString(R.string.ugoira_frames_counter, i + 1, frames.files.size)
+            parts += getString(R.string.ugoira_frames_delay, frames.delaysMs[i])
+        }
+        if (frames.interpolated) parts += getString(R.string.ugoira_frames_interpolated)
+        frameInfo.text = parts.joinToString("  ·  ")
+    }
+
+    /** 选帧 ↔ 片段：换两端按钮、换信息行末端（标记汇总 ↔ 格式）、时间轴进出括号、主操作换文案。 */
+    private fun renderMode() {
+        val clip = clipMode
+        modeGroup.select(if (clip) 1 else 0)
+        markButton.isVisible = !clip
+        speedButton.isVisible = !clip
+        setInButton.isVisible = clip
+        setOutButton.isVisible = clip
+        formatGroup.view.isVisible = clip
+        marksChip.isVisible = !clip && model.marks.value.isNotEmpty()
+        markBadge.isVisible = !clip && model.index.value in model.marks.value
+        // 片段按原速导出，预览也回到 1×（速度键在片段模式下收起），看到的节奏就是导出的节奏。
+        if (clip) model.resetSpeed()
+        renderTrim()
+        renderSaveLabel()
+    }
+
+    private fun renderTrim() {
+        timeline.setTrim(if (clipMode) model.trimRange() else null)
+        renderInfo()
+    }
+
+    private fun renderClipExport(state: ClipExport) {
+        when (state) {
+            is ClipExport.Idle, is ClipExport.Running -> renderSaveLabel()
+            is ClipExport.Saved -> {
+                model.consumeClipResult()
+                flashStage()
+                saveButton.performHapticFeedback(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) HapticFeedbackConstants.CONFIRM
+                    else HapticFeedbackConstants.VIRTUAL_KEY,
+                )
+                Toaster.show(getString(if (state.fellBackToGif) R.string.ugoira_frames_clip_gif_fallback else R.string.ugoira_frames_clip_saved))
+            }
+            is ClipExport.Shared -> {
+                model.consumeClipResult()
+                val intent = Intent(Intent.ACTION_SEND)
+                    .putExtra(Intent.EXTRA_STREAM, state.uri)
+                    .setType(state.mime)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                startActivity(Intent.createChooser(intent, getString(R.string.share)))
+            }
+            is ClipExport.Failed -> {
+                model.consumeClipResult()
+                Toaster.show(getString(R.string.ugoira_frames_export_failed, state.message))
+            }
+        }
+    }
+
+    /** 「设为起点 / 终点」：把片段的一端放到播放头所在的帧。 */
+    private fun setTrimEdge(start: Boolean) {
+        if (model.load.value !is FramesLoad.Ready) return
+        pause(snap = true)
+        val i = model.index.value
+        if (start) model.setTrimIn(i) else model.setTrimOut(i)
+        view?.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+    }
+
     private fun renderMarks(marks: Set<Int>) {
         timeline.setMarks(marks)
-        marksChip.isVisible = marks.isNotEmpty()
+        marksChip.isVisible = !clipMode && marks.isNotEmpty()
         if (marks.isNotEmpty()) {
             val summary = resources.getQuantityString(R.plurals.ugoira_frames_marked_count, marks.size, marks.size)
             marksChip.setTextWithIconEnd(summary)
@@ -480,7 +602,7 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
             shape(999f, Color.WHITE),
         )
         markButton.contentDescription = getString(if (marked) R.string.ugoira_frames_unmark else R.string.ugoira_frames_mark)
-        markBadge.isVisible = marked
+        markBadge.isVisible = marked && !clipMode
     }
 
     private fun renderSpeed() {
@@ -497,6 +619,22 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
     }
 
     private fun renderSaveLabel() {
+        if (clipMode) {
+            val export = model.clipExport.value
+            saveButton.isEnabled = export !is ClipExport.Running && model.load.value is FramesLoad.Ready
+            shareButton.isEnabled = saveButton.isEnabled
+            if (export is ClipExport.Running) {
+                saveButton.setTextWithIcon(getString(R.string.ugoira_frames_exporting, export.percent), null)
+            } else {
+                val format = getString(if (model.clipAsMp4.value) R.string.setting_ugoira_save_format_mp4 else R.string.setting_ugoira_save_format_gif)
+                saveButton.setTextWithIcon(getString(R.string.ugoira_frames_export, format), R.drawable.ic_file_download_black_24dp)
+            }
+            return
+        }
+        if (model.load.value is FramesLoad.Ready && !saving) {
+            saveButton.isEnabled = true
+            shareButton.isEnabled = true
+        }
         if (saving || System.currentTimeMillis() < savedFlashUntil) return
         val n = model.marks.value.size
         val text = if (n == 0) getString(R.string.ugoira_frames_save_one)
@@ -515,7 +653,13 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
         }
 
         override fun onToggleMark(frameIndex: Int) {
-            model.toggleMark(frameIndex)
+            if (!clipMode) model.toggleMark(frameIndex)
+        }
+
+        override fun onTrimChanged(start: Int, end: Int, edgeFrame: Int, finished: Boolean) {
+            // 拖把手时舞台跟着显示那一端的帧，松手后时间轴自己把播放头吸过去。
+            model.setTrim(start, end)
+            if (edgeFrame != model.index.value) model.show(edgeFrame, prefetchForward = edgeFrame > model.index.value)
         }
     }
 
@@ -527,6 +671,10 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
 
     private fun play() {
         if (playing) return
+        if (clipMode) {
+            val (a, b) = timeline.trimSpanMs()
+            if (positionMs < a || positionMs >= b) positionMs = a.toFloat()
+        }
         playing = true
         lastFrameNs = 0L
         Choreographer.getInstance().postFrameCallback(ticker)
@@ -595,7 +743,7 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
     }
 
     private fun toggleMarkCurrent() {
-        if (model.load.value !is FramesLoad.Ready) return
+        if (model.load.value !is FramesLoad.Ready || clipMode) return
         val i = model.index.value
         val adding = i !in model.marks.value
         model.toggleMark(i)
@@ -624,6 +772,11 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
     private fun targets(): List<Int> = model.marks.value.sorted().ifEmpty { listOf(model.index.value) }
 
     private fun save() {
+        if (clipMode) {
+            pause(snap = true)
+            model.exportClip(share = false)
+            return
+        }
         if (saving || model.load.value !is FramesLoad.Ready) return
         pause(snap = true)
         val targets = targets()
@@ -660,6 +813,11 @@ class UgoiraFramesFragment : Fragment(R.layout.fragment_ugoira_frames) {
 
     private fun share() {
         if (model.load.value !is FramesLoad.Ready) return
+        if (clipMode) {
+            pause(snap = true)
+            model.exportClip(share = true)
+            return
+        }
         pause(snap = true)
         val targets = targets()
         viewLifecycleOwner.lifecycleScope.launch {

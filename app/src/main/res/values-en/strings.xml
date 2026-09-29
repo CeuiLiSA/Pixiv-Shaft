@@ -3188,4 +3188,15 @@
         <item quantity="one">Cleared %d mark</item>
         <item quantity="other">Cleared %d marks</item>
     </plurals>
+    <!-- 动图逐帧页 · 片段 -->
+    <string name="ugoira_frames_mode_frame">Frame</string>
+    <string name="ugoira_frames_mode_clip">Clip</string>
+    <string name="ugoira_frames_set_in">Set start</string>
+    <string name="ugoira_frames_set_out">Set end</string>
+    <string name="ugoira_frames_clip_info">Frames %1$d–%2$d · %3$d frames · %4$s</string>
+    <string name="ugoira_frames_export">Export %s</string>
+    <string name="ugoira_frames_exporting">Exporting %d%%</string>
+    <string name="ugoira_frames_clip_saved">Clip saved</string>
+    <string name="ugoira_frames_clip_gif_fallback">Couldn\'t create an MP4, saved as GIF</string>
+    <string name="ugoira_frames_export_failed">Export failed: %1$s</string>
 </resources>

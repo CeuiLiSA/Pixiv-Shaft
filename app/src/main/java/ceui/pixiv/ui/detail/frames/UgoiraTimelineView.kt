@@ -42,6 +42,9 @@ import kotlin.math.roundToInt
  *   当前帧套一圈主题色选框（iOS 实况照片选封面帧的那只框）。
  * - 双指捏合缩放时间轴，播放头下的时刻不动；轻点某一格跳过去；长按某一格标记 / 取消标记。
  * - 用户拖动时每跨过一帧给一次 CLOCK_TICK 震动，像拨动滚轮。
+ * - **片段模式**（[setTrim] 非空）：选中范围套一只 `[ ]` 括号框（iOS 裁剪 / 剪映入出点），两端是可拖的
+ *   把手，范围外的胶片压暗。把手按帧边界吸附、每跨一帧震一下；拖到屏幕边缘时胶片自动滚动，
+ *   长片段也不用松手换位。拖把手不动播放头，松手后播放头吸到刚改的那一端。
  *
  * 只画和报手势，不认识播放、不认识文件；帧缩略图由 [thumbAt] 按需给，给不出就画占位底色。
  */
@@ -55,6 +58,12 @@ class UgoiraTimelineView(context: Context) : View(context) {
         fun onPositionChanged(positionMs: Float, frameIndex: Int, fromUser: Boolean)
 
         fun onToggleMark(frameIndex: Int)
+
+        /**
+         * 片段范围变了（闭区间帧序号）。[edgeFrame] 是正在拖的那一端的帧，页面拿它上舞台；
+         * [finished] = 松手，范围定下来了。
+         */
+        fun onTrimChanged(start: Int, end: Int, edgeFrame: Int, finished: Boolean) = Unit
     }
 
     var listener: Listener? = null
@@ -69,6 +78,20 @@ class UgoiraTimelineView(context: Context) : View(context) {
     private var totalMs = 0L
     private var minDelay = 1
     private var marks: Set<Int> = emptySet()
+
+    /** 片段范围（闭区间帧序号）；null = 不在片段模式。 */
+    var trim: IntRange? = null
+        private set
+
+    /** 正在拖的把手：[HANDLE_NONE] / [HANDLE_START] / [HANDLE_END]。 */
+    private var dragHandle = HANDLE_NONE
+    private var grabOffset = 0f
+    private var lastTouchX = 0f
+    private var autoScrollDir = 0
+    private var dragPointerId = MotionEvent.INVALID_POINTER_ID
+
+    /** 把手手势中途由「另一根手指」接着按住：它的后续事件滚动手势没见过 DOWN，吞掉直到下一次按下。 */
+    private var swallowUntilDown = false
 
     /** 播放头下的时刻，毫秒，区间 [0, totalMs)。 */
     var positionMs = 0f
@@ -94,6 +117,12 @@ class UgoiraTimelineView(context: Context) : View(context) {
     private val knobR = context.dpF(4f)
     private val markDotR = context.dpF(3f)
     private val edgeFadeW = context.dpF(28f)
+    private val handleW = context.dpF(16f)
+    private val handleHit = context.dpF(24f)
+    private val bracketBar = context.dpF(3f)
+    private val handleRadius = context.dpF(8f)
+    private val autoScrollZone = context.dpF(40f)
+    private val autoScrollStep = context.dpF(6f)
     private val stripTop get() = markLaneH
     private val stripBottom get() = markLaneH + stripH
 
@@ -109,6 +138,10 @@ class UgoiraTimelineView(context: Context) : View(context) {
         color = context.color(R.color.v3_text_1)
     }
     private val markPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.textAccent }
+    private val dimPaint = Paint().apply { color = V3Palette.withAlpha(context.color(R.color.v3_bg), 0.62f) }
+    private val bracketPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.primary }
+    private val gripPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = palette.onPrimary }
+    private val handlePath = Path()
     private val tickPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = context.color(R.color.v3_text_3)
         strokeWidth = context.dpF(1f)
@@ -167,7 +200,8 @@ class UgoiraTimelineView(context: Context) : View(context) {
         }
 
         override fun onLongPress(e: MotionEvent) {
-            if (scaling) return
+            // 片段模式不标记帧：长按什么都不做，也就不能震——震了用户会以为标上了。
+            if (scaling || trim != null) return
             val index = frameAtX(e.x) ?: return
             performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             listener?.onToggleMark(index)
@@ -218,6 +252,21 @@ class UgoiraTimelineView(context: Context) : View(context) {
         currentIndex = 0
         positionMs = 0f
         invalidate()
+    }
+
+    /** 进 / 出片段模式；[range] 会被夹到有效帧内。 */
+    fun setTrim(range: IntRange?) {
+        trim = range?.let {
+            if (delays.isEmpty()) it
+            else it.first.coerceIn(0, delays.size - 1)..it.last.coerceIn(0, delays.size - 1)
+        }
+        invalidate()
+    }
+
+    /** 片段的时间区间（毫秒，左闭右开）；不在片段模式时是整段。 */
+    fun trimSpanMs(): Pair<Long, Long> {
+        val r = trim ?: return 0L to totalMs
+        return starts[r.first] to starts[r.last] + delays[r.last]
     }
 
     fun setMarks(value: Set<Int>) {
@@ -275,7 +324,21 @@ class UgoiraTimelineView(context: Context) : View(context) {
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (delays.isEmpty() || !isEnabled) return false
-        if (event.actionMasked == MotionEvent.ACTION_DOWN) parent?.requestDisallowInterceptTouchEvent(true)
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            parent?.requestDisallowInterceptTouchEvent(true)
+            swallowUntilDown = false
+        }
+        if (swallowUntilDown) return true
+        if (event.actionMasked == MotionEvent.ACTION_DOWN && hitHandle(event.x, event.y)) {
+            // 把手的拖动整段自己处理，不喂给滚动 / 缩放手势；只认按下把手的那根手指。
+            dragPointerId = event.getPointerId(0)
+            stopMotion()
+            beginUserGesture()
+        }
+        if (dragHandle != HANDLE_NONE) {
+            onHandleTouch(event)
+            return true
+        }
         scaleDetector.onTouchEvent(event)
         gestures.onTouchEvent(event)
         when (event.actionMasked) {
@@ -299,6 +362,102 @@ class UgoiraTimelineView(context: Context) : View(context) {
             } else {
                 ViewCompat.postInvalidateOnAnimation(this)
             }
+        }
+    }
+
+    // ── 片段把手 ────────────────────────────────────────────────────
+
+    private fun rangeLeftX(r: IntRange) = width / 2f + (starts[r.first] - positionMs) * pxPerMs
+    private fun rangeRightX(r: IntRange) = width / 2f + (starts[r.last] + delays[r.last] - positionMs) * pxPerMs
+
+    /** 按下点是否落在某个把手的热区（把手外扩到 48dp 宽）；命中就记下拖哪一端。 */
+    private fun hitHandle(x: Float, y: Float): Boolean {
+        val r = trim ?: return false
+        if (y < stripTop - handleHit || y > stripBottom + handleHit) return false
+        val startX = rangeLeftX(r) - handleW / 2
+        val endX = rangeRightX(r) + handleW / 2
+        val dStart = abs(x - startX)
+        val dEnd = abs(x - endX)
+        dragHandle = when {
+            dStart > handleHit && dEnd > handleHit -> return false
+            // 片段很短、两个把手挨在一起时，按下点偏哪边就拖哪边。
+            dStart < dEnd || (dStart == dEnd && x < (startX + endX) / 2) -> HANDLE_START
+            else -> HANDLE_END
+        }
+        grabOffset = (if (dragHandle == HANDLE_START) startX + handleW / 2 else endX - handleW / 2) - x
+        lastTouchX = x
+        return true
+    }
+
+    private fun onHandleTouch(event: MotionEvent) {
+        // 第二根手指按上来不接管；按住把手的那根先抬起就当松手，免得把手跳到另一根手指下。
+        val released = event.actionMasked == MotionEvent.ACTION_POINTER_UP &&
+            event.getPointerId(event.actionIndex) == dragPointerId
+        when {
+            event.actionMasked == MotionEvent.ACTION_MOVE -> {
+                val idx = event.findPointerIndex(dragPointerId)
+                if (idx < 0) return
+                val x = event.getX(idx)
+                lastTouchX = x
+                applyHandle()
+                val dir = when {
+                    x < autoScrollZone -> -1
+                    x > width - autoScrollZone -> 1
+                    else -> 0
+                }
+                if (dir != autoScrollDir) {
+                    autoScrollDir = dir
+                    // 先撤再发：手指在边缘线附近抖动时 0 ↔ ±1 来回切，不撤就会叠出几条滚动链，越滚越快。
+                    removeCallbacks(autoScroll)
+                    if (dir != 0) postOnAnimation(autoScroll)
+                }
+            }
+            released || event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL -> {
+                dragPointerId = MotionEvent.INVALID_POINTER_ID
+                swallowUntilDown = released
+                val r = trim
+                val edge = if (dragHandle == HANDLE_START) r?.first else r?.last
+                dragHandle = HANDLE_NONE
+                autoScrollDir = 0
+                removeCallbacks(autoScroll)
+                userActive = false
+                if (r != null && edge != null) {
+                    listener?.onTrimChanged(r.first, r.last, edge, finished = true)
+                    snapTo(edge, animate = true, fromUser = true)
+                }
+            }
+        }
+    }
+
+    /** 手指（加上按下时的偏移）落在哪条帧边界上，就把对应那一端移过去。 */
+    private fun applyHandle() {
+        val r = trim ?: return
+        val edgeMs = positionMs + (lastTouchX + grabOffset - width / 2f) / pxPerMs
+        val b = nearestBoundary(edgeMs)
+        val next = if (dragHandle == HANDLE_START) ClipRanges.dragStart(r, b) else ClipRanges.dragEnd(r, b, delays.size)
+        if (next == r) return
+        trim = next
+        performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+        listener?.onTrimChanged(next.first, next.last, if (dragHandle == HANDLE_START) next.first else next.last, finished = false)
+        postInvalidateOnAnimation()
+    }
+
+    /** 离 [ms] 最近的帧边界序号 b ∈ [0, n]：b < n 是第 b 帧的起点，b = n 是末尾。 */
+    private fun nearestBoundary(ms: Float): Int {
+        val i = indexAt(ms)
+        val left = starts[i].toFloat()
+        val right = (starts[i] + delays[i]).toFloat()
+        return if (ms - left <= right - ms) i else i + 1
+    }
+
+    /** 把手拖到屏幕边缘：胶片朝那边滚，边界跟着手指下的时刻走。 */
+    private val autoScroll = object : Runnable {
+        override fun run() {
+            if (dragHandle == HANDLE_NONE || autoScrollDir == 0) return
+            positionMs = (positionMs + autoScrollDir * autoScrollStep / pxPerMs).coerceIn(0f, (totalMs - 1).toFloat())
+            applyHandle()
+            invalidate()
+            postOnAnimation(this)
         }
     }
 
@@ -413,15 +572,20 @@ class UgoiraTimelineView(context: Context) : View(context) {
                 canvas.drawBitmap(thumb, srcRect, cellRect, bitmapPaint)
             }
             canvas.restore()
-            if (i in marks) {
+            if (trim == null && i in marks) {
                 canvas.drawCircle(cellRect.centerX(), markLaneH / 2f, markDotR, markPaint)
             }
         }
 
-        // 当前帧选框
-        val cl = cx + (starts[currentIndex] - positionMs) * pxPerMs
-        cellRect.set(cl + gap / 2 - selectInset, stripTop - selectInset, cl + delays[currentIndex] * pxPerMs - gap / 2 + selectInset, stripBottom + selectInset)
-        canvas.drawRoundRect(cellRect, cellRadius + selectInset, cellRadius + selectInset, selectPaint)
+        val r = trim
+        if (r == null) {
+            // 当前帧选框
+            val cl = cx + (starts[currentIndex] - positionMs) * pxPerMs
+            cellRect.set(cl + gap / 2 - selectInset, stripTop - selectInset, cl + delays[currentIndex] * pxPerMs - gap / 2 + selectInset, stripBottom + selectInset)
+            canvas.drawRoundRect(cellRect, cellRadius + selectInset, cellRadius + selectInset, selectPaint)
+        } else {
+            drawBracket(canvas, r)
+        }
 
         drawRuler(canvas, cx)
         drawEdgeFades(canvas)
@@ -429,6 +593,33 @@ class UgoiraTimelineView(context: Context) : View(context) {
         // 播放头：一条细线 + 顶端圆点，压在选框之上。
         canvas.drawRoundRect(cx - playheadW / 2, knobR, cx + playheadW / 2, stripBottom + selectInset * 2, playheadW, playheadW, playheadPaint)
         canvas.drawCircle(cx, knobR, knobR, playheadPaint)
+    }
+
+    /** 片段括号：范围外压暗，上下两条 3dp 横梁，两端 16dp 实色把手（外角圆、内角直）带一条握把线。 */
+    private fun drawBracket(canvas: Canvas, r: IntRange) {
+        val left = rangeLeftX(r)
+        val right = rangeRightX(r)
+        val top = stripTop - selectInset
+        val bottom = stripBottom + selectInset
+        if (left > 0f) canvas.drawRect(0f, stripTop, left, stripBottom, dimPaint)
+        if (right < width) canvas.drawRect(right, stripTop, width.toFloat(), stripBottom, dimPaint)
+        canvas.drawRect(left, top, right, top + bracketBar, bracketPaint)
+        canvas.drawRect(left, bottom - bracketBar, right, bottom, bracketPaint)
+        drawHandle(canvas, left - handleW, left, top, bottom, start = true)
+        drawHandle(canvas, right, right + handleW, top, bottom, start = false)
+    }
+
+    private fun drawHandle(canvas: Canvas, l: Float, r: Float, t: Float, b: Float, start: Boolean) {
+        val o = handleRadius
+        val radii = if (start) floatArrayOf(o, o, 0f, 0f, 0f, 0f, o, o) else floatArrayOf(0f, 0f, o, o, o, o, 0f, 0f)
+        cellRect.set(l, t, r, b)
+        handlePath.reset()
+        handlePath.addRoundRect(cellRect, radii, Path.Direction.CW)
+        canvas.drawPath(handlePath, bracketPaint)
+        val gx = (l + r) / 2
+        val gh = context.dpF(8f)
+        val gw = context.dpF(1.5f)
+        canvas.drawRoundRect(gx - gw, (t + b) / 2 - gh, gx + gw, (t + b) / 2 + gh, gw, gw, gripPaint)
     }
 
     private fun frameAtXClamped(x: Float): Int {
@@ -486,10 +677,14 @@ class UgoiraTimelineView(context: Context) : View(context) {
 
     override fun onDetachedFromWindow() {
         stopMotion()
+        removeCallbacks(autoScroll)
         super.onDetachedFromWindow()
     }
 
     private companion object {
+        const val HANDLE_NONE = 0
+        const val HANDLE_START = 1
+        const val HANDLE_END = 2
         val RULER_STEPS = floatArrayOf(50f, 100f, 200f, 500f, 1000f, 2000f, 5000f, 10000f, 30000f)
     }
 }

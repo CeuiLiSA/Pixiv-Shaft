@@ -16,10 +16,16 @@ import ceui.pixiv.ui.bulk.UGOIRA_LOG_TAG
 import ceui.pixiv.ui.bulk.UgoiraEngine
 import ceui.pixiv.ui.bulk.UgoiraFrames
 import ceui.pixiv.ui.bulk.UgoiraProgress
+import ceui.pixiv.ui.bulk.UgoiraVideoEncoder
+import ceui.pixiv.ui.bulk.encodeFramesToGif
+import ceui.lisa.activities.Shaft
+import java.io.BufferedOutputStream
+import java.io.FileOutputStream
 import java.io.File
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +40,16 @@ internal sealed interface FramesLoad {
     data class Loading(val progress: UgoiraProgress?) : FramesLoad
     data class Ready(val frames: UgoiraFrames) : FramesLoad
     data object Failed : FramesLoad
+}
+
+/** 片段导出的进度与结果；结果类状态由页面消费后 [UgoiraFramesViewModel.consumeClipResult] 复位。 */
+internal sealed interface ClipExport {
+    data object Idle : ClipExport
+    data class Running(val percent: Int) : ClipExport
+    /** 已写进相册；[fellBackToGif] = 要 MP4 但设备压不出来，改出了 GIF。 */
+    data class Saved(val fellBackToGif: Boolean) : ClipExport
+    data class Shared(val uri: Uri, val mime: String) : ClipExport
+    data class Failed(val message: String) : ClipExport
 }
 
 /** 舞台上要画的那一帧。 */
@@ -60,6 +76,18 @@ internal class UgoiraFramesViewModel(
     private val _marks = MutableStateFlow(state.get<IntArray>(KEY_MARKS)?.toSet().orEmpty())
     val marks: StateFlow<Set<Int>> = _marks.asStateFlow()
     val speedIndex: StateFlow<Int> = state.getStateFlow(KEY_SPEED, DEFAULT_SPEED)
+
+    /** false = 选帧，true = 片段（`[ ]` 裁剪）。 */
+    val clipMode: StateFlow<Boolean> = state.getStateFlow(KEY_CLIP_MODE, false)
+
+    /** 片段范围（闭区间帧序号）；null = 还没选过，按整段处理。 */
+    val trim: StateFlow<IntArray?> = state.getStateFlow(KEY_TRIM, null)
+
+    /** 片段导出格式，默认跟「动图保存格式」设置走。 */
+    val clipAsMp4: StateFlow<Boolean> = state.getStateFlow(KEY_CLIP_MP4, Shaft.sSettings.isUgoiraSaveAsMp4())
+
+    private val _clipExport = MutableStateFlow<ClipExport>(ClipExport.Idle)
+    val clipExport: StateFlow<ClipExport> = _clipExport.asStateFlow()
 
     private val _frame = MutableStateFlow<FrameImage?>(null)
     val frame: StateFlow<FrameImage?> = _frame.asStateFlow()
@@ -218,6 +246,130 @@ internal class UgoiraFramesViewModel(
         state[KEY_SPEED] = (speedIndex.value + 1) % SPEEDS.size
     }
 
+    fun resetSpeed() {
+        if (speedIndex.value != DEFAULT_SPEED) state[KEY_SPEED] = DEFAULT_SPEED
+    }
+
+    // ── 片段 ────────────────────────────────────────────────────────
+
+    fun setClipMode(on: Boolean) {
+        state[KEY_CLIP_MODE] = on
+    }
+
+    fun setClipFormat(mp4: Boolean) {
+        state[KEY_CLIP_MP4] = mp4
+    }
+
+    /** 当前片段范围（至少 [ClipRanges.MIN_FRAMES] 帧）；没选过就是整段。 */
+    fun trimRange(): IntRange? = ready?.let { ClipRanges.clamp(trim.value, it.files.size) }
+
+    fun setTrim(start: Int, end: Int) {
+        state[KEY_TRIM] = intArrayOf(start, end)
+    }
+
+    // 帧数只取一次：解码线程可能同时把状态改成 Failed，两次读 ready 之间会拿到 null。
+    fun setTrimIn(frame: Int) {
+        val n = ready?.files?.size ?: return
+        setTrim(ClipRanges.withStart(ClipRanges.clamp(trim.value, n), frame, n))
+    }
+
+    fun setTrimOut(frame: Int) {
+        val n = ready?.files?.size ?: return
+        setTrim(ClipRanges.withEnd(ClipRanges.clamp(trim.value, n), frame, n))
+    }
+
+    private fun setTrim(range: IntRange) = setTrim(range.first, range.last)
+
+    /**
+     * 把片段编成 GIF / MP4：[share] = 只生成分享用副本，否则写进用户存储（Ugoira 桶，
+     * 沿用动图命名模板加 `_clip03-09` 后缀）。跑在 viewModelScope 上，旋转不打断。
+     * MP4 压不出来（设备无编码器等）自动改 GIF，并在结果里告诉页面。
+     */
+    fun exportClip(share: Boolean) {
+        if (_clipExport.value is ClipExport.Running) return
+        val frames = ready ?: return
+        val target = illust ?: return
+        val range = trimRange() ?: return
+        val wantMp4 = clipAsMp4.value
+        _clipExport.value = ClipExport.Running(0)
+        viewModelScope.launch {
+            val ctx = getApplication<Application>()
+            val suffix = ClipRanges.clipSuffix(range, frames.files.size)
+            // 分享副本放在 FileProvider 暴露的 images/ 里、留给接收方读；保存用的中间产物放私有缓存、拷完就删。
+            // 两者不能同名同目录：先分享、接收方还在读时再点保存，会把正在被读的文件覆盖后删掉。
+            val dir = if (share) {
+                File(ctx.externalCacheDir ?: ctx.cacheDir, "images")
+            } else {
+                File(ctx.cacheDir, "clip_export")
+            }.apply { mkdirs() }
+            val files = frames.files.subList(range.first, range.last + 1)
+            val delays = frames.delaysMs.subList(range.first, range.last + 1)
+            val job = coroutineContext[Job]
+            val progress: (Int) -> Unit = { _clipExport.value = ClipExport.Running(it) }
+            val result = runCatching {
+                var mp4 = false
+                var out: File? = null
+                if (wantMp4) {
+                    // 与播放 pipeline 共用压制闸门，见 UgoiraEngine.withVideoEncoder。mp4 编码器自己会检查取消、清 .tmp。
+                    out = UgoiraEngine.withVideoEncoder {
+                        UgoiraVideoEncoder.encode(File(dir, "${target.id}$suffix.mp4"), files, delays, progress)
+                    }
+                    mp4 = out != null
+                }
+                if (out == null) {
+                    val gif = File(dir, "${target.id}$suffix.gif")
+                    out = gif
+                    withContext(Dispatchers.IO) {
+                        try {
+                            BufferedOutputStream(FileOutputStream(gif)).use { stream ->
+                                encodeFramesToGif(files, delays, stream) {
+                                    // GIF 编码器是纯阻塞循环：离开页面后在这里停下，别再白烧几秒 CPU。
+                                    job?.ensureActive()
+                                    progress(it)
+                                }
+                            }
+                        } catch (t: Throwable) {
+                            // 半截 GIF 不能留在缓存里（分享目录还会被 FileProvider 暴露出去）。
+                            gif.delete()
+                            throw t
+                        }
+                    }
+                }
+                val mime = if (mp4) "video/mp4" else "image/gif"
+                if (share) {
+                    ClipExport.Shared(FileProvider.getUriForFile(ctx, "${ctx.packageName}.provider", out), mime)
+                } else {
+                    withContext(Dispatchers.IO) {
+                        try {
+                            val handle = DownloadsRegistry.downloads.openDerived(DownloadItems.ugoira(target, mp4), suffix)
+                            if (handle != null) {
+                                try {
+                                    handle.stream.use { s -> out.inputStream().use { it.copyTo(s) } }
+                                    handle.onFinish()
+                                } catch (t: Throwable) {
+                                    handle.onAbort()
+                                    throw t
+                                }
+                            }
+                        } finally {
+                            out.delete()
+                        }
+                    }
+                    ClipExport.Saved(fellBackToGif = wantMp4 && !mp4)
+                }
+            }
+            _clipExport.value = result.getOrElse {
+                if (it is CancellationException) throw it
+                Timber.tag(UGOIRA_LOG_TAG).w(it, "[frames] illust=%d 片段导出失败 %s", target.id, suffix)
+                ClipExport.Failed(it.message ?: it.javaClass.simpleName)
+            }
+        }
+    }
+
+    fun consumeClipResult() {
+        if (_clipExport.value !is ClipExport.Running) _clipExport.value = ClipExport.Idle
+    }
+
     // ── 保存与分享 ─────────────────────────────────────────────────
 
     /** 原帧 JPEG 原样写进用户相册，命名沿用作品模板 + `_frameNN` 后缀；返回写入张数。 */
@@ -229,7 +381,7 @@ internal class UgoiraFramesViewModel(
                 // open 返回 null = 用户选了「跳过已存在」且同名文件在：算已保存。
                 val handle = DownloadsRegistry.downloads.openDerived(
                     DownloadItems.ugoiraFrame(target),
-                    frameSuffix(i, frames.files.size),
+                    ClipRanges.frameSuffix(i, frames.files.size),
                 ) ?: return@count true
                 try {
                     handle.stream.use { out -> frames.files[i].inputStream().use { it.copyTo(out) } }
@@ -251,7 +403,7 @@ internal class UgoiraFramesViewModel(
         return withContext(Dispatchers.IO) {
             val dir = File(ctx.externalCacheDir ?: ctx.cacheDir, "images").apply { mkdirs() }
             indices.mapTo(ArrayList()) { i ->
-                val out = File(dir, "${target.id}${frameSuffix(i, frames.files.size)}.jpg")
+                val out = File(dir, "${target.id}${ClipRanges.frameSuffix(i, frames.files.size)}.jpg")
                 frames.files[i].copyTo(out, overwrite = true)
                 FileProvider.getUriForFile(ctx, "${ctx.packageName}.provider", out)
             }
@@ -271,11 +423,8 @@ internal class UgoiraFramesViewModel(
         private const val KEY_INDEX = "frame_index"
         private const val KEY_MARKS = "frame_marks"
         private const val KEY_SPEED = "frame_speed"
-
-        /** `_frame07`：序号从 1 起，按总帧数补零，文件管理器里按名排序即按时间。 */
-        fun frameSuffix(i: Int, count: Int): String {
-            val width = maxOf(2, count.toString().length)
-            return "_frame" + (i + 1).toString().padStart(width, '0')
-        }
+        private const val KEY_CLIP_MODE = "clip_mode"
+        private const val KEY_TRIM = "clip_trim"
+        private const val KEY_CLIP_MP4 = "clip_mp4"
     }
 }
