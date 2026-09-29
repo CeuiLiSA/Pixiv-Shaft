@@ -121,6 +121,28 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/artwork_v3_show_comments_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/artwork_v3_show_comments_title" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/artwork_v3_show_comments_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/artwork_v3_show_comments"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/artwork_v3_comment_jump_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_mid">

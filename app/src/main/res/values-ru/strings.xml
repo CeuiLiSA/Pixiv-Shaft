@@ -856,6 +856,8 @@
     <string name="artwork_v3_fab_order_title">Порядок кнопок «Скачать» и «Закладка»</string>
     <string name="artwork_v3_fab_order_download_left">Скачать слева, закладка справа</string>
     <string name="artwork_v3_fab_order_bookmark_left">Закладка слева, скачать справа</string>
+    <string name="artwork_v3_show_comments_title">Показывать комментарии</string>
+    <string name="artwork_v3_show_comments_desc">Показывать превью комментариев на странице работы. Если выключено, комментарии не загружаются; их можно открыть через «Посмотреть комментарии» в меню карточки</string>
     <string name="artwork_v3_comment_jump_title">Кнопка перехода к комментариям</string>
     <string name="artwork_v3_comment_jump_desc">Показывать на плавающей панели кнопку быстрого перехода к комментариям</string>
     <string name="artwork_v3_auto_expand_title">Автораскрытие многостраничных работ</string>

@@ -1765,6 +1765,17 @@ public class Settings {
         this.artworkV3FabDownloadOnLeft = artworkV3FabDownloadOnLeft;
     }
 
+    // 插画V3详情页：显示评论预览区块，默认开启；关掉后不产出该区块、不请求评论，跳转评论区按钮随之隐藏
+    private boolean artworkV3ShowComments = true;
+
+    public boolean isArtworkV3ShowComments() {
+        return artworkV3ShowComments;
+    }
+
+    public void setArtworkV3ShowComments(boolean artworkV3ShowComments) {
+        this.artworkV3ShowComments = artworkV3ShowComments;
+    }
+
     // 插画V3详情页：悬浮胶囊显示「跳转评论区」按钮（issue #970），默认关闭，设置里手动打开
     private boolean artworkV3ShowCommentJumpFab = false;
 

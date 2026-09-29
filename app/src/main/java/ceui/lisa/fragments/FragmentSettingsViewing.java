@@ -131,6 +131,20 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         baseBind.artworkV3FabOrderRela.setOnClickListener(v ->
                 baseBind.artworkV3FabOrderSelect.performClick());
 
+        // V3详情页 评论预览区块，默认开启；关掉后「跳转评论区」无处可跳，该行随之隐藏
+        baseBind.artworkV3ShowComments.setChecked(Shaft.sSettings.isArtworkV3ShowComments());
+        baseBind.artworkV3ShowComments.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setArtworkV3ShowComments(isChecked);
+                Common.showToast(getString(R.string.string_428));
+                Local.setSettings(Shaft.sSettings);
+                applyArtworkV3FabOrderRowVisibility(Shaft.sSettings.isUseArtworkV3(), true);
+            }
+        });
+        baseBind.artworkV3ShowCommentsRela.setOnClickListener(v ->
+                baseBind.artworkV3ShowComments.performClick());
+
         // V3详情页 悬浮胶囊「跳转评论区」按钮（issue #970），默认关闭
         baseBind.artworkV3CommentJump.setChecked(Shaft.sSettings.isArtworkV3ShowCommentJumpFab());
         baseBind.artworkV3CommentJump.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -357,7 +371,9 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         boolean centered = Shaft.sSettings.getArtworkV3FabPosition() == Settings.ARTWORK_V3_FAB_POSITION_CENTER;
         baseBind.artworkV3FabOrderRela.setVisibility(v3Enabled && centered ? View.VISIBLE : View.GONE);
         baseBind.artworkV3FabOrderDivider.setVisibility(visibility);
-        baseBind.artworkV3CommentJumpRela.setVisibility(visibility);
+        baseBind.artworkV3ShowCommentsRela.setVisibility(visibility);
+        baseBind.artworkV3CommentJumpRela.setVisibility(
+                v3Enabled && Shaft.sSettings.isArtworkV3ShowComments() ? View.VISIBLE : View.GONE);
         baseBind.artworkV3AutoExpandRela.setVisibility(visibility);
     }
 

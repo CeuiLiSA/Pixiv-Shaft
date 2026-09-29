@@ -856,6 +856,8 @@
     <string name="artwork_v3_fab_order_title">다운로드/북마크 버튼 순서</string>
     <string name="artwork_v3_fab_order_download_left">왼쪽 다운로드, 오른쪽 북마크</string>
     <string name="artwork_v3_fab_order_bookmark_left">왼쪽 북마크, 오른쪽 다운로드</string>
+    <string name="artwork_v3_show_comments_title">댓글 영역 표시</string>
+    <string name="artwork_v3_show_comments_desc">작품 상세 페이지에 댓글 미리보기를 표시합니다. 끄면 댓글을 불러오지 않으며, 카드 메뉴에서 댓글을 열 수 있습니다</string>
     <string name="artwork_v3_comment_jump_title">댓글로 이동 버튼</string>
     <string name="artwork_v3_comment_jump_desc">플로팅 바에 댓글 영역으로 바로 이동하는 버튼 표시</string>
     <string name="artwork_v3_auto_expand_title">여러 장 자동 펼치기</string>

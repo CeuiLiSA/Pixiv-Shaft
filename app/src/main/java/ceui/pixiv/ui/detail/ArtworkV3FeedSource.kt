@@ -148,7 +148,10 @@ class ArtworkV3FeedSource(
             list.add(ArtworkTagsItem(illust))
             list.add(ArtworkStatsItem(illust))
             list.add(ArtworkDetailPanelItem(illust))
-            list.add(ArtworkCommentsItem(illust.id.toInt(), illust.title ?: "", illust.user?.id ?: 0L))
+            // 设置里关了「显示评论区」就不产出这块：区块从未可见，懒加载也就不会发评论请求
+            if (Shaft.sSettings.isArtworkV3ShowComments) {
+                list.add(ArtworkCommentsItem(illust.id.toInt(), illust.title ?: "", illust.user?.id ?: 0L))
+            }
             list.add(ArtworkAuthorWorksItem(illust.user?.name ?: "", illust.user?.id ?: 0L))
             // 相关作品头初始 state=null(加载中);等区块滚到可见才拉,见 ArtworkSection.RELATED
             list.add(ArtworkRelatedHeaderItem(illust.id.toInt(), illust.title ?: ""))
