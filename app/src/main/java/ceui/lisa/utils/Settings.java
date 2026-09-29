@@ -1513,6 +1513,16 @@ public class Settings {
 
     private float customZoomAddScale = 1.8f;
 
+    // 插画大图长按行为：
+    // 0=无（默认，长按不做事），1=优先缩小一级（找不到更小的一级就落到初始缩放），2=复原至初始缩放。
+    public static final int LONG_PRESS_BEHAVIOR_NONE = 0;
+    public static final int LONG_PRESS_BEHAVIOR_SHRINK_ONE_LEVEL = 1;
+    public static final int LONG_PRESS_BEHAVIOR_RESET_MIN = 2;
+
+    private int longPressBehavior = LONG_PRESS_BEHAVIOR_NONE;
+
+    // 旧版字段（PR#900 的「启用长按复原」开关）。仅用于兼容旧备份/云端还原和旧版降级读取；
+    // 新代码统一走 longPressBehavior，不再直接修改这个字段。
     private boolean useCustomLongPressReset = false;
 
     private boolean useThreeLevelZoo = false;
@@ -1667,12 +1677,38 @@ public class Settings {
         this.useCustomDoubleTapZoom = this.doubleTapZoomMode != DOUBLE_TAP_ZOOM_MODE_DEFAULT;
     }
 
+    public int getLongPressBehavior() {
+        if (longPressBehavior < LONG_PRESS_BEHAVIOR_NONE
+                || longPressBehavior > LONG_PRESS_BEHAVIOR_RESET_MIN) {
+            return LONG_PRESS_BEHAVIOR_NONE;
+        }
+        return longPressBehavior;
+    }
+
+    public void setLongPressBehavior(int longPressBehavior) {
+        if (longPressBehavior < LONG_PRESS_BEHAVIOR_NONE
+                || longPressBehavior > LONG_PRESS_BEHAVIOR_RESET_MIN) {
+            this.longPressBehavior = LONG_PRESS_BEHAVIOR_NONE;
+        } else {
+            this.longPressBehavior = longPressBehavior;
+        }
+        // 同步旧字段：旧版只认两态，「优先缩小一级」在旧版会降级成「复原至最小」，至少长按不是空动作。
+        this.useCustomLongPressReset = this.longPressBehavior != LONG_PRESS_BEHAVIOR_NONE;
+    }
+
+    @Deprecated
     public boolean isUseCustomLongPressReset() {
         return useCustomLongPressReset;
     }
 
+    @Deprecated
     public void setUseCustomLongPressReset(boolean useCustomLongPressReset) {
         this.useCustomLongPressReset = useCustomLongPressReset;
+        if (useCustomLongPressReset) {
+            this.longPressBehavior = LONG_PRESS_BEHAVIOR_RESET_MIN;
+        } else if (this.longPressBehavior == LONG_PRESS_BEHAVIOR_RESET_MIN) {
+            this.longPressBehavior = LONG_PRESS_BEHAVIOR_NONE;
+        }
     }
 
     /**
@@ -1696,6 +1732,26 @@ public class Settings {
         settings.doubleTapZoomMode = mode;
         settings.useCustomDoubleTapZoom = mode != DOUBLE_TAP_ZOOM_MODE_DEFAULT;
         settings.useThreeLevelZoo = mode == DOUBLE_TAP_ZOOM_MODE_THREE_LEVEL;
+    }
+
+    /**
+     * 旧版设置/备份/云端还原迁移：把 PR#900 的「启用长按复原」开关映射到新的三选一长按行为。
+     * 新版 JSON 已有 longPressBehavior 时保持原值，同时回填旧字段方便降级兼容。
+     */
+    public static void migrateLegacyLongPressBehavior(Settings settings) {
+        if (settings == null) {
+            return;
+        }
+        int behavior = settings.longPressBehavior;
+        if (behavior < LONG_PRESS_BEHAVIOR_NONE || behavior > LONG_PRESS_BEHAVIOR_RESET_MIN) {
+            behavior = LONG_PRESS_BEHAVIOR_NONE;
+        }
+        if (behavior == LONG_PRESS_BEHAVIOR_NONE && settings.useCustomLongPressReset) {
+            // 旧版 JSON 没有新字段：开关开过就是「复原至最小」。
+            behavior = LONG_PRESS_BEHAVIOR_RESET_MIN;
+        }
+        settings.longPressBehavior = behavior;
+        settings.useCustomLongPressReset = behavior != LONG_PRESS_BEHAVIOR_NONE;
     }
 
     // 插画V3详情页：下载按钮是否在左（true=左下载右收藏，false=左收藏右下载）

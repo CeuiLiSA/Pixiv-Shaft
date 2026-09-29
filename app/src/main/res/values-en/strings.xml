@@ -2436,8 +2436,13 @@
     <string name="double_tap_zoom_mode_default">Default</string>
     <string name="double_tap_zoom_mode_three_level">3-level</string>
     <string name="double_tap_zoom_mode_incremental">Incremental</string>
-    <string name="use_custom_long_press_reset">Enable long-press to reset</string>
-    <string name="use_custom_long_press_reset_link_text">Will not loop back to minimum after reaching max. Works best with incremental zoom</string>
+    <string name="long_press_behavior_title">Long-press behavior for illustration full image</string>
+    <string name="long_press_behavior_none">None</string>
+    <string name="long_press_behavior_shrink_one_level">Zoom out one level first</string>
+    <string name="long_press_behavior_reset_min">Reset to minimum</string>
+    <string name="long_press_behavior_hint">Zoom out one level first: step down to the next smaller level, and fall back to the initial scale when there is none\nReset to minimum: go straight back to the initial scale</string>
+    <string name="long_press_behavior_help_desc">Help</string>
+    <string name="double_tap_zoom_max_reached_shrink">Reached max, long-press to zoom out one level</string>
     <string name="double_tap_zoom_max_reached">Max zoom reached — long-press to reset</string>
     <string name="double_tap_zoom_max_reached2">Max reached; double-tap again to shrink to minimum</string>
     <string name="custom_zoom_scale_title">Zoom increment</string>

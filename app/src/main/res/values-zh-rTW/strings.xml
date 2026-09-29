@@ -2435,8 +2435,13 @@
     <string name="double_tap_zoom_mode_default">預設</string>
     <string name="double_tap_zoom_mode_three_level">三級</string>
     <string name="double_tap_zoom_mode_incremental">增量</string>
-    <string name="use_custom_long_press_reset">啟用長按復原</string>
-    <string name="use_custom_long_press_reset_link_text">放至最大後不會循環至最小。配合增量使用最佳</string>
+    <string name="long_press_behavior_title">插畫大圖長按行為</string>
+    <string name="long_press_behavior_none">無</string>
+    <string name="long_press_behavior_shrink_one_level">優先縮小一級</string>
+    <string name="long_press_behavior_reset_min">復原至最小</string>
+    <string name="long_press_behavior_hint">優先縮小一級：優先退到比目前小的一檔，如尋不到就會退到初始縮放\n復原至最小：長按直接退到初始縮放</string>
+    <string name="long_press_behavior_help_desc">說明</string>
+    <string name="double_tap_zoom_max_reached_shrink">已至最大，長按縮小一級</string>
     <string name="double_tap_zoom_max_reached">已至最大，長按復原</string>
     <string name="double_tap_zoom_max_reached2">已至最大，再次雙擊將縮至最小</string>
     <string name="custom_zoom_scale_title">縮放增量值</string>

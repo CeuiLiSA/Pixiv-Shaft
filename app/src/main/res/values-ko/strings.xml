@@ -2419,8 +2419,13 @@
     <string name="double_tap_zoom_mode_default">기본</string>
     <string name="double_tap_zoom_mode_three_level">3단계</string>
     <string name="double_tap_zoom_mode_incremental">단계</string>
-    <string name="use_custom_long_press_reset">길게 눌러 복원 사용</string>
-    <string name="use_custom_long_press_reset_link_text">최대까지 확대해도 최소로 돌아가지 않습니다. 증분 확대와 함께 사용하는 것이 가장 좋습니다</string>
+    <string name="long_press_behavior_title">일러스트 큰 이미지 길게 누르기 동작</string>
+    <string name="long_press_behavior_none">없음</string>
+    <string name="long_press_behavior_shrink_one_level">한 단계 축소 우선</string>
+    <string name="long_press_behavior_reset_min">최소로 복원</string>
+    <string name="long_press_behavior_hint">한 단계 축소 우선: 현재보다 작은 한 단계로 이동하고, 없으면 초기 배율로 돌아갑니다\n최소로 복원: 길게 누르면 초기 배율로 바로 돌아갑니다</string>
+    <string name="long_press_behavior_help_desc">설명</string>
+    <string name="double_tap_zoom_max_reached_shrink">최대입니다. 길게 누르면 한 단계 축소</string>
     <string name="double_tap_zoom_max_reached">최대 배율 도달, 길게 눌러 복원</string>
     <string name="double_tap_zoom_max_reached2">최대 배율입니다. 다시 더블 탭하면 최소로 축소됩니다</string>
     <string name="custom_zoom_scale_title">확대 증가값</string>

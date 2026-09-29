@@ -2419,8 +2419,13 @@
     <string name="double_tap_zoom_mode_default">デフォルト</string>
     <string name="double_tap_zoom_mode_three_level">3段階</string>
     <string name="double_tap_zoom_mode_incremental">段階</string>
-    <string name="use_custom_long_press_reset">長押しで元に戻すを有効化</string>
-    <string name="use_custom_long_press_reset_link_text">最大まで拡大しても最小には戻りません。段階ズームとの併用が最適です</string>
+    <string name="long_press_behavior_title">イラスト大画像の長押し動作</string>
+    <string name="long_press_behavior_none">なし</string>
+    <string name="long_press_behavior_shrink_one_level">1段階縮小を優先</string>
+    <string name="long_press_behavior_reset_min">最小まで戻す</string>
+    <string name="long_press_behavior_hint">1段階縮小を優先：現在より小さい一段階へ戻し、見つからない場合は初期倍率まで戻します\n最小まで戻す：長押しで初期倍率まで直接戻します</string>
+    <string name="long_press_behavior_help_desc">説明</string>
+    <string name="double_tap_zoom_max_reached_shrink">最大に達しました。長押しで1段階縮小</string>
     <string name="double_tap_zoom_max_reached">最大倍率に到達、長押しで元に戻ります</string>
     <string name="double_tap_zoom_max_reached2">最大倍率です。もう一度ダブルタップで最小に戻ります</string>
     <string name="custom_zoom_scale_title">ズーム倍率の増分</string>

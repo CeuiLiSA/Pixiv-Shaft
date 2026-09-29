@@ -48,6 +48,7 @@ import com.github.panpf.zoomimage.util.OffsetCompat
 import com.github.panpf.zoomimage.util.isNotEmpty
 import com.github.panpf.zoomimage.view.zoom.OnViewLongPressListener
 import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
+import com.github.panpf.zoomimage.view.zoom.ZoomableEngine
 import com.github.panpf.zoomimage.zoom.GestureType
 import com.github.panpf.zoomimage.zoom.ReadMode
 import com.github.panpf.zoomimage.zoom.ScalesCalculator
@@ -193,14 +194,25 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                             val afterScale = zoomable.transformState.value.scaleX
                             val maxScale = zoomable.maxScaleState.value
                             if (afterScale >= maxScale - MAX_SCALE_EPSILON) {
-                                if (Shaft.sSettings.isUseCustomLongPressReset) {
-                                    Toaster.showShort(R.string.double_tap_zoom_max_reached)
-                                    if (viewModel.isFullscreenMode.value == true) {
-                                        viewModel.toggleFullscreen()
+                                when (Shaft.sSettings.getLongPressBehavior()) {
+                                    Settings.LONG_PRESS_BEHAVIOR_NONE -> {
+                                        isScaleMax = true
+                                        Toaster.showShort(R.string.double_tap_zoom_max_reached2)
                                     }
-                                } else {
-                                    isScaleMax = true
-                                    Toaster.showShort(R.string.double_tap_zoom_max_reached2)
+                                    Settings.LONG_PRESS_BEHAVIOR_SHRINK_ONE_LEVEL -> {
+                                        Toaster.showShort(
+                                            R.string.double_tap_zoom_max_reached_shrink
+                                        )
+                                        if (viewModel.isFullscreenMode.value == true) {
+                                            viewModel.toggleFullscreen()
+                                        }
+                                    }
+                                    else -> {
+                                        Toaster.showShort(R.string.double_tap_zoom_max_reached)
+                                        if (viewModel.isFullscreenMode.value == true) {
+                                            viewModel.toggleFullscreen()
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -211,21 +223,26 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
                 override fun onLongPress(e: MotionEvent) {
                     if (!isGestureTargetAlive) return
-                    if (!isAnimated && Shaft.sSettings.isUseCustomLongPressReset) {
-                        val zoomable = gestureImage.zoomable
-                        val contentPoint =
-                            zoomable.touchPointToContentPointF(OffsetCompat(e.x, e.y))
-                        if (viewModel.isFullscreenMode.value == true) {
-                            viewModel.toggleFullscreen()
-                        }
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            zoomable.scale(
-                                targetScale = zoomable.minScaleState.value,
-                                centroidContentPointF = contentPoint,
-                                animated = true,
-                            )
-                            isScaleMax = false
-                        }
+                    val behavior = Shaft.sSettings.getLongPressBehavior()
+                    if (isAnimated || behavior == Settings.LONG_PRESS_BEHAVIOR_NONE) return
+                    val zoomable = gestureImage.zoomable
+                    val minScale = zoomable.minScaleState.value
+                    val targetScale = longPressTargetScale(zoomable, behavior, minScale)
+                    val contentPoint =
+                        zoomable.touchPointToContentPointF(OffsetCompat(e.x, e.y))
+                    // 落到初始缩放才退出全屏；只退一档时保持全屏，跟双击放大的语义对齐。
+                    if (viewModel.isFullscreenMode.value == true &&
+                        isAtMinScale(targetScale, minScale)
+                    ) {
+                        viewModel.toggleFullscreen()
+                    }
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        zoomable.scale(
+                            targetScale = targetScale,
+                            centroidContentPointF = contentPoint,
+                            animated = true,
+                        )
+                        isScaleMax = false
                     }
                 }
 
@@ -342,32 +359,77 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     }
 
     /**
-     * 默认/三级共用：让库自带长按也支持「长按复原到最小」。
+     * 默认/三级共用：让库自带长按也支持「优先缩小一级 / 复原至初始缩放」。
      *
-     * 开关关闭时必须**整个不挂**这个 listener，不能挂上去再在回调里判空跑：ZoomImage 的 TouchHelper 只要发现 onViewLongPressListener
+     * 选「无」时必须**整个不挂**这个 listener，不能挂上去再在回调里判空跑：ZoomImage 的 TouchHelper 只要发现 onViewLongPressListener
      * 非 null，长按一触发就把 longPressExecuted 置 true，而 onGestureCallback / onEndCallback 都是 `if
      * (longPressExecuted) return`—— 于是「按住不动超过 500ms 再拖」这一整串手势的平移、双指缩放、抬手后的 fling / 回弹全被吞掉。
-     * 挂空回调等于给没开这个功能的人白白砍掉一种拖动方式。
+     * 挂空回调等于给选了「无」的人白白砍掉一种拖动方式。
      */
     private fun setupLibraryLongPressReset() {
-        if (!Shaft.sSettings.isUseCustomLongPressReset) return
+        if (Shaft.sSettings.getLongPressBehavior() == Settings.LONG_PRESS_BEHAVIOR_NONE) return
         gestureImage.onViewLongPressListener = OnViewLongPressListener { _, offset ->
-            if (isGestureTargetAlive && Shaft.sSettings.isUseCustomLongPressReset) {
-                val zoomable = gestureImage.zoomable
-                val contentPoint = zoomable.touchPointToContentPointF(offset)
-                if (viewModel.isFullscreenMode.value == true) {
-                    viewModel.toggleFullscreen()
-                }
-                viewLifecycleOwner.lifecycleScope.launch {
-                    zoomable.scale(
-                        targetScale = zoomable.minScaleState.value,
-                        centroidContentPointF = contentPoint,
-                        animated = true,
-                    )
-                }
+            if (!isGestureTargetAlive) return@OnViewLongPressListener
+            val behavior = Shaft.sSettings.getLongPressBehavior()
+            if (behavior == Settings.LONG_PRESS_BEHAVIOR_NONE) return@OnViewLongPressListener
+            val zoomable = gestureImage.zoomable
+            val minScale = zoomable.minScaleState.value
+            val targetScale = longPressTargetScale(zoomable, behavior, minScale)
+            val contentPoint = zoomable.touchPointToContentPointF(offset)
+            // 落到初始缩放才退出全屏；只退一档时保持全屏，跟双击放大的语义对齐。
+            if (viewModel.isFullscreenMode.value == true &&
+                isAtMinScale(targetScale, minScale)
+            ) {
+                viewModel.toggleFullscreen()
+            }
+            viewLifecycleOwner.lifecycleScope.launch {
+                zoomable.scale(
+                    targetScale = targetScale,
+                    centroidContentPointF = contentPoint,
+                    animated = true,
+                )
             }
         }
     }
+
+    /**
+     * 长按「优先缩小一级」的落点倍率：优先找比当前倍率小的最近一级，找不到就落到初始缩放（最小兜底）。
+     *
+     * 一级的来源按双击缩放行为分三种：
+     * - 默认：库算出来的两档 [最小, 中档]；
+     * - 三级：库算出来的三档 [最小, 中档, 最大]；
+     * - 增量：没有固定档位表，按「除以缩放增量值」折算，与双击的乘 k 互逆。
+     */
+    private fun longPressTargetScale(
+        zoomable: ZoomableEngine,
+        behavior: Int,
+        minScale: Float,
+    ): Float {
+        if (behavior != Settings.LONG_PRESS_BEHAVIOR_SHRINK_ONE_LEVEL) return minScale
+        val currentScale = zoomable.transformState.value.scaleX
+        if (Shaft.sSettings.getDoubleTapZoomMode() == Settings.DOUBLE_TAP_ZOOM_MODE_INCREMENTAL) {
+            val target = currentScale / Shaft.sSettings.customZoomAddScale
+            // 不足一档（已经贴着初始缩放，或除以 k 会低于初始缩放）就直接落初始缩放兜底。
+            return if (isAtMinScale(target, minScale)) minScale else target
+        }
+        val levels =
+            if (zoomable.threeStepScaleState.value) {
+                floatArrayOf(
+                    minScale,
+                    zoomable.mediumScaleState.value,
+                    zoomable.maxScaleState.value,
+                )
+            } else {
+                floatArrayOf(minScale, zoomable.mediumScaleState.value)
+            }
+        // 当前正好停在某一档上时不能再落回自己，留相对容差挡掉浮点误差。
+        val threshold = currentScale * (1f - LONG_PRESS_LEVEL_EPSILON)
+        return levels.filter { it < threshold }.maxOrNull() ?: minScale
+    }
+
+    /** 落点是否就是初始缩放（含相对容差），用来决定要不要退出全屏。 */
+    private fun isAtMinScale(targetScale: Float, minScale: Float): Boolean =
+        targetScale <= minScale * (1f + LONG_PRESS_LEVEL_EPSILON)
 
     /** 清掉「已到最大」的记忆，避免 contentSize 变化后增量双击误判。 */
     private fun resetZoomLevelMemory() {
@@ -734,6 +796,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         // PR#900 自定义双击放大：每次乘 1.8f；浮点误差判最大倍数容差 0.01f
         // private const val CUSTOM_ZOOM_ADD_SCALE = 1.8f
         private const val MAX_SCALE_EPSILON = 0.01f
+
+        // 长按退档的相对容差：当前倍率落在某一档 2% 以内就算「停在这一档」，不能再落回自己。
+        private const val LONG_PRESS_LEVEL_EPSILON = 0.02f
 
         // Illust 由 ImageDetailActivity 持有，Fragment 运行时读取，避免放进 Bundle
         @JvmStatic
