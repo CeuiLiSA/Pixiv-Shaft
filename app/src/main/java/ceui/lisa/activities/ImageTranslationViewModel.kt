@@ -67,6 +67,27 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
     private var illustId: Long = 0L
     private var boundSource: LiveData<Map<Int, String>>? = null
 
+    /**
+     * 看图页「显示译图」勾选:勾上显示并保存译图,取消则显示并保存原图。本次看图会话内对所有页生效,
+     * 不持久化;产出新译图时自动勾回,让用户立刻看到结果。
+     */
+    private val _showTranslated = MutableLiveData(true)
+    val showTranslated: LiveData<Boolean> get() = _showTranslated.asLiveData()
+
+    fun setShowTranslated(show: Boolean) {
+        if (_showTranslated.value != show) _showTranslated.value = show
+    }
+
+    /** 实际要显示/保存的译图:[translatedPaths] 按 [showTranslated] 过滤,取消勾选时为空。 */
+    val displayedTranslatedPaths: LiveData<Map<Int, String>> =
+        MediatorLiveData<Map<Int, String>>().apply {
+            fun update() {
+                value = if (_showTranslated.value == true) _translatedPaths.value.orEmpty() else emptyMap()
+            }
+            addSource(_translatedPaths) { update() }
+            addSource(_showTranslated) { update() }
+        }
+
     /** 看图页拿到作品后绑定;重复绑同一个 id 幂等。 */
     fun bindIllust(id: Long) {
         if (id == illustId && boundSource != null) return
@@ -265,8 +286,8 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
             }
         }
 
-        // 2. 选底图:已有译图就在它上面继续叠,否则落原图。Fragment 也是按 translatedPaths
-        //    决定当前显示哪张,两边口径一致 → 归一化坐标必然对齐。
+        // 2. 选底图:已有译图就在它上面继续叠,否则落原图。取消「显示译图」时用户框的是原图,
+        //    但译图与原图同宽高比,归一化坐标照样对齐;产出后 publishTranslated 会把勾选勾回来。
         val baseFile = _translatedPaths.value?.get(pageIndex)
             ?.let { File(it) }?.takeIf { it.exists() } ?: originalFile
 
@@ -416,6 +437,7 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
     }
 
     private fun publishTranslated(pageIndex: Int, newPath: String) {
+        _showTranslated.value = true
         batchCenter.publish(illustId, pageIndex, newPath)
     }
 

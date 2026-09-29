@@ -780,6 +780,7 @@
     <string name="string_translate_failed">翻訳に失敗しました</string>
     <string name="string_translate_model_loading">翻訳モデルを読み込み中…</string>
     <string name="string_ai_manga_translate_inline">マンガ翻訳</string>
+    <string name="image_detail_show_translated">翻訳を表示</string>
     <string name="string_ai_manga_translate_manual">範囲選択して翻訳</string>
     <string name="string_ai_manga_translate_batch">全ページを翻訳</string>
     <string name="string_ai_manga_batch_loading_image">画像を読み込み中…</string>

@@ -780,6 +780,7 @@
     <string name="string_translate_failed">번역 실패</string>
     <string name="string_translate_model_loading">번역 모델 불러오는 중…</string>
     <string name="string_ai_manga_translate_inline">만화 번역</string>
+    <string name="image_detail_show_translated">번역 표시</string>
     <string name="string_ai_manga_translate_manual">영역 선택 번역</string>
     <string name="string_ai_manga_translate_batch">전체 페이지 번역</string>
     <string name="string_ai_manga_batch_loading_image">이미지 불러오는 중…</string>

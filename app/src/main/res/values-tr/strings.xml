@@ -780,6 +780,7 @@
     <string name="string_translate_failed">Çeviri başarısız oldu</string>
     <string name="string_translate_model_loading">Çeviri modeli yükleniyor…</string>
     <string name="string_ai_manga_translate_inline">Manga çevirisi</string>
+    <string name="image_detail_show_translated">Çeviriyi göster</string>
     <string name="string_ai_manga_translate_manual">Seçerek çevir</string>
     <string name="string_ai_manga_translate_batch">Tüm sayfaları çevir</string>
     <string name="string_ai_manga_batch_loading_image">Görsel yükleniyor…</string>

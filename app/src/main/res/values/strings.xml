@@ -810,6 +810,7 @@
     <string name="string_translate_failed">翻译失败</string>
     <string name="string_translate_model_loading">正在加载翻译模型…</string>
     <string name="string_ai_manga_translate_inline">翻译漫画</string>
+    <string name="image_detail_show_translated">显示译图</string>
     <string name="string_ai_manga_translate_manual">圈选翻译</string>
     <string name="string_ai_manga_translate_batch">翻译整部</string>
     <string name="string_ai_manga_batch_loading_image">加载图片…</string>

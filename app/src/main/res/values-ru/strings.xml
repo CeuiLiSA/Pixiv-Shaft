@@ -780,6 +780,7 @@
     <string name="string_translate_failed">Не удалось перевести</string>
     <string name="string_translate_model_loading">Загрузка модели перевода…</string>
     <string name="string_ai_manga_translate_inline">Перевести мангу</string>
+    <string name="image_detail_show_translated">Показать перевод</string>
     <string name="string_ai_manga_translate_manual">Выделить и перевести</string>
     <string name="string_ai_manga_translate_batch">Перевести все страницы</string>
     <string name="string_ai_manga_batch_loading_image">Загрузка изображения…</string>

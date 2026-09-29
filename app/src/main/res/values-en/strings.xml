@@ -780,6 +780,7 @@
     <string name="string_translate_failed">Translation failed</string>
     <string name="string_translate_model_loading">Loading translation model...</string>
     <string name="string_ai_manga_translate_inline">Translate Manga</string>
+    <string name="image_detail_show_translated">Show translation</string>
     <string name="string_ai_manga_translate_manual">Select &amp; Translate</string>
     <string name="string_ai_manga_translate_batch">Translate All Pages</string>
     <string name="string_ai_manga_batch_loading_image">Loading image…</string>

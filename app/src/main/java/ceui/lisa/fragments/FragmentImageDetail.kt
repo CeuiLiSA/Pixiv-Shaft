@@ -91,6 +91,8 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
     private var largeDisposable: Disposable? = null
     // 原图是否已显示（网络成功 / 本地直读）。large 占位仅在其为 false 时才铺，兜住 large/原图竞态。
     private var originalShown: Boolean = false
+    // 当前盖在图上的译图路径；非 null 时原图/large 的异步回调不再往上盖，取消「显示译图」时据此切回原图。
+    private var shownTranslatedPath: String? = null
     // 不再放进 arguments / savedInstanceState，避免每个 Fragment 重复持久化 80KB Illust
     // 导致 TransactionTooLargeException。统一向 ImageDetailActivity 取。
     private val mIllust: Illust?
@@ -154,6 +156,8 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         }
         plazaLoadJob?.cancel()
         plazaLoadJob = null
+        // 下次 onViewCreated 由译图观察重放重新判定,别让旧路径挡住新 view 上的译图
+        shownTranslatedPath = null
         super.onDestroyView()
     }
 
@@ -454,12 +458,20 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             }
         }
         loadImage()
-        // 监听"翻译漫画"产出:VM 里出现本页 index 的译图就直接换图
-        translationViewModel.translatedPaths.observe(viewLifecycleOwner) { map ->
-            val path = map[index] ?: return@observe
-            val f = File(path)
-            if (f.exists()) {
-                baseBind.image.loadImage(f)
+        // 监听"翻译漫画"产出 + 「显示译图」勾选:本页有要显示的译图就换上,取消勾选则切回原图
+        translationViewModel.displayedTranslatedPaths.observe(viewLifecycleOwner) { map ->
+            val path = map[index]?.takeIf { File(it).exists() }
+            when {
+                path != null -> {
+                    if (path == shownTranslatedPath) return@observe
+                    shownTranslatedPath = path
+                    baseBind.progressCircular.visibility = View.GONE
+                    baseBind.image.loadImage(File(path))
+                }
+                shownTranslatedPath != null -> {
+                    shownTranslatedPath = null
+                    loadImage()
+                }
             }
         }
         // 「圈选翻译」请求:命中本页 index 才进圈选模式,进完立刻消费防重复触发
@@ -670,13 +682,13 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         // large 上显示原图下载进度（与一级详情页 B 的 large + 进度环体验一致），Success 后再换原图。
         val cached = largeTask.currentFile
         if (cached != null) {
-            if (!originalShown) baseBind.image.loadImage(cached)
+            if (!originalShown && shownTranslatedPath == null) baseBind.image.loadImage(cached)
             return
         }
         largeDisposable?.dispose()
         largeDisposable =
             largeTask.observeState(viewLifecycleOwner) { state ->
-                if (state is ImageLoadState.Success && !originalShown) {
+                if (state is ImageLoadState.Success && !originalShown && shownTranslatedPath == null) {
                     baseBind.image.loadImage(state.file)
                 }
             }
@@ -691,6 +703,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         originalShown = true
         largeDisposable?.dispose()
         baseBind.progressCircular.visibility = View.GONE
+        if (shownTranslatedPath != null) return
         baseBind.image.loadImage(localUri) {
             addListener(
                 onError = { _, _ ->
@@ -761,7 +774,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                         Timber.d(
                             "[ImageDetail] result callback. file=${file.absolutePath}, size=${file.length()}, url=$shortUrl"
                         )
-                        baseBind.image.loadImage(file)
+                        if (shownTranslatedPath == null) baseBind.image.loadImage(file)
                         if (isUrlMode) {
                             baseBind.downloadButton.visibility = View.VISIBLE
                             baseBind.downloadButton.setOnClick {

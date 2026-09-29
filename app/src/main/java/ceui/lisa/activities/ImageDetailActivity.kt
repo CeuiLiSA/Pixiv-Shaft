@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
+import android.widget.CompoundButton
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -523,6 +524,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 }
             )
         setupSnapshotFabBar()
+        setupShowTranslatedToggle()
         setupSnapshotAiMenu()
     }
 
@@ -683,10 +685,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 bean?.let { fabBar.setBookmarked(it.isBookmarked) }
             }
         }
-        // 当前页译图产出 / 被清掉时,下载按钮的保存对象随之切换,状态跟着刷新
-        translationViewModel.translatedPaths.observe(this) {
+        // 当前页译图产出 / 被清掉 / 切换「显示译图」时,下载按钮的保存对象随之切换,状态跟着刷新
+        translationViewModel.displayedTranslatedPaths.observe(this) {
             baseBind?.viewPager?.currentItem?.let(::checkDownload)
         }
+        setupShowTranslatedToggle()
 
         fabBind.fabDownloadContainer.setOnClick {
             val illust = likeTargetIllust() ?: return@setOnClick
@@ -750,6 +753,32 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
     }
 
+    /**
+     * 「显示译图」勾选:勾上显示并保存译图,取消则显示并保存原图(显示层 [FragmentImageDetail] 与下载按钮都读
+     * [ImageTranslationViewModel.displayedTranslatedPaths])。只在当前页有译图时出现,勾没勾都要能看见,
+     * 所以可见性看的是未过滤的 translatedPaths。
+     */
+    private fun setupShowTranslatedToggle() {
+        val toggle = findViewById<CompoundButton>(R.id.show_translated)
+        val viewPager = baseBind!!.viewPager
+        fun refreshVisibility() {
+            val hasTranslation =
+                translationViewModel.translatedPaths.value?.get(viewPager.currentItem)
+                    ?.let { File(it).exists() } == true
+            toggle.visibility = if (hasTranslation) View.VISIBLE else View.GONE
+        }
+        translationViewModel.showTranslated.observe(this) { toggle.isChecked = it }
+        toggle.setOnCheckedChangeListener { _, checked ->
+            translationViewModel.setShowTranslated(checked)
+        }
+        translationViewModel.translatedPaths.observe(this) { refreshVisibility() }
+        viewPager.addOnPageChangeListener(
+            object : ViewPager.SimpleOnPageChangeListener() {
+                override fun onPageSelected(position: Int) = refreshVisibility()
+            }
+        )
+    }
+
     private fun checkDownload(i: Int) {
         val illust = mIllust ?: return
         // 译图页的下载按钮保存的是译图,原图的「已下载」不代表译图存过,别亮绿勾误导
@@ -771,9 +800,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
     }
 
-    /** 这一页当前显示的译图文件(看图页只要有译图就替换显示);没有译图返回 null。 */
+    /** 这一页当前显示的译图文件(有译图且勾着「显示译图」才替换显示);否则返回 null,按原图处理。 */
     private fun translatedFileOf(page: Int): File? =
-        translationViewModel.translatedPaths.value?.get(page)?.let(::File)?.takeIf { it.exists() }
+        translationViewModel.displayedTranslatedPaths.value?.get(page)?.let(::File)?.takeIf { it.exists() }
 
     /**
      * 保存译图:按用户插画模板命名并加 [TRANSLATED_FILENAME_SUFFIX],与原图并存、互不覆盖。
@@ -1140,7 +1169,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
                     ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
             }
-        if (!appServices().mangaBatchTranslateCenter.start(illust, urls, ocrModel, ctdModel)) {
+        if (appServices().mangaBatchTranslateCenter.start(illust, urls, ocrModel, ctdModel)) {
+            // 整批产物不经过 VM.publishTranslated,开跑时就勾回「显示译图」,与单页翻译一致
+            translationViewModel.setShowTranslated(true)
+        } else {
             Common.showToast(R.string.string_ai_translate_in_progress)
         }
     }

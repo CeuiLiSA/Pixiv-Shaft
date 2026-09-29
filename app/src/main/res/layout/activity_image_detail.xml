@@ -32,13 +32,33 @@
             android:visibility="gone" />
 
         <!-- 注意别用 RelativeLayout + alignParentBottom + bottomMargin 摆胶囊:
-             wrap_content 的 RelativeLayout 会把 alignParentBottom 子 view 的 bottomMargin 吃掉 -->
-        <FrameLayout
+             wrap_content 的 RelativeLayout 会把 alignParentBottom 子 view 的 bottomMargin 吃掉。
+             竖排:译图勾选在上,胶囊行 / 下载详情路径按钮在下(两者按模式互斥显示) -->
+        <LinearLayout
             android:id="@+id/bottom_rela"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
+            android:orientation="vertical"
             android:paddingHorizontal="20dp">
+
+            <!-- 「二级详情」当前页有译图时出现:勾上显示并保存译图,取消则显示并保存原图。
+                 漫画页多为白底,垫一层半透明黑底保证白字/白框在亮图上也看得清 -->
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/show_translated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_page_count_overlay"
+                android:checked="true"
+                android:paddingEnd="12dp"
+                android:shadowColor="@android:color/black"
+                android:shadowRadius="3"
+                android:text="@string/image_detail_show_translated"
+                android:textColor="@android:color/white"
+                android:visibility="gone"
+                app:buttonTint="@android:color/white" />
 
             <!-- 「二级详情」:下载 + 收藏胶囊(与一级 V3 详情页共用)+ 右侧页码。
                  整行吃 24dp + 导航栏 inset 的底距(V3FabBarController.attachBottomInsetMargin),
@@ -84,7 +104,7 @@
                 app:ptb_progress_stroke_width="3dp"
                 app:ptb_progress_width="14dp" />
 
-        </FrameLayout>
+        </LinearLayout>
 
         <!-- AI 进度层(翻译漫画/圈选翻译/AI 放大/抠图共用)挂在 Activity 根布局上,全局唯一。
              若随各页 FragmentImageDetail 各带一份,同 id 会有多份,Activity 的
