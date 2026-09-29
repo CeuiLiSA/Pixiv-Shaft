@@ -1014,7 +1014,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     override fun onResume() {
         super.onResume()
         if (!isSnapshotMode) {
-            // 凭证还在手里说明上一次「可见」还没结算（进二级大图页再回来）：表继续走，不重开、不重复计进入。
+            // 凭证还在手里说明上一次「可见」还没结算（进二级大图页 / 横滑离开再回来）：表不重开、
+            // 不重复计进入，只把停过的那一段接着算。
             if (autoSnapshotVisit == null) {
                 autoSnapshotVisit = AutoSnapshotEngine.onArtworkPageVisible(
                     illustId = safeArgs.illustId.toLong(),
@@ -1022,6 +1023,9 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                     countAsEntry = !autoSnapshotEntered,
                 )
                 autoSnapshotEntered = true
+            } else {
+                // 横滑回来：表被挂起过，从这里接着走（被半透明层盖住时它从没停过，这里是空操作）。
+                AutoSnapshotEngine.onArtworkPageResumed(autoSnapshotVisit)
             }
             // 从二级大图页返回后，把进程内已缓存 ORIGINAL 的页直接回填，不重绑列表。
             (baseBind.recyclerView.adapter as? IllustAdapter)?.showCachedOriginalOverlays()
@@ -1030,11 +1034,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     override fun onPause() {
         if (!isSnapshotMode) {
-            // 宿主还 RESUMED ⇒ 是「本页被降级」（横滑到相邻作品 / 进程内导航离开），视觉真的走了，
-            // 结算并评估。被自家半透明层（二级大图页及更上层）盖住、或切后台时宿主自己先 paused，
-            // 这里什么都不做：计时继续走，不结算也不评估。
+            // 宿主还 RESUMED ⇒ 是「本页被降级」（横滑到相邻作品），宿主还在、随时会滑回来：
+            // 挂起表，不结算也不评估。被自家半透明层（二级大图页及更上层）盖住、或切后台时
+            // 宿主自己先 paused，这里什么都不做：计时继续走，不结算也不评估。
             if (autoSnapshotVisit != null && isHostStillResumed()) {
-                settleAutoSnapshot(evaluate = true)
+                AutoSnapshotEngine.onArtworkPageSuspended(autoSnapshotVisit)
             }
         }
         super.onPause()

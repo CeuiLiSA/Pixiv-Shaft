@@ -21,9 +21,12 @@ import timber.log.Timber
  * - 插画/漫画自动生成快照：根据“反复进入”和“长时间驻留”两个本地行为信号触发。
  *
  * 生成时机：两个信号都只在详情页**真离开**时评估一次，由 [onArtworkPageLeft] 统一启动。
- * 「真离开」= 宿主仍 RESUMED 时的 onPause（横滑到相邻作品 / 进程内导航离开）、宿主停止
- * （切后台 / 页面结束）、或页面销毁。被自家半透明层（二级大图页及更上层）盖住时宿主自己
- * 先 paused —— 视觉没离开，计时继续走，不结算也不评估，回到详情页时接着算同一段停留。
+ * 「真离开」只剩两个落点：宿主停止（切后台 / 上层页压上来 / 页面结束）、页面销毁。
+ *
+ * 与之相对的是**挂起**：宿主还在、只是本页不再被看（横滑到相邻作品、V3 视口滚出作品范围）时
+ * 走 [onArtworkPageSuspended]，停表但保留凭证；重新被看时 [onArtworkPageResumed] 接着算同一段
+ * 停留，不结算也不评估。被自家半透明层（二级大图页及更上层）盖住时宿主自己先 paused —— 视觉
+ * 没离开，表从没停过，回来是空操作。
  *
  * 静默生成：不弹窗、不 toast；失败只记日志，不重试轰炸。
  * 选择性启用：收藏走 [Shaft.sSettings.isAutoSnapshotOnBookmark]，行为走
@@ -51,15 +54,39 @@ object AutoSnapshotEngine {
     // 翻页可以不断触发新作品，IO dispatcher 本身不会限制挂起中的下载数。
     private val generationPermit = Semaphore(1)
 
-    /** 由各页面持有，避免多窗口打开同一作品时互相覆盖计时。只消费一次，不持有 View。 */
-    class ArtworkVisit internal constructor(val illustId: Long, private val startedAt: Long) {
+    /**
+     * 由各页面持有，避免多窗口打开同一作品时互相覆盖计时。只消费一次，不持有 View。
+     *
+     * 可挂起：本页被降级（横滑到相邻作品）或滚出作品范围时 [suspend]，重新被看时 [resume]，
+     * 累计停留跨挂起延续。挂起期间的时间不计入，只有 [finish] 才结算。
+     */
+    class ArtworkVisit internal constructor(val illustId: Long, startedAt: Long) {
+        private var accumulatedMs = 0L
+        private var runningSince = startedAt
+        private var running = true
         private var finished = false
+
+        /** 停表但保留凭证。已结束 / 已挂起时是空操作 —— 滚动回调每帧都可能调它。 */
+        @Synchronized
+        internal fun suspend(now: Long) {
+            if (finished || !running) return
+            accumulatedMs += (now - runningSince).coerceAtLeast(0L)
+            running = false
+        }
+
+        /** 从此刻接着累加。从没挂起过（表一直在走）时是空操作。 */
+        @Synchronized
+        internal fun resume(now: Long) {
+            if (finished || running) return
+            runningSince = now
+            running = true
+        }
 
         @Synchronized
         internal fun finish(now: Long): Long? {
             if (finished) return null
             finished = true
-            return (now - startedAt).coerceAtLeast(0L)
+            return accumulatedMs + if (running) (now - runningSince).coerceAtLeast(0L) else 0L
         }
     }
 
@@ -107,7 +134,7 @@ object AutoSnapshotEngine {
     }
 
     /**
-     * 详情页**真离开**时调用：插画/漫画自动生成的唯一启动点。
+     * 详情页**真离开**时调用（宿主停止 / 页面销毁）：插画/漫画自动生成的唯一启动点。
      *
      * 停表 → 记一段停留 → 评估两个信号 → 静默生成。[evaluate] 为假时只结算停留：
      * 旋屏重建属于这一类，视觉没离开不该触发，但停留确实发生了，记下来不丢。
@@ -141,6 +168,23 @@ object AutoSnapshotEngine {
             )
             maybeTriggerBehaviorAuto(visit.illustId, signal)
         }
+    }
+
+    /**
+     * 本页还在宿主里、只是不再被看：横滑到相邻作品（本页被 setMaxLifecycle 降到 STARTED），
+     * 或 V3 视口滚出了作品范围。停表但**保留凭证**，不结算也不评估 —— 用户随时会滑回来 / 滚回去。
+     *
+     * 幂等：滚动回调每帧都可能调它。
+     */
+    fun onArtworkPageSuspended(visit: ArtworkVisit?) {
+        visit?.suspend(SystemClock.elapsedRealtime())
+    }
+
+    /**
+     * 挂起过的凭证重新被看：从此刻接着算同一段停留。被半透明层盖住期间表从没停过，那时这里是空操作。
+     */
+    fun onArtworkPageResumed(visit: ArtworkVisit?) {
+        visit?.resume(SystemClock.elapsedRealtime())
     }
 
     /**

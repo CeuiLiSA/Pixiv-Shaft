@@ -393,6 +393,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     if (dy > 8) hideFabBar() else if (dy < -8) showFabBar()
                     refreshPageProgressPill()
+                    syncAutoSnapshotViewport()
                 }
 
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -509,7 +510,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             applySnapshotBookmarkState()
             return
         }
-        // 凭证还在手里说明上一次「可见」还没结算（进二级大图页再回来）：表继续走，不重开、不重复计进入。
+        // 凭证还在手里说明上一次「可见」还没结算（进二级大图页 / 横滑离开 / 滚出作品区再回来）：
+        // 表不重开、不重复计进入，只把停过的那一段接着算。
         if (autoSnapshotVisit == null) {
             autoSnapshotVisit =
                 AutoSnapshotEngine.onArtworkPageVisible(
@@ -518,6 +520,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     countAsEntry = !autoSnapshotEntered,
                 )
             autoSnapshotEntered = true
+        } else {
+            // 横滑回来 / 滚回作品区：表被挂起过，从这里接着走（从没停过时这里是空操作）。
+            AutoSnapshotEngine.onArtworkPageResumed(autoSnapshotVisit)
         }
         artworkViewModel.onPageVisible()
         artworkViewModel.refreshDownloadFab()
@@ -535,11 +540,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     override fun onPause() {
         if (!isSnapshotMode) {
-            // 宿主还 RESUMED ⇒ 是「本页被降级」（横滑到相邻作品 / 进程内导航离开），视觉真的走了，
-            // 结算并评估。被自家半透明层（二级大图页及更上层）盖住、或切后台时宿主自己先 paused，
-            // 这里什么都不做：计时继续走，不结算也不评估。
+            // 宿主还 RESUMED ⇒ 是「本页被降级」（横滑到相邻作品），宿主还在、随时会滑回来：
+            // 挂起表，不结算也不评估。被自家半透明层（二级大图页及更上层）盖住、或切后台时
+            // 宿主自己先 paused，这里什么都不做：计时继续走，不结算也不评估。
             if (autoSnapshotVisit != null && isHostStillResumed()) {
-                settleAutoSnapshot(evaluate = true)
+                AutoSnapshotEngine.onArtworkPageSuspended(autoSnapshotVisit)
             }
             artworkViewModel.pauseDownloadFab()
         }
@@ -898,6 +903,60 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     }
 
     /**
+     * 视口里还有**本作品**的条目 —— 用户还在看这个作品，表该走；只剩「作者其他作品」「相关作品」
+     * 那些别人的作品了，表该挂起（见 [syncAutoSnapshotViewport]）。
+     *
+     * 用白名单而不是「还有没有 fullSpan 条目」：[ArtworkAuthorWorksItem] 与
+     * [ArtworkRelatedHeaderItem] 也是 fullSpan，按 fullSpan 判会把它们算回本作品，而按边界它们
+     * 已经出了本作品。
+     *
+     * 动图（[ArtworkUgoiraItem]）刻意不在白名单：自动快照本来就不含动图，凭证在
+     * [AutoSnapshotEngine.onArtworkPageVisible] 里就被判成 null，这里根本不会被问到。
+     *
+     * 拿不到列表 / 还没排版时按「在看」处理，退回改动前的行为 —— 否则一进页就会先挂起。
+     */
+    private fun isArtworkInViewport(): Boolean {
+        val items = feedAdapter?.currentList ?: return true
+        val listView = feedBinding.feedListView
+        val lm = listView.layoutManager ?: return true
+        if (listView.childCount == 0) return true
+        for (i in 0 until listView.childCount) {
+            when (items.getOrNull(lm.getPosition(listView.getChildAt(i)))) {
+                is ArtworkPageItem,
+                is ArtworkHeroItem,
+                is ArtworkSeriesItem,
+                is ArtworkArtistItem,
+                is ArtworkDescItem,
+                is ArtworkTagsItem,
+                is ArtworkStatsItem,
+                is ArtworkDetailPanelItem,
+                is ArtworkCommentsItem -> return true
+
+                else -> Unit
+            }
+        }
+        return false
+    }
+
+    /**
+     * 按视口把自动快照的表挂起 / 续算。挂在滚动与排版回调上（与 [refreshPageProgressPill] 同源），
+     * 所以「滚到相关作品」「滚回作品区」「从上层页返回时列表本来就停在相关作品」三种情况都覆盖。
+     *
+     * 平板不参与：作品钉在 [ArtworkTabletStage] 里始终可见（见其类注释），信息栏滚到哪都不代表
+     * 作品离开视线；而且 [usesTabletStage] 命中时列表里压根没有页条目（见
+     * [ArtworkV3FeedSource] 的 includePages），照手机判据会一进页就挂起、整段会话都不恢复。
+     */
+    private fun syncAutoSnapshotViewport() {
+        val visit = autoSnapshotVisit ?: return
+        if (usesTabletStage()) return
+        if (isArtworkInViewport()) {
+            AutoSnapshotEngine.onArtworkPageResumed(visit)
+        } else {
+            AutoSnapshotEngine.onArtworkPageSuspended(visit)
+        }
+    }
+
+    /**
      * 右上角常驻页码浮标(#1058):不进阅读器、直接在详情页往下滑看多图时,标出「当前页 / 总页」。
      *
      * 「当前页」取**正被浮标盖着的那一页**,而不是视口正中那一页——浮标就悬在顶栏下方,拿它自己 那条线去问「我盖着谁」最直观;竖幅长图也不会因为中线正好落在页缝里而跳数。具体是:可见的
@@ -1087,7 +1146,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      */
     private fun attachPageProgressPill() {
         val listView = feedBinding.feedListView
-        val layoutListener = ViewTreeObserver.OnGlobalLayoutListener { refreshPageProgressPill() }
+        // 同一趟排版回调顺带对齐自动快照的视口判据：从上层页返回、回退栈重显时列表可能就停在
+        // 相关作品那一段，没有任何滚动事件，只有排版回调能发现「已经不是在看这个作品了」。
+        val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+            refreshPageProgressPill()
+            syncAutoSnapshotViewport()
+        }
         listView.addOnAttachStateChangeListener(
             object : View.OnAttachStateChangeListener {
                 override fun onViewAttachedToWindow(v: View) {
