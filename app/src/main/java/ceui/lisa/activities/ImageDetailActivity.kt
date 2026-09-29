@@ -76,6 +76,10 @@ import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import ceui.pixiv.witstudio.popup.WitMenuPopup
 import ceui.pixiv.witstudio.theme.V3Palette
+import ceui.pixiv.witstudio.theme.pressScale
+import ceui.pixiv.witstudio.theme.setTextWithIcon
+import ceui.pixiv.witstudio.theme.v3Font
+import ceui.pixiv.ui.detail.frames.openUgoiraFrames
 import com.blankj.utilcode.util.BarUtils
 import java.io.File
 import java.io.FileInputStream
@@ -195,6 +199,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 val illust = mIllust ?: return@setOnClickListener
                 // 动图只保留作品分享；画质增强、翻译和静态壁纸都需要可处理的静图原图。
                 val actions = mutableListOf<Pair<CharSequence, () -> Unit>>()
+                if (illust.isGif()) {
+                    actions += getString(R.string.ugoira_frames_menu) to { openUgoiraFrames(this, illust) }
+                }
                 actions +=
                     getString(R.string.artwork_poster_save) to
                         {
@@ -261,6 +268,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 }
             baseBind!!.viewPager.currentItem = index
             setupFabBar()
+            if (mIllust!!.isGif()) setupUgoiraFramesEntry(mIllust!!)
             checkDownload(index)
             baseBind!!
                 .viewPager
@@ -557,6 +565,32 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             Gravity.END
         }
         pageLabel.layoutParams = lp
+        findViewById<View>(R.id.btn_ugoira_frames)?.let { entry ->
+            entry.layoutParams = (entry.layoutParams as FrameLayout.LayoutParams).also { it.gravity = lp.gravity }
+        }
+    }
+
+    /**
+     * 动图的「逐帧」入口:页码那一格的玻璃小胶囊(可见 40dp、整行 48dp 热区),与下载 + 收藏胶囊同排,
+     * 随工具栏一起显隐。打开逐帧页挑帧、标记、保存原帧。
+     */
+    private fun setupUgoiraFramesEntry(illust: Illust) {
+        val entry = findViewById<TextView>(R.id.btn_ugoira_frames) ?: return
+        val palette = V3Palette.from(this)
+        val density = resources.displayMetrics.density
+        entry.visibility = View.VISIBLE
+        entry.textSize = 13f
+        entry.typeface = v3Font(600)
+        entry.setTextColor(palette.floatingPillContent)
+        entry.setTextWithIcon(getString(R.string.ugoira_frames_entry), R.drawable.ic_ugoira_frames_24, sizeDp = 16, gapDp = 6)
+        // 上下 4dp 透明沿只补热区;InsetDrawable 会把 inset 报成内边距,所以先设背景再设 padding。
+        entry.background = android.graphics.drawable.InsetDrawable(
+            palette.floatingPillBg(999f), 0, (4 * density).toInt(), 0, (4 * density).toInt(),
+        )
+        entry.setPadding((12 * density).toInt(), 0, (14 * density).toInt(), 0)
+        entry.contentDescription = getString(R.string.ugoira_frames_menu)
+        entry.setOnClick { openUgoiraFrames(this, illust) }
+        entry.pressScale()
     }
 
     /** 快照大图保留 AI 菜单（数据源为本地快照文件），不显示下载相关动作。 */

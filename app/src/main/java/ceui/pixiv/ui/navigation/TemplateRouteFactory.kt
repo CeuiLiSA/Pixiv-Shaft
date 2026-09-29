@@ -58,6 +58,7 @@ import ceui.pixiv.ui.debug.NetworkTestFragment
 import ceui.pixiv.ui.detail.ArtworkV3Fragment
 import ceui.pixiv.ui.detail.IllustSeriesFragment
 import ceui.pixiv.ui.detail.RelatedIllustFeedFragment
+import ceui.pixiv.ui.detail.frames.UgoiraFramesFragment
 import ceui.pixiv.ui.discovery.DiscoveryFeedFragment
 import ceui.pixiv.ui.discovery.WebDiscoveryFragment
 import ceui.pixiv.ui.download.DownloadManagerV3Fragment
@@ -544,6 +545,8 @@ object TemplateRouteFactory {
             TemplateRoute.TRENDING_ARTISTS -> TrendingArtistsFragment.newInstance()
             TemplateRoute.DAILY_RECOMMENDATIONS -> DailyRecommendationsFragment()
             TemplateRoute.UGOIRA_RANK -> UgoiraRankFragment.newInstance()
+            TemplateRoute.UGOIRA_FRAMES ->
+                UgoiraFramesFragment.newInstance(intent.requireSerializable(Params.CONTENT, Illust::class.java))
             TemplateRoute.EVENT_HISTORY -> FragmentEventHistory()
             TemplateRoute.DEBUG_NETWORK_TEST -> NetworkTestFragment()
             // 同义词词典管理页（issue #904 按标签收藏优化）

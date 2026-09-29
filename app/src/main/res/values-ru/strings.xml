@@ -3161,4 +3161,48 @@
     <string name="viewer_dismiss_unsaved_save">Сохранить и выйти</string>
     <string name="viewer_dismiss_only_at_min_scale">Запретить смахивание при увеличении</string>
     <string name="viewer_dismiss_only_at_min_scale_desc">Если включено, в увеличенном виде смахивание вверх или вниз перемещает изображение. Закрыть смахиванием можно, вернув исходный размер.</string>
+    <!-- 动图逐帧页 -->
+    <string name="ugoira_frames_title">Кадры угоиры</string>
+    <string name="ugoira_frames_entry">Кадры</string>
+    <string name="ugoira_frames_menu">Просмотр и сохранение кадров</string>
+    <string name="ugoira_frames_counter">Кадр %1$d / %2$d</string>
+    <string name="ugoira_frames_save_one">Сохранить кадр</string>
+    <string name="ugoira_frames_saving">Сохранение…</string>
+    <string name="ugoira_frames_saved">Сохранено</string>
+    <string name="ugoira_frames_marked_badge">Отмечен</string>
+    <string name="ugoira_frames_clear_marks">Снять все отметки</string>
+    <string name="ugoira_frames_mark">Отметить кадр</string>
+    <string name="ugoira_frames_unmark">Снять отметку</string>
+    <string name="ugoira_frames_prev">Предыдущий кадр</string>
+    <string name="ugoira_frames_next">Следующий кадр</string>
+    <string name="ugoira_frames_play">Воспроизвести</string>
+    <string name="ugoira_frames_pause">Пауза</string>
+    <string name="ugoira_frames_speed">Скорость %s</string>
+    <string name="ugoira_frames_interpolated">Есть кадры ИИ</string>
+    <string name="ugoira_frames_load_failed">Не удалось загрузить кадры</string>
+    <string name="ugoira_frames_undo">Отменить</string>
+    <plurals name="ugoira_frames_save_many">
+        <item quantity="one">Сохранить %d кадр</item>
+        <item quantity="few">Сохранить %d кадра</item>
+        <item quantity="many">Сохранить %d кадров</item>
+        <item quantity="other">Сохранить %d кадра</item>
+    </plurals>
+    <plurals name="ugoira_frames_saved_toast">
+        <item quantity="one">Сохранён %d кадр</item>
+        <item quantity="few">Сохранено %d кадра</item>
+        <item quantity="many">Сохранено %d кадров</item>
+        <item quantity="other">Сохранено %d кадра</item>
+    </plurals>
+    <plurals name="ugoira_frames_marked_count">
+        <item quantity="one">Отмечен %d</item>
+        <item quantity="few">Отмечено %d</item>
+        <item quantity="many">Отмечено %d</item>
+        <item quantity="other">Отмечено %d</item>
+    </plurals>
+    <plurals name="ugoira_frames_marks_cleared">
+        <item quantity="one">Снята %d отметка</item>
+        <item quantity="few">Снято %d отметки</item>
+        <item quantity="many">Снято %d отметок</item>
+        <item quantity="other">Снято %d отметки</item>
+    </plurals>
 </resources>

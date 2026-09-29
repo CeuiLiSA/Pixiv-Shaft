@@ -3149,4 +3149,36 @@
     <string name="viewer_dismiss_unsaved_save">保存して離れる</string>
     <string name="viewer_dismiss_only_at_min_scale">拡大中はドラッグ終了を無効化</string>
     <string name="viewer_dismiss_only_at_min_scale_desc">オンにすると、拡大中は上下のドラッグが画面の移動になります。開いたときの大きさに戻すと、ドラッグで閉じられます。</string>
+    <!-- 动图逐帧页 -->
+    <string name="ugoira_frames_title">うごイラのコマ</string>
+    <string name="ugoira_frames_entry">コマ送り</string>
+    <string name="ugoira_frames_menu">コマ送りで表示・保存</string>
+    <string name="ugoira_frames_counter">%1$d / %2$d コマ</string>
+    <string name="ugoira_frames_save_one">このコマを保存</string>
+    <string name="ugoira_frames_saving">保存中…</string>
+    <string name="ugoira_frames_saved">保存しました</string>
+    <string name="ugoira_frames_marked_badge">マーク済み</string>
+    <string name="ugoira_frames_clear_marks">すべてのマークを解除</string>
+    <string name="ugoira_frames_mark">このコマをマーク</string>
+    <string name="ugoira_frames_unmark">マークを解除</string>
+    <string name="ugoira_frames_prev">前のコマ</string>
+    <string name="ugoira_frames_next">次のコマ</string>
+    <string name="ugoira_frames_play">再生</string>
+    <string name="ugoira_frames_pause">一時停止</string>
+    <string name="ugoira_frames_speed">再生速度 %s</string>
+    <string name="ugoira_frames_interpolated">AI 補間コマを含む</string>
+    <string name="ugoira_frames_load_failed">コマを読み込めませんでした</string>
+    <string name="ugoira_frames_undo">元に戻す</string>
+    <plurals name="ugoira_frames_save_many">
+        <item quantity="other">%d コマを保存</item>
+    </plurals>
+    <plurals name="ugoira_frames_saved_toast">
+        <item quantity="other">%d コマを保存しました</item>
+    </plurals>
+    <plurals name="ugoira_frames_marked_count">
+        <item quantity="other">%d コマをマーク</item>
+    </plurals>
+    <plurals name="ugoira_frames_marks_cleared">
+        <item quantity="other">%d 件のマークを解除しました</item>
+    </plurals>
 </resources>

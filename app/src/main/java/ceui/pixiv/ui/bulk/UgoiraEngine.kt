@@ -35,6 +35,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
@@ -375,6 +376,26 @@ object UgoiraEngine {
         } finally {
             releaseJob(id)
         }
+    }
+
+    /**
+     * 逐帧页用:pixiv 原始帧(原速版)。保存单帧要的是作者画的那一张,不是 RIFE 合成的中间帧 ——
+     * 补帧开着时可播版本是 `_rife` 目录,原速目录照样留在盘上,这里改读它;万一原速目录已不在
+     * (被手动清过)就退回可播版本,调用方看 [UgoiraFrames.interpolated] 如实标注。
+     * 与播放器共享同一条 pipeline 与观察者计数,页面退出取消语义同 [loadPlayableFrames]。
+     *
+     * **先查盘**:原速目录在解压后、补帧前就已落盘(写 .tmp 再整体 rename,读到的一定完整),
+     * 补帧开着时 pipeline 要等 RIFE 跑完才返回 —— 分钟级。逐帧页根本不用补帧结果,不能陪它等。
+     */
+    suspend fun loadOriginalFrames(illust: Illust): UgoiraFrames {
+        withContext(Dispatchers.IO) {
+            readFramesDir(framesDirFor(Shaft.getContext(), illust, false), false)
+        }?.let { return it }
+        val playable = loadPlayableFrames(illust)
+        if (!playable.interpolated) return playable
+        return withContext(Dispatchers.IO) {
+            readFramesDir(framesDirFor(Shaft.getContext(), illust, false), false)
+        } ?: playable
     }
 
     /** 观察者 +1,拿到(或新建)共享任务;撤销任何待触发的「划走取消」。 */

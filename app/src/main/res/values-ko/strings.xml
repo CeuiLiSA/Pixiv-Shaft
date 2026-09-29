@@ -3149,4 +3149,36 @@
     <string name="viewer_dismiss_unsaved_save">저장하고 나가기</string>
     <string name="viewer_dismiss_only_at_min_scale">확대 시 드래그 종료 사용 안 함</string>
     <string name="viewer_dismiss_only_at_min_scale_desc">켜면 확대 상태에서는 위아래 드래그가 화면 이동이 됩니다. 처음 열었을 때 크기로 돌아오면 드래그로 닫을 수 있습니다.</string>
+    <!-- 动图逐帧页 -->
+    <string name="ugoira_frames_title">우고이라 프레임</string>
+    <string name="ugoira_frames_entry">프레임</string>
+    <string name="ugoira_frames_menu">프레임별 보기 및 저장</string>
+    <string name="ugoira_frames_counter">%1$d / %2$d 프레임</string>
+    <string name="ugoira_frames_save_one">이 프레임 저장</string>
+    <string name="ugoira_frames_saving">저장 중…</string>
+    <string name="ugoira_frames_saved">저장됨</string>
+    <string name="ugoira_frames_marked_badge">표시됨</string>
+    <string name="ugoira_frames_clear_marks">모든 표시 지우기</string>
+    <string name="ugoira_frames_mark">이 프레임 표시</string>
+    <string name="ugoira_frames_unmark">표시 해제</string>
+    <string name="ugoira_frames_prev">이전 프레임</string>
+    <string name="ugoira_frames_next">다음 프레임</string>
+    <string name="ugoira_frames_play">재생</string>
+    <string name="ugoira_frames_pause">일시정지</string>
+    <string name="ugoira_frames_speed">재생 속도 %s</string>
+    <string name="ugoira_frames_interpolated">AI 보간 프레임 포함</string>
+    <string name="ugoira_frames_load_failed">프레임을 불러오지 못했습니다</string>
+    <string name="ugoira_frames_undo">실행 취소</string>
+    <plurals name="ugoira_frames_save_many">
+        <item quantity="other">프레임 %d개 저장</item>
+    </plurals>
+    <plurals name="ugoira_frames_saved_toast">
+        <item quantity="other">프레임 %d개를 저장했습니다</item>
+    </plurals>
+    <plurals name="ugoira_frames_marked_count">
+        <item quantity="other">%d개 표시됨</item>
+    </plurals>
+    <plurals name="ugoira_frames_marks_cleared">
+        <item quantity="other">표시 %d개를 지웠습니다</item>
+    </plurals>
 </resources>

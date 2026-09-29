@@ -3153,4 +3153,40 @@
     <string name="viewer_dismiss_unsaved_save">Kaydet ve çık</string>
     <string name="viewer_dismiss_only_at_min_scale">Yakınlaştırınca sürükleyerek kapatmayı kapat</string>
     <string name="viewer_dismiss_only_at_min_scale_desc">Açıkken, yakınlaştırılmış görüntüde yukarı veya aşağı sürükleme görüntüyü kaydırır. Sürükleyerek çıkmak için görüntüyü açıldığı boyuta döndürün.</string>
+    <!-- 动图逐帧页 -->
+    <string name="ugoira_frames_title">Ugoira kareleri</string>
+    <string name="ugoira_frames_entry">Kareler</string>
+    <string name="ugoira_frames_menu">Kareleri gez ve kaydet</string>
+    <string name="ugoira_frames_counter">Kare %1$d / %2$d</string>
+    <string name="ugoira_frames_save_one">Bu kareyi kaydet</string>
+    <string name="ugoira_frames_saving">Kaydediliyor…</string>
+    <string name="ugoira_frames_saved">Kaydedildi</string>
+    <string name="ugoira_frames_marked_badge">İşaretli</string>
+    <string name="ugoira_frames_clear_marks">Tüm işaretleri temizle</string>
+    <string name="ugoira_frames_mark">Bu kareyi işaretle</string>
+    <string name="ugoira_frames_unmark">İşareti kaldır</string>
+    <string name="ugoira_frames_prev">Önceki kare</string>
+    <string name="ugoira_frames_next">Sonraki kare</string>
+    <string name="ugoira_frames_play">Oynat</string>
+    <string name="ugoira_frames_pause">Duraklat</string>
+    <string name="ugoira_frames_speed">Oynatma hızı %s</string>
+    <string name="ugoira_frames_interpolated">Yapay zekâ kareleri içerir</string>
+    <string name="ugoira_frames_load_failed">Kareler yüklenemedi</string>
+    <string name="ugoira_frames_undo">Geri al</string>
+    <plurals name="ugoira_frames_save_many">
+        <item quantity="one">%d kareyi kaydet</item>
+        <item quantity="other">%d kareyi kaydet</item>
+    </plurals>
+    <plurals name="ugoira_frames_saved_toast">
+        <item quantity="one">%d kare kaydedildi</item>
+        <item quantity="other">%d kare kaydedildi</item>
+    </plurals>
+    <plurals name="ugoira_frames_marked_count">
+        <item quantity="one">%d işaretli</item>
+        <item quantity="other">%d işaretli</item>
+    </plurals>
+    <plurals name="ugoira_frames_marks_cleared">
+        <item quantity="one">%d işaret temizlendi</item>
+        <item quantity="other">%d işaret temizlendi</item>
+    </plurals>
 </resources>

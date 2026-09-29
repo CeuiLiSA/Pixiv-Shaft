@@ -3416,4 +3416,37 @@
     <string name="viewer_dismiss_unsaved_save">保存并离开</string>
     <string name="viewer_dismiss_only_at_min_scale">放大大图后禁用拖动退出</string>
     <string name="viewer_dismiss_only_at_min_scale_desc">开启后，图片放大时上下拖只平移画面；回到打开时的大小才能拖动退出，避免误触。</string>
+    <!-- 动图逐帧页 -->
+    <string name="ugoira_frames_title">动图逐帧</string>
+    <string name="ugoira_frames_entry">逐帧</string>
+    <string name="ugoira_frames_menu">逐帧浏览与保存</string>
+    <string name="ugoira_frames_counter">第 %1$d / %2$d 帧</string>
+    <string name="ugoira_frames_save_one">保存此帧</string>
+    <string name="ugoira_frames_saving">保存中…</string>
+    <string name="ugoira_frames_saved">已保存</string>
+    <string name="ugoira_frames_marked_badge">已标记</string>
+    <string name="ugoira_frames_clear_marks">清除全部标记</string>
+    <string name="ugoira_frames_mark">标记此帧</string>
+    <string name="ugoira_frames_unmark">取消标记</string>
+    <string name="ugoira_frames_prev">上一帧</string>
+    <string name="ugoira_frames_next">下一帧</string>
+    <string name="ugoira_frames_play">播放</string>
+    <string name="ugoira_frames_pause">暂停</string>
+    <string name="ugoira_frames_speed">播放速度 %s</string>
+    <string name="ugoira_frames_interpolated">含 AI 补帧</string>
+    <string name="ugoira_frames_load_failed">帧加载失败</string>
+    <string name="ugoira_frames_undo">撤销</string>
+    <string name="ugoira_frames_delay" translatable="false">%d ms</string>
+    <plurals name="ugoira_frames_save_many">
+        <item quantity="other">保存 %d 帧</item>
+    </plurals>
+    <plurals name="ugoira_frames_saved_toast">
+        <item quantity="other">已保存 %d 帧</item>
+    </plurals>
+    <plurals name="ugoira_frames_marked_count">
+        <item quantity="other">已标记 %d 帧</item>
+    </plurals>
+    <plurals name="ugoira_frames_marks_cleared">
+        <item quantity="other">已清除 %d 个标记</item>
+    </plurals>
 </resources>

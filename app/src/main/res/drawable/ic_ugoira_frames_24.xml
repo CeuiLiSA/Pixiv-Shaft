@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 逐帧入口：一段胶片，中间那格被选中。线宽约 1.7，与 V3 控件图标一致。 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.7"
+        android:strokeLineJoin="round"
+        android:pathData="M3.5,7.5h3.5v9h-3.5zM17,7.5h3.5v9h-3.5z" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M9.5,5.5h5a1.5,1.5 0,0 1,1.5 1.5v10a1.5,1.5 0,0 1,-1.5 1.5h-5a1.5,1.5 0,0 1,-1.5 -1.5v-10a1.5,1.5 0,0 1,1.5 -1.5z" />
+</vector>

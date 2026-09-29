@@ -3150,4 +3150,36 @@
     <string name="viewer_dismiss_unsaved_save">儲存並離開</string>
     <string name="viewer_dismiss_only_at_min_scale">放大後停用拖曳退出</string>
     <string name="viewer_dismiss_only_at_min_scale_desc">開啟後，圖片放大時上下拖只平移畫面；回到開啟時的大小才能拖曳退出，避免誤觸。</string>
+    <!-- 动图逐帧页 -->
+    <string name="ugoira_frames_title">動圖逐格</string>
+    <string name="ugoira_frames_entry">逐格</string>
+    <string name="ugoira_frames_menu">逐格瀏覽與儲存</string>
+    <string name="ugoira_frames_counter">第 %1$d / %2$d 格</string>
+    <string name="ugoira_frames_save_one">儲存此格</string>
+    <string name="ugoira_frames_saving">儲存中…</string>
+    <string name="ugoira_frames_saved">已儲存</string>
+    <string name="ugoira_frames_marked_badge">已標記</string>
+    <string name="ugoira_frames_clear_marks">清除全部標記</string>
+    <string name="ugoira_frames_mark">標記此格</string>
+    <string name="ugoira_frames_unmark">取消標記</string>
+    <string name="ugoira_frames_prev">上一格</string>
+    <string name="ugoira_frames_next">下一格</string>
+    <string name="ugoira_frames_play">播放</string>
+    <string name="ugoira_frames_pause">暫停</string>
+    <string name="ugoira_frames_speed">播放速度 %s</string>
+    <string name="ugoira_frames_interpolated">含 AI 補幀</string>
+    <string name="ugoira_frames_load_failed">影格載入失敗</string>
+    <string name="ugoira_frames_undo">復原</string>
+    <plurals name="ugoira_frames_save_many">
+        <item quantity="other">儲存 %d 格</item>
+    </plurals>
+    <plurals name="ugoira_frames_saved_toast">
+        <item quantity="other">已儲存 %d 格</item>
+    </plurals>
+    <plurals name="ugoira_frames_marked_count">
+        <item quantity="other">已標記 %d 格</item>
+    </plurals>
+    <plurals name="ugoira_frames_marks_cleared">
+        <item quantity="other">已清除 %d 個標記</item>
+    </plurals>
 </resources>

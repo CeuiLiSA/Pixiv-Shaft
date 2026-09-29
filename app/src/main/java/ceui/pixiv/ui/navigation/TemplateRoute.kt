@@ -137,6 +137,8 @@ enum class TemplateRoute(@JvmField val key: String) {
     TRENDING_ARTISTS("人气画师"),
     DAILY_RECOMMENDATIONS("每日推荐"),
     UGOIRA_RANK("动图榜"),
+    /** 动图逐帧：时间轴选帧、标记与保存原帧。 */
+    UGOIRA_FRAMES("动图逐帧"),
     EVENT_HISTORY("操作记录"),
     DEBUG_NETWORK_TEST("网络测试"),
     SYNONYM_DICT("同义词词典"),

@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.detail
 
+import ceui.pixiv.ui.detail.frames.openUgoiraFrames
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -1719,6 +1720,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private fun showMoreMenu() {
         val illust = ObjectPool.get<Illust>(illustId).value ?: return
         showV3Menu {
+            if (illust.isGif()) {
+                item(getString(R.string.ugoira_frames_menu), R.drawable.ic_ugoira_frames_24) {
+                    openUgoiraFrames(requireContext(), illust)
+                }
+            }
             if (!illust.isGif() && illust.page_count == 1) {
                 item(getString(R.string.comic_reader_enter_illust), R.drawable.ic_baseline_menu_book_24) {
                     openComicReader()

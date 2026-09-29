@@ -53,6 +53,19 @@ object DownloadItems {
     )
 
     /**
+     * 动图逐帧页保存的单帧：pixiv 原帧就是 JPEG，原样拷出不重编码。沿用 Illust 桶和用户模板，
+     * 与作品本体同名；调用方通过 Downloads.openDerived 加上帧序号后缀，互不覆盖。
+     */
+    @JvmStatic
+    fun ugoiraFrame(illust: Illust): DownloadItem = DownloadItem(
+        bucket = Bucket.Illust,
+        ext = "jpg",
+        mime = "image/jpeg",
+        sourceUrl = "",
+        meta = metaOf(illust, pageIndex = 0),
+    )
+
+    /**
      * 漫画翻译回填后的译图，同样是原插画的派生图片：沿用 Illust 桶和用户模板，
      * 流水线产物固定是无损 PNG。调用方通过 Downloads.openDerived 添加防冲突后缀。
      */

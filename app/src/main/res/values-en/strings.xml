@@ -3152,4 +3152,40 @@
     <string name="viewer_dismiss_unsaved_save">Save and leave</string>
     <string name="viewer_dismiss_only_at_min_scale">Disable drag-to-dismiss when zoomed</string>
     <string name="viewer_dismiss_only_at_min_scale_desc">When on, dragging up or down pans a zoomed-in image. Drag to exit works again once the image is back to the size it opened at.</string>
+    <!-- 动图逐帧页 -->
+    <string name="ugoira_frames_title">Ugoira frames</string>
+    <string name="ugoira_frames_entry">Frames</string>
+    <string name="ugoira_frames_menu">Browse and save frames</string>
+    <string name="ugoira_frames_counter">Frame %1$d / %2$d</string>
+    <string name="ugoira_frames_save_one">Save this frame</string>
+    <string name="ugoira_frames_saving">Saving…</string>
+    <string name="ugoira_frames_saved">Saved</string>
+    <string name="ugoira_frames_marked_badge">Marked</string>
+    <string name="ugoira_frames_clear_marks">Clear all marks</string>
+    <string name="ugoira_frames_mark">Mark this frame</string>
+    <string name="ugoira_frames_unmark">Unmark</string>
+    <string name="ugoira_frames_prev">Previous frame</string>
+    <string name="ugoira_frames_next">Next frame</string>
+    <string name="ugoira_frames_play">Play</string>
+    <string name="ugoira_frames_pause">Pause</string>
+    <string name="ugoira_frames_speed">Playback speed %s</string>
+    <string name="ugoira_frames_interpolated">Includes AI frames</string>
+    <string name="ugoira_frames_load_failed">Couldn\'t load frames</string>
+    <string name="ugoira_frames_undo">Undo</string>
+    <plurals name="ugoira_frames_save_many">
+        <item quantity="one">Save %d frame</item>
+        <item quantity="other">Save %d frames</item>
+    </plurals>
+    <plurals name="ugoira_frames_saved_toast">
+        <item quantity="one">Saved %d frame</item>
+        <item quantity="other">Saved %d frames</item>
+    </plurals>
+    <plurals name="ugoira_frames_marked_count">
+        <item quantity="one">%d marked</item>
+        <item quantity="other">%d marked</item>
+    </plurals>
+    <plurals name="ugoira_frames_marks_cleared">
+        <item quantity="one">Cleared %d mark</item>
+        <item quantity="other">Cleared %d marks</item>
+    </plurals>
 </resources>

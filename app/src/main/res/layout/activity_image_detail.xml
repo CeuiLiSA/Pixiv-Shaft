@@ -86,6 +86,17 @@
                     android:shadowRadius="3"
                     android:textColor="@android:color/white" />
 
+                <!-- 动图:页码位换成「逐帧」入口(动图只有 1P,页码本来就不显示)。
+                     样式在 ImageDetailActivity.setupUgoiraFramesEntry 里按 V3Palette 着色。 -->
+                <TextView
+                    android:id="@+id/btn_ugoira_frames"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"
+                    android:gravity="center_vertical"
+                    android:text="@string/ugoira_frames_entry"
+                    android:visibility="gone" />
+
             </FrameLayout>
 
             <!-- 「下载详情」模式复用底部中央位置显示本地文件路径(历史行为) -->
