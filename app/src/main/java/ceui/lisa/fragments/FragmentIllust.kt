@@ -105,6 +105,12 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
      */
     private var autoSnapshotEntered = false
 
+    /**
+     * 本页被横滑降级（onPause 时宿主仍 RESUMED）、还没被滑回来。这样的页视觉上已经离开，
+     * 旋屏时也要评估 —— 否则它挂起着的那段停留只结算不评估，触发就丢了。
+     */
+    private var autoSnapshotDemoted = false
+
     private val safeArgs by lazy { IllustArgs(requireArguments()) }
 
     private val snapshotId: String? get() = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
@@ -1013,6 +1019,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     override fun onResume() {
         super.onResume()
+        autoSnapshotDemoted = false
         if (!isSnapshotMode) {
             // 凭证还在手里说明上一次「可见」还没结算（进二级大图页 / 横滑离开再回来）：表不重开、
             // 不重复计进入，只把停过的那一段接着算。
@@ -1039,6 +1046,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             // 宿主自己先 paused，这里什么都不做：计时继续走，不结算也不评估。
             if (autoSnapshotVisit != null && isHostStillResumed()) {
                 AutoSnapshotEngine.onArtworkPageSuspended(autoSnapshotVisit)
+                autoSnapshotDemoted = true
             }
         }
         super.onPause()
@@ -1057,7 +1065,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     override fun onStop() {
         // 宿主停止 = 切后台 / 页面结束；旋屏也走这里，但不算离开，只结算不评估。
-        settleAutoSnapshot(evaluate = activity?.isChangingConfigurations != true)
+        // 横滑走的页例外：旋屏前它就已经不在视线里了。
+        settleAutoSnapshot(evaluate = autoSnapshotDemoted || activity?.isChangingConfigurations != true)
         super.onStop()
     }
 
