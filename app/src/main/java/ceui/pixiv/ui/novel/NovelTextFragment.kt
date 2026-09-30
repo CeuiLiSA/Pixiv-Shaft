@@ -168,7 +168,10 @@ class NovelTextFragment :
         var readPillShown = true
         listView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                // 到顶（含内容短到不够滚）一律放回：收起超长简介后列表可能不再能上滑，
+                // 只靠「上滑放回」胶囊会永远藏着。布局变动时 RV 会回调 onScrolled(0, 0)，这里接得住。
                 val show = when {
+                    !recyclerView.canScrollVertically(-1) -> true
                     dy > 8 -> false
                     dy < -8 -> true
                     else -> return
