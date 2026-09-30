@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小说详情页悬浮「阅读正文」胶囊(#1177):尺寸/半透明底/滑动收起对齐插画详情的
+  view_v3_fab_bar(下载/收藏/评论三段胶囊),不再铺 300dp 渐变遮罩压暗简介。
+  颜色只是深色默认值:由 NovelTextFragment 按 V3Palette 重刷(floatingPillBg / floatingPillContent),
+  书本图标也在那里按内容色着色。高度用 minHeight,字体放大时胶囊跟着长高。
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/btn_read"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom|center_horizontal"
+    android:background="@drawable/bg_v3_fab_bar"
+    android:drawablePadding="8dp"
+    android:elevation="12dp"
+    android:gravity="center"
+    android:minWidth="200dp"
+    android:minHeight="48dp"
+    android:paddingHorizontal="24dp"
+    android:paddingVertical="10dp"
+    android:text="@string/action_start_reading"
+    android:textColor="#FFFFFF"
+    android:textSize="16sp"
+    android:textStyle="bold" />

@@ -1366,7 +1366,7 @@
     <string name="ai_upscaling_in_progress">AI 畫質增強中</string>
     <string name="ai_upscaling_complete">AI 畫質增強已完成</string>
     <string name="action_view_comparison">檢視對比</string>
-    <string name="action_start_reading">開始閱讀正文</string>
+    <string name="action_start_reading">閱讀正文</string>
     <string name="action_zoom_out">縮小</string>
     <string name="action_zoom_in">放大</string>
     <string name="action_save_to_album">儲存到相簿</string>

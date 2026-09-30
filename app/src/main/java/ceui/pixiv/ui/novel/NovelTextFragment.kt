@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
@@ -16,7 +17,7 @@ import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.databinding.ItemBigReadButtonBinding
+import ceui.lisa.databinding.ViewV3ReadPillBinding
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.lisa.view.LinearItemDecorationNoLRTB
@@ -139,12 +140,22 @@ class NovelTextFragment :
             }
         }
 
-        // 底部「开始阅读」浮动按钮（对齐旧 bottom_covered 里的 ItemBigReadButton）。
+        // 底部悬浮「阅读正文」胶囊（#1177）：半透明、和插画详情的下载/收藏/评论胶囊同尺寸，
+        // 下滑收起、上滑放回；不再铺 300dp 渐变遮罩压暗简介。
         val bottomBar = view.findViewById<FrameLayout>(R.id.bottom_bar)
-        val readButton = ItemBigReadButtonBinding.inflate(layoutInflater)
+        val readPill = ViewV3ReadPillBinding.inflate(layoutInflater, bottomBar, false).root
         val palette = V3Palette.from(requireContext())
-        readButton.btnRead.background = palette.pillPrimary(28f * density)
-        readButton.btnRead.setOnClick {
+        readPill.background = palette.floatingPillBg(999f * density)
+        readPill.setTextColor(palette.floatingPillContent)
+        val bookIcon = AppCompatResources.getDrawable(requireContext(), R.drawable.ic_baseline_menu_book_24)
+            ?.mutate()
+            ?.apply {
+                val size = (20 * density).toInt()
+                setBounds(0, 0, size, size)
+                setTint(palette.floatingPillContent)
+            }
+        readPill.setCompoundDrawablesRelative(null, null, bookIcon, null)
+        readPill.setOnClick {
             val ctx = requireContext()
             val intent = Intent(ctx, TemplateActivity::class.java).apply {
                 putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_READER.key)
@@ -152,16 +163,37 @@ class NovelTextFragment :
             }
             ctx.startActivity(intent)
         }
-        bottomBar.addView(readButton.root)
+        bottomBar.addView(readPill)
 
-        // Edge-to-edge safe area：ItemBigReadButton 是 300dp 渐变遮罩容器，必须铺到屏幕最底
-        // （内容在其后柔和淡出），只在容器内底 padding 里叠加导航栏 inset 把按钮抬起——
-        // 千万别给容器加 bottomMargin，那会把整块渐变抬离屏幕底变成「漂浮的渐变」。
-        // 列表首行清状态栏、底部让出按钮遮罩高度。
+        var readPillShown = true
+        listView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                val show = when {
+                    dy > 8 -> false
+                    dy < -8 -> true
+                    else -> return
+                }
+                if (show == readPillShown) return
+                readPillShown = show
+                readPill.animate().cancel()
+                if (show) readPill.visibility = View.VISIBLE
+                readPill.animate()
+                    .translationY(if (show) 0f else readPill.height + 100f)
+                    .alpha(if (show) 1f else 0f)
+                    .setDuration(READ_PILL_ANIMATION_DURATION_MS)
+                    .withEndAction { if (!readPillShown) readPill.visibility = View.INVISIBLE }
+                    .start()
+            }
+        })
+
+        // Edge-to-edge safe area：胶囊距底 = 导航栏 inset + 24dp（与插画详情胶囊一致），
+        // 列表首行清状态栏、底部让出胶囊高度。
         ViewCompat.setOnApplyWindowInsetsListener(view) { _, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             listView.updatePadding(top = bars.top, bottom = bars.bottom + (96 * density).toInt())
-            readButton.root.updatePadding(bottom = (20 * density).toInt() + bars.bottom)
+            readPill.updateLayoutParams<FrameLayout.LayoutParams> {
+                bottomMargin = bars.bottom + (24 * density).toInt()
+            }
             insets
         }
         ViewCompat.requestApplyInsets(view)
@@ -346,6 +378,9 @@ class NovelTextFragment :
         toggleIllustBookmark(sender, illustId)
 
     companion object {
+        /** 与插画详情悬浮胶囊的收起/放回动画同时长。 */
+        private const val READ_PILL_ANIMATION_DURATION_MS = 200L
+
         fun newInstance(novelId: Long): NovelTextFragment = NovelTextFragment().apply {
             arguments = Bundle().apply { putLong(Params.NOVEL_ID, novelId) }
         }
