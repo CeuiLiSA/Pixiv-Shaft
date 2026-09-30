@@ -520,10 +520,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     countAsEntry = !autoSnapshotEntered,
                 )
             autoSnapshotEntered = true
-        } else {
-            // 横滑回来 / 滚回作品区：表被挂起过，从这里接着走（从没停过时这里是空操作）。
-            AutoSnapshotEngine.onArtworkPageResumed(autoSnapshotVisit)
         }
+        // 横滑回来：表被挂起过，按当前视口决定接着走还是继续挂着 —— 滑走前停在相关作品那一段的页，
+        // 滑回来时不一定有排版回调，不能无条件续算（从没停过、仍在作品区时这里是空操作）。
+        syncAutoSnapshotViewport()
         artworkViewModel.onPageVisible()
         artworkViewModel.refreshDownloadFab()
         refreshCachedOriginalPages()
@@ -942,14 +942,17 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
      * 按视口把自动快照的表挂起 / 续算。挂在滚动与排版回调上（与 [refreshPageProgressPill] 同源），
      * 所以「滚到相关作品」「滚回作品区」「从上层页返回时列表本来就停在相关作品」三种情况都覆盖。
      *
-     * 平板不参与：作品钉在 [ArtworkTabletStage] 里始终可见（见其类注释），信息栏滚到哪都不代表
+     * 平板不看视口、一律按「在看」：作品钉在 [ArtworkTabletStage] 里始终可见（见其类注释），信息栏滚到哪都不代表
      * 作品离开视线；而且 [usesTabletStage] 命中时列表里压根没有页条目（见
      * [ArtworkV3FeedSource] 的 includePages），照手机判据会一进页就挂起、整段会话都不恢复。
      */
     private fun syncAutoSnapshotViewport() {
         val visit = autoSnapshotVisit ?: return
-        if (usesTabletStage()) return
-        if (isArtworkInViewport()) {
+        // 只管当前页：排版监听挂在**窗口**那份 observer 上，横滑走的相邻页也会跟着当前页的每次排版
+        // 回调到这里；不拦的话，它的列表还停在作品区，就会被续上表，把看别的作品的时间算进它。
+        // 横滑走的页归 onPause 挂起 / onResume 续算；被半透明层盖住时本页也不在 RESUMED，表本来就在走。
+        if (!isResumed) return
+        if (usesTabletStage() || isArtworkInViewport()) {
             AutoSnapshotEngine.onArtworkPageResumed(visit)
         } else {
             AutoSnapshotEngine.onArtworkPageSuspended(visit)
