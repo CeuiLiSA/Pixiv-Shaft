@@ -3134,6 +3134,12 @@
     </plurals>
     <!-- 大画像のドラッグ終了設定（設定 → 表示）：調整ページ + 簡易ビューア。 -->
     <string name="viewer_dismiss_tuning_title">大画像のドラッグ終了設定</string>
+    <string name="viewer_viewport_link_title">詳細ページが大画像のページ送りに追従</string>
+    <string name="viewer_viewport_link_none">追従しない</string>
+    <string name="viewer_viewport_link_expanded_only">展開済みのときのみ</string>
+    <string name="viewer_viewport_link_auto_expand">自動展開して追従</string>
+    <string name="viewer_viewport_link_hint">詳細ページが、大画像で最後に見たページまで自動スクロールします\nクラシック詳細ページには展開状態がないため、「展開済みのときのみ」と「自動展開して追従」のどちらでも追従します</string>
+    <string name="viewer_viewport_link_help_desc">説明</string>
     <string name="viewer_dismiss_tuning_intro">大画像ページは上下にドラッグすると閉じられます。感覚は人それぞれなので、ここで3つのしきい値を調整し、下の画像をタップしてすぐ試せます。</string>
     <string name="viewer_dismiss_tuning_image_desc">テスト画像</string>
     <string name="viewer_dismiss_tuning_image_hint">画像をタップして大画像を開き、上下にドラッグして終了を試す</string>

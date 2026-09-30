@@ -3135,6 +3135,12 @@
     </plurals>
     <!-- 大圖拖曳退出控制（設定 → 瀏覽設定）：測試頁 + 精簡大圖頁。 -->
     <string name="viewer_dismiss_tuning_title">大圖拖曳退出控制</string>
+    <string name="viewer_viewport_link_title">詳情頁跟隨大圖翻頁捲動</string>
+    <string name="viewer_viewport_link_none">不跟隨</string>
+    <string name="viewer_viewport_link_expanded_only">僅已展開時</string>
+    <string name="viewer_viewport_link_auto_expand">自動展開並跟隨</string>
+    <string name="viewer_viewport_link_hint">詳情頁自動捲到你大圖最後看的那一張\n經典詳情頁沒有展開態，「僅已展開時」與「自動展開並跟隨」都會跟隨</string>
+    <string name="viewer_viewport_link_help_desc">說明</string>
     <string name="viewer_dismiss_tuning_intro">二級大圖頁上下拖曳即可退出。手感因人而異，這裡能把三個閾值調到自己順手，點下面的圖就能立刻試。</string>
     <string name="viewer_dismiss_tuning_image_desc">測試用圖</string>
     <string name="viewer_dismiss_tuning_image_hint">點擊圖片進入大圖，上下拖曳體驗退出</string>

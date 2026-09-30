@@ -156,6 +156,8 @@ object SettingsCatalog {
         add(Entry(VIEWING, "double_tap_zoom_mode_rela", R.string.double_tap_zoom_mode_title, keywords = "双击 放大 缩放 默认 三级 增量 智能 zoom"))
         add(Entry(VIEWING, "custom_zoom_scale_rela", R.string.custom_zoom_scale_title, R.string.custom_zoom_scale_link_text, keywords = "缩放 增量 倍率 三级 zoom scale"))
         add(Entry(VIEWING, "long_press_behavior_rela", R.string.long_press_behavior_title, keywords = "长按 长按行为 无 优先缩小一级 复原至最小 复位 还原 缩放 缩小 long press reset"))
+        // 别名按整串子串匹配（同上），「视口联动」「退出归位」这类连写说法各铺一遍
+        add(Entry(VIEWING, "viewer_viewport_link_rela", R.string.viewer_viewport_link_title, keywords = "大图 详情页 视口 联动 跟随 不跟随 仅已展开 自动展开 同步 归位 缩回 退出 翻页 滚动 位置 viewport link follow off expanded auto scroll page position exit"))
 
         // 收藏与互动
         add(Entry(BOOKMARKS, "show_like_button_rela", R.string.string_335, keywords = "私密收藏 非公开 私人 private bookmark"))

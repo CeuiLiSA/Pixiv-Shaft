@@ -3401,6 +3401,12 @@
 
     <!-- 大图拖动退出控制（设置 → 浏览设置）：测试页 + 精简大图页。 -->
     <string name="viewer_dismiss_tuning_title">大图拖动退出控制</string>
+    <string name="viewer_viewport_link_title">详情页跟随大图翻页滚动</string>
+    <string name="viewer_viewport_link_none">不跟随</string>
+    <string name="viewer_viewport_link_expanded_only">仅已展开时</string>
+    <string name="viewer_viewport_link_auto_expand">自动展开并跟随</string>
+    <string name="viewer_viewport_link_hint">详情页自动滚到你大图最后看的那一张\n经典详情页没有展开态，「仅已展开时」与「自动展开并跟随」都会跟随</string>
+    <string name="viewer_viewport_link_help_desc">说明</string>
     <string name="viewer_dismiss_tuning_intro">二级大图页上下拖动即可退出。手感因人而异，这里能把三个阈值调到自己顺手，点下面的图就能立刻试。</string>
     <string name="viewer_dismiss_tuning_image_desc">测试用图</string>
     <string name="viewer_dismiss_tuning_image_hint">点击图片进入大图，上下拖动体验退出</string>

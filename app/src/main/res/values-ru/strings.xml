@@ -3146,6 +3146,12 @@
     </plurals>
     <!-- Настройка смахивания в просмотрщике (Настройки → Просмотр): страница настройки + упрощённый просмотрщик. -->
     <string name="viewer_dismiss_tuning_title">Настройка смахивания</string>
+    <string name="viewer_viewport_link_title">Страница работы следует за листанием в просмотрщике</string>
+    <string name="viewer_viewport_link_none">Не следовать</string>
+    <string name="viewer_viewport_link_expanded_only">Только если развёрнуто</string>
+    <string name="viewer_viewport_link_auto_expand">Развернуть и следовать</string>
+    <string name="viewer_viewport_link_hint">Страница работы автоматически прокручивается к последней просмотренной странице в просмотрщике\nВ классической странице работы нет свёрнутого состояния, поэтому следуют оба режима — «Только если развёрнуто» и «Развернуть и следовать»</string>
+    <string name="viewer_viewport_link_help_desc">Справка</string>
     <string name="viewer_dismiss_tuning_intro">В полноэкранном просмотрщике изображение закрывается смахиванием вверх или вниз. Чувствительность у всех разная — настройте три порога здесь и нажмите на изображение ниже, чтобы сразу попробовать.</string>
     <string name="viewer_dismiss_tuning_image_desc">Тестовое изображение</string>
     <string name="viewer_dismiss_tuning_image_hint">Нажмите на изображение, чтобы открыть просмотрщик, и смахните вверх или вниз</string>

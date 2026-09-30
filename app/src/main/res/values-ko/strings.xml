@@ -3134,6 +3134,12 @@
     </plurals>
     <!-- 큰 이미지 드래그 종료 설정(설정 → 보기): 조정 페이지 + 간이 뷰어. -->
     <string name="viewer_dismiss_tuning_title">큰 이미지 드래그 종료 설정</string>
+    <string name="viewer_viewport_link_title">상세 페이지가 큰 이미지 페이지 넘김을 따라감</string>
+    <string name="viewer_viewport_link_none">따르지 않음</string>
+    <string name="viewer_viewport_link_expanded_only">펼친 경우에만</string>
+    <string name="viewer_viewport_link_auto_expand">자동으로 펼치고 따르기</string>
+    <string name="viewer_viewport_link_hint">상세 페이지가 큰 이미지에서 마지막으로 본 페이지로 자동 스크롤됩니다\n클래식 상세 페이지에는 펼침 상태가 없으므로 두 옵션 모두 따라갑니다</string>
+    <string name="viewer_viewport_link_help_desc">설명</string>
     <string name="viewer_dismiss_tuning_intro">큰 이미지 화면에서는 위아래로 드래그하면 닫힙니다. 감도는 사람마다 다르니 여기서 세 가지 값을 조정하고, 아래 이미지를 눌러 바로 시험해 보세요.</string>
     <string name="viewer_dismiss_tuning_image_desc">테스트 이미지</string>
     <string name="viewer_dismiss_tuning_image_hint">이미지를 눌러 큰 이미지를 열고, 위아래로 드래그해 종료를 시험</string>

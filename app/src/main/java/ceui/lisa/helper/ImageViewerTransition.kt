@@ -25,9 +25,7 @@ class ImageViewerTransition(
     enterScreenBounds: IntArray?,
 ) {
     private val background = root.background.mutate().also { root.background = it }
-    private val enterBounds: Rect? = enterScreenBounds
-        ?.takeIf { it.size == 4 && it[2] > it[0] && it[3] > it[1] }
-        ?.let { Rect(it[0], it[1], it[2], it[3]) }
+    private val enterBounds: Rect? = toScreenRect(enterScreenBounds)
     private val easing = PathInterpolator(0.2f, 0f, 0f, 1f)
     private var animator: ValueAnimator? = null
     private var exiting = false
@@ -42,7 +40,7 @@ class ImageViewerTransition(
         background.alpha = 0
         chromeViews.forEach { it.alpha = 0f }
         root.doOnPreDraw {
-            val target = boundsInRoot()
+            val target = boundsInRoot(enterBounds)
             if (target != null && content.width > 0 && target.width() > 0) {
                 val startScale = target.width().toFloat() / content.width
                 val startTx = target.exactCenterX() - (content.left + content.width / 2f)
@@ -124,12 +122,17 @@ class ImageViewerTransition(
     }
 
     /**
-     * 收场动画。[backToBounds] 且带过矩形 → 缩回缩略图;否则从当前位置沿 [direction] 继续淡出。
+     * 收场动画。[backToBounds] 且带过矩形 → 缩回缩略图;否则淡出 —— [direction] 非空时同时沿该方向
+     * 滑走（拖出手势用），为空表示没有方向偏好（返回键），纯原地淡出、不凭空往某个方向滑。
      * 从拖拽中断处接着播,不会跳变。重复调用只生效一次。
      */
     fun playExit(
         backToBounds: Boolean,
-        direction: DragDismissLayout.Direction = DragDismissLayout.Direction.DOWN,
+        direction: DragDismissLayout.Direction? = null,
+        /**
+         * 退出目标矩形的屏幕坐标（详情页回传的「当前页那一格」）。null = 沿用进场矩形。
+         */
+        exitScreenBounds: IntArray? = null,
         onEnd: () -> Unit,
     ) {
         if (exiting) return
@@ -141,7 +144,8 @@ class ImageViewerTransition(
         val startAlpha = content.alpha
         val startDim = background.alpha / 255f
         val startChrome = chromeViews.firstOrNull()?.alpha ?: 1f
-        val target = if (backToBounds) boundsInRoot() else null
+        val target =
+            if (backToBounds) boundsInRoot(toScreenRect(exitScreenBounds) ?: enterBounds) else null
         if (target != null && content.width > 0 && target.width() > 0) {
             val endScale = target.width().toFloat() / content.width
             val endTx = target.exactCenterX() - (content.left + content.width / 2f)
@@ -155,7 +159,7 @@ class ImageViewerTransition(
                 chromeViews.forEach { it.alpha = lerp(startChrome, 0f, f) }
             }
         } else {
-            val endTy = startTy + content.height * 0.22f * direction.sign
+            val endTy = direction?.let { startTy + content.height * 0.22f * it.sign } ?: startTy
             runAnimation(EXIT_DURATION, onEnd) { f ->
                 content.translationY = lerp(startTy, endTy, f)
                 content.alpha = lerp(startAlpha, 0f, f)
@@ -171,8 +175,8 @@ class ImageViewerTransition(
     }
 
     /** 屏幕坐标矩形 → 根布局(窗口)坐标;content 是根布局直接子 view,变换公式按同一坐标系算。 */
-    private fun boundsInRoot(): Rect? {
-        val bounds = enterBounds ?: return null
+    private fun boundsInRoot(screen: Rect?): Rect? {
+        val bounds = screen ?: return null
         val loc = IntArray(2)
         root.getLocationOnScreen(loc)
         return Rect(bounds).apply { offset(-loc[0], -loc[1]) }
@@ -209,3 +213,8 @@ class ImageViewerTransition(
         private const val BACK_DIM_FADE = 0.7f
     }
 }
+
+/** 屏幕坐标数组 → [Rect]；长度或面积不合法时返回 null（进场与退出共用同一套校验）。 */
+private fun toScreenRect(raw: IntArray?): Rect? =
+    raw?.takeIf { it.size == 4 && it[2] > it[0] && it[3] > it[1] }
+        ?.let { Rect(it[0], it[1], it[2], it[3]) }
