@@ -238,6 +238,27 @@ class ArtworkPageReuseTest {
     }
 
     @Test
+    fun `programmatic expand hides the cover overlay without a rebind`() {
+        // #1178: page-preview jump expands while p0 sits in the view cache, which reattaches without binding.
+        val adapter = collapsibleDelegate().apply { onComicReaderClick = {} }
+        val cover = boundPage(adapter).baseBind.root
+        assertEquals(View.VISIBLE, cover.findViewById<View>(R.id.expand_overlay).visibility)
+        assertEquals(View.VISIBLE, cover.findViewById<View>(R.id.comic_reader_pill).visibility)
+        adapter.expand()
+        assertEquals(View.GONE, cover.findViewById<View>(R.id.expand_overlay).visibility)
+        assertEquals(View.GONE, cover.findViewById<View>(R.id.comic_reader_pill).visibility)
+    }
+
+    @Test
+    fun `expand pill keeps its own fade instead of snapping the overlay away`() {
+        val adapter = collapsibleDelegate()
+        val cover = boundPage(adapter).baseBind.root
+        cover.findViewById<View>(R.id.expand_pill).performClick()
+        assertTrue(adapter.isExpanded)
+        assertEquals(View.VISIBLE, cover.findViewById<View>(R.id.expand_overlay).visibility)
+    }
+
+    @Test
     fun `reopening pages cancels an uncommitted collapse scroll`() {
         val fragment = ArtworkV3Fragment().apply { arguments = Bundle() }
         val chrome = FragmentArtworkV3Binding.inflate(LayoutInflater.from(host))

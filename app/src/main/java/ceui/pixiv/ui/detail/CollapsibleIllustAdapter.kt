@@ -72,7 +72,19 @@ class CollapsibleIllustAdapter(
         return if (expanded) total else minOf(total, collapsedCount)
     }
 
-    fun expand() {
+    /**
+     * 展开。展开后 p0 的「展开剩余 X 张」覆盖层由这里负责收掉 —— 除非调用方自己跑那趟淡出。
+     *
+     * @param callerFadesOverlay 调用方是否紧接着自己把 p0 覆盖层淡出（alpha 1→0，收尾 GONE）。
+     *   「展开剩余 X 张」胶囊点击传 true：它要的就是那趟 220ms 交叉淡入淡出，adapter 再动这层
+     *   scrim 只会把动画 cancel 掉。其余（页面预览跳页等程序化展开）保持默认 false。
+     *
+     *   为什么不能指望「下一次自然重绑」把覆盖层带走(#1178)：展开时 p0 的条目一个字段都没变
+     *   —— 宿主只往后追加 p1..pN-1（见 ArtworkV3Fragment.onPagesExpandedChanged），DiffUtil
+     *   判不出变化、不会重绑 p0；而 p0 的 holder 又落在 listView.setItemViewCacheSize(6) 的
+     *   缓存窗口里，缓存里的 holder 复用时不回调 onBindViewHolder —— 滑回 p0 也不会重绑。
+     */
+    fun expand(callerFadesOverlay: Boolean = false) {
         if (expanded) return
         // 展开时再扫一遍下载库：覆盖「未展开时下载、随后展开」——此时第 2 张及之后
         // 才首次绑定，扫到本地文件就直读，不回 pixiv 重新下。
@@ -81,8 +93,9 @@ class CollapsibleIllustAdapter(
         expanded = true
         val added = itemCount - prev
         if (added > 0) notifyItemRangeInserted(prev, added)
-        // No notifyItemChanged(0) here — the caller's fade-out on the scrim
-        // would get clobbered. The next natural rebind will hide the overlay.
+        if (!callerFadesOverlay) retractExpandOverlay()
+        // 覆盖层的收回分两路：调用方自己跑淡出的（展开胶囊点击）传 callerFadesOverlay=true，
+        // 其余程序化展开（页面预览跳页）由这里直接收回 —— 别指望「下一次自然重绑」兜底(#1178)。
         onExpandedChanged?.invoke(true)
     }
 
@@ -116,6 +129,18 @@ class CollapsibleIllustAdapter(
     internal fun refreshExpandOverlay(holder: ViewHolder<RecyIllustDetailBinding>, position: Int) {
         if (position != 0) return
         bindExpandOverlay(holder, position, fadeIn = false)
+    }
+
+    /**
+     * 立刻把 p0 上还亮着的「展开剩余 X 张」覆盖层收掉（「用阅读器看」胶囊也画在这一层里），不等重绑。
+     *
+     * 覆盖层只画在 position 0 上（见 [bindExpandOverlay]），所以只认那一格；binding 从
+     * IllustAdapter.boundBinding(0) 取，而不是去 RecyclerView 里找 child —— p0 的 holder 可能
+     * 已经滑出屏幕，但缓存窗口 / 常驻槽位都替它留着 binding，照样收得掉。
+     */
+    private fun retractExpandOverlay() {
+        val binding = boundBinding(0) ?: return
+        bindExpandOverlay(ViewHolder(binding), 0, fadeIn = false)
     }
 
     fun collapse() {
@@ -266,7 +291,7 @@ class CollapsibleIllustAdapter(
             // Kick off the data change FIRST so onExpandedChanged(true) fires
             // before the fade — the host pill fades IN concurrently with this
             // scrim fading OUT, instead of after.
-            expand()
+            expand(callerFadesOverlay = true)
             overlay.animate()
                 .alpha(0f)
                 .setDuration(FADE_MS)

@@ -255,6 +255,18 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         this.localPagesChangedListener = listener;
     }
 
+    /**
+     * 某一页当前绑着的 binding（没有则 null）。
+     *
+     * 折叠覆盖层要用：程序化展开时 p0 的「展开剩余 X 张」覆盖层必须立刻收掉，但那一格可能
+     * 已经滑出屏幕 —— 缓存窗口（setItemViewCacheSize）与常驻槽位都替它留着 binding，所以
+     * 得从这里取，而不是去 RecyclerView 里找 child。只读，不动任何绑定状态。
+     */
+    @Nullable
+    public RecyIllustDetailBinding boundBinding(int position) {
+        return boundBindings.get(position);
+    }
+
     /** 快照模式用：直接把某一页指向快照库里的本地文件，绑定时优先读本地、不走网络。 */
     public void putLocalPageUri(int page, @NonNull android.net.Uri uri) {
         localPageUris.put(page, uri);
