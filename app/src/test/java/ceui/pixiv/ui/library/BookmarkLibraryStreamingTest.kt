@@ -3,12 +3,20 @@ package ceui.pixiv.ui.library
 import android.app.Application
 import android.content.Context
 import android.content.ContextWrapper
+import android.os.Looper
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelStore
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.room.Room
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -21,6 +29,7 @@ import ceui.loxia.User
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.api.model.UserPreview
 import ceui.pixiv.db.mirror.*
+import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.FeedPagingPolicy
 import ceui.pixiv.feeds.FeedSource
@@ -47,8 +56,10 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.util.ReflectionHelpers
 
@@ -573,5 +584,62 @@ class BookmarkLibraryStreamingTest {
         } finally {
             network.unregisterNetworkCallback()
         }
+    }
+
+    @Test
+    fun `switching back from an empty shelf lays the cards out again`() = runTest(dispatcher) {
+        val publicShelf = shelf()
+        val privateShelf = publicShelf.copy(restrict = MirrorRestrict.PRIVATE)
+        val library = model(publicShelf)
+        library.setMirrorState(state(publicShelf, complete = true))
+        insert(publicShelf, 1..100)
+        val feed = FeedViewModel(BookmarkLibraryFeedSource(library, publicShelf.contentType), autoLoad = false)
+        models.put("feed", feed)
+        val activity = Robolectric.buildActivity(FragmentActivity::class.java).setup().get()
+        val list = RecyclerView(activity).apply {
+            layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        }
+        val adapter = object : ListAdapter<FeedItem, RecyclerView.ViewHolder>(
+            object : DiffUtil.ItemCallback<FeedItem>() {
+                override fun areItemsTheSame(old: FeedItem, new: FeedItem) = old.feedKey == new.feedKey
+                override fun areContentsTheSame(old: FeedItem, new: FeedItem) = true
+            },
+        ) {
+            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+                object : RecyclerView.ViewHolder(View(parent.context).apply {
+                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 300)
+                }) {}
+            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) = Unit
+        }
+        list.adapter = adapter
+        activity.setContentView(FrameLayout(activity).apply { addView(list, 1080, 2000) })
+        val context = ContextThemeWrapper(app, R.style.AppTheme)
+        val ui = BookmarkLibraryUi(
+            Fragment(), FragmentBookmarkLibraryBinding.inflate(LayoutInflater.from(context)),
+            list, library, feed, publicShelf.contentType,
+            itemCount = { feed.uiState.value.items.size },
+        )
+        // 与 FeedFragment 一样：diff 落地后才回调 onListCommitted
+        suspend fun showShelf(next: BookmarkShelf, items: Int) {
+            library.switchShelf(next)
+            library.setMirrorState(state(next, complete = true))
+            val previous = feed.uiState.value.refreshGeneration
+            ui.applyFilterChange()
+            val committed = feed.uiState.first { it.refreshGeneration > previous && it.refresh is LoadState.Idle }
+            assertEquals(items, committed.items.size)
+            adapter.submitList(committed.items) { ui.onListCommitted(committed) }
+            repeat(3) {
+                Thread.sleep(20)
+                shadowOf(Looper.getMainLooper()).idle()
+            }
+        }
+
+        showShelf(publicShelf, 60)
+        assertTrue(list.childCount > 0)
+        showShelf(privateShelf, 0)
+        assertEquals(0, list.childCount)
+        showShelf(publicShelf, 60)
+        assertTrue("切回公开收藏后卡片必须重新排出来", list.childCount > 0)
+        ui.destroy()
     }
 }

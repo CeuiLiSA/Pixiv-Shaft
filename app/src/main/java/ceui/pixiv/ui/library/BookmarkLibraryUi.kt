@@ -183,6 +183,9 @@ internal class BookmarkLibraryUi(
         val target = resetAfterGeneration ?: return
         if (state.refreshGeneration == target) return
         resetAfterGeneration = null
+        // 空的一代没有顶可回，而且**不能**碰 SGLM：空列表上留下的滚动目标会让它早退、不清各列
+        // 的行缓存，下一代数据进来时一张卡都排不出（切到空的悄悄收藏再切回公开就是一片空白）。
+        if (state.items.isEmpty()) return
         when (val manager = listView.layoutManager) {
             is StaggeredGridLayoutManager -> {
                 // invalidateSpanAssignments 是唯一能清掉上一代 span 偏移的公开 API；
