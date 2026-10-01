@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelStore
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -588,58 +589,65 @@ class BookmarkLibraryStreamingTest {
 
     @Test
     fun `switching back from an empty shelf lays the cards out again`() = runTest(dispatcher) {
-        val publicShelf = shelf()
-        val privateShelf = publicShelf.copy(restrict = MirrorRestrict.PRIVATE)
-        val library = model(publicShelf)
-        library.setMirrorState(state(publicShelf, complete = true))
-        insert(publicShelf, 1..100)
-        val feed = FeedViewModel(BookmarkLibraryFeedSource(library, publicShelf.contentType), autoLoad = false)
-        models.put("feed", feed)
-        val activity = Robolectric.buildActivity(FragmentActivity::class.java).setup().get()
-        val list = RecyclerView(activity).apply {
-            layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-        }
-        val adapter = object : ListAdapter<FeedItem, RecyclerView.ViewHolder>(
-            object : DiffUtil.ItemCallback<FeedItem>() {
-                override fun areItemsTheSame(old: FeedItem, new: FeedItem) = old.feedKey == new.feedKey
-                override fun areContentsTheSame(old: FeedItem, new: FeedItem) = true
-            },
-        ) {
-            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-                object : RecyclerView.ViewHolder(View(parent.context).apply {
-                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 300)
-                }) {}
-            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) = Unit
-        }
-        list.adapter = adapter
-        activity.setContentView(FrameLayout(activity).apply { addView(list, 1080, 2000) })
-        val context = ContextThemeWrapper(app, R.style.AppTheme)
-        val ui = BookmarkLibraryUi(
-            Fragment(), FragmentBookmarkLibraryBinding.inflate(LayoutInflater.from(context)),
-            list, library, feed, publicShelf.contentType,
-            itemCount = { feed.uiState.value.items.size },
-        )
-        // 与 FeedFragment 一样：diff 落地后才回调 onListCommitted
-        suspend fun showShelf(next: BookmarkShelf, items: Int) {
-            library.switchShelf(next)
-            library.setMirrorState(state(next, complete = true))
-            val previous = feed.uiState.value.refreshGeneration
-            ui.applyFilterChange()
-            val committed = feed.uiState.first { it.refreshGeneration > previous && it.refresh is LoadState.Idle }
-            assertEquals(items, committed.items.size)
-            adapter.submitList(committed.items) { ui.onListCommitted(committed) }
-            repeat(3) {
-                Thread.sleep(20)
-                shadowOf(Looper.getMainLooper()).idle()
+        // 三个本地库页面共用 BookmarkLibraryUi，各自用自己页面的列表形态：插画瀑布流，小说 / 关注竖向线性
+        for (type in MirrorContentType.entries) {
+            val publicShelf = shelf(type)
+            val privateShelf = publicShelf.copy(restrict = MirrorRestrict.PRIVATE)
+            val library = model(publicShelf)
+            insert(publicShelf, 1..100)
+            val feed = FeedViewModel(BookmarkLibraryFeedSource(library, type), autoLoad = false)
+            models.put("feed-$type", feed)
+            val activity = Robolectric.buildActivity(FragmentActivity::class.java).setup().get()
+            val list = RecyclerView(activity).apply {
+                layoutManager = if (type == MirrorContentType.ILLUST) {
+                    StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+                } else {
+                    LinearLayoutManager(activity)
+                }
             }
-        }
+            val adapter = object : ListAdapter<FeedItem, RecyclerView.ViewHolder>(
+                object : DiffUtil.ItemCallback<FeedItem>() {
+                    override fun areItemsTheSame(old: FeedItem, new: FeedItem) = old.feedKey == new.feedKey
+                    override fun areContentsTheSame(old: FeedItem, new: FeedItem) = true
+                },
+            ) {
+                override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+                    object : RecyclerView.ViewHolder(View(parent.context).apply {
+                        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 300)
+                    }) {}
+                override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) = Unit
+            }
+            list.adapter = adapter
+            activity.setContentView(FrameLayout(activity).apply { addView(list, 1080, 2000) })
+            val context = ContextThemeWrapper(app, R.style.AppTheme)
+            val ui = BookmarkLibraryUi(
+                Fragment(), FragmentBookmarkLibraryBinding.inflate(LayoutInflater.from(context)),
+                list, library, feed, type,
+                itemCount = { feed.uiState.value.items.size },
+            )
+            // 与 FeedFragment 一样：diff 落地后才回调 onListCommitted
+            suspend fun showShelf(next: BookmarkShelf, items: Int) {
+                library.switchShelf(next)
+                library.setMirrorState(state(next, complete = true))
+                val previous = feed.uiState.value.refreshGeneration
+                ui.applyFilterChange()
+                val committed = feed.uiState.first { it.refreshGeneration > previous && it.refresh is LoadState.Idle }
+                assertEquals("$type", items, committed.items.size)
+                adapter.submitList(committed.items) { ui.onListCommitted(committed) }
+                repeat(3) {
+                    Thread.sleep(20)
+                    shadowOf(Looper.getMainLooper()).idle()
+                }
+            }
 
-        showShelf(publicShelf, 60)
-        assertTrue(list.childCount > 0)
-        showShelf(privateShelf, 0)
-        assertEquals(0, list.childCount)
-        showShelf(publicShelf, 60)
-        assertTrue("切回公开收藏后卡片必须重新排出来", list.childCount > 0)
-        ui.destroy()
+            showShelf(publicShelf, 60)
+            assertTrue("$type", list.childCount > 0)
+            showShelf(privateShelf, 0)
+            assertEquals("$type", 0, list.childCount)
+            showShelf(publicShelf, 60)
+            assertTrue("$type 切回公开后条目必须重新排出来", list.childCount > 0)
+            ui.destroy()
+            activity.finish()
+        }
     }
 }
