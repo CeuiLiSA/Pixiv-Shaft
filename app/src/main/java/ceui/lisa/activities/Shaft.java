@@ -378,6 +378,12 @@ public class Shaft extends Application implements ServicesProvider {
         // 语言：迁旧字段 + 首启 fallback。必须在任何 UI 拉起前。
         ceui.pixiv.i18n.AppLocalesBootstrap.INSTANCE.bootstrap(sSettings);
 
+        // 动图 AI 补帧开关已从 Settings 搬到设备本地（RifePrefs，见其类注释）：把老 JSON 里的
+        // ugoiraRifeEnable 一次性迁走，并借这次重新序列化把它从本地 prefs 里挤掉，
+        // 于是它不会再进备份 / 云端。必须在 sSettings 赋值之后、任何 UI 拉起之前。
+        ceui.pixiv.ui.interpolate.RifePrefs.migrateLegacy(
+                sPreferences.getString(Local.SETTINGS, ""), this);
+
         entityWrapper = new EntityWrapper(this);
         entityWrapper.initialize();
 

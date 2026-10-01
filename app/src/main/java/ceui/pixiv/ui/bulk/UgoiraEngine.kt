@@ -15,6 +15,7 @@ import ceui.pixiv.download.StageStore
 import ceui.lisa.utils.AnimatedGifEncoder
 import ceui.lisa.utils.Params
 import ceui.pixiv.ui.interpolate.RifeInterpolator
+import ceui.pixiv.ui.interpolate.RifePrefs
 import com.blankj.utilcode.util.ZipUtils
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -170,7 +171,7 @@ object UgoiraEngine {
      */
     fun peekPlayableFrames(illust: Illust): UgoiraFrames? {
         val ctx = Shaft.getContext()
-        val useRife = Shaft.sSettings.isUgoiraRifeEnable() && RifeInterpolator.isAvailable(ctx)
+        val useRife = RifePrefs.isEnabled() && RifeInterpolator.isAvailable(ctx)
         if (useRife) {
             readFramesDir(framesDirFor(ctx, illust, true), true)?.let { return it }
         }
@@ -521,7 +522,7 @@ object UgoiraEngine {
         try {
             val ctx = Shaft.getContext()
 
-            val useRife = Shaft.sSettings.isUgoiraRifeEnable() &&
+            val useRife = RifePrefs.isEnabled() &&
                 !rifeHardFailed &&
                 RifeInterpolator.isAvailable(ctx)
 
