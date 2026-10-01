@@ -899,6 +899,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             pill.isVisible = false
             return
         }
+        // 到底了：最后一页后面没有内容可垫，浮标永远压不到它 —— 这时读数应该认「正在看的最后一页」。
+        if (!listView.canScrollVertically(1)) {
+            var lastVisible = current
+            for (i in 0 until listView.childCount) {
+                val p = layoutManager.getPosition(listView.getChildAt(i))
+                if (p in 0 until total && p > lastVisible) lastVisible = p
+            }
+            current = lastVisible
+        }
         pageProgressIndex = current
         val text = getString(R.string.artwork_page_indicator, current + 1, total)
         applyPageProgressText(pill, text)
