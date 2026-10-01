@@ -17,6 +17,7 @@ import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.View.OnLongClickListener
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
+import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -900,8 +901,36 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
         pageProgressIndex = current
         val text = getString(R.string.artwork_page_indicator, current + 1, total)
-        if (pill.text?.toString() != text) pill.text = text
+        applyPageProgressText(pill, text)
         pill.isVisible = true
+    }
+
+    /**
+     * 把「当前页 / 总页」写进浮标 —— **必须在布局之外写**，否则浮标会卡在上一段文字的尺寸上、
+     * 分母被折行裁掉。
+     *
+     * 两个调用点都会落在布局过程中：[attachPageProgressPill] 里挂在列表上的
+     * OnGlobalLayoutListener（排版收尾派发），以及 `scrollToPositionWithOffset` 这类**待定滚动**
+     * —— 它在 RecyclerView.onLayout() 里被消费，随之派发的 onScrolled 同样在布局中。此时 setText
+     * 触发的 requestLayout 会被框架并进第二趟布局、或直接吞掉（logcat 实证："requestLayout()
+     * improperly called by ... app:id/page_progress_pill during layout: running second layout
+     * pass"），浮标的已测量宽高就停在**上一段文字**的尺寸上；而它是 wrap_content、没有
+     * singleLine / maxLines，新文字装不下就会折到第二行，第二行落在浮标盒子之外被裁 —— 表现成
+     * 「2 /」、分母不见了，而且要等下一次真正的排版才复原（有时一直不复原）。
+     *
+     * post 到布局之外再写：setText 的 requestLayout 会被正常受理，浮标按新文字重新量一次、
+     * **自己长大**，既不折行也不硬裁（刻意不加 singleLine / ellipsize：那只是把裁切换个地方）。
+     */
+    private fun applyPageProgressText(pill: TextView, text: String) {
+        if (pill.text?.toString() == text) return
+        // 还没上屏就没有排版在跑，直接写；也免得把 runnable 丢进 RunQueue 一直挂着。
+        if (!pill.isAttachedToWindow) {
+            pill.text = text
+            return
+        }
+        pill.post {
+            if (pill.text?.toString() != text) pill.text = text
+        }
     }
 
     private fun setupBottomSheet(illust: Illust) {

@@ -13,6 +13,7 @@ import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.ViewTreeObserver
 import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -1049,9 +1050,38 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         }
         pageProgressIndex = current
         val text = getString(R.string.artwork_page_indicator, current + 1, total)
-        if (pill.text?.toString() != text) pill.text = text
+        applyPageProgressText(pill, text)
         pill.isVisible = true
         syncTopEndPill()
+    }
+
+    /**
+     * 把「当前页 / 总页」写进右上角胶囊的读数段 —— **必须在布局之外写**，否则这一段的已测量宽度
+     * 会停在上一段文字的尺寸上、分母被折行裁掉。
+     *
+     * 两个调用点都会落在布局过程中：[attachPageProgressPill] 里挂在列表上的
+     * OnGlobalLayoutListener（排版收尾派发），以及 onScrolled（见 onViewCreated 的滚动监听）；
+     * `scrollToPositionWithOffset` 这类**待定滚动**正是在 RecyclerView.onLayout() 里被消费，随之
+     * 派发的 onScrolled 也就落在布局中。此时 setText 触发的 requestLayout 会被框架并进第二趟
+     * 布局、或直接吞掉（logcat 实证："requestLayout() improperly called by ...
+     * app:id/page_progress_pill during layout: running second layout pass"），读数段的已测量宽高
+     * 就停在**上一段文字**的尺寸上；而它是 wrap_content、没有 singleLine / maxLines，新文字装不下
+     * 就会折到第二行，第二行落在胶囊盒子之外被裁 —— 表现成「2 /」、分母不见了，而且要等下一次
+     * 真正的排版才复原（有时一直不复原）。
+     *
+     * post 到布局之外再写：setText 的 requestLayout 会被正常受理，胶囊按新文字重新量一次、
+     * **自己长大**，既不折行也不硬裁（刻意不加 singleLine / ellipsize：那只是把裁切换个地方）。
+     */
+    private fun applyPageProgressText(pill: TextView, text: String) {
+        if (pill.text?.toString() == text) return
+        // 还没上屏就没有排版在跑，直接写；也免得把 runnable 丢进 RunQueue 一直挂着。
+        if (!pill.isAttachedToWindow) {
+            pill.text = text
+            return
+        }
+        pill.post {
+            if (pill.text?.toString() != text) pill.text = text
+        }
     }
 
     /**
