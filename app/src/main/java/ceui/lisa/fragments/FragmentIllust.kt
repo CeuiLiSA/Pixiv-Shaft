@@ -25,6 +25,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -46,6 +47,7 @@ import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.pixiv.ui.detail.ArtworkThumbsSheet
 import ceui.pixiv.ui.detail.TagEditSheet
 import ceui.pixiv.ui.detail.UgoiraPlayerAdapter
+import ceui.pixiv.ui.detail.ViewerPageLink
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentIllustBinding
 import ceui.pixiv.ui.muted.MuteTagSheet
@@ -139,6 +141,25 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private var renderedSynonymEnabled = false
     private var bottomSheetCallbackAttached = false
     private var pageProgressPillAttached = false
+
+    /**
+     * 本次视图生命周期里，视口是否被 [ViewerPageLink]（二级大图翻页）挪动过。
+     *
+     * 用来区分「用户翻回进场页」该不该跟着回：没挪过就说明他根本没翻走，别去动他自己滚出来的位置。
+     */
+    private var viewerViewportSynced = false
+
+    /** 大图最后要求本页停在第几页（-1 = 没要求过）。退出归位要靠它定位「当前页那一格」。 */
+    private var viewerSyncedPage = -1
+
+    /**
+     * [ViewerPageLink] 用的作品键。
+     *
+     * 快照详情页没有 `illust_id` 参数，取快照里那份 illust 的 id 才能和大图侧广播的对上；
+     * 还没加载出来时给 0，匹配自然落空（安全降级）。
+     */
+    private val viewerLinkIllustId: Long
+        get() = if (isSnapshotMode) snapshotBean?.id ?: 0L else safeArgs.illustId.toLong()
     private val pageProgressLocation = IntArray(2)
     /** 页码浮标当前指着哪一页(0 基);浮标不在场时为 -1。长按预览拿它当高亮/初始滚动位。 */
     private var pageProgressIndex = -1
@@ -702,7 +723,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 refreshPageProgressPill()
             }
         })
-        val layoutListener = OnGlobalLayoutListener { refreshPageProgressPill() }
+        val layoutListener =
+            OnGlobalLayoutListener {
+                refreshPageProgressPill()
+                publishViewportRect()
+            }
         listView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
             override fun onViewAttachedToWindow(v: View) {
                 v.viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
@@ -775,6 +800,64 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         val lm = listView.layoutManager
         if (lm is LinearLayoutManager) lm.scrollToPositionWithOffset(index, 0)
         else listView.scrollToPosition(index)
+    }
+
+    /**
+     * 收二级大图翻页落定的广播（[ViewerPageLink]），把列表视口滚到同一页。
+     *
+     * 挂在 STARTED 上：大图是透明窗口，本页在它之下只走 onPause、仍是 STARTED，所以收集器全程
+     * 活着；而 STARTED 又能保证「切后台 / 离开」时立刻停手。
+     *
+     * `page == entryPage` 只在**先前真被挪动过**时才跟着回。否则「点开又原页退出」这种没翻过页的
+     * 会话会被无谓地顶到顶对齐，破坏用户自己滚出来的位置。
+     */
+    private fun wireViewerPageLink() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                ViewerPageLink.pings.collect { ping ->
+                    if (ping.illustId != viewerLinkIllustId) return@collect
+                    if (ping.page == ping.entryPage && !viewerViewportSynced) return@collect
+                    viewerViewportSynced = true
+                    viewerSyncedPage = ping.page
+                    jumpToPage(ping.page)
+                }
+            }
+        }
+    }
+
+    /**
+     * 把「当前页那一格」的屏幕矩形回传给大图，供退出时归位。
+     *
+     * 挂在列表的排版回调上（与 [refreshPageProgressPill] 同源）：`scrollToPositionWithOffset` 只是
+     * 设下待定位置，要等这一帧排版跑完那一格才有真实坐标。矩形与列表可视区求交 —— 高图的整格
+     * 远超屏幕，取可见段才不至于把归位落点算到屏幕外（宽度不变，缩放比例仍然正确）。
+     *
+     * `viewerSyncedPage < 0`（没进过大图）时直接返回，所以平时每帧滚动不付这份开销。
+     */
+    private fun publishViewportRect() {
+        val page = viewerSyncedPage
+        if (page < 0) return
+        val listView = baseBind.recyclerView
+        val lm = listView.layoutManager ?: return
+        val cell = lm.findViewByPosition(page)
+        if (cell == null) {
+            // 还没排到这一格也要回传（rect 给 null）：告诉大图「详情页已挪动」，它就退回淡出，不缩向失准的进场矩形。
+            ViewerPageLink.publishViewport(viewerLinkIllustId, page, null)
+            return
+        }
+        val cellLoc = IntArray(2)
+        cell.getLocationOnScreen(cellLoc)
+        val listLoc = IntArray(2)
+        listView.getLocationOnScreen(listLoc)
+        val left = cellLoc[0]
+        val top = maxOf(cellLoc[1], listLoc[1])
+        val right = cellLoc[0] + cell.width
+        val bottom = minOf(cellLoc[1] + cell.height, listLoc[1] + listView.height)
+        ViewerPageLink.publishViewport(
+            viewerLinkIllustId,
+            page,
+            if (right > left && bottom > top) intArrayOf(left, top, right, bottom) else null,
+        )
     }
 
     /**
@@ -1020,6 +1103,10 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     override fun onResume() {
         super.onResume()
         autoSnapshotDemoted = false
+        // 大图会话已结束（退出动画播完才 finish、这里才 resume）：联动状态归零。否则
+        // viewerSyncedPage 会一直 ≥ 0，让 publishViewportRect 在之后每一次排版空跑。
+        viewerViewportSynced = false
+        viewerSyncedPage = -1
         if (!isSnapshotMode) {
             // 凭证还在手里说明上一次「可见」还没结算（进二级大图页 / 横滑离开再回来）：表不重开、
             // 不重复计进入，只把停过的那一段接着算。
@@ -1073,6 +1160,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         aiHelper = IllustAiHelper(this, baseBind.root)
+        // 必须在快照的 early-return 之前：快照详情页同样走这条联动。
+        wireViewerPageLink()
         if (isSnapshotMode) return
         val intentFilter = IntentFilter()
         val illust = ObjectPool.get<Illust>(safeArgs.illustId.toLong()).value ?: return
@@ -1118,6 +1207,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
         pageProgressPillAttached = false
         pageProgressIndex = -1
+        viewerViewportSynced = false
+        viewerSyncedPage = -1
         renderedImageSignature = null
         renderedSynonymTags = null
         bottomSheetCallbackAttached = false

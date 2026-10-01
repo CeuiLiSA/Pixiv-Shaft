@@ -21,6 +21,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -42,6 +43,7 @@ import ceui.lisa.utils.Dev
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
+import ceui.lisa.utils.Settings
 import ceui.lisa.utils.ShareIllust
 import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.api.model.Illust
@@ -219,6 +221,29 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 预览里点了一页、但那一页还被折叠着:展开后的条目一落地就补跳过去。 */
     private var pendingPageJump: Int? = null
 
+    /**
+     * 本次视图生命周期里，视口是否被 [ViewerPageLink]（二级大图翻页）挪动过。
+     *
+     * 用来区分「用户翻回进场页」该不该跟着回：没挪过就说明他根本没翻走，别去动他自己滚出来的位置。
+     */
+    private var viewerViewportSynced = false
+
+    /** 大图最后要求本页停在第几页（-1 = 没要求过）。退出归位要靠它定位「当前页那一格」。 */
+    private var viewerSyncedPage = -1
+
+    /**
+     * [ViewerPageLink] 用的作品键。
+     *
+     * 快照页的 [illustId] 恒为 0L（快照只认 snapshotId），得从快照里那份 illust 取真实 id 才能和
+     * 大图侧广播的对上；取不到时给 0，匹配自然落空（安全降级）。
+     */
+    private val viewerLinkIllustId: Long
+        get() = if (isSnapshotMode) {
+            snapshotId?.let { SnapshotRuntimeCache.get(it) }?.illust?.id ?: 0L
+        } else {
+            illustId
+        }
+
     /** 收起后欠着的一次回顶:等「隐藏页被移除」的通知到了再发,理由见 [drainCollapseResetScroll]。 */
     private var pendingCollapseResetScroll = false
 
@@ -325,6 +350,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             attachPageProgressPill()
             attachPagesPreview()
         }
+        // 必须在快照的 early-return 之前：快照大图同样走这条联动。
+        wireViewerPageLink()
         if (isSnapshotMode) {
             // 快照只读：保留收藏/关注按钮用于展示“那一刻”的状态，但点击一律无动作。
             chromeBind.fabBar.root.isVisible = true
@@ -509,6 +536,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     override fun onResume() {
         super.onResume()
         autoSnapshotDemoted = false
+        // 大图会话已结束（退出动画播完才 finish、这里才 resume）：联动状态归零。否则
+        // viewerSyncedPage 会一直 ≥ 0，让 publishViewportRect 在之后每一次排版空跑。
+        viewerViewportSynced = false
+        viewerSyncedPage = -1
         if (isSnapshotMode) {
             // FeedSource 加载完成后用快照里的真实收藏态刷新只读心形按钮（兼容旧快照回落 illust.json）。
             // 走同一个 helper 而不是在这里再内联一遍:那份内联只查 SnapshotRuntimeCache,
@@ -592,6 +623,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         pendingPageJump = null
         pendingCollapseResetScroll = false
         pageProgressIndex = -1
+        viewerViewportSynced = false
+        viewerSyncedPage = -1
         pageAdapter?.release()
         pageAdapter = null
         // 本视图生命周期内的一次性 guard 随视图销毁归零。否则同一 Fragment 实例视图重建(回退栈
@@ -1079,6 +1112,80 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         collapsible.expand()
     }
 
+    /**
+     * 收二级大图翻页落定的广播（[ViewerPageLink]），把列表视口滚到同一页。
+     *
+     * 挂在 STARTED 上：大图是透明窗口，本页在它之下只走 onPause、仍是 STARTED，所以收集器全程
+     * 活着；而 STARTED 又能保证「切后台 / 离开」时立刻停手。
+     *
+     * 两条门禁：
+     * - 「仅已展开时」只认**展开态**：折叠态列表里只有 p0，跳过去也没有那一页；「自动展开并跟随」
+     *   才替用户展开（用户显式选的档位）。
+     * - `page == entryPage` 只在**先前真被挪动过**时才跟着回。否则「点开又原页退出」这种没翻过页的
+     *   会话会被无谓地顶到顶对齐，破坏用户自己滚出来的位置。
+     */
+    private fun wireViewerPageLink() {
+        if (tabletStage != null) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                ViewerPageLink.pings.collect { ping ->
+                    if (ping.illustId != viewerLinkIllustId) return@collect
+                    // 「仅已展开时」只在**真的折叠着**时拦。判 isCollapsed 而不是 !isExpanded：
+                    // 2P / 动图 / 快照 ≤2P 这些页面根本没有折叠态（adapter 压根不是
+                    // CollapsibleIllustAdapter），不该被这一档挡住 —— `?.` 得 null 即不拦。
+                    // 「自动展开并跟随」不拦，交给 jumpToPage 自己走「先展开、条目落地后补跳」那条路。
+                    if (Shaft.sSettings.getViewerViewportLinkMode() ==
+                        Settings.VIEWER_VIEWPORT_LINK_EXPANDED_ONLY &&
+                        (pageAdapter as? CollapsibleIllustAdapter)?.isCollapsed == true
+                    ) {
+                        return@collect
+                    }
+                    if (ping.page == ping.entryPage && !viewerViewportSynced) return@collect
+                    viewerViewportSynced = true
+                    viewerSyncedPage = ping.page
+                    jumpToPage(ping.page)
+                }
+            }
+        }
+    }
+
+    /**
+     * 把「当前页那一格」的屏幕矩形回传给大图，供退出时归位。
+     *
+     * 挂在列表的排版回调上（与 [refreshPageProgressPill] 同源）：`scrollToPositionWithOffset` 只是
+     * 设下待定位置，要等这一帧排版跑完那一格才有真实坐标。矩形与列表可视区求交 —— 高图的整格
+     * 远超屏幕，取可见段才不至于把归位落点算到屏幕外（宽度不变，缩放比例仍然正确）。
+     *
+     * `viewerSyncedPage < 0`（没进过大图）时直接返回，所以平时每帧滚动不付这份开销。
+     */
+    private fun publishViewportRect() {
+        val page = viewerSyncedPage
+        if (page < 0 || _chromeBind == null || tabletStage != null) return
+        val fa = feedAdapter ?: return
+        val listView = feedBinding.feedListView
+        val lm = listView.layoutManager ?: return
+        val pos = fa.currentList.indexOfFirst { it is ArtworkPageItem && it.pageIndex == page }
+        val cell = if (pos >= 0) lm.findViewByPosition(pos) else null
+        if (cell == null) {
+            // 还没排到这一格也要回传（rect 给 null）：告诉大图「详情页已挪动」，它就退回淡出，不缩向失准的进场矩形。
+            ViewerPageLink.publishViewport(viewerLinkIllustId, page, null)
+            return
+        }
+        val cellLoc = IntArray(2)
+        cell.getLocationOnScreen(cellLoc)
+        val listLoc = IntArray(2)
+        listView.getLocationOnScreen(listLoc)
+        val left = cellLoc[0]
+        val top = maxOf(cellLoc[1], listLoc[1])
+        val right = cellLoc[0] + cell.width
+        val bottom = minOf(cellLoc[1] + cell.height, listLoc[1] + listView.height)
+        ViewerPageLink.publishViewport(
+            viewerLinkIllustId,
+            page,
+            if (right > left && bottom > top) intArrayOf(left, top, right, bottom) else null,
+        )
+    }
+
     /** 那一页已经在列表里就滚过去并返回 true;还被折着(找不到条目)返回 false。 */
     private fun scrollToPageItem(index: Int): Boolean {
         if (_chromeBind == null) return false
@@ -1163,6 +1270,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
             refreshPageProgressPill()
             syncAutoSnapshotViewport()
+            publishViewportRect()
         }
         listView.addOnAttachStateChangeListener(
             object : View.OnAttachStateChangeListener {

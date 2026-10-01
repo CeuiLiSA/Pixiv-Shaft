@@ -475,6 +475,17 @@ public class Settings {
     // 图片中间显示「开始播放(下载)」按钮;已缓存或左右切回也不自动播,点按钮才开始。
     private boolean autoPlayUgoira = true;
 
+    /** 二级大图 ↔ 一级详情页视口联动：不跟随（默认）。 */
+    public static final int VIEWER_VIEWPORT_LINK_NONE = 0;
+    /** 仅详情页已展开时跟随。 */
+    public static final int VIEWER_VIEWPORT_LINK_EXPANDED_ONLY = 1;
+    /** 详情页折叠时自动展开并跟随。 */
+    public static final int VIEWER_VIEWPORT_LINK_AUTO_EXPAND = 2;
+
+    // 二级大图 ↔ 一级详情页视口联动（fork）。默认「不跟随」：开启后在大图翻页会驱动详情页滚到同一页，
+    // 退出时图片缩回它在详情页里的那一格（而不是凭空沿手势方向滑走）。
+    private int viewerViewportLinkMode = VIEWER_VIEWPORT_LINK_NONE;
+
     /** 动图保存成 GIF。体积大(20MB 量级)、只有 256 色,但兼容性最好。 */
     public static final int UGOIRA_SAVE_FORMAT_GIF = 0;
 
@@ -1489,6 +1500,23 @@ public class Settings {
 
     public void setAutoPlayUgoira(boolean autoPlayUgoira) {
         this.autoPlayUgoira = autoPlayUgoira;
+    }
+
+    public int getViewerViewportLinkMode() {
+        if (viewerViewportLinkMode < VIEWER_VIEWPORT_LINK_NONE
+                || viewerViewportLinkMode > VIEWER_VIEWPORT_LINK_AUTO_EXPAND) {
+            return VIEWER_VIEWPORT_LINK_NONE;
+        }
+        return viewerViewportLinkMode;
+    }
+
+    public void setViewerViewportLinkMode(int viewerViewportLinkMode) {
+        if (viewerViewportLinkMode < VIEWER_VIEWPORT_LINK_NONE
+                || viewerViewportLinkMode > VIEWER_VIEWPORT_LINK_AUTO_EXPAND) {
+            this.viewerViewportLinkMode = VIEWER_VIEWPORT_LINK_NONE;
+        } else {
+            this.viewerViewportLinkMode = viewerViewportLinkMode;
+        }
     }
 
     public boolean isAutoRefreshHomeFeed() {

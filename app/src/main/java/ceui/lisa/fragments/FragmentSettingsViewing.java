@@ -263,6 +263,41 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
             startActivity(intent);
         });
 
+        // 大图 ↔ 详情页视口联动：不跟随 / 仅已展开时 / 自动展开并跟随（默认不跟随）
+        updateViewerViewportLinkLabel();
+        baseBind.viewerViewportLinkRela.setOnClickListener(v -> {
+            final int current = Shaft.sSettings.getViewerViewportLinkMode();
+            // 选项顺序必须与 Settings.VIEWER_VIEWPORT_LINK_* 的取值一致：which 直接当模式值用
+            String[] modeNames = new String[]{
+                    getString(R.string.viewer_viewport_link_none),
+                    getString(R.string.viewer_viewport_link_expanded_only),
+                    getString(R.string.viewer_viewport_link_auto_expand),
+            };
+            // 参考「插画大图长按行为」：行上只留标题与当前值，解释小字挪进弹窗，
+            // 标题栏右侧问号点开才展开；标题复用设置项名。
+            WitDialog.CheckableDialogBuilder builder =
+                    new WitDialog.CheckableDialogBuilder(mActivity)
+                            .setTitle(R.string.viewer_viewport_link_title)
+                            .setCheckedIndex(current)
+                            .setCollapsibleHint(getString(R.string.viewer_viewport_link_hint));
+            builder.addTitleAction(
+                    R.drawable.ic_help_outline_black_24dp,
+                    getString(R.string.viewer_viewport_link_help_desc),
+                    action -> builder.setHintExpanded(!builder.isHintExpanded()));
+            builder.addItems(modeNames, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (which != current) {
+                        Shaft.sSettings.setViewerViewportLinkMode(which);
+                        Common.showToast(getString(R.string.string_428));
+                        Local.setSettings(Shaft.sSettings);
+                        updateViewerViewportLinkLabel();
+                    }
+                    dialog.dismiss();
+                }
+            }).show();
+        });
+
         // 插画大图双击缩放行为：默认 / 三级 / 增量
         updateDoubleTapZoomModeLabel();
         baseBind.doubleTapZoomModeRela.setOnClickListener(v -> {
@@ -409,6 +444,22 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
                 break;
         }
         baseBind.longPressBehaviorValue.setText(labelRes);
+    }
+
+    private void updateViewerViewportLinkLabel() {
+        int labelRes;
+        switch (Shaft.sSettings.getViewerViewportLinkMode()) {
+            case Settings.VIEWER_VIEWPORT_LINK_EXPANDED_ONLY:
+                labelRes = R.string.viewer_viewport_link_expanded_only;
+                break;
+            case Settings.VIEWER_VIEWPORT_LINK_AUTO_EXPAND:
+                labelRes = R.string.viewer_viewport_link_auto_expand;
+                break;
+            default:
+                labelRes = R.string.viewer_viewport_link_none;
+                break;
+        }
+        baseBind.viewerViewportLinkValue.setText(labelRes);
     }
 
     private void updateDoubleTapZoomDependentVisibility() {

@@ -52,6 +52,7 @@ import ceui.pixiv.snapshot.SnapshotViewerData
 import ceui.pixiv.snapshot.localizeIllust
 import ceui.pixiv.ui.detail.DownloadFab
 import ceui.pixiv.ui.detail.V3FabBarController
+import ceui.pixiv.ui.detail.ViewerPageLink
 import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.share.saveArtworkPoster
 import ceui.pixiv.ui.translate.ComicTextDetectorModel
@@ -109,6 +110,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         private set
 
     private var index = 0
+
+    /** 上一次广播出去的大图页，用来去掉 onPageSelected 与 IDLE 对同一页的重复广播。 */
+    private var lastPublishedPage = -1
     private val viewModel by viewModels<ToggleToolnarViewModel>()
 
     /** 小红书式全屏弹窗转场(进场展开/竖向拖拽跟手/收场缩回),见 [ImageViewerTransition]。 */
@@ -139,6 +143,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     override fun initView() {
+        // 新的查看器会话：上一次会话回传的「当前页那一格」已失效，见 ViewerPageLink.clearViewport
+        ViewerPageLink.clearViewport()
         observeTranslationStatus()
         val dataType = intent.getStringExtra("dataType")
         baseBind!!.viewPager.setPageTransformer(true, PageTransformerHelper.getCurrentTransformer())
@@ -277,6 +283,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                         override fun onPageScrolled(i: Int, v: Float, i1: Int) {}
 
                         override fun onPageSelected(i: Int) {
+                            publishViewerPage(i)
                             checkDownload(i)
                             currentPage?.setText(
                                 String.format(
@@ -288,7 +295,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                             )
                         }
 
-                        override fun onPageScrollStateChanged(i: Int) {}
+                        override fun onPageScrollStateChanged(state: Int) {
+                            if (state != ViewPager.SCROLL_STATE_IDLE) return
+                            publishViewerPage(baseBind?.viewPager?.currentItem ?: index)
+                        }
                     }
                 )
             if (mIllust!!.page_count == 1) {
@@ -523,6 +533,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     override fun onPageScrolled(i: Int, v: Float, i1: Int) = Unit
 
                     override fun onPageSelected(i: Int) {
+                        publishViewerPage(i)
                         currentPage?.setText(
                             String.format(Locale.getDefault(), "第 %d/%d P", i + 1, pageCount)
                         )
@@ -1026,22 +1037,79 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     /**
-     * 收场:还停在进入那一页且没转过屏 → 缩回缩略图矩形;翻到别的页/转过屏后矩形已对不上, 沿关闭手势方向淡出。动画播完才真正 finish(透明主题
-     * windowAnimationStyle=@null,系统不再叠动画)。
+     * 把「大图此刻停在哪一页」广播给身后的一级详情页，让它把视口滚到同一页。
+     *
+     * **挂在 [ViewPager.OnPageChangeListener.onPageSelected]**（手指抬起、目标页一定下那一刻），
+     * 不能只挂 settle 完的 IDLE：IDLE 要等 200~300ms 的收尾动画，而「翻完立刻退出」是常态 ——
+     * 那时 IDLE 还没到，详情页从没被驱动过，退出既拿不到归位目标、又会当着用户的面把列表滚过去。
+     * IDLE 只当兜底（甩得更远时按最终落点再报一次），同页由 [lastPublishedPage] 去重。
+     *
+     * 只对**多图静态作品**广播：单图没有「第几页」，动图走 ugoira 没有分页语义。
      */
-    private fun dismissViewer(
-        direction: DragDismissLayout.Direction = DragDismissLayout.Direction.DOWN
-    ) {
+    private fun publishViewerPage(page: Int) {
+        // 设置项（看图与详情 · 详情页跟随大图翻页滚动）默认「不跟随」；不跟随时完全不广播，
+        // 详情页不会被驱动，退出也拿不到归位目标 —— 行为与加这个功能之前逐字一致。
+        if (Shaft.sSettings.getViewerViewportLinkMode() == Settings.VIEWER_VIEWPORT_LINK_NONE) return
+        // 二级详情与快照大图共用这套查看器，两者都跟随；其余模式（下载详情 / URL 单图 / 广场）不参与。
+        val dataType = intent.getStringExtra("dataType")
+        if ("二级详情" != dataType && "快照大图" != dataType) return
+        val illust = mIllust ?: return
+        if (illust.page_count <= 1 || illust.isGif()) return
+        if (page == lastPublishedPage) return
+        lastPublishedPage = page
+        ViewerPageLink.publish(
+            illustId = illust.id,
+            entryPage = index,
+            page = page,
+        )
+    }
+
+    /**
+     * 收场。归位目标按优先级取：
+     * 1. 详情页回传的「当前页那一格」屏幕矩形 —— 视口已被联动挪到这一页，缩回它才对得上；
+     * 2. 进场那张缩略图 —— 用户没翻过页（详情页没动过），矩形仍然有效，与改前逐字一致。
+     *
+     * 两者都拿不到（详情页还没排到那一格 / 转过屏）才退回淡出。动画播完才真正 finish
+     * (透明主题 windowAnimationStyle=@null,系统不再叠动画)。
+     *
+     * [direction] 为空 = 没有方向偏好（返回键 / AI 确认框退出）：联动开着时降级为纯原地淡出，不凭空
+     * 往某个方向滑；不跟随时按改前朝下滑。真的沿某个方向拖出去，降级总是跟着那个方向滑。
+     */
+    private fun dismissViewer(direction: DragDismissLayout.Direction? = null) {
         val transition =
             viewerTransition
                 ?: run {
                     mActivity.finish()
                     return
                 }
+        val currentItem = baseBind?.viewPager?.currentItem
+        val illustId = mIllust?.id
+        val linkEnabled =
+            Shaft.sSettings.getViewerViewportLinkMode() != Settings.VIEWER_VIEWPORT_LINK_NONE
+        // 详情页只在真被联动挪动之后才回传视口（会话开始时已清空），所以「本会话有本作品的回传」
+        // 就等于「详情页动过」。不能拿「大图翻没翻过页」代替：平板舞台、「仅已展开时」下折叠着的
+        // 页面都不跟随，翻走又翻回时进场矩形仍然有效。
+        val linkedViewport =
+            if (linkEnabled) ViewerPageLink.viewport.value?.takeIf { it.illustId == illustId } else null
+        val exitScreenBounds = linkedViewport?.takeIf { it.page == currentItem }?.screenRect
+        // 详情页动过 → 进场那张缩略图已失准，只缩回当前页那一格（拿不到就淡出）；
+        // 没动过（含「不跟随」）→ 与加这个功能之前一致：停在进场页才缩回缩略图。
         val backToBounds =
-            index == baseBind?.viewPager?.currentItem &&
+            (exitScreenBounds != null || (index == currentItem && linkedViewport == null)) &&
                 resources.configuration.orientation == entryOrientation
-        transition.playExit(backToBounds, direction) { mActivity.finish() }
+        // 「没有方向偏好时原地淡出」只属于联动：不跟随时返回键仍按改前朝下滑走。
+        val exitDirection =
+            direction ?: if (linkEnabled) null else DragDismissLayout.Direction.DOWN
+        Timber.d(
+            "[ImageDetail] dismissViewer item=%d index=%d detailMoved=%s rect=%s backToBounds=%s dir=%s",
+            currentItem ?: -1,
+            index,
+            linkedViewport != null,
+            exitScreenBounds != null,
+            backToBounds,
+            exitDirection,
+        )
+        transition.playExit(backToBounds, exitDirection, exitScreenBounds) { mActivity.finish() }
     }
 
     override fun onDestroy() {

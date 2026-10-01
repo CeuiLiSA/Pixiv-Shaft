@@ -364,6 +364,25 @@
 
                     </RelativeLayout>
 
+                    <!-- 大图 ↔ 详情页视口联动，默认关闭 -->
+                    <RelativeLayout
+                        android:id="@+id/viewer_viewport_link_rela"
+                        style="@style/M3SetRow"
+                        android:background="@drawable/wit_row_mid">
+
+                        <LinearLayout style="@style/M3SetTexts">
+
+                            <TextView
+                                style="@style/M3SetTitle"
+                                android:text="@string/viewer_viewport_link_title" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/viewer_viewport_link_value"
+                            style="@style/M3SetValue" />
+
+                    </RelativeLayout>
+
                     <RelativeLayout
                         android:id="@+id/double_tap_zoom_mode_rela"
                         style="@style/M3SetRow"

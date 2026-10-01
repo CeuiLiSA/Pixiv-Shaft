@@ -3138,6 +3138,12 @@
     </plurals>
     <!-- Görüntüleyici sürükleme ayarı (Ayarlar → Görünüm): ayar sayfası + sade görüntüleyici. -->
     <string name="viewer_dismiss_tuning_title">Sürükleyerek kapatma ayarı</string>
+    <string name="viewer_viewport_link_title">Eser sayfası görüntüleyici sayfalamasını takip eder</string>
+    <string name="viewer_viewport_link_none">Takip etme</string>
+    <string name="viewer_viewport_link_expanded_only">Yalnızca genişletilmişse</string>
+    <string name="viewer_viewport_link_auto_expand">Otomatik genişlet ve takip et</string>
+    <string name="viewer_viewport_link_hint">Eser sayfası, görüntüleyicide en son baktığınız sayfaya otomatik kaydırılır\nKlasik eser sayfasında genişletilmiş durum yoktur, bu yüzden her iki seçenek de takip eder</string>
+    <string name="viewer_viewport_link_help_desc">Yardım</string>
     <string name="viewer_dismiss_tuning_intro">Tam ekran görüntüleyicide yukarı veya aşağı sürükleyerek çıkabilirsiniz. Hassasiyet kişiden kişiye değişir; üç eşiği buradan ayarlayın ve hemen denemek için aşağıdaki görsele dokunun.</string>
     <string name="viewer_dismiss_tuning_image_desc">Test görseli</string>
     <string name="viewer_dismiss_tuning_image_hint">Görüntüleyiciyi açmak için görsele dokunun, sonra çıkmak için yukarı veya aşağı sürükleyin</string>

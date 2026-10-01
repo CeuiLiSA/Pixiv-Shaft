@@ -3137,6 +3137,12 @@
     </plurals>
     <!-- Drag-to-dismiss control (Settings > Viewing): tuning page + minimal viewer. -->
     <string name="viewer_dismiss_tuning_title">Drag-to-dismiss control</string>
+    <string name="viewer_viewport_link_title">Scroll artwork page with viewer paging</string>
+    <string name="viewer_viewport_link_none">Off</string>
+    <string name="viewer_viewport_link_expanded_only">Only when expanded</string>
+    <string name="viewer_viewport_link_auto_expand">Auto-expand and follow</string>
+    <string name="viewer_viewport_link_hint">The artwork page scrolls to the page you last viewed in the viewer\nThe classic artwork page has no collapsed state, so both the expanded-only and auto-expand modes will follow.</string>
+    <string name="viewer_viewport_link_help_desc">Help</string>
     <string name="viewer_dismiss_tuning_intro">In the full-screen viewer, drag up or down to exit. Sensitivity is personal — tune the three thresholds here, then tap the image below to try them right away.</string>
     <string name="viewer_dismiss_tuning_image_desc">Test image</string>
     <string name="viewer_dismiss_tuning_image_hint">Tap the image to open the viewer, then drag up or down to exit</string>
