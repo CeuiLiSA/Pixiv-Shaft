@@ -55,7 +55,7 @@ class ViewerPageLinkTest {
 
     @Test
     fun `viewport carries a null rect while the cell is not laid out yet`() {
-        // 详情页还没排到那一格时给 null —— 大图据此退回进场矩形，而不是缩向一个算错的位置。
+        // 详情页还没排到那一格时给 null —— 大图据此退回淡出，而不是缩向一个算错的位置。
         ViewerPageLink.publishViewport(404L, page = 7, screenRect = null)
 
         val latest = ViewerPageLink.viewport.value

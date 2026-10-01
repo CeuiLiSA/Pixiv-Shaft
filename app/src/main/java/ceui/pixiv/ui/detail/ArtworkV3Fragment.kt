@@ -1167,7 +1167,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val pos = fa.currentList.indexOfFirst { it is ArtworkPageItem && it.pageIndex == page }
         val cell = if (pos >= 0) lm.findViewByPosition(pos) else null
         if (cell == null) {
-            // 还没排到这一格：给 null，大图会退回进场矩形（安全降级）。
+            // 还没排到这一格也要回传（rect 给 null）：告诉大图「详情页已挪动」，它就退回淡出，不缩向失准的进场矩形。
             ViewerPageLink.publishViewport(viewerLinkIllustId, page, null)
             return
         }

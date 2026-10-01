@@ -111,15 +111,6 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     private var index = 0
 
-    /**
-     * 本次查看器会话里，用户是否翻过页。
-     *
-     * 「归位」动画（缩回被点的那张缩略图）只在**从没翻过页**时才成立：一旦翻过，详情页视口已被
-     * [ViewerPageLink] 联动挪走，进场时抓的那个矩形就对不上了（翻走又翻回也一样），硬缩回去会落在
-     * 空处。翻过就退回淡出。
-     */
-    private var everPaged = false
-
     /** 上一次广播出去的大图页，用来去掉 onPageSelected 与 IDLE 对同一页的重复广播。 */
     private var lastPublishedPage = -1
     private val viewModel by viewModels<ToggleToolnarViewModel>()
@@ -292,7 +283,6 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                         override fun onPageScrolled(i: Int, v: Float, i1: Int) {}
 
                         override fun onPageSelected(i: Int) {
-                            if (i != index) everPaged = true
                             publishViewerPage(i)
                             checkDownload(i)
                             currentPage?.setText(
@@ -543,7 +533,6 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     override fun onPageScrolled(i: Int, v: Float, i1: Int) = Unit
 
                     override fun onPageSelected(i: Int) {
-                        if (i != index) everPaged = true
                         publishViewerPage(i)
                         currentPage?.setText(
                             String.format(Locale.getDefault(), "第 %d/%d P", i + 1, pageCount)
@@ -1097,27 +1086,25 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         val illustId = mIllust?.id
         val linkEnabled =
             Shaft.sSettings.getViewerViewportLinkMode() != Settings.VIEWER_VIEWPORT_LINK_NONE
-        val exitScreenBounds =
-            if (linkEnabled) {
-                ViewerPageLink.viewport.value
-                    ?.takeIf { it.illustId == illustId && it.page == currentItem }
-                    ?.screenRect
-            } else {
-                null
-            }
-        // 联动开着时，翻过页就不再缩回进场那张缩略图（矩形已被联动挪走、失准），改缩回当前页那一格。
-        // 不跟随时详情页从没动过，翻走又翻回仍缩回缩略图 —— 与加这个功能之前一致。
+        // 详情页只在真被联动挪动之后才回传视口（会话开始时已清空），所以「本会话有本作品的回传」
+        // 就等于「详情页动过」。不能拿「大图翻没翻过页」代替：平板舞台、「仅已展开时」下折叠着的
+        // 页面都不跟随，翻走又翻回时进场矩形仍然有效。
+        val linkedViewport =
+            if (linkEnabled) ViewerPageLink.viewport.value?.takeIf { it.illustId == illustId } else null
+        val exitScreenBounds = linkedViewport?.takeIf { it.page == currentItem }?.screenRect
+        // 详情页动过 → 进场那张缩略图已失准，只缩回当前页那一格（拿不到就淡出）；
+        // 没动过（含「不跟随」）→ 与加这个功能之前一致：停在进场页才缩回缩略图。
         val backToBounds =
-            (exitScreenBounds != null || (index == currentItem && !(linkEnabled && everPaged))) &&
+            (exitScreenBounds != null || (index == currentItem && linkedViewport == null)) &&
                 resources.configuration.orientation == entryOrientation
         // 「没有方向偏好时原地淡出」只属于联动：不跟随时返回键仍按改前朝下滑走。
         val exitDirection =
             direction ?: if (linkEnabled) null else DragDismissLayout.Direction.DOWN
         Timber.d(
-            "[ImageDetail] dismissViewer item=%d index=%d everPaged=%s rect=%s backToBounds=%s dir=%s",
+            "[ImageDetail] dismissViewer item=%d index=%d detailMoved=%s rect=%s backToBounds=%s dir=%s",
             currentItem ?: -1,
             index,
-            everPaged,
+            linkedViewport != null,
             exitScreenBounds != null,
             backToBounds,
             exitDirection,
