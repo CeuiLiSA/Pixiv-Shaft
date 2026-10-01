@@ -152,6 +152,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     override fun initView() {
+        // 新的查看器会话：上一次会话回传的「当前页那一格」已失效，见 ViewerPageLink.clearViewport
+        ViewerPageLink.clearViewport()
         observeTranslationStatus()
         val dataType = intent.getStringExtra("dataType")
         baseBind!!.viewPager.setPageTransformer(true, PageTransformerHelper.getCurrentTransformer())
@@ -1081,8 +1083,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      * 两者都拿不到（详情页还没排到那一格 / 转过屏）才退回淡出。动画播完才真正 finish
      * (透明主题 windowAnimationStyle=@null,系统不再叠动画)。
      *
-     * [direction] 为空 = 没有方向偏好（返回键 / AI 确认框退出）：降级时纯原地淡出，不凭空往某个
-     * 方向滑。只有真的沿某个方向拖出去，降级才跟着那个方向滑。
+     * [direction] 为空 = 没有方向偏好（返回键 / AI 确认框退出）：联动开着时降级为纯原地淡出，不凭空
+     * 往某个方向滑；不跟随时按改前朝下滑。真的沿某个方向拖出去，降级总是跟着那个方向滑。
      */
     private fun dismissViewer(direction: DragDismissLayout.Direction? = null) {
         val transition =
@@ -1093,18 +1095,24 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 }
         val currentItem = baseBind?.viewPager?.currentItem
         val illustId = mIllust?.id
+        val linkEnabled =
+            Shaft.sSettings.getViewerViewportLinkMode() != Settings.VIEWER_VIEWPORT_LINK_NONE
         val exitScreenBounds =
-            if (Shaft.sSettings.getViewerViewportLinkMode() != Settings.VIEWER_VIEWPORT_LINK_NONE) {
+            if (linkEnabled) {
                 ViewerPageLink.viewport.value
                     ?.takeIf { it.illustId == illustId && it.page == currentItem }
                     ?.screenRect
             } else {
                 null
             }
-        // 翻过页就不再缩回进场那张缩略图（矩形已被联动挪走、失准），改缩回当前页那一格。
+        // 联动开着时，翻过页就不再缩回进场那张缩略图（矩形已被联动挪走、失准），改缩回当前页那一格。
+        // 不跟随时详情页从没动过，翻走又翻回仍缩回缩略图 —— 与加这个功能之前一致。
         val backToBounds =
-            (exitScreenBounds != null || (index == currentItem && !everPaged)) &&
+            (exitScreenBounds != null || (index == currentItem && !(linkEnabled && everPaged))) &&
                 resources.configuration.orientation == entryOrientation
+        // 「没有方向偏好时原地淡出」只属于联动：不跟随时返回键仍按改前朝下滑走。
+        val exitDirection =
+            direction ?: if (linkEnabled) null else DragDismissLayout.Direction.DOWN
         Timber.d(
             "[ImageDetail] dismissViewer item=%d index=%d everPaged=%s rect=%s backToBounds=%s dir=%s",
             currentItem ?: -1,
@@ -1112,9 +1120,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             everPaged,
             exitScreenBounds != null,
             backToBounds,
-            direction,
+            exitDirection,
         )
-        transition.playExit(backToBounds, direction, exitScreenBounds) { mActivity.finish() }
+        transition.playExit(backToBounds, exitDirection, exitScreenBounds) { mActivity.finish() }
     }
 
     override fun onDestroy() {

@@ -63,4 +63,13 @@ class ViewerPageLinkTest {
         assertEquals(7, latest?.page)
         assertNull(latest?.screenRect)
     }
+
+    @Test
+    fun `clearViewport drops the previous session rect`() {
+        // 新的大图会话开始时清掉：否则本次停在同一页退出，会缩向上一次会话算出来的旧格子。
+        ViewerPageLink.publishViewport(505L, page = 3, screenRect = intArrayOf(0, 0, 10, 10))
+        ViewerPageLink.clearViewport()
+
+        assertNull(ViewerPageLink.viewport.value)
+    }
 }

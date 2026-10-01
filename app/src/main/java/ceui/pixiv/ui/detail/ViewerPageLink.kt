@@ -71,4 +71,12 @@ object ViewerPageLink {
     fun publishViewport(illustId: Long, page: Int, screenRect: IntArray?) {
         _viewport.value = Viewport(illustId, page, screenRect)
     }
+
+    /**
+     * 大图会话开始时调用：上一次会话回传的矩形对本次无效（用户退出后可能又滚过详情页）。
+     * 不清的话，本次没翻页、停在同一页退出时会匹配上旧值，缩向一个早已不在那里的格子。
+     */
+    fun clearViewport() {
+        _viewport.value = null
+    }
 }
