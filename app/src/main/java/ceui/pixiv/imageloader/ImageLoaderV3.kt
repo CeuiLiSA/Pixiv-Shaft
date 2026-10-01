@@ -1,8 +1,14 @@
 package ceui.pixiv.imageloader
 
 import androidx.annotation.WorkerThread
+import ceui.lisa.activities.Shaft
+import ceui.lisa.utils.GlideUrlChild
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.util.function.IntConsumer
@@ -41,6 +47,43 @@ object ImageLoaderV3 {
     /** 无副作用窥探某 url 已下好的文件(占位链/缓存命中用)。 */
     @JvmStatic
     fun peekFile(url: String): File? = ImageTaskRegistry.peekFile(url)
+
+    /**
+     * 无副作用地探一次「这个 url 现在能不能**不联网**拿到文件」，供批量写盘场景先分拣再决定并发。
+     *
+     * 两层，成本从低到高：
+     * 1. [peekFile]：进程内共享任务已成功 → 直接给文件，零 IO；
+     * 2. Glide 磁盘缓存的 cache-only 请求：命中给文件，**未命中立即失败、不发网络请求**
+     *    （与 [ceui.lisa.adapters.IllustAdapter] 拿 large 当占位时同一手法）。
+     *
+     * 请求形状刻意与 [GlideImageFetcher.fetch] 对齐（`asFile()` + [GlideUrlChild]）：缓存键一致，
+     * 「探到有」才等价于「fetch 会命中」。换成 asBitmap 之类会因变换后的缓存键不同而系统性假阴性。
+     *
+     * ⚠️ 只当**乐观前置**用：返回 null 只说明「这次按联网路径处理」，不保证真的会走网络
+     * （fetch 自己还会命中磁盘缓存）；返回文件后该文件仍可能在复制前被缓存淘汰。任何调用方
+     * 都不得把它当正确性依据，只能拿它排并发。
+     */
+    @JvmStatic
+    suspend fun peekCachedFile(url: String): File? {
+        peekFile(url)?.let { return it }
+        return withContext(Dispatchers.IO) {
+            val future = Glide.with(Shaft.getContext())
+                .asFile()
+                .load(GlideUrlChild(url))
+                .onlyRetrieveFromCache(true)
+                .submit()
+            try {
+                runInterruptible { future.get() }.takeIf { it.isFile && it.length() > 0 }
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (e: Exception) {
+                // 未命中是常态：cache-only 的 miss 就是一次「不适用」的答复，不是错误。
+                null
+            } finally {
+                if (!future.isDone) future.cancel(true)
+            }
+        }
+    }
 
     /**
      * Blocking bridge for Manager's DownloadTask IO worker. Join the display fetch, then copy its
