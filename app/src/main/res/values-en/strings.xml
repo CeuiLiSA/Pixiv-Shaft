@@ -162,6 +162,13 @@
     <string name="show_original_image">Use original image</string>
     <string name="delete_star_illust">Hide bookmarked works in following feed</string>
     <string name="filter_rank_bookmarked">Filter bookmarked works in rankings</string>
+    <string name="filter_bookmarked_title">Hide bookmarked works</string>
+    <string name="filter_bookmarked_rank">Filter in rankings</string>
+    <string name="filter_bookmarked_following">Filter in following feed</string>
+    <string name="filter_bookmarked_search">Filter in search results</string>
+    <string name="filter_bookmarked_none">No filtering</string>
+    <string name="filter_bookmarked_summary">%1$d enabled</string>
+    <string name="filter_bookmarked_dialog_hint">Choose where to hide works you have already bookmarked</string>
     <string name="save_view_history">Save browsing history</string>
     <string name="single_download_task">Keeping a job in the download (download order to ensure)</string>
     <string name="double_stagger_data">Double row Feed page</string>

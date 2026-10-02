@@ -162,6 +162,13 @@
     <string name="show_original_image">Использовать оригинал изображения</string>
     <string name="delete_star_illust">Скрывать произведения из закладок в ленте подписок</string>
     <string name="filter_rank_bookmarked">Исключать из рейтинга уже добавленные в закладки работы</string>
+    <string name="filter_bookmarked_title">Скрывать работы из закладок</string>
+    <string name="filter_bookmarked_rank">В рейтинге</string>
+    <string name="filter_bookmarked_following">В ленте подписок</string>
+    <string name="filter_bookmarked_search">В результатах поиска</string>
+    <string name="filter_bookmarked_none">Без фильтра</string>
+    <string name="filter_bookmarked_summary">Включено: %1$d</string>
+    <string name="filter_bookmarked_dialog_hint">Выберите, где скрывать уже добавленные в закладки работы</string>
     <string name="save_view_history">Сохранять историю просмотров</string>
     <string name="single_download_task">Одна задача загрузки для сохранения порядка</string>
     <string name="double_stagger_data">Две колонки в ленте</string>

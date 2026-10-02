@@ -230,21 +230,26 @@
 
                 </RelativeLayout>
 
+                <!-- 统一入口：点开 witstudio 弹窗，分别控制排行榜 / 动态页 / 搜索页三处过滤已收藏。
+                     原「排行榜过滤已收藏」「动态过滤已收藏」两个独立开关行已并入此处，
+                     底层 Settings 字段（filterRankBookmarked / deleteStarIllust）保留不动。 -->
                 <RelativeLayout
-                    android:id="@+id/filter_rank_bookmarked_rela"
+                    android:id="@+id/filter_bookmarked_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_bottom">
 
-                    <LinearLayout style="@style/M3SetTexts">
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
 
                         <TextView
                             style="@style/M3SetTitle"
-                            android:text="@string/filter_rank_bookmarked" />
+                            android:text="@string/filter_bookmarked_title" />
                     </LinearLayout>
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/filter_rank_bookmarked"
-                        style="@style/M3SetSwitch" />
+                    <TextView
+                        android:id="@+id/filter_bookmarked"
+                        style="@style/M3SetValue" />
 
                 </RelativeLayout>
 
@@ -419,7 +424,7 @@
                 <RelativeLayout
                     android:id="@+id/feed_back_to_top_fab_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
+                    android:background="@drawable/wit_row_bottom">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -434,24 +439,6 @@
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/feed_back_to_top_fab"
-                        style="@style/M3SetSwitch" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/delete_star_illust_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_bottom">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/delete_star_illust" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/delete_star_illust"
                         style="@style/M3SetSwitch" />
 
                 </RelativeLayout>
