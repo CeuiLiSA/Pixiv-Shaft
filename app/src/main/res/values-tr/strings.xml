@@ -1926,6 +1926,9 @@
     <string name="search_filter_v3_date_clear">Temizle</string>
     <string name="search_filter_v3_ai_exclude">YZ eserlerini gizle</string>
     <string name="search_filter_v3_ai_exclude_desc">«Ayarlar → YZ eserlerini gizle» ile senkron</string>
+    <string name="search_filter_v3_section_bookmark_filter">Yer imlerini gizle</string>
+    <string name="search_filter_v3_bookmark_filter_all">Filtre yok</string>
+    <string name="search_filter_v3_bookmark_filter_only">Filtrele</string>
     <string name="search_filter_v3_section_ai">YZ eserleri</string>
     <string name="search_filter_v3_ai_all">Tümü</string>
     <string name="search_filter_v3_ai_only">Yalnızca YZ</string>

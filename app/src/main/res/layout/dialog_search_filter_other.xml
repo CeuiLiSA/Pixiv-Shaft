@@ -114,6 +114,51 @@
                     layout="@layout/cell_search_filter_check_row" />
             </LinearLayout>
 
+            <!-- 过滤已收藏 —— 与「设置 → 过滤已收藏」同源；搜索侧只影响搜索列表 -->
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="20dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_v3_settings_card"
+                android:tag="v3_card"
+                android:clipToOutline="true"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="18dp"
+                    android:paddingTop="14dp"
+                    android:paddingEnd="18dp"
+                    android:paddingBottom="10dp"
+                    android:text="@string/search_filter_v3_section_bookmark_filter"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="13sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="18dp"
+                    android:background="@color/v3_border_2" />
+
+                <include
+                    android:id="@+id/row_bookmark_all"
+                    layout="@layout/cell_search_filter_check_row" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="18dp"
+                    android:background="@color/v3_border_2" />
+
+                <include
+                    android:id="@+id/row_bookmark_only"
+                    layout="@layout/cell_search_filter_check_row" />
+            </LinearLayout>
+
             <!-- 插画/漫画专属（制图工具）—— novel 模式整张卡片 GONE -->
             <Space
                 android:id="@+id/illust_tool_space"

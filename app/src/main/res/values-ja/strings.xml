@@ -1926,6 +1926,9 @@
     <string name="search_filter_v3_date_clear">クリア</string>
     <string name="search_filter_v3_ai_exclude">AI 作品を非表示</string>
     <string name="search_filter_v3_ai_exclude_desc">「設定 → AI 作品を非表示」と連動</string>
+    <string name="search_filter_v3_section_bookmark_filter">ブックマーク済みを除外</string>
+    <string name="search_filter_v3_bookmark_filter_all">フィルタなし</string>
+    <string name="search_filter_v3_bookmark_filter_only">フィルタする</string>
     <string name="search_filter_v3_section_ai">AI 作品</string>
     <string name="search_filter_v3_ai_all">すべて</string>
     <string name="search_filter_v3_ai_only">AI のみ</string>

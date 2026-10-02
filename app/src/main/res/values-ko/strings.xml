@@ -1926,6 +1926,9 @@
     <string name="search_filter_v3_date_clear">지우기</string>
     <string name="search_filter_v3_ai_exclude">AI 작품 숨기기</string>
     <string name="search_filter_v3_ai_exclude_desc">「설정 → AI 작품 숨기기」와 연동</string>
+    <string name="search_filter_v3_section_bookmark_filter">북마크한 작품 숨기기</string>
+    <string name="search_filter_v3_bookmark_filter_all">필터 안 함</string>
+    <string name="search_filter_v3_bookmark_filter_only">필터</string>
     <string name="search_filter_v3_section_ai">AI 작품</string>
     <string name="search_filter_v3_ai_all">전체</string>
     <string name="search_filter_v3_ai_only">AI만</string>

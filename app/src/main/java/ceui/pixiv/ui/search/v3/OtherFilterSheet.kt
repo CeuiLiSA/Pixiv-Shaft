@@ -19,8 +19,8 @@ import ceui.pixiv.utils.setOnClick
 import java.io.Serializable
 
 /**
- * 「其他条件」子 sheet —— 收纳次要维度：AI 三选一（全部/屏蔽AI/仅看AI）+ 小说专属
- * （仅限原创 / 仅限单词置换 / 系列作品归纳）+ R-18 限制三选一。
+ * 「其他条件」子 sheet —— 收纳次要维度：AI 三选一（全部/屏蔽AI/仅看AI）+ 过滤已收藏二选一
+ * + 小说专属（仅限原创 / 仅限单词置换 / 系列作品归纳）+ R-18 限制三选一。
  *
  * 小说专属三个 switch 仅在 isNovel = true 时显示；illust 模式整张卡片隐藏，结果回传时
  * 也固定 false。AI「全部 / 屏蔽AI」两档提交时把 [Shaft.sSettings.isDeleteAIIllust] 落成
@@ -36,6 +36,8 @@ class OtherFilterSheet : V3BottomSheetBase() {
     private var draftOriginalOnly: Boolean = false
     private var draftReplaceableOnly: Boolean = false
     private var draftGroupBySeries: Boolean = false
+    /** 「过滤已收藏」草稿——与全局 isSearchFilterBookmarked 联动，提交时才落盘。 */
+    private var draftBookmarkFilter: Boolean = false
     /** illust-only;null = 「不限」。父 sheet 通过 args 注入初值 + 候选列表。 */
     private var draftTool: String? = null
 
@@ -58,6 +60,7 @@ class OtherFilterSheet : V3BottomSheetBase() {
         val isReplaceableOnly: Boolean,
         val tool: String?,
         val groupBySeries: Boolean = false,
+        val bookmarkFilter: Boolean = false,
     ) : Serializable
 
     private var _binding: DialogSearchFilterOtherBinding? = null
@@ -77,6 +80,7 @@ class OtherFilterSheet : V3BottomSheetBase() {
         draftOriginalOnly = patch?.isOriginalOnly ?: false
         draftReplaceableOnly = patch?.isReplaceableOnly ?: false
         draftGroupBySeries = patch?.groupBySeries ?: false
+        draftBookmarkFilter = patch?.bookmarkFilter ?: Shaft.sSettings.isSearchFilterBookmarked
         draftTool = patch?.tool
     }
 
@@ -84,7 +88,7 @@ class OtherFilterSheet : V3BottomSheetBase() {
         super.onSaveInstanceState(outState)
         outState.putSerializable(KEY_DRAFT,
             Patch(draftAiMode, draftR18, draftOriginalOnly, draftReplaceableOnly, draftTool,
-                draftGroupBySeries))
+                draftGroupBySeries, draftBookmarkFilter))
     }
 
     override fun onCreateView(
@@ -119,6 +123,12 @@ class OtherFilterSheet : V3BottomSheetBase() {
                     Local.setSettings(Shaft.sSettings)
                 }
             }
+            // 「过滤已收藏」与全局设置联动落盘（同 AI「屏蔽 AI」那档）：真正的过滤在读全局
+            // 设置的搜索数据源里做，这里只把开关写回 settings。
+            if (Shaft.sSettings.isSearchFilterBookmarked != draftBookmarkFilter) {
+                Shaft.sSettings.isSearchFilterBookmarked = draftBookmarkFilter
+                Local.setSettings(Shaft.sSettings)
+            }
             // 小说专属 switch：illust 模式下卡片整体隐藏，强制 false 防止状态串味儿
             val originalOnly = if (isNovel) draftOriginalOnly else false
             val replaceableOnly = if (isNovel) draftReplaceableOnly else false
@@ -129,6 +139,7 @@ class OtherFilterSheet : V3BottomSheetBase() {
                 requestKey,
                 bundleOf(KEY_PATCH to Patch(
                     draftAiMode, draftR18, originalOnly, replaceableOnly, tool, groupBySeries,
+                    draftBookmarkFilter,
                 )),
             )
             dismissAllowingStateLoss()
@@ -139,6 +150,11 @@ class OtherFilterSheet : V3BottomSheetBase() {
         bindAiRow(binding.rowAiExclude, AiMode.ExcludeAi, R.string.search_filter_v3_ai_exclude)
         bindAiRow(binding.rowAiOnly,    AiMode.OnlyAi,    R.string.search_filter_v3_ai_only)
         renderAiMarks()
+
+        // 过滤已收藏 —— 二选一：不过滤 / 过滤（与全局设置联动，illust / novel 都显示）
+        bindBookmarkRow(binding.rowBookmarkAll,  false, R.string.search_filter_v3_bookmark_filter_all)
+        bindBookmarkRow(binding.rowBookmarkOnly, true,  R.string.search_filter_v3_bookmark_filter_only)
+        renderBookmarkMarks()
 
         // 制图工具（illust/manga 专属）—— novel 模式整张卡片隐藏
         binding.illustToolSpace.isVisible = !isNovel
@@ -249,6 +265,20 @@ class OtherFilterSheet : V3BottomSheetBase() {
         binding.rowAiOnly.checkMark.isInvisible    = draftAiMode != AiMode.OnlyAi
     }
 
+    private fun bindBookmarkRow(row: CellSearchFilterCheckRowBinding, filter: Boolean, labelRes: Int) {
+        row.checkLabel.setText(labelRes)
+        row.checkMark.setTextColor(palette.textAccent)
+        row.root.setOnClick {
+            draftBookmarkFilter = filter
+            renderBookmarkMarks()
+        }
+    }
+
+    private fun renderBookmarkMarks() {
+        binding.rowBookmarkAll.checkMark.isInvisible  = draftBookmarkFilter
+        binding.rowBookmarkOnly.checkMark.isInvisible = !draftBookmarkFilter
+    }
+
     private fun bindR18Row(row: CellSearchFilterCheckRowBinding, mode: R18Mode, labelRes: Int) {
         row.checkLabel.setText(labelRes)
         row.checkMark.setTextColor(palette.textAccent)
@@ -291,6 +321,7 @@ class OtherFilterSheet : V3BottomSheetBase() {
                     current.isReplaceableOnly,
                     current.tool,
                     current.groupBySeries,
+                    current.bookmarkFilter,
                 ))
             }
         }

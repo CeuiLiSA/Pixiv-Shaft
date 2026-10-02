@@ -5,6 +5,7 @@ import android.view.View
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.model.ListIllust
 import ceui.lisa.repo.SearchIllustRepo
 import ceui.lisa.utils.PixivSearchParamUtil
@@ -27,7 +28,7 @@ import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
  *
  * 搜索链路重（sort 路由 / 内置热门榜 / 投稿期间档 / 关键字后缀 / R18 三态 + 仅看 AI + starSize
  * 客户端过滤）——**为无损、零发散，数据源直接包裹既有的 [SearchIllustRepo]**（复刻它全部逻辑风险太大），
- * 直接调它的 suspend initApi/initNextApi，过滤走 repo 自己的 FilterMapper。过滤后已是「搜索专属过滤过」的 bean，
+ * 直接调它的 suspend initApi/initNextApi，过滤走 repo 自己的 FilterMapper，再补一条「对搜索页过滤」已收藏。过滤后已是「搜索专属过滤过」的 bean，
  * 用 [IllustFeedItem.raw] 直接建条目（**绝不能走 .of，会在仅看 AI 时误删 AI**）。
  *
  * 响应式重搜：数据源读 activity-scoped [SearchModel] 最新参数（不快照），fragment observe nowGo →
@@ -152,7 +153,8 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
 /**
  * 搜索插画数据源：包裹 [SearchIllustRepo]。load(null) 前 `update(searchModel)` 重读最新参数 +
  * 配置 FilterMapper（R18 三态 / onlyAi / starSize）；load(cursor) 用 repo 翻页。过滤走 repo.mapper()
- * （FilterMapper，含 legacy 全部搜索过滤 + ObjectPool 合池，setValue 失败自动 postValue 兜底，off-main 安全）。
+ * （FilterMapper，含 legacy 全部搜索过滤 + ObjectPool 合池，setValue 失败自动 postValue 兜底，off-main 安全），
+ * 之后按「对搜索页过滤」设置剔除已收藏的作品。
  */
 class SearchIllustFeedSource(
     private val searchModel: SearchModel,
@@ -191,8 +193,12 @@ class SearchIllustFeedSource(
         val items = withContext(Dispatchers.Default) {
             @Suppress("UNCHECKED_CAST")
             val filtered = r.mapper().apply(list)
-            // FilterMapper 已做完全部搜索专属过滤 → 直接建条目，不再过滤（否则仅看 AI 误删 AI）。
-            filtered.list.orEmpty().mapNotNull { IllustFeedItem.raw(it) }
+            // FilterMapper 已做完全部搜索专属过滤 → 直接建条目，不再走 .of 的内容过滤
+            //（否则仅看 AI 误删 AI）。这里只补一条它管不到的：「对搜索页过滤」已收藏。
+            filtered.list.orEmpty().mapNotNull { illust ->
+                if (Shaft.sSettings.isSearchFilterBookmarked && illust.isBookmarked) null
+                else IllustFeedItem.raw(illust)
+            }
         }
         return FeedPage(items, list.nextUrl?.takeIf { it.isNotEmpty() })
     }

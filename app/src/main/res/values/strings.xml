@@ -2118,6 +2118,9 @@
 
     <string name="search_filter_v3_ai_exclude">不显示 AI 作品</string>
     <string name="search_filter_v3_ai_exclude_desc">与「设置 → 不显示 AI 作品」联动</string>
+    <string name="search_filter_v3_section_bookmark_filter">过滤已收藏</string>
+    <string name="search_filter_v3_bookmark_filter_all">不过滤</string>
+    <string name="search_filter_v3_bookmark_filter_only">过滤</string>
     <string name="search_filter_v3_section_ai">AI 作品</string>
     <string name="search_filter_v3_ai_all">全部</string>
     <string name="search_filter_v3_ai_only">仅 AI 作品</string>

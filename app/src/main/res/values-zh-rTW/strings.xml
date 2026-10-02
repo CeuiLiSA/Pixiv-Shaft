@@ -1928,6 +1928,9 @@
     <string name="search_filter_v3_date_clear">清除</string>
     <string name="search_filter_v3_ai_exclude">不顯示 AI 作品</string>
     <string name="search_filter_v3_ai_exclude_desc">與「設定 → 不顯示 AI 作品」連動</string>
+    <string name="search_filter_v3_section_bookmark_filter">過濾已收藏</string>
+    <string name="search_filter_v3_bookmark_filter_all">不過濾</string>
+    <string name="search_filter_v3_bookmark_filter_only">過濾</string>
     <string name="search_filter_v3_section_ai">AI 作品</string>
     <string name="search_filter_v3_ai_all">全部</string>
     <string name="search_filter_v3_ai_only">僅 AI 作品</string>

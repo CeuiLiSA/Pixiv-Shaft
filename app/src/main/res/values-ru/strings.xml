@@ -1926,6 +1926,9 @@
     <string name="search_filter_v3_date_clear">Очистить</string>
     <string name="search_filter_v3_ai_exclude">Скрывать работы, созданные ИИ</string>
     <string name="search_filter_v3_ai_exclude_desc">Синхронизировано с настройкой «Скрывать работы ИИ»</string>
+    <string name="search_filter_v3_section_bookmark_filter">Скрывать из закладок</string>
+    <string name="search_filter_v3_bookmark_filter_all">Без фильтра</string>
+    <string name="search_filter_v3_bookmark_filter_only">Фильтровать</string>
     <string name="search_filter_v3_section_ai">Работы ИИ</string>
     <string name="search_filter_v3_ai_all">Все</string>
     <string name="search_filter_v3_ai_only">Только ИИ</string>

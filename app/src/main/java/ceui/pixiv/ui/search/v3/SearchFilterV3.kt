@@ -48,6 +48,13 @@ data class SearchFilterV3(
     val startDate: String? = null,    // YYYY-MM-DD —— 与 durationBucket 互斥
     val endDate: String? = null,      // YYYY-MM-DD
     val aiMode: AiMode = AiMode.All,
+    /**
+     * 「过滤已收藏」（仅搜索）—— 与全局 `Shaft.sSettings.isSearchFilterBookmarked` 联动。
+     * 真正的过滤发生在 [ceui.pixiv.ui.search.SearchIllustFeedSource] /
+     * [ceui.pixiv.ui.search.SearchNovelFeedSource] 建条目时（现读全局设置）；本字段只承载
+     * sheet 的草稿与「其他条件」徽标计数，不参与发请求的参数拼装。
+     */
+    val bookmarkFilter: Boolean = false,
     val r18Mode: R18Mode = R18Mode.All,
     val ratioPattern: RatioPattern? = null,   // illust/manga only
     val resolutionBucket: ResolutionBucket? = null,   // illust/manga only
@@ -76,6 +83,7 @@ data class SearchFilterV3(
          *     从老 FragmentFilter 起就是关键字后缀语义，所以落到 keyword 维度，不是 bookmark
          *     query 维度。bookmarkRange 维度走 query 参数，没有全局默认。
          *   - aiMode：`isDeleteAIIllust` → ExcludeAi / All（OnlyAi 是临时维度，不来自 settings）
+         *   - bookmarkFilter：`isSearchFilterBookmarked` → 过滤已收藏（与设置页同一个开关）
          *
          * 用户的「activeCount」基线也跟着跑——例如全局已开 AI 屏蔽，sheet 打开「其他条件」
          * 行就会显示「屏蔽 AI」徽标，不再误以为没改过。
@@ -97,6 +105,7 @@ data class SearchFilterV3(
                 sort = sort,
                 keywordUsersBucket = keywordBucket,
                 aiMode = if (s.isDeleteAIIllust) AiMode.ExcludeAi else AiMode.All,
+                bookmarkFilter = s.isSearchFilterBookmarked,
             )
         }
     }
@@ -114,6 +123,7 @@ data class SearchFilterV3(
         if (durationBucket != null) n++
         if (startDate != null || endDate != null) n++
         if (aiMode != AiMode.All) n++
+        if (bookmarkFilter) n++
         if (r18Mode != R18Mode.All) n++
         if (isNovel && isOriginalOnly) n++
         if (isNovel && isReplaceableOnly) n++

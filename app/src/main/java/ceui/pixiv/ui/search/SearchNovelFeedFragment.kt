@@ -306,7 +306,11 @@ class SearchNovelFeedSource(
             @Suppress("UNCHECKED_CAST")
             val filtered = r.mapper().apply(list)
             // Mapper 已做完搜索专属过滤（R18 三态 / 仅看 AI），不再重复走全局过滤。
-            filtered.list.orEmpty().map { NovelFeedItem(it) }
+            // 只补一条它管不到的：「对搜索页过滤」已收藏。
+            filtered.list.orEmpty().mapNotNull { novel ->
+                if (Shaft.sSettings.isSearchFilterBookmarked && novel.is_bookmarked == true) null
+                else NovelFeedItem(novel)
+            }
         }
         return FeedPage(items, list.nextUrl?.takeIf { it.isNotEmpty() })
     }

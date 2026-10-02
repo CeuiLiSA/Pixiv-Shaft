@@ -1926,6 +1926,9 @@
     <string name="search_filter_v3_date_clear">Clear</string>
     <string name="search_filter_v3_ai_exclude">Hide AI-generated works</string>
     <string name="search_filter_v3_ai_exclude_desc">Synced with Settings → Hide AI works</string>
+    <string name="search_filter_v3_section_bookmark_filter">Hide bookmarked</string>
+    <string name="search_filter_v3_bookmark_filter_all">No filtering</string>
+    <string name="search_filter_v3_bookmark_filter_only">Filter</string>
     <string name="search_filter_v3_section_ai">AI works</string>
     <string name="search_filter_v3_ai_all">All</string>
     <string name="search_filter_v3_ai_only">AI only</string>
