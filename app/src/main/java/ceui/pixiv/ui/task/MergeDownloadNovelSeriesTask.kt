@@ -154,9 +154,9 @@ class MergeDownloadNovelSeriesTask(context: Context) {
         val ok = writer.write(ctx, content, destination) { key, bytes ->
             emit(FetchEvent.ImageFetched(key, bytes))
         }
+        // false = 覆盖策略为「已存在则跳过」且目标已存在；真正的写入失败会抛异常。
         if (!ok) {
-            emit(FetchEvent.Errored("写入文件失败 ($mergeName)", chapters.size))
-            return@flow
+            emit(FetchEvent.Warning("文件已存在，已跳过: $mergeName"))
         }
 
         // ── 4) 终态 ──

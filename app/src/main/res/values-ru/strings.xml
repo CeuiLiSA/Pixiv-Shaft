@@ -1034,7 +1034,6 @@
     <string name="cross_series_download_all_done">Готово: успешно %1$d, с ошибкой %2$d</string>
     <string name="cross_series_download_merge_progress">Объединение: серия %1$d/%2$d - глава %3$d/%4$d</string>
     <string name="cross_series_download_merge_finished">Объединённая загрузка серий завершена: %1$s</string>
-    <string name="cross_series_download_merge_failed_save">Ошибка объединённой загрузки серий: не удалось записать файл</string>
     <string name="cross_series_download_caption">Серий: %1$d</string>
     <string name="history_search_hint">Поиск по названию или автору</string>
     <string name="history_search_result_count">Найдено: %1$d</string>

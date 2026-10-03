@@ -1034,7 +1034,6 @@
     <string name="cross_series_download_all_done">すべて完了：成功 %1$d、失敗 %2$d</string>
     <string name="cross_series_download_merge_progress">結合ダウンロード シリーズ %1$d/%2$d - 章 %3$d/%4$d</string>
     <string name="cross_series_download_merge_finished">シリーズ横断の結合ダウンロード完了：%1$s</string>
-    <string name="cross_series_download_merge_failed_save">シリーズ横断の結合ダウンロード失敗：ファイルの書き込みに失敗しました</string>
     <string name="cross_series_download_caption">%1$d シリーズ</string>
     <string name="history_search_hint">タイトル・作者で検索</string>
     <string name="history_search_result_count">%1$d 件ヒット</string>

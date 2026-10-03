@@ -1034,7 +1034,6 @@
     <string name="cross_series_download_all_done">Tümü tamamlandı: başarılı %1$d, başarısız %2$d</string>
     <string name="cross_series_download_merge_progress">Birleştirme seri %1$d/%2$d - bölüm %3$d/%4$d</string>
     <string name="cross_series_download_merge_finished">Seriler arası birleştirilmiş indirme tamamlandı: %1$s</string>
-    <string name="cross_series_download_merge_failed_save">Seriler arası birleştirilmiş indirme başarısız: dosya yazılamadı</string>
     <string name="cross_series_download_caption">%1$d seri</string>
     <string name="history_search_hint">Başlık veya yazar ara</string>
     <string name="history_search_result_count">%1$d sonuç</string>

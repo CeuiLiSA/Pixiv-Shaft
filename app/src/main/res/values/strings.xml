@@ -1077,7 +1077,6 @@
     <string name="cross_series_download_all_done">全部完成：成功 %1$d，失败 %2$d</string>
     <string name="cross_series_download_merge_progress">合并下载 系列 %1$d/%2$d - 章节 %3$d/%4$d</string>
     <string name="cross_series_download_merge_finished">跨系列合并下载完成：%1$s</string>
-    <string name="cross_series_download_merge_failed_save">跨系列合并下载失败：写入文件失败</string>
     <string name="cross_series_download_caption">共 %1$d 个系列</string>
     <string name="history_search_hint">搜索标题或作者</string>
     <string name="history_search_result_count">搜索到 %1$d 条</string>

@@ -77,13 +77,17 @@ class CrossSeriesDownloadTask(context: Context) {
                     )
                 )
                 try {
-                    withContext(Dispatchers.IO) {
+                    val written = withContext(Dispatchers.IO) {
                         downloadOneSeriesToSingleFile(seriesItem, format)
                     }
-                    successCount++
-                    Toaster.show(
-                        ctx.getString(R.string.cross_series_download_series_ok, title)
-                    )
+                    if (written) {
+                        successCount++
+                        Toaster.show(
+                            ctx.getString(R.string.cross_series_download_series_ok, title)
+                        )
+                    } else {
+                        Toaster.show(ctx.getString(R.string.msg_export_skipped, title))
+                    }
                 } catch (ex: CancellationException) {
                     throw ex
                 } catch (ex: Exception) {
@@ -212,9 +216,8 @@ class CrossSeriesDownloadTask(context: Context) {
                         ctx.getString(R.string.cross_series_download_merge_finished, destination.filename)
                     )
                 } else {
-                    Toaster.show(
-                        ctx.getString(R.string.cross_series_download_merge_failed_save)
-                    )
+                    // false = 覆盖策略为「已存在则跳过」且目标已存在；写入失败走下方 catch。
+                    Toaster.show(ctx.getString(R.string.msg_export_skipped, destination.filename))
                 }
                 onFinished(ok, skippedChapters)
             } catch (ex: CancellationException) {
@@ -233,11 +236,13 @@ class CrossSeriesDownloadTask(context: Context) {
      * 复用 [MergeDownloadNovelSeriesTask] 的路子：对一个 series，抓全部章节，
      * 合并后写一个文件。这里独立实现是因为 cross-series 入口已经在
      * NovelSeriesItem 维度迭代，没走 NovelSeriesDetail VM。
+     *
+     * @return 是否真的写出了文件；false = 目标已存在且覆盖策略为「已存在则跳过」。
      */
     private suspend fun downloadOneSeriesToSingleFile(
         seriesItem: NovelSeriesItem,
         format: ExportFormat,
-    ) {
+    ): Boolean {
         val seriesId = seriesItem.id.toLong()
         // 先拉一次 getNovelSeries 拿 detail（带 user / caption 等），然后翻页。
         val initial = Client.appApi.getNovelSeries(seriesId)
@@ -286,8 +291,8 @@ class CrossSeriesDownloadTask(context: Context) {
             documentId = "novel_series_${detail.id}",
         )
         val writer = MergedNovelWriters.forFormat(format)
-        val ok = writer.write(ctx, content, destination)
-        if (!ok) throw RuntimeException("writer.write returned false")
+        // false = 覆盖策略为「已存在则跳过」且目标已存在，不算失败。
+        return writer.write(ctx, content, destination)
     }
 
     /**

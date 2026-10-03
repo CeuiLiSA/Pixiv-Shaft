@@ -1034,7 +1034,6 @@
     <string name="cross_series_download_all_done">All done: %1$d succeeded, %2$d failed</string>
     <string name="cross_series_download_merge_progress">Merging series %1$d/%2$d - chapter %3$d/%4$d</string>
     <string name="cross_series_download_merge_finished">Cross-series merged download finished: %1$s</string>
-    <string name="cross_series_download_merge_failed_save">Cross-series merged download failed: could not write file</string>
     <string name="cross_series_download_caption">%1$d series</string>
     <string name="history_search_hint">Search title or author</string>
     <string name="history_search_result_count">%1$d match(es)</string>

@@ -10,11 +10,11 @@ import ceui.loxia.Novel
 import ceui.pixiv.download.header.HeaderConfigRepo
 import ceui.pixiv.download.header.NovelHeaderRenderer
 import ceui.pixiv.ui.common.getTxtFileIdInDownloads
-import ceui.pixiv.ui.common.saveToDownloadsScopedStorage
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.model.RelativePath
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
+import ceui.pixiv.ui.novel.reader.export.ExportUtils
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.paginate.ContentParser
 import com.hjq.toast.Toaster
@@ -171,9 +171,11 @@ class BatchDownloadNovelsTask(
             append("\n\n")
         }
 
-        val ok = saveToDownloadsScopedStorage(ctx, destination, buffer.toString())
-        if (!ok) {
-            throw RuntimeException("saveToDownloadsScopedStorage returned false")
+        // null = 覆盖策略为「已存在则跳过」且目标已存在（上方预检只认 MediaStore Downloads，
+        // SAF 等位置要到这里才知道）；写入失败直接抛出，带着真实原因进 FailedNovel。
+        val uri = ExportUtils.saveToDownloads(ctx, destination, format.mimeType) {
+            it.write(buffer.toString().toByteArray(Charsets.UTF_8))
         }
+        if (uri == null) Timber.d("$fileName already exists, skipping")
     }
 }

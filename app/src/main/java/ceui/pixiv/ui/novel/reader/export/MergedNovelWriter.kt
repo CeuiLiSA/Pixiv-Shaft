@@ -33,6 +33,9 @@ interface MergedNovelWriter {
     /**
      * [onImageBundled] 每张插画抓回 + 编码完调一次,callsite 可以借此往 UI(比如
      * CLI 进度 dialog)报实时进度。除 EPUB writer 外其他实现都不会调。
+     *
+     * @return false 只表示目标已存在且覆盖策略为「已存在则跳过」，不是失败 ——
+     *   写入失败会直接抛异常（见 [ExportUtils.saveToDownloads]）。
      */
     suspend fun write(
         context: Context,

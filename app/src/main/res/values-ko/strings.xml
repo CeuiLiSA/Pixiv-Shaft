@@ -1034,7 +1034,6 @@
     <string name="cross_series_download_all_done">전체 완료: 성공 %1$d, 실패 %2$d</string>
     <string name="cross_series_download_merge_progress">병합 다운로드 시리즈 %1$d/%2$d - 챕터 %3$d/%4$d</string>
     <string name="cross_series_download_merge_finished">교차 시리즈 병합 다운로드 완료: %1$s</string>
-    <string name="cross_series_download_merge_failed_save">교차 시리즈 병합 다운로드 실패: 파일 쓰기에 실패했습니다</string>
     <string name="cross_series_download_caption">시리즈 %1$d개</string>
     <string name="history_search_hint">제목 또는 작가 검색</string>
     <string name="history_search_result_count">%1$d개 일치</string>
