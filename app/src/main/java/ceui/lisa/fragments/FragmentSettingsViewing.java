@@ -214,6 +214,9 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
                 if (rifeSuppressToggleCallback) {
                     return;
                 }
+                // 用户的最新一次拨动说了算:跳下载页的那一下还没结算就又拨回 off,
+                // 回来时不能再按「真落了模型」把设置写成 on(界面却是 off)。
+                rifeAwaitingModel = false;
                 if (isChecked && !ceui.pixiv.ui.interpolate.RifeInterpolator.INSTANCE.isAvailable(mContext)) {
                     // 模型缺失:不落盘、不弹 toast,先跳下载页,回来再结算。
                     rifeAwaitingModel = true;
