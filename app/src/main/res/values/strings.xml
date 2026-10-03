@@ -3376,6 +3376,7 @@
     <string name="web_discovery_login_needed">请使用与 App 相同的 pixiv 账号登录网页，以查看推荐作品。</string>
     <string name="web_discovery_web_login">网页登录</string>
     <string name="tag_menu_author_works">该作者相关作品</string>
+    <string name="tag_menu_append_to_search">添加到搜索词</string>
 
     <!-- Novel read-aloud reader integration (#1139) -->
     <string name="reader_tts_settings">朗读设置</string>

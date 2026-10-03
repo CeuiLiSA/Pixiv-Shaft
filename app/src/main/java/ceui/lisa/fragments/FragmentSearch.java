@@ -316,6 +316,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
     private void getHotTags() {
         baseBind.hotTags.setOnTagActionsChanged(this::onTagActionsChanged);
+        baseBind.hotTags.setOnAppendToSearch(this::appendTagToInput);
         baseBind.hotTags.setOnItemClickListener((item, position) -> {
             hintViewModel.hideHints();
             Intent intent = new Intent(mContext, SearchActivity.class);
@@ -350,6 +351,25 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             items.add(new WitTagItem(tag.getTag(), tag.getTag(), tag.getTranslated_name()));
         }
         baseBind.hotTags.setItems(items);
+    }
+
+    /**
+     * 标签长按「添加到搜索词」（#1183）：拼到输入框末尾、空格分隔，已经在里面的不重复加。
+     * ID / URL 这类搜索方式拼标签没有意义，顺手切回标签搜索。
+     */
+    private kotlin.Unit appendTagToInput(String tag) {
+        List<String> keys = Arrays.stream(baseBind.inputBox.getText().toString().split(" "))
+                .filter(s -> !TextUtils.isEmpty(s)).collect(Collectors.toCollection(ArrayList::new));
+        if (!keys.contains(tag)) {
+            keys.add(tag);
+        }
+        baseBind.inputBox.setText(TextUtils.join(" ", keys) + " ");
+        baseBind.inputBox.setSelection(baseBind.inputBox.getText().length());
+        if (searchType != SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD && searchType != SearchTypeUtil.defaultSearchType) {
+            searchType = SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD;
+            baseBind.inputBox.setHint(SearchTypeUtil.SEARCH_TYPE_NAME[searchType]);
+        }
+        return kotlin.Unit.INSTANCE;
     }
 
     /** 本页任一标签行里固定 / 屏蔽了标签：历史行的固定区与热门标签行都要跟着变。 */
@@ -482,6 +502,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         flow.setShowHashPrefix(false);
         flow.setShowTranslation(false);
         flow.setOnTagActionsChanged(this::onTagActionsChanged);
+        flow.setOnAppendToSearch(this::appendTagToInput);
         List<WitTagItem> items = new ArrayList<>();
         for (SearchEntity entity : data) {
             items.add(new WitTagItem(String.valueOf(entity.getId()), entity.getKeyword(),

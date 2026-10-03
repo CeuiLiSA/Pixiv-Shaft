@@ -54,6 +54,8 @@ class V3TagFlowView @JvmOverloads constructor(
     var searchIndex: Int = 0
     var onPinTag: ((name: String, translated: String?, newPinned: Boolean) -> Unit)? = null
     var onViewAuthorWorks: ((name: String) -> Unit)? = null
+    /** 搜索首页把标签拼进输入框做多标签搜索（#1183）；不设则菜单里没有这一项。 */
+    var onAppendToSearch: ((name: String) -> Unit)? = null
     /** 搜索首页在固定 / 屏蔽状态变化后刷新（固定区、热门标签行）；详情和 feed 无需额外处理。 */
     var onTagActionsChanged: Runnable? = null
 
@@ -91,9 +93,13 @@ class V3TagFlowView @JvmOverloads constructor(
         val translated = translation?.takeIf { it.isNotBlank() }
             ?: knownTranslations.get(name) ?: pinnedTagTranslation(existing?.previewIllustsJson)
         val hasTranslation = !translated.isNullOrBlank()
-        // 顺序：原文 / 译文（可选）/ 翻译 / 固定 / 添加为同义词 / 屏蔽 / 该作者相关作品
+        // 顺序：添加到搜索词（可选）/ 原文 / 译文（可选）/ 翻译 / 固定 / 添加为同义词 / 屏蔽 / 该作者相关作品
         val labels = mutableListOf<String>()
         val actions = mutableListOf<() -> Unit>()
+        onAppendToSearch?.let { handler ->
+            labels.add(context.getString(R.string.tag_menu_append_to_search))
+            actions.add { handler(name) }
+        }
         labels.add(context.getString(R.string.v3_tag_menu_copy_original))
         actions.add { copyToClipboard(name) }
         if (hasTranslation) {

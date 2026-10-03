@@ -3111,6 +3111,7 @@
     <string name="web_discovery_login_needed">추천 작품을 보려면 앱과 동일한 계정으로 pixiv 웹사이트에 로그인하세요.</string>
     <string name="web_discovery_web_login">웹 로그인</string>
     <string name="tag_menu_author_works">이 작가의 같은 태그 작품</string>
+    <string name="tag_menu_append_to_search">검색어에 추가</string>
 
     <!-- Novel read-aloud reader integration (#1139) -->
     <string name="reader_tts_settings">읽어주기 설정</string>

@@ -3113,6 +3113,7 @@
     <string name="web_discovery_login_needed">Sign in to the pixiv website with the same account as the app to see recommended works.</string>
     <string name="web_discovery_web_login">Web sign-in</string>
     <string name="tag_menu_author_works">Works by this author with this tag</string>
+    <string name="tag_menu_append_to_search">Add to search</string>
 
     <!-- Novel read-aloud reader integration (#1139) -->
     <string name="reader_tts_settings">Read-aloud settings</string>
