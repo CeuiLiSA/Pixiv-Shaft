@@ -7,9 +7,9 @@ import androidx.appcompat.widget.SwitchCompat
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.DialogFilterBookmarkedBinding
-import ceui.lisa.databinding.DialogFilterBookmarkedRowBinding
 import ceui.lisa.utils.Local
 import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogSwitchRow
 import ceui.pixiv.witstudio.dialog.WitDialogView
 
 /**
@@ -38,15 +38,11 @@ object FilterBookmarkedDialog {
                     LayoutInflater.from(context), parent, false
                 )
                 fun addToggle(titleRes: Int, checked: Boolean) {
-                    val row = DialogFilterBookmarkedRowBinding.inflate(
-                        LayoutInflater.from(context), content.fbRows, false
-                    )
-                    row.fbRowTitle.setText(titleRes)
-                    row.fbRowSwitch.contentDescription = context.getString(titleRes)
-                    row.fbRowSwitch.isChecked = checked
-                    row.root.setOnClickListener { row.fbRowSwitch.toggle() }
+                    val row = WitDialogSwitchRow.inflate(content.fbRows)
+                    WitDialogSwitchRow.bind(row, context.getString(titleRes), null, checked)
+                    row.root.setOnClickListener { row.witRowSwitch.toggle() }
                     content.fbRows.addView(row.root)
-                    switches.add(row.fbRowSwitch)
+                    switches.add(row.witRowSwitch)
                 }
                 addToggle(
                     R.string.filter_bookmarked_rank, Shaft.sSettings.isFilterRankBookmarked

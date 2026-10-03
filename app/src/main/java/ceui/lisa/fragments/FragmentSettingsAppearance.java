@@ -25,8 +25,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 
+import ceui.pixiv.witstudio.databinding.WitDialogSwitchRowBinding;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
+import ceui.pixiv.witstudio.dialog.WitDialogSwitchRow;
 import ceui.pixiv.witstudio.dialog.WitDialogView;
 import ceui.pixiv.witstudio.theme.V3Palette;
 import ceui.pixiv.witstudio.widget.WitTagStyle;
@@ -142,40 +144,38 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     helpText.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE));
             Set<String> disabled = Shaft.sSettings.getPredictiveBackDisabledActivities();
             for (Class<?> activityClass : PredictiveBackSuppressor.TARGET_ORDER) {
-                View row = LayoutInflater.from(context)
-                        .inflate(R.layout.dialog_predictive_back_row, rows, false);
-                TextView title = row.findViewById(R.id.pb_row_title);
-                title.setText(predictiveBackLabelRes(activityClass));
-                TextView className = row.findViewById(R.id.pb_row_class);
-                className.setText(activityClass.getSimpleName());
-                SwitchCompat toggle = row.findViewById(R.id.pb_row_switch);
-                toggle.setChecked(!disabled.contains(activityClass.getName()));
-                switches.add(toggle);
+                WitDialogSwitchRowBinding row = WitDialogSwitchRow.inflate(rows);
+                WitDialogSwitchRow.bind(
+                        row,
+                        context.getString(predictiveBackLabelRes(activityClass)),
+                        activityClass.getSimpleName(),
+                        !disabled.contains(activityClass.getName()));
+                switches.add(row.witRowSwitch);
                 activityClasses.add(activityClass);
-                rows.addView(row);
+                rows.addView(row.getRoot());
             }
 
             // 第二组：应用自绘的侧边栏跟手动画，与系统预测动画是两个维度。
             LinearLayout drawerRows = content.findViewById(R.id.pb_drawer_rows);
-            View drawerRow = LayoutInflater.from(context)
-                    .inflate(R.layout.dialog_predictive_back_row, drawerRows, false);
-            TextView drawerTitle = drawerRow.findViewById(R.id.pb_row_title);
-            drawerTitle.setText(R.string.setting_predictive_back_item_drawer);
-            TextView drawerClass = drawerRow.findViewById(R.id.pb_row_class);
-            drawerClass.setText(MainActivity.class.getSimpleName());
-            drawerToggle = drawerRow.findViewById(R.id.pb_row_switch);
-            drawerToggle.setChecked(Shaft.sSettings.isDrawerPredictiveBackEnabled());
-            drawerRows.addView(drawerRow);
+            WitDialogSwitchRowBinding drawerRow = WitDialogSwitchRow.inflate(drawerRows);
+            WitDialogSwitchRow.bind(
+                    drawerRow,
+                    context.getString(R.string.setting_predictive_back_item_drawer),
+                    MainActivity.class.getSimpleName(),
+                    Shaft.sSettings.isDrawerPredictiveBackEnabled());
+            drawerToggle = drawerRow.witRowSwitch;
+            drawerRows.addView(drawerRow.getRoot());
 
             // 第三组：实验。副标题留空 —— 它不是一个 Activity。
             LinearLayout experimentalRows = content.findViewById(R.id.pb_experimental_rows);
-            View anyPageRow = LayoutInflater.from(context)
-                    .inflate(R.layout.dialog_predictive_back_row, experimentalRows, false);
-            TextView anyPageTitle = anyPageRow.findViewById(R.id.pb_row_title);
-            anyPageTitle.setText(R.string.setting_predictive_back_item_any_page);
-            anyPageToggle = anyPageRow.findViewById(R.id.pb_row_switch);
-            anyPageToggle.setChecked(Shaft.sSettings.isSuppressBackFlickerAnyPage());
-            experimentalRows.addView(anyPageRow);
+            WitDialogSwitchRowBinding anyPageRow = WitDialogSwitchRow.inflate(experimentalRows);
+            WitDialogSwitchRow.bind(
+                    anyPageRow,
+                    context.getString(R.string.setting_predictive_back_item_any_page),
+                    null,
+                    Shaft.sSettings.isSuppressBackFlickerAnyPage());
+            anyPageToggle = anyPageRow.witRowSwitch;
+            experimentalRows.addView(anyPageRow.getRoot());
             // 8 行开关 + 说明,横屏/大字号下会超出弹窗最大高度,必须可滚动,否则「确定」被挤出屏幕。
             return wrapWithScroll(content);
         }
