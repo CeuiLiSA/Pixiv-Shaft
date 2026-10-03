@@ -1075,7 +1075,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     private fun applyPageProgressText(pill: TextView, text: String) {
         if (pill.text?.toString() == text) return
         // 还没上屏就没有排版在跑，直接写；也免得把 runnable 丢进 RunQueue 一直挂着。
-        if (!pill.isAttachedToWindow) {
+        // 还隐藏着（首次出现 / 滑离图片后滑回）也当场写：调用方紧接着就把它设为可见，显隐变化
+        // 本身就会带着新文字重新量一次；推迟写反而会让它先以空白或上一次的读数露一帧。
+        if (!pill.isAttachedToWindow || !pill.isVisible) {
             pill.text = text
             return
         }

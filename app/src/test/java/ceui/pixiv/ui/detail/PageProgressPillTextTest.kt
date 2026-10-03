@@ -7,6 +7,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.widget.FrameLayout
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import ceui.lisa.R
@@ -39,7 +40,7 @@ import org.robolectric.util.ReflectionHelpers
  * 「2 /」、分母不见了，而且要等下一次真正的排版才复原（有时一直不复原）。
  *
  * 这里钉住修好的契约：上屏的浮标一律推迟到布局之外再写（setText 的 requestLayout 会被正常
- * 受理，浮标按新文字重新量一次、自己长大）；没上屏的没有排版在跑，当场写。
+ * 受理，浮标按新文字重新量一次、自己长大）；没上屏的没有排版在跑、还隐藏着的随显隐一起量，当场写。
  * V2([FragmentIllust]) 与 V3([ArtworkV3Fragment]) 各钉一遍。
  */
 @RunWith(RobolectricTestRunner::class)
@@ -74,6 +75,9 @@ class PageProgressPillTextTest {
         shadowOf(Looper.getMainLooper()).idle()
         val pill = chrome.pageProgressPill
         assumeTrue("Robolectric 没把内容挂上窗口", pill.isAttachedToWindow)
+        // 布局里默认 gone；这里验的是「已经露出来的浮标换读数」
+        pill.isVisible = true
+        shadowOf(Looper.getMainLooper()).idle()
         val writes = countWrites(pill)
 
         apply(ArtworkV3Fragment().apply { arguments = Bundle() }, pill, "3 / 3")
@@ -101,6 +105,26 @@ class PageProgressPillTextTest {
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(1, writes.value)
         assertEquals("3 / 3", pill.text?.toString())
+    }
+
+    /**
+     * 还隐藏着的浮标当场写：调用方紧接着把它设为可见，推迟写会让它先以空白（首次出现）或
+     * 上一次的读数（V3 滑到评论区收起后滑回）露一帧。V2 / V3 各钉一遍。
+     */
+    @Test
+    fun `hidden pill is written straight away so it never shows a stale reading`() {
+        val chrome = FragmentArtworkV3Binding.inflate(LayoutInflater.from(host))
+        host.setContentView(chrome.root)
+        shadowOf(Looper.getMainLooper()).idle()
+        val v3Pill = chrome.pageProgressPill
+        assumeTrue("Robolectric 没把内容挂上窗口", v3Pill.isAttachedToWindow)
+        assertFalse(v3Pill.isVisible)
+        apply(ArtworkV3Fragment().apply { arguments = Bundle() }, v3Pill, "3 / 3")
+        assertEquals("3 / 3", v3Pill.text?.toString())
+
+        val classicPill = attachedPill().apply { isVisible = false }
+        apply(FragmentIllust(), classicPill, "3 / 3")
+        assertEquals("3 / 3", classicPill.text?.toString())
     }
 
     @Test
