@@ -471,9 +471,8 @@ public class Settings {
     // 关闭时所有相关 UI（详情页匹配框/长按菜单项/管理页入口/自动导入/自动勾选）完全隐藏
     private boolean synonymDictEnabled = false;
 
-    // 动图(ugoira) RIFE AI 补帧，默认关闭。开启且补帧模型已下载时,播放引擎在编码前
-    // 对帧序列做 2x 插帧,帧率翻倍;模型未下载则静默回落原始帧率
-    private boolean ugoiraRifeEnable = false;
+    // 动图(ugoira) RIFE AI 补帧开关**不在这里**:它跟「本机模型是否落盘」绑定,不具备跨设备性,
+    // 已搬到设备本地 MMKV 的 ceui.pixiv.ui.interpolate.RifePrefs,不进备份 / 云端。
 
     // 详情页动图(ugoira)自动播放,默认开启(行为不变)。关闭后进详情不自动下载/播放,
     // 图片中间显示「开始播放(下载)」按钮;已缓存或左右切回也不自动播,点按钮才开始。
@@ -1496,14 +1495,6 @@ public class Settings {
      */
     public boolean isUgoiraSaveAsMp4() {
         return ugoiraSaveFormat != UGOIRA_SAVE_FORMAT_GIF;
-    }
-
-    public boolean isUgoiraRifeEnable() {
-        return ugoiraRifeEnable;
-    }
-
-    public void setUgoiraRifeEnable(boolean ugoiraRifeEnable) {
-        this.ugoiraRifeEnable = ugoiraRifeEnable;
     }
 
     public boolean isAutoPlayUgoira() {

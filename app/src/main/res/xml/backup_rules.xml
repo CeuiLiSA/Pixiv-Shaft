@@ -3,4 +3,8 @@
     <!-- Ciphertext is bound to an Android-Keystore key that cannot migrate. -->
     <exclude domain="file" path="mmkv/pixshaft-auth-v2" />
     <exclude domain="file" path="mmkv/pixshaft-auth-v2.crc" />
+    <!-- 动图 AI 补帧开关(RifePrefs):开 = 本机补帧模型已落盘,而模型与 librife_ncnn.so 都不跨设备,
+         带过去只会得到一个「开着但没有模型」的空壳。整份排除,换机 / 还原后读到的就是默认 false。 -->
+    <exclude domain="file" path="mmkv/rife_state_v1" />
+    <exclude domain="file" path="mmkv/rife_state_v1.crc" />
 </full-backup-content>

@@ -32,6 +32,14 @@ import ceui.pixiv.ui.comic.reader.ComicReaderSettings;
 /** 设置 · 看图与详情 */
 public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettingsViewingBinding> {
 
+    /**
+     * RIFE 开关点了「开」但模型缺失、已跳下载页。此时开关只停在界面上的 on,设置尚未落盘;
+     * 等 onResume 按模型是否真落盘决定「落盘 + toast」还是「拨回 off 且不落盘」。
+     */
+    private boolean rifeAwaitingModel = false;
+    /** 程序性回写开关(拨回 off)时抑制 listener,避免再次跳转或弹 toast。 */
+    private boolean rifeSuppressToggleCallback = false;
+
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings_viewing;
@@ -190,24 +198,37 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
                         })
                         .show());
 
-        // 动图 RIFE AI 补帧,默认关闭。开到 on 且模型没下载时顺手把下载页拉起来——
-        // 开关保持 on,模型就位后下一次播放自动生效(引擎侧模型缺失会静默回落)。
-        baseBind.ugoiraRifeEnable.setChecked(Shaft.sSettings.isUgoiraRifeEnable());
+        // 动图 RIFE AI 补帧,默认关闭。开关 on 与「模型真落盘」强绑定:
+        // 模型已在位 → 当场落盘 + 弹「设置成功」;模型缺失 → 先不落盘,跳下载页,
+        // 等用户回来(onResume)再结算——真落了才落盘 + toast,没落就把开关拨回 off 且不落盘。
+        // 归一化:别处(AI 设置页可长按删模型)把模型删掉后,把残留的 on 静默落回 false,
+        // 保证「开关开 ⇒ 模型一定落盘」在任何入口下都成立。
+        if (ceui.pixiv.ui.interpolate.RifePrefs.isEnabled()
+                && !ceui.pixiv.ui.interpolate.RifeInterpolator.INSTANCE.isAvailable(mContext)) {
+            applyUgoiraRifeEnable(false);
+        }
+        baseBind.ugoiraRifeEnable.setChecked(ceui.pixiv.ui.interpolate.RifePrefs.isEnabled());
         baseBind.ugoiraRifeEnable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Shaft.sSettings.setUgoiraRifeEnable(isChecked);
-                Common.showToast(getString(R.string.string_428));
-                Local.setSettings(Shaft.sSettings);
-                // 内存里可能记着旧变体(原速/补帧)的 gif,清掉,下次播放按新开关重取。
-                ceui.pixiv.ui.bulk.UgoiraEngine.invalidateAll();
+                if (rifeSuppressToggleCallback) {
+                    return;
+                }
+                // 用户的最新一次拨动说了算:跳下载页的那一下还没结算就又拨回 off,
+                // 回来时不能再按「真落了模型」把设置写成 on(界面却是 off)。
+                rifeAwaitingModel = false;
                 if (isChecked && !ceui.pixiv.ui.interpolate.RifeInterpolator.INSTANCE.isAvailable(mContext)) {
+                    // 模型缺失:不落盘、不弹 toast,先跳下载页,回来再结算。
+                    rifeAwaitingModel = true;
                     android.content.Intent intent =
                             new android.content.Intent(mContext, ceui.lisa.activities.TemplateActivity.class);
                     intent.putExtra(ceui.lisa.activities.TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RIFE_MODEL_DOWNLOAD.key);
                     intent.putExtra("rife_model_name", ceui.pixiv.ui.interpolate.RifeModel.RIFE_V4_6.name());
                     startActivity(intent);
+                    return;
                 }
+                applyUgoiraRifeEnable(isChecked);
+                Common.showToast(getString(R.string.string_428));
             }
         });
         baseBind.ugoiraRifeEnableRela.setOnClickListener(v -> baseBind.ugoiraRifeEnable.performClick());
@@ -581,6 +602,45 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         if (autoAdjustHandler != null && autoAdjustRunnable != null) {
             autoAdjustHandler.removeCallbacks(autoAdjustRunnable);
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        settlePendingRifeToggle();
+    }
+
+    /**
+     * 从 RIFE 模型下载页回来时结算开关:模型真落盘 → 这时才把设置落盘并弹「设置成功」;
+     * 没落盘(用户没下/下载失败/中途取消) → 设置保持关闭(不落盘),界面开关拨回 off 且不弹 toast。
+     */
+    private void settlePendingRifeToggle() {
+        if (!rifeAwaitingModel) {
+            return;
+        }
+        rifeAwaitingModel = false;
+        if (ceui.pixiv.ui.interpolate.RifeInterpolator.INSTANCE.isAvailable(mContext)) {
+            // 模型真落盘了,此刻才允许把「开关开」写进设置。
+            applyUgoiraRifeEnable(true);
+            Common.showToast(getString(R.string.string_428));
+            return;
+        }
+        if (rootView != null) {
+            rifeSuppressToggleCallback = true;
+            baseBind.ugoiraRifeEnable.setChecked(false);
+            rifeSuppressToggleCallback = false;
+        }
+    }
+
+    /**
+     * 落盘 RIFE 开关并让补帧产物缓存失效。只在「模型确已在位」或「明确关闭」时调用,
+     * 以保证设置里的 on 一定对应模型已落盘。
+     */
+    private void applyUgoiraRifeEnable(boolean enabled) {
+        // 落设备本地 MMKV(不进 Settings ⇒ 不进备份 / 云端),所以不需要 Local.setSettings。
+        ceui.pixiv.ui.interpolate.RifePrefs.setEnabled(enabled);
+        // 内存里可能记着旧变体(原速/补帧)的 gif,清掉,下次播放按新开关重取。
+        ceui.pixiv.ui.bulk.UgoiraEngine.invalidateAll();
     }
 
     @Override
