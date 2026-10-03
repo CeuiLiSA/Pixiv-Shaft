@@ -22,6 +22,7 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.pixiv.ui.search.SortType;
 import ceui.pixiv.ui.settings.AiBlockExemptAuthorsSheet;
+import ceui.pixiv.ui.settings.FilterBookmarkedDialog;
 import ceui.pixiv.ui.history.CloudHistoryConsent;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.ui.navigation.TemplateRoute;
@@ -127,28 +128,11 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                 this,
                 (requestKey, result) -> renderAiBlockSubOptions());
 
-        baseBind.filterRankBookmarked.setChecked(Shaft.sSettings.isFilterRankBookmarked());
-        baseBind.filterRankBookmarked.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Shaft.sSettings.setFilterRankBookmarked(isChecked);
-                Common.showToast(getString(R.string.string_428), 2);
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-        baseBind.filterRankBookmarkedRela.setOnClickListener(v ->
-                baseBind.filterRankBookmarked.performClick());
-
-        baseBind.deleteStarIllust.setChecked(Shaft.sSettings.isDeleteStarIllust());
-        baseBind.deleteStarIllust.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Shaft.sSettings.setDeleteStarIllust(isChecked);
-                Common.showToast(getString(R.string.string_428), 2);
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-        baseBind.deleteStarIllustRela.setOnClickListener(v -> baseBind.deleteStarIllust.performClick());
+        // 「过滤已收藏」统一入口：排行榜 / 动态页 / 搜索页三处收进同一个 witstudio 弹窗，
+        // 旧字段（filterRankBookmarked / deleteStarIllust）保留，变的只是交互入口。
+        renderFilterBookmarkedSummary();
+        baseBind.filterBookmarkedRela.setOnClickListener(v ->
+                FilterBookmarkedDialog.show(mContext, this::onFilterBookmarkedChanged));
 
         // 小说列表自动屏蔽：正文字数下限/上限 + 超长标签名（issue #743）。
         // 三项默认 0（关闭）——升级上来的用户列表不会无声变短；点开时按建议值预填。
@@ -298,6 +282,26 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SYNONYM_DICT.key);
             startActivity(intent);
         });
+    }
+
+    /** 弹窗「确定」后回调：先弹一次设置成功提示，再刷新入口行摘要（与同页其它开关一致）。 */
+    private void onFilterBookmarkedChanged() {
+        Common.showToast(getString(R.string.string_428), 2);
+        renderFilterBookmarkedSummary();
+    }
+
+    /**
+     * 「过滤已收藏」入口行右侧摘要：显示当前启用的页面数，三处全关时显示「不过滤」。
+     * 排行榜默认开启，所以全新安装通常显示「已启用 1 项」。
+     */
+    private void renderFilterBookmarkedSummary() {
+        int count = 0;
+        if (Shaft.sSettings.isFilterRankBookmarked()) count++;
+        if (Shaft.sSettings.isDeleteStarIllust()) count++;
+        if (Shaft.sSettings.isSearchFilterBookmarked()) count++;
+        baseBind.filterBookmarked.setText(count == 0
+                ? getString(R.string.filter_bookmarked_none)
+                : getString(R.string.filter_bookmarked_summary, count));
     }
 
     private void renderAiBlockSubOptions() {

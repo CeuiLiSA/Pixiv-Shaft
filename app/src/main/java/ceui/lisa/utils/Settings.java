@@ -194,6 +194,10 @@ public class Settings {
     //排行榜过滤已收藏的作品，默认过滤
     private boolean filterRankBookmarked = true;
 
+    //搜索页过滤已收藏的作品，默认不过滤。
+    //入口在设置页「过滤已收藏」弹窗与搜索筛选「其他条件」，过滤在搜索数据源建条目时现读。
+    private boolean searchFilterBookmarked = false;
+
     //屏蔽，不显示AI创作的作品，默认不屏蔽
     private boolean deleteAIIllust = false;
 
@@ -676,6 +680,14 @@ public class Settings {
 
     public void setFilterRankBookmarked(boolean filterRankBookmarked) {
         this.filterRankBookmarked = filterRankBookmarked;
+    }
+
+    public boolean isSearchFilterBookmarked() {
+        return searchFilterBookmarked;
+    }
+
+    public void setSearchFilterBookmarked(boolean searchFilterBookmarked) {
+        this.searchFilterBookmarked = searchFilterBookmarked;
     }
 
     public boolean isDeleteAIIllust() {

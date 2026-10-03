@@ -106,6 +106,7 @@ object SearchFilterV3LegacyBridge {
      *  - `r18Restriction`        → R18Mode（0/1/2 ↔ All/SafeOnly/R18Only）
      *  - AI 三档：「屏蔽AI」由 [ceui.lisa.activities.Shaft.sSettings.isDeleteAIIllust] 全局读（baseline）；
      *    「仅看AI」是临时维度，不入设置，存在 [SearchModel.onlyAi] 会话态里，这里读回来还原档位。
+     *  - bookmarkFilter：与设置页同一个全局开关（isSearchFilterBookmarked），SearchModel 无对应字段，恒取 baseline。
      */
     private fun seedFromLegacy(searchModel: SearchModel, isNovel: Boolean): SearchFilterV3 {
         // baseline = Shaft.sSettings 三项偏好；下面任一字段在 SearchModel 里有值就 override，
@@ -197,6 +198,9 @@ object SearchFilterV3LegacyBridge {
             resolutionBucket = resolution,
             contentType = contentType,
             bodyLength = bodyLength,
+            // 过滤已收藏：与设置页同一个全局开关，SearchModel 没有对应字段，恒取 baseline。
+            //（seedFromLegacy 是整份替换 VM 的 filter，漏了它勾选就会掉回「不过滤」。）
+            bookmarkFilter = baseline.bookmarkFilter,
         )
     }
 

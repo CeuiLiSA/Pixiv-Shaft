@@ -124,7 +124,7 @@ object SettingsCatalog {
         // 下两行只在「不显示AI生成的作品」开着时可见；关着时 maybeHighlight 会自动跳过滚动/闪烁
         add(Entry(BROWSING, "ai_block_strength_rela", R.string.ai_block_strength, keywords = "ai 屏蔽 效果 级别 强度 模糊 粒子 打码 完全不显示 blur"))
         add(Entry(BROWSING, "ai_block_exempt_rela", R.string.ai_block_exempt_authors, keywords = "ai 屏蔽 豁免 白名单 作者 画师 例外 放行 exempt whitelist author"))
-        add(Entry(BROWSING, "filter_rank_bookmarked_rela", R.string.filter_rank_bookmarked, keywords = "排行榜 已收藏 过滤 去重 rank"))
+        add(Entry(BROWSING, "filter_bookmarked_rela", R.string.filter_bookmarked_title, keywords = "已收藏 过滤 去重 排行榜 动态 搜索 rank following search bookmark"))
         add(Entry(BROWSING, "novel_filter_min_text_length_rela", R.string.novel_filter_min_text_length, R.string.novel_filter_min_text_length_desc, keywords = "小说 字数 太短 过短 屏蔽 刷屏 广告 spam novel length"))
         add(Entry(BROWSING, "novel_filter_max_text_length_rela", R.string.novel_filter_max_text_length, R.string.novel_filter_max_text_length_desc, keywords = "小说 字数 太长 过长 屏蔽 spam novel length"))
         add(Entry(BROWSING, "novel_filter_max_tag_name_length_rela", R.string.novel_filter_max_tag_name_length, R.string.novel_filter_max_tag_name_length_desc, keywords = "小说 标签 tag 超长 过长 屏蔽 广告 刷屏 spam"))
@@ -135,7 +135,6 @@ object SettingsCatalog {
         add(Entry(BROWSING, "search_exit_confirm_rela", R.string.search_exit_confirm, R.string.search_exit_confirm_desc, keywords = "退出 返回 误触 二次确认 确认退出 弹窗 back exit confirm"))
         // 别名按整串子串匹配（同上），「回到顶部」「回顶刷新」「悬浮按钮」这些连写说法各铺一遍
         add(Entry(BROWSING, "feed_back_to_top_fab_rela", R.string.feed_back_to_top_fab, R.string.feed_back_to_top_fab_desc, keywords = "回顶 回到顶部 置顶 回顶刷新 刷新 悬浮按钮 悬浮球 浮动按钮 圆形按钮 搜索结果 画师主页 作者页 fab back to top scroll top refresh floating button"))
-        add(Entry(BROWSING, "delete_star_illust_rela", R.string.delete_star_illust, keywords = "动态 已收藏 过滤 去重"))
         add(Entry(BROWSING, "synonym_dict_enable_rela", R.string.synonym_dict_enable, keywords = "同义词 词典 别名 标签翻译 synonym"))
         add(Entry(BROWSING, "synonym_dict_rela", R.string.synonym_dict_title, keywords = "同义词 词典 管理 导入 导出 合并 synonym"))
 

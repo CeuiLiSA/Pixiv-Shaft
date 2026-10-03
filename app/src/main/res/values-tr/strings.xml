@@ -162,6 +162,13 @@
     <string name="show_original_image">Orijinal resmi kullan</string>
     <string name="delete_star_illust">Takip akışında favorilere eklenen eserleri gizle</string>
     <string name="filter_rank_bookmarked">Sıralamada yer imlerine eklenmiş eserleri filtrele</string>
+    <string name="filter_bookmarked_title">Yer imlerine eklenenleri gizle</string>
+    <string name="filter_bookmarked_rank">Sıralamada</string>
+    <string name="filter_bookmarked_following">Takip akışında</string>
+    <string name="filter_bookmarked_search">Arama sonuçlarında</string>
+    <string name="filter_bookmarked_none">Filtre yok</string>
+    <string name="filter_bookmarked_summary">%1$d etkin</string>
+    <string name="filter_bookmarked_dialog_hint">Yer imlerine eklenmiş eserlerin gizleneceği yerleri seçin</string>
     <string name="save_view_history">Geçmişi kaydet</string>
     <string name="single_download_task">Sıralı indirme (Aynı anda tek dosya)</string>
     <string name="double_stagger_data">Çift sütunlu akış görünümü</string>
@@ -1919,6 +1926,9 @@
     <string name="search_filter_v3_date_clear">Temizle</string>
     <string name="search_filter_v3_ai_exclude">YZ eserlerini gizle</string>
     <string name="search_filter_v3_ai_exclude_desc">«Ayarlar → YZ eserlerini gizle» ile senkron</string>
+    <string name="search_filter_v3_section_bookmark_filter">Yer imlerini gizle</string>
+    <string name="search_filter_v3_bookmark_filter_all">Filtre yok</string>
+    <string name="search_filter_v3_bookmark_filter_only">Filtrele</string>
     <string name="search_filter_v3_section_ai">YZ eserleri</string>
     <string name="search_filter_v3_ai_all">Tümü</string>
     <string name="search_filter_v3_ai_only">Yalnızca YZ</string>

@@ -162,6 +162,13 @@
     <string name="show_original_image">圖片詳情展示原圖</string>
     <string name="delete_star_illust">動態過濾已收藏</string>
     <string name="filter_rank_bookmarked">排行榜過濾已收藏</string>
+    <string name="filter_bookmarked_title">過濾已收藏</string>
+    <string name="filter_bookmarked_rank">對排行榜過濾</string>
+    <string name="filter_bookmarked_following">對動態頁過濾</string>
+    <string name="filter_bookmarked_search">對搜尋頁過濾</string>
+    <string name="filter_bookmarked_none">不過濾</string>
+    <string name="filter_bookmarked_summary">已啟用 %1$d 項</string>
+    <string name="filter_bookmarked_dialog_hint">選擇在哪些頁面隱藏已收藏的作品</string>
     <string name="save_view_history">保存瀏覽歷史</string>
     <string name="single_download_task">保持一個任務在下載中（保證下載順序）</string>
     <string name="double_stagger_data">動態頁面雙列瀑布流</string>
@@ -1921,6 +1928,9 @@
     <string name="search_filter_v3_date_clear">清除</string>
     <string name="search_filter_v3_ai_exclude">不顯示 AI 作品</string>
     <string name="search_filter_v3_ai_exclude_desc">與「設定 → 不顯示 AI 作品」連動</string>
+    <string name="search_filter_v3_section_bookmark_filter">過濾已收藏</string>
+    <string name="search_filter_v3_bookmark_filter_all">不過濾</string>
+    <string name="search_filter_v3_bookmark_filter_only">過濾</string>
     <string name="search_filter_v3_section_ai">AI 作品</string>
     <string name="search_filter_v3_ai_all">全部</string>
     <string name="search_filter_v3_ai_only">僅 AI 作品</string>

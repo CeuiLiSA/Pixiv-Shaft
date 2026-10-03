@@ -162,6 +162,13 @@
     <string name="show_original_image">사진 상세 전시 원 도</string>
     <string name="delete_star_illust">팔로우 피드에서 북마크한 작품 숨기기</string>
     <string name="filter_rank_bookmarked">랭킹에서 북마크한 작품 제외</string>
+    <string name="filter_bookmarked_title">북마크한 작품 숨기기</string>
+    <string name="filter_bookmarked_rank">랭킹에서 제외</string>
+    <string name="filter_bookmarked_following">팔로우 피드에서 제외</string>
+    <string name="filter_bookmarked_search">검색 결과에서 제외</string>
+    <string name="filter_bookmarked_none">필터 안 함</string>
+    <string name="filter_bookmarked_summary">%1$d개 사용 중</string>
+    <string name="filter_bookmarked_dialog_hint">북마크한 작품을 숨길 화면 선택</string>
     <string name="save_view_history">브 라 우 징 기록 저장</string>
     <string name="single_download_task">한 작업 을 다운로드 중 으로 유지 합 니 다 (다운로드 순 서 를 보장 합 니 다)</string>
     <string name="double_stagger_data">동적 페이지 쌍 열 폭포 흐름</string>
@@ -1919,6 +1926,9 @@
     <string name="search_filter_v3_date_clear">지우기</string>
     <string name="search_filter_v3_ai_exclude">AI 작품 숨기기</string>
     <string name="search_filter_v3_ai_exclude_desc">「설정 → AI 작품 숨기기」와 연동</string>
+    <string name="search_filter_v3_section_bookmark_filter">북마크한 작품 숨기기</string>
+    <string name="search_filter_v3_bookmark_filter_all">필터 안 함</string>
+    <string name="search_filter_v3_bookmark_filter_only">필터</string>
     <string name="search_filter_v3_section_ai">AI 작품</string>
     <string name="search_filter_v3_ai_all">전체</string>
     <string name="search_filter_v3_ai_only">AI만</string>

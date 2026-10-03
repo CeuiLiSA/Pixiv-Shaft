@@ -162,6 +162,13 @@
     <string name="show_original_image">オリジナルの画質で表示</string>
     <string name="delete_star_illust">フォロー新着でブックマーク済みの作品を非表示</string>
     <string name="filter_rank_bookmarked">ランキングでブックマーク済み作品を除外</string>
+    <string name="filter_bookmarked_title">ブックマーク済みを除外</string>
+    <string name="filter_bookmarked_rank">ランキングで除外</string>
+    <string name="filter_bookmarked_following">フォロー新着で除外</string>
+    <string name="filter_bookmarked_search">検索結果で除外</string>
+    <string name="filter_bookmarked_none">フィルタなし</string>
+    <string name="filter_bookmarked_summary">%1$d 件有効</string>
+    <string name="filter_bookmarked_dialog_hint">ブックマーク済みの作品を非表示にする画面を選択</string>
     <string name="save_view_history">閲覧履歴を保存</string>
     <string name="single_download_task">一つのタスクをダウンロードに保つ（ダウンロード順序を保証）</string>
     <string name="double_stagger_data">フィードの列を2列にする</string>
@@ -1919,6 +1926,9 @@
     <string name="search_filter_v3_date_clear">クリア</string>
     <string name="search_filter_v3_ai_exclude">AI 作品を非表示</string>
     <string name="search_filter_v3_ai_exclude_desc">「設定 → AI 作品を非表示」と連動</string>
+    <string name="search_filter_v3_section_bookmark_filter">ブックマーク済みを除外</string>
+    <string name="search_filter_v3_bookmark_filter_all">フィルタなし</string>
+    <string name="search_filter_v3_bookmark_filter_only">フィルタする</string>
     <string name="search_filter_v3_section_ai">AI 作品</string>
     <string name="search_filter_v3_ai_all">すべて</string>
     <string name="search_filter_v3_ai_only">AI のみ</string>

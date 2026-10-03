@@ -195,6 +195,14 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         binding.dividerContentType.isVisible = !isNovel
         binding.rowContentType.root.isVisible = !isNovel
 
+        // 「过滤已收藏」真值是全局 isSearchFilterBookmarked，illust / novel 两份 filter 里只是镜像：
+        // 另一个 tab 的「其他条件」或设置页改过它，这份镜像就旧了。打开时对齐，否则摘要显示错，
+        // 且「其他条件」以旧值做草稿，确定时会把全局开关写回旧值。
+        val bookmarkFilter = Shaft.sSettings.isSearchFilterBookmarked
+        if (currentFilter().bookmarkFilter != bookmarkFilter) {
+            updateFilter { it.copy(bookmarkFilter = bookmarkFilter) }
+        }
+
         registerPickerListeners(viewLifecycleOwner)
         renderRows()
         ensureSearchOptionsLoaded()
@@ -356,6 +364,7 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
                     isReplaceableOnly = patch.isReplaceableOnly,
                     tool = patch.tool,
                     groupBySeries = patch.groupBySeries,
+                    bookmarkFilter = patch.bookmarkFilter,
                 )
             }
         }
@@ -587,6 +596,13 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
             R18Mode.SafeOnly -> flags += getString(R.string.search_filter_v3_r18_safe)
             R18Mode.R18Only  -> flags += getString(R.string.search_filter_v3_r18_only)
             R18Mode.All -> Unit
+        }
+        // 过滤已收藏：与全局设置联动，开着就上 summary（illust / novel 两种模式都适用）。
+        // 这里取**卡片标题**而不是卡片里的选项文案——选项是「过滤 / 不过滤」二选一，单拎
+        // 一个「过滤」上摘要读者不知道在过滤什么（同 r18 那两档直接用选项文案是因为
+        // 「仅安全 / 仅 R-18」本身自带主语）。
+        if (filter.bookmarkFilter) {
+            flags += getString(R.string.search_filter_v3_section_bookmark_filter)
         }
         // illust 专属:制图工具(也搬进了「其他条件」sheet);非「不限」就上 summary
         if (!isNovel) filter.tool?.let { flags += it }
