@@ -2,6 +2,7 @@ package ceui.lisa.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.Gravity
 import android.view.View
 import android.widget.CompoundButton
@@ -44,11 +45,13 @@ import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.imageloader.PageImageSourceResolver
 import ceui.pixiv.imageloader.awaitFile
 import ceui.pixiv.services.appServices
+import ceui.pixiv.snapshot.AutoSnapshotEngine
 import ceui.pixiv.snapshot.AutoSnapshotRepository
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
 import ceui.pixiv.snapshot.SnapshotRuntimeCache
 import ceui.pixiv.snapshot.SnapshotViewerData
+import ceui.pixiv.snapshot.ViewerBrowsingTracker
 import ceui.pixiv.snapshot.localizeIllust
 import ceui.pixiv.ui.detail.DownloadFab
 import ceui.pixiv.ui.detail.V3FabBarController
@@ -113,6 +116,12 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     /** 上一次广播出去的大图页，用来去掉 onPageSelected 与 IDLE 对同一页的重复广播。 */
     private var lastPublishedPage = -1
+
+    /**
+     * 二级大图会话的浏览观测（每页驻留 + 是否缩放过 + 覆盖率）；只在「二级详情」且自动快照
+     * 开启时装配，会话结束时只写不消费。见 [setupViewerBrowsingTracker] / [settleViewerBrowsing]。
+     */
+    private var viewerTracker: ViewerBrowsingTracker? = null
     private val viewModel by viewModels<ToggleToolnarViewModel>()
 
     /** 小红书式全屏弹窗转场(进场展开/竖向拖拽跟手/收场缩回),见 [ImageViewerTransition]。 */
@@ -284,6 +293,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
                         override fun onPageSelected(i: Int) {
                             publishViewerPage(i)
+                            // 二级大图浏览观测：翻页把上一页的驻留结掉、从这一页接着走。
+                            viewerTracker?.onPageVisible(i, SystemClock.elapsedRealtime())
                             checkDownload(i)
                             currentPage?.setText(
                                 String.format(
@@ -313,6 +324,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     )
                 )
             }
+            setupViewerBrowsingTracker(mIllust!!)
         } else if (ceui.pixiv.plaza.ui.PlazaImageViewer.DATA_TYPE == dataType) {
             setupPlazaViewer()
         } else if (isSnapshotMode) {
@@ -1112,6 +1124,19 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         transition.playExit(backToBounds, exitDirection, exitScreenBounds) { mActivity.finish() }
     }
 
+    /**
+     * 二级大图浏览观测只在宿主可见时走表：切后台 / 被上层页压住时停表，回来接着算同一段。
+     */
+    override fun onStart() {
+        super.onStart()
+        viewerTracker?.resume(SystemClock.elapsedRealtime())
+    }
+
+    override fun onStop() {
+        viewerTracker?.suspend(SystemClock.elapsedRealtime())
+        super.onStop()
+    }
+
     override fun onDestroy() {
         // 用户返回退出页面时立刻停掉翻译流水线并弹「翻译已取消」:
         // 不 cancel 的话 Google/AI 的阻塞 HTTP 会继续跑到超时,晚到的异常
@@ -1120,7 +1145,40 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         if (isFinishing) {
             translationViewModel.cancelActiveWorkflow()
         }
+        // 二级大图会话结束：结算逐页浏览观测（只写不消费）。旋屏重建不算结束，避免把一次会话切成两段。
+        if (!isChangingConfigurations) {
+            settleViewerBrowsing()
+        }
         super.onDestroy()
+    }
+
+    /**
+     * 二级大图会话的观测装配：只在「二级详情」且「插画/漫画自动生成快照」开启时接。
+     *
+     * 初始页要显式补一次：ViewPager.currentItem 在挂 OnPageChangeListener 之前就设好了，
+     * onPageSelected 不会为初始页回调。
+     */
+    private fun setupViewerBrowsingTracker(illust: Illust) {
+        if (!Shaft.sSettings.isAutoSnapshotOnIllustManga) return
+        if (illust.isGif() || illust.page_count <= 0) return
+        val tracker = ViewerBrowsingTracker(pageCount = illust.page_count)
+        viewerTracker = tracker
+        tracker.onPageVisible(baseBind!!.viewPager.currentItem, SystemClock.elapsedRealtime())
+    }
+
+    /** 会话结束：把逐页浏览观测交给引擎（引擎再按开关决定是否落盘）。 */
+    private fun settleViewerBrowsing() {
+        val tracker = viewerTracker ?: return
+        viewerTracker = null
+        val illust = mIllust ?: return
+        val pages = tracker.finish(SystemClock.elapsedRealtime(), System.currentTimeMillis())
+        if (pages.isEmpty()) return
+        AutoSnapshotEngine.onViewerSessionEnd(illust.id.toLong(), pages, illust.page_count)
+    }
+
+    /** [FragmentImageDetail] 观察到当前页离开初始缩放时回调；只观测，不做消费。 */
+    fun onViewerPageZoomed(page: Int) {
+        viewerTracker?.onPageZoomed(page)
     }
 
     private fun performAiRembg(illust: Illust, pageIndex: Int, model: RembgModel) {

@@ -38,6 +38,12 @@ object AutoSnapshotBehaviorStore {
     /** 单个作品最多保留的最近停留样本数量。 */
     internal const val MAX_RECENT_DWELLS = 8
 
+    /** 单个作品最多保留的二级大图逐页浏览样本数量。 */
+    internal const val MAX_RECENT_VIEWER_PAGES = 32
+
+    /** 单个作品最多保留的二级大图会话覆盖率样本数量。 */
+    internal const val MAX_RECENT_VIEWER_SESSIONS = 8
+
     /** 整个行为库最多保留的作品记录数，超出后删除最久未活跃的作品。 */
     internal const val MAX_RECORDS = 1000
     private const val PRUNE_INTERVAL_MS = 60L * 60 * 1000
@@ -45,6 +51,9 @@ object AutoSnapshotBehaviorStore {
 
     const val SIGNAL_DWELL = "dwell"
     const val SIGNAL_REVISIT = "revisit"
+
+    /** 触发来源：行为评分达到 [AutoSnapshotScoring.SCORE_THRESHOLD]。 */
+    const val SIGNAL_SCORE = "score"
 
     /**
      * MMKV 实例。独立命名空间；初始化失败时降级为 null，本次进程不再落盘，
@@ -56,15 +65,26 @@ object AutoSnapshotBehaviorStore {
             .getOrNull()
     }
 
-    /** 记录一次打开（onResume / 页面真正可见时调用）。 */
+    /**
+     * 记录一次打开（onResume / 页面真正可见时调用）。
+     *
+     * [pageCount] 供评分按作品体量归一化驻留分；未知时传 0（评分回落到旧的 60s 半饱和点）。
+     */
     @Synchronized
-    fun recordVisit(illustId: Long, type: String?, now: Long = System.currentTimeMillis()) {
+    fun recordVisit(
+        illustId: Long,
+        type: String?,
+        pageCount: Int = 0,
+        now: Long = System.currentTimeMillis(),
+    ) {
         val s = store ?: return
         if (illustId <= 0L || !ensureSchema(s)) return
         val key = key(illustId)
         val old = load(s, key, illustId)
         val base = old ?: AutoSnapshotBehaviorRecord(illustId = illustId, type = type)
-        val merged = (if (type != null) base.copy(type = type) else base).withVisit(now)
+        val merged = (if (type != null) base.copy(type = type) else base)
+            .withPageCount(pageCount)
+            .withVisit(now)
         save(s, key, merged, now)
     }
 
@@ -80,11 +100,35 @@ object AutoSnapshotBehaviorStore {
         save(s, key, merged, now)
     }
 
+    /**
+     * 记录一次二级大图会话的观测：逐页浏览样本（页号 + 驻留 + 是否缩放）+ 本次覆盖率。
+     *
+     * **只观测不消费**：不参与任何触发 / 生成判定，与 [recordDwell] 一样受窗口与上限约束。
+     */
+    @Synchronized
+    fun recordViewerSession(
+        illustId: Long,
+        pages: List<AutoSnapshotViewerPageSample>,
+        pageCount: Int,
+        viewedPages: Int,
+        now: Long = System.currentTimeMillis(),
+    ) {
+        val s = store ?: return
+        if (illustId <= 0L || pageCount <= 0 || viewedPages <= 0 || pages.isEmpty()) return
+        if (!ensureSchema(s)) return
+        val key = key(illustId)
+        val old = load(s, key, illustId)
+        val merged = (old ?: AutoSnapshotBehaviorRecord(illustId = illustId))
+            .withViewerSession(pages = pages, pageCount = pageCount, viewedPages = viewedPages, now = now)
+        save(s, key, merged, now)
+    }
+
     /** 标记该作品已经生成过一次自动快照，供观察/节流/淘汰后续使用。 */
     @Synchronized
     fun markAutoSnapshotGenerated(
         illustId: Long,
         signal: String? = null,
+        score: Int? = null,
         now: Long = System.currentTimeMillis(),
     ) {
         val s = store ?: return
@@ -92,7 +136,7 @@ object AutoSnapshotBehaviorStore {
         val key = key(illustId)
         val old = load(s, key, illustId)
         val merged = (old ?: AutoSnapshotBehaviorRecord(illustId = illustId))
-            .withAutoSnapshot(now = now, signal = signal)
+            .withAutoSnapshot(now = now, signal = signal, score = score)
         save(s, key, merged, now)
     }
 
@@ -217,11 +261,22 @@ object AutoSnapshotBehaviorStore {
             // null 元素都可能解析成功。只向上层交付已经恢复非空不变式的有界记录。
             val visits: List<Long?>? = record.recentVisits
             val dwells: List<AutoSnapshotDwellSample?>? = record.recentDwells
+            val viewerPages: List<AutoSnapshotViewerPageSample?>? = record.recentViewerPages
+            val viewerSessions: List<AutoSnapshotViewerSessionSample?>? = record.recentViewerSessions
             record.copy(
+                pageCount = record.pageCount.coerceAtLeast(0),
+                lastTriggerScore = record.lastTriggerScore.coerceIn(0, 100),
                 recentVisits = visits.orEmpty().filterNotNull().take(MAX_RECENT_VISITS),
                 recentDwells = dwells.orEmpty().filterNotNull()
                     .filter { it.ms > 0L }
                     .take(MAX_RECENT_DWELLS),
+                recentViewerPages = viewerPages.orEmpty().filterNotNull()
+                    .filter { it.page >= 0 && it.ms > 0L }
+                    .take(MAX_RECENT_VIEWER_PAGES),
+                recentViewerSessions = viewerSessions.orEmpty().filterNotNull()
+                    .filter { it.pageCount > 0 && it.viewedPages > 0 }
+                    .map { it.copy(viewedPages = it.viewedPages.coerceAtMost(it.pageCount)) }
+                    .take(MAX_RECENT_VIEWER_SESSIONS),
             )
         } catch (e: Exception) {
             null
@@ -238,17 +293,38 @@ object AutoSnapshotBehaviorStore {
 data class AutoSnapshotBehaviorRecord(
     val illustId: Long,
     val type: String? = null,
+    /** 作品总页数；供评分按体量归一化。0 = 未知（从没开过二级大图）。 */
+    val pageCount: Int = 0,
     val recentVisits: List<Long> = emptyList(),
     val visitCount: Int = 0,
     val lastDwellMs: Long = 0L,
     val recentDwells: List<AutoSnapshotDwellSample> = emptyList(),
+    val recentViewerPages: List<AutoSnapshotViewerPageSample> = emptyList(),
+    val recentViewerSessions: List<AutoSnapshotViewerSessionSample> = emptyList(),
     val lastAutoSnapshotAt: Long = 0L,
     val lastTriggerSignal: String? = null,
+    /** 触发时的评分（0–100）；未触发过为 0。 */
+    val lastTriggerScore: Int = 0,
     val schemaVersion: Int = AutoSnapshotBehaviorStore.SCHEMA_VERSION,
 ) {
 
     /** 窗口内累计停留毫秒数（由 [recentDwells] 推导，Gson 不会持久化这个计算属性）。 */
     val dwellAccumMs: Long get() = recentDwells.sumOf { it.ms }
+
+    /** 最近一次二级大图会话的浏览覆盖率（看过的页数 / 总页数）；无会话或页数非法时为 null。 */
+    val lastViewerCoverage: Float?
+        get() = recentViewerSessions
+            .maxByOrNull { it.at }
+            ?.takeIf { it.pageCount > 0 }
+            ?.let { it.viewedPages.toFloat() / it.pageCount }
+
+    /** 最近一次二级大图会话；无会话时为 null。评分取它算覆盖 / 细看 / 放大。 */
+    val latestViewerSession: AutoSnapshotViewerSessionSample?
+        get() = recentViewerSessions.maxByOrNull { it.at }
+
+    /** 记录作品总页数；未知（≤0）时不覆盖已有值，避免把已知页数重置成 0。 */
+    fun withPageCount(pageCount: Int): AutoSnapshotBehaviorRecord =
+        if (pageCount > 0) copy(pageCount = pageCount) else this
 
     /** 记录一次打开，并裁剪到窗口 + 上限。 */
     fun withVisit(now: Long, windowMs: Long = AutoSnapshotBehaviorStore.WINDOW_MS): AutoSnapshotBehaviorRecord {
@@ -279,11 +355,42 @@ data class AutoSnapshotBehaviorRecord(
         )
     }
 
-    /** 标记已生成自动快照；可同时记录本次触发信号。 */
-    fun withAutoSnapshot(now: Long, signal: String? = null): AutoSnapshotBehaviorRecord =
-        copy(lastAutoSnapshotAt = now, lastTriggerSignal = signal ?: lastTriggerSignal)
+    /**
+     * 记录一次二级大图会话：追加逐页浏览样本与本次覆盖率样本，并裁剪到窗口 + 上限。
+     *
+     * 刻意不触碰 [lastTriggerSignal]：这是观测数据，不是触发信号。
+     */
+    fun withViewerSession(
+        pages: List<AutoSnapshotViewerPageSample>,
+        pageCount: Int,
+        viewedPages: Int,
+        now: Long,
+        windowMs: Long = AutoSnapshotBehaviorStore.WINDOW_MS,
+    ): AutoSnapshotBehaviorRecord {
+        val pageSamples = (recentViewerPages + pages)
+            .filter { now - it.at >= 0L && now - it.at <= windowMs }
+            .sortedWith(compareByDescending<AutoSnapshotViewerPageSample> { it.at }.thenBy { it.page })
+            .take(AutoSnapshotBehaviorStore.MAX_RECENT_VIEWER_PAGES)
+        val sessionSamples =
+            (recentViewerSessions + AutoSnapshotViewerSessionSample(at = now, pageCount = pageCount, viewedPages = viewedPages))
+                .filter { now - it.at >= 0L && now - it.at <= windowMs }
+                .sortedByDescending { it.at }
+                .take(AutoSnapshotBehaviorStore.MAX_RECENT_VIEWER_SESSIONS)
+        return copy(recentViewerPages = pageSamples, recentViewerSessions = sessionSamples)
+    }
 
-    /** 按当前时间裁剪访问与停留样本。 */
+    /** 标记已生成自动快照；可同时记录本次触发信号与评分。 */
+    fun withAutoSnapshot(
+        now: Long,
+        signal: String? = null,
+        score: Int? = null,
+    ): AutoSnapshotBehaviorRecord = copy(
+        lastAutoSnapshotAt = now,
+        lastTriggerSignal = signal ?: lastTriggerSignal,
+        lastTriggerScore = score ?: lastTriggerScore,
+    )
+
+    /** 按当前时间裁剪访问、停留与二级大图观测样本。 */
     fun trimmed(now: Long, windowMs: Long = AutoSnapshotBehaviorStore.WINDOW_MS): AutoSnapshotBehaviorRecord = copy(
         recentVisits = recentVisits
             .filter { now - it >= 0L && now - it <= windowMs }
@@ -293,12 +400,27 @@ data class AutoSnapshotBehaviorRecord(
             .filter { now - it.at >= 0L && now - it.at <= windowMs }
             .sortedByDescending { it.at }
             .take(AutoSnapshotBehaviorStore.MAX_RECENT_DWELLS),
+        recentViewerPages = recentViewerPages
+            .filter { now - it.at >= 0L && now - it.at <= windowMs }
+            .sortedWith(compareByDescending<AutoSnapshotViewerPageSample> { it.at }.thenBy { it.page })
+            .take(AutoSnapshotBehaviorStore.MAX_RECENT_VIEWER_PAGES),
+        recentViewerSessions = recentViewerSessions
+            .filter { now - it.at >= 0L && now - it.at <= windowMs }
+            .sortedByDescending { it.at }
+            .take(AutoSnapshotBehaviorStore.MAX_RECENT_VIEWER_SESSIONS),
     )
 
-    /** 最近一次活跃时间，用于淘汰排序；没有任何活跃信号时为 0。 */
+    /**
+     * 最近一次活跃时间，用于淘汰排序；没有任何活跃信号时为 0。
+     *
+     * 二级大图观测也算活跃：从下载列表直接进大图时不会走详情页、不会刷新 [recentVisits]，
+     * 若不计入，刚写下的观测会在同一次写入触发的 prune 里被当成过期记录删掉。
+     */
     fun newestActivityAt(): Long = maxOf(
         recentVisits.maxOrNull() ?: 0L,
         recentDwells.maxOfOrNull { it.at } ?: 0L,
+        recentViewerPages.maxOfOrNull { it.at } ?: 0L,
+        recentViewerSessions.maxOfOrNull { it.at } ?: 0L,
         lastAutoSnapshotAt,
     )
 }
@@ -307,4 +429,24 @@ data class AutoSnapshotBehaviorRecord(
 data class AutoSnapshotDwellSample(
     val at: Long,
     val ms: Long,
+)
+
+/**
+ * 二级大图里单张图的浏览样本：发生时间 + 页序号 + 该页驻留毫秒数 + 是否离开过初始缩放。
+ *
+ * [page] 为 0-based 页序号（与查看器 ViewPager 的 position 一致）；[zoomed] 归总双击 / 三档 /
+ * 增量 / 捏合 / 长按等一切「离开初始缩放」的手势，不区分缩放方式。
+ */
+data class AutoSnapshotViewerPageSample(
+    val at: Long,
+    val page: Int,
+    val ms: Long,
+    val zoomed: Boolean,
+)
+
+/** 一次二级大图会话的浏览覆盖率样本：会话结束时间 + 作品总页数 + 本次看过的不同页数。 */
+data class AutoSnapshotViewerSessionSample(
+    val at: Long,
+    val pageCount: Int,
+    val viewedPages: Int,
 )
