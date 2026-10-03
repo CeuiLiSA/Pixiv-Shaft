@@ -44,6 +44,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import ceui.pixiv.db.discovery.DiscoveryPool
+import ceui.lisa.utils.PixivOperate
 
 class NovelReaderV3ViewModel(
     val novelId: Long,
@@ -120,6 +121,8 @@ class NovelReaderV3ViewModel(
     // 混排取材（Related 搜 tag）与相关性排序都要小说元数据；LoadState 走 postValue，
     // load() 里紧接着的 maybeFetchMixIllusts 读不到 value，所以单独存一份。
     private var novel: Novel? = null
+    /** 浏览历史已记过（失败重试再走 load() 不重复记）。 */
+    private var viewHistoryRecorded = false
     private var tokens: List<ContentToken> = emptyList()
     private var imageResolver: (ContentToken) -> String? = { null }
 
@@ -156,6 +159,13 @@ class NovelReaderV3ViewModel(
                 }
                 val novel = ObjectPool.get<Novel>(novelId).value
                     ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
+                // 浏览历史：「列表直达正文」、正文里切上/下一章、系列目录跳章都不经过详情页，
+                // 只靠详情页记的话这些阅读永远进不了历史。按 VM 记一次（旋转不重复），
+                // 入库与云端上报都在 insertNovelViewHistory 里切后台。
+                if (novel != null && !viewHistoryRecorded) {
+                    viewHistoryRecorded = true
+                    PixivOperate.insertNovelViewHistory(novel)
+                }
                 // 详情页进来时已经预热了 webNovel + tokens，命中就跳过网络 +
                 // 解析。miss 就自己拉，完成后顺手回填缓存，用户下次再进秒开。
                 val cached = NovelTextCache.get(novelId)
