@@ -151,6 +151,10 @@ object SnapshotGenerator {
                 SnapshotPage(index = i, url = url, rel = "images/p$i${url.snapshotExtension()}")
             }
 
+            // 进度按「已完成页数」报，第一页落盘前不会有下一条；先报 0/N 切到图片阶段，
+            // 否则探测 + 首批下载期间弹窗一直停在「获取作品信息」。
+            progress(R.string.snapshot_progress_images, 0, pageCount)
+
             // 分拣：现在就能不联网拿到的（本地复制，可以并行）vs 要联网取回的（宽度压窄）。
             // 探测只是**乐观前置**：判「要联网」的页最终也可能命中 Glide 磁盘缓存、一个请求都不发。
             val localFiles = parallelMapOrdered(pages, PROBE_PARALLELISM) { ImageLoaderV3.peekCachedFile(it.url) }
