@@ -133,11 +133,11 @@ object NovelAutoDownload {
                     Toaster.show(context.getString(R.string.msg_export_success, result.displayPath))
                 }
             }
-            // 覆盖策略是「跳过已存在」时这里也会走到（openRaw 返回 null），属正常情况，
-            // 所以只记日志不提示。
             is ExportResult.Failure -> Timber.tag(TAG).w(
                 result.cause, "auto download rejected, novel=%d reason=%s", novel.id, result.message
             )
+            // 覆盖策略是「跳过已存在」，属正常情况，不提示。
+            is ExportResult.Skipped -> Unit
         }
     }
 

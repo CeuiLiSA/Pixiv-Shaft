@@ -1322,6 +1322,7 @@
     <string name="msg_export_start">%s 내보내기 중…</string>
     <string name="msg_export_success">%s 로 내보냈습니다</string>
     <string name="msg_export_fail">내보내기 실패: %s</string>
+    <string name="msg_export_skipped">파일이 이미 있어 건너뛰었습니다: %s</string>
     <string name="msg_operation_fail">작업 실패: %s</string>
     <string name="msg_load_fail">로드 실패</string>
     <string name="msg_parse_fail">HTML 파싱 실패</string>

@@ -1432,6 +1432,7 @@
     <string name="msg_export_start">开始导出 %s…</string>
     <string name="msg_export_success">已导出到 %s</string>
     <string name="msg_export_fail">导出失败：%s</string>
+    <string name="msg_export_skipped">文件已存在，已跳过：%s</string>
     <string name="msg_operation_fail">操作失败：%s</string>
     <string name="msg_load_fail">加载失败</string>
     <string name="msg_parse_fail">解析 HTML 失败</string>

@@ -47,4 +47,7 @@ sealed class ExportResult {
      */
     data class Success(val uri: Uri, val displayPath: String, val format: ExportFormat) : ExportResult()
     data class Failure(val message: String, val cause: Throwable? = null) : ExportResult()
+
+    /** 目标已存在且覆盖策略是「已存在则跳过」：没写，但也不是失败。 */
+    data class Skipped(val displayPath: String) : ExportResult()
 }

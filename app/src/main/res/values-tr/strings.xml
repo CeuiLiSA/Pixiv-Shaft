@@ -1322,6 +1322,7 @@
     <string name="msg_export_start">%s dışa aktarılıyor…</string>
     <string name="msg_export_success">%s konumuna aktarıldı</string>
     <string name="msg_export_fail">Dışa aktarma başarısız: %s</string>
+    <string name="msg_export_skipped">Dosya zaten var, atlandı: %s</string>
     <string name="msg_operation_fail">İşlem başarısız: %s</string>
     <string name="msg_load_fail">Yükleme başarısız</string>
     <string name="msg_parse_fail">HTML ayrıştırma başarısız</string>

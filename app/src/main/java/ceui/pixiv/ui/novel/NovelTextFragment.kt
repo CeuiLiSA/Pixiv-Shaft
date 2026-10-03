@@ -341,6 +341,9 @@ class NovelTextFragment :
                 is ExportResult.Failure -> Toaster.show(
                     appContext.getString(R.string.msg_export_fail, result.message)
                 )
+                is ExportResult.Skipped -> Toaster.show(
+                    appContext.getString(R.string.msg_export_skipped, result.displayPath)
+                )
             }
         }
     }

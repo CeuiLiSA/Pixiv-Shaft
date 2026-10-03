@@ -1322,6 +1322,7 @@
     <string name="msg_export_start">Starting export %s…</string>
     <string name="msg_export_success">Exported to %s</string>
     <string name="msg_export_fail">Export failed: %s</string>
+    <string name="msg_export_skipped">File already exists, skipped: %s</string>
     <string name="msg_operation_fail">Operation failed: %s</string>
     <string name="msg_load_fail">Load failed</string>
     <string name="msg_parse_fail">Failed to parse HTML</string>

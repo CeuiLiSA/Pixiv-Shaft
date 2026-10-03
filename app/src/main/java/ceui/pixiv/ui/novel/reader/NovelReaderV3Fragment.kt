@@ -1102,6 +1102,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             when (val result = viewModel.exportNovel(format, allowAutoEpub)) {
                 is ExportResult.Success -> Toaster.showLong(getString(R.string.msg_export_success, result.displayPath))
                 is ExportResult.Failure -> Toaster.showLong(getString(R.string.msg_export_fail, result.message))
+                is ExportResult.Skipped -> Toaster.showLong(getString(R.string.msg_export_skipped, result.displayPath))
             }
         }
     }

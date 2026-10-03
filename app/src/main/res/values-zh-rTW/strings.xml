@@ -1324,6 +1324,7 @@
     <string name="msg_export_start">開始匯出 %s…</string>
     <string name="msg_export_success">已匯出到 %s</string>
     <string name="msg_export_fail">匯出失敗：%s</string>
+    <string name="msg_export_skipped">檔案已存在，已略過：%s</string>
     <string name="msg_operation_fail">操作失敗：%s</string>
     <string name="msg_load_fail">載入失敗</string>
     <string name="msg_parse_fail">解析 HTML 失敗</string>

@@ -78,7 +78,7 @@ class TxtExporter : NovelExporter {
         }
         val uri = ExportUtils.saveToDownloads(context, destination, format.mimeType) {
             it.write(text.toByteArray(Charsets.UTF_8))
-        } ?: return ExportResult.Failure("无法写入 Downloads")
+        } ?: return ExportResult.Skipped(destination.joinTo())
         return ExportResult.Success(uri, destination.joinTo(), format)
     }
 }

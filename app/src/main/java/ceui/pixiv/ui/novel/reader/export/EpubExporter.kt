@@ -73,7 +73,7 @@ class EpubExporter : NovelExporter {
                     deflateEntry(zip, "OEBPS/images/${img.fileName}", img.bytes)
                 }
             }
-        } ?: return ExportResult.Failure("无法写入 Downloads")
+        } ?: return ExportResult.Skipped(destination.joinTo())
 
         return ExportResult.Success(uri, destination.joinTo(), format)
     }

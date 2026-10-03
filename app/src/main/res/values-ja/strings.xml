@@ -1322,6 +1322,7 @@
     <string name="msg_export_start">%s をエクスポート中…</string>
     <string name="msg_export_success">%s にエクスポートしました</string>
     <string name="msg_export_fail">エクスポート失敗：%s</string>
+    <string name="msg_export_skipped">ファイルが既に存在するためスキップしました：%s</string>
     <string name="msg_operation_fail">操作失敗：%s</string>
     <string name="msg_load_fail">読み込み失敗</string>
     <string name="msg_parse_fail">HTML の解析に失敗しました</string>

@@ -168,7 +168,7 @@ class PdfExporter : NovelExporter {
             document.writeTo(out)
         }
         document.close()
-        if (uri == null) return ExportResult.Failure("无法写入 Downloads")
+        if (uri == null) return ExportResult.Skipped(destination.joinTo())
         return ExportResult.Success(uri, destination.joinTo(), format)
     }
 

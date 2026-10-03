@@ -1322,6 +1322,7 @@
     <string name="msg_export_start">Начинаем экспорт %s…</string>
     <string name="msg_export_success">Экспортировано в %s</string>
     <string name="msg_export_fail">Ошибка экспорта: %s</string>
+    <string name="msg_export_skipped">Файл уже существует, пропущено: %s</string>
     <string name="msg_operation_fail">Ошибка операции: %s</string>
     <string name="msg_load_fail">Не удалось загрузить</string>
     <string name="msg_parse_fail">Не удалось разобрать HTML</string>

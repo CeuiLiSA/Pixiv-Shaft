@@ -143,7 +143,7 @@ class BatchDownloadNovelsTask(
                 seriesOrder = seriesIndex,
                 seriesTotal = total,
             )) {
-                is ExportResult.Success -> Unit
+                is ExportResult.Success, is ExportResult.Skipped -> Unit
                 is ExportResult.Failure -> throw RuntimeException(result.message)
             }
             return
