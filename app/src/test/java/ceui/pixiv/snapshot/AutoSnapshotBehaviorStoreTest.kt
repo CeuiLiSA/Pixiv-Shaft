@@ -190,4 +190,114 @@ class AutoSnapshotBehaviorStoreTest {
             decoded.dwellAccumMs
         }
     }
+
+    // ---------- recordViewerSession ----------
+
+    @Test
+    fun `withViewerSession appends page and session samples`() {
+        val now = 1_000_000L
+        val record = AutoSnapshotBehaviorRecord(illustId = 5L)
+            .withViewerSession(
+                pages = listOf(
+                    AutoSnapshotViewerPageSample(at = now, page = 0, ms = 10_000L, zoomed = true),
+                    AutoSnapshotViewerPageSample(at = now, page = 1, ms = 20_000L, zoomed = false),
+                ),
+                pageCount = 4,
+                viewedPages = 2,
+                now = now,
+            )
+
+        assertEquals(2, record.recentViewerPages.size)
+        assertEquals(1, record.recentViewerSessions.size)
+        assertEquals(0.5f, record.lastViewerCoverage!!, 0.0001f)
+        // 观测不是触发信号：不能污染 lastTriggerSignal。
+        assertNull(record.lastTriggerSignal)
+    }
+
+    @Test
+    fun `withViewerSession caps and drops old samples`() {
+        val now = 10_000L
+        val old = now - AutoSnapshotBehaviorStore.WINDOW_MS - 1L
+        val record = AutoSnapshotBehaviorRecord(illustId = 1L)
+            .withViewerSession(
+                pages = listOf(AutoSnapshotViewerPageSample(at = old, page = 0, ms = 99L, zoomed = false)),
+                pageCount = 1,
+                viewedPages = 1,
+                now = old,
+            )
+            .withViewerSession(
+                pages = listOf(AutoSnapshotViewerPageSample(at = now, page = 0, ms = 5L, zoomed = true)),
+                pageCount = 1,
+                viewedPages = 1,
+                now = now,
+            )
+
+        assertEquals(1, record.recentViewerPages.size)
+        assertEquals(5L, record.recentViewerPages.first().ms)
+        assertEquals(1, record.recentViewerSessions.size)
+    }
+
+    @Test
+    fun `encode and decode roundtrip preserves viewer observations`() {
+        val original = AutoSnapshotBehaviorRecord(
+            illustId = 42L,
+            recentViewerPages = listOf(
+                AutoSnapshotViewerPageSample(at = 100L, page = 2, ms = 8_000L, zoomed = true)
+            ),
+            recentViewerSessions = listOf(
+                AutoSnapshotViewerSessionSample(at = 100L, pageCount = 5, viewedPages = 3)
+            ),
+        )
+
+        val decoded = checkNotNull(
+            AutoSnapshotBehaviorStore.decodeRecord(42L, AutoSnapshotBehaviorStore.encodeRecord(original))
+        )
+
+        assertEquals(original, decoded)
+        assertEquals(0.6f, decoded.lastViewerCoverage!!, 0.0001f)
+    }
+
+    @Test
+    fun `decodeRecord normalizes viewer nulls and clamps coverage`() {
+        val json =
+            """{"illustId":9,"schemaVersion":1,"recentViewerPages":[null,{"at":1,"page":0,"ms":3,"zoomed":true}],"recentViewerSessions":[null,{"at":1,"pageCount":4,"viewedPages":9}]}"""
+
+        val decoded = checkNotNull(AutoSnapshotBehaviorStore.decodeRecord(9L, json))
+
+        assertEquals(1, decoded.recentViewerPages.size)
+        assertEquals(1, decoded.recentViewerSessions.size)
+        // viewedPages 超过 pageCount 时按 pageCount 收敛，覆盖率不会 >1。
+        assertEquals(1f, decoded.lastViewerCoverage!!, 0.0001f)
+        decoded.trimmed(2L).newestActivityAt()
+    }
+
+    // ---------- pageCount / trigger score ----------
+
+    @Test
+    fun `withPageCount keeps the last known page count`() {
+        val record = AutoSnapshotBehaviorRecord(illustId = 1L)
+            .withPageCount(12)
+            .withPageCount(0)
+
+        assertEquals(12, record.pageCount)
+    }
+
+    @Test
+    fun `withAutoSnapshot records the trigger score`() {
+        val record = AutoSnapshotBehaviorRecord(illustId = 1L)
+            .withAutoSnapshot(now = 100L, signal = AutoSnapshotBehaviorStore.SIGNAL_SCORE, score = 72)
+
+        assertEquals(72, record.lastTriggerScore)
+        assertEquals(AutoSnapshotBehaviorStore.SIGNAL_SCORE, record.lastTriggerSignal)
+    }
+
+    @Test
+    fun `decodeRecord clamps page count and trigger score`() {
+        val json = """{"illustId":9,"schemaVersion":1,"pageCount":-3,"lastTriggerScore":999}"""
+
+        val decoded = checkNotNull(AutoSnapshotBehaviorStore.decodeRecord(9L, json))
+
+        assertEquals(0, decoded.pageCount)
+        assertEquals(100, decoded.lastTriggerScore)
+    }
 }
