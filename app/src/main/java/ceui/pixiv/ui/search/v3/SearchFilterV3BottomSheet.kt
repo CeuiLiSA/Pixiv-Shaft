@@ -195,6 +195,14 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         binding.dividerContentType.isVisible = !isNovel
         binding.rowContentType.root.isVisible = !isNovel
 
+        // 「过滤已收藏」真值是全局 isSearchFilterBookmarked，illust / novel 两份 filter 里只是镜像：
+        // 另一个 tab 的「其他条件」或设置页改过它，这份镜像就旧了。打开时对齐，否则摘要显示错，
+        // 且「其他条件」以旧值做草稿，确定时会把全局开关写回旧值。
+        val bookmarkFilter = Shaft.sSettings.isSearchFilterBookmarked
+        if (currentFilter().bookmarkFilter != bookmarkFilter) {
+            updateFilter { it.copy(bookmarkFilter = bookmarkFilter) }
+        }
+
         registerPickerListeners(viewLifecycleOwner)
         renderRows()
         ensureSearchOptionsLoaded()

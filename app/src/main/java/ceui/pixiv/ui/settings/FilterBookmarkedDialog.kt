@@ -21,7 +21,6 @@ import ceui.pixiv.witstudio.dialog.WitDialogView
  *
  * 版式对齐「预测性返回」弹窗：24dp 横向内边距、顶部 13sp 说明、扁平行（无分段底色）、
  * 行内标题左 / 开关右。改动在「确定」时才落盘，「取消」原样丢弃。
- * 搜索页开关目前只持久化状态，搜索链路尚未接线。
  */
 object FilterBookmarkedDialog {
 

@@ -195,7 +195,7 @@ public class Settings {
     private boolean filterRankBookmarked = true;
 
     //搜索页过滤已收藏的作品，默认不过滤。
-    //交互入口已统一到「过滤已收藏」弹窗；搜索链路实际接线尚未落地，此处只持久化开关状态。
+    //入口在设置页「过滤已收藏」弹窗与搜索筛选「其他条件」，过滤在搜索数据源建条目时现读。
     private boolean searchFilterBookmarked = false;
 
     //屏蔽，不显示AI创作的作品，默认不屏蔽
