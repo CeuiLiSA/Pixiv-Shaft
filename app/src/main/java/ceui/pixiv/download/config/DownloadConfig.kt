@@ -62,17 +62,18 @@ data class DownloadConfig(
         } else {
             override?.overwrite ?: inherited?.overwrite ?: defaults.overwrite
         }
-        // 存储位置兜底：defaults.storage 是「图片」的位置（设置页只让用户选一次）。非图片桶
-        // 没有 perBucket 覆盖时（「全部恢复默认」会清空 perBucket）不能照抄 —— 相册卷拒收
-        // 非 image/*，备份 / 小说会静默写失败（真机复现：MIME type application/json cannot
-        // be inserted into content://media/external/images/media）。
-        val fallbackStorage = when (bucket) {
-            Bucket.Illust, Bucket.Ugoira -> defaults.storage
-            else -> defaults.storage.forDownloadsBucket()
-        }
+        // 非图片桶永远不能落相册卷：Pictures 拒收非 image/*，备份 / 小说会写失败（真机复现：
+        // MIME type application/json cannot be inserted into content://media/external/images/media）。
+        // defaults.storage 是「图片」的位置，「全部恢复默认」清空 perBucket 后会掉到它；旧版
+        // 「快捷预设」还会把它显式写成小说 / 备份 / 日志的存储 —— 所以兜底值和显式覆盖都要
+        // 过 forDownloadsBucket，已存进 MMKV 的脏配置也靠这里自愈。
+        val storage = override?.storage ?: inherited?.storage ?: defaults.storage
         return ResolvedBucket(
             template  = override?.template  ?: fallbackTemplate,
-            storage   = override?.storage   ?: inherited?.storage   ?: fallbackStorage,
+            storage   = when (bucket) {
+                Bucket.Illust, Bucket.Ugoira -> storage
+                else -> storage.forDownloadsBucket()
+            },
             overwrite = overwrite,
         )
     }

@@ -144,11 +144,38 @@ class DownloadConfigTest {
     }
 
     @Test fun `explicit storage override still wins for text buckets`() {
+        val cache = StorageChoice.AppCache
         val cfg = DownloadConfig(
             defaults = defaults,
-            perBucket = mapOf(Bucket.Novel to BucketConfig(storage = defaults.storage)),
+            perBucket = mapOf(Bucket.Novel to BucketConfig(storage = cache)),
         )
-        assertEquals(defaults.storage, cfg.resolve(Bucket.Novel).storage)
+        assertEquals(cache, cfg.resolve(Bucket.Novel).storage)
+    }
+
+    @Test fun `explicit Images override on text buckets is healed to Downloads`() {
+        // 旧版「全部恢复默认 → 套用预设」会把相册卷显式写进小说 / 备份 / 日志桶。
+        val cfg = DownloadConfig(
+            defaults = defaults,
+            perBucket = listOf(Bucket.Novel, Bucket.NovelSeries, Bucket.Backup, Bucket.Log)
+                .associateWith { BucketConfig(storage = defaults.storage) },
+        )
+        val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+        for (bucket in listOf(Bucket.Novel, Bucket.NovelSeries, Bucket.Caption, Bucket.Backup, Bucket.Log)) {
+            assertEquals(bucket.name, downloads, cfg.resolve(bucket).storage)
+        }
+    }
+
+    @Test fun `preset applied after reset-all keeps text buckets off Images`() {
+        // DownloadPathSettingsFragment.applyPreset 的取值方式：perBucket 已被清空。
+        val resetAll = DownloadConfig(defaults = defaults)
+        val next = ConfigPresets.of(
+            ConfigPresets.Id.Modern,
+            resetAll.defaults.storage,
+            resetAll.resolve(Bucket.Novel).storage,
+        )
+        val downloads = StorageChoice.MediaStore(StorageChoice.MediaStore.Collection.Downloads)
+        assertEquals(downloads, next.perBucket[Bucket.Novel]?.storage)
+        assertEquals(defaults.storage, next.resolve(Bucket.Illust).storage)
     }
 
     @Test fun `backup bucket without override resolves to its own default template`() {

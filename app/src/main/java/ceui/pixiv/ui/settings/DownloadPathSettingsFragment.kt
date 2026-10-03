@@ -182,7 +182,9 @@ class DownloadPathSettingsFragment : Fragment(R.layout.fragment_download_path_se
     private fun applyPreset(id: ConfigPresets.Id) {
         val current = DownloadsRegistry.store.loadOrFallback()
         val images = current.defaults.storage
-        val downloads = current.perBucket[Bucket.Novel]?.storage ?: images
+        // 走 resolve 而不是 `perBucket[Novel] ?: images`：「全部恢复默认」清空 perBucket 后
+        // 后者会把相册卷写成小说 / 备份 / 日志的存储，MediaStore 拒收 text/plain。
+        val downloads = current.resolve(Bucket.Novel).storage
         // Presets define paths only — carry the user's numbering preferences over.
         val next = ConfigPresets.of(id, images, downloads).copy(
             pageIndexFrom1 = current.pageIndexFrom1,
