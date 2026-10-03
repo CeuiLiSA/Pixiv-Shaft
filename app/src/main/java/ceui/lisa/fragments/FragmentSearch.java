@@ -355,13 +355,16 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
     /**
      * 标签长按「添加到搜索词」（#1183）：拼到输入框末尾、空格分隔，已经在里面的不重复加。
+     * 历史里的多标签搜索整条存成一个词（如「A B」），按词逐个比对，避免拼出「A A B」。
      * ID / URL 这类搜索方式拼标签没有意义，顺手切回标签搜索。
      */
     private kotlin.Unit appendTagToInput(String tag) {
         List<String> keys = Arrays.stream(baseBind.inputBox.getText().toString().split(" "))
                 .filter(s -> !TextUtils.isEmpty(s)).collect(Collectors.toCollection(ArrayList::new));
-        if (!keys.contains(tag)) {
-            keys.add(tag);
+        for (String key : tag.split(" ")) {
+            if (!TextUtils.isEmpty(key) && !keys.contains(key)) {
+                keys.add(key);
+            }
         }
         baseBind.inputBox.setText(TextUtils.join(" ", keys) + " ");
         baseBind.inputBox.setSelection(baseBind.inputBox.getText().length());
