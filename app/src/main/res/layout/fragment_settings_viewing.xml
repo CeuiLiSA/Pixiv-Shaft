@@ -266,9 +266,12 @@
                             android:text="@string/ugoira_rife_enable_desc" />
                     </LinearLayout>
 
+                    <!-- 跳模型下载页期间界面是 on、设置仍是 off；页面重建时若恢复视图状态，setChecked(true)
+                         会回调 listener，模型缺失就又把人推回下载页。开关每次都按 RifePrefs 重新 bind，不需要恢复。 -->
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/ugoira_rife_enable"
-                        style="@style/M3SetSwitch" />
+                        style="@style/M3SetSwitch"
+                        android:saveEnabled="false" />
 
                 </RelativeLayout>
 
