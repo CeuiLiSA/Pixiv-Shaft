@@ -38,7 +38,9 @@
                      近白色（框架同名色 hint_foreground_material_dark 即 50% 白 #80ffffff），
                      压在白底上就是白底白字；@color/rank_text_color 同样是日夜双值
                      （#2c333c / #A9A9A9），夜间一样退化成浅灰压白底。
-                     textColor 取原日间值 #2c333c，textColorHint 取左侧搜索图标的 #999999。 -->
+                     textColor 取原日间值 #2c333c，textColorHint 取左侧搜索图标的 #999999。
+                     选区高亮同理：主题级 text_selection_highlight 夜间是 36% 白 scrim，压在
+                     白底上选中了也看不见，这里钉成日间值（v3_blue 30%）。 -->
                 <EditText
                     android:id="@+id/input_box"
                     android:layout_width="match_parent"
@@ -59,6 +61,7 @@
                     android:paddingEnd="36dp"
                     android:singleLine="true"
                     android:textColor="#2c333c"
+                    android:textColorHighlight="#4D2B6FCC"
                     android:textColorHint="#999999"
                     android:textSize="14sp">
 
