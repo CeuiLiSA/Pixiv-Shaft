@@ -49,6 +49,7 @@ import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Back;
 import ceui.lisa.model.ListIllust;
+import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.FramesBean;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.MarkedNovelItem;
@@ -533,6 +534,24 @@ public class PixivOperate {
             int stars = illustsBean.getTotal_bookmarks() == null ? 0 : illustsBean.getTotal_bookmarks();
             if (stars >= starSize && (starSizeMax <= 0 || stars <= starSizeMax)) {
                 result.add(illustsBean);
+            }
+        }
+
+        return result;
+    }
+
+    //筛选小说，只留下收藏数达到标准的作品（对齐 getListWithStarSize；插画版只吃 ListIllust）
+    /** starSizeMax <= 0 表示上限不限（收藏量区间筛选只设了下限，或只有 users入り 关键字桶）。 */
+    public static List<Novel> getListWithNovelStarSize(ListNovel response, int starSize, int starSizeMax) {
+        List<Novel> result = new ArrayList<>();
+        if (response == null || response.getList() == null || response.getList().size() == 0) {
+            return result;
+        }
+
+        for (Novel novel : response.getList()) {
+            int stars = novel.getTotal_bookmarks() == null ? 0 : novel.getTotal_bookmarks();
+            if (stars >= starSize && (starSizeMax <= 0 || stars <= starSizeMax)) {
+                result.add(novel);
             }
         }
 

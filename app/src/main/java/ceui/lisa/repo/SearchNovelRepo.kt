@@ -3,7 +3,7 @@ package ceui.lisa.repo
 import android.text.TextUtils
 import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
-import ceui.lisa.core.Mapper
+import ceui.lisa.core.NovelFilterMapper
 import ceui.pixiv.api.Client
 import ceui.lisa.model.ListNovel
 import ceui.lisa.repo.ViewerBookmarkState.withViewerBookmarkState
@@ -64,9 +64,11 @@ class SearchNovelRepo @JvmOverloads constructor(
     /** 下一页游标（`next_url`），由调用方在翻页前写入；对齐旧 RemoteRepo 的同名属性。 */
     var nextUrl: String = ""
 
-    // 复用通用 Mapper（已含屏蔽 tag/ID/用户 + 全局 R18 过滤）；额外承载搜索「R-18 限制」三档，
-    // 实际档位在 update() 里推给它（与 SearchIllustRepo 的 FilterMapper 同套路），所以构造期就建好。
-    private val filterMapper: Mapper<ListNovel> = Mapper()
+    // 小说侧的搜索专属过滤器（通用屏蔽 tag/ID/用户 + 全局 R18 + 搜索 R-18 三档 + 仅看 AI +
+    // 收藏数区间兜底）。档位在 update() 里推给它（与 SearchIllustRepo 的 FilterMapper 同套路），
+    // 所以构造期就建好。enableFilterStarSize：非会员端点会无视 bookmark_num_min/max，
+    // 靠它在客户端二次兜底，否则「喜欢！数」筛选会静默消失。
+    private val filterMapper: NovelFilterMapper = NovelFilterMapper().enableFilterStarSize()
     @Volatile
     private var nana7miSession = Nana7miAccountSession(nana7miOutbox)
     @Volatile
@@ -569,6 +571,12 @@ class SearchNovelRepo @JvmOverloads constructor(
         filterMapper.setSearchR18Restriction(r18Restriction ?: 0)
         filterMapper.setSearchOnlyAi(onlyAi)
         filterMapper.setKeepAiForBlur(true)
+        // 收藏数区间兜底：非会员端点（popular-preview 预览 / 非会员自己的 token）会静默无视
+        // bookmark_num_min/max，这里按 total_bookmarks 在客户端再筛一遍，避免「喜欢！数」静默失效。
+        // 不折 starSize 关键字桶——小说路径里官方参数与关键字后缀互斥（见 initApi 的 keywordSuffix），
+        // 折进去会覆盖用户显式设的 bookmarkMin，也违背被 WebNovelSearchParamsTest 锁定的策略。
+        filterMapper.updateStarSizeLimit(bookmarkMin ?: 0)
+        filterMapper.updateStarSizeMaxLimit(bookmarkMax ?: 0)
     }
 
     private companion object {
