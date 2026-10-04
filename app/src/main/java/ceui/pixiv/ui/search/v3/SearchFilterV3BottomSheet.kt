@@ -77,7 +77,23 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
 
     private fun updateFilter(transform: (SearchFilterV3) -> SearchFilterV3) {
         val store = if (isNovel) searchViewModel.novelFilter else searchViewModel.illustFilter
-        store.value = transform(currentFilter())
+        val next = transform(currentFilter())
+        store.value = next
+        // 「AI 作品」与「过滤已收藏」是**搜索页级**条件（两个 tab 共用同一份 SearchModel 会话态），
+        // 这里镜像给另一份 filter，保证两个 tab 的 sheet 显示与实际搜索一致。
+        val other = if (isNovel) searchViewModel.illustFilter else searchViewModel.novelFilter
+        other.value?.let { o ->
+            if (o.aiMode != next.aiMode || o.aiModeTemporary != next.aiModeTemporary
+                || o.bookmarkFilter != next.bookmarkFilter
+                || o.bookmarkFilterTemporary != next.bookmarkFilterTemporary) {
+                other.value = o.copy(
+                    aiMode = next.aiMode,
+                    aiModeTemporary = next.aiModeTemporary,
+                    bookmarkFilter = next.bookmarkFilter,
+                    bookmarkFilterTemporary = next.bookmarkFilterTemporary,
+                )
+            }
+        }
         renderRows()
     }
 
@@ -195,12 +211,18 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         binding.dividerContentType.isVisible = !isNovel
         binding.rowContentType.root.isVisible = !isNovel
 
-        // 「过滤已收藏」真值是全局 isSearchFilterBookmarked，illust / novel 两份 filter 里只是镜像：
-        // 另一个 tab 的「其他条件」或设置页改过它，这份镜像就旧了。打开时对齐，否则摘要显示错，
-        // 且「其他条件」以旧值做草稿，确定时会把全局开关写回旧值。
-        val bookmarkFilter = Shaft.sSettings.isSearchFilterBookmarked
-        if (currentFilter().bookmarkFilter != bookmarkFilter) {
-            updateFilter { it.copy(bookmarkFilter = bookmarkFilter) }
+        // 「AI 作品 / 过滤已收藏」的真值：没被标成临时值时就等于全局设置，illust / novel 两份 filter
+        // 里只是镜像——另一个 tab 的「其他条件」或设置页改过它，这份镜像就旧了。打开时对齐，否则
+        // 摘要显示错。已被用户标成临时值（*Temporary）的不动：那正是本次搜索要用的档位。
+        val openingFilter = currentFilter()
+        val globalAi = if (Shaft.sSettings.isDeleteAIIllust) AiMode.ExcludeAi else AiMode.All
+        if (!openingFilter.aiModeTemporary && openingFilter.aiMode != globalAi) {
+            updateFilter { it.copy(aiMode = globalAi) }
+        }
+        val globalBookmark = Shaft.sSettings.isSearchFilterBookmarked
+        if (!openingFilter.bookmarkFilterTemporary
+            && openingFilter.bookmarkFilter != globalBookmark) {
+            updateFilter { it.copy(bookmarkFilter = globalBookmark) }
         }
 
         registerPickerListeners(viewLifecycleOwner)
@@ -359,12 +381,14 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
             updateFilter {
                 it.copy(
                     aiMode = patch.aiMode,
+                    aiModeTemporary = patch.aiModeTemporary,
                     r18Mode = patch.r18Mode,
                     isOriginalOnly = patch.isOriginalOnly,
                     isReplaceableOnly = patch.isReplaceableOnly,
                     tool = patch.tool,
                     groupBySeries = patch.groupBySeries,
                     bookmarkFilter = patch.bookmarkFilter,
+                    bookmarkFilterTemporary = patch.bookmarkFilterTemporary,
                 )
             }
         }

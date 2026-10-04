@@ -1929,6 +1929,8 @@
     <string name="search_filter_v3_section_bookmark_filter">Yer imlerini gizle</string>
     <string name="search_filter_v3_bookmark_filter_all">Filtre yok</string>
     <string name="search_filter_v3_bookmark_filter_only">Filtrele</string>
+    <string name="search_filter_v3_row_temporary_hint">Geçici (hatırlamak için uzun basın)</string>
+    <string name="search_filter_v3_row_temporary_hint_no_persist">Geçici</string>
     <string name="search_filter_v3_section_ai">YZ eserleri</string>
     <string name="search_filter_v3_ai_all">Tümü</string>
     <string name="search_filter_v3_ai_only">Yalnızca YZ</string>

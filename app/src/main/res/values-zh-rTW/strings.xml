@@ -1931,6 +1931,8 @@
     <string name="search_filter_v3_section_bookmark_filter">過濾已收藏</string>
     <string name="search_filter_v3_bookmark_filter_all">不過濾</string>
     <string name="search_filter_v3_bookmark_filter_only">過濾</string>
+    <string name="search_filter_v3_row_temporary_hint">暫時的（長按記住）</string>
+    <string name="search_filter_v3_row_temporary_hint_no_persist">暫時的</string>
     <string name="search_filter_v3_section_ai">AI 作品</string>
     <string name="search_filter_v3_ai_all">全部</string>
     <string name="search_filter_v3_ai_only">僅 AI 作品</string>

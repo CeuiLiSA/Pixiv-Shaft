@@ -16,7 +16,8 @@ import javax.xml.parsers.DocumentBuilderFactory
  *    title / rank / following / search / none / summary / dialog_hint；
  *  - 搜索筛选「其他条件」卡片（`OtherFilterSheet` + `SearchFilterV3BottomSheet.otherSummary`）：
  *    section_bookmark_filter（卡片标题，同时也是「其他条件」行的摘要）/ bookmark_filter_all /
- *    bookmark_filter_only（卡片里的两个选项）。
+ *    bookmark_filter_only（卡片里的两个选项）/ row_temporary_hint（勾左侧的「临时的（长按记住）」）/
+ *    row_temporary_hint_no_persist（「仅看 AI」那份，只写「临时的」——它长按也写不进设置）。
  *
  * 判定口径（与 [DateFormatPatternStringsTest] 一致，不强制每个 locale 都翻，但要求**成组**）：
  *  1. 默认 `values/` 必须十条全在——防止资源改名后本测试静默空转；
@@ -36,11 +37,13 @@ class BookmarkFilterStringsTest {
         "filter_bookmarked_dialog_hint",
     )
 
-    /** 搜索筛选「其他条件」卡片的 3 条。 */
+    /** 搜索筛选「其他条件」卡片的 5 条。 */
     private val searchSideKeys = listOf(
         "search_filter_v3_section_bookmark_filter",
         "search_filter_v3_bookmark_filter_all",
         "search_filter_v3_bookmark_filter_only",
+        "search_filter_v3_row_temporary_hint",
+        "search_filter_v3_row_temporary_hint_no_persist",
     )
 
     /** 各组「同块既有 key」——该 locale 翻了它，就必须把对应那组新 key 也翻齐。 */

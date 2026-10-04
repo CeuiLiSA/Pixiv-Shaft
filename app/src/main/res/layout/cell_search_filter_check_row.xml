@@ -24,6 +24,19 @@
         android:textSize="15sp"
         tools:text="标签部分匹配" />
 
+    <!-- 「其他条件」的临时态提示：勾选值 ≠ 全局设置值时，显示在勾的左侧。
+         默认 gone —— 本布局被 SimplePickerSheet / R-18 行共用，它们不显示这枚提示。
+         文字色与勾同走主题色，在代码里 setTextColor(palette.textAccent)（同 check_mark）。 -->
+    <TextView
+        android:id="@+id/check_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="6dp"
+        android:textSize="12sp"
+        android:visibility="gone"
+        tools:text="临时的（长按记住）"
+        tools:visibility="visible" />
+
     <TextView
         android:id="@+id/check_mark"
         android:layout_width="wrap_content"

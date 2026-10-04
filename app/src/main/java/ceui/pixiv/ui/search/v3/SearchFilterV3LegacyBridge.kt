@@ -104,9 +104,11 @@ object SearchFilterV3LegacyBridge {
      *  - `sortType`              → sort（不识别就回 popular_preview）
      *  - `startDate / endDate`   → 同名字段
      *  - `r18Restriction`        → R18Mode（0/1/2 ↔ All/SafeOnly/R18Only）
-     *  - AI 三档：「屏蔽AI」由 [ceui.lisa.activities.Shaft.sSettings.isDeleteAIIllust] 全局读（baseline）；
-     *    「仅看AI」是临时维度，不入设置，存在 [SearchModel.onlyAi] 会话态里，这里读回来还原档位。
-     *  - bookmarkFilter：与设置页同一个全局开关（isSearchFilterBookmarked），SearchModel 无对应字段，恒取 baseline。
+     *  - AI 三档：「仅看AI」是临时维度，不入设置，存在 [SearchModel.onlyAi] 会话态里，这里读回来还原档位；
+     *    「屏蔽AI / 全部」若被用户标成临时（[SearchFilterV3.aiModeTemporary]）则读
+     *    [SearchModel.sessionExcludeAi]，没设过才回 baseline（全局 isDeleteAIIllust）。
+     *  - bookmarkFilter：会话临时值 [SearchModel.sessionBookmarkFilter] 优先，没设过才回 baseline
+     *    （与设置页同一个全局开关 isSearchFilterBookmarked）。
      */
     private fun seedFromLegacy(searchModel: SearchModel, isNovel: Boolean): SearchFilterV3 {
         // baseline = Shaft.sSettings 三项偏好；下面任一字段在 SearchModel 里有值就 override，
@@ -188,9 +190,15 @@ object SearchFilterV3LegacyBridge {
             startDate = searchModel.startDate.value ?: baseline.startDate,
             endDate = searchModel.endDate.value ?: baseline.endDate,
             r18Mode = r18,
-            // AI 三档：「屏蔽AI」以全局设置为准（baseline，OtherFilterSheet 提交时已落盘）；
-            // 「仅看AI」是会话临时态，从 SearchModel.onlyAi 读回还原（activity 重建后 VM 为空时也不丢）。
-            aiMode = if (searchModel.onlyAi.value == true) AiMode.OnlyAi else baseline.aiMode,
+            // AI 三档：「仅看AI」是会话临时态，从 SearchModel.onlyAi 读回还原（activity 重建后 VM
+            // 为空时也不丢）；「屏蔽AI / 全部」优先用会话临时档（sessionExcludeAi），没设过才回 baseline。
+            aiMode = when {
+                searchModel.onlyAi.value == true -> AiMode.OnlyAi
+                searchModel.sessionExcludeAi.value == true -> AiMode.ExcludeAi
+                searchModel.sessionExcludeAi.value == false -> AiMode.All
+                else -> baseline.aiMode
+            },
+            aiModeTemporary = searchModel.sessionExcludeAi.value != null,
             isOriginalOnly = isNovel && searchModel.isOriginalOnly.value == true,
             isReplaceableOnly = isNovel && searchModel.isReplaceableOnly.value == true,
             groupBySeries = isNovel && searchModel.groupBySeries.value == true,
@@ -198,9 +206,10 @@ object SearchFilterV3LegacyBridge {
             resolutionBucket = resolution,
             contentType = contentType,
             bodyLength = bodyLength,
-            // 过滤已收藏：与设置页同一个全局开关，SearchModel 没有对应字段，恒取 baseline。
+            // 过滤已收藏：会话临时值优先（sessionBookmarkFilter），没设过才回 baseline 全局开关。
             //（seedFromLegacy 是整份替换 VM 的 filter，漏了它勾选就会掉回「不过滤」。）
-            bookmarkFilter = baseline.bookmarkFilter,
+            bookmarkFilter = searchModel.sessionBookmarkFilter.value ?: baseline.bookmarkFilter,
+            bookmarkFilterTemporary = searchModel.sessionBookmarkFilter.value != null,
         )
     }
 
@@ -217,9 +226,11 @@ object SearchFilterV3LegacyBridge {
      *    （[SearchIllustRepo.initApi] 内拼接）。
      * 两条可以同时生效（会员选 bookmark_num_min；非会员只能靠 keyword hack）。
      *
-     * AI 三档：「屏蔽AI」不写 SearchModel——它通过全局 [ceui.lisa.activities.Shaft.sSettings.isDeleteAIIllust]
-     * 生效（[OtherFilterSheet] 提交时已落盘，Repo.update 也读全局）。「仅看AI」官方无参数，写到
-     * [SearchModel.onlyAi] 会话态，Repo.update 读它喂给 FilterMapper 做客户端过滤（issue #909）。
+     * AI 三档：「仅看AI」官方无参数，写到 [SearchModel.onlyAi] 会话态，Repo.update 读它喂给
+     * FilterMapper 做客户端过滤（issue #909）。「屏蔽AI / 全部」若被用户标成临时
+     * （[SearchFilterV3.aiModeTemporary]）则写到 [SearchModel.sessionExcludeAi]，Repo.update 优先读它、
+     * 没设过才回退全局 [ceui.lisa.activities.Shaft.sSettings.isDeleteAIIllust]——[OtherFilterSheet]
+     * 只在长按某档时才把该档落盘。
      */
     private fun applyToLegacy(filter: SearchFilterV3, searchModel: SearchModel) {
         searchModel.sortType.value = filter.sort
@@ -247,8 +258,14 @@ object SearchFilterV3LegacyBridge {
             R18Mode.SafeOnly -> 1
             R18Mode.R18Only -> 2
         }
-        // 「仅看AI」会话态：Repo.update 读它喂 FilterMapper 客户端过滤（屏蔽AI 仍走全局设置）
+        // 「仅看AI」会话态：Repo.update 读它喂 FilterMapper 客户端过滤
         searchModel.onlyAi.value = filter.aiMode == AiMode.OnlyAi
+        // 「其他条件」的会话临时态：只有用户显式单击改过（*Temporary）才写，否则置 null 表示
+        // 「跟随全局设置」——这样设置页改了全局开关，搜索页仍能跟上；临时值也绝不回灌设置。
+        searchModel.sessionExcludeAi.value =
+            if (filter.aiModeTemporary) filter.aiMode == AiMode.ExcludeAi else null
+        searchModel.sessionBookmarkFilter.value =
+            if (filter.bookmarkFilterTemporary) filter.bookmarkFilter else null
         searchModel.isOriginalOnly.value = filter.isOriginalOnly
         searchModel.isReplaceableOnly.value = filter.isReplaceableOnly
         // 系列归纳仅 novel；illust filter 恒 false 写下来无副作用（插画路径不读它），真正生效的

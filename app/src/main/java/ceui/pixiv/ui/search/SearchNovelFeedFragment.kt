@@ -307,8 +307,12 @@ class SearchNovelFeedSource(
             val filtered = r.mapper().apply(list)
             // Mapper 已做完搜索专属过滤（R18 三态 / 仅看 AI），不再重复走全局过滤。
             // 只补一条它管不到的：「对搜索页过滤」已收藏。
+            // 有效档位优先取搜索页「其他条件」的会话临时值（单击改、不写设置），
+            // 没设过才回退全局 isSearchFilterBookmarked。
+            val bookmarkFilter = searchModel.sessionBookmarkFilter.value
+                ?: Shaft.sSettings.isSearchFilterBookmarked
             filtered.list.orEmpty().mapNotNull { novel ->
-                if (Shaft.sSettings.isSearchFilterBookmarked && novel.is_bookmarked == true) null
+                if (bookmarkFilter && novel.is_bookmarked == true) null
                 else NovelFeedItem(novel)
             }
         }

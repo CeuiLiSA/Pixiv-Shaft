@@ -195,8 +195,12 @@ class SearchIllustFeedSource(
             val filtered = r.mapper().apply(list)
             // FilterMapper 已做完全部搜索专属过滤 → 直接建条目，不再走 .of 的内容过滤
             //（否则仅看 AI 误删 AI）。这里只补一条它管不到的：「对搜索页过滤」已收藏。
+            // 有效档位优先取搜索页「其他条件」的会话临时值（单击改、不写设置），
+            // 没设过才回退全局 isSearchFilterBookmarked。
+            val bookmarkFilter = searchModel.sessionBookmarkFilter.value
+                ?: Shaft.sSettings.isSearchFilterBookmarked
             filtered.list.orEmpty().mapNotNull { illust ->
-                if (Shaft.sSettings.isSearchFilterBookmarked && illust.isBookmarked) null
+                if (bookmarkFilter && illust.isBookmarked) null
                 else IllustFeedItem.raw(illust)
             }
         }

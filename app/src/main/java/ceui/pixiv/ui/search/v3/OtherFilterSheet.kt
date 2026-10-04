@@ -23,21 +23,32 @@ import java.io.Serializable
  * + 小说专属（仅限原创 / 仅限单词置换 / 系列作品归纳）+ R-18 限制三选一。
  *
  * 小说专属三个 switch 仅在 isNovel = true 时显示；illust 模式整张卡片隐藏，结果回传时
- * 也固定 false。AI「全部 / 屏蔽AI」两档提交时把 [Shaft.sSettings.isDeleteAIIllust] 落成
- * false/true——与 [ceui.lisa.fragments.FragmentFilter] 历史行为对齐，避免设置项分裂；「仅看AI」
- * 是单次搜索的临时维度，提交时**不碰任何设置**（issue #909：只影响搜索、不持久化）。
+ * 也固定 false。
+ *
+ * **AI 作品 / 过滤已收藏 =「单击临时、长按持久化」**（issue #909 的延伸）：
+ *   - 单击只改本次搜索的档位（把 [SearchFilterV3.aiModeTemporary] /
+ *     [SearchFilterV3.bookmarkFilterTemporary] 置 true），**不碰任何全局设置**——否则搜一次图
+ *     就会顺带改掉首页等其它列表的 AI 屏蔽、以及设置页里的开关；
+ *   - 长按某档才把该档写回全局设置（`isDeleteAIIllust` / `isSearchFilterBookmarked`），并把勾选
+ *     同步到长按的那一行——长按的未必是当前勾选的那行；
+ *   - 勾选值 ≠ 全局设置值时，勾的左边显示临时提示：能长按持久化的档位是「临时的（长按记住）」；
+ *     「仅看 AI」没有全局对应档、长按也写不进设置，只显示「临时的」（不带括号里的那句）。
  *
  * draft 状态在 [onSaveInstanceState] 持久化，旋屏不丢；结果走 FragmentResult API。
  */
 class OtherFilterSheet : V3BottomSheetBase() {
 
     private var draftAiMode: AiMode = AiMode.All
+    /** AI 档位是否为「会话临时值」（true = 单击选的，不写设置；长按某档会把它写回设置并归 false）。 */
+    private var draftAiModeTemporary: Boolean = false
     private var draftR18: R18Mode = R18Mode.All
     private var draftOriginalOnly: Boolean = false
     private var draftReplaceableOnly: Boolean = false
     private var draftGroupBySeries: Boolean = false
-    /** 「过滤已收藏」草稿——与全局 isSearchFilterBookmarked 联动，提交时才落盘。 */
+    /** 「过滤已收藏」草稿——单击只改本次搜索，长按才写回全局 isSearchFilterBookmarked。 */
     private var draftBookmarkFilter: Boolean = false
+    /** 「过滤已收藏」是否为「会话临时值」，语义同 [draftAiModeTemporary]。 */
+    private var draftBookmarkFilterTemporary: Boolean = false
     /** illust-only;null = 「不限」。父 sheet 通过 args 注入初值 + 候选列表。 */
     private var draftTool: String? = null
 
@@ -61,6 +72,10 @@ class OtherFilterSheet : V3BottomSheetBase() {
         val tool: String?,
         val groupBySeries: Boolean = false,
         val bookmarkFilter: Boolean = false,
+        /** AI 档位是否为「会话临时值」（单击改、不写设置）。 */
+        val aiModeTemporary: Boolean = false,
+        /** 「过滤已收藏」是否为「会话临时值」。 */
+        val bookmarkFilterTemporary: Boolean = false,
     ) : Serializable
 
     private var _binding: DialogSearchFilterOtherBinding? = null
@@ -76,11 +91,13 @@ class OtherFilterSheet : V3BottomSheetBase() {
         val patch = source.getSerializable(KEY_DRAFT) as? Patch
             ?: @Suppress("DEPRECATION") (requireArguments().getSerializable(ARG_INITIAL) as? Patch)
         draftAiMode = patch?.aiMode ?: AiMode.All
+        draftAiModeTemporary = patch?.aiModeTemporary ?: false
         draftR18 = patch?.r18Mode ?: R18Mode.All
         draftOriginalOnly = patch?.isOriginalOnly ?: false
         draftReplaceableOnly = patch?.isReplaceableOnly ?: false
         draftGroupBySeries = patch?.groupBySeries ?: false
         draftBookmarkFilter = patch?.bookmarkFilter ?: Shaft.sSettings.isSearchFilterBookmarked
+        draftBookmarkFilterTemporary = patch?.bookmarkFilterTemporary ?: false
         draftTool = patch?.tool
     }
 
@@ -88,7 +105,8 @@ class OtherFilterSheet : V3BottomSheetBase() {
         super.onSaveInstanceState(outState)
         outState.putSerializable(KEY_DRAFT,
             Patch(draftAiMode, draftR18, draftOriginalOnly, draftReplaceableOnly, draftTool,
-                draftGroupBySeries, draftBookmarkFilter))
+                draftGroupBySeries, draftBookmarkFilter,
+                draftAiModeTemporary, draftBookmarkFilterTemporary))
     }
 
     override fun onCreateView(
@@ -112,23 +130,10 @@ class OtherFilterSheet : V3BottomSheetBase() {
         binding.btnConfirm.setTextColor(palette.textAccent)
         binding.btnCancel.setOnClick { dismissAllowingStateLoss() }
         binding.btnConfirm.setOnClick {
-            // 只有「全部 / 屏蔽 AI」与全局 isDeleteAIIllust 联动落盘（屏蔽 AI 本就是全局设置，
-            // 与 FragmentFilter 历史行为一致）。「仅看 AI」是搜索单次的临时维度——绝不碰全局设置：
-            // 否则既会被持久化，又会顺带改掉首页等其它列表的 AI 屏蔽。issue #909 要求只影响搜索
-            // 结果且不持久化，所以这里整段对 OnlyAi 跳过。
-            if (draftAiMode != AiMode.OnlyAi) {
-                val globalExclude = draftAiMode == AiMode.ExcludeAi
-                if (Shaft.sSettings.isDeleteAIIllust != globalExclude) {
-                    Shaft.sSettings.isDeleteAIIllust = globalExclude
-                    Local.setSettings(Shaft.sSettings)
-                }
-            }
-            // 「过滤已收藏」与全局设置联动落盘（同 AI「屏蔽 AI」那档）：真正的过滤在读全局
-            // 设置的搜索数据源里做，这里只把开关写回 settings。
-            if (Shaft.sSettings.isSearchFilterBookmarked != draftBookmarkFilter) {
-                Shaft.sSettings.isSearchFilterBookmarked = draftBookmarkFilter
-                Local.setSettings(Shaft.sSettings)
-            }
+            // 单击只产生「本次搜索的临时档位」，**绝不在这里回灌持久化**——AI 的「全部 / 屏蔽AI」
+            // 与「过滤已收藏」都只在用户长按某档时才写回设置（见 bindAiRow / bindBookmarkRow）。
+            // 否则搜一次图就会顺带改掉首页等其它列表的 AI 屏蔽、以及设置页里的开关。
+            // 「仅看 AI」官方无对应档，本来就是临时维度（issue #909）。
             // 小说专属 switch：illust 模式下卡片整体隐藏，强制 false 防止状态串味儿
             val originalOnly = if (isNovel) draftOriginalOnly else false
             val replaceableOnly = if (isNovel) draftReplaceableOnly else false
@@ -139,7 +144,7 @@ class OtherFilterSheet : V3BottomSheetBase() {
                 requestKey,
                 bundleOf(KEY_PATCH to Patch(
                     draftAiMode, draftR18, originalOnly, replaceableOnly, tool, groupBySeries,
-                    draftBookmarkFilter,
+                    draftBookmarkFilter, draftAiModeTemporary, draftBookmarkFilterTemporary,
                 )),
             )
             dismissAllowingStateLoss()
@@ -250,12 +255,44 @@ class OtherFilterSheet : V3BottomSheetBase() {
         row.switchToggle.setOnCheckedChangeListener { _, checked -> onChange(checked) }
     }
 
+    /** 全局设置当前对应的 AI 档位（「仅看 AI」没有全局对应档，故只有这两档）。 */
+    private fun persistedAiMode(): AiMode =
+        if (Shaft.sSettings.isDeleteAIIllust) AiMode.ExcludeAi else AiMode.All
+
+    /**
+     * AI 行：单击 = 本次搜索的临时档（不写设置）；长按 = 把该档写回全局设置，并把勾选同步到它
+     * （长按的那行不一定就是当前勾选的那行）。
+     */
     private fun bindAiRow(row: CellSearchFilterCheckRowBinding, mode: AiMode, labelRes: Int) {
         row.checkLabel.setText(labelRes)
         row.checkMark.setTextColor(palette.textAccent)
+        // 临时提示与勾同走主题色（accent），不再用次级文字色
+        row.checkHint.setTextColor(palette.textAccent)
+        // 「仅看 AI」没有全局对应档，长按也写不进设置 → 提示不带「（长按记住）」
+        row.checkHint.setText(
+            if (mode == AiMode.OnlyAi) R.string.search_filter_v3_row_temporary_hint_no_persist
+            else R.string.search_filter_v3_row_temporary_hint
+        )
         row.root.setOnClick {
             draftAiMode = mode
+            draftAiModeTemporary = mode != persistedAiMode()
             renderAiMarks()
+        }
+        row.root.setOnLongClickListener {
+            draftAiMode = mode
+            if (mode == AiMode.OnlyAi) {
+                // 「仅看 AI」没有全局对应档，写不进设置——只能作为本次搜索的临时档
+                draftAiModeTemporary = true
+            } else {
+                val exclude = mode == AiMode.ExcludeAi
+                if (Shaft.sSettings.isDeleteAIIllust != exclude) {
+                    Shaft.sSettings.isDeleteAIIllust = exclude
+                    Local.setSettings(Shaft.sSettings)
+                }
+                draftAiModeTemporary = false
+            }
+            renderAiMarks()
+            true
         }
     }
 
@@ -263,20 +300,46 @@ class OtherFilterSheet : V3BottomSheetBase() {
         binding.rowAiAll.checkMark.isInvisible     = draftAiMode != AiMode.All
         binding.rowAiExclude.checkMark.isInvisible = draftAiMode != AiMode.ExcludeAi
         binding.rowAiOnly.checkMark.isInvisible    = draftAiMode != AiMode.OnlyAi
+        // 提示只在「勾选值 ≠ 全局设置值」时出现——那才说明这一档是本次搜索的临时值
+        val showHint = draftAiMode != persistedAiMode()
+        binding.rowAiAll.checkHint.isVisible     = showHint && draftAiMode == AiMode.All
+        binding.rowAiExclude.checkHint.isVisible = showHint && draftAiMode == AiMode.ExcludeAi
+        binding.rowAiOnly.checkHint.isVisible    = showHint && draftAiMode == AiMode.OnlyAi
     }
 
+    /** 全局设置当前对应的「过滤已收藏」档位。 */
+    private fun persistedBookmarkFilter(): Boolean = Shaft.sSettings.isSearchFilterBookmarked
+
+    /** 过滤已收藏行：单击 = 临时档（不写设置）；长按 = 写回全局设置并同步勾选。 */
     private fun bindBookmarkRow(row: CellSearchFilterCheckRowBinding, filter: Boolean, labelRes: Int) {
         row.checkLabel.setText(labelRes)
         row.checkMark.setTextColor(palette.textAccent)
+        row.checkHint.setTextColor(palette.textAccent)
+        row.checkHint.setText(R.string.search_filter_v3_row_temporary_hint)
         row.root.setOnClick {
             draftBookmarkFilter = filter
+            draftBookmarkFilterTemporary = filter != persistedBookmarkFilter()
             renderBookmarkMarks()
+        }
+        row.root.setOnLongClickListener {
+            draftBookmarkFilter = filter
+            if (Shaft.sSettings.isSearchFilterBookmarked != filter) {
+                Shaft.sSettings.isSearchFilterBookmarked = filter
+                Local.setSettings(Shaft.sSettings)
+            }
+            draftBookmarkFilterTemporary = false
+            renderBookmarkMarks()
+            true
         }
     }
 
     private fun renderBookmarkMarks() {
         binding.rowBookmarkAll.checkMark.isInvisible  = draftBookmarkFilter
         binding.rowBookmarkOnly.checkMark.isInvisible = !draftBookmarkFilter
+        // 同 AI 行：只在「勾选值 ≠ 全局设置值」时把临时提示挂到勾的左边
+        val showHint = draftBookmarkFilter != persistedBookmarkFilter()
+        binding.rowBookmarkAll.checkHint.isVisible  = showHint && !draftBookmarkFilter
+        binding.rowBookmarkOnly.checkHint.isVisible = showHint && draftBookmarkFilter
     }
 
     private fun bindR18Row(row: CellSearchFilterCheckRowBinding, mode: R18Mode, labelRes: Int) {
@@ -322,6 +385,8 @@ class OtherFilterSheet : V3BottomSheetBase() {
                     current.tool,
                     current.groupBySeries,
                     current.bookmarkFilter,
+                    current.aiModeTemporary,
+                    current.bookmarkFilterTemporary,
                 ))
             }
         }

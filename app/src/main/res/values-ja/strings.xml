@@ -1929,6 +1929,8 @@
     <string name="search_filter_v3_section_bookmark_filter">ブックマーク済みを除外</string>
     <string name="search_filter_v3_bookmark_filter_all">フィルタなし</string>
     <string name="search_filter_v3_bookmark_filter_only">フィルタする</string>
+    <string name="search_filter_v3_row_temporary_hint">一時的（長押しで記憶）</string>
+    <string name="search_filter_v3_row_temporary_hint_no_persist">一時的</string>
     <string name="search_filter_v3_section_ai">AI 作品</string>
     <string name="search_filter_v3_ai_all">すべて</string>
     <string name="search_filter_v3_ai_only">AI のみ</string>

@@ -1929,6 +1929,8 @@
     <string name="search_filter_v3_section_bookmark_filter">북마크한 작품 숨기기</string>
     <string name="search_filter_v3_bookmark_filter_all">필터 안 함</string>
     <string name="search_filter_v3_bookmark_filter_only">필터</string>
+    <string name="search_filter_v3_row_temporary_hint">임시 (길게 눌러 기억)</string>
+    <string name="search_filter_v3_row_temporary_hint_no_persist">임시</string>
     <string name="search_filter_v3_section_ai">AI 작품</string>
     <string name="search_filter_v3_ai_all">전체</string>
     <string name="search_filter_v3_ai_only">AI만</string>
