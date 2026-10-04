@@ -10,6 +10,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.Local
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.MoonAPI
+import ceui.pixiv.db.RecordType
 import ceui.pixiv.download.DownloadsRegistry
 import ceui.pixiv.download.config.DownloadConfigBackup
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -154,7 +155,7 @@ object MoonSync {
 
     /**
      * 用户主动点"上传配置到云端"按钮时调用。打包内容:
-     * settings + 屏蔽记录(BackupEntity 形状)+ 整份 V3 下载配置(envelope 字段)。
+     * settings + 屏蔽记录 + 置顶作者(BackupEntity 形状)+ 整份 V3 下载配置(envelope 字段)。
      */
     @JvmStatic
     fun uploadToCloud(activity: FragmentActivity, uid: Long) {
@@ -171,6 +172,8 @@ object MoonSync {
                     entity.settings = Shaft.sSettings
                     val mutes = AppDatabase.getAppDatabase(activity).searchDao().allMuteEntities
                     entity.muteEntityList = mutes
+                    entity.pinnedUserEntityList = AppDatabase.getAppDatabase(activity).generalDao()
+                        .getByRecordType(RecordType.PINNED_USER, 0, Int.MAX_VALUE)
                     // downloadConfigV3 现在是 BackupEntity 自己的字段(和设置页导出的
                     // Shaft-Backup.json 同一份格式),不用再往 envelope 上手动挂。
                     val cfg = DownloadsRegistry.store.loadOrFallback()
@@ -178,8 +181,9 @@ object MoonSync {
                     val obj = Shaft.sGson.toJsonTree(entity).asJsonObject
 
                     Timber.tag(TAG).d(
-                        "[upload] packed: muteCount=%d v3Size=%d perBucket=%d wifiOnly=%b pageFrom1=%b",
+                        "[upload] packed: muteCount=%d pinnedCount=%d v3Size=%d perBucket=%d wifiOnly=%b pageFrom1=%b",
                         mutes.size,
+                        entity.pinnedUserEntityList.size,
                         entity.downloadConfigV3.length,
                         cfg.perBucket.size,
                         cfg.wifiOnly,
@@ -317,7 +321,7 @@ object MoonSync {
 
     /**
      * 把云端 payload 应用回本地:
-     * - BackupEntity 部分(settings + muteEntityList + downloadConfigV3)走
+     * - BackupEntity 部分(settings + muteEntityList + pinnedUserEntityList + downloadConfigV3)走
      *   [BackupUtils.restoreBackups];下载配置的 merge 语义见 [DownloadConfigBackup]
      *   (只 merge 模板/策略,本机用不了的 SAF treeUri 不会被盖上来)
      * - 最后把当前 uid 的 applied version 设为本次 cloud.version

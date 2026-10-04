@@ -270,6 +270,21 @@ class EntityWrapper(
     }
 
     /**
+     * 备份还原直接往 general_table 灌了 PINNED_USER 行，内存集合必须整份重读 ——
+     * 否则作者主页「更多」菜单按旧集合摆「置顶 / 取消置顶」，与列表页对不上。
+     */
+    fun refreshPinnedUsers(context: Context) {
+        MainScope().launch {
+            withContext(Dispatchers.IO) {
+                val ids = AppDatabase.getAppDatabase(context).generalDao()
+                    .getAllIdsByRecordType(RecordType.PINNED_USER)
+                _pinnedUserIds.clear()
+                _pinnedUserIds.addAll(ids)
+            }
+        }
+    }
+
+    /**
      * 稍后再看列表变更后发本地广播，对应 tab 收到重新拉 DB。
      * LocalBroadcastManager.sendBroadcast 内部 post 到主线程，IO 线程调也安全。
      *
