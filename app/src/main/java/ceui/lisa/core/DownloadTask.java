@@ -68,10 +68,25 @@ final class DownloadTask {
         this.onFinally = onFinally;
     }
 
+    /**
+     * 只构造、不启动。调用方可以先把句柄登记进 {@code Manager.handles} 再 {@link #start}，
+     * 避免"任务已经跑完并把自己从表里移除，登记才发生"——那会在表里留下一条已完成的
+     * 死句柄，让"还在跑吗"的判断出错。
+     */
+    static DownloadTask create(Body body, Consumer<String> onNext,
+                               Consumer<Throwable> onError, Runnable onFinally) {
+        return new DownloadTask(body, onNext, onError, onFinally);
+    }
+
+    /** 提交到 [io] 执行。可在 [create] 之后、句柄登记完成之后再调。 */
+    void start(ExecutorService io) {
+        io.execute(this::run);
+    }
+
     static DownloadTask launch(ExecutorService io, Body body, Consumer<String> onNext,
                                Consumer<Throwable> onError, Runnable onFinally) {
-        DownloadTask task = new DownloadTask(body, onNext, onError, onFinally);
-        io.execute(task::run);
+        DownloadTask task = create(body, onNext, onError, onFinally);
+        task.start(io);
         return task;
     }
 

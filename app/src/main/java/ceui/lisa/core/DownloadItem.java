@@ -19,12 +19,24 @@ public class DownloadItem implements Serializable {
     private final Illust illust;
     private int index;
     private boolean autoSave = true;
-    private int state = DownloadState.INIT;
-    private boolean paused = false;
+    // 这三个字段被多个线程读写、且没有任何同步块护着，必须 volatile：
+    //   - state：主线程的 pumpAvailableSlots / startAll / stopAll、IO worker 的
+    //     complete()、批量队列协程的 retry path 都在写；判定方（pump 挑页、队列收口）
+    //     读不到最新值就会"翻了 INIT 却挑不到"，或者"页已成功却仍算未完成"。
+    //   - paused：同上，跨线程读点在 getFirstReady / activeCount / 队列的 footprint。
+    //   - nonius：进度百分比（显示 / 日志用）。写方横跨主线程（reportProgress 的
+    //     postMain 体）和 IO worker（complete 失败时归零），读方在别的线程看日志。
+    private volatile int state = DownloadState.INIT;
+    private volatile boolean paused = false;
     // 批量队列产生的 page 不逐条弹完成/失败 Toast，由队列收口时统一弹汇总（issue #950）。
     // 参与序列化：冷启动 Manager.restore 带回的批量 page 也要保持静默。
+    // 只在构造时写、之后只读，靠 content.add 的 happens-before 传递即可，无需 volatile。
     private boolean silent = false;
-    private int nonius = 0;
+    private volatile int nonius = 0;
+    // currentSize / totalSize 保持普通字段：写方是主线程的进度回调（reportProgress 的
+    // postMain 体），读方是主线程的 UI。唯一的跨线程读点是批量队列的进展评分，而它优先
+    // 读 stage 文件（.part）的真实长度 —— 队列里的页目标都是 content://、一律走 staging，
+    // 所以"退回 currentSize"那个兜底分支实际不会命中。不为一个不命中的分支付 volatile。
     private transient long currentSize = 0;
     private transient long totalSize = 0;
 

@@ -132,6 +132,40 @@ class ManagerRestoreTest {
         assertEquals(0L, db.downloadDao().getDownloadingHighWaterMark())
     }
 
+    /** 带 state / paused 的记录，用来验证冷启动恢复后的状态归一。 */
+    private fun recordWithState(index: Int, state: Int, paused: Boolean) = DownloadingEntity().apply {
+        fileName = "1_p$index.jpg"
+        uuid = "task-$index"
+        taskGson = """{"name":"$fileName","uuid":"$uuid","url":"https://example.com/$index.jpg",
+            "index":$index,"state":$state,"paused":$paused,"silent":true,
+            "illust":{"id":1,"page_count":3,"title":"Artwork"}}""".trimIndent()
+    }
+
+    /**
+     * 冷启动恢复必须把状态归成 INIT、且不带暂停位。
+     *
+     * 落库那一刻 state 是否已被 pump 改成 DOWNLOADING，取决于 persist 与 pump 谁先跑；
+     * 若原样恢复，同一次崩溃、不同 run 出来的状态可能不同，冷启动行为不可复现。归一之后
+     * 恢复出来一律 INIT，pump 直接就能挑走，也不用再靠 resurrectIfStranded 去猜。
+     */
+    @Test fun `restored items always come back as INIT and unpaused`() {
+        val dao = db.downloadDao()
+        dao.insertDownloading(recordWithState(0, state = 1, paused = true))   // 崩溃时正在传 + 暂停位
+        dao.insertDownloading(recordWithState(1, state = 3, paused = false))  // FAILED
+        dao.insertDownloading(recordWithState(2, state = 1, paused = false))  // 崩溃时正在传
+
+        val restored = Manager.readRestoredDownloads(dao, gson)
+
+        assertEquals(listOf("task-0", "task-1", "task-2"), restored.map { it.uuid })
+        restored.forEach { item ->
+            assertEquals(
+                "恢复后必须是 INIT：${item.uuid}",
+                DownloadItem.DownloadState.INIT, item.state,
+            )
+            assertFalse("恢复后不能带暂停位：${item.uuid}", item.isPaused)
+        }
+    }
+
     private fun awaitCondition(condition: () -> Boolean) {
         val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10)
         while (!condition()) {

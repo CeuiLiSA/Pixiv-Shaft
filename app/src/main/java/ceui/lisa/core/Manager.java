@@ -114,7 +114,28 @@ public class Manager {
      * 同时 append 同一个 {@code .part}。{@code startDownloadChain} 抢占，onFinally 释放。
      */
     private final java.util.Set<String> activeStageKeys = ConcurrentHashMap.newKeySet();
+    /**
+     * "已经置 DOWNLOADING、但 [handles] 还没登记"的 uuid 集合。
+     *
+     * {@link #pumpAvailableSlots} 里 {@code setState(DOWNLOADING)} 是同步的，而句柄要绕
+     * IO 线程 + 主线程一跳才落到 [handles]（实测 19–161ms）。这段窗口里
+     * {@link #resurrectIfStranded} 只看 [handles] 会把正在派发的 item 误判成 stranded
+     * → 翻 INIT → 再派发一次 → 同 uuid 两条传输抢同一个 stage 文件 / targetUri。
+     *
+     * 生命周期：
+     *   - {@link #pumpAvailableSlots} 置 DOWNLOADING 时 add；
+     *   - 句柄登记（{@link #registerHandle}）时 remove —— 窗口到此为止；
+     *   - 任务终结（{@link #complete}）时 remove —— 覆盖"派发失败、根本没建句柄"的路径；
+     *   - {@link #stopAll()} 时整体 clear —— 停止后所有 item 都 paused，不参与误判。
+     */
+    private final java.util.Set<String> dispatching = ConcurrentHashMap.newKeySet();
     private boolean isRunning = false;
+
+    /** 登记传输句柄，同时把 uuid 从 [dispatching] 摘掉（"正在派发"窗口到此为止）。 */
+    private void registerHandle(String uuid, DownloadTask d) {
+        handles.put(uuid, d);
+        dispatching.remove(uuid);
+    }
 
     /**
      * 下载专用 OkHttpClient —— **强制 HTTP/1.1**。
@@ -223,7 +244,17 @@ public class Manager {
                     after = cursor.getLong(0);
                     try {
                         DownloadItem item = restoringGson.fromJson(cursor.getString(1), DownloadItem.class);
-                        if (item != null && item.getIllust() != null) restored.add(item);
+                        if (item != null && item.getIllust() != null) {
+                            // 冷启动一律按 INIT 恢复。state 是"本次会话里跑到哪一步"的临时
+                            // 产物，序列化它没有意义：落库那一刻它正被 pump 改成 DOWNLOADING
+                            // 与否，取决于 persist 和 pump 谁先跑，于是同一次崩溃、不同 run
+                            // 恢复出来的状态可能不同，冷启动行为不可复现。
+                            // 统一成 INIT 之后，pump 直接就能挑走，也不必再靠
+                            // resurrectIfStranded 去猜哪些是"看着在跑、其实没有句柄"的残留。
+                            item.setState(DownloadItem.DownloadState.INIT);
+                            item.setPaused(false);
+                            restored.add(item);
+                        }
                     } catch (Exception e) {
                         Common.showLog("Manager restore parse error: " + e.getMessage());
                     }
@@ -326,6 +357,10 @@ public class Manager {
      * 注意：content 列表修改不在此方法中，由调用方在主线程统一处理。
      */
     private void complete(DownloadItem item, boolean isDownloadSuccess) {
+        // 任务有了终态，"正在派发"窗口随之关闭。派发中途失败（工厂建不出、命中跳过、
+        // 空间不足等）根本没建句柄，靠这一行把 uuid 从 dispatching 摘掉，否则它会一直
+        // 留在集合里，让这条 item 之后再也无法被 resurrectIfStranded 复位。
+        dispatching.remove(item.getUuid());
         if (isDownloadSuccess) {
             item.setState(DownloadItem.DownloadState.SUCCESS);
             setCallback(uuid, null);
@@ -463,15 +498,17 @@ public class Manager {
      *     pumpAvailableSlots 的 activeCount() 把它们算进活跃数，getFirstReady 又
      *     只挑 INIT —— 槽位永远拉不到，下载彻底卡死（issue #873）。
      *
-     *  2. **冷启动 restore 带回的 stranded DOWNLOADING**：进程被杀时正在传的 item，
-     *     restore 之后 state 字段是 DOWNLOADING，但原 DownloadTask 句柄已随进程消失。
-     *     QueueDownloadManager.kt:596 的 retry path 历史上自己处理过这种情况，
-     *     现在统一收口到这里。
+     * 冷启动 restore 带回的残留**不走这里**：readRestoredDownloads 已经把恢复出来的
+     * item 状态统一归成 INIT（见那里的注释），恢复完就能直接被 pump 挑走，不需要先猜
+     * 哪些"看着在跑、其实没有句柄"。
      *
      * FAILED 也一起翻 INIT，让 retry 自然走 pump 路径。
-     * 正在跑的 page（handles 里有 uuid）绝不能动 —— 否则把 DOWNLOADING 翻 INIT 后
-     * pump 会再 dispatch 一条传输任务，跟原 chain 抢同一个 stage 文件 / targetUri，
-     * 实测出过同 uuid 两次 read-start。
+     *
+     * 两类 item 绝不能动：
+     *   - 真在跑的 page（[handles] 里有 uuid）；
+     *   - 正在派发的 page（[dispatching] 里有 uuid）—— 它刚被置 DOWNLOADING，句柄还在
+     *     IO → 主线程的路上；这时翻 INIT 会让 pump 再派发一次，同 uuid 两条传输抢同一个
+     *     stage 文件 / targetUri（实测出过同 uuid 两次 read-start）。
      */
     private void resurrectIfStranded(DownloadItem item) {
         int s = item.getState();
@@ -483,7 +520,8 @@ public class Manager {
             return;
         }
         if (s == DownloadItem.DownloadState.DOWNLOADING
-                && !handles.containsKey(item.getUuid())) {
+                && !handles.containsKey(item.getUuid())
+                && !dispatching.contains(item.getUuid())) {
             // 只翻状态。**不再** setNonius(0) / setCurrentSize(0) —— 来这里的两种场景：
             //   - 用户 pause → resume：stage 文件仍在 cacheDir，下次 downloadOne 用
             //     stageFile.length() 做 Range 头续传，第一个 chunk 进度直接回到原值
@@ -512,6 +550,9 @@ public class Manager {
             try { d.cancel(); } catch (Exception ignored) {}
         }
         handles.clear();
+        // 停止后所有 item 都 paused（getState() 返回 PAUSED），不会再被误判成 stranded，
+        // dispatching 里的残留也一并清掉，免得 resume 时把还没派发的 uuid 当成"在跑"。
+        dispatching.clear();
         Common.showLog("已经停止");
         ManagerReactive.invalidate();
     }
@@ -570,7 +611,7 @@ public class Manager {
      * 拉出来，状态置 DOWNLOADING 后异步派发，直到正在传输的数量达到用户设置的
      * 并发数上限或没有 INIT 可用为止。
      *
-     * synchronized 关键：state 检查 + 状态置 DOWNLOADING + handles.put 必须原子，
+     * synchronized 关键：state 检查 + 状态置 DOWNLOADING + 登记 [dispatching] 必须原子，
      * 否则两个 onFinally 同时回调可能挑到同一条 INIT 派发两次。
      *
      * public：用户改并发设置时希望"扩大槽位继续跑"但不希望像 startAll 那样
@@ -591,6 +632,9 @@ public class Manager {
             // 抢占式置 DOWNLOADING：阻止下一次 pump 再挑到这条；progress callback
             // 进来再细化为带 nonius 的 DOWNLOADING（语义不变，只是同名状态）。
             next.setState(DownloadItem.DownloadState.DOWNLOADING);
+            // 同一临界区内标记"正在派发"：句柄登记要绕 IO→主线程一跳才完成，这中间
+            // resurrectIfStranded 不能把这条当成 stranded（详见 dispatching 字段注释）。
+            dispatching.add(next.getUuid());
             // 兼容字段：第一个进入的当前下载 = 老 API 返回的 currentIllustID/uuid
             currentIllustID = next.getIllust().getId();
             uuid = next.getUuid();
@@ -796,7 +840,7 @@ public class Manager {
      */
     private void dispatchToAria2(DownloadItem downloadItem) {
         final String itemUuid = downloadItem.getUuid();
-        DownloadTask d = DownloadTask.launch(IO, emitter -> {
+        DownloadTask d = DownloadTask.create(emitter -> {
             try {
                 String gid = Aria2Dispatcher.dispatch(downloadItem);
                 emitter.onNext(gid);
@@ -831,7 +875,8 @@ public class Manager {
             Common.showLog("[ARIA2] onFinally uuid=" + itemUuid);
             postMain(this::pumpAvailableSlots);
         });
-        handles.put(itemUuid, d);
+        registerHandle(itemUuid, d);
+        d.start(IO);
     }
 
     private void startDownloadChain(Context context, DownloadItem downloadItem,
@@ -873,7 +918,7 @@ public class Manager {
             acquiredStage = false;
         }
 
-        DownloadTask d = DownloadTask.launch(IO, emitter -> {
+        DownloadTask d = DownloadTask.create(emitter -> {
             try {
                 // 必须在可取消的 DownloadTask Body 内等待，不能占住主线程，也不能在
                 // handles 注册前等待。staged 的本地复制会从 0 覆写，旧 partial 不会混入。
@@ -963,6 +1008,27 @@ public class Manager {
             if (downloadItem.getIllust().isGif()) {
                 Common.showLog("[DL] ugoira zip is an intermediate artefact, no 已完成 record");
             } else {
+                // 重复下检测：写「已完成」之前先看这一页是不是早就有一条**文件还在**的记录。
+                // 命中就说明同一张图被下了不止一次（重试路径重派、冷启动残留重派、或用户
+                // 手动再下一次）。用 findUsableUri 而不是 hasUsableRecord，是为了把旧文件
+                // 路径一起打出来，好判断到底是"重下覆盖"还是"多出一份 (1)"。
+                // 探测是阻塞 DB + fd 校验，跑在 IO worker 上（本回调本来就在 IO 线程）。
+                try {
+                    Uri preexisting = RecordedPageProbe.findUsableUri(
+                            Shaft.getContext(),
+                            downloadItem.getIllust().getId(),
+                            downloadItem.getIndex());
+                    if (preexisting != null) {
+                        Common.showLog("[DL-DUP] 落盘前已存在同 (illust,page) 的可用记录，疑似重复下载"
+                                + " illust=" + downloadItem.getIllust().getId()
+                                + " page=" + downloadItem.getIndex()
+                                + " 旧=" + preexisting
+                                + " 新=" + factory.getFileUri()
+                                + " name=" + downloadItem.getName());
+                    }
+                } catch (Throwable t) {
+                    Common.showLog("[DL-DUP] probe failed: " + t);
+                }
                 try {
                     downloadEntity = new DownloadEntity();
                     downloadEntity.setIllustGson(Shaft.sGson.toJson(downloadItem.getIllust()));
@@ -1075,7 +1141,12 @@ public class Manager {
             Common.showLog("onFinally uuid=" + itemUuid);
             postMain(this::pumpAvailableSlots);
         });
-        handles.put(itemUuid, d);
+        // 先登记句柄、再启动：极快路径（stage 已完整，commit 不走网络）会在主线程执行到
+        // 这一行之前就跑完 onFinally → handles.remove。先注册保证 remove 永远晚于 put，
+        // 不会在表里留下一条已完成的死句柄（那会让 resurrectIfStranded 误以为"还在跑"，
+        // 冷启动残留的 stranded 页永远不复位）。
+        registerHandle(itemUuid, d);
+        d.start(IO);
     }
 
     /**
@@ -1172,6 +1243,16 @@ public class Manager {
                             code, response.header("Content-Range"), contentLength, existingLen);
                     Common.showLog("[STAGED-DL] code=" + code + " mode=" + dec.mode
                             + " startOffset=" + dec.startOffset + " total=" + dec.total);
+                    // 没有 Content-Length 时把响应头打出来：chunked 和"okhttp 透明解压 gzip"
+                    // 都会让 contentLength() 返回 -1，但两者修法完全不同，得能分开。
+                    if (contentLength < 0) {
+                        Common.showLog("[DL-HDR] contentLength=-1 transferEncoding="
+                                + response.header("Transfer-Encoding")
+                                + " contentEncoding=" + response.header("Content-Encoding")
+                                + " server=" + response.header("Server")
+                                + " via=" + response.header("Via")
+                                + " name=" + downloadItem.getName());
+                    }
 
                     if (dec.mode == StageStore.WriteMode.ABORT) {
                         // 无法安全续传：弃掉 partial + manifest，抛错让队列 retry 走整段重下。
@@ -1330,19 +1411,43 @@ public class Manager {
      *
      * @return 实际写到的总字节数（含 startOffset）。
      */
+    /** 单次 read 超过这个时长就记一笔 —— 对端不发数据的指纹（死 socket / 连接卡住）。 */
+    private static final long READ_STALL_LOG_MS = 2000L;
+    /** 整段传输超过这个时长、且均速低于 [SLOW_TRANSFER_MIN_KBPS] 时记一笔。 */
+    private static final long SLOW_TRANSFER_MIN_MS = 5000L;
+    private static final long SLOW_TRANSFER_MIN_KBPS = 300L;
+
     private long pumpBytes(InputStream in, OutputStream out, DownloadItem item,
             long startOffset, long totalSize, boolean localCopy, DownloadEmitter emitter) throws IOException {
         byte[] buffer = new byte[8192];
         long downloaded = startOffset;
         int lastProgress = 0;
         long lastUpdateNs = 0L;
-        int len;
-        while ((len = in.read(buffer)) != -1) {
+        final long startedNs = System.nanoTime();
+        while (true) {
+            // read 和 write 必须分开计时。合成一个数分不清是"链路不吐数据"还是"本地写卡住"
+            // —— 写慢会顶满 socket 接收缓冲，反过来让下一次 read 也变慢，两者症状一样。
+            long readStart = System.nanoTime();
+            int n = in.read(buffer);
+            long readMs = (System.nanoTime() - readStart) / 1_000_000L;
+            if (n == -1) {
+                if (readMs >= READ_STALL_LOG_MS) {
+                    Common.showLog("[DL-STALL] 收尾 read 停顿 " + readMs + "ms 已下=" + downloaded
+                            + "/" + totalSize + " name=" + item.getName());
+                }
+                break;
+            }
             if (emitter.isDisposed()) {
                 return downloaded;
             }
-            out.write(buffer, 0, len);
-            downloaded += len;
+            long writeStart = System.nanoTime();
+            out.write(buffer, 0, n);
+            long writeMs = (System.nanoTime() - writeStart) / 1_000_000L;
+            if (readMs >= READ_STALL_LOG_MS || writeMs >= READ_STALL_LOG_MS) {
+                Common.showLog("[DL-STALL] read=" + readMs + "ms write=" + writeMs + "ms 已下="
+                        + downloaded + "/" + totalSize + " name=" + item.getName());
+            }
+            downloaded += n;
             long nowNs = System.nanoTime();
             int progress = totalSize > 0 ? (int) (downloaded * 100 / totalSize) : 0;
             boolean pctChanged = totalSize > 0 && progress != lastProgress;
@@ -1354,7 +1459,40 @@ public class Manager {
             }
         }
         out.flush();
+        logIfSlowTransfer(item, startOffset, downloaded, totalSize, localCopy, startedNs);
         return downloaded;
+    }
+
+    /**
+     * 整段传输偏慢时记一笔。
+     *
+     * 单次 read 的停顿阈值抓不到"每次 read 都很短、但整体就是慢"的形态：实测过一次
+     * 续传 1.8MB 花了 10.4 秒（178 KB/s，同一份日志里的全新下载是 2–4 MB/s），那种
+     * 情况每次 read 只有几十毫秒，只有"总时长 + 均速"能把它刻画出来。{@code localCopy}
+     * 是本地文件复制，慢的原因不在这条链路上，跳过。
+     */
+    /**
+     * 这次传输算不算"整段偏慢"。
+     *
+     * 抽成 static 是为了让阈值能被单测钉住，而不是只能靠读代码：本地复制不算（慢的原因
+     * 不在这条链路上）、时长不够不算、没有有效字节不算、均速达标不算。均速用
+     * {@code bytes/ms}，数值上就是 KB/s。
+     */
+    static boolean isSlowTransfer(long tookMs, long transferredBytes, boolean localCopy) {
+        if (localCopy) return false;
+        if (tookMs < SLOW_TRANSFER_MIN_MS) return false;
+        if (transferredBytes <= 0) return false;
+        return (transferredBytes / tookMs) < SLOW_TRANSFER_MIN_KBPS;
+    }
+
+    private void logIfSlowTransfer(DownloadItem item, long startOffset, long downloaded,
+            long totalSize, boolean localCopy, long startedNs) {
+        long tookMs = (System.nanoTime() - startedNs) / 1_000_000L;
+        long bytes = downloaded - startOffset;
+        if (!isSlowTransfer(tookMs, bytes, localCopy)) return;
+        Common.showLog("[DL-SLOW] 整段偏慢 用时=" + tookMs + "ms 本次下=" + bytes
+                + "B 进度=" + downloaded + "/" + totalSize + " 均速=" + (bytes / tookMs)
+                + "KB/s name=" + item.getName());
     }
 
     private void reportProgress(DownloadItem item, int percent, long downloaded, long total,

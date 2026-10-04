@@ -16,6 +16,7 @@ import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueEntity
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.db.queue.WorkType
+import ceui.pixiv.download.RecordedPageProbe
 import ceui.pixiv.download.StageStore
 import ceui.pixiv.download.StorageSpaceGuard
 import ceui.pixiv.download.IllustCaptionExporter
@@ -151,6 +152,15 @@ class QueueDownloadManager(app: Context) {
         var attempts: Int = 0,
     )
 
+    /** 断点续传的 stage 落点目录，跟 Manager 用同一个（cacheDir/staging_dl）。 */
+    private val stageDir: java.io.File by lazy {
+        java.io.File(appContext.cacheDir, StageStore.STAGE_DIR_NAME)
+    }
+
+    /** 见 [durableBytesOf]：优先 stage 文件长度，退回 currentSize。 */
+    private fun durableBytes(p: DownloadItem): Long =
+        durableBytesOf(stageDir, p.url, p.currentSize)
+
     /**
      * 一条 illust 的当前进度评分：已完成 page 数 * [PAGE_SCORE_UNIT] + 在飞 page 的已下
      * 字节和。单调代理「往前走了没」——某页下完被移出 content 会让 page 项 +1（远大于
@@ -159,7 +169,7 @@ class QueueDownloadManager(app: Context) {
     private fun progressScore(inf: InFlightIllust, remaining: List<DownloadItem>): Long {
         val completed = (inf.totalPages - remaining.size).coerceAtLeast(0)
         var bytes = 0L
-        for (p in remaining) bytes += p.currentSize.coerceAtLeast(0)
+        for (p in remaining) bytes += durableBytes(p)
         return completed * PAGE_SCORE_UNIT + bytes
     }
 
@@ -241,11 +251,18 @@ class QueueDownloadManager(app: Context) {
         val illustId: Long,
         val bean: Illust,
         val totalPages: Int,
-        /** 已经被 [Manager.addTask] 喂出去的页数；下一次要 add 的页索引 = nextPageToAdd */
-        var nextPageToAdd: Int,
+        /**
+         * 还没被 [Manager.addTask] 喂出去的**页索引队列**。
+         *
+         * 用队列而不是"下一个要派的页号"计数器：计数器只能表达"派到第几页"，
+         * 表达不了"到底哪几页还缺"。一旦派发不是从 0 连续推进（重试补页、命中已完成
+         * 记录而跳过），计数器就会把缺的页算成已派发 → 漏页；或反过来把已下好的页
+         * 再派一次 → 重复下。
+         */
+        val pendingPages: ArrayDeque<Int>,
         /** 入队时 download_queue.retryCount 的快照；finalize 时决定是 bumpRetry 还是 FAILED */
         val retryCountAtPull: Int,
-        /** 停滞检测：上一轮 settle 看到的 (uuid:state:nonius) 拼接签名 */
+        /** 停滞检测：上一轮 settle 看到的 (uuid:state:已落字节) 拼接签名 */
         var lastSignature: String = "",
         /** 上一次 signature 发生变化的墙钟时间 */
         var lastChangeAt: Long = System.currentTimeMillis(),
@@ -372,7 +389,7 @@ class QueueDownloadManager(app: Context) {
 
     /**
      * 扫一遍 [inFlight] 看哪些 illust 已经全部 P 都 settle 了：
-     *   - 全部 page 已加进 Manager.content 过（[InFlightIllust.nextPageToAdd] == totalPages）
+     *   - 该 illust 已无待派发的页（[InFlightIllust.pendingPages] 为空）
      *   - 当前 Manager.content 内对应该 illust 的 page 全是 FAILED（其他状态都 settle 完）
      *
      * 然后据此标 SUCCESS / FAILED / 触发重试。同时做停滞检测，避免下载内核卡死时
@@ -392,8 +409,12 @@ class QueueDownloadManager(app: Context) {
             val inf = iter.next().value
             val pages = byIllust[inf.illustId] ?: emptyList()
 
-            // 停滞检测：以 (uuid:state:nonius) 列表为签名
-            val signature = pages.joinToString("|") { it.uuid + ":" + it.state + ":" + it.nonius }
+            // 停滞检测：以 (uuid:state:已落字节) 列表为签名。
+            // 字节数走 durableBytes（stage 文件真实长度），不依赖主线程有没有把进度回调
+            // 跑完 —— 否则主线程一忙，明明在动的下载也会被判成"签名没变" → 误报停滞。
+            val signature = pages.joinToString("|") {
+                it.uuid + ":" + it.state + ":" + durableBytes(it)
+            }
             if (signature != inf.lastSignature) {
                 inf.lastSignature = signature
                 inf.lastChangeAt = now
@@ -407,8 +428,8 @@ class QueueDownloadManager(app: Context) {
                 continue
             }
 
-            // 还没把所有 P 都 add 出去 —— 后面 fillSlots 会继续推进，这里先跳过
-            if (inf.nextPageToAdd < inf.totalPages) continue
+            // 还有页没派发出去 —— 后面 fillSlots 会继续推进，这里先跳过
+            if (inf.pendingPages.isNotEmpty()) continue
 
             if (pages.isEmpty()) {
                 // 所有 P 都成功被 remove 了
@@ -417,16 +438,18 @@ class QueueDownloadManager(app: Context) {
                 continue
             }
 
-            // 只要还有 INIT / DOWNLOADING / PAUSED 在 → 还没 settle
-            val unsettled = pages.count {
-                it.state == DownloadItem.DownloadState.INIT
-                        || it.state == DownloadItem.DownloadState.DOWNLOADING
-                        || it.isPaused
-                        || it.state == DownloadItem.DownloadState.PAUSED
+            // 只有"每一页都确定 FAILED"才算整条失败。
+            //
+            // 不能反过来判"没有未完成的就算失败"：一页下载成功后 state 立刻置 SUCCESS，
+            // 但它从 Manager.content 移除是投递到主线程的异步动作，主线程一忙就晚几十到
+            // 几百毫秒。这段窗口里快照看到的 SUCCESS 页既不是 INIT/DOWNLOADING/PAUSED，
+            // 就会让整条被误判成失败 → 行回退 PENDING → 重拉重派 → 同一页被反复下载。
+            // SUCCESS 页只是"还没被摘掉"，必须继续等它 remove。
+            val allFailed = pages.all {
+                it.state == DownloadItem.DownloadState.FAILED && !it.isPaused
             }
-            if (unsettled > 0) continue
+            if (!allFailed) continue
 
-            // 剩下的应该都是 FAILED：illust 视为失败
             toFinalize += inf to FinalizeKind.FAILED
             iter.remove()
         }
@@ -484,21 +507,32 @@ class QueueDownloadManager(app: Context) {
                                     .onFailure { Timber.tag(TAG).w(it, "clearOne stalled p=${p.uuid}") }
                             }
                         }
-                        // 有进展 → 清零重试计数（下次从 0 起算）；无进展 → 照常 +1 逼近 MAX_RETRY。
+                        // 有进展 → 清零重试计数（下次从 0 起算），seq 不动：这一轮字节前沿
+                        //   在往前推，优先把同一张图续完，不浪费已下好的部分。
+                        // 无进展 → 重试计数 +1 逼近 MAX_RETRY，并把 seq 推到队尾：否则下一轮
+                        //   nextByStatus 按 seq 升序立刻又拿到这一行，后面的作品一直轮不到。
                         if (madeProgress) {
                             runCatching { dao.resetRetry(inf.queueRowId) }
                                 .onFailure { Timber.tag(TAG).e(it, "[QUEUE-CONSUMER] resetRetry failed id=${inf.queueRowId}") }
+                            runCatching {
+                                dao.updateStatus(
+                                    inf.queueRowId, QueueStatus.PENDING,
+                                    err = if (kind == FinalizeKind.STALLED) "stalled" else null
+                                )
+                            }.onFailure {
+                                Timber.tag(TAG).e(it, "[QUEUE-CONSUMER] mark PENDING failed id=${inf.queueRowId}")
+                            }
                         } else {
-                            runCatching { dao.bumpRetry(inf.queueRowId) }
-                                .onFailure { Timber.tag(TAG).e(it, "[QUEUE-CONSUMER] bumpRetry failed id=${inf.queueRowId}") }
-                        }
-                        runCatching {
-                            dao.updateStatus(
-                                inf.queueRowId, QueueStatus.PENDING,
-                                err = if (kind == FinalizeKind.STALLED) "stalled" else null
-                            )
-                        }.onFailure {
-                            Timber.tag(TAG).e(it, "[QUEUE-CONSUMER] mark PENDING failed id=${inf.queueRowId}")
+                            val tail = (runCatching { dao.maxSeq() }.getOrNull() ?: 0L) + 1
+                            runCatching {
+                                dao.retryPending(
+                                    inf.queueRowId,
+                                    if (kind == FinalizeKind.STALLED) "stalled" else null,
+                                    tail,
+                                )
+                            }.onFailure {
+                                Timber.tag(TAG).e(it, "[QUEUE-CONSUMER] retryPending failed id=${inf.queueRowId}")
+                            }
                         }
                         queueListInvalidations.tryEmit(Unit)
                         Timber.tag(TAG).i(
@@ -538,7 +572,7 @@ class QueueDownloadManager(app: Context) {
 
     /**
      * 按 maxConc 补 P 进 Manager.content：
-     *   - 优先填现有 inflight illust 的下一未 add 页
+     *   - 优先填现有 inflight illust 还没派发出去的页（[InFlightIllust.pendingPages]）
      *   - 都填满了再 pull 下一条 PENDING（排除已在 inflight 的）
      *
      * 每轮迭代实时重算 footprint —— addTask 之后 [Manager.content] 已经同步变长，
@@ -576,10 +610,10 @@ class QueueDownloadManager(app: Context) {
             val activeFootprint = illustActive + ugoiraExcl.size
             if (activeFootprint >= maxConc) return didAdd
 
-            // 1) 现有 inflight illust 还有未 add 的 P → 添一个
-            val infNeedingPage = inFlight.values.firstOrNull { it.nextPageToAdd < it.totalPages }
+            // 1) 现有 inflight illust 还有待派发的 P → 添一个
+            val infNeedingPage = inFlight.values.firstOrNull { it.pendingPages.isNotEmpty() }
             if (infNeedingPage != null) {
-                val i = infNeedingPage.nextPageToAdd
+                val i = infNeedingPage.pendingPages.removeFirst()
                 val ok = runCatching {
                     val di = DownloadItem(infNeedingPage.bean, i)
                     di.url = IllustDownload.getUrl(
@@ -593,7 +627,6 @@ class QueueDownloadManager(app: Context) {
                         it, "[QUEUE-CONSUMER] addTask failed illust=${infNeedingPage.illustId} page=$i"
                     )
                 }.isSuccess
-                infNeedingPage.nextPageToAdd = i + 1
                 if (ok) didAdd = true
                 continue
             }
@@ -635,8 +668,10 @@ class QueueDownloadManager(app: Context) {
         } catch (e: Exception) {
             Timber.tag(TAG).w(e, "[QUEUE-CONSUMER] resolveBean failed illust=${row.illustId}")
             if (row.retryCount + 1 < MAX_RETRY) {
-                runCatching { dao.bumpRetry(row.id) }
-                runCatching { dao.updateStatus(row.id, QueueStatus.PENDING, err = e.message) }
+                // 解析失败也把行挪到队尾：不然解析不出来的这一条会一直占着队首，
+                // 后面的作品全被它挡住。
+                val tail = (runCatching { dao.maxSeq() }.getOrNull() ?: 0L) + 1
+                runCatching { dao.retryPending(row.id, e.message, tail) }
                 delay(SOFT_ERROR_BACKOFF_MS)
             } else {
                 runCatching {
@@ -684,11 +719,11 @@ class QueueDownloadManager(app: Context) {
         val target = row.illustId
         val existing = snapshotManagerContent().filter { it.illust?.id == target }
 
-        val nextPageToAddInit = if (existing.isNotEmpty()) {
+        if (existing.isNotEmpty()) {
             // 把所有非 INIT 状态翻 INIT，让 pumpAvailableSlots 重新挑选：
             //   - FAILED：上轮真失败的 P
             //   - DOWNLOADING：**冷启动 Manager.restore 带回的 stranded 状态**——
-            //     原 Disposable 已随进程消失，pump 又把 DOWNLOADING 算进 activeCount
+            //     原传输句柄已随进程消失，pump 又把 DOWNLOADING 算进 activeCount
             //     但 getFirstReady 只挑 INIT，不翻就永远占着槽位卡死整队
             //   - PAUSED：之前用户手动暂停过，现在重新接管要抹掉
             // SUCCESS 不会出现（complete 时已 content.remove）；INIT 已经 ready，跳过。
@@ -697,9 +732,9 @@ class QueueDownloadManager(app: Context) {
             // 同源做法（state 是 volatile-style 单值，顺序不强）；只在 IO 线程做。
             for (p in existing) {
                 // 真在跑的 page（handles 里有 uuid）跳过 —— 否则把状态翻 INIT 会让
-                // 下一轮 pumpAvailableSlots 再 dispatch 一条 Observable，跟原 chain
-                // 抢同一个 stage 文件 + targetUri（实测出过同 uuid 两次 read-start）。
-                // 冷启动 stranded DOWNLOADING 的 handle 已随进程消失，不会被这条 continue 误伤。
+                // 下一轮 pumpAvailableSlots 再 dispatch 一条传输，跟原 chain 抢同一个
+                // stage 文件 + targetUri（实测出过同 uuid 两次 read-start）。
+                // 冷启动 stranded DOWNLOADING 的句柄已随进程消失，不会被这条 continue 误伤。
                 if (Manager.get().isRunningHandle(p.uuid)) continue
                 val s = p.state
                 if (s == DownloadItem.DownloadState.FAILED
@@ -710,28 +745,38 @@ class QueueDownloadManager(app: Context) {
                 if (p.isPaused) p.setPaused(false)
             }
             ManagerReactive.invalidate()
-            // 已知 gap：existing.size 可能 < pageCount —— 比如上轮 SUCCESS 被 remove
-            // 的 P 不在 content 里、但又有别的途径让其它 P 缺席（如 clearOne）。我们
-            // 只能用 existing 这部分继续跑，缺的 P 不补；老 awaitIllustSettled 也是
-            // 同样行为，没回归。要补齐需要按 page index 精确比对，目前不值得。
-            pageCount
-        } else 0
+        }
+
+        // 按 page index 精确算出"还缺哪几页"：缺的补上，已下好的不再重派。
+        //   - presentIdx：content 里已经在的页（本轮由它们继续跑，不重复登记）
+        //   - hasUsableRecord：这一页已有下载记录**且文件确实还能打开** → 跳过。
+        //     探测会验一次 fd，所以用户在文件管理器里删掉图之后仍会正常重下；
+        //     判不准时它返回 false（照常下载），宁可多下一次也不错误跳过。
+        val presentIdx = existing.map { it.index }.toSet()
+        val pendingPages = ArrayDeque(
+            (0 until pageCount).filter { idx ->
+                idx !in presentIdx &&
+                        !RecordedPageProbe.hasUsableRecord(appContext, target, idx)
+            }
+        )
 
         inFlight[row.id] = InFlightIllust(
             queueRowId = row.id,
             illustId = row.illustId,
             bean = bean,
             totalPages = pageCount,
-            nextPageToAdd = nextPageToAddInit,
+            pendingPages = pendingPages,
             retryCountAtPull = row.retryCount,
         )
         Timber.tag(TAG).i(
             "[QUEUE-CONSUMER] TAKE id=${row.id} illustId=${row.illustId} " +
-                    "pageCount=$pageCount existing=${existing.size} retry=${row.retryCount}"
+                    "pageCount=$pageCount existing=${existing.size} " +
+                    "pending=${pendingPages.size} retry=${row.retryCount}"
         )
-        // 只在首次拉入时导出简介：retry path（existing 非空）这条作品上一轮已经导出过，
-        // 再导一次在 Rename 策略下会多出一份 `xxx (1).txt`。
-        if (existing.isEmpty()) IllustCaptionExporter.export(bean)
+        // 只在"整条都还没有记录"时导出简介 —— 这是真正首次拉入。任何一页已有记录、
+        // 或 content 里已有残留 P，都说明这条作品之前处理过，再导一次在 Rename
+        // 策略下会多出一份 `xxx (1).txt`。
+        if (pendingPages.size == pageCount) IllustCaptionExporter.export(bean)
         return true
     }
 
@@ -820,10 +865,9 @@ class QueueDownloadManager(app: Context) {
             } catch (e: Exception) {
                 Timber.tag(TAG).w(e, "[QUEUE-CONSUMER] ugoira failed illust=${row.illustId}")
                 if (row.retryCount + 1 < MAX_RETRY) {
-                    runCatching { dao.bumpRetry(row.id) }
-                    runCatching {
-                        dao.updateStatus(row.id, QueueStatus.PENDING, err = e.message)
-                    }
+                    // 同 illust 路径：无进展的失败把行挪到队尾，不占着队首反复重试。
+                    val tail = (runCatching { dao.maxSeq() }.getOrNull() ?: 0L) + 1
+                    runCatching { dao.retryPending(row.id, e.message, tail) }
                 } else {
                     val updated = runCatching {
                         dao.updateStatus(

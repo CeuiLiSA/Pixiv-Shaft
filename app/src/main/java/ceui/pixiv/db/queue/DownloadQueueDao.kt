@@ -42,6 +42,27 @@ interface DownloadQueueDao {
     suspend fun bumpRetry(id: Long)
 
     /**
+     * 把一行挪到队尾：seq 取比当前最大值还大的值。[nextByStatus] 按 seq 升序取行，
+     * 失败重试时若不挪，下一轮立刻又拿到同一行 —— 后面的作品一直轮不到，表现为
+     * "逮着同一个作品反复重试"。
+     */
+    @Query("UPDATE download_queue SET seq = :newSeq WHERE id = :id")
+    suspend fun resequence(id: Long, newSeq: Long)
+
+    /**
+     * 失败回退 PENDING：重试计数 +1、写回退原因，并把 seq 推到队尾 [newSeq]。
+     *
+     * 只用于"这一轮完全没往前走"的失败。有进展的续传（字节前沿在推进）不走这里 ——
+     * 那种情况 seq 保持不动，优先把同一张图续完，不浪费已下好的部分。
+     */
+    @Transaction
+    suspend fun retryPending(id: Long, err: String?, newSeq: Long) {
+        bumpRetry(id)
+        updateStatus(id, QueueStatus.PENDING, err = err)
+        resequence(id, newSeq)
+    }
+
+    /**
      * 断点续传的「进度看门狗」用：本次尝试推进了字节前沿，就把重试计数清零，让
      * 抖动线路只要每次都往前挪就能一直续，而不是在固定 MAX_RETRY 次后放弃
      * （详见 [ceui.pixiv.ui.bulk.QueueDownloadManager] 的 progressWatermark）。
