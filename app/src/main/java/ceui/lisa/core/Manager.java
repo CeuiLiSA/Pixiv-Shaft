@@ -640,10 +640,10 @@ public class Manager {
     private void downloadOne(Context context, DownloadItem downloadItem) {
         Common.showLog("[DL-CACHE] downloadOne enter uuid=" + downloadItem.getUuid()
                 + " name=" + downloadItem.getName() + " url=" + downloadItem.getUrl());
-        if(!DownloadLimitTypeUtil.canDownloadNow()){
-            stopAll();
-            return;
-        }
+        // 这里刻意**不做**网络闸门：口径是「闸门只守自动启动」。能走到 downloadOne，
+        // 说明上游已经放行（自动路径过了 startTaskWhenCreate，或用户在下载管理里手动继续）。
+        // 旧实现在这里 canDownloadNow()==false 就 stopAll() 返回，把用户触发的下载也一并拦掉了 ——
+        // 表现为切到蜂窝后「继续全部」也下不动。
 
         // aria2 远程下载模式（#692）：任务转发给远端 aria2（NAS），不在本地建文件。
         // 必须在 factory 创建之前拦截，否则会平白多出一条本地 MediaStore/SAF 行。

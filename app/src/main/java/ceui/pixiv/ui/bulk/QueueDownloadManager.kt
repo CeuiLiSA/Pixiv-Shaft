@@ -59,7 +59,7 @@ import timber.log.Timber
  *      的元素数 ≤ maxConcurrentDownloads（[fillSlots] 唯一负责加 P，加之前查 footprint）
  *   2. 一条 download_queue 行最多对应一个 [InFlightIllust]；inflight 在 settle 时移除
  *   3. illust 全部 P 都 settle（成功被 remove / 失败留下 FAILED）后才标 SUCCESS / FAILED
- *   4. canDownloadNow=false 时 consumer 只睡，不 pull / addTask / 不标 DOWNLOADING
+ *   4. 自动闸门关闭（且用户未手动放行）时 consumer 只睡，不 pull / addTask / 不标 DOWNLOADING
  *   5. cold start: [DownloadQueueDao.resurrectInProgress] 把残留 DOWNLOADING 复位 PENDING；
  *      Manager.restore 带回的 P 会在 fillSlots 拉它对应行时走"retry path"被认领回来
  *
@@ -70,7 +70,7 @@ import timber.log.Timber
  *   tickle channel                ─┤── ticker (CONFLATED) ──→ withTimeoutOrNull(POLL_INTERVAL)
  *                                  │
  *                                  ▼
- *   while (!paused && canDownload) {
+ *   while (!paused && (userForced || autoStartAllowed)) {
  *     settleCompleted()    // inflight 全部 P 都没了 → 标 SUCCESS / FAILED
  *     fillSlots()           // 按 maxConc 补 P：先补现有 inflight 剩余 P，再 pull 新行
  *     Manager.startAll()   // 触发 pumpAvailableSlots
@@ -90,6 +90,15 @@ class QueueDownloadManager(app: Context) {
 
     private var loopJob: Job? = null
     @Volatile private var paused: Boolean = false
+
+    /**
+     * 用户手动放行标记：用户在「下载管理」里点了继续 / 重试失败时置 true，让主循环
+     * 这一次不再走自动闸门 —— 口径是「用户触发的操作忽略网络状态」。
+     *
+     * 生命周期刻意收得很短 —— [pause] 或队列跑空即收回，避免一次手动恢复把网络限制
+     * 永久放宽到后续所有自动入列。主线程（UI 点击）写、[loopJob] 读，故 @Volatile。
+     */
+    @Volatile private var userForced: Boolean = false
 
     /**
      * Reactive 暂停状态：UI 端 collect 这个 StateFlow 让"暂停 / 继续"按钮文案
@@ -285,7 +294,7 @@ class QueueDownloadManager(app: Context) {
                 paused = true   // 默认暂停；等用户在第一个 Activity 弹窗里决定
                 _pausedFlow.value = true
                 (appContext as? Application)?.let { app ->
-                    promptResumeOnFirstActivity(app, pending) { resume() }
+                    promptResumeOnFirstActivity(app, pending) { resumeByUser() }
                 }
                 Timber.tag(TAG).i("cold start: $pending pending items, awaiting user decision")
             } else {
@@ -315,8 +324,10 @@ class QueueDownloadManager(app: Context) {
                 tickle.receive()  // 阻塞直到 resume() 触发 tickle
                 continue
             }
-            if (!DownloadLimitTypeUtil.canDownloadNow()) {
-                Timber.tag(TAG).i("[QUEUE-CONSUMER] canDownloadNow=false, holding")
+            // 网络闸门只守「自动启动」。用户在下载管理里点过继续（[userForced]）属于
+            // 用户触发，忽略网络状态 —— 哪怕当前无网络也放行，下不动是用户自己的选择。
+            if (!userForced && !DownloadLimitTypeUtil.autoStartAllowed()) {
+                Timber.tag(TAG).i("[QUEUE-CONSUMER] auto-start gated, holding (userForced=false)")
                 withTimeoutOrNull(NETWORK_GATE_SLEEP_MS) { tickle.receive() }
                 continue
             }
@@ -360,6 +371,9 @@ class QueueDownloadManager(app: Context) {
                         maybeToastBatchSummary()
                     }
                     Timber.tag(TAG).i("[QUEUE-CONSUMER] idle, awaiting next tickle")
+                    // 队列跑空 → 这次「用户手动放行」的使命结束，收回 override，
+                    // 否则一次强制恢复会把网络限制永久放宽到后续所有自动入列。
+                    userForced = false
                     tickle.receive()
                     continue
                 }
@@ -558,7 +572,7 @@ class QueueDownloadManager(app: Context) {
         var safety = maxConc * 2 + 8
 
         while (safety-- > 0) {
-            if (!DownloadLimitTypeUtil.canDownloadNow() || paused) return didAdd
+            if ((!userForced && !DownloadLimitTypeUtil.autoStartAllowed()) || paused) return didAdd
 
             val snapshot = snapshotManagerContent()
             val illustActive = snapshot.count {
@@ -743,6 +757,8 @@ class QueueDownloadManager(app: Context) {
     fun pause() {
         paused = true
         _pausedFlow.value = true
+        // 用户主动暂停 → 收回手动放行
+        userForced = false
         // 联动：illust 走 Manager.stopAll() 立刻停 disposables；ugoira 这边等价做法
         // 是 cancel 已派出去的 worker —— 否则一条 50MB zip + ~1s 编码会跑完才理睬
         // 用户的暂停意图。worker 的 catch CancellationException 会把行翻回 PENDING，
@@ -756,6 +772,20 @@ class QueueDownloadManager(app: Context) {
         val sent = tickle.trySend(Unit).isSuccess
         Timber.tag(TAG).i("[QUEUE-CONSUMER] resume() called, tickle.trySend=$sent")
     }
+
+    /**
+     * 用户在「下载管理」里主动点继续 / 重试失败 —— 用户触发的操作忽略网络状态。
+     *
+     * 与自动路径的 [resume] 刻意分开：自动路径受网络闸门约束，用户触发的路径不受 ——
+     * 哪怕当前无网络、哪怕设置是"仅 Wi-Fi"或"不自动下载"，用户点了就执行。
+     * 放行只在本次批次内有效 —— [pause] 或队列跑空即收回，见 [userForced]。
+     */
+    fun resumeByUser() {
+        userForced = true
+        Timber.tag(TAG).i("[QUEUE-CONSUMER] resumeByUser() — 用户触发，忽略网络状态，本次不走自动闸门")
+        resume()
+    }
+
     fun isPaused(): Boolean = paused
 
     /**
@@ -877,7 +907,7 @@ class QueueDownloadManager(app: Context) {
         private const val STAGE_MAX_AGE_MS = 48L * 60 * 60 * 1000
         /** 主循环兜底 polling：即使 ticker 没动，也每隔一段时间复查一次 */
         private const val POLL_INTERVAL_MS = 800L
-        /** canDownloadNow=false 时挂起的 sleep 周期 */
+        /** 自动闸门关闭（且用户未手动放行）时挂起的 sleep 周期 */
         private const val NETWORK_GATE_SLEEP_MS = 30_000L
         /** 一条 inflight illust 持续无任何 P 状态变化的"停滞"上限；超过则强制按失败收口 */
         private const val STALL_TIMEOUT_MS = 90_000L

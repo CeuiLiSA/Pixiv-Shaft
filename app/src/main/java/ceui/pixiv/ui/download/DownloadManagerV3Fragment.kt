@@ -150,8 +150,9 @@ class DownloadManagerV3Fragment : Fragment() {
                     // 读当前 pausedFlow 决定方向:暂停态 → 继续;运行态 → 暂停。
                     // 不存第二份 UI 状态,跟 host 的 icon/title 联动用同一个 source of truth。
                     if (queueDownloadManager.isPaused()) {
+                        // resumeByUser：用户触发的操作忽略网络状态，不走自动闸门
                         Manager.get().startAll()
-                        queueDownloadManager.resume()
+                        queueDownloadManager.resumeByUser()
                     } else {
                         Manager.get().stopAll()
                         queueDownloadManager.pause()
