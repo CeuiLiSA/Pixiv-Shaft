@@ -516,6 +516,39 @@ public class Manager {
         ManagerReactive.invalidate();
     }
 
+    /**
+     * 网络不可用时的「挂起」：把下载退回**等待态**，等网络恢复自动接续。
+     *
+     * 与 [stopAll] 的差别是语义，不是实现细节：
+     *   - [stopAll] 是**用户暂停** —— 置 paused=true，之后必须用户手动「继续」；
+     *   - 这里是**网络等待** —— 只取消在传的传输、把状态翻回 INIT，**不碰 paused**。
+     *
+     * 用于「仅通过 Wi-Fi 下载」离开 Wi-Fi 时（见 NetWorkStateReceiver）：用户设的是
+     * 「只在 Wi-Fi 下下」，不是「暂停」。网络回来时 NetWorkStateReceiver 的
+     * [triggerPump] 会把这些等待项自动接续 —— stage 文件仍在 cacheDir，走 Range 续传，
+     * 不会从头重下（与 [resurrectIfStranded] 的续传口径一致，故也不 setNonius(0)）。
+     *
+     * 用户手动暂停过的项不动：paused=true 时 [DownloadItem.getState] 返回 PAUSED，
+     * 天然被下面的判断跳过。
+     */
+    public void parkForNetwork() {
+        // 先熄火再取消：cancel 触发的 onFinally 会调 pumpAvailableSlots，
+        // isRunning=false 让那一轮直接 return，避免又派发出去。
+        isRunning = false;
+        for (DownloadTask d : new ArrayList<>(handles.values())) {
+            try { d.cancel(); } catch (Exception ignored) {}
+        }
+        handles.clear();
+        for (DownloadItem item : contentSnapshot()) {
+            int s = item.getState();
+            if (s == DownloadItem.DownloadState.DOWNLOADING || s == DownloadItem.DownloadState.INIT) {
+                item.setState(DownloadItem.DownloadState.INIT);
+            }
+        }
+        Common.showLog("[DL-NET] parkForNetwork: 下载退回等待态，等网络恢复后自动接续");
+        ManagerReactive.invalidate();
+    }
+
     public void stopOne(String uuid){
         for (DownloadItem item : contentSnapshot()) {
             if(item.getUuid().equals(uuid)){

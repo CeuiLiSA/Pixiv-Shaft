@@ -789,6 +789,18 @@ class QueueDownloadManager(app: Context) {
     fun isPaused(): Boolean = paused
 
     /**
+     * 网络恢复到「可自动下载」的状态（自动闸门重新打开）时由 NetWorkStateReceiver 调用：
+     * 唤醒可能正卡在闸门 [NETWORK_GATE_SLEEP_MS] 轮询里的主循环，让等待中的队列行立刻重新评估。
+     *
+     * 只发 tickle、不动 [paused] —— 用户主动暂停的不该被网络变化恢复；是否真的开始下载
+     * 仍由主循环里的自动闸门决定。
+     */
+    fun onNetworkGateOpened() {
+        val sent = tickle.trySend(Unit).isSuccess
+        Timber.tag(TAG).i("[QUEUE-CONSUMER] onNetworkGateOpened, tickle.trySend=$sent")
+    }
+
+    /**
      * 给"清空全部"用：取消所有正在跑 / 等 Semaphore 的 ugoira worker。row 已经在
      * 调用方 `dao.deleteAll()` 删掉，worker 的 cancellation cleanup 会尝试把行翻
      * PENDING 但 row 不存在，dao 静默 no-op，不会异常。
