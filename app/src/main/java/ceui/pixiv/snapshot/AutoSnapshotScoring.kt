@@ -66,11 +66,14 @@ internal object AutoSnapshotScoring {
         dwellMs: Long,
         now: Long = System.currentTimeMillis(),
     ): ScoreBreakdown {
-        val dwell = dwellScore(dwellMs, record?.pageCount ?: 0)
-        val revisit = revisitScore(record, now)
-        val attention = attentionScore(record)
-        val coverage = coverageScore(record, attention)
-        val zoom = zoomScore(record, attention)
+        // 行为库只在写入新样本时裁剪对应列表，读出来的记录里可能还躺着窗口外的二级大图会话
+        // （作品一直有新访问、记录没被 prune 掉）。评分统一按 now 重新过一遍窗口。
+        val windowed = record?.trimmed(now)
+        val dwell = dwellScore(dwellMs, windowed?.pageCount ?: 0)
+        val revisit = revisitScore(windowed, now)
+        val attention = attentionScore(windowed)
+        val coverage = coverageScore(windowed, attention)
+        val zoom = zoomScore(windowed, attention)
 
         // 核心项（驻留 / 反复进入）可独立触发；辅助项只按核心强度放大 —— 实测反馈：
         // 「只看一眼就退出」若被辅助项（尤其单页 1/1 缩放打满的放大分）抬过线，会误生成。

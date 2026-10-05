@@ -75,6 +75,23 @@ class AutoSnapshotScoringTest {
     // ---------- 二级大图三项 ----------
 
     @Test
+    fun `viewer session outside the window no longer feeds the secondary terms`() {
+        val old = now - AutoSnapshotBehaviorStore.WINDOW_MS - 1L
+        val r = record(
+            pageCount = 1,
+            visits = listOf(now),
+            pages = listOf(AutoSnapshotViewerPageSample(at = old, page = 0, ms = 20_000L, zoomed = true)),
+            sessions = listOf(AutoSnapshotViewerSessionSample(at = old, pageCount = 1, viewedPages = 1)),
+        )
+
+        val breakdown = AutoSnapshotScoring.score(r, dwellMs = 4_000L, now = now)
+        assertEquals(0, breakdown.attention)
+        assertEquals(0, breakdown.coverage)
+        assertEquals(0, breakdown.zoom)
+        assertEquals(breakdown.core, breakdown.total)
+    }
+
+    @Test
     fun `attention half point is the per-page reference`() {
         val pages = (0 until 3).map {
             AutoSnapshotViewerPageSample(at = now, page = it, ms = 6_000L, zoomed = false)
