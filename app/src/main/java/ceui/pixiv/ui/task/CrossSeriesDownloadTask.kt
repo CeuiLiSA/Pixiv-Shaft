@@ -10,11 +10,12 @@ import ceui.loxia.Novel
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.WebNovel
 import ceui.pixiv.download.config.DownloadItems
+import ceui.pixiv.download.toast.DownloadToastKind
+import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.MergedChapter
 import ceui.pixiv.ui.novel.reader.export.MergedNovelContent
 import ceui.pixiv.ui.novel.reader.export.MergedNovelWriters
-import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -70,11 +71,12 @@ class CrossSeriesDownloadTask(context: Context) {
             seriesList.forEachIndexed { index, seriesItem ->
                 val title = seriesItem.title.orEmpty()
                 val pos = index + 1
-                Toaster.show(
+                DownloadToasts.show(
+                    DownloadToastKind.NOVEL_SERIES_EXPORT,
                     ctx.getString(
                         R.string.cross_series_download_starting_series,
                         pos, seriesList.size, title,
-                    )
+                    ),
                 )
                 try {
                     val written = withContext(Dispatchers.IO) {
@@ -82,11 +84,15 @@ class CrossSeriesDownloadTask(context: Context) {
                     }
                     if (written) {
                         successCount++
-                        Toaster.show(
-                            ctx.getString(R.string.cross_series_download_series_ok, title)
+                        DownloadToasts.show(
+                            DownloadToastKind.NOVEL_SERIES_EXPORT,
+                            ctx.getString(R.string.cross_series_download_series_ok, title),
                         )
                     } else {
-                        Toaster.show(ctx.getString(R.string.msg_export_skipped, title))
+                        DownloadToasts.show(
+                            DownloadToastKind.NOVEL_SERIES_EXPORT,
+                            ctx.getString(R.string.msg_export_skipped, title),
+                        )
                     }
                 } catch (ex: CancellationException) {
                     throw ex
@@ -96,20 +102,22 @@ class CrossSeriesDownloadTask(context: Context) {
                         seriesTitle = title,
                         reason = ex.message ?: ex::class.java.simpleName,
                     )
-                    Toaster.show(
+                    DownloadToasts.show(
+                        DownloadToastKind.NOVEL_SERIES_EXPORT,
                         ctx.getString(
                             R.string.cross_series_download_series_failed,
-                            title, ex.message ?: ""
-                        )
+                            title, ex.message ?: "",
+                        ),
                     )
                 }
                 if (pos < seriesList.size) delay(1500L)
             }
-            Toaster.show(
+            DownloadToasts.show(
+                DownloadToastKind.NOVEL_SERIES_EXPORT,
                 ctx.getString(
                     R.string.cross_series_download_all_done,
                     successCount, failures.size,
-                )
+                ),
             )
             onFinished(successCount, failures)
         }
@@ -161,11 +169,12 @@ class CrossSeriesDownloadTask(context: Context) {
 
                     allNovels.forEachIndexed { cIdx, novel ->
                         val cPos = cIdx + 1
-                        Toaster.show(
+                        DownloadToasts.show(
+                            DownloadToastKind.NOVEL_SERIES_EXPORT,
                             ctx.getString(
                                 R.string.cross_series_download_merge_progress,
                                 sPos, seriesList.size, cPos, allNovels.size,
-                            )
+                            ),
                         )
                         try {
                             val wNovel = withContext(Dispatchers.IO) {
@@ -212,19 +221,28 @@ class CrossSeriesDownloadTask(context: Context) {
                 val writer = MergedNovelWriters.forFormat(format)
                 val ok = withContext(Dispatchers.IO) { writer.write(ctx, content, destination) }
                 if (ok) {
-                    Toaster.show(
-                        ctx.getString(R.string.cross_series_download_merge_finished, destination.filename)
+                    DownloadToasts.show(
+                        DownloadToastKind.NOVEL_SERIES_EXPORT,
+                        ctx.getString(
+                            R.string.cross_series_download_merge_finished, destination.filename,
+                        ),
                     )
                 } else {
                     // false = 覆盖策略为「已存在则跳过」且目标已存在；写入失败走下方 catch。
-                    Toaster.show(ctx.getString(R.string.msg_export_skipped, destination.filename))
+                    DownloadToasts.show(
+                        DownloadToastKind.NOVEL_SERIES_EXPORT,
+                        ctx.getString(R.string.msg_export_skipped, destination.filename),
+                    )
                 }
                 onFinished(ok, skippedChapters)
             } catch (ex: CancellationException) {
                 throw ex
             } catch (ex: Exception) {
                 Timber.e(ex, "CrossSeriesDownloadTask.runAllMergedOne failed")
-                Toaster.show(ex.message ?: ex::class.java.simpleName)
+                DownloadToasts.show(
+                    DownloadToastKind.NOVEL_SERIES_EXPORT,
+                    ex.message ?: ex::class.java.simpleName,
+                )
                 onFinished(false, -1)
             }
         }

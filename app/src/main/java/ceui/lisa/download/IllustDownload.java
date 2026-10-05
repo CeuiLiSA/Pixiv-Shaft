@@ -40,6 +40,8 @@ import ceui.pixiv.download.DownloadRecordStateSource;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.IllustCaptionExporter;
 import ceui.pixiv.download.config.StorageChoice;
+import ceui.pixiv.download.toast.DownloadToastKind;
+import ceui.pixiv.download.toast.DownloadToasts;
 import ceui.pixiv.ui.bulk.UgoiraEngine;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
@@ -84,7 +86,8 @@ public class IllustDownload {
             if (illust.getPage_count() == 1) {
                 IllustCaptionExporter.export(illust);
                 DownloadItem item = buildDownloadItem(illust, 0, imageResolution);
-                Common.showToast('1' + Shaft.getContext().getString(R.string.has_been_added));
+                DownloadToasts.show(DownloadToastKind.ENQUEUED,
+                        '1' + Shaft.getContext().getString(R.string.has_been_added));
                 Manager.get().addTask(item);
             }
         });
@@ -103,7 +106,8 @@ public class IllustDownload {
         if (illust.getPage_count() == 1) {
             IllustCaptionExporter.export(illust);
             DownloadItem item = buildDownloadItem(illust, 0, imageResolution);
-            Common.showToast('1' + Shaft.getContext().getString(R.string.has_been_added));
+            DownloadToasts.show(DownloadToastKind.ENQUEUED,
+                    '1' + Shaft.getContext().getString(R.string.has_been_added));
             Manager.get().addTask(item);
         }
     }
@@ -116,7 +120,8 @@ public class IllustDownload {
             } else {
                 IllustCaptionExporter.export(illust);
                 DownloadItem item = buildDownloadItem(illust, index);
-                Common.showToast('1' + Shaft.getContext().getString(R.string.has_been_added));
+                DownloadToasts.show(DownloadToastKind.ENQUEUED,
+                        '1' + Shaft.getContext().getString(R.string.has_been_added));
                 Manager.get().addTask(item);
             }
         });
@@ -175,7 +180,8 @@ public class IllustDownload {
                 DownloadItem item = buildDownloadItem(illust, i, imageResolution);
                 tempList.add(item);
             }
-            Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
+            DownloadToasts.show(DownloadToastKind.ENQUEUED,
+                    tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
             Manager.get().addTasks(tempList);
         }
     }
@@ -474,8 +480,9 @@ public class IllustDownload {
                 // 没 plant Timber,连日志都要不到。现在留痕(试验性日志开关能落盘导出) + 明确
                 // 告知用户,下一份报告才可能带着原因回来。
                 Timber.tag(DownloadRecordStateSource.LOG_TAG).e(e, "enqueue threw, nothing was queued");
-                Common.showToast(Shaft.getContext().getString(R.string.download_enqueue_failed,
-                        e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+                DownloadToasts.show(DownloadToastKind.ENQUEUE_FAILED,
+                        Shaft.getContext().getString(R.string.download_enqueue_failed,
+                                e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
             }
         }
     }

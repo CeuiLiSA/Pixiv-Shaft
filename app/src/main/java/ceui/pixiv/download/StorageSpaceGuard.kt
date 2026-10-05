@@ -8,8 +8,9 @@ import android.os.SystemClock
 import android.text.format.Formatter
 import ceui.lisa.R
 import ceui.lisa.core.Manager
+import ceui.pixiv.download.toast.DownloadToastKind
+import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.services.appServices
-import com.hjq.toast.Toaster
 import timber.log.Timber
 import java.io.File
 
@@ -106,11 +107,12 @@ object StorageSpaceGuard {
             lastNoticeAt = now
             val free = freeBytes(appContext)?.coerceAtLeast(0L) ?: 0L
             Timber.tag(TAG).w("paused all downloads, free=%d", free)
-            Toaster.showLong(
+            DownloadToasts.showLong(
+                DownloadToastKind.LOW_STORAGE_PAUSED,
                 appContext.getString(
                     R.string.download_paused_low_storage,
                     Formatter.formatShortFileSize(appContext, free),
-                )
+                ),
             )
         }
     }
