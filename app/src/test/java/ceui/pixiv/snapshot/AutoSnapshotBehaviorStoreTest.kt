@@ -238,6 +238,27 @@ class AutoSnapshotBehaviorStoreTest {
     }
 
     @Test
+    fun `withViewerSession pairs page samples with the session even when caller clocks differ`() {
+        // 真机上逐页样本的 at 与会话的 now 是两次取墙钟，跨过一毫秒也必须认作同一会话。
+        val now = 1_000_000L
+        val record = AutoSnapshotBehaviorRecord(illustId = 5L, pageCount = 2)
+            .withViewerSession(
+                pages = listOf(
+                    AutoSnapshotViewerPageSample(at = now - 1L, page = 0, ms = 6_000L, zoomed = true),
+                    AutoSnapshotViewerPageSample(at = now - 1L, page = 1, ms = 6_000L, zoomed = false),
+                ),
+                pageCount = 2,
+                viewedPages = 2,
+                now = now,
+            )
+
+        val breakdown = AutoSnapshotScoring.score(record, dwellMs = 12_000L, now = now)
+        assertEquals(50, breakdown.attention)
+        assertEquals(50, breakdown.coverage)
+        assertEquals(5, breakdown.zoom)
+    }
+
+    @Test
     fun `encode and decode roundtrip preserves viewer observations`() {
         val original = AutoSnapshotBehaviorRecord(
             illustId = 42L,

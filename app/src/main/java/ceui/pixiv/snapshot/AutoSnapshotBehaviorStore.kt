@@ -359,6 +359,9 @@ data class AutoSnapshotBehaviorRecord(
      * 记录一次二级大图会话：追加逐页浏览样本与本次覆盖率样本，并裁剪到窗口 + 上限。
      *
      * 刻意不触碰 [lastTriggerSignal]：这是观测数据，不是触发信号。
+     *
+     * 逐页样本统一改记成会话的 [now]：评分按「样本 at == 会话 at」认出最近一次会话的逐页样本，
+     * 调用方各自取墙钟只要跨过一毫秒，这次会话的细看 / 覆盖 / 放大就全部归零。
      */
     fun withViewerSession(
         pages: List<AutoSnapshotViewerPageSample>,
@@ -367,7 +370,7 @@ data class AutoSnapshotBehaviorRecord(
         now: Long,
         windowMs: Long = AutoSnapshotBehaviorStore.WINDOW_MS,
     ): AutoSnapshotBehaviorRecord {
-        val pageSamples = (recentViewerPages + pages)
+        val pageSamples = (recentViewerPages + pages.map { it.copy(at = now) })
             .filter { now - it.at >= 0L && now - it.at <= windowMs }
             .sortedWith(compareByDescending<AutoSnapshotViewerPageSample> { it.at }.thenBy { it.page })
             .take(AutoSnapshotBehaviorStore.MAX_RECENT_VIEWER_PAGES)
