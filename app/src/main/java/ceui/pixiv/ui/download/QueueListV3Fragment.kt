@@ -139,7 +139,8 @@ class QueueListV3Fragment : Fragment() {
             // pausedFlow 翻转后 combine collector 自动设 text，不在这里手动重复设。
             if (queueDownloadManager.isPaused()) {
                 // 联动：批量队列恢复时，正在下载 tab 的 Manager 也跟着恢复
-                queueDownloadManager.resume()
+                // resumeByUser：用户触发的操作忽略网络状态，不走自动闸门
+                queueDownloadManager.resumeByUser()
                 Manager.get().startAll()
             } else {
                 // 联动：批量队列暂停时，连同 Manager 当前正在下的也暂停
@@ -150,8 +151,9 @@ class QueueListV3Fragment : Fragment() {
         btnRetry.setOnClickListener {
             viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                 runCatching { dao.retryAllFailed() }
-                // 用户手动点重试 → 必须 resume() 而不仅仅 tickle，否则 paused 时啥也不做
-                queueDownloadManager.resume()
+                // 用户手动点重试 → 必须 resume 而不仅仅 tickle，否则 paused 时啥也不做；
+                // 且走 resumeByUser：用户触发的操作忽略网络状态
+                queueDownloadManager.resumeByUser()
             }
         }
         btnClearAll.setOnClickListener {
