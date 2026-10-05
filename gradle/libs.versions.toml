@@ -5,6 +5,7 @@ androidxAnnotation = "1.9.1"
 androidxTestJunit = "1.2.1"
 appcompat = "1.7.0"
 archCore = "2.2.0"
+biometric = "1.1.0"
 browser = "1.8.0"
 cardview = "1.0.0"
 circleImageView = "3.1.0"
@@ -67,6 +68,7 @@ cosAndroid = "5.9.52"
 androidxAnnotation = { module = "androidx.annotation:annotation", version.ref = "androidxAnnotation" }
 androidxActivity = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
 androidxAppcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidxBiometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 androidxArchCoreTesting = { module = "androidx.arch.core:core-testing", version.ref = "archCore" }
 androidxBrowser = { module = "androidx.browser:browser", version.ref = "browser" }
 androidxCardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
@@ -76,6 +78,7 @@ androidxCoreBase = { module = "androidx.core:core", version.ref = "core" }
 androidxDocumentFile = { module = "androidx.documentfile:documentfile", version.ref = "documentFile" }
 androidxFragment = { module = "androidx.fragment:fragment-ktx", version.ref = "fragment" }
 androidxInterpolator = { module = "androidx.interpolator:interpolator", version.ref = "interpolator" }
+androidxLifecycleProcess = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
 androidxLifecycleLiveData = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycle" }
 androidxLifecycleRuntime = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidxLifecycleViewModel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }

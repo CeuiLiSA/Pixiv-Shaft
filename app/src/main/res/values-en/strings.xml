@@ -3220,4 +3220,11 @@
     <string name="ugoira_frames_clip_saved">Clip saved</string>
     <string name="ugoira_frames_clip_gif_fallback">Couldn\'t create an MP4, saved as GIF</string>
     <string name="ugoira_frames_export_failed">Export failed: %1$s</string>
+    <!-- 应用锁（issue #1197） -->
+    <string name="app_lock_title">App lock</string>
+    <string name="app_lock_desc">Verify with your fingerprint, face, or screen lock when you open or return to the app. No separate password. On Android 13 and later, page previews are hidden in Recents.</string>
+    <string name="app_lock_timeout_title">Auto-lock</string>
+    <string name="app_lock_timeout_desc">Verification is required when you reopen the app after being away for this long</string>
+    <string name="app_lock_enabled">App lock turned on</string>
+    <string name="app_lock_disabled">App lock turned off</string>
 </resources>

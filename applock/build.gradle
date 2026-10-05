@@ -1,0 +1,64 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdk 36
+
+    defaultConfig {
+        minSdkVersion 24
+        targetSdkVersion 36
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17
+    }
+
+    // 与包名一致：模块内的 R 就是 ceui.pixiv.applock.R。
+    namespace = 'ceui.pixiv.applock'
+}
+
+kotlin {
+    // 库模块：公开面只有 AppLock / AppLockEnabler / RelockTimeout / AppLockAvailability 几个类型，
+    // 会话状态机与锁屏页都是 internal，同 :witstudio。
+    explicitApi()
+}
+
+dependencies {
+    // ── api：类型长在本模块的公开 API 上，消费方不声明也要能编过 ──────────────
+    // AppLockEnabler(fragment: Fragment, …)。
+    api libs.androidxFragment
+
+    // ── implementation：纯内部实现 ─────────────────────────────────────────
+    // 系统验证弹窗。只用 BIOMETRIC_WEAK | DEVICE_CREDENTIAL，不带 CryptoObject：这里要的是
+    // 「确认是机主」，不是解锁密钥，官方文档对这种场景就是这个组合（minSdk 24 全版本可用）。
+    implementation libs.androidxBiometric
+    // 进程级前后台：ProcessLifecycleOwner 的 ON_START / ON_STOP 是官方唯一推荐的判定口径，
+    // 自带 700ms 去抖，转屏、Activity 间跳转不会被误判成「离开 App」。
+    implementation libs.androidxLifecycleProcess
+    // 锁屏页是 AppCompatActivity，enableEdgeToEdge / OnBackPressedCallback 来自 activity。
+    implementation libs.androidxAppcompat
+    implementation libs.androidxActivity
+    implementation libs.androidxCore
+    // 锁屏页的字级、胶囊按钮、图标容器与主题派生色，及「需要屏幕锁」弹窗。
+    implementation project(path: ':witstudio')
+    // 开关与自动锁定时长存设备本地，与 :safe 同用 MMKV（宿主在 attachBaseContext 初始化）。
+    // 刻意不进 Settings 那份 JSON：它会被备份 / 云同步到别的设备，而应用锁依赖本机屏幕锁。
+    implementation libs.mmkv
+
+    testImplementation libs.junit4
+
+    // 刻意不引：:app / :models / 任何 pixiv 代码。本模块只认识「Activity、系统验证、前后台」，
+    // 主题由宿主经 AppLock.install 传入。
+}

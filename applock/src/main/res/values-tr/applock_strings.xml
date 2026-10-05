@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="applock_locked_title">%1$s kilitli</string>
+    <string name="applock_locked_desc">Devam etmek için parmak iziniz, yüzünüz veya ekran kilidinizle doğrulayın</string>
+    <string name="applock_unlock">Kilidi aç</string>
+    <string name="applock_prompt_title">%1$s kilidini aç</string>
+    <string name="applock_prompt_subtitle">Parmak izi, yüz veya ekran kilidi kullanın</string>
+    <string name="applock_enable_prompt_title">Uygulama kilidini aç</string>
+    <string name="applock_enable_prompt_subtitle">Kilidi açabildiğinizi bir kez doğrulayın</string>
+    <string name="applock_needs_screen_lock_title">Önce bir ekran kilidi ayarlayın</string>
+    <string name="applock_needs_screen_lock_message">Uygulama kilidi telefonunuzun parmak izi, yüz veya ekran kilidini kullanır; ayrı bir şifresi yoktur. Önce sistem ayarlarından bir ekran kilidi ayarlayın.</string>
+    <string name="applock_open_settings">Ayarları aç</string>
+    <string name="applock_cancel">İptal</string>
+    <string name="applock_unavailable">Bu cihaz şu anda kimliğinizi doğrulayamıyor. Uygulama kilidi açılmadı.</string>
+    <string name="applock_timeout_immediately">Hemen</string>
+    <string name="applock_timeout_1_minute">1 dakika sonra</string>
+    <string name="applock_timeout_5_minutes">5 dakika sonra</string>
+    <string name="applock_timeout_15_minutes">15 dakika sonra</string>
+</resources>

@@ -365,6 +365,9 @@ dependencies {
     // no dependency on :app or Pixiv business models.
     implementation project(path: ':safe')
     implementation project(path: ':communication')
+    // 应用锁（issue #1197）：BiometricPrompt + 前后台判定 + 锁屏页。对 pixiv 一无所知，
+    // 宿主只提供主题；设置页入口在 FragmentSettingsAccount。
+    implementation project(path: ':applock')
     implementation libs.mmkv
     // 部分华为等 OEM 上 libmmkv.so 偶发 dlopen "not found"，ReLinker 兜底从 APK 抠 .so 按绝对路径加载。
     implementation libs.relinker

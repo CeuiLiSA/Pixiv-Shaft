@@ -3214,4 +3214,11 @@
     <string name="ugoira_frames_clip_saved">片段已儲存</string>
     <string name="ugoira_frames_clip_gif_fallback">無法產生 MP4，已改為 GIF 儲存</string>
     <string name="ugoira_frames_export_failed">匯出失敗：%1$s</string>
+    <!-- 应用锁（issue #1197） -->
+    <string name="app_lock_title">應用程式鎖</string>
+    <string name="app_lock_desc">開啟或回到 App 時驗證指紋、臉部或螢幕鎖密碼，不另設密碼；Android 13 以上會在最近使用的應用程式中隱藏頁面預覽</string>
+    <string name="app_lock_timeout_title">自動鎖定</string>
+    <string name="app_lock_timeout_desc">離開 App 超過這段時間後，再次開啟需要驗證</string>
+    <string name="app_lock_enabled">已開啟應用程式鎖</string>
+    <string name="app_lock_disabled">已關閉應用程式鎖</string>
 </resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="applock_locked_title">%1$s заблокировано</string>
+    <string name="applock_locked_desc">Подтвердите личность отпечатком, лицом или блокировкой экрана, чтобы продолжить</string>
+    <string name="applock_unlock">Разблокировать</string>
+    <string name="applock_prompt_title">Разблокировать %1$s</string>
+    <string name="applock_prompt_subtitle">Отпечаток пальца, лицо или блокировка экрана</string>
+    <string name="applock_enable_prompt_title">Включить блокировку приложения</string>
+    <string name="applock_enable_prompt_subtitle">Подтвердите один раз, что можете её снять</string>
+    <string name="applock_needs_screen_lock_title">Сначала настройте блокировку экрана</string>
+    <string name="applock_needs_screen_lock_message">Блокировка приложения использует отпечаток, лицо или блокировку экрана телефона и не имеет отдельного пароля. Сначала настройте блокировку экрана в настройках системы.</string>
+    <string name="applock_open_settings">Открыть настройки</string>
+    <string name="applock_cancel">Отмена</string>
+    <string name="applock_unavailable">Сейчас устройство не может подтвердить личность. Блокировка приложения не включена.</string>
+    <string name="applock_timeout_immediately">Сразу</string>
+    <string name="applock_timeout_1_minute">Через 1 минуту</string>
+    <string name="applock_timeout_5_minutes">Через 5 минут</string>
+    <string name="applock_timeout_15_minutes">Через 15 минут</string>
+</resources>

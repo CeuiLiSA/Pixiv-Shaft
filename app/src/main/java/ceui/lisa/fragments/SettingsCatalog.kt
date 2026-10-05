@@ -71,6 +71,10 @@ object SettingsCatalog {
         add(Entry(ACCOUNT, "work_space", R.string.string_267, keywords = "作业环境 workspace 电脑 显示器 手绘板"))
         add(Entry(ACCOUNT, "r18_space", R.string.string_398, keywords = "r18 r18g 成人 限制级 涩图 网页设置 adult"))
         add(Entry(ACCOUNT, "premium_space", R.string.string_399, keywords = "会员 高级会员 订阅 premium"))
+        // 应用锁（issue #1197）。别名按整串子串匹配，「指纹解锁」「打开要密码」这类连写说法各铺一遍；
+        // 「自动锁定」行只在开启后可见，关着时 maybeHighlight 会自动跳过滚动/闪烁
+        add(Entry(ACCOUNT, "app_lock_rela", R.string.app_lock_title, R.string.app_lock_desc, keywords = "应用锁 app锁 软件锁 锁定 上锁 加锁 密码 密码锁 打开要密码 启动密码 指纹 指纹解锁 指纹锁 面部 人脸 面容 解锁 生物识别 屏幕锁 隐私 防偷看 最近任务 多任务 预览 app lock password passcode pin fingerprint face biometric privacy recents"))
+        add(Entry(ACCOUNT, "app_lock_timeout_rela", R.string.app_lock_timeout_title, R.string.app_lock_timeout_desc, keywords = "应用锁 自动锁定 锁定时间 多久锁定 后台 离开 超时 立即 分钟 auto lock timeout"))
         add(Entry(ACCOUNT, "login_out", R.string.login_out, keywords = "退出 登出 注销 切换 logout sign out"))
 
         // 网络

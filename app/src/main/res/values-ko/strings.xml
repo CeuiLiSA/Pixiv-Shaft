@@ -3213,4 +3213,11 @@
     <string name="ugoira_frames_clip_saved">클립을 저장했습니다</string>
     <string name="ugoira_frames_clip_gif_fallback">MP4를 만들 수 없어 GIF로 저장했습니다</string>
     <string name="ugoira_frames_export_failed">내보내기 실패: %1$s</string>
+    <!-- 应用锁（issue #1197） -->
+    <string name="app_lock_title">앱 잠금</string>
+    <string name="app_lock_desc">앱을 열거나 돌아올 때 지문, 얼굴 또는 화면 잠금으로 확인하며 별도 비밀번호는 없습니다. Android 13 이상에서는 최근 앱 화면에서 페이지 미리보기를 숨깁니다</string>
+    <string name="app_lock_timeout_title">자동 잠금</string>
+    <string name="app_lock_timeout_desc">앱을 떠난 뒤 이 시간이 지나면 다시 열 때 확인이 필요합니다</string>
+    <string name="app_lock_enabled">앱 잠금을 켰습니다</string>
+    <string name="app_lock_disabled">앱 잠금을 껐습니다</string>
 </resources>

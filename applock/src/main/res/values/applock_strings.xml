@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="applock_locked_title">%1$s 已锁定</string>
+    <string name="applock_locked_desc">使用指纹、面部或屏幕锁密码验证身份后继续使用</string>
+    <string name="applock_unlock">解锁</string>
+    <string name="applock_prompt_title">解锁 %1$s</string>
+    <string name="applock_prompt_subtitle">使用指纹、面部或屏幕锁密码</string>
+    <string name="applock_enable_prompt_title">开启应用锁</string>
+    <string name="applock_enable_prompt_subtitle">验证一次，确认之后可以解锁</string>
+    <string name="applock_needs_screen_lock_title">需要先设置屏幕锁</string>
+    <string name="applock_needs_screen_lock_message">应用锁使用手机的指纹、面部或屏幕锁密码验证，不另设密码。请先在系统设置中设置屏幕锁。</string>
+    <string name="applock_open_settings">去设置</string>
+    <string name="applock_cancel">取消</string>
+    <string name="applock_unavailable">当前设备暂时无法验证身份，应用锁未开启</string>
+    <string name="applock_timeout_immediately">立即</string>
+    <string name="applock_timeout_1_minute">1 分钟后</string>
+    <string name="applock_timeout_5_minutes">5 分钟后</string>
+    <string name="applock_timeout_15_minutes">15 分钟后</string>
+</resources>

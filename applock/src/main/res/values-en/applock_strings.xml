@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="applock_locked_title">%1$s is locked</string>
+    <string name="applock_locked_desc">Verify with your fingerprint, face, or screen lock to continue</string>
+    <string name="applock_unlock">Unlock</string>
+    <string name="applock_prompt_title">Unlock %1$s</string>
+    <string name="applock_prompt_subtitle">Use your fingerprint, face, or screen lock</string>
+    <string name="applock_enable_prompt_title">Turn on app lock</string>
+    <string name="applock_enable_prompt_subtitle">Verify once to confirm you can unlock it</string>
+    <string name="applock_needs_screen_lock_title">Set up a screen lock first</string>
+    <string name="applock_needs_screen_lock_message">App lock uses your phone\'s fingerprint, face, or screen lock. It does not have a separate password. Set up a screen lock in system settings first.</string>
+    <string name="applock_open_settings">Open settings</string>
+    <string name="applock_cancel">Cancel</string>
+    <string name="applock_unavailable">This device can\'t verify your identity right now. App lock was not turned on.</string>
+    <string name="applock_timeout_immediately">Immediately</string>
+    <string name="applock_timeout_1_minute">After 1 minute</string>
+    <string name="applock_timeout_5_minutes">After 5 minutes</string>
+    <string name="applock_timeout_15_minutes">After 15 minutes</string>
+</resources>

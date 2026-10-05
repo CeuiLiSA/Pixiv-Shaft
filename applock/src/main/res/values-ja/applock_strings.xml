@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="applock_locked_title">%1$s はロックされています</string>
+    <string name="applock_locked_desc">指紋、顔、または画面ロックで本人確認すると続けて使えます</string>
+    <string name="applock_unlock">ロックを解除</string>
+    <string name="applock_prompt_title">%1$s のロックを解除</string>
+    <string name="applock_prompt_subtitle">指紋、顔、または画面ロックを使用</string>
+    <string name="applock_enable_prompt_title">アプリロックをオンにする</string>
+    <string name="applock_enable_prompt_subtitle">解除できることを一度確認します</string>
+    <string name="applock_needs_screen_lock_title">先に画面ロックを設定してください</string>
+    <string name="applock_needs_screen_lock_message">アプリロックは端末の指紋、顔、または画面ロックで確認します。専用のパスワードはありません。先にシステム設定で画面ロックを設定してください。</string>
+    <string name="applock_open_settings">設定を開く</string>
+    <string name="applock_cancel">キャンセル</string>
+    <string name="applock_unavailable">この端末では現在本人確認ができないため、アプリロックをオンにできませんでした</string>
+    <string name="applock_timeout_immediately">すぐに</string>
+    <string name="applock_timeout_1_minute">1 分後</string>
+    <string name="applock_timeout_5_minutes">5 分後</string>
+    <string name="applock_timeout_15_minutes">15 分後</string>
+</resources>

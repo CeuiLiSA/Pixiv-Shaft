@@ -3237,4 +3237,11 @@
     <string name="ugoira_frames_clip_saved">Фрагмент сохранён</string>
     <string name="ugoira_frames_clip_gif_fallback">Не удалось создать MP4, сохранено как GIF</string>
     <string name="ugoira_frames_export_failed">Не удалось экспортировать: %1$s</string>
+    <!-- 应用锁（issue #1197） -->
+    <string name="app_lock_title">Блокировка приложения</string>
+    <string name="app_lock_desc">При открытии приложения или возврате в него нужно подтвердить личность отпечатком, лицом или блокировкой экрана. Отдельного пароля нет. На Android 13 и новее превью страниц скрываются в списке недавних приложений</string>
+    <string name="app_lock_timeout_title">Автоблокировка</string>
+    <string name="app_lock_timeout_desc">Если вы отсутствовали в приложении дольше этого времени, при повторном открытии потребуется подтверждение</string>
+    <string name="app_lock_enabled">Блокировка приложения включена</string>
+    <string name="app_lock_disabled">Блокировка приложения выключена</string>
 </resources>

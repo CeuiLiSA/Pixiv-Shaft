@@ -3,8 +3,14 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+
+import ceui.pixiv.applock.AppLock;
+import ceui.pixiv.applock.AppLockEnabler;
+import ceui.pixiv.applock.RelockTimeout;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
+import ceui.pixiv.witstudio.theme.WitRowStyle;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
@@ -15,6 +21,8 @@ import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /** 设置 · 账号 */
 public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettingsAccountBinding> {
+
+    private AppLockEnabler appLockEnabler;
 
     @Override
     public void initLayout() {
@@ -75,6 +83,8 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
             startActivity(intent);
         });
 
+        initAppLock();
+
         baseBind.loginOut.setOnClickListener(v -> {
             WitDialog.CheckBoxMessageDialogBuilder builder = new WitDialog.CheckBoxMessageDialogBuilder(getActivity());
             builder
@@ -99,5 +109,66 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
                     .create()
                     .show();
         });
+    }
+
+    /**
+     * 应用锁（issue #1197），默认关闭。开启前先过一次系统验证（AppLockEnabler），
+     * 所以开关不直接跟手：拨上去先弹回关，验证通过后由 renderAppLock 拨到开。
+     */
+    private void initAppLock() {
+        appLockEnabler = new AppLockEnabler(this, new AppLockEnabler.Listener() {
+            @Override
+            public void onEnabled() {
+                renderAppLock();
+                Common.showToast(getString(R.string.app_lock_enabled));
+            }
+
+            @Override
+            public void onError(@NonNull CharSequence message) {
+                Common.showToast(message.toString());
+            }
+        });
+        baseBind.appLock.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked == AppLock.isEnabled()) {
+                return;
+            }
+            if (isChecked) {
+                buttonView.setChecked(false);
+                appLockEnabler.start();
+            } else {
+                AppLock.disable();
+                renderAppLock();
+                Common.showToast(getString(R.string.app_lock_disabled));
+            }
+        });
+        baseBind.appLockRela.setOnClickListener(v -> baseBind.appLock.performClick());
+
+        baseBind.appLockTimeoutRela.setOnClickListener(v -> {
+            RelockTimeout[] options = RelockTimeout.values();
+            String[] labels = new String[options.length];
+            for (int i = 0; i < options.length; i++) {
+                labels[i] = getString(options[i].getLabelRes());
+            }
+            new WitDialog.CheckableDialogBuilder(mContext)
+                    .setCheckedIndex(AppLock.getRelockTimeout().ordinal())
+                    .addItems(labels, (dialog, which) -> {
+                        AppLock.setRelockTimeout(options[which]);
+                        renderAppLock();
+                        Common.showToast(getString(R.string.string_428), 2);
+                        dialog.dismiss();
+                    })
+                    .create()
+                    .show();
+        });
+        renderAppLock();
+    }
+
+    private void renderAppLock() {
+        boolean enabled = AppLock.isEnabled();
+        baseBind.appLock.setChecked(enabled);
+        baseBind.appLockTimeoutRela.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        baseBind.appLockRela.setBackgroundResource(WitRowStyle.rowBackground(0, enabled ? 2 : 1));
+        WitRowStyle.applyThemedRowBg(baseBind.appLockRela);
+        baseBind.appLockTimeout.setText(AppLock.getRelockTimeout().getLabelRes());
     }
 }

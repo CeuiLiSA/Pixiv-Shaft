@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+        锁屏页。宿主的 Activity 在锁定状态下 resume 时，由 AppLockGate 以 NO_ANIMATION 启动到
+        同一个 task 顶上（分享 / deep link 落在别的 App task 里时同样盖住）。
+        不 exported；主题在 onCreate 里换成宿主当前主题，这里只是 AppCompat 的兜底。
+        configChanges 不声明：转屏重建时 BiometricPrompt 会自己恢复弹窗。
+        -->
+        <activity
+            android:name="ceui.pixiv.applock.AppLockActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
+    </application>
+
+</manifest>

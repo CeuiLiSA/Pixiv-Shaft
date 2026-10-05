@@ -170,6 +170,56 @@
 
                 </RelativeLayout>
 
+                <!-- 应用锁（issue #1197）。底色由 FragmentSettingsAccount.renderAppLock 按开关
+                     切换独行 / 段首：关闭时「自动锁定」整行隐藏。 -->
+                <RelativeLayout
+                    android:id="@+id/app_lock_rela"
+                    style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/wit_row_single">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/app_lock_title" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/app_lock_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/app_lock"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/app_lock_timeout_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_bottom"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/app_lock_timeout_title" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/app_lock_timeout_desc" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/app_lock_timeout"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
                 <RelativeLayout
                     android:id="@+id/login_out"
                     style="@style/M3SetRow"

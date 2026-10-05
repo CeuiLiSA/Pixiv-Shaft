@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="applock_locked_title">%1$s 已鎖定</string>
+    <string name="applock_locked_desc">使用指紋、臉部或螢幕鎖密碼驗證身分後繼續使用</string>
+    <string name="applock_unlock">解鎖</string>
+    <string name="applock_prompt_title">解鎖 %1$s</string>
+    <string name="applock_prompt_subtitle">使用指紋、臉部或螢幕鎖密碼</string>
+    <string name="applock_enable_prompt_title">開啟應用程式鎖</string>
+    <string name="applock_enable_prompt_subtitle">驗證一次，確認之後可以解鎖</string>
+    <string name="applock_needs_screen_lock_title">需要先設定螢幕鎖</string>
+    <string name="applock_needs_screen_lock_message">應用程式鎖使用手機的指紋、臉部或螢幕鎖密碼驗證，不另設密碼。請先在系統設定中設定螢幕鎖。</string>
+    <string name="applock_open_settings">前往設定</string>
+    <string name="applock_cancel">取消</string>
+    <string name="applock_unavailable">目前裝置暫時無法驗證身分，應用程式鎖未開啟</string>
+    <string name="applock_timeout_immediately">立即</string>
+    <string name="applock_timeout_1_minute">1 分鐘後</string>
+    <string name="applock_timeout_5_minutes">5 分鐘後</string>
+    <string name="applock_timeout_15_minutes">15 分鐘後</string>
+</resources>

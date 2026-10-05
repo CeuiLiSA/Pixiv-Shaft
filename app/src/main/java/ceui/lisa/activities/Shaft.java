@@ -461,6 +461,10 @@ public class Shaft extends Application implements ServicesProvider {
         // Activity 会直接读这个 static，必须在第一个 Activity 之前就位。三个空
         // ConcurrentHashMap，成本可忽略。
 
+        // 应用锁(issue #1197,默认关闭):冷启动 / 从后台回来时盖上锁屏页。必须在第一个 Activity
+        // resume 之前注册;依赖 attachBaseContext 里的 MMKV.initialize。锁屏页跟随用户主题色。
+        ceui.pixiv.applock.AppLock.install(this, AppThemeStyle::applyTo);
+
         // 「翻译整部」悬浮小窗(issue #925):每个 Activity 观察 app 级任务状态,有任务才 inflate。
         // 必须在第一个 Activity 创建前注册,否则首屏收不到。
         registerActivityLifecycleCallbacks(new ceui.pixiv.ui.translate.MangaBatchFloatInstaller());
@@ -851,51 +855,7 @@ public class Shaft extends Application implements ServicesProvider {
      * Update the theme according to the setting.
      * */
     private void updateTheme() {
-        int current = Shaft.sSettings.getThemeIndex();
-        // 自定义主题色（issue #1014）：先把 @color/custom_theme_primary 换成用户的色值，再
-        // setTheme —— theme attr 是 setTheme 那一刻解析的，顺序反了就拿到占位色。
-        // 系统不支持（< Android 11）或存的色值非法时 isActive() 为 false，索引 -1 落进下面
-        // switch 的 default，回落 0 号预设。
-        if (ceui.pixiv.ui.settings.CustomThemeColor.isActive()) {
-            ceui.pixiv.ui.settings.CustomThemeColor.applyResourceOverride(this);
-            setTheme(R.style.AppTheme_Custom);
-            return;
-        }
-        switch (current) {
-            case 0:
-                setTheme(R.style.AppTheme_Index0);
-                break;
-            case 1:
-                setTheme(R.style.AppTheme_Index1);
-                break;
-            case 2:
-                setTheme(R.style.AppTheme_Index2);
-                break;
-            case 3:
-                setTheme(R.style.AppTheme_Index3);
-                break;
-            case 4:
-                setTheme(R.style.AppTheme_Index4);
-                break;
-            case 5:
-                setTheme(R.style.AppTheme_Index5);
-                break;
-            case 6:
-                setTheme(R.style.AppTheme_Index6);
-                break;
-            case 7:
-                setTheme(R.style.AppTheme_Index7);
-                break;
-            case 8:
-                setTheme(R.style.AppTheme_Index8);
-                break;
-            case 9:
-                setTheme(R.style.AppTheme_Index9);
-                break;
-            default:
-                setTheme(R.style.AppTheme_Default);
-                break;
-        }
+        AppThemeStyle.applyTo(this);
     }
 
     /**
