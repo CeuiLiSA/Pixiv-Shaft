@@ -369,11 +369,13 @@ class QueueDownloadManager(app: Context) {
                     // ugoira 行在 DB 里是 DOWNLOADING、也不在 inFlight，得单独确认没在飞
                     if (ugoiraInFlightRowIds.isEmpty()) {
                         maybeToastBatchSummary()
+                        // 队列真正跑空 → 这次「用户手动放行」的使命结束，收回 override，
+                        // 否则一次强制恢复会把网络限制永久放宽到后续所有自动入列。
+                        // 必须连 ugoira 也跑空：批次末尾的 ugoira 失败会回退 PENDING 重试，
+                        // 提前收回会让它卡在闸门上。worker 收尾会 tickle，这里会再走一遍。
+                        userForced = false
                     }
                     Timber.tag(TAG).i("[QUEUE-CONSUMER] idle, awaiting next tickle")
-                    // 队列跑空 → 这次「用户手动放行」的使命结束，收回 override，
-                    // 否则一次强制恢复会把网络限制永久放宽到后续所有自动入列。
-                    userForced = false
                     tickle.receive()
                     continue
                 }
