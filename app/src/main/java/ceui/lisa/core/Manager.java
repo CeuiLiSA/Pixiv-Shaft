@@ -472,19 +472,72 @@ public class Manager {
         pumpAvailableSlots();
     }
 
+    /**
+     * 单卡「开始」：只把被点的那一条推下去，不顺带放行其它等待项。
+     *
+     * <p>与 {@link #startAll} / {@link #triggerPump} 的差别是**范围**：那两个是全局动作，
+     * 会把 content 里所有 INIT 项一起放行；这里是用户对**这一条**的意志。
+     *
+     * <p>历史上这里是 {@code isRunning = true; pumpAvailableSlots();} —— 在「仅通过 Wi-Fi
+     * 下载」切到蜂窝时（{@link #parkForNetwork} 把在传的翻回 INIT 且**不置 paused**），
+     * {@link #pumpAvailableSlots} 的 {@link #getFirstReady} 会把所有等待项一起挑走：用户
+     * 「只想先下其中一个」，结果连带数量 = maxConcurrentDownloads，且每条完成后的 onFinally
+     * 再 pump 一轮继续带走剩下的 —— 整队都在蜂窝上跑起来。改前的 stopAll() 语义
+     * （paused=true）恰好把兄弟项挡在 getFirstReady 之外，是 parkForNetwork 换掉暂停语义
+     * 之后暴露出来的。
+     *
+     * <p>现在只有全局泵本来就开着（模式 0 / 模式 1 且在 Wi-Fi —— 自动路径本来就该填满
+     * 槽位）才顺带 pump；泵关着（{@link #parkForNetwork} 熄火、冷启动恢复、模式 2 入列）
+     * 时一条都不带。口径见 {@link #fanOutOthersOnStartOne(boolean)}。
+     *
+     * <p>取舍：泵开着且槽位已满时，被点的那一条会立刻起（可能瞬时
+     * maxConcurrentDownloads+1）—— 用户手动点的那一条优先于自动并发上限；自动路径
+     * （pump）的并发上限不变。
+     */
     public void startOne(String uuid) {
+        DownloadItem target = null;
         for (DownloadItem downloadItem : contentSnapshot()) {
             if (downloadItem != null && downloadItem.getUuid().equals(uuid)) {
                 downloadItem.setPaused(false);
                 resurrectIfStranded(downloadItem);
-                Common.showLog("已开始 " + uuid);
+                target = downloadItem;
                 break;
             }
         }
+        if (target == null) {
+            // 目标已经不在了（被 clearOne / 清空全部拿掉）：什么都不做，尤其不能顺手
+            // pump 把别的等待项带起来。
+            ManagerReactive.invalidate();
+            return;
+        }
+        Common.showLog("已开始 " + uuid);
 
-        isRunning = true;
-        pumpAvailableSlots();
+        // 只派发这一条 —— 与 pumpAvailableSlots 共用同一段派发逻辑，并在同一把锁里做
+        // 「state 检查 + 置 DOWNLOADING + 登记 dispatching」，避免和并发的 pump /
+        // onFinally 抢同一条（同 pumpAvailableSlots 的 synchronized 理由）。
+        synchronized (this) {
+            if (target.getState() == DownloadItem.DownloadState.INIT && !target.isPaused()) {
+                dispatchOne(target);
+            }
+        }
+
+        // 泵本来就开着才顺带填满其它槽位；泵关着时保持关着 —— 这次放行只覆盖这一条。
+        if (fanOutOthersOnStartOne(isRunning)) {
+            pumpAvailableSlots();
+        }
         ManagerReactive.invalidate();
+    }
+
+    /**
+     * 单卡「开始」要不要顺带让全局泵填满其它等待项。纯函数，便于单测钉住口径。
+     *
+     * <p>只有全局泵本来就开着才顺带：模式 0 / 模式 1 且在 Wi-Fi 时，自动路径本来就该把
+     * 并发槽位填满，单卡开始只是其中一次触发。泵关着（仅 Wi-Fi 在蜂窝上被
+     * {@link #parkForNetwork} 熄火、冷启动恢复、模式 2 入列）时返回 false —— 否则
+     * 「只想先下一个」会变成「整队都下」。
+     */
+    static boolean fanOutOthersOnStartOne(boolean pumpRunning) {
+        return pumpRunning;
     }
 
     /**
@@ -662,16 +715,7 @@ public class Manager {
         while (active < max) {
             DownloadItem next = getFirstReady();
             if (next == null) break;
-            // 抢占式置 DOWNLOADING：阻止下一次 pump 再挑到这条；progress callback
-            // 进来再细化为带 nonius 的 DOWNLOADING（语义不变，只是同名状态）。
-            next.setState(DownloadItem.DownloadState.DOWNLOADING);
-            // 同一临界区内标记"正在派发"：句柄登记要绕 IO→主线程一跳才完成，这中间
-            // resurrectIfStranded 不能把这条当成 stranded（详见 dispatching 字段注释）。
-            dispatching.add(next.getUuid());
-            // 兼容字段：第一个进入的当前下载 = 老 API 返回的 currentIllustID/uuid
-            currentIllustID = next.getIllust().getId();
-            uuid = next.getUuid();
-            downloadOne(mContext, next);
+            dispatchOne(next);
             active++;
             dispatched++;
         }
@@ -692,6 +736,29 @@ public class Manager {
         // UI 立刻看到状态翻转（badge / 进度条）。哪怕 dispatched==0 也无所谓，
         // tryEmit 是 cheap idempotent 操作。
         ManagerReactive.invalidate();
+    }
+
+    /**
+     * 派发一条 INIT 项：抢占式置 DOWNLOADING + 登记「正在派发」+ 异步起传输。
+     *
+     * <p><b>调用方必须持 {@code synchronized (this)}</b> —— 「state 检查 + 置 DOWNLOADING +
+     * 登记 {@link #dispatching}」必须原子，否则两个 onFinally 同时回调可能挑到同一条 INIT
+     * 派发两次（见 {@link #pumpAvailableSlots} 的注释）。
+     *
+     * <p>{@link #pumpAvailableSlots} 的补槽与 {@link #startOne} 的单条派发共用这一段，
+     * 避免两套派发逻辑各自漂移（曾经 pump 里那 4 行就是单卡路径顺带放行整队的那把钥匙）。
+     */
+    private void dispatchOne(DownloadItem next) {
+        // 抢占式置 DOWNLOADING：阻止下一次 pump 再挑到这条；progress callback
+        // 进来再细化为带 nonius 的 DOWNLOADING（语义不变，只是同名状态）。
+        next.setState(DownloadItem.DownloadState.DOWNLOADING);
+        // 同一临界区内标记"正在派发"：句柄登记要绕 IO→主线程一跳才完成，这中间
+        // resurrectIfStranded 不能把这条当成 stranded（详见 dispatching 字段注释）。
+        dispatching.add(next.getUuid());
+        // 兼容字段：第一个进入的当前下载 = 老 API 返回的 currentIllustID/uuid
+        currentIllustID = next.getIllust().getId();
+        uuid = next.getUuid();
+        downloadOne(mContext, next);
     }
 
     /** 兼容老调用点：等价于 pumpAvailableSlots()。 */
