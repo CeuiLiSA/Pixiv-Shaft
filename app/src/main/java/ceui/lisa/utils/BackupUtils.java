@@ -30,9 +30,13 @@ import ceui.lisa.database.SearchDao;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.feature.FeatureEntity;
+import ceui.pixiv.db.GeneralDao;
+import ceui.pixiv.db.GeneralEntity;
+import ceui.pixiv.db.RecordType;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.DownloadConfigBackup;
 import ceui.pixiv.download.config.DownloadConfigStore;
+import ceui.pixiv.services.ServicesProvider;
 import ceui.pixiv.ui.common.MutedWorkStores;
 
 public class BackupUtils {
@@ -48,6 +52,7 @@ public class BackupUtils {
     private static final Type FEATURE_LIST_TYPE = new TypeToken<List<FeatureEntity>>() {}.getType();
     private static final Type SEARCH_LIST_TYPE = new TypeToken<List<SearchEntity>>() {}.getType();
     private static final Type USER_LIST_TYPE = new TypeToken<List<UserEntity>>() {}.getType();
+    private static final Type PINNED_USER_LIST_TYPE = new TypeToken<List<GeneralEntity>>() {}.getType();
 
     public static class BackupEntity {
         private Settings settings;
@@ -56,6 +61,11 @@ public class BackupUtils {
         private List<SearchEntity> searchEntityList;
         private List<UserEntity> userEntityList;
         private List<IllustHistoryEntity> illustHistoryEntityList;
+        /**
+         * 置顶作者（general_table 里 recordType=PINNED_USER 的 User 全量 JSON）。它不在
+         * 上面任何一张表里，不单独打包就会在换机 / 重装后还原时静默丢失。
+         */
+        private List<GeneralEntity> pinnedUserEntityList;
         /**
          * 整份 V3 下载配置（下载路径 / 文件名 / 文件重复时 / 页码起始 / 仅 WiFi）序列化成的
          * JSON 字符串。这里存字符串而不是嵌套对象，是因为 {@link Shaft#sGson} 没有注册
@@ -104,6 +114,14 @@ public class BackupUtils {
             this.userEntityList = userEntityList;
         }
 
+        public List<GeneralEntity> getPinnedUserEntityList() {
+            return pinnedUserEntityList;
+        }
+
+        public void setPinnedUserEntityList(List<GeneralEntity> pinnedUserEntityList) {
+            this.pinnedUserEntityList = pinnedUserEntityList;
+        }
+
         public List<IllustHistoryEntity> getIllustHistoryEntityList() {
             return illustHistoryEntityList;
         }
@@ -145,6 +163,8 @@ public class BackupUtils {
             Shaft.sGson.toJson(appDatabase.searchDao().getAllSearchEntities(), SEARCH_LIST_TYPE, writer);
             writer.name("userEntityList");
             Shaft.sGson.toJson(appDatabase.downloadDao().getAllUser(), USER_LIST_TYPE, writer);
+            writer.name("pinnedUserEntityList");
+            Shaft.sGson.toJson(appDatabase.generalDao().getByRecordType(RecordType.PINNED_USER, 0, Integer.MAX_VALUE), PINNED_USER_LIST_TYPE, writer);
             if (backupViewHistory) {
                 writer.name("illustHistoryEntityList");
                 writer.beginArray();
@@ -226,6 +246,9 @@ public class BackupUtils {
                         break;
                     case "userEntityList":
                         backupEntity.setUserEntityList(Shaft.sGson.fromJson(reader, USER_LIST_TYPE));
+                        break;
+                    case "pinnedUserEntityList":
+                        backupEntity.setPinnedUserEntityList(Shaft.sGson.fromJson(reader, PINNED_USER_LIST_TYPE));
                         break;
                     case "downloadConfigV3":
                         backupEntity.setDownloadConfigV3(reader.nextString());
@@ -315,6 +338,19 @@ public class BackupUtils {
             DownloadDao downloadDao = appDatabase.downloadDao();
             for (UserEntity userEntity : userEntityList) {
                 downloadDao.insertUser(userEntity);
+            }
+        }
+        List<GeneralEntity> pinnedUserEntityList = backupEntity.getPinnedUserEntityList();
+        if (pinnedUserEntityList != null && !pinnedUserEntityList.isEmpty()) {
+            GeneralDao generalDao = appDatabase.generalDao();
+            for (GeneralEntity pinnedUser : pinnedUserEntityList) {
+                generalDao.insert(pinnedUser);
+            }
+            // 这里绕过 EntityWrapper 直接灌了 general_table，它的内存置顶集合要整份重读，
+            // 否则作者主页「更多」菜单按旧集合摆「置顶 / 取消置顶」，与列表页对不上。
+            Context application = context.getApplicationContext();
+            if (application instanceof ServicesProvider) {
+                ((ServicesProvider) application).getEntityWrapper().refreshPinnedUsers(context);
             }
         }
     }
