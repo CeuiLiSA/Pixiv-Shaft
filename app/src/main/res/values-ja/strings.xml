@@ -1800,6 +1800,7 @@
     <string name="dlmgr_active_size_waiting">待機中…</string>
     <string name="dlmgr_active_size_paused">一時停止</string>
     <string name="dlmgr_active_size_failed">ダウンロード失敗</string>
+    <string name="dlmgr_active_size_unknown">不明なサイズ</string>
     <string name="dlmgr_open_novel_failed">小説 ID を識別できません。再ダウンロードしてください。</string>
     <string name="dlmgr_done_empty_title">まだ完了したダウンロードはありません</string>
     <string name="dlmgr_done_empty_hint">完了した作品はここに表示されます</string>
