@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  弹窗里的通用「开关行」：标题（+ 可选副标题）在左，SwitchCompat 在右。
+  原先 pb / fb 各搓一份（dialog_predictive_back_row / dialog_filter_bookmarked_row），
+  除副标题槽与 saveEnabled 外逐像素相同 —— 抽到这里，避免日后再次手抄、还抄漏；那两份已随本次改动删除。
+
+  · 52dp 与菜单行同高（WitDialogMetrics.MENU_ITEM_HEIGHT_DP）。
+  · 标题 16sp / wit_text_1，即 :app 的 M3SetTitle —— 两边色 token 同源（v3_text_* 是 wit_text_* 的别名）。
+  · 副标题默认 GONE：不收副标题时渲染与「从来没有这个 View」一致（同 WitMenuItemView.setStatus）。
+  · 开关 saveEnabled="false"：同一面板会多行 inflate 本布局，行内 @id/wit_row_switch 因此重复，
+    视图树 saved state 按 id 拍平进同一个 SparseArray，同 id 后写覆盖先写，恢复时每行都拿到
+    最后一行的值，又回调 OnCheckedChangeListener 把设置写坏(#1117)。面板每次打开都按存储重新
+    bind，不需要视图状态恢复。
+  · 右侧留 72dp = 开关实测宽度 64dp（SwitchCompat 取 2×thumb 固有宽 32dp）+ 8dp 间隙。
+-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="52dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="72dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/wit_row_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/wit_text_1"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/wit_row_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/wit_text_3"
+            android:textSize="11sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/wit_row_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:saveEnabled="false" />
+</RelativeLayout>
