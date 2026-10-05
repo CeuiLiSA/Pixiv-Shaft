@@ -58,6 +58,32 @@ object RecordedPageProbe {
         }
     }
 
+    /**
+     * [sinceMs] 及之后写下、且文件仍能打开的页码集合。
+     *
+     * 给批量队列重试补页用：只有这一行入队之后落盘的页才算「本行已经下好」，可以不再
+     * 重派。入队前就存在的旧文件不在这里短路 —— 是否跳过由 `Manager.downloadOne` 按用户
+     * 的覆盖策略决定（Rename / Replace 都要求重新落盘）。判不准时返回空集（照常下载）。
+     *
+     * 阻塞式 DB + IO，必须在工作线程调。
+     */
+    @JvmStatic
+    fun usablePagesSince(context: Context, illustId: Long, sinceMs: Long): Set<Int> {
+        if (illustId <= 0L) return emptySet()
+        return try {
+            val dao = AppDatabase.getAppDatabase(context.applicationContext).downloadDao()
+            val found = HashSet<Int>()
+            for (row in dao.getDownloadedPagesSince(illustId, sinceMs)) {
+                if (row.page in found) continue
+                if (usableUri(context, row.filePath) != null) found += row.page
+            }
+            found
+        } catch (e: Exception) {
+            Timber.tag(TAG).w(e, "记录探测失败 illust=%d since=%d，按未下载处理", illustId, sinceMs)
+            emptySet()
+        }
+    }
+
     /** 把数据库里的路径解析成 Uri，并确认对应文件仍可读。 */
     @JvmStatic
     fun usableUri(context: Context, path: String?): Uri? {

@@ -181,6 +181,15 @@ public interface DownloadDao {
             "WHERE illustId = :illustId AND page = :page ORDER BY downloadTime DESC")
     List<DownloadedPage> getDownloadedPageCandidates(long illustId, int page);
 
+    /**
+     * {@code since} 及之后写下的页记录。批量队列重试补页用：只认这一行入队之后落盘的页，
+     * 入队前就有的旧文件仍交给 {@code Manager.downloadOne} 按用户的覆盖策略处理。
+     */
+    @Query("SELECT fileName, filePath, page FROM illust_download_table " +
+            "WHERE illustId = :illustId AND page >= 0 AND downloadTime >= :since " +
+            "ORDER BY downloadTime DESC")
+    List<DownloadedPage> getDownloadedPagesSince(long illustId, long since);
+
     // ---- v41 page 列的存量回填（DownloadPageBackfill 用）----
 
     /**

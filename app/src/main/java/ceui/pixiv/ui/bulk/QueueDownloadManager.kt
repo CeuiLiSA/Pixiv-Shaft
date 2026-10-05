@@ -412,8 +412,11 @@ class QueueDownloadManager(app: Context) {
             // 停滞检测：以 (uuid:state:已落字节) 列表为签名。
             // 字节数走 durableBytes（stage 文件真实长度），不依赖主线程有没有把进度回调
             // 跑完 —— 否则主线程一忙，明明在动的下载也会被判成"签名没变" → 误报停滞。
+            // 只有 DOWNLOADING 页有写方在推 .part；其余状态字节不会变，state 已在签名里。
+            // 这里每次 progress 都会跑一遍，不对几十上百个残留 FAILED/INIT 页逐个 stat。
             val signature = pages.joinToString("|") {
-                it.uuid + ":" + it.state + ":" + durableBytes(it)
+                val bytes = if (it.state == DownloadItem.DownloadState.DOWNLOADING) durableBytes(it) else 0L
+                it.uuid + ":" + it.state + ":" + bytes
             }
             if (signature != inf.lastSignature) {
                 inf.lastSignature = signature
@@ -749,15 +752,15 @@ class QueueDownloadManager(app: Context) {
 
         // 按 page index 精确算出"还缺哪几页"：缺的补上，已下好的不再重派。
         //   - presentIdx：content 里已经在的页（本轮由它们继续跑，不重复登记）
-        //   - hasUsableRecord：这一页已有下载记录**且文件确实还能打开** → 跳过。
-        //     探测会验一次 fd，所以用户在文件管理器里删掉图之后仍会正常重下；
-        //     判不准时它返回 false（照常下载），宁可多下一次也不错误跳过。
+        //   - doneByThisRow：本行入队（createdAt）之后落盘、且文件确实还能打开的页 → 跳过。
+        //     只认入队之后的记录：入队前就有的旧文件要交给 Manager.downloadOne 按覆盖策略
+        //     处理 —— Rename / Replace 的用户重新批量下载就是要新落一份，不能被旧记录短路。
+        //     探测会验一次 fd，用户在文件管理器里删掉图之后仍会正常重下；判不准时返回
+        //     空集（照常下载），宁可多下一次也不错误跳过。
         val presentIdx = existing.map { it.index }.toSet()
+        val doneByThisRow = RecordedPageProbe.usablePagesSince(appContext, target, row.createdAt)
         val pendingPages = ArrayDeque(
-            (0 until pageCount).filter { idx ->
-                idx !in presentIdx &&
-                        !RecordedPageProbe.hasUsableRecord(appContext, target, idx)
-            }
+            (0 until pageCount).filter { idx -> idx !in presentIdx && idx !in doneByThisRow }
         )
 
         inFlight[row.id] = InFlightIllust(
@@ -773,8 +776,8 @@ class QueueDownloadManager(app: Context) {
                     "pageCount=$pageCount existing=${existing.size} " +
                     "pending=${pendingPages.size} retry=${row.retryCount}"
         )
-        // 只在"整条都还没有记录"时导出简介 —— 这是真正首次拉入。任何一页已有记录、
-        // 或 content 里已有残留 P，都说明这条作品之前处理过，再导一次在 Rename
+        // 只在"本行一页都还没处理过"时导出简介 —— 这是真正首次拉入。任何一页已由本行
+        // 落盘、或 content 里已有残留 P，都说明这条作品之前处理过，再导一次在 Rename
         // 策略下会多出一份 `xxx (1).txt`。
         if (pendingPages.size == pageCount) IllustCaptionExporter.export(bean)
         return true

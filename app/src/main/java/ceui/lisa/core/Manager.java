@@ -1637,8 +1637,12 @@ public class Manager {
      * 区分"冷启动 Manager.restore 带回的 stranded DOWNLOADING（无 handle，应翻 INIT
      * 重发）"vs"真在跑的 DOWNLOADING（有 handle，**绝不能**翻 INIT，否则 pump 会
      * 再 dispatch 一条传输任务，跟原 chain 抢同一个 stage 文件 / targetUri）"。
+     *
+     * 正在派发（[dispatching]：已置 DOWNLOADING、句柄还在 IO → 主线程路上）同样算在跑，
+     * 跟 {@link #resurrectIfStranded} 的判据保持一致，否则 retry path 会在这段窗口里
+     * 把它翻 INIT，复现同 uuid 两条传输。
      */
     public boolean isRunningHandle(String uuid) {
-        return handles.containsKey(uuid);
+        return handles.containsKey(uuid) || dispatching.contains(uuid);
     }
 }
