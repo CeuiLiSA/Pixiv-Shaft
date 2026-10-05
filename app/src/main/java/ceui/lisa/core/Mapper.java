@@ -88,6 +88,10 @@ public class Mapper<T extends ListShow<?>> implements ResponseMapper<T> {
         List<Object> dash = new ArrayList<>();
         // 有效「屏蔽 AI」档位：一次算好，循环里逐条判定用（会话临时值优先，否则读全局设置）
         boolean excludeAi = effectiveExcludeAi();
+        // feeds 卡打码（IllustNovelFilter.shouldBlurAi 无参版）只认全局开关。有效档位来自搜索页的
+        // 会话临时「屏蔽 AI」、全局却没开时，卡片不会打码——这时还「保留给卡片打码」就等于没屏蔽，
+        // 只能按老列表口径剔除（同系列卡）。
+        boolean keepForBlur = keepAiForBlur && Shaft.sSettings.isDeleteAIIllust();
         for (Object o : t.getList()) {
             if (o instanceof Illust) {
                 Illust illust = (Illust) o;
@@ -111,7 +115,7 @@ public class Mapper<T extends ListShow<?>> implements ResponseMapper<T> {
                 // 完全不显示强度才剔除；模糊粒子化强度下老列表没有模糊层，同样剔除，只有搜索链路
                 // 显式 keepAiForBlur 时保留给 feeds 卡打码；豁免作者一律放行。
                 if (!searchOnlyAi && (IllustNovelFilter.shouldHideAi(illust, excludeAi)
-                        || (!keepAiForBlur && IllustNovelFilter.shouldBlurAi(illust, excludeAi)))) {
+                        || (!keepForBlur && IllustNovelFilter.shouldBlurAi(illust, excludeAi)))) {
                     dash.add(o);
                 }
                 ObjectPool.INSTANCE.updateIllust((Illust) o);
@@ -132,7 +136,7 @@ public class Mapper<T extends ListShow<?>> implements ResponseMapper<T> {
                 // 屏蔽 AI 的小说侧（与插画分支同口径）：完全不显示强度才剔除；
                 // 模糊粒子化强度下老列表没有模糊层，同样剔除，只有搜索链路 keepAiForBlur 时保留。
                 if (!searchOnlyAi && (IllustNovelFilter.shouldHideAi(novel, excludeAi)
-                        || (!keepAiForBlur && IllustNovelFilter.shouldBlurAi(novel, excludeAi)))) {
+                        || (!keepForBlur && IllustNovelFilter.shouldBlurAi(novel, excludeAi)))) {
                     dash.add(o);
                 }
             }

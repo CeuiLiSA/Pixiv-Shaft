@@ -117,7 +117,11 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
             val novel = row.toNovel(novelId)
             // 屏蔽 AI 的有效档位可能来自搜索页「其他条件」的临时态 → 不走全局过滤链，改由这里显式判
             // （同 Mapper 口径：完全不显示强度才剔除，模糊粒子化交给 feeds 卡打码）。
-            if (!params.onlyAi && IllustNovelFilter.shouldHideAi(novel, params.excludeAi)) return null
+            // 但卡片打码只认全局开关：临时「屏蔽 AI」而全局没开时卡片不会打码，同 Mapper 改为剔除。
+            if (!params.onlyAi && (IllustNovelFilter.shouldHideAi(novel, params.excludeAi)
+                    || (!Shaft.sSettings.isDeleteAIIllust
+                        && IllustNovelFilter.shouldBlurAi(novel, params.excludeAi)))
+            ) return null
             return NovelFeedItem.of(novel, skipAiFilter = true)
         }
         val seriesId = row.id?.toLongOrNull() ?: return null
