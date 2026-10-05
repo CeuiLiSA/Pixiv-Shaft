@@ -26,11 +26,16 @@
 
     <!-- 「其他条件」的临时态提示：勾选值 ≠ 全局设置值时，显示在勾的左侧。
          默认 gone —— 本布局被 SimplePickerSheet / R-18 行共用，它们不显示这枚提示。
-         文字色与勾同走主题色，在代码里 setTextColor(palette.textAccent)（同 check_mark）。 -->
+         文字色与勾同走主题色，在代码里 setTextColor(palette.textAccent)（同 check_mark）。
+         maxWidth 必须有：check_label 是 0dp+weight，只分到非权重子 view 量完后剩下的宽度。
+         俄 / 英文提示在 360dp 窄屏、字体放大时能吃掉整行，把标签挤成一字一行甚至 0 宽；
+         封顶后中日文仍单行，西文折成两行。 -->
     <TextView
         android:id="@+id/check_hint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxWidth="140dp"
         android:paddingStart="6dp"
         android:textSize="12sp"
         android:visibility="gone"
