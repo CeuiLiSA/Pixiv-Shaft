@@ -1803,6 +1803,7 @@
     <string name="dlmgr_active_size_paused">已暫停</string>
     <string name="dlmgr_active_size_failed">下載失敗</string>
     <string name="dlmgr_active_size_unknown">未知大小</string>
+    <string name="dlmgr_active_size_stalled">已斷流%1$d/%2$ds</string>
     <string name="dlmgr_open_novel_failed">無法識別小說 ID，請重新下載該小說</string>
     <string name="dlmgr_done_empty_title">還沒有完成的下載</string>
     <string name="dlmgr_done_empty_hint">下載完成的作品會出現在這裡</string>

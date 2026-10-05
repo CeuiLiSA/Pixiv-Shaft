@@ -166,6 +166,20 @@ public class Manager {
         }
     }
 
+    /**
+     * 下载 client 的读超时（毫秒）—— 断流文案「已断流N/10s」的分母。
+     *
+     * 读的是**下载这条 client**（由全局 client `newBuilder()` 派生，超时同源）：非直连 =
+     * OkHttp 默认 10s，直连 = {@code Shaft.buildOkHttpClient} 显式设的 30s。不硬编码。
+     *
+     * 收在这里读的原因：OkHttp 的 {@code readTimeoutMillis} 是 Kotlin 属性、JVM 访问器是**方法**、
+     * 字段本身 private —— Java 侧只能写 {@code readTimeoutMillis()}。UI 层不必碰这个 API。
+     */
+    @SuppressWarnings("deprecation")
+    public long getDownloadReadTimeoutMillis() {
+        return getDownloadOkHttpClient().readTimeoutMillis();
+    }
+
     static OkHttpClient buildDownloadOkHttpClient(OkHttpClient base, ProgressTracker displayProgress) {
         OkHttpClient.Builder builder = base.newBuilder()
                 .protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1));
@@ -918,6 +932,11 @@ public class Manager {
         // 下载专用 H1.1 client，规避 H2 stream priority 串行化（详见 getDownloadOkHttpClient）。
         OkHttpClient client = getDownloadOkHttpClient();
 
+        // 新一次传输尝试：把「最近读到字节」的时间戳清零。否则上一轮失败留下的旧戳，会让 UI 在
+        // 新连接刚建好、还没收到首字节（甚至还在等共享文件 / 响应头）时就报出「已断流 N 秒」，
+        // N 是两轮之间的间隔 —— 那不是断流，是换了条连接重来。
+        downloadItem.setLastByteAtMs(0L);
+
         // ─── 断点续传 / staging 落点 ───
         // content:// 目标（MediaStore / SAF）一律走 staging（staged=true）：网络字节先写
         // cacheDir/staging_dl/{key}.part，直到 commit 才 factory.insert() 建目标行。好处：
@@ -1444,7 +1463,7 @@ public class Manager {
      *
      * @return 实际写到的总字节数（含 startOffset）。
      */
-    /** 单次 read 超过这个时长就记一笔 —— 对端不发数据的指纹（死 socket / 连接卡住）。 */
+    /** 单次 read 超过这个时长就记一笔 —— 对端不发数据的指纹（连接卡住 / 对端不响应）。 */
     private static final long READ_STALL_LOG_MS = 2000L;
     /** 整段传输超过这个时长、且均速低于 [SLOW_TRANSFER_MIN_KBPS] 时记一笔。 */
     private static final long SLOW_TRANSFER_MIN_MS = 5000L;
@@ -1481,6 +1500,9 @@ public class Manager {
                         + downloaded + "/" + totalSize + " name=" + item.getName());
             }
             downloaded += n;
+            // 断流计时起点：IO 线程上"真正读到字节"的时刻。UI 端读它算已断流秒数 —— 起点钉在源头，
+            // 不受"进度回调要 postMain + 500ms 节流"影响，主线程再忙也不会让断流读秒偏晚。
+            item.setLastByteAtMs(android.os.SystemClock.elapsedRealtime());
             long nowNs = System.nanoTime();
             int progress = totalSize > 0 ? (int) (downloaded * 100 / totalSize) : 0;
             boolean pctChanged = totalSize > 0 && progress != lastProgress;

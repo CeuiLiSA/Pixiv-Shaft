@@ -1977,6 +1977,7 @@
     <string name="dlmgr_active_size_paused">已暂停</string>
     <string name="dlmgr_active_size_failed">下载失败</string>
     <string name="dlmgr_active_size_unknown">未知大小</string>
+    <string name="dlmgr_active_size_stalled">已断流%1$d/%2$ds</string>
 
     <string name="dlmgr_open_novel_failed">无法识别小说 ID，请重新下载该小说</string>
     <string name="dlmgr_done_empty_title">还没有完成的下载</string>

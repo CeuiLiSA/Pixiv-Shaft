@@ -1801,6 +1801,7 @@
     <string name="dlmgr_active_size_paused">Пауза</string>
     <string name="dlmgr_active_size_failed">Ошибка</string>
     <string name="dlmgr_active_size_unknown">Неизвестно</string>
+    <string name="dlmgr_active_size_stalled">Обрыв %1$d/%2$ds</string>
     <string name="dlmgr_open_novel_failed">Не удалось определить ID новеллы. Скачайте её заново.</string>
     <string name="dlmgr_done_empty_title">Завершённых загрузок пока нет</string>
     <string name="dlmgr_done_empty_hint">Завершённые загрузки появятся здесь</string>

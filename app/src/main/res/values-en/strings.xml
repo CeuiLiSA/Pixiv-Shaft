@@ -1801,6 +1801,7 @@
     <string name="dlmgr_active_size_paused">Paused</string>
     <string name="dlmgr_active_size_failed">Failed</string>
     <string name="dlmgr_active_size_unknown">Unknown size</string>
+    <string name="dlmgr_active_size_stalled">Stalled %1$d/%2$ds</string>
     <string name="dlmgr_open_novel_failed">Failed to identify novel ID. Please re-download.</string>
     <string name="dlmgr_done_empty_title">No completed downloads yet</string>
     <string name="dlmgr_done_empty_hint">Completed downloads will appear here</string>
