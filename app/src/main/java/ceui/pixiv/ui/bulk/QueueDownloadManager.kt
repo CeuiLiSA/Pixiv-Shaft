@@ -801,6 +801,18 @@ class QueueDownloadManager(app: Context) {
     }
 
     /**
+     * 「仅 Wi-Fi」离开 Wi-Fi（自动闸门关上）时由 NetWorkStateReceiver 调用：收回 [userForced]。
+     *
+     * 用户的手动放行只针对点击那一刻的网络。不收回的话，Manager 那边刚 parkForNetwork
+     * 退回等待态，这边主循环仍按放行继续 settle / 拉行 / triggerPump —— 停滞检测 90s 后
+     * 重拉一次就会把整批在蜂窝上重新跑起来。不动 [paused]：网络回来后照常自动接续。
+     */
+    fun onNetworkGateClosed() {
+        userForced = false
+        Timber.tag(TAG).i("[QUEUE-CONSUMER] onNetworkGateClosed, userForced revoked")
+    }
+
+    /**
      * 给"清空全部"用：取消所有正在跑 / 等 Semaphore 的 ugoira worker。row 已经在
      * 调用方 `dao.deleteAll()` 删掉，worker 的 cancellation cleanup 会尝试把行翻
      * PENDING 但 row 不存在，dao 静默 no-op，不会异常。
