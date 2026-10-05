@@ -1929,6 +1929,8 @@
     <string name="search_filter_v3_section_bookmark_filter">Hide bookmarked</string>
     <string name="search_filter_v3_bookmark_filter_all">No filtering</string>
     <string name="search_filter_v3_bookmark_filter_only">Filter</string>
+    <string name="search_filter_v3_row_temporary_hint">Temporary (long-press to remember)</string>
+    <string name="search_filter_v3_row_temporary_hint_no_persist">Temporary</string>
     <string name="search_filter_v3_section_ai">AI works</string>
     <string name="search_filter_v3_ai_all">All</string>
     <string name="search_filter_v3_ai_only">AI only</string>

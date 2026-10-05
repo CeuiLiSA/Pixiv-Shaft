@@ -2121,6 +2121,10 @@
     <string name="search_filter_v3_section_bookmark_filter">过滤已收藏</string>
     <string name="search_filter_v3_bookmark_filter_all">不过滤</string>
     <string name="search_filter_v3_bookmark_filter_only">过滤</string>
+    <!-- 「其他条件」的 AI 作品 / 过滤已收藏：单击只改本次搜索的临时值，长按才写回设置 -->
+    <string name="search_filter_v3_row_temporary_hint">临时的（长按记住）</string>
+    <!-- 「仅看 AI」没有全局对应档，长按也写不进设置 → 不带括号里的「长按记住」 -->
+    <string name="search_filter_v3_row_temporary_hint_no_persist">临时的</string>
     <string name="search_filter_v3_section_ai">AI 作品</string>
     <string name="search_filter_v3_ai_all">全部</string>
     <string name="search_filter_v3_ai_only">仅 AI 作品</string>

@@ -114,7 +114,15 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
         val novelId = row.novelId?.toLongOrNull()
         if (novelId != null) {
             // 单篇：id 字段是 pixiv 给单篇造的 collection id，真正的小说 id 在 novelId 上。
-            return NovelFeedItem.of(row.toNovel(novelId), skipAiFilter = params.onlyAi)
+            val novel = row.toNovel(novelId)
+            // 屏蔽 AI 的有效档位可能来自搜索页「其他条件」的临时态 → 不走全局过滤链，改由这里显式判
+            // （同 Mapper 口径：完全不显示强度才剔除，模糊粒子化交给 feeds 卡打码）。
+            // 但卡片打码只认全局开关：临时「屏蔽 AI」而全局没开时卡片不会打码，同 Mapper 改为剔除。
+            if (!params.onlyAi && (IllustNovelFilter.shouldHideAi(novel, params.excludeAi)
+                    || (!Shaft.sSettings.isDeleteAIIllust
+                        && IllustNovelFilter.shouldBlurAi(novel, params.excludeAi)))
+            ) return null
+            return NovelFeedItem.of(novel, skipAiFilter = true)
         }
         val seriesId = row.id?.toLongOrNull() ?: return null
         val representative = row.toNovel(seriesId, asSeries = true)
@@ -122,11 +130,12 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
         // 全局 R-18 过滤照常挂着（不因搜索选了「仅 R-18」就让步），与 [ceui.lisa.core.Mapper] 一致。
         // 注意反刷屏（issue #743）看的是**整个系列的已公开字数**，不是单章：设了「最长字数」的
         // 用户会连带滤掉长连载——这与那条设置「不想看长文」的本意一致，故不特判。
-        if (NovelFeedItem.of(representative, skipAiFilter = params.onlyAi) == null) return null
+        if (NovelFeedItem.of(representative, skipAiFilter = true) == null) return null
+        if (!params.onlyAi && IllustNovelFilter.shouldHideAi(representative, params.excludeAi)) return null
         // 系列卡（novelSeriesCardRenderer）没有模糊/粒子层：屏蔽 AI 选「模糊粒子化」时，
         // 单篇交给 NovelFeedFragment 打码，系列卡打不了码——按 Mapper 对老列表的同一口径直接剔除，
         // 否则开了屏蔽反而把 AI 系列整张封面亮出来。「仅看 AI」时照常让步。
-        if (!params.onlyAi && IllustNovelFilter.shouldBlurAi(representative)) return null
+        if (!params.onlyAi && IllustNovelFilter.shouldBlurAi(representative, params.excludeAi)) return null
         return SearchNovelSeriesFeedItem(
             seriesId = seriesId,
             novel = representative,
@@ -209,6 +218,11 @@ internal data class WebNovelSearchParams(
     val aiType: Int?,
     val r18Mode: R18Mode,
     val onlyAi: Boolean,
+    /**
+     * 有效「屏蔽 AI」请求（服务端剔 + 客户端兜底取或）。可能来自搜索页「其他条件」的会话临时档位，
+     * 所以 [toFeedItem] 不能只信全局设置。
+     */
+    val excludeAi: Boolean = false,
 )
 
 /**
@@ -230,7 +244,8 @@ internal data class WebNovelSearchParams(
 internal fun buildWebNovelSearchParams(searchModel: SearchModel): WebNovelSearchParams =
     buildWebNovelSearchParams(
         searchModel = searchModel,
-        excludeAi = Shaft.sSettings.isDeleteAIIllust && !Shaft.sSettings.isAiBlockClientSide,
+        excludeAi = effectiveExcludeAi(searchModel) && !Shaft.sSettings.isAiBlockClientSide,
+        excludeAiClientSide = effectiveExcludeAi(searchModel) && Shaft.sSettings.isAiBlockClientSide,
     )
 
 internal fun buildWebNovelSearchParams(
@@ -238,9 +253,18 @@ internal fun buildWebNovelSearchParams(
     keywordSnapshot: String,
 ): WebNovelSearchParams = buildWebNovelSearchParams(
     searchModel = searchModel,
-    excludeAi = Shaft.sSettings.isDeleteAIIllust && !Shaft.sSettings.isAiBlockClientSide,
+    excludeAi = effectiveExcludeAi(searchModel) && !Shaft.sSettings.isAiBlockClientSide,
+    excludeAiClientSide = effectiveExcludeAi(searchModel) && Shaft.sSettings.isAiBlockClientSide,
     keywordSnapshot = keywordSnapshot,
 )
+
+/**
+ * 有效「屏蔽 AI」档位：优先取搜索页「其他条件」的会话临时值（单击改、不写设置），
+ * 没设过才回退全局 [Shaft.sSettings.isDeleteAIIllust]。app-api 路径在
+ * [ceui.lisa.repo.SearchNovelRepo] / [ceui.lisa.repo.SearchIllustRepo] 里同款解析。
+ */
+private fun effectiveExcludeAi(searchModel: SearchModel): Boolean =
+    searchModel.sessionExcludeAi.value ?: Shaft.sSettings.isDeleteAIIllust
 
 /**
  * 阈值显式传入的映射本体。抽出这层的理由与 [ceui.lisa.helper.IllustNovelFilter.judgeNovelSpam]
@@ -251,6 +275,7 @@ internal fun buildWebNovelSearchParams(
     searchModel: SearchModel,
     excludeAi: Boolean,
     keywordSnapshot: String = searchModel.keyword.value.orEmpty(),
+    excludeAiClientSide: Boolean = false,
 ): WebNovelSearchParams {
     val bookmarkMin = searchModel.bookmarkMin.value?.takeIf { it > 0 }
     val bookmarkMax = searchModel.bookmarkMax.value?.takeIf { it > 0 }
@@ -301,11 +326,14 @@ internal fun buildWebNovelSearchParams(
         genre = searchModel.genre.value,
         workLang = searchModel.lang.value,
         replaceableOnly = if (searchModel.isReplaceableOnly.value == true) 1 else null,
-        // 屏蔽 AI 是全局设置（同 SearchNovelRepo.update）；「仅看 AI」官方无参数，服务端全返后
-        // 在 toFeedItem 里按 aiType==2 客户端筛——此时绝不能同时发 ai_type=1，否则两边对夹清空。
+        // 屏蔽 AI 的有效档位可能来自搜索页「其他条件」的临时态（同 SearchNovelRepo.update）；
+        // 「仅看 AI」官方无参数，服务端全返后在 toFeedItem 里按 aiType==2 客户端筛——此时绝不能
+        // 同时发 ai_type=1，否则两边对夹清空。
         aiType = if (!onlyAi && excludeAi) 1 else null,
         r18Mode = r18Mode,
         onlyAi = onlyAi,
+        // 有效请求 = 服务端剔 + 客户端兜底；toFeedItem 据此做客户端剔除、并跳过全局 AI 判定
+        excludeAi = excludeAi || excludeAiClientSide,
     )
 }
 

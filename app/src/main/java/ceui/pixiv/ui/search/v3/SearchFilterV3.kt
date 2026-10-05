@@ -26,8 +26,9 @@ import ceui.pixiv.ui.search.SortType
  *                              对齐 iOS pixiv 8.6.6 抓包行为
  *  10. aiMode                — AI 作品筛选三档（全部/屏蔽AI/仅看AI）。屏蔽走官方 search_ai_type；
  *                              「仅看AI」官方无对应参数，由 DataSource 按真实 `illust_ai_type`==2
- *                              客户端过滤（与 R18 三档同机制）。仅「屏蔽AI」落 settings，「仅看AI」
- *                              是临时维度不入设置（issue #909）。
+ *                              客户端过滤（与 R18 三档同机制）。三档默认都是**会话临时值**：单击只改
+ *                              本次搜索，长按才把该档写回 settings（见 [aiModeTemporary]）；「仅看AI」
+ *                              无全局对应档，恒为临时（issue #909）。
  *  11. r18Mode               — R18 限制（沿用旧版「-R-18」「R-18」关键字 hack）
  *  12. ratioPattern          — 长宽比（仅 illust/manga，走官方 `ratio_pattern` query 参数）
  *  13. resolutionBucket      — 分辨率档位（仅 illust/manga，走官方 `width_min/max` + `height_min/max`）
@@ -49,12 +50,21 @@ data class SearchFilterV3(
     val endDate: String? = null,      // YYYY-MM-DD
     val aiMode: AiMode = AiMode.All,
     /**
-     * 「过滤已收藏」（仅搜索）—— 与全局 `Shaft.sSettings.isSearchFilterBookmarked` 联动。
-     * 真正的过滤发生在 [ceui.pixiv.ui.search.SearchIllustFeedSource] /
-     * [ceui.pixiv.ui.search.SearchNovelFeedSource] 建条目时（现读全局设置）；本字段只承载
-     * sheet 的草稿与「其他条件」徽标计数，不参与发请求的参数拼装。
+     * AI 档位是否为「会话临时值」：true = 用户单击选过、只影响本搜索页、**不写全局设置**；
+     * false = 跟随全局 `isDeleteAIIllust`（[fromGlobalDefaults] 的种子态）。长按某档会把该档
+     * 写回全局设置，随后本标记归 false——见 [ceui.pixiv.ui.search.v3.OtherFilterSheet]。
+     */
+    val aiModeTemporary: Boolean = false,
+    /**
+     * 「过滤已收藏」（仅搜索）—— 有效档位。真正的过滤发生在
+     * [ceui.pixiv.ui.search.SearchIllustFeedSource] /
+     * [ceui.pixiv.ui.search.SearchNovelFeedSource] 建条目时：本字段被 [bookmarkFilterTemporary]
+     * 标记为临时就用它，否则现读全局 `Shaft.sSettings.isSearchFilterBookmarked`。本字段同时承载
+     * sheet 的勾选态与「其他条件」徽标计数，不参与发请求的参数拼装。
      */
     val bookmarkFilter: Boolean = false,
+    /** 「过滤已收藏」是否为「会话临时值」，语义同 [aiModeTemporary]。 */
+    val bookmarkFilterTemporary: Boolean = false,
     val r18Mode: R18Mode = R18Mode.All,
     val ratioPattern: RatioPattern? = null,   // illust/manga only
     val resolutionBucket: ResolutionBucket? = null,   // illust/manga only
@@ -84,6 +94,10 @@ data class SearchFilterV3(
          *     query 维度。bookmarkRange 维度走 query 参数，没有全局默认。
          *   - aiMode：`isDeleteAIIllust` → ExcludeAi / All（OnlyAi 是临时维度，不来自 settings）
          *   - bookmarkFilter：`isSearchFilterBookmarked` → 过滤已收藏（与设置页同一个开关）
+         *
+         * 种下的 aiMode / bookmarkFilter 都标成「非临时」（[aiModeTemporary] /
+         * [bookmarkFilterTemporary] = false），即仍跟随全局设置——只有用户在「其他条件」里单击改过，
+         * 才会被标成临时值。
          *
          * 用户的「activeCount」基线也跟着跑——例如全局已开 AI 屏蔽，sheet 打开「其他条件」
          * 行就会显示「屏蔽 AI」徽标，不再误以为没改过。

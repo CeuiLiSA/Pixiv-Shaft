@@ -89,31 +89,61 @@ public class IllustNovelFilter {
      * 命中后按 {@link ceui.lisa.utils.Settings#getAiBlockStrength()} 分流：0=完全不显示（列表剔除）、
      * 1=模糊粒子化（feeds 卡打码；没有模糊层的老列表仍剔除，见 {@link ceui.lisa.core.Mapper}）。
      */
-    private static boolean isAiBlocked(boolean createdByAi, User user) {
-        return Shaft.sSettings.isDeleteAIIllust() && createdByAi && !isAiExemptAuthor(user);
+    /**
+     * 「屏蔽 AI」是否命中这条作品：档位开着、作品是 AI、作者不在豁免名单。
+     *
+     * <p>[excludeAi] 由调用方给出——搜索链路会传「其他条件」里的会话临时档位（不写设置），
+     * 其余调用方传全局 {@link Shaft.sSettings#isDeleteAIIllust()}。
+     */
+    private static boolean isAiBlocked(boolean excludeAi, boolean createdByAi, User user) {
+        return excludeAi && createdByAi && !isAiExemptAuthor(user);
     }
 
     /** 屏蔽 AI 强度 = 完全不显示时，是否应该把这条插画从列表里剔除（豁免作者除外）。 */
     public static boolean shouldHideAi(Illust illust) {
-        return isAiBlocked(illust.isCreatedByAI(), illust.getUser())
+        return shouldHideAi(illust, Shaft.sSettings.isDeleteAIIllust());
+    }
+
+    /**
+     * 档位显式传入的版本。搜索链路传「其他条件」的会话临时档位，这样临时「屏蔽 AI」不写全局
+     * 设置也能生效；其余调用方走无参版（读全局）。强度仍读全局——它只决定命中后是「剔除」还是
+     * 「打码」，不是筛选条件本身。
+     */
+    public static boolean shouldHideAi(Illust illust, boolean excludeAi) {
+        return isAiBlocked(excludeAi, illust.isCreatedByAI(), illust.getUser())
                 && Shaft.sSettings.getAiBlockStrength() == 0;
     }
 
     /** 屏蔽 AI 强度 = 模糊粒子化时，是否应该把这条插画在卡片上打码（豁免作者除外）。 */
     public static boolean shouldBlurAi(Illust illust) {
-        return isAiBlocked(illust.isCreatedByAI(), illust.getUser())
+        return shouldBlurAi(illust, Shaft.sSettings.isDeleteAIIllust());
+    }
+
+    /** {@link #shouldHideAi(Illust, boolean)} 的「模糊粒子化」版。 */
+    public static boolean shouldBlurAi(Illust illust, boolean excludeAi) {
+        return isAiBlocked(excludeAi, illust.isCreatedByAI(), illust.getUser())
                 && Shaft.sSettings.getAiBlockStrength() == 1;
     }
 
     /** 小说版：完全不显示强度下是否剔除（豁免作者除外）。 */
     public static boolean shouldHideAi(Novel novel) {
-        return isAiBlocked(novel.isCreatedByAI(), novel.getUser())
+        return shouldHideAi(novel, Shaft.sSettings.isDeleteAIIllust());
+    }
+
+    /** 小说版 {@link #shouldHideAi(Illust, boolean)}。 */
+    public static boolean shouldHideAi(Novel novel, boolean excludeAi) {
+        return isAiBlocked(excludeAi, novel.isCreatedByAI(), novel.getUser())
                 && Shaft.sSettings.getAiBlockStrength() == 0;
     }
 
     /** 小说版：模糊粒子化强度下是否打码（豁免作者除外）。 */
     public static boolean shouldBlurAi(Novel novel) {
-        return isAiBlocked(novel.isCreatedByAI(), novel.getUser())
+        return shouldBlurAi(novel, Shaft.sSettings.isDeleteAIIllust());
+    }
+
+    /** 小说版 {@link #shouldBlurAi(Illust, boolean)}。 */
+    public static boolean shouldBlurAi(Novel novel, boolean excludeAi) {
+        return isAiBlocked(excludeAi, novel.isCreatedByAI(), novel.getUser())
                 && Shaft.sSettings.getAiBlockStrength() == 1;
     }
 

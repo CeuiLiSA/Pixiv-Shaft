@@ -549,12 +549,15 @@ class SearchNovelRepo @JvmOverloads constructor(
         bookmarkMax = searchModel.bookmarkMax.value
         genre = searchModel.genre.value
         lang = searchModel.lang.value
-        // AI：屏蔽走全局 isDeleteAIIllust → search_ai_type=1；「仅看 AI」会话态（issue #909）→
-        // 服务端全返(0)，再由 Mapper 客户端按 novel_ai_type==2 筛。
+        // AI：屏蔽走 search_ai_type=1；「仅看 AI」会话态（issue #909）→ 服务端全返(0)，
+        // 再由 Mapper 客户端按 novel_ai_type==2 筛。
+        // 「屏蔽 AI」的有效档位优先取搜索页「其他条件」的会话临时值（单击改、不写设置），
+        // 没设过才回退全局 isDeleteAIIllust。
         val onlyAi = searchModel.onlyAi.value == true
+        val excludeAi = searchModel.sessionExcludeAi.value ?: Shaft.sSettings.isDeleteAIIllust
         // 模糊粒子化或存在豁免作者时服务端不能直接剔除 AI，必须全量返回后由客户端滤/遮。
-        val clientSideAi = onlyAi || (Shaft.sSettings.isDeleteAIIllust && Shaft.sSettings.isAiBlockClientSide)
-        searchAiType = if (clientSideAi) 0 else if (Shaft.sSettings.isDeleteAIIllust) 1 else 0
+        val clientSideAi = onlyAi || (excludeAi && Shaft.sSettings.isAiBlockClientSide)
+        searchAiType = if (clientSideAi) 0 else if (excludeAi) 1 else 0
         // null 让 retrofit 跳过 query；只有显式 true 才传，行为对齐 iOS（关闭时不带）
         isOriginalOnly = if (searchModel.isOriginalOnly.value == true) true else null
         isReplaceableOnly = if (searchModel.isReplaceableOnly.value == true) true else null
@@ -568,6 +571,8 @@ class SearchNovelRepo @JvmOverloads constructor(
         // R18 三档（0=不限/1=仅安全/2=仅R-18）→ 客户端按 x_restrict 过滤
         filterMapper.setSearchR18Restriction(r18Restriction ?: 0)
         filterMapper.setSearchOnlyAi(onlyAi)
+        // 客户端兜底剔除也按「有效档位」走——临时「屏蔽 AI」不写全局设置同样能滤掉
+        filterMapper.setSearchExcludeAi(excludeAi)
         filterMapper.setKeepAiForBlur(true)
     }
 

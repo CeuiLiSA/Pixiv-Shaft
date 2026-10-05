@@ -34,9 +34,15 @@ public class SearchModel extends ViewModel {
     private final MutableLiveData<Integer> r18Restriction = new MutableLiveData<>();
 
     // 「仅看 AI」会话临时态（issue #909）—— 官方 search_ai_type 只有屏蔽/不屏蔽，没有「仅看 AI」，
-    // 由 FilterMapper 按真实 illust/novel_ai_type==2 客户端过滤。屏蔽 AI 仍走全局 isDeleteAIIllust，
-    // 不在此承载；这条不入设置，旋屏/会话内有效即可。
+    // 由 FilterMapper 按真实 illust/novel_ai_type==2 客户端过滤。这条不入设置，会话内有效即可。
     private final MutableLiveData<Boolean> onlyAi = new MutableLiveData<>();
+
+    // ── 「其他条件」的会话临时态（本搜索页存活期间有效，绝不写设置）──
+    // null = 用户没在「其他条件」里显式改过 → 跟随全局设置（isDeleteAIIllust /
+    // isSearchFilterBookmarked）；非 null = 单击选过的临时值：只影响本次搜索，长按才写回设置。
+    // 两个 tab 共用同一份（搜索页级条件），由 SearchFilterV3LegacyBridge 从 filter 翻译过来。
+    private final MutableLiveData<Boolean> sessionExcludeAi = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> sessionBookmarkFilter = new MutableLiveData<>();
 
     // ── V3 filter 维度 —— 老版 FragmentFilter 没暴露但 pixiv API 都吃 ──
     private final MutableLiveData<Integer> bookmarkMin = new MutableLiveData<>();
@@ -115,6 +121,14 @@ public class SearchModel extends ViewModel {
 
     public MutableLiveData<Boolean> getOnlyAi() {
         return onlyAi;
+    }
+
+    public MutableLiveData<Boolean> getSessionExcludeAi() {
+        return sessionExcludeAi;
+    }
+
+    public MutableLiveData<Boolean> getSessionBookmarkFilter() {
+        return sessionBookmarkFilter;
     }
 
     public MutableLiveData<Integer> getBookmarkMin() {
