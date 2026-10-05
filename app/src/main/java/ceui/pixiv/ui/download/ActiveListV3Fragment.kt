@@ -64,9 +64,12 @@ import ceui.pixiv.ui.bulk.QueueDownloadManager
  * 并发下载（Settings.maxConcurrentDownloads，默认 1，上限 5）：
  *   - 任意时刻 DOWNLOADING 数量 ≤ 用户配置的并发数
  *   - 其余可下载的 page 处于 INIT（等待）
+ *   - 「不自动下载」入列的项是 PAUSED：没有任何自动唤醒源，只能由用户点播放键 / 「继续」启动
+ *     （见 [ceui.lisa.utils.DownloadLimitTypeUtil.enqueueAsPaused]）；等待态（INIT）只属于仅 Wi-Fi 的网络暂缓
  *   - DOWNLOADING 卡：完整不透明 + 蓝色进度条 + 实时大小/百分比
  *   - INIT 卡：半透明 0.55 + 隐藏进度条/大小 + 文字 "等待中…"
- *   - 顶部状态行明确写 "N 正在 · M 等待"
+ *   - PAUSED 卡：半透明 0.55 + 隐藏进度条/大小 + 文字 "已暂停" + 播放键
+ *   - 顶部状态行明确写 "N 正在 · M 等待 · K 已暂停"
  *   - 运行时 invariant：snapshot 里 DOWNLOADING > 配置上限 直接 warn 到日志
  */
 class ActiveListV3Fragment : Fragment() {

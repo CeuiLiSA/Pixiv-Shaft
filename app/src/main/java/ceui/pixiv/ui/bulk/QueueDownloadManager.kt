@@ -639,7 +639,9 @@ class QueueDownloadManager(app: Context) {
                     )
                     di.showUrl = IllustDownload.getShowUrl(infNeedingPage.bean, i)
                     di.isSilent = true  // 批量 page 不逐条弹 Toast，跑空时统一弹汇总（issue #950）
-                    Manager.get().addTask(di)
+                    // 队列放行后的补页 = 用户已手动启动，不走「不自动下载 → 暂停态」改写
+                    // （见 Manager.addTaskFromQueue）；套上去会让 pump 永远挑不到这批页。
+                    Manager.get().addTaskFromQueue(di)
                 }.onFailure {
                     Timber.tag(TAG).w(
                         it, "[QUEUE-CONSUMER] addTask failed illust=${infNeedingPage.illustId} page=$i"

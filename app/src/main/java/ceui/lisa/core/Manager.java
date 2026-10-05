@@ -205,6 +205,13 @@ public class Manager {
                 synchronized (this) {
                     if (generation != restoreGeneration) return; // User cleared the queue.
                     restored.removeIf(item -> restoreLiveUrls.contains(item.getUrl()));
+                    if (DownloadLimitTypeUtil.enqueueAsPaused()) {
+                        // 「不自动下载」恢复出来的项同样没有自动唤醒源，与入列口径一致地呈现为
+                        // 用户暂停；仅 Wi-Fi 的网络等待仍是 INIT（回 Wi-Fi 会唤醒）。
+                        for (DownloadItem item : restored) {
+                            item.setPaused(true);
+                        }
+                    }
                     restored.addAll(content); // Preserve work added while recovery was running.
                     content = new CopyOnWriteArrayList<>(restored);
                 }
@@ -271,7 +278,35 @@ public class Manager {
         private static final Manager INSTANCE = new Manager();
     }
 
+    /**
+     * 直接下载入列（详情页下载按钮 / 收藏后自动下载 / 单页下载，调用方都在 IllustDownload）。
+     *
+     * 是否立即开始由 {@link DownloadLimitTypeUtil#startTaskWhenCreate()} 决定；
+     * 「不自动下载」时入列即置暂停态 —— 等待态只属于「仅通过 Wi-Fi 下载」的网络暂缓。
+     * 批量队列放行后的补页走 {@link #addTaskFromQueue(DownloadItem)}，刻意不套这条。
+     */
     public void addTask(DownloadItem bean) {
+        addTask(bean, true);
+    }
+
+    /**
+     * 批量队列消费者放行后补页入口（唯一调用点 {@code QueueDownloadManager.fillSlots}）。
+     *
+     * 与 {@link #addTask(DownloadItem)} 只差一点：**不套「不自动下载 → 暂停态」的呈现规则**。
+     * 能走到这里的入列一定发生在用户点了队列的「继续 / 重试失败」之后（{@code userForced}），
+     * 那次点击本身就是手动启动；若这批页被置 paused，{@link #pumpAvailableSlots()} 的
+     * getFirstReady（只挑 INIT 且未暂停）永远挑不到它们 → 队列走 90s 停滞检测 → clearOne
+     * → 重拉，变成假失败循环。
+     */
+    public void addTaskFromQueue(DownloadItem bean) {
+        addTask(bean, false);
+    }
+
+    /**
+     * @param parkIfManualOnly 「不自动下载」模式下入列即置暂停态
+     *                         （见 {@link DownloadLimitTypeUtil#enqueueAsPaused()}）。
+     */
+    private void addTask(DownloadItem bean, boolean parkIfManualOnly) {
         // 纵深防御:null item 会在 safeAdd 里 null.getUuid() NPE(见 gif 走 buildDownloadItem
         // 返 null 的历史坑)。调用方本应先过滤,这里再兜一层,任何 null 直接忽略不崩。
         if (bean == null) {
@@ -296,6 +331,11 @@ public class Manager {
                 // Gson(~80KB)+Room insert 若同步执行,会卡在被并发
                 // hasDownloadRecordByIllustId LIKE 全表扫描占满的 SQLite 连接池上 →
                 // 主线程 ANR。故 safeAdd 内部只保证 add 同步、持久化挪后台。
+                if (parkIfManualOnly && DownloadLimitTypeUtil.enqueueAsPaused()) {
+                    // 「不自动下载」没有任何自动唤醒源：等待态留给仅 Wi-Fi 的网络暂缓，
+                    // 这里如实呈现为「已暂停」，等用户点播放键 / 「继续」。
+                    bean.setPaused(true);
+                }
                 safeAdd(bean);
             }
             if(DownloadLimitTypeUtil.startTaskWhenCreate()){
@@ -403,6 +443,10 @@ public class Manager {
                     // 与 addTask 对齐:跳过 null item(gif 走 buildDownloadItem 返 null 的历史坑),
                     // 否则 item.getUrl() 直接 NPE。调用方本应先过滤,这里兜底。
                     if (item != null && !existingUrls.contains(item.getUrl())) {
+                        if (DownloadLimitTypeUtil.enqueueAsPaused()) {
+                            // 「不自动下载」入列即暂停态（等待态只属于仅 Wi-Fi 的网络暂缓）。
+                            item.setPaused(true);
+                        }
                         // content.add 必须同步:triggerPump 的 getFirstReady 靠 content 立刻变长。
                         content.add(item);
                         if (restoreLiveUrls != null) restoreLiveUrls.add(item.getUrl());
@@ -571,6 +615,9 @@ public class Manager {
      *
      * 用户手动暂停过的项不动：paused=true 时 [DownloadItem.getState] 返回 PAUSED，
      * 天然被下面的判断跳过。
+     *
+     * 别把「不自动下载」也塞进这条路：它没有任何自动唤醒源（回到 Wi-Fi 也不会替它启动），
+     * 入列时已按暂停态呈现（见 [DownloadLimitTypeUtil.enqueueAsPaused]），与本方法无关。
      */
     public void parkForNetwork() {
         // 先熄火再取消：cancel 触发的 onFinally 会调 pumpAvailableSlots，
