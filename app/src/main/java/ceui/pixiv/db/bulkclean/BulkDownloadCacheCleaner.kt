@@ -98,9 +98,11 @@ object BulkDownloadCacheCleaner {
         //        否则用户看到的"databases/"数字会因为残留的 -wal 而短期偏大
         runCatching {
             val raw = db.openHelper.writableDatabase
-            raw.execSQL("PRAGMA wal_checkpoint(TRUNCATE)")
+            // wal_checkpoint 会返回一行结果，Android 的 execSQL 遇到带结果行的语句直接抛，
+            // 只能走 query；cursor 是惰性的，moveToFirst 才真正执行。
+            raw.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
             raw.execSQL("VACUUM")
-            raw.execSQL("PRAGMA wal_checkpoint(TRUNCATE)")
+            raw.query("PRAGMA wal_checkpoint(TRUNCATE)").use { it.moveToFirst() }
         }.onFailure { Timber.tag(TAG).w(it, "VACUUM failed") }
 
         // 5) 通知 UI —— 已完成 / 队列 tab 当前打开着的话立刻翻到空状态

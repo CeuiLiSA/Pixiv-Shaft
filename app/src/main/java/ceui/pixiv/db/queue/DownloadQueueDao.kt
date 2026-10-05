@@ -133,8 +133,16 @@ interface DownloadQueueDao {
     @Query("UPDATE download_queue SET status = '${QueueStatus.PENDING}', retryCount = 0, errorMsg = NULL, finishedAt = NULL WHERE status = '${QueueStatus.FAILED}'")
     suspend fun retryAllFailed(): Int
 
-    @Query("DELETE FROM download_queue")
-    suspend fun deleteAll()
+    /**
+     * 分批删，每批一个短事务。理由同 [ceui.lisa.database.DownloadDao.deleteAllDownload]：
+     * GB 级单事务 DELETE 提交几十秒，期间被杀整批回滚（#1192）。
+     */
+    suspend fun deleteAll() {
+        while (deleteBatch(ceui.lisa.database.DownloadDao.DELETE_BATCH) > 0) { }
+    }
+
+    @Query("DELETE FROM download_queue WHERE id IN (SELECT id FROM download_queue LIMIT :limit)")
+    suspend fun deleteBatch(limit: Int): Int
 
     /** 给 BulkDownloadCacheCleaner 估"清出来多少字节"用。 */
     @Query("SELECT IFNULL(SUM(LENGTH(illustGson)), 0) FROM download_queue")

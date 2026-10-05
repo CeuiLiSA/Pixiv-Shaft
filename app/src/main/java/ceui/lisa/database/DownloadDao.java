@@ -232,10 +232,21 @@ public interface DownloadDao {
     Cursor getDownloadingBatch(long after, long through, int limit);
 
     /**
+     * 整表删除拆成小事务逐批提交，每批 {@link #DELETE_BATCH} 行。
      *
+     * <p>单条 {@code DELETE FROM} 在 GB 级表上是一个巨型事务：实测 1.3GB 表删除时 WAL 涨到
+     * 1.3GB（库是 auto_vacuum=FULL），COMMIT 跑几十秒到几分钟，期间独占写连接；这段时间进程一被杀（等不及 / ANR / 没电）整批回滚，数据原样回来（#1192）。
+     * 分批后每批几 MB、几百毫秒提交，被杀也只丢最后一批，再点一次就接着删。
      */
-    @Query("DELETE FROM illust_download_table")
-    void deleteAllDownload();
+    default void deleteAllDownload() {
+        while (deleteDownloadBatch(DELETE_BATCH) > 0) { }
+    }
+
+    int DELETE_BATCH = 200;
+
+    @Query("DELETE FROM illust_download_table WHERE rowid IN " +
+            "(SELECT rowid FROM illust_download_table LIMIT :limit)")
+    int deleteDownloadBatch(int limit);
 
     /**
      * 给 BulkDownloadCacheCleaner 估"清出来多少字节"用 —— 单 illustGson 列就是占用大头,
@@ -244,8 +255,14 @@ public interface DownloadDao {
     @Query("SELECT IFNULL(SUM(LENGTH(illustGson)), 0) FROM illust_download_table")
     long sumIllustGsonBytes();
 
-    @Query("DELETE FROM illust_downloading_table")
-    void deleteAllDownloading();
+    /** 分批删，理由同 {@link #deleteAllDownload()}（taskGson 单行 ~80KB）。 */
+    default void deleteAllDownloading() {
+        while (deleteDownloadingBatch(DELETE_BATCH) > 0) { }
+    }
+
+    @Query("DELETE FROM illust_downloading_table WHERE rowid IN " +
+            "(SELECT rowid FROM illust_downloading_table LIMIT :limit)")
+    int deleteDownloadingBatch(int limit);
 
 
     /**
