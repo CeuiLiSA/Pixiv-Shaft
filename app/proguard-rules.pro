@@ -131,6 +131,8 @@
 -keepclassmembers class ceui.pixiv.snapshot.AutoSnapshotManifest { <fields>; }
 -keepclassmembers class ceui.pixiv.snapshot.AutoSnapshotBehaviorRecord { <fields>; }
 -keepclassmembers class ceui.pixiv.snapshot.AutoSnapshotDwellSample { <fields>; }
+-keepclassmembers class ceui.pixiv.snapshot.AutoSnapshotViewerPageSample { <fields>; }
+-keepclassmembers class ceui.pixiv.snapshot.AutoSnapshotViewerSessionSample { <fields>; }
 -keepclassmembers class ceui.pixiv.ui.prime.PrimeTagIndexItem { <fields>; }
 -keepclassmembers class ceui.pixiv.ui.account.EmailBackupV3ViewModel$ErrorBody { <fields>; }
 -keepclassmembers class ceui.pixiv.ui.debug.PopularTagExportViewModel$Envelope { <fields>; }
@@ -156,6 +158,8 @@
 -keep,allowobfuscation class ceui.pixiv.snapshot.AutoSnapshotManifest
 -keep,allowobfuscation class ceui.pixiv.snapshot.AutoSnapshotBehaviorRecord
 -keep,allowobfuscation class ceui.pixiv.snapshot.AutoSnapshotDwellSample
+-keep,allowobfuscation class ceui.pixiv.snapshot.AutoSnapshotViewerPageSample
+-keep,allowobfuscation class ceui.pixiv.snapshot.AutoSnapshotViewerSessionSample
 -keep,allowobfuscation class ceui.pixiv.ui.synonym.SynonymDictBackup$*Json
 -keep,allowobfuscation class ceui.pixiv.ui.history.BrowseHistoryBackup$Payload
 -keep,allowobfuscation class ceui.pixiv.ui.history.BrowseHistoryBackup$RawBackup

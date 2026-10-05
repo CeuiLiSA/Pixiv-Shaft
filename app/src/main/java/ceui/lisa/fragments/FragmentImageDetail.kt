@@ -45,6 +45,7 @@ import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.ZoomImageView
 import com.github.panpf.zoomimage.util.IntSizeCompat
 import com.github.panpf.zoomimage.util.OffsetCompat
+import com.github.panpf.zoomimage.util.isEmpty
 import com.github.panpf.zoomimage.util.isNotEmpty
 import com.github.panpf.zoomimage.view.zoom.OnViewLongPressListener
 import com.github.panpf.zoomimage.view.zoom.OnViewTapListener
@@ -74,6 +75,9 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         viewModels<ImageTranslationViewModel>(ownerProducer = { requireActivity() })
     private var isAnimated: Boolean = false
     private var isScaleMax: Boolean = false
+
+    /** 本页是否已向二级大图会话上报过「缩放过」；只观测，不做消费。 */
+    private var viewerZoomReported = false
 
     /**
      * 上一次 ZoomImage 的 contentSize，用来判断「底图是不是换成了另一个尺寸」。
@@ -149,6 +153,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
      */
     override fun onDestroyView() {
         isAnimated = false
+        viewerZoomReported = false
         ugoiraPlayer?.let {
             it.recycle()
             resetZoomLevelMemory()
@@ -440,6 +445,54 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         isScaleMax = false
     }
 
+    /**
+     * 二级大图会话的「本页是否缩放过」观测：只观测，不做消费。
+     *
+     * 判据是「当前倍率显著高于**这张底图刚打开时**的倍率」，基准在底图尺寸每次变化后重取。
+     * 三条被否掉的基准（照搬都会误判，别再改回去）：
+     * - `minScaleState`：长图 ReadMode 下初始是 fillScale，本来就大于 min；
+     * - `userTransformState`：ReadMode 的初始增量本身就记在 userTransform 里（`readModeTransform - baseTransform`），
+     *   长图一打开 scaleX 就 > 1；
+     * - 直接算初始缩放再比：与库自身基准的微小数值差会被当成用户缩放（本次实测 3/3 会话「看过的页 == 缩放过的页」）。
+     *
+     * 判据见 [ZOOM_SCALE_RATIO]：双击（含增量 1.1–3.0 全范围）/ 三档 / 双指捏合放大都算。
+     * 每页只需上报一次，上报后停掉本页收集。
+     * 只在「插画/漫画自动生成快照」开启时采集，与行为库的开关契约一致。
+     */
+    private fun observeViewerZoom() {
+        if (!Shaft.sSettings.isAutoSnapshotOnIllustManga) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                val zoomable = gestureImage.zoomable
+                var baselineContent: IntSizeCompat? = null
+                var baselineScale = 0f
+                zoomable.transformState.collect { transform ->
+                    if (viewerZoomReported || !isGestureTargetAlive) return@collect
+                    val content = zoomable.contentSizeState.value
+                    if (content.isEmpty()) return@collect
+                    if (content != baselineContent) {
+                        // 底图刚就绪 / 换了尺寸（large 占位 → 原图、译图）：把这一刻的倍率定成基准。
+                        baselineContent = content
+                        baselineScale = transform.scaleX
+                        return@collect
+                    }
+                    if (transform.scaleX < baselineScale * ZOOM_SCALE_RATIO) return@collect
+                    viewerZoomReported = true
+                    Timber.d(
+                        "[ImageDetail] viewer zoom index=%d, scale=%.3f, baseline=%.3f, min=%.3f, max=%.3f, user=%.3f",
+                        index,
+                        transform.scaleX,
+                        baselineScale,
+                        zoomable.minScaleState.value,
+                        zoomable.maxScaleState.value,
+                        zoomable.userTransformState.value.scaleX,
+                    )
+                    (activity as? ImageDetailActivity)?.onViewerPageZoomed(index)
+                }
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // 换底图（large 占位 → 原图 / 译图）会改变 contentSize，增量模式记的绝对倍率随之失真，
@@ -458,6 +511,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
             }
         }
         loadImage()
+        observeViewerZoom()
         // 监听"翻译漫画"产出 + 「显示译图」勾选:本页有要显示的译图就换上,取消勾选则切回原图
         translationViewModel.displayedTranslatedPaths.observe(viewLifecycleOwner) { map ->
             val path = map[index]?.takeIf { File(it).exists() }
@@ -809,6 +863,19 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
         // PR#900 自定义双击放大：每次乘 1.8f；浮点误差判最大倍数容差 0.01f
         // private const val CUSTOM_ZOOM_ADD_SCALE = 1.8f
         private const val MAX_SCALE_EPSILON = 0.01f
+
+        /**
+         * 「缩放过」的判定倍率：当前倍率要达到打开时基准的这么多倍才算。
+         *
+         * 取 1.1 是因为它正好是**最小**的「有意缩放」：增量双击的增量可配 1.1–3.0（设置页，默认 1.8），
+         * 再高就会误杀把增量调到 1.1 / 1.2 的用户；默认 / 三级双击走库档位（步进 ×3），双指捏合通常更大。
+         *
+         * 已知残留：ZoomImage 的 ONE_FINGER_SCALE（双击后单指上下滑缩放，库默认开启，App 从未关过）
+         * 竖向拖约 20px 就能到 1.1。实测（vivo-V2361A 2026-10-03）用户那几次拖动都只有 10–15px
+         * （1.05–1.07），已被 1.1 挡掉；若之后再误报，`[ImageDetail] viewer zoom` 日志里的
+         * scale / baseline 能直接反推拖了多远。
+         */
+        private const val ZOOM_SCALE_RATIO = 1.1f
 
         // 长按退档的相对容差：当前倍率落在某一档 2% 以内就算「停在这一档」，不能再落回自己。
         private const val LONG_PRESS_LEVEL_EPSILON = 0.02f

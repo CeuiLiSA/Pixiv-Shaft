@@ -1151,9 +1151,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             // 凭证还在手里说明上一次「可见」还没结算（进二级大图页 / 横滑离开再回来）：表不重开、
             // 不重复计进入，只把停过的那一段接着算。
             if (autoSnapshotVisit == null) {
+                val autoSnapshotIllust = ObjectPool.get<Illust>(safeArgs.illustId.toLong()).value
                 autoSnapshotVisit = AutoSnapshotEngine.onArtworkPageVisible(
                     illustId = safeArgs.illustId.toLong(),
-                    type = ObjectPool.get<Illust>(safeArgs.illustId.toLong()).value?.type,
+                    type = autoSnapshotIllust?.type,
+                    pageCount = autoSnapshotIllust?.page_count ?: 0,
                     countAsEntry = !autoSnapshotEntered,
                 )
                 autoSnapshotEntered = true

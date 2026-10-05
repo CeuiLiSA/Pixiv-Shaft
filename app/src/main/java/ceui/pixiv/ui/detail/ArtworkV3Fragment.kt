@@ -552,10 +552,12 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 凭证还在手里说明上一次「可见」还没结算（进二级大图页 / 横滑离开 / 滚出作品区再回来）：
         // 表不重开、不重复计进入，只把停过的那一段接着算。
         if (autoSnapshotVisit == null) {
+            val autoSnapshotIllust = ObjectPool.get<Illust>(illustId).value
             autoSnapshotVisit =
                 AutoSnapshotEngine.onArtworkPageVisible(
                     illustId = illustId,
-                    type = ObjectPool.get<Illust>(illustId).value?.type,
+                    type = autoSnapshotIllust?.type,
+                    pageCount = autoSnapshotIllust?.page_count ?: 0,
                     countAsEntry = !autoSnapshotEntered,
                 )
             autoSnapshotEntered = true
