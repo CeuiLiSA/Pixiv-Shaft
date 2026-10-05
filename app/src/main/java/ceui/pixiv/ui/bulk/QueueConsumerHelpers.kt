@@ -84,4 +84,21 @@ internal fun durableBytesOf(stageDir: java.io.File, url: String?, currentSize: L
     return maxOf(staged, currentSize.coerceAtLeast(0))
 }
 
+/**
+ * 一条 illust 留在 content 里的页是否**全部**确定失败 —— 整条判 FAILED 的唯一条件。
+ *
+ * [states] 取 [DownloadItem.getState]：暂停页返回 PAUSED，自然不算失败。SUCCESS 页只是
+ * 还没被主线程从 content 摘掉（摘除是 postMain 的异步动作），必须继续等；把它算成
+ * "已 settle"会让整条误判失败 → 回退 PENDING → 同一页被重新下载。
+ */
+internal fun allPagesFailed(states: List<Int>): Boolean =
+    states.isNotEmpty() && states.all { it == DownloadItem.DownloadState.FAILED }
+
+/**
+ * 拉入一行时还要派发的页：不在 content 里（[present] 由残留页继续跑）、也不是本行已经
+ * 落盘的（[doneByThisRow]），按页号升序。
+ */
+internal fun pagesToDispatch(pageCount: Int, present: Set<Int>, doneByThisRow: Set<Int>): ArrayDeque<Int> =
+    ArrayDeque((0 until pageCount).filter { it !in present && it !in doneByThisRow })
+
 private const val TAG = "QueueConsumerHelpers"

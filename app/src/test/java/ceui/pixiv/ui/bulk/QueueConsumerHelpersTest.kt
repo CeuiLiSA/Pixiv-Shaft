@@ -1,7 +1,14 @@
 package ceui.pixiv.ui.bulk
 
+import ceui.lisa.core.DownloadItem.DownloadState.DOWNLOADING
+import ceui.lisa.core.DownloadItem.DownloadState.FAILED
+import ceui.lisa.core.DownloadItem.DownloadState.INIT
+import ceui.lisa.core.DownloadItem.DownloadState.PAUSED
+import ceui.lisa.core.DownloadItem.DownloadState.SUCCESS
 import ceui.pixiv.download.StageStore
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 
@@ -67,5 +74,46 @@ class QueueConsumerHelpersTest {
         } finally {
             dir.deleteRecursively()
         }
+    }
+
+    // —— allPagesFailed：整条判失败的判据（跑生产函数，不是模型） ——
+
+    @Test fun `全部 FAILED 才判整条失败`() {
+        assertTrue(allPagesFailed(listOf(FAILED)))
+        assertTrue(allPagesFailed(listOf(FAILED, FAILED, FAILED)))
+    }
+
+    @Test fun `SUCCESS 页还没被摘掉时不判失败`() {
+        // 回归点：旧判据把 SUCCESS 当成"已 settle"，整条误判失败 → 重下已成功的页。
+        assertFalse(allPagesFailed(listOf(SUCCESS)))
+        assertFalse(allPagesFailed(listOf(FAILED, SUCCESS)))
+    }
+
+    @Test fun `还有未完成或暂停的页时不判失败`() {
+        assertFalse(allPagesFailed(listOf(FAILED, INIT)))
+        assertFalse(allPagesFailed(listOf(FAILED, DOWNLOADING)))
+        assertFalse(allPagesFailed(listOf(FAILED, PAUSED)))
+    }
+
+    @Test fun `没有页不算失败`() {
+        assertFalse(allPagesFailed(emptyList()))
+    }
+
+    // —— pagesToDispatch：拉入时按页号补页 ——
+
+    @Test fun `首次拉入派发全部页`() {
+        assertEquals(listOf(0, 1, 2), pagesToDispatch(3, emptySet(), emptySet()).toList())
+    }
+
+    @Test fun `重试只补缺页，content 残留页与本行已落盘页都不重派`() {
+        // 回归点：旧实现 existing 非空就宣称"全部已派发"，10 页只带回 2 页时漏 8 页。
+        assertEquals(
+            listOf(1, 4, 5, 6, 7, 8, 9),
+            pagesToDispatch(10, present = setOf(2, 3), doneByThisRow = setOf(0, 3)).toList(),
+        )
+    }
+
+    @Test fun `全部页都已处理时为空`() {
+        assertTrue(pagesToDispatch(2, setOf(0), setOf(1)).isEmpty())
     }
 }

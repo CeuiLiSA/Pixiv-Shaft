@@ -409,14 +409,16 @@ class QueueDownloadManager(app: Context) {
             val inf = iter.next().value
             val pages = byIllust[inf.illustId] ?: emptyList()
 
-            // 停滞检测：以 (uuid:state:已落字节) 列表为签名。
+            // 停滞检测：以 (uuid:state:nonius:已落字节) 列表为签名。
             // 字节数走 durableBytes（stage 文件真实长度），不依赖主线程有没有把进度回调
             // 跑完 —— 否则主线程一忙，明明在动的下载也会被判成"签名没变" → 误报停滞。
+            // nonius 不能省：join 共享图片加载（ImageLoaderV3.awaitExistingFile）期间只有
+            // 百分比在动，.part 还没开写、currentSize 恒为 0，只看字节会把慢速原图误判停滞。
             // 只有 DOWNLOADING 页有写方在推 .part；其余状态字节不会变，state 已在签名里。
             // 这里每次 progress 都会跑一遍，不对几十上百个残留 FAILED/INIT 页逐个 stat。
             val signature = pages.joinToString("|") {
                 val bytes = if (it.state == DownloadItem.DownloadState.DOWNLOADING) durableBytes(it) else 0L
-                it.uuid + ":" + it.state + ":" + bytes
+                it.uuid + ":" + it.state + ":" + it.nonius + ":" + bytes
             }
             if (signature != inf.lastSignature) {
                 inf.lastSignature = signature
@@ -448,10 +450,7 @@ class QueueDownloadManager(app: Context) {
             // 几百毫秒。这段窗口里快照看到的 SUCCESS 页既不是 INIT/DOWNLOADING/PAUSED，
             // 就会让整条被误判成失败 → 行回退 PENDING → 重拉重派 → 同一页被反复下载。
             // SUCCESS 页只是"还没被摘掉"，必须继续等它 remove。
-            val allFailed = pages.all {
-                it.state == DownloadItem.DownloadState.FAILED && !it.isPaused
-            }
-            if (!allFailed) continue
+            if (!allPagesFailed(pages.map { it.state })) continue
 
             toFinalize += inf to FinalizeKind.FAILED
             iter.remove()
@@ -759,9 +758,7 @@ class QueueDownloadManager(app: Context) {
         //     空集（照常下载），宁可多下一次也不错误跳过。
         val presentIdx = existing.map { it.index }.toSet()
         val doneByThisRow = RecordedPageProbe.usablePagesSince(appContext, target, row.createdAt)
-        val pendingPages = ArrayDeque(
-            (0 until pageCount).filter { idx -> idx !in presentIdx && idx !in doneByThisRow }
-        )
+        val pendingPages = pagesToDispatch(pageCount, presentIdx, doneByThisRow)
 
         inFlight[row.id] = InFlightIllust(
             queueRowId = row.id,
