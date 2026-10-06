@@ -2,6 +2,7 @@ package ceui.pixiv.imageloader
 
 import java.io.File
 import java.io.IOException
+import java.net.SocketTimeoutException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -183,6 +184,81 @@ class ImageLoadTaskTest {
         progress(80)
 
         assertEquals(ImageLoadState.Success(file), task.state.value)
+    }
+
+    /** 断流（读超时）静默重试一次：不落 Error，进度从 0 重走，第二次拿到文件即 Success。 */
+    @Test
+    fun `stall retry silently refetches once`() = runTest {
+        val success = tempImageFile("stall-retry")
+        var calls = 0
+        val task = ImageLoadTask(
+            request = ImageRequest("https://i.pximg.net/img-original/img/stall-retry.jpg"),
+            scope = this,
+            fetcher = object : ImageFetcher {
+                override suspend fun fetch(url: String, onProgress: (Int) -> Unit): File {
+                    calls += 1
+                    onProgress(40)
+                    if (calls == 1) throw SocketTimeoutException("timeout")
+                    return success
+                }
+            },
+            elapsedRealtime = { 0L },
+            shouldRetryStall = { true },
+        )
+
+        task.start()
+        advanceUntilIdle()
+
+        assertEquals(2, calls)
+        assertEquals(ImageLoadState.Success(success), task.state.value)
+    }
+
+    /** 额度只有一次：连着两次断流，第二次必须如实落 Error，不能无限重下。 */
+    @Test
+    fun `stall retry budget is spent after one attempt`() = runTest {
+        var calls = 0
+        val task = ImageLoadTask(
+            request = ImageRequest("https://i.pximg.net/img-original/img/stall-twice.jpg"),
+            scope = this,
+            fetcher = object : ImageFetcher {
+                override suspend fun fetch(url: String, onProgress: (Int) -> Unit): File {
+                    calls += 1
+                    throw SocketTimeoutException("timeout")
+                }
+            },
+            elapsedRealtime = { 0L },
+            shouldRetryStall = { true },
+        )
+
+        task.start()
+        advanceUntilIdle()
+
+        assertEquals("one silent retry only", 2, calls)
+        assertTrue(task.state.value is ImageLoadState.Error)
+    }
+
+    /** 判定说不重试（读超时之外的错，或开关没开）时，一次都不能多下。 */
+    @Test
+    fun `non-stall errors are not silently retried`() = runTest {
+        var calls = 0
+        val task = ImageLoadTask(
+            request = ImageRequest("https://i.pximg.net/img-original/img/no-stall-retry.jpg"),
+            scope = this,
+            fetcher = object : ImageFetcher {
+                override suspend fun fetch(url: String, onProgress: (Int) -> Unit): File {
+                    calls += 1
+                    throw IllegalStateException("boom")
+                }
+            },
+            elapsedRealtime = { 0L },
+            shouldRetryStall = { false },
+        )
+
+        task.start()
+        advanceUntilIdle()
+
+        assertEquals(1, calls)
+        assertTrue(task.state.value is ImageLoadState.Error)
     }
 
     private fun tempImageFile(name: String): File {

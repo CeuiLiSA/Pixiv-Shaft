@@ -38,6 +38,11 @@ class ImageLoadTask(
     private val scope: CoroutineScope,
     private val fetcher: ImageFetcher = GlideImageFetcher,
     private val elapsedRealtime: () -> Long = { SystemClock.elapsedRealtime() },
+    /**
+     * 这次失败该不该「断流静默重试」。默认 = 读超时 + 用户在设置里勾了
+     * 「图片加载也容许一次断流超时并静默重试」；单测注入假实现。
+     */
+    private val shouldRetryStall: (Throwable) -> Boolean = ::shouldSilentlyRetryImageStall,
 ) {
 
     private val shortUrl = request.url.substringAfterLast('/')
@@ -116,26 +121,54 @@ class ImageLoadTask(
     private suspend fun runDownload() {
         val startMs = elapsedRealtime()
         _state.value = ImageLoadState.Loading(0)
-        try {
-            val file = fetcher.fetch(request.url) { percent ->
-                // 只在下载中推进百分比,原子 CAS 避免覆盖已到来的终态。
-                _state.update { if (it is ImageLoadState.Loading) ImageLoadState.Loading(percent) else it }
+        // 「图片加载也容许一次断流超时并静默重试」：读超时（对端沉默）不落 Error，静默重来一次 ——
+        // 与下载侧同一套额度口径（每条任务只给一次，避免对端真挂了时无限重下）。
+        // 重试期间状态一直停在 Loading（进度从 0 重走），外部观察者看不到失败，对用户是「没发生过」。
+        var stallRetryUsed = false
+        while (true) {
+            try {
+                val file = fetcher.fetch(request.url) { percent ->
+                    // 只在下载中推进百分比,原子 CAS 避免覆盖已到来的终态。
+                    _state.update { if (it is ImageLoadState.Loading) ImageLoadState.Loading(percent) else it }
+                }
+                // Success 的契约是「文件可用」:空文件(镜像站回 200 空 body 之类)若也进 Success,
+                // awaitFile() 的可用性谓词永远等不到终态、保存/AI/壁纸流程会无声挂死。这里改走 Error,可 retry。
+                if (!file.isUsableImageFile()) {
+                    throw IOException("fetched file is missing or empty: ${file.path}")
+                }
+                _state.value = ImageLoadState.Success(file)
+                Timber.d("[ImgV3] task SUCCESS url=$shortUrl totalMs=${elapsedRealtime() - startMs} size=${file.length()}")
+                return
+            } catch (ce: CancellationException) {
+                Timber.d("[ImgV3] task CANCELLED url=$shortUrl")
+                throw ce
+            } catch (ex: Exception) {
+                if (!stallRetryUsed && shouldRetryStall(ex)) {
+                    stallRetryUsed = true
+                    Timber.w("[ImgV3] task STALL retry url=$shortUrl cause=${ex.javaClass.simpleName}")
+                    _state.value = ImageLoadState.Loading(0)
+                    continue
+                }
+                _state.value = ImageLoadState.Error(ex)
+                Timber.e(ex, "[ImgV3] task ERROR url=$shortUrl totalMs=${elapsedRealtime() - startMs}")
+                return
             }
-            // Success 的契约是「文件可用」:空文件(镜像站回 200 空 body 之类)若也进 Success,
-            // awaitFile() 的可用性谓词永远等不到终态、保存/AI/壁纸流程会无声挂死。这里改走 Error,可 retry。
-            if (!file.isUsableImageFile()) {
-                throw IOException("fetched file is missing or empty: ${file.path}")
-            }
-            _state.value = ImageLoadState.Success(file)
-            Timber.d("[ImgV3] task SUCCESS url=$shortUrl totalMs=${elapsedRealtime() - startMs} size=${file.length()}")
-        } catch (ce: CancellationException) {
-            Timber.d("[ImgV3] task CANCELLED url=$shortUrl")
-            throw ce
-        } catch (ex: Exception) {
-            _state.value = ImageLoadState.Error(ex)
-            Timber.e(ex, "[ImgV3] task ERROR url=$shortUrl totalMs=${elapsedRealtime() - startMs}")
         }
     }
 
     private fun File.isUsableImageFile(): Boolean = exists() && length() > 0
 }
+
+/**
+ * 默认的「断流静默重试」判定：**读超时**（对端沉默）+ 用户在设置里勾了
+ * 「图片加载也容许一次断流超时并静默重试」。
+ *
+ * 与下载侧的读超时静默重连（{@code Manager.shouldSilentlyRetryAfterReadTimeout}）同源 —— 都用
+ * [ceui.lisa.http.isReadTimeoutFailure]，所以连接超时 / HTTP 4xx / 磁盘错一律不重试。区别是**不要求
+ * 阈值非默认**：下载侧是「调小阈值即自动生效」，图片侧是显式勾选，勾了就该生效。
+ *
+ * 设置值每次失败时现取，所以开关改完立即生效、不用重启。
+ */
+internal fun shouldSilentlyRetryImageStall(error: Throwable): Boolean =
+    ceui.lisa.http.isReadTimeoutFailure(error) &&
+        ceui.lisa.activities.Shaft.sSettings?.isImageLoadRetryOnStall == true

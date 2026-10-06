@@ -2919,6 +2919,11 @@
     <string name="setting_image_cache_quota_range_min">100 MB</string>
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s (not applied yet)</string>
+    <string name="setting_read_timeout_title">Image load/download stall threshold</string>
+    <string name="setting_read_timeout_seconds">%1$d s</string>
+    <string name="setting_read_timeout_default_value">Default (%1$d s)</string>
+    <string name="setting_read_timeout_stall_retry">Also let image loads tolerate one stall timeout and retry silently</string>
+    <string name="setting_read_timeout_dialog_hint">Takes effect after restarting the app\nWhen not at the default:\nImages show the reload prompt sooner\nDownloads tolerate one stall timeout and retry silently</string>
     <string name="setting_auto_snapshot_on_illust_manga">Auto-create snapshots for illustrations/manga</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">Quietly create snapshots for illustrations/manga you open repeatedly or dwell on for a long time (experimental)</string>
 

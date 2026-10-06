@@ -2901,6 +2901,11 @@
     <string name="setting_image_cache_quota_range_min">100 MB</string>
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s（未反映）</string>
+    <string name="setting_read_timeout_title">画像の読み込み/ダウンロード停止しきい値</string>
+    <string name="setting_read_timeout_seconds">%1$d 秒</string>
+    <string name="setting_read_timeout_default_value">既定（%1$d 秒）</string>
+    <string name="setting_read_timeout_stall_retry">画像の読み込みも停止タイムアウトを1回許容して黙って再試行する</string>
+    <string name="setting_read_timeout_dialog_hint">アプリ再起動後に有効\n既定値以外のとき：\n画像はより早く再読み込みが表示されます\nダウンロードは停止タイムアウトを1回許容し、黙って再試行します</string>
     <string name="setting_auto_snapshot_on_illust_manga">イラスト・漫画のスナップショットを自動作成</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">繰り返し開いた、または長く滞在したイラスト・漫画を静かにスナップショット化します（試験的）</string>
 

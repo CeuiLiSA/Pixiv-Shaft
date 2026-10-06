@@ -49,4 +49,20 @@ class NetworkFailureClassifierTest {
         assertTrue(io?.retryable == true)
         assertNull(classifyTransportFailure(IllegalStateException("bug")))
     }
+
+    /**
+     * 读超时只看 OkHttp 的 "timeout" 标记；连接超时（message 形如
+     * "failed to connect to … after Nms"）必须排除在外 —— 它不受「图片加载/下载断流阈值」影响，
+     * 不该被当成「用户调小了阈值」的预期内事件去静默重连。
+     */
+    @Test
+    fun `read timeout is told apart from connect timeout`() {
+        assertTrue(isReadTimeoutFailure(SocketTimeoutException("timeout")))
+        assertTrue(isReadTimeoutFailure(IOException("outer", SocketTimeoutException("timeout"))))
+        assertFalse(
+            isReadTimeoutFailure(SocketTimeoutException("failed to connect to x after 10000ms"))
+        )
+        assertFalse(isReadTimeoutFailure(ConnectException("refused")))
+        assertFalse(isReadTimeoutFailure(IOException("reset")))
+    }
 }

@@ -2901,6 +2901,11 @@
     <string name="setting_image_cache_quota_range_min">100 МБ</string>
     <string name="setting_image_cache_quota_range_max">1 ГБ</string>
     <string name="setting_image_cache_quota_pending">%1$s (не применено)</string>
+    <string name="setting_read_timeout_title">Порог обрыва загрузки/скачивания изображений</string>
+    <string name="setting_read_timeout_seconds">%1$d с</string>
+    <string name="setting_read_timeout_default_value">По умолчанию (%1$d с)</string>
+    <string name="setting_read_timeout_stall_retry">Также допускать один тайм-аут обрыва при загрузке изображений и повторять без уведомления</string>
+    <string name="setting_read_timeout_dialog_hint">Вступает в силу после перезапуска приложения\nЕсли значение не по умолчанию:\nИзображения быстрее показывают предложение перезагрузить\nЗагрузки допускают один тайм-аут обрыва и повторяются без уведомления</string>
     <string name="setting_auto_snapshot_on_illust_manga">Автосоздание снимков иллюстраций/манги</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">Тихо создавать снимки для часто открываемых иллюстраций/манги и работ с долгим просмотром (экспериментально)</string>
 

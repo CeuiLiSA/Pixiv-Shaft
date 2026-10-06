@@ -109,6 +109,33 @@
 
                 </LinearLayout>
 
+                <!-- 图片加载/下载断流阈值：加载 + 下载共用的读超时，分直连 / 非直连两种量程。
+                     调小让断流更早触发重连；切换直连开关时重置为该模式默认值。
+                     标题列用 layout_toStartOf 锚到右侧值，按值的实际宽度让位 —— 不能像同页其他行
+                     那样写死 marginEnd：本行标题（图片加载/下载断流阈值）比它们长得多，写死 130dp
+                     会在值只有「默认（10 秒）」时仍把标题挤成两行。 -->
+                <RelativeLayout
+                    android:id="@+id/read_timeout_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_toStartOf="@id/read_timeout_value"
+                        android:layout_marginEnd="12dp">
+
+                        <TextView
+                            android:id="@+id/read_timeout_title"
+                            style="@style/M3SetTitle"
+                            android:text="@string/setting_read_timeout_title" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/read_timeout_value"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
                 <RelativeLayout
                     android:id="@+id/image_host_rela"
                     style="@style/M3SetRow"

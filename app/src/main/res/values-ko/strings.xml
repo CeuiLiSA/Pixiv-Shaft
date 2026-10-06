@@ -2901,6 +2901,11 @@
     <string name="setting_image_cache_quota_range_min">100 MB</string>
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s (미적용)</string>
+    <string name="setting_read_timeout_title">이미지 로딩/다운로드 끊김 임계값</string>
+    <string name="setting_read_timeout_seconds">%1$d초</string>
+    <string name="setting_read_timeout_default_value">기본 (%1$d초)</string>
+    <string name="setting_read_timeout_stall_retry">이미지 로딩도 끊김 시간 초과를 한 번 허용하고 조용히 다시 시도</string>
+    <string name="setting_read_timeout_dialog_hint">앱을 다시 시작한 뒤 적용됩니다\n기본값이 아닐 때:\n이미지는 더 빨리 다시 불러오기가 나타납니다\n다운로드는 끊김 시간 초과를 한 번 허용하고 조용히 다시 시도합니다</string>
     <string name="setting_auto_snapshot_on_illust_manga">일러스트/만화 스냅샷 자동 생성</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">반복해서 들어가거나 오래 머문 일러스트/만화의 스냅샷을 조용히 생성합니다 (실험 기능)</string>
 
