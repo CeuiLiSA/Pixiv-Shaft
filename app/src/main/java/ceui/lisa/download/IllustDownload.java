@@ -59,17 +59,21 @@ public class IllustDownload {
     private static DownloadItem buildDownloadItem(Illust illust, int index, String imageResolution) {
         if (illust.isGif()) {
             return null;
-        } else if (illust.getPage_count() == 1) {
-            DownloadItem item = new DownloadItem(illust, 0);
+        }
+        DownloadItem item;
+        if (illust.getPage_count() == 1) {
+            item = new DownloadItem(illust, 0);
             item.setUrl(getUrl(illust, 0, imageResolution));
             item.setShowUrl(getShowUrl(illust, 0));
-            return item;
         } else {
-            DownloadItem item = new DownloadItem(illust, index);
+            item = new DownloadItem(illust, index);
             item.setUrl(getUrl(illust, index, imageResolution));
             item.setShowUrl(getShowUrl(illust, index));
-            return item;
         }
+        if (Shaft.sSettings != null && Shaft.sSettings.getDownloadLimitType() == 2) {
+            item.setPaused(true);
+        }
+        return item;
     }
 
     public static void downloadIllustFirstPageWithResolution(Illust illust, String imageResolution, BaseActivity<?> activity) {
@@ -221,8 +225,11 @@ public class IllustDownload {
     public static DownloadItem downloadGif(GifResponse response, Illust illust, boolean autoSave) {
         DownloadItem item = new DownloadItem(illust, 0);
         item.setAutoSave(autoSave);
-        item.setUrl((response.getUgoira_metadata().getZip_urls().getMedium()));
+        item.setUrl(response.getUgoira_metadata().getZip_urls().getMedium());
         item.setShowUrl(getShowUrl(illust, 0));
+        if (Shaft.sSettings != null && Shaft.sSettings.getDownloadLimitType() == 2) {
+            item.setPaused(true);
+        }
         Manager.get().addTask(item);
         return item;
     }

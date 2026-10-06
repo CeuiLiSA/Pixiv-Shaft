@@ -139,7 +139,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             if (isSnapshotMode) 0L else requireArguments().getInt("illust_id").toLong()
         }
 
-    override val feedViewModel by feedViewModels {
+    override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获:只把 id/快照 id/是否自动 读进局部值交给长命 VM 持有的数据源,不钉 Fragment。
         val snapshot = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
         val snapshotAuto =
@@ -454,6 +454,16 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             viewLifecycleOwner,
         ) { _, _ ->
             refreshTagsSection()
+        }
+
+        // 若当前处于 ViewPager 离屏预加载状态（非 RESUMED），在首帧绘制完成后通过 post 稍后加载相邻页数据，
+        // 既避开与当前页同帧竞争主线程造成的严重卡顿（128 帧丢帧），又保证用户滑动时邻页已在内存准备就绪。
+        if (!viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            view.post {
+                if (isAdded && !isDetached) {
+                    feedViewModel.ensureLoaded()
+                }
+            }
         }
     }
 
@@ -1805,14 +1815,19 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     .w("click dropped illustId=%d reason=bean_missing", illustId)
                 return@setOnClick
             }
-            Timber.tag(DownloadRecordStateSource.LOG_TAG).d(
-                "click illustId=%d pages=%d resolution=%s",
-                illustId, illust.page_count, IllustDownload.defaultImageResolution(),
-            )
-            artworkViewModel.triggerDownload(requireActivity() as? BaseActivity<*>)
-            if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
-                fabBarController.setBookmarked(true)
-                PixivOperate.postLikeDefaultStarType(illust)
+            if (artworkViewModel.downloadFabState.value is DownloadFab.Paused) {
+                Timber.tag(DownloadRecordStateSource.LOG_TAG).d("click resume paused download illustId=%d", illustId)
+                artworkViewModel.resumeDownload()
+            } else {
+                Timber.tag(DownloadRecordStateSource.LOG_TAG).d(
+                    "click illustId=%d pages=%d resolution=%s",
+                    illustId, illust.page_count, IllustDownload.defaultImageResolution(),
+                )
+                artworkViewModel.triggerDownload(requireActivity() as? BaseActivity<*>)
+                if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
+                    fabBarController.setBookmarked(true)
+                    PixivOperate.postLikeDefaultStarType(illust)
+                }
             }
         }
         chromeBind.fabBar.fabDownloadContainer.setOnLongClickListener {

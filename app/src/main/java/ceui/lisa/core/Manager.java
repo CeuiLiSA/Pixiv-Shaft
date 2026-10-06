@@ -19,8 +19,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -290,6 +292,9 @@ public class Manager {
             }
 
             if (!isTaskExist) {
+                if (Shaft.sSettings != null && Shaft.sSettings.getDownloadLimitType() == 2 && !bean.isSilent()) {
+                    bean.setPaused(true);
+                }
                 // content.add 必须同步(safeAdd 内)：triggerPump 的 getFirstReady 和
                 // QueueDownloadManager.fillSlots 的 footprint 都靠 content 立刻变长。
                 // 但 addTask 跑在主线程(详情页下载按钮),DownloadingEntity 的
@@ -390,12 +395,13 @@ public class Manager {
             // Gson(~80KB)+Room insert 关在锁里，等于让主线程陪着这整批 IO 一起卡（ANR）。
             // 临界区只保留「去重 + content.add」这点纯内存操作，其余挪出去。
             List<DownloadItem> accepted = new ArrayList<>(list.size());
+            boolean isPausedMode = Shaft.sSettings != null && Shaft.sSettings.getDownloadLimitType() == 2;
             synchronized (this) {
                 if (content == null) {
                     content = new CopyOnWriteArrayList<>();
                 }
                 // 批量构建一个 HashSet 做 O(1) 去重，避免 O(n^2) 逐项扫描
-                java.util.Set<String> existingUrls = new java.util.HashSet<>();
+                Set<String> existingUrls = new HashSet<>();
                 for (DownloadItem existing : content) {
                     existingUrls.add(existing.getUrl());
                 }
@@ -403,6 +409,9 @@ public class Manager {
                     // 与 addTask 对齐:跳过 null item(gif 走 buildDownloadItem 返 null 的历史坑),
                     // 否则 item.getUrl() 直接 NPE。调用方本应先过滤,这里兜底。
                     if (item != null && !existingUrls.contains(item.getUrl())) {
+                        if (isPausedMode && !item.isSilent()) {
+                            item.setPaused(true);
+                        }
                         // content.add 必须同步:triggerPump 的 getFirstReady 靠 content 立刻变长。
                         content.add(item);
                         if (restoreLiveUrls != null) restoreLiveUrls.add(item.getUrl());
@@ -485,6 +494,27 @@ public class Manager {
         isRunning = true;
         pumpAvailableSlots();
         ManagerReactive.invalidate();
+    }
+
+    /**
+     * 恢复/启动指定作品的所有未完成下载条目（用于详情页 FAB 从暂停态就地继续）。
+     */
+    public void startIllust(long illustId) {
+        boolean found = false;
+        for (DownloadItem downloadItem : contentSnapshot()) {
+            if (downloadItem != null && downloadItem.getIllust() != null && downloadItem.getIllust().getId() == illustId) {
+                downloadItem.setPaused(false);
+                resurrectIfStranded(downloadItem);
+                found = true;
+            }
+        }
+
+        if (found) {
+            Common.showLog("已开始作品 " + illustId);
+            isRunning = true;
+            pumpAvailableSlots();
+            ManagerReactive.invalidate();
+        }
     }
 
     /**

@@ -34,12 +34,18 @@ import ceui.pixiv.cache.ObjectPool;
 public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
 
     private String pageUUID = "";
+    private String originPageUUID = "";
     private int index = 0;
     private Illust widgetIllust = null;
+    private PageData pageData = null;
 
     @Override
     protected void initBundle(Bundle bundle) {
         pageUUID = bundle.getString(Params.PAGE_UUID);
+        originPageUUID = bundle.getString(Params.ORIGIN_PAGE_UUID);
+        if (TextUtils.isEmpty(originPageUUID)) {
+            originPageUUID = pageUUID;
+        }
         index = bundle.getInt(Params.POSITION);
         // widget 点击携带的单张作品：进程被杀后 Container 已空时的兜底数据源
         widgetIllust = (Illust) bundle.getSerializable(Params.WIDGET_ILLUST);
@@ -61,7 +67,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
             found = new PageData(pageUUID, null, Collections.singletonList(widgetIllust));
             Container.get().addPageToMap(found);
         }
-        final PageData pageData = found;
+        pageData = found;
         if (pageData != null) {
             // ArtworkV3 的 feed 有意自动准备前后缓存页（池中已有完整详情时是纯内存组装）；
             // 但只有当前页需要进入 RESUMED。这样相邻页可秒滑，同时下载状态 DB 探测、300ms
@@ -147,7 +153,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                                     ListIllust listIllust = mapper.apply(raw);
                                     Common.showLog("Container 下一页请求成功 ");
                                     Intent intent = new Intent(Params.FRAGMENT_ADD_DATA);
-                                    intent.putExtra(Params.PAGE_UUID, pageUUID);
+                                    intent.putExtra(Params.PAGE_UUID, originPageUUID);
                                     intent.putExtra(Params.CONTENT, listIllust);
                                     LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
@@ -209,11 +215,11 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
         // feeds 版列表按作品 id 锚定回滚位置：INDEX 是 pager 快照内的下标，列表带
         // header（推荐页排行榜头）或收藏后相关作品插到中段时会漂移；
         // legacy 接收侧（NetListFragment 等）只读 INDEX，不受影响
-        PageData currentPage = Container.get().getPage(pageUUID);
+        PageData currentPage = pageData != null ? pageData : Container.get().getPage(pageUUID);
         if (currentPage != null && current >= 0 && current < currentPage.getList().size()) {
             intent.putExtra(Params.ID, (int) currentPage.getList().get(current).getId());
         }
-        intent.putExtra(Params.PAGE_UUID, pageUUID);
+        intent.putExtra(Params.PAGE_UUID, originPageUUID);
         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
         super.onPause();
     }
