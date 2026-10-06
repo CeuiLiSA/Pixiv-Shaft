@@ -30,6 +30,7 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
+import ceui.pixiv.ui.settings.BookmarkSurface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -87,10 +88,14 @@ class LikeIllustFeedFragment : IllustFeedFragment() {
     // (裸 feed 形态才生效,不会重复套)。
     override val applyBottomSafeInset: Boolean = true
 
-    /** 自己的收藏页 + 「隐藏收藏按钮」设置 → 卡片不显示爱心；动态读，设置改完回来即时生效。 */
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.MY_COLLECTION
+
+    /**
+     * 自己的收藏页 + 统一入口把「收藏页」关掉 → 卡片不显示爱心；动态读，设置改完回来即时生效。
+     * 看别人的收藏页时爱心照常显示——那层语义不属于「我的收藏」这个卡面。
+     */
     override val hideLikeButton: Boolean
-        get() = SessionManager.loggedInUid == userId &&
-                Shaft.sSettings.isHideStarButtonAtMyCollection()
+        get() = SessionManager.loggedInUid == userId && super.hideLikeButton
 
     /** 「按标签筛选」页的选择回流：公开/私密两 tab 并存，匹配本页 starType 才认领。 */
     private val filterReceiver = object : BroadcastReceiver() {

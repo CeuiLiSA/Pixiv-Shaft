@@ -26,6 +26,7 @@ import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedViewModel
+import ceui.pixiv.ui.settings.BookmarkSurface
 import ceui.pixiv.utils.pinHostGlide
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
@@ -121,12 +122,21 @@ abstract class IllustFeedFragment(
     }
 
     /**
-     * 隐藏卡片上的收藏爱心（自己的收藏页 + 「收藏页隐藏收藏按钮」设置，对齐 legacy
-     * IAdapterWithStar）。每次 bind 动态读：设置变更后新绑定的卡片即生效（滑动复用 /
+     * 本页瀑布流卡片的「收藏按钮」卡面，供统一入口「作品卡片上显示收藏按钮」逐页读写。
+     * null = 本页不受统一入口控制。
+     */
+    internal open val bookmarkSurface: BookmarkSurface? get() = null
+
+    /**
+     * 隐藏卡片上的收藏爱心。每次 bind 动态读：设置变更后新绑定的卡片即生效（滑动复用 /
      * 下拉刷新），屏幕上已绑定的卡片不会主动重绑——legacy 是建 adapter 时读死，更迟钝。
+     *
+     * 真源是统一入口里的 [bookmarkSurface]：本页那个卡面被关掉收藏按钮了就整页不画爱心。
+     * 「只看自己的收藏」那层额外条件见 [ceui.pixiv.ui.collection.LikeIllustFeedFragment]
+     * 与 [ceui.pixiv.ui.library.BookmarkLibraryFragment] 的覆写。
      */
     internal open val hideLikeButton: Boolean
-        get() = false
+        get() = bookmarkSurface?.let { !Shaft.sSettings.isBookmarkSurfaceVisible(it) } ?: false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

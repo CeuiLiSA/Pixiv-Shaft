@@ -45,6 +45,7 @@ import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.pixiv.ui.common.showCardMenu
 import ceui.pixiv.ui.common.staggerIllustRenderer
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.settings.BookmarkSurface
 import ceui.pixiv.utils.setOnClick
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -70,6 +71,8 @@ import ceui.pixiv.services.appServices
 open class RecmdIllustFeedFragment(
     @LayoutRes contentLayoutId: Int = ceui.pixiv.feeds.R.layout.fragment_feed,
 ) : IllustFeedFragment(contentLayoutId) {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.HOME_ILLUST
 
     /**
      * 铺到屏幕底,底部安全区靠 inset 补:无底栏的宿主是手势条/导航栏,首页那份是浮在内容之上的

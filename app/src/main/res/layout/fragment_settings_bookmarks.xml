@@ -99,6 +99,12 @@
                         <TextView
                             style="@style/M3SetTitle"
                             android:text="@string/string_371" />
+
+                        <!-- 本行只是「收藏页」这一个卡面；其余页面的收藏按钮在「界面」的统一入口里逐页控制。
+                             小字用 M3SetDesc，与同页「收藏按钮震动反馈」的副标题同一套样式。 -->
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/bookmark_button_moved_hint" />
                     </LinearLayout>
 
                     <androidx.appcompat.widget.SwitchCompat

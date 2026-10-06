@@ -11,6 +11,7 @@ import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.settings.BookmarkSurface
 
 /**
  * 「画廊」页（发现 tab · 其他分类入口），feeds 框架的首个线上页面，替代 legacy FragmentWalkThrough。
@@ -20,6 +21,8 @@ import ceui.pixiv.ui.common.viewBinding
  * 整页被滤空时由 FeedViewModel 的空页追载继续翻，#729 语义）和 toolbar。
  */
 class WalkthroughFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed) {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.WALKTHROUGH
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 

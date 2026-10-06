@@ -12,6 +12,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.NovelFeedFragment
+import ceui.pixiv.ui.settings.BookmarkSurface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -38,6 +39,8 @@ class ViewRankFragment : TypeTabsRankFragment() {
 
 /** 浏览量榜的插画 / 漫画 feed 子页。约定(autoLoad=false / 不喂池 / 不透传 next_url)同 [BookmarkRankIllustFeedFragment]。 */
 class ViewRankIllustFeedFragment : IllustFeedFragment() {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.VIEW_RANK
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
         val type = requireArguments().getString(ARG_TYPE) ?: RankType.ILLUST

@@ -11,6 +11,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.settings.BookmarkSurface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -22,6 +23,8 @@ import timber.log.Timber
  * (论证见 [YearRankIllustFeedFragment]),没理由单独破例。
  */
 class WallpaperIllustFeedFragment : IllustFeedFragment() {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.WALLPAPER
 
     private val screen: String by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getString(ARG_SCREEN) ?: WallpaperRankFragment.SCREEN_PHONE

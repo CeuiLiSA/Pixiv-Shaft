@@ -9,9 +9,13 @@ import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.settings.BookmarkSurface
 
 /** 官网发现的一个分级页面；每个筛选保留自己的列表、游标和滚动位置。 */
 class WebDiscoveryFeedFragment : IllustFeedFragment() {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.WEB_DISCOVERY
+
     private val mode by lazy(LazyThreadSafetyMode.NONE) {
         WebDiscoveryMode.valueOf(requireArguments().getString(ARG_MODE)!!)
     }

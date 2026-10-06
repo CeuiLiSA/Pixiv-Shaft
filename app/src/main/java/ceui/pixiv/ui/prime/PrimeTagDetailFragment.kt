@@ -15,6 +15,7 @@ import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.settings.BookmarkSurface
 
 /**
  * 单个 Prime 标签的精选插画（feeds 框架版）。
@@ -29,6 +30,8 @@ import ceui.pixiv.ui.common.viewBinding
  * 详情）多了同列表内的滑动翻页。
  */
 class PrimeTagDetailFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed) {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.PRIME_TAG
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 

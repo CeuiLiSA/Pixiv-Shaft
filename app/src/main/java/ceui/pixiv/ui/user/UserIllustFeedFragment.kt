@@ -34,6 +34,7 @@ import ceui.pixiv.ui.bulk.startAuthorWorksBulkDownload
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
+import ceui.pixiv.ui.settings.BookmarkSurface
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.CancellationException
@@ -74,6 +75,8 @@ internal fun filteredEmptyStateText(
  *   拿到总数 >0 才显)。
  */
 open class UserIllustFeedFragment : IllustFeedFragment() {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.USER
 
     // ── 子类可换的几处「作品类型」差异（漫画见 UserMangaFeedFragment）──────────────
     // pixiv 把漫画当插画的一个 type：同一个 /v1/user/illusts 接口、同一套卡片和菜单，

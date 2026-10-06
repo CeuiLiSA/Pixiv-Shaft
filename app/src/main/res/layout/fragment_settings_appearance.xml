@@ -375,6 +375,35 @@
 
                 </RelativeLayout>
 
+                <!-- 统一入口：点开 witstudio 弹窗，逐页控制作品卡片上的收藏按钮。
+                     单独成卡（wit_row_single + 14dp 间距），不并入上面「列表展示」那一组。
+                     原「隐藏小组件收藏按钮」独立开关行已并入此处（小组件是弹窗里的一行），
+                     底层 Settings 字段（widgetHideBookmarkButton / hideStarButtonAtMyCollection）
+                     保留但已标 @Deprecated，只用于 Gson 兼容与降级回填。 -->
+                <RelativeLayout
+                    android:id="@+id/bookmark_button_rela"
+                    style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/wit_row_single">
+
+                    <!-- 右侧值先声明：文字列用 layout_toStartOf 锚到它，标题列按剩余宽度自适应，
+                         不写死 marginEnd（值只有「全部显示 / 已隐藏 N 处」，写死会白白挤窄标题）。 -->
+                    <TextView
+                        android:id="@+id/bookmark_button"
+                        style="@style/M3SetValue" />
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="12dp"
+                        android:layout_toStartOf="@id/bookmark_button">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/bookmark_button_title" />
+                    </LinearLayout>
+
+                </RelativeLayout>
+
                 <RelativeLayout
                     android:id="@+id/widget_refresh_interval_rela"
                     style="@style/M3SetRow"
@@ -393,28 +422,6 @@
                     <TextView
                         android:id="@+id/widget_refresh_interval"
                         style="@style/M3SetValue" />
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/widget_hide_bookmark_button_rela"
-                    style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid">
-
-                    <LinearLayout style="@style/M3SetTexts">
-
-                        <TextView
-                            style="@style/M3SetTitle"
-                            android:text="@string/v3_widget_hide_bookmark_button" />
-
-                        <TextView
-                            style="@style/M3SetDesc"
-                            android:text="@string/v3_widget_hide_bookmark_button_desc" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/widget_hide_bookmark_button"
-                        style="@style/M3SetSwitch" />
 
                 </RelativeLayout>
 

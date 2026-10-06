@@ -7,6 +7,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentSettingsBookmarksBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.pixiv.ui.settings.BookmarkSurface;
 
 /** 设置 · 收藏与互动 */
 public class FragmentSettingsBookmarks extends SettingsPageFragment<FragmentSettingsBookmarksBinding> {
@@ -40,11 +41,14 @@ public class FragmentSettingsBookmarks extends SettingsPageFragment<FragmentSett
         });
         baseBind.privateFollowRela.setOnClickListener(v -> baseBind.privateFollow.performClick());
 
-        baseBind.hideStarBar.setChecked(Shaft.sSettings.isHideStarButtonAtMyCollection());
+        // 真源是统一入口的卡面集合（本行是「不显示」负向，集合存「隐藏了哪些」，这里取反）。
+        // 与「界面 → 作品卡片上显示收藏按钮」弹窗里的「收藏页」互为镜像，两处都能改。
+        baseBind.hideStarBar.setChecked(
+                !Shaft.sSettings.isBookmarkSurfaceVisible(BookmarkSurface.MY_COLLECTION));
         baseBind.hideStarBar.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Shaft.sSettings.setHideStarButtonAtMyCollection(isChecked);
+                Shaft.sSettings.setBookmarkSurfaceVisible(BookmarkSurface.MY_COLLECTION, !isChecked);
                 Common.showToast(getString(R.string.string_428));
                 Local.setSettings(Shaft.sSettings);
             }

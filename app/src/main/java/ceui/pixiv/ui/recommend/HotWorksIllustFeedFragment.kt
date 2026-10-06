@@ -5,6 +5,7 @@ import ceui.pixiv.api.model.Illust
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
+import ceui.pixiv.ui.settings.BookmarkSurface
 
 /**
  * 「本月收藏」(TRENDING) / 「当前最热」(RECENT) 的插画·漫画 tab（feeds 框架版，替代 legacy
@@ -16,6 +17,8 @@ import ceui.pixiv.ui.common.IllustFeedFragment
  * 懒加载（宿主 ViewPager 用 BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT），tab 可见才拉。
  */
 class HotWorksIllustFeedFragment : IllustFeedFragment() {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.HOT_WORKS
 
     private val source: HotWorksSource by lazy(LazyThreadSafetyMode.NONE) {
         HotWorksSource.ofName(requireArguments().getString(ARG_SOURCE))

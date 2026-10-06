@@ -16,6 +16,7 @@ import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.settings.BookmarkSurface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -33,6 +34,8 @@ import kotlinx.coroutines.withContext
  *   用户刚点出来的收藏/关注态。
  */
 class CorpusTagDetailFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed) {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.CORPUS_TAG
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 

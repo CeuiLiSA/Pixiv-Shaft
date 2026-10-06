@@ -11,6 +11,7 @@ import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.settings.BookmarkSurface
 
 /**
  * 「好P友的插画/漫画作品」页（侧边栏 · 我的），feeds 框架版，替代 legacy FragmentNiceFriendIllust。
@@ -21,6 +22,8 @@ import ceui.pixiv.ui.common.viewBinding
  * 继续翻，#729 语义）和 toolbar。
  */
 class NiceFriendIllustFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed) {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.NICE_FRIEND
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 

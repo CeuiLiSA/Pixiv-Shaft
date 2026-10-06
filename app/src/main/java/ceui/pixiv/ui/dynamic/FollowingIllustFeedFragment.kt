@@ -17,6 +17,7 @@ import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.settings.BookmarkSurface
 
 /**
  * 「动态」页的插画/漫画列表（feeds 框架版，替代 legacy FragmentRight 自身的
@@ -36,6 +37,8 @@ import ceui.pixiv.ui.common.IllustFeedItem
  * 3. **过滤已收藏**：与动态小说共用设置，只影响关注动态，刷新和每次续页时生效。
  */
 class FollowingIllustFeedFragment : IllustFeedFragment() {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.FOLLOWING
 
     /**
      * 铺到屏幕底,底部安全区靠 inset 补:无底栏的宿主是手势条/导航栏,首页那份是浮在内容之上的

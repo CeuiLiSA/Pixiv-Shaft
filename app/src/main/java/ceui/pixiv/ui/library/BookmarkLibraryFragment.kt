@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.FragmentBookmarkLibraryBinding
 import ceui.lisa.utils.Params
 import ceui.pixiv.api.model.Illust
@@ -15,6 +14,7 @@ import ceui.pixiv.feeds.FeedUiState
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.IllustFeedFragment
+import ceui.pixiv.ui.settings.BookmarkSurface
 
 /**
  * 收藏库（插画/漫画）—— 直接看本地镜像表（[ceui.pixiv.db.mirror.BookmarkMirrorEntity]）的收藏列表页。
@@ -65,13 +65,15 @@ class BookmarkLibraryFragment :
 
     override fun poolableBeansOf(item: FeedItem): List<Illust> = emptyList()
 
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.BOOKMARK_LIBRARY
+
     /**
      * 本页看的就是「我的收藏」，所以和 [ceui.pixiv.ui.collection.LikeIllustFeedFragment] 一样
-     * 尊重「收藏页隐藏收藏按钮」设置——同一批内容换个入口就多出一排爱心，是前后不一致。
+     * 尊重统一入口里「收藏库」这个卡面——同一批内容换个入口就多出一排爱心，是前后不一致。
+     * 看别人的收藏库时爱心照常显示。
      */
     override val hideLikeButton: Boolean
-        get() = SessionManager.loggedInUid == libraryViewModel.shelf.ownerUid &&
-                Shaft.sSettings.isHideStarButtonAtMyCollection()
+        get() = SessionManager.loggedInUid == libraryViewModel.shelf.ownerUid && super.hideLikeButton
 
     override val emptyStateText: CharSequence
         get() = ui?.emptyStateText() ?: super.emptyStateText

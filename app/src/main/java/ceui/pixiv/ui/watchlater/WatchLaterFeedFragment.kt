@@ -20,6 +20,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.settings.BookmarkSurface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -38,6 +39,8 @@ import kotlinx.coroutines.withContext
  * 返回 / 标题 / 「更多」菜单（播放全部、清空）统一由宿主出，本页只负责列表本体。
  */
 class WatchLaterFeedFragment : IllustFeedFragment() {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.WATCH_LATER
 
     override val feedViewModel by feedViewModels {
         // 零捕获：source 不吃任何参数，DB 走 application context。

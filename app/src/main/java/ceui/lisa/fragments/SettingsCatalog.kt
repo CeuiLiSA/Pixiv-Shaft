@@ -110,11 +110,13 @@ object SettingsCatalog {
         add(Entry(APPEARANCE, "layout_mode_rela", R.string.layout_mode, keywords = "瀑布流 线性 列表 关注动态 staggered linear"))
         add(Entry(APPEARANCE, "show_novel_card_tags_rela", R.string.show_novel_card_tags_setting, keywords = "小说标签 卡片 tag novel"))
         add(Entry(APPEARANCE, "show_novel_card_tag_translations_rela", R.string.show_novel_card_tag_translations_setting, keywords = "小说标签译文 小说标签翻译 小说列表标签译文 小说列表标签翻译 标签译文 标签翻译 tag translation novel"))
+        // 统一入口「作品卡片上显示收藏按钮」。别名按整串子串匹配（同上），
+        // 「收藏图标」「隐藏爱心」这类连写说法要各铺一遍，否则中文不分词搜不到。
+        add(Entry(APPEARANCE, "bookmark_button_rela", R.string.bookmark_button_title, keywords = "收藏按钮 收藏图标 收藏爱心 爱心 心形 点赞 隐藏收藏 显示收藏 隐藏爱心 隐藏心 瀑布流 卡片 列表 收藏页 收藏库 稍后再看 相关作品 排行榜 搜索 关注动态 首页推荐 发现 画师主页 小组件 桌面 bookmark button heart like hide show card grid"))
         add(Entry(APPEARANCE, "widget_refresh_interval_rela", R.string.v3_widget_refresh_interval_title, keywords = "小组件 桌面 插件 widget 刷新 间隔 换图 频率 refresh interval"))
         add(Entry(APPEARANCE, "muzei_settings_rela", R.string.muzei_settings_title, R.string.muzei_settings_entry_desc, keywords = "muzei 动态壁纸 壁纸 自动换壁纸 live wallpaper 桌面"))
         // 别名按整串子串匹配（同上），所以「隐藏按钮」「挡画面」这类连写说法要各铺一遍
         val widgetHideAliases = "小组件 小工具 桌面 插件 widget 按钮 隐藏 隐藏按钮 去掉按钮 关闭按钮 遮挡 挡住 挡画面 遮挡画面 button hide"
-        add(Entry(APPEARANCE, "widget_hide_bookmark_button_rela", R.string.v3_widget_hide_bookmark_button, R.string.v3_widget_hide_bookmark_button_desc, keywords = "$widgetHideAliases 收藏 喜欢 爱心 收藏按钮 喜欢按钮 bookmark like heart"))
         add(Entry(APPEARANCE, "widget_hide_refresh_button_rela", R.string.v3_widget_hide_refresh_button, R.string.v3_widget_hide_refresh_button_desc, keywords = "$widgetHideAliases 刷新 换一张 换图 刷新按钮 refresh"))
 
         // 浏览与搜索
@@ -165,7 +167,7 @@ object SettingsCatalog {
         // 收藏与互动
         add(Entry(BOOKMARKS, "show_like_button_rela", R.string.string_335, keywords = "私密收藏 非公开 私人 private bookmark"))
         add(Entry(BOOKMARKS, "private_follow_rela", R.string.private_follow_by_default, keywords = "私密关注 悄悄关注 非公开 私人 关注 private follow"))
-        add(Entry(BOOKMARKS, "hide_star_bar_rela", R.string.string_371, keywords = "隐藏 收藏按钮 我的收藏"))
+        add(Entry(BOOKMARKS, "hide_star_bar_rela", R.string.string_371, keywords = "隐藏 收藏按钮 收藏图标 爱心 卡片 我的收藏 收藏页"))
         // 别名按整串子串匹配，「关闭震动」「收藏按钮震动」这类连写说法各铺一遍
         add(Entry(BOOKMARKS, "like_haptic_rela", R.string.settings_like_haptic, R.string.settings_like_haptic_desc, keywords = "振动 震动 触感 触觉 震感 手感 马达 触感反馈 震动反馈 收藏振动 收藏震动 收藏按钮震动 爱心 点赞 关掉振动 关掉震动 关闭振动 关闭震动 不要震动 haptic vibration vibrate"))
         add(Entry(BOOKMARKS, "filter_invalid_bookmarks_rela", R.string.filter_invalid_bookmarks, keywords = "失效 无效 404 收藏夹 已删除作品"))

@@ -17,6 +17,7 @@ import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.settings.BookmarkSurface
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
@@ -174,7 +175,7 @@ class SpotlightWidgetWorker(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         views.setOnClickPendingIntent(R.id.widget_root, openPi)
-        if (Shaft.sSettings.isWidgetHideBookmarkButton) {
+        if (!Shaft.sSettings.isBookmarkSurfaceVisible(BookmarkSurface.WIDGET)) {
             views.setViewVisibility(R.id.widget_bookmark, android.view.View.GONE)
         } else {
             views.setViewVisibility(R.id.widget_bookmark, android.view.View.VISIBLE)

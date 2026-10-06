@@ -22,6 +22,7 @@ import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.settings.BookmarkSurface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,6 +53,8 @@ import android.app.Application
  * 被过滤的条目若不标记，下次仍会被池子选中，白白触发空页追载。
  */
 class DiscoveryFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed) {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.DISCOVERY
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 

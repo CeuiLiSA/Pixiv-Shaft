@@ -12,6 +12,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.NovelFeedFragment
+import ceui.pixiv.ui.settings.BookmarkSurface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -98,6 +99,8 @@ class BookmarkRankFragment : TypeTabsRankFragment() {
  * (读端点 120 req/min/IP + CN 运营商级 NAT,多 tab 齐射会把整个 NAT 后的用户打成 429)。
  */
 class BookmarkRankIllustFeedFragment : IllustFeedFragment() {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.BOOKMARK_RANK
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获:只捕获局部值,不把 Fragment 钉进 VM。

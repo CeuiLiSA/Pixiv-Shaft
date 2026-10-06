@@ -25,6 +25,7 @@ import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.ui.common.IllustFeedFragment
+import ceui.pixiv.ui.settings.BookmarkSurface
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +39,9 @@ import com.google.gson.JsonObject
 
 /** A finite daily feed; it shares the normal artwork filters and interactions. */
 class DailyRecommendationsFragment : IllustFeedFragment(R.layout.fragment_daily_recommendations) {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.DAILY_RECOMMEND
+
     private val dailyModel: DailyRecommendationsModel by viewModels()
     override val feedViewModel by feedViewModels(autoLoad = false) {
         dailyModel.source

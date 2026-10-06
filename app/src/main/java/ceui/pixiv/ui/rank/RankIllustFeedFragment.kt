@@ -12,6 +12,7 @@ import ceui.pixiv.feeds.pixiv.cachedPixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.settings.BookmarkSurface
 import ceui.pixiv.services.appServices
 
 /**
@@ -31,6 +32,8 @@ import ceui.pixiv.services.appServices
  * （[ceui.pixiv.feeds.cache.FeedFirstPageCache] 的 LRU 槽位有限，见 MAX_CACHED_SLOTS）。
  */
 class RankIllustFeedFragment : IllustFeedFragment() {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.RANK
 
     /**
      * 铺到屏幕底,底部安全区靠 inset 补:无底栏的宿主是手势条/导航栏,首页那份是浮在内容之上的

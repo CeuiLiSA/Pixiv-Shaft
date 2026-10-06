@@ -53,6 +53,8 @@ import ceui.lisa.helper.PredictiveBackSuppressor;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.pixiv.ui.settings.BookmarkButtonDialog;
+import ceui.pixiv.ui.settings.BookmarkSurface;
 import ceui.pixiv.ui.settings.CustomThemeColor;
 import ceui.pixiv.ui.settings.TagLegibilityPrefs;
 import ceui.pixiv.ui.settings.ThemeColorCatalog;
@@ -501,16 +503,13 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     .show();
         });
 
-        // 小组件浮在封面上的两个按钮（#1013：挡画面）
-        baseBind.widgetHideBookmarkButton.setChecked(Shaft.sSettings.isWidgetHideBookmarkButton());
-        baseBind.widgetHideBookmarkButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            Shaft.sSettings.setWidgetHideBookmarkButton(isChecked);
-            Local.setSettings(Shaft.sSettings);
-            refreshWidgets();
-        });
-        baseBind.widgetHideBookmarkButtonRela.setOnClickListener(
-                v -> baseBind.widgetHideBookmarkButton.performClick());
+        // 「作品卡片上显示收藏按钮」统一入口：逐页控制作品卡上的收藏按钮。
+        // 收藏页 / 收藏库 / 桌面小组件原先各自为政，现在收进同一个 witstudio 弹窗。
+        renderBookmarkButtonSummary();
+        baseBind.bookmarkButtonRela.setOnClickListener(v ->
+                BookmarkButtonDialog.show(mContext, this::onBookmarkButtonChanged));
 
+        // 小组件浮在封面上的刷新按钮（#1013：挡画面）
         baseBind.widgetHideRefreshButton.setChecked(Shaft.sSettings.isWidgetHideRefreshButton());
         baseBind.widgetHideRefreshButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
             Shaft.sSettings.setWidgetHideRefreshButton(isChecked);
@@ -551,6 +550,25 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
     private void refreshWidgets() {
         notifyWidgetUpdate(RecommendCardWidgetProvider.class);
         notifyWidgetUpdate(SpotlightWidgetProvider.class);
+    }
+
+    /** 弹窗「确定」后回调：先弹一次设置成功提示，再刷新入口行摘要（与同页其它开关一致）。 */
+    private void onBookmarkButtonChanged() {
+        Common.showToast(getString(R.string.string_428), 2);
+        renderBookmarkButtonSummary();
+        // 小组件收藏按钮也是渲染时读的设置，桌面上已有的实例要重推一次才能立刻生效
+        refreshWidgets();
+    }
+
+    /**
+     * 「作品卡片上显示收藏按钮」入口行右侧摘要：被关掉收藏按钮的卡面数；
+     * 一个都没关时显示「全部显示」。
+     */
+    private void renderBookmarkButtonSummary() {
+        int hidden = Shaft.sSettings.getHiddenBookmarkSurfaceCount();
+        baseBind.bookmarkButton.setText(hidden == 0
+                ? getString(R.string.bookmark_button_summary_all)
+                : getString(R.string.bookmark_button_summary_hidden, hidden));
     }
 
     private void notifyWidgetUpdate(Class<?> providerClass) {

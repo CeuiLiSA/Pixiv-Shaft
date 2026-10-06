@@ -23,6 +23,7 @@ import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.settings.BookmarkSurface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,6 +43,8 @@ import ceui.pixiv.services.appServices
  *   这里让设置在唯一的翻页路径上真正生效（对齐 [[feedback_settings_apply_everywhere]] 的一致性要求）。
  */
 class RelatedIllustFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed) {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.RELATED
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 

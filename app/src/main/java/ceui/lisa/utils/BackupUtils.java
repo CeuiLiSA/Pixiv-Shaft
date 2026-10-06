@@ -296,6 +296,7 @@ public class BackupUtils {
         if (settings != null) {
             Settings.migrateLegacyDoubleTapZoom(settings);
             Settings.migrateLegacyLongPressBehavior(settings);
+            Settings.migrateLegacyBookmarkSurfaces(settings);
             if (!restoredV3) {
                 // 备份里没有 V3 下载配置段（旧版备份 / 导出失败的空段）时 restore 不落盘，
                 // 上面的时序保护就失效了：store 若还停在 FirstRun，必须先把当前兜底配置

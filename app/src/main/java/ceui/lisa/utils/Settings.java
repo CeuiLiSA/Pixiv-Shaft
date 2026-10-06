@@ -15,6 +15,7 @@ import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.pixiv.cache.ImageCacheQuota;
 import ceui.pixiv.snapshot.AutoSnapshotQuota;
+import ceui.pixiv.ui.settings.BookmarkSurface;
 /**
  * A class about all the application settings.
  * */
@@ -293,8 +294,10 @@ public class Settings {
     //AI作品下载至单独的目录
     private boolean AIDivideSave = false;
 
-
-    //在我的收藏列表，隐藏收藏按钮，默认显示
+    //在我的收藏列表，隐藏收藏按钮，默认显示。
+    //已过时：真源换成 hiddenBookmarkSurfaces（见 BookmarkSurface.MY_COLLECTION），这个字段只留给
+    //Gson 兼容与降级回填，运行期只有 migrateLegacyBookmarkSurfaces 读写它。
+    @Deprecated
     private boolean hideStarButtonAtMyCollection = false;
 
     //按标签收藏时全选标签。默认不全选
@@ -414,10 +417,59 @@ public class Settings {
     /** 平板适配排版（侧边导航栏 / 瀑布流按宽度加列 / 作品舞台详情，#1087），见 TabletLayout。默认关闭。 */
     private boolean tabletLayout = false;
 
-    /** 隐藏小组件上浮在封面之上的收藏按钮（#1013：挡画面） */
+    //隐藏小组件上浮在封面之上的收藏按钮（#1013：挡画面）。
+    //已过时：真源换成 hiddenBookmarkSurfaces（见 BookmarkSurface.WIDGET），这个字段只留给
+    //Gson 兼容与降级回填。
+    @Deprecated
     private boolean widgetHideBookmarkButton = false;
     /** 隐藏小组件上浮在封面之上的刷新按钮（#1013：挡画面） */
     private boolean widgetHideRefreshButton = false;
+
+    // ===== 卡片收藏按钮的按页面显隐（统一入口「作品卡片上显示收藏按钮」）=====
+    // 存的是「被隐藏了收藏按钮的卡面键」（BookmarkSurface.key）。**空集 = 全部显示**：
+    // 以后新增卡面天然默认「显示」，不用再补一个默认 true 的字段 + getter/setter；
+    // 认不出的键（降级安装 / 手改配置 / 以后删掉的卡面）只被忽略，不连坐别的卡面。
+    private LinkedHashSet<String> hiddenBookmarkSurfaces = new LinkedHashSet<>();
+
+    // 旧字段（hideStarButtonAtMyCollection / widgetHideBookmarkButton）→ 上面这个集合的
+    // 一次性迁移标记。没有它的话：用户在新版里把收藏按钮全部打开之后（那时旧字段已被反向
+    // 回填），下一次装载会拿旧值又把那两个卡面种回去。
+    private boolean bookmarkSurfacesMigrated = false;
+
+    /** 被隐藏收藏按钮的卡面键集合（空集 = 全部显示）。 */
+    public LinkedHashSet<String> getHiddenBookmarkSurfaces() {
+        if (hiddenBookmarkSurfaces == null) {
+            hiddenBookmarkSurfaces = new LinkedHashSet<>();
+        }
+        return hiddenBookmarkSurfaces;
+    }
+
+    public void setHiddenBookmarkSurfaces(LinkedHashSet<String> hiddenBookmarkSurfaces) {
+        this.hiddenBookmarkSurfaces = hiddenBookmarkSurfaces == null
+                ? new LinkedHashSet<>() : hiddenBookmarkSurfaces;
+    }
+
+    /** 该卡面是否显示收藏按钮。 */
+    public boolean isBookmarkSurfaceVisible(BookmarkSurface surface) {
+        return surface != null && !getHiddenBookmarkSurfaces().contains(surface.getKey());
+    }
+
+    /** 设置该卡面是否显示收藏按钮。 */
+    public void setBookmarkSurfaceVisible(BookmarkSurface surface, boolean visible) {
+        if (surface == null) {
+            return;
+        }
+        if (visible) {
+            getHiddenBookmarkSurfaces().remove(surface.getKey());
+        } else {
+            getHiddenBookmarkSurfaces().add(surface.getKey());
+        }
+    }
+
+    /** 入口行右侧摘要用：被隐藏的卡面数。 */
+    public int getHiddenBookmarkSurfaceCount() {
+        return getHiddenBookmarkSurfaces().size();
+    }
 
     // ===== aria2 远程下载（#692）：启用后图片下载任务通过 JSON-RPC 发给远端 aria2（如 NAS），不在本地落盘 =====
     private boolean aria2Enabled = false;
@@ -1036,10 +1088,14 @@ public class Settings {
         this.bottomBarOrder = bottomBarOrder;
     }
 
+    /** @deprecated 改用 {@link #isBookmarkSurfaceVisible(BookmarkSurface)}（BookmarkSurface.MY_COLLECTION）。 */
+    @Deprecated
     public boolean isHideStarButtonAtMyCollection() {
         return hideStarButtonAtMyCollection;
     }
 
+    /** @deprecated 改用 {@link #setBookmarkSurfaceVisible(BookmarkSurface, boolean)}。 */
+    @Deprecated
     public void setHideStarButtonAtMyCollection(boolean hideStarButtonAtMyCollection) {
         this.hideStarButtonAtMyCollection = hideStarButtonAtMyCollection;
     }
@@ -1274,10 +1330,14 @@ public class Settings {
         this.tabletLayout = enable;
     }
 
+    /** @deprecated 改用 {@link #isBookmarkSurfaceVisible(BookmarkSurface)}（BookmarkSurface.WIDGET）。 */
+    @Deprecated
     public boolean isWidgetHideBookmarkButton() {
         return widgetHideBookmarkButton;
     }
 
+    /** @deprecated 改用 {@link #setBookmarkSurfaceVisible(BookmarkSurface, boolean)}。 */
+    @Deprecated
     public void setWidgetHideBookmarkButton(boolean hide) {
         this.widgetHideBookmarkButton = hide;
     }
@@ -1783,6 +1843,36 @@ public class Settings {
         }
         settings.longPressBehavior = behavior;
         settings.useCustomLongPressReset = behavior != LONG_PRESS_BEHAVIOR_NONE;
+    }
+
+    /**
+     * 旧版设置/备份/云端还原迁移：把「隐藏收藏按钮」的两个旧开关映射到按卡面的隐藏集合。
+     * 旧字段是「不显示」负向、集合是「隐藏了哪些」正向，这里做一次取反；迁移只跑一次
+     * （bookmarkSurfacesMigrated），否则用户在新版里把收藏按钮全部打开之后（那时旧字段
+     * 已被反向回填），下一次装载会拿旧值又把那两个卡面种回去。每次装载都反向回填旧字段，
+     * 保证降级回旧版时方向一致（旧版只认得这两个卡面）。
+     */
+    @SuppressWarnings("deprecation")
+    public static void migrateLegacyBookmarkSurfaces(Settings settings) {
+        if (settings == null) {
+            return;
+        }
+        if (settings.hiddenBookmarkSurfaces == null) {
+            settings.hiddenBookmarkSurfaces = new LinkedHashSet<>();
+        }
+        if (!settings.bookmarkSurfacesMigrated) {
+            if (settings.hideStarButtonAtMyCollection) {
+                settings.hiddenBookmarkSurfaces.add(BookmarkSurface.MY_COLLECTION.getKey());
+            }
+            if (settings.widgetHideBookmarkButton) {
+                settings.hiddenBookmarkSurfaces.add(BookmarkSurface.WIDGET.getKey());
+            }
+            settings.bookmarkSurfacesMigrated = true;
+        }
+        settings.hideStarButtonAtMyCollection = settings.hiddenBookmarkSurfaces
+                .contains(BookmarkSurface.MY_COLLECTION.getKey());
+        settings.widgetHideBookmarkButton = settings.hiddenBookmarkSurfaces
+                .contains(BookmarkSurface.WIDGET.getKey());
     }
 
     // 插画V3详情页：下载按钮是否在左（true=左下载右收藏，false=左收藏右下载）

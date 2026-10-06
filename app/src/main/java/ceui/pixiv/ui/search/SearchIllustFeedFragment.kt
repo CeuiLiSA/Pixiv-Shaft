@@ -18,6 +18,7 @@ import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.settings.BookmarkSurface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
@@ -35,6 +36,8 @@ import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
  * 命中标签匹配档才 refresh（对齐 legacy 的 TAG_MATCH_VALUE guard，防选了小说专属 target 时插画也重搜）。
  */
 class SearchIllustFeedFragment : IllustFeedFragment() {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.SEARCH
 
     private var searchRefreshPending = false
 

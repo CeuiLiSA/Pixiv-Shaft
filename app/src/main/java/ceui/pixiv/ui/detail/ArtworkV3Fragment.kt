@@ -77,6 +77,7 @@ import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.pixiv.ui.common.TabletLayout
 import ceui.pixiv.ui.common.staggerIllustRenderer
+import ceui.pixiv.ui.settings.BookmarkSurface
 import ceui.pixiv.ui.muted.MuteTagSheet
 import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.share.saveArtworkPoster
@@ -111,6 +112,9 @@ import timber.log.Timber
  * 数据源见 [ArtworkV3FeedSource];下载 FAB / 收藏态归 [ArtworkV3ViewModel]。无下拉刷新 ([refreshEnabled] = false)。
  */
 class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.DETAIL_RELATED
+
     private var autoSnapshotVisit: AutoSnapshotEngine.ArtworkVisit? = null
 
     /**

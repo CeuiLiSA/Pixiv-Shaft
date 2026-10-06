@@ -22,6 +22,7 @@ import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
+import ceui.pixiv.ui.settings.BookmarkSurface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import ceui.pixiv.ui.navigation.TemplateRoute
@@ -37,6 +38,8 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  *（见 ceui.pixiv.utils.fetchFullIllustDetail）。
  */
 class UserIllustByTagFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed) {
+
+    override val bookmarkSurface: BookmarkSurface get() = BookmarkSurface.USER_BY_TAG
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
