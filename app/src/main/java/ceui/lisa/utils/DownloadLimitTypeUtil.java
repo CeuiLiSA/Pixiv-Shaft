@@ -62,7 +62,7 @@ public class DownloadLimitTypeUtil {
     }
 
     /** [requiresWifi()] 的纯函数版本，便于单测。 */
-    static boolean requiresWifi(int limitType){
+    public static boolean requiresWifi(int limitType){
         return limitType == 1;
     }
 }

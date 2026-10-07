@@ -123,13 +123,77 @@ class ArtworkDownloadFabStateTest {
     }
 
     @Test
-    fun `非模式 2 且条目未显式暂停时（如仅 Wi-Fi 网络等待）推导为 Downloading 态而非 Paused`() {
+    fun `模式 1 且处于蜂窝网络等待态时推导为 Resume 态`() {
         val items = listOf(
             createItem(state = DownloadItem.DownloadState.INIT, isPaused = false),
         )
         val result = resolveDownloadFabState(
             myItems = items,
             pageCount = 1,
+            isWifiConnected = false,
+            downloadLimitType = 1,
+        )
+        assertTrue(result is DownloadFab.Resume)
+        assertEquals(0, (result as DownloadFab.Resume).percent)
+    }
+
+    @Test
+    fun `模式 1 处于蜂窝网络等待态时多页已完成部分页计算已完成进度并推导为 Resume 态`() {
+        val items = listOf(
+            createItem(state = DownloadItem.DownloadState.INIT, isPaused = false),
+            createItem(state = DownloadItem.DownloadState.INIT, isPaused = false),
+        )
+        val result = resolveDownloadFabState(
+            myItems = items,
+            pageCount = 5,
+            isWifiConnected = false,
+            downloadLimitType = 1,
+        )
+        assertTrue(result is DownloadFab.Resume)
+        assertEquals(60, (result as DownloadFab.Resume).percent)
+    }
+
+    @Test
+    fun `模式 1 处于蜂窝网络但已有活跃传输项时（如用户手动继续）推导为 Downloading 态`() {
+        val items = listOf(
+            createItem(state = DownloadItem.DownloadState.DOWNLOADING, isPaused = false, nonius = 30),
+            createItem(state = DownloadItem.DownloadState.INIT, isPaused = false),
+        )
+        val result = resolveDownloadFabState(
+            myItems = items,
+            pageCount = 2,
+            isWifiConnected = false,
+            downloadLimitType = 1,
+        )
+        assertTrue(result is DownloadFab.Downloading)
+        assertEquals(15, (result as DownloadFab.Downloading).percent)
+    }
+
+    @Test
+    fun `模式 1 处于 Wi-Fi 网络下条目推导为 Downloading 态`() {
+        val items = listOf(
+            createItem(state = DownloadItem.DownloadState.INIT, isPaused = false),
+        )
+        val result = resolveDownloadFabState(
+            myItems = items,
+            pageCount = 1,
+            isWifiConnected = true,
+            downloadLimitType = 1,
+        )
+        assertTrue(result is DownloadFab.Downloading)
+        assertEquals(0, (result as DownloadFab.Downloading).percent)
+    }
+
+    @Test
+    fun `模式 0 无限制处于蜂窝网络下条目推导为 Downloading 态`() {
+        val items = listOf(
+            createItem(state = DownloadItem.DownloadState.INIT, isPaused = false),
+        )
+        val result = resolveDownloadFabState(
+            myItems = items,
+            pageCount = 1,
+            isWifiConnected = false,
+            downloadLimitType = 0,
         )
         assertTrue(result is DownloadFab.Downloading)
         assertEquals(0, (result as DownloadFab.Downloading).percent)
