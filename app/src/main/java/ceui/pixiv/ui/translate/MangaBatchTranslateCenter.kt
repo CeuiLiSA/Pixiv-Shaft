@@ -218,6 +218,8 @@ class MangaBatchTranslateCenter(app: Context, private val models: MangaTranslate
         var empty = 0
         var failed = 0
         var skipped = 0
+        // 本批最高「原样度」:任一行疑似被模型原样输出就记下,批末统一提示一次。
+        var verbatimPercent: Int? = null
         for (pageIndex in pageUrls.indices) {
             val done = pageIndex
             val post: (MangaPageTranslatePipeline.Stage) -> Unit = { s ->
@@ -246,6 +248,9 @@ class MangaBatchTranslateCenter(app: Context, private val models: MangaTranslate
                 is MangaPageTranslatePipeline.Outcome.Done -> {
                     publish(illustId, pageIndex, outcome.outFile.absolutePath)
                     translated++
+                    outcome.verbatimPercent?.let { p ->
+                        verbatimPercent = maxOf(verbatimPercent ?: 0, p)
+                    }
                 }
                 MangaPageTranslatePipeline.Outcome.OcrEmpty -> empty++
                 MangaPageTranslatePipeline.Outcome.OcrFailed,
@@ -270,6 +275,9 @@ class MangaBatchTranslateCenter(app: Context, private val models: MangaTranslate
             var summary = app.getString(R.string.string_ai_manga_batch_summary, translated, empty, failed)
             if (skipped > 0) {
                 summary = app.getString(R.string.string_ai_manga_batch_summary_skipped, summary, skipped)
+            }
+            verbatimPercent?.let {
+                summary = summary + "\n" + app.getString(R.string.ai_translate_verbatim_warning, it)
             }
             Common.showToast(summary)
         }

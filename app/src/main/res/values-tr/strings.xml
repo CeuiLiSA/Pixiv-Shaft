@@ -2489,6 +2489,7 @@
     <string name="ai_translate_test_success">Test başarılı: %1$s</string>
     <string name="ai_translate_test_failed">Test başarısız: %1$s</string>
     <string name="ai_translate_failed_title">AI çevirisi başarısız</string>
+    <string name="ai_translate_verbatim_warning">Model metni olduğu gibi çıkarmış olabilir (birebir oranı %1$d%%)</string>
     <string name="ai_translate_error_code_label">Hata kodu</string>
     <string name="ai_translate_error_message_label">Hata mesajı</string>
     <string name="ai_translate_error_code_unknown">Bilinmiyor</string>

@@ -13,6 +13,7 @@ import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.RecordedRequest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -280,5 +281,32 @@ class CloudTranslatorTest {
         assertEquals("zh-CN", CloudTranslator.serverLangOf("zh-CN"))
         assertEquals("zh-TW", CloudTranslator.serverLangOf("zh-TW"))
         assertEquals("ja", CloudTranslator.serverLangOf("ja"))
+    }
+
+    @Test
+    fun `服务端关停降级给 Google 时标记降级`() = runBlocking {
+        server.enqueue(json(503, """{"error":"translate_disabled"}"""))
+        CloudTranslator.translateBatchWith(api, 7L, listOf("a"), "en", fallback = passthroughFallback())
+        assertTrue(CloudTranslator.servedByGoogleFallback)
+    }
+
+    @Test
+    fun `正常云翻译批次不标记降级`() = runBlocking {
+        server.enqueue(json(200, """{"translations":["A"],"quotas":[]}"""))
+        CloudTranslator.translateBatchWith(api, 7L, listOf("a"), "en")
+        assertFalse(CloudTranslator.servedByGoogleFallback)
+    }
+
+    /** 兜底引擎:原样返回输入,只用于验证降级路径被标记。 */
+    private fun passthroughFallback() = object : Translator {
+        override suspend fun translate(
+            input: String, outputLang: String, onPhase: ((AiTranslatePhase) -> Unit)?,
+        ): String = input
+
+        override suspend fun translateBatch(
+            inputs: List<String>, outputLang: String,
+            onItem: ((Int, String) -> Unit)?, onProgress: ((Int, Int) -> Unit)?,
+            onPhase: ((AiTranslatePhase) -> Unit)?, onRequestSent: (() -> Unit)?,
+        ): List<String> = inputs
     }
 }

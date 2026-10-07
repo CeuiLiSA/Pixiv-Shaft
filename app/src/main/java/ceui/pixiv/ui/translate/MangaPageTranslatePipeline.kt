@@ -36,7 +36,11 @@ object MangaPageTranslatePipeline {
 
     /** 一页流水线的结局。 */
     sealed class Outcome {
-        class Done(val outFile: File) : Outcome()
+        /**
+         * [verbatimPercent] 非空 = 本页有气泡疑似被模型原样输出(值即最高「原样度」百分比),
+         * 由调用方决定怎么提示用户;null = 无需提示。
+         */
+        class Done(val outFile: File, val verbatimPercent: Int? = null) : Outcome()
         object ModelLoadFailed : Outcome()
         object OcrFailed : Outcome()
         object OcrEmpty : Outcome()
@@ -93,10 +97,12 @@ object MangaPageTranslatePipeline {
         //    中途没有有意义的进度,所以只 post 一个 indeterminate 状态盖住 HTTP 等待,不再每 chunk 闪 N/N
         onStage(Stage(app.getString(R.string.ocr_translating)))
         val translations = mutableMapOf<Int, String>()
+        val translator = currentTranslator()
+        val targetLang = appTranslateTargetLang()
         try {
-            currentTranslator().translateBatch(
+            translator.translateBatch(
                 inputs = regions.map { it.text },
-                outputLang = appTranslateTargetLang(),
+                outputLang = targetLang,
                 onItem = { i, translated -> translations[i] = translated },
                 onPhase = { phase -> onStage(translatePhaseStage(app, phase)) },
                 onRequestSent = onRequestSent,
@@ -110,6 +116,21 @@ object MangaPageTranslatePipeline {
         }
         if (translations.isEmpty()) return Outcome.TranslateFailed(null)
 
+        // 「原样度」:AI 引擎下逐条判定,任一条疑似原样输出就取其中最高百分比,交给调用方提示。
+        val verbatimPercent = if (translator.isAiBacked() && !targetLang.equals("ja", ignoreCase = true)) {
+            regions.indices.mapNotNull { i ->
+                val text = translations[i] ?: return@mapNotNull null
+                val original = regions[i].text
+                if (VerbatimRatio.isLikelyVerbatim(original, text)) {
+                    VerbatimRatio.percent(original, text)
+                } else {
+                    null
+                }
+            }.maxOrNull()
+        } else {
+            null
+        }
+
         // 4. 回填
         onStage(Stage(app.getString(R.string.ocr_writeback_running)))
         val outFile = withContext(Dispatchers.IO) {
@@ -117,7 +138,7 @@ object MangaPageTranslatePipeline {
                 renderTranslated(app, imageFile, pageIndex, regions, translations, ocrResult.textMask)
             }.onFailure { Timber.e(it, "renderTranslated failed") }.getOrNull()
         } ?: return Outcome.RenderFailed
-        return Outcome.Done(outFile)
+        return Outcome.Done(outFile, verbatimPercent)
     }
 
     /** 优先展示上游状态；开始出译文后恢复翻译中，不把 reasoning 写入译文。 */

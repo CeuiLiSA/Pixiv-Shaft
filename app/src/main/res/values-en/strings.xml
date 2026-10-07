@@ -2506,6 +2506,7 @@
     <string name="ai_translate_test_success">Test succeeded: %1$s</string>
     <string name="ai_translate_test_failed">Test failed: %1$s</string>
     <string name="ai_translate_failed_title">AI translation failed</string>
+    <string name="ai_translate_verbatim_warning">The model may have output the original text verbatim (verbatim score %1$d%%)</string>
     <string name="ai_translate_error_code_label">Error code</string>
     <string name="ai_translate_error_message_label">Error message</string>
     <string name="ai_translate_error_code_unknown">Unknown</string>

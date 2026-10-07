@@ -2489,6 +2489,7 @@
     <string name="ai_translate_test_success">Тест успешен: %1$s</string>
     <string name="ai_translate_test_failed">Тест не удался: %1$s</string>
     <string name="ai_translate_failed_title">Ошибка AI-перевода</string>
+    <string name="ai_translate_verbatim_warning">Модель могла вывести исходный текст как есть (доля совпадения %1$d%%)</string>
     <string name="ai_translate_error_code_label">Код ошибки</string>
     <string name="ai_translate_error_message_label">Сообщение об ошибке</string>
     <string name="ai_translate_error_code_unknown">неизвестно</string>

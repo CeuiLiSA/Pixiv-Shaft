@@ -2773,6 +2773,7 @@
     <string name="ai_translate_test_success">测试成功：%1$s</string>
     <string name="ai_translate_test_failed">测试失败：%1$s</string>
     <string name="ai_translate_failed_title">AI 翻译失败</string>
+    <string name="ai_translate_verbatim_warning">模型可能原样输出了原文（原样度 %1$d%%）</string>
     <string name="ai_translate_error_code_label">错误码</string>
     <string name="ai_translate_error_message_label">错误消息</string>
     <string name="ai_translate_error_code_unknown">未知</string>
