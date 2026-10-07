@@ -517,13 +517,21 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
             // payload-bind 看到新状态（snapshot 还是旧的）。直接操作 view —
             // 下一轮 polling 来重 snapshot 时 DiffUtil 会再 reconcile 一次。
             val live = snap.item
-            val wasPaused = live.isPaused
-            if (wasPaused) Manager.get().startOne(live.uuid)
-            else Manager.get().stopOne(live.uuid)
-            h.pauseBtn.setImageResource(
-                if (wasPaused) R.drawable.ic_baseline_pause_24
-                else R.drawable.ic_baseline_play_arrow_24
-            )
+            val effectiveState = if (snap.state == DownloadItem.DownloadState.FAILED) snap.state else live.state
+            val action = resolveActiveRowAction(effectiveState, live.isPaused)
+            when (action) {
+                ActiveRowAction.RETRY,
+                ActiveRowAction.RESUME -> {
+                    Manager.get().startOne(live.uuid)
+                    h.pauseBtn.setImageResource(ActiveRowAction.PAUSE.iconRes)
+                    h.pauseBtn.contentDescription = h.itemView.context.getString(ActiveRowAction.PAUSE.contentDescriptionRes)
+                }
+                ActiveRowAction.PAUSE -> {
+                    Manager.get().stopOne(live.uuid)
+                    h.pauseBtn.setImageResource(ActiveRowAction.RESUME.iconRes)
+                    h.pauseBtn.contentDescription = h.itemView.context.getString(ActiveRowAction.RESUME.contentDescriptionRes)
+                }
+            }
         }
         h.cancelBtn.setOnClickListener {
             Manager.get().clearOne(snap.item.uuid)
@@ -615,10 +623,9 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
         h.stateBadge.text = label
         h.stateBadge.setTextColor(Color.parseColor(color))
 
-        h.pauseBtn.setImageResource(
-            if (snap.isPaused) R.drawable.ic_baseline_play_arrow_24
-            else R.drawable.ic_baseline_pause_24
-        )
+        val action = resolveActiveRowAction(snap.state, snap.isPaused)
+        h.pauseBtn.setImageResource(action.iconRes)
+        h.pauseBtn.contentDescription = h.itemView.context.getString(action.contentDescriptionRes)
     }
 
     /**
