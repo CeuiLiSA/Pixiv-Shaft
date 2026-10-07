@@ -24,14 +24,28 @@ import ceui.pixiv.utils.ppppx
  *
  * 点击行为两页各不相同(整作品下载 vs 保存当前页),由调用方自己挂在
  * [binding] 的 fabDownloadContainer / fabBookmark 上。
+ *
+ * @param saveCurrentImage 二级大图页那颗按钮存的是**当前页**([ImageDetailActivity.setupFabBar]),
+ *        与一级 V3 详情页的「整作品下载」不是一回事。置 true 时 Idle 态改用
+ *        [R.drawable.ic_save_image_24](图片框 + 向下箭头),不再借用整作品下载图标 ——
+ *        同一颗下载箭头在两页含义不同,会误导用户(issue #1220)。
  */
-class V3FabBarController(val binding: ViewV3FabBarBinding) {
+class V3FabBarController(
+    val binding: ViewV3FabBarBinding,
+    private val saveCurrentImage: Boolean = false,
+) {
 
     private val context get() = binding.root.context
 
     /** 胶囊前景(图标/分隔线/进度环)当前内容色。XML 默认深色胶囊白内容,[applyPalette] 后换 palette 内容色。 */
     @ColorInt
     private var contentColor: Int = context.getColor(R.color.white)
+
+    init {
+        // 种子:Idle 态图标在构造时就摆对。[renderDownload] 要等 [ImageDetailActivity.checkDownload]
+        // 的 DB 探测回来才跑,这段窗口若沿用 XML 里的整作品下载箭头,二级大图页会先闪一下错图标再切回来。
+        if (saveCurrentImage) binding.fabDownload.setImageResource(R.drawable.ic_save_image_24)
+    }
 
     /** 按 [V3Palette] 重刷胶囊背景与内容色,两页都必须调(浅色主题下 XML 默认深色值不可用)。 */
     fun applyPalette(palette: V3Palette) {
@@ -55,7 +69,11 @@ class V3FabBarController(val binding: ViewV3FabBarBinding) {
     fun renderDownload(state: DownloadFab) {
         when (state) {
             DownloadFab.Idle ->
-                paintDownload(R.drawable.ic_file_download_black_24dp, contentColor)
+                paintDownload(
+                    if (saveCurrentImage) R.drawable.ic_save_image_24
+                    else R.drawable.ic_file_download_black_24dp,
+                    contentColor,
+                )
 
             DownloadFab.Done ->
                 paintDownload(
