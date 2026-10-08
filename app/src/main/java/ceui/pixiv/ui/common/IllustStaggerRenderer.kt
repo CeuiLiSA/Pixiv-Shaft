@@ -201,7 +201,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
         },
     ) { cell ->
         val bean = cell.item.illust
-        cell.binding.illustImage.setHeightRatio(heightRatioOf(bean))
+        cell.binding.illustImage.setHeightRatio(displayRatioOf(bean))
 
         // 打码与否的真源是本地屏蔽名单 + AI 屏蔽强度，bind 时现读：别的页面改了屏蔽/设置，
         // 本页滑动复用一次就跟上（条目本身不带这个状态，见 PAYLOAD_ILLUST_SPOILER_CHANGED 的注释；
@@ -270,7 +270,7 @@ private fun IllustFeedFragment.applyIllustSpoilerMask(
  * 宽度交给瀑布流列自身，DynamicHeightImageView 在 onMeasure 用真实列宽算高——
  * 绝不写死像素尺寸，否则复用卡片在横竖屏切换后揣着旧方向的尺寸把整列搞乱。
  */
-private fun heightRatioOf(bean: Illust): Float {
+internal fun heightRatioOf(bean: Illust): Float {
     return if (bean.width > 0 && bean.height > 0) {
         (bean.height.toFloat() / bean.width.toFloat())
             .coerceIn(MIN_HEIGHT_RATIO, MAX_HEIGHT_RATIO)
@@ -280,18 +280,28 @@ private fun heightRatioOf(bean: Illust): Float {
 }
 
 /**
+ * 卡片按当前列表布局的展示高宽比：方格恒为 1:1，其余沿用钳制后的原比例 —— 齐行布局靠的正是
+ * 「宽按比例分、高按同一比例量」才同行等高，见 [JustifiedLayoutManager]。
+ */
+private fun IllustFeedFragment.displayRatioOf(bean: Illust): Float =
+    if (illustListLayout == IllustListLayout.GRID) 1f else heightRatioOf(bean)
+
+/**
  * 插画缩略图取图策略（瀑布流 / 浏览记录等共用）：
  * - 比例离谱（见 [EXTREME_HEIGHT_RATIO]）→ 改用 square_medium（缺失时回退 medium）；
  * - 否则正常走 large/medium，centerCrop 裁剪由调用方原有逻辑处理。
  */
-internal fun resolveIllustThumbnailUrl(bean: Illust): GlideUrl? {
+internal fun resolveIllustThumbnailUrl(
+    bean: Illust,
+    preferLarge: Boolean = Shaft.sSettings.isShowLargeThumbnailImage,
+): GlideUrl? {
     if (bean.width > 0 && bean.height > 0 && shouldUseSquareThumb(bean)) {
         return GlideUtil.getUrl(
             bean.image_urls?.square_medium?.takeIf { it.isNotBlank() }
                 ?: bean.image_urls?.medium
         )
     }
-    if (Shaft.sSettings.isShowLargeThumbnailImage) {
+    if (preferLarge) {
         return GlideUtil.getLargeImage(bean)
     }
     return GlideUtil.getMediumImg(bean)
@@ -311,13 +321,27 @@ private fun IllustFeedFragment.loadIllustImage(
 ) {
     // 取图策略统一走共享解析：large（开关开） / medium（常规） / square_medium（极端高宽比兜底）。
     val columnWidth = illustColumnWidthPx
-    val displayRatio = heightRatioOf(bean)
-    val imgUrl = resolveIllustThumbnailUrl(bean)
+    val displayRatio = displayRatioOf(bean)
+    // 单列全宽时 medium（540px 盒）铺满整屏宽会发糊，固定取 large（同 pixiv-viewer 的 VirtualSlide）
+    val imgUrl = resolveIllustThumbnailUrl(
+        bean,
+        preferLarge = illustListLayout == IllustListLayout.SINGLE_COLUMN ||
+                Shaft.sSettings.isShowLargeThumbnailImage,
+    )
     // 请求尺寸必须显式 override：into(ImageView) 对 centerCrop 会在解码阶段按「请求尺寸」
     // 的宽高比裁位图，而默认请求尺寸取复用卡片上一次布局残留的旧宽高（旧方向的列宽 ×
     // 上一张图的比例），横竖屏来回切后图会被裁得只剩一小块还发糊，且 view 重新量高后
     // Glide 不会重发请求。override 成当前列宽 × 钳制后比例，请求宽高比恒等于展示宽高比。
-    val columnHeight = (columnWidth * displayRatio).toInt()
+    // 齐行布局里卡宽随比例变、行高 ≈ 目标行高：按行高反推宽，宽图才不会按窄列宽解码后被拉糊
+    val requestWidth: Int
+    val columnHeight: Int
+    if (illustListLayout == IllustListLayout.JUSTIFIED) {
+        columnHeight = (columnWidth * JUSTIFIED_ROW_HEIGHT_FACTOR).toInt()
+        requestWidth = (columnHeight / displayRatio).toInt().coerceAtLeast(1)
+    } else {
+        requestWidth = columnWidth
+        columnHeight = (columnWidth * displayRatio).toInt()
+    }
     // GlideUrlChild 每次构造都带当前时间戳请求头（PixivHeaders.x-client-time/hash），
     // 而 GlideUrl.equals() 要求 headers 也相等才算「同一请求」——这里的 headers 又是个
     // 没重写 equals 的 lambda，Glide 自己的活跃资源缓存永远认不出「这张图已经在显示」。
@@ -326,7 +350,7 @@ private fun IllustFeedFragment.loadIllustImage(
     // 于是每张卡片的图都要闪一次占位色再淡入回来——图其实没变。用请求 URL（不含
     // headers 的 cacheKey）+ 目标尺寸 + 模糊与否当 tag，真没变时跳过这次重新加载；
     // recycle 清图时一并清 tag，保证真正复用到新条目时不会因为 tag 恰好没变而漏加载。
-    val requestKey = IllustImageRequestKey(imgUrl?.cacheKey, columnWidth, columnHeight, spoilered)
+    val requestKey = IllustImageRequestKey(imgUrl?.cacheKey, requestWidth, columnHeight, spoilered)
     if (binding.illustImage.tag == requestKey) return
     binding.illustImage.tag = requestKey
 
@@ -336,7 +360,7 @@ private fun IllustFeedFragment.loadIllustImage(
     // 只有「瞬时网络抖动」这不到 1% 的情形能受益（404 则是稳定失败两次）。已删。
     var request = illustGlide
         .load(imgUrl)
-        .override(columnWidth, columnHeight)
+        .override(requestWidth, columnHeight)
     if (spoilered) {
         // 屏蔽态让 Glide 直接出一张模糊位图：变换进 cacheKey，与原图各存各的，滚回来是缓存命中。
         // 不用 View 层模糊（RenderEffect / 自绘）——那类做法在瀑布流复用里每帧都要重算，

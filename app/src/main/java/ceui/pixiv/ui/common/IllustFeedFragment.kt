@@ -4,8 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.LayoutRes
+import androidx.core.view.doOnNextLayout
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.viewbinding.ViewBinding
@@ -25,6 +27,7 @@ import ceui.lisa.view.SpacesItemDecoration
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
+import ceui.pixiv.feeds.FeedSkeletonView
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.utils.pinHostGlide
 import com.bumptech.glide.Glide
@@ -88,10 +91,20 @@ abstract class IllustFeedFragment(
             return (listWidth / illustSpanCount).coerceAtLeast(1)
         }
 
-    /** 瀑布流当前列数：随列表宽度自适应（[StaggeredManager.adaptive]），不等于「每行几列」设置。 */
+    /**
+     * 瀑布流当前列数：随列表宽度自适应（[StaggeredManager.adaptive]），不等于「每行几列」设置。
+     * 齐行布局（GridLayoutManager 的跨度是像素数）取设置值，列宽即目标行高。
+     */
     internal val illustSpanCount: Int
         get() = (feedBinding.feedListView.layoutManager as? StaggeredGridLayoutManager)?.spanCount
             ?: Shaft.sSettings.lineCount
+
+    /**
+     * 本页列表装配时采用的布局（设置项「插画列表布局」，#1214）。随视图定下（[onViewCreated]），
+     * renderer 绑定时读它；设置改了由 [onResume] 发现并整表重装，回到列表即生效。
+     */
+    internal var illustListLayout: IllustListLayout = IllustListLayout.MASONRY
+        private set
 
     /**
      * 详情 pager 回传的 bean 建条目的钩子。R18 专属榜单等「本页语义就是看 R18」的
@@ -129,6 +142,8 @@ abstract class IllustFeedFragment(
         get() = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        // 必须在 super 之前：基类 onViewCreated 里就会建 renderer / LayoutManager
+        illustListLayout = IllustListLayout.current()
         super.onViewCreated(view, savedInstanceState)
         pinHostGlide(illustGlide)
 
@@ -145,18 +160,112 @@ abstract class IllustFeedFragment(
         observeMuteRevision()
     }
 
+    override fun onResume() {
+        super.onResume()
+        val latest = IllustListLayout.current()
+        if (latest != illustListLayout) {
+            illustListLayout = latest
+            rebuildList()
+        }
+    }
+
+    /**
+     * 卡片长按菜单里改布局：存设置，本页当场重装（其它列表回到前台时由 [onResume] 跟上）。
+     *
+     * 重装会换 LayoutManager，滚动位置随之归零；把长按的那张卡按原来的屏幕高度接回来，
+     * 人还停在刚才看的地方。rebuildList 对空 adapter 的首次提交是同步的，所以紧跟着设的
+     * 滚动目标会在下一次 layout 生效。
+     */
+    internal fun changeIllustListLayout(layout: IllustListLayout, anchorIllustId: Long) {
+        IllustListLayout.save(layout)
+        val latest = IllustListLayout.current()
+        if (latest == illustListLayout) return
+        val list = feedBinding.feedListView
+        val position = feedAdapter?.currentList
+            ?.indexOfFirst { it is IllustFeedItem && it.illust.id == anchorIllustId } ?: -1
+        val offset = list.findViewHolderForAdapterPosition(position)
+            ?.itemView?.let { it.top - list.paddingTop } ?: 0
+        // 旧列表是否还看得到第 0 项（顶部的榜单条 / 第一张卡）
+        val wasAtTop = list.findViewHolderForAdapterPosition(0) != null
+        illustListLayout = latest
+        rebuildList()
+        if (position < 0) return
+        when (val manager = list.layoutManager) {
+            // 齐行：offset 口径的换算见 scrollToPositionWithOffset 扩展
+            is LinearLayoutManager -> list.scrollToPositionWithOffset(position, offset)
+            is StaggeredGridLayoutManager -> {
+                // SGLM 跳到某个位置时，上方的条目是倒着往回排的、列分配和从顶排下来的不一样，
+                // 且它会无视全新 LayoutManager 上的 offset、把目标贴到顶部 padding。所以：
+                // - 原先就在顶部附近：照常从顶排，排完用 scrollBy 顺着挪过去，上方排布不被打乱
+                //   （跳位置的话，上方内容不够高时 SGLM 下一趟 layout 会把空缺补平、卡又顶回最上面）；
+                // - 否则先跳到位置，排完、绘制前再用 scrollBy 挪回原高度。
+                // 不补 invalidateSpanAssignments：全新 LayoutManager 没有残留分配，补了反而重新对齐
+                fun restoreAnchorAfterLayout(jumpIfMissing: Boolean): Unit = list.doOnNextLayout {
+                    val anchor = manager.findViewByPosition(position)
+                    if (anchor != null) {
+                        list.scrollBy(0, anchor.top - list.paddingTop - offset)
+                    } else if (jumpIfMissing) {
+                        // 从顶排下来卡不在首屏（换成单列这类更高的排布）：退回先跳位置
+                        manager.scrollToPosition(position)
+                        restoreAnchorAfterLayout(jumpIfMissing = false)
+                    }
+                }
+                if (!wasAtTop) manager.scrollToPosition(position)
+                restoreAnchorAfterLayout(jumpIfMissing = wasAtTop)
+            }
+        }
+    }
+
+    /** 按 [illustListLayout] 建列表的 LayoutManager（首页推荐等带整行 header 的子类同样走这里）。 */
     override fun onCreateLayoutManager(): RecyclerView.LayoutManager {
-        return StaggeredManager.adaptive(requireContext(), Shaft.sSettings.lineCount).apply {
-            // GAP_HANDLING_NONE 对齐 legacy / Recmd / Artwork：SGLM 默认 gap 策略在刷新换代时
-            // 会把首行 item decoration 的 top 间距误判成“顶部有洞”，清 lookup 重排，造成左列空出、
-            // 首卡跑右、列间距闪跳。纯瀑布流页统一关掉，避免这类跨代重排。
-            gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_NONE
+        val context = requireContext()
+        val lineCount = Shaft.sSettings.lineCount
+        // GAP_HANDLING_NONE 对齐 legacy / Recmd / Artwork：SGLM 默认 gap 策略在刷新换代时
+        // 会把首行 item decoration 的 top 间距误判成“顶部有洞”，清 lookup 重排，造成左列空出、
+        // 首卡跑右、列间距闪跳。纯瀑布流页统一关掉，避免这类跨代重排。
+        fun StaggeredManager.noGapHandling() =
+            apply { gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_NONE }
+        return when (illustListLayout) {
+            IllustListLayout.JUSTIFIED ->
+                JustifiedLayoutManager(context, lineCount, DensityUtil.dp2px(8.0f))
+            // 单列就是一列，平板也不按宽度加列
+            IllustListLayout.SINGLE_COLUMN ->
+                StaggeredManager(1, StaggeredGridLayoutManager.VERTICAL).noGapHandling()
+            // 方格 = 瀑布流 + 卡片恒 1:1：等高的卡在 SGLM 里自然排成对齐的网格，整行 header 照旧可用
+            IllustListLayout.MASONRY, IllustListLayout.GRID ->
+                StaggeredManager.adaptive(context, lineCount).noGapHandling()
         }
     }
 
     override fun onListReady(listView: RecyclerView) {
         // recy_illust_stagger 卡片自身无 margin，间距对齐 legacy staggerRecyclerView
-        listView.addItemDecoration(SpacesItemDecoration(DensityUtil.dp2px(8.0f)))
+        val manager = listView.layoutManager
+        listView.addItemDecoration(
+            if (manager is JustifiedLayoutManager) {
+                JustifiedItemDecoration(manager)
+            } else {
+                SpacesItemDecoration(DensityUtil.dp2px(8.0f))
+            }
+        )
+    }
+
+    /**
+     * 首屏骨架跟着本次装配的布局走：方格画 1:1 网格、齐行按同一套分行画行；瀑布流和单列
+     * （一列的 SGLM）沿用基类的瀑布流骨架。方格和瀑布流是同一种 LayoutManager，只能按
+     * [illustListLayout] 分 —— 它就是这次装 LayoutManager 用的那个值，不是第二个真源。
+     */
+    override fun onCreateSkeletonView(layoutManager: RecyclerView.LayoutManager): FeedSkeletonView? {
+        val space = DensityUtil.dp2px(8.0f)
+        return when {
+            layoutManager is JustifiedLayoutManager -> IllustLayoutSkeletonView(
+                requireContext(), IllustListLayout.JUSTIFIED, Shaft.sSettings.lineCount, layoutManager.spacePx,
+            )
+            illustListLayout == IllustListLayout.GRID && layoutManager is StaggeredGridLayoutManager ->
+                IllustLayoutSkeletonView(
+                    requireContext(), IllustListLayout.GRID, layoutManager.spanCount, space,
+                )
+            else -> super.onCreateSkeletonView(layoutManager)
+        }
     }
 
     /** 默认就是标准瀑布流插画卡；需要混排其他条目类型的子类自行覆盖再拼上。 */

@@ -590,6 +590,16 @@
     <string name="layout_mode">Following feed layout</string>
     <string name="layout_staggered">Masonry</string>
     <string name="layout_linear">Vertical list</string>
+    <string name="illust_list_layout">Illustration list layout</string>
+    <string name="illust_list_layout_sheet_desc">How recommended, ranking, search, bookmark and other illustration lists are arranged.</string>
+    <string name="illust_list_layout_masonry">Masonry</string>
+    <string name="illust_list_layout_masonry_desc">Equal width, varied height</string>
+    <string name="illust_list_layout_grid">Grid</string>
+    <string name="illust_list_layout_grid_desc">Equal width and height</string>
+    <string name="illust_list_layout_justified">Justified</string>
+    <string name="illust_list_layout_justified_desc">Equal height, varied width</string>
+    <string name="illust_list_layout_single">Single column</string>
+    <string name="illust_list_layout_single_desc">One full-width column</string>
     <string name="string_337">Download Again</string>
     <string name="string_338">R18 works download to another directory</string>
     <string name="string_339">Download this work</string>

@@ -49,6 +49,9 @@ public class Settings {
 
     private boolean useStaggeredLayout = true;
 
+    /** 插画列表布局，取值见 {@link ceui.pixiv.ui.common.IllustListLayout}（序号，0 = 瀑布流）。 */
+    private int illustListLayout = 0;
+
     /** 各 uid 在本设备最近一次已应用的 moonAPI 版本号。key 是 uid.toString()。 */
     private Map<String, Integer> moonAppliedVersions = new HashMap<>();
 
@@ -77,6 +80,14 @@ public class Settings {
 
     public void setUseStaggeredLayout(boolean useStaggeredLayout) {
         this.useStaggeredLayout = useStaggeredLayout;
+    }
+
+    public int getIllustListLayout() {
+        return illustListLayout;
+    }
+
+    public void setIllustListLayout(int illustListLayout) {
+        this.illustListLayout = illustListLayout;
     }
 
     public int getThemeIndex() {

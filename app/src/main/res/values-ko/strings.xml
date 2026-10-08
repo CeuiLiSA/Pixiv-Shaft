@@ -590,6 +590,16 @@
     <string name="layout_mode">팔로우 피드 레이아웃</string>
     <string name="layout_staggered">폭포형</string>
     <string name="layout_linear">세로 목록</string>
+    <string name="illust_list_layout">일러스트 목록 레이아웃</string>
+    <string name="illust_list_layout_sheet_desc">추천, 랭킹, 검색, 북마크 등 일러스트 목록의 배치 방식입니다.</string>
+    <string name="illust_list_layout_masonry">폭포형</string>
+    <string name="illust_list_layout_masonry_desc">너비 같음 · 높이 다름</string>
+    <string name="illust_list_layout_grid">그리드</string>
+    <string name="illust_list_layout_grid_desc">너비 · 높이 같음</string>
+    <string name="illust_list_layout_justified">행 맞춤</string>
+    <string name="illust_list_layout_justified_desc">높이 같음 · 너비 다름</string>
+    <string name="illust_list_layout_single">1열</string>
+    <string name="illust_list_layout_single_desc">전체 너비 1열</string>
     <string name="string_337">다운로드 됨</string>
     <string name="string_338">R18 작품 을 다른 디 렉 터 리 에 다운로드</string>
     <string name="string_339">이 작품 을 다운 받 았 습 니 다.</string>

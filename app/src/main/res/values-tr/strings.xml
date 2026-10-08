@@ -590,6 +590,16 @@
     <string name="layout_mode">Takip akışı düzeni</string>
     <string name="layout_staggered">Şelale görünümü</string>
     <string name="layout_linear">Dikey liste</string>
+    <string name="illust_list_layout">İllüstrasyon listesi düzeni</string>
+    <string name="illust_list_layout_sheet_desc">Önerilen, sıralama, arama, yer imleri ve diğer illüstrasyon listelerinin düzeni.</string>
+    <string name="illust_list_layout_masonry">Şelale</string>
+    <string name="illust_list_layout_masonry_desc">Eşit genişlik, farklı yükseklik</string>
+    <string name="illust_list_layout_grid">Izgara</string>
+    <string name="illust_list_layout_grid_desc">Eşit genişlik ve yükseklik</string>
+    <string name="illust_list_layout_justified">Satır hizalı</string>
+    <string name="illust_list_layout_justified_desc">Eşit yükseklik, farklı genişlik</string>
+    <string name="illust_list_layout_single">Tek sütun</string>
+    <string name="illust_list_layout_single_desc">Tam genişlikte tek sütun</string>
     <string name="string_337">Tekrar indir</string>
     <string name="string_338">R-18 eserleri ayrı klasöre kaydet</string>
     <string name="string_339">Bu eseri indir</string>

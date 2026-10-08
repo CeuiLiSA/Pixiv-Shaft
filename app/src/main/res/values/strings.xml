@@ -614,6 +614,16 @@
     <string name="layout_mode">关注动态布局模式</string>
     <string name="layout_staggered">瀑布流</string>
     <string name="layout_linear">纵向列表</string>
+    <string name="illust_list_layout">插画列表布局</string>
+    <string name="illust_list_layout_sheet_desc">推荐、排行、搜索、收藏等插画列表的排布方式。</string>
+    <string name="illust_list_layout_masonry">瀑布流</string>
+    <string name="illust_list_layout_masonry_desc">等宽不等高</string>
+    <string name="illust_list_layout_grid">方格</string>
+    <string name="illust_list_layout_grid_desc">等宽等高</string>
+    <string name="illust_list_layout_justified">齐行</string>
+    <string name="illust_list_layout_justified_desc">等高不等宽</string>
+    <string name="illust_list_layout_single">单列</string>
+    <string name="illust_list_layout_single_desc">单列全宽</string>
     <string name="string_337">重新下载</string>
     <string name="string_338">R18 作品下载至另一目录</string>
     <string name="string_339">下载这个作品</string>

@@ -590,6 +590,16 @@
     <string name="layout_mode">Макет ленты подписок</string>
     <string name="layout_staggered">Плитка</string>
     <string name="layout_linear">Вертикальный список</string>
+    <string name="illust_list_layout">Макет списка иллюстраций</string>
+    <string name="illust_list_layout_sheet_desc">Как располагаются рекомендации, рейтинги, поиск, закладки и другие списки иллюстраций.</string>
+    <string name="illust_list_layout_masonry">Плитка</string>
+    <string name="illust_list_layout_masonry_desc">Одна ширина, разная высота</string>
+    <string name="illust_list_layout_grid">Сетка</string>
+    <string name="illust_list_layout_grid_desc">Одинаковые ширина и высота</string>
+    <string name="illust_list_layout_justified">По строкам</string>
+    <string name="illust_list_layout_justified_desc">Одна высота, разная ширина</string>
+    <string name="illust_list_layout_single">Одна колонка</string>
+    <string name="illust_list_layout_single_desc">Одна колонка во всю ширину</string>
     <string name="string_337">Скачать снова</string>
     <string name="string_338">Скачивать R-18 в отдельную папку</string>
     <string name="string_339">Скачать эту иллюстрацию</string>

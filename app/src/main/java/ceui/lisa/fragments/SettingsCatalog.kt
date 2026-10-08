@@ -107,6 +107,7 @@ object SettingsCatalog {
         // 别名按整串子串匹配（同上），「平板双栏」「左右分屏」这类连写说法各铺一遍
         add(Entry(APPEARANCE, "tablet_layout_rela", R.string.tablet_layout, R.string.tablet_layout_desc, keywords = "平板 平板适配 平板排版 平板布局 双栏 平板双栏 侧边栏 侧边导航 导航栏 大屏 宽屏 折叠屏 瀑布流 列数 详情页 tablet layout large screen foldable navigation rail sidebar"))
         add(Entry(APPEARANCE, "line_count_rela", R.string.string_336, keywords = "列数 几列 瀑布流 网格 columns grid"))
+        add(Entry(APPEARANCE, "illust_list_layout_rela", R.string.illust_list_layout, keywords = "布局 列表布局 图片列表 瀑布流 方格 网格 等宽等高 齐行 等高不等宽 单列 全宽 大图 layout masonry grid justified single column"))
         add(Entry(APPEARANCE, "layout_mode_rela", R.string.layout_mode, keywords = "瀑布流 线性 列表 关注动态 staggered linear"))
         add(Entry(APPEARANCE, "show_novel_card_tags_rela", R.string.show_novel_card_tags_setting, keywords = "小说标签 卡片 tag novel"))
         add(Entry(APPEARANCE, "show_novel_card_tag_translations_rela", R.string.show_novel_card_tag_translations_setting, keywords = "小说标签译文 小说标签翻译 小说列表标签译文 小说列表标签翻译 标签译文 标签翻译 tag translation novel"))

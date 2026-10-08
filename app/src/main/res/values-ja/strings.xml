@@ -590,6 +590,16 @@
     <string name="layout_mode">フォロー新着のレイアウト</string>
     <string name="layout_staggered">ウォーターフォール</string>
     <string name="layout_linear">縦リスト</string>
+    <string name="illust_list_layout">イラスト一覧のレイアウト</string>
+    <string name="illust_list_layout_sheet_desc">おすすめ・ランキング・検索・ブックマークなどのイラスト一覧の並べ方です。</string>
+    <string name="illust_list_layout_masonry">ウォーターフォール</string>
+    <string name="illust_list_layout_masonry_desc">幅そろえ・高さ不揃い</string>
+    <string name="illust_list_layout_grid">グリッド</string>
+    <string name="illust_list_layout_grid_desc">幅と高さをそろえる</string>
+    <string name="illust_list_layout_justified">行そろえ</string>
+    <string name="illust_list_layout_justified_desc">高さそろえ・幅不揃い</string>
+    <string name="illust_list_layout_single">1列</string>
+    <string name="illust_list_layout_single_desc">全幅で1列</string>
     <string name="string_337">ダウンロード済み</string>
     <string name="string_338">R-18作品を別のフォルダーに保存</string>
     <string name="string_339">ダウンロード</string>
