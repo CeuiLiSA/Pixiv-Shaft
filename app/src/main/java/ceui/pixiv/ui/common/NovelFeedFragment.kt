@@ -19,7 +19,6 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.RecyNovelBinding
-import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
@@ -27,6 +26,8 @@ import ceui.pixiv.api.Client
 import ceui.loxia.Novel
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.chat.base.viewModels
+import ceui.pixiv.download.toast.DownloadToastKind
+import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -144,12 +145,13 @@ abstract class NovelFeedFragment(
             format = format,
             onFinished = { failures ->
                 if (isAdded) {
-                    Common.showToast(
+                    DownloadToasts.show(
+                        DownloadToastKind.NOVEL_BATCH_RESULT,
                         if (failures.isEmpty()) {
                             getString(R.string.batch_download_all_ok)
                         } else {
                             getString(R.string.batch_download_some_failed, failures.size)
-                        }
+                        },
                     )
                 }
             },

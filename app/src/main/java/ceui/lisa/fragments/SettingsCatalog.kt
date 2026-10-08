@@ -189,7 +189,7 @@ object SettingsCatalog {
         add(Entry(DOWNLOAD, "download_limit_type_rela", R.string.string_452, keywords = "限制 wifi 流量 蜂窝 移动网络 limit"))
         add(Entry(DOWNLOAD, "max_concurrent_downloads_rela", R.string.setting_max_concurrent_downloads, keywords = "并发 同时 多任务 线程 速度 concurrent"))
         add(Entry(DOWNLOAD, "illust_long_press_download_rela", R.string.string_405, keywords = "长按 下载 long press"))
-        add(Entry(DOWNLOAD, "toast_download_result_rela", R.string.toast_download_result, keywords = "提示 通知 完成 toast"))
+        add(Entry(DOWNLOAD, "download_toasts_rela", R.string.download_toast_entry_title, R.string.download_toast_dialog_hint, keywords = "提示 通知 弹窗 消息 完成 失败 入队 队列 批量 汇总 进度 安静 静音 不弹 关闭 关掉 toast notice"))
         add(Entry(DOWNLOAD, "silent_download_rela", R.string.setting_silent_download_title, R.string.setting_silent_download_desc, keywords = "低调 静默 隐藏 隐身 最近 微信 qq 相册 时间 recent hide silent wechat"))
         add(Entry(DOWNLOAD, "aria2_rela", R.string.aria2_settings_title, R.string.aria2_settings_entry_desc, keywords = "aria2 远程 nas rpc 服务器 remote"))
 

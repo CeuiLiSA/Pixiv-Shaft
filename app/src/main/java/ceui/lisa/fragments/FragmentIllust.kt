@@ -87,6 +87,7 @@ import ceui.pixiv.ui.upscale.IllustAiHelper
 import ceui.pixiv.utils.buildPinnedTagPreviewJson
 import ceui.pixiv.utils.isHostStillResumed
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.utils.singleLineTitle
 
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -472,7 +473,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             }
             val seriesString = getString(R.string.string_229)
             val spannableString = SpannableString(
-                String.format("@%s %s", seriesString, illust.title)
+                String.format("@%s %s", seriesString, illust.title.singleLineTitle())
             )
             spannableString.setSpan(
                 clickableSpan, 0, seriesString.length + 1,
@@ -481,7 +482,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.title.movementMethod = LinkMovementMethod.getInstance()
             baseBind.title.text = spannableString
         } else {
-            baseBind.title.text = illust.title
+            baseBind.title.text = illust.title.singleLineTitle()
         }
     }
 
