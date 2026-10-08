@@ -10,7 +10,6 @@ import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.download.IllustDownload
 import ceui.pixiv.api.model.Illust
-import ceui.lisa.utils.Common
 import ceui.lisa.utils.DownloadLimitTypeUtil
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueEntity
@@ -19,6 +18,8 @@ import ceui.pixiv.db.queue.WorkType
 import ceui.pixiv.download.RecordedPageProbe
 import ceui.pixiv.download.StageStore
 import ceui.pixiv.download.StorageSpaceGuard
+import ceui.pixiv.download.toast.DownloadToastKind
+import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.download.maintenance.MediaStoreOrphanCleaner
 import kotlinx.coroutines.CoroutineScope
@@ -219,14 +220,17 @@ class QueueDownloadManager(app: Context) {
 
     /**
      * 队列真正跑空（无 PENDING、无 illust/ugoira inflight）时弹汇总 Toast 并清零计数。
-     * 不受 isToastDownloadResult 开关控制：那个开关灭的是「逐张刷屏」，整批一条的
-     * 汇总正是 #950 要的完成反馈，关掉开关的用户也需要知道批量下载结束了。
+     * 逐张的完成 / 失败已被 DownloadItem.silent 压掉（#950），这条是整批唯一的完成反馈；
+     * 要更安静就去「设置 → 下载 → 下载相关提示消息」关掉「批量下载汇总」。
      */
     private fun maybeToastBatchSummary() {
         val success = batchSuccessCount.getAndSet(0)
         val failed = batchFailedCount.getAndSet(0)
         if (success == 0 && failed == 0) return
-        Common.showToast(appContext.getString(R.string.bulk_download_summary, success + failed, success, failed))
+        DownloadToasts.show(
+            DownloadToastKind.BULK_SUMMARY,
+            appContext.getString(R.string.bulk_download_summary, success + failed, success, failed),
+        )
     }
 
     // [UgoiraPhase] / [UgoiraInFlight] 已移到 UgoiraTypes.kt（同包，引用方式不变：直接写名字）
@@ -639,9 +643,7 @@ class QueueDownloadManager(app: Context) {
                     )
                     di.showUrl = IllustDownload.getShowUrl(infNeedingPage.bean, i)
                     di.isSilent = true  // 批量 page 不逐条弹 Toast，跑空时统一弹汇总（issue #950）
-                    // 队列放行后的补页 = 用户已手动启动，不走「不自动下载 → 暂停态」改写
-                    // （见 Manager.addTaskFromQueue）；套上去会让 pump 永远挑不到这批页。
-                    Manager.get().addTaskFromQueue(di)
+                    Manager.get().addTask(di)
                 }.onFailure {
                     Timber.tag(TAG).w(
                         it, "[QUEUE-CONSUMER] addTask failed illust=${infNeedingPage.illustId} page=$i"

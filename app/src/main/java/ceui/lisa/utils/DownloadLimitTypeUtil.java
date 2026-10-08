@@ -46,7 +46,7 @@ public class DownloadLimitTypeUtil {
      *   2 不自动下载    → 从不自动开始，等用户在下载管理里手动启动
      * 其它（脏值）按 0 处理，与 [getCurrentStatusIndex] 的兜底口径保持一致。
      */
-    static boolean autoStartAllowed(int limitType, boolean wifiConnected){
+    public static boolean autoStartAllowed(int limitType, boolean wifiConnected){
         if (limitType == 1) return wifiConnected;
         if (limitType == 2) return false;
         return true;
@@ -62,7 +62,7 @@ public class DownloadLimitTypeUtil {
     }
 
     /** [requiresWifi()] 的纯函数版本，便于单测。 */
-    static boolean requiresWifi(int limitType){
+    public static boolean requiresWifi(int limitType){
         return limitType == 1;
     }
 
@@ -77,8 +77,8 @@ public class DownloadLimitTypeUtil {
      *     播放/暂停键按 isPaused 渲染成"暂停"图标，用户得先点一下暂停、再点一下继续
      *     才能真的开始。故入列即置 paused，如实呈现「已暂停」。
      *
-     * 批量队列被用户手动放行后的补页走 {@code Manager.addTaskFromQueue()} —— 那次点击
-     * 本身就是手动启动，刻意不套这条规则。
+     * 批量队列被用户手动放行后的补页（silent）不套这条规则 —— 那次点击本身就是手动启动
+     * （见 {@code Manager.addTask}）。
      */
     public static boolean enqueueAsPaused(){
         return enqueueAsPaused(Shaft.sSettings.getDownloadLimitType());

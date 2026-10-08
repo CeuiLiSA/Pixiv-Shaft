@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!--
+      圆角药丸式暂停图标 (双竖条胶囊药丸)
+      左药丸: x ∈ [6, 10], y ∈ [5, 19], 宽 4, 高 14, 圆角半径 r=2 (半圆端帽)
+      右药丸: x ∈ [14, 18], y ∈ [5, 19], 宽 4, 高 14, 圆角半径 r=2 (半圆端帽)
+    -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M8,5h0a2,2 0 0,1 2,2v10a2,2 0 0,1 -2,2h0a2,2 0 0,1 -2,-2V7a2,2 0 0,1 2,-2zM16,5h0a2,2 0 0,1 2,2v10a2,2 0 0,1 -2,2h0a2,2 0 0,1 -2,-2V7a2,2 0 0,1 2,-2z" />
+</vector>
