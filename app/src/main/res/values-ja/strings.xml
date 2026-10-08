@@ -1115,6 +1115,8 @@
     <string name="update_retry">再試行</string>
     <string name="update_download_failed">ダウンロードに失敗しました</string>
     <string name="update_check_failed">更新確認に失敗しました</string>
+    <string name="update_rate_limited">レート制限に達しました。しばらく待ってから再試行してください</string>
+    <string name="update_rate_limited_with_reset">レート制限に達しました。%1$s 以降に再試行してください</string>
     <string name="update_download_title">Shaft 更新</string>
     <string name="update_version_skipped">このバージョンはスキップ済みです</string>
     <string name="update_enable_install_permission">不明な提供元のアプリのインストールを許可してください</string>

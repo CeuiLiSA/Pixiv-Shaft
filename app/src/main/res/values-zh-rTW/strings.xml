@@ -1117,6 +1117,8 @@
     <string name="update_retry">重試</string>
     <string name="update_download_failed">下載失敗</string>
     <string name="update_check_failed">檢查更新失敗</string>
+    <string name="update_rate_limited">被速率限制，請稍後再試</string>
+    <string name="update_rate_limited_with_reset">被速率限制，請於 %1$s 後再試</string>
     <string name="update_download_title">Shaft 更新</string>
     <string name="update_version_skipped">已跳過此版本</string>
     <string name="update_enable_install_permission">請允許安裝未知來源應用</string>

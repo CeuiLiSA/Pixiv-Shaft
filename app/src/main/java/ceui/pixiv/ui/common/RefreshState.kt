@@ -4,6 +4,9 @@ import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.CfBlockDetector
 import ceui.lisa.http.CfBlockGuide
+import ceui.lisa.R
+import ceui.lisa.update.AppUpdateChecker
+import ceui.lisa.update.RateLimitException
 import ceui.pixiv.api.model.ErrorResp
 import ceui.pixiv.chat.base.toUserMessage
 import retrofit2.HttpException
@@ -11,13 +14,19 @@ import timber.log.Timber
 import java.io.Serializable
 import java.lang.Exception
 
-sealed class RefreshState: Serializable {
-    data class LOADING(val title: String = "", val refreshHint: RefreshHint? = null) : RefreshState()
+sealed class RefreshState : Serializable {
+    data class LOADING(val title: String = "", val refreshHint: RefreshHint? = null) :
+        RefreshState()
+
     data class LOADED(val hasContent: Boolean = true, val hasNext: Boolean = true) : RefreshState()
     data class ERROR(val exception: Exception, val isInitialLoad: Boolean = false) : RefreshState()
 }
 
 fun Throwable.getHumanReadableMessage(context: Context): String {
+    if (this is RateLimitException || AppUpdateChecker.isRateLimit(this)) {
+        return AppUpdateChecker.getRateLimitMessage(context, this)
+    }
+
     // 正文只读一次，CF 分类与后面的错误解析共用这一份 —— errorBody().string() 是一次性的，
     // 谁再读一遍都只会拿到空。
     val errorBody = readErrorBodyOnce()
@@ -85,6 +94,6 @@ private fun Throwable.readErrorBodyOnce(): String? {
 private fun looksLikeHtml(body: String): Boolean {
     val head = body.trimStart()
     return head.startsWith("<") ||
-        head.contains("<html", ignoreCase = true) ||
-        head.contains("<!DOCTYPE", ignoreCase = true)
+            head.contains("<html", ignoreCase = true) ||
+            head.contains("<!DOCTYPE", ignoreCase = true)
 }

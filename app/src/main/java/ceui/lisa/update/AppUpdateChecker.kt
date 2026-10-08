@@ -7,8 +7,23 @@ import com.google.gson.GsonBuilder
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import android.content.Context
+import ceui.lisa.R
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import okhttp3.Response
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+
+class RateLimitException(
+    val resetEpochSeconds: Long? = null,
+    message: String = "被速率限制，请稍后再试",
+    cause: Throwable? = null
+) : IOException(message, cause)
 
 object AppUpdateChecker {
 
@@ -29,7 +44,12 @@ object AppUpdateChecker {
                     .header("Accept", "application/vnd.github+json")
                     .url(GithubProxy.wrap(original.url))
                     .build()
-                chain.proceed(request)
+                val response = chain.proceed(request)
+                if (isRateLimitResponse(response)) {
+                    val reset = response.header("x-ratelimit-reset")?.toLongOrNull()
+                    throw RateLimitException(resetEpochSeconds = reset)
+                }
+                response
             }
             .build()
         Retrofit.Builder()
@@ -40,12 +60,109 @@ object AppUpdateChecker {
             .create(GitHubApi::class.java)
     }
 
+    internal fun isRateLimitResponse(response: Response): Boolean {
+        if (response.code == 429) return true
+        if (response.code == 403) {
+            val remaining = response.header("x-ratelimit-remaining")?.toIntOrNull()
+            if (remaining == 0) return true
+            if (!response.header("retry-after").isNullOrBlank()) return true
+            val peek = runCatching { response.peekBody(1024).string() }.getOrNull()
+            if (peek?.contains("rate limit", ignoreCase = true) == true) return true
+        }
+        return false
+    }
+
+    fun isRateLimit(throwable: Throwable): Boolean {
+        if (throwable is RateLimitException) return true
+        if (throwable is HttpException) {
+            val response = throwable.response()
+            if (response != null) {
+                if (response.code() == 429) return true
+                if (response.code() == 403) {
+                    val remaining = response.headers()["x-ratelimit-remaining"]?.toIntOrNull()
+                    if (remaining == 0) return true
+                    if (!response.headers()["retry-after"].isNullOrBlank()) return true
+                }
+            }
+            val msg = throwable.message()
+            if (msg.contains("rate limit", ignoreCase = true)) return true
+        }
+        val message = throwable.message
+        if (message != null && message.contains("rate limit", ignoreCase = true)) return true
+        val cause = throwable.cause
+        if (cause != null && isRateLimit(cause)) return true
+        return false
+    }
+
+    fun extractResetEpochSeconds(throwable: Throwable): Long? {
+        if (throwable is RateLimitException) {
+            return throwable.resetEpochSeconds
+        }
+        if (throwable is HttpException) {
+            val header = throwable.response()?.headers()?.get("x-ratelimit-reset")
+            return header?.toLongOrNull()
+        }
+        val cause = throwable.cause
+        return if (cause != null) extractResetEpochSeconds(cause) else null
+    }
+
+    fun formatResetTime(resetEpochSeconds: Long, nowMs: Long = System.currentTimeMillis()): String {
+        val resetMs = resetEpochSeconds * 1000L
+        val resetCal = Calendar.getInstance().apply { timeInMillis = resetMs }
+        val nowCal = Calendar.getInstance().apply { timeInMillis = nowMs }
+        val isSameDay = resetCal.get(Calendar.YEAR) == nowCal.get(Calendar.YEAR) &&
+                resetCal.get(Calendar.DAY_OF_YEAR) == nowCal.get(Calendar.DAY_OF_YEAR)
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val timeStr = timeFormat.format(Date(resetMs))
+        return if (isSameDay) {
+            timeStr
+        } else {
+            val dateFormat = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
+            dateFormat.format(Date(resetMs))
+        }
+    }
+
+    fun getRateLimitMessage(
+        context: Context,
+        resetEpochSeconds: Long? = null,
+        nowMs: Long = System.currentTimeMillis()
+    ): String {
+        if (resetEpochSeconds != null && resetEpochSeconds * 1000L > nowMs) {
+            val timeStr = formatResetTime(resetEpochSeconds, nowMs)
+            return context.getString(R.string.update_rate_limited_with_reset, timeStr)
+        }
+        return context.getString(R.string.update_rate_limited)
+    }
+
+    fun getRateLimitMessage(context: Context, throwable: Throwable): String {
+        val reset = extractResetEpochSeconds(throwable)
+        return getRateLimitMessage(context, reset)
+    }
+
     suspend fun fetchAllReleases(): List<GitHubRelease> = withContext(Dispatchers.IO) {
-        api.getReleases(GitHubApi.OWNER, GitHubApi.REPO)
+        try {
+            api.getReleases(GitHubApi.OWNER, GitHubApi.REPO)
+        } catch (e: Exception) {
+            if (isRateLimit(e)) {
+                val reset = extractResetEpochSeconds(e)
+                throw RateLimitException(resetEpochSeconds = reset, cause = e)
+            } else {
+                throw e
+            }
+        }
     }
 
     suspend fun checkForUpdate(): UpdateResult = withContext(Dispatchers.IO) {
-        val release = api.getLatestRelease(GitHubApi.OWNER, GitHubApi.REPO)
+        val release = try {
+            api.getLatestRelease(GitHubApi.OWNER, GitHubApi.REPO)
+        } catch (e: Exception) {
+            if (isRateLimit(e)) {
+                val reset = extractResetEpochSeconds(e)
+                throw RateLimitException(resetEpochSeconds = reset, cause = e)
+            } else {
+                throw e
+            }
+        }
         val remoteVersion = release.tagName.removePrefix("v").removePrefix("V")
         val currentVersion = BuildConfig.VERSION_NAME
         if (isNewerVersion(remoteVersion, currentVersion)) {

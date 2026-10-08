@@ -1115,6 +1115,8 @@
     <string name="update_retry">Yeniden dene</string>
     <string name="update_download_failed">İndirme başarısız oldu</string>
     <string name="update_check_failed">Güncellemeler kontrol edilemedi</string>
+    <string name="update_rate_limited">İstek sınırına ulaşıldı, lütfen daha sonra tekrar deneyin</string>
+    <string name="update_rate_limited_with_reset">İstek sınırına ulaşıldı, lütfen %1$s sonrasında tekrar deneyin</string>
     <string name="update_download_title">Shaft güncellemesi</string>
     <string name="update_version_skipped">Bu sürüm atlandı</string>
     <string name="update_enable_install_permission">Bilinmeyen kaynaklardan uygulama kurulumuna izin verin</string>
