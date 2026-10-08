@@ -2987,6 +2987,8 @@
     <string name="settings_bookmark_mirror">Yerel yer imi kopyası</string>
     <string name="settings_like_haptic">Yer imi ve takip titreşim geri bildirimi</string>
     <string name="settings_like_haptic_desc">Sistem dokunma geri bildirimini de açmanız gerekebilir</string>
+    <string name="settings_scroll_edge_haptic">Liste kenarında titreşim</string>
+    <string name="settings_scroll_edge_haptic_desc">Liste en üste veya en alta ulaştığında hafif titreşim. Sistem dokunma geri bildirimini de açmanız gerekebilir</string>
     <string name="bookmark_library_menu_entry">Filtrelerle gözat</string>
     <string name="bookmark_library_open_classic">Orijinal yer imi listesi</string>
     <string name="bookmark_mirror_ready_title">Yer imi kitaplığı hazır</string>

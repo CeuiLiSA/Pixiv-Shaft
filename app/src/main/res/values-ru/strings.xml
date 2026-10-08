@@ -2993,6 +2993,8 @@
     <string name="settings_bookmark_mirror">Локальная копия закладок</string>
     <string name="settings_like_haptic">Вибрация при закладке и подписке</string>
     <string name="settings_like_haptic_desc">Возможно, потребуется также включить тактильную обратную связь в системе</string>
+    <string name="settings_scroll_edge_haptic">Вибрация на краю списка</string>
+    <string name="settings_scroll_edge_haptic_desc">Лёгкая вибрация, когда список доходит до начала или конца. Возможно, потребуется также включить тактильную обратную связь в системе</string>
     <string name="bookmark_library_menu_entry">Просмотр с фильтрами</string>
     <string name="bookmark_library_open_classic">Исходный список закладок</string>
     <string name="bookmark_mirror_ready_title">Библиотека закладок готова</string>

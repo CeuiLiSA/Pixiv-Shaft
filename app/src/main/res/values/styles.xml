@@ -16,6 +16,8 @@
         <item name="colorPrimaryDark">#4749a0</item>
         <item name="colorControlActivated">?attr/colorPrimary</item>
         <item name="colorSwitchThumbNormal">#F1F1F1</item>
+        <!-- 布局里的 RecyclerView 统一带「滑到边缘轻震」（#1193），见 ShaftViewInflater -->
+        <item name="viewInflaterClass">ceui.pixiv.widgets.ShaftViewInflater</item>
 
         <!-- ↓ 原本由 QMUI 的 AppConfigTheme 供给，逐条接管，取值与它一致 ↓ -->
 

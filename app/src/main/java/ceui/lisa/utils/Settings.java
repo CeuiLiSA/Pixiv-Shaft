@@ -270,6 +270,9 @@ public class Settings {
     //收藏按钮振动反馈，默认开启
     private boolean likeHapticEnable = true;
 
+    //列表滑到边缘振动反馈（#1193），默认开启
+    private boolean scrollEdgeHapticEnable = true;
+
     //小说卡片是否显示标签
     private boolean showNovelCardTags = true;
 
@@ -1271,6 +1274,14 @@ public class Settings {
 
     public void setFeedBackToTopFab(boolean feedBackToTopFab) {
         this.feedBackToTopFab = feedBackToTopFab;
+    }
+
+    public boolean isScrollEdgeHapticEnable() {
+        return scrollEdgeHapticEnable;
+    }
+
+    public void setScrollEdgeHapticEnable(boolean scrollEdgeHapticEnable) {
+        this.scrollEdgeHapticEnable = scrollEdgeHapticEnable;
     }
 
     public int getSaveForSeparateAuthorStatus() {

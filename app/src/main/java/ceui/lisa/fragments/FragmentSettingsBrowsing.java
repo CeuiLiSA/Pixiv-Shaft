@@ -253,6 +253,19 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         baseBind.feedBackToTopFabRela.setOnClickListener(v ->
                 baseBind.feedBackToTopFab.performClick());
 
+        // 列表滑到边缘振动反馈（#1193），默认开启，即时生效
+        baseBind.scrollEdgeHaptic.setChecked(Shaft.sSettings.isScrollEdgeHapticEnable());
+        baseBind.scrollEdgeHaptic.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setScrollEdgeHapticEnable(isChecked);
+                Common.showToast(getString(R.string.string_428), 2);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.scrollEdgeHapticRela.setOnClickListener(v ->
+                baseBind.scrollEdgeHaptic.performClick());
+
         // 同义词词典功能总开关（issue #904），默认关闭。
         // 关闭时所有相关 UI（详情页匹配框/长按菜单项/管理页入口/自动导入/自动勾选）完全隐藏。
         baseBind.synonymDictEnable.setChecked(Shaft.sSettings.isSynonymDictEnabled());

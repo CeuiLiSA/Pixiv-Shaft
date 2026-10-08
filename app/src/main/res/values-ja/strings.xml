@@ -2984,6 +2984,8 @@
     <string name="settings_bookmark_mirror">ブックマークのローカルミラー</string>
     <string name="settings_like_haptic">ブックマーク・フォローの振動フィードバック</string>
     <string name="settings_like_haptic_desc">システムの触覚フィードバックも併せてオンにする必要がある場合があります</string>
+    <string name="settings_scroll_edge_haptic">リストの端で振動</string>
+    <string name="settings_scroll_edge_haptic_desc">リストが先頭または末尾に達したときに軽く振動します。システムの触覚フィードバックも併せてオンにする必要がある場合があります</string>
     <string name="bookmark_library_menu_entry">条件で絞って見る</string>
     <string name="bookmark_library_open_classic">元のブックマーク一覧</string>
     <string name="bookmark_mirror_ready_title">ブックマークライブラリの準備ができました</string>
