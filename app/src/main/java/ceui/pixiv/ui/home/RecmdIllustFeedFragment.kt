@@ -45,12 +45,20 @@ import ceui.pixiv.ui.common.JustifiedLayoutManager
 import ceui.pixiv.ui.common.showCardMenu
 import ceui.pixiv.ui.common.staggerIllustRenderer
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.discovery.WebDiscoverySession
+import ceui.pixiv.utils.isFullDetail
 import ceui.pixiv.utils.setOnClick
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import ceui.pixiv.services.appServices
+import ceui.pixiv.session.SessionManager
+import timber.log.Timber
 
 /**
  * 首页「推荐插画」tab / 推荐漫画页（feeds 框架版，替代 legacy FragmentRecmdIllust +
@@ -93,7 +101,16 @@ open class RecmdIllustFeedFragment(
         // 再拉最新覆盖。slot 已由框架自动拼账号命名空间，切号不串味。
         cachedPixivFeedSource(
             slot = "recmd-$apiType",
-            initialFetch = { Client.appApi.getRecommendedWorksWithRanking(apiType) },
+            // app-api 推荐流不出 R-18，R-18 推荐只能从官网首页拿：两路并行，官网那路排到最前。
+            // 官网失败只是少了 R-18，不拖垮首屏；app-api 失败照旧整体失败。
+            initialFetch = {
+                coroutineScope {
+                    val webR18 = async { fetchWebR18Recommend(apiType) }
+                    val resp = Client.appApi.getRecommendedWorksWithRanking(apiType)
+                    val r18 = webR18.await()
+                    if (r18.isEmpty()) resp else resp.copy(illusts = r18 + resp.illusts)
+                }
+            },
             // 「启动时自动刷新首页推荐」(issue #955)：关掉后冷启命中快照就停在快照上，
             // 由用户下拉刷新才换一批——推荐流每次冷启整代替换，会让上次没翻完的作品直接消失。
             // 只作用于首页那份实例：推荐漫画是从别处点进去的独立页面，不属于「启动」语义。
@@ -110,9 +127,16 @@ open class RecmdIllustFeedFragment(
     override val showRelatedOnStar: Boolean
         get() = Shaft.sSettings.isShowRelatedWhenStar
 
-    /** 排行榜预览头携带的 bean 也要合池 + 灌关注状态（对齐 legacy onFirstLoaded）。 */
+    /**
+     * 排行榜预览头携带的 bean 也要合池 + 灌关注状态（对齐 legacy onFirstLoaded）。
+     * 官网 R-18 推荐是精简缩略图（没有关注态），不能拿去覆盖池里的完整 bean。
+     */
     override fun poolableBeansOf(item: FeedItem): List<Illust> {
-        return if (item is RankPreviewHeaderItem) item.rankBeans else super.poolableBeansOf(item)
+        return if (item is RankPreviewHeaderItem) {
+            item.rankBeans
+        } else {
+            super.poolableBeansOf(item).filter { it.isFullDetail() }
+        }
     }
 
     /** 收藏成功回流的相关作品：按被收藏作品 id 锚定，截前 5 条打 NEW 角标插到它后面。 */
@@ -261,6 +285,9 @@ open class RecmdIllustFeedFragment(
     companion object {
         internal const val ARG_DATA_TYPE = "recmd_data_type"
 
+        /** 官网 R-18 推荐的等待上限。实测正常 1.2–1.6s，留出余量又不让首屏被慢网拖住。 */
+        private const val WEB_R18_BUDGET_MS = 3_000L
+
         /** dataType 是路由字面量（RankActivity 按 "插画"/"漫画" 分支），不是展示文案，别本地化。 */
         const val TYPE_ILLUST = "插画"
         const val TYPE_MANGA = "漫画"
@@ -269,6 +296,41 @@ open class RecmdIllustFeedFragment(
         fun newInstance(dataType: String): RecmdIllustFeedFragment {
             return RecmdIllustFeedFragment().apply {
                 arguments = Bundle().apply { putString(ARG_DATA_TYPE, dataType) }
+            }
+        }
+
+        /**
+         * 官网首页 mode=r18 的个性化推荐：「为你推荐」在前，「按标签推荐」各行按序接在后面，
+         * 跨区块按 id 去重（插画约 18 + 6×24 条，漫画只有约 3 条且没有按标签区块）。
+         * 需要与当前账号一致的网页会话；账号在官网关了 R-18 浏览时不请求（会话里的 x_restrict 随
+         * token 刷新更新，见 [SessionManager.applyTokenRefresh]）；开着 R18 过滤时也不请求——
+         * 拉回来也会被 [IllustFeedItem.of] 滤掉。
+         * 首屏要等它和 app-api 都回来，所以限时 [WEB_R18_BUDGET_MS]：网页客户端自己的超时是
+         * 连接 5s + 读取 10s，不限时的话官网一慢，本来 0.3s 就能出的首屏会被拖住十几秒。
+         * 超时和任何失败都降级成空列表。
+         */
+        private suspend fun fetchWebR18Recommend(apiType: String): List<Illust> {
+            if (!SessionManager.isR18Viewable ||
+                Shaft.sSettings.isR18FilterTempEnable ||
+                !WebDiscoverySession.isCurrentAccount
+            ) {
+                return emptyList()
+            }
+            return try {
+                val body = withTimeoutOrNull(WEB_R18_BUDGET_MS) {
+                    Client.webApi.getTopArtworks(apiType, "r18").body
+                } ?: return emptyList()
+                val page = body.page
+                val ids = page?.recommend?.ids.orEmpty() +
+                    page?.recommendByTag.orEmpty().flatMap { it.ids.orEmpty() }
+                body.artworks(ids.distinct())
+                    .filter { it.xRestrict > 0 }
+                    .map { it.toIllust() }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "web r18 recommend failed")
+                emptyList()
             }
         }
 
@@ -287,10 +349,10 @@ open class RecmdIllustFeedFragment(
             dataType: String,
         ): List<FeedItem> {
             // 对齐 legacy RecmdIllustRepo：过滤前整页喂 DiscoveryPool（排行榜预览不算）。
-            // 缓存恢复不喂（旧数据画像无意义、且违反重放安全）。
+            // 缓存恢复不喂（旧数据画像无意义、且违反重放安全）；官网精简缩略图也不喂。
             if (phase.isFreshFetch) {
                 pool.collect(
-                    illusts,
+                    illusts.filter { it.isFullDetail() },
                     if (phase.isFirstPage) "recmd:$dataType" else "recmd_next:$dataType",
                 )
             }
