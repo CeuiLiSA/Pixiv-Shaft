@@ -256,7 +256,6 @@ internal fun ArtworkV3Fragment.heroRenderer() =
         val ctx = requireContext()
         val b = cell.binding
         b.heroTitle.text = illust.title
-        b.heroTitle.setOnLongClickListener { Common.copy(ctx, illust.title.orEmpty()); true }
         b.metaType.text = when (illust.type) {
             "manga" -> ctx.getString(R.string.v3_type_manga)
             "ugoira" -> ctx.getString(R.string.v3_type_ugoira)

@@ -484,10 +484,6 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         } else {
             baseBind.title.text = illust.title.singleLineTitle()
         }
-        baseBind.title.setOnLongClickListener {
-            Common.copy(mContext, illust.title)
-            true
-        }
     }
 
     private fun setupToolbarMenu(illust: Illust) {
