@@ -40,6 +40,7 @@ class V3FabBarController(
     /** 胶囊前景(图标/分隔线/进度环)当前内容色。XML 默认深色胶囊白内容,[applyPalette] 后换 palette 内容色。 */
     @ColorInt
     private var contentColor: Int = context.getColor(R.color.white)
+    private var lastRenderedDownloadState: DownloadFab? = null
 
     init {
         // 种子:Idle 态图标在构造时就摆对。[renderDownload] 要等 [ImageDetailActivity.checkDownload]
@@ -49,6 +50,7 @@ class V3FabBarController(
 
     /** 按 [V3Palette] 重刷胶囊背景与内容色,两页都必须调(浅色主题下 XML 默认深色值不可用)。 */
     fun applyPalette(palette: V3Palette) {
+        lastRenderedDownloadState = null
         val density = binding.root.resources.displayMetrics.density
         binding.root.background = palette.floatingPillBg(999f * density)
         contentColor = palette.floatingPillContent
@@ -67,6 +69,8 @@ class V3FabBarController(
     }
 
     fun renderDownload(state: DownloadFab) {
+        if (lastRenderedDownloadState == state) return
+        lastRenderedDownloadState = state
         when (state) {
             DownloadFab.Idle ->
                 paintDownload(
@@ -86,6 +90,8 @@ class V3FabBarController(
                 binding.fabDownloadProgress.visibility = View.VISIBLE
                 binding.fabDownloadProgress.setProgressCompat(state.percent, true)
             }
+            is DownloadFab.Paused ->
+                paintDownload(R.drawable.ic_v3_pause_rounded_24, contentColor)
         }
     }
 

@@ -19,8 +19,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -132,6 +134,16 @@ public class Manager {
      */
     private final java.util.Set<String> dispatching = ConcurrentHashMap.newKeySet();
     private boolean isRunning = false;
+    /**
+     * 全局泵关着（[isRunning] == false）时，用户在详情页 FAB 点名放行的作品 id（{@link #startIllust}）。
+     *
+     * 泵关着 = 「仅通过 Wi-Fi 下载」在蜂窝上（入列未自动启动 / {@link #parkForNetwork} 熄火）、
+     * 模式 2、冷启动恢复：content 里其它作品的 INIT 项也都没暂停，只是没人 pump。这时若直接
+     * {@code isRunning = true; pumpAvailableSlots()}，getFirstReady 会按 content 顺序先挑走
+     * **别的**等待项，且每条完成后的 onFinally 再 pump 一轮 —— 整队都在蜂窝上跑起来。
+     * 放进这里的作品单独享有派发资格，跑完（没有待派发 / 在传的页）由 pump 收回。
+     */
+    private final java.util.Set<Long> releasedIllusts = ConcurrentHashMap.newKeySet();
 
     /** 登记传输句柄，同时把 uuid 从 [dispatching] 摘掉（"正在派发"窗口到此为止）。 */
     private void registerHandle(String uuid, DownloadTask d) {
@@ -292,6 +304,9 @@ public class Manager {
             }
 
             if (!isTaskExist) {
+                if (Shaft.sSettings != null && Shaft.sSettings.getDownloadLimitType() == 2 && !bean.isSilent()) {
+                    bean.setPaused(true);
+                }
                 // content.add 必须同步(safeAdd 内)：triggerPump 的 getFirstReady 和
                 // QueueDownloadManager.fillSlots 的 footprint 都靠 content 立刻变长。
                 // 但 addTask 跑在主线程(详情页下载按钮),DownloadingEntity 的
@@ -392,12 +407,13 @@ public class Manager {
             // Gson(~80KB)+Room insert 关在锁里，等于让主线程陪着这整批 IO 一起卡（ANR）。
             // 临界区只保留「去重 + content.add」这点纯内存操作，其余挪出去。
             List<DownloadItem> accepted = new ArrayList<>(list.size());
+            boolean isPausedMode = Shaft.sSettings != null && Shaft.sSettings.getDownloadLimitType() == 2;
             synchronized (this) {
                 if (content == null) {
                     content = new CopyOnWriteArrayList<>();
                 }
                 // 批量构建一个 HashSet 做 O(1) 去重，避免 O(n^2) 逐项扫描
-                java.util.Set<String> existingUrls = new java.util.HashSet<>();
+                Set<String> existingUrls = new HashSet<>();
                 for (DownloadItem existing : content) {
                     existingUrls.add(existing.getUrl());
                 }
@@ -405,6 +421,9 @@ public class Manager {
                     // 与 addTask 对齐:跳过 null item(gif 走 buildDownloadItem 返 null 的历史坑),
                     // 否则 item.getUrl() 直接 NPE。调用方本应先过滤,这里兜底。
                     if (item != null && !existingUrls.contains(item.getUrl())) {
+                        if (isPausedMode && !item.isSilent()) {
+                            item.setPaused(true);
+                        }
                         // content.add 必须同步:triggerPump 的 getFirstReady 靠 content 立刻变长。
                         content.add(item);
                         if (restoreLiveUrls != null) restoreLiveUrls.add(item.getUrl());
@@ -490,6 +509,33 @@ public class Manager {
     }
 
     /**
+     * 恢复/启动指定作品的所有未完成下载条目（用于详情页 FAB 从暂停态就地继续）。
+     *
+     * @return 队列里是否有该作品的条目；false = 还没入列（异步入列尚未落地），什么都没做。
+     */
+    public boolean startIllust(long illustId) {
+        boolean found = false;
+        for (DownloadItem downloadItem : contentSnapshot()) {
+            if (downloadItem != null && downloadItem.getIllust() != null && downloadItem.getIllust().getId() == illustId) {
+                downloadItem.setPaused(false);
+                resurrectIfStranded(downloadItem);
+                found = true;
+            }
+        }
+
+        if (found) {
+            Common.showLog("已开始作品 " + illustId);
+            synchronized (this) {
+                // 泵开着（模式 0 / Wi-Fi 下）照常排队填槽；泵关着只放行这一个作品，见 [releasedIllusts]。
+                if (!isRunning) releasedIllusts.add(illustId);
+                pumpAvailableSlots();
+            }
+            ManagerReactive.invalidate();
+        }
+        return found;
+    }
+
+    /**
      * 把"看似在跑但实际已经没有 disposable 在背后撑着"的 item 翻回 INIT，让
      * [pumpAvailableSlots] 重新挑选派发。两种来源：
      *
@@ -547,6 +593,7 @@ public class Manager {
             item.setPaused(true);
         }
         isRunning = false;
+        releasedIllusts.clear();
         // cancel 全部正在传输的下载（snapshot 防 CME）
         for (DownloadTask d : new ArrayList<>(handles.values())) {
             try { d.cancel(); } catch (Exception ignored) {}
@@ -577,7 +624,9 @@ public class Manager {
     public void parkForNetwork() {
         // 先熄火再取消：cancel 触发的 onFinally 会调 pumpAvailableSlots，
         // isRunning=false 让那一轮直接 return，避免又派发出去。
+        // 详情页单独放行的作品也一并收回：离开 Wi-Fi 后同样退回等待，要走流量需用户再点一次。
         isRunning = false;
+        releasedIllusts.clear();
         for (DownloadTask d : new ArrayList<>(handles.values())) {
             try { d.cancel(); } catch (Exception ignored) {}
         }
@@ -653,7 +702,7 @@ public class Manager {
      * 把手动暂停的 item 也强制恢复 —— FragmentSettings 调这个。
      */
     public synchronized void pumpAvailableSlots() {
-        if (!isRunning) return;
+        if (!isRunning && releasedIllusts.isEmpty()) return;
         int max = Shaft.sSettings.getMaxConcurrentDownloads();
         if (max < 1) max = 1;
         if (max > 5) max = 5;
@@ -690,6 +739,10 @@ public class Manager {
             isRunning = false;
             Common.showLog("Manager 已经全部下载完成");
         }
+        // 单独放行的作品跑完（没有待派发 / 在传的页）就收回放行，下次再入列仍按泵的口径等待。
+        if (!releasedIllusts.isEmpty()) {
+            releasedIllusts.removeIf(id -> !hasPendingPage(id));
+        }
         // dispatched > 0 说明刚刚把若干条 INIT 翻成 DOWNLOADING；invalidate 让
         // UI 立刻看到状态翻转（badge / 进度条）。哪怕 dispatched==0 也无所谓，
         // tryEmit 是 cheap idempotent 操作。
@@ -708,12 +761,31 @@ public class Manager {
         return n;
     }
 
-    /** 找出可以 dispatch 的下一条：state=INIT 且未暂停。 */
+    /** 找出可以 dispatch 的下一条：state=INIT、未暂停，且在派发范围内（见 [isDispatchable]）。 */
     private DownloadItem getFirstReady() {
         for (DownloadItem it : content) {
-            if (!it.isPaused() && it.getState() == DownloadItem.DownloadState.INIT) return it;
+            if (isDispatchable(it, isRunning, releasedIllusts)) return it;
         }
         return null;
+    }
+
+    /**
+     * 派发范围：泵开着时所有未暂停的 INIT 项；泵关着时只有 [releasedIllusts] 里作品的页。
+     * 纯函数，便于单测钉住「详情页继续一个作品不带走整队」的口径。
+     */
+    static boolean isDispatchable(DownloadItem item, boolean pumpRunning, java.util.Set<Long> released) {
+        if (item.isPaused() || item.getState() != DownloadItem.DownloadState.INIT) return false;
+        return pumpRunning || (item.getIllust() != null && released.contains(item.getIllust().getId()));
+    }
+
+    /** 该作品是否还有待派发或在传的页（暂停的不算）。 */
+    private boolean hasPendingPage(long illustId) {
+        for (DownloadItem it : content) {
+            if (it.isPaused() || it.getIllust() == null || it.getIllust().getId() != illustId) continue;
+            int s = it.getState();
+            if (s == DownloadItem.DownloadState.INIT || s == DownloadItem.DownloadState.DOWNLOADING) return true;
+        }
+        return false;
     }
 
     private void downloadOne(Context context, DownloadItem downloadItem) {
