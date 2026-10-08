@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewStub
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.TextView
@@ -235,25 +236,33 @@ class CollapsibleIllustAdapter(
         position: Int,
         fadeIn: Boolean,
     ) {
-        val views = overlayOf(holder) ?: return
-        val overlay = views.overlay
-        val pill = views.expandPill
-        val label = views.expandLabel
-        val comicPill = views.comicPill
-
+        // 覆盖层在 recy_illust_detail 里是 ViewStub：1~2 页的作品永远不会显示它（见 shouldCollapse），
+        // 所以**先判「这一格该不该亮」，判完才决定要不要 inflate** —— 别为了「收起来」
+        // 反而先把那 8 个 View 建出来。
         if (position != 0 || !isCollapsed) {
+            // 不该亮。没建过就没什么可收的，直接走。
+            val views = overlayOf(holder) ?: return
+            val overlay = views.overlay
             overlay.animate().cancel()
             overlay.visibility = View.GONE
             overlay.alpha = 1f
+            val pill = views.expandPill
             pill.animate().cancel()
             pill.scaleX = 1f
             pill.scaleY = 1f
             pill.setOnClickListener(null)
             pill.setOnTouchListener(null)
-            comicPill.visibility = View.GONE
-            comicPill.setOnClickListener(null)
+            views.comicPill.visibility = View.GONE
+            views.comicPill.setOnClickListener(null)
             return
         }
+
+        // 真要显示了，才把子树建出来。
+        val views = ensureOverlayInflated(holder) ?: return
+        val overlay = views.overlay
+        val pill = views.expandPill
+        val label = views.expandLabel
+        val comicPill = views.comicPill
 
         overlay.animate().cancel()
         overlay.visibility = View.VISIBLE
@@ -301,6 +310,19 @@ class CollapsibleIllustAdapter(
                 }
                 .start()
         }
+    }
+
+    /**
+     * 确保「展开剩余 X 张」覆盖层的子树已经 inflate。它在 `recy_illust_detail` 里是 ViewStub，
+     * 只有真要显示时才建 —— 1~2 页的作品（[shouldCollapse] 为 false）从头到尾都不会走到这里。
+     */
+    private fun ensureOverlayInflated(
+        holder: ViewHolder<RecyIllustDetailBinding>,
+    ): OverlayViews? {
+        overlayOf(holder)?.let { return it }
+        val stub = holder.itemView.findViewById<ViewStub>(R.id.expand_overlay_stub) ?: return null
+        stub.inflate()
+        return overlayOf(holder)
     }
 
     @SuppressLint("ClickableViewAccessibility")
