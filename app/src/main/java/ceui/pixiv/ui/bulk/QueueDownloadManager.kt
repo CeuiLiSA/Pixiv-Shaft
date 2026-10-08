@@ -116,14 +116,19 @@ class QueueDownloadManager(app: Context) {
      * pausedFlow 会让按钮一直显示「暂停」，点一下还是 no-op 的 pause()。
      *
      * 任何会改变 paused / userForced / 网络闸门的点都要调一次 [refreshRunning]。
+     * 设置里切换「下载方式」不发任何事件，由主循环每轮评估闸门时顺带发布（见 [runMainLoop]）。
      */
     private val _queueRunningFlow = MutableStateFlow(false)
     val queueRunningFlow: StateFlow<Boolean> get() = _queueRunningFlow
 
-    /** 现算 [queueRunningFlow]。paused / userForced 是 @Volatile，value 写入线程安全。 */
-    private fun refreshRunning() {
-        _queueRunningFlow.value =
-            !paused && (userForced || DownloadLimitTypeUtil.autoStartAllowed())
+    /**
+     * 现算 [queueRunningFlow]。paused / userForced 是 @Volatile，value 写入线程安全。
+     * [gateOpen] 由已经算过闸门的调用方（主循环）传入，避免再查一次网络。
+     */
+    private fun refreshRunning(
+        gateOpen: Boolean = userForced || DownloadLimitTypeUtil.autoStartAllowed(),
+    ) {
+        _queueRunningFlow.value = !paused && gateOpen
     }
 
     /**
@@ -362,7 +367,11 @@ class QueueDownloadManager(app: Context) {
             }
             // 网络闸门只守「自动启动」。用户在下载管理里点过继续（[userForced]）属于
             // 用户触发，忽略网络状态 —— 哪怕当前无网络也放行，下不动是用户自己的选择。
-            if (!userForced && !DownloadLimitTypeUtil.autoStartAllowed()) {
+            val gateOpen = userForced || DownloadLimitTypeUtil.autoStartAllowed()
+            // 运行中切换「下载方式」不会触发任何回调，这里是唯一会重新评估闸门的地方：
+            // 每轮把结果发布出去，按钮方向最迟一个 NETWORK_GATE_SLEEP_MS 就跟上真实状态。
+            refreshRunning(gateOpen)
+            if (!gateOpen) {
                 Timber.tag(TAG).i("[QUEUE-CONSUMER] auto-start gated, holding (userForced=false)")
                 withTimeoutOrNull(NETWORK_GATE_SLEEP_MS) { tickle.receive() }
                 continue
