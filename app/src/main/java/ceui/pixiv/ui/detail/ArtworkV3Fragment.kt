@@ -1815,7 +1815,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     .w("click dropped illustId=%d reason=bean_missing", illustId)
                 return@setOnClick
             }
-            if (artworkViewModel.downloadFabState.value is DownloadFab.Paused) {
+            val currentDownloadState = artworkViewModel.downloadFabState.value
+            if (currentDownloadState is DownloadFab.Paused || currentDownloadState is DownloadFab.Resume) {
                 Timber.tag(DownloadRecordStateSource.LOG_TAG).d("click resume paused download illustId=%d", illustId)
                 artworkViewModel.resumeDownload()
             } else {

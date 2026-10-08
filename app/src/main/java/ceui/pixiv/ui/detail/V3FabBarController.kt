@@ -92,6 +92,8 @@ class V3FabBarController(
             }
             is DownloadFab.Paused ->
                 paintDownload(R.drawable.ic_v3_pause_rounded_24, contentColor)
+            is DownloadFab.Resume ->
+                paintDownload(R.drawable.ic_v3_resume_rounded_24, contentColor)
         }
     }
 

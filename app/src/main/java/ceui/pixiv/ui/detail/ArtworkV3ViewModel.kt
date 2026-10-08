@@ -212,9 +212,17 @@ class ArtworkV3ViewModel(
             return
         }
         val isPausedMode = Shaft.sSettings?.downloadLimitType == 2
+        val isWifiOnlyWaiting =
+            ceui.lisa.utils.DownloadLimitTypeUtil.requiresWifi(Shaft.sSettings?.downloadLimitType ?: 0) &&
+                !com.blankj.utilcode.util.NetworkUtils.isWifiConnected()
         if (isPausedMode) {
             _downloadFabState.value = DownloadFab.Paused(0)
             // 模式 2 下条目初始即处于暂停/未启动态，直接显示暂停图标，不开启无意义的 300ms 轮询。
+            isPollingProgress = false
+            progressPollingJob?.cancel()
+        } else if (isWifiOnlyWaiting) {
+            _downloadFabState.value = DownloadFab.Resume(0)
+            // 模式 1 且处于蜂窝网络下条目进入等待态，显示为继续按钮，不开启无意义的 300ms 轮询。
             isPollingProgress = false
             progressPollingJob?.cancel()
         } else {
@@ -228,7 +236,11 @@ class ArtworkV3ViewModel(
      */
     fun resumeDownload() {
         val illust = illustBean ?: return
-        val currentPercent = (_downloadFabState.value as? DownloadFab.Paused)?.percent ?: 0
+        val currentPercent = when (val s = _downloadFabState.value) {
+            is DownloadFab.Paused -> s.percent
+            is DownloadFab.Resume -> s.percent
+            else -> 0
+        }
         if (!ceui.lisa.core.Manager.get().startIllust(illust.id)) {
             // 条目还没进队列（动图要先拉元数据、精简 bean 要先补详情，都是异步入列）：保持原状态。
             // 翻成进度环的话，下一轮轮询看到空队列会判成 Done —— FAB 显示已下载，实际一页没下。
@@ -263,8 +275,8 @@ class ArtworkV3ViewModel(
                     _downloadFabState.value = DownloadFab.Done
                     break
                 }
-                if (resolvedState is DownloadFab.Paused) {
-                    // 任务全部暂停时退出轮询，避免主线程每 300ms 无效空转并持锁
+                if (resolvedState is DownloadFab.Paused || resolvedState is DownloadFab.Resume) {
+                    // 任务处于暂停或网络等待态时退出轮询，避免主线程每 300ms 无效空转并持锁
                     isPollingProgress = false
                     _downloadFabState.value = resolvedState
                     break
@@ -355,6 +367,7 @@ sealed interface DownloadFab {
     data object Idle : DownloadFab
     data class Downloading(val percent: Int) : DownloadFab
     data class Paused(val percent: Int) : DownloadFab
+    data class Resume(val percent: Int) : DownloadFab
     data object Done : DownloadFab
 }
 
@@ -364,11 +377,15 @@ sealed interface DownloadFab {
  * 判据：
  * 1. 列表为空 → [DownloadFab.Done]
  * 2. 属于本作品的全部未完成页都被显式暂停（isPaused 为 true）→ 判定为 [DownloadFab.Paused]
- * 3. 其它（有正在传输的页，或排队等待/仅 Wi-Fi 下等待自动接续的队列）→ [DownloadFab.Downloading]
+ * 3. 正在传输中（activeItem != null）→ [DownloadFab.Downloading]
+ * 4. 处于仅 Wi-Fi 限制但当前在蜂窝网络（等待态）→ 判定为 [DownloadFab.Resume]（显示为继续按钮）
+ * 5. 其它（排队等待可用下载槽位等）→ [DownloadFab.Downloading]
  */
 internal fun resolveDownloadFabState(
     myItems: List<ceui.lisa.core.DownloadItem>,
     pageCount: Int,
+    isWifiConnected: Boolean = com.blankj.utilcode.util.NetworkUtils.isWifiConnected(),
+    downloadLimitType: Int = ceui.lisa.activities.Shaft.sSettings?.downloadLimitType ?: 0,
 ): DownloadFab {
     if (myItems.isEmpty()) {
         return DownloadFab.Done
@@ -383,8 +400,15 @@ internal fun resolveDownloadFabState(
         ((completedPages * 100 + activeNonius) / pageCount).coerceIn(0, 99)
     } else 0
     val isPaused = myItems.all { it.isPaused }
-    return if (isPaused) {
-        DownloadFab.Paused(totalPercent)
+    if (isPaused) {
+        return DownloadFab.Paused(totalPercent)
+    }
+    if (activeItem != null) {
+        return DownloadFab.Downloading(totalPercent)
+    }
+    val isWifiOnlyWaiting = ceui.lisa.utils.DownloadLimitTypeUtil.requiresWifi(downloadLimitType) && !isWifiConnected
+    return if (isWifiOnlyWaiting) {
+        DownloadFab.Resume(totalPercent)
     } else {
         DownloadFab.Downloading(totalPercent)
     }
