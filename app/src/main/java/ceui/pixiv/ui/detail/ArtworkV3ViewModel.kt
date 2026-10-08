@@ -433,7 +433,8 @@ sealed interface DownloadFab {
  *
  * 判据：
  * 1. 列表为空 → [DownloadFab.Done]
- * 2. 属于本作品的全部未完成页都被显式暂停（isPaused 为 true）→ 判定为 [DownloadFab.Paused]
+ * 2. 只剩失败页 → [DownloadFab.Resume]（点击即重试）；其余未失败页全部被显式暂停（isPaused 为 true）
+ *    → 判定为 [DownloadFab.Paused]。失败页不算「未暂停」，否则「全部暂停」后会落到 Downloading。
  * 3. 正在传输中（activeItem != null）→ [DownloadFab.Downloading]
  * 4. 自动路径不会启动（仅 Wi-Fi 在蜂窝上 / 不自动下载）且没人放行（[dispatchScheduled] 为 false：
  *    泵关着、也没在详情页点过继续）→ [DownloadFab.Resume]（显示为继续按钮）。
@@ -461,7 +462,13 @@ internal fun resolveDownloadFabState(
     val totalPercent = if (pageCount > 0) {
         ((completedPages * 100 + activeNonius) / pageCount).coerceIn(0, 99)
     } else 0
-    val isPaused = myItems.all { it.isPaused }
+    // FAILED 页既没在跑、也不是用户暂停（「全部暂停 / 继续」都不碰它），不参与下面的判定；
+    // 只剩失败页时给「继续」入口 —— 点击走 startIllust，会把 FAILED 翻回 INIT 重试。
+    val unfinished = myItems.filter { it.state != ceui.lisa.core.DownloadItem.DownloadState.FAILED }
+    if (unfinished.isEmpty()) {
+        return DownloadFab.Resume(totalPercent)
+    }
+    val isPaused = unfinished.all { it.isPaused }
     if (isPaused) {
         return DownloadFab.Paused(totalPercent)
     }

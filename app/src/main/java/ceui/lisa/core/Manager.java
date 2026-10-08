@@ -670,11 +670,10 @@ public class Manager {
     }
 
     public void stopAll() {
-        // FAILED 项也照样置 paused：显示上 getState() 让 FAILED 优先，不会被盖成 PAUSED；
-        // 而详情页 FAB 靠「本作品未完成页全部 isPaused」判「已暂停」—— 漏掉 FAILED 页会让
-        // 「全部暂停」后的 FAB 落到「下载中」。重试（startOne / startIllust / retryAllFailed）都会先清 paused。
         for (DownloadItem item : contentSnapshot()) {
-            item.setPaused(true);
+            if (item != null && !item.isFailed()) {
+                item.setPaused(true);
+            }
         }
         isRunning = false;
         releasedIllusts.clear();
@@ -683,7 +682,7 @@ public class Manager {
             try { d.cancel(); } catch (Exception ignored) {}
         }
         handles.clear();
-        // 停止后所有 item 都 paused（非 FAILED 的 getState() 返回 PAUSED），不会再被误判成 stranded，
+        // 停止后非 FAILED 的 item 都 paused（getState() 返回 PAUSED），不会再被误判成 stranded，
         // dispatching 里的残留也一并清掉，免得 resume 时把还没派发的 uuid 当成"在跑"。
         dispatching.clear();
         Common.showLog("[DL-RACE] stopAll (已经停止)");
