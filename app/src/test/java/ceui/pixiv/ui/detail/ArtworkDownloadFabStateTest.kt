@@ -200,6 +200,50 @@ class ArtworkDownloadFabStateTest {
     }
 
     @Test
+    fun `模式 2 冷启动恢复的未暂停条目没人放行时推导为 Resume`() {
+        // readRestoredDownloads 一律 setPaused(false)，泵也关着：不会自己开始，只能等用户点继续
+        val items = listOf(createItem(state = DownloadItem.DownloadState.INIT, isPaused = false))
+        val result = resolveDownloadFabState(
+            myItems = items,
+            pageCount = 1,
+            isWifiConnected = true,
+            downloadLimitType = 2,
+            dispatchScheduled = false,
+        )
+        assertEquals(DownloadFab.Resume(0), result)
+    }
+
+    @Test
+    fun `模式 2 用户在详情页放行后排队或切页间隙仍为 Downloading`() {
+        val items = listOf(createItem(state = DownloadItem.DownloadState.INIT, isPaused = false))
+        val result = resolveDownloadFabState(
+            myItems = items,
+            pageCount = 1,
+            isWifiConnected = true,
+            downloadLimitType = 2,
+            dispatchScheduled = true,
+        )
+        assertEquals(DownloadFab.Downloading(0), result)
+    }
+
+    @Test
+    fun `模式 1 蜂窝下已放行的作品在页与页之间不闪回 Resume`() {
+        // 上一页刚 SUCCESS 还没移出队列、下一页还是 INIT：此刻没有 DOWNLOADING 项
+        val items = listOf(
+            createItem(state = DownloadItem.DownloadState.SUCCESS, isPaused = false),
+            createItem(state = DownloadItem.DownloadState.INIT, isPaused = false),
+        )
+        val result = resolveDownloadFabState(
+            myItems = items,
+            pageCount = 2,
+            isWifiConnected = false,
+            downloadLimitType = 1,
+            dispatchScheduled = true,
+        )
+        assertTrue(result is DownloadFab.Downloading)
+    }
+
+    @Test
     fun `还有未完成项时进度封顶在 99`() {
         val items = listOf(
             createItem(state = DownloadItem.DownloadState.DOWNLOADING, nonius = 99),

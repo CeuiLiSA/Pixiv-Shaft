@@ -589,6 +589,15 @@ public class Manager {
     }
 
     /**
+     * 该作品未暂停的等待页会不会被派发出去：全局泵开着，或用户在详情页单独放行过它
+     * （[releasedIllusts]）。false = 只能等用户点继续（或回到 Wi-Fi 自动接续）。
+     * 详情页 FAB 据此区分「排队中」和「等你点继续」。
+     */
+    public synchronized boolean willDispatch(long illustId) {
+        return isRunning || releasedIllusts.contains(illustId);
+    }
+
+    /**
      * 把"看似在跑但实际已经没有 disposable 在背后撑着"的 item 翻回 INIT，让
      * [pumpAvailableSlots] 重新挑选派发。两种来源：
      *

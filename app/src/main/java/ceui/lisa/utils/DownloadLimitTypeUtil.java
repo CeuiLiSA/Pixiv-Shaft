@@ -46,7 +46,7 @@ public class DownloadLimitTypeUtil {
      *   2 不自动下载    → 从不自动开始，等用户在下载管理里手动启动
      * 其它（脏值）按 0 处理，与 [getCurrentStatusIndex] 的兜底口径保持一致。
      */
-    static boolean autoStartAllowed(int limitType, boolean wifiConnected){
+    public static boolean autoStartAllowed(int limitType, boolean wifiConnected){
         if (limitType == 1) return wifiConnected;
         if (limitType == 2) return false;
         return true;
