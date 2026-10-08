@@ -13,7 +13,6 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LifecycleOwner;
@@ -391,8 +390,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     @NonNull
     @Override
     public ViewHolder<RecyIllustDetailBinding> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder<>(DataBindingUtil.inflate(
-                LayoutInflater.from(mContext), R.layout.recy_illust_detail, parent, false
+        // recy_illust_detail 已从 DataBinding 改为 ViewBinding：DataBindingUtil.inflate 的返回类型
+        // 上界是 ViewDataBinding，这里改用 ViewBinding 自己的 inflate。
+        return new ViewHolder<>(RecyIllustDetailBinding.inflate(
+                LayoutInflater.from(mContext), parent, false
         ));
     }
 
