@@ -219,6 +219,13 @@ public class Manager {
                 synchronized (this) {
                     if (generation != restoreGeneration) return; // User cleared the queue.
                     restored.removeIf(item -> restoreLiveUrls.contains(item.getUrl()));
+                    if (DownloadLimitTypeUtil.enqueueAsPaused()) {
+                        // 「不自动下载」恢复出来的项同样没有自动唤醒源，与入列口径一致地呈现为
+                        // 用户暂停；仅 Wi-Fi 的网络等待仍是 INIT（回 Wi-Fi 会唤醒）。
+                        for (DownloadItem item : restored) {
+                            item.setPaused(true);
+                        }
+                    }
                     restored.addAll(content); // Preserve work added while recovery was running.
                     content = new CopyOnWriteArrayList<>(restored);
                 }
@@ -285,6 +292,15 @@ public class Manager {
         private static final Manager INSTANCE = new Manager();
     }
 
+    /**
+     * 直接下载入列（详情页下载按钮 / 收藏后自动下载 / 单页下载）与批量队列补页共用入口。
+     *
+     * 是否立即开始由 {@link DownloadLimitTypeUtil#startTaskWhenCreate()} 决定；
+     * 「不自动下载」时入列即置暂停态（{@link DownloadLimitTypeUtil#enqueueAsPaused()}）——
+     * 等待态只属于「仅通过 Wi-Fi 下载」的网络暂缓。批量队列补页（silent）刻意不套这条：
+     * 补页只发生在用户点了队列的「继续 / 重试失败」之后，那次点击本身就是手动启动；若这批页
+     * 被置 paused，getFirstReady 永远挑不到它们 → 90s 停滞检测 → clearOne → 重拉，假失败循环。
+     */
     public void addTask(DownloadItem bean) {
         // 纵深防御:null item 会在 safeAdd 里 null.getUuid() NPE(见 gif 走 buildDownloadItem
         // 返 null 的历史坑)。调用方本应先过滤,这里再兜一层,任何 null 直接忽略不崩。
@@ -304,7 +320,7 @@ public class Manager {
             }
 
             if (!isTaskExist) {
-                if (Shaft.sSettings != null && Shaft.sSettings.getDownloadLimitType() == 2 && !bean.isSilent()) {
+                if (!bean.isSilent() && DownloadLimitTypeUtil.enqueueAsPaused()) {
                     bean.setPaused(true);
                 }
                 // content.add 必须同步(safeAdd 内)：triggerPump 的 getFirstReady 和
@@ -407,7 +423,7 @@ public class Manager {
             // Gson(~80KB)+Room insert 关在锁里，等于让主线程陪着这整批 IO 一起卡（ANR）。
             // 临界区只保留「去重 + content.add」这点纯内存操作，其余挪出去。
             List<DownloadItem> accepted = new ArrayList<>(list.size());
-            boolean isPausedMode = Shaft.sSettings != null && Shaft.sSettings.getDownloadLimitType() == 2;
+            boolean isPausedMode = DownloadLimitTypeUtil.enqueueAsPaused();
             synchronized (this) {
                 if (content == null) {
                     content = new CopyOnWriteArrayList<>();
@@ -422,6 +438,7 @@ public class Manager {
                     // 否则 item.getUrl() 直接 NPE。调用方本应先过滤,这里兜底。
                     if (item != null && !existingUrls.contains(item.getUrl())) {
                         if (isPausedMode && !item.isSilent()) {
+                            // 「不自动下载」入列即暂停态（等待态只属于仅 Wi-Fi 的网络暂缓）。
                             item.setPaused(true);
                         }
                         // content.add 必须同步:triggerPump 的 getFirstReady 靠 content 立刻变长。
@@ -682,6 +699,9 @@ public class Manager {
      *
      * 用户手动暂停过的项不动：paused=true 时 [DownloadItem.getState] 返回 PAUSED，
      * 天然被下面的判断跳过。
+     *
+     * 别把「不自动下载」也塞进这条路：它没有任何自动唤醒源（回到 Wi-Fi 也不会替它启动），
+     * 入列时已按暂停态呈现（见 [DownloadLimitTypeUtil.enqueueAsPaused]），与本方法无关。
      */
     public void parkForNetwork() {
         // 先熄火再取消：cancel 触发的 onFinally 会调 pumpAvailableSlots，
