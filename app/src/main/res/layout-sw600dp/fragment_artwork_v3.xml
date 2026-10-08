@@ -83,37 +83,13 @@
                     app:tint="@color/v3_text_1" />
             </androidx.appcompat.widget.Toolbar>
 
-            <LinearLayout
-                android:id="@+id/page_status_row"
+            <!-- 首帧必然不可见（只在有页加载失败时才亮），走 ViewStub 推迟到真有失败再建，
+                 见 ArtworkV3Fragment.ensurePageStatusRow。 -->
+            <ViewStub
+                android:id="@+id/page_status_row_stub"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#CCFF6B6B"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="6dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/page_status_text"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/page_status_retry"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackground"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="6dp"
-                    android:text="@string/image_load_status_retry_all"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                android:layout="@layout/view_artwork_page_status" />
         </LinearLayout>
 
         <!-- 右上角悬浮胶囊:一枚,里面是「收起」(仅多图展开中) + 「当前页 / 总页」读数。
@@ -218,65 +194,21 @@
         </LinearLayout>
     </FrameLayout>
 
-    <!-- 已屏蔽遮罩(对齐经典 fragment_illust 的 abandoned_frame):作品/画师命中屏蔽记录时全屏盖住
-         整页(含 chrome)。clickable 挡住底下列表——经典是直接隐藏 content_frame,这里内容仍在。 -->
-    <FrameLayout
-        android:id="@+id/abandoned_frame"
+    <!-- 已屏蔽遮罩：只有被屏蔽的作品才亮，子树里还挂着 SpoilerBlurView(两个自定义 View)。
+         首帧替每个作品都建一份纯属浪费，改 ViewStub，见 ArtworkV3Fragment.ensureAbandonedFrame。 -->
+    <ViewStub
+        android:id="@+id/abandoned_frame_stub"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/black"
-        android:clickable="true"
-        android:focusable="true"
-        android:visibility="gone">
+        android:layout="@layout/view_artwork_abandoned" />
 
-        <!-- 遮罩底：糊掉的作品图 + spoiler 粒子(与瀑布流「屏蔽此作品」同一套观感),
-             取代原来的一块纯黑。按钮排在它后面,盖在上面照常点。 -->
-        <ceui.pixiv.widget.SpoilerBlurView
-            android:id="@+id/abandoned_spoiler"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:importantForAccessibility="no" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
-
-            <ceui.pixiv.widgets.ProgressTextButton
-                android:id="@+id/cancel_mute_illust"
-                style="@style/BlueShiningButton"
-                android:layout_width="wrap_content"
-                android:layout_height="45dp"
-                android:layout_marginBottom="20dp"
-                android:paddingHorizontal="20dp"
-                android:text="@string/action_unmute_work" />
-
-            <ceui.pixiv.widgets.ProgressTextButton
-                android:id="@+id/cancel_mute_user"
-                style="@style/BlueShiningButton"
-                android:layout_width="wrap_content"
-                android:layout_height="45dp"
-                android:layout_marginBottom="20dp"
-                android:paddingHorizontal="20dp"
-                android:text="@string/action_unmute_user" />
-
-            <ceui.pixiv.widgets.ProgressTextButton
-                android:id="@+id/leave"
-                style="@style/RedShiningButton"
-                android:layout_width="wrap_content"
-                android:layout_height="45dp"
-                android:layout_marginBottom="20dp"
-                android:paddingHorizontal="20dp"
-                android:text="@string/action_leave_page" />
-        </LinearLayout>
-    </FrameLayout>
-
-    <!-- AI 画质增强 / 智能抠图共用覆盖层(加载中进度 + 完成态),与经典 FragmentIllust 同一份布局。 -->
-    <include
-        layout="@layout/view_ai_upscale_overlay"
+    <!-- AI 画质增强 / 智能抠图共用覆盖层(加载中进度 + 完成态)，与经典 FragmentIllust 同一份布局。
+         只在跑 AI 任务时才用得上，改 ViewStub —— 目标布局 view_ai_upscale_overlay.xml 本身是单根，
+         可直接当 android:layout。触发见 IllustAiHelper 的 ensureOverlay 回调。 -->
+    <ViewStub
+        android:id="@+id/ai_overlay_stub"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout="@layout/view_ai_upscale_overlay" />
 
 </FrameLayout>

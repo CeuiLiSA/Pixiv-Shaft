@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 详情页「图片加载状态」横幅的 ViewStub 目标。
+     从 fragment_artwork_v3.xml 抽出来：它在首帧必然不可见（只在有页加载失败时才亮），
+     没有理由在点进页面的那一帧跟着 inflate。显隐/文案仍由 renderImageLoadStatusBanner 管，
+     这里只是把「建出来」推迟到第一次真的有失败（见 ArtworkV3Fragment.ensurePageStatusRow）。 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/page_status_row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#CCFF6B6B"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="6dp"
+    android:visibility="gone">
+
+    <TextView
+        android:id="@+id/page_status_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/page_status_retry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackground"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:text="@string/image_load_status_retry_all"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+</LinearLayout>
