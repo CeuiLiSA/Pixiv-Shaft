@@ -26,6 +26,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
+import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
 import ceui.lisa.core.ManagerReactive
 import ceui.lisa.utils.Common
@@ -148,7 +149,7 @@ class DownloadManagerV3Fragment : Fragment() {
         // 「全部暂停 / 全部继续」的方向判据 —— 图标与点击动作共用同一个现算值（口径 + 单测见
         // ActivePauseToggle.kt）：不再只看批量队列的 pausedFlow，否则模式 2 会一直显示「全部暂停」。
         fun shouldResumeNow(): Boolean = shouldResumeAll(
-            Manager.get().contentSnapshot().map { it.state },
+            Manager.get().contentSnapshot().toPauseToggleItems(),
             queueDownloadManager.isPaused(),
             queueDownloadManager.ugoiraInFlightFlow.value.isNotEmpty(),
         )
@@ -225,7 +226,7 @@ class DownloadManagerV3Fragment : Fragment() {
                     ManagerReactive.contentFlow,
                     queueDownloadManager.ugoiraInFlightFlow,
                 ) { paused, items, ugoiras ->
-                    shouldResumeAll(items.map { it.state }, paused, ugoiras.isNotEmpty())
+                    shouldResumeAll(items.toPauseToggleItems(), paused, ugoiras.isNotEmpty())
                 }
                     .conflate()
                     .flowOn(Dispatchers.Default)
@@ -345,5 +346,21 @@ class DownloadManagerV3Fragment : Fragment() {
             2 -> DoneListV3Fragment()
             else -> error("unreachable: $position")
         }
+    }
+}
+
+/**
+ * 给 [shouldResumeAll] 的输入：INIT 项附上「会不会被派发」（[Manager.willDispatch]）。
+ * 同一作品的多页只问一次 —— willDispatch 是 synchronized，每帧进度都会走到这里。
+ */
+private fun List<DownloadItem>.toPauseToggleItems(): List<PauseToggleItem> {
+    val manager = Manager.get()
+    val dispatchByIllust = HashMap<Long, Boolean>()
+    return map { item ->
+        val state = item.state
+        val illustId = item.illust?.id
+        val willDispatch = state == DownloadItem.DownloadState.INIT && illustId != null &&
+            dispatchByIllust.getOrPut(illustId) { manager.willDispatch(illustId) }
+        PauseToggleItem(state, willDispatch)
     }
 }
