@@ -57,10 +57,14 @@
                                 android:layout_height="match_parent"
                                 android:visibility="gone" />
 
-                            <include
-                                layout="@layout/view_ai_upscale_overlay"
+                            <!-- 只在跑 AI 画质增强 / 抠图时才用得上，改 ViewStub —— 与 V3 详情页同一套
+                                 （见 ArtworkV3Fragment.ensureAiOverlay）。目标布局本身是单根，可直接当
+                                 android:layout。触发见 IllustAiHelper 的 ensureOverlay 回调。 -->
+                            <ViewStub
+                                android:id="@+id/ai_overlay_stub"
                                 android:layout_width="match_parent"
-                                android:layout_height="match_parent" />
+                                android:layout_height="match_parent"
+                                android:layout="@layout/view_ai_upscale_overlay" />
 
 
                         </RelativeLayout>
@@ -86,7 +90,7 @@
                     android:elevation="@dimen/six_dp"
                     android:focusable="true"
                     android:orientation="vertical"
-                    app:behavior_peekHeight="180dp"
+                    app:behavior_peekHeight="0dp"
                     app:layout_behavior="@string/bottom_sheet_behavior"
                     app:wit_backgroundColor="@color/fragment_center"
                     app:wit_borderWidth="0dp"
@@ -245,229 +249,13 @@
 
                     </View>
 
-                    <androidx.core.widget.NestedScrollView
+                    <!-- 信息区整块在首屏之下，且点中间卡时 pager 会一次建三页（cur-1/cur/cur+1），
+                         所以只对**非当前页**延后一个消息再 inflate，见 FragmentIllust.setupInfoSection。 -->
+                    <ViewStub
+                        android:id="@+id/second_linear_stub"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <LinearLayout
-                            android:id="@+id/second_linear"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:baselineAligned="false"
-                                android:paddingTop="@dimen/six_dp"
-                                android:paddingBottom="@dimen/six_dp">
-
-                                <RelativeLayout
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1">
-
-                                    <ceui.pixiv.witstudio.widget.WitRoundRelativeLayout
-                                        android:id="@+id/left_rela"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginStart="@dimen/sixteen_dp"
-                                        app:wit_backgroundColor="#e8e8f2"
-                                        app:wit_borderWidth="0dp"
-                                        app:wit_radius="@dimen/six_dp">
-
-                                        <ImageView
-                                            android:layout_width="45dp"
-                                            android:layout_height="45dp"
-                                            android:padding="@dimen/twelve_dp"
-                                            android:src="@drawable/ic_remove_red_eye_black_24dp"
-                                            app:tint="?attr/colorPrimary">
-
-                                        </ImageView>
-
-                                    </ceui.pixiv.witstudio.widget.WitRoundRelativeLayout>
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginStart="@dimen/eight_dp"
-                                        android:layout_marginTop="@dimen/four_dp"
-                                        android:layout_toEndOf="@+id/left_rela"
-                                        android:text="@string/string_70"
-                                        android:textColor="?attr/colorPrimary"
-                                        android:textSize="12sp"
-                                        android:textStyle="bold">
-
-                                    </TextView>
-
-                                    <TextView
-                                        android:id="@+id/total_view"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_alignBottom="@+id/left_rela"
-                                        android:layout_marginStart="@dimen/eight_dp"
-                                        android:layout_marginBottom="@dimen/four_dp"
-                                        android:layout_toEndOf="@+id/left_rela"
-                                        android:textColor="?attr/colorPrimary"
-                                        android:textSize="14sp"
-                                        android:textStyle="bold">
-
-                                    </TextView>
-
-                                </RelativeLayout>
-
-                                <RelativeLayout
-                                    android:id="@+id/illust_like"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1">
-
-                                    <ceui.pixiv.witstudio.widget.WitRoundRelativeLayout
-                                        android:id="@+id/right_rela"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginStart="@dimen/twelve_dp"
-                                        app:wit_backgroundColor="#e8e8f2"
-                                        app:wit_borderWidth="0dp"
-                                        app:wit_radius="@dimen/six_dp">
-
-                                        <ImageView
-                                            android:layout_width="45dp"
-                                            android:layout_height="45dp"
-                                            android:padding="@dimen/twelve_dp"
-                                            android:src="@drawable/ic_favorite_black_24dp"
-                                            app:tint="?attr/colorPrimary">
-
-
-                                        </ImageView>
-
-                                    </ceui.pixiv.witstudio.widget.WitRoundRelativeLayout>
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginStart="@dimen/eight_dp"
-                                        android:layout_marginTop="@dimen/four_dp"
-                                        android:layout_toEndOf="@+id/right_rela"
-                                        android:text="@string/string_71"
-                                        android:textColor="?attr/colorPrimary"
-                                        android:textSize="12sp"
-                                        android:textStyle="bold">
-
-                                    </TextView>
-
-                                    <TextView
-                                        android:id="@+id/total_like"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_alignBottom="@+id/right_rela"
-                                        android:layout_marginStart="@dimen/eight_dp"
-                                        android:layout_marginBottom="@dimen/four_dp"
-                                        android:layout_toEndOf="@+id/right_rela"
-                                        android:textColor="?attr/colorPrimary"
-                                        android:textSize="14sp"
-                                        android:textStyle="bold">
-
-                                    </TextView>
-
-                                </RelativeLayout>
-
-                            </LinearLayout>
-
-                            <ceui.pixiv.widgets.V3TagFlowView
-                                android:id="@+id/illust_tag"
-                                android:layout_width="fill_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:layout_marginEnd="12dp"
-                                app:flexWrap="wrap">
-
-                            </ceui.pixiv.widgets.V3TagFlowView>
-
-                            <!-- 同义词词典「标签匹配关系」框（issue #904），词典为空时自动 GONE -->
-                            <ceui.pixiv.ui.synonym.SynonymMatchView
-                                android:id="@+id/synonym_match"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/six_dp" />
-
-                            <org.sufficientlysecure.htmltextview.HtmlTextView
-                                android:id="@+id/description"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginTop="@dimen/six_dp"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/four_dp"
-                                android:gravity="start"
-                                android:textColor="#9b9bb1"
-                                android:textColorLink="?attr/colorPrimary"
-                                android:textIsSelectable="true"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginTop="@dimen/eight_dp"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:id="@+id/illust_id"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginEnd="@dimen/twelve_dp"
-                                    android:layout_weight="1"
-                                    android:gravity="start"
-                                    android:textColor="#9b9bb1"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold">
-
-                                </TextView>
-
-                                <TextView
-                                    android:id="@+id/user_id"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginStart="@dimen/twelve_dp"
-                                    android:layout_weight="1"
-                                    android:textColor="#9b9bb1"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold">
-
-                                </TextView>
-                            </LinearLayout>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginTop="@dimen/four_dp"
-                                android:layout_marginEnd="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
-                                android:orientation="horizontal">
-
-                                <TextView
-                                    android:id="@+id/illust_size"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginEnd="@dimen/twelve_dp"
-                                    android:layout_weight="1"
-                                    android:gravity="start"
-                                    android:textColor="#9b9bb1"
-                                    android:textSize="13sp"
-                                    android:textStyle="bold">
-
-                                </TextView>
-
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-
-                    </androidx.core.widget.NestedScrollView>
+                        android:layout_height="wrap_content"
+                        android:layout="@layout/view_classic_illust_info" />
 
                 </ceui.pixiv.witstudio.widget.WitRoundLinearLayout>
 
@@ -597,58 +385,15 @@
         </RelativeLayout>
 
 
-        <FrameLayout
-            android:id="@+id/abandoned_frame"
+        <!-- 已屏蔽遮罩：只有被屏蔽的作品才亮，子树里还挂着 SpoilerBlurView(两个自定义 View)。
+             首帧替每个作品都建一份纯属浪费，改 ViewStub，见 FragmentIllust.ensureAbandonedFrame。
+             复用 view_artwork_abandoned.xml（与 V3 详情页同一份）—— 那边多两个 clickable/focusable，
+             经典页是靠把 content_frame 整个隐藏来挡触摸的，多这两个属性无副作用。 -->
+        <ViewStub
+            android:id="@+id/abandoned_frame_stub"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/black"
-            android:visibility="gone">
-
-            <!-- 遮罩底：糊掉的作品图 + spoiler 粒子(与瀑布流「屏蔽此作品」同一套观感),
-                 取代原来的一块纯黑。按钮排在它后面,盖在上面照常点。 -->
-            <ceui.pixiv.widget.SpoilerBlurView
-                android:id="@+id/abandoned_spoiler"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:importantForAccessibility="no" />
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:gravity="center_horizontal"
-                android:orientation="vertical">
-
-                <ceui.pixiv.widgets.ProgressTextButton
-                    android:id="@+id/cancel_mute_illust"
-                    style="@style/BlueShiningButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="45dp"
-                    android:layout_marginBottom="20dp"
-                    android:paddingHorizontal="20dp"
-                    android:text="@string/action_unmute_work" />
-
-                <ceui.pixiv.widgets.ProgressTextButton
-                    android:id="@+id/cancel_mute_user"
-                    style="@style/BlueShiningButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="45dp"
-                    android:layout_marginBottom="20dp"
-                    android:paddingHorizontal="20dp"
-                    android:text="@string/action_unmute_user" />
-
-                <ceui.pixiv.widgets.ProgressTextButton
-                    android:id="@+id/leave"
-                    style="@style/RedShiningButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="45dp"
-                    android:layout_marginBottom="20dp"
-                    android:paddingHorizontal="20dp"
-                    android:text="@string/action_leave_page" />
-            </LinearLayout>
-
-
-        </FrameLayout>
+            android:layout="@layout/view_artwork_abandoned" />
 
     </FrameLayout>
 
