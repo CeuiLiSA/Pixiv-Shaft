@@ -448,8 +448,8 @@ object SessionManager {
      * [freshPremium] 为 null = pixiv 这次没提会员（部分刷新响应就是不带这个字段）， 保留旧值；绝不能把「没说」写成「不是会员」，那会把一个付费号踢出借号池。
      * 同一条判断见 [ceui.lisa.repo.mergeMembership]。
      *
-     * [freshXRestrict] 同理，null 保留旧值。R-18 开关只能在官网改，user/detail 不带这个字段，
-     * 刷新响应是登录之后唯一能把它带回来的地方。
+     * [freshXRestrict] 同理，null 保留旧值。R-18 开关只能在官网改；冷启动的 me/state 预热
+     * （[ceui.pixiv.session.SelfProfileWarmup]）会写它一次，这里补上进程长驻期间的更新。
      */
     @JvmOverloads
     fun applyTokenRefresh(
@@ -498,10 +498,6 @@ object SessionManager {
         val uid = loggedInUid
         return if (uid <= 0L) null else response.user?.takeIf { it.id == uid }?.xRestrict
     }
-
-    /** 账号在官网开着 R-18 浏览（x_restrict 1=R-18、2=R-18G）。登录时写入，之后随 token 刷新更新。 */
-    val isR18Viewable: Boolean
-        get() = (loggedInUser?.x_restrict ?: 0) > 0
 
     fun getAccessToken(): String {
         val account = _loggedInAccount.value ?: throw RuntimeException("account not found")

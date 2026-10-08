@@ -302,15 +302,15 @@ open class RecmdIllustFeedFragment(
         /**
          * 官网首页 mode=r18 的个性化推荐：「为你推荐」在前，「按标签推荐」各行按序接在后面，
          * 跨区块按 id 去重（插画约 18 + 6×24 条，漫画只有约 3 条且没有按标签区块）。
-         * 需要与当前账号一致的网页会话；账号在官网关了 R-18 浏览时不请求（会话里的 x_restrict 随
-         * token 刷新更新，见 [SessionManager.applyTokenRefresh]）；开着 R18 过滤时也不请求——
+         * 需要与当前账号一致的网页会话；账号在官网关了 R-18 浏览时不请求（会话里的 x_restrict
+         * 由冷启动的 me/state 预热和 token 刷新更新）；开着 R18 过滤时也不请求——
          * 拉回来也会被 [IllustFeedItem.of] 滤掉。
          * 首屏要等它和 app-api 都回来，所以限时 [WEB_R18_BUDGET_MS]：网页客户端自己的超时是
          * 连接 5s + 读取 10s，不限时的话官网一慢，本来 0.3s 就能出的首屏会被拖住十几秒。
          * 超时和任何失败都降级成空列表。
          */
         private suspend fun fetchWebR18Recommend(apiType: String): List<Illust> {
-            if (!SessionManager.isR18Viewable ||
+            if (SessionManager.loggedInUser?.isR18Enabled() != true ||
                 Shaft.sSettings.isR18FilterTempEnable ||
                 !WebDiscoverySession.isCurrentAccount
             ) {
