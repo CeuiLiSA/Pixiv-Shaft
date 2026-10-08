@@ -74,6 +74,7 @@ import ceui.pixiv.ui.upscale.UpscaleTaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.wallpaper.WallpaperSetter
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -793,6 +794,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             val willBookmark = !illust.isBookmarked
             // 乐观着色,权威态由上面的 ObjectPool 观察兜底(与 ArtworkV3Fragment 同款)
             fabBar.setBookmarked(willBookmark)
+            playToggleHaptic(it, willBookmark)
             PixivOperate.postLikeDefaultStarType(illust)
             if (willBookmark && Shaft.sSettings.isAutoDownloadAfterStar) {
                 IllustDownload.downloadIllustAllPages(illust)

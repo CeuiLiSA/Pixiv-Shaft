@@ -22,6 +22,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedViewModel
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.utils.pinHostGlide
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -173,6 +174,7 @@ abstract class UserFeedFragment(
         val user = currentUserItem(userId)?.user ?: tapped
         val target = user.is_followed != true
         renderFollow(cell.binding, target) // 当帧翻文案（异步 updateItems 落地兜底）
+        playToggleHaptic(cell.binding.postLikeUser, target)
         applyFollow(userId, target)
         // 复用 legacy follow op：它现在是 PixivActions 的薄封装，本地态 + LIKED_USER 广播当帧
         // 生效，请求进 PixivActionQueue 限流后发。失败回滚也由队列统一做：它会带相反的值再发

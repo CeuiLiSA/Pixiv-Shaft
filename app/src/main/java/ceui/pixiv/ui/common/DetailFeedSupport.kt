@@ -4,6 +4,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.view.View
 import android.widget.TextView
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.view.isVisible
@@ -22,6 +23,7 @@ import ceui.loxia.Novel
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.widgets.ProgressIndicator
 import ceui.pixiv.actions.PixivActions
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.utils.setOnClick
 import java.util.UUID
 import ceui.pixiv.ui.navigation.TemplateRoute
@@ -116,6 +118,7 @@ fun Fragment.toggleIllustBookmark(sender: ProgressIndicator, illustId: Long) {
         val illust = ObjectPool.get<Illust>(illustId).value
             ?: Client.appApi.getIllust(illustId).illust?.also { ObjectPool.update(it) }
             ?: return@launchSuspend
+        (sender as? View)?.let { playToggleHaptic(it, illust.is_bookmarked != true) }
         PixivActions.toggleIllustBookmark(illust)
     }
 }
@@ -125,6 +128,7 @@ fun Fragment.toggleNovelBookmark(sender: ProgressIndicator, novelId: Long) {
         val novel = ObjectPool.get<Novel>(novelId).value
             ?: Client.appApi.getNovel(novelId).novel?.also { ObjectPool.update(it) }
             ?: return@launchSuspend
+        (sender as? View)?.let { playToggleHaptic(it, novel.is_bookmarked != true) }
         PixivActions.toggleNovelBookmark(novel)
     }
 }

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import androidx.lifecycle.lifecycleScope
+import ceui.pixiv.utils.playToggleHaptic
 import kotlinx.coroutines.launch
 import android.os.Bundle
 import android.os.Handler
@@ -386,6 +387,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.unfollow.isVisible = true
             baseBind.unfollow.text = getString(followedLabelRes(userId))
             baseBind.unfollow.setOnClick {
+                playToggleHaptic(it, false)
                 unfollowUser(it, userId)
             }
             baseBind.unfollow.setOnLongClickListener {
@@ -396,6 +398,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true
             baseBind.follow.setOnClick {
+                playToggleHaptic(it, true)
                 followUser(it, userId, PixivActions.defaultFollowRestrict())
             }
             baseBind.follow.setOnLongClickListener {
@@ -599,6 +602,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             } else {
                 baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp)
             }
+            playToggleHaptic(it, willBookmark)
             PixivOperate.postLikeDefaultStarType(illust)
             // 收藏后自动下载只在用户主动收藏(非取消)时触发,避免和"下载时自动收藏"循环联动(issue #880)。
             if (willBookmark && Shaft.sSettings.isAutoDownloadAfterStar) {

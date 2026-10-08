@@ -91,6 +91,7 @@ import ceui.pixiv.ui.upscale.ModelPickerDialog
 import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.combineLatest
 import ceui.pixiv.utils.isHostStillResumed
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.utils.toTagsBeans
@@ -1908,6 +1909,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             // 乐观着色与权威渲染(isBookmarked observer)同走 controller,取同一个内容色,
             // 避免取消收藏当帧闪一帧错色(详见 V3FabBarController.setBookmarked)。
             fabBarController.setBookmarked(willBookmark)
+            playToggleHaptic(it, willBookmark)
             PixivOperate.postLikeDefaultStarType(illust)
             if (willBookmark && Shaft.sSettings.isAutoDownloadAfterStar) {
                 // 同样尊重「默认下载分辨率」。刻意**不**带 activity:收藏是个轻动作,不该顺手

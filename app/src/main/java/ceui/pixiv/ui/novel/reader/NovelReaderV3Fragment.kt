@@ -27,6 +27,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -333,7 +334,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private fun wireTopBar(tb: ReaderTopBar) {
         tb.onBackClick = { activity?.finish() }
         tb.onAnnotationsClick = { showAnnotationsSheet() }
-        tb.onLikeClick = { togglePixivBookmark() }
+        tb.onLikeClick = { togglePixivBookmark(tb.view) }
         tb.onLikeLongClick = { openTagBookmarkForCurrentNovel() }
         // 丝带图标 = pixiv 原版书签（しおり/marker），不是收藏 —— issue #935。
         tb.onMarkerClick = { togglePixivMarker() }
@@ -780,11 +781,18 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         syncTtsState()
     }
 
-    private fun togglePixivBookmark() {
+    private fun togglePixivBookmark(anchor: View) {
         viewLifecycleOwner.lifecycleScope.launch {
             // 成功路径返回空串：请求还没发出去，此时报「已收藏」是骗用户。反馈由顶栏
             // 那颗爱心承担（它 observe ObjectPool 里的 Novel），失败时队列会把它拨回去。
-            viewModel.toggleBookmark().takeIf { it.isNotEmpty() }?.let(Toaster::showShort)
+            val message = viewModel.toggleBookmark()
+            if (message.isNotEmpty()) {
+                Toaster.showShort(message)
+                return@launch
+            }
+            // 乐观写已当帧落池，池里的就是切换后的目标态
+            val bookmarked = ObjectPool.get<Novel>(viewModel.novelId).value?.is_bookmarked == true
+            playToggleHaptic(anchor, bookmarked)
         }
     }
 

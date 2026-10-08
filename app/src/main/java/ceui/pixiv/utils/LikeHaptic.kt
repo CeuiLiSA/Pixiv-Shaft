@@ -117,8 +117,16 @@ fun playLikePressHaptic(view: View) {
     }
 }
 
-/** 取消收藏的单下轻触感，与收藏共用设置开关。 */
+/** 取消收藏 / 取关的单下轻触感，与收藏共用设置开关。 */
 fun playUnlikeHaptic(view: View) {
     if (!isLikeHapticEnabled()) return
     view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+}
+
+/**
+ * 收藏 / 关注这类「开关态」操作的统一触感（#1193）：[on] 为 true 走 [playLikePressHaptic]
+ * 的段落感，false 走 [playUnlikeHaptic] 的单下轻 tick。与收藏共用同一个设置开关。
+ */
+fun playToggleHaptic(view: View, on: Boolean) {
+    if (on) playLikePressHaptic(view) else playUnlikeHaptic(view)
 }
