@@ -123,7 +123,8 @@ class IllustTitleSingleLineTest {
             "含换行的标题会被 autosize 钉死在 autoSizeMinTextSize，实际 ${tv.textSize / density()}sp",
             6f, tv.textSize / density(), 0.01f
         )
-        assertTrue("maxLines=1 会补省略号", tv.layout.getEllipsisCount(0) > 0)
+        // 不断言省略号：标题可框选（#1208）后 TextView 走 DynamicLayout，maxLines=1 不再补「…」，
+        // 第二行直接被 16dp 盒裁掉——截断本身不变。
         assertTrue("后半段标题整段丢失", tv.layout.getLineEnd(0) < rawTitle.length)
     }
 
@@ -136,8 +137,8 @@ class IllustTitleSingleLineTest {
             "折平后不该再被压到最小字号，实际 ${tv.textSize / density()}sp",
             tv.textSize / density() > 6f
         )
-        assertEquals("折平后不该再截断", 0, tv.layout.getEllipsisCount(0))
         assertEquals("折平后应整条排进第一行", flat.length, tv.layout.getLineEnd(0))
+        assertEquals("折平后只有一行，没有被裁掉的第二行", 1, tv.layout.lineCount)
         assertTrue("内容不丢", tv.text.toString().contains("八重神子"))
     }
 
