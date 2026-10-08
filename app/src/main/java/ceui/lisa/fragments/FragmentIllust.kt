@@ -200,6 +200,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private var renderedImageSignature: String? = null
     private var renderedSynonymTags: List<Pair<String?, String?>>? = null
     private var renderedSynonymEnabled = false
+
+    /**
+     * 溢出菜单的点击回调读这个字段，而不是让闭包捕获 `illust` —— 见 [handleMenuItem]。
+     * 每次 `updateIllust` 都会刷新它，所以菜单不必为了「换 bean」而重建。
+     */
+    private var menuIllust: Illust? = null
+
+    /** 菜单「形状」（快照 / 动图 / 页数）。没变就不重建 —— 11 项菜单的 inflate 不便宜。 */
+    private var renderedMenuShape: String? = null
     private var bottomSheetCallbackAttached = false
 
     /**
@@ -633,6 +642,16 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     private fun setupToolbarMenu(illust: Illust) {
+        // 菜单回调读这个字段，而不是让闭包捕获 illust —— 见 [handleMenuItem]。
+        menuIllust = illust
+        baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
+
+        // 菜单「形状」（快照 / 动图 / 页数）没变就不重建。
+        // 菜单有 11 项，而 updateIllust 每次 ObjectPool 发射都会重跑（收藏回流最常见）。
+        val shape = "${isSnapshotMode}|${illust.isGif()}|${illust.page_count}"
+        if (shape == renderedMenuShape) return
+        renderedMenuShape = shape
+
         baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
         if (!isSnapshotMode && !illust.isGif() && illust.page_count == 1) {
@@ -663,73 +682,82 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             // 动图的 original 是 zip,SnapshotGenerator 一进门就拒;别把注定失败的入口摆出来。
             baseBind.toolbar.menu?.findItem(R.id.action_snapshot)?.isVisible = false
         }
-        baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
-        baseBind.toolbar.setOnMenuItemClickListener(Toolbar.OnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.action_share -> {
-                    object : ShareIllust(mContext, illust) {
-                        override fun onPrepare() {}
-                    }.execute()
-                    true
-                }
-                R.id.action_share_image -> {
-                    shareFirstImage(illust)
-                    false
-                }
-                R.id.action_save_poster -> {
-                    // 与页码浮标同源：多图作品保存当前看到的页；图片区不在视口时回退首图。
-                    saveArtworkPoster(illust, pageProgressIndex.coerceAtLeast(0))
-                    true
-                }
-                R.id.action_snapshot -> {
-                    showSnapshotCreateDialog(illust)
-                    true
-                }
-                R.id.action_dislike -> {
-                    MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
-                    true
-                }
-                R.id.action_copy_link -> {
-                    Common.copy(mContext, ShareIllust.URL_Head + illust.id)
-                    true
-                }
-                R.id.action_show_original -> {
-                    val adapter = IllustAdapter(
-                        mActivity, this@FragmentIllust, illust, recyHeight, true
-                    )
-                    baseBind.recyclerView.adapter = adapter
-                    vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
-                    true
-                }
-                R.id.action_mute_illust -> {
-                    PixivOperate.muteIllust(illust)
-                    true
-                }
-                R.id.action_flag_illust -> {
-                    val intent = Intent(mContext, TemplateActivity::class.java)
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FLAG_REASON.key)
-                    // TemplateActivity 读这个 extra 走 getLongExtra,Illust.id 本身就是 Long,
-                    // 别收窄成 Int,否则 Int/Long extra 类型不匹配,读回来静默变 0。
-                    intent.putExtra(FlagDescFragment.FlagObjectIdKey, illust.id)
-                    intent.putExtra(FlagDescFragment.FlagObjectTypeKey, ObjectSpec.POST)
-                    startActivity(intent)
-                    true
-                }
-                R.id.action_ai_upscale -> {
-                    ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
-                        aiHelper?.performUpscale(illust, model)
-                    }
-                    true
-                }
-                R.id.action_ai_rembg -> {
-                    ceui.pixiv.ui.upscale.RembgModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
-                        aiHelper?.performRembg(illust, model)
-                    }
-                    true
-                }
-                else -> false
+        baseBind.toolbar.setOnMenuItemClickListener { menuItem ->
+            // 读字段而不是闭包捕获的 illust —— 菜单只按「形状」建一次，回调永远拿最新 bean。
+            menuIllust?.let { handleMenuItem(menuItem.itemId, it) } ?: false
+        }
+    }
+
+    /**
+     * 溢出菜单的点击处理。
+     *
+     * 单独拆出来，是为了让 [setupToolbarMenu] 不必为了「换 bean」而重建整个菜单 —— 菜单有
+     * 11 项，`inflateMenu` 不便宜，而 `updateIllust` 在**每次 ObjectPool 发射**时都会重跑
+     * （收藏回流最常见）。这也正是 [setupTags] 里那句「收藏回流只更新菜单闭包」想要的形态。
+     */
+    private fun handleMenuItem(itemId: Int, illust: Illust): Boolean = when (itemId) {
+        R.id.action_share -> {
+            object : ShareIllust(mContext, illust) {
+                override fun onPrepare() {}
+            }.execute()
+            true
+        }
+        R.id.action_share_image -> {
+            shareFirstImage(illust)
+            false
+        }
+        R.id.action_save_poster -> {
+            // 与页码浮标同源：多图作品保存当前看到的页；图片区不在视口时回退首图。
+            saveArtworkPoster(illust, pageProgressIndex.coerceAtLeast(0))
+            true
+        }
+        R.id.action_snapshot -> {
+            showSnapshotCreateDialog(illust)
+            true
+        }
+        R.id.action_dislike -> {
+            MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
+            true
+        }
+        R.id.action_copy_link -> {
+            Common.copy(mContext, ShareIllust.URL_Head + illust.id)
+            true
+        }
+        R.id.action_show_original -> {
+            val adapter = IllustAdapter(
+                mActivity, this@FragmentIllust, illust, recyHeight, true
+            )
+            baseBind.recyclerView.adapter = adapter
+            vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
+            true
+        }
+        R.id.action_mute_illust -> {
+            PixivOperate.muteIllust(illust)
+            true
+        }
+        R.id.action_flag_illust -> {
+            val intent = Intent(mContext, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FLAG_REASON.key)
+            // TemplateActivity 读这个 extra 走 getLongExtra,Illust.id 本身就是 Long,
+            // 别收窄成 Int,否则 Int/Long extra 类型不匹配,读回来静默变 0。
+            intent.putExtra(FlagDescFragment.FlagObjectIdKey, illust.id)
+            intent.putExtra(FlagDescFragment.FlagObjectTypeKey, ObjectSpec.POST)
+            startActivity(intent)
+            true
+        }
+        R.id.action_ai_upscale -> {
+            ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                aiHelper?.performUpscale(illust, model)
             }
-        })
+            true
+        }
+        R.id.action_ai_rembg -> {
+            ceui.pixiv.ui.upscale.RembgModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                aiHelper?.performRembg(illust, model)
+            }
+            true
+        }
+        else -> false
     }
 
     private fun setupLikeButton(illust: Illust) {
@@ -1430,6 +1458,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         renderedSynonymTags = null
         bottomSheetCallbackAttached = false
         bottomSheetPeekApplied = false
+        menuIllust = null
+        renderedMenuShape = null
         sheetDeltaY = 0
         loadedAvatarUrl = null
         aiHelper = null
