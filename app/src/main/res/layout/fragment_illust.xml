@@ -51,11 +51,14 @@
 
                             </androidx.recyclerview.widget.RecyclerView>
 
-                            <ceui.lisa.view.EnhanceShaderOverlayView
-                                android:id="@+id/enhance_overlay"
+                            <!-- AI 增强波纹覆盖层。它是 GLSurfaceView（构造即建 GLThread，且
+                                 renderMode=RENDERMODE_CONTINUOUSLY），而全仓零引用 —— 改 ViewStub，
+                                 现在连 GLThread 都不会建。见 view_enhance_overlay.xml。 -->
+                            <ViewStub
+                                android:id="@+id/enhance_overlay_stub"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
-                                android:visibility="gone" />
+                                android:layout="@layout/view_enhance_overlay" />
 
                             <!-- 只在跑 AI 画质增强 / 抠图时才用得上，改 ViewStub —— 与 V3 详情页同一套
                                  （见 ArtworkV3Fragment.ensureAiOverlay）。目标布局本身是单根，可直接当
