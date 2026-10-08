@@ -20,9 +20,11 @@ import java.io.IOException
  * 后台任务到底动没动、看某次操作打了几次网络，全都无从下手。这个类把那一半加回来，
  * 同时把泄密面压到零：
  *
- * - **只打方法 + URL + 状态码 + 耗时 + 响应体字节数**；
+ * - **打方法 + URL + 状态码 + 耗时 + 响应体字节数**；
  * - **绝不碰任何 header**（token / cookie / csrf 全在那里）；
- * - **绝不读 body**（读了还要 peek 回去，既有内存代价又会把用户内容写进日志）。
+ * - **响应体只打文本类**（json / text / html / xml），用 peek 读、最多 [MAX_BODY_LOG_BYTES]，
+ *   不消费原流；图片等二进制和没有 Content-Type 的一律不读。响应体里会有用户内容，
+ *   所以这一条同样只靠 debug 门控兜底，请求体不打。
  *
  * URL 本身对挂了本拦截器的这几个域是安全的：app-api / comic 的 query 是
  * user_id / restrict / max_bookmark_id 这类参数，token 一律走 header；网页 ajax 与
@@ -68,12 +70,42 @@ class RequestLogInterceptor(private val tag: String) : Interceptor {
             elapsedMs(startedAt),
             if (bytes >= 0) ", ${bytes}B" else "",
         )
+        logBody(response)
         return response
+    }
+
+    private fun logBody(response: Response) {
+        val type = response.body?.contentType() ?: return
+        val textual = type.type == "text" || TEXTUAL_SUBTYPES.any { it in type.subtype }
+        if (!textual) return
+        val bytes = try {
+            // 多 peek 1 字节，用来判断是否截断；peek 不消费原流，下游照常读完整 body
+            response.peekBody(MAX_BODY_LOG_BYTES + 1).bytes()
+        } catch (e: IOException) {
+            Timber.tag(tag).w("%s body ✗ %s", response.request.url, e.javaClass.simpleName)
+            return
+        }
+        if (bytes.isEmpty()) return
+        val truncated = bytes.size > MAX_BODY_LOG_BYTES
+        val text = String(
+            bytes, 0, minOf(bytes.size, MAX_BODY_LOG_BYTES.toInt()), type.charset(Charsets.UTF_8)!!,
+        )
+        Timber.tag(tag).d(
+            "%s body%s: %s",
+            response.request.url.encodedPath,
+            if (truncated) " (truncated to ${MAX_BODY_LOG_BYTES}B)" else "",
+            text,
+        )
     }
 
     private fun elapsedMs(startedAt: Long): Long = (System.nanoTime() - startedAt) / 1_000_000
 
     companion object {
+        /** 单条响应体日志上限。首页推荐这类大响应有几百 KB，全打会把 logcat 环形缓冲区冲掉。 */
+        private const val MAX_BODY_LOG_BYTES = 32L * 1024
+
+        private val TEXTUAL_SUBTYPES = listOf("json", "xml", "html", "javascript", "x-www-form-urlencoded")
+
         /** debug 才挂。release 上这行是个 no-op，拦截器链里根本不会多出这一环。 */
         fun installOn(builder: okhttp3.OkHttpClient.Builder, tag: String) {
             if (!BuildConfig.DEBUG) return
