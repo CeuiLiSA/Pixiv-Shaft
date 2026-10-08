@@ -126,8 +126,8 @@ class QueueListV3Fragment : Fragment() {
         view.findViewById<TextView>(R.id.emptyTitle).text = getString(R.string.dlmgr_queue_empty_title)
         view.findViewById<TextView>(R.id.emptyHint).text = getString(R.string.dlmgr_queue_empty_hint)
 
-        // 文案不在这里初始化 —— pausedFlow StateFlow 一 collect 立刻 replay 当前
-        // 值，下面的 combine collector 微秒级别就把 text 设上。
+        // 文案不在这里初始化 —— pausedFlow / queueRunningFlow 都是 StateFlow，一 collect
+        // 立刻 replay 当前值，下面的 combine collector 微秒级别就把 text 设上。
         val btnPause = view.findViewById<Button>(R.id.btn1)
         val btnRetry = view.findViewById<Button>(R.id.btn2).apply { text = getString(R.string.dlmgr_queue_action_retry_failed) }
         // btn3（原"清成功记录"）已废弃 —— SUCCESS 行会自动从队列消失走到"已完成" tab，
@@ -135,9 +135,12 @@ class QueueListV3Fragment : Fragment() {
         view.findViewById<Button>(R.id.btn3).visibility = View.GONE
         val btnClearAll = view.findViewById<Button>(R.id.btn4).apply { text = getString(R.string.dlmgr_queue_action_clear_all) }
 
+        // 按钮方向与点击动作同源：方向由下面的 combine collector 现算（口径 + 单测见
+        // QueuePauseToggle.kt）后写进这里，点击时读同一份，杜绝「显示继续、点下去却暂停」。
+        var resumeShown = false
         btnPause.setOnClickListener {
-            // pausedFlow 翻转后 combine collector 自动设 text，不在这里手动重复设。
-            if (queueDownloadManager.isPaused()) {
+            // 文案由 combine collector 现算，这里只读它算出的同一份方向。
+            if (resumeShown) {
                 // 联动：批量队列恢复时，正在下载 tab 的 Manager 也跟着恢复
                 // resumeByUser：用户触发的操作忽略网络状态，不走自动闸门
                 queueDownloadManager.resumeByUser()
@@ -186,15 +189,16 @@ class QueueListV3Fragment : Fragment() {
                 combine(
                     queueDownloadManager.queueListInvalidations,
                     queueDownloadManager.pausedFlow,
-                ) { _, paused -> paused }
-                    .map { paused ->
+                    queueDownloadManager.queueRunningFlow,
+                ) { _, paused, running -> paused to running }
+                    .map { (paused, running) ->
                         // light projection：不拉 illustGson（5000 × 5–30KB JSON 会撑爆 heap）
                         val rows = runCatching { dao.pageActiveLight(MAX_DISPLAY_ROWS) }
                             .getOrDefault(emptyList())
-                        rows to paused
+                        Triple(rows, paused, running)
                     }
                     .flowOn(Dispatchers.IO)
-                    .collectLatest { (rows, paused) ->
+                    .collectLatest { (rows, paused, running) ->
                         Timber.tag("QueueListV3").i(
                             "[QUEUE-LIST] manual emit rows=${rows.size}"
                         )
@@ -205,8 +209,20 @@ class QueueListV3Fragment : Fragment() {
                         btnPause.alpha = if (hasWork) 1f else 0.4f
                         btnClearAll.isEnabled = hasWork
                         btnClearAll.alpha = if (hasWork) 1f else 0.4f
+                        // 方向现算（口径 + 单测见 QueuePauseToggle.kt）：不再只看 pausedFlow，
+                        // 否则模式 2 下队列被闸门 hold（paused=false）会一直显示「暂停」。
+                        // 「活」= 还有 PENDING / DOWNLOADING 的行；只剩 FAILED 维持暂停、
+                        // 不替用户重试（与「正在下载」工具栏 shouldResumeAll 同一口径）。
+                        resumeShown = shouldResumeQueue(
+                            hasActiveWork = rows.any {
+                                it.status == QueueStatus.PENDING ||
+                                    it.status == QueueStatus.DOWNLOADING
+                            },
+                            queuePaused = paused,
+                            queueRunning = running,
+                        )
                         btnPause.text = getString(
-                            if (paused) R.string.dlmgr_queue_action_resume
+                            if (resumeShown) R.string.dlmgr_queue_action_resume
                             else R.string.dlmgr_queue_action_pause
                         )
                     }
