@@ -198,11 +198,18 @@ class ArtworkV3ViewModel(
         }
         downloadCheckJob?.cancel()
         downloadedCache = null
+        // 下载中再点一次进度环也走这里：入列会被去重，不是新任务，下面那套「按设置猜初始态」不适用。
+        val alreadyQueued = ceui.lisa.core.Manager.get().contentSnapshot().any { it.illust?.id == illustId }
         val resolution = IllustDownload.defaultImageResolution()
         if (activity != null) {
             IllustDownload.downloadIllustAllPagesWithResolution(illust, resolution, activity)
         } else {
             IllustDownload.downloadIllustAllPagesWithResolution(illust, resolution)
+        }
+        if (alreadyQueued) {
+            // 按队列里的真实条目推导；否则正在传的进度环会被翻成暂停图标、轮询也被停掉。
+            refreshDownloadFab()
+            return
         }
         val isPausedMode = Shaft.sSettings?.downloadLimitType == 2
         if (isPausedMode) {
@@ -222,7 +229,13 @@ class ArtworkV3ViewModel(
     fun resumeDownload() {
         val illust = illustBean ?: return
         val currentPercent = (_downloadFabState.value as? DownloadFab.Paused)?.percent ?: 0
-        ceui.lisa.core.Manager.get().startIllust(illust.id)
+        if (!ceui.lisa.core.Manager.get().startIllust(illust.id)) {
+            // 条目还没进队列（动图要先拉元数据、精简 bean 要先补详情，都是异步入列）：保持原状态。
+            // 翻成进度环的话，下一轮轮询看到空队列会判成 Done —— FAB 显示已下载，实际一页没下。
+            Timber.tag(DownloadRecordStateSource.LOG_TAG)
+                .d("resume dropped illustId=%d reason=not_queued_yet", illustId)
+            return
+        }
         _downloadFabState.value = DownloadFab.Downloading(currentPercent)
         startProgressPolling(illust.page_count)
     }
