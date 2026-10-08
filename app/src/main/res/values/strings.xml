@@ -978,7 +978,29 @@
     <string name="color_peachPink">樱桃粉</string>
     <string name="theme_nowUsing">（正在使用）</string>
     <string name="core_string_novel_marker">小说书签</string>
-    <string name="toast_download_result">下载完成App内提示</string>
+    <!-- 「下载相关提示消息」统一入口：下载（含批量、含小说）过程中会弹出的提示收成一个
+         witstudio 弹窗逐项控制，全部默认开；被关掉的按「已安静 N 条消息」计数。
+         原先只有「下载完成App内提示」一个总开关（toast_download_result，已废弃）。 -->
+    <string name="download_toast_entry_title">下载相关提示消息</string>
+    <string name="download_toast_entry_summary">已安静 %1$d 条消息</string>
+    <string name="download_toast_dialog_hint">逐项控制与下载相关的弹出消息，关掉的将不再打扰</string>
+    <string name="download_toast_group_image">图片下载</string>
+    <string name="download_toast_group_novel">小说下载</string>
+    <string name="download_toast_enqueued">已加入下载队列</string>
+    <string name="download_toast_enqueue_failed">下载任务创建失败</string>
+    <string name="download_toast_download_done">单张下载完成</string>
+    <string name="download_toast_download_failed">单张下载失败</string>
+    <string name="download_toast_aria2">aria2 发送结果</string>
+    <string name="download_toast_storage_unavailable">下载目录不可用</string>
+    <string name="download_toast_record_restored">下载记录恢复</string>
+    <string name="download_toast_low_storage_paused">空间不足暂停下载</string>
+    <string name="download_toast_bulk_enqueue">批量入队进度</string>
+    <string name="download_toast_bulk_summary">批量下载汇总</string>
+    <string name="download_toast_novel_progress">小说逐篇下载进度</string>
+    <string name="download_toast_novel_batch_result">小说批量下载结果</string>
+    <string name="download_toast_novel_save">单篇小说保存与导出</string>
+    <string name="download_toast_novel_series_export">系列下载与合并结果</string>
+    <string name="download_toast_novel_auto_download">收藏后自动下载结果</string>
     <string name="setting_auto_export_caption_title">插画/漫画下载时自动导出简介</string>
     <string name="setting_auto_export_caption_length_title">简介自动导出需达</string>
     <string name="setting_auto_export_caption_length_value">%d 字</string>

@@ -53,6 +53,8 @@ import ceui.pixiv.download.RecordedPageProbe;
 import ceui.pixiv.download.StageStore;
 import ceui.pixiv.download.StorageSpaceGuard;
 import ceui.pixiv.download.aria2.Aria2Dispatcher;
+import ceui.pixiv.download.toast.DownloadToastKind;
+import ceui.pixiv.download.toast.DownloadToasts;
 import ceui.pixiv.imageloader.ImageLoaderV3;
 import ceui.pixiv.progress.ProgressTracker;
 import okhttp3.OkHttpClient;
@@ -210,7 +212,7 @@ public class Manager {
                 }
                 ManagerReactive.invalidate();
                 postMain(() ->
-                        Common.showToast("下载记录恢复成功"));
+                        DownloadToasts.show(DownloadToastKind.RECORD_RESTORED, "下载记录恢复成功"));
             } catch (Throwable t) {
                 failed = true;
                 Common.showLog("Manager restore failed: " + t.getMessage());
@@ -757,7 +759,8 @@ public class Manager {
                 Common.showLog("[DL] factory init failed: " + e);
                 e.printStackTrace();
                 postMain(() -> {
-                    Common.showToast(mContext.getString(R.string.string_365));
+                    DownloadToasts.show(DownloadToastKind.STORAGE_UNAVAILABLE,
+                            mContext.getString(R.string.string_365));
                     complete(downloadItem, false);
                     // 单条失败不再 stopAll —— 并发模式下其它正在传的 page 不应受牵连。
                     pumpAvailableSlots();
@@ -833,7 +836,8 @@ public class Manager {
                     // 调一次 abandonWrite 兜底，幂等 + 内部判空。
                     try { factory.abandonWrite(); } catch (Exception ignored) {}
                     postMain(() -> {
-                        Common.showToast(mContext.getString(R.string.string_365));
+                        DownloadToasts.show(DownloadToastKind.STORAGE_UNAVAILABLE,
+                                mContext.getString(R.string.string_365));
                         complete(downloadItem, false);
                         pumpAvailableSlots();
                     });
@@ -843,7 +847,8 @@ public class Manager {
                     Common.showLog("[DL] factory.insert() returned null targetUri");
                     try { factory.abandonWrite(); } catch (Exception ignored) {}
                     postMain(() -> {
-                        Common.showToast(mContext.getString(R.string.string_365));
+                        DownloadToasts.show(DownloadToastKind.STORAGE_UNAVAILABLE,
+                                mContext.getString(R.string.string_365));
                         complete(downloadItem, false);
                         pumpAvailableSlots();
                     });
@@ -893,14 +898,16 @@ public class Manager {
                 ManagerReactive.invalidate();
             });
             try { complete(downloadItem, true); } catch (Throwable t) { Common.showLog("[ARIA2] complete(success) failed: " + t); }
-            if (Shaft.sSettings.isToastDownloadResult() && !downloadItem.isSilent()) {
+            if (!downloadItem.isSilent()) {
                 postMain(() ->
-                        Common.showToast(mContext.getString(R.string.aria2_task_sent, downloadItem.getName())));
+                        DownloadToasts.show(DownloadToastKind.ARIA2,
+                                mContext.getString(R.string.aria2_task_sent, downloadItem.getName())));
             }
         }, throwable -> {
             Common.showLog("[ARIA2] dispatch failed: " + throwable);
-            if (Shaft.sSettings.isToastDownloadResult() && !downloadItem.isSilent()) {
-                Common.showToast(mContext.getString(R.string.aria2_send_failed, String.valueOf(throwable.getMessage())));
+            if (!downloadItem.isSilent()) {
+                DownloadToasts.show(DownloadToastKind.ARIA2, mContext.getString(
+                        R.string.aria2_send_failed, String.valueOf(throwable.getMessage())));
             }
             complete(downloadItem, false);
         }, () -> {
@@ -1112,8 +1119,9 @@ public class Manager {
             // 广播放第二个 Runnable，跟 content.remove 顺序保留（main thread FIFO）。
             final DownloadEntity finalEntity = downloadEntity;
             postMain(() -> {
-                if (Shaft.sSettings.isToastDownloadResult() && !downloadItem.isSilent()) {
-                    Common.showToast(downloadItem.getName() + mContext.getString(R.string.has_been_downloaded));
+                if (!downloadItem.isSilent()) {
+                    DownloadToasts.show(DownloadToastKind.DOWNLOAD_DONE,
+                            downloadItem.getName() + mContext.getString(R.string.has_been_downloaded));
                 }
                 {
                     Intent intent = new Intent(Params.DOWNLOAD_ING);
@@ -1133,8 +1141,9 @@ public class Manager {
         }, throwable -> {
             //下载失败，处理相关逻辑
             Common.showLog("Manager download error: " + throwable.getMessage());
-            if (Shaft.sSettings.isToastDownloadResult() && !downloadItem.isSilent()) {
-                Common.showToast("下载失败，原因：" + throwable.toString());
+            if (!downloadItem.isSilent()) {
+                DownloadToasts.show(DownloadToastKind.DOWNLOAD_FAILED,
+                        "下载失败，原因：" + throwable.toString());
             }
             Common.showLog("下载失败，原因：" + throwable.toString());
             // issue #857：网络抖动 / 断链 → 进这里。之前只 complete + 广播，从不

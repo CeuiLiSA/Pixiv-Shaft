@@ -25,6 +25,8 @@ import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
 import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.download.toast.DownloadToastKind
+import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.widgets.ProgressIndicator
 import ceui.loxia.Series
 import ceui.pixiv.feeds.FeedItem
@@ -54,7 +56,6 @@ import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.widgets.RateAppManager
-import com.hjq.toast.Toaster
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -325,7 +326,10 @@ class NovelTextFragment :
                 } else {
                     format
                 }
-                Toaster.show(getString(R.string.msg_export_start, getString(actualFormat.displayNameResId)))
+                DownloadToasts.show(
+                    DownloadToastKind.NOVEL_SAVE,
+                    getString(R.string.msg_export_start, getString(actualFormat.displayNameResId)),
+                )
                 NovelExportManager.export(
                     context = appContext,
                     format = actualFormat,
@@ -335,14 +339,17 @@ class NovelTextFragment :
                 )
             }.getOrElse { ExportResult.Failure(it.message ?: "导出失败", it) }
             when (result) {
-                is ExportResult.Success -> Toaster.show(
-                    appContext.getString(R.string.msg_export_success, result.displayPath)
+                is ExportResult.Success -> DownloadToasts.show(
+                    DownloadToastKind.NOVEL_SAVE,
+                    appContext.getString(R.string.msg_export_success, result.displayPath),
                 )
-                is ExportResult.Failure -> Toaster.show(
-                    appContext.getString(R.string.msg_export_fail, result.message)
+                is ExportResult.Failure -> DownloadToasts.show(
+                    DownloadToastKind.NOVEL_SAVE,
+                    appContext.getString(R.string.msg_export_fail, result.message),
                 )
-                is ExportResult.Skipped -> Toaster.show(
-                    appContext.getString(R.string.msg_export_skipped, result.displayPath)
+                is ExportResult.Skipped -> DownloadToasts.show(
+                    DownloadToastKind.NOVEL_SAVE,
+                    appContext.getString(R.string.msg_export_skipped, result.displayPath),
                 )
             }
         }
