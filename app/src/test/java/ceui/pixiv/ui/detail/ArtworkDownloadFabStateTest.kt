@@ -244,6 +244,47 @@ class ArtworkDownloadFabStateTest {
     }
 
     @Test
+    fun `全部暂停后失败页不挡住 Paused 判定`() {
+        // 「全部暂停」不碰 FAILED：失败页 paused=false，其余页被暂停、泵已熄火。
+        val items = listOf(
+            createItem(state = DownloadItem.DownloadState.FAILED),
+            createItem(state = DownloadItem.DownloadState.DOWNLOADING, isPaused = true),
+        )
+        val result = resolveDownloadFabState(
+            myItems = items,
+            pageCount = 2,
+            downloadLimitType = 0,
+        )
+        assertTrue(result is DownloadFab.Paused)
+    }
+
+    @Test
+    fun `只剩失败页时推导为 Resume 而不是一直转圈`() {
+        val items = listOf(createItem(state = DownloadItem.DownloadState.FAILED))
+        val result = resolveDownloadFabState(
+            myItems = items,
+            pageCount = 3,
+            downloadLimitType = 0,
+            dispatchScheduled = true,
+        )
+        assertEquals(DownloadFab.Resume(66), result)
+    }
+
+    @Test
+    fun `失败页与在传页并存时仍是 Downloading`() {
+        val items = listOf(
+            createItem(state = DownloadItem.DownloadState.FAILED),
+            createItem(state = DownloadItem.DownloadState.DOWNLOADING, nonius = 40),
+        )
+        val result = resolveDownloadFabState(
+            myItems = items,
+            pageCount = 2,
+            downloadLimitType = 0,
+        )
+        assertTrue(result is DownloadFab.Downloading)
+    }
+
+    @Test
     fun `还有未完成项时进度封顶在 99`() {
         val items = listOf(
             createItem(state = DownloadItem.DownloadState.DOWNLOADING, nonius = 99),

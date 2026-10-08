@@ -478,8 +478,10 @@ public class Manager {
         // 用 snapshot 迭代：item.setPaused/state 是各自字段写入,跟 content 结构无关;
         // 直接 for-each live content 跟并发的 addTasks/safeAdd/remove 抢 modCount,CME。
         for (DownloadItem item : contentSnapshot()) {
-            item.setPaused(false);
-            resurrectIfStranded(item);
+            if (item != null && !item.isFailed()) {
+                item.setPaused(false);
+                resurrectIfStranded(item);
+            }
         }
         isRunning = true;
         // 之前 isRunning=true 时会 short-circuit return，假设单线程串行用 onFinally
@@ -669,7 +671,9 @@ public class Manager {
 
     public void stopAll() {
         for (DownloadItem item : contentSnapshot()) {
-            item.setPaused(true);
+            if (item != null && !item.isFailed()) {
+                item.setPaused(true);
+            }
         }
         isRunning = false;
         releasedIllusts.clear();
@@ -678,10 +682,27 @@ public class Manager {
             try { d.cancel(); } catch (Exception ignored) {}
         }
         handles.clear();
-        // 停止后所有 item 都 paused（getState() 返回 PAUSED），不会再被误判成 stranded，
+        // 停止后非 FAILED 的 item 都 paused（getState() 返回 PAUSED），不会再被误判成 stranded，
         // dispatching 里的残留也一并清掉，免得 resume 时把还没派发的 uuid 当成"在跑"。
         dispatching.clear();
-        Common.showLog("已经停止");
+        Common.showLog("[DL-RACE] stopAll (已经停止)");
+        ManagerReactive.invalidate();
+    }
+
+    /**
+     * 只对 FAILED 态的任务下发启动：把 FAILED 翻回 INIT，并触发 pumpAvailableSlots。
+     * 其余非 FAILED 态（DOWNLOADING、INIT、PAUSED）的任务一律不碰。
+     */
+    public void retryAllFailed() {
+        Common.showLog("[DL-RACE] retryAllFailed (只对 FAILED 态下发启动)");
+        for (DownloadItem item : contentSnapshot()) {
+            if (item != null && item.isFailed()) {
+                item.setPaused(false);
+                resurrectIfStranded(item);
+            }
+        }
+        isRunning = true;
+        pumpAvailableSlots();
         ManagerReactive.invalidate();
     }
 

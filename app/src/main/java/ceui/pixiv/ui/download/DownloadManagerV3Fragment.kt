@@ -146,22 +146,17 @@ class DownloadManagerV3Fragment : Fragment() {
         val pauseToggleItem = toolbar.menu.findItem(R.id.action_pause_toggle)
         val searchItem = toolbar.menu.findItem(R.id.action_search)
         val importItem = toolbar.menu.findItem(R.id.action_import)
-        // 「全部暂停 / 全部继续」的方向判据 —— 图标与点击动作共用同一个现算值（口径 + 单测见
-        // ActivePauseToggle.kt）：不再只看批量队列的 pausedFlow，否则模式 2 会一直显示「全部暂停」。
-        fun shouldResumeNow(): Boolean = shouldResumeAll(
+        // 工具栏右侧按钮的动作 —— 图标与点击共用同一个现算值（口径 + 单测见 ActiveToolbarAction.kt /
+        // ActivePauseToggle.kt）：只剩失败项时是「重试失败」，否则按 shouldResumeAll 定暂停 / 继续。
+        fun currentToolbarAction(): ActiveToolbarAction = resolveActiveToolbarAction(
             Manager.get().contentSnapshot().toPauseToggleItems(),
             queueDownloadManager.isPaused(),
             queueDownloadManager.ugoiraInFlightFlow.value.isNotEmpty(),
         )
 
-        fun renderPauseToggle(resume: Boolean) {
-            pauseToggleItem?.setIcon(
-                if (resume) R.drawable.ic_v3_resume_all_24 else R.drawable.ic_v3_pause_all_24
-            )
-            pauseToggleItem?.setTitle(
-                if (resume) R.string.dlmgr_active_action_resume_all
-                else R.string.dlmgr_active_action_pause_all
-            )
+        fun renderPauseToggle(action: ActiveToolbarAction) {
+            pauseToggleItem?.setIcon(action.iconRes)
+            pauseToggleItem?.setTitle(action.titleRes)
         }
 
         setupDoneSearch(searchItem)
@@ -172,15 +167,21 @@ class DownloadManagerV3Fragment : Fragment() {
                     true
                 }
                 R.id.action_pause_toggle -> {
-                    // 图标与动作同源：都用 shouldResumeNow() 现算（见 ActivePauseToggle.kt），
+                    // 图标与动作同源：都用 currentToolbarAction() 现算（见 ActiveToolbarAction.kt），
                     // 不存第二份 UI 状态 —— 否则会出现「按钮显示继续、点下去却暂停」的错位。
-                    if (shouldResumeNow()) {
-                        // resumeByUser：用户触发的操作忽略网络状态，不走自动闸门
-                        Manager.get().startAll()
-                        queueDownloadManager.resumeByUser()
-                    } else {
-                        Manager.get().stopAll()
-                        queueDownloadManager.pause()
+                    when (currentToolbarAction()) {
+                        ActiveToolbarAction.RETRY -> {
+                            Manager.get().retryAllFailed()
+                        }
+                        ActiveToolbarAction.RESUME -> {
+                            // resumeByUser：用户触发的操作忽略网络状态，不走自动闸门
+                            Manager.get().startAll()
+                            queueDownloadManager.resumeByUser()
+                        }
+                        ActiveToolbarAction.PAUSE -> {
+                            Manager.get().stopAll()
+                            queueDownloadManager.pause()
+                        }
                     }
                     true
                 }
@@ -211,14 +212,14 @@ class DownloadManagerV3Fragment : Fragment() {
             }
         }.also { pager.registerOnPageChangeCallback(it) }
 
-        // 暂停/继续按钮 → 图标 + title。方向由 shouldResumeAll 现算（见 ActivePauseToggle.kt），
-        // 不再只看批量队列的 pausedFlow —— 模式 2「不自动下载」下内容列表里全是等用户手动启动的
-        // 暂停项、而队列标志是 false，旧逻辑会一直显示「全部暂停」（点一下还是 no-op），
-        // 用户看不到任何开始入口。
+        // 暂停/继续/重试按钮 → 图标 + title。动作由 resolveActiveToolbarAction 现算（见
+        // ActiveToolbarAction.kt）：只剩失败项 → 重试失败；否则方向由 shouldResumeAll 定（见
+        // ActivePauseToggle.kt），不再只看批量队列的 pausedFlow —— 模式 2「不自动下载」下内容列表里
+        // 全是等用户手动启动的暂停项、而队列标志是 false，旧逻辑会一直显示「全部暂停」。
         // combine 三个源：Manager 内容（在传 / 排队 / 暂停项增删 / 单条手动暂停）、队列暂停标志、
         // 动图在飞（动图不在 Manager.content，但「全部暂停」同样会掐掉它）。flowOn(Default) 把每帧
         // 的快照拷贝 + map 挪出主线程；StateFlow/SharedFlow 都自带初始值，首帧就渲染成真实方向，
-        // 不会出现冷启图标与实际状态错位；distinctUntilChanged 让图标只在方向真的翻转时才 setIcon。
+        // 不会出现冷启图标与实际状态错位；distinctUntilChanged 让图标只在动作真的变化时才 setIcon。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 combine(
@@ -226,7 +227,7 @@ class DownloadManagerV3Fragment : Fragment() {
                     ManagerReactive.contentFlow,
                     queueDownloadManager.ugoiraInFlightFlow,
                 ) { paused, items, ugoiras ->
-                    shouldResumeAll(items.toPauseToggleItems(), paused, ugoiras.isNotEmpty())
+                    resolveActiveToolbarAction(items.toPauseToggleItems(), paused, ugoiras.isNotEmpty())
                 }
                     .conflate()
                     .flowOn(Dispatchers.Default)
