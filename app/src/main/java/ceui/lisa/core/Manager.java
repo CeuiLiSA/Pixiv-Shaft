@@ -508,8 +508,10 @@ public class Manager {
 
     /**
      * 恢复/启动指定作品的所有未完成下载条目（用于详情页 FAB 从暂停态就地继续）。
+     *
+     * @return 队列里是否有该作品的条目；false = 还没入列（异步入列尚未落地），什么都没做。
      */
-    public void startIllust(long illustId) {
+    public boolean startIllust(long illustId) {
         boolean found = false;
         for (DownloadItem downloadItem : contentSnapshot()) {
             if (downloadItem != null && downloadItem.getIllust() != null && downloadItem.getIllust().getId() == illustId) {
@@ -528,6 +530,7 @@ public class Manager {
             }
             ManagerReactive.invalidate();
         }
+        return found;
     }
 
     /**
