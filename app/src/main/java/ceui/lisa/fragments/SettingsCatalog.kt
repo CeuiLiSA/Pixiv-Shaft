@@ -107,6 +107,7 @@ object SettingsCatalog {
         // 别名按整串子串匹配（同上），「平板双栏」「左右分屏」这类连写说法各铺一遍
         add(Entry(APPEARANCE, "tablet_layout_rela", R.string.tablet_layout, R.string.tablet_layout_desc, keywords = "平板 平板适配 平板排版 平板布局 双栏 平板双栏 侧边栏 侧边导航 导航栏 大屏 宽屏 折叠屏 瀑布流 列数 详情页 tablet layout large screen foldable navigation rail sidebar"))
         add(Entry(APPEARANCE, "line_count_rela", R.string.string_336, keywords = "列数 几列 瀑布流 网格 columns grid"))
+        add(Entry(APPEARANCE, "illust_list_layout_rela", R.string.illust_list_layout, keywords = "布局 列表布局 图片列表 瀑布流 方格 网格 等宽等高 齐行 等高不等宽 单列 全宽 大图 layout masonry grid justified single column"))
         add(Entry(APPEARANCE, "layout_mode_rela", R.string.layout_mode, keywords = "瀑布流 线性 列表 关注动态 staggered linear"))
         add(Entry(APPEARANCE, "show_novel_card_tags_rela", R.string.show_novel_card_tags_setting, keywords = "小说标签 卡片 tag novel"))
         add(Entry(APPEARANCE, "show_novel_card_tag_translations_rela", R.string.show_novel_card_tag_translations_setting, keywords = "小说标签译文 小说标签翻译 小说列表标签译文 小说列表标签翻译 标签译文 标签翻译 tag translation novel"))
@@ -139,6 +140,7 @@ object SettingsCatalog {
         add(Entry(BROWSING, "search_exit_confirm_rela", R.string.search_exit_confirm, R.string.search_exit_confirm_desc, keywords = "退出 返回 误触 二次确认 确认退出 弹窗 back exit confirm"))
         // 别名按整串子串匹配（同上），「回到顶部」「回顶刷新」「悬浮按钮」这些连写说法各铺一遍
         add(Entry(BROWSING, "feed_back_to_top_fab_rela", R.string.feed_back_to_top_fab, R.string.feed_back_to_top_fab_desc, keywords = "回顶 回到顶部 置顶 回顶刷新 刷新 悬浮按钮 悬浮球 浮动按钮 圆形按钮 搜索结果 画师主页 作者页 fab back to top scroll top refresh floating button"))
+        add(Entry(BROWSING, "scroll_edge_haptic_rela", R.string.settings_scroll_edge_haptic, R.string.settings_scroll_edge_haptic_desc, keywords = "振动 震动 触感 触觉 震感 马达 滑到底 滑到顶 到底 到顶 边缘 边界 回弹 列表 滚动 关掉振动 关闭振动 不要震动 haptic vibration vibrate scroll edge overscroll"))
         add(Entry(BROWSING, "synonym_dict_enable_rela", R.string.synonym_dict_enable, keywords = "同义词 词典 别名 标签翻译 synonym"))
         add(Entry(BROWSING, "synonym_dict_rela", R.string.synonym_dict_title, keywords = "同义词 词典 管理 导入 导出 合并 synonym"))
 
@@ -167,7 +169,7 @@ object SettingsCatalog {
         add(Entry(BOOKMARKS, "private_follow_rela", R.string.private_follow_by_default, keywords = "私密关注 悄悄关注 非公开 私人 关注 private follow"))
         add(Entry(BOOKMARKS, "hide_star_bar_rela", R.string.string_371, keywords = "隐藏 收藏按钮 我的收藏"))
         // 别名按整串子串匹配，「关闭震动」「收藏按钮震动」这类连写说法各铺一遍
-        add(Entry(BOOKMARKS, "like_haptic_rela", R.string.settings_like_haptic, R.string.settings_like_haptic_desc, keywords = "振动 震动 触感 触觉 震感 手感 马达 触感反馈 震动反馈 收藏振动 收藏震动 收藏按钮震动 爱心 点赞 关掉振动 关掉震动 关闭振动 关闭震动 不要震动 haptic vibration vibrate"))
+        add(Entry(BOOKMARKS, "like_haptic_rela", R.string.settings_like_haptic, R.string.settings_like_haptic_desc, keywords = "振动 震动 触感 触觉 震感 手感 马达 触感反馈 震动反馈 收藏振动 收藏震动 收藏按钮震动 关注振动 关注震动 爱心 点赞 关掉振动 关掉震动 关闭振动 关闭震动 不要震动 haptic vibration vibrate"))
         add(Entry(BOOKMARKS, "filter_invalid_bookmarks_rela", R.string.filter_invalid_bookmarks, keywords = "失效 无效 404 收藏夹 已删除作品"))
         add(Entry(BOOKMARKS, "select_all_tag_rela", R.string.string_372, keywords = "标签 全选 tag 收藏"))
         add(Entry(BOOKMARKS, "show_related_when_star_rela", R.string.string_396, keywords = "相关作品 关联 推荐 related"))
@@ -189,7 +191,7 @@ object SettingsCatalog {
         add(Entry(DOWNLOAD, "download_limit_type_rela", R.string.string_452, keywords = "限制 wifi 流量 蜂窝 移动网络 limit"))
         add(Entry(DOWNLOAD, "max_concurrent_downloads_rela", R.string.setting_max_concurrent_downloads, keywords = "并发 同时 多任务 线程 速度 concurrent"))
         add(Entry(DOWNLOAD, "illust_long_press_download_rela", R.string.string_405, keywords = "长按 下载 long press"))
-        add(Entry(DOWNLOAD, "toast_download_result_rela", R.string.toast_download_result, keywords = "提示 通知 完成 toast"))
+        add(Entry(DOWNLOAD, "download_toasts_rela", R.string.download_toast_entry_title, R.string.download_toast_dialog_hint, keywords = "提示 通知 弹窗 消息 完成 失败 入队 队列 批量 汇总 进度 安静 静音 不弹 关闭 关掉 toast notice"))
         add(Entry(DOWNLOAD, "silent_download_rela", R.string.setting_silent_download_title, R.string.setting_silent_download_desc, keywords = "低调 静默 隐藏 隐身 最近 微信 qq 相册 时间 recent hide silent wechat"))
         add(Entry(DOWNLOAD, "aria2_rela", R.string.aria2_settings_title, R.string.aria2_settings_entry_desc, keywords = "aria2 远程 nas rpc 服务器 remote"))
 

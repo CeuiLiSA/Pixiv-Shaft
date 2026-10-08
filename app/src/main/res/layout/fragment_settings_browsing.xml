@@ -444,6 +444,29 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/scroll_edge_haptic_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_single"
+                    android:layout_marginTop="14dp">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/settings_scroll_edge_haptic" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/settings_scroll_edge_haptic_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/scroll_edge_haptic"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/synonym_dict_enable_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_single"

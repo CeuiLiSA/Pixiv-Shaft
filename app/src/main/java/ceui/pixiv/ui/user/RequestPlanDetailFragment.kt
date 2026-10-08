@@ -25,6 +25,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.widgets.ProgressTextButton
@@ -123,12 +124,16 @@ class RequestPlanDetailFragment : Fragment(R.layout.fragment_request_plan_detail
         if (user.is_followed == true) {
             ab.followBtn.text = getString(R.string.unfollow)
             palette.applyUnfollowBtn(ab.followBtn)
-            ab.followBtn.setOnClick { unfollowUser(it as ProgressTextButton, user.id) }
+            ab.followBtn.setOnClick {
+                playToggleHaptic(it, false)
+                unfollowUser(it as ProgressTextButton, user.id)
+            }
         } else {
             ab.followBtn.text = getString(R.string.follow)
             palette.applyFollowBtn(ab.followBtn)
             ab.followBtn.setTextColor(Color.WHITE)
             ab.followBtn.setOnClick {
+                playToggleHaptic(it, true)
                 followUser(it as ProgressTextButton, user.id, PixivActions.defaultFollowRestrict())
             }
             ab.followBtn.setOnLongClickListener {

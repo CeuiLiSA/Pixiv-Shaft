@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import androidx.lifecycle.lifecycleScope
+import ceui.pixiv.utils.playToggleHaptic
 import kotlinx.coroutines.launch
 import android.os.Bundle
 import android.os.Handler
@@ -87,6 +88,7 @@ import ceui.pixiv.ui.upscale.IllustAiHelper
 import ceui.pixiv.utils.buildPinnedTagPreviewJson
 import ceui.pixiv.utils.isHostStillResumed
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.utils.singleLineTitle
 
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -385,6 +387,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.unfollow.isVisible = true
             baseBind.unfollow.text = getString(followedLabelRes(userId))
             baseBind.unfollow.setOnClick {
+                playToggleHaptic(it, false)
                 unfollowUser(it, userId)
             }
             baseBind.unfollow.setOnLongClickListener {
@@ -395,6 +398,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true
             baseBind.follow.setOnClick {
+                playToggleHaptic(it, true)
                 followUser(it, userId, PixivActions.defaultFollowRestrict())
             }
             baseBind.follow.setOnLongClickListener {
@@ -472,7 +476,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             }
             val seriesString = getString(R.string.string_229)
             val spannableString = SpannableString(
-                String.format("@%s %s", seriesString, illust.title)
+                String.format("@%s %s", seriesString, illust.title.singleLineTitle())
             )
             spannableString.setSpan(
                 clickableSpan, 0, seriesString.length + 1,
@@ -481,11 +485,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.title.movementMethod = LinkMovementMethod.getInstance()
             baseBind.title.text = spannableString
         } else {
-            baseBind.title.text = illust.title
-        }
-        baseBind.title.setOnLongClickListener {
-            Common.copy(mContext, illust.title)
-            true
+            baseBind.title.text = illust.title.singleLineTitle()
         }
     }
 
@@ -602,6 +602,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             } else {
                 baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp)
             }
+            playToggleHaptic(it, willBookmark)
             PixivOperate.postLikeDefaultStarType(illust)
             // 收藏后自动下载只在用户主动收藏(非取消)时触发,避免和"下载时自动收藏"循环联动(issue #880)。
             if (willBookmark && Shaft.sSettings.isAutoDownloadAfterStar) {

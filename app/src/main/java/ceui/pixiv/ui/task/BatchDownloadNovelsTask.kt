@@ -12,12 +12,13 @@ import ceui.pixiv.download.header.NovelHeaderRenderer
 import ceui.pixiv.ui.common.getTxtFileIdInDownloads
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.download.model.RelativePath
+import ceui.pixiv.download.toast.DownloadToastKind
+import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
 import ceui.pixiv.ui.novel.reader.export.ExportUtils
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.paginate.ContentParser
-import com.hjq.toast.Toaster
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -92,7 +93,10 @@ class BatchDownloadNovelsTask(
                     failures += FailedNovel(novel, ex.message ?: ex::class.java.simpleName)
                 }
                 onProgress(done, total)
-                Toaster.show(ctx.getString(R.string.batch_download_progress, done, total))
+                DownloadToasts.show(
+                    DownloadToastKind.NOVEL_PROGRESS,
+                    ctx.getString(R.string.batch_download_progress, done, total),
+                )
                 // Match DownloadNovelTask's own delays — Pixiv is quick to
                 // 429 if we hammer getNovelText back to back.
                 if (done < total) delay(1500L)

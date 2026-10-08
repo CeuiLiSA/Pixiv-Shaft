@@ -23,6 +23,8 @@ import ceui.lisa.utils.Params
 import ceui.loxia.Novel
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.chat.base.viewModels
+import ceui.pixiv.download.toast.DownloadToastKind
+import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.ui.common.tintMenuIconsWhite
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
@@ -305,12 +307,13 @@ class NovelBulkSelectV3Fragment : Fragment(), ExportFormatCallback {
     private fun onDownloadFinished(failures: List<FailedNovel>) {
         downloadRunning = false
         if (!isAdded) return
-        Toaster.show(
+        DownloadToasts.show(
+            DownloadToastKind.NOVEL_BATCH_RESULT,
             if (failures.isEmpty()) {
                 getString(R.string.batch_download_all_ok)
             } else {
                 getString(R.string.batch_download_some_failed, failures.size)
-            }
+            },
         )
         refreshHeaderAndCta()
     }

@@ -64,9 +64,12 @@ import ceui.pixiv.ui.bulk.QueueDownloadManager
  * 并发下载（Settings.maxConcurrentDownloads，默认 1，上限 5）：
  *   - 任意时刻 DOWNLOADING 数量 ≤ 用户配置的并发数
  *   - 其余可下载的 page 处于 INIT（等待）
+ *   - 「不自动下载」入列的项是 PAUSED：没有任何自动唤醒源，只能由用户点播放键 / 「继续」启动
+ *     （见 [ceui.lisa.utils.DownloadLimitTypeUtil.enqueueAsPaused]）；等待态（INIT）只属于仅 Wi-Fi 的网络暂缓
  *   - DOWNLOADING 卡：完整不透明 + 蓝色进度条 + 实时大小/百分比
  *   - INIT 卡：半透明 0.55 + 隐藏进度条/大小 + 文字 "等待中…"
- *   - 顶部状态行明确写 "N 正在 · M 等待"
+ *   - PAUSED 卡：半透明 0.55 + 隐藏进度条/大小 + 文字 "已暂停" + 播放键
+ *   - 顶部状态行明确写 "N 正在 · M 等待 · K 已暂停"
  *   - 运行时 invariant：snapshot 里 DOWNLOADING > 配置上限 直接 warn 到日志
  */
 class ActiveListV3Fragment : Fragment() {
@@ -369,6 +372,36 @@ private fun formatSpeed(bps: Long): String =
     if (bps <= 0) "0B/s" else "${ceui.lisa.download.FileSizeUtil.formatFileSize(bps)}/s"
 
 /**
+ * 活跃下载行的「已下 / 总长」文案。
+ *
+ * 响应没带 `Content-Length`（chunked / okhttp 透明解压 gzip）时总长是真不知道：上游用
+ * `totalSize <= 0` 表达未知（staging 路径传 -1、直写路径传 0）。这里**如实写「未知大小」**，
+ * 而不是只留一个 `—` —— 斜杠后面那个占位符既不像数字也不像话，用户看不出是"没渲染出来"
+ * 还是"总长确实不知道"。
+ *
+ * 未知不是终局：续传 / 重试的下一个请求一旦带回 `Content-Length`（或 206 的
+ * `Content-Range` 总长），进度回调会把真实 `totalSize` 写回 item，下一次 bind 重算本函数
+ * 就换成真实大小。所以这里按入参无条件重算，绝不缓存"未知"这个结论。
+ *
+ * 抽成顶层 internal（而不是留在 adapter 私有方法里）是为了让这三条分支能被单测钉住，
+ * 与 `Manager.isSlowTransfer` 同一个理由。
+ */
+internal fun formatActiveSizeText(currentSize: Long, totalSize: Long, unknownLabel: String): String =
+    when {
+        totalSize > 0 -> String.format(
+            "%s / %s",
+            FileSizeUtil.formatFileSize(currentSize),
+            FileSizeUtil.formatFileSize(totalSize)
+        )
+        currentSize > 0 -> String.format(
+            "%s / %s",
+            FileSizeUtil.formatFileSize(currentSize),
+            unknownLabel
+        )
+        else -> "—"
+    }
+
+/**
  * 关键陷阱：[Manager] 原地修改 [DownloadItem]（setNonius / setPaused / ...），
  * 不会创建新对象。如果 ListAdapter 直接拿 DownloadItem 做 DiffUtil 元素，旧
  * snapshot 列表和新 snapshot 列表持有**同一份对象引用**，DiffUtil 调
@@ -589,20 +622,12 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
 
         when {
             isActive -> {
-                // totalSize=0 时（响应没 Content-Length）只显示已下载字节，让用户
-                // 至少看到"在动"；否则照常 currentSize / totalSize。
-                h.sizeText.text = when {
-                    snap.totalSize > 0 -> String.format(
-                        "%s / %s",
-                        FileSizeUtil.formatFileSize(snap.currentSize),
-                        FileSizeUtil.formatFileSize(snap.totalSize)
-                    )
-                    snap.currentSize > 0 -> String.format(
-                        "%s / —",
-                        FileSizeUtil.formatFileSize(snap.currentSize)
-                    )
-                    else -> "—"
-                }
+                // 总长未知（响应没带 Content-Length）时如实写「未知大小」，见 formatActiveSizeText。
+                h.sizeText.text = formatActiveSizeText(
+                    snap.currentSize,
+                    snap.totalSize,
+                    h.sizeText.context.getString(R.string.dlmgr_active_size_unknown)
+                )
             }
             isWaiting -> h.sizeText.setText(R.string.dlmgr_active_size_waiting)
             isPaused -> h.sizeText.setText(R.string.dlmgr_active_size_paused)

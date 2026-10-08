@@ -74,6 +74,9 @@ import ceui.pixiv.ui.comments.CommentTarget
 import ceui.pixiv.ui.comments.CommentsComposerViewModel
 import ceui.pixiv.ui.comments.SentComment
 import ceui.pixiv.ui.common.IllustFeedFragment
+import ceui.pixiv.ui.common.scrollToPositionWithOffset
+import ceui.pixiv.ui.common.JustifiedLayoutManager
+import ceui.pixiv.ui.common.JustifiedItemDecoration
 import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.pixiv.ui.common.TabletLayout
 import ceui.pixiv.ui.common.staggerIllustRenderer
@@ -88,6 +91,7 @@ import ceui.pixiv.ui.upscale.ModelPickerDialog
 import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.combineLatest
 import ceui.pixiv.utils.isHostStillResumed
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.utils.toTagsBeans
@@ -139,7 +143,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             if (isSnapshotMode) 0L else requireArguments().getInt("illust_id").toLong()
         }
 
-    override val feedViewModel by feedViewModels {
+    override val feedViewModel by feedViewModels(autoLoad = false) {
         // 零捕获:只把 id/快照 id/是否自动 读进局部值交给长命 VM 持有的数据源,不钉 Fragment。
         val snapshot = arguments?.getString(SnapshotManagerFragment.ARG_SNAPSHOT_ID)
         val snapshotAuto =
@@ -284,13 +288,23 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         )
     }
 
-    // onCreateLayoutManager 不覆写:父类 IllustFeedFragment 那份与本页原先内联的实现逐字相同
-    // (同样的 StaggeredManager(lineCount, VERTICAL) + GAP_HANDLING_NONE),它的注释里本来就写着
-    // 「对齐 legacy / Recmd / Artwork」——两份并存只会让下次调 gap 策略时漏改一处。
+    // onCreateLayoutManager 不覆写:用父类 IllustFeedFragment 按「插画列表布局」装的那份(瀑布流 / 方格 /
+    // 单列是 StaggeredManager + GAP_HANDLING_NONE,齐行是 JustifiedLayoutManager)。本页的跳评论 / 跳页 /
+    // 收起回顶都走 scrollToPositionWithOffset 扩展,两种 LayoutManager 都认。
 
     override fun onListReady(listView: RecyclerView) {
-        // 相关作品瀑布流间距对齐外面的推荐插画流(SpacesItemDecoration 也是 8dp);列数随列表宽度自适应。
-        listView.addItemDecoration(RelatedOnlySpaceDecoration(8.ppppx))
+        // 相关作品跟随「插画列表布局」设置(#1214)。间距对齐外面的推荐插画流(8dp),只给相关卡片:
+        // 瀑布流 / 方格 / 单列走 SGLM 的 RelatedOnlySpaceDecoration;齐行的外缘由 LayoutManager 让出,
+        // 大图 / 简介 / 评论这些整行区块用负间距抵掉、照旧贴边(列表 View 的 padding 仍归
+        // handleSystemInsets 管,不碰)。
+        val manager = listView.layoutManager
+        listView.addItemDecoration(
+            if (manager is JustifiedLayoutManager) {
+                JustifiedItemDecoration(manager, fullBleedFullSpan = true)
+            } else {
+                RelatedOnlySpaceDecoration(8.ppppx)
+            }
+        )
         // header 区块(fullSpan)在 notifyItemChanged 时的默认变更动画会打乱 SGLM 的 fullSpan 追踪。
         listView.itemAnimator = null
         // 多留几格「刚滑出去的 holder」。RecyclerView 对缓存里的 holder 不调 onViewRecycled、
@@ -454,6 +468,16 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             viewLifecycleOwner,
         ) { _, _ ->
             refreshTagsSection()
+        }
+
+        // 若当前处于 ViewPager 离屏预加载状态（非 RESUMED），在首帧绘制完成后通过 post 稍后加载相邻页数据，
+        // 既避开与当前页同帧竞争主线程造成的严重卡顿（128 帧丢帧），又保证用户滑动时邻页已在内存准备就绪。
+        if (!viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            view.post {
+                if (isAdded && !isDetached) {
+                    feedViewModel.ensureLoaded()
+                }
+            }
         }
     }
 
@@ -1227,9 +1251,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val pos = fa.currentList.indexOfFirst { it is ArtworkPageItem && it.pageIndex == index }
         if (pos < 0) return false
         // 落位对齐列表顶缘,与页码读数的锚线口径一致:浮标压着谁就读谁,跳完读数正好是这一页。
-        val lm = feedBinding.feedListView.layoutManager
-        if (lm is StaggeredGridLayoutManager) lm.scrollToPositionWithOffset(pos, 0)
-        else feedBinding.feedListView.scrollToPosition(pos)
+        feedBinding.feedListView.scrollToPositionWithOffset(pos, 0)
         return true
     }
 
@@ -1267,9 +1289,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         pendingCollapseResetScroll = false
         // 在飞的 submitList 可能在 onDestroyView 之后才派发,那时候 feedBinding 已经不在了。
         if (_chromeBind == null) return
-        val lm = feedBinding.feedListView.layoutManager
-        if (lm is StaggeredGridLayoutManager) lm.scrollToPositionWithOffset(0, 0)
-        else feedBinding.feedListView.scrollToPosition(0)
+        feedBinding.feedListView.scrollToPositionWithOffset(0, 0)
     }
 
     /**
@@ -1439,9 +1459,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val rv = feedBinding.feedListView
         val pos = rv.getChildAdapterPosition(itemView)
         if (pos == RecyclerView.NO_POSITION) return
-        val lm = rv.layoutManager
-        if (lm is StaggeredGridLayoutManager) lm.scrollToPositionWithOffset(pos, 0)
-        else rv.scrollToPosition(pos)
+        rv.scrollToPositionWithOffset(pos, 0)
     }
 
     /**
@@ -1452,12 +1470,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val fa = feedAdapter ?: return
         val pos = fa.currentList.indexOfFirst { it is ArtworkCommentsItem }
         if (pos < 0) return
-        val lm = feedBinding.feedListView.layoutManager
-        if (lm is StaggeredGridLayoutManager) {
-            lm.scrollToPositionWithOffset(pos, chromeBind.topOverlayColumn.bottom)
-        } else {
-            feedBinding.feedListView.scrollToPosition(pos)
-        }
+        feedBinding.feedListView.scrollToPositionWithOffset(pos, chromeBind.topOverlayColumn.bottom)
         commentsJumpRealign = true
     }
 
@@ -1486,7 +1499,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             if (rv.canScrollVertically(1)) commentsJumpRealign = false
             return
         }
-        (rv.layoutManager as? StaggeredGridLayoutManager)?.scrollToPositionWithOffset(pos, target)
+        rv.scrollToPositionWithOffset(pos, target)
     }
 
     private fun attachArtistFollowObserver(authorId: Long) {
@@ -1805,14 +1818,20 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     .w("click dropped illustId=%d reason=bean_missing", illustId)
                 return@setOnClick
             }
-            Timber.tag(DownloadRecordStateSource.LOG_TAG).d(
-                "click illustId=%d pages=%d resolution=%s",
-                illustId, illust.page_count, IllustDownload.defaultImageResolution(),
-            )
-            artworkViewModel.triggerDownload(requireActivity() as? BaseActivity<*>)
-            if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
-                fabBarController.setBookmarked(true)
-                PixivOperate.postLikeDefaultStarType(illust)
+            val currentDownloadState = artworkViewModel.downloadFabState.value
+            if (currentDownloadState is DownloadFab.Paused || currentDownloadState is DownloadFab.Resume) {
+                Timber.tag(DownloadRecordStateSource.LOG_TAG).d("click resume paused download illustId=%d", illustId)
+                artworkViewModel.resumeDownload()
+            } else {
+                Timber.tag(DownloadRecordStateSource.LOG_TAG).d(
+                    "click illustId=%d pages=%d resolution=%s",
+                    illustId, illust.page_count, IllustDownload.defaultImageResolution(),
+                )
+                artworkViewModel.triggerDownload(requireActivity() as? BaseActivity<*>)
+                if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
+                    fabBarController.setBookmarked(true)
+                    PixivOperate.postLikeDefaultStarType(illust)
+                }
             }
         }
         chromeBind.fabBar.fabDownloadContainer.setOnLongClickListener {
@@ -1890,6 +1909,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             // 乐观着色与权威渲染(isBookmarked observer)同走 controller,取同一个内容色,
             // 避免取消收藏当帧闪一帧错色(详见 V3FabBarController.setBookmarked)。
             fabBarController.setBookmarked(willBookmark)
+            playToggleHaptic(it, willBookmark)
             PixivOperate.postLikeDefaultStarType(illust)
             if (willBookmark && Shaft.sSettings.isAutoDownloadAfterStar) {
                 // 同样尊重「默认下载分辨率」。刻意**不**带 activity:收藏是个轻动作,不该顺手

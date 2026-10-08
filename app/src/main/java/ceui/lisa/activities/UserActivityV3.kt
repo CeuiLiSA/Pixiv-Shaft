@@ -26,6 +26,7 @@ import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.SystemBarMetrics
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.actions.FollowVisibility
 import ceui.pixiv.actions.PixivActions
@@ -462,7 +463,10 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
             baseBind.follow.isVisible = false
             baseBind.unfollow.isVisible = true
             baseBind.unfollow.text = getString(followedLabelRes(userId))
-            baseBind.unfollow.setOnClick { unfollowUser(it, userId) }
+            baseBind.unfollow.setOnClick {
+                playToggleHaptic(it, false)
+                unfollowUser(it, userId)
+            }
             baseBind.unfollow.setOnLongClickListener {
                 PixivActions.switchFollowVisibility(userId)
                 true
@@ -470,7 +474,10 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         } else {
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true
-            baseBind.follow.setOnClick { followUser(it, userId, PixivActions.defaultFollowRestrict()) }
+            baseBind.follow.setOnClick {
+                playToggleHaptic(it, true)
+                followUser(it, userId, PixivActions.defaultFollowRestrict())
+            }
             baseBind.follow.setOnLongClickListener {
                 followUser(it as ProgressTextButton, userId, Params.TYPE_PRIVATE)
                 true

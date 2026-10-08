@@ -28,6 +28,7 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.feedLikeSync
 import ceui.pixiv.ui.common.openUserActivity
 import ceui.pixiv.utils.pinHostGlide
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -180,6 +181,7 @@ class TrendingArtistFeedFragment : FeedFragment() {
         val user = currentItem(userId)?.user ?: tapped
         val target = user.is_followed != true
         renderFollow(cell.binding, target)
+        playToggleHaptic(cell.binding.postLikeUser, target)
         applyFollow(userId, target)
         // 失败回滚由 PixivActionQueue 带相反值再发一次 LIKED_USER,本页 feedLikeSync 收到即拨回。
         if (target) {

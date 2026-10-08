@@ -20,6 +20,7 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.ShareIllust
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.utils.DateParse
 import ceui.pixiv.api.model.Illust
@@ -265,6 +266,7 @@ fun seriesAuthorRenderer(): FeedRenderer<SeriesAuthorFeedItem, SectionV3ArtistBi
             val fragment = it.findFragmentOrNull<Fragment>() ?: return@setOnClick
             val nowFollowed = (ObjectPool.get<User>(user.id).value ?: user).is_followed == true
             renderFollow(!nowFollowed)
+            playToggleHaptic(it, !nowFollowed)
             if (nowFollowed) fragment.unfollowUser(it as ProgressTextButton, user.id)
             else fragment.followUser(it as ProgressTextButton, user.id, PixivActions.defaultFollowRestrict())
         }

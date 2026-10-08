@@ -11,7 +11,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
 import ceui.lisa.activities.ColdStartSplashHost
@@ -23,7 +22,6 @@ import ceui.lisa.core.Container
 import ceui.lisa.core.PageData
 import ceui.lisa.databinding.RecyRecmdHeaderBinding
 import ceui.lisa.helper.IllustNovelFilter
-import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.model.ListIllust
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.DensityUtil
@@ -42,6 +40,8 @@ import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustMuteStore
+import ceui.pixiv.ui.common.JustifiedItemDecoration
+import ceui.pixiv.ui.common.JustifiedLayoutManager
 import ceui.pixiv.ui.common.showCardMenu
 import ceui.pixiv.ui.common.staggerIllustRenderer
 import ceui.pixiv.ui.common.IllustFeedItem
@@ -65,7 +65,7 @@ import ceui.pixiv.services.appServices
  * - 「收藏时显示相关作品」：收藏成功后 FRAGMENT_ADD_RELATED_DATA 回流，
  *   截前 5 条打 NEW 角标插到被收藏作品后面（feeds 版按作品 id 锚定 + 身份去重，
  *   替代 legacy 不可靠的 adapter 位置语义）；
- * - GAP_HANDLING_NONE + SpacesItemWithHeadDecoration（带头瀑布流的间距规则）。
+ * - SpacesItemWithHeadDecoration（带头瀑布流的间距规则；LayoutManager 随「插画列表布局」走基类）。
  */
 open class RecmdIllustFeedFragment(
     @LayoutRes contentLayoutId: Int = ceui.pixiv.feeds.R.layout.fragment_feed,
@@ -173,15 +173,16 @@ open class RecmdIllustFeedFragment(
         super.onDestroyView()
     }
 
-    override fun onCreateLayoutManager(): RecyclerView.LayoutManager {
-        // GAP_HANDLING_NONE 对齐 legacy：带整行 header 的瀑布流开 gap 策略会在回滚时重排跳动
-        return StaggeredManager.adaptive(requireContext(), Shaft.sSettings.lineCount).apply {
-            gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_NONE
-        }
-    }
-
     override fun onListReady(listView: RecyclerView) {
-        listView.addItemDecoration(SpacesItemWithHeadDecoration(DensityUtil.dp2px(8.0f)))
+        // 首位是整行榜单条，贴边不留白；齐行布局走自己的分行间距
+        val manager = listView.layoutManager
+        listView.addItemDecoration(
+            if (manager is JustifiedLayoutManager) {
+                JustifiedItemDecoration(manager, edgeHeaderAtTop = true)
+            } else {
+                SpacesItemWithHeadDecoration(DensityUtil.dp2px(8.0f))
+            }
+        )
     }
 
     override fun onCreateRenderers(): List<FeedRenderer<out FeedItem, out ViewBinding>> {

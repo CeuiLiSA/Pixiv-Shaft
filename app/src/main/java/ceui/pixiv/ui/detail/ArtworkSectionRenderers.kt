@@ -49,6 +49,7 @@ import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.SearchTypeUtil
 import ceui.pixiv.api.model.Comment
 import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.widgets.ProgressTextButton
 import ceui.loxia.User
 import ceui.pixiv.utils.toTagsBeans
@@ -256,7 +257,6 @@ internal fun ArtworkV3Fragment.heroRenderer() =
         val ctx = requireContext()
         val b = cell.binding
         b.heroTitle.text = illust.title
-        b.heroTitle.setOnLongClickListener { Common.copy(ctx, illust.title.orEmpty()); true }
         b.metaType.text = when (illust.type) {
             "manga" -> ctx.getString(R.string.v3_type_manga)
             "ugoira" -> ctx.getString(R.string.v3_type_ugoira)
@@ -556,7 +556,10 @@ private fun ArtworkV3Fragment.bindArtistFollowState(
     if (isFollowed) {
         b.followBtn.text = ctx.getString(followedLabelRes(userId))
         palette.applyUnfollowBtn(b.followBtn)
-        b.followBtn.setOnClick { unfollowUser(it as ProgressTextButton, userId) }
+        b.followBtn.setOnClick {
+            playToggleHaptic(it, false)
+            unfollowUser(it as ProgressTextButton, userId)
+        }
         b.followBtn.setOnLongClickListener {
             PixivActions.switchFollowVisibility(userId); true
         }
@@ -564,7 +567,10 @@ private fun ArtworkV3Fragment.bindArtistFollowState(
         b.followBtn.text = ctx.getString(R.string.follow)
         palette.applyFollowBtn(b.followBtn)
         b.followBtn.setTextColor(Color.WHITE)
-        b.followBtn.setOnClick { followUser(it as ProgressTextButton, userId, PixivActions.defaultFollowRestrict()) }
+        b.followBtn.setOnClick {
+            playToggleHaptic(it, true)
+            followUser(it as ProgressTextButton, userId, PixivActions.defaultFollowRestrict())
+        }
         b.followBtn.setOnLongClickListener {
             followUser(b.followBtn, userId, Params.TYPE_PRIVATE); true
         }

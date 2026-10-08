@@ -590,6 +590,16 @@
     <string name="layout_mode">Takip akışı düzeni</string>
     <string name="layout_staggered">Şelale görünümü</string>
     <string name="layout_linear">Dikey liste</string>
+    <string name="illust_list_layout">İllüstrasyon listesi düzeni</string>
+    <string name="illust_list_layout_sheet_desc">Önerilen, sıralama, arama, yer imleri ve diğer illüstrasyon listelerinin düzeni.</string>
+    <string name="illust_list_layout_masonry">Şelale</string>
+    <string name="illust_list_layout_masonry_desc">Eşit genişlik, farklı yükseklik</string>
+    <string name="illust_list_layout_grid">Izgara</string>
+    <string name="illust_list_layout_grid_desc">Eşit genişlik ve yükseklik</string>
+    <string name="illust_list_layout_justified">Satır hizalı</string>
+    <string name="illust_list_layout_justified_desc">Eşit yükseklik, farklı genişlik</string>
+    <string name="illust_list_layout_single">Tek sütun</string>
+    <string name="illust_list_layout_single_desc">Tam genişlikte tek sütun</string>
     <string name="string_337">Tekrar indir</string>
     <string name="string_338">R-18 eserleri ayrı klasöre kaydet</string>
     <string name="string_339">Bu eseri indir</string>
@@ -948,7 +958,26 @@
     <string name="color_peachPink">Şeftali Pembesi</string>
     <string name="theme_nowUsing">(Kullanılıyor)</string>
     <string name="core_string_novel_marker">Roman yer imi</string>
-    <string name="toast_download_result">İndirme tamamlanınca uygulama içinde bildirim göster</string>
+    <string name="download_toast_entry_title">İndirme bildirimleri</string>
+    <string name="download_toast_entry_summary">%1$d mesaj sessize alındı</string>
+    <string name="download_toast_dialog_hint">İndirme sırasında gösterilecek bildirimleri tek tek seçin. Kapattıklarınız artık görünmez</string>
+    <string name="download_toast_group_image">Görsel indirmeleri</string>
+    <string name="download_toast_group_novel">Novel indirmeleri</string>
+    <string name="download_toast_enqueued">İndirme kuyruğuna eklendi</string>
+    <string name="download_toast_enqueue_failed">İndirme görevi oluşturulamadı</string>
+    <string name="download_toast_download_done">İndirme tamamlandı</string>
+    <string name="download_toast_download_failed">İndirme başarısız</string>
+    <string name="download_toast_aria2">aria2 gönderim sonucu</string>
+    <string name="download_toast_storage_unavailable">İndirme klasörü kullanılamıyor</string>
+    <string name="download_toast_record_restored">İndirme kayıtları geri yüklendi</string>
+    <string name="download_toast_low_storage_paused">Yer yetersiz: indirmeler duraklatıldı</string>
+    <string name="download_toast_bulk_enqueue">Toplu kuyruk ilerlemesi</string>
+    <string name="download_toast_bulk_summary">Toplu indirme özeti</string>
+    <string name="download_toast_novel_progress">Novel bazında ilerleme</string>
+    <string name="download_toast_novel_batch_result">Toplu novel indirme sonucu</string>
+    <string name="download_toast_novel_save">Tek novel kaydetme ve dışa aktarma</string>
+    <string name="download_toast_novel_series_export">Seri indirme ve birleştirme sonucu</string>
+    <string name="download_toast_novel_auto_download">Favorilere eklerken otomatik indirme sonucu</string>
     <string name="setting_auto_export_caption_title">İllüstrasyon/manga indirirken açıklamayı otomatik dışa aktar</string>
     <string name="setting_auto_export_caption_length_title">Dışa aktarma için minimum açıklama uzunluğu</string>
     <string name="setting_auto_export_caption_length_value">%d karakter</string>
@@ -1800,6 +1829,7 @@
     <string name="dlmgr_active_size_waiting">Bekleniyor…</string>
     <string name="dlmgr_active_size_paused">Duraklatıldı</string>
     <string name="dlmgr_active_size_failed">İndirme başarısız</string>
+    <string name="dlmgr_active_size_unknown">Bilinmiyor</string>
     <string name="dlmgr_open_novel_failed">Roman kimliği tanımlanamadı. Lütfen tekrar indirin.</string>
     <string name="dlmgr_done_empty_title">Henüz tamamlanmış indirme yok</string>
     <string name="dlmgr_done_empty_hint">Tamamlanan eserler burada görünecek</string>
@@ -2955,8 +2985,10 @@
 
     <!-- ============ 收藏库 / Bookmark library ============ -->
     <string name="settings_bookmark_mirror">Yerel yer imi kopyası</string>
-    <string name="settings_like_haptic">Yer imi düğmesi titreşim geri bildirimi</string>
+    <string name="settings_like_haptic">Yer imi ve takip titreşim geri bildirimi</string>
     <string name="settings_like_haptic_desc">Sistem dokunma geri bildirimini de açmanız gerekebilir</string>
+    <string name="settings_scroll_edge_haptic">Liste kenarında titreşim</string>
+    <string name="settings_scroll_edge_haptic_desc">Liste en üste veya en alta ulaştığında hafif titreşim. Sistem dokunma geri bildirimini de açmanız gerekebilir</string>
     <string name="bookmark_library_menu_entry">Filtrelerle gözat</string>
     <string name="bookmark_library_open_classic">Orijinal yer imi listesi</string>
     <string name="bookmark_mirror_ready_title">Yer imi kitaplığı hazır</string>

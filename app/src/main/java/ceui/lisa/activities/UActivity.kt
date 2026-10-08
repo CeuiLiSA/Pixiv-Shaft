@@ -34,6 +34,7 @@ import ceui.pixiv.services.appServices
 import ceui.lisa.viewmodel.UserViewModel
 import ceui.pixiv.utils.Event
 import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.widgets.ProgressIndicator
 import ceui.pixiv.widgets.ProgressTextButton
 import ceui.loxia.User
@@ -121,6 +122,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             baseBind.unfollow.isVisible = true
             baseBind.unfollow.text = getString(followedLabelRes(userId))
             baseBind.unfollow.setOnClick {
+                playToggleHaptic(it, false)
                 unfollowUser(it, userId)
             }
             baseBind.unfollow.setOnLongClickListener {
@@ -131,6 +133,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true
             baseBind.follow.setOnClick {
+                playToggleHaptic(it, true)
                 followUser(it, userId, PixivActions.defaultFollowRestrict())
             }
             baseBind.follow.setOnLongClickListener {

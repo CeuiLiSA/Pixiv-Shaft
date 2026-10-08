@@ -14,10 +14,13 @@ import org.junit.Test
  */
 class ActiveToolbarActionTest {
 
+    /** INIT 默认按「会被派发」构造（泵开着）；没人派发的等待项单独用 [PauseToggleItem] 写。 */
+    private fun items(vararg states: Int) = states.map { PauseToggleItem(it, willDispatch = it == INIT) }
+
     @Test
     fun testOnlyFailedShowsRetryActionAndResources() {
         val action = resolveActiveToolbarAction(
-            states = listOf(FAILED, FAILED),
+            items = items(FAILED, FAILED),
             queuePaused = false,
             hasUgoiraInFlight = false,
         )
@@ -29,7 +32,7 @@ class ActiveToolbarActionTest {
     @Test
     fun testOnlyFailedEvenWhenQueuePausedShowsRetryAction() {
         val action = resolveActiveToolbarAction(
-            states = listOf(FAILED),
+            items = items(FAILED),
             queuePaused = true,
             hasUgoiraInFlight = false,
         )
@@ -39,7 +42,7 @@ class ActiveToolbarActionTest {
     @Test
     fun testFailedWithUgoiraShowsPauseAction() {
         val action = resolveActiveToolbarAction(
-            states = listOf(FAILED),
+            items = items(FAILED),
             queuePaused = false,
             hasUgoiraInFlight = true,
         )
@@ -51,7 +54,7 @@ class ActiveToolbarActionTest {
     @Test
     fun testMixedFailedAndDownloadingShowsPauseAction() {
         val action = resolveActiveToolbarAction(
-            states = listOf(FAILED, DOWNLOADING),
+            items = items(FAILED, DOWNLOADING),
             queuePaused = false,
             hasUgoiraInFlight = false,
         )
@@ -61,7 +64,7 @@ class ActiveToolbarActionTest {
     @Test
     fun testMixedFailedAndWaitingShowsPauseAction() {
         val action = resolveActiveToolbarAction(
-            states = listOf(FAILED, INIT),
+            items = items(FAILED, INIT),
             queuePaused = false,
             hasUgoiraInFlight = false,
         )
@@ -69,9 +72,20 @@ class ActiveToolbarActionTest {
     }
 
     @Test
+    fun testMixedFailedAndUndispatchedWaitingShowsResumeAction() {
+        // 仅 Wi-Fi 在蜂窝上被 parkForNetwork 熄火的等待项：与 shouldResumeAll 同口径算「可继续」。
+        val action = resolveActiveToolbarAction(
+            items = listOf(PauseToggleItem(FAILED, false), PauseToggleItem(INIT, willDispatch = false)),
+            queuePaused = false,
+            hasUgoiraInFlight = false,
+        )
+        assertEquals(ActiveToolbarAction.RESUME, action)
+    }
+
+    @Test
     fun testMixedFailedAndPausedShowsResumeAction() {
         val action = resolveActiveToolbarAction(
-            states = listOf(FAILED, PAUSED),
+            items = items(FAILED, PAUSED),
             queuePaused = false,
             hasUgoiraInFlight = false,
         )
@@ -83,7 +97,7 @@ class ActiveToolbarActionTest {
     @Test
     fun testAllPausedShowsResumeAction() {
         val action = resolveActiveToolbarAction(
-            states = listOf(PAUSED, PAUSED),
+            items = items(PAUSED, PAUSED),
             queuePaused = false,
             hasUgoiraInFlight = false,
         )
@@ -93,7 +107,7 @@ class ActiveToolbarActionTest {
     @Test
     fun testQueuePausedWithNoActiveWorkShowsResumeAction() {
         val action = resolveActiveToolbarAction(
-            states = emptyList(),
+            items = emptyList(),
             queuePaused = true,
             hasUgoiraInFlight = false,
         )
@@ -103,7 +117,7 @@ class ActiveToolbarActionTest {
     @Test
     fun testEmptyQueueShowsPauseAction() {
         val action = resolveActiveToolbarAction(
-            states = emptyList(),
+            items = emptyList(),
             queuePaused = false,
             hasUgoiraInFlight = false,
         )

@@ -590,6 +590,16 @@
     <string name="layout_mode">Макет ленты подписок</string>
     <string name="layout_staggered">Плитка</string>
     <string name="layout_linear">Вертикальный список</string>
+    <string name="illust_list_layout">Макет списка иллюстраций</string>
+    <string name="illust_list_layout_sheet_desc">Как располагаются рекомендации, рейтинги, поиск, закладки и другие списки иллюстраций.</string>
+    <string name="illust_list_layout_masonry">Плитка</string>
+    <string name="illust_list_layout_masonry_desc">Одна ширина, разная высота</string>
+    <string name="illust_list_layout_grid">Сетка</string>
+    <string name="illust_list_layout_grid_desc">Одинаковые ширина и высота</string>
+    <string name="illust_list_layout_justified">По строкам</string>
+    <string name="illust_list_layout_justified_desc">Одна высота, разная ширина</string>
+    <string name="illust_list_layout_single">Одна колонка</string>
+    <string name="illust_list_layout_single_desc">Одна колонка во всю ширину</string>
     <string name="string_337">Скачать снова</string>
     <string name="string_338">Скачивать R-18 в отдельную папку</string>
     <string name="string_339">Скачать эту иллюстрацию</string>
@@ -948,7 +958,26 @@
     <string name="color_peachPink">Персиковый</string>
     <string name="theme_nowUsing">(используется)</string>
     <string name="core_string_novel_marker">Метки</string>
-    <string name="toast_download_result">Показывать уведомление после завершения загрузки</string>
+    <string name="download_toast_entry_title">Уведомления о загрузках</string>
+    <string name="download_toast_entry_summary">Скрыто сообщений: %1$d</string>
+    <string name="download_toast_dialog_hint">Выберите, какие уведомления показывать при загрузке. Отключённые больше не появятся</string>
+    <string name="download_toast_group_image">Загрузка изображений</string>
+    <string name="download_toast_group_novel">Загрузка новелл</string>
+    <string name="download_toast_enqueued">Добавлено в очередь загрузки</string>
+    <string name="download_toast_enqueue_failed">Не удалось создать задачу загрузки</string>
+    <string name="download_toast_download_done">Загрузка завершена</string>
+    <string name="download_toast_download_failed">Ошибка загрузки</string>
+    <string name="download_toast_aria2">Результат отправки в aria2</string>
+    <string name="download_toast_storage_unavailable">Папка загрузок недоступна</string>
+    <string name="download_toast_record_restored">Записи загрузок восстановлены</string>
+    <string name="download_toast_low_storage_paused">Загрузки приостановлены: мало места</string>
+    <string name="download_toast_bulk_enqueue">Ход массовой постановки в очередь</string>
+    <string name="download_toast_bulk_summary">Итог массовой загрузки</string>
+    <string name="download_toast_novel_progress">Прогресс по главам новеллы</string>
+    <string name="download_toast_novel_batch_result">Результат массовой загрузки новелл</string>
+    <string name="download_toast_novel_save">Сохранение и экспорт новеллы</string>
+    <string name="download_toast_novel_series_export">Загрузка и объединение серии</string>
+    <string name="download_toast_novel_auto_download">Автозагрузка при добавлении в закладки</string>
     <string name="setting_auto_export_caption_title">Автоматически экспортировать описание при загрузке иллюстраций/манги</string>
     <string name="setting_auto_export_caption_length_title">Мин. длина описания для экспорта</string>
     <string name="setting_auto_export_caption_length_value">%d симв.</string>
@@ -1800,6 +1829,7 @@
     <string name="dlmgr_active_size_waiting">Ожидание…</string>
     <string name="dlmgr_active_size_paused">Пауза</string>
     <string name="dlmgr_active_size_failed">Ошибка</string>
+    <string name="dlmgr_active_size_unknown">Неизвестно</string>
     <string name="dlmgr_open_novel_failed">Не удалось определить ID новеллы. Скачайте её заново.</string>
     <string name="dlmgr_done_empty_title">Завершённых загрузок пока нет</string>
     <string name="dlmgr_done_empty_hint">Завершённые загрузки появятся здесь</string>
@@ -2961,8 +2991,10 @@
 
     <!-- ============ 收藏库 / Bookmark library ============ -->
     <string name="settings_bookmark_mirror">Локальная копия закладок</string>
-    <string name="settings_like_haptic">Вибрация при нажатии кнопки закладки</string>
+    <string name="settings_like_haptic">Вибрация при закладке и подписке</string>
     <string name="settings_like_haptic_desc">Возможно, потребуется также включить тактильную обратную связь в системе</string>
+    <string name="settings_scroll_edge_haptic">Вибрация на краю списка</string>
+    <string name="settings_scroll_edge_haptic_desc">Лёгкая вибрация, когда список доходит до начала или конца. Возможно, потребуется также включить тактильную обратную связь в системе</string>
     <string name="bookmark_library_menu_entry">Просмотр с фильтрами</string>
     <string name="bookmark_library_open_classic">Исходный список закладок</string>
     <string name="bookmark_mirror_ready_title">Библиотека закладок готова</string>

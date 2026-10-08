@@ -10,7 +10,6 @@ import ceui.lisa.core.ManagerReactive
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.download.IllustDownload
 import ceui.pixiv.api.model.Illust
-import ceui.lisa.utils.Common
 import ceui.lisa.utils.DownloadLimitTypeUtil
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.DownloadQueueEntity
@@ -19,6 +18,8 @@ import ceui.pixiv.db.queue.WorkType
 import ceui.pixiv.download.RecordedPageProbe
 import ceui.pixiv.download.StageStore
 import ceui.pixiv.download.StorageSpaceGuard
+import ceui.pixiv.download.toast.DownloadToastKind
+import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.download.maintenance.MediaStoreOrphanCleaner
 import kotlinx.coroutines.CoroutineScope
@@ -107,6 +108,29 @@ class QueueDownloadManager(app: Context) {
      */
     private val _pausedFlow = MutableStateFlow(false)
     val pausedFlow: StateFlow<Boolean> get() = _pausedFlow
+
+    /**
+     * 队列当前是否会推进：`!paused && (userForced || 自动闸门放行)`。
+     *
+     * 批量队列 tab 的「暂停 / 继续」按钮用它判方向 —— 只看 [pausedFlow] 不够：模式 2
+     * 「不自动下载」下队列是被自动闸门 hold（paused=false），并不代表它在跑，只看
+     * pausedFlow 会让按钮一直显示「暂停」，点一下还是 no-op 的 pause()。
+     *
+     * 任何会改变 paused / userForced / 网络闸门的点都要调一次 [refreshRunning]。
+     * 设置里切换「下载方式」不发任何事件，由主循环每轮评估闸门时顺带发布（见 [runMainLoop]）。
+     */
+    private val _queueRunningFlow = MutableStateFlow(false)
+    val queueRunningFlow: StateFlow<Boolean> get() = _queueRunningFlow
+
+    /**
+     * 现算 [queueRunningFlow]。paused / userForced 是 @Volatile，value 写入线程安全。
+     * [gateOpen] 由已经算过闸门的调用方（主循环）传入，避免再查一次网络。
+     */
+    private fun refreshRunning(
+        gateOpen: Boolean = userForced || DownloadLimitTypeUtil.autoStartAllowed(),
+    ) {
+        _queueRunningFlow.value = !paused && gateOpen
+    }
 
     /**
      * 队列脏标记 SharedFlow。任何会改变 download_queue 表内容的操作
@@ -219,14 +243,17 @@ class QueueDownloadManager(app: Context) {
 
     /**
      * 队列真正跑空（无 PENDING、无 illust/ugoira inflight）时弹汇总 Toast 并清零计数。
-     * 不受 isToastDownloadResult 开关控制：那个开关灭的是「逐张刷屏」，整批一条的
-     * 汇总正是 #950 要的完成反馈，关掉开关的用户也需要知道批量下载结束了。
+     * 逐张的完成 / 失败已被 DownloadItem.silent 压掉（#950），这条是整批唯一的完成反馈；
+     * 要更安静就去「设置 → 下载 → 下载相关提示消息」关掉「批量下载汇总」。
      */
     private fun maybeToastBatchSummary() {
         val success = batchSuccessCount.getAndSet(0)
         val failed = batchFailedCount.getAndSet(0)
         if (success == 0 && failed == 0) return
-        Common.showToast(appContext.getString(R.string.bulk_download_summary, success + failed, success, failed))
+        DownloadToasts.show(
+            DownloadToastKind.BULK_SUMMARY,
+            appContext.getString(R.string.bulk_download_summary, success + failed, success, failed),
+        )
     }
 
     // [UgoiraPhase] / [UgoiraInFlight] 已移到 UgoiraTypes.kt（同包，引用方式不变：直接写名字）
@@ -318,6 +345,7 @@ class QueueDownloadManager(app: Context) {
                 paused = false
                 _pausedFlow.value = false
             }
+            refreshRunning()
 
             // 把 ManagerReactive.contentFlow 的 emit 桥到 ticker，让主循环既能响应
             // 队列变更（tickle）也能响应 Manager 内部状态变更（addTask / state 翻转 /
@@ -343,7 +371,11 @@ class QueueDownloadManager(app: Context) {
             }
             // 网络闸门只守「自动启动」。用户在下载管理里点过继续（[userForced]）属于
             // 用户触发，忽略网络状态 —— 哪怕当前无网络也放行，下不动是用户自己的选择。
-            if (!userForced && !DownloadLimitTypeUtil.autoStartAllowed()) {
+            val gateOpen = userForced || DownloadLimitTypeUtil.autoStartAllowed()
+            // 运行中切换「下载方式」不会触发任何回调，这里是唯一会重新评估闸门的地方：
+            // 每轮把结果发布出去，按钮方向最迟一个 NETWORK_GATE_SLEEP_MS 就跟上真实状态。
+            refreshRunning(gateOpen)
+            if (!gateOpen) {
                 Timber.tag(TAG).i("[QUEUE-CONSUMER] auto-start gated, holding (userForced=false)")
                 withTimeoutOrNull(NETWORK_GATE_SLEEP_MS) { tickle.receive() }
                 continue
@@ -391,6 +423,8 @@ class QueueDownloadManager(app: Context) {
                         // 必须连 ugoira 也跑空：批次末尾的 ugoira 失败会回退 PENDING 重试，
                         // 提前收回会让它卡在闸门上。worker 收尾会 tickle，这里会再走一遍。
                         userForced = false
+                        // 放行收回 → 队列可能重新落回闸门后，按钮方向要跟着变。
+                        refreshRunning()
                     }
                     Timber.tag(TAG).i("[QUEUE-CONSUMER] idle, awaiting next tickle")
                     tickle.receive()
@@ -806,6 +840,7 @@ class QueueDownloadManager(app: Context) {
         _pausedFlow.value = true
         // 用户主动暂停 → 收回手动放行
         userForced = false
+        refreshRunning()
         // 联动：illust 走 Manager.stopAll() 立刻停 disposables；ugoira 这边等价做法
         // 是 cancel 已派出去的 worker —— 否则一条 50MB zip + ~1s 编码会跑完才理睬
         // 用户的暂停意图。worker 的 catch CancellationException 会把行翻回 PENDING，
@@ -816,6 +851,7 @@ class QueueDownloadManager(app: Context) {
     fun resume() {
         paused = false
         _pausedFlow.value = false
+        refreshRunning()
         val sent = tickle.trySend(Unit).isSuccess
         Timber.tag(TAG).i("[QUEUE-CONSUMER] resume() called, tickle.trySend=$sent")
     }
@@ -843,6 +879,7 @@ class QueueDownloadManager(app: Context) {
      * 仍由主循环里的自动闸门决定。
      */
     fun onNetworkGateOpened() {
+        refreshRunning()
         val sent = tickle.trySend(Unit).isSuccess
         Timber.tag(TAG).i("[QUEUE-CONSUMER] onNetworkGateOpened, tickle.trySend=$sent")
     }
@@ -856,6 +893,7 @@ class QueueDownloadManager(app: Context) {
      */
     fun onNetworkGateClosed() {
         userForced = false
+        refreshRunning()
         Timber.tag(TAG).i("[QUEUE-CONSUMER] onNetworkGateClosed, userForced revoked")
     }
 
