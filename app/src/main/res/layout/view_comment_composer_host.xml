@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ViewStub 的目标布局。ViewStub 要求 android:layout 是「单根」布局，而
+     view_comment_composer.xml 是 <merge>（供 CommentComposerView 自己 inflate），
+     不能直接当目标用，故加这一层薄壳。真正的视图树仍由 CommentComposerView 构造时 inflate。 -->
+<ceui.pixiv.ui.comments.CommentComposerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" />

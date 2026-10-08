@@ -199,7 +199,10 @@
             android:layout_gravity="bottom|center_horizontal"
             android:layout_marginBottom="24dp" />
 
-        <!-- 评论输入浮层:平时不常驻(整条透明、输入栏 GONE),点评论区「留下你的评论吧」入口才浮出。 -->
+        <!-- 评论输入浮层:平时不常驻(整条透明、输入栏 GONE),点评论区「留下你的评论吧」入口才浮出。
+             浮层本体走 ViewStub:它含一个 ViewPager2,整棵 inflate 掉近百毫秒,而详情页首帧还要连带
+             相邻页(offscreenPageLimit=1)一起付;首帧既不可见也用不上,故推迟到首次唤出
+             (见 ArtworkV3Fragment.ensureComposer)。 -->
         <LinearLayout
             android:id="@+id/composer_root"
             android:layout_width="match_parent"
@@ -207,12 +210,11 @@
             android:layout_gravity="bottom"
             android:orientation="vertical">
 
-            <ceui.pixiv.ui.comments.CommentComposerView
-                android:id="@+id/comment_composer"
+            <ViewStub
+                android:id="@+id/comment_composer_stub"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                tools:visibility="visible" />
+                android:layout="@layout/view_comment_composer_host" />
         </LinearLayout>
     </FrameLayout>
 

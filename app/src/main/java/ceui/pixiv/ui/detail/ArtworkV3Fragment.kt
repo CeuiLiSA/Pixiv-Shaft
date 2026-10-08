@@ -70,6 +70,7 @@ import ceui.pixiv.snapshot.showSnapshotCreateDialog
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.pixiv.ui.comments.CommentComposerController
 import ceui.pixiv.ui.comments.CommentComposerPresentation
+import ceui.pixiv.ui.comments.CommentComposerView
 import ceui.pixiv.ui.comments.CommentTarget
 import ceui.pixiv.ui.comments.CommentsComposerViewModel
 import ceui.pixiv.ui.comments.SentComment
@@ -432,7 +433,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         setupFabBar()
         setupNavBar()
         handleSystemInsets()
-        setupComposer()
+        // composer 不在这里装配:它的视图树(含 ViewPager2)首帧既不可见也用不上,
+        // 却要为它付一次完整 inflate。推迟到首次唤出,见 ensureComposer。
 
         // 隐藏 / 显示悬浮胶囊(滚动);用户主动拖动时作废还欠着的跳评论基线校正
         feedBinding.feedListView.addOnScrollListener(
@@ -1618,11 +1620,22 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     // ── 底部内联评论输入栏 ─────────────────────────────────────────────────────
 
-    private fun setupComposer() {
+    /**
+     * 首次唤出输入栏时才 inflate + 装配。
+     *
+     * 浮层本体(含一个 ViewPager2)在详情页首帧是 GONE、用户也不会在首帧输入评论,却要为它付一次
+     * 完整 inflate —— 详情页首帧还要连带相邻页(offscreenPageLimit=1)各付一份,实测这棵视图树
+     * 占掉近百毫秒。推迟到这里,成本落到用户明确等待输入框的那一刻,且不在页面转场关键路径上。
+     */
+    private fun ensureComposer() {
+        if (commentComposer != null) return
+        // ViewStub 只声明了自身 id(未设 inflatedId),所以 inflate 出来的 View 直接取返回值,
+        // 不经过 binding 字段。装配后 stub 即从父容器移除,重复调用由上面的守卫挡住。
+        val view = chromeBind.commentComposerStub.inflate() as CommentComposerView
         commentComposer =
             CommentComposerController.attach(
                 fragment = this,
-                view = chromeBind.commentComposer,
+                view = view,
                 panelRoot = chromeBind.composerRoot,
                 panelContentView = feedBinding.feedListView,
                 palette = palette,
@@ -1641,6 +1654,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     /** 评论区「留下你的评论吧」入口(由 commentsRenderer 调)。 */
     internal fun showComposer() {
+        ensureComposer()
         chromeBind.composerRoot.setBackgroundColor(requireContext().getColor(R.color.v3_bg))
         if (composerActive) {
             commentComposer?.showKeyboard()
