@@ -4,7 +4,9 @@
      ConstraintLayout + dimensionRatio=1:1 让高度恒等于列宽(同 item_illust_square 的 1:1 打法),
      圆角仍走全仓通用的 RoundImageView rRadius。
      选中态(#1147,学 LINE「点一下选中、再点一下发送」):stamp_ring 是贴图外 2dp 间隙的主题色描边,
-     stamp_send_badge 是右上角主题实色圆底 + 纸飞机。两者都只改 alpha,不参与布局尺寸变化。 -->
+     stamp_send_badge 是右上角主题实色圆底 + 纸飞机。两者都只改 alpha,不参与布局尺寸变化。
+     stamp_image 必须四边都约束到 parent:少了 bottom 约束 marginBottom 不生效,格子会矮 6dp,
+     贴着格子四边的 stamp_ring 下边就切进贴图里(#1201)。 -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -20,7 +22,8 @@
         android:layout_margin="6dp"
         android:importantForAccessibility="no"
         android:scaleType="centerCrop"
-        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="H,1:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
