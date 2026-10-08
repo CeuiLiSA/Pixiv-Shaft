@@ -272,10 +272,8 @@ class NovelSeriesFragment :
      */
     private fun launchMergeDownload() {
         if (heroDetail() == null) {
-            DownloadToasts.show(
-                DownloadToastKind.NOVEL_SERIES_EXPORT,
-                getString(R.string.merge_download_failed_empty),
-            )
+            // 点按的前置条件提示，不过「下载相关提示消息」闸门：被安静后这一下点击会毫无回音。
+            Toaster.show(getString(R.string.merge_download_failed_empty))
             return
         }
         val format = NovelExportManager.resolveConfiguredFormat()
@@ -311,10 +309,7 @@ class NovelSeriesFragment :
     private fun startMergeDownload(format: ExportFormat, allowAutoEpub: Boolean = false) {
         val detail = heroDetail()
         if (detail == null) {
-            DownloadToasts.show(
-                DownloadToastKind.NOVEL_SERIES_EXPORT,
-                getString(R.string.merge_download_failed_empty),
-            )
+            Toaster.show(getString(R.string.merge_download_failed_empty))
             return
         }
         val dedup = loadedNovels().distinctBy { it.id }
@@ -390,10 +385,8 @@ class NovelSeriesFragment :
     private fun launchBatchDownloadSelected() {
         val novels = selectedNovels()
         if (novels.isEmpty()) {
-            DownloadToasts.show(
-                DownloadToastKind.NOVEL_BATCH_RESULT,
-                getString(R.string.batch_download_no_selection),
-            )
+            // 同上：「下载 (0)」按钮的回音，不是批量下载的结果，不受闸门控制。
+            Toaster.show(getString(R.string.batch_download_no_selection))
             return
         }
         // 系列位置按已加载的完整章节序列算，不能按选中子集的下标算——
