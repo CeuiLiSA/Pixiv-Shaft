@@ -28,6 +28,8 @@ import ceui.pixiv.api.Client
 import ceui.pixiv.chat.base.viewModels as directViewModel
 import ceui.loxia.Novel
 import ceui.pixiv.api.model.NovelSeriesResp
+import ceui.pixiv.download.toast.DownloadToastKind
+import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.widgets.ProgressIndicator
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -270,6 +272,7 @@ class NovelSeriesFragment :
      */
     private fun launchMergeDownload() {
         if (heroDetail() == null) {
+            // 点按的前置条件提示，不过「下载相关提示消息」闸门：被安静后这一下点击会毫无回音。
             Toaster.show(getString(R.string.merge_download_failed_empty))
             return
         }
@@ -382,6 +385,7 @@ class NovelSeriesFragment :
     private fun launchBatchDownloadSelected() {
         val novels = selectedNovels()
         if (novels.isEmpty()) {
+            // 同上：「下载 (0)」按钮的回音，不是批量下载的结果，不受闸门控制。
             Toaster.show(getString(R.string.batch_download_no_selection))
             return
         }
@@ -428,7 +432,10 @@ class NovelSeriesFragment :
     private fun onBatchDownloadFinished(failures: List<FailedNovel>) {
         if (!isAdded) return
         if (failures.isEmpty()) {
-            Toaster.show(getString(R.string.batch_download_all_ok))
+            DownloadToasts.show(
+                DownloadToastKind.NOVEL_BATCH_RESULT,
+                getString(R.string.batch_download_all_ok),
+            )
             selectionModel.setMultiSelectMode(false)
             return
         }
@@ -462,7 +469,10 @@ class NovelSeriesFragment :
             override fun onEnd(humanReadableTask: HumanReadableTask, results: List<Novel>) {
                 if (!isAdded) return
                 if (results.isEmpty()) {
-                    Toaster.show(getString(R.string.merge_download_failed_empty))
+                    DownloadToasts.show(
+                        DownloadToastKind.NOVEL_SERIES_EXPORT,
+                        getString(R.string.merge_download_failed_empty),
+                    )
                     return
                 }
                 // FetchAllTask 拉到的就是整个系列的有序章节，位置 = 下标 + 1。

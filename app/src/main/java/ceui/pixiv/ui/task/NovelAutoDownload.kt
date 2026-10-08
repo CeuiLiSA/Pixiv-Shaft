@@ -5,12 +5,13 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.WebNovelParser
 import ceui.loxia.Novel
 import ceui.pixiv.api.Client
+import ceui.pixiv.download.toast.DownloadToastKind
+import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.ui.novel.reader.NovelTextCache
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.paginate.ContentParser
-import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -129,8 +130,11 @@ object NovelAutoDownload {
             tokens = entry.tokens,
         )) {
             is ExportResult.Success -> {
-                if (Shaft.sSettings.isToastDownloadResult) withContext(Dispatchers.Main) {
-                    Toaster.show(context.getString(R.string.msg_export_success, result.displayPath))
+                withContext(Dispatchers.Main) {
+                    DownloadToasts.show(
+                        DownloadToastKind.NOVEL_AUTO_DOWNLOAD,
+                        context.getString(R.string.msg_export_success, result.displayPath),
+                    )
                 }
             }
             is ExportResult.Failure -> Timber.tag(TAG).w(

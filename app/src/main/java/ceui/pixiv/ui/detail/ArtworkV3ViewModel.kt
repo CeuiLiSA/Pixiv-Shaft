@@ -198,13 +198,57 @@ class ArtworkV3ViewModel(
         }
         downloadCheckJob?.cancel()
         downloadedCache = null
+        // 下载中再点一次进度环也走这里：入列会被去重，不是新任务，下面那套「按设置猜初始态」不适用。
+        val alreadyQueued = ceui.lisa.core.Manager.get().contentSnapshot().any { it.illust?.id == illustId }
         val resolution = IllustDownload.defaultImageResolution()
         if (activity != null) {
             IllustDownload.downloadIllustAllPagesWithResolution(illust, resolution, activity)
         } else {
             IllustDownload.downloadIllustAllPagesWithResolution(illust, resolution)
         }
-        _downloadFabState.value = DownloadFab.Downloading(0)
+        if (alreadyQueued) {
+            // 按队列里的真实条目推导；否则正在传的进度环会被翻成暂停图标、轮询也被停掉。
+            refreshDownloadFab()
+            return
+        }
+        val isPausedMode = Shaft.sSettings?.downloadLimitType == 2
+        val isWifiOnlyWaiting =
+            ceui.lisa.utils.DownloadLimitTypeUtil.requiresWifi(Shaft.sSettings?.downloadLimitType ?: 0) &&
+                !com.blankj.utilcode.util.NetworkUtils.isWifiConnected()
+        if (isPausedMode) {
+            _downloadFabState.value = DownloadFab.Paused(0)
+            // 模式 2 下条目初始即处于暂停/未启动态，直接显示暂停图标，不开启无意义的 300ms 轮询。
+            isPollingProgress = false
+            progressPollingJob?.cancel()
+        } else if (isWifiOnlyWaiting) {
+            _downloadFabState.value = DownloadFab.Resume(0)
+            // 模式 1 且处于蜂窝网络下条目进入等待态，显示为继续按钮，不开启无意义的 300ms 轮询。
+            isPollingProgress = false
+            progressPollingJob?.cancel()
+        } else {
+            _downloadFabState.value = DownloadFab.Downloading(0)
+            startProgressPolling(illust.page_count)
+        }
+    }
+
+    /**
+     * 就地恢复本作品下载：将 Manager 中本作品处于暂停或未完成的条目解除暂停并启动。
+     */
+    fun resumeDownload() {
+        val illust = illustBean ?: return
+        val currentPercent = when (val s = _downloadFabState.value) {
+            is DownloadFab.Paused -> s.percent
+            is DownloadFab.Resume -> s.percent
+            else -> 0
+        }
+        if (!ceui.lisa.core.Manager.get().startIllust(illust.id)) {
+            // 条目还没进队列（动图要先拉元数据、精简 bean 要先补详情，都是异步入列）：保持原状态。
+            // 翻成进度环的话，下一轮轮询看到空队列会判成 Done —— FAB 显示已下载，实际一页没下。
+            Timber.tag(DownloadRecordStateSource.LOG_TAG)
+                .d("resume dropped illustId=%d reason=not_queued_yet", illustId)
+            return
+        }
+        _downloadFabState.value = DownloadFab.Downloading(currentPercent)
         startProgressPolling(illust.page_count)
     }
 
@@ -221,7 +265,8 @@ class ArtworkV3ViewModel(
                 // contentSnapshot() 是带 synchronized 的浅拷贝;直接 .content 拿 live list 会 CME。
                 val items = ceui.lisa.core.Manager.get().contentSnapshot()
                 val myItems = items.filter { it.illust?.id == illustId }
-                if (myItems.isEmpty()) {
+                val resolvedState = resolveDownloadFabState(myItems, pageCount)
+                if (resolvedState is DownloadFab.Done) {
                     // 队列清空 = 下载完成,直接设 Done,避免经过 Idle 闪烁
                     isPollingProgress = false
                     downloadedCache = true
@@ -230,16 +275,13 @@ class ArtworkV3ViewModel(
                     _downloadFabState.value = DownloadFab.Done
                     break
                 }
-                val remaining = myItems.size
-                val completedPages = pageCount - remaining
-                val activeItem = myItems.firstOrNull {
-                    it.state == ceui.lisa.core.DownloadItem.DownloadState.DOWNLOADING
+                if (resolvedState is DownloadFab.Paused || resolvedState is DownloadFab.Resume) {
+                    // 任务处于暂停或网络等待态时退出轮询，避免主线程每 300ms 无效空转并持锁
+                    isPollingProgress = false
+                    _downloadFabState.value = resolvedState
+                    break
                 }
-                val activeNonius = activeItem?.nonius ?: 0
-                val totalPercent = if (pageCount > 0) {
-                    ((completedPages * 100 + activeNonius) / pageCount).coerceIn(0, 99)
-                } else 0
-                _downloadFabState.value = DownloadFab.Downloading(totalPercent)
+                _downloadFabState.value = resolvedState
             }
         }
     }
@@ -255,12 +297,15 @@ class ArtworkV3ViewModel(
             return
         }
         waitingForInitialBean = false
-        val hasQueuedPages = ceui.lisa.core.Manager.get().contentSnapshot()
-            .any { it.illust?.id == illustId }
-        if (hasQueuedPages) {
-            // 从后台/其它页面回来时下载可能仍在队列：直接恢复轮询，不要先显示 Idle 再查 DB。
-            _downloadFabState.value = DownloadFab.Downloading(0)
-            startProgressPolling(bean.page_count)
+        val myItems = ceui.lisa.core.Manager.get().contentSnapshot()
+            .filter { it.illust?.id == illustId }
+        if (myItems.isNotEmpty()) {
+            val resolvedState = resolveDownloadFabState(myItems, bean.page_count)
+            _downloadFabState.value = resolvedState
+            // 只有处于 Downloading 态才启动 300ms 轮询；Paused 或 Done 态无需轮询！
+            if (resolvedState is DownloadFab.Downloading) {
+                startProgressPolling(bean.page_count)
+            }
             return
         }
         fabRefreshTick.value = (fabRefreshTick.value ?: 0) + 1
@@ -321,5 +366,50 @@ class ArtworkV3ViewModel(
 sealed interface DownloadFab {
     data object Idle : DownloadFab
     data class Downloading(val percent: Int) : DownloadFab
+    data class Paused(val percent: Int) : DownloadFab
+    data class Resume(val percent: Int) : DownloadFab
     data object Done : DownloadFab
+}
+
+/**
+ * 计算属于当前作品的下载条目在详情页 FAB 上的展示状态（纯函数，便于单测）。
+ *
+ * 判据：
+ * 1. 列表为空 → [DownloadFab.Done]
+ * 2. 属于本作品的全部未完成页都被显式暂停（isPaused 为 true）→ 判定为 [DownloadFab.Paused]
+ * 3. 正在传输中（activeItem != null）→ [DownloadFab.Downloading]
+ * 4. 处于仅 Wi-Fi 限制但当前在蜂窝网络（等待态）→ 判定为 [DownloadFab.Resume]（显示为继续按钮）
+ * 5. 其它（排队等待可用下载槽位等）→ [DownloadFab.Downloading]
+ */
+internal fun resolveDownloadFabState(
+    myItems: List<ceui.lisa.core.DownloadItem>,
+    pageCount: Int,
+    isWifiConnected: Boolean = com.blankj.utilcode.util.NetworkUtils.isWifiConnected(),
+    downloadLimitType: Int = ceui.lisa.activities.Shaft.sSettings?.downloadLimitType ?: 0,
+): DownloadFab {
+    if (myItems.isEmpty()) {
+        return DownloadFab.Done
+    }
+    val remaining = myItems.size
+    val completedPages = (pageCount - remaining).coerceAtLeast(0)
+    val activeItem = myItems.firstOrNull {
+        it.state == ceui.lisa.core.DownloadItem.DownloadState.DOWNLOADING
+    }
+    val activeNonius = activeItem?.nonius ?: 0
+    val totalPercent = if (pageCount > 0) {
+        ((completedPages * 100 + activeNonius) / pageCount).coerceIn(0, 99)
+    } else 0
+    val isPaused = myItems.all { it.isPaused }
+    if (isPaused) {
+        return DownloadFab.Paused(totalPercent)
+    }
+    if (activeItem != null) {
+        return DownloadFab.Downloading(totalPercent)
+    }
+    val isWifiOnlyWaiting = ceui.lisa.utils.DownloadLimitTypeUtil.requiresWifi(downloadLimitType) && !isWifiConnected
+    return if (isWifiOnlyWaiting) {
+        DownloadFab.Resume(totalPercent)
+    } else {
+        DownloadFab.Downloading(totalPercent)
+    }
 }

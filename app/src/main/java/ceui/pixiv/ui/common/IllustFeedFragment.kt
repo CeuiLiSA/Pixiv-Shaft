@@ -324,12 +324,14 @@ abstract class IllustFeedFragment(
     internal fun openDetail(item: IllustFeedItem) {
         val illustItems = currentIllustItems()
         val position = illustItems.indexOfFirst { it.illust.id == item.illust.id }
-        // uuid 用 VM 里的稳定值：Container 的 map 永不清理，稳定 key 让本列表最多占一个坑
-        //（每次打开覆盖上一份快照，对齐 legacy），Fragment 重建后回传广播也仍能认领。
+        // uuid 使用单次会话专属的随机 UUID，保证 Container 的所有权随单个 VActivity 生命周期绑定，
+        // 绝不与上一任正在 finish/destroy 的 VActivity 发生 key 碰撞导致数据被提前 remove；
+        // 列表自身的持久 listPageUuid 通过 ORIGIN_PAGE_UUID 传递，供 ADD_DATA/SCROLL_TO 广播认领。
+        val sessionUuid = UUID.randomUUID().toString()
         val pageData = if (position >= 0) {
             // nextUrl 一并交接给 VActivity，详情页 pager 划到底可以继续加载
             PageData(
-                syncViewModel.listPageUuid,
+                sessionUuid,
                 detailContinuationCursor,
                 illustItems.map { it.illust },
             )
@@ -337,12 +339,13 @@ abstract class IllustFeedFragment(
             // 点击项已不在当前列表（刷新竞态等）：单开该作品，绝不错开成第一张。
             // 故意用一次性 uuid：这份单作品 PageData 的 ADD_DATA/SCROLL_TO（index 0）
             // 和主列表无关，不能被上面的接收器认领去把列表滚回顶部。
-            PageData(UUID.randomUUID().toString(), null, listOf(item.illust))
+            PageData(sessionUuid, null, listOf(item.illust))
         }
         Container.get().addPageToMap(pageData)
         startActivity(Intent(requireContext(), VActivity::class.java).apply {
             putExtra(Params.POSITION, position.coerceAtLeast(0))
-            putExtra(Params.PAGE_UUID, pageData.getUUID())
+            putExtra(Params.PAGE_UUID, sessionUuid)
+            putExtra(Params.ORIGIN_PAGE_UUID, syncViewModel.listPageUuid)
         })
     }
 

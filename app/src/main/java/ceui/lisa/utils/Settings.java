@@ -14,6 +14,7 @@ import java.util.Map;
 import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.pixiv.cache.ImageCacheQuota;
+import ceui.pixiv.download.toast.DownloadToastKind;
 import ceui.pixiv.snapshot.AutoSnapshotQuota;
 /**
  * A class about all the application settings.
@@ -384,7 +385,25 @@ public class Settings {
 
     private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
 
-    private boolean toastDownloadResult = true; // 默认提示下载结果
+    /**
+     * 旧字段：下载结果提示总开关。已被「下载相关提示消息」的逐项开关（{@link DownloadToastKind}）
+     * 取代，只剩 {@link #migrateLegacyDownloadToasts(Settings)} 还在读它做旧升新推导，
+     * 并回填供降级安装使用。
+     */
+    private boolean toastDownloadResult = true;
+
+    /**
+     * 「下载相关提示消息」里被安静掉的消息类型，存 {@link DownloadToastKind#name()}。
+     * 空集 = 全部提示（默认；新装、以及以后新增的消息类型天然都是这个值）。
+     */
+    private LinkedHashSet<String> mutedDownloadToasts = new LinkedHashSet<>();
+
+    /**
+     * 「旧总开关 → 逐项开关」这件事是否已经做过一次。落盘记着，否则用户在新版里把全部提示
+     * 重新打开之后（那时旧开关又被反向回填成 false），下一次装载会按旧开关把当年那几条重新
+     * 种成安静；反过来，旧版 JSON / 旧备份里没有这个标记，迁移才会照旧开关推导一次。
+     */
+    private boolean downloadToastsMigrated = false;
 
     private boolean autoExportIllustCaption = false; // 插画/漫画下载时自动导出简介，默认关
 
@@ -527,6 +546,22 @@ public class Settings {
 
     public void setToastDownloadResult(boolean toastDownloadResult) {
         this.toastDownloadResult = toastDownloadResult;
+    }
+
+    /**
+     * 被安静的下载提示消息键集合；空集 = 全开。这里只保证非 null，不做白名单过滤 ——
+     * 认不认得出集合里的键由 {@link ceui.pixiv.download.toast.DownloadToasts} 决定。
+     */
+    public LinkedHashSet<String> getMutedDownloadToasts() {
+        if (mutedDownloadToasts == null) {
+            mutedDownloadToasts = new LinkedHashSet<>();
+        }
+        return mutedDownloadToasts;
+    }
+
+    public void setMutedDownloadToasts(LinkedHashSet<String> mutedDownloadToasts) {
+        this.mutedDownloadToasts = mutedDownloadToasts == null
+                ? new LinkedHashSet<>() : mutedDownloadToasts;
     }
 
     public boolean isAutoExportIllustCaption() {
@@ -1783,6 +1818,38 @@ public class Settings {
         }
         settings.longPressBehavior = behavior;
         settings.useCustomLongPressReset = behavior != LONG_PRESS_BEHAVIOR_NONE;
+    }
+
+    /**
+     * 旧版设置/备份/云端还原迁移：「下载完成App内提示」这个总开关升级成「下载相关提示消息」的
+     * 逐项开关（{@link #getMutedDownloadToasts()}）。
+     *
+     * <p>旧字段为 {@code false} 时把用户当时能静音的那几条（逐张完成 / 逐张失败 / aria2 /
+     * 收藏后自动下载）种进静音集合 —— 否则升级后它们会借「新字段默认全开」复活，等于把用户的
+     * 选择吃掉；为 {@code true} 时（含没设过）留空集，即全开。
+     *
+     * <p>靠 {@link #downloadToastsMigrated} 只推导一次：否则用户在新版里把全部提示重新打开后
+     * （那时旧开关已被反向回填成 {@code false}），下一次装载会把当年那四条又种回去。
+     *
+     * <p>反向回填：任一条被安静就把旧开关写成 {@code false}。旧版只有一个总开关，降级回去只能
+     * 退化成全静音，但至少方向一致，不会让用户以为设置没生效。
+     */
+    public static void migrateLegacyDownloadToasts(Settings settings) {
+        if (settings == null) {
+            return;
+        }
+        if (!settings.downloadToastsMigrated) {
+            settings.downloadToastsMigrated = true;
+            // 旧字段为 false 才说明用户当年明确要安静；为 true（含没设过）留空集 = 全开。
+            if (!settings.toastDownloadResult) {
+                LinkedHashSet<String> muted = settings.getMutedDownloadToasts();
+                muted.add(DownloadToastKind.DOWNLOAD_DONE.name());
+                muted.add(DownloadToastKind.DOWNLOAD_FAILED.name());
+                muted.add(DownloadToastKind.ARIA2.name());
+                muted.add(DownloadToastKind.NOVEL_AUTO_DOWNLOAD.name());
+            }
+        }
+        settings.toastDownloadResult = settings.getMutedDownloadToasts().isEmpty();
     }
 
     // 插画V3详情页：下载按钮是否在左（true=左下载右收藏，false=左收藏右下载）

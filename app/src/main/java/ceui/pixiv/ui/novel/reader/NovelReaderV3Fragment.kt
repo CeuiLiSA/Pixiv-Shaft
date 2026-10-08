@@ -42,6 +42,8 @@ import ceui.lisa.utils.Params
 import ceui.pixiv.api.Client
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.cache.SeriesCache
+import ceui.pixiv.download.toast.DownloadToastKind
+import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.ui.common.ImageUrlViewer
 import ceui.pixiv.ui.common.NOVEL_URL_HEAD
 import ceui.pixiv.ui.common.shareNovel
@@ -1097,12 +1099,24 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     }
 
     private fun executeExport(format: ExportFormat, allowAutoEpub: Boolean = false) {
-        Toaster.showShort(getString(R.string.msg_export_start, getString(format.displayNameResId)))
+        DownloadToasts.showShort(
+            DownloadToastKind.NOVEL_SAVE,
+            getString(R.string.msg_export_start, getString(format.displayNameResId)),
+        )
         viewLifecycleOwner.lifecycleScope.launch {
             when (val result = viewModel.exportNovel(format, allowAutoEpub)) {
-                is ExportResult.Success -> Toaster.showLong(getString(R.string.msg_export_success, result.displayPath))
-                is ExportResult.Failure -> Toaster.showLong(getString(R.string.msg_export_fail, result.message))
-                is ExportResult.Skipped -> Toaster.showLong(getString(R.string.msg_export_skipped, result.displayPath))
+                is ExportResult.Success -> DownloadToasts.showLong(
+                    DownloadToastKind.NOVEL_SAVE,
+                    getString(R.string.msg_export_success, result.displayPath),
+                )
+                is ExportResult.Failure -> DownloadToasts.showLong(
+                    DownloadToastKind.NOVEL_SAVE,
+                    getString(R.string.msg_export_fail, result.message),
+                )
+                is ExportResult.Skipped -> DownloadToasts.showLong(
+                    DownloadToastKind.NOVEL_SAVE,
+                    getString(R.string.msg_export_skipped, result.displayPath),
+                )
             }
         }
     }

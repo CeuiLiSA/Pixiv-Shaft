@@ -1,0 +1,30 @@
+<!--
+  「保存当前图」(issue #1220):二级大图页胶囊那颗按钮存的是**当前页**,不是整部作品;
+  图标用「照片 + 下载箭头」和一级 V3 详情页的整作品下载图标区分开,免得同一颗箭头两页含义不同。
+  照片框的右边框直接衔入箭头杆,框内右下角镂空,只留下载图标。
+  下边框比下载托盘那一横高 2,两者错开,不会读成同一条横线。
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0">
+
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M17,3H5C3.9,3 3,3.9 3,5v12c0,1.1 0.9,2 2,2h7v-2H5V5h12v7h2V5c0,-1.1 -0.9,-2 -2,-2z" />
+
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M8,6.1a1.4,1.4 0 1,0 0,2.8 1.4,1.4 0 1,0 0,-2.8z" />
+
+    <!-- 山:右缘收在箭头左侧,不伸进箭头 —— 右下角那圈镂空掉照片内容,只留下载图标 -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M5,17l3.5,-5.5 2.5,3 1.5,-2.5 1,5z" />
+
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M17,9.5v5.5h-2.5l3.5,4 3.5,-4H19V9.5h-2zM14,21.5h8v-2h-8v2z" />
+</vector>
