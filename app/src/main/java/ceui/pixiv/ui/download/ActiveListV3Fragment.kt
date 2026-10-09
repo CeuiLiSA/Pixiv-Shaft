@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.content.Context
 import android.os.Bundle
+import android.os.SystemClock
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -101,6 +102,19 @@ class ActiveListV3Fragment : Fragment() {
      */
     private val speedBpsFlow = MutableStateFlow(0L)
 
+    /**
+     * 逐条断流秒数（uuid → 已连续无字节进展的秒数），由 [StallSampler] 每
+     * [STALL_SAMPLE_INTERVAL_MS] 刷一次。
+     *
+     * 值 = 断流时长（`now − DownloadItem.lastByteAtMs`）**四舍五入**到整秒；起点是 **IO 线程**
+     * 打的时间戳（见该字段），所以主线程忙不忙都不影响这个数。>0 时行内 sizeText 换成
+     * 「已断流N/10s」。
+     *
+     * [MutableStateFlow] 的相等短路 + 下游 combine 的 conflate：主线程忙时中间那几秒可能整帧
+     * 被跳过（直接 1 → 3）。**这是允许的 —— 显示允许跳秒，但值不会因为跳过而变小。**
+     */
+    private val stallSecondsFlow = MutableStateFlow(emptyMap<String, Int>())
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.fragment_download_list_v3, container, false)
@@ -113,6 +127,9 @@ class ActiveListV3Fragment : Fragment() {
         // RV 自身高度由父布局固定（fragment 内全屏 match_parent），跟 adapter 内容
         // 多少无关。setHasFixedSize(true) 跳过每次 notifyItem* 重测自身。
         list.setHasFixedSize(true)
+
+        // 断流文案「已断流N/10s」的分母：下载 client 的读超时秒数，运行时取、不硬编码。
+        adapter.readTimeoutSeconds = downloadReadTimeoutSeconds()
 
         // 点击 row → VActivity 看一级详情。把整段 currentList 的 Illust 一起
         // 拼 PageData，让用户在详情里能左右滑切到列表里相邻 item（illust 拿
@@ -200,17 +217,24 @@ class ActiveListV3Fragment : Fragment() {
         // DROP_OLDEST 的 SharedFlow，已经天然 conflate；这里再 conflate 一次双保险。
         //
         // flowOn(Default)：snapshot copy + count 计算放后台线程，UI 不挡帧。
-        // combine speedBpsFlow：让"内容变更"和"速度采样"任一发生时 status header 都会刷新。
+        // combine speedBpsFlow / stallSecondsFlow：让"内容变更"和"1s 采样"任一发生时
+        // status header 与断流倒数都会刷新。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 kotlinx.coroutines.flow.combine(
                     ManagerReactive.contentFlow,
                     queueDownloadManager.ugoiraInFlightFlow,
                     speedBpsFlow,
-                ) { snapshot, ugoiras, speedBps -> Triple(snapshot, ugoiras, speedBps) }
+                    stallSecondsFlow,
+                ) { snapshot, ugoiras, speedBps, stalledSeconds ->
+                    ActiveFrame(snapshot, ugoiras, speedBps, stalledSeconds)
+                }
                     .conflate()
                     .flowOn(Dispatchers.Default)
-                    .collect { (snapshot, ugoiras, speedBps) ->
+                    .collect { frame ->
+                        val snapshot = frame.snapshot
+                        val ugoiras = frame.ugoiras
+                        val speedBps = frame.speedBps
                         val downloadingCount = snapshot.count { it.state == DownloadItem.DownloadState.DOWNLOADING }
                         val initCount = snapshot.count { it.state == DownloadItem.DownloadState.INIT }
                         val pausedCount = snapshot.count { it.state == DownloadItem.DownloadState.PAUSED }
@@ -244,7 +268,7 @@ class ActiveListV3Fragment : Fragment() {
                         }
                         statusHeader?.text = if (parts.isEmpty()) "—" else parts.joinToString(" · ")
 
-                        adapter.submit(snapshot, ugoiras)
+                        adapter.submit(snapshot, ugoiras, frame.stalledSeconds)
                         val anyWork = snapshot.isNotEmpty() || ugoiras.isNotEmpty()
                         empty.visibility = if (anyWork) View.GONE else View.VISIBLE
                         // 没有任何活跃任务时把"清空"按钮置灰,避免用户在空列表上反复点。
@@ -256,18 +280,46 @@ class ActiveListV3Fragment : Fragment() {
             }
         }
 
-        // 速度采样：每 1s 算一次整体网速。和上面的内容流是两条独立 coroutine，
-        // 通过 [speedBpsFlow] 解耦 —— driver 写、内容流的 combine 读。
+        // 速度采样：每 1s 算一次整体网速。和内容流是独立 coroutine，通过 [speedBpsFlow]
+        // 解耦 —— driver 写、内容流的 combine 读。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                val sampler = SpeedSampler()
+                val speedSampler = SpeedSampler()
                 while (isActive) {
-                    val snapshot = Manager.get().contentSnapshot()
-                    speedBpsFlow.value = sampler.sample(snapshot)
+                    speedBpsFlow.value = speedSampler.sample(Manager.get().contentSnapshot())
                     delay(SPEED_SAMPLE_INTERVAL_MS)
                 }
             }
         }
+
+        // 断流采样：比速度采样密（[STALL_SAMPLE_INTERVAL_MS]）。断流要在读超时前那几秒里
+        // 尽早显示出来，1s 一跳会晚整整一拍 —— 加上进度回调本身 500ms 的节流，"最后一帧
+        // 进度" 与 "确认不再涨" 之间要多等一个 tick，用户要 ~2s 才看到，太迟。这里独立跑
+        // 250ms，配合 [StallSampler] 按真实时间戳算，亮得早、倒数也跟手。
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                val stallSampler = StallSampler()
+                while (isActive) {
+                    stallSecondsFlow.value = stallSampler.sample(
+                        Manager.get().contentSnapshot(),
+                        SystemClock.elapsedRealtime(),
+                    )
+                    delay(STALL_SAMPLE_INTERVAL_MS)
+                }
+            }
+        }
+    }
+
+    /**
+     * 下载 client 的读超时（秒）—— 断流文案「已断流N/10s」的分母。
+     *
+     * 值由 `Manager.getDownloadReadTimeoutMillis()` 提供：读的是**下载那条 client**（全局 client
+     * 派生，超时同源）。非直连 = OkHttp 默认 10s，直连 = `Shaft.buildOkHttpClient` 显式设的 30s。
+     * **不硬编码** —— 后续把读超时改小做「断流立即重连」时，这里自动跟随。
+     */
+    private fun downloadReadTimeoutSeconds(): Int {
+        val millis = runCatching { Manager.get().downloadReadTimeoutMillis }.getOrDefault(0L)
+        return (millis / 1000L).toInt().coerceAtLeast(1)
     }
 
     private fun showClearConfirmDialog(onConfirm: () -> Unit) {
@@ -294,6 +346,74 @@ class ActiveListV3Fragment : Fragment() {
         private const val TAG = "ActiveListV3"
         /** 整体下载速度采样间隔（毫秒）。1s 比较接近用户对"实时网速"的预期 */
         private const val SPEED_SAMPLE_INTERVAL_MS = 1000L
+
+        /**
+         * 断流采样间隔（毫秒）。比速度采样密 —— 断流要尽早亮出来，1s 一跳会晚整整一拍。
+         * 250ms 下从"最后一次字节"到显示「已断流1/10s」只差 ~1s（1s 是"断流 1 秒"的本义），
+         * 而不是原先的 ~2s。
+         */
+        private const val STALL_SAMPLE_INTERVAL_MS = 250L
+    }
+}
+
+/**
+ * 内容流的一帧：把三条来源（内容快照 / ugoira 在飞 / 1s 采样出的速度与断流秒数）打包，
+ * 让 [combine] 的 4 参重载能用一个具名类型交付，collector 里不用拆 Triple。
+ */
+private data class ActiveFrame(
+    val snapshot: List<DownloadItem>,
+    val ugoiras: List<UgoiraInFlight>,
+    val speedBps: Long,
+    val stalledSeconds: Map<String, Int>,
+)
+
+/** 无字节进展满这么久才算断流 —— 不足 1s 的间隙是正常抖动，不算。 */
+private const val STALL_THRESHOLD_MS = 1000L
+
+/**
+ * 无字节进展 [elapsedMs] 毫秒时该显示「已断流几秒」；不足 [STALL_THRESHOLD_MS] 返回 null（不算断流）。
+ *
+ * 抽成顶层 internal 与 [formatActiveStallText] 同理：让「门槛 1s + 读秒四舍五入」这条口径能被
+ * 单测钉住，而不是只能靠读代码 —— 被误改回 floor 就等于把「10/10s」弄没了。四舍五入的原因见
+ * [StallSampler] 的 KDoc。
+ */
+internal fun stallSecondsFor(elapsedMs: Long): Int? =
+    if (elapsedMs < STALL_THRESHOLD_MS) null
+    else ((elapsedMs + 500L) / 1000L).toInt()
+
+/**
+ * 逐条「断流」读秒器 —— 只观察、不改下载链路。
+ *
+ * **起点不在这边**：每条 [DownloadItem.lastByteAtMs] 由 `Manager.pumpBytes` 在 **IO 线程**
+ * 每次真正读到字节时打戳（见该字段注释）。这里只做减法 —— 当前时刻减去那个戳，就是真实的断流
+ * 时长。这就是把「判定」和「读秒」拆开：判定（对端还在不在吐数据）交给下载侧，UI 只负责读秒显示。
+ *
+ * 为什么不能靠 UI 自己盯 [DownloadItem.currentSize] 涨没涨：currentSize 的更新要等主线程处理完
+ * `postMain` 的进度回调（上报本身还有 500ms 节流）。主线程被进度流刷满时，UI 看到"最后一次涨"
+ * 的时刻会整体后飘，读秒就偏小 —— 实测过 UI 才 7s、OkHttp 读超时已经 10s。起点钉在源头后，
+ * 主线程忙不忙都不影响这条计时。
+ *
+ * 判据：
+ *  - `state == DOWNLOADING && lastByteAtMs > 0`。`lastByteAtMs == 0` 表示本次传输还没读到首字节
+ *    （建连 / 等响应头阶段），那不算断流，免得把正常的慢建连误报。
+ *  - 无字节进展不足 [STALL_THRESHOLD_MS] 不报（正常抖动）。
+ *
+ * 读秒用**四舍五入**而不是 floor：读超时恰好在无字节进展满 10s 那刻结束这一发，floor 下「10」只
+ * 存在于超时到标 FAILED 之间那几十毫秒、基本看不到；四舍五入让「10/10s」在 9.5s 起就显示（可见
+ * 0.5s），提前量 ≤0.5s。
+ *
+ * 返回 `uuid → 已断流秒数`（只含 ≥ 1 的项）。
+ */
+private class StallSampler {
+    fun sample(snapshot: List<DownloadItem>, nowMs: Long): Map<String, Int> {
+        val out = HashMap<String, Int>()
+        for (item in snapshot) {
+            if (item.state != DownloadItem.DownloadState.DOWNLOADING) continue
+            val lastAt = item.lastByteAtMs
+            if (lastAt <= 0L) continue
+            stallSecondsFor(nowMs - lastAt)?.let { out[item.uuid] = it }
+        }
+        return out
     }
 }
 
@@ -402,6 +522,25 @@ internal fun formatActiveSizeText(currentSize: Long, totalSize: Long, unknownLab
     }
 
 /**
+ * 活跃下载行的「断流」文案：`已断流{已卡秒数}/{读超时秒数}s`（「断流」是给用户看的说法）。
+ *
+ * 一条正在下载的项连续整秒没有字节增量（见 [StallSampler]）时，sizeText 从「已下 / 总长」换成
+ * 这句，向用户说清是**对端不再吐数据了**（这张图在链路上沉默了）—— 不是这条下载死了，也不是
+ * 客户端卡了：串行下它会表现成整条队列阻塞，多并行下别的行照常刷刷地下完，实测常常过一会儿就
+ * 自己恢复。
+ *
+ * 分母是**运行时**取到的下载 client 读超时（[downloadReadTimeoutSeconds]），不写死 10：
+ * 非直连是 OkHttp 默认 10s、直连是 30s，后续做「断流立即重连」把读超时改小时这里自动跟随。
+ *
+ * 抽成顶层 internal 与 [formatActiveSizeText] 同理：让模板与两个入参的顺序能被单测钉住。
+ */
+internal fun formatActiveStallText(
+    template: String,
+    stalledSeconds: Int,
+    readTimeoutSeconds: Int,
+): String = String.format(template, stalledSeconds, readTimeoutSeconds)
+
+/**
  * 关键陷阱：[Manager] 原地修改 [DownloadItem]（setNonius / setPaused / ...），
  * 不会创建新对象。如果 ListAdapter 直接拿 DownloadItem 做 DiffUtil 元素，旧
  * snapshot 列表和新 snapshot 列表持有**同一份对象引用**，DiffUtil 调
@@ -430,11 +569,13 @@ private sealed class ActiveSnapshot {
         val totalSize: Long,
         val name: String?,
         val showUrl: String?,
+        /** 已连续无字节进展的秒数；0 = 正常。>0 时 sizeText 换成「已断流N/10s」。 */
+        val stalledSeconds: Int,
     ) : ActiveSnapshot() {
         override val key: String get() = "i:" + item.uuid
 
         companion object {
-            fun of(d: DownloadItem) = IllustEntry(
+            fun of(d: DownloadItem, stalledSeconds: Int) = IllustEntry(
                 item = d,
                 state = d.state,
                 isPaused = d.isPaused,
@@ -443,6 +584,7 @@ private sealed class ActiveSnapshot {
                 totalSize = d.totalSize,
                 name = d.name,
                 showUrl = d.showUrl,
+                stalledSeconds = stalledSeconds,
             )
         }
     }
@@ -496,11 +638,22 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
      */
     var onItemClick: ((snap: ActiveSnapshot, all: List<ActiveSnapshot>) -> Unit)? = null
 
+    /**
+     * 下载 client 的读超时（秒），断流文案「已断流N/10s」的分母。fragment 在 onViewCreated
+     * 用 [downloadReadTimeoutSeconds] 从真实 client 取一次写进来；默认 10 只是 OkHttp 默认值
+     * 的兜底，正常路径不会用到。
+     */
+    var readTimeoutSeconds: Int = 10
+
     /** ugoira 排在 illust 前面 —— 用户最近触发的批量下载里 ugoira 通常是稀缺关注点。 */
-    fun submit(illusts: List<DownloadItem>, ugoiras: List<UgoiraInFlight>) {
+    fun submit(
+        illusts: List<DownloadItem>,
+        ugoiras: List<UgoiraInFlight>,
+        stalledSeconds: Map<String, Int>,
+    ) {
         val combined = ArrayList<ActiveSnapshot>(illusts.size + ugoiras.size)
         ugoiras.mapTo(combined) { ActiveSnapshot.UgoiraEntry.of(it) }
-        illusts.mapTo(combined) { ActiveSnapshot.IllustEntry.of(it) }
+        illusts.mapTo(combined) { ActiveSnapshot.IllustEntry.of(it, stalledSeconds[it.uuid] ?: 0) }
         submitList(combined)
     }
 
@@ -622,12 +775,22 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
 
         when {
             isActive -> {
-                // 总长未知（响应没带 Content-Length）时如实写「未知大小」，见 formatActiveSizeText。
-                h.sizeText.text = formatActiveSizeText(
-                    snap.currentSize,
-                    snap.totalSize,
-                    h.sizeText.context.getString(R.string.dlmgr_active_size_unknown)
-                )
+                h.sizeText.text = if (snap.stalledSeconds > 0) {
+                    // 对端不再吐数据（这张图在链路上沉默了）：如实报「已断流N/10s」，让用户知道
+                    // 是对端没数据、不是客户端卡了。见 StallSampler / formatActiveStallText。
+                    formatActiveStallText(
+                        h.sizeText.context.getString(R.string.dlmgr_active_size_stalled),
+                        snap.stalledSeconds,
+                        readTimeoutSeconds,
+                    )
+                } else {
+                    // 总长未知（响应没带 Content-Length）时如实写「未知大小」，见 formatActiveSizeText。
+                    formatActiveSizeText(
+                        snap.currentSize,
+                        snap.totalSize,
+                        h.sizeText.context.getString(R.string.dlmgr_active_size_unknown)
+                    )
+                }
             }
             isWaiting -> h.sizeText.setText(R.string.dlmgr_active_size_waiting)
             isPaused -> h.sizeText.setText(R.string.dlmgr_active_size_paused)

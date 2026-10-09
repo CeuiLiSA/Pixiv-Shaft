@@ -39,6 +39,18 @@ public class DownloadItem implements Serializable {
     // 所以"退回 currentSize"那个兜底分支实际不会命中。不为一个不命中的分支付 volatile。
     private transient long currentSize = 0;
     private transient long totalSize = 0;
+    /**
+     * 最近一次**真正读到字节**的时刻（{@code SystemClock.elapsedRealtime()} 毫秒）。
+     *
+     * 由 {@code Manager.pumpBytes} 在 **IO 线程**每次成功 read 后写；UI 端读它算「已断流 N 秒」。
+     * 断流计时的起点必须是这个**源头时刻**，而不是 UI 观察到 currentSize 变化的时刻 —— 后者要等
+     * 主线程处理完 progress 回调（且上报本身有 500ms 节流）才看得到，主线程一被进度流刷满，起点
+     * 就整体后飘，表现为「UI 才 7s、OkHttp 读超时已经 10s」。
+     *
+     * transient：不参与 Gson / Serializable 持久化；volatile：IO 线程写、主线程读。
+     * 0 = 本次传输还没读到首字节（建连 / 等响应头阶段，不算断流）。
+     */
+    private transient volatile long lastByteAtMs = 0L;
 
     public DownloadItem(Illust illustsBean, int index) {
         this.illust = illustsBean;
@@ -171,6 +183,16 @@ public class DownloadItem implements Serializable {
 
     public void setTotalSize(long totalSize) {
         this.totalSize = totalSize;
+    }
+
+    /** 见 {@link #lastByteAtMs}。0 = 本次传输还没读到首字节。 */
+    public long getLastByteAtMs() {
+        return lastByteAtMs;
+    }
+
+    /** 由 {@code Manager.pumpBytes} 在 IO 线程调用；不要在 UI 侧写。 */
+    public void setLastByteAtMs(long lastByteAtMs) {
+        this.lastByteAtMs = lastByteAtMs;
     }
 
     public boolean shouldStartNewDownload() {

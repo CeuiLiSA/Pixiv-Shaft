@@ -1833,6 +1833,7 @@
     <string name="dlmgr_active_size_paused">Duraklatıldı</string>
     <string name="dlmgr_active_size_failed">İndirme başarısız</string>
     <string name="dlmgr_active_size_unknown">Bilinmiyor</string>
+    <string name="dlmgr_active_size_stalled">Akış koptu %1$d/%2$ds</string>
     <string name="dlmgr_open_novel_failed">Roman kimliği tanımlanamadı. Lütfen tekrar indirin.</string>
     <string name="dlmgr_done_empty_title">Henüz tamamlanmış indirme yok</string>
     <string name="dlmgr_done_empty_hint">Tamamlanan eserler burada görünecek</string>
