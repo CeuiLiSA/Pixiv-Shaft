@@ -2537,6 +2537,7 @@
     <string name="ai_translate_test_success">測試成功：%1$s</string>
     <string name="ai_translate_test_failed">測試失敗：%1$s</string>
     <string name="ai_translate_failed_title">AI 翻譯失敗</string>
+    <string name="ai_translate_verbatim_warning">模型可能原樣輸出了原文（原樣度 %1$d%%）</string>
     <string name="ai_translate_error_code_label">錯誤碼</string>
     <string name="ai_translate_error_message_label">錯誤訊息</string>
     <string name="ai_translate_error_code_unknown">未知</string>

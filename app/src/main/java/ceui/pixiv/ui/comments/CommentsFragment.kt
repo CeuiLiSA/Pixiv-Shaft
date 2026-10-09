@@ -42,6 +42,8 @@ import ceui.pixiv.snapshot.SnapshotCommentsFeedSource
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.detail.showV3Menu
+import ceui.pixiv.ui.translate.currentTranslator
+import ceui.pixiv.ui.translate.verbatimWarningText
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -286,6 +288,10 @@ class CommentsFragment : FeedFragment(R.layout.fragment_comments_feed), CommentA
         launchSuspend {
             try {
                 val translated = translateTextOrPrompt(src) ?: return@launchSuspend
+                // 「原样度」:内联译文没有弹窗,命中时用 Toast 提示一次。
+                verbatimWarningText(requireContext(), currentTranslator(), src, translated)?.let {
+                    Common.showToast(it)
+                }
                 pendingTranslationReveals += comment.id
                 feedViewModel.mutateItems { items ->
                     composer.applyTranslation(items, comment.id, parentCommentId, translated)

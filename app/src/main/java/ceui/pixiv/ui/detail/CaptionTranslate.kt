@@ -9,6 +9,7 @@ import ceui.pixiv.ui.translate.currentTranslator
 import ceui.pixiv.ui.translate.onceThinkingPhase
 import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
 import ceui.pixiv.ui.translate.showTranslatedDialog
+import ceui.pixiv.ui.translate.verbatimWarningText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -71,6 +72,11 @@ fun Fragment.translateTitleAndCaption(title: String?, caption: String?) {
             TRANSLATED_MESSAGE_SEPARATOR +
             ctx.getString(R.string.v3_translate_caption_label) +
             (translatedCaption.takeIf { it.isNotBlank() } ?: placeholder)
-        showTranslatedDialog(ctx, message)
+        // 「原样度」:标题 / 简介任一疑似原样输出即提示(仅 AI 引擎、且目标语言非日文)。
+        val warning = listOfNotNull(
+            verbatimWarningText(ctx, translator, t, translatedTitle),
+            verbatimWarningText(ctx, translator, c, translatedCaption),
+        ).firstOrNull()
+        showTranslatedDialog(ctx, message, warning)
     }
 }

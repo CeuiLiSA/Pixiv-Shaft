@@ -45,6 +45,15 @@ object CloudTranslator : Translator {
     private val requestSemaphore = Semaphore(REQUEST_CONCURRENCY)
 
     /**
+     * 最近一次 [translateBatch] 是否因服务端关停(503 translate_disabled)而交给
+     * [GoogleWebTranslator] 兜底 —— 那一批产物不是 AI 生成的,「原样度」判定应跳过
+     * (见 [isAiBacked])。每次 [translateBatchWith] 开头复位,只在本次真正降级时置位。
+     */
+    @Volatile
+    var servedByGoogleFallback: Boolean = false
+        private set
+
+    /**
      * 能不能走云翻译：用户没关 + 已登录（服务端按 uid 计量）+ 本包带 HMAC（fork 构建签不了名）
      * + 服务端宣告过功能开着。任一不满足就交给下一级翻译器，不报错。
      */
@@ -102,6 +111,7 @@ object CloudTranslator : Translator {
         onServerDisabled: (() -> Unit)? = null,
         fallback: Translator? = null,
     ): List<String> {
+        servedByGoogleFallback = false
         if (inputs.isEmpty()) return emptyList()
         // Blank bubbles need no network request. Identical labels are translated
         // once per batch, then restored to every original position for the UI.
@@ -238,6 +248,8 @@ object CloudTranslator : Translator {
         val disabled = stopAll.get()
         if (fallback != null && disabled is CloudTranslateException && disabled.code == 503) {
             Timber.tag(TAG).i("server switched off, redoing this batch with %s", fallback::class.simpleName)
+            // 本批产物将由 fallback(非 AI)产出,标记降级,调用方据此跳过「原样度」判定。
+            servedByGoogleFallback = true
             return@withContext fallback.translateBatch(inputs, outputLang, onItem, onProgress, onPhase, onRequestSent)
         }
 
