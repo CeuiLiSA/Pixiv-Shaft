@@ -244,8 +244,8 @@ internal class ReleaseCardView(ctx: Context) : LinearLayout(ctx) {
         toggle.isVisible = item.expanded || changelog?.worthCollapsing() == true
 
         val apk = AppUpdateChecker.findApkAsset(release)
-        size.isVisible = apk != null
-        size.text = apk?.let { formatApkSize(it.size) }.orEmpty()
+        size.isVisible = apk != null && apk.size > 0L
+        size.text = apk?.takeIf { it.size > 0L }?.let { formatApkSize(it.size) }.orEmpty()
 
         toggle.setText(
             if (item.expanded) R.string.version_history_collapse else R.string.version_history_expand
