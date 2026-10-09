@@ -69,6 +69,30 @@ class DragDismissLayout @JvmOverloads constructor(
      */
     var maxDragScaleShrink = DEFAULT_MAX_DRAG_SCALE_SHRINK
 
+    /**
+     * 叠在内容之上、需要「盖着时禁止拖动退出」的浮层判定集合。
+     *
+     * 宿主在装配阶段把判定接进来即可：只要任一判定为 true，本布局就不接管竖向手势，
+     * 也不会去清子 view 的 disallow-intercept 禁令。用判定而不是在手势链路里硬编码 view id，
+     * 是为了后续新增浮层时只多一条注册，不用再往判定里塞分支。
+     */
+    private val dismissBlockingChecks = ArrayList<() -> Boolean>()
+
+    /** 便捷重载：把「这个浮层可见」当成一条拦手判定。 */
+    fun addDismissBlockingOverlay(overlay: View) {
+        addDismissBlockingCheck { overlay.visibility == VISIBLE }
+    }
+
+    /**
+     * 注册一条「此刻是否要拦下拖动退出」的判定：返回 true 就不放行。
+     *
+     * 适合浮层不是本布局固定子 view 的场景 —— 例如 ViewPager 每一页各自带一份框选层，
+     * 由宿主按当前页查询。装配阶段注册一次即可，长期有效。
+     */
+    fun addDismissBlockingCheck(check: () -> Boolean) {
+        dismissBlockingChecks.add(check)
+    }
+
     private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
     private var velocityTracker: VelocityTracker? = null
     private var downX = 0f
@@ -139,12 +163,22 @@ class DragDismissLayout @JvmOverloads constructor(
         }
         if (abs(dy) <= touchSlop || abs(dy) <= abs(dx)) return
         val direction = if (dy > 0f) Direction.DOWN else Direction.UP
-        if (callback?.canStartDismissDrag(direction) == true) {
+        if (canStartDismiss(direction)) {
             // 在自身上调用才会同时清除本 ViewGroup 的
             // FLAG_DISALLOW_INTERCEPT，只通知 parent 不足以让 super.dispatchTouchEvent 重新询问拦截。
             requestDisallowInterceptTouchEvent(false)
         }
     }
+
+    /**
+     * 此刻能否沿 [direction] 起手拖动退出。有拦手浮层（判定为 true）时一律不放行——
+     * 此时手势属于浮层，不该穿透下去把整页拖走；否则再交给宿主的 [Callback.canStartDismissDrag]。
+     */
+    private fun canStartDismiss(direction: Direction): Boolean =
+        !isDismissBlocked() && callback?.canStartDismissDrag(direction) == true
+
+    /** 任一注册的拦手判定为 true 即拦下拖动退出；[dismissBlockingChecks] 为空时恒为 false。 */
+    private fun isDismissBlocked(): Boolean = dismissBlockingChecks.any { it() }
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
         when (ev.actionMasked) {
@@ -169,7 +203,7 @@ class DragDismissLayout @JvmOverloads constructor(
                 }
                 if (abs(dy) > touchSlop && abs(dy) > abs(dx)) {
                     val direction = if (dy > 0f) Direction.DOWN else Direction.UP
-                    if (callback?.canStartDismissDrag(direction) != true) {
+                    if (!canStartDismiss(direction)) {
                         gestureRejected = true
                         return false
                     }

@@ -682,6 +682,14 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         viewerTransition = transition
         entryOrientation = resources.configuration.orientation
         rootLayout.dragTargetView = baseBind!!.viewPager
+        // 叠在图片上的浮层可见时禁止拖动退出，统一走 DragDismissLayout 的闸口：
+        // ① AI 超分 / 抠图 / 翻译的进度与结果层（ai_overlay_root，本页固定子 view）；
+        // ② 当前页的圈选翻译框选层（在 ViewPager 每一页里，按当前页查询）。
+        // 后续新增浮层只需再补一条判定。
+        findViewById<View>(R.id.ai_overlay_root)?.let(rootLayout::addDismissBlockingOverlay)
+        rootLayout.addDismissBlockingCheck {
+            currentImageFragment()?.isManualSelectionActive() == true
+        }
         // 「上/下拖动退出」灵敏度走用户设置（设置 → 浏览设置 → 大图拖动退出控制）。
         // 默认值与 DragDismissLayout.DEFAULT_* 一致，用户没调过就是原有手感。
         val dismissSettings = Shaft.sSettings
