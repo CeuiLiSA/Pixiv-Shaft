@@ -201,8 +201,16 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
                 AppUpdateChecker.checkForUpdate()
             } catch (e: CancellationException) {
                 throw e
-            } catch (_: Exception) {
-                baseBind.updateStatus.setText(R.string.update_check_failed)
+            } catch (e: Exception) {
+                if (AppUpdateChecker.isRateLimit(e)) {
+                    val message = AppUpdateChecker.getRateLimitMessage(requireContext(), e)
+                    baseBind.updateStatus.text = message
+                    if (manual) {
+                        Common.showToast(message)
+                    }
+                } else {
+                    baseBind.updateStatus.setText(R.string.update_check_failed)
+                }
                 return@launch
             }
             AppUpdateChecker.markChecked()

@@ -1115,6 +1115,8 @@
     <string name="update_retry">Повторить</string>
     <string name="update_download_failed">Не удалось скачать</string>
     <string name="update_check_failed">Не удалось проверить обновления</string>
+    <string name="update_rate_limited">Превышен лимит запросов, повторите попытку позже</string>
+    <string name="update_rate_limited_with_reset">Превышен лимит запросов, повторите попытку после %1$s</string>
     <string name="update_download_title">Обновление Shaft</string>
     <string name="update_version_skipped">Эта версия пропущена</string>
     <string name="update_enable_install_permission">Разрешите установку приложений из неизвестных источников</string>

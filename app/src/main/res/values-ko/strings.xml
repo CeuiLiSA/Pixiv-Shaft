@@ -1115,6 +1115,8 @@
     <string name="update_retry">다시 시도</string>
     <string name="update_download_failed">다운로드 실패</string>
     <string name="update_check_failed">업데이트 확인 실패</string>
+    <string name="update_rate_limited">요청 한도에 도달했습니다. 잠시 후 다시 시도해 주세요</string>
+    <string name="update_rate_limited_with_reset">요청 한도에 도달했습니다. %1$s 이후에 다시 시도해 주세요</string>
     <string name="update_download_title">Shaft 업데이트</string>
     <string name="update_version_skipped">이 버전은 건너뛰었습니다</string>
     <string name="update_enable_install_permission">알 수 없는 출처 앱 설치를 허용해 주세요</string>

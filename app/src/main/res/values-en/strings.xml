@@ -1115,6 +1115,8 @@
     <string name="update_retry">Retry</string>
     <string name="update_download_failed">Download failed</string>
     <string name="update_check_failed">Failed to check for updates</string>
+    <string name="update_rate_limited">Rate limit reached, please try again later</string>
+    <string name="update_rate_limited_with_reset">Rate limit reached, please try again after %1$s</string>
     <string name="update_download_title">Shaft update</string>
     <string name="update_version_skipped">This version has been skipped</string>
     <string name="update_enable_install_permission">Allow installing apps from unknown sources</string>
