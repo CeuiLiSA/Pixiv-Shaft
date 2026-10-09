@@ -194,6 +194,26 @@ public class Manager {
         return getDownloadOkHttpClient().readTimeoutMillis();
     }
 
+    /**
+     * 这次失败该不该「读超时静默重连一次」。
+     *
+     * 三条同时满足才重连：
+     *   1. 原因是**读超时**（对端沉默），不是别的错 —— 见
+     *      {@code NetworkFailureClassifier.isReadTimeoutFailure}；
+     *   2. 用户把阈值**调小过**（当前值 ≠ 该模式默认值）。停在默认时读超时照旧算失败、行为与历史
+     *      一致；只有主动调小的人是在用「更早断流」换「更快重连」，这一下读超时对他才是预期内的；
+     *   3. 这条 item 还没用过这次额度（每条只给一次，避免对端真挂了时无限重连）。
+     *
+     * 副作用：判定通过时会把额度标记为已用，所以调用点只需看返回值。
+     */
+    private boolean shouldSilentlyRetryAfterReadTimeout(DownloadItem item, Throwable error) {
+        if (item.isReadTimeoutRetryUsed()) return false;
+        if (!ceui.lisa.http.NetworkFailureClassifierKt.isReadTimeoutFailure(error)) return false;
+        if (Shaft.sSettings == null || !Shaft.sSettings.isImageReadTimeoutLowered()) return false;
+        item.setReadTimeoutRetryUsed(true);
+        return true;
+    }
+
     static OkHttpClient buildDownloadOkHttpClient(OkHttpClient base, ProgressTracker displayProgress) {
         OkHttpClient.Builder builder = base.newBuilder()
                 .protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1));
@@ -660,6 +680,9 @@ public class Manager {
             Common.showLog("[DL-RACE] resurrect FAILED→INIT uuid=" + item.getUuid()
                     + " nonius=" + item.getNonius());
             item.setState(DownloadItem.DownloadState.INIT);
+            // 用户手动重试 = 一次全新的尝试：把「读超时静默重连」的额度也还给他。否则第二次重试
+            // 再撞上读超时就直接失败了 —— 那条额度在上一次失败时已经被用掉。
+            item.setReadTimeoutRetryUsed(false);
             return;
         }
         if (s == DownloadItem.DownloadState.DOWNLOADING
@@ -1349,6 +1372,24 @@ public class Manager {
         }, throwable -> {
             //下载失败，处理相关逻辑
             Common.showLog("Manager download error: " + throwable.getMessage());
+
+            // 「断流立即重连」：读超时（对端沉默）在「用户主动调小过阈值」的前提下算预期内事件，
+            // 静默重连一次而不是直接判失败 —— 否则口径里的"更快重连"实际表现为"更快失败"。
+            // 判定与额度见 shouldSilentlyRetryAfterReadTimeout。
+            if (shouldSilentlyRetryAfterReadTimeout(downloadItem, throwable)) {
+                Common.showLog("[DL-RETRY] 读超时静默重连 uuid=" + downloadItem.getUuid()
+                        + " name=" + downloadItem.getName());
+                // 只把状态翻回 INIT，交给 onFinally 的 pumpAvailableSlots 重新挑走。刻意不做：
+                //   - 不 complete(false)：那是终态失败，会置 FAILED 让行上出现失败态；
+                //   - 不 abandonWrite()：staged 的目标行要到 commit 才 insert，此刻还不存在；
+                //     直写路径的 targetUri 是用户给的 file://，更不该删；
+                //   - 不弹 toast / 不发 DOWNLOAD_FAILED 广播：对用户是"没发生过"。
+                // stage 的 .part / manifest 原样保留，下次带 Range 续传，不从头重下。
+                downloadItem.setState(DownloadItem.DownloadState.INIT);
+                ManagerReactive.invalidate();
+                return;
+            }
+
             if (!downloadItem.isSilent()) {
                 DownloadToasts.show(DownloadToastKind.DOWNLOAD_FAILED,
                         "下载失败，原因：" + throwable.toString());

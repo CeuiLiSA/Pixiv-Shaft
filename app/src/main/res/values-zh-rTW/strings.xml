@@ -2950,6 +2950,11 @@
     <string name="setting_image_cache_quota_range_min">100 MB</string>
     <string name="setting_image_cache_quota_range_max">1 GB</string>
     <string name="setting_image_cache_quota_pending">%1$s（未生效）</string>
+    <string name="setting_read_timeout_title">圖片載入/下載斷流閾值</string>
+    <string name="setting_read_timeout_seconds">%1$d 秒</string>
+    <string name="setting_read_timeout_default_value">預設（%1$d 秒）</string>
+    <string name="setting_read_timeout_stall_retry">圖片載入也容許一次斷流逾時並靜默重試</string>
+    <string name="setting_read_timeout_dialog_hint">重啟 App 後生效\n非預設值時：\n圖片載入會更快地出現重新載入\n圖片下載會容許一次斷流逾時並靜默重試</string>
     <string name="setting_auto_snapshot_on_illust_manga">插畫/漫畫自動產生快照</string>
     <string name="setting_auto_snapshot_on_illust_manga_desc">對反覆進入與長時間駐留的插畫/漫畫靜默產生快照（實驗性）</string>
 

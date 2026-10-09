@@ -13,6 +13,7 @@ import java.util.Map;
 
 import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
+import ceui.lisa.http.ImageReadTimeout;
 import ceui.pixiv.cache.ImageCacheQuota;
 import ceui.pixiv.download.toast.DownloadToastKind;
 import ceui.pixiv.snapshot.AutoSnapshotQuota;
@@ -399,6 +400,24 @@ public class Settings {
 
     /** 图片缓存「预期上限」（MB）；只在 Glide 初始化时生效，改完需重启 App。默认 = Glide 原生 250 MB。 */
     private volatile int imageCacheMaxMb = ImageCacheQuota.DEFAULT_LIMIT_MB;
+
+    /**
+     * 图片「加载」与「下载」共用的读超时（秒）。分直连 / 非直连两种模式，各自默认 = 该模式滑动条
+     * 上界（非直连 10s / 直连 30s，见 ImageReadTimeout）。只在共享 OkHttp client 构建时读一次
+     * （Shaft.buildOkHttpClient），改完需重启 App；切换直连开关时会重置为对应模式的默认值。
+     */
+    private volatile int imageReadTimeoutSeconds = ImageReadTimeout.UNSET_SECONDS;
+
+    /**
+     * 「图片加载也容许一次断流超时并静默重试」。默认关。
+     *
+     * 与下载侧的读超时静默重连（{@code Manager.shouldSilentlyRetryAfterReadTimeout}）同源同口径
+     * （都用 {@code NetworkFailureClassifier.isReadTimeoutFailure}，每条只给一次），但**不受阈值是否为
+     * 默认值影响** —— 下载侧是「调小阈值即自动生效」，图片侧是用户显式勾选，勾了就该生效。
+     *
+     * 值在每次失败判定时现取（{@code ImageLoadTask}），所以改完**不用重启 App**（与上面的读超时不同）。
+     */
+    private volatile boolean imageLoadRetryOnStall = false;
 
     private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
 
@@ -1190,6 +1209,44 @@ public class Settings {
 
     public void setImageCacheMaxMb(int imageCacheMaxMb) {
         this.imageCacheMaxMb = ImageCacheQuota.clampLimitMb(imageCacheMaxMb);
+    }
+
+    public int getImageReadTimeoutSeconds() {
+        return ImageReadTimeout.clampSeconds(imageReadTimeoutSeconds, isDirectConnect());
+    }
+
+    public void setImageReadTimeoutSeconds(int imageReadTimeoutSeconds) {
+        this.imageReadTimeoutSeconds =
+                ImageReadTimeout.clampSeconds(imageReadTimeoutSeconds, isDirectConnect());
+    }
+
+    /**
+     * 切换直连开关时调用：读超时分直连 / 非直连两种量程，用户此前调的值跨模式不再适用，重置为
+     * 新模式的默认值（= 该模式上界）。
+     */
+    public void resetImageReadTimeout() {
+        this.imageReadTimeoutSeconds = ImageReadTimeout.defaultSeconds(isDirectConnect());
+    }
+
+    /**
+     * 读超时是否被用户**调小过**（当前值 ≠ 该模式默认值）。
+     *
+     * 用于「读超时静默重连」的判定：只有主动调小阈值的人，才是在用「更早断流」换「更快重连」，
+     * 那一下读超时对他才是预期内的；停在默认（= 上界）时读超时照旧算失败，行为与历史一致。
+     */
+    public boolean isImageReadTimeoutLowered() {
+        return ImageReadTimeout.isLoweredThanDefault(
+                imageReadTimeoutSeconds, isDirectConnect());
+    }
+
+    /** 见 {@link #imageLoadRetryOnStall}。默认关。 */
+    public boolean isImageLoadRetryOnStall() {
+        return imageLoadRetryOnStall;
+    }
+
+    /** 见 {@link #imageLoadRetryOnStall}。改完立即生效，不需要重启。 */
+    public void setImageLoadRetryOnStall(boolean imageLoadRetryOnStall) {
+        this.imageLoadRetryOnStall = imageLoadRetryOnStall;
     }
 
     public boolean isShowOriginalPreviewImage() {

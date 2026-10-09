@@ -827,6 +827,12 @@ public class Shaft extends Application implements ServicesProvider {
         // ArrayIndexOutOfBoundsException(okio checkOffsetAndCount / AsyncTimeout.write)导致崩溃。
         // 下载(Manager)、ugoira 早已各自退回 H1.1，这里统一在源头兜住，非直连模式同样生效。
         glideBuilder.protocols(java.util.Collections.singletonList(okhttp3.Protocol.HTTP_1_1));
+        // 图片加载(Glide) + 下载(Manager 经 newBuilder() 派生)共用的读超时(秒)。分直连 / 非直连两种
+        // 模式，各自默认 = 该模式上界(非直连 10s / 直连 30s)，可在「网络设置 → 图片读超时」里调小，
+        // 让对端静默时更早触发超时 → 断点续传重连(「断流立即重连」)。下载 client 继承同源值，UI 的
+        // 「已断流N/Ms」分母(Manager.getDownloadReadTimeoutMillis)也随之跟随。
+        glideBuilder.readTimeout(
+                sSettings.getImageReadTimeoutSeconds(), java.util.concurrent.TimeUnit.SECONDS);
         // issue #865: 直连覆盖(HttpDns 硬编码 210.140.139.x + 无 SNI 的 TLS)只对
         // 原始 i.pximg.net 有效，会打死 pixiv.cat / 自定义反代。所以非 PIXIV 模式下
         // 图片客户端退回系统 DNS + 标准 TLS。API 客户端(Retro/Client 的 Cronet 直连)
@@ -846,7 +852,7 @@ public class Shaft extends Application implements ServicesProvider {
             }
             glideBuilder.dns(ceui.lisa.http.HttpDns.getInstance());
             glideBuilder.connectTimeout(15, java.util.concurrent.TimeUnit.SECONDS);
-            glideBuilder.readTimeout(30, java.util.concurrent.TimeUnit.SECONDS);
+            // 读超时不再在这里硬编码：已按「网络设置 → 图片读超时」在 if 外统一设置(直连默认 30s)。
         }
         return glideBuilder.build();
     }

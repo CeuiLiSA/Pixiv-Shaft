@@ -52,6 +52,16 @@ public class DownloadItem implements Serializable {
      */
     private transient volatile long lastByteAtMs = 0L;
 
+    /**
+     * 「读超时静默重连」这条 item 是否已经用过（见 {@code Manager} 的读超时重连判定）。
+     *
+     * 每条只给一次：对端真挂了的时候，无限重连只会让队列永远转下去，用户还看不出问题。
+     *
+     * transient：不落盘。冷启动恢复出来的 item 一律 INIT、本来就要重新下一遍；用户手动重试
+     * （FAILED→INIT，见 Manager.resurrectIfStranded）时也会清零，那次重试重新拿一次额度。
+     */
+    private transient volatile boolean readTimeoutRetryUsed = false;
+
     public DownloadItem(Illust illustsBean, int index) {
         this.illust = illustsBean;
         this.uuid = UUID.randomUUID().toString();
@@ -193,6 +203,16 @@ public class DownloadItem implements Serializable {
     /** 由 {@code Manager.pumpBytes} 在 IO 线程调用；不要在 UI 侧写。 */
     public void setLastByteAtMs(long lastByteAtMs) {
         this.lastByteAtMs = lastByteAtMs;
+    }
+
+    /** 见 {@link #readTimeoutRetryUsed}。 */
+    public boolean isReadTimeoutRetryUsed() {
+        return readTimeoutRetryUsed;
+    }
+
+    /** 见 {@link #readTimeoutRetryUsed}。 */
+    public void setReadTimeoutRetryUsed(boolean readTimeoutRetryUsed) {
+        this.readTimeoutRetryUsed = readTimeoutRetryUsed;
     }
 
     public boolean shouldStartNewDownload() {

@@ -1,16 +1,25 @@
 package ceui.lisa.fragments;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.transition.AutoTransition;
 import android.transition.TransitionManager;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+import androidx.appcompat.widget.SwitchCompat;
 
 import ceui.pixiv.witstudio.dialog.WitDialog;
+import ceui.pixiv.witstudio.dialog.WitDialogAction;
+import ceui.pixiv.witstudio.dialog.WitDialogView;
+import ceui.pixiv.witstudio.theme.V3Palette;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -19,6 +28,7 @@ import ceui.lisa.databinding.FragmentSettingsNetworkBinding;
 import ceui.lisa.http.AppApiProxyInterceptor;
 import ceui.lisa.http.GithubProxy;
 import ceui.lisa.http.HttpDns;
+import ceui.lisa.http.ImageReadTimeout;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
@@ -45,6 +55,11 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 boolean changed = isChecked != Shaft.sSettings.isDirectConnect();
                 Shaft.sSettings.setDirectConnect(isChecked);
+                if (changed) {
+                    // 读超时分直连 / 非直连两种量程，切模式后用户此前调的值跨模式不再适用，
+                    // 重置为新模式的默认值（= 该模式上界）。必须在写盘前重置。
+                    Shaft.sSettings.resetImageReadTimeout();
+                }
                 Common.showToast(getString(R.string.string_428), 2);
                 Local.setSettings(Shaft.sSettings);
                 ViewGroup secureDnsParent = (ViewGroup) baseBind.useSecureDnsGroup.getParent();
@@ -53,6 +68,7 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
                 }
                 baseBind.useSecureDnsGroup.setVisibility(isChecked ? View.VISIBLE : View.GONE);
                 if (changed) {
+                    refreshReadTimeoutSummary();
                     // issue #956: 网页 ajax 客户端（Client.webApi）也带直连拦截器，
                     // reset() 里会一并重建，否则「按 tag 筛画师作品」要重启 App 才吃到直连。
                     Client.INSTANCE.reset();
@@ -80,6 +96,10 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
             }
         });
         baseBind.useSecureDnsRela.setOnClickListener(v -> baseBind.useSecureDns.performClick());
+
+        //图片读超时：图片加载 + 下载共用的读超时，分直连 / 非直连两种量程（默认 = 该模式上界）。
+        refreshReadTimeoutSummary();
+        baseBind.readTimeoutRela.setOnClickListener(v -> showReadTimeoutDialog());
 
         //图片加速代理（issue #865）：Pixiv 官方 / pixiv.cat / 自定义反代
         refreshImageHostSummary();
@@ -208,6 +228,145 @@ public class FragmentSettingsNetwork extends SettingsPageFragment<FragmentSettin
         Local.setSettings(Shaft.sSettings);
         refreshImageHostSummary();
         Common.showToast(getString(R.string.image_host_restart_hint), 2);
+    }
+
+    // ── 图片加载/下载断流阈值 ──────────────────────────────────────────────────────
+    // 图片加载（Glide）与下载（Manager 派生）共用同一条 OkHttp client，读超时设在
+    // Shaft.buildOkHttpClient() 上；设置页只写值，下次 client 构建（重启 App）才生效。
+    // 量程分直连 / 非直连两种模式，默认 = 该模式上界，只能调小（更早触发「断流立即重连」）。
+
+    private void refreshReadTimeoutSummary() {
+        baseBind.readTimeoutValue.setText(readTimeoutValueLabel(
+                mContext,
+                Shaft.sSettings.getImageReadTimeoutSeconds(),
+                Shaft.sSettings.isDirectConnect()));
+    }
+
+    /**
+     * 「图片加载/下载断流阈值」入口：WitDialog 承载一条可拖动滑条（量程分模式 —— 非直连 1–10s、
+     * 直连 1–30s，默认值 = 该模式上界），滑条下面还有一个开关「图片加载也容许一次断流超时并静默重试」。
+     * 确认后只写设置：读超时要等下次共享 OkHttp client 构建（重启 App）才生效；开关**立即生效**。
+     */
+    private void showReadTimeoutDialog() {
+        ReadTimeoutDialogBuilder builder = new ReadTimeoutDialogBuilder(mActivity);
+        builder.setTitle(R.string.setting_read_timeout_title);
+        builder.addAction(R.string.string_cancel, (dialog, which) -> dialog.dismiss());
+        builder.addAction(0, R.string.sure, WitDialogAction.ACTION_PROP_POSITIVE, (dialog, which) -> {
+            // 两类改动分开处理：滑条（读超时）要重启才生效；开关（图片加载静默重试）的读值在每次
+            // 失败判定时现取，立即生效。提示也分开：改了滑条提示「重启后生效」，**只**改了开关提示
+            // 「设置成功」—— 否则只拨一下开关再点确定会完全没有反馈。
+            boolean changed = false;
+            boolean restartNeeded = false;
+            SeekBar slider = builder.slider;
+            if (slider != null) {
+                boolean direct = Shaft.sSettings.isDirectConnect();
+                int chosen = builder.sliderTouched
+                        ? ImageReadTimeout.secondsForProgress(slider.getProgress(), direct, builder.steps)
+                        : builder.initialSeconds;
+                if (chosen != Shaft.sSettings.getImageReadTimeoutSeconds()) {
+                    Shaft.sSettings.setImageReadTimeoutSeconds(chosen);
+                    changed = true;
+                    restartNeeded = true;
+                }
+            }
+            boolean switchChanged = false;
+            boolean stallRetry = builder.stallRetrySwitch != null
+                    && builder.stallRetrySwitch.isChecked();
+            if (stallRetry != Shaft.sSettings.isImageLoadRetryOnStall()) {
+                Shaft.sSettings.setImageLoadRetryOnStall(stallRetry);
+                changed = true;
+                switchChanged = true;
+            }
+            if (changed) {
+                Local.setSettings(Shaft.sSettings);
+                refreshReadTimeoutSummary();
+            }
+            if (restartNeeded) {
+                // 滑条改了要重启才生效。这时不再补一条「设置成功」——「重启后生效」本身已经含
+                // 「已保存」，两条 toast 排队弹反而吵。
+                Common.showToast(getString(R.string.please_restart_app), 2);
+            } else if (switchChanged) {
+                Common.showToast(getString(R.string.string_428), 2);
+            }
+            dialog.dismiss();
+        });
+        builder.show();
+    }
+
+    /** WitDialog 的自定义内容：标题下的大数值 + V3 滑条 + 两端说明。结构对齐图片缓存上限弹窗。 */
+    private static final class ReadTimeoutDialogBuilder extends WitDialog.CustomDialogBuilder {
+
+        private SeekBar slider;
+        private SwitchCompat stallRetrySwitch;
+        private TextView valueText;
+        private int initialSeconds;
+        private int steps;
+        private boolean sliderTouched;
+
+        private ReadTimeoutDialogBuilder(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected View onCreateContent(WitDialog dialog, WitDialogView parent, Context context) {
+            View content = LayoutInflater.from(context)
+                    .inflate(R.layout.dialog_read_timeout, parent, false);
+            slider = content.findViewById(R.id.dialog_read_timeout_slider);
+            valueText = content.findViewById(R.id.dialog_read_timeout_value);
+            valueText.setTextColor(V3Palette.from(context).getTextAccent());
+
+            final boolean direct = Shaft.sSettings.isDirectConnect();
+            int current = Shaft.sSettings.getImageReadTimeoutSeconds();
+            initialSeconds = current;
+            steps = ImageReadTimeout.sliderSteps(direct);
+            slider.setMax(steps);
+            slider.setProgress(ImageReadTimeout.progressForSeconds(current, direct, steps));
+            valueText.setText(readTimeoutValueLabel(context, current, direct));
+            ((TextView) content.findViewById(R.id.dialog_read_timeout_min))
+                    .setText(readTimeoutSecondsLabel(context, ImageReadTimeout.MIN_SECONDS));
+            ((TextView) content.findViewById(R.id.dialog_read_timeout_max))
+                    .setText(readTimeoutSecondsLabel(context, ImageReadTimeout.maxSeconds(direct)));
+
+            stallRetrySwitch = content.findViewById(R.id.dialog_read_timeout_stall_retry);
+            stallRetrySwitch.setChecked(Shaft.sSettings.isImageLoadRetryOnStall());
+
+            slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser) {
+                        sliderTouched = true;
+                    }
+                    valueText.setText(readTimeoutValueLabel(context,
+                            ImageReadTimeout.secondsForProgress(progress, direct, steps), direct));
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+            return content;
+        }
+    }
+
+    /** 秒数的纯数值文案（滑条两端说明用）。 */
+    private static String readTimeoutSecondsLabel(Context context, int seconds) {
+        return context.getString(R.string.setting_read_timeout_seconds, seconds);
+    }
+
+    /**
+     * 设置行 / 弹窗大数值的文案：等于当前模式默认值（= 该模式滑条上界）时显示「默认（N秒）」，
+     * 否则纯数值。用户只能往下调，所以「停在默认」是有意义的稳定状态，明说「默认」比只给数字更
+     * 不容易让人误以为还没配好。
+     */
+    private static String readTimeoutValueLabel(Context context, int seconds, boolean direct) {
+        if (seconds == ImageReadTimeout.defaultSeconds(direct)) {
+            return context.getString(R.string.setting_read_timeout_default_value, seconds);
+        }
+        return context.getString(R.string.setting_read_timeout_seconds, seconds);
     }
 
     // ── App API 代理（PxveAPI 风格） ────────────────────────────────────
