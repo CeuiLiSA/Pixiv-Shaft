@@ -1677,6 +1677,7 @@
     <string name="comic_reader_load_original">載入原圖</string>
     <string name="comic_reader_volume_flip">音量鍵翻頁</string>
     <string name="comic_reader_tap_reversed">反轉點擊區域</string>
+    <string name="comic_reader_landscape_tap_flip">橫向時點擊翻頁</string>
     <string name="comic_reader_preload_label">預載頁數</string>
     <string name="comic_reader_preload_value">預載 %1$d 頁</string>
     <string name="comic_reader_page_indicator">%1$d / %2$d</string>

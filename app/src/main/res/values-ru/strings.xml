@@ -1675,6 +1675,7 @@
     <string name="comic_reader_load_original">Загружать оригиналы изображений</string>
     <string name="comic_reader_volume_flip">Листать кнопками громкости</string>
     <string name="comic_reader_tap_reversed">Поменять зоны нажатия местами</string>
+    <string name="comic_reader_landscape_tap_flip">Листать касанием в альбомной ориентации</string>
     <string name="comic_reader_preload_label">Предзагрузка страниц</string>
     <string name="comic_reader_preload_value">Предзагрузка %1$d стр.</string>
     <string name="comic_reader_page_indicator">%1$d / %2$d</string>

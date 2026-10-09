@@ -163,6 +163,9 @@ class ComicReaderSettingsSheet : BottomSheetDialogFragment() {
         binding.rowTapReversed.bindSwitch(
             getString(R.string.comic_reader_tap_reversed), ComicReaderSettings.tapZoneReversed,
         ) { ComicReaderSettings.tapZoneReversed = it }
+        binding.rowLandscapeTapFlip.bindSwitch(
+            getString(R.string.comic_reader_landscape_tap_flip), ComicReaderSettings.landscapeTapFlip,
+        ) { ComicReaderSettings.landscapeTapFlip = it }
     }
 
     // ---- Item binders (same MD3-E pattern as novel ReaderSettingsPanel) -----

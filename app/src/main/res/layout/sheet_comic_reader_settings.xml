@@ -204,6 +204,14 @@
                     layout="@layout/item_reader_setting_switch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
+
+                <View style="@style/ReaderRowDivider"/>
+
+                <include
+                    android:id="@+id/row_landscape_tap_flip"
+                    layout="@layout/item_reader_setting_switch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

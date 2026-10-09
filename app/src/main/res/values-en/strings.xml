@@ -1675,6 +1675,7 @@
     <string name="comic_reader_load_original">Load original images</string>
     <string name="comic_reader_volume_flip">Volume keys flip pages</string>
     <string name="comic_reader_tap_reversed">Reverse tap zones</string>
+    <string name="comic_reader_landscape_tap_flip">Tap to flip in landscape</string>
     <string name="comic_reader_preload_label">Preload pages</string>
     <string name="comic_reader_preload_value">Preload %1$d pages</string>
     <string name="comic_reader_page_indicator">%1$d / %2$d</string>

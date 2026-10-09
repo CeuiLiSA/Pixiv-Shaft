@@ -1675,6 +1675,7 @@
     <string name="comic_reader_load_original">Orijinal görseli yükle</string>
     <string name="comic_reader_volume_flip">Ses tuşlarıyla sayfa çevir</string>
     <string name="comic_reader_tap_reversed">Dokunma bölgelerini ters çevir</string>
+    <string name="comic_reader_landscape_tap_flip">Yatay modda dokunarak sayfa çevir</string>
     <string name="comic_reader_preload_label">Önceden yüklenen sayfa</string>
     <string name="comic_reader_preload_value">%1$d sayfa önceden yükle</string>
     <string name="comic_reader_page_indicator">%1$d / %2$d</string>

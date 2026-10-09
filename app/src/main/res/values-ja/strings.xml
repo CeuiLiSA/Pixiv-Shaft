@@ -1675,6 +1675,7 @@
     <string name="comic_reader_load_original">元画像を読み込む</string>
     <string name="comic_reader_volume_flip">音量キーでめくる</string>
     <string name="comic_reader_tap_reversed">タップ領域を反転</string>
+    <string name="comic_reader_landscape_tap_flip">横画面でタップしてめくる</string>
     <string name="comic_reader_preload_label">先読みページ数</string>
     <string name="comic_reader_preload_value">%1$d ページを先読み</string>
     <string name="comic_reader_page_indicator">%1$d / %2$d</string>

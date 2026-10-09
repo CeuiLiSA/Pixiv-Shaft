@@ -1,15 +1,18 @@
 package ceui.pixiv.ui.comic.reader
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
+import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -265,10 +268,19 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
     }
 
     private fun wireSystemInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(binding.comicRoot) { _, insets ->
+        val overlayLp = binding.comicPageOverlay.layoutParams as ViewGroup.MarginLayoutParams
+        val overlayTop = overlayLp.topMargin
+        val overlayEnd = overlayLp.marginEnd
+        ViewCompat.setOnApplyWindowInsetsListener(binding.comicRoot) { root, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
             binding.comicTopBar.root.updatePadding(top = bars.top)
             binding.comicBottomBar.root.updatePadding(bottom = bars.bottom)
+            // 右上角页码要躲开状态栏、刘海和横屏时贴在侧边的导航栏
+            val endInset = if (root.layoutDirection == View.LAYOUT_DIRECTION_RTL) bars.left else bars.right
+            binding.comicPageOverlay.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = overlayTop + bars.top
+                marginEnd = overlayEnd + endInset
+            }
             insets
         }
         ViewCompat.requestApplyInsets(binding.comicRoot)
@@ -381,9 +393,9 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
     }
 
     /**
-     * 贴底页码浮标只在 chrome 收起时露出(#1058)。底栏的背景是半透明的 #CC000000,展开时正好
-     * 盖在这个距底 14dp 的浮标上,数字透出来糊成一团灰字、和「翻页方向」图标叠在一起;而且底栏
-     * 左右两端本来就是「当前页 / 总页」,再叠一层纯属重复。与小说阅读器的常驻进度(#994)同一条规则。
+     * 页码浮标只在 chrome 收起时露出(#1058)。展开时它会被半透明的顶栏盖住、数字透出来糊成一团;
+     * 而且底栏左右两端本来就是「当前页 / 总页」,再叠一层纯属重复。与小说阅读器的常驻进度(#994)
+     * 同一条规则。放在右上角而不是贴底(#1222):画面中下部常是对白框和人物,右上角通常是空的。
      */
     private fun refreshPageOverlay() {
         val total = (viewModel.loadState.value as? ComicReaderV3ViewModel.LoadState.Loaded)?.pages?.size ?: 0
@@ -400,6 +412,12 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         // 操作栏展开时点哪儿都只收起它，不翻页(#1172 误触)；放大中的页已由 adapter 报成 Center。
         if (chrome.shown) {
             chrome.setShown(false); return
+        }
+        // 横屏握持时拇指自然落在屏幕偏侧,想点中间呼出操作栏常被判成翻页(#1222),可在设置里关掉。
+        if (!ComicReaderSettings.landscapeTapFlip &&
+            resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        ) {
+            chrome.toggle(); return
         }
         val left = if (ComicReaderSettings.tapZoneReversed) ComicPagerAdapter.TapZone.Right else ComicPagerAdapter.TapZone.Left
         val right = if (ComicReaderSettings.tapZoneReversed) ComicPagerAdapter.TapZone.Left else ComicPagerAdapter.TapZone.Right

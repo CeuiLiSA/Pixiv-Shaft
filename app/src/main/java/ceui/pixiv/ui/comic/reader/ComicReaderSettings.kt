@@ -82,6 +82,10 @@ object ComicReaderSettings {
         get() = store.decodeBool(K_TAP_REVERSED, false)
         set(value) { store.encode(K_TAP_REVERSED, value); emit(ChangeEvent.Interaction) }
 
+    var landscapeTapFlip: Boolean
+        get() = store.decodeBool(K_LANDSCAPE_TAP_FLIP, true)
+        set(value) { store.encode(K_LANDSCAPE_TAP_FLIP, value); emit(ChangeEvent.Interaction) }
+
     var volumeKeyFlip: Boolean
         get() = store.decodeBool(K_VOLUME_FLIP, true)
         set(value) { store.encode(K_VOLUME_FLIP, value); emit(ChangeEvent.Interaction) }
@@ -136,6 +140,7 @@ object ComicReaderSettings {
     private const val K_IMMERSIVE = "c_immersive"
     private const val K_AUTO_ROTATE_IMAGE = "c_auto_rotate_image"
     private const val K_TAP_REVERSED = "c_tap_reversed"
+    private const val K_LANDSCAPE_TAP_FLIP = "c_landscape_tap_flip"
     private const val K_VOLUME_FLIP = "c_volume_flip"
     private const val K_PRELOAD = "c_preload"
     private const val K_PAGE_NUM = "c_page_num"
