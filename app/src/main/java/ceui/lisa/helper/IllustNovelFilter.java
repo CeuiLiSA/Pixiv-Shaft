@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import ceui.lisa.activities.Shaft;
@@ -78,10 +79,27 @@ public class IllustNovelFilter {
     }
 
     private static boolean isAiExemptAuthor(User user) {
-        if (user == null || user.getId() <= 0) {
+        if (user == null) {
             return false;
         }
-        return Shaft.sSettings.getAiBlockExemptAuthorIds().contains(user.getId());
+        return isAiExemptAuthor(
+                user.getId(),
+                Shaft.sSettings.getAiBlockExemptAuthorIds(),
+                Shaft.sSettings.getAiBlockExemptDisabledIds());
+    }
+
+    /**
+     * 判定本体，显式传入两个集合。抽出来是为了能在裸 JVM 单测里覆盖——读 {@link Shaft#sSettings}
+     * 会触发 Application 子类的类初始化，在 unit test 里直接炸。见 AiBlockExemptAuthorTest。
+     *
+     * <p>豁免是「在名单里 **且** 这一条没有被临时停用」：停用的 ID 仍留在名单里（省去删了再加回来），
+     * 但不产生任何豁免效果。{@code userId <= 0} 一律不认。
+     */
+    static boolean isAiExemptAuthor(long userId, Set<Long> exemptIds, Set<Long> disabledIds) {
+        if (userId <= 0) {
+            return false;
+        }
+        return exemptIds.contains(userId) && !disabledIds.contains(userId);
     }
 
     /**

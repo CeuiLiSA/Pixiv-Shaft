@@ -920,7 +920,7 @@
     <string name="feed_all_items_filtered">All works are hidden by your filter settings</string>
     <string name="ai_block_strength_blur">Blur with particles</string>
     <string name="ai_block_exempt_authors">Exempt author list</string>
-    <string name="ai_block_exempt_hint">Add author IDs one by one and remove them as needed.\nA restart is recommended after changing the list.</string>
+    <string name="ai_block_exempt_hint">Add author IDs one by one. Tap a chip to temporarily disable its exemption, or tap × to remove it.\nA restart is recommended after changing the list.</string>
     <string name="ai_block_exempt_add">Add</string>
     <string name="ai_block_exempt_input_hint">Enter author ID</string>
     <string name="ai_block_exempt_empty">No exempt authors yet</string>
@@ -929,6 +929,9 @@
     <string name="ai_block_exempt_duplicate">This author ID has already been added</string>
     <string name="ai_block_exempt_none">Not set</string>
     <string name="ai_block_exempt_count">%1$d author IDs</string>
+    <string name="ai_block_exempt_count_partial">%1$d author IDs (%2$d enabled)</string>
+    <string name="ai_block_exempt_state_on">Enabled</string>
+    <string name="ai_block_exempt_state_off">Disabled</string>
     <string name="trying_login">Trying to log in</string>
     <string name="userTab_other">Profile</string>
     <string name="userTab_collection">Bookmarks</string>
