@@ -1,167 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<!-- 从 DataBinding(<layout>) 改为 ViewBinding：本条目是详情页首屏第一个、也是最大的一个
+     (18 个 View)，DataBinding 每次 inflate 比 ViewBinding 多付一层 ViewDataBinding 构造 +
+     mapBindings 全树扫描；而布局里一个变量都没用，改过来是纯收益。
+     注意：本布局与经典详情页(FragmentIllust -> IllustAdapter)共用。 -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
-    <data>
-
-    </data>
-
-    <RelativeLayout
+    <!-- 高度由 setHeightRatio 在 onMeasure 里按真实宽算(对齐瀑布流 recy_illust_stagger):
+         ratio 已知(P1 靠 Illust、多 P 靠网页 ajax、兜底靠解码位图)→ 首帧就量在终值,
+         不再有「兜底高→自然高」的跳。ajax 缺失时多 P 后续页先用 P1 宽高当先验占位
+         (见 IllustAdapter.applyRatioOrPlaceholder),进一步压缩首帧跳;ratio 未设(=0,
+         单 P 精简 bean / pos 0 无尺寸)时退回下面的 240dp 占位高。 -->
+    <ceui.lisa.view.DynamicHeightImageView
+        android:id="@+id/illust"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="240dp"
+        android:background="@color/loading_placeholder"
+        android:scaleType="fitCenter" />
 
-        <!-- 高度由 setHeightRatio 在 onMeasure 里按真实宽算(对齐瀑布流 recy_illust_stagger):
-             ratio 已知(P1 靠 Illust、多 P 靠网页 ajax、兜底靠解码位图)→ 首帧就量在终值,
-             不再有「兜底高→自然高」的跳。ajax 缺失时多 P 后续页先用 P1 宽高当先验占位
-             (见 IllustAdapter.applyRatioOrPlaceholder),进一步压缩首帧跳;ratio 未设(=0,
-             单 P 精简 bean / pos 0 无尺寸)时退回下面的 240dp 占位高。 -->
-        <ceui.lisa.view.DynamicHeightImageView
-            android:id="@+id/illust"
-            android:layout_width="match_parent"
-            android:layout_height="240dp"
-            android:background="@color/loading_placeholder"
-            android:scaleType="fitCenter" />
+    <!-- 顶层原图 overlay：底层 illust 先秒显 large(命中瀑布流缓存),原图下好后加载进这一层、
+         淡入盖住 large。底层 large 全程不被清 → 大图换原图零闪烁。四边对齐 illust 精确覆盖。
+         与底层同为 DynamicHeightImageView:贴图前用「只读宽高」读出原图真尺寸,先把 ratio 同步到
+         底层 illust + 本层,再淡入 → 展示盒即原图真比,crossfade 盖上零 letterbox。 -->
+    <ceui.lisa.view.DynamicHeightImageView
+        android:id="@+id/illust_hd"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignTop="@+id/illust"
+        android:layout_alignBottom="@+id/illust"
+        android:layout_alignStart="@+id/illust"
+        android:layout_alignEnd="@+id/illust"
+        android:scaleType="fitCenter"
+        android:visibility="gone" />
 
-        <!-- 顶层原图 overlay：底层 illust 先秒显 large(命中瀑布流缓存),原图下好后加载进这一层、
-             淡入盖住 large。底层 large 全程不被清 → 大图换原图零闪烁。四边对齐 illust 精确覆盖。
-             与底层同为 DynamicHeightImageView:贴图前用「只读宽高」读出原图真尺寸,先把 ratio 同步到
-             底层 illust + 本层,再淡入 → 展示盒即原图真比,crossfade 盖上零 letterbox。 -->
-        <ceui.lisa.view.DynamicHeightImageView
-            android:id="@+id/illust_hd"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignTop="@+id/illust"
-            android:layout_alignBottom="@+id/illust"
-            android:layout_alignStart="@+id/illust"
-            android:layout_alignEnd="@+id/illust"
-            android:scaleType="fitCenter"
-            android:visibility="gone" />
+    <!-- 多 P 页与页之间的分割线:上下留白 + 一条主题自适应细线,让堆叠的整幅大图看得出边界。
+         留白透出 feed 的 v3_bg,与页面的 loading_placeholder 底有色差;细线再明确一下界限。
+         单 P / 末页也会带一条,读作「图 → 资料区」的分隔,无害。 -->
+    <View
+        android:id="@+id/page_divider"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/hair_line_width"
+        android:layout_below="@id/illust"
+        android:background="@color/divider_color" />
 
-        <!-- 多 P 页与页之间的分割线:上下留白 + 一条主题自适应细线,让堆叠的整幅大图看得出边界。
-             留白透出 feed 的 v3_bg,与页面的 loading_placeholder 底有色差;细线再明确一下界限。
-             单 P / 末页也会带一条,读作「图 → 资料区」的分隔,无害。 -->
-        <View
-            android:id="@+id/page_divider"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/hair_line_width"
-            android:layout_below="@id/illust"
-            android:background="@color/divider_color" />
+    <include
+        android:id="@+id/progress_layout"
+        layout="@layout/item_progress" />
 
-        <include
-            android:id="@+id/progress_layout"
-            layout="@layout/item_progress" />
+    <Button
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        android:id="@+id/reload"
+        android:layout_centerInParent="true"
+        android:text="@string/string_73">
 
-        <Button
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:visibility="gone"
-            android:id="@+id/reload"
-            android:layout_centerInParent="true"
-            android:text="@string/string_73">
+    </Button>
 
-        </Button>
+    <!-- 「展开剩余 X 张」覆盖层：只有 pageCount > 2 的作品才会折叠、才会显示它，
+         所以 1~2 页的作品不该为它付 8 个 View。改 ViewStub，第一次真要显示时才建
+         （见 CollapsibleIllustAdapter.ensureOverlayInflated）。
+         layout_alignBottom 挂在 stub 上 —— inflate 时 stub 的 LayoutParams 会套给目标根视图。 -->
+    <ViewStub
+        android:id="@+id/expand_overlay_stub"
+        android:layout_width="match_parent"
+        android:layout_height="88dp"
+        android:layout_alignBottom="@+id/illust"
+        android:layout="@layout/view_illust_expand_overlay" />
 
-        <!-- V3 only: bottom-scrim + glass pill for the "展开剩余 X 张" CTA.
-             CollapsibleIllustAdapter toggles visibility on pos-0 when collapsed. -->
-        <FrameLayout
-            android:id="@+id/expand_overlay"
-            android:layout_width="match_parent"
-            android:layout_height="88dp"
-            android:background="@drawable/bg_v3_first_page_scrim"
-            android:layout_alignBottom="@+id/illust"
-            android:visibility="gone">
-
-            <!-- 两个胶囊并排。行宽仍是 wrap_content(放得下就按自然宽居中,delta=0 不重测),
-                 放不下时靠 layout_weight 把超出量按权重摊给两边收缩,配合 label 的
-                 ellipsize 省略号收尾——否则超宽部分会被 FrameLayout 连背景带触摸区一起裁掉
-                 (en/ru/tr 在 360dp 窄屏或大字号下必现)。 -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginBottom="14dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <LinearLayout
-                    android:id="@+id/expand_pill"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_v3_expand_pill"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="18dp"
-                    android:paddingTop="9dp"
-                    android:paddingBottom="9dp">
-
-                    <ImageView
-                        android:id="@+id/expand_chevron"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginEnd="8dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_collections_black_24dp"
-                        app:tint="#FFFFFF" />
-
-                    <TextView
-                        android:id="@+id/expand_label"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:letterSpacing="0.02"
-                        android:maxLines="1"
-                        android:textColor="#FFFFFF"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/comic_reader_pill"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_v3_expand_pill"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="18dp"
-                    android:paddingTop="9dp"
-                    android:paddingBottom="9dp"
-                    android:visibility="gone">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginEnd="8dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_baseline_menu_book_24"
-                        app:tint="#FFFFFF" />
-
-                    <TextView
-                        android:id="@+id/comic_reader_pill_label"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:letterSpacing="0.02"
-                        android:maxLines="1"
-                        android:text="@string/comic_reader_enter"
-                        android:textColor="#FFFFFF"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </LinearLayout>
-        </FrameLayout>
-
-    </RelativeLayout>
-
-
-</layout>
+</RelativeLayout>

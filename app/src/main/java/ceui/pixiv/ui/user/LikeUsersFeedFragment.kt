@@ -34,6 +34,7 @@ import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.pinHostGlide
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -197,6 +198,7 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
         val user = cell.itemOrNull?.user ?: return
         val target = !(currentFollowed(user.id) ?: (user.is_followed == true))
         renderFollow(cell.binding, target)
+        playToggleHaptic(cell.binding.postLikeUser, target)
         applyFollowed(feedViewModel, user.id, target)
         // 失败回滚由 PixivActionQueue 统一做：它会带相反的值再发一次 LIKED_USER，
         // 本页的 followSyncReceiver 收到就把条目拨回去（applyFollowed 幂等）。

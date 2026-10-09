@@ -243,3 +243,7 @@
 # instantiating these classes. Pin identity so a refactor to Gson-only construction stays safe.
 -keep,allowobfuscation class ceui.pixiv.download.config.**
 -keep,allowobfuscation class ceui.pixiv.download.header.**
+
+# AppTheme 的 viewInflaterClass 由 AppCompatDelegateImpl 按类名反射实例化；aapt 不会为 style
+# 里的类名生成 keep，丢了它 AppCompat 只打一行日志就退回默认 inflater，列表撞边触感静默失效。
+-keep class ceui.pixiv.widgets.ShaftViewInflater { public <init>(); }

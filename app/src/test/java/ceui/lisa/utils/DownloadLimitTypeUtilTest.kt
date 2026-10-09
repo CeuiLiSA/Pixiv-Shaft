@@ -11,6 +11,7 @@ import org.junit.Test
  *   0 无限制       → 任意网络都自动开始
  *   1 仅通过 Wi-Fi  → 仅 Wi-Fi 下自动开始
  *   2 不自动下载    → 从不自动开始，等用户在下载管理里手动启动（手动不受网络限制）
+ *                    入列即暂停态而非等待态 —— 等待态留给仅 Wi-Fi 的网络暂缓（enqueueAsPaused）
  */
 class DownloadLimitTypeUtilTest {
 
@@ -43,5 +44,19 @@ class DownloadLimitTypeUtilTest {
         assertTrue(DownloadLimitTypeUtil.requiresWifi(1))
         assertFalse(DownloadLimitTypeUtil.requiresWifi(0))
         assertFalse(DownloadLimitTypeUtil.requiresWifi(2))
+    }
+
+    @Test
+    fun `不自动下载 入列即暂停态 而不是等待态`() {
+        assertTrue(DownloadLimitTypeUtil.enqueueAsPaused(2))
+    }
+
+    @Test
+    fun `等待态只留给仅WiFi 其余模式都不置暂停`() {
+        assertFalse(DownloadLimitTypeUtil.enqueueAsPaused(0))
+        assertFalse(DownloadLimitTypeUtil.enqueueAsPaused(1))
+        // 脏值按无限制兜底：不能因为设置里是个垃圾值就把用户的下载全卡成暂停
+        assertFalse(DownloadLimitTypeUtil.enqueueAsPaused(-1))
+        assertFalse(DownloadLimitTypeUtil.enqueueAsPaused(99))
     }
 }

@@ -423,6 +423,7 @@ object SessionManager {
                         response.refreshToken,
                         response.expiresIn,
                         freshPremiumOf(response),
+                        freshXRestrictOf(response),
                     )
                 }
                 response.accessToken
@@ -441,10 +442,14 @@ object SessionManager {
     }
 
     /**
-     * 更新 tokens 并采纳本次 OAuth 响应说的会员状态，其余 metadata（mail/R18…）原样保留。 用于 token 刷新完成后同步到 LiveData + 磁盘。
+     * 更新 tokens 并采纳本次 OAuth 响应说的会员状态和 R-18 浏览设置，其余 metadata（mail…）原样保留。
+     * 用于 token 刷新完成后同步到 LiveData + 磁盘。
      *
      * [freshPremium] 为 null = pixiv 这次没提会员（部分刷新响应就是不带这个字段）， 保留旧值；绝不能把「没说」写成「不是会员」，那会把一个付费号踢出借号池。
      * 同一条判断见 [ceui.lisa.repo.mergeMembership]。
+     *
+     * [freshXRestrict] 同理，null 保留旧值。R-18 开关只能在官网改；冷启动的 me/state 预热
+     * （[ceui.pixiv.session.SelfProfileWarmup]）会写它一次，这里补上进程长驻期间的更新。
      */
     @JvmOverloads
     fun applyTokenRefresh(
@@ -452,6 +457,7 @@ object SessionManager {
         refreshToken: String,
         expiresIn: Int,
         freshPremium: Boolean? = null,
+        freshXRestrict: Int? = null,
     ) {
         val existing = _loggedInAccount.value ?: AccountResponse()
         val updated =
@@ -460,8 +466,13 @@ object SessionManager {
                 refresh_token = refreshToken,
                 expires_in = expiresIn,
                 user =
-                    if (freshPremium == null) existing.user
-                    else existing.user?.copy(is_premium = freshPremium),
+                    if (freshPremium == null && freshXRestrict == null) existing.user
+                    else existing.user?.let { user ->
+                        user.copy(
+                            is_premium = freshPremium ?: user.is_premium,
+                            x_restrict = freshXRestrict ?: user.x_restrict,
+                        )
+                    },
             )
         if (freshPremium != null) markPremiumObserved(existing.user?.id ?: 0L)
         PixivActions.bindAccountOnline(existing.user?.id ?: 0L, updated)
@@ -480,6 +491,12 @@ object SessionManager {
     fun freshPremiumOf(response: PixivOAuthResponse): Boolean? {
         val uid = loggedInUid
         return if (uid <= 0L) null else freshMembershipOf(response.user, uid)
+    }
+
+    /** 这次刷新响应能替当前登录账号说的 R-18 浏览设置，认主规则同 [freshPremiumOf]。 */
+    fun freshXRestrictOf(response: PixivOAuthResponse): Int? {
+        val uid = loggedInUid
+        return if (uid <= 0L) null else response.user?.takeIf { it.id == uid }?.xRestrict
     }
 
     fun getAccessToken(): String {

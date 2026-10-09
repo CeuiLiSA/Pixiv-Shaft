@@ -23,6 +23,7 @@ import ceui.pixiv.ui.translate.TextRenderer
 import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.currentTranslator
 import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
+import ceui.pixiv.ui.translate.verbatimWarningText
 import ceui.pixiv.ui.upscale.OcrTextRegion
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -182,6 +183,9 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
                 )
                 if (outcome is MangaPageTranslatePipeline.Outcome.Done) {
                     publishTranslated(pageIndex, outcome.outFile.absolutePath)
+                    outcome.verbatimPercent?.let {
+                        Common.showToast(app.getString(R.string.ai_translate_verbatim_warning, it))
+                    }
                 } else if (!cancelledByUser) {
                     reportSinglePageOutcome(outcome)
                 }
@@ -331,6 +335,13 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
             if (translated.isBlank()) {
                 if (!cancelledByUser) promptTranslateFailedIfPossible(null)
                 return
+            }
+
+            // 「原样度」:圈选单条同样判定,疑似原样输出时提示(仅 AI 引擎、目标语言非日文)。
+            if (!cancelledByUser) {
+                verbatimWarningText(app, currentTranslator(), ocr.text, translated)?.let {
+                    Common.showToast(it)
+                }
             }
 
             // 5. 擦字 + 回填到底图,产出新 PNG

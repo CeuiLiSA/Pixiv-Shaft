@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import androidx.lifecycle.lifecycleScope
+import ceui.pixiv.utils.playToggleHaptic
 import kotlinx.coroutines.launch
 import android.os.Bundle
 import android.os.Handler
@@ -16,6 +17,7 @@ import android.text.style.ClickableSpan
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.View.OnLongClickListener
+import android.view.ViewStub
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
@@ -68,7 +70,10 @@ import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.communication.StateEntry
 import ceui.pixiv.communication.android.collectIn
 import ceui.pixiv.download.DownloadRecordStateSource
+import ceui.pixiv.ui.synonym.SynonymMatchView
+import ceui.pixiv.widget.SpoilerBlurView
 import ceui.pixiv.widgets.ProgressTextButton
+import ceui.pixiv.widgets.V3TagFlowView
 import ceui.pixiv.utils.combineLatest
 import ceui.pixiv.utils.toTagsBeans
 import ceui.loxia.User
@@ -87,6 +92,7 @@ import ceui.pixiv.ui.upscale.IllustAiHelper
 import ceui.pixiv.utils.buildPinnedTagPreviewJson
 import ceui.pixiv.utils.isHostStillResumed
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.utils.singleLineTitle
 
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -134,13 +140,87 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private var recyHeight = 0
     private var aiHelper: IllustAiHelper? = null
 
+    // 两块「首帧必然不可见」的 chrome 的懒 inflate 状态（与 ArtworkV3Fragment 同一套）：
+    // AI 覆盖层（11 个 View）只在跑 AI 任务时用；屏蔽遮罩（≈8 个 View，含 SpoilerBlurView 的
+    // 两个自定义 View）只在作品被屏蔽时才亮。而本页同样跑在 VActivity 的 ViewPager 里
+    // （offscreenPageLimit=1），一次点击至少建两页 —— 所以这两块也要推迟到真要用的那一刻。
+    private var abandonedFrameReady = false
+    private var aiOverlayReady = false
+
+    private val abandonedFrameView: View
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.abandoned_frame)
+    private val abandonedSpoilerView: SpoilerBlurView
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.abandoned_spoiler)
+    private val cancelMuteIllustView: ProgressTextButton
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.cancel_mute_illust)
+    private val cancelMuteUserView: ProgressTextButton
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.cancel_mute_user)
+
+    // 注意：DataBinding 不给 <ViewStub> 生成强类型字段（本布局是 DataBinding 版，字段被生成成
+    // View），所以这两个 stub 得自己从 root 取。inflate 之后 stub 会从父容器移除，但两个 ensure*
+    // 都有 ready 守卫，只会取一次。
+    private val abandonedFrameStub: ViewStub
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.abandoned_frame_stub)
+    private val aiOverlayStub: ViewStub
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.ai_overlay_stub)
+
+    // 信息区（second_linear：统计 / 标签 / 同义词 / 简介 / ID / 尺寸，≈21 个 View）的懒 inflate。
+    // 它和上面两块不一样 —— 不是「常隐」，而是**整块都在首屏之下**。只对非当前页延后一个消息。
+    private var infoSectionReady = false
+
+    private val secondLinearStub: ViewStub
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.second_linear_stub)
+
+    /** 信息区还没 inflate 时返回 null —— [setupBottomSheet] 的 layout 回调必须容忍这一瞬间。 */
+    private val secondLinearView: View?
+        get() = baseBind.root.findViewById(R.id.second_linear)
+
+    // 信息区（ViewStub）里的 view：只在 setupInfoSection() 跑过之后才存在。
+    private val descriptionView: TextView
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.description)
+    private val illustIdView: TextView
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.illust_id)
+    private val userIdView: TextView
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.user_id)
+    private val illustSizeView: TextView
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.illust_size)
+    private val totalViewText: TextView
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.total_view)
+    private val totalLikeText: TextView
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.total_like)
+    private val illustLikeView: View
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.illust_like)
+    private val illustTagView: V3TagFlowView
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.illust_tag)
+    private val synonymMatchView: SynonymMatchView
+        get() = ViewCompat.requireViewById(baseBind.root, R.id.synonym_match)
+
     // ObjectPool 的每一次发射都会重跑一遍 updateIllust(收藏回流是最常见的一次),下面这组状态用来
     // 让「重建图片区」「重建标签区」「挂 sheet callback」「发头像 Glide 请求」这几件带视觉副作用的
     // 事只在真需要时做——否则收藏一下整页就闪一次(#962)。跟着 view 走,onDestroyView 里清掉。
     private var renderedImageSignature: String? = null
     private var renderedSynonymTags: List<Pair<String?, String?>>? = null
     private var renderedSynonymEnabled = false
+
+    /**
+     * 溢出菜单的点击回调读这个字段，而不是让闭包捕获 `illust` —— 见 [handleMenuItem]。
+     * 每次 `updateIllust` 都会刷新它，所以菜单不必为了「换 bean」而重建。
+     */
+    private var menuIllust: Illust? = null
+
+    /** 菜单「形状」（快照 / 动图 / 页数）。没变就不重建 —— 11 项菜单的 inflate 不便宜。 */
+    private var renderedMenuShape: String? = null
     private var bottomSheetCallbackAttached = false
+
+    /**
+     * 本次视图生命周期里是否已经纠正过抽屉的 peek 高度。
+     *
+     * 第一次必须**不带动画**：布局里 `app:behavior_peekHeight` 写死 180dp，而真实值 `bottomBar.height`
+     * 比它矮 —— 信息区就位时，多出来的那一段正好露出信息区顶部（浏览 / 收藏数那一行）。
+     * 带动画就会「先露一帧再滑下去」；不带就直接落到正确位置，用户看不到那一帧。
+     * 之后的重复纠正（简介补拉到货、内容长高）照常带动画。
+     */
+    private var bottomSheetPeekApplied = false
     private var pageProgressPillAttached = false
 
     /**
@@ -285,7 +365,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
         baseBind.postLike.setOnClickListener { snapshotUnsupportedToast() }
         baseBind.postLike.setOnLongClickListener { snapshotUnsupportedToast(); true }
-        baseBind.illustLike.setOnClickListener { snapshotUnsupportedToast() }
+        // 信息区是 ViewStub。本函数在 bindSnapshotView 里紧跟 updateIllust 之后跑，通常已经建好；
+        // 万一视图还没 RESUMED（会被延后一个消息），它建好时会自己补上这条拦截（见 setupInfoSection）。
+        if (secondLinearView != null) {
+            illustLikeView.setOnClickListener { snapshotUnsupportedToast() }
+        }
         baseBind.follow.setOnClickListener { snapshotUnsupportedToast() }
         baseBind.unfollow.setOnClickListener { snapshotUnsupportedToast() }
         baseBind.relaIllustBrief.setOnClickListener { snapshotUnsupportedToast() }
@@ -326,6 +410,33 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
     }
 
+    /**
+     * 被屏蔽遮罩的懒 inflate（理由见字段处注释）。触发点 = 屏蔽 observer 第一次报「有屏蔽记录」。
+     *
+     * 「离开」按钮的接线也一起延迟 —— 它原来在 [updateIllust] 里无条件接，而按钮现在住在
+     * ViewStub 的目标布局里，不 inflate 就没有这个 View。
+     */
+    private fun ensureAbandonedFrame() {
+        if (abandonedFrameReady) return
+        abandonedFrameReady = true
+        abandonedFrameStub.inflate()
+        ViewCompat.requireViewById<ProgressTextButton>(baseBind.root, R.id.leave).setOnClick {
+            viewLifecycleOwner.lifecycleScope.launch {
+                it.showProgress()
+                delay(600L)
+                requireActivity().finish()
+                it.hideProgress()
+            }
+        }
+    }
+
+    /** AI 画质增强 / 智能抠图覆盖层的懒 inflate。触发点 = [IllustAiHelper] 各入口。 */
+    private fun ensureAiOverlay() {
+        if (aiOverlayReady) return
+        aiOverlayReady = true
+        aiOverlayStub.inflate()
+    }
+
     private fun observeMuteStatus(illust: Illust) {
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -341,18 +452,21 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 val userEntity = it.second
                 if (illustEntity == null && userEntity == null) {
                     baseBind.contentFrame.isVisible = true
-                    baseBind.abandonedFrame.isVisible = false
+                    // 常态是「没被屏蔽」——那时遮罩从没被建过，连碰都不用碰（见 ensureAbandonedFrame）。
+                    if (abandonedFrameReady) abandonedFrameView.isVisible = false
                 } else {
                     baseBind.contentFrame.isVisible = false
-                    baseBind.abandonedFrame.isVisible = true
+                    // 遮罩子树首帧不建：只有被屏蔽的作品才亮，而它挂着 SpoilerBlurView 的两个自定义 View。
+                    ensureAbandonedFrame()
+                    abandonedFrameView.isVisible = true
                     // 整页遮罩不再是一块纯黑：糊掉的作品图 + spoiler 粒子。
                     // bind 幂等(同一封面不重发请求)，可以跟着 observer 每次发射照调。
-                    baseBind.abandonedSpoiler.bind(Glide.with(this@FragmentIllust), GlideUtil.getMediumImg(illust))
-                    baseBind.cancelMuteIllust.isVisible = illustEntity != null
-                    baseBind.cancelMuteUser.isVisible = userEntity != null
+                    abandonedSpoilerView.bind(Glide.with(this@FragmentIllust), GlideUtil.getMediumImg(illust))
+                    cancelMuteIllustView.isVisible = illustEntity != null
+                    cancelMuteUserView.isVisible = userEntity != null
 
                     if (illustEntity != null) {
-                        baseBind.cancelMuteIllust.setOnClick {
+                        cancelMuteIllustView.setOnClick {
                             viewLifecycleOwner.lifecycleScope.launch {
                                 it.showProgress()
                                 delay(600L)
@@ -364,7 +478,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                         }
                     }
                     if (userEntity != null) {
-                        baseBind.cancelMuteUser.setOnClick {
+                        cancelMuteUserView.setOnClick {
                             viewLifecycleOwner.lifecycleScope.launch {
                                 it.showProgress()
                                 delay(600L)
@@ -385,6 +499,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.unfollow.isVisible = true
             baseBind.unfollow.text = getString(followedLabelRes(userId))
             baseBind.unfollow.setOnClick {
+                playToggleHaptic(it, false)
                 unfollowUser(it, userId)
             }
             baseBind.unfollow.setOnLongClickListener {
@@ -395,6 +510,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true
             baseBind.follow.setOnClick {
+                playToggleHaptic(it, true)
                 followUser(it, userId, PixivActions.defaultFollowRestrict())
             }
             baseBind.follow.setOnLongClickListener {
@@ -420,6 +536,42 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         baseBind.userName.text = user.name
     }
 
+    /**
+     * 信息区（`second_linear`：统计 / 标签 / 同义词 / 简介 / ID / 尺寸，≈21 个 View）的装配。
+     *
+     * 从 [updateIllust] 拆出来，好让**非当前页**能把它延后一个消息：这一整块都在首屏之下
+     * （首屏是 RecyclerView 的大图 + 底部条），而点中间那张卡时 pager 会一次实例化
+     * cur-1 / cur / cur+1 三页（`offscreenPageLimit=1`）—— ×3 ≈ 63 个 View 是眼下最大的一笔。
+     *
+     * 当前页仍在同一帧做完（`onResume` 只给当前页），所以滑过去看到的信息区不会缺。
+     * 底部 sheet 的几何是在 `coreLinear` 的 layout 回调里读 `secondLinear.height` 的，
+     * 信息区延后 inflate 会让那次布局变化再触发一遍回调，自动纠正 —— 见 [setupBottomSheet]。
+     */
+    private fun setupInfoSection(illust: Illust) {
+        if (!infoSectionReady) {
+            infoSectionReady = true
+            secondLinearStub.inflate()
+        }
+        setupTags(illust)
+        setupInfo(illust)
+        setupDescription(illust)
+        setupStats(illust)
+        // 「收藏数」入口原来接在 setupActionButtons() 里 —— 但那个 view 现在住在信息区，
+        // 只能在 inflate 之后接。跟着信息区一起延后，判据一致。
+        if (isSnapshotMode) {
+            // 快照页只读：这个入口也拦掉（正常路径下 applySnapshotReadOnlyOverrides 会拦一次，
+            // 这里兜的是「视图还没 RESUMED、信息区被延后」那一档）。
+            illustLikeView.setOnClickListener { snapshotUnsupportedToast() }
+        } else {
+            illustLikeView.setOnClick {
+                val intent = Intent(mContext, TemplateActivity::class.java)
+                intent.putExtra(Params.CONTENT, illust)
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ILLUST_LIKERS.key)
+                startActivity(intent)
+            }
+        }
+    }
+
     private fun updateIllust(illust: Illust) {
         // 快照是「当时那一刻」的存档，在线可见性判断不该作用在它上面：Gson 默认丢弃 null 字段，
         // 精简来源的 bean 存进 illust.json 后 visible 会缺失 → 反序列化成 null → 一打开就
@@ -430,27 +582,34 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             return
         }
 
-        baseBind.leave.setOnClick {
-            viewLifecycleOwner.lifecycleScope.launch {
-                it.showProgress()
-                delay(600L)
-                requireActivity().finish()
-                it.hideProgress()
-            }
-        }
+        // 「离开」按钮的接线已随遮罩一起延迟到 ensureAbandonedFrame()（按钮现在住在 ViewStub 里）。
 
         setupTitle(illust)
         setupToolbarMenu(illust)
         attachPageProgressPill()
         setupLikeButton(illust)
-        setupTags(illust)
-        setupInfo(illust)
         setupBottomSheet(illust)
         setupActionButtons(illust)
-        setupDescription(illust)
-        setupStats(illust)
         setupDownloadButton(illust)
         loadUserAvatar(illust)
+        // 作者行属于首屏，帧同步设 —— 它不能跟着信息区一起延后（见 setupAuthorRow）。
+        setupAuthorRow(illust)
+        // 信息区整块在首屏之下：当前页本帧做完，非当前页延后一个消息（见 setupInfoSection）。
+        // 判据用视图生命周期 —— pager 只让当前页 RESUMED（BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT）。
+        if (viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            setupInfoSection(illust)
+        } else {
+            // 非当前页：延后一个消息。
+            //
+            // ⚠️ 这里**不能**写 `val host = view ?: return` —— `BaseFragment.onCreateView()` 是在
+            // onCreateView 里就调 `initView()` 的，而 `Fragment.getView()` 要等 onCreateView
+            // **返回之后**才被赋值，所以那一刻 `view` 恒为 null，整段会被静默跳过。
+            // 快照页正是这条路径（`bindSnapshotView` 在 initView 里同步跑），信息区永远建不出来
+            // —— 表现就是「快照页内容空态」（抽屉 peek 也停在 0，整条抽屉都不出现）。
+            // 改用 `baseBind.root`：它就是本页的根视图，post 会排在 attach 之后执行。
+            val root = baseBind.root
+            root.post { if (root === baseBind?.root) setupInfoSection(illust) }
+        }
     }
 
     private fun setupTitle(illust: Illust) {
@@ -472,7 +631,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             }
             val seriesString = getString(R.string.string_229)
             val spannableString = SpannableString(
-                String.format("@%s %s", seriesString, illust.title)
+                String.format("@%s %s", seriesString, illust.title.singleLineTitle())
             )
             spannableString.setSpan(
                 clickableSpan, 0, seriesString.length + 1,
@@ -481,15 +640,21 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.title.movementMethod = LinkMovementMethod.getInstance()
             baseBind.title.text = spannableString
         } else {
-            baseBind.title.text = illust.title
-        }
-        baseBind.title.setOnLongClickListener {
-            Common.copy(mContext, illust.title)
-            true
+            baseBind.title.text = illust.title.singleLineTitle()
         }
     }
 
     private fun setupToolbarMenu(illust: Illust) {
+        // 菜单回调读这个字段，而不是让闭包捕获 illust —— 见 [handleMenuItem]。
+        menuIllust = illust
+        baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
+
+        // 菜单「形状」（快照 / 动图 / 页数）没变就不重建。
+        // 菜单有 11 项，而 updateIllust 每次 ObjectPool 发射都会重跑（收藏回流最常见）。
+        val shape = "${isSnapshotMode}|${illust.isGif()}|${illust.page_count}"
+        if (shape == renderedMenuShape) return
+        renderedMenuShape = shape
+
         baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
         if (!isSnapshotMode && !illust.isGif() && illust.page_count == 1) {
@@ -520,73 +685,82 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             // 动图的 original 是 zip,SnapshotGenerator 一进门就拒;别把注定失败的入口摆出来。
             baseBind.toolbar.menu?.findItem(R.id.action_snapshot)?.isVisible = false
         }
-        baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
-        baseBind.toolbar.setOnMenuItemClickListener(Toolbar.OnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.action_share -> {
-                    object : ShareIllust(mContext, illust) {
-                        override fun onPrepare() {}
-                    }.execute()
-                    true
-                }
-                R.id.action_share_image -> {
-                    shareFirstImage(illust)
-                    false
-                }
-                R.id.action_save_poster -> {
-                    // 与页码浮标同源：多图作品保存当前看到的页；图片区不在视口时回退首图。
-                    saveArtworkPoster(illust, pageProgressIndex.coerceAtLeast(0))
-                    true
-                }
-                R.id.action_snapshot -> {
-                    showSnapshotCreateDialog(illust)
-                    true
-                }
-                R.id.action_dislike -> {
-                    MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
-                    true
-                }
-                R.id.action_copy_link -> {
-                    Common.copy(mContext, ShareIllust.URL_Head + illust.id)
-                    true
-                }
-                R.id.action_show_original -> {
-                    val adapter = IllustAdapter(
-                        mActivity, this@FragmentIllust, illust, recyHeight, true
-                    )
-                    baseBind.recyclerView.adapter = adapter
-                    vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
-                    true
-                }
-                R.id.action_mute_illust -> {
-                    PixivOperate.muteIllust(illust)
-                    true
-                }
-                R.id.action_flag_illust -> {
-                    val intent = Intent(mContext, TemplateActivity::class.java)
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FLAG_REASON.key)
-                    // TemplateActivity 读这个 extra 走 getLongExtra,Illust.id 本身就是 Long,
-                    // 别收窄成 Int,否则 Int/Long extra 类型不匹配,读回来静默变 0。
-                    intent.putExtra(FlagDescFragment.FlagObjectIdKey, illust.id)
-                    intent.putExtra(FlagDescFragment.FlagObjectTypeKey, ObjectSpec.POST)
-                    startActivity(intent)
-                    true
-                }
-                R.id.action_ai_upscale -> {
-                    ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
-                        aiHelper?.performUpscale(illust, model)
-                    }
-                    true
-                }
-                R.id.action_ai_rembg -> {
-                    ceui.pixiv.ui.upscale.RembgModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
-                        aiHelper?.performRembg(illust, model)
-                    }
-                    true
-                }
-                else -> false
+        baseBind.toolbar.setOnMenuItemClickListener { menuItem ->
+            // 读字段而不是闭包捕获的 illust —— 菜单只按「形状」建一次，回调永远拿最新 bean。
+            menuIllust?.let { handleMenuItem(menuItem.itemId, it) } ?: false
+        }
+    }
+
+    /**
+     * 溢出菜单的点击处理。
+     *
+     * 单独拆出来，是为了让 [setupToolbarMenu] 不必为了「换 bean」而重建整个菜单 —— 菜单有
+     * 11 项，`inflateMenu` 不便宜，而 `updateIllust` 在**每次 ObjectPool 发射**时都会重跑
+     * （收藏回流最常见）。这也正是 [setupTags] 里那句「收藏回流只更新菜单闭包」想要的形态。
+     */
+    private fun handleMenuItem(itemId: Int, illust: Illust): Boolean = when (itemId) {
+        R.id.action_share -> {
+            object : ShareIllust(mContext, illust) {
+                override fun onPrepare() {}
+            }.execute()
+            true
+        }
+        R.id.action_share_image -> {
+            shareFirstImage(illust)
+            false
+        }
+        R.id.action_save_poster -> {
+            // 与页码浮标同源：多图作品保存当前看到的页；图片区不在视口时回退首图。
+            saveArtworkPoster(illust, pageProgressIndex.coerceAtLeast(0))
+            true
+        }
+        R.id.action_snapshot -> {
+            showSnapshotCreateDialog(illust)
+            true
+        }
+        R.id.action_dislike -> {
+            MuteTagSheet.show(childFragmentManager, illust.tags?.toTagsBeans(), illust.user)
+            true
+        }
+        R.id.action_copy_link -> {
+            Common.copy(mContext, ShareIllust.URL_Head + illust.id)
+            true
+        }
+        R.id.action_show_original -> {
+            val adapter = IllustAdapter(
+                mActivity, this@FragmentIllust, illust, recyHeight, true
+            )
+            baseBind.recyclerView.adapter = adapter
+            vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
+            true
+        }
+        R.id.action_mute_illust -> {
+            PixivOperate.muteIllust(illust)
+            true
+        }
+        R.id.action_flag_illust -> {
+            val intent = Intent(mContext, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.FLAG_REASON.key)
+            // TemplateActivity 读这个 extra 走 getLongExtra,Illust.id 本身就是 Long,
+            // 别收窄成 Int,否则 Int/Long extra 类型不匹配,读回来静默变 0。
+            intent.putExtra(FlagDescFragment.FlagObjectIdKey, illust.id)
+            intent.putExtra(FlagDescFragment.FlagObjectTypeKey, ObjectSpec.POST)
+            startActivity(intent)
+            true
+        }
+        R.id.action_ai_upscale -> {
+            ceui.pixiv.ui.upscale.ModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                aiHelper?.performUpscale(illust, model)
             }
-        })
+            true
+        }
+        R.id.action_ai_rembg -> {
+            ceui.pixiv.ui.upscale.RembgModelPickerDialog.pickOrUseDefault(childFragmentManager) { model ->
+                aiHelper?.performRembg(illust, model)
+            }
+            true
+        }
+        else -> false
     }
 
     private fun setupLikeButton(illust: Illust) {
@@ -602,6 +776,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             } else {
                 baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp)
             }
+            playToggleHaptic(it, willBookmark)
             PixivOperate.postLikeDefaultStarType(illust)
             // 收藏后自动下载只在用户主动收藏(非取消)时触发,避免和"下载时自动收藏"循环联动(issue #880)。
             if (willBookmark && Shaft.sSettings.isAutoDownloadAfterStar) {
@@ -620,14 +795,14 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     private fun setupTags(illust: Illust) {
         val tags = illust.tags.orEmpty().toTagsBeans()
-        val flow = baseBind.illustTag
+        val flow = illustTagView
         val synonymTags = tags.map { it.name to it.translated_name }
         val synonymEnabled = Shaft.sSettings.isSynonymDictEnabled
         if (synonymTags != renderedSynonymTags || synonymEnabled != renderedSynonymEnabled) {
             // 收藏回流只更新菜单闭包；重做同义词匹配会收起用户已展开的内容（#962）。
             renderedSynonymTags = synonymTags
             renderedSynonymEnabled = synonymEnabled
-            baseBind.synonymMatch.setWorkTags(tags)
+            synonymMatchView.setWorkTags(tags)
         }
         if (isSnapshotMode) {
             flow.overflowActionText = null
@@ -677,11 +852,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     }
 
     private fun setupInfo(illust: Illust) {
-        baseBind.illustSize.text = getString(R.string.string_193, illust.width, illust.height)
-        baseBind.illustId.text = getString(R.string.string_194, illust.id)
-        baseBind.userId.text = getString(R.string.string_195, illust.user?.id)
-        baseBind.illustId.setOnClick { Common.copy(mContext, illust.id.toString()) }
-        baseBind.userId.setOnClick { Common.copy(mContext, illust.user?.id.toString()) }
+        illustSizeView.text = getString(R.string.string_193, illust.width, illust.height)
+        illustIdView.text = getString(R.string.string_194, illust.id)
+        userIdView.text = getString(R.string.string_195, illust.user?.id)
+        illustIdView.setOnClick { Common.copy(mContext, illust.id.toString()) }
+        userIdView.setOnClick { Common.copy(mContext, illust.user?.id.toString()) }
     }
 
     /**
@@ -946,22 +1121,45 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     private fun setupBottomSheet(illust: Illust) {
         val sheetBehavior: BottomSheetBehavior<*> = BottomSheetBehavior.from(baseBind.coreLinear)
+
+        // 布局里 `app:behavior_peekHeight` 写死 0dp（不是真实值），真正的 peek 在这里定 ——
+        // 而且必须**赶在首次布局之前**定好：一旦晚到 onGlobalLayout，首帧就会按错的 peek 摆，
+        // 把信息区顶部（浏览 / 收藏数那一行）露出来。那一刻 bottom_bar 还没被量过，
+        // 手动量一次（它 match_parent 宽，取屏宽即可；量错一点也没关系，下面的回调会再纠一次）。
+        if (!bottomSheetPeekApplied && baseBind.bottomBar.height <= 0) {
+            val bar = baseBind.bottomBar
+            val width = bar.width.takeIf { it > 0 } ?: resources.displayMetrics.widthPixels
+            bar.measure(
+                View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            )
+            val measured = bar.measuredHeight
+            if (measured > 0) sheetBehavior.peekHeight = measured
+        }
+
         baseBind.coreLinear.viewTreeObserver.addOnGlobalLayoutListener(object :
             OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 view ?: return
                 context ?: return
+                // 信息区是 ViewStub，非当前页会晚一个消息才建出来。它还没建时**不能算** ——
+                // 拿 0 当高度会把 coreLinear 定死在一个很矮的值上，之后信息区建出来也撑不开，
+                // 表现就是「抽屉只能往上拉几个像素」。直接返回，等它建好；那一次布局变化会让
+                // 本回调再跑一遍，届时读到真实高度。
+                val infoView = secondLinearView ?: return
                 val realHeight = baseBind.bottomBar.height +
                         baseBind.viewDivider.height +
-                        baseBind.secondLinear.height
+                        infoView.height
                 val maxHeight = resources.displayMetrics.heightPixels * 3 / 4
                 val params = baseBind.coreLinear.layoutParams
                 val slideMaxHeight = Math.min(realHeight, maxHeight)
                 params.height = slideMaxHeight
                 baseBind.coreLinear.layoutParams = params
                 val bottomCardHeight = baseBind.bottomBar.height
-                sheetDeltaY = slideMaxHeight - baseBind.bottomBar.height
-                sheetBehavior.setPeekHeight(bottomCardHeight, true)
+                sheetDeltaY = slideMaxHeight - bottomCardHeight
+                // 第一次纠正不带动画，理由见 bottomSheetPeekApplied 的注释。
+                sheetBehavior.setPeekHeight(bottomCardHeight, bottomSheetPeekApplied)
+                bottomSheetPeekApplied = true
 
                 val headParams = baseBind.helperView.layoutParams
                 headParams.height = bottomCardHeight - DensityUtil.dp2px(16.0f)
@@ -1030,35 +1228,40 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             intent.putExtra(Params.ILLUST_TITLE, illust.title)
             startActivity(intent)
         }
-        baseBind.illustLike.setOnClick {
-            val intent = Intent(mContext, TemplateActivity::class.java)
-            intent.putExtra(Params.CONTENT, illust)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ILLUST_LIKERS.key)
-            startActivity(intent)
-        }
+        // 「收藏数」入口（illust_like）现在住在信息区 ViewStub 里，接线已移到 setupInfoSection()。
     }
 
     private fun setupDescription(illust: Illust) {
         val caption = illust.caption
         if (caption.isNullOrEmpty()) {
-            baseBind.description.visibility = View.GONE
+            descriptionView.visibility = View.GONE
             return
         }
-        baseBind.description.visibility = View.VISIBLE
+        descriptionView.visibility = View.VISIBLE
         // HtmlTextView.setHtml 在 caption 含 <a> 链接时会直接吐出空串（#552）。
         // 换成 androidx HtmlCompat.fromHtml + LinkMovementMethod，文本和可点链接都能正常渲染。
-        baseBind.description.text = androidx.core.text.HtmlCompat.fromHtml(
+        descriptionView.text = androidx.core.text.HtmlCompat.fromHtml(
             caption, androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
         )
-        baseBind.description.movementMethod = LinkMovementMethod.getInstance()
+        descriptionView.movementMethod = LinkMovementMethod.getInstance()
     }
 
-    private fun setupStats(illust: Illust) {
+    /**
+     * 作者行（`rela_illust_brief`：头像 / 用户名 / 投递时间）。
+     *
+     * 它在 `bottom_bar` 里、属于**首屏**，所以必须**帧同步**设置 —— 不能跟着信息区一起延后。
+     * 尤其投递时间：布局里写的是 `@string/string_68` 占位，晚一个消息就会先露占位文本。
+     */
+    private fun setupAuthorRow(illust: Illust) {
         baseBind.postTime.text = String.format(
             "%s投递", Common.getLocalYYYYMMDDHHMMString(illust.create_date)
         )
-        baseBind.totalView.text = (illust.total_view ?: 0).toString()
-        baseBind.totalLike.text = (illust.total_bookmarks ?: 0).toString()
+    }
+
+    /** 浏览 / 收藏计数。它们住在信息区（首屏之下），所以跟着 [setupInfoSection] 一起延后。 */
+    private fun setupStats(illust: Illust) {
+        totalViewText.text = (illust.total_view ?: 0).toString()
+        totalLikeText.text = (illust.total_bookmarks ?: 0).toString()
     }
 
     private fun setupDownloadButton(illust: Illust) {
@@ -1201,7 +1404,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        aiHelper = IllustAiHelper(this, baseBind.root)
+        aiHelper = IllustAiHelper(this, baseBind.root, ensureOverlay = ::ensureAiOverlay)
         // 必须在快照的 early-return 之前：快照详情页同样走这条联动。
         wireViewerPageLink()
         if (isSnapshotMode) return
@@ -1221,7 +1424,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                     } else {
                         baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp)
                     }
-                    baseBind.totalLike.text = (latest.total_bookmarks ?: 0).toString()
+                    // 信息区是 ViewStub，非当前页会晚一个消息才建出来 —— 广播有可能先到。
+                    // 建好之后 updateIllust → setupStats 会补上正确值，这里漏一次不影响终态。
+                    if (secondLinearView != null) {
+                        totalLikeText.text = (latest.total_bookmarks ?: 0).toString()
+                    }
                 }
             }
         }
@@ -1254,9 +1461,17 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         renderedImageSignature = null
         renderedSynonymTags = null
         bottomSheetCallbackAttached = false
+        bottomSheetPeekApplied = false
+        menuIllust = null
+        renderedMenuShape = null
         sheetDeltaY = 0
         loadedAvatarUrl = null
         aiHelper = null
+        // 懒 inflate 的标志随视图销毁归零：视图重建后拿到的是新的 ViewStub，
+        // 不归零的话 ensure*() 会误判为「已经建过」而跳过，那两块就再也不出现了。
+        abandonedFrameReady = false
+        aiOverlayReady = false
+        infoSectionReady = false
         super.onDestroyView()
     }
 

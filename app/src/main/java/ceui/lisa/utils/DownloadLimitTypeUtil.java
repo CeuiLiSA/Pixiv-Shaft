@@ -46,7 +46,7 @@ public class DownloadLimitTypeUtil {
      *   2 不自动下载    → 从不自动开始，等用户在下载管理里手动启动
      * 其它（脏值）按 0 处理，与 [getCurrentStatusIndex] 的兜底口径保持一致。
      */
-    static boolean autoStartAllowed(int limitType, boolean wifiConnected){
+    public static boolean autoStartAllowed(int limitType, boolean wifiConnected){
         if (limitType == 1) return wifiConnected;
         if (limitType == 2) return false;
         return true;
@@ -62,7 +62,30 @@ public class DownloadLimitTypeUtil {
     }
 
     /** [requiresWifi()] 的纯函数版本，便于单测。 */
-    static boolean requiresWifi(int limitType){
+    public static boolean requiresWifi(int limitType){
         return limitType == 1;
+    }
+
+    /**
+     * 入列后是否该直接呈现为「暂停态」（paused=true）—— 只有「不自动下载」。
+     *
+     * 两种"没在跑"必须分开：
+     *   - 等待态（INIT）是有自动接续方的中间态：仅 Wi-Fi 模式下离开 Wi-Fi 由
+     *     {@code Manager.parkForNetwork()} 退回等待，回到 Wi-Fi 由 {@code NetWorkStateReceiver}
+     *     唤醒；批量队列的页也在等自己的槽位。
+     *   - 「不自动下载」没有任何自动唤醒源，继续显示「等待中」就是骗用户：卡片上的
+     *     播放/暂停键按 isPaused 渲染成"暂停"图标，用户得先点一下暂停、再点一下继续
+     *     才能真的开始。故入列即置 paused，如实呈现「已暂停」。
+     *
+     * 批量队列被用户手动放行后的补页（silent）不套这条规则 —— 那次点击本身就是手动启动
+     * （见 {@code Manager.addTask}）。
+     */
+    public static boolean enqueueAsPaused(){
+        return enqueueAsPaused(Shaft.sSettings.getDownloadLimitType());
+    }
+
+    /** [enqueueAsPaused()] 的纯函数版本，便于单测；只认模式 2，脏值按无限制处理，不误置暂停。 */
+    static boolean enqueueAsPaused(int limitType){
+        return limitType == 2;
     }
 }

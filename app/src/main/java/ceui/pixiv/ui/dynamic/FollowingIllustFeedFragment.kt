@@ -3,7 +3,6 @@ package ceui.pixiv.ui.dynamic
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.witstudio.theme.V3Palette
@@ -17,6 +16,7 @@ import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.common.JustifiedLayoutManager
 
 /**
  * 「动态」页的插画/漫画列表（feeds 框架版，替代 legacy FragmentRight 自身的
@@ -109,10 +109,11 @@ class FollowingIllustFeedFragment : IllustFeedFragment() {
     override fun onCreateSkeletonView(layoutManager: RecyclerView.LayoutManager): FeedSkeletonView? {
         // 按 LayoutManager 判而不是再读一次设置:骨架必须和这次装配出来的列表长得一样,
         // 不能有第二个真源(哪怕理论上读不出不一致,也别留这种耦合)
-        return if (layoutManager is StaggeredGridLayoutManager) {
-            super.onCreateSkeletonView(layoutManager)
-        } else {
+        // 齐行布局的 GridLayoutManager 也是 LinearLayoutManager 子类，要先排除
+        return if (layoutManager is LinearLayoutManager && layoutManager !is JustifiedLayoutManager) {
             FeedTimelineSkeletonView(requireContext())
+        } else {
+            super.onCreateSkeletonView(layoutManager)
         }
     }
 

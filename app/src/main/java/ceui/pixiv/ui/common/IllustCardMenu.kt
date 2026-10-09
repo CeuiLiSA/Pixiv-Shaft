@@ -17,9 +17,11 @@ import ceui.pixiv.ui.bulk.IllustBulkSelectHandoff
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.slideshow.SlideshowLauncher
 import ceui.pixiv.ui.navigation.TemplateRoute
+import ceui.pixiv.ui.settings.IllustListLayoutPicker
 
 /**
- * 插画卡长按菜单：屏蔽此作品 / 屏蔽设定 / 相关评论 / 批量下载 / 单作品下载 / 幻灯片 / 稍后再看。
+ * 插画卡长按菜单：屏蔽此作品 / 屏蔽设定 / 相关评论 / 批量下载 / 单作品下载 / 幻灯片 / 稍后再看 /
+ * 插画列表布局（#1214）。
  *
  * 从 [IllustFeedFragment] 搬出来单独放一个文件：菜单是一组独立的动作编排，跟「列表怎么加载」
  * 和「卡片怎么画」都无关，挤在基类里只是让那个类更长。
@@ -122,6 +124,14 @@ internal fun IllustFeedFragment.showCardMenu(
             } else {
                 entityWrapper.addToWatchLater(appContext, item.illust)
                 Common.showToast(R.string.watch_later_added)
+            }
+        }
+        // 不用钻进「设置 → 界面」就能换排布
+        item(getString(R.string.illust_list_layout), R.drawable.ic_baseline_grid_view_24) {
+            IllustListLayoutPicker.show(requireContext()) { layout ->
+                // 选择器是 Dialog，不随 Fragment 视图销毁；视图没了就只存设置，回来时 onResume 补装
+                if (view == null) IllustListLayout.save(layout)
+                else changeIllustListLayout(layout, bean.id)
             }
         }
     }

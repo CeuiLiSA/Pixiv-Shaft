@@ -27,6 +27,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.utils.pinHostGlide
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
@@ -135,6 +136,7 @@ class MutedUserFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener {
             user.is_followed = true
         }
         renderFollow(cell.binding, user.is_followed == true)
+        playToggleHaptic(cell.binding.postLikeUser, user.is_followed == true)
     }
 
     /** 长按按钮 = 私密关注（沿用 legacy 的长按语义）。 */

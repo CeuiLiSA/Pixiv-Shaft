@@ -302,6 +302,26 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/illust_list_layout_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/illust_list_layout" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/illust_list_layout"
+                        style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/layout_mode_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_mid">
@@ -318,6 +338,24 @@
                     <TextView
                         android:id="@+id/layout_mode"
                         style="@style/M3SetValue" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/show_illust_card_bookmark_button_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/show_illust_card_bookmark_button_setting" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/show_illust_card_bookmark_button"
+                        style="@style/M3SetSwitch" />
 
                 </RelativeLayout>
 

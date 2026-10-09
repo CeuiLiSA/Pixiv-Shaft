@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AI 画质增强的 shader 波纹覆盖层（AOSP Pixel 充电波纹移植）的 ViewStub 目标。
+     从 fragment_illust.xml 抽出来，原因是它是 **GLSurfaceView**：构造时就会建 GLThread /
+     EGL 相关对象，而 renderMode 还是 RENDERMODE_CONTINUOUSLY。而全仓**没有任何代码引用它**
+     —— showEnhancing() / hideEnhancing() 从没被调过，等于每个经典页都在白白建一个 GL 视图。
+
+     改 ViewStub 后连 GLThread 都不会建。真要接上这个功能时，在调 showEnhancing() 之前先
+     inflate 一次 stub（`baseBind.root.findViewById<ViewStub>(R.id.enhance_overlay_stub).inflate()`）。 -->
+<ceui.lisa.view.EnhanceShaderOverlayView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/enhance_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:visibility="gone" />

@@ -87,10 +87,10 @@ class LikeIllustFeedFragment : IllustFeedFragment() {
     // (裸 feed 形态才生效,不会重复套)。
     override val applyBottomSafeInset: Boolean = true
 
-    /** 自己的收藏页 + 「隐藏收藏按钮」设置 → 卡片不显示爱心；动态读，设置改完回来即时生效。 */
+    /** 全局关掉卡片收藏按钮，或自己的收藏页 + 「隐藏收藏按钮」设置 → 卡片不显示爱心；动态读，设置改完回来即时生效。 */
     override val hideLikeButton: Boolean
-        get() = SessionManager.loggedInUid == userId &&
-                Shaft.sSettings.isHideStarButtonAtMyCollection()
+        get() = super.hideLikeButton || (SessionManager.loggedInUid == userId &&
+                Shaft.sSettings.isHideStarButtonAtMyCollection())
 
     /** 「按标签筛选」页的选择回流：公开/私密两 tab 并存，匹配本页 starType 才认领。 */
     private val filterReceiver = object : BroadcastReceiver() {

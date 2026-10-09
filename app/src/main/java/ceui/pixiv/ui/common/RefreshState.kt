@@ -4,6 +4,8 @@ import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.CfBlockDetector
 import ceui.lisa.http.CfBlockGuide
+import ceui.lisa.update.AppUpdateChecker
+import ceui.lisa.update.RateLimitException
 import ceui.pixiv.api.model.ErrorResp
 import ceui.pixiv.chat.base.toUserMessage
 import retrofit2.HttpException
@@ -18,6 +20,12 @@ sealed class RefreshState: Serializable {
 }
 
 fun Throwable.getHumanReadableMessage(context: Context): String {
+    // 只认 GitHub 客户端抛的 RateLimitException：这里是全 app 共用的映射，pixiv / pixshaft-api
+    // 的 429 要照旧走下面的 user_message 透传，不能被套上 GitHub 的限流文案。
+    if (this is RateLimitException) {
+        return AppUpdateChecker.getRateLimitMessage(context, this)
+    }
+
     // 正文只读一次，CF 分类与后面的错误解析共用这一份 —— errorBody().string() 是一次性的，
     // 谁再读一遍都只会拿到空。
     val errorBody = readErrorBodyOnce()

@@ -302,10 +302,12 @@ object AiTranslator : Translator {
                 forceStreaming = forceStreaming,
                 onPhase = onPhase,
             ).trim()
-            // 指令遵循校验:返回内容里带着原文 = 模型没执行翻译(回显/夹带解释),不算成功;
+            // 指令遵循校验:原样度达阈值 = 模型没执行翻译(回显/夹带解释),不算成功;
             // 目标语言就是日文时,同语言"翻译"允许保留原文,跳过该检查。
-            if (targetLang != "ja" && translated.contains(input)) {
-                throw IOException("模型没有如期按提示词指令进行翻译，输出了原文！")
+            if (targetLang != "ja" && VerbatimRatio.isLikelyVerbatim(input, translated)) {
+                throw IOException(
+                    "模型可能原样输出了原文（原样度 ${VerbatimRatio.percent(input, translated)}%）"
+                )
             }
             translated
         }

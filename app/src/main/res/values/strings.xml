@@ -614,6 +614,16 @@
     <string name="layout_mode">关注动态布局模式</string>
     <string name="layout_staggered">瀑布流</string>
     <string name="layout_linear">纵向列表</string>
+    <string name="illust_list_layout">插画列表布局</string>
+    <string name="illust_list_layout_sheet_desc">推荐、排行、搜索、收藏等插画列表的排布方式。</string>
+    <string name="illust_list_layout_masonry">瀑布流</string>
+    <string name="illust_list_layout_masonry_desc">等宽不等高</string>
+    <string name="illust_list_layout_grid">方格</string>
+    <string name="illust_list_layout_grid_desc">等宽等高</string>
+    <string name="illust_list_layout_justified">齐行</string>
+    <string name="illust_list_layout_justified_desc">等高不等宽</string>
+    <string name="illust_list_layout_single">单列</string>
+    <string name="illust_list_layout_single_desc">单列全宽</string>
     <string name="string_337">重新下载</string>
     <string name="string_338">R18 作品下载至另一目录</string>
     <string name="string_339">下载这个作品</string>
@@ -978,7 +988,29 @@
     <string name="color_peachPink">樱桃粉</string>
     <string name="theme_nowUsing">（正在使用）</string>
     <string name="core_string_novel_marker">小说书签</string>
-    <string name="toast_download_result">下载完成App内提示</string>
+    <!-- 「下载相关提示消息」统一入口：下载（含批量、含小说）过程中会弹出的提示收成一个
+         witstudio 弹窗逐项控制，全部默认开；被关掉的按「已安静 N 条消息」计数。
+         原先只有「下载完成App内提示」一个总开关（toast_download_result，已废弃）。 -->
+    <string name="download_toast_entry_title">下载相关提示消息</string>
+    <string name="download_toast_entry_summary">已安静 %1$d 条消息</string>
+    <string name="download_toast_dialog_hint">逐项控制与下载相关的弹出消息，关掉的将不再打扰</string>
+    <string name="download_toast_group_image">图片下载</string>
+    <string name="download_toast_group_novel">小说下载</string>
+    <string name="download_toast_enqueued">已加入下载队列</string>
+    <string name="download_toast_enqueue_failed">下载任务创建失败</string>
+    <string name="download_toast_download_done">单张下载完成</string>
+    <string name="download_toast_download_failed">单张下载失败</string>
+    <string name="download_toast_aria2">aria2 发送结果</string>
+    <string name="download_toast_storage_unavailable">下载目录不可用</string>
+    <string name="download_toast_record_restored">下载记录恢复</string>
+    <string name="download_toast_low_storage_paused">空间不足暂停下载</string>
+    <string name="download_toast_bulk_enqueue">批量入队进度</string>
+    <string name="download_toast_bulk_summary">批量下载汇总</string>
+    <string name="download_toast_novel_progress">小说逐篇下载进度</string>
+    <string name="download_toast_novel_batch_result">小说批量下载结果</string>
+    <string name="download_toast_novel_save">单篇小说保存与导出</string>
+    <string name="download_toast_novel_series_export">系列下载与合并结果</string>
+    <string name="download_toast_novel_auto_download">收藏后自动下载结果</string>
     <string name="setting_auto_export_caption_title">插画/漫画下载时自动导出简介</string>
     <string name="setting_auto_export_caption_length_title">简介自动导出需达</string>
     <string name="setting_auto_export_caption_length_value">%d 字</string>
@@ -1151,6 +1183,8 @@
     <string name="update_retry">重试</string>
     <string name="update_download_failed">下载失败</string>
     <string name="update_check_failed">检查更新失败</string>
+    <string name="update_rate_limited">被速率限制，请稍后再试</string>
+    <string name="update_rate_limited_with_reset">被速率限制，请于 %1$s 后再试</string>
     <string name="update_download_title">Shaft 更新</string>
     <string name="update_version_skipped">已跳过此版本</string>
     <string name="update_enable_install_permission">请允许安装未知来源应用</string>
@@ -1174,6 +1208,7 @@
     <string name="rate_dialog_maybe_later">以后再说</string>
     <string name="rate_dialog_never">不再提醒</string>
 
+    <string name="show_illust_card_bookmark_button_setting">插画列表显示收藏按钮</string>
     <string name="show_novel_card_tags_setting">小说列表显示标签</string>
     <string name="show_novel_card_tag_translations_setting">小说列表显示标签译文</string>
     <string name="collapse_novel_card_tags_setting">小说列表标签折叠</string>
@@ -2775,6 +2810,7 @@
     <string name="ai_translate_test_success">测试成功：%1$s</string>
     <string name="ai_translate_test_failed">测试失败：%1$s</string>
     <string name="ai_translate_failed_title">AI 翻译失败</string>
+    <string name="ai_translate_verbatim_warning">模型可能原样输出了原文（原样度 %1$d%%）</string>
     <string name="ai_translate_error_code_label">错误码</string>
     <string name="ai_translate_error_message_label">错误消息</string>
     <string name="ai_translate_error_code_unknown">未知</string>
@@ -3227,8 +3263,10 @@
 
     <!-- ============ 收藏库（本地收藏镜像的浏览/筛选页） ============ -->
     <string name="settings_bookmark_mirror">收藏库本地镜像</string>
-    <string name="settings_like_haptic">收藏按钮振动反馈</string>
+    <string name="settings_like_haptic">收藏 / 关注振动反馈</string>
     <string name="settings_like_haptic_desc">可能需要同时开启系统的触感反馈</string>
+    <string name="settings_scroll_edge_haptic">滑到列表边缘时振动</string>
+    <string name="settings_scroll_edge_haptic_desc">列表滑到顶部或底部时轻震一下。可能需要同时开启系统的触感反馈</string>
     <string name="bookmark_library_menu_entry">按条件浏览收藏</string>
     <string name="bookmark_library_open_classic">原始收藏列表</string>
     <string name="bookmark_mirror_ready_title">收藏库已就绪</string>

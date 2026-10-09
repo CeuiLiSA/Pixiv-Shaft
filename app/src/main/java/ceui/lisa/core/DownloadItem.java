@@ -145,8 +145,15 @@ public class DownloadItem implements Serializable {
                 TextUtils.equals(url, next.url);
     }
 
+    public boolean isFailed() {
+        return this.state == DownloadState.FAILED;
+    }
+
     public int getState() {
-        if(this.paused){
+        if (this.state == DownloadState.FAILED) {
+            return DownloadState.FAILED;
+        }
+        if (this.paused) {
             return DownloadState.PAUSED;
         }
         return state;

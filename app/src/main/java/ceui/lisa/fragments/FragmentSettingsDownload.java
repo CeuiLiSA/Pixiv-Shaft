@@ -23,7 +23,9 @@ import ceui.lisa.utils.Settings;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.OverwritePolicy;
 import ceui.pixiv.download.config.StorageChoice;
+import ceui.pixiv.download.toast.DownloadToasts;
 import ceui.pixiv.ui.navigation.TemplateRoute;
+import ceui.pixiv.ui.settings.DownloadToastDialog;
 
 /** 设置 · 下载 */
 public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSettingsDownloadBinding> {
@@ -299,18 +301,11 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         baseBind.illustLongPressDownloadRela.setOnClickListener(v ->
                 baseBind.illustLongPressDownload.performClick());
 
-        // 下载完成App内提示
-        baseBind.toastDownloadResult.setChecked(Shaft.sSettings.isToastDownloadResult());
-        baseBind.toastDownloadResult.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Shaft.sSettings.setToastDownloadResult(isChecked);
-                Common.showToast(getString(R.string.string_428), 2);
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-        baseBind.toastDownloadResultRela.setOnClickListener(v ->
-                baseBind.toastDownloadResult.performClick());
+        // 「下载相关提示消息」统一入口：原先只有「下载完成App内提示」一个总开关，现在把下载
+        // （含批量、含小说）过程会弹的提示收进同一个 witstudio 弹窗逐项控制，默认全开。
+        renderDownloadToastSummary();
+        baseBind.downloadToastsRela.setOnClickListener(v ->
+                DownloadToastDialog.show(mContext, this::onDownloadToastsChanged));
 
         // 下载 JPEG 时把标签写进图片(XMP 关键词，issue #938）
         baseBind.writeExifTags.setChecked(Shaft.sSettings.isWriteTagsToImageExif());
@@ -532,6 +527,22 @@ public class FragmentSettingsDownload extends SettingsPageFragment<FragmentSetti
         } else {
             baseBind.aria2Desc.setText(getString(R.string.aria2_settings_entry_desc));
         }
+    }
+
+    /** 弹窗「确定」后回调：先弹一次设置成功提示，再刷新入口行摘要（与同页其它开关一致）。 */
+    private void onDownloadToastsChanged() {
+        Common.showToast(getString(R.string.string_428), 2);
+        renderDownloadToastSummary();
+    }
+
+    /**
+     * 「下载相关提示消息」入口行右侧摘要：被安静掉的消息条数。默认全开，所以全新安装显示
+     * 「已安静 0 条消息」—— 不另造一个「全部提示」档，省得用户以为这里还有个总开关。
+     */
+    private void renderDownloadToastSummary() {
+        if (baseBind == null) return;
+        baseBind.downloadToastsSummary.setText(
+                getString(R.string.download_toast_entry_summary, DownloadToasts.quietCount()));
     }
 
     @Override

@@ -163,7 +163,9 @@ internal class UpdateSheetView(ctx: Context) : LinearLayout(ctx) {
         }
         val apk = AppUpdateChecker.findApkAsset(release)
         assetInfo.isVisible = apk != null
-        assetInfo.text = apk?.let { "${it.name} · ${formatApkSize(it.size)}" }.orEmpty()
+        assetInfo.text = apk?.let {
+            if (it.size > 0L) "${it.name} · ${formatApkSize(it.size)}" else it.name
+        }.orEmpty()
     }
 
     /** 主操作的文案、图标与可用性；下载中禁止重复点。 */

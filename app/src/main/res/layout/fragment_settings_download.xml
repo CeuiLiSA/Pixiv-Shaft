@@ -362,21 +362,26 @@
 
                 </RelativeLayout>
 
+                <!-- 「下载相关提示消息」统一入口：点开 witstudio 弹窗逐项控制下载（含批量、含小说）
+                     过程中会弹出的提示，默认全开，摘要显示「已安静 N 条消息」。
+                     原先「下载完成App内提示」那个单独的开关行已并入此处。 -->
                 <RelativeLayout
-                    android:id="@+id/toast_download_result_rela"
+                    android:id="@+id/download_toasts_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_mid">
 
-                    <LinearLayout style="@style/M3SetTexts">
+                    <LinearLayout
+                        style="@style/M3SetTexts"
+                        android:layout_marginEnd="130dp">
 
                         <TextView
                             style="@style/M3SetTitle"
-                            android:text="@string/toast_download_result" />
+                            android:text="@string/download_toast_entry_title" />
                     </LinearLayout>
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/toast_download_result"
-                        style="@style/M3SetSwitch" />
+                    <TextView
+                        android:id="@+id/download_toasts_summary"
+                        style="@style/M3SetValue" />
 
                 </RelativeLayout>
 

@@ -590,6 +590,16 @@
     <string name="layout_mode">Takip akışı düzeni</string>
     <string name="layout_staggered">Şelale görünümü</string>
     <string name="layout_linear">Dikey liste</string>
+    <string name="illust_list_layout">İllüstrasyon listesi düzeni</string>
+    <string name="illust_list_layout_sheet_desc">Önerilen, sıralama, arama, yer imleri ve diğer illüstrasyon listelerinin düzeni.</string>
+    <string name="illust_list_layout_masonry">Şelale</string>
+    <string name="illust_list_layout_masonry_desc">Eşit genişlik, farklı yükseklik</string>
+    <string name="illust_list_layout_grid">Izgara</string>
+    <string name="illust_list_layout_grid_desc">Eşit genişlik ve yükseklik</string>
+    <string name="illust_list_layout_justified">Satır hizalı</string>
+    <string name="illust_list_layout_justified_desc">Eşit yükseklik, farklı genişlik</string>
+    <string name="illust_list_layout_single">Tek sütun</string>
+    <string name="illust_list_layout_single_desc">Tam genişlikte tek sütun</string>
     <string name="string_337">Tekrar indir</string>
     <string name="string_338">R-18 eserleri ayrı klasöre kaydet</string>
     <string name="string_339">Bu eseri indir</string>
@@ -948,7 +958,26 @@
     <string name="color_peachPink">Şeftali Pembesi</string>
     <string name="theme_nowUsing">(Kullanılıyor)</string>
     <string name="core_string_novel_marker">Roman yer imi</string>
-    <string name="toast_download_result">İndirme tamamlanınca uygulama içinde bildirim göster</string>
+    <string name="download_toast_entry_title">İndirme bildirimleri</string>
+    <string name="download_toast_entry_summary">%1$d mesaj sessize alındı</string>
+    <string name="download_toast_dialog_hint">İndirme sırasında gösterilecek bildirimleri tek tek seçin. Kapattıklarınız artık görünmez</string>
+    <string name="download_toast_group_image">Görsel indirmeleri</string>
+    <string name="download_toast_group_novel">Novel indirmeleri</string>
+    <string name="download_toast_enqueued">İndirme kuyruğuna eklendi</string>
+    <string name="download_toast_enqueue_failed">İndirme görevi oluşturulamadı</string>
+    <string name="download_toast_download_done">İndirme tamamlandı</string>
+    <string name="download_toast_download_failed">İndirme başarısız</string>
+    <string name="download_toast_aria2">aria2 gönderim sonucu</string>
+    <string name="download_toast_storage_unavailable">İndirme klasörü kullanılamıyor</string>
+    <string name="download_toast_record_restored">İndirme kayıtları geri yüklendi</string>
+    <string name="download_toast_low_storage_paused">Yer yetersiz: indirmeler duraklatıldı</string>
+    <string name="download_toast_bulk_enqueue">Toplu kuyruk ilerlemesi</string>
+    <string name="download_toast_bulk_summary">Toplu indirme özeti</string>
+    <string name="download_toast_novel_progress">Novel bazında ilerleme</string>
+    <string name="download_toast_novel_batch_result">Toplu novel indirme sonucu</string>
+    <string name="download_toast_novel_save">Tek novel kaydetme ve dışa aktarma</string>
+    <string name="download_toast_novel_series_export">Seri indirme ve birleştirme sonucu</string>
+    <string name="download_toast_novel_auto_download">Favorilere eklerken otomatik indirme sonucu</string>
     <string name="setting_auto_export_caption_title">İllüstrasyon/manga indirirken açıklamayı otomatik dışa aktar</string>
     <string name="setting_auto_export_caption_length_title">Dışa aktarma için minimum açıklama uzunluğu</string>
     <string name="setting_auto_export_caption_length_value">%d karakter</string>
@@ -1086,6 +1115,8 @@
     <string name="update_retry">Yeniden dene</string>
     <string name="update_download_failed">İndirme başarısız oldu</string>
     <string name="update_check_failed">Güncellemeler kontrol edilemedi</string>
+    <string name="update_rate_limited">İstek sınırına ulaşıldı, lütfen daha sonra tekrar deneyin</string>
+    <string name="update_rate_limited_with_reset">İstek sınırına ulaşıldı, lütfen %1$s sonrasında tekrar deneyin</string>
     <string name="update_download_title">Shaft güncellemesi</string>
     <string name="update_version_skipped">Bu sürüm atlandı</string>
     <string name="update_enable_install_permission">Bilinmeyen kaynaklardan uygulama kurulumuna izin verin</string>
@@ -1107,6 +1138,7 @@
     <string name="rate_dialog_rate_now">Puan Ver</string>
     <string name="rate_dialog_maybe_later">Sonra</string>
     <string name="rate_dialog_never">Bir daha sorma</string>
+    <string name="show_illust_card_bookmark_button_setting">İllüstrasyon kartlarında favori düğmesini göster</string>
     <string name="show_novel_card_tags_setting">Roman kartlarında etiketleri göster</string>
     <string name="show_novel_card_tag_translations_setting">Roman kartlarında etiket çevirilerini göster</string>
     <string name="collapse_novel_card_tags_setting">Roman kartlarında etiketleri daralt</string>
@@ -2491,6 +2523,7 @@
     <string name="ai_translate_test_success">Test başarılı: %1$s</string>
     <string name="ai_translate_test_failed">Test başarısız: %1$s</string>
     <string name="ai_translate_failed_title">AI çevirisi başarısız</string>
+    <string name="ai_translate_verbatim_warning">Model metni olduğu gibi çıkarmış olabilir (birebir oranı %1$d%%)</string>
     <string name="ai_translate_error_code_label">Hata kodu</string>
     <string name="ai_translate_error_message_label">Hata mesajı</string>
     <string name="ai_translate_error_code_unknown">Bilinmiyor</string>
@@ -2962,8 +2995,10 @@
 
     <!-- ============ 收藏库 / Bookmark library ============ -->
     <string name="settings_bookmark_mirror">Yerel yer imi kopyası</string>
-    <string name="settings_like_haptic">Yer imi düğmesi titreşim geri bildirimi</string>
+    <string name="settings_like_haptic">Yer imi ve takip titreşim geri bildirimi</string>
     <string name="settings_like_haptic_desc">Sistem dokunma geri bildirimini de açmanız gerekebilir</string>
+    <string name="settings_scroll_edge_haptic">Liste kenarında titreşim</string>
+    <string name="settings_scroll_edge_haptic_desc">Liste en üste veya en alta ulaştığında hafif titreşim. Sistem dokunma geri bildirimini de açmanız gerekebilir</string>
     <string name="bookmark_library_menu_entry">Filtrelerle gözat</string>
     <string name="bookmark_library_open_classic">Orijinal yer imi listesi</string>
     <string name="bookmark_mirror_ready_title">Yer imi kitaplığı hazır</string>

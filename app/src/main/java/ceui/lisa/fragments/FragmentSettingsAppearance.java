@@ -61,6 +61,8 @@ import ceui.pixiv.widget.RecommendCardWidgetProvider;
 import ceui.pixiv.widget.RecommendStripWidgetProvider;
 import ceui.pixiv.widget.SpotlightWidgetProvider;
 import ceui.pixiv.ui.navigation.TemplateRoute;
+import ceui.pixiv.ui.common.IllustListLayout;
+import ceui.pixiv.ui.settings.IllustListLayoutPicker;
 
 /** 设置 · 界面 */
 public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSettingsAppearanceBinding> {
@@ -314,6 +316,14 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     .show();
         });
 
+        // 插画列表布局（#1214）：带预览图的选择器，回到列表时各列表自行重装
+        baseBind.illustListLayout.setText(IllustListLayout.Companion.current().getTitleRes());
+        baseBind.illustListLayoutRela.setOnClickListener(v ->
+                IllustListLayoutPicker.show(mActivity, layout -> {
+                    IllustListLayout.save(layout);
+                    baseBind.illustListLayout.setText(layout.getTitleRes());
+                }));
+
         // 关注动态布局模式
         baseBind.layoutMode.setText(Shaft.sSettings.isUseStaggeredLayout()
                 ? getString(R.string.layout_staggered) : getString(R.string.layout_linear));
@@ -335,6 +345,16 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     })
                     .show();
         });
+
+        // 插画列表显示收藏按钮：所有插画瀑布流页统一生效（IllustFeedFragment.hideLikeButton）
+        baseBind.showIllustCardBookmarkButton.setChecked(Shaft.sSettings.isShowIllustCardBookmarkButton());
+        baseBind.showIllustCardBookmarkButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setShowIllustCardBookmarkButton(isChecked);
+            Common.showToast(getString(R.string.string_428));
+            Local.setSettings(Shaft.sSettings);
+        });
+        baseBind.showIllustCardBookmarkButtonRela.setOnClickListener(v ->
+                baseBind.showIllustCardBookmarkButton.performClick());
 
         // 小说列表显示标签
         baseBind.showNovelCardTags.setChecked(Shaft.sSettings.isShowNovelCardTags());

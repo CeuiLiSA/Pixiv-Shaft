@@ -74,6 +74,7 @@ import ceui.pixiv.ui.upscale.UpscaleTaskPool
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.pixiv.utils.animateFadeInQuickly
 import ceui.pixiv.utils.animateFadeOutQuickly
+import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.utils.setOnClick
 import ceui.pixiv.wallpaper.WallpaperSetter
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -727,7 +728,9 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      */
     private fun setupFabBar() {
         val fabBind = ViewV3FabBarBinding.bind(findViewById(R.id.fab_bar))
-        val fabBar = V3FabBarController(fabBind)
+        // 本页这颗按钮存的是**当前页**(译图时存译图),不是整部作品;Idle 态用「保存当前图」
+        // 图标(图片框 + 箭头),别借一级 V3 详情页的整作品下载箭头,免得同一颗箭头两页含义不同(issue #1220)
+        val fabBar = V3FabBarController(fabBind, saveCurrentImage = true)
         this.fabBar = fabBar
         // 胶囊配色与一级 V3 详情页同一套规则(V3Palette 派生,日夜双模),不用 XML 里的深色默认值
         fabBar.applyPalette(V3Palette.from(this))
@@ -791,6 +794,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             val willBookmark = !illust.isBookmarked
             // 乐观着色,权威态由上面的 ObjectPool 观察兜底(与 ArtworkV3Fragment 同款)
             fabBar.setBookmarked(willBookmark)
+            playToggleHaptic(it, willBookmark)
             PixivOperate.postLikeDefaultStarType(illust)
             if (willBookmark && Shaft.sSettings.isAutoDownloadAfterStar) {
                 IllustDownload.downloadIllustAllPages(illust)

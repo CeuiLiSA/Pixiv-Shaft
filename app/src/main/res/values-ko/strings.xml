@@ -590,6 +590,16 @@
     <string name="layout_mode">팔로우 피드 레이아웃</string>
     <string name="layout_staggered">폭포형</string>
     <string name="layout_linear">세로 목록</string>
+    <string name="illust_list_layout">일러스트 목록 레이아웃</string>
+    <string name="illust_list_layout_sheet_desc">추천, 랭킹, 검색, 북마크 등 일러스트 목록의 배치 방식입니다.</string>
+    <string name="illust_list_layout_masonry">폭포형</string>
+    <string name="illust_list_layout_masonry_desc">너비 같음 · 높이 다름</string>
+    <string name="illust_list_layout_grid">그리드</string>
+    <string name="illust_list_layout_grid_desc">너비 · 높이 같음</string>
+    <string name="illust_list_layout_justified">행 맞춤</string>
+    <string name="illust_list_layout_justified_desc">높이 같음 · 너비 다름</string>
+    <string name="illust_list_layout_single">1열</string>
+    <string name="illust_list_layout_single_desc">전체 너비 1열</string>
     <string name="string_337">다운로드 됨</string>
     <string name="string_338">R18 작품 을 다른 디 렉 터 리 에 다운로드</string>
     <string name="string_339">이 작품 을 다운 받 았 습 니 다.</string>
@@ -948,7 +958,26 @@
     <string name="color_peachPink">피치 핑크</string>
     <string name="theme_nowUsing">(사용 중)</string>
     <string name="core_string_novel_marker">책갈피</string>
-    <string name="toast_download_result">다운로드 완료 시 앱 내 알림 표시</string>
+    <string name="download_toast_entry_title">다운로드 관련 알림</string>
+    <string name="download_toast_entry_summary">%1$d개 메시지 숨김</string>
+    <string name="download_toast_dialog_hint">다운로드 중 표시할 알림을 항목별로 선택하세요. 끈 항목은 더 이상 표시되지 않습니다</string>
+    <string name="download_toast_group_image">이미지 다운로드</string>
+    <string name="download_toast_group_novel">소설 다운로드</string>
+    <string name="download_toast_enqueued">다운로드 대기열에 추가됨</string>
+    <string name="download_toast_enqueue_failed">다운로드 작업 생성 실패</string>
+    <string name="download_toast_download_done">다운로드 완료</string>
+    <string name="download_toast_download_failed">다운로드 실패</string>
+    <string name="download_toast_aria2">aria2 전송 결과</string>
+    <string name="download_toast_storage_unavailable">다운로드 폴더를 사용할 수 없음</string>
+    <string name="download_toast_record_restored">다운로드 기록 복원</string>
+    <string name="download_toast_low_storage_paused">저장 공간 부족으로 다운로드 일시중지</string>
+    <string name="download_toast_bulk_enqueue">일괄 추가 진행 상황</string>
+    <string name="download_toast_bulk_summary">일괄 다운로드 요약</string>
+    <string name="download_toast_novel_progress">소설 편별 진행 상황</string>
+    <string name="download_toast_novel_batch_result">소설 일괄 다운로드 결과</string>
+    <string name="download_toast_novel_save">소설 1편 저장·내보내기</string>
+    <string name="download_toast_novel_series_export">시리즈 다운로드·병합 결과</string>
+    <string name="download_toast_novel_auto_download">북마크 시 자동 다운로드 결과</string>
     <string name="setting_auto_export_caption_title">일러스트/만화 다운로드 시 캡션 자동 내보내기</string>
     <string name="setting_auto_export_caption_length_title">캡션 자동 내보내기 최소 글자 수</string>
     <string name="setting_auto_export_caption_length_value">%d자</string>
@@ -1086,6 +1115,8 @@
     <string name="update_retry">다시 시도</string>
     <string name="update_download_failed">다운로드 실패</string>
     <string name="update_check_failed">업데이트 확인 실패</string>
+    <string name="update_rate_limited">요청 한도에 도달했습니다. 잠시 후 다시 시도해 주세요</string>
+    <string name="update_rate_limited_with_reset">요청 한도에 도달했습니다. %1$s 이후에 다시 시도해 주세요</string>
     <string name="update_download_title">Shaft 업데이트</string>
     <string name="update_version_skipped">이 버전은 건너뛰었습니다</string>
     <string name="update_enable_install_permission">알 수 없는 출처 앱 설치를 허용해 주세요</string>
@@ -1107,6 +1138,7 @@
     <string name="rate_dialog_rate_now">평가하기</string>
     <string name="rate_dialog_maybe_later">나중에</string>
     <string name="rate_dialog_never">다시 묻지 않기</string>
+    <string name="show_illust_card_bookmark_button_setting">일러스트 카드에 북마크 버튼 표시</string>
     <string name="show_novel_card_tags_setting">소설 카드에 태그 표시</string>
     <string name="show_novel_card_tag_translations_setting">소설 카드에 태그 번역 표시</string>
     <string name="collapse_novel_card_tags_setting">소설 카드 태그 접기</string>
@@ -2491,6 +2523,7 @@
     <string name="ai_translate_test_success">테스트 성공: %1$s</string>
     <string name="ai_translate_test_failed">테스트 실패: %1$s</string>
     <string name="ai_translate_failed_title">AI 번역 실패</string>
+    <string name="ai_translate_verbatim_warning">모델이 원문을 그대로 출력했을 수 있습니다 (원문 유지도 %1$d%%)</string>
     <string name="ai_translate_error_code_label">오류 코드</string>
     <string name="ai_translate_error_message_label">오류 메시지</string>
     <string name="ai_translate_error_code_unknown">알 수 없음</string>
@@ -2959,8 +2992,10 @@
 
     <!-- ============ 收藏库 / Bookmark library ============ -->
     <string name="settings_bookmark_mirror">북마크 로컬 미러</string>
-    <string name="settings_like_haptic">북마크 버튼 진동 피드백</string>
+    <string name="settings_like_haptic">북마크·관심 진동 피드백</string>
     <string name="settings_like_haptic_desc">시스템 촉각 피드백도 함께 켜야 할 수 있습니다</string>
+    <string name="settings_scroll_edge_haptic">목록 끝에서 진동</string>
+    <string name="settings_scroll_edge_haptic_desc">목록이 맨 위나 맨 아래에 닿으면 가볍게 진동합니다. 시스템 촉각 피드백도 함께 켜야 할 수 있습니다</string>
     <string name="bookmark_library_menu_entry">조건으로 둘러보기</string>
     <string name="bookmark_library_open_classic">원본 북마크 목록</string>
     <string name="bookmark_mirror_ready_title">북마크 보관함이 준비됐어요</string>

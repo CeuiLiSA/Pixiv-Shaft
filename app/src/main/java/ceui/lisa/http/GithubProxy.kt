@@ -41,6 +41,14 @@ object GithubProxy {
     @JvmStatic
     fun currentPrefix(): String = normalize(Shaft.sSettings?.githubProxy) ?: NONE
 
+    /** 是否配置并启用了有效的 GitHub 加速地址。 */
+    @JvmStatic
+    fun isEnabled(): Boolean = isEnabled(Shaft.sSettings?.githubProxy)
+
+    /** 判断给定前缀是否为有效的 GitHub 加速地址。 */
+    @JvmStatic
+    fun isEnabled(prefix: String?): Boolean = (normalize(prefix) ?: NONE).isNotEmpty()
+
     /**
      * 把 [prefix] 插到 [url] 的 `https://` 之前。
      *

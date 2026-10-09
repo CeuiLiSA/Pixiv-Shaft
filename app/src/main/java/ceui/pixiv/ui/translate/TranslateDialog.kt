@@ -35,15 +35,39 @@ internal fun onceThinkingPhase(
     }
 }
 
-/** 弹出译文弹窗(挂 SkinManager 跟随日夜皮肤),复制按钮把整段译文写进剪贴板。 */
-internal fun showTranslatedDialog(context: Context, message: String) {
+/**
+ * 弹出译文弹窗(挂 SkinManager 跟随日夜皮肤),复制按钮把译文写进剪贴板。
+ * [warning] 非空时在正文末尾追加一行提示(如「原样度」警告),但不进剪贴板 —— 复制出去的是纯译文。
+ */
+internal fun showTranslatedDialog(context: Context, message: String, warning: String? = null) {
+    val body = if (warning.isNullOrBlank()) message else message + "\n\n" + warning
     WitDialog.MessageDialogBuilder(context)
         .setTitle(context.getString(R.string.string_translate_caption))
-        .setMessage(message)
+        .setMessage(body)
         .addAction(context.getString(R.string.string_120)) { dialog, _ ->
             ClipBoardUtils.putTextIntoClipboard(context, message)
             dialog.dismiss()
         }
         .addAction(context.getString(R.string.sure)) { dialog, _ -> dialog.dismiss() }
         .show()
+}
+
+/**
+ * 命中「疑似原样输出」时给出提示文案,否则 null。
+ * 仅 AI 引擎([isAiBacked])、目标语言不是日文(同语言翻译允许保留原文)、且原样度达阈值时才提示。
+ */
+internal fun verbatimWarningText(
+    context: Context,
+    translator: Translator,
+    original: String,
+    translated: String,
+    targetLang: String = appTranslateTargetLang(),
+): String? {
+    if (!translator.isAiBacked()) return null
+    if (targetLang.equals("ja", ignoreCase = true)) return null
+    if (!VerbatimRatio.isLikelyVerbatim(original, translated)) return null
+    return context.getString(
+        R.string.ai_translate_verbatim_warning,
+        VerbatimRatio.percent(original, translated),
+    )
 }

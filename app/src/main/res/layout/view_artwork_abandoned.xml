@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 已屏蔽遮罩的 ViewStub 目标（对齐经典 fragment_illust 的 abandoned_frame）：
+     作品/画师命中屏蔽记录时全屏盖住整页（含 chrome）。clickable 挡住底下列表——
+     经典是直接隐藏 content_frame，这里内容仍在。
+
+     从 fragment_artwork_v3.xml 抽出来：它对绝大多数作品都不会显示（只有被屏蔽的才亮），
+     而子树里挂着 SpoilerBlurView（→ ImageView + SpoilerParticleView 两个自定义 View），
+     没有理由在点进页面的那一帧替每个作品都建一份。显隐见 ArtworkV3Fragment.ensureAbandonedFrame。 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/abandoned_frame"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    android:clickable="true"
+    android:focusable="true"
+    android:visibility="gone">
+
+    <!-- 遮罩底：糊掉的作品图 + spoiler 粒子(与瀑布流「屏蔽此作品」同一套观感),
+         取代原来的一块纯黑。按钮排在它后面,盖在上面照常点。 -->
+    <ceui.pixiv.widget.SpoilerBlurView
+        android:id="@+id/abandoned_spoiler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <ceui.pixiv.widgets.ProgressTextButton
+            android:id="@+id/cancel_mute_illust"
+            style="@style/BlueShiningButton"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:layout_marginBottom="20dp"
+            android:paddingHorizontal="20dp"
+            android:text="@string/action_unmute_work" />
+
+        <ceui.pixiv.widgets.ProgressTextButton
+            android:id="@+id/cancel_mute_user"
+            style="@style/BlueShiningButton"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:layout_marginBottom="20dp"
+            android:paddingHorizontal="20dp"
+            android:text="@string/action_unmute_user" />
+
+        <ceui.pixiv.widgets.ProgressTextButton
+            android:id="@+id/leave"
+            style="@style/RedShiningButton"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:layout_marginBottom="20dp"
+            android:paddingHorizontal="20dp"
+            android:text="@string/action_leave_page" />
+    </LinearLayout>
+</FrameLayout>

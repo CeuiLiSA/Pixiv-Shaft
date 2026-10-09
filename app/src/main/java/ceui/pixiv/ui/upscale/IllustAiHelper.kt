@@ -22,7 +22,13 @@ import ceui.pixiv.ui.navigation.TemplateRoute
 
 class IllustAiHelper(
     private val fragment: Fragment,
-    private val rootView: View
+    private val rootView: View,
+    /**
+     * 覆盖层在详情页是 ViewStub，首帧不建（见 `ArtworkV3Fragment.ensureAiOverlay`）。
+     * 所有会碰 `ai_*` 这些 view 的入口都必须在第一行调它，把子树建出来再往下走。
+     * 默认空实现：调用方没接 ViewStub 时（经典页）行为完全不变。
+     */
+    private val ensureOverlay: () -> Unit = {},
 ) {
     /** 同一任务可能被“恢复任务”和重复点击同时接入；每个 view 生命周期只观察一次。 */
     private var observedUpscaleTask: UpscaleTask? = null
@@ -43,6 +49,8 @@ class IllustAiHelper(
     fun performRembg(illust: Illust, model: RembgModel) {
         val imageUrl = IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_ORIGINAL)
             ?: IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE) ?: return
+
+        ensureOverlay() // 覆盖层是 ViewStub：碰 ai_* 之前先把子树建出来
 
         overlayRoot.visibility = View.VISIBLE
         loadingState.visibility = View.VISIBLE
@@ -133,6 +141,9 @@ class IllustAiHelper(
     private fun observeUpscaleTask(task: UpscaleTask) {
         if (observedUpscaleTask === task) return
         observedUpscaleTask = task
+        // 覆盖层是 ViewStub：走到这一步才真的要用（新建 / 恢复的任务），此时才建子树。
+        // performUpscale 也收敛到这里，所以只需在这一处接。
+        ensureOverlay()
 
         fun navigateToCompare(): Boolean {
             val result = task.resultFile.value ?: return false

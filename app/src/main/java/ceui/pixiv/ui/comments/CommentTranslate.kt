@@ -9,6 +9,7 @@ import ceui.pixiv.ui.translate.currentTranslator
 import ceui.pixiv.ui.translate.onceThinkingPhase
 import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
 import ceui.pixiv.ui.translate.showTranslatedDialog
+import ceui.pixiv.ui.translate.verbatimWarningText
 import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 
@@ -25,7 +26,10 @@ fun Fragment.translateComment(text: String?) {
     Common.showToast(R.string.string_translating)
     launchSuspend {
         val translated = translateTextOrPrompt(src) ?: return@launchSuspend
-        showTranslatedDialog(ctx, translated)
+        showTranslatedDialog(
+            ctx, translated,
+            warning = verbatimWarningText(ctx, currentTranslator(), src, translated),
+        )
     }
 }
 

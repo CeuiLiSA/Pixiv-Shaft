@@ -65,9 +65,12 @@ import ceui.pixiv.ui.bulk.QueueDownloadManager
  * 并发下载（Settings.maxConcurrentDownloads，默认 1，上限 5）：
  *   - 任意时刻 DOWNLOADING 数量 ≤ 用户配置的并发数
  *   - 其余可下载的 page 处于 INIT（等待）
+ *   - 「不自动下载」入列的项是 PAUSED：没有任何自动唤醒源，只能由用户点播放键 / 「继续」启动
+ *     （见 [ceui.lisa.utils.DownloadLimitTypeUtil.enqueueAsPaused]）；等待态（INIT）只属于仅 Wi-Fi 的网络暂缓
  *   - DOWNLOADING 卡：完整不透明 + 蓝色进度条 + 实时大小/百分比
  *   - INIT 卡：半透明 0.55 + 隐藏进度条/大小 + 文字 "等待中…"
- *   - 顶部状态行明确写 "N 正在 · M 等待"
+ *   - PAUSED 卡：半透明 0.55 + 隐藏进度条/大小 + 文字 "已暂停" + 播放键
+ *   - 顶部状态行明确写 "N 正在 · M 等待 · K 已暂停"
  *   - 运行时 invariant：snapshot 里 DOWNLOADING > 配置上限 直接 warn 到日志
  */
 class ActiveListV3Fragment : Fragment() {
@@ -700,13 +703,21 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
             // payload-bind 看到新状态（snapshot 还是旧的）。直接操作 view —
             // 下一轮 polling 来重 snapshot 时 DiffUtil 会再 reconcile 一次。
             val live = snap.item
-            val wasPaused = live.isPaused
-            if (wasPaused) Manager.get().startOne(live.uuid)
-            else Manager.get().stopOne(live.uuid)
-            h.pauseBtn.setImageResource(
-                if (wasPaused) R.drawable.ic_baseline_pause_24
-                else R.drawable.ic_baseline_play_arrow_24
-            )
+            val effectiveState = if (snap.state == DownloadItem.DownloadState.FAILED) snap.state else live.state
+            val action = resolveActiveRowAction(effectiveState, live.isPaused)
+            when (action) {
+                ActiveRowAction.RETRY,
+                ActiveRowAction.RESUME -> {
+                    Manager.get().startOne(live.uuid)
+                    h.pauseBtn.setImageResource(ActiveRowAction.PAUSE.iconRes)
+                    h.pauseBtn.contentDescription = h.itemView.context.getString(ActiveRowAction.PAUSE.contentDescriptionRes)
+                }
+                ActiveRowAction.PAUSE -> {
+                    Manager.get().stopOne(live.uuid)
+                    h.pauseBtn.setImageResource(ActiveRowAction.RESUME.iconRes)
+                    h.pauseBtn.contentDescription = h.itemView.context.getString(ActiveRowAction.RESUME.contentDescriptionRes)
+                }
+            }
         }
         h.cancelBtn.setOnClickListener {
             Manager.get().clearOne(snap.item.uuid)
@@ -800,10 +811,9 @@ private class ActiveAdapterV3 : ListAdapter<ActiveSnapshot, ActiveAdapterV3.VH>(
         h.stateBadge.text = label
         h.stateBadge.setTextColor(Color.parseColor(color))
 
-        h.pauseBtn.setImageResource(
-            if (snap.isPaused) R.drawable.ic_baseline_play_arrow_24
-            else R.drawable.ic_baseline_pause_24
-        )
+        val action = resolveActiveRowAction(snap.state, snap.isPaused)
+        h.pauseBtn.setImageResource(action.iconRes)
+        h.pauseBtn.contentDescription = h.itemView.context.getString(action.contentDescriptionRes)
     }
 
     /**

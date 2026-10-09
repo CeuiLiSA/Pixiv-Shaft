@@ -42,6 +42,7 @@ public class Local {
         if (settings != null) {
             Settings.migrateLegacyDoubleTapZoom(settings);
             Settings.migrateLegacyLongPressBehavior(settings);
+            Settings.migrateLegacyDownloadToasts(settings);
         }
         return settings == null ? new Settings() : settings;
     }
@@ -50,6 +51,7 @@ public class Local {
         if (settings != null) {
             Settings.migrateLegacyDoubleTapZoom(settings);
             Settings.migrateLegacyLongPressBehavior(settings);
+            Settings.migrateLegacyDownloadToasts(settings);
         }
         String settingsGson = Shaft.sGson.toJson(settings);
         SharedPreferences.Editor editor = Shaft.sPreferences.edit();

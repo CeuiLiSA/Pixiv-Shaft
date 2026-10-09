@@ -17,6 +17,7 @@ import ceui.pixiv.api.model.WebIllustBody
 import ceui.pixiv.api.model.WebIllustPage
 import ceui.pixiv.api.model.WebNovelSearchBody
 import ceui.pixiv.api.model.WebResponse
+import ceui.pixiv.api.model.WebTopBody
 import ceui.pixiv.api.model.WebUserDetail
 import ceui.pixiv.api.model.WorkTagEditRequest
 import ceui.pixiv.api.model.WorkTagsBody
@@ -143,10 +144,16 @@ interface PixivWebApi {
         @Query("lang") lang: String = "zh",
     ): WebResponse<WebUserDetail>
 
-    @GET("/ajax/top/{type}?mode=all&lang=zh")
-    suspend fun getSquareContents(
-        @Path("type") type: String,
-    ): SquareResponse
+    /**
+     * 官网首页：[kind] 取 illust / manga，[mode] 取 all / r18。
+     * app-api 的推荐流不出 R-18，mode=r18 的推荐区只能从这里拿。必须带网页登录 cookie，匿名请求返回 400。
+     */
+    @GET("/ajax/top/{kind}")
+    suspend fun getTopArtworks(
+        @Path("kind") kind: String,
+        @Query("mode") mode: String,
+        @Query("lang") lang: String = "zh",
+    ): WebResponse<WebTopBody>
 
 
     @GET("/touch/ajax/user/bookmarks?p=1&lang=zh&version=eb51bf32f166e48a193f081b66211ef5cc643d6e")

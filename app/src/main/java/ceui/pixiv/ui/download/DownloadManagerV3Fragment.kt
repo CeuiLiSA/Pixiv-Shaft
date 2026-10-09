@@ -26,7 +26,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
+import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.Manager
+import ceui.lisa.core.ManagerReactive
 import ceui.lisa.utils.Common
 import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.bulk.QueueDownloadManager
@@ -34,8 +36,13 @@ import ceui.pixiv.ui.common.tintMenuIconsWhite
 import com.blankj.utilcode.util.BarUtils
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 /**
@@ -139,6 +146,19 @@ class DownloadManagerV3Fragment : Fragment() {
         val pauseToggleItem = toolbar.menu.findItem(R.id.action_pause_toggle)
         val searchItem = toolbar.menu.findItem(R.id.action_search)
         val importItem = toolbar.menu.findItem(R.id.action_import)
+        // 工具栏右侧按钮的动作 —— 图标与点击共用同一个现算值（口径 + 单测见 ActiveToolbarAction.kt /
+        // ActivePauseToggle.kt）：只剩失败项时是「重试失败」，否则按 shouldResumeAll 定暂停 / 继续。
+        fun currentToolbarAction(): ActiveToolbarAction = resolveActiveToolbarAction(
+            Manager.get().contentSnapshot().toPauseToggleItems(),
+            queueDownloadManager.isPaused(),
+            queueDownloadManager.ugoiraInFlightFlow.value.isNotEmpty(),
+        )
+
+        fun renderPauseToggle(action: ActiveToolbarAction) {
+            pauseToggleItem?.setIcon(action.iconRes)
+            pauseToggleItem?.setTitle(action.titleRes)
+        }
+
         setupDoneSearch(searchItem)
         toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -147,15 +167,21 @@ class DownloadManagerV3Fragment : Fragment() {
                     true
                 }
                 R.id.action_pause_toggle -> {
-                    // 读当前 pausedFlow 决定方向:暂停态 → 继续;运行态 → 暂停。
-                    // 不存第二份 UI 状态,跟 host 的 icon/title 联动用同一个 source of truth。
-                    if (queueDownloadManager.isPaused()) {
-                        // resumeByUser：用户触发的操作忽略网络状态，不走自动闸门
-                        Manager.get().startAll()
-                        queueDownloadManager.resumeByUser()
-                    } else {
-                        Manager.get().stopAll()
-                        queueDownloadManager.pause()
+                    // 图标与动作同源：都用 currentToolbarAction() 现算（见 ActiveToolbarAction.kt），
+                    // 不存第二份 UI 状态 —— 否则会出现「按钮显示继续、点下去却暂停」的错位。
+                    when (currentToolbarAction()) {
+                        ActiveToolbarAction.RETRY -> {
+                            Manager.get().retryAllFailed()
+                        }
+                        ActiveToolbarAction.RESUME -> {
+                            // resumeByUser：用户触发的操作忽略网络状态，不走自动闸门
+                            Manager.get().startAll()
+                            queueDownloadManager.resumeByUser()
+                        }
+                        ActiveToolbarAction.PAUSE -> {
+                            Manager.get().stopAll()
+                            queueDownloadManager.pause()
+                        }
                     }
                     true
                 }
@@ -186,20 +212,27 @@ class DownloadManagerV3Fragment : Fragment() {
             }
         }.also { pager.registerOnPageChangeCallback(it) }
 
-        // pausedFlow → 切 pause_toggle 的 icon + title。StateFlow 自带初始值,
-        // 第一次 collect 就立刻把按钮渲染成当前真实状态 (避免冷启 icon 跟
-        // 实际暂停态错位)。distinctUntilChanged 隐含 (StateFlow 不会重发同值)。
+        // 暂停/继续/重试按钮 → 图标 + title。动作由 resolveActiveToolbarAction 现算（见
+        // ActiveToolbarAction.kt）：只剩失败项 → 重试失败；否则方向由 shouldResumeAll 定（见
+        // ActivePauseToggle.kt），不再只看批量队列的 pausedFlow —— 模式 2「不自动下载」下内容列表里
+        // 全是等用户手动启动的暂停项、而队列标志是 false，旧逻辑会一直显示「全部暂停」。
+        // combine 三个源：Manager 内容（在传 / 排队 / 暂停项增删 / 单条手动暂停）、队列暂停标志、
+        // 动图在飞（动图不在 Manager.content，但「全部暂停」同样会掐掉它）。flowOn(Default) 把每帧
+        // 的快照拷贝 + map 挪出主线程；StateFlow/SharedFlow 都自带初始值，首帧就渲染成真实方向，
+        // 不会出现冷启图标与实际状态错位；distinctUntilChanged 让图标只在动作真的变化时才 setIcon。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                queueDownloadManager.pausedFlow.collect { paused ->
-                    if (paused) {
-                        pauseToggleItem?.setIcon(R.drawable.ic_v3_resume_all_24)
-                        pauseToggleItem?.setTitle(R.string.dlmgr_active_action_resume_all)
-                    } else {
-                        pauseToggleItem?.setIcon(R.drawable.ic_v3_pause_all_24)
-                        pauseToggleItem?.setTitle(R.string.dlmgr_active_action_pause_all)
-                    }
+                combine(
+                    queueDownloadManager.pausedFlow,
+                    ManagerReactive.contentFlow,
+                    queueDownloadManager.ugoiraInFlightFlow,
+                ) { paused, items, ugoiras ->
+                    resolveActiveToolbarAction(items.toPauseToggleItems(), paused, ugoiras.isNotEmpty())
                 }
+                    .conflate()
+                    .flowOn(Dispatchers.Default)
+                    .distinctUntilChanged()
+                    .collect { renderPauseToggle(it) }
             }
         }
 
@@ -314,5 +347,21 @@ class DownloadManagerV3Fragment : Fragment() {
             2 -> DoneListV3Fragment()
             else -> error("unreachable: $position")
         }
+    }
+}
+
+/**
+ * 给 [shouldResumeAll] 的输入：INIT 项附上「会不会被派发」（[Manager.willDispatch]）。
+ * 同一作品的多页只问一次 —— willDispatch 是 synchronized，每帧进度都会走到这里。
+ */
+private fun List<DownloadItem>.toPauseToggleItems(): List<PauseToggleItem> {
+    val manager = Manager.get()
+    val dispatchByIllust = HashMap<Long, Boolean>()
+    return map { item ->
+        val state = item.state
+        val illustId = item.illust?.id
+        val willDispatch = state == DownloadItem.DownloadState.INIT && illustId != null &&
+            dispatchByIllust.getOrPut(illustId) { manager.willDispatch(illustId) }
+        PauseToggleItem(state, willDispatch)
     }
 }
