@@ -146,9 +146,16 @@ class RateLimitTest {
         // RateLimitException directly
         assertEquals(expected, RateLimitException().getHumanReadableMessage(context))
 
-        // 403 with x-ratelimit-remaining = 0 HttpException
-        val httpEx = createHttpException(403, mapOf("x-ratelimit-remaining" to "0"))
-        assertEquals(expected, httpEx.getHumanReadableMessage(context))
+        // 全 app 共用这个映射：别的服务（pixiv / pixshaft-api）的 429 必须照旧透传服务端文案，
+        // 不能被 GitHub 的限流提示顶掉。GitHub 的限流在 AppUpdateChecker 里已统一转成 RateLimitException。
+        val serverMsg = "额度已用完"
+        val otherHttpEx = createHttpException(
+            429,
+            bodyString = """{"error":{"user_message":"$serverMsg","message":"Rate Limit"}}"""
+        )
+        val otherMessage = otherHttpEx.getHumanReadableMessage(context)
+        assertTrue(otherMessage != expected)
+        assertTrue(otherMessage.contains(serverMsg))
     }
 
     @Test

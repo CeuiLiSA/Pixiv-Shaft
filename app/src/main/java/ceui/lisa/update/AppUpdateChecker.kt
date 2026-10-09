@@ -47,6 +47,8 @@ object AppUpdateChecker {
                 val response = chain.proceed(request)
                 if (isRateLimitResponse(response)) {
                     val reset = response.header("x-ratelimit-reset")?.toLongOrNull()
+                    // 不交回 response 就得自己关，否则这条连接永远回不了连接池。
+                    response.close()
                     throw RateLimitException(resetEpochSeconds = reset)
                 }
                 response

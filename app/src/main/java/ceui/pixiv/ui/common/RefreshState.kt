@@ -4,7 +4,6 @@ import android.content.Context
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.CfBlockDetector
 import ceui.lisa.http.CfBlockGuide
-import ceui.lisa.R
 import ceui.lisa.update.AppUpdateChecker
 import ceui.lisa.update.RateLimitException
 import ceui.pixiv.api.model.ErrorResp
@@ -14,16 +13,16 @@ import timber.log.Timber
 import java.io.Serializable
 import java.lang.Exception
 
-sealed class RefreshState : Serializable {
-    data class LOADING(val title: String = "", val refreshHint: RefreshHint? = null) :
-        RefreshState()
-
+sealed class RefreshState: Serializable {
+    data class LOADING(val title: String = "", val refreshHint: RefreshHint? = null) : RefreshState()
     data class LOADED(val hasContent: Boolean = true, val hasNext: Boolean = true) : RefreshState()
     data class ERROR(val exception: Exception, val isInitialLoad: Boolean = false) : RefreshState()
 }
 
 fun Throwable.getHumanReadableMessage(context: Context): String {
-    if (this is RateLimitException || AppUpdateChecker.isRateLimit(this)) {
+    // 只认 GitHub 客户端抛的 RateLimitException：这里是全 app 共用的映射，pixiv / pixshaft-api
+    // 的 429 要照旧走下面的 user_message 透传，不能被套上 GitHub 的限流文案。
+    if (this is RateLimitException) {
         return AppUpdateChecker.getRateLimitMessage(context, this)
     }
 
@@ -94,6 +93,6 @@ private fun Throwable.readErrorBodyOnce(): String? {
 private fun looksLikeHtml(body: String): Boolean {
     val head = body.trimStart()
     return head.startsWith("<") ||
-            head.contains("<html", ignoreCase = true) ||
-            head.contains("<!DOCTYPE", ignoreCase = true)
+        head.contains("<html", ignoreCase = true) ||
+        head.contains("<!DOCTYPE", ignoreCase = true)
 }
