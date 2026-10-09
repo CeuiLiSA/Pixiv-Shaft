@@ -64,11 +64,34 @@ class VerbatimRatioTest {
 
     @Test
     fun `部分命中按比例`() {
-        // 4 字里命中 2 字 → 0.5,低于阈值
-        assertEquals(0.5, VerbatimRatio.ratio("あいうえ", "あいXY"), 0.0001)
+        // 二字组 あい/いう/うえ 里命中 あい → 1/3,低于阈值
+        assertEquals(1.0 / 3, VerbatimRatio.ratio("あいうえ", "あいXY"), 0.0001)
         assertFalse(VerbatimRatio.isLikelyVerbatim("あいうえ", "あいXY"))
-        // 5 字里命中 4 字 → 0.8,达到阈值
-        assertTrue(VerbatimRatio.isLikelyVerbatim("あいうえお", "あいうえZ"))
+        // 6 字 5 个二字组里命中 4 个 → 0.8,达到阈值
+        assertEquals(0.8, VerbatimRatio.ratio("あいうえおか", "あいうえおZ"), 0.0001)
+        assertTrue(VerbatimRatio.isLikelyVerbatim("あいうえおか", "あいうえおZ"))
+    }
+
+    @Test
+    fun `原文夹在译文里也算原样`() {
+        assertTrue(VerbatimRatio.isLikelyVerbatim("こんにちは、世界！", "こんにちは、世界！\n你好，世界！"))
+    }
+
+    @Test
+    fun `拉丁字母互译不会因为字母重合误判`() {
+        assertFalse(VerbatimRatio.isLikelyVerbatim(
+            "Me encanta este dibujo, los colores son preciosos",
+            "I love this drawing, the colors are beautiful",
+        ))
+        assertFalse(VerbatimRatio.isLikelyVerbatim(
+            "Thank you so much for drawing this amazing picture, I love the colors!",
+            "Bu harika resmi çizdiğin için çok teşekkür ederim, renklere bayıldım!",
+        ))
+    }
+
+    @Test
+    fun `汉字居多的日文译成繁中不误判`() {
+        assertFalse(VerbatimRatio.isLikelyVerbatim("東方Project 博麗霊夢 誕生日記念", "東方Project 博麗靈夢 生日紀念"))
     }
 
     @Test

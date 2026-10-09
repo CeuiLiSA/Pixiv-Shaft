@@ -5,12 +5,15 @@ import kotlin.math.roundToInt
 /**
  * 「原样度」:衡量译文是否只是把原文原样吐了出来(#975 自定义 AI 翻译的指令遵循校验)。
  *
- * 算法:把原文去掉链接,再去掉空白 / 标点 / 符号 / emoji 等非字母数字字符,拆成单字,逐字到译文里查
- * 是否出现;命中数 ÷ 单字总数 = 原样度,天然落在 [0, 1](最高为 1)。
+ * 算法:把原文去掉链接,再去掉空白 / 标点 / 符号 / emoji 等非字母数字字符,切成相邻二字组(bigram),
+ * 逐个到译文里查是否原样出现;命中数 ÷ 二字组总数 = 原样度,天然落在 [0, 1](最高为 1)。
  *
- * 单个字命中不算数 —— 中日共用汉字会让「正经翻译」也带一点命中,所以只有 [isLikelyVerbatim]
- * 的阈值判定才算「模型可能原样输出了原文」,且原文归一化后短于 [MIN_NORMALIZED_LENGTH] 时
- * 不判定,避免标签这类超短文本误报。
+ * 不按单字查:拉丁字母只有几十个,西语/法语译成英文、英文译成土耳其语时,原文的每个字母在译文里
+ * 几乎都能找到,单字命中率能到 0.9 以上;日文标题里汉字居多时译成繁中也会过 0.8。二字组要求
+ * 连续两个字原样出现,正经翻译基本落在 0.6 以下,原样回显仍是 1。
+ *
+ * 只有 [isLikelyVerbatim] 的阈值判定才算「模型可能原样输出了原文」,且原文归一化后短于
+ * [MIN_NORMALIZED_LENGTH] 时不判定,避免标签这类超短文本误报。
  *
  * 纯 Kotlin、不依赖 Android,方便 JVM 单测直接覆盖。
  */
@@ -39,15 +42,17 @@ internal object VerbatimRatio {
         }
     }
 
-    /** 逐字命中率,范围 [0, 1];原文归一化后为空返回 0。 */
+    /** 二字组命中率,范围 [0, 1];原文归一化后为空返回 0,只有一个字时按单字查。 */
     fun ratio(original: String, translated: String): Double {
         val source = normalize(original)
         if (source.isEmpty()) return 0.0
         val target = normalize(translated)
         if (target.isEmpty()) return 0.0
+        if (source.length == 1) return if (target.contains(source)) 1.0 else 0.0
+        val total = source.length - 1
         var hit = 0
-        for (c in source) if (target.contains(c)) hit++
-        return hit.toDouble() / source.length
+        for (i in 0 until total) if (target.contains(source.substring(i, i + 2))) hit++
+        return hit.toDouble() / total
     }
 
     /** 是否疑似「模型原样输出了原文」:归一化原文够长且原样度 ≥ [THRESHOLD]。 */
