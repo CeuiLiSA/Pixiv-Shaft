@@ -16,6 +16,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -1726,7 +1727,15 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     /** 评论区「留下你的评论吧」入口(由 commentsRenderer 调)。 */
     internal fun showComposer() {
-        ensureComposer()
+        if (commentComposer == null) {
+            ensureComposer()
+            // 刚挂上的 BottomPanelCoordinator 在 attach 末尾 requestApplyInsets，那一轮分发要到下一帧
+            // 才到。此刻就 showKeyboard 切到 KEYBOARD，那轮分发会看到「IME 尚未可见 + state=KEYBOARD」
+            // 判成 NONE → onComposerStateChanged 把空输入栏收成 GONE：键盘照弹，输入栏却没了。
+            // 等首轮 insets 落地（同一次 traversal 的 preDraw）再唤起，与 onViewCreated 就挂载时的时序一致。
+            chromeBind.composerRoot.doOnPreDraw { if (view != null) showComposer() }
+            return
+        }
         chromeBind.composerRoot.setBackgroundColor(requireContext().getColor(R.color.v3_bg))
         if (composerActive) {
             commentComposer?.showKeyboard()
