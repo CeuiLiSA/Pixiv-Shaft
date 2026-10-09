@@ -168,7 +168,9 @@ class ImageLoadTask(
  * 阈值非默认**：下载侧是「调小阈值即自动生效」，图片侧是显式勾选，勾了就该生效。
  *
  * 设置值每次失败时现取，所以开关改完立即生效、不用重启。
+ *
+ * 读超时要从 Glide 的异常包装里找（见 [GlideImageFetcher.isReadTimeout]），不能只沿 cause 链。
  */
 internal fun shouldSilentlyRetryImageStall(error: Throwable): Boolean =
-    ceui.lisa.http.isReadTimeoutFailure(error) &&
+    GlideImageFetcher.isReadTimeout(error) &&
         ceui.lisa.activities.Shaft.sSettings?.isImageLoadRetryOnStall == true

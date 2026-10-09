@@ -51,17 +51,20 @@ class NetworkFailureClassifierTest {
     }
 
     /**
-     * 读超时只看 OkHttp 的 "timeout" 标记；连接超时（message 形如
-     * "failed to connect to … after Nms"）必须排除在外 —— 它不受「图片加载/下载断流阈值」影响，
+     * 读超时两种 message 都要认（okio watchdog 的 "timeout" / socket soTimeout 的 "Read timed out"，
+     * 谁先到点由谁抛）；连接超时（Android "failed to connect to … after Nms" / JVM
+     * "Connect timed out"）必须排除在外 —— 它不受「图片加载/下载断流阈值」影响，
      * 不该被当成「用户调小了阈值」的预期内事件去静默重连。
      */
     @Test
     fun `read timeout is told apart from connect timeout`() {
         assertTrue(isReadTimeoutFailure(SocketTimeoutException("timeout")))
+        assertTrue(isReadTimeoutFailure(SocketTimeoutException("Read timed out")))
         assertTrue(isReadTimeoutFailure(IOException("outer", SocketTimeoutException("timeout"))))
         assertFalse(
             isReadTimeoutFailure(SocketTimeoutException("failed to connect to x after 10000ms"))
         )
+        assertFalse(isReadTimeoutFailure(SocketTimeoutException("Connect timed out")))
         assertFalse(isReadTimeoutFailure(ConnectException("refused")))
         assertFalse(isReadTimeoutFailure(IOException("reset")))
     }

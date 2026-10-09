@@ -3,6 +3,7 @@ package ceui.pixiv.imageloader
 import android.os.SystemClock
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.ImageHostManager
+import ceui.lisa.http.isReadTimeoutFailure
 import ceui.lisa.utils.GlideUrlChild
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
@@ -30,6 +31,21 @@ import java.io.File
  * 这是判断「B/C 是否命中共享缓存 vs 真的走了一次网络」最直接的信号。
  */
 object GlideImageFetcher : ImageFetcher {
+
+    /**
+     * [fetch] 抛出的失败是不是读超时。
+     *
+     * [fetch] 失败时抛 `ExecutionException(GlideException)`，而 [GlideException] 把底层异常存在自己的
+     * causes 列表里、`getCause()` 恒为 null，只沿 cause 链永远找不到 SocketTimeoutException，
+     * 要展开 [GlideException.getRootCauses]。
+     *
+     * 只覆盖等响应头阶段的读超时（经 fetcher 的 onLoadFailed 上报）。读 body 中途的读超时发生在
+     * Glide 写磁盘缓存时，被 StreamEncoder 吞掉只打日志，最终的 GlideException 里没有它。
+     */
+    fun isReadTimeout(error: Throwable): Boolean =
+        generateSequence(error) { it.cause?.takeUnless { cause -> cause === it } }
+            .flatMap { if (it is GlideException) it.rootCauses.asSequence() + it else sequenceOf(it) }
+            .any(::isReadTimeoutFailure)
 
     override suspend fun fetch(url: String, onProgress: (Int) -> Unit): File {
         val shortUrl = url.substringAfterLast('/')
