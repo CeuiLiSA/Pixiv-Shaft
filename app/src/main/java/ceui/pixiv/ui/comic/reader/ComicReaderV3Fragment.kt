@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
@@ -275,10 +276,16 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
             binding.comicTopBar.root.updatePadding(top = bars.top)
             binding.comicBottomBar.root.updatePadding(bottom = bars.bottom)
-            // 右上角页码要躲开状态栏、刘海和横屏时贴在侧边的导航栏
-            val endInset = if (root.layoutDirection == View.LAYOUT_DIRECTION_RTL) bars.left else bars.right
+            // 右上角页码要躲开状态栏、刘海和横屏时贴在侧边的导航栏。系统栏取「忽略可见性」的值:
+            // 沉浸式下浮标露出的同时状态栏正在隐藏,按可见值算会先出现在状态栏下方、再往上跳一截。
+            val overlayInsets = Insets.max(
+                insets.getInsetsIgnoringVisibility(WindowInsetsCompat.Type.systemBars()),
+                insets.getInsets(WindowInsetsCompat.Type.displayCutout()),
+            )
+            val endInset =
+                if (root.layoutDirection == View.LAYOUT_DIRECTION_RTL) overlayInsets.left else overlayInsets.right
             binding.comicPageOverlay.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                topMargin = overlayTop + bars.top
+                topMargin = overlayTop + overlayInsets.top
                 marginEnd = overlayEnd + endInset
             }
             insets
