@@ -136,11 +136,20 @@ abstract class IllustFeedFragment(
     /**
      * 隐藏卡片上的收藏爱心。默认跟「插画列表显示收藏按钮」全局设置走，所有插画瀑布流页一并生效，
      * 新增的页面无需额外接线；自己的收藏页 / 收藏库在此之上再叠「收藏页隐藏收藏按钮」（对齐 legacy
-     * IAdapterWithStar）。每次 bind 动态读：设置变更后新绑定的卡片即生效（滑动复用 /
-     * 下拉刷新），屏幕上已绑定的卡片不会主动重绑——legacy 是建 adapter 时读死，更迟钝。
+     * IAdapterWithStar）。每次 bind 动态读；屏上已绑定的卡由 [onResume] 比对 [boundHideLikeButton] 补绑。
      */
     internal open val hideLikeButton: Boolean
         get() = !Shaft.sSettings.isShowIllustCardBookmarkButton()
+
+    /**
+     * 卡片最近一次绑定时用的 [hideLikeButton]（null = 还没绑过），由 renderer 在绑定处回写。
+     *
+     * 两个开关都在独立 Activity 的设置页里改，回来时屏上已绑好的卡不会自己重绑（短列表、首屏那几张
+     * 根本不回收），用户就会看到「关了没反应」。[onResume] 拿它比对，不一致就补一次局部重绑。
+     * 记在绑定处而不是首次 onResume：BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT 的相邻 tab 在 STARTED
+     * 时就已经把卡绑好了；也避开在 onViewCreated 里读子类覆写（收藏库的 shelf 此时可能还没 bind）。
+     */
+    internal var boundHideLikeButton: Boolean? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         // 必须在 super 之前：基类 onViewCreated 里就会建 renderer / LayoutManager
@@ -167,6 +176,10 @@ abstract class IllustFeedFragment(
         if (latest != illustListLayout) {
             illustListLayout = latest
             rebuildList()
+        }
+        val bound = boundHideLikeButton
+        if (bound != null && bound != hideLikeButton) {
+            rebindAllIllustCards(PAYLOAD_ILLUST_LIKE_VISIBILITY_CHANGED)
         }
     }
 
@@ -349,19 +362,19 @@ abstract class IllustFeedFragment(
         IllustMuteStore.revisionLive.observe(viewLifecycleOwner) { revision ->
             if (revision == lastMuteRevision) return@observe
             lastMuteRevision = revision
-            rebindAllIllustCards()
+            rebindAllIllustCards(PAYLOAD_ILLUST_SPOILER_CHANGED)
         }
     }
 
     /**
-     * 给 currentList 里**每一段连续的 [IllustFeedItem]** 发 spoiler payload。
+     * 给 currentList 里**每一段连续的 [IllustFeedItem]** 发 [payload]（插画卡认得的局部重绑标记）。
      *
      * 逐段发而不是 `notifyItemRangeChanged(0, itemCount)`：混排页里通知到的非插画条目会因为
      * 「不认识这个 payload」被框架退回**全量重绑**。纯瀑布流页看不出差别，[ArtworkV3Fragment]
      * 这种就要命了——它也是 IllustFeedFragment，条目里混着大图页（重绑即重新发大图 Glide 请求）、
      * ugoira 播放器和评论，全被一条与它们无关的屏蔽通知砸一遍。纯插画列表仍然只发一次区间通知。
      */
-    private fun rebindAllIllustCards() {
+    private fun rebindAllIllustCards(payload: Any) {
         val adapter = feedAdapter ?: return
         val items = adapter.currentList
         var start = -1
@@ -369,14 +382,12 @@ abstract class IllustFeedFragment(
             if (item is IllustFeedItem) {
                 if (start < 0) start = index
             } else if (start >= 0) {
-                adapter.notifyItemRangeChanged(start, index - start, PAYLOAD_ILLUST_SPOILER_CHANGED)
+                adapter.notifyItemRangeChanged(start, index - start, payload)
                 start = -1
             }
         }
         if (start >= 0) {
-            adapter.notifyItemRangeChanged(
-                start, items.size - start, PAYLOAD_ILLUST_SPOILER_CHANGED,
-            )
+            adapter.notifyItemRangeChanged(start, items.size - start, payload)
         }
     }
 

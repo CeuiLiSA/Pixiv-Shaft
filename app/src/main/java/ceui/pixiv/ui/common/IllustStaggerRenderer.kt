@@ -64,6 +64,12 @@ private const val SPOILER_BLUR_SAMPLING = 3
 internal val PAYLOAD_ILLUST_SPOILER_CHANGED = Any()
 
 /**
+ * 「显示收藏按钮」设置变了的局部重绑标记：只重算爱心的可见性，不碰图和角标。
+ * 同样不来自 DiffUtil，由 [IllustFeedFragment.onResume] 比对 [IllustFeedFragment.boundHideLikeButton] 后发出。
+ */
+internal val PAYLOAD_ILLUST_LIKE_VISIBILITY_CHANGED = Any()
+
+/**
  * Glide 请求去重 key（存在 ImageView 的 tag 上）。带 [blurred]：屏蔽态切换时 URL 和尺寸都没变，
  * 少了这一维就会因为 key 相等而跳过重新加载，图永远不糊/不清。
  */
@@ -171,7 +177,8 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             // RecyclerView 会把同一帧内的多个 payload 攒在一起给同一个 holder，
             // 所以逐个认领而不是二选一；混进不认识的就整体退回全量绑定
             val known = payloads.all {
-                it === PAYLOAD_ILLUST_LIKE_CHANGED || it === PAYLOAD_ILLUST_SPOILER_CHANGED
+                it === PAYLOAD_ILLUST_LIKE_CHANGED || it === PAYLOAD_ILLUST_SPOILER_CHANGED ||
+                        it === PAYLOAD_ILLUST_LIKE_VISIBILITY_CHANGED
             }
             if (known) {
                 if (payloads.any { it === PAYLOAD_ILLUST_LIKE_CHANGED }) {
@@ -193,6 +200,12 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
                     )
                     // 叠在图上的操作层跟着屏蔽态走。和全量绑定共用同一分支，两边永远一致
                     applyIllustSpoilerMask(cell.binding, spoilered)
+                } else if (payloads.any { it === PAYLOAD_ILLUST_LIKE_VISIBILITY_CHANGED }) {
+                    applyIllustSpoilerMask(
+                        cell.binding,
+                        IllustMuteStore.isMuted(cell.item.illust.id) ||
+                                IllustNovelFilter.shouldBlurAi(cell.item.illust),
+                    )
                 }
                 true
             } else {
@@ -258,8 +271,10 @@ private fun IllustFeedFragment.applyIllustSpoilerMask(
     binding: RecyIllustStaggerBinding,
     masked: Boolean,
 ) {
+    val hide = hideLikeButton
+    boundHideLikeButton = hide
     binding.badgeRow.isVisible = !masked
-    binding.likeButton.isVisible = !masked && !hideLikeButton
+    binding.likeButton.isVisible = !masked && !hide
     if (masked) {
         resetLikeAnim(binding)
     }
