@@ -32,6 +32,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentSettingsDataBinding;
 import ceui.lisa.download.IllustDownload;
@@ -45,6 +46,9 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.Settings;
 import ceui.pixiv.ui.settings.MoonSync;
+import ceui.pixiv.ui.navigation.TemplateRoute;
+import ceui.pixiv.webdav.WebDavLastRun;
+import ceui.pixiv.webdav.WebDavPrefs;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.download.config.DownloadItems;
 import ceui.pixiv.download.model.RelativePath;
@@ -113,6 +117,13 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
                 intent.putExtra(EXTRA_INITIAL_URI, backupFileUri);
             }
             startActivityForResult(intent, Params.REQUEST_CODE_CHOOSE);
+        });
+
+        // WebDAV 备份 —— 备份到用户自己的网盘 / NAS，多设备之间同步设置、屏蔽与浏览记录
+        baseBind.webdavRela.setOnClickListener(v -> {
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEBDAV_SETTINGS.key);
+            startActivity(intent);
         });
 
         // 上传配置到云端 (moonAPI)
@@ -198,6 +209,27 @@ public class FragmentSettingsData extends SettingsPageFragment<FragmentSettingsD
         // 改完必须重启 App 才生效（与图片加速代理同款限制），所以提示重启而不是「设置成功」。
         refreshImageCacheQuotaLabel();
         baseBind.imageCacheQuotaRela.setOnClickListener(v -> showImageCacheQuotaDialog());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshWebDavLabel();
+    }
+
+    /** WebDAV 入口行的状态文字：有备份记录时显示上次结果，否则显示功能简介。 */
+    private void refreshWebDavLabel() {
+        if (baseBind == null) return;
+        WebDavLastRun run = WebDavPrefs.INSTANCE.lastRun();
+        if (run == null) {
+            baseBind.webdavDesc.setText(R.string.webdav_settings_entry_desc);
+            return;
+        }
+        String when = android.text.format.DateUtils.formatDateTime(mContext, run.getTimeMs(),
+                android.text.format.DateUtils.FORMAT_SHOW_DATE | android.text.format.DateUtils.FORMAT_SHOW_TIME);
+        baseBind.webdavDesc.setText(run.getSuccess()
+                ? getString(R.string.webdav_entry_last_success, when)
+                : getString(R.string.webdav_entry_last_failed, when));
     }
 
     /**

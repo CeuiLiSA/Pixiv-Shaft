@@ -7,4 +7,7 @@
          带过去只会得到一个「开着但没有模型」的空壳。整份排除,换机 / 还原后读到的就是默认 false。 -->
     <exclude domain="file" path="mmkv/rife_state_v1" />
     <exclude domain="file" path="mmkv/rife_state_v1.crc" />
+    <!-- WebDAV 密码的密文绑在不可迁移的 Android-Keystore 密钥上；整份排除，换机后重新填写。 -->
+    <exclude domain="file" path="mmkv/webdav_v1" />
+    <exclude domain="file" path="mmkv/webdav_v1.crc" />
 </full-backup-content>

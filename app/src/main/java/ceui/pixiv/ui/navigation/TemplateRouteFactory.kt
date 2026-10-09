@@ -104,6 +104,7 @@ import ceui.pixiv.ui.recommend.WallpaperRankFragment
 import ceui.pixiv.ui.recommend.YearRankFragment
 import ceui.pixiv.ui.settings.AiTranslateSettingsFragment
 import ceui.pixiv.ui.settings.Aria2SettingsFragment
+import ceui.pixiv.ui.settings.WebDavSettingsFragment
 import ceui.pixiv.ui.settings.DownloadPathSettingsFragment
 import ceui.pixiv.ui.settings.NovelHeaderSettingsFragment
 import ceui.pixiv.ui.settings.ThemeColorFeedFragment
@@ -385,6 +386,7 @@ object TemplateRouteFactory {
             TemplateRoute.DOWNLOAD_PATH_SETTINGS -> DownloadPathSettingsFragment()
             TemplateRoute.ARIA2_SETTINGS -> Aria2SettingsFragment()
             TemplateRoute.AI_TRANSLATE_SETTINGS -> AiTranslateSettingsFragment()
+            TemplateRoute.WEBDAV_SETTINGS -> WebDavSettingsFragment()
             TemplateRoute.VIEWER_DISMISS_TUNING -> ViewerDismissTuningFragment()
             TemplateRoute.NOVEL_HEADER_SETTINGS -> NovelHeaderSettingsFragment()
             // 旧 key 是线上契约不能删；已移除的空捐赠页安全降级到关于页。

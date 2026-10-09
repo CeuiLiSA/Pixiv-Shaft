@@ -8,6 +8,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,11 +16,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
@@ -149,20 +152,37 @@ public class BackupUtils {
      * 于是导出侧不需要任何排除名单。
      */
     public static void writeBackupToFile(Context context, boolean backupViewHistory, File target) throws IOException {
+        writeBackup(context, backupViewHistory, true, new FileOutputStream(target));
+    }
+
+    /**
+     * {@link #writeBackupToFile} 的流版本，写完关闭 {@code out}（调用方传 GZIPOutputStream
+     * 时由这次 close 收尾压缩流）。
+     *
+     * @param includeCredentials false 时不导出登录凭据：pixiv 账号列表（{@code userEntityList}
+     *        里是完整的 access/refresh token，pixiv 账号可绑定支付方式）以及 Settings 里的
+     *        第三方密钥（AI 翻译 API key、aria2 RPC 密钥）——这两项写成空串。供备份要离开本机
+     *        存储的出口（WebDAV）使用；还原方见到空串应保留本机原值，见 {@code WebDavBackup}。
+     */
+    public static void writeBackup(Context context, boolean backupViewHistory, boolean includeCredentials,
+                                   OutputStream out) throws IOException {
         AppDatabase appDatabase = AppDatabase.getAppDatabase(context);
         try (JsonWriter writer = new JsonWriter(new BufferedWriter(
-                new OutputStreamWriter(new FileOutputStream(target), StandardCharsets.UTF_8)))) {
+                new OutputStreamWriter(out, StandardCharsets.UTF_8)))) {
             writer.beginObject();
             writer.name("settings");
-            Shaft.sGson.toJson(Shaft.sSettings, Settings.class, writer);
+            Shaft.sGson.toJson(includeCredentials ? Shaft.sSettings : settingsWithoutSecrets(),
+                    Settings.class, writer);
             writer.name("muteEntityList");
             Shaft.sGson.toJson(appDatabase.searchDao().getAllMuteEntities(), MUTE_LIST_TYPE, writer);
             writer.name("featureEntityList");
             Shaft.sGson.toJson(appDatabase.downloadDao().getAllFeatureEntities(), FEATURE_LIST_TYPE, writer);
             writer.name("searchEntityList");
             Shaft.sGson.toJson(appDatabase.searchDao().getAllSearchEntities(), SEARCH_LIST_TYPE, writer);
-            writer.name("userEntityList");
-            Shaft.sGson.toJson(appDatabase.downloadDao().getAllUser(), USER_LIST_TYPE, writer);
+            if (includeCredentials) {
+                writer.name("userEntityList");
+                Shaft.sGson.toJson(appDatabase.downloadDao().getAllUser(), USER_LIST_TYPE, writer);
+            }
             writer.name("pinnedUserEntityList");
             Shaft.sGson.toJson(appDatabase.generalDao().getByRecordType(RecordType.PINNED_USER, 0, Integer.MAX_VALUE), PINNED_USER_LIST_TYPE, writer);
             if (backupViewHistory) {
@@ -192,6 +212,14 @@ public class BackupUtils {
         }
     }
 
+    /** 当前 Settings 的深拷贝，第三方密钥置空；不动 {@link Shaft#sSettings} 本体。 */
+    private static Settings settingsWithoutSecrets() {
+        Settings copy = Shaft.sGson.fromJson(Shaft.sGson.toJsonTree(Shaft.sSettings, Settings.class), Settings.class);
+        copy.setAiTranslateApiKey("");
+        copy.setAria2RpcSecret("");
+        return copy;
+    }
+
     /** MoonSync 云同步 payload 的还原入口——payload 不含浏览历史且体量小，String 解析即可。 */
     public static boolean restoreBackups(Context context, String backupString) {
         try {
@@ -218,7 +246,7 @@ public class BackupUtils {
      */
     public static BackupEntity restoreBackupEntity(Context context, InputStream inputStream) {
         try (JsonReader reader = new JsonReader(new BufferedReader(
-                new InputStreamReader(inputStream, StandardCharsets.UTF_8)))) {
+                new InputStreamReader(maybeGunzip(inputStream), StandardCharsets.UTF_8)))) {
             // 旧还原链路是 Gson.fromJson(String),全程 lenient;这里对齐,
             // 否则带 BOM / 轻微不规范的旧备份文件会在 strict 模式下解析失败。
             reader.setLenient(true);
@@ -283,6 +311,22 @@ public class BackupUtils {
             e.printStackTrace();
             return null;
         }
+    }
+
+    /**
+     * WebDAV 上的备份是 gzip 压缩的 {@code .json.gz}；按魔数识别，用户把它下载下来走
+     * 本地「还原」也能直接导入。普通 JSON 原样返回。
+     */
+    private static InputStream maybeGunzip(InputStream inputStream) throws IOException {
+        BufferedInputStream buffered = new BufferedInputStream(inputStream);
+        buffered.mark(2);
+        int b0 = buffered.read();
+        int b1 = buffered.read();
+        buffered.reset();
+        if (b0 == 0x1f && b1 == 0x8b) {
+            return new GZIPInputStream(buffered);
+        }
+        return buffered;
     }
 
     /** 应用除浏览历史外的还原内容（配置 + 各小表）。 */

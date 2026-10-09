@@ -208,6 +208,7 @@ object SettingsCatalog {
         // 备份与缓存
         add(Entry(DATA, "backup_rela", R.string.string_420, keywords = "备份 导出 设置 json backup"))
         add(Entry(DATA, "restore_rela", R.string.string_421, keywords = "还原 恢复 导入 restore"))
+        add(Entry(DATA, "webdav_rela", R.string.webdav_settings_title, R.string.webdav_settings_entry_desc, keywords = "webdav 坚果云 nextcloud pcloud 网盘 nas 同步 多设备 备份 还原 自动备份 sync"))
         add(Entry(DATA, "moon_upload_rela", R.string.moon_upload_title, keywords = "云端 上传 配置 同步 cloud upload"))
         add(Entry(DATA, "moon_sync_rela", R.string.moon_manual_sync_title, keywords = "云端 下载 配置 同步 cloud sync"))
         add(Entry(DATA, "clear_image_cache", R.string.string_101, keywords = "缓存 清理 空间 占用 图片 cache"))

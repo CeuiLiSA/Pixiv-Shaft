@@ -3536,4 +3536,50 @@
     <string name="app_lock_timeout_desc">离开 App 超过这段时间后，再次打开需要验证</string>
     <string name="app_lock_enabled">已开启应用锁</string>
     <string name="app_lock_disabled">已关闭应用锁</string>
+    <!-- WebDAV 备份 -->
+    <string name="webdav_settings_title">WebDAV 备份</string>
+    <string name="webdav_settings_entry_desc">备份到自己的网盘 / NAS，在多台设备之间同步</string>
+    <string name="webdav_intro_body">把设置、屏蔽记录、搜索记录、置顶作者、下载配置和浏览记录备份到你自己的 WebDAV（坚果云、Nextcloud、pCloud、群晖等），在另一台设备上选一份备份恢复即可同步。\n\n为了账号安全，pixiv 登录凭据、AI 翻译 API key 与 aria2 密钥不会上传，恢复时保留本机的值；新设备仍需自行登录 pixiv。</string>
+    <string name="webdav_server_section">服务器</string>
+    <string name="webdav_url_label">WebDAV 地址</string>
+    <string name="webdav_url_hint" translatable="false">https://dav.example.com/dav/</string>
+    <string name="webdav_preset_jianguoyun">坚果云</string>
+    <string name="webdav_url_desc">坚果云需在「账户信息 → 安全选项」里添加应用，用生成的应用密码登录。建议使用 https://，http 会明文传输密码与备份。</string>
+    <string name="webdav_username_label">账号</string>
+    <string name="webdav_username_hint">用户名或邮箱</string>
+    <string name="webdav_password_label">密码</string>
+    <string name="webdav_password_hint">密码或应用专用密码</string>
+    <string name="webdav_toggle_password_visibility">显示或隐藏密码</string>
+    <string name="webdav_folder_label">备份目录</string>
+    <string name="webdav_folder_hint" translatable="false">Shaft</string>
+    <string name="webdav_backup_section">备份</string>
+    <string name="webdav_include_history_title">包含浏览记录</string>
+    <string name="webdav_include_history_desc">浏览记录较多时备份文件会明显变大</string>
+    <string name="webdav_auto_backup_title">每天自动备份</string>
+    <string name="webdav_auto_backup_desc">仅在 Wi-Fi 等不计流量的网络下进行；内容没有变化时跳过。每台设备保留最近 10 份备份</string>
+    <string name="webdav_last_run_never">还没有备份过</string>
+    <string name="webdav_last_run_success">上次备份：%1$s · 成功</string>
+    <string name="webdav_last_run_failed">上次备份：%1$s · 失败（%2$s）</string>
+    <string name="webdav_btn_backup">立即备份</string>
+    <string name="webdav_btn_restore">从 WebDAV 恢复</string>
+    <string name="webdav_config_required">请填写完整的地址、账号与密码</string>
+    <string name="webdav_url_invalid">地址必须以 http:// 或 https:// 开头</string>
+    <string name="webdav_test_success">连接成功</string>
+    <string name="webdav_backup_success">备份完成（%1$s）</string>
+    <string name="webdav_no_backups">备份目录里还没有备份</string>
+    <string name="webdav_backup_item" translatable="false">%1$s · %2$s · %3$s</string>
+    <string name="webdav_pick_backup_title">选择要恢复的备份</string>
+    <string name="webdav_restore_confirm_title">恢复这份备份？</string>
+    <string name="webdav_restore_confirm_message">屏蔽记录、搜索记录、置顶作者与浏览记录会与本机合并；设置与下载配置会被备份中的内容替换。</string>
+    <string name="webdav_restoring">正在恢复…</string>
+    <string name="webdav_restore_failed">恢复失败：%1$s</string>
+    <string name="webdav_restore_success_message">部分设置需要重启后才会完全生效。</string>
+    <string name="webdav_restart_later">稍后</string>
+    <string name="webdav_restart_now">立即重启</string>
+    <string name="webdav_operation_failed">操作失败：%1$s</string>
+    <string name="webdav_error_auth">账号或密码错误（坚果云等服务需使用应用密码）</string>
+    <string name="webdav_error_not_found">地址或目录不存在</string>
+    <string name="webdav_entry_last_success">上次备份 %1$s · 成功</string>
+    <string name="webdav_entry_last_failed">上次备份 %1$s · 失败</string>
+    <string name="webdav_unsaved_message">WebDAV 配置已修改，退出前是否保存？</string>
 </resources>
