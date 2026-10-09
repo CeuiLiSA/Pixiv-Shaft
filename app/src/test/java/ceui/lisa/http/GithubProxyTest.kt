@@ -69,6 +69,20 @@ class GithubProxyTest {
     }
 
     @Test
+    fun `isEnabled 判断是否启用了有效代理`() {
+        assertFalse(GithubProxy.isEnabled(null))
+        assertFalse(GithubProxy.isEnabled(""))
+        assertFalse(GithubProxy.isEnabled("   "))
+        assertFalse(GithubProxy.isEnabled(GithubProxy.NONE))
+        assertFalse(GithubProxy.isEnabled("ftp://gh-proxy.com"))
+        assertTrue(GithubProxy.isEnabled("https://gh-proxy.com"))
+        assertTrue(GithubProxy.isEnabled("gh-proxy.com"))
+        assertTrue(GithubProxy.isEnabled("https://hk.gh-proxy.com/"))
+        // 纯 JVM 下未注入 Settings 时，默认 currentPrefix 为空，无参 isEnabled 返回 false
+        assertFalse(GithubProxy.isEnabled())
+    }
+
+    @Test
     fun `非法前缀原样返回而不是拼出脏地址`() {
         assertEquals(github, GithubProxy.insert("ftp://gh-proxy.com", github))
         assertEquals(github, GithubProxy.insert("https://gh-proxy.com?token=1", github))
