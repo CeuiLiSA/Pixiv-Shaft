@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 「展开剩余 X 张」覆盖层（bottom-scrim + 两个玻璃胶囊）的 ViewStub 目标。
+     从 recy_illust_detail.xml 抽出来：只有 pageCount > 2 的作品才会折叠、才会显示它
+     （见 CollapsibleIllustAdapter.shouldCollapse），对 1~2 页的作品这 8 个 View 纯浪费。
+     显隐/文案仍由 CollapsibleIllustAdapter.bindExpandOverlay 管，这里只是把「建出来」
+     推迟到第一次真的要显示。 -->
+<!-- V3 only: bottom-scrim + glass pill for the "展开剩余 X 张" CTA.
+     CollapsibleIllustAdapter toggles visibility on pos-0 when collapsed. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/expand_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="88dp"
+    android:background="@drawable/bg_v3_first_page_scrim"
+    android:visibility="gone">
+
+    <!-- 两个胶囊并排。行宽仍是 wrap_content(放得下就按自然宽居中,delta=0 不重测),
+         放不下时靠 layout_weight 把超出量按权重摊给两边收缩,配合 label 的
+         ellipsize 省略号收尾——否则超宽部分会被 FrameLayout 连背景带触摸区一起裁掉
+         (en/ru/tr 在 360dp 窄屏或大字号下必现)。 -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="14dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:id="@+id/expand_pill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_v3_expand_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="9dp"
+            android:paddingBottom="9dp">
+
+            <ImageView
+                android:id="@+id/expand_chevron"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_collections_black_24dp"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/expand_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:letterSpacing="0.02"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/comic_reader_pill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_v3_expand_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="9dp"
+            android:paddingBottom="9dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_baseline_menu_book_24"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/comic_reader_pill_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:letterSpacing="0.02"
+                android:maxLines="1"
+                android:text="@string/comic_reader_enter"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

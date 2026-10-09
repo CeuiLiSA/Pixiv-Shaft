@@ -1,20 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 同上：从 DataBinding 改为 ViewBinding（被 recy_illust_detail include）。 -->
+<ceui.lisa.view.SeamlessCircularProgressIndicator xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <data />
-
-    <ceui.lisa.view.SeamlessCircularProgressIndicator
-        android:id="@+id/donut_progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        app:indicatorColor="@color/white"
-        app:indicatorSize="30dp"
-        app:trackColor="@color/voice_record_track_color"
-        app:trackCornerRadius="4dp"
-        app:trackThickness="5dp"
-        tools:ignore="ObsoleteLayoutParam" />
-
-</layout>
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/donut_progress"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
+    app:indicatorColor="@color/white"
+    app:indicatorSize="30dp"
+    app:trackColor="@color/voice_record_track_color"
+    app:trackCornerRadius="4dp"
+    app:trackThickness="5dp"
+    tools:ignore="ObsoleteLayoutParam" />

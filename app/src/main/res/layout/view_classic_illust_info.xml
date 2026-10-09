@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 经典详情页「信息区」的 ViewStub 目标（统计 / 标签 / 同义词 / 简介 / ID / 尺寸，21 个 View）。
+     它整块在首屏之下（首屏是 RecyclerView 的大图 + 底部条），而点中间那张卡时 pager 会一次
+     实例化 cur-1 / cur / cur+1 三页 —— ×3 ≈ 63 个 View 是眼下最大的一笔。
+     只对**非当前页**延后一个消息，见 FragmentIllust.setupInfoSection。 -->
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@+id/second_linear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:paddingTop="@dimen/six_dp"
+            android:paddingBottom="@dimen/six_dp">
+
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <ceui.pixiv.witstudio.widget.WitRoundRelativeLayout
+                    android:id="@+id/left_rela"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    app:wit_backgroundColor="#e8e8f2"
+                    app:wit_borderWidth="0dp"
+                    app:wit_radius="@dimen/six_dp">
+
+                    <ImageView
+                        android:layout_width="45dp"
+                        android:layout_height="45dp"
+                        android:padding="@dimen/twelve_dp"
+                        android:src="@drawable/ic_remove_red_eye_black_24dp"
+                        app:tint="?attr/colorPrimary">
+
+                    </ImageView>
+
+                </ceui.pixiv.witstudio.widget.WitRoundRelativeLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/eight_dp"
+                    android:layout_marginTop="@dimen/four_dp"
+                    android:layout_toEndOf="@+id/left_rela"
+                    android:text="@string/string_70"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="12sp"
+                    android:textStyle="bold">
+
+                </TextView>
+
+                <TextView
+                    android:id="@+id/total_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@+id/left_rela"
+                    android:layout_marginStart="@dimen/eight_dp"
+                    android:layout_marginBottom="@dimen/four_dp"
+                    android:layout_toEndOf="@+id/left_rela"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold">
+
+                </TextView>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/illust_like"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <ceui.pixiv.witstudio.widget.WitRoundRelativeLayout
+                    android:id="@+id/right_rela"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/twelve_dp"
+                    app:wit_backgroundColor="#e8e8f2"
+                    app:wit_borderWidth="0dp"
+                    app:wit_radius="@dimen/six_dp">
+
+                    <ImageView
+                        android:layout_width="45dp"
+                        android:layout_height="45dp"
+                        android:padding="@dimen/twelve_dp"
+                        android:src="@drawable/ic_favorite_black_24dp"
+                        app:tint="?attr/colorPrimary">
+
+
+                    </ImageView>
+
+                </ceui.pixiv.witstudio.widget.WitRoundRelativeLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/eight_dp"
+                    android:layout_marginTop="@dimen/four_dp"
+                    android:layout_toEndOf="@+id/right_rela"
+                    android:text="@string/string_71"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="12sp"
+                    android:textStyle="bold">
+
+                </TextView>
+
+                <TextView
+                    android:id="@+id/total_like"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@+id/right_rela"
+                    android:layout_marginStart="@dimen/eight_dp"
+                    android:layout_marginBottom="@dimen/four_dp"
+                    android:layout_toEndOf="@+id/right_rela"
+                    android:textColor="?attr/colorPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold">
+
+                </TextView>
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+        <ceui.pixiv.widgets.V3TagFlowView
+            android:id="@+id/illust_tag"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            app:flexWrap="wrap">
+
+        </ceui.pixiv.widgets.V3TagFlowView>
+
+        <!-- 同义词词典「标签匹配关系」框（issue #904），词典为空时自动 GONE -->
+        <ceui.pixiv.ui.synonym.SynonymMatchView
+            android:id="@+id/synonym_match"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/six_dp" />
+
+        <org.sufficientlysecure.htmltextview.HtmlTextView
+            android:id="@+id/description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_marginTop="@dimen/six_dp"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:layout_marginBottom="@dimen/four_dp"
+            android:gravity="start"
+            android:textColor="#9b9bb1"
+            android:textColorLink="?attr/colorPrimary"
+            android:textIsSelectable="true"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_marginTop="@dimen/eight_dp"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/illust_id"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/twelve_dp"
+                android:layout_weight="1"
+                android:gravity="start"
+                android:textColor="#9b9bb1"
+                android:textSize="13sp"
+                android:textStyle="bold">
+
+            </TextView>
+
+            <TextView
+                android:id="@+id/user_id"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/twelve_dp"
+                android:layout_weight="1"
+                android:textColor="#9b9bb1"
+                android:textSize="13sp"
+                android:textStyle="bold">
+
+            </TextView>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_marginTop="@dimen/four_dp"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:layout_marginBottom="@dimen/eight_dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/illust_size"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/twelve_dp"
+                android:layout_weight="1"
+                android:gravity="start"
+                android:textColor="#9b9bb1"
+                android:textSize="13sp"
+                android:textStyle="bold">
+
+            </TextView>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</androidx.core.widget.NestedScrollView>

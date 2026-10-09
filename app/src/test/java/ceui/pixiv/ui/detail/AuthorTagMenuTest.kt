@@ -7,6 +7,7 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewStub
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.core.view.descendants
@@ -37,6 +38,7 @@ import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.ui.navigation.TemplateRoute
 import ceui.pixiv.ui.novel.NovelTagsFeedItem
 import ceui.pixiv.ui.novel.novelTagsRenderer
+import ceui.pixiv.ui.synonym.SynonymMatchView
 import ceui.pixiv.widgets.V3TagFlowView
 import ceui.pixiv.utils.pinnedTagTranslation
 import ceui.lisa.utils.PixivOperate
@@ -238,6 +240,10 @@ class AuthorTagMenuTest {
             .setMaxLifecycle(legacy, Lifecycle.State.CREATED).commitNow()
         val binding = FragmentIllustBinding.inflate(LayoutInflater.from(host))
         ReflectionHelpers.setField(legacy, "baseBind", binding)
+        // 信息区（标签 / 同义词）是 ViewStub，生产路径由 setupInfoSection 先 inflate 再 setupTags。
+        binding.root.findViewById<ViewStub>(R.id.second_linear_stub).inflate()
+        val synonymMatch = binding.root.findViewById<SynonymMatchView>(R.id.synonym_match)
+        val illustTag = binding.root.findViewById<V3TagFlowView>(R.id.illust_tag)
         var initialMatchGeneration: Int? = null
         for ((type, route) in listOf(
             "illust" to TemplateRoute.USER_ILLUSTS_BY_TAG,
@@ -246,10 +252,10 @@ class AuthorTagMenuTest {
             ReflectionHelpers.callInstanceMethod<Void>(legacy, "setupTags",
                 ReflectionHelpers.ClassParameter.from(Illust::class.java, work(type)))
             // 收藏状态 / 作品类型回流不该重新匹配同一批标签，重绘会丢失同义词展开状态。
-            val matchGeneration = ReflectionHelpers.getField<Int>(binding.synonymMatch, "renderSeq")
+            val matchGeneration = ReflectionHelpers.getField<Int>(synonymMatch, "renderSeq")
             if (initialMatchGeneration == null) initialMatchGeneration = matchGeneration
             else assertEquals(initialMatchGeneration, matchGeneration)
-            assertTrue(binding.illustTag.getChildAt(0).performLongClick())
+            assertTrue(illustTag.getChildAt(0).performLongClick())
             idle()
             val dialog = ShadowDialog.getLatestDialog()
             assertTrue(requests.isEmpty())
