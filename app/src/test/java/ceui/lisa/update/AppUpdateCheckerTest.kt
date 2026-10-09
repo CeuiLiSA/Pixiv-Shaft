@@ -51,6 +51,8 @@ class AppUpdateCheckerTest {
         var atomCallCount = 0
         var apiLatestCallCount = 0
         var apiReleasesCallCount = 0
+        var apiByTagCallCount = 0
+        var byTagError: Exception? = null
 
         override suspend fun getReleasesAtom(owner: String, repo: String): ResponseBody {
             atomCallCount++
@@ -61,6 +63,30 @@ class AppUpdateCheckerTest {
         override suspend fun getLatestRelease(owner: String, repo: String): GitHubRelease {
             apiLatestCallCount++
             return apiRelease
+        }
+
+        override suspend fun getReleaseByTag(
+            owner: String,
+            repo: String,
+            tag: String
+        ): GitHubRelease {
+            apiByTagCallCount++
+            byTagError?.let { throw it }
+            return GitHubRelease(
+                tagName = tag,
+                name = tag,
+                body = "api full note",
+                publishedAt = "2026-10-08T07:00:00Z",
+                htmlUrl = "https://example.invalid/$tag",
+                assets = listOf(
+                    GitHubAsset(
+                        name = "PixShaft_${tag.removePrefix("v")}_classic.apk",
+                        size = 12345L,
+                        downloadUrl = "https://example.invalid/$tag.apk",
+                        contentType = "application/vnd.android.package-archive"
+                    )
+                )
+            )
         }
 
         override suspend fun getReleases(
@@ -115,21 +141,33 @@ class AppUpdateCheckerTest {
             Shaft.sSettings = Settings().apply { githubProxy = "" }
             assertFalse(GithubProxy.isEnabled())
 
-            // 1. 优先通过 RSS Atom 检查更新
+            // 1. 优先通过 RSS Atom 检查更新；发现新版后按 tag 取完整 release（带真实 APK 体积）
             val result = AppUpdateChecker.checkForUpdate()
             assertEquals(1, fakeApi.atomCallCount)
             assertEquals(0, fakeApi.apiLatestCallCount)
+            assertEquals(1, fakeApi.apiByTagCallCount)
             assertTrue(result is AppUpdateChecker.UpdateResult.UpdateAvailable)
-            assertEquals("v4.9.9", (result as AppUpdateChecker.UpdateResult.UpdateAvailable).release.tagName)
+            val fullRelease = (result as AppUpdateChecker.UpdateResult.UpdateAvailable).release
+            assertEquals("v4.9.9", fullRelease.tagName)
+            assertEquals(12345L, AppUpdateChecker.findApkAsset(fullRelease)?.size)
 
-            // 2. 优先通过 RSS Atom 获取全部历史
+            // 2. 按 tag 取完整 release 失败时，退回订阅合成的 release
+            fakeApi.byTagError = IOException("rate limited")
+            fakeApi.atomCallCount = 0
+            val feedOnly = AppUpdateChecker.checkForUpdate()
+            assertEquals(1, fakeApi.atomCallCount)
+            assertEquals(0, fakeApi.apiLatestCallCount)
+            assertTrue(feedOnly is AppUpdateChecker.UpdateResult.UpdateAvailable)
+            assertEquals("v4.9.9", (feedOnly as AppUpdateChecker.UpdateResult.UpdateAvailable).release.tagName)
+            fakeApi.byTagError = null
+
+            // 3. 版本历史不走 Atom（订阅只有最近 10 条），始终走 API
             val releases = AppUpdateChecker.fetchAllReleases()
-            assertEquals(2, fakeApi.atomCallCount)
-            assertEquals(0, fakeApi.apiReleasesCallCount)
-            assertEquals(1, releases.size)
-            assertEquals("v4.9.9", releases[0].tagName)
+            assertEquals(1, fakeApi.atomCallCount)
+            assertEquals(1, fakeApi.apiReleasesCallCount)
+            assertEquals("v4.9.8", releases[0].tagName)
 
-            // 3. Atom 接口异常时自动降级到 REST API
+            // 4. Atom 接口异常时自动降级到 REST API
             fakeApi.atomError = IOException("Connect reset")
             fakeApi.atomCallCount = 0
             val fallbackUpdate = AppUpdateChecker.checkForUpdate()
@@ -138,10 +176,6 @@ class AppUpdateCheckerTest {
             assertTrue(fallbackUpdate is AppUpdateChecker.UpdateResult.UpdateAvailable)
             assertEquals("v4.9.8", (fallbackUpdate as AppUpdateChecker.UpdateResult.UpdateAvailable).release.tagName)
 
-            val fallbackReleases = AppUpdateChecker.fetchAllReleases()
-            assertEquals(2, fakeApi.atomCallCount)
-            assertEquals(1, fakeApi.apiReleasesCallCount)
-            assertEquals("v4.9.8", fallbackReleases[0].tagName)
         } finally {
             Shaft.sSettings = originalSettings
             AppUpdateChecker.apiOverride = null

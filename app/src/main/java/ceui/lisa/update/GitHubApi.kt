@@ -22,6 +22,13 @@ interface GitHubApi {
         @Query("page") page: Int = 1
     ): List<GitHubRelease>
 
+    @GET("repos/{owner}/{repo}/releases/tags/{tag}")
+    suspend fun getReleaseByTag(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path("tag") tag: String
+    ): GitHubRelease
+
     @GET("https://github.com/{owner}/{repo}/releases.atom")
     @Headers("Accept: application/atom+xml, application/xml, text/xml; q=0.9, */*; q=0.8")
     suspend fun getReleasesAtom(

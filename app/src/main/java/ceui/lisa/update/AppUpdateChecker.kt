@@ -68,21 +68,11 @@ object AppUpdateChecker {
         }
     }
 
+    /**
+     * 版本历史只走 API：Atom 订阅固定只给最近 10 条，且没有 APK 体积、正文是有损的 HTML 转写，
+     * 拿它当历史会把一百来条版本截成九条。历史页是用户手动进的，不在每日自动检查的配额压力里。
+     */
     suspend fun fetchAllReleases(): List<GitHubRelease> = withContext(Dispatchers.IO) {
-        // 使用 GitHub 加速代理时始终降级走 API 端点（反代均不支持 /releases.atom）；
-        // 未开启加速代理时，优先尝试从 RSS Atom Feeds 获取版本历史，避免受未鉴权 API 速率限制。
-        if (!GithubProxy.isEnabled()) {
-            try {
-                val feedReleases = fetchReleasesFromFeed().filter { isVersionTag(it.tagName) }
-                if (feedReleases.isNotEmpty()) {
-                    return@withContext feedReleases
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Timber.w(e, "Fetch releases via RSS Atom feed failed, falling back to API endpoint")
-            }
-        }
         api.getReleases(GitHubApi.OWNER, GitHubApi.REPO)
     }
 
@@ -97,7 +87,7 @@ object AppUpdateChecker {
                     val remoteVersion = latestRelease.tagName.removePrefix("v").removePrefix("V")
                     val currentVersion = BuildConfig.VERSION_NAME
                     return@withContext if (isNewerVersion(remoteVersion, currentVersion)) {
-                        UpdateResult.UpdateAvailable(latestRelease)
+                        UpdateResult.UpdateAvailable(fetchFullRelease(latestRelease))
                     } else {
                         UpdateResult.NoUpdate(remoteVersion)
                     }
@@ -118,6 +108,23 @@ object AppUpdateChecker {
         } else {
             UpdateResult.NoUpdate(remoteVersion)
         }
+    }
+
+    /**
+     * Atom 只负责「有没有新版」这一问；真有新版时再按 tag 向 API 要一次完整 release。
+     *
+     * 订阅里合成的 APK 资产 size 恒为 0，而 [UpdateBottomSheet.isApkComplete] 靠 size 拦截
+     * 被 OEM DownloadManager 截断却标成成功的安装包 —— size 为 0 时这道校验直接放行。
+     * 正文也换回作者写的原始 Markdown。只在确有新版时多这一次请求，不会把限流问题带回来；
+     * 这一次也失败（含限流）就退回订阅合成的版本，至少更新提示还在。
+     */
+    private suspend fun fetchFullRelease(feedRelease: GitHubRelease): GitHubRelease = try {
+        api.getReleaseByTag(GitHubApi.OWNER, GitHubApi.REPO, feedRelease.tagName)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.w(e, "Fetch full release ${feedRelease.tagName} failed, using feed release")
+        feedRelease
     }
 
     fun isVersionTag(tag: String): Boolean = GitHubFeedParser.isVersionTag(tag)
