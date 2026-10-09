@@ -1513,6 +1513,9 @@ public class Manager {
                 reportProgress(item, progress, downloaded, totalSize, localCopy, emitter);
             }
         }
+        // 字节已读完，不再等对端：清掉断流戳。之后还有 commit（insert 建目标行、整段拷
+        // stage → 目标），这段本地耗时期间行仍是 DOWNLOADING，不清就会被读成「已断流N/10s」。
+        item.setLastByteAtMs(0L);
         out.flush();
         logIfSlowTransfer(item, startOffset, downloaded, totalSize, localCopy, startedNs);
         return downloaded;
