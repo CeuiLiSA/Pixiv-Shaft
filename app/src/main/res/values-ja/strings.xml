@@ -1138,6 +1138,7 @@
     <string name="rate_dialog_rate_now">評価する</string>
     <string name="rate_dialog_maybe_later">あとで</string>
     <string name="rate_dialog_never">今後表示しない</string>
+    <string name="show_illust_card_bookmark_button_setting">イラストカードにブックマークボタンを表示</string>
     <string name="show_novel_card_tags_setting">小説カードにタグを表示</string>
     <string name="show_novel_card_tag_translations_setting">小説カードにタグの翻訳を表示</string>
     <string name="collapse_novel_card_tags_setting">小説カードのタグを折りたたむ</string>

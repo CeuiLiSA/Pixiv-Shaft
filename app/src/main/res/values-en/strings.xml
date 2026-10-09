@@ -1138,6 +1138,7 @@
     <string name="rate_dialog_rate_now">Rate Now</string>
     <string name="rate_dialog_maybe_later">Maybe Later</string>
     <string name="rate_dialog_never">Don\'t ask again</string>
+    <string name="show_illust_card_bookmark_button_setting">Show bookmark button on illustration cards</string>
     <string name="show_novel_card_tags_setting">Show tags on novel cards</string>
     <string name="show_novel_card_tag_translations_setting">Show tag translations on novel cards</string>
     <string name="collapse_novel_card_tags_setting">Collapse tags on novel cards</string>

@@ -1138,6 +1138,7 @@
     <string name="rate_dialog_rate_now">Оценить сейчас</string>
     <string name="rate_dialog_maybe_later">Позже</string>
     <string name="rate_dialog_never">Больше не спрашивать</string>
+    <string name="show_illust_card_bookmark_button_setting">Показывать кнопку закладки на карточках иллюстраций</string>
     <string name="show_novel_card_tags_setting">Показывать теги на карточках новелл</string>
     <string name="show_novel_card_tag_translations_setting">Показывать переводы тегов на карточках новелл</string>
     <string name="collapse_novel_card_tags_setting">Сворачивать теги на карточках новелл</string>

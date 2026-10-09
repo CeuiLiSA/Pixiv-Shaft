@@ -346,6 +346,16 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
                     .show();
         });
 
+        // 插画列表显示收藏按钮：所有插画瀑布流页统一生效（IllustFeedFragment.hideLikeButton）
+        baseBind.showIllustCardBookmarkButton.setChecked(Shaft.sSettings.isShowIllustCardBookmarkButton());
+        baseBind.showIllustCardBookmarkButton.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setShowIllustCardBookmarkButton(isChecked);
+            Common.showToast(getString(R.string.string_428));
+            Local.setSettings(Shaft.sSettings);
+        });
+        baseBind.showIllustCardBookmarkButtonRela.setOnClickListener(v ->
+                baseBind.showIllustCardBookmarkButton.performClick());
+
         // 小说列表显示标签
         baseBind.showNovelCardTags.setChecked(Shaft.sSettings.isShowNovelCardTags());
         baseBind.showNovelCardTags.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

@@ -1138,6 +1138,7 @@
     <string name="rate_dialog_rate_now">평가하기</string>
     <string name="rate_dialog_maybe_later">나중에</string>
     <string name="rate_dialog_never">다시 묻지 않기</string>
+    <string name="show_illust_card_bookmark_button_setting">일러스트 카드에 북마크 버튼 표시</string>
     <string name="show_novel_card_tags_setting">소설 카드에 태그 표시</string>
     <string name="show_novel_card_tag_translations_setting">소설 카드에 태그 번역 표시</string>
     <string name="collapse_novel_card_tags_setting">소설 카드 태그 접기</string>

@@ -342,6 +342,24 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/show_illust_card_bookmark_button_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/show_illust_card_bookmark_button_setting" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/show_illust_card_bookmark_button"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/show_novel_card_tags_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_mid">

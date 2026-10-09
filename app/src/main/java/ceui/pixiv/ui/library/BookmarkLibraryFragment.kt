@@ -67,11 +67,11 @@ class BookmarkLibraryFragment :
 
     /**
      * 本页看的就是「我的收藏」，所以和 [ceui.pixiv.ui.collection.LikeIllustFeedFragment] 一样
-     * 尊重「收藏页隐藏收藏按钮」设置——同一批内容换个入口就多出一排爱心，是前后不一致。
+     * 在全局设置之上再尊重「收藏页隐藏收藏按钮」——同一批内容换个入口就多出一排爱心，是前后不一致。
      */
     override val hideLikeButton: Boolean
-        get() = SessionManager.loggedInUid == libraryViewModel.shelf.ownerUid &&
-                Shaft.sSettings.isHideStarButtonAtMyCollection()
+        get() = super.hideLikeButton || (SessionManager.loggedInUid == libraryViewModel.shelf.ownerUid &&
+                Shaft.sSettings.isHideStarButtonAtMyCollection())
 
     override val emptyStateText: CharSequence
         get() = ui?.emptyStateText() ?: super.emptyStateText

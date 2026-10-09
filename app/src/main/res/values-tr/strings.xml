@@ -1138,6 +1138,7 @@
     <string name="rate_dialog_rate_now">Puan Ver</string>
     <string name="rate_dialog_maybe_later">Sonra</string>
     <string name="rate_dialog_never">Bir daha sorma</string>
+    <string name="show_illust_card_bookmark_button_setting">İllüstrasyon kartlarında favori düğmesini göster</string>
     <string name="show_novel_card_tags_setting">Roman kartlarında etiketleri göster</string>
     <string name="show_novel_card_tag_translations_setting">Roman kartlarında etiket çevirilerini göster</string>
     <string name="collapse_novel_card_tags_setting">Roman kartlarında etiketleri daralt</string>

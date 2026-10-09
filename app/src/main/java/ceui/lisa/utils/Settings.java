@@ -273,6 +273,9 @@ public class Settings {
     //列表滑到边缘振动反馈（#1193），默认开启
     private boolean scrollEdgeHapticEnable = true;
 
+    //插画/漫画瀑布流卡片上是否显示收藏按钮，默认显示
+    private boolean showIllustCardBookmarkButton = true;
+
     //小说卡片是否显示标签
     private boolean showNovelCardTags = true;
 
@@ -1470,6 +1473,14 @@ public class Settings {
 
     public void setShowLargeThumbnailImage(boolean showLargeThumbnailImage) {
         this.showLargeThumbnailImage = showLargeThumbnailImage;
+    }
+
+    public boolean isShowIllustCardBookmarkButton() {
+        return showIllustCardBookmarkButton;
+    }
+
+    public void setShowIllustCardBookmarkButton(boolean showIllustCardBookmarkButton) {
+        this.showIllustCardBookmarkButton = showIllustCardBookmarkButton;
     }
 
     public boolean isShowNovelCardTags() {
