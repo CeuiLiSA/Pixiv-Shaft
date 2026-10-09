@@ -1216,12 +1216,41 @@ public class Manager {
                         cachedFile != null ? "COPY_SHARED_FILE" : "USE_DOWNLOAD_TRANSFER",
                         downloadItem.getIllust().getId(), downloadItem.getIndex(),
                         dlUrl.substring(dlUrl.lastIndexOf('/') + 1));
-                if (staged) {
-                    runStagedTransfer(context, downloadItem, factory, cachedFile, dlUrl,
-                            stageDir, stageKey, stageFile, metaFile, client, emitter);
-                } else {
-                    runDirectTransfer(context, downloadItem, cachedFile, targetUri, dlUrl,
-                            passSize, client, emitter);
+                try {
+                    if (staged) {
+                        runStagedTransfer(context, downloadItem, factory, cachedFile, dlUrl,
+                                stageDir, stageKey, stageFile, metaFile, client, emitter);
+                    } else {
+                        runDirectTransfer(context, downloadItem, cachedFile, targetUri, dlUrl,
+                                passSize, client, emitter);
+                    }
+                } catch (Exception e) {
+                    // 「断流立即重连」：读超时（对端沉默）在「用户主动调小过阈值」的前提下算预期内事件，
+                    // 静默重连一次而不是直接判失败 —— 否则口径里的"更快重连"实际表现为"更快失败"。
+                    // 判定与额度见 shouldSilentlyRetryAfterReadTimeout（有副作用：会记下额度已用，放最后判）。
+                    //
+                    // 就在这个传输任务里接着续传，不把状态翻回 INIT 再排队：泵关着时（行上单独
+                    // 「重试」/「开始」、仅 Wi-Fi 下载离开 Wi-Fi）pump 不会再派发它，会卡在「等待中」。
+                    // 留在同一个任务里，句柄、stage 单主锁、单独放行都还在；暂停 / 挂起取消了任务的话
+                    // emitter 已 dispose，不会重连。不弹 toast、不发 DOWNLOAD_FAILED，对用户是"没发生过"。
+                    boolean resumable = staged || "file".equals(targetUri.getScheme());
+                    if (emitter.isDisposed() || !resumable
+                            || !shouldSilentlyRetryAfterReadTimeout(downloadItem, e)) {
+                        throw e;
+                    }
+                    Common.showLog("[DL-RETRY] 读超时静默重连 uuid=" + downloadItem.getUuid()
+                            + " name=" + downloadItem.getName());
+                    // 换了条连接：旧戳会让 UI 在等新响应头时接着读秒「已断流」。
+                    downloadItem.setLastByteAtMs(0L);
+                    if (staged) {
+                        // stage 的 .part / manifest 原样保留，runStagedTransfer 按其长度带 Range 续传。
+                        runStagedTransfer(context, downloadItem, factory, null, dlUrl,
+                                stageDir, stageKey, stageFile, metaFile, client, emitter);
+                    } else {
+                        // 直写路径从目标文件已写长度续传（append）。
+                        runDirectTransfer(context, downloadItem, null, targetUri, dlUrl,
+                                new File(targetUri.getPath()).length(), client, emitter);
+                    }
                 }
             } catch (Exception e) {
                 if (!emitter.isDisposed()) {
@@ -1372,23 +1401,6 @@ public class Manager {
         }, throwable -> {
             //下载失败，处理相关逻辑
             Common.showLog("Manager download error: " + throwable.getMessage());
-
-            // 「断流立即重连」：读超时（对端沉默）在「用户主动调小过阈值」的前提下算预期内事件，
-            // 静默重连一次而不是直接判失败 —— 否则口径里的"更快重连"实际表现为"更快失败"。
-            // 判定与额度见 shouldSilentlyRetryAfterReadTimeout。
-            if (shouldSilentlyRetryAfterReadTimeout(downloadItem, throwable)) {
-                Common.showLog("[DL-RETRY] 读超时静默重连 uuid=" + downloadItem.getUuid()
-                        + " name=" + downloadItem.getName());
-                // 只把状态翻回 INIT，交给 onFinally 的 pumpAvailableSlots 重新挑走。刻意不做：
-                //   - 不 complete(false)：那是终态失败，会置 FAILED 让行上出现失败态；
-                //   - 不 abandonWrite()：staged 的目标行要到 commit 才 insert，此刻还不存在；
-                //     直写路径的 targetUri 是用户给的 file://，更不该删；
-                //   - 不弹 toast / 不发 DOWNLOAD_FAILED 广播：对用户是"没发生过"。
-                // stage 的 .part / manifest 原样保留，下次带 Range 续传，不从头重下。
-                downloadItem.setState(DownloadItem.DownloadState.INIT);
-                ManagerReactive.invalidate();
-                return;
-            }
 
             if (!downloadItem.isSilent()) {
                 DownloadToasts.show(DownloadToastKind.DOWNLOAD_FAILED,
