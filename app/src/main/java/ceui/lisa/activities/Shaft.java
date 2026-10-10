@@ -86,6 +86,7 @@ public class Shaft extends Application implements ServicesProvider {
     private ceui.pixiv.chat.api.ShaftChatGateway chatGateway;
     private ceui.pixiv.sticker.StickerRepository stickerRepository;
     private ceui.pixiv.db.mirror.BookmarkMirrorService bookmarkMirror;
+    private ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository readerFontRepository;
 
     private EntityWrapper entityWrapper;
 
@@ -403,6 +404,7 @@ public class Shaft extends Application implements ServicesProvider {
         chatGateway = new ceui.pixiv.chat.api.ShaftChatGateway(this);
         stickerRepository = new ceui.pixiv.sticker.StickerRepository(this);
         bookmarkMirror = new ceui.pixiv.db.mirror.BookmarkMirrorService(this);
+        readerFontRepository = new ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository(this);
 
         SessionManager.INSTANCE.initialize();
 
@@ -982,5 +984,10 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public @NotNull ceui.pixiv.sticker.StickerRepository getStickerRepository() {
         return stickerRepository;
+    }
+
+    @Override
+    public @NotNull ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository getReaderFontRepository() {
+        return readerFontRepository;
     }
 }

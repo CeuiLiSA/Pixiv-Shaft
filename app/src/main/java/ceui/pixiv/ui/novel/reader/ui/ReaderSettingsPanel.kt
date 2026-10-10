@@ -21,6 +21,7 @@ import ceui.lisa.databinding.ItemReaderSettingSegmentedBinding
 import ceui.lisa.databinding.ItemReaderSettingSliderBinding
 import ceui.lisa.databinding.ItemReaderSettingSwitchBinding
 import ceui.lisa.databinding.ItemReaderThemeSwatchBinding
+import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.novel.reader.model.FlipMode
 import ceui.pixiv.ui.novel.reader.model.ReadingDirection
 import ceui.pixiv.ui.novel.reader.model.ImagePlacement
@@ -31,6 +32,7 @@ import ceui.pixiv.ui.novel.reader.paginate.TypefaceProvider
 import ceui.pixiv.ui.novel.reader.settings.PresetFonts
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
 import ceui.pixiv.ui.novel.reader.settings.ReaderTheme
+import ceui.pixiv.ui.novel.reader.settings.ReaderWebFont
 import ceui.pixiv.ui.settings.CustomThemeColor
 import ceui.pixiv.ui.settings.CustomThemeColorSheet
 import ceui.pixiv.utils.letDrawBehindNavBar
@@ -436,20 +438,33 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         inner.removeAllViews()
         val inflater = LayoutInflater.from(ctx)
         val chips = mutableListOf<TextView>()
-        PresetFonts.BUILT_IN.forEach { font ->
+        // 系统字体 + 已下载的 Google Fonts 字体（#1060），末尾是去下载更多的入口
+        val repo = ctx.appServices().readerFontRepository
+        val fonts = PresetFonts.BUILT_IN.map { it.id to it.displayName } +
+            ReaderWebFont.entries.filter { it.isSupported && repo.isInstalled(it) }
+                .map { it.id to getString(it.nameRes) }
+        fonts.forEach { (id, name) ->
             val item = ItemReaderFontChipBinding.inflate(inflater, inner, false)
             val chip = item.root as TextView
-            chip.text = font.displayName
-            chip.typeface = TypefaceProvider.resolve(ctx, font.id, 400, false)
-            chip.tag = font.id
-            chip.isSelected = ReaderSettings.fontId == font.id
+            chip.text = name
+            chip.typeface = TypefaceProvider.resolve(ctx, id, 400, false)
+            chip.tag = id
+            chip.isSelected = ReaderSettings.fontId == id
             chip.setOnClickListener {
-                ReaderSettings.fontId = font.id
-                chips.forEach { it.isSelected = it.tag == font.id }
+                ReaderSettings.fontId = id
+                chips.forEach { it.isSelected = it.tag == id }
             }
             chips += chip
             inner.addView(chip)
         }
+        val more = ItemReaderFontChipBinding.inflate(inflater, inner, false).root as TextView
+        more.text = getString(R.string.reader_font_more)
+        more.setOnClickListener {
+            ReaderFontSheet.show(ctx) {
+                _binding?.sectionTypography?.rowFontPicker?.bindFontPicker(ctx)
+            }
+        }
+        inner.addView(more)
     }
 
     companion object {

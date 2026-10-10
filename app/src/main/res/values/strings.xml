@@ -1382,6 +1382,27 @@
     <string name="setting_bold">加粗</string>
     <string name="setting_font_weight">字重</string>
     <string name="setting_font_family">字体</string>
+    <string name="reader_font_more">更多字体</string>
+    <string name="reader_font_sheet_desc">以下字体来自 Google Fonts，按 SIL 开源字体许可免费使用。下载一次即可离线使用，只在小说阅读器中生效。</string>
+    <string name="reader_font_group_chinese">中文</string>
+    <string name="reader_font_group_japanese">日文</string>
+    <string name="reader_font_noto_sans_sc">思源黑体</string>
+    <string name="reader_font_noto_serif_sc">思源宋体</string>
+    <string name="reader_font_lxgw_wenkai">霞鹜文楷</string>
+    <string name="reader_font_state_absent">%1$s · 未下载</string>
+    <string name="reader_font_state_installed">%1$s · 已下载</string>
+    <string name="reader_font_state_in_use">%1$s · 使用中</string>
+    <string name="reader_font_state_downloading">正在下载 %1$d%%</string>
+    <string name="reader_font_state_failed">下载失败，请检查网络后重试</string>
+    <string name="reader_font_download">下载</string>
+    <string name="reader_font_cancel_download">取消下载</string>
+    <string name="reader_font_delete">删除字体</string>
+    <string name="reader_font_github_hint">字体从 GitHub 下载。下载慢或失败时，可以设置 GitHub 加速。</string>
+    <string name="reader_font_github_proxy">设置 GitHub 加速</string>
+    <string name="reader_font_noto_sans_jp" translatable="false">Noto Sans JP</string>
+    <string name="reader_font_noto_serif_jp" translatable="false">Noto Serif JP</string>
+    <string name="reader_font_klee_one" translatable="false">Klee One</string>
+    <string name="reader_font_zen_maru_gothic" translatable="false">Zen Maru Gothic</string>
     <string name="setting_theme_preset">配色</string>
     <string name="setting_text_color">文字颜色</string>
     <string name="setting_text_color_hint">按当前配色保存，用于正文和章节标题。</string>

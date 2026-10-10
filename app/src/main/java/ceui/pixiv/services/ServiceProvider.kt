@@ -17,6 +17,7 @@ import ceui.pixiv.events.EventReporter
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import ceui.pixiv.sticker.StickerRepository
 import ceui.pixiv.ui.fanbox.FanboxWebBridge
+import ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository
 import ceui.pixiv.ui.translate.MangaBatchTranslateCenter
 import ceui.pixiv.ui.translate.MangaTranslateModels
 import ceui.pixiv.utils.NetworkStateManager
@@ -90,6 +91,9 @@ interface ServicesProvider {
 
     /** 收藏镜像引擎：限速静默地把收藏列表整份镜像到本地，支撑倒序与花式筛选。 */
     val bookmarkMirror: BookmarkMirrorService
+
+    /** 小说阅读器可下载字体：关掉面板后下载继续，所以是进程级。 */
+    val readerFontRepository: ReaderFontRepository
 }
 
 fun Context.appServices(): ServicesProvider = applicationContext as ServicesProvider
