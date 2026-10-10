@@ -922,7 +922,7 @@
     <string name="feed_all_items_filtered">作品已被屏蔽設定全部隱藏</string>
     <string name="ai_block_strength_blur">模糊粒子化</string>
     <string name="ai_block_exempt_authors">豁免的作者列表</string>
-    <string name="ai_block_exempt_hint">逐個添加作者 ID；點按膠囊可臨時停用豁免，點 × 刪除\n列表變動後建議重新啟動 App</string>
+    <string name="ai_block_exempt_hint">逐個添加作者 ID；點按膠囊可臨時停用豁免，點垃圾桶刪除\n列表變動後建議重新啟動 App</string>
     <string name="ai_block_exempt_add">添加</string>
     <string name="ai_block_exempt_input_hint">輸入作者 ID</string>
     <string name="ai_block_exempt_empty">還沒有豁免作者</string>

@@ -920,7 +920,7 @@
     <string name="feed_all_items_filtered">All works are hidden by your filter settings</string>
     <string name="ai_block_strength_blur">Blur with particles</string>
     <string name="ai_block_exempt_authors">Exempt author list</string>
-    <string name="ai_block_exempt_hint">Add author IDs one by one. Tap a chip to temporarily disable its exemption, or tap × to remove it.\nA restart is recommended after changing the list.</string>
+    <string name="ai_block_exempt_hint">Add author IDs one by one. Tap a chip to temporarily disable its exemption, or tap the trash icon to remove it.\nA restart is recommended after changing the list.</string>
     <string name="ai_block_exempt_add">Add</string>
     <string name="ai_block_exempt_input_hint">Enter author ID</string>
     <string name="ai_block_exempt_empty">No exempt authors yet</string>

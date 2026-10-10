@@ -920,7 +920,7 @@
     <string name="feed_all_items_filtered">필터 설정에 따라 모든 작품이 숨겨졌습니다</string>
     <string name="ai_block_strength_blur">흐림 + 파티클</string>
     <string name="ai_block_exempt_authors">제외 작가 목록</string>
-    <string name="ai_block_exempt_hint">작가 ID를 하나씩 추가합니다. 칩을 탭하면 일시적으로 예외를 끄고, ×를 누르면 삭제됩니다\n목록 변경 후 앱 재시작을 권장합니다</string>
+    <string name="ai_block_exempt_hint">작가 ID를 하나씩 추가합니다. 칩을 탭하면 일시적으로 예외를 끄고, 휴지통 아이콘을 누르면 삭제됩니다\n목록 변경 후 앱 재시작을 권장합니다</string>
     <string name="ai_block_exempt_add">추가</string>
     <string name="ai_block_exempt_input_hint">작가 ID 입력</string>
     <string name="ai_block_exempt_empty">아직 예외 작가가 없습니다</string>
