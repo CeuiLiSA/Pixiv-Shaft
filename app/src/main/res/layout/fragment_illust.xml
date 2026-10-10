@@ -1,292 +1,244 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<!-- 从 DataBinding 改为 ViewBinding：本布局一个变量都没用（<data> 里只有一个从没被布局引用、
+     代码里也只 set 过没人读的 LiveData<User>），却要为每页付一层 ViewDataBinding 构造 + mapBindings
+     全树扫描。而详情页在 ViewPager(offscreenPageLimit=1) 里一次建三页，这笔钱直接落在进页那一帧上。
+     同类整改见 patch-10-8 的 recy_illust_detail / item_progress。 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <data>
 
-        <variable
-            name="user"
-            type="androidx.lifecycle.LiveData&lt;ceui.loxia.User>" />
-    </data>
-
-    <FrameLayout
+    <RelativeLayout
+        android:id="@+id/content_frame"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/white">
 
 
-        <RelativeLayout
-            android:id="@+id/content_frame"
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/white">
+            android:layout_above="@+id/bottom_linear">
 
-
-            <androidx.coordinatorlayout.widget.CoordinatorLayout
+            <FrameLayout
+                android:id="@+id/refreshLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_above="@+id/bottom_linear">
+                android:background="@color/illust_canvas_bg">
 
-                <FrameLayout
-                    android:id="@+id/refreshLayout"
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/illust_canvas_bg">
+                    android:layout_height="match_parent">
+
+                    <RelativeLayout
+                        android:id="@+id/holder"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_above="@+id/helper_view"
+                        android:clipChildren="false">
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/recyclerView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_centerInParent="true">
+
+                        </androidx.recyclerview.widget.RecyclerView>
+
+                        <!-- AI 增强波纹覆盖层。它是 GLSurfaceView（构造即建 GLThread，且
+                             renderMode=RENDERMODE_CONTINUOUSLY），而全仓零引用 —— 改 ViewStub，
+                             现在连 GLThread 都不会建。见 view_enhance_overlay.xml。 -->
+                        <ViewStub
+                            android:id="@+id/enhance_overlay_stub"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout="@layout/view_enhance_overlay" />
+
+                        <!-- 只在跑 AI 画质增强 / 抠图时才用得上，改 ViewStub —— 与 V3 详情页同一套
+                             （见 ArtworkV3Fragment.ensureAiOverlay）。目标布局本身是单根，可直接当
+                             android:layout。触发见 IllustAiHelper 的 ensureOverlay 回调。 -->
+                        <ViewStub
+                            android:id="@+id/ai_overlay_stub"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout="@layout/view_ai_upscale_overlay" />
+
+
+                    </RelativeLayout>
+
+                    <View
+                        android:id="@+id/helper_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_alignParentBottom="true">
+
+                    </View>
+
+                </RelativeLayout>
+
+            </FrameLayout>
+
+
+            <ceui.pixiv.witstudio.widget.WitRoundLinearLayout
+                android:id="@+id/core_linear"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="true"
+                android:elevation="@dimen/six_dp"
+                android:focusable="true"
+                android:orientation="vertical"
+                app:behavior_peekHeight="0dp"
+                app:layout_behavior="@string/bottom_sheet_behavior"
+                app:wit_backgroundColor="@color/fragment_center"
+                app:wit_borderWidth="0dp"
+                app:wit_radiusTopLeft="20dp"
+                app:wit_radiusTopRight="20dp">
+
+                <LinearLayout
+                    android:id="@+id/bottom_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:tag="12345888">
 
                     <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
-
-                        <RelativeLayout
-                            android:id="@+id/holder"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:layout_above="@+id/helper_view"
-                            android:clipChildren="false">
-
-                            <androidx.recyclerview.widget.RecyclerView
-                                android:id="@+id/recyclerView"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_centerInParent="true">
-
-                            </androidx.recyclerview.widget.RecyclerView>
-
-                            <!-- AI 增强波纹覆盖层。它是 GLSurfaceView（构造即建 GLThread，且
-                                 renderMode=RENDERMODE_CONTINUOUSLY），而全仓零引用 —— 改 ViewStub，
-                                 现在连 GLThread 都不会建。见 view_enhance_overlay.xml。 -->
-                            <ViewStub
-                                android:id="@+id/enhance_overlay_stub"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:layout="@layout/view_enhance_overlay" />
-
-                            <!-- 只在跑 AI 画质增强 / 抠图时才用得上，改 ViewStub —— 与 V3 详情页同一套
-                                 （见 ArtworkV3Fragment.ensureAiOverlay）。目标布局本身是单根，可直接当
-                                 android:layout。触发见 IllustAiHelper 的 ensureOverlay 回调。 -->
-                            <ViewStub
-                                android:id="@+id/ai_overlay_stub"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:layout="@layout/view_ai_upscale_overlay" />
-
-
-                        </RelativeLayout>
+                        android:layout_height="wrap_content">
 
                         <View
-                            android:id="@+id/helper_view"
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_alignParentBottom="true">
+                            android:layout_width="100dp"
+                            android:layout_height="3dp"
+                            android:layout_centerHorizontal="true"
+                            android:layout_marginTop="@dimen/four_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:background="@drawable/illust_slider_bg">
 
                         </View>
 
                     </RelativeLayout>
 
-                </FrameLayout>
+                    <TextView
+                        android:id="@+id/title"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/sixteen_dp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginEnd="56dp"
+                        android:ellipsize="end"
+                        android:gravity="start|bottom"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:text="@string/string_66"
+                        android:textColor="@color/rank_text_color"
+                        android:textIsSelectable="true"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:autoSizeMaxTextSize="20sp"
+                        app:autoSizeMinTextSize="6sp"
+                        app:autoSizeTextType="uniform">
 
+                    </TextView>
 
-                <ceui.pixiv.witstudio.widget.WitRoundLinearLayout
-                    android:id="@+id/core_linear"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:clickable="true"
-                    android:elevation="@dimen/six_dp"
-                    android:focusable="true"
-                    android:orientation="vertical"
-                    app:behavior_peekHeight="0dp"
-                    app:layout_behavior="@string/bottom_sheet_behavior"
-                    app:wit_backgroundColor="@color/fragment_center"
-                    app:wit_borderWidth="0dp"
-                    app:wit_radiusTopLeft="20dp"
-                    app:wit_radiusTopRight="20dp">
-
-                    <LinearLayout
-                        android:id="@+id/bottom_bar"
+                    <ceui.pixiv.witstudio.widget.WitRoundRelativeLayout
+                        android:id="@+id/rela_illust_brief"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/four_dp"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/six_dp"
                         android:orientation="vertical"
-                        android:tag="12345888">
+                        app:wit_backgroundColor="?attr/colorPrimaryDark"
+                        app:wit_borderWidth="0dp"
+                        app:wit_radius="16dp">
 
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/user_head"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_marginStart="@dimen/eight_dp"
+                            android:layout_marginTop="@dimen/eight_dp"
+                            android:layout_marginEnd="@dimen/eight_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:scaleType="centerCrop"
+                            app:civ_border_color="?attr/colorPrimary"
+                            app:civ_border_width="1dp">
 
-                            <View
-                                android:layout_width="100dp"
-                                android:layout_height="3dp"
-                                android:layout_centerHorizontal="true"
-                                android:layout_marginTop="@dimen/four_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
-                                android:background="@drawable/illust_slider_bg">
+                        </de.hdodenhof.circleimageview.CircleImageView>
 
-                            </View>
-
-                        </RelativeLayout>
 
                         <TextView
-                            android:id="@+id/title"
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/sixteen_dp"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_marginEnd="56dp"
+                            android:id="@+id/user_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignTop="@+id/user_head"
+                            android:layout_marginTop="@dimen/four_dp"
+                            android:layout_toStartOf="@+id/follow_layout"
+                            android:layout_toEndOf="@+id/user_head"
                             android:ellipsize="end"
-                            android:gravity="start|bottom"
                             android:includeFontPadding="false"
                             android:maxLines="1"
-                            android:text="@string/string_66"
-                            android:textColor="@color/rank_text_color"
-                            android:textIsSelectable="true"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            app:autoSizeMaxTextSize="20sp"
-                            app:autoSizeMinTextSize="6sp"
-                            app:autoSizeTextType="uniform">
+                            android:text="@string/string_67"
+                            android:textColor="@color/white"
+                            android:textSize="16sp"
+                            android:textStyle="bold">
 
                         </TextView>
 
-                        <ceui.pixiv.witstudio.widget.WitRoundRelativeLayout
-                            android:id="@+id/rela_illust_brief"
-                            android:layout_width="match_parent"
+                        <TextView
+                            android:id="@+id/post_time"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_marginTop="@dimen/four_dp"
-                            android:layout_marginEnd="@dimen/sixteen_dp"
-                            android:layout_marginBottom="@dimen/six_dp"
-                            android:orientation="vertical"
-                            app:wit_backgroundColor="?attr/colorPrimaryDark"
-                            app:wit_borderWidth="0dp"
-                            app:wit_radius="16dp">
+                            android:layout_alignBottom="@+id/user_head"
+                            android:layout_marginBottom="@dimen/four_dp"
+                            android:layout_toEndOf="@+id/user_head"
+                            android:ellipsize="end"
+                            android:includeFontPadding="false"
+                            android:maxLines="1"
+                            android:text="@string/string_68"
+                            android:textColor="#bdbed6"
+                            android:textSize="12sp">
 
-                            <de.hdodenhof.circleimageview.CircleImageView
-                                android:id="@+id/user_head"
-                                android:layout_width="50dp"
-                                android:layout_height="50dp"
-                                android:layout_marginStart="@dimen/eight_dp"
-                                android:layout_marginTop="@dimen/eight_dp"
-                                android:layout_marginEnd="@dimen/eight_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
-                                android:scaleType="centerCrop"
-                                app:civ_border_color="?attr/colorPrimary"
-                                app:civ_border_width="1dp">
-
-                            </de.hdodenhof.circleimageview.CircleImageView>
+                        </TextView>
 
 
-                            <TextView
-                                android:id="@+id/user_name"
+                        <FrameLayout
+                            android:id="@+id/follow_layout"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="12dp">
+
+                            <ceui.pixiv.widgets.ProgressTextButton
+                                android:id="@+id/follow"
+                                style="@style/BlueShiningButton"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignTop="@+id/user_head"
-                                android:layout_marginTop="@dimen/four_dp"
-                                android:layout_toStartOf="@+id/follow_layout"
-                                android:layout_toEndOf="@+id/user_head"
-                                android:ellipsize="end"
-                                android:includeFontPadding="false"
-                                android:maxLines="1"
-                                android:text="@string/string_67"
-                                android:textColor="@color/white"
-                                android:textSize="16sp"
-                                android:textStyle="bold">
+                                android:layout_height="32dp"
+                                android:paddingHorizontal="16dp"
+                                android:text="@string/follow"
+                                android:visibility="gone"
+                                app:ptb_progress_stroke_width="3dp"
+                                app:ptb_progress_width="14dp" />
 
-                            </TextView>
-
-                            <TextView
-                                android:id="@+id/post_time"
+                            <ceui.pixiv.widgets.ProgressTextButton
+                                android:id="@+id/unfollow"
+                                style="@style/RedShiningButton"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignBottom="@+id/user_head"
-                                android:layout_marginBottom="@dimen/four_dp"
-                                android:layout_toEndOf="@+id/user_head"
-                                android:ellipsize="end"
-                                android:includeFontPadding="false"
-                                android:maxLines="1"
-                                android:text="@string/string_68"
-                                android:textColor="#bdbed6"
-                                android:textSize="12sp">
+                                android:layout_height="32dp"
+                                android:paddingHorizontal="16dp"
+                                android:text="@string/user_followed"
+                                android:visibility="gone"
+                                app:ptb_progress_stroke_width="3dp"
+                                app:ptb_progress_width="14dp" />
+                        </FrameLayout>
 
-                            </TextView>
+                    </ceui.pixiv.witstudio.widget.WitRoundRelativeLayout>
 
-
-                            <FrameLayout
-                                android:id="@+id/follow_layout"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_marginEnd="12dp">
-
-                                <ceui.pixiv.widgets.ProgressTextButton
-                                    android:id="@+id/follow"
-                                    style="@style/BlueShiningButton"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="32dp"
-                                    android:paddingHorizontal="16dp"
-                                    android:text="@string/follow"
-                                    android:visibility="gone"
-                                    app:ptb_progress_stroke_width="3dp"
-                                    app:ptb_progress_width="14dp" />
-
-                                <ceui.pixiv.widgets.ProgressTextButton
-                                    android:id="@+id/unfollow"
-                                    style="@style/RedShiningButton"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="32dp"
-                                    android:paddingHorizontal="16dp"
-                                    android:text="@string/user_followed"
-                                    android:visibility="gone"
-                                    app:ptb_progress_stroke_width="3dp"
-                                    app:ptb_progress_width="14dp" />
-                            </FrameLayout>
-
-                        </ceui.pixiv.witstudio.widget.WitRoundRelativeLayout>
-
-                    </LinearLayout>
-
-                    <View
-                        android:id="@+id/view_divider"
-                        android:layout_width="match_parent"
-                        android:layout_height="0.5dp"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginEnd="@dimen/sixteen_dp"
-                        android:background="@color/settings_divider">
-
-                    </View>
-
-                    <!-- 信息区整块在首屏之下，且点中间卡时 pager 会一次建三页（cur-1/cur/cur+1），
-                         所以只对**非当前页**延后一个消息再 inflate，见 FragmentIllust.setupInfoSection。 -->
-                    <ViewStub
-                        android:id="@+id/second_linear_stub"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout="@layout/view_classic_illust_info" />
-
-                </ceui.pixiv.witstudio.widget.WitRoundLinearLayout>
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/post_like"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/sixteen_dp"
-                    app:backgroundTint="@color/white"
-                    app:elevation="@dimen/twelve_dp"
-                    app:layout_anchor="@id/bottom_bar"
-                    app:layout_anchorGravity="end">
-
-
-                </com.google.android.material.floatingactionbutton.FloatingActionButton>
-
-            </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
-
-            <LinearLayout
-                android:id="@+id/bottom_linear"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:background="@color/fragment_center"
-                android:orientation="vertical">
+                </LinearLayout>
 
                 <View
+                    android:id="@+id/view_divider"
                     android:layout_width="match_parent"
                     android:layout_height="0.5dp"
                     android:layout_marginStart="@dimen/sixteen_dp"
@@ -295,110 +247,150 @@
 
                 </View>
 
-                <LinearLayout
+                <!-- 信息区整块在首屏之下，且点中间卡时 pager 会一次建三页（cur-1/cur/cur+1），
+                     所以只对**非当前页**延后一个消息再 inflate，见 FragmentIllust.setupInfoSection。 -->
+                <ViewStub
+                    android:id="@+id/second_linear_stub"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="@dimen/six_dp"
-                    android:paddingBottom="@dimen/six_dp">
+                    android:layout="@layout/view_classic_illust_info" />
 
-                    <ceui.pixiv.witstudio.widget.WitAlphaImageButton
-                        android:id="@+id/comment"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginEnd="@dimen/six_dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/button_stroke_new"
-                        android:src="@drawable/ic_chat_black_24dp"
-                        app:tint="?attr/colorPrimary" />
+            </ceui.pixiv.witstudio.widget.WitRoundLinearLayout>
 
-                    <ceui.pixiv.witstudio.widget.WitAlphaImageButton
-                        android:id="@+id/related"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_marginStart="@dimen/six_dp"
-                        android:layout_marginEnd="@dimen/six_dp"
-                        android:layout_weight="1"
-                        android:background="@drawable/button_stroke_new"
-                        android:src="@drawable/ic_equalizer_black_24dp"
-                        android:textColor="#9f9fb4"
-                        app:tint="?attr/colorPrimary" />
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/post_like"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                app:backgroundTint="@color/white"
+                app:elevation="@dimen/twelve_dp"
+                app:layout_anchor="@id/bottom_bar"
+                app:layout_anchorGravity="end">
 
-                    <ceui.pixiv.witstudio.widget.WitRoundButton
-                        android:id="@+id/download"
-                        android:layout_width="0dp"
-                        android:layout_height="40dp"
-                        android:layout_marginStart="@dimen/six_dp"
-                        android:layout_marginEnd="@dimen/sixteen_dp"
-                        android:layout_weight="2"
-                        android:text="@string/string_72"
-                        android:textColor="@color/white"
-                        app:wit_backgroundColor="?attr/colorPrimary"
-                        app:wit_borderColor="#eaebf9"
-                        app:wit_borderWidth="0dp"
-                        app:wit_radius="@dimen/eight_dp" />
 
-                </LinearLayout>
+            </com.google.android.material.floatingactionbutton.FloatingActionButton>
 
-                <View
-                    android:id="@+id/bottom_place_holder"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:visibility="gone" />
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+        <LinearLayout
+            android:id="@+id/bottom_linear"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="@color/fragment_center"
+            android:orientation="vertical">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:background="@color/settings_divider">
+
+            </View>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="@dimen/six_dp"
+                android:paddingBottom="@dimen/six_dp">
+
+                <ceui.pixiv.witstudio.widget.WitAlphaImageButton
+                    android:id="@+id/comment"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_marginEnd="@dimen/six_dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/button_stroke_new"
+                    android:src="@drawable/ic_chat_black_24dp"
+                    app:tint="?attr/colorPrimary" />
+
+                <ceui.pixiv.witstudio.widget.WitAlphaImageButton
+                    android:id="@+id/related"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="@dimen/six_dp"
+                    android:layout_marginEnd="@dimen/six_dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/button_stroke_new"
+                    android:src="@drawable/ic_equalizer_black_24dp"
+                    android:textColor="#9f9fb4"
+                    app:tint="?attr/colorPrimary" />
+
+                <ceui.pixiv.witstudio.widget.WitRoundButton
+                    android:id="@+id/download"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="@dimen/six_dp"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:layout_weight="2"
+                    android:text="@string/string_72"
+                    android:textColor="@color/white"
+                    app:wit_backgroundColor="?attr/colorPrimary"
+                    app:wit_borderColor="#eaebf9"
+                    app:wit_borderWidth="0dp"
+                    app:wit_radius="@dimen/eight_dp" />
 
             </LinearLayout>
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+            <View
+                android:id="@+id/bottom_place_holder"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@android:color/transparent"
-                android:elevation="@dimen/six_dp"
-                android:theme="@style/AppTheme.AppBarOverlay"
-                app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
-                app:popupTheme="@style/AppTheme.PopupOverlay"
-                app:title=" "
-                app:titleTextColor="@android:color/white">
-
-            </androidx.appcompat.widget.Toolbar>
-
-            <!-- 常驻页码浮标(#1058):多图作品直接在详情页往下滑时,标出正被它盖着的那一页。
-                 排在 toolbar 之后、同为 6dp elevation,所以会画在底部信息面板之上;面板拉起来
-                 时由 onSlide 按 slideOffset 淡出(见 FragmentIllust.setupBottomSheet)。 -->
-            <TextView
-                android:id="@+id/page_progress_pill"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_below="@+id/toolbar"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="12dp"
-                android:background="@drawable/bg_v3_expand_pill"
-                android:elevation="@dimen/six_dp"
-                android:letterSpacing="0.02"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:paddingTop="7dp"
-                android:paddingBottom="7dp"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold"
+                android:layout_height="1dp"
                 android:visibility="gone" />
 
-        </RelativeLayout>
+        </LinearLayout>
 
-
-        <!-- 已屏蔽遮罩：只有被屏蔽的作品才亮，子树里还挂着 SpoilerBlurView(两个自定义 View)。
-             首帧替每个作品都建一份纯属浪费，改 ViewStub，见 FragmentIllust.ensureAbandonedFrame。
-             复用 view_artwork_abandoned.xml（与 V3 详情页同一份）—— 那边多两个 clickable/focusable，
-             经典页是靠把 content_frame 整个隐藏来挡触摸的，多这两个属性无副作用。 -->
-        <ViewStub
-            android:id="@+id/abandoned_frame_stub"
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout="@layout/view_artwork_abandoned" />
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:elevation="@dimen/six_dp"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:title=" "
+            app:titleTextColor="@android:color/white">
 
-    </FrameLayout>
+        </androidx.appcompat.widget.Toolbar>
+
+        <!-- 常驻页码浮标(#1058):多图作品直接在详情页往下滑时,标出正被它盖着的那一页。
+             排在 toolbar 之后、同为 6dp elevation,所以会画在底部信息面板之上;面板拉起来
+             时由 onSlide 按 slideOffset 淡出(见 FragmentIllust.setupBottomSheet)。 -->
+        <TextView
+            android:id="@+id/page_progress_pill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/toolbar"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="12dp"
+            android:background="@drawable/bg_v3_expand_pill"
+            android:elevation="@dimen/six_dp"
+            android:letterSpacing="0.02"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="7dp"
+            android:paddingBottom="7dp"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+    </RelativeLayout>
 
 
-</layout>
+    <!-- 已屏蔽遮罩：只有被屏蔽的作品才亮，子树里还挂着 SpoilerBlurView(两个自定义 View)。
+         首帧替每个作品都建一份纯属浪费，改 ViewStub，见 FragmentIllust.ensureAbandonedFrame。
+         复用 view_artwork_abandoned.xml（与 V3 详情页同一份）—— 那边多两个 clickable/focusable，
+         经典页是靠把 content_frame 整个隐藏来挡触摸的，多这两个属性无副作用。 -->
+    <ViewStub
+        android:id="@+id/abandoned_frame_stub"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout="@layout/view_artwork_abandoned" />
+
+</FrameLayout>

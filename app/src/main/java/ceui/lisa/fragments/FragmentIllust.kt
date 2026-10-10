@@ -15,8 +15,10 @@ import android.text.TextUtils
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.HapticFeedbackConstants
+import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnLongClickListener
+import android.view.ViewGroup
 import android.view.ViewStub
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.TextView
@@ -251,6 +253,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         mLayoutID = R.layout.fragment_illust
     }
 
+    // fragment_illust.xml 已从 DataBinding 改为 ViewBinding（布局里没有任何 DataBinding 表达式，
+    // <data> 里那个 LiveData<User> variable 从没被引用、代码里也从没 set 过）。DataBindingUtil.inflate
+    // 对非 <layout> 根的布局返回 null，所以这里必须自己走 ViewBinding 的 inflate。
+    override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentIllustBinding =
+        FragmentIllustBinding.inflate(inflater, container, false)
+
+    override fun bindExisting(root: View): FragmentIllustBinding =
+        FragmentIllustBinding.bind(root)
+
     override fun initView() {
         // 导航栏占位要在快照 early-return 之前挂好,否则离线快照页底栏压在手势条上。
         applyNavigationBarInset()
@@ -293,7 +304,9 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
 
         val illust = illustLiveData.value ?: return
-        baseBind.user = userLiveData
+        // 这里原来还有一句 `baseBind.user = userLiveData`（DataBinding 的 variable 赋值）。
+        // 但布局里从来没有 `@{user...}` 表达式引用它 —— 那是个「设了没人看」的死绑定，
+        // 唯一效果是每次进页多一次 requestRebind 空跑。布局已改 ViewBinding，这行随之删除。
 
         observeMuteStatus(illust)
     }
