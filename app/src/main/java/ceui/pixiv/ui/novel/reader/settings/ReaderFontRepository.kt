@@ -105,12 +105,16 @@ class ReaderFontRepository(private val app: Application) {
         mutableStates.update { it + (font to state) }
     }
 
-    /** 下到 `.part`，字节数与 SHA-256 都对上才换成正式文件，半截文件永远不会被当成字体加载。 */
+    /** 下到临时 `.part`，字节数与 SHA-256 都对上才换成正式文件，半截文件永远不会被当成字体加载。 */
     private suspend fun fetch(font: ReaderWebFont, onProgress: (Float) -> Unit) {
         val target = font.file(app)
         val dir = target.parentFile ?: throw IOException("no font dir")
         if (!dir.isDirectory && !dir.mkdirs()) throw IOException("cannot create ${dir.path}")
-        val part = File(dir, "${font.id}.part")
+        // 每次下载各用一个临时文件：取消后紧接着重下时，旧协程可能还卡在一次阻塞读里（最长到读超时），
+        // 共用同一路径的话它醒来后的 finally 会删掉新下载的文件，新下载在最后一步 rename 失败。
+        // 同一款同时只有一个活着的下载，所以这里先清掉这款字体残留的临时文件（含进程被杀留下的）。
+        dir.listFiles { f -> f.name.startsWith("${font.id}.") && f.name.endsWith(".part") }?.forEach { it.delete() }
+        val part = File.createTempFile("${font.id}.", ".part", dir)
         try {
             val request = Request.Builder().url(GithubProxy.wrap(font.downloadUrl)).build()
             client.newCall(request).execute().use { response ->

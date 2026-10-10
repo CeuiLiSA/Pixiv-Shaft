@@ -23,9 +23,12 @@ object TypefaceProvider {
 
     fun resolve(context: Context, fontId: String, weight: Int, bold: Boolean): Typeface {
         ReaderWebFont.byId(fontId)?.let { web ->
-            val cacheKey = "${web.id}|$weight|$bold"
+            // 字重滑块拖动时逐个整数发值；每个新字重都会把十几 MB 的字体文件再 mmap 一份并常驻缓存，
+            // 吸附到 100 一档后每款最多 9 份，肉眼也分不出相邻整数字重的差别
+            val snapped = (weight + 50) / 100 * 100
+            val cacheKey = "${web.id}|$snapped|$bold"
             cache[cacheKey]?.let { return it }
-            val base = web.loadTypeface(context, weight)
+            val base = web.loadTypeface(context, snapped)
                 ?: return resolve(context, PresetFonts.SYSTEM.id, weight, bold)
             return cache.getOrPut(cacheKey) { withStyle(base, bold) }
         }

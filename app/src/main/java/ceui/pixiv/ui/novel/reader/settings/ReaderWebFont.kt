@@ -85,6 +85,9 @@ enum class ReaderWebFont(
 
     fun file(context: Context): File = File(dir(context), "$id.ttf")
 
+    /** 只在 rename 校验过的文件时才存在，所以文件在 = 已装好。 */
+    fun isInstalled(context: Context): Boolean = isSupported && file(context).exists()
+
     fun matches(bytes: Long, sha256Hex: String): Boolean = bytes == byteSize && sha256Hex == sha256
 
     /** 已下载且本机支持时返回字体，否则 null（由调用方回退到系统字体）。 */

@@ -21,7 +21,6 @@ import ceui.lisa.databinding.ItemReaderSettingSegmentedBinding
 import ceui.lisa.databinding.ItemReaderSettingSliderBinding
 import ceui.lisa.databinding.ItemReaderSettingSwitchBinding
 import ceui.lisa.databinding.ItemReaderThemeSwatchBinding
-import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.novel.reader.model.FlipMode
 import ceui.pixiv.ui.novel.reader.model.ReadingDirection
 import ceui.pixiv.ui.novel.reader.model.ImagePlacement
@@ -60,6 +59,9 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
 
     /** 「跟随系统暗色」开关视图，供程序性退出跟随（点配色）后回刷开关态。 */
     private var followSwitch: CompoundButton? = null
+
+    /** 「更多字体」面板，防连点重复打开。 */
+    private var fontSheet: Dialog? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         // edgeToEdge:让 window 画到导航栏底下,内容背景才能延伸进底部 safe area。
@@ -139,6 +141,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         followSwitch = null
+        fontSheet = null
         _binding = null
     }
 
@@ -439,9 +442,8 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         val inflater = LayoutInflater.from(ctx)
         val chips = mutableListOf<TextView>()
         // 系统字体 + 已下载的 Google Fonts 字体（#1060），末尾是去下载更多的入口
-        val repo = ctx.appServices().readerFontRepository
         val fonts = PresetFonts.BUILT_IN.map { it.id to it.displayName } +
-            ReaderWebFont.entries.filter { it.isSupported && repo.isInstalled(it) }
+            ReaderWebFont.entries.filter { it.isInstalled(ctx) }
                 .map { it.id to getString(it.nameRes) }
         fonts.forEach { (id, name) ->
             val item = ItemReaderFontChipBinding.inflate(inflater, inner, false)
@@ -460,7 +462,9 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         val more = ItemReaderFontChipBinding.inflate(inflater, inner, false).root as TextView
         more.text = getString(R.string.reader_font_more)
         more.setOnClickListener {
-            ReaderFontSheet.show(ctx) {
+            // 连点两下别叠出两张面板
+            if (fontSheet?.isShowing == true) return@setOnClickListener
+            fontSheet = ReaderFontSheet.show(ctx) {
                 _binding?.sectionTypography?.rowFontPicker?.bindFontPicker(ctx)
             }
         }

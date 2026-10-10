@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.novel.reader.ui
 
+import android.app.Dialog
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -50,7 +51,7 @@ import kotlinx.coroutines.launch
  */
 object ReaderFontSheet {
 
-    fun show(context: Context, onDismiss: () -> Unit) {
+    fun show(context: Context, onDismiss: () -> Unit): Dialog {
         val repo = context.appServices().readerFontRepository
         val sheet = WitBottomSheet(context)
         val rows = mutableListOf<FontRow>()
@@ -128,6 +129,7 @@ object ReaderFontSheet {
             repo.states.collect { states -> rows.forEach { it.render(states) } }
         }
         sheet.show()
+        return sheet
     }
 
     /**
