@@ -91,6 +91,7 @@ import ceui.pixiv.snapshot.showSnapshotCreateDialog
 import ceui.pixiv.ui.share.shareFirstImage
 import ceui.pixiv.ui.share.saveArtworkPoster
 import ceui.pixiv.ui.upscale.IllustAiHelper
+import ceui.pixiv.utils.FrameQueue
 import ceui.pixiv.utils.buildPinnedTagPreviewJson
 import ceui.pixiv.utils.isHostStillResumed
 import ceui.pixiv.utils.setOnClick
@@ -620,8 +621,17 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             // 快照页正是这条路径（`bindSnapshotView` 在 initView 里同步跑），信息区永远建不出来
             // —— 表现就是「快照页内容空态」（抽屉 peek 也停在 0，整条抽屉都不出现）。
             // 改用 `baseBind.root`：它就是本页的根视图，post 会排在 attach 之后执行。
+            // 排进页面的分帧队列（见 [FrameQueue]），而不是自己 post：
+            // post 会立刻排在消息队列里，于是「放行相邻页的那一帧」和「信息区 inflate」两条
+            // 消息背靠背执行、中间一次绘制都没有 —— 实测那两段连续 267ms / 302ms 无绘制，
+            // 各报一次 Skipped（33 / 37 帧）。队列保证每帧只跑一个任务，两块活自然错开。
+            //
+            // `view != null` 是必需的：队列在页面销毁时会 clear，但已经排到帧上的那一个任务
+            // 仍可能落到视图已经 detach 之后。
             val root = baseBind.root
-            root.post { if (root === baseBind?.root) setupInfoSection(illust) }
+            FrameQueue.of(parentFragmentManager).post {
+                if (view != null && root === baseBind?.root) setupInfoSection(illust)
+            }
         }
     }
 
