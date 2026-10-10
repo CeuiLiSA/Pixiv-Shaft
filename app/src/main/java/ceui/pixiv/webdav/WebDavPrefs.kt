@@ -6,6 +6,7 @@ import android.util.Base64
 import com.tencent.mmkv.MMKV
 import timber.log.Timber
 import java.security.KeyStore
+import java.util.UUID
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -67,12 +68,21 @@ object WebDavPrefs {
     private const val KEY_LAST_MESSAGE = "last_message"
     private const val KEY_LAST_DIGEST = "last_digest"
     private const val KEY_LAST_UPLOAD_NAME = "last_upload_name"
+    private const val KEY_DEVICE_ID = "device_id"
 
     private const val KEY_ALIAS = "shaft.webdav.aes"
     private const val TRANSFORMATION = "AES/GCM/NoPadding"
     private const val ENVELOPE_VERSION = "v1"
 
     private val store: MMKV by lazy { MMKV.mmkvWithID(MMKV_ID) }
+
+    /** 安装实例的标识，独立于型号；同型号的两台设备不能共用备份保留额度。 */
+    val deviceId: String
+        get() = synchronized(this) {
+            store.decodeString(KEY_DEVICE_ID) ?: UUID.randomUUID().toString().replace("-", "").also {
+                store.encode(KEY_DEVICE_ID, it)
+            }
+        }
 
     fun load(): WebDavConfig = WebDavConfig(
         baseUrl = store.decodeString(KEY_BASE_URL).orEmpty(),

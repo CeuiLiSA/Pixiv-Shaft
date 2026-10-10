@@ -58,6 +58,8 @@ public class BackupUtils {
     private static final Type PINNED_USER_LIST_TYPE = new TypeToken<List<GeneralEntity>>() {}.getType();
 
     public static class BackupEntity {
+        /** WebDAV 导出不携带凭据，恢复时保留本机密钥及设备状态。旧文件默认为 false。 */
+        private boolean deviceLocalSettings;
         private Settings settings;
         private List<MuteEntity> muteEntityList;
         private List<FeatureEntity> featureEntityList;
@@ -170,6 +172,9 @@ public class BackupUtils {
         try (JsonWriter writer = new JsonWriter(new BufferedWriter(
                 new OutputStreamWriter(out, StandardCharsets.UTF_8)))) {
             writer.beginObject();
+            if (!includeCredentials) {
+                writer.name("deviceLocalSettings").value(true);
+            }
             writer.name("settings");
             Shaft.sGson.toJson(includeCredentials ? Shaft.sSettings : settingsWithoutSecrets(),
                     Settings.class, writer);
@@ -245,8 +250,9 @@ public class BackupUtils {
      * @return 还原出的小字段（含账号列表，历史列表不保留）；解析失败返回 null。
      */
     public static BackupEntity restoreBackupEntity(Context context, InputStream inputStream) {
-        try (JsonReader reader = new JsonReader(new BufferedReader(
-                new InputStreamReader(maybeGunzip(inputStream), StandardCharsets.UTF_8)))) {
+        try (InputStream decoded = maybeGunzip(inputStream);
+             JsonReader reader = new JsonReader(new BufferedReader(
+                     new InputStreamReader(decoded, StandardCharsets.UTF_8)))) {
             // 旧还原链路是 Gson.fromJson(String),全程 lenient;这里对齐,
             // 否则带 BOM / 轻微不规范的旧备份文件会在 strict 模式下解析失败。
             reader.setLenient(true);
@@ -260,6 +266,9 @@ public class BackupUtils {
                     continue;
                 }
                 switch (name) {
+                    case "deviceLocalSettings":
+                        backupEntity.deviceLocalSettings = reader.nextBoolean();
+                        break;
                     case "settings":
                         backupEntity.setSettings(Shaft.sGson.fromJson(reader, Settings.class));
                         break;
@@ -305,6 +314,15 @@ public class BackupUtils {
                 }
             }
             reader.endObject();
+            // 读到流末尾才能验证 gzip 的 CRC / 长度尾部；close 不会做这一步。
+            // 在验证成功前不替换设置，截断文件也不能误报恢复成功。
+            if (reader.peek() != JsonToken.END_DOCUMENT) {
+                throw new IOException("unexpected content after backup");
+            }
+            // 首版 WebDAV 文件没有元数据；它是 gzip，且不导出 userEntityList。
+            if (decoded instanceof GZIPInputStream && backupEntity.getUserEntityList() == null) {
+                backupEntity.deviceLocalSettings = true;
+            }
             applyRestored(context, backupEntity);
             return backupEntity;
         } catch (Exception e) {
@@ -338,6 +356,20 @@ public class BackupUtils {
         boolean restoredV3 = DownloadConfigBackup.restore(backupEntity.getDownloadConfigV3());
         Settings settings = backupEntity.getSettings();
         if (settings != null) {
+            if (backupEntity.deviceLocalSettings) {
+                // 在首次写入 Settings 前合并，远端恢复与下载后的本地恢复走同一语义。
+                // 后续表写入失败时，也不会留下已被抹空的本机密钥。
+                Settings local = Shaft.sSettings;
+                if (settings.getAiTranslateApiKey().isEmpty()) {
+                    settings.setAiTranslateApiKey(local.getAiTranslateApiKey());
+                }
+                if (settings.getAria2RpcSecret().isEmpty()) {
+                    settings.setAria2RpcSecret(local.getAria2RpcSecret());
+                }
+                settings.setCloudHistoryConsentShown(local.isCloudHistoryConsentShown());
+                settings.setMoonAppliedVersions(new java.util.HashMap<>(local.getMoonAppliedVersions()));
+                settings.setCloudHistoryBackfillDoneUid(0L);
+            }
             Settings.migrateLegacyDoubleTapZoom(settings);
             Settings.migrateLegacyLongPressBehavior(settings);
             if (!restoredV3) {

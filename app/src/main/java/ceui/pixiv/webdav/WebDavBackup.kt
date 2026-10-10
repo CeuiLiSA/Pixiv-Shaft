@@ -2,9 +2,7 @@ package ceui.pixiv.webdav
 
 import android.content.Context
 import android.os.Build
-import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.BackupUtils
-import ceui.lisa.utils.Local
 import ceui.pixiv.db.HistoryBackfill
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -30,7 +28,7 @@ import java.util.zip.GZIPOutputStream
  *
  * 与本地导出的唯一区别：**不上传登录凭据**。pixiv 账号（含 refresh_token，账号可绑定支付）
  * 和 Settings 里的第三方密钥不离开本机——WebDAV 多是第三方网盘，备份文件在那边是明文。
- * 还原时这几项保留本机现值，见 [DeviceLocalSettings]。
+ * 还原时这几项保留本机现值，元数据由 [BackupUtils.restoreBackupEntity] 统一处理。
  *
  * 每次备份是一个新文件（文件名带 UTC 时间与设备型号），不覆盖旧文件；多台设备可共用一个
  * 目录，按设备各保留最近 [KEEP_PER_DEVICE] 份。
@@ -43,13 +41,19 @@ object WebDavBackup {
     private const val CONTENT_TYPE = "application/gzip"
     const val KEEP_PER_DEVICE = 10
 
-    private val FILE_PATTERN = Regex("""^Shaft-Backup_(\d{8}T\d{6}Z)_(.+)\.json\.gz$""")
+    private val FILE_PATTERN = Regex("""^Shaft-Backup_(\d{8}T\d{6}(?:\d{3})?Z)_(.+?)(?:_([0-9a-f]{32}))?\.json\.gz$""")
 
     /** 备份与还原互斥：手动操作与后台自动备份都在本进程里，一把锁就够。 */
     private val mutex = Mutex()
 
     /** 远端的一份备份。 */
-    data class RemoteBackup(val name: String, val size: Long, val timeMs: Long, val device: String)
+    data class RemoteBackup(
+        val name: String,
+        val size: Long,
+        val timeMs: Long,
+        val device: String,
+        val deviceId: String? = null,
+    )
 
     sealed interface BackupResult {
         data class Uploaded(val name: String, val size: Long) : BackupResult
@@ -97,7 +101,7 @@ object WebDavBackup {
                 }
 
                 client.ensureFolder()
-                val name = newFileName(System.currentTimeMillis())
+                val name = newFileName(System.currentTimeMillis(), deviceLabel(), WebDavPrefs.deviceId)
                 val size = temp.length()
                 client.upload(name, temp, CONTENT_TYPE)
                 WebDavPrefs.lastUpload = WebDavLastUpload(hex, name)
@@ -134,10 +138,8 @@ object WebDavBackup {
             val temp = File.createTempFile("webdav-restore", FILE_SUFFIX, appContext.cacheDir)
             try {
                 WebDavClient(config).download(backup.name, temp)
-                val local = DeviceLocalSettings.capture()
                 val restored = temp.inputStream().use { BackupUtils.restoreBackupEntity(appContext, it) }
                     ?: throw IOException("not a valid Shaft backup: ${backup.name}")
-                local.reapply()
                 // 开了浏览记录云同步时，历史页读的是云端，刚灌进本地库的条目要推上去才看得见；
                 // 回填是幂等的（已有条目 no-op），清标记重跑即可（同 BrowseHistoryBackup 导入）。
                 HistoryBackfill.maybeSchedule()
@@ -150,29 +152,36 @@ object WebDavBackup {
 
     /** 每台设备只留最近 [KEEP_PER_DEVICE] 份，别的设备的备份不受这台设备备份频率影响。 */
     private fun prune(client: WebDavClient) {
-        val stale = client.listFiles()
-            .mapNotNull(::parse)
-            .groupBy { it.device }
-            .values
-            .flatMap { perDevice -> perDevice.sortedByDescending { it.timeMs }.drop(KEEP_PER_DEVICE) }
+        val stale = staleBackups(client.listFiles(), WebDavPrefs.deviceId)
         stale.forEach {
             client.delete(it.name)
             Timber.tag(TAG).d("[prune] deleted %s", it.name)
         }
     }
 
-    private fun newFileName(timeMs: Long): String =
-        "$FILE_PREFIX${timestampFormat().format(Date(timeMs))}_${deviceLabel()}$FILE_SUFFIX"
+    internal fun staleBackups(entries: List<WebDavEntry>, deviceId: String): List<RemoteBackup> =
+        entries.mapNotNull(::parse)
+            .filter { it.deviceId == deviceId }
+            .sortedByDescending { it.timeMs }
+            .drop(KEEP_PER_DEVICE)
 
-    private fun parse(entry: WebDavEntry): RemoteBackup? {
+    internal fun newFileName(timeMs: Long, device: String, deviceId: String): String =
+        "$FILE_PREFIX${timestampFormat(true).format(Date(timeMs))}_${device}_$deviceId$FILE_SUFFIX"
+
+    internal fun parse(entry: WebDavEntry): RemoteBackup? {
         val match = FILE_PATTERN.matchEntire(entry.name) ?: return null
-        val time = runCatching { timestampFormat().parse(match.groupValues[1])?.time }.getOrNull() ?: return null
-        return RemoteBackup(entry.name, entry.size, time, match.groupValues[2])
+        val timestamp = match.groupValues[1]
+        val time = runCatching { timestampFormat(timestamp.length == 19).parse(timestamp)?.time }
+            .getOrNull() ?: return null
+        return RemoteBackup(entry.name, entry.size, time, match.groupValues[2], match.groupValues[3].ifEmpty { null })
     }
 
     /** UTC：不同时区的设备共用一个目录时，按文件名排序就是按时间排序。 */
-    private fun timestampFormat() = SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'", Locale.US).apply {
+    private fun timestampFormat(milliseconds: Boolean) = SimpleDateFormat(
+        if (milliseconds) "yyyyMMdd'T'HHmmssSSS'Z'" else "yyyyMMdd'T'HHmmss'Z'", Locale.US,
+    ).apply {
         timeZone = TimeZone.getTimeZone("UTC")
+        isLenient = false
     }
 
     /** 只留 URL 安全字符，避免各家服务器对 href 编码处理不一致。 */
@@ -180,38 +189,4 @@ object WebDavBackup {
         Build.MODEL.orEmpty().replace(Regex("[^A-Za-z0-9._-]+"), "-").trim('-').take(32)
             .ifEmpty { "Android" }
 
-    /**
-     * 还原会整份替换 Settings；这些字段描述的是「这台设备」而不是用户偏好，必须留本机的值：
-     * - 备份里被抹空的第三方密钥（[BackupUtils.writeBackup] 的 includeCredentials=false）；
-     * - 浏览记录云同步的同意框状态（每台设备弹一次，同 MoonSync 的处理）；
-     * - 本设备已应用的云端配置版本、浏览记录回填标记（后者清零，让回填按新数据重跑）。
-     */
-    private class DeviceLocalSettings private constructor(
-        private val aiTranslateApiKey: String,
-        private val aria2RpcSecret: String,
-        private val cloudHistoryConsentShown: Boolean,
-        private val moonAppliedVersions: Map<String, Int>,
-    ) {
-        fun reapply() {
-            val settings = Shaft.sSettings
-            if (settings.aiTranslateApiKey.isEmpty()) settings.aiTranslateApiKey = aiTranslateApiKey
-            if (settings.aria2RpcSecret.isEmpty()) settings.aria2RpcSecret = aria2RpcSecret
-            settings.isCloudHistoryConsentShown = cloudHistoryConsentShown
-            settings.moonAppliedVersions = moonAppliedVersions.toMutableMap()
-            settings.cloudHistoryBackfillDoneUid = 0L
-            Local.setSettings(settings)
-        }
-
-        companion object {
-            fun capture(): DeviceLocalSettings {
-                val settings = Shaft.sSettings
-                return DeviceLocalSettings(
-                    aiTranslateApiKey = settings.aiTranslateApiKey,
-                    aria2RpcSecret = settings.aria2RpcSecret,
-                    cloudHistoryConsentShown = settings.isCloudHistoryConsentShown,
-                    moonAppliedVersions = HashMap(settings.moonAppliedVersions),
-                )
-            }
-        }
-    }
 }

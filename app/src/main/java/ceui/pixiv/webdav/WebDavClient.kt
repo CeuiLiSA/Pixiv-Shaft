@@ -12,6 +12,7 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserException
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -44,7 +45,11 @@ class WebDavClient(config: WebDavConfig) {
 
     /** 根地址可达、账号密码正确。 */
     fun checkAccess() {
-        propfind(baseUrl, depth = 0).use { it.requireSuccess() }
+        propfind(baseUrl, depth = 0).use { response ->
+            response.requireSuccess()
+            val body = response.body ?: throw IOException("empty WebDAV response")
+            parseMultistatus(body.byteStream())
+        }
     }
 
     /** 逐级 MKCOL 建出备份目录；已存在（405）视为成功。 */
@@ -63,7 +68,7 @@ class WebDavClient(config: WebDavConfig) {
         propfind(dirUrl(folderSegments), depth = 1).use { response ->
             if (response.code == 404) return emptyList()
             response.requireSuccess()
-            val body = response.body ?: return emptyList()
+            val body = response.body ?: throw IOException("empty WebDAV response")
             return parseMultistatus(body.byteStream())
         }
     }
@@ -130,13 +135,25 @@ class WebDavClient(config: WebDavConfig) {
      * 按 local name 匹配、忽略命名空间前缀：各家服务器 `d:` / `D:` / 默认命名空间写法都有。
      */
     private fun parseMultistatus(input: InputStream): List<WebDavEntry> {
+        try {
+            return readMultistatus(input)
+        } catch (e: XmlPullParserException) {
+            throw IOException("invalid WebDAV response", e)
+        }
+    }
+
+    private fun readMultistatus(input: InputStream): List<WebDavEntry> {
         val parser = Xml.newPullParser()
         parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true)
         parser.setInput(input, null)
+        if (parser.nextTag() != XmlPullParser.START_TAG || parser.name != "multistatus" || parser.namespace != "DAV:") {
+            throw IOException("not a WebDAV multistatus response")
+        }
         val result = mutableListOf<WebDavEntry>()
         var href: String? = null
         var size = 0L
         var isCollection = false
+        var complete = false
         while (parser.next() != XmlPullParser.END_DOCUMENT) {
             when (parser.eventType) {
                 XmlPullParser.START_TAG -> when (parser.name) {
@@ -149,12 +166,16 @@ class WebDavClient(config: WebDavConfig) {
                     "getcontentlength" -> size = parser.nextText().trim().toLongOrNull() ?: 0L
                     "collection" -> isCollection = true
                 }
-                XmlPullParser.END_TAG -> if (parser.name == "response") {
-                    val name = href?.let(::lastSegment)
-                    if (!isCollection && !name.isNullOrEmpty()) result += WebDavEntry(name, size)
+                XmlPullParser.END_TAG -> when {
+                    parser.depth == 1 && parser.name == "multistatus" -> complete = true
+                    parser.name == "response" -> {
+                        val name = href?.let(::lastSegment)
+                        if (!isCollection && !name.isNullOrEmpty()) result += WebDavEntry(name, size)
+                    }
                 }
             }
         }
+        if (!complete) throw IOException("incomplete WebDAV multistatus response")
         return result
     }
 

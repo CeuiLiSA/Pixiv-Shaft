@@ -118,6 +118,7 @@ class TemplateRouteTest {
             "DOWNLOAD_PATH_SETTINGS" to "下载路径与文件名",
             "ARIA2_SETTINGS" to "aria2远程下载",
             "AI_TRANSLATE_SETTINGS" to "自定义AI翻译",
+            "WEBDAV_SETTINGS" to "WebDAV备份",
             "VIEWER_DISMISS_TUNING" to "大图拖动退出控制",
             "NOVEL_HEADER_SETTINGS" to "小说信息头",
             "DONATE" to "捐赠",

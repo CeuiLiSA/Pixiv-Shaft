@@ -13,6 +13,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.io.IOException
 
 /** [WebDavClient] 的协议层测试：MockWebServer 假扮 WebDAV 服务器。 */
 @RunWith(RobolectricTestRunner::class)
@@ -133,5 +134,41 @@ class WebDavClientTest {
     fun `目录名里的点段被丢弃，不能跳出根地址`() {
         assertEquals("apps/Shaft", WebDavConfig.normalizeFolder("/apps//./../Shaft/"))
         assertEquals("https://dav.example.com/dav/", WebDavConfig.normalizeBaseUrl(" https://dav.example.com/dav "))
+    }
+
+    @Test
+    fun `损坏的目录 XML 归为 IO 失败，自动备份能记录结果并重试`() {
+        server.enqueue(MockResponse().setResponseCode(207).setBody("<d:multistatus xmlns:d=\"DAV:\"><d:response>"))
+        try {
+            client().listFiles()
+            fail("expected IOException")
+        } catch (_: IOException) {
+            // 与 WorkManager 的失败处理使用相同异常边界。
+        }
+    }
+
+    @Test
+    fun `连接测试不能把登录 HTML 当作 WebDAV 成功响应`() {
+        server.enqueue(MockResponse().setResponseCode(200).setBody("<html><body>Sign in</body></html>"))
+        try {
+            client().checkAccess()
+            fail("expected IOException")
+        } catch (_: IOException) {
+        }
+    }
+
+    @Test
+    fun `连接测试以 Depth 0 读取有效 WebDAV 响应`() {
+        server.enqueue(MockResponse().setResponseCode(207).setBody("""<multistatus xmlns="DAV:"/>"""))
+        client().checkAccess()
+        val request = server.takeRequest()
+        assertEquals("PROPFIND", request.method)
+        assertEquals("0", request.getHeader("Depth"))
+    }
+
+    @Test
+    fun `完整的空目录是有效响应`() {
+        server.enqueue(MockResponse().setResponseCode(207).setBody("""<multistatus xmlns="DAV:"/>"""))
+        assertTrue(client().listFiles().isEmpty())
     }
 }
