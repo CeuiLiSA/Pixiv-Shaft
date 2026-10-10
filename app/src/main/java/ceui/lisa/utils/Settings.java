@@ -220,6 +220,11 @@ public class Settings {
     //屏蔽 AI 时的豁免作者 ID（保持添加顺序、自动去重）
     private LinkedHashSet<Long> aiBlockExemptAuthorIds = new LinkedHashSet<>();
 
+    //豁免名单里被「临时停用」的 ID 子集：ID 仍在名单里，但当前不产生豁免效果。
+    //刻意与 aiBlockExemptAuthorIds 拆成两个集合，而不是改成 {id:enabled} 结构——旧设置 /
+    //WebDAV 老备份里没有这个字段，反序列化后为空集，等于名单里所有 ID 都「启用」，无需迁移。
+    private LinkedHashSet<Long> aiBlockExemptDisabledIds = new LinkedHashSet<>();
+
     //是否开启直连模式，true 开启  false 自行代理
     @SerializedName("autoFuckChina")
     private boolean directConnect = false;
@@ -789,9 +794,51 @@ public class Settings {
                 : aiBlockExemptAuthorIds;
     }
 
-    /** 屏蔽 AI 是否需要客户端接管（拿全量再本地滤/遮）：模糊粒子化或存在豁免作者时，服务端不能直接剔掉 AI。 */
+    public LinkedHashSet<Long> getAiBlockExemptDisabledIds() {
+        if (aiBlockExemptDisabledIds == null) {
+            aiBlockExemptDisabledIds = new LinkedHashSet<>();
+        }
+        return aiBlockExemptDisabledIds;
+    }
+
+    public void setAiBlockExemptDisabledIds(LinkedHashSet<Long> aiBlockExemptDisabledIds) {
+        this.aiBlockExemptDisabledIds = aiBlockExemptDisabledIds == null
+                ? new LinkedHashSet<>()
+                : aiBlockExemptDisabledIds;
+    }
+
+    /** 某个作者当前是否真的被豁免：在名单里，且这一条没有被「临时停用」。 */
+    public boolean isAiBlockExemptAuthor(long userId) {
+        return getAiBlockExemptAuthorIds().contains(userId)
+                && !getAiBlockExemptDisabledIds().contains(userId);
+    }
+
+    /** 名单里当前「启用」的豁免作者数量（总数减去被停用的）。 */
+    public int getEnabledAiBlockExemptAuthorCount() {
+        LinkedHashSet<Long> all = getAiBlockExemptAuthorIds();
+        if (all.isEmpty()) {
+            return 0;
+        }
+        LinkedHashSet<Long> off = getAiBlockExemptDisabledIds();
+        if (off.isEmpty()) {
+            return all.size();
+        }
+        int count = 0;
+        for (Long id : all) {
+            if (!off.contains(id)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * 屏蔽 AI 是否需要客户端接管（拿全量再本地滤/遮）：模糊粒子化或存在**启用**的豁免作者时，
+     * 服务端不能直接剔掉 AI。被停用的豁免作者不产生任何效果，因此不计入——名单里全是停用项时，
+     * 服务端照常剔除即可，没必要让客户端把全量拉下来。
+     */
     public boolean isAiBlockClientSide() {
-        return aiBlockStrength != 0 || !getAiBlockExemptAuthorIds().isEmpty();
+        return aiBlockStrength != 0 || getEnabledAiBlockExemptAuthorCount() > 0;
     }
 
 

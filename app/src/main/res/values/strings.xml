@@ -950,7 +950,7 @@
     <string name="feed_all_items_filtered">作品已被屏蔽设置全部隐藏</string>
     <string name="ai_block_strength_blur">模糊粒子化</string>
     <string name="ai_block_exempt_authors">豁免的作者列表</string>
-    <string name="ai_block_exempt_hint">逐个添加作者ID，可删除\n列表变动后建议重启下app</string>
+    <string name="ai_block_exempt_hint">逐个添加作者 ID；点按胶囊可临时停用豁免，点垃圾桶删除\n列表变动后建议重启下 App</string>
     <string name="ai_block_exempt_add">添加</string>
     <string name="ai_block_exempt_input_hint">输入作者 ID</string>
     <string name="ai_block_exempt_empty">还没有豁免作者</string>
@@ -959,6 +959,9 @@
     <string name="ai_block_exempt_duplicate">该作者 ID 已添加</string>
     <string name="ai_block_exempt_none">未设置</string>
     <string name="ai_block_exempt_count">%1$d 个作者 ID</string>
+    <string name="ai_block_exempt_count_partial">%1$d 个作者 ID（%2$d 个已启用）</string>
+    <string name="ai_block_exempt_state_on">已启用</string>
+    <string name="ai_block_exempt_state_off">未启用</string>
     <string name="trying_login">尝试登录</string>
     <string name="userTab_other">其他</string>
     <string name="userTab_collection">收藏</string>

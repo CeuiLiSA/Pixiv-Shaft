@@ -45,45 +45,34 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <FrameLayout
+    <ceui.pixiv.witstudio.widget.WitNestedScrollBlockingLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <androidx.core.widget.NestedScrollView
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/id_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
+            android:overScrollMode="ifContentScrolls"
             android:paddingStart="20dp"
             android:paddingTop="18dp"
             android:paddingEnd="20dp"
-            android:paddingBottom="18dp">
+            android:paddingBottom="18dp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <com.google.android.flexbox.FlexboxLayout
-                    android:id="@+id/id_flow"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:alignItems="flex_start"
-                    app:flexWrap="wrap" />
-
-                <TextView
-                    android:id="@+id/empty_hint"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:paddingVertical="24dp"
-                    android:text="@string/ai_block_exempt_empty"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:visibility="gone" />
-            </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
-    </FrameLayout>
+        <TextView
+            android:id="@+id/empty_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:paddingVertical="24dp"
+            android:text="@string/ai_block_exempt_empty"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:visibility="gone" />
+    </ceui.pixiv.witstudio.widget.WitNestedScrollBlockingLayout>
 
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"

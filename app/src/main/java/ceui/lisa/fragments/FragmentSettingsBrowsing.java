@@ -325,10 +325,15 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         baseBind.aiBlockStrength.setText(Shaft.sSettings.getAiBlockStrength() == 0
                 ? getString(R.string.ai_block_strength_hide)
                 : getString(R.string.ai_block_strength_blur));
-        int count = Shaft.sSettings.getAiBlockExemptAuthorIds().size();
-        baseBind.aiBlockExempt.setText(count == 0
-                ? getString(R.string.ai_block_exempt_none)
-                : getString(R.string.ai_block_exempt_count, count));
+        int total = Shaft.sSettings.getAiBlockExemptAuthorIds().size();
+        if (total == 0) {
+            baseBind.aiBlockExempt.setText(getString(R.string.ai_block_exempt_none));
+        } else {
+            int enabledCount = Shaft.sSettings.getEnabledAiBlockExemptAuthorCount();
+            baseBind.aiBlockExempt.setText(enabledCount == total
+                    ? getString(R.string.ai_block_exempt_count, total)
+                    : getString(R.string.ai_block_exempt_count_partial, total, enabledCount));
+        }
     }
 
     private void showAiBlockStrengthPicker() {

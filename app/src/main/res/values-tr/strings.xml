@@ -920,7 +920,7 @@
     <string name="feed_all_items_filtered">Tüm eserler filtre ayarlarınız tarafından gizlendi</string>
     <string name="ai_block_strength_blur">Bulanık + parçacık</string>
     <string name="ai_block_exempt_authors">Muaf yazar listesi</string>
-    <string name="ai_block_exempt_hint">Yazar ID\'lerini tek tek ekleyin, silebilirsiniz\nListe değişikliğinden sonra uygulamayı yeniden başlatmanız önerilir</string>
+    <string name="ai_block_exempt_hint">Yazar ID\'lerini tek tek ekleyin. Bir çipe dokunmak muafiyeti geçici olarak kapatır, çöp kutusu simgesi siler.\nListe değişikliğinden sonra uygulamayı yeniden başlatmanız önerilir</string>
     <string name="ai_block_exempt_add">Ekle</string>
     <string name="ai_block_exempt_input_hint">Yazar ID girin</string>
     <string name="ai_block_exempt_empty">Henüz muaf yazar yok</string>
@@ -929,6 +929,9 @@
     <string name="ai_block_exempt_duplicate">Bu yazar ID zaten eklendi</string>
     <string name="ai_block_exempt_none">Ayarlanmadı</string>
     <string name="ai_block_exempt_count">%1$d yazar ID\'si</string>
+    <string name="ai_block_exempt_count_partial">%1$d yazar ID\'si (%2$d etkin)</string>
+    <string name="ai_block_exempt_state_on">Etkin</string>
+    <string name="ai_block_exempt_state_off">Kapalı</string>
     <string name="trying_login">Giriş deneniyor</string>
     <string name="userTab_other">Diğer</string>
     <string name="userTab_collection">Yer imleri</string>
