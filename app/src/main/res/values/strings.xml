@@ -3585,4 +3585,13 @@
     <string name="webdav_entry_last_success">上次备份 %1$s · 成功</string>
     <string name="webdav_entry_last_failed">上次备份 %1$s · 失败</string>
     <string name="webdav_unsaved_message">WebDAV 配置已修改，退出前是否保存？</string>
+    <!-- 瀑布流卡片的角标（见 ceui.pixiv.widget.IllustBadgeRowView）。技术标记，不进翻译。 -->
+    <string name="illust_badge_r18" translatable="false">R-18</string>
+    <string name="illust_badge_panorama" translatable="false">W</string>
+    <string name="illust_badge_gif" translatable="false">GIF</string>
+    <string name="illust_badge_ai" translatable="false">AI</string>
+    <string name="illust_badge_related" translatable="false">NEW</string>
+    <string name="illust_badge_pages" translatable="false">%1$dP</string>
+    <string name="illust_badge_trending_score" translatable="false">▲ %1$s</string>
+
 </resources>

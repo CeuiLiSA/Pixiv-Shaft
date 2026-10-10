@@ -3,6 +3,7 @@ package ceui.pixiv.ui.common
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.content.res.ColorStateList
+import android.content.res.Resources
 import android.graphics.Color
 import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
@@ -19,7 +20,8 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedRenderer
-import ceui.pixiv.ui.recommend.bindTrendingScore
+import ceui.pixiv.ui.recommend.formatTrendingScore
+import ceui.pixiv.widget.IllustBadgeRowView
 import ceui.pixiv.utils.playLikePressHaptic
 import ceui.pixiv.utils.playUnlikeHaptic
 import ceui.pixiv.utils.setOnClick
@@ -27,7 +29,6 @@ import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import jp.wasabeef.glide.transformations.BlurTransformation
-import java.util.Locale
 
 /** 瀑布流卡片高度钳制（对齐 legacy IAdapter）：高 = 宽的 0.6~2.0 倍。 */
 private const val MIN_HEIGHT_RATIO = 0.6f
@@ -232,19 +233,9 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
         )
         loadIllustImage(cell.binding, bean, spoilered)
 
-        cell.binding.pSize.isVisible = bean.page_count > 1
-        if (bean.page_count > 1) {
-            cell.binding.pSize.text = String.format(Locale.getDefault(), "%dP", bean.page_count)
-        }
-        // 宽图角标：详情页会进全景（横向可拖）的图。缩略图按 0.6 钳比例居中裁，两侧内容在卡上看不到
-        cell.binding.pWide.isVisible = !bean.isGif() &&
-                IllustAdapter.isPanoramaSize(cell.binding.root.resources, bean.width, bean.height)
-        cell.binding.pGif.isVisible = bean.isGif()
-        cell.binding.r18Badge.isVisible = bean.isR18File()
-        cell.binding.createdByAi.isVisible = bean.isCreatedByAI()
-        cell.binding.pRelated.isVisible = bean.isRelated
-        // 只有 trending repo 注入 trendingScore，其他页 null 走 GONE（对齐 IAdapter 复用语义）
-        cell.binding.trendingScore.bindTrendingScore(bean.trendingScore)
+        // 角标行整行交给自绘 View（原本是 7 个 TextView，每张卡无条件建一遍）。
+        // 顺序与原布局一致：站长推荐 -> R-18 -> 页数 -> W -> GIF -> AI -> NEW。
+        cell.binding.badgeRow.setBadges(buildBadges(bean, cell.binding.root.resources))
         // 全量绑定可能是复用的卡换了条目：上一条残留的爆发动画/缩放必须清干净
         resetLikeAnim(cell.binding)
         renderLikeState(cell.binding.likeButton, cell.item.illust.is_bookmarked == true)
@@ -411,6 +402,32 @@ internal fun renderLikeState(button: ImageView, liked: Boolean) {
  * 播完自动收起。动画层非 clickable，播放中不挡按钮点击；局部重绑只动静态爱心，
  * 不打断动画。
  */
+/**
+ * 角标行的内容与顺序，逐项对应原布局那 7 个 TextView（见 [IllustBadgeRowView]）。
+ * 只放「这一条作品确实要显示」的角标 —— 空位不再各建一个 View。
+ */
+private fun buildBadges(bean: Illust, res: Resources): List<IllustBadgeRowView.Badge> {
+    val out = ArrayList<IllustBadgeRowView.Badge>(4)
+    // 只有 trending repo 注入 trendingScore，其他页 null 走「不显示」（对齐 IAdapter 复用语义）
+    formatTrendingScore(bean.trendingScore)?.let {
+        out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_trending_score, it), amber = true)
+    }
+    if (bean.isR18File()) {
+        out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_r18))
+    }
+    if (bean.page_count > 1) {
+        out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_pages, bean.page_count))
+    }
+    // 宽图角标：详情页会进全景（横向可拖）的图。缩略图按 0.6 钳比例居中裁，两侧内容在卡上看不到
+    if (!bean.isGif() && IllustAdapter.isPanoramaSize(res, bean.width, bean.height)) {
+        out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_panorama))
+    }
+    if (bean.isGif()) out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_gif))
+    if (bean.isCreatedByAI()) out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_ai))
+    if (bean.isRelated) out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_related))
+    return out
+}
+
 private fun playLikeBurst(binding: RecyIllustStaggerBinding) {
     playLikePressHaptic(binding.likeButton)
     binding.likeAnim.apply {
