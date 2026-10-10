@@ -15,7 +15,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.databinding.DataBindingUtil;
-import androidx.databinding.ViewDataBinding;
+import androidx.viewbinding.ViewBinding;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
@@ -23,7 +23,7 @@ import ceui.lisa.R;
 
 import java.util.UUID;
 
-public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragment {
+public abstract class BaseFragment<Layout extends ViewBinding> extends Fragment {
 
     protected View rootView;
     @NonNull protected Layout baseBind;
@@ -88,14 +88,14 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
             isInit = true;
             if (rootView != null) {
                 if (baseBind == null) {
-                    baseBind = DataBindingUtil.bind(rootView);
+                    baseBind = bindExisting(rootView);
                 }
                 return rootView;
             }
             initLayout();
 
             if (mLayoutID != -1) {
-                baseBind = DataBindingUtil.inflate(inflater, mLayoutID, container, false);
+                baseBind = inflateBinding(inflater, container);
                 if (baseBind != null) {
                     rootView = baseBind.getRoot();
                 } else {
@@ -143,6 +143,23 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
                     v.setPadding(v.getPaddingLeft(), insets.top, v.getPaddingRight(), 0);
                     return WindowInsetsCompat.CONSUMED;
                 });
+    }
+
+    /**
+     * 生成 binding。默认走 DataBinding，既有子类行为不变。
+     *
+     * 用 ViewBinding 布局的子类必须覆写它 —— {@link DataBindingUtil#inflate} 对非
+     * {@code <layout>} 根的布局返回 null，覆写后 baseBind 才拿得到。
+     */
+    @SuppressWarnings("unchecked")
+    protected Layout inflateBinding(@NonNull LayoutInflater inflater, @Nullable ViewGroup container) {
+        return (Layout) DataBindingUtil.inflate(inflater, mLayoutID, container, false);
+    }
+
+    /** 同 {@link #inflateBinding}，对应 rootView 已存在、只需补绑的那条路径。 */
+    @SuppressWarnings("unchecked")
+    protected Layout bindExisting(@NonNull View root) {
+        return (Layout) DataBindingUtil.bind(root);
     }
 
     protected abstract void initLayout();
