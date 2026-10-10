@@ -146,6 +146,19 @@ object ReaderSettings {
             emit(ChangeEvent.Layout)
         }
 
+    /**
+     * 选中的下载字体（[ReaderWebFont]）刚装好时 +1。阅读设置随云备份 / 换机迁移，字体文件不会
+     * （在 noBackupFilesDir），还原后 [fontId] 指着一个还没下载的字体、正文回退系统字体；下载完
+     * fontId 没变，翻页模式按 [Snapshot] 判重，不把这一下算进 Snapshot 就不会按真字体重排。
+     */
+    private val fontRevision = java.util.concurrent.atomic.AtomicInteger()
+
+    fun onFontInstalled(id: String) {
+        if (fontId != id) return
+        fontRevision.incrementAndGet()
+        emit(ChangeEvent.Layout)
+    }
+
     // ---------- Theme ----------
     var themeId: String
         get() = store.decodeString(K_THEME_ID, ReaderTheme.KRAFT.id) ?: ReaderTheme.KRAFT.id
@@ -538,6 +551,7 @@ object ReaderSettings {
         imagePlacement = imagePlacement,
         imageScaleMode = imageScaleMode,
         customTextColor = customTextColor(effectiveTheme().id),
+        fontRevision = fontRevision.get(),
     )
 
     data class Snapshot(
@@ -561,6 +575,7 @@ object ReaderSettings {
         val imageScaleMode: ImageScaleMode,
         // The paged reader deduplicates style updates by Snapshot equality, including color-only edits.
         val customTextColor: Int? = null,
+        val fontRevision: Int = 0,
     )
 
     const val FONT_SIZE_MIN = 12

@@ -77,6 +77,7 @@ class ReaderFontRepository(private val app: Application) {
             try {
                 fetch(font) { fraction -> if (jobs[font] === self) set(font, State.Downloading(fraction)) }
                 TypefaceProvider.evict(font.id)
+                ReaderSettings.onFontInstalled(font.id)
                 finish(State.Installed)
             } catch (e: CancellationException) {
                 throw e
