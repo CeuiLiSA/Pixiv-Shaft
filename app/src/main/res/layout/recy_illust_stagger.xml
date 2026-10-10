@@ -193,7 +193,9 @@
                  点收藏时播放。72dp 画布贴卡片右下角，
                  动画内爱心圆心设计在画布 (96,96)/144 处 = 按钮几何中心
                  （margin 4dp + 半径 20dp = 距角 24dp）；改按钮尺寸/边距要同步动画。
-                 非 clickable，点击穿透给下面的按钮 -->
+                 非 clickable，点击穿透给下面的按钮。
+                 动画资源不在这里写 lottie_rawRes：那样每个格子 inflate 时都会建一棵 composition
+                 图层树，而绝大多数格子从不播放；改由 playLikeBurst 首次播放时再 setAnimation -->
             <com.airbnb.lottie.LottieAnimationView
                 android:id="@+id/like_anim"
                 android:layout_width="72dp"
@@ -201,8 +203,7 @@
                 android:layout_gravity="bottom|end"
                 android:importantForAccessibility="no"
                 android:visibility="gone"
-                app:lottie_loop="false"
-                app:lottie_rawRes="@raw/like_heart_burst" />
+                app:lottie_loop="false" />
 
 <!--            <TextView-->
 <!--                android:id="@+id/debug_message"-->

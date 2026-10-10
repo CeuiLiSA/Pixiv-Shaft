@@ -414,6 +414,12 @@ internal fun renderLikeState(button: ImageView, liked: Boolean) {
 private fun playLikeBurst(binding: RecyIllustStaggerBinding) {
     playLikePressHaptic(binding.likeButton)
     binding.likeAnim.apply {
+        // 懒加载（见 recy_illust_stagger 里 like_anim 的注释）。只在还没有 composition 时设置：
+        // setAnimation 会先 clearComposition，已加载过再调会打断正在播的动画。首次加载未完成时
+        // playAnimation 会排进 lottie 的待执行队列，加载完自动开播。
+        if (composition == null) {
+            setAnimation(R.raw.like_heart_burst)
+        }
         isVisible = true
         progress = 0f
         playAnimation()
