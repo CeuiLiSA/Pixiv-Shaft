@@ -743,7 +743,7 @@ interface API {
     ): ListUser
 
     @GET("v1/illust/bookmark/users?filter=for_android")
-    suspend fun getUsersWhoLikeThisIllust(@Query("illust_id") illustId: Int): ListSimpleUser
+    suspend fun getUsersWhoLikeThisIllust(@Query("illust_id") illustId: Long): ListSimpleUser
 
     @GET("v1/novel/bookmark/users?filter=for_android")
     suspend fun getUsersWhoLikeThisNovel(@Query("novel_id") novelId: Long): ListSimpleUser
@@ -771,7 +771,7 @@ interface API {
     @FormUrlEncoded
     @POST("v2/illust/bookmark/add")
     suspend fun postLikeIllust(
-        @Field("illust_id") illustId: Int,
+        @Field("illust_id") illustId: Long,
         @Field("restrict") restrict: String,
     ): NullResponse
 
@@ -788,10 +788,10 @@ interface API {
     ): ListTag
 
     @GET("v2/illust/bookmark/detail")
-    suspend fun getIllustBookmarkTags(@Query("illust_id") illustId: Int): ListBookmarkTag
+    suspend fun getIllustBookmarkTags(@Query("illust_id") illustId: Long): ListBookmarkTag
 
     @GET("v2/novel/bookmark/detail")
-    suspend fun getNovelBookmarkTags(@Query("novel_id") novelId: Int): ListBookmarkTag
+    suspend fun getNovelBookmarkTags(@Query("novel_id") novelId: Long): ListBookmarkTag
 
     @GET("v2/novel/markers")
     suspend fun getNovelMarkers(): ListNovelMarkers

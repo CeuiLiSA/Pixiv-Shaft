@@ -131,10 +131,10 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private var snapshotUser: User? = null
 
     private class IllustArgs(b: Bundle) {
-        val illustId: Int = b.getInt("illust_id")
+        val illustId: Long = b.getLong("illust_id", 0L)
     }
     private val vm by viewModels<FragmentIllustViewModel> {
-        FragmentIllustViewModel.Factory(safeArgs.illustId.toLong(), requireContext())
+        FragmentIllustViewModel.Factory(safeArgs.illustId, requireContext())
     }
     private var mReceiver: CallBackReceiver? = null
     private var recyHeight = 0
@@ -240,7 +240,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
      * 还没加载出来时给 0，匹配自然落空（安全降级）。
      */
     private val viewerLinkIllustId: Long
-        get() = if (isSnapshotMode) snapshotBean?.id ?: 0L else safeArgs.illustId.toLong()
+        get() = if (isSnapshotMode) snapshotBean?.id ?: 0L else safeArgs.illustId
     private val pageProgressLocation = IntArray(2)
     /** 页码浮标当前指着哪一页(0 基);浮标不在场时为 -1。长按预览拿它当高亮/初始滚动位。 */
     private var pageProgressIndex = -1
@@ -258,7 +258,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             setupSnapshotView()
             return
         }
-        val illustLiveData = ObjectPool.get<Illust>(safeArgs.illustId.toLong())
+        val illustLiveData = ObjectPool.get<Illust>(safeArgs.illustId)
         illustLiveData.observe(viewLifecycleOwner) { illust ->
             updateIllust(illust)
         }
@@ -442,7 +442,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         viewLifecycleOwner.lifecycleScope.launch {
             val dao = AppDatabase.getAppDatabase(requireContext()).searchDao()
             val muteIllust = withContext(Dispatchers.IO) {
-                dao.getIllustMuteEntityByID(illust.id.toInt())
+                dao.getIllustMuteEntityByID(illust.id)
             }
             val muteUser = withContext(Dispatchers.IO) {
                 dao.getUserMuteEntityByIDLiveData(illust.user?.id ?: 0L)
@@ -618,7 +618,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 override fun onClick(widget: View) {
                     val intent = Intent(mContext, TemplateActivity::class.java)
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.MANGA_SERIES_DETAIL.key)
-                    intent.putExtra(Params.MANGA_SERIES_ID, illust.series.id.toInt())
+                    intent.putExtra(Params.MANGA_SERIES_ID, illust.series.id)
                     startActivity(intent)
                 }
 
@@ -786,7 +786,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         baseBind.postLike.setOnLongClickListener(object : OnLongClickListener {
             override fun onLongClick(v: View): Boolean {
                 SelectTagBottomSheet.show(
-                    this@FragmentIllust, illust.id.toInt(), Params.TYPE_ILLUST, illust.tagNames.toTypedArray(),
+                    this@FragmentIllust, illust.id, Params.TYPE_ILLUST, illust.tagNames.toTypedArray(),
                 )
                 return true
             }
@@ -963,7 +963,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     /** 池 / 快照两条来源统一取当前作品的 bean。快照不写 ObjectPool,只有本地字段那一份。 */
     private fun currentIllust(): Illust? =
         if (isSnapshotMode) snapshotBean
-        else ObjectPool.get<Illust>(safeArgs.illustId.toLong()).value
+        else ObjectPool.get<Illust>(safeArgs.illustId).value
 
     /**
      * 跳到预览里选中的那一页。V2 的图片区是一页一条目的 [LinearLayoutManager],没有折叠态,
@@ -1215,16 +1215,16 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         baseBind.related.setOnClick {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.RELATED_ILLUSTS.key)
-            // TemplateActivity 按 getIntExtra 读 ILLUST_ID,Illust.id 是 Long 必须收窄
-            intent.putExtra(Params.ILLUST_ID, illust.id.toInt())
+            // ILLUST_ID 全链路 Long，直接透传作品 id
+            intent.putExtra(Params.ILLUST_ID, illust.id)
             intent.putExtra(Params.ILLUST_TITLE, illust.title)
             startActivity(intent)
         }
         baseBind.comment.setOnClick {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key)
-            // TemplateActivity 按 getIntExtra 读 ILLUST_ID,Illust.id 是 Long 必须收窄
-            intent.putExtra(Params.ILLUST_ID, illust.id.toInt())
+            // ILLUST_ID 全链路 Long，直接透传作品 id
+            intent.putExtra(Params.ILLUST_ID, illust.id)
             intent.putExtra(Params.ILLUST_TITLE, illust.title)
             startActivity(intent)
         }
@@ -1354,9 +1354,9 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             // 凭证还在手里说明上一次「可见」还没结算（进二级大图页 / 横滑离开再回来）：表不重开、
             // 不重复计进入，只把停过的那一段接着算。
             if (autoSnapshotVisit == null) {
-                val autoSnapshotIllust = ObjectPool.get<Illust>(safeArgs.illustId.toLong()).value
+                val autoSnapshotIllust = ObjectPool.get<Illust>(safeArgs.illustId).value
                 autoSnapshotVisit = AutoSnapshotEngine.onArtworkPageVisible(
-                    illustId = safeArgs.illustId.toLong(),
+                    illustId = safeArgs.illustId,
                     type = autoSnapshotIllust?.type,
                     pageCount = autoSnapshotIllust?.page_count ?: 0,
                     countAsEntry = !autoSnapshotEntered,
@@ -1409,7 +1409,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         wireViewerPageLink()
         if (isSnapshotMode) return
         val intentFilter = IntentFilter()
-        val illust = ObjectPool.get<Illust>(safeArgs.illustId.toLong()).value ?: return
+        val illust = ObjectPool.get<Illust>(safeArgs.illustId).value ?: return
         mReceiver = CallBackReceiver { context, intent ->
             val bundle = intent.extras
             if (bundle != null) {
@@ -1484,10 +1484,10 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         private const val KEY_AUTO_SNAPSHOT_ENTERED = "auto_snapshot_entered"
 
         @JvmStatic
-        fun newInstance(illustId: Int): FragmentIllust {
+        fun newInstance(illustId: Long): FragmentIllust {
             return FragmentIllust().apply {
                 arguments = Bundle().apply {
-                    putInt("illust_id", illustId)
+                    putLong("illust_id", illustId)
                 }
             }
         }

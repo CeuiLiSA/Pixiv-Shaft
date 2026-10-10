@@ -6,7 +6,7 @@ package ceui.lisa.database;
  * 一起塞进 CursorWindow(同 {@link DownloadDao#getAllViewHistoryIds()} 的教训)。
  */
 public class HistoryIdTime {
-    public int illustID;
+    public long illustID;
     public long time;
     public int type;
 }

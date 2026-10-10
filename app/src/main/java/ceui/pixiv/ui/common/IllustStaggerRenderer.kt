@@ -146,7 +146,7 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             cell.binding.likeButton.setOnLongClickListener {
                 val bean = cell.item.illust
                 SelectTagBottomSheet.show(
-                    this@staggerIllustRenderer, bean.id.toInt(), Params.TYPE_ILLUST, bean.tagNames.toTypedArray(),
+                    this@staggerIllustRenderer, bean.id, Params.TYPE_ILLUST, bean.tagNames.toTypedArray(),
                 )
                 true
             }

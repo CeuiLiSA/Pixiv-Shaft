@@ -24,8 +24,8 @@ class WidgetBookmarkWorker(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val illustId = inputData.getInt(WidgetBookmarkReceiver.EXTRA_ILLUST_ID, 0)
-        if (illustId <= 0) return Result.success()
+        val illustId = inputData.getLong(WidgetBookmarkReceiver.EXTRA_ILLUST_ID, 0L)
+        if (illustId <= 0L) return Result.success()
 
         if (SessionManager.getBearerTokenOrEmpty().isEmpty()) {
             Common.showToast(context.getString(R.string.v3_widget_login_required))

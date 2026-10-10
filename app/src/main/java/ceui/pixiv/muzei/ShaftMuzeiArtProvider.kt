@@ -98,7 +98,7 @@ class ShaftMuzeiArtProvider : MuzeiArtProvider() {
             // slot 必须带作品 id:receiver 的 PendingIntent 按 data URI 区分,固定 slot 会让所有
             // 作品共用一个 PI,FLAG_UPDATE_CURRENT 把 extras 覆盖成最后一次查询的那张 —— 用户在
             // 壁纸 A 上点收藏,收藏到的却是 Muzei 刚预取过命令的 B。
-            WidgetBookmarkReceiver.pendingIntent(context, "muzei/$illustId", illustId.toInt()),
+            WidgetBookmarkReceiver.pendingIntent(context, "muzei/$illustId", illustId),
         )
     }
 

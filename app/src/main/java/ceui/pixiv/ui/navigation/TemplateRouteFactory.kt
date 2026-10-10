@@ -158,7 +158,7 @@ object TemplateRouteFactory {
             TemplateRoute.LOGIN -> FragmentLogin()
             TemplateRoute.RELATED_ILLUSTS ->
                 RelatedIllustFeedFragment.newInstance(
-                    intent.getIntExtra(Params.ILLUST_ID, 0),
+                    Params.getLongCompat(intent, Params.ILLUST_ID),
                     intent.getStringExtra(Params.ILLUST_TITLE),
                 )
             TemplateRoute.HISTORY -> FragmentHistoryTabs()
@@ -325,9 +325,7 @@ object TemplateRouteFactory {
             }
             TemplateRoute.LOCAL_NOVEL_LIBRARY -> LocalLibraryFragment()
             TemplateRoute.COMIC_READER -> {
-                var iid = intent.getLongExtra(Params.ILLUST_ID, 0L)
-                if (iid == 0L) iid = intent.getIntExtra(Params.ILLUST_ID, 0).toLong()
-                ComicReaderV3Fragment.newInstance(iid)
+                ComicReaderV3Fragment.newInstance(Params.getLongCompat(intent, Params.ILLUST_ID))
             }
             TemplateRoute.NOVEL_SERIES ->
                 NovelSeriesFragment.newInstance(
@@ -395,11 +393,11 @@ object TemplateRouteFactory {
             TemplateRoute.FOLLOWING_NOVELS -> FollowingNovelFeedFragment.newInstance()
             TemplateRoute.USER_MANGA_SERIES ->
                 UserMangaSeriesFeedFragment.newInstance(Params.getUserId(intent))
-            // V3 漫画系列详情页 IllustSeriesFragment。系列 id 兼容旧调用的 MANGA_SERIES_ID(int)
-            // 与新 ARG_SERIES_ID(long)。
+            // V3 漫画系列详情页 IllustSeriesFragment。系列 id 兼容旧调用的 MANGA_SERIES_ID
+            // 与新 ARG_SERIES_ID(long)，两者都按 Long 读。
             TemplateRoute.MANGA_SERIES_DETAIL -> {
                 var sid = intent.getLongExtra(IllustSeriesFragment.ARG_SERIES_ID, 0L)
-                if (sid == 0L) sid = intent.getIntExtra(Params.MANGA_SERIES_ID, 0).toLong()
+                if (sid == 0L) sid = Params.getLongCompat(intent, Params.MANGA_SERIES_ID)
                 if (sid == 0L) sid = intent.getIntExtra(Params.ID, 0).toLong()
                 IllustSeriesFragment.newInstance(sid)
             }
@@ -594,7 +592,7 @@ object TemplateRouteFactory {
                 }
             // 从广场卡片点 illust 缩略走这条;只带 ILLUST_ID, ArtworkV3ViewModel 自己按 id lazy load。
             TemplateRoute.PLAZA_OPEN_ILLUST ->
-                ArtworkV3Fragment.newInstance(intent.getIntExtra(Params.ILLUST_ID, 0))
+                ArtworkV3Fragment.newInstance(Params.getLongCompat(intent, Params.ILLUST_ID))
             TemplateRoute.PLAZA_POST_DETAIL ->
                 PlazaPostDetailFragment.newInstance(
                     intent.getLongExtra(PlazaPostDetailFragment.EXTRA_POST_ID, 0L)
@@ -612,7 +610,7 @@ object TemplateRouteFactory {
                 FragmentIllust().apply {
                     arguments =
                         bundleOf(
-                            "illust_id" to 0,
+                            "illust_id" to 0L,
                             SnapshotManagerFragment.ARG_SNAPSHOT_ID to
                                 intent.getStringExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID),
                             SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO to
@@ -641,18 +639,18 @@ object TemplateRouteFactory {
         }
 
     private fun commentsFragment(intent: Intent): CommentsFragment {
-        val illustId = intent.getIntExtra(Params.ILLUST_ID, 0)
-        if (illustId != 0) {
-            val hit: Illust? = ObjectPool.getIllust(illustId.toLong()).value
+        val illustId = Params.getLongCompat(intent, Params.ILLUST_ID)
+        if (illustId != 0L) {
+            val hit: Illust? = ObjectPool.getIllust(illustId).value
             return CommentsFragment.newInstance(
-                illustId.toLong(),
+                illustId,
                 hit?.user?.id ?: 0L,
                 ObjectType.ILLUST,
             )
         }
-        val novelId = intent.getIntExtra(Params.NOVEL_ID, 0)
-        val hit: Novel? = ObjectPool.getNovel(novelId.toLong()).value
-        return CommentsFragment.newInstance(novelId.toLong(), hit?.user?.id ?: 0L, ObjectType.NOVEL)
+        val novelId = Params.getLongCompat(intent, Params.NOVEL_ID)
+        val hit: Novel? = ObjectPool.getNovel(novelId).value
+        return CommentsFragment.newInstance(novelId, hit?.user?.id ?: 0L, ObjectType.NOVEL)
     }
 
     /** 目标页的 newInstance 参数非空；缺 extra 是调用方的 bug，报清楚是哪个 key 而不是裸 NPE。 */

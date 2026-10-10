@@ -140,7 +140,7 @@ object HistoryBackfill {
  * 会 400 掉整批),坏行直接跳过;viewed_at 用本地浏览时间,0/负值不带(服务端会拒)。
  */
 fun IllustHistoryEntity.toHistoryReportItem(): HistoryReportItem? {
-    if (illustID == 0 || illustJson.isNullOrEmpty()) return null
+    if (illustID == 0L || illustJson.isNullOrEmpty()) return null
     val tree = runCatching { JsonParser.parseString(illustJson) }.getOrNull()
         ?.takeIf { it.isJsonObject } ?: return null
     val targetType = if (type == 1) {
@@ -152,7 +152,7 @@ fun IllustHistoryEntity.toHistoryReportItem(): HistoryReportItem? {
         }.getOrNull()
         if (workType == "manga") "manga" else "illust"
     }
-    return HistoryReportItem(targetType, illustID.toLong(), tree, time.takeIf { it > 0 })
+    return HistoryReportItem(targetType, illustID, tree, time.takeIf { it > 0 })
 }
 
 /** general_table 的用户历史行 → 云端上报条目。约束同 [toHistoryReportItem]。 */

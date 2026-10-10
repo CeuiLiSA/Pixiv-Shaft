@@ -188,7 +188,7 @@ class ArtworkDetailPanelItem(val illust: Illust) : FeedItem {
  * 只剩用户自己那一条，服务端已有的评论全部看不到。本地插入与「已从服务端拉过」是两件事，分开表达。
  */
 data class ArtworkCommentsItem(
-    val illustId: Int,
+    val illustId: Long,
     val illustTitle: String,
     val illustAuthorId: Long,
     val comments: List<Comment>? = null,
@@ -238,7 +238,7 @@ data class ArtworkAuthorWorksItem(
 
 /** 相关作品头:滚到可见才懒加载(见 [ArtworkSection.RELATED]),加载态 / 空态 / 有相关三态。 */
 data class ArtworkRelatedHeaderItem(
-    val illustId: Int,
+    val illustId: Long,
     val illustTitle: String,
     /** null=还没滚到这里(未加载,显加载态) / false=无相关(空态) / true=有相关(显「查看更多」)。 */
     val state: Boolean? = null,
@@ -704,10 +704,9 @@ internal fun ArtworkV3Fragment.commentsRenderer() =
                     return
                 }
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SNAPSHOT_COMMENTS.key)
-                // 必须显式转 Long：CommentsFragment 的 args 是 getLong 读的，
-                // 塞 Int 进去 getLongExtra 只会拿到默认值 0 —— objectArthurId 一旦是 0，
-                // CommentFeedItem.isAuthor 恒 false，作者本人的评论就不再有「作者」标记。
-                intent.putExtra("objectId", item.illustId.toLong())
+                // CommentsFragment 的 args 按 getLong 读，这里 illustId 已是 Long。
+                // objectArthurId 一旦是 0，CommentFeedItem.isAuthor 恒 false，作者本人的评论就不再有「作者」标记。
+                intent.putExtra("objectId", item.illustId)
                 intent.putExtra("objectArthurId", item.illustAuthorId)
                 intent.putExtra("objectType", ceui.pixiv.api.model.ObjectType.ILLUST)
                 intent.putExtra(

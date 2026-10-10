@@ -52,7 +52,7 @@ class SelectTagBottomSheet : BottomSheetDialogFragment() {
 
     private val palette by lazy { V3Palette.from(requireContext()) }
 
-    private val illustID: Int by lazy { arguments?.getInt(Params.ILLUST_ID) ?: 0 }
+    private val illustID: Long by lazy { Params.getLongCompat(arguments, Params.ILLUST_ID) }
     private val type: String by lazy { arguments?.getString(Params.DATA_TYPE) ?: Params.TYPE_ILLUST }
     private val tagNamesArg: Array<String>? by lazy { arguments?.getStringArray(Params.TAG_NAMES) }
 
@@ -162,7 +162,7 @@ class SelectTagBottomSheet : BottomSheetDialogFragment() {
          * （如小说阅读器长按走 showFrom、同页其它入口走 fragment 路径）会叠出两张 sheet。
          */
         @JvmStatic
-        fun show(host: Fragment, illustId: Int, type: String, tagNames: Array<String>?) {
+        fun show(host: Fragment, illustId: Long, type: String, tagNames: Array<String>?) {
             val activity = host.activity ?: return
             show(activity.supportFragmentManager, illustId, type, tagNames)
         }
@@ -172,7 +172,7 @@ class SelectTagBottomSheet : BottomSheetDialogFragment() {
          * `sender.context`）。
          */
         @JvmStatic
-        fun showFrom(context: Context, illustId: Int, type: String, tagNames: Array<String>?) {
+        fun showFrom(context: Context, illustId: Long, type: String, tagNames: Array<String>?) {
             val activity = context.findFragmentActivity()
             if (activity == null) {
                 // 例如用 application context inflate 出来的 View：原先 startActivity 至少会崩或弹出来，
@@ -189,14 +189,14 @@ class SelectTagBottomSheet : BottomSheetDialogFragment() {
          */
         private fun show(
             fm: FragmentManager,
-            illustId: Int,
+            illustId: Long,
             type: String,
             tagNames: Array<String>?,
         ) {
             if (fm.isStateSaved || fm.findFragmentByTag(TAG) != null) return
             SelectTagBottomSheet().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.ILLUST_ID, illustId)
+                    putLong(Params.ILLUST_ID, illustId)
                     putString(Params.DATA_TYPE, type)
                     putStringArray(Params.TAG_NAMES, tagNames)
                 }

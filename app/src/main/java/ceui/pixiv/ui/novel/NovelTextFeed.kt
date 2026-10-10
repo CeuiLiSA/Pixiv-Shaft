@@ -83,7 +83,7 @@ internal fun openTagBookmarkForNovel(sender: View, novel: Novel) {
     // 只有 View / Context，用 showFrom 解出宿主 FragmentActivity 弹 sheet
     // （原先是 startActivity 一张从右侧 push 进来的整页）。
     val tagNames = novel.tags.orEmpty().mapNotNull { it.name }.toTypedArray()
-    SelectTagBottomSheet.showFrom(sender.context, novel.id.toInt(), Params.TYPE_NOVEL, tagNames)
+    SelectTagBottomSheet.showFrom(sender.context, novel.id, Params.TYPE_NOVEL, tagNames)
 }
 
 // ── FeedItem 模型（都以 novelId 为身份；实际小说数据由渲染器观察 ObjectPool 取）─────

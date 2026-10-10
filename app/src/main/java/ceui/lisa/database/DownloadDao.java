@@ -309,7 +309,7 @@ public interface DownloadDao {
      * 全表 SELECT * 会把每行 illustJson 一起塞进 CursorWindow,历史攒多了就 OOM。
      */
     @Query("SELECT illustID FROM illust_table")
-    List<Integer> getAllViewHistoryIds();
+    List<Long> getAllViewHistoryIds();
 
     /**
      * 浏览历史总条数
@@ -332,7 +332,7 @@ public interface DownloadDao {
      * 调用方一次最多传一页(≤100 个 id),不会撞 SQLite 999 变量上限。
      */
     @Query("SELECT illustID, time, type FROM illust_table WHERE illustID IN (:ids)")
-    List<HistoryIdTime> getViewHistoryTimes(List<Integer> ids);
+    List<HistoryIdTime> getViewHistoryTimes(List<Long> ids);
 
     /**
      * 云端回填(#989)用的 keyset 分页:严格按 time 递减往老走。不能用 LIMIT/OFFSET——
