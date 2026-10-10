@@ -140,8 +140,12 @@ class BookmarkMirrorSerialTest {
             mirror.syncNow(illustShelf, "test")
             mirror.syncNow(userShelf, "test")
 
+            // load() 返回后服务才把这一页写库，只等请求落地会和最后一页的写库赛跑
+            val dao = db.bookmarkMirrorDao()
             val deadline = System.currentTimeMillis() + 30_000L
-            while ((requests.size < 3 || inFlight.get() > 0) && System.currentTimeMillis() < deadline) {
+            while ((requests.size < 3 || inFlight.get() > 0 || dao.countOf(userShelf.key) < 3) &&
+                System.currentTimeMillis() < deadline
+            ) {
                 Thread.sleep(50)
             }
 
