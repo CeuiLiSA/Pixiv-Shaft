@@ -60,6 +60,34 @@ class FeedAdapter(
         return cell
     }
 
+    /**
+     * 首屏预建：把「首次 layout 要同步建的那几个 ViewHolder」提前到加载态（骨架 / 转圈）期间
+     * 建好，塞进 [RecyclerView.RecycledViewPool]；首次 `onLayoutChildren` 于是只走 bind
+     * （实测 1~2ms/卡），不再把 N 张卡 × 20~30ms 的 inflate 全压在那一帧上。
+     *
+     * 为什么值得做：那一帧往往正压在别的动画上（如 UActivity 入场头部淡入）——legacy View 动画
+     * 在父容器绘制流程里按墙钟推进，主线程一停画面就冻住、恢复时直接跳到当前墙钟值。
+     *
+     * **调用方必须：主线程 + 分帧调用**（每帧建几张）。否则只是把卡顿从「提交那一帧」搬到
+     * 「加载态那一帧」：加载态的骨架 shimmer 比入场动画钝得多、用户此刻预期就是等待，
+     * 但一口气建 8 张仍然是 200ms 级的空白。
+     *
+     * 只预建 [viewType] 一种：首屏到底要哪些类型得等数据到才知道，这里只赌「主力卡」。
+     *
+     * 注意 pool 每个 viewType 默认只留 5 个（RecyclerView 内部常量）：分帧调用时单次 count 很小，
+     * 光靠这里抬不起来 —— **调用方必须自己把上限抬到「累计预建数」**，否则第 6 个起会被直接丢掉。
+     */
+    fun prewarm(
+        parent: ViewGroup,
+        pool: RecyclerView.RecycledViewPool,
+        viewType: Int,
+        count: Int,
+    ) {
+        if (count <= 0 || viewType !in renderers.indices) return
+        repeat(count) {
+            pool.putRecycledView(createViewHolder(parent, viewType))
+        }
+    }
     // 两参版本是 RecyclerView.Adapter 的抽象方法，必须实现，但框架实际从不走这条路径：
     // bindViewHolder() 内部固定调用三参数版本（payloads 可能是空列表），只有不重写三参版本时
     // 基类默认实现才会转发到这里。三参版本已经覆盖了 payloads 为空的情形，这里只是满足契约。
