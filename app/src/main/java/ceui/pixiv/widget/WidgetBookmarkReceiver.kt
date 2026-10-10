@@ -19,8 +19,8 @@ import androidx.work.workDataOf
 class WidgetBookmarkReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        val illustId = intent.getIntExtra(EXTRA_ILLUST_ID, 0)
-        if (illustId <= 0) return
+        val illustId = intent.getLongExtra(EXTRA_ILLUST_ID, 0L)
+        if (illustId <= 0L) return
         val request = OneTimeWorkRequestBuilder<WidgetBookmarkWorker>()
             .setConstraints(
                 Constraints.Builder()
@@ -45,7 +45,7 @@ class WidgetBookmarkReceiver : BroadcastReceiver() {
          *             作为 data URI 区分 PendingIntent —— 只靠 requestCode 会在
          *             不同 widget 家族之间撞车，导致 A 组件收藏了 B 组件的图。
          */
-        fun pendingIntent(context: Context, slot: String, illustId: Int): PendingIntent {
+        fun pendingIntent(context: Context, slot: String, illustId: Long): PendingIntent {
             val intent = Intent(context, WidgetBookmarkReceiver::class.java).apply {
                 data = Uri.parse("pixivshaft://widget-bookmark/$slot")
                 putExtra(EXTRA_ILLUST_ID, illustId)

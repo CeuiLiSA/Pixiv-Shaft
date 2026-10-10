@@ -13,7 +13,7 @@ import org.junit.Test
  */
 class HistoryReportMappingTest {
 
-    private fun entity(id: Int, type: Int, json: String?, time: Long) =
+    private fun entity(id: Long, type: Int, json: String?, time: Long) =
         IllustHistoryEntity().also {
             it.illustID = id
             it.type = type
@@ -23,7 +23,7 @@ class HistoryReportMappingTest {
 
     @Test
     fun `illust entity maps with real viewed_at`() {
-        val item = entity(100, 0, """{"id":100,"type":"illust"}""", 1234L).toHistoryReportItem()!!
+        val item = entity(100L, 0, """{"id":100,"type":"illust"}""", 1234L).toHistoryReportItem()!!
         assertEquals("illust", item.target_type)
         assertEquals(100L, item.target_id)
         assertEquals(1234L, item.viewed_at)
@@ -31,28 +31,28 @@ class HistoryReportMappingTest {
 
     @Test
     fun `manga json in illust tab maps to manga target type`() {
-        val item = entity(101, 0, """{"id":101,"type":"manga"}""", 5L).toHistoryReportItem()!!
+        val item = entity(101L, 0, """{"id":101,"type":"manga"}""", 5L).toHistoryReportItem()!!
         assertEquals("manga", item.target_type)
     }
 
     @Test
     fun `novel type maps to novel target type`() {
-        val item = entity(102, 1, """{"id":102}""", 5L).toHistoryReportItem()!!
+        val item = entity(102L, 1, """{"id":102}""", 5L).toHistoryReportItem()!!
         assertEquals("novel", item.target_type)
     }
 
     @Test
     fun `zero time omits viewed_at instead of sending an invalid one`() {
-        val item = entity(103, 0, """{"id":103}""", 0L).toHistoryReportItem()!!
+        val item = entity(103L, 0, """{"id":103}""", 0L).toHistoryReportItem()!!
         assertNull(item.viewed_at)
     }
 
     @Test
     fun `broken rows map to null so they cannot 400 the whole batch`() {
-        assertNull(entity(0, 0, """{"id":1}""", 5L).toHistoryReportItem())      // 无效 id
-        assertNull(entity(104, 0, null, 5L).toHistoryReportItem())              // 空 json
-        assertNull(entity(105, 0, "not json", 5L).toHistoryReportItem())        // 非法 json
-        assertNull(entity(106, 0, "[1,2,3]", 5L).toHistoryReportItem())         // 非 object
+        assertNull(entity(0L, 0, """{"id":1}""", 5L).toHistoryReportItem())      // 无效 id
+        assertNull(entity(104L, 0, null, 5L).toHistoryReportItem())              // 空 json
+        assertNull(entity(105L, 0, "not json", 5L).toHistoryReportItem())        // 非法 json
+        assertNull(entity(106L, 0, "[1,2,3]", 5L).toHistoryReportItem())         // 非 object
     }
 
     @Test

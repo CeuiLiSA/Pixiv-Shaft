@@ -144,7 +144,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     private val illustId: Long by
         lazy(LazyThreadSafetyMode.NONE) {
-            if (isSnapshotMode) 0L else requireArguments().getInt("illust_id").toLong()
+            if (isSnapshotMode) 0L else requireArguments().getLong("illust_id", 0L)
         }
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
@@ -158,7 +158,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             // 平板排版（layout-sw600dp + 设置开着）的作品图在舞台里，列表只出信息区块；折叠屏
             // 开合跨过 600dp 时这个 VM 活下来，差异由 reconcilePageItems 在视图重建时对齐
             ArtworkV3FeedSource(
-                requireArguments().getInt("illust_id").toLong(),
+                requireArguments().getLong("illust_id", 0L),
                 includePages = !TabletLayout.isEnabled(resources.configuration),
             )
         }
@@ -422,7 +422,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             SectionLoader<ArtworkSection>(viewLifecycleOwner) { it.load(illustId, feedViewModel) }
         aiHelper =
             IllustAiHelper(this, chromeBind.root, ensureOverlay = ::ensureAiOverlay).also {
-                it.restoreUpscaleIfRunning(illustId.toInt())
+                it.restoreUpscaleIfRunning(illustId)
             }
 
         // 旋转 / 视图重建:feedViewModel 的列表存活(可能是展开态),但 pageAdapter 会重建为
@@ -562,7 +562,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val userId = illust.user?.id ?: 0
         val dao = AppDatabase.getAppDatabase(requireContext()).searchDao()
         combineLatest(
-                dao.getIllustMuteEntityByID(illust.id.toInt()),
+                dao.getIllustMuteEntityByID(illust.id),
                 dao.getUserMuteEntityByIDLiveData(userId),
             )
             .observe(viewLifecycleOwner) { (illustEntity, userEntity) ->
@@ -920,7 +920,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         startActivity(
             Intent(requireContext(), TemplateActivity::class.java).apply {
                 putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMIC_READER.key)
-                putExtra(Params.ILLUST_ID, illustId.toInt())
+                putExtra(Params.ILLUST_ID, illustId)
             }
         )
     }
@@ -1616,7 +1616,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             chromeBind.fabBar.fabComment.setOnLongClickListener {
                 val intent = Intent(requireContext(), TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key)
-                intent.putExtra(Params.ILLUST_ID, illustId.toInt())
+                intent.putExtra(Params.ILLUST_ID, illustId)
                 startActivity(intent)
                 true
             }
@@ -2021,7 +2021,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 ObjectPool.get<Illust>(illustId).value ?: return@setOnLongClickListener true
             SelectTagBottomSheet.show(
                 this,
-                illust.id.toInt(),
+                illust.id,
                 Params.TYPE_ILLUST,
                 illust.tagNames.toTypedArray(),
             )
@@ -2181,14 +2181,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         private const val KEY_AUTO_SNAPSHOT_ENTERED = "auto_snapshot_entered"
 
         @JvmStatic
-        fun newInstance(illustId: Int): ArtworkV3Fragment {
+        fun newInstance(illustId: Long): ArtworkV3Fragment {
             return ArtworkV3Fragment().apply {
-                arguments = Bundle().apply { putInt("illust_id", illustId) }
+                arguments = Bundle().apply { putLong("illust_id", illustId) }
             }
         }
-
-        @JvmStatic
-        fun newInstance(illustId: Long): ArtworkV3Fragment = newInstance(illustId.toInt())
 
         @JvmStatic
         @JvmOverloads

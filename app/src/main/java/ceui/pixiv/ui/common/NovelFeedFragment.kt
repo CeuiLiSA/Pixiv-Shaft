@@ -634,11 +634,11 @@ abstract class NovelFeedFragment(
         })
     }
 
-    /** 爱心长按弹「按标签收藏」sheet（对齐 NAdapter；接收方按 int ILLUST_ID 读，沿用 legacy 语义）。 */
+    /** 爱心长按弹「按标签收藏」sheet（对齐 NAdapter；目标 id 全链路 Long）。 */
     private fun openNovelTagBookmark(novel: Novel) {
         SelectTagBottomSheet.show(
             this,
-            novel.id.toInt(),
+            novel.id,
             Params.TYPE_NOVEL,
             novel.tags.orEmpty().mapNotNull { it.name }.toTypedArray(),
         )

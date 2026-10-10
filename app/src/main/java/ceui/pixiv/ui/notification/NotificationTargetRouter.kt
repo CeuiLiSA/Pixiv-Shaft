@@ -25,7 +25,7 @@ fun Context.routeNotificationTargetUrl(targetUrl: String?) {
         "illusts" -> info.value.toLongOrNull()?.let { id ->
             startActivity(Intent(this, TemplateActivity::class.java).apply {
                 putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.PLAZA_OPEN_ILLUST.key)
-                putExtra(Params.ILLUST_ID, id.toInt())
+                putExtra(Params.ILLUST_ID, id)
             })
         }
         "novels" -> info.value.toLongOrNull()?.let { id ->

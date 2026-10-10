@@ -82,7 +82,7 @@ class SnapshotArtworkFeedSource(
             .orEmpty()
         list.add(
             ArtworkCommentsItem(
-                illustId = illust.id.toInt(),
+                illustId = illust.id,
                 illustTitle = illust.title.orEmpty(),
                 illustAuthorId = illust.user?.id ?: 0L,
                 comments = previewComments,

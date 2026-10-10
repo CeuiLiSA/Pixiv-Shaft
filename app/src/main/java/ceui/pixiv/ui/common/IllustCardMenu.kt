@@ -81,8 +81,8 @@ internal fun IllustFeedFragment.showCardMenu(
         item(getString(R.string.string_112), R.drawable.ic_baseline_comment_24) {
             startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
                 putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key)
-                // TemplateActivity 侧仍按 getIntExtra 读
-                putExtra(Params.ILLUST_ID, bean.id.toInt())
+                // TemplateActivity 侧按 getLongExtra 读
+                putExtra(Params.ILLUST_ID, bean.id)
                 putExtra(Params.ILLUST_TITLE, bean.title)
             })
         }

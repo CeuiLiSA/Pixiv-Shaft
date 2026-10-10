@@ -96,7 +96,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                                 || TabletLayout.isEnabled(getResources().getConfiguration())) {
                             return ArtworkV3Fragment.newInstance(illustsBean.getId());
                         } else {
-                            return FragmentIllust.newInstance((int) illustsBean.getId());
+                            return FragmentIllust.newInstance(illustsBean.getId());
                         }
                     }
                 }

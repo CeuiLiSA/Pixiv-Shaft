@@ -157,7 +157,7 @@ class RecommendCardWidgetWorker(
             views.setViewVisibility(R.id.widget_bookmark, android.view.View.VISIBLE)
             views.setOnClickPendingIntent(
                 R.id.widget_bookmark,
-                WidgetBookmarkReceiver.pendingIntent(context, "card/$widgetId", illust.id.toInt())
+                WidgetBookmarkReceiver.pendingIntent(context, "card/$widgetId", illust.id)
             )
         }
 
