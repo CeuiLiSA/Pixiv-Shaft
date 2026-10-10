@@ -42,7 +42,7 @@ class ComicReaderSettingsSheetStateTest {
     }
 
     /**
-     * 按 id 收集整棵视图树里的控件。面板里 8 行开关共用 `@id/switch_control`、3 行滑块共用
+     * 按 id 收集整棵视图树里的控件。面板里 9 行开关共用 `@id/switch_control`、3 行滑块共用
      * `@id/seek_bar`，所以这里会拿到多个命中 —— 这正是本 bug 的前提；用 id 遍历比逐行取
      * 生成类属性更贴近被验证的事实。返回顺序即布局顺序（开关行、滑块行各自从上到下）。
      */
@@ -136,7 +136,7 @@ class ComicReaderSettingsSheetStateTest {
 
     private companion object {
         /** sheet_comic_reader_settings.xml 里 include item_reader_setting_switch / _slider 的行数。 */
-        const val SWITCH_ROWS = 8
+        const val SWITCH_ROWS = 9
         const val SLIDER_ROWS = 3
 
         /** 隔行取不同值：既能暴露「互相覆盖」，也顺带验证收集顺序就是布局顺序。 */
