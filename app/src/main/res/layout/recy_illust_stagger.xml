@@ -1,209 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- 从 DataBinding 改为 ViewBinding：本布局一个变量都没用（<data> 是空的、渲染器全程命令式），
+     却要为每张卡付一层 ViewDataBinding 构造 + mapBindings 全树扫描。瀑布流首屏一次建 7 张，
+     这笔钱直接落在进页那一帧上（实测 inflate 20~29ms/卡）。同类整改见 patch-10-8 的
+     recy_illust_detail / item_progress。 -->
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="@dimen/eight_dp"
+    android:stateListAnimator="@animator/touch_raise"
+    app:cardElevation="0dp">
 
-    <data>
-
-    </data>
-
-    <androidx.cardview.widget.CardView
+    <!-- FrameLayout 而非 RelativeLayout：wrap_content 的 RelativeLayout 对
+         锚定 parentBottom 的子 view，兄弟边对齐和 margin 都会在首趟测量时
+         解析不可靠（之前爆发层跑到右上角、按钮 bottomMargin 失效都是它）；
+         FrameLayout 的 gravity+margin 布局在最终尺寸上结算，行为可靠 -->
+    <!-- 未加载底色 = 骨架图同款（feed_skeleton_block），白天不再和白页糊成一片；
+         CardView 已把内容裁到 8dp 圆角，与首屏骨架块的 8dp 圆角一致 -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:clickable="true"
-        android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="@dimen/eight_dp"
-        android:stateListAnimator="@animator/touch_raise"
-        app:cardElevation="0dp">
+        android:background="@color/feed_skeleton_block">
 
-        <!-- FrameLayout 而非 RelativeLayout：wrap_content 的 RelativeLayout 对
-             锚定 parentBottom 的子 view，兄弟边对齐和 margin 都会在首趟测量时
-             解析不可靠（之前爆发层跑到右上角、按钮 bottomMargin 失效都是它）；
-             FrameLayout 的 gravity+margin 布局在最终尺寸上结算，行为可靠 -->
-        <!-- 未加载底色 = 骨架图同款（feed_skeleton_block），白天不再和白页糊成一片；
-             CardView 已把内容裁到 8dp 圆角，与首屏骨架块的 8dp 圆角一致 -->
-        <FrameLayout
+
+        <!-- 高度由 setHeightRatio 在 onMeasure 时按真实列宽算出：旋转/分屏后列宽变了
+             自动重算。不要改回普通 ImageView + 绑定时写死像素宽高——RecyclerView
+             复用的卡片会揣着旧方向的绝对尺寸，横竖屏来回切整个瀑布流就乱套 -->
+        <ceui.lisa.view.DynamicHeightImageView
+            android:id="@+id/illust_image"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/feed_skeleton_block">
+            android:scaleType="centerCrop" />
+
+        <!-- Telegram SpoilerEffect2 的共享 GPU 纹理宿主。共享卡片布局里的其他列表会在
+             renderer 绑定时设为 GONE；角标和收藏按钮排在它后面，保持清晰可操作。 -->
+        <ceui.pixiv.widget.SpoilerParticleView
+            android:id="@+id/spoiler_particles"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:visibility="gone"
+            app:spv_cornerRadius="@dimen/eight_dp" />
 
 
-            <!-- 高度由 setHeightRatio 在 onMeasure 时按真实列宽算出：旋转/分屏后列宽变了
-                 自动重算。不要改回普通 ImageView + 绑定时写死像素宽高——RecyclerView
-                 复用的卡片会揣着旧方向的绝对尺寸，横竖屏来回切整个瀑布流就乱套 -->
-            <ceui.lisa.view.DynamicHeightImageView
-                android:id="@+id/illust_image"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scaleType="centerCrop" />
-
-            <!-- Telegram SpoilerEffect2 的共享 GPU 纹理宿主。共享卡片布局里的其他列表会在
-                 renderer 绑定时设为 GONE；角标和收藏按钮排在它后面，保持清晰可操作。 -->
-            <ceui.pixiv.widget.SpoilerParticleView
-                android:id="@+id/spoiler_particles"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:importantForAccessibility="no"
-                android:visibility="gone"
-                app:spv_cornerRadius="@dimen/eight_dp" />
-
-
-            <!-- 角标行。整行带 id 是为了屏蔽态一把藏掉（每个角标各自的显隐仍由绑定按作品算，
-                 见 IllustStaggerRenderer.applyIllustSpoilerMask）：R-18 / 页数 / GIF / AI 这些
-                 正是屏蔽要盖住的信息，图糊了角标还写着就漏了一半。 -->
-            <LinearLayout
+            <!-- 角标行：自绘 View（原本是 7 个 TextView，每张卡无条件建一遍）。显隐条件与视觉
+                 见 ceui.pixiv.widget.IllustBadgeRowView；整行带 id 是为了屏蔽态一把藏掉
+                 （每个角标各自的显隐由绑定按作品算，见 IllustStaggerRenderer.applyIllustSpoilerMask）：
+                 R-18 / 页数 / GIF / AI 这些正是屏蔽要盖住的信息，图糊了角标还写着就漏了一半。 -->
+            <ceui.pixiv.widget.IllustBadgeRowView
                 android:id="@+id/badge_row"
                 android:layout_width="wrap_content"
-                android:orientation="horizontal"
-                android:padding="@dimen/six_dp"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content" />
 
-                <!--
-                  站长推荐 score pill。只在 trending repo 注入 trendingScore 时显示,
-                  其他 fragment 复用同一 holder 时保持 gone。放在 LinearLayout 第一位
-                  是为了在 ▲ 旁边可能并排出现 R-18 / 5P / GIF / AI / NEW 时占左端最显眼位置。
-                -->
-                <TextView
-                    android:id="@+id/trending_score"
-                    style="@style/TrendingScorePill"
-                    android:layout_marginEnd="@dimen/six_dp"
-                    tools:text="▲ 1.2k"
-                    tools:visibility="visible"/>
+        <!-- 现代化收藏按钮：
+             40dp 深色圆底座 + 4dp 边距（不顶死卡片圆角）+ 24dp 心形 icon。
+             未收藏 = 白色空心描边，已收藏 = 红色实心（IllustStaggerRenderer.renderLikeState 切这对 drawable） -->
+        <ImageButton
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="@dimen/eight_dp"
+            android:id="@+id/like_button"
+            android:scaleType="fitCenter"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="@dimen/four_dp"
+            android:background="@drawable/bg_like_pill"
+            android:src="@drawable/ic_like_heart_outline"
+            app:tint="@android:color/white">
 
-                <!-- R-18 角标:文字颜色/字号沿用 GIF 标签,放在 trending 之后让其在普通列表里占最左最显眼位 -->
-                <TextView
-                    android:id="@+id/r18_badge"
-                    android:visibility="gone"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/tag_stroke"
-                    android:paddingStart="@dimen/four_dp"
-                    android:paddingTop="@dimen/two_dp"
-                    android:text="R-18"
-                    style="@style/textBlack"
-                    android:includeFontPadding="false"
-                    android:layout_marginEnd="@dimen/six_dp"
-                    android:paddingEnd="@dimen/four_dp"
-                    android:paddingBottom="2dp"
-                    android:textColor="@color/always_white"
-                    android:textSize="11sp" />
+        </ImageButton>
 
-                <TextView
-                    android:id="@+id/p_size"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/tag_stroke"
-                    android:paddingStart="@dimen/four_dp"
-                    android:includeFontPadding="false"
-                    style="@style/textBlack"
-                    android:paddingTop="@dimen/two_dp"
-                    android:paddingEnd="@dimen/four_dp"
-                    android:layout_marginEnd="@dimen/six_dp"
-                    android:paddingBottom="2dp"
-                    android:textColor="@color/always_white"
-                    android:textSize="11sp" />
-
-
-                <!-- 宽图角标:详情页会进全景(横向可拖)的图,判定见 IllustAdapter.isPanoramaSize -->
-                <TextView
-                    android:id="@+id/p_wide"
-                    android:visibility="gone"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/tag_stroke"
-                    android:paddingStart="@dimen/four_dp"
-                    android:paddingTop="@dimen/two_dp"
-                    android:text="W"
-                    style="@style/textBlack"
-                    android:includeFontPadding="false"
-                    android:layout_marginEnd="@dimen/six_dp"
-                    android:paddingEnd="@dimen/four_dp"
-                    android:paddingBottom="2dp"
-                    android:textColor="@color/always_white"
-                    android:textSize="11sp" />
-
-                <TextView
-                    android:id="@+id/p_gif"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/tag_stroke"
-                    android:paddingStart="@dimen/four_dp"
-                    android:paddingTop="@dimen/two_dp"
-                    android:text="GIF"
-                    style="@style/textBlack"
-                    android:includeFontPadding="false"
-                    android:layout_marginEnd="@dimen/six_dp"
-                    android:paddingEnd="@dimen/four_dp"
-                    android:paddingBottom="2dp"
-                    android:textColor="@color/always_white"
-                    android:textSize="11sp" />
-
-                <TextView
-                    android:id="@+id/created_by_ai"
-                    android:visibility="gone"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/tag_stroke"
-                    android:paddingStart="@dimen/four_dp"
-                    android:paddingTop="@dimen/two_dp"
-                    style="@style/textBlack"
-                    android:text="AI"
-                    android:includeFontPadding="false"
-                    android:layout_marginEnd="@dimen/six_dp"
-                    android:paddingEnd="@dimen/four_dp"
-                    android:paddingBottom="2dp"
-                    android:textColor="@color/always_white"
-                    android:textSize="11sp" />
-
-                <TextView
-                    android:id="@+id/p_related"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/tag_stroke"
-                    style="@style/textBlack"
-                    android:paddingStart="@dimen/four_dp"
-                    android:paddingTop="@dimen/two_dp"
-                    android:includeFontPadding="false"
-                    android:text="NEW"
-                    android:paddingEnd="@dimen/four_dp"
-                    android:paddingBottom="2dp"
-                    android:textColor="@color/always_white"
-                    android:textSize="11sp" />
-
-            </LinearLayout>
-
-            <!-- 现代化收藏按钮：
-                 40dp 深色圆底座 + 4dp 边距（不顶死卡片圆角）+ 24dp 心形 icon。
-                 未收藏 = 白色空心描边，已收藏 = 红色实心（IllustStaggerRenderer.renderLikeState 切这对 drawable） -->
-            <ImageButton
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:padding="@dimen/eight_dp"
-                android:id="@+id/like_button"
-                android:scaleType="fitCenter"
-                android:layout_gravity="bottom|end"
-                android:layout_margin="@dimen/four_dp"
-                android:background="@drawable/bg_like_pill"
-                android:src="@drawable/ic_like_heart_outline"
-                app:tint="@android:color/white">
-
-            </ImageButton>
-
-            <!-- 收藏爆发动画层：叠在 like_button 之上、平时 GONE，只由 feeds 渲染器
-                 点收藏时播放。72dp 画布贴卡片右下角，
-                 动画内爱心圆心设计在画布 (96,96)/144 处 = 按钮几何中心
-                 （margin 4dp + 半径 20dp = 距角 24dp）；改按钮尺寸/边距要同步动画。
-                 非 clickable，点击穿透给下面的按钮。
-                 动画资源不在这里写 lottie_rawRes：那样每个格子 inflate 时都会建一棵 composition
-                 图层树，而绝大多数格子从不播放；改由 playLikeBurst 首次播放时再 setAnimation -->
-            <com.airbnb.lottie.LottieAnimationView
-                android:id="@+id/like_anim"
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:layout_gravity="bottom|end"
-                android:importantForAccessibility="no"
-                android:visibility="gone"
-                app:lottie_loop="false" />
+        <!-- 收藏爆发动画层：叠在 like_button 之上、平时 GONE，只由 feeds 渲染器
+             点收藏时播放。72dp 画布贴卡片右下角，
+             动画内爱心圆心设计在画布 (96,96)/144 处 = 按钮几何中心
+             （margin 4dp + 半径 20dp = 距角 24dp）；改按钮尺寸/边距要同步动画。
+             非 clickable，点击穿透给下面的按钮。
+             动画资源不在这里写 lottie_rawRes：那样每个格子 inflate 时都会建一棵 composition
+             图层树，而绝大多数格子从不播放；改由 playLikeBurst 首次播放时再 setAnimation -->
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/like_anim"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_gravity="bottom|end"
+            android:importantForAccessibility="no"
+            android:visibility="gone"
+            app:lottie_loop="false" />
 
 <!--            <TextView-->
 <!--                android:id="@+id/debug_message"-->
@@ -211,6 +94,5 @@
 <!--                android:layout_width="wrap_content"-->
 <!--                android:layout_height="wrap_content"/>-->
 
-        </FrameLayout>
-    </androidx.cardview.widget.CardView>
-</layout>
+    </FrameLayout>
+</androidx.cardview.widget.CardView>

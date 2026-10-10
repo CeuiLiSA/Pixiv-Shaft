@@ -107,6 +107,9 @@ abstract class FeedFragment(
     /** 首屏是否用瀑布流骨架图（否则 fallback 转圈圈）。在 onViewCreated 按布局定，render 只读它。 */
     private var skeletonEnabled: Boolean = false
 
+    /** 首屏预建是否已发起过（见 [prewarmFirstScreen]）；每次首屏加载只发起一次。 */
+    private var prewarmedFirstScreen = false
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val feedRoot = requireNotNull(view.findViewById<View>(R.id.feed_root)) {
@@ -545,6 +548,13 @@ abstract class FeedFragment(
         val binding = feedBinding
         binding.feedRefreshLayout.isRefreshing = shouldShowRefreshSpinner(state)
 
+        // 首屏加载态里分帧预建 ViewHolder：别让它们全挤在「数据到达后首次 layout」那一帧上，
+        // 那一帧往往正压在别的动画上（UActivity 入场头部淡入）。见 [prewarmFirstScreen]。
+        if (!prewarmedFirstScreen && state.showFullscreenLoading) {
+            prewarmedFirstScreen = true
+            prewarmFirstScreen(binding.feedListView)
+        }
+
         // 首屏加载：瀑布流 → 骨架图，其它 → 转圈圈。骨架 View 靠自身 isShown 自管 shimmer 动画。
         val showSkeleton = skeletonEnabled && state.showFullscreenLoading
         binding.feedSkeleton.isVisible = showSkeleton
@@ -608,8 +618,52 @@ abstract class FeedFragment(
         }
     }
 
+    /**
+     * 首屏加载态里分帧预建 ViewHolder。
+     *
+     * 目标不是「提前加载」而是**把首帧的建期开销挪出那一帧**：首次 `onLayoutChildren` 里
+     * `createViewHolder` 是同步的，N 张卡 × 20~30ms 会整段占住主线程；而 UActivity 的入场头部
+     * 淡入正好跑在那一段上（legacy View 动画按墙钟推进，主线程一停就冻住、恢复时直接跳）。
+     * 预建过的 holder 进 pool，首次 layout 命中它 → 只走 bind（实测 1~2ms/卡）。
+     *
+     * 分帧（每帧 [PREWARM_PER_FRAME] 张）而不是一口气建完：加载态的骨架 shimmer 也是动画，
+     * 一口气建 8 张是 200ms 级空白；分帧把它切成几次 ~60ms 的小顿 —— 加载态用户本来就在等，
+     * 这个代价比入场淡入冻住再跳小得多。
+     *
+     * 数据一到就停手（[FeedViewModel.uiState] 的 showFullscreenLoading 变 false）：此后预建
+     * 会和真正要发生的首次 layout 抢主线程，得不偿失。
+     */
+    private fun prewarmFirstScreen(listView: RecyclerView) {
+        val pool = listView.recycledViewPool
+        // pool 每个 viewType 默认只留 5 个，而我们是分帧一张张塞的（单次 count 很小）——
+        // 不在入口一次性把上限抬到总量，第 6 个起会被直接丢掉，那几张卡仍会在提交后现建。
+        pool.setMaxRecycledViews(PRIMARY_PREWARM_VIEW_TYPE, FIRST_SCREEN_PREWARM)
+        var remaining = FIRST_SCREEN_PREWARM
+        val step = object : Runnable {
+            override fun run() {
+                if (remaining <= 0 || _binding == null) return
+                if (!feedViewModel.uiState.value.showFullscreenLoading) return
+                val adapter = feedAdapter ?: return
+                val n = minOf(PREWARM_PER_FRAME, remaining)
+                adapter.prewarm(listView, pool, PRIMARY_PREWARM_VIEW_TYPE, n)
+                remaining -= n
+                if (remaining > 0) listView.postOnAnimation(this)
+            }
+        }
+        listView.postOnAnimation(step)
+    }
+
     private companion object {
         /** 空态 / 错误态插画的 tint 透明度（0.6f 的 8bit 值）：像插画而不是实心色块。 */
         private const val EMPTY_IMAGE_ALPHA = 153
+
+        /** 首屏预建几张：够铺满一屏即可（见 [prewarmFirstScreen]）。 */
+        private const val FIRST_SCREEN_PREWARM = 8
+
+        /** 每帧预建几张：建 1 张 ~20~30ms，2 张≈一帧多一点，不至于让骨架 shimmer 明显停住。 */
+        private const val PREWARM_PER_FRAME = 2
+
+        /** 预建哪种条目：主力卡在注册表里的下标。首屏要哪些类型得等数据到才知道，这里只赌主力卡。 */
+        private const val PRIMARY_PREWARM_VIEW_TYPE = 0
     }
 }
