@@ -69,6 +69,8 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     private SearchHintViewModel hintViewModel;
     /** 当前这一排置顶作者。取消置顶要就地摘掉一条重绑（异步落库赶不上立刻重查 DB）。 */
     private List<User> pinnedUsers = Collections.emptyList();
+    /** 置顶作者区是否已按 [pinnedUsers] 渲染过。用来挡掉 onResume 的无谓重绘（见 [bindPinnedUsersSection]）。 */
+    private boolean pinnedUsersBound = false;
     /** 接口给的热门标签原样留一份：屏蔽设定一变就按新规则重滤，不必再请求一次。 */
     private List<ListTrendingtag.TrendTagsBean> hotTagSource = Collections.emptyList();
     private int searchType = SearchTypeUtil.defaultSearchType;
@@ -410,6 +412,15 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
      * 正是这个功能要解决的问题（用户只能「搜作者名 → 置顶那条搜索」）。
      */
     private void bindPinnedUsersSection(final List<User> users) {
+        // 详情页作者栏已有先例：同一份数据重绑，头像不该重走一次解码 / 淡入
+        // （见 binding_loadUserIcon 的「同一 URL 直接 return」短路）。这里挡得更靠前：
+        // 从二级搜索页返回都会重跑 loadHistory，置顶作者没变时连格子都不重建 —— 否则
+        // setItemViewFactory 会清掉渲染签名，把每条头像重新 inflate 再 Glide 淡入一次，
+        // 那就是返回时看到的那下闪烁。
+        if (pinnedUsersBound && users.equals(pinnedUsers)) {
+            return;
+        }
+        pinnedUsersBound = true;
         pinnedUsers = users;
         if (users.isEmpty()) {
             baseBind.pinnedUsersSection.setVisibility(View.GONE);
