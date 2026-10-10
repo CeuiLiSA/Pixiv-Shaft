@@ -12,6 +12,7 @@ import ceui.pixiv.api.model.WebIllustBody
 import ceui.pixiv.api.model.WebIllustPage
 import ceui.pixiv.api.model.WebIllustUrls
 import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.session.SessionManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -245,8 +246,18 @@ private fun WebIllustBody.toIllust(illustId: Long, webPages: List<WebIllustPage>
  *
  * SFW 作品无 cookie 也能拿;R18 / 受限 / 删除作品或缺 cookie 时接口返回 error/空 → 返回 null,
  * 调用方沿用「图片解码后异步定高」的兜底,**不影响使用**。协程取消照常向上抛,不吞。
+ *
+ * R-18 作品在无有效网页登录时恒 404,这里据此早退、不发请求(见下方守卫)。
  */
-suspend fun fetchIllustPageDimensions(illustId: Long): List<IntArray>? {
+suspend fun fetchIllustPageDimensions(bean: Illust): List<IntArray>? {
+    val illustId = bean.id
+    // 无有效网页登录(没有 `<uid>_<hash>` 形式的 PHPSESSID)时,R-18 作品的 /pages 恒 404 ——
+    // 直接早退,不飞这笔注定失败的请求;调用方同样按 null 降级到「解码后异步定高」。
+    // 带上有效 cookie 时不早退(能不能看到由账号自身的 R-18 设置决定,那是服务端的事)。
+    if (bean.isR18File() && !SessionManager.hasWebCookie) {
+        Timber.d("fetchIllustPageDimensions skip R18 without web cookie illust=%d", illustId)
+        return null
+    }
     return try {
         val resp = Client.webApi.getIllustPages(illustId)
         val pages = resp.body

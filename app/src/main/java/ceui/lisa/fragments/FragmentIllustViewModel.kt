@@ -81,7 +81,7 @@ class FragmentIllustViewModel(
         if (pageDimsRequested || bean.page_count < 2) return
         pageDimsRequested = true
         viewModelScope.launch {
-            fetchIllustPageDimensions(illustId)?.let { _pageDimensions.value = it }
+            fetchIllustPageDimensions(bean)?.let { _pageDimensions.value = it }
         }
     }
 
