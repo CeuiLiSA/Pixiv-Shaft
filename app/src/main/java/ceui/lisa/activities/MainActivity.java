@@ -101,6 +101,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private int lastPersistedNavigationPosition = -1;
 
     /**
+     * 上次建抽屉时的可变门控输入（见 {@link #buildDrawerMenu()}）；null = 还没建过。 onResume 每次都会请求重建，输入没变就跳过：
+     * 整组 removeAllViews + 二十多行 inflate 会在每次从详情页返回时白跑一遍。
+     */
+    @Nullable private String drawerMenuInputs = null;
+
+    /**
      * 开屏动画安全兜底超时：万一首页推荐插画 tab 没能按预期跑到（异常 / 未来改了默认 tab），也不能让开屏永久卡住——超时后强制放行，最坏情况退化回「开屏消失后闪一帧 常规
      * loading」，而不是白屏假死。splashResolved 本身没有超时保护，靠这里兜底。
      */
@@ -624,6 +630,17 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         ceui.pixiv.db.discovery.UserProfile profile =
                 ((ServicesProvider) getApplication()).getProfileManager().cached();
         boolean discoveryReady = profile != null && profile.isReady();
+        boolean referralEnabled =
+                ceui.pixiv.services.ServiceProviderKt.appServices(this)
+                        .getRemoteAppConfig()
+                        .getReferralEnabled();
+        // 其余门控（flavor / buildType）和行内容（文案、图标）在 Activity 生命周期内都不变，
+        // 语言、主题变化会重建 Activity 连同这个字段一起复位。
+        String inputs = discoveryReady + "|" + referralEnabled;
+        if (inputs.equals(drawerMenuInputs)) {
+            return;
+        }
+        drawerMenuInputs = inputs;
         android.util.Log.d("Discovery/Gate", "buildDrawerMenu, discoveryReady=" + discoveryReady);
 
         LinearLayout sections = baseBind.drawerSections;
@@ -667,9 +684,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                         new DrawerEntry(
                                 R.id.nav_referral_plan,
                                 R.string.referral_entry,
-                                ceui.pixiv.services.ServiceProviderKt.appServices(this)
-                                        .getRemoteAppConfig()
-                                        .getReferralEnabled(),
+                                referralEnabled,
                                 "NEW"),
                     });
         }
