@@ -266,11 +266,10 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
 
     /**
      * 供大图页 DragDismissLayout 判定能否起竖向拖拽关闭手势。 无论当前缩放倍率，到顶后可继续下拉，到底后可继续上推； 图片还能沿当前方向平移时仍归
-     * ZoomImage。圈选翻译模式下框选层接管触摸，不参与。
+     * ZoomImage。圈选翻译框选层、AI 进度层这些浮层由宿主统一闸口先拦，不在这里判。
      */
     fun canSwipeToDismiss(direction: DragDismissLayout.Direction): Boolean {
         if (view == null || baseBind == null) return false
-        if (baseBind.manualSelectionOverlay.visibility == View.VISIBLE) return false
         // 「放大大图后禁用拖动退出」：开启后只有初始缩放时才允许起手退出，
         // 放大状态下的上下拖留给画面平移，避免误触退出。
         if (Shaft.sSettings.isViewerDismissOnlyAtMinScale && !gestureImage.isAtInitialScale()) return false
@@ -280,6 +279,15 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                 DragDismissLayout.Direction.DOWN -> -1
             }
         return !gestureImage.canScrollVertically(scrollDirection)
+    }
+
+    /**
+     * 圈选翻译框选层是否正亮着。供宿主（大图页）的统一闸口查询，决定是否拦下拖动退出 ——
+     * 框选层亮着时手势归它，不该穿透下去把整页拖走。
+     */
+    fun isManualSelectionActive(): Boolean {
+        if (view == null || baseBind == null) return false
+        return baseBind.manualSelectionOverlay.visibility == View.VISIBLE
     }
 
     public override fun initBundle(bundle: Bundle) {

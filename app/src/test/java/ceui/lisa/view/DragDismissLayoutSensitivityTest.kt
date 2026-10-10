@@ -130,6 +130,41 @@ class DragDismissLayoutSensitivityTest {
         assertTrue(dragDownBy(loose, 300f))
     }
 
+    /**
+     * 注册进「拦手浮层」表的浮层可见时，竖向拖动一律不退出（哪怕拖过半屏）；
+     * 隐藏后恢复原有判定。这是 ai_overlay_root 那类覆盖层的统一闸口。
+     */
+    @Test
+    fun `可见的拦手浮层禁止拖动退出`() {
+        val layout = newLayout()
+        val overlay = View(layout.context).apply { visibility = View.VISIBLE }
+        layout.addView(overlay, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        layout.addDismissBlockingOverlay(overlay)
+
+        assertFalse(dragDownBy(layout, 1000f))
+
+        overlay.visibility = View.GONE
+        assertTrue(dragDownBy(layout, 1000f))
+    }
+
+    /**
+     * 多条判定会累积：任一为真即拦下 —— 「后续新增浮层只需再补一条注册」靠的就是这条语义。
+     * 这里用判定式注册（宿主按「当前页」查询浮层时用的那种）。
+     */
+    @Test
+    fun `任一拦手判定为真即拦下`() {
+        val layout = newLayout()
+        val idle = View(layout.context).apply { visibility = View.GONE }
+        val active = View(layout.context).apply { visibility = View.VISIBLE }
+        layout.addDismissBlockingCheck { idle.visibility == View.VISIBLE }
+        layout.addDismissBlockingCheck { active.visibility == View.VISIBLE }
+
+        assertFalse(dragDownBy(layout, 1000f))
+
+        active.visibility = View.GONE
+        assertTrue(dragDownBy(layout, 1000f))
+    }
+
     // ---- helpers ----------------------------------------------------------
 
     private fun newLayout(): DragDismissLayout =
