@@ -16,6 +16,11 @@
         <attr name="gtv_angle" format="float" />
     </declare-styleable>
 
+    <declare-styleable name="ShimmerOverlayView">
+        <!-- true：无限循环（加载骨架）；false：每次挂上窗口只扫一遍（已加载内容上的装饰） -->
+        <attr name="shimmerLoop" format="boolean" />
+    </declare-styleable>
+
     <declare-styleable name="SpoilerParticleView">
         <attr name="spv_cornerRadius" format="dimension" />
     </declare-styleable>

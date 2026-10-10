@@ -98,9 +98,11 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- 已加载内容上的装饰：只扫一遍。无限循环会让卡片露出期间整窗 120fps 重绘 -->
             <ceui.pixiv.ui.detail.ShimmerOverlayView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                app:shimmerLoop="false" />
         </FrameLayout>
 
         <!-- Detail panel: metadata chips -->
