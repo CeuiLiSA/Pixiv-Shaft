@@ -178,7 +178,21 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         splashResolved = true;
         // 开屏放行之后才启动首帧后的逐帧队列（启动条件见 startFirstFramePump）：
         // 让放行 tab 页 / 建抽屉那批 Choreographer 帧别再挡 feed 那条回调。
-        startFirstFramePump();
+        //
+        // 再推迟一帧：postOnAnimation 跑在 Choreographer 的 ANIMATION 阶段，早于同帧的
+        // measure/layout/draw。直接启动的话，放行（实测 FragmentCenter 约 240ms）会和
+        // 「开屏退场 + 首帧绘制」挤进同一帧——那一帧被撑到 599ms，Displayed 跟着被顶后
+        // 同样长。先强制一次 traversal 让开屏在这一帧退场、首帧单独画完，放行排到再下一帧。
+        // 实测（vivo V2361A / Android 15 / debug）：放行→Displayed 631ms → 80ms，
+        // Displayed +2973ms → +2330ms。
+        final android.view.View __root = baseBind == null ? null : baseBind.getRoot();
+        if (__root == null) {
+            startFirstFramePump();
+            return;
+        }
+        __root.requestLayout();
+        __root.invalidate();
+        __root.postOnAnimation(this::startFirstFramePump);
     }
 
     @Override
