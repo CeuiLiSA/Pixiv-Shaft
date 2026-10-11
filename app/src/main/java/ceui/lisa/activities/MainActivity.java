@@ -40,7 +40,6 @@ import androidx.core.view.ViewGroupCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -107,6 +106,30 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     @Nullable private String drawerMenuInputs = null;
 
     /**
+     * 抽屉菜单是否已过「首帧之后」这道闸（见 {@link #buildDrawerMenu()}）。
+     *
+     * <p>整组 removeAllViews + 二十多行 inflate 冷启动实测 226ms，而抽屉在冷启动时是关着的、
+     * 用户根本看不到——没必要挤在首页首帧里。首帧前无论谁请求（initView 的首次调用、
+     * referralEnabledLive 注册时的立即回调、onResume、profileReady 广播）都先挡住，
+     * 等首帧画完由 {@code initView} 排的那一帧统一补建一次。
+     */
+    private boolean drawerMenuReady = false;
+
+    /**
+     * 首帧之后逐帧跑的活（放行停在 CREATED 的 tab 页、建抽屉菜单），每帧只跑一个。
+     *
+     * <p>两者都必须落在首帧之后（一个用户看不到、一个要滑出抽屉才看得到），但如果各自
+     * {@code postOnAnimation}，会撞进同一帧的 ANIMATION 阶段、合成一条几百毫秒的消息——
+     * 那和没延迟没区别（patch-10-10-4 踩过同一个坑，见其 PR 的「为什么需要 FrameQueue」）。
+     * 队列保证每帧只跑一个。
+     */
+    private final java.util.ArrayDeque<Runnable> firstFrameTasks = new java.util.ArrayDeque<>();
+
+    private boolean firstFramePumpRunning = false;
+
+    private boolean firstFrameReached = false;
+
+    /**
      * 开屏动画安全兜底超时：万一首页推荐插画 tab 没能按预期跑到（异常 / 未来改了默认 tab），也不能让开屏永久卡住——超时后强制放行，最坏情况退化回「开屏消失后闪一帧 常规
      * loading」，而不是白屏假死。splashResolved 本身没有超时保护，靠这里兜底。
      */
@@ -153,6 +176,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     @Override
     public void markSplashResolved() {
         splashResolved = true;
+        // 开屏放行之后才启动首帧后的逐帧队列（启动条件见 startFirstFramePump）：
+        // 让放行 tab 页 / 建抽屉那批 Choreographer 帧别再挡 feed 那条回调。
+        startFirstFramePump();
     }
 
     @Override
@@ -179,7 +205,18 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 BarUtils.getNavBarHeight() + dp(24));
         // MD3 modal drawer:容器右缘 28dp 圆角(outline 来自 bg_drawer_sheet)
         baseBind.navView.setClipToOutline(true);
-        buildDrawerMenu();
+        // 抽屉菜单整块（实测 226ms）排到首帧之后再建：抽屉是关着的，用户根本看不到，
+        // 没必要挤在首页首帧里。首帧 layout 后排一个动画帧才开闸（见 buildDrawerMenu 的门闩），
+        // 把 initView / referralEnabledLive / onResume / profileReady 四处请求统一收口到这一次。
+        baseBind.getRoot().getViewTreeObserver().addOnGlobalLayoutListener(
+                new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        baseBind.getRoot().getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        firstFrameReached = true;
+                        startFirstFramePump();
+                    }
+                });
 
         // 监听画像构建完成，刷新发现入口可见性
         android.content.IntentFilter profileFilter =
@@ -510,8 +547,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 DrawerIconCatalog.iconFor(R.id.illust_star));
         baseBind.navigationRail.addShortcut(
                 nav_gallery, R.string.rail_downloads, DrawerIconCatalog.iconFor(nav_gallery));
-        baseBind.viewPager.setAdapter(
-                new FragmentPagerAdapter(getSupportFragmentManager()) {
+        final ceui.lisa.adapters.LazyFragmentPagerAdapter lazyAdapter =
+                new ceui.lisa.adapters.LazyFragmentPagerAdapter(getSupportFragmentManager()) {
                     @Override
                     public Fragment getItem(int i) {
                         return baseFragments[i];
@@ -521,7 +558,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     public int getCount() {
                         return baseFragments.length;
                     }
-                });
+                };
+        baseBind.viewPager.setAdapter(lazyAdapter);
         baseBind.viewPager.setOffscreenPageLimit(baseFragments.length - 1);
         final int navigationInitPosition = getNavigationInitPosition();
         // 去重水位必须来自真实落盘值，不能直接假定本次启动页已经保存。否则用户从固定
@@ -545,6 +583,15 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                             getSupportFragmentManager());
                 },
                 2000);
+        // 首帧只建当前 tab：其余页停在 CREATED（见 LazyFragmentPagerAdapter），
+        // 连同抽屉菜单一起排进「每帧一件事」的队列，首帧之后逐个补上。
+        for (int i = 0; i < baseFragments.length; i++) {
+            enqueueFirstFrameTask(() -> { lazyAdapter.releaseOneDeferredPage(); });
+        }
+        enqueueFirstFrameTask(() -> {
+            drawerMenuReady = true;
+            buildDrawerMenu();
+        });
     }
 
     @Override
@@ -616,6 +663,48 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         }
     }
 
+    /** 把一件「首帧之后逐帧做」的活排进队列（见 firstFrameTasks）。 */
+    private void enqueueFirstFrameTask(Runnable task) {
+        firstFrameTasks.add(task);
+        startFirstFramePump();
+    }
+
+    /**
+     * 启动首帧后的逐帧队列（幂等）。
+     *
+     * <p>必须同时满足「首帧已画」和「开屏已放行」才启动。队列里的活（放行 tab 页、建抽屉）
+     * 都是 Choreographer 帧，优先级高于首页 feed 那条「缓存命中 → 提交 uiState」的普通消息
+     * 回调——实测把它们排在开屏放行之前，会把 splash 整个顶后约 580ms，首帧省下的时间原样吐回去。
+     */
+    private void startFirstFramePump() {
+        if (!firstFrameReached || !splashResolved || firstFramePumpRunning) {
+            return;
+        }
+        firstFramePumpRunning = true;
+        pumpFirstFrameTasks();
+    }
+
+    /** 每帧从队列取一件事跑，跑完排下一帧；队列空了就停。 */
+    private void pumpFirstFrameTasks() {
+        baseBind.getRoot().postOnAnimation(new Runnable() {
+            @Override
+            public void run() {
+                if (isFinishing() || isDestroyed()) {
+                    firstFrameTasks.clear();
+                    firstFramePumpRunning = false;
+                    return;
+                }
+                Runnable task = firstFrameTasks.poll();
+                if (task == null) {
+                    firstFramePumpRunning = false;
+                    return;
+                }
+                task.run();
+                baseBind.getRoot().postOnAnimation(this);
+            }
+        });
+    }
+
     /**
      * 重建侧边栏分组(MD3-E 分段样式,同设置页)。所有入口的可见性门控收口在这里: - 发现:画像完备(PROFILE_READY 广播 / onResume 时重建) -
      * 试验性分区:github 渠道 release 保留(标签热度导出仅 debug);google play 渠道为合规起见整段隐藏。
@@ -623,6 +712,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
      * 行按可见项重新生成,分段圆角(top/mid/bottom/single)永远贴合,不存在隐藏行破角问题。
      */
     private void buildDrawerMenu() {
+        // 首帧之后才真正建（见 drawerMenuReady）：抽屉是关着的，用户看不到，
+        // 没必要占冷启动首帧——实测这一段 226ms，是首帧之外最大的一块。
+        if (!drawerMenuReady) {
+            return;
+        }
         boolean isDebugBuild = ceui.lisa.BuildConfig.DEBUG;
         boolean isLite = ceui.lisa.BuildConfig.IS_LITE;
         boolean experimentalAllowed = !(isLite && !isDebugBuild);
