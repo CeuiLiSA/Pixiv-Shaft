@@ -66,13 +66,19 @@ object ReaderFontSheet {
             scroll.scrollTo(0, 0)
         }
 
-        // 标题与分段条钉在顶上，只有字体列表滚动：日文一组近二十款，滚到底也能直接换组
+        // 只把标题与分段条钉在顶上，其余都在列表里滚：日文一组近二十款，滚到底也能直接换组；
+        // 说明文字不钉，横屏阅读加大字号时顶部不至于把列表挤没
         val header = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(context.dp(20), context.dp(4), context.dp(20), context.dp(10))
+            setPadding(context.dp(20), context.dp(4), context.dp(20), context.dp(8))
             addView(context.label(context.getString(R.string.reader_font_more), 20f, 700).apply {
                 ViewCompat.setAccessibilityHeading(this, true)
             })
+            addView(groupBar, LinearLayout.LayoutParams(-1, -2).apply { topMargin = context.dp(12) })
+        }
+        val content = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(context.dp(20), 0, context.dp(20), context.dp(20))
             addView(
                 context.label(
                     context.getString(R.string.reader_font_sheet_desc),
@@ -80,13 +86,8 @@ object ReaderFontSheet {
                     400,
                     context.color(ceui.pixiv.witstudio.R.color.wit_text_2),
                 ).apply { lineHeightRatio(1.45f) },
-                LinearLayout.LayoutParams(-1, -2).apply { topMargin = context.dp(6) },
+                LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = context.dp(14) },
             )
-            addView(groupBar, LinearLayout.LayoutParams(-1, -2).apply { topMargin = context.dp(18) })
-        }
-        val content = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(context.dp(20), 0, context.dp(20), context.dp(20))
             groups.forEach { (_, fonts) ->
                 fonts.forEachIndexed { index, font ->
                     val row = FontRow(context, font, index, fonts.size, repo) { picked ->
