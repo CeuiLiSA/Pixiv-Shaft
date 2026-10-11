@@ -1384,11 +1384,22 @@
     <string name="setting_font_family">字体</string>
     <string name="reader_font_more">更多字体</string>
     <string name="reader_font_sheet_desc">以下字体来自 Google Fonts，按 SIL 开源字体许可免费使用。下载一次即可离线使用，只在小说阅读器中生效。</string>
-    <string name="reader_font_group_chinese">中文</string>
+    <string name="reader_font_group_chinese">简体中文</string>
+    <string name="reader_font_group_traditional_chinese">繁体中文</string>
     <string name="reader_font_group_japanese">日文</string>
     <string name="reader_font_noto_sans_sc">思源黑体</string>
     <string name="reader_font_noto_serif_sc">思源宋体</string>
     <string name="reader_font_lxgw_wenkai">霞鹜文楷</string>
+    <string name="reader_font_zcool_xiaowei">站酷小薇体</string>
+    <string name="reader_font_lxgw_marker_gothic">霞鹜漫黑</string>
+    <string name="reader_font_ma_shan_zheng">马善政楷书</string>
+    <string name="reader_font_zcool_kuaile">站酷快乐体</string>
+    <string name="reader_font_long_cang">龙藏体</string>
+    <string name="reader_font_noto_sans_tc">思源黑体（繁）</string>
+    <string name="reader_font_noto_serif_tc">思源宋体（繁）</string>
+    <string name="reader_font_cactus_classical_serif">仙人掌明体</string>
+    <string name="reader_font_iansui">芫荽</string>
+    <string name="reader_font_huninn">粉圆</string>
     <string name="reader_font_state_absent">%1$s · 未下载</string>
     <string name="reader_font_state_installed">%1$s · 已下载</string>
     <string name="reader_font_state_in_use">%1$s · 使用中</string>
@@ -1403,6 +1414,21 @@
     <string name="reader_font_noto_serif_jp" translatable="false">Noto Serif JP</string>
     <string name="reader_font_klee_one" translatable="false">Klee One</string>
     <string name="reader_font_zen_maru_gothic" translatable="false">Zen Maru Gothic</string>
+    <string name="reader_font_biz_udp_gothic" translatable="false">BIZ UDPGothic</string>
+    <string name="reader_font_biz_udp_mincho" translatable="false">BIZ UDPMincho</string>
+    <string name="reader_font_zen_kaku_gothic_new" translatable="false">Zen Kaku Gothic New</string>
+    <string name="reader_font_shippori_mincho" translatable="false">Shippori Mincho</string>
+    <string name="reader_font_zen_old_mincho" translatable="false">Zen Old Mincho</string>
+    <string name="reader_font_ibm_plex_sans_jp" translatable="false">IBM Plex Sans JP</string>
+    <string name="reader_font_kaisei_opti" translatable="false">Kaisei Opti</string>
+    <string name="reader_font_m_plus_rounded_1c" translatable="false">M PLUS Rounded 1c</string>
+    <string name="reader_font_kiwi_maru" translatable="false">Kiwi Maru</string>
+    <string name="reader_font_hina_mincho" translatable="false">Hina Mincho</string>
+    <string name="reader_font_new_tegomin" translatable="false">New Tegomin</string>
+    <string name="reader_font_zen_antique" translatable="false">Zen Antique</string>
+    <string name="reader_font_yomogi" translatable="false">Yomogi</string>
+    <string name="reader_font_zen_kurenaido" translatable="false">Zen Kurenaido</string>
+    <string name="reader_font_yusei_magic" translatable="false">Yusei Magic</string>
     <string name="setting_theme_preset">配色</string>
     <string name="setting_text_color">文字颜色</string>
     <string name="setting_text_color_hint">按当前配色保存，用于正文和章节标题。</string>

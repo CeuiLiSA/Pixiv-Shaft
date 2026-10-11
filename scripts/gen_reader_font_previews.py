@@ -6,7 +6,7 @@
 ReaderWebFont 里钉死的 google/fonts commit 是同一份：
 
     python3 -m pip install fonttools
-    python3 scripts/gen_reader_font_previews.py <放着 7 个 ttf 的目录>
+    python3 scripts/gen_reader_font_previews.py <放着全部 ttf 的目录>
 
 输出到 app/src/main/res/drawable/reader_font_preview_*.xml。
 """
@@ -19,17 +19,43 @@ from fontTools.ttLib import TTFont
 from fontTools.varLib import instancer
 
 ZH = "春眠不觉晓，处处闻啼鸟"
+TC = "春眠不覺曉，處處聞啼鳥"
 JA = "ゆく河の流れは絶えずして"
 
-# (drawable 名, 文件名, 示例文字)
+# (drawable 名, 文件名, 示例文字)；示例跟着 ReaderWebFont.group 走
 FONTS = [
     ("noto_sans_sc", "NotoSansSC[wght].ttf", ZH),
     ("noto_serif_sc", "NotoSerifSC[wght].ttf", ZH),
     ("lxgw_wenkai_tc", "LXGWWenKaiTC-Regular.ttf", ZH),
+    ("zcool_xiaowei", "ZCOOLXiaoWei-Regular.ttf", ZH),
+    ("lxgw_marker_gothic", "LXGWMarkerGothic-Regular.ttf", ZH),
+    ("ma_shan_zheng", "MaShanZheng-Regular.ttf", ZH),
+    ("zcool_kuaile", "ZCOOLKuaiLe-Regular.ttf", ZH),
+    ("long_cang", "LongCang-Regular.ttf", ZH),
+    ("noto_sans_tc", "NotoSansTC[wght].ttf", TC),
+    ("noto_serif_tc", "NotoSerifTC[wght].ttf", TC),
+    ("cactus_classical_serif", "CactusClassicalSerif-Regular.ttf", TC),
+    ("iansui", "Iansui-Regular.ttf", TC),
+    ("huninn", "Huninn-Regular.ttf", TC),
     ("noto_sans_jp", "NotoSansJP[wght].ttf", JA),
     ("noto_serif_jp", "NotoSerifJP[wght].ttf", JA),
-    ("klee_one", "KleeOne-Regular.ttf", JA),
+    ("biz_udp_gothic", "BIZUDPGothic-Regular.ttf", JA),
+    ("biz_udp_mincho", "BIZUDPMincho-Regular.ttf", JA),
+    ("zen_kaku_gothic_new", "ZenKakuGothicNew-Regular.ttf", JA),
+    ("shippori_mincho", "ShipporiMincho-Regular.ttf", JA),
+    ("zen_old_mincho", "ZenOldMincho-Regular.ttf", JA),
+    ("ibm_plex_sans_jp", "IBMPlexSansJP-Regular.ttf", JA),
+    ("kaisei_opti", "KaiseiOpti-Regular.ttf", JA),
     ("zen_maru_gothic", "ZenMaruGothic-Regular.ttf", JA),
+    ("m_plus_rounded_1c", "MPLUSRounded1c-Regular.ttf", JA),
+    ("kiwi_maru", "KiwiMaru-Regular.ttf", JA),
+    ("klee_one", "KleeOne-Regular.ttf", JA),
+    ("hina_mincho", "HinaMincho-Regular.ttf", JA),
+    ("new_tegomin", "NewTegomin-Regular.ttf", JA),
+    ("zen_antique", "ZenAntique-Regular.ttf", JA),
+    ("yomogi", "Yomogi-Regular.ttf", JA),
+    ("zen_kurenaido", "ZenKurenaido-Regular.ttf", JA),
+    ("yusei_magic", "YuseiMagic-Regular.ttf", JA),
 ]
 
 OUT = os.path.join(os.path.dirname(__file__), "..", "app", "src", "main", "res", "drawable")

@@ -5,14 +5,18 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.InsetDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.os.ConfigurationCompat
 import androidx.core.view.AccessibilityDelegateCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
@@ -25,6 +29,7 @@ import ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository
 import ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository.State
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
 import ceui.pixiv.ui.novel.reader.settings.ReaderWebFont
+import ceui.pixiv.ui.novel.reader.settings.ReaderWebFont.Group
 import ceui.pixiv.ui.settings.GithubProxyDialog
 import ceui.pixiv.witstudio.dialog.WitBottomSheet
 import ceui.pixiv.witstudio.theme.IconButton
@@ -37,13 +42,12 @@ import ceui.pixiv.witstudio.theme.lineHeightRatio
 import ceui.pixiv.witstudio.theme.motionEnabled
 import ceui.pixiv.witstudio.theme.ripple
 import ceui.pixiv.witstudio.theme.rowShape
-import ceui.pixiv.witstudio.theme.sectionLabel
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import java.util.Locale
 import kotlinx.coroutines.launch
 
 /**
- * 小说阅读器「更多字体」（#1060）：按中文 / 日文两组列出 [ReaderWebFont]，就地下载、选用、删除。
+ * 小说阅读器「更多字体」（#1060）：按简体 / 繁体 / 日文分段列出 [ReaderWebFont]，就地下载、选用、删除。
  *
  * 选项的差别是字形，所以每行都带预览（字体自己的轮廓，未下载也能看）。下载状态来自进程级
  * [ReaderFontRepository]：面板关了下载继续，再打开直接接上进度。
@@ -55,10 +59,17 @@ object ReaderFontSheet {
         val repo = context.appServices().readerFontRepository
         val sheet = WitBottomSheet(context)
         val rows = mutableListOf<FontRow>()
+        val groups = ReaderWebFont.entries.filter { it.isSupported }.groupBy { it.group }
+        val scroll = NestedScrollView(context)
+        val groupBar = GroupBar(context, groups.keys.toList(), initialGroup(context, groups.keys)) { group ->
+            rows.forEach { it.isVisible = it.font.group == group }
+            scroll.scrollTo(0, 0)
+        }
 
-        val content = LinearLayout(context).apply {
+        // 标题与分段条钉在顶上，只有字体列表滚动：日文一组近二十款，滚到底也能直接换组
+        val header = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(context.dp(20), context.dp(4), context.dp(20), context.dp(20))
+            setPadding(context.dp(20), context.dp(4), context.dp(20), context.dp(10))
             addView(context.label(context.getString(R.string.reader_font_more), 20f, 700).apply {
                 ViewCompat.setAccessibilityHeading(this, true)
             })
@@ -71,14 +82,12 @@ object ReaderFontSheet {
                 ).apply { lineHeightRatio(1.45f) },
                 LinearLayout.LayoutParams(-1, -2).apply { topMargin = context.dp(6) },
             )
-            ReaderWebFont.entries.filter { it.isSupported }.groupBy { it.group }.forEach { (group, fonts) ->
-                addView(
-                    context.sectionLabel(context.getString(group.titleRes)),
-                    LinearLayout.LayoutParams(-1, -2).apply {
-                        topMargin = context.dp(24)
-                        bottomMargin = context.dp(10)
-                    },
-                )
+            addView(groupBar, LinearLayout.LayoutParams(-1, -2).apply { topMargin = context.dp(18) })
+        }
+        val content = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(context.dp(20), 0, context.dp(20), context.dp(20))
+            groups.forEach { (_, fonts) ->
                 fonts.forEachIndexed { index, font ->
                     val row = FontRow(context, font, index, fonts.size, repo) { picked ->
                         if (ReaderSettings.fontId != picked.id) ReaderSettings.fontId = picked.id
@@ -87,6 +96,7 @@ object ReaderFontSheet {
                         if (motionEnabled()) sheet.window?.decorView?.postDelayed({ sheet.dismiss() }, 180)
                         else sheet.dismiss()
                     }
+                    row.isVisible = font.group == groupBar.selected
                     rows += row
                     addView(row, LinearLayout.LayoutParams(-1, -2).apply {
                         if (index > 0) topMargin = context.dp(2)
@@ -120,9 +130,11 @@ object ReaderFontSheet {
             )
         }
 
-        sheet.setSheetContent(NestedScrollView(context).apply {
-            isFillViewport = true
-            addView(content)
+        scroll.addView(content)
+        sheet.setSheetContent(LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(header)
+            addView(scroll, LinearLayout.LayoutParams(-1, -2))
         })
         sheet.setOnDismissListener { onDismiss() }
         sheet.lifecycleScope.launch {
@@ -132,13 +144,90 @@ object ReaderFontSheet {
         return sheet
     }
 
+    /** 正在用下载字体就落在它那一组；否则按界面语言猜读者读哪种文字，其余语言默认日文（pixiv 小说以日文为主）。 */
+    private fun initialGroup(context: Context, available: Set<Group>): Group {
+        ReaderWebFont.byId(ReaderSettings.fontId)?.group?.takeIf { it in available }?.let { return it }
+        val locale = ConfigurationCompat.getLocales(context.resources.configuration)[0] ?: Locale.getDefault()
+        val guess = when (locale.language) {
+            "zh" -> if (locale.script == "Hant" || locale.country in setOf("TW", "HK", "MO")) {
+                Group.TRADITIONAL_CHINESE
+            } else {
+                Group.SIMPLIFIED_CHINESE
+            }
+            else -> Group.JAPANESE
+        }
+        return guess.takeIf { it in available } ?: available.first()
+    }
+
+    /**
+     * 简体 / 繁体 / 日文单选分段：复用阅读设置的分段轨道与选中胶囊（42dp 轨道、36dp 选中块、48dp 热区）。
+     * 选项按文案收紧并可横向滚动，长译文和大字体不会被截断。
+     */
+    private class GroupBar(
+        context: Context,
+        private val groups: List<Group>,
+        initial: Group,
+        private val onSelected: (Group) -> Unit,
+    ) : HorizontalScrollView(context) {
+
+        var selected: Group = initial
+            private set
+        private val cells = ArrayList<TextView>(groups.size)
+
+        init {
+            isHorizontalScrollBarEnabled = false
+            val track = LinearLayout(context).apply {
+                background = InsetDrawable(
+                    ContextCompat.getDrawable(context, R.drawable.bg_reader_segment_track),
+                    0, context.dp(3), 0, context.dp(3),
+                )
+                setPadding(context.dp(3), 0, context.dp(3), 0)
+            }
+            val textColors = ContextCompat.getColorStateList(context, R.color.reader_segment_text)
+            groups.forEach { group ->
+                val cell = context.label(context.getString(group.titleRes), 13f, 500).apply {
+                    setTextColor(textColors)
+                    gravity = Gravity.CENTER
+                    setSingleLine()
+                    minWidth = context.dp(64)
+                    minimumHeight = context.dp(48)
+                    setPadding(context.dp(16), 0, context.dp(16), 0)
+                    background = InsetDrawable(
+                        ContextCompat.getDrawable(context, R.drawable.bg_reader_segment_option),
+                        0, context.dp(6), 0, context.dp(6),
+                    )
+                    isSelected = group == selected
+                    setOnClickListener { select(group) }
+                    ViewCompat.setAccessibilityDelegate(this, object : AccessibilityDelegateCompat() {
+                        override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfoCompat) {
+                            super.onInitializeAccessibilityNodeInfo(host, info)
+                            info.className = RadioButton::class.java.name
+                            info.isCheckable = true
+                            info.isChecked = host.isSelected
+                        }
+                    })
+                }
+                cells += cell
+                track.addView(cell, LinearLayout.LayoutParams(-2, -2))
+            }
+            addView(track, LayoutParams(-2, -2))
+        }
+
+        private fun select(group: Group) {
+            if (group == selected) return
+            selected = group
+            cells.forEachIndexed { i, cell -> cell.isSelected = groups[i] == group }
+            onSelected(group)
+        }
+    }
+
     /**
      * 一款字体一行：名称 → 预览 → 状态 / 大小（→ 下载进度条），末端是当前状态下唯一的动作。
      * 连通分段行（外角 20 内角 5），选用中的那行换主题浅底并在末端打勾。
      */
     private class FontRow(
         context: Context,
-        private val font: ReaderWebFont,
+        val font: ReaderWebFont,
         private val index: Int,
         private val total: Int,
         private val repo: ReaderFontRepository,
