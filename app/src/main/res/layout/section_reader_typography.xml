@@ -1,100 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
-    <data/>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        style="@style/M3SetHeader"
+        android:text="@string/reader_section_typography"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_reader_group_card"
+        android:clipToOutline="true"
         android:orientation="vertical">
 
-        <TextView
-            style="@style/M3SetHeader"
-            android:text="@string/reader_section_typography"/>
-
-        <LinearLayout
+        <include
+            android:id="@+id/row_font_size"
+            layout="@layout/item_reader_setting_slider"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_reader_group_card"
-            android:clipToOutline="true"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"/>
 
-            <include
-                android:id="@+id/row_font_size"
-                layout="@layout/item_reader_setting_slider"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+        <View style="@style/ReaderRowDivider"/>
 
-            <View style="@style/ReaderRowDivider"/>
+        <include
+            android:id="@+id/row_line_spacing"
+            layout="@layout/item_reader_setting_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
-            <include
-                android:id="@+id/row_line_spacing"
-                layout="@layout/item_reader_setting_slider"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+        <View style="@style/ReaderRowDivider"/>
 
-            <View style="@style/ReaderRowDivider"/>
+        <include
+            android:id="@+id/row_paragraph_spacing"
+            layout="@layout/item_reader_setting_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
-            <include
-                android:id="@+id/row_paragraph_spacing"
-                layout="@layout/item_reader_setting_slider"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+        <View style="@style/ReaderRowDivider"/>
 
-            <View style="@style/ReaderRowDivider"/>
+        <include
+            android:id="@+id/row_horizontal_margin"
+            layout="@layout/item_reader_setting_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
-            <include
-                android:id="@+id/row_horizontal_margin"
-                layout="@layout/item_reader_setting_slider"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+        <View style="@style/ReaderRowDivider"/>
 
-            <View style="@style/ReaderRowDivider"/>
+        <include
+            android:id="@+id/row_vertical_margin"
+            layout="@layout/item_reader_setting_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
-            <include
-                android:id="@+id/row_vertical_margin"
-                layout="@layout/item_reader_setting_slider"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+        <View style="@style/ReaderRowDivider"/>
 
-            <View style="@style/ReaderRowDivider"/>
+        <include
+            android:id="@+id/row_first_line_indent"
+            layout="@layout/item_reader_setting_segmented"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
-            <include
-                android:id="@+id/row_first_line_indent"
-                layout="@layout/item_reader_setting_segmented"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+        <View style="@style/ReaderRowDivider"/>
 
-            <View style="@style/ReaderRowDivider"/>
+        <include
+            android:id="@+id/row_letter_spacing"
+            layout="@layout/item_reader_setting_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
-            <include
-                android:id="@+id/row_letter_spacing"
-                layout="@layout/item_reader_setting_slider"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+        <View style="@style/ReaderRowDivider"/>
 
-            <View style="@style/ReaderRowDivider"/>
+        <include
+            android:id="@+id/row_bold"
+            layout="@layout/item_reader_setting_switch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
-            <include
-                android:id="@+id/row_bold"
-                layout="@layout/item_reader_setting_switch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+        <View style="@style/ReaderRowDivider"/>
 
-            <View style="@style/ReaderRowDivider"/>
+        <include
+            android:id="@+id/row_font_picker"
+            layout="@layout/item_reader_setting_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
-            <include
-                android:id="@+id/row_font_picker"
-                layout="@layout/item_reader_setting_scroll"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+        <View style="@style/ReaderRowDivider"/>
 
-            <View style="@style/ReaderRowDivider"/>
-
-            <include
-                android:id="@+id/row_font_weight"
-                layout="@layout/item_reader_setting_slider"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
+        <include
+            android:id="@+id/row_font_weight"
+            layout="@layout/item_reader_setting_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
-</layout>
+</LinearLayout>

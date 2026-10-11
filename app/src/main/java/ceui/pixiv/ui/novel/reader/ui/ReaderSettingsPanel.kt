@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.CompoundButton
 import android.widget.SeekBar
 import android.widget.TextView
+import androidx.core.view.doOnLayout
 import androidx.core.view.isVisible
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentReaderSettingsBinding
@@ -21,6 +22,11 @@ import ceui.lisa.databinding.ItemReaderSettingSegmentedBinding
 import ceui.lisa.databinding.ItemReaderSettingSliderBinding
 import ceui.lisa.databinding.ItemReaderSettingSwitchBinding
 import ceui.lisa.databinding.ItemReaderThemeSwatchBinding
+import ceui.lisa.databinding.SectionReaderFlipBinding
+import ceui.lisa.databinding.SectionReaderImageBinding
+import ceui.lisa.databinding.SectionReaderScreenBinding
+import ceui.lisa.databinding.SectionReaderThemeBinding
+import ceui.lisa.databinding.SectionReaderThemeLowerBinding
 import ceui.pixiv.ui.novel.reader.model.FlipMode
 import ceui.pixiv.ui.novel.reader.model.ReadingDirection
 import ceui.pixiv.ui.novel.reader.model.ImagePlacement
@@ -60,6 +66,9 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
     /** 「跟随系统暗色」开关视图，供程序性退出跟随（点配色）后回刷开关态。 */
     private var followSwitch: CompoundButton? = null
 
+    /** 配色卡里「配色选择」以下那半节的绑定；延迟建出来之前为 null。 */
+    private var themeLower: SectionReaderThemeLowerBinding? = null
+
     /** 「更多字体」面板，防连点重复打开。 */
     private var fontSheet: Dialog? = null
 
@@ -89,12 +98,43 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
     ): View {
         _binding = FragmentReaderSettingsBinding.inflate(inflater, container, false)
         val ctx = requireContext()
+        // 面板内容恒超屏高；把滚动容器的最小高度钉到屏高，下面几块延迟补建时
+        // 面板高度就不会跟着变（否则首帧只有上半截、sheet 会先矮后长）。
+        binding.root.minimumHeight = ctx.resources.displayMetrics.heightPixels
         bindTypography(ctx)
-        bindTheme(ctx)
-        bindFlip(ctx)
-        bindScreen(ctx)
-        bindImage(ctx)
+        bindTheme(ctx, binding.sectionTheme)
+        // 配色卡下半节和翻页 / 屏幕 / 图片整块在首屏之外，等首帧画完再逐帧建，
+        // 不挤在开面板这一帧里（见 inflateLowerSections）。
+        binding.root.doOnLayout { inflateLowerSections(ctx) }
         return binding.root
+    }
+
+    /**
+     * 逐帧建首屏之外的几块（配色卡下半节 + 翻页 / 屏幕 / 图片）：每帧只做一块。
+     *
+     * 它们整块在首屏之外，加上 onCreateView 把滚动容器最小高度钉到屏高，
+     * 所以延迟补建不会让面板高度可见地变化。
+     */
+    private fun inflateLowerSections(ctx: Context) {
+        val steps: List<(FragmentReaderSettingsBinding) -> Unit> = listOf(
+            { b ->
+                bindThemeLower(
+                    ctx,
+                    SectionReaderThemeLowerBinding.bind(b.sectionTheme.themeLowerStub.inflate()),
+                )
+            },
+            { b -> bindFlip(ctx, SectionReaderFlipBinding.bind(b.sectionFlipStub.inflate())) },
+            { b -> bindScreen(ctx, SectionReaderScreenBinding.bind(b.sectionScreenStub.inflate())) },
+            { b -> bindImage(ctx, SectionReaderImageBinding.bind(b.sectionImageStub.inflate())) },
+        )
+        var index = 0
+        fun runNext() {
+            val b = _binding ?: return // 面板已销毁就停手
+            val step = steps.getOrNull(index++) ?: return
+            step(b)
+            if (index < steps.size) b.root.postOnAnimation { runNext() }
+        }
+        binding.root.postOnAnimation { runNext() }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -141,6 +181,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         followSwitch = null
+        themeLower = null
         fontSheet = null
         _binding = null
     }
@@ -180,9 +221,14 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         ) { ReaderSettings.fontWeight = it }
     }
 
-    private fun bindTheme(ctx: Context) {
-        val s = binding.sectionTheme
+    private fun bindTheme(ctx: Context, s: SectionReaderThemeBinding) {
+        // 只建首屏可见的配色选择行；本卡其余行在首屏之外，
+        // 随 section_reader_theme_lower 一起延迟建（见 bindThemeLower）。
         s.rowThemePicker.bindThemePicker(ctx)
+    }
+
+    private fun bindThemeLower(ctx: Context, s: SectionReaderThemeLowerBinding) {
+        themeLower = s
         s.rowTextColor.setOnClickListener {
             if (childFragmentManager.findFragmentByTag(TEXT_COLOR_TAG) != null) return@setOnClickListener
             val theme = ReaderSettings.effectiveTheme()
@@ -197,7 +243,6 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         s.rowResetTextColor.setOnClickListener {
             ReaderSettings.setTextColor(ReaderSettings.effectiveTheme().id, null)
         }
-        refreshTextColor()
         s.rowFollowSystemDark.bindSwitch(
             getString(R.string.setting_follow_dark), ReaderSettings.followSystemDarkMode,
         ) { ReaderSettings.followSystemDarkMode = it }
@@ -211,16 +256,19 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         s.rowWarmFilter.bindFloatSlider(
             getString(R.string.setting_warm_filter), 0f, 0.6f, 60, ReaderSettings.warmFilterStrength, digits = 2,
         ) { ReaderSettings.warmFilterStrength = it }
+        refreshTextColor()
+        syncFollowSwitch()
     }
 
     private fun refreshTextColor() {
+        // 下半节还没建出来时先跳过；bindThemeLower 末尾会自己刷一次。
+        val s = themeLower ?: return
         val theme = ReaderSettings.effectiveTheme()
-        binding.sectionTheme.textColorValue.text = CustomThemeColor.toHex(theme.textColor)
-        binding.sectionTheme.rowResetTextColor.isVisible = ReaderSettings.customTextColor(theme.id) != null
+        s.textColorValue.text = CustomThemeColor.toHex(theme.textColor)
+        s.rowResetTextColor.isVisible = ReaderSettings.customTextColor(theme.id) != null
     }
 
-    private fun bindFlip(ctx: Context) {
-        val s = binding.sectionFlip
+    private fun bindFlip(ctx: Context, s: SectionReaderFlipBinding) {
         val flipRow = s.rowFlipMode
         val flipDivider = s.dividerFlipMode
         val flipVisibility = { horizontal: Boolean -> if (horizontal) View.VISIBLE else View.GONE }
@@ -257,8 +305,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         ) { ReaderSettings.autoPageIntervalSec = it }
     }
 
-    private fun bindScreen(ctx: Context) {
-        val s = binding.sectionScreen
+    private fun bindScreen(ctx: Context, s: SectionReaderScreenBinding) {
         s.rowOrientation.bindSegmented(
             ctx, getString(R.string.setting_orientation),
             listOf(getString(R.string.setting_orientation_auto) to ScreenOrientation.Auto, getString(R.string.setting_orientation_portrait) to ScreenOrientation.Portrait, getString(R.string.setting_orientation_landscape) to ScreenOrientation.Landscape),
@@ -281,8 +328,7 @@ class ReaderSettingsPanel : BottomSheetDialogFragment() {
         ) { ReaderSettings.eyeBreakReminderMinutes = it }
     }
 
-    private fun bindImage(ctx: Context) {
-        val s = binding.sectionImage
+    private fun bindImage(ctx: Context, s: SectionReaderImageBinding) {
         s.rowImagePlacement.bindSegmented(
             ctx, getString(R.string.setting_image_placement),
             listOf(getString(R.string.setting_image_top) to ImagePlacement.Top, getString(R.string.setting_image_center) to ImagePlacement.Center, getString(R.string.setting_image_bottom) to ImagePlacement.Bottom),

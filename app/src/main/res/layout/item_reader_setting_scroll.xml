@@ -1,37 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
-    <data/>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="18dp"
+    android:paddingEnd="18dp"
+    android:paddingTop="13dp"
+    android:paddingBottom="14dp">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/label_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="12dp"
+        android:textColor="@color/v3_text_1"
+        android:textSize="15sp"/>
+
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="18dp"
-        android:paddingEnd="18dp"
-        android:paddingTop="13dp"
-        android:paddingBottom="14dp">
+        android:scrollbars="none"
+        android:overScrollMode="never">
 
-        <TextView
-            android:id="@+id/label_text"
+        <LinearLayout
+            android:id="@+id/items_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingBottom="12dp"
-            android:textColor="@color/v3_text_1"
-            android:textSize="15sp"/>
-
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:overScrollMode="never">
-
-            <LinearLayout
-                android:id="@+id/items_container"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"/>
-        </HorizontalScrollView>
-    </LinearLayout>
-</layout>
+            android:orientation="horizontal"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"/>
+    </HorizontalScrollView>
+</LinearLayout>

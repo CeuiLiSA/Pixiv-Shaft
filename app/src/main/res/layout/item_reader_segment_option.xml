@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 连接式分段按钮的单个选项。宽度 0dp+weight1 由父容器等分,选中态走 android:state_selected。 -->
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
-    <data />
-
-    <TextView
-        android:id="@+id/segment_option"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:background="@drawable/bg_reader_segment_option"
-        android:gravity="center"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:paddingStart="4dp"
-        android:paddingEnd="4dp"
-        android:textColor="@color/reader_segment_text"
-        android:textSize="13sp" />
-</layout>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/segment_option"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:background="@drawable/bg_reader_segment_option"
+    android:gravity="center"
+    android:maxLines="1"
+    android:ellipsize="end"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp"
+    android:textColor="@color/reader_segment_text"
+    android:textSize="13sp"/>

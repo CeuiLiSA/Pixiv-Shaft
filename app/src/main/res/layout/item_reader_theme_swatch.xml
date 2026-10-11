@@ -1,35 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 主题配色圆点。圆点底色运行时 tint;选中环走 FrameLayout(swatch_ring) 的 state_selected。 -->
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
-    <data />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="14dp"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
 
-    <LinearLayout
+    <FrameLayout
+        android:id="@+id/swatch_ring"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:foreground="@drawable/reader_theme_swatch_ring">
+
+        <View
+            android:id="@+id/swatch_circle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/reader_theme_swatch_circle"/>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/swatch_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="14dp"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
-
-        <FrameLayout
-            android:id="@+id/swatch_ring"
-            android:layout_width="52dp"
-            android:layout_height="52dp"
-            android:foreground="@drawable/reader_theme_swatch_ring">
-
-            <View
-                android:id="@+id/swatch_circle"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/reader_theme_swatch_circle" />
-        </FrameLayout>
-
-        <TextView
-            android:id="@+id/swatch_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="7dp"
-            android:maxLines="1"
-            android:textColor="@color/v3_text_2"
-            android:textSize="11sp" />
-    </LinearLayout>
-</layout>
+        android:layout_marginTop="7dp"
+        android:maxLines="1"
+        android:textColor="@color/v3_text_2"
+        android:textSize="11sp"/>
+</LinearLayout>
