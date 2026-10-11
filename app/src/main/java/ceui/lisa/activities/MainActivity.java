@@ -501,6 +501,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         bottomBarAutoHide.install(this);
     }
 
+    @SuppressLint("RestrictedApi")
     private void initFragment() {
         // 底部 TAB:前三个内容页(推荐/发现/动态)按设置的顺序排列,R18 与「我」固定在末尾。
         // 六种顺序对应设置页 string_343~348 的排列;menu xml 无法换序,菜单按最终顺序
@@ -527,33 +528,50 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         baseFragments = new Fragment[count];
         tabMenuIds = new int[count];
         Menu menu = baseBind.navigationView.getMenu();
+        // 底栏 menu 是 MenuBuilder(NavigationBarMenu)：每 add 一项都会让
+        // NavigationBarMenuView.updateMenuView() 判定 isMenuStructureSame() 为 false →
+        // buildMenuView() 全量重建，逐项 add 就重建 1+2+3+4=10 个 NavigationBarItemView，
+        // 实际只需要 4 个（冷启动实测这一段 ~200ms）。material 自己的 inflateMenu()
+        // 就是用 presenter.setUpdateSuspended 把整段包起来、末尾只重建一次，这里照做。
+        //
+        // 抑制的层要对：MenuBuilder.stopDispatchingItemsChanged() 那一层没用——
+        // NavigationBarMenu.addInternal 每次 add 内部自带走一对 stop/start，会把外层抑制冲掉。
+        // presenter 的 updateSuspended 更靠上、addInternal 碰不到，才有效。
+        final com.google.android.material.navigation.NavigationBarPresenter navPresenter =
+                baseBind.navigationView.getPresenter();
+        navPresenter.setUpdateSuspended(true);
         int position = 0;
-        for (int tab : order) {
-            baseFragments[position] = contentPages[tab];
-            tabMenuIds[position] = TAB_MENU_IDS[tab];
-            menu.add(Menu.NONE, TAB_MENU_IDS[tab], Menu.NONE, TAB_TITLES[tab])
-                    .setIcon(TAB_ICONS[tab]);
-            baseBind.navigationRail.addDestination(
-                    TAB_MENU_IDS[tab], TAB_TITLES[tab], TAB_ICONS[tab]);
-            position++;
+        try {
+            for (int tab : order) {
+                baseFragments[position] = contentPages[tab];
+                tabMenuIds[position] = TAB_MENU_IDS[tab];
+                menu.add(Menu.NONE, TAB_MENU_IDS[tab], Menu.NONE, TAB_TITLES[tab])
+                        .setIcon(TAB_ICONS[tab]);
+                baseBind.navigationRail.addDestination(
+                        TAB_MENU_IDS[tab], TAB_TITLES[tab], TAB_ICONS[tab]);
+                position++;
+            }
+            if (showR18Tab) {
+                baseFragments[position] = FragmentViewPager.newInstance(Params.VIEW_PAGER_R18);
+                tabMenuIds[position] = R.id.action_4;
+                menu.add(Menu.NONE, R.id.action_4, Menu.NONE, R.string.string_r)
+                        .setIcon(R.drawable.ic_xiongbu);
+                baseBind.navigationRail.addDestination(
+                        R.id.action_4, R.string.string_r, R.drawable.ic_xiongbu);
+                position++;
+            }
+            if (showMeTab) {
+                baseFragments[position] = new MeFragment();
+                tabMenuIds[position] = R.id.action_5;
+                menu.add(Menu.NONE, R.id.action_5, Menu.NONE, R.string.me_tab)
+                        .setIcon(R.drawable.ic_me);
+                baseBind.navigationRail.addDestination(
+                        R.id.action_5, R.string.me_tab, R.drawable.ic_me);
+            }
+        } finally {
+            navPresenter.setUpdateSuspended(false);
         }
-        if (showR18Tab) {
-            baseFragments[position] = FragmentViewPager.newInstance(Params.VIEW_PAGER_R18);
-            tabMenuIds[position] = R.id.action_4;
-            menu.add(Menu.NONE, R.id.action_4, Menu.NONE, R.string.string_r)
-                    .setIcon(R.drawable.ic_xiongbu);
-            baseBind.navigationRail.addDestination(
-                    R.id.action_4, R.string.string_r, R.drawable.ic_xiongbu);
-            position++;
-        }
-        if (showMeTab) {
-            baseFragments[position] = new MeFragment();
-            tabMenuIds[position] = R.id.action_5;
-            menu.add(Menu.NONE, R.id.action_5, Menu.NONE, R.string.me_tab)
-                    .setIcon(R.drawable.ic_me);
-            baseBind.navigationRail.addDestination(
-                    R.id.action_5, R.string.me_tab, R.drawable.ic_me);
-        }
+        navPresenter.updateMenuView(true);
         // 侧栏分割线下的快捷入口（原型的「收藏 / 下载」），与侧边菜单同一套分发
         baseBind.navigationRail.addShortcut(
                 R.id.illust_star,
