@@ -168,6 +168,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 || !(baseFragments[getNavigationInitPosition()] instanceof FragmentLeft)) {
             markSplashResolved();
         } else {
+            // 启动页是首页推荐 tab：开屏要等 feed 的「本地优先」快照才放行，而那份快照的读取
+            // （Room + JSON 解析，实测 ~290ms，全在后台）原本要等 Fragment 的 onViewCreated
+            // 才起跑——比首帧还晚，主线程画完首帧后只能空等。这里提前到 Activity.onCreate
+            // 就并行跑起来（见 HomeFeedFirstPagePrefetch）。
+            ceui.pixiv.feeds.cache.HomeFeedFirstPagePrefetch.INSTANCE.warm();
             new Handler(Looper.getMainLooper())
                     .postDelayed(this::markSplashResolved, SPLASH_SAFETY_TIMEOUT_MS);
         }
