@@ -42,6 +42,7 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.util.ReflectionHelpers
+import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28, 35], application = Application::class, qualifiers = "ru-rRU-w320dp-h640dp",
@@ -68,6 +69,7 @@ class ReaderTextColorUiTest {
             ReaderSettings.onThemePicked(ReaderTheme.WHITE.id)
             val panel = ReaderSettingsPanel()
             panel.showNow(host.get().supportFragmentManager, ReaderSettingsPanel.TAG)
+            awaitLowerSections(panel)
             fun openPicker(): CustomThemeColorSheet {
                 panel.requireView().findViewById<View>(R.id.row_text_color).performClick()
                 panel.childFragmentManager.executePendingTransactions()
@@ -92,6 +94,7 @@ class ReaderTextColorUiTest {
             panel.dismissNow()
             val reopened = ReaderSettingsPanel()
             reopened.showNow(host.get().supportFragmentManager, ReaderSettingsPanel.TAG)
+            awaitLowerSections(reopened)
             assertEquals("#000000", reopened.requireView().findViewById<TextView>(R.id.text_color_value).text.toString())
             val reset = reopened.requireView().findViewById<View>(R.id.row_reset_text_color)
             assertEquals(View.VISIBLE, reset.visibility)
@@ -136,7 +139,7 @@ class ReaderTextColorUiTest {
             for (id in listOf(R.id.sheet_title, R.id.btn_confirm, R.id.btn_cancel, R.id.preview_hex, R.id.hex_input)) {
                 assertTextFits(root.findViewById(id))
             }
-            val section = LayoutInflater.from(context).inflate(R.layout.section_reader_theme, null)
+            val section = LayoutInflater.from(context).inflate(R.layout.section_reader_theme_lower, null)
             section.findViewById<View>(R.id.row_reset_text_color).visibility = View.VISIBLE
             measure(section, 288, null)
             assertTextFits(section.findViewById(R.id.row_reset_text_color))
@@ -171,6 +174,7 @@ class ReaderTextColorUiTest {
                 reader.requireView().findViewById<View>(R.id.btn_settings).performClick()
                 reader.childFragmentManager.executePendingTransactions()
                 val panel = reader.childFragmentManager.findFragmentByTag(ReaderSettingsPanel.TAG) as ReaderSettingsPanel
+                awaitLowerSections(panel)
                 panel.requireView().findViewById<View>(R.id.row_text_color).performClick()
                 panel.childFragmentManager.executePendingTransactions()
                 val picker = panel.childFragmentManager.fragments.filterIsInstance<CustomThemeColorSheet>().single()
@@ -191,6 +195,18 @@ class ReaderTextColorUiTest {
             AppDatabase.destroyInstance()
             db.close()
         }
+    }
+
+    /**
+     * 配色卡下半节（字色行在里面）和翻页 / 屏幕 / 图片是首帧之后逐帧建的
+     * （见 ReaderSettingsPanel.inflateLowerSections）；推帧直到最后一块的 ViewStub 被替换掉。
+     */
+    private fun awaitLowerSections(panel: ReaderSettingsPanel) {
+        repeat(60) {
+            if (panel.requireView().findViewById<View>(R.id.section_image_stub) == null) return
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(16))
+        }
+        fail("reader settings panel never finished building its deferred sections")
     }
 
     private fun measure(view: View, widthDp: Int, heightDp: Int?) {
