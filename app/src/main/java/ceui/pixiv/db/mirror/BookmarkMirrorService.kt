@@ -639,6 +639,21 @@ class BookmarkMirrorService @JvmOverloads constructor(
 
         val ids = page.items.map { it.id }
         val existing = dao.existingSeqs(shelf.key, ids).associate { it.targetId to it.bookmarkSeq }
+        // 每条在库里已有的旧序号（null = 镜像里还没有这条）。
+        val preserved = page.items.map { existing[it.id] }
+        // 排在**后面**的已存在行的最大旧序号。一条已存在的行如果比它后面某条已存在行还小，
+        // 它的旧号就已经不能代表它在 feed 里的位次了 —— 那是「在别处取消、之后又重新收藏」
+        // 的作品：旧行因为位置太深一直没被清掉，旧号却是它第一次入镜像时发的。沿用旧号会让
+        // 「序号 DESC = 官方顺序」这个前提失效，滑窗对账就会把中间那段活着的收藏一起删掉
+        // （BookmarkMirrorReconciliationTest 里有对应的回归用例）。这种行改发本轮号段的新号，
+        // 它本来就该排在表头 —— 和 pixiv 自己的顺序一致。判据只看已存在的行、不掺本轮新发的
+        // 号，避免把「本轮新收藏排在旧行前面」这种正常情形误判成失效。
+        val suffixMax = arrayOfNulls<Long>(preserved.size)
+        var running: Long? = null
+        for (i in preserved.indices.reversed()) {
+            suffixMax[i] = running
+            preserved[i]?.let { running = maxOf(running ?: it, it) }
+        }
 
         var backfillSeq = run.backfillSeq
         var headCursor = run.headCursor
@@ -646,14 +661,17 @@ class BookmarkMirrorService @JvmOverloads constructor(
         val rows = ArrayList<BookmarkMirrorEntity>(page.items.size)
         val tags = ArrayList<BookmarkMirrorTagEntity>(page.items.size * 8)
 
-        page.items.forEach { item ->
-            val known = existing[item.id]
+        page.items.forEachIndexed { index, item ->
+            val known = preserved[index]
+            val later = suffixMax[index]
+            val staleSeq = known != null && later != null && known < later
             val seq = when {
-                // 已经镜像过：**原样保留序号**。重新编号 = 把用户的收藏顺序打乱。
-                known != null -> known
+                // 已经镜像过、旧号也仍然对得上位次：**原样保留序号**。重新编号 = 把用户的收藏顺序打乱。
+                known != null && !staleSeq -> known
                 // 首次全量：从 0 往下发（0, -1, -2 …），于是 DESC = 官方顺序、ASC = 倒序
                 run.mode == MirrorMode.BACKFILL -> backfillSeq--
-                // 增量/重扫里遇到的真·新收藏：从本轮号段顶往下发，先遇到的（更新的）拿更大的号
+                // 真·新收藏，以及上面那种「旧号已失效的重新收藏」：从本轮号段顶往下发，
+                // 先遇到的（更新的）拿更大的号
                 else -> headCursor--
             }
             if (known == null) newCount++
