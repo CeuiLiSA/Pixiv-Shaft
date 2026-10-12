@@ -1,5 +1,6 @@
 package ceui.pixiv.api
 
+import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AppApiProxyInterceptor
 import ceui.lisa.http.AppApiTimeouts
@@ -10,12 +11,15 @@ import ceui.pixiv.auth.AuthSessionManager
 import ceui.pixiv.auth.MediaAuthSessionManager
 import ceui.pixiv.network.FanboxHeaderInterceptor
 import ceui.pixiv.network.HeaderInterceptor
+import ceui.pixiv.network.OwnSearchLoadInterceptor
 import ceui.pixiv.network.RequestLogInterceptor
 import ceui.pixiv.network.TokenFetcherInterceptor
 import ceui.pixiv.network.WebHeaderInterceptor
 import ceui.pixiv.safe.auth.BearerInterceptor
 import ceui.pixiv.safe.auth.SessionProvider
 import ceui.pixiv.safe.auth.TokenAuthenticator
+import ceui.pixiv.services.appServices
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.shaftapi.MediaApi
 import ceui.pixiv.shaftapi.MediaHttpTransport
 import ceui.pixiv.shaftapi.PixshaftApi
@@ -205,6 +209,21 @@ class ClientManager {
 
         RequestLogInterceptor.installOn(okhttpClientBuilder, "Net/AppApi")
         okhttpClientBuilder.addInterceptor(HeaderInterceptor())
+        // Between Header and TokenFetcher on purpose: the borrowed-account marker is only still on
+        // the request here (see OwnSearchLoadInterceptor). Lite never lends its account, so there
+        // is no load to report.
+        if (!BuildConfig.IS_LITE) {
+            okhttpClientBuilder.addInterceptor(
+                OwnSearchLoadInterceptor(
+                    ownerUid = { SessionManager.loggedInUid },
+                    isPremium = { SessionManager.isPremium },
+                    report = { uid, contentType, page, httpStatus ->
+                        Shaft.getContext().appServices().nana7miSearchTelemetry
+                            .reportOwnRequest(uid, contentType, page, httpStatus)
+                    },
+                ),
+            )
+        }
         okhttpClientBuilder.addInterceptor(TokenFetcherInterceptor())
         applyAppApiProxy(okhttpClientBuilder)
         applyDirectConnect(okhttpClientBuilder)

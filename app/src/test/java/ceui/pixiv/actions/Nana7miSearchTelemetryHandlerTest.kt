@@ -263,6 +263,79 @@ class Nana7miSearchTelemetryHandlerTest {
     }
 
     @Test
+    fun `own-account searches are borrower-less request events only`() {
+        val own = validPayload().copy(route = "own_official", borrowedUid = null, query = "")
+
+        assertTrue(Nana7miSearchTelemetry.valid(own))
+        assertTrue(Nana7miSearchTelemetry.valid(own.copy(page = "next", outcome = "failure", httpStatus = 429)))
+        // The owner is the requester: there is no second account to name.
+        assertFalse(Nana7miSearchTelemetry.valid(own.copy(borrowedUid = 4867906L)))
+        // Not a borrow flow, so it never opens or closes one.
+        assertFalse(Nana7miSearchTelemetry.valid(own.copy(eventType = "flow_started", outcome = "started")))
+        assertFalse(
+            Nana7miSearchTelemetry.valid(
+                own.copy(eventType = "flow_terminal", flowOutcome = "cancelled", outcome = "cancelled", durationMs = 1L),
+            ),
+        )
+    }
+
+    @Test
+    fun `own-account request events carry no query and keep Pixiv's refusals as load`() {
+        val ok = Nana7miSearchTelemetry.ownRequestPayload(
+            requesterUid = 31660292L,
+            contentType = Nana7miSearchTelemetry.ContentType.NOVEL,
+            page = Nana7miSearchTelemetry.Page.NEXT,
+            httpStatus = 200,
+            occurredAt = 2_000_000_000_000L,
+        )!!
+        assertEquals("own_official", ok.route)
+        assertEquals("request", ok.eventType)
+        assertEquals("", ok.query)
+        assertEquals(null, ok.borrowedUid)
+        assertEquals("novel", ok.contentType)
+        assertEquals("next", ok.page)
+        assertEquals("success", ok.outcome)
+        assertEquals(null, ok.httpStatus)
+        assertEquals(2_000_000_000_000L, ok.occurredAt)
+
+        val refused = Nana7miSearchTelemetry.ownRequestPayload(
+            31660292L, Nana7miSearchTelemetry.ContentType.ILLUST, Nana7miSearchTelemetry.Page.FIRST, 429, 1L,
+        )!!
+        assertEquals("failure", refused.outcome)
+        assertEquals(429, refused.httpStatus)
+        assertEquals("http_429", refused.reason)
+        assertTrue(ok.eventId != refused.eventId && ok.flowId != refused.flowId)
+
+        // No signed-in uid: nothing the server could attribute.
+        assertEquals(
+            null,
+            Nana7miSearchTelemetry.ownRequestPayload(
+                0L, Nana7miSearchTelemetry.ContentType.ILLUST, Nana7miSearchTelemetry.Page.FIRST, 200, 1L,
+            ),
+        )
+    }
+
+    @Test
+    fun `own-account requests never open a flow`() {
+        val telemetry = Nana7miSearchTelemetry(lazy { error("no Context needed before start()") })
+        assertEquals(
+            null,
+            telemetry.beginFlow(
+                requesterUid = 31660292L,
+                contentType = Nana7miSearchTelemetry.ContentType.ILLUST,
+                query = "",
+                initialRoute = Nana7miSearchTelemetry.Route.OWN_OFFICIAL,
+                signerConfigured = true,
+            ),
+        )
+        // Unsigned builds report nothing and never throw.
+        telemetry.reportOwnRequest(
+            31660292L, Nana7miSearchTelemetry.ContentType.ILLUST, Nana7miSearchTelemetry.Page.FIRST, 200,
+            signerConfigured = false,
+        )
+    }
+
+    @Test
     fun `batch handler delivers one request for a whole flush`() = runBlocking {
         val events = List(3) { index ->
             validPayload().copy(eventId = "123e4567-e89b-42d3-a456-42661417400$index")

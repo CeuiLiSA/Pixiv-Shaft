@@ -273,6 +273,12 @@ class Nana7miSearchTelemetry internal constructor(
         PREVIEW_FALLBACK("preview_fallback"),
         /** 首屏来自 pixshaft 一级缓存：照常计费，但没借号、没打 Pixiv。 */
         CACHE_HIT("cache_hit"),
+        /**
+         * 真会员用自己的号发出的一次搜索请求，由 [reportOwnRequest] 单发，从不属于任何 [Flow]。
+         * 只为让服务端把它算进这个号的负载（号主自己搜得多，号池就少借给别人）；不带搜索词，
+         * 服务端也不写进遥测库。
+         */
+        OWN_OFFICIAL("own_official"),
     }
     enum class EventType(val wire: String) {
         REQUEST("request"), FLOW_STARTED("flow_started"), FLOW_TERMINAL("flow_terminal")
@@ -316,6 +322,34 @@ class Nana7miSearchTelemetry internal constructor(
      */
     data class BatchPayload(val events: List<Payload>? = null)
 
+    /**
+     * Reports one search request a Premium member sent to Pixiv on their OWN account — seen at the
+     * HTTP layer by [ceui.pixiv.network.OwnSearchLoadInterceptor], so retries and every page count.
+     * The server adds these to the account's lent requests to get its load. Not a flow: no
+     * flow_started/terminal, no query. Never throws; observability must not touch the request.
+     */
+    fun reportOwnRequest(
+        requesterUid: Long,
+        contentType: ContentType,
+        page: Page,
+        httpStatus: Int,
+        signerConfigured: Boolean = ShaftHmac.isConfigured,
+    ) {
+        if (!enabledForConfiguration(signerConfigured)) return
+        try {
+            val payload = ownRequestPayload(
+                requesterUid = requesterUid,
+                contentType = contentType,
+                page = page,
+                httpStatus = httpStatus,
+                occurredAt = System.currentTimeMillis(),
+            ) ?: return
+            bufferEvent(payload)
+        } catch (error: Exception) {
+            Timber.tag(TAG).e(error, "own search request report failed")
+        }
+    }
+
     /** Opens one user-search flow; null when telemetry is disabled or the input is out of range. */
     fun beginFlow(
         requesterUid: Long,
@@ -326,6 +360,8 @@ class Nana7miSearchTelemetry internal constructor(
         signerConfigured: Boolean = ShaftHmac.isConfigured,
     ): Flow? {
         if (!enabledForConfiguration(signerConfigured)) return null
+        // Own-account requests are single events (reportOwnRequest), never a flow.
+        if (initialRoute == Route.OWN_OFFICIAL) return null
         if (requesterUid <= 0L || query.length > QUERY_MAX_CHARS) {
             Timber.tag(TAG).w(
                 "telemetry flow skipped requester_uid=%d query_length=%d",
@@ -452,6 +488,9 @@ class Nana7miSearchTelemetry internal constructor(
             Route.PREVIEW_DIRECT -> FlowOutcome.PREVIEW_SUCCESS
             Route.PREVIEW_FALLBACK -> FlowOutcome.FALLBACK_SUCCESS
             Route.CACHE_HIT -> FlowOutcome.CACHE_SUCCESS
+            // Unreachable: beginFlow refuses OWN_OFFICIAL and nothing switches a flow to it. Were it
+            // ever reached, valid() rejects the event rather than the search failing.
+            Route.OWN_OFFICIAL -> FlowOutcome.OFFICIAL_SUCCESS
         }
 
         private fun finish(flowOutcome: FlowOutcome, outcome: Outcome, error: Throwable?) {
@@ -533,6 +572,42 @@ class Nana7miSearchTelemetry internal constructor(
 
         internal fun enabledForConfiguration(configured: Boolean): Boolean = configured
 
+        /**
+         * The event for one own-account search request that got an HTTP response, or null when it
+         * cannot be valid (no signed-in uid). A response means Pixiv saw the request, so a 4xx/429
+         * is load too: it goes out as a failure carrying its status.
+         */
+        internal fun ownRequestPayload(
+            requesterUid: Long,
+            contentType: ContentType,
+            page: Page,
+            httpStatus: Int,
+            occurredAt: Long,
+        ): Payload? {
+            val success = httpStatus in 200..299
+            val payload = Payload(
+                eventId = UUID.randomUUID().toString(),
+                flowId = UUID.randomUUID().toString(),
+                eventType = EventType.REQUEST.wire,
+                occurredAt = occurredAt,
+                requesterUid = requesterUid,
+                borrowedUid = null,
+                query = "",
+                contentType = contentType.wire,
+                page = page.wire,
+                route = Route.OWN_OFFICIAL.wire,
+                outcome = if (success) Outcome.SUCCESS.wire else Outcome.FAILURE.wire,
+                flowOutcome = null,
+                reason = if (success) null else "http_$httpStatus",
+                errorType = if (success) null else "http",
+                httpStatus = if (success) null else httpStatus,
+                durationMs = null,
+                appVersion = APP_VERSION,
+                appChannel = BuildConfig.UPDATE_CHANNEL,
+            )
+            return payload.takeIf { valid(it, requesterUid.toString()) }
+        }
+
         internal fun valid(payload: Payload, owner: String = ""): Boolean =
             UUID_RE.matches(payload.eventId) &&
                     UUID_RE.matches(payload.flowId) &&
@@ -559,11 +634,13 @@ class Nana7miSearchTelemetry internal constructor(
             EventType.REQUEST.wire ->
                 payload.outcome != Outcome.STARTED.wire &&
                         payload.flowOutcome == null && payload.durationMs == null &&
-                        (payload.route != Route.BORROWED_OFFICIAL.wire || payload.borrowedUid != null)
+                        (payload.route != Route.BORROWED_OFFICIAL.wire || payload.borrowedUid != null) &&
+                        (payload.route != Route.OWN_OFFICIAL.wire || payload.borrowedUid == null)
             EventType.FLOW_STARTED.wire ->
                 payload.outcome == Outcome.STARTED.wire &&
-                        payload.flowOutcome == null && payload.durationMs == null
-            EventType.FLOW_TERMINAL.wire -> when (payload.flowOutcome) {
+                        payload.flowOutcome == null && payload.durationMs == null &&
+                        payload.route != Route.OWN_OFFICIAL.wire
+            EventType.FLOW_TERMINAL.wire -> payload.route != Route.OWN_OFFICIAL.wire && when (payload.flowOutcome) {
                 FlowOutcome.CANCELLED.wire -> payload.outcome == Outcome.CANCELLED.wire
                 FlowOutcome.TOTAL_FAILURE.wire -> payload.outcome == Outcome.FAILURE.wire
                 FlowOutcome.OFFICIAL_SUCCESS.wire ->
