@@ -2,6 +2,7 @@ package ceui.pixiv.feeds.cache
 
 import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -53,6 +54,15 @@ class FeedFirstPageCache<Resp : Any>(
      * 用 key 定位是哪个 feed / 哪个账号的槽位偏慢。
      */
     override suspend fun read(): CachedFirstPage<Resp>? {
+        // 冷启动预取命中：直接取走，不重读磁盘、不重解析（见 companion 的 prefetched）。
+        // 预取还没跑完就照旧自己读；占位已被摘掉，它晚到的结果不会再进槽。
+        val pending = prefetched.remove(key)
+        if (pending != null && pending.isCompleted) {
+            @Suppress("UNCHECKED_CAST")
+            val warmed = pending.await() as CachedFirstPage<Resp>?
+            if (warmed != null) return warmed
+        }
+
         val startNanos = System.nanoTime()
         val result = readInternal()
         val elapsedMs = (System.nanoTime() - startNanos) / 1_000_000
@@ -63,7 +73,12 @@ class FeedFirstPageCache<Resp : Any>(
         return result
     }
 
-    private suspend fun readInternal(): CachedFirstPage<Resp>? {
+    /**
+     * @param onCallerThread true = 反序列化不切 [Dispatchers.Default]，直接在调用方线程跑。
+     *   只给 [prefetch] 用——它跑在低优先级专用线程上，切到 Default 池会把优先级丢掉，
+     *   主线程就又得和它抢 CPU（实测首帧的 FragmentLeft 会被拖慢 ~75ms）。
+     */
+    private suspend fun readInternal(onCallerThread: Boolean = false): CachedFirstPage<Resp>? {
         val record = try {
             backend.load(key)
         } catch (ce: CancellationException) {
@@ -77,8 +92,10 @@ class FeedFirstPageCache<Resp : Any>(
         if (now() - record.savedAt > maxAgeMillis) return null
 
         return try {
-            val payload = withContext(Dispatchers.Default) {
+            val payload = if (onCallerThread) {
                 gson.fromJson(record.payloadJson, type)
+            } else {
+                withContext(Dispatchers.Default) { gson.fromJson(record.payloadJson, type) }
             } ?: return null
             CachedFirstPage(payload, record.nextCursor, record.savedAt)
         } catch (ce: CancellationException) {
@@ -91,6 +108,8 @@ class FeedFirstPageCache<Resp : Any>(
 
     /** 落盘最新首屏（网络首屏成功时调）。失败只留痕不打断加载。 */
     override suspend fun write(response: Resp, nextCursor: String?) {
+        // 落盘了新快照，预取槽里那份就旧了，清掉别让 read() 取到陈旧数据。
+        prefetched.remove(key)
         val json = try {
             withContext(Dispatchers.Default) { gson.toJson(response) }
         } catch (ce: CancellationException) {
@@ -111,16 +130,23 @@ class FeedFirstPageCache<Resp : Any>(
             throw ce
         } catch (ex: Exception) {
             Timber.w(ex, "feed cache 写入失败 key=%s", key)
+        } finally {
+            // 落盘前那段（序列化 + save）里预取仍可能占位并读到旧行，落盘后再清一次。
+            prefetched.remove(key)
         }
     }
 
     suspend fun clear() {
+        prefetched.remove(key)
         try {
             backend.remove(key)
         } catch (ce: CancellationException) {
             throw ce
         } catch (ex: Exception) {
             Timber.w(ex, "feed cache 清除失败 key=%s", key)
+        } finally {
+            // 同 write：删行前预取可能已占位读到这一行。
+            prefetched.remove(key)
         }
     }
 
@@ -130,5 +156,43 @@ class FeedFirstPageCache<Resp : Any>(
 
         /** 单条快照 JSON 上限（字符）：约 1M 字符 ≈ 数 MB，远超正常首屏(几十~几百 KB)，只挡病态大响应。 */
         private const val MAX_PAYLOAD_CHARS = 1_000_000
+
+        /**
+         * 冷启动预取槽：app 启动时后台把首屏读好放这里，供稍后 [read] 直接取走。
+         *
+         * 为什么值得：开屏（splash）要等首页 feed 的本地优先快照才能放行，而那段实测是
+         * Room 读 ~116ms + JSON 解析 ~168ms（全在后台线程）。它原本要等 Fragment 的
+         * onViewCreated 才起跑——比首帧还晚，于是主线程画完首帧后空等近 300ms。
+         * 由 app 在 Activity.onCreate 提前跑一遍，这段就和建视图 / 首帧并行了。
+         *
+         * 按 [key]（slot#账号#类型）索引。一次性：read 取走即清；write / clear 也会清，
+         * 免得网络首屏落盘后 read 取到陈旧快照。
+         *
+         * 存的是「进行中的预取」而不是结果：预取一开始就占位，read / write / clear 摘掉
+         * 占位后，晚到的预取结果落进没人持有的 Deferred，不会再被塞回槽里——否则预取慢于
+         * 网络首屏落盘时，槽里会留下一份比磁盘更旧的快照，被下一次 read 取走。
+         */
+        private val prefetched =
+            java.util.concurrent.ConcurrentHashMap<String, CompletableDeferred<CachedFirstPage<*>?>>()
+
+        /**
+         * 后台预取一份首屏快照进进程级槽位。无 / 过期 / 损坏 / 抛错都静默返回——
+         * 预取只是提前量，失败就该退回原本的同步读取路径。
+         */
+        suspend fun prefetch(cache: FeedFirstPageCache<*>) {
+            val slot = CompletableDeferred<CachedFirstPage<*>?>()
+            prefetched[cache.key] = slot
+            var snapshot: CachedFirstPage<*>? = null
+            try {
+                snapshot = cache.readInternal(onCallerThread = true)
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (ex: Exception) {
+                // 静默：read 拿到 null 会自己走同步读取。
+            } finally {
+                // 任何退出路径都要完成：read 只认已完成的占位。
+                slot.complete(snapshot)
+            }
+        }
     }
 }
