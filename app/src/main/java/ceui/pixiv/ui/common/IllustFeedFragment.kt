@@ -287,6 +287,10 @@ abstract class IllustFeedFragment(
         return listOf(staggerIllustRenderer())
     }
 
+    /** 首屏铺满的是插画卡（混排页头的页面如首页推荐，主力卡也不在 0 号）。 */
+    override val firstScreenPrewarmItemClass: Class<out FeedItem>?
+        get() = IllustFeedItem::class.java
+
     // ── 列表状态的读口（renderer / 菜单 / 子类共用）──────────────────────────────
 
     internal fun currentIllustItems(): List<IllustFeedItem> {
