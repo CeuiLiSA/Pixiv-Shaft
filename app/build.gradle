@@ -261,6 +261,9 @@ tasks.configureEach { task ->
 // 但 res 不在单测任务的默认输入里——不声明的话,纯翻译改动会被 up-to-date 跳过,守门形同虚设。
 tasks.withType(Test).configureEach {
     inputs.dir('src/main/res').withPathSensitivity(PathSensitivity.RELATIVE)
+    // Gradle 默认给测试进程 512m 堆。Robolectric SDK 35 沙箱一建起来常驻就 ~400m，
+    // 两百多个测试类跑下来静态缓存再涨 ~100m，到 512m 就 OOM（CI 自 6262091aa 起一直红）。
+    maxHeapSize = '2g'
 }
 
 dependencies {
