@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 字体选择胶囊 chip。选中态走 android:state_selected,typeface 运行时按字体注入。 -->
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
-    <data />
-
-    <TextView
-        android:id="@+id/font_chip"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="10dp"
-        android:background="@drawable/bg_reader_chip"
-        android:gravity="center"
-        android:minWidth="64dp"
-        android:paddingStart="18dp"
-        android:paddingEnd="18dp"
-        android:paddingTop="9dp"
-        android:paddingBottom="9dp"
-        android:textColor="@color/reader_segment_text"
-        android:textSize="13sp" />
-</layout>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/font_chip"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="10dp"
+    android:background="@drawable/bg_reader_chip"
+    android:gravity="center"
+    android:minWidth="64dp"
+    android:paddingStart="18dp"
+    android:paddingEnd="18dp"
+    android:paddingTop="9dp"
+    android:paddingBottom="9dp"
+    android:textColor="@color/reader_segment_text"
+    android:textSize="13sp"/>
