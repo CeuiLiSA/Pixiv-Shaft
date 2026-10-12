@@ -38,7 +38,6 @@ public class Local {
 
     public static Settings getSettings() {
         String settingsString = Shaft.sPreferences.getString(SETTINGS, "");
-        Shaft.awaitSettingsWarm();
         Settings settings = Shaft.sGson.fromJson(settingsString, Settings.class);
         if (settings != null) {
             Settings.migrateLegacyDoubleTapZoom(settings);
