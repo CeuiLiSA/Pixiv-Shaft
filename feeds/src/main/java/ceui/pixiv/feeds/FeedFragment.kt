@@ -110,6 +110,16 @@ abstract class FeedFragment(
     /** 首屏预建是否已发起过（见 [prewarmFirstScreen]）；每次首屏加载只发起一次。 */
     private var prewarmedFirstScreen = false
 
+    /**
+     * 首屏预建哪种条目（见 [prewarmFirstScreen]）；null = 本页不预建（默认）。
+     *
+     * 只给「首屏铺满同一种主力卡」的页面开：首屏要哪些类型得等数据到才知道，这里是替页面赌
+     * 主力卡。按条目类型而不是下标指定 —— 0 号 renderer 常是页头（首页榜单条、详情页大图），
+     * 一屏只出一个，预建 8 个全是白建，还白占 pool。
+     */
+    protected open val firstScreenPrewarmItemClass: Class<out FeedItem>?
+        get() = null
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val feedRoot = requireNotNull(view.findViewById<View>(R.id.feed_root)) {
@@ -634,18 +644,22 @@ abstract class FeedFragment(
      * 会和真正要发生的首次 layout 抢主线程，得不偿失。
      */
     private fun prewarmFirstScreen(listView: RecyclerView) {
+        val itemClass = firstScreenPrewarmItemClass ?: return
+        val adapter = feedAdapter ?: return
+        val viewType = adapter.viewTypeOf(itemClass) ?: return
         val pool = listView.recycledViewPool
         // pool 每个 viewType 默认只留 5 个，而我们是分帧一张张塞的（单次 count 很小）——
         // 不在入口一次性把上限抬到总量，第 6 个起会被直接丢掉，那几张卡仍会在提交后现建。
-        pool.setMaxRecycledViews(PRIMARY_PREWARM_VIEW_TYPE, FIRST_SCREEN_PREWARM)
+        pool.setMaxRecycledViews(viewType, FIRST_SCREEN_PREWARM)
         var remaining = FIRST_SCREEN_PREWARM
         val step = object : Runnable {
             override fun run() {
                 if (remaining <= 0 || _binding == null) return
                 if (!feedViewModel.uiState.value.showFullscreenLoading) return
-                val adapter = feedAdapter ?: return
+                // rebuildList 换了 adapter：viewType 的含义跟着换了，旧的 viewType 不能再用
+                if (feedAdapter !== adapter) return
                 val n = minOf(PREWARM_PER_FRAME, remaining)
-                adapter.prewarm(listView, pool, PRIMARY_PREWARM_VIEW_TYPE, n)
+                adapter.prewarm(listView, pool, viewType, n)
                 remaining -= n
                 if (remaining > 0) listView.postOnAnimation(this)
             }
@@ -662,8 +676,5 @@ abstract class FeedFragment(
 
         /** 每帧预建几张：建 1 张 ~20~30ms，2 张≈一帧多一点，不至于让骨架 shimmer 明显停住。 */
         private const val PREWARM_PER_FRAME = 2
-
-        /** 预建哪种条目：主力卡在注册表里的下标。首屏要哪些类型得等数据到才知道，这里只赌主力卡。 */
-        private const val PRIMARY_PREWARM_VIEW_TYPE = 0
     }
 }

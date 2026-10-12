@@ -318,6 +318,10 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         )
     }
 
+    /** 首屏是作品大图，插画卡在相关作品区、远在首屏之外：不预建。 */
+    override val firstScreenPrewarmItemClass: Class<out FeedItem>?
+        get() = null
+
     // onCreateLayoutManager 不覆写:用父类 IllustFeedFragment 按「插画列表布局」装的那份(瀑布流 / 方格 /
     // 单列是 StaggeredManager + GAP_HANDLING_NONE,齐行是 JustifiedLayoutManager)。本页的跳评论 / 跳页 /
     // 收起回顶都走 scrollToPositionWithOffset 扩展,两种 LayoutManager 都认。

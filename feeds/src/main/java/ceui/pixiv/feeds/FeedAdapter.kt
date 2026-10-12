@@ -73,6 +73,8 @@ class FeedAdapter(
      * 但一口气建 8 张仍然是 200ms 级的空白。
      *
      * 只预建 [viewType] 一种：首屏到底要哪些类型得等数据到才知道，这里只赌「主力卡」。
+     * viewType 由调用方经 [viewTypeOf] 按条目类型查出来，别拿下标猜：0 号常是页头（首页榜单条、
+     * 详情页大图），预建它不但白建，还白占 pool。
      *
      * 注意 pool 每个 viewType 默认只留 5 个（RecyclerView 内部常量）：分帧调用时单次 count 很小，
      * 光靠这里抬不起来 —— **调用方必须自己把上限抬到「累计预建数」**，否则第 6 个起会被直接丢掉。
@@ -88,6 +90,10 @@ class FeedAdapter(
             pool.putRecycledView(createViewHolder(parent, viewType))
         }
     }
+
+    /** [itemClass] 对应的 viewType；本 adapter 没注册它的 renderer 时返回 null。 */
+    fun viewTypeOf(itemClass: Class<out FeedItem>): Int? = viewTypeOf[itemClass]
+
     // 两参版本是 RecyclerView.Adapter 的抽象方法，必须实现，但框架实际从不走这条路径：
     // bindViewHolder() 内部固定调用三参数版本（payloads 可能是空列表），只有不重写三参版本时
     // 基类默认实现才会转发到这里。三参版本已经覆盖了 payloads 为空的情形，这里只是满足契约。

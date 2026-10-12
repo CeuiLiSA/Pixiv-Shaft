@@ -397,12 +397,6 @@ internal fun renderLikeState(button: ImageView, liked: Boolean) {
 }
 
 /**
- * 收藏爆发动画：静态爱心由点击处当帧切红（异步乐观重绑只是兜底，等它就晚了），
- * 上层 72dp Lottie 播弹性爱心 + 白闪 + 冲击波圆环 + 三色粒子向作品图上炸开，
- * 播完自动收起。动画层非 clickable，播放中不挡按钮点击；局部重绑只动静态爱心，
- * 不打断动画。
- */
-/**
  * 角标行的内容与顺序，逐项对应原布局那 7 个 TextView（见 [IllustBadgeRowView]）。
  * 只放「这一条作品确实要显示」的角标 —— 空位不再各建一个 View。
  */
@@ -428,6 +422,12 @@ private fun buildBadges(bean: Illust, res: Resources): List<IllustBadgeRowView.B
     return out
 }
 
+/**
+ * 收藏爆发动画：静态爱心由点击处当帧切红（异步乐观重绑只是兜底，等它就晚了），
+ * 上层 72dp Lottie 播弹性爱心 + 白闪 + 冲击波圆环 + 三色粒子向作品图上炸开，
+ * 播完自动收起。动画层非 clickable，播放中不挡按钮点击；局部重绑只动静态爱心，
+ * 不打断动画。
+ */
 private fun playLikeBurst(binding: RecyIllustStaggerBinding) {
     playLikePressHaptic(binding.likeButton)
     binding.likeAnim.apply {

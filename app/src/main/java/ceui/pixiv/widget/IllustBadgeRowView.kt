@@ -122,6 +122,8 @@ class IllustBadgeRowView @JvmOverloads constructor(
             val padH = if (b.amber) pillPadStart + pillPadEnd else 2f * tagPadH
             widths.add(padH + paint.measureText(b.text))
         }
+        // 原本 7 个 TextView 的字 TalkBack 能读到（聚合进可点的卡片），自绘后要自己交代
+        contentDescription = if (list.isEmpty()) null else list.joinToString(" ") { it.text }
         requestLayout()
         invalidate()
     }
