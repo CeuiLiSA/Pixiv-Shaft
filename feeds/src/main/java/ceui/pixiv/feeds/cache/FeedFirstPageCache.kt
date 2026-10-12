@@ -2,6 +2,7 @@ package ceui.pixiv.feeds.cache
 
 import com.google.gson.Gson
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -54,9 +55,13 @@ class FeedFirstPageCache<Resp : Any>(
      */
     override suspend fun read(): CachedFirstPage<Resp>? {
         // 冷启动预取命中：直接取走，不重读磁盘、不重解析（见 companion 的 prefetched）。
-        @Suppress("UNCHECKED_CAST")
-        val warmed = prefetched.remove(key) as CachedFirstPage<Resp>?
-        if (warmed != null) return warmed
+        // 预取还没跑完就照旧自己读；占位已被摘掉，它晚到的结果不会再进槽。
+        val pending = prefetched.remove(key)
+        if (pending != null && pending.isCompleted) {
+            @Suppress("UNCHECKED_CAST")
+            val warmed = pending.await() as CachedFirstPage<Resp>?
+            if (warmed != null) return warmed
+        }
 
         val startNanos = System.nanoTime()
         val result = readInternal()
@@ -156,23 +161,32 @@ class FeedFirstPageCache<Resp : Any>(
          *
          * 按 [key]（slot#账号#类型）索引。一次性：read 取走即清；write / clear 也会清，
          * 免得网络首屏落盘后 read 取到陈旧快照。
+         *
+         * 存的是「进行中的预取」而不是结果：预取一开始就占位，read / write / clear 摘掉
+         * 占位后，晚到的预取结果落进没人持有的 Deferred，不会再被塞回槽里——否则预取慢于
+         * 网络首屏落盘时，槽里会留下一份比磁盘更旧的快照，被下一次 read 取走。
          */
         private val prefetched =
-            java.util.concurrent.ConcurrentHashMap<String, CachedFirstPage<*>>()
+            java.util.concurrent.ConcurrentHashMap<String, CompletableDeferred<CachedFirstPage<*>?>>()
 
         /**
          * 后台预取一份首屏快照进进程级槽位。无 / 过期 / 损坏 / 抛错都静默返回——
          * 预取只是提前量，失败就该退回原本的同步读取路径。
          */
         suspend fun prefetch(cache: FeedFirstPageCache<*>) {
-            val snapshot = try {
-                cache.readInternal(onCallerThread = true)
+            val slot = CompletableDeferred<CachedFirstPage<*>?>()
+            prefetched[cache.key] = slot
+            var snapshot: CachedFirstPage<*>? = null
+            try {
+                snapshot = cache.readInternal(onCallerThread = true)
             } catch (ce: CancellationException) {
                 throw ce
             } catch (ex: Exception) {
-                null
-            } ?: return
-            prefetched[cache.key] = snapshot
+                // 静默：read 拿到 null 会自己走同步读取。
+            } finally {
+                // 任何退出路径都要完成：read 只认已完成的占位。
+                slot.complete(snapshot)
+            }
         }
     }
 }

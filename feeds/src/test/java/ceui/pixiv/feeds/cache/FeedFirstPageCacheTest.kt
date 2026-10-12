@@ -1,7 +1,10 @@
 package ceui.pixiv.feeds.cache
 
 import com.google.gson.Gson
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -127,5 +130,50 @@ class FeedFirstPageCacheTest {
             backend = backend, gson = Gson(), accountId = { 1L }, now = { 1_000L },
         )
         assertNull(other.read())
+    }
+
+    /** load 先取走当时的行、再卡在 [gate] 上：模拟「读到旧行后还在慢慢解析」的预取。 */
+    private class GatedBackend(val inner: InMemoryBackend) : FeedCacheBackend by inner {
+        val gate = CompletableDeferred<Unit>()
+        var loads = 0
+        override suspend fun load(key: String): FeedCacheRecord? {
+            loads++
+            val record = inner.map[key]
+            gate.await()
+            return record
+        }
+    }
+
+    @Test
+    fun `finished prefetch is served once without touching disk`() = runBlocking {
+        // 预取槽是进程级的：用独占账号号，不和其它用例串
+        val inner = InMemoryBackend()
+        cache(inner, account = 901L).write(FakeResp(1, "a"), null)
+        val backend = GatedBackend(inner).apply { gate.complete(Unit) }
+        val cache = cache(backend, account = 901L)
+
+        FeedFirstPageCache.prefetch(cache)
+        assertEquals(1, backend.loads)
+
+        assertEquals(FakeResp(1, "a"), cache.read()!!.payload)
+        assertEquals(1, backend.loads) // 取的是预取那份
+        assertNotNull(cache.read())
+        assertEquals(2, backend.loads) // 一次性：再读回到磁盘
+    }
+
+    @Test
+    fun `prefetch finishing after write does not serve the stale snapshot`() = runBlocking {
+        val inner = InMemoryBackend()
+        cache(inner, account = 902L).write(FakeResp(1, "old"), null)
+        val backend = GatedBackend(inner)
+        val cache = cache(backend, account = 902L)
+
+        val prefetch = launch { FeedFirstPageCache.prefetch(cache) }
+        yield() // 预取已读到旧行、还没完成
+        cache.write(FakeResp(2, "new"), null)
+        backend.gate.complete(Unit)
+        prefetch.join()
+
+        assertEquals(FakeResp(2, "new"), cache.read()!!.payload)
     }
 }
