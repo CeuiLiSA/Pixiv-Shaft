@@ -20,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -130,6 +131,26 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private boolean firstFrameReached = false;
 
     /**
+     * 开屏放行后首页是否已「站稳」（见 {@link #settleThenStartFirstFrameTasks()}）：逐帧队列的第三道闸。
+     *
+     * <p>开屏放行时 feed 只是刚把缓存条目提交进 adapter：列表的 layout、首屏卡片 / 榜单条的
+     * 图片解码都还在后面几帧里。系统的开屏淡出动画（约 200ms）正好盖住这段——前提是主线程
+     * 这时空着。队列一开跑，放行 tab 页（实测 FragmentCenter 几十～两百多 ms）就会把这几帧
+     * 顶掉，用户在淡出之后看到的是「空白页 → 没图的灰卡片 → 内容」。
+     */
+    private boolean postSplashSettled = false;
+
+    private boolean postSplashSettleArmed = false;
+
+    /**
+     * 开屏放行后的首帧画完，再留多久给首页 layout + 首屏图片解码，才开始跑逐帧队列。
+     *
+     * <p>覆盖系统开屏淡出（约 200ms）外加首屏图片从磁盘解码上屏；队列里都是用户看不到的活
+     * （其它 tab 页、抽屉菜单），晚这几百毫秒没有可见代价。
+     */
+    private static final long POST_SPLASH_SETTLE_MS = 400L;
+
+    /**
      * 开屏动画安全兜底超时：万一首页推荐插画 tab 没能按预期跑到（异常 / 未来改了默认 tab），也不能让开屏永久卡住——超时后强制放行，最坏情况退化回「开屏消失后闪一帧 常规
      * loading」，而不是白屏假死。splashResolved 本身没有超时保护，靠这里兜底。
      */
@@ -181,23 +202,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     @Override
     public void markSplashResolved() {
         splashResolved = true;
-        // 开屏放行之后才启动首帧后的逐帧队列（启动条件见 startFirstFramePump）：
-        // 让放行 tab 页 / 建抽屉那批 Choreographer 帧别再挡 feed 那条回调。
-        //
-        // 再推迟一帧：postOnAnimation 跑在 Choreographer 的 ANIMATION 阶段，早于同帧的
-        // measure/layout/draw。直接启动的话，放行（实测 FragmentCenter 约 240ms）会和
-        // 「开屏退场 + 首帧绘制」挤进同一帧——那一帧被撑到 599ms，Displayed 跟着被顶后
-        // 同样长。先强制一次 traversal 让开屏在这一帧退场、首帧单独画完，放行排到再下一帧。
-        // 实测（vivo V2361A / Android 15 / debug）：放行→Displayed 631ms → 80ms，
-        // Displayed +2973ms → +2330ms。
-        final android.view.View __root = baseBind == null ? null : baseBind.getRoot();
-        if (__root == null) {
-            startFirstFramePump();
-            return;
-        }
-        __root.requestLayout();
-        __root.invalidate();
-        __root.postOnAnimation(this::startFirstFramePump);
+        // 不强制 traversal：开屏照常在下一帧自然退场，列表 layout / 首屏图片解码躲在系统淡出动画
+        // 后面完成。逐帧队列（放行 tab 页 / 建抽屉）等首页站稳后再跑，见 settleThenStartFirstFrameTasks。
+        settleThenStartFirstFrameTasks();
     }
 
     @Override
@@ -712,13 +719,54 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
      * <p>必须同时满足「首帧已画」和「开屏已放行」才启动。队列里的活（放行 tab 页、建抽屉）
      * 都是 Choreographer 帧，优先级高于首页 feed 那条「缓存命中 → 提交 uiState」的普通消息
      * 回调——实测把它们排在开屏放行之前，会把 splash 整个顶后约 580ms，首帧省下的时间原样吐回去。
+     * 放行之后还要等首页站稳（{@link #postSplashSettled}），否则会挤掉开屏淡出期间的列表 layout 与出图。
      */
     private void startFirstFramePump() {
-        if (!firstFrameReached || !splashResolved || firstFramePumpRunning) {
+        if (!firstFrameReached || !splashResolved || !postSplashSettled || firstFramePumpRunning) {
             return;
         }
         firstFramePumpRunning = true;
         pumpFirstFrameTasks();
+    }
+
+    /**
+     * 开屏放行之后，等「放行后的第一帧画出来 + {@link #POST_SPLASH_SETTLE_MS} + 主线程空闲」再开逐帧队列。
+     *
+     * <p>为什么不能放行后立刻（或推迟一帧）就跑：放行那一刻 feed 只是提交了缓存条目，列表还没 layout、
+     * 图片还没解码；系统开屏淡出期间主线程一被队列占住，淡出结束露出来的就是空白页和灰卡片
+     * （带 patch-10-11-1 冷启动实测：淡出后先空白 ~6 帧，再灰卡片 ~3 帧才出图）。
+     * markSplashResolved 可能被调用多次（放行 + 安全超时），只布置一次。
+     */
+    private void settleThenStartFirstFrameTasks() {
+        if (postSplashSettleArmed) {
+            return;
+        }
+        postSplashSettleArmed = true;
+        final View root = baseBind == null ? null : baseBind.getRoot();
+        if (root == null) {
+            postSplashSettled = true;
+            startFirstFramePump();
+            return;
+        }
+        root.getViewTreeObserver().addOnDrawListener(new ViewTreeObserver.OnDrawListener() {
+            private boolean fired = false;
+
+            @Override
+            public void onDraw() {
+                if (fired) {
+                    return;
+                }
+                fired = true;
+                final ViewTreeObserver.OnDrawListener self = this;
+                // onDraw 回调里不允许摘监听，挪到下一条消息
+                root.post(() -> root.getViewTreeObserver().removeOnDrawListener(self));
+                root.postDelayed(() -> Looper.myQueue().addIdleHandler(() -> {
+                    postSplashSettled = true;
+                    startFirstFramePump();
+                    return false;
+                }), POST_SPLASH_SETTLE_MS);
+            }
+        });
     }
 
     /** 每帧从队列取一件事跑，跑完排下一帧；队列空了就停。 */
