@@ -1160,6 +1160,11 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             if (measured > 0) sheetBehavior.peekHeight = measured
         }
 
+        // 首次布局之前先装配图片区：赶在首次布局之前把 adapter 挂上，
+        // 避免 RecyclerView 首次排版因 mAdapter == null 跳过并打出
+        // 「No adapter attached; skipping layout」，同时大图 Glide 请求提早一趟发出。
+        ensureImageArea(illust)
+
         baseBind.coreLinear.viewTreeObserver.addOnGlobalLayoutListener(object :
             OnGlobalLayoutListener {
             override fun onGlobalLayout() {
@@ -1203,35 +1208,50 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 recyHeight = baseBind.recyclerView.height
                 // 上面的高度测算每次都要跑(简介补拉到货后 sheet 要重新长高),但图片区不能跟着重建:
                 // 换 layoutManager + new adapter = 所有大图从零重新加载,这就是收藏一下整页闪一次的原因(#962)。
-                val signature = imageAreaSignature(illust)
-                if (signature != renderedImageSignature) {
-                    renderedImageSignature = signature
-                    baseBind.recyclerView.layoutManager = LinearLayoutManager(mContext)
-                    if (illust.isGif()) {
-                        // ugoira 内联播放:以前 VActivity 把动图甩去独立的 FragmentSingleUgora,
-                        // 现在留在本页,用解耦的 UgoiraPlayerAdapter 进页即自动加载+播放。
-                        val maxHeight = resources.displayMetrics.heightPixels * 3 / 4
-                        baseBind.recyclerView.adapter =
-                            UgoiraPlayerAdapter(illust, viewLifecycleOwner, maxHeight)
-                    } else {
-                        val adapter = IllustAdapter(mActivity, this@FragmentIllust, illust, recyHeight, false)
-                        baseBind.recyclerView.adapter = adapter
-                        if (isSnapshotMode) {
-                            adapter.setSnapshotId(snapshotId)
-                            adapter.setSnapshotIsAuto(snapshotIsAuto)
-                            applySnapshotLocalPages(adapter)
-                        } else {
-                            vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
-                        }
-                    }
-                } else {
-                    // 不重建,但 bean 实例可能已被池的 merge 换成新的一份(收藏态就在里面)。
-                    // 只顶掉引用、不动视图,免得 adapter 的长按下载和跳二级详情读到过期的收藏态。
-                    (baseBind.recyclerView.adapter as? AbstractIllustAdapter<*>)?.rebindIllust(illust)
-                }
+                ensureImageArea(illust)
                 baseBind.coreLinear.viewTreeObserver.removeOnGlobalLayoutListener(this)
             }
         })
+    }
+
+    /**
+     * 图片区（RecyclerView + layoutManager + adapter）装配。
+     *
+     * 在 [setupBottomSheet] 里、注册 layout 监听之前先调一次：赶在首次布局之前把 adapter 挂上，
+     * 避免 RecyclerView 首次排版因 `mAdapter == null` 跳过并打出
+     * `No adapter attached; skipping layout`，同时让大图的 Glide 请求更早发出。
+     *
+     * 首次调用时 `baseBind.recyclerView.height` 虽仍为 0，但原先放 onGlobalLayout 时量出的也是 0
+     * （RecyclerView 为 wrap_content 且无内容）。
+     * 后续在 onGlobalLayout 里保留调用；[imageAreaSignature] 守卫保证没换图时不重建 adapter（#962）。
+     */
+    private fun ensureImageArea(illust: Illust) {
+        val signature = imageAreaSignature(illust)
+        if (signature != renderedImageSignature) {
+            renderedImageSignature = signature
+            baseBind.recyclerView.layoutManager = LinearLayoutManager(mContext)
+            if (illust.isGif()) {
+                // ugoira 内联播放:以前 VActivity 把动图甩去独立的 FragmentSingleUgora,
+                // 现在留在本页,用解耦的 UgoiraPlayerAdapter 进页即自动加载+播放。
+                val maxHeight = resources.displayMetrics.heightPixels * 3 / 4
+                baseBind.recyclerView.adapter =
+                    UgoiraPlayerAdapter(illust, viewLifecycleOwner, maxHeight)
+            } else {
+                val adapter = IllustAdapter(mActivity, this@FragmentIllust, illust, recyHeight, false)
+                baseBind.recyclerView.adapter = adapter
+                if (isSnapshotMode) {
+                    adapter.setSnapshotId(snapshotId)
+                    adapter.setSnapshotIsAuto(snapshotIsAuto)
+                    applySnapshotLocalPages(adapter)
+                } else {
+                    vm.pageDimensions.value?.let { adapter.seedPageDimensions(it) }
+                }
+            }
+        } else {
+            // 不重建,但 bean 实例可能已被池的 merge 换成新的一份(收藏态就在里面)。
+            // 只顶掉引用、不动视图,免得 adapter 的长按下载和跳二级详情读到过期的收藏态。
+            (baseBind.recyclerView.adapter as? AbstractIllustAdapter<*>)?.rebindIllust(illust)
+        }
     }
 
     private fun setupActionButtons(illust: Illust) {
