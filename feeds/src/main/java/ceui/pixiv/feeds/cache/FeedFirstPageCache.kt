@@ -130,6 +130,9 @@ class FeedFirstPageCache<Resp : Any>(
             throw ce
         } catch (ex: Exception) {
             Timber.w(ex, "feed cache 写入失败 key=%s", key)
+        } finally {
+            // 落盘前那段（序列化 + save）里预取仍可能占位并读到旧行，落盘后再清一次。
+            prefetched.remove(key)
         }
     }
 
@@ -141,6 +144,9 @@ class FeedFirstPageCache<Resp : Any>(
             throw ce
         } catch (ex: Exception) {
             Timber.w(ex, "feed cache 清除失败 key=%s", key)
+        } finally {
+            // 同 write：删行前预取可能已占位读到这一行。
+            prefetched.remove(key)
         }
     }
 

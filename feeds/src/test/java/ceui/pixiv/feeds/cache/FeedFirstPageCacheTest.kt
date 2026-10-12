@@ -176,4 +176,28 @@ class FeedFirstPageCacheTest {
 
         assertEquals(FakeResp(2, "new"), cache.read()!!.payload)
     }
+
+    @Test
+    fun `prefetch slipping in while write is saving does not serve the stale snapshot`() =
+        runBlocking {
+            val inner = InMemoryBackend()
+            cache(inner, account = 903L).write(FakeResp(1, "old"), null)
+            // save 卡在 gate 上：write 已开工、新行还没落盘
+            val saveGate = CompletableDeferred<Unit>()
+            val backend = object : FeedCacheBackend by inner {
+                override suspend fun save(key: String, record: FeedCacheRecord) {
+                    saveGate.await()
+                    inner.save(key, record)
+                }
+            }
+            val cache = cache(backend, account = 903L)
+
+            val write = launch { cache.write(FakeResp(2, "new"), null) }
+            yield()
+            FeedFirstPageCache.prefetch(cache) // 这时磁盘上还是旧行
+            saveGate.complete(Unit)
+            write.join()
+
+            assertEquals(FakeResp(2, "new"), cache.read()!!.payload)
+        }
 }
