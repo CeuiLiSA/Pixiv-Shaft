@@ -38,9 +38,6 @@ import ceui.pixiv.debug.TimberFileLog;
 import ceui.pixiv.session.SessionManager;
 import ceui.pixiv.utils.NetworkStateManager;
 import ceui.pixiv.progress.ProgressTracker;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import okhttp3.OkHttpClient;
 import timber.log.Timber;
 
@@ -152,15 +149,6 @@ public class Shaft extends Application implements ServicesProvider {
             // onCreate 里有 null 兜底，纯预热失败不该影响启动。
         }
         try {
-            // sGson 从 onCreate 提前到这里：下面要起后台线程预热 Settings 的 Gson 适配器链，
-            // 那一步必须有一个已经在位的 Gson 实例（Gson 的适配器缓存是按实例存的）。
-            // new Gson() 只是建个空壳，很便宜。
-            sGson = new Gson();
-            warmSettingsAdapter();
-        } catch (Throwable ignored) {
-            // 预热失败不影响正确性：onCreate 里的 getSettings 会走同步路径。
-        }
-        try {
             initMMKV(base);
         } catch (Throwable ignored) {
             // Application.onCreate 里还会再 init 一次兜底。
@@ -185,65 +173,6 @@ public class Shaft extends Application implements ServicesProvider {
      */
     private static void prefetchPreferences(Context base) {
         sPreferences = base.getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-    }
-
-    /** 后台预热 Settings 适配器链的完成信号；null = 没预热（走同步路径）。 */
-    private static volatile CountDownLatch settingsWarmLatch;
-
-    /** 等预热的上限。预热在 attachBaseContext 起跑，主线程 200ms+ 之后才读 Settings。 */
-    private static final long SETTINGS_WARM_TIMEOUT_MS = 200L;
-
-    /**
-     * 后台预热 Settings 的 Gson 适配器链（配 {@link #awaitSettingsWarm()} 用）。
-     *
-     * <p>冷启动实测 {@code Local.getSettings()} 里的 {@code gson.fromJson(Settings.class)}
-     * 花 ~46ms，其中 ~15ms 是 {@code getAdapter} 反射扫字段、构建整条 TypeAdapter 链。
-     * 那一步只读类元数据、不碰数据，可以提前到后台跑——建好的适配器会进 Gson 自己的
-     * typeTokenCache，主线程的 fromJson 直接命中，省下这 15ms。
-     *
-     * <p>注意：这里只能预热适配器，<b>不能</b>顺手解析数据。{@code Settings} 的
-     * {@code <clinit>} 会经 AndroidUtilCode 的 {@code PathUtils.getExternalAppCachePath()}
-     * → {@code Utils.getApp()} → {@code UtilsActivityLifecycleImpl.<clinit>} 走到
-     * {@code new Activity()}，那条链要求调用线程有 Looper——后台线程没有，会把
-     * {@code Settings} 标成 erroneous 并让主线程后续 {@code Utils.init} 抛
-     * {@code NoClassDefFoundError}。{@code getAdapter} 只用反射扫字段、不实例化类，
-     * 所以不会触发 {@code <clinit>}，是安全的。
-     */
-    private static void warmSettingsAdapter() {
-        final CountDownLatch latch = new CountDownLatch(1);
-        settingsWarmLatch = latch;
-        try {
-            new Thread(() -> {
-                try {
-                    sGson.getAdapter(Settings.class);
-                } catch (Throwable ignored) {
-                    // 预热失败不影响正确性：主线程的 fromJson 会自己建适配器。
-                } finally {
-                    latch.countDown();
-                }
-            }, "shaft-settings-warm").start();
-        } catch (Throwable t) {
-            // 起不了线程（极端内存压力）就退化成同步路径。
-            latch.countDown();
-        }
-    }
-
-    /**
-     * 等 Settings 适配器预热跑完；已经跑完就立即返回。
-     *
-     * <p>有上限兜底：万一预热线程没被调度，主线程最多等
-     * {@link #SETTINGS_WARM_TIMEOUT_MS} 就自己往下走，绝不把启动焊死。
-     */
-    public static void awaitSettingsWarm() {
-        final CountDownLatch latch = settingsWarmLatch;
-        if (latch == null) {
-            return;
-        }
-        try {
-            latch.await(SETTINGS_WARM_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     }
 
     /**
@@ -418,8 +347,8 @@ public class Shaft extends Application implements ServicesProvider {
 
         //初始化context
         sContext = this;
-        // sGson 已提前到 attachBaseContext —— 那里要起后台线程预热 Settings 的
-        // Gson 适配器链，需要一个已经在位的实例（见 warmSettingsAdapter）。
+        sGson = new Gson();
+        //0.0127254
 
         // 正常路径下 attachBaseContext 的 prefetchPreferences 已经赋过值（且后台加载
         // 早就在跑了），这里只兜住它抛异常的情况。
