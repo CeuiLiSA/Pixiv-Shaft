@@ -149,11 +149,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
      * 被放行的页还会立刻各自拉数据、回来就上屏，和首页网络首屏的整代替换撞在同一段——
      * 联网冷启动实测转圈期间连续十来帧 40~116ms，刷新圈肉眼可见地卡；revert 前这些页在
      * 开屏后面就建好了，转圈期间只有首页自己那 1~2 帧。启动页不是首页推荐时没人回报，直接视为已收尾。
+     *
+     * <p>不设超时：网络请求自带超时，refresh 总会离开 Loading；万一真没等到，队列里的活也都有
+     * 按需路径——切到某个 tab 时 setPrimaryItem 当场把它提到 RESUMED，拉抽屉时就地建菜单
+     * （见 onDrawerStateChanged）。拍一个超时反而会在慢网络下把队列放进还在转圈的那段。
      */
     private boolean homeRefreshSettled = false;
-
-    /** 首页刷新收尾信号的兜底：网络慢 / feed 没建起来时，最多等这么久就照常放行逐帧队列。 */
-    private static final long HOME_REFRESH_SAFETY_TIMEOUT_MS = 5000L;
 
     /**
      * 开屏放行后的首帧画完，再留多久给首页 layout + 首屏图片解码，才开始跑逐帧队列。
@@ -208,9 +209,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             // 才起跑——比首帧还晚，主线程画完首帧后只能空等。这里提前到 Activity.onCreate
             // 就并行跑起来（见 HomeFeedFirstPagePrefetch）。
             ceui.pixiv.feeds.cache.HomeFeedFirstPagePrefetch.INSTANCE.warm();
-            final Handler handler = new Handler(Looper.getMainLooper());
-            handler.postDelayed(this::markSplashResolved, SPLASH_SAFETY_TIMEOUT_MS);
-            handler.postDelayed(this::markColdStartRefreshSettled, HOME_REFRESH_SAFETY_TIMEOUT_MS);
+            new Handler(Looper.getMainLooper())
+                    .postDelayed(this::markSplashResolved, SPLASH_SAFETY_TIMEOUT_MS);
         }
     }
 
@@ -767,7 +767,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
      * <p>为什么不能放行后立刻（或推迟一帧）就跑：放行那一刻 feed 只是提交了缓存条目，列表还没 layout、
      * 图片还没解码；系统开屏淡出期间主线程一被队列占住，淡出结束露出来的就是空白页和灰卡片
      * （带 patch-10-11-1 冷启动实测：淡出后先空白 ~6 帧，再灰卡片 ~3 帧才出图）。
-     * 放行与刷新收尾都可能被调用多次（各自还有安全超时），只布置一次。
+     * 放行（含安全超时）与刷新收尾都可能被调用多次，只布置一次。
      */
     private void settleThenStartFirstFrameTasks() {
         if (!splashResolved || !homeRefreshSettled || postSplashSettleArmed) {
