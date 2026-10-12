@@ -69,6 +69,40 @@ interface BookmarkMirrorDao {
     @Query("DELETE FROM bookmark_mirror_tag_table WHERE shelfKey = :shelfKey AND targetId NOT IN (SELECT targetId FROM bookmark_mirror_table WHERE shelfKey = :shelfKey)")
     fun deleteOrphanTags(shelfKey: String): Int
 
+    /** 增量维护对账：删掉比服务端最新序号更大且不晚于本轮号段上限的孤儿行（在别处取消了最新收藏）。 */
+    @Query("DELETE FROM bookmark_mirror_table WHERE shelfKey = :shelfKey AND bookmarkSeq > :maxRemoteSeq AND bookmarkSeq <= :ceilingSeq")
+    fun deleteOrphanHeadRows(shelfKey: String, maxRemoteSeq: Long, ceilingSeq: Long): Int
+
+    /** 增量维护对账：在已拉取的表头闭区间内，删掉服务端已缺席的行（在别处取消了表头内部收藏）。 */
+    @Query("DELETE FROM bookmark_mirror_table WHERE shelfKey = :shelfKey AND bookmarkSeq BETWEEN :bottomSeq AND :topSeq AND targetId NOT IN (:retainedIds)")
+    fun deleteWindowMissingRows(shelfKey: String, bottomSeq: Long, topSeq: Long, retainedIds: List<Long>): Int
+
+    /**
+     * 增量维护表头滑窗对账：原子清除表头孤儿行与区间空洞行，并清理孤儿标签。
+     */
+    @Transaction
+    fun reconcileHeadWindow(
+        shelfKey: String,
+        maxRemoteSeq: Long?,
+        minRemoteSeq: Long?,
+        ceilingSeq: Long,
+        retainedIds: List<Long>,
+    ): Int {
+        var removed = 0
+        if (maxRemoteSeq != null) {
+            removed += deleteOrphanHeadRows(shelfKey, maxRemoteSeq, ceilingSeq)
+        }
+        if (minRemoteSeq != null && maxRemoteSeq != null && retainedIds.isNotEmpty()) {
+            val bottom = minOf(minRemoteSeq, maxRemoteSeq)
+            val top = maxOf(minRemoteSeq, maxRemoteSeq)
+            removed += deleteWindowMissingRows(shelfKey, bottom, top, retainedIds)
+        }
+        if (removed > 0) {
+            deleteOrphanTags(shelfKey)
+        }
+        return removed
+    }
+
     /** 本地取消收藏后即时抹掉（跨公开/悄悄两个书架，因为调用点未必知道它在哪边）。 */
     @Query("DELETE FROM bookmark_mirror_table WHERE ownerUid = :ownerUid AND contentType = :contentType AND targetId = :targetId")
     fun deleteTarget(ownerUid: Long, contentType: Int, targetId: Long): Int

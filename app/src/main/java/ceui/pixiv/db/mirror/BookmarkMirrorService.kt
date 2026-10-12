@@ -528,6 +528,7 @@ class BookmarkMirrorService @JvmOverloads constructor(
                 cursor = startedState.cursor,
                 headCursor = startedState.state.headSeqCursor,
                 backfillSeq = startedState.state.nextBackfillSeq,
+                headBlockCeiling = startedState.state.headBlockCeiling,
             ).also {
                 // 续传时把页码/条数接上库里的值，日志里的「第 N 页」才是这一轮**累计**的页码。
                 // 否则杀进程重来的那次会从「第 1 页」重新数，看上去像是又从头拉了一遍。
@@ -656,6 +657,7 @@ class BookmarkMirrorService @JvmOverloads constructor(
                 else -> headCursor--
             }
             if (known == null) newCount++
+            run.recordItem(item.id, seq)
             val built = item.toRow(seq, state.generation, now)
             rows += built.row
             tags += built.tags
@@ -799,6 +801,31 @@ class BookmarkMirrorService @JvmOverloads constructor(
                 )
             }
         }
+
+        if (mode == MirrorMode.MAINTAIN) {
+            if (run.itemsSeen == 0 && run.pagesDone > 0 && run.cursor == null) {
+                val count = dao.countOf(shelf.key)
+                if (count > 0) {
+                    dao.clearShelf(shelf.key)
+                    Timber.tag(TAG).i("[%s] 增量维护对账：远端收藏已全空，清除本地全部 %d 行", shelf.label, count)
+                }
+            } else if (run.seenItemIds.isNotEmpty()) {
+                val removed = dao.reconcileHeadWindow(
+                    shelfKey = shelf.key,
+                    maxRemoteSeq = run.highestSeq,
+                    minRemoteSeq = run.lowestSeq,
+                    ceilingSeq = run.headBlockCeiling,
+                    retainedIds = run.seenItemIds.toList(),
+                )
+                if (removed > 0) {
+                    Timber.tag(TAG).i(
+                        "[%s] 增量维护表头滑窗对账：清除 %d 行远端已取消收藏（序号区间 %s..%s, ceiling=%d）",
+                        shelf.label, removed, run.lowestSeq, run.highestSeq, run.headBlockCeiling,
+                    )
+                }
+            }
+        }
+
         dao.upsertState(next)
         // 一轮刚走完，表头一定是最新的 —— 把「该做一次增量」的标记消费掉。
         // 不清的话：ensureShelf 在回填期间打的标记会一直留着，回填一完成，下一个 tick
@@ -1017,11 +1044,21 @@ class BookmarkMirrorService @JvmOverloads constructor(
         var cursor: String?,
         var headCursor: Long,
         var backfillSeq: Long,
+        val headBlockCeiling: Long = 0L,
     ) {
         var pagesDone: Int = 0
         var itemsSeen: Int = 0
         var newItems: Int = 0
         var knownStreak: Int = 0
+        val seenItemIds = LinkedHashSet<Long>()
+        var highestSeq: Long? = null
+        var lowestSeq: Long? = null
+
+        fun recordItem(id: Long, seq: Long) {
+            seenItemIds.add(id)
+            highestSeq = maxOf(highestSeq ?: seq, seq)
+            lowestSeq = minOf(lowestSeq ?: seq, seq)
+        }
     }
 
     companion object {
