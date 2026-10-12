@@ -161,7 +161,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
      * <p>覆盖系统开屏淡出（约 200ms）外加首屏图片从磁盘解码上屏；队列里都是用户看不到的活
      * （其它 tab 页、抽屉菜单），晚这几百毫秒没有可见代价。
      */
-    private static final long POST_SPLASH_SETTLE_MS = 400L;
+    private static final long POST_SPLASH_SETTLE_MS = 300L;
 
     /**
      * 开屏动画安全兜底超时：万一首页推荐插画 tab 没能按预期跑到（异常 / 未来改了默认 tab），也不能让开屏永久卡住——超时后强制放行，最坏情况退化回「开屏消失后闪一帧 常规
