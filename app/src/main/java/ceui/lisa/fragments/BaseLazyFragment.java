@@ -1,9 +1,9 @@
 package ceui.lisa.fragments;
 
-import androidx.databinding.ViewDataBinding;
+import androidx.viewbinding.ViewBinding;
 
 
-public abstract class BaseLazyFragment<T extends ViewDataBinding> extends BaseFragment<T> {
+public abstract class BaseLazyFragment<T extends ViewBinding> extends BaseFragment<T> {
 
     protected boolean isLoaded;
 

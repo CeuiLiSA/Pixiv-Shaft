@@ -15,8 +15,10 @@ import android.text.TextUtils
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.view.HapticFeedbackConstants
+import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnLongClickListener
+import android.view.ViewGroup
 import android.view.ViewStub
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.TextView
@@ -89,6 +91,7 @@ import ceui.pixiv.snapshot.showSnapshotCreateDialog
 import ceui.pixiv.ui.share.shareFirstImage
 import ceui.pixiv.ui.share.saveArtworkPoster
 import ceui.pixiv.ui.upscale.IllustAiHelper
+import ceui.pixiv.utils.FrameQueue
 import ceui.pixiv.utils.buildPinnedTagPreviewJson
 import ceui.pixiv.utils.isHostStillResumed
 import ceui.pixiv.utils.setOnClick
@@ -251,6 +254,15 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         mLayoutID = R.layout.fragment_illust
     }
 
+    // fragment_illust.xml 已从 DataBinding 改为 ViewBinding（布局里没有任何 DataBinding 表达式，
+    // <data> 里那个 LiveData<User> variable 从没被引用、代码里也从没 set 过）。DataBindingUtil.inflate
+    // 对非 <layout> 根的布局返回 null，所以这里必须自己走 ViewBinding 的 inflate。
+    override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentIllustBinding =
+        FragmentIllustBinding.inflate(inflater, container, false)
+
+    override fun bindExisting(root: View): FragmentIllustBinding =
+        FragmentIllustBinding.bind(root)
+
     override fun initView() {
         // 导航栏占位要在快照 early-return 之前挂好,否则离线快照页底栏压在手势条上。
         applyNavigationBarInset()
@@ -293,7 +305,9 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         }
 
         val illust = illustLiveData.value ?: return
-        baseBind.user = userLiveData
+        // 这里原来还有一句 `baseBind.user = userLiveData`（DataBinding 的 variable 赋值）。
+        // 但布局里从来没有 `@{user...}` 表达式引用它 —— 那是个「设了没人看」的死绑定，
+        // 唯一效果是每次进页多一次 requestRebind 空跑。布局已改 ViewBinding，这行随之删除。
 
         observeMuteStatus(illust)
     }
@@ -607,8 +621,17 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             // 快照页正是这条路径（`bindSnapshotView` 在 initView 里同步跑），信息区永远建不出来
             // —— 表现就是「快照页内容空态」（抽屉 peek 也停在 0，整条抽屉都不出现）。
             // 改用 `baseBind.root`：它就是本页的根视图，post 会排在 attach 之后执行。
+            // 排进页面的分帧队列（见 [FrameQueue]），而不是自己 post：
+            // post 会立刻排在消息队列里，于是「放行相邻页的那一帧」和「信息区 inflate」两条
+            // 消息背靠背执行、中间一次绘制都没有 —— 实测那两段连续 267ms / 302ms 无绘制，
+            // 各报一次 Skipped（33 / 37 帧）。队列保证每帧只跑一个任务，两块活自然错开。
+            //
+            // `view != null` 是必需的：队列在页面销毁时会 clear，但已经排到帧上的那一个任务
+            // 仍可能落到视图已经 detach 之后。
             val root = baseBind.root
-            root.post { if (root === baseBind?.root) setupInfoSection(illust) }
+            FrameQueue.of(parentFragmentManager).post {
+                if (view != null && root === baseBind?.root) setupInfoSection(illust)
+            }
         }
     }
 

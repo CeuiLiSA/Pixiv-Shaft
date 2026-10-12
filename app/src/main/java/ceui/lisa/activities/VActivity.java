@@ -7,10 +7,14 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import android.view.ViewTreeObserver;
+
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
+
+import ceui.lisa.adapters.LazyFragmentStatePagerAdapter;
+import ceui.pixiv.utils.FrameQueue;
 
 import ceui.lisa.R;
 import ceui.lisa.core.Container;
@@ -38,6 +42,9 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
     private int index = 0;
     private Illust widgetIllust = null;
     private PageData pageData = null;
+    /** 分帧队列（见 {@link FrameQueue}）：相邻页的逐帧放行排在这里。 */
+    private FrameQueue mFrameQueue;
+    private LazyFragmentStatePagerAdapter mLazyAdapter;
 
     @Override
     protected void initBundle(Bundle bundle) {
@@ -72,9 +79,8 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
             // ArtworkV3 的 feed 有意自动准备前后缓存页（池中已有完整详情时是纯内存组装）；
             // 但只有当前页需要进入 RESUMED。这样相邻页可秒滑，同时下载状态 DB 探测、300ms
             // 进度轮询和 ugoira 播放仍只在当前页运行。
-            baseBind.viewPager.setAdapter(new FragmentStatePagerAdapter(
-                    getSupportFragmentManager(),
-                    FragmentStatePagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+            mFrameQueue = FrameQueue.of(getSupportFragmentManager());
+            mLazyAdapter = new LazyFragmentStatePagerAdapter(getSupportFragmentManager()) {
                 @NonNull
                 @Override
                 public Fragment getItem(int position) {
@@ -116,7 +122,8 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                     }
                     return bundle;
                 }
-            });
+            };
+            baseBind.viewPager.setAdapter(mLazyAdapter);
             // 前后页保留 View 和 feed 数据以保证横滑手感，但 lifecycle 限制在 STARTED。
             baseBind.viewPager.setOffscreenPageLimit(1);
 
@@ -187,9 +194,41 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
             if (index == 0) {
                 baseBind.viewPager.post(() -> listener.onPageSelected(baseBind.viewPager.getCurrentItem()));
             }
+
+            // 首帧绘制完成后，逐帧把相邻页放行（触发它们的 onCreateView）。
+            // 首帧只建当前页 —— 否则 offscreenPageLimit=1 会让 cur-1/cur/cur+1 三页全压在首帧上
+            // （实测那一条 doFrame 435ms / 54 帧）。每帧只放行一页，免得两页挤进同一帧。
+            baseBind.viewPager.getViewTreeObserver().addOnPreDrawListener(
+                    new ViewTreeObserver.OnPreDrawListener() {
+                        @Override
+                        public boolean onPreDraw() {
+                            baseBind.viewPager.getViewTreeObserver()
+                                    .removeOnPreDrawListener(this);
+                            // ⚠️ 这里必须只「入队」，不能直接放行：releaseOneDeferredPage() 是同步的
+                            // （commitNowAllowingStateLoss），而 onPreDraw 跑在 performDraw 之前 ——
+                            // 直接调会把第一页的 inflate 塞回首帧（实测页B 就是这么漏进去的）。
+                            enqueueNextDeferredRelease();
+                            return true;
+                        }
+                    });
         } else {
             finish();
         }
+    }
+
+    /**
+     * 逐帧放行相邻页：每帧放行一页，放完即停。见 {@link LazyFragmentStatePagerAdapter}。
+     *
+     * 走 {@link FrameQueue} 而不是自己 postOnAnimation —— 详情页里还有「信息区 inflate」
+     * 这块同样要分帧的活（在 FragmentIllust 里），两个调度器各排各的会撞进同一帧的
+     * ANIMATION 阶段。队列保证每帧只跑一个任务。
+     */
+    private void enqueueNextDeferredRelease() {
+        mFrameQueue.post(() -> {
+            if (mLazyAdapter.releaseOneDeferredPage()) {
+                enqueueNextDeferredRelease();
+            }
+        });
     }
 
     @Override
@@ -199,6 +238,9 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
 
     @Override
     protected void onDestroy() {
+        if (mFrameQueue != null) {
+            mFrameQueue.clear();
+        }
         PixivOperate.clearBack();
         if (isFinishing()) {
             Container.get().removePage(pageUUID);
