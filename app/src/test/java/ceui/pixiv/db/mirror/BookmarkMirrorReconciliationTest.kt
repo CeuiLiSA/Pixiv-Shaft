@@ -209,4 +209,171 @@ class BookmarkMirrorReconciliationTest {
             network.unregisterNetworkCallback()
         }
     }
+
+    @Test
+    fun `re-added work carrying its old seq must not widen the window and wipe live rows`() {
+        val network = NetworkStateManager(app)
+        (network.networkState as MutableLiveData).value = NetworkStateManager.NetworkType.WIFI
+        val services = Proxy.newProxyInstance(
+            ServicesProvider::class.java.classLoader, arrayOf(ServicesProvider::class.java),
+        ) { _, method, _ ->
+            check(method.name == "getNetworkStateManager")
+            network
+        } as ServicesProvider
+        val context = object : ContextWrapper(app), ServicesProvider by services {
+            override fun getApplicationContext(): Context = this
+        }
+        val now = System.currentTimeMillis()
+        db.bookmarkMirrorDao().upsertState(syncedState(illustShelf, now, ceiling = 1_000_000L))
+
+        // 本地镜像 200 条：id k 的序号 = -(k-1)，DESC 即官方收藏顺序。
+        for (id in 1..200) insertRow(illustShelf, id.toLong(), -(id - 1).toLong())
+        assertEquals(200, db.bookmarkMirrorDao().countOf(illustShelf.key))
+
+        // 远端：151 曾在网页端被取消（旧行位置太深、一直没被清掉），随后又被重新收藏 → 出现在表头。
+        // 本轮抓取顺序 = [151, 1, 2, …]；151 沿用旧序号 -150，滑窗因此被拉到 [-150, 0]。
+        val fetcher = object : BookmarkShelfFetcher {
+            override val shelf: BookmarkShelf = illustShelf
+
+            override suspend fun load(nextUrl: String?): FetchedPage {
+                val ids = when (nextUrl) {
+                    null -> listOf(151L) + (1L..47L).toList()
+                    "cursor-2" -> (48L..95L).toList()
+                    else -> emptyList()
+                }
+                return FetchedPage(
+                    items = ids.map { id ->
+                        MirrorItem(id) { seq, generation, timestamp ->
+                            BookmarkMirrorMapper.fromIllust(
+                                illustShelf, Illust(id = id), seq, generation, timestamp,
+                            )
+                        }
+                    },
+                    nextUrl = when (nextUrl) {
+                        null -> "cursor-2"
+                        "cursor-2" -> "cursor-3"
+                        else -> null
+                    },
+                )
+            }
+        }
+
+        val mirror = BookmarkMirrorService(context) { fetcher }
+        try {
+            mirror.start()
+            mirror.syncNow(illustShelf, "test_re_added_stale_seq")
+            awaitMaintain(now)
+            val dao = db.bookmarkMirrorDao()
+
+            assertEquals("仍在收藏的行不得被滑窗误删", 200, dao.countOf(illustShelf.key))
+            assertNotNull("位置 120 的行仍应在表里", dao.findRow(illustShelf.key, 120L))
+        } finally {
+            ReflectionHelpers.getField<CoroutineScope>(mirror, "scope").cancel()
+            network.unregisterNetworkCallback()
+        }
+    }
+
+    @Test
+    fun `empty remote head needs two consecutive confirmations before clearing the shelf`() {
+        val network = NetworkStateManager(app)
+        (network.networkState as MutableLiveData).value = NetworkStateManager.NetworkType.WIFI
+        val services = Proxy.newProxyInstance(
+            ServicesProvider::class.java.classLoader, arrayOf(ServicesProvider::class.java),
+        ) { _, method, _ ->
+            check(method.name == "getNetworkStateManager")
+            network
+        } as ServicesProvider
+        val context = object : ContextWrapper(app), ServicesProvider by services {
+            override fun getApplicationContext(): Context = this
+        }
+        val now = System.currentTimeMillis()
+        db.bookmarkMirrorDao().upsertState(syncedState(illustShelf, now, ceiling = 1_000_000L))
+        insertRow(illustShelf, 1L, 0L)
+        insertRow(illustShelf, 2L, -1L)
+
+        // 远端首页直接为空且没有下一页：可能是一次抽风的空响应，也可能用户真的清空了收藏。
+        val fetcher = object : BookmarkShelfFetcher {
+            override val shelf: BookmarkShelf = illustShelf
+            override suspend fun load(nextUrl: String?): FetchedPage = FetchedPage(emptyList(), null)
+        }
+
+        val mirror = BookmarkMirrorService(context) { fetcher }
+        try {
+            mirror.start()
+            val dao = db.bookmarkMirrorDao()
+
+            mirror.syncNow(illustShelf, "test_empty_head_first")
+            awaitMaintain(now)
+            assertEquals("只观察到一次空，不得清本地镜像", 2, dao.countOf(illustShelf.key))
+
+            val afterFirst = dao.findState(illustShelf.key)!!.lastSyncedAt
+            mirror.syncNow(illustShelf, "test_empty_head_second")
+            awaitMaintain(afterFirst)
+            assertEquals("连续两次确认后才清空", 0, dao.countOf(illustShelf.key))
+        } finally {
+            ReflectionHelpers.getField<CoroutineScope>(mirror, "scope").cancel()
+            network.unregisterNetworkCallback()
+        }
+    }
+
+    @Test
+    fun `inverted seq order in a run skips reconciliation instead of deleting live rows`() {
+        val network = NetworkStateManager(app)
+        (network.networkState as MutableLiveData).value = NetworkStateManager.NetworkType.WIFI
+        val services = Proxy.newProxyInstance(
+            ServicesProvider::class.java.classLoader, arrayOf(ServicesProvider::class.java),
+        ) { _, method, _ ->
+            check(method.name == "getNetworkStateManager")
+            network
+        } as ServicesProvider
+        val context = object : ContextWrapper(app), ServicesProvider by services {
+            override fun getApplicationContext(): Context = this
+        }
+        val now = System.currentTimeMillis()
+        // 号段已经开过三段：本轮的号段顶是 4_000_000。
+        db.bookmarkMirrorDao().upsertState(syncedState(illustShelf, now, ceiling = 3_000_000L))
+        // 100 在本轮首页（旧号 1_999_999）；200 是位置更深、仍然收藏着的一行（旧号 2_500_000），
+        // 它落在 [100 的旧号, 本轮新号] 这个数值区间里。
+        insertRow(illustShelf, 100L, 1_999_999L)
+        insertRow(illustShelf, 200L, 2_500_000L)
+
+        // 远端首页 = [100, 999(新收藏)]：999 拿本轮号段顶 4_000_000，却排在 100 后面 → 序号倒挂。
+        // 不管倒挂是什么原因造成的，这一轮的滑窗都不再可信，必须整轮放弃对账。
+        val fetcher = object : BookmarkShelfFetcher {
+            override val shelf: BookmarkShelf = illustShelf
+            override suspend fun load(nextUrl: String?): FetchedPage = FetchedPage(
+                items = listOf(100L, 999L).map { id ->
+                    MirrorItem(id) { seq, generation, timestamp ->
+                        BookmarkMirrorMapper.fromIllust(illustShelf, Illust(id = id), seq, generation, timestamp)
+                    }
+                },
+                nextUrl = null,
+            )
+        }
+
+        val mirror = BookmarkMirrorService(context) { fetcher }
+        try {
+            mirror.start()
+            mirror.syncNow(illustShelf, "test_inverted_seq_order")
+            awaitMaintain(now)
+            val dao = db.bookmarkMirrorDao()
+
+            assertEquals("序号倒挂时整轮跳过对账，活着的行一条都不能少", 3, dao.countOf(illustShelf.key))
+            assertNotNull("位置更深的 200 必须还在", dao.findRow(illustShelf.key, 200L))
+        } finally {
+            ReflectionHelpers.getField<CoroutineScope>(mirror, "scope").cancel()
+            network.unregisterNetworkCallback()
+        }
+    }
+
+    /** 等到这一轮增量维护收尾（onRunFinished 会把 lastSyncedAt 推到新值）。 */
+    private fun awaitMaintain(previousSyncedAt: Long) {
+        val dao = db.bookmarkMirrorDao()
+        val deadline = System.currentTimeMillis() + 20_000L
+        while (dao.findState(illustShelf.key)?.lastSyncedAt == previousSyncedAt &&
+            System.currentTimeMillis() < deadline
+        ) {
+            Thread.sleep(50)
+        }
+    }
 }
