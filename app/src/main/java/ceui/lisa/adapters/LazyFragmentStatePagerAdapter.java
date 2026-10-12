@@ -118,6 +118,8 @@ public abstract class LazyFragmentStatePagerAdapter extends PagerAdapter {
                 ? mFragmentManager.saveFragmentInstanceState(fragment)
                 : null);
         mFragments.set(position, null);
+        // BaseFragment 不清 rootView：被销毁的页留在集合里会连整棵视图树一起被持有到 Activity 结束。
+        mReleased.remove(fragment);
 
         mCurTransaction.remove(fragment);
         if (fragment.equals(mCurrentPrimaryItem)) {
