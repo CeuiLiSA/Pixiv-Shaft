@@ -188,6 +188,10 @@ open class RecmdIllustFeedFragment(
             viewLifecycleOwner.lifecycleScope.launch {
                 feedViewModel.uiState.first { it.refresh !is LoadState.Idle || it.hasLoadedOnce }
                 (activity as? ColdStartSplashHost)?.markSplashResolved()
+                // 开屏放行时网络刷新多半还在路上（顶部刷新圈在转）：等它收尾再让宿主放行其它 tab 页，
+                // 否则那些页的建视图 + 各自拉数据上屏会和首页这次刷新挤在一起，刷新圈明显卡顿。
+                feedViewModel.uiState.first { it.refresh !is LoadState.Loading }
+                (activity as? ColdStartSplashHost)?.markColdStartRefreshSettled()
             }
         }
     }

@@ -143,6 +143,19 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private boolean postSplashSettleArmed = false;
 
     /**
+     * 首页推荐这次冷启动的刷新是否已收尾（网络首屏到了 / 失败了 / 停在快照上），逐帧队列要等它。
+     *
+     * <p>开屏放行时首页通常还挂着顶部刷新圈在等网络。这段时间里放行 tab 页不只是自己占主线程，
+     * 被放行的页还会立刻各自拉数据、回来就上屏，和首页网络首屏的整代替换撞在同一段——
+     * 联网冷启动实测转圈期间连续十来帧 40~116ms，刷新圈肉眼可见地卡；revert 前这些页在
+     * 开屏后面就建好了，转圈期间只有首页自己那 1~2 帧。启动页不是首页推荐时没人回报，直接视为已收尾。
+     */
+    private boolean homeRefreshSettled = false;
+
+    /** 首页刷新收尾信号的兜底：网络慢 / feed 没建起来时，最多等这么久就照常放行逐帧队列。 */
+    private static final long HOME_REFRESH_SAFETY_TIMEOUT_MS = 5000L;
+
+    /**
      * 开屏放行后的首帧画完，再留多久给首页 layout + 首屏图片解码，才开始跑逐帧队列。
      *
      * <p>覆盖系统开屏淡出（约 200ms）外加首屏图片从磁盘解码上屏；队列里都是用户看不到的活
@@ -187,6 +200,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         if (Shaft.sSettings.isRecommendHotTagsFirst()
                 || baseFragments == null
                 || !(baseFragments[getNavigationInitPosition()] instanceof FragmentLeft)) {
+            homeRefreshSettled = true;
             markSplashResolved();
         } else {
             // 启动页是首页推荐 tab：开屏要等 feed 的「本地优先」快照才放行，而那份快照的读取
@@ -194,8 +208,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             // 才起跑——比首帧还晚，主线程画完首帧后只能空等。这里提前到 Activity.onCreate
             // 就并行跑起来（见 HomeFeedFirstPagePrefetch）。
             ceui.pixiv.feeds.cache.HomeFeedFirstPagePrefetch.INSTANCE.warm();
-            new Handler(Looper.getMainLooper())
-                    .postDelayed(this::markSplashResolved, SPLASH_SAFETY_TIMEOUT_MS);
+            final Handler handler = new Handler(Looper.getMainLooper());
+            handler.postDelayed(this::markSplashResolved, SPLASH_SAFETY_TIMEOUT_MS);
+            handler.postDelayed(this::markColdStartRefreshSettled, HOME_REFRESH_SAFETY_TIMEOUT_MS);
         }
     }
 
@@ -204,6 +219,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         splashResolved = true;
         // 不强制 traversal：开屏照常在下一帧自然退场，列表 layout / 首屏图片解码躲在系统淡出动画
         // 后面完成。逐帧队列（放行 tab 页 / 建抽屉）等首页站稳后再跑，见 settleThenStartFirstFrameTasks。
+        settleThenStartFirstFrameTasks();
+    }
+
+    @Override
+    public void markColdStartRefreshSettled() {
+        homeRefreshSettled = true;
         settleThenStartFirstFrameTasks();
     }
 
@@ -391,6 +412,16 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     @Override
                     public void onDrawerClosed(@NonNull View drawerView) {
                         refreshMainBackCallback();
+                    }
+
+                    @Override
+                    public void onDrawerStateChanged(int newState) {
+                        // 冷启动后逐帧队列要等首页刷新收尾才建抽屉菜单；用户抢在那之前拉抽屉，
+                        // 就地补建，别让他看到空抽屉。队列里那次再建会因输入没变被跳过。
+                        if (newState != DrawerLayout.STATE_IDLE && !drawerMenuReady) {
+                            drawerMenuReady = true;
+                            buildDrawerMenu();
+                        }
                     }
                 });
     }
@@ -730,15 +761,16 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     }
 
     /**
-     * 开屏放行之后，等「放行后的第一帧画出来 + {@link #POST_SPLASH_SETTLE_MS} + 主线程空闲」再开逐帧队列。
+     * 开屏放行且首页刷新收尾（{@link #homeRefreshSettled}）之后，等「下一帧画出来 +
+     * {@link #POST_SPLASH_SETTLE_MS} + 主线程空闲」再开逐帧队列。
      *
      * <p>为什么不能放行后立刻（或推迟一帧）就跑：放行那一刻 feed 只是提交了缓存条目，列表还没 layout、
      * 图片还没解码；系统开屏淡出期间主线程一被队列占住，淡出结束露出来的就是空白页和灰卡片
      * （带 patch-10-11-1 冷启动实测：淡出后先空白 ~6 帧，再灰卡片 ~3 帧才出图）。
-     * markSplashResolved 可能被调用多次（放行 + 安全超时），只布置一次。
+     * 放行与刷新收尾都可能被调用多次（各自还有安全超时），只布置一次。
      */
     private void settleThenStartFirstFrameTasks() {
-        if (postSplashSettleArmed) {
+        if (!splashResolved || !homeRefreshSettled || postSplashSettleArmed) {
             return;
         }
         postSplashSettleArmed = true;
@@ -767,6 +799,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 }), POST_SPLASH_SETTLE_MS);
             }
         });
+        // 刷新收尾那一刻界面可能已经静止（停在快照上 / 失败态没有动画），不保证还有下一帧——
+        // 补一次重绘，别让队列干等。开屏此时已放行，这一帧不会把开屏提前顶走。
+        root.invalidate();
     }
 
     /** 每帧从队列取一件事跑，跑完排下一帧；队列空了就停。 */

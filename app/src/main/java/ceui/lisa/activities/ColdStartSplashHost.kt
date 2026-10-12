@@ -9,4 +9,10 @@ package ceui.lisa.activities
  */
 interface ColdStartSplashHost {
     fun markSplashResolved()
+
+    /**
+     * 首页推荐插画 tab 这次冷启动的刷新收尾（网络首屏到了 / 失败 / 停在快照上，顶部刷新圈不再转）。
+     * 宿主据此把「放行其它 tab 页 / 建抽屉」推到转圈之后，免得和首页刷新抢主线程。
+     */
+    fun markColdStartRefreshSettled()
 }
