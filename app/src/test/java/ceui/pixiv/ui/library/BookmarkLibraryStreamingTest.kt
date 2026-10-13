@@ -722,4 +722,41 @@ class BookmarkLibraryStreamingTest {
         ui.destroy()
     }
 
+    @Test
+    fun `backfill keeps streaming the tail after an in-app unbookmark moves the head`() = runTest(dispatcher) {
+        val shelf = shelf()
+        val library = model(shelf)
+        insert(shelf, 1..30)
+        updateCount(library, 30)
+        val feed = FeedViewModel(BookmarkLibraryFeedSource(library, shelf.contentType), autoLoad = false)
+        models.put("feed", feed)
+        feed.refresh()
+        val first = feed.uiState.first { it.hasLoadedOnce && it.refresh is LoadState.Idle }
+        assertTrue(first.reachedEnd)
+        val binding = FragmentBookmarkLibraryBinding.inflate(
+            LayoutInflater.from(ContextThemeWrapper(app, R.style.AppTheme)),
+        )
+        val ui = BookmarkLibraryUi(
+            Fragment(), binding, RecyclerView(binding.root.context), library, feed, shelf.contentType,
+            itemCount = { feed.uiState.value.items.size },
+        )
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        // 回填途中在 app 里取消了表头那张：行数和最新序号都变了，但回填期不重查，卡片留在原地
+        db.bookmarkMirrorDao().deleteTarget(shelf.ownerUid, shelf.contentType.code, 1L)
+        updateCount(library, 29)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+        assertEquals(first, feed.uiState.value)
+
+        // 下一批回填落库：必须照常续到尾部
+        insert(shelf, 31..45)
+        updateCount(library, 44)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        val final = feed.uiState.first { it.items.size == 45 && it.append is LoadState.Idle }
+        assertEquals((1L..45L).toList(), final.items.map { it.feedKey })
+        assertEquals(first.refreshGeneration, final.refreshGeneration)
+        ui.destroy()
+    }
+
 }

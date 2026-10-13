@@ -687,7 +687,8 @@ class BookmarkMirrorService @JvmOverloads constructor(
                 else -> headCursor--
             }
             if (known == null) newCount++
-            run.recordItem(item.id, seq)
+            // 只有增量维护收尾时要对账；回填/重扫动辄几万条，记下来只是白占内存直到这一轮结束。
+            if (run.mode == MirrorMode.MAINTAIN) run.recordItem(item.id, seq)
             val built = item.toRow(seq, state.generation, now)
             rows += built.row
             tags += built.tags

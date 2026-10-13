@@ -547,10 +547,14 @@ internal class BookmarkLibraryUi(
         val atTop = !listView.canScrollVertically(-1)
         val complete = viewModel.mirrorState.value?.isFirstSyncDone == true
 
-        // 仅在首次全量回填期且表头未变时，尾部增长优先续接，避免最后一页同步完成时整表刷新并跳回顶部。
-        val isPureTailGrowth = !complete && statsChanged &&
-            stored > previous.total &&
-            stats.newestBookmarkSeq == previous.newestBookmarkSeq
+        // 尾部增长优先续接，不重排这一代：
+        // - 回填期（未补齐）任何变动都按续尾处理 —— 回填期从不为表头/删除重查（见下面的 complete），
+        //   若在这里要求「表头未变」，回填中途一次本地收藏/取消就会让基准再也对不上，之后每批回填都续不上尾；
+        // - 补齐之后只认「行数增、表头不变」：最后一批回填常与完成态同时到达，用户停在列表下方时也得续上。
+        val isPureTailGrowth = statsChanged && (
+            !complete ||
+                (stored > previous.total && stats.newestBookmarkSeq == previous.newestBookmarkSeq)
+            )
         if (isPureTailGrowth && feedViewModel.uiState.value.refresh is LoadState.Idle &&
             viewModel.growingTailCursor() != null) {
             resumeGrowingTail()
