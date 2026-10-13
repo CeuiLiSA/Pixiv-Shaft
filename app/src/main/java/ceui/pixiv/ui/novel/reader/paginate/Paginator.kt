@@ -266,13 +266,26 @@ class Paginator(
 
             val startCharInLayout = layout.getLineStart(cursor).coerceIn(0, token.text.length)
             val endCharInLayout = layout.getLineEnd(cursor + linesFit - 1).coerceIn(0, token.text.length)
-            // 译文不在源文本里，切片起点都钉在 textSourceStart，不虚构字符区间；
-            // 仅译文顶替的是整段原文，终点给到原文段末，页面的 charEnd 才盖得住这段。
-            val absoluteStart = if (token.isTranslation) token.textSourceStart else token.textSourceStart + startCharInLayout
-            val absoluteEnd = when (token.translationRole) {
-                TranslationRole.None -> token.textSourceStart + endCharInLayout
-                TranslationRole.Interlinear -> token.textSourceStart
-                TranslationRole.Replacement -> token.sourceEnd
+            val absoluteStart: Int
+            val absoluteEnd: Int
+            when (token.translationRole) {
+                TranslationRole.None -> {
+                    absoluteStart = token.textSourceStart + startCharInLayout
+                    absoluteEnd = token.textSourceStart + endCharInLayout
+                }
+                // 双语译文不在源文本里：钉在零宽度锚点上，不虚构字符区间。
+                TranslationRole.Interlinear -> {
+                    absoluteStart = token.textSourceStart
+                    absoluteEnd = token.textSourceStart
+                }
+                // 仅译文顶替整段原文：切片按比例映射回原文区间。跨页的段落每页各占一截，
+                // 续页的页首才与前一页的 charEnd 区分得开，重排版能落回续页。
+                TranslationRole.Replacement -> {
+                    val span = (token.sourceEnd - token.textSourceStart).toLong()
+                    val length = token.text.length.coerceAtLeast(1)
+                    absoluteStart = token.textSourceStart + (startCharInLayout * span / length).toInt()
+                    absoluteEnd = token.textSourceStart + (endCharInLayout * span / length).toInt()
+                }
             }
             val sliceText = token.text.substring(startCharInLayout, endCharInLayout)
 

@@ -23,6 +23,7 @@ import ceui.pixiv.api.model.WebNovel
 import ceui.pixiv.ui.novel.reader.model.ContentToken
 import ceui.pixiv.ui.novel.reader.model.NovelIllustSource
 import ceui.pixiv.ui.novel.reader.model.Page
+import ceui.pixiv.ui.novel.reader.model.indexOfPageForAnchor
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
 import ceui.pixiv.ui.novel.reader.paginate.ContentParser
 import ceui.pixiv.ui.novel.reader.paginate.IllustMixInserter
@@ -748,9 +749,7 @@ class NovelReaderV3ViewModel(
                 val measurer = TextMeasurer(Shaft.getContext())
                 val paginator = Paginator(toks, geom, style, measurer, resolver)
                 val pages = paginator.paginate()
-                val start = if (pages.isEmpty()) 0 else {
-                    pages.indexOfFirst { it.charEnd >= startChar }.coerceAtLeast(0)
-                }
+                val start = pages.indexOfPageForAnchor(startChar)
                 PaginationState(pages, start, style, geom)
             }
             // Back on Main — safe to touch LiveData.
