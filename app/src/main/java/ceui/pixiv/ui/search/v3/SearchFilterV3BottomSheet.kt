@@ -83,14 +83,14 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         // 这里镜像给另一份 filter，保证两个 tab 的 sheet 显示与实际搜索一致。
         val other = if (isNovel) searchViewModel.illustFilter else searchViewModel.novelFilter
         other.value?.let { o ->
-            if (o.aiMode != next.aiMode || o.aiModeTemporary != next.aiModeTemporary
+            if (o.aiMode != next.aiMode || o.aiModePersist != next.aiModePersist
                 || o.bookmarkFilter != next.bookmarkFilter
-                || o.bookmarkFilterTemporary != next.bookmarkFilterTemporary) {
+                || o.bookmarkFilterPersist != next.bookmarkFilterPersist) {
                 other.value = o.copy(
                     aiMode = next.aiMode,
-                    aiModeTemporary = next.aiModeTemporary,
+                    aiModePersist = next.aiModePersist,
                     bookmarkFilter = next.bookmarkFilter,
-                    bookmarkFilterTemporary = next.bookmarkFilterTemporary,
+                    bookmarkFilterPersist = next.bookmarkFilterPersist,
                 )
             }
         }
@@ -211,16 +211,16 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
         binding.dividerContentType.isVisible = !isNovel
         binding.rowContentType.root.isVisible = !isNovel
 
-        // 「AI 作品 / 过滤已收藏」的真值：没被标成临时值时就等于全局设置，illust / novel 两份 filter
+        // 「AI 作品 / 过滤已收藏」的真值：层级是「全局」时就等于全局设置，illust / novel 两份 filter
         // 里只是镜像——另一个 tab 的「其他条件」或设置页改过它，这份镜像就旧了。打开时对齐，否则
-        // 摘要显示错。已被用户标成临时值（*Temporary）的不动：那正是本次搜索要用的档位。
+        // 摘要显示错。已被用户标成「临时 / 仅这里记住」（非 Global）的不动：那正是本次搜索要用的档位。
         val openingFilter = currentFilter()
         val globalAi = if (Shaft.sSettings.isDeleteAIIllust) AiMode.ExcludeAi else AiMode.All
-        if (!openingFilter.aiModeTemporary && openingFilter.aiMode != globalAi) {
+        if (openingFilter.aiModePersist == FilterPersist.Global && openingFilter.aiMode != globalAi) {
             updateFilter { it.copy(aiMode = globalAi) }
         }
         val globalBookmark = Shaft.sSettings.isSearchFilterBookmarked
-        if (!openingFilter.bookmarkFilterTemporary
+        if (openingFilter.bookmarkFilterPersist == FilterPersist.Global
             && openingFilter.bookmarkFilter != globalBookmark) {
             updateFilter { it.copy(bookmarkFilter = globalBookmark) }
         }
@@ -381,14 +381,15 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
             updateFilter {
                 it.copy(
                     aiMode = patch.aiMode,
-                    aiModeTemporary = patch.aiModeTemporary,
+                    aiModePersist = patch.aiModePersist,
                     r18Mode = patch.r18Mode,
+                    r18ModePersist = patch.r18ModePersist,
                     isOriginalOnly = patch.isOriginalOnly,
                     isReplaceableOnly = patch.isReplaceableOnly,
                     tool = patch.tool,
                     groupBySeries = patch.groupBySeries,
                     bookmarkFilter = patch.bookmarkFilter,
-                    bookmarkFilterTemporary = patch.bookmarkFilterTemporary,
+                    bookmarkFilterPersist = patch.bookmarkFilterPersist,
                 )
             }
         }

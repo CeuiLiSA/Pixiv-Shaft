@@ -2209,10 +2209,14 @@
     <string name="search_filter_v3_section_bookmark_filter">过滤已收藏</string>
     <string name="search_filter_v3_bookmark_filter_all">不过滤</string>
     <string name="search_filter_v3_bookmark_filter_only">过滤</string>
-    <!-- 「其他条件」的 AI 作品 / 过滤已收藏：单击只改本次搜索的临时值，长按才写回设置 -->
+    <!-- 「其他条件」三层持久化（issue #1240）：单击=临时，长按第 1 下=仅这里记住，第 2 下=全局记住 -->
     <string name="search_filter_v3_row_temporary_hint">临时的（长按记住）</string>
-    <!-- 「仅看 AI」没有全局对应档，长按也写不进设置 → 不带括号里的「长按记住」 -->
-    <string name="search_filter_v3_row_temporary_hint_no_persist">临时的</string>
+    <!-- 已记住在「搜索页」这一层（跨重启只被搜索页读，不碰全局设置） -->
+    <string name="search_filter_v3_row_remember_here_hint">仅这里记住</string>
+    <!-- 同上，但这一档有全局对应设置，再长按一下能落到「全局记住」 -->
+    <string name="search_filter_v3_row_remember_here_global_hint">仅这里记住（长按全局）</string>
+    <!-- 无全局对应档的档位（仅看 AI / R-18 三档）第 2 下长按时的说明 -->
+    <string name="search_filter_v3_row_no_global_toast">该档没有全局设置，已停在「仅这里记住」</string>
     <string name="search_filter_v3_section_ai">AI 作品</string>
     <string name="search_filter_v3_ai_all">全部</string>
     <string name="search_filter_v3_ai_only">仅 AI 作品</string>

@@ -2042,7 +2042,9 @@
     <string name="search_filter_v3_bookmark_filter_all">Tidak disaring</string>
     <string name="search_filter_v3_bookmark_filter_only">Saring</string>
     <string name="search_filter_v3_row_temporary_hint">Sementara (tekan lama untuk mengingat)</string>
-    <string name="search_filter_v3_row_temporary_hint_no_persist">Sementara</string>
+    <string name="search_filter_v3_row_remember_here_hint">Ingat di sini</string>
+    <string name="search_filter_v3_row_remember_here_global_hint">Ingat di sini (tekan lama untuk global)</string>
+    <string name="search_filter_v3_row_no_global_toast">Opsi ini tidak punya pengaturan global; tetap \"ingat di sini\"</string>
     <string name="search_filter_v3_section_ai">Karya AI</string>
     <string name="search_filter_v3_ai_all">Semua</string>
     <string name="search_filter_v3_ai_only">Hanya karya AI</string>

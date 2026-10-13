@@ -24,12 +24,13 @@ import ceui.pixiv.ui.search.SortType
  *                              说明：V3 不再发 within_last_* 的 `duration` 参数；durationBucket
  *                              在 [buildSearchConfig] 当场算 today−N → start_date/end_date 发出去，
  *                              对齐 iOS pixiv 8.6.6 抓包行为
- *  10. aiMode                — AI 作品筛选三档（全部/屏蔽AI/仅看AI）。屏蔽走官方 search_ai_type；
+ *  10. aiMode / aiModePersist — AI 作品筛选三档（全部/不显示AI/仅看AI）。屏蔽走官方 search_ai_type；
  *                              「仅看AI」官方无对应参数，由 DataSource 按真实 `illust_ai_type`==2
- *                              客户端过滤（与 R18 三档同机制）。三档默认都是**会话临时值**：单击只改
- *                              本次搜索，长按才把该档写回 settings（见 [aiModeTemporary]）；「仅看AI」
- *                              无全局对应档，恒为临时（issue #909）。
- *  11. r18Mode               — R18 限制（沿用旧版「-R-18」「R-18」关键字 hack）
+ *                              客户端过滤（与 R18 三档同机制）。持久化分三层（issue #1240）：
+ *                              单击=临时、长按=仅这里记住、再长按=全局记住（见 [aiModePersist]）；
+ *                              「仅看AI」无全局对应档，最多到「仅这里记住」。
+ *  11. r18Mode / r18ModePersist — R18 限制三档，客户端按 `x_restrict` 过滤（见 [R18Mode]）。
+ *                              无全局对应档，持久化最多到「仅这里记住」。
  *  12. ratioPattern          — 长宽比（仅 illust/manga，走官方 `ratio_pattern` query 参数）
  *  13. resolutionBucket      — 分辨率档位（仅 illust/manga，走官方 `width_min/max` + `height_min/max`）
  *  14. bodyLength            — 正文长度（仅 novel；统一维度，按 unit 三选一：文字数 / 单词数 /
@@ -49,23 +50,21 @@ data class SearchFilterV3(
     val startDate: String? = null,    // YYYY-MM-DD —— 与 durationBucket 互斥
     val endDate: String? = null,      // YYYY-MM-DD
     val aiMode: AiMode = AiMode.All,
-    /**
-     * AI 档位是否为「会话临时值」：true = 用户单击选过、只影响本搜索页、**不写全局设置**；
-     * false = 跟随全局 `isDeleteAIIllust`（[fromGlobalDefaults] 的种子态）。长按某档会把该档
-     * 写回全局设置，随后本标记归 false——见 [ceui.pixiv.ui.search.v3.OtherFilterSheet]。
-     */
-    val aiModeTemporary: Boolean = false,
+    /** AI 档位的持久化层级（issue #1240）；语义见 [FilterPersist]。 */
+    val aiModePersist: FilterPersist = FilterPersist.Global,
     /**
      * 「过滤已收藏」（仅搜索）—— 有效档位。真正的过滤发生在
      * [ceui.pixiv.ui.search.SearchIllustFeedSource] /
-     * [ceui.pixiv.ui.search.SearchNovelFeedSource] 建条目时：本字段被 [bookmarkFilterTemporary]
-     * 标记为临时就用它，否则现读全局 `Shaft.sSettings.isSearchFilterBookmarked`。本字段同时承载
+     * [ceui.pixiv.ui.search.SearchNovelFeedSource] 建条目时：本字段被 [bookmarkFilterPersist]
+     * 标成非全局层就用它，否则现读全局 `Shaft.sSettings.isSearchFilterBookmarked`。本字段同时承载
      * sheet 的勾选态与「其他条件」徽标计数，不参与发请求的参数拼装。
      */
     val bookmarkFilter: Boolean = false,
-    /** 「过滤已收藏」是否为「会话临时值」，语义同 [aiModeTemporary]。 */
-    val bookmarkFilterTemporary: Boolean = false,
+    /** 「过滤已收藏」的持久化层级；语义见 [FilterPersist]。 */
+    val bookmarkFilterPersist: FilterPersist = FilterPersist.Global,
     val r18Mode: R18Mode = R18Mode.All,
+    /** R-18 档位的持久化层级。R-18 无全局对应档，最多到 [FilterPersist.RememberHere]。 */
+    val r18ModePersist: FilterPersist = FilterPersist.Global,
     val ratioPattern: RatioPattern? = null,   // illust/manga only
     val resolutionBucket: ResolutionBucket? = null,   // illust/manga only
     // 作品类别（仅 illust/manga）—— pixiv iOS 8.6.6 抓包确认走 `content_type` query 参数。
@@ -92,12 +91,13 @@ data class SearchFilterV3(
          *   - keywordUsersBucket：`getSearchFilter()`（"" / "1000users入り" 之类）—— 这条设置
          *     从老 FragmentFilter 起就是关键字后缀语义，所以落到 keyword 维度，不是 bookmark
          *     query 维度。bookmarkRange 维度走 query 参数，没有全局默认。
-         *   - aiMode：`isDeleteAIIllust` → ExcludeAi / All（OnlyAi 是临时维度，不来自 settings）
+         *   - aiMode：`isDeleteAIIllust` → ExcludeAi / All（OnlyAi 没有全局档，只能靠「页记」）
+         *   - r18Mode：没有全局档，基线恒为 All
          *   - bookmarkFilter：`isSearchFilterBookmarked` → 过滤已收藏（与设置页同一个开关）
          *
-         * 种下的 aiMode / bookmarkFilter 都标成「非临时」（[aiModeTemporary] /
-         * [bookmarkFilterTemporary] = false），即仍跟随全局设置——只有用户在「其他条件」里单击改过，
-         * 才会被标成临时值。
+         * 「其他条件」三个维度（aiMode / bookmarkFilter / r18Mode）都按三层取值：
+         * **搜索页「仅这里记住」优先 → 全局设置 → 内置默认**（issue #1240）。种下的档位据此标注
+         * [FilterPersist]：来自「页记」标 [FilterPersist.RememberHere]，否则 [FilterPersist.Global]。
          *
          * 用户的「activeCount」基线也跟着跑——例如全局已开 AI 屏蔽，sheet 打开「其他条件」
          * 行就会显示「屏蔽 AI」徽标，不再误以为没改过。
@@ -115,11 +115,24 @@ data class SearchFilterV3(
                 ?.value?.toIntOrNull() ?: 0
             val keywordBucket = KeywordUsersBucket.values().firstOrNull { it.min == bucketMin }
                 ?: KeywordUsersBucket.None
+            // 「仅这里记住」的三个搜索页专属档位——没记住过（null）就回落到全局设置 / 内置默认。
+            val rememberedAi = s.searchRememberedAiMode
+                ?.let { name -> AiMode.entries.firstOrNull { it.name == name } }
+            val rememberedBookmark = s.searchRememberedBookmarkFilter?.toBooleanStrictOrNull()
+            val rememberedR18 = s.searchRememberedR18Mode
+                ?.let { name -> R18Mode.entries.firstOrNull { it.name == name } }
             return SearchFilterV3(
                 sort = sort,
                 keywordUsersBucket = keywordBucket,
-                aiMode = if (s.isDeleteAIIllust) AiMode.ExcludeAi else AiMode.All,
-                bookmarkFilter = s.isSearchFilterBookmarked,
+                aiMode = rememberedAi ?: if (s.isDeleteAIIllust) AiMode.ExcludeAi else AiMode.All,
+                aiModePersist =
+                    if (rememberedAi != null) FilterPersist.RememberHere else FilterPersist.Global,
+                bookmarkFilter = rememberedBookmark ?: s.isSearchFilterBookmarked,
+                bookmarkFilterPersist =
+                    if (rememberedBookmark != null) FilterPersist.RememberHere else FilterPersist.Global,
+                r18Mode = rememberedR18 ?: R18Mode.All,
+                r18ModePersist =
+                    if (rememberedR18 != null) FilterPersist.RememberHere else FilterPersist.Global,
             )
         }
     }
@@ -149,6 +162,15 @@ data class SearchFilterV3(
         return n
     }
 }
+
+/**
+ * 「其他条件」勾选行的持久化层级（issue #1240）。
+ *
+ * 单击 = [Temporary]（只作用本次搜索、不落盘）；长按第 1 下 = [RememberHere]（落「搜索页」
+ * 持久化，跨重启只被搜索页读）；长按第 2 下 = [Global]（落全局设置，仅"有全局档"的维度）。
+ * 取值优先级：页记 → 全局设置 → 内置默认。无全局对应档的档位最多到 [RememberHere]。
+ */
+enum class FilterPersist { Temporary, RememberHere, Global }
 
 enum class SearchTarget(val apiValue: String) {
     PartialMatchForTags("partial_match_for_tags"),
@@ -264,6 +286,9 @@ enum class DurationBucket {
  *
  * 判定只看 `x_restrict`、**不碰 `sanity_level`**，与 [ceui.pixiv.api.model.Illust.isR18File] 同口径，
  * 避免把 sanity 4/6 但没有 R18 标记的普通（含轻微敏感）插画误删。
+ *
+ * 持久化（issue #1240）：**没有全局对应档**（搜索页的 R-18 限制与全局「默认过滤 R18 内容」不是
+ * 同一机制），所以最多到 [FilterPersist.RememberHere]，长按第 2 下只能停在「仅这里记住」。
  */
 enum class R18Mode {
     All, SafeOnly, R18Only;
@@ -281,9 +306,12 @@ enum class R18Mode {
  * 没有「仅看 AI」——所以「仅看 AI」走 [search_ai_type]=0（服务端全返）+ 客户端按真实
  * `illust_ai_type`(插画) / `novel_ai_type`(小说) == 2 过滤，与 [R18Mode] 同机制。
  *
- * 持久化：[All]/[ExcludeAi] 把 `isDeleteAIIllust` 落成 false/true（屏蔽 AI 本就是全局设置）；
- * [OnlyAi] 是单次搜索的临时维度，**绝不碰任何设置**——既不持久化，也不通过 `isDeleteAIIllust`
- * 顺带改掉首页等其它列表的 AI 屏蔽（issue #909：只影响搜索结果、不持久化）。
+ * 持久化分三层（issue #1240，见 [FilterPersist]）：
+ *   - [FilterPersist.Temporary]：只作用本次搜索，不落盘；
+ *   - [FilterPersist.RememberHere]：落搜索页专属记忆，跨重启只被搜索页读；
+ *   - [FilterPersist.Global]：[All]/[ExcludeAi] 把 `isDeleteAIIllust` 落成 false/true（屏蔽 AI
+ *     本就是全局设置）；[OnlyAi] **没有全局档**，最多到「仅这里记住」——绝不通过
+ *     `isDeleteAIIllust` 顺带改掉首页等其它列表的 AI 屏蔽（issue #909）。
  */
 enum class AiMode {
     All, ExcludeAi, OnlyAi;

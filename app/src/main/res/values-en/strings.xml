@@ -1996,7 +1996,9 @@
     <string name="search_filter_v3_bookmark_filter_all">No filtering</string>
     <string name="search_filter_v3_bookmark_filter_only">Filter</string>
     <string name="search_filter_v3_row_temporary_hint">Temporary (long-press to remember)</string>
-    <string name="search_filter_v3_row_temporary_hint_no_persist">Temporary</string>
+    <string name="search_filter_v3_row_remember_here_hint">Remembered here</string>
+    <string name="search_filter_v3_row_remember_here_global_hint">Remembered here (long-press for global)</string>
+    <string name="search_filter_v3_row_no_global_toast">This option has no global setting; kept as remembered here</string>
     <string name="search_filter_v3_section_ai">AI works</string>
     <string name="search_filter_v3_ai_all">All</string>
     <string name="search_filter_v3_ai_only">AI only</string>

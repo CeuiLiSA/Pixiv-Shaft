@@ -5,6 +5,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import ceui.lisa.activities.Shaft
 import ceui.lisa.viewmodel.SearchModel
 import ceui.pixiv.ui.search.SearchViewModel
 import ceui.pixiv.ui.search.SortType
@@ -104,16 +105,21 @@ object SearchFilterV3LegacyBridge {
      *  - `sortType`              → sort（不识别就回 popular_preview）
      *  - `startDate / endDate`   → 同名字段
      *  - `r18Restriction`        → R18Mode（0/1/2 ↔ All/SafeOnly/R18Only）
-     *  - AI 三档：「仅看AI」是临时维度，不入设置，存在 [SearchModel.onlyAi] 会话态里，这里读回来还原档位；
-     *    「屏蔽AI / 全部」若被用户标成临时（[SearchFilterV3.aiModeTemporary]）则读
-     *    [SearchModel.sessionExcludeAi]，没设过才回 baseline（全局 isDeleteAIIllust）。
-     *  - bookmarkFilter：会话临时值 [SearchModel.sessionBookmarkFilter] 优先，没设过才回 baseline
+     *  - AI 三档：「仅看AI」没有全局档，存在 [SearchModel.onlyAi] 会话态里，这里读回来还原档位；
+     *    「屏蔽AI / 全部」优先读 [SearchModel.sessionExcludeAi]，没设过才回 baseline（全局 isDeleteAIIllust）。
+     *  - bookmarkFilter：会话值 [SearchModel.sessionBookmarkFilter] 优先，没设过才回 baseline
      *    （与设置页同一个全局开关 isSearchFilterBookmarked）。
+     *
+     * 三个维度都再经 [tierOfSession] 把会话值反推回 [FilterPersist] 层级（页记 / 全局 / 临时）。
      */
     private fun seedFromLegacy(searchModel: SearchModel, isNovel: Boolean): SearchFilterV3 {
         // baseline = Shaft.sSettings 三项偏好；下面任一字段在 SearchModel 里有值就 override，
         // 没值就回退到 baseline。SearchModel 全空 → 与 baseline 等价。
         val baseline = SearchFilterV3.fromGlobalDefaults(forNovel = isNovel)
+        // 「仅这里记住」的搜索页专属记忆——用来把会话值反推回持久化层级（口径同 OtherFilterSheet）。
+        val rememberedAi = Shaft.sSettings.searchRememberedAiMode
+            ?.let { name -> AiMode.entries.firstOrNull { it.name == name } }
+        val rememberedBookmark = Shaft.sSettings.searchRememberedBookmarkFilter?.toBooleanStrictOrNull()
 
         // SearchModel.sortType 是 illust/novel 共享单字段——插画侧写进去的男/女性向人气
         // 不能种进 novel filter（novel 端点不识别），归一到总热度。
@@ -134,11 +140,17 @@ object SearchFilterV3LegacyBridge {
             KeywordUsersBucket.values().firstOrNull { it.min == parsedStar } ?: baseline.keywordUsersBucket
         else baseline.keywordUsersBucket
 
-        val r18 = when (searchModel.r18Restriction.value) {
+        // R-18 没有全局档，基线 = 内置默认「全部」；会话值（r18Restriction）总被 applyToLegacy 写实，
+        // 所以这里用「页记 → 基线」反推层级，而不是把 null 当「跟随全局」。
+        val rememberedR18 = Shaft.sSettings.searchRememberedR18Mode
+            ?.let { name -> R18Mode.entries.firstOrNull { it.name == name } }
+        val sessionR18 = when (searchModel.r18Restriction.value) {
+            0 -> R18Mode.All
             1 -> R18Mode.SafeOnly
             2 -> R18Mode.R18Only
-            else -> baseline.r18Mode
+            else -> null
         }
+        val r18 = sessionR18 ?: baseline.r18Mode
         val ratio = if (isNovel) null
             else RatioPattern.values().firstOrNull { it.apiValue == searchModel.ratioPattern.value }
                 ?: baseline.ratioPattern
@@ -175,6 +187,17 @@ object SearchFilterV3LegacyBridge {
             }
         }
 
+        // 「其他条件」三个维度：会话值（SearchModel）优先，没设过回 baseline；层级用 [tierOfSession]
+        // 反推——和 [OtherFilterSheet] 单击时的口径一致。
+        val sessionAiMode: AiMode? = when {
+            searchModel.onlyAi.value == true -> AiMode.OnlyAi
+            searchModel.sessionExcludeAi.value == true -> AiMode.ExcludeAi
+            searchModel.sessionExcludeAi.value == false -> AiMode.All
+            else -> null
+        }
+        val effectiveAi = sessionAiMode ?: baseline.aiMode
+        val effectiveBookmark = searchModel.sessionBookmarkFilter.value ?: baseline.bookmarkFilter
+
         return SearchFilterV3(
             sort = sort,
             searchTarget = target,
@@ -190,15 +213,11 @@ object SearchFilterV3LegacyBridge {
             startDate = searchModel.startDate.value ?: baseline.startDate,
             endDate = searchModel.endDate.value ?: baseline.endDate,
             r18Mode = r18,
-            // AI 三档：「仅看AI」是会话临时态，从 SearchModel.onlyAi 读回还原（activity 重建后 VM
-            // 为空时也不丢）；「屏蔽AI / 全部」优先用会话临时档（sessionExcludeAi），没设过才回 baseline。
-            aiMode = when {
-                searchModel.onlyAi.value == true -> AiMode.OnlyAi
-                searchModel.sessionExcludeAi.value == true -> AiMode.ExcludeAi
-                searchModel.sessionExcludeAi.value == false -> AiMode.All
-                else -> baseline.aiMode
-            },
-            aiModeTemporary = searchModel.sessionExcludeAi.value != null,
+            r18ModePersist = tierOfSession(r18, rememberedR18, R18Mode.All),
+            // AI 三档：「仅看AI」是会话态，从 SearchModel.onlyAi 读回还原（activity 重建后 VM 为空时
+            // 也不丢）；「屏蔽AI / 全部」优先用会话值（sessionExcludeAi），没设过才回 baseline。
+            aiMode = effectiveAi,
+            aiModePersist = tierOfSession(effectiveAi, rememberedAi, globalAiBaseline()),
             isOriginalOnly = isNovel && searchModel.isOriginalOnly.value == true,
             isReplaceableOnly = isNovel && searchModel.isReplaceableOnly.value == true,
             groupBySeries = isNovel && searchModel.groupBySeries.value == true,
@@ -206,11 +225,29 @@ object SearchFilterV3LegacyBridge {
             resolutionBucket = resolution,
             contentType = contentType,
             bodyLength = bodyLength,
-            // 过滤已收藏：会话临时值优先（sessionBookmarkFilter），没设过才回 baseline 全局开关。
+            // 过滤已收藏：会话值优先（sessionBookmarkFilter），没设过才回 baseline 全局开关。
             //（seedFromLegacy 是整份替换 VM 的 filter，漏了它勾选就会掉回「不过滤」。）
-            bookmarkFilter = searchModel.sessionBookmarkFilter.value ?: baseline.bookmarkFilter,
-            bookmarkFilterTemporary = searchModel.sessionBookmarkFilter.value != null,
+            bookmarkFilter = effectiveBookmark,
+            bookmarkFilterPersist = tierOfSession(
+                effectiveBookmark, rememberedBookmark, Shaft.sSettings.isSearchFilterBookmarked,
+            ),
         )
+    }
+
+    /** 全局设置当前对应的 AI 档位（「仅看 AI」没有全局档，故只有这两档）。 */
+    private fun globalAiBaseline(): AiMode =
+        if (Shaft.sSettings.isDeleteAIIllust) AiMode.ExcludeAi else AiMode.All
+
+    /**
+     * 把会话值反推回持久化层级，口径与 [OtherFilterSheet] 单击时一致：
+     *   - 等于「页记」值 → [FilterPersist.RememberHere]；
+     *   - 否则等于全局 / 内置默认基线 → [FilterPersist.Global]；
+     *   - 其余 → [FilterPersist.Temporary]。
+     */
+    private fun tierOfSession(value: Any?, remembered: Any?, baseline: Any?): FilterPersist = when {
+        remembered != null && value == remembered -> FilterPersist.RememberHere
+        value == baseline -> FilterPersist.Global
+        else -> FilterPersist.Temporary
     }
 
     private fun parseStarSizeMin(starSize: String?): Int {
@@ -227,10 +264,10 @@ object SearchFilterV3LegacyBridge {
      * 两条可以同时生效（会员选 bookmark_num_min；非会员只能靠 keyword hack）。
      *
      * AI 三档：「仅看AI」官方无参数，写到 [SearchModel.onlyAi] 会话态，Repo.update 读它喂给
-     * FilterMapper 做客户端过滤（issue #909）。「屏蔽AI / 全部」若被用户标成临时
-     * （[SearchFilterV3.aiModeTemporary]）则写到 [SearchModel.sessionExcludeAi]，Repo.update 优先读它、
-     * 没设过才回退全局 [ceui.lisa.activities.Shaft.sSettings.isDeleteAIIllust]——[OtherFilterSheet]
-     * 只在长按某档时才把该档落盘。
+     * FilterMapper 做客户端过滤（issue #909）。「屏蔽AI / 全部」在层级非「全局」时写到
+     * [SearchModel.sessionExcludeAi]（[FilterPersist.Temporary] / [FilterPersist.RememberHere] 都还没
+     * 落进全局设置，必须让 Repo 优先读它），层级为「全局」时写 null 跟随全局
+     * [ceui.lisa.activities.Shaft.sSettings.isDeleteAIIllust]——[OtherFilterSheet] 只在长按某档时才落盘。
      */
     private fun applyToLegacy(filter: SearchFilterV3, searchModel: SearchModel) {
         searchModel.sortType.value = filter.sort
@@ -260,12 +297,14 @@ object SearchFilterV3LegacyBridge {
         }
         // 「仅看AI」会话态：Repo.update 读它喂 FilterMapper 客户端过滤
         searchModel.onlyAi.value = filter.aiMode == AiMode.OnlyAi
-        // 「其他条件」的会话临时态：只有用户显式单击改过（*Temporary）才写，否则置 null 表示
-        // 「跟随全局设置」——这样设置页改了全局开关，搜索页仍能跟上；临时值也绝不回灌设置。
+        // 「其他条件」的会话值：层级为「全局」时置 null（跟随全局设置，设置页改了仍能跟上）；
+        // 「临时 / 仅这里记住」都写实际档位——两者都还没落进全局设置，会话值必须带上搜索才用得上。
         searchModel.sessionExcludeAi.value =
-            if (filter.aiModeTemporary) filter.aiMode == AiMode.ExcludeAi else null
+            if (filter.aiModePersist == FilterPersist.Global) null
+            else filter.aiMode == AiMode.ExcludeAi
         searchModel.sessionBookmarkFilter.value =
-            if (filter.bookmarkFilterTemporary) filter.bookmarkFilter else null
+            if (filter.bookmarkFilterPersist == FilterPersist.Global) null
+            else filter.bookmarkFilter
         searchModel.isOriginalOnly.value = filter.isOriginalOnly
         searchModel.isReplaceableOnly.value = filter.isReplaceableOnly
         // 系列归纳仅 novel；illust filter 恒 false 写下来无副作用（插画路径不读它），真正生效的

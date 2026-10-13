@@ -459,6 +459,14 @@ public class Settings {
 
     private boolean feedBackToTopFab = false; // 搜索结果页 / 画师主页列表右下角「回顶」悬浮钮（issue #1040），默认关闭
 
+    // ── 搜索页「其他条件」的「仅这里记住」持久化（issue #1240）──
+    // null = 没在搜索页长按记住过，回落全局设置 / 内置默认；非 null = 搜索页专属档位。
+    // 只被搜索页读取，与全局设置（isDeleteAIIllust / isSearchFilterBookmarked）隔离——
+    // 长按到「全局记住」时会被清空，避免旧记忆盖住刚写下的全局值。
+    private String searchRememberedAiMode = null;          // AiMode.name()
+    private String searchRememberedBookmarkFilter = null;  // "true" / "false"
+    private String searchRememberedR18Mode = null;         // R18Mode.name()
+
     private String navigationInitPosition = NavigationLocationHelper.TUIJIAN; // 主页底部导航栏初始化位置
 
 //    private boolean isDownloadOnlyUseWiFi = false; // 仅通过 Wifi 下载
@@ -771,6 +779,33 @@ public class Settings {
 
     public void setDeleteAIIllust(boolean b) {
         deleteAIIllust = b;
+    }
+
+    /** 「其他条件 → AI 作品」的搜索页专属记忆（AiMode.name()）；null = 没记住过。 */
+    public String getSearchRememberedAiMode() {
+        return searchRememberedAiMode;
+    }
+
+    public void setSearchRememberedAiMode(String searchRememberedAiMode) {
+        this.searchRememberedAiMode = searchRememberedAiMode;
+    }
+
+    /** 「其他条件 → 过滤已收藏」的搜索页专属记忆（"true"/"false"）；null = 没记住过。 */
+    public String getSearchRememberedBookmarkFilter() {
+        return searchRememberedBookmarkFilter;
+    }
+
+    public void setSearchRememberedBookmarkFilter(String searchRememberedBookmarkFilter) {
+        this.searchRememberedBookmarkFilter = searchRememberedBookmarkFilter;
+    }
+
+    /** 「其他条件 → R-18 限制」的搜索页专属记忆（R18Mode.name()）；null = 没记住过。 */
+    public String getSearchRememberedR18Mode() {
+        return searchRememberedR18Mode;
+    }
+
+    public void setSearchRememberedR18Mode(String searchRememberedR18Mode) {
+        this.searchRememberedR18Mode = searchRememberedR18Mode;
     }
 
     public int getAiBlockStrength() {
