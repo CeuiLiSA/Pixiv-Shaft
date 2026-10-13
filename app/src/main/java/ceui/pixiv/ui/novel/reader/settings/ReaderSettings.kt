@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.ui.novel.reader.model.FlipMode
 import ceui.pixiv.ui.novel.reader.model.ReadingDirection
+import ceui.pixiv.ui.novel.reader.model.TranslationRole
 import ceui.pixiv.ui.novel.reader.model.ImagePlacement
 import ceui.pixiv.ui.novel.reader.model.ImageScaleMode
 import ceui.pixiv.ui.novel.reader.model.NovelIllustSource
@@ -428,6 +429,18 @@ object ReaderSettings {
             emit(ChangeEvent.IllustMix)
         }
 
+    /**
+     * 全文翻译的显示方式（issue #864）：双语对照 / 仅译文，默认双语。「仅原文」不是一种
+     * 持久化的方式，而是收起译文。不进 [Snapshot]、不发事件：阅读页切换后由 VM 直接重排版。
+     */
+    var translationRole: TranslationRole
+        get() = runCatching {
+            TranslationRole.valueOf(store.decodeString(K_TRANSLATION_ROLE, TranslationRole.Interlinear.name) ?: "")
+        }.getOrNull()?.takeIf { it != TranslationRole.None } ?: TranslationRole.Interlinear
+        set(value) {
+            store.encode(K_TRANSLATION_ROLE, value.takeIf { it != TranslationRole.None }?.name ?: TranslationRole.Interlinear.name)
+        }
+
     // ---------- TTS ----------
     var ttsHighlight: Boolean
         get() = store.decodeBool(K_TTS_HIGHLIGHT, true)
@@ -616,6 +629,7 @@ object ReaderSettings {
     private const val K_IMG_SCALE = "r_img_scale"
     private const val K_PRELOAD_AHEAD = "r_preload_ahead"
     private const val K_ILLUST_MIX_SOURCE = "r_illust_mix_source"
+    private const val K_TRANSLATION_ROLE = "r_translation_role"
     private const val K_TTS_HIGHLIGHT = "r_tts_highlight"
     private const val K_TTS_AUTO_PAGE = "r_tts_auto_page"
     private const val K_TTS_DOUBLE_TAP = "r_tts_double_tap"

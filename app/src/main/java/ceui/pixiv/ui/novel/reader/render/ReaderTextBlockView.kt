@@ -11,6 +11,7 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
 import android.text.style.BackgroundColorSpan
+import android.text.style.ForegroundColorSpan
 import android.text.style.LeadingMarginSpan
 import android.text.style.LineHeightSpan
 import android.util.TypedValue
@@ -53,8 +54,19 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
      * contiguous region of this view's text produced by one [PageElement.Text]
      * — gaps between segments correspond to the paragraph separator chars
      * (`\n\n`) we insert when merging multiple paragraphs into a single view.
+     * [zeroWidth] = 全文翻译的译文段（issue #864）：整段映射到同一个源偏移。
      */
-    private data class Segment(val localStart: Int, val localEnd: Int, val absoluteStart: Int)
+    private data class Segment(
+        val localStart: Int,
+        val localEnd: Int,
+        val absoluteStart: Int,
+        val zeroWidth: Boolean = false,
+    ) {
+        val absoluteEnd: Int get() = if (zeroWidth) absoluteStart else absoluteStart + (localEnd - localStart)
+
+        fun toAbsolute(localOffset: Int): Int =
+            if (zeroWidth) absoluteStart else absoluteStart + (localOffset - localStart)
+    }
     private val segments = mutableListOf<Segment>()
 
     /** Hook fired when the ActionMode is created for a fresh selection so the
@@ -119,6 +131,7 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
         segments.clear()
         val sb = SpannableStringBuilder()
         val textLineHeight = style.textLineHeightPx
+        val translationLineHeight = style.translationLineHeightPx
         elements.forEachIndexed { idx, element ->
             val rawSlice = element.text.toString().trimEnd('\n')
 
@@ -129,9 +142,22 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
                 localStart = segLocalStart,
                 localEnd = segLocalEnd,
                 absoluteStart = element.absoluteCharStart,
+                zeroWidth = element.isTranslation,
             )
 
-            if (element.isFirstLineOfParagraph && style.firstLineIndentPx > 0f) {
+            if (element.isInterlinear && segLocalEnd > segLocalStart) {
+                // 双语对照的译文：字号降一级 + 次要文字色。分页测量用的是同一个整数像素字号
+                // （见 TypeStyle.translationPaint），换行位置一致。
+                sb.setSpan(
+                    AbsoluteSizeSpan(style.translationPaint.textSize.roundToInt()),
+                    segLocalStart, segLocalEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                )
+                sb.setSpan(
+                    ForegroundColorSpan(style.translationPaint.color),
+                    segLocalStart, segLocalEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
+                )
+            }
+            if (!element.isInterlinear && element.isFirstLineOfParagraph && style.firstLineIndentPx > 0f) {
                 sb.setSpan(
                     LeadingMarginSpan.Standard(style.firstLineIndentPx.toInt(), 0),
                     segLocalStart, segLocalEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
@@ -142,7 +168,7 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
             // and never touches the gap line below.
             if (segLocalEnd > segLocalStart) {
                 sb.setSpan(
-                    TextMeasurer.FixedLineHeightSpan(textLineHeight),
+                    TextMeasurer.FixedLineHeightSpan(if (element.isInterlinear) translationLineHeight else textLineHeight),
                     segLocalStart, segLocalEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
                 )
             }
@@ -203,9 +229,9 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
         if (segments.isEmpty()) return
         for (hit in hits) {
             for (seg in segments) {
-                val segAbsEnd = seg.absoluteStart + (seg.localEnd - seg.localStart)
+                if (seg.zeroWidth) continue
                 val s = maxOf(hit.absoluteStart, seg.absoluteStart)
-                val e = minOf(hit.absoluteEnd, segAbsEnd)
+                val e = minOf(hit.absoluteEnd, seg.absoluteEnd)
                 if (e <= s) continue
                 val localStart = seg.localStart + (s - seg.absoluteStart)
                 val localEnd = seg.localStart + (e - seg.absoluteStart)
@@ -232,18 +258,16 @@ class ReaderTextBlockView(context: Context) : AppCompatTextView(context) {
         if (segments.isEmpty()) return 0
         for (seg in segments) {
             if (localOffset <= seg.localEnd) {
-                val clamped = localOffset.coerceAtLeast(seg.localStart)
-                return seg.absoluteStart + (clamped - seg.localStart)
+                return seg.toAbsolute(localOffset.coerceAtLeast(seg.localStart))
             }
         }
-        val last = segments.last()
-        return last.absoluteStart + (last.localEnd - last.localStart)
+        return segments.last().absoluteEnd
     }
 
     fun absoluteCharAt(x: Float, y: Float): Int? {
         val offset = textOffsetAt(x, y) ?: return null
         val segment = segments.firstOrNull { offset in it.localStart until it.localEnd } ?: return null
-        return segment.absoluteStart + offset - segment.localStart
+        return segment.toAbsolute(offset)
     }
 
     private fun buildActionModeCallback(): ActionMode.Callback {

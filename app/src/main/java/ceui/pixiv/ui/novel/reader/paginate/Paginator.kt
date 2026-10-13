@@ -5,6 +5,7 @@ import ceui.pixiv.ui.novel.reader.model.ContentToken
 import ceui.pixiv.ui.novel.reader.model.Page
 import ceui.pixiv.ui.novel.reader.model.PageElement
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
+import ceui.pixiv.ui.novel.reader.model.TranslationRole
 
 /**
  * Flows [tokens] into a concrete list of [Page]s given the geometry and style.
@@ -48,14 +49,14 @@ class Paginator(
         if (tokens.isEmpty() || geometry.contentWidth <= 0f || geometry.contentHeight <= 0f) {
             return emptyList()
         }
-        for (token in tokens) {
-            processToken(token)
+        for ((i, token) in tokens.withIndex()) {
+            processToken(token, next = tokens.getOrNull(i + 1))
         }
         finishPage()
         return pages.toList()
     }
 
-    private fun processToken(token: ContentToken) {
+    private fun processToken(token: ContentToken, next: ContentToken?) {
         when (token) {
             is ContentToken.PageBreak -> {
                 finishPage()
@@ -105,7 +106,13 @@ class Paginator(
             }
 
             is ContentToken.Paragraph -> {
-                emitParagraph(token)
+                // 紧跟自己双语译文的原文段落收紧段后距，原文/译文读起来是一组（issue #864）。
+                val followedByTranslation =
+                    (next as? ContentToken.Paragraph)?.translationRole == TranslationRole.Interlinear
+                emitParagraph(
+                    token,
+                    gapAfter = if (followedByTranslation) style.translationGapPx else style.paragraphSpacingPx,
+                )
             }
 
             is ContentToken.BlankLine -> {
@@ -202,14 +209,16 @@ class Paginator(
         currentCharEnd = token.sourceEnd
     }
 
-    private fun emitParagraph(token: ContentToken.Paragraph) {
+    private fun emitParagraph(token: ContentToken.Paragraph, gapAfter: Float) {
         val width = geometry.contentWidth.toInt()
         if (width <= 0) return
-        val indent = style.firstLineIndentPx.toInt()
+        // 双语对照的译文降一级排版、不缩进；仅译文顶替原文，按正文样式排。
+        val interlinear = token.translationRole == TranslationRole.Interlinear
+        val indent = if (interlinear) 0 else style.firstLineIndentPx.toInt()
         val source = if (indent > 0) TextMeasurer.withFirstLineIndent(token.text, indent) else token.text
         val layout = measurer.measure(
             text = source,
-            paint = style.textPaint,
+            paint = if (interlinear) style.translationPaint else style.textPaint,
             width = width,
             lineSpacingMultiplier = style.lineSpacingMultiplier,
             lineSpacingExtra = style.lineSpacingExtra,
@@ -257,8 +266,14 @@ class Paginator(
 
             val startCharInLayout = layout.getLineStart(cursor).coerceIn(0, token.text.length)
             val endCharInLayout = layout.getLineEnd(cursor + linesFit - 1).coerceIn(0, token.text.length)
-            val absoluteStart = token.textSourceStart + startCharInLayout
-            val absoluteEnd = token.textSourceStart + endCharInLayout
+            // 译文不在源文本里，切片起点都钉在 textSourceStart，不虚构字符区间；
+            // 仅译文顶替的是整段原文，终点给到原文段末，页面的 charEnd 才盖得住这段。
+            val absoluteStart = if (token.isTranslation) token.textSourceStart else token.textSourceStart + startCharInLayout
+            val absoluteEnd = when (token.translationRole) {
+                TranslationRole.None -> token.textSourceStart + endCharInLayout
+                TranslationRole.Interlinear -> token.textSourceStart
+                TranslationRole.Replacement -> token.sourceEnd
+            }
             val sliceText = token.text.substring(startCharInLayout, endCharInLayout)
 
             val element = PageElement.Text(
@@ -271,6 +286,7 @@ class Paginator(
                 isFirstLineOfParagraph = cursor == 0,
                 isLastLineOfParagraph = (cursor + linesFit) == total,
                 lineCount = linesFit,
+                translationRole = token.translationRole,
             )
             currentElements += element
             ensureStartTracked(absoluteStart)
@@ -281,7 +297,7 @@ class Paginator(
             if (cursor < total) {
                 finishPage()
             } else {
-                currentY += style.paragraphSpacingPx
+                currentY += gapAfter
             }
         }
     }

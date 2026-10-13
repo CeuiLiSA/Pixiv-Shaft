@@ -3337,4 +3337,15 @@
     <string name="webdav_entry_last_success">마지막 백업 %1$s · 성공</string>
     <string name="webdav_entry_last_failed">마지막 백업 %1$s · 실패</string>
     <string name="webdav_unsaved_message">WebDAV 설정이 변경되었습니다. 저장할까요?</string>
+    <!-- 小说阅读器全文翻译（issue #864） -->
+    <string name="reader_translate_body">전문 번역</string>
+    <string name="reader_translate_resume">남은 문단 계속 번역</string>
+    <string name="reader_translate_display">번역문 표시 방식</string>
+    <string name="reader_translate_display_running">번역문 표시 방식 (번역 중 %1$d/%2$d 문단)</string>
+    <string name="reader_translate_mode_original">원문만</string>
+    <string name="reader_translate_mode_translation">번역문만</string>
+    <string name="reader_translate_mode_bilingual">원문 + 번역문</string>
+    <string name="msg_reader_translate_started">Google로 전문을 번역하는 중…</string>
+    <string name="msg_reader_translate_done">전문 번역 완료</string>
+    <string name="msg_reader_translate_failed">번역이 중단되었습니다(%1$s). 번역된 문단은 유지됩니다</string>
 </resources>

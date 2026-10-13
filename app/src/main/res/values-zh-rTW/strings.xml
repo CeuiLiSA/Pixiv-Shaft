@@ -3338,4 +3338,15 @@
     <string name="webdav_entry_last_success">上次備份 %1$s · 成功</string>
     <string name="webdav_entry_last_failed">上次備份 %1$s · 失敗</string>
     <string name="webdav_unsaved_message">WebDAV 設定已修改，離開前是否儲存？</string>
+    <!-- 小说阅读器全文翻译（issue #864） -->
+    <string name="reader_translate_body">全文翻譯</string>
+    <string name="reader_translate_resume">繼續翻譯剩餘段落</string>
+    <string name="reader_translate_display">譯文顯示方式</string>
+    <string name="reader_translate_display_running">譯文顯示方式（翻譯中 %1$d/%2$d 段）</string>
+    <string name="reader_translate_mode_original">僅原文</string>
+    <string name="reader_translate_mode_translation">僅譯文</string>
+    <string name="reader_translate_mode_bilingual">原文 + 譯文</string>
+    <string name="msg_reader_translate_started">正在用 Google 翻譯全文…</string>
+    <string name="msg_reader_translate_done">全文翻譯完成</string>
+    <string name="msg_reader_translate_failed">全文翻譯中斷（%1$s），已翻好的段落會保留</string>
 </resources>

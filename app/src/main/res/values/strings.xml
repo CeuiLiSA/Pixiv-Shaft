@@ -3641,4 +3641,15 @@
     <string name="illust_badge_pages" translatable="false">%1$dP</string>
     <string name="illust_badge_trending_score" translatable="false">▲ %1$s</string>
 
+    <!-- 小说阅读器全文翻译（issue #864） -->
+    <string name="reader_translate_body">全文翻译</string>
+    <string name="reader_translate_resume">继续翻译剩余段落</string>
+    <string name="reader_translate_display">译文显示方式</string>
+    <string name="reader_translate_display_running">译文显示方式（翻译中 %1$d/%2$d 段）</string>
+    <string name="reader_translate_mode_original">仅原文</string>
+    <string name="reader_translate_mode_translation">仅译文</string>
+    <string name="reader_translate_mode_bilingual">原文 + 译文</string>
+    <string name="msg_reader_translate_started">正在用谷歌翻译全文…</string>
+    <string name="msg_reader_translate_done">全文翻译完成</string>
+    <string name="msg_reader_translate_failed">全文翻译中断（%1$s），已翻好的段落会保留</string>
 </resources>

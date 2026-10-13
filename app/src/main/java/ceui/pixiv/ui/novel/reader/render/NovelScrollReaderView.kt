@@ -22,11 +22,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.OrientationHelper
 import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.ui.novel.reader.model.ContentToken
 import ceui.pixiv.ui.novel.reader.model.PageElement
 import ceui.pixiv.ui.novel.reader.model.PageGeometry
+import ceui.pixiv.ui.novel.reader.model.TranslationRole
 import ceui.pixiv.ui.novel.reader.paginate.InlineSpan
 import ceui.pixiv.ui.novel.reader.paginate.InlineTag
 import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer
@@ -93,7 +95,12 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             val tv = child as? TextView ?: return false
             val offset = tv.textOffsetAt(e.x - child.x, e.y - child.y) ?: return false
             doubleTapChar = when (token) {
-                is ContentToken.Paragraph -> token.textSourceStart + offset
+                // 双语译文不在任何原文段落里；仅译文段整段对应原文段首。
+                is ContentToken.Paragraph -> when (token.translationRole) {
+                    TranslationRole.None -> token.textSourceStart + offset
+                    TranslationRole.Interlinear -> return false
+                    TranslationRole.Replacement -> token.textSourceStart
+                }
                 is ContentToken.Chapter -> token.sourceStart
                 else -> return false
             }
@@ -244,6 +251,29 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         setAdapter(adapter)
     }
 
+    /**
+     * 换一份 token 流（全文翻译分批到货，issue #864），沿用当前 style / geometry /
+     * 图片解析，并把视口第一个可见条目钉回原来的像素位置——不能走 [bind] +
+     * [jumpToCharIndex]，那会把读到一半的段落拽回段首，每到一批译文跳一下。
+     */
+    fun updateTokens(tokens: List<ContentToken>) {
+        val old = contentAdapter ?: return
+        val firstPos = lm.findFirstVisibleItemPosition()
+        val anchorToken = old.tokens.getOrNull(firstPos)
+        val anchorView = lm.findViewByPosition(firstPos)
+        val helper = OrientationHelper.createVerticalHelper(lm)
+        val offset = anchorView?.let { helper.getDecoratedStart(it) - helper.startAfterPadding } ?: 0
+        val adapter = ContentAdapter(tokens, old.style, old.geometry, old.imageResolver)
+        adapter.searchHits = old.searchHits
+        contentAdapter = adapter
+        setAdapter(adapter)
+        if (anchorToken == null) return
+        val newPos = tokens.indexOf(anchorToken).takeIf { it >= 0 }
+            ?: positionForCharIndex(anchorCharOf(anchorToken))
+            ?: return
+        lm.scrollToPositionWithOffset(newPos, offset)
+    }
+
     fun scrollToCharIndex(charIndex: Int) {
         cancelTtsFollow()
         val pos = positionForCharIndex(charIndex) ?: return
@@ -374,13 +404,16 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         if (token is ContentToken.Paragraph) token.textSourceStart else token.sourceStart
 
     /** Last token whose anchor char is <= [charIndex]. Anchors are monotonic
-     *  in source order, so we can stop at the first one that overshoots. */
+     *  in source order, so we can stop at the first one that overshoots.
+     *  双语译文段是零宽度锚点，跳过它，进度 / 朗读跟随永远落在原文段落上。 */
     private fun positionForCharIndex(charIndex: Int): Int? {
         val toks = contentAdapter?.tokens ?: return null
         if (toks.isEmpty()) return null
         var target = 0
         for (i in toks.indices) {
-            if (anchorCharOf(toks[i]) <= charIndex) target = i else break
+            val token = toks[i]
+            if (token is ContentToken.Paragraph && token.translationRole == TranslationRole.Interlinear) continue
+            if (anchorCharOf(token) <= charIndex) target = i else break
         }
         return target
     }
@@ -409,8 +442,9 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
         override fun getItemCount(): Int = tokens.size
 
-        override fun getItemViewType(position: Int): Int = when (tokens[position]) {
-            is ContentToken.Paragraph -> TYPE_PARAGRAPH
+        override fun getItemViewType(position: Int): Int = when (val token = tokens[position]) {
+            is ContentToken.Paragraph ->
+                if (token.translationRole == TranslationRole.Interlinear) TYPE_TRANSLATION else TYPE_PARAGRAPH
             is ContentToken.Chapter -> TYPE_CHAPTER
             is ContentToken.BlankLine -> TYPE_SPACER
             is ContentToken.PageBreak -> TYPE_DIVIDER
@@ -420,7 +454,8 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = when (viewType) {
-            TYPE_PARAGRAPH -> ParagraphHolder(buildParagraphView(style))
+            TYPE_PARAGRAPH -> ParagraphHolder(buildParagraphView(style, style.textPaint))
+            TYPE_TRANSLATION -> ParagraphHolder(buildParagraphView(style, style.translationPaint))
             TYPE_CHAPTER -> SimpleHolder(buildChapterView(style))
             TYPE_SPACER -> SimpleHolder(buildSpacerView(style))
             TYPE_DIVIDER -> SimpleHolder(buildDividerView(style, geometry.contentWidth))
@@ -430,7 +465,13 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             when (val token = tokens[position]) {
-                is ContentToken.Paragraph -> (holder as ParagraphHolder).bind(token, style, searchHits + ttsHighlights())
+                is ContentToken.Paragraph -> {
+                    // 紧跟自己双语译文的原文段落收紧段后距，与横向 Paginator 同口径。
+                    val followedByTranslation = (tokens.getOrNull(position + 1) as? ContentToken.Paragraph)
+                        ?.translationRole == TranslationRole.Interlinear
+                    val gap = if (followedByTranslation) style.translationGapPx else style.paragraphSpacingPx
+                    (holder as ParagraphHolder).bind(token, style, searchHits + ttsHighlights(), gap.roundToInt())
+                }
                 is ContentToken.Chapter -> bindChapter(holder.itemView as AppCompatTextView, token, style)
                 is ContentToken.BlankLine -> Unit
                 is ContentToken.PageBreak -> Unit
@@ -457,23 +498,25 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
 
     private inner class ParagraphHolder(val tv: AppCompatTextView) : ViewHolder(tv) {
         private var boundSourceStart: Int = 0
+        /** 译文段：选区 / 高亮都映射到同一个零宽度源偏移。 */
+        private var boundZeroWidth: Boolean = false
 
         init {
             tv.customSelectionActionModeCallback = object : ActionMode.Callback {
                 override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
                     populateMenu(menu)
-                    notifyTvSelection(tv, boundSourceStart, onSelectionStarted)
+                    notifyTvSelection(tv, boundSourceStart, boundZeroWidth, onSelectionStarted)
                     return true
                 }
 
                 override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
                     populateMenu(menu)
-                    notifyTvSelection(tv, boundSourceStart, onSelectionChanged)
+                    notifyTvSelection(tv, boundSourceStart, boundZeroWidth, onSelectionChanged)
                     return true
                 }
 
                 override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
-                    notifyTvSelection(tv, boundSourceStart, onSelectionChanged)
+                    notifyTvSelection(tv, boundSourceStart, boundZeroWidth, onSelectionChanged)
                     onSelectionMenuAction?.invoke(item.itemId)
                     mode.finish()
                     return true
@@ -485,10 +528,18 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             }
         }
 
-        fun bind(token: ContentToken.Paragraph, style: TypeStyle, hits: List<HighlightRange>) {
+        fun bind(token: ContentToken.Paragraph, style: TypeStyle, hits: List<HighlightRange>, bottomGap: Int) {
             boundSourceStart = token.textSourceStart
+            boundZeroWidth = token.isTranslation
+            (tv.layoutParams as? ViewGroup.MarginLayoutParams)?.let { lp ->
+                if (lp.bottomMargin != bottomGap) {
+                    lp.bottomMargin = bottomGap
+                    tv.layoutParams = lp
+                }
+            }
             val spannable = SpannableString(token.text)
-            val indent = style.firstLineIndentPx.toInt()
+            val interlinear = token.translationRole == TranslationRole.Interlinear
+            val indent = if (interlinear) 0 else style.firstLineIndentPx.toInt()
             if (indent > 0 && token.text.isNotEmpty()) {
                 spannable.setSpan(
                     LeadingMarginSpan.Standard(indent, 0),
@@ -505,7 +556,10 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             }
             tv.setTextIsSelectable(true)
             tv.text = TextMeasurer.wrapWithFixedLineHeight(
-                spannable, style.textPaint, style.lineSpacingMultiplier, style.lineSpacingExtra,
+                spannable,
+                if (interlinear) style.translationPaint else style.textPaint,
+                style.lineSpacingMultiplier,
+                style.lineSpacingExtra,
             )
             applyHighlights(hits)
         }
@@ -514,7 +568,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
             val spannable = tv.text as? Spannable ?: return
             spannable.getSpans(0, spannable.length, ScrollSearchSpan::class.java)
                 .forEach { spannable.removeSpan(it) }
-            if (hits.isEmpty()) return
+            if (hits.isEmpty() || boundZeroWidth) return
             val anchorStart = boundSourceStart
             val anchorEnd = anchorStart + spannable.length
             for (hit in hits) {
@@ -573,13 +627,13 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         this.rightMargin = rightMargin
     }
 
-    private fun buildParagraphView(style: TypeStyle): AppCompatTextView =
+    private fun buildParagraphView(style: TypeStyle, paint: android.text.TextPaint): AppCompatTextView =
         AppCompatTextView(context).apply {
             TextMeasurer.applyLayoutSettings(this)
-            setTextSize(TypedValue.COMPLEX_UNIT_PX, style.textPaint.textSize)
-            typeface = style.textPaint.typeface
-            setTextColor(style.textPaint.color)
-            letterSpacing = style.textPaint.letterSpacing
+            setTextSize(TypedValue.COMPLEX_UNIT_PX, paint.textSize)
+            typeface = paint.typeface
+            setTextColor(paint.color)
+            letterSpacing = paint.letterSpacing
             setLineSpacing(0f, 1f)
             setBackgroundColor(Color.TRANSPARENT)
             highlightColor = style.selectionColor
@@ -743,6 +797,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
     private fun notifyTvSelection(
         tv: AppCompatTextView,
         sourceStart: Int,
+        zeroWidth: Boolean,
         cb: ((Int, Int, String) -> Unit)?,
     ) {
         if (cb == null) return
@@ -750,7 +805,7 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         val e = tv.selectionEnd.coerceAtLeast(s)
         if (e <= s || e > tv.text.length) return
         val sliced = tv.text.subSequence(s, e).toString()
-        cb(sourceStart + s, sourceStart + e, sliced)
+        if (zeroWidth) cb(sourceStart, sourceStart, sliced) else cb(sourceStart + s, sourceStart + e, sliced)
     }
 
     // ---- Inline markup spans ------------------------------------------------
@@ -808,5 +863,6 @@ class NovelScrollReaderView(context: Context) : RecyclerView(context) {
         const val TYPE_DIVIDER = 3
         const val TYPE_IMAGE = 4
         const val TYPE_JUMP = 5
+        const val TYPE_TRANSLATION = 6
     }
 }

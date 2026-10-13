@@ -34,10 +34,16 @@ data class TypeStyle(
     val linkColor: Int,
     val chapterTopGapPx: Float,
     val chapterBottomGapPx: Float,
+    /** 全文翻译的译文：字号降一级、次要文字色（issue #864）。字号取整像素，见 [from]。 */
+    val translationPaint: TextPaint,
+    /** 原文段落与紧随其后的译文之间的间距，比段间距紧，让一对原文/译文读起来是一组。 */
+    val translationGapPx: Float,
 ) {
     val textSize: Float get() = textPaint.textSize
     val textLineHeightPx: Int
         get() = TextMeasurer.lineHeightPx(textPaint, lineSpacingMultiplier, lineSpacingExtra)
+    val translationLineHeightPx: Int
+        get() = TextMeasurer.lineHeightPx(translationPaint, lineSpacingMultiplier, lineSpacingExtra)
 
     companion object {
         fun from(context: Context, settings: ReaderSettings.Snapshot, theme: ReaderTheme): TypeStyle {
@@ -72,6 +78,12 @@ data class TypeStyle(
                 this.color = theme.secondaryTextColor
                 this.isFakeBoldText = false
             }
+            // 译文在翻页模式下与原文合进同一个 TextView，靠 AbsoluteSizeSpan(Int) 换字号；
+            // 分页测量走 setTextSize(PX, Float)。字号取整像素，两条路径才逐像素一致。
+            val translationPaint = TextPaint(textPaint).apply {
+                this.textSize = (textSizePx * 0.9f).roundToInt().toFloat()
+                this.color = theme.secondaryTextColor
+            }
             // "1 line" means one rendered body line, including the user's line spacing.
             // Round once here so pagination and every renderer budget the same pixels.
             val paragraphSpacing = (TextMeasurer.lineHeightPx(textPaint, settings.lineSpacing)
@@ -97,6 +109,8 @@ data class TypeStyle(
                 linkColor = theme.linkColor,
                 chapterTopGapPx = chapterHeight * 0.8f,
                 chapterBottomGapPx = chapterHeight * 1.2f,
+                translationPaint = translationPaint,
+                translationGapPx = (paragraphSpacing * 0.35f).roundToInt().toFloat(),
             )
         }
     }

@@ -37,6 +37,11 @@ import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.feature.SearchEngine
 import ceui.pixiv.ui.novel.reader.model.SearchHit
 import ceui.pixiv.ui.novel.reader.paginate.ChapterOutlineEntry
+import ceui.pixiv.ui.novel.reader.paginate.TranslationInserter
+import ceui.pixiv.ui.novel.reader.model.TranslationRole
+import ceui.pixiv.ui.translate.appTranslateTargetLang
+import android.os.SystemClock
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.android.asCoroutineDispatcher
@@ -136,6 +141,36 @@ class NovelReaderV3ViewModel(
     private val _illustMixVersion = MutableLiveData(0)
     val illustMixVersion: LiveData<Int> = _illustMixVersion
 
+    // ---- 全文翻译（issue #864）----
+    // 译文同样只进展示链路（displayTokens）；关掉后保留已翻好的部分，再开秒出、只补缺口。
+
+    sealed class TranslationState {
+        object Off : TranslationState()
+        data class Running(val done: Int, val total: Int) : TranslationState()
+        object Done : TranslationState()
+        data class Failed(val error: Exception) : TranslationState()
+    }
+
+    private val _translationState = MutableLiveData<TranslationState>(TranslationState.Off)
+    val translationState: LiveData<TranslationState> = _translationState
+
+    /** 译文有变化（到货一批 / 开关切换）后 +1，阅读页 observe 它把译文贴进纵向滚动视图。 */
+    private val _translationVersion = MutableLiveData(0)
+    val translationVersion: LiveData<Int> = _translationVersion
+
+    /** 原文段落 sourceStart → 译文，目标语言为 [translationsLang]。 */
+    private var translations: Map<Int, String> = emptyMap()
+    private var translationsLang: String? = null
+    private var translationJob: Job? = null
+    private var lastTranslationRefreshAt = 0L
+
+    /** 本篇已经有（部分）译文：切到「仅原文」后菜单仍要给出「译文显示方式」好切回来。 */
+    val hasBodyTranslation: Boolean get() = translations.isNotEmpty()
+
+    /** 中断（[TranslationState.Failed]）时已到手的译文照常显示，不随失败一起消失。 */
+    private val isTranslationShown: Boolean
+        get() = _translationState.value !is TranslationState.Off
+
     private var pendingStyle: TypeStyle? = null
     private var pendingGeometry: PageGeometry? = null
     private var desiredCharIndex: Int = 0
@@ -227,10 +262,98 @@ class NovelReaderV3ViewModel(
      * 阅读页自然回退纯文字。横向 [repaginateIfReady] 与纵向 rebind 都从这取。
      */
     fun displayTokens(): List<ContentToken> {
+        val withMix = withIllustMix(tokens)
+        // 译文最后插：紧贴各自原文段落，混排插图不会夹进一对原文/译文中间。
+        if (!isTranslationShown) return withMix
+        return TranslationInserter.insert(withMix, translations, ReaderSettings.translationRole)
+    }
+
+    private fun withIllustMix(tokens: List<ContentToken>): List<ContentToken> {
         val source = ReaderSettings.illustMixSource
         if (source == NovelIllustSource.None) return tokens
         if (mixIllustsSource != source || mixIllusts.isEmpty()) return tokens
         return IllustMixInserter.insert(tokens, mixIllusts.map { it.id })
+    }
+
+    /** 收起译文回到纯原文，并停掉进行中的请求；已翻好的部分留着，再开时秒出。 */
+    fun hideBodyTranslation() {
+        if (_translationState.value is TranslationState.Off) return
+        translationJob?.cancel()
+        _translationState.value = TranslationState.Off
+        refreshTranslationDisplay(force = true)
+    }
+
+    /**
+     * 「译文显示方式」：null = 仅原文（收起译文）；否则记住双语 / 仅译文并上屏——
+     * 还没翻过就顺带开始翻。
+     */
+    fun setTranslationDisplay(role: TranslationRole?) {
+        if (role == null || role == TranslationRole.None) {
+            hideBodyTranslation()
+            return
+        }
+        ReaderSettings.translationRole = role
+        if (_translationState.value is TranslationState.Off) {
+            startBodyTranslation()
+        } else {
+            refreshTranslationDisplay(force = true)
+        }
+    }
+
+    /** 开始全文翻译；上次中断的话只补没翻到的段落。 */
+    fun startBodyTranslation() {
+        if (_translationState.value is TranslationState.Running || tokens.isEmpty()) return
+        val lang = appTranslateTargetLang()
+        if (translationsLang != lang) {
+            translations = emptyMap()
+            translationsLang = lang
+        }
+        // 从当前阅读位置往后先翻，再回头补前面——译文先出现在用户正在看的地方。
+        val (before, after) = tokens.asSequence()
+            .filterIsInstance<ContentToken.Paragraph>()
+            .filter { it.text.isNotBlank() && it.sourceStart !in translations }
+            .partition { it.sourceEnd < desiredCharIndex }
+        val pending = after + before
+        if (pending.isEmpty()) {
+            _translationState.value = TranslationState.Done
+            refreshTranslationDisplay(force = true)
+            return
+        }
+        _translationState.value = TranslationState.Running(0, pending.size)
+        // 已有的部分译文（上次中断 / 关掉又打开）立刻上屏；首批新译文也不受限频。
+        if (translations.isNotEmpty()) refreshTranslationDisplay(force = true)
+        lastTranslationRefreshAt = 0L
+        translationJob?.cancel()
+        translationJob = viewModelScope.launch {
+            var done = 0
+            try {
+                NovelBodyTranslator.translate(pending, lang) { chunk ->
+                    translations = translations + chunk
+                    done += chunk.size
+                    _translationState.value = TranslationState.Running(done, pending.size)
+                    refreshTranslationDisplay(force = false)
+                }
+                _translationState.value = TranslationState.Done
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.tag("NovelReaderV3").w(e, "body translation stopped at %d/%d", done, pending.size)
+                _translationState.value = TranslationState.Failed(e)
+            }
+            refreshTranslationDisplay(force = true)
+        }
+    }
+
+    /**
+     * 译文上屏：横向重排版、纵向通过 [translationVersion] 换 token。分批到货时限频——
+     * 长篇每次重排版都是整本重新测量，且每次换页都会让当前页重绘一下。
+     */
+    private fun refreshTranslationDisplay(force: Boolean) {
+        val now = SystemClock.elapsedRealtime()
+        if (!force && lastTranslationRefreshAt != 0L && now - lastTranslationRefreshAt < TRANSLATION_REFRESH_INTERVAL_MS) return
+        lastTranslationRefreshAt = now
+        repaginateIfReady()
+        _translationVersion.value = (_translationVersion.value ?: 0) + 1
     }
 
     /** 内嵌插图照旧走 webNovel 的对象表，查不到再落到混排取材的 URL 表。 */
@@ -282,7 +405,9 @@ class NovelReaderV3ViewModel(
         _currentPageIndex.postValue(index)
         val pages = _pagination.value?.pages ?: return
         val page = pages.getOrNull(index) ?: return
-        desiredCharIndex = page.charStart
+        // 重排版后视图会回报落到的那一页：它本来就包含锚点时别把锚点改写成页首，否则
+        // 每次重排版（全文翻译分批到货、开关译文）都往回退一截，翻译途中能倒退好几页。
+        if (desiredCharIndex !in page.charStart until page.charEnd) desiredCharIndex = page.charStart
         ReaderProgressStore.saveProgress(novelId, page.charStart, index, pages.size)
     }
 
@@ -641,6 +766,9 @@ class NovelReaderV3ViewModel(
     }
 
     companion object {
+        /** 分批到货时两次译文上屏的最小间隔；首批与结束时不受限。 */
+        private const val TRANSLATION_REFRESH_INTERVAL_MS = 2_500L
+
         fun factory(
             novelId: Long,
             discoveryPool: DiscoveryPool,

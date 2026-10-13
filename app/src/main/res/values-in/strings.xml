@@ -3322,4 +3322,15 @@
     <string name="webdav_entry_last_success">Cadangan terakhir %1$s · berhasil</string>
     <string name="webdav_entry_last_failed">Cadangan terakhir %1$s · gagal</string>
     <string name="webdav_unsaved_message">Konfigurasi WebDAV telah diubah. Simpan sebelum keluar?</string>
+    <!-- 小说阅读器全文翻译（issue #864） -->
+    <string name="reader_translate_body">Terjemahkan seluruh teks</string>
+    <string name="reader_translate_resume">Lanjutkan menerjemahkan</string>
+    <string name="reader_translate_display">Tampilan terjemahan</string>
+    <string name="reader_translate_display_running">Tampilan terjemahan (menerjemahkan %1$d/%2$d)</string>
+    <string name="reader_translate_mode_original">Hanya teks asli</string>
+    <string name="reader_translate_mode_translation">Hanya terjemahan</string>
+    <string name="reader_translate_mode_bilingual">Teks asli + terjemahan</string>
+    <string name="msg_reader_translate_started">Menerjemahkan seluruh teks dengan Google…</string>
+    <string name="msg_reader_translate_done">Seluruh teks selesai diterjemahkan</string>
+    <string name="msg_reader_translate_failed">Terjemahan terhenti (%1$s). Paragraf yang sudah diterjemahkan tetap disimpan</string>
 </resources>

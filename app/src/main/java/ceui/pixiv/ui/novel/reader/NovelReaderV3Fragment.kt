@@ -69,7 +69,9 @@ import ceui.pixiv.ui.novel.reader.render.NovelScrollReaderView
 import ceui.pixiv.ui.novel.reader.render.ReaderTextBlockView
 import ceui.pixiv.ui.novel.reader.render.PageOverlays
 import ceui.pixiv.ui.translate.appTranslateTargetLang
+import ceui.pixiv.ui.translate.promptProxyNeededIfPossible
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
+import ceui.pixiv.ui.novel.reader.model.TranslationRole
 import ceui.pixiv.ui.novel.reader.settings.ReaderTheme
 import ceui.pixiv.ui.novel.reader.ui.AnnotationSheetCallback
 import ceui.pixiv.ui.novel.reader.ui.AnnotationsSheet
@@ -617,6 +619,31 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             if ((version ?: 0) > 0) rebindScrollViewIfActive()
         }
 
+        // 全文翻译（issue #864）：译文分批到货，纵向换 token 时钉住视口不跳；
+        // 横向由 VM 内部 repaginate 覆盖，走 pagination observer。
+        viewModel.translationVersion.observe(viewLifecycleOwner) { version ->
+            if ((version ?: 0) > 0) scrollReaderView?.takeIf { it.visibility == View.VISIBLE }
+                ?.updateTokens(viewModel.displayTokens())
+        }
+        var lastTranslationState: NovelReaderV3ViewModel.TranslationState? = null
+        viewModel.translationState.observe(viewLifecycleOwner) { state ->
+            // 只对本次 observe 期间发生的「翻译中 → 结束」提示；重建 view 时回放的旧状态不重复弹。
+            val wasRunning = lastTranslationState is NovelReaderV3ViewModel.TranslationState.Running
+            lastTranslationState = state
+            if (!wasRunning) return@observe
+            when (state) {
+                NovelReaderV3ViewModel.TranslationState.Done ->
+                    Toaster.showShort(getString(R.string.msg_reader_translate_done))
+                is NovelReaderV3ViewModel.TranslationState.Failed ->
+                    if (state.error is java.io.IOException) {
+                        promptProxyNeededIfPossible()
+                    } else {
+                        Toaster.showLong(getString(R.string.msg_reader_translate_failed, state.error.message.orEmpty()))
+                    }
+                else -> Unit
+            }
+        }
+
         viewModel.annotations.observe(viewLifecycleOwner) { list ->
             annotationSpans = list.map { a ->
                 HighlightSpan(
@@ -906,8 +933,60 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         }
     }
 
+    /**
+     * 全文翻译（issue #864）：从没翻过 → 「全文翻译」；翻过（含切到「仅原文」之后）→
+     * 「译文显示方式」三选一，随时能切回来；中断时多一条「继续翻译」。
+     */
+    private fun V3MenuBuilder.addBodyTranslationItems() {
+        val icon = R.drawable.ic_baseline_translate_24
+        val state = viewModel.translationState.value
+        val off = state == null || state is NovelReaderV3ViewModel.TranslationState.Off
+        if (off && !viewModel.hasBodyTranslation) {
+            item(getString(R.string.reader_translate_body), icon) { startBodyTranslation() }
+            return
+        }
+        if (state is NovelReaderV3ViewModel.TranslationState.Failed) {
+            item(getString(R.string.reader_translate_resume), icon) { startBodyTranslation() }
+        }
+        val label = if (state is NovelReaderV3ViewModel.TranslationState.Running) {
+            getString(R.string.reader_translate_display_running, state.done, state.total)
+        } else {
+            getString(R.string.reader_translate_display)
+        }
+        item(label, icon) { showTranslationDisplayPicker() }
+    }
+
+    /** 仅原文 / 仅译文 / 原文 + 译文 三选一；后两者记进 [ReaderSettings.translationRole]。 */
+    private fun showTranslationDisplayPicker() {
+        val options = listOf(
+            R.string.reader_translate_mode_original to null,
+            R.string.reader_translate_mode_translation to TranslationRole.Replacement,
+            R.string.reader_translate_mode_bilingual to TranslationRole.Interlinear,
+        )
+        val shown = viewModel.translationState.value !is NovelReaderV3ViewModel.TranslationState.Off
+        val current = if (shown) options.indexOfFirst { it.second == ReaderSettings.translationRole } else 0
+        val builder = WitDialog.CheckableDialogBuilder(requireContext())
+            .setTitle(getString(R.string.reader_translate_display))
+            .setCheckedIndex(current)
+        builder.addItems(options.map { getString(it.first) }.toTypedArray()) { dialog, which ->
+            dialog.dismiss()
+            viewModel.setTranslationDisplay(options[which].second)
+        }
+        builder.show()
+    }
+
+    private fun startBodyTranslation() {
+        if (viewModel.loadState.value !is NovelReaderV3ViewModel.LoadState.Loaded) {
+            Toaster.showShort(getString(R.string.msg_novel_not_ready))
+            return
+        }
+        Toaster.showShort(getString(R.string.msg_reader_translate_started))
+        viewModel.startBodyTranslation()
+    }
+
     /** 阅读器自身的菜单项（书签 / 保存位置 / 追更 / 导出），由 [showTopMoreMenu] 两个分支共用。 */
     private fun V3MenuBuilder.addReaderMenuItems() {
+        addBodyTranslationItems()
         val ttsLabel = when (ttsState) {
             NovelTtsController.STATE_PLAYING -> R.string.reader_menu_tts_pause
             NovelTtsController.STATE_PAUSED -> R.string.reader_menu_tts_resume

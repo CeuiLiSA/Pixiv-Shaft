@@ -3337,4 +3337,15 @@
     <string name="webdav_entry_last_success">前回のバックアップ %1$s · 成功</string>
     <string name="webdav_entry_last_failed">前回のバックアップ %1$s · 失敗</string>
     <string name="webdav_unsaved_message">WebDAV の設定が変更されています。保存しますか？</string>
+    <!-- 小说阅读器全文翻译（issue #864） -->
+    <string name="reader_translate_body">全文を翻訳</string>
+    <string name="reader_translate_resume">残りの段落を翻訳</string>
+    <string name="reader_translate_display">訳文の表示方法</string>
+    <string name="reader_translate_display_running">訳文の表示方法（翻訳中 %1$d/%2$d 段落）</string>
+    <string name="reader_translate_mode_original">原文のみ</string>
+    <string name="reader_translate_mode_translation">訳文のみ</string>
+    <string name="reader_translate_mode_bilingual">原文 + 訳文</string>
+    <string name="msg_reader_translate_started">Google で全文を翻訳中…</string>
+    <string name="msg_reader_translate_done">全文の翻訳が完了しました</string>
+    <string name="msg_reader_translate_failed">翻訳が中断されました（%1$s）。翻訳済みの段落は保持されます</string>
 </resources>

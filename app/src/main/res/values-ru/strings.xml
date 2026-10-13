@@ -3361,4 +3361,15 @@
     <string name="webdav_entry_last_success">Последняя копия %1$s · успешно</string>
     <string name="webdav_entry_last_failed">Последняя копия %1$s · ошибка</string>
     <string name="webdav_unsaved_message">Настройки WebDAV изменены. Сохранить перед выходом?</string>
+    <!-- 小说阅读器全文翻译（issue #864） -->
+    <string name="reader_translate_body">Перевести весь текст</string>
+    <string name="reader_translate_resume">Продолжить перевод</string>
+    <string name="reader_translate_display">Отображение перевода</string>
+    <string name="reader_translate_display_running">Отображение перевода (перевод %1$d/%2$d)</string>
+    <string name="reader_translate_mode_original">Только оригинал</string>
+    <string name="reader_translate_mode_translation">Только перевод</string>
+    <string name="reader_translate_mode_bilingual">Оригинал + перевод</string>
+    <string name="msg_reader_translate_started">Переводим весь текст через Google…</string>
+    <string name="msg_reader_translate_done">Весь текст переведён</string>
+    <string name="msg_reader_translate_failed">Перевод прерван (%1$s). Переведённые абзацы сохранены</string>
 </resources>

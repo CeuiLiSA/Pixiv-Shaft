@@ -27,7 +27,12 @@ sealed class PageElement {
         val isFirstLineOfParagraph: Boolean,
         val isLastLineOfParagraph: Boolean,
         val lineCount: Int,
-    ) : PageElement()
+        /** 全文翻译的译文切片（[TranslationRole]）：选区 / 高亮映射到 [absoluteCharStart] 这一个点。 */
+        val translationRole: TranslationRole = TranslationRole.None,
+    ) : PageElement() {
+        val isTranslation: Boolean get() = translationRole != TranslationRole.None
+        val isInterlinear: Boolean get() = translationRole == TranslationRole.Interlinear
+    }
 
     data class Chapter(
         override val top: Float,

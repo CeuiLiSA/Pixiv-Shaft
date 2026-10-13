@@ -3344,4 +3344,15 @@
     <string name="webdav_entry_last_success">Last backup %1$s · succeeded</string>
     <string name="webdav_entry_last_failed">Last backup %1$s · failed</string>
     <string name="webdav_unsaved_message">WebDAV settings have changed. Save before leaving?</string>
+    <!-- 小说阅读器全文翻译（issue #864） -->
+    <string name="reader_translate_body">Translate full text</string>
+    <string name="reader_translate_resume">Continue translating</string>
+    <string name="reader_translate_display">Translation display</string>
+    <string name="reader_translate_display_running">Translation display (translating %1$d/%2$d)</string>
+    <string name="reader_translate_mode_original">Original only</string>
+    <string name="reader_translate_mode_translation">Translation only</string>
+    <string name="reader_translate_mode_bilingual">Original + translation</string>
+    <string name="msg_reader_translate_started">Translating the full text with Google…</string>
+    <string name="msg_reader_translate_done">Full text translated</string>
+    <string name="msg_reader_translate_failed">Translation stopped (%1$s). Translated paragraphs are kept</string>
 </resources>
