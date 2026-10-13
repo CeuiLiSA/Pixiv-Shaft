@@ -125,7 +125,7 @@ object SearchFilterV3LegacyBridge {
         // 不能种进 novel filter（novel 端点不识别），归一到总热度。
         val sort = (searchModel.sortType.value ?: baseline.sort)
             .let { if (isNovel) SortType.novelSafe(it)!! else it }
-        val target = SearchTarget.values().firstOrNull { it.apiValue == searchModel.searchType.value }
+        val target = SearchTarget.entries.firstOrNull { it.apiValue == searchModel.searchType.value }
             ?: baseline.searchTarget
 
         // 两条桶独立解析：bookmarkMin/Max 走官方 query，starSize 走关键字后缀。
@@ -137,7 +137,7 @@ object SearchFilterV3LegacyBridge {
         else baseline.bookmarkRange
         val parsedStar = parseStarSizeMin(searchModel.starSize.value)
         val keywordBucket = if (parsedStar > 0)
-            KeywordUsersBucket.values().firstOrNull { it.min == parsedStar } ?: baseline.keywordUsersBucket
+            KeywordUsersBucket.entries.firstOrNull { it.min == parsedStar } ?: baseline.keywordUsersBucket
         else baseline.keywordUsersBucket
 
         // R-18 没有全局档，基线 = 内置默认「全部」；会话值（r18Restriction）总被 applyToLegacy 写实，
@@ -152,12 +152,12 @@ object SearchFilterV3LegacyBridge {
         }
         val r18 = sessionR18 ?: baseline.r18Mode
         val ratio = if (isNovel) null
-            else RatioPattern.values().firstOrNull { it.apiValue == searchModel.ratioPattern.value }
+            else RatioPattern.entries.firstOrNull { it.apiValue == searchModel.ratioPattern.value }
                 ?: baseline.ratioPattern
         // 作品类别（仅 illust/manga）：反向解析 SearchModel.contentType (apiValue) → enum；
         // 命中不到（含 null）→ 默认 IllustAndMangaAndUgoira
         val contentType = if (isNovel) IllustContentType.IllustAndMangaAndUgoira
-            else IllustContentType.values().firstOrNull { it.apiValue == searchModel.contentType.value }
+            else IllustContentType.entries.firstOrNull { it.apiValue == searchModel.contentType.value }
                 ?: baseline.contentType
         // 反向解析分辨率档位：以 4 个 query 参数的组合命中固定枚举值；命中不到 = 全部清晰度
         val resolution = if (isNovel) null else {
@@ -165,7 +165,7 @@ object SearchFilterV3LegacyBridge {
             val wMax = searchModel.widthMax.value
             val hMin = searchModel.heightMin.value
             val hMax = searchModel.heightMax.value
-            ResolutionBucket.values().firstOrNull {
+            ResolutionBucket.entries.firstOrNull {
                 it.widthMin == wMin && it.widthMax == wMax &&
                     it.heightMin == hMin && it.heightMax == hMax
             } ?: baseline.resolutionBucket
@@ -208,7 +208,7 @@ object SearchFilterV3LegacyBridge {
             lang = searchModel.lang.value ?: baseline.lang,
             // bucket 名字反解到 enum；命中不到（含 null）→ baseline
             durationBucket = searchModel.durationBucket.value?.let { name ->
-                DurationBucket.values().firstOrNull { it.name == name }
+                DurationBucket.entries.firstOrNull { it.name == name }
             } ?: baseline.durationBucket,
             startDate = searchModel.startDate.value ?: baseline.startDate,
             endDate = searchModel.endDate.value ?: baseline.endDate,

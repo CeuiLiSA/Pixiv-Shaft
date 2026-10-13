@@ -113,7 +113,7 @@ data class SearchFilterV3(
                 .let { if (forNovel) SortType.novelSafe(it)!! else it }
             val bucketMin = Regex("""\d+""").find(s.searchFilter.orEmpty())
                 ?.value?.toIntOrNull() ?: 0
-            val keywordBucket = KeywordUsersBucket.values().firstOrNull { it.min == bucketMin }
+            val keywordBucket = KeywordUsersBucket.entries.firstOrNull { it.min == bucketMin }
                 ?: KeywordUsersBucket.None
             // 「仅这里记住」的三个搜索页专属档位——没记住过（null）就回落到全局设置 / 内置默认。
             val rememberedAi = s.searchRememberedAiMode

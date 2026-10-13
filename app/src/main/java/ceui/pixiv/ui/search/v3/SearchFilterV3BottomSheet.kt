@@ -120,17 +120,17 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
                 add(SortType.POPULAR_FEMALE_DESC)
             }
         }
-    private val keywordUsersList = KeywordUsersBucket.values().toList()
-    // 长宽比候选；index 0 = "所有纵横比"（null），1.. = RatioPattern.values()[idx-1]
-    private val ratioList = RatioPattern.values().toList()
-    // 分辨率档位；index 0 = "全部清晰度"（null），1.. = ResolutionBucket.values()[idx-1]
-    private val resolutionList = ResolutionBucket.values().toList()
+    private val keywordUsersList = KeywordUsersBucket.entries.toList()
+    // 长宽比候选；index 0 = "所有纵横比"（null），1.. = RatioPattern.entries[idx-1]
+    private val ratioList = RatioPattern.entries.toList()
+    // 分辨率档位；index 0 = "全部清晰度"（null），1.. = ResolutionBucket.entries[idx-1]
+    private val resolutionList = ResolutionBucket.entries.toList()
     // 作品类别候选（5 档，IllustContentType.IllustAndMangaAndUgoira 为默认）
-    private val contentTypeList = IllustContentType.values().toList()
+    private val contentTypeList = IllustContentType.entries.toList()
     // 正文长度 / 阅读用时（novel 专属）枚举
-    private val charLengthList = CharLengthBucket.values().toList()
-    private val wordLengthList = WordLengthBucket.values().toList()
-    private val readingTimeBucketList = ReadingTimeBucket.values().toList()
+    private val charLengthList = CharLengthBucket.entries.toList()
+    private val wordLengthList = WordLengthBucket.entries.toList()
+    private val readingTimeBucketList = ReadingTimeBucket.entries.toList()
     private val targetList: List<SearchTarget>
         get() = if (isNovel) SearchTarget.forNovel() else SearchTarget.forIllust()
 
