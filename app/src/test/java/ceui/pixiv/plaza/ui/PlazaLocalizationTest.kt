@@ -37,8 +37,8 @@ class PlazaLocalizationTest {
     @Test
     fun `retained messages resolve against the current language and plural rules`() {
         val message = PlazaMessage(R.string.plaza_photo_limit, listOf(9))
-        val locales = listOf("zh-CN", "en", "ja", "ko", "ru", "tr", "zh-TW")
-        val close = listOf("关闭", "Close", "閉じる", "닫기", "Закрыть", "Kapat", "關閉")
+        val locales = listOf("zh-CN", "en", "ja", "ko", "ru", "tr", "id", "zh-TW")
+        val close = listOf("关闭", "Close", "閉じる", "닫기", "Закрыть", "Kapat", "Tutup", "關閉")
         for ((i, locale) in locales.withIndex()) {
             val context = context(locale)
             assertEquals(close[i], context.getString(R.string.plaza_close))
@@ -65,6 +65,11 @@ class PlazaLocalizationTest {
         assertEquals(
             "5 ответов ›",
             context("ru").resources.getQuantityString(R.plurals.plaza_reply_count, 5, 5),
+        )
+        // 印尼语只有 other 一个复数类别
+        assertEquals(
+            "1 balasan ›",
+            context("id").resources.getQuantityString(R.plurals.plaza_reply_count, 1, 1),
         )
         assertEquals(
             context("en").getString(R.string.plaza_generic_error),

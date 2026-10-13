@@ -125,7 +125,7 @@ class RecommendPageOrderTest {
         val app = RuntimeEnvironment.getApplication()
         for (night in listOf(Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_YES)) {
             for (scale in listOf(1f, 2f)) {
-                for (language in listOf("zh", "en", "ja", "ko", "ru", "tr", "zh-TW")) {
+                for (language in listOf("zh", "en", "ja", "ko", "ru", "tr", "id", "zh-TW")) {
                     val config = Configuration(app.resources.configuration).apply {
                         uiMode = Configuration.UI_MODE_TYPE_NORMAL or night
                         fontScale = scale

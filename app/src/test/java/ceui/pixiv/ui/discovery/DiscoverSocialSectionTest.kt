@@ -51,7 +51,7 @@ class DiscoverSocialSectionTest {
         if (this is ViewGroup) (0 until childCount).flatMap { getChildAt(it).descendants() } else emptyList()
 
     @Test fun `translated text and artwork do not overlap or clip on narrow and large-font screens`() {
-        for (locale in listOf("zh-CN", "zh-TW", "en", "ja", "ko", "ru", "tr")) {
+        for (locale in listOf("zh-CN", "zh-TW", "en", "ja", "ko", "ru", "tr", "id")) {
             for (width in listOf(320, 390, 800)) for (scale in listOf(1f, 2f)) {
                 val ctx = context(locale, scale)
                 val section = DiscoverSocialSection(ctx)

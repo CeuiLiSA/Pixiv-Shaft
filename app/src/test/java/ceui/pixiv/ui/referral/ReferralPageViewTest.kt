@@ -181,7 +181,7 @@ class ReferralPageViewTest {
     }
 
     @Test fun walletHeadingAndCountFitTheWideSidebarWithLongTranslations() {
-        for (locale in listOf("en", "ru", "tr", "ja", "ko", "zh-TW", "zh-CN")) {
+        for (locale in listOf("en", "ru", "tr", "id", "ja", "ko", "zh-TW", "zh-CN")) {
             val app = RuntimeEnvironment.getApplication()
             val config = android.content.res.Configuration(app.resources.configuration).apply {
                 setLocales(LocaleList.forLanguageTags(locale)); fontScale = 2f

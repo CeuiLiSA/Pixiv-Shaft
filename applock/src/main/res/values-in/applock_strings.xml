@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="applock_locked_title">%1$s terkunci</string>
+    <string name="applock_locked_desc">Verifikasi identitas dengan sidik jari, wajah, atau kunci layar untuk melanjutkan</string>
+    <string name="applock_unlock">Buka kunci</string>
+    <string name="applock_prompt_title">Buka kunci %1$s</string>
+    <string name="applock_prompt_subtitle">Gunakan sidik jari, wajah, atau kunci layar</string>
+    <string name="applock_enable_prompt_title">Aktifkan kunci aplikasi</string>
+    <string name="applock_enable_prompt_subtitle">Verifikasi sekali untuk memastikan Anda dapat membuka kunci</string>
+    <string name="applock_needs_screen_lock_title">Atur kunci layar terlebih dahulu</string>
+    <string name="applock_needs_screen_lock_message">Kunci aplikasi memakai sidik jari, wajah, atau kunci layar ponsel untuk verifikasi, tanpa kata sandi terpisah. Atur kunci layar di pengaturan sistem terlebih dahulu.</string>
+    <string name="applock_open_settings">Ke pengaturan</string>
+    <string name="applock_cancel">Batal</string>
+    <string name="applock_unavailable">Perangkat ini sementara tidak dapat memverifikasi identitas, kunci aplikasi tidak diaktifkan</string>
+    <string name="applock_timeout_immediately">Segera</string>
+    <string name="applock_timeout_1_minute">Setelah 1 menit</string>
+    <string name="applock_timeout_5_minutes">Setelah 5 menit</string>
+    <string name="applock_timeout_15_minutes">Setelah 15 menit</string>
+</resources>

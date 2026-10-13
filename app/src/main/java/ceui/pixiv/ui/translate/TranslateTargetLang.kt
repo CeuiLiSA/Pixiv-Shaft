@@ -15,7 +15,8 @@ fun appTranslateTargetLang(): String = translateTargetLangOf(AppLocales.currentL
 /**
  * [Locale] → Google gtx 端点的 `tl` 取值。
  *
- * app 支持集 en/zh-CN/zh-TW/ja/ko/ru/tr 正好和 Google 的语言代码一一对得上,只有中文要按繁简分流。
+ * app 支持集 en/zh-CN/zh-TW/ja/ko/ru/tr/id 基本和 Google 的语言代码一一对得上,只有中文要按繁简分流,
+ * 印尼语要把旧码 `in` 归一成 `id`。
  * 抽成不依赖 [AppLocales] 的纯函数,好让单测能直接覆盖各种 locale 形态。
  */
 internal fun translateTargetLangOf(locale: Locale): String {
@@ -23,6 +24,8 @@ internal fun translateTargetLangOf(locale: Locale): String {
     // (i→İ、I→ı),用默认 locale 规则处理语言/地区码迟早出事。
     val language = locale.language.lowercase(Locale.ROOT)
     if (language.isEmpty()) return "en"
+    // 部分 Android 版本的 Locale 会把印尼语报成 ISO 旧码 in,Google 只认 id。
+    if (language == "in") return "id"
     if (language != "zh") return language
 
     // 繁简分流要同时看 script 和地区:zh-Hant-* 以及 zh-TW / zh-HK / zh-MO 都是繁体。

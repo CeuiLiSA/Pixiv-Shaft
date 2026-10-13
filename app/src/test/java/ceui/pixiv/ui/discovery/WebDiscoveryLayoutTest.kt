@@ -23,7 +23,7 @@ import org.robolectric.annotation.Config
 class WebDiscoveryLayoutTest {
     @Test fun `age controls remain readable across themes widths and large translated text`() {
         val app = RuntimeEnvironment.getApplication()
-        for (locale in listOf("zh-CN", "en", "ja", "ko", "ru", "tr", "zh-TW")) {
+        for (locale in listOf("zh-CN", "en", "ja", "ko", "ru", "tr", "id", "zh-TW")) {
             for (dark in listOf(false, true)) for (scale in listOf(1f, 2f)) {
                 val config = Configuration(app.resources.configuration).apply {
                     setLocale(Locale.forLanguageTag(locale))

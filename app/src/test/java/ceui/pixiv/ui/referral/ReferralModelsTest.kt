@@ -34,7 +34,7 @@ class ReferralModelsTest {
 
     @Test fun allLocalesDescribeSevenDayRewardsAndTwentyEightDayTaskTotal() {
         val app = RuntimeEnvironment.getApplication()
-        for (tag in listOf("zh-CN", "zh-TW", "en", "ja", "ko", "ru", "tr")) {
+        for (tag in listOf("zh-CN", "zh-TW", "en", "ja", "ko", "ru", "tr", "id")) {
             val config = Configuration(app.resources.configuration).apply { setLocale(Locale.forLanguageTag(tag)) }
             val resources = app.createConfigurationContext(config).resources
             for (task in ReferralTask.LISTED) {

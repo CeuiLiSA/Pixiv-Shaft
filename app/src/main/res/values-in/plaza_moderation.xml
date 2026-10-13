@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="plaza_report_post">Laporkan postingan atau komentar</string>
+    <string name="plaza_report_user">Laporkan penulis</string>
+    <string name="plaza_block_user">Blokir penulis</string>
+    <string name="plaza_blocked_users">Daftar blokir plaza</string>
+    <string name="plaza_report_notice">Pilih alasan laporan. Laporan ditangani oleh moderator, dan identitas pelapor tidak akan diungkapkan kepada penulis.</string>
+    <string name="plaza_report_required">Pilih alasan laporan.</string>
+    <string name="plaza_report_submit">Kirim laporan</string>
+    <string name="plaza_report_success">Laporan #%1$d diterima dan akan ditangani oleh moderator.</string>
+    <string name="plaza_report_sending">Memproses…</string>
+    <string name="plaza_block_notice">Setelah diblokir, kalian berdua tidak dapat melihat postingan dan komentar satu sama lain di plaza, dan tidak dapat berinteraksi. Blokir dapat dibuka di «Daftar blokir plaza».</string>
+    <string name="plaza_block_success">Penulis ini telah diblokir di plaza.</string>
+    <string name="plaza_blocks_notice">Pemblokiran hanya berlaku di plaza. Setelah dibuka, postingan dan komentar pengguna ini akan ditampilkan kembali.</string>
+    <string name="plaza_blocks_empty">Belum ada pengguna yang diblokir.</string>
+    <string name="plaza_unblock_user">Buka blokir %1$s</string>
+    <string name="plaza_policy_title">Pedoman komunitas plaza</string>
+    <string name="plaza_policy_accept">Setuju dan publikasikan</string>
+    <string name="plaza_policy_required">Harap setujui pedoman komunitas plaza terbaru sebelum memublikasikan.</string>
+    <string name="plaza_forbidden">Tindakan plaza ini tidak dapat dilakukan untuk sementara. Akun Anda mungkin dibatasi.</string>
+    <string name="plaza_policy_body">Postingan dan komentar dapat dilihat publik. Dilarang memublikasikan konten pornografi, pelecehan atau eksploitasi seksual anak, kekerasan atau ancaman, ujaran kebencian, pelecehan, informasi pribadi tanpa izin, penipuan, spam iklan, serta konten ilegal. Hanya publikasikan konten yang berhak Anda bagikan.\n\nAnda dapat melaporkan postingan, komentar, dan penulis, serta memblokir pengguna melalui menu Lainnya. Moderator dapat menurunkan konten yang melanggar atau melarang akun menggunakan plaza. Informasi laporan tidak diungkapkan kepada penulis dan ditangani oleh moderator. Dengan mengetuk «Setuju dan publikasikan», Anda menerima pedoman ini (2026-09-16).</string>
+    <string-array name="plaza_report_reasons">
+        <item>Keselamatan anak</item>
+        <item>Konten pornografi</item>
+        <item>Kekerasan atau ancaman</item>
+        <item>Ujaran kebencian</item>
+        <item>Pelecehan atau perundungan</item>
+        <item>Pelanggaran privasi</item>
+        <item>Konten iklan</item>
+        <item>Spam atau penipuan</item>
+        <item>Konten ilegal</item>
+        <item>Lainnya</item>
+    </string-array>
+    <string name="plaza_report_reviewed">Laporan #%1$d sudah ditangani, tidak perlu dikirim ulang.</string>
+    <string name="plaza_report_title">Laporkan</string>
+    <string name="plaza_report_reason_label">Alasan laporan</string>
+    <string name="plaza_report_details_label">Keterangan tambahan</string>
+    <string name="plaza_report_details_hint">Jelaskan apa yang Anda alami</string>
+    <string name="plaza_report_photos_label">Bukti foto</string>
+    <string name="plaza_report_photos_hint">Tambahkan hingga 3 foto untuk membantu moderator memahami situasinya.</string>
+    <string name="plaza_report_received_title">Laporan terkirim</string>
+    <string name="plaza_report_target">Postingan #%1$d · Penulis %2$d</string>
+    <string name="plaza_report_finish">Selesai</string>
+    <string name="plaza_unblock_action">Buka blokir</string>
+    <string name="plaza_report_target_label">Objek laporan</string>
+    <string name="plaza_form_required">Wajib</string>
+    <string name="plaza_form_optional">Opsional</string>
+    <string name="plaza_report_target_author">Penulis %1$d</string>
+</resources>

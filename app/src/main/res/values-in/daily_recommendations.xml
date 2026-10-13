@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="daily_recommendations">Rekomendasi harian</string>
+    <string name="daily_recommendations_intro">Sekumpulan ilustrasi yang diperbarui setiap hari, berdasarkan bookmark dan ikutan di perangkat ini. Tarik ke bawah untuk memuat ulang.</string>
+    <string name="daily_recommendations_personalized">%1$s · Direkomendasikan berdasarkan bookmark dan ikutan. Diperbarui pukul 00.00 waktu Beijing keesokan harinya.</string>
+    <string name="daily_recommendations_popular">%1$s · Riwayat preferensi belum cukup, menampilkan karya populer terlebih dahulu.</string>
+    <string name="daily_recommendations_login">Silakan masuk untuk melihat rekomendasi harian</string>
+    <string name="daily_recommendations_unavailable">Rekomendasi harian sedang tidak tersedia. Tarik ke bawah untuk mencoba lagi nanti</string>
+    <string name="daily_recommendations_empty">Hari ini belum ada karya rekomendasi yang sesuai filter. Tarik ke bawah untuk mencoba lagi nanti.</string>
+    <string name="daily_recommendations_expired">Rekomendasi telah diperbarui. Tarik ke bawah untuk menyegarkan sebelum lanjut menjelajah</string>
+</resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sticker_title">Stiker</string>
+    <string name="sticker_close">Tutup</string>
+    <string name="sticker_retry">Coba lagi</string>
+    <string name="sticker_customized">Pilihan</string>
+    <string name="sticker_static">Emoji</string>
+    <string name="sticker_animation">Animasi</string>
+    <string name="sticker_checking">Memeriksa sumber stiker…</string>
+    <string name="sticker_downloading">Mengunduh stiker: %1$d%%</string>
+    <string name="sticker_extracting">Memverifikasi dan mengekstrak stiker…</string>
+    <string name="sticker_failed">Gagal menyiapkan stiker: %1$s</string>
+    <string name="sticker_message">[Stiker]</string>
+</resources>

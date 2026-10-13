@@ -26,6 +26,14 @@ class TranslateTargetLangTest {
     }
 
     @Test
+    fun `印尼语的新旧语言码都归一成 id`() {
+        assertEquals("id", translateTargetLangOf(Locale.forLanguageTag("id")))
+        assertEquals("id", translateTargetLangOf(Locale.forLanguageTag("in")))
+        @Suppress("DEPRECATION")
+        assertEquals("id", translateTargetLangOf(Locale("in", "ID")))
+    }
+
+    @Test
     fun `带地区的非中文 locale 只取语言码`() {
         // 跟随系统时系统 locale 常常带地区,Google 的 tl 认 ru 不认 ru-RU
         assertEquals("ru", translateTargetLangOf(Locale.forLanguageTag("ru-RU")))

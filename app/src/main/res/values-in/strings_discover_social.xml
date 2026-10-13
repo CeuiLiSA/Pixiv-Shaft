@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="discover_social_title">Obrolan dan berbagi</string>
+    <string name="discover_community_title">Komunitas</string>
+    <string name="discover_chat_description">Obrolan umum · Pesan pribadi</string>
+    <string name="discover_community_description">Bagikan karya · Ikut berdiskusi</string>
+    <string name="discover_chat_action">Masuk obrolan</string>
+    <string name="discover_community_action">Jelajahi plaza</string>
+</resources>

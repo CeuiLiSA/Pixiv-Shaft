@@ -156,6 +156,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
         Greeting("ko", "환영합니다", "언어를 선택하세요"),
         Greeting("ru", "Добро пожаловать", "Выберите язык"),
         Greeting("tr", "Hoş geldiniz", "Dilinizi seçin"),
+        Greeting("id", "Selamat datang", "Pilih bahasa Anda"),
     )
 
     private var selectedTag = "en"
@@ -477,6 +478,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
             "ko" -> "계속"
             "ru" -> "Продолжить"
             "tr" -> "Devam"
+            "id" -> "Lanjutkan"
             else -> "Continue"
         }
     }

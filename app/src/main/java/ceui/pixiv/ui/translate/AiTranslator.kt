@@ -861,6 +861,7 @@ object AiTranslator : Translator {
         "ko" -> "Korean"
         "ru" -> "Russian"
         "tr" -> "Turkish"
+        "id", "in" -> "Indonesian"
         else -> lang
     }
 

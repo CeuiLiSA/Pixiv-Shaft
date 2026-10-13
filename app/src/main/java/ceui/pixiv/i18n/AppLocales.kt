@@ -28,6 +28,7 @@ object AppLocales {
         "ko",
         "ru",
         "tr",
+        "id",
     )
 
     /**
@@ -42,6 +43,7 @@ object AppLocales {
         "ko" to "한국어",
         "ru" to "Русский",
         "tr" to "Türkçe",
+        "id" to "Bahasa Indonesia",
     )
 
     fun displayName(tag: String): String =

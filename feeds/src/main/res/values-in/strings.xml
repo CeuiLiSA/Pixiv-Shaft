@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="empty_list_1">Ternyata kosong</string>
+    <string name="list_load_failed_tap_retry">Gagal memuat, ketuk untuk mencoba lagi</string>
+    <string name="feed_error_tap_retry">Ketuk untuk mencoba lagi</string>
+    <string name="feed_state_go_network_test">Ke tes jaringan</string>
+    <string name="feed_append_paused_tap_to_continue">Ketuk untuk memuat lebih banyak</string>
+</resources>
