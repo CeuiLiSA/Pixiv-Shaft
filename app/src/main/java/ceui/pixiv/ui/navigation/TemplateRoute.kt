@@ -140,6 +140,8 @@ enum class TemplateRoute(@JvmField val key: String) {
     UGOIRA_RANK("动图榜"),
     /** 动图逐帧：时间轴选帧、标记与保存原帧。 */
     UGOIRA_FRAMES("动图逐帧"),
+    /** 图片滤镜：作品某一页套热门滤镜、微调后保存或分享。 */
+    IMAGE_FILTER("图片滤镜"),
     EVENT_HISTORY("操作记录"),
     DEBUG_NETWORK_TEST("网络测试"),
     SYNONYM_DICT("同义词词典"),

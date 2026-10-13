@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 图片滤镜页外壳：标准顶栏 + 内容区（舞台 / 滤镜条 / 调节 / 主操作由 ImageFilterFragment 代码搭）。 -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/v3_bg"
+    android:orientation="vertical">
+    <include layout="@layout/toolbar_layout"/>
+    <FrameLayout
+        android:id="@+id/image_filter_content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+</LinearLayout>

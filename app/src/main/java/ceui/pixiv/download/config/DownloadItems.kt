@@ -53,6 +53,19 @@ object DownloadItems {
     )
 
     /**
+     * 滤镜页导出的成品，同样是原插画的派生图片：沿用 Illust 桶和用户模板。不透明的图出 JPEG，
+     * 带透明的出 PNG（JPEG 存不下透明度）。调用方通过 Downloads.openDerived 加上滤镜后缀，不覆盖原图。
+     */
+    @JvmStatic
+    fun illustFiltered(illust: Illust, pageIndex: Int, png: Boolean): DownloadItem = DownloadItem(
+        bucket = Bucket.Illust,
+        ext = if (png) "png" else "jpg",
+        mime = if (png) "image/png" else "image/jpeg",
+        sourceUrl = "",
+        meta = metaOf(illust, pageIndex),
+    )
+
+    /**
      * 动图逐帧页保存的单帧：pixiv 原帧就是 JPEG，原样拷出不重编码。沿用 Illust 桶和用户模板，
      * 与作品本体同名；调用方通过 Downloads.openDerived 加上帧序号后缀，互不覆盖。
      */

@@ -35,6 +35,7 @@ import ceui.pixiv.ui.upscale.ModelPickerDialog
 import ceui.pixiv.ui.upscale.RembgModelPickerDialog
 import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.ui.filter.openImageFilter
 import ceui.pixiv.utils.toTagsBeans
 import ceui.pixiv.wallpaper.WallpaperSetter
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -276,6 +277,10 @@ internal class ArtworkV3Actions(
                     RembgModelPickerDialog.pickOrUseDefault(fragment.childFragmentManager) { model ->
                         aiHelper()?.performRembg(illust, model)
                     }
+                }
+                item(context.getString(R.string.image_filter), R.drawable.ic_photo_filter_24) {
+                    // 多图作品按页码浮标当前指向的那一页；已经滑进简介区时回退首图（同海报）。
+                    openImageFilter(context, illust, currentPageIndex().coerceAtLeast(0))
                 }
             }
             if (Dev.showPlazaShareInArtwork) {

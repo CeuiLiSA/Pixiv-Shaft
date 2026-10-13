@@ -44,6 +44,7 @@ import ceui.pixiv.download.IllustCaptionExporter
 import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.imageloader.PageImageSourceResolver
 import ceui.pixiv.imageloader.awaitFile
+import ceui.pixiv.ui.filter.openImageFilter
 import ceui.pixiv.services.appServices
 import ceui.pixiv.snapshot.AutoSnapshotEngine
 import ceui.pixiv.snapshot.AutoSnapshotRepository
@@ -243,6 +244,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                                     model ->
                                     performAiRembg(illust, baseBind!!.viewPager.currentItem, model)
                                 }
+                            }
+                    actions +=
+                        getString(R.string.image_filter) to
+                            {
+                                openImageFilter(this, illust, baseBind!!.viewPager.currentItem)
                             }
                     actions +=
                         getString(R.string.string_ai_manga_translate_inline) to
@@ -639,6 +645,11 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                                 ->
                                 performAiRembg(illust, baseBind!!.viewPager.currentItem, model)
                             }
+                        }
+                actions +=
+                    getString(R.string.image_filter) to
+                        {
+                            openImageFilter(this, illust, baseBind!!.viewPager.currentItem)
                         }
             }
             actions +=

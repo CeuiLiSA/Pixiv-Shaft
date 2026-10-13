@@ -169,6 +169,7 @@ class TemplateRouteTest {
             "DAILY_RECOMMENDATIONS" to "每日推荐",
             "UGOIRA_RANK" to "动图榜",
             "UGOIRA_FRAMES" to "动图逐帧",
+            "IMAGE_FILTER" to "图片滤镜",
             "EVENT_HISTORY" to "操作记录",
             "DEBUG_NETWORK_TEST" to "网络测试",
             "SYNONYM_DICT" to "同义词词典",

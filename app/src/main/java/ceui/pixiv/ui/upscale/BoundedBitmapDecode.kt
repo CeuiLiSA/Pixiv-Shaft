@@ -17,9 +17,14 @@ internal const val NCNN_INPUT_MAX_PIXELS = 32L * 1024 * 1024
 
 /**
  * 解码 [file] 为 ARGB_8888,总像素超过 [maxPixels] 时用 inSampleSize 逐级折半直到落进预算。
- * 解不开返回 null。同步阻塞,调用方负责在 IO 线程。
+ * [mutable] 给要原地改写像素的调用方(滤镜导出)。解不开返回 null。同步阻塞,调用方负责在 IO 线程。
  */
-internal fun decodeBoundedArgb(file: File, tag: String, maxPixels: Long = NCNN_INPUT_MAX_PIXELS): Bitmap? {
+internal fun decodeBoundedArgb(
+    file: File,
+    tag: String,
+    maxPixels: Long = NCNN_INPUT_MAX_PIXELS,
+    mutable: Boolean = false,
+): Bitmap? {
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeFile(file.absolutePath, bounds)
     val w = bounds.outWidth.toLong()
@@ -32,6 +37,7 @@ internal fun decodeBoundedArgb(file: File, tag: String, maxPixels: Long = NCNN_I
     val opts = BitmapFactory.Options().apply {
         inSampleSize = sample
         inPreferredConfig = Bitmap.Config.ARGB_8888
+        inMutable = mutable
     }
     return BitmapFactory.decodeFile(file.absolutePath, opts)
 }

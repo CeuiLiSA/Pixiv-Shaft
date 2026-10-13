@@ -192,6 +192,9 @@
 -keepclasseswithmembernames,includedescriptorclasses class ceui.pixiv.shaftapi.ShaftHmac {
     native <methods>;
 }
+-keepclasseswithmembernames,includedescriptorclasses class ceui.pixiv.ui.filter.NativeImageFilter {
+    native <methods>;
+}
 
 # Android test dependencies that also exist on the app runtime classpath are loaded from the
 # target APK. The release runner calls this before test discovery, so it must survive target R8.
