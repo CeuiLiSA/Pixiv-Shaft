@@ -112,6 +112,16 @@ class BookmarkMirrorService @JvmOverloads constructor(
     /** 被用户「刚看过」而需要立刻做一次增量维护的书架。 */
     private val maintenanceRequested = ConcurrentHashMap.newKeySet<String>()
 
+    /**
+     * 远端「整架空」的连续观察次数（按 shelfKey，只有引擎线程读写）。
+     *
+     * 「首页为空 + 没有下一页」本可以断定用户在别处清空了收藏，但**一次抽风的空响应**
+     * 长得一模一样。照清就是一次静默的整架数据丢失，而清完之后状态仍是「已同步/已完成」，
+     * 页面显示「一件都没收藏」，要等 14 天后的全量重扫或用户手动重建才能自愈。
+     * 所以要求连续两次观察到空才动手：抽风不会连着来两次，真清空了也只是晚一次才清。
+     */
+    private val emptyShelfStreak = HashMap<String, Int>()
+
     /** 正在进行的增量/重扫轮次（只有引擎线程读写）。 */
     private var activeRun: MirrorRun? = null
 
@@ -280,6 +290,7 @@ class BookmarkMirrorService @JvmOverloads constructor(
             dao.upsertState(newState(shelf, System.currentTimeMillis()))
             // 只丢这个书架自己的那一轮：别的书架正在跑的增量已经消费掉了「该维护」标记，
             // 清掉它的 activeRun 会让那轮只补了一页就被静默放弃。
+            emptyShelfStreak -= shelf.key
             if (activeRun?.shelf == shelf) activeRun = null
             kick("rebuild")
         }
@@ -292,6 +303,7 @@ class BookmarkMirrorService @JvmOverloads constructor(
             dao.clearShelf(shelf.key)
             dao.deleteState(shelf.key)
             maintenanceRequested -= shelf.key
+            emptyShelfStreak -= shelf.key
             if (activeRun?.shelf == shelf) activeRun = null
         }
     }
@@ -528,6 +540,7 @@ class BookmarkMirrorService @JvmOverloads constructor(
                 cursor = startedState.cursor,
                 headCursor = startedState.state.headSeqCursor,
                 backfillSeq = startedState.state.nextBackfillSeq,
+                headBlockCeiling = startedState.state.headBlockCeiling,
             ).also {
                 // 续传时把页码/条数接上库里的值，日志里的「第 N 页」才是这一轮**累计**的页码。
                 // 否则杀进程重来的那次会从「第 1 页」重新数，看上去像是又从头拉了一遍。
@@ -638,6 +651,21 @@ class BookmarkMirrorService @JvmOverloads constructor(
 
         val ids = page.items.map { it.id }
         val existing = dao.existingSeqs(shelf.key, ids).associate { it.targetId to it.bookmarkSeq }
+        // 每条在库里已有的旧序号（null = 镜像里还没有这条）。
+        val preserved = page.items.map { existing[it.id] }
+        // 排在**后面**的已存在行的最大旧序号。一条已存在的行如果比它后面某条已存在行还小，
+        // 它的旧号就已经不能代表它在 feed 里的位次了 —— 那是「在别处取消、之后又重新收藏」
+        // 的作品：旧行因为位置太深一直没被清掉，旧号却是它第一次入镜像时发的。沿用旧号会让
+        // 「序号 DESC = 官方顺序」这个前提失效，滑窗对账就会把中间那段活着的收藏一起删掉
+        // （BookmarkMirrorReconciliationTest 里有对应的回归用例）。这种行改发本轮号段的新号，
+        // 它本来就该排在表头 —— 和 pixiv 自己的顺序一致。判据只看已存在的行、不掺本轮新发的
+        // 号，避免把「本轮新收藏排在旧行前面」这种正常情形误判成失效。
+        val suffixMax = arrayOfNulls<Long>(preserved.size)
+        var running: Long? = null
+        for (i in preserved.indices.reversed()) {
+            suffixMax[i] = running
+            preserved[i]?.let { running = maxOf(running ?: it, it) }
+        }
 
         var backfillSeq = run.backfillSeq
         var headCursor = run.headCursor
@@ -645,17 +673,22 @@ class BookmarkMirrorService @JvmOverloads constructor(
         val rows = ArrayList<BookmarkMirrorEntity>(page.items.size)
         val tags = ArrayList<BookmarkMirrorTagEntity>(page.items.size * 8)
 
-        page.items.forEach { item ->
-            val known = existing[item.id]
+        page.items.forEachIndexed { index, item ->
+            val known = preserved[index]
+            val later = suffixMax[index]
+            val staleSeq = known != null && later != null && known < later
             val seq = when {
-                // 已经镜像过：**原样保留序号**。重新编号 = 把用户的收藏顺序打乱。
-                known != null -> known
+                // 已经镜像过、旧号也仍然对得上位次：**原样保留序号**。重新编号 = 把用户的收藏顺序打乱。
+                known != null && !staleSeq -> known
                 // 首次全量：从 0 往下发（0, -1, -2 …），于是 DESC = 官方顺序、ASC = 倒序
                 run.mode == MirrorMode.BACKFILL -> backfillSeq--
-                // 增量/重扫里遇到的真·新收藏：从本轮号段顶往下发，先遇到的（更新的）拿更大的号
+                // 真·新收藏，以及上面那种「旧号已失效的重新收藏」：从本轮号段顶往下发，
+                // 先遇到的（更新的）拿更大的号
                 else -> headCursor--
             }
             if (known == null) newCount++
+            // 只有增量维护收尾时要对账；回填/重扫动辄几万条，记下来只是白占内存直到这一轮结束。
+            if (run.mode == MirrorMode.MAINTAIN) run.recordItem(item.id, seq)
             val built = item.toRow(seq, state.generation, now)
             rows += built.row
             tags += built.tags
@@ -799,6 +832,55 @@ class BookmarkMirrorService @JvmOverloads constructor(
                 )
             }
         }
+
+        if (mode == MirrorMode.MAINTAIN) {
+            val emptyHead = run.itemsSeen == 0 && run.pagesDone > 0 && run.cursor == null
+            // 只要这一轮看到过东西，就说明远端不是空的：清掉「连续空」的计数。
+            if (!emptyHead) emptyShelfStreak -= shelf.key
+            when {
+                emptyHead -> {
+                    val streak = (emptyShelfStreak[shelf.key] ?: 0) + 1
+                    emptyShelfStreak[shelf.key] = streak
+                    val count = dao.countOf(shelf.key)
+                    if (streak < EMPTY_HEAD_CONFIRMATIONS) {
+                        Timber.tag(TAG).i(
+                            "[%s] 远端首页为空（第 %d/%d 次确认），本轮先不动本地 %d 行",
+                            shelf.label, streak, EMPTY_HEAD_CONFIRMATIONS, count,
+                        )
+                    } else if (count > 0) {
+                        dao.clearShelf(shelf.key)
+                        Timber.tag(TAG).i(
+                            "[%s] 增量维护对账：远端收藏已全空（连续 %d 次确认），清除本地全部 %d 行",
+                            shelf.label, streak, count,
+                        )
+                    }
+                }
+                // 序号和 feed 顺序矛盾 = 滑窗 [min, max] 不再等于「本轮抓到的那些条目」，
+                // 拿它去删会把中间一大段仍然收藏着的行一起删掉（见 MirrorRun.seqInverted）。
+                // 写入侧（writePage）会把这种失效的旧号改发新号，下一轮序号就恢复严格递减了，
+                // 所以这里跳过一轮的代价很小；反过来误删是不可逆的。
+                run.seqInverted -> Timber.tag(TAG).w(
+                    "[%s] 本轮序号与 feed 顺序矛盾（滑窗不可信），跳过对账以免误删",
+                    shelf.label,
+                )
+                run.seenItemIds.isNotEmpty() -> {
+                    val removed = dao.reconcileHeadWindow(
+                        shelfKey = shelf.key,
+                        maxRemoteSeq = run.highestSeq,
+                        minRemoteSeq = run.lowestSeq,
+                        ceilingSeq = run.headBlockCeiling,
+                        retainedIds = run.seenItemIds.toList(),
+                    )
+                    if (removed > 0) {
+                        Timber.tag(TAG).i(
+                            "[%s] 增量维护表头滑窗对账：清除 %d 行远端已取消收藏（序号区间 %s..%s, ceiling=%d）",
+                            shelf.label, removed, run.lowestSeq, run.highestSeq, run.headBlockCeiling,
+                        )
+                    }
+                }
+            }
+        }
+
         dao.upsertState(next)
         // 一轮刚走完，表头一定是最新的 —— 把「该做一次增量」的标记消费掉。
         // 不清的话：ensureShelf 在回填期间打的标记会一直留着，回填一完成，下一个 tick
@@ -1017,11 +1099,34 @@ class BookmarkMirrorService @JvmOverloads constructor(
         var cursor: String?,
         var headCursor: Long,
         var backfillSeq: Long,
+        val headBlockCeiling: Long = 0L,
     ) {
         var pagesDone: Int = 0
         var itemsSeen: Int = 0
         var newItems: Int = 0
         var knownStreak: Int = 0
+        val seenItemIds = LinkedHashSet<Long>()
+        var highestSeq: Long? = null
+        var lowestSeq: Long? = null
+
+        /**
+         * 本轮抓到的序号有没有和 feed 顺序**矛盾**（后一条的号不小于前一条的号）。
+         *
+         * 正常时序号沿 feed 严格递减（越往后越旧、号越小），滑窗 `[min, max]` 恰好等于
+         * 「本轮抓到的那些条目」。一旦倒挂，这个等式就不成立了：窗口会被拉宽到把中间
+         * 一大段**仍然收藏着**的行一起吞进去（远端取消后重新收藏的作品会带着旧号回到表头，
+         * 就是这种情形）。此时宁可整轮不对账，也绝不误删。
+         */
+        var seqInverted: Boolean = false
+        private var lastSeq: Long? = null
+
+        fun recordItem(id: Long, seq: Long) {
+            seenItemIds.add(id)
+            highestSeq = maxOf(highestSeq ?: seq, seq)
+            lowestSeq = minOf(lowestSeq ?: seq, seq)
+            lastSeq?.let { if (seq >= it) seqInverted = true }
+            lastSeq = seq
+        }
     }
 
     companion object {
@@ -1090,6 +1195,9 @@ class BookmarkMirrorService @JvmOverloads constructor(
 
         /** 增量维护：连着见到这么多条已知条目就收工。两页的量，足够穿过一次翻页错位。 */
         private const val KNOWN_STREAK_STOP = 60
+
+        /** 远端整架空要连续观察到这么多次，才允许清空本地镜像（防一次抽风的空响应）。 */
+        private const val EMPTY_HEAD_CONFIRMATIONS = 2
 
         /** 增量维护的页数硬上限，防止它退化成一次全量。 */
         private const val MAINTAIN_MAX_PAGES = 20

@@ -506,7 +506,7 @@ class BookmarkLibraryStreamingTest {
         val context = ContextThemeWrapper(app, R.style.AppTheme)
         val binding = FragmentBookmarkLibraryBinding.inflate(LayoutInflater.from(context))
         val ui = BookmarkLibraryUi(
-            Fragment(), binding, binding.feedRoot.feedListView, library, feed, shelf.contentType,
+            Fragment(), binding, RecyclerView(binding.root.context), library, feed, shelf.contentType,
             itemCount = { feed.uiState.value.items.size },
         )
         insert(shelf, 31..45)
@@ -543,7 +543,7 @@ class BookmarkLibraryStreamingTest {
             LayoutInflater.from(ContextThemeWrapper(app, R.style.AppTheme)),
         )
         val ui = BookmarkLibraryUi(
-            Fragment(), binding, binding.feedRoot.feedListView, library, feed, shelf.contentType,
+            Fragment(), binding, RecyclerView(binding.root.context), library, feed, shelf.contentType,
             itemCount = { feed.uiState.value.items.size },
         )
         ui.onListCommitted(paused)
@@ -650,4 +650,137 @@ class BookmarkLibraryStreamingTest {
             activity.finish()
         }
     }
+
+    @Test
+    fun `stale updates during scrolled state are deferred and refreshed upon returning to top`() = runTest(dispatcher) {
+        val shelf = shelf()
+        val library = model(shelf)
+        library.setMirrorState(state(shelf, complete = true))
+        insert(shelf, 1..60)
+        updateCount(library, 60)
+        val feed = FeedViewModel(BookmarkLibraryFeedSource(library, shelf.contentType), autoLoad = false)
+        models.put("feed", feed)
+        feed.refresh()
+        val first = feed.uiState.first { it.hasLoadedOnce && it.refresh is LoadState.Idle }
+
+        var atTop = false
+        val context = ContextThemeWrapper(app, R.style.AppTheme)
+        val binding = FragmentBookmarkLibraryBinding.inflate(LayoutInflater.from(context))
+        val list = object : RecyclerView(context) {
+            override fun canScrollVertically(direction: Int) = direction > 0 || !atTop
+        }
+        val ui = BookmarkLibraryUi(
+            Fragment(), binding, list, library, feed, shelf.contentType,
+            itemCount = { feed.uiState.value.items.size },
+        )
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        db.bookmarkMirrorDao().deleteTarget(shelf.ownerUid, shelf.contentType.code, 1L)
+        updateCount(library, 59)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        assertEquals(first.refreshGeneration, feed.uiState.value.refreshGeneration)
+
+        atTop = true
+        val scrollListener = ReflectionHelpers.getField<RecyclerView.OnScrollListener>(ui, "scrollListener")
+        scrollListener.onScrolled(list, 0, -100)
+        runCurrent()
+
+        val updated = feed.uiState.first { it.refresh is LoadState.Idle }
+        assertEquals(first.refreshGeneration + 1, updated.refreshGeneration)
+        assertEquals(2L, updated.items.first().feedKey)
+        ui.destroy()
+    }
+
+    @Test
+    fun `remote deletion at head window is not swallowed when growing tail cursor is active`() = runTest(dispatcher) {
+        val shelf = shelf()
+        val library = model(shelf)
+        library.setMirrorState(state(shelf, complete = true))
+        insert(shelf, 1..100)
+        updateCount(library, 100)
+        val feed = FeedViewModel(BookmarkLibraryFeedSource(library, shelf.contentType), autoLoad = false)
+        models.put("feed", feed)
+        feed.refresh()
+        val first = feed.uiState.first { it.hasLoadedOnce && it.refresh is LoadState.Idle }
+        assertEquals(60, first.items.size)
+        assertNotNull(library.growingTailCursor())
+
+        val ui = ui(library, feed, atTop = true)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        db.bookmarkMirrorDao().deleteTarget(shelf.ownerUid, shelf.contentType.code, 1L)
+        updateCount(library, 99)
+        assertNotNull(library.growingTailCursor())
+
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+        runCurrent()
+
+        val updated = feed.uiState.first { it.refresh is LoadState.Idle }
+        assertEquals(first.refreshGeneration + 1, updated.refreshGeneration)
+        assertEquals(2L, updated.items.first().feedKey)
+        ui.destroy()
+    }
+
+    @Test
+    fun `clearing the shelf while scrolled down is not deferred`() = runTest(dispatcher) {
+        val shelf = shelf()
+        val library = model(shelf)
+        library.setMirrorState(state(shelf, complete = true))
+        insert(shelf, 1..60)
+        updateCount(library, 60)
+        val feed = FeedViewModel(BookmarkLibraryFeedSource(library, shelf.contentType), autoLoad = false)
+        models.put("feed", feed)
+        feed.refresh()
+        val first = feed.uiState.first { it.hasLoadedOnce && it.refresh is LoadState.Idle }
+        val ui = ui(library, feed, atTop = false)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        // 重建：清空落库的统计先到，状态还停在「已完成」
+        db.bookmarkMirrorDao().clearShelf(shelf.key)
+        updateCount(library, 0)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        val updated = feed.uiState.first { it.refreshGeneration > first.refreshGeneration && it.refresh is LoadState.Idle }
+        assertTrue(updated.items.isEmpty())
+        ui.destroy()
+    }
+
+    @Test
+    fun `backfill keeps streaming the tail after an in-app unbookmark moves the head`() = runTest(dispatcher) {
+        val shelf = shelf()
+        val library = model(shelf)
+        insert(shelf, 1..30)
+        updateCount(library, 30)
+        val feed = FeedViewModel(BookmarkLibraryFeedSource(library, shelf.contentType), autoLoad = false)
+        models.put("feed", feed)
+        feed.refresh()
+        val first = feed.uiState.first { it.hasLoadedOnce && it.refresh is LoadState.Idle }
+        assertTrue(first.reachedEnd)
+        val binding = FragmentBookmarkLibraryBinding.inflate(
+            LayoutInflater.from(ContextThemeWrapper(app, R.style.AppTheme)),
+        )
+        val ui = BookmarkLibraryUi(
+            Fragment(), binding, RecyclerView(binding.root.context), library, feed, shelf.contentType,
+            itemCount = { feed.uiState.value.items.size },
+        )
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        // 回填途中在 app 里取消了表头那张：行数和最新序号都变了，但回填期不重查，卡片留在原地
+        db.bookmarkMirrorDao().deleteTarget(shelf.ownerUid, shelf.contentType.code, 1L)
+        updateCount(library, 29)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+        assertEquals(first, feed.uiState.value)
+
+        // 下一批回填落库：必须照常续到尾部
+        insert(shelf, 31..45)
+        updateCount(library, 44)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        val final = feed.uiState.first { it.items.size == 45 && it.append is LoadState.Idle }
+        assertEquals((1L..45L).toList(), final.items.map { it.feedKey })
+        assertEquals(first.refreshGeneration, final.refreshGeneration)
+        ui.destroy()
+    }
+
 }

@@ -23,6 +23,7 @@ import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.db.mirror.BookmarkMirrorStateEntity
 import ceui.pixiv.db.mirror.BookmarkShelf
+import ceui.pixiv.db.mirror.BookmarkShelfStats
 import ceui.pixiv.db.mirror.BookmarkSort
 import ceui.pixiv.db.mirror.MirrorContentType
 import ceui.pixiv.db.mirror.MirrorPhase
@@ -78,13 +79,23 @@ internal class BookmarkLibraryUi(
     private var resetAfterGeneration: Int? = null
 
     /**
-     * 上一次看到的库内行数，用来认出「库里多出了东西」。
+     * 上一次已同步上屏的统计快照，用来认出库内变动（行数增减或首尾序号变化）。
      *
-     * 它是**当前这个书架**的行数，所以换书架时必须清零（见 [switchShelf]）：不清的话，
-     * 新书架的第一次计数会被当成「多出来的东西」——从 31 行的悄悄收藏切到 1012 行的公开
-     * 收藏，看起来就是「凭空多了 981 条」，于是刚切完立刻又重查一遍。
+     * 它是**当前这个书架**的快照，所以换书架时必须清空（见 [switchShelf]）。
      */
-    private var lastKnownStored: Int? = null
+    private var lastKnownStats: BookmarkShelfStats? = null
+
+    /** 用户在列表下方浏览期间发生的变动暂存标记；等回顶时无缝上屏。 */
+    private var hasPendingStaleWhileScrolled = false
+
+    private val scrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            if (hasPendingStaleWhileScrolled && !recyclerView.canScrollVertically(-1)) {
+                hasPendingStaleWhileScrolled = false
+                refreshIfStale()
+            }
+        }
+    }
 
     /** 最近一次拿到的全部书架状态；切书架时按当前 shelfKey 重新挑一条出来。 */
     private var latestStates: List<BookmarkMirrorStateEntity> = emptyList()
@@ -106,6 +117,7 @@ internal class BookmarkLibraryUi(
         observeState()
 
         setUpPullToRefresh()
+        listView.addOnScrollListener(scrollListener)
 
         // 打开收藏库本身就是一次「用户在看这个书架」的信号：让引擎马上补一次增量，
         // 而不是等下一个例行窗口。补的过程静默，页面照常用本地数据。
@@ -121,6 +133,10 @@ internal class BookmarkLibraryUi(
     fun onResumed() {
         if (destroyed) return
         context.appServices().bookmarkMirror.ensureShelf(viewModel.shelf, reason = "回到收藏库")
+        if (hasPendingStaleWhileScrolled && !listView.canScrollVertically(-1)) {
+            hasPendingStaleWhileScrolled = false
+            refreshIfStale()
+        }
     }
 
     /**
@@ -142,12 +158,13 @@ internal class BookmarkLibraryUi(
         }
         refreshLayout.setOnRefreshListener {
             context.appServices().bookmarkMirror.syncNow(viewModel.shelf, reason = "下拉刷新")
-            applyFilterChange()
+            feedViewModel.refresh()
         }
     }
 
     fun destroy() {
         destroyed = true
+        listView.removeOnScrollListener(scrollListener)
         pendingSearch?.let { binding.searchInput.removeCallbacks(it) }
         pendingSearch = null
         sortChip = null
@@ -191,8 +208,13 @@ internal class BookmarkLibraryUi(
                 // invalidateSpanAssignments 是唯一能清掉上一代 span 偏移的公开 API；
                 // scrollToPositionWithOffset(0,0) 把偏移也定死，否则会拿旧 anchor 凑一个
                 // 偏移出来，刷完停在「顶部偏下」。
+                val animator = listView.itemAnimator
+                listView.itemAnimator = null
                 manager.invalidateSpanAssignments()
                 manager.scrollToPositionWithOffset(0, 0)
+                if (animator != null) {
+                    listView.post { listView.itemAnimator = animator }
+                }
             }
             is LinearLayoutManager -> manager.scrollToPositionWithOffset(0, 0)
             else -> manager?.scrollToPosition(0)
@@ -282,8 +304,9 @@ internal class BookmarkLibraryUi(
         if (current.restrict == restrict) return
         val next = current.copy(restrict = restrict)
         if (!viewModel.switchShelf(next)) return
-        // 行数基准跟着书架走：换了书架，上一个书架的行数就不再是比较的参照物
-        lastKnownStored = null
+        // 行数基准跟着书架走：换了书架，上一个书架的快照就不再是比较的参照物
+        lastKnownStats = null
+        hasPendingStaleWhileScrolled = false
         binding.searchInput.setText("")
         context.appServices().bookmarkMirror
             .ensureShelf(next, reason = "收藏库切换到${next.restrict.apiValue}")
@@ -426,7 +449,14 @@ internal class BookmarkLibraryUi(
             fragment.viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.filter.collectLatest { renderChips() } }
                 // 行数变化可能发生在读页途中；加载结束后补判一次，避免最后一批永远不上屏。
-                launch { feedViewModel.uiState.collectLatest { resumeGrowingTail() } }
+                launch {
+                    feedViewModel.uiState.collectLatest {
+                        resumeGrowingTail()
+                        if (it.refresh is LoadState.Idle) {
+                            refreshIfStale()
+                        }
+                    }
+                }
                 launch {
                     // 进度条上的「已 N 件」跟着镜像行数走；顺带在这里判「屏幕上的内容是不是
                     // 已经过期」——等当前书架的统计查完再判断。观察首尾边界和行数，
@@ -493,16 +523,13 @@ internal class BookmarkLibraryUi(
         if (feedViewModel.uiState.value.refresh is LoadState.Loading) return
         if (viewModel.filter.value.hasAnyCondition) return
         val shown = itemCount()
-        val stored = viewModel.shelfStats.value?.total ?: return
-        val previous = lastKnownStored
-        lastKnownStored = stored
+        val stats = viewModel.shelfStats.value ?: return
+        val stored = stats.total
+        val previous = lastKnownStats
 
-        if (refreshNewHeadIfNeeded()) return
-
-        // 回填只向尾部增长，优先续接，避免最后一页同步完成时整表刷新并跳回顶部。
-        if (feedViewModel.uiState.value.refresh is LoadState.Idle &&
-            viewModel.growingTailCursor() != null) {
-            resumeGrowingTail()
+        if (refreshNewHeadIfNeeded()) {
+            lastKnownStats = stats
+            hasPendingStaleWhileScrolled = false
             return
         }
 
@@ -511,25 +538,56 @@ internal class BookmarkLibraryUi(
         val emptyButStored = shown == 0 && stored > 0 &&
             (consumed == null || consumed < stored ||
                 feedViewModel.uiState.value.refresh is LoadState.Error)
-        // 库里多出了东西，而用户正停在列表顶部 → 直接让它上屏。
-        // 三个条件缺一不可：
-        // - **多出来**（而不是变少）：变少是取消收藏，卡片原地留着（见类文档）；
-        // - **停在顶部**：默认排序下新收藏就排在最上面，用户正看着那儿，插进去是他期待的；
-        //   滚到下面时一律不动 —— 把正在浏览的人拽回顶部比晚看到几条糟得多；
-        // - **已经补齐过一次**：首次回填期新行是从新往旧一路往**末尾**加的，顶部根本不会变，
-        //   跟着刷只是每 5 秒把整个列表重排一遍的无用功。
-        val grewWhileAtTop = previous != null &&
-            stored > previous &&
-            viewModel.mirrorState.value?.isFirstSyncDone == true &&
-            !listView.canScrollVertically(-1)
 
-        if (!clearedWhileShown && !emptyButStored && !grewWhileAtTop) return
-        Timber.tag(TAG).d(
-            "列表与库对不上，自动重查（库内 %d 行 / 屏幕 %d 条，新增上屏=%b）",
-            stored, shown, grewWhileAtTop,
+        // 库内发生变动：行数增减，或表头最新序号变动（支持对冲变动）
+        val statsChanged = previous != null && (
+            stored != previous.total ||
+                stats.newestBookmarkSeq != previous.newestBookmarkSeq
         )
-        applyFilterChange()
+        val atTop = !listView.canScrollVertically(-1)
+        val complete = viewModel.mirrorState.value?.isFirstSyncDone == true
+
+        // 尾部增长优先续接，不重排这一代：
+        // - 回填期（未补齐）任何变动都按续尾处理 —— 回填期从不为表头/删除重查（见下面的 complete），
+        //   若在这里要求「表头未变」，回填中途一次本地收藏/取消就会让基准再也对不上，之后每批回填都续不上尾；
+        // - 补齐之后只认「行数增、表头不变」：最后一批回填常与完成态同时到达，用户停在列表下方时也得续上。
+        val isPureTailGrowth = statsChanged && (
+            !complete ||
+                (stored > previous.total && stats.newestBookmarkSeq == previous.newestBookmarkSeq)
+            )
+        if (isPureTailGrowth && feedViewModel.uiState.value.refresh is LoadState.Idle &&
+            viewModel.growingTailCursor() != null) {
+            resumeGrowingTail()
+            lastKnownStats = stats
+            return
+        }
+
+        // 整架清空（重建）不能暂存：清空落库的统计可能先于「未完成」的状态到达，此刻 complete 仍是旧的 true；
+        // 等状态翻成未完成，下一批回填进来 stored 就不再是 0，这条判据再也认不出，旧卡片会挂到重建补齐为止。
+        if (statsChanged && complete && !atTop && !clearedWhileShown) {
+            // 用户正在下方浏览：暂存标记，回顶时再重查，绝不在浏览中途拽回顶部
+            hasPendingStaleWhileScrolled = true
+            return
+        }
+
+        val changedWhileAtTop = statsChanged && complete
+
+        if (!clearedWhileShown && !emptyButStored && !changedWhileAtTop) {
+            if (previous == null) {
+                lastKnownStats = stats
+            }
+            return
+        }
+
+        lastKnownStats = stats
+        hasPendingStaleWhileScrolled = false
+        Timber.tag(TAG).d(
+            "列表与库对不上，自动重查（库内 %d 行 / 屏幕 %d 条，变动上屏=%b）",
+            stored, shown, changedWhileAtTop,
+        )
+        feedViewModel.refresh()
     }
+
 
     /** 重开暂时到底的游标；用户尚未触底时只准备游标，继续由 feeds 的预取触发翻页。 */
     private fun resumeGrowingTail() {
@@ -553,7 +611,7 @@ internal class BookmarkLibraryUi(
         if (!state.hasLoadedOnce || state.refresh !is LoadState.Idle || !isShelfComplete() ||
             viewModel.filter.value.hasAnyCondition || !viewModel.hasNewHead ||
             listView.canScrollVertically(-1)) return false
-        applyFilterChange()
+        feedViewModel.refresh()
         return true
     }
 
