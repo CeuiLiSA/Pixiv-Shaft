@@ -11,6 +11,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import ceui.lisa.utils.Params
 
 /**
  * 桌面小组件上的收藏按钮（issue #641）。点击 → 广播到这里 → 交给
@@ -19,7 +20,8 @@ import androidx.work.workDataOf
 class WidgetBookmarkReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        val illustId = intent.getLongExtra(EXTRA_ILLUST_ID, 0L)
+        // 兼容读：升级前桌面上已挂着的 PendingIntent 里 extra 还是 Int，getLongExtra 会读成 0
+        val illustId = Params.getLongCompat(intent, EXTRA_ILLUST_ID)
         if (illustId <= 0L) return
         val request = OneTimeWorkRequestBuilder<WidgetBookmarkWorker>()
             .setConstraints(

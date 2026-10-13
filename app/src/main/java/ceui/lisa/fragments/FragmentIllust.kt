@@ -131,7 +131,8 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
     private var snapshotUser: User? = null
 
     private class IllustArgs(b: Bundle) {
-        val illustId: Long = b.getLong("illust_id", 0L)
+        // 兼容读：进程重建时恢复的 arguments 可能是旧版本按 Int 写入的
+        val illustId: Long = Params.getLongCompat(b, "illust_id")
     }
     private val vm by viewModels<FragmentIllustViewModel> {
         FragmentIllustViewModel.Factory(safeArgs.illustId, requireContext())

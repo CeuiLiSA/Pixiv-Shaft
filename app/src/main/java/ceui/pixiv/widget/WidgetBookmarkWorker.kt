@@ -24,7 +24,8 @@ class WidgetBookmarkWorker(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val illustId = inputData.getLong(WidgetBookmarkReceiver.EXTRA_ILLUST_ID, 0L)
+        // 兼容读：升级前入队、还在等网络的任务 inputData 里是 Int，Data.getLong 会读成 0
+        val illustId = Params.coerceLong(inputData.keyValueMap[WidgetBookmarkReceiver.EXTRA_ILLUST_ID])
         if (illustId <= 0L) return Result.success()
 
         if (SessionManager.getBearerTokenOrEmpty().isEmpty()) {

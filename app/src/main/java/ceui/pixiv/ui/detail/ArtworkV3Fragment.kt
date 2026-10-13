@@ -144,7 +144,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     private val illustId: Long by
         lazy(LazyThreadSafetyMode.NONE) {
-            if (isSnapshotMode) 0L else requireArguments().getLong("illust_id", 0L)
+            // 兼容读：进程重建时恢复的 arguments 可能是旧版本按 Int 写入的
+            if (isSnapshotMode) 0L else Params.getLongCompat(requireArguments(), "illust_id")
         }
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
@@ -158,7 +159,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             // 平板排版（layout-sw600dp + 设置开着）的作品图在舞台里，列表只出信息区块；折叠屏
             // 开合跨过 600dp 时这个 VM 活下来，差异由 reconcilePageItems 在视图重建时对齐
             ArtworkV3FeedSource(
-                requireArguments().getLong("illust_id", 0L),
+                Params.getLongCompat(requireArguments(), "illust_id"),
                 includePages = !TabletLayout.isEnabled(resources.configuration),
             )
         }
