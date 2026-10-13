@@ -2217,6 +2217,8 @@
     <string name="search_filter_v3_row_remember_here_global_hint">仅这里记住（长按全局）</string>
     <!-- 无全局对应档的档位（仅看 AI / R-18 三档）第 2 下长按时的说明 -->
     <string name="search_filter_v3_row_no_global_toast">该档没有全局设置，已停在「仅这里记住」</string>
+    <!-- V3 单选行右侧的选中勾（纯符号，不翻译）—— cell_search_filter_check_row.xml -->
+    <string name="v3_check_mark" translatable="false">✓</string>
     <string name="search_filter_v3_section_ai">AI 作品</string>
     <string name="search_filter_v3_ai_all">全部</string>
     <string name="search_filter_v3_ai_only">仅 AI 作品</string>

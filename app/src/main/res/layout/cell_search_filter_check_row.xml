@@ -22,10 +22,11 @@
         android:paddingBottom="14dp"
         android:textColor="@color/v3_text_1"
         android:textSize="15sp"
-        tools:text="标签部分匹配" />
+        tools:text="@string/search_filter_v3_target_partial" />
 
-    <!-- 「其他条件」的临时态提示：勾选值 ≠ 全局设置值时，显示在勾的左侧。
-         默认 gone —— 本布局被 SimplePickerSheet / R-18 行共用，它们不显示这枚提示。
+    <!-- 「其他条件」勾选行的持久化层级提示（issue #1240）：显示在勾的左侧——
+         「临时的（长按记住）」/「仅这里记住」；落到「全局记住」层时不显示（＝默认态）。
+         默认 gone —— SimplePickerSheet 也复用本布局，它不显示这枚提示。
          文字色与勾同走主题色，在代码里 setTextColor(palette.textAccent)（同 check_mark）。
          maxWidth 必须有：check_label 是 0dp+weight，只分到非权重子 view 量完后剩下的宽度。
          俄 / 英文提示在 360dp 窄屏、字体放大时能吃掉整行，把标签挤成一字一行甚至 0 宽；
@@ -39,7 +40,7 @@
         android:paddingStart="6dp"
         android:textSize="12sp"
         android:visibility="gone"
-        tools:text="临时的（长按记住）"
+        tools:text="@string/search_filter_v3_row_temporary_hint"
         tools:visibility="visible" />
 
     <TextView
@@ -48,7 +49,7 @@
         android:layout_height="wrap_content"
         android:paddingStart="8dp"
         android:paddingBottom="2dp"
-        android:text="✓"
+        android:text="@string/v3_check_mark"
         android:textSize="20sp"
         android:visibility="invisible"
         tools:visibility="visible" />
