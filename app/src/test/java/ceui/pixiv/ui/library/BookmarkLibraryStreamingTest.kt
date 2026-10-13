@@ -723,6 +723,30 @@ class BookmarkLibraryStreamingTest {
     }
 
     @Test
+    fun `clearing the shelf while scrolled down is not deferred`() = runTest(dispatcher) {
+        val shelf = shelf()
+        val library = model(shelf)
+        library.setMirrorState(state(shelf, complete = true))
+        insert(shelf, 1..60)
+        updateCount(library, 60)
+        val feed = FeedViewModel(BookmarkLibraryFeedSource(library, shelf.contentType), autoLoad = false)
+        models.put("feed", feed)
+        feed.refresh()
+        val first = feed.uiState.first { it.hasLoadedOnce && it.refresh is LoadState.Idle }
+        val ui = ui(library, feed, atTop = false)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        // 重建：清空落库的统计先到，状态还停在「已完成」
+        db.bookmarkMirrorDao().clearShelf(shelf.key)
+        updateCount(library, 0)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        val updated = feed.uiState.first { it.refreshGeneration > first.refreshGeneration && it.refresh is LoadState.Idle }
+        assertTrue(updated.items.isEmpty())
+        ui.destroy()
+    }
+
+    @Test
     fun `backfill keeps streaming the tail after an in-app unbookmark moves the head`() = runTest(dispatcher) {
         val shelf = shelf()
         val library = model(shelf)

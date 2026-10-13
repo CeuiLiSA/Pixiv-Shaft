@@ -562,7 +562,9 @@ internal class BookmarkLibraryUi(
             return
         }
 
-        if (statsChanged && complete && !atTop) {
+        // 整架清空（重建）不能暂存：清空落库的统计可能先于「未完成」的状态到达，此刻 complete 仍是旧的 true；
+        // 等状态翻成未完成，下一批回填进来 stored 就不再是 0，这条判据再也认不出，旧卡片会挂到重建补齐为止。
+        if (statsChanged && complete && !atTop && !clearedWhileShown) {
             // 用户正在下方浏览：暂存标记，回顶时再重查，绝不在浏览中途拽回顶部
             hasPendingStaleWhileScrolled = true
             return
