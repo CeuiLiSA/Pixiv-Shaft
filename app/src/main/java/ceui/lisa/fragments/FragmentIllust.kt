@@ -903,7 +903,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
      * 右上角常驻页码浮标(#1058):不进阅读器、直接在详情页往下滑看多图时,标出「当前页 / 总页」。
      *
      * 刷新时机挂在图片列表的排版回调上,而不是「换了 adapter 就算一次」:adapter 是在
-     * [setupBottomSheet] 的 onGlobalLayout 里建的,那一刻子 View 还没排版,读到的 top/bottom
+     * 首次排版之前建的(见 [ensureImageArea]),那一刻子 View 还没排版,读到的 top/bottom
      * 全是 0;排版回调还顺带覆盖了「图加载完撑高条目」这类没有滚动的位移。
      *
      * 监听只挂一次 —— ObjectPool 每发射一次都会重跑 [updateIllust],但 recyclerView 本身不换。
@@ -1206,9 +1206,9 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                     })
                 }
                 recyHeight = baseBind.recyclerView.height
-                // 上面的高度测算每次都要跑(简介补拉到货后 sheet 要重新长高),但图片区不能跟着重建:
-                // 换 layoutManager + new adapter = 所有大图从零重新加载,这就是收藏一下整页闪一次的原因(#962)。
-                ensureImageArea(illust)
+                // 图片区已在注册本回调之前同步装配好(见 ensureImageArea),这里不再重放:
+                // 本回调可能晚于后续发射才跑(非当前页要等信息区 inflate),那时 `illust` 已是旧 bean,
+                // 重放会让指纹不符 → 用旧 bean 重建一遍 adapter,大图整片重载(#962 的闪)。
                 baseBind.coreLinear.viewTreeObserver.removeOnGlobalLayoutListener(this)
             }
         })
@@ -1223,7 +1223,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
      *
      * 首次调用时 `baseBind.recyclerView.height` 虽仍为 0，但原先放 onGlobalLayout 时量出的也是 0
      * （RecyclerView 为 wrap_content 且无内容）。
-     * 后续在 onGlobalLayout 里保留调用；[imageAreaSignature] 守卫保证没换图时不重建 adapter（#962）。
+     * 每次池发射都同步走这里；[imageAreaSignature] 守卫保证没换图时不重建 adapter（#962）。
      */
     private fun ensureImageArea(illust: Illust) {
         val signature = imageAreaSignature(illust)
