@@ -62,7 +62,7 @@ data class HistoryIllustFeedItem(
     }
 
     override fun hashCode(): Int {
-        var result = entity.illustID
+        var result = entity.illustID.hashCode()
         result = 31 * result + entity.time.hashCode()
         result = 31 * result + isSelectionMode.hashCode()
         result = 31 * result + isSelected.hashCode()
@@ -88,7 +88,7 @@ data class HistoryNovelFeedItem(
     }
 
     override fun hashCode(): Int {
-        var result = entity.illustID
+        var result = entity.illustID.hashCode()
         result = 31 * result + entity.time.hashCode()
         result = 31 * result + isSelectionMode.hashCode()
         result = 31 * result + isSelected.hashCode()
@@ -130,7 +130,7 @@ class HistoryFeedSource(
             withContext(Dispatchers.Main.immediate) {
                 page.items.forEach { item ->
                     val illust = (item as? HistoryIllustFeedItem)?.illust ?: return@forEach
-                    if (ObjectPool.getIllust(illust.id.toLong()).value == null) {
+                    if (ObjectPool.getIllust(illust.id).value == null) {
                         ObjectPool.update(illust)
                     }
                     illust.user?.let { user ->
@@ -247,7 +247,7 @@ class HistoryFeedSource(
     private fun remoteToEntity(entry: HistoryEntry): IllustHistoryEntity? {
         val payload = entry.payload ?: return null
         return IllustHistoryEntity().apply {
-            illustID = entry.target_id.toInt()
+            illustID = entry.target_id
             illustJson = Shaft.sGson.toJson(payload)
             time = entry.viewed_at
             type = historyType
@@ -299,7 +299,7 @@ suspend fun deleteHistoryEntities(historyType: Int, entities: List<IllustHistory
                     if (ib?.type == "manga") "manga" else "illust"
                 }
                 runCatching {
-                    Client.pixshaft.deleteHistory(SessionManager.loggedInUid, tt, entity.illustID.toLong())
+                    Client.pixshaft.deleteHistory(SessionManager.loggedInUid, tt, entity.illustID)
                 }.onFailure { Timber.w(it, "remote history delete failed (local deleted)") }
             }
         }

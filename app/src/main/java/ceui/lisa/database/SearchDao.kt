@@ -87,7 +87,7 @@ interface SearchDao {
     fun getUserMuteEntityByIDLiveData(userID: Long): LiveData<MuteEntity>
 
     @Query("SELECT * FROM tag_mute_table WHERE type = 1 AND id = :illustId LIMIT 1")
-    fun getIllustMuteEntityByID(illustId: Int): LiveData<MuteEntity>
+    fun getIllustMuteEntityByID(illustId: Long): LiveData<MuteEntity>
 
     @Query("SELECT * FROM tag_mute_table WHERE type = 4 AND id = :userID LIMIT 1")
     fun getBlockMuteEntityByID(userID: Long): MuteEntity?

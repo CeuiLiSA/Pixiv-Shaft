@@ -17,13 +17,13 @@ class FeatureEntity : Serializable {
     var dateTime: Long = 0L
     var starType: String = ""
     var userID = 0L
-    var illustID = 0
+    var illustID = 0L
     var illustTitle: String = ""
     var isShowToolbar = false
     var name: String = ""
     var dataType: String = ""
     var illustJson: String = ""
-    var seriesId = 0
+    var seriesId = 0L
     @Ignore
     var allIllust: List<Illust> = ArrayList()
     @Ignore

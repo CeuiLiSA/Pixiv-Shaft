@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 /**
- * 浏览历史各 tab 的多选态(跨配置存活),键统一用 Long:插画/小说 tab 传 illustID.toLong(),
+ * 浏览历史各 tab 的多选态(跨配置存活),键统一用 Long:插画/小说 tab 传 entity.illustID(Long),
  * 用户 tab 传 entity.id(uid)。对齐旧 History*ViewModel 的多选字段,拆成独立 VM 让 feeds 版
  * [FragmentHistoryList] / [FragmentHistoryUserList] 的列表数据(FeedViewModel)与选中态解耦。
  */

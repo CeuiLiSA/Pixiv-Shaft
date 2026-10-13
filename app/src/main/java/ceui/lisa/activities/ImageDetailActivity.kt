@@ -208,7 +208,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             }
             // 译图仓库按作品分桶(app 级):绑定后本页各 Fragment 观察到的就是这部作品的译图,
             // 包括「翻译整部」在别的页面跑出来的
-            translationViewModel.bindIllust(mIllust!!.id.toLong())
+            translationViewModel.bindIllust(mIllust!!.id)
             val btnAiMenu = findViewById<ImageView>(R.id.btn_ai_menu)
             btnAiMenu.visibility = View.VISIBLE
             btnAiMenu.setOnClickListener { anchor ->
@@ -514,7 +514,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         mIllust = data.localizeIllust()
         val bean = mIllust ?: return
         // 译图仓库按作品分桶，不 bind 的话「翻译整部」跑完了本页也收不到产物(译图不回显)。
-        translationViewModel.bindIllust(bean.id.toLong())
+        translationViewModel.bindIllust(bean.id)
         val pageCount = bean.page_count.coerceAtLeast(1)
         baseBind!!.viewPager.adapter =
             object : FragmentPagerAdapter(supportFragmentManager) {
@@ -748,7 +748,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
         // 收藏态:先按 intent 带来的 bean 画一次,再观察 ObjectPool 里同 id 的权威 bean(若有)
         mIllust?.let { fabBar.setBookmarked(it.isBookmarked) }
-        mIllust?.id?.toLong()?.let { id ->
+        mIllust?.id?.let { id ->
             ObjectPool.get<Illust>(id).observe(this) { bean ->
                 bean?.let { fabBar.setBookmarked(it.isBookmarked) }
             }
@@ -812,7 +812,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     /** 收藏/取消收藏作用于整个作品:优先取 ObjectPool 里的权威 bean(与一级详情共享乐观态),退回 intent 副本。 */
     private fun likeTargetIllust(): Illust? = mIllust?.let {
-        ObjectPool.get<Illust>(it.id.toLong()).value ?: it
+        ObjectPool.get<Illust>(it.id).value ?: it
     }
 
     private fun autoLikeAfterDownloadIfNeeded(illust: Illust, fabBar: V3FabBarController) {
@@ -1185,7 +1185,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         val illust = mIllust ?: return
         val pages = tracker.finish(SystemClock.elapsedRealtime(), System.currentTimeMillis())
         if (pages.isEmpty()) return
-        AutoSnapshotEngine.onViewerSessionEnd(illust.id.toLong(), pages, illust.page_count)
+        AutoSnapshotEngine.onViewerSessionEnd(illust.id, pages, illust.page_count)
     }
 
     /** [FragmentImageDetail] 观察到当前页离开初始缩放时回调；只观测，不做消费。 */

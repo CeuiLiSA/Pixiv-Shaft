@@ -57,7 +57,7 @@ class DiscoveryPool(app: Context, private val profileManager: ProfileManager) {
                 val unshown = dao.countUnshown()
                 Timber.d("$TAG initialize pooledIds=${pooledIds.size}, db(total=$total, unshown=$unshown)")
 
-                val legacyIds = db.downloadDao().allViewHistoryIds.map { it.toLong() }
+                val legacyIds = db.downloadDao().allViewHistoryIds
                 seenIds.addAll(legacyIds)
                 try {
                     seenIds.addAll(db.generalDao().getAllIdsByRecordType(ceui.pixiv.db.RecordType.VIEW_ILLUST_HISTORY))

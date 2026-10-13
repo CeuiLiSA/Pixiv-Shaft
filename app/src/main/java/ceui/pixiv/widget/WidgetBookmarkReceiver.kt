@@ -11,6 +11,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import ceui.lisa.utils.Params
 
 /**
  * 桌面小组件上的收藏按钮（issue #641）。点击 → 广播到这里 → 交给
@@ -19,8 +20,9 @@ import androidx.work.workDataOf
 class WidgetBookmarkReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        val illustId = intent.getIntExtra(EXTRA_ILLUST_ID, 0)
-        if (illustId <= 0) return
+        // 兼容读：升级前桌面上已挂着的 PendingIntent 里 extra 还是 Int，getLongExtra 会读成 0
+        val illustId = Params.getLongCompat(intent, EXTRA_ILLUST_ID)
+        if (illustId <= 0L) return
         val request = OneTimeWorkRequestBuilder<WidgetBookmarkWorker>()
             .setConstraints(
                 Constraints.Builder()
@@ -45,7 +47,7 @@ class WidgetBookmarkReceiver : BroadcastReceiver() {
          *             作为 data URI 区分 PendingIntent —— 只靠 requestCode 会在
          *             不同 widget 家族之间撞车，导致 A 组件收藏了 B 组件的图。
          */
-        fun pendingIntent(context: Context, slot: String, illustId: Int): PendingIntent {
+        fun pendingIntent(context: Context, slot: String, illustId: Long): PendingIntent {
             val intent = Intent(context, WidgetBookmarkReceiver::class.java).apply {
                 data = Uri.parse("pixivshaft://widget-bookmark/$slot")
                 putExtra(EXTRA_ILLUST_ID, illustId)

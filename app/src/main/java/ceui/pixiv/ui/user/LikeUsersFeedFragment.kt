@@ -64,11 +64,11 @@ class LikeUsersFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
     override val feedViewModel by feedViewModels {
-        // 零捕获：先把 arg 读进局部 val，只把作品 id（插画 Int / 小说 Long）捕获进 source
+        // 零捕获：先把 arg 读进局部 val，只把作品 id（插画 / 小说都是 Long）捕获进 source
         // （source 归 VM 长期持有，绝不能捕获 Fragment）。
         val args = requireArguments()
         val novelId = args.getLong(Params.NOVEL_ID, 0L).takeIf { it != 0L }
-        val illustId = (args.getSerializable(Params.CONTENT) as? Illust)?.id?.toInt()
+        val illustId = (args.getSerializable(Params.CONTENT) as? Illust)?.id
         when {
             // `v1/novel/bookmark/users` 不在 app-api 公开文档里但确实存在：无 token 打它回 400
             //（OAuth 报错，说明路由命中），不存在的路径才回 404。

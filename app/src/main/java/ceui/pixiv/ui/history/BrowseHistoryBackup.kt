@@ -114,7 +114,7 @@ object BrowseHistoryBackup {
         val db = AppDatabase.getAppDatabase(context)
         var imported = 0
         payload.illustHistory.forEach { e ->
-            if (!e.illustJson.isNullOrEmpty() && e.illustID != 0) {
+            if (!e.illustJson.isNullOrEmpty() && e.illustID != 0L) {
                 db.downloadDao().insert(e)
                 imported++
             }

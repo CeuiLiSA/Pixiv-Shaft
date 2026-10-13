@@ -142,23 +142,23 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
         val needsUpdate = feedViewModel.uiState.value.items.any { item ->
             when (item) {
                 is HistoryIllustFeedItem ->
-                    item.isSelectionMode != mode || item.isSelected != (item.entity.illustID.toLong() in selected)
+                    item.isSelectionMode != mode || item.isSelected != (item.entity.illustID in selected)
                 is HistoryNovelFeedItem ->
-                    item.isSelectionMode != mode || item.isSelected != (item.entity.illustID.toLong() in selected)
+                    item.isSelectionMode != mode || item.isSelected != (item.entity.illustID in selected)
                 else -> false
             }
         }
         if (!needsUpdate) return
         feedViewModel.updateItems<HistoryIllustFeedItem> {
-            it.copy(isSelectionMode = mode, isSelected = it.entity.illustID.toLong() in selected)
+            it.copy(isSelectionMode = mode, isSelected = it.entity.illustID in selected)
         }
         feedViewModel.updateItems<HistoryNovelFeedItem> {
-            it.copy(isSelectionMode = mode, isSelected = it.entity.illustID.toLong() in selected)
+            it.copy(isSelectionMode = mode, isSelected = it.entity.illustID in selected)
         }
     }
 
     // ── renderer 回调（HistoryFeed.kt 里的扩展 renderer 调用）────────────────────────
-    internal fun toggleHistorySelect(entity: IllustHistoryEntity) = selectionVm.toggle(entity.illustID.toLong())
+    internal fun toggleHistorySelect(entity: IllustHistoryEntity) = selectionVm.toggle(entity.illustID)
 
     internal fun openHistoryUser(uid: Long) {
         startActivity(Intent(requireContext(), UActivity::class.java).apply {
@@ -231,13 +231,13 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
     override val selectedCount: LiveData<Int> get() = selectionVm.selectedCount
     override fun hasItems(): Boolean = loadedEntities().isNotEmpty()
     override fun isAllSelected(): Boolean {
-        val ids = loadedEntities().map { it.illustID.toLong() }
+        val ids = loadedEntities().map { it.illustID }
         return ids.isNotEmpty() && selectionVm.selectedIds.value.orEmpty().containsAll(ids)
     }
     override fun enterSelectionMode() = selectionVm.setSelectionMode(true)
     override fun exitSelectionMode() = selectionVm.setSelectionMode(false)
     override fun toggleSelectAll() {
-        val ids = loadedEntities().map { it.illustID.toLong() }
+        val ids = loadedEntities().map { it.illustID }
         if (ids.isNotEmpty() && selectionVm.selectedIds.value.orEmpty().containsAll(ids)) {
             selectionVm.clear()
         } else {
@@ -246,7 +246,7 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
     }
     override fun deleteSelected(onComplete: (Int) -> Unit) {
         val selected = selectionVm.selectedIds.value.orEmpty()
-        val targets = loadedEntities().filter { it.illustID.toLong() in selected }
+        val targets = loadedEntities().filter { it.illustID in selected }
         deleteHistory(targets) { deleted ->
             selectionVm.setSelectionMode(false)
             onComplete(deleted)

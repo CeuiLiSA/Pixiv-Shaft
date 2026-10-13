@@ -467,7 +467,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
             item(getString(R.string.view_comments), R.drawable.ic_baseline_comment_24) {
                 val intent = Intent(requireContext(), TemplateActivity::class.java).apply {
                     putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.COMMENTS.key)
-                    putExtra(Params.ILLUST_ID, resolveIllustId().toInt())
+                    putExtra(Params.ILLUST_ID, resolveIllustId())
                 }
                 startActivity(intent)
             }

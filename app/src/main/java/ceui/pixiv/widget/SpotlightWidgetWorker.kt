@@ -180,7 +180,7 @@ class SpotlightWidgetWorker(
             views.setViewVisibility(R.id.widget_bookmark, android.view.View.VISIBLE)
             views.setOnClickPendingIntent(
                 R.id.widget_bookmark,
-                WidgetBookmarkReceiver.pendingIntent(context, "spotlight/$widgetId", illust.id.toInt())
+                WidgetBookmarkReceiver.pendingIntent(context, "spotlight/$widgetId", illust.id)
             )
         }
 

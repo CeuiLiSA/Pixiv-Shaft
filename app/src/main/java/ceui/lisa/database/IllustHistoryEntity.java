@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey;
 public final class IllustHistoryEntity {
 
     @PrimaryKey()
-    private int illustID;
+    private long illustID;
     private String illustJson;
     private long time;
     private int type; // 0插画， 1小说
@@ -20,11 +20,11 @@ public final class IllustHistoryEntity {
         this.time = time;
     }
 
-    public int getIllustID() {
+    public long getIllustID() {
         return illustID;
     }
 
-    public void setIllustID(int illustID) {
+    public void setIllustID(long illustID) {
         this.illustID = illustID;
     }
 

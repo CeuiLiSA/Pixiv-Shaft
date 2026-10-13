@@ -125,8 +125,8 @@ class IllustAiHelper(
         }
     }
 
-    fun restoreUpscaleIfRunning(illustId: Int) {
-        val key = UpscaleTask.illustKey(illustId.toLong())
+    fun restoreUpscaleIfRunning(illustId: Long) {
+        val key = UpscaleTask.illustKey(illustId)
         val task = UpscaleTaskPool.getTask(key) ?: return
         when (task.status.value) {
             UpscaleStatus.Running, UpscaleStatus.Done -> observeUpscaleTask(task)

@@ -45,9 +45,9 @@ class RelatedIllustFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_f
 
     private val binding by viewBinding(FragmentToolbarFeedBinding::bind)
 
-    // legacy 用 int ILLUST_ID（TemplateActivity 路由 getIntExtra、ArtworkDetailItem.RelatedHeader.illustId:Int）。
+    // ILLUST_ID 全链路 Long（TemplateActivity 路由与 ArtworkRelatedHeaderItem.illustId 都按 Long 传）。
     private val illustId: Long by lazy(LazyThreadSafetyMode.NONE) {
-        requireArguments().getInt(Params.ILLUST_ID).toLong()
+        Params.getLongCompat(requireArguments(), Params.ILLUST_ID)
     }
     private val title: String by lazy(LazyThreadSafetyMode.NONE) {
         requireArguments().getString(Params.ILLUST_TITLE).orEmpty()
@@ -99,7 +99,7 @@ class RelatedIllustFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_f
                 val entity = FeatureEntity().apply {
                     uuid = "${illustId}相关作品"
                     dataType = "相关作品"
-                    illustID = illustId.toInt()
+                    illustID = illustId
                     illustTitle = title
                     illustJson = Common.cutToJson(beans)
                     dateTime = System.currentTimeMillis()
@@ -112,10 +112,10 @@ class RelatedIllustFeedFragment : IllustFeedFragment(R.layout.fragment_toolbar_f
 
     companion object {
         @JvmStatic
-        fun newInstance(id: Int, title: String?): RelatedIllustFeedFragment {
+        fun newInstance(id: Long, title: String?): RelatedIllustFeedFragment {
             return RelatedIllustFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.ILLUST_ID, id)
+                    putLong(Params.ILLUST_ID, id)
                     putString(Params.ILLUST_TITLE, title)
                 }
             }

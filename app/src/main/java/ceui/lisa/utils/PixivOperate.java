@@ -422,7 +422,7 @@ public class PixivOperate {
             JavaAsync.fireAndForget(() -> {
                 IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
                 illustHistoryEntity.setType(0);
-                illustHistoryEntity.setIllustID((int) illust.getId());
+                illustHistoryEntity.setIllustID(illust.getId());
                 illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(illust));
                 illustHistoryEntity.setTime(System.currentTimeMillis());
                 Common.showLog("插入了 " + illustHistoryEntity.getIllustID() + " time " + illustHistoryEntity.getTime());
@@ -448,7 +448,7 @@ public class PixivOperate {
         if (novelBean.getId() > 0) {
             JavaAsync.fireAndForget(() -> {
                 IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
-                illustHistoryEntity.setIllustID((int) novelBean.getId());
+                illustHistoryEntity.setIllustID(novelBean.getId());
                 illustHistoryEntity.setType(1);
                 illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(novelBean));
                 illustHistoryEntity.setTime(System.currentTimeMillis());

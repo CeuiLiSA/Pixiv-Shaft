@@ -56,7 +56,7 @@ import timber.log.Timber
  */
 class SelectTagFeedFragment : FeedFragment() {
 
-    private val illustID: Int by lazy { arguments?.getInt(Params.ILLUST_ID) ?: 0 }
+    private val illustID: Long by lazy { Params.getLongCompat(arguments, Params.ILLUST_ID) }
     private val type: String by lazy { arguments?.getString(Params.DATA_TYPE) ?: Params.TYPE_ILLUST }
     private val tagNamesArg: List<String> by lazy {
         arguments?.getStringArray(Params.TAG_NAMES)?.toList() ?: emptyList()
@@ -251,7 +251,7 @@ class SelectTagFeedFragment : FeedFragment() {
             .mapNotNull { it.tag.name }
 
         val restrict = if (isPrivate) Params.TYPE_PRIVATE else Params.TYPE_PUBLIC
-        val targetId = illustID.toLong()
+        val targetId = illustID
         when (type) {
             Params.TYPE_ILLUST ->
                 PixivActions.bookmarkIllustWithTags(targetId, restrict, selectedNames)
@@ -265,10 +265,10 @@ class SelectTagFeedFragment : FeedFragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance(illustID: Int, type: String?, tagNames: Array<String>?): SelectTagFeedFragment =
+        fun newInstance(illustID: Long, type: String?, tagNames: Array<String>?): SelectTagFeedFragment =
             SelectTagFeedFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(Params.ILLUST_ID, illustID)
+                    putLong(Params.ILLUST_ID, illustID)
                     putString(Params.DATA_TYPE, type)
                     putStringArray(Params.TAG_NAMES, tagNames)
                 }
@@ -295,7 +295,7 @@ class SelectTagFeedItem(val tag: TagsBean) : FeedItem {
  * 零 Fragment 捕获：只吃 illustID/type/tagNames（基本类型 + 不可变 list）。
  */
 class SelectTagFeedSource(
-    private val illustID: Int,
+    private val illustID: Long,
     private val type: String,
     private val tagNames: List<String>,
 ) : FeedSource<String> {
