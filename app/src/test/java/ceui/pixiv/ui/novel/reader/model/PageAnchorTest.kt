@@ -35,9 +35,16 @@ class PageAnchorTest {
         assertEquals(0, emptyList<Page>().indexOfPageForAnchor(42))
     }
 
-    @Test fun `zero-width translation page before a boundary does not capture the anchor`() {
-        // 第 1 页只有双语译文的尾巴（零宽度，charStart == charEnd == 120），锚点 120 跳过它落到下一段原文。
+    @Test fun `zero-width page is found again by its start`() {
+        // 第 1 页是混排插画（零宽度，charStart == charEnd == 120）。停在插画页上时锚点 = 120，
+        // 重排版后必须回到插画页，而不是被推到下一页。
         val list = pages(0 to 120, 120 to 120, 130 to 260)
-        assertEquals(2, list.indexOfPageForAnchor(120))
+        assertEquals(1, list.indexOfPageForAnchor(120))
+    }
+
+    @Test fun `anchor between pages that matches no page start uses the strict end rule`() {
+        // 125 落在第 1 页（零宽度）与第 2 页（130 起）之间的换行符上：归下一页。
+        val list = pages(0 to 120, 120 to 120, 130 to 260)
+        assertEquals(2, list.indexOfPageForAnchor(125))
     }
 }
