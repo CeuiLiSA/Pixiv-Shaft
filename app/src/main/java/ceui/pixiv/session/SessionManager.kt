@@ -410,24 +410,43 @@ object SessionManager {
     fun refreshAccessToken(tokenForThisRequest: String): String? =
         tokenRefresher.refresh(tokenForThisRequest)
 
+    /**
+     * 刷新请求在途（几百毫秒到十几秒）时用户可能切了号。拿去换的是 [refreshToken] 那个会话的凭证，
+     * 结果只能写回它自己：写进切换后的会话，会让界面显示 B、请求却全以 A 的身份发出，
+     * 还会被 [applyTokenRefresh] 以 B 的 uid 上报进借号池。吊销同理，A 的凭证失效不能登出 B。
+     */
+    private fun isStillSessionOf(refreshToken: String?): Boolean =
+        _loggedInAccount.value?.refresh_token == refreshToken
+
     private fun doRefreshLocked(): String? {
         return runBlocking(Dispatchers.IO) {
+            val refreshToken = _loggedInAccount.value?.refresh_token
             try {
-                val refreshToken =
-                    _loggedInAccount.value?.refresh_token
-                        ?: throw RuntimeException("refresh_token not exist")
+                if (refreshToken == null) throw RuntimeException("refresh_token not exist")
                 val response = PixivLogin.refreshTokenBlocking(refreshToken)
-                withContext(Dispatchers.Main) {
-                    applyTokenRefresh(
-                        response.accessToken,
-                        response.refreshToken,
-                        response.expiresIn,
-                        freshPremiumOf(response),
-                        freshXRestrictOf(response),
-                    )
+                val applied =
+                    withContext(Dispatchers.Main) {
+                        if (!isStillSessionOf(refreshToken)) return@withContext false
+                        applyTokenRefresh(
+                            response.accessToken,
+                            response.refreshToken,
+                            response.expiresIn,
+                            freshPremiumOf(response),
+                            freshXRestrictOf(response),
+                        )
+                        true
+                    }
+                if (!applied) {
+                    Timber.tag("TokenRefresh").w("account switched while refreshing, dropping result")
+                    return@runBlocking null
                 }
                 response.accessToken
             } catch (ex: InvalidRefreshTokenException) {
+                if (!isStillSessionOf(refreshToken)) {
+                    Timber.tag("TokenRefresh")
+                        .w(ex, "refresh rejected for a switched-away account, keeping session")
+                    return@runBlocking null
+                }
                 Timber.tag("TokenRefresh")
                     .e(ex, "refresh rejected as INVALID refresh token → signing out + restart")
                 postUpdateSession(null)
