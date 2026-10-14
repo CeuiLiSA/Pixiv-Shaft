@@ -917,7 +917,10 @@
     <string name="delete_ai_illust">Hide AI-generated works</string>
     <string name="ai_block_strength">Hide effect level</string>
     <string name="ai_block_strength_hide">Hide completely</string>
-    <string name="feed_all_items_filtered">All works are hidden by your filter settings</string>
+    <string name="feed_all_items_filtered">All works are hidden by the filter settings of %1$s</string>
+    <string name="feed_filter_reason_list">Enabled filters:\n%1$s</string>
+    <string name="feed_filter_reason_item">“%1$s”</string>
+    <string name="feed_filter_reason_muted_tag">Muted tags</string>
     <string name="ai_block_strength_blur">Blur with particles</string>
     <string name="ai_block_exempt_authors">Exempt author list</string>
     <string name="ai_block_exempt_hint">Add author IDs one by one. Tap a chip to temporarily disable its exemption, or tap the trash icon to remove it.\nA restart is recommended after changing the list.</string>

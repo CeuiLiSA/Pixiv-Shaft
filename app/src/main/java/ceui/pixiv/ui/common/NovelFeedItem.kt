@@ -64,12 +64,13 @@ class NovelFeedItem(
             skipMuteUserFilter: Boolean = false,
             skipSpamFilter: Boolean = false,
             skipAiFilter: Boolean = false,
+            onRejected: ((ContentFilterReason) -> Unit)? = null,
         ): NovelFeedItem? {
-            return if (passesContentFilters(novel, skipR18Filter, skipMuteUserFilter, skipSpamFilter, skipAiFilter)) {
-                NovelFeedItem(novel, trendingScore)
-            } else {
-                null
-            }
+            val passes = passesContentFilters(
+                novel, skipR18Filter, skipMuteUserFilter, skipSpamFilter, skipAiFilter, onRejected,
+            )
+            if (!passes) return null
+            return NovelFeedItem(novel, trendingScore)
         }
 
         /**
@@ -86,6 +87,14 @@ class NovelFeedItem(
         /**
          * 与 legacy [ceui.lisa.core.Mapper] 的小说分支逐条对齐（tag / id / 作者 / R18 过滤）。
          * 走 [IllustNovelFilter] 的 [ceui.loxia.Novel] 重载，无需 legacy bean。
+         *
+         * [onRejected] 决定「短路」还是「跑全」：
+         * - 不传（所有列表页的热路径）：命中一条就返回，后面的判定连同它的同步 Room 查询一起省掉；
+         * - 传了（作者小说页要写空态说明）：跑完**每一条**判定，把命中过的过滤都回调出去。
+         *   一篇小说可能同时踩中多条，只报第一条会让空态漏项。
+         *
+         * [ContentFilterReason.MUTED_USER] 是过滤链的完整镜像，在作者小说页被让步、实际不会出现。
+         * ⚠️ judgeTag/judgeUserID 各是一次**同步 Room 查询**，必须在后台线程跑。
          */
         private fun passesContentFilters(
             novel: Novel,
@@ -93,21 +102,44 @@ class NovelFeedItem(
             skipMuteUserFilter: Boolean = false,
             skipSpamFilter: Boolean = false,
             skipAiFilter: Boolean = false,
+            onRejected: ((ContentFilterReason) -> Unit)? = null,
         ): Boolean {
-            if (IllustNovelFilter.judgeTag(novel)) return false
+            val shortCircuit = onRejected == null
+            var blocked = false
+            if (IllustNovelFilter.judgeTag(novel)) {
+                onRejected?.invoke(ContentFilterReason.MUTED_TAG)
+                if (shortCircuit) return false
+                blocked = true
+            }
             // 不挂 judgeID：理由同插画侧——「屏蔽此作品」在 feeds 里是遮罩不是过滤，
             // 滤掉了就没法在卡片上取消（见 [ceui.pixiv.ui.common.NovelMuteStore]）。
             // 屏蔽画师过滤在「该作者本人小说页」让步（同插画侧）：整页都是这个作者，全滤空只会触发
             // 空页追载狂翻页；主动点进作者页就该看到其小说。
-            if (!skipMuteUserFilter && IllustNovelFilter.judgeUserID(novel)) return false
-            if (!skipR18Filter && IllustNovelFilter.judgeR18Filter(novel)) return false
+            if (!skipMuteUserFilter && IllustNovelFilter.judgeUserID(novel)) {
+                onRejected?.invoke(ContentFilterReason.MUTED_USER)
+                if (shortCircuit) return false
+                blocked = true
+            }
+            if (!skipR18Filter && IllustNovelFilter.judgeR18Filter(novel)) {
+                onRejected?.invoke(ContentFilterReason.R18)
+                if (shortCircuit) return false
+                blocked = true
+            }
             // 全局屏蔽 AI：完全不显示强度下剔除，模糊粒子化强度下保留由卡片打码（豁免作者除外）。
-            if (!skipAiFilter && IllustNovelFilter.shouldHideAi(novel)) return false
+            if (!skipAiFilter && IllustNovelFilter.shouldHideAi(novel)) {
+                onRejected?.invoke(ContentFilterReason.AI)
+                if (shortCircuit) return false
+                blocked = true
+            }
             // 正文字数区间 + 超长标签名自动屏蔽（issue #743）。三个阈值默认 0（关闭）。
             // 只在收藏夹让步（skipSpamFilter，见 of 的 KDoc）；作者页/榜单不让步——刷屏号的
             // 作者页本来就该被滤掉，那正是这个功能的目标。
-            if (!skipSpamFilter && IllustNovelFilter.judgeNovelSpam(novel)) return false
-            return true
+            if (!skipSpamFilter && IllustNovelFilter.judgeNovelSpam(novel)) {
+                onRejected?.invoke(ContentFilterReason.NOVEL_SPAM)
+                if (shortCircuit) return false
+                blocked = true
+            }
+            return !blocked
         }
     }
 }

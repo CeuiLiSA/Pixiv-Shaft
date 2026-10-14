@@ -912,7 +912,10 @@
     <string name="delete_ai_illust">Jangan tampilkan karya buatan AI</string>
     <string name="ai_block_strength">Tingkat penyembunyian</string>
     <string name="ai_block_strength_hide">Sembunyikan sepenuhnya</string>
-    <string name="feed_all_items_filtered">Semua karya disembunyikan oleh pengaturan blokir</string>
+    <string name="feed_all_items_filtered">Semua karya disembunyikan oleh pengaturan filter %1$s</string>
+    <string name="feed_filter_reason_list">Filter yang aktif:\n%1$s</string>
+    <string name="feed_filter_reason_item">“%1$s”</string>
+    <string name="feed_filter_reason_muted_tag">Tag yang diblokir</string>
     <string name="ai_block_strength_blur">Buramkan menjadi partikel</string>
     <string name="ai_block_exempt_authors">Daftar pembuat yang dikecualikan</string>
     <string name="ai_block_exempt_hint">Tambahkan ID pembuat satu per satu; ketuk kapsul untuk menonaktifkan pengecualian sementara, ketuk tempat sampah untuk menghapus\nDisarankan memulai ulang aplikasi setelah daftar berubah</string>

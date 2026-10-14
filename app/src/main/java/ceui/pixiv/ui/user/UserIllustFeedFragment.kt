@@ -28,9 +28,11 @@ import ceui.pixiv.api.Client
 import ceui.pixiv.db.queue.WorkType
 import ceui.pixiv.ui.common.highlightItemAt
 import ceui.pixiv.feeds.FeedItem
+import ceui.pixiv.feeds.FeedLoadPhase
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.bulk.startAuthorWorksBulkDownload
+import ceui.pixiv.ui.common.ContentFilterReason
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
@@ -41,20 +43,52 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import ceui.pixiv.ui.navigation.TemplateRoute
 
-/** 通用空态下方换行追加「作品已被屏蔽设置全部隐藏」；未命中时原样返回。 */
+/**
+ * 过滤原因 → 设置页里的原话：能复用设置项本身的文案就复用，用户拿着这句能直接在设置里找到开关。
+ * [ContentFilterReason.INVISIBLE] / [ContentFilterReason.MUTED_USER] 不是用户可关的开关，不列。
+ */
+private fun contentFilterReasonLabel(reason: ContentFilterReason, context: Context): String? = when (reason) {
+    ContentFilterReason.R18 -> context.getString(R.string.string_414)
+    ContentFilterReason.AI -> context.getString(R.string.delete_ai_illust)
+    ContentFilterReason.MUTED_TAG -> context.getString(R.string.feed_filter_reason_muted_tag)
+    ContentFilterReason.NOVEL_SPAM -> context.getString(R.string.novel_filter_section)
+    ContentFilterReason.INVISIBLE, ContentFilterReason.MUTED_USER -> null
+}
+
+/**
+ * 通用空态下方换行追加「作品已被 {应用名} 的过滤设置全部隐藏」，再按需追加一行
+ * 「已启用如下过滤：」+ 每个过滤项各占一行；未命中时原样返回。
+ *
+ * 文案要点（都是踩过的坑）：
+ * - 必须点明是**本 App** 的过滤，不能只说「屏蔽设置」——pixiv 网页端也有屏蔽设置，用户会先怀疑
+ *   是账号那边的设置（本次改动的起因）。应用名取 [R.string.app_name]，与桌面图标/清单 label 同源，
+ *   各渠道各语言自动跟着走，别写死。
+ * - [reasons] 是**本页实际命中**的过滤（后台逐条记录，见 [UserWorksStateViewModel.filteredReasons]），
+ *   不是「设置里开着的开关」——只列真正把本页清空的那几项，用户才不会被没起作用的开关误导。
+ * - 一项都列不出来时（例如只因 visible≠true 被滤空）只留上面那句，不硬凑清单。
+ */
 internal fun filteredEmptyStateText(
     base: CharSequence,
     allItemsFiltered: Boolean,
+    reasons: Set<ContentFilterReason>,
     context: Context,
-): CharSequence = if (allItemsFiltered) {
-    "$base\n${context.getString(R.string.feed_all_items_filtered)}"
-} else {
-    base
+): CharSequence {
+    if (!allItemsFiltered) return base
+    val headline = context.getString(R.string.feed_all_items_filtered, context.getString(R.string.app_name))
+    // 按 enum 声明顺序输出，与集合的插入顺序无关。
+    val labels = reasons.sortedBy { it.ordinal }.mapNotNull { contentFilterReasonLabel(it, context) }
+    if (labels.isEmpty()) return "$base\n$headline"
+    // 一项一行：拼成单行时窄屏/长文案会被截断，逐项换行最稳。
+    val joined = labels.joinToString("\n") {
+        context.getString(R.string.feed_filter_reason_item, it)
+    }
+    return "$base\n$headline\n${context.getString(R.string.feed_filter_reason_list, joined)}"
 }
 
 /**
@@ -128,6 +162,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
         get() = filteredEmptyStateText(
             super.emptyStateText,
             userWorksStateViewModel.allItemsFiltered.value,
+            userWorksStateViewModel.filteredReasons.value,
             requireContext(),
         )
 
@@ -140,7 +175,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
         val stateVm = userWorksStateViewModel
         pixivFeedSource({
             Client.appApi.getUserCreatedIllusts(uid, type, offset.takeIf { it > 0 })
-        }) { resp, _ -> mapUserIllustPage(resp.displayList, stateVm) }
+        }) { resp, phase -> mapUserIllustPage(resp.displayList, phase, stateVm) }
     }
 
     // showToolbar 是运行时参数,系统重建只走无参构造,不能靠构造器传 contentLayoutId,
@@ -172,14 +207,20 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
             }
         }
 
-        // allItemsFiltered 由 mapper 在后台设置，render 可能先于它跑；停在空态时补一次文案。
+        // allItemsFiltered / filteredReasons 由 mapper 在后台设置，render 可能先于它们跑；停在空态时补一次文案。
+        // 两个都要订阅：allItemsFiltered 翻 true 而 reasons 仍是空集（例如只因 visible≠true 滤空）时，
+        // 只订阅 filteredReasons 会漏掉这次变化。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                userWorksStateViewModel.allItemsFiltered.collect {
-                    if (feedViewModel.uiState.value.showEmptyState) {
-                        feedBinding.feedStateText.text = emptyStateText
+                combine(
+                    userWorksStateViewModel.allItemsFiltered,
+                    userWorksStateViewModel.filteredReasons,
+                ) { _, _ -> }
+                    .collect {
+                        if (feedViewModel.uiState.value.showEmptyState) {
+                            feedBinding.feedStateText.text = emptyStateText
+                        }
                     }
-                }
             }
         }
     }
@@ -331,15 +372,20 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
         /** 页响应 → 条目。跑在 Default 线程、被 VM 长期持有,放伴生对象保证零捕获。 */
         private fun mapUserIllustPage(
             illusts: List<Illust>,
+            phase: FeedLoadPhase,
             stateVm: UserWorksStateViewModel
         ): List<FeedItem> {
+            // 顺带记下本页「被哪几条过滤滤掉」，空态文案只列真正命中的项（见 filteredEmptyStateText）。
+            val reasons = linkedSetOf<ContentFilterReason>()
             val items = illusts.mapNotNull { illust ->
                 // 画师本人作品页：让步「屏蔽画师」过滤（否则屏蔽了本画师后，整页全被滤空 → 空页追载
                 // 狂翻 offset）。R18/标签/AI/作品ID 过滤照常。
-                IllustFeedItem.of(illust, skipMuteUserFilter = true)
+                IllustFeedItem.of(illust, skipMuteUserFilter = true, onRejected = { reason -> reasons += reason })
             }
-            // 空态要能说清「作者有作品，只是被你的屏蔽设置全滤掉了」，和「作者确实没作品」区分开。
-            stateVm.reportPageFiltered(rawCount = illusts.size, shownCount = items.size)
+            // 空态要能说清「作者有作品，只是被你的过滤设置全滤掉了」，和「作者确实没作品」区分开。
+            stateVm.reportPageFiltered(
+                rawCount = illusts.size, shownCount = items.size, reasons = reasons, firstPage = phase.isFirstPage,
+            )
             return items
         }
     }
@@ -360,6 +406,14 @@ class UserWorksStateViewModel : ViewModel() {
 
     /** 服务端有作品、但被本地过滤链（AI / R18 / 标签 / 作品 ID）整页滤空（供空态文案判断）。 */
     val allItemsFiltered: StateFlow<Boolean> = _allItemsFiltered.asStateFlow()
+
+    private val _filteredReasons = MutableStateFlow<Set<ContentFilterReason>>(emptySet())
+
+    /**
+     * 整页滤空时**实际命中**的过滤项（展示顺序见 [filteredEmptyStateText]）。
+     * 跨页取并集：停在空态后还会空页追载，多页各滤掉一批时都要能说明。
+     */
+    val filteredReasons: StateFlow<Set<ContentFilterReason>> = _filteredReasons.asStateFlow()
 
     private var started = false
 
@@ -383,12 +437,23 @@ class UserWorksStateViewModel : ViewModel() {
      * mapper 在后台线程上报一页的过滤结果。
      * 原始非空、展示为空 → 置 true；展示非空 → 置 false；原始就是空页（空页追载翻到底）不动——
      * 否则「第一页 30 条全被滤掉、追载第二页服务端返回空」会把刚记下的 true 抹掉。
+     *
+     * [reasons] 只在这页真被滤空时并进 [filteredReasons]；展示非空说明这页没被滤空，连同清单一起清掉。
+     * [firstPage]（首屏 / 下拉刷新 / 点空态重试）时重算而不是并集：用户常是改完过滤设置回来刷新，
+     * 沿用上一代的原因会把刚关掉的过滤仍列在清单里。
      */
-    fun reportPageFiltered(rawCount: Int, shownCount: Int) {
+    fun reportPageFiltered(
+        rawCount: Int,
+        shownCount: Int,
+        reasons: Set<ContentFilterReason> = emptySet(),
+        firstPage: Boolean = false,
+    ) {
         if (shownCount > 0) {
             _allItemsFiltered.value = false
+            _filteredReasons.value = emptySet()
         } else if (rawCount > 0) {
             _allItemsFiltered.value = true
+            _filteredReasons.value = if (firstPage) reasons else _filteredReasons.value + reasons
         }
     }
 }

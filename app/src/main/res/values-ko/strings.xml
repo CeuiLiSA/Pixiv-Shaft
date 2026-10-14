@@ -917,7 +917,10 @@
     <string name="delete_ai_illust">AI 생성 작품 숨기기</string>
     <string name="ai_block_strength">숨김 효과 수준</string>
     <string name="ai_block_strength_hide">완전히 표시 안 함</string>
-    <string name="feed_all_items_filtered">필터 설정에 따라 모든 작품이 숨겨졌습니다</string>
+    <string name="feed_all_items_filtered">%1$s의 필터 설정에 따라 모든 작품이 숨겨졌습니다</string>
+    <string name="feed_filter_reason_list">사용 중인 필터:\n%1$s</string>
+    <string name="feed_filter_reason_item">「%1$s」</string>
+    <string name="feed_filter_reason_muted_tag">차단한 태그</string>
     <string name="ai_block_strength_blur">흐림 + 파티클</string>
     <string name="ai_block_exempt_authors">제외 작가 목록</string>
     <string name="ai_block_exempt_hint">작가 ID를 하나씩 추가합니다. 칩을 탭하면 일시적으로 예외를 끄고, 휴지통 아이콘을 누르면 삭제됩니다\n목록 변경 후 앱 재시작을 권장합니다</string>
