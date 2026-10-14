@@ -111,6 +111,7 @@ class IllustFeedItem(
          * - 不传（所有列表页的热路径）：命中一条就返回，后面的判定连同它的同步 Room 查询一起省掉；
          * - 传了（作者作品页要写空态说明）：跑完**每一条**判定，把命中过的过滤都回调出去。
          *   一件作品可能同时踩中多条（既是 R18 又是 AI），只报第一条会让空态漏项。
+         *   例外：visible != true 只报 [ContentFilterReason.INVISIBLE] 就返回，不再跑后面的用户过滤。
          *
          * ⚠️ 这里面 judgeTag/judgeUserID 各是一次**同步 Room 查询**，调用方必须在后台线程
          * 跑（各 mapper 已由 PixivFeedSource 派到 Dispatchers.Default；详情回传链见
@@ -124,13 +125,14 @@ class IllustFeedItem(
             skipVisibleFilter: Boolean = false,
             onRejected: ((ContentFilterReason) -> Unit)? = null,
         ): Boolean {
-            val shortCircuit = onRejected == null
-            var blocked = false
+            // 不可见作品恒短路：它是 pixiv 侧不给看（占位图），关掉哪条本地过滤都放不出来。
+            // 跑全的话它顺带踩中的 R18/AI/标签会被列进空态清单，用户照着去关只会白关。
             if (!skipVisibleFilter && illust.visible != true) {
                 onRejected?.invoke(ContentFilterReason.INVISIBLE)
-                if (shortCircuit) return false
-                blocked = true
+                return false
             }
+            val shortCircuit = onRejected == null
+            var blocked = false
             if (IllustNovelFilter.judgeTag(illust)) {
                 onRejected?.invoke(ContentFilterReason.MUTED_TAG)
                 if (shortCircuit) return false
