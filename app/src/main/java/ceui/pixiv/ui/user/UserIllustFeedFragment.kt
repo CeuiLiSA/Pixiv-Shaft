@@ -28,6 +28,7 @@ import ceui.pixiv.api.Client
 import ceui.pixiv.db.queue.WorkType
 import ceui.pixiv.ui.common.highlightItemAt
 import ceui.pixiv.feeds.FeedItem
+import ceui.pixiv.feeds.FeedLoadPhase
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.bulk.startAuthorWorksBulkDownload
@@ -174,7 +175,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
         val stateVm = userWorksStateViewModel
         pixivFeedSource({
             Client.appApi.getUserCreatedIllusts(uid, type, offset.takeIf { it > 0 })
-        }) { resp, _ -> mapUserIllustPage(resp.displayList, stateVm) }
+        }) { resp, phase -> mapUserIllustPage(resp.displayList, phase, stateVm) }
     }
 
     // showToolbar 是运行时参数,系统重建只走无参构造,不能靠构造器传 contentLayoutId,
@@ -371,6 +372,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
         /** 页响应 → 条目。跑在 Default 线程、被 VM 长期持有,放伴生对象保证零捕获。 */
         private fun mapUserIllustPage(
             illusts: List<Illust>,
+            phase: FeedLoadPhase,
             stateVm: UserWorksStateViewModel
         ): List<FeedItem> {
             // 顺带记下本页「被哪几条过滤滤掉」，空态文案只列真正命中的项（见 filteredEmptyStateText）。
@@ -381,7 +383,9 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
                 IllustFeedItem.of(illust, skipMuteUserFilter = true, onRejected = { reason -> reasons += reason })
             }
             // 空态要能说清「作者有作品，只是被你的过滤设置全滤掉了」，和「作者确实没作品」区分开。
-            stateVm.reportPageFiltered(rawCount = illusts.size, shownCount = items.size, reasons = reasons)
+            stateVm.reportPageFiltered(
+                rawCount = illusts.size, shownCount = items.size, reasons = reasons, firstPage = phase.isFirstPage,
+            )
             return items
         }
     }
@@ -435,14 +439,21 @@ class UserWorksStateViewModel : ViewModel() {
      * 否则「第一页 30 条全被滤掉、追载第二页服务端返回空」会把刚记下的 true 抹掉。
      *
      * [reasons] 只在这页真被滤空时并进 [filteredReasons]；展示非空说明这页没被滤空，连同清单一起清掉。
+     * [firstPage]（首屏 / 下拉刷新 / 点空态重试）时重算而不是并集：用户常是改完过滤设置回来刷新，
+     * 沿用上一代的原因会把刚关掉的过滤仍列在清单里。
      */
-    fun reportPageFiltered(rawCount: Int, shownCount: Int, reasons: Set<ContentFilterReason> = emptySet()) {
+    fun reportPageFiltered(
+        rawCount: Int,
+        shownCount: Int,
+        reasons: Set<ContentFilterReason> = emptySet(),
+        firstPage: Boolean = false,
+    ) {
         if (shownCount > 0) {
             _allItemsFiltered.value = false
             _filteredReasons.value = emptySet()
         } else if (rawCount > 0) {
             _allItemsFiltered.value = true
-            _filteredReasons.value = _filteredReasons.value + reasons
+            _filteredReasons.value = if (firstPage) reasons else _filteredReasons.value + reasons
         }
     }
 }
