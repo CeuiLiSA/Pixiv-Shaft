@@ -1996,7 +1996,9 @@
     <string name="search_filter_v3_bookmark_filter_all">フィルタなし</string>
     <string name="search_filter_v3_bookmark_filter_only">フィルタする</string>
     <string name="search_filter_v3_row_temporary_hint">一時的（長押しで記憶）</string>
-    <string name="search_filter_v3_row_temporary_hint_no_persist">一時的</string>
+    <string name="search_filter_v3_row_remember_here_hint">ここに記憶</string>
+    <string name="search_filter_v3_row_remember_here_global_hint">ここに記憶（長押しで全体）</string>
+    <string name="search_filter_v3_row_no_global_toast">この項目には全体設定がありません。「ここに記憶」のままにしました</string>
     <string name="search_filter_v3_section_ai">AI 作品</string>
     <string name="search_filter_v3_ai_all">すべて</string>
     <string name="search_filter_v3_ai_only">AI のみ</string>

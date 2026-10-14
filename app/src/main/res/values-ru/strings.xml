@@ -1996,7 +1996,9 @@
     <string name="search_filter_v3_bookmark_filter_all">Без фильтра</string>
     <string name="search_filter_v3_bookmark_filter_only">Фильтровать</string>
     <string name="search_filter_v3_row_temporary_hint">Временное (долгое нажатие — запомнить)</string>
-    <string name="search_filter_v3_row_temporary_hint_no_persist">Временное</string>
+    <string name="search_filter_v3_row_remember_here_hint">Запомнено здесь</string>
+    <string name="search_filter_v3_row_remember_here_global_hint">Запомнено здесь (долгое нажатие — глобально)</string>
+    <string name="search_filter_v3_row_no_global_toast">Для этого пункта нет глобальной настройки; оставлено «запомнено здесь»</string>
     <string name="search_filter_v3_section_ai">Работы ИИ</string>
     <string name="search_filter_v3_ai_all">Все</string>
     <string name="search_filter_v3_ai_only">Только ИИ</string>

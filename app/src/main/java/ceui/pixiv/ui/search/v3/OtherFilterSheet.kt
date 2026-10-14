@@ -19,36 +19,43 @@ import ceui.pixiv.utils.setOnClick
 import java.io.Serializable
 
 /**
- * 「其他条件」子 sheet —— 收纳次要维度：AI 三选一（全部/屏蔽AI/仅看AI）+ 过滤已收藏二选一
+ * 「其他条件」子 sheet —— 收纳次要维度：AI 三选一（全部/不显示AI/仅看AI）+ 过滤已收藏二选一
  * + 小说专属（仅限原创 / 仅限单词置换 / 系列作品归纳）+ R-18 限制三选一。
  *
  * 小说专属三个 switch 仅在 isNovel = true 时显示；illust 模式整张卡片隐藏，结果回传时
  * 也固定 false。
  *
- * **AI 作品 / 过滤已收藏 =「单击临时、长按持久化」**（issue #909 的延伸）：
- *   - 单击只改本次搜索的档位（把 [SearchFilterV3.aiModeTemporary] /
- *     [SearchFilterV3.bookmarkFilterTemporary] 置 true），**不碰任何全局设置**——否则搜一次图
- *     就会顺带改掉首页等其它列表的 AI 屏蔽、以及设置页里的开关；
- *   - 长按某档才把该档写回全局设置（`isDeleteAIIllust` / `isSearchFilterBookmarked`），并把勾选
- *     同步到长按的那一行——长按的未必是当前勾选的那行；
- *   - 勾选值 ≠ 全局设置值时，勾的左边显示临时提示：能长按持久化的档位是「临时的（长按记住）」；
- *     「仅看 AI」没有全局对应档、长按也写不进设置，只显示「临时的」（不带括号里的那句）。
+ * **三层持久化（issue #1240）** —— AI 作品 / 过滤已收藏 / R-18 三个维度的勾选行统一按
+ * [FilterPersist] 三层走，手势是「单击 = 临时、长按 = 记一档」：
+ *   - **单击 = 临时**：只改本次搜索的档位，**不落任何盘**（[FilterPersist.Temporary]）；
+ *   - **长按第 1 下 = 仅这里记住**：写搜索页专属记忆（[FilterPersist.RememberHere]），跨重启
+ *     只被搜索页读，**不碰全局设置**——否则搜一次图就会顺带改掉首页等其它列表的 AI 屏蔽、
+ *     以及设置页里的开关；
+ *   - **长按第 2 下 = 全局记住**：把该档写回全局设置（`isDeleteAIIllust` /
+ *     `isSearchFilterBookmarked`），并把勾选同步到长按的那一行——长按的未必是当前勾选的那行；
+ *   - 没有全局对应档的维度（**仅看 AI**、**R-18 三档**）到「仅这里记住」封顶，第 2 下长按只弹
+ *     toast 说明，不会假装写进一个并不存在的全局设置。
+ *
+ * 打开时的取值优先级：**搜索页「仅这里记住」→ 全局设置 → 内置默认**（见
+ * [SearchFilterV3.fromGlobalDefaults]）。
  *
  * draft 状态在 [onSaveInstanceState] 持久化，旋屏不丢；结果走 FragmentResult API。
  */
 class OtherFilterSheet : V3BottomSheetBase() {
 
     private var draftAiMode: AiMode = AiMode.All
-    /** AI 档位是否为「会话临时值」（true = 单击选的，不写设置；长按某档会把它写回设置并归 false）。 */
-    private var draftAiModeTemporary: Boolean = false
+    /** AI 档位的持久化层级（临时 / 仅这里记住 / 全局记住）。 */
+    private var draftAiModePersist: FilterPersist = FilterPersist.Global
     private var draftR18: R18Mode = R18Mode.All
+    /** R-18 档位的持久化层级；无全局档，最多到「仅这里记住」。 */
+    private var draftR18Persist: FilterPersist = FilterPersist.Global
     private var draftOriginalOnly: Boolean = false
     private var draftReplaceableOnly: Boolean = false
     private var draftGroupBySeries: Boolean = false
-    /** 「过滤已收藏」草稿——单击只改本次搜索，长按才写回全局 isSearchFilterBookmarked。 */
+    /** 「过滤已收藏」草稿。 */
     private var draftBookmarkFilter: Boolean = false
-    /** 「过滤已收藏」是否为「会话临时值」，语义同 [draftAiModeTemporary]。 */
-    private var draftBookmarkFilterTemporary: Boolean = false
+    /** 「过滤已收藏」的持久化层级。 */
+    private var draftBookmarkFilterPersist: FilterPersist = FilterPersist.Global
     /** illust-only;null = 「不限」。父 sheet 通过 args 注入初值 + 候选列表。 */
     private var draftTool: String? = null
 
@@ -72,10 +79,12 @@ class OtherFilterSheet : V3BottomSheetBase() {
         val tool: String?,
         val groupBySeries: Boolean = false,
         val bookmarkFilter: Boolean = false,
-        /** AI 档位是否为「会话临时值」（单击改、不写设置）。 */
-        val aiModeTemporary: Boolean = false,
-        /** 「过滤已收藏」是否为「会话临时值」。 */
-        val bookmarkFilterTemporary: Boolean = false,
+        /** AI 档位的持久化层级（issue #1240）。 */
+        val aiModePersist: FilterPersist = FilterPersist.Global,
+        /** 「过滤已收藏」的持久化层级。 */
+        val bookmarkFilterPersist: FilterPersist = FilterPersist.Global,
+        /** R-18 档位的持久化层级。 */
+        val r18ModePersist: FilterPersist = FilterPersist.Global,
     ) : Serializable
 
     private var _binding: DialogSearchFilterOtherBinding? = null
@@ -91,13 +100,14 @@ class OtherFilterSheet : V3BottomSheetBase() {
         val patch = source.getSerializable(KEY_DRAFT) as? Patch
             ?: @Suppress("DEPRECATION") (requireArguments().getSerializable(ARG_INITIAL) as? Patch)
         draftAiMode = patch?.aiMode ?: AiMode.All
-        draftAiModeTemporary = patch?.aiModeTemporary ?: false
+        draftAiModePersist = patch?.aiModePersist ?: FilterPersist.Global
         draftR18 = patch?.r18Mode ?: R18Mode.All
+        draftR18Persist = patch?.r18ModePersist ?: FilterPersist.Global
         draftOriginalOnly = patch?.isOriginalOnly ?: false
         draftReplaceableOnly = patch?.isReplaceableOnly ?: false
         draftGroupBySeries = patch?.groupBySeries ?: false
         draftBookmarkFilter = patch?.bookmarkFilter ?: Shaft.sSettings.isSearchFilterBookmarked
-        draftBookmarkFilterTemporary = patch?.bookmarkFilterTemporary ?: false
+        draftBookmarkFilterPersist = patch?.bookmarkFilterPersist ?: FilterPersist.Global
         draftTool = patch?.tool
     }
 
@@ -106,7 +116,7 @@ class OtherFilterSheet : V3BottomSheetBase() {
         outState.putSerializable(KEY_DRAFT,
             Patch(draftAiMode, draftR18, draftOriginalOnly, draftReplaceableOnly, draftTool,
                 draftGroupBySeries, draftBookmarkFilter,
-                draftAiModeTemporary, draftBookmarkFilterTemporary))
+                draftAiModePersist, draftBookmarkFilterPersist, draftR18Persist))
     }
 
     override fun onCreateView(
@@ -130,10 +140,8 @@ class OtherFilterSheet : V3BottomSheetBase() {
         binding.btnConfirm.setTextColor(palette.textAccent)
         binding.btnCancel.setOnClick { dismissAllowingStateLoss() }
         binding.btnConfirm.setOnClick {
-            // 单击只产生「本次搜索的临时档位」，**绝不在这里回灌持久化**——AI 的「全部 / 屏蔽AI」
-            // 与「过滤已收藏」都只在用户长按某档时才写回设置（见 bindAiRow / bindBookmarkRow）。
-            // 否则搜一次图就会顺带改掉首页等其它列表的 AI 屏蔽、以及设置页里的开关。
-            // 「仅看 AI」官方无对应档，本来就是临时维度（issue #909）。
+            // 单击 / 长按的落盘都在行监听里当场做完（见 bindAiRow / bindBookmarkRow / bindR18Row），
+            // 「确定」只把本次搜索要用的档位 + 它们的持久化层级原样回传，**绝不在这里回灌持久化**。
             // 小说专属 switch：illust 模式下卡片整体隐藏，强制 false 防止状态串味儿
             val originalOnly = if (isNovel) draftOriginalOnly else false
             val replaceableOnly = if (isNovel) draftReplaceableOnly else false
@@ -144,7 +152,8 @@ class OtherFilterSheet : V3BottomSheetBase() {
                 requestKey,
                 bundleOf(KEY_PATCH to Patch(
                     draftAiMode, draftR18, originalOnly, replaceableOnly, tool, groupBySeries,
-                    draftBookmarkFilter, draftAiModeTemporary, draftBookmarkFilterTemporary,
+                    draftBookmarkFilter,
+                    draftAiModePersist, draftBookmarkFilterPersist, draftR18Persist,
                 )),
             )
             dismissAllowingStateLoss()
@@ -255,106 +264,279 @@ class OtherFilterSheet : V3BottomSheetBase() {
         row.switchToggle.setOnCheckedChangeListener { _, checked -> onChange(checked) }
     }
 
+    // ── 三层持久化（issue #1240）────────────────────────────────────────────
+    //
+    // 单击 = 临时（只作用本次搜索，不落盘）；长按第 1 下 = 仅这里记住（写搜索页专属记忆，跨重启
+    // 只被搜索页读）；长按第 2 下 = 全局记住（写全局设置，仅"有全局档"的维度）。没有全局对应档
+    // 的档位到「仅这里记住」封顶，第 2 下长按只弹 toast。取值优先级：页记 → 全局 → 内置默认。
+
     /** 全局设置当前对应的 AI 档位（「仅看 AI」没有全局对应档，故只有这两档）。 */
     private fun persistedAiMode(): AiMode =
         if (Shaft.sSettings.isDeleteAIIllust) AiMode.ExcludeAi else AiMode.All
 
+    /** 全局设置当前对应的「过滤已收藏」档位。 */
+    private fun persistedBookmarkFilter(): Boolean = Shaft.sSettings.isSearchFilterBookmarked
+
+    /** R-18 没有全局对应档，基线恒为内置默认「全部」。 */
+    private fun persistedR18Mode(): R18Mode = R18Mode.All
+
+    /** 该档位有没有全局对应设置——决定长按第 2 下能不能落到「全局记住」。 */
+    private fun AiMode.hasGlobalTier(): Boolean = this != AiMode.OnlyAi
+
+    /** 搜索页「仅这里记住」的 AI 档位；null = 没记住过。 */
+    private fun rememberedAiMode(): AiMode? = Shaft.sSettings.searchRememberedAiMode
+        ?.let { name -> AiMode.entries.firstOrNull { it.name == name } }
+
+    /** 搜索页「仅这里记住」的「过滤已收藏」档位；null = 没记住过。 */
+    private fun rememberedBookmarkFilter(): Boolean? =
+        Shaft.sSettings.searchRememberedBookmarkFilter?.toBooleanStrictOrNull()
+
+    /** 搜索页「仅这里记住」的 R-18 档位；null = 没记住过。 */
+    private fun rememberedR18Mode(): R18Mode? = Shaft.sSettings.searchRememberedR18Mode
+        ?.let { name -> R18Mode.entries.firstOrNull { it.name == name } }
+
     /**
-     * AI 行：单击 = 本次搜索的临时档（不写设置）；长按 = 把该档写回全局设置，并把勾选同步到它
-     * （长按的那行不一定就是当前勾选的那行）。
+     * 单击某档后它应处的持久化层级：
+     *   - 等于「页记」值 → [FilterPersist.RememberHere]（这一档已经记住在这儿了）；
+     *   - 否则等于全局 / 内置默认基线 → [FilterPersist.Global]（没覆盖，跟随基线）；
+     *   - 其余 → [FilterPersist.Temporary]（只作用本次搜索）。
+     */
+    private fun tierAfterClick(value: Any?, remembered: Any?, baseline: Any?): FilterPersist = when {
+        remembered != null && value == remembered -> FilterPersist.RememberHere
+        value == baseline -> FilterPersist.Global
+        else -> FilterPersist.Temporary
+    }
+
+    /**
+     * 长按推进一档：临时 → 仅这里记住 → 全局记住。没有全局档的档位到「仅这里记住」封顶，第 2 下
+     * 长按只弹 toast 说明；已在「全局记住」时不再变化（那是持久化上限，单击可退回临时）。
+     *
+     * [current] 必须是**被长按那一档自己**的层级（先走一遍单击口径 select* 再传进来）——长按的
+     * 未必是当前勾选的那行，拿上一行的层级来推进会把没记住的档位标成「全局」/「仅这里记住」。
+     */
+    private fun advancePersist(
+        current: FilterPersist,
+        hasGlobal: Boolean,
+        onRememberHere: () -> Unit,
+        onGlobal: () -> Unit,
+    ): FilterPersist = when (current) {
+        FilterPersist.Temporary -> {
+            onRememberHere()
+            FilterPersist.RememberHere
+        }
+        FilterPersist.RememberHere -> if (hasGlobal) {
+            onGlobal()
+            FilterPersist.Global
+        } else {
+            Common.showToast(getString(R.string.search_filter_v3_row_no_global_toast))
+            FilterPersist.RememberHere
+        }
+        FilterPersist.Global -> FilterPersist.Global
+    }
+
+    /** 写搜索页专属记忆（「仅这里记住」）。 */
+    private fun rememberAiMode(mode: AiMode) {
+        Shaft.sSettings.searchRememberedAiMode = mode.name
+        Local.setSettings(Shaft.sSettings)
+    }
+
+    private fun rememberBookmarkFilter(filter: Boolean) {
+        Shaft.sSettings.searchRememberedBookmarkFilter = filter.toString()
+        Local.setSettings(Shaft.sSettings)
+    }
+
+    private fun rememberR18Mode(mode: R18Mode) {
+        Shaft.sSettings.searchRememberedR18Mode = mode.name
+        Local.setSettings(Shaft.sSettings)
+    }
+
+    /** 清掉搜索页专属记忆——落到「全局记住」或对齐基线时调用，免得旧记忆盖住刚写下的全局值。 */
+    private fun clearRememberedAiMode() {
+        if (Shaft.sSettings.searchRememberedAiMode != null) {
+            Shaft.sSettings.searchRememberedAiMode = null
+            Local.setSettings(Shaft.sSettings)
+        }
+    }
+
+    private fun clearRememberedBookmarkFilter() {
+        if (Shaft.sSettings.searchRememberedBookmarkFilter != null) {
+            Shaft.sSettings.searchRememberedBookmarkFilter = null
+            Local.setSettings(Shaft.sSettings)
+        }
+    }
+
+    private fun clearRememberedR18Mode() {
+        if (Shaft.sSettings.searchRememberedR18Mode != null) {
+            Shaft.sSettings.searchRememberedR18Mode = null
+            Local.setSettings(Shaft.sSettings)
+        }
+    }
+
+    /** 把 AI 档写回全局设置（`isDeleteAIIllust`），并清掉页记。 */
+    private fun persistAiModeToGlobal(mode: AiMode) {
+        Shaft.sSettings.isDeleteAIIllust = mode == AiMode.ExcludeAi
+        Shaft.sSettings.searchRememberedAiMode = null
+        Local.setSettings(Shaft.sSettings)
+    }
+
+    /** 把「过滤已收藏」写回全局设置（`isSearchFilterBookmarked`），并清掉页记。 */
+    private fun persistBookmarkFilterToGlobal(filter: Boolean) {
+        Shaft.sSettings.isSearchFilterBookmarked = filter
+        Shaft.sSettings.searchRememberedBookmarkFilter = null
+        Local.setSettings(Shaft.sSettings)
+    }
+
+    /**
+     * 把某行的持久化层级渲染到勾左侧的提示上（只对当前勾选的那行可见）：
+     *   - 临时 → 「临时的（长按记住）」；
+     *   - 仅这里记住 → 「仅这里记住」；有全局档的再加「（长按全局）」说明还能再长按；
+     *   - 全局 → 不显示（已落全局 / 基线＝默认态）。
+     */
+    private fun bindTierHint(
+        row: CellSearchFilterCheckRowBinding,
+        visible: Boolean,
+        tier: FilterPersist,
+        hasGlobal: Boolean,
+    ) {
+        row.checkHint.isVisible = visible && tier != FilterPersist.Global
+        row.checkHint.setText(when (tier) {
+            FilterPersist.Temporary -> R.string.search_filter_v3_row_temporary_hint
+            FilterPersist.RememberHere ->
+                if (hasGlobal) R.string.search_filter_v3_row_remember_here_global_hint
+                else R.string.search_filter_v3_row_remember_here_hint
+            FilterPersist.Global -> R.string.search_filter_v3_row_remember_here_hint
+        })
+    }
+
+    /**
+     * AI 行：单击 = 本次搜索的临时档；长按第 1 下 = 仅这里记住；长按第 2 下 = 写回全局设置。
+     * 「仅看 AI」没有全局对应档，长按只到「仅这里记住」。
      */
     private fun bindAiRow(row: CellSearchFilterCheckRowBinding, mode: AiMode, labelRes: Int) {
         row.checkLabel.setText(labelRes)
         row.checkMark.setTextColor(palette.textAccent)
-        // 临时提示与勾同走主题色（accent），不再用次级文字色
+        // 层级提示与勾同走主题色（accent），不用次级文字色
         row.checkHint.setTextColor(palette.textAccent)
-        // 「仅看 AI」没有全局对应档，长按也写不进设置 → 提示不带「（长按记住）」
-        row.checkHint.setText(
-            if (mode == AiMode.OnlyAi) R.string.search_filter_v3_row_temporary_hint_no_persist
-            else R.string.search_filter_v3_row_temporary_hint
-        )
         row.root.setOnClick {
-            draftAiMode = mode
-            draftAiModeTemporary = mode != persistedAiMode()
+            selectAiMode(mode)
             renderAiMarks()
         }
         row.root.setOnLongClickListener {
-            draftAiMode = mode
-            if (mode == AiMode.OnlyAi) {
-                // 「仅看 AI」没有全局对应档，写不进设置——只能作为本次搜索的临时档
-                draftAiModeTemporary = true
-            } else {
-                val exclude = mode == AiMode.ExcludeAi
-                if (Shaft.sSettings.isDeleteAIIllust != exclude) {
-                    Shaft.sSettings.isDeleteAIIllust = exclude
-                    Local.setSettings(Shaft.sSettings)
-                }
-                draftAiModeTemporary = false
-            }
+            selectAiMode(mode)
+            draftAiModePersist = advancePersist(
+                current = draftAiModePersist,
+                hasGlobal = mode.hasGlobalTier(),
+                onRememberHere = { rememberAiMode(mode) },
+                onGlobal = { persistAiModeToGlobal(mode) },
+            )
             renderAiMarks()
             true
         }
+    }
+
+    /** 单击口径：勾上 [mode]，层级按这一档自己当前存在哪定（见 [tierAfterClick]）。 */
+    private fun selectAiMode(mode: AiMode) {
+        draftAiMode = mode
+        draftAiModePersist = tierAfterClick(mode, rememberedAiMode(), persistedAiMode())
+        // 落回「全局」＝不再覆盖 → 清掉页记，免得旧记忆盖住刚对齐的基线
+        if (draftAiModePersist == FilterPersist.Global) clearRememberedAiMode()
     }
 
     private fun renderAiMarks() {
         binding.rowAiAll.checkMark.isInvisible     = draftAiMode != AiMode.All
         binding.rowAiExclude.checkMark.isInvisible = draftAiMode != AiMode.ExcludeAi
         binding.rowAiOnly.checkMark.isInvisible    = draftAiMode != AiMode.OnlyAi
-        // 提示只在「勾选值 ≠ 全局设置值」时出现——那才说明这一档是本次搜索的临时值
-        val showHint = draftAiMode != persistedAiMode()
-        binding.rowAiAll.checkHint.isVisible     = showHint && draftAiMode == AiMode.All
-        binding.rowAiExclude.checkHint.isVisible = showHint && draftAiMode == AiMode.ExcludeAi
-        binding.rowAiOnly.checkHint.isVisible    = showHint && draftAiMode == AiMode.OnlyAi
+        bindTierHint(
+            binding.rowAiAll, draftAiMode == AiMode.All,
+            draftAiModePersist, AiMode.All.hasGlobalTier(),
+        )
+        bindTierHint(
+            binding.rowAiExclude, draftAiMode == AiMode.ExcludeAi,
+            draftAiModePersist, AiMode.ExcludeAi.hasGlobalTier(),
+        )
+        bindTierHint(
+            binding.rowAiOnly, draftAiMode == AiMode.OnlyAi,
+            draftAiModePersist, AiMode.OnlyAi.hasGlobalTier(),
+        )
     }
 
-    /** 全局设置当前对应的「过滤已收藏」档位。 */
-    private fun persistedBookmarkFilter(): Boolean = Shaft.sSettings.isSearchFilterBookmarked
-
-    /** 过滤已收藏行：单击 = 临时档（不写设置）；长按 = 写回全局设置并同步勾选。 */
+    /** 过滤已收藏行：单击 = 临时；长按第 1 下 = 仅这里记住；长按第 2 下 = 写回全局设置。 */
     private fun bindBookmarkRow(row: CellSearchFilterCheckRowBinding, filter: Boolean, labelRes: Int) {
         row.checkLabel.setText(labelRes)
         row.checkMark.setTextColor(palette.textAccent)
         row.checkHint.setTextColor(palette.textAccent)
-        row.checkHint.setText(R.string.search_filter_v3_row_temporary_hint)
         row.root.setOnClick {
-            draftBookmarkFilter = filter
-            draftBookmarkFilterTemporary = filter != persistedBookmarkFilter()
+            selectBookmarkFilter(filter)
             renderBookmarkMarks()
         }
         row.root.setOnLongClickListener {
-            draftBookmarkFilter = filter
-            if (Shaft.sSettings.isSearchFilterBookmarked != filter) {
-                Shaft.sSettings.isSearchFilterBookmarked = filter
-                Local.setSettings(Shaft.sSettings)
-            }
-            draftBookmarkFilterTemporary = false
+            selectBookmarkFilter(filter)
+            draftBookmarkFilterPersist = advancePersist(
+                current = draftBookmarkFilterPersist,
+                hasGlobal = true,
+                onRememberHere = { rememberBookmarkFilter(filter) },
+                onGlobal = { persistBookmarkFilterToGlobal(filter) },
+            )
             renderBookmarkMarks()
             true
         }
     }
 
+    /** 单击口径，同 [selectAiMode]。 */
+    private fun selectBookmarkFilter(filter: Boolean) {
+        draftBookmarkFilter = filter
+        draftBookmarkFilterPersist =
+            tierAfterClick(filter, rememberedBookmarkFilter(), persistedBookmarkFilter())
+        if (draftBookmarkFilterPersist == FilterPersist.Global) clearRememberedBookmarkFilter()
+    }
+
     private fun renderBookmarkMarks() {
         binding.rowBookmarkAll.checkMark.isInvisible  = draftBookmarkFilter
         binding.rowBookmarkOnly.checkMark.isInvisible = !draftBookmarkFilter
-        // 同 AI 行：只在「勾选值 ≠ 全局设置值」时把临时提示挂到勾的左边
-        val showHint = draftBookmarkFilter != persistedBookmarkFilter()
-        binding.rowBookmarkAll.checkHint.isVisible  = showHint && !draftBookmarkFilter
-        binding.rowBookmarkOnly.checkHint.isVisible = showHint && draftBookmarkFilter
+        bindTierHint(
+            binding.rowBookmarkAll, !draftBookmarkFilter, draftBookmarkFilterPersist, hasGlobal = true,
+        )
+        bindTierHint(
+            binding.rowBookmarkOnly, draftBookmarkFilter, draftBookmarkFilterPersist, hasGlobal = true,
+        )
     }
 
+    /** R-18 行：单击 = 临时；长按第 1 下 = 仅这里记住；无全局档，长按第 2 下只弹 toast。 */
     private fun bindR18Row(row: CellSearchFilterCheckRowBinding, mode: R18Mode, labelRes: Int) {
         row.checkLabel.setText(labelRes)
         row.checkMark.setTextColor(palette.textAccent)
+        row.checkHint.setTextColor(palette.textAccent)
         row.root.setOnClick {
-            draftR18 = mode
+            selectR18Mode(mode)
             renderR18Marks()
         }
+        row.root.setOnLongClickListener {
+            selectR18Mode(mode)
+            draftR18Persist = advancePersist(
+                current = draftR18Persist,
+                hasGlobal = false,
+                onRememberHere = { rememberR18Mode(mode) },
+                onGlobal = { },
+            )
+            renderR18Marks()
+            true
+        }
+    }
+
+    /** 单击口径，同 [selectAiMode]。 */
+    private fun selectR18Mode(mode: R18Mode) {
+        draftR18 = mode
+        draftR18Persist = tierAfterClick(mode, rememberedR18Mode(), persistedR18Mode())
+        if (draftR18Persist == FilterPersist.Global) clearRememberedR18Mode()
     }
 
     private fun renderR18Marks() {
         binding.rowR18All.checkMark.isInvisible  = draftR18 != R18Mode.All
         binding.rowR18Safe.checkMark.isInvisible = draftR18 != R18Mode.SafeOnly
         binding.rowR18Only.checkMark.isInvisible = draftR18 != R18Mode.R18Only
+        bindTierHint(binding.rowR18All, draftR18 == R18Mode.All, draftR18Persist, hasGlobal = false)
+        bindTierHint(binding.rowR18Safe, draftR18 == R18Mode.SafeOnly, draftR18Persist, hasGlobal = false)
+        bindTierHint(binding.rowR18Only, draftR18 == R18Mode.R18Only, draftR18Persist, hasGlobal = false)
     }
 
     companion object {
@@ -385,8 +567,9 @@ class OtherFilterSheet : V3BottomSheetBase() {
                     current.tool,
                     current.groupBySeries,
                     current.bookmarkFilter,
-                    current.aiModeTemporary,
-                    current.bookmarkFilterTemporary,
+                    current.aiModePersist,
+                    current.bookmarkFilterPersist,
+                    current.r18ModePersist,
                 ))
             }
         }
