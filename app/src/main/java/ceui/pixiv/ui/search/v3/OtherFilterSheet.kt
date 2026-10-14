@@ -310,6 +310,9 @@ class OtherFilterSheet : V3BottomSheetBase() {
     /**
      * 长按推进一档：临时 → 仅这里记住 → 全局记住。没有全局档的档位到「仅这里记住」封顶，第 2 下
      * 长按只弹 toast 说明；已在「全局记住」时不再变化（那是持久化上限，单击可退回临时）。
+     *
+     * [current] 必须是**被长按那一档自己**的层级（先走一遍单击口径 select* 再传进来）——长按的
+     * 未必是当前勾选的那行，拿上一行的层级来推进会把没记住的档位标成「全局」/「仅这里记住」。
      */
     private fun advancePersist(
         current: FilterPersist,
@@ -415,14 +418,11 @@ class OtherFilterSheet : V3BottomSheetBase() {
         // 层级提示与勾同走主题色（accent），不用次级文字色
         row.checkHint.setTextColor(palette.textAccent)
         row.root.setOnClick {
-            draftAiMode = mode
-            draftAiModePersist = tierAfterClick(mode, rememberedAiMode(), persistedAiMode())
-            // 落回「全局」＝不再覆盖 → 清掉页记，免得旧记忆盖住刚对齐的基线
-            if (draftAiModePersist == FilterPersist.Global) clearRememberedAiMode()
+            selectAiMode(mode)
             renderAiMarks()
         }
         row.root.setOnLongClickListener {
-            draftAiMode = mode
+            selectAiMode(mode)
             draftAiModePersist = advancePersist(
                 current = draftAiModePersist,
                 hasGlobal = mode.hasGlobalTier(),
@@ -432,6 +432,14 @@ class OtherFilterSheet : V3BottomSheetBase() {
             renderAiMarks()
             true
         }
+    }
+
+    /** 单击口径：勾上 [mode]，层级按这一档自己当前存在哪定（见 [tierAfterClick]）。 */
+    private fun selectAiMode(mode: AiMode) {
+        draftAiMode = mode
+        draftAiModePersist = tierAfterClick(mode, rememberedAiMode(), persistedAiMode())
+        // 落回「全局」＝不再覆盖 → 清掉页记，免得旧记忆盖住刚对齐的基线
+        if (draftAiModePersist == FilterPersist.Global) clearRememberedAiMode()
     }
 
     private fun renderAiMarks() {
@@ -458,14 +466,11 @@ class OtherFilterSheet : V3BottomSheetBase() {
         row.checkMark.setTextColor(palette.textAccent)
         row.checkHint.setTextColor(palette.textAccent)
         row.root.setOnClick {
-            draftBookmarkFilter = filter
-            draftBookmarkFilterPersist =
-                tierAfterClick(filter, rememberedBookmarkFilter(), persistedBookmarkFilter())
-            if (draftBookmarkFilterPersist == FilterPersist.Global) clearRememberedBookmarkFilter()
+            selectBookmarkFilter(filter)
             renderBookmarkMarks()
         }
         row.root.setOnLongClickListener {
-            draftBookmarkFilter = filter
+            selectBookmarkFilter(filter)
             draftBookmarkFilterPersist = advancePersist(
                 current = draftBookmarkFilterPersist,
                 hasGlobal = true,
@@ -475,6 +480,14 @@ class OtherFilterSheet : V3BottomSheetBase() {
             renderBookmarkMarks()
             true
         }
+    }
+
+    /** 单击口径，同 [selectAiMode]。 */
+    private fun selectBookmarkFilter(filter: Boolean) {
+        draftBookmarkFilter = filter
+        draftBookmarkFilterPersist =
+            tierAfterClick(filter, rememberedBookmarkFilter(), persistedBookmarkFilter())
+        if (draftBookmarkFilterPersist == FilterPersist.Global) clearRememberedBookmarkFilter()
     }
 
     private fun renderBookmarkMarks() {
@@ -494,13 +507,11 @@ class OtherFilterSheet : V3BottomSheetBase() {
         row.checkMark.setTextColor(palette.textAccent)
         row.checkHint.setTextColor(palette.textAccent)
         row.root.setOnClick {
-            draftR18 = mode
-            draftR18Persist = tierAfterClick(mode, rememberedR18Mode(), persistedR18Mode())
-            if (draftR18Persist == FilterPersist.Global) clearRememberedR18Mode()
+            selectR18Mode(mode)
             renderR18Marks()
         }
         row.root.setOnLongClickListener {
-            draftR18 = mode
+            selectR18Mode(mode)
             draftR18Persist = advancePersist(
                 current = draftR18Persist,
                 hasGlobal = false,
@@ -510,6 +521,13 @@ class OtherFilterSheet : V3BottomSheetBase() {
             renderR18Marks()
             true
         }
+    }
+
+    /** 单击口径，同 [selectAiMode]。 */
+    private fun selectR18Mode(mode: R18Mode) {
+        draftR18 = mode
+        draftR18Persist = tierAfterClick(mode, rememberedR18Mode(), persistedR18Mode())
+        if (draftR18Persist == FilterPersist.Global) clearRememberedR18Mode()
     }
 
     private fun renderR18Marks() {
