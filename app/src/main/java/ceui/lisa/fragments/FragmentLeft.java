@@ -88,8 +88,45 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
                 : Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
     }
 
+    private boolean innerContentReady = false;
+
+    private void ensureInnerContent() {
+        if (innerContentReady || baseBind == null || getContext() == null) {
+            return;
+        }
+        innerContentReady = true;
+        setupInnerViewPager();
+    }
+
     @Override
     public void lazyData() {
+        ensureInnerContent();
+    }
+
+    @Override
+    public void setMenuVisibility(boolean menuVisible) {
+        super.setMenuVisibility(menuVisible);
+        if (menuVisible) {
+            ensureInnerContent();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (isMenuVisible()) {
+            ensureInnerContent();
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        innerContentReady = false;
+        mFragments = null;
+        super.onDestroyView();
+    }
+
+    private void setupInnerViewPager() {
         final boolean hotTagsFirst = Shaft.sSettings.isRecommendHotTagsFirst();
         final int[] TITLE_RES = new int[]{R.string.recommend_illust, R.string.hot_tag};
         mFragments = new Fragment[]{
@@ -171,9 +208,12 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
 
     public void forceRefresh() {
         try {
-            Fragment fragment = mFragments[baseBind.viewPager.getCurrentItem()];
-            if (fragment instanceof FeedFragment) {
-                ((FeedFragment) fragment).forceRefresh();
+            ensureInnerContent();
+            if (mFragments != null && baseBind != null && baseBind.viewPager != null) {
+                Fragment fragment = mFragments[baseBind.viewPager.getCurrentItem()];
+                if (fragment instanceof FeedFragment) {
+                    ((FeedFragment) fragment).forceRefresh();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

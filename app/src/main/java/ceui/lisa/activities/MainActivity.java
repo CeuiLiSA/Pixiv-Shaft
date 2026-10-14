@@ -792,11 +792,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 final ViewTreeObserver.OnDrawListener self = this;
                 // onDraw 回调里不允许摘监听，挪到下一条消息
                 root.post(() -> root.getViewTreeObserver().removeOnDrawListener(self));
-                root.postDelayed(() -> Looper.myQueue().addIdleHandler(() -> {
+                root.postDelayed(() -> {
                     postSplashSettled = true;
                     startFirstFramePump();
-                    return false;
-                }), POST_SPLASH_SETTLE_MS);
+                }, POST_SPLASH_SETTLE_MS);
             }
         });
         // 刷新收尾那一刻界面可能已经静止（停在快照上 / 失败态没有动画），不保证还有下一帧——
@@ -804,8 +803,68 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         root.invalidate();
     }
 
-    /** 每帧从队列取一件事跑，跑完排下一帧；队列空了就停。 */
+    /**
+     * 首帧之后逐个跑延迟加载任务。
+     *
+     * <p>启动页为动态页时：
+     * 1. 第一阶段（动画帧）：仅放行「推荐（首页）」，耗时仅 ~47ms，迅速建立首页并开始加载缓存，
+     *    彻底解决用户开屏后秒切首页的白屏等待；同时绝不超时触发 Davey；
+     * 2. 第二阶段（空闲分步）：后续重型任务（含发现页 400ms+ 布局膨胀与抽屉菜单）改走 IdleHandler，
+     *    避免抢占动画帧触发 HWUI Davey。
+     * 其它启动页保持既有 postOnAnimation 逐帧节奏。
+     */
     private void pumpFirstFrameTasks() {
+        final boolean isDynamicStart = baseFragments != null
+                && getNavigationInitPosition() >= 0
+                && getNavigationInitPosition() < baseFragments.length
+                && baseFragments[getNavigationInitPosition()] instanceof FragmentRight;
+
+        if (isDynamicStart) {
+            pumpDynamicTasks();
+        } else {
+            pumpTasksViaPostOnAnimation();
+        }
+    }
+
+    private void pumpDynamicTasks() {
+        baseBind.getRoot().postOnAnimation(() -> {
+            if (isFinishing() || isDestroyed()) {
+                firstFrameTasks.clear();
+                firstFramePumpRunning = false;
+                return;
+            }
+            Runnable homeTask = firstFrameTasks.poll();
+            if (homeTask != null) {
+                homeTask.run();
+            }
+            pumpRemainingTasksViaIdleHandler();
+        });
+    }
+
+    private void pumpRemainingTasksViaIdleHandler() {
+        Looper.myQueue().addIdleHandler(() -> {
+            if (isFinishing() || isDestroyed()) {
+                firstFrameTasks.clear();
+                firstFramePumpRunning = false;
+                return false;
+            }
+            Runnable task = firstFrameTasks.poll();
+            if (task == null) {
+                firstFramePumpRunning = false;
+                return false;
+            }
+            task.run();
+            boolean hasMore = !firstFrameTasks.isEmpty();
+            if (!hasMore) {
+                firstFramePumpRunning = false;
+            } else if (baseBind != null && baseBind.getRoot() != null) {
+                baseBind.getRoot().post(() -> {});
+            }
+            return hasMore;
+        });
+    }
+
+    private void pumpTasksViaPostOnAnimation() {
         baseBind.getRoot().postOnAnimation(new Runnable() {
             @Override
             public void run() {

@@ -155,12 +155,23 @@ public abstract class LazyFragmentPagerAdapter extends PagerAdapter {
      * @return true = 放行了某一页；false = 已经放完（没有停在 CREATED 的页了）
      */
     public boolean releaseOneDeferredPage() {
-        final Fragment fragment = deferredPages.poll();
-        if (fragment == null) {
+        Fragment target = null;
+        for (Fragment f : deferredPages) {
+            if (f instanceof ceui.lisa.fragments.FragmentLeft) {
+                target = f;
+                break;
+            }
+        }
+        if (target != null) {
+            deferredPages.remove(target);
+        } else {
+            target = deferredPages.poll();
+        }
+        if (target == null) {
             return false;
         }
         final FragmentTransaction transaction = mFragmentManager.beginTransaction();
-        transaction.setMaxLifecycle(fragment, Lifecycle.State.STARTED);
+        transaction.setMaxLifecycle(target, Lifecycle.State.STARTED);
         transaction.commitNowAllowingStateLoss();
         return true;
     }
