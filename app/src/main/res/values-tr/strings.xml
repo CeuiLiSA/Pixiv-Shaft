@@ -917,7 +917,10 @@
     <string name="delete_ai_illust">AI ile oluşturulan eserleri gizle</string>
     <string name="ai_block_strength">Gizleme efekt seviyesi</string>
     <string name="ai_block_strength_hide">Tamamen gizle</string>
-    <string name="feed_all_items_filtered">Tüm eserler filtre ayarlarınız tarafından gizlendi</string>
+    <string name="feed_all_items_filtered">Tüm eserler %1$s filtre ayarları tarafından gizlendi</string>
+    <string name="feed_filter_reason_list">Etkin filtreler:\n%1$s</string>
+    <string name="feed_filter_reason_item">“%1$s”</string>
+    <string name="feed_filter_reason_muted_tag">Gizlenen etiketler</string>
     <string name="ai_block_strength_blur">Bulanık + parçacık</string>
     <string name="ai_block_exempt_authors">Muaf yazar listesi</string>
     <string name="ai_block_exempt_hint">Yazar ID\'lerini tek tek ekleyin. Bir çipe dokunmak muafiyeti geçici olarak kapatır, çöp kutusu simgesi siler.\nListe değişikliğinden sonra uygulamayı yeniden başlatmanız önerilir</string>

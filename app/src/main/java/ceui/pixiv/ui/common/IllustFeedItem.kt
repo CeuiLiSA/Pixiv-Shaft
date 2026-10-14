@@ -63,16 +63,26 @@ class IllustFeedItem(
     }
 
     companion object {
-        /** 过滤 + 建条目；不通过内容过滤返回 null。 */
+        /**
+         * 过滤 + 建条目；不通过内容过滤返回 null。
+         *
+         * [onRejected]：被滤掉时把**每一条**命中的过滤都回调出去（[ContentFilterReason]）。只给「整页被滤空
+         * 后要说明原因」的作者作品页用——那边在后台逐条收集，空态才能只列**真正命中**的项，
+         * 而不是把设置里开着的开关全列一遍。不传就是原逻辑，其余调用方零开销。
+         */
         fun of(
             illust: Illust?,
             skipR18Filter: Boolean = false,
             skipAiFilter: Boolean = false,
             skipMuteUserFilter: Boolean = false,
             skipVisibleFilter: Boolean = false,
+            onRejected: ((ContentFilterReason) -> Unit)? = null,
         ): IllustFeedItem? {
             if (illust == null) return null
-            if (!passesContentFilters(illust, skipR18Filter, skipAiFilter, skipMuteUserFilter, skipVisibleFilter)) return null
+            val passes = passesContentFilters(
+                illust, skipR18Filter, skipAiFilter, skipMuteUserFilter, skipVisibleFilter, onRejected,
+            )
+            if (!passes) return null
             return IllustFeedItem(illust)
         }
 
@@ -97,6 +107,11 @@ class IllustFeedItem(
          * [skipVisibleFilter]：收藏夹「过滤无效收藏」关闭时让步——不把 visible != true 的作品
          * 当失效滤掉；仅收藏页按开关传入，其余列表默认 false 保持恒过滤。
          *
+         * [onRejected] 决定「短路」还是「跑全」：
+         * - 不传（所有列表页的热路径）：命中一条就返回，后面的判定连同它的同步 Room 查询一起省掉；
+         * - 传了（作者作品页要写空态说明）：跑完**每一条**判定，把命中过的过滤都回调出去。
+         *   一件作品可能同时踩中多条（既是 R18 又是 AI），只报第一条会让空态漏项。
+         *
          * ⚠️ 这里面 judgeTag/judgeUserID 各是一次**同步 Room 查询**，调用方必须在后台线程
          * 跑（各 mapper 已由 PixivFeedSource 派到 Dispatchers.Default；详情回传链见
          * [IllustFeedDetailSync]），并且要容忍它抛错（Room 磁盘异常）。
@@ -107,19 +122,42 @@ class IllustFeedItem(
             skipAiFilter: Boolean = false,
             skipMuteUserFilter: Boolean = false,
             skipVisibleFilter: Boolean = false,
+            onRejected: ((ContentFilterReason) -> Unit)? = null,
         ): Boolean {
-            if (!skipVisibleFilter && illust.visible != true) return false
-            if (IllustNovelFilter.judgeTag(illust)) return false
+            val shortCircuit = onRejected == null
+            var blocked = false
+            if (!skipVisibleFilter && illust.visible != true) {
+                onRejected?.invoke(ContentFilterReason.INVISIBLE)
+                if (shortCircuit) return false
+                blocked = true
+            }
+            if (IllustNovelFilter.judgeTag(illust)) {
+                onRejected?.invoke(ContentFilterReason.MUTED_TAG)
+                if (shortCircuit) return false
+                blocked = true
+            }
             // 不挂 judgeID：被「屏蔽此作品」记下的单件作品在 feeds 里是**遮罩**而不是过滤——
             // 卡片留在原位糊掉 + 盖粒子，点一下即取消屏蔽（见 [ceui.pixiv.ui.common.IllustMuteStore]）。
             // 在这里滤掉的话条目压根不存在，取消屏蔽就无处下手。judgeID 仍留给画不出遮罩的老列表。
             // 屏蔽画师过滤：在「该画师本人作品页」让步（skipMuteUserFilter）——整页都是这个画师，
             // 全滤空只会触发空页追载狂翻页（offset 30/60/90…）；你主动点进他主页就该看到其作品
             // （同 skipR18Filter / skipAiFilter「点进专属页就别用全局过滤把它清空」的思路）。
-            if (!skipMuteUserFilter && IllustNovelFilter.judgeUserID(illust)) return false
-            if (!skipR18Filter && IllustNovelFilter.judgeR18Filter(illust)) return false
-            if (!skipAiFilter && IllustNovelFilter.shouldHideAi(illust)) return false
-            return true
+            if (!skipMuteUserFilter && IllustNovelFilter.judgeUserID(illust)) {
+                onRejected?.invoke(ContentFilterReason.MUTED_USER)
+                if (shortCircuit) return false
+                blocked = true
+            }
+            if (!skipR18Filter && IllustNovelFilter.judgeR18Filter(illust)) {
+                onRejected?.invoke(ContentFilterReason.R18)
+                if (shortCircuit) return false
+                blocked = true
+            }
+            if (!skipAiFilter && IllustNovelFilter.shouldHideAi(illust)) {
+                onRejected?.invoke(ContentFilterReason.AI)
+                if (shortCircuit) return false
+                blocked = true
+            }
+            return !blocked
         }
     }
 }

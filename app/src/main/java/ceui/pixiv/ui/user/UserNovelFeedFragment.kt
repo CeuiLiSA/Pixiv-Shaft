@@ -17,9 +17,11 @@ import ceui.loxia.Novel
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
+import ceui.pixiv.ui.common.ContentFilterReason
 import ceui.pixiv.ui.common.NovelFeedFragment
 import ceui.pixiv.ui.common.NovelFeedItem
 import ceui.pixiv.ui.common.setUpToolbar
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
@@ -55,6 +57,7 @@ class UserNovelFeedFragment : NovelFeedFragment() {
         get() = filteredEmptyStateText(
             super.emptyStateText,
             userWorksStateViewModel.allItemsFiltered.value,
+            userWorksStateViewModel.filteredReasons.value,
             requireContext(),
         )
 
@@ -101,14 +104,20 @@ class UserNovelFeedFragment : NovelFeedFragment() {
             }
         }
 
-        // allItemsFiltered 由 mapper 在后台设置，render 可能先于它跑；停在空态时补一次文案。
+        // allItemsFiltered / filteredReasons 由 mapper 在后台设置，render 可能先于它们跑；停在空态时补一次文案。
+        // 两个都要订阅：allItemsFiltered 翻 true 而 reasons 仍是空集（例如只因 visible≠true 滤空）时，
+        // 只订阅 filteredReasons 会漏掉这次变化。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                userWorksStateViewModel.allItemsFiltered.collect {
-                    if (feedViewModel.uiState.value.showEmptyState) {
-                        feedBinding.feedStateText.text = emptyStateText
+                combine(
+                    userWorksStateViewModel.allItemsFiltered,
+                    userWorksStateViewModel.filteredReasons,
+                ) { _, _ -> }
+                    .collect {
+                        if (feedViewModel.uiState.value.showEmptyState) {
+                            feedBinding.feedStateText.text = emptyStateText
+                        }
                     }
-                }
             }
         }
 
@@ -135,9 +144,11 @@ class UserNovelFeedFragment : NovelFeedFragment() {
             novels: List<Novel>,
             stateVm: UserWorksStateViewModel,
         ): List<FeedItem> {
-            val items = novels.mapNotNull { NovelFeedItem.of(it, skipMuteUserFilter = true) }
-            // 空态要能说清「作者有作品，只是被你的屏蔽设置全滤掉了」，和「作者确实没作品」区分开。
-            stateVm.reportPageFiltered(rawCount = novels.size, shownCount = items.size)
+            // 顺带记下本页「被哪几条过滤滤掉」，空态文案只列真正命中的项（见 filteredEmptyStateText）。
+            val reasons = linkedSetOf<ContentFilterReason>()
+            val items = novels.mapNotNull { NovelFeedItem.of(it, skipMuteUserFilter = true, onRejected = { reason -> reasons += reason }) }
+            // 空态要能说清「作者有作品，只是被你的过滤设置全滤掉了」，和「作者确实没作品」区分开。
+            stateVm.reportPageFiltered(rawCount = novels.size, shownCount = items.size, reasons = reasons)
             return items
         }
     }
