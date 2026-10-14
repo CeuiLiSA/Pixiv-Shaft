@@ -235,6 +235,11 @@ android {
             // 所有 .so 都随 split_config.arm64_v8a.apk 丢掉，MMKV 初始化直接启动崩溃。
             enableSplit = false
         }
+        language {
+            // App 内可自选语言，但 Play 只按系统语言下发语言 split；系统里没有英文的设备选了
+            // English 也拿不到 values-en，回落到默认 values/（简体中文）。全部语言打进 base。
+            enableSplit = false
+        }
     }
 
     namespace = 'ceui.lisa'
