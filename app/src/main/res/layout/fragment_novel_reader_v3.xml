@@ -14,6 +14,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- 暖色滤镜(#1241)。只罩正文,声明在 chrome 之前,顶栏/底栏/搜索不被染色;
+         不可点击,触摸照常落到下面的阅读视图。alpha 由 applyBrightness() 设置。 -->
+    <View
+        android:id="@+id/reader_warm_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:background="#FFB347"
+        android:clickable="false"
+        android:focusable="false" />
+
     <!-- 常驻阅读进度(#994)。刻意贴屏幕物理底边、不吃 navigationBar inset;水平方向
          落在四分之一线(右侧那条,即 75% 处)而不是正中或角落 —— 角落容易被大 R 角屏
          切掉。声明在两条 bar 之前,chrome 展开时被底栏盖住,同时代码里也会主动隐藏。 -->

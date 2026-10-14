@@ -15,6 +15,7 @@ import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.core.graphics.ColorUtils
@@ -247,6 +248,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         rv.setTapZoneReversed(ReaderSettings.tapZoneReversed)
         rv.setTapAllForward(ReaderSettings.tapAllForward)
         binding.root.keepScreenOn = ReaderSettings.keepScreenOn
+        applyBrightness()
 
         // 立即应用阅读器主题背景色，避免加载中显示白底
         val theme = ReaderSettings.effectiveTheme()
@@ -444,6 +446,19 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         )
     }
 
+    /** 亮度与暖色滤镜(#1241)。阅读器独占一个 TemplateActivity,窗口亮度随 Activity 结束自然失效。 */
+    private fun applyBrightness() {
+        val window = requireActivity().window
+        window.attributes = window.attributes.apply {
+            screenBrightness = if (ReaderSettings.useSystemBrightness) {
+                WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+            } else {
+                ReaderSettings.customBrightness
+            }
+        }
+        binding.readerWarmOverlay.alpha = ReaderSettings.warmFilterStrength
+    }
+
     // 加载环随阅读器主题着色:牛皮纸/纯白等浅底用主题强调色即可看清,
     // 夜间/炭黑等深底同理。不确定模式下 track 不绘制,仍设一份低透明度
     // 同色 track 以保持与插画详情页进度环一致的配置。
@@ -533,6 +548,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     refreshProgressOverlay()
                     rebuildOverlays()
                 }
+                ReaderSettings.ChangeEvent.Brightness -> applyBrightness()
                 ReaderSettings.ChangeEvent.Flip -> applyFlipMode(rv, ch)
                 ReaderSettings.ChangeEvent.IllustMix -> {
                     // 混排来源切换：VM 补拉取材 + 直接重排版（绕开 updateLayout 的
