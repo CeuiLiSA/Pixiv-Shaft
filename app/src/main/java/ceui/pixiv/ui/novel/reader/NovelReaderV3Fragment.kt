@@ -9,6 +9,7 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
 import android.os.Build
+import android.os.SystemClock
 import android.graphics.drawable.RippleDrawable
 import android.content.res.ColorStateList
 import android.view.Gravity
@@ -27,7 +28,9 @@ import androidx.core.view.updatePadding
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import ceui.pixiv.utils.playToggleHaptic
@@ -151,6 +154,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private var ttsPageAction: TextView? = null
     private var ttsStartJob: Job? = null
     private var eyeBreakJob: Job? = null
+    private var eyeBreakMinutes = 0
     private var lastFollowedTtsRange: IntRange? = null
 
     private val requestTtsNotificationPermission = registerForActivityResult(
@@ -253,6 +257,12 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         rv.setTapAllForward(ReaderSettings.tapAllForward)
         binding.root.keepScreenOn = ReaderSettings.keepScreenOn
         applyBrightness()
+        viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) =
+                eyeBreakClock.onReaderStarted(SystemClock.elapsedRealtime())
+            override fun onStop(owner: LifecycleOwner) =
+                eyeBreakClock.onReaderStopped(activity?.isChangingConfigurations == true)
+        })
         restartEyeBreakReminder()
 
         // 立即应用阅读器主题背景色，避免加载中显示白底
@@ -464,16 +474,22 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         binding.readerWarmOverlay.alpha = ReaderSettings.warmFilterStrength
     }
 
-    /** 护眼提醒(#1241):前台连续阅读满 N 分钟提示一次并重新计时。切后台即中断,回前台从头计。 */
+    /**
+     * 护眼提醒(#1241):前台连续阅读满 N 分钟提示一次并重新计时。计时在 [eyeBreakClock],
+     * 跳章/旋屏不清零,所有阅读页都退到后台才中断。
+     */
     private fun restartEyeBreakReminder() {
         eyeBreakJob?.cancel()
         val minutes = ReaderSettings.eyeBreakReminderMinutes
+        eyeBreakMinutes = minutes
         if (minutes <= 0) return
+        val intervalMs = minutes * 60_000L
         eyeBreakJob = viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (true) {
-                    delay(minutes * 60_000L)
+                    delay(eyeBreakClock.remainingMs(intervalMs, SystemClock.elapsedRealtime()))
                     Toaster.showLong(getString(R.string.msg_eye_break, minutes))
+                    eyeBreakClock.restart(SystemClock.elapsedRealtime())
                 }
             }
         }
@@ -569,7 +585,13 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     rebuildOverlays()
                 }
                 ReaderSettings.ChangeEvent.Brightness -> applyBrightness()
-                ReaderSettings.ChangeEvent.Reminder -> restartEyeBreakReminder()
+                // changes 是全局 LiveData,新阅读页订阅时会重放上一次事件;值没变就是重放,
+                // 不能清零计时,否则跳章后计时又从头来。拖滑杆时每档都从头计,避免拖到中途就弹。
+                ReaderSettings.ChangeEvent.Reminder ->
+                    if (ReaderSettings.eyeBreakReminderMinutes != eyeBreakMinutes) {
+                        eyeBreakClock.restart(SystemClock.elapsedRealtime())
+                        restartEyeBreakReminder()
+                    }
                 ReaderSettings.ChangeEvent.Flip -> applyFlipMode(rv, ch)
                 ReaderSettings.ChangeEvent.IllustMix -> {
                     // 混排来源切换：VM 补拉取材 + 直接重排版（绕开 updateLayout 的
@@ -1714,6 +1736,9 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         private const val ARG_LOCAL_KEY = "local_key"
         private const val COLOR_SEARCH_CURRENT = 0xAAFF9800.toInt() // opaque orange
         private const val COLOR_SEARCH_OTHER = 0x66FFEB3B           // semi-transparent yellow
+
+        /** 进程级:跨跳章新起的阅读页、跨旋屏共用一份连续阅读计时。 */
+        private val eyeBreakClock = EyeBreakClock()
 
         @JvmStatic
         fun newInstance(novelBean: Novel): NovelReaderV3Fragment {
