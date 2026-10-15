@@ -186,6 +186,10 @@
 -keepclassmembers class androidx.recyclerview.widget.RecyclerView$LayoutParams {
     boolean mInsetsDirty;
 }
+-keepclassmembers class androidx.recyclerview.widget.StaggeredGridLayoutManager {
+    int mPendingScrollPosition;
+    int mPendingScrollPositionOffset;
+}
 
 # WebView invokes these methods from JavaScript, outside the Java call graph.
 -keepclassmembers class * {

@@ -151,51 +151,49 @@ class SnapshotListFragment : Fragment() {
                         (snapshotList.layoutManager as? StaggeredGridLayoutManager)
                             ?.invalidateSpanAssignments()
                     }
-                    // 只在**有新增**时回顶（导入的新卡排在顶部，不回顶看不到）。删除不需要回顶，而且这里
-                    // 绝不能设 pending scroll：设了之后 updateAnchorFromPendingData 会走「目标可见」分支、
-                    // 拿 getFirstChildPosition() 当锚点；删除会让 getChildAt(0) 变成已移除的 holder
-                    // （getPosition() == -1），锚点被写成 -1 —— fill() 的 hasMore() 要求
-                    // mCurrentPosition >= 0，于是一个 child 都不排，整列表空白；又因为
-                    // AnchorInfo.mValid 仍为 true，后续布局不会重算锚点，空白就一直留着。
+                    // 有新增才回顶：导入的新卡排在顶部，不回顶看不到；删除保持当前位置不动。
+                    //（删除路径设 pending scroll 会被 SGLM 的锚点计算写坏，见
+                    // StaggeredManager#deferAnchorBreakingScroll。）
                     if (resetScroll && all.size > hadItems) {
-                        // 回顶要排在「插入 notify 之后、插入布局之前」：这样插入布局直接把锚点定在新的
-                        // 位置 0，新卡既落在屏幕内、又跑插入动画。排在提交之前的话，布局会先按**旧的**
-                        // 位置 0 定锚点，新卡就被插到屏幕上方了（得手动下滑才看得到）。
-                        // 归零又要排在回顶之前：位置 0 若仍是某个已附加、且已滑出顶部的旧卡（导入的
-                        // 卡片比现有卡片更旧时位置 0 不变），SGLM 会把
-                        // paddingTop - getDecoratedStart(item0)（正数）当锚点偏移写进各列参考行，
-                        // 让某一列拿到正的起排 y。
-                        val manager = snapshotList.layoutManager
-                        if (manager is StaggeredGridLayoutManager) {
-                            val firstVisible = manager.findViewByPosition(0)
-                            // 竖向 SGLM 里 getDecoratedStart(item0) 等于 getDecoratedTop(item0) - topMargin
-                            //（getDecoratedStart 是 OrientationHelper 的方法，LayoutManager 上没有）。
-                            val firstStart = firstVisible?.let {
-                                manager.getDecoratedTop(it) -
-                                    ((it.layoutParams as? RecyclerView.LayoutParams)?.topMargin ?: 0)
-                            }
-                            if (firstStart != null && firstStart < snapshotList.paddingTop) {
-                                // setSpanCount 是 SGLM 唯一会 new Span[] 的公开口，抖一次列数即可把
-                                // 各列行缓存与 span 分配一起清零。动画进行中重建会让内部计数对不上
-                                // （子视图被清空的空白屏），所以先摘掉 animator，下一帧再装回。
-                                val animator = snapshotList.itemAnimator
-                                if (animator != null) {
-                                    snapshotList.itemAnimator = null
-                                }
-                                val spanCount = manager.spanCount
-                                manager.setSpanCount(spanCount + 1)
-                                manager.setSpanCount(spanCount)
-                                if (animator != null) {
-                                    snapshotList.post { snapshotList.itemAnimator = animator }
-                                }
-                            }
-                        }
+                        resetStaggeredColumns(snapshotList)
                         snapshotList.scrollToPosition(0)
                     }
                 }
             })
             binding.emptyHint.isVisible = all.isEmpty()
             if (filter == null) onAutoSnapshotQuotaChanged?.invoke()
+        }
+    }
+
+    /**
+     * 回顶前按需把瀑布流的列状态归零。
+     *
+     * 位置 0 若仍是某个已附加、且已滑出顶部的旧卡（导入的卡片比现有卡片更旧时位置 0 不变），SGLM 会把
+     * `paddingTop - getDecoratedStart(item0)`（正数）当锚点偏移写进各列参考行，让某一列拿到正的起排 y
+     * —— 表现为某一列顶部空出一块。只有这种情形才需要重建列状态。
+     *
+     * 重建手段：`setSpanCount` 是 SGLM 唯一会 `new Span[]` 的公开口，抖一次列数即可把各列行缓存与
+     * span 分配一起清零。动画进行中重建会让内部计数对不上（子视图被清空的空白屏），所以先摘掉
+     * animator，下一帧再装回。
+     */
+    private fun resetStaggeredColumns(listView: RecyclerView) {
+        val manager = listView.layoutManager as? StaggeredGridLayoutManager ?: return
+        val first = manager.findViewByPosition(0)
+        // 竖向 SGLM 里 getDecoratedStart(item0) 等于 getDecoratedTop(item0) - topMargin
+        //（getDecoratedStart 是 OrientationHelper 的方法，LayoutManager 上没有）。
+        val firstStart = first?.let {
+            manager.getDecoratedTop(it) - ((it.layoutParams as? RecyclerView.LayoutParams)?.topMargin ?: 0)
+        } ?: return
+        if (firstStart >= listView.paddingTop) return
+        val animator = listView.itemAnimator
+        if (animator != null) {
+            listView.itemAnimator = null
+        }
+        val spanCount = manager.spanCount
+        manager.setSpanCount(spanCount + 1)
+        manager.setSpanCount(spanCount)
+        if (animator != null) {
+            listView.post { listView.itemAnimator = animator }
         }
     }
 

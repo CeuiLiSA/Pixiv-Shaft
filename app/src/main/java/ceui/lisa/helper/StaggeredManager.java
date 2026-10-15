@@ -31,6 +31,30 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
      */
     private boolean spanLinesStale;
 
+    /** 被推迟到布局之后的滚动目标：见 {@link #deferAnchorBreakingScroll()}。NO_POSITION = 没有。 */
+    private int deferredScrollPosition = RecyclerView.NO_POSITION;
+
+    /**
+     * {@code StaggeredGridLayoutManager.mPendingScrollPosition} / {@code mPendingScrollPositionOffset}。
+     * 都是包内可见，跨包只能反射取；release 靠 proguard-rules.pro 的 -keepclassmembers 保住字段名。
+     */
+    @Nullable
+    private static final Field sPendingScrollPositionField = resolveField("mPendingScrollPosition");
+
+    @Nullable
+    private static final Field sPendingScrollOffsetField = resolveField("mPendingScrollPositionOffset");
+
+    @Nullable
+    private static Field resolveField(String name) {
+        try {
+            Field field = StaggeredGridLayoutManager.class.getDeclaredField(name);
+            field.setAccessible(true);
+            return field;
+        } catch (NoSuchFieldException e) {
+            return null;
+        }
+    }
+
     /**
      * {@code RecyclerView.LayoutParams.mInsetsDirty}。该字段是包内可见的，跨包只能反射取；
      * release 构建靠 proguard-rules.pro 的 -keepclassmembers 保住字段名，取不到时返回 null。
@@ -133,6 +157,7 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
 
     @Override
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
+        deferAnchorBreakingScroll();
         // SGLM 的 predictive-animation 预布局(dispatchLayoutStep1)在快速 fling
         // (ViewFlinger.run) + 列表插入新页同帧发生时，框架内部把 pending insert
         // 跟 scrap holder 偏移对不上，抛 "Inconsistency detected. Invalid view
@@ -155,6 +180,68 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
             // 会把它延后到本趟结束，下一次测量于是必定发生，重建那一段就会跑掉。
             requestLayout();
         }
+        applyDeferredScroll();
+    }
+
+    /**
+     * 拆掉「pending scroll + 首个 child 已移除」这个组合。
+     *
+     * SGLM 的 updateAnchorFromPendingData 在「目标可见」分支里拿 getFirstChildPosition() 当锚点，
+     * 而它取的是 getChildAt(0) 的 getPosition()。删除之后那一格可能正是已移除的 holder，返回
+     * NO_POSITION(-1)；锚点成了 -1，fill() 的 hasMore() 直接 false —— 整列表一个 child 都排不出来。
+     * 更糟的是 AnchorInfo.mValid 仍是 true，后续布局不会重算锚点，空白会一直留着。
+     *
+     * 这里把这次滚动推迟到布局之后：先清掉 pending scroll，本趟就改走「按可见 child 定锚点」的干净
+     * 分支（锚点落在当前可见项上，位置不动）；等这趟把失效 holder 回收掉，下一帧再滚。
+     */
+    private void deferAnchorBreakingScroll() {
+        if (sPendingScrollPositionField == null || getChildCount() == 0) {
+            return;
+        }
+        final int pending;
+        try {
+            pending = sPendingScrollPositionField.getInt(this);
+        } catch (IllegalAccessException e) {
+            return;
+        }
+        if (pending == RecyclerView.NO_POSITION) {
+            return;
+        }
+        View first = getChildAt(0);
+        if (first == null || getPosition(first) != RecyclerView.NO_POSITION) {
+            return;
+        }
+        try {
+            sPendingScrollPositionField.setInt(this, RecyclerView.NO_POSITION);
+            if (sPendingScrollOffsetField != null) {
+                // SGLM 的 INVALID_OFFSET，包内可见常量，这里写字面值。
+                sPendingScrollOffsetField.setInt(this, Integer.MIN_VALUE);
+            }
+        } catch (IllegalAccessException e) {
+            return;
+        }
+        deferredScrollPosition = pending;
+    }
+
+    /**
+     * 补上上一趟推迟掉的滚动。必须排在整趟布局之后：`onLayoutCompleted`（step3）会把
+     * `mPendingScrollPosition` 清成 NO_POSITION，在 onLayoutChildren 里直接补会被它清掉。
+     */
+    private void applyDeferredScroll() {
+        final int position = deferredScrollPosition;
+        if (position == RecyclerView.NO_POSITION) {
+            return;
+        }
+        deferredScrollPosition = RecyclerView.NO_POSITION;
+        if (attachedView == null) {
+            return;
+        }
+        attachedView.post(new Runnable() {
+            @Override
+            public void run() {
+                scrollToPosition(position);
+            }
+        });
     }
 
     /**
