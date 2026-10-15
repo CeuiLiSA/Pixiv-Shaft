@@ -20,6 +20,7 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentSnapshotListBinding
 import ceui.lisa.databinding.ItemSnapshotBinding
 import ceui.lisa.fragments.HistorySelectBadge
+import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.utils.Common
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
@@ -92,7 +93,7 @@ class SnapshotListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.snapshotList.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        binding.snapshotList.layoutManager = StaggeredManager(2, StaggeredGridLayoutManager.VERTICAL)
         binding.snapshotList.itemAnimator = null
         binding.snapshotList.adapter = adapter
         reload(resetScroll = true)
@@ -143,6 +144,7 @@ class SnapshotListFragment : Fragment() {
             if (reflow) {
                 adapter.submitList(all, Runnable {
                     if (_binding?.snapshotList === snapshotList) {
+                        // 只清「位置 → 列」的分配；各列自己的行缓存（Span.mCachedStart / mCachedEnd）它清不掉。
                         (snapshotList.layoutManager as? StaggeredGridLayoutManager)
                             ?.invalidateSpanAssignments()
                     }

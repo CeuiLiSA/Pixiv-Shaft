@@ -533,6 +533,8 @@ abstract class FeedFragment(
     private fun resetToTop(listView: RecyclerView) {
         when (val manager = listView.layoutManager) {
             is StaggeredGridLayoutManager -> {
+                // invalidateSpanAssignments 只清「位置 → 列」那张表，清不掉各列自己的行缓存
+                //（Span.mCachedStart / mCachedEnd）—— 后者要靠下面的 setSpanCount 抖动重建 mSpans。
                 manager.invalidateSpanAssignments()
                 // 只有「回顶那一刻位置 0 还在屏上、且已滑出顶部」才需要重建列状态：这时 SGLM 会把
                 // paddingTop - getDecoratedStart(item0)（正数）当锚点偏移，经 cacheReferenceLineAndClear

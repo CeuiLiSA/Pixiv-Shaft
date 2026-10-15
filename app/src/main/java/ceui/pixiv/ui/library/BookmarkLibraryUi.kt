@@ -205,9 +205,9 @@ internal class BookmarkLibraryUi(
         if (state.items.isEmpty()) return
         when (val manager = listView.layoutManager) {
             is StaggeredGridLayoutManager -> {
-                // invalidateSpanAssignments 是唯一能清掉上一代 span 偏移的公开 API；
-                // scrollToPositionWithOffset(0,0) 把偏移也定死，否则会拿旧 anchor 凑一个
-                // 偏移出来，刷完停在「顶部偏下」。
+                // invalidateSpanAssignments 能清掉上一代「位置 → 列」的分配；scrollToPositionWithOffset(0,0)
+                // 把偏移也定死，否则会拿旧 anchor 凑一个偏移出来，刷完停在「顶部偏下」。
+                // 注意它清不掉各列自己的行缓存（Span.mCachedStart / mCachedEnd），那个要靠下面的抖动重建。
                 val animator = listView.itemAnimator
                 listView.itemAnimator = null
                 manager.invalidateSpanAssignments()
