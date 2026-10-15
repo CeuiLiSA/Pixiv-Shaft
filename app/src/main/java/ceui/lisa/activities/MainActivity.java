@@ -660,8 +660,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 2000);
         // 首帧只建当前 tab：其余页停在 CREATED（见 LazyFragmentPagerAdapter），
         // 连同抽屉菜单一起排进「每帧一件事」的队列，首帧之后逐个补上。
+        // 首页推荐插到最前：从别的启动页最常切回的就是它，而且它很轻（~10ms），先建还能替
+        // 发现页摊掉首次 inflate 的冷开销（字体、类初始化）。
         for (int i = 0; i < baseFragments.length; i++) {
-            enqueueFirstFrameTask(() -> { lazyAdapter.releaseOneDeferredPage(); });
+            enqueueFirstFrameTask(() -> { lazyAdapter.releaseOneDeferredPage(FragmentLeft.class); });
         }
         enqueueFirstFrameTask(() -> {
             drawerMenuReady = true;
@@ -804,25 +806,30 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         root.invalidate();
     }
 
-    /** 每帧从队列取一件事跑，跑完排下一帧；队列空了就停。 */
+    /**
+     * 每帧从队列取一件事跑，跑完排下一帧；队列空了就停。
+     *
+     * <p>不在 postOnAnimation 回调里直接跑，而是等这一帧画完、主线程空闲再跑：回调属于本帧的
+     * ANIMATION 阶段，放行页的 inflate 会和它紧跟着的首次 measure/layout 叠进同一帧（启动页为
+     * 动态页时实测这一帧 52~86ms）。挪到空闲之后两者分落两条消息，任务也排到 feed 提交数据
+     * 这类普通消息后面。
+     */
     private void pumpFirstFrameTasks() {
-        baseBind.getRoot().postOnAnimation(new Runnable() {
-            @Override
-            public void run() {
-                if (isFinishing() || isDestroyed()) {
-                    firstFrameTasks.clear();
-                    firstFramePumpRunning = false;
-                    return;
-                }
-                Runnable task = firstFrameTasks.poll();
-                if (task == null) {
-                    firstFramePumpRunning = false;
-                    return;
-                }
-                task.run();
-                baseBind.getRoot().postOnAnimation(this);
+        baseBind.getRoot().postOnAnimation(() -> Looper.myQueue().addIdleHandler(() -> {
+            if (isFinishing() || isDestroyed()) {
+                firstFrameTasks.clear();
+                firstFramePumpRunning = false;
+                return false;
             }
-        });
+            Runnable task = firstFrameTasks.poll();
+            if (task == null) {
+                firstFramePumpRunning = false;
+                return false;
+            }
+            task.run();
+            pumpFirstFrameTasks();
+            return false;
+        }));
     }
 
     /**

@@ -152,10 +152,22 @@ public abstract class LazyFragmentPagerAdapter extends PagerAdapter {
      * 放行一个还停在 {@code CREATED} 的页：把它的 maxLifecycle 提回 {@code STARTED}，
      * 这一帧同步跑完该页的 {@code onCreateView}。首帧之后逐帧调用。
      *
+     * @param preferred 这个类型的页还没放行时先放它，否则按入队顺序（ViewPager 的 instantiate 顺序）
      * @return true = 放行了某一页；false = 已经放完（没有停在 CREATED 的页了）
      */
-    public boolean releaseOneDeferredPage() {
-        final Fragment fragment = deferredPages.poll();
+    public boolean releaseOneDeferredPage(@NonNull Class<? extends Fragment> preferred) {
+        Fragment fragment = null;
+        for (Fragment page : deferredPages) {
+            if (preferred.isInstance(page)) {
+                fragment = page;
+                break;
+            }
+        }
+        if (fragment != null) {
+            deferredPages.remove(fragment);
+        } else {
+            fragment = deferredPages.poll();
+        }
         if (fragment == null) {
             return false;
         }
