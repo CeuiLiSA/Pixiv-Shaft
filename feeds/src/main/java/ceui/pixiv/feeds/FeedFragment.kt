@@ -511,21 +511,45 @@ abstract class FeedFragment(
     /**
      * 把列表确定性地拨回顶部，并清掉 LayoutManager 的跨代残留。
      *
-     * 清空→重填**不会**让 [StaggeredGridLayoutManager] 忘掉上一代的状态，两样都得手动清，
+     * 清空→重填**不会**让 [StaggeredGridLayoutManager] 忘掉上一代的状态，三样都得手动清，
      * 少一样就是一个用户看得见的 bug：
      * - span 偏移 / lookup 是上一代的残留：某一列以为自己已经填到某个 y，新一代首屏那一列
      *   顶部就空出一大块黑的。[StaggeredGridLayoutManager.invalidateSpanAssignments] 是唯一
-     *   能清掉它的公开 API。
+     *   能清掉「位置 → 列」那张表的公开 API，但它**清不掉各列自己的行缓存**。
+     * - 各列的行缓存（`Span.mCachedStart` / `Span.mCachedEnd`）也是上一代的残留：SGLM 只在
+     *   onLayoutChildren 里、且 `getChildCount() > 0` 时才重写它们；`Span.getEndLine` 会把
+     *   缓存值原样当这一列的起排 y（不做任何合理性检查），而 `getNextSpan` 永远把条目放进
+     *   「行更小」的那一列 —— 残留值是正数时那一列会整个空着，直到另一列内容超过它。
+     *   能把行缓存整体归零的公开口只有 `setSpanCount`（唯一会 `new Span[]` 的那个）。
      * - `scrollToPosition(0)` 只给位置、不给偏移，SGLM 会拿旧 anchor 去凑出一个偏移 → 刷完
      *   停在「顶部偏下」而不是顶部。必须用 `scrollToPositionWithOffset(0, 0)` 把偏移也定死。
+     *
+     * ⚠️ 归零必须排在回顶**之前**（反了就是拿旧行去定新位置），且必须在布局之外调用：
+     * `setSpanCount` 第一句就是 `assertNotInLayoutOrScroll`，在 onLayoutChildren 里调会抛
+     * IllegalStateException。本方法目前只从 `submitList` 的提交回调里进，满足这个前提。
      *
      * （[androidx.recyclerview.widget.GridLayoutManager] 继承自 [LinearLayoutManager]，走同一支。）
      */
     private fun resetToTop(listView: RecyclerView) {
         when (val manager = listView.layoutManager) {
             is StaggeredGridLayoutManager -> {
+                // 动画进行中重建列状态会让 SGLM 内部计数对不上（表现为子视图被清空的空白屏）：
+                // 先摘掉 animator，下一帧再装回。commitNewGeneration 那条路进来时它已经是 null
+                //（它自己摘了并在 post 里装回），所以这里的 null 判断让它不会被重复摘两次。
+                val animator = listView.itemAnimator
+                if (animator != null) {
+                    listView.itemAnimator = null
+                }
                 manager.invalidateSpanAssignments()
+                // 抖一下列数 = 重建 mSpans（各列行缓存整体归零）。同帧内两次调用，中间不会有
+                // 布局落地，最终列数不变。
+                val spanCount = manager.spanCount
+                manager.setSpanCount(spanCount + 1)
+                manager.setSpanCount(spanCount)
                 manager.scrollToPositionWithOffset(0, 0)
+                if (animator != null) {
+                    listView.post { listView.itemAnimator = animator }
+                }
             }
 
             is LinearLayoutManager -> manager.scrollToPositionWithOffset(0, 0)

@@ -44,6 +44,9 @@ class FollowingIllustFeedFragment : IllustFeedFragment() {
      */
     override val applyBottomSafeInset: Boolean = true
 
+    // 动态页主动刷新（下拉或底栏点击）期望回到顶部查看最新关注动态，且回顶走 resetToTop 彻底归零列状态，避免保留位置在瀑布流产生列行错位。
+    override val resetScrollOnRefresh: Boolean = true
+
     private val restrictViewModel: RestrictViewModel by viewModels()
 
     override val feedViewModel by feedViewModels {

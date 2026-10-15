@@ -42,6 +42,9 @@ class FollowingNovelFeedFragment : NovelFeedFragment() {
      */
     override val applyBottomSafeInset: Boolean = true
 
+    // 动态页主动刷新（下拉或底栏点击）期望回到顶部查看最新关注小说
+    override val resetScrollOnRefresh: Boolean = true
+
     private val restrictViewModel: RestrictViewModel by viewModels()
 
     /** legacy 默认带 toolbar（TemplateActivity 走无参构造，hideToolbar=false），保持一致。 */
