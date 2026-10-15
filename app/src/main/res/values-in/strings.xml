@@ -1385,6 +1385,7 @@
     <string name="setting_show_bottom_progress">Tampilkan progres baca di bawah</string>
     <string name="setting_touch_locked">Cegah salah sentuh (tekan lama untuk menu)</string>
     <string name="setting_eye_break">Pengingat istirahat mata</string>
+    <string name="msg_eye_break">Anda sudah membaca selama %d menit. Istirahatkan mata sejenak.</string>
     <string name="setting_image_placement">Posisi vertikal</string>
     <string name="setting_image_top">Atas</string>
     <string name="setting_image_center">Tengah</string>

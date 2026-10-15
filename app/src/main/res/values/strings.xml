@@ -1465,6 +1465,7 @@
     <string name="setting_show_bottom_progress">底部显示阅读进度</string>
     <string name="setting_touch_locked">防误触（长按呼出菜单）</string>
     <string name="setting_eye_break">护眼提醒</string>
+    <string name="msg_eye_break">已连续阅读 %d 分钟，休息一下眼睛吧</string>
     <string name="setting_image_placement">垂直位置</string>
     <string name="setting_image_top">顶部</string>
     <string name="setting_image_center">居中</string>

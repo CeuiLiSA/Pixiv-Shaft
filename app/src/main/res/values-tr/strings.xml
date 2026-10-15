@@ -1337,6 +1337,7 @@
     <string name="setting_show_bottom_progress">Alt kısımda okuma ilerlemesini göster</string>
     <string name="setting_touch_locked">Yanlış dokunma önleme (menü için uzun bas)</string>
     <string name="setting_eye_break">Göz dinlendirme hatırlatıcısı</string>
+    <string name="msg_eye_break">%d dakikadır okuyorsunuz. Gözlerinizi biraz dinlendirin</string>
     <string name="setting_image_placement">Dikey konum</string>
     <string name="setting_image_top">Üst</string>
     <string name="setting_image_center">Orta</string>

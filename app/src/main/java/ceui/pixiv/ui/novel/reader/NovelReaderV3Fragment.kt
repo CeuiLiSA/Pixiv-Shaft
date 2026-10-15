@@ -27,7 +27,9 @@ import androidx.core.view.updatePadding
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import ceui.pixiv.utils.playToggleHaptic
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.lisa.R
@@ -104,6 +106,7 @@ import com.hjq.toast.Toaster
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -147,6 +150,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private var ttsReceiverRegistered = false
     private var ttsPageAction: TextView? = null
     private var ttsStartJob: Job? = null
+    private var eyeBreakJob: Job? = null
     private var lastFollowedTtsRange: IntRange? = null
 
     private val requestTtsNotificationPermission = registerForActivityResult(
@@ -249,6 +253,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         rv.setTapAllForward(ReaderSettings.tapAllForward)
         binding.root.keepScreenOn = ReaderSettings.keepScreenOn
         applyBrightness()
+        restartEyeBreakReminder()
 
         // 立即应用阅读器主题背景色，避免加载中显示白底
         val theme = ReaderSettings.effectiveTheme()
@@ -459,6 +464,21 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         binding.readerWarmOverlay.alpha = ReaderSettings.warmFilterStrength
     }
 
+    /** 护眼提醒(#1241):前台连续阅读满 N 分钟提示一次并重新计时。切后台即中断,回前台从头计。 */
+    private fun restartEyeBreakReminder() {
+        eyeBreakJob?.cancel()
+        val minutes = ReaderSettings.eyeBreakReminderMinutes
+        if (minutes <= 0) return
+        eyeBreakJob = viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (true) {
+                    delay(minutes * 60_000L)
+                    Toaster.showLong(getString(R.string.msg_eye_break, minutes))
+                }
+            }
+        }
+    }
+
     // 加载环随阅读器主题着色:牛皮纸/纯白等浅底用主题强调色即可看清,
     // 夜间/炭黑等深底同理。不确定模式下 track 不绘制,仍设一份低透明度
     // 同色 track 以保持与插画详情页进度环一致的配置。
@@ -549,6 +569,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
                     rebuildOverlays()
                 }
                 ReaderSettings.ChangeEvent.Brightness -> applyBrightness()
+                ReaderSettings.ChangeEvent.Reminder -> restartEyeBreakReminder()
                 ReaderSettings.ChangeEvent.Flip -> applyFlipMode(rv, ch)
                 ReaderSettings.ChangeEvent.IllustMix -> {
                     // 混排来源切换：VM 补拉取材 + 直接重排版（绕开 updateLayout 的

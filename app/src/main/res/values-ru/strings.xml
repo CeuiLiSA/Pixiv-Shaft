@@ -1337,6 +1337,7 @@
     <string name="setting_show_bottom_progress">Показывать прогресс чтения внизу</string>
     <string name="setting_touch_locked">Защита от случайных касаний (меню — долгим нажатием)</string>
     <string name="setting_eye_break">Напоминание для отдыха глаз</string>
+    <string name="msg_eye_break">Вы читаете уже %d мин. Дайте глазам отдохнуть</string>
     <string name="setting_image_placement">Вертикальное положение</string>
     <string name="setting_image_top">Сверху</string>
     <string name="setting_image_center">По центру</string>

@@ -1337,6 +1337,7 @@
     <string name="setting_show_bottom_progress">Show reading progress at bottom</string>
     <string name="setting_touch_locked">Prevent mis-touch (long-press for menu)</string>
     <string name="setting_eye_break">Eye break reminder</string>
+    <string name="msg_eye_break">You\'ve been reading for %d minutes. Time to rest your eyes.</string>
     <string name="setting_image_placement">Vertical position</string>
     <string name="setting_image_top">Top</string>
     <string name="setting_image_center">Center</string>

@@ -514,8 +514,9 @@ object ReaderSettings {
         }
 
     // ---------- Misc ----------
+    /** 0 = 关。默认关:这项在 #1241 之前从未生效,没主动设过的人不该升级后突然被提醒。 */
     var eyeBreakReminderMinutes: Int
-        get() = store.decodeInt(K_EYE_REMIND, 30)
+        get() = store.decodeInt(K_EYE_REMIND, 0)
         set(value) {
             store.encode(K_EYE_REMIND, value)
             emit(ChangeEvent.Reminder)
