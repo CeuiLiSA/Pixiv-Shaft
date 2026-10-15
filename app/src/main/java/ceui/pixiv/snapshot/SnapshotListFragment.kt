@@ -94,7 +94,7 @@ class SnapshotListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.snapshotList.layoutManager = StaggeredManager(2, StaggeredGridLayoutManager.VERTICAL)
-        binding.snapshotList.itemAnimator = null
+        // 不动 itemAnimator：三条路径都走增量提交，动画由 DiffUtil 的增删/移动直接驱动。
         binding.snapshotList.adapter = adapter
         reload(resetScroll = true)
     }
@@ -117,9 +117,11 @@ class SnapshotListFragment : Fragment() {
      * [reflow] 用于单卡删除后让 StaggeredGrid 重新分配 span，避免最后一张停在右列；
      * 不会清空列表，也不会回顶。
      *
-     * 「先清空再提交 + 回顶」是为了让双列瀑布流按新顺序重新布局(否则新卡会被 Diff 塞进
-     * 右列/旧列错位)——那是新卡进来时才需要付的代价。onResume 的例行刷新也这么干的话,
-     * 每次从详情页返回列表都要整个闪一下并跳回顶部,快照一多就再也找不回刚才看到哪了。
+     * 三条路径都走**增量**提交（DiffUtil），不做「清空重填」：清空重填的 diff 是「全部 remove +
+     * 全部 insert」，动画只能是整片淡出再整片淡入，而导入/删除要的是「新卡插进来、旧卡不动」。
+     * 代价是清空重填顺带做的「新卡列分配推倒重来」没有了，新卡改由 SGLM 按当前锚点分配 —— 若看到
+     * 新卡被塞进右列、或与旧列错位，第一件事是给这条路径补一次 invalidateSpanAssignments()。
+     * [resetScroll] 的回顶排在提交回调里，且**只在本次结果比当前列表多（有新增）时**才做：导入的新卡排在顶部，不回顶看不到；删除不需要回顶，而设了 pending scroll 会让 SGLM 拿一个 -1 的锚点、整列表排不出卡片（详见下面的注释）。
      */
     fun reload(resetScroll: Boolean = false, reflow: Boolean = false) {
         val appContext = requireContext().applicationContext
@@ -140,52 +142,59 @@ class SnapshotListFragment : Fragment() {
             }
             if (_binding == null) return@launch
             val snapshotList = binding.snapshotList
-            if (resetScroll) adapter.submitList(null)
-            if (reflow) {
-                adapter.submitList(all, Runnable {
-                    if (_binding?.snapshotList === snapshotList) {
+            // 提交是异步的：这一刻 adapter 还是旧列表，用它的长度判断「这次有没有新增」。
+            val hadItems = adapter.itemCount
+            adapter.submitList(all, Runnable {
+                if (_binding?.snapshotList === snapshotList) {
+                    if (reflow) {
                         // 只清「位置 → 列」的分配；各列自己的行缓存（Span.mCachedStart / mCachedEnd）它清不掉。
                         (snapshotList.layoutManager as? StaggeredGridLayoutManager)
                             ?.invalidateSpanAssignments()
                     }
-                })
-            } else {
-                adapter.submitList(all)
-            }
-            binding.emptyHint.isVisible = all.isEmpty()
-            if (resetScroll) {
-                // 回顶那一刻位置 0 若还在屏上、且已滑出顶部，SGLM 会把
-                // paddingTop - getDecoratedStart(item0)（正数）当锚点偏移，经 cacheReferenceLineAndClear
-                // 写进各列的参考行，某一列于是拿到正的起排 y（下一代数据进来时那一列顶部空出一块）。
-                // 只有这种情形才需要重建列状态；列表本来就在顶部时偏移是 0，位置 0 已回收时 SGLM 走
-                // mInvalidateOffsets 的干净分支，都不用。
-                val manager = snapshotList.layoutManager
-                if (manager is StaggeredGridLayoutManager) {
-                    val firstVisible = manager.findViewByPosition(0)
-                    // 竖向 SGLM 里 getDecoratedStart(item0) 等于 getDecoratedTop(item0) - topMargin
-                    //（getDecoratedStart 是 OrientationHelper 的方法，LayoutManager 上没有）。
-                    val firstStart = firstVisible?.let {
-                        manager.getDecoratedTop(it) -
-                            ((it.layoutParams as? RecyclerView.LayoutParams)?.topMargin ?: 0)
-                    }
-                    if (firstStart != null && firstStart < snapshotList.paddingTop) {
-                        // 重建手段：setSpanCount 是 SGLM 唯一会 new Span[] 的公开口，抖一次列数即可把
-                        // 各列行缓存与 span 分配一起清零。动画进行中重建会让内部计数对不上（子视图被
-                        // 清空的空白屏），所以先摘掉 animator，下一帧再装回。
-                        val animator = snapshotList.itemAnimator
-                        if (animator != null) {
-                            snapshotList.itemAnimator = null
+                    // 只在**有新增**时回顶（导入的新卡排在顶部，不回顶看不到）。删除不需要回顶，而且这里
+                    // 绝不能设 pending scroll：设了之后 updateAnchorFromPendingData 会走「目标可见」分支、
+                    // 拿 getFirstChildPosition() 当锚点；删除会让 getChildAt(0) 变成已移除的 holder
+                    // （getPosition() == -1），锚点被写成 -1 —— fill() 的 hasMore() 要求
+                    // mCurrentPosition >= 0，于是一个 child 都不排，整列表空白；又因为
+                    // AnchorInfo.mValid 仍为 true，后续布局不会重算锚点，空白就一直留着。
+                    if (resetScroll && all.size > hadItems) {
+                        // 回顶要排在「插入 notify 之后、插入布局之前」：这样插入布局直接把锚点定在新的
+                        // 位置 0，新卡既落在屏幕内、又跑插入动画。排在提交之前的话，布局会先按**旧的**
+                        // 位置 0 定锚点，新卡就被插到屏幕上方了（得手动下滑才看得到）。
+                        // 归零又要排在回顶之前：位置 0 若仍是某个已附加、且已滑出顶部的旧卡（导入的
+                        // 卡片比现有卡片更旧时位置 0 不变），SGLM 会把
+                        // paddingTop - getDecoratedStart(item0)（正数）当锚点偏移写进各列参考行，
+                        // 让某一列拿到正的起排 y。
+                        val manager = snapshotList.layoutManager
+                        if (manager is StaggeredGridLayoutManager) {
+                            val firstVisible = manager.findViewByPosition(0)
+                            // 竖向 SGLM 里 getDecoratedStart(item0) 等于 getDecoratedTop(item0) - topMargin
+                            //（getDecoratedStart 是 OrientationHelper 的方法，LayoutManager 上没有）。
+                            val firstStart = firstVisible?.let {
+                                manager.getDecoratedTop(it) -
+                                    ((it.layoutParams as? RecyclerView.LayoutParams)?.topMargin ?: 0)
+                            }
+                            if (firstStart != null && firstStart < snapshotList.paddingTop) {
+                                // setSpanCount 是 SGLM 唯一会 new Span[] 的公开口，抖一次列数即可把
+                                // 各列行缓存与 span 分配一起清零。动画进行中重建会让内部计数对不上
+                                // （子视图被清空的空白屏），所以先摘掉 animator，下一帧再装回。
+                                val animator = snapshotList.itemAnimator
+                                if (animator != null) {
+                                    snapshotList.itemAnimator = null
+                                }
+                                val spanCount = manager.spanCount
+                                manager.setSpanCount(spanCount + 1)
+                                manager.setSpanCount(spanCount)
+                                if (animator != null) {
+                                    snapshotList.post { snapshotList.itemAnimator = animator }
+                                }
+                            }
                         }
-                        val spanCount = manager.spanCount
-                        manager.setSpanCount(spanCount + 1)
-                        manager.setSpanCount(spanCount)
-                        if (animator != null) {
-                            snapshotList.post { snapshotList.itemAnimator = animator }
-                        }
+                        snapshotList.scrollToPosition(0)
                     }
                 }
-                snapshotList.scrollToPosition(0)
-            }
+            })
+            binding.emptyHint.isVisible = all.isEmpty()
             if (filter == null) onAutoSnapshotQuotaChanged?.invoke()
         }
     }
@@ -380,7 +389,7 @@ private class SnapshotAdapter(
         selectionMode = enabled
         selectionIncludesAuto = if (enabled) includeAuto else false
         if (!enabled) selectedIds.clear()
-        notifyDataSetChanged()
+        notifySelectionChanged()
     }
 
     fun toggleSelection(card: SnapshotCard) {
@@ -389,20 +398,35 @@ private class SnapshotAdapter(
             selectedIds.remove(card.snapshotId)
         }
         onSelectionToggle?.invoke(card)
-        notifyDataSetChanged()
+        notifySelectionChanged()
     }
 
     fun selectAll() {
         if (!selectionMode) return
         selectedIds.clear()
         selectedIds.addAll(currentList.filter(::isSelectable).map { it.snapshotId })
-        notifyDataSetChanged()
+        notifySelectionChanged()
     }
 
     fun clearSelection() {
         selectedIds.clear()
-        notifyDataSetChanged()
+        notifySelectionChanged()
     }
+
+    /**
+     * 刷新所有条目的选中态。**不用 notifyDataSetChanged()**：
+     * - 它会让 RecyclerView 把整表标成「数据集已变」（mDataSetHasChangedAfterLayout），于是这次
+     *   布局会 mAdapterHelper.reset() 丢掉待处理的增量更新，而且本页没有 stable id，整趟都不跑动画；
+     * - ListAdapter 的 AsyncListDiffer 并不知道这次外部通知，两边状态会脱节。
+     * 也**不能不带 payload**：DefaultItemAnimator.canReuseUpdatedViewHolder 见到非空 payload 才返回
+     * true，否则这次变更会被当成「内容变了」，整屏卡片一起跑 change 淡入淡出 —— 看起来就是
+     * 「点一下选中，所有卡片的图都重播了一遍淡入」。
+     */
+    private fun notifySelectionChanged() {
+        val count = itemCount
+        if (count > 0) notifyItemRangeChanged(0, count, PAYLOAD_SELECTION)
+    }
+
 
     private fun isSelectable(card: SnapshotCard): Boolean =
         !card.isAuto || selectionIncludesAuto
@@ -440,6 +464,9 @@ private class SnapshotAdapter(
             override fun areContentsTheSame(oldItem: SnapshotCard, newItem: SnapshotCard): Boolean =
                 oldItem == newItem
         }
+
+        /** 选中态刷新用。只为让 DefaultItemAnimator 复用 ViewHolder，不承载业务含义。 */
+        private val PAYLOAD_SELECTION = Any()
     }
 }
 
