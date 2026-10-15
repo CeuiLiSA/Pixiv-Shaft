@@ -170,8 +170,9 @@
 -keep,allowobfuscation class ceui.pixiv.ui.account.EmailBackupV3ViewModel$ErrorBody
 -keep,allowobfuscation class ceui.pixiv.ui.debug.PopularTagExportViewModel$Envelope
 
-# These classes use private AndroidX fields by exact string name. Keep only the reflected fields;
-# DrawerLayoutHelper already degrades safely if an AndroidX release removes them altogether.
+# These classes use AndroidX fields by exact string name. Keep only the reflected fields;
+# DrawerLayoutHelper / StaggeredManager already degrade safely if an AndroidX release removes
+# them altogether.
 -keepclassmembers class androidx.drawerlayout.widget.DrawerLayout {
     private androidx.customview.widget.ViewDragHelper mLeftDragger;
     private *** mLeftCallback;
@@ -181,6 +182,9 @@
 }
 -keepclassmembers class androidx.drawerlayout.widget.DrawerLayout$ViewDragCallback {
     private java.lang.Runnable mPeekRunnable;
+}
+-keepclassmembers class androidx.recyclerview.widget.RecyclerView$LayoutParams {
+    boolean mInsetsDirty;
 }
 
 # WebView invokes these methods from JavaScript, outside the Java call graph.

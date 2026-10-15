@@ -5,12 +5,15 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+
+import java.lang.reflect.Field;
 
 import ceui.pixiv.ui.common.AdaptiveStaggerColumns;
 import ceui.pixiv.ui.common.TabletLayout;
@@ -21,6 +24,24 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
     private int adaptiveBaseColumns = 0;
     private float density = 1f;
     @Nullable private RecyclerView attachedView;
+
+    /**
+     * {@code RecyclerView.LayoutParams.mInsetsDirty}。该字段是包内可见的，跨包只能反射取；
+     * release 构建靠 proguard-rules.pro 的 -keepclassmembers 保住字段名，取不到时返回 null。
+     */
+    @Nullable
+    private static final Field sInsetsDirtyField = resolveInsetsDirtyField();
+
+    @Nullable
+    private static Field resolveInsetsDirtyField() {
+        try {
+            Field field = RecyclerView.LayoutParams.class.getDeclaredField("mInsetsDirty");
+            field.setAccessible(true);
+            return field;
+        } catch (NoSuchFieldException e) {
+            return null;
+        }
+    }
 
     public StaggeredManager(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
@@ -104,6 +125,34 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
             super.onLayoutChildren(recycler, state);
         } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * SGLM 给子项测宽前会经这里取 ItemDecoration 间距。此刻 {@code lp.mSpan} 刚被改派到新 Span，
+     * 但框架的 {@code mInsetsDirty} 还停在预布局那一轮，于是直接返回旧 Span 的缓存 insets，
+     * 跨列项的左右间距就按旧列算，表现为两列之间那格间距被撑宽。先把该子项置脏，
+     * 逼 getItemOffsets() 按新 Span 重算——测量与随后的落位读的都是这份新值。
+     * 反射取不到字段时静默跳过，行为退回置脏之前。
+     */
+    @Override
+    public void calculateItemDecorationsForChild(@NonNull View child, @NonNull Rect outRect) {
+        markInsetsDirty(child);
+        super.calculateItemDecorationsForChild(child, outRect);
+    }
+
+    private void markInsetsDirty(View child) {
+        if (sInsetsDirtyField == null) {
+            return;
+        }
+        ViewGroup.LayoutParams params = child.getLayoutParams();
+        if (!(params instanceof RecyclerView.LayoutParams)) {
+            return;
+        }
+        try {
+            sInsetsDirtyField.setBoolean(params, true);
+        } catch (IllegalAccessException ignored) {
+            // 反射不可用时保持框架原行为
         }
     }
 
