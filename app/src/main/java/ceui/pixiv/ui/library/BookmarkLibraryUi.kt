@@ -85,6 +85,8 @@ internal class BookmarkLibraryUi(
      */
     private var lastKnownStats: BookmarkShelfStats? = null
 
+    /** 上一次已同步上屏的增量剔除版本号；只有增量维护真正删减数据才会自增。 */
+    private var lastKnownPruneVersion: Long = 0L
     /** 用户在列表下方浏览期间发生的变动暂存标记；等回顶时无缝上屏。 */
     private var hasPendingStaleWhileScrolled = false
 
@@ -306,6 +308,7 @@ internal class BookmarkLibraryUi(
         if (!viewModel.switchShelf(next)) return
         // 行数基准跟着书架走：换了书架，上一个书架的快照就不再是比较的参照物
         lastKnownStats = null
+        lastKnownPruneVersion = 0L
         hasPendingStaleWhileScrolled = false
         binding.searchInput.setText("")
         context.appServices().bookmarkMirror
@@ -479,6 +482,15 @@ internal class BookmarkLibraryUi(
                         renderSyncBanner()
                     }
                 }
+                launch {
+                    mirror.reconcilePruneVersions.collectLatest { versions ->
+                        val version = versions[viewModel.shelf.key] ?: 0L
+                        if (version != viewModel.reconcilePruneVersion.value) {
+                            viewModel.updateReconcilePruneVersion(version)
+                            refreshIfStale()
+                        }
+                    }
+                }
             }
         }
         // 掉网 / 恢复联网都要重画进度条：文案里「正在补齐 / 当前无网络」这两句的真假只取决于
@@ -526,9 +538,11 @@ internal class BookmarkLibraryUi(
         val stats = viewModel.shelfStats.value ?: return
         val stored = stats.total
         val previous = lastKnownStats
+        val pruneVersion = viewModel.reconcilePruneVersion.value
 
         if (refreshNewHeadIfNeeded()) {
             lastKnownStats = stats
+            lastKnownPruneVersion = pruneVersion
             hasPendingStaleWhileScrolled = false
             return
         }
@@ -539,11 +553,16 @@ internal class BookmarkLibraryUi(
             (consumed == null || consumed < stored ||
                 feedViewModel.uiState.value.refresh is LoadState.Error)
 
-        // 库内发生变动：行数增减，或表头最新序号变动（支持对冲变动）
-        val statsChanged = previous != null && (
-            stored != previous.total ||
-                stats.newestBookmarkSeq != previous.newestBookmarkSeq
+        // 库内发生变动：
+        // 1. 增长：条目增加或最新序号变大（本地或远端新增收藏，均应上屏/暂存）；
+        // 2. 增量对账剔除：由增量工作（滑窗对账/重扫）下发的远端取消，才允许从屏上移除；
+        //    用户在本地取消收藏仅减少行数，卡片原地保留，不得触发刷新或暂存。
+        val isGrowth = previous != null && (
+            stored > previous.total ||
+                (stats.newestBookmarkSeq ?: 0L) > (previous.newestBookmarkSeq ?: 0L)
         )
+        val isIncrementalPrune = pruneVersion != lastKnownPruneVersion
+        val statsChanged = isGrowth || isIncrementalPrune
         val atTop = !listView.canScrollVertically(-1)
         val complete = viewModel.mirrorState.value?.isFirstSyncDone == true
 
@@ -553,12 +572,13 @@ internal class BookmarkLibraryUi(
         // - 补齐之后只认「行数增、表头不变」：最后一批回填常与完成态同时到达，用户停在列表下方时也得续上。
         val isPureTailGrowth = statsChanged && (
             !complete ||
-                (stored > previous.total && stats.newestBookmarkSeq == previous.newestBookmarkSeq)
+                (stored > (previous?.total ?: 0) && stats.newestBookmarkSeq == previous?.newestBookmarkSeq)
             )
         if (isPureTailGrowth && feedViewModel.uiState.value.refresh is LoadState.Idle &&
             viewModel.growingTailCursor() != null) {
             resumeGrowingTail()
             lastKnownStats = stats
+            lastKnownPruneVersion = pruneVersion
             return
         }
 
@@ -573,17 +593,20 @@ internal class BookmarkLibraryUi(
         val changedWhileAtTop = statsChanged && complete
 
         if (!clearedWhileShown && !emptyButStored && !changedWhileAtTop) {
-            if (previous == null) {
+            if (previous == null || !statsChanged) {
+                // 本地取消收藏导致的行数减少（!statsChanged）：卡片留在屏幕上，只对齐统计基准，不触发重查
                 lastKnownStats = stats
+                lastKnownPruneVersion = pruneVersion
             }
             return
         }
 
         lastKnownStats = stats
+        lastKnownPruneVersion = pruneVersion
         hasPendingStaleWhileScrolled = false
         Timber.tag(TAG).d(
-            "列表与库对不上，自动重查（库内 %d 行 / 屏幕 %d 条，变动上屏=%b）",
-            stored, shown, changedWhileAtTop,
+            "列表与库对不上，自动重查（库内 %d 行 / 屏幕 %d 条，变动上屏=%b，增量剔除=%b）",
+            stored, shown, changedWhileAtTop, isIncrementalPrune,
         )
         feedViewModel.refresh()
     }

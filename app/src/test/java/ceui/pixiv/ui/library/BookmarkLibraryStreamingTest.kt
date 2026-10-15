@@ -676,6 +676,7 @@ class BookmarkLibraryStreamingTest {
         ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
 
         db.bookmarkMirrorDao().deleteTarget(shelf.ownerUid, shelf.contentType.code, 1L)
+        library.notifyIncrementalPrune()
         updateCount(library, 59)
         ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
 
@@ -708,8 +709,8 @@ class BookmarkLibraryStreamingTest {
 
         val ui = ui(library, feed, atTop = true)
         ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
-
         db.bookmarkMirrorDao().deleteTarget(shelf.ownerUid, shelf.contentType.code, 1L)
+        library.notifyIncrementalPrune()
         updateCount(library, 99)
         assertNotNull(library.growingTailCursor())
 
@@ -719,6 +720,75 @@ class BookmarkLibraryStreamingTest {
         val updated = feed.uiState.first { it.refresh is LoadState.Idle }
         assertEquals(first.refreshGeneration + 1, updated.refreshGeneration)
         assertEquals(2L, updated.items.first().feedKey)
+        ui.destroy()
+    }
+
+    @Test
+    fun `in-app unbookmark while at top does not remove card from screen`() = runTest(dispatcher) {
+        val shelf = shelf()
+        val library = model(shelf)
+        library.setMirrorState(state(shelf, complete = true))
+        insert(shelf, 1..60)
+        updateCount(library, 60)
+        val feed = FeedViewModel(BookmarkLibraryFeedSource(library, shelf.contentType), autoLoad = false)
+        models.put("feed", feed)
+        feed.refresh()
+        val first = feed.uiState.first { it.hasLoadedOnce && it.refresh is LoadState.Idle }
+
+        val ui = ui(library, feed, atTop = true)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        // 用户在 app 内取消收藏（非增量维护对账）：不触发 notifyIncrementalPrune
+        db.bookmarkMirrorDao().deleteTarget(shelf.ownerUid, shelf.contentType.code, 1L)
+        updateCount(library, 59)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        // 停在顶部时不重查，卡片保留在屏幕上（对齐原收藏页行为）
+        assertEquals(first.refreshGeneration, feed.uiState.value.refreshGeneration)
+        assertEquals(1L, feed.uiState.value.items.first().feedKey)
+        ui.destroy()
+    }
+
+    @Test
+    fun `in-app unbookmark while scrolled down does not remove card upon returning to top`() = runTest(dispatcher) {
+        val shelf = shelf()
+        val library = model(shelf)
+        library.setMirrorState(state(shelf, complete = true))
+        insert(shelf, 1..60)
+        updateCount(library, 60)
+        val feed = FeedViewModel(BookmarkLibraryFeedSource(library, shelf.contentType), autoLoad = false)
+        models.put("feed", feed)
+        feed.refresh()
+        val first = feed.uiState.first { it.hasLoadedOnce && it.refresh is LoadState.Idle }
+
+        var atTop = false
+        val context = ContextThemeWrapper(app, R.style.AppTheme)
+        val binding = FragmentBookmarkLibraryBinding.inflate(LayoutInflater.from(context))
+        val list = object : RecyclerView(context) {
+            override fun canScrollVertically(direction: Int) = direction > 0 || !atTop
+        }
+        val ui = BookmarkLibraryUi(
+            Fragment(), binding, list, library, feed, shelf.contentType,
+            itemCount = { feed.uiState.value.items.size },
+        )
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        // 用户在下方浏览时取消收藏
+        db.bookmarkMirrorDao().deleteTarget(shelf.ownerUid, shelf.contentType.code, 1L)
+        updateCount(library, 59)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+
+        // 变动不被暂存，刷新代号不变
+        assertEquals(first.refreshGeneration, feed.uiState.value.refreshGeneration)
+
+        // 回滚到顶部：也不触发刷新，卡片依然留在屏幕上
+        atTop = true
+        val scrollListener = ReflectionHelpers.getField<RecyclerView.OnScrollListener>(ui, "scrollListener")
+        scrollListener.onScrolled(list, 0, -100)
+        runCurrent()
+
+        assertEquals(first.refreshGeneration, feed.uiState.value.refreshGeneration)
+        assertEquals(1L, feed.uiState.value.items.first().feedKey)
         ui.destroy()
     }
 
