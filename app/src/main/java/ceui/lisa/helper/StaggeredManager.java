@@ -147,8 +147,14 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
         }
         // 这一趟没留下任何 child：下一趟布局会跳过 SGLM 的列行缓存清理（那段守卫看的就是
         // getChildCount()），残留行会被当成起排 y。记下来，下次测量时先重建列状态（见 onMeasure）。
-        // 上面异常被吞掉的那次也走这里：detachAndScrapAttachedViews 已经跑完，childCount 同样是 0。
+        // 异常被吞掉的那次也走这里：detachAndScrapAttachedViews 已经跑完，childCount 同样是 0。
         spanLinesStale = getChildCount() == 0;
+        if (spanLinesStale) {
+            // 只置标记还不够：这一趟已经排完了，若之后没人再请求布局，onMeasure 不会再来，列表就
+            // 停在「0 个 child」的空白态。主动补一次 requestLayout —— 布局中被调用时 RecyclerView
+            // 会把它延后到本趟结束，下一次测量于是必定发生，重建那一段就会跑掉。
+            requestLayout();
+        }
     }
 
     /**
