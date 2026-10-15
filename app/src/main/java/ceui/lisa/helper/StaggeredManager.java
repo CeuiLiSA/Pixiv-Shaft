@@ -26,6 +26,12 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
     @Nullable private RecyclerView attachedView;
 
     /**
+     * 上一趟布局结束时一个 child 都没留下（各列的行缓存可能已经过期）：下一次测量时先重建列状态。
+     * 置位见 {@link #onLayoutChildren}，消费见 {@link #onMeasure}。
+     */
+    private boolean spanLinesStale;
+
+    /**
      * {@code RecyclerView.LayoutParams.mInsetsDirty}。该字段是包内可见的，跨包只能反射取；
      * release 构建靠 proguard-rules.pro 的 -keepclassmembers 保住字段名，取不到时返回 null。
      */
@@ -100,6 +106,19 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
                 setSpanCount(columns);
             }
         }
+        // SGLM 清各列行缓存（Span.mCachedStart / mCachedEnd）的那段代码带 getChildCount() > 0 守卫，
+        // 而「children 被整体摘掉」的那趟布局恰恰不满足它；连里面的 mInvalidateOffsets 分支也在同一个
+        // 守卫里，所以「进布局前把锚点改干净」也救不了。残留的行会被 fill() 直接当成这一列的起排 y
+        // （Span.getEndLine 不做合理性检查，getNextSpan 又永远把条目放进「行更小」的那一列），
+        // 表现就是某一列顶部空出一块，左右不定、高度不定。
+        // 清理只能放在测量阶段：setSpanCount 第一句是 assertNotInLayoutOrScroll，布局回调里调不了。
+        // 抖一下列数 = 重建 mSpans（唯一会 new Span[] 的公开口），行缓存与 span 分配一起归零。
+        if (spanLinesStale && getItemCount() > 0 && attachedView != null && !attachedView.isComputingLayout()) {
+            spanLinesStale = false;
+            int spanCount = getSpanCount();
+            setSpanCount(spanCount + 1);
+            setSpanCount(spanCount);
+        }
         super.onMeasure(recycler, state, widthSpec, heightSpec);
     }
 
@@ -126,6 +145,10 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
         } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
         }
+        // 这一趟没留下任何 child：下一趟布局会跳过 SGLM 的列行缓存清理（那段守卫看的就是
+        // getChildCount()），残留行会被当成起排 y。记下来，下次测量时先重建列状态（见 onMeasure）。
+        // 上面异常被吞掉的那次也走这里：detachAndScrapAttachedViews 已经跑完，childCount 同样是 0。
+        spanLinesStale = getChildCount() == 0;
     }
 
     /**
