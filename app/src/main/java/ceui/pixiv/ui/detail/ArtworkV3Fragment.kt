@@ -1214,7 +1214,38 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         pendingCollapseResetScroll = false
         // 在飞的 submitList 可能在 onDestroyView 之后才派发,那时候 feedBinding 已经不在了。
         if (_chromeBind == null) return
-        feedBinding.feedListView.scrollToPositionWithOffset(0, 0)
+        val listView = feedBinding.feedListView
+        // 收起回顶时位置 0 往往还在屏上、且已滑出顶部:SGLM 会把
+        // paddingTop - getDecoratedStart(item0)(正数)当锚点偏移,经 cacheReferenceLineAndClear 写进
+        // 各列的参考行,某一列于是拿到正的起排 y(下一代数据进来时那一列顶部空出一块)。只有这种情形
+        // 才需要重建列状态;列表本来就在顶部时偏移是 0,位置 0 已回收时 SGLM 走 mInvalidateOffsets
+        // 的干净分支,都不用。
+        val manager = listView.layoutManager
+        if (manager is StaggeredGridLayoutManager) {
+            val firstVisible = manager.findViewByPosition(0)
+            // 竖向 SGLM 里 getDecoratedStart(item0) 等于 getDecoratedTop(item0) - topMargin
+            //（getDecoratedStart 是 OrientationHelper 的方法，LayoutManager 上没有）。
+            val firstStart = firstVisible?.let {
+                manager.getDecoratedTop(it) -
+                    ((it.layoutParams as? RecyclerView.LayoutParams)?.topMargin ?: 0)
+            }
+            if (firstStart != null && firstStart < listView.paddingTop) {
+                // 重建手段:setSpanCount 是 SGLM 唯一会 new Span[] 的公开口,抖一次列数即可把各列行
+                // 缓存与 span 分配一起清零。动画进行中重建会让内部计数对不上(子视图被清空的空白屏),
+                // 所以先摘掉 animator,下一帧再装回。
+                val animator = listView.itemAnimator
+                if (animator != null) {
+                    listView.itemAnimator = null
+                }
+                val spanCount = manager.spanCount
+                manager.setSpanCount(spanCount + 1)
+                manager.setSpanCount(spanCount)
+                if (animator != null) {
+                    listView.post { listView.itemAnimator = animator }
+                }
+            }
+        }
+        listView.scrollToPositionWithOffset(0, 0)
     }
 
     /**
