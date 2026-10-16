@@ -306,13 +306,16 @@ internal class BookmarkLibraryUi(
         if (current.restrict == restrict) return
         val next = current.copy(restrict = restrict)
         if (!viewModel.switchShelf(next)) return
+        val mirror = context.appServices().bookmarkMirror
+        // 版本表只在有书架剔除时才发射：不从源头对齐，切回来时 VM 停在 0 而表里是旧值，
+        // 下一次任意书架剔除或页面重回前台的重放都会被误判成本架剔除。
+        viewModel.updateReconcilePruneVersion(mirror.getReconcilePruneVersion(next.key))
         // 行数基准跟着书架走：换了书架，上一个书架的快照就不再是比较的参照物
         lastKnownStats = null
         lastKnownPruneVersion = 0L
         hasPendingStaleWhileScrolled = false
         binding.searchInput.setText("")
-        context.appServices().bookmarkMirror
-            .ensureShelf(next, reason = "收藏库切换到${next.restrict.apiValue}")
+        mirror.ensureShelf(next, reason = "收藏库切换到${next.restrict.apiValue}")
         renderShelfSwitch()
         applyMirrorState(refresh = false)
         applyFilterChange()
