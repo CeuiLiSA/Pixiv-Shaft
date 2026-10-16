@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import ceui.lisa.R
 import ceui.lisa.utils.Common
 import ceui.pixiv.ui.common.launchSuspend
+import ceui.pixiv.ui.translate.Translated
 import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.currentTranslator
 import ceui.pixiv.ui.translate.onceThinkingPhase
@@ -25,10 +26,10 @@ fun Fragment.translateComment(text: String?) {
     val ctx = requireContext()
     Common.showToast(R.string.string_translating)
     launchSuspend {
-        val translated = translateTextOrPrompt(src) ?: return@launchSuspend
+        val result = translateTextOrPrompt(src) ?: return@launchSuspend
         showTranslatedDialog(
-            ctx, translated,
-            warning = verbatimWarningText(ctx, currentTranslator(), src, translated),
+            ctx, result.value,
+            warning = verbatimWarningText(ctx, result.servedBy, src, result.value),
         )
     }
 }
@@ -37,9 +38,9 @@ fun Fragment.translateComment(text: String?) {
  * 翻译一段文本;失败 / 译文为空时按引擎给出提示(见 [promptTranslateFailedIfPossible])并返回 null,
  * 调用方只需处理成功分支。评论列表页把译文写回 cell、其它入口弹窗,共用这一段。
  */
-internal suspend fun Fragment.translateTextOrPrompt(src: String): String? {
+internal suspend fun Fragment.translateTextOrPrompt(src: String): Translated<String>? {
     val translated = try {
-        currentTranslator().translate(src, appTranslateTargetLang(), onPhase = onceThinkingPhase())
+        currentTranslator().translateWithSource(src, appTranslateTargetLang(), onPhase = onceThinkingPhase())
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
@@ -47,7 +48,7 @@ internal suspend fun Fragment.translateTextOrPrompt(src: String): String? {
         promptTranslateFailedIfPossible(e)
         return null
     }
-    if (translated.isBlank()) {
+    if (translated.value.isBlank()) {
         promptTranslateFailedIfPossible(null)
         return null
     }

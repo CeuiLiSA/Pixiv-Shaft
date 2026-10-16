@@ -99,14 +99,14 @@ object MangaPageTranslatePipeline {
         val translations = mutableMapOf<Int, String>()
         val translator = currentTranslator()
         val targetLang = appTranslateTargetLang()
-        try {
-            translator.translateBatch(
+        val servedBy = try {
+            translator.translateBatchWithSource(
                 inputs = regions.map { it.text },
                 outputLang = targetLang,
                 onItem = { i, translated -> translations[i] = translated },
                 onPhase = { phase -> onStage(translatePhaseStage(app, phase)) },
                 onRequestSent = onRequestSent,
-            )
+            ).servedBy
         } catch (e: CancellationException) {
             // 离开页面/重新进入导致协程取消:重抛,别把「Job was cancelled」当真实错误弹给用户
             throw e
@@ -117,7 +117,7 @@ object MangaPageTranslatePipeline {
         if (translations.isEmpty()) return Outcome.TranslateFailed(null)
 
         // 「原样度」:AI 引擎下逐条判定,任一条疑似原样输出就取其中最高百分比,交给调用方提示。
-        val verbatimPercent = if (translator.isAiBacked() && !targetLang.equals("ja", ignoreCase = true)) {
+        val verbatimPercent = if (servedBy.isAiBacked() && !targetLang.equals("ja", ignoreCase = true)) {
             regions.indices.mapNotNull { i ->
                 val text = translations[i] ?: return@mapNotNull null
                 val original = regions[i].text

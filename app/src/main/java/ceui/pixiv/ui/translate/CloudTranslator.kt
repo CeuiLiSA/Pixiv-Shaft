@@ -45,15 +45,6 @@ object CloudTranslator : Translator {
     private val requestSemaphore = Semaphore(REQUEST_CONCURRENCY)
 
     /**
-     * 最近一次 [translateBatch] 是否因服务端关停(503 translate_disabled)而交给
-     * [GoogleWebTranslator] 兜底 —— 那一批产物不是 AI 生成的,「原样度」判定应跳过
-     * (见 [isAiBacked])。每次 [translateBatchWith] 开头复位,只在本次真正降级时置位。
-     */
-    @Volatile
-    var servedByGoogleFallback: Boolean = false
-        private set
-
-    /**
      * 能不能走云翻译：用户没关 + 已登录（服务端按 uid 计量）+ 本包带 HMAC（fork 构建签不了名）
      * + 服务端宣告过功能开着。任一不满足就交给下一级翻译器，不报错。
      */
@@ -69,9 +60,16 @@ object CloudTranslator : Translator {
         input: String,
         outputLang: String,
         onPhase: ((AiTranslatePhase) -> Unit)?,
-    ): String {
-        if (input.isBlank()) return input
-        return translateBatch(listOf(input), outputLang, onPhase = onPhase).first().trim()
+    ): String = translateWithSource(input, outputLang, onPhase).value
+
+    override suspend fun translateWithSource(
+        input: String,
+        outputLang: String,
+        onPhase: ((AiTranslatePhase) -> Unit)?,
+    ): Translated<String> {
+        if (input.isBlank()) return Translated(input, this)
+        val batch = translateBatchWithSource(listOf(input), outputLang, onPhase = onPhase)
+        return Translated(batch.value.first().trim(), batch.servedBy)
     }
 
     override suspend fun translateBatch(
@@ -81,7 +79,16 @@ object CloudTranslator : Translator {
         onProgress: ((Int, Int) -> Unit)?,
         onPhase: ((AiTranslatePhase) -> Unit)?,
         onRequestSent: (() -> Unit)?,
-    ): List<String> = translateBatchWith(
+    ): List<String> = translateBatchWithSource(inputs, outputLang, onItem, onProgress, onPhase, onRequestSent).value
+
+    override suspend fun translateBatchWithSource(
+        inputs: List<String>,
+        outputLang: String,
+        onItem: ((Int, String) -> Unit)?,
+        onProgress: ((Int, Int) -> Unit)?,
+        onPhase: ((AiTranslatePhase) -> Unit)?,
+        onRequestSent: (() -> Unit)?,
+    ): Translated<List<String>> = translateBatchWith(
         Client.pixshaft, SessionManager.loggedInUid, inputs, outputLang,
         onItem, onProgress, onPhase, onRequestSent,
         onServerDisabled = ::markServerDisabled,
@@ -110,9 +117,8 @@ object CloudTranslator : Translator {
         onRequestSent: (() -> Unit)? = null,
         onServerDisabled: (() -> Unit)? = null,
         fallback: Translator? = null,
-    ): List<String> {
-        servedByGoogleFallback = false
-        if (inputs.isEmpty()) return emptyList()
+    ): Translated<List<String>> {
+        if (inputs.isEmpty()) return Translated(emptyList(), this)
         // Blank bubbles need no network request. Identical labels are translated
         // once per batch, then restored to every original position for the UI.
         val positions = linkedMapOf<String, MutableList<Int>>()
@@ -121,7 +127,7 @@ object CloudTranslator : Translator {
         }
         if (positions.isEmpty()) {
             onProgress?.invoke(inputs.size, inputs.size)
-            return inputs
+            return Translated(inputs, this)
         }
         val groups = positions.values.toList()
         val blanks = inputs.size - groups.sumOf { it.size }
@@ -133,8 +139,8 @@ object CloudTranslator : Translator {
             onPhase, onRequestSent, onServerDisabled, fallback,
         )
         val results = inputs.map { if (it.isBlank()) it else "" }.toMutableList()
-        groups.forEachIndexed { index, group -> group.forEach { results[it] = translated[index] } }
-        return results
+        groups.forEachIndexed { index, group -> group.forEach { results[it] = translated.value[index] } }
+        return Translated(results, translated.servedBy)
     }
 
     private suspend fun translateUniqueBatchWith(
@@ -148,8 +154,8 @@ object CloudTranslator : Translator {
         onRequestSent: (() -> Unit)? = null,
         onServerDisabled: (() -> Unit)? = null,
         fallback: Translator? = null,
-    ): List<String> = withContext(Dispatchers.IO) {
-        if (inputs.isEmpty()) return@withContext emptyList()
+    ): Translated<List<String>> = withContext(Dispatchers.IO) {
+        if (inputs.isEmpty()) return@withContext Translated(emptyList(), this@CloudTranslator)
         val lang = serverLangOf(outputLang)
         val results = MutableList(inputs.size) { "" }
         val ranges = chunkRanges(inputs, MAX_BATCH_CHARS, MAX_BATCH_ITEMS)
@@ -248,9 +254,8 @@ object CloudTranslator : Translator {
         val disabled = stopAll.get()
         if (fallback != null && disabled is CloudTranslateException && disabled.code == 503) {
             Timber.tag(TAG).i("server switched off, redoing this batch with %s", fallback::class.simpleName)
-            // 本批产物将由 fallback(非 AI)产出,标记降级,调用方据此跳过「原样度」判定。
-            servedByGoogleFallback = true
-            return@withContext fallback.translateBatch(inputs, outputLang, onItem, onProgress, onPhase, onRequestSent)
+            // 本批产物由 fallback 产出：来源随结果带回，调用方据此决定要不要做「原样度」判定。
+            return@withContext fallback.translateBatchWithSource(inputs, outputLang, onItem, onProgress, onPhase, onRequestSent)
         }
 
         if (results.all { it.isBlank() }) {
@@ -258,7 +263,7 @@ object CloudTranslator : Translator {
         }
         // 部分分片撞了额度：已拿到的译文照样交出去，但把「为什么少了一截」留在日志里。
         stopAll.get()?.let { Timber.w(it, "CloudTranslator: partial result, %d/%d items", results.count { it.isNotBlank() }, inputs.size) }
-        results
+        Translated(results, this@CloudTranslator)
     }
 
     /** 先按字符切（同 [AiTranslator.chunkByCharLimit]），再把每段按条数上限二次切开。 */

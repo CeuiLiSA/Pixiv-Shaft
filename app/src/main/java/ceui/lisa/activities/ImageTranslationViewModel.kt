@@ -20,6 +20,7 @@ import ceui.pixiv.ui.translate.MangaPageTranslatePipeline
 import ceui.pixiv.ui.translate.MangaPageTranslatePipeline.Stage
 import ceui.pixiv.ui.translate.TextEraser
 import ceui.pixiv.ui.translate.TextRenderer
+import ceui.pixiv.ui.translate.Translated
 import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.currentTranslator
 import ceui.pixiv.ui.translate.promptTranslateFailedIfPossible
@@ -319,7 +320,7 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
 
             // 4. 翻译(单条)
             _status.postValue(Stage(app.getString(R.string.ocr_translating)))
-            val translated = try {
+            val result = try {
                 translateSingle(ocr.text, app)
             } catch (e: CancellationException) {
                 throw e
@@ -332,6 +333,7 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
                 }
                 return
             }
+            val translated = result.value
             if (translated.isBlank()) {
                 if (!cancelledByUser) promptTranslateFailedIfPossible(null)
                 return
@@ -339,7 +341,7 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
 
             // 「原样度」:圈选单条同样判定,疑似原样输出时提示(仅 AI 引擎、目标语言非日文)。
             if (!cancelledByUser) {
-                verbatimWarningText(app, currentTranslator(), ocr.text, translated)?.let {
+                verbatimWarningText(app, result.servedBy, ocr.text, translated)?.let {
                     Common.showToast(it)
                 }
             }
@@ -419,16 +421,16 @@ class ImageTranslationViewModel(application: Application) : AndroidViewModel(app
         }
     }
 
-    private suspend fun translateSingle(text: String, app: Context): String {
+    private suspend fun translateSingle(text: String, app: Context): Translated<String> {
         var out = ""
-        currentTranslator().translateBatch(
+        val result = currentTranslator().translateBatchWithSource(
             inputs = listOf(text),
             outputLang = appTranslateTargetLang(),
             onItem = { _, translated -> out = translated },
             onPhase = { phase -> _status.postValue(MangaPageTranslatePipeline.translatePhaseStage(app, phase)) },
             onRequestSent = { aiRequestSent = true },
         )
-        return out
+        return Translated(out, result.servedBy)
     }
 
     /**

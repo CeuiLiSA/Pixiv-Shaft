@@ -6,6 +6,8 @@ import ceui.pixiv.shaftapi.TranslateResult
 import ceui.pixiv.shaftapi.TranslateRequest
 import ceui.pixiv.shaftapi.translateTexts
 import com.google.gson.Gson
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -14,6 +16,7 @@ import okhttp3.mockwebserver.RecordedRequest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -60,7 +63,7 @@ class CloudTranslatorTest {
         ))
         val phases = CopyOnWriteArrayList<AiTranslatePhase>()
         val result = CloudTranslator.translateBatchWith(api, 7, listOf("hello"), "zh", onPhase = { phases.add(it) })
-        assertEquals(listOf("你好"), result)
+        assertEquals(listOf("你好"), result.value)
         assertEquals(listOf(AiTranslatePhase.Thinking("推理已转发上游端点"), AiTranslatePhase.Generating), phases)
     }
 
@@ -85,7 +88,7 @@ class CloudTranslatorTest {
         val result = CloudTranslator.translateBatchWith(api, 7L, listOf(a, b, c, a, " "), "en",
             onItem = { index, text -> items.add(index to text) },
             onProgress = { done, total -> progress.add(done to total) })
-        assertEquals(listOf("A", "", "C", "A", " "), result)
+        assertEquals(listOf("A", "", "C", "A", " "), result.value)
         assertEquals(listOf(0 to "A", 3 to "A", 2 to "C"), items)
         assertEquals(listOf(3 to 5, 4 to 5, 5 to 5), progress)
         assertEquals(3, server.requestCount)
@@ -101,7 +104,7 @@ class CloudTranslatorTest {
             onItem = { i, text -> items.add(i to text) },
             onProgress = { done, total -> progress = done to total },
         )
-        assertEquals(listOf("你好", " ", "谢谢", "你好", ""), out)
+        assertEquals(listOf("你好", " ", "谢谢", "你好", ""), out.value)
         assertEquals(listOf(0 to "你好", 3 to "你好", 2 to "谢谢"), items)
         assertEquals(5 to 5, progress)
         assertEquals("""{"uid":7,"texts":["こんにちは","ありがとう"],"lang":"zh-CN"}""", server.takeRequest().body.readUtf8())
@@ -112,7 +115,7 @@ class CloudTranslatorTest {
         val inputs = listOf("", " \n")
         var progress = 0 to 0
         assertEquals(inputs, CloudTranslator.translateBatchWith(api, 7L, inputs, "en",
-            onProgress = { done, total -> progress = done to total }))
+            onProgress = { done, total -> progress = done to total }).value)
         assertEquals(2 to 2, progress)
         assertEquals(0, server.requestCount)
     }
@@ -151,7 +154,7 @@ class CloudTranslatorTest {
             onRequestSent = { requestSent++ },
         )
 
-        assertEquals(listOf("你好", "谢谢"), out)
+        assertEquals(listOf("你好", "谢谢"), out.value)
         assertEquals(listOf(0 to "你好", 1 to "谢谢"), items.toList())
         assertEquals(2 to 2, progress)
         assertEquals(1, requestSent)
@@ -252,7 +255,8 @@ class CloudTranslatorTest {
             api, 7L, listOf("a", "b"), "en",
             onServerDisabled = { disabled++ }, fallback = fallback,
         )
-        assertEquals(listOf("G:a", "G:b"), out)
+        assertEquals(listOf("G:a", "G:b"), out.value)
+        assertSame(fallback, out.servedBy)
         assertEquals(listOf(listOf("a", "b")), fallback.calls)
         assertEquals(1, disabled)
     }
@@ -272,7 +276,7 @@ class CloudTranslatorTest {
     fun `译文里的 JSON null 变成空串而不是 NPE`() = runBlocking {
         server.enqueue(json(200, """{"translations":["a",null],"quotas":[]}"""))
         val out = CloudTranslator.translateBatchWith(api, 7L, listOf("x", "y"), "en")
-        assertEquals(listOf("a", ""), out)
+        assertEquals(listOf("a", ""), out.value)
     }
 
     @Test
@@ -284,17 +288,42 @@ class CloudTranslatorTest {
     }
 
     @Test
-    fun `服务端关停降级给 Google 时标记降级`() = runBlocking {
+    fun `服务端关停降级时译文来源是兜底引擎，不再算 AI 译文`() = runBlocking {
         server.enqueue(json(503, """{"error":"translate_disabled"}"""))
-        CloudTranslator.translateBatchWith(api, 7L, listOf("a"), "en", fallback = passthroughFallback())
-        assertTrue(CloudTranslator.servedByGoogleFallback)
+        val fallback = passthroughFallback()
+        val out = CloudTranslator.translateBatchWith(api, 7L, listOf("a"), "en", fallback = fallback)
+        assertSame(fallback, out.servedBy)
+        assertFalse(out.servedBy.isAiBacked())
     }
 
     @Test
-    fun `正常云翻译批次不标记降级`() = runBlocking {
+    fun `正常云翻译批次的来源是云翻译本身`() = runBlocking {
         server.enqueue(json(200, """{"translations":["A"],"quotas":[]}"""))
-        CloudTranslator.translateBatchWith(api, 7L, listOf("a"), "en")
-        assertFalse(CloudTranslator.servedByGoogleFallback)
+        val out = CloudTranslator.translateBatchWith(api, 7L, listOf("a"), "en")
+        assertSame(CloudTranslator, out.servedBy)
+        assertTrue(out.servedBy.isAiBacked())
+    }
+
+    @Test
+    fun `并发批次各自带回来源，一批降级不影响另一批`() = runBlocking {
+        server.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                val text = Gson().fromJson(request.body.readUtf8(), TranslateRequest::class.java).texts.single()
+                return when (text) {
+                    // 两批并发：旧实现把「是否降级」存在单例上，正常批会读到另一批留下的降级标记。
+                    "down" -> json(503, """{"error":"translate_disabled"}""")
+                    else -> json(200, """{"translations":["OK"]}""").setBodyDelay(100, TimeUnit.MILLISECONDS)
+                }
+            }
+        }
+        val fallback = passthroughFallback()
+        val (downgraded, normal) = coroutineScope {
+            val d = async { CloudTranslator.translateBatchWith(api, 7L, listOf("down"), "en", fallback = fallback) }
+            val n = async { CloudTranslator.translateBatchWith(api, 7L, listOf("up"), "en", fallback = fallback) }
+            d.await() to n.await()
+        }
+        assertSame(fallback, downgraded.servedBy)
+        assertSame(CloudTranslator, normal.servedBy)
     }
 
     /** 兜底引擎:原样返回输入,只用于验证降级路径被标记。 */

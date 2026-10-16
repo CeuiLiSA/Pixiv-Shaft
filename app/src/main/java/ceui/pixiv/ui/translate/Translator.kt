@@ -11,6 +11,13 @@ sealed interface AiTranslatePhase {
     data object Generating : AiTranslatePhase
 }
 
+/**
+ * 一次翻译的产物，连同**真正产出它的引擎**。两者不一定相同：云翻译被服务端关停时会把这一批
+ * 就地交给下一级引擎重做（见 [CloudTranslator]）。来源是这一次调用的属性，所以随结果返回，
+ * 不能挂在共享的引擎单例上 —— 并发的几次翻译会互相覆盖。
+ */
+class Translated<T>(val value: T, val servedBy: Translator)
+
 interface Translator {
     suspend fun translate(
         input: String,
@@ -53,4 +60,22 @@ interface Translator {
         }
         return out
     }
+
+    /** 同 [translate]，额外带回真正产出译文的引擎。需要按来源做判定（如「原样度」）时用它。 */
+    suspend fun translateWithSource(
+        input: String,
+        outputLang: String,
+        onPhase: ((AiTranslatePhase) -> Unit)? = null,
+    ): Translated<String> = Translated(translate(input, outputLang, onPhase), this)
+
+    /** 同 [translateBatch]，额外带回真正产出译文的引擎。 */
+    suspend fun translateBatchWithSource(
+        inputs: List<String>,
+        outputLang: String,
+        onItem: ((index: Int, translated: String) -> Unit)? = null,
+        onProgress: ((done: Int, total: Int) -> Unit)? = null,
+        onPhase: ((AiTranslatePhase) -> Unit)? = null,
+        onRequestSent: (() -> Unit)? = null,
+    ): Translated<List<String>> =
+        Translated(translateBatch(inputs, outputLang, onItem, onProgress, onPhase, onRequestSent), this)
 }

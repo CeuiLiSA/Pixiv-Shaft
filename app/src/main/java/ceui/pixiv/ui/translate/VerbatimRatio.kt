@@ -71,8 +71,8 @@ internal object VerbatimRatio {
  * ([CloudTranslator],服务端含 GPT 上游);Google 免费端点不检测 —— 它几乎不会原样回显,
  * 检测只会制造噪音。
  *
- * 云翻译在服务端关停时会用 Google 重做本批([CloudTranslator.servedByGoogleFallback]),
- * 那一批产物不是 AI 译文,同样跳过判定。
+ * 接收方是**真正产出译文的引擎**([Translated.servedBy]),不是发起调用的那个:云翻译在服务端
+ * 关停时会用 Google 重做本批,那一批的 servedBy 就是 Google,自然跳过判定。
  */
 internal fun Translator.isAiBacked(): Boolean =
-    this === AiTranslator || (this === CloudTranslator && !CloudTranslator.servedByGoogleFallback)
+    this === AiTranslator || this === CloudTranslator

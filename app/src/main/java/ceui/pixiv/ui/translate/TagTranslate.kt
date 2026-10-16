@@ -22,9 +22,8 @@ fun translateTag(context: Context, scope: CoroutineScope, name: String) {
     if (src.isEmpty()) return
     Common.showToast(R.string.string_translating)
     scope.launch {
-        val translator = currentTranslator()
-        val translated = try {
-            translator.translate(src, appTranslateTargetLang(), onPhase = onceThinkingPhase())
+        val result = try {
+            currentTranslator().translateWithSource(src, appTranslateTargetLang(), onPhase = onceThinkingPhase())
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -32,13 +31,14 @@ fun translateTag(context: Context, scope: CoroutineScope, name: String) {
             promptTranslateFailedIfPossible(e)
             return@launch
         }
+        val translated = result.value
         if (translated.isBlank()) {
             promptTranslateFailedIfPossible(null)
             return@launch
         }
         showTranslatedDialog(
             context, translated,
-            warning = verbatimWarningText(context, translator, src, translated),
+            warning = verbatimWarningText(context, result.servedBy, src, translated),
         )
     }
 }

@@ -55,15 +55,16 @@ internal fun showTranslatedDialog(context: Context, message: String, warning: St
 /**
  * 命中「疑似原样输出」时给出提示文案,否则 null。
  * 仅 AI 引擎([isAiBacked])、目标语言不是日文(同语言翻译允许保留原文)、且原样度达阈值时才提示。
+ * [servedBy] 传这次译文的 [Translated.servedBy],不要传发起调用的引擎(云翻译可能已降级)。
  */
 internal fun verbatimWarningText(
     context: Context,
-    translator: Translator,
+    servedBy: Translator,
     original: String,
     translated: String,
     targetLang: String = appTranslateTargetLang(),
 ): String? {
-    if (!translator.isAiBacked()) return null
+    if (!servedBy.isAiBacked()) return null
     if (targetLang.equals("ja", ignoreCase = true)) return null
     if (!VerbatimRatio.isLikelyVerbatim(original, translated)) return null
     return context.getString(

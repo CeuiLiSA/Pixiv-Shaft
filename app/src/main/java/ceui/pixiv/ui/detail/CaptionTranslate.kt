@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import ceui.lisa.R
 import ceui.lisa.utils.Common
 import ceui.pixiv.ui.common.launchSuspend
+import ceui.pixiv.ui.translate.Translated
 import ceui.pixiv.ui.translate.appTranslateTargetLang
 import ceui.pixiv.ui.translate.currentTranslator
 import ceui.pixiv.ui.translate.onceThinkingPhase
@@ -44,23 +45,25 @@ fun Fragment.translateTitleAndCaption(title: String?, caption: String?) {
         val onPhase = onceThinkingPhase()
         // 单条失败不连累另一条:失败的那条留空串,留到最后统一判定。
         val failure = AtomicReference<Exception?>(null)
-        suspend fun translateOne(text: String): String {
-            if (text.isEmpty()) return ""
+        suspend fun translateOne(text: String): Translated<String> {
+            if (text.isEmpty()) return Translated("", translator)
             return try {
-                translator.translate(text, targetLang, onPhase = onPhase)
+                translator.translateWithSource(text, targetLang, onPhase = onPhase)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Timber.e(e, "translate title/caption failed")
                 failure.compareAndSet(null, e)
-                ""
+                Translated("", translator)
             }
         }
-        val (translatedTitle, translatedCaption) = coroutineScope {
+        val (titleResult, captionResult) = coroutineScope {
             val titleTask = async { translateOne(t) }
             val captionTask = async { translateOne(c) }
             titleTask.await() to captionTask.await()
         }
+        val translatedTitle = titleResult.value
+        val translatedCaption = captionResult.value
         // 两条都没译出来 = 整体失败:不弹译文窗,交给统一的失败提示(与评论翻译一致)。
         if (translatedTitle.isBlank() && translatedCaption.isBlank()) {
             promptTranslateFailedIfPossible(failure.get())
@@ -74,8 +77,8 @@ fun Fragment.translateTitleAndCaption(title: String?, caption: String?) {
             (translatedCaption.takeIf { it.isNotBlank() } ?: placeholder)
         // 「原样度」:标题 / 简介任一疑似原样输出即提示(仅 AI 引擎、且目标语言非日文)。
         val warning = listOfNotNull(
-            verbatimWarningText(ctx, translator, t, translatedTitle),
-            verbatimWarningText(ctx, translator, c, translatedCaption),
+            verbatimWarningText(ctx, titleResult.servedBy, t, translatedTitle),
+            verbatimWarningText(ctx, captionResult.servedBy, c, translatedCaption),
         ).firstOrNull()
         showTranslatedDialog(ctx, message, warning)
     }
