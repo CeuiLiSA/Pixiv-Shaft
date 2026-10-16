@@ -20,6 +20,7 @@ import android.widget.FrameLayout
 import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.core.os.BundleCompat
 import androidx.core.os.bundleOf
@@ -176,7 +177,14 @@ class ImageFilterFragment : Fragment(R.layout.fragment_image_filter) {
             page.addView(stage, LinearLayout.LayoutParams(0, -1, 1f).apply {
                 setMargins(ctx.dp(16), ctx.dp(16), ctx.dp(8), ctx.dp(16))
             })
-            page.addView(controls, LinearLayout.LayoutParams(ctx.dp(380), -2))
+            // 控制台高度随字号涨，横放手机只剩 ~330dp：字号放大后放不下就竖滑，「保存」不会被底边裁掉。
+            // 放得下时 ScrollView 包住内容高度，照旧垂直居中。
+            val scroller = ScrollView(ctx).apply {
+                isVerticalScrollBarEnabled = false
+                overScrollMode = View.OVER_SCROLL_NEVER
+                addView(controls)
+            }
+            page.addView(scroller, LinearLayout.LayoutParams(ctx.dp(380), -2))
         } else {
             page.addView(stage, LinearLayout.LayoutParams(-1, 0, 1f).apply {
                 setMargins(ctx.dp(16), ctx.dp(12), ctx.dp(16), 0)
