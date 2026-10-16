@@ -150,6 +150,19 @@ class BookmarkMirrorService @JvmOverloads constructor(
     /** 当前正在翻页的书架（null = 空闲）。界面上的「正在同步…」用它。 */
     val activeShelfKey: StateFlow<String?> = _activeShelfKey.asStateFlow()
 
+    private val _reconcilePruneVersions = MutableStateFlow<Map<String, Long>>(emptyMap())
+
+    /** 各书架由增量维护滑窗对账或全量重扫真正删减条目时的版本号（shelfKey -> version）。仅增量工作删减时自增。 */
+    val reconcilePruneVersions: StateFlow<Map<String, Long>> = _reconcilePruneVersions.asStateFlow()
+
+    fun getReconcilePruneVersion(shelfKey: String): Long =
+        _reconcilePruneVersions.value[shelfKey] ?: 0L
+
+    fun notifyIncrementalPrune(shelfKey: String) {
+        val current = _reconcilePruneVersions.value[shelfKey] ?: 0L
+        _reconcilePruneVersions.value = _reconcilePruneVersions.value + (shelfKey to (current + 1L))
+    }
+
     // ─────────────────────────── 对外 API ───────────────────────────
 
     /** 由 [Shaft] 的延迟初始化调用。幂等。 */
@@ -826,6 +839,7 @@ class BookmarkMirrorService @JvmOverloads constructor(
             val orphanTags = if (removed > 0) dao.deleteOrphanTags(shelf.key) else 0
             next = next.copy(lastFullSweepAt = now)
             if (removed > 0) {
+                notifyIncrementalPrune(shelf.key)
                 Timber.tag(TAG).i(
                     "[%s] 全量收尾：清掉 %d 行已在别处取消的收藏（连带 %d 条标签）",
                     shelf.label, removed, orphanTags,
@@ -849,6 +863,7 @@ class BookmarkMirrorService @JvmOverloads constructor(
                         )
                     } else if (count > 0) {
                         dao.clearShelf(shelf.key)
+                        notifyIncrementalPrune(shelf.key)
                         Timber.tag(TAG).i(
                             "[%s] 增量维护对账：远端收藏已全空（连续 %d 次确认），清除本地全部 %d 行",
                             shelf.label, streak, count,
@@ -872,6 +887,7 @@ class BookmarkMirrorService @JvmOverloads constructor(
                         retainedIds = run.seenItemIds.toList(),
                     )
                     if (removed > 0) {
+                        notifyIncrementalPrune(shelf.key)
                         Timber.tag(TAG).i(
                             "[%s] 增量维护表头滑窗对账：清除 %d 行远端已取消收藏（序号区间 %s..%s, ceiling=%d）",
                             shelf.label, removed, run.lowestSeq, run.highestSeq, run.headBlockCeiling,

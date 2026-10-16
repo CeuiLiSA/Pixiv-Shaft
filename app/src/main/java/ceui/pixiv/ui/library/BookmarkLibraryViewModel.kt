@@ -52,6 +52,17 @@ class BookmarkLibraryViewModel : ViewModel() {
     /** 后台镜像的同步状态（进度条 / 「还在补齐」提示）。 */
     private val _mirrorState = MutableStateFlow<BookmarkMirrorStateEntity?>(null)
     val mirrorState: StateFlow<BookmarkMirrorStateEntity?> = _mirrorState.asStateFlow()
+    /** 增量维护滑窗对账/重扫真正发生删减的版本号。只由增量工作触发；本地取消收藏不改变此项。 */
+    private val _reconcilePruneVersion = MutableStateFlow(0L)
+    val reconcilePruneVersion: StateFlow<Long> = _reconcilePruneVersion.asStateFlow()
+
+    fun updateReconcilePruneVersion(version: Long) {
+        _reconcilePruneVersion.value = version
+    }
+
+    fun notifyIncrementalPrune() {
+        _reconcilePruneVersion.value++
+    }
 
     private var loadedFilter: BookmarkFilter? = null
     private var loadedOffset = 0
@@ -146,6 +157,7 @@ class BookmarkLibraryViewModel : ViewModel() {
         bound = true
         shelf = next
         _mirrorState.value = null
+        _reconcilePruneVersion.value = 0L
         loadedFilter = null
         _filter.value = BookmarkFilter(
             shelfKey = next.key,
