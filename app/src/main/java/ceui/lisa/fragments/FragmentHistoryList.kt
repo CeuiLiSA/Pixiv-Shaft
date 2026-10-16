@@ -48,6 +48,10 @@ import java.util.Locale
  */
 class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
 
+    // 历史页主动刷新（下拉刷新、搜索切换、备份导入后重读）期望回到顶部查看最新历史（或新导入的条目），
+    // 且回顶走 resetToTop 归零列状态，避免 DiffUtil 保留旧 anchor 把新首项塞到屏幕外。
+    override val resetScrollOnRefresh: Boolean = true
+
     private val historyType: Int by lazy { arguments?.getInt(ARG_TYPE, 0) ?: 0 }
     private val searchVm: HistorySearchSharedViewModel by activityViewModels()
     private val selectionVm: HistorySelectionViewModel by viewModels()
@@ -89,7 +93,8 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
     }
 
     override fun onListReady(listView: RecyclerView) {
-        listView.itemAnimator = null
+        // 不动 itemAnimator：删除/批量删除走增量 removeItems，由 DiffUtil 驱动删除与补位动画；
+        // 选择态变更带 PAYLOAD_HISTORY_SELECTION，由 DefaultItemAnimator 原地重绑不跑 crossfade。
         // 插画历史的间距对齐全站其它插画瀑布流(IllustFeedFragment 同款 8dp SpacesItemDecoration:
         // 按 lineCount 分档给左/中/右不同的左右偏移,边缘 8dp、中缝 8dp)。原先是靠 cell_history_illust_v3
         // 自带的 5dp layout_margin 撑间距 —— 比全站标准窄一圈、几乎贴着屏幕边,且不跟 lineCount 走。
@@ -221,7 +226,7 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
     private fun loadedIllusts(): List<Illust> =
         feedViewModel.uiState.value.items.filterIsInstance<HistoryIllustFeedItem>().map { it.illust }
 
-    /** host 一键清空全部历史 (#886) 后调一下，让本 tab 重新拉数据源。 */
+    /** host 一键清空/导入备份/同意云同步后调一下，让本 tab 重新拉数据源并回顶。 */
     fun reloadFromDao() {
         if (view == null) return
         feedViewModel.refresh()

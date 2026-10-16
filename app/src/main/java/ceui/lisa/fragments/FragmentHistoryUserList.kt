@@ -33,6 +33,10 @@ import java.util.Locale
  */
 class FragmentHistoryUserList : FeedFragment(), SelectableHistoryTab {
 
+    // 历史页主动刷新（下拉刷新、备份导入后重读）期望回到顶部查看最新历史（或新导入的条目），
+    // 避免 DiffUtil 保留旧 anchor 把新首项塞到屏幕外。
+    override val resetScrollOnRefresh: Boolean = true
+
     private val selectionVm: HistorySelectionViewModel by viewModels()
 
     // 懒加载:同 FragmentHistoryList,ViewPager tab 只在真正可见时才拉。
@@ -50,7 +54,8 @@ class FragmentHistoryUserList : FeedFragment(), SelectableHistoryTab {
         LinearLayoutManager(requireContext())
 
     override fun onListReady(listView: RecyclerView) {
-        listView.itemAnimator = null
+        // 不动 itemAnimator：删除/批量删除走增量 removeItems，由 DiffUtil 驱动删除与补位动画；
+        // 选择态变更带 PAYLOAD_HISTORY_SELECTION，由 DefaultItemAnimator 原地重绑不跑 crossfade。
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -113,7 +118,7 @@ class FragmentHistoryUserList : FeedFragment(), SelectableHistoryTab {
     private fun loadedEntities(): List<GeneralEntity> =
         feedViewModel.uiState.value.items.filterIsInstance<HistoryUserFeedItem>().map { it.entity }
 
-    /** host 一键清空全部历史 (#886) 后调一下，让本 tab 重新拉数据源。 */
+    /** host 一键清空/导入备份/同意云同步后调一下，让本 tab 重新拉数据源并回顶。 */
     fun reloadFromDao() {
         if (view == null) return
         feedViewModel.refresh()
