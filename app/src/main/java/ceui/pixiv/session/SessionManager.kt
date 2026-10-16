@@ -1,7 +1,15 @@
 package ceui.pixiv.session
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.os.SystemClock
 import androidx.lifecycle.LiveData
+import ceui.lisa.activities.TemplateActivity
+import ceui.lisa.utils.Params
+import ceui.pixiv.ui.navigation.TemplateRoute
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import androidx.lifecycle.MutableLiveData
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
@@ -54,6 +62,55 @@ object SessionManager {
      */
     val hasWebCookie: Boolean
         get() = isLoggedInWebCookie(prefStore.getString(COOKIE_KEY, ""))
+
+    /** 当前网页会话 (PHPSESSID) 是否有效且属于当前已登录账号。 */
+    @JvmStatic
+    fun hasValidWebSession(): Boolean = ceui.pixiv.ui.discovery.WebDiscoverySession.isCurrentAccount
+
+    /** 构造网页登录 Intent。 */
+    @JvmStatic
+    fun createWebLoginIntent(context: Context): Intent =
+        Intent(context, TemplateActivity::class.java).apply {
+            if (hasWebCookie) {
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_PAGE.key)
+                putExtra(Params.URL, "https://accounts.pixiv.net/login")
+                putExtra("saveCookies", true)
+            } else {
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_HOME.key)
+                putExtra(Params.AUTO_WEB_LOGIN, true)
+            }
+        }
+
+    /**
+     * 弹出「该功能通过网页接口实现，需要额外进行一次网页登录」引导弹窗。
+     * 点击「去登录」时默认打开网页登录，也可通过 [onConfirmLogin] 自定义启动方式。
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun showWebLoginDialog(
+        activity: Activity,
+        title: CharSequence? = null,
+        onConfirmLogin: Runnable? = null,
+    ) {
+        WitDialog.MessageDialogBuilder(activity)
+            .apply {
+                if (!title.isNullOrEmpty()) {
+                    setTitle(title)
+                }
+            }
+            .setMessage(R.string.web_feature_need_web_login)
+            .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+            .addAction(0, R.string.street_web_login_confirm, WitDialogAction.ACTION_PROP_POSITIVE) { dialog, _ ->
+                dialog.dismiss()
+                if (onConfirmLogin != null) {
+                    onConfirmLogin.run()
+                } else {
+                    activity.startActivity(createWebLoginIntent(activity))
+                }
+            }
+            .create()
+            .show()
+    }
 
     /**
      * 这份 cookie 是不是**已登录**的网页会话。
