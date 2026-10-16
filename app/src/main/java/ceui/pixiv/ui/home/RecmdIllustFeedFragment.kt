@@ -314,7 +314,8 @@ open class RecmdIllustFeedFragment(
          * 超时和任何失败都降级成空列表。
          */
         private suspend fun fetchWebR18Recommend(apiType: String): List<Illust> {
-            if (SessionManager.loggedInUser?.isR18Enabled() != true ||
+            if (!Shaft.sSettings.isIncludeR18InHomeFeed ||
+                SessionManager.loggedInUser?.isR18Enabled() != true ||
                 Shaft.sSettings.isR18FilterTempEnable ||
                 !WebDiscoverySession.isCurrentAccount
             ) {

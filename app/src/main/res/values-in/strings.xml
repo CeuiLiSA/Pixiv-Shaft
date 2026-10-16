@@ -2782,6 +2782,8 @@
     <string name="drawer_section_records">Riwayat dan pengelolaan</string>
     <string name="auto_refresh_home_feed">Segarkan rekomendasi beranda otomatis saat dibuka</string>
     <string name="auto_refresh_home_feed_desc">Jika dimatikan, saat dibuka langsung menampilkan rekomendasi terakhir; tarik ke bawah untuk mendapatkan yang baru</string>
+    <string name="include_r18_in_home_feed">Sertakan karya R-18 di rekomendasi beranda</string>
+    <string name="include_r18_in_home_feed_desc">Ambil rekomendasi R-18 yang dipersonalisasi dari situs resmi\nMemerlukan login web tambahan dan R-18 aktif di akun Anda</string>
     <string name="ugoira_rife_enable">Interpolasi frame AI untuk ugoira (RIFE)</string>
     <string name="ugoira_rife_enable_desc">Menyisipkan frame tengah buatan AI di antara frame yang berdekatan, otomatis hingga maksimal 4x frame rate (mendekati batas 50fps GIF); pertama kali perlu mengunduh model interpolasi, dan waktu pengenkodean akan lebih lama</string>
     <string name="ugoira_interpolating">Menginterpolasi frame</string>
@@ -2803,7 +2805,7 @@
     <string name="pixiv_unblock_done">«%1$s» dihapus dari daftar hitam</string>
     <string name="pixiv_block_checking">Memeriksa status daftar hitam…</string>
     <string name="pixiv_block_submitting">Mengirim…</string>
-    <string name="pixiv_block_need_web_login">Fitur ini memakai API web dan memerlukan login web tambahan.</string>
+    <string name="web_feature_need_web_login">Fitur ini memakai API web dan memerlukan login web tambahan.</string>
     <string name="user_tag_filter_empty_need_web_login">Tidak ada karya yang tersaring.\nFitur ini memakai API web dan memerlukan login web tambahan untuk melihat semua karya dengan tag ini</string>
     <string name="spoiler_hide_illust">Blokir karya ini</string>
     <string name="spoiler_reveal_illust">Buka blokir karya ini</string>

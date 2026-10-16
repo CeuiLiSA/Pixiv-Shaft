@@ -264,20 +264,6 @@ object PixivBlockOperate {
     }
 
     private fun showWebLoginNeeded(activity: Activity) {
-        WitDialog.MessageDialogBuilder(activity)
-            .setTitle(R.string.pixiv_block_title)
-            .setMessage(R.string.pixiv_block_need_web_login)
-            .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-            .addAction(0, R.string.street_web_login_confirm, WitDialogAction.ACTION_PROP_POSITIVE) { dialog, _ ->
-                dialog.dismiss()
-                activity.startActivity(
-                    Intent(activity, TemplateActivity::class.java).apply {
-                        putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.WEB_HOME.key)
-                        putExtra(Params.AUTO_WEB_LOGIN, true)
-                    }
-                )
-            }
-            .create()
-            .show()
+        SessionManager.showWebLoginDialog(activity, activity.getString(R.string.pixiv_block_title))
     }
 }

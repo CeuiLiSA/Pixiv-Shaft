@@ -3049,6 +3049,8 @@
     <!-- 启动时自动刷新首页推荐 (issue #955) -->
     <string name="auto_refresh_home_feed">启动时自动刷新首页推荐</string>
     <string name="auto_refresh_home_feed_desc">关闭后启动时直接展示上次的推荐内容，下拉刷新才换新一批</string>
+    <string name="include_r18_in_home_feed">首页推荐包含 R-18 作品</string>
+    <string name="include_r18_in_home_feed_desc">从官网拉取 R-18 个性化推荐\n该功能需要额外进行一次网页登录并且开启了账号的R-18</string>
     <string name="ugoira_rife_enable">动图 AI 补帧 (RIFE)</string>
     <string name="ugoira_rife_enable_desc">在相邻帧之间插入 AI 生成的中间帧,自动补至最高 4 倍帧率(贴近 GIF 50fps 上限);首次使用需下载补帧模型,压制耗时会变长</string>
     <string name="ugoira_interpolating">补帧中</string>
@@ -3071,7 +3073,7 @@
     <string name="pixiv_unblock_done">已将「%1$s」移出黑名单</string>
     <string name="pixiv_block_checking">正在查询黑名单状态…</string>
     <string name="pixiv_block_submitting">正在提交…</string>
-    <string name="pixiv_block_need_web_login">该功能通过网页接口实现，需要额外进行一次网页登录。</string>
+    <string name="web_feature_need_web_login">该功能通过网页接口实现，需要额外进行一次网页登录。</string>
     <!-- 画师页 chip 来自 app-api、筛选走网页 ajax，两边可见范围可能不一致；只给线索不下断言，
          见 UserIllustByTagFeedFragment.emptyStateText 的 KDoc（非 issue #956 的实证成因） -->
     <string name="user_tag_filter_empty_need_web_login">没有筛到作品。\n该功能通过网页接口实现，需要额外进行一次网页登录才能看到该标签下的全部作品</string>

@@ -121,6 +121,9 @@ object SettingsCatalog {
 
         // 浏览与搜索
         add(Entry(BROWSING, "auto_refresh_home_feed_rela", R.string.auto_refresh_home_feed, R.string.auto_refresh_home_feed_desc, keywords = "自动刷新 首页 推荐 启动 冷启动 换一批 错过 auto refresh home recommend"))
+        if (!ceui.lisa.BuildConfig.IS_LITE) {
+            add(Entry(BROWSING, "include_r18_in_home_feed_rela", R.string.include_r18_in_home_feed, R.string.include_r18_in_home_feed_desc, keywords = "首页 r18 推荐 官网 涩图 成人 限制 home r18 recommend"))
+        }
         add(Entry(BROWSING, "save_history_rela", R.string.save_view_history, keywords = "浏览历史 历史记录 足迹 history"))
         add(Entry(BROWSING, "cloud_history_sync_rela", R.string.cloud_history_sync, keywords = "云同步 历史同步 多设备 cloud sync"))
         add(Entry(BROWSING, "clear_cloud_history_rela", R.string.clear_cloud_history, keywords = "清除历史 删除云端 隐私 clear history"))
