@@ -233,7 +233,7 @@ internal class ArtworkV3Actions(
             }
             // 动图的 original 是 zip,SnapshotGenerator 一进门就拒;别把注定失败的入口摆出来。
             if (!illust.isGif()) {
-                item(context.getString(R.string.snapshot_create), R.drawable.ic_baseline_get_app_24) {
+                item(context.getString(R.string.snapshot_create), R.drawable.ic_baseline_get_app_20) {
                     fragment.showSnapshotCreateDialog(illust)
                 }
             }
