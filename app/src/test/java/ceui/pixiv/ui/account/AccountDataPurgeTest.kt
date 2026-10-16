@@ -3,6 +3,7 @@ package ceui.pixiv.ui.account
 import android.app.Application
 import android.content.Context
 import android.content.ContextWrapper
+import android.os.Looper
 import androidx.room.Room
 import androidx.sqlite.db.SimpleSQLiteQuery
 import ceui.lisa.activities.Shaft
@@ -21,6 +22,8 @@ import ceui.pixiv.db.mirror.MirrorRestrict
 import ceui.pixiv.services.ServicesProvider
 import com.tencent.mmkv.MMKV
 import java.lang.reflect.Proxy
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
@@ -35,6 +38,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.Implementation
 import org.robolectric.annotation.Implements
@@ -281,6 +285,65 @@ class AccountDataPurgeTest {
             MemoryMMKV.values.containsKey("nana7mi_search_enabled_$target"),
         )
         assertTrue("引导标记应原样留着", MemoryMMKV.values.containsKey(READY_PREFIX + shelf.key))
+    }
+
+    // ── Java 侧入口（设置页「退出登录」用的那条） ──────────────────────
+
+    /**
+     * 回调必须发生在**清理跑完之后**，否则设置页那条链路会在数据还没清干净时就去清会话、
+     * 跳登录页 —— 顺序反了就会出现「已退出、清理还在跑」的窗口。
+     */
+    @Test
+    fun `detached 入口在清理跑完之后才回调`() {
+        val dao = db.bookmarkMirrorDao()
+        val shelf = BookmarkShelf(target, MirrorContentType.ILLUST, MirrorRestrict.PUBLIC)
+        seedShelf(shelf, targetId = 1000L)
+        db.downloadDao().insertUser(user(target))
+
+        val done = CountDownLatch(1)
+        var rowsSeenInCallback = -1
+        AccountDataPurge.purgeAccountDataDetached(context, target, purgeLocalData = true) {
+            rowsSeenInCallback = dao.countOf(shelf.key)
+            done.countDown()
+        }
+
+        assertTrue("onFinished 必须被回调", awaitMain(done))
+        assertEquals("回调时清理必须已经跑完", 0, rowsSeenInCallback)
+        assertTrue(
+            "凭证行也该没了",
+            db.downloadDao().allUser.none { it.userID == target },
+        )
+    }
+
+    /**
+     * 清理炸了也必须回调。这条是承重的：回调是「退出登录」的续命信号，不发的话用户会停在
+     * 「点过退出登录，但什么都没发生」——既没退出、也没有任何提示。
+     */
+    @Test
+    fun `detached 入口在清理失败时也会回调`() {
+        val broken = wrapper(services(remoteConfigProvider = { error("boom") }))
+        db.downloadDao().insertUser(user(target))
+
+        val done = CountDownLatch(1)
+        AccountDataPurge.purgeAccountDataDetached(broken, target, purgeLocalData = true) {
+            done.countDown()
+        }
+
+        assertTrue("清理失败也必须回调，否则用户被卡在设置页", awaitMain(done))
+    }
+
+    /**
+     * 回调挂在 `Dispatchers.Main` 上，而 Robolectric 主 looper 默认 PAUSED ——
+     * 不自己泵的话它永远不会执行。泵与等待交替：等的时候让出主线程，后台线程才能把
+     * 结果投回来。
+     */
+    private fun awaitMain(latch: CountDownLatch): Boolean {
+        val deadline = System.currentTimeMillis() + 15_000L
+        while (System.currentTimeMillis() < deadline) {
+            shadowOf(Looper.getMainLooper()).idle()
+            if (latch.await(20, TimeUnit.MILLISECONDS)) return true
+        }
+        return false
     }
 
     // ── 夹具 ──────────────────────────────────────────────────────────

@@ -345,6 +345,70 @@ class WitDialogBaseAdditionsTest {
         assertEquals("内边距应仍挂在复选框行上", dp(24), checkBoxRow(dialog).paddingLeft)
     }
 
+    // ── 复选框弹窗的从属复选框（CheckBoxMessageDialogBuilder.setSubCheck） ──
+
+    /**
+     * 从属项**只在主项勾上时出现**。主项没勾它还摆在那儿的话，用户会以为能单独选它 ——
+     * 而它单独存在没有意义（附带项依附于主项）。
+     */
+    @Test
+    fun `从属复选框只在主复选框勾上时出现`() {
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(activity())
+            .setTitle("退出登录")
+            .setMessage("删除账号信息")
+            .setSubCheck("同时清理该账号在本地残留的数据")
+        builder.setChecked(false)
+        val dialog = builder.create()
+        dialog.show()
+
+        assertEquals("主项没勾时从属项不该出现", listOf("退出登录", "删除账号信息"), visibleLabels(dialog))
+
+        builder.setChecked(true)
+        assertEquals(
+            listOf("退出登录", "删除账号信息", "同时清理该账号在本地残留的数据"),
+            visibleLabels(dialog),
+        )
+
+        builder.setChecked(false)
+        assertEquals(listOf("退出登录", "删除账号信息"), visibleLabels(dialog))
+    }
+
+    /** 从属项默认勾上 —— 「顺带清干净」是更该发生的那一侧，要少删得由用户主动取消。 */
+    @Test
+    fun `从属复选框默认勾上`() {
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(activity())
+            .setTitle("退出登录")
+            .setMessage("删除账号信息")
+            .setSubCheck("同时清理该账号在本地残留的数据")
+            .setChecked(true)
+        val dialog = builder.create()
+        dialog.show()
+
+        assertTrue("从属项应默认勾上", builder.isSubChecked)
+        assertEquals(
+            listOf("退出登录", "删除账号信息", "同时清理该账号在本地残留的数据"),
+            visibleLabels(dialog),
+        )
+    }
+
+    /** 从属项可以显式关掉：这时它**仍然出现**（主项勾着），只是状态是未勾。 */
+    @Test
+    fun `从属复选框可以显式关掉 关掉后仍随主项出现`() {
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(activity())
+            .setTitle("退出登录")
+            .setMessage("删除账号信息")
+            .setSubCheck("同时清理该账号在本地残留的数据", false)
+            .setChecked(true)
+        val dialog = builder.create()
+        dialog.show()
+
+        assertFalse(builder.isSubChecked)
+        assertEquals(
+            listOf("退出登录", "删除账号信息", "同时清理该账号在本地残留的数据"),
+            visibleLabels(dialog),
+        )
+    }
+
     // ── 工具 ────────────────────────────────────────────────────────
 
     private fun activity(): FragmentActivity = controller.get()
@@ -394,8 +458,21 @@ class WitDialogBaseAdditionsTest {
     private fun visibleLabels(view: View): List<String> =
         visibleTextViews(view).map { it.text.toString() }.filter { it.isNotEmpty() }
 
+    /**
+     * 「可见」要一路看祖先：自己 `VISIBLE` 却挂在一个 `GONE` 的行里，用户同样看不见 ——
+     * 从属复选框那种「整行藏起来」的实现就是这么做的，只看节点自己会把藏起来的文案算成可见。
+     */
     private fun visibleTextViews(view: View): List<TextView> =
-        descendants(view).filterIsInstance<TextView>().filter { it.visibility == View.VISIBLE }
+        descendants(view).filterIsInstance<TextView>().filter { it.isEffectivelyVisible() }
+
+    private fun View.isEffectivelyVisible(): Boolean {
+        var node: View? = this
+        while (node != null) {
+            if (node.visibility != View.VISIBLE) return false
+            node = node.parent as? View
+        }
+        return true
+    }
 
     private fun rowsWithVisibleText(dialog: WitDialog, text: String): Int =
         menuRows(dialog).count { visibleLabels(it).contains(text) }

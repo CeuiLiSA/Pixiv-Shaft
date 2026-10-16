@@ -93,9 +93,11 @@ public class WitDialog @JvmOverloads constructor(
     /**
      * 带复选框的弹窗（「清除缓存」「注销」这类「下次不再提示」用）。
      *
-     * 默认形态**只有复选框行**：[setMessage] 的文案就写在复选框右边，存量调用点全是这么用的。
-     * 需要「一段正文 + 一行独立的复选框说明」时用 [setDescription] 补上正文，它渲染在复选框行
-     * 上方；不传则与加这个槽位之前完全一致（内边距、行距、可点区域一个像素都不动）。
+     * 默认形态**只有一行复选框**：[setMessage] 的文案就写在复选框右边，存量调用点全是这么用的。
+     * 两个可选槽位都能单独加，**不加就与从前完全一致**（内边距、行距、可点区域一个像素都不动）：
+     *
+     * - [setDescription]：复选框行**上方**的一段正文；
+     * - [setSubCheck]：**从属复选框**，只在主复选框勾上时出现，表达「主操作 + 它的可选附带项」。
      */
     public open class CheckBoxMessageDialogBuilder(context: Context) :
         WitDialogBuilder<CheckBoxMessageDialogBuilder>(context) {
@@ -105,8 +107,14 @@ public class WitDialog @JvmOverloads constructor(
         /** 复选框行上方的正文，可选。见类文档。 */
         private var mDescription: CharSequence? = null
 
+        /** 从属复选框的文案，可选。见 [setSubCheck]。 */
+        private var mSubMessage: CharSequence? = null
+
         private var checked: Boolean = false
+        private var subChecked: Boolean = false
         private var checkBoxView: AppCompatImageView? = null
+        private var subCheckBoxView: AppCompatImageView? = null
+        private var subRowView: LinearLayout? = null
 
         public fun setMessage(message: String?): CheckBoxMessageDialogBuilder =
             apply { mMessage = message }
@@ -120,7 +128,36 @@ public class WitDialog @JvmOverloads constructor(
         public fun setDescription(@StringRes resId: Int): CheckBoxMessageDialogBuilder =
             setDescription(context.resources.getString(resId))
 
+        /**
+         * 从属复选框：**主复选框勾上才出现**，排在主行下方、缩进到与主文案左缘对齐。
+         *
+         * 表达的是「主操作 + 它的可选附带项」。不勾主项时它不该出现 —— 出现了用户会以为能单独选它，
+         * 而它单独存在没有意义（附带项依附于主项）。
+         */
+        @JvmOverloads
+        public fun setSubCheck(
+            message: CharSequence?,
+            checked: Boolean = true,
+        ): CheckBoxMessageDialogBuilder = apply {
+            mSubMessage = message
+            subChecked = checked
+            syncCheckBox()
+        }
+
+        @JvmOverloads
+        public fun setSubCheck(
+            @StringRes resId: Int,
+            checked: Boolean = true,
+        ): CheckBoxMessageDialogBuilder =
+            setSubCheck(context.resources.getString(resId), checked)
+
         public val isChecked: Boolean get() = checked
+
+        /**
+         * 从属复选框自己的状态。主复选框没勾时它不出现，但这里仍返回它自己的值 ——
+         * 调用方一般只在 [isChecked] 为 true 时才读它。
+         */
+        public val isSubChecked: Boolean get() = subChecked
 
         public fun setChecked(checked: Boolean): CheckBoxMessageDialogBuilder = apply {
             this.checked = checked
@@ -128,14 +165,21 @@ public class WitDialog @JvmOverloads constructor(
         }
 
         private fun syncCheckBox() {
-            val view = checkBoxView ?: return
-            view.setImageResource(
-                if (checked) R.drawable.wit_ic_dialog_checkbox_on
+            paintBox(checkBoxView, checked)
+            paintBox(subCheckBoxView, subChecked)
+            // 从属行跟着主复选框走：没勾主项就不出现。
+            subRowView?.visibility = if (checked) View.VISIBLE else View.GONE
+        }
+
+        private fun paintBox(view: AppCompatImageView?, on: Boolean) {
+            val target = view ?: return
+            target.setImageResource(
+                if (on) R.drawable.wit_ic_dialog_checkbox_on
                 else R.drawable.wit_ic_dialog_checkbox_off
             )
-            view.imageTintList = android.content.res.ColorStateList.valueOf(
-                if (checked) palette.textAccent
-                else ContextCompat.getColor(view.context, R.color.wit_text_3)
+            target.imageTintList = android.content.res.ColorStateList.valueOf(
+                if (on) palette.textAccent
+                else ContextCompat.getColor(target.context, R.color.wit_text_3)
             )
         }
 
@@ -151,59 +195,101 @@ public class WitDialog @JvmOverloads constructor(
                 else WitDialogMetrics.MESSAGE_PADDING_TOP_WHEN_NO_TITLE_DP,
             )
             val padBottom = WitDisplay.dp2px(context, WitDialogMetrics.MESSAGE_PADDING_BOTTOM_DP)
-            val row = buildCheckBoxRow(context)
 
-            // 没有正文：内边距全挂在复选框行自己身上，与加正文槽之前一模一样。
-            if (mDescription.isNullOrEmpty()) {
-                row.setPadding(padH, padTop, padH, padBottom)
-                return wrapWithScroll(row)
+            val mainRow = buildCheckBoxRow(context, mMessage, indentDp = 0) { checkBoxView = it }
+                .also { row ->
+                    // 整行可点，不要求用户精准点中 22dp 的小方框。
+                    row.setOnClickListener { setChecked(!checked) }
+                }
+            val hasDescription = !mDescription.isNullOrEmpty()
+            val hasSub = !mSubMessage.isNullOrEmpty()
+
+            // 两个可选槽位都没用：内边距全挂在复选框行自己身上，与从前一模一样。
+            if (!hasDescription && !hasSub) {
+                mainRow.setPadding(padH, padTop, padH, padBottom)
+                syncCheckBox()
+                return wrapWithScroll(mainRow)
             }
 
-            // 有正文：内边距上移到容器，复选框行只留与正文之间那道间隙 ——
+            // 有额外槽位：内边距上移到容器，各行只留自己那道间隙 ——
             // 否则左右会吃到双份 PADDING_HORIZONTAL_DP。
             val column = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(padH, padTop, padH, padBottom)
             }
+            if (hasDescription) {
+                column.addView(
+                    AppCompatTextView(context).apply {
+                        text = mDescription
+                        setTextSize(TypedValue.COMPLEX_UNIT_SP, WitDialogMetrics.MESSAGE_TEXT_SP)
+                        setTextColor(ContextCompat.getColor(context, R.color.wit_text_2))
+                        setLineSpacing(
+                            WitDisplay.dp2pxF(context, WitDialogMetrics.MESSAGE_LINE_SPACING_DP), 1f
+                        )
+                    },
+                    LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                    ),
+                )
+            }
             column.addView(
-                AppCompatTextView(context).apply {
-                    text = mDescription
-                    setTextSize(TypedValue.COMPLEX_UNIT_SP, WitDialogMetrics.MESSAGE_TEXT_SP)
-                    setTextColor(ContextCompat.getColor(context, R.color.wit_text_2))
-                    setLineSpacing(
-                        WitDisplay.dp2pxF(context, WitDialogMetrics.MESSAGE_LINE_SPACING_DP), 1f
-                    )
-                },
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
-                ),
-            )
-            column.addView(
-                row,
+                mainRow,
                 LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    topMargin = WitDisplay.dp2px(
-                        context, WitDialogMetrics.CHECKBOX_DESCRIPTION_SPACE_DP
-                    )
+                    if (hasDescription) {
+                        topMargin = WitDisplay.dp2px(
+                            context, WitDialogMetrics.CHECKBOX_DESCRIPTION_SPACE_DP
+                        )
+                    }
                 },
             )
+            if (hasSub) {
+                // 缩进到与主文案左缘对齐：读起来才是主文案的子项，而不是并列的第二项。
+                val indent = WitDialogMetrics.CHECKBOX_SIZE_DP + WitDialogMetrics.CHECKBOX_SPACE_DP
+                val subRow = buildCheckBoxRow(context, mSubMessage, indentDp = indent) {
+                    subCheckBoxView = it
+                }.also { row ->
+                    row.setOnClickListener {
+                        subChecked = !subChecked
+                        syncCheckBox()
+                    }
+                    subRowView = row
+                }
+                column.addView(
+                    subRow,
+                    LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        topMargin = WitDisplay.dp2px(context, WitDialogMetrics.CHECKBOX_SUB_SPACE_DP)
+                    },
+                )
+            }
+            syncCheckBox()
             return wrapWithScroll(column)
         }
 
         /**
-         * 复选框 + 文案那一行。内边距刻意留给调用方按「有没有正文」决定：
-         * 单行时挂在行上，带正文时上移到容器。
+         * 复选框 + 文案那一行。内边距刻意留给调用方按「有没有额外槽位」决定：
+         * 单行时挂在行上，带额外槽位时上移到容器。[indentDp] 给从属行缩进用。
          */
-        private fun buildCheckBoxRow(context: Context): LinearLayout {
+        private fun buildCheckBoxRow(
+            context: Context,
+            label: CharSequence?,
+            indentDp: Int,
+            register: (AppCompatImageView) -> Unit,
+        ): LinearLayout {
             val row = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
                 isClickable = true
+                if (indentDp > 0) {
+                    setPadding(WitDisplay.dp2px(context, indentDp), 0, 0, 0)
+                }
             }
             val size = WitDisplay.dp2px(context, WitDialogMetrics.CHECKBOX_SIZE_DP)
             val box = AppCompatImageView(context)
-            checkBoxView = box
+            register(box)
             row.addView(
                 box,
                 LinearLayout.LayoutParams(size, size).apply {
@@ -212,7 +298,7 @@ public class WitDialog @JvmOverloads constructor(
             )
             row.addView(
                 AppCompatTextView(context).apply {
-                    text = mMessage
+                    text = label
                     setTextSize(TypedValue.COMPLEX_UNIT_SP, WitDialogMetrics.MESSAGE_TEXT_SP)
                     setTextColor(ContextCompat.getColor(context, R.color.wit_text_2))
                     setLineSpacing(
@@ -221,9 +307,6 @@ public class WitDialog @JvmOverloads constructor(
                 },
                 LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f),
             )
-            syncCheckBox()
-            // 整行可点，不要求用户精准点中 22dp 的小方框。
-            row.setOnClickListener { setChecked(!checked) }
             return row
         }
     }

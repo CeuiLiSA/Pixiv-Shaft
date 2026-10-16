@@ -1,12 +1,14 @@
 package ceui.pixiv.ui.account
 
 import android.content.Context
+import ceui.lisa.core.JavaAsync
 import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.UserEntity
 import ceui.pixiv.db.mirror.BookmarkMirrorReadyBanner
 import ceui.pixiv.services.appServices
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -80,6 +82,35 @@ object AccountDataPurge {
             Timber.tag(TAG).i(
                 "已从本地移除账号 %d（一并清理关联数据=%b）", targetUid, purgeLocalData
             )
+        }
+    }
+
+    /**
+     * Java 侧入口：设置页「退出登录」那条链路还是 Java，而 Java 调不了 suspend。
+     *
+     * 跑在 [JavaAsync.appScope] 而不是页面 lifecycleScope —— 退出登录会把当前页面连同任务栈
+     * 一起清掉（`CLEAR_TASK`），挂在页面上的清理会被顺手取消，结果就是「退出了、数据没清」。
+     *
+     * [onFinished] 在主线程回调，而且**成功失败都会回调**：退出登录的主职责是退出，清理失败
+     * 不该把用户卡在设置页。凭证行万一没删掉，那个账号下次还会出现在账号管理页，用户在那里
+     * 能再删一次 —— 属于可恢复的降级，所以这里只记日志、不弹错。
+     */
+    @JvmStatic
+    fun purgeAccountDataDetached(
+        context: Context,
+        targetUid: Long,
+        purgeLocalData: Boolean,
+        onFinished: Runnable,
+    ) {
+        JavaAsync.appScope.launch {
+            try {
+                purgeAccountData(context.applicationContext, targetUid, purgeLocalData)
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (t: Throwable) {
+                Timber.tag(TAG).w(t, "账号 %d 的清理未跑完，仍按用户要求继续退出登录", targetUid)
+            }
+            onFinished.run()
         }
     }
 

@@ -95,6 +95,12 @@ internal object WitDialogMetrics {
      * 取 12 与「标题 → 正文」那道留白同档 —— 两段文字字号与颜色都一样，靠这一道间隙分开。
      */
     const val CHECKBOX_DESCRIPTION_SPACE_DP: Int = 12
+
+    /**
+     * 主复选框与从属复选框两行之间的留白。比上面那道小一档：两行是同一组选择，
+     * 挨得近才读得出从属关系。
+     */
+    const val CHECKBOX_SUB_SPACE_DP: Int = 8
 }
 
 /**
