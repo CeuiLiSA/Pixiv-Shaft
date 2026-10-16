@@ -15,7 +15,7 @@
             app:showAsAction="always" />
         <item
             android:id="@+id/action_import_snapshot"
-            android:icon="@drawable/ic_baseline_get_app_24"
+            android:icon="@drawable/ic_file_download_black_24dp"
             android:title="@string/snapshot_import"
             app:showAsAction="ifRoom" />
     </group>

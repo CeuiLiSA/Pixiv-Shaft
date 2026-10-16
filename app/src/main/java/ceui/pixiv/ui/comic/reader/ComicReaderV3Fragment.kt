@@ -506,7 +506,7 @@ class ComicReaderV3Fragment : Fragment(R.layout.fragment_comic_reader_v3) {
         val illust = state.illust
         val activity = (activity as? BaseActivity<*>) ?: return
         showV3Menu {
-            item(getString(R.string.comic_reader_long_press_save), R.drawable.ic_baseline_get_app_24) {
+            item(getString(R.string.comic_reader_long_press_save), R.drawable.ic_baseline_get_app_20) {
                 IllustDownload.downloadIllustCertainPage(illust, pageIndex, activity)
                 if (Shaft.sSettings.isAutoPostLikeWhenDownload && !illust.isBookmarked) {
                     PixivOperate.postLikeDefaultStarType(illust)
