@@ -34,6 +34,12 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
     /** 被推迟到布局之后的滚动目标：见 {@link #deferAnchorBreakingScroll()}。NO_POSITION = 没有。 */
     private int deferredScrollPosition = RecyclerView.NO_POSITION;
 
+    /** 与 {@link #deferredScrollPosition} 配对的偏移；INVALID_OFFSET = 调用方用的是不带偏移的 scrollToPosition。 */
+    private int deferredScrollOffset = INVALID_OFFSET;
+
+    /** SGLM 的 INVALID_OFFSET（包内可见常量），这里写字面值。 */
+    private static final int INVALID_OFFSET = Integer.MIN_VALUE;
+
     /**
      * {@code StaggeredGridLayoutManager.mPendingScrollPosition} / {@code mPendingScrollPositionOffset}。
      * 都是包内可见，跨包只能反射取；release 靠 proguard-rules.pro 的 -keepclassmembers 保住字段名。
@@ -173,13 +179,10 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
         // 这一趟没留下任何 child：下一趟布局会跳过 SGLM 的列行缓存清理（那段守卫看的就是
         // getChildCount()），残留行会被当成起排 y。记下来，下次测量时先重建列状态（见 onMeasure）。
         // 异常被吞掉的那次也走这里：detachAndScrapAttachedViews 已经跑完，childCount 同样是 0。
+        // 这里不补 requestLayout：布局回调里调用会被 RecyclerView 吞掉（dispatchLayoutStep1/2 收尾的
+        // stopInterceptRequestLayout(false) 把 mLayoutWasDefered 清零），补了也不生效；真生效的话
+        // 空列表每趟布局都会再请求一趟，成了死循环。下一趟布局由数据回来时的 notify 触发。
         spanLinesStale = getChildCount() == 0;
-        if (spanLinesStale) {
-            // 只置标记还不够：这一趟已经排完了，若之后没人再请求布局，onMeasure 不会再来，列表就
-            // 停在「0 个 child」的空白态。主动补一次 requestLayout —— 布局中被调用时 RecyclerView
-            // 会把它延后到本趟结束，下一次测量于是必定发生，重建那一段就会跑掉。
-            requestLayout();
-        }
         applyDeferredScroll();
     }
 
@@ -211,16 +214,18 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
         if (first == null || getPosition(first) != RecyclerView.NO_POSITION) {
             return;
         }
+        int offset = INVALID_OFFSET;
         try {
-            sPendingScrollPositionField.setInt(this, RecyclerView.NO_POSITION);
             if (sPendingScrollOffsetField != null) {
-                // SGLM 的 INVALID_OFFSET，包内可见常量，这里写字面值。
-                sPendingScrollOffsetField.setInt(this, Integer.MIN_VALUE);
+                offset = sPendingScrollOffsetField.getInt(this);
+                sPendingScrollOffsetField.setInt(this, INVALID_OFFSET);
             }
+            sPendingScrollPositionField.setInt(this, RecyclerView.NO_POSITION);
         } catch (IllegalAccessException e) {
             return;
         }
         deferredScrollPosition = pending;
+        deferredScrollOffset = offset;
     }
 
     /**
@@ -229,17 +234,25 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
      */
     private void applyDeferredScroll() {
         final int position = deferredScrollPosition;
+        final int offset = deferredScrollOffset;
         if (position == RecyclerView.NO_POSITION) {
             return;
         }
         deferredScrollPosition = RecyclerView.NO_POSITION;
+        deferredScrollOffset = INVALID_OFFSET;
         if (attachedView == null) {
             return;
         }
         attachedView.post(new Runnable() {
             @Override
             public void run() {
-                scrollToPosition(position);
+                // 原样补回：调用方用的是 scrollToPositionWithOffset 时偏移也得带上，否则目标项只会被
+                // 「滚到刚好可见」（在下方时贴底），而不是贴到调用方要的位置。
+                if (offset == INVALID_OFFSET) {
+                    scrollToPosition(position);
+                } else {
+                    scrollToPositionWithOffset(position, offset);
+                }
             }
         });
     }
