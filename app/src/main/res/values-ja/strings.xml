@@ -2751,6 +2751,8 @@
     <!-- 启动时自动刷新首页推荐 (issue #955) -->
     <string name="auto_refresh_home_feed">起動時にホームのおすすめを自動更新</string>
     <string name="auto_refresh_home_feed_desc">オフにすると起動時に前回のおすすめをそのまま表示し、引っ張って更新すると新しい作品に入れ替わります</string>
+    <string name="include_r18_in_home_feed">ホームおすすめに R-18 作品を含める</string>
+    <string name="include_r18_in_home_feed_desc">公式サイトからパーソナライズされた R-18 おすすめを取得します\n追加で一度ウェブログインが必要で、アカウントの R-18 閲覧設定を有効にする必要があります</string>
     <string name="ugoira_rife_enable">うごイラ AI フレーム補間 (RIFE)</string>
     <string name="ugoira_rife_enable_desc">AI が中間フレームを生成し最大4倍のフレームレートに(GIF の 50fps 上限まで)。初回は補間モデルのダウンロードが必要で、エンコードに時間がかかります</string>
     <string name="ugoira_interpolating">フレーム補間中</string>

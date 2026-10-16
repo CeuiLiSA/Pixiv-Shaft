@@ -2767,6 +2767,8 @@
     <!-- 启动时自动刷新首页推荐 (issue #955) -->
     <string name="auto_refresh_home_feed">啟動時自動重新整理首頁推薦</string>
     <string name="auto_refresh_home_feed_desc">關閉後啟動時直接顯示上次的推薦內容，下拉重新整理才換新一批</string>
+    <string name="include_r18_in_home_feed">首頁推薦包含 R-18 作品</string>
+    <string name="include_r18_in_home_feed_desc">從官網拉取 R-18 個人化推薦\n該功能需要額外進行一次網頁登入並且開啟了帳號的R-18</string>
     <string name="ugoira_rife_enable">動圖 AI 補幀 (RIFE)</string>
     <string name="ugoira_rife_enable_desc">在相鄰幀之間插入 AI 生成的中間幀,自動補至最高 4 倍幀率(貼近 GIF 50fps 上限);首次使用需下載補幀模型,壓製耗時會變長</string>
     <string name="ugoira_interpolating">補幀中</string>
