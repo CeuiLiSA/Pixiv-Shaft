@@ -12,6 +12,7 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -188,6 +189,22 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
 
     /** 超长简介展开态(#965):同上归 Fragment,默认折叠。 */
     internal var descExpanded = false
+
+    /** 标题/简介翻译中状态，用于控制元信息栏/简介区翻译按钮与转圈的显隐与禁用。 */
+    internal var isTranslating = false
+
+    internal fun setTranslatingState(translating: Boolean) {
+        if (isTranslating == translating) return
+        isTranslating = translating
+        if (_chromeBind == null) return
+        val rv = feedBinding.feedListView
+        rv.findViewById<View>(R.id.meta_translate)?.isInvisible = translating
+        rv.findViewById<View>(R.id.meta_translate)?.isEnabled = !translating
+        rv.findViewById<View>(R.id.meta_translate_progress)?.isVisible = translating
+        rv.findViewById<View>(R.id.desc_translate)?.isInvisible = translating
+        rv.findViewById<View>(R.id.desc_translate)?.isEnabled = !translating
+        rv.findViewById<View>(R.id.desc_translate_progress)?.isVisible = translating
+    }
 
     /**
      * 一键跳评论(#970)落点后是否还在钉基线:首跳时评论/作者作品/相关往往都还是加载态, 视口下方内容不够,SGLM 修 end gap 会把评论块顶离 toolbar

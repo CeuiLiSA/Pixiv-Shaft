@@ -99,14 +99,32 @@
                     tools:text="1 page" />
             </LinearLayout>
 
-            <ImageView
-                android:id="@+id/meta_translate"
+            <FrameLayout
+                android:id="@+id/meta_translate_container"
                 android:layout_width="25dp"
-                android:layout_height="25dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/string_translate_caption"
-                android:src="@drawable/ic_baseline_translate_24"
-                app:tint="@color/v3_text_3" />
+                android:layout_height="25dp">
+
+                <ImageView
+                    android:id="@+id/meta_translate"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/string_translate_caption"
+                    android:src="@drawable/ic_baseline_translate_24"
+                    app:tint="@color/v3_text_3" />
+
+                <ceui.lisa.view.SeamlessCircularProgressIndicator
+                    android:id="@+id/meta_translate_progress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:indeterminate="true"
+                    android:visibility="gone"
+                    app:indicatorColor="@color/v3_text_3"
+                    app:indicatorInset="0dp"
+                    app:indicatorSize="18dp"
+                    app:trackThickness="2dp" />
+            </FrameLayout>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
