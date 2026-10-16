@@ -14,6 +14,7 @@ import android.widget.TextView
 import androidx.core.text.HtmlCompat
 import androidx.core.view.OneShotPreDrawListener
 import androidx.core.view.doOnPreDraw
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -271,10 +272,16 @@ internal fun ArtworkV3Fragment.heroRenderer() =
         else ctx.getString(R.string.v3_page_count_many, illust.page_count)
         // 信息区翻译按钮：仅当作品无简介时显示。有简介的作品简介区已提供翻译按钮
         //（见 descRenderer），而简介区整体只在 caption 非空时才产出（见
-        // ArtworkV3FeedSource.buildArtworkHeaderItems），无简介时这里补一个翻译标题的入口。
-        b.metaTranslate.isVisible = cell.item.showTranslate
+        b.metaTranslateContainer.isVisible = cell.item.showTranslate
+        b.metaTranslate.isInvisible = isTranslating
+        b.metaTranslate.isEnabled = !isTranslating
+        b.metaTranslateProgress.isVisible = isTranslating
         b.metaTranslate.setOnClickListener {
-            translateTitleAndCaption(illust.title, null)
+            if (isTranslating) return@setOnClickListener
+            setTranslatingState(true)
+            translateTitleAndCaption(illust.title, null) { loading ->
+                setTranslatingState(loading)
+            }
         }
     }
 
@@ -335,11 +342,18 @@ internal fun ArtworkV3Fragment.descRenderer() =
         b.descDownload.setOnClickListener {
             downloadDescCaption()
         }
+        b.descTranslate.isInvisible = isTranslating
+        b.descTranslate.isEnabled = !isTranslating
+        b.descTranslateProgress.isVisible = isTranslating
         b.descTranslate.setOnClickListener {
+            if (isTranslating) return@setOnClickListener
             val plain = (descFullCaption ?: HtmlCompat.fromHtml(
                 cell.item.caption, HtmlCompat.FROM_HTML_MODE_COMPACT
             )).toString().trim()
-            translateTitleAndCaption(cell.item.title, plain)
+            setTranslatingState(true)
+            translateTitleAndCaption(cell.item.title, plain) { loading ->
+                setTranslatingState(loading)
+            }
         }
     }
 
