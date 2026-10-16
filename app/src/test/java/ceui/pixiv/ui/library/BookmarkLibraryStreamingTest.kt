@@ -743,9 +743,34 @@ class BookmarkLibraryStreamingTest {
         updateCount(library, 59)
         ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
 
+        runCurrent()
+
         // 停在顶部时不重查，卡片保留在屏幕上（对齐原收藏页行为）
-        assertEquals(first.refreshGeneration, feed.uiState.value.refreshGeneration)
-        assertEquals(1L, feed.uiState.value.items.first().feedKey)
+        val settled = feed.uiState.first { it.refresh is LoadState.Idle }
+        assertEquals(first.refreshGeneration, settled.refreshGeneration)
+        assertEquals(1L, settled.items.first().feedKey)
+        ui.destroy()
+    }
+
+    @Test
+    fun `recreated ui adopts the current prune version as baseline instead of refetching`() = runTest(dispatcher) {
+        val shelf = shelf()
+        val library = model(shelf)
+        library.setMirrorState(state(shelf, complete = true))
+        insert(shelf, 1..60)
+        updateCount(library, 60)
+        val feed = FeedViewModel(BookmarkLibraryFeedSource(library, shelf.contentType), autoLoad = false)
+        models.put("feed", feed)
+        feed.refresh()
+        val first = feed.uiState.first { it.hasLoadedOnce && it.refresh is LoadState.Idle }
+        // 之前那份界面已经把这次剔除上过屏；旋屏后 VM 留着版本号，新界面从 0 起步
+        library.notifyIncrementalPrune()
+
+        val ui = ui(library, feed, atTop = true)
+        ReflectionHelpers.callInstanceMethod<Unit>(ui, "refreshIfStale")
+        runCurrent()
+
+        assertEquals(first.refreshGeneration, feed.uiState.first { it.refresh is LoadState.Idle }.refreshGeneration)
         ui.destroy()
     }
 
@@ -787,8 +812,9 @@ class BookmarkLibraryStreamingTest {
         scrollListener.onScrolled(list, 0, -100)
         runCurrent()
 
-        assertEquals(first.refreshGeneration, feed.uiState.value.refreshGeneration)
-        assertEquals(1L, feed.uiState.value.items.first().feedKey)
+        val settled = feed.uiState.first { it.refresh is LoadState.Idle }
+        assertEquals(first.refreshGeneration, settled.refreshGeneration)
+        assertEquals(1L, settled.items.first().feedKey)
         ui.destroy()
     }
 

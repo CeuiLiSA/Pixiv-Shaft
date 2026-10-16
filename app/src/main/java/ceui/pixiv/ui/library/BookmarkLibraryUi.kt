@@ -561,7 +561,8 @@ internal class BookmarkLibraryUi(
             stored > previous.total ||
                 (stats.newestBookmarkSeq ?: 0L) > (previous.newestBookmarkSeq ?: 0L)
         )
-        val isIncrementalPrune = pruneVersion != lastKnownPruneVersion
+        // 首次观察（含旋屏重建、切书架）只立基准：VM 里的版本号可能早已被上一份界面上过屏
+        val isIncrementalPrune = previous != null && pruneVersion != lastKnownPruneVersion
         val statsChanged = isGrowth || isIncrementalPrune
         val atTop = !listView.canScrollVertically(-1)
         val complete = viewModel.mirrorState.value?.isFirstSyncDone == true
