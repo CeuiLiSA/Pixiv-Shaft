@@ -130,7 +130,7 @@ class FragmentHistoryTabs : Fragment(R.layout.viewpager_with_tablayout) {
         HistoryBackfill.maybeSchedule()
     }
 
-    /** 让现存的子 tab 各自重走 VM.loadFirst(),按当前 useRemote() 重读数据源。 */
+    /** 让现存的子 tab 各自重走 VM.loadFirst(),按当前 useRemote() 重读数据源并回顶。 */
     private fun reloadAllTabs() {
         // 可能从后台协程(导入/清空成功后)回调,此时 fragment 已 detach 则 childFragmentManager 会抛。
         if (!isAdded) return
