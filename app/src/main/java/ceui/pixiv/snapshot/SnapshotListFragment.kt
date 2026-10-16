@@ -93,6 +93,8 @@ class SnapshotListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // 骨架在布局里默认可见，首次 reload 出结果（成功或失败）后收起；之后的例行刷新不再出现。
+        binding.snapshotSkeleton.spanCount = 2
         binding.snapshotList.layoutManager = StaggeredManager(2, StaggeredGridLayoutManager.VERTICAL)
         // 不动 itemAnimator：三条路径都走增量提交，动画由 DiffUtil 的增删/移动直接驱动。
         binding.snapshotList.adapter = adapter
@@ -138,6 +140,7 @@ class SnapshotListFragment : Fragment() {
                 throw ce
             } catch (e: Exception) {
                 Timber.w(e, "[Snapshot] list failed")
+                _binding?.snapshotSkeleton?.isVisible = false
                 return@launch
             }
             if (_binding == null) return@launch
@@ -160,6 +163,7 @@ class SnapshotListFragment : Fragment() {
                     }
                 }
             })
+            binding.snapshotSkeleton.isVisible = false
             binding.emptyHint.isVisible = all.isEmpty()
             if (filter == null) onAutoSnapshotQuotaChanged?.invoke()
         }
