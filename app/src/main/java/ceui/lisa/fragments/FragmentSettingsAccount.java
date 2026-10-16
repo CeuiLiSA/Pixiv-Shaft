@@ -89,8 +89,12 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
             WitDialog.CheckBoxMessageDialogBuilder builder = new WitDialog.CheckBoxMessageDialogBuilder(getActivity());
             builder
                     .setTitle(getString(R.string.string_185))
+                    // 主项：要不要删掉本机这一份账号数据。
                     .setMessage(getString(R.string.string_186))
                     .setChecked(true)
+                    // 从属项：勾了主项才出现，默认勾。不勾就只清账号机密（user_table 那一行凭证），
+                    // 收藏镜像 / 首屏快照 / 私有配置原样留着 —— 同一账号再登录回来镜像不用重建。
+                    .setSubCheck(R.string.account_delete_purge_local)
                     .addAction(getString(R.string.string_187), new WitDialogAction.ActionListener() {
                         @Override
                         public void onClick(WitDialog dialog, int index) {
@@ -101,7 +105,8 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
                     .addAction(0, R.string.login_out, WitDialogAction.ACTION_PROP_NEGATIVE, new WitDialogAction.ActionListener() {
                         @Override
                         public void onClick(WitDialog dialog, int index) {
-                            Common.logOut(mContext, builder.isChecked());
+                            Common.logOut(
+                                    mContext, builder.isChecked(), builder.isSubChecked());
                             mActivity.finish();
                             dialog.dismiss();
                         }

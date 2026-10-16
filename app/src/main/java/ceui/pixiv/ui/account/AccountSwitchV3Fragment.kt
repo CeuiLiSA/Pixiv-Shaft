@@ -31,7 +31,10 @@ import ceui.pixiv.ui.common.getHumanReadableMessage
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.utils.setOnClick
+import ceui.pixiv.witstudio.dialog.WitDialog
+import ceui.pixiv.witstudio.dialog.WitDialogAction
 import com.bumptech.glide.Glide
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -45,14 +48,20 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  * 账号管理（V3 / MD3-Expressive），替代 legacy `ceui.lisa.fragments.FragmentLocalUsers`。
  * 承载在 [TemplateActivity]（"账号管理"），从「设置 · 账号 → 账号管理」进入。
  *
- * 页面就两件事：**切号**和**添加账号**。所以版式按重要性铺开——当前账号做成 hero 卡
- * （大头像 + 名字 + 当前使用中 / Premium 徽章 + 邮箱 + 登录时间），其他账号是一组 MD3-E
- * 分段行（点行即切），最后一张独行是「添加账号」。legacy 版把所有账号平铺成同一种带分割线
- * 的行、当前账号只多一个绿勾，扫一眼分不出「我现在是谁」，这是这次重做要解决的第一个问题。
+ * 页面就三件事：**切号**、**添加账号**、**把多余的那个删掉**。所以版式按重要性铺开——
+ * 当前账号做成 hero 卡（大头像 + 名字 + 当前使用中 / Premium 徽章 + 邮箱 + 登录时间），
+ * 其他账号是一组 MD3-E 分段行（点行即切），最后一张独行是「添加账号」。legacy 版把所有账号
+ * 平铺成同一种带分割线的行、当前账号只多一个绿勾，扫一眼分不出「我现在是谁」，
+ * 这是这次重做要解决的第一个问题。
  *
  * 第二个问题是**藏起来的操作**：legacy 的「导出登录信息」是行尾一个没有任何文字说明的箭头
  * 图标，「复制账号名」则藏在长按里。现在统一收进行尾 ⋮ 弹出的 [AccountActionsSheet]，
  * 每条都带文案和图标。
+ *
+ * 第三个问题是**删不掉**：legacy 想清掉一个多余账号，得先切过去（整个 app 重启一次）再进
+ * 设置里退出登录。现在「其他账号」的行尾直接给一个垃圾桶，弹一次确认就把本机这一份连凭证带
+ * 收藏镜像、首屏快照、私有配置一起清掉（见 [AccountDataPurge]）。当前账号的 hero 卡**没有**
+ * 这个入口 —— 删自己得先退出登录，那是另一条链路。
  *
  * 视觉与设置页同源：行背景走 [WitRowStyle.rowBackground] 并交给
  * [SettingsCatalog.applyThemedRowBg] 染主题色底 + hairline；hero 卡底 / 分节标签 / 徽章
@@ -101,6 +110,7 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
                 AccountActionsSheet.ACTION_EXPORT -> exportAccount(account)
                 AccountActionsSheet.ACTION_COPY ->
                     Common.copy(requireContext(), account.user.account.orEmpty())
+                AccountActionsSheet.ACTION_DELETE -> confirmDelete(account)
             }
         }
     }
@@ -236,10 +246,13 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
         )
         val user = account.user
         row.rowName.text = user.name
-        row.rowSub.text = listOfNotNull(
-            user.account?.takeIf { it.isNotBlank() }?.let { "@$it" },
-            user.mail_address?.takeIf { it.isNotBlank() },
-        ).joinToString(" · ").ifEmpty { getString(R.string.no_mail_address) }
+        // 账号名与邮箱各占一行：legacy 把两者用「 · 」拼成一行，稍长的邮箱后半截必被省略号
+        // 吃掉，扫一眼分不出这台设备上存的到底是哪个账号。账号名本身为空时整行隐掉，
+        // 而不是留一个孤零零的「@」。
+        row.rowHandle.text = user.account?.takeIf { it.isNotBlank() }?.let { "@$it" }.orEmpty()
+        row.rowHandle.isVisible = row.rowHandle.text.isNotEmpty()
+        row.rowMail.text = user.mail_address?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.no_mail_address)
         row.rowPremiumBadge.isVisible = user.is_premium == true
         bindLoginTime(row.rowTime, account.loginTime)
         avatarGlide.load(GlideUtil.getHead(user))
@@ -250,6 +263,7 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
         SettingsCatalog.applyThemedRowBg(row.accountRow)
         row.accountRow.setOnClick { switchTo(account) }
         row.rowMore.setOnClick { showActions(account, isCurrent = false) }
+        row.rowDelete.setOnClick { confirmDelete(account) }
         return row.root
     }
 
@@ -298,6 +312,66 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
      */
     private fun showActions(account: LocalAccount, isCurrent: Boolean) {
         AccountActionsSheet.show(childFragmentManager, account.user, isCurrent)
+    }
+
+    /**
+     * 行尾垃圾桶 / sheet 里的「从本地删除」：把这一份账号从本机移除。
+     *
+     * 删的**只是本机这一份**，线上 pixiv 账号分毫不动 —— 文案里必须把这句话讲清楚，
+     * 否则「删除账号」四个字看着像要销号。
+     *
+     * 二次确认走项目规范的 Wit 弹窗：正向操作是「取消」，负向（标红）才是「删除」，
+     * 与设置页退出登录同一套心智。复选框决定要不要连本地残留一起清，**默认勾上** ——
+     * 这个功能存在的理由就是别留孤儿；勾选状态读回来交给 [AccountDataPurge]。
+     */
+    private fun confirmDelete(account: LocalAccount) {
+        val act = activity ?: return
+        if (act.isFinishing || act.isDestroyed) return
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(act)
+            .setTitle(R.string.account_delete)
+            .setDescription(
+                getString(R.string.account_delete_message, account.user.name.orEmpty())
+            )
+            .setMessage(R.string.account_delete_purge_local)
+            .setChecked(true)
+        builder
+            .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+            .addAction(0, R.string.account_delete_action, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
+                dialog.dismiss()
+                deleteAccount(account, purgeLocalData = builder.isChecked)
+            }
+            .show()
+    }
+
+    /**
+     * 后台把这一份账号处理掉，再就地刷新列表。[purgeLocalData] 直接来自弹窗上那个复选框。
+     *
+     * 整页重读而不是只从 [accountsByUid] 里摘一条：删掉最后一条时「其他账号」要优雅退化成
+     * 空态、剩下的分段行要重算段首/段尾圆角 —— 这些正好都是 [loadAccounts] 已经在做的事，
+     * 在内存里改一处反而等于把同一套规则再写一遍。
+     *
+     * 当前登录的账号完全不受影响：这里删的只可能是「其他账号」那一组的行，
+     * 会话、token、cookie 一概不碰，所以不需要重启。
+     *
+     * 用 applicationContext 而不是 requireContext()：清理是挂起调用，回来时视图可能已经不在了。
+     */
+    private fun deleteAccount(account: LocalAccount, purgeLocalData: Boolean) {
+        val uid = account.user.id
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                AccountDataPurge.purgeAccountData(appContext, uid, purgeLocalData)
+            } catch (ce: CancellationException) {
+                throw ce
+            } catch (t: Throwable) {
+                Common.showToast(t.getHumanReadableMessage(appContext))
+                return@launch
+            }
+            loadAccounts()
+            Common.showToast(
+                getString(R.string.account_delete_done, account.user.name.orEmpty())
+            )
+        }
     }
 
     /**

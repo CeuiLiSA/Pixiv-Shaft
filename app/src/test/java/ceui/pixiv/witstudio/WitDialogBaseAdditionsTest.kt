@@ -4,6 +4,7 @@ import android.app.Application
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatDialog
@@ -290,6 +291,124 @@ class WitDialogBaseAdditionsTest {
         assertEquals(listOf("标题", "甲"), visibleLabels(dialog))
     }
 
+    // ── 复选框弹窗的可选正文（CheckBoxMessageDialogBuilder.setDescription） ──
+
+    /**
+     * 不传正文时必须与从前完全一致：内边距仍然全挂在复选框行自己身上。
+     * 存量调用点把说明直接写在复选框行上，这条是它们的回归守卫。
+     */
+    @Test
+    fun `复选框弹窗不设正文时形态与从前一致`() {
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(activity())
+            .setTitle("清除图片缓存")
+            .setMessage("同时清除已下载的原图")
+        val dialog = builder.create()
+        dialog.show()
+
+        assertEquals(listOf("清除图片缓存", "同时清除已下载的原图"), visibleLabels(dialog))
+        val row = checkBoxRow(dialog)
+        assertEquals("内边距应仍挂在复选框行上", dp(24), row.paddingLeft)
+        assertEquals(dp(12), row.paddingTop)
+        assertEquals(dp(20), row.paddingBottom)
+    }
+
+    /** 设了正文：正文渲染在复选框行**上方**，内边距上移到容器，左右不吃双份 24dp。 */
+    @Test
+    fun `复选框弹窗设了正文时正文排在复选框行之上`() {
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(activity())
+            .setTitle("删除账号")
+            .setDescription("确定从本地移除账号「をこめ」吗？")
+            .setMessage("同时清理该账号在本地残留的数据")
+        val dialog = builder.create()
+        dialog.show()
+
+        assertEquals(
+            listOf("删除账号", "确定从本地移除账号「をこめ」吗？", "同时清理该账号在本地残留的数据"),
+            visibleLabels(dialog),
+        )
+        val row = checkBoxRow(dialog)
+        assertEquals("内边距应已上移到容器，行上归零", 0, row.paddingLeft)
+        assertEquals(dp(24), (row.parent as ViewGroup).paddingLeft)
+    }
+
+    /** 空串正文 = 与没设一样，不留一条空白留白。 */
+    @Test
+    fun `复选框弹窗空正文不占位`() {
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(activity())
+            .setTitle("删除账号")
+            .setDescription("")
+            .setMessage("同时清理该账号在本地残留的数据")
+        val dialog = builder.create()
+        dialog.show()
+
+        assertEquals(listOf("删除账号", "同时清理该账号在本地残留的数据"), visibleLabels(dialog))
+        assertEquals("内边距应仍挂在复选框行上", dp(24), checkBoxRow(dialog).paddingLeft)
+    }
+
+    // ── 复选框弹窗的从属复选框（CheckBoxMessageDialogBuilder.setSubCheck） ──
+
+    /**
+     * 从属项**只在主项勾上时出现**。主项没勾它还摆在那儿的话，用户会以为能单独选它 ——
+     * 而它单独存在没有意义（附带项依附于主项）。
+     */
+    @Test
+    fun `从属复选框只在主复选框勾上时出现`() {
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(activity())
+            .setTitle("退出登录")
+            .setMessage("删除账号信息")
+            .setSubCheck("同时清理该账号在本地残留的数据")
+        builder.setChecked(false)
+        val dialog = builder.create()
+        dialog.show()
+
+        assertEquals("主项没勾时从属项不该出现", listOf("退出登录", "删除账号信息"), visibleLabels(dialog))
+
+        builder.setChecked(true)
+        assertEquals(
+            listOf("退出登录", "删除账号信息", "同时清理该账号在本地残留的数据"),
+            visibleLabels(dialog),
+        )
+
+        builder.setChecked(false)
+        assertEquals(listOf("退出登录", "删除账号信息"), visibleLabels(dialog))
+    }
+
+    /** 从属项默认勾上 —— 「顺带清干净」是更该发生的那一侧，要少删得由用户主动取消。 */
+    @Test
+    fun `从属复选框默认勾上`() {
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(activity())
+            .setTitle("退出登录")
+            .setMessage("删除账号信息")
+            .setSubCheck("同时清理该账号在本地残留的数据")
+            .setChecked(true)
+        val dialog = builder.create()
+        dialog.show()
+
+        assertTrue("从属项应默认勾上", builder.isSubChecked)
+        assertEquals(
+            listOf("退出登录", "删除账号信息", "同时清理该账号在本地残留的数据"),
+            visibleLabels(dialog),
+        )
+    }
+
+    /** 从属项可以显式关掉：这时它**仍然出现**（主项勾着），只是状态是未勾。 */
+    @Test
+    fun `从属复选框可以显式关掉 关掉后仍随主项出现`() {
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(activity())
+            .setTitle("退出登录")
+            .setMessage("删除账号信息")
+            .setSubCheck("同时清理该账号在本地残留的数据", false)
+            .setChecked(true)
+        val dialog = builder.create()
+        dialog.show()
+
+        assertFalse(builder.isSubChecked)
+        assertEquals(
+            listOf("退出登录", "删除账号信息", "同时清理该账号在本地残留的数据"),
+            visibleLabels(dialog),
+        )
+    }
+
     // ── 工具 ────────────────────────────────────────────────────────
 
     private fun activity(): FragmentActivity = controller.get()
@@ -306,6 +425,11 @@ class WitDialogBaseAdditionsTest {
     private fun actionIcon(dialog: WitDialog, description: String): ImageView? =
         descendants(dialog).filterIsInstance<ImageView>()
             .firstOrNull { it.contentDescription == description }
+
+    /** 复选框行 = 直接挂着复选框（弹窗里唯一那个 ImageView）的那个 LinearLayout。 */
+    private fun checkBoxRow(dialog: WitDialog): ViewGroup =
+        descendants(dialog).filterIsInstance<LinearLayout>()
+            .first { row -> (0 until row.childCount).any { row.getChildAt(it) is ImageView } }
 
     /** 菜单行 = 菜单内容列（`NestedScrollView → LinearLayout`）里的直接子项。 */
     private fun menuRows(dialog: WitDialog): List<View> {
@@ -334,8 +458,21 @@ class WitDialogBaseAdditionsTest {
     private fun visibleLabels(view: View): List<String> =
         visibleTextViews(view).map { it.text.toString() }.filter { it.isNotEmpty() }
 
+    /**
+     * 「可见」要一路看祖先：自己 `VISIBLE` 却挂在一个 `GONE` 的行里，用户同样看不见 ——
+     * 从属复选框那种「整行藏起来」的实现就是这么做的，只看节点自己会把藏起来的文案算成可见。
+     */
     private fun visibleTextViews(view: View): List<TextView> =
-        descendants(view).filterIsInstance<TextView>().filter { it.visibility == View.VISIBLE }
+        descendants(view).filterIsInstance<TextView>().filter { it.isEffectivelyVisible() }
+
+    private fun View.isEffectivelyVisible(): Boolean {
+        var node: View? = this
+        while (node != null) {
+            if (node.visibility != View.VISIBLE) return false
+            node = node.parent as? View
+        }
+        return true
+    }
 
     private fun rowsWithVisibleText(dialog: WitDialog, text: String): Int =
         menuRows(dialog).count { visibleLabels(it).contains(text) }

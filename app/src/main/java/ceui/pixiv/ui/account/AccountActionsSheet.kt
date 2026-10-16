@@ -20,7 +20,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 /**
  * 账号管理页的「账号操作」MD3-Expressive bottom sheet：切到这个账号 / 导出登录信息 /
- * 复制账号名。由 [AccountSwitchV3Fragment] 的行尾 ⋮ 打开。
+ * 复制账号名 / 从本地删除。由 [AccountSwitchV3Fragment] 的行尾 ⋮ 打开。
  *
  * 取代 legacy 那里的 QMUI [ceui.pixiv.witstudio.dialog.WitDialog.MenuDialogBuilder] ——
  * 方角灰底的 AppCompat 弹窗压在一页 MD3-E 卡片上非常突兀，且它只能给纯文字条目，
@@ -87,6 +87,10 @@ class AccountActionsSheet : BottomSheetDialogFragment() {
         binding.actionSwitch.setOnClickListener { finishWith(ACTION_SWITCH) }
         binding.actionExport.setOnClickListener { finishWith(ACTION_EXPORT) }
         binding.actionCopy.setOnClickListener { finishWith(ACTION_COPY) }
+        // 当前账号没有「从本地删除」：删自己要先退出登录，那是另一条链路
+        // （与上面 actionSwitch 对当前账号的处理一致 —— 点了没反应的条目不如不摆）。
+        binding.actionDelete.isVisible = !isCurrent
+        binding.actionDelete.setOnClickListener { finishWith(ACTION_DELETE) }
     }
 
     private fun finishWith(action: String) {
@@ -121,6 +125,7 @@ class AccountActionsSheet : BottomSheetDialogFragment() {
         const val ACTION_SWITCH = "switch"
         const val ACTION_EXPORT = "export"
         const val ACTION_COPY = "copy"
+        const val ACTION_DELETE = "delete"
 
         private const val KEY_USER = "user"
         private const val KEY_IS_CURRENT = "is_current"

@@ -128,6 +128,39 @@ interface BookmarkMirrorDao {
         clearShelfTags(shelfKey)
     }
 
+    // ───────────────────── 账号移除：整份级联清理 ─────────────────────
+
+    @Query("DELETE FROM bookmark_mirror_table WHERE ownerUid = :ownerUid")
+    fun deleteOwnerRows(ownerUid: Long): Int
+
+    /**
+     * 标签表没有 ownerUid 列（分区键只有 shelfKey），所以按 [BookmarkShelf.allOf] 算出来的
+     * 全部书架键精确删。
+     *
+     * 不用 `shelfKey LIKE '%:' || :ownerUid`：书架键是「类型:可见性:uid」拼出来的，键长一样、
+     * 数量固定（每账号 6 个），算出来传进来既走索引，也不依赖库里现存哪些状态行 ——
+     * 用户关掉某个书架的镜像后状态行就没了，靠反查会静默漏删、留下一堆孤儿标签。
+     */
+    @Query("DELETE FROM bookmark_mirror_tag_table WHERE shelfKey IN (:shelfKeys)")
+    fun deleteTagsOfShelves(shelfKeys: List<String>): Int
+
+    @Query("DELETE FROM bookmark_mirror_state_table WHERE ownerUid = :ownerUid")
+    fun deleteOwnerStates(ownerUid: Long): Int
+
+    /**
+     * 账号被从本地移除：把它的镜像整份物理清掉（主表 + 标签倒排 + 状态表）。
+     *
+     * 一个事务，避免「主表清了、标签还在」这种中间态被标签云聚合读到。
+     * **这里只动数据**；在途的那一页与维护队列标记由
+     * [BookmarkMirrorService.dropOwner] 负责，两边配合才不会让刚清掉的行被写回来。
+     */
+    @Transaction
+    fun purgeOwner(ownerUid: Long) {
+        deleteOwnerRows(ownerUid)
+        deleteTagsOfShelves(BookmarkShelf.allOf(ownerUid).map { it.key })
+        deleteOwnerStates(ownerUid)
+    }
+
     // ─────────────────────────── 状态 ───────────────────────────
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

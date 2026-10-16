@@ -57,8 +57,7 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.pixiv.download.DownloadsRegistry;
 import ceui.pixiv.session.SessionManager;
 import ceui.lisa.activities.UActivity;
-import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.UserEntity;
+import ceui.pixiv.ui.account.AccountDataPurge;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.file.SAFile;
@@ -119,20 +118,46 @@ public class Common {
         }
     }
 
-    public static void logOut(Context context, boolean deleteUser) {
-        if (SessionManager.INSTANCE.isLoggedIn()) {
-            if(deleteUser){
-                UserEntity userEntity = new UserEntity();
-                userEntity.setUserID(SessionManager.INSTANCE.getLoggedInUid());
-                AppDatabase.getAppDatabase(context)
-                        .downloadDao().deleteUser(userEntity);
-            }
-            SessionManager.INSTANCE.updateSession(null);
-            Intent intent = new Intent(context, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.LOGIN.key);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            context.startActivity(intent);
+    /**
+     * 退出登录，对应弹窗上的两个复选框：
+     *
+     * <ul>
+     *   <li>{@code deleteAccountInfo} —— 主项「删除账号信息」。不勾就只退出登录，本机什么都不删。
+     *   <li>{@code purgeLocalData} —— 从属项「同时清理该账号在本地残留的数据」。勾了才连带清掉
+     *       收藏镜像 / 首屏快照 / 按 uid 分键的私有配置；不勾则**只清账号机密**，也就是
+     *       {@code user_table} 那一行凭证。
+     * </ul>
+     *
+     * 要删东西时**先把本地清完，再清会话并跳登录页**。顺序不能反：清理是挂起操作
+     * （见 {@link AccountDataPurge}），先退出的就会出现「已经退出了、清理还在跑」的窗口 ——
+     * 用户这时用同一个账号重新登录，刚重建出来的镜像会被后到的清理删掉。
+     *
+     * 清理挂在应用级 scope 上，不挂页面 lifecycleScope：退出登录会把当前页面连同任务栈一起清掉
+     * （CLEAR_TASK），挂在页面上的任务会被顺手取消，结果就是「退出了、数据没清」。
+     */
+    public static void logOut(Context context, boolean deleteAccountInfo, boolean purgeLocalData) {
+        if (!SessionManager.INSTANCE.isLoggedIn()) return;
+        long uid = SessionManager.INSTANCE.getLoggedInUid();
+        if (deleteAccountInfo && uid > 0L) {
+            AccountDataPurge.purgeAccountDataDetached(
+                    context.getApplicationContext(), uid, purgeLocalData, Common::finishLogOut);
+        } else {
+            finishLogOut();
         }
+    }
+
+    /**
+     * 退出登录的收尾：清会话 + 回登录页。
+     *
+     * 用应用 context 起 Activity（同 {@link #restart()}）：调用方那一页在清理跑完之前就已经
+     * finish / 被 CLEAR_TASK 清掉了，拿一个已销毁的 Activity 去 startActivity 会直接抛。
+     */
+    private static void finishLogOut() {
+        SessionManager.INSTANCE.updateSession(null);
+        Intent intent = new Intent(Utils.getApp(), TemplateActivity.class);
+        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.LOGIN.key);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        Utils.getApp().startActivity(intent);
     }
 
     public static <T> void showLog(T t) {
