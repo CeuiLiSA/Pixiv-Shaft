@@ -316,7 +316,7 @@ class ImageFilterFragment : Fragment(R.layout.fragment_image_filter) {
             setFadingEdgeLength(ctx.dp(24))
             addView(strip)
         }
-        intensityRow = SliderRow(ctx, bipolar = false) { model.setIntensity(it) }
+        intensityRow = SliderRow(ctx, bipolar = false, neutral = 100) { model.setIntensity(it) }
         intensityRow.title.text = getString(R.string.image_filter_intensity)
         presetPanel = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
@@ -334,7 +334,7 @@ class ImageFilterFragment : Fragment(R.layout.fragment_image_filter) {
         }
         // 胶囊条的首尾留白对齐本页 16dp 的边。
         ((toolGroup.view as HorizontalScrollView).getChildAt(0)).setPaddingRelative(ctx.dp(16), 0, ctx.dp(8), 0)
-        adjustRow = SliderRow(ctx, bipolar = true) { value ->
+        adjustRow = SliderRow(ctx, bipolar = true, neutral = 0) { value ->
             model.setAdjust(currentTool(), value)
         }
         adjustPanel = LinearLayout(ctx).apply {
@@ -608,9 +608,14 @@ class ImageFilterFragment : Fragment(R.layout.fragment_image_filter) {
 
     /**
      * 一条「名字 · 滑条 · 数值」。双向项（亮度、色温…）的滑条从中间往两边拉，过 0 时轻震一下；
-     * 点数值复位（双向项回 0，强度回 100）。
+     * 点数值复位到 [neutral]（不起作用的那一档：调节项不论单向双向都是 0，强度是 100）。
      */
-    private inner class SliderRow(ctx: Context, bipolar: Boolean, private val onChange: (Int) -> Unit) {
+    private inner class SliderRow(
+        ctx: Context,
+        bipolar: Boolean,
+        private val neutral: Int,
+        private val onChange: (Int) -> Unit,
+    ) {
         private var bipolar = bipolar
         val title: TextView = ctx.label("", 14f, 600).apply {
             maxLines = 1
@@ -623,7 +628,7 @@ class ImageFilterFragment : Fragment(R.layout.fragment_image_filter) {
             minHeight = ctx.dp(48)
             background = ctx.ripple(null, shape(999f, Color.WHITE))
             isClickable = true
-            setOnClickListener { onChange(if (this@SliderRow.bipolar) 0 else 100) }
+            setOnClickListener { onChange(neutral) }
         }
         val slider: Slider = Slider(
             ContextThemeWrapper(ctx, com.google.android.material.R.style.Theme_Material3_DayNight_NoActionBar),

@@ -275,7 +275,7 @@ class ImageFilterViewModel(app: Application, private val saved: SavedStateHandle
         }) ?: return null
         // inSampleSize 只能折半；再精确缩到舞台尺寸，预览每一帧要渲的像素越少越跟手。
         val longEdge = max(decoded.width, decoded.height)
-        if (longEdge <= maxEdge) return decoded
+        if (longEdge <= maxEdge) return decoded.toArgb8888(mutable = false)
         val k = maxEdge / longEdge.toFloat()
         val scaled = Bitmap.createScaledBitmap(
             decoded,
@@ -284,7 +284,16 @@ class ImageFilterViewModel(app: Application, private val saved: SavedStateHandle
             true,
         )
         if (scaled !== decoded) decoded.recycle()
-        return scaled
+        return scaled.toArgb8888(mutable = false)
+    }
+
+    /**
+     * 16 位 PNG 不认 inPreferredConfig：BitmapFactory 照样解成 RGBA_F16（Skia 对高精度源的默认），
+     * 而 native 内核只吃 ARGB_8888。不转的话预览每帧都渲染失败、滤镜条全空、导出报错。转完回收原图。
+     */
+    private fun Bitmap.toArgb8888(mutable: Boolean): Bitmap? {
+        if (config == Bitmap.Config.ARGB_8888) return this
+        return copy(Bitmap.Config.ARGB_8888, mutable).also { recycle() }
     }
 
     // ── 导出 ────────────────────────────────────────────────────
@@ -327,7 +336,8 @@ class ImageFilterViewModel(app: Application, private val saved: SavedStateHandle
         val src = source ?: error("source not loaded")
         val app = getApplication<Application>()
         val file = withContext(Dispatchers.Default) {
-            val bitmap = decodeBoundedArgb(src, "filter", mutable = true) ?: error("decode failed")
+            val bitmap = decodeBoundedArgb(src, "filter", mutable = true)?.toArgb8888(mutable = true)
+                ?: error("decode failed")
             try {
                 NativeImageFilter.render(bitmap, bitmap, s)
                 val png = bitmap.hasAlpha()
