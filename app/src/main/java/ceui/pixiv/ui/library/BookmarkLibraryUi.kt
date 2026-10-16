@@ -207,12 +207,29 @@ internal class BookmarkLibraryUi(
         if (state.items.isEmpty()) return
         when (val manager = listView.layoutManager) {
             is StaggeredGridLayoutManager -> {
-                // invalidateSpanAssignments 是唯一能清掉上一代 span 偏移的公开 API；
-                // scrollToPositionWithOffset(0,0) 把偏移也定死，否则会拿旧 anchor 凑一个
-                // 偏移出来，刷完停在「顶部偏下」。
+                // invalidateSpanAssignments 能清掉上一代「位置 → 列」的分配；scrollToPositionWithOffset(0,0)
+                // 把偏移也定死，否则会拿旧 anchor 凑一个偏移出来，刷完停在「顶部偏下」。
+                // 注意它清不掉各列自己的行缓存（Span.mCachedStart / mCachedEnd），那个要靠下面的抖动重建。
                 val animator = listView.itemAnimator
                 listView.itemAnimator = null
                 manager.invalidateSpanAssignments()
+                // 换条件时列表常常停在中间：回顶那一刻位置 0 还在屏上、且已滑出顶部，SGLM 会把
+                // paddingTop - getDecoratedStart(item0)（正数）当锚点偏移写进各列的参考行，某一列
+                // 于是拿到正的起排 y（下一代数据进来时那一列顶部空出一块）。只有这种情形才需要重建
+                // 列状态；列表本来就在顶部时偏移是 0，位置 0 已回收时走 mInvalidateOffsets 干净分支，
+                // 都不用。重建手段：setSpanCount 是唯一会 new Span[] 的公开口，抖一次列数即可。
+                val firstVisible = manager.findViewByPosition(0)
+                // 竖向 SGLM 里 getDecoratedStart(item0) 等于 getDecoratedTop(item0) - topMargin
+                //（getDecoratedStart 是 OrientationHelper 的方法，LayoutManager 上没有）。
+                val firstStart = firstVisible?.let {
+                    manager.getDecoratedTop(it) -
+                        ((it.layoutParams as? RecyclerView.LayoutParams)?.topMargin ?: 0)
+                }
+                if (firstStart != null && firstStart < listView.paddingTop) {
+                    val spanCount = manager.spanCount
+                    manager.setSpanCount(spanCount + 1)
+                    manager.setSpanCount(spanCount)
+                }
                 manager.scrollToPositionWithOffset(0, 0)
                 if (animator != null) {
                     listView.post { listView.itemAnimator = animator }

@@ -533,23 +533,39 @@ abstract class FeedFragment(
     private fun resetToTop(listView: RecyclerView) {
         when (val manager = listView.layoutManager) {
             is StaggeredGridLayoutManager -> {
-                // 动画进行中重建列状态会让 SGLM 内部计数对不上（表现为子视图被清空的空白屏）：
-                // 先摘掉 animator，下一帧再装回。commitNewGeneration 那条路进来时它已经是 null
-                //（它自己摘了并在 post 里装回），所以这里的 null 判断让它不会被重复摘两次。
-                val animator = listView.itemAnimator
-                if (animator != null) {
-                    listView.itemAnimator = null
-                }
+                // invalidateSpanAssignments 只清「位置 → 列」那张表，清不掉各列自己的行缓存
+                //（Span.mCachedStart / mCachedEnd）—— 后者要靠下面的 setSpanCount 抖动重建 mSpans。
                 manager.invalidateSpanAssignments()
-                // 抖一下列数 = 重建 mSpans（各列行缓存整体归零）。同帧内两次调用，中间不会有
-                // 布局落地，最终列数不变。
-                val spanCount = manager.spanCount
-                manager.setSpanCount(spanCount + 1)
-                manager.setSpanCount(spanCount)
-                manager.scrollToPositionWithOffset(0, 0)
-                if (animator != null) {
-                    listView.post { listView.itemAnimator = animator }
+                // 只有「回顶那一刻位置 0 还在屏上、且已滑出顶部」才需要重建列状态：这时 SGLM 会把
+                // paddingTop - getDecoratedStart(item0)（正数）当锚点偏移，经 cacheReferenceLineAndClear
+                // 写进各列的参考行，某一列于是拿到正的起排 y（下一代数据进来时那一列顶部空出一块）。
+                // 列表本来就在顶部（下拉刷新的常态）时这个偏移是 0，两列参考行都还是 paddingTop，
+                // 抖了也是白抖；位置 0 已被回收时 SGLM 走 mInvalidateOffsets 的干净分支，同样不用。
+                val firstVisible = manager.findViewByPosition(0)
+                // 竖向 SGLM 里 getDecoratedStart(item0) 等于 getDecoratedTop(item0) - topMargin
+                //（getDecoratedStart 是 OrientationHelper 的方法，LayoutManager 上没有）。
+                val firstStart = firstVisible?.let {
+                    manager.getDecoratedTop(it) -
+                        ((it.layoutParams as? RecyclerView.LayoutParams)?.topMargin ?: 0)
                 }
+                if (firstStart != null && firstStart < listView.paddingTop) {
+                    // 动画进行中重建列状态会让 SGLM 内部计数对不上（表现为子视图被清空的空白屏）：
+                    // 先摘掉 animator，下一帧再装回。commitNewGeneration 那条路进来时它已经是 null
+                    //（它自己摘了并在 post 里装回），所以这里的 null 判断让它不会被重复摘两次。
+                    val animator = listView.itemAnimator
+                    if (animator != null) {
+                        listView.itemAnimator = null
+                    }
+                    // 抖一下列数 = 重建 mSpans（各列行缓存整体归零）。同帧内两次调用，中间不会有
+                    // 布局落地，最终列数不变。
+                    val spanCount = manager.spanCount
+                    manager.setSpanCount(spanCount + 1)
+                    manager.setSpanCount(spanCount)
+                    if (animator != null) {
+                        listView.post { listView.itemAnimator = animator }
+                    }
+                }
+                manager.scrollToPositionWithOffset(0, 0)
             }
 
             is LinearLayoutManager -> manager.scrollToPositionWithOffset(0, 0)

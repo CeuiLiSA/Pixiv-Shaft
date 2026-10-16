@@ -255,6 +255,7 @@ open class UserIllustFeedFragment : IllustFeedFragment() {
                 // SGLM.scrollToPosition 会错乱 span 分配导致 decoration 边距错位,用带 offset 版
                 is StaggeredGridLayoutManager -> {
                     lm.scrollToPositionWithOffset(pos, 0)
+                    // 只清「位置 → 列」的分配；各列自己的行缓存（Span.mCachedStart / mCachedEnd）它清不掉。
                     list.post { lm.invalidateSpanAssignments() }
                 }
                 else -> list.scrollToPosition(pos)

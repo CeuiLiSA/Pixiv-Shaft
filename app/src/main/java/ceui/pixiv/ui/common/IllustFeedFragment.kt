@@ -234,20 +234,17 @@ abstract class IllustFeedFragment(
     override fun onCreateLayoutManager(): RecyclerView.LayoutManager {
         val context = requireContext()
         val lineCount = Shaft.sSettings.lineCount
-        // GAP_HANDLING_NONE 对齐 legacy / Recmd / Artwork：SGLM 默认 gap 策略在刷新换代时
-        // 会把首行 item decoration 的 top 间距误判成“顶部有洞”，清 lookup 重排，造成左列空出、
-        // 首卡跑右、列间距闪跳。纯瀑布流页统一关掉，避免这类跨代重排。
-        fun StaggeredManager.noGapHandling() =
-            apply { gapStrategy = StaggeredGridLayoutManager.GAP_HANDLING_NONE }
+        // SGLM 的 gap 重排保持默认开启：它引起的跨列改派会由 StaggeredManager 重算 ItemDecoration
+        // 间距兜住，不再需要靠 GAP_HANDLING_NONE 关掉整条 gap 策略。
         return when (illustListLayout) {
             IllustListLayout.JUSTIFIED ->
                 JustifiedLayoutManager(context, lineCount, DensityUtil.dp2px(8.0f))
             // 单列就是一列，平板也不按宽度加列
             IllustListLayout.SINGLE_COLUMN ->
-                StaggeredManager(1, StaggeredGridLayoutManager.VERTICAL).noGapHandling()
+                StaggeredManager(1, StaggeredGridLayoutManager.VERTICAL)
             // 方格 = 瀑布流 + 卡片恒 1:1：等高的卡在 SGLM 里自然排成对齐的网格，整行 header 照旧可用
             IllustListLayout.MASONRY, IllustListLayout.GRID ->
-                StaggeredManager.adaptive(context, lineCount).noGapHandling()
+                StaggeredManager.adaptive(context, lineCount)
         }
     }
 

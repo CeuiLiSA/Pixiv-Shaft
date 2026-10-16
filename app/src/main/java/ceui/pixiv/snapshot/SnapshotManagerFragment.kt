@@ -348,14 +348,15 @@ class SnapshotManagerFragment : Fragment() {
                 if (dialog.isShowing) dialog.dismiss()
             }
             Common.showToast(appContext.getString(R.string.snapshot_import_multi_result, success, failed))
-            // 无论导入成功或失败，都重建双列列表并回顶，确保列表与磁盘状态一致、新卡排序正确。
+            // 无论导入成功或失败，都重读磁盘并回顶：列表与磁盘状态对齐，新卡插到顶部（提交是增量的，带插入动画）。
             reloadAllTabs(resetScroll = true)
         }
     }
 
     /**
-     * [resetScroll] 只在导入/删除这类**结构性变更**后传 true：那时列表顺序变了，需要清空重建
-     * 并回顶。例行刷新（onResume）不该回顶，否则看完一个快照返回就丢滚动位置。
+     * [resetScroll] 只在导入/删除这类**结构性变更**后传 true：那时列表顺序变了，需要回顶让用户
+     * 看到变动（提交仍是增量的，见 SnapshotListFragment.reload）。例行刷新（onResume）不该回顶，
+     * 否则看完一个快照返回就丢滚动位置。
      */
     private fun reloadAllTabs(resetScroll: Boolean) {
         childFragmentManager.fragments
