@@ -124,7 +124,7 @@ class AccountDataPurgeTest {
         assertEquals(6, otherShelves.sumOf { dao.countOf(it.key) })
         assertEquals(12, dao.allStates().size)
 
-        AccountDataPurge.purgeAccountData(context, target)
+        AccountDataPurge.purgeAccountData(context, target, purgeLocalData = true)
 
         targetShelves.forEach { shelf ->
             assertEquals("${shelf.label} 的主表应被清空", 0, dao.countOf(shelf.key))
@@ -149,7 +149,7 @@ class AccountDataPurgeTest {
         assertNull("前提：这个书架没有状态行", dao.findState(orphaned.key))
         assertEquals(1, dao.countOf(orphaned.key))
 
-        AccountDataPurge.purgeAccountData(context, target)
+        AccountDataPurge.purgeAccountData(context, target, purgeLocalData = true)
 
         assertEquals("没有状态行的书架也要清", 0, dao.countOf(orphaned.key))
         assertEquals(0, tagCountOf(orphaned.key))
@@ -164,7 +164,7 @@ class AccountDataPurgeTest {
         val others = listOf("home#$other#IllustPage", "home#${target}0#IllustPage")
         (mine + others).forEach { dao.upsert(feed(it)) }
 
-        AccountDataPurge.purgeAccountData(context, target)
+        AccountDataPurge.purgeAccountData(context, target, purgeLocalData = true)
 
         mine.forEach { assertNull("$it 应被清掉", dao.find(it)) }
         others.forEach { assertNotNull("$it 不该被动（uid 1110 只是前缀撞上 111）", dao.find(it)) }
@@ -183,7 +183,7 @@ class AccountDataPurgeTest {
         val others = mine.map { it.replace("$target", "$other") }
         (mine + others).forEach { MemoryMMKV.values[it] = true }
 
-        AccountDataPurge.purgeAccountData(context, target)
+        AccountDataPurge.purgeAccountData(context, target, purgeLocalData = true)
 
         mine.forEach { assertFalse("$it 应被清掉", MemoryMMKV.values.containsKey(it)) }
         others.forEach { assertTrue("$it 不该被动", MemoryMMKV.values.containsKey(it)) }
@@ -195,7 +195,7 @@ class AccountDataPurgeTest {
         val otherKeys = BookmarkShelf.allOf(other).map { READY_PREFIX + it.key }
         (targetKeys + otherKeys).forEach { MemoryMMKV.values[it] = true }
 
-        AccountDataPurge.purgeAccountData(context, target)
+        AccountDataPurge.purgeAccountData(context, target, purgeLocalData = true)
 
         targetKeys.forEach { assertFalse("$it 应被清掉", MemoryMMKV.values.containsKey(it)) }
         otherKeys.forEach { assertTrue("$it 不该被动", MemoryMMKV.values.containsKey(it)) }
@@ -208,7 +208,7 @@ class AccountDataPurgeTest {
         db.downloadDao().insertUser(user(target))
         db.downloadDao().insertUser(user(other))
 
-        AccountDataPurge.purgeAccountData(context, target)
+        AccountDataPurge.purgeAccountData(context, target, purgeLocalData = true)
 
         assertEquals("只该剩下另一个账号", listOf(other), db.downloadDao().allUser.map { it.userID })
     }
@@ -222,7 +222,7 @@ class AccountDataPurgeTest {
         db.downloadDao().insertUser(user(0L))
         MemoryMMKV.values["nana7mi_search_enabled_0"] = true
 
-        AccountDataPurge.purgeAccountData(context, 0L)
+        AccountDataPurge.purgeAccountData(context, 0L, purgeLocalData = true)
 
         assertEquals(1, db.bookmarkMirrorDao().countOf(shelf.key))
         assertEquals(1, db.downloadDao().allUser.size)
@@ -241,12 +241,46 @@ class AccountDataPurgeTest {
         val broken = wrapper(services(remoteConfigProvider = { error("boom") }))
         db.downloadDao().insertUser(user(target))
 
-        AccountDataPurge.purgeAccountData(broken, target)
+        AccountDataPurge.purgeAccountData(broken, target, purgeLocalData = true)
 
         assertTrue(
             "凭证仍应被删掉，实际剩下 " + db.downloadDao().allUser.map { it.userID },
             db.downloadDao().allUser.none { it.userID == target },
         )
+    }
+
+    /**
+     * 不勾复选框：**只删凭证行**，镜像 / 标签 / 状态 / 快照 / MMKV 全部原样。
+     *
+     * 这条顺带钉住「开关真的短路了」：会碰服务与 MMKV 的那几步都经 `appServices()`，而这里的假
+     * ServicesProvider 只认清理用得着的那两个 —— 哪天重构把某一步挪到 `if` 外面，
+     * 它会立刻炸成红测试，而不是静默多删一份数据。
+     */
+    @Test
+    fun `不勾选复选框时只删凭证 本地残留原样留着`() = runBlocking {
+        val dao = db.bookmarkMirrorDao()
+        val shelf = BookmarkShelf(target, MirrorContentType.ILLUST, MirrorRestrict.PUBLIC)
+        seedShelf(shelf, targetId = 1000L)
+        db.feedCacheDao().upsert(feed("home#$target#IllustPage"))
+        MemoryMMKV.values["nana7mi_search_enabled_$target"] = true
+        MemoryMMKV.values[READY_PREFIX + shelf.key] = true
+        db.downloadDao().insertUser(user(target))
+
+        AccountDataPurge.purgeAccountData(context, target, purgeLocalData = false)
+
+        assertTrue(
+            "凭证仍要删掉，实际剩下 " + db.downloadDao().allUser.map { it.userID },
+            db.downloadDao().allUser.none { it.userID == target },
+        )
+        assertEquals("镜像行应原样留着", 1, dao.countOf(shelf.key))
+        assertEquals("标签应原样留着", 1, tagCountOf(shelf.key))
+        assertNotNull("续传状态应原样留着", dao.findState(shelf.key))
+        assertNotNull("首屏快照应原样留着", db.feedCacheDao().find("home#$target#IllustPage"))
+        assertTrue(
+            "私有配置应原样留着",
+            MemoryMMKV.values.containsKey("nana7mi_search_enabled_$target"),
+        )
+        assertTrue("引导标记应原样留着", MemoryMMKV.values.containsKey(READY_PREFIX + shelf.key))
     }
 
     // ── 夹具 ──────────────────────────────────────────────────────────

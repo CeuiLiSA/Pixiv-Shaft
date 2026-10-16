@@ -4,6 +4,7 @@ import android.app.Application
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatDialog
@@ -290,6 +291,60 @@ class WitDialogBaseAdditionsTest {
         assertEquals(listOf("标题", "甲"), visibleLabels(dialog))
     }
 
+    // ── 复选框弹窗的可选正文（CheckBoxMessageDialogBuilder.setDescription） ──
+
+    /**
+     * 不传正文时必须与从前完全一致：内边距仍然全挂在复选框行自己身上。
+     * 存量调用点把说明直接写在复选框行上，这条是它们的回归守卫。
+     */
+    @Test
+    fun `复选框弹窗不设正文时形态与从前一致`() {
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(activity())
+            .setTitle("清除图片缓存")
+            .setMessage("同时清除已下载的原图")
+        val dialog = builder.create()
+        dialog.show()
+
+        assertEquals(listOf("清除图片缓存", "同时清除已下载的原图"), visibleLabels(dialog))
+        val row = checkBoxRow(dialog)
+        assertEquals("内边距应仍挂在复选框行上", dp(24), row.paddingLeft)
+        assertEquals(dp(12), row.paddingTop)
+        assertEquals(dp(20), row.paddingBottom)
+    }
+
+    /** 设了正文：正文渲染在复选框行**上方**，内边距上移到容器，左右不吃双份 24dp。 */
+    @Test
+    fun `复选框弹窗设了正文时正文排在复选框行之上`() {
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(activity())
+            .setTitle("删除账号")
+            .setDescription("确定从本地移除账号「をこめ」吗？")
+            .setMessage("同时清理该账号在本地残留的数据")
+        val dialog = builder.create()
+        dialog.show()
+
+        assertEquals(
+            listOf("删除账号", "确定从本地移除账号「をこめ」吗？", "同时清理该账号在本地残留的数据"),
+            visibleLabels(dialog),
+        )
+        val row = checkBoxRow(dialog)
+        assertEquals("内边距应已上移到容器，行上归零", 0, row.paddingLeft)
+        assertEquals(dp(24), (row.parent as ViewGroup).paddingLeft)
+    }
+
+    /** 空串正文 = 与没设一样，不留一条空白留白。 */
+    @Test
+    fun `复选框弹窗空正文不占位`() {
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(activity())
+            .setTitle("删除账号")
+            .setDescription("")
+            .setMessage("同时清理该账号在本地残留的数据")
+        val dialog = builder.create()
+        dialog.show()
+
+        assertEquals(listOf("删除账号", "同时清理该账号在本地残留的数据"), visibleLabels(dialog))
+        assertEquals("内边距应仍挂在复选框行上", dp(24), checkBoxRow(dialog).paddingLeft)
+    }
+
     // ── 工具 ────────────────────────────────────────────────────────
 
     private fun activity(): FragmentActivity = controller.get()
@@ -306,6 +361,11 @@ class WitDialogBaseAdditionsTest {
     private fun actionIcon(dialog: WitDialog, description: String): ImageView? =
         descendants(dialog).filterIsInstance<ImageView>()
             .firstOrNull { it.contentDescription == description }
+
+    /** 复选框行 = 直接挂着复选框（弹窗里唯一那个 ImageView）的那个 LinearLayout。 */
+    private fun checkBoxRow(dialog: WitDialog): ViewGroup =
+        descendants(dialog).filterIsInstance<LinearLayout>()
+            .first { row -> (0 until row.childCount).any { row.getChildAt(it) is ImageView } }
 
     /** 菜单行 = 菜单内容列（`NestedScrollView → LinearLayout`）里的直接子项。 */
     private fun menuRows(dialog: WitDialog): List<View> {

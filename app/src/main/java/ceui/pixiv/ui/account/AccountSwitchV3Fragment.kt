@@ -317,30 +317,34 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
     /**
      * 行尾垃圾桶 / sheet 里的「从本地删除」：把这一份账号从本机移除。
      *
-     * 删的**只是本机这一份**（凭证 + 收藏镜像 + 首屏快照 + 私有配置），线上 pixiv 账号分毫
-     * 不动 —— 文案里必须把这句话讲清楚，否则「删除账号」四个字看着像要销号。
+     * 删的**只是本机这一份**，线上 pixiv 账号分毫不动 —— 文案里必须把这句话讲清楚，
+     * 否则「删除账号」四个字看着像要销号。
      *
      * 二次确认走项目规范的 Wit 弹窗：正向操作是「取消」，负向（标红）才是「删除」，
-     * 与设置页退出登录同一套心智。确认之后真正干活的是 [AccountDataPurge]。
+     * 与设置页退出登录同一套心智。复选框决定要不要连本地残留一起清，**默认勾上** ——
+     * 这个功能存在的理由就是别留孤儿；勾选状态读回来交给 [AccountDataPurge]。
      */
     private fun confirmDelete(account: LocalAccount) {
         val act = activity ?: return
         if (act.isFinishing || act.isDestroyed) return
-        WitDialog.MessageDialogBuilder(act)
+        val builder = WitDialog.CheckBoxMessageDialogBuilder(act)
             .setTitle(R.string.account_delete)
-            .setMessage(
+            .setDescription(
                 getString(R.string.account_delete_message, account.user.name.orEmpty())
             )
+            .setMessage(R.string.account_delete_purge_local)
+            .setChecked(true)
+        builder
             .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
             .addAction(0, R.string.account_delete_action, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 dialog.dismiss()
-                deleteAccount(account)
+                deleteAccount(account, purgeLocalData = builder.isChecked)
             }
             .show()
     }
 
     /**
-     * 后台清完这个账号的一切，再就地刷新列表。
+     * 后台把这一份账号处理掉，再就地刷新列表。[purgeLocalData] 直接来自弹窗上那个复选框。
      *
      * 整页重读而不是只从 [accountsByUid] 里摘一条：删掉最后一条时「其他账号」要优雅退化成
      * 空态、剩下的分段行要重算段首/段尾圆角 —— 这些正好都是 [loadAccounts] 已经在做的事，
@@ -351,12 +355,12 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
      *
      * 用 applicationContext 而不是 requireContext()：清理是挂起调用，回来时视图可能已经不在了。
      */
-    private fun deleteAccount(account: LocalAccount) {
+    private fun deleteAccount(account: LocalAccount, purgeLocalData: Boolean) {
         val uid = account.user.id
         val appContext = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                AccountDataPurge.purgeAccountData(appContext, uid)
+                AccountDataPurge.purgeAccountData(appContext, uid, purgeLocalData)
             } catch (ce: CancellationException) {
                 throw ce
             } catch (t: Throwable) {

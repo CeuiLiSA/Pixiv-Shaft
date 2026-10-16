@@ -2836,7 +2836,8 @@
     <string name="account_switch_action_copy_name">Hesap adını kopyala</string>
     <string name="account_switch_exported">Giriş bilgileri panoya kopyalandı</string>
     <string name="account_delete">Hesabı sil</string>
-    <string name="account_delete_message">%1$s hesabı bu cihazdan silinsin mi?\nBu hesabın yerel yer imi kopyası ve önbelleği de silinir. pixiv hesabınız etkilenmez.</string>
+    <string name="account_delete_message">%1$s hesabı bu cihazdan silinsin mi?\npixiv hesabınız etkilenmez.</string>
+    <string name="account_delete_purge_local">Cihazda kalan verileri de sil</string>
     <string name="account_delete_action">Sil</string>
     <string name="account_delete_done">%1$s hesabı silindi</string>
     <string name="account_switch_action_delete">Bu cihazdan sil</string>

@@ -29,42 +29,57 @@ import timber.log.Timber
  *    失败都不会留下「账号没了、数据还在」这种最难受的组合。
  *
  * 除最后一步外，每一步各自兜异常：某一步失败不该连累整个账号删不掉。
+ *
+ * ## 两种模式
+ *
+ * [purgeAccountData] 的 `purgeLocalData` 对应确认弹窗上那个复选框：勾上就把上面 1~3 步那些资产
+ * 一并清掉，不勾则**只删凭证行**（等同于 legacy「退出登录（不清除本地数据）」的语义）。
+ * 留着不是浪费 —— 同一个 uid 以后再登录回来，镜像不用从零重建。
  */
 object AccountDataPurge {
 
     private const val TAG = "AccountDataPurge"
 
     /**
-     * 把 [targetUid] 在本设备上的全部残留资产清干净。**调用方负责切 IO**（内部也会切一次，
-     * 重复切是廉价的）。正常返回时，该 uid 的凭证行已经从 `user_table` 移除。
+     * 把 [targetUid] 从本机移除。**调用方负责切 IO**（内部也会切一次，重复切是廉价的）。
+     * 正常返回时，该 uid 的凭证行已经从 `user_table` 移除。
+     *
+     * [purgeLocalData] = false 时**跳过 1~3 步**、只删凭证行 —— 对应确认弹窗上那个复选框没勾的
+     * 情形。注意它跳过的正是「会碰 ServicesProvider 与 MMKV」的那几步，所以不勾时整条链路
+     * 只落一次 `deleteUser`，不会顺手把别的账号的缓存也搅一遍。
      */
-    suspend fun purgeAccountData(context: Context, targetUid: Long) {
+    suspend fun purgeAccountData(context: Context, targetUid: Long, purgeLocalData: Boolean) {
         if (targetUid <= 0L) return
         val app = context.applicationContext
         withContext(Dispatchers.IO) {
             val db = AppDatabase.getAppDatabase(app)
 
-            // 1. 收藏 / 关注镜像：先摘运行态与数据，再清「补齐了」那条一次性引导的标记。
-            step("停用收藏镜像", targetUid) {
-                app.appServices().bookmarkMirror.dropOwner(targetUid)
-            }
-            step("清除收藏库引导标记", targetUid) {
-                BookmarkMirrorReadyBanner.forget(targetUid)
+            if (purgeLocalData) {
+                // 1. 收藏 / 关注镜像：先摘运行态与数据，再清「补齐了」那条一次性引导的标记。
+                step("停用收藏镜像", targetUid) {
+                    app.appServices().bookmarkMirror.dropOwner(targetUid)
+                }
+                step("清除收藏库引导标记", targetUid) {
+                    BookmarkMirrorReadyBanner.forget(targetUid)
+                }
+
+                // 2. feeds 首屏快照：cacheKey 里含 uid 命名空间，整批删。
+                step("清除 feed 首屏快照", targetUid) {
+                    db.feedCacheDao().deleteByUid(targetUid)
+                }
+
+                // 3. 按 uid 分键的远端配置缓存（灰度搜索 / 云端翻译 / 推荐入口 / 订阅档位）。
+                step("清除账号私有配置", targetUid) {
+                    app.appServices().remoteAppConfig.forgetUid(targetUid)
+                }
             }
 
-            // 2. feeds 首屏快照：cacheKey 里含 uid 命名空间，整批删。
-            step("清除 feed 首屏快照", targetUid) {
-                db.feedCacheDao().deleteByUid(targetUid)
-            }
-
-            // 3. 按 uid 分键的远端配置缓存（灰度搜索 / 云端翻译 / 推荐入口 / 订阅档位）。
-            step("清除账号私有配置", targetUid) {
-                app.appServices().remoteAppConfig.forgetUid(targetUid)
-            }
-
-            // 4. 最后才是钥匙本身。这一步不兜异常：它失败了，调用方必须知道账号其实没删掉。
+            // 4. 凭证行**永远**删。这一步之后账号在界面上就不存在了，放最后保证前面任何一步失败
+            //    都不会留下「账号没了、数据还在」；不兜异常，失败要让调用方知道账号其实没删掉。
             db.downloadDao().deleteUser(UserEntity().apply { userID = targetUid })
-            Timber.tag(TAG).i("已从本地移除账号 %d 及其关联数据", targetUid)
+            Timber.tag(TAG).i(
+                "已从本地移除账号 %d（一并清理关联数据=%b）", targetUid, purgeLocalData
+            )
         }
     }
 

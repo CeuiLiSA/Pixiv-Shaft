@@ -90,11 +90,21 @@ public class WitDialog @JvmOverloads constructor(
 
     // ── CheckBoxMessage ─────────────────────────────────────────────
 
-    /** 正文左侧带一个复选框的弹窗（「清除缓存」「注销」这类「下次不再提示」用）。 */
+    /**
+     * 带复选框的弹窗（「清除缓存」「注销」这类「下次不再提示」用）。
+     *
+     * 默认形态**只有复选框行**：[setMessage] 的文案就写在复选框右边，存量调用点全是这么用的。
+     * 需要「一段正文 + 一行独立的复选框说明」时用 [setDescription] 补上正文，它渲染在复选框行
+     * 上方；不传则与加这个槽位之前完全一致（内边距、行距、可点区域一个像素都不动）。
+     */
     public open class CheckBoxMessageDialogBuilder(context: Context) :
         WitDialogBuilder<CheckBoxMessageDialogBuilder>(context) {
 
         protected var mMessage: CharSequence? = null
+
+        /** 复选框行上方的正文，可选。见类文档。 */
+        private var mDescription: CharSequence? = null
+
         private var checked: Boolean = false
         private var checkBoxView: AppCompatImageView? = null
 
@@ -103,6 +113,12 @@ public class WitDialog @JvmOverloads constructor(
 
         public fun setMessage(@StringRes resId: Int): CheckBoxMessageDialogBuilder =
             setMessage(context.resources.getString(resId))
+
+        public fun setDescription(description: CharSequence?): CheckBoxMessageDialogBuilder =
+            apply { mDescription = description }
+
+        public fun setDescription(@StringRes resId: Int): CheckBoxMessageDialogBuilder =
+            setDescription(context.resources.getString(resId))
 
         public val isChecked: Boolean get() = checked
 
@@ -128,20 +144,61 @@ public class WitDialog @JvmOverloads constructor(
             parent: WitDialogView,
             context: Context,
         ): View? {
+            val padH = WitDisplay.dp2px(context, WitDialogMetrics.PADDING_HORIZONTAL_DP)
+            val padTop = WitDisplay.dp2px(
+                context,
+                if (hasTitle()) WitDialogMetrics.MESSAGE_PADDING_TOP_DP
+                else WitDialogMetrics.MESSAGE_PADDING_TOP_WHEN_NO_TITLE_DP,
+            )
+            val padBottom = WitDisplay.dp2px(context, WitDialogMetrics.MESSAGE_PADDING_BOTTOM_DP)
+            val row = buildCheckBoxRow(context)
+
+            // 没有正文：内边距全挂在复选框行自己身上，与加正文槽之前一模一样。
+            if (mDescription.isNullOrEmpty()) {
+                row.setPadding(padH, padTop, padH, padBottom)
+                return wrapWithScroll(row)
+            }
+
+            // 有正文：内边距上移到容器，复选框行只留与正文之间那道间隙 ——
+            // 否则左右会吃到双份 PADDING_HORIZONTAL_DP。
+            val column = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(padH, padTop, padH, padBottom)
+            }
+            column.addView(
+                AppCompatTextView(context).apply {
+                    text = mDescription
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, WitDialogMetrics.MESSAGE_TEXT_SP)
+                    setTextColor(ContextCompat.getColor(context, R.color.wit_text_2))
+                    setLineSpacing(
+                        WitDisplay.dp2pxF(context, WitDialogMetrics.MESSAGE_LINE_SPACING_DP), 1f
+                    )
+                },
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                ),
+            )
+            column.addView(
+                row,
+                LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topMargin = WitDisplay.dp2px(
+                        context, WitDialogMetrics.CHECKBOX_DESCRIPTION_SPACE_DP
+                    )
+                },
+            )
+            return wrapWithScroll(column)
+        }
+
+        /**
+         * 复选框 + 文案那一行。内边距刻意留给调用方按「有没有正文」决定：
+         * 单行时挂在行上，带正文时上移到容器。
+         */
+        private fun buildCheckBoxRow(context: Context): LinearLayout {
             val row = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
-                val padH = WitDisplay.dp2px(context, WitDialogMetrics.PADDING_HORIZONTAL_DP)
-                setPadding(
-                    padH,
-                    WitDisplay.dp2px(
-                        context,
-                        if (hasTitle()) WitDialogMetrics.MESSAGE_PADDING_TOP_DP
-                        else WitDialogMetrics.MESSAGE_PADDING_TOP_WHEN_NO_TITLE_DP,
-                    ),
-                    padH,
-                    WitDisplay.dp2px(context, WitDialogMetrics.MESSAGE_PADDING_BOTTOM_DP),
-                )
                 isClickable = true
             }
             val size = WitDisplay.dp2px(context, WitDialogMetrics.CHECKBOX_SIZE_DP)
@@ -167,7 +224,7 @@ public class WitDialog @JvmOverloads constructor(
             syncCheckBox()
             // 整行可点，不要求用户精准点中 22dp 的小方框。
             row.setOnClickListener { setChecked(!checked) }
-            return wrapWithScroll(row)
+            return row
         }
     }
 
