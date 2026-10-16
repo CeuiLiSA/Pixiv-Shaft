@@ -68,7 +68,6 @@ class SnapshotListFragment : Fragment() {
     var onAutoSnapshotQuotaChanged: (() -> Unit)? = null
 
     private var pendingExportId: String? = null
-    private var isFirstLoad = true
 
     private val exportLauncher = registerForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip")
@@ -90,15 +89,13 @@ class SnapshotListFragment : Fragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View =
-        FragmentSnapshotListBinding.inflate(inflater, container, false).also { _binding = it }.root
+    ): View = FragmentSnapshotListBinding.inflate(inflater, container, false).also { _binding = it }.root
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // 骨架在布局里默认可见，首次 reload 出结果（成功或失败）后收起；之后的例行刷新不再出现。
         binding.snapshotSkeleton.spanCount = 2
-        binding.snapshotSkeleton.isVisible = true
-        binding.snapshotList.layoutManager =
-            StaggeredManager(2, StaggeredGridLayoutManager.VERTICAL)
+        binding.snapshotList.layoutManager = StaggeredManager(2, StaggeredGridLayoutManager.VERTICAL)
         // 不动 itemAnimator：三条路径都走增量提交，动画由 DiffUtil 的增删/移动直接驱动。
         binding.snapshotList.adapter = adapter
         reload(resetScroll = true)
@@ -130,16 +127,11 @@ class SnapshotListFragment : Fragment() {
      */
     fun reload(resetScroll: Boolean = false, reflow: Boolean = false) {
         val appContext = requireContext().applicationContext
-        if (isFirstLoad) {
-            binding.snapshotSkeleton.isVisible = true
-            binding.emptyHint.isVisible = false
-        }
         lifecycleScope.launch {
             val all = try {
                 withContext(Dispatchers.IO) {
                     val formal = SnapshotRepository.list(appContext).map { FormalSnapshotCard(it) }
-                    val auto =
-                        AutoSnapshotRepository.listAuto(appContext).map { AutoSnapshotCard(it) }
+                    val auto = AutoSnapshotRepository.listAuto(appContext).map { AutoSnapshotCard(it) }
                     (formal + auto)
                         .filter { filter == null || it.type == filter }
                         .sortedByDescending { it.createdAt }
@@ -148,10 +140,7 @@ class SnapshotListFragment : Fragment() {
                 throw ce
             } catch (e: Exception) {
                 Timber.w(e, "[Snapshot] list failed")
-                if (_binding != null) {
-                    binding.snapshotSkeleton.isVisible = false
-                    isFirstLoad = false
-                }
+                _binding?.snapshotSkeleton?.isVisible = false
                 return@launch
             }
             if (_binding == null) return@launch
@@ -175,7 +164,6 @@ class SnapshotListFragment : Fragment() {
                 }
             })
             binding.snapshotSkeleton.isVisible = false
-            isFirstLoad = false
             binding.emptyHint.isVisible = all.isEmpty()
             if (filter == null) onAutoSnapshotQuotaChanged?.invoke()
         }
@@ -198,8 +186,7 @@ class SnapshotListFragment : Fragment() {
         // 竖向 SGLM 里 getDecoratedStart(item0) 等于 getDecoratedTop(item0) - topMargin
         //（getDecoratedStart 是 OrientationHelper 的方法，LayoutManager 上没有）。
         val firstStart = first?.let {
-            manager.getDecoratedTop(it) - ((it.layoutParams as? RecyclerView.LayoutParams)?.topMargin
-                ?: 0)
+            manager.getDecoratedTop(it) - ((it.layoutParams as? RecyclerView.LayoutParams)?.topMargin ?: 0)
         } ?: return
         if (firstStart >= listView.paddingTop) return
         val animator = listView.itemAnimator
@@ -284,10 +271,7 @@ class SnapshotListFragment : Fragment() {
             if (Shaft.sSettings.isUseArtworkV3()) {
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SNAPSHOT_VIEW.key)
             } else {
-                intent.putExtra(
-                    TemplateActivity.EXTRA_FRAGMENT,
-                    TemplateRoute.SNAPSHOT_VIEW_CLASSIC.key
-                )
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SNAPSHOT_VIEW_CLASSIC.key)
             }
             intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_ID, snapshotId)
             intent.putExtra(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, isAuto)
@@ -309,11 +293,7 @@ class SnapshotListFragment : Fragment() {
                 dialog.dismiss()
                 confirmPromote(card)
             }
-            .addAction(
-                0,
-                R.string.snapshot_delete,
-                WitDialogAction.ACTION_PROP_NEGATIVE
-            ) { dialog, _ ->
+            .addAction(0, R.string.snapshot_delete, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 dialog.dismiss()
                 confirmDelete(card)
             }
@@ -339,12 +319,7 @@ class SnapshotListFragment : Fragment() {
                         throw ce
                     } catch (e: Exception) {
                         Timber.w(e, "[Snapshot] promote failed, id=%s", card.snapshotId)
-                        Common.showToast(
-                            getString(
-                                R.string.snapshot_promote_failed,
-                                e.message ?: ""
-                            )
-                        )
+                        Common.showToast(getString(R.string.snapshot_promote_failed, e.message ?: ""))
                     }
                 }
             }
@@ -364,11 +339,7 @@ class SnapshotListFragment : Fragment() {
             .setTitle(R.string.snapshot_delete)
             .setMessage(getString(R.string.snapshot_delete_confirm, card.title ?: card.snapshotId))
             .addAction(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-            .addAction(
-                0,
-                R.string.snapshot_delete,
-                WitDialogAction.ACTION_PROP_NEGATIVE
-            ) { dialog, _ ->
+            .addAction(0, R.string.snapshot_delete, WitDialogAction.ACTION_PROP_NEGATIVE) { dialog, _ ->
                 dialog.dismiss()
                 val appContext = requireContext().applicationContext
                 lifecycleScope.launch {
@@ -379,9 +350,7 @@ class SnapshotListFragment : Fragment() {
                             SnapshotRepository.delete(appContext, card.snapshotId)
                         }
                     }
-                    if (ok) Common.showToast(getString(R.string.snapshot_delete_success)) else Common.showToast(
-                        getString(R.string.snapshot_delete_failed)
-                    )
+                    if (ok) Common.showToast(getString(R.string.snapshot_delete_success)) else Common.showToast(getString(R.string.snapshot_delete_failed))
                     reload(reflow = true)
                 }
             }
@@ -470,8 +439,7 @@ private class SnapshotAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SnapshotViewHolder {
-        val binding =
-            ItemSnapshotBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemSnapshotBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return SnapshotViewHolder(binding)
     }
 
@@ -554,12 +522,7 @@ private class SnapshotViewHolder(
         // 多选勾标固定在左上角；进入多选态时隐藏角标行，避免和勾标叠在一起。
         binding.badgeRow.isVisible = !selectionMode
 
-        HistorySelectBadge.bindSelection(
-            binding.selectCheck,
-            binding.deleteButton,
-            selectionMode,
-            selected
-        )
+        HistorySelectBadge.bindSelection(binding.selectCheck, binding.deleteButton, selectionMode, selected)
         // 自动快照仅在批量导出多选态隐匿勾选框；批量删除多选态可勾选并批量删除。
         binding.selectCheck.isVisible = selectionMode && selectable
 

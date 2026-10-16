@@ -13,10 +13,12 @@
         android:padding="8dp"
         tools:listitem="@layout/item_snapshot" />
 
+    <!-- 骨架自带 8dp 外边距与列间距；再让 4dp，左右缘才和卡片（列表 8dp padding + 卡片 4dp margin）对齐 -->
     <ceui.pixiv.feeds.FeedStaggeredSkeletonView
         android:id="@+id/snapshotSkeleton"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_marginHorizontal="4dp" />
 
     <TextView
         android:id="@+id/emptyHint"
