@@ -122,6 +122,25 @@
                 android:text="@string/account_switch_action_copy_name" />
         </LinearLayout>
 
+        <!--
+          破坏性操作：与上面三条拉开一档，图标与文字都走 v3_danger（日夜各一版）。
+          当前账号打开本 sheet 时整行隐掉 —— 删自己要先退出登录，那是另一条链路。
+        -->
+        <LinearLayout
+            android:id="@+id/action_delete"
+            style="@style/AccountActionRow">
+
+            <ImageView
+                style="@style/AccountActionIcon"
+                android:src="@drawable/ic_delete_black_24dp"
+                app:tint="@color/v3_danger" />
+
+            <TextView
+                style="@style/AccountActionLabel"
+                android:text="@string/account_switch_action_delete"
+                android:textColor="@color/v3_danger" />
+        </LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>

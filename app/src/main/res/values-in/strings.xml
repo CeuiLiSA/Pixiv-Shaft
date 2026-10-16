@@ -2859,6 +2859,11 @@
     <string name="account_switch_action_export">Ekspor info login ke papan klip</string>
     <string name="account_switch_action_copy_name">Salin nama akun</string>
     <string name="account_switch_exported">Info login disalin ke papan klip</string>
+    <string name="account_delete">Hapus akun</string>
+    <string name="account_delete_message">Hapus akun %1$s dari perangkat ini?\nCermin bookmark dan cache lokal akun ini juga akan dihapus. Akun pixiv Anda di daring tidak terpengaruh.</string>
+    <string name="account_delete_action">Hapus</string>
+    <string name="account_delete_done">Akun %1$s dihapus</string>
+    <string name="account_switch_action_delete">Hapus dari perangkat ini</string>
     <string name="account_switch_switching">Beralih ke %1$s…</string>
     <string name="add_to_home_screen">Tambahkan ke layar utama</string>
     <string name="add_to_home_screen_failed">Gagal menambahkan, layar utama mungkin tidak mendukung</string>

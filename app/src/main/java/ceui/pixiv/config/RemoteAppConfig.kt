@@ -402,6 +402,26 @@ class RemoteAppConfig(@Suppress("UNUSED_PARAMETER") app: Context) {
         return until > System.currentTimeMillis()
     }
 
+    /**
+     * 账号被从本地移除：忘掉这个 uid 的私有配置缓存。
+     *
+     * 不删的话，同一个账号以后再登录回来会直接吃上一次留下的答案 —— 灰度搜索许可、
+     * 云端翻译授权、推荐入口、订阅档位全是按 uid 分键存的，本地已经先信了旧的，
+     * 服务端这次说什么都得等下一轮拉取才生效。
+     *
+     * `cloud_translate_engine` 是全局的、不按 uid 分键，这里不碰它。
+     */
+    fun forgetUid(uid: Long) {
+        if (uid <= 0L) return
+        runCatching {
+            store.removeValueForKey(cacheKey(uid))
+            store.removeValueForKey(planKey(uid))
+            store.removeValueForKey(translateKey(uid))
+            store.removeValueForKey(referralKey(uid))
+        }
+        Timber.tag(TAG).i("已清理账号 %d 的私有配置缓存", uid)
+    }
+
     private fun cacheKey(uid: Long) = KEY_NANA7MI_SEARCH_PREFIX + uid
 
     private fun planKey(uid: Long) = KEY_NANA7MI_PLAN_PREFIX + uid
