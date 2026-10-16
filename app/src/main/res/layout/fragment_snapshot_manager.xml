@@ -91,6 +91,7 @@
                             android:ellipsize="end"
                             android:gravity="end"
                             android:singleLine="true"
+                            android:text="@string/string_221"
                             android:textSize="13sp" />
                     </LinearLayout>
 

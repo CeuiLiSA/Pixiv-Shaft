@@ -31,6 +31,8 @@ internal class SnapshotQuotaBanner(
     private val binding: FragmentSnapshotManagerBinding,
 ) {
 
+    private var hasCalculated = false
+
     /**
      * 这条挂在 AppBarLayout 里，底色就是主题色实底，所以不能套 settingsCard 那种浅卡面
      * —— 在实色 bar 上贴一块别的材质，会跟 Toolbar 格格不入。
@@ -85,6 +87,9 @@ internal class SnapshotQuotaBanner(
 
     private fun refresh() {
         val appContext = fragment.context?.applicationContext ?: return
+        if (!hasCalculated) {
+            binding.autoSnapshotQuotaValue.text = appContext.getString(R.string.string_221)
+        }
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             val usedBytes = withContext(Dispatchers.IO) {
                 runCatching {
@@ -103,6 +108,7 @@ internal class SnapshotQuotaBanner(
                 limitText,
             )
             binding.autoSnapshotQuotaProgress.progress = quotaProgress(usedBytes, limitMb)
+            hasCalculated = true
         }
     }
 
@@ -156,6 +162,7 @@ internal class SnapshotQuotaBanner(
             mb < 1.0 -> context.getString(
                 R.string.snapshot_quota_size_mb_decimal, formatMbDecimal(mb),
             )
+
             mb < 1024.0 -> context.getString(
                 R.string.setting_auto_snapshot_quota_value, mb.toLong(),
             )
