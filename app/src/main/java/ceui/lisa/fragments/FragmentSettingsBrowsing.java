@@ -13,6 +13,8 @@ import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
@@ -25,10 +27,21 @@ import ceui.pixiv.ui.settings.AiBlockExemptAuthorsSheet;
 import ceui.pixiv.ui.settings.FilterBookmarkedDialog;
 import ceui.pixiv.ui.history.CloudHistoryConsent;
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.ui.home.HomeR18Prefs;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /** 设置 · 浏览与搜索 */
 public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSettingsBrowsingBinding> {
+
+    private final ActivityResultLauncher<Intent> webLoginLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                boolean valid = SessionManager.hasValidWebSession();
+                HomeR18Prefs.setEnabled(valid);
+                baseBind.includeR18InHomeFeed.setChecked(valid);
+                if (valid) {
+                    Common.showToast(getString(R.string.string_428), 2);
+                }
+            });
 
     /**
      * 打开「小说超长标签屏蔽」时预填的建议值。日文正圈 tag 本来就能到十几字
@@ -59,6 +72,32 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         });
         baseBind.autoRefreshHomeFeedRela.setOnClickListener(v ->
                 baseBind.autoRefreshHomeFeed.performClick());
+
+        if (ceui.lisa.BuildConfig.IS_LITE) {
+            baseBind.includeR18InHomeFeedRela.setVisibility(View.GONE);
+            baseBind.autoRefreshHomeFeedRela.setBackgroundResource(ceui.pixiv.witstudio.R.drawable.wit_row_single);
+        } else {
+            baseBind.includeR18InHomeFeedRela.setVisibility(View.VISIBLE);
+            baseBind.autoRefreshHomeFeedRela.setBackgroundResource(ceui.pixiv.witstudio.R.drawable.wit_row_top);
+            if (HomeR18Prefs.isEnabled() && !SessionManager.hasValidWebSession()) {
+                HomeR18Prefs.setEnabled(false);
+            }
+            baseBind.includeR18InHomeFeed.setChecked(HomeR18Prefs.isEnabled());
+            View.OnClickListener toggleIncludeR18 = v -> {
+                boolean target = !HomeR18Prefs.isEnabled();
+                if (target && !SessionManager.hasValidWebSession()) {
+                    baseBind.includeR18InHomeFeed.setChecked(false);
+                    SessionManager.showWebLoginDialog(mActivity, getString(R.string.include_r18_in_home_feed), () ->
+                            webLoginLauncher.launch(SessionManager.createWebLoginIntent(mActivity)));
+                    return;
+                }
+                HomeR18Prefs.setEnabled(target);
+                baseBind.includeR18InHomeFeed.setChecked(target);
+                Common.showToast(getString(R.string.string_428), 2);
+            };
+            baseBind.includeR18InHomeFeed.setOnClickListener(toggleIncludeR18);
+            baseBind.includeR18InHomeFeedRela.setOnClickListener(toggleIncludeR18);
+        }
 
         baseBind.saveHistory.setChecked(Shaft.sSettings.isSaveViewHistory());
         baseBind.saveHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -432,5 +471,14 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         syncingPopularSwitch = true;
         baseBind.searchPopularDefault.setChecked(popular);
         syncingPopularSwitch = false;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!ceui.lisa.BuildConfig.IS_LITE && HomeR18Prefs.isEnabled() && !SessionManager.hasValidWebSession()) {
+            HomeR18Prefs.setEnabled(false);
+            baseBind.includeR18InHomeFeed.setChecked(false);
+        }
     }
 }

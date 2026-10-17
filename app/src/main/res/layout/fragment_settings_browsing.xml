@@ -56,7 +56,7 @@
                 <RelativeLayout
                     android:id="@+id/auto_refresh_home_feed_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_single">
+                    android:background="@drawable/wit_row_top">
 
                     <LinearLayout style="@style/M3SetTexts">
 
@@ -71,6 +71,28 @@
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/auto_refresh_home_feed"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/include_r18_in_home_feed_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_bottom">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/include_r18_in_home_feed" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/include_r18_in_home_feed_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/include_r18_in_home_feed"
                         style="@style/M3SetSwitch" />
 
                 </RelativeLayout>

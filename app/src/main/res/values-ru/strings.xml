@@ -2751,6 +2751,9 @@
     <!-- 启动时自动刷新首页推荐 (issue #955) -->
     <string name="auto_refresh_home_feed">Автообновление рекомендаций при запуске</string>
     <string name="auto_refresh_home_feed_desc">Если выключено, при запуске показываются прошлые рекомендации; потяните вниз, чтобы обновить</string>
+    <string name="include_r18_in_home_feed">Включать работы R-18 в рекомендации на главной</string>
+    <string name="include_r18_in_home_feed_desc">Загружать персонализированные рекомендации R-18 с веб-сайта\nТребуется дополнительный вход в веб-версию и включенный R-18 в аккаунте</string>
+    <string name="web_login_invalid_home_r18_disabled">Веб-сессия недействительна, работы R-18 больше не будут появляться на главной</string>
     <string name="ugoira_rife_enable">ИИ-интерполяция кадров угоира (RIFE)</string>
     <string name="ugoira_rife_enable_desc">Вставляет ИИ-кадры, повышая частоту до 4x (до потолка GIF 50fps). Требуется загрузка модели; кодирование занимает больше времени</string>
     <string name="ugoira_interpolating">Интерполяция</string>
@@ -2773,7 +2776,7 @@
     <string name="pixiv_unblock_done">«%1$s» разблокирован</string>
     <string name="pixiv_block_checking">Проверка статуса блокировки…</string>
     <string name="pixiv_block_submitting">Отправка…</string>
-    <string name="pixiv_block_need_web_login">Эта функция работает через веб-интерфейс, поэтому нужно дополнительно войти через веб.</string>
+    <string name="web_feature_need_web_login">Эта функция работает через веб-интерфейс, поэтому нужно дополнительно войти через веб.</string>
     <string name="user_tag_filter_empty_need_web_login">Работы не найдены.\nЭта функция работает через веб-интерфейс, поэтому, чтобы увидеть все работы по этому тегу, нужно дополнительно войти через веб</string>
     <string name="spoiler_hide_illust">Скрыть эту работу</string>
     <string name="spoiler_reveal_illust">Показать эту работу</string>
