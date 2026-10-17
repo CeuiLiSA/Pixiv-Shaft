@@ -2,10 +2,16 @@ package ceui.pixiv.ui.home
 
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.ui.common.IllustFeedItem
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import retrofit2.HttpException
 
 class RecmdR18InterleaveTest {
 
@@ -256,6 +262,112 @@ class RecmdR18InterleaveTest {
             .filter { it.illust.x_restrict == 0 }
             .map { it.illust.id }
         assertEquals((1L..12L).toList(), resultNormalIds)
+    }
+
+    private fun createHttpException(
+        code: Int,
+        headers: Map<String, String> = emptyMap(),
+        bodyString: String = "",
+    ): HttpException {
+        val builder = Response.Builder()
+            .request(Request.Builder().url("https://www.pixiv.net/ajax/top/illust?mode=r18&lang=zh").build())
+            .protocol(Protocol.HTTP_1_1)
+            .code(code)
+            .message(if (code == 400) "Bad Request" else if (code == 401) "Unauthorized" else "Error")
+            .body(bodyString.toResponseBody("application/json".toMediaTypeOrNull()))
+
+        headers.forEach { (k, v) -> builder.header(k, v) }
+        val rawResponse = builder.build()
+        val retrofitResponse = retrofit2.Response.error<Any>(
+            bodyString.toResponseBody("application/json".toMediaTypeOrNull()),
+            rawResponse
+        )
+        return HttpException(retrofitResponse)
+    }
+
+    @Test
+    fun `isUnauthenticatedWebSession identifies 400 unauthenticated with Chinese body`() {
+        val ex = createHttpException(
+            code = 400,
+            bodyString = """{"error":true,"message":"不正确的请求。","body":[]}"""
+        )
+        assertTrue(RecmdIllustFeedFragment.isUnauthenticatedWebSession(ex))
+    }
+
+    @Test
+    fun `isUnauthenticatedWebSession identifies 400 unauthenticated with unicode body`() {
+        val ex = createHttpException(
+            code = 400,
+            bodyString = """{"error":true,"message":"\u4e0d\u6b63\u786e\u7684\u8bf7\u6c42\u3002","body":[]}"""
+        )
+        assertTrue(RecmdIllustFeedFragment.isUnauthenticatedWebSession(ex))
+    }
+
+    @Test
+    fun `isUnauthenticatedWebSession identifies 400 unauthenticated with Japanese or English`() {
+        val jaEx = createHttpException(
+            code = 400,
+            bodyString = """{"error":true,"message":"不正なリクエストです。","body":[]}"""
+        )
+        assertTrue(RecmdIllustFeedFragment.isUnauthenticatedWebSession(jaEx))
+
+        val enEx = createHttpException(
+            code = 400,
+            bodyString = """{"error":true,"message":"Invalid request.","body":[]}"""
+        )
+        assertTrue(RecmdIllustFeedFragment.isUnauthenticatedWebSession(enEx))
+    }
+
+    @Test
+    fun `isUnauthenticatedWebSession rejects generic 400 without matching unauthenticated body`() {
+        val exGeneric = createHttpException(
+            code = 400,
+            bodyString = """{"error":true,"message":"missing parameter foo"}"""
+        )
+        assertFalse(RecmdIllustFeedFragment.isUnauthenticatedWebSession(exGeneric))
+
+        val exHtml = createHttpException(
+            code = 400,
+            bodyString = "<html><head><title>400 Bad Request</title></head></html>"
+        )
+        assertFalse(RecmdIllustFeedFragment.isUnauthenticatedWebSession(exHtml))
+    }
+
+    @Test
+    fun `isUnauthenticatedWebSession identifies 401 invalid PHPSESSID with unknown error body or cookie deleted`() {
+        val exZh = createHttpException(
+            code = 401,
+            bodyString = """{"error":true,"message":"出现了未知错误","body":[]}"""
+        )
+        assertTrue(RecmdIllustFeedFragment.isUnauthenticatedWebSession(exZh))
+
+        val exUnicode = createHttpException(
+            code = 401,
+            bodyString = """{"error":true,"message":"\u51fa\u73b0\u4e86\u672a\u77e5\u9519\u8bef","body":[]}"""
+        )
+        assertTrue(RecmdIllustFeedFragment.isUnauthenticatedWebSession(exUnicode))
+
+        val exCookie = createHttpException(
+            code = 401,
+            headers = mapOf("Set-Cookie" to "PHPSESSID=deleted; expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0; path=/; domain=.pixiv.net; secure; HttpOnly"),
+            bodyString = """{"error":true,"message":"custom error","body":[]}"""
+        )
+        assertTrue(RecmdIllustFeedFragment.isUnauthenticatedWebSession(exCookie))
+    }
+
+    @Test
+    fun `isUnauthenticatedWebSession rejects other status codes even with similar bodies`() {
+        val ex403 = createHttpException(
+            code = 403,
+            bodyString = """{"error":true,"message":"不正确的请求。","body":[]}"""
+        )
+        assertFalse(RecmdIllustFeedFragment.isUnauthenticatedWebSession(ex403))
+
+        val ex500 = createHttpException(
+            code = 500,
+            bodyString = """{"error":true,"message":"出现了未知错误","body":[]}"""
+        )
+        assertFalse(RecmdIllustFeedFragment.isUnauthenticatedWebSession(ex500))
     }
 }
 

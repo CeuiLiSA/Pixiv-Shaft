@@ -2784,6 +2784,7 @@
     <string name="auto_refresh_home_feed_desc">Jika dimatikan, saat dibuka langsung menampilkan rekomendasi terakhir; tarik ke bawah untuk mendapatkan yang baru</string>
     <string name="include_r18_in_home_feed">Sertakan karya R-18 di rekomendasi beranda</string>
     <string name="include_r18_in_home_feed_desc">Ambil rekomendasi R-18 yang dipersonalisasi dari situs resmi\nMemerlukan login web tambahan dan R-18 aktif di akun Anda</string>
+    <string name="web_login_invalid_home_r18_disabled">Login web tidak valid, karya R-18 tidak akan muncul lagi di beranda</string>
     <string name="ugoira_rife_enable">Interpolasi frame AI untuk ugoira (RIFE)</string>
     <string name="ugoira_rife_enable_desc">Menyisipkan frame tengah buatan AI di antara frame yang berdekatan, otomatis hingga maksimal 4x frame rate (mendekati batas 50fps GIF); pertama kali perlu mengunduh model interpolasi, dan waktu pengenkodean akan lebih lama</string>
     <string name="ugoira_interpolating">Menginterpolasi frame</string>

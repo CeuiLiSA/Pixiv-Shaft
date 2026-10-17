@@ -2770,6 +2770,7 @@
     <string name="auto_refresh_home_feed_desc">When off, the last recommendations are shown on launch; pull to refresh for a new batch</string>
     <string name="include_r18_in_home_feed">Include R-18 works in home feed</string>
     <string name="include_r18_in_home_feed_desc">Fetch personalized R-18 recommendations from the official website\nRequires an additional web login and R-18 enabled on your account</string>
+    <string name="web_login_invalid_home_r18_disabled">Web login is invalid, R-18 works will no longer appear on home feed</string>
     <string name="ugoira_rife_enable">Ugoira AI frame interpolation (RIFE)</string>
     <string name="ugoira_rife_enable_desc">Insert AI-generated in-between frames, boosting frame rate up to 4x (near the 50fps GIF ceiling). Requires downloading the interpolation model; encoding takes longer</string>
     <string name="ugoira_interpolating">Interpolating</string>

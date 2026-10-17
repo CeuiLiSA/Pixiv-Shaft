@@ -2753,6 +2753,7 @@
     <string name="auto_refresh_home_feed_desc">Kapalıyken açılışta son öneriler gösterilir; yeni içerik için aşağı çekip yenileyin</string>
     <string name="include_r18_in_home_feed">Ana sayfa önerilerine R-18 çalışmalarını dahil et</string>
     <string name="include_r18_in_home_feed_desc">Web sitesinden kişiselleştirilmiş R-18 önerilerini alır\nEk bir web girişi ve hesabınızda R-18 görüntülemenin açık olması gerekir</string>
+    <string name="web_login_invalid_home_r18_disabled">Web girişi geçersiz, R-18 çalışmaları artık ana sayfada görünmeyecek</string>
     <string name="ugoira_rife_enable">Ugoira yapay zeka kare arası doldurma (RIFE)</string>
     <string name="ugoira_rife_enable_desc">Yapay zeka ara kareler ekleyerek kare hızını 4 kata kadar artırır (GIF 50fps sınırına yakın). Model indirmek gerekir; kodlama daha uzun sürer</string>
     <string name="ugoira_interpolating">Kare doldurma</string>

@@ -24,8 +24,11 @@ import ceui.lisa.databinding.RecyRecmdHeaderBinding
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.model.ListIllust
 import ceui.pixiv.api.model.Illust
+import ceui.lisa.utils.Common
 import ceui.lisa.utils.DensityUtil
+import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
+import retrofit2.HttpException
 import ceui.lisa.view.LinearItemHorizontalDecoration
 import ceui.lisa.view.SpacesItemWithHeadDecoration
 import ceui.pixiv.api.Client
@@ -434,7 +437,7 @@ open class RecmdIllustFeedFragment(
          * 需要与当前账号一致的网页会话；账号在官网关了 R-18 浏览时不请求（会话里的 x_restrict
          * 由冷启动的 me/state 预热和 token 刷新更新）；开着 R18 过滤时也不请求——
          * 拉回来也会被 [IllustFeedItem.of] 滤掉。
-         * 超时和任何失败都降级成空列表。
+         * 超时和任何失败都降级成空列表。若检测到无有效登录态，自动将开关关回并弹出提示。
          */
         internal suspend fun fetchWebR18Recommend(apiType: String): List<Illust> {
             if (!isR18RecommendEligible()) {
@@ -442,11 +445,22 @@ open class RecmdIllustFeedFragment(
             }
             Timber.d("fetchWebR18Recommend: start fetching mode=r18 for apiType=%s", apiType)
             return try {
-                val body = withTimeoutOrNull(WEB_R18_BUDGET_MS) {
-                    Client.webApi.getTopArtworks(apiType, "r18").body
+                val resp = withTimeoutOrNull(WEB_R18_BUDGET_MS) {
+                    Client.webApi.getTopArtworks(apiType, "r18")
                 }
-                if (body == null) {
+                if (resp == null) {
                     Timber.w("fetchWebR18Recommend: timed out after %d ms", WEB_R18_BUDGET_MS)
+                    return emptyList()
+                }
+                if (resp.error == true) {
+                    Timber.w("fetchWebR18Recommend: web response error: %s", resp.message)
+                    if (SessionManager.isUnauthenticatedWebResponse(resp)) {
+                        handleInvalidWebSession()
+                    }
+                    return emptyList()
+                }
+                val body = resp.body
+                if (body == null) {
                     return emptyList()
                 }
                 val page = body.page
@@ -457,11 +471,30 @@ open class RecmdIllustFeedFragment(
                     .map { it.toIllust() }
                 Timber.d("fetchWebR18Recommend: fetched %d r18 illusts", illusts.size)
                 illusts
+            } catch (e: HttpException) {
+                if (SessionManager.isUnauthenticatedWebSession(e)) {
+                    Timber.w("fetchWebR18Recommend: unauthenticated web session (HTTP %d), disabling switch", e.code())
+                    handleInvalidWebSession()
+                } else {
+                    Timber.w(e, "fetchWebR18Recommend: HTTP error %d", e.code())
+                }
+                emptyList()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Timber.w(e, "web r18 recommend failed")
                 emptyList()
+            }
+        }
+
+        internal fun isUnauthenticatedWebSession(e: HttpException): Boolean =
+            SessionManager.isUnauthenticatedWebSession(e)
+
+        private suspend fun handleInvalidWebSession() {
+            Shaft.sSettings.isIncludeR18InHomeFeed = false
+            Local.setSettings(Shaft.sSettings)
+            withContext(Dispatchers.Main) {
+                Common.showToast(R.string.web_login_invalid_home_r18_disabled)
             }
         }
 

@@ -19,6 +19,8 @@ import ceui.loxia.User
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.AccountResponse
+import ceui.pixiv.api.model.WebResponse
+import retrofit2.HttpException
 import ceui.pixiv.auth.AuthSessionManager
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.login.InvalidRefreshTokenException
@@ -66,6 +68,62 @@ object SessionManager {
     /** 当前网页会话 (PHPSESSID) 是否有效且属于当前已登录账号。 */
     @JvmStatic
     fun hasValidWebSession(): Boolean = ceui.pixiv.ui.discovery.WebDiscoverySession.isCurrentAccount
+
+    /**
+     * 错误信息是否指示官网网页接口未登录或登录态无效。
+     * - 400（未登录）：message 包含「不正确的请求」/「不正なリクエスト」/「Invalid request」
+     * - 401（PHPSESSID 无效/过期）：message 包含「出现了未知错误」/「エラーが発生しました」/「Unknown error」
+     */
+    @JvmStatic
+    fun isUnauthenticatedWebMessage(msg: String?): Boolean {
+        if (msg.isNullOrBlank()) return false
+        return msg.contains("不正确的请求") || msg.contains("不正なリクエスト") || msg.contains("Invalid request") ||
+            msg.contains("出现了未知错误") || msg.contains("エラーが発生しました") || msg.contains("Unknown error")
+    }
+
+    /**
+     * 官网 [WebResponse] 错误是否指示未登录或会话无效。
+     */
+    @JvmStatic
+    fun isUnauthenticatedWebResponse(response: WebResponse<*>?): Boolean {
+        if (response == null || response.error != true) return false
+        return isUnauthenticatedWebMessage(response.message)
+    }
+
+    /**
+     * 严格校验网络异常是否确为官网网页接口返回的「未登录 / 无效登录态」响应体，
+     * 结合状态码（HTTP 400 / 401）与响应体（error=true 及特征错误文案 / PHPSESSID=deleted）联合判定，
+     * 避免网关、代理层或 WAF 的通用 400/401 产生误判：
+     * - 400（未登录）：响应体需带有 error=true，且 message 包含「不正确的请求」/「不正なリクエスト」/「Invalid request」；
+     * - 401（PHPSESSID 无效/过期）：响应头包含 PHPSESSID=deleted 或响应体带有 error=true 与「出现了未知错误」等对应提示。
+     */
+    @JvmStatic
+    fun isUnauthenticatedWebSession(ex: Throwable): Boolean {
+        val http = ex as? HttpException ?: return false
+        val code = http.code()
+        if (code != 400 && code != 401) {
+            return false
+        }
+        val rawBody = runCatching { http.response()?.errorBody()?.string() }.getOrNull() ?: return false
+        val webResp = runCatching {
+            (Shaft.sGson ?: Gson()).fromJson(rawBody, WebResponse::class.java)
+        }.getOrNull()
+
+        val hasErrorFlag = webResp?.error == true || rawBody.contains("\"error\":true") || rawBody.contains("\"error\": true")
+        if (!hasErrorFlag) {
+            return false
+        }
+
+        val msg = webResp?.message.orEmpty()
+        return when (code) {
+            400 -> msg.contains("不正确的请求") || msg.contains("不正なリクエスト") || msg.contains("Invalid request") ||
+                rawBody.contains("不正确的请求") || rawBody.contains("\\u4e0d\\u6b63\\u786e\\u7684\\u8bf7\\u6c42")
+            401 -> msg.contains("出现了未知错误") || msg.contains("エラーが発生しました") || msg.contains("Unknown error") ||
+                rawBody.contains("出现了未知错误") || rawBody.contains("\\u51fa\\u73b0\\u4e86\\u672a\\u77e5\\u9519\\u8bef") ||
+                http.response()?.headers()?.get("Set-Cookie")?.contains("PHPSESSID=deleted") == true
+            else -> false
+        }
+    }
 
     /** 构造网页登录 Intent。 */
     @JvmStatic
