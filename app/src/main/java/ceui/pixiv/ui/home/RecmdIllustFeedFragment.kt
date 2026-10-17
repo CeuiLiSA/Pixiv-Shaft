@@ -26,7 +26,6 @@ import ceui.lisa.model.ListIllust
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.DensityUtil
-import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
 import retrofit2.HttpException
 import ceui.lisa.view.LinearItemHorizontalDecoration
@@ -405,7 +404,7 @@ open class RecmdIllustFeedFragment(
 
         @JvmStatic
         fun isR18RecommendEligible(): Boolean {
-            val switchOn = Shaft.sSettings.isIncludeR18InHomeFeed
+            val switchOn = HomeR18Prefs.isEnabled()
             val user = SessionManager.loggedInUser
             val r18Enabled = user?.isR18Enabled() == true
             val xRestrict = user?.x_restrict
@@ -491,8 +490,7 @@ open class RecmdIllustFeedFragment(
             SessionManager.isUnauthenticatedWebSession(e)
 
         private suspend fun handleInvalidWebSession() {
-            Shaft.sSettings.isIncludeR18InHomeFeed = false
-            Local.setSettings(Shaft.sSettings)
+            HomeR18Prefs.setEnabled(false)
             withContext(Dispatchers.Main) {
                 Common.showToast(R.string.web_login_invalid_home_r18_disabled)
             }

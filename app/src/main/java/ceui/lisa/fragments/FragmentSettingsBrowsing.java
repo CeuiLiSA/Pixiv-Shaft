@@ -27,6 +27,7 @@ import ceui.pixiv.ui.settings.AiBlockExemptAuthorsSheet;
 import ceui.pixiv.ui.settings.FilterBookmarkedDialog;
 import ceui.pixiv.ui.history.CloudHistoryConsent;
 import ceui.pixiv.session.SessionManager;
+import ceui.pixiv.ui.home.HomeR18Prefs;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /** 设置 · 浏览与搜索 */
@@ -35,8 +36,7 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
     private final ActivityResultLauncher<Intent> webLoginLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 boolean valid = SessionManager.hasValidWebSession();
-                Shaft.sSettings.setIncludeR18InHomeFeed(valid);
-                Local.setSettings(Shaft.sSettings);
+                HomeR18Prefs.setEnabled(valid);
                 baseBind.includeR18InHomeFeed.setChecked(valid);
                 if (valid) {
                     Common.showToast(getString(R.string.string_428), 2);
@@ -79,21 +79,19 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         } else {
             baseBind.includeR18InHomeFeedRela.setVisibility(View.VISIBLE);
             baseBind.autoRefreshHomeFeedRela.setBackgroundResource(ceui.pixiv.witstudio.R.drawable.wit_row_top);
-            if (Shaft.sSettings.isIncludeR18InHomeFeed() && !SessionManager.hasValidWebSession()) {
-                Shaft.sSettings.setIncludeR18InHomeFeed(false);
-                Local.setSettings(Shaft.sSettings);
+            if (HomeR18Prefs.isEnabled() && !SessionManager.hasValidWebSession()) {
+                HomeR18Prefs.setEnabled(false);
             }
-            baseBind.includeR18InHomeFeed.setChecked(Shaft.sSettings.isIncludeR18InHomeFeed());
+            baseBind.includeR18InHomeFeed.setChecked(HomeR18Prefs.isEnabled());
             View.OnClickListener toggleIncludeR18 = v -> {
-                boolean target = !Shaft.sSettings.isIncludeR18InHomeFeed();
+                boolean target = !HomeR18Prefs.isEnabled();
                 if (target && !SessionManager.hasValidWebSession()) {
                     baseBind.includeR18InHomeFeed.setChecked(false);
                     SessionManager.showWebLoginDialog(mActivity, getString(R.string.include_r18_in_home_feed), () ->
                             webLoginLauncher.launch(SessionManager.createWebLoginIntent(mActivity)));
                     return;
                 }
-                Shaft.sSettings.setIncludeR18InHomeFeed(target);
-                Local.setSettings(Shaft.sSettings);
+                HomeR18Prefs.setEnabled(target);
                 baseBind.includeR18InHomeFeed.setChecked(target);
                 Common.showToast(getString(R.string.string_428), 2);
             };
@@ -478,9 +476,8 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
     @Override
     public void onResume() {
         super.onResume();
-        if (!ceui.lisa.BuildConfig.IS_LITE && Shaft.sSettings.isIncludeR18InHomeFeed() && !SessionManager.hasValidWebSession()) {
-            Shaft.sSettings.setIncludeR18InHomeFeed(false);
-            Local.setSettings(Shaft.sSettings);
+        if (!ceui.lisa.BuildConfig.IS_LITE && HomeR18Prefs.isEnabled() && !SessionManager.hasValidWebSession()) {
+            HomeR18Prefs.setEnabled(false);
             baseBind.includeR18InHomeFeed.setChecked(false);
         }
     }

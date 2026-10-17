@@ -369,5 +369,17 @@ class RecmdR18InterleaveTest {
         )
         assertFalse(RecmdIllustFeedFragment.isUnauthenticatedWebSession(ex500))
     }
+
+    @Test
+    fun `Settings class has no includeR18InHomeFeed field or methods`() {
+        val hasField = ceui.lisa.utils.Settings::class.java.declaredFields.any {
+            it.name.contains("includeR18InHomeFeed", ignoreCase = true)
+        }
+        val hasMethod = ceui.lisa.utils.Settings::class.java.declaredMethods.any {
+            it.name.contains("includeR18InHomeFeed", ignoreCase = true)
+        }
+        assertFalse("includeR18InHomeFeed field must not exist in Settings", hasField)
+        assertFalse("includeR18InHomeFeed methods must not exist in Settings", hasMethod)
+    }
 }
 

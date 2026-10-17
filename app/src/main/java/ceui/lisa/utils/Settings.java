@@ -572,9 +572,8 @@ public class Settings {
     // 关掉后冷启命中磁盘快照就停在快照上，由用户下拉刷新才拉新内容
     private boolean autoRefreshHomeFeed = true;
 
-    // 首页推荐流（含推荐插画/漫画）首屏是否从官网拉取 R-18 推荐，默认关闭。
-    // 关掉时保持 Pixiv App 原生推荐的全年龄语义；开启后首屏会向官网 /ajax/top 并行拉取 R-18 推荐前置展示
-    private boolean includeR18InHomeFeed = false;
+    // 首页推荐包含 R-18 作品开关**不在这里**: 它跟「本机网页登录会话」绑定，不具备跨设备性，
+    // 走设备本地 MMKV 的 ceui.pixiv.ui.home.HomeR18Prefs，不进备份 / 云端。
 
     // 推荐页页签顺序：默认推荐作品在前；插画和小说共用，重启后生效。
     private boolean recommendHotTagsFirst = false;
@@ -1739,21 +1738,6 @@ public class Settings {
 
     public void setAutoRefreshHomeFeed(boolean autoRefreshHomeFeed) {
         this.autoRefreshHomeFeed = autoRefreshHomeFeed;
-    }
-
-    public boolean isIncludeR18InHomeFeed() {
-        if (ceui.lisa.BuildConfig.IS_LITE) {
-            return false;
-        }
-        return includeR18InHomeFeed;
-    }
-
-    public void setIncludeR18InHomeFeed(boolean includeR18InHomeFeed) {
-        if (ceui.lisa.BuildConfig.IS_LITE) {
-            this.includeR18InHomeFeed = false;
-            return;
-        }
-        this.includeR18InHomeFeed = includeR18InHomeFeed;
     }
 
     // 插画大图双击缩放行为：
