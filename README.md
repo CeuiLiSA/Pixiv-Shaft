@@ -11,7 +11,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/CeuiLiSA/Pixiv-Shaft?style=for-the-badge&logo=android&color=3ddc84)](https://github.com/CeuiLiSA/Pixiv-Shaft/releases/latest)
 [![License](https://img.shields.io/github/license/CeuiLiSA/Pixiv-Shaft?style=for-the-badge&color=blue)](./LICENSE)
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/CeuiLiSA/Pixiv-Shaft/gradle.yml?branch=master&style=flat-square&label=build)](https://github.com/CeuiLiSA/Pixiv-Shaft/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/CeuiLiSA/Pixiv-Shaft/gradle.yml?style=flat-square&label=build)](https://github.com/CeuiLiSA/Pixiv-Shaft/actions)
 [![Issues](https://img.shields.io/github/issues/CeuiLiSA/Pixiv-Shaft?style=flat-square&color=brightgreen)](https://github.com/CeuiLiSA/Pixiv-Shaft/issues)
 [![Issues Closed](https://img.shields.io/github/issues-closed/CeuiLiSA/Pixiv-Shaft?style=flat-square&color=9466ff)](https://github.com/CeuiLiSA/Pixiv-Shaft/issues?q=is%3Aissue+is%3Aclosed)
 [![Last Commit](https://img.shields.io/github/last-commit/CeuiLiSA/Pixiv-Shaft?style=flat-square)](https://github.com/CeuiLiSA/Pixiv-Shaft/commits)
