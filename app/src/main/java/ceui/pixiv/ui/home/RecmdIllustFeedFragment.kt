@@ -59,6 +59,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
 import timber.log.Timber
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * 首页「推荐插画」tab / 推荐漫画页（feeds 框架版，替代 legacy FragmentRecmdIllust +
@@ -99,16 +100,36 @@ open class RecmdIllustFeedFragment(
         val pool = requireContext().appServices().discoveryPool
         // 本地优先（哔哩哔哩 / 新闻首页语义）：给稳定 slot 即开磁盘缓存，冷启秒显上次首屏
         // 再拉最新覆盖。slot 已由框架自动拼账号命名空间，切号不串味。
+        val r18Buffer = R18RecommendBuffer()
         cachedPixivFeedSource(
             slot = "recmd-$apiType",
-            // app-api 推荐流不出 R-18，R-18 推荐只能从官网首页拿：两路并行，官网那路排到最前。
-            // 官网失败只是少了 R-18，不拖垮首屏；app-api 失败照旧整体失败。
+            // 官网 R-18 推荐与 App API 全年龄推荐并行拉取。拉回的 R-18 作品存入缓冲池，
+            // 首屏与后续翻页按固定步长（每 3 张全年龄插入 1 张 R-18）均匀平摊混入。
+            // 官网失败只是不混入 R-18，不阻断首页正常内容加载。
             initialFetch = {
                 coroutineScope {
                     val webR18 = async { fetchWebR18Recommend(apiType) }
                     val resp = Client.appApi.getRecommendedWorksWithRanking(apiType)
-                    val r18 = webR18.await()
-                    if (r18.isEmpty()) resp else resp.copy(illusts = r18 + resp.illusts)
+                    val r18List = webR18.await()
+                    r18Buffer.reset(r18List)
+                    val batch = if (isR18RecommendEligible()) {
+                        r18Buffer.takeBatch(
+                            resp.illusts.size / R18_INTERLEAVE_STEP,
+                            excludedIds = resp.illusts.mapTo(HashSet()) { it.id },
+                        )
+                    } else {
+                        r18Buffer.clear()
+                        emptyList()
+                    }
+                    val mergedIllusts = interleaveIllusts(resp.illusts, batch, step = R18_INTERLEAVE_STEP)
+                    Timber.d(
+                        "RecmdIllustFeedFragment: initialFetch normal=%d, r18Batch=%d, remainingBuffer=%d, merged=%d",
+                        resp.illusts.size,
+                        batch.size,
+                        r18Buffer.size,
+                        mergedIllusts.size,
+                    )
+                    resp.copy(illusts = mergedIllusts)
                 }
             },
             // 「启动时自动刷新首页推荐」(issue #955)：关掉后冷启命中快照就停在快照上，
@@ -119,7 +140,24 @@ open class RecmdIllustFeedFragment(
                 dataType != TYPE_ILLUST || Shaft.sSettings.isAutoRefreshHomeFeed
             },
         ) { resp, phase ->
-            mapRecmdPage(pool, resp.illusts, resp.ranking_illusts, phase, dataType)
+            val illusts = if (phase == FeedLoadPhase.NextPage && isR18RecommendEligible()) {
+                val batch = r18Buffer.takeBatch(
+                    resp.illusts.size / R18_INTERLEAVE_STEP,
+                    excludedIds = resp.illusts.mapTo(HashSet()) { it.id },
+                )
+                val merged = interleaveIllusts(resp.illusts, batch, step = R18_INTERLEAVE_STEP)
+                Timber.d(
+                    "RecmdIllustFeedFragment[NextPage]: normal=%d, r18Batch=%d, remainingBuffer=%d, merged=%d",
+                    resp.illusts.size,
+                    batch.size,
+                    r18Buffer.size,
+                    merged.size,
+                )
+                merged
+            } else {
+                resp.illusts
+            }
+            mapRecmdPage(pool, illusts, resp.ranking_illusts, phase, dataType)
         }
     }
 
@@ -296,6 +334,36 @@ open class RecmdIllustFeedFragment(
         const val TYPE_ILLUST = "插画"
         const val TYPE_MANGA = "漫画"
 
+        /**
+         * R-18 作品混入步长：在基础全年龄推荐流中，每隔 [R18_INTERLEAVE_STEP] 张全年龄作品
+         * 插入 1 张 R-18 作品（R-18 占比 25%）。
+         *
+         * 在双列瀑布流中，4 张卡片恰好构成 2 行网格，稳定对应 3 张全年龄作品 + 1 张 R-18 作品，
+         * 保证分布均匀、不扎堆，同时首屏顶部至少先展示 3 张正常作品。
+         */
+        const val R18_INTERLEAVE_STEP = 3
+
+        @JvmStatic
+        fun isR18RecommendEligible(): Boolean {
+            val switchOn = Shaft.sSettings.isIncludeR18InHomeFeed
+            val user = SessionManager.loggedInUser
+            val r18Enabled = user?.isR18Enabled() == true
+            val xRestrict = user?.x_restrict
+            val tempFilter = Shaft.sSettings.isR18FilterTempEnable
+            val isCurrentAccount = WebDiscoverySession.isCurrentAccount
+            val eligible = switchOn && r18Enabled && !tempFilter && isCurrentAccount
+            Timber.d(
+                "isR18RecommendEligible: eligible=%s (switch=%s, r18Enabled=%s[x_restrict=%s], tempFilter=%s, isCurrentAccount=%s)",
+                eligible,
+                switchOn,
+                r18Enabled,
+                xRestrict,
+                tempFilter,
+                isCurrentAccount,
+            )
+            return eligible
+        }
+
         @JvmStatic
         fun newInstance(dataType: String): RecmdIllustFeedFragment {
             return RecmdIllustFeedFragment().apply {
@@ -314,23 +382,26 @@ open class RecmdIllustFeedFragment(
          * 超时和任何失败都降级成空列表。
          */
         private suspend fun fetchWebR18Recommend(apiType: String): List<Illust> {
-            if (!Shaft.sSettings.isIncludeR18InHomeFeed ||
-                SessionManager.loggedInUser?.isR18Enabled() != true ||
-                Shaft.sSettings.isR18FilterTempEnable ||
-                !WebDiscoverySession.isCurrentAccount
-            ) {
+            if (!isR18RecommendEligible()) {
                 return emptyList()
             }
+            Timber.d("fetchWebR18Recommend: start fetching mode=r18 for apiType=%s", apiType)
             return try {
                 val body = withTimeoutOrNull(WEB_R18_BUDGET_MS) {
                     Client.webApi.getTopArtworks(apiType, "r18").body
-                } ?: return emptyList()
+                }
+                if (body == null) {
+                    Timber.w("fetchWebR18Recommend: timed out after %d ms", WEB_R18_BUDGET_MS)
+                    return emptyList()
+                }
                 val page = body.page
                 val ids = page?.recommend?.ids.orEmpty() +
                     page?.recommendByTag.orEmpty().flatMap { it.ids.orEmpty() }
-                body.artworks(ids.distinct())
+                val illusts = body.artworks(ids.distinct())
                     .filter { it.xRestrict > 0 }
                     .map { it.toIllust() }
+                Timber.d("fetchWebR18Recommend: fetched %d r18 illusts", illusts.size)
+                illusts
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -395,4 +466,83 @@ class RankPreviewHeaderItem(
     }
 
     override fun hashCode(): Int = rankIds.hashCode()
+}
+
+/**
+ * 官网 R-18 个性化推荐在首页流中的缓冲池。
+ *
+ * 官网推荐接口（/ajax/top/{illust|manga}?mode=r18）在首屏一次性返回「为你推荐」与「按标签推荐」
+ * 全量作品（插画约 160 条，漫画约 3 条）。为了让这些作品在长列表浏览中持续、平稳地与 App 端全年龄
+ * 推荐作品交错混排，首屏拉回后存入缓冲池，首屏及后续翻页持续按比例提取。
+ *
+ * 线程安全：内部使用 [ConcurrentLinkedQueue]，支持跨协程调度安全出队。
+ */
+class R18RecommendBuffer {
+
+    private val queue = ConcurrentLinkedQueue<Illust>()
+
+    /** 重置缓冲池数据（下拉刷新或新一代首屏拉取成功时调用）。 */
+    fun reset(items: List<Illust>) {
+        queue.clear()
+        if (items.isNotEmpty()) {
+            queue.addAll(items)
+        }
+    }
+
+    /** 清空缓冲池。 */
+    fun clear() {
+        queue.clear()
+    }
+
+    /** 当前剩余作品数量。 */
+    val size: Int get() = queue.size
+
+    val isEmpty: Boolean get() = queue.isEmpty()
+
+    /**
+     * 批量提取指定数量的 R-18 作品。
+     *
+     * @param count 期望提取的最大条数。若 <= 0 则直接返回空列表。
+     * @param excludedIds 需排除的作品 ID 集合（避免与当前页已有的全年龄推荐作品重复）。
+     */
+    fun takeBatch(count: Int, excludedIds: Set<Long> = emptySet()): List<Illust> {
+        if (count <= 0 || queue.isEmpty()) return emptyList()
+        val result = ArrayList<Illust>(count)
+        while (result.size < count) {
+            val item = queue.poll() ?: break
+            if (item.id !in excludedIds) {
+                result.add(item)
+            }
+        }
+        return result
+    }
+}
+
+/**
+ * 将提取到的 R-18 作品均匀穿插到基础全年龄作品列表中。
+ *
+ * 每隔 [step] 个基础作品插入 1 个 R-18 作品。
+ * 例如 step = 3：
+ * Base[0], Base[1], Base[2], Injected[0], Base[3], Base[4], Base[5], Injected[1]...
+ *
+ * 保证首屏顶部至少先展示 [step] 个正常推荐作品，且在双列瀑布流中每两行网格（4 张卡片）
+ * 稳定对应 3 张正常作品与 1 张 R-18 作品，避免卡片聚集或突兀堆叠。
+ */
+fun <T> interleaveIllusts(base: List<T>, injected: List<T>, step: Int = RecmdIllustFeedFragment.R18_INTERLEAVE_STEP): List<T> {
+    if (injected.isEmpty()) return base
+    if (base.isEmpty()) return injected
+    if (step <= 0) return injected + base
+
+    val result = ArrayList<T>(base.size + injected.size)
+    var injectedIndex = 0
+    for (i in base.indices) {
+        result.add(base[i])
+        if ((i + 1) % step == 0 && injectedIndex < injected.size) {
+            result.add(injected[injectedIndex++])
+        }
+    }
+    while (injectedIndex < injected.size) {
+        result.add(injected[injectedIndex++])
+    }
+    return result
 }
