@@ -70,15 +70,26 @@ internal object ExportUtils {
             ?: ""
     }
 
-    /** Synchronously load a bitmap via Glide. Blocks on a worker thread. */
-    fun loadBitmap(context: Context, url: String, maxSide: Int = 1200): Bitmap? {
+    /**
+     * Synchronously load a bitmap via Glide and return a [Result].
+     * Blocks on a worker thread.
+     */
+    fun loadBitmapResult(context: Context, url: String, maxSide: Int = 1200): Result<Bitmap> {
         return runCatching {
-            Glide.with(context.applicationContext)
+            val bitmap = Glide.with(context.applicationContext)
                 .asBitmap()
                 .load(GlideUrlChild(url))
                 .submit(maxSide, maxSide)
                 .get(30, TimeUnit.SECONDS)
-        }.getOrNull()
+            bitmap ?: throw IllegalStateException("Glide returned null bitmap for $url")
+        }.onFailure {
+            timber.log.Timber.w(it, "loadBitmap failed for $url")
+        }
+    }
+
+    /** Synchronously load a bitmap via Glide. Blocks on a worker thread. */
+    fun loadBitmap(context: Context, url: String, maxSide: Int = 1200): Bitmap? {
+        return loadBitmapResult(context, url, maxSide).getOrNull()
     }
 
     /** Compress a bitmap to JPEG bytes. Recycles nothing — caller manages lifecycle. */

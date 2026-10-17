@@ -23,6 +23,7 @@ class TxtExporter : NovelExporter {
         webNovel: WebNovel,
         tokens: List<ContentToken>,
         destination: RelativePath,
+        retryPolicy: EpubImageRetryPolicy,
     ): ExportResult {
         val text = buildString {
             if (novel != null) {

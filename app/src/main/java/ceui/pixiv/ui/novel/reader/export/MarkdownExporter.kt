@@ -22,6 +22,7 @@ class MarkdownExporter : NovelExporter {
         webNovel: WebNovel,
         tokens: List<ContentToken>,
         destination: RelativePath,
+        retryPolicy: EpubImageRetryPolicy,
     ): ExportResult {
         val resolver = ImageResolver.of(webNovel)
         val title = novel?.title ?: webNovel.title.orEmpty()

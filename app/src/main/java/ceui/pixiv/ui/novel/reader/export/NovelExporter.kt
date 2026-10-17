@@ -26,6 +26,7 @@ interface NovelExporter {
         webNovel: WebNovel,
         tokens: List<ContentToken>,
         destination: RelativePath,
+        retryPolicy: EpubImageRetryPolicy = EpubImageRetryPolicy.Default,
     ): ExportResult
 }
 

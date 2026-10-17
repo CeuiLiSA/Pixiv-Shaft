@@ -39,6 +39,7 @@ class PdfExporter : NovelExporter {
         webNovel: WebNovel,
         tokens: List<ContentToken>,
         destination: RelativePath,
+        retryPolicy: EpubImageRetryPolicy,
     ): ExportResult {
         val title = novel?.title ?: webNovel.title.orEmpty()
         val author = novel?.user?.name.orEmpty()
