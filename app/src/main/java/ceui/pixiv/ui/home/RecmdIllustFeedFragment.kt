@@ -48,11 +48,18 @@ import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.discovery.WebDiscoverySession
 import ceui.pixiv.utils.isFullDetail
 import ceui.pixiv.utils.setOnClick
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -91,6 +98,8 @@ open class RecmdIllustFeedFragment(
         requireArguments().getString(ARG_DATA_TYPE) ?: TYPE_ILLUST
     }
 
+    private val r18ViewModel: RecmdR18ViewModel by viewModels()
+
     override val feedViewModel by feedViewModels {
         // 零捕获约定（见 feedViewModels 文档）：source/mapper 归 VM 长期持有，
         // 只捕获局部值、映射走伴生函数，不把 Fragment 实例钉进 VM
@@ -98,39 +107,22 @@ open class RecmdIllustFeedFragment(
         val apiType = if (dataType == TYPE_MANGA) "manga" else "illust"
         // 应用级对象，捕获它不会把 Fragment 钉进 VM
         val pool = requireContext().appServices().discoveryPool
+        // 缓冲池归 RecmdR18ViewModel 长期持有，由后台协程异步注水，首屏与后续翻页按固定步长均匀平摊混入。
+        val r18Buffer = r18ViewModel.buffer
         // 本地优先（哔哩哔哩 / 新闻首页语义）：给稳定 slot 即开磁盘缓存，冷启秒显上次首屏
         // 再拉最新覆盖。slot 已由框架自动拼账号命名空间，切号不串味。
-        val r18Buffer = R18RecommendBuffer()
         cachedPixivFeedSource(
             slot = "recmd-$apiType",
-            // 官网 R-18 推荐与 App API 全年龄推荐并行拉取。拉回的 R-18 作品存入缓冲池，
-            // 首屏与后续翻页按固定步长（每 3 张全年龄插入 1 张 R-18）均匀平摊混入。
-            // 官网失败只是不混入 R-18，不阻断首页正常内容加载。
+            // 首屏拉取与网页 R-18 推荐拉取并行出发（两相奔赴、各自完成）：
+            // 立即在后台触发 r18ViewModel.recharge 拉取 R-18，同时发起 App API 全年龄推荐请求（耗时约 200ms）。
+            // 绝不挂起等待慢速的网页 R-18 接口；拉回后注满缓冲池供翻页消耗，并自动尝试动态补偿首屏。
             initialFetch = {
-                coroutineScope {
-                    val webR18 = async { fetchWebR18Recommend(apiType) }
-                    val resp = Client.appApi.getRecommendedWorksWithRanking(apiType)
-                    val r18List = webR18.await()
-                    r18Buffer.reset(r18List)
-                    val batch = if (isR18RecommendEligible()) {
-                        r18Buffer.takeBatch(
-                            resp.illusts.size / R18_INTERLEAVE_STEP,
-                            excludedIds = resp.illusts.mapTo(HashSet()) { it.id },
-                        )
-                    } else {
-                        r18Buffer.clear()
-                        emptyList()
-                    }
-                    val mergedIllusts = interleaveIllusts(resp.illusts, batch, step = R18_INTERLEAVE_STEP)
-                    Timber.d(
-                        "RecmdIllustFeedFragment: initialFetch normal=%d, r18Batch=%d, remainingBuffer=%d, merged=%d",
-                        resp.illusts.size,
-                        batch.size,
-                        r18Buffer.size,
-                        mergedIllusts.size,
-                    )
-                    resp.copy(illusts = mergedIllusts)
+                r18ViewModel.recharge(
+                    apiType = apiType,
+                ) {
+                    compensateFirstPage()
                 }
+                Client.appApi.getRecommendedWorksWithRanking(apiType)
             },
             // 「启动时自动刷新首页推荐」(issue #955)：关掉后冷启命中快照就停在快照上，
             // 由用户下拉刷新才换一批——推荐流每次冷启整代替换，会让上次没翻完的作品直接消失。
@@ -232,6 +224,71 @@ open class RecmdIllustFeedFragment(
                 (activity as? ColdStartSplashHost)?.markColdStartRefreshSettled()
             }
         }
+
+        // 当首页进入加载时，立即并行触发 R-18 异步拉取；拉回后自动尝试首屏动态补偿混入
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                feedViewModel.uiState
+                    .filter { it.refresh is LoadState.Loading }
+                    .map { it.refreshGeneration }
+                    .distinctUntilChanged()
+                    .collect {
+                        val apiType = if (dataType == TYPE_MANGA) "manga" else "illust"
+                        r18ViewModel.recharge(
+                            apiType = apiType,
+                        ) {
+                            compensateFirstPage()
+                        }
+                    }
+            }
+        }
+    }
+
+    /**
+     * 当后台异步拉取完 R-18 推荐后，若当前展示的首屏尚无 R-18 内容，
+     * 从缓冲池提取一批按步长混入当前首屏，使用 mutateItems 平滑更新。
+     */
+    private fun compensateFirstPage() {
+        if (!isR18RecommendEligible()) return
+        viewLifecycleOwner.lifecycleScope.launch {
+            // 若 Web R-18 比 App API 先返回，等待真实网络首屏到达
+            val targetState = feedViewModel.uiState.first {
+                !it.itemsFromCache && it.refresh is LoadState.Idle && it.hasLoadedOnce && it.items.isNotEmpty()
+            }
+            val currentItems = targetState.items
+            // 已经存在 R-18 条目（例如翻页已经混入过）则无需补偿
+            val alreadyHasR18 = currentItems.any {
+                (it as? IllustFeedItem)?.illust?.x_restrict?.let { x -> x > 0 } == true
+            }
+            if (alreadyHasR18) return@launch
+
+            val normalIllustCount = currentItems.count { it is IllustFeedItem }
+            val targetR18Count = (normalIllustCount / R18_INTERLEAVE_STEP).coerceIn(1, 10)
+            val existingIds = currentItems.mapNotNullTo(HashSet()) { (it as? IllustFeedItem)?.illust?.id }
+            val batch = r18ViewModel.buffer.takeBatch(targetR18Count, excludedIds = existingIds)
+            if (batch.isEmpty()) return@launch
+
+            val feedItems = withContext(Dispatchers.Default) {
+                batch.mapNotNull { IllustFeedItem.of(it) }
+            }
+            if (feedItems.isEmpty()) return@launch
+
+            feedViewModel.mutateItems { items ->
+                val stillHasR18 = items.any {
+                    (it as? IllustFeedItem)?.illust?.x_restrict?.let { x -> x > 0 } == true
+                }
+                if (stillHasR18) {
+                    items
+                } else {
+                    interleaveFeedItems(items, feedItems, step = R18_INTERLEAVE_STEP)
+                }
+            }
+            Timber.d(
+                "compensateFirstPage: successfully interleaved %d r18 items into first page (total now: %d)",
+                feedItems.size,
+                feedViewModel.uiState.value.items.size,
+            )
+        }
     }
 
     override fun onDestroyView() {
@@ -327,8 +384,8 @@ open class RecmdIllustFeedFragment(
     companion object {
         internal const val ARG_DATA_TYPE = "recmd_data_type"
 
-        /** 官网 R-18 推荐的等待上限。实测正常 1.2–1.6s，留出余量又不让首屏被慢网拖住。 */
-        private const val WEB_R18_BUDGET_MS = 3_000L
+        /** 官网 R-18 推荐的异步获取上限（在后台静默拉取，不阻塞前台首屏渲染）。 */
+        private const val WEB_R18_BUDGET_MS = 12_000L
 
         /** dataType 是路由字面量（RankActivity 按 "插画"/"漫画" 分支），不是展示文案，别本地化。 */
         const val TYPE_ILLUST = "插画"
@@ -377,11 +434,9 @@ open class RecmdIllustFeedFragment(
          * 需要与当前账号一致的网页会话；账号在官网关了 R-18 浏览时不请求（会话里的 x_restrict
          * 由冷启动的 me/state 预热和 token 刷新更新）；开着 R18 过滤时也不请求——
          * 拉回来也会被 [IllustFeedItem.of] 滤掉。
-         * 首屏要等它和 app-api 都回来，所以限时 [WEB_R18_BUDGET_MS]：网页客户端自己的超时是
-         * 连接 5s + 读取 10s，不限时的话官网一慢，本来 0.3s 就能出的首屏会被拖住十几秒。
          * 超时和任何失败都降级成空列表。
          */
-        private suspend fun fetchWebR18Recommend(apiType: String): List<Illust> {
+        internal suspend fun fetchWebR18Recommend(apiType: String): List<Illust> {
             if (!isR18RecommendEligible()) {
                 return emptyList()
             }
@@ -546,3 +601,89 @@ fun <T> interleaveIllusts(base: List<T>, injected: List<T>, step: Int = RecmdIll
     }
     return result
 }
+
+/**
+ * 将 R-18 条目均匀平摊穿插进包含非插画条目（如 [RankPreviewHeaderItem]）的 [FeedItem] 列表中。
+ *
+ * 保留非插画条目（例如排行榜头部条）在原位，仅在插画卡片（[IllustFeedItem]）序列中
+ * 每隔 [step] 个正常作品插入 1 个注入条目。
+ */
+fun interleaveFeedItems(
+    items: List<FeedItem>,
+    injected: List<FeedItem>,
+    step: Int = RecmdIllustFeedFragment.R18_INTERLEAVE_STEP,
+): List<FeedItem> {
+    if (injected.isEmpty()) return items
+    if (items.isEmpty()) return injected
+    if (step <= 0) return injected + items
+
+    val result = ArrayList<FeedItem>(items.size + injected.size)
+    var injectedIndex = 0
+    var illustCount = 0
+
+    for (item in items) {
+        result.add(item)
+        if (item is IllustFeedItem) {
+            illustCount++
+            if (illustCount % step == 0 && injectedIndex < injected.size) {
+                result.add(injected[injectedIndex++])
+            }
+        }
+    }
+    while (injectedIndex < injected.size) {
+        result.add(injected[injectedIndex++])
+    }
+    return result
+}
+
+/**
+ * 维持首页 R-18 推荐缓冲池及其后台注水协程生命周期的 ViewModel。
+ * 绑定在 Fragment 的 ViewModelStore 中，在配置变更 / 页面存活期间长期留存。
+ */
+class RecmdR18ViewModel : ViewModel() {
+
+    val buffer = R18RecommendBuffer()
+
+    private var rechargeJob: Job? = null
+    private var isFetching: Boolean = false
+
+    /**
+     * 在后台协程中为缓冲池异步拉取网页 R-18 推荐作品。与全年龄推荐接口并行出发，两相奔赴。
+     *
+     * @param apiType "illust" 或 "manga"。
+     * @param onLoaded 拉取成功且数据非空时的回调（在主线程调用，用于补偿混入首屏）。
+     */
+    fun recharge(
+        apiType: String,
+        onLoaded: () -> Unit,
+    ) {
+        if (!RecmdIllustFeedFragment.isR18RecommendEligible()) {
+            buffer.clear()
+            return
+        }
+        if (isFetching) {
+            return
+        }
+        rechargeJob?.cancel()
+        isFetching = true
+        rechargeJob = viewModelScope.launch {
+            try {
+                val r18List = RecmdIllustFeedFragment.fetchWebR18Recommend(apiType)
+                if (r18List.isNotEmpty()) {
+                    buffer.reset(r18List)
+                    Timber.d("RecmdR18ViewModel: recharged %d r18 items into buffer", r18List.size)
+                    onLoaded()
+                }
+            } finally {
+                isFetching = false
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        rechargeJob?.cancel()
+        buffer.clear()
+    }
+}
+

@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.home
 
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.ui.common.IllustFeedItem
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -175,4 +176,86 @@ class RecmdR18InterleaveTest {
         val page7Merged = interleaveIllusts(page7App, page7R18, step = RecmdIllustFeedFragment.R18_INTERLEAVE_STEP)
         assertEquals(page7App, page7Merged)
     }
+
+    private class MockFeedItem(override val feedKey: Any) : ceui.pixiv.feeds.FeedItem
+
+    @Test
+    fun `interleaveFeedItems preserves header positions and only interleaves on IllustFeedItem`() {
+        val header = MockFeedItem("header_rank")
+        val n1 = IllustFeedItem(mockIllust(1L))
+        val n2 = IllustFeedItem(mockIllust(2L))
+        val n3 = IllustFeedItem(mockIllust(3L))
+        val n4 = IllustFeedItem(mockIllust(4L))
+
+        val r1 = IllustFeedItem(mockIllust(101L, isR18 = true))
+        val r2 = IllustFeedItem(mockIllust(102L, isR18 = true))
+
+        val baseItems = listOf(header, n1, n2, n3, n4)
+        val injectedItems = listOf(r1, r2)
+
+        val result = interleaveFeedItems(baseItems, injectedItems, step = 3)
+        // Step 3 applies to IllustFeedItem:
+        // header (non-illust, count=0)
+        // n1 (illust 1)
+        // n2 (illust 2)
+        // n3 (illust 3 -> triggers r1 insertion)
+        // r1
+        // n4 (illust 4)
+        // remaining injected: r2 appended at end
+        assertEquals(listOf(header, n1, n2, n3, r1, n4, r2), result)
+    }
+
+    @Test
+    fun `interleaveFeedItems with empty injected returns base items unmodified`() {
+        val n1 = IllustFeedItem(mockIllust(1L))
+        val n2 = IllustFeedItem(mockIllust(2L))
+        val baseItems = listOf(n1, n2)
+
+        val result = interleaveFeedItems(baseItems, emptyList(), step = 3)
+        assertEquals(baseItems, result)
+    }
+
+    @Test
+    fun `interleaveFeedItems with empty base returns injected items`() {
+        val r1 = IllustFeedItem(mockIllust(101L, isR18 = true))
+        val result = interleaveFeedItems(emptyList(), listOf(r1), step = 3)
+        assertEquals(listOf(r1), result)
+    }
+
+    @Test
+    fun `interleaveFeedItems realistic first-page compensation`() {
+        val header = MockFeedItem("header_rank")
+        val normalIllusts = (1L..12L).map { IllustFeedItem(mockIllust(it)) }
+        val r18Illusts = (101L..104L).map { IllustFeedItem(mockIllust(it, isR18 = true)) }
+
+        val base = listOf(header) + normalIllusts
+        val result = interleaveFeedItems(base, r18Illusts, step = 3)
+
+        assertEquals(1 + 12 + 4, result.size)
+        // Header must stay at index 0
+        assertEquals(header, result[0])
+
+        // R-18 items inserted after illust 3, 6, 9, 12
+        // Indices in result:
+        // 0: header
+        // 1: 1L, 2: 2L, 3: 3L
+        // 4: 101L (R18)
+        // 5: 4L, 6: 5L, 7: 6L
+        // 8: 102L (R18)
+        // 9: 7L, 10: 8L, 11: 9L
+        // 12: 103L (R18)
+        // 13: 10L, 14: 11L, 15: 12L
+        // 16: 104L (R18)
+        assertEquals(101L, (result[4] as IllustFeedItem).illust.id)
+        assertEquals(102L, (result[8] as IllustFeedItem).illust.id)
+        assertEquals(103L, (result[12] as IllustFeedItem).illust.id)
+        assertEquals(104L, (result[16] as IllustFeedItem).illust.id)
+
+        // Non-R18 items preserve relative order
+        val resultNormalIds = result.filterIsInstance<IllustFeedItem>()
+            .filter { it.illust.x_restrict == 0 }
+            .map { it.illust.id }
+        assertEquals((1L..12L).toList(), resultNormalIds)
+    }
 }
+
