@@ -33,6 +33,7 @@ class EpubExporter : NovelExporter {
         webNovel: WebNovel,
         tokens: List<ContentToken>,
         destination: RelativePath,
+        retryPolicy: EpubImageRetryPolicy,
     ): ExportResult {
         val resolver = ImageResolver.of(webNovel)
         val title = (novel?.title ?: webNovel.title.orEmpty()).ifEmpty { "novel" }
@@ -44,17 +45,160 @@ class EpubExporter : NovelExporter {
         // XHTML and manifest agree.
         data class BundledImage(val fileName: String, val bytes: ByteArray, val mime: String)
         val images = linkedMapOf<String, BundledImage>()
-        for (token in tokens) {
-            val url = resolver(token) ?: continue
-            val key = when (token) {
-                is ContentToken.UploadedImage -> "uploaded_${token.imageId}"
-                is ContentToken.PixivImage -> "pixiv_${token.illustId}_${token.pageIndex}"
-                else -> continue
+
+        when (retryPolicy) {
+            is EpubImageRetryPolicy.Foreground -> {
+                var dontAskAgain = false
+                var silentRetryOnFail = false
+                for (token in tokens) {
+                    val key = when (token) {
+                        is ContentToken.UploadedImage -> "uploaded_${token.imageId}"
+                        is ContentToken.PixivImage -> "pixiv_${token.illustId}_${token.pageIndex}"
+                        else -> continue
+                    }
+                    if (images.containsKey(key)) continue
+                    val url = resolver(token)
+                    if (url.isNullOrEmpty()) {
+                        timber.log.Timber.w("EpubExporter: url is null for $key")
+                        continue
+                    }
+                    var loaded = false
+                    var attempt = 1
+                    while (!loaded) {
+                        val result = ExportUtils.loadBitmapResult(context, url)
+                        if (result.isSuccess) {
+                            val bitmap = result.getOrThrow()
+                            val jpeg = ExportUtils.bitmapToJpeg(bitmap)
+                            images[key] = BundledImage("$key.jpg", jpeg, "image/jpeg")
+                            loaded = true
+                        } else {
+                            if (dontAskAgain) {
+                                if (silentRetryOnFail) {
+                                    for (silentAttempt in 1..3) {
+                                        val retryRes = ExportUtils.loadBitmapResult(context, url)
+                                        if (retryRes.isSuccess) {
+                                            val bitmap = retryRes.getOrThrow()
+                                            val jpeg = ExportUtils.bitmapToJpeg(bitmap)
+                                            images[key] = BundledImage("$key.jpg", jpeg, "image/jpeg")
+                                            loaded = true
+                                            break
+                                        }
+                                    }
+                                }
+                                if (!loaded) {
+                                    RecentNovelExportTracker.markFailed()
+                                }
+                                break
+                            }
+                            val act = retryPolicy.activity ?: com.blankj.utilcode.util.ActivityUtils.getTopActivity()
+                            if (act == null || act.isFinishing || act.isDestroyed || !com.blankj.utilcode.util.AppUtils.isAppForeground()) {
+                                RecentNovelExportTracker.markFailed()
+                                break
+                            }
+                            val failedInfo = FailedImageInfo(
+                                key = key,
+                                url = url,
+                                error = result.exceptionOrNull(),
+                                novelId = novelId,
+                                chapterTitle = title,
+                                token = token,
+                            )
+                            val (decision, check) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                EpubRetryDialogHelper.showForegroundRetryDialog(act, failedInfo, attempt)
+                            }
+                            if (check) {
+                                dontAskAgain = true
+                                silentRetryOnFail = (decision is RetryDecision.Retry)
+                            }
+                            if (decision is RetryDecision.Retry) {
+                                attempt++
+                            } else {
+                                break
+                            }
+                        }
+                    }
+                }
             }
-            if (images.containsKey(key)) continue
-            val bitmap = ExportUtils.loadBitmap(context, url) ?: continue
-            val jpeg = ExportUtils.bitmapToJpeg(bitmap)
-            images[key] = BundledImage("$key.jpg", jpeg, "image/jpeg")
+            is EpubImageRetryPolicy.Batch -> {
+                val failedImages = mutableListOf<FailedImageInfo>()
+                for (token in tokens) {
+                    val key = when (token) {
+                        is ContentToken.UploadedImage -> "uploaded_${token.imageId}"
+                        is ContentToken.PixivImage -> "pixiv_${token.illustId}_${token.pageIndex}"
+                        else -> continue
+                    }
+                    if (images.containsKey(key)) continue
+                    val url = resolver(token)
+                    if (url.isNullOrEmpty()) {
+                        timber.log.Timber.w("EpubExporter: url is null for $key")
+                        continue
+                    }
+                    val result = ExportUtils.loadBitmapResult(context, url)
+                    if (result.isSuccess) {
+                        val bitmap = result.getOrThrow()
+                        val jpeg = ExportUtils.bitmapToJpeg(bitmap)
+                        images[key] = BundledImage("$key.jpg", jpeg, "image/jpeg")
+                    } else {
+                        failedImages.add(
+                            FailedImageInfo(
+                                key = key,
+                                url = url,
+                                error = result.exceptionOrNull(),
+                                novelId = novelId,
+                                chapterTitle = title,
+                                token = token,
+                            )
+                        )
+                    }
+                }
+                if (failedImages.isNotEmpty()) {
+                    val act = retryPolicy.activity ?: com.blankj.utilcode.util.ActivityUtils.getTopActivity()
+                    if (act == null || act.isFinishing || act.isDestroyed || !com.blankj.utilcode.util.AppUtils.isAppForeground()) {
+                        RecentNovelExportTracker.markFailed()
+                    } else {
+                        var attempt = 1
+                        while (failedImages.isNotEmpty()) {
+                            val decision = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                EpubRetryDialogHelper.showBatchRetryDialog(act, failedImages, attempt)
+                            }
+                            if (decision is RetryDecision.Retry) {
+                                attempt++
+                                val currentFailed = failedImages.toList()
+                                for (item in currentFailed) {
+                                    val retryRes = ExportUtils.loadBitmapResult(context, item.url)
+                                    if (retryRes.isSuccess) {
+                                        val bitmap = retryRes.getOrThrow()
+                                        val jpeg = ExportUtils.bitmapToJpeg(bitmap)
+                                        images[item.key] = BundledImage("${item.key}.jpg", jpeg, "image/jpeg")
+                                        failedImages.remove(item)
+                                    }
+                                }
+                            } else {
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+            is EpubImageRetryPolicy.Auto -> {
+                for (token in tokens) {
+                    val key = when (token) {
+                        is ContentToken.UploadedImage -> "uploaded_${token.imageId}"
+                        is ContentToken.PixivImage -> "pixiv_${token.illustId}_${token.pageIndex}"
+                        else -> continue
+                    }
+                    if (images.containsKey(key)) continue
+                    val url = resolver(token) ?: continue
+                    val result = ExportUtils.loadBitmapResult(context, url)
+                    if (result.isSuccess) {
+                        val bitmap = result.getOrThrow()
+                        val jpeg = ExportUtils.bitmapToJpeg(bitmap)
+                        images[key] = BundledImage("$key.jpg", jpeg, "image/jpeg")
+                    } else {
+                        RecentNovelExportTracker.markFailed()
+                    }
+                }
+            }
         }
 
         val chapterHtml = buildChapterXhtml(title, author, caption, tokens, resolver, images)

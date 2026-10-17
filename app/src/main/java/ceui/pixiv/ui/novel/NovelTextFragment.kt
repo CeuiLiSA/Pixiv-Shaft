@@ -46,6 +46,7 @@ import ceui.pixiv.ui.common.toggleNovelBookmark
 import ceui.pixiv.ui.detail.SectionLoader
 import ceui.pixiv.ui.detail.seriesAuthorRenderer
 import ceui.pixiv.ui.novel.reader.NovelTextCache
+import ceui.pixiv.ui.novel.reader.export.EpubImageRetryPolicy
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
@@ -336,6 +337,7 @@ class NovelTextFragment :
                     novel = novel,
                     webNovel = web,
                     tokens = tokens,
+                    retryPolicy = EpubImageRetryPolicy.Foreground(activity),
                 )
             }.getOrElse { ExportResult.Failure(it.message ?: "导出失败", it) }
             when (result) {

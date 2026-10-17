@@ -578,6 +578,7 @@ public class Shaft extends Application implements ServicesProvider {
             public void onActivityResumed(@NonNull Activity activity) {
                 currentActivity = activity;
                 Timber.tag("ActivityTracker").d("RESUME %s", activity.getClass().getSimpleName());
+                ceui.pixiv.ui.novel.reader.export.RecentNovelExportTracker.checkAndShowToast(activity);
             }
 
             @Override
