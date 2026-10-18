@@ -288,7 +288,7 @@ public class IllustNovelFilter {
     public static List<TagsBean> getMutedTags() {
         List<TagsBean> result = new ArrayList<>();
         List<MuteEntity> muteEntities = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getAllMutedTags();
-        if (muteEntities == null || muteEntities.size() == 0) {
+        if (muteEntities == null || muteEntities.isEmpty()) {
             return result;
         }
         for (MuteEntity muteEntity : muteEntities) {

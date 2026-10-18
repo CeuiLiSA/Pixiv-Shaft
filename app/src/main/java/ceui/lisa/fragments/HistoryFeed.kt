@@ -392,7 +392,7 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
         binding.time.text = historyTimeFormat.format(entity.time)
 
         when {
-            illust.isGif() -> { binding.pSize.isVisible = true; binding.pSize.text = "GIF" }
+            illust.isGif() -> { binding.pSize.isVisible = true; binding.pSize.text = getString(R.string.illust_badge_gif) }
             illust.page_count > 1 -> {
                 binding.pSize.isVisible = true
                 binding.pSize.text = String.format(Locale.getDefault(), "%dP", illust.page_count)
@@ -415,7 +415,7 @@ fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedIte
                 val item = cell.itemOrNull ?: return@setOnClickListener
                 if (item.isSelectionMode) {
                     toggleHistorySelect(item.entity)
-                } else if (!v.context.tryOpenNovelReaderDirect(item.novel.id.toLong())) {
+                } else if (!v.context.tryOpenNovelReaderDirect(item.novel.id)) {
                     v.context.startActivity(Intent(v.context, TemplateActivity::class.java).apply {
                         putExtra(Params.CONTENT, item.novel)
                         putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_DETAIL.key)

@@ -93,8 +93,7 @@ public class Mapper<T extends ListShow<?>> implements ResponseMapper<T> {
         // 只能按老列表口径剔除（同系列卡）。
         boolean keepForBlur = keepAiForBlur && Shaft.sSettings.isDeleteAIIllust();
         for (Object o : t.getList()) {
-            if (o instanceof Illust) {
-                Illust illust = (Illust) o;
+            if (o instanceof Illust illust) {
                 if (!Boolean.TRUE.equals(illust.getVisible())) {
                     dash.add(o);
                     continue;
@@ -118,10 +117,9 @@ public class Mapper<T extends ListShow<?>> implements ResponseMapper<T> {
                         || (!keepForBlur && IllustNovelFilter.shouldBlurAi(illust, excludeAi)))) {
                     dash.add(o);
                 }
-                ObjectPool.INSTANCE.updateIllust((Illust) o);
+                ObjectPool.INSTANCE.updateIllust(illust);
             }
-            if (o instanceof Novel) {
-                Novel novel = (Novel) o;
+            if (o instanceof Novel novel) {
                 boolean isTagBanned = IllustNovelFilter.judgeTag(novel);
                 boolean isIdBanned = IllustNovelFilter.judgeID(novel);
                 boolean isUserBanned = IllustNovelFilter.judgeUserID(novel);
@@ -142,7 +140,7 @@ public class Mapper<T extends ListShow<?>> implements ResponseMapper<T> {
             }
         }
 
-        if (t.getList() != null && dash.size() != 0) {
+        if (t.getList() != null && !dash.isEmpty()) {
             t.getList().removeAll(dash);
         }
         return t;

@@ -131,7 +131,7 @@ class NovelSeriesFeedSource(private val seriesId: Long) : FeedSource<String> {
                 detail.user?.let { items.add(SeriesAuthorFeedItem(it)) }
                 items.add(NovelSeriesProfileFeedItem(detail))
                 if (!detail.caption.isNullOrBlank()) {
-                    items.add(SeriesCaptionFeedItem(detail.caption!!, detail.id))
+                    items.add(SeriesCaptionFeedItem(detail.caption, detail.id))
                 }
             }
             items.add(
@@ -171,7 +171,7 @@ fun novelSeriesHeroRenderer(): FeedRenderer<NovelSeriesHeroFeedItem, CellNovelSe
             else ColorStateList.valueOf(ctx.getColor(R.color.v3_text_3))
         b.bookmark.setOnClick { v ->
             v.findActionReceiverOrNull<NovelSeriesHeaderActionReceiver>()
-                ?.onClickToggleWatchlist(v as ProgressImageButton)
+                ?.onClickToggleWatchlist(v)
         }
 
         val parts = mutableListOf(

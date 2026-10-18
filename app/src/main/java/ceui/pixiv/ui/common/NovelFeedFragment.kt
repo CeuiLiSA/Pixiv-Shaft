@@ -369,12 +369,12 @@ abstract class NovelFeedFragment(
         // 标签流：尊重「显示标签」设置，关时喂空列表折叠。compact + 去 # 前缀；译名默认不
         // 显示（#1038），可由「小说列表显示标签译文」恢复（#1089）。「标签折叠」开启时
         // 超 6 个折叠成「+N」，关闭时 maxTags=-1 全量展示；searchIndex=1 跳搜索页「小说」tab。
-        val tags = if (showTags && Shaft.sSettings.isShowNovelCardTags()) novel.tags.orEmpty() else emptyList()
+        val tags = if (showTags && Shaft.sSettings.isShowNovelCardTags) novel.tags.orEmpty() else emptyList()
         b.novelTag.compact = true
         b.novelTag.searchIndex = 1
         b.novelTag.showHashPrefix = false
-        b.novelTag.showTranslation = Shaft.sSettings.isShowNovelCardTagTranslations()
-        b.novelTag.maxTags = if (Shaft.sSettings.isCollapseNovelCardTags()) 6 else -1
+        b.novelTag.showTranslation = Shaft.sSettings.isShowNovelCardTagTranslations
+        b.novelTag.maxTags = if (Shaft.sSettings.isCollapseNovelCardTags) 6 else -1
         b.novelTag.setTags(tags)
         b.novelTag.isVisible = tags.isNotEmpty()
 

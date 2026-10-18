@@ -754,7 +754,7 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
             return
         }
         binding.pickupRow.isVisible = true
-        val name = pickup!!.userName.orEmpty()
+        val name = pickup.userName
         val comment = pickup.comment?.trim()
             ?.takeIf { it.isNotEmpty() && it != PICKUP_STAMP_PLACEHOLDER }
         binding.pickupText.text = if (comment != null) {

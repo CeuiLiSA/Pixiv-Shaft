@@ -65,6 +65,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.text.NumberFormat
 import ceui.pixiv.ui.navigation.TemplateRoute
+import androidx.core.net.toUri
 
 // ── 从旧 holder 文件迁来的公共契约（同包，FQN 不变，外部 import 无需改）──────
 
@@ -553,7 +554,7 @@ fun novelTagsRenderer(
         val b = cell.binding
         slots.getOrPut(cell) { CellObserverSlot(lifecycleOwner) }
             .rebind(ObjectPool.get<Novel>(cell.item.novelId)) { novel ->
-                b.tagsFlow.onViewAuthorWorks = novel?.user?.id?.takeIf { it > 0L }?.let { userId ->
+                b.tagsFlow.onViewAuthorWorks = novel.user?.id?.takeIf { it > 0L }?.let { userId ->
                     { name ->
                         b.root.context.startActivity(Intent(b.root.context, TemplateActivity::class.java).apply {
                             putExtra(Params.USER_ID, userId)
@@ -562,7 +563,7 @@ fun novelTagsRenderer(
                         })
                     }
                 }
-                b.tagsFlow.setTags(novel?.tags.orEmpty())
+                b.tagsFlow.setTags(novel.tags.orEmpty())
             }
     }
 }
@@ -679,7 +680,7 @@ fun novelCaptionRenderer(
                             b.caption.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(id)
                         }
                         else -> {
-                            val uri = runCatching { Uri.parse(link) }.getOrNull()
+                            val uri = runCatching { link.toUri() }.getOrNull()
                             val scheme = uri?.scheme?.lowercase()
                             if (uri != null && (scheme == "http" || scheme == "https")) {
                                 runCatching {

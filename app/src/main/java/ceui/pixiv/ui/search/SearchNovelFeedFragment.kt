@@ -216,12 +216,12 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
         )
         b.badgeAi.isVisible = novel.novel_ai_type == 2
 
-        val tags = if (Shaft.sSettings.isShowNovelCardTags()) novel.tags.orEmpty() else emptyList()
+        val tags = if (Shaft.sSettings.isShowNovelCardTags) novel.tags.orEmpty() else emptyList()
         b.novelTag.compact = true
         b.novelTag.searchIndex = 1
         b.novelTag.showHashPrefix = false
-        b.novelTag.showTranslation = Shaft.sSettings.isShowNovelCardTagTranslations()
-        b.novelTag.maxTags = if (Shaft.sSettings.isCollapseNovelCardTags()) 6 else -1
+        b.novelTag.showTranslation = Shaft.sSettings.isShowNovelCardTagTranslations
+        b.novelTag.maxTags = if (Shaft.sSettings.isCollapseNovelCardTags) 6 else -1
         b.novelTag.setTags(tags)
         b.novelTag.isVisible = tags.isNotEmpty()
 
