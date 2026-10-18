@@ -363,8 +363,9 @@ abstract class NovelFeedFragment(
         b.howManyWord.text = ctx.getString(R.string.v3_novel_word_count, wordCount.toString())
         // 热度分（本月收藏/当前最热 shaft-api-v2 注入）露左上角 pill；普通列表 trendingScore=null → 自动隐藏。
         b.trendingScore.bindTrendingScore(trendingScore)
-        // AI 生成角标（novel_ai_type == 2，与 card/v3/history/detail 同口径）
-        b.badgeAi.isVisible = novel.novel_ai_type == 2
+        // AI 生成角标：与屏蔽 / 仅看 AI / 详情页同一口径（[IllustNovelFilter.isAiWork]）——
+        // 官方 novel_ai_type==2，或标签命中用户启用的 AI 标签规则（issue #1252 需求 1）。
+        b.badgeAi.isVisible = IllustNovelFilter.isAiWork(novel)
 
         // 标签流：尊重「显示标签」设置，关时喂空列表折叠。compact + 去 # 前缀；译名默认不
         // 显示（#1038），可由「小说列表显示标签译文」恢复（#1089）。「标签折叠」开启时

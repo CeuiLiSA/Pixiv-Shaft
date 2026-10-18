@@ -13,6 +13,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.CellNovelSeriesHeroBinding
 import ceui.lisa.databinding.CellNovelSeriesProfileBinding
 import ceui.lisa.databinding.CellNovelV3Binding
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.ShareIllust
@@ -296,7 +297,8 @@ fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3
 
         b.badgeR18.isVisible = novel.is_x_restricted == true || (novel.x_restrict ?: 0) > 0
         b.badgeOriginal.isVisible = novel.is_original == true
-        b.badgeAi.isVisible = novel.novel_ai_type == 2
+        // AI 角标：官方 novel_ai_type==2 或标签命中（issue #1252，与屏蔽/详情页同口径）
+        b.badgeAi.isVisible = IllustNovelFilter.isAiWork(novel)
 
         bindNovelCardTags(b, novel)
         // 绑定时从 ObjectPool 读最新收藏态/收藏数：卡片回收复用后不会回退成加载时的旧值。

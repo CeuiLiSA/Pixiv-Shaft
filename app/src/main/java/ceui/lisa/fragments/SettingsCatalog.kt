@@ -129,6 +129,7 @@ object SettingsCatalog {
         add(Entry(BROWSING, "delete_ai_illust_rela", R.string.delete_ai_illust, keywords = "ai 屏蔽ai 不看ai ai生成 aigc 过滤"))
         // 下两行只在「不显示AI生成的作品」开着时可见；关着时 maybeHighlight 会自动跳过滚动/闪烁
         add(Entry(BROWSING, "ai_block_strength_rela", R.string.ai_block_strength, keywords = "ai 屏蔽 效果 级别 强度 模糊 粒子 打码 完全不显示 blur"))
+        add(Entry(BROWSING, "ai_tag_rules_rela", R.string.ai_tag_rules, keywords = "ai 标签 tag 识别 判定 生成 内置 自定义 规则 屏蔽"))
         add(Entry(BROWSING, "ai_block_exempt_rela", R.string.ai_block_exempt_authors, keywords = "ai 屏蔽 豁免 白名单 作者 画师 例外 放行 exempt whitelist author"))
         add(Entry(BROWSING, "filter_bookmarked_rela", R.string.filter_bookmarked_title, keywords = "已收藏 过滤 去重 排行榜 动态 搜索 rank following search bookmark"))
         add(Entry(BROWSING, "novel_filter_min_text_length_rela", R.string.novel_filter_min_text_length, R.string.novel_filter_min_text_length_desc, keywords = "小说 字数 太短 过短 屏蔽 刷屏 广告 spam novel length"))

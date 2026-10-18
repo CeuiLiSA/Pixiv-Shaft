@@ -9,6 +9,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.databinding.CellHistoryIllustV3Binding
 import ceui.lisa.databinding.CellHistoryNovelV3Binding
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
 import ceui.lisa.utils.GlideUtil
@@ -466,7 +467,8 @@ fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedIte
         binding.title.text = novel.title
         binding.author.text = novel.user?.name.orEmpty()
         binding.time.text = historyTimeFormat.format(entity.time)
-        binding.badgeAi.isVisible = novel.isCreatedByAI()
+        // AI 角标：官方标记或标签命中（issue #1252，与屏蔽/详情页同口径）
+        binding.badgeAi.isVisible = IllustNovelFilter.isAiWork(novel)
 
         HistorySelectBadge.bindSelection(
             binding.selectCheck, binding.deleteItem, item.isSelectionMode, item.isSelected,

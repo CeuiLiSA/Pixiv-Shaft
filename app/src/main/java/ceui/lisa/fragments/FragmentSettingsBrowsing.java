@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import ceui.pixiv.witstudio.dialog.WitDialog;
 
+import java.util.LinkedHashSet;
 import java.util.function.IntConsumer;
 import java.util.function.IntFunction;
 import java.util.function.IntSupplier;
@@ -17,11 +18,13 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBrowsingBinding;
+import ceui.lisa.helper.AiTagRules;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.pixiv.ui.search.SortType;
 import ceui.pixiv.ui.settings.AiBlockExemptAuthorsSheet;
+import ceui.pixiv.ui.settings.AiTagRulesSheet;
 import ceui.pixiv.ui.settings.FilterBookmarkedDialog;
 import ceui.pixiv.ui.history.CloudHistoryConsent;
 import ceui.pixiv.session.SessionManager;
@@ -123,8 +126,13 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         baseBind.deleteAiIllustRela.setOnClickListener(v -> baseBind.deleteAiIllust.performClick());
         baseBind.aiBlockStrengthRela.setOnClickListener(v -> showAiBlockStrengthPicker());
         baseBind.aiBlockExemptRela.setOnClickListener(v -> showAiBlockExemptAuthorEditor());
+        baseBind.aiTagRulesRela.setOnClickListener(v -> showAiTagRuleEditor());
         getChildFragmentManager().setFragmentResultListener(
                 AiBlockExemptAuthorsSheet.REQUEST_KEY,
+                this,
+                (requestKey, result) -> renderAiBlockSubOptions());
+        getChildFragmentManager().setFragmentResultListener(
+                AiTagRulesSheet.REQUEST_KEY,
                 this,
                 (requestKey, result) -> renderAiBlockSubOptions());
 
@@ -321,6 +329,9 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         boolean enabled = Shaft.sSettings.isDeleteAIIllust();
         baseBind.aiBlockStrengthRela.setVisibility(enabled ? View.VISIBLE : View.GONE);
         baseBind.aiBlockExemptRela.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        // 标签辅助识别（issue #1252）与上面两行同组：只在「不显示AI生成的作品」打开时露出，
+        // 它单独存在没有意义——标签规则只影响 AI 判定，开关关着时 AI 判定不参与任何过滤。
+        baseBind.aiTagRulesRela.setVisibility(enabled ? View.VISIBLE : View.GONE);
         if (!enabled) return;
         baseBind.aiBlockStrength.setText(Shaft.sSettings.getAiBlockStrength() == 0
                 ? getString(R.string.ai_block_strength_hide)
@@ -334,6 +345,14 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                     ? getString(R.string.ai_block_exempt_count, total)
                     : getString(R.string.ai_block_exempt_count_partial, total, enabledCount));
         }
+        // 标签规则的摘要只说「当前有多少条在生效」：内置 24 条默认全开，罗列总数没有信息量。
+        // 内置与自定义混在一起算一个数——用户关心的是「有几条规则在工作」，不是来源构成。
+        LinkedHashSet<String> disabledTags = Shaft.sSettings.getAiTagDisabledTags();
+        int enabledTags = AiTagRules.enabledBuiltinCount(disabledTags)
+                + AiTagRules.enabledCount(Shaft.sSettings.getAiTagUserTags(), disabledTags);
+        baseBind.aiTagRules.setText(enabledTags == 0
+                ? getString(R.string.ai_tag_rules_none)
+                : getString(R.string.ai_tag_rules_count, enabledTags));
     }
 
     private void showAiBlockStrengthPicker() {
@@ -356,6 +375,10 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
 
     private void showAiBlockExemptAuthorEditor() {
         new AiBlockExemptAuthorsSheet().show(getChildFragmentManager(), "ai_block_exempt_authors");
+    }
+
+    private void showAiTagRuleEditor() {
+        new AiTagRulesSheet().show(getChildFragmentManager(), "ai_tag_rules");
     }
 
     /**

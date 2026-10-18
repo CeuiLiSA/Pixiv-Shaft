@@ -28,10 +28,10 @@ public class Mapper<T extends ListShow<?>> implements ResponseMapper<T> {
     private int searchR18Restriction = 0;
 
     /**
-     * 搜索「仅看 AI」客户端过滤（issue #909）：true 时只留下 AI 生成作品
-     * （插画 {@link Illust#isCreatedByAI()} / 小说 {@link Novel#isCreatedByAI()}，
-     * 即 ai_type==2），其余剔除。默认 false 对其它所有列表无副作用——只有搜索 repo 经
-     * {@link #setSearchOnlyAi} 显式开启。
+     * 搜索「仅看 AI」客户端过滤（issue #909）：true 时只留下 AI 生成作品，其余剔除。
+     * 「算不算 AI」统一问 {@link IllustNovelFilter#isAiWork}——官方 ai_type==2，或标签命中
+     * 用户启用的 AI 标签规则（issue #1252 需求 1）。默认 false 对其它所有列表无副作用——
+     * 只有搜索 repo 经 {@link #setSearchOnlyAi} 显式开启。
      */
     private boolean searchOnlyAi = false;
 
@@ -102,10 +102,13 @@ public class Mapper<T extends ListShow<?>> implements ResponseMapper<T> {
                 boolean isIdBanned = IllustNovelFilter.judgeID(illust);
                 boolean isUserBanned = IllustNovelFilter.judgeUserID(illust);
                 boolean isR18FilterBanned = !skipR18Filter && IllustNovelFilter.judgeR18Filter(illust);
-                boolean isCreatedByAI = illust.isCreatedByAI();
                 if (isTagBanned || isIdBanned || isUserBanned || isR18FilterBanned
                         || searchR18Rejects(illust.isR18File())
-                        || (searchOnlyAi && !isCreatedByAI)) {   // 仅看 AI：剔除非 AI 作品
+                        // 仅看 AI：剔除非 AI 作品。判定统一走 IllustNovelFilter.isAiWork
+                        // （官方 ai_type + 标签规则，issue #1252），且必须留在 `searchOnlyAi &&`
+                        // 之后短路——标签匹配要读设置、逐条规范化比较，没开「仅看 AI」的列表
+                        // 不该为它付这个成本。
+                        || (searchOnlyAi && !IllustNovelFilter.isAiWork(illust))) {
                     dash.add(o);
                 }
                 // 屏蔽 AI（首页等所有列表共用全局设置；搜索链路可传「其他条件」的会话临时档位）。
@@ -128,7 +131,8 @@ public class Mapper<T extends ListShow<?>> implements ResponseMapper<T> {
                 boolean isSpamBanned = IllustNovelFilter.judgeNovelSpam(novel);
                 if (isTagBanned || isIdBanned || isUserBanned || isR18FilterBanned || isSpamBanned
                         || searchR18Rejects(novel.getX_restrict() != null && novel.getX_restrict() > 0)
-                        || (searchOnlyAi && !novel.isCreatedByAI())) {   // 仅看 AI：剔除非 AI 小说
+                        // 仅看 AI：剔除非 AI 小说（同插画分支，统一走 isAiWork 且保持惰性）
+                        || (searchOnlyAi && !IllustNovelFilter.isAiWork(novel))) {
                     dash.add(o);
                 }
                 // 屏蔽 AI 的小说侧（与插画分支同口径）：完全不显示强度才剔除；

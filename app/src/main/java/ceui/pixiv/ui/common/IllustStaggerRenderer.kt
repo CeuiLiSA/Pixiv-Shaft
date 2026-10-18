@@ -417,7 +417,10 @@ private fun buildBadges(bean: Illust, res: Resources): List<IllustBadgeRowView.B
         out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_panorama))
     }
     if (bean.isGif()) out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_gif))
-    if (bean.isCreatedByAI()) out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_ai))
+    // AI 角标：官方 ai_type==2 或标签命中（issue #1252，与屏蔽/详情页同口径）
+    if (IllustNovelFilter.isAiWork(bean.isCreatedByAI(), bean.tagNames)) {
+        out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_ai))
+    }
     if (bean.isRelated) out += IllustBadgeRowView.Badge(res.getString(R.string.illust_badge_related))
     return out
 }

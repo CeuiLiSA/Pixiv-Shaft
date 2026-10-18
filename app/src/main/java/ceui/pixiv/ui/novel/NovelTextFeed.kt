@@ -23,6 +23,7 @@ import ceui.lisa.databinding.CellNovelHeaderBinding
 import ceui.lisa.databinding.CellNovelProfileBinding
 import ceui.lisa.databinding.CellNovelTagsBinding
 import ceui.lisa.databinding.SectionV3RelatedHeaderBinding
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
@@ -372,7 +373,10 @@ fun novelHeaderRenderer(
         slots.getOrPut(cell) { CellObserverSlot(lifecycleOwner) }.rebind(liveNovel) { novel ->
             if (novel == null) return@rebind
             b.metaDate.text = novel.create_date?.replace('T', ' ')?.take(16).orEmpty()
-            val isAi = novel.novel_ai_type == 2
+            // AI 标记与屏蔽 / 仅看 AI 同一口径（[IllustNovelFilter.isAiWork]）：官方
+            // novel_ai_type==2，或标签命中用户启用的 AI 标签规则（issue #1252 需求 1）。
+            // 详情页只标「是不是 AI」，不区分来源——区分留给插画详情那张 AI 卡。
+            val isAi = IllustNovelFilter.isAiWork(novel)
             b.metaAi.isVisible = isAi
             b.metaDotAi.isVisible = isAi
             val wordCount = novel.text_length
