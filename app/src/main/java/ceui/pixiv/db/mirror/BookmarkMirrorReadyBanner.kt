@@ -101,4 +101,18 @@ object BookmarkMirrorReadyBanner {
         Shaft.getMMKV()?.encode(KEY_PREFIX + shelf.key, false)
         announce(context, shelf, rows)
     }
+
+    /**
+     * 账号被从本地移除：把这个 uid 名下所有书架的「已弹过」标记清掉。
+     *
+     * 标记本身是**永久**的、按书架存的，这正是它该有的样子 —— 引导只在「第一次知道有这个
+     * 东西」时才有价值。但「用户已经知道」这件事是跟着账号走的：账号删掉、同一个 uid 以后
+     * 再登录回来，那份镜像是从零重建的，补齐那一刻理应再讲一次；不清标记的话这条引导
+     * 对这个账号就永远不来了。
+     */
+    fun forget(ownerUid: Long) {
+        if (ownerUid <= 0L) return
+        val prefs = Shaft.getMMKV() ?: return
+        BookmarkShelf.allOf(ownerUid).forEach { prefs.removeValueForKey(KEY_PREFIX + it.key) }
+    }
 }

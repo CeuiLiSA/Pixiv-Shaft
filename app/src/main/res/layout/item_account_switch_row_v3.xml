@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  账号管理页「其他账号」的一行（MD3-E 分段行）：头像 + 名字 / 账号名 + 登录时间 + ⋮。
+  账号管理页「其他账号」的一行（MD3-E 分段行）：头像 + 名字 / 账号名 / 邮箱 / 登录时间 + 垃圾桶 / ⋮。
   背景（wit_row_top / mid / bottom / single，:witstudio 提供）按行在组内的位置由代码设置，并交给
   SettingsCatalog.applyThemedRowBg 染上主题色底 + hairline，与设置页的行完全同款。
-  点行 = 切到该账号，点 ⋮ = 导出登录信息 / 复制账号名。
+  点行 = 切到该账号，点 ⋮ = 导出登录信息 / 复制账号名，点垃圾桶 = 从本地删除该账号。
+
+  邮箱（row_mail）独立成行：和 @handle 挤在同一行时，稍长的邮箱后半截必被省略号吃掉，
+  扫一眼分不出这台设备上存的到底是哪个账号。删除入口只出现在这一组「其他账号」的行上，
+  当前账号的 hero 卡没有它 —— 删自己要先退出登录，那是另一条链路。
+
+  纵向留白：文字从 3 行涨到 4 行后，卡片高度必须靠 paddingTop/Bottom 自己长出来，**不能只靠
+  minHeight** —— minHeight 只是下限，4 行内容实测已经顶到 76dp 附近，不补留白文字就贴着上下
+  边缘。12dp 与 M3SetRow 的 13dp 同一档节奏，而且字体放大时留白跟着内容一起长，不会被压扁。
+  实测高度：4 行（有登录时间）约 98dp；3 行（备份恢复来的行没有登录时间）约 81dp。
+
+  字体：名字 Montserrat 600；@handle 与 hero 卡的 current_handle 同为 500；邮箱、登录时间是
+  辅助说明，走 400。中文（「登录于」等）由系统字体回退。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -19,7 +31,9 @@
     android:minHeight="76dp"
     android:orientation="horizontal"
     android:paddingStart="14dp"
-    android:paddingEnd="6dp">
+    android:paddingTop="12dp"
+    android:paddingEnd="6dp"
+    android:paddingBottom="12dp">
 
     <FrameLayout
         android:layout_width="wrap_content"
@@ -70,18 +84,33 @@
             tools:text="をこめ" />
 
         <TextView
-            android:id="@+id/row_sub"
+            android:id="@+id/row_handle"
+            style="@style/textMontserratMedium"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="3dp"
             android:ellipsize="end"
             android:maxLines="1"
+            android:textColor="@color/v3_text_3"
+            android:textSize="12sp"
+            tools:text="\@wokome" />
+
+        <!-- 邮箱独占一整行：和 @handle 拼在同一行时，稍长的邮箱后半截必被省略号吃掉。 -->
+        <TextView
+            android:id="@+id/row_mail"
+            style="@style/textMontserratRegular"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/v3_text_2"
             android:textSize="12sp"
-            tools:text="\@wokome · wokome@example.com" />
+            tools:text="wokome_official@pixshaft.com" />
 
         <TextView
             android:id="@+id/row_time"
+            style="@style/textMontserratRegular"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
@@ -92,11 +121,30 @@
             tools:visibility="visible" />
     </LinearLayout>
 
+    <!--
+      从本地删除：只挂在「其他账号」这一组的行上。当前账号的 hero 卡没有这个入口 ——
+      删自己要先退出登录，那是另一条链路。
+
+      染色刻意用 v3_danger，而**不是**与 ⋮ 同款的 v3_text_3：这是破坏性操作，与设置页把
+      「退出登录」标红是同一条规矩，也和 sheet 里那条「从本地删除」的红图标红字对齐。
+      灰色在这里不是「低调」，是「分不出这条点了会删东西」。
+    -->
+    <ImageButton
+        android:id="@+id/row_delete"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="2dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/account_delete"
+        android:padding="9dp"
+        android:src="@drawable/ic_delete_black_24dp"
+        app:tint="@color/v3_danger" />
+
     <ImageButton
         android:id="@+id/row_more"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginStart="4dp"
+        android:layout_marginStart="2dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/account_switch_actions"
         android:padding="9dp"

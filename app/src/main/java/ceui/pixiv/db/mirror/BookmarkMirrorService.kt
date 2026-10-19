@@ -98,9 +98,14 @@ class BookmarkMirrorService @JvmOverloads constructor(
     /**
      * 单线程串行：**全局限速的物理保证**。所有书架、所有本地维护共用这一条流水线，
      * 不存在「两个书架同时在翻页」把速率翻倍的可能，`activeRun` 这类裸字段也因此不需要同步。
+     *
+     * 单独提出来是为了让外部的写操作（[dropOwner]）能借用**同一条**流水线：只在它上面跑，
+     * 就不可能和正在翻页的那一轮同时碰 `activeRun` / `emptyShelfStreak` 这些裸字段。
      */
+    private val engineDispatcher = Dispatchers.IO.limitedParallelism(1)
+
     private val scope = CoroutineScope(
-        SupervisorJob() + Dispatchers.IO.limitedParallelism(1) +
+        SupervisorJob() + engineDispatcher +
             CoroutineExceptionHandler { _, t -> Timber.tag(TAG).e(t, "引擎协程崩溃(已吞)") }
     )
 
@@ -318,6 +323,34 @@ class BookmarkMirrorService @JvmOverloads constructor(
             maintenanceRequested -= shelf.key
             emptyShelfStreak -= shelf.key
             if (activeRun?.shelf == shelf) activeRun = null
+        }
+    }
+
+    /**
+     * 账号被从本地移除：把这个 uid 名下**所有**书架（[BookmarkShelf.allOf] 的六个）
+     * 的运行态与数据一次摘干净。
+     *
+     * 与 [dropShelf] 是同一套动作，差别只在按账号整体做，而且是 `suspend` ——
+     * 调用方要等它落定才能接着删 user_table 与刷新界面，不能像 [dropShelf] 那样发射后不管。
+     *
+     * 走 [engineDispatcher] 而不是随便一个 IO 线程：`activeRun` / `emptyShelfStreak` 是引擎
+     * 自己的裸字段，只有在这条单线程流水线上碰它们才不需要加锁。
+     *
+     * 顺序刻意是**先摘状态行、再清数据**：在途的那一页请求回来后会重读状态（[runOnePage]
+     * 里那道 generation 守卫），状态行没了它就自我丢弃，不会把刚清掉的行又写回库里；
+     * 反过来先清数据的话，最后那一页正好能落进一个「账号已经删了」的库。
+     */
+    suspend fun dropOwner(ownerUid: Long) {
+        if (ownerUid <= 0L) return
+        withContext(engineDispatcher) {
+            val shelves = BookmarkShelf.allOf(ownerUid)
+            Timber.tag(TAG).i("移除账号 %d 的全部书架（%d 个）", ownerUid, shelves.size)
+            shelves.forEach { shelf ->
+                maintenanceRequested -= shelf.key
+                emptyShelfStreak -= shelf.key
+                if (activeRun?.shelf == shelf) activeRun = null
+            }
+            dao.purgeOwner(ownerUid)
         }
     }
 
