@@ -25,6 +25,7 @@ import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.activities.ImageDetailActivity
 import ceui.lisa.activities.Shaft
+import ceui.lisa.transformer.CpuBlurTransformation
 import ceui.lisa.utils.GlideUtil
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.ui.common.resolveIllustThumbnailUrl
@@ -41,7 +42,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.transition.Transition
-import jp.wasabeef.glide.transformations.BlurTransformation
 import java.util.Locale
 
 /**
@@ -243,7 +243,7 @@ internal class ArtworkTabletStage(
         if (previous != null && visualKey(previous) == visualKey(next)) return
         Glide.with(fragment)
             .load(GlideUtil.getSquare(next))
-            .transform(BlurTransformation(BACKDROP_BLUR_RADIUS, BACKDROP_BLUR_SAMPLING))
+            .transform(CpuBlurTransformation(BACKDROP_BLUR_RADIUS, BACKDROP_BLUR_SAMPLING))
             .into(backdrop)
         content.removeAllViews()
         if (next.isGif()) bindUgoira(next) else bindPages(next)

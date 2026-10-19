@@ -17,6 +17,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.helper.IllustNovelFilter
+import ceui.lisa.transformer.CpuBlurTransformation
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.RecyNovelBinding
 import ceui.lisa.utils.GlideUtil
@@ -52,7 +53,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
-import jp.wasabeef.glide.transformations.BlurTransformation
 import timber.log.Timber
 import ceui.pixiv.ui.navigation.TemplateRoute
 
@@ -457,7 +457,7 @@ abstract class NovelFeedFragment(
         var request = novelGlide.load(url).override(width, height)
         if (spoilered) {
             request = request.apply(
-                bitmapTransform(BlurTransformation(NOVEL_SPOILER_BLUR_RADIUS, NOVEL_SPOILER_BLUR_SAMPLING))
+                bitmapTransform(CpuBlurTransformation(NOVEL_SPOILER_BLUR_RADIUS, NOVEL_SPOILER_BLUR_SAMPLING))
             )
         }
         request

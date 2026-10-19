@@ -17,6 +17,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.MuteEntity
 import ceui.lisa.databinding.RecyViewHistoryBinding
 import ceui.lisa.helper.IllustNovelFilter
+import ceui.lisa.transformer.CpuBlurTransformation
 import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
 import ceui.lisa.utils.Common
@@ -43,7 +44,6 @@ import com.bumptech.glide.RequestManager
 import com.bumptech.glide.request.RequestOptions
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
-import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -156,7 +156,7 @@ class MutedObjectsFeedFragment : FeedFragment(), Toolbar.OnMenuItemClickListener
                 }
                 objectGlide
                     .load(GlideUtil.getMediumImg(illust))
-                    .apply(RequestOptions.bitmapTransform(BlurTransformation(25, 3)))
+                    .apply(RequestOptions.bitmapTransform(CpuBlurTransformation(25, 3)))
                     .placeholder(R.color.light_bg)
                     .into(b.illustImage)
                 b.title.text = titleOr(illust.title, illust.id)

@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.activities.MainActivity
+import ceui.lisa.transformer.CpuBlurTransformation
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.GlideUtil
 import ceui.pixiv.api.Client
@@ -28,7 +29,6 @@ import ceui.pixiv.ui.navigation.DrawerIconCatalog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
-import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.coroutines.launch
 
 /**
@@ -84,7 +84,7 @@ class MeFragment : Fragment(R.layout.fragment_me) {
             if (!bannerUrl.isNullOrEmpty() && view != null) {
                 Glide.with(this@MeFragment)
                     .load(GlideUrlChild(bannerUrl))
-                    .apply(bitmapTransform(BlurTransformation(15, 3)))
+                    .apply(bitmapTransform(CpuBlurTransformation(15, 3)))
                     .transition(withCrossFade())
                     .into(heroBg)
             }

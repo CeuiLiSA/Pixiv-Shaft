@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import androidx.databinding.BindingAdapter
 import ceui.lisa.R
+import ceui.lisa.transformer.CpuBlurTransformation
 import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.User
 import ceui.pixiv.api.model.Illust
@@ -13,7 +14,6 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withC
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
 import com.bumptech.glide.request.target.Target
-import jp.wasabeef.glide.transformations.BlurTransformation
 
 /**
  * 从已删的 UserFollowingFragment.kt 抽出的全局图片 DataBinding 适配器。
@@ -103,7 +103,7 @@ fun ImageView.binding_loadBlurredMedia(displayUrl: String?) {
     Glide.with(this)
         .load(GlideUrlChild(url))
         .placeholder(R.drawable.image_place_holder)
-        .apply(bitmapTransform(BlurTransformation(25, 3)))
+        .apply(bitmapTransform(CpuBlurTransformation(25, 3)))
         .transition(withCrossFade())
         .into(this)
 }

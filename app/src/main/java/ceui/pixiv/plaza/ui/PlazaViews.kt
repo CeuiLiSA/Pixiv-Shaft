@@ -39,6 +39,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.helper.IllustNovelFilter
+import ceui.lisa.transformer.CpuBlurTransformation
 import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.plaza.PlazaPost
@@ -62,7 +63,6 @@ import com.google.android.flexbox.FlexboxLayout
 import java.text.DateFormat
 import java.text.NumberFormat
 import java.util.Date
-import jp.wasabeef.glide.transformations.BlurTransformation
 
 /** Same blur as the artwork feeds' spoiler tiles (IllustStaggerRenderer). */
 private const val LINKED_WORK_BLUR_RADIUS = 25
@@ -937,7 +937,7 @@ internal class PostView(
             request =
                 request.apply(
                     bitmapTransform(
-                        BlurTransformation(LINKED_WORK_BLUR_RADIUS, LINKED_WORK_BLUR_SAMPLING)
+                        CpuBlurTransformation(LINKED_WORK_BLUR_RADIUS, LINKED_WORK_BLUR_SAMPLING)
                     )
                 )
         }

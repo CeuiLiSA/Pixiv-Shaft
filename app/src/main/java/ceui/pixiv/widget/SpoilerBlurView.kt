@@ -4,11 +4,11 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.FrameLayout
 import android.widget.ImageView
+import ceui.lisa.transformer.CpuBlurTransformation
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
-import jp.wasabeef.glide.transformations.BlurTransformation
 
 /**
  * 「屏蔽」遮罩的观感组件：一张铺满自身的 Glide 模糊图 + 一层 [SpoilerParticleView] 粒子
@@ -62,7 +62,7 @@ class SpoilerBlurView @JvmOverloads constructor(
         boundCoverKey = coverUrl.cacheKey
         glide
             .load(coverUrl)
-            .apply(bitmapTransform(BlurTransformation(BLUR_RADIUS, BLUR_SAMPLING)))
+            .apply(bitmapTransform(CpuBlurTransformation(BLUR_RADIUS, BLUR_SAMPLING)))
             // 不设 placeholder：容器(abandoned_frame)自己就是不透明黑底，
             // 模糊图淡入之前露的就是它，不需要再垫一层
             .transition(DrawableTransitionOptions.withCrossFade())

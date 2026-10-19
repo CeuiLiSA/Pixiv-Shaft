@@ -13,6 +13,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.helper.IllustNovelFilter
+import ceui.lisa.transformer.CpuBlurTransformation
 import ceui.pixiv.ui.bookmark.SelectTagBottomSheet
 import ceui.lisa.databinding.RecyIllustStaggerBinding
 import ceui.pixiv.api.model.Illust
@@ -28,7 +29,6 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
-import jp.wasabeef.glide.transformations.BlurTransformation
 
 /** 瀑布流卡片高度钳制（对齐 legacy IAdapter）：高 = 宽的 0.6~2.0 倍。 */
 private const val MIN_HEIGHT_RATIO = 0.6f
@@ -372,7 +372,7 @@ private fun IllustFeedFragment.loadIllustImage(
         // 不用 View 层模糊（RenderEffect / 自绘）——那类做法在瀑布流复用里每帧都要重算，
         // 而这里的内容是静态的，糊一次存起来就够了。
         request = request.apply(
-            bitmapTransform(BlurTransformation(SPOILER_BLUR_RADIUS, SPOILER_BLUR_SAMPLING))
+            bitmapTransform(CpuBlurTransformation(SPOILER_BLUR_RADIUS, SPOILER_BLUR_SAMPLING))
         )
     }
     request

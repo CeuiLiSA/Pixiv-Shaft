@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ceui.lisa.R
 import ceui.lisa.databinding.ItemTimelineGridImageBinding
 import ceui.lisa.databinding.RecyTimelineIllustBinding
+import ceui.lisa.transformer.CpuBlurTransformation
 import ceui.pixiv.api.model.Illust
 import ceui.loxia.User
 import ceui.lisa.utils.DensityUtil
@@ -25,7 +26,6 @@ import ceui.pixiv.utils.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions.bitmapTransform
-import jp.wasabeef.glide.transformations.BlurTransformation
 import java.util.Locale
 
 /** 单图区的高宽比钳制（对齐 legacy TimelineAdapter，比瀑布流卡窄一档）。 */
@@ -202,7 +202,7 @@ private fun bindSingleImage(
             .override(imageWidth, imageHeight)
         if (masked) {
             request = request.apply(
-                bitmapTransform(BlurTransformation(SPOILER_BLUR_RADIUS, SPOILER_BLUR_SAMPLING))
+                bitmapTransform(CpuBlurTransformation(SPOILER_BLUR_RADIUS, SPOILER_BLUR_SAMPLING))
             )
         }
         request
@@ -294,7 +294,7 @@ private class TimelineGridAdapter(
                 .override(cellSize, cellSize)
             if (masked) {
                 request = request.apply(
-                    bitmapTransform(BlurTransformation(SPOILER_BLUR_RADIUS, SPOILER_BLUR_SAMPLING))
+                    bitmapTransform(CpuBlurTransformation(SPOILER_BLUR_RADIUS, SPOILER_BLUR_SAMPLING))
                 )
             }
             request
