@@ -10,7 +10,6 @@
   字体：这一页的次要信息行（账号名 / 邮箱 / 登录日期）**沿用系统字体**，没挂 textMontserrat*。
   这与 AGENTS.md「英文、数字与品牌文字使用 Montserrat」以及 docs/v3-design-philosophy.md 的
   字体表冲突 —— 属于历史遗留（legacy 的行本来就是系统字体），本次刻意保持原样、不夹带改字族。
-  冲突本身记在上游 PR 说明里，见 PR-patch-10-16-4.md 的「上游需知」。
 
   注意 hero 卡自己的 `current_name` / `current_handle` 是挂了 Montserrat 的 —— 同一张卡片里
   并存两种字族，那是 legacy 的历史疏漏，不是本次引入的，同样留给上游一起定方向。

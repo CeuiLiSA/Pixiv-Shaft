@@ -15,8 +15,7 @@
   实测高度：4 行（有登录时间）约 98dp；3 行（备份恢复来的行没有登录时间）约 81dp。
 
   字体：`row_handle` / `row_mail` / `row_time` 沿用系统字体（legacy 的 `row_sub` 本来就没有
-  字族），与规范里「英文 / 数字用 Montserrat」冲突；本次刻意保持原样，冲突记在
-  PR-patch-10-16-4.md 的「上游需知」。
+  字族），与规范里「英文 / 数字用 Montserrat」冲突；本次刻意保持原样。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"

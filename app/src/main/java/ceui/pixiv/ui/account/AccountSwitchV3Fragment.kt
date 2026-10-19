@@ -36,6 +36,7 @@ import ceui.pixiv.witstudio.dialog.WitDialogAction
 import com.bumptech.glide.Glide
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -360,7 +361,11 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
         val appContext = requireContext().applicationContext
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                AccountDataPurge.purgeAccountData(appContext, uid, purgeLocalData)
+                // 清理本身不随页面取消：中途退出页面会让镜像已清、凭证行却没删，
+                // 账号还挂在列表里而数据没了。页面不在了就只是不刷新列表、不弹 Toast。
+                withContext(NonCancellable) {
+                    AccountDataPurge.purgeAccountData(appContext, uid, purgeLocalData)
+                }
             } catch (ce: CancellationException) {
                 throw ce
             } catch (t: Throwable) {
