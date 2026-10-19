@@ -105,9 +105,10 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
                     .addAction(0, R.string.login_out, WitDialogAction.ACTION_PROP_NEGATIVE, new WitDialogAction.ActionListener() {
                         @Override
                         public void onClick(WitDialog dialog, int index) {
+                            // 不在这里 finish：要删数据时清理在后台跑，提前关页会先退回仍是登录态的
+                            // 上一页、停一下再被踢到登录页。收尾的 CLEAR_TASK 会把本页一并清掉。
                             Common.logOut(
                                     mContext, builder.isChecked(), builder.isSubChecked());
-                            mActivity.finish();
                             dialog.dismiss();
                         }
                     })

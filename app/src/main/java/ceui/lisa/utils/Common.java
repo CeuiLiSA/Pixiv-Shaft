@@ -149,8 +149,8 @@ public class Common {
     /**
      * 退出登录的收尾：清会话 + 回登录页。
      *
-     * 用应用 context 起 Activity（同 {@link #restart()}）：调用方那一页在清理跑完之前就已经
-     * finish / 被 CLEAR_TASK 清掉了，拿一个已销毁的 Activity 去 startActivity 会直接抛。
+     * 用应用 context 起 Activity（同 {@link #restart()}）：调用方那一页可能在清理跑完之前
+     * 就被用户关掉了，拿一个已销毁的 Activity 去 startActivity 会直接抛。
      */
     private static void finishLogOut() {
         SessionManager.INSTANCE.updateSession(null);
