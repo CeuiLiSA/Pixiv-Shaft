@@ -2768,6 +2768,9 @@
     <!-- 启动时自动刷新首页推荐 (issue #955) -->
     <string name="auto_refresh_home_feed">Auto-refresh home recommendations on launch</string>
     <string name="auto_refresh_home_feed_desc">When off, the last recommendations are shown on launch; pull to refresh for a new batch</string>
+    <string name="include_r18_in_home_feed">Include R-18 works in home feed</string>
+    <string name="include_r18_in_home_feed_desc">Fetch personalized R-18 recommendations from the official website\nRequires an additional web login and R-18 enabled on your account</string>
+    <string name="web_login_invalid_home_r18_disabled">Web login is invalid, R-18 works will no longer appear on home feed</string>
     <string name="ugoira_rife_enable">Ugoira AI frame interpolation (RIFE)</string>
     <string name="ugoira_rife_enable_desc">Insert AI-generated in-between frames, boosting frame rate up to 4x (near the 50fps GIF ceiling). Requires downloading the interpolation model; encoding takes longer</string>
     <string name="ugoira_interpolating">Interpolating</string>
@@ -2790,7 +2793,7 @@
     <string name="pixiv_unblock_done">Unblocked “%1$s”</string>
     <string name="pixiv_block_checking">Checking block status…</string>
     <string name="pixiv_block_submitting">Submitting…</string>
-    <string name="pixiv_block_need_web_login">This feature works through the web interface, so you need to sign in on the web once more.</string>
+    <string name="web_feature_need_web_login">This feature works through the web interface, so you need to sign in on the web once more.</string>
     <string name="user_tag_filter_empty_need_web_login">No works found.\nThis feature works through the web interface, so you need to sign in on the web once more to see all works under this tag.</string>
     <string name="spoiler_hide_illust">Hide this artwork</string>
     <string name="spoiler_reveal_illust">Unhide this artwork</string>

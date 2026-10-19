@@ -572,6 +572,9 @@ public class Settings {
     // 关掉后冷启命中磁盘快照就停在快照上，由用户下拉刷新才拉新内容
     private boolean autoRefreshHomeFeed = true;
 
+    // 首页推荐包含 R-18 作品开关**不在这里**: 它跟「本机网页登录会话」绑定，不具备跨设备性，
+    // 走设备本地 MMKV 的 ceui.pixiv.ui.home.HomeR18Prefs，不进备份 / 云端。
+
     // 推荐页页签顺序：默认推荐作品在前；插画和小说共用，重启后生效。
     private boolean recommendHotTagsFirst = false;
 
