@@ -1,6 +1,5 @@
 package ceui.lisa.fragments
 
-import android.app.Application
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
@@ -25,9 +24,15 @@ import org.robolectric.annotation.LooperMode
 import org.robolectric.util.ReflectionHelpers
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [35], application = Application::class)
+@Config(sdk = [35], application = HistoryListAnimationTest.TestApplication::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class HistoryListAnimationTest {
+    // 必须是 Shaft：AndroidViewModelFactory 是静态单例，会缓存首个 Application 并跨测试类留在同一 SDK 沙箱里。
+    // 这里若用 android.app.Application，排在后面的 ImageDetail*Test 建 ImageTranslationViewModel 时
+    // appServices() 强转 ServicesProvider 就会 ClassCastException。
+    class TestApplication : Shaft() {
+        override fun onCreate() = Unit // 列表动画测试不需要原生服务与网络初始化。
+    }
 
     private lateinit var db: AppDatabase
     private val app get() = RuntimeEnvironment.getApplication()
