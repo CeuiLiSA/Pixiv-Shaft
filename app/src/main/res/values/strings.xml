@@ -3143,6 +3143,7 @@
     <string name="account_delete_action">删除</string>
     <string name="account_delete_done">已移除账号 %1$s</string>
     <string name="account_switch_action_delete">从本地删除</string>
+    <string name="account_logout_purging">正在清理本地数据…</string>
     <string name="account_switch_switching">正在切换到 %1$s…</string>
     <string name="add_to_home_screen">添加到桌面</string>
     <string name="add_to_home_screen_failed">添加失败，当前桌面可能不支持</string>

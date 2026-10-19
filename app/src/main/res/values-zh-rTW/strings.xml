@@ -2857,6 +2857,7 @@
     <string name="account_delete_action">刪除</string>
     <string name="account_delete_done">已移除帳號 %1$s</string>
     <string name="account_switch_action_delete">從本機刪除</string>
+    <string name="account_logout_purging">正在清理本機資料…</string>
     <string name="account_switch_switching">正在切換到 %1$s…</string>
     <string name="add_to_home_screen">新增至桌面</string>
     <string name="add_to_home_screen_failed">新增失敗，目前的桌面可能不支援</string>

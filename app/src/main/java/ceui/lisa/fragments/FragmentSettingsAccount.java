@@ -10,6 +10,7 @@ import ceui.pixiv.applock.AppLockEnabler;
 import ceui.pixiv.applock.RelockTimeout;
 import ceui.pixiv.witstudio.dialog.WitDialog;
 import ceui.pixiv.witstudio.dialog.WitDialogAction;
+import ceui.pixiv.witstudio.dialog.WitTipDialog;
 import ceui.pixiv.witstudio.theme.WitRowStyle;
 
 import ceui.lisa.R;
@@ -107,9 +108,20 @@ public class FragmentSettingsAccount extends SettingsPageFragment<FragmentSettin
                         public void onClick(WitDialog dialog, int index) {
                             // 不在这里 finish：要删数据时清理在后台跑，提前关页会先退回仍是登录态的
                             // 上一页、停一下再被踢到登录页。收尾的 CLEAR_TASK 会把本页一并清掉。
-                            Common.logOut(
-                                    mContext, builder.isChecked(), builder.isSubChecked());
                             dialog.dismiss();
+                            // 清理期间挂一个不可取消的转圈，否则弹窗关掉后页面像是没响应。
+                            // 只有勾了「删除账号信息」才有后台清理；不勾是同步退出，不需要。
+                            final WitTipDialog progress = builder.isChecked()
+                                    ? new WitTipDialog.Builder(mActivity)
+                                            .setTipWord(getString(R.string.account_logout_purging))
+                                            .create(false)
+                                    : null;
+                            if (progress != null) progress.show();
+                            Common.logOut(mContext, builder.isChecked(), builder.isSubChecked(),
+                                    progress == null ? null : () -> {
+                                        // 旋屏等情况下宿主可能已换过一个，dismiss 会抛，吞掉即可。
+                                        try { progress.dismiss(); } catch (Throwable ignored) {}
+                                    });
                         }
                     })
                     .create()

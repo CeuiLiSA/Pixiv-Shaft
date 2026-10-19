@@ -2841,6 +2841,7 @@
     <string name="account_delete_action">削除</string>
     <string name="account_delete_done">アカウント %1$s を削除しました</string>
     <string name="account_switch_action_delete">この端末から削除</string>
+    <string name="account_logout_purging">端末のデータを削除しています…</string>
     <string name="account_switch_switching">%1$s に切り替えています…</string>
     <string name="add_to_home_screen">ホーム画面に追加</string>
     <string name="add_to_home_screen_failed">追加に失敗しました。お使いのランチャーが対応していない可能性があります。</string>

@@ -14,8 +14,8 @@
   边缘。12dp 与 M3SetRow 的 13dp 同一档节奏，而且字体放大时留白跟着内容一起长，不会被压扁。
   实测高度：4 行（有登录时间）约 98dp；3 行（备份恢复来的行没有登录时间）约 81dp。
 
-  字体：`row_handle` / `row_mail` / `row_time` 沿用系统字体（legacy 的 `row_sub` 本来就没有
-  字族），与规范里「英文 / 数字用 Montserrat」冲突；本次刻意保持原样。
+  字体：名字 Montserrat 600；@handle 与 hero 卡的 current_handle 同为 500；邮箱、登录时间是
+  辅助说明，走 400。中文（「登录于」等）由系统字体回退。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -85,6 +85,7 @@
 
         <TextView
             android:id="@+id/row_handle"
+            style="@style/textMontserratMedium"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="3dp"
@@ -97,6 +98,7 @@
         <!-- 邮箱独占一整行：和 @handle 拼在同一行时，稍长的邮箱后半截必被省略号吃掉。 -->
         <TextView
             android:id="@+id/row_mail"
+            style="@style/textMontserratRegular"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
@@ -108,6 +110,7 @@
 
         <TextView
             android:id="@+id/row_time"
+            style="@style/textMontserratRegular"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"

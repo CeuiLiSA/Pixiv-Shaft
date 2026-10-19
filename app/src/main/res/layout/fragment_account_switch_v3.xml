@@ -7,12 +7,8 @@
   动态色（hero 卡底 / 描边 / 分节标签 / 徽章）由 AccountSwitchV3Fragment 用 V3Palette
   注入，跟随 app 主题色；正文一律 v3_text_* 适配日夜。
 
-  字体：这一页的次要信息行（账号名 / 邮箱 / 登录日期）**沿用系统字体**，没挂 textMontserrat*。
-  这与 AGENTS.md「英文、数字与品牌文字使用 Montserrat」以及 docs/v3-design-philosophy.md 的
-  字体表冲突 —— 属于历史遗留（legacy 的行本来就是系统字体），本次刻意保持原样、不夹带改字族。
-
-  注意 hero 卡自己的 `current_name` / `current_handle` 是挂了 Montserrat 的 —— 同一张卡片里
-  并存两种字族，那是 legacy 的历史疏漏，不是本次引入的，同样留给上游一起定方向。
+  字体：hero 卡与「其他账号」行同一套 Montserrat —— 名字 600、@handle 500，邮箱与登录时间是
+  辅助说明走 400（见 docs/v3-design-philosophy.md 字体表）。中文由系统字体回退。
 
   Toolbar 刻意**不**写 fitsSystemWindows：宿主 TemplateActivity 走 EdgeToEdge 且
   activity_fragment.xml 不处理 inset，由 Fragment 统一在根视图上派发——顶给 toolbar、
@@ -197,6 +193,7 @@
 
                 <TextView
                     android:id="@+id/current_mail"
+                    style="@style/textMontserratRegular"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="14dp"
@@ -208,6 +205,7 @@
 
                 <TextView
                     android:id="@+id/current_login_time"
+                    style="@style/textMontserratRegular"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"

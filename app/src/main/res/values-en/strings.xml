@@ -2858,6 +2858,7 @@
     <string name="account_delete_action">Delete</string>
     <string name="account_delete_done">Removed account %1$s</string>
     <string name="account_switch_action_delete">Delete from this device</string>
+    <string name="account_logout_purging">Clearing local data…</string>
     <string name="account_switch_switching">Switching to %1$s…</string>
     <string name="add_to_home_screen">Add to home screen</string>
     <string name="add_to_home_screen_failed">Failed to add. Your launcher may not support this.</string>

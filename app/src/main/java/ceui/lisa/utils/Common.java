@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
@@ -134,13 +135,20 @@ public class Common {
      *
      * 清理挂在应用级 scope 上，不挂页面 lifecycleScope：退出登录会把当前页面连同任务栈一起清掉
      * （CLEAR_TASK），挂在页面上的任务会被顺手取消，结果就是「退出了、数据没清」。
+     *
+     * {@code onPurged} 在清理跑完、跳登录页之前于主线程回调（成功失败都回调），调用方用它收掉
+     * 自己挂的转圈；不走清理时不回调。
      */
-    public static void logOut(Context context, boolean deleteAccountInfo, boolean purgeLocalData) {
+    public static void logOut(Context context, boolean deleteAccountInfo, boolean purgeLocalData,
+                              @Nullable Runnable onPurged) {
         if (!SessionManager.INSTANCE.isLoggedIn()) return;
         long uid = SessionManager.INSTANCE.getLoggedInUid();
         if (deleteAccountInfo && uid > 0L) {
             AccountDataPurge.purgeAccountDataDetached(
-                    context.getApplicationContext(), uid, purgeLocalData, Common::finishLogOut);
+                    context.getApplicationContext(), uid, purgeLocalData, () -> {
+                        if (onPurged != null) onPurged.run();
+                        finishLogOut();
+                    });
         } else {
             finishLogOut();
         }

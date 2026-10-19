@@ -2865,6 +2865,7 @@
     <string name="account_delete_action">Hapus</string>
     <string name="account_delete_done">Akun %1$s dihapus</string>
     <string name="account_switch_action_delete">Hapus dari perangkat ini</string>
+    <string name="account_logout_purging">Menghapus data lokal…</string>
     <string name="account_switch_switching">Beralih ke %1$s…</string>
     <string name="add_to_home_screen">Tambahkan ke layar utama</string>
     <string name="add_to_home_screen_failed">Gagal menambahkan, layar utama mungkin tidak mendukung</string>

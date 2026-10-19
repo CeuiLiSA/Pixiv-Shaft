@@ -2841,6 +2841,7 @@
     <string name="account_delete_action">Удалить</string>
     <string name="account_delete_done">Аккаунт %1$s удалён</string>
     <string name="account_switch_action_delete">Удалить с устройства</string>
+    <string name="account_logout_purging">Удаляем локальные данные…</string>
     <string name="account_switch_switching">Переключение на %1$s…</string>
     <string name="add_to_home_screen">Добавить на главный экран</string>
     <string name="add_to_home_screen_failed">Не удалось добавить. Возможно, ваш лаунчер это не поддерживает.</string>

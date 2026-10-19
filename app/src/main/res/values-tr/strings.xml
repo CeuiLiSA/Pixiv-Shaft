@@ -2841,6 +2841,7 @@
     <string name="account_delete_action">Sil</string>
     <string name="account_delete_done">%1$s hesabı silindi</string>
     <string name="account_switch_action_delete">Bu cihazdan sil</string>
+    <string name="account_logout_purging">Yerel veriler siliniyor…</string>
     <string name="account_switch_switching">%1$s hesabına geçiliyor…</string>
     <string name="add_to_home_screen">Ana ekrana ekle</string>
     <string name="add_to_home_screen_failed">Eklenemedi. Başlatıcınız bunu desteklemiyor olabilir.</string>
