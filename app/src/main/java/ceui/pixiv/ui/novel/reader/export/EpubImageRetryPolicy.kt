@@ -11,6 +11,8 @@ import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import ceui.lisa.R
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
@@ -21,6 +23,7 @@ import ceui.pixiv.witstudio.dialog.WitDialogView
 import ceui.pixiv.witstudio.theme.WitDisplay
 import com.blankj.utilcode.util.ActivityUtils
 import com.blankj.utilcode.util.AppUtils
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
@@ -219,45 +222,30 @@ object EpubRetryDialogHelper {
                 .setCheckboxHint(activity.getString(R.string.epub_image_checkbox_hint_silent_retry))
                 .setCancelable(true)
                 .setCanceledOnTouchOutside(true)
-            var actionTaken = false
             builder.addAction(activity.getString(R.string.epub_image_action_ignore)) { dialog, _ ->
-                actionTaken = true
-                val check = builder.isChecked
+                if (cont.isActive) cont.resume(Pair(RetryDecision.Ignore, builder.isChecked))
                 dialog.dismiss()
-                if (cont.isActive) cont.resume(Pair(RetryDecision.Ignore, check))
             }
             builder.addAction(activity.getString(R.string.epub_image_action_retry)) { dialog, _ ->
-                actionTaken = true
-                val check = builder.isChecked
+                if (cont.isActive) cont.resume(Pair(RetryDecision.Retry, builder.isChecked))
                 dialog.dismiss()
-                if (cont.isActive) cont.resume(Pair(RetryDecision.Retry, check))
             }
-            val dialog = builder.create()
-            dialog.setOnDismissListener {
-                if (!actionTaken && cont.isActive) {
-                    cont.resume(Pair(RetryDecision.Ignore, builder.isChecked))
-                }
-            }
-            cont.invokeOnCancellation { dialog.dismiss() }
-            dialog.show()
+            builder.create().showAwaiting(activity, cont) { Pair(RetryDecision.Ignore, builder.isChecked) }
         } else {
             val title = activity.getString(R.string.epub_image_retry_failed_title)
             val builder = WitDialog.MessageDialogBuilder(activity)
                 .setTitle(title)
                 .setCancelable(true)
                 .setCanceledOnTouchOutside(true)
-            var actionTaken = false
             if (attempt >= 3) {
                 builder.setActionContainerOrientation(WitDialogBuilder.VERTICAL)
                 builder.addAction(activity.getString(R.string.epub_image_action_retry_again)) { dialog, _ ->
-                    actionTaken = true
-                    dialog.dismiss()
                     if (cont.isActive) cont.resume(Pair(RetryDecision.Retry, false))
+                    dialog.dismiss()
                 }
                 builder.addAction(activity.getString(R.string.epub_image_action_ignore)) { dialog, _ ->
-                    actionTaken = true
-                    dialog.dismiss()
                     if (cont.isActive) cont.resume(Pair(RetryDecision.Ignore, false))
+                    dialog.dismiss()
                 }
                 builder.addAction(activity.getString(R.string.epub_image_action_copy_error)) { _, _ ->
                     ClipBoardUtils.putTextIntoClipboard(activity, failedImage.formatForClipboard(), false)
@@ -265,24 +253,15 @@ object EpubRetryDialogHelper {
                 }
             } else {
                 builder.addAction(activity.getString(R.string.epub_image_action_ignore)) { dialog, _ ->
-                    actionTaken = true
-                    dialog.dismiss()
                     if (cont.isActive) cont.resume(Pair(RetryDecision.Ignore, false))
+                    dialog.dismiss()
                 }
                 builder.addAction(activity.getString(R.string.epub_image_action_retry_again)) { dialog, _ ->
-                    actionTaken = true
-                    dialog.dismiss()
                     if (cont.isActive) cont.resume(Pair(RetryDecision.Retry, false))
+                    dialog.dismiss()
                 }
             }
-            val dialog = builder.create()
-            dialog.setOnDismissListener {
-                if (!actionTaken && cont.isActive) {
-                    cont.resume(Pair(RetryDecision.Ignore, false))
-                }
-            }
-            cont.invokeOnCancellation { dialog.dismiss() }
-            dialog.show()
+            builder.create().showAwaiting(activity, cont) { Pair(RetryDecision.Ignore, false) }
         }
     }
 
@@ -306,18 +285,15 @@ object EpubRetryDialogHelper {
             .setMessage(msg)
             .setCancelable(true)
             .setCanceledOnTouchOutside(true)
-        var actionTaken = false
         if (attempt >= 3) {
             builder.setActionContainerOrientation(WitDialogBuilder.VERTICAL)
             builder.addAction(activity.getString(R.string.epub_image_action_retry_all_again)) { dialog, _ ->
-                actionTaken = true
-                dialog.dismiss()
                 if (cont.isActive) cont.resume(RetryDecision.Retry)
+                dialog.dismiss()
             }
             builder.addAction(activity.getString(R.string.epub_image_action_ignore_all)) { dialog, _ ->
-                actionTaken = true
-                dialog.dismiss()
                 if (cont.isActive) cont.resume(RetryDecision.Ignore)
+                dialog.dismiss()
             }
             builder.addAction(activity.getString(R.string.epub_image_action_copy_error)) { _, _ ->
                 val allInfo = failedImages.joinToString("\n---\n") { it.formatForClipboard() }
@@ -332,23 +308,46 @@ object EpubRetryDialogHelper {
                 activity.getString(R.string.epub_image_action_retry_all_again)
             }
             builder.addAction(ignoreText) { dialog, _ ->
-                actionTaken = true
-                dialog.dismiss()
                 if (cont.isActive) cont.resume(RetryDecision.Ignore)
+                dialog.dismiss()
             }
             builder.addAction(retryText) { dialog, _ ->
-                actionTaken = true
-                dialog.dismiss()
                 if (cont.isActive) cont.resume(RetryDecision.Retry)
+                dialog.dismiss()
             }
         }
-        val dialog = builder.create()
-        dialog.setOnDismissListener {
-            if (!actionTaken && cont.isActive) {
-                cont.resume(RetryDecision.Ignore)
+        builder.create().showAwaiting(activity, cont) { RetryDecision.Ignore }
+    }
+
+    /**
+     * 弹窗并等待结果；关闭（返回键 / 点外部）或宿主 Activity 销毁都按 [onIgnored] 收尾。
+     *
+     * WitDialog 不感知宿主生命周期：Activity 销毁时系统直接回收窗口，OnDismissListener 不会回调。
+     * 宿主若不是调用方协程作用域的 owner（例如 getTopActivity() 拿到的其他页面），协程也不会被取消，
+     * 导出就会永远挂在这里。
+     */
+    private fun <T> WitDialog.showAwaiting(
+        activity: Activity,
+        cont: CancellableContinuation<T>,
+        onIgnored: () -> T,
+    ) {
+        if (activity.isFinishing || activity.isDestroyed) {
+            cont.resume(onIgnored())
+            return
+        }
+        val lifecycle = (activity as? LifecycleOwner)?.lifecycle
+        val observer = object : DefaultLifecycleObserver {
+            override fun onDestroy(owner: LifecycleOwner) {
+                if (cont.isActive) cont.resume(onIgnored())
+                dismiss()
             }
         }
-        cont.invokeOnCancellation { dialog.dismiss() }
-        dialog.show()
+        setOnDismissListener {
+            lifecycle?.removeObserver(observer)
+            if (cont.isActive) cont.resume(onIgnored())
+        }
+        cont.invokeOnCancellation { dismiss() }
+        lifecycle?.addObserver(observer)
+        show()
     }
 }
