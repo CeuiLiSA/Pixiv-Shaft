@@ -33,7 +33,9 @@ import kotlin.math.roundToInt
 internal class ReferralColors(context: Context, darkOverride: Boolean?, accentOverride: Int?) {
     private val host = V3Palette.from(context)
     val dark = darkOverride ?: host.isDark
-    private val source = accentOverride ?: host.primary
+    // 自定义主题色可能带透明度（如 #FE847730）；它会派生出 primary 再作为对比度计算的背景，
+    // 而 ColorUtils.calculateContrast 拒绝半透明背景，所以统一按不透明取色。
+    private val source = ColorUtils.setAlphaComponent(accentOverride ?: host.primary, 0xFF)
     private val referenceHue = hsl(0xFF6A4BC5.toInt())[0]
     private val hue = hsl(source)[0]
     private fun themed(hex: String): Int {
