@@ -92,13 +92,13 @@
                             app:civ_border_color="?attr/colorPrimary"
                             app:civ_border_width="2dp" />
 
+                        <!-- 徽章贴在头像方框的右下角，但不外扩：外层 FrameLayout 默认 clipChildren，
+                             负 margin 会把徽章的右、下各裁掉 1dp，圆边被切成平口。 -->
                         <FrameLayout
                             android:id="@+id/current_premium_badge"
                             android:layout_width="22dp"
                             android:layout_height="22dp"
                             android:layout_gravity="bottom|end"
-                            android:layout_marginEnd="-1dp"
-                            android:layout_marginBottom="-1dp"
                             android:background="@drawable/v3_premium_badge_bg"
                             android:elevation="2dp"
                             android:visibility="gone"
