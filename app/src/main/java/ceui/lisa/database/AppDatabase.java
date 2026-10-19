@@ -572,6 +572,8 @@ public abstract class AppDatabase extends RoomDatabase {
                             // allow queries on the main thread.
                             // Don't do this on a real app! See PersistenceBasicSample for an example.
                             //.fallbackToDestructiveMigration()
+                            // #1261：默认的 corrupt 处理会把整个库删掉，换成不删数据的版本。
+                            .openHelperFactory(new NonDestructiveOpenHelperFactory())
                             .allowMainThreadQueries()
                             .addMigrations(ALL_MIGRATIONS)
                             .build();
