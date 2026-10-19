@@ -61,6 +61,7 @@ object NovelExportManager {
         tokens: List<ContentToken>,
         seriesOrder: Int? = null,
         seriesTotal: Int? = null,
+        retryPolicy: EpubImageRetryPolicy? = null,
     ): ExportResult = withContext(Dispatchers.IO) {
         val destination: RelativePath = if (novel != null) {
             DownloadItems.novelDestinationFromLoxia(
@@ -84,11 +85,16 @@ object NovelExportManager {
         }
         val exporter = exporters[format]
             ?: return@withContext ExportResult.Failure(context.getString(ceui.lisa.R.string.msg_unknown_format, context.getString(format.displayNameResId)))
+        val effectivePolicy = retryPolicy ?: if (com.blankj.utilcode.util.AppUtils.isAppForeground()) {
+            EpubImageRetryPolicy.Foreground(context as? android.app.Activity)
+        } else {
+            EpubImageRetryPolicy.Auto
+        }
         // Kotlin stdlib runCatching 会把 CancellationException 一起捕到,变成
         // ExportResult.Failure 弹「Job was cancelled」给用户(单本导出场景同样
         // 受影响)。改成手写 try/catch,显式重抛 CE。
         val result = try {
-            exporter.export(context, novel, webNovel, tokens, destination)
+            exporter.export(context, novel, webNovel, tokens, destination, effectivePolicy)
         } catch (ce: CancellationException) {
             throw ce
         } catch (t: Throwable) {

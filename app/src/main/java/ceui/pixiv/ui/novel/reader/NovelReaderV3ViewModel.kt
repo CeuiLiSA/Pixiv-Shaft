@@ -32,6 +32,7 @@ import ceui.pixiv.ui.novel.reader.paginate.Paginator
 import ceui.pixiv.ui.novel.reader.settings.ReaderSettings
 import ceui.pixiv.ui.novel.reader.paginate.TextMeasurer
 import ceui.pixiv.ui.novel.reader.paginate.TypeStyle
+import ceui.pixiv.ui.novel.reader.export.EpubImageRetryPolicy
 import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.ExportResult
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
@@ -636,7 +637,11 @@ class NovelReaderV3ViewModel(
 
     // ---- Export --------------------------------------------------------------
 
-    suspend fun exportNovel(format: ExportFormat, allowAutoEpub: Boolean = false): ExportResult {
+    suspend fun exportNovel(
+        format: ExportFormat,
+        allowAutoEpub: Boolean = false,
+        activity: android.app.Activity? = null,
+    ): ExportResult {
         val loaded = _loadState.value as? LoadState.Loaded
             ?: return ExportResult.Failure(ctx().getString(R.string.msg_novel_not_ready))
         // 仅默认 TXT 快路径允许静默切 EPUB；手动在“每次询问”里选 TXT 不切。
@@ -651,6 +656,7 @@ class NovelReaderV3ViewModel(
             novel = loaded.novel,
             webNovel = loaded.webNovel,
             tokens = loaded.tokens,
+            retryPolicy = EpubImageRetryPolicy.Foreground(activity),
         )
     }
 

@@ -41,6 +41,7 @@ interface MergedNovelWriter {
         context: Context,
         content: MergedNovelContent,
         destination: RelativePath,
+        retryPolicy: EpubImageRetryPolicy = EpubImageRetryPolicy.Batch(),
         onImageBundled: suspend (key: String, bytes: Int) -> Unit = { _, _ -> },
     ): Boolean
 }
@@ -159,6 +160,7 @@ private object MergedTxtWriter : MergedNovelWriter {
         context: Context,
         content: MergedNovelContent,
         destination: RelativePath,
+        retryPolicy: EpubImageRetryPolicy,
         onImageBundled: suspend (key: String, bytes: Int) -> Unit,
     ): Boolean {
         val text = buildString {
@@ -199,6 +201,7 @@ private object MergedMarkdownWriter : MergedNovelWriter {
         context: Context,
         content: MergedNovelContent,
         destination: RelativePath,
+        retryPolicy: EpubImageRetryPolicy,
         onImageBundled: suspend (key: String, bytes: Int) -> Unit,
     ): Boolean {
         val text = buildString {
@@ -246,6 +249,7 @@ private object MergedPdfWriter : MergedNovelWriter {
         context: Context,
         content: MergedNovelContent,
         destination: RelativePath,
+        retryPolicy: EpubImageRetryPolicy,
         onImageBundled: suspend (key: String, bytes: Int) -> Unit,
     ): Boolean {
         val bodyPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -452,6 +456,7 @@ private object MergedEpubWriter : MergedNovelWriter {
         context: Context,
         content: MergedNovelContent,
         destination: RelativePath,
+        retryPolicy: EpubImageRetryPolicy,
         onImageBundled: suspend (key: String, bytes: Int) -> Unit,
     ): Boolean {
         val title = content.displayTitle.ifEmpty { "novel_merge" }
@@ -470,15 +475,69 @@ private object MergedEpubWriter : MergedNovelWriter {
 
         // 跨章节去重：相同 image key 的插画只下载一次。第一次解析到 URL 就抓。
         val images = linkedMapOf<String, BundledImage>()
+        val failedImages = mutableListOf<FailedImageInfo>()
+        val attempted = hashSetOf<String>()
         for (ch in tokenized) {
             for (token in ch.tokens) {
                 val key = imageKey(token) ?: continue
                 if (images.containsKey(key)) continue
-                val url = ch.resolver(token) ?: continue
-                val bitmap = ExportUtils.loadBitmap(context, url) ?: continue
-                val jpeg = ExportUtils.bitmapToJpeg(bitmap)
-                images[key] = BundledImage("$key.jpg", jpeg)
-                onImageBundled(key, jpeg.size)
+                val url = ch.resolver(token)
+                if (url.isNullOrEmpty()) {
+                    timber.log.Timber.w("MergedEpubWriter: url is null for $key in ${ch.title}")
+                    continue
+                }
+                // 失败过的 key 不再重复抓 / 重复计入失败列表；放在 URL 解析之后，别的章节仍有机会解析到它。
+                if (!attempted.add(key)) continue
+                val result = ExportUtils.loadBitmapResult(context, url)
+                if (result.isSuccess) {
+                    val bitmap = result.getOrThrow()
+                    val jpeg = ExportUtils.bitmapToJpeg(bitmap)
+                    images[key] = BundledImage("$key.jpg", jpeg)
+                    onImageBundled(key, jpeg.size)
+                } else {
+                    failedImages.add(
+                        FailedImageInfo(
+                            key = key,
+                            url = url,
+                            error = result.exceptionOrNull(),
+                            novelId = novelId,
+                            chapterTitle = ch.title,
+                            token = token,
+                        )
+                    )
+                }
+            }
+        }
+
+        if (failedImages.isNotEmpty()) {
+            val act = (retryPolicy as? EpubImageRetryPolicy.Batch)?.activity
+                ?: (retryPolicy as? EpubImageRetryPolicy.Foreground)?.activity
+                ?: com.blankj.utilcode.util.ActivityUtils.getTopActivity()
+            if (act == null || act.isFinishing || act.isDestroyed || !com.blankj.utilcode.util.AppUtils.isAppForeground()) {
+                RecentNovelExportTracker.markFailed()
+            } else {
+                var attempt = 1
+                while (failedImages.isNotEmpty()) {
+                    val decision = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        EpubRetryDialogHelper.showBatchRetryDialog(act, failedImages, attempt)
+                    }
+                    if (decision is RetryDecision.Retry) {
+                        attempt++
+                        val currentFailed = failedImages.toList()
+                        for (item in currentFailed) {
+                            val retryRes = ExportUtils.loadBitmapResult(context, item.url)
+                            if (retryRes.isSuccess) {
+                                val bitmap = retryRes.getOrThrow()
+                                val jpeg = ExportUtils.bitmapToJpeg(bitmap)
+                                images[item.key] = BundledImage("${item.key}.jpg", jpeg)
+                                onImageBundled(item.key, jpeg.size)
+                                failedImages.remove(item)
+                            }
+                        }
+                    } else {
+                        break
+                    }
+                }
             }
         }
 

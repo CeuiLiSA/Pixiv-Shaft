@@ -128,6 +128,7 @@ object NovelAutoDownload {
             novel = novel,
             webNovel = entry.webNovel,
             tokens = entry.tokens,
+            retryPolicy = ceui.pixiv.ui.novel.reader.export.EpubImageRetryPolicy.Auto,
         )) {
             is ExportResult.Success -> {
                 withContext(Dispatchers.Main) {

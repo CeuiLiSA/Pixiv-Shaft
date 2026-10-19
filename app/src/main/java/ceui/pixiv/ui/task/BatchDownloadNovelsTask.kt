@@ -146,6 +146,7 @@ class BatchDownloadNovelsTask(
                 tokens = tokens,
                 seriesOrder = seriesIndex,
                 seriesTotal = total,
+                retryPolicy = ceui.pixiv.ui.novel.reader.export.EpubImageRetryPolicy.Batch(activity),
             )) {
                 is ExportResult.Success, is ExportResult.Skipped -> Unit
                 is ExportResult.Failure -> throw RuntimeException(result.message)

@@ -1250,7 +1250,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
             getString(R.string.msg_export_start, getString(format.displayNameResId)),
         )
         viewLifecycleOwner.lifecycleScope.launch {
-            when (val result = viewModel.exportNovel(format, allowAutoEpub)) {
+            when (val result = viewModel.exportNovel(format, allowAutoEpub, requireActivity())) {
                 is ExportResult.Success -> DownloadToasts.showLong(
                     DownloadToastKind.NOVEL_SAVE,
                     getString(R.string.msg_export_success, result.displayPath),
