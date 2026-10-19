@@ -39,7 +39,7 @@ public final class DrawerIconCatalog {
         } else if (actionId == R.id.nav_gallery) {
             return R.drawable.ic_file_download_black_24dp;
         } else if (actionId == R.id.nav_snapshot) {
-            return R.drawable.ic_baseline_get_app_24;
+            return R.drawable.ic_baseline_get_app_20;
         } else if (actionId == R.id.nav_notifications) {
             return R.drawable.ic_notifications_black_24dp;
         } else if (actionId == R.id.muted_list) {

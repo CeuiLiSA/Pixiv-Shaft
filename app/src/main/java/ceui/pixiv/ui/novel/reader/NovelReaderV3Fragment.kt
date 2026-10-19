@@ -1090,7 +1090,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         // 本地 txt 已经是 txt，再导出无意义；且 NovelHeaderRenderer 需要非空
         // novel（本地源 novel 为 null），直接不挂导出项。
         if (!isLocalSource) {
-            item(getString(R.string.menu_export), R.drawable.ic_baseline_get_app_24) {
+            item(getString(R.string.menu_export), R.drawable.ic_baseline_get_app_20) {
                 if (viewModel.loadState.value !is NovelReaderV3ViewModel.LoadState.Loaded) {
                     Toaster.showShort(getString(R.string.msg_novel_not_ready))
                     return@item
