@@ -58,10 +58,11 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -110,20 +111,19 @@ open class RecmdIllustFeedFragment(
         // 应用级对象，捕获它不会把 Fragment 钉进 VM
         val pool = requireContext().appServices().discoveryPool
         // 缓冲池归 RecmdR18ViewModel 长期持有，由后台协程异步注水，首屏与后续翻页按固定步长均匀平摊混入。
-        val r18Buffer = r18ViewModel.buffer
+        // 同为 Fragment 作用域的 VM，与 feedViewModel 同生命周期，捕获它不违反零捕获约定。
+        val r18Vm = r18ViewModel
+        val r18Buffer = r18Vm.buffer
         // 本地优先（哔哩哔哩 / 新闻首页语义）：给稳定 slot 即开磁盘缓存，冷启秒显上次首屏
         // 再拉最新覆盖。slot 已由框架自动拼账号命名空间，切号不串味。
         cachedPixivFeedSource(
             slot = "recmd-$apiType",
             // 首屏拉取与网页 R-18 推荐拉取并行出发（两相奔赴、各自完成）：
             // 立即在后台触发 r18ViewModel.recharge 拉取 R-18，同时发起 App API 全年龄推荐请求（耗时约 200ms）。
-            // 绝不挂起等待慢速的网页 R-18 接口；拉回后注满缓冲池供翻页消耗，并自动尝试动态补偿首屏。
+            // 绝不挂起等待慢速的网页 R-18 接口；拉回后注满缓冲池供翻页消耗，首屏补偿由 Fragment
+            // 观察 [RecmdR18ViewModel.loadedGeneration] 触发（不能在这里传 Fragment 回调进 VM）。
             initialFetch = {
-                r18ViewModel.recharge(
-                    apiType = apiType,
-                ) {
-                    compensateFirstPage()
-                }
+                r18Vm.recharge(apiType)
                 Client.appApi.getRecommendedWorksWithRanking(apiType)
             },
             // 「启动时自动刷新首页推荐」(issue #955)：关掉后冷启命中快照就停在快照上，
@@ -227,21 +227,13 @@ open class RecmdIllustFeedFragment(
             }
         }
 
-        // 当首页进入加载时，立即并行触发 R-18 异步拉取；拉回后自动尝试首屏动态补偿混入
+        // R-18 拉取由 initialFetch 随每次网络刷新并行触发；缓冲池注满后尝试首屏动态补偿混入。
+        // 重建后重新订阅会拿到当前代数再补偿一次，compensateFirstPage 已有 R-18 时自行跳过。
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                feedViewModel.uiState
-                    .filter { it.refresh is LoadState.Loading }
-                    .map { it.refreshGeneration }
-                    .distinctUntilChanged()
-                    .collect {
-                        val apiType = if (dataType == TYPE_MANGA) "manga" else "illust"
-                        r18ViewModel.recharge(
-                            apiType = apiType,
-                        ) {
-                            compensateFirstPage()
-                        }
-                    }
+                r18ViewModel.loadedGeneration
+                    .filter { it > 0 }
+                    .collect { compensateFirstPage() }
             }
         }
     }
@@ -675,6 +667,11 @@ class RecmdR18ViewModel : ViewModel() {
 
     val buffer = R18RecommendBuffer()
 
+    private val _loadedGeneration = MutableStateFlow(0)
+
+    /** 每次拉取成功且非空注满缓冲池后自增，Fragment 按 view 生命周期观察它做首屏补偿。 */
+    val loadedGeneration: StateFlow<Int> = _loadedGeneration.asStateFlow()
+
     private var rechargeJob: Job? = null
     private var isFetching: Boolean = false
 
@@ -682,12 +679,8 @@ class RecmdR18ViewModel : ViewModel() {
      * 在后台协程中为缓冲池异步拉取网页 R-18 推荐作品。与全年龄推荐接口并行出发，两相奔赴。
      *
      * @param apiType "illust" 或 "manga"。
-     * @param onLoaded 拉取成功且数据非空时的回调（在主线程调用，用于补偿混入首屏）。
      */
-    fun recharge(
-        apiType: String,
-        onLoaded: () -> Unit,
-    ) {
+    fun recharge(apiType: String) {
         if (!RecmdIllustFeedFragment.isR18RecommendEligible()) {
             buffer.clear()
             return
@@ -703,7 +696,7 @@ class RecmdR18ViewModel : ViewModel() {
                 if (r18List.isNotEmpty()) {
                     buffer.reset(r18List)
                     Timber.d("RecmdR18ViewModel: recharged %d r18 items into buffer", r18List.size)
-                    onLoaded()
+                    _loadedGeneration.value += 1
                 }
             } finally {
                 isFetching = false
