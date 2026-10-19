@@ -83,20 +83,23 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                 HomeR18Prefs.setEnabled(false);
             }
             baseBind.includeR18InHomeFeed.setChecked(HomeR18Prefs.isEnabled());
-            View.OnClickListener toggleIncludeR18 = v -> {
-                boolean target = !HomeR18Prefs.isEnabled();
-                if (target && !SessionManager.hasValidWebSession()) {
-                    baseBind.includeR18InHomeFeed.setChecked(false);
+            // 走 OnCheckedChange 而不是 OnClick：拖动开关滑块只改 checked、不触发 click。
+            baseBind.includeR18InHomeFeed.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                // 程序回写（登录回调 / 失效关回 / 下面的回弹）与存储已一致，直接跳过
+                if (isChecked == HomeR18Prefs.isEnabled()) {
+                    return;
+                }
+                if (isChecked && !SessionManager.hasValidWebSession()) {
+                    buttonView.setChecked(false);
                     SessionManager.showWebLoginDialog(mActivity, getString(R.string.include_r18_in_home_feed), () ->
                             webLoginLauncher.launch(SessionManager.createWebLoginIntent(mActivity)));
                     return;
                 }
-                HomeR18Prefs.setEnabled(target);
-                baseBind.includeR18InHomeFeed.setChecked(target);
+                HomeR18Prefs.setEnabled(isChecked);
                 Common.showToast(getString(R.string.string_428), 2);
-            };
-            baseBind.includeR18InHomeFeed.setOnClickListener(toggleIncludeR18);
-            baseBind.includeR18InHomeFeedRela.setOnClickListener(toggleIncludeR18);
+            });
+            baseBind.includeR18InHomeFeedRela.setOnClickListener(v ->
+                    baseBind.includeR18InHomeFeed.performClick());
         }
 
         baseBind.saveHistory.setChecked(Shaft.sSettings.isSaveViewHistory());
