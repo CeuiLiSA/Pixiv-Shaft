@@ -2625,6 +2625,7 @@
     <string name="synonym_dict_title">Словарь синонимов</string>
     <string name="synonym_dict_enable">Включить словарь синонимов</string>
     <string name="keep_status_bar_when_view_image">Оставлять область статус-бара при просмотре изображений</string>
+    <string name="immersive_when_view_image">Открывать изображения в полноэкранном режиме (скрыть статус-бар и панель)</string>
     <string name="synonym_add_as_synonym">Добавить как тег-синоним</string>
     <string name="synonym_new_target">Новый целевой тег</string>
     <string name="synonym_new_target_hint">Название тега закладки (без пробелов)</string>

@@ -2688,6 +2688,7 @@
     <string name="synonym_dict_title">Kamus sinonim</string>
     <string name="synonym_dict_enable">Aktifkan kamus sinonim</string>
     <string name="keep_status_bar_when_view_image">Pertahankan area bilah status saat melihat gambar</string>
+    <string name="immersive_when_view_image">Buka gambar dalam mode imersif (sembunyikan bilah status dan bilah alat)</string>
     <string name="synonym_add_as_synonym">Tambahkan sebagai tag sinonim</string>
     <string name="synonym_new_target">Buat tag target baru</string>
     <string name="synonym_new_target_hint">Nama tag bookmark (tanpa spasi)</string>

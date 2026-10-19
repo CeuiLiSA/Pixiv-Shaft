@@ -537,6 +537,9 @@ public class Settings {
     // 看图时为状态栏(刘海/挖孔)留出顶部空间，避免多图/竖图铺满顶部被遮挡（issue #724）。默认关闭，保持原沉浸式铺满。
     private boolean keepStatusBarWhenViewImage = false;
 
+    // 二级详情大图默认以沉浸态（隐藏系统栏和工具条）进场（issue #1242），默认关闭
+    private boolean immersiveWhenViewImage = false;
+
     // 收藏夹过滤已失效作品（已删除/不可见），默认不过滤
     private boolean filterInvalidBookmarks = false;
 
@@ -1699,6 +1702,14 @@ public class Settings {
 
     public void setKeepStatusBarWhenViewImage(boolean keepStatusBarWhenViewImage) {
         this.keepStatusBarWhenViewImage = keepStatusBarWhenViewImage;
+    }
+
+    public boolean isImmersiveWhenViewImage() {
+        return immersiveWhenViewImage;
+    }
+
+    public void setImmersiveWhenViewImage(boolean immersiveWhenViewImage) {
+        this.immersiveWhenViewImage = immersiveWhenViewImage;
     }
 
     public boolean isFilterInvalidBookmarks() {

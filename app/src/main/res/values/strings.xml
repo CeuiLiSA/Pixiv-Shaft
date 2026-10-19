@@ -2943,6 +2943,7 @@
     <string name="synonym_dict_title">同义词词典</string>
     <string name="synonym_dict_enable">启用同义词词典</string>
     <string name="keep_status_bar_when_view_image">看图时保留状态栏区域</string>
+    <string name="immersive_when_view_image">看图时默认沉浸（隐藏状态栏和工具栏）</string>
     <string name="synonym_add_as_synonym">添加为同义词标签</string>
     <string name="synonym_new_target">新建目标标签</string>
     <string name="synonym_new_target_hint">收藏标签名（不能含空格）</string>

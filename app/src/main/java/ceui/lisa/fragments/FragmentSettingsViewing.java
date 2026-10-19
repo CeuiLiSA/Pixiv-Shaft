@@ -258,6 +258,19 @@ public class FragmentSettingsViewing extends SettingsPageFragment<FragmentSettin
         baseBind.keepStatusBarWhenViewImageRela.setOnClickListener(v ->
                 baseBind.keepStatusBarWhenViewImage.performClick());
 
+        // 二级详情大图默认以沉浸态进场（issue #1242），默认关闭。
+        baseBind.immersiveWhenViewImage.setChecked(Shaft.sSettings.isImmersiveWhenViewImage());
+        baseBind.immersiveWhenViewImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setImmersiveWhenViewImage(isChecked);
+                Common.showToast(getString(R.string.string_428));
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.immersiveWhenViewImageRela.setOnClickListener(v ->
+                baseBind.immersiveWhenViewImage.performClick());
+
         //插画二级详情保持屏幕常亮
         baseBind.illustDetailKeepScreenOn.setChecked(Shaft.sSettings.isIllustDetailKeepScreenOn());
         baseBind.illustDetailKeepScreenOn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

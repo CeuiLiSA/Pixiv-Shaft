@@ -188,14 +188,28 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        // issue #1242: 「看图时默认沉浸」开启时以沉浸态进场。重建恢复不再套用，ViewModel 里是用户切过的状态。
+        // 首次下发直接收起工具条而不播淡出 —— 淡出从 alpha=1 起跳，会和进场转场抢 alpha 闪一下。
+        var hideChromeInstantly = false
+        if (!restoredFromSavedState && Shaft.sSettings.isImmersiveWhenViewImage &&
+            ("二级详情" == dataType || isSnapshotMode)
+        ) {
+            viewModel.isFullscreenMode.value = true
+            hideChromeInstantly = true
+        }
         viewModel.isFullscreenMode.observe(this) { isFullScreen ->
             if (isFullScreen) {
                 windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-                infoItems.forEach { it.animateFadeOutQuickly() }
+                if (hideChromeInstantly) {
+                    infoItems.forEach { it.visibility = View.INVISIBLE }
+                } else {
+                    infoItems.forEach { it.animateFadeOutQuickly() }
+                }
             } else {
                 windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
                 infoItems.forEach { it.animateFadeInQuickly() }
             }
+            hideChromeInstantly = false
         }
         setupViewerTransition(btnAi)
         if ("二级详情" == dataType) {

@@ -2625,6 +2625,7 @@
     <string name="synonym_dict_title">Eş Anlamlılar Sözlüğü</string>
     <string name="synonym_dict_enable">Eş anlamlılar sözlüğünü etkinleştir</string>
     <string name="keep_status_bar_when_view_image">Resimleri görüntülerken durum çubuğu alanını koru</string>
+    <string name="immersive_when_view_image">Resimleri sürükleyici modda aç (durum çubuğunu ve araç çubuğunu gizle)</string>
     <string name="synonym_add_as_synonym">Eş anlamlı etiket olarak ekle</string>
     <string name="synonym_new_target">Yeni hedef etiket</string>
     <string name="synonym_new_target_hint">Yer imi etiket adı (boşluk olamaz)</string>

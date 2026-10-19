@@ -312,6 +312,24 @@
                 </RelativeLayout>
 
                 <RelativeLayout
+                    android:id="@+id/immersive_when_view_image_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/immersive_when_view_image" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/immersive_when_view_image"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
                     android:id="@+id/illust_detail_keep_screen_on_rela"
                     style="@style/M3SetRow"
                     android:background="@drawable/wit_row_mid">

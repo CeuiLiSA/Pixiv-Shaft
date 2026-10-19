@@ -2625,6 +2625,7 @@
     <string name="synonym_dict_title">同義語辞書</string>
     <string name="synonym_dict_enable">同義語辞書を有効化</string>
     <string name="keep_status_bar_when_view_image">画像表示時にステータスバー領域を残す</string>
+    <string name="immersive_when_view_image">画像を没入モードで開く（ステータスバーとツールバーを隠す）</string>
     <string name="synonym_add_as_synonym">同義語タグとして追加</string>
     <string name="synonym_new_target">ターゲットタグを新規作成</string>
     <string name="synonym_new_target_hint">ブックマークタグ名（スペース不可）</string>
