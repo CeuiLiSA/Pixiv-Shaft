@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.Headers;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -66,13 +67,31 @@ public class CronetInterceptor implements Interceptor {
     public static final String CF_IP_SECONDARY = "172.64.145.17";
 
     private static volatile CronetEngine sEngine;
+    // 原生库加载失败只试一次：同一安装包里坏掉的 .so 不会自己好，每建一个 client 都重新 dlopen 没有意义。
+    private static volatile boolean sEngineUnavailable;
     private static final ExecutorService sExecutor = Executors.newFixedThreadPool(4);
 
-    public static CronetEngine getEngine(Context context) {
-        if (sEngine == null) {
+    /**
+     * 直连开启时给 client 挂上 Cronet。libcronet 加载失败（安装包里的 .so 损坏、ABI 缺失等）时
+     * 不挂，client 退回普通 OkHttp：直连不可用，但不能因此每次发请求都崩。
+     */
+    public static void installOn(OkHttpClient.Builder builder, Context context) {
+        CronetEngine engine = getEngine(context);
+        if (engine != null) {
+            builder.addInterceptor(new CronetInterceptor(engine));
+        }
+    }
+
+    private static CronetEngine getEngine(Context context) {
+        if (sEngine == null && !sEngineUnavailable) {
             synchronized (CronetInterceptor.class) {
-                if (sEngine == null) {
-                    sEngine = buildEngine(context);
+                if (sEngine == null && !sEngineUnavailable) {
+                    try {
+                        sEngine = buildEngine(context);
+                    } catch (UnsatisfiedLinkError e) {
+                        sEngineUnavailable = true;
+                        Log.e(TAG, "Cronet native library unavailable, direct connect disabled", e);
+                    }
                 }
             }
         }

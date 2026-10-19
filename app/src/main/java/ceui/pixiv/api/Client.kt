@@ -190,9 +190,7 @@ class ClientManager {
 
     private fun applyDirectConnect(builder: OkHttpClient.Builder) {
         if (Shaft.sSettings.isDirectConnect) {
-            builder.addInterceptor(
-                CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext()))
-            )
+            CronetInterceptor.installOn(builder, Shaft.getContext())
         }
     }
 

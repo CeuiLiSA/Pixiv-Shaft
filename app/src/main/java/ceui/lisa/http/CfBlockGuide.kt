@@ -213,7 +213,7 @@ object CfBlockGuide {
         // 带 pixiv SNI 的 TCP 握手直接 RST —— 那会让我们永远拿不到 IP。
         // 代理模式下 host 是自建源，不在 Cronet 白名单里，加了也自然放行。
         if (Shaft.sSettings?.isDirectConnect == true) {
-            builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
+            CronetInterceptor.installOn(builder, Shaft.getContext())
         }
         return builder.build()
     }

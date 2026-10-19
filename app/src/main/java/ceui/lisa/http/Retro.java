@@ -48,7 +48,7 @@ public class Retro {
 
     private static OkHttpClient.Builder applyDirectConnect(OkHttpClient.Builder before, boolean enable) {
         if (enable && Shaft.sSettings.isDirectConnect()) {
-            before.addInterceptor(new CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())));
+            CronetInterceptor.installOn(before, Shaft.getContext());
         }
         return before;
     }

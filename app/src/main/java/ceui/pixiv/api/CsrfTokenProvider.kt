@@ -49,7 +49,7 @@ object CsrfTokenProvider {
         // issue #959: 直连下 www.pixiv.net 同样打不通,token 兜底抓取必须走 Cronet,
         // 否则黑名单（アクセスブロック）在没梯子时永远卡在「CSRF token 未就绪」。每次现建:直连开关随时可切。
         if (Shaft.sSettings?.isDirectConnect == true) {
-            builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
+            CronetInterceptor.installOn(builder, Shaft.getContext())
         }
         return builder.build()
     }

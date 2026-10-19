@@ -1011,7 +1011,7 @@ class NetworkTestViewModel : ViewModel() {
     }
 
     private fun addCronet(builder: OkHttpClient.Builder) {
-        builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
+        CronetInterceptor.installOn(builder, Shaft.getContext())
     }
 
     /** 该目标本次握手实际走的路径，标在步骤 label 上让用户看清测的是哪条链路。 */

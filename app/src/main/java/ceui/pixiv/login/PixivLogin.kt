@@ -88,7 +88,7 @@ object PixivLogin {
             builder.addInterceptor(AppApiProxyInterceptor())
         }
         if (Shaft.sSettings.isDirectConnect) {
-            builder.addInterceptor(CronetInterceptor(CronetInterceptor.getEngine(Shaft.getContext())))
+            CronetInterceptor.installOn(builder, Shaft.getContext())
         }
         return PixivOAuthClient(
             config = PixivOAuthConfig.PIXIV_ANDROID,
