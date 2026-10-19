@@ -13,6 +13,7 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.databinding.CellNovelSeriesHeroBinding
 import ceui.lisa.databinding.CellNovelSeriesProfileBinding
 import ceui.lisa.databinding.CellNovelV3Binding
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.ShareIllust
@@ -131,7 +132,7 @@ class NovelSeriesFeedSource(private val seriesId: Long) : FeedSource<String> {
                 detail.user?.let { items.add(SeriesAuthorFeedItem(it)) }
                 items.add(NovelSeriesProfileFeedItem(detail))
                 if (!detail.caption.isNullOrBlank()) {
-                    items.add(SeriesCaptionFeedItem(detail.caption!!, detail.id))
+                    items.add(SeriesCaptionFeedItem(detail.caption, detail.id))
                 }
             }
             items.add(
@@ -171,7 +172,7 @@ fun novelSeriesHeroRenderer(): FeedRenderer<NovelSeriesHeroFeedItem, CellNovelSe
             else ColorStateList.valueOf(ctx.getColor(R.color.v3_text_3))
         b.bookmark.setOnClick { v ->
             v.findActionReceiverOrNull<NovelSeriesHeaderActionReceiver>()
-                ?.onClickToggleWatchlist(v as ProgressImageButton)
+                ?.onClickToggleWatchlist(v)
         }
 
         val parts = mutableListOf(
@@ -296,7 +297,8 @@ fun novelSeriesCardRenderer(): FeedRenderer<NovelSeriesCardFeedItem, CellNovelV3
 
         b.badgeR18.isVisible = novel.is_x_restricted == true || (novel.x_restrict ?: 0) > 0
         b.badgeOriginal.isVisible = novel.is_original == true
-        b.badgeAi.isVisible = novel.novel_ai_type == 2
+        // AI 角标：官方 novel_ai_type==2 或标签命中（issue #1252，与屏蔽/详情页同口径）
+        b.badgeAi.isVisible = IllustNovelFilter.isAiWork(novel)
 
         bindNovelCardTags(b, novel)
         // 绑定时从 ObjectPool 读最新收藏态/收藏数：卡片回收复用后不会回退成加载时的旧值。

@@ -27,6 +27,7 @@ import ceui.lisa.databinding.ItemStreetContentBinding
 import ceui.lisa.databinding.ItemStreetRailBinding
 import ceui.lisa.databinding.ItemStreetRailTagBinding
 import ceui.lisa.databinding.ItemStreetRailWorkBinding
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.helper.StaggeredManager
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
@@ -538,8 +539,11 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
             bindPickup(binding, content.pickup)
 
             binding.badgeR18.isVisible = (thumb.xRestrict ?: 0) > 0
-            // aiType: 1 = 人工, 2 = AI 生成（网页端同款口径）
-            binding.badgeAi.isVisible = thumb.aiType == 2
+            // aiType: 1 = 人工, 2 = AI 生成（网页端同款口径）；标签命中也算（issue #1252）
+            binding.badgeAi.isVisible = IllustNovelFilter.isAiWork(
+                thumb.aiType == 2,
+                thumb.tags?.mapNotNull { it.name },
+            )
             binding.badgeOriginal.isVisible = thumb.isOriginal == true
 
             val pageCount = thumb.pageCount ?: 0
@@ -754,7 +758,7 @@ class StreetMainFragment : BaseLazyFragment<FragmentBaseListBinding>() {
             return
         }
         binding.pickupRow.isVisible = true
-        val name = pickup!!.userName.orEmpty()
+        val name = pickup.userName
         val comment = pickup.comment?.trim()
             ?.takeIf { it.isNotEmpty() && it != PICKUP_STAMP_PLACEHOLDER }
         binding.pickupText.text = if (comment != null) {

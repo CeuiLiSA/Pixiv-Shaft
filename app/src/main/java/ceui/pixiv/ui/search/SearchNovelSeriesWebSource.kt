@@ -109,7 +109,8 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
     private fun toFeedItem(row: WebNovelCollection, params: WebNovelSearchParams): FeedItem? {
         // 搜索专属两档（app-api 路径由 Mapper.setSearchR18Restriction / setSearchOnlyAi 承担）
         if (!params.r18Mode.accepts(row.xRestrict)) return null
-        if (params.onlyAi && row.aiType != 2) return null
+        // 仅看 AI 与 Mapper 同口径走 isAiWork：官方 aiType==2 或标签命中（issue #1252）
+        if (params.onlyAi && !IllustNovelFilter.isAiWork(row.aiType == 2, row.tags)) return null
 
         val novelId = row.novelId?.toLongOrNull()
         if (novelId != null) {

@@ -40,6 +40,7 @@ import ceui.lisa.databinding.SectionV3SeriesBinding
 import ceui.lisa.databinding.SectionV3StatsBinding
 import ceui.lisa.databinding.SectionV3TagsBinding
 import ceui.pixiv.api.model.Illust
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.models.TagsBean
 import ceui.lisa.utils.ClipBoardUtils
 import ceui.lisa.utils.Common
@@ -69,6 +70,7 @@ import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import java.text.NumberFormat
 import ceui.pixiv.ui.navigation.TemplateRoute
+import androidx.core.view.isNotEmpty
 
 /**
  * ArtworkV3 详情页的 header 区块 —— 从 legacy [ArtworkDetailAdapter] 的 10 个 inner ViewHolder
@@ -596,7 +598,7 @@ private fun ArtworkV3Fragment.bindArtistFollowState(
         palette.applyUnfollowBtn(b.followBtn)
         b.followBtn.setOnClick {
             playToggleHaptic(it, false)
-            unfollowUser(it as ProgressTextButton, userId)
+            unfollowUser(it, userId)
         }
         b.followBtn.setOnLongClickListener {
             PixivActions.switchFollowVisibility(userId); true
@@ -607,7 +609,7 @@ private fun ArtworkV3Fragment.bindArtistFollowState(
         b.followBtn.setTextColor(Color.WHITE)
         b.followBtn.setOnClick {
             playToggleHaptic(it, true)
-            followUser(it as ProgressTextButton, userId, PixivActions.defaultFollowRestrict())
+            followUser(it, userId, PixivActions.defaultFollowRestrict())
         }
         b.followBtn.setOnLongClickListener {
             followUser(b.followBtn, userId, Params.TYPE_PRIVATE); true
@@ -649,11 +651,17 @@ private fun ArtworkV3Fragment.buildDetailChips(b: SectionV3DetailPanelBinding, i
         },
         s(R.string.v3_detail_resolution) to "${illust.width} × ${illust.height}",
         s(R.string.v3_detail_pages) to illust.page_count.toString(),
-        s(R.string.v3_detail_ai) to if (illust.illust_ai_type == 2) s(R.string.v3_detail_ai_yes)
-        else s(R.string.v3_detail_ai_no),
-        s(R.string.v3_detail_restriction) to when {
-            illust.x_restrict == 1 -> "R-18"
-            illust.x_restrict == 2 -> "R-18G"
+        // AI 卡与屏蔽/仅看 AI 同一口径（[IllustNovelFilter.isAiWork]）：官方 ai_type==2 显示
+        // 「是 (AI)」，仅标签命中显示「是 (标签命中)」——两者都算 AI，但要让用户看出这条是
+        // 被标签规则判定的，否则会以为官方标了 AI。
+        s(R.string.v3_detail_ai) to when {
+            illust.illust_ai_type == 2 -> s(R.string.v3_detail_ai_yes)
+            IllustNovelFilter.isAiWork(illust) -> s(R.string.v3_detail_ai_yes_tag)
+            else -> s(R.string.v3_detail_ai_no)
+        },
+        s(R.string.v3_detail_restriction) to when (illust.x_restrict) {
+            1 -> "R-18"
+            2 -> "R-18G"
             else -> s(R.string.v3_detail_all_ages)
         },
         s(R.string.v3_detail_published) to Common.getLocalYYYYMMDDHHMMString(illust.create_date),
@@ -704,7 +712,10 @@ private fun ArtworkV3Fragment.createDetailChip(
             setTextColor(
                 when {
                     label == artworkIdLabel || label == userIdLabel -> palette.textAccent
-                    label == aiLabel && illust.illust_ai_type == 2 -> ctx.getColor(R.color.v3_purple)
+                    // 标签命中的同样算 AI，用同一个紫色。`label == aiLabel` 必须放在前面短路：
+                    // 其余 7 张卡不该为一次标签匹配买单（isAiWork 要读设置、逐条规范化比较）。
+                    label == aiLabel && IllustNovelFilter.isAiWork(illust) ->
+                        ctx.getColor(R.color.v3_purple)
                     label == aiLabel -> ctx.getColor(R.color.v3_green)
                     label == restrictionLabel && (illust.x_restrict ?: 0) > 0 -> ctx.getColor(R.color.v3_pink)
                     label == restrictionLabel -> ctx.getColor(R.color.v3_blue)
@@ -805,7 +816,7 @@ private fun ArtworkV3Fragment.renderCommentsPreview(
         val cellB = CellCommentPreviewBinding.inflate(inflater, b.commentsList, false)
         // 条目间 hairline：第一条上面不画（下面就是「添加评论」胶囊）。这里整段重建，
         // 不存在列表页那种「插入后相邻条目不重绑」的问题，所以放在 cell 里最省。
-        cellB.rowDivider.isVisible = b.commentsList.childCount > 0
+        cellB.rowDivider.isVisible = b.commentsList.isNotEmpty()
 
         cellB.userName.text = comment.user.name
         cellB.commentTime.text = comment.displayCommentDate()

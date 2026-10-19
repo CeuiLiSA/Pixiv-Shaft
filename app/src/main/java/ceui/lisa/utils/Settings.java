@@ -225,6 +225,16 @@ public class Settings {
     //WebDAV 老备份里没有这个字段，反序列化后为空集，等于名单里所有 ID 都「启用」，无需迁移。
     private LinkedHashSet<Long> aiBlockExemptDisabledIds = new LinkedHashSet<>();
 
+    //用标签辅助识别 AI 作品（issue #1252 需求 1）：内置清单编译期固定在
+    //ceui.lisa.helper.AiTagRules.BUILTIN_TAGS 里，这里只存用户自定义的那部分。
+    //「停用」与「自定义」拆成两个集合，理由同上面的豁免名单：旧设置 / WebDAV 老备份没有
+    //这两个字段，反序列化为空集，等于「内置全部启用、没有自定义标签」——正是默认状态，无需迁移。
+    private LinkedHashSet<String> aiTagUserTags = new LinkedHashSet<>();
+
+    //被停用的 AI 标签（内置与自定义混装）。停用只是不参与判定，标签仍留在列表里，
+    //省去「删了再加回来」——同 aiBlockExemptDisabledIds 的取舍。
+    private LinkedHashSet<String> aiTagDisabledTags = new LinkedHashSet<>();
+
     //是否开启直连模式，true 开启  false 自行代理
     @SerializedName("autoFuckChina")
     private boolean directConnect = false;
@@ -868,6 +878,32 @@ public class Settings {
             }
         }
         return count;
+    }
+
+    public LinkedHashSet<String> getAiTagUserTags() {
+        if (aiTagUserTags == null) {
+            aiTagUserTags = new LinkedHashSet<>();
+        }
+        return aiTagUserTags;
+    }
+
+    public void setAiTagUserTags(LinkedHashSet<String> aiTagUserTags) {
+        this.aiTagUserTags = aiTagUserTags == null
+                ? new LinkedHashSet<>()
+                : aiTagUserTags;
+    }
+
+    public LinkedHashSet<String> getAiTagDisabledTags() {
+        if (aiTagDisabledTags == null) {
+            aiTagDisabledTags = new LinkedHashSet<>();
+        }
+        return aiTagDisabledTags;
+    }
+
+    public void setAiTagDisabledTags(LinkedHashSet<String> aiTagDisabledTags) {
+        this.aiTagDisabledTags = aiTagDisabledTags == null
+                ? new LinkedHashSet<>()
+                : aiTagDisabledTags;
     }
 
     /**

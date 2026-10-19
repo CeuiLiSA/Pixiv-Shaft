@@ -23,6 +23,7 @@ import ceui.lisa.databinding.CellNovelHeaderBinding
 import ceui.lisa.databinding.CellNovelProfileBinding
 import ceui.lisa.databinding.CellNovelTagsBinding
 import ceui.lisa.databinding.SectionV3RelatedHeaderBinding
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
@@ -65,6 +66,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.text.NumberFormat
 import ceui.pixiv.ui.navigation.TemplateRoute
+import androidx.core.net.toUri
 
 // ── 从旧 holder 文件迁来的公共契约（同包，FQN 不变，外部 import 无需改）──────
 
@@ -371,7 +373,10 @@ fun novelHeaderRenderer(
         slots.getOrPut(cell) { CellObserverSlot(lifecycleOwner) }.rebind(liveNovel) { novel ->
             if (novel == null) return@rebind
             b.metaDate.text = novel.create_date?.replace('T', ' ')?.take(16).orEmpty()
-            val isAi = novel.novel_ai_type == 2
+            // AI 标记与屏蔽 / 仅看 AI 同一口径（[IllustNovelFilter.isAiWork]）：官方
+            // novel_ai_type==2，或标签命中用户启用的 AI 标签规则（issue #1252 需求 1）。
+            // 详情页只标「是不是 AI」，不区分来源——区分留给插画详情那张 AI 卡。
+            val isAi = IllustNovelFilter.isAiWork(novel)
             b.metaAi.isVisible = isAi
             b.metaDotAi.isVisible = isAi
             val wordCount = novel.text_length
@@ -553,7 +558,7 @@ fun novelTagsRenderer(
         val b = cell.binding
         slots.getOrPut(cell) { CellObserverSlot(lifecycleOwner) }
             .rebind(ObjectPool.get<Novel>(cell.item.novelId)) { novel ->
-                b.tagsFlow.onViewAuthorWorks = novel?.user?.id?.takeIf { it > 0L }?.let { userId ->
+                b.tagsFlow.onViewAuthorWorks = novel.user?.id?.takeIf { it > 0L }?.let { userId ->
                     { name ->
                         b.root.context.startActivity(Intent(b.root.context, TemplateActivity::class.java).apply {
                             putExtra(Params.USER_ID, userId)
@@ -562,7 +567,7 @@ fun novelTagsRenderer(
                         })
                     }
                 }
-                b.tagsFlow.setTags(novel?.tags.orEmpty())
+                b.tagsFlow.setTags(novel.tags.orEmpty())
             }
     }
 }
@@ -679,7 +684,7 @@ fun novelCaptionRenderer(
                             b.caption.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(id)
                         }
                         else -> {
-                            val uri = runCatching { Uri.parse(link) }.getOrNull()
+                            val uri = runCatching { link.toUri() }.getOrNull()
                             val scheme = uri?.scheme?.lowercase()
                             if (uri != null && (scheme == "http" || scheme == "https")) {
                                 runCatching {

@@ -113,8 +113,46 @@ public class IllustNovelFilter {
      * <p>[excludeAi] 由调用方给出——搜索链路会传「其他条件」里的会话临时档位（不写设置），
      * 其余调用方传全局 {@link Shaft.sSettings#isDeleteAIIllust()}。
      */
-    private static boolean isAiBlocked(boolean excludeAi, boolean createdByAi, User user) {
-        return excludeAi && createdByAi && !isAiExemptAuthor(user);
+    private static boolean isAiBlocked(boolean excludeAi, Illust illust) {
+        return excludeAi && isAiWork(illust) && !isAiExemptAuthor(illust.getUser());
+    }
+
+    private static boolean isAiBlocked(boolean excludeAi, Novel novel) {
+        return excludeAi && isAiWork(novel) && !isAiExemptAuthor(novel.getUser());
+    }
+
+    /**
+     * 这条作品是否算「AI 生成」——AI 判定的**唯一入口**。
+     *
+     * <p>两个来源等价：官方 {@code ai_type == 2}，或标签命中用户启用的 AI 标签规则
+     * （issue #1252 需求 1，见 {@link AiTagRules}）。屏蔽、仅看 AI、打码都问这一个方法，
+     * 不要在别处再写 {@code isCreatedByAI()}，否则标签识别只覆盖一半链路。
+     *
+     * <p>标签判定要读设置、逐条规范化比较，比读一个 int 贵得多，所以**调用点必须保持惰性**：
+     * 先判「屏蔽 AI 是否开着」「是否仅看 AI」，再进来问；别在循环里无条件预计算。
+     * {@link #isAiBlocked(boolean, Illust)} 已经把 {@code excludeAi} 放在最前面短路。
+     */
+    public static boolean isAiWork(Illust illust) {
+        return isAiWork(illust.isCreatedByAI(), illust.getTagNames());
+    }
+
+    /** 小说版 {@link #isAiWork(Illust)}。 */
+    public static boolean isAiWork(Novel novel) {
+        return isAiWork(novel.isCreatedByAI(), novel.getTagNames());
+    }
+
+    /**
+     * 判定本体，给「不是 [Illust] / [Novel]、但也想按同一口径打 AI 标记」的模型用
+     * （例如广场缩略图 {@code StreetThumbnail}，它自带 {@code aiType} 与标签名）。
+     *
+     * @param officialAi 模型自己的官方 AI 标记是否命中
+     * @param tagNames   作品标签名；null / 空一律不算
+     */
+    public static boolean isAiWork(boolean officialAi, List<String> tagNames) {
+        return officialAi
+                || AiTagRules.hasAiTag(tagNames,
+                        Shaft.sSettings.getAiTagDisabledTags(),
+                        Shaft.sSettings.getAiTagUserTags());
     }
 
     /** 屏蔽 AI 强度 = 完全不显示时，是否应该把这条插画从列表里剔除（豁免作者除外）。 */
@@ -128,7 +166,7 @@ public class IllustNovelFilter {
      * 「打码」，不是筛选条件本身。
      */
     public static boolean shouldHideAi(Illust illust, boolean excludeAi) {
-        return isAiBlocked(excludeAi, illust.isCreatedByAI(), illust.getUser())
+        return isAiBlocked(excludeAi, illust)
                 && Shaft.sSettings.getAiBlockStrength() == 0;
     }
 
@@ -139,7 +177,7 @@ public class IllustNovelFilter {
 
     /** {@link #shouldHideAi(Illust, boolean)} 的「模糊粒子化」版。 */
     public static boolean shouldBlurAi(Illust illust, boolean excludeAi) {
-        return isAiBlocked(excludeAi, illust.isCreatedByAI(), illust.getUser())
+        return isAiBlocked(excludeAi, illust)
                 && Shaft.sSettings.getAiBlockStrength() == 1;
     }
 
@@ -150,7 +188,7 @@ public class IllustNovelFilter {
 
     /** 小说版 {@link #shouldHideAi(Illust, boolean)}。 */
     public static boolean shouldHideAi(Novel novel, boolean excludeAi) {
-        return isAiBlocked(excludeAi, novel.isCreatedByAI(), novel.getUser())
+        return isAiBlocked(excludeAi, novel)
                 && Shaft.sSettings.getAiBlockStrength() == 0;
     }
 
@@ -161,7 +199,7 @@ public class IllustNovelFilter {
 
     /** 小说版 {@link #shouldBlurAi(Illust, boolean)}。 */
     public static boolean shouldBlurAi(Novel novel, boolean excludeAi) {
-        return isAiBlocked(excludeAi, novel.isCreatedByAI(), novel.getUser())
+        return isAiBlocked(excludeAi, novel)
                 && Shaft.sSettings.getAiBlockStrength() == 1;
     }
 
@@ -288,7 +326,7 @@ public class IllustNovelFilter {
     public static List<TagsBean> getMutedTags() {
         List<TagsBean> result = new ArrayList<>();
         List<MuteEntity> muteEntities = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getAllMutedTags();
-        if (muteEntities == null || muteEntities.size() == 0) {
+        if (muteEntities == null || muteEntities.isEmpty()) {
             return result;
         }
         for (MuteEntity muteEntity : muteEntities) {

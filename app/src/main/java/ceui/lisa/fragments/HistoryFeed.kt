@@ -9,6 +9,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.database.IllustHistoryEntity
 import ceui.lisa.databinding.CellHistoryIllustV3Binding
 import ceui.lisa.databinding.CellHistoryNovelV3Binding
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.pixiv.api.model.Illust
 import ceui.loxia.Novel
 import ceui.lisa.utils.GlideUtil
@@ -392,7 +393,7 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
         binding.time.text = historyTimeFormat.format(entity.time)
 
         when {
-            illust.isGif() -> { binding.pSize.isVisible = true; binding.pSize.text = "GIF" }
+            illust.isGif() -> { binding.pSize.isVisible = true; binding.pSize.text = getString(R.string.illust_badge_gif) }
             illust.page_count > 1 -> {
                 binding.pSize.isVisible = true
                 binding.pSize.text = String.format(Locale.getDefault(), "%dP", illust.page_count)
@@ -415,7 +416,7 @@ fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedIte
                 val item = cell.itemOrNull ?: return@setOnClickListener
                 if (item.isSelectionMode) {
                     toggleHistorySelect(item.entity)
-                } else if (!v.context.tryOpenNovelReaderDirect(item.novel.id.toLong())) {
+                } else if (!v.context.tryOpenNovelReaderDirect(item.novel.id)) {
                     v.context.startActivity(Intent(v.context, TemplateActivity::class.java).apply {
                         putExtra(Params.CONTENT, item.novel)
                         putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.NOVEL_DETAIL.key)
@@ -466,7 +467,8 @@ fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedIte
         binding.title.text = novel.title
         binding.author.text = novel.user?.name.orEmpty()
         binding.time.text = historyTimeFormat.format(entity.time)
-        binding.badgeAi.isVisible = novel.isCreatedByAI()
+        // AI 角标：官方标记或标签命中（issue #1252，与屏蔽/详情页同口径）
+        binding.badgeAi.isVisible = IllustNovelFilter.isAiWork(novel)
 
         HistorySelectBadge.bindSelection(
             binding.selectCheck, binding.deleteItem, item.isSelectionMode, item.isSelected,

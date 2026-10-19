@@ -11,6 +11,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.RecyNovelBinding
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.model.ListNovel
 import ceui.loxia.Novel
 import ceui.pixiv.services.appServices
@@ -214,14 +215,15 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
             R.string.v3_novel_word_count,
             (novel.text_length ?: 0).toString(),
         )
-        b.badgeAi.isVisible = novel.novel_ai_type == 2
+        // AI 角标：官方 novel_ai_type==2 或标签命中（issue #1252，与屏蔽/详情页同口径）
+        b.badgeAi.isVisible = IllustNovelFilter.isAiWork(novel)
 
-        val tags = if (Shaft.sSettings.isShowNovelCardTags()) novel.tags.orEmpty() else emptyList()
+        val tags = if (Shaft.sSettings.isShowNovelCardTags) novel.tags.orEmpty() else emptyList()
         b.novelTag.compact = true
         b.novelTag.searchIndex = 1
         b.novelTag.showHashPrefix = false
-        b.novelTag.showTranslation = Shaft.sSettings.isShowNovelCardTagTranslations()
-        b.novelTag.maxTags = if (Shaft.sSettings.isCollapseNovelCardTags()) 6 else -1
+        b.novelTag.showTranslation = Shaft.sSettings.isShowNovelCardTagTranslations
+        b.novelTag.maxTags = if (Shaft.sSettings.isCollapseNovelCardTags) 6 else -1
         b.novelTag.setTags(tags)
         b.novelTag.isVisible = tags.isNotEmpty()
 
