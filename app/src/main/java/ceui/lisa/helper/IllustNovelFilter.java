@@ -250,23 +250,53 @@ public class IllustNovelFilter {
         return false;
     }
 
+    /**
+     * 全局「R-18 过滤」（设置页默认项 / 长按头像临时切换）是否命中这条插画。
+     *
+     * <p>两条路径任一命中即算：分级字段 {@link Illust#isR18File()}（{@code x_restrict} 1=R-18、2=R-18G），
+     * 或标签串里有字面 {@code R-18} / {@code R-18G}。
+     *
+     * <p><b>只认标签会漏人。</b>pixiv 允许作者只勾「閲覧制限」而不加 R-18 标签，服务端照样按 R-18 下发
+     * （{@code sanity_level} 同时抬到 6）。这类作品在卡片角标、详情页「制限」栏、搜索「其他条件 → 仅安全」
+     * 里都算 R-18，只有这里漏——于是出现「卡上挂着 R-18 角标，却被 R-18 过滤放行」。
+     * 实例 #151031908：x_restrict=1、sanity_level=6、tags 里没有 R-18（作者设了登录可见 + R 级）。
+     *
+     * <p>标签那条仍然保留：网页搜索来的小说不一定带 {@code x_restrict}，历史缓存 JSON 也可能缺字段。
+     *
+     * <p>不碰 {@code sanity_level}（与 {@link ceui.lisa.core.Mapper} 同口径）：sanity 4 是 R-15 级敏感，
+     * 不该被「R-18 过滤」误杀。
+     */
     public static boolean judgeR18Filter(Illust illustsBean) {
         if (!Shaft.sSettings.isR18FilterTempEnable()) {
             return false;
         }
-        String tagString = illustsBean.getTagString();
-        boolean isHit = tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
-        return isHit;
+        return isR18Rated(illustsBean) || hitsR18Tag(illustsBean.getTagString());
     }
 
+    /** 小说版，口径同上：{@code x_restrict} 或字面 R-18 标签。 */
     public static boolean judgeR18Filter(Novel illustsBean) {
         if (!Shaft.sSettings.isR18FilterTempEnable()) {
             return false;
         }
-        String tagString = illustsBean.getTagString();
-        boolean isHit = tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
-//        illustsBean.setShield(isHit);
-        return isHit;
+        return isR18Rated(illustsBean) || hitsR18Tag(illustsBean.getTagString());
+    }
+
+    /** 分级字段判定：{@code x_restrict} 1/2 都算 R18（同 {@link Illust#isR18File()}）。 */
+    static boolean isR18Rated(Illust illust) {
+        return illust != null && illust.isR18File();
+    }
+
+    /** 小说版分级字段判定。 */
+    static boolean isR18Rated(Novel novel) {
+        return novel != null && novel.getX_restrict() != null && novel.getX_restrict() > 0;
+    }
+
+    /** 标签串（{@code *#a,*#b,} 格式）里是否有字面 R-18 / R-18G。 */
+    static boolean hitsR18Tag(String tagString) {
+        if (tagString == null) {
+            return false;
+        }
+        return tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
     }
 
     // ── 小说自动屏蔽：正文字数区间 + 超长标签名（issue #743）────────────────
