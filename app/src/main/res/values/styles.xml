@@ -419,28 +419,42 @@
         <item name="android:stateListAnimator">@animator/button_press_alpha</item>
     </style>
 
+    <!--
+        字族同时写 app 命名空间的 fontFamily 和框架命名空间的 android:fontFamily：
+        前者只有 AppCompatTextView 会解析（AppCompatTextHelper 读 TextAppearance_fontFamily），
+        后者任何 TextView 都认。只写前者时，一旦某个布局的 TextView 没走 AppCompat 的
+        inflater 路径，整块文字会静默退回系统字 —— 侧边栏账号区（activity_cover 的
+        user_name / user_email）就是这么掉的：样式在、字体文件也在，渲染出来却是 Roboto。
+        同一坑在 RequestDetail* 与 web_discovery_styles 里已经各自绕过一次，这里统一补齐。
+    -->
     <style name="textMontserratRegular">
         <item name="fontFamily">@font/montserrat_regular</item>
+        <item name="android:fontFamily">@font/montserrat_regular</item>
     </style>
 
     <style name="textMontserratBold">
         <item name="fontFamily">@font/montserrat_bold</item>
+        <item name="android:fontFamily">@font/montserrat_bold</item>
     </style>
 
     <style name="textBlack">
         <item name="fontFamily">@font/montserrat_extra_bold</item>
+        <item name="android:fontFamily">@font/montserrat_extra_bold</item>
     </style>
 
     <style name="textMontserratMedium">
         <item name="fontFamily">@font/montserrat_medium</item>
+        <item name="android:fontFamily">@font/montserrat_medium</item>
     </style>
 
     <style name="textMontserratSemiBold">
         <item name="fontFamily">@font/montserrat_semi_bold</item>
+        <item name="android:fontFamily">@font/montserrat_semi_bold</item>
     </style>
 
     <style name="textMontserratExtraBold">
         <item name="fontFamily">@font/montserrat_extra_bold</item>
+        <item name="android:fontFamily">@font/montserrat_extra_bold</item>
     </style>
 
     <!-- ── 约稿方案详情页 (MD3-E) 分节样式;动态色(卡底/描边/强调)由 Fragment 用 V3Palette 注入 ── -->
