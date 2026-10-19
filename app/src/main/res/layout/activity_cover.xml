@@ -123,12 +123,19 @@
                             app:civ_border_color="?attr/colorPrimary"
                             app:civ_border_width="1.5dp" />
 
+                        <!--
+                            文字区右边界压在切换按钮的盒子里（marginEnd 8 → 2），换 6dp 给邮箱。
+                            按钮盒 40dp 而图标只有 24dp，左右各 8dp 是空气，文字推进 6dp 后与图标
+                            之间仍有 10dp 视觉间隔；不推这一下，12sp Montserrat 下 19 个字符的
+                            邮箱要 141.3dp，而原来只有 138dp —— 差 3.3dp，正好够丢最后一个字符
+                            再补一个省略号，看着像「省了但没完全省」。
+                        -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
                             android:layout_marginStart="14dp"
-                            android:layout_marginEnd="8dp"
+                            android:layout_marginEnd="2dp"
                             android:layout_toStartOf="@+id/drawer_switch_account"
                             android:layout_toEndOf="@id/user_head"
                             android:orientation="vertical">
