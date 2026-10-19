@@ -33,53 +33,65 @@ private const val TRANSLATED_MESSAGE_SEPARATOR = "\n\n"
  * 请求,反而更慢;万一换行被 Google 归并到恰好两行,标题和简介的译文还会错位拼在一起。
  * 只有两条,直接各翻各的、并发发出即可。
  */
-fun Fragment.translateTitleAndCaption(title: String?, caption: String?) {
+fun Fragment.translateTitleAndCaption(
+    title: String?,
+    caption: String?,
+    onLoading: ((Boolean) -> Unit)? = null,
+) {
     val t = title?.trim().orEmpty()
     val c = caption?.trim().orEmpty()
-    if (t.isEmpty() && c.isEmpty()) return
+    if (t.isEmpty() && c.isEmpty()) {
+        onLoading?.invoke(false)
+        return
+    }
     val ctx = requireContext()
     Common.showToast(R.string.string_translating)
+    onLoading?.invoke(true)
     launchSuspend {
-        val translator = currentTranslator()
-        val targetLang = appTranslateTargetLang()
-        val onPhase = onceThinkingPhase()
-        // 单条失败不连累另一条:失败的那条留空串,留到最后统一判定。
-        val failure = AtomicReference<Exception?>(null)
-        suspend fun translateOne(text: String): Translated<String> {
-            if (text.isEmpty()) return Translated("", translator)
-            return try {
-                translator.translateWithSource(text, targetLang, onPhase = onPhase)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Timber.e(e, "translate title/caption failed")
-                failure.compareAndSet(null, e)
-                Translated("", translator)
+        try {
+            val translator = currentTranslator()
+            val targetLang = appTranslateTargetLang()
+            val onPhase = onceThinkingPhase()
+            // 单条失败不连累另一条:失败的那条留空串,留到最后统一判定。
+            val failure = AtomicReference<Exception?>(null)
+            suspend fun translateOne(text: String): Translated<String> {
+                if (text.isEmpty()) return Translated("", translator)
+                return try {
+                    translator.translateWithSource(text, targetLang, onPhase = onPhase)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.e(e, "translate title/caption failed")
+                    failure.compareAndSet(null, e)
+                    Translated("", translator)
+                }
             }
+            val (titleResult, captionResult) = coroutineScope {
+                val titleTask = async { translateOne(t) }
+                val captionTask = async { translateOne(c) }
+                titleTask.await() to captionTask.await()
+            }
+            val translatedTitle = titleResult.value
+            val translatedCaption = captionResult.value
+            // 两条都没译出来 = 整体失败:不弹译文窗,交给统一的失败提示(与评论翻译一致)。
+            if (translatedTitle.isBlank() && translatedCaption.isBlank()) {
+                promptTranslateFailedIfPossible(failure.get())
+                return@launchSuspend
+            }
+            val placeholder = ctx.getString(R.string.no_info)
+            val message = ctx.getString(R.string.string_182) +
+                (translatedTitle.takeIf { it.isNotBlank() } ?: placeholder) +
+                TRANSLATED_MESSAGE_SEPARATOR +
+                ctx.getString(R.string.v3_translate_caption_label) +
+                (translatedCaption.takeIf { it.isNotBlank() } ?: placeholder)
+            // 「原样度」:标题 / 简介任一疑似原样输出即提示(仅 AI 引擎、且目标语言非日文)。
+            val warning = listOfNotNull(
+                verbatimWarningText(ctx, titleResult.servedBy, t, translatedTitle),
+                verbatimWarningText(ctx, captionResult.servedBy, c, translatedCaption),
+            ).firstOrNull()
+            showTranslatedDialog(ctx, message, warning)
+        } finally {
+            onLoading?.invoke(false)
         }
-        val (titleResult, captionResult) = coroutineScope {
-            val titleTask = async { translateOne(t) }
-            val captionTask = async { translateOne(c) }
-            titleTask.await() to captionTask.await()
-        }
-        val translatedTitle = titleResult.value
-        val translatedCaption = captionResult.value
-        // 两条都没译出来 = 整体失败:不弹译文窗,交给统一的失败提示(与评论翻译一致)。
-        if (translatedTitle.isBlank() && translatedCaption.isBlank()) {
-            promptTranslateFailedIfPossible(failure.get())
-            return@launchSuspend
-        }
-        val placeholder = ctx.getString(R.string.no_info)
-        val message = ctx.getString(R.string.string_182) +
-            (translatedTitle.takeIf { it.isNotBlank() } ?: placeholder) +
-            TRANSLATED_MESSAGE_SEPARATOR +
-            ctx.getString(R.string.v3_translate_caption_label) +
-            (translatedCaption.takeIf { it.isNotBlank() } ?: placeholder)
-        // 「原样度」:标题 / 简介任一疑似原样输出即提示(仅 AI 引擎、且目标语言非日文)。
-        val warning = listOfNotNull(
-            verbatimWarningText(ctx, titleResult.servedBy, t, translatedTitle),
-            verbatimWarningText(ctx, captionResult.servedBy, c, translatedCaption),
-        ).firstOrNull()
-        showTranslatedDialog(ctx, message, warning)
     }
 }

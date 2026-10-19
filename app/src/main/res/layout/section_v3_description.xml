@@ -39,15 +39,33 @@
             android:src="@drawable/ic_file_download_black_24dp"
             app:tint="@color/v3_text_3" />
 
-        <ImageView
-            android:id="@+id/desc_translate"
+        <FrameLayout
+            android:id="@+id/desc_translate_container"
             android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="12dp"
-            android:contentDescription="@string/string_translate_caption"
-            android:src="@drawable/ic_baseline_translate_24"
-            app:tint="@color/v3_text_3" />
+            android:layout_height="48dp">
+
+            <ImageView
+                android:id="@+id/desc_translate"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="12dp"
+                android:contentDescription="@string/string_translate_caption"
+                android:src="@drawable/ic_baseline_translate_24"
+                app:tint="@color/v3_text_3" />
+
+            <ceui.lisa.view.SeamlessCircularProgressIndicator
+                android:id="@+id/desc_translate_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:indeterminate="true"
+                android:visibility="gone"
+                app:indicatorColor="@color/v3_text_3"
+                app:indicatorInset="0dp"
+                app:indicatorSize="20dp"
+                app:trackThickness="2.5dp" />
+        </FrameLayout>
     </LinearLayout>
 
     <!-- 横向留白只由根布局的 12dp 提供，与「简介」标题头、标签区左缘对齐。这里曾残留

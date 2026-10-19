@@ -14,6 +14,7 @@ import android.widget.TextView
 import androidx.core.text.HtmlCompat
 import androidx.core.view.OneShotPreDrawListener
 import androidx.core.view.doOnPreDraw
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -248,10 +249,22 @@ data class ArtworkRelatedHeaderItem(
 
 // ── Renderer ────────────────────────────────────────────────────────────────
 
+/**
+ * 只刷翻译按钮 / 转圈(见 [ArtworkV3Fragment.setTranslatingState])。全量重绑会重设标题、简介
+ * 文本,把用户等译文时长按选中的文字清掉(两者都 textIsSelectable)。
+ */
+internal val PAYLOAD_TRANSLATING_STATE = Any()
+
+private fun isTranslatingStateOnly(payloads: List<Any>) =
+    payloads.isNotEmpty() && payloads.all { it === PAYLOAD_TRANSLATING_STATE }
+
 internal fun ArtworkV3Fragment.heroRenderer() =
     feedRenderer<ArtworkHeroItem, SectionV3HeroBinding>(
         inflate = SectionV3HeroBinding::inflate,
         fullSpan = true,
+        bindPayloads = { cell, payloads ->
+            isTranslatingStateOnly(payloads).also { if (it) bindMetaTranslateState(cell.binding) }
+        },
     ) { cell ->
         val illust = cell.item.illust
         val ctx = requireContext()
@@ -272,9 +285,14 @@ internal fun ArtworkV3Fragment.heroRenderer() =
         // 信息区翻译按钮：仅当作品无简介时显示。有简介的作品简介区已提供翻译按钮
         //（见 descRenderer），而简介区整体只在 caption 非空时才产出（见
         // ArtworkV3FeedSource.buildArtworkHeaderItems），无简介时这里补一个翻译标题的入口。
-        b.metaTranslate.isVisible = cell.item.showTranslate
+        b.metaTranslateContainer.isVisible = cell.item.showTranslate
+        bindMetaTranslateState(b)
         b.metaTranslate.setOnClickListener {
-            translateTitleAndCaption(illust.title, null)
+            if (isTranslating) return@setOnClickListener
+            setTranslatingState(true)
+            translateTitleAndCaption(illust.title, null) { loading ->
+                setTranslatingState(loading)
+            }
         }
     }
 
@@ -313,6 +331,9 @@ internal fun ArtworkV3Fragment.descRenderer() =
         inflate = SectionV3DescriptionBinding::inflate,
         fullSpan = true,
         recycle = { cell -> clearPendingDescPreDraw(cell.binding) },
+        bindPayloads = { cell, payloads ->
+            isTranslatingStateOnly(payloads).also { if (it) bindDescTranslateState(cell.binding) }
+        },
     ) { cell ->
         // HTML 解析对长 caption 不便宜;caption 不变(滚动来回重绑)就跳过重解析。
         val b = cell.binding
@@ -335,13 +356,30 @@ internal fun ArtworkV3Fragment.descRenderer() =
         b.descDownload.setOnClickListener {
             downloadDescCaption()
         }
+        bindDescTranslateState(b)
         b.descTranslate.setOnClickListener {
+            if (isTranslating) return@setOnClickListener
             val plain = (descFullCaption ?: HtmlCompat.fromHtml(
                 cell.item.caption, HtmlCompat.FROM_HTML_MODE_COMPACT
             )).toString().trim()
-            translateTitleAndCaption(cell.item.title, plain)
+            setTranslatingState(true)
+            translateTitleAndCaption(cell.item.title, plain) { loading ->
+                setTranslatingState(loading)
+            }
         }
     }
+
+private fun ArtworkV3Fragment.bindMetaTranslateState(b: SectionV3HeroBinding) {
+    b.metaTranslate.isInvisible = isTranslating
+    b.metaTranslate.isEnabled = !isTranslating
+    b.metaTranslateProgress.isVisible = isTranslating
+}
+
+private fun ArtworkV3Fragment.bindDescTranslateState(b: SectionV3DescriptionBinding) {
+    b.descTranslate.isInvisible = isTranslating
+    b.descTranslate.isEnabled = !isTranslating
+    b.descTranslateProgress.isVisible = isTranslating
+}
 
 /** 简介折叠阈值(#965):超过这个行数才折,issue 建议 3~5 行,取上限。 */
 private const val DESC_COLLAPSED_LINES = 5

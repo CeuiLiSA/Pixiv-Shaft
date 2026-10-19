@@ -189,6 +189,27 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 超长简介展开态(#965):同上归 Fragment,默认折叠。 */
     internal var descExpanded = false
 
+    /** 标题/简介翻译中状态，用于控制元信息栏/简介区翻译按钮与转圈的显隐与禁用。 */
+    internal var isTranslating = false
+
+    /**
+     * 不能 findViewById 直接改:滑出去的信息区/简介区躺在 view cache 里(见 setItemViewCacheSize),
+     * 不在 RecyclerView 子 View 中、滑回来也不重绑,会一直转圈且按钮禁用。notifyItemChanged
+     * 连缓存里的 holder 一起标脏,由 renderer 按 [isTranslating] 重绑;在屏的只按
+     * [PAYLOAD_TRANSLATING_STATE] 刷按钮,不动标题/简介文本。
+     */
+    internal fun setTranslatingState(translating: Boolean) {
+        if (isTranslating == translating) return
+        isTranslating = translating
+        if (_chromeBind == null) return
+        val fa = feedAdapter ?: return
+        fa.currentList.forEachIndexed { pos, item ->
+            if (item is ArtworkHeroItem || item is ArtworkDescItem) {
+                fa.notifyItemChanged(pos, PAYLOAD_TRANSLATING_STATE)
+            }
+        }
+    }
+
     /**
      * 一键跳评论(#970)落点后是否还在钉基线:首跳时评论/作者作品/相关往往都还是加载态, 视口下方内容不够,SGLM 修 end gap 会把评论块顶离 toolbar
      * 基线;且各区块落地时序不定, 补对一次不够——数据每变一次就补对一次(见 [alignCommentsIfPending]),直到下方内容 足够(end gap
