@@ -45,6 +45,8 @@ class EpubExporter : NovelExporter {
         // XHTML and manifest agree.
         data class BundledImage(val fileName: String, val bytes: ByteArray, val mime: String)
         val images = linkedMapOf<String, BundledImage>()
+        // 按 key 只尝试一次：同一张图在正文里出现多次时，失败后不再重复询问 / 计入失败列表。
+        val attempted = hashSetOf<String>()
 
         when (retryPolicy) {
             is EpubImageRetryPolicy.Foreground -> {
@@ -56,7 +58,7 @@ class EpubExporter : NovelExporter {
                         is ContentToken.PixivImage -> "pixiv_${token.illustId}_${token.pageIndex}"
                         else -> continue
                     }
-                    if (images.containsKey(key)) continue
+                    if (!attempted.add(key)) continue
                     val url = resolver(token)
                     if (url.isNullOrEmpty()) {
                         timber.log.Timber.w("EpubExporter: url is null for $key")
@@ -127,7 +129,7 @@ class EpubExporter : NovelExporter {
                         is ContentToken.PixivImage -> "pixiv_${token.illustId}_${token.pageIndex}"
                         else -> continue
                     }
-                    if (images.containsKey(key)) continue
+                    if (!attempted.add(key)) continue
                     val url = resolver(token)
                     if (url.isNullOrEmpty()) {
                         timber.log.Timber.w("EpubExporter: url is null for $key")
@@ -187,7 +189,7 @@ class EpubExporter : NovelExporter {
                         is ContentToken.PixivImage -> "pixiv_${token.illustId}_${token.pageIndex}"
                         else -> continue
                     }
-                    if (images.containsKey(key)) continue
+                    if (!attempted.add(key)) continue
                     val url = resolver(token) ?: continue
                     val result = ExportUtils.loadBitmapResult(context, url)
                     if (result.isSuccess) {

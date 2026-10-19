@@ -476,6 +476,7 @@ private object MergedEpubWriter : MergedNovelWriter {
         // 跨章节去重：相同 image key 的插画只下载一次。第一次解析到 URL 就抓。
         val images = linkedMapOf<String, BundledImage>()
         val failedImages = mutableListOf<FailedImageInfo>()
+        val attempted = hashSetOf<String>()
         for (ch in tokenized) {
             for (token in ch.tokens) {
                 val key = imageKey(token) ?: continue
@@ -485,6 +486,8 @@ private object MergedEpubWriter : MergedNovelWriter {
                     timber.log.Timber.w("MergedEpubWriter: url is null for $key in ${ch.title}")
                     continue
                 }
+                // 失败过的 key 不再重复抓 / 重复计入失败列表；放在 URL 解析之后，别的章节仍有机会解析到它。
+                if (!attempted.add(key)) continue
                 val result = ExportUtils.loadBitmapResult(context, url)
                 if (result.isSuccess) {
                     val bitmap = result.getOrThrow()
