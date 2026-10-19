@@ -12,7 +12,6 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -193,17 +192,19 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /** 标题/简介翻译中状态，用于控制元信息栏/简介区翻译按钮与转圈的显隐与禁用。 */
     internal var isTranslating = false
 
+    /**
+     * 不能 findViewById 直接改:滑出去的信息区/简介区躺在 view cache 里(见 setItemViewCacheSize),
+     * 不在 RecyclerView 子 View 中、滑回来也不重绑,会一直转圈且按钮禁用。notifyItemChanged
+     * 连缓存里的 holder 一起标脏,由 renderer 按 [isTranslating] 重绑。
+     */
     internal fun setTranslatingState(translating: Boolean) {
         if (isTranslating == translating) return
         isTranslating = translating
         if (_chromeBind == null) return
-        val rv = feedBinding.feedListView
-        rv.findViewById<View>(R.id.meta_translate)?.isInvisible = translating
-        rv.findViewById<View>(R.id.meta_translate)?.isEnabled = !translating
-        rv.findViewById<View>(R.id.meta_translate_progress)?.isVisible = translating
-        rv.findViewById<View>(R.id.desc_translate)?.isInvisible = translating
-        rv.findViewById<View>(R.id.desc_translate)?.isEnabled = !translating
-        rv.findViewById<View>(R.id.desc_translate_progress)?.isVisible = translating
+        val fa = feedAdapter ?: return
+        fa.currentList.forEachIndexed { pos, item ->
+            if (item is ArtworkHeroItem || item is ArtworkDescItem) fa.notifyItemChanged(pos)
+        }
     }
 
     /**
