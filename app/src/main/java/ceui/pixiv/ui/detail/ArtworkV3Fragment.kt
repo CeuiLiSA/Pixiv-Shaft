@@ -195,7 +195,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     /**
      * 不能 findViewById 直接改:滑出去的信息区/简介区躺在 view cache 里(见 setItemViewCacheSize),
      * 不在 RecyclerView 子 View 中、滑回来也不重绑,会一直转圈且按钮禁用。notifyItemChanged
-     * 连缓存里的 holder 一起标脏,由 renderer 按 [isTranslating] 重绑。
+     * 连缓存里的 holder 一起标脏,由 renderer 按 [isTranslating] 重绑;在屏的只按
+     * [PAYLOAD_TRANSLATING_STATE] 刷按钮,不动标题/简介文本。
      */
     internal fun setTranslatingState(translating: Boolean) {
         if (isTranslating == translating) return
@@ -203,7 +204,9 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (_chromeBind == null) return
         val fa = feedAdapter ?: return
         fa.currentList.forEachIndexed { pos, item ->
-            if (item is ArtworkHeroItem || item is ArtworkDescItem) fa.notifyItemChanged(pos)
+            if (item is ArtworkHeroItem || item is ArtworkDescItem) {
+                fa.notifyItemChanged(pos, PAYLOAD_TRANSLATING_STATE)
+            }
         }
     }
 
