@@ -61,6 +61,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -233,7 +234,7 @@ open class RecmdIllustFeedFragment(
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 r18ViewModel.loadedGeneration
                     .filter { it > 0 }
-                    .collect { compensateFirstPage() }
+                    .collectLatest { compensateFirstPage() }
             }
         }
     }
@@ -241,48 +242,49 @@ open class RecmdIllustFeedFragment(
     /**
      * 当后台异步拉取完 R-18 推荐后，若当前展示的首屏尚无 R-18 内容，
      * 从缓冲池提取一批按步长混入当前首屏，使用 mutateItems 平滑更新。
+     *
+     * 挂起在调用方（STARTED 内的 collectLatest）里跑：离开前台或新一代数据到达即取消等待，
+     * 不会在 view 作用域里堆积多个同时放行、各自从缓冲池取一批的补偿协程。
      */
-    private fun compensateFirstPage() {
+    private suspend fun compensateFirstPage() {
         if (!isR18RecommendEligible()) return
-        viewLifecycleOwner.lifecycleScope.launch {
-            // 若 Web R-18 比 App API 先返回，等待真实网络首屏到达
-            val targetState = feedViewModel.uiState.first {
-                !it.itemsFromCache && it.refresh is LoadState.Idle && it.hasLoadedOnce && it.items.isNotEmpty()
-            }
-            val currentItems = targetState.items
-            // 已经存在 R-18 条目（例如翻页已经混入过）则无需补偿
-            val alreadyHasR18 = currentItems.any {
+        // 若 Web R-18 比 App API 先返回，等待真实网络首屏到达
+        val targetState = feedViewModel.uiState.first {
+            !it.itemsFromCache && it.refresh is LoadState.Idle && it.hasLoadedOnce && it.items.isNotEmpty()
+        }
+        val currentItems = targetState.items
+        // 已经存在 R-18 条目（例如翻页已经混入过）则无需补偿
+        val alreadyHasR18 = currentItems.any {
+            (it as? IllustFeedItem)?.illust?.x_restrict?.let { x -> x > 0 } == true
+        }
+        if (alreadyHasR18) return
+
+        val normalIllustCount = currentItems.count { it is IllustFeedItem }
+        val targetR18Count = (normalIllustCount / R18_INTERLEAVE_STEP).coerceIn(1, 10)
+        val existingIds = currentItems.mapNotNullTo(HashSet()) { (it as? IllustFeedItem)?.illust?.id }
+        val batch = r18ViewModel.buffer.takeBatch(targetR18Count, excludedIds = existingIds)
+        if (batch.isEmpty()) return
+
+        val feedItems = withContext(Dispatchers.Default) {
+            batch.mapNotNull { IllustFeedItem.of(it) }
+        }
+        if (feedItems.isEmpty()) return
+
+        feedViewModel.mutateItems { items ->
+            val stillHasR18 = items.any {
                 (it as? IllustFeedItem)?.illust?.x_restrict?.let { x -> x > 0 } == true
             }
-            if (alreadyHasR18) return@launch
-
-            val normalIllustCount = currentItems.count { it is IllustFeedItem }
-            val targetR18Count = (normalIllustCount / R18_INTERLEAVE_STEP).coerceIn(1, 10)
-            val existingIds = currentItems.mapNotNullTo(HashSet()) { (it as? IllustFeedItem)?.illust?.id }
-            val batch = r18ViewModel.buffer.takeBatch(targetR18Count, excludedIds = existingIds)
-            if (batch.isEmpty()) return@launch
-
-            val feedItems = withContext(Dispatchers.Default) {
-                batch.mapNotNull { IllustFeedItem.of(it) }
+            if (stillHasR18) {
+                items
+            } else {
+                interleaveFeedItems(items, feedItems, step = R18_INTERLEAVE_STEP)
             }
-            if (feedItems.isEmpty()) return@launch
-
-            feedViewModel.mutateItems { items ->
-                val stillHasR18 = items.any {
-                    (it as? IllustFeedItem)?.illust?.x_restrict?.let { x -> x > 0 } == true
-                }
-                if (stillHasR18) {
-                    items
-                } else {
-                    interleaveFeedItems(items, feedItems, step = R18_INTERLEAVE_STEP)
-                }
-            }
-            Timber.d(
-                "compensateFirstPage: successfully interleaved %d r18 items into first page (total now: %d)",
-                feedItems.size,
-                feedViewModel.uiState.value.items.size,
-            )
         }
+        Timber.d(
+            "compensateFirstPage: successfully interleaved %d r18 items into first page (total now: %d)",
+            feedItems.size,
+            feedViewModel.uiState.value.items.size,
+        )
     }
 
     override fun onDestroyView() {
