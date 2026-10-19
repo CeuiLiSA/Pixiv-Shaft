@@ -188,7 +188,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        // issue #1242: 「看图时默认沉浸」开启时以沉浸态进场。重建恢复不再套用，ViewModel 里是用户切过的状态。
+        // issue #1242: 「看图时默认沉浸」开启时以沉浸态进场。重建恢复不再套用：配置变更重建时 ViewModel
+        // 还留着用户切过的状态，不能盖掉；进程被杀后的恢复会退回非沉浸，可接受。
         // 首次下发直接收起工具条而不播淡出 —— 淡出从 alpha=1 起跳，会和进场转场抢 alpha 闪一下。
         var hideChromeInstantly = false
         if (!restoredFromSavedState && Shaft.sSettings.isImmersiveWhenViewImage &&
