@@ -492,6 +492,9 @@ public class Settings {
     /** 平板适配排版（侧边导航栏 / 瀑布流按宽度加列 / 作品舞台详情，#1087），见 TabletLayout。默认关闭。 */
     private boolean tabletLayout = false;
 
+    /** 首页底栏是否跟随列表滚动收起（false = 固定常显），见 BottomBarAutoHide.setEnabled。默认开启。 */
+    private boolean bottomBarHideOnScroll = true;
+
     /** 隐藏小组件上浮在封面之上的收藏按钮（#1013：挡画面） */
     private boolean widgetHideBookmarkButton = false;
     /** 隐藏小组件上浮在封面之上的刷新按钮（#1013：挡画面） */
@@ -1513,6 +1516,14 @@ public class Settings {
 
     public void setTabletLayout(boolean enable) {
         this.tabletLayout = enable;
+    }
+
+    public boolean isBottomBarHideOnScroll() {
+        return bottomBarHideOnScroll;
+    }
+
+    public void setBottomBarHideOnScroll(boolean hide) {
+        this.bottomBarHideOnScroll = hide;
     }
 
     public boolean isWidgetHideBookmarkButton() {

@@ -27,8 +27,14 @@ import java.util.WeakHashMap
  * [HideViewOnScrollBehavior.slideIn] / [HideViewOnScrollBehavior.slideOut]。监听按 fragment
  * 视图创建时机安装（[FragmentManager.registerFragmentLifecycleCallbacks] 带递归，子
  * FragmentManager 里的列表也覆盖到），以后加 tab 不需要再来这里登记。
+ *
+ * 「底栏固定常显」开关关掉时不必重启：behavior 只是 [CoordinatorLayout.LayoutParams] 上的一个普通
+ * 字段，摘掉 / 重新挂上立刻生效，见 [setEnabled]。
  */
 class BottomBarAutoHide(private val bar: View) {
+
+    /** behavior 该不该挂在底栏上；false = 用户要求底栏固定常显。 */
+    private var enabled = true
 
     /** 抖动阈值：手指刚落下的一两像素不该把底栏抽走。 */
     private val slop = ViewConfiguration.get(bar.context).scaledTouchSlop
@@ -60,6 +66,40 @@ class BottomBarAutoHide(private val bar: View) {
         )
     }
 
+    /**
+     * 动态挂载 / 卸载底栏的 [HideViewOnScrollBehavior]：开关一改立刻生效，不用重启。
+     *
+     * 只在 [onScrollDelta] 里提前 return 是不够的——发现 / 我 两个 tab 的外层 CoordinatorLayout
+     * 还会自己把嵌套滚动喂给 behavior（见类注释），所以必须把 behavior 从 layoutParams 上摘掉。
+     * 摘之前先用不带动画的 [HideViewOnScrollBehavior.slideIn] 复位 translationY / visibility /
+     * importantForAccessibility：behavior 一走就没人再负责还原这些状态，底栏会停在屏幕外。
+     */
+    fun setEnabled(enabled: Boolean) {
+        if (this.enabled == enabled) return
+        this.enabled = enabled
+        accumulated = 0
+        val params = bar.layoutParams as? CoordinatorLayout.LayoutParams ?: return
+        if (enabled) {
+            if (params.behavior == null) {
+                params.behavior = HideViewOnScrollBehavior<View>()
+                // 新 behavior 的滑动距离在 onLayoutChild 里量，不重排一次 slideIn / slideOut 是空转。
+                bar.requestLayout()
+            }
+            return
+        }
+        val behavior = params.behavior as? HideViewOnScrollBehavior<View>
+        if (behavior != null && bar.isLaidOut) {
+            behavior.slideIn(bar, /* animate = */ false)
+        }
+        bar.translationY = 0f
+        // 收起时 behavior 把底栏标成 INVISIBLE；侧栏模式下 MainActivity 用的是 GONE，不能一起改回来。
+        if (bar.visibility == View.INVISIBLE) {
+            bar.visibility = View.VISIBLE
+        }
+        params.behavior = null
+        bar.requestLayout()
+    }
+
     /** 底栏必须重新露出的时刻（换 tab 等）：不然收起状态下切过去，新 tab 也没底栏可点。 */
     fun reveal() {
         accumulated = 0
@@ -71,7 +111,7 @@ class BottomBarAutoHide(private val bar: View) {
     }
 
     private fun onScrollDelta(dy: Int) {
-        if (dy == 0) return
+        if (!enabled || dy == 0) return
         val behavior = behavior ?: return
         if (!bar.isLaidOut) return
         if ((accumulated > 0) != (dy > 0)) {

@@ -133,6 +133,8 @@
     <string name="v3_widget_hide_refresh_button">隱藏小工具刷新按鈕</string>
     <string name="v3_widget_hide_refresh_button_desc">隱藏後只按換圖間隔自動換圖</string>
     <string name="tablet_layout">平板適配版面</string>
+    <string name="bottom_bar_scroll_hide">底欄跟隨捲動收合</string>
+    <string name="bottom_bar_scroll_hide_desc">向下滑動時收合底欄、上滑恢復顯示；關閉後底欄固定在底部，始終可見</string>
     <string name="tablet_layout_desc">在平板等大螢幕裝置上使用側邊導覽列、依螢幕寬度自動增加欄數的瀑布流與左右排列的作品詳情；關閉後與手機版面一致，僅平板生效</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">收藏</string>

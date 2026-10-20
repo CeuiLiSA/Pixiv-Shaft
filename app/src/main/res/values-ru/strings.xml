@@ -133,6 +133,8 @@
     <string name="v3_widget_hide_refresh_button">Скрыть кнопку обновления в виджете</string>
     <string name="v3_widget_hide_refresh_button_desc">После скрытия иллюстрация меняется только по интервалу обновления</string>
     <string name="tablet_layout">Макет для планшета</string>
+    <string name="bottom_bar_scroll_hide">Скрывать нижнюю панель при прокрутке</string>
+    <string name="bottom_bar_scroll_hide_desc">Панель сворачивается при прокрутке вниз и возвращается при прокрутке вверх. Если выключено, панель закреплена и всегда видна</string>
     <string name="tablet_layout_desc">На планшетах и других больших экранах: боковая панель навигации, лента с числом колонок по ширине экрана и страница работы с раздельной компоновкой. Если выключено, используется макет телефона. Только для планшетов</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">Закладки</string>
