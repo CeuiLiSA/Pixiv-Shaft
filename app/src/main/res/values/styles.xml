@@ -422,10 +422,10 @@
     <!--
         字族同时写 app 命名空间的 fontFamily 和框架命名空间的 android:fontFamily：
         前者只有 AppCompatTextView 会解析（AppCompatTextHelper 读 TextAppearance_fontFamily），
-        后者任何 TextView 都认。只写前者时，一旦某个布局的 TextView 没走 AppCompat 的
-        inflater 路径，整块文字会静默退回系统字 —— 侧边栏账号区（activity_cover 的
-        user_name / user_email）就是这么掉的：样式在、字体文件也在，渲染出来却是 Roboto。
-        同一坑在 RequestDetail* 与 web_discovery_styles 里已经各自绕过一次，这里统一补齐。
+        后者任何 TextView 都认。布局 inflate 出来的 TextView 会被 AppCompat 换成
+        AppCompatTextView，两者等价；但代码里 new 的框架 TextView 再 setTextAppearance
+        （如 NovelHeaderSettings / DownloadPathSettings 的分节标题）只认后者，只写前者会
+        静默退回系统字。RequestDetail* 与 web_discovery_styles 也是同一个原因写了 android:fontFamily。
     -->
     <style name="textMontserratRegular">
         <item name="fontFamily">@font/montserrat_regular</item>
