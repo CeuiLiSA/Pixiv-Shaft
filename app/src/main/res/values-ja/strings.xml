@@ -166,6 +166,7 @@
     <string name="filter_bookmarked_rank">ランキングで除外</string>
     <string name="filter_bookmarked_following">フォロー新着で除外</string>
     <string name="filter_bookmarked_search">検索結果で除外</string>
+    <string name="filter_bookmarked_recmd">ホームのおすすめで除外</string>
     <string name="filter_bookmarked_none">フィルタなし</string>
     <string name="filter_bookmarked_summary">%1$d 件有効</string>
     <string name="filter_bookmarked_dialog_hint">ブックマーク済みの作品を非表示にする画面を選択</string>

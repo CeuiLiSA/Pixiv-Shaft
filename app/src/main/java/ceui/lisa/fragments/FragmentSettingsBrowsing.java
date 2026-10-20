@@ -354,12 +354,13 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
     }
 
     /**
-     * 「过滤已收藏」入口行右侧摘要：显示当前启用的页面数，三处全关时显示「不过滤」。
+     * 「过滤已收藏」入口行右侧摘要：显示当前启用的页面数，四处全关时显示「不过滤」。
      * 排行榜默认开启，所以全新安装通常显示「已启用 1 项」。
      */
     private void renderFilterBookmarkedSummary() {
         int count = 0;
         if (Shaft.sSettings.isFilterRankBookmarked()) count++;
+        if (Shaft.sSettings.isFilterRecmdBookmarked()) count++;
         if (Shaft.sSettings.isDeleteStarIllust()) count++;
         if (Shaft.sSettings.isSearchFilterBookmarked()) count++;
         baseBind.filterBookmarked.setText(count == 0

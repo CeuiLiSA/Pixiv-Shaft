@@ -166,6 +166,7 @@
     <string name="filter_bookmarked_rank">В рейтинге</string>
     <string name="filter_bookmarked_following">В ленте подписок</string>
     <string name="filter_bookmarked_search">В результатах поиска</string>
+    <string name="filter_bookmarked_recmd">В рекомендациях на главной</string>
     <string name="filter_bookmarked_none">Без фильтра</string>
     <string name="filter_bookmarked_summary">Включено: %1$d</string>
     <string name="filter_bookmarked_dialog_hint">Выберите, где скрывать уже добавленные в закладки работы</string>

@@ -166,6 +166,7 @@
     <string name="filter_bookmarked_rank">Sıralamada</string>
     <string name="filter_bookmarked_following">Takip akışında</string>
     <string name="filter_bookmarked_search">Arama sonuçlarında</string>
+    <string name="filter_bookmarked_recmd">Ana sayfa önerilerinde</string>
     <string name="filter_bookmarked_none">Filtre yok</string>
     <string name="filter_bookmarked_summary">%1$d etkin</string>
     <string name="filter_bookmarked_dialog_hint">Yer imlerine eklenmiş eserlerin gizleneceği yerleri seçin</string>

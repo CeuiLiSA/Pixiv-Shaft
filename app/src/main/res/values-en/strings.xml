@@ -166,6 +166,7 @@
     <string name="filter_bookmarked_rank">Filter in rankings</string>
     <string name="filter_bookmarked_following">Filter in following feed</string>
     <string name="filter_bookmarked_search">Filter in search results</string>
+    <string name="filter_bookmarked_recmd">Filter in home recommendations</string>
     <string name="filter_bookmarked_none">No filtering</string>
     <string name="filter_bookmarked_summary">%1$d enabled</string>
     <string name="filter_bookmarked_dialog_hint">Choose where to hide works you have already bookmarked</string>

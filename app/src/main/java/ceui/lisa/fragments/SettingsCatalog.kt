@@ -134,7 +134,7 @@ object SettingsCatalog {
         add(Entry(BROWSING, "ai_block_strength_rela", R.string.ai_block_strength, keywords = "ai 屏蔽 效果 级别 强度 模糊 粒子 打码 完全不显示 blur"))
         add(Entry(BROWSING, "ai_tag_rules_rela", R.string.ai_tag_rules, keywords = "ai 标签 tag 识别 判定 生成 内置 自定义 规则 屏蔽"))
         add(Entry(BROWSING, "ai_block_exempt_rela", R.string.ai_block_exempt_authors, keywords = "ai 屏蔽 豁免 白名单 作者 画师 例外 放行 exempt whitelist author"))
-        add(Entry(BROWSING, "filter_bookmarked_rela", R.string.filter_bookmarked_title, keywords = "已收藏 过滤 去重 排行榜 动态 搜索 rank following search bookmark"))
+        add(Entry(BROWSING, "filter_bookmarked_rela", R.string.filter_bookmarked_title, keywords = "已收藏 过滤 去重 排行榜 首页推荐 推荐 动态 搜索 rank following search bookmark home recommend"))
         add(Entry(BROWSING, "novel_filter_min_text_length_rela", R.string.novel_filter_min_text_length, R.string.novel_filter_min_text_length_desc, keywords = "小说 字数 太短 过短 屏蔽 刷屏 广告 spam novel length"))
         add(Entry(BROWSING, "novel_filter_max_text_length_rela", R.string.novel_filter_max_text_length, R.string.novel_filter_max_text_length_desc, keywords = "小说 字数 太长 过长 屏蔽 spam novel length"))
         add(Entry(BROWSING, "novel_filter_max_tag_name_length_rela", R.string.novel_filter_max_tag_name_length, R.string.novel_filter_max_tag_name_length_desc, keywords = "小说 标签 tag 超长 过长 屏蔽 广告 刷屏 spam"))

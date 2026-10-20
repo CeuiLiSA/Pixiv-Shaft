@@ -166,6 +166,7 @@
     <string name="filter_bookmarked_rank">對排行榜過濾</string>
     <string name="filter_bookmarked_following">對動態頁過濾</string>
     <string name="filter_bookmarked_search">對搜尋頁過濾</string>
+    <string name="filter_bookmarked_recmd">對首頁推薦過濾</string>
     <string name="filter_bookmarked_none">不過濾</string>
     <string name="filter_bookmarked_summary">已啟用 %1$d 項</string>
     <string name="filter_bookmarked_dialog_hint">選擇在哪些頁面隱藏已收藏的作品</string>
