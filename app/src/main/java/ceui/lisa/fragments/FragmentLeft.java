@@ -13,6 +13,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import com.google.android.material.appbar.AppBarLayout;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
@@ -66,6 +68,14 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         });
         baseBind.wideSearch.setOnClickListener(v -> openSearch());
         HomeShellHost.observe(this, this::applyRailMode);
+        applyTopBarScrollSetting();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // 「顶栏跟随滚动收起」可能刚在设置里切过：scrollFlags 是布局参数，改完下一帧就生效，不用重启
+        applyTopBarScrollSetting();
     }
 
     private void openSearch() {
@@ -86,6 +96,37 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         baseBind.head.setBackgroundColor(railShown
                 ? ContextCompat.getColor(mContext, R.color.v3_bg)
                 : Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
+    }
+
+    /**
+     * 顶栏（紫色 Toolbar）是否跟随列表滚动收起。
+     *
+     * scrollFlags 只是 Toolbar 的 AppBarLayout.LayoutParams 上的一个字段，运行时改完重新测量即生效，
+     * 不用重启；AppBarLayout 的滚动范围在 onMeasure 里重算，所以改完必须 setLayoutParams 触发一次。
+     * 关掉时还要把已经收起的偏移复位——没有任何子项带 scroll 标志之后，没人再把 Toolbar 拉回来。
+     * 只影响「推荐」tab：发现 / 动态 的 header 本来就是固定不滚。
+     */
+    private void applyTopBarScrollSetting() {
+        final boolean hide = Shaft.sSettings.isTopBarHideOnScroll();
+        ViewGroup.LayoutParams params = baseBind.toolbar.getLayoutParams();
+        if (!(params instanceof AppBarLayout.LayoutParams)) {
+            return;
+        }
+        AppBarLayout.LayoutParams lp = (AppBarLayout.LayoutParams) params;
+        final int flags = hide
+                ? AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
+                        | AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
+                : 0;
+        // 幂等：值没变就不白折腾一次布局（与 SearchActivity#setSearchBarCollapsible 同一套写法）
+        if (lp.getScrollFlags() == flags) {
+            return;
+        }
+        // 先展开再清 flags：已经收起的偏移必须在还有 scroll 范围时复位，清完就没人认这个偏移了
+        if (!hide) {
+            baseBind.appBar.setExpanded(true, false);
+        }
+        lp.setScrollFlags(flags);
+        baseBind.toolbar.setLayoutParams(lp);
     }
 
     @Override

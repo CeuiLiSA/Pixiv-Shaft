@@ -240,6 +240,31 @@
 
                 </RelativeLayout>
 
+                <!-- 顶栏跟随列表滚动收起：关掉后 FragmentLeft 把推荐页 Toolbar 的 scrollFlags 清零，
+                     并复位已收起的偏移（见 FragmentLeft#applyTopBarScrollSetting），不用重启。 -->
+                <RelativeLayout
+                    android:id="@+id/top_bar_scroll_hide_rela"
+                    style="@style/M3SetRow"
+                    android:background="@drawable/wit_row_mid">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/top_bar_scroll_hide" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/top_bar_scroll_hide_desc" />
+
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/top_bar_scroll_hide"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
                 <RelativeLayout
                     android:id="@+id/recommend_page_order_rela"
                     style="@style/M3SetRow"

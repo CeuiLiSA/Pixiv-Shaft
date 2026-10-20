@@ -134,6 +134,8 @@
     <string name="tablet_layout">Tata letak tablet</string>
     <string name="bottom_bar_scroll_hide">Sembunyikan bilah bawah saat menggulir</string>
     <string name="bottom_bar_scroll_hide_desc">Bilah bawah disembunyikan saat menggulir ke bawah dan muncul lagi saat menggulir ke atas. Jika dimatikan, bilah tetap di bawah dan selalu terlihat</string>
+    <string name="top_bar_scroll_hide">Sembunyikan bilah atas saat menggulir</string>
+    <string name="top_bar_scroll_hide_desc">Bilah judul di bagian atas halaman Rekomendasi disembunyikan saat menggulir ke bawah dan muncul lagi saat menggulir ke atas. Jika dimatikan, bilah tetap di atas dan selalu terlihat</string>
     <string name="tablet_layout_desc">Di perangkat layar besar seperti tablet, gunakan bilah navigasi samping, tata letak masonry yang menambah kolom sesuai lebar layar, dan detail karya berdampingan kiri-kanan. Jika dimatikan, tata letak sama seperti ponsel. Hanya berlaku di tablet</string>
     <string name="rail_bookmarks">Bookmark</string>
     <string name="rail_downloads">Unduhan</string>

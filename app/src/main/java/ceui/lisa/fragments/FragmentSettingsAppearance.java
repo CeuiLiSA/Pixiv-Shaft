@@ -487,6 +487,15 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         baseBind.bottomBarScrollHideRela.setOnClickListener(
                 v -> baseBind.bottomBarScrollHide.performClick());
 
+        // 顶栏跟随列表滚动收起：只作用于「推荐」tab 的紫色 Toolbar，同样回首页即生效
+        baseBind.topBarScrollHide.setChecked(Shaft.sSettings.isTopBarHideOnScroll());
+        baseBind.topBarScrollHide.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setTopBarHideOnScroll(isChecked);
+            Local.setSettings(Shaft.sSettings);
+        });
+        baseBind.topBarScrollHideRela.setOnClickListener(
+                v -> baseBind.topBarScrollHide.performClick());
+
         // Muzei 动态壁纸来源设置（issue #548）；同一个 Activity 也是 Muzei 侧「来源设置」的落点
         baseBind.muzeiSettingsRela.setOnClickListener(v ->
                 startActivity(new Intent(mContext, ceui.pixiv.muzei.MuzeiSettingsActivity.class)));

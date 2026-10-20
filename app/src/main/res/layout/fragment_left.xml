@@ -85,6 +85,7 @@
             android:layout_height="match_parent">
 
             <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/app_bar"
                 android:layout_width="match_parent"
                 android:background="?attr/colorPrimary"
                 android:layout_height="wrap_content">

@@ -135,6 +135,8 @@
     <string name="tablet_layout">Tablet düzeni</string>
     <string name="bottom_bar_scroll_hide">Kaydırırken alt çubuğu gizle</string>
     <string name="bottom_bar_scroll_hide_desc">Aşağı kaydırınca alt çubuğu gizler, yukarı kaydırınca geri getirir. Kapalıyken çubuk sabit kalır ve her zaman görünür</string>
+    <string name="top_bar_scroll_hide">Kaydırırken üst çubuğu gizle</string>
+    <string name="top_bar_scroll_hide_desc">Öneriler sayfasının üstündeki başlık çubuğu aşağı kaydırınca gizlenir, yukarı kaydırınca geri gelir. Kapalıyken çubuk sabit kalır ve her zaman görünür</string>
     <string name="tablet_layout_desc">Tablet gibi büyük ekranlarda yan gezinme çubuğu, ekran genişliğine göre sütun ekleyen akış ve yan yana eser ayrıntısı kullanılır. Kapalıyken telefon düzeni kullanılır. Yalnızca tablette geçerlidir</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">Yer İşaretleri</string>

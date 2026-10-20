@@ -495,6 +495,9 @@ public class Settings {
     /** 首页底栏是否跟随列表滚动收起（false = 固定常显），见 BottomBarAutoHide.setEnabled。默认开启。 */
     private boolean bottomBarHideOnScroll = true;
 
+    /** 推荐页顶栏是否跟随列表滚动收起（false = 固定常显），见 FragmentLeft#applyTopBarScrollSetting。默认开启。 */
+    private boolean topBarHideOnScroll = true;
+
     /** 隐藏小组件上浮在封面之上的收藏按钮（#1013：挡画面） */
     private boolean widgetHideBookmarkButton = false;
     /** 隐藏小组件上浮在封面之上的刷新按钮（#1013：挡画面） */
@@ -1524,6 +1527,14 @@ public class Settings {
 
     public void setBottomBarHideOnScroll(boolean hide) {
         this.bottomBarHideOnScroll = hide;
+    }
+
+    public boolean isTopBarHideOnScroll() {
+        return topBarHideOnScroll;
+    }
+
+    public void setTopBarHideOnScroll(boolean hide) {
+        this.topBarHideOnScroll = hide;
     }
 
     public boolean isWidgetHideBookmarkButton() {
