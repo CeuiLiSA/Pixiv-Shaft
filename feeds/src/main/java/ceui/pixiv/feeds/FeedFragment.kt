@@ -576,12 +576,15 @@ abstract class FeedFragment(
     /** adapter 现取不缓存：[rebuildList] 换过 adapter 之后，长活的 uiState collector 不能再往旧的提交。 */
     private fun render(state: FeedUiState) {
         val adapter = feedAdapter ?: return
+        // 页面按当前设置临时隐藏的条目（[FeedItem.hidden]）不进列表：它们仍留在 state.items 里，
+        // 设置改回去就原地回来——既不用页面自己攒暂存表，也不用重新拉数据。
+        val visibleItems = state.visibleItems
         val displayList = when {
             state.append is LoadState.Loading || state.append is LoadState.Error ->
-                state.items + AppendFooterItem(state.append)
+                visibleItems + AppendFooterItem(state.append)
             // 自动翻页预算用完：还有下一页，footer 变「点击加载更多」等用户点
-            state.appendPaused -> state.items + AppendFooterItem(state.append, paused = true)
-            else -> state.items
+            state.appendPaused -> visibleItems + AppendFooterItem(state.append, paused = true)
+            else -> visibleItems
         }
         // 整代替换（下拉刷新 / 冷启的缓存→网络）**且新旧两代真的会撕**时才绕开 DiffUtil，
         // 见 [FeedUiState.refreshGeneration] 和 [needsCleanSwapAcrossGenerations]。
