@@ -648,7 +648,8 @@ open class RecmdIllustFeedFragment(
                 )
             }
             // 「过滤已收藏」只作用于首页推荐 tab：推荐漫画是从别处点进去的独立页面，不受这个开关管。
-            // 官网 Web R-18 推荐是精简缩略图、没有 is_bookmarked，这里拦不住，那类条目照常显示。
+            // 官网 Web R-18 推荐条目也走这里：top 接口的 thumbnails 逐条带 bookmarkData（null = 未收藏），
+            // 转换后 is_bookmarked 是真实值，所以它们同样会被这一档过滤。
             // 这里只打隐藏标记、不丢条目：关掉开关时它们要原地回来（见 FeedUiState.visibleItems）。
             val hideBookmarked = dataType == TYPE_ILLUST && Shaft.sSettings.isFilterRecmdBookmarked
             val listItems = illusts.mapNotNull { illust ->
