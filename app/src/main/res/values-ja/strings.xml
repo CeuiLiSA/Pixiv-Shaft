@@ -1052,6 +1052,7 @@
     <string name="deselect_all">すべて解除</string>
     <string name="download_selected_count">選択項目をダウンロード (%1$d)</string>
     <string name="batch_download_progress">ダウンロード中 %1$d/%2$d</string>
+    <string name="novel_download_waiting_previous">前の小説のダウンロードが終わるのを待っています…</string>
     <string name="batch_download_all_ok">すべてダウンロードしました</string>
     <string name="batch_download_some_failed">ダウンロード完了、%1$d 件失敗</string>
     <string name="batch_download_failure_line">「%1$s」 - %2$s</string>
@@ -1871,7 +1872,8 @@
     <string name="bulk_fetch_dialog_btn_cancel">キャンセル</string>
     <string name="bulk_fetch_dialog_btn_open_manager">ダウンロード管理 →</string>
     <string name="bulk_fetch_dialog_btn_close">閉じる</string>
-    <string name="merge_novel_dialog_close_hint">ダウンロードはこのウィンドウ内で実行されます。完了するまで閉じないでください。ファイルは「ダウンロード/Novel」に保存されます。途中で止めるには「キャンセル」を押してください（取得済みの章は保持されます）。</string>
+    <string name="merge_novel_dialog_close_hint">ダウンロードはバックグラウンドで続行されます。このページを離れても、このウィンドウを閉じても中断されません。ファイルは「小説シリーズ・まとめてダウンロード」の命名テンプレートに従って保存されます（既定: ダウンロード/Shaft/Novels/、ダウンロード設定で変更可）。途中で止めるには「キャンセル」を押してください（取得済みの章は保持されます）——ウィンドウを閉じると止められなくなります。</string>
+    <string name="merge_novel_dialog_btn_background">バックグラウンドで続行</string>
     <string name="merge_novel_dialog_canceled">^C  user canceled — 取得済みの章は破棄され、ファイルは書き出されません。</string>
     <string name="merge_novel_dialog_stop_requested">&gt; user stop — 切り詰め版を出力中、もう少しお待ちください…</string>
     <string name="merge_novel_dialog_done_title">✓ 合冊完了</string>

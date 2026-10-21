@@ -1097,6 +1097,7 @@
     <string name="deselect_all">取消全选</string>
     <string name="download_selected_count">下载选中 (%1$d)</string>
     <string name="batch_download_progress">下载中 %1$d/%2$d</string>
+    <string name="novel_download_waiting_previous">正在等待前一条小说下载结束…</string>
     <string name="batch_download_all_ok">已全部下载</string>
     <string name="batch_download_some_failed">下载完成，%1$d 篇失败</string>
     <string name="batch_download_failure_line">《%1$s》— %2$s</string>
@@ -2063,7 +2064,8 @@
     <string name="bulk_fetch_dialog_btn_cancel">取消</string>
     <string name="bulk_fetch_dialog_btn_open_manager">去下载管理 →</string>
     <string name="bulk_fetch_dialog_btn_close">关闭</string>
-    <string name="merge_novel_dialog_close_hint">下载全程在此窗口进行，完成前请勿关闭；文件会写到 \"下载/Novel\" 目录。中途想停按「取消」(保留已抓章节)</string>
+    <string name="merge_novel_dialog_close_hint">下载在后台进行，离开本页或关闭此窗口都不会中断；文件按「小说系列 · 合并下载」的命名模板落盘（默认 下载/Shaft/Novels/，可在下载设置里改）。想中途停按「取消」(保留已抓章节)——窗口关掉之后就停不了了</string>
+    <string name="merge_novel_dialog_btn_background">后台继续</string>
     <string name="merge_novel_dialog_canceled">^C  user canceled — 已抓的章节会被丢弃，不写文件</string>
     <string name="merge_novel_dialog_stop_requested">&gt; user stop — 写出截短版，稍等收尾…</string>
     <string name="merge_novel_dialog_done_title">✓ 合集已写出</string>

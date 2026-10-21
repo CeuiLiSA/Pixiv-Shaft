@@ -33,7 +33,7 @@ import java.util.Collections
  * 插画那支把任务丢进 `Manager` 的下载队列，本身就是串行 + 有节流的；小说没有这样一条
  * 队列（[DownloadNovelTask] 早已没有调用方，批量下载各自起 task）。而收藏是可以连点的
  * ——在小说列表里一路点心，直接并发去抓正文，pixiv 对 `getNovelText` 很快就回 429
- * （[BatchDownloadNovelsTask] 为此在每篇之间留了 1.5 秒，这里沿用同一个间隔）。
+ * （[NovelDownloadManager] 为此在每篇之间留了 1.5 秒，这里沿用同一个间隔）。
  * 所以这里自己拿一条 [Channel] 串起来，按 id 去重。
  *
  * ## 落盘走的是阅读器那条导出路径
@@ -55,7 +55,7 @@ import java.util.Collections
 object NovelAutoDownload {
 
     /**
-     * 两次抓正文之间的最小间隔，对齐 [BatchDownloadNovelsTask] 里同一个常量的取值。
+     * 两次抓正文之间的最小间隔，对齐 [NovelDownloadManager] 里同一个常量的取值。
      */
     private const val MIN_INTERVAL_MS = 1500L
 

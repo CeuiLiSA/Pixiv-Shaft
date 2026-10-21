@@ -1052,6 +1052,7 @@
     <string name="deselect_all">Seçimi kaldır</string>
     <string name="download_selected_count">Seçilenleri indir (%1$d)</string>
     <string name="batch_download_progress">İndiriliyor %1$d/%2$d</string>
+    <string name="novel_download_waiting_previous">Önceki roman indirmesinin bitmesi bekleniyor…</string>
     <string name="batch_download_all_ok">Her şey indirildi</string>
     <string name="batch_download_some_failed">İndirme tamamlandı, %1$d başarısız</string>
     <string name="batch_download_failure_line">&quot;%1$s&quot; - %2$s</string>
@@ -1871,7 +1872,8 @@
     <string name="bulk_fetch_dialog_btn_cancel">İptal</string>
     <string name="bulk_fetch_dialog_btn_open_manager">İndirme yöneticisi →</string>
     <string name="bulk_fetch_dialog_btn_close">Kapat</string>
-    <string name="merge_novel_dialog_close_hint">İndirme tamamen bu pencerede çalışır — bitene kadar kapatmayın. Dosya «İndirilenler/Novel» konumuna yazılır. Erken durdurmak için «İptal»e dokunun (indirilen bölümler korunur).</string>
+    <string name="merge_novel_dialog_close_hint">İndirme arka planda devam eder — bu sayfadan ayrılmak veya pencereyi kapatmak onu durdurmaz. Dosya «Roman serisi · birleşik indirme» adlandırma şablonuna göre yazılır (varsayılan: İndirilenler/Shaft/Novels/; indirme ayarlarından değiştirilebilir). Erken durdurmak için «İptal»e dokunun (indirilen bölümler korunur) — pencere kapandıktan sonra artık durduramazsınız.</string>
+    <string name="merge_novel_dialog_btn_background">Arka planda sürdür</string>
     <string name="merge_novel_dialog_canceled">^C  user canceled — alınan bölümler atıldı; dosya yazılmadı.</string>
     <string name="merge_novel_dialog_stop_requested">&gt; user stop — kısaltılmış sürüm yazılıyor, bitiriliyor…</string>
     <string name="merge_novel_dialog_done_title">✓ Birleştirme tamamlandı</string>

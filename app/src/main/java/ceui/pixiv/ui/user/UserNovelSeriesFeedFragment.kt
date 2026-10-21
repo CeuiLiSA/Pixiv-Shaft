@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.R
-import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.databinding.RecyNovelSeriesOfUserBinding
@@ -271,9 +270,7 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
     }
 
     private fun startPerSeries(seriesList: List<NovelSeriesItem>, format: ExportFormat) {
-        val act = activity as? BaseActivity<*> ?: return
         CrossSeriesDownloadTask(requireContext()).runPerSeries(
-            activity = act,
             seriesList = seriesList,
             format = format,
         ) { _, failures ->
@@ -296,13 +293,11 @@ class UserNovelSeriesFeedFragment : FeedFragment(), ExportFormatCallback {
     }
 
     private fun startMergeAll(list: List<NovelSeriesItem>, format: ExportFormat) {
-        val act = activity as? BaseActivity<*> ?: return
         // 作者 id / name：allItems 里任何一项的 user 都指向该作者本人，取第一个非空的兜底 intent。
         val firstUser = list.firstOrNull { it.user != null }?.user
         val authorId = firstUser?.id ?: Params.getUserId(requireActivity().intent)
         val authorName = firstUser?.name
         CrossSeriesDownloadTask(requireContext()).runAllMergedOne(
-            activity = act,
             seriesList = list,
             authorName = authorName,
             authorId = authorId,

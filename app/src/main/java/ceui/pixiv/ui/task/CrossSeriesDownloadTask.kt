@@ -1,8 +1,6 @@
 package ceui.pixiv.ui.task
 
 import android.content.Context
-import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.fragments.WebNovelParser
 import ceui.lisa.models.NovelSeriesItem
@@ -19,7 +17,6 @@ import ceui.pixiv.ui.novel.reader.export.MergedNovelWriters
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -35,7 +32,7 @@ import timber.log.Timber
  */
 class CrossSeriesDownloadTask(context: Context) {
 
-    /** 只留 applicationContext：写文件 / 取字符串都在 lifecycleScope 协程里跑，不能拿 Activity。 */
+    /** 只留 applicationContext：整条链跑在 NovelDownloadManager 的进程级 scope 里，不能拿 Activity。 */
     private val ctx: Context = context.applicationContext
 
     enum class Mode {
@@ -56,7 +53,6 @@ class CrossSeriesDownloadTask(context: Context) {
      * 完成后调用 [onFinished]，传入成功 / 失败统计。
      */
     fun runPerSeries(
-        activity: FragmentActivity,
         seriesList: List<NovelSeriesItem>,
         format: ExportFormat,
         onFinished: (success: Int, failures: List<SeriesFailure>) -> Unit,
@@ -65,7 +61,7 @@ class CrossSeriesDownloadTask(context: Context) {
             onFinished(0, emptyList())
             return
         }
-        activity.lifecycleScope.launch {
+        NovelDownloadManager.launchNovel {
             val failures = mutableListOf<SeriesFailure>()
             var successCount = 0
             seriesList.forEachIndexed { index, seriesItem ->
@@ -129,7 +125,6 @@ class CrossSeriesDownloadTask(context: Context) {
      * 跳过章节数。
      */
     fun runAllMergedOne(
-        activity: FragmentActivity,
         seriesList: List<NovelSeriesItem>,
         authorName: String?,
         authorId: Long,
@@ -140,7 +135,7 @@ class CrossSeriesDownloadTask(context: Context) {
             onFinished(false, 0)
             return
         }
-        activity.lifecycleScope.launch {
+        NovelDownloadManager.launchNovel {
             try {
                 val chapters = mutableListOf<MergedChapter>()
                 var skippedChapters = 0
