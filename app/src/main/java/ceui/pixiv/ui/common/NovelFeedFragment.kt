@@ -27,8 +27,6 @@ import ceui.pixiv.api.Client
 import ceui.loxia.Novel
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.chat.base.viewModels
-import ceui.pixiv.download.toast.DownloadToastKind
-import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -43,7 +41,7 @@ import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.ui.ExportFormatCallback
 import ceui.pixiv.ui.novel.reader.ui.ExportSheet
 import ceui.pixiv.ui.recommend.bindTrendingScore
-import ceui.pixiv.ui.task.BatchDownloadNovelsTask
+import ceui.pixiv.ui.task.NovelDownloadManager
 import ceui.pixiv.utils.playLikePressHaptic
 import ceui.pixiv.utils.playUnlikeHaptic
 import ceui.pixiv.utils.pinHostGlide
@@ -139,23 +137,9 @@ abstract class NovelFeedFragment(
     }
 
     private fun startNovelDownload(novel: Novel, format: ExportFormat) {
-        BatchDownloadNovelsTask(
-            activity = requireActivity(),
-            novels = listOf(novel),
-            format = format,
-            onFinished = { failures ->
-                if (isAdded) {
-                    DownloadToasts.show(
-                        DownloadToastKind.NOVEL_BATCH_RESULT,
-                        if (failures.isEmpty()) {
-                            getString(R.string.batch_download_all_ok)
-                        } else {
-                            getString(R.string.batch_download_some_failed, failures.size)
-                        },
-                    )
-                }
-            },
-        )
+        // 下载跑在 NovelDownloadManager 的进程级 scope 上，结果 toast 也由它发 ——
+        // 用户滑走 / 退出这个列表页，这一篇照样下完。
+        NovelDownloadManager.startBatch(novels = listOf(novel), format = format)
     }
 
     /**

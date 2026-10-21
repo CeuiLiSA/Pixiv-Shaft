@@ -27,9 +27,6 @@ import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.api.Client
 import ceui.pixiv.chat.base.viewModels as directViewModel
 import ceui.loxia.Novel
-import ceui.pixiv.api.model.NovelSeriesResp
-import ceui.pixiv.download.toast.DownloadToastKind
-import ceui.pixiv.download.toast.DownloadToasts
 import ceui.pixiv.widgets.ProgressIndicator
 import ceui.pixiv.feeds.FeedFragment
 import ceui.pixiv.feeds.FeedItem
@@ -49,24 +46,19 @@ import ceui.pixiv.ui.novel.reader.export.ExportFormat
 import ceui.pixiv.ui.novel.reader.export.NovelExportManager
 import ceui.pixiv.ui.novel.reader.ui.ExportFormatCallback
 import ceui.pixiv.ui.novel.reader.ui.ExportSheet
-import ceui.pixiv.ui.task.BatchDownloadNovelsTask
 import ceui.pixiv.ui.task.FailedNovel
-import ceui.pixiv.ui.task.FetchAllTask
-import ceui.pixiv.ui.task.HumanReadableTask
-import ceui.pixiv.ui.task.MergeDownloadNovelSeriesTask
-import ceui.pixiv.ui.task.PixivTaskType
+import ceui.pixiv.ui.task.NovelBatchJob
+import ceui.pixiv.ui.task.NovelBatchState
+import ceui.pixiv.ui.task.NovelDownloadManager
+import ceui.pixiv.ui.task.isTerminal
 import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.utils.ppppx
 import ceui.pixiv.utils.setOnClick
 import com.hjq.toast.Toaster
 import ceui.pixiv.witstudio.dialog.WitDialog
-import kotlin.coroutines.resume
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
-import java.util.concurrent.atomic.AtomicBoolean
 
 /** 系列下载的待确认动作，跨旋转保留在 Fragment ViewModel 中。 */
 class NovelSeriesDownloadRequestViewModel : ViewModel() {
@@ -312,15 +304,13 @@ class NovelSeriesFragment :
             Toaster.show(getString(R.string.merge_download_failed_empty))
             return
         }
-        val dedup = loadedNovels().distinctBy { it.id }
-        val stopSignal = AtomicBoolean(false)
-        val flow = MergeDownloadNovelSeriesTask(requireContext()).bulkMergeNovelSeries(
+        // 整条「拉章节 → 合并 → 写盘」都在 NovelDownloadManager 的进程级 scope 里跑，
+        // 这个弹窗只是订阅方：退页 / 关窗都不会把下载带走。
+        val session = NovelDownloadManager.startMerge(
             seriesDetail = detail,
-            knownNovels = dedup,
+            knownNovels = loadedNovels().distinctBy { it.id },
             format = format,
-            stopSignal = stopSignal,
             allowAutoEpub = allowAutoEpub,
-            confirmFormat = if (allowAutoEpub) { _ -> askMergeTxtOrEpub() } else null,
         )
         val config = FetchProgressDialog.Config(
             title = "merge-novel-series",
@@ -342,44 +332,9 @@ class NovelSeriesFragment :
             failedPartialRes = R.string.merge_novel_dialog_failed_partial,
             cancelMode = FetchProgressDialog.CancelMode.COOPERATIVE,
             keepOpenUntilDone = true,
-            onCancelRequested = { stopSignal.set(true) },
+            onCancelRequested = { session.requestStop() },
         )
-        FetchProgressDialog.show(requireActivity().supportFragmentManager, flow, config)
-    }
-
-    private suspend fun askMergeTxtOrEpub(): ExportFormat? = withContext(Dispatchers.Main) {
-        var dialog: WitDialog? = null
-        try {
-            suspendCancellableCoroutine { cont ->
-                if (!isAdded) {
-                    cont.resume(null)
-                    return@suspendCancellableCoroutine
-                }
-                val created = WitDialog.MenuDialogBuilder(requireContext())
-                    .setTitle(getString(R.string.setting_novel_epub_on_images))
-                    .addItems(
-                        arrayOf(getString(R.string.format_txt), getString(R.string.format_epub)),
-                    ) { d, which ->
-                        if (cont.isActive) {
-                            cont.resume(if (which == 0) ExportFormat.Txt else ExportFormat.Epub)
-                        }
-                        d.dismiss()
-                    }
-                    .addAction(getString(R.string.action_cancel)) { d, _ ->
-                        if (cont.isActive) cont.resume(null)
-                        d.dismiss()
-                    }
-                    .create()
-                dialog = created
-                created.setOnDismissListener {
-                    if (cont.isActive) cont.resume(null)
-                }
-                created.show()
-            }
-        } finally {
-            // Activity 销毁会取消抓取协程；同步关闭依附旧 Activity 的窗口。
-            dialog?.dismiss()
-        }
+        FetchProgressDialog.show(requireActivity().supportFragmentManager, session, config)
     }
 
     private fun launchBatchDownloadSelected() {
@@ -402,13 +357,13 @@ class NovelSeriesFragment :
     }
 
     private fun startBatchDownloadSelected(novels: List<Novel>, ordered: List<Novel>, format: ExportFormat) {
-        BatchDownloadNovelsTask(
-            activity = requireActivity(),
-            novels = novels,
-            format = format,
-            onFinished = { failures -> onBatchDownloadFinished(failures) },
-            seriesPositions = seriesPositionsOf(ordered),
-            seriesTotal = seriesTotalCount(loadedCount = ordered.size),
+        observeBatch(
+            NovelDownloadManager.startBatch(
+                novels = novels,
+                format = format,
+                seriesPositions = seriesPositionsOf(ordered),
+                seriesTotal = seriesTotalCount(loadedCount = ordered.size),
+            )
         )
     }
 
@@ -429,16 +384,21 @@ class NovelSeriesFragment :
         return loadedNovels().filter { it.id in selected }
     }
 
-    private fun onBatchDownloadFinished(failures: List<FailedNovel>) {
-        if (!isAdded) return
-        if (failures.isEmpty()) {
-            DownloadToasts.show(
-                DownloadToastKind.NOVEL_BATCH_RESULT,
-                getString(R.string.batch_download_all_ok),
-            )
+    /**
+     * 订阅一次批量下载。结果 toast 由 NovelDownloadManager 发（页面可能已经不在了），
+     * 这里只做页面内的两件事：收起多选、失败时把逐篇原因摊开。
+     */
+    private fun observeBatch(job: NovelBatchJob) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val state = job.state.first { it.isTerminal }
+            if (!isAdded) return@launch
             selectionModel.setMultiSelectMode(false)
-            return
+            val failures = (state as? NovelBatchState.Finished)?.failures.orEmpty()
+            if (failures.isNotEmpty()) showBatchFailures(failures)
         }
+    }
+
+    private fun showBatchFailures(failures: List<FailedNovel>) {
         val msg = failures.joinToString(separator = "\n") { fn ->
             getString(R.string.batch_download_failure_line, fn.novel.title.orEmpty(), fn.reason.orEmpty())
         }
@@ -460,33 +420,9 @@ class NovelSeriesFragment :
     }
 
     private fun launchDownloadAll(format: ExportFormat) {
-        object : FetchAllTask<Novel, NovelSeriesResp>(
-            requireActivity(),
-            taskFullName = "下载系列小说全部作品-${seriesId}",
-            taskType = PixivTaskType.DownloadSeriesNovels,
-            initialLoader = { Client.appApi.getNovelSeries(seriesId) },
-        ) {
-            override fun onEnd(humanReadableTask: HumanReadableTask, results: List<Novel>) {
-                if (!isAdded) return
-                if (results.isEmpty()) {
-                    DownloadToasts.show(
-                        DownloadToastKind.NOVEL_SERIES_EXPORT,
-                        getString(R.string.merge_download_failed_empty),
-                    )
-                    return
-                }
-                // FetchAllTask 拉到的就是整个系列的有序章节，位置 = 下标 + 1。
-                val ordered = results.distinctBy { it.id }
-                BatchDownloadNovelsTask(
-                    activity = requireActivity(),
-                    novels = results,
-                    format = format,
-                    onFinished = { failures -> onBatchDownloadFinished(failures) },
-                    seriesPositions = seriesPositionsOf(ordered),
-                    seriesTotal = ordered.size,
-                )
-            }
-        }
+        // 拉章节 + 逐篇落盘整段都在 NovelDownloadManager 的进程级 scope 里：
+        // 用户点完就退页，也不会只拉到一半就没了。
+        observeBatch(NovelDownloadManager.startSeriesDownloadAll(seriesId, format))
     }
 
     // ── NovelMultiSelectReceiver ────────────────────────────────────────

@@ -189,7 +189,7 @@ object DownloadItems {
         extOverride: String? = null,
         /**
          * 本篇在系列**可见列表**中的 1-based 位置 + 系列总篇数。批量下载
-         * （[ceui.pixiv.ui.task.BatchDownloadNovelsTask]）取列表下标，单篇
+         * （[ceui.pixiv.ui.task.NovelDownloadManager]）取列表下标，单篇
          * 导出查 [ceui.pixiv.cache.SeriesCache]——两边必须同源，才能渲染出同一个
          * 文件名。拿不到时传 null，`{series_order}` 渲染成空串。
          */

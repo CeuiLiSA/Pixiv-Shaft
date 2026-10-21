@@ -1054,6 +1054,7 @@
     <string name="deselect_all">取消全選</string>
     <string name="download_selected_count">下載所選 (%1$d)</string>
     <string name="batch_download_progress">下載中 %1$d/%2$d</string>
+    <string name="novel_download_waiting_previous">正在等待前一條小說下載結束…</string>
     <string name="batch_download_all_ok">已全部下載完成</string>
     <string name="batch_download_some_failed">下載完成，%1$d 項失敗</string>
     <string name="batch_download_failure_line">《%1$s》 - %2$s</string>
@@ -1873,7 +1874,7 @@
     <string name="bulk_fetch_dialog_btn_cancel">取消</string>
     <string name="bulk_fetch_dialog_btn_open_manager">去下載管理 →</string>
     <string name="bulk_fetch_dialog_btn_close">關閉</string>
-    <string name="merge_novel_dialog_close_hint">下載全程在此視窗進行，完成前請勿關閉；檔案會寫到 \"下載/Novel\" 目錄。中途想停按「取消」(保留已抓章節)</string>
+    <string name="merge_novel_dialog_close_hint">下載在背景進行，離開本頁或關閉此視窗都不會中斷；檔案會寫到 \"下載/Novel\" 目錄。中途想停按「取消」(保留已抓章節)</string>
     <string name="merge_novel_dialog_canceled">^C  user canceled — 已抓的章節會被丟棄，不寫檔案</string>
     <string name="merge_novel_dialog_stop_requested">&gt; user stop — 寫出截短版，稍等收尾…</string>
     <string name="merge_novel_dialog_done_title">✓ 合集已寫出</string>

@@ -1052,6 +1052,7 @@
     <string name="deselect_all">전체 해제</string>
     <string name="download_selected_count">선택 항목 다운로드 (%1$d)</string>
     <string name="batch_download_progress">다운로드 중 %1$d/%2$d</string>
+    <string name="novel_download_waiting_previous">이전 소설 다운로드가 끝나기를 기다리는 중…</string>
     <string name="batch_download_all_ok">모두 다운로드 완료</string>
     <string name="batch_download_some_failed">다운로드 완료, %1$d개 실패</string>
     <string name="batch_download_failure_line">&quot;%1$s&quot; - %2$s</string>
@@ -1871,7 +1872,7 @@
     <string name="bulk_fetch_dialog_btn_cancel">취소</string>
     <string name="bulk_fetch_dialog_btn_open_manager">다운로드 관리 →</string>
     <string name="bulk_fetch_dialog_btn_close">닫기</string>
-    <string name="merge_novel_dialog_close_hint">다운로드는 이 창에서 진행됩니다. 완료될 때까지 닫지 마세요. 파일은 「다운로드/Novel」에 저장됩니다. 중간에 멈추려면 「취소」를 누르세요(받은 챕터는 유지됩니다).</string>
+    <string name="merge_novel_dialog_close_hint">다운로드는 백그라운드에서 계속됩니다. 이 페이지를 나가거나 이 창을 닫아도 중단되지 않습니다. 파일은 「다운로드/Novel」에 저장됩니다. 중간에 멈추려면 「취소」를 누르세요(받은 챕터는 유지됩니다).</string>
     <string name="merge_novel_dialog_canceled">^C  user canceled — 이미 가져온 챕터는 폐기되며, 파일은 저장되지 않습니다.</string>
     <string name="merge_novel_dialog_stop_requested">&gt; user stop — 잘린 버전을 작성 중, 잠시만 기다려주세요…</string>
     <string name="merge_novel_dialog_done_title">✓ 합본 완료</string>

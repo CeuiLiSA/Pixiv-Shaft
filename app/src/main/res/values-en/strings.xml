@@ -1052,6 +1052,7 @@
     <string name="deselect_all">Deselect all</string>
     <string name="download_selected_count">Download selected (%1$d)</string>
     <string name="batch_download_progress">Downloading %1$d/%2$d</string>
+    <string name="novel_download_waiting_previous">Waiting for the previous novel download to finish…</string>
     <string name="batch_download_all_ok">All downloads completed</string>
     <string name="batch_download_some_failed">Download completed, %1$d failed</string>
     <string name="batch_download_failure_line">&quot;%1$s&quot; - %2$s</string>
@@ -1871,7 +1872,7 @@
     <string name="bulk_fetch_dialog_btn_cancel">Cancel</string>
     <string name="bulk_fetch_dialog_btn_open_manager">Download manager →</string>
     <string name="bulk_fetch_dialog_btn_close">Close</string>
-    <string name="merge_novel_dialog_close_hint">The download runs entirely in this window — keep it open until it finishes. The file is written to Downloads/Novel. Tap Cancel to stop early (already-fetched chapters are kept).</string>
+    <string name="merge_novel_dialog_close_hint">The download keeps running in the background — leaving this page or closing this window will not stop it. The file is written to Downloads/Novel. Tap Cancel to stop early (already-fetched chapters are kept).</string>
     <string name="merge_novel_dialog_canceled">^C  user canceled — already-fetched chapters discarded; no file written.</string>
     <string name="merge_novel_dialog_stop_requested">&gt; user stop — writing truncated file, wrapping up…</string>
     <string name="merge_novel_dialog_done_title">✓ Merge complete</string>

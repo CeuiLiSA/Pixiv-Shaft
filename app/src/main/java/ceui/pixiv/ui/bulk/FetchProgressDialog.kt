@@ -12,6 +12,7 @@ import androidx.fragment.app.FragmentManager
 import ceui.lisa.activities.TemplateActivity
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
+import ceui.pixiv.ui.task.NovelMergeSession
 import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +48,7 @@ import ceui.pixiv.ui.navigation.TemplateRoute
 class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
 
     private var flow: Flow<FetchEvent>? = null
+    private var session: NovelMergeSession? = null
     private var fetchJob: Job? = null
     private var config: Config = Config()
 
@@ -85,15 +87,28 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // 默认允许 back / 点外部收起 dialog —— batch illust 的活儿已落进持久化队列，
-        // dialog 关掉也由 QueueDownloadManager 接着下。但 merge novel 把「拉章节→合并→
-        // 写文件」整套都跑在这条 activity-scoped flow 里，且只在最后一刻才写盘：窗口一关、
-        // 用户离开页面 activity 一销毁，整单内存进度全丢且不留任何痕迹（issue #919）。
-        // 这类任务用 keepOpenUntilDone 锁住，跑完（或用户显式「取消」收尾）前不让误关。
+        // dialog 关掉也由 QueueDownloadManager 接着下。
+        //
+        // merge novel 也已经是进程级会话（NovelDownloadManager），关窗口不再等于丢单；
+        // 但仍然用 keepOpenUntilDone 锁住：它是唯一能看进度、也是唯一能按「取消」的地方，
+        // 误关之后用户既看不到还剩几章，也没地方停（只能等它自己跑完）。
         isCancelable = !config.keepOpenUntilDone
     }
 
     fun bindFlow(flow: Flow<FetchEvent>) {
         this.flow = flow
+    }
+
+    /**
+     * 绑定一个**进程级**会话（小说合并下载）。
+     *
+     * 与 [bindFlow] 的区别不在渲染，而在谁持有 producer：flow 版本由本 dialog 在
+     * activity scope 里 collect，dialog 一关就断（插画批量入的是持久化队列，断了也没事）；
+     * session 版本的生产者在 `NovelDownloadManager` 的进程级 scope 里，本 dialog 只是
+     * 订阅方 —— 关窗口、退页面都不会影响下载，重新打开还能从 replay 里看到完整日志。
+     */
+    fun bindSession(session: NovelMergeSession) {
+        this.session = session
     }
 
     fun bindConfig(config: Config) {
@@ -128,7 +143,9 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
             config.onCancelRequested()
             when (config.cancelMode) {
                 CancelMode.HARD -> {
-                    fetchJob?.cancel()
+                    // 会话的生产者跑在 NovelDownloadManager 的 scope 里，本 dialog 的
+                    // fetchJob 只是订阅，取消它停不了下载。
+                    session?.cancel() ?: fetchJob?.cancel()
                     phase = Phase.CANCELED
                     phaseDetail = "user canceled"
                     freezeTimer()
@@ -159,8 +176,17 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
 
         startedAt = System.currentTimeMillis()
 
-        // 收集 fetch 事件 —— activity scope，dialog 关掉也继续
-        flow?.let { f ->
+        val bound = session
+        if (bound != null) {
+            // 会话的 producer 在进程级 scope 里跑，这里只订阅：本 dialog 销毁 / 页面退出
+            // 都不影响下载，重新打开还能靠 replay 把历史日志重建出来。
+            // attach/detach 让管理器知道"收尾时有没有人在看"，没人看就补一条 toast。
+            bound.attach()
+            fetchJob = bound.events
+                .onEach(::handleEvent)
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+        } else flow?.let { f ->
+            // 收集 fetch 事件 —— activity scope，dialog 关掉也继续
             fetchJob = f.flowOn(Dispatchers.IO)
                 .onEach(::handleEvent)
                 // producer 里没接住的异常(最典型:写盘时 MediaStore 目录被占用抛 ISE)
@@ -421,8 +447,11 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
 
     override fun onDestroyView() {
         viewAlive = false
+        // 会话模式：告诉管理器"已经没人在看了"，它好在收尾时补 toast。
+        session?.detach()
         super.onDestroyView()
-        // 故意不取消 fetchJob —— activity scope 让抓取在 dialog 关掉后继续
+        // flow 模式故意不取消 fetchJob —— activity scope 让抓取在 dialog 关掉后继续；
+        // 会话模式的订阅挂在 viewLifecycleOwner 上，随 view 一起停，但生产者在管理器里，照跑。
     }
 
     // ────────────────────────────────────────────────────────────────────
@@ -497,6 +526,19 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
         fun show(fm: FragmentManager, flow: Flow<FetchEvent>, config: Config): FetchProgressDialog {
             val dialog = FetchProgressDialog().apply {
                 bindFlow(flow)
+                bindConfig(config)
+            }
+            dialog.show(fm, "FetchProgressDialog")
+            return dialog
+        }
+
+        /**
+         * 小说合并下载：绑 [NovelMergeSession]（进程级生产者的订阅端）。
+         * 弹窗被关掉 / 宿主页面退出都不会取消下载。
+         */
+        fun show(fm: FragmentManager, session: NovelMergeSession, config: Config): FetchProgressDialog {
+            val dialog = FetchProgressDialog().apply {
+                bindSession(session)
                 bindConfig(config)
             }
             dialog.show(fm, "FetchProgressDialog")

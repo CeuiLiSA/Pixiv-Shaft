@@ -1055,6 +1055,7 @@
     <string name="deselect_all">Batalkan semua pilihan</string>
     <string name="download_selected_count">Unduh yang dipilih (%1$d)</string>
     <string name="batch_download_progress">Mengunduh %1$d/%2$d</string>
+    <string name="novel_download_waiting_previous">Menunggu unduhan novel sebelumnya selesai…</string>
     <string name="batch_download_all_ok">Semua sudah diunduh</string>
     <string name="batch_download_some_failed">Unduhan selesai, %1$d judul gagal</string>
     <string name="batch_download_failure_line">«%1$s» — %2$s</string>
@@ -1920,7 +1921,7 @@
     <string name="bulk_fetch_dialog_btn_cancel">Batal</string>
     <string name="bulk_fetch_dialog_btn_open_manager">Ke pengelola unduhan →</string>
     <string name="bulk_fetch_dialog_btn_close">Tutup</string>
-    <string name="merge_novel_dialog_close_hint">Seluruh unduhan berlangsung di jendela ini, jangan ditutup sebelum selesai; file akan ditulis ke folder \"Download/Novel\". Untuk berhenti di tengah jalan, tekan «Batal» (bab yang sudah diambil tetap disimpan)</string>
+    <string name="merge_novel_dialog_close_hint">Unduhan berjalan di latar belakang — keluar dari halaman ini atau menutup jendela tidak akan menghentikannya. File ditulis ke folder \"Download/Novel\". Untuk berhenti di tengah jalan, tekan «Batal» (bab yang sudah diambil tetap disimpan)</string>
     <string name="merge_novel_dialog_canceled">^C  user canceled — bab yang sudah diambil dibuang, file tidak ditulis</string>
     <string name="merge_novel_dialog_stop_requested">&gt; user stop — menulis versi terpotong, tunggu sebentar…</string>
     <string name="merge_novel_dialog_done_title">✓ Kumpulan telah ditulis</string>

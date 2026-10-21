@@ -1052,6 +1052,7 @@
     <string name="deselect_all">Снять выделение</string>
     <string name="download_selected_count">Скачать выбранное (%1$d)</string>
     <string name="batch_download_progress">Загрузка %1$d/%2$d</string>
+    <string name="novel_download_waiting_previous">Ожидание завершения предыдущей загрузки…</string>
     <string name="batch_download_all_ok">Всё загружено</string>
     <string name="batch_download_some_failed">Загрузка завершена, ошибок: %1$d</string>
     <string name="batch_download_failure_line">«%1$s» — %2$s</string>
@@ -1871,7 +1872,7 @@
     <string name="bulk_fetch_dialog_btn_cancel">Отмена</string>
     <string name="bulk_fetch_dialog_btn_open_manager">Менеджер загрузок →</string>
     <string name="bulk_fetch_dialog_btn_close">Закрыть</string>
-    <string name="merge_novel_dialog_close_hint">Загрузка выполняется в этом окне — не закрывайте его до завершения. Файл сохраняется в Downloads/Novel. Нажмите «Отмена», чтобы остановить раньше (уже полученные главы сохранятся).</string>
+    <string name="merge_novel_dialog_close_hint">Загрузка продолжается в фоне — уход со страницы или закрытие окна её не прервёт. Файл сохраняется в Downloads/Novel. Нажмите «Отмена», чтобы остановить раньше (уже полученные главы сохранятся).</string>
     <string name="merge_novel_dialog_canceled">^C  отменено пользователем — уже полученные главы отброшены, файл не записан.</string>
     <string name="merge_novel_dialog_stop_requested">&gt; остановлено пользователем — записываем усечённый файл и завершаем…</string>
     <string name="merge_novel_dialog_done_title">✓ Объединение завершено</string>

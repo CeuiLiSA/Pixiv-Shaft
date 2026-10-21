@@ -25,10 +25,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * 合并下载小说系列的 Flow 版 fetcher —— 旧 [MergeDownloadNovelSeriesTask] 类(自己
  * 起协程 + 一连串 Toast)已下线;现在跟 batch illust 走同一套 [FetchProgressDialog]
- * CLI 风格 dialog。caller 拿到 Flow 后 dialog.show(fm, flow, config) 即可。
+ * CLI 风格 dialog。
  *
  * UI 入口:NovelSeriesFragment 右下「下载」→ SeriesDownloadOptionsSheet「合并下载」
- * → ExportSheet 选格式 → [bulkMergeNovelSeries]。
+ * → ExportSheet 选格式。
+ *
+ * **这条 Flow 由 [NovelDownloadManager] 在进程级 scope 里收集**，页面 / 弹窗只是订阅
+ * 它转发出来的事件（[ceui.pixiv.ui.bulk.FetchProgressDialog.bindSession]）。退出页面
+ * 不会取消下载 —— 以前直接在 fragment 的 activity scope 里 collect，退页即断。
  *
  * 合作式取消:caller 传入 [AtomicBoolean] stopSignal,dialog 的 cancel 按钮把它置
  * true。producer 在章节循环之间检查 —— 已抓到的章节会继续走完写盘流程,产物是
@@ -56,7 +60,8 @@ class MergeDownloadNovelSeriesTask(context: Context) {
 
         // ── 1) 把系列所有章节列表拉完 ──
         emit(FetchEvent.Log("> resolving full chapter list…"))
-        val allNovels = fetchAllNovels(seriesId, knownNovels) { event -> emit(event) }
+        // 分页逻辑与「下载全部」共用一份实现（NovelDownloadManager），两边的系列位置口径才不会漂。
+        val allNovels = NovelDownloadManager.fetchAllSeriesNovels(seriesId, knownNovels) { emit(it) }
         if (allNovels.isEmpty()) {
             emit(FetchEvent.Errored("series 没找到任何章节", 0))
             return@flow
@@ -174,43 +179,6 @@ class MergeDownloadNovelSeriesTask(context: Context) {
         ))
     }.flowOn(Dispatchers.IO)
 
-    private suspend fun fetchAllNovels(
-        seriesId: Long,
-        initial: List<Novel>,
-        emit: suspend (FetchEvent) -> Unit,
-    ): List<Novel> {
-        val all = initial.toMutableList()
-        var lastOrder: Int? = if (all.isEmpty()) null else all.size
-        var safetyGuard = 0
-        var pageIdx = 0
-        while (safetyGuard < 50) {
-            safetyGuard++
-            pageIdx++
-            emit(FetchEvent.Networking(pageIdx, "/v1/novel/series?series_id=$seriesId&last_order=${lastOrder ?: "—"}"))
-            val t0 = System.currentTimeMillis()
-            val resp = try {
-                Client.appApi.getNovelSeries(seriesId, lastOrder)
-            } catch (ex: CancellationException) {
-                throw ex
-            } catch (ex: Exception) {
-                emit(FetchEvent.Warning("getNovelSeries lastOrder=$lastOrder failed: ${ex.message}"))
-                break
-            }
-            val latency = System.currentTimeMillis() - t0
-            val page = resp.novels.orEmpty()
-            emit(FetchEvent.PageReceived(pageIdx, page.size, latency, all.size + page.size))
-            if (page.isEmpty()) break
-            val existingIds = all.map { it.id }.toHashSet()
-            val fresh = page.filter { it.id !in existingIds }
-            if (fresh.isEmpty()) break
-            all.addAll(fresh)
-            if (resp.next_url.isNullOrEmpty()) break
-            lastOrder = all.size
-            delay(SERIES_PAGE_DELAY_MS)
-        }
-        return all
-    }
-
     /**
      * 拉一章 Web 端 HTML 并解出 [WebNovel]。caller 负责再走 [DownloadNovelTask.replaceBrWithNewLine]
      * 拿正文,WebNovel 整体留着是为了让 EPUB writer 能从 `illusts` / `images` 图表
@@ -224,7 +192,6 @@ class MergeDownloadNovelSeriesTask(context: Context) {
 
     private companion object {
         const val CHAPTER_DELAY_MS = 1500L
-        const val SERIES_PAGE_DELAY_MS = 1000L
     }
 }
 
