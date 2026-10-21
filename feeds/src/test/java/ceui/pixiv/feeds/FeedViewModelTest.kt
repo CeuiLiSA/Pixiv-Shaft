@@ -33,7 +33,11 @@ class FeedViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private data class Row(val id: Int, val text: String = "") : FeedItem {
+    private data class Row(
+        val id: Int,
+        val text: String = "",
+        override val hidden: Boolean = false,
+    ) : FeedItem {
         override val feedKey: Any get() = id
     }
 
@@ -226,6 +230,30 @@ class FeedViewModelTest {
     }
 
     @Test
+    fun `loadMore chases past pages whose new items are all hidden`() = runTest(dispatcher) {
+        // 一整页新条目都被页面按设置隐藏（如全局 R-18 过滤）：屏幕没有变化，但不能就此收手
+        val source = FakeSource(
+            listOf(
+                listOf(Row(1)),
+                listOf(Row(2, hidden = true), Row(3, hidden = true)),
+                listOf(Row(4)),
+            )
+        )
+        val vm = FeedViewModel(source)
+        advanceUntilIdle()
+
+        vm.loadMore()
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        // 隐藏条目留在数据里：开关关掉时它们要原地回来，不能靠重新拉一次
+        assertEquals(listOf(1, 2, 3, 4), state.items.map { (it as Row).id })
+        assertEquals(listOf(1, 4), state.visibleItems.map { (it as Row).id })
+        assertTrue(state.reachedEnd)
+        assertEquals(LoadState.Idle, state.append)
+    }
+
+    @Test
     fun `refresh chases past fully-filtered first pages`() = runTest(dispatcher) {
         // 首页整页被 mapper 滤空（#729 场景），refresh 必须继续向后翻到有内容
         val vm = FeedViewModel(
@@ -252,6 +280,25 @@ class FeedViewModelTest {
         assertTrue(state.showEmptyState)
         // 首页 + 2 跳追载后收手
         assertEquals(3, source.loadCount)
+    }
+
+    @Test
+    fun `refresh chases past first pages whose items are all hidden`() = runTest(dispatcher) {
+        // 首屏整页条目都被页面按设置隐藏：数据是满的、屏幕是空的，仍须继续往后翻
+        val source = FakeSource(
+            listOf(
+                listOf(Row(1, hidden = true), Row(2, hidden = true)),
+                listOf(Row(3)),
+            )
+        )
+        val vm = FeedViewModel(source)
+        advanceUntilIdle()
+
+        val state = vm.uiState.value
+        assertEquals(listOf(3), state.visibleItems.map { (it as Row).id })
+        assertTrue(state.hasLoadedOnce)
+        assertTrue(state.reachedEnd)
+        assertEquals(2, source.loadCount)
     }
 
     @Test

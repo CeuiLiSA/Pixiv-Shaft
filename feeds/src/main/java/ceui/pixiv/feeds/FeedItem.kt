@@ -25,6 +25,14 @@ interface FeedItem {
     val hidden: Boolean get() = false
 }
 
+/**
+ * 列表里是否至少有一条没被隐藏的条目。
+ *
+ * 与 `FeedUiState.visibleItems.isNotEmpty()` 同义，但不分配过滤后的列表——分页链路每翻一页都要
+ * 问一次，那里只需要一个是非答案。
+ */
+internal fun List<FeedItem>.hasVisibleItem(): Boolean = any { !it.hidden }
+
 /** 条目完整身份：类型 + key，跨类型不会互相碰撞。 */
 internal val FeedItem.identity: Any
     get() = Pair(javaClass, feedKey)

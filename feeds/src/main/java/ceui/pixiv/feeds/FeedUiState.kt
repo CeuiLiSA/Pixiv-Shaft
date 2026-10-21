@@ -104,6 +104,16 @@ data class FeedUiState(
         if (items.none { it.hidden }) items else items.filterNot { it.hidden }
     }
 
+    /**
+     * [visibleItems] 是否为空——「这一页还有没有东西可展示」。
+     *
+     * 与 `visibleItems.isNotEmpty()` 同义，只是不分配过滤后的列表。分页链路用它判「这页算不算空」：
+     * 整页条目都被页面按设置隐藏时，数据是满的而屏幕是空的，按 [items] 判空会当成「有内容」，
+     * 于是不再往后翻，用户停在空白上且没有任何 onBind 去点火。
+     */
+    val hasVisibleItems: Boolean
+        get() = items.hasVisibleItem()
+
     /** 页面上没有任何内容可以展示时的全屏错误态（点击整体重试）。 */
     val showFullscreenError: Boolean
         get() = refresh is LoadState.Error && visibleItems.isEmpty()
