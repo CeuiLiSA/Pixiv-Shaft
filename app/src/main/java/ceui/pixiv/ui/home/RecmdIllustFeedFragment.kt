@@ -106,12 +106,8 @@ open class RecmdIllustFeedFragment(
 
     private val r18ViewModel: RecmdR18ViewModel by viewModels()
 
-    /**
-     * 最近一次应用到列表上的开关值；null = 本实例还没同步过（首次只记录、不动列表）。
-     * 它不需要活过旋转：真正的「谁被藏起来了」记在条目自己的 [IllustFeedItem.hidden] 上，
-     * 重建后列表还是那份列表，天然一致。
-     */
-    private var appliedBookmarkFilter: Boolean? = null
+    /** 「过滤已收藏」最近一次应用到列表上的开关值，见 [RecmdBookmarkFilterViewModel]。 */
+    private val bookmarkFilterState: RecmdBookmarkFilterViewModel by viewModels()
 
     /** 上 / 下屏前记下的滚动锚点，等这次提交落地后按它把位置接回来（见 [onListCommitted]）。 */
     private var pendingBookmarkAnchor: BookmarkScrollAnchor? = null
@@ -281,7 +277,8 @@ open class RecmdIllustFeedFragment(
         if (batch.isEmpty()) return
 
         val feedItems = withContext(Dispatchers.Default) {
-            batch.mapNotNull { IllustFeedItem.of(it) }
+            // 走 feedItemFromBean：补偿混入的条目同样要按「过滤已收藏」打标记
+            batch.mapNotNull { feedItemFromBean(it) }
         }
         if (feedItems.isEmpty()) return
 
@@ -315,6 +312,10 @@ open class RecmdIllustFeedFragment(
         syncBookmarkFilter()
     }
 
+    /** 详情 pager 回传 / 收藏后相关作品这些绕过 mapper 的入列路径，同样按「过滤已收藏」打标记。 */
+    override fun feedItemFromBean(bean: Illust?): IllustFeedItem? =
+        super.feedItemFromBean(bean)?.markBookmarkFiltered(hidesBookmarked(dataType))
+
     /**
      * 把「首页推荐过滤已收藏」的开关状态同步到屏幕上的内容 —— 只在开关值真的变了时动列表，
      * 不重新拉数据。
@@ -326,17 +327,19 @@ open class RecmdIllustFeedFragment(
      * 挂在 [onResume]：设置页是另一个页面，改完开关回到首页正好触发一次 resume（与底栏 / 顶栏
      * 那些设置的生效时机同一套）。
      *
-     * 首次同步（[appliedBookmarkFilter] 为 null）只记录、不动列表：条目在 mapper 里建的时候已经
-     * 按当时的设置打好标记（缓存恢复也会重跑 mapper），旋转重建后同样如此。顺带保证「刚收藏的作品」
-     * 不会因为一次 resume 就被重新藏起来。
+     * 首次同步（还没记录过开关值）只记录、不动列表：条目在 mapper 里建的时候已经按当时的设置
+     * 打好标记（缓存恢复也会重跑 mapper）。记录值跟列表一起放在 VM 里：Activity 在后台被重建
+     *（切深色模式 / 语言）时 VM 带着旧标记的列表活下来，记录值也必须跟着活，否则重建后的首次
+     * resume 会把「开关已经变了」误当成首次同步跳过。顺带保证「刚收藏的作品」不会因为一次 resume
+     * 就被重新藏起来。
      */
     private fun syncBookmarkFilter() {
         if (dataType != TYPE_ILLUST) return
         val target = Shaft.sSettings.isFilterRecmdBookmarked
-        if (appliedBookmarkFilter == target) return
-        val firstSync = appliedBookmarkFilter == null
-        appliedBookmarkFilter = target
-        if (firstSync) return
+        val applied = bookmarkFilterState.applied
+        if (applied == target) return
+        bookmarkFilterState.applied = target
+        if (applied == null) return
         // 锚点取「这次变更后仍然可见」的条目：打开过滤时若锚到正好是已收藏的那张，藏起来后就没得对了
         val anchor = captureScrollAnchor { item -> !target || !isBookmarked(item) }
         val changed = applyBookmarkFilter(target)
@@ -632,6 +635,14 @@ open class RecmdIllustFeedFragment(
          * 那是「拉取成功」的副作用，拿旧数据重放会污染下游。映射结构（含排行榜预览头）
          * 与首屏保持一致，靠 [FeedLoadPhase.isFirstPage] 判定。
          */
+        /** 「过滤已收藏」对这份实例生效与否：只管首页推荐 tab（插画），推荐漫画页不受影响。 */
+        private fun hidesBookmarked(dataType: String): Boolean =
+            dataType == TYPE_ILLUST && Shaft.sSettings.isFilterRecmdBookmarked
+
+        /** 「过滤已收藏」的标记口径：只藏不丢（见 [FeedUiState.visibleItems]），所有入列路径共用。 */
+        private fun IllustFeedItem.markBookmarkFiltered(hide: Boolean): IllustFeedItem =
+            if (hide && illust.isBookmarked) withHidden(true) else this
+
         private fun mapRecmdPage(
             pool: DiscoveryPool,
             illusts: List<Illust>,
@@ -651,10 +662,9 @@ open class RecmdIllustFeedFragment(
             // 官网 Web R-18 推荐条目也走这里：top 接口的 thumbnails 逐条带 bookmarkData（null = 未收藏），
             // 转换后 is_bookmarked 是真实值，所以它们同样会被这一档过滤。
             // 这里只打隐藏标记、不丢条目：关掉开关时它们要原地回来（见 FeedUiState.visibleItems）。
-            val hideBookmarked = dataType == TYPE_ILLUST && Shaft.sSettings.isFilterRecmdBookmarked
-            val listItems = illusts.mapNotNull { illust ->
-                val item = IllustFeedItem.of(illust) ?: return@mapNotNull null
-                if (hideBookmarked && illust.isBookmarked) item.withHidden(true) else item
+            val hideBookmarked = hidesBookmarked(dataType)
+            val listItems = illusts.mapNotNull {
+                IllustFeedItem.of(it)?.markBookmarkFiltered(hideBookmarked)
             }
             if (!phase.isFirstPage) {
                 return listItems
@@ -810,6 +820,16 @@ private data class BookmarkScrollAnchor(
     val offset: Int,
     val generation: Int,
 )
+
+/**
+ * 「过滤已收藏」最近一次应用到列表上的开关值；null = 还没同步过（首次只记录、不动列表）。
+ *
+ * 必须和 feedViewModel 同寿：隐藏标记记在 VM 列表的条目上，这个值描述的正是「那份列表按哪个
+ * 开关值打的标记」。放在 Fragment 字段上，Activity 重建（VM 存活）后就会和列表脱节。
+ */
+internal class RecmdBookmarkFilterViewModel : ViewModel() {
+    var applied: Boolean? = null
+}
 
 /**
  * 维持首页 R-18 推荐缓冲池及其后台注水协程生命周期的 ViewModel。
