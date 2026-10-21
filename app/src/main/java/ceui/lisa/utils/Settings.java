@@ -211,6 +211,10 @@ public class Settings {
     //入口在设置页「过滤已收藏」弹窗与搜索筛选「其他条件」，过滤在搜索数据源建条目时现读。
     private boolean searchFilterBookmarked = false;
 
+    //首页推荐过滤已收藏的作品，默认不过滤。只作用于首页推荐 tab（插画），推荐漫画页不受影响。
+    //入口在设置页「过滤已收藏」弹窗；开关变化时由 RecmdIllustFeedFragment 就地上下屏，不重新拉数据。
+    private boolean filterRecmdBookmarked = false;
+
     //屏蔽，不显示AI创作的作品，默认不屏蔽
     private boolean deleteAIIllust = false;
 
@@ -787,6 +791,14 @@ public class Settings {
 
     public void setSearchFilterBookmarked(boolean searchFilterBookmarked) {
         this.searchFilterBookmarked = searchFilterBookmarked;
+    }
+
+    public boolean isFilterRecmdBookmarked() {
+        return filterRecmdBookmarked;
+    }
+
+    public void setFilterRecmdBookmarked(boolean filterRecmdBookmarked) {
+        this.filterRecmdBookmarked = filterRecmdBookmarked;
     }
 
     public boolean isDeleteAIIllust() {

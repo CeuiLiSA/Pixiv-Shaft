@@ -33,15 +33,23 @@ fun illustLikeChangePayload(old: IllustFeedItem, new: IllustFeedItem): Any? {
  */
 class IllustFeedItem(
     val illust: Illust,
+    /**
+     * 被「首页推荐过滤已收藏」临时隐藏：条目仍留在列表数据里（身份、位置都不变），
+     * 只是不参与渲染，关掉开关时原地回来。语义见 [FeedItem.hidden]。
+     */
+    override val hidden: Boolean = false,
 ) : FeedItem {
 
     override val feedKey: Any get() = illust.id
 
     override fun equals(other: Any?): Boolean {
-        return other is IllustFeedItem && other.illust == illust
+        return other is IllustFeedItem && other.illust == illust && other.hidden == hidden
     }
 
-    override fun hashCode(): Int = illust.hashCode()
+    override fun hashCode(): Int = 31 * illust.hashCode() + hidden.hashCode()
+
+    fun withHidden(hidden: Boolean): IllustFeedItem =
+        if (this.hidden == hidden) this else IllustFeedItem(illust, hidden)
 
     /**
      * 收藏状态变更：[illust] 走 copy 让相等性变化、驱动 DiffUtil 原地重绑爱心；同时把新值写回
@@ -59,7 +67,8 @@ class IllustFeedItem(
         val next = illust.withBookmarked(liked)
         // 只同步作品本身：关注态没变，不必连 user 一起 merge
         ObjectPool.update(next)
-        return IllustFeedItem(next)
+        // 隐藏标记跟着走：收藏一件作品不该让它当场被过滤掉（过滤只在开关变化 / 重新拉数据时重算）
+        return IllustFeedItem(next, hidden)
     }
 
     companion object {

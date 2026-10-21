@@ -166,6 +166,7 @@
     <string name="filter_bookmarked_rank">랭킹에서 제외</string>
     <string name="filter_bookmarked_following">팔로우 피드에서 제외</string>
     <string name="filter_bookmarked_search">검색 결과에서 제외</string>
+    <string name="filter_bookmarked_recmd">홈 추천에서 제외</string>
     <string name="filter_bookmarked_none">필터 안 함</string>
     <string name="filter_bookmarked_summary">%1$d개 사용 중</string>
     <string name="filter_bookmarked_dialog_hint">북마크한 작품을 숨길 화면 선택</string>

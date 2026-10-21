@@ -175,6 +175,7 @@
     <string name="filter_bookmarked_rank">对排行榜过滤</string>
     <string name="filter_bookmarked_following">对动态页过滤</string>
     <string name="filter_bookmarked_search">对搜索页过滤</string>
+    <string name="filter_bookmarked_recmd">对首页推荐过滤</string>
     <string name="filter_bookmarked_none">不过滤</string>
     <string name="filter_bookmarked_summary">已启用 %1$d 项</string>
     <string name="filter_bookmarked_dialog_hint">选择在哪些页面隐藏已收藏的作品</string>

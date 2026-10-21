@@ -164,6 +164,7 @@
     <string name="filter_bookmarked_rank">Terapkan di peringkat</string>
     <string name="filter_bookmarked_following">Terapkan di feed</string>
     <string name="filter_bookmarked_search">Terapkan di pencarian</string>
+    <string name="filter_bookmarked_recmd">Terapkan di rekomendasi beranda</string>
     <string name="filter_bookmarked_none">Tidak disaring</string>
     <string name="filter_bookmarked_summary">%1$d diaktifkan</string>
     <string name="filter_bookmarked_dialog_hint">Pilih halaman mana yang menyembunyikan karya yang sudah di-bookmark</string>
