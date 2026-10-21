@@ -113,7 +113,10 @@ class BottomBarAutoHide(private val bar: View) {
     private fun onScrollDelta(dy: Int) {
         if (!enabled || dy == 0) return
         val behavior = behavior ?: return
-        if (!bar.isLaidOut) return
+        // 侧栏模式下底栏是 GONE：没东西可收，而且 CoordinatorLayout 不排版 GONE 的子 view——
+        // setEnabled 新挂上的 behavior 一直没走过 onLayoutChild，这时 slideOut 会空指针。
+        // isLaidOut 拦不住：底栏在手机排版时排过一次就一直是 true。
+        if (bar.visibility == View.GONE || !bar.isLaidOut) return
         if ((accumulated > 0) != (dy > 0)) {
             accumulated = 0
         }

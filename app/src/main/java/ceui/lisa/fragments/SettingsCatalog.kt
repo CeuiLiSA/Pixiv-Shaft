@@ -102,6 +102,8 @@ object SettingsCatalog {
         add(Entry(APPEARANCE, "predictive_back_rela", R.string.setting_predictive_back, R.string.setting_predictive_back_desc, keywords = "预测返回 返回手势 侧滑 边缘返回 边缘侧滑 花屏 rom 降级 传统返回 逐页 逐项 按页 按页面 predictive back gesture"))
         add(Entry(APPEARANCE, "navigation_init_position_rela", R.string.string_426, keywords = "启动页 默认页 初始页 首页 导航 start page"))
         add(Entry(APPEARANCE, "bottom_bar_order_rela", R.string.string_342, keywords = "底部导航 tab 顺序 排序 页签 bottom bar"))
+        add(Entry(APPEARANCE, "bottom_bar_scroll_hide_rela", R.string.bottom_bar_scroll_hide, R.string.bottom_bar_scroll_hide_desc, keywords = "底栏 底部导航 导航栏 收起 隐藏 自动隐藏 固定 常显 滚动 滑动 bottom bar navigation hide on scroll"))
+        add(Entry(APPEARANCE, "top_bar_scroll_hide_rela", R.string.top_bar_scroll_hide, R.string.top_bar_scroll_hide_desc, keywords = "顶栏 标题栏 工具栏 推荐页 收起 隐藏 自动隐藏 固定 常显 滚动 滑动 top bar toolbar hide on scroll"))
         add(Entry(APPEARANCE, "recommend_page_order_rela", R.string.recommend_page_content, R.string.recommend_page_content_desc, keywords = "推荐作品 热门标签 推荐页 顺序 排序 插画 小说 recommend hot tags tab order"))
         add(Entry(APPEARANCE, "main_view_r18_rela", R.string.string_359, keywords = "r18 r页 主页 首页 涩图"))
         // 别名按整串子串匹配（同上），「平板双栏」「左右分屏」这类连写说法各铺一遍
