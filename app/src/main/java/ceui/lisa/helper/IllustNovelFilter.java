@@ -114,7 +114,12 @@ public class IllustNovelFilter {
      * 其余调用方传全局 {@link Shaft.sSettings#isDeleteAIIllust()}。
      */
     private static boolean isAiBlocked(boolean excludeAi, Illust illust) {
-        return excludeAi && isAiWork(illust) && !isAiExemptAuthor(illust.getUser());
+        return isAiBlocked(excludeAi, illust, isAiWork(illust));
+    }
+
+    /** 同上，但「这条算不算 AI」由调用方给——一次绑定里多处要问时，标签规则只该匹配一遍。 */
+    private static boolean isAiBlocked(boolean excludeAi, Illust illust, boolean aiWork) {
+        return excludeAi && aiWork && !isAiExemptAuthor(illust.getUser());
     }
 
     private static boolean isAiBlocked(boolean excludeAi, Novel novel) {
@@ -131,6 +136,11 @@ public class IllustNovelFilter {
      * <p>标签判定要读设置、逐条规范化比较，比读一个 int 贵得多，所以**调用点必须保持惰性**：
      * 先判「屏蔽 AI 是否开着」「是否仅看 AI」，再进来问；别在循环里无条件预计算。
      * {@link #isAiBlocked(boolean, Illust)} 已经把 {@code excludeAi} 放在最前面短路。
+     *
+     * <p>唯一例外是**展示型**调用点：AI 角标、详情页那张 AI 卡不看屏蔽开关，本来就要对每条作品
+     * 问一次（见 {@code ceui.pixiv.ui.common.IllustStaggerRenderer#buildBadges}）。这类调用点
+     * 不适用上面的惰性要求，但同一次绑定里只该问一遍——打码判定与角标共用一份结果，见
+     * {@link #shouldBlurAi(Illust, boolean, boolean)}。
      */
     public static boolean isAiWork(Illust illust) {
         return isAiWork(illust.isCreatedByAI(), illust.getTagNames());
@@ -149,10 +159,20 @@ public class IllustNovelFilter {
      * @param tagNames   作品标签名；null / 空一律不算
      */
     public static boolean isAiWork(boolean officialAi, List<String> tagNames) {
-        return officialAi
-                || AiTagRules.hasAiTag(tagNames,
-                        Shaft.sSettings.getAiTagDisabledTags(),
-                        Shaft.sSettings.getAiTagUserTags());
+        if (officialAi) {
+            return true;
+        }
+        if (tagNames == null || tagNames.isEmpty()) {
+            return false;
+        }
+        Set<String> disabled = Shaft.sSettings.getAiTagDisabledTags();
+        Set<String> userTags = Shaft.sSettings.getAiTagUserTags();
+        // 规则全关（内置全停用、也没有启用的自定义标签）时标签匹配没有意义：直接早退，别为每条
+        // 作品逐条规范化比较。角标、打码、屏蔽、仅看 AI 最后都走到这里。
+        if (!AiTagRules.hasEnabledRule(disabled, userTags)) {
+            return false;
+        }
+        return AiTagRules.hasAiTag(tagNames, disabled, userTags);
     }
 
     /** 屏蔽 AI 强度 = 完全不显示时，是否应该把这条插画从列表里剔除（豁免作者除外）。 */
@@ -178,6 +198,20 @@ public class IllustNovelFilter {
     /** {@link #shouldHideAi(Illust, boolean)} 的「模糊粒子化」版。 */
     public static boolean shouldBlurAi(Illust illust, boolean excludeAi) {
         return isAiBlocked(excludeAi, illust)
+                && Shaft.sSettings.getAiBlockStrength() == 1;
+    }
+
+    /**
+     * 「AI 判定已经算过」的版本：{@code aiWork} 传 {@link #isAiWork(Illust)} 的结果。
+     *
+     * <p>给一次绑定里既判打码、又要画 AI 角标的渲染器用（见
+     * {@code ceui.pixiv.ui.common.IllustStaggerRenderer}）：标签匹配要逐条规范化比较，是这条
+     * 链路上最贵的一步，同一张卡在一次 bind 里问两遍纯属浪费。语义与
+     * {@link #shouldBlurAi(Illust, boolean)} 完全一致——豁免作者与强度档位照旧现读，只有
+     * 「算不算 AI」这一项由调用方给。
+     */
+    public static boolean shouldBlurAi(Illust illust, boolean excludeAi, boolean aiWork) {
+        return isAiBlocked(excludeAi, illust, aiWork)
                 && Shaft.sSettings.getAiBlockStrength() == 1;
     }
 

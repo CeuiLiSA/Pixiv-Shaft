@@ -70,6 +70,25 @@ class AiTagRulesTest {
     }
 
     @Test
+    fun `no enabled rule short-circuits`() {
+        val allBuiltinDisabled = AiTagRules.builtinTags().toSet()
+        // 内置全停用、又没有自定义标签 → 一条规则都不在生效
+        assertFalse(AiTagRules.hasEnabledRule(allBuiltinDisabled, noCustom))
+        // 停用集合里混进非内置词，不该被当成「还有规则」
+        assertFalse(AiTagRules.hasEnabledRule(allBuiltinDisabled + "some-custom-tag", noCustom))
+        // 自定义标签启用着 → 还有规则
+        assertTrue(AiTagRules.hasEnabledRule(allBuiltinDisabled, setOf("ai生成作品集")))
+        // 自定义也被停用 → 回到全关
+        assertFalse(
+            AiTagRules.hasEnabledRule(allBuiltinDisabled + "ai生成作品集", setOf("ai生成作品集")),
+        )
+        // 默认状态与「只停用几条」都不该早退
+        assertTrue(AiTagRules.hasEnabledRule(noDisabled, noCustom))
+        assertTrue(AiTagRules.hasEnabledRule(setOf("AI生成"), noCustom))
+        assertTrue(AiTagRules.hasEnabledRule(null, null))
+    }
+
+    @Test
     fun `builtin list is clean`() {
         val builtins = AiTagRules.builtinTags()
         assertEquals(24, builtins.size)
