@@ -232,15 +232,16 @@
                 </RelativeLayout>
 
                 <!-- 标签辅助识别 AI（issue #1252 需求 1）：作品带任一命中标签就按 AI 生成处理，
-                     与官方 ai_type 同等参与屏蔽 / 仅看 AI / 打码。和上面两行一样，只在
-                     「不显示AI生成的作品」打开时显示。
+                     与官方 ai_type 同等参与屏蔽 / 仅看 AI / 打码。
+                     这一行**不跟「不显示AI生成的作品」一起隐藏**：它定的是「什么算 AI」，而 AI
+                     判定在开关关着时照样在跑（列表 AI 角标、详情页 AI 卡都要问它），所以任何时候
+                     都得能改。它永远夹在中间，wit_row_mid 在开关开 / 关两种排布下都成立。
                      位置在「豁免的作者列表」之上：它改的是「什么算 AI」这个前提，豁免改的是
                      「谁可以例外」，判定在前、例外在后。 -->
                 <RelativeLayout
                     android:id="@+id/ai_tag_rules_rela"
                     style="@style/M3SetRow"
-                    android:background="@drawable/wit_row_mid"
-                    android:visibility="gone">
+                    android:background="@drawable/wit_row_mid">
 
                     <LinearLayout
                         style="@style/M3SetTexts"
