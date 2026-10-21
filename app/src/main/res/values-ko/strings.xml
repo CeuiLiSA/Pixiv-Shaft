@@ -1872,7 +1872,8 @@
     <string name="bulk_fetch_dialog_btn_cancel">취소</string>
     <string name="bulk_fetch_dialog_btn_open_manager">다운로드 관리 →</string>
     <string name="bulk_fetch_dialog_btn_close">닫기</string>
-    <string name="merge_novel_dialog_close_hint">다운로드는 백그라운드에서 계속됩니다. 이 페이지를 나가거나 이 창을 닫아도 중단되지 않습니다. 파일은 「소설 시리즈 · 병합 다운로드」 이름 규칙을 따라 저장됩니다(기본: 다운로드/Shaft/Novels/, 다운로드 설정에서 변경 가능). 중간에 멈추려면 「취소」를 누르세요(받은 챕터는 유지됩니다).</string>
+    <string name="merge_novel_dialog_close_hint">다운로드는 백그라운드에서 계속됩니다. 이 페이지를 나가거나 이 창을 닫아도 중단되지 않습니다. 파일은 「소설 시리즈 · 병합 다운로드」 이름 규칙을 따라 저장됩니다(기본: 다운로드/Shaft/Novels/, 다운로드 설정에서 변경 가능). 중간에 멈추려면 「취소」를 누르세요(받은 챕터는 유지됩니다) — 창을 닫으면 더 이상 멈출 수 없습니다.</string>
+    <string name="merge_novel_dialog_btn_background">백그라운드에서 계속</string>
     <string name="merge_novel_dialog_canceled">^C  user canceled — 이미 가져온 챕터는 폐기되며, 파일은 저장되지 않습니다.</string>
     <string name="merge_novel_dialog_stop_requested">&gt; user stop — 잘린 버전을 작성 중, 잠시만 기다려주세요…</string>
     <string name="merge_novel_dialog_done_title">✓ 합본 완료</string>

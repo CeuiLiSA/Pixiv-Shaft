@@ -331,7 +331,11 @@ class NovelSeriesFragment :
             failedMessageRes = R.string.merge_novel_dialog_failed_message,
             failedPartialRes = R.string.merge_novel_dialog_failed_partial,
             cancelMode = FetchProgressDialog.CancelMode.COOPERATIVE,
-            keepOpenUntilDone = true,
+            // 任务在 NovelDownloadManager 的进程级会话里跑，关窗不会丢单。以前这里锁成
+            // true 是因为「窗口一关 = 下载取消」（issue #919 那会儿），现在那条前提没了：
+            // 返回键 / 点外部 / 「后台继续」都能收起窗口，只有「取消」才真的停。
+            keepOpenUntilDone = false,
+            dismissibleWhileRunning = true,
             onCancelRequested = { session.requestStop() },
         )
         FetchProgressDialog.show(requireActivity().supportFragmentManager, session, config)

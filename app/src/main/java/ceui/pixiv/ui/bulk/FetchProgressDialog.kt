@@ -151,7 +151,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
                     freezeTimer()
                     appendLine(getString(config.canceledLineRes))
                     cancelBtn.visibility = View.GONE
-                    closeBtn.visibility = View.VISIBLE
+                    showCloseButton(terminal = true)
                     isCancelable = true // 终态了，back / 点外部也能收起
                     flushLog()
                 }
@@ -166,6 +166,12 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
             }
         }
         closeBtn.setOnClickListener { dismissAllowingStateLoss() }
+        // 会话模式下任务在管理器里跑，收起窗口只是"看不见"，不是"停掉"：
+        // 运行中就给出显式出口，别让用户只能靠返回键（而且以前返回键还被 keepOpenUntilDone 锁着）。
+        if (config.dismissibleWhileRunning) {
+            closeBtn.text = getString(config.backgroundLabelRes)
+            closeBtn.visibility = View.VISIBLE
+        }
         openManagerBtn.setOnClickListener {
             val ctx = requireContext()
             val intent = Intent(ctx, TemplateActivity::class.java)
@@ -206,6 +212,17 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
             // 终态最后刷一次，确保显示的就是冻结值
             if (viewAlive) refreshStatusLine()
         }
+    }
+
+    /**
+     * 露出关闭按钮。终态时把「后台继续」换回「关闭」——任务已经结束，
+     * 这时按钮的语义就只是收窗口，不该再写着"继续"。
+     */
+    private fun showCloseButton(terminal: Boolean) {
+        if (terminal && config.dismissibleWhileRunning) {
+            closeBtn.text = getString(R.string.bulk_fetch_dialog_btn_close)
+        }
+        closeBtn.visibility = View.VISIBLE
     }
 
     private fun handleEvent(e: FetchEvent) {
@@ -318,7 +335,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
                     appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                     cancelBtn.visibility = View.GONE
                     if (config.showOpenManager) openManagerBtn.visibility = View.VISIBLE
-                    closeBtn.visibility = View.VISIBLE
+                    showCloseButton(terminal = true)
                     isCancelable = true // 终态了，back / 点外部也能收起
                     flushLog()
                 }
@@ -340,7 +357,7 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
                     appendLine("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
                     cancelBtn.visibility = View.GONE
                     if (config.showOpenManager && totalSoFar > 0) openManagerBtn.visibility = View.VISIBLE
-                    closeBtn.visibility = View.VISIBLE
+                    showCloseButton(terminal = true)
                     isCancelable = true // 终态了，back / 点外部也能收起
                     flushLog()
                 }
@@ -502,6 +519,14 @@ class FetchProgressDialog : DialogFragment(R.layout.dialog_fetch_progress) {
          * batch illust 已入队，关掉安全。
          */
         val keepOpenUntilDone: Boolean = false,
+        /**
+         * true = 任务跑在进程级会话里，收起窗口不影响它，所以**运行中就**露出一个
+         * 「后台继续」按钮（默认的 closeBtn 只在终态出现）。小说合并下载用它；
+         * 插画批量虽然也入的是持久化队列，但它的窗口本来就可关，不需要这个按钮。
+         */
+        val dismissibleWhileRunning: Boolean = false,
+        /** 运行中那个收起按钮的文案。 */
+        @StringRes val backgroundLabelRes: Int = R.string.merge_novel_dialog_btn_background,
         /** cancel 按钮按下时无论 cancelMode 都会触发的钩子 */
         val onCancelRequested: () -> Unit = {},
     )

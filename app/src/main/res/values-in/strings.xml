@@ -1921,7 +1921,8 @@
     <string name="bulk_fetch_dialog_btn_cancel">Batal</string>
     <string name="bulk_fetch_dialog_btn_open_manager">Ke pengelola unduhan →</string>
     <string name="bulk_fetch_dialog_btn_close">Tutup</string>
-    <string name="merge_novel_dialog_close_hint">Unduhan berjalan di latar belakang — keluar dari halaman ini atau menutup jendela tidak akan menghentikannya. File mengikuti templat penamaan "Seri novel · Unduh gabungan" (bawaan: Download/Shaft/Novels/; bisa diubah di pengaturan unduhan). Untuk berhenti di tengah jalan, tekan «Batal» (bab yang sudah diambil tetap disimpan)</string>
+    <string name="merge_novel_dialog_close_hint">Unduhan berjalan di latar belakang — keluar dari halaman ini atau menutup jendela tidak akan menghentikannya. File mengikuti templat penamaan "Seri novel · Unduh gabungan" (bawaan: Download/Shaft/Novels/; bisa diubah di pengaturan unduhan). Untuk berhenti di tengah jalan, tekan «Batal» (bab yang sudah diambil tetap disimpan) — setelah jendela ditutup tidak bisa dihentikan lagi.</string>
+    <string name="merge_novel_dialog_btn_background">Lanjutkan di latar belakang</string>
     <string name="merge_novel_dialog_canceled">^C  user canceled — bab yang sudah diambil dibuang, file tidak ditulis</string>
     <string name="merge_novel_dialog_stop_requested">&gt; user stop — menulis versi terpotong, tunggu sebentar…</string>
     <string name="merge_novel_dialog_done_title">✓ Kumpulan telah ditulis</string>
