@@ -298,6 +298,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     public boolean onLongClick(View v) {
                         boolean filterEnable = Shaft.sSettings.isR18FilterTempEnable();
                         Shaft.sSettings.setR18FilterTempEnable(!filterEnable);
+                        // 抽屉此刻是开着的，底下的列表不会经过 onResume：显式通知它们按新设置重算显隐
+                        LocalBroadcastManager.getInstance(MainActivity.this)
+                                .sendBroadcast(new Intent(Params.R18_FILTER_CHANGED));
                         Common.showToast(filterEnable ? "ԅ(♡﹃♡ԅ)" : "X﹏X");
                         return true;
                     }

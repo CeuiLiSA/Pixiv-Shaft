@@ -45,7 +45,6 @@ import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustMuteStore
 import ceui.pixiv.ui.common.JustifiedItemDecoration
 import ceui.pixiv.ui.common.JustifiedLayoutManager
-import ceui.pixiv.ui.common.scrollToPositionWithOffset
 import ceui.pixiv.ui.common.showCardMenu
 import ceui.pixiv.ui.common.staggerIllustRenderer
 import ceui.pixiv.ui.common.IllustFeedItem
@@ -108,12 +107,6 @@ open class RecmdIllustFeedFragment(
 
     /** 「过滤已收藏」最近一次应用到列表上的开关值，见 [RecmdBookmarkFilterViewModel]。 */
     private val bookmarkFilterState: RecmdBookmarkFilterViewModel by viewModels()
-
-    /** 上 / 下屏前记下的滚动锚点，等这次提交落地后按它把位置接回来（见 [onListCommitted]）。 */
-    private var pendingBookmarkAnchor: BookmarkScrollAnchor? = null
-
-    /** [onListReady] 给的列表引用；视图销毁后置空，锚点捕获只认活着的列表。 */
-    private var listViewRef: RecyclerView? = null
 
     override val feedViewModel by feedViewModels {
         // 零捕获约定（见 feedViewModels 文档）：source/mapper 归 VM 长期持有，
@@ -300,9 +293,6 @@ open class RecmdIllustFeedFragment(
     }
 
     override fun onDestroyView() {
-        listViewRef = null
-        // 视图没了，这次提交也不会再来：锚点留着只会在重建后的第一次提交上莫名滚一下
-        pendingBookmarkAnchor = null
         LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(relatedReceiver)
         super.onDestroyView()
     }
@@ -340,97 +330,18 @@ open class RecmdIllustFeedFragment(
         if (applied == target) return
         bookmarkFilterState.applied = target
         if (applied == null) return
-        // 锚点取「这次变更后仍然可见」的条目：打开过滤时若锚到正好是已收藏的那张，藏起来后就没得对了
-        val anchor = captureScrollAnchor { item -> !target || !isBookmarked(item) }
-        val changed = applyBookmarkFilter(target)
-        pendingBookmarkAnchor = when {
-            !changed -> null
-            // 放回来：内容会整体下移，按锚点把位置按住
-            !target -> anchor
-            // 藏起来：锚点还压在视口顶部（offset <= 0）说明被藏的都在这张卡上方，按住它位置不动；
-            // 否则被藏的正是顶部那张，让下面的内容自然顶上来，硬按回原位只会在顶部留一块空白
-            anchor != null && anchor.offset <= 0 -> anchor
-            else -> null
+        // 上下屏和位置接回都交给框架：它按「改完之后仍然可见、且最靠上」的那张卡当锚点，
+        // 放回来时按住位置，藏起来时只在锚点还压在顶部的情况下按住。
+        // 收藏一件作品不经过这里（走 withBookmarked），所以不会当场从屏幕上消失——
+        // 这个开关只在变化时重算，与重新拉数据的时机一致。
+        applyItemVisibility { item ->
+            val illustItem = item as? IllustFeedItem ?: return@applyItemVisibility item
+            val wantHidden = target && illustItem.illust.isBookmarked
+            if (illustItem.hidden == wantHidden) item else illustItem.withHidden(wantHidden)
         }
-    }
-
-    private fun isBookmarked(item: FeedItem): Boolean =
-        (item as? IllustFeedItem)?.illust?.isBookmarked == true
-
-    /**
-     * 按 [hide] 重刷每条插画的隐藏标记，返回是否真的改了列表。
-     *
-     * 只在开关变化时调用：收藏一件作品走 [IllustFeedItem.withBookmarked]，不经过这里，
-     * 所以「刚收藏的作品立刻从屏幕上消失」不会发生。
-     *
-     * 这里在 mutateItems 的 edit 里攒改动并顺手记一个 changed 标记，依赖的是它的既有前提：
-     * VM 的状态变更全在主线程串行发生，MutableStateFlow.update 不会重放 lambda。
-     */
-    private fun applyBookmarkFilter(hide: Boolean): Boolean {
-        var changed = false
-        feedViewModel.mutateItems { items ->
-            var mutated: ArrayList<FeedItem>? = null
-            items.forEachIndexed { index, item ->
-                if (item !is IllustFeedItem) return@forEachIndexed
-                val wantHidden = hide && item.illust.isBookmarked
-                if (item.hidden == wantHidden) return@forEachIndexed
-                (mutated ?: ArrayList(items).also { mutated = it })[index] =
-                    item.withHidden(wantHidden)
-                changed = true
-            }
-            mutated ?: items
-        }
-        return changed
-    }
-
-    /**
-     * 记下当前最靠上、且 [survives] 的那张卡：作品 id + 卡片顶部相对列表 paddingTop 的高度。
-     * 列表还没排版（没有 child）时返回 null，调用方据此跳过位置还原。
-     */
-    private fun captureScrollAnchor(survives: (FeedItem) -> Boolean): BookmarkScrollAnchor? {
-        val list = listViewRef ?: return null
-        val items = feedAdapter?.currentList ?: return null
-        var bestTop = Int.MAX_VALUE
-        var bestId: Long? = null
-        for (i in 0 until list.childCount) {
-            val child = list.getChildAt(i) ?: continue
-            val position = list.getChildAdapterPosition(child)
-            if (position == RecyclerView.NO_POSITION) continue
-            val item = items.getOrNull(position) as? IllustFeedItem ?: continue
-            if (!survives(item) || child.top >= bestTop) continue
-            bestTop = child.top
-            bestId = item.illust.id
-        }
-        val id = bestId ?: return null
-        return BookmarkScrollAnchor(
-            illustId = id,
-            offset = bestTop - list.paddingTop,
-            generation = feedViewModel.uiState.value.refreshGeneration,
-        )
-    }
-
-    /**
-     * 摘掉 / 插回条目后把滚动位置接回去：DiffUtil 只保证「可见卡片的内容不变」，上方条目增删
-     * 会让整段内容上移 / 下移，所以按上屏前记下的锚点重新对齐一次（偏移口径见
-     * [ceui.pixiv.ui.common.scrollToPositionWithOffset] 扩展，齐行 / 瀑布流都认）。
-     */
-    override fun onListCommitted(state: FeedUiState) {
-        super.onListCommitted(state)
-        val anchor = pendingBookmarkAnchor ?: return
-        pendingBookmarkAnchor = null
-        // 换代了就不再按旧锚点跳：那张卡属于上一代，位置没有参考意义
-        if (state.refreshGeneration != anchor.generation) return
-        val list = listViewRef ?: return
-        val adapter = feedAdapter ?: return
-        val index = adapter.currentList.indexOfFirst {
-            (it as? IllustFeedItem)?.illust?.id == anchor.illustId
-        }
-        if (index < 0) return
-        list.scrollToPositionWithOffset(index, anchor.offset)
     }
 
     override fun onListReady(listView: RecyclerView) {
-        listViewRef = listView
         // 首位是整行榜单条，贴边不留白；齐行布局走自己的分行间距
         val manager = listView.layoutManager
         listView.addItemDecoration(
@@ -814,12 +725,6 @@ fun interleaveFeedItems(
     return result
 }
 
-/** 上下屏前记下的滚动锚点：作品 id + 卡片顶部相对列表 paddingTop 的高度 + 当时的刷新代号。 */
-private data class BookmarkScrollAnchor(
-    val illustId: Long,
-    val offset: Int,
-    val generation: Int,
-)
 
 /**
  * 「过滤已收藏」最近一次应用到列表上的开关值；null = 还没同步过（首次只记录、不动列表）。

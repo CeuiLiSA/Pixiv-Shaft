@@ -267,18 +267,30 @@ public class IllustNovelFilter {
      * 不该被「R-18 过滤」误杀。
      */
     public static boolean judgeR18Filter(Illust illustsBean) {
-        if (!Shaft.sSettings.isR18FilterTempEnable()) {
-            return false;
-        }
-        return isR18Rated(illustsBean) || hitsR18Tag(illustsBean.getTagString());
+        return Shaft.sSettings.isR18FilterTempEnable() && hitsR18Filter(illustsBean);
     }
 
     /** 小说版，口径同上：{@code x_restrict} 或字面 R-18 标签。 */
     public static boolean judgeR18Filter(Novel illustsBean) {
-        if (!Shaft.sSettings.isR18FilterTempEnable()) {
-            return false;
-        }
-        return isR18Rated(illustsBean) || hitsR18Tag(illustsBean.getTagString());
+        return Shaft.sSettings.isR18FilterTempEnable() && hitsR18Filter(illustsBean);
+    }
+
+    /**
+     * 「这条作品算不算 R-18」——不看开关，只回答事实。
+     *
+     * <p>给需要把 R-18 从「丢掉」改成「按开关临时隐藏」的列表用：那边要能在开关翻转后按条目自身的
+     * 字段重新算一次显隐，而 {@link #judgeR18Filter(Illust)} 把开关一起揉在返回值里，关着的时候
+     * 拿不到「它本来是 R-18」这个事实。
+     *
+     * <p>口径与 {@link #judgeR18Filter(Illust)} 完全一致（同一个方法体，不许分叉）。
+     */
+    public static boolean hitsR18Filter(Illust illust) {
+        return isR18Rated(illust) || hitsR18Tag(illust == null ? null : illust.getTagString());
+    }
+
+    /** 小说版 {@link #hitsR18Filter(Illust)}。 */
+    public static boolean hitsR18Filter(Novel novel) {
+        return isR18Rated(novel) || hitsR18Tag(novel == null ? null : novel.getTagString());
     }
 
     /** 分级字段判定：{@code x_restrict} 1/2 都算 R18（同 {@link Illust#isR18File()}）。 */
