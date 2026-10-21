@@ -46,4 +46,12 @@ class FeedUiStateVisibleItemsTest {
         val state = FeedUiState(items = listOf(Row(1, hidden = true), Row(2)), hasLoadedOnce = true)
         assertFalse(state.showEmptyState)
     }
+
+    @Test
+    fun `hasVisibleItems answers emptiness without building the filtered list`() {
+        // 分页链路每翻一页问一次，这里只要是非答案
+        assertTrue(FeedUiState(items = listOf(Row(1), Row(2, hidden = true))).hasVisibleItems)
+        assertFalse(FeedUiState(items = listOf(Row(1, hidden = true))).hasVisibleItems)
+        assertFalse(FeedUiState().hasVisibleItems)
+    }
 }
