@@ -6,11 +6,13 @@ import ceui.lisa.BuildConfig
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Params
+import ceui.lisa.models.ObjectSpec
 import ceui.lisa.viewmodel.AppLevelState
 import ceui.pixiv.services.appServices
 import ceui.pixiv.api.model.AccountResponse
 import ceui.loxia.Novel
 import ceui.pixiv.cache.ObjectPool
+import ceui.pixiv.cache.withoutViewerState
 import ceui.pixiv.actionqueue.ActionRequest
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.task.NovelAutoDownload
@@ -470,8 +472,12 @@ object PixivActions {
                 )
             )
         } else if (pooled == null && illust != null) {
-            ObjectPool.update(illust)
+            // 池里没有这条时拿调用方的 bean 兜底：收藏态是用户刚点的（权威），但嵌在里面的
+            // 作者关注态还是列表快照的（自建源 / 借号来源可能是别人的），清成未知再进池。
+            ObjectPool.update(illust.withoutViewerState().copy(is_bookmarked = bookmark))
         }
+        // 用户自己的收藏动作 = 当前用户视角的权威值，之前「来源不可信」的标记到此为止。
+        ObjectPool.markViewerStateTrusted(illustId, ObjectSpec.Illust)
 
         broadcast(Params.LIKED_ILLUST, illustId, bookmark)
     }

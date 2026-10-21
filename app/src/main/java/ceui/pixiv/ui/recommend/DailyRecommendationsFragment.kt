@@ -25,6 +25,7 @@ import ceui.pixiv.services.appServices
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.shaftapi.ShaftHmac
 import ceui.pixiv.ui.common.IllustFeedFragment
+import ceui.pixiv.ui.common.withMirroredBookmarks
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -135,7 +136,7 @@ class DailyRecommendationsModel(application: Application) : AndroidViewModel(app
             throw CancellationException("Account changed during daily recommendations")
         }
         mutableResponse.value = result
-        FeedPage(items, nextCursor = result.next_cursor)
+        FeedPage(items.withMirroredBookmarks(), nextCursor = result.next_cursor)
     }
 }
 

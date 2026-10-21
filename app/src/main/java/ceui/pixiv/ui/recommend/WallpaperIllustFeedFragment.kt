@@ -11,6 +11,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.common.withMirroredBookmarks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -74,7 +75,7 @@ class WallpaperFeedSource(
         val items = withContext(Dispatchers.Default) {
             resp.items.mapNotNull { mapWallpaperItem(it) }
         }
-        return FeedPage(items, resp.next_url?.takeIf { it.isNotEmpty() })
+        return FeedPage(items.withMirroredBookmarks(), resp.next_url?.takeIf { it.isNotEmpty() })
     }
 
     companion object {

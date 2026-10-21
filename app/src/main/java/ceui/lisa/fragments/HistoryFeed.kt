@@ -17,7 +17,6 @@ import ceui.lisa.utils.Params
 import ceui.pixiv.api.Client
 import ceui.pixiv.shaftapi.HistoryEntry
 import ceui.pixiv.cache.ObjectPool
-import ceui.loxia.User
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedRenderer
@@ -126,18 +125,16 @@ class HistoryFeedSource(
         // updateIllust 会拿旧的 is_bookmarked=false / is_followed=false 盖掉当前会话里更新的池值
         // (mergeKeepingExisting 不把 false 当空值——用户刚在别处收藏了作品 X,打开含 X 的历史页,
         // 红心就被旧快照打回灰心)。V3 详情页要的是「池里有这条」,不是「池里是旧快照」。
-        // user 单独判:作品 miss 但作者已在池里(在别处刚关注)时,不能让陈旧关注态顺手合进去。
+        //
+        // 而且快照里的 viewer 态本来就是**浏览当时**的:进池前一律清成「未知」并标记不可信
+        // (ObjectPool.seedUntrusted),详情页再按本地收藏 / 关注镜像只升不降地补。作者条目只在
+        // 池里还没有它时才标记,别处刚关注过的权威值不会被一张历史卡降级。
         if (historyType == 0) {
             withContext(Dispatchers.Main.immediate) {
                 page.items.forEach { item ->
                     val illust = (item as? HistoryIllustFeedItem)?.illust ?: return@forEach
                     if (ObjectPool.getIllust(illust.id).value == null) {
-                        ObjectPool.update(illust)
-                    }
-                    illust.user?.let { user ->
-                        if (ObjectPool.get<User>(user.id).value == null) {
-                            ObjectPool.updateUser(user)
-                        }
+                        ObjectPool.seedUntrusted(illust)
                     }
                 }
             }
