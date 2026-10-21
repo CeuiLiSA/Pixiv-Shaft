@@ -1872,7 +1872,7 @@
     <string name="bulk_fetch_dialog_btn_cancel">Cancel</string>
     <string name="bulk_fetch_dialog_btn_open_manager">Download manager →</string>
     <string name="bulk_fetch_dialog_btn_close">Close</string>
-    <string name="merge_novel_dialog_close_hint">The download keeps running in the background — leaving this page or closing this window will not stop it. The file is written to Downloads/Novel. Tap Cancel to stop early (already-fetched chapters are kept).</string>
+    <string name="merge_novel_dialog_close_hint">The download keeps running in the background — leaving this page or closing this window will not stop it. The file follows your "Novel series · merged download" naming template (default: Downloads/Shaft/Novels/; change it in download settings). Tap Cancel to stop early (already-fetched chapters are kept).</string>
     <string name="merge_novel_dialog_canceled">^C  user canceled — already-fetched chapters discarded; no file written.</string>
     <string name="merge_novel_dialog_stop_requested">&gt; user stop — writing truncated file, wrapping up…</string>
     <string name="merge_novel_dialog_done_title">✓ Merge complete</string>

@@ -1872,7 +1872,7 @@
     <string name="bulk_fetch_dialog_btn_cancel">Отмена</string>
     <string name="bulk_fetch_dialog_btn_open_manager">Менеджер загрузок →</string>
     <string name="bulk_fetch_dialog_btn_close">Закрыть</string>
-    <string name="merge_novel_dialog_close_hint">Загрузка продолжается в фоне — уход со страницы или закрытие окна её не прервёт. Файл сохраняется в Downloads/Novel. Нажмите «Отмена», чтобы остановить раньше (уже полученные главы сохранятся).</string>
+    <string name="merge_novel_dialog_close_hint">Загрузка продолжается в фоне — уход со страницы или закрытие окна её не прервёт. Файл сохраняется по шаблону имени «Серия новелл · объединённая загрузка» (по умолчанию: Downloads/Shaft/Novels/; меняется в настройках загрузки). Нажмите «Отмена», чтобы остановить раньше (уже полученные главы сохранятся).</string>
     <string name="merge_novel_dialog_canceled">^C  отменено пользователем — уже полученные главы отброшены, файл не записан.</string>
     <string name="merge_novel_dialog_stop_requested">&gt; остановлено пользователем — записываем усечённый файл и завершаем…</string>
     <string name="merge_novel_dialog_done_title">✓ Объединение завершено</string>
