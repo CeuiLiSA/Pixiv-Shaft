@@ -542,6 +542,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
         bottomBarAutoHide = new BottomBarAutoHide(baseBind.navigationView);
         bottomBarAutoHide.install(this);
+        // 「底栏跟随滚动收起」关掉时直接把 behavior 摘掉（固定常显）。设置页改完回首页
+        // onResume 会再同步一次，所以不用重启。
+        bottomBarAutoHide.setEnabled(Shaft.sSettings.isBottomBarHideOnScroll());
     }
 
     @SuppressLint("RestrictedApi")
@@ -1304,6 +1307,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         buildDrawerMenu();
         // 「平板适配排版」可能刚在设置里切过，按当前开关重选底栏 / 侧栏(没变时是 no-op)
         applyNavigationMode(getResources().getConfiguration());
+        // 「底栏跟随滚动收起」同理：开关一改就重新挂 / 摘 behavior(没变时是 no-op)
+        if (bottomBarAutoHide != null) {
+            bottomBarAutoHide.setEnabled(Shaft.sSettings.isBottomBarHideOnScroll());
+        }
         if (SessionManager.INSTANCE.isLoggedIn()) {
             String referralCode = ceui.pixiv.ui.referral.ReferralPendingInvite.consume();
             if (referralCode != null) {

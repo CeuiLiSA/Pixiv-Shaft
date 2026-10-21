@@ -133,6 +133,10 @@
     <string name="v3_widget_hide_refresh_button">위젯 새로고침 버튼 숨기기</string>
     <string name="v3_widget_hide_refresh_button_desc">숨기면 새로고침 간격에 따라 자동으로만 바뀝니다</string>
     <string name="tablet_layout">태블릿 레이아웃</string>
+    <string name="bottom_bar_scroll_hide">스크롤 시 하단 바 숨기기</string>
+    <string name="bottom_bar_scroll_hide_desc">아래로 스크롤하면 하단 바를 숨기고 위로 스크롤하면 다시 표시합니다. 끄면 항상 고정되어 표시됩니다</string>
+    <string name="top_bar_scroll_hide">스크롤 시 상단 바 숨기기</string>
+    <string name="top_bar_scroll_hide_desc">추천 페이지 상단의 제목 표시줄을 아래로 스크롤하면 숨기고 위로 스크롤하면 다시 표시합니다. 끄면 항상 고정되어 표시됩니다</string>
     <string name="tablet_layout_desc">태블릿 등 큰 화면에서 사이드 내비게이션, 화면 너비에 맞춰 열이 늘어나는 피드, 좌우로 배치된 작품 상세를 사용합니다. 끄면 휴대폰과 같은 레이아웃이 됩니다. 태블릿에서만 적용</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">북마크</string>

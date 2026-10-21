@@ -142,6 +142,10 @@
     <string name="v3_widget_hide_refresh_button">隐藏小组件刷新按钮</string>
     <string name="v3_widget_hide_refresh_button_desc">隐藏后只按换图间隔自动换图</string>
     <string name="tablet_layout">平板适配排版</string>
+    <string name="bottom_bar_scroll_hide">底栏跟随滚动收起</string>
+    <string name="bottom_bar_scroll_hide_desc">向下滑动时收起底栏、上滑恢复显示；关闭后底栏固定在底部，始终可见</string>
+    <string name="top_bar_scroll_hide">顶栏跟随滚动收起</string>
+    <string name="top_bar_scroll_hide_desc">推荐页顶部的标题栏向下滑动时收起、上滑恢复显示；关闭后固定在顶部，始终可见</string>
     <string name="tablet_layout_desc">在平板等大屏设备上使用侧边导航栏、按屏幕宽度自动加列的瀑布流和左右排布的作品详情；关闭后与手机排版一致，仅平板生效</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">收藏</string>
