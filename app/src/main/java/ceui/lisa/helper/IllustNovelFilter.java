@@ -159,10 +159,20 @@ public class IllustNovelFilter {
      * @param tagNames   作品标签名；null / 空一律不算
      */
     public static boolean isAiWork(boolean officialAi, List<String> tagNames) {
-        return officialAi
-                || AiTagRules.hasAiTag(tagNames,
-                        Shaft.sSettings.getAiTagDisabledTags(),
-                        Shaft.sSettings.getAiTagUserTags());
+        if (officialAi) {
+            return true;
+        }
+        if (tagNames == null || tagNames.isEmpty()) {
+            return false;
+        }
+        Set<String> disabled = Shaft.sSettings.getAiTagDisabledTags();
+        Set<String> userTags = Shaft.sSettings.getAiTagUserTags();
+        // 规则全关（内置全停用、也没有启用的自定义标签）时标签匹配没有意义：直接早退，别为每条
+        // 作品逐条规范化比较。角标、打码、屏蔽、仅看 AI 最后都走到这里。
+        if (!AiTagRules.hasEnabledRule(disabled, userTags)) {
+            return false;
+        }
+        return AiTagRules.hasAiTag(tagNames, disabled, userTags);
     }
 
     /** 屏蔽 AI 强度 = 完全不显示时，是否应该把这条插画从列表里剔除（豁免作者除外）。 */
