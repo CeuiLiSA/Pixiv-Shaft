@@ -137,6 +137,8 @@
     <string name="bottom_bar_scroll_hide_desc">下スクロールでボトムバーを隠し、上スクロールで戻します。オフにすると常に表示されます</string>
     <string name="top_bar_scroll_hide">スクロールでトップバーを隠す</string>
     <string name="top_bar_scroll_hide_desc">おすすめページ上部のタイトルバーを下スクロールで隠し、上スクロールで戻します。オフにすると常に表示されます</string>
+    <string name="use_account_avatar_as_drawer_icon">サイドバーアイコンにアカウントアバターを表示</string>
+    <string name="use_account_avatar_as_drawer_icon_desc">ホームページの左上隅に現在ログインしているアカウントの丸型アバターを表示します（Bilibili スタイル）。未ログイン時はゲストアバターを表示</string>
     <string name="tablet_layout_desc">タブレットなどの大画面で、サイドナビゲーション、画面幅に合わせて列数が増えるフィード、左右に並ぶ作品詳細を使います。オフにするとスマートフォンと同じレイアウトになります。タブレットのみ有効</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">ブックマーク</string>

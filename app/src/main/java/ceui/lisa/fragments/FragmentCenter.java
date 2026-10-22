@@ -38,6 +38,7 @@ import ceui.lisa.view.HorizontalSpaceDecoration;
 import ceui.pixiv.ui.discovery.DiscoverViewModel;
 import ceui.pixiv.ui.prime.PrimeTagIndexItem;
 import ceui.pixiv.ui.navigation.BottomSafeInsets;
+import ceui.pixiv.ui.navigation.DrawerAvatarHelper;
 import ceui.pixiv.ui.navigation.HomeShellHost;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 
@@ -82,6 +83,7 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
             }
         });
         baseBind.searchBar.setOnClickListener(v -> openFragment(TemplateRoute.SEARCH));
+        DrawerAvatarHelper.bindImageView(baseBind.drawerButton, getViewLifecycleOwner());
         // 宽窗口下侧边导航栏自带菜单入口，标题行不再放抽屉按钮（#1087）
         HomeShellHost.observe(
                 this, railShown -> HomeShellHost.adaptHeaderRow(baseBind.drawerButton, railShown));
@@ -320,6 +322,12 @@ public class FragmentCenter extends BaseLazyFragment<FragmentNewCenterBinding> {
         if (mActivity instanceof MainActivity) {
             ((MainActivity) mActivity).handleDrawerAction(actionId);
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        DrawerAvatarHelper.applyToImageView(baseBind.drawerButton);
     }
 
     @Override

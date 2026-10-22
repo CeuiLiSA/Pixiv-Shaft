@@ -26,6 +26,7 @@ import ceui.pixiv.ui.dynamic.FollowingIllustFeedFragment;
 import ceui.pixiv.ui.dynamic.FollowingNovelFeedFragment;
 import ceui.pixiv.ui.user.RecmdUserRailFeedFragment;
 import ceui.pixiv.ui.navigation.HomeShellHost;
+import ceui.pixiv.ui.navigation.DrawerAvatarHelper;
 import ceui.pixiv.ui.navigation.TemplateRoute;
 
 /**
@@ -99,6 +100,7 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
         HomeShellHost.observe(
                 this, railShown -> HomeShellHost.adaptHeaderRow(baseBind.drawerButton, railShown));
         baseBind.seeMore.setOnClickListener(v -> openRecmdUserPage());
+        DrawerAvatarHelper.bindImageView(baseBind.drawerButton, getViewLifecycleOwner());
 
         // 筛选条:视图重建后先按页面状态回填选中态(控件自身默认是「全部」),再挂监听,
         // 免得回填动作被当成用户操作触发一次重拉
@@ -143,6 +145,12 @@ public class FragmentRight extends BaseLazyFragment<FragmentNewRightBinding> {
         // 视图每次重建都要按页面状态摆一次:首次进来是默认的「插画」,旋转/深色切换后
         // 是用户上次选的那个模式。这里只碰视图——子 fragment 要等 lazyData(见下)。
         renderModeChrome();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        DrawerAvatarHelper.applyToImageView(baseBind.drawerButton);
     }
 
     @Override

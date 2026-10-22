@@ -496,6 +496,15 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         baseBind.topBarScrollHideRela.setOnClickListener(
                 v -> baseBind.topBarScrollHide.performClick());
 
+        // 侧边栏图标显示为账号头像（B 站风格）
+        baseBind.useAccountAvatarAsDrawerIcon.setChecked(Shaft.sSettings.isUseAccountAvatarAsDrawerIcon());
+        baseBind.useAccountAvatarAsDrawerIcon.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            Shaft.sSettings.setUseAccountAvatarAsDrawerIcon(isChecked);
+            Local.setSettings(Shaft.sSettings);
+        });
+        baseBind.useAccountAvatarAsDrawerIconRela.setOnClickListener(
+                v -> baseBind.useAccountAvatarAsDrawerIcon.performClick());
+
         // Muzei 动态壁纸来源设置（issue #548）；同一个 Activity 也是 Muzei 侧「来源设置」的落点
         baseBind.muzeiSettingsRela.setOnClickListener(v ->
                 startActivity(new Intent(mContext, ceui.pixiv.muzei.MuzeiSettingsActivity.class)));
