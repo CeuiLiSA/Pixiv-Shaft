@@ -18,9 +18,17 @@
     </style>
 
     <!-- V3 Tab 文字 -->
+    <!--
+        字重故意不写在这里（normal）。Material 1.14 的 TabView.updateTab() 每次 Tab.setText()
+        都会重放 textAppearance，而 android:textStyle=bold 的语义是「在当前 typeface 上再派生
+        一档粗体」，于是每重放一次就往上浮一档（真机实测 700 → 800），并且 800 档的中文回退
+        解析不稳定——同一个 tab、同一文案、同一 paint，笔画 4px / 7px 随机出现。
+        改成 normal 后重放不再碰 typeface；两档字重（选中粗 / 未选中常规，同视觉基准 .tabs 的选中态）
+        由 DownloadManagerV3Fragment.pinTabWeight() 按选中态显式钉死。
+    -->
     <style name="V3TabText" parent="TextAppearance.Design.Tab">
         <item name="android:textSize">13sp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:letterSpacing">0.04</item>
         <item name="textAllCaps">false</item>
     </style>
