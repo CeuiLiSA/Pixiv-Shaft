@@ -28,7 +28,8 @@
                 android:background="@color/v3_surface_2"
                 android:contentDescription="@null"
                 android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.V3DownloadThumb" />
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.V3DownloadThumb"
+                app:strokeColor="@android:color/transparent" />
 
             <TextView
                 android:id="@+id/typeBadge"
