@@ -19,6 +19,7 @@ import com.blankj.utilcode.util.Utils
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
@@ -40,8 +41,12 @@ import org.robolectric.util.ReflectionHelpers
  * 「2 /」、分母不见了，而且要等下一次真正的排版才复原（有时一直不复原）。
  *
  * 这里钉住修好的契约：上屏的浮标一律推迟到布局之外再写（setText 的 requestLayout 会被正常
- * 受理，浮标按新文字重新量一次、自己长大）；没上屏的没有排版在跑、还隐藏着的随显隐一起量，当场写。
- * V2([FragmentIllust]) 与 V3([ArtworkV3Fragment]) 各钉一遍。
+ * 受理，浮标按新文字重新量一次、自己长大）；没上屏的没有排版在跑，当场写。
+ *
+ * V3 还要多一条：**读数段的显隐也一起推迟**。胶囊行是 wrap_content，「收起」先被点亮、行按
+ * 「只有收起」量过之后读数段才第一次露出来（进页即展开就是这情形），若这次 GONE→VISIBLE 的
+ * requestLayout 落在布局里被吞，读数段就永远停在 0 宽 —— 屏幕上什么都看不到，且文字没再变就
+ * 再也不会触发排版。V2 的浮标是独立一枚，没有这个组合，仍是当场写。
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [24, 35], application = PageProgressPillTextTest.TestApplication::class)
@@ -99,7 +104,7 @@ class PageProgressPillTextTest {
         assumeTrue("Robolectric 没把内容挂上窗口", pill.isAttachedToWindow)
         val writes = countWrites(pill)
 
-        apply(FragmentIllust(), pill, "3 / 3")
+        applyText(FragmentIllust(), pill, "3 / 3")
 
         assertEquals("上屏的浮标不能在布局里当场写", 0, writes.value)
         shadowOf(Looper.getMainLooper()).idle()
@@ -108,22 +113,41 @@ class PageProgressPillTextTest {
     }
 
     /**
-     * 还隐藏着的浮标当场写：调用方紧接着把它设为可见，推迟写会让它先以空白（首次出现）或
-     * 上一次的读数（V3 滑到评论区收起后滑回）露一帧。V2 / V3 各钉一遍。
+     * 已上屏的读数段：**文字与显隐一起**推迟到下一帧。
+     *
+     * 只推迟文字不够（进页即展开时读数永远不出现的那条）：胶囊行是 wrap_content，读数段由
+     * GONE 变 VISIBLE 时若这次 requestLayout 落在布局里被吞，这一段就停在 0 宽 —— 屏幕上什么都
+     * 没有，而且文字没再变就再也不会触发排版，滑多远都不复原。两个字段一起改、一起推迟，
+     * 读数段露出来时才会带着新文字被重新量一次。
      */
     @Test
-    fun `hidden pill is written straight away so it never shows a stale reading`() {
+    fun `attached hidden reading defers text and visibility together`() {
         val chrome = FragmentArtworkV3Binding.inflate(LayoutInflater.from(host))
         host.setContentView(chrome.root)
         shadowOf(Looper.getMainLooper()).idle()
         val v3Pill = chrome.pageProgressPill
         assumeTrue("Robolectric 没把内容挂上窗口", v3Pill.isAttachedToWindow)
         assertFalse(v3Pill.isVisible)
-        apply(ArtworkV3Fragment().apply { arguments = Bundle() }, v3Pill, "3 / 3")
-        assertEquals("3 / 3", v3Pill.text?.toString())
+        val writes = countWrites(v3Pill)
 
+        apply(ArtworkV3Fragment().apply { arguments = Bundle() }, v3Pill, "3 / 3")
+
+        assertFalse("还隐藏着的读数段也不能在布局里当场露出来", v3Pill.isVisible)
+        assertEquals(0, writes.value)
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(1, writes.value)
+        assertEquals("3 / 3", v3Pill.text?.toString())
+        assertTrue("下一帧才把读数段露出来", v3Pill.isVisible)
+    }
+
+    /**
+     * 经典详情页的浮标是独立一枚、没有「收起」同行预热过，仍是当场写 —— 那条契约这次没动，
+     * 在这里钉住，免得跟着 V3 一起被改掉。
+     */
+    @Test
+    fun `classic hidden pill is still written straight away`() {
         val classicPill = attachedPill().apply { isVisible = false }
-        apply(FragmentIllust(), classicPill, "3 / 3")
+        applyText(FragmentIllust(), classicPill, "3 / 3")
         assertEquals("3 / 3", classicPill.text?.toString())
     }
 
@@ -163,10 +187,18 @@ class PageProgressPillTextTest {
         return pill
     }
 
-    private fun apply(fragment: Fragment, pill: TextView, text: String) {
+    /** V3：文字与显隐一起写（null = 收起读数段）。 */
+    private fun apply(fragment: Fragment, pill: TextView, text: String?) =
+        invoke(fragment, "applyPageProgressPill", pill, text)
+
+    /** V2：只有文字，契约未变。 */
+    private fun applyText(fragment: Fragment, pill: TextView, text: String) =
+        invoke(fragment, "applyPageProgressText", pill, text)
+
+    private fun invoke(fragment: Fragment, method: String, pill: TextView, text: String?) {
         ReflectionHelpers.callInstanceMethod<Void>(
             fragment,
-            "applyPageProgressText",
+            method,
             ReflectionHelpers.ClassParameter.from(TextView::class.java, pill),
             ReflectionHelpers.ClassParameter.from(String::class.java, text),
         )
