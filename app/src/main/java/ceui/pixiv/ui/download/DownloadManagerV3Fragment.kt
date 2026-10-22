@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -95,15 +94,12 @@ class DownloadManagerV3Fragment : Fragment() {
      * 再派生一档」，实测会 700 → 800 往上浮，且 800 档的中文回退解析不稳定，同一个 tab、同一文案、
      * 同一 paint 会时而粗（笔画 7px）时而细（4px）。所以样式里留 `normal`，两档字重由这里按选中态切换。
      *
-     * 选中档用 800 而不是 DEFAULT_BOLD(700)：这台机器上 700 档中文渲染是常规，800 档才是中文粗体。
+     * 选中档不写死某一档：vivo V2361A 上 700 档中文渲染是常规、800 档才粗，但这是设备特性，
+     * 换台系统字体带 700 粗体的机器就会反过来。所以按真实渲染的笔画挑一档（见 [TabTypefaceResolver]），
+     * 用控件的真实字号去量；结果按字号缓存在 resolver 里，**全进程只量一次**，不随页面开关重测。
      */
-    private val tabTypefaceSelected: Typeface by lazy {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            Typeface.create(Typeface.DEFAULT, 800, false)
-        } else {
-            Typeface.DEFAULT_BOLD
-        }
-    }
+    private fun selectedTabTypeface(tv: TextView): Typeface =
+        TabTypefaceResolver.resolveBold(tv.textSize)
 
     /** 未选中档：系统常规字重（视觉基准里未选中项不额外加字重）。 */
     private val tabTypefaceNormal: Typeface by lazy { Typeface.DEFAULT }
@@ -121,7 +117,7 @@ class DownloadManagerV3Fragment : Fragment() {
     private fun pinTabWeight(tab: TabLayout.Tab?) {
         val t = tab ?: return
         val tv = tabLabelView(t) ?: return
-        val want = if (t.isSelected) tabTypefaceSelected else tabTypefaceNormal
+        val want = if (t.isSelected) selectedTabTypeface(tv) else tabTypefaceNormal
         if (tv.typeface !== want) {
             tv.typeface = want
             tv.paint.isFakeBoldText = false
