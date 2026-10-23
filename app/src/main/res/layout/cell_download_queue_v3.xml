@@ -24,7 +24,8 @@
             android:background="@color/v3_surface_2"
             android:contentDescription="@null"
             android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3DownloadThumb" />
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3DownloadThumb"
+            app:strokeColor="@android:color/transparent" />
 
         <LinearLayout
             android:layout_width="0dp"

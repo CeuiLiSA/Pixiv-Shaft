@@ -37,7 +37,8 @@
             android:background="@color/v3_surface_2"
             android:contentDescription="@null"
             android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3FeatureThumb" />
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3FeatureThumb"
+            app:strokeColor="@android:color/transparent" />
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/user_show_two"
@@ -48,7 +49,8 @@
             android:background="@color/v3_surface_2"
             android:contentDescription="@null"
             android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3FeatureThumb" />
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3FeatureThumb"
+            app:strokeColor="@android:color/transparent" />
 
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/user_show_three"
@@ -59,7 +61,8 @@
             android:background="@color/v3_surface_2"
             android:contentDescription="@null"
             android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3FeatureThumb" />
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.V3FeatureThumb"
+            app:strokeColor="@android:color/transparent" />
     </LinearLayout>
 
     <LinearLayout
