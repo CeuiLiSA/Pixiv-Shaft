@@ -53,6 +53,7 @@
             app:tabIndicatorHeight="2dp"
             app:tabMode="fixed"
             app:tabRippleColor="@android:color/transparent"
+            app:tabSelectedTextAppearance="@style/V3TabText.Selected"
             app:tabSelectedTextColor="@color/v3_text_1"
             app:tabTextAppearance="@style/V3TabText"
             app:tabTextColor="@color/v3_text_3" />

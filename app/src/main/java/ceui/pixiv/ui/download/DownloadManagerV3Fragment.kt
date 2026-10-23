@@ -3,14 +3,12 @@ package ceui.pixiv.ui.download
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.graphics.Typeface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
-import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
@@ -79,56 +77,6 @@ class DownloadManagerV3Fragment : Fragment() {
     private var pager: ViewPager2? = null
     private var pageCallback: ViewPager2.OnPageChangeCallback? = null
 
-    /**
-     * tab 文字的两档字重：选中一档、未选中一档。
-     *
-     * 依据（V3 的粗体是「选中态」而不是「三个都粗」）：
-     * - 视觉基准 `mockup/referral-plan/style.css`：`.tabs button[aria-selected=true]` 才加
-     *   `font-weight:600`，未选中是默认字重；
-     * - 设计文档里的筛选胶囊同样写「选中 600 字重」；
-     * - Material 1.14 本来就为此留了 `app:tabSelectedTextAppearance`，本页从没配过 —— 当年实现时
-     *   图省事把 bold 写进了基础样式，于是三个 tab 全粗。
-     *
-     * 为什么必须在代码里钉：`V3TabText` 只能写死一档，而 Material 的 `TabView.updateTab()`
-     * 每次 `Tab.setText()` 都会重放 textAppearance；`textStyle=bold` 的语义是「在当前 typeface 上
-     * 再派生一档」，实测会 700 → 800 往上浮，且 800 档的中文回退解析不稳定，同一个 tab、同一文案、
-     * 同一 paint 会时而粗（笔画 7px）时而细（4px）。所以样式里留 `normal`，两档字重由这里按选中态切换。
-     *
-     * 选中档不写死某一档：vivo V2361A 上 700 档中文渲染是常规、800 档才粗，但这是设备特性，
-     * 换台系统字体带 700 粗体的机器就会反过来。所以按真实渲染的笔画挑一档（见 [TabTypefaceResolver]），
-     * 用控件的真实字号去量；结果按字号缓存在 resolver 里，**全进程只量一次**，不随页面开关重测。
-     */
-    private fun selectedTabTypeface(tv: TextView): Typeface =
-        TabTypefaceResolver.resolveBold(tv.textSize)
-
-    /** 未选中档：系统常规字重（视觉基准里未选中项不额外加字重）。 */
-    private val tabTypefaceNormal: Typeface by lazy { Typeface.DEFAULT }
-
-    /** `Tab.view` 是 public 字段、类型就是 TabView（LinearLayout 子类），文字 TextView 是它的子 view。 */
-    private fun tabLabelView(tab: TabLayout.Tab?): TextView? {
-        val group = tab?.view as? ViewGroup ?: return null
-        for (i in 0 until group.childCount) {
-            (group.getChildAt(i) as? TextView)?.let { return it }
-        }
-        return null
-    }
-
-    /** 按 tab 当前的选中态钉字重：选中 → 粗，未选中 → 常规。 */
-    private fun pinTabWeight(tab: TabLayout.Tab?) {
-        val t = tab ?: return
-        val tv = tabLabelView(t) ?: return
-        val want = if (t.isSelected) selectedTabTypeface(tv) else tabTypefaceNormal
-        if (tv.typeface !== want) {
-            tv.typeface = want
-            tv.paint.isFakeBoldText = false
-        }
-    }
-
-    private fun pinAllTabWeights() {
-        val tl = tabs ?: return
-        for (i in 0 until tl.tabCount) pinTabWeight(tl.getTabAt(i))
-    }
-
     /** 「已完成」tab 的导入本地下载流程（issue #953）。 */
     private val importFlow by lazy { ImportLocalDownloadsFlow(this) }
 
@@ -173,14 +121,6 @@ class DownloadManagerV3Fragment : Fragment() {
         TabLayoutMediator(tabs!!, pager) { tab, pos ->
             tab.text = baseLabel(pos)
         }.attach()
-
-        pinAllTabWeights()
-        // 切换选中要钉全部三个：被取消选中的那个也得退回常规档，只看回调给的那一个 tab 不够。
-        tabs!!.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) = pinAllTabWeights()
-            override fun onTabUnselected(tab: TabLayout.Tab) = pinAllTabWeights()
-            override fun onTabReselected(tab: TabLayout.Tab) = pinAllTabWeights()
-        })
 
         // toolbar 右侧 menu —— 2 个 action 按 tab 分发可见性:
         //   - 导出 (action_export):pos 0 (批量队列) / pos 2 (已完成),「正在下载」
@@ -397,8 +337,6 @@ class DownloadManagerV3Fragment : Fragment() {
         val t = tabs?.getTabAt(pos) ?: return
         val base = baseLabel(pos)
         t.text = if (count > 0) "$base  $count" else base
-        // Material 每次 setText 都会重放 textAppearance 把 typeface 换掉，改完文案必须重钉。
-        pinTabWeight(t)
     }
 
     private class TabsAdapter(host: Fragment) : FragmentStateAdapter(host) {
