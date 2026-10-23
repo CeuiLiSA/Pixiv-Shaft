@@ -997,8 +997,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                         // [实验] 武装点放在这里而不是 handleDrawerAction 里:那个方法还与
                         // MeFragment / FragmentCenter 共用,只有这里是真正的"从侧边栏进入"。
                         PredictiveBackSuppressor.armDrawerLaunch();
-                        handleDrawerAction(entry.id);
-                        baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+                        leaveDrawerThen(() -> handleDrawerAction(entry.id));
                     });
             parent.addView(row);
         }
@@ -1200,15 +1199,33 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private void openMyUserPage() {
         Intent userIntent = new Intent(mContext, UActivity.class);
         userIntent.putExtra(Params.USER_ID, (long) SessionManager.INSTANCE.getLoggedInUid());
-        startActivity(userIntent);
-        baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+        leaveDrawerThen(() -> startActivity(userIntent));
     }
 
     private void openAccountSwitch() {
         Intent intent = new Intent(mContext, TemplateActivity.class);
         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ACCOUNT_SWITCH.key);
-        startActivity(intent);
-        baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+        leaveDrawerThen(() -> startActivity(intent));
+    }
+
+    /**
+     * 侧边栏条目点击后的统一出场节奏:先让 ripple 播完,再收抽屉,最后才跳转。
+     *
+     * <p>抽屉关闭 250ms、ripple 的扩散动画 225ms,两者同时起跑时,波纹最明显的那一刻
+     * 正好是抽屉滑出屏幕的那一刻 —— 看起来就是"抽屉都快收完了才出现波纹"。先等 120ms
+     * (此时 ripple 已扩散到六成、肉眼明确可见)再收抽屉,波纹才有了自己的时间。
+     *
+     * <p>跳转排在 closeDrawer 之后:startActivity 是同步调用,实测会占住主线程约 90ms,
+     * 排在前面时抽屉的 translationX 已经推进了一段却没有一帧被画出来,ripple 的起始帧
+     * 也一起被吞掉。
+     */
+    private void leaveDrawerThen(Runnable action) {
+        baseBind.drawerLayout.postDelayed(
+                () -> {
+                    baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+                    action.run();
+                },
+                120);
     }
 
     private void initDrawerHeader() {
