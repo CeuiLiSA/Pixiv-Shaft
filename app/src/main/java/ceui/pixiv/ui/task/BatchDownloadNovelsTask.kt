@@ -181,6 +181,10 @@ class BatchDownloadNovelsTask(
         val uri = ExportUtils.saveToDownloads(ctx, destination, format.mimeType) {
             it.write(buffer.toString().toByteArray(Charsets.UTF_8))
         }
-        if (uri == null) Timber.d("$fileName already exists, skipping")
+        if (uri == null) {
+            Timber.d("$fileName already exists, skipping")
+            return
+        }
+        NovelExportManager.recordDownload(novel, uri)
     }
 }
