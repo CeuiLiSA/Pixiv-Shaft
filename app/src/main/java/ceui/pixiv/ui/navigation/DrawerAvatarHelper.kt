@@ -41,7 +41,7 @@ import java.security.MessageDigest
  * 首页左上角侧边栏按钮头像化（推荐页 Toolbar、发现 / 动态的抽屉按钮、平板 Navigation Rail 菜单按钮）。
  *
  * - 同图短路：[R.id.drawer_avatar_key] 记下当前目标（URL + 尺寸 + 描边），一致且已有图时直接 return，
- *   onResume / 切 tab 不会反复清图重载，头像不闪。请求发出即落 key，失败时清掉以便下次重试。
+ *   onResume / 切 tab 不会反复清图重载，头像不闪。请求发出即落 key，失败时改记 [KEY_FAILED] 以便下次重试。
  * - 开关关闭：恢复菜单图标、tint 与原 scaleType，同样只在状态真正切换时动一次。
  * - 未登录 / 官方默认头像：直接用本地 no_profile 生成的圆形位图，不走网络。
  * - 占位只用访客位图：Glide 释放旧请求后旧位图可能被回收复用，不能拿来当占位或继续挂在 Toolbar 上。
@@ -50,6 +50,8 @@ object DrawerAvatarHelper {
 
     private const val KEY_DISABLED = "__DRAWER_AVATAR_DISABLED__"
     private const val KEY_VISITOR = "__DRAWER_AVATAR_VISITOR__"
+    // 不能清成 null：null 表示控件从没被头像化过，关闭开关时会被跳过，失败后的访客图就还原不回菜单图标
+    private const val KEY_FAILED = "__DRAWER_AVATAR_FAILED__"
 
     // key = 尺寸 + 描边宽 + 描边色；只会随主题色变化多出几份，几十 KB 的小图
     private val fallbackCache = LruCache<String, Bitmap>(8)
@@ -213,9 +215,9 @@ object DrawerAvatarHelper {
                     target: Target<Drawable>,
                     isFirstResource: Boolean
                 ): Boolean {
-                    // 失败清 key，网络恢复后下一次 onResume 会重试
+                    // 失败换掉 key，网络恢复后下一次 onResume 会重试
                     if (imageView.getTag(R.id.drawer_avatar_key) == key) {
-                        imageView.setTag(R.id.drawer_avatar_key, null)
+                        imageView.setTag(R.id.drawer_avatar_key, KEY_FAILED)
                     }
                     return false
                 }
@@ -301,7 +303,7 @@ object DrawerAvatarHelper {
 
             override fun onLoadFailed(errorDrawable: Drawable?) {
                 if (toolbar.getTag(R.id.drawer_avatar_key) == key) {
-                    toolbar.setTag(R.id.drawer_avatar_key, null)
+                    toolbar.setTag(R.id.drawer_avatar_key, KEY_FAILED)
                 }
                 toolbar.navigationIcon = fallback
             }
