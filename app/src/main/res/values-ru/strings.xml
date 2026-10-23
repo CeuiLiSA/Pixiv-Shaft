@@ -2998,9 +2998,10 @@
     <string name="snapshot_progress_comments">Получение комментариев</string>
     <string name="snapshot_progress_comment_assets">Загрузка аватаров и стикеров комментариев</string>
     <string name="snapshot_progress_writing">Запись снимка</string>
-    <string name="snapshot_unsupported_ugoira">Ugoira пока не поддерживается для офлайн-снимков</string>
+    <string name="snapshot_progress_ugoira">Получение кадров ugoira</string>
     <string name="snapshot_error_page_url_missing">Нет доступного URL для изображения %1$d</string>
     <string name="snapshot_error_image_download">Не удалось загрузить изображение: %1$s</string>
+    <string name="snapshot_error_ugoira_frames">Не удалось получить кадры ugoira</string>
 
     <!-- Автоматический снимок (экспериментально) -->
     <string name="setting_auto_snapshot_on_bookmark">Создавать офлайн-снимок при добавлении в закладки</string>

@@ -85,6 +85,7 @@ import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.pressScale
 import ceui.pixiv.witstudio.theme.setTextWithIcon
 import ceui.pixiv.witstudio.theme.v3Font
+import ceui.pixiv.ui.detail.OfflineUgoira
 import ceui.pixiv.ui.detail.frames.openUgoiraFrames
 import com.blankj.utilcode.util.BarUtils
 import java.io.File
@@ -105,6 +106,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
 
     val isSnapshotMode: Boolean
         get() = "快照大图" == intent.getStringExtra("dataType")
+
+    /** 快照动图的离线帧源：大图页的播放器与逐帧入口都从这里取，不经引擎联网。 */
+    var snapshotUgoira: OfflineUgoira? = null
+        private set
 
     private val translationViewModel by viewModels<ImageTranslationViewModel>()
 
@@ -534,6 +539,10 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         if (isFinishing || isDestroyed) return
         mIllust = data.localizeIllust()
         val bean = mIllust ?: return
+        // 先于 ViewPager 建页赋值：FragmentImageDetail 绑播放器时来取。
+        snapshotUgoira = data.offlineUgoira(
+            intent.getBooleanExtra(SnapshotManagerFragment.ARG_SNAPSHOT_IS_AUTO, false)
+        )
         // 译图仓库按作品分桶，不 bind 的话「翻译整部」跑完了本页也收不到产物(译图不回显)。
         translationViewModel.bindIllust(bean.id)
         val pageCount = bean.page_count.coerceAtLeast(1)
@@ -579,6 +588,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         setupSnapshotFabBar()
         setupShowTranslatedToggle()
         setupSnapshotAiMenu()
+        snapshotUgoira?.let { setupUgoiraFramesEntry(bean, it.frames.dir) }
     }
 
     /** 快照大图只隐藏下载按钮，收藏按钮保留但只读。 */
@@ -619,7 +629,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
      * 动图的「逐帧」入口:页码那一格的玻璃小胶囊(可见 40dp、整行 48dp 热区),与下载 + 收藏胶囊同排,
      * 随工具栏一起显隐。打开逐帧页挑帧、标记、保存原帧。
      */
-    private fun setupUgoiraFramesEntry(illust: Illust) {
+    private fun setupUgoiraFramesEntry(illust: Illust, offlineDir: File? = null) {
         val entry = findViewById<TextView>(R.id.btn_ugoira_frames) ?: return
         val palette = V3Palette.from(this)
         val density = resources.displayMetrics.density
@@ -634,7 +644,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         )
         entry.setPadding((12 * density).toInt(), 0, (14 * density).toInt(), 0)
         entry.contentDescription = getString(R.string.ugoira_frames_menu)
-        entry.setOnClick { openUgoiraFrames(this, illust) }
+        entry.setOnClick { openUgoiraFrames(this, illust, offlineDir) }
         entry.pressScale()
     }
 

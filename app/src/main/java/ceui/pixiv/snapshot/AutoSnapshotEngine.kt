@@ -238,12 +238,13 @@ object AutoSnapshotEngine {
     private fun maybeTriggerBehaviorAuto(illustId: Long, signal: String, score: Int) {
         if (!Shaft.sSettings.isAutoSnapshotOnIllustManga) return
         val illust = ObjectPool.get<Illust>(illustId).value ?: return
-        if (illust.isGif()) return
         launchAutoSnapshot(illust, signal, score)
     }
 
     /** 统一异步生成入口：去重、网络检查、已有快照检查、静默生成、配额与记录。 */
     private fun launchAutoSnapshot(illust: Illust, signal: String?, score: Int? = null) {
+        // 动图快照要跑整条 zip 下载/解压,只在用户手动「离线化」时做,自动快照(收藏/浏览两条入口)一律跳过。
+        if (illust.isGif()) return
         val id = illust.id
         val request = pending.add(illust, signal) ?: return
 

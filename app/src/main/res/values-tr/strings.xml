@@ -2998,9 +2998,10 @@
     <string name="snapshot_progress_comments">Yorumlar alınıyor</string>
     <string name="snapshot_progress_comment_assets">Yorum avatarları/çıkartmaları indiriliyor</string>
     <string name="snapshot_progress_writing">Anlık görüntü yazılıyor</string>
-    <string name="snapshot_unsupported_ugoira">Ugoira için çevrimdışı anlık görüntü henüz desteklenmiyor</string>
+    <string name="snapshot_progress_ugoira">Ugoira kareleri alınıyor</string>
     <string name="snapshot_error_page_url_missing">%1$d. resim için kullanılabilir URL yok</string>
     <string name="snapshot_error_image_download">Resim indirilemedi: %1$s</string>
+    <string name="snapshot_error_ugoira_frames">Ugoira kareleri alınamadı</string>
 
     <!-- Otomatik anlık görüntü (deneysel) -->
     <string name="setting_auto_snapshot_on_bookmark">Yer imine eklendiğinde çevrimdışı anlık görüntü oluştur</string>

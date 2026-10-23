@@ -3016,9 +3016,10 @@
     <string name="snapshot_progress_comments">Mengambil komentar</string>
     <string name="snapshot_progress_comment_assets">Mengunduh avatar/emoji komentar</string>
     <string name="snapshot_progress_writing">Menulis snapshot</string>
-    <string name="snapshot_unsupported_ugoira">Ugoira belum mendukung snapshot offline</string>
+    <string name="snapshot_progress_ugoira">Mengambil frame ugoira</string>
     <string name="snapshot_error_page_url_missing">Gambar ke-%1$d karya ini tidak memiliki URL yang dapat dipakai</string>
     <string name="snapshot_error_image_download">Gagal mengunduh gambar: %1$s</string>
+    <string name="snapshot_error_ugoira_frames">Gagal mengambil frame ugoira</string>
     <string name="setting_auto_snapshot_on_bookmark">Buat snapshot offline saat mem-bookmark</string>
     <string name="setting_auto_snapshot_on_bookmark_desc">Setelah mem-bookmark karya, buat snapshot offline ringan secara diam-diam di latar belakang (eksperimental)</string>
     <string name="setting_auto_snapshot_quota">Batas ukuran snapshot otomatis</string>

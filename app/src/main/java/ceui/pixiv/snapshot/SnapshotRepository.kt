@@ -4,6 +4,9 @@ import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.ui.bulk.UgoiraFrames
+import ceui.pixiv.ui.bulk.readFramesDir
+import ceui.pixiv.ui.detail.OfflineUgoira
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -21,7 +24,13 @@ data class SnapshotViewerData(
     val illust: Illust,
     val assets: Map<String, String>,
     val comments: SnapshotComments?,
+    /** 动图的离线帧序列（[SNAPSHOT_UGOIRA_DIR]）；静图恒为 null。加载时在 IO 上读好，渲染侧不碰磁盘。 */
+    val ugoiraFrames: UgoiraFrames? = null,
 ) {
+    /** 交给播放器 / 大图页的离线动图源；[isAuto] 决定点开大图时按哪个库回读快照。 */
+    fun offlineUgoira(isAuto: Boolean): OfflineUgoira? =
+        ugoiraFrames?.let { OfflineUgoira(manifest.snapshotId, isAuto, it) }
+
     /**
      * 第 [index] 页在快照里的那份文件 + 它的相对路径。
      *
@@ -136,7 +145,10 @@ object SnapshotRepository {
         val comments = if (manifest.includeComments) {
             SnapshotValidator.readJson<SnapshotComments>(File(snapshotDir, SNAPSHOT_COMMENTS_JSON))
         } else null
-        return SnapshotViewerData(snapshotDir, manifest, illust, assets, comments)
+        val ugoiraFrames = if (illust.isGif()) {
+            readFramesDir(File(snapshotDir, SNAPSHOT_UGOIRA_DIR), false)
+        } else null
+        return SnapshotViewerData(snapshotDir, manifest, illust, assets, comments, ugoiraFrames)
     }
 
     suspend fun export(context: Context, snapshotId: String, uri: Uri) = withContext(Dispatchers.IO) {

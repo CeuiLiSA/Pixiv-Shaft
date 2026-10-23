@@ -3016,9 +3016,10 @@
     <string name="snapshot_progress_comments">Fetching comments</string>
     <string name="snapshot_progress_comment_assets">Downloading comment avatars/stamps</string>
     <string name="snapshot_progress_writing">Writing snapshot</string>
-    <string name="snapshot_unsupported_ugoira">Ugoira is not supported for offline snapshots yet</string>
+    <string name="snapshot_progress_ugoira">Fetching ugoira frames</string>
     <string name="snapshot_error_page_url_missing">No usable URL for image %1$d</string>
     <string name="snapshot_error_image_download">Image download failed: %1$s</string>
+    <string name="snapshot_error_ugoira_frames">Failed to fetch ugoira frames</string>
 
     <!-- Auto snapshot (experimental) -->
     <string name="setting_auto_snapshot_on_bookmark">Create offline snapshot on bookmark</string>

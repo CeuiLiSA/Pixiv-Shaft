@@ -3014,9 +3014,10 @@
     <string name="snapshot_progress_comments">取得評論</string>
     <string name="snapshot_progress_comment_assets">下載評論頭像／貼圖</string>
     <string name="snapshot_progress_writing">寫入快照</string>
-    <string name="snapshot_unsupported_ugoira">動圖 / ugoira 暫不支援離線快照</string>
+    <string name="snapshot_progress_ugoira">取得動圖幀</string>
     <string name="snapshot_error_page_url_missing">作品第 %1$d 張圖缺少可用 URL</string>
     <string name="snapshot_error_image_download">圖片下載失敗：%1$s</string>
+    <string name="snapshot_error_ugoira_frames">動圖幀取得失敗</string>
 
     <!-- 自動快照（實驗性） -->
     <string name="setting_auto_snapshot_on_bookmark">收藏時產生離線快照</string>

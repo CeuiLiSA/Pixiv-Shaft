@@ -706,8 +706,6 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
             baseBind.toolbar.menu?.findItem(R.id.action_ai_upscale)?.isVisible = false
             baseBind.toolbar.menu?.findItem(R.id.action_ai_rembg)?.isVisible = false
             baseBind.toolbar.menu?.findItem(R.id.action_show_original)?.isVisible = false
-            // 动图的 original 是 zip,SnapshotGenerator 一进门就拒;别把注定失败的入口摆出来。
-            baseBind.toolbar.menu?.findItem(R.id.action_snapshot)?.isVisible = false
         }
         baseBind.toolbar.setOnMenuItemClickListener { menuItem ->
             // 读字段而不是闭包捕获的 illust —— 菜单只按「形状」建一次，回调永远拿最新 bean。
@@ -1235,8 +1233,10 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                 // ugoira 内联播放:以前 VActivity 把动图甩去独立的 FragmentSingleUgora,
                 // 现在留在本页,用解耦的 UgoiraPlayerAdapter 进页即自动加载+播放。
                 val maxHeight = resources.displayMetrics.heightPixels * 3 / 4
-                baseBind.recyclerView.adapter =
-                    UgoiraPlayerAdapter(illust, viewLifecycleOwner, maxHeight)
+                baseBind.recyclerView.adapter = UgoiraPlayerAdapter(
+                    illust, viewLifecycleOwner, maxHeight,
+                    snapshotViewerData?.offlineUgoira(snapshotIsAuto),
+                )
             } else {
                 val adapter = IllustAdapter(mActivity, this@FragmentIllust, illust, recyHeight, false)
                 baseBind.recyclerView.adapter = adapter

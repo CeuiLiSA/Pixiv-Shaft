@@ -2998,9 +2998,10 @@
     <string name="snapshot_progress_comments">コメントを取得中</string>
     <string name="snapshot_progress_comment_assets">コメントのアイコン／スタンプをダウンロード中</string>
     <string name="snapshot_progress_writing">スナップショットを書き込み中</string>
-    <string name="snapshot_unsupported_ugoira">うごイラ / ugoira はオフラインスナップショットに未対応です</string>
+    <string name="snapshot_progress_ugoira">うごイラのフレームを取得中</string>
     <string name="snapshot_error_page_url_missing">%1$d 枚目の画像に利用可能な URL がありません</string>
     <string name="snapshot_error_image_download">画像のダウンロードに失敗しました：%1$s</string>
+    <string name="snapshot_error_ugoira_frames">うごイラのフレーム取得に失敗しました</string>
 
     <!-- 自動スナップショット（試験的） -->
     <string name="setting_auto_snapshot_on_bookmark">ブックマーク時にオフラインスナップショットを作成</string>

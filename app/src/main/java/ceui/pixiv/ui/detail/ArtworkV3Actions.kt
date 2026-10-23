@@ -231,11 +231,8 @@ internal class ArtworkV3Actions(
             item(context.getString(R.string.string_355_2), R.drawable.ic_baseline_launch_24) {
                 Common.copy(context, ShareIllust.URL_Head + illust.id)
             }
-            // 动图的 original 是 zip,SnapshotGenerator 一进门就拒;别把注定失败的入口摆出来。
-            if (!illust.isGif()) {
-                item(context.getString(R.string.snapshot_create), R.drawable.ic_baseline_get_app_20) {
-                    fragment.showSnapshotCreateDialog(illust)
-                }
+            item(context.getString(R.string.snapshot_create), R.drawable.ic_baseline_get_app_20) {
+                fragment.showSnapshotCreateDialog(illust)
             }
             // issue #898 / #515:详情页直接设壁纸(首图),不必先进全屏看图页。动图 original 是 zip,跳过。
             if (!illust.isGif()) {

@@ -2998,9 +2998,10 @@
     <string name="snapshot_progress_comments">댓글 가져오는 중</string>
     <string name="snapshot_progress_comment_assets">댓글 프로필 사진/스탬프 다운로드 중</string>
     <string name="snapshot_progress_writing">스냅샷 저장 중</string>
-    <string name="snapshot_unsupported_ugoira">우고이라(ugoira)는 아직 오프라인 스냅샷을 지원하지 않습니다</string>
+    <string name="snapshot_progress_ugoira">우고이라 프레임 가져오는 중</string>
     <string name="snapshot_error_page_url_missing">%1$d번째 이미지의 사용 가능한 URL이 없습니다</string>
     <string name="snapshot_error_image_download">이미지 다운로드 실패: %1$s</string>
+    <string name="snapshot_error_ugoira_frames">우고이라 프레임을 가져오지 못했습니다</string>
 
     <!-- 자동 스냅샷 (실험 기능) -->
     <string name="setting_auto_snapshot_on_bookmark">북마크 시 오프라인 스냅샷 생성</string>

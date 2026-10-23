@@ -3303,9 +3303,10 @@
     <string name="snapshot_progress_comments">获取评论</string>
     <string name="snapshot_progress_comment_assets">下载评论头像/表情</string>
     <string name="snapshot_progress_writing">写入快照</string>
-    <string name="snapshot_unsupported_ugoira">动图 / ugoira 暂不支持离线快照</string>
+    <string name="snapshot_progress_ugoira">获取动图帧</string>
     <string name="snapshot_error_page_url_missing">作品第 %1$d 张图缺少可用 URL</string>
     <string name="snapshot_error_image_download">图片下载失败：%1$s</string>
+    <string name="snapshot_error_ugoira_frames">动图帧获取失败</string>
 
     <!-- 自动快照（试验性） -->
     <string name="setting_auto_snapshot_on_bookmark">收藏时生成离线快照</string>

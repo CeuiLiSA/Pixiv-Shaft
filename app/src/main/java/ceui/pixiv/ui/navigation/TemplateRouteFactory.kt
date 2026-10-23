@@ -547,7 +547,10 @@ object TemplateRouteFactory {
             TemplateRoute.DAILY_RECOMMENDATIONS -> DailyRecommendationsFragment()
             TemplateRoute.UGOIRA_RANK -> UgoiraRankFragment.newInstance()
             TemplateRoute.UGOIRA_FRAMES ->
-                UgoiraFramesFragment.newInstance(intent.requireSerializable(Params.CONTENT, Illust::class.java))
+                UgoiraFramesFragment.newInstance(
+                    intent.requireSerializable(Params.CONTENT, Illust::class.java),
+                    intent.getStringExtra(UgoiraFramesFragment.ARG_OFFLINE_DIR),
+                )
             TemplateRoute.IMAGE_FILTER ->
                 ImageFilterFragment.newInstance(
                     intent.requireSerializable(Params.CONTENT, Illust::class.java),

@@ -2,12 +2,14 @@ package ceui.pixiv.snapshot
 
 import ceui.lisa.activities.Shaft
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.ui.bulk.readFramesDir
 import java.io.File
 
 /**
  * 导入/打开前校验快照完整性：
  * - assets.json 里的每个映射都必须指向真实存在的文件；
- * - 渲染快照详情页会引用的 URL（作品页、作者头像、评论头像/表情）必须在 assets 中。
+ * - 渲染快照详情页会引用的 URL（作品页、作者头像、评论头像/表情）必须在 assets 中；
+ * - 动图还必须带一份读得回来的帧序列。
  */
 object SnapshotValidator {
 
@@ -48,6 +50,10 @@ object SnapshotValidator {
             if (!ok) {
                 throw SnapshotException("快照不完整：第 ${i + 1} 张图缺失")
             }
+        }
+
+        if (illust.isGif() && readFramesDir(File(snapshotDir, SNAPSHOT_UGOIRA_DIR), false) == null) {
+            throw SnapshotException("快照不完整：动图帧序列缺失")
         }
 
         val required = linkedSetOf<String>()
