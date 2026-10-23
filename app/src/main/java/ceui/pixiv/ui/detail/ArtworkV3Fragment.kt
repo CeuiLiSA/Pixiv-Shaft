@@ -990,8 +990,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 单图 / 动图没有「第几页」可言
         if (total <= 1) {
             pageProgressIndex = -1
-            pill.isVisible = false
-            syncTopEndPill()
+            applyPageProgressPill(pill, null)
             return
         }
         val listView = feedBinding.feedListView
@@ -999,8 +998,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         val layoutManager = listView.layoutManager
         if (items == null || layoutManager == null) {
             pageProgressIndex = -1
-            pill.isVisible = false
-            syncTopEndPill()
+            applyPageProgressPill(pill, null)
             return
         }
         val anchorY = chromeBind.topOverlayColumn.bottom
@@ -1016,46 +1014,52 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         if (current < 0) current = firstVisible
         if (current < 0) {
             pageProgressIndex = -1
-            pill.isVisible = false
-            syncTopEndPill()
+            applyPageProgressPill(pill, null)
             return
         }
         pageProgressIndex = current
-        val text = getString(R.string.artwork_page_indicator, current + 1, total)
-        applyPageProgressText(pill, text)
-        pill.isVisible = true
-        syncTopEndPill()
+        applyPageProgressPill(pill, getString(R.string.artwork_page_indicator, current + 1, total))
     }
 
     /**
-     * 把「当前页 / 总页」写进右上角胶囊的读数段 —— **必须在布局之外写**，否则这一段的已测量宽度
-     * 会停在上一段文字的尺寸上、分母被折行裁掉。
+     * 把读数段（「当前页 / 总页」）的**文字与显隐一起**落到右上角胶囊上，且**必须落在布局之外**。
      *
-     * 两个调用点都会落在布局过程中：[attachPageProgressPill] 里挂在列表上的
-     * OnGlobalLayoutListener（排版收尾派发），以及 onScrolled（见 onViewCreated 的滚动监听）；
-     * `scrollToPositionWithOffset` 这类**待定滚动**正是在 RecyclerView.onLayout() 里被消费，随之
-     * 派发的 onScrolled 也就落在布局中。此时 setText 触发的 requestLayout 会被框架并进第二趟
-     * 布局、或直接吞掉（logcat 实证："requestLayout() improperly called by ...
-     * app:id/page_progress_pill during layout: running second layout pass"），读数段的已测量宽高
+     * 文字要推迟的理由（#1058 那版踩过）：写 text 会 requestLayout，若这次写入落在布局过程中，
+     * 框架会把它并进第二趟布局、或直接吞掉（logcat 实证："requestLayout() improperly called by ...
+     * app:id/page_progress_pill during layout: running second layout pass"），这一段的已测量宽高
      * 就停在**上一段文字**的尺寸上；而它是 wrap_content、没有 singleLine / maxLines，新文字装不下
      * 就会折到第二行，第二行落在胶囊盒子之外被裁 —— 表现成「2 /」、分母不见了，而且要等下一次
      * 真正的排版才复原（有时一直不复原）。
      *
-     * post 到布局之外再写：setText 的 requestLayout 会被正常受理，胶囊按新文字重新量一次、
-     * **自己长大**，既不折行也不硬裁（刻意不加 singleLine / ellipsize：那只是把裁切换个地方）。
+     * **显隐同理，而且更隐蔽**：胶囊行 [top_end_pill_row] 是 wrap_content，读数段从 GONE 变
+     * VISIBLE 时若这次 requestLayout 也被吞，行就一直停在「只有收起」那个宽度上，读数段是 0 宽
+     * —— 屏幕上什么都没有。之后也不会自愈：文字没再变，[refreshPageProgressPill] 的早退让
+     * setText 不再触发排版，滑多远都还是 0 宽。
+     *
+     * 「进页即展开」（设置里的「多图自动展开」）正好踩在这个组合上：绑定期间
+     * [showCollapsePill] 先把「收起」点亮、胶囊行按「只有收起」量过一遍，读数段随后才第一次
+     * 露出来 —— 真机实测行宽停在 239px（收起 + 两侧 12dp），读数段 0 宽，永不出现。折叠态进页
+     * 不会：那时整行还是 GONE，行与读数段是在同一次「露出来」里一起被量的。
+     *
+     * @param text 要显示的读数；null = 收起读数段（单图 / 动图，或滑到简介 / 评论 / 相关作品）。
      */
-    private fun applyPageProgressText(pill: TextView, text: String) {
-        if (pill.text?.toString() == text) return
-        // 还没上屏就没有排版在跑，直接写；也免得把 runnable 丢进 RunQueue 一直挂着。
-        // 还隐藏着（首次出现 / 滑离图片后滑回）也当场写：调用方紧接着就把它设为可见，显隐变化
-        // 本身就会带着新文字重新量一次；推迟写反而会让它先以空白或上一次的读数露一帧。
-        if (!pill.isAttachedToWindow || !pill.isVisible) {
-            pill.text = text
+    private fun applyPageProgressPill(pill: TextView, text: String?) {
+        val visible = text != null
+        if (pill.isVisible == visible && (text == null || pill.text?.toString() == text)) return
+        val apply = {
+            if (text != null && pill.text?.toString() != text) pill.text = text
+            if (pill.isVisible != visible) pill.isVisible = visible
+            // 胶囊本体与那 10dp 间隔都跟着这两段走，必须在这两步之后再算。
+            if (_chromeBind != null) syncTopEndPill()
+        }
+        // 还没上屏就没有排版在跑，当场写；也免得把 runnable 丢进 RunQueue 一直挂着。
+        if (!pill.isAttachedToWindow) {
+            apply()
             return
         }
-        pill.post {
-            if (pill.text?.toString() != text) pill.text = text
-        }
+        // 上屏之后一律推迟：显隐与文字一起改，读数段「露出来」时才带着新文字被重新量一次
+        // （分两步改会先露一帧空胶囊，或先露一帧上一次的读数）。
+        pill.post { apply() }
     }
 
     /**
