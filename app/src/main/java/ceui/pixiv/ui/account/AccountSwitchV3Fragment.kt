@@ -85,6 +85,9 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
     /** 已渲染出来的账号，按 uid 索引 —— [AccountActionsSheet] 的回调只带 uid 回来。 */
     private val accountsByUid = mutableMapOf<Long, LocalAccount>()
 
+    /** 最近一次渲染出来的当前账号；会话刷新时拿它重画 hero 卡（见 [observeSession]）。 */
+    private var renderedCurrent: LocalAccount? = null
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         palette = V3Palette.from(requireContext())
@@ -93,7 +96,22 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
         applyTheme()
         binding.addAccountRow.setOnClick { openLoginPage() }
         listenSheetResult()
+        observeSession()
         loadAccounts()
+    }
+
+    /**
+     * 会话里的「自己」一变就重画 hero 卡。
+     *
+     * 本页原本是一次性渲染，而切号是「先写本地快照、再重启」：重启那一刻会话里就是那份快照，
+     * 而 pixiv 的登录响应只有默认占位头像 —— 真头像要等前台静默同步把 user/detail 写进会话。
+     * 那次写回发生在首帧之后，页面早已画完；不观察的话会一直停在占位图上，而侧边栏因为观察了
+     * 同一份 LiveData 会自己变过来 —— 同一屏里两个头像不一致就是这么来的。
+     */
+    private fun observeSession() {
+        SessionManager.loggedInAccount.observe(viewLifecycleOwner) {
+            renderedCurrent?.let(::bindCurrent)
+        }
     }
 
     /**
@@ -196,6 +214,7 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
         val current = currentAccount(accounts)
         accountsByUid.clear()
         (accounts + listOfNotNull(current)).forEach { accountsByUid[it.user.id] = it }
+        renderedCurrent = current
         bindCurrent(current)
 
         val others = accounts.filter { it.user.id != current?.user?.id }
@@ -225,7 +244,12 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
 
     private fun bindCurrent(account: LocalAccount?) {
         binding.currentCard.isVisible = account != null
-        val user = account?.user ?: return
+        val stored = account?.user ?: return
+        // 当前账号的头像 / 昵称 / 邮箱一律以**会话**为准，不用本地这份快照。
+        // 快照是登录那一刻冻下来的，而 pixiv 的 OAuth 登录响应里 profile_image_urls
+        // 只有三张默认占位图（真实头像得走 user/detail 才拿得到）；侧边栏读的是会话，
+        // 由前台静默同步持续刷新 —— 两份数据源一旧一新，就成了「侧边栏有头像、这一页是占位」。
+        val user = SessionManager.loggedInUser?.takeIf { it.id == stored.id } ?: stored
 
         binding.currentName.text = user.name
         binding.currentHandle.text = "@${user.account.orEmpty()}"
@@ -238,7 +262,7 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
             .error(R.drawable.no_profile)
             .into(binding.currentAvatar)
 
-        binding.currentMore.setOnClick { showActions(account, isCurrent = true) }
+        binding.currentMore.setOnClick { showActions(user, isCurrent = true) }
     }
 
     private fun buildRow(account: LocalAccount, index: Int, total: Int): View {
@@ -263,7 +287,7 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
         row.accountRow.setBackgroundResource(rowBackground(index, total))
         SettingsCatalog.applyThemedRowBg(row.accountRow)
         row.accountRow.setOnClick { switchTo(account) }
-        row.rowMore.setOnClick { showActions(account, isCurrent = false) }
+        row.rowMore.setOnClick { showActions(account.user, isCurrent = false) }
         row.rowDelete.setOnClick { confirmDelete(account) }
         return row.root
     }
@@ -310,9 +334,12 @@ class AccountSwitchV3Fragment : Fragment(R.layout.fragment_account_switch_v3) {
     /**
      * 行尾 ⋮：把 legacy 藏在无标注的导出图标 / 长按里的两个操作摆到明处（外加当前账号之外的
      * 「切换」）。选中项由 [AccountActionsSheet] 经 fragment result 回传，见 [listenSheetResult]。
+     *
+     * 收 [User] 而不是 [LocalAccount]：面板顶部也画头像，当前账号要跟 hero 卡一样用会话里那份，
+     * 否则卡片上是真头像、点开 ⋮ 又变回占位。
      */
-    private fun showActions(account: LocalAccount, isCurrent: Boolean) {
-        AccountActionsSheet.show(childFragmentManager, account.user, isCurrent)
+    private fun showActions(user: User, isCurrent: Boolean) {
+        AccountActionsSheet.show(childFragmentManager, user, isCurrent)
     }
 
     /**
