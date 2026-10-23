@@ -28,6 +28,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.view.OnCheckChangeListener;
 import ceui.pixiv.feeds.FeedFragment;
 import ceui.pixiv.ui.home.RecmdIllustFeedFragment;
+import ceui.pixiv.ui.navigation.DrawerAvatarHelper;
 import ceui.pixiv.ui.navigation.HomeShellHost;
 import ceui.pixiv.ui.trending.HotTagsFeedFragment;
 import ceui.pixiv.ui.navigation.TemplateRoute;
@@ -68,6 +69,7 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         });
         baseBind.wideSearch.setOnClickListener(v -> openSearch());
         HomeShellHost.observe(this, this::applyRailMode);
+        DrawerAvatarHelper.bindToolbar(baseBind.toolbar, getViewLifecycleOwner());
         applyTopBarScrollSetting();
     }
 
@@ -75,6 +77,7 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
     public void onResume() {
         super.onResume();
         // 「顶栏跟随滚动收起」可能刚在设置里切过：scrollFlags 是布局参数，改完下一帧就生效，不用重启
+        DrawerAvatarHelper.applyToToolbar(baseBind.toolbar);
         applyTopBarScrollSetting();
     }
 

@@ -137,6 +137,8 @@
     <string name="bottom_bar_scroll_hide_desc">Collapse the bottom bar when you scroll down and bring it back when you scroll up. Turn off to keep it pinned and always visible</string>
     <string name="top_bar_scroll_hide">Hide top bar on scroll</string>
     <string name="top_bar_scroll_hide_desc">The title bar at the top of the Recommend page collapses when you scroll down and comes back when you scroll up. Turn off to keep it pinned and always visible</string>
+    <string name="use_account_avatar_as_drawer_icon">Show account avatar as sidebar icon</string>
+    <string name="use_account_avatar_as_drawer_icon_desc">Show the signed-in account\'s round avatar as the top-left sidebar icon on the home page; a guest avatar is shown when signed out</string>
     <string name="tablet_layout_desc">On tablets and other large screens, use a side navigation rail, a feed that adds columns to fit the screen width, and a side-by-side artwork detail page. When off, tablets use the phone layout. Tablets only</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">Bookmarks</string>

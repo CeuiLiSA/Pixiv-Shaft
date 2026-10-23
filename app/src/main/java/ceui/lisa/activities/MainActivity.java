@@ -275,7 +275,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         // 侧边栏账号区完全由会话驱动：observe 在 onStart 先回放当前账号完成首绑,
         // 之后登录/切号/编辑资料/前台静默同步的每次写回都会自动重绑,不再需要
         // 手动 initDrawerHeader() 首绑 + Dev.refreshUser 在 onResume 补刷那一套。
-        SessionManager.INSTANCE.getLoggedInAccount().observe(this, account -> initDrawerHeader());
+        SessionManager.INSTANCE.getLoggedInAccount().observe(this, account -> {
+            initDrawerHeader();
+            if (baseBind.navigationRail != null) {
+                baseBind.navigationRail.updateMenuAvatar();
+            }
+        });
         // 订阅档位是冷启动异步拉回来的,落地时机比账号晚,所以单独观察一次;不然徽章要等
         // 下一次冷启动才出现,首装的人则永远看不到。
         RemoteAppConfig remoteAppConfig =
@@ -318,6 +323,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 });
         baseBind.navigationRail.setShortcutListener(this::handleDrawerAction);
         applyNavigationMode(getResources().getConfiguration());
+        if (baseBind.navigationRail != null) {
+            baseBind.navigationRail.updateMenuAvatar();
+        }
         baseBind.viewPager.addOnPageChangeListener(
                 new ViewPager.OnPageChangeListener() {
                     @Override
@@ -1307,6 +1315,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         buildDrawerMenu();
         // 「平板适配排版」可能刚在设置里切过，按当前开关重选底栏 / 侧栏(没变时是 no-op)
         applyNavigationMode(getResources().getConfiguration());
+        if (baseBind.navigationRail != null) {
+            baseBind.navigationRail.updateMenuAvatar();
+        }
         // 「底栏跟随滚动收起」同理：开关一改就重新挂 / 摘 behavior(没变时是 no-op)
         if (bottomBarAutoHide != null) {
             bottomBarAutoHide.setEnabled(Shaft.sSettings.isBottomBarHideOnScroll());

@@ -104,6 +104,7 @@ object SettingsCatalog {
         add(Entry(APPEARANCE, "bottom_bar_order_rela", R.string.string_342, keywords = "底部导航 tab 顺序 排序 页签 bottom bar"))
         add(Entry(APPEARANCE, "bottom_bar_scroll_hide_rela", R.string.bottom_bar_scroll_hide, R.string.bottom_bar_scroll_hide_desc, keywords = "底栏 底部导航 导航栏 收起 隐藏 自动隐藏 固定 常显 滚动 滑动 bottom bar navigation hide on scroll"))
         add(Entry(APPEARANCE, "top_bar_scroll_hide_rela", R.string.top_bar_scroll_hide, R.string.top_bar_scroll_hide_desc, keywords = "顶栏 标题栏 工具栏 推荐页 收起 隐藏 自动隐藏 固定 常显 滚动 滑动 top bar toolbar hide on scroll"))
+        add(Entry(APPEARANCE, "use_account_avatar_as_drawer_icon_rela", R.string.use_account_avatar_as_drawer_icon, R.string.use_account_avatar_as_drawer_icon_desc, keywords = "头像 账号头像 侧边栏 抽屉 菜单 左上角 图标 avatar profile drawer menu icon sidebar"))
         add(Entry(APPEARANCE, "recommend_page_order_rela", R.string.recommend_page_content, R.string.recommend_page_content_desc, keywords = "推荐作品 热门标签 推荐页 顺序 排序 插画 小说 recommend hot tags tab order"))
         add(Entry(APPEARANCE, "main_view_r18_rela", R.string.string_359, keywords = "r18 r页 主页 首页 涩图"))
         // 别名按整串子串匹配（同上），「平板双栏」「左右分屏」这类连写说法各铺一遍

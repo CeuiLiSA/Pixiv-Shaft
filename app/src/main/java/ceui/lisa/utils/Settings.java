@@ -502,6 +502,9 @@ public class Settings {
     /** 推荐页顶栏是否跟随列表滚动收起（false = 固定常显），见 FragmentLeft#applyTopBarScrollSetting。默认开启。 */
     private boolean topBarHideOnScroll = true;
 
+    /** 是否将首页左上角侧边栏按钮展示为当前账号头像。默认关闭。 */
+    private boolean useAccountAvatarAsDrawerIcon = false;
+
     /** 隐藏小组件上浮在封面之上的收藏按钮（#1013：挡画面） */
     private boolean widgetHideBookmarkButton = false;
     /** 隐藏小组件上浮在封面之上的刷新按钮（#1013：挡画面） */
@@ -1547,6 +1550,14 @@ public class Settings {
 
     public void setTopBarHideOnScroll(boolean hide) {
         this.topBarHideOnScroll = hide;
+    }
+
+    public boolean isUseAccountAvatarAsDrawerIcon() {
+        return useAccountAvatarAsDrawerIcon;
+    }
+
+    public void setUseAccountAvatarAsDrawerIcon(boolean useAccountAvatarAsDrawerIcon) {
+        this.useAccountAvatarAsDrawerIcon = useAccountAvatarAsDrawerIcon;
     }
 
     public boolean isWidgetHideBookmarkButton() {
