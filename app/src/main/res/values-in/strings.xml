@@ -1164,6 +1164,15 @@
     <string name="update_later">Nanti</string>
     <string name="update_skip_version">Lewati versi ini</string>
     <string name="update_retry">Coba lagi</string>
+    <string name="update_continue">Lanjutkan unduhan</string>
+    <string name="update_paused">Dijeda</string>
+    <string name="update_merging">Menggabungkan penginstal…</string>
+    <string name="update_threads">%1$d utas</string>
+    <string name="update_interrupted">Unduhan terputus</string>
+    <string name="update_resume_unavailable">Tidak dapat melanjutkan unduhan, coba lagi</string>
+    <string name="update_banner_done_title">Pembaruan telah diunduh</string>
+    <string name="update_banner_done_message">Ketuk untuk melanjutkan pemasangan %1$s</string>
+    <string name="update_banner_action">Pasang</string>
     <string name="update_download_failed">Unduhan gagal</string>
     <string name="update_check_failed">Gagal memeriksa pembaruan</string>
     <string name="update_rate_limited">Terkena batas permintaan, coba lagi nanti</string>

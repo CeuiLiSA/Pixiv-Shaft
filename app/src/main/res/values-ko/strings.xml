@@ -1140,6 +1140,15 @@
     <string name="update_later">나중에</string>
     <string name="update_skip_version">이 버전 건너뛰기</string>
     <string name="update_retry">다시 시도</string>
+    <string name="update_continue">다운로드 계속</string>
+    <string name="update_paused">일시 중지됨</string>
+    <string name="update_merging">설치 파일 병합 중…</string>
+    <string name="update_threads">%1$d 스레드</string>
+    <string name="update_interrupted">다운로드 중단됨</string>
+    <string name="update_resume_unavailable">이어서 받을 수 없습니다. 다시 시도해 주세요</string>
+    <string name="update_banner_done_title">업데이트 다운로드 완료</string>
+    <string name="update_banner_done_message">탭하여 %1$s 설치 계속</string>
+    <string name="update_banner_action">설치하기</string>
     <string name="update_download_failed">다운로드 실패</string>
     <string name="update_check_failed">업데이트 확인 실패</string>
     <string name="update_rate_limited">요청 한도에 도달했습니다. 잠시 후 다시 시도해 주세요</string>
