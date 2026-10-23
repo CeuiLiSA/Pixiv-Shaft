@@ -189,6 +189,18 @@ internal class UpdateSheetView(ctx: Context) : LinearLayout(ctx) {
         skip.isVisible = false
     }
 
+    /**
+     * 收起进度区。只有「当前展示的版本换了 / 压根没开始下」才会用到——
+     * 同一版本的下载过程里不要调它，否则弹窗会跳高度。
+     */
+    fun hideProgress() {
+        if (!progressGroup.isVisible) return
+        progressGroup.isVisible = false
+        progressBar.progress = 0
+        progressText.text = ""
+        skip.isVisible = true
+    }
+
     fun setProgress(percent: Int, label: CharSequence) {
         progressBar.progress = percent
         progressText.text = label
