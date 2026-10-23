@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentContainerView
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.databinding.ActivityCoverBinding
+import ceui.lisa.utils.Settings
 import ceui.pixiv.ui.slideshow.SlideshowFragment
 import ceui.pixiv.utils.ppppx
 import com.blankj.utilcode.util.Utils
@@ -41,6 +42,11 @@ class MainBottomBarInsetsTest {
     @Before
     fun setUp() {
         Utils.init(RuntimeEnvironment.getApplication())
+        // robolectric.properties 把 Application 换成了裸 android.app.Application，Shaft.onCreate
+        // 不会跑，Shaft.sSettings 一直是 null；而 setUpAutoHidingBottomBar 要读
+        // isBottomBarHideOnScroll()。以前靠同沙箱里别的用例先赋过值侥幸通过，用例顺序一变
+        // 就整类 15 个用例全 NPE，所以这里显式给一份，不再依赖执行顺序。
+        Shaft.sSettings = Settings()
         val context = ContextThemeWrapper(RuntimeEnvironment.getApplication(), R.style.AppTheme)
         binding = ActivityCoverBinding.inflate(LayoutInflater.from(context))
         val activity = Robolectric.buildActivity(MainActivity::class.java).get()
