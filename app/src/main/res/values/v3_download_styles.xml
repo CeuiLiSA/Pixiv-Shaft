@@ -18,11 +18,24 @@
     </style>
 
     <!-- V3 Tab 文字 -->
+    <!--
+        选中粗 / 未选中常规（同视觉基准 .tabs 的选中态），交给 Material 的 tabSelectedTextAppearance
+        按 TabView 的选中态切换——拖拽 ViewPager2 时 setSelectedTabView() 也会走这条路。
+        fontFamily 必须显式写 sans-serif：父样式 android:TextAppearance.Material.Button 带
+        sans-serif-medium（500），在它上面叠 bold 会派生出 800，而 800 档的中文回退渲染不稳定，
+        同一 tab 同一文案会时粗时细。从 400 叠 bold 是标准的 700。
+    -->
     <style name="V3TabText" parent="TextAppearance.Design.Tab">
         <item name="android:textSize">13sp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="fontFamily">sans-serif</item>
+        <item name="android:textStyle">normal</item>
         <item name="android:letterSpacing">0.04</item>
         <item name="textAllCaps">false</item>
+    </style>
+
+    <style name="V3TabText.Selected">
+        <item name="android:textStyle">bold</item>
     </style>
 
     <!-- V3 状态徽章基础样式 -->
