@@ -138,7 +138,7 @@
     <string name="top_bar_scroll_hide">頂欄跟隨捲動收合</string>
     <string name="top_bar_scroll_hide_desc">推薦頁頂部的標題列向下滑動時收合、上滑恢復顯示；關閉後固定在頂部，始終可見</string>
     <string name="use_account_avatar_as_drawer_icon">側邊欄圖示顯示為帳號頭像</string>
-    <string name="use_account_avatar_as_drawer_icon_desc">在首頁左上角顯示目前登入帳號的圓形頭像（如 B 站風格）；未登入時顯示訪客頭像</string>
+    <string name="use_account_avatar_as_drawer_icon_desc">在首頁左上角顯示目前登入帳號的圓形頭像；未登入時顯示訪客頭像</string>
     <string name="tablet_layout_desc">在平板等大螢幕裝置上使用側邊導覽列、依螢幕寬度自動增加欄數的瀑布流與左右排列的作品詳情；關閉後與手機版面一致，僅平板生效</string>
     <!-- 平板首页侧边导航栏（#1087）：快捷入口与菜单按钮 -->
     <string name="rail_bookmarks">收藏</string>

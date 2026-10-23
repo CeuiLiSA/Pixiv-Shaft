@@ -496,7 +496,7 @@ public class FragmentSettingsAppearance extends SettingsPageFragment<FragmentSet
         baseBind.topBarScrollHideRela.setOnClickListener(
                 v -> baseBind.topBarScrollHide.performClick());
 
-        // 侧边栏图标显示为账号头像（B 站风格）
+        // 侧边栏图标显示为账号头像
         baseBind.useAccountAvatarAsDrawerIcon.setChecked(Shaft.sSettings.isUseAccountAvatarAsDrawerIcon());
         baseBind.useAccountAvatarAsDrawerIcon.setOnCheckedChangeListener((buttonView, isChecked) -> {
             Shaft.sSettings.setUseAccountAvatarAsDrawerIcon(isChecked);

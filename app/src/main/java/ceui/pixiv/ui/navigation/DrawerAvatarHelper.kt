@@ -10,6 +10,7 @@ import android.graphics.Paint
 import android.graphics.Shader
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.util.LruCache
 import android.widget.ImageView
 import androidx.annotation.ColorInt
 import androidx.appcompat.widget.Toolbar
@@ -20,12 +21,14 @@ import androidx.lifecycle.LifecycleOwner
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.utils.GlideUtil
+import ceui.loxia.User
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.witstudio.theme.V3Palette
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
+import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
 import com.bumptech.glide.load.resource.bitmap.TransformationUtils
 import com.bumptech.glide.request.RequestListener
@@ -35,33 +38,30 @@ import com.bumptech.glide.request.transition.Transition
 import java.security.MessageDigest
 
 /**
- * 侧边栏按钮头像化工具类（支持首页推荐/发现/动态以及平板侧边栏导航条）。
+ * 首页左上角侧边栏按钮头像化（推荐页 Toolbar、发现 / 动态的抽屉按钮、平板 Navigation Rail 菜单按钮）。
  *
- * 稳定性与防闪烁设计：
- * 1. 同图短路：比对 [R.id.user_head_icon_tag] 记录的目标指纹与现有 drawable，同图且已有位图时直接 return；
- *    绝不在 onResume 或 tab 切换时反复 clear / setImageDrawable(fallback) / 发起重复 Glide 解码，根治头像闪烁。
- * 2. 状态切换：开关关闭时短路记录 [TAG_DISABLED]，只在状态真正切换时恢复菜单图标与 tint，不产生无谓重排。
- * 3. 权威更新：监听 [SessionManager.loggedInAccount]，切号、修改资料、前台静默同步后自动刷新；
- *    新旧头像更替时以旧图平滑占位过渡，绝不中途闪回访客占位图。
- * 4. 离线/访客保底：未登录或官方默认头像走本地预置的圆形访客位图，0ms 瞬时渲染，不浪费网络请求。
+ * - 同图短路：[R.id.drawer_avatar_key] 记下当前目标（URL + 尺寸 + 描边），一致且已有图时直接 return，
+ *   onResume / 切 tab 不会反复清图重载，头像不闪。请求发出即落 key，失败时清掉以便下次重试。
+ * - 开关关闭：恢复菜单图标、tint 与原 scaleType，同样只在状态真正切换时动一次。
+ * - 未登录 / 官方默认头像：直接用本地 no_profile 生成的圆形位图，不走网络。
+ * - 占位只用访客位图：Glide 释放旧请求后旧位图可能被回收复用，不能拿来当占位或继续挂在 Toolbar 上。
  */
 object DrawerAvatarHelper {
 
-    private const val TAG_DISABLED = "__DRAWER_AVATAR_DISABLED__"
-    private const val TAG_VISITOR = "__DRAWER_AVATAR_VISITOR__"
+    private const val KEY_DISABLED = "__DRAWER_AVATAR_DISABLED__"
+    private const val KEY_VISITOR = "__DRAWER_AVATAR_VISITOR__"
 
-    private val fallbackCache = mutableMapOf<String, Bitmap>()
+    // key = 尺寸 + 描边宽 + 描边色；只会随主题色变化多出几份，几十 KB 的小图
+    private val fallbackCache = LruCache<String, Bitmap>(8)
 
-    /**
-     * 带边框的圆形裁切 Transformation。
-     */
-    class BorderedCircleCrop(
+    /** 带描边的圆形裁切。 */
+    private class BorderedCircleCrop(
         private val borderWidthPx: Float,
         @ColorInt private val borderColor: Int
     ) : BitmapTransformation() {
 
         override fun updateDiskCacheKey(messageDigest: MessageDigest) {
-            messageDigest.update("ceui.pixiv.BorderedCircleCrop.$borderWidthPx.$borderColor".toByteArray())
+            messageDigest.update("$ID.$borderWidthPx.$borderColor".toByteArray())
         }
 
         override fun transform(
@@ -70,90 +70,73 @@ object DrawerAvatarHelper {
             outWidth: Int,
             outHeight: Int
         ): Bitmap {
-            val circleBitmap = TransformationUtils.circleCrop(pool, toTransform, outWidth, outHeight)
-            if (borderWidthPx <= 0f || borderColor == Color.TRANSPARENT) {
-                return circleBitmap
-            }
-            val mutableBitmap = if (circleBitmap.isMutable) {
-                circleBitmap
-            } else {
-                circleBitmap.copy(Bitmap.Config.ARGB_8888, true)
-            }
-            val size = mutableBitmap.width
-            val canvas = Canvas(mutableBitmap)
-            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style = Paint.Style.STROKE
-                strokeWidth = borderWidthPx
-                color = borderColor
-            }
-            val half = borderWidthPx / 2f
-            canvas.drawCircle(size / 2f, size / 2f, (size / 2f) - half, paint)
-            return mutableBitmap
+            val circle = TransformationUtils.circleCrop(pool, toTransform, outWidth, outHeight)
+            if (borderWidthPx <= 0f || borderColor == Color.TRANSPARENT) return circle
+            val output = if (circle.isMutable) circle else circle.copy(Bitmap.Config.ARGB_8888, true)
+            drawBorder(Canvas(output), output.width / 2f, borderWidthPx, borderColor)
+            return output
         }
 
-        override fun equals(other: Any?): Boolean {
-            if (other is BorderedCircleCrop) {
-                return borderWidthPx == other.borderWidthPx && borderColor == other.borderColor
-            }
-            return false
-        }
+        override fun equals(other: Any?): Boolean =
+            other is BorderedCircleCrop &&
+                borderWidthPx == other.borderWidthPx && borderColor == other.borderColor
 
-        override fun hashCode(): Int {
-            var result = "ceui.pixiv.BorderedCircleCrop".hashCode()
-            result = 31 * result + borderWidthPx.hashCode()
-            result = 31 * result + borderColor
-            return result
+        override fun hashCode(): Int =
+            31 * (31 * ID.hashCode() + borderWidthPx.hashCode()) + borderColor
+
+        companion object {
+            private const val ID = "ceui.pixiv.ui.navigation.BorderedCircleCrop"
         }
     }
 
-    /**
-     * 获取访客默认圆形头像 Bitmap，带缓存。
-     */
-    @Synchronized
-    fun getFallbackBitmap(
+    private fun drawBorder(canvas: Canvas, radius: Float, widthPx: Float, @ColorInt color: Int) {
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = widthPx
+            this.color = color
+        }
+        canvas.drawCircle(radius, radius, radius - widthPx / 2f, paint)
+    }
+
+    private fun fallbackDrawable(
         context: Context,
         sizePx: Int,
         borderWidthPx: Float,
         @ColorInt borderColor: Int
-    ): Bitmap {
+    ): Drawable {
         val key = "$sizePx-$borderWidthPx-$borderColor"
-        fallbackCache[key]?.let {
-            if (!it.isRecycled) return it
-        }
-
-        val rawDrawable = ContextCompat.getDrawable(context, R.drawable.no_profile)
-        val rawBitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
-        val rawCanvas = Canvas(rawBitmap)
-        rawDrawable?.setBounds(0, 0, sizePx, sizePx)
-        rawDrawable?.draw(rawCanvas)
-
-        val output = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(output)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
-            shader = BitmapShader(rawBitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-        }
-
-        val radius = sizePx / 2f
-        canvas.drawCircle(radius, radius, radius, paint)
-
-        if (borderWidthPx > 0f && borderColor != Color.TRANSPARENT) {
-            val halfBorder = borderWidthPx / 2f
-            val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                style = Paint.Style.STROKE
-                strokeWidth = borderWidthPx
-                color = borderColor
+        val bitmap = fallbackCache.get(key) ?: run {
+            val raw = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+            ContextCompat.getDrawable(context, R.drawable.no_profile)?.apply {
+                setBounds(0, 0, sizePx, sizePx)
+                draw(Canvas(raw))
             }
-            canvas.drawCircle(radius, radius, radius - halfBorder, borderPaint)
+            val output = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(output)
+            val radius = sizePx / 2f
+            canvas.drawCircle(radius, radius, radius, Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+                shader = BitmapShader(raw, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+            })
+            if (borderWidthPx > 0f && borderColor != Color.TRANSPARENT) {
+                drawBorder(canvas, radius, borderWidthPx, borderColor)
+            }
+            raw.recycle()
+            output.also { fallbackCache.put(key, it) }
         }
-
-        rawBitmap.recycle()
-        fallbackCache[key] = output
-        return output
+        return BitmapDrawable(context.resources, bitmap)
     }
 
-    /**
-     * 绑定 ImageView/ImageButton（发现、动态、平板 Navigation Rail 菜单按钮）。
-     */
+    /** 当前账号的头像请求；null = 访客（未登录或官方默认头像），走本地位图。 */
+    private fun headUrlOrNull(user: User?): GlideUrl? {
+        val rawUrl = user?.profile_image_urls?.findMaxSizeUrl()
+        if (rawUrl.isNullOrEmpty() || rawUrl == GlideUtil.DEFAULT_HEAD_IMAGE) return null
+        return GlideUtil.getHead(user)
+    }
+
+    private fun targetKey(headUrl: GlideUrl?, sizePx: Int, borderWidthPx: Float, @ColorInt borderColor: Int): String =
+        "${headUrl?.toStringUrl() ?: KEY_VISITOR}-$sizePx-$borderWidthPx-$borderColor"
+
+    /** 绑定 ImageView/ImageButton（发现、动态的抽屉按钮），并跟随账号变化刷新。 */
     @JvmStatic
     @JvmOverloads
     fun bindImageView(
@@ -170,9 +153,7 @@ object DrawerAvatarHelper {
         }
     }
 
-    /**
-     * 将头像（或回退图标）应用至 ImageView/ImageButton。
-     */
+    /** 按开关把头像（或菜单图标）应用到 ImageView/ImageButton。 */
     @JvmStatic
     @JvmOverloads
     fun applyToImageView(
@@ -182,72 +163,49 @@ object DrawerAvatarHelper {
         @ColorInt borderColor: Int = ContextCompat.getColor(imageView.context, R.color.v3_border_2),
         @ColorInt defaultTint: Int = ContextCompat.getColor(imageView.context, R.color.v3_text_1)
     ) {
-        val context = imageView.context
-        val existingTag = imageView.getTag(R.id.user_head_icon_tag) as? String
+        val existingKey = imageView.getTag(R.id.drawer_avatar_key) as? String
 
         if (!Shaft.sSettings.isUseAccountAvatarAsDrawerIcon) {
-            // 开关关闭态短路：已处于禁用态则直接返回，避免每次 onResume 重新 setImageResource 与重设 tint
-            if (existingTag == TAG_DISABLED && imageView.drawable != null) {
-                return
-            }
-            Glide.with(context).clear(imageView)
+            // 从没开过（tag 为空）时控件本来就是菜单图标，不用动
+            if (existingKey == null || existingKey == KEY_DISABLED) return
+            Glide.with(imageView).clear(imageView)
             ImageViewCompat.setImageTintList(imageView, ColorStateList.valueOf(defaultTint))
+            (imageView.getTag(R.id.drawer_avatar_scale_type) as? ImageView.ScaleType)?.let {
+                imageView.scaleType = it
+            }
             imageView.setImageResource(R.drawable.ic_baseline_dns_24)
-            imageView.setTag(R.id.user_head_icon_tag, TAG_DISABLED)
+            imageView.setTag(R.id.drawer_avatar_key, KEY_DISABLED)
             return
         }
 
+        val context = imageView.context
         val density = context.resources.displayMetrics.density
         val sizePx = (sizeDp * density).toInt()
-        val borderWidthPx = if (withBorder) (0.8f * density) else 0f
+        val borderWidthPx = if (withBorder) 0.8f * density else 0f
+        val headUrl = headUrlOrNull(SessionManager.loggedInUser)
+        val key = targetKey(headUrl, sizePx, borderWidthPx, borderColor)
+        if (existingKey == key && imageView.drawable != null) return
 
-        val user = SessionManager.loggedInUser
-        val rawUrl = user?.profile_image_urls?.findMaxSizeUrl()
-        val isVisitor = user == null || rawUrl.isNullOrEmpty() || rawUrl == GlideUtil.DEFAULT_HEAD_IMAGE
-
-        val targetKey = if (isVisitor) {
-            "$TAG_VISITOR-$sizePx-$borderWidthPx-$borderColor"
-        } else {
-            "$rawUrl-$sizePx-$borderWidthPx-$borderColor"
-        }
-
-        // 头像防闪烁核心短路：若当前展示的目标与 URL/规格一致且图还在，直接 return，绝不清空重载
-        if (existingTag == targetKey && imageView.drawable != null) {
-            return
-        }
-
-        // 开关开启时，清除 tint 以免头像被滤镜单色染色
+        // 头像不吃菜单图标的 tint；按原尺寸居中，关掉开关时再还原 scaleType
         ImageViewCompat.setImageTintList(imageView, null)
-        imageView.colorFilter = null
+        if (imageView.getTag(R.id.drawer_avatar_scale_type) == null) {
+            imageView.setTag(R.id.drawer_avatar_scale_type, imageView.scaleType)
+        }
         imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+        imageView.setTag(R.id.drawer_avatar_key, key)
 
-        val fallbackBitmap = getFallbackBitmap(context, sizePx, borderWidthPx, borderColor)
-        val fallbackDrawable = BitmapDrawable(context.resources, fallbackBitmap)
-
-        if (isVisitor) {
-            Glide.with(context).clear(imageView)
-            imageView.setImageDrawable(fallbackDrawable)
-            imageView.setTag(R.id.user_head_icon_tag, targetKey)
+        val fallback = fallbackDrawable(context, sizePx, borderWidthPx, borderColor)
+        if (headUrl == null) {
+            Glide.with(imageView).clear(imageView)
+            imageView.setImageDrawable(fallback)
             return
         }
-
-        val headGlideUrl = GlideUtil.getHead(user)
-        if (headGlideUrl == null) {
-            Glide.with(context).clear(imageView)
-            imageView.setImageDrawable(fallbackDrawable)
-            imageView.setTag(R.id.user_head_icon_tag, targetKey)
-            return
-        }
-
-        // 若当前已有图（如从旧头像切新头像），用已有图占位过渡；若为空则用圆形访客图占位
-        val placeholder = imageView.drawable ?: fallbackDrawable
-
-        Glide.with(context)
-            .load(headGlideUrl)
+        Glide.with(imageView)
+            .load(headUrl)
             .override(sizePx, sizePx)
             .transform(BorderedCircleCrop(borderWidthPx, borderColor))
-            .placeholder(placeholder)
-            .error(fallbackDrawable)
+            .placeholder(fallback)
+            .error(fallback)
             .addListener(object : RequestListener<Drawable> {
                 override fun onLoadFailed(
                     e: GlideException?,
@@ -255,8 +213,10 @@ object DrawerAvatarHelper {
                     target: Target<Drawable>,
                     isFirstResource: Boolean
                 ): Boolean {
-                    // 加载失败时清空 tag，以便后续网络恢复或返回时可重新尝试
-                    imageView.setTag(R.id.user_head_icon_tag, null)
+                    // 失败清 key，网络恢复后下一次 onResume 会重试
+                    if (imageView.getTag(R.id.drawer_avatar_key) == key) {
+                        imageView.setTag(R.id.drawer_avatar_key, null)
+                    }
                     return false
                 }
 
@@ -266,171 +226,98 @@ object DrawerAvatarHelper {
                     target: Target<Drawable>?,
                     dataSource: DataSource,
                     isFirstResource: Boolean
-                ): Boolean {
-                    // 仅在真实渲染成功后落 tag
-                    imageView.setTag(R.id.user_head_icon_tag, targetKey)
-                    return false
-                }
+                ): Boolean = false
             })
             .into(imageView)
     }
 
     /**
-     * 实色顶栏（FragmentLeft Toolbar）描边自动计算标识（默认）。
-     */
-    const val BORDER_COLOR_AUTO: Int = 0
-
-    /**
-     * 根据当前主题色及其明暗度，动态解析推荐页实色顶栏（Toolbar）的头像描边色。
-     *
-     * 遵循 V3 设计规范：
-     * - 深色/常规主题色（紫、蓝、粉等，感知亮度 < 0.5）：使用 50% 半透明纯白（0x80FFFFFF），在深色顶栏上呈现微透光晕；
-     * - 高亮浅色主题色（如盛夏黄 #fee65e、浅绿等，感知亮度 ≥ 0.5）：使用 [V3Palette.onPrimary]
-     *   （已压深的主题色），以 40% 透明度渲染，既具备主题色系基因，又能形成高对比轮廓，杜绝白边在黄底上的发虚隐形。
+     * 推荐页实色顶栏（?attr/colorPrimary）上的头像描边色：取 [V3Palette.onPrimary]，
+     * 深色主题色（感知亮度 < 0.5）上 50% 不透明，盛夏黄这类浅色主题色上 40%，避免白边在浅底上发虚。
      */
     @ColorInt
-    @JvmStatic
-    fun resolveToolbarBorderColor(context: Context): Int {
+    private fun resolveToolbarBorderColor(context: Context): Int {
         val palette = V3Palette.from(context)
-        val onPrimary = palette.onPrimary
-        val isDarkBg = ColorUtils.calculateLuminance(palette.primary) < 0.5
-        val alpha = if (isDarkBg) 0x80 else 0x66
-        return ColorUtils.setAlphaComponent(onPrimary, alpha)
+        val alpha = if (ColorUtils.calculateLuminance(palette.primary) < 0.5) 0x80 else 0x66
+        return ColorUtils.setAlphaComponent(palette.onPrimary, alpha)
     }
 
-    /**
-     * 绑定 Toolbar navigationIcon（推荐页 FragmentLeft）。
-     */
+    /** 绑定 Toolbar navigationIcon（推荐页 FragmentLeft），并跟随账号变化刷新。 */
     @JvmStatic
     @JvmOverloads
-    fun bindToolbar(
-        toolbar: Toolbar,
-        lifecycleOwner: LifecycleOwner,
-        sizeDp: Int = 32,
-        withBorder: Boolean = true,
-        @ColorInt borderColor: Int = BORDER_COLOR_AUTO
-    ) {
-        applyToToolbar(toolbar, sizeDp, withBorder, borderColor)
+    fun bindToolbar(toolbar: Toolbar, lifecycleOwner: LifecycleOwner, sizeDp: Int = 32) {
+        applyToToolbar(toolbar, sizeDp)
         SessionManager.loggedInAccount.observe(lifecycleOwner) {
-            applyToToolbar(toolbar, sizeDp, withBorder, borderColor)
+            applyToToolbar(toolbar, sizeDp)
         }
     }
 
-    /**
-     * 将头像（或回退图标）应用至 Toolbar navigationIcon。
-     */
+    /** 按开关把头像（或菜单图标）应用到 Toolbar navigationIcon。 */
     @JvmStatic
     @JvmOverloads
-    fun applyToToolbar(
-        toolbar: Toolbar,
-        sizeDp: Int = 32,
-        withBorder: Boolean = true,
-        @ColorInt borderColor: Int = BORDER_COLOR_AUTO
-    ) {
-        val context = toolbar.context
-        val existingTag = toolbar.getTag(R.id.user_head_icon_tag) as? String
+    fun applyToToolbar(toolbar: Toolbar, sizeDp: Int = 32) {
+        val existingKey = toolbar.getTag(R.id.drawer_avatar_key) as? String
 
         if (!Shaft.sSettings.isUseAccountAvatarAsDrawerIcon) {
-            if (existingTag == TAG_DISABLED && toolbar.navigationIcon != null) {
-                return
-            }
-            val oldTarget = toolbar.getTag(R.id.inflated_views_cache) as? CustomTarget<*>
-            if (oldTarget != null) {
-                Glide.with(context).clear(oldTarget)
-                toolbar.setTag(R.id.inflated_views_cache, null)
-            }
+            if (existingKey == null || existingKey == KEY_DISABLED) return
+            clearToolbarTarget(toolbar)
             toolbar.setNavigationIcon(R.drawable.ic_baseline_dns_24)
-            toolbar.setTag(R.id.user_head_icon_tag, TAG_DISABLED)
+            toolbar.setTag(R.id.drawer_avatar_key, KEY_DISABLED)
             return
         }
 
-        val resolvedBorderColor = if (withBorder) {
-            if (borderColor == BORDER_COLOR_AUTO) resolveToolbarBorderColor(context) else borderColor
-        } else {
-            Color.TRANSPARENT
-        }
-
+        val context = toolbar.context
         val density = context.resources.displayMetrics.density
         val sizePx = (sizeDp * density).toInt()
-        val borderWidthPx = if (withBorder) (1.2f * density) else 0f
+        val borderWidthPx = 1.2f * density
+        val borderColor = resolveToolbarBorderColor(context)
+        val headUrl = headUrlOrNull(SessionManager.loggedInUser)
+        val key = targetKey(headUrl, sizePx, borderWidthPx, borderColor)
+        if (existingKey == key && toolbar.navigationIcon != null) return
 
-        val user = SessionManager.loggedInUser
-        val rawUrl = user?.profile_image_urls?.findMaxSizeUrl()
-        val isVisitor = user == null || rawUrl.isNullOrEmpty() || rawUrl == GlideUtil.DEFAULT_HEAD_IMAGE
-
-        val targetKey = if (isVisitor) {
-            "$TAG_VISITOR-$sizePx-$borderWidthPx-$resolvedBorderColor"
-        } else {
-            "$rawUrl-$sizePx-$borderWidthPx-$resolvedBorderColor"
-        }
-
-        // Toolbar 防闪烁短路：若当前展示的目标与 URL/规格一致且图还在，直接 return
-        if (existingTag == targetKey && toolbar.navigationIcon != null) {
+        toolbar.setTag(R.id.drawer_avatar_key, key)
+        // 清旧请求会回调旧 target 的 onLoadCleared，在那里换下旧位图
+        clearToolbarTarget(toolbar)
+        val fallback = fallbackDrawable(context, sizePx, borderWidthPx, borderColor)
+        if (headUrl == null) {
+            toolbar.navigationIcon = fallback
             return
-        }
-
-        val fallbackBitmap = getFallbackBitmap(context, sizePx, borderWidthPx, resolvedBorderColor)
-        val fallbackDrawable = BitmapDrawable(context.resources, fallbackBitmap)
-
-        if (isVisitor) {
-            val oldTarget = toolbar.getTag(R.id.inflated_views_cache) as? CustomTarget<*>
-            if (oldTarget != null) {
-                Glide.with(context).clear(oldTarget)
-                toolbar.setTag(R.id.inflated_views_cache, null)
-            }
-            toolbar.navigationIcon = fallbackDrawable
-            toolbar.setTag(R.id.user_head_icon_tag, targetKey)
-            return
-        }
-
-        val headGlideUrl = GlideUtil.getHead(user)
-        if (headGlideUrl == null) {
-            val oldTarget = toolbar.getTag(R.id.inflated_views_cache) as? CustomTarget<*>
-            if (oldTarget != null) {
-                Glide.with(context).clear(oldTarget)
-                toolbar.setTag(R.id.inflated_views_cache, null)
-            }
-            toolbar.navigationIcon = fallbackDrawable
-            toolbar.setTag(R.id.user_head_icon_tag, targetKey)
-            return
-        }
-
-        // 若当前未展示任何图标，先挂占位；若已有图标则保留原图标直至新图加载成功，避免闪白
-        if (toolbar.navigationIcon == null) {
-            toolbar.navigationIcon = fallbackDrawable
-        }
-
-        val oldTarget = toolbar.getTag(R.id.inflated_views_cache) as? CustomTarget<*>
-        if (oldTarget != null) {
-            Glide.with(context).clear(oldTarget)
         }
 
         val target = object : CustomTarget<Bitmap>(sizePx, sizePx) {
+            override fun onLoadStarted(placeholder: Drawable?) {
+                // 内存缓存命中时 onResourceReady 会在 into() 内同步回调，同一帧内不会看到占位
+                toolbar.navigationIcon = fallback
+            }
+
             override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
                 toolbar.navigationIcon = BitmapDrawable(context.resources, resource)
-                toolbar.setTag(R.id.user_head_icon_tag, targetKey)
             }
 
             override fun onLoadCleared(placeholder: Drawable?) {
-                if (toolbar.navigationIcon == null) {
-                    toolbar.navigationIcon = placeholder ?: fallbackDrawable
-                }
+                // 位图即将交还 Glide，不能再让 Toolbar 画它
+                toolbar.navigationIcon = fallback
             }
 
             override fun onLoadFailed(errorDrawable: Drawable?) {
-                toolbar.setTag(R.id.user_head_icon_tag, null)
-                if (toolbar.navigationIcon == null) {
-                    toolbar.navigationIcon = errorDrawable ?: fallbackDrawable
+                if (toolbar.getTag(R.id.drawer_avatar_key) == key) {
+                    toolbar.setTag(R.id.drawer_avatar_key, null)
                 }
+                toolbar.navigationIcon = fallback
             }
         }
-        toolbar.setTag(R.id.inflated_views_cache, target)
-
-        Glide.with(context)
+        toolbar.setTag(R.id.drawer_avatar_target, target)
+        Glide.with(toolbar)
             .asBitmap()
-            .load(headGlideUrl)
+            .load(headUrl)
             .override(sizePx, sizePx)
-            .transform(BorderedCircleCrop(borderWidthPx, resolvedBorderColor))
+            .transform(BorderedCircleCrop(borderWidthPx, borderColor))
             .into(target)
+    }
+
+    private fun clearToolbarTarget(toolbar: Toolbar) {
+        val old = toolbar.getTag(R.id.drawer_avatar_target) as? CustomTarget<*> ?: return
+        toolbar.setTag(R.id.drawer_avatar_target, null)
+        Glide.with(toolbar).clear(old)
     }
 }

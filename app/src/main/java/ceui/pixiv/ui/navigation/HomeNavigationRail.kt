@@ -80,7 +80,6 @@ class HomeNavigationRail @JvmOverloads constructor(
     init {
         orientation = HORIZONTAL
         setBackgroundColor(context.color(R.color.v3_bg))
-        updateMenuAvatar()
 
         val scroll = ScrollView(context).apply {
             isVerticalScrollBarEnabled = false
@@ -125,14 +124,9 @@ class HomeNavigationRail @JvmOverloads constructor(
         menuButton.setOnClickListener(listener)
     }
 
+    /** 侧边栏按钮头像化；由 MainActivity 在会话 / 开关变化时驱动，构造期不读全局设置。 */
     fun updateMenuAvatar() {
-        DrawerAvatarHelper.applyToImageView(
-            menuButton,
-            sizeDp = 34,
-            withBorder = true,
-            borderColor = context.color(R.color.v3_border_2),
-            defaultTint = context.color(R.color.v3_text_1),
-        )
+        DrawerAvatarHelper.applyToImageView(menuButton, sizeDp = 34)
     }
 
     fun setDestinationListener(listener: DestinationListener?) {
