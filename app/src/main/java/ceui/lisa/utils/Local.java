@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.DownloadDao;
 import ceui.lisa.database.UserEntity;
 import ceui.pixiv.api.model.AccountResponse;
 import ceui.pixiv.session.SessionManager;
@@ -91,5 +92,33 @@ public class Local {
         entity.setUserID(userModel.getUser().getId());
         entity.setUserGson(Shaft.sGson.toJson(getUser()));
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertUser(entity);
+    }
+
+    /**
+     * 把会话里刷新过的那份 user 写回账号表，**保留原来的入库时间**。
+     *
+     * <p>账号表这一行是「登录那一刻」冻下来的快照：pixiv 的 OAuth 登录响应里
+     * profile_image_urls 只有三张默认占位图（真实头像得走 user/detail 才拿得到），
+     * 快照冻下之后账号管理页就一直画占位图 —— 而侧边栏读的是会话、由前台静默同步持续刷新，
+     * 两份数据源一旧一新。会话每次拿到新鲜资料就顺手把这一行刷一遍，快照才追得上会话。
+     *
+     * <p>只更新已存在的行，不凭空插入：表里没有它，说明这个号没在本机登录过（或刚被删掉），
+     * 该不该出现在账号列表里是账号管理的事，不该由一次后台刷新决定。
+     *
+     * <p>值没变就不落盘：这条路径每次回前台都会走一遍，无变化还写会把 WAL 白白撑大。
+     * 必须在 IO 线程调用。
+     */
+    public static void refreshStoredUser(AccountResponse account) {
+        if (account == null || account.getUser() == null) return;
+        long uid = account.getUser().getId();
+        if (uid <= 0L) return;
+        DownloadDao dao = AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao();
+        UserEntity existing = dao.getUserByUid(uid);
+        if (existing == null) return;
+        String next = Shaft.sGson.toJson(account);
+        if (next.equals(existing.getUserGson())) return;
+        existing.setUserGson(next);
+        // REPLACE 按主键 userID 覆盖，loginTime 原样带回去，不刷新「登录于」那一行。
+        dao.insertUser(existing);
     }
 }

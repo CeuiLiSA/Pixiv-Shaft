@@ -15,6 +15,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.repo.freshMembershipOf
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.Local
 import ceui.loxia.User
 import ceui.pixiv.actions.PixivActions
 import ceui.pixiv.api.Client
@@ -384,8 +385,15 @@ object SessionManager {
         // 记在下面那条「无变化就返回」之前，否则一个一直是会员的号永远盖不上这个戳。
         if (premium != null) markPremiumObserved(uid)
         val mergedUser = old.mergedWith(fresh, premium)
-        if (mergedUser == old) return
         val merged = current.copy(user = mergedUser)
+        // 账号表那行是登录那一刻的快照，跟着会话一起刷：pixiv 的登录响应里头像是默认占位图，
+        // 真实头像只有 user/detail 才有，不刷的话账号管理页的「其他账号」永远显示占位。
+        // 放 IO —— 这条路径每次回前台都会走，不该在主线程上碰 Room。
+        profileSyncScope.launch {
+            runCatching { Local.refreshStoredUser(merged) }
+                .onFailure { Timber.w(it, "refresh stored account failed") }
+        }
+        if (mergedUser == old) return
         prefStore.putString(USER_KEY, gson.toJson(merged))
         _loggedInAccount.value = merged
         if (mergedUser.is_premium != old.is_premium) {
