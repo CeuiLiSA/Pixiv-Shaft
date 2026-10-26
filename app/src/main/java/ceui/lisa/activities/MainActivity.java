@@ -116,6 +116,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
      */
     private boolean drawerMenuReady = false;
 
+    /** {@link #leaveDrawerThen} 已排上、还没执行的那次出场;非 null 时再点抽屉条目一律忽略。 */
+    private Runnable pendingDrawerLeave;
+
     /**
      * 首帧之后逐帧跑的活（放行停在 CREATED 的 tab 页、建抽屉菜单），每帧只跑一个。
      *
@@ -997,8 +1000,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                         // [实验] 武装点放在这里而不是 handleDrawerAction 里:那个方法还与
                         // MeFragment / FragmentCenter 共用,只有这里是真正的"从侧边栏进入"。
                         PredictiveBackSuppressor.armDrawerLaunch();
-                        handleDrawerAction(entry.id);
-                        baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+                        leaveDrawerThen(() -> handleDrawerAction(entry.id));
                     });
             parent.addView(row);
         }
@@ -1200,15 +1202,39 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private void openMyUserPage() {
         Intent userIntent = new Intent(mContext, UActivity.class);
         userIntent.putExtra(Params.USER_ID, (long) SessionManager.INSTANCE.getLoggedInUid());
-        startActivity(userIntent);
-        baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+        leaveDrawerThen(() -> startActivity(userIntent));
     }
 
     private void openAccountSwitch() {
         Intent intent = new Intent(mContext, TemplateActivity.class);
         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ACCOUNT_SWITCH.key);
-        startActivity(intent);
-        baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+        leaveDrawerThen(() -> startActivity(intent));
+    }
+
+    /**
+     * 侧边栏条目点击后的统一出场节奏:先让 ripple 播完,再收抽屉,最后才跳转。
+     *
+     * <p>抽屉关闭 250ms、ripple 的扩散动画 225ms,两者同时起跑时,波纹最明显的那一刻
+     * 正好是抽屉滑出屏幕的那一刻 —— 看起来就是"抽屉都快收完了才出现波纹"。先等 120ms
+     * (此时 ripple 已扩散到六成、肉眼明确可见)再收抽屉,波纹才有了自己的时间。
+     *
+     * <p>跳转排在 closeDrawer 之后:startActivity 是同步调用,实测会占住主线程约 90ms,
+     * 排在前面时抽屉的 translationX 已经推进了一段却没有一帧被画出来,ripple 的起始帧
+     * 也一起被吞掉。
+     */
+    private void leaveDrawerThen(Runnable action) {
+        // 这 120ms 里抽屉还静止张开、每一行都照常可点(原来点完抽屉立刻进入 settling,
+        // 再点会被 ViewDragHelper 当成抓抽屉拦掉);不挡的话连点两下就会叠开两个页面。
+        if (pendingDrawerLeave != null) {
+            return;
+        }
+        pendingDrawerLeave =
+                () -> {
+                    pendingDrawerLeave = null;
+                    baseBind.drawerLayout.closeDrawer(GravityCompat.START);
+                    action.run();
+                };
+        baseBind.drawerLayout.postDelayed(pendingDrawerLeave, 120);
     }
 
     private void initDrawerHeader() {
@@ -1348,6 +1374,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     protected void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(profileReadyReceiver);
+        // View.postDelayed 不随 Activity 销毁撤回;handleDrawerAction 里有弹框的分支
+        // (以图搜图、敏感内容警示),在已销毁的 Activity 上弹会 BadTokenException。
+        if (pendingDrawerLeave != null) {
+            baseBind.drawerLayout.removeCallbacks(pendingDrawerLeave);
+            pendingDrawerLeave = null;
+        }
     }
 
     @Override
