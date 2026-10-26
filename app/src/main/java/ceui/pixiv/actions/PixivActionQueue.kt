@@ -42,6 +42,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 一个进程只有一份，由 [ceui.lisa.activities.Shaft] 构造并经
  * [ceui.pixiv.services.ServicesProvider.pixivActionQueue] 暴露；构造廉价（不建队列、不起协程），
  * 真正的装配在 [start]。
+ *
+ * 小说的逐篇下载也由这里托管，但进**另一条**队列（独立库，见 [downloadQueue]）：两者共用
+ * 同一套登录 / 联网闸门与按账号分账，而下载一批就是几百条，排进收藏那条队列的话，
+ * 期间点的收藏要在它们后面等上好几分钟才真正发出去。
  */
 class PixivActionQueue(app: Context) {
 
@@ -64,6 +68,13 @@ class PixivActionQueue(app: Context) {
     @Volatile
     private var queue: ActionQueue? = null
 
+    /**
+     * 小说下载队列。挂在进程级 scope 上而不是页面上：批量下载点完就退页，下载照跑；
+     * 进程被杀后下次启动接着下没下完的。
+     */
+    @Volatile
+    private var downloadQueue: ActionQueue? = null
+
     /** 幂等。由 [ceui.lisa.activities.Shaft] 调，必须排在 SessionManager.initialize 之后（gate 要读登录态）。 */
     fun start() {
         if (!started.compareAndSet(false, true)) return
@@ -71,6 +82,9 @@ class PixivActionQueue(app: Context) {
         // 等于各注册一个回调，与该类「全进程只注册一个」的设计相悖。
         val monitor = AppNetworkMonitor.get(app)
         val isOnline = { monitor.isConnected }
+
+        val gate: suspend () -> Boolean = { SessionManager.isLoggedIn && monitor.isConnected }
+        val owner: suspend () -> String = { SessionManager.loggedInUid.toString() }
 
         val instance = ActionQueue.withRoomStore(
             context = app,
@@ -89,17 +103,37 @@ class PixivActionQueue(app: Context) {
             // 加起来只撑得住 7.5 分钟 —— 坐一趟地铁回来，用户排队的收藏已经被烧成终态
             // 失败并回滚了，而「离线也不丢」正是这个队列存在的理由。真在飞行途中掉线的
             // 那一条由 handler 判成「不计入尝试次数」兜底（见 toActionOutcome）。
-            gate = { SessionManager.isLoggedIn && monitor.isConnected },
+            gate = gate,
             // 行按登录用户分账。库是跨登录态持久的：A 排队没发完的收藏，如果不认归属，
             // 会在 B 登录之后用 B 的 token 发出去，收藏进 B 的账号。
-            owner = { SessionManager.loggedInUid.toString() },
+            owner = owner,
             onError = { message, t -> Timber.tag(TAG).e(t, message) },
         )
         queue = instance
         observeFailures(instance)
         instance.start()
-        observeGateSignals(instance, monitor)
+
+        val downloads = ActionQueue.withRoomStore(
+            context = app,
+            handlers = mapOf(
+                PixivActionTypes.NOVEL_DOWNLOAD to NovelDownloadHandler(isOnline),
+                PixivActionTypes.NOVEL_SERIES_DOWNLOAD to NovelSeriesDownloadHandler(isOnline) {
+                    checkNotNull(downloadQueue).enqueueAndWait(it)
+                },
+            ),
+            databaseName = DOWNLOAD_DATABASE_NAME,
+            policy = QueuePolicy(minGapMs = DOWNLOAD_MIN_GAP_MS),
+            gate = gate,
+            owner = owner,
+            onError = { message, t -> Timber.tag(TAG).e(t, message) },
+        )
+        downloadQueue = downloads
+        observeDownloads(downloads)
+        downloads.start()
+
+        observeGateSignals(listOf(instance, downloads), monitor)
         pruneStaleFailures(instance)
+        pruneStaleFailures(downloads)
         Timber.tag(TAG).i("action queue started, minGap=%dms", MIN_GAP_MS)
     }
 
@@ -125,6 +159,15 @@ class PixivActionQueue(app: Context) {
         instance.enqueue(request)
     }
 
+    internal fun enqueueDownload(request: ActionRequest) {
+        val instance = downloadQueue
+        if (instance == null) {
+            Timber.tag(TAG).w("download enqueue before start, dropped: %s", request.dedupeKey)
+            return
+        }
+        instance.enqueue(request)
+    }
+
     /**
      * 闸门条件恢复时立刻踢一脚队列。
      *
@@ -134,16 +177,16 @@ class PixivActionQueue(app: Context) {
      * 用 [ActionQueue.kick] 而不是 `resume()`：后者还会清掉暂停标志，等于让一次网络抖动
      * 顺手解除用户主动按下的暂停。这里要的只是「重新看一眼队列」。
      */
-    private fun observeGateSignals(instance: ActionQueue, monitor: NetworkMonitor) {
+    private fun observeGateSignals(instances: List<ActionQueue>, monitor: NetworkMonitor) {
         feedbackScope.launch {
             monitor.observeConnectivity.collect { online ->
-                if (online) instance.kick()
+                if (online) instances.forEach { it.kick() }
             }
         }
         // 登录 / 换账号：owner 变了，队列要重新按新账号取行。
         feedbackScope.launch {
             withContext(Dispatchers.Main) {
-                SessionManager.loggedInAccount.observeForever { instance.kick() }
+                SessionManager.loggedInAccount.observeForever { instances.forEach { it.kick() } }
             }
         }
     }
@@ -209,6 +252,29 @@ class PixivActionQueue(app: Context) {
                     throw ce
                 } catch (t: Throwable) {
                     Timber.tag(TAG).e(t, "handling queue event failed")
+                }
+            }
+        }
+    }
+
+    /**
+     * 下载队列的反馈（进度 / 结果 toast）。订阅时机与逐条兜底的理由同 [observeFailures]；
+     * 失败行同样处理完就删 —— 下载没有可回滚的乐观状态，留着也没人看。
+     */
+    private fun observeDownloads(instance: ActionQueue) {
+        val feedback = NovelDownloadFeedback(app)
+        feedbackScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            instance.events.collect { event ->
+                try {
+                    try {
+                        withContext(Dispatchers.Main) { feedback.onEvent(event) }
+                    } finally {
+                        if (event is ActionEvent.Failed) instance.forget(event.action.id)
+                    }
+                } catch (ce: CancellationException) {
+                    throw ce
+                } catch (t: Throwable) {
+                    Timber.tag(TAG).e(t, "handling download event failed")
                 }
             }
         }
@@ -474,6 +540,11 @@ class PixivActionQueue(app: Context) {
 
         /** pixiv 对收藏/关注的速率限制没有公开文档，2 秒是实测不触发 429 的保守值。 */
         const val MIN_GAP_MS = 2_000L
+
+        /** 小说正文抓取的间隔，沿用原批量下载实测不触发 429 的 1.5 秒。 */
+        const val DOWNLOAD_MIN_GAP_MS = 1_500L
+
+        const val DOWNLOAD_DATABASE_NAME = "novel_download_queue.db"
 
         const val MS_PER_MINUTE = 60_000L
     }

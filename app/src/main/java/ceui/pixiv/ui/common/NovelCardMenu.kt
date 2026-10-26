@@ -105,7 +105,7 @@ internal fun NovelFeedFragment.showNovelCardMenu(
                 putExtra(BulkSelectHandoff.ARG_HANDOFF_KEY, key)
             })
         }
-        // 下载这一篇：复用批量/系列下载同一条落盘链路（BatchDownloadNovelsTask），
+        // 下载这一篇：复用批量/系列下载同一条小说下载队列（PixivActions.downloadNovels），
         // 不灌 download_queue——小说下载本来就不走那张表。
         item(getString(R.string.string_339), R.drawable.ic_file_download_black_24dp) {
             startNovelDownload(novel)

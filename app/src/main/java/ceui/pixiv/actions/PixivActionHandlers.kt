@@ -17,6 +17,10 @@ internal object PixivActionTypes {
     const val NOVEL_BOOKMARK = "novel_bookmark"
     const val USER_FOLLOW = "user_follow"
     const val USER_ONLINE = "user_online"
+
+    // 以下两种只进下载队列，见 PixivActionQueue。
+    const val NOVEL_DOWNLOAD = "novel_download"
+    const val NOVEL_SERIES_DOWNLOAD = "novel_series_download"
 }
 
 /**
@@ -182,7 +186,7 @@ private suspend fun attempt(
 internal inline fun <reified T> PendingAction.parsePayload(): T? =
     runCatching { Shaft.sGson.fromJson(payload, T::class.java) }.getOrNull()
 
-private fun badPayload(action: PendingAction): ActionOutcome =
+internal fun badPayload(action: PendingAction): ActionOutcome =
     ActionOutcome.Fail("unparsable payload: ${action.payload.take(120)}")
 
 /** 非空标签列表，没有则 null。gson 可能给回 null、空表，或含空串的表（旧行/手输标签）。 */
