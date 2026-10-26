@@ -32,9 +32,17 @@ import timber.log.Timber
 import java.util.UUID
 
 /**
+ * 格式按枚举名存、读时自己查表：payload 落库要跨版本存活，而 gson 反射枚举常量依赖 R8 不改动它，
+ * 这个前提没有 keep 规则兜着。认不出（版本回退后读到新版的格式）返回 null。
+ */
+private fun exportFormatOf(name: String?): ExportFormat? =
+    ExportFormat.entries.firstOrNull { it.name == name }
+
+/**
  * 一篇小说的下载。批量 / 单篇 / 系列选择下载都拆成「一篇一条」进下载队列，
  * 由 [PixivActionQueue] 的下载队列串行执行 —— 页面退出不再连坐取消，进程被杀也能续上。
  *
+ * @param format      [ExportFormat] 的枚举名，见 [exportFormatOf]。
  * @param seriesOrder 本篇在**系列**中的 1-based 位置（不是在本批里的位置 —— 勾选第 3、5、9 章时
  *                    必须还是 3、5、9）。喂给路径模板的 `{series_order}`（#964）和信息头的
  *                    「第 X / Y 篇」（#710）。不是同一系列的批量为 null。
@@ -45,7 +53,7 @@ import java.util.UUID
  */
 internal data class NovelDownloadPayload(
     val novel: Novel,
-    val format: ExportFormat,
+    val format: String,
     val seriesOrder: Int? = null,
     val seriesTotal: Int? = null,
     val batchId: String,
@@ -56,7 +64,8 @@ internal data class NovelDownloadPayload(
 /** 系列页「批量下载」：先在队列里拉全章节列表，再展开成逐篇的 [NovelDownloadPayload]。 */
 internal data class NovelSeriesDownloadPayload(
     val seriesId: Long,
-    val format: ExportFormat,
+    /** [ExportFormat] 的枚举名，见 [exportFormatOf]。 */
+    val format: String,
 )
 
 /**
@@ -79,7 +88,7 @@ internal fun novelDownloadRequests(
             payload = Shaft.sGson.toJson(
                 NovelDownloadPayload(
                     novel = novel,
-                    format = format,
+                    format = format.name,
                     seriesOrder = order,
                     seriesTotal = seriesTotal.takeIf { order != null },
                     batchId = batchId,
@@ -95,7 +104,7 @@ internal fun novelSeriesDownloadRequest(seriesId: Long, format: ExportFormat): A
     ActionRequest(
         type = PixivActionTypes.NOVEL_SERIES_DOWNLOAD,
         dedupeKey = "${PixivActionTypes.NOVEL_SERIES_DOWNLOAD}:$seriesId:${format.name}",
-        payload = Shaft.sGson.toJson(NovelSeriesDownloadPayload(seriesId, format)),
+        payload = Shaft.sGson.toJson(NovelSeriesDownloadPayload(seriesId, format.name)),
     )
 
 /**
@@ -110,12 +119,12 @@ internal class NovelDownloadHandler(private val isOnline: () -> Boolean) : Actio
     @Suppress("SENSELESS_COMPARISON")
     override suspend fun execute(action: PendingAction): ActionOutcome {
         val payload = action.parsePayload<NovelDownloadPayload>()
-            // gson 绕过 Kotlin 空安全：缺字段 / 枚举名认不出时这两个会是 null。
-            ?.takeIf { it.novel != null && it.format != null }
+            // gson 绕过 Kotlin 空安全：缺字段时 novel 会是 null。
+            ?.takeIf { it.novel != null }
             ?: return badPayload(action)
+        val format = exportFormatOf(payload.format) ?: return badPayload(action)
         val ctx = Shaft.getContext()
         val novel = payload.novel
-        val format = payload.format
         val destination = DownloadItems.novelDestinationFromLoxia(
             novel,
             extOverride = format.extension,
@@ -137,7 +146,7 @@ internal class NovelDownloadHandler(private val isOnline: () -> Boolean) : Actio
         }
 
         return try {
-            persist(ctx, payload, destination, html)
+            persist(ctx, payload, format, destination, html)
             ActionOutcome.Success
         } catch (ce: CancellationException) {
             throw ce
@@ -150,11 +159,11 @@ internal class NovelDownloadHandler(private val isOnline: () -> Boolean) : Actio
     private suspend fun persist(
         ctx: Context,
         payload: NovelDownloadPayload,
+        format: ExportFormat,
         destination: RelativePath,
         html: String,
     ) {
         val novel = payload.novel
-        val format = payload.format
         val wNovel = WebNovelParser.parsePixivObject(html)?.novel
             ?: throw RuntimeException("invalid web novel")
 
@@ -227,12 +236,9 @@ internal class NovelSeriesDownloadHandler(
     private val enqueue: suspend (ActionRequest) -> Unit,
 ) : ActionHandler {
 
-    @Suppress("SENSELESS_COMPARISON")
     override suspend fun execute(action: PendingAction): ActionOutcome {
-        val payload = action.parsePayload<NovelSeriesDownloadPayload>()
-            // 同 NovelDownloadHandler：gson 认不出的枚举名会给 null。
-            ?.takeIf { it.format != null }
-            ?: return badPayload(action)
+        val payload = action.parsePayload<NovelSeriesDownloadPayload>() ?: return badPayload(action)
+        val format = exportFormatOf(payload.format) ?: return badPayload(action)
 
         val novels = mutableListOf<Novel>()
         try {
@@ -262,7 +268,7 @@ internal class NovelSeriesDownloadHandler(
         }
         // 拉到的就是整个系列的有序章节，位置 = 下标 + 1。
         val positions = ordered.withIndex().associate { (i, n) -> n.id to i + 1 }
-        novelDownloadRequests(ordered, payload.format, positions, ordered.size).forEach { enqueue(it) }
+        novelDownloadRequests(ordered, format, positions, ordered.size).forEach { enqueue(it) }
         return ActionOutcome.Success
     }
 

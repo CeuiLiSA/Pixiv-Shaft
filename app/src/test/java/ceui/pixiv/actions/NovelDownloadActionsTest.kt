@@ -36,7 +36,7 @@ class NovelDownloadActionsTest {
         assertEquals(listOf(3, 5, 9), payloads.map { it.seriesOrder })
         assertEquals(listOf(12, 12, 12), payloads.map { it.seriesTotal })
         assertEquals(listOf(1, 2, 3), payloads.map { it.index })
-        assertTrue(payloads.all { it.total == 3 && it.format == ExportFormat.Epub })
+        assertTrue(payloads.all { it.total == 3 && it.format == "Epub" })
         assertEquals(1, payloads.map { it.batchId }.distinct().size)
         assertEquals("novel_download:30:Epub", requests.first().dedupeKey)
     }

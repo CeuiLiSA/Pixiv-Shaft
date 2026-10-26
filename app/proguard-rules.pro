@@ -122,6 +122,8 @@
 -keepclassmembers class ceui.lisa.core.DownloadItem { <fields>; }
 -keepclassmembers class ceui.pixiv.actions.BookmarkPayload { <fields>; }
 -keepclassmembers class ceui.pixiv.actions.FollowPayload { <fields>; }
+-keepclassmembers class ceui.pixiv.actions.NovelDownloadPayload { <fields>; }
+-keepclassmembers class ceui.pixiv.actions.NovelSeriesDownloadPayload { <fields>; }
 -keepclassmembers class ceui.pixiv.actions.Nana7miSearchTelemetry$Payload { <fields>; }
 -keepclassmembers class ceui.pixiv.actions.Nana7miSearchTelemetry$BatchPayload { <fields>; }
 -keepclassmembers class ceui.pixiv.snapshot.SnapshotManifest { <fields>; }
@@ -148,6 +150,8 @@
 -keep,allowobfuscation class ceui.lisa.feature.FeatureEntity
 -keep,allowobfuscation class ceui.pixiv.actions.BookmarkPayload
 -keep,allowobfuscation class ceui.pixiv.actions.FollowPayload
+-keep,allowobfuscation class ceui.pixiv.actions.NovelDownloadPayload
+-keep,allowobfuscation class ceui.pixiv.actions.NovelSeriesDownloadPayload
 -keep,allowobfuscation class ceui.pixiv.actions.Nana7miSearchTelemetry$Payload
 -keep,allowobfuscation class ceui.pixiv.actions.Nana7miSearchTelemetry$BatchPayload
 -keep,allowobfuscation class ceui.pixiv.download.StageStore$Manifest
