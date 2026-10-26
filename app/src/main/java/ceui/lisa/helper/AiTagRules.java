@@ -136,6 +136,44 @@ public final class AiTagRules {
         return false;
     }
 
+    /**
+     * 是否还有任何一条规则处于启用状态。
+     *
+     * <p>规则全关时标签匹配没有任何意义，调用方据此早退——
+     * {@link IllustNovelFilter#isAiWork(boolean, List)} 就是拿它挡在逐条规范化比较之前。
+     *
+     * <p>停用集合是 Set，不会有重复条目，所以它比内置总数少时，必然还有内置没被停用——这一支
+     * 是 O(1)，绝大多数用户都走这里。真的停用满 24 条以上才去逐条数。
+     *
+     * <p>口径与设置页的摘要一致：内置启用数 + 自定义启用数都为 0 时才返回 false。
+     */
+    public static boolean hasEnabledRule(Set<String> disabled, Set<String> userTags) {
+        if (disabled == null || disabled.isEmpty()) {
+            return true;
+        }
+        if (disabled.size() < BUILTIN_KEYS.size()) {
+            return true;
+        }
+        int builtinDisabled = 0;
+        for (String tag : disabled) {
+            if (BUILTIN_KEYS.contains(normalize(tag))) {
+                builtinDisabled++;
+            }
+        }
+        if (builtinDisabled < BUILTIN_KEYS.size()) {
+            return true;
+        }
+        if (userTags == null || userTags.isEmpty()) {
+            return false;
+        }
+        for (String tag : userTags) {
+            if (!containsNormalized(disabled, normalize(tag))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** 集合里是否已有这个标签（忽略大小写与首尾空白），用于保存时的去重。 */
     public static boolean containsTag(Iterable<String> tags, String tag) {
         return containsNormalized(tags, normalize(tag));

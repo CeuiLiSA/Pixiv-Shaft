@@ -372,9 +372,16 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
         boolean enabled = Shaft.sSettings.isDeleteAIIllust();
         baseBind.aiBlockStrengthRela.setVisibility(enabled ? View.VISIBLE : View.GONE);
         baseBind.aiBlockExemptRela.setVisibility(enabled ? View.VISIBLE : View.GONE);
-        // 标签辅助识别（issue #1252）与上面两行同组：只在「不显示AI生成的作品」打开时露出，
-        // 它单独存在没有意义——标签规则只影响 AI 判定，开关关着时 AI 判定不参与任何过滤。
-        baseBind.aiTagRulesRela.setVisibility(enabled ? View.VISIBLE : View.GONE);
+        // 标签辅助识别（issue #1252）不跟开关隐藏：它定的是「什么算 AI」，而 AI 判定在开关
+        // 关着时照样在跑（列表 AI 角标、详情页 AI 卡都要问它），所以任何时候都得能改。
+        // 摘要只说「当前有多少条在生效」：内置 24 条默认全开，罗列总数没有信息量。
+        // 内置与自定义混在一起算一个数——用户关心的是「有几条规则在工作」，不是来源构成。
+        LinkedHashSet<String> disabledTags = Shaft.sSettings.getAiTagDisabledTags();
+        int enabledTags = AiTagRules.enabledBuiltinCount(disabledTags)
+                + AiTagRules.enabledCount(Shaft.sSettings.getAiTagUserTags(), disabledTags);
+        baseBind.aiTagRules.setText(enabledTags == 0
+                ? getString(R.string.ai_tag_rules_none)
+                : getString(R.string.ai_tag_rules_count, enabledTags));
         if (!enabled) return;
         baseBind.aiBlockStrength.setText(Shaft.sSettings.getAiBlockStrength() == 0
                 ? getString(R.string.ai_block_strength_hide)
@@ -388,14 +395,6 @@ public class FragmentSettingsBrowsing extends SettingsPageFragment<FragmentSetti
                     ? getString(R.string.ai_block_exempt_count, total)
                     : getString(R.string.ai_block_exempt_count_partial, total, enabledCount));
         }
-        // 标签规则的摘要只说「当前有多少条在生效」：内置 24 条默认全开，罗列总数没有信息量。
-        // 内置与自定义混在一起算一个数——用户关心的是「有几条规则在工作」，不是来源构成。
-        LinkedHashSet<String> disabledTags = Shaft.sSettings.getAiTagDisabledTags();
-        int enabledTags = AiTagRules.enabledBuiltinCount(disabledTags)
-                + AiTagRules.enabledCount(Shaft.sSettings.getAiTagUserTags(), disabledTags);
-        baseBind.aiTagRules.setText(enabledTags == 0
-                ? getString(R.string.ai_tag_rules_none)
-                : getString(R.string.ai_tag_rules_count, enabledTags));
     }
 
     private void showAiBlockStrengthPicker() {
