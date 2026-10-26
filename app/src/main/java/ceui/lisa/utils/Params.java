@@ -74,8 +74,10 @@ public class Params {
      */
     public static final String ORIGIN_PAGE_UUID = "origin_page_uuid";
     public static final String POSITION      = "position";
-    // widget 点击自带的单张 Illust（Serializable）：进程被杀后 Container 已空时用它重建 PageData
-    public static final String WIDGET_ILLUST = "widget_illust";
+    // widget 点击自带的单张 Illust（Gson JSON）：进程被杀后 Container 已空时用它重建 PageData。
+    // 不能放 Serializable：PendingIntent 由桌面持有、会跨升级回来，而 Illust 的类名每次构建都被 R8 重新混淆。
+    // key 也不能沿用旧的 "widget_illust"，那份旧 Serializable 只要被读到就会反序列化失败。
+    public static final String WIDGET_ILLUST_JSON = "widget_illust_json";
     public static final String IS_LIKED      = "is liked";
     public static final String IS_POPULAR    = "is popular";
     public static final String LAST_CLASS    = "last class";

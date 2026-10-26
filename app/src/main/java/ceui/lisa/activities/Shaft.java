@@ -557,9 +557,15 @@ public class Shaft extends Application implements ServicesProvider {
                 sb.append("CREATE ").append(activity.getClass().getSimpleName());
                 if (activity.getIntent() != null && activity.getIntent().getExtras() != null) {
                     Bundle extras = activity.getIntent().getExtras();
-                    for (String key : extras.keySet()) {
-                        Object val = extras.get(key);
-                        sb.append("\n    ").append(key).append(" = ").append(val);
+                    // 外部持有的 PendingIntent（widget、通知）会带着旧版本写入的 Serializable 跨升级回来，
+                    // R8 混淆名一变就反序列化失败；这里只是日志，读不出来就记下原因，别让它把页面带崩。
+                    try {
+                        for (String key : extras.keySet()) {
+                            Object val = extras.get(key);
+                            sb.append("\n    ").append(key).append(" = ").append(val);
+                        }
+                    } catch (RuntimeException e) {
+                        sb.append("\n    <extras unreadable: ").append(e).append('>');
                     }
                 }
                 Timber.tag("ActivityTracker").d(sb.toString());
