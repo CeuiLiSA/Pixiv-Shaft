@@ -577,11 +577,14 @@ private class DoneAdapterV3(
     /**
      * 缩略图统一入口：本地文件优先、网图兜底，同一张图的重绑直接短路。
      *
-     * 两件事：
-     * 1. `view.tag` 记「这张视图现在装的是谁」—— 同 key 且有图就整段跳过，连 Glide 请求都不发。
-     *    重绑不再「先清空再加载」，这是「图→空→图」的根源。
-     * 2. 换图时用**视图上现有的那张**当占位图，而不是透明占位 —— 旧图撑到新图解码完为止，
-     *    中间不出现空窗。命中内存时这个窗口只有 1–2ms，未命中也不会露底色。
+     * `view.tag` 记「这张视图现在装的是谁」—— 同 key 且有图就整段跳过，连 Glide 请求都不发。
+     * 重绑不再「先清空再加载」，这是「图→空→图」的根源。
+     *
+     * 不设占位图：key 变了说明是另一条记录，视图上现有的那张是别的作品，拿它当占位会在加载期间
+     * （以及加载失败后，Glide 失败时回退显示占位图）把别人的封面配上这条的标题；那张图的资源
+     * 也已随旧请求释放回缓存，可能被复用/回收。不设占位时加载中与失败都是 null drawable，
+     * 上面的短路只会在真有图时生效，失败的格子下次重绑会重试。命中内存是在 into() 里同步返回的，
+     * 不会有空白帧。
      */
     private fun bindThumb(view: ImageView, localUri: Uri?, networkUrl: String?) {
         val key = when {
@@ -598,7 +601,6 @@ private class DoneAdapterV3(
         if (view.tag == key && view.drawable != null) return
         view.tag = key
 
-        val previous = view.drawable
         var request = if (localUri != null) {
             Glide.with(view).load(localUri)
         } else {
@@ -608,7 +610,6 @@ private class DoneAdapterV3(
         if (localUri != null && !networkUrl.isNullOrEmpty()) {
             request = request.error(Glide.with(view).load(glideUrlOf(networkUrl)))
         }
-        if (previous != null) request = request.placeholder(previous)
         request.into(view)
     }
 
