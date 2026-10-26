@@ -323,31 +323,35 @@ internal class NovelDownloadFeedback(private val app: Context) {
      */
     private fun onNovelSettled(action: PendingAction, failureReason: String?) {
         val payload = action.parsePayload<NovelDownloadPayload>() ?: return
-        if (failureReason == null) {
-            DownloadToasts.show(
-                DownloadToastKind.NOVEL_PROGRESS,
-                app.getString(R.string.batch_download_progress, payload.index, payload.total),
-            )
-        } else {
-            DownloadToasts.show(
-                DownloadToastKind.NOVEL_BATCH_RESULT,
-                app.getString(
-                    R.string.batch_download_failure_line, payload.novel.title.orEmpty(), failureReason,
-                ),
-            )
+        val failureLine = failureReason?.let { reason ->
+            // 已删除 / 未公开的作品标题是空的，只剩 ID 认得出是哪篇。
+            val name = payload.novel.title?.takeIf { it.isNotBlank() } ?: "ID ${payload.novel.id}"
+            app.getString(R.string.batch_download_failure_line, name, reason)
         }
         val tally = tallies.getOrPut(payload.batchId) { Tally() }
         tally.done++
-        if (failureReason != null) tally.failed++
-        if (tally.done < payload.total) return
+        if (failureLine != null) tally.failed++
+        if (tally.done < payload.total) {
+            if (failureLine == null) {
+                DownloadToasts.show(
+                    DownloadToastKind.NOVEL_PROGRESS,
+                    app.getString(R.string.batch_download_progress, payload.index, payload.total),
+                )
+            } else {
+                DownloadToasts.show(DownloadToastKind.NOVEL_BATCH_RESULT, failureLine)
+            }
+            return
+        }
         tallies.remove(payload.batchId)
+        val summary = if (tally.failed == 0) {
+            app.getString(R.string.batch_download_all_ok)
+        } else {
+            app.getString(R.string.batch_download_some_failed, tally.failed)
+        }
+        // 末篇自己的提示会被同一刻弹出的汇总顶掉，末篇失败时把原因并进汇总，否则用户不知道是哪篇。
         DownloadToasts.show(
             DownloadToastKind.NOVEL_BATCH_RESULT,
-            if (tally.failed == 0) {
-                app.getString(R.string.batch_download_all_ok)
-            } else {
-                app.getString(R.string.batch_download_some_failed, tally.failed)
-            },
+            listOfNotNull(summary, failureLine).joinToString("\n"),
         )
     }
 
