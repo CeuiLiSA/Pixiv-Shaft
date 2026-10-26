@@ -105,6 +105,51 @@
                         android:progressDrawable="@drawable/v3_progress_pill" />
                 </LinearLayout>
 
+                <!--
+                  补齐收藏快照（#1275）有一轮在跑时出现，点开进进度页。与上面的占用条同一套
+                  「实色 bar 上的 onPrimary 前景」，同为 scroll|enterAlways，跟 Toolbar 一起收起。
+                -->
+                <LinearLayout
+                    android:id="@+id/snapshot_backfill_strip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="14dp"
+                    android:visibility="gone"
+                    app:layout_scrollFlags="scroll|enterAlways">
+
+                    <TextView
+                        android:id="@+id/snapshot_backfill_strip_title"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:singleLine="true"
+                        android:text="@string/snapshot_backfill_title"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/snapshot_backfill_strip_value"
+                        style="@style/textMontserratSemiBold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:singleLine="true"
+                        android:textSize="13sp" />
+
+                    <ImageView
+                        android:id="@+id/snapshot_backfill_strip_chevron"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginStart="4dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_v3_chevron_24" />
+                </LinearLayout>
+
                 <com.google.android.material.tabs.TabLayout
                     android:id="@+id/tab_layout"
                     android:layout_width="match_parent"

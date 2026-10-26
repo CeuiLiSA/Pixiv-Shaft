@@ -20,6 +20,7 @@ import ceui.pixiv.events.EventReporter
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.referral.ReferralActivityReporter
 import ceui.pixiv.snapshot.AutoSnapshotEngine
+import ceui.pixiv.snapshot.SnapshotBackfill
 import ceui.pixiv.websocket.AppNetworkMonitor
 import ceui.pixiv.websocket.NetworkMonitor
 import kotlinx.coroutines.CancellationException
@@ -74,6 +75,9 @@ class PixivActionQueue(app: Context) {
      */
     @Volatile
     private var downloadQueue: ActionQueue? = null
+
+    /** 「补齐收藏快照」（#1275）：又一条独立队列，业务状态较多，单独成类，同样在 [start] 里启动。 */
+    val snapshotBackfill = SnapshotBackfill(this.app)
 
     /** 幂等。由 [ceui.lisa.activities.Shaft] 调，必须排在 SessionManager.initialize 之后（gate 要读登录态）。 */
     fun start() {
@@ -130,6 +134,8 @@ class PixivActionQueue(app: Context) {
         downloadQueue = downloads
         observeDownloads(downloads)
         downloads.start()
+
+        snapshotBackfill.start(monitor)
 
         observeGateSignals(listOf(instance, downloads), monitor)
         pruneStaleFailures(instance)

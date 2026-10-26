@@ -188,6 +188,7 @@ class TemplateRouteTest {
             "SNAPSHOT_VIEW" to "快照查看",
             "SNAPSHOT_VIEW_CLASSIC" to "快照经典查看",
             "SNAPSHOT_COMMENTS" to "快照评论",
+            "SNAPSHOT_BACKFILL" to "补齐收藏快照",
         )
     }
 }

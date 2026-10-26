@@ -18,6 +18,10 @@
             android:icon="@drawable/ic_file_download_black_24dp"
             android:title="@string/snapshot_import"
             app:showAsAction="ifRoom" />
+        <item
+            android:id="@+id/action_snapshot_backfill"
+            android:title="@string/snapshot_backfill_title"
+            app:showAsAction="never" />
     </group>
 
     <group

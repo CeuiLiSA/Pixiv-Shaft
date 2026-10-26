@@ -190,6 +190,13 @@ internal class FakeActionStore : ActionStore {
         return n
     }
 
+    override suspend fun clearPending(owner: String): Int {
+        checkFailure()
+        val n = rows.count { it.owner == owner && it.status == Status.PENDING }
+        rows.removeAll { it.owner == owner && it.status == Status.PENDING }
+        return n
+    }
+
     override suspend fun pruneFailed(owner: String, keepLatest: Int): Int {
         checkFailure()
         val retainedIds = rows

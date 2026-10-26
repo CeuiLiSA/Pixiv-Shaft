@@ -160,6 +160,7 @@ enum class TemplateRoute(@JvmField val key: String) {
     SNAPSHOT_VIEW("快照查看"),
     SNAPSHOT_VIEW_CLASSIC("快照经典查看"),
     SNAPSHOT_COMMENTS("快照评论"),
+    SNAPSHOT_BACKFILL("补齐收藏快照"),
     ;
 
     companion object {

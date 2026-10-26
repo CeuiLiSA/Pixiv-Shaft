@@ -249,6 +249,12 @@ public class ActionQueue(
 
     public suspend fun clearFailed(): Int = store.clearFailed(currentOwner())
 
+    /**
+     * 撤掉当前归属下所有还没开始的动作（用户「停止」一整批任务）。正在执行的那条照常跑完并广播
+     * 结果 —— 硬掐会把它的行烂在 RUNNING 上，而它本来也只剩一条。
+     */
+    public suspend fun clearPending(): Int = store.clearPending(currentOwner())
+
     /** 给无需 UI 回滚的后台队列提供有界死信保留，避免失败行无限撑大本地库。 */
     public suspend fun pruneFailed(keepLatest: Int): Int =
         store.pruneFailed(currentOwner(), keepLatest.coerceAtLeast(0))

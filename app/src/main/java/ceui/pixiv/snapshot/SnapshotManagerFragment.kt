@@ -1,6 +1,10 @@
 package ceui.pixiv.snapshot
 
+import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.RippleDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,15 +13,24 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentPagerAdapter
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
+import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentSnapshotManagerBinding
 import ceui.lisa.utils.Common
+import ceui.pixiv.services.appServices
+import ceui.pixiv.ui.navigation.TemplateRoute
+import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -114,6 +127,10 @@ class SnapshotManagerFragment : Fragment() {
                     importLauncher.launch(arrayOf("application/zip", "application/octet-stream"))
                     true
                 }
+                R.id.action_snapshot_backfill -> {
+                    openBackfill()
+                    true
+                }
                 R.id.action_batch_export -> {
                     enterSelectionMode(SelectionPurpose.EXPORT)
                     true
@@ -158,6 +175,73 @@ class SnapshotManagerFragment : Fragment() {
                 quotaBanner?.onTabSelected(position)
             }
         })
+
+        observeBackfill()
+    }
+
+    /**
+     * 补齐收藏快照的进度条：有一轮时显示，点开进度页。补齐每生成一件，列表要能看到它 ——
+     * 防抖 1.5 秒再重读，几十件连着生成时不至于每两秒整页重排一次。
+     */
+    private fun observeBackfill() {
+        val ctx = requireContext()
+        val onBar = V3Palette.from(ctx).onPrimary
+        binding.snapshotBackfillStripTitle.setTextColor(onBar)
+        binding.snapshotBackfillStripValue.setTextColor(onBar)
+        binding.snapshotBackfillStripChevron.imageTintList = ColorStateList.valueOf(onBar)
+        binding.snapshotBackfillStrip.background = RippleDrawable(
+            ColorStateList.valueOf(V3Palette.withAlpha(onBar, 0.2f)),
+            null,
+            GradientDrawable().apply {
+                cornerRadius = resources.displayMetrics.density * 12
+                setColor(Color.WHITE)
+            },
+        )
+        binding.snapshotBackfillStrip.setOnClickListener { openBackfill() }
+
+        val backfill = ctx.appServices().pixivActionQueue.snapshotBackfill
+        var lastDone: Int? = null
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                backfill.state.collect { state ->
+                    val run = state.run
+                    binding.snapshotBackfillStrip.isVisible = run != null
+                    if (run != null) {
+                        val status = when (state.phase) {
+                            SnapshotBackfillPhase.RUNNING -> R.string.snapshot_backfill_status_running
+                            SnapshotBackfillPhase.FINISHED -> R.string.snapshot_backfill_status_finished
+                            SnapshotBackfillPhase.PAUSED,
+                            SnapshotBackfillPhase.PAUSED_LOW_STORAGE -> R.string.snapshot_backfill_status_paused
+                            else -> R.string.snapshot_backfill_status_waiting
+                        }
+                        binding.snapshotBackfillStripValue.text = getString(
+                            R.string.snapshot_backfill_strip_value, run.settled, run.discovered, getString(status),
+                        )
+                    }
+                    val done = run?.done
+                    if (lastDone != null && done != null && done != lastDone) scheduleBackfillReload()
+                    lastDone = done
+                }
+            }
+        }
+    }
+
+    private var backfillReload: Job? = null
+
+    private fun scheduleBackfillReload() {
+        backfillReload?.cancel()
+        backfillReload = viewLifecycleOwner.lifecycleScope.launch {
+            delay(1_500)
+            reloadAllTabs(resetScroll = false)
+        }
+    }
+
+    private fun openBackfill() {
+        startActivity(
+            Intent(requireContext(), TemplateActivity::class.java)
+                .putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.SNAPSHOT_BACKFILL.key)
+                .putExtra("hideStatusBar", false)
+        )
     }
 
     override fun onResume() {

@@ -42,6 +42,7 @@ import ceui.pixiv.plaza.ui.PlazaComposeFragment
 import ceui.pixiv.plaza.ui.PlazaFragment
 import ceui.pixiv.plaza.ui.PlazaPostDetailFragment
 import ceui.pixiv.services.appServices
+import ceui.pixiv.snapshot.SnapshotBackfillFragment
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.ui.account.AccountSwitchV3Fragment
 import ceui.pixiv.ui.account.EmailBackupV3Fragment
@@ -610,6 +611,7 @@ object TemplateRouteFactory {
             TemplateRoute.NOTIFICATION_VIEW_MORE -> NotificationViewMoreFragment()
             TemplateRoute.INFO_CATEGORY -> InfoCategoryListFragment()
             TemplateRoute.SNAPSHOT_MANAGER -> SnapshotManagerFragment()
+            TemplateRoute.SNAPSHOT_BACKFILL -> SnapshotBackfillFragment()
             TemplateRoute.SNAPSHOT_VIEW ->
                 ArtworkV3Fragment.newInstanceSnapshot(
                     intent.requireString(SnapshotManagerFragment.ARG_SNAPSHOT_ID),

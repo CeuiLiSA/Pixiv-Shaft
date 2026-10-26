@@ -740,4 +740,27 @@ class ActionQueueTest {
         assertTrue(backing.rows.isEmpty())
         assertTrue(errors.none { it.startsWith("persist outcome failed") })
     }
+
+    @Test
+    fun `clearPending 撤掉排队的动作 正在执行的那条照常跑完`() = runTest {
+        val store = FakeActionStore()
+        val ran = mutableListOf<String>()
+        val q = queue(store, ActionHandler { action ->
+            kotlinx.coroutines.delay(5_000)
+            ran += action.payload
+            ActionOutcome.Success
+        })
+
+        q.enqueueAndWait(request("a", key = "illust:1"))
+        q.enqueueAndWait(request("b", key = "illust:2"))
+        q.enqueueAndWait(request("c", key = "illust:3"))
+        q.start()
+        advanceTimeBy(1_000)
+
+        assertEquals(2, q.clearPending())
+        advanceTimeBy(30_000)
+
+        assertEquals(listOf("a"), ran)
+        assertTrue(store.rows.isEmpty())
+    }
 }

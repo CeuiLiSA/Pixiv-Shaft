@@ -58,11 +58,17 @@ object SnapshotGenerator {
     /** 一页的落盘计划：序号、要取的 URL、目标相对路径。纯数据，构造它不产生任何 IO。 */
     private data class SnapshotPage(val index: Int, val url: String, val rel: String)
 
+    /**
+     * @param freshDetail [illust] 是调用方刚从 v1/illust/detail 拉到的完整版。为真时不再回源：
+     *        简介为空的作品光看 bean 判断不出「确认过没有简介」（见 hasTrustedCaption），
+     *        批量补齐（[SnapshotBackfill]）每件已经自己拉过一次详情，再拉一次是白白翻倍的请求。
+     */
     suspend fun generate(
         context: Context,
         illust: Illust,
         includeComments: Boolean,
         includeOriginal: Boolean,
+        freshDetail: Boolean = false,
         onProgress: suspend (String) -> Unit = {},
     ): SnapshotManifest = withContext(Dispatchers.IO) {
         val content = generateContent(
@@ -70,6 +76,7 @@ object SnapshotGenerator {
             illust = illust,
             includeComments = includeComments,
             includeOriginal = includeOriginal,
+            freshDetail = freshDetail,
             onProgress = onProgress,
         )
         try {
@@ -93,6 +100,7 @@ object SnapshotGenerator {
             illust = illust,
             includeComments = false,
             includeOriginal = includeOriginal,
+            freshDetail = false,
             onProgress = onProgress,
         )
         try {
@@ -123,6 +131,7 @@ object SnapshotGenerator {
         illust: Illust,
         includeComments: Boolean,
         includeOriginal: Boolean,
+        freshDetail: Boolean,
         onProgress: suspend (String) -> Unit,
     ): SnapshotContent = withContext(Dispatchers.IO) {
         val appContext = context.applicationContext
@@ -134,7 +143,7 @@ object SnapshotGenerator {
 
         try {
             progress(R.string.snapshot_progress_metadata)
-            val bean = if (illust.isFullDetail() && illust.hasTrustedCaption()) {
+            val bean = if (freshDetail || (illust.isFullDetail() && illust.hasTrustedCaption())) {
                 illust
             } else {
                 // toUpdate = false：快照生成只是读取完整元数据，不应改动 ObjectPool。
