@@ -55,7 +55,7 @@ internal class ReferralColors(context: Context, darkOverride: Boolean?, accentOv
     val tint = themed(if (dark) "#3C2E56" else "#EAE2FF")
     val onTint = contrast(themed(if (dark) "#DFD0FF" else "#493478"), tint)
     val primary = if (dark) themed("#C5AFFF") else contrast(source, surface)
-    val onPrimary = if (ColorUtils.calculateContrast(Color.WHITE, primary) >= 4.5) Color.WHITE else Color.parseColor("#30204E").let { contrast(it, primary) }
+    val onPrimary = if (contrastRatio(Color.WHITE, primary) >= 4.5) Color.WHITE else Color.parseColor("#30204E").let { contrast(it, primary) }
     val line = mode("#E7E3EE", "#34303E")
     val green = mode("#386746", "#B7D8AB")
     val greenBg = mode("#E9F1E5", "#283527")
@@ -68,14 +68,17 @@ internal class ReferralColors(context: Context, darkOverride: Boolean?, accentOv
     val artInk = themed("#33244E")
 
     private fun contrast(foreground: Int, background: Int): Int {
-        if (ColorUtils.calculateContrast(foreground, background) >= 4.5) return foreground
+        if (contrastRatio(foreground, background) >= 4.5) return foreground
         val target = if (ColorUtils.calculateLuminance(background) < .4) Color.WHITE else Color.BLACK
         for (step in 1..100) {
             val candidate = ColorUtils.blendARGB(foreground, target, step / 100f)
-            if (ColorUtils.calculateContrast(candidate, background) >= 4.5) return candidate
+            if (contrastRatio(candidate, background) >= 4.5) return candidate
         }
         return target
     }
+    // calculateContrast 遇到半透明背景直接抛异常；背景统一先叠到不透明的页面底色上再算，不靠调用方保证。
+    private fun contrastRatio(foreground: Int, background: Int): Double =
+        ColorUtils.calculateContrast(foreground, ColorUtils.compositeColors(background, bg))
     private fun hsl(color: Int) = FloatArray(3).also { ColorUtils.colorToHSL(color, it) }
 }
 
