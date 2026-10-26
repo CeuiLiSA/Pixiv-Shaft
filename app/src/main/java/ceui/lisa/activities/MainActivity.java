@@ -116,6 +116,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
      */
     private boolean drawerMenuReady = false;
 
+    /** {@link #leaveDrawerThen} 已排上、还没执行的那次出场;非 null 时再点抽屉条目一律忽略。 */
+    private Runnable pendingDrawerLeave;
+
     /**
      * 首帧之后逐帧跑的活（放行停在 CREATED 的 tab 页、建抽屉菜单），每帧只跑一个。
      *
@@ -1220,12 +1223,18 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
      * 也一起被吞掉。
      */
     private void leaveDrawerThen(Runnable action) {
-        baseBind.drawerLayout.postDelayed(
+        // 这 120ms 里抽屉还静止张开、每一行都照常可点(原来点完抽屉立刻进入 settling,
+        // 再点会被 ViewDragHelper 当成抓抽屉拦掉);不挡的话连点两下就会叠开两个页面。
+        if (pendingDrawerLeave != null) {
+            return;
+        }
+        pendingDrawerLeave =
                 () -> {
+                    pendingDrawerLeave = null;
                     baseBind.drawerLayout.closeDrawer(GravityCompat.START);
                     action.run();
-                },
-                120);
+                };
+        baseBind.drawerLayout.postDelayed(pendingDrawerLeave, 120);
     }
 
     private void initDrawerHeader() {
@@ -1365,6 +1374,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     protected void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(profileReadyReceiver);
+        // View.postDelayed 不随 Activity 销毁撤回;handleDrawerAction 里有弹框的分支
+        // (以图搜图、敏感内容警示),在已销毁的 Activity 上弹会 BadTokenException。
+        if (pendingDrawerLeave != null) {
+            baseBind.drawerLayout.removeCallbacks(pendingDrawerLeave);
+            pendingDrawerLeave = null;
+        }
     }
 
     @Override
