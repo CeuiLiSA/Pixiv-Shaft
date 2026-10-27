@@ -176,11 +176,12 @@ class FeedViewModel<Cursor : Any>(
                 var items = page.items.dedupByIdentity()
                 var emptyHops = 0
                 // 「空」按可展示算：整页条目都被页面按设置隐藏时，数据是满的而屏幕是空的，
-                // 按 items 判空会停在空白首屏上，且没有 onBind 去点火后续翻页
+                // 按 items 判空会停在空白首屏上，且没有 onBind 去点火后续翻页。
+                // 跳过的页要累加而不是覆盖：被隐藏的条目在设置改回去时要原地回来（同 loadMore）
                 while (!items.hasVisibleItem() && freshCursor != null && emptyHops < MAX_EMPTY_PAGE_HOPS) {
                     page = source.load(freshCursor)
                     freshCursor = page.nextCursor
-                    items = page.items.dedupByIdentity()
+                    items = (items + page.items).dedupByIdentity()
                     emptyHops++
                 }
                 val hopCapExhausted = !items.hasVisibleItem() && emptyHops >= MAX_EMPTY_PAGE_HOPS

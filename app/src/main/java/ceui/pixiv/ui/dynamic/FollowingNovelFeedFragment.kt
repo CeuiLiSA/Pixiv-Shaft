@@ -18,6 +18,7 @@ import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.NovelFeedFragment
 import ceui.pixiv.ui.common.NovelFeedItem
+import ceui.pixiv.ui.common.observeR18FilterChanges
 import ceui.pixiv.ui.common.setUpToolbar
 
 /**
@@ -95,6 +96,7 @@ class FollowingNovelFeedFragment : NovelFeedFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.observeR18FilterChanges(requireContext(), ::onR18FilterChanged)
         if (!showToolbar) return
         val binding = FragmentToolbarFeedBinding.bind(view)
         setUpToolbar(binding, feedBinding.feedListView)
@@ -118,7 +120,7 @@ class FollowingNovelFeedFragment : NovelFeedFragment() {
      *
      * 条目从来没被摘走（mapper 只打隐藏标记），所以关掉开关时它们原地回来。
      */
-    override fun onR18FilterChanged() {
+    private fun onR18FilterChanged() {
         applyItemVisibility { item ->
             (item as? NovelFeedItem)?.withR18Hidden(Shaft.sSettings.isR18FilterTempEnable) ?: item
         }

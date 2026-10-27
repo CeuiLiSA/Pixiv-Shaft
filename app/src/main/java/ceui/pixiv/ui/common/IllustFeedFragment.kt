@@ -168,18 +168,7 @@ abstract class IllustFeedFragment(
         IllustFeedPoolSync(syncViewModel, ::poolableBeansOf)
             .bind(viewLifecycleOwner, feedViewModel.uiState)
         observeMuteRevision()
-        // 全局 R-18 过滤开关是长按侧边栏头像切的，那一刻抽屉开着、本页不会经过 onResume，
-        // 只能靠广播通知；默认什么都不做，会随这个设置变显隐的页面覆写 onR18FilterChanged
-        viewLifecycleOwner.observeR18FilterChanges(requireContext()) { onR18FilterChanged() }
     }
-
-    /**
-     * 全局「R-18 过滤」开关变了。
-     *
-     * 条目显隐会随它变化的页面覆写本方法，用 [ceui.pixiv.feeds.FeedFragment.applyItemVisibility]
-     * 按当前设置重算即可——内容本身没变，不要重新拉数据。
-     */
-    protected open fun onR18FilterChanged() {}
 
     override fun onResume() {
         super.onResume()

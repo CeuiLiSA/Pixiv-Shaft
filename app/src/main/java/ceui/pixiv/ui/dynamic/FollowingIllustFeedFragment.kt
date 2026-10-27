@@ -1,5 +1,7 @@
 package ceui.pixiv.ui.dynamic
 
+import android.os.Bundle
+import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +20,7 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.JustifiedLayoutManager
+import ceui.pixiv.ui.common.observeR18FilterChanges
 
 /**
  * 「动态」页的插画/漫画列表（feeds 框架版，替代 legacy FragmentRight 自身的
@@ -145,7 +148,12 @@ class FollowingIllustFeedFragment : IllustFeedFragment() {
      *
      * 条目从来没被摘走（mapper 只打隐藏标记），所以关掉开关时它们原地回来。
      */
-    override fun onR18FilterChanged() {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.observeR18FilterChanges(requireContext(), ::onR18FilterChanged)
+    }
+
+    private fun onR18FilterChanged() {
         applyItemVisibility { item ->
             (item as? IllustFeedItem)?.withR18Hidden(Shaft.sSettings.isR18FilterTempEnable) ?: item
         }

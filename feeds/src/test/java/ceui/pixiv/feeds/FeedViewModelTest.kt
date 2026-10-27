@@ -295,6 +295,8 @@ class FeedViewModelTest {
         advanceUntilIdle()
 
         val state = vm.uiState.value
+        // 跳过的那页也留在数据里：开关关掉时它们要原地回来，不能因为追载被覆盖掉
+        assertEquals(listOf(1, 2, 3), state.items.map { (it as Row).id })
         assertEquals(listOf(3), state.visibleItems.map { (it as Row).id })
         assertTrue(state.hasLoadedOnce)
         assertTrue(state.reachedEnd)
