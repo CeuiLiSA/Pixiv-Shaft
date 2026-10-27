@@ -1140,6 +1140,15 @@
     <string name="update_later">後で</string>
     <string name="update_skip_version">このバージョンをスキップ</string>
     <string name="update_retry">再試行</string>
+    <string name="update_continue">ダウンロードを再開</string>
+    <string name="update_paused">一時停止中</string>
+    <string name="update_merging">インストーラーを結合中…</string>
+    <string name="update_threads">%1$d スレッド</string>
+    <string name="update_interrupted">ダウンロードが中断されました</string>
+    <string name="update_resume_unavailable">続きから再開できません。もう一度お試しください</string>
+    <string name="update_banner_done_title">アップデートのダウンロードが完了しました</string>
+    <string name="update_banner_done_message">タップして %1$s のインストールを続行</string>
+    <string name="update_banner_action">インストールへ</string>
     <string name="update_download_failed">ダウンロードに失敗しました</string>
     <string name="update_check_failed">更新確認に失敗しました</string>
     <string name="update_rate_limited">レート制限に達しました。しばらく待ってから再試行してください</string>

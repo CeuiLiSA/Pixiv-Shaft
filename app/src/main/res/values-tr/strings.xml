@@ -1140,6 +1140,15 @@
     <string name="update_later">Daha sonra</string>
     <string name="update_skip_version">Bu sürümü atla</string>
     <string name="update_retry">Yeniden dene</string>
+    <string name="update_continue">İndirmeye devam et</string>
+    <string name="update_paused">Duraklatıldı</string>
+    <string name="update_merging">Yükleyici birleştiriliyor…</string>
+    <string name="update_threads">%1$d iş parçacığı</string>
+    <string name="update_interrupted">İndirme kesildi</string>
+    <string name="update_resume_unavailable">İndirmeye devam edilemiyor, lütfen yeniden deneyin</string>
+    <string name="update_banner_done_title">Güncelleme indirildi</string>
+    <string name="update_banner_done_message">%1$s sürümünü yüklemeye devam etmek için dokunun</string>
+    <string name="update_banner_action">Yükle</string>
     <string name="update_download_failed">İndirme başarısız oldu</string>
     <string name="update_check_failed">Güncellemeler kontrol edilemedi</string>
     <string name="update_rate_limited">İstek sınırına ulaşıldı, lütfen daha sonra tekrar deneyin</string>

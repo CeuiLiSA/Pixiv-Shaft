@@ -1140,6 +1140,15 @@
     <string name="update_later">Позже</string>
     <string name="update_skip_version">Пропустить эту версию</string>
     <string name="update_retry">Повторить</string>
+    <string name="update_continue">Продолжить загрузку</string>
+    <string name="update_paused">Приостановлено</string>
+    <string name="update_merging">Объединение установщика…</string>
+    <string name="update_threads">%1$d потоков</string>
+    <string name="update_interrupted">Загрузка прервана</string>
+    <string name="update_resume_unavailable">Не удаётся продолжить загрузку, попробуйте снова</string>
+    <string name="update_banner_done_title">Обновление загружено</string>
+    <string name="update_banner_done_message">Нажмите, чтобы продолжить установку %1$s</string>
+    <string name="update_banner_action">Установить</string>
     <string name="update_download_failed">Не удалось скачать</string>
     <string name="update_check_failed">Не удалось проверить обновления</string>
     <string name="update_rate_limited">Превышен лимит запросов, повторите попытку позже</string>

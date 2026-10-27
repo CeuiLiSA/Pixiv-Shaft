@@ -1142,6 +1142,15 @@
     <string name="update_later">稍後</string>
     <string name="update_skip_version">跳過此版本</string>
     <string name="update_retry">重試</string>
+    <string name="update_continue">繼續下載</string>
+    <string name="update_paused">已暫停</string>
+    <string name="update_merging">正在合併安裝包…</string>
+    <string name="update_threads">%1$d 執行緒</string>
+    <string name="update_interrupted">下載中斷</string>
+    <string name="update_resume_unavailable">無法繼續下載，請重試</string>
+    <string name="update_banner_done_title">更新已下載完成</string>
+    <string name="update_banner_done_message">點此繼續安裝 %1$s</string>
+    <string name="update_banner_action">去安裝</string>
     <string name="update_download_failed">下載失敗</string>
     <string name="update_check_failed">檢查更新失敗</string>
     <string name="update_rate_limited">被速率限制，請稍後再試</string>

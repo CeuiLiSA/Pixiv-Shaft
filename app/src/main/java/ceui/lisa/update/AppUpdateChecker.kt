@@ -31,8 +31,6 @@ object AppUpdateChecker {
 
     private const val KEY_LAST_CHECK_TIME = "update_last_check_time"
     private const val KEY_SKIPPED_VERSION = "update_skipped_version"
-    private const val KEY_DOWNLOAD_ID = "update_download_id"
-    private const val KEY_DOWNLOAD_TAG = "update_download_tag"
     private const val CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000L
 
     @androidx.annotation.VisibleForTesting
@@ -186,6 +184,24 @@ object AppUpdateChecker {
         }
     }
 
+    /**
+     * 调试用：不做版本比较，直接把 latest release 拿回来。
+     *
+     * 长按「检查更新」强制弹 sheet 时用 —— 当前已经是最新版也要能把「下载 → 断点 →
+     * 完成 → banner → 安装」整条链路走一遍，否则只能等到真有新版才能测。
+     */
+    suspend fun fetchLatestReleaseForTest(): GitHubRelease = withContext(Dispatchers.IO) {
+        try {
+            api.getLatestRelease(GitHubApi.OWNER, GitHubApi.REPO)
+        } catch (e: Exception) {
+            if (isRateLimit(e)) {
+                throw RateLimitException(resetEpochSeconds = extractResetEpochSeconds(e), cause = e)
+            } else {
+                throw e
+            }
+        }
+    }
+
     suspend fun checkForUpdate(): UpdateResult = withContext(Dispatchers.IO) {
         // 使用 GitHub 加速代理时始终降级走 API 端点（反代均不支持 /releases.atom）；
         // 未开启加速代理时，优先通过 RSS Atom Feeds 检查更新，免除 GitHub API 未鉴权每小时 60 次的 Rate Limit 限制。
@@ -265,27 +281,6 @@ object AppUpdateChecker {
 
     fun isVersionSkipped(version: String): Boolean {
         return MMKV.defaultMMKV().decodeString(KEY_SKIPPED_VERSION, "") == version
-    }
-
-    fun saveOngoingDownload(downloadId: Long, versionTag: String) {
-        MMKV.defaultMMKV().apply {
-            encode(KEY_DOWNLOAD_ID, downloadId)
-            encode(KEY_DOWNLOAD_TAG, versionTag)
-        }
-    }
-
-    fun clearOngoingDownload() {
-        MMKV.defaultMMKV().apply {
-            removeValueForKey(KEY_DOWNLOAD_ID)
-            removeValueForKey(KEY_DOWNLOAD_TAG)
-        }
-    }
-
-    fun getOngoingDownloadId(versionTag: String): Long {
-        val mmkv = MMKV.defaultMMKV()
-        val savedTag = mmkv.decodeString(KEY_DOWNLOAD_TAG, "")
-        if (savedTag != versionTag) return -1L
-        return mmkv.decodeLong(KEY_DOWNLOAD_ID, -1L)
     }
 
     fun isNewerVersion(remote: String, current: String): Boolean {

@@ -7,8 +7,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.ImageView
+import androidx.fragment.app.FragmentActivity
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
+import ceui.lisa.update.UpdateBottomSheet
 import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.banner.BannerEvent
 import ceui.pixiv.banner.BannerHostInstaller
@@ -50,12 +52,22 @@ object InAppBanners {
     /** 收藏库（本地镜像浏览页）。`shaft://bookmark-library?restrict=public|private`。 */
     private const val HOST_BOOKMARK_LIBRARY = "bookmark-library"
 
+    /** 更新包已下载完成，跳回更新 sheet。`shaft://update`。 */
+    private const val HOST_UPDATE = "update"
+
     private val bootstrapped = AtomicBoolean(false)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val foreground = ForegroundTracker()
 
     lateinit var manager: BannerManager
         private set
+
+    /**
+     * banner 系统是否已经装配好。[manager] 是 lateinit，装配前碰它会抛
+     * `UninitializedPropertyAccessException`；需要「等它就绪再发」的入队方
+     * （如 [ceui.lisa.update.UpdateBanner]）先问这里。
+     */
+    fun isReady(): Boolean = bootstrapped.get() && this::manager.isInitialized
 
     /**
      * Currently-resumed Activity, or `null` if no Activity is in the foreground.
@@ -116,7 +128,42 @@ object InAppBanners {
         when (uri.host) {
             HOST_CHAT -> openChat(app, uri)
             HOST_BOOKMARK_LIBRARY -> openBookmarkLibrary(app, uri)
+            HOST_UPDATE -> openUpdateSheet(app)
             else -> Unit
+        }
+    }
+
+    /**
+     * `shaft://update`：把更新 sheet 直接盖在当前前台页面上。
+     *
+     * sheet 的内容全部来自 [ceui.lisa.update.ApkDownloadManager] 的进程级状态（它自己存了整份 release），
+     * 所以这里不需要 release 参数，进程被杀过也照样能打开。
+     */
+    private suspend fun openUpdateSheet(app: Application) {
+        withContext(Dispatchers.Main) {
+            val activity = foreground.current()
+            val release = app.appServices().apkDownloadManager.releaseForSheet()
+            if (activity is FragmentActivity && !activity.isFinishing && !activity.isDestroyed && release != null) {
+                // 已经有一个在显示（比如用户正停在关于页的那个）就不再叠一层。
+                if (activity.supportFragmentManager.findFragmentByTag("update_dialog") == null) {
+                    val shown = runCatching {
+                        UpdateBottomSheet.newInstance(release)
+                            .show(activity.supportFragmentManager, "update_dialog")
+                    }
+                    if (shown.isSuccess) return@withContext
+                    Timber.tag(TAG).w(shown.exceptionOrNull(), "Show update sheet from banner failed")
+                } else {
+                    return@withContext
+                }
+            }
+            // 兜底：没有前台 Activity 或者压根没有下载记录 —— 回关于页，用户能从那里再检查一次。
+            val ctx: Context = activity ?: app
+            val intent = Intent(ctx, TemplateActivity::class.java).apply {
+                putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.ABOUT.key)
+                if (activity == null) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            runCatching { ctx.startActivity(intent) }
+                .onFailure { Timber.tag(TAG).w(it, "Open about page from update banner failed") }
         }
     }
 

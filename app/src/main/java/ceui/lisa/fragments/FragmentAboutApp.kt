@@ -56,6 +56,15 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
             baseBind.checkUpdate.setOnClickListener {
                 performUpdateCheck(manual = true)
             }
+            if (BuildConfig.DEBUG) {
+                // 调试用：长按不看版本号、不看「跳过此版本」，直接把这版 release 的
+                // sheet 弹出来，用来把「下载 → 断点 → 完成 → banner → 安装」整条链路
+                // 在「已经是最新版」的机器上也能走完。
+                baseBind.checkUpdate.setOnLongClickListener {
+                    forceShowUpdateSheet()
+                    true
+                }
+            }
             baseBind.versionHistory.setOnClickListener {
                 val intent = Intent(mContext, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.VERSION_HISTORY.key)
@@ -233,8 +242,38 @@ class FragmentAboutApp : BaseLazyFragment<FragmentAboutBinding>() {
     }
 
     private fun showUpdateDialog(release: GitHubRelease) {
+        // 已经有一个在显示了就别再叠一个（自动检查 + 手动点 / 长按可能撞在一起）。
+        if (!isAdded || childFragmentManager.findFragmentByTag("update_dialog") != null) return
         val dialog = UpdateBottomSheet.newInstance(release)
         dialog.show(childFragmentManager, "update_dialog")
+    }
+
+    /**
+     * 调试入口（长按「检查更新」）：不看版本比较、不看跳过记录，直接把 latest release
+     * 的 sheet 弹出来。正式构建里不会挂这个监听。
+     */
+    private fun forceShowUpdateSheet() {
+        baseBind.updateStatus.setText(R.string.update_checking)
+        updateJob?.cancel()
+        updateJob = viewLifecycleOwner.lifecycleScope.launch {
+            val release = try {
+                AppUpdateChecker.fetchLatestReleaseForTest()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                val message = if (AppUpdateChecker.isRateLimit(e)) {
+                    AppUpdateChecker.getRateLimitMessage(requireContext(), e)
+                } else {
+                    getString(R.string.update_check_failed)
+                }
+                baseBind.updateStatus.text = message
+                Common.showToast(message)
+                return@launch
+            }
+            baseBind.updateStatus.text =
+                getString(R.string.update_found_new, release.tagName.removePrefix("v").removePrefix("V"))
+            showUpdateDialog(release)
+        }
     }
 
 }

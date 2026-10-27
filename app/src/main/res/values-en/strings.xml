@@ -1140,6 +1140,15 @@
     <string name="update_later">Later</string>
     <string name="update_skip_version">Skip this version</string>
     <string name="update_retry">Retry</string>
+    <string name="update_continue">Continue download</string>
+    <string name="update_paused">Paused</string>
+    <string name="update_merging">Merging installer...</string>
+    <string name="update_threads">%1$d threads</string>
+    <string name="update_interrupted">Download interrupted</string>
+    <string name="update_resume_unavailable">Can\'t resume the download, please retry</string>
+    <string name="update_banner_done_title">Update downloaded</string>
+    <string name="update_banner_done_message">Tap to continue installing %1$s</string>
+    <string name="update_banner_action">Install</string>
     <string name="update_download_failed">Download failed</string>
     <string name="update_check_failed">Failed to check for updates</string>
     <string name="update_rate_limited">Rate limit reached, please try again later</string>
