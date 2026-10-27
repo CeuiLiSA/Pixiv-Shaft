@@ -90,6 +90,7 @@ public class Shaft extends Application implements ServicesProvider {
     private ceui.pixiv.sticker.StickerRepository stickerRepository;
     private ceui.pixiv.db.mirror.BookmarkMirrorService bookmarkMirror;
     private ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository readerFontRepository;
+    private ceui.lisa.update.ApkDownloadManager apkDownloadManager;
 
     private EntityWrapper entityWrapper;
 
@@ -476,6 +477,7 @@ public class Shaft extends Application implements ServicesProvider {
         stickerRepository = new ceui.pixiv.sticker.StickerRepository(this);
         bookmarkMirror = new ceui.pixiv.db.mirror.BookmarkMirrorService(this);
         readerFontRepository = new ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository(this);
+        apkDownloadManager = new ceui.lisa.update.ApkDownloadManager(this);
 
         SessionManager.INSTANCE.initialize();
 
@@ -494,7 +496,7 @@ public class Shaft extends Application implements ServicesProvider {
         // 2) 「下载完成但当时没有 sheet」的 banner 要等前台，它注册的
         //    ActivityLifecycleCallbacks 得早于第一个 Activity 的 onResume。
         // 本身只读一条 MMKV + stat 几个文件，不进延迟批。
-        ceui.lisa.update.ApkDownloadManager.INSTANCE.install(this);
+        apkDownloadManager.install();
 
         // v38 illustId 索引列的一次性存量回填：把老下载记录的 illustId 补上，让
         // “这幅画下过没” 从 illustGson blob 全表 LIKE 扫描（2GB+ 卡）转成走索引。
@@ -742,7 +744,7 @@ public class Shaft extends Application implements ServicesProvider {
             ceui.pixiv.banner.host.InAppBanners.INSTANCE.bootstrap(this, currentActivity);
             // 冷启动时首个 onResume 早于 banner 系统就绪，那条「更新包已下好」的
             // 提示会在 onResume 里被跳过；这里补一次，免得它一直欠到用户下次切页。
-            ceui.lisa.update.UpdateBanner.INSTANCE.onBannerReady();
+            apkDownloadManager.onBannerReady();
         });
 
         // 网络变化时停掉下载队列。CONNECTIVITY_ACTION 只与下载有关，首帧不需要。
@@ -1074,5 +1076,10 @@ public class Shaft extends Application implements ServicesProvider {
     @Override
     public @NotNull ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository getReaderFontRepository() {
         return readerFontRepository;
+    }
+
+    @Override
+    public @NotNull ceui.lisa.update.ApkDownloadManager getApkDownloadManager() {
+        return apkDownloadManager;
     }
 }

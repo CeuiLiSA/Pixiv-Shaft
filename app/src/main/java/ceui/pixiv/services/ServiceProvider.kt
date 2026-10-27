@@ -94,6 +94,9 @@ interface ServicesProvider {
 
     /** 小说阅读器可下载字体：关掉面板后下载继续，所以是进程级。 */
     val readerFontRepository: ReaderFontRepository
+
+    /** 应用更新包下载：关掉更新 sheet 后下载继续，跑完回前台发 banner，所以是进程级。 */
+    val apkDownloadManager: ceui.lisa.update.ApkDownloadManager
 }
 
 fun Context.appServices(): ServicesProvider = applicationContext as ServicesProvider

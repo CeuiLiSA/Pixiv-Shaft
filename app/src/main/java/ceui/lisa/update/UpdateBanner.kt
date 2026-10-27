@@ -1,7 +1,7 @@
 package ceui.lisa.update
 
+import android.app.Application
 import ceui.lisa.R
-import ceui.lisa.activities.Shaft
 import ceui.pixiv.banner.BannerAction
 import ceui.pixiv.banner.BannerCategory
 import ceui.pixiv.banner.BannerPriority
@@ -11,19 +11,24 @@ import ceui.pixiv.banner.host.InAppBanners
 /**
  * 「更新包下好了，但用户已经把 sheet 关掉」时的兜底提示。
  *
- * <p>下载是进程级的（[ApkDownloadManager]），sheet 只是订阅者：用户点「稍后」把 sheet
+ * <p>由 [ApkDownloadManager] 持有。下载是进程级的，sheet 只是订阅者：用户点「稍后」把 sheet
  * 关掉之后下载照旧跑，跑完那一刻没有 UI 能告诉他。这里负责把这条消息变成一条
  * in-app banner，点一下回到更新 sheet（deep link `shaft://update`）。
  *
  * <p><b>只在应用处于前台时发</b>。后台发出去的东西用户看不见，等切回前台时再发，
  * 免得它和「刚回到应用」这一帧的其他内容抢位置。
  */
-object UpdateBanner {
+class UpdateBanner(
+    private val app: Application,
+    private val downloads: ApkDownloadManager,
+) {
 
-    private const val ID = "update-apk-ready"
+    private companion object {
+        const val ID = "update-apk-ready"
 
-    /** banner 点击后由 [InAppBanners] 解析，见 `shaft://update`。 */
-    const val DEEP_LINK = "shaft://update"
+        /** banner 点击后由 [InAppBanners] 解析，见 `shaft://update`。 */
+        const val DEEP_LINK = "shaft://update"
+    }
 
     @Volatile
     private var pending = false
@@ -53,7 +58,7 @@ object UpdateBanner {
 
     private fun maybePost() {
         if (!pending) return
-        val state = ApkDownloadManager.state.value
+        val state = downloads.state.value
         if (state.phase != ApkDownloadManager.Phase.COMPLETED) {
             pending = false
             return
@@ -62,22 +67,21 @@ object UpdateBanner {
         if (InAppBanners.currentActivity() == null) return
         // banner 系统还没 bootstrap（冷启动的延迟批），等它就绪的通知。
         if (!InAppBanners.isReady()) return
-        val context = Shaft.getContext() ?: return
         val version = state.versionName
 
         pending = false
-        ApkDownloadManager.consumeBannerPending()
+        downloads.consumeBannerPending()
         runCatching {
             InAppBanners.manager.enqueue(
                 BannerRequest.Text(
                     id = ID,
-                    title = context.getString(R.string.update_banner_done_title),
+                    title = app.getString(R.string.update_banner_done_title),
                     message = version?.let {
-                        context.getString(R.string.update_banner_done_message, it)
+                        app.getString(R.string.update_banner_done_message, it)
                     },
-                    caption = context.getString(R.string.update_download_title),
+                    caption = app.getString(R.string.update_download_title),
                     action = BannerAction(
-                        label = context.getString(R.string.update_banner_action),
+                        label = app.getString(R.string.update_banner_action),
                         deepLink = DEEP_LINK,
                     ),
                     dedupKey = ID,

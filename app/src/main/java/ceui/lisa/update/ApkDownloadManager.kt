@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.SystemClock
 import ceui.lisa.BuildConfig
-import ceui.lisa.activities.Shaft
 import ceui.lisa.http.GithubProxy
 import ceui.lisa.http.Retro
 import com.google.gson.Gson
@@ -43,7 +42,10 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
 /**
- * 应用内自托管的 APK 下载器（进程级单例），替代系统的 [android.app.DownloadManager]。
+ * 应用内自托管的 APK 下载器，替代系统的 [android.app.DownloadManager]。
+ *
+ * <p>进程级服务，由 [ceui.pixiv.services.ServicesProvider] 持有。构造廉价：Gson、
+ * OkHttpClient 都 `by lazy`，冷启动只在 [install] 里读一条 MMKV、stat 几个文件。
  *
  * <p><b>为什么不用系统下载器</b>：DownloadManager 跑在 `com.android.providers.downloads`
  * 进程里，请求的 UID 不是本应用。用「按应用白名单」的代理（Clash / Surge 那类 per-app
@@ -63,64 +65,66 @@ import java.util.concurrent.atomic.AtomicLong
  * 与开工时记录的不一致就**无条件取消**（分片删除、状态置失败）。换源之后旧分片的
  * 字节无法证明与新源同源，续传没有意义。
  */
-object ApkDownloadManager {
+class ApkDownloadManager(private val app: Application) {
 
-    private const val TAG = "ApkDownload"
+    companion object {
+        private const val TAG = "ApkDownload"
 
-    /** 默认并发分片数。 */
-    const val DEFAULT_THREADS = 8
+        /** 默认并发分片数。 */
+        const val DEFAULT_THREADS = 8
 
-    /** 小于这个体积不分片：一条连接就够了，切片只会多几次请求开销。 */
-    private const val MIN_CHUNK_BYTES = 1L * 1024 * 1024
+        /** 小于这个体积不分片：一条连接就够了，切片只会多几次请求开销。 */
+        private const val MIN_CHUNK_BYTES = 1L * 1024 * 1024
 
-    private const val BUFFER_SIZE = 64 * 1024
+        private const val BUFFER_SIZE = 64 * 1024
 
-    /** 拼装时的拷贝块：见 [assemble] 的注释。 */
-    private const val ASSEMBLE_BUFFER_SIZE = 1024 * 1024
-    private const val PROGRESS_INTERVAL_MS = 250L
-    private const val PROXY_CHECK_INTERVAL_MS = 1_000L
+        /** 拼装时的拷贝块：见 [assemble] 的注释。 */
+        private const val ASSEMBLE_BUFFER_SIZE = 1024 * 1024
+        private const val PROGRESS_INTERVAL_MS = 250L
+        private const val PROXY_CHECK_INTERVAL_MS = 1_000L
 
-    /** 开局分片的读超时；被切出来的子段按「父段是否过半」逐代减半。 */
-    private const val BASE_READ_TIMEOUT_MS = 20_000L
+        /** 开局分片的读超时；被切出来的子段按「父段是否过半」逐代减半。 */
+        private const val BASE_READ_TIMEOUT_MS = 20_000L
 
-    /** 减半的下限：再低会把「网络慢但没死」的连接也误杀。 */
-    private const val MIN_READ_TIMEOUT_MS = 2_000L
+        /** 减半的下限：再低会把「网络慢但没死」的连接也误杀。 */
+        private const val MIN_READ_TIMEOUT_MS = 2_000L
 
-    /**
-     * 收尾阶段的「静默看门狗」：整体下到 80% 之后，**在飞的连接**如果超过下面这些时长
-     * 一个字节都没收到，就直接掐掉重连。
-     *
-     * OkHttp 的读超时是建 client 时定死的，改不了已经在跑的 call；而收尾阶段最怕的
-     * 恰恰是那几条早就建好、还挂着 20 秒超时的老连接——它一断流，整单就卡在 99%
-     * 干等 20 秒。看门狗在应用层按「最后收字节的时间」自己判，跟 call 是哪个 client
-     * 建出来的无关，所以对已在飞的连接同样生效。
-     */
-    private const val STALL_WATCH_INTERVAL_MS = 500L
-    private const val STALL_ALLOW_80 = 5_000L
-    private const val STALL_ALLOW_90 = 3_000L
-    private const val STALL_ALLOW_95 = 2_000L
+        /**
+         * 收尾阶段的「静默看门狗」：整体下到 80% 之后，**在飞的连接**如果超过下面这些时长
+         * 一个字节都没收到，就直接掐掉重连。
+         *
+         * OkHttp 的读超时是建 client 时定死的，改不了已经在跑的 call；而收尾阶段最怕的
+         * 恰恰是那几条早就建好、还挂着 20 秒超时的老连接——它一断流，整单就卡在 99%
+         * 干等 20 秒。看门狗在应用层按「最后收字节的时间」自己判，跟 call 是哪个 client
+         * 建出来的无关，所以对已在飞的连接同样生效。
+         */
+        private const val STALL_WATCH_INTERVAL_MS = 500L
+        private const val STALL_ALLOW_80 = 5_000L
+        private const val STALL_ALLOW_90 = 3_000L
+        private const val STALL_ALLOW_95 = 2_000L
 
-    /**
-     * 单个分片的最大尝试次数。
-     *
-     * 真机实测：8 条连接里偶尔有一条被中间设备掐住（不 FIN、也不再送数据），
-     * 读超时后整单失败——可另外 7 段其实已经下完，只差这一小截。
-     * 分片本身是可续的，重连一次就能补上，没必要让用户看到「下载中断」。
-     */
-    private const val MAX_SEGMENT_ATTEMPTS = 3
+        /**
+         * 单个分片的最大尝试次数。
+         *
+         * 真机实测：8 条连接里偶尔有一条被中间设备掐住（不 FIN、也不再送数据），
+         * 读超时后整单失败——可另外 7 段其实已经下完，只差这一小截。
+         * 分片本身是可续的，重连一次就能补上，没必要让用户看到「下载中断」。
+         */
+        private const val MAX_SEGMENT_ATTEMPTS = 3
 
-    private const val KEY_RECORD = "update_apk_download_v2"
-    private const val APK_FILE_NAME = "shaft-update.apk"
-    private const val PART_FILE_SUFFIX = ".part"
+        private const val KEY_RECORD = "update_apk_download_v2"
+        private const val APK_FILE_NAME = "shaft-update.apk"
+        private const val PART_FILE_SUFFIX = ".part"
 
-    /** 老版本 AppUpdateChecker 存系统下载器 id 的键，只用于一次性迁移清理。 */
-    private const val LEGACY_KEY_DOWNLOAD_ID = "update_download_id"
-    private const val LEGACY_KEY_DOWNLOAD_TAG = "update_download_tag"
+        /** 老版本 AppUpdateChecker 存系统下载器 id 的键，只用于一次性迁移清理。 */
+        private const val LEGACY_KEY_DOWNLOAD_ID = "update_download_id"
+        private const val LEGACY_KEY_DOWNLOAD_TAG = "update_download_tag"
 
-    private const val STATUS_RUNNING = "RUNNING"
-    private const val STATUS_PAUSED = "PAUSED"
-    private const val STATUS_FAILED = "FAILED"
-    private const val STATUS_COMPLETED = "COMPLETED"
+        private const val STATUS_RUNNING = "RUNNING"
+        private const val STATUS_PAUSED = "PAUSED"
+        private const val STATUS_FAILED = "FAILED"
+        private const val STATUS_COMPLETED = "COMPLETED"
+    }
 
     enum class Phase {
         /** 没有这个版本的下载记录。 */
@@ -240,7 +244,7 @@ object ApkDownloadManager {
 
     private class ProxyChangedException : IOException("GitHub 加速地址已变更")
 
-    private val gson = Gson()
+    private val gson by lazy { Gson() }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _state = MutableStateFlow(State())
@@ -276,7 +280,8 @@ object ApkDownloadManager {
             )
             .build()
 
-    private var app: Application? = null
+    private val banner = UpdateBanner(app, this)
+
     private val installed = AtomicBoolean(false)
     private var job: Job? = null
 
@@ -310,15 +315,14 @@ object ApkDownloadManager {
     /**
      * 进程启动时调用一次（`Shaft.onCreate`）。只读 MMKV + stat 几个文件，可以在主线程跑。
      */
-    fun install(application: Application) {
+    fun install() {
         if (!installed.compareAndSet(false, true)) return
-        app = application
-        cancelLegacySystemDownload(application)
-        application.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
+        cancelLegacySystemDownload()
+        app.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
             override fun onActivityResumed(activity: Activity) {
                 // 「下载完成但当时没有 sheet」的 banner 要等到前台才发；
                 // 冷启动时这里也兜住「上次已完成、进程后来被杀」的情形。
-                UpdateBanner.onForeground()
+                banner.onForeground()
             }
 
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
@@ -336,12 +340,12 @@ object ApkDownloadManager {
      * 升级之后它可能还在跑——跑的正是这次要消掉的「绕过应用 UID / 代理白名单」的请求。
      * 按老版本存下的 id 删掉，删完把键清掉，之后永不再执行。
      */
-    private fun cancelLegacySystemDownload(application: Application) {
+    private fun cancelLegacySystemDownload() {
         runCatching {
             val mmkv = MMKV.defaultMMKV()
             val legacyId = mmkv.decodeLong(LEGACY_KEY_DOWNLOAD_ID, -1L)
             if (legacyId != -1L) {
-                (application.getSystemService(android.content.Context.DOWNLOAD_SERVICE)
+                (app.getSystemService(android.content.Context.DOWNLOAD_SERVICE)
                         as? android.app.DownloadManager)?.remove(legacyId)
                 Timber.tag(TAG).i("已移除遗留的系统下载任务 %d", legacyId)
             }
@@ -378,7 +382,7 @@ object ApkDownloadManager {
                 (rec.totalBytes <= 0L || apk.length() == rec.totalBytes)
             ) {
                 publish(rec, Phase.COMPLETED, downloaded = apk.length())
-                if (rec.bannerPending) UpdateBanner.markPending()
+                if (rec.bannerPending) banner.markPending()
             } else {
                 deleteAllFiles()
                 clearRecord()
@@ -451,11 +455,16 @@ object ApkDownloadManager {
         sheetCount.incrementAndGet()
         // 用户已经看到结果了，欠着的那条 banner 不必再发（也顺手撤掉屏上那条）。
         consumeBannerPending()
-        UpdateBanner.clear()
+        banner.clear()
     }
 
     fun detachSheet() {
         sheetCount.updateAndGet { if (it > 0) it - 1 else 0 }
+    }
+
+    /** banner 系统刚就绪（冷启动时它晚于首个 onResume），补发欠着的那条提示。 */
+    fun onBannerReady() {
+        banner.onBannerReady()
     }
 
     /** 下载完成、但没有任何 sheet 在看时调用，交给 [UpdateBanner] 决定什么时候弹。 */
@@ -999,7 +1008,7 @@ object ApkDownloadManager {
             rec.bannerPending = !sheetAttached
             saveRecord(rec)
             publish(rec, Phase.COMPLETED, downloaded = apk.length())
-            if (rec.bannerPending) UpdateBanner.markPending()
+            if (rec.bannerPending) banner.markPending()
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "拼装 APK 失败")
             fail(rec, Reason.IO, resumable = false)
@@ -1107,10 +1116,8 @@ object ApkDownloadManager {
         }
     }
 
-    private fun dir(): File? {
-        val context = app ?: Shaft.getContext() ?: return null
-        return context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: context.filesDir
-    }
+    private fun dir(): File? =
+        app.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: app.filesDir
 
     private fun loadRecord(): Record? {
         val raw = runCatching { MMKV.defaultMMKV().decodeString(KEY_RECORD, "") }.getOrNull()

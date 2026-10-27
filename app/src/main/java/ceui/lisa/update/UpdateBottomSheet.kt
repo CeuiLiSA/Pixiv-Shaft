@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.BuildConfig
 import ceui.lisa.R
 import ceui.lisa.utils.Common
+import ceui.pixiv.services.appServices
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -36,6 +37,8 @@ import java.util.Locale
 class UpdateBottomSheet : BottomSheetDialogFragment() {
 
     private var release: GitHubRelease? = null
+
+    private val downloads by lazy { requireContext().appServices().apkDownloadManager }
 
     /** 随视图创建 / 销毁；渲染回调一律先取它，拿不到就说明视图已经没了。 */
     private var sheet: UpdateSheetView? = null
@@ -97,10 +100,10 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         }
 
         // 有 sheet 在看的时候下载完成，就不发 banner 了。
-        ApkDownloadManager.attachSheet()
+        downloads.attachSheet()
 
         viewLifecycleOwner.lifecycleScope.launch {
-            ApkDownloadManager.state.collect { render(it, rel) }
+            downloads.state.collect { render(it, rel) }
         }
 
         (dialog as? BottomSheetDialog)?.apply {
@@ -236,19 +239,19 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
             return
         }
         // 界面不用手动切状态：start 会同步把 state 推到 RUNNING。
-        ApkDownloadManager.start(rel)
+        downloads.start(rel)
     }
 
     private fun continueDownload(rel: GitHubRelease) {
-        ApkDownloadManager.start(rel)
+        downloads.start(rel)
     }
 
     private fun retryDownload(rel: GitHubRelease) {
-        ApkDownloadManager.restart(rel)
+        downloads.restart(rel)
     }
 
     private fun installApk() {
-        val apkFile = ApkDownloadManager.apkFile()
+        val apkFile = downloads.apkFile()
         if (apkFile == null || !apkFile.exists() || apkFile.length() <= 0L) {
             // 文件被清掉了（用户清理缓存 / 换目录）：当作断点不可用，退回重试。
             release?.let { retryDownload(it) }
@@ -299,7 +302,7 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        ApkDownloadManager.detachSheet()
+        downloads.detachSheet()
         sheet = null
     }
 }

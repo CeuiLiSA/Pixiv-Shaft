@@ -10,7 +10,6 @@ import android.widget.ImageView
 import androidx.fragment.app.FragmentActivity
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.update.ApkDownloadManager
 import ceui.lisa.update.UpdateBottomSheet
 import ceui.lisa.utils.GlideUrlChild
 import ceui.pixiv.banner.BannerEvent
@@ -137,13 +136,13 @@ object InAppBanners {
     /**
      * `shaft://update`：把更新 sheet 直接盖在当前前台页面上。
      *
-     * sheet 的内容全部来自 [ApkDownloadManager] 的进程级状态（它自己存了整份 release），
+     * sheet 的内容全部来自 [ceui.lisa.update.ApkDownloadManager] 的进程级状态（它自己存了整份 release），
      * 所以这里不需要 release 参数，进程被杀过也照样能打开。
      */
     private suspend fun openUpdateSheet(app: Application) {
         withContext(Dispatchers.Main) {
             val activity = foreground.current()
-            val release = ApkDownloadManager.releaseForSheet()
+            val release = app.appServices().apkDownloadManager.releaseForSheet()
             if (activity is FragmentActivity && !activity.isFinishing && !activity.isDestroyed && release != null) {
                 // 已经有一个在显示（比如用户正停在关于页的那个）就不再叠一层。
                 if (activity.supportFragmentManager.findFragmentByTag("update_dialog") == null) {
