@@ -86,7 +86,7 @@ android {
         applicationId "ceui.pixiv"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 43400
+        versionCode 43500
         versionName "4.9.8"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
