@@ -700,7 +700,9 @@ class UserActivityV3 : BaseActivity<ActivityUserV3Binding>() {
         //   - not myself
         //   - I'm logged in (ShaftHmacAuthProvider needs SessionManager.loggedInUid > 0)
         //   - pixiv's `canSendMessage` flag is true (preserves existing UX guard)
-        if (!isSelf && detail.canSendMessage == true && ceui.pixiv.session.SessionManager.isLoggedIn) {
+        //   - not the lite (Google Play) channel
+        if (!ceui.lisa.BuildConfig.IS_LITE && !isSelf && detail.canSendMessage == true &&
+            ceui.pixiv.session.SessionManager.isLoggedIn) {
             baseBind.msgBtn.isVisible = true
             baseBind.msgBtn.background = makeBadgeBg(dp, palette.alpha20)
             baseBind.msgBtn.imageTintList = android.content.res.ColorStateList.valueOf(palette.textAccent)

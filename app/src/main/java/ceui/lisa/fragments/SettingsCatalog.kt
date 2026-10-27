@@ -63,8 +63,8 @@ object SettingsCatalog {
     val entries: List<Entry> = buildList {
         // 账号
         add(Entry(ACCOUNT, "user_manage", R.string.account_manage, keywords = "多账号 切换账号 添加账号 账户 switch account"))
-        add(Entry(ACCOUNT, "edit_account", R.string.string_91, keywords = "邮箱 密码 pixiv id 绑定 email password"))
         if (!ceui.lisa.BuildConfig.IS_LITE) {
+            add(Entry(ACCOUNT, "edit_account", R.string.string_91, keywords = "邮箱 密码 pixiv id 绑定 email password"))
             add(Entry(ACCOUNT, "account_backup", R.string.email_backup_settings_entry, keywords = "备份账号 恢复 邮箱 email backup"))
         }
         add(Entry(ACCOUNT, "edit_file", R.string.string_92, keywords = "个人资料 头像 昵称 简介 性别 生日 profile avatar"))
