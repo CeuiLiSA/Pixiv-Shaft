@@ -98,6 +98,8 @@ public class Params {
 
     public static final String FILTER_ILLUST        = "ceui.lisa.fragments.NetListFragment FILTER_ILLUST";
     public static final String FILTER_NOVEL        = "ceui.lisa.fragments.NetListFragment FILTER_NOVEL";
+    /** 全局「R-18 过滤」开关被切换（长按侧边栏头像）：列表按当前设置重算条目显隐，不重新拉数据。 */
+    public static final String R18_FILTER_CHANGED  = "ceui.lisa.R18_FILTER_CHANGED";
     public static final String LIKED_ILLUST        = "ceui.lisa.fragments.NetListFragment LIKED_ILLUST";
     public static final String LIKED_USER          = "ceui.lisa.fragments.NetListFragment LIKED_USER";
     public static final String LIKED_NOVEL         = "ceui.lisa.fragments.NetListFragment LIKED_NOVEL";

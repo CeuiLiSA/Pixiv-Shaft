@@ -1420,6 +1420,9 @@ public class Settings {
 
     public void setR18FilterTempEnable(boolean r18FilterTempEnable) {
         this.r18FilterTempEnable = r18FilterTempEnable;
+        // 显式写过就算初始化过：getter 的懒初始化会在 initialed 为 false 时拿默认值把刚写的值盖掉，
+        // 于是「先 set 后 get」的调用方拿到的是默认值而不是自己刚设的值
+        this.r18FilterTempEnableInitialed = true;
     }
 
     public int getNovelFilterMinTextLength() {

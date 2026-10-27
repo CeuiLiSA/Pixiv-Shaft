@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.databinding.FragmentToolbarFeedBinding
 import ceui.lisa.utils.Params
 import ceui.pixiv.witstudio.theme.V3Palette
@@ -17,6 +18,7 @@ import ceui.pixiv.feeds.pixiv.pixivFeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.NovelFeedFragment
 import ceui.pixiv.ui.common.NovelFeedItem
+import ceui.pixiv.ui.common.observeR18FilterChanges
 import ceui.pixiv.ui.common.setUpToolbar
 
 /**
@@ -94,6 +96,7 @@ class FollowingNovelFeedFragment : NovelFeedFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.observeR18FilterChanges(requireContext(), ::onR18FilterChanged)
         if (!showToolbar) return
         val binding = FragmentToolbarFeedBinding.bind(view)
         setUpToolbar(binding, feedBinding.feedListView)
@@ -110,6 +113,17 @@ class FollowingNovelFeedFragment : NovelFeedFragment() {
         // forceRefresh 在 view 未创建时安全 no-op：此时首屏也还没拉过，
         // 会自然用上面刚写进去的新 restrict
         forceRefresh()
+    }
+
+    /**
+     * 全局「R-18 过滤」开关变了：就地重算每篇小说的显隐，不重新拉数据。
+     *
+     * 条目从来没被摘走（mapper 只打隐藏标记），所以关掉开关时它们原地回来。
+     */
+    private fun onR18FilterChanged() {
+        applyItemVisibility { item ->
+            (item as? NovelFeedItem)?.withR18Hidden(Shaft.sSettings.isR18FilterTempEnable) ?: item
+        }
     }
 
     companion object {
@@ -133,9 +147,23 @@ class FollowingNovelFeedFragment : NovelFeedFragment() {
         /** 页响应 → 条目。跑在 Default 线程、被 VM 长期持有，放伴生对象保证零捕获。 */
         private fun mapFollowingNovelPage(novels: List<Novel>): List<FeedItem> {
             val hideBookmarked = Shaft.sSettings.isDeleteStarIllust
+            val r18FilterOn = Shaft.sSettings.isR18FilterTempEnable
             return novels.mapNotNull {
-                if (hideBookmarked && it.is_bookmarked == true) null else NovelFeedItem.of(it)
+                // 「过滤已收藏」仍然是丢：用户要的是它别出现，而且它走设置页改、回来有 onResume
+                if (hideBookmarked && it.is_bookmarked == true) return@mapNotNull null
+                // R-18 只打隐藏标记、不丢条目（见 FeedUiState.visibleItems）：这个开关是长按侧边栏
+                // 头像切的临时开关，随时可能被关掉，条目留在列表里才能原地回来，不必重新拉一次
+                NovelFeedItem.of(it, skipR18Filter = true)?.withR18Hidden(r18FilterOn)
             }
         }
+
+        /**
+         * R-18 过滤的标记口径，两个方向共用：开关开着且这篇算 R-18 就藏，否则放出来。
+         *
+         * 判定用 [IllustNovelFilter.hitsR18Filter]（不看开关）而不是 `judgeR18Filter`——后者在
+         * 开关关着时恒为 false，拿不到「它本来是 R-18」这个事实，关掉开关时就放不回来。
+         */
+        private fun NovelFeedItem.withR18Hidden(filterOn: Boolean): NovelFeedItem =
+            withHidden(filterOn && IllustNovelFilter.hitsR18Filter(novel))
     }
 }

@@ -21,15 +21,25 @@ import ceui.pixiv.feeds.FeedItem
 class NovelFeedItem(
     val novel: Novel,
     val trendingScore: Float? = null,
+    /**
+     * 被页面按当前设置临时隐藏：条目仍留在列表数据里（身份、位置都不变），只是不参与渲染，
+     * 设置改回去时原地回来。语义见 [FeedItem.hidden]。
+     */
+    override val hidden: Boolean = false,
 ) : FeedItem {
 
     override val feedKey: Any get() = novel.id
 
     override fun equals(other: Any?): Boolean {
-        return other is NovelFeedItem && other.novel == novel && other.trendingScore == trendingScore
+        return other is NovelFeedItem && other.novel == novel &&
+            other.trendingScore == trendingScore && other.hidden == hidden
     }
 
-    override fun hashCode(): Int = novel.hashCode() * 31 + (trendingScore?.hashCode() ?: 0)
+    override fun hashCode(): Int =
+        (novel.hashCode() * 31 + (trendingScore?.hashCode() ?: 0)) * 31 + hidden.hashCode()
+
+    fun withHidden(hidden: Boolean): NovelFeedItem =
+        if (this.hidden == hidden) this else NovelFeedItem(novel, trendingScore, hidden)
 
     /**
      * 收藏态变更：copy 出新实例（相等性变化触发 DiffUtil 重绑爱心 + 收藏数），保留 [trendingScore]。
@@ -40,7 +50,12 @@ class NovelFeedItem(
         if ((novel.is_bookmarked == true) == liked) return this
         val delta = if (liked) 1 else -1
         val newCount = ((novel.total_bookmarks ?: 0) + delta).coerceAtLeast(0)
-        return NovelFeedItem(novel.copy(is_bookmarked = liked, total_bookmarks = newCount), trendingScore)
+        // 隐藏标记跟着走：收藏一篇文章不该让它当场被过滤掉（过滤只在开关变化 / 重新拉数据时重算）
+        return NovelFeedItem(
+            novel.copy(is_bookmarked = liked, total_bookmarks = newCount),
+            trendingScore,
+            hidden,
+        )
     }
 
     companion object {

@@ -526,9 +526,9 @@ abstract class NovelFeedFragment(
         button.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(button.context, color))
     }
 
-    /** VM 里当前整表的小说条目。对齐 [IllustFeedFragment.currentIllustItems]。 */
+    /** 屏上可见的小说条目：不含页面临时隐藏的（[ceui.pixiv.feeds.FeedItem.hidden]）。对齐 [IllustFeedFragment.currentIllustItems]。 */
     internal fun currentNovelItems(): List<NovelFeedItem> {
-        return feedViewModel.uiState.value.items.filterIsInstance<NovelFeedItem>()
+        return feedViewModel.uiState.value.visibleItems.filterIsInstance<NovelFeedItem>()
     }
 
     /** VM 里当前这条小说的最新条目（真源）；已被刷新挤掉则 null。对齐 [IllustFeedFragment.currentIllustItem]。 */

@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.pixiv.feeds.FeedAdapter
+import ceui.pixiv.feeds.scrollFeedItemToOffset
 import kotlin.math.roundToInt
 
 /**
@@ -213,12 +214,8 @@ internal class JustifiedItemDecoration(
  * 照搬同一个 offset 会落低一格（跳评论的基线永远对不齐）。这里把差值扣掉。
  */
 internal fun RecyclerView.scrollToPositionWithOffset(position: Int, offset: Int) {
-    when (val lm = layoutManager) {
-        is StaggeredGridLayoutManager -> lm.scrollToPositionWithOffset(position, offset)
-        is LinearLayoutManager ->
-            lm.scrollToPositionWithOffset(position, offset - (lm.paddingTop - paddingTop))
-        else -> scrollToPosition(position)
-    }
+    // 口径实现收在 feeds 里（列表框架自己也要用），这里只是保留本模块的既有调用名
+    scrollFeedItemToOffset(position, offset)
 }
 
 /**

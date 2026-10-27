@@ -1,10 +1,13 @@
 package ceui.pixiv.ui.dynamic
 
+import android.os.Bundle
+import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.lisa.activities.Shaft
+import ceui.lisa.helper.IllustNovelFilter
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.api.Client
 import ceui.pixiv.api.model.Illust
@@ -17,6 +20,7 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
 import ceui.pixiv.ui.common.JustifiedLayoutManager
+import ceui.pixiv.ui.common.observeR18FilterChanges
 
 /**
  * 「动态」页的插画/漫画列表（feeds 框架版，替代 legacy FragmentRight 自身的
@@ -33,7 +37,9 @@ import ceui.pixiv.ui.common.JustifiedLayoutManager
  * 2. **两种排布**：时间线（单列大卡）/ 瀑布流，由设置「关注动态布局模式」持久化，
  *    宿主的按钮切换后调 [applyLayoutMode] —— 只重装 Renderer + LayoutManager，
  *    数据留在 VM 里**不重拉**（对齐 legacy 换 adapter 的语义）。
- * 3. **过滤已收藏**：与动态小说共用设置，只影响关注动态，刷新和每次续页时生效。
+ * 3. **过滤已收藏**：与动态小说共用设置，只影响关注动态，刷新和每次续页时生效；命中即丢。
+ * 4. **全局「R-18 过滤」**：只给条目打隐藏标记、不丢，开关翻转时就地重算显隐，不重新拉数据
+ *    —— 那个开关是长按侧边栏头像切的，抽屉开着、本页不会经过 onResume，只能靠广播通知。
  */
 class FollowingIllustFeedFragment : IllustFeedFragment() {
 
@@ -137,11 +143,40 @@ class FollowingIllustFeedFragment : IllustFeedFragment() {
         rebuildList()
     }
 
+    /**
+     * 全局「R-18 过滤」开关变了：就地重算每条插画的显隐，不重新拉数据。
+     *
+     * 条目从来没被摘走（mapper 只打隐藏标记），所以关掉开关时它们原地回来。
+     */
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.observeR18FilterChanges(requireContext(), ::onR18FilterChanged)
+    }
+
+    private fun onR18FilterChanged() {
+        applyItemVisibility { item ->
+            (item as? IllustFeedItem)?.withR18Hidden(Shaft.sSettings.isR18FilterTempEnable) ?: item
+        }
+    }
+
     companion object {
         // 首屏、刷新、翻页和详情回传共用；不捕获 Fragment，开关在每次映射时读取。
         private fun followingItem(illust: Illust?): IllustFeedItem? {
-            if (Shaft.sSettings.isDeleteStarIllust && illust?.isBookmarked == true) return null
-            return IllustFeedItem.of(illust)
+            // R-18 只打隐藏标记、不丢条目（见 FeedUiState.visibleItems）：这个开关是长按侧边栏
+            // 头像切的临时开关，随时可能被关掉，条目留在列表里才能原地回来、不必重新拉一次
+            val item = IllustFeedItem.of(illust, skipR18Filter = true) ?: return null
+            // 「过滤已收藏」仍然是丢：用户要的是它别出现，而且它走设置页改、回来有 onResume
+            if (Shaft.sSettings.isDeleteStarIllust && item.illust.isBookmarked == true) return null
+            return item.withR18Hidden(Shaft.sSettings.isR18FilterTempEnable)
         }
+
+        /**
+         * R-18 过滤的标记口径，两个方向共用：开关开着且这条算 R-18 就藏，否则放出来。
+         *
+         * 判定用 [IllustNovelFilter.hitsR18Filter]（不看开关）而不是 `judgeR18Filter`——后者在
+         * 开关关着时恒为 false，拿不到「它本来是 R-18」这个事实，关掉开关时就放不回来。
+         */
+        private fun IllustFeedItem.withR18Hidden(filterOn: Boolean): IllustFeedItem =
+            withHidden(filterOn && IllustNovelFilter.hitsR18Filter(illust))
     }
 }
