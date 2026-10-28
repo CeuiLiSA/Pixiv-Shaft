@@ -2,7 +2,6 @@ package ceui.pixiv.ui.download
 
 import android.content.Intent
 import android.net.Uri
-import android.content.Context
 import android.os.Bundle
 import android.util.LruCache
 import android.view.LayoutInflater
@@ -56,9 +55,10 @@ import java.io.Serializable
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.bulk.QueueDownloadManager
 import ceui.pixiv.ui.navigation.TemplateRoute
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * V3 风格 "已完成" — 双列卡片网格。
@@ -75,19 +75,15 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  * 自动 emit 新快照，UI 端 collect 即可。完全替代旧的 1.5s polling +
  * DOWNLOAD_FINISH 广播兜底架构（0 timer、0 broadcast receiver）。
  */
+@AndroidEntryPoint
 class DoneListV3Fragment : Fragment() {
 
     /**
-     * 在 [onAttach] 取一次而不是每次 `requireContext()`:清空/重试这类操作跑在
-     * IO 协程里,阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
-     * 实例是应用级的,提前拿住没有泄漏问题。
+     * 注入一次而不是每次 `requireContext()` 去取:清空/重试这类操作跑在 IO 协程里,
+     * 阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
+     * 实例是应用级的,拿住没有泄漏问题。
      */
-    private lateinit var queueDownloadManager: QueueDownloadManager
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        queueDownloadManager = context.appServices().queueDownloadManager
-    }
+    @Inject lateinit var queueDownloadManager: QueueDownloadManager
 
     private val dao: DownloadDao by lazy {
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao()

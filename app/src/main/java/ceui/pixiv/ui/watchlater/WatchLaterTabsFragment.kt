@@ -7,13 +7,15 @@ import androidx.fragment.app.FragmentPagerAdapter
 import ceui.lisa.R
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding
 import ceui.lisa.utils.Common
-import ceui.pixiv.services.requireEntityWrapper
+import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.ui.common.viewBinding
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.slideshow.SlideshowLauncher
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import java.util.ArrayList
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * 「稍后再看」入口页：对齐浏览记录页的 tab 结构，复用同一个侧边栏入口（不新增入口）。
@@ -22,9 +24,13 @@ import java.util.ArrayList
  * 共读 general_table 的 WATCH_LATER 记录，按 entityType 分开渲染。
  * toolbar 的「更多」菜单按当前 tab 给动作：插画 tab = 播放全部 + 清空，小说 tab = 清空。
  */
+@AndroidEntryPoint
 class WatchLaterTabsFragment : Fragment(R.layout.viewpager_with_tablayout) {
 
     private val binding by viewBinding(ViewpagerWithTablayoutBinding::bind)
+
+    /** app 单例；注入时就拿住，弹窗动作异步触发时 fragment 可能已 detach。 */
+    @Inject lateinit var entityWrapper: EntityWrapper
 
     private val tabTitles = listOf(R.string.string_246, R.string.string_237)
 
@@ -101,8 +107,6 @@ class WatchLaterTabsFragment : Fragment(R.layout.viewpager_with_tablayout) {
             Common.showToast(R.string.watch_later_empty)
             return
         }
-        // EntityWrapper 是 app 单例；提前抓好，弹窗动作异步触发时 fragment 可能已 detach。
-        val entityWrapper = requireEntityWrapper()
         WitDialog.MessageDialogBuilder(ctx)
             .setTitle(R.string.watch_later)
             .setMessage(R.string.watch_later_clear_confirm)

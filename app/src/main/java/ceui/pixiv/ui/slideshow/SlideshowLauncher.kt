@@ -2,6 +2,7 @@ package ceui.pixiv.ui.slideshow
 
 import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import ceui.pixiv.api.model.Illust
 import ceui.lisa.utils.Common
@@ -86,15 +87,26 @@ object SlideshowLauncher {
         )
         val intent = Intent(context, SlideshowActivity::class.java).apply {
             putExtra(SlideshowActivity.EXTRA_SESSION_ID, sessionId)
-            if (context !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (!context.isBackedByActivity()) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         // Activity callers stay in the current task. A non-Activity Context
         // needs NEW_TASK or Context.startActivity throws AndroidRuntimeException.
+        // 判断要剥 ContextWrapper：Hilt Fragment 的 requireContext() 是包着 Activity 的
+        // FragmentContextWrapper，startActivity 会转给 Activity，不该被当成非 Activity。
         try {
             context.startActivity(intent)
         } catch (e: RuntimeException) {
             SlideshowStore.remove(sessionId)
             throw e
         }
+    }
+
+    private fun Context.isBackedByActivity(): Boolean {
+        var c: Context? = this
+        while (c is ContextWrapper) {
+            if (c is Activity) return true
+            c = c.baseContext
+        }
+        return false
     }
 }

@@ -47,8 +47,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import ceui.pixiv.services.appServices
 import ceui.pixiv.ui.bulk.QueueDownloadManager
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * V3 风格 "批量队列" 列表。
@@ -59,19 +60,15 @@ import ceui.pixiv.ui.bulk.QueueDownloadManager
  *  - 缩略图从 ObjectPool 取（命中率高，最近抓的都在）；不在池里就只显示占位色
  *  - 状态徽章彩色：PENDING(灰)/DOWNLOADING(蓝)/SUCCESS(绿)/FAILED(红)
  */
+@AndroidEntryPoint
 class QueueListV3Fragment : Fragment() {
 
     /**
-     * 在 [onAttach] 取一次而不是每次 `requireContext()`:清空/重试这类操作跑在
-     * IO 协程里,阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
-     * 实例是应用级的,提前拿住没有泄漏问题。
+     * 注入一次而不是每次 `requireContext()` 去取:清空/重试这类操作跑在 IO 协程里,
+     * 阻塞的 DB 调用返回时 Fragment 可能已 detach,再 requireContext 就崩。
+     * 实例是应用级的,拿住没有泄漏问题。
      */
-    private lateinit var queueDownloadManager: QueueDownloadManager
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        queueDownloadManager = context.appServices().queueDownloadManager
-    }
+    @Inject lateinit var queueDownloadManager: QueueDownloadManager
 
     private val dao: DownloadQueueDao by lazy {
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadQueueDao()

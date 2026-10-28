@@ -22,7 +22,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import ceui.lisa.R
-import ceui.pixiv.services.appServices
+import ceui.pixiv.actions.PixivActionQueue
 import ceui.pixiv.ui.library.LibraryFilterViews
 import ceui.pixiv.ui.v3.setupV3Toolbar
 import ceui.pixiv.witstudio.dialog.WitDialog
@@ -44,6 +44,8 @@ import ceui.pixiv.witstudio.theme.shape
 import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /** 表单上还没开始的那份选择，转屏不丢。 */
 class SnapshotBackfillDraftViewModel : ViewModel() {
@@ -57,12 +59,15 @@ class SnapshotBackfillDraftViewModel : ViewModel() {
  * 页面只读 [SnapshotBackfill.state]、只发控制指令；队列在进程级宿主里跑，关掉页面不影响。
  * 选项对整个队列生效：一轮进行中时设置区只展示这一轮的值，停止后才能改。
  */
+@AndroidEntryPoint
 class SnapshotBackfillFragment : Fragment(R.layout.fragment_snapshot_backfill) {
 
     private val draftModel: SnapshotBackfillDraftViewModel by viewModels()
 
+    @Inject lateinit var pixivActionQueue: PixivActionQueue
+
     private val backfill: SnapshotBackfill
-        get() = requireContext().appServices().pixivActionQueue.snapshotBackfill
+        get() = pixivActionQueue.snapshotBackfill
 
     private var locked = false
     private var renderedActions: String? = null

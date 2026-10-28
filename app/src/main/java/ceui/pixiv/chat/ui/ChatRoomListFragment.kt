@@ -19,7 +19,7 @@ import ceui.lisa.databinding.ChatFragmentRoomListBinding
 import ceui.pixiv.chat.api.ChatConversationsRepository
 import ceui.pixiv.chat.api.ChatFrame
 import ceui.pixiv.chat.api.ChatFrameDecoder
-import ceui.pixiv.services.appServices
+import ceui.pixiv.chat.api.ShaftChatGateway
 import ceui.pixiv.chat.base.setupToolbar
 import ceui.pixiv.chat.base.viewBinding
 import ceui.pixiv.chat.base.viewModels
@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ceui.pixiv.ui.navigation.TemplateRoute
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * Conversation list view (chat home). The hard part — paging, avatar
@@ -40,6 +42,7 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  * count) instead of the classic brand toolbar, and a divider-less list whose
  * one public room is a theme-gradient hero card (see [ChatRoomListAdapter]).
  */
+@AndroidEntryPoint
 class ChatRoomListFragment : Fragment(R.layout.chat_fragment_room_list) {
 
     private val binding by viewBinding(ChatFragmentRoomListBinding::bind)
@@ -47,6 +50,8 @@ class ChatRoomListFragment : Fragment(R.layout.chat_fragment_room_list) {
     private val viewModel: ChatRoomListViewModel by viewModels {
         ChatRoomListViewModel(repo = ChatConversationsRepository())
     }
+
+    @Inject lateinit var chatGateway: ShaftChatGateway
 
     private val adapter by lazy { ChatRoomListAdapter(onClick = ::openRoom) }
 
@@ -93,7 +98,7 @@ class ChatRoomListFragment : Fragment(R.layout.chat_fragment_room_list) {
         // format — easier to unit-test by feeding it ChatFrame.Msg directly.
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                requireContext().appServices().chatGateway.incoming
+                chatGateway.incoming
                     .filterIsInstance<IncomingMessage.Text>()
                     .map { ChatFrameDecoder.decode(it.text) }
                     .filterIsInstance<ChatFrame.Msg>()
