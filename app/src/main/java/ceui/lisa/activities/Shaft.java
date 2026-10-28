@@ -56,8 +56,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>{@link HiltAndroidApp}：进程级服务由 Hilt 构造并注入本类，再经 {@link ServicesProvider}
  * 暴露给还没迁到注入的调用方。onCreate 只负责按顺序 <em>启动</em> 它们（start / install / bootstrap）。
- * EntityWrapper / NetworkStateManager 仍在 onCreate 的固定位置手工构造，不归 Hilt；
- * 其中要被注入的（EntityWrapper）经 {@link ceui.pixiv.services.ServicesModule} 桥接。
+ * EntityWrapper 仍在 onCreate 的固定位置手工构造（initialize 时机有讲究），不归 Hilt，
+ * 经 {@link ceui.pixiv.services.ServicesModule} 桥接进图里。
  * */
 @HiltAndroidApp
 public class Shaft extends Application implements ServicesProvider {
@@ -66,7 +66,7 @@ public class Shaft extends Application implements ServicesProvider {
     public static Gson sGson;
     public static SharedPreferences sPreferences;
     protected NetWorkStateReceiver netWorkStateReceiver;
-    private NetworkStateManager networkStateManager;
+    @Inject NetworkStateManager networkStateManager;
     private OkHttpClient mOkHttpClient;
     /**
      * 图片 / 下载进度的订阅表，挂在 {@link #getOkHttpClient()} 的 network interceptor 上。
@@ -444,7 +444,6 @@ public class Shaft extends Application implements ServicesProvider {
         }
 
         initMMKV(this);
-        networkStateManager = new NetworkStateManager(this);
         sSettings = Local.getSettings();
 
         if (sSettings.isLogFileEnabled()) {

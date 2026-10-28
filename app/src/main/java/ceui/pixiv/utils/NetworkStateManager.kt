@@ -9,12 +9,21 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import android.os.Build
 import ceui.pixiv.utils.NetworkStateManager.NetworkType
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 interface INetworkState {
     val networkState: LiveData<NetworkType>
 }
 
-class NetworkStateManager(context: Context) : INetworkState {
+/**
+ * 进程级网络状态，由 Hilt 以 @Singleton 构造并经 [ceui.pixiv.services.ServicesProvider] 暴露。
+ * 构造时向 ConnectivityManager 注册回调（一次 binder 调用，不读任何全局状态），所以能在
+ * Shaft 的 super.onCreate() 注入时就建好。
+ */
+@Singleton
+class NetworkStateManager @Inject constructor(@ApplicationContext context: Context) : INetworkState {
 
     enum class NetworkType {
         WIFI,
