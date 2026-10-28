@@ -45,6 +45,7 @@ import ceui.pixiv.witstudio.dialog.WitDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import ceui.pixiv.ui.navigation.TemplateRoute
 
@@ -60,7 +61,11 @@ import ceui.pixiv.ui.navigation.TemplateRoute
  * - Toolbar 菜单：新建目标标签 / 导出 / 导入（合并导入，JSON 格式兼容预生成词典）
  *
  * 数据归 [SynonymDictViewModel]，本类只渲染 + 转发点击。
+ *
+ * Hilt 入口：requireContext() 是 Hilt 的 FragmentContextWrapper，不是 Activity，
+ * 要 Activity 用 requireActivity()，别强转 context。
  */
+@AndroidEntryPoint
 class SynonymDictFragment : Fragment(R.layout.fragment_synonym_dict) {
 
     private val viewModel by viewModels<SynonymDictViewModel>()

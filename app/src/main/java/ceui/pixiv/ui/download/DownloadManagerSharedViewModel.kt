@@ -1,10 +1,8 @@
 package ceui.pixiv.ui.download
 
-import androidx.lifecycle.AndroidViewModel
-import android.app.Application
+import androidx.lifecycle.ViewModel
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.core.ManagerReactive
-import ceui.lisa.database.AppDatabase
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.queue.QueueStatus
 import ceui.pixiv.ui.bulk.QueueDownloadManager
@@ -19,7 +17,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import ceui.pixiv.services.appServices
+import dagger.Lazy
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 /**
  * 三个 tab 共享的 stats 数据源。
@@ -35,11 +35,12 @@ import ceui.pixiv.services.appServices
  *     由本 VM 派生）—— 历史上从 download_queue.SUCCESS 派生，跟列表数据源
  *     illust_download_table 是两张表，会出现 "1944 / 空列表" 的错位。
  */
-class DownloadManagerSharedViewModel(app: Application) : AndroidViewModel(app) {
-
-    private val queueDao: DownloadQueueDao by lazy {
-        AppDatabase.getAppDatabase(app).downloadQueueDao()
-    }
+@HiltViewModel
+class DownloadManagerSharedViewModel @Inject constructor(
+    queueDownloadManager: QueueDownloadManager,
+    // Lazy：首次计数查询（已在 IO 上）才去拿库，VM 构造仍不碰 Room。
+    private val queueDao: Lazy<DownloadQueueDao>,
+) : ViewModel() {
 
     data class Snapshot(
         val queuePending: Int,
@@ -63,11 +64,11 @@ class DownloadManagerSharedViewModel(app: Application) : AndroidViewModel(app) {
      * 新订阅立刻拿一次初始 tick。
      */
     private val queueCountsFlow: Flow<QueueCounts> =
-        app.appServices().queueDownloadManager.queueListInvalidations
+        queueDownloadManager.queueListInvalidations
             .map {
                 QueueCounts(
-                    pending = runCatching { queueDao.countByStatus(QueueStatus.PENDING) }.getOrDefault(0),
-                    downloading = runCatching { queueDao.countByStatus(QueueStatus.DOWNLOADING) }.getOrDefault(0),
+                    pending = runCatching { queueDao.get().countByStatus(QueueStatus.PENDING) }.getOrDefault(0),
+                    downloading = runCatching { queueDao.get().countByStatus(QueueStatus.DOWNLOADING) }.getOrDefault(0),
                 )
             }
             .distinctUntilChanged()

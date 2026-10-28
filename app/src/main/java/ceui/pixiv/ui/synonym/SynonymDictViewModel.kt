@@ -1,13 +1,14 @@
 package ceui.pixiv.ui.synonym
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import ceui.lisa.database.AppDatabase
+import androidx.lifecycle.ViewModel
+import ceui.pixiv.db.synonym.SynonymDao
 import ceui.pixiv.db.synonym.SynonymTagEntity
 import ceui.pixiv.db.synonym.SynonymTargetEntity
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.Executors
+import javax.inject.Inject
 
 /**
  * 同义词词典管理页 ViewModel（issue #904）。
@@ -17,9 +18,9 @@ import java.util.concurrent.Executors
  * 线程模型：词典/搜索词变化（主线程回调）→ 过滤+扁平化丢到 [rebuildExecutor]（导入预生成
  * 词典后可达数万条，主线程全量扫描会卡顿）→ postValue 回主线程；代次守卫丢弃过期结果。
  */
-class SynonymDictViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class SynonymDictViewModel @Inject constructor(dao: SynonymDao) : ViewModel() {
 
-    private val dao = AppDatabase.getAppDatabase(application).synonymDao()
     private val rebuildExecutor = Executors.newSingleThreadExecutor { r ->
         Thread(r, "synonym-dict-rebuild").apply { isDaemon = true }
     }

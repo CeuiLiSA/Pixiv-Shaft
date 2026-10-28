@@ -4,6 +4,9 @@ apply plugin: 'com.android.application'
 // AGP 9 内置 Kotlin 不再兼容 kotlin-kapt；Glide 编译器只有 kapt 版，走 AGP 自带的 legacy-kapt。
 apply plugin: 'com.android.legacy-kapt'
 apply plugin: 'kotlin-parcelize'
+// Hilt 处理器走 KSP（Glide/Room 仍在 kapt，两者在同一模块并存互不干扰）。
+apply plugin: 'com.google.devtools.ksp'
+apply plugin: 'com.google.dagger.hilt.android'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 // apply plugin: 'org.jmailen.kotlinter'  // 临时停用，见根 build.gradle
@@ -322,6 +325,8 @@ dependencies {
     implementation libs.androidxRoomRuntime
     implementation libs.androidxRoomKtx
     kapt libs.androidxRoomCompiler
+    implementation libs.hiltAndroid
+    ksp libs.hiltCompiler
     implementation libs.agentwebCore
     implementation libs.androidxWebkit
     implementation libs.rebound

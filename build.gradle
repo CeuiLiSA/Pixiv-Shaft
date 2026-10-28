@@ -42,6 +42,7 @@ plugins {
     // 已进入维护模式，且会把 kotlin-compiler-embeddable 拖进 classpath（见 buildscript 里
     // kotlinter 被停用的注释，同一个坑）。
     id 'com.google.devtools.ksp' version '2.3.12' apply false
+    alias(libs.plugins.hilt) apply false
 }
 
 allprojects {

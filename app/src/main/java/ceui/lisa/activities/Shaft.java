@@ -41,6 +41,7 @@ import ceui.pixiv.progress.ProgressTracker;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import dagger.hilt.android.HiltAndroidApp;
 import okhttp3.OkHttpClient;
 import timber.log.Timber;
 
@@ -50,7 +51,12 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Where the app code starts.
+ *
+ * <p>{@link HiltAndroidApp} 只负责生成 Hilt 的应用组件；进程级服务仍由本类在 onCreate 里构造，
+ * 通过 {@link ceui.pixiv.services.ServicesModule} 桥接进 Hilt 图。不要往这里加 {@code @Inject}
+ * 字段：Hilt 在 super.onCreate() 里注入，那时下面的服务还没 new 出来。
  * */
+@HiltAndroidApp
 public class Shaft extends Application implements ServicesProvider {
 
     public static Settings sSettings;

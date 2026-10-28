@@ -45,8 +45,8 @@ import ceui.pixiv.download.config.DownloadItems
 import ceui.pixiv.imageloader.PageImageSourceResolver
 import ceui.pixiv.imageloader.awaitFile
 import ceui.pixiv.ui.filter.openImageFilter
-import ceui.pixiv.services.appServices
 import ceui.pixiv.snapshot.AutoSnapshotEngine
+import ceui.pixiv.ui.translate.MangaBatchTranslateCenter
 import ceui.pixiv.snapshot.AutoSnapshotRepository
 import ceui.pixiv.snapshot.SnapshotManagerFragment
 import ceui.pixiv.snapshot.SnapshotRepository
@@ -97,9 +97,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import timber.log.Timber
 
 /** 图片二级详情 */
+@AndroidEntryPoint
 class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     var mIllust: Illust? = null
         private set
@@ -112,6 +115,8 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         private set
 
     private val translationViewModel by viewModels<ImageTranslationViewModel>()
+
+    @Inject lateinit var mangaBatchTranslateCenter: MangaBatchTranslateCenter
 
     private var localIllust: List<String>? = ArrayList()
     private var currentPage: TextView? = null
@@ -1323,7 +1328,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
         if (
             translationViewModel.running.value == true ||
-                appServices().mangaBatchTranslateCenter.isRunning
+                mangaBatchTranslateCenter.isRunning
         ) {
             Common.showToast(R.string.string_ai_translate_in_progress)
             return
@@ -1367,7 +1372,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
         if (
             translationViewModel.running.value == true ||
-                appServices().mangaBatchTranslateCenter.isRunning
+                mangaBatchTranslateCenter.isRunning
         ) {
             Common.showToast(R.string.string_ai_translate_in_progress)
             return
@@ -1377,7 +1382,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_ORIGINAL)
                     ?: IllustDownload.getUrl(illust, page, Params.IMAGE_RESOLUTION_LARGE)
             }
-        if (appServices().mangaBatchTranslateCenter.start(illust, urls, ocrModel, ctdModel)) {
+        if (mangaBatchTranslateCenter.start(illust, urls, ocrModel, ctdModel)) {
             // 整批产物不经过 VM.publishTranslated,开跑时就勾回「显示译图」,与单页翻译一致
             translationViewModel.setShowTranslated(true)
         } else {
@@ -1404,7 +1409,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
         if (
             translationViewModel.running.value == true ||
-                appServices().mangaBatchTranslateCenter.isRunning
+                mangaBatchTranslateCenter.isRunning
         ) {
             Common.showToast(R.string.string_ai_translate_in_progress)
             return
