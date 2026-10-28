@@ -37,6 +37,7 @@ import ceui.pixiv.api.model.Illust
 import ceui.pixiv.api.model.ObjectType
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.download.IllustCaptionExporter
+import ceui.pixiv.feeds.FeedCell
 import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedUiState
@@ -140,7 +141,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     // 顶部大图页共享的那一个 adapter(所有页 bind 都委托给它)。isGif 时不建(走 ugoira renderer)。
     private var pageAdapter: IllustAdapter? = null
     private lateinit var retryController: PageLoadRetryController
-    private var aiHelper: IllustAiHelper? = null
+    internal var aiHelper: IllustAiHelper? = null
 
     // chrome
     private var _chromeBind: FragmentArtworkV3Binding? = null
@@ -170,7 +171,6 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
     // 所以推迟到「真的要用」的那一刻，与 CommentComposerView 同一套打法。屏蔽遮罩那块归
     // [ArtworkMuteMask] 自己管。
     private var pageStatusRowReady = false
-    private var aiOverlayReady = false
 
     private val pageStatusRowView: View
         get() = ViewCompat.requireViewById(chromeBind.root, R.id.page_status_row)
@@ -410,13 +410,23 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 illustId = illustId,
                 viewModel = artworkViewModel,
                 fabBar = fabBarController,
-                currentPageIndex = { pageProgressIndex },
+                currentPageIndex = { tabletStage?.currentPage ?: resolveCurrentViewportPage() },
                 aiHelper = { aiHelper },
                 onOpenComicReader = ::openComicReader,
                 onForceOriginal = ::applyForceOriginal,
             )
         aiHelper =
-            IllustAiHelper(this, chromeBind.root, ensureOverlay = ::ensureAiOverlay).also {
+            IllustAiHelper(
+                fragment = this,
+                rootView = chromeBind.root,
+                onAiStateChanged = { pageIndex ->
+                    onAiPageChanged(pageIndex)
+                },
+                onAiProgress = { pageIndex, progress, eta, statusText ->
+                    onAiPageProgress(pageIndex, progress, eta, statusText)
+                },
+                onAiTaskCompleted = ::onAiTaskCompleted,
+            ).also {
                 it.restoreUpscaleIfRunning(illustId)
             }
 
@@ -527,12 +537,6 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             .setOnClickListener { retryController.retryAllFailed() }
     }
 
-    /** AI 画质增强 / 智能抠图覆盖层：只有跑 AI 任务才用。触发点 = IllustAiHelper 各入口。 */
-    private fun ensureAiOverlay() {
-        if (aiOverlayReady) return
-        aiOverlayReady = true
-        chromeBind.aiOverlayStub.inflate()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -565,6 +569,8 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         artworkViewModel.onPageVisible()
         artworkViewModel.refreshDownloadFab()
         refreshCachedOriginalPages()
+        aiHelper?.restoreAiTasksIfRunning(illustId)
+        refreshAllAiPages()
     }
 
     /**
@@ -599,7 +605,6 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
         // 懒 inflate 的标志随视图销毁归零：视图重建后拿到的是新的 ViewStub，
         // 不归零的话 ensure*() 会误判为「已经建过」而跳过，那几块就再也不出现了。
         pageStatusRowReady = false
-        aiOverlayReady = false
         fabShown = true
         muteMaskActive = false
         // 跳评论的基线钉扎(#970)随视图作废:留着的话,视图重建(回退栈重显/旋转)后首次
@@ -647,31 +652,11 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                     onComicReaderClick = { openComicReader() },
                 )
             } else {
-                object :
-                    IllustAdapter(
-                        requireActivity(),
-                        this,
-                        illust,
-                        pageMaxHeight(),
-                        artworkViewModel.forceOriginalPreview,
-                    ) {
-                    override fun onBindViewHolder(
-                        holder: ViewHolder<RecyIllustDetailBinding>,
-                        position: Int,
-                    ) {
-                        super.onBindViewHolder(holder, position)
-                        // 多 P 漫画(非折叠,即 2P):点图进漫画阅读器。必须同时判类型——只看
-                        // page_count 会把 2P 插画也送进漫画阅读器(#961);3P+ 那条折叠分支的漫画入口
-                        // 也是 type == "manga" 才出胶囊(见 CollapsibleIllustAdapter),两边保持一致。
-                        // 必须挂在 itemView 而不是 illust 上:super 把「长按下载」挂的是 itemView,
-                        // 而一个 clickable 却不 longClickable 的子 View 会把触摸整条吃掉——长按既到不了
-                        // itemView 的 longClick,抬手时又照常 performClick,表现成「长按变成打开大图」(#957)。
-                        // 同挂 itemView 后长按优先:performLongClick 返回 true 即抑制这次 click。
-                        if ("manga" == illust.type && illust.page_count > 1) {
-                            holder.itemView.setOnClickListener { openComicReader() }
-                        }
-                    }
-                }
+                createNonCollapsibleAdapter(
+                    illust,
+                    artworkViewModel.forceOriginalPreview,
+                    onComicReaderClick = { openComicReader() },
+                )
             }
         // p0 的 holder 常驻:见 IllustAdapter.setKeepPinnedPages 与 ArtworkPinnedFirstPageItem。
         adapter.setKeepPinnedPages(true)
@@ -726,7 +711,7 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             if (CollapsibleIllustAdapter.shouldCollapse(illust.page_count)) {
                 createCollapsibleAdapter(illust, forceOriginal = false, onComicReaderClick = null)
             } else {
-                IllustAdapter(requireActivity(), this, illust, pageMaxHeight(), false)
+                createNonCollapsibleAdapter(illust, forceOriginal = false, onComicReaderClick = null)
             }
         // 必须先打快照标记再喂本地页:adapter 构造时已经发出一趟「已下载文件」后台扫描,
         // 标记会让它回主线程合并时整个作废,避免同 ID 的下载文件顶掉快照里的那一份。
@@ -763,13 +748,43 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
                 onComicReaderClick = onComicReaderClick,
                 onExpandedChanged = { expanded -> onPagesExpandedChanged(expanded) },
                 onExpandPillLongClick = { openPagesPreview() },
-            )
+            ).apply {
+                onUpscalePillClick = { pos, state ->
+                    aiHelper?.openUpscaleComparison(state.upscaleResultPath, state.upscaleOriginalPath)
+                }
+                onRembgPillClick = { pos, state ->
+                    aiHelper?.openRembgHighlight(state.rembgResultPath, state.rembgOriginalPath)
+                }
+            }
         // 悬浮「收起」胶囊点击 → 折叠(collapse() 触发 onExpandedChanged(false) → 收回页 + 回顶 + 藏胶囊)
         chromeBind.collapsePill.setOnClickListener { collapsible.collapse() }
         // 进页即展开态不会走 onExpandedChanged(true)，胶囊得由这里点亮：
         // 长作品更需要一个「收起」出口，否则只能一路滑到底。
         if (collapsible.isExpanded) showCollapsePill(animate = false)
         return collapsible
+    }
+
+    /** 1P / 2P 等无需折叠的作品 adapter。支持 AI 工作遮罩与结果胶囊。 */
+    private fun createNonCollapsibleAdapter(
+        illust: Illust,
+        forceOriginal: Boolean,
+        onComicReaderClick: (() -> Unit)?,
+    ): NonCollapsibleIllustAdapter {
+        return NonCollapsibleIllustAdapter(
+            requireActivity(),
+            this,
+            illust,
+            pageMaxHeight(),
+            forceOriginal,
+            onComicReaderClick = onComicReaderClick,
+        ).apply {
+            onUpscalePillClick = { pos, state ->
+                aiHelper?.openUpscaleComparison(state.upscaleResultPath, state.upscaleOriginalPath)
+            }
+            onRembgPillClick = { pos, state ->
+                aiHelper?.openRembgHighlight(state.rembgResultPath, state.rembgOriginalPath)
+            }
+        }
     }
 
     /**
@@ -1778,6 +1793,117 @@ class ArtworkV3Fragment : IllustFeedFragment(R.layout.fragment_artwork_v3) {
             val spanIndex = lp.spanIndex
             outRect.left = if (spanIndex == 0) space else space / 2
             outRect.right = if (spanIndex == spanCount - 1) space else space / 2
+        }
+    }
+
+    private fun resolveCurrentViewportPage(): Int {
+        if (pageProgressIndex >= 0) {
+            return pageProgressIndex
+        }
+        val count = currentPageCount()
+        if (count <= 1) return 0
+        val listView = feedBinding.feedListView
+        val items = feedAdapter?.currentList ?: return 0
+        val lm = listView.layoutManager ?: return 0
+        val anchorY = chromeBind.topOverlayColumn.bottom
+        var current = -1
+        var firstVisible = -1
+        for (i in 0 until listView.childCount) {
+            val child = listView.getChildAt(i)
+            val item = items.getOrNull(lm.getPosition(child)) as? ArtworkPageItem ?: continue
+            if (firstVisible < 0 || item.pageIndex < firstVisible) firstVisible = item.pageIndex
+            if (child.top <= anchorY && item.pageIndex > current) current = item.pageIndex
+        }
+        val target = if (current >= 0) current else firstVisible
+        return target.coerceIn(0, (count - 1).coerceAtLeast(0))
+    }
+
+    private fun findArtworkPageViewHolder(pageIndex: Int): Pair<Int, ViewHolder<RecyIllustDetailBinding>?>? {
+        val fa = feedAdapter ?: return null
+        val pos = fa.currentList.indexOfFirst { it is ArtworkPageItem && it.pageIndex == pageIndex }
+        if (pos < 0) return null
+        val cell = feedBinding.feedListView.findViewHolderForAdapterPosition(pos) ?: return (pos to null)
+        val binding = (cell as? FeedCell<*, *>)?.binding as? RecyIllustDetailBinding
+            ?: (cell as? ViewHolder<*>)?.baseBind as? RecyIllustDetailBinding
+        val holder = if (binding != null) ViewHolder(binding) else null
+        return (pos to holder)
+    }
+
+    private fun isArtworkPageInViewport(pageIndex: Int): Boolean {
+        if (tabletStage != null) {
+            return tabletStage?.currentPage == pageIndex
+        }
+        val fa = feedAdapter ?: return false
+        val pos = fa.currentList.indexOfFirst { it is ArtworkPageItem && it.pageIndex == pageIndex }
+        if (pos < 0) return false
+        val cell = feedBinding.feedListView.findViewHolderForAdapterPosition(pos) ?: return false
+        val rect = Rect()
+        val isVisible = cell.itemView.getGlobalVisibleRect(rect)
+        return isVisible && rect.height() > 0
+    }
+
+    private fun onAiTaskCompleted(pageIndex: Int, isUpscale: Boolean) {
+        if (!isArtworkPageInViewport(pageIndex)) {
+            val total = currentPageCount()
+            val msg = if (isUpscale) {
+                if (total > 1) getString(R.string.string_ai_upscale_page_done, pageIndex + 1)
+                else getString(R.string.string_ai_upscale_done)
+            } else {
+                if (total > 1) getString(R.string.string_ai_rembg_page_done, pageIndex + 1)
+                else getString(R.string.string_ai_rembg_done)
+            }
+            Common.showToast(msg)
+        }
+    }
+
+    private fun onAiPageChanged(pageIndex: Int) {
+        if (tabletStage != null) {
+            tabletStage?.refreshAiState(pageIndex)
+            return
+        }
+        val (pos, vh) = findArtworkPageViewHolder(pageIndex) ?: return
+        val pa = pageAdapter as? ArtworkDetailIllustAdapter
+        if (vh != null && pa != null) {
+            pa.refreshOverlayAndWorking(vh, pageIndex)
+        } else {
+            feedAdapter?.notifyItemChanged(pos, CollapsibleIllustAdapter.PAYLOAD_AI_UPDATE)
+        }
+    }
+
+    private fun onAiPageProgress(pageIndex: Int, progress: Float, eta: Float, statusText: String?) {
+        if (tabletStage != null) {
+            tabletStage?.updateAiProgress(pageIndex, progress, eta, statusText)
+            return
+        }
+        val (_, vh) = findArtworkPageViewHolder(pageIndex) ?: return
+        val pa = pageAdapter as? ArtworkDetailIllustAdapter
+        if (vh != null && pa != null) {
+            pa.updateWorkingOverlayProgress(vh, pageIndex, progress, eta, statusText)
+        }
+    }
+
+    private fun refreshAllAiPages() {
+        if (tabletStage != null) {
+            val count = currentPageCount()
+            for (i in 0 until count) {
+                tabletStage?.refreshAiState(i)
+            }
+            return
+        }
+        val fa = feedAdapter ?: return
+        val pa = pageAdapter as? ArtworkDetailIllustAdapter
+        fa.currentList.forEachIndexed { pos, item ->
+            if (item is ArtworkPageItem) {
+                val cell = feedBinding.feedListView.findViewHolderForAdapterPosition(pos)
+                val binding = (cell as? FeedCell<*, *>)?.binding as? RecyIllustDetailBinding
+                    ?: (cell as? ViewHolder<*>)?.baseBind as? RecyIllustDetailBinding
+                val vh = if (binding != null) ViewHolder(binding) else null
+                if (vh != null && pa != null) {
+                    pa.refreshOverlayAndWorking(vh, item.pageIndex)
+                } else {
+                    fa.notifyItemChanged(pos, CollapsibleIllustAdapter.PAYLOAD_AI_UPDATE)
+                }
+            }
         }
     }
 

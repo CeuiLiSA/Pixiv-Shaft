@@ -297,10 +297,11 @@ class FragmentAiUpscale : Fragment() {
         task.progress.observe(viewLifecycleOwner) { percent ->
             val p = (percent * 100).toInt()
             progressRing.setProgressCompat(p, true)
-            progressText.text = "$p%"
+            progressText.text = requireContext().getString(R.string.string_ai_task_percent, p)
         }
         task.eta.observe(viewLifecycleOwner) { eta ->
-            etaText.text = if (eta > 0) "预计 ${String.format("%.0f", eta)} 秒后完成" else ""
+            val etaSec = (eta + 0.5f).toInt()
+            etaText.text = if (etaSec > 0) requireContext().getString(R.string.string_ai_task_eta_seconds, etaSec) else ""
         }
     }
 

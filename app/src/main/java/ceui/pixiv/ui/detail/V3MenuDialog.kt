@@ -84,8 +84,8 @@ class V3MenuDialog : DialogFragment() {
             )
             row.findViewById<TextView>(R.id.menu_label).text = item.label
             row.setOnClickListener {
-                item.onClick()
                 dismiss()
+                item.onClick()
             }
             container.addView(row)
         }

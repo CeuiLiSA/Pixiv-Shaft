@@ -126,11 +126,14 @@ private inline fun <reified T : ArtworkPageItem> ArtworkV3Fragment.pageRenderer(
             }
         },
         bindPayloads = { cell, payloads ->
-            val delegate =
-                cell.itemView.getTag(R.id.tag_artwork_page_adapter) as? CollapsibleIllustAdapter
-            payloads.isNotEmpty() && payloads.all { it === PAYLOAD_EXPAND_OVERLAY_ONLY } &&
-                delegate === ensurePageAdapter() &&
-                delegate?.bindOverlayOnly(ViewHolder(cell.binding), cell.item.pageIndex) == true
+            val adapter = ensurePageAdapter() as? ArtworkDetailIllustAdapter
+            if (adapter != null && payloads.isNotEmpty() && payloads.all { it === PAYLOAD_EXPAND_OVERLAY_ONLY || it === CollapsibleIllustAdapter.PAYLOAD_AI_UPDATE }) {
+                cell.itemView.setTag(R.id.tag_artwork_page_adapter, adapter)
+                adapter.bindOverlayOnly(ViewHolder(cell.binding), cell.item.pageIndex)
+                true
+            } else {
+                false
+            }
         },
         recycle = { cell ->
             // 委托给同一个 adapter 清理(detach observer + clear Glide)。ViewHolder 只是薄壳,
@@ -151,7 +154,7 @@ private inline fun <reified T : ArtworkPageItem> ArtworkV3Fragment.pageRenderer(
             // 「展开剩余 X 张」「用阅读器看」两枚胶囊要重新出现。也不能指望 overlay-only
             // payload —— 回收时 itemView 上的 adapter tag 被置空,bindPayloads 取不到 delegate
             // 会返回 false,正是回退到这条路径来的。
-            (adapter as? CollapsibleIllustAdapter)
+            (adapter as? ArtworkDetailIllustAdapter)
                 ?.refreshExpandOverlay(holder, cell.item.pageIndex)
             return@feedRenderer
         }

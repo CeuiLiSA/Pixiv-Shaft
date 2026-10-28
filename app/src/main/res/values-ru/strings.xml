@@ -721,6 +721,11 @@
     <string name="string_ai_upscale_pick_hint">Выберите изображение из галереи,\nчтобы попробовать ИИ-улучшение</string>
     <string name="string_ai_upscale_ready">Изображение готово. Нажмите, чтобы начать</string>
     <string name="string_ai_upscale_resolution">%1$d × %2$d  →  %3$d × %4$d</string>
+    <string name="string_ai_task_eta_seconds">Примерное время: %1$d с</string>
+    <string name="string_ai_waiting_for_original_image">Ожидание загрузки оригинала…</string>
+    <string name="string_ai_task_queued">В очереди…</string>
+    <string name="string_ai_upscale_page_done">Улучшение страницы %1$d завершено</string>
+    <string name="string_ai_rembg_page_done">Удаление фона страницы %1$d завершено</string>
     <string name="string_set_wallpaper">Установить обои</string>
     <string name="string_set_wallpaper_failed">Не удаётся открыть системные настройки обоев</string>
     <string name="string_set_wallpaper_done">Обои установлены</string>
@@ -3547,4 +3552,8 @@
     <string name="snapshot_backfill_summary_comments">С комментариями</string>
     <string name="snapshot_backfill_summary_wifi">Только Wi-Fi</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+
+    <string name="string_ai_upscale_already_completed">Улучшение качества для этого изображения уже выполнено</string>
+    <string name="string_ai_rembg_already_completed">Удаление фона для этого изображения уже выполнено</string>
+    <string name="string_ai_task_already_running">Задача обработки ИИ уже выполняется</string>
 </resources>

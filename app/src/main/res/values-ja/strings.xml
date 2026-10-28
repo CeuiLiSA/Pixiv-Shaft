@@ -721,6 +721,11 @@
     <string name="string_ai_upscale_pick_hint">ギャラリーから画像を選んで\nAI 高画質化を体験</string>
     <string name="string_ai_upscale_ready">準備完了、タップして開始</string>
     <string name="string_ai_upscale_resolution">%1$d × %2$d  →  %3$d × %4$d</string>
+    <string name="string_ai_task_eta_seconds">残り約 %1$d 秒で完了</string>
+    <string name="string_ai_waiting_for_original_image">原画のダウンロード完了を待機中…</string>
+    <string name="string_ai_task_queued">待機中…</string>
+    <string name="string_ai_upscale_page_done">%1$d ページ目の画質向上が完了しました</string>
+    <string name="string_ai_rembg_page_done">%1$d ページ目の背景透過が完了しました</string>
     <string name="string_set_wallpaper">壁紙に設定</string>
     <string name="string_set_wallpaper_failed">システムの壁紙設定を開けません</string>
     <string name="string_set_wallpaper_done">壁紙に設定しました</string>
@@ -3523,4 +3528,8 @@
     <string name="snapshot_backfill_summary_comments">コメント付き</string>
     <string name="snapshot_backfill_summary_wifi">Wi-Fi のみ</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+
+    <string name="string_ai_upscale_already_completed">この画像の画質向上は完了しています</string>
+    <string name="string_ai_rembg_already_completed">この画像の背景削除は完了しています</string>
+    <string name="string_ai_task_already_running">AI処理タスクは既に進行中です</string>
 </resources>

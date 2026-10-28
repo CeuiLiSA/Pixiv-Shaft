@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.detail
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -28,6 +29,8 @@ import ceui.lisa.activities.Shaft
 import ceui.lisa.transformer.CpuBlurTransformation
 import ceui.lisa.utils.GlideUtil
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.ui.upscale.IllustAiStore
+import ceui.lisa.view.SeamlessCircularProgressIndicator
 import ceui.pixiv.ui.common.resolveIllustThumbnailUrl
 import ceui.pixiv.witstudio.theme.V3Palette
 import ceui.pixiv.witstudio.theme.color
@@ -77,7 +80,7 @@ internal class ArtworkTabletStage(
     /** true = 舞台在左、信息栏在右；false = 舞台在上、信息栏在下（信息栏不贴屏幕顶）。 */
     var sideBySide: Boolean = true
         private set
-
+    val currentPage: Int get() = pager.currentItem
     private var illust: Illust? = null
     private var systemInsets: Insets = Insets.NONE
 
@@ -310,6 +313,45 @@ internal class ArtworkTabletStage(
         pager.setCurrentItem(position, false)
     }
 
+    fun refreshAiState(pageIndex: Int) {
+        val rv = pager.getChildAt(0) as? RecyclerView ?: return
+        val vh = rv.findViewHolderForAdapterPosition(pageIndex) as? PageAdapter.Holder
+        if (vh != null) {
+            (pager.adapter as? PageAdapter)?.bindAiOverlayAndPills(vh, pageIndex)
+        } else {
+            pager.adapter?.notifyItemChanged(pageIndex, CollapsibleIllustAdapter.PAYLOAD_AI_UPDATE)
+        }
+    }
+
+    fun updateAiProgress(pageIndex: Int, progress: Float, eta: Float, statusText: String?) {
+        val rv = pager.getChildAt(0) as? RecyclerView ?: return
+        val vh = rv.findViewHolderForAdapterPosition(pageIndex) as? PageAdapter.Holder ?: return
+        val workingView = vh.frame.findViewById<View>(R.id.ai_overlay_root) ?: run {
+            refreshAiState(pageIndex)
+            return
+        }
+        workingView.visibility = View.VISIBLE
+        if (statusText != null) {
+            workingView.findViewById<TextView>(R.id.ai_status_text)?.text = statusText
+        }
+        val ring = workingView.findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring)
+        val progText = workingView.findViewById<TextView>(R.id.ai_progress_text)
+        if (progress <= 0f) {
+            ring?.isIndeterminate = true
+            progText?.visibility = View.GONE
+            } else {
+            ring?.isIndeterminate = false
+            progText?.visibility = View.VISIBLE
+            val p = (progress * 100).toInt()
+            ring?.setProgressCompat(p, true)
+            progText?.text = workingView.context.getString(R.string.string_ai_task_percent, p)
+        }
+        val etaText = workingView.findViewById<TextView>(R.id.ai_eta_text)
+        val etaSec = (eta + 0.5f).toInt()
+        val msg = if (etaSec > 0) workingView.context.getString(R.string.string_ai_task_eta_seconds, etaSec) else ""
+        etaText?.text = msg
+    }
+
     fun release() {
         releaseUgoira()
         pager.adapter = null
@@ -414,7 +456,15 @@ internal class ArtworkTabletStage(
             return Holder(frame, image)
         }
 
-        override fun onBindViewHolder(holder: Holder, position: Int) {
+        override fun onBindViewHolder(holder: Holder, position: Int, payloads: MutableList<Any>) {
+            if (payloads.isNotEmpty() && payloads.all { it === CollapsibleIllustAdapter.PAYLOAD_AI_UPDATE }) {
+                bindAiOverlayAndPills(holder, position)
+                return
+            }
+            super.onBindViewHolder(holder, position, payloads)
+        }
+
+        override fun onBindViewHolder(holder: Holder, @SuppressLint("RecyclerView") position: Int) {
             // 其余页的比例拿不到，先按首页比例占位，图到了再按真实比例重排
             holder.frame.ratio = firstPageRatio(illust)
             holder.image.contentDescription = String.format(Locale.US, "%s %d / %d", illust.title.orEmpty(), position + 1, count)
@@ -452,6 +502,111 @@ internal class ArtworkTabletStage(
                         holder.image.setImageDrawable(placeholder)
                     }
                 })
+            bindAiOverlayAndPills(holder, position)
+        }
+
+        fun bindAiOverlayAndPills(holder: Holder, position: Int) {
+            val ill = illust
+            val aiState = IllustAiStore.get(ill.id, position)
+            var workingView = holder.frame.findViewById<View>(R.id.ai_overlay_root)
+            if (aiState?.isWorking == true) {
+                val isNew = workingView == null
+                if (workingView == null) {
+                    workingView = View.inflate(ctx, R.layout.view_ai_upscale_overlay, null)
+                    holder.frame.addView(workingView, FrameLayout.LayoutParams(MATCH, MATCH))
+                }
+                val shouldFadeIn = isNew || workingView.visibility != View.VISIBLE || workingView.alpha < 1f
+                workingView.visibility = View.VISIBLE
+                if (shouldFadeIn) {
+                    workingView.animate().cancel()
+                    workingView.alpha = 0f
+                    workingView.animate().alpha(1f).setDuration(260L).start()
+                }
+                workingView.findViewById<View>(R.id.ai_loading_state)?.visibility = View.VISIBLE
+                workingView.findViewById<View>(R.id.ai_done_state)?.visibility = View.GONE
+                workingView.findViewById<TextView>(R.id.ai_status_text)?.text =
+                    aiState.currentStatusText(ctx)
+                val ring =
+                    workingView.findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring)
+                val progText = workingView.findViewById<TextView>(R.id.ai_progress_text)
+                if (aiState.isIndeterminate) {
+                    ring?.isIndeterminate = true
+                    progText?.visibility = View.GONE
+                } else {
+                    ring?.isIndeterminate = false
+                    progText?.visibility = View.VISIBLE
+                    val p = (aiState.currentProgress * 100).toInt()
+                    ring?.setProgressCompat(p, true)
+                    progText?.text = workingView.context.getString(R.string.string_ai_task_percent, p)
+                }
+                val etaText = workingView.findViewById<TextView>(R.id.ai_eta_text)
+                val etaSec = (aiState.currentEta + 0.5f).toInt()
+                val msg = if (etaSec > 0) workingView.context.getString(R.string.string_ai_task_eta_seconds, etaSec) else ""
+                etaText?.text = msg
+            } else {
+                if (workingView != null && workingView.visibility == View.VISIBLE) {
+                    workingView.animate().cancel()
+                    workingView.animate().alpha(0f).setDuration(200L).withEndAction {
+                        workingView.visibility = View.GONE
+                        workingView.alpha = 1f
+                    }.start()
+                }
+            }
+
+            var expandOverlay = holder.frame.findViewById<FrameLayout>(R.id.expand_overlay)
+            val hasUpscale = aiState?.hasUpscaleResult == true
+            val hasRembg = aiState?.hasRembgResult == true
+            if (hasUpscale || hasRembg) {
+                if (expandOverlay == null) {
+                    expandOverlay =
+                        View.inflate(ctx, R.layout.view_illust_expand_overlay, null) as FrameLayout
+                    holder.frame.addView(
+                        expandOverlay,
+                        FrameLayout.LayoutParams(MATCH, ctx.dp(88), Gravity.BOTTOM)
+                    )
+                }
+                expandOverlay.visibility = View.VISIBLE
+                expandOverlay.findViewById<View>(R.id.expand_pill)?.visibility = View.GONE
+                expandOverlay.findViewById<View>(R.id.comic_reader_pill)?.visibility = View.GONE
+                val upscalePill = expandOverlay.findViewById<View>(R.id.ai_upscale_pill)
+                if (upscalePill != null) {
+                    upscalePill.visibility = if (hasUpscale) View.VISIBLE else View.GONE
+                    if (hasUpscale) {
+                        upscalePill.setOnClickListener {
+                            fragment.aiHelper?.openUpscaleComparison(
+                                aiState?.upscaleResultPath,
+                                aiState?.upscaleOriginalPath
+                            )
+                        }
+                        upscalePill.pressScale()
+                    }
+                }
+                val rembgPill = expandOverlay.findViewById<View>(R.id.ai_rembg_pill)
+                if (rembgPill != null) {
+                    rembgPill.visibility = if (hasRembg) View.VISIBLE else View.GONE
+                    if (hasRembg) {
+                        rembgPill.setOnClickListener {
+                            fragment.aiHelper?.openRembgHighlight(
+                                aiState?.rembgResultPath,
+                                aiState?.rembgOriginalPath
+                            )
+                        }
+                        rembgPill.pressScale()
+                    }
+                }
+                val eightDp = ctx.dp(8)
+                if (hasUpscale && hasRembg) {
+                    (upscalePill?.layoutParams as? ViewGroup.MarginLayoutParams)?.marginStart = 0
+                    (rembgPill?.layoutParams as? ViewGroup.MarginLayoutParams)?.marginStart =
+                        eightDp
+                } else if (hasRembg) {
+                    (rembgPill?.layoutParams as? ViewGroup.MarginLayoutParams)?.marginStart = 0
+                } else if (hasUpscale) {
+                    (upscalePill?.layoutParams as? ViewGroup.MarginLayoutParams)?.marginStart = 0
+                }
+            } else {
+                expandOverlay?.visibility = View.GONE
+            }
         }
 
         private fun firstPageRatio(illust: Illust): Float =
@@ -500,7 +655,7 @@ internal class ArtworkTabletStage(
             return Holder(image)
         }
 
-        override fun onBindViewHolder(holder: Holder, position: Int) {
+        override fun onBindViewHolder(holder: Holder, @SuppressLint("RecyclerView") position: Int) {
             val isSelected = position == selected
             holder.image.foreground = if (isSelected) {
                 GradientDrawable().apply {

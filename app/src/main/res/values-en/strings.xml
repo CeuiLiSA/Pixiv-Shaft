@@ -721,6 +721,11 @@
     <string name="string_ai_upscale_pick_hint">Pick an image from gallery\nto experience AI enhancement</string>
     <string name="string_ai_upscale_ready">Image ready, tap to start</string>
     <string name="string_ai_upscale_resolution">%1$d x %2$d  -&gt;  %3$d x %4$d</string>
+    <string name="string_ai_task_eta_seconds">Estimated completion in %1$d s</string>
+    <string name="string_ai_waiting_for_original_image">Waiting for original image to download…</string>
+    <string name="string_ai_task_queued">Queued…</string>
+    <string name="string_ai_upscale_page_done">Page %1$d upscaling completed</string>
+    <string name="string_ai_rembg_page_done">Page %1$d background removal completed</string>
     <string name="string_set_wallpaper">Set Wallpaper</string>
     <string name="string_set_wallpaper_failed">Can\'t open system wallpaper settings</string>
     <string name="string_set_wallpaper_done">Wallpaper set</string>
@@ -3530,4 +3535,8 @@
     <string name="snapshot_backfill_summary_comments">With comments</string>
     <string name="snapshot_backfill_summary_wifi">Wi-Fi only</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+
+    <string name="string_ai_upscale_already_completed">Upscaling already completed for this image</string>
+    <string name="string_ai_rembg_already_completed">Background removal already completed for this image</string>
+    <string name="string_ai_task_already_running">AI processing task is already in progress</string>
 </resources>

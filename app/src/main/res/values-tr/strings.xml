@@ -721,6 +721,11 @@
     <string name="string_ai_upscale_pick_hint">Galeriden bir resim seçip\nAI kalitesini deneyebilirsin</string>
     <string name="string_ai_upscale_ready">Resim hazır, başlatmak için dokun</string>
     <string name="string_ai_upscale_resolution">%1$d × %2$d  →  %3$d × %4$d</string>
+    <string name="string_ai_task_eta_seconds">Tahmini tamamlanma: %1$d sn</string>
+    <string name="string_ai_waiting_for_original_image">Orijinal görselin indirilmesi bekleniyor…</string>
+    <string name="string_ai_task_queued">Sırada…</string>
+    <string name="string_ai_upscale_page_done">Sayfa %1$d yükseltme tamamlandı</string>
+    <string name="string_ai_rembg_page_done">Sayfa %1$d arka plan kaldırma tamamlandı</string>
     <string name="string_set_wallpaper">Duvar kağıdını ayarla</string>
     <string name="string_set_wallpaper_failed">Sistem duvar kağıdı ayarları açılamıyor</string>
     <string name="string_set_wallpaper_done">Duvar kağıdı ayarlandı</string>
@@ -3531,4 +3536,8 @@
     <string name="snapshot_backfill_summary_comments">Yorumlu</string>
     <string name="snapshot_backfill_summary_wifi">Yalnızca Wi-Fi</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+
+    <string name="string_ai_upscale_already_completed">Bu görsel için görüntü kalitesi iyileştirme zaten tamamlandı</string>
+    <string name="string_ai_rembg_already_completed">Bu görsel için arka plan kaldırma zaten tamamlandı</string>
+    <string name="string_ai_task_already_running">Yapay zeka işleme görevi zaten devam ediyor</string>
 </resources>

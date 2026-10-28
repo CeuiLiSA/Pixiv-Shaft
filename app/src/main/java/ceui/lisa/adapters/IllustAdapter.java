@@ -280,6 +280,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         if (Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal) return;
         RecyIllustDetailBinding binding = boundBindings.get(position);
         if (binding == null || localPageUris.containsKey(position)) return;
+        if (binding.illustHd.getVisibility() == View.VISIBLE && binding.illustHd.getDrawable() != null) {
+            cachedOriginalShownPages.add(position);
+            return;
+        }
         String originalUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_ORIGINAL);
         String largeUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_LARGE);
         if (originalUrl == null || originalUrl.equals(largeUrl)) return;
@@ -721,10 +725,14 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         // 复用前重置「顶层原图」overlay，避免上一条的原图盖在这次的图上。底层 large 由各渲染路径自行覆盖。
         // 走构造期就兑现好的 fragmentRequestManager，别在这里 Glide.with(mFragment)：那条重载会
         // requireNonNull(fragment.getContext())，绑卡若赶在 fragment 已 detach 时打进来就是 NPE。
-        fragmentRequestManager.clear(holder.baseBind.illustHd);
-        holder.baseBind.illustHd.setImageDrawable(null);
-        holder.baseBind.illustHd.setVisibility(View.GONE);
-        cachedOriginalShownPages.remove(position);
+        Object oldTag = holder.baseBind.illust.getTag(R.id.tag_image_url);
+        boolean isSamePageRebind = boundBindings.get(position) == holder.baseBind && oldTag != null;
+        if (!isSamePageRebind) {
+            fragmentRequestManager.clear(holder.baseBind.illustHd);
+            holder.baseBind.illustHd.setImageDrawable(null);
+            holder.baseBind.illustHd.setVisibility(View.GONE);
+            cachedOriginalShownPages.remove(position);
+        }
 
         // 命中已下载的本地文件就直读，跳过网络 LoadTask —— 详情页展开多图复用下载结果。
         Uri localUri = localPageUris.get(position);
@@ -986,16 +994,22 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                 applyPixelSize(holder, position, bounds[0], bounds[1]);
             }
         }
-        // 关键:先置 INVISIBLE(不是 GONE)。GONE 视图不参与 measure/layout,尺寸为 0,Glide 的 ViewTarget
+        // 关键:若尚未显示原图，先置 INVISIBLE(不是 GONE)。GONE 视图不参与 measure/layout,尺寸为 0,Glide 的 ViewTarget
         // 拿不到尺寸会一直等、onResourceReady 永不触发;INVISIBLE 照常布局(拿得到 illust 的尺寸)、只是不绘制,
-        // 底层 large 依旧透出来。就绪后再置 VISIBLE 淡入盖上。
-        holder.baseBind.illustHd.setVisibility(View.INVISIBLE);
+        // 底层 large 依旧透出来。就绪后再置 VISIBLE 淡入盖上。若原图已在显示，严禁先置 INVISIBLE 露底闪烁，且不再重播 crossFade。
+        boolean alreadyShowing = holder.baseBind.illustHd.getVisibility() == View.VISIBLE && holder.baseBind.illustHd.getDrawable() != null;
+        if (!alreadyShowing) {
+            holder.baseBind.illustHd.setVisibility(View.INVISIBLE);
+        }
         RequestManager requestManager = mFragment != null ? Glide.with(mFragment) : Glide.with(mContext);
-        panoramaDecodeSize(requestManager
+        RequestBuilder<Bitmap> overlayReq = panoramaDecodeSize(requestManager
                 .asBitmap()
                 .load(file)
-                .transform(new LargeBitmapScaleTransformer()), position)
-                .transition(BitmapTransitionOptions.withCrossFade())
+                .transform(new LargeBitmapScaleTransformer()), position);
+        overlayReq = alreadyShowing
+                ? overlayReq.dontAnimate()
+                : overlayReq.transition(BitmapTransitionOptions.withCrossFade());
+        overlayReq
                 .listener(new RequestListener<Bitmap>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object m, Target<Bitmap> target, boolean isFirstResource) {
@@ -1039,14 +1053,20 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                 applyPixelSize(holder, position, bounds[0], bounds[1]);
             }
         }
-        holder.baseBind.illustHd.setVisibility(View.INVISIBLE);
+        boolean alreadyShowing = holder.baseBind.illustHd.getVisibility() == View.VISIBLE && holder.baseBind.illustHd.getDrawable() != null;
+        if (!alreadyShowing) {
+            holder.baseBind.illustHd.setVisibility(View.INVISIBLE);
+        }
         RequestManager requestManager = mFragment != null ? Glide.with(mFragment) : Glide.with(mContext);
         // 上面的校准可能刚把这一页改判成全景(bean 宽高不准),解码尺寸按当下的判定走。
-        panoramaDecodeSize(requestManager
+        RequestBuilder<Bitmap> cachedReq = panoramaDecodeSize(requestManager
                 .asBitmap()
                 .load(file)
-                .transform(new LargeBitmapScaleTransformer()), position)
-                .transition(BitmapTransitionOptions.withCrossFade())
+                .transform(new LargeBitmapScaleTransformer()), position);
+        cachedReq = alreadyShowing
+                ? cachedReq.dontAnimate()
+                : cachedReq.transition(BitmapTransitionOptions.withCrossFade());
+        cachedReq
                 .listener(new RequestListener<Bitmap>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object m, Target<Bitmap> target, boolean isFirstResource) {
