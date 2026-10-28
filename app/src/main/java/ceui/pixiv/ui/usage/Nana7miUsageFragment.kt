@@ -497,13 +497,8 @@ class Nana7miUsageFragment : BaseFragment<FragmentNana7miUsageBinding>() {
 
     /** @return 收银台真的开出去了没有 —— 没开出去就没有「在等的单」可盯。 */
     private fun openCheckout(url: String): Boolean {
-        return try {
-            CustomTabsIntent.Builder().build().launchUrl(mContext, Uri.parse(url))
-            true
-        } catch (_: ActivityNotFoundException) {
-            Common.showToast(getString(R.string.nana7mi_usage_plan_no_browser))
-            false
-        }
+        ceui.lisa.helper.WebLinkHelper.openUrl(mContext, url)
+        return true
     }
 
     /** 记下「有一笔单在飞」和下单前的档位快照，回来之后拿它比对。 */

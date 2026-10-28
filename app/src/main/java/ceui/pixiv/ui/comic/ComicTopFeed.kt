@@ -120,7 +120,7 @@ class ComicTopFeedFragment : FeedFragment(R.layout.fragment_toolbar_feed) {
     /** banner 的 url 是服务端给的站内绝对地址,可能缺失;丢给系统浏览器,失败不崩。 */
     private fun openComicUrl(url: String?) {
         if (url.isNullOrEmpty()) return
-        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+        ceui.lisa.helper.WebLinkHelper.openUrl(requireContext(), url)
     }
 
     companion object {

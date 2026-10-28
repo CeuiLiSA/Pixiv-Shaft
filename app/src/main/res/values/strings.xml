@@ -3831,4 +3831,11 @@
     <string name="snapshot_backfill_summary_comments">含评论</string>
     <string name="snapshot_backfill_summary_wifi">仅 Wi-Fi</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">有 Chrome 时使用 Chrome Custom Tabs 打开网页链接</string>
+    <string name="chrome_custom_tabs_not_found">未发现Chrome，已自动禁用</string>
+    <string name="open_with_chrome">使用Chrome打开</string>
+    <string name="debug_update_sheet_title" translatable="false">调试更新弹窗</string>
+    <string name="debug_update_sheet_desc" translatable="false">调试用：弹出更新弹窗（支持测试无安装包时的外部打开）</string>
 </resources>

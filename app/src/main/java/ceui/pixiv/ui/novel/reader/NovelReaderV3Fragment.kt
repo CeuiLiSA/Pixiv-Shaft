@@ -1598,8 +1598,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
     private fun searchSelectionOnPixiv() {
         val query = activeSelection?.text?.trim().orEmpty()
         if (query.isEmpty()) return
-        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.pixiv.net/tags/${Uri.encode(query)}/novels"))) }
-            .onFailure { Toaster.showShort(getString(R.string.msg_no_browser)) }
+        ceui.lisa.helper.WebLinkHelper.openUrl(requireContext(), "https://www.pixiv.net/tags/${Uri.encode(query)}/novels")
     }
 
     private fun searchSelectionOnWeb() {
@@ -1615,8 +1614,7 @@ class NovelReaderV3Fragment : Fragment(R.layout.fragment_novel_reader_v3),
         if (intent.resolveActivity(requireContext().packageManager) != null) {
             startActivity(Intent.createChooser(intent, getString(R.string.chooser_translate)))
         } else {
-            runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://translate.google.com/?sl=auto&tl=${appTranslateTargetLang()}&text=${Uri.encode(sel.text)}&op=translate"))) }
-                .onFailure { Toaster.showShort(getString(R.string.msg_no_translate_app)) }
+            ceui.lisa.helper.WebLinkHelper.openUrl(requireContext(), "https://translate.google.com/?sl=auto&tl=${appTranslateTargetLang()}&text=${Uri.encode(sel.text)}&op=translate")
         }
     }
 

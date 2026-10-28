@@ -34,6 +34,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import ceui.lisa.helper.replaceWithCustomTabSpans
 import ceui.lisa.R
 import ceui.lisa.activities.BaseActivity
 import ceui.lisa.activities.SearchActivity
@@ -1286,7 +1287,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         // 换成 androidx HtmlCompat.fromHtml + LinkMovementMethod，文本和可点链接都能正常渲染。
         descriptionView.text = androidx.core.text.HtmlCompat.fromHtml(
             caption, androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
-        )
+        ).replaceWithCustomTabSpans()
         descriptionView.movementMethod = LinkMovementMethod.getInstance()
     }
 

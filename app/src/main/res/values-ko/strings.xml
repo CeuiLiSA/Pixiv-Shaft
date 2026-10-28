@@ -3523,4 +3523,9 @@
     <string name="snapshot_backfill_summary_comments">댓글 포함</string>
     <string name="snapshot_backfill_summary_wifi">Wi-Fi만</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">Chrome이 설치되어 있는 경우 Chrome Custom Tabs로 웹 링크를 엽니다</string>
+    <string name="chrome_custom_tabs_not_found">Chrome을 찾을 수 없어 자동으로 비활성화되었습니다</string>
+    <string name="open_with_chrome">Chrome으로 열기</string>
 </resources>
