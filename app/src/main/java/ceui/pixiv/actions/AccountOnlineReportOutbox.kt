@@ -43,7 +43,7 @@ import javax.inject.Singleton
  * bookmark queue. A refreshed AccountResponse is synchronously committed to app-private MMKV
  * before any network attempt. Same-type/same-uid writes replace older data.
  *
- * One instance per process, constructed by [ceui.lisa.activities.Shaft] and exposed through
+ * One instance per process, constructed by Hilt as a @Singleton and exposed through
  * [ceui.pixiv.services.ServicesProvider.accountOnlineReportOutbox]. The constructor is cheap (no IO, no
  * coroutines); [start] launches the worker.
  */
