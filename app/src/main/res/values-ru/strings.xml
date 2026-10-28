@@ -1982,6 +1982,8 @@
     <string name="dlmgr_done_layout_list">Вид: список</string>
     <string name="dlmgr_done_layout_grid">Вид: сетка</string>
     <string name="dlmgr_done_layout_compact">Вид: компактный</string>
+    <string name="dlmgr_done_show_delete_btn">Показать значки корзины</string>
+    <string name="dlmgr_done_hide_delete_btn">Скрыть значки корзины</string>
     <string name="dlmgr_clear_active_queue_title">Очистить все загрузки?</string>
     <string name="dlmgr_clear_active_queue_message">Текущие и ожидающие загрузки будут остановлены и удалены.\n(Частично загруженные файлы на диске сохранятся.)</string>
     <string name="dlmgr_clear_done_title">Очистить историю завершённых?</string>

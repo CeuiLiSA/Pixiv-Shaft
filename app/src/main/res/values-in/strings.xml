@@ -2028,6 +2028,8 @@
     <string name="dlmgr_done_layout_list">Tata letak: daftar</string>
     <string name="dlmgr_done_layout_grid">Tata letak: kisi</string>
     <string name="dlmgr_done_layout_compact">Tata letak: thumbnail</string>
+    <string name="dlmgr_done_show_delete_btn">Tampilkan tombol hapus</string>
+    <string name="dlmgr_done_hide_delete_btn">Sembunyikan tombol hapus</string>
     <string name="dlmgr_clear_active_queue_title">Kosongkan semua unduhan?</string>
     <string name="dlmgr_clear_active_queue_message">Tugas yang sedang diunduh dan mengantre akan dihentikan dan dihapus.\n(File yang setengah terunduh tidak akan dihapus.)</string>
     <string name="dlmgr_clear_done_title">Hapus riwayat selesai?</string>

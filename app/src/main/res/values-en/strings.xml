@@ -1982,6 +1982,8 @@
     <string name="dlmgr_done_layout_list">Layout: List</string>
     <string name="dlmgr_done_layout_grid">Layout: Grid</string>
     <string name="dlmgr_done_layout_compact">Layout: Compact</string>
+    <string name="dlmgr_done_show_delete_btn">Show delete buttons</string>
+    <string name="dlmgr_done_hide_delete_btn">Hide delete buttons</string>
     <string name="dlmgr_clear_active_queue_title">Clear all downloads?</string>
     <string name="dlmgr_clear_active_queue_message">Downloads in progress and queued items will be stopped and cleared.\n(Partially-downloaded files on disk are kept.)</string>
     <string name="dlmgr_clear_done_title">Clear completed history?</string>

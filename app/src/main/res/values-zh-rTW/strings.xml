@@ -1984,6 +1984,8 @@
     <string name="dlmgr_done_layout_list">版面：列表</string>
     <string name="dlmgr_done_layout_grid">版面：網格</string>
     <string name="dlmgr_done_layout_compact">版面：縮圖</string>
+    <string name="dlmgr_done_show_delete_btn">顯示垃圾桶</string>
+    <string name="dlmgr_done_hide_delete_btn">隱藏垃圾桶</string>
     <string name="dlmgr_clear_active_queue_title">清空全部下載？</string>
     <string name="dlmgr_clear_active_queue_message">正在下載和排隊中的任務都會停止並清除。\n（已下載到一半的檔案不會被刪除。）</string>
     <string name="dlmgr_clear_done_title">清空已完成記錄？</string>

@@ -2182,6 +2182,8 @@
     <string name="dlmgr_done_layout_list">布局：列表</string>
     <string name="dlmgr_done_layout_grid">布局：网格</string>
     <string name="dlmgr_done_layout_compact">布局：缩图</string>
+    <string name="dlmgr_done_show_delete_btn">显示垃圾桶</string>
+    <string name="dlmgr_done_hide_delete_btn">隐藏垃圾桶</string>
     <string name="dlmgr_clear_active_queue_title">清空全部下载？</string>
     <string name="dlmgr_clear_active_queue_message">正在下载和排队中的任务都会停止并清除。\n（已经下载到一半的文件不会被删除。）</string>
     <string name="dlmgr_clear_done_title">清空已完成记录？</string>

@@ -1982,6 +1982,8 @@
     <string name="dlmgr_done_layout_list">レイアウト: リスト</string>
     <string name="dlmgr_done_layout_grid">レイアウト: グリッド</string>
     <string name="dlmgr_done_layout_compact">レイアウト: コンパクト</string>
+    <string name="dlmgr_done_show_delete_btn">ゴミ箱を表示</string>
+    <string name="dlmgr_done_hide_delete_btn">ゴミ箱を非表示</string>
     <string name="dlmgr_clear_active_queue_title">すべてのダウンロードをクリア？</string>
     <string name="dlmgr_clear_active_queue_message">ダウンロード中と待機中の項目はすべて停止・削除されます。\n(ディスクに途中までダウンロードされたファイルは残ります。)</string>
     <string name="dlmgr_clear_done_title">完了履歴をクリア？</string>

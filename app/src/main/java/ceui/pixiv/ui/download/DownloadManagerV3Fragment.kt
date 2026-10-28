@@ -142,6 +142,22 @@ class DownloadManagerV3Fragment : Fragment() {
         val pauseToggleItem = toolbar.menu.findItem(R.id.action_pause_toggle)
         val searchItem = toolbar.menu.findItem(R.id.action_search)
         val importItem = toolbar.menu.findItem(R.id.action_import)
+        val compactDeleteToggleItem = toolbar.menu.findItem(R.id.action_compact_delete_toggle)
+
+        fun updateCompactDeleteMenuItem(
+            pos: Int,
+            layoutMode: DoneLayoutMode,
+            isDeleteVisible: Boolean,
+        ) {
+            val isCompactDone = pos == 2 && layoutMode == DoneLayoutMode.COMPACT
+            compactDeleteToggleItem?.isVisible = isCompactDone
+            if (isCompactDone) {
+                compactDeleteToggleItem?.setTitle(
+                    if (isDeleteVisible) R.string.dlmgr_done_hide_delete_btn
+                    else R.string.dlmgr_done_show_delete_btn
+                )
+            }
+        }
         // 工具栏右侧按钮的动作 —— 图标与点击共用同一个现算值（口径 + 单测见 ActiveToolbarAction.kt /
         // ActivePauseToggle.kt）：只剩失败项时是「重试失败」，否则按 shouldResumeAll 定暂停 / 继续。
         fun currentToolbarAction(): ActiveToolbarAction = resolveActiveToolbarAction(
@@ -187,6 +203,10 @@ class DownloadManagerV3Fragment : Fragment() {
                     importFlow.start { intent -> launchImportPicker(intent) }
                     true
                 }
+                R.id.action_compact_delete_toggle -> {
+                    sharedVm.toggleCompactDeleteVisible()
+                    true
+                }
                 else -> false
             }
         }
@@ -195,6 +215,7 @@ class DownloadManagerV3Fragment : Fragment() {
             pauseToggleItem?.isVisible = pos == 1
             searchItem?.isVisible = pos == 2
             importItem?.isVisible = pos == 2
+            updateCompactDeleteMenuItem(pos, sharedVm.doneLayoutMode.value, sharedVm.compactDeleteVisible.value)
             // tab 切走时强制收起搜索框 + 清空 query，避免被遗留的 isIconified=false
             // 在其它 tab 出现时夹带一份过滤态。
             if (pos != 2 && searchItem?.isActionViewExpanded == true) {
@@ -246,6 +267,20 @@ class DownloadManagerV3Fragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 sharedVm.doneCardCount.collect { setTabCount(2, it) }
+            }
+        }
+
+        // 缩图布局与垃圾桶显隐联动更新右上角菜单
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                combine(
+                    sharedVm.doneLayoutMode,
+                    sharedVm.compactDeleteVisible,
+                ) { mode, visible ->
+                    mode to visible
+                }.collect { (mode, visible) ->
+                    pager?.let { updateCompactDeleteMenuItem(it.currentItem, mode, visible) }
+                }
             }
         }
     }

@@ -1982,6 +1982,8 @@
     <string name="dlmgr_done_layout_list">Düzen: Liste</string>
     <string name="dlmgr_done_layout_grid">Düzen: Izgara</string>
     <string name="dlmgr_done_layout_compact">Düzen: Kompakt</string>
+    <string name="dlmgr_done_show_delete_btn">Çöp kutusunu göster</string>
+    <string name="dlmgr_done_hide_delete_btn">Çöp kutusunu gizle</string>
     <string name="dlmgr_clear_active_queue_title">Tüm indirmeleri temizle?</string>
     <string name="dlmgr_clear_active_queue_message">Süren ve sırada bekleyen tüm indirmeler durdurulup temizlenecek.\n(Disk üzerinde kısmen indirilmiş dosyalar korunur.)</string>
     <string name="dlmgr_clear_done_title">Tamamlanan kayıtları temizle?</string>
