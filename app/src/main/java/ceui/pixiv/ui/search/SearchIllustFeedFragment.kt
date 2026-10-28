@@ -18,7 +18,12 @@ import ceui.pixiv.feeds.LoadState
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.common.observeR18FilterChanges
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
 
@@ -37,6 +42,8 @@ import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
 class SearchIllustFeedFragment : IllustFeedFragment() {
 
     private var searchRefreshPending = false
+    private var feedSource: SearchIllustFeedSource? = null
+    private var syncVisibilityJob: Job? = null
 
     private val searchModel: SearchModel by lazy(LazyThreadSafetyMode.NONE) {
         ViewModelProvider(requireActivity())[SearchModel::class.java]
@@ -56,7 +63,7 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
                 remoteAppConfig = services.remoteAppConfig,
                 bookmarkMirror = services.bookmarkMirror,
             )
-        }
+        }.also { feedSource = it }
     }
 
     override val emptyStateText: CharSequence
@@ -91,6 +98,7 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
         super.onViewCreated(view, savedInstanceState)
         // 撞热度排序额度时结果会静默降级成预览，这条提示是用户唯一能知道原因的地方。
         observeNana7miQuotaNotice()
+        viewLifecycleOwner.observeR18FilterChanges(requireContext(), ::syncItemVisibility)
         searchModel.nowGo.observe(viewLifecycleOwner) {
             // 普通查询仍只在「标签匹配」档响应（对齐 legacy）。命中本地策略时则所有
             // 分栏都必须刷新为空，避免切换 tab 后短暂看到上一次搜索留下的结果。
@@ -101,9 +109,21 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
                 searchRefreshPending = false
                 feedViewModel.refresh()
             } else if (PixivSearchParamUtil.TAG_MATCH_VALUE.contains(searchModel.searchType.value)) {
-                // ViewPager 的离屏页仍处于 STARTED，LiveData 也会通知它。只让当前
-                // RESUMED tab 立即请求；离屏页合并成一次待刷新，等用户真正切过来再搜。
-                if (viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                val currentSpec = buildIllustNetworkSpec(searchModel)
+                val lastLoadedSpec = feedSource?.lastLoadedNetworkSpec
+                val hasLoadedData = feedViewModel.uiState.value.let {
+                    it.hasLoadedOnce && it.refresh !is LoadState.Error
+                }
+                val isResumed = viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+                if (hasLoadedData && lastLoadedSpec != null && lastLoadedSpec == currentSpec) {
+                    // 网络 URL 未变：就地上下屏，不发请求、不丢位置
+                    searchRefreshPending = false
+                    if (isResumed) {
+                        deferSyncItemVisibilityWithSpinner()
+                    } else {
+                        syncItemVisibility()
+                    }
+                } else if (isResumed) {
                     searchRefreshPending = false
                     feedViewModel.refresh()
                 } else {
@@ -118,11 +138,65 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
     }
 
     /**
+     * 前台点击搜索条件 sheet 弹窗的搜索后，若网络 URL 未变，
+     * 转动假加载环等待 sheet 收起动画结束，再执行就地上下屏。
+     */
+    private fun deferSyncItemVisibilityWithSpinner() {
+        syncVisibilityJob?.cancel()
+        syncVisibilityJob = viewLifecycleOwner.lifecycleScope.launch {
+            setRefreshSpinnerActive(true)
+            try {
+                delay(SHEET_DISMISS_DELAY_MS)
+                syncItemVisibility()
+            } finally {
+                setRefreshSpinnerActive(false)
+            }
+        }
+    }
+
+    private fun setRefreshSpinnerActive(active: Boolean) {
+        if (view != null) {
+            runCatching { feedBinding.feedRefreshLayout.isRefreshing = active }
+        }
+    }
+
+    override fun onDestroyView() {
+        syncVisibilityJob?.cancel()
+        syncVisibilityJob = null
+        super.onDestroyView()
+    }
+
+    /**
+     * 就地重算屏上每条插画的显隐（过滤已收藏 / R-18 限制），不发网络请求、保留滚动锚点。
+     */
+    fun syncItemVisibility(): Boolean {
+        val bookmarkFilter = searchModel.sessionBookmarkFilter.value
+            ?: Shaft.sSettings.isSearchFilterBookmarked
+        val r18Restriction = searchModel.r18Restriction.value ?: 0
+        val globalR18Filter = Shaft.sSettings.isR18FilterTempEnable
+        val onlyAi = searchModel.onlyAi.value == true
+        val excludeAi = searchModel.sessionExcludeAi.value
+            ?: (runCatching { Shaft.sSettings?.isDeleteAIIllust }.getOrNull() ?: false)
+        return applyItemVisibility { item ->
+            val illustItem = item as? IllustFeedItem ?: return@applyItemVisibility item
+            val wantHidden = shouldHideSearchIllust(
+                illust = illustItem.illust,
+                bookmarkFilter = bookmarkFilter,
+                r18Restriction = r18Restriction,
+                globalR18FilterOn = globalR18Filter,
+                onlyAi = onlyAi,
+                excludeAi = excludeAi,
+            )
+            if (illustItem.hidden == wantHidden) item else illustItem.withHidden(wantHidden)
+        }
+    }
+
+    /**
      * 当前结果的头几张作品，给置顶卡片当预览（[SearchPinController]）。只取已经显示在屏上的
      * 这一代结果；还没加载过就是空，置顶照样成立，只是卡片不带图。
      */
     fun previewIllusts(limit: Int): List<Illust> =
-        feedViewModel.uiState.value.items.asSequence()
+        feedViewModel.uiState.value.visibleItems.asSequence()
             .filterIsInstance<IllustFeedItem>()
             .map { it.illust }
             .take(limit)
@@ -139,12 +213,23 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
         if (searchRefreshPending) {
             searchRefreshPending = false
             if (hadExistingLoad) {
-                feedViewModel.refresh()
+                val currentSpec = buildIllustNetworkSpec(searchModel)
+                val lastLoadedSpec = feedSource?.lastLoadedNetworkSpec
+                val hasLoadedData = feedViewModel.uiState.value.let {
+                    it.hasLoadedOnce && it.refresh !is LoadState.Error
+                }
+                if (hasLoadedData && lastLoadedSpec != null && lastLoadedSpec == currentSpec) {
+                    syncItemVisibility()
+                } else {
+                    feedViewModel.refresh()
+                }
             }
         }
     }
 
     companion object {
+        private const val SHEET_DISMISS_DELAY_MS = 350L
+
         @JvmStatic
         fun newInstance(): SearchIllustFeedFragment = SearchIllustFeedFragment()
     }
@@ -162,6 +247,9 @@ class SearchIllustFeedSource(
     private val repoFactory: () -> SearchIllustRepo,
 ) : FeedSource<String> {
 
+    var lastLoadedNetworkSpec: IllustSearchNetworkSpec? = null
+        private set
+
     private var repo: SearchIllustRepo? = null
 
     override suspend fun load(cursor: String?): FeedPage<String> {
@@ -177,6 +265,7 @@ class SearchIllustFeedSource(
                 }
             }
             if (shouldWithhold) {
+                lastLoadedNetworkSpec = buildIllustNetworkSpec(searchModel)
                 return FeedPage(emptyList(), null)
             }
         }
@@ -185,7 +274,9 @@ class SearchIllustFeedSource(
         // 这里不用再包 withContext(IO)。（搜索历史写入已上移到 SearchActivity，update 不做 Room I/O。）
         val list: ListIllust = if (cursor == null) {
             r.update(searchModel, keywordSnapshot) // 与上面的策略判断共用同一 keyword 快照
-            r.initApi()
+            val page = r.initApi()
+            lastLoadedNetworkSpec = buildIllustNetworkSpec(searchModel)
+            page
         } else {
             r.nextUrl = cursor
             r.initNextApi()
@@ -193,15 +284,26 @@ class SearchIllustFeedSource(
         val items = withContext(Dispatchers.Default) {
             @Suppress("UNCHECKED_CAST")
             val filtered = r.mapper().apply(list)
-            // FilterMapper 已做完全部搜索专属过滤 → 直接建条目，不再走 .of 的内容过滤
-            //（否则仅看 AI 误删 AI）。这里只补一条它管不到的：「对搜索页过滤」已收藏。
-            // 有效档位优先取搜索页「其他条件」的会话临时值（单击改、不写设置），
-            // 没设过才回退全局 isSearchFilterBookmarked。
+            // FilterMapper 已做完搜索通用过滤。R-18 限制与过滤已收藏改为 feeds 侧「只打标记、不丢条目」
+            // （支持零请求就地上下屏，不破坏关掉开关原地放回的能力）。
             val bookmarkFilter = searchModel.sessionBookmarkFilter.value
                 ?: Shaft.sSettings.isSearchFilterBookmarked
+            val r18Restriction = searchModel.r18Restriction.value ?: 0
+            val globalR18Filter = Shaft.sSettings.isR18FilterTempEnable
+            val onlyAi = searchModel.onlyAi.value == true
+            val excludeAi = searchModel.sessionExcludeAi.value
+                ?: (runCatching { Shaft.sSettings?.isDeleteAIIllust }.getOrNull() ?: false)
             filtered.list.orEmpty().mapNotNull { illust ->
-                if (bookmarkFilter && illust.isBookmarked) null
-                else IllustFeedItem.raw(illust)
+                val item = IllustFeedItem.raw(illust) ?: return@mapNotNull null
+                val isHidden = shouldHideSearchIllust(
+                    illust = illust,
+                    bookmarkFilter = bookmarkFilter,
+                    r18Restriction = r18Restriction,
+                    globalR18FilterOn = globalR18Filter,
+                    onlyAi = onlyAi,
+                    excludeAi = excludeAi,
+                )
+                item.withHidden(isHidden)
             }
         }
         return FeedPage(items, list.nextUrl?.takeIf { it.isNotEmpty() })

@@ -570,13 +570,12 @@ class SearchNovelRepo @JvmOverloads constructor(
         readingTimeMin = searchModel.readingTimeMin.value
         readingTimeMax = searchModel.readingTimeMax.value
         durationBucket = searchModel.durationBucket.value
-        // R18 三档（0=不限/1=仅安全/2=仅R-18）→ 客户端按 x_restrict 过滤
-        filterMapper.setSearchR18Restriction(r18Restriction ?: 0)
-        // 「仅 R-18」是用户在这一页显式要 R-18，全局「R-18 过滤」必须让路（口径同插画侧 SearchIllustRepo）。
-        filterMapper.setSkipR18Filter((r18Restriction ?: 0) == 2)
-        filterMapper.setSearchOnlyAi(onlyAi)
-        // 客户端兜底剔除也按「有效档位」走——临时「屏蔽 AI」不写全局设置同样能滤掉
-        filterMapper.setSearchExcludeAi(excludeAi)
+        // 搜索页 R-18 与 AI 过滤改由 feeds 侧「只打标记、不丢条目」（支持零请求就地上下屏），
+        // 故 filterMapper 统一放行 R-18 与 AI，不在映射期做丢弃式剔除。
+        filterMapper.setSearchR18Restriction(0)
+        filterMapper.setSkipR18Filter(true)
+        filterMapper.setSearchOnlyAi(false)
+        filterMapper.setSearchExcludeAi(false)
         filterMapper.setKeepAiForBlur(true)
         // 收藏数区间兜底：非会员端点（popular-preview 预览 / 非会员自己的 token）会静默无视
         // bookmark_num_min/max，这里按 total_bookmarks 在客户端再筛一遍，避免「喜欢！数」静默失效。
