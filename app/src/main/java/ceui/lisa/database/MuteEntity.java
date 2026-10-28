@@ -1,8 +1,20 @@
 package ceui.lisa.database;
 
 import androidx.room.Entity;
+import androidx.room.Index;
 
-@Entity(tableName = "tag_mute_table", primaryKeys = {"id", "type"})
+/**
+ * 屏蔽名单。v44 补了 {@code (type, searchTime)} 索引。
+ *
+ * 这张表的查询一律是「按 type 过滤 + 按 searchTime 倒序」：{@code allMutedTags}（屏蔽标签
+ * 全量，搜索页 onResume 每次都要）、{@code mutedWorks}、{@code getMutedUser}。此前无索引，
+ * 每条都是全表扫描 + 临时 B-tree 排序，而每行还带一份 tagJson。
+ *
+ * 复合主键是 {@code (id, type)}，id 打头，所以 `type = ? AND id = ?` 这类点查本来就走主键，
+ * 这里不需要再单独建 id 索引。
+ */
+@Entity(tableName = "tag_mute_table", primaryKeys = {"id", "type"},
+        indices = {@Index(value = {"type", "searchTime"})})
 public final class MuteEntity {
 
     private long id;

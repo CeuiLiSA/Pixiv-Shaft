@@ -1,6 +1,7 @@
 package ceui.lisa.database;
 
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 /**
@@ -12,8 +13,11 @@ import androidx.room.PrimaryKey;
  *     String keyword: The search content
  *
  * </p>
+ * v44 补了 {@code (pinned, searchTime)} 索引：搜索页 onResume 的两条查询
+ * （{@code WHERE pinned = 1} 全量置顶、{@code WHERE pinned = 0 ORDER BY searchTime DESC LIMIT 50}）
+ * 此前都是全表扫描 + 排序，而行数随「搜过多少次」无限增长，且 pinned 行还带 previewIllustsJson。
  * */
-@Entity(tableName = "search_table")
+@Entity(tableName = "search_table", indices = {@Index(value = {"pinned", "searchTime"})})
 public final class SearchEntity {
 
     @PrimaryKey()
