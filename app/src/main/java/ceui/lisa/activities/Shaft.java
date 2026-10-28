@@ -42,6 +42,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import dagger.hilt.android.HiltAndroidApp;
+import javax.inject.Inject;
+
 import okhttp3.OkHttpClient;
 import timber.log.Timber;
 
@@ -52,9 +54,10 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Where the app code starts.
  *
- * <p>{@link HiltAndroidApp} 只负责生成 Hilt 的应用组件；进程级服务仍由本类在 onCreate 里构造，
- * 通过 {@link ceui.pixiv.services.ServicesModule} 桥接进 Hilt 图。不要往这里加 {@code @Inject}
- * 字段：Hilt 在 super.onCreate() 里注入，那时下面的服务还没 new 出来。
+ * <p>{@link HiltAndroidApp}：进程级服务由 Hilt 构造并注入本类，再经 {@link ServicesProvider}
+ * 暴露给还没迁到注入的调用方。onCreate 只负责按顺序 <em>启动</em> 它们（start / install / bootstrap）。
+ * EntityWrapper / NetworkStateManager 仍在 onCreate 的固定位置手工构造，不归 Hilt；
+ * 其中要被注入的（EntityWrapper）经 {@link ceui.pixiv.services.ServicesModule} 桥接。
  * */
 @HiltAndroidApp
 public class Shaft extends Application implements ServicesProvider {
@@ -78,25 +81,27 @@ public class Shaft extends Application implements ServicesProvider {
                 return kotlin.Unit.INSTANCE;
             });
     private static MMKV mmkv;
-    private AppLevelState appLevelState;
-    private ceui.pixiv.ui.translate.MangaTranslateModels mangaTranslateModels;
-    private ceui.pixiv.ui.translate.MangaBatchTranslateCenter mangaBatchTranslateCenter;
-    private ceui.pixiv.ui.fanbox.FanboxWebBridge fanboxWebBridge;
-    private ceui.pixiv.ui.bulk.QueueDownloadManager queueDownloadManager;
-    private ceui.pixiv.actions.PixivActionQueue pixivActionQueue;
+    // 进程级服务由 Hilt 以 @Singleton 构造，在 super.onCreate() 那一刻注入（Hilt 不能注入 private 字段）。
+    // 构造契约见 ServicesProvider：廉价、不做 IO、不依赖本类 onCreate 里后续才就绪的状态。
+    @Inject AppLevelState appLevelState;
+    @Inject ceui.pixiv.ui.translate.MangaTranslateModels mangaTranslateModels;
+    @Inject ceui.pixiv.ui.translate.MangaBatchTranslateCenter mangaBatchTranslateCenter;
+    @Inject ceui.pixiv.ui.fanbox.FanboxWebBridge fanboxWebBridge;
+    @Inject ceui.pixiv.ui.bulk.QueueDownloadManager queueDownloadManager;
+    @Inject ceui.pixiv.actions.PixivActionQueue pixivActionQueue;
     private final ceui.pixiv.communication.CommunicationScope communicationScope =
             new ceui.pixiv.communication.CommunicationScope();
-    private ceui.pixiv.db.discovery.ProfileManager profileManager;
-    private ceui.pixiv.db.discovery.DiscoveryPool discoveryPool;
-    private ceui.pixiv.actions.AccountOnlineReportOutbox accountOnlineReportOutbox;
-    private ceui.pixiv.actions.Nana7miSearchTelemetry nana7miSearchTelemetry;
-    private ceui.pixiv.config.RemoteAppConfig remoteAppConfig;
-    private ceui.pixiv.events.EventReporter eventReporter;
-    private ceui.pixiv.chat.api.ShaftChatGateway chatGateway;
-    private ceui.pixiv.sticker.StickerRepository stickerRepository;
-    private ceui.pixiv.db.mirror.BookmarkMirrorService bookmarkMirror;
-    private ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository readerFontRepository;
-    private ceui.lisa.update.ApkDownloadManager apkDownloadManager;
+    @Inject ceui.pixiv.db.discovery.ProfileManager profileManager;
+    @Inject ceui.pixiv.db.discovery.DiscoveryPool discoveryPool;
+    @Inject ceui.pixiv.actions.AccountOnlineReportOutbox accountOnlineReportOutbox;
+    @Inject ceui.pixiv.actions.Nana7miSearchTelemetry nana7miSearchTelemetry;
+    @Inject ceui.pixiv.config.RemoteAppConfig remoteAppConfig;
+    @Inject ceui.pixiv.events.EventReporter eventReporter;
+    @Inject ceui.pixiv.chat.api.ShaftChatGateway chatGateway;
+    @Inject ceui.pixiv.sticker.StickerRepository stickerRepository;
+    @Inject ceui.pixiv.db.mirror.BookmarkMirrorService bookmarkMirror;
+    @Inject ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository readerFontRepository;
+    @Inject ceui.lisa.update.ApkDownloadManager apkDownloadManager;
 
     private EntityWrapper entityWrapper;
 
@@ -465,25 +470,6 @@ public class Shaft extends Application implements ServicesProvider {
 
         entityWrapper = new EntityWrapper(this);
         entityWrapper.initialize();
-
-        // 进程级服务：构造都必须廉价（见 ServicesProvider 注释）。
-        appLevelState = new AppLevelState();
-        mangaTranslateModels = new ceui.pixiv.ui.translate.MangaTranslateModels(this);
-        mangaBatchTranslateCenter = new ceui.pixiv.ui.translate.MangaBatchTranslateCenter(this, mangaTranslateModels);
-        fanboxWebBridge = new ceui.pixiv.ui.fanbox.FanboxWebBridge(this);
-        queueDownloadManager = new ceui.pixiv.ui.bulk.QueueDownloadManager(this);
-        pixivActionQueue = new ceui.pixiv.actions.PixivActionQueue(this);
-        profileManager = new ceui.pixiv.db.discovery.ProfileManager(this);
-        discoveryPool = new ceui.pixiv.db.discovery.DiscoveryPool(this, profileManager);
-        accountOnlineReportOutbox = new ceui.pixiv.actions.AccountOnlineReportOutbox(this);
-        nana7miSearchTelemetry = new ceui.pixiv.actions.Nana7miSearchTelemetry(this);
-        remoteAppConfig = new ceui.pixiv.config.RemoteAppConfig(this);
-        eventReporter = new ceui.pixiv.events.EventReporter(this);
-        chatGateway = new ceui.pixiv.chat.api.ShaftChatGateway(this);
-        stickerRepository = new ceui.pixiv.sticker.StickerRepository(this);
-        bookmarkMirror = new ceui.pixiv.db.mirror.BookmarkMirrorService(this);
-        readerFontRepository = new ceui.pixiv.ui.novel.reader.settings.ReaderFontRepository(this);
-        apkDownloadManager = new ceui.lisa.update.ApkDownloadManager(this);
 
         SessionManager.INSTANCE.initialize();
 

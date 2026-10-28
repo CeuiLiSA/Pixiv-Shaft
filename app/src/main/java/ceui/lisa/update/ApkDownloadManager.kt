@@ -40,6 +40,8 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * 应用内自托管的 APK 下载器，替代系统的 [android.app.DownloadManager]。
@@ -65,7 +67,8 @@ import java.util.concurrent.atomic.AtomicLong
  * 与开工时记录的不一致就**无条件取消**（分片删除、状态置失败）。换源之后旧分片的
  * 字节无法证明与新源同源，续传没有意义。
  */
-class ApkDownloadManager(private val app: Application) {
+@Singleton
+class ApkDownloadManager @Inject constructor(private val app: Application) {
 
     companion object {
         private const val TAG = "ApkDownload"

@@ -24,6 +24,8 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * 阅读器可下载字体（[ReaderWebFont]）的下载、删除与状态（#1060）。
@@ -31,7 +33,8 @@ import timber.log.Timber
  * 进程级：关掉字体面板、甚至退出阅读器，下载照常跑完，回来时面板直接看到进度。
  * 构造廉价（见 [ceui.pixiv.services.ServicesProvider]）—— OkHttpClient 与首次的磁盘检查都延迟到真用时。
  */
-class ReaderFontRepository(private val app: Application) {
+@Singleton
+class ReaderFontRepository @Inject constructor(private val app: Application) {
 
     sealed interface State {
         object Absent : State

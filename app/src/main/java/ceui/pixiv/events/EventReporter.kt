@@ -32,6 +32,9 @@ import timber.log.Timber
 import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Sends bookmark / follow / download events to shaft-api-v2 for community
@@ -54,7 +57,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 // Context 参数只为和其他进程级服务保持同一构造契约（见 ServicesProvider）；
 // 本类只碰 MMKV，暂时用不上它。
-class EventReporter(@Suppress("UNUSED_PARAMETER") app: Context) {
+@Singleton
+class EventReporter @Inject constructor(
+    @Suppress("UNUSED_PARAMETER") @ApplicationContext app: Context,
+) {
 
     private companion object {
         const val TAG = "EventReporter"

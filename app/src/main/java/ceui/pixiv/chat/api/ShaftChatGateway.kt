@@ -33,6 +33,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Application-scoped gateway for the shaft-api-v2 chat WebSocket.
@@ -45,7 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * ## Lifecycle
  *
- * 进程级服务，由 [ceui.lisa.activities.Shaft] 构造并经
+ * 进程级服务，由 Hilt 以 @Singleton 构造并经
  * [ceui.pixiv.services.ServicesProvider.chatGateway] 取用（不是 Kotlin `object`，
  * 见 ServicesProvider 的注释）。构造函数只存 [app]，一分钱活不干。
  *
@@ -66,7 +68,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * [WebSocketState] on tag `"ChatHB"`. Connected = healthy. Reconnecting /
  * Idle / Disconnected = something to look at.
  */
-class ShaftChatGateway(private val app: Application) {
+@Singleton
+class ShaftChatGateway @Inject constructor(private val app: Application) {
 
     private companion object {
         private const val TAG = "Chat-Gateway"

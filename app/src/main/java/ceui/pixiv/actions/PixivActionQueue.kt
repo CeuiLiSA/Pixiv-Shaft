@@ -8,7 +8,6 @@ import ceui.lisa.utils.Common
 import ceui.pixiv.api.Client
 import ceui.pixiv.cache.ObjectPool
 import ceui.loxia.User
-import ceui.pixiv.services.appServices
 import ceui.pixiv.actionqueue.ActionEvent
 import ceui.pixiv.actionqueue.ActionQueue
 import ceui.pixiv.actionqueue.ActionRequest
@@ -33,6 +32,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
+import ceui.pixiv.db.discovery.ProfileManager
+import ceui.pixiv.db.mirror.BookmarkMirrorService
 
 /**
  * 收藏 / 关注这类写操作的进程级队列宿主。
@@ -40,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 队列本体 [ActionQueue] 是可注入的普通对象（为了能单测）；这里负责它在 app 里的
  * 装配、启动时机和失败反馈，是唯一持有实例的地方。UI 不直接碰它，走 [PixivActions]。
  *
- * 一个进程只有一份，由 [ceui.lisa.activities.Shaft] 构造并经
+ * 一个进程只有一份，由 Hilt 以 @Singleton 构造并经
  * [ceui.pixiv.services.ServicesProvider.pixivActionQueue] 暴露；构造廉价（不建队列、不起协程），
  * 真正的装配在 [start]。
  *
@@ -48,7 +52,13 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 同一套登录 / 联网闸门与按账号分账，而下载一批就是几百条，排进收藏那条队列的话，
  * 期间点的收藏要在它们后面等上好几分钟才真正发出去。
  */
-class PixivActionQueue(app: Context) {
+@Singleton
+class PixivActionQueue @Inject constructor(
+    @ApplicationContext app: Context,
+    private val profileManager: ProfileManager,
+    private val eventReporter: EventReporter,
+    private val bookmarkMirror: BookmarkMirrorService,
+) {
 
     private val app: Context = app.applicationContext
 
@@ -401,13 +411,12 @@ class PixivActionQueue(app: Context) {
      * 关注要一份 [User] 才能入库；池里没有就放弃这一条，下一次增量维护会在表头扫到它。
      */
     private fun syncFollowMirror(payload: FollowPayload) {
-        val mirror = app.appServices().bookmarkMirror
         if (!payload.follow) {
-            mirror.onUnbookmarked(MirrorContentType.USER, payload.userId)
+            bookmarkMirror.onUnbookmarked(MirrorContentType.USER, payload.userId)
             return
         }
         val user = ObjectPool.get<User>(payload.userId).value ?: return
-        mirror.onUserFollowed(user, MirrorRestrict.ofApiValue(payload.restrict))
+        bookmarkMirror.onUserFollowed(user, MirrorRestrict.ofApiValue(payload.restrict))
     }
 
 
@@ -427,20 +436,19 @@ class PixivActionQueue(app: Context) {
         illustOrNull: ceui.pixiv.api.model.Illust?,
         novelOrNull: ceui.loxia.Novel?,
     ) {
-        val mirror = app.appServices().bookmarkMirror
         if (!payload.bookmark) {
-            mirror.onUnbookmarked(contentType, payload.id)
+            bookmarkMirror.onUnbookmarked(contentType, payload.id)
             return
         }
         val restrict = MirrorRestrict.ofApiValue(payload.restrict)
         when (contentType) {
             MirrorContentType.ILLUST -> {
                 val bean = ObjectPool.get<Illust>(payload.id).value ?: illustOrNull ?: return
-                mirror.onIllustBookmarked(bean.withBookmarked(true), restrict)
+                bookmarkMirror.onIllustBookmarked(bean.withBookmarked(true), restrict)
             }
             MirrorContentType.NOVEL -> {
                 val bean = ObjectPool.get<Novel>(payload.id).value ?: novelOrNull ?: return
-                mirror.onNovelBookmarked(bean.withBookmarked(true), restrict)
+                bookmarkMirror.onNovelBookmarked(bean.withBookmarked(true), restrict)
             }
             // 关注不走收藏动作，见 syncFollowMirror
             MirrorContentType.USER -> Unit
@@ -536,10 +544,6 @@ class PixivActionQueue(app: Context) {
     private fun toast(resId: Int) {
         Common.showToast(app.getString(resId))
     }
-
-    /** 发现画像：与本队列同为进程级服务，按需取，不在构造期互相持有（两边构造顺序无关）。 */
-    private val profileManager get() = app.appServices().profileManager
-    private val eventReporter: EventReporter get() = app.appServices().eventReporter
 
     private companion object {
         const val TAG = "PixivActionQueue"

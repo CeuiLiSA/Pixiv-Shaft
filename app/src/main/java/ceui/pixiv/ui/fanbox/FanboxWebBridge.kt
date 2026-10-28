@@ -26,6 +26,9 @@ import java.io.ByteArrayInputStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.resume
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * 用一个不上屏的 WebView 去打 api.fanbox.cc —— 专门为 `post.info` 存在。
@@ -45,12 +48,13 @@ import kotlin.coroutines.resume
  * 首屏那 5MB SPA(全在 s.pximg.net 上)一点用都没有,`shouldInterceptRequest` 把 fanbox.cc
  * 以外的子资源全掐掉,实际只下 8KB 左右的壳。
  *
- * 生命周期:进程里只有一份,由 [ceui.lisa.activities.Shaft] 构造并经
+ * 生命周期:进程里只有一份,由 Hilt 以 @Singleton 构造并经
  * [ServicesProvider.fanboxWebBridge] 暴露。构造不建 WebView;第一次 [get] 才懒建,
  * 空闲 [IDLE_RELEASE_MS] 后或 Application.onTrimMemory 时经 [release] 销毁,下次再用重建。
  * WebView 是全 app 最重的对象之一(几十 MB 的独立渲染进程),不能像以前那样建了就常驻。
  */
-class FanboxWebBridge(app: Context) {
+@Singleton
+class FanboxWebBridge @Inject constructor(@ApplicationContext app: Context) {
 
     private val appContext: Context = app.applicationContext
 

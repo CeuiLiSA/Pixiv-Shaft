@@ -2,12 +2,9 @@ package ceui.pixiv.services
 
 import android.content.Context
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.viewmodel.AppLevelState
 import ceui.pixiv.db.EntityWrapper
 import ceui.pixiv.db.queue.DownloadQueueDao
 import ceui.pixiv.db.synonym.SynonymDao
-import ceui.pixiv.ui.bulk.QueueDownloadManager
-import ceui.pixiv.ui.translate.MangaBatchTranslateCenter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,40 +12,24 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 
 /**
- * 把 [ServicesProvider] 里的进程级服务桥接进 Hilt 图。
+ * Hilt 图里**不能**靠 `@Inject constructor` 自己建出来的那几样。
  *
- * 构造与生命周期仍归 [ceui.lisa.activities.Shaft]（在 onCreate 里按顺序 new 出来，见
- * [ServicesProvider] 的注释）；这里只是转手，所以 **不加 `@Singleton`**——单例语义已由
- * Shaft 保证，再套一层 DoubleCheck 只是多一次加锁。
- *
- * 按需登记：只放已经有注入点在用的服务，别一次性把整个接口镜像过来。
+ * [ServicesProvider] 里的服务大多已是 `@Singleton` + `@Inject constructor`，由 Hilt 直接构造，
+ * 不在这里登记（再登记一遍就是重复绑定）。这里只剩：
+ * - 仍由 [ceui.lisa.activities.Shaft] 在 onCreate 固定位置手工构造的（[EntityWrapper]），
+ *   只转手、不加 `@Singleton`——单例语义由 Shaft 保证；
+ * - Room：库与 DAO 由 Room 生成，没法加 `@Inject`。
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object ServicesModule {
 
     @Provides
-    fun servicesProvider(@ApplicationContext context: Context): ServicesProvider =
-        context.appServices()
-
-    @Provides
-    fun appLevelState(services: ServicesProvider): AppLevelState =
-        services.appLevelState
-
-    @Provides
-    fun entityWrapper(services: ServicesProvider): EntityWrapper =
-        services.entityWrapper
-
-    @Provides
-    fun queueDownloadManager(services: ServicesProvider): QueueDownloadManager =
-        services.queueDownloadManager
-
-    @Provides
-    fun mangaBatchTranslateCenter(services: ServicesProvider): MangaBatchTranslateCenter =
-        services.mangaBatchTranslateCenter
+    fun entityWrapper(@ApplicationContext context: Context): EntityWrapper =
+        context.appServices().entityWrapper
 
     /**
-     * 同样只是转手：[AppDatabase.getAppDatabase] 自己持有进程单例。首次调用会建库，
+     * 只转手：[AppDatabase.getAppDatabase] 自己持有进程单例。首次调用会建库，
      * 注入方想保持懒加载就用 `dagger.Lazy<…Dao>`。
      */
     @Provides

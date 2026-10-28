@@ -31,6 +31,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import retrofit2.HttpException
 import timber.log.Timber
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Process-wide durable outbox for AccountResponse reports and invalid-token quarantine notices.
@@ -44,12 +47,13 @@ import timber.log.Timber
  * [ceui.pixiv.services.ServicesProvider.accountOnlineReportOutbox]. The constructor is cheap (no IO, no
  * coroutines); [start] launches the worker.
  */
+@Singleton
 class AccountOnlineReportOutbox internal constructor(
     /** Resolved lazily so JVM unit tests can build one without an Android Context. */
     private val appContext: Lazy<Context>,
 ) {
 
-    constructor(app: Context) : this(lazy { app.applicationContext })
+    @Inject constructor(@ApplicationContext app: Context) : this(lazy { app.applicationContext })
 
     enum class PersistResult { DELIVERED, QUEUED, FAILED }
 

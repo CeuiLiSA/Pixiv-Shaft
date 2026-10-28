@@ -40,6 +40,9 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * 批量下载持久化队列消费者 —— 页级并发流水线。
@@ -80,9 +83,10 @@ import timber.log.Timber
  *   }
  *   ```
  */
-class QueueDownloadManager(app: Context) {
+@Singleton
+class QueueDownloadManager @Inject constructor(@ApplicationContext app: Context) {
 
-    /** 由 [ceui.lisa.activities.Shaft] 构造并经 ServicesProvider 暴露；构造只存 context，不碰 DB。 */
+    /** 由 Hilt 以 @Singleton 构造并经 ServicesProvider 暴露；构造只存 context，不碰 DB。 */
     private val appContext: Context = app.applicationContext
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
