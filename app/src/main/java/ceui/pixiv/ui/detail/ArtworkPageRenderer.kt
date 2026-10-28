@@ -126,11 +126,14 @@ private inline fun <reified T : ArtworkPageItem> ArtworkV3Fragment.pageRenderer(
             }
         },
         bindPayloads = { cell, payloads ->
-            val delegate =
-                cell.itemView.getTag(R.id.tag_artwork_page_adapter) as? CollapsibleIllustAdapter
-            payloads.isNotEmpty() && payloads.all { it === PAYLOAD_EXPAND_OVERLAY_ONLY } &&
-                delegate === ensurePageAdapter() &&
-                delegate?.bindOverlayOnly(ViewHolder(cell.binding), cell.item.pageIndex) == true
+            val adapter = ensurePageAdapter() as? CollapsibleIllustAdapter
+            if (adapter != null && payloads.isNotEmpty() && payloads.all { it === PAYLOAD_EXPAND_OVERLAY_ONLY || it === CollapsibleIllustAdapter.PAYLOAD_AI_UPDATE }) {
+                cell.itemView.setTag(R.id.tag_artwork_page_adapter, adapter)
+                adapter.bindOverlayOnly(ViewHolder(cell.binding), cell.item.pageIndex)
+                true
+            } else {
+                false
+            }
         },
         recycle = { cell ->
             // 委托给同一个 adapter 清理(detach observer + clear Glide)。ViewHolder 只是薄壳,

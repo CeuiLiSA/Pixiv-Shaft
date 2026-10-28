@@ -112,8 +112,8 @@ class RembgModelPickerDialog : PixivDialog(R.layout.dialog_rembg_model_picker) {
             intent.putExtra("model_name", model.name)
             ctx.startActivity(intent)
         } else {
-            onModelSelected?.invoke(model)
             dismissAllowingStateLoss()
+            onModelSelected?.invoke(model)
         }
     }
 

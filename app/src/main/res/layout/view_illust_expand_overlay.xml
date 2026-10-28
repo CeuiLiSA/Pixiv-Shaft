@@ -14,7 +14,7 @@
     android:background="@drawable/bg_v3_first_page_scrim"
     android:visibility="gone">
 
-    <!-- 两个胶囊并排。行宽仍是 wrap_content(放得下就按自然宽居中,delta=0 不重测),
+    <!-- 胶囊并排。行宽仍是 wrap_content(放得下就按自然宽居中,delta=0 不重测),
          放不下时靠 layout_weight 把超出量按权重摊给两边收缩,配合 label 的
          ellipsize 省略号收尾——否则超宽部分会被 FrameLayout 连背景带触摸区一起裁掉
          (en/ru/tr 在 360dp 窄屏或大字号下必现)。 -->
@@ -95,6 +95,82 @@
                 android:letterSpacing="0.02"
                 android:maxLines="1"
                 android:text="@string/comic_reader_enter"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ai_upscale_pill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_v3_expand_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="9dp"
+            android:paddingBottom="9dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_upscale_add_photo"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/ai_upscale_pill_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:letterSpacing="0.02"
+                android:maxLines="1"
+                android:text="@string/action_view_comparison"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ai_rembg_pill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_v3_expand_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="9dp"
+            android:paddingBottom="9dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginEnd="8dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_baseline_filter_24"
+                app:tint="#FFFFFF" />
+
+            <TextView
+                android:id="@+id/ai_rembg_pill_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:letterSpacing="0.02"
+                android:maxLines="1"
+                android:text="@string/string_ai_rembg"
                 android:textColor="#FFFFFF"
                 android:textSize="13sp"
                 android:textStyle="bold" />
