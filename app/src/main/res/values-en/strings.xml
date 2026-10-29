@@ -2055,6 +2055,11 @@
     <string name="search_filter_v3_section_ai">AI works</string>
     <string name="search_filter_v3_ai_all">All</string>
     <string name="search_filter_v3_ai_only">AI only</string>
+    <string name="search_filter_v3_section_potential_violation">Works that may hinder search</string>
+    <string name="search_filter_v3_potential_violation_show">Show</string>
+    <string name="search_filter_v3_potential_violation_hide">Hide</string>
+    <string name="search_filter_v3_potential_violation_hint">Choose whether to show works that are highly likely to violate pixiv guidelines.</string>
+    <string name="search_filter_v3_other_summary_hide_potential_violation">Hiding works that may hinder search</string>
     <string name="search_filter_v3_section_r18">R-18 restriction</string>
     <string name="search_filter_v3_r18_all">All</string>
     <string name="search_filter_v3_r18_safe">Safe only</string>

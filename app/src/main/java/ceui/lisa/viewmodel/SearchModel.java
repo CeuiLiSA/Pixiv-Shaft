@@ -44,6 +44,12 @@ public class SearchModel extends ViewModel {
     private final MutableLiveData<Boolean> sessionExcludeAi = new MutableLiveData<>();
     private final MutableLiveData<Boolean> sessionBookmarkFilter = new MutableLiveData<>();
 
+    // 「其他条件 → 可能妨碍搜索的作品」（官方 app 同名开关）—— app-api 的
+    // include_potential_violation_works。null = 不传（服务端默认包含 = 显示，等价 web dgw=1）；
+    // false = 显式不显示（dgw=0）。默认档故意保持 null 而不是 true：显式 true 与服务端默认等价，
+    // 却会让请求 URL 变一个样，把 Nana7miSearchCache 里的既有条目整片作废。
+    private final MutableLiveData<Boolean> includePotentialViolationWorks = new MutableLiveData<>();
+
     // ── V3 filter 维度 —— 老版 FragmentFilter 没暴露但 pixiv API 都吃 ──
     private final MutableLiveData<Integer> bookmarkMin = new MutableLiveData<>();
     private final MutableLiveData<Integer> bookmarkMax = new MutableLiveData<>();
@@ -129,6 +135,10 @@ public class SearchModel extends ViewModel {
 
     public MutableLiveData<Boolean> getSessionBookmarkFilter() {
         return sessionBookmarkFilter;
+    }
+
+    public MutableLiveData<Boolean> getIncludePotentialViolationWorks() {
+        return includePotentialViolationWorks;
     }
 
     public MutableLiveData<Integer> getBookmarkMin() {

@@ -2055,6 +2055,11 @@
     <string name="search_filter_v3_section_ai">AI 작품</string>
     <string name="search_filter_v3_ai_all">전체</string>
     <string name="search_filter_v3_ai_only">AI만</string>
+    <string name="search_filter_v3_section_potential_violation">검색에 방해가 되는 작품</string>
+    <string name="search_filter_v3_potential_violation_show">표시</string>
+    <string name="search_filter_v3_potential_violation_hide">표시 안 함</string>
+    <string name="search_filter_v3_potential_violation_hint">pixiv 사이트 정책을 위반할 가능성이 높은 작품을 표시할지 선택할 수 있습니다.</string>
+    <string name="search_filter_v3_other_summary_hide_potential_violation">검색에 방해가 되는 작품 숨김</string>
     <string name="search_filter_v3_section_r18">R-18 제한</string>
     <string name="search_filter_v3_r18_all">전체</string>
     <string name="search_filter_v3_r18_safe">안전한 작품만</string>

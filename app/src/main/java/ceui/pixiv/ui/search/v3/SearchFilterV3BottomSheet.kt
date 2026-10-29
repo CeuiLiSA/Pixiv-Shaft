@@ -390,6 +390,8 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
                     groupBySeries = patch.groupBySeries,
                     bookmarkFilter = patch.bookmarkFilter,
                     bookmarkFilterPersist = patch.bookmarkFilterPersist,
+                    includePotentialViolationWorks = patch.includePotentialViolationWorks,
+                    potentialViolationPersist = patch.potentialViolationPersist,
                 )
             }
         }
@@ -621,6 +623,11 @@ class SearchFilterV3BottomSheet : V3BottomSheetBase() {
             R18Mode.SafeOnly -> flags += getString(R.string.search_filter_v3_r18_safe)
             R18Mode.R18Only  -> flags += getString(R.string.search_filter_v3_r18_only)
             R18Mode.All -> Unit
+        }
+        // 「可能妨碍搜索的作品」：默认是「显示」（＝不传参数），只有关掉才上摘要。
+        // 用专门的摘要文案而不是卡片标题——标题只写了「可能妨碍搜索的作品」，不说是显示还是隐藏。
+        if (!filter.includePotentialViolationWorks) {
+            flags += getString(R.string.search_filter_v3_other_summary_hide_potential_violation)
         }
         // 过滤已收藏：与全局设置联动，开着就上 summary（illust / novel 两种模式都适用）。
         // 这里取**卡片标题**而不是卡片里的选项文案——选项是「过滤 / 不过滤」二选一，单拎

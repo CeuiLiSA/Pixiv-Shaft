@@ -278,6 +278,64 @@
                     android:id="@+id/row_r18_only"
                     layout="@layout/cell_search_filter_check_row" />
             </LinearLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="20dp" />
+
+            <!-- 「可能妨碍搜索的作品」—— 官方 app「其他条件」里的同名开关，走 app-api
+                 include_potential_violation_works（web 侧同义参数 dgw）。二选一：显示 / 不显示。
+                 默认「显示」＝不传该参数，与本 app 旧行为一致。 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_v3_settings_card"
+                android:tag="v3_card"
+                android:clipToOutline="true"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="18dp"
+                    android:paddingTop="14dp"
+                    android:paddingEnd="18dp"
+                    android:paddingBottom="10dp"
+                    android:text="@string/search_filter_v3_section_potential_violation"
+                    android:textColor="@color/v3_text_2"
+                    android:textSize="13sp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="18dp"
+                    android:background="@color/v3_border_2" />
+
+                <include
+                    android:id="@+id/row_potential_violation_show"
+                    layout="@layout/cell_search_filter_check_row" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="18dp"
+                    android:background="@color/v3_border_2" />
+
+                <include
+                    android:id="@+id/row_potential_violation_hide"
+                    layout="@layout/cell_search_filter_check_row" />
+            </LinearLayout>
+
+            <!-- 官方说明文案：这一档到底在挡什么，不写清楚用户只会以为是「隐藏搜索结果」。 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="18dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="18dp"
+                android:text="@string/search_filter_v3_potential_violation_hint"
+                android:textColor="@color/v3_text_3"
+                android:textSize="12sp" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>
