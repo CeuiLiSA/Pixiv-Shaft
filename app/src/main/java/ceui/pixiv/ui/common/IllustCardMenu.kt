@@ -14,6 +14,7 @@ import ceui.pixiv.services.requireEntityWrapper
 import ceui.pixiv.utils.toTagsBeans
 import ceui.pixiv.ui.bulk.BulkSelectHandoff
 import ceui.pixiv.ui.bulk.IllustBulkSelectHandoff
+import ceui.pixiv.ui.debug.DebugInvalidWorks
 import ceui.pixiv.ui.detail.showV3Menu
 import ceui.pixiv.ui.slideshow.SlideshowLauncher
 import ceui.pixiv.ui.navigation.TemplateRoute
@@ -41,10 +42,16 @@ internal fun IllustFeedFragment.showCardMenu(
     onToggleSpoiler: (Boolean) -> Unit = { setIllustMuted(item, it) },
 ) {
     val bean = item.illust
-    // 收藏夹关闭「过滤无效收藏」后，已删除/不公开的失效插画仍会显示（灰色封面）。这类作品
-    // 打不开详情，下载/屏蔽/评论等动作也基本无意义，长按只保留「复制作品ID」以及能拿到的
-    // 「复制作品标题」，方便对照本地下载文件确认是哪张作品被删了。
-    if (!Shaft.sSettings.isFilterInvalidBookmarks && bean.visible != true) {
+    // 收藏夹关闭「过滤无效收藏」后，失效作品（非公开 / 限定 / 无法显示，见 [Illust.isUnavailable]）
+    // 仍会占一张卡，封面是服务端给的 limit_unknown 占位图（真机抓包，见 Illust.isUnavailable）。
+    // 这类作品打不开详情，
+    // 下载/屏蔽/评论等动作也基本无意义，长按只保留
+    // 「复制作品ID」以及能拿到的「复制作品标题」，方便对照本地文件确认是哪一张。
+    // 试验性页的「失效作品模拟」只改画法（bean 还是好的），这里一并按失效对待，
+    // 免得调试时看到一张灰卡却弹出完整的收藏/下载菜单。
+    val unavailable = bean.isUnavailable ||
+            (fakeInvalidWorksEnabled && DebugInvalidWorks.shouldFakeAsInvalid(bean.id))
+    if (!Shaft.sSettings.isFilterInvalidBookmarks && unavailable) {
         showV3Menu("IllustFeedCardMenu") {
             item(getString(R.string.copy_work_id), R.drawable.baseline_content_copy_24) {
                 Common.copy(requireContext(), bean.id.toString())

@@ -55,22 +55,49 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
-        <!-- 现代化收藏按钮：
-             40dp 深色圆底座 + 4dp 边距（不顶死卡片圆角）+ 24dp 心形 icon。
-             未收藏 = 白色空心描边，已收藏 = 红色实心（IllustStaggerRenderer.renderLikeState 切这对 drawable） -->
-        <ImageButton
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="@dimen/eight_dp"
-            android:id="@+id/like_button"
-            android:scaleType="fitCenter"
+        <!-- 右下角操作行：快照标记 + 收藏爱心，横向排在卡片右下角。
+             为什么包一层 LinearLayout 而不是两个各自钉 bottom|end：爱心会被「插画列表显示收藏按钮」/
+             「收藏页隐藏收藏按钮」整颗 GONE 掉，那时快照标记必须自动顶到爱心原来的位置上 —— 行尾
+             对齐天然就是这个效果（两者都是 40dp，右边缘逐像素重合），不必再写一套 margin/gravity 分支。
+             4dp 外边距挂在这一行上，爱心靠 4dp 间距与快照标记隔开（爱心 GONE 时那 4dp 也一起消失）。 -->
+        <LinearLayout
+            android:id="@+id/card_action_row"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="@dimen/four_dp"
-            android:background="@drawable/bg_like_pill"
-            android:src="@drawable/ic_like_heart_outline"
-            app:tint="@android:color/white">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        </ImageButton>
+            <!-- 快照标记：这件作品本地有离线快照（含自动快照）时出现，点开直接进离线详情页。
+                 与爱心同尺寸同底座、白色 24dp 图标居中；显隐见 IllustStaggerRenderer 的
+                 applyIllustSpoilerMask（屏蔽态跟着爱心一起藏）。 -->
+            <ImageButton
+                android:id="@+id/snapshot_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_like_pill"
+                android:contentDescription="@string/snapshot_downloaded_label"
+                android:padding="@dimen/eight_dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_snapshot_24"
+                android:visibility="gone"
+                app:tint="@android:color/white" />
+
+            <!-- 现代化收藏按钮：
+                 40dp 深色圆底座 + 24dp 心形 icon（4dp 外边距已上移到操作行，卡片圆角照样不被顶死）。
+                 未收藏 = 白色空心描边，已收藏 = 红色实心（IllustStaggerRenderer.renderLikeState 切这对 drawable） -->
+            <ImageButton
+                android:id="@+id/like_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="@dimen/four_dp"
+                android:background="@drawable/bg_like_pill"
+                android:padding="@dimen/eight_dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_like_heart_outline"
+                app:tint="@android:color/white" />
+        </LinearLayout>
 
         <!-- 收藏爆发动画层：叠在 like_button 之上、平时 GONE，只由 feeds 渲染器
              点收藏时播放。72dp 画布贴卡片右下角，

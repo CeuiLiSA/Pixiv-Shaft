@@ -49,17 +49,45 @@
                 tools:text="3P"
                 tools:visibility="visible" />
 
-            <ImageView
-                android:id="@+id/delete_item"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+            <!-- 右下角操作行：快照标记 + 删除钮。
+                 快照标记只在「这件作品本地有离线快照」时出现，点开直接进离线详情页；
+                 删除钮在选择态隐藏（见 HistorySelectBadge.bindSelection），快照标记跟着一起藏 ——
+                 多选是「挑出来删」的态，不该留着别的可点控件。
+                 8dp 外边距挂在这一行上，删除钮的位置与改造前逐像素一致。 -->
+            <LinearLayout
+                android:id="@+id/card_action_row"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="bottom|end"
                 android:layout_margin="8dp"
-                android:background="@drawable/v3_nav_btn_bg"
-                android:contentDescription="@null"
-                android:padding="6dp"
-                android:src="@drawable/ic_delete_black_24dp"
-                app:tint="#CCFFFFFF" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- 内边距 4dp 而不是删除钮的 6dp：这枚图标（相框 + 断网云 + 斜划线）细节比
+                     垃圾桶多，30dp 底座里留 18dp 会糊成一团，22dp 才认得出来。底座仍是 30dp，
+                     两个钮的外框一样大。 -->
+                <ImageView
+                    android:id="@+id/snapshot_button"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/v3_nav_btn_bg"
+                    android:contentDescription="@string/snapshot_downloaded_label"
+                    android:padding="4dp"
+                    android:src="@drawable/ic_snapshot_24"
+                    android:visibility="gone"
+                    app:tint="#CCFFFFFF" />
+
+                <ImageView
+                    android:id="@+id/delete_item"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:background="@drawable/v3_nav_btn_bg"
+                    android:contentDescription="@null"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_delete_black_24dp"
+                    app:tint="#CCFFFFFF" />
+            </LinearLayout>
 
             <!-- 多选勾标:仅选择态显示(HistorySelectBadge 切实心/空心)。 -->
             <ImageView

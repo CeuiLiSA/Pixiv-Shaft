@@ -92,6 +92,13 @@ class LikeIllustFeedFragment : IllustFeedFragment() {
         get() = super.hideLikeButton || (SessionManager.loggedInUid == userId &&
                 Shaft.sSettings.isHideStarButtonAtMyCollection())
 
+    /**
+     * 【调试】失效作品模拟：本页是「失效作品」最典型的所在（「过滤无效收藏」默认关，服务端下发的
+     * visible=false 条目照样成卡），所以试验性页的 debug 开关在这里生效。
+     */
+    override val fakeInvalidWorksEnabled: Boolean
+        get() = ceui.pixiv.ui.debug.DebugInvalidWorks.enabled
+
     /** 「按标签筛选」页的选择回流：公开/私密两 tab 并存，匹配本页 starType 才认领。 */
     private val filterReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {

@@ -29,6 +29,7 @@ import ceui.pixiv.feeds.FeedItem
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.feeds.updateItems
+import ceui.pixiv.snapshot.SnapshotIndex
 import ceui.pixiv.witstudio.dialog.WitDialog
 import ceui.pixiv.witstudio.dialog.WitDialogAction
 import kotlinx.coroutines.NonCancellable
@@ -137,6 +138,44 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
         }
         // 旋转等 view 重建时选择态可能还留着，但 host toolbar 已回普通态 → 复位。
         selectionVm.setSelectionMode(false)
+
+        observeSnapshotRevision()
+    }
+
+    /** 本页插画卡上一次渲染时的 [SnapshotIndex.revision]，见 [observeSnapshotRevision]。 */
+    private var lastSnapshotRevision = SnapshotIndex.revision
+
+    /**
+     * 订阅快照索引的版本号，变了就给本页所有**插画**卡补一次「快照标记」重绑。
+     *
+     * 两件事都由它兜住：索引**刚扫完**（首屏那几张卡绑定时 Map 还是空的，标记晚一步出现），
+     * 以及快照被**增删**（刚离线化完退回列表、管理页删掉某个快照）。和屏蔽名单同理，
+     * 短列表 / 已在屏幕上的卡不会自己回收重绑，只能靠这条通知。
+     *
+     * 只发插画段：小说卡没有快照标记，砸一遍等于白重绑。
+     */
+    private fun observeSnapshotRevision() {
+        // 兜底预热：Shaft 启动时已经排过一次，这里只防「预热还没跑完就滑到首屏」。
+        // ensureLoaded 幂等，扫描跑完自己 bump 版本号，下面的订阅收到就补绑。
+        SnapshotIndex.ensureLoaded(requireContext().applicationContext)
+        SnapshotIndex.revisionLive.observe(viewLifecycleOwner) { revision ->
+            if (revision == lastSnapshotRevision) return@observe
+            lastSnapshotRevision = revision
+            val adapter = feedAdapter ?: return@observe
+            val items = adapter.currentList
+            var start = -1
+            items.forEachIndexed { index, item ->
+                if (item is HistoryIllustFeedItem) {
+                    if (start < 0) start = index
+                } else if (start >= 0) {
+                    adapter.notifyItemRangeChanged(start, index - start, PAYLOAD_HISTORY_SNAPSHOT)
+                    start = -1
+                }
+            }
+            if (start >= 0) {
+                adapter.notifyItemRangeChanged(start, items.size - start, PAYLOAD_HISTORY_SNAPSHOT)
+            }
+        }
     }
 
     // ── 多选态回灌 feed（差异守卫防止 uiState.collect ↔ updateItems 死循环）─────────────
@@ -169,6 +208,11 @@ class FragmentHistoryList : FeedFragment(), SelectableHistoryTab {
         startActivity(Intent(requireContext(), UActivity::class.java).apply {
             putExtra(Params.USER_ID, uid)
         })
+    }
+
+    /** 卡片上的快照标记 → 离线详情页；与瀑布流卡共用 [ceui.pixiv.snapshot.openSnapshotViewer]。 */
+    internal fun openHistorySnapshot(entry: SnapshotIndex.Entry) {
+        ceui.pixiv.snapshot.openSnapshotViewer(requireContext(), viewLifecycleOwner, entry)
     }
 
     internal fun openHistoryIllust(illust: Illust) {

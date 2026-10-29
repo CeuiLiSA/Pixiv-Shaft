@@ -511,6 +511,11 @@ public class Shaft extends Application implements ServicesProvider {
         // 不用在这里另起一条。
         ceui.pixiv.ui.common.MutedWorkStores.warmUp();
 
+        // 「这件作品有没有离线快照」索引预热：瀑布流卡片 bind 时只读内存 Map（滚动热路径，
+        // 不能碰磁盘），这里把整库 manifest 的扫描排到后台线程，扫完自己 bump 版本号让
+        // 已绑好的卡片补上快照标记。列表页建视图时还会再调一次兜底（幂等）。
+        ceui.pixiv.snapshot.SnapshotIndex.INSTANCE.ensureLoaded(this);
+
         updateTheme();
 
         ThemeHelper.applyTheme(null, sSettings.getThemeType());

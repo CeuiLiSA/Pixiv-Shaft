@@ -23,6 +23,7 @@ import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedRenderer
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.snapshot.SnapshotIndex
 import ceui.pixiv.ui.common.resolveIllustThumbnailUrl
 import ceui.pixiv.ui.common.tryOpenNovelReaderDirect
 import ceui.pixiv.utils.clearGlideOnRecycle
@@ -307,6 +308,15 @@ suspend fun deleteHistoryEntities(historyType: Int, entities: List<IllustHistory
 // 定义成 FragmentHistoryList 扩展：renderer 只在 onCreateRenderers() 里 new，随 view 生死，
 // 引用 fragment 的方法安全（不违反 FeedSource 的零捕获约定）。
 
+/**
+ * 「这件作品有 / 没有离线快照」的局部重绑标记（按引用识别）。
+ *
+ * 和 [PAYLOAD_HISTORY_SELECTION] 一样不来自 DiffUtil：快照在磁盘上（[SnapshotIndex]），
+ * 条目内容一个字节没变。由 [FragmentHistoryList.observeSnapshotRevision] 在索引扫完 /
+ * 快照被增删时发给插画段 —— 小说没有快照，不发。
+ */
+internal val PAYLOAD_HISTORY_SNAPSHOT = Any()
+
 fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedItem, CellHistoryIllustV3Binding> =
     feedRenderer(
         inflate = CellHistoryIllustV3Binding::inflate,
@@ -329,6 +339,13 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
             binding.author.setOnClickListener {
                 cell.itemOrNull?.illust?.user?.id?.let { uid -> openHistoryUser(uid) }
             }
+            // 快照标记：这件作品本地有快照时，点它直接进离线详情页（不走在线详情）。
+            // 索引在点击那一刻现读 —— 期间快照可能刚被删掉，读到 null 就当没这个按钮。
+            binding.snapshotButton.setOnClickListener {
+                val item = cell.itemOrNull ?: return@setOnClickListener
+                val entry = SnapshotIndex.entryFor(item.illust.id) ?: return@setOnClickListener
+                openHistorySnapshot(entry)
+            }
         },
         recycle = { it.binding.illustImage.clearGlideOnRecycle() },
         // 内容指纹（illustID + time，与 equals 同一套）没变、只有选择态翻转 → 走增量，
@@ -345,10 +362,17 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
         },
         bindPayloads = { cell, payloads ->
             val item = cell.item
-            HistorySelectBadge.bindSelectionPayload(
-                payloads, cell.binding.selectCheck, cell.binding.deleteItem,
-                item.isSelectionMode, item.isSelected,
-            )
+            if (payloads.isNotEmpty() && payloads.all { it === PAYLOAD_HISTORY_SNAPSHOT }) {
+                // 索引扫完了 / 快照被增删：只翻这枚标记的显隐，封面与文字一个字节都不用重算
+                cell.binding.snapshotButton.isVisible =
+                    !item.isSelectionMode && SnapshotIndex.entryFor(item.illust.id) != null
+                true
+            } else {
+                HistorySelectBadge.bindSelectionPayload(
+                    payloads, cell.binding.selectCheck, cell.binding.deleteItem,
+                    item.isSelectionMode, item.isSelected,
+                )
+            }
         },
     ) { cell ->
         val binding = cell.binding
@@ -401,6 +425,11 @@ fun FragmentHistoryList.historyIllustRenderer(): FeedRenderer<HistoryIllustFeedI
         HistorySelectBadge.bindSelection(
             binding.selectCheck, binding.deleteItem, item.isSelectionMode, item.isSelected,
         )
+        // 有离线快照的作品在封面右下角挂一枚标记（点开直接进离线详情页）。判定读
+        // SnapshotIndex 的内存 Map，绑定热路径上零 IO；索引建好 / 快照增删时由
+        // FragmentHistoryList.observeSnapshotRevision 补绑。多选态不显示，见布局注释。
+        binding.snapshotButton.isVisible =
+            !item.isSelectionMode && SnapshotIndex.entryFor(illust.id) != null
     }
 
 fun FragmentHistoryList.historyNovelRenderer(): FeedRenderer<HistoryNovelFeedItem, CellHistoryNovelV3Binding> =

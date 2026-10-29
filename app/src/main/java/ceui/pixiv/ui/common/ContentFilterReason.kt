@@ -12,7 +12,7 @@ package ceui.pixiv.ui.common
  * 空态清单会跳过它们。
  */
 enum class ContentFilterReason {
-    /** `visible != true`：作品本身不可见/失效。非用户设置项，不进空态清单。 */
+    /** 失效作品（非公开 / 限定 / 无法显示，见 [ceui.pixiv.api.model.Illust.isUnavailable]）。非用户设置项，不进空态清单。 */
     INVISIBLE,
 
     /** 命中「屏蔽标签」。 */
