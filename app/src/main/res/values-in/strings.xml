@@ -716,6 +716,11 @@
     <string name="string_ai_upscale_pick_hint">Pilih gambar dari galeri\nuntuk mencoba peningkatan kualitas</string>
     <string name="string_ai_upscale_ready">Gambar siap, ketuk untuk mulai meningkatkan</string>
     <string name="string_ai_upscale_resolution">%1$d × %2$d  →  %3$d × %4$d</string>
+    <string name="string_ai_task_eta_seconds">Selesai dalam sekitar %1$d d</string>
+    <string name="string_ai_waiting_for_original_image">Menunggu unduhan gambar asli siap…</string>
+    <string name="string_ai_task_queued">Dalam antrean…</string>
+    <string name="string_ai_upscale_page_done">Peningkatan halaman %1$d selesai</string>
+    <string name="string_ai_rembg_page_done">Hapus latar belakang halaman %1$d selesai</string>
     <string name="string_set_wallpaper">Atur wallpaper</string>
     <string name="string_set_wallpaper_failed">Tidak dapat membuka pengaturan wallpaper sistem</string>
     <string name="string_set_wallpaper_done">Dijadikan wallpaper</string>
@@ -3508,4 +3513,8 @@
     <string name="snapshot_backfill_summary_comments">Dengan komentar</string>
     <string name="snapshot_backfill_summary_wifi">Hanya Wi-Fi</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+
+    <string name="string_ai_upscale_already_completed">Peningkatan kualitas sudah selesai untuk gambar ini</string>
+    <string name="string_ai_rembg_already_completed">Hapus latar belakang sudah selesai untuk gambar ini</string>
+    <string name="string_ai_task_already_running">Tugas pemrosesan AI sedang berlangsung</string>
 </resources>

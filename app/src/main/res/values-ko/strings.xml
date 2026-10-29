@@ -721,6 +721,11 @@
     <string name="string_ai_upscale_pick_hint">갤러리에서 이미지를 선택하여\nAI 화질 향상을 체험하세요</string>
     <string name="string_ai_upscale_ready">이미지 준비 완료, 탭하여 시작</string>
     <string name="string_ai_upscale_resolution">%1$d × %2$d  →  %3$d × %4$d</string>
+    <string name="string_ai_task_eta_seconds">약 %1$d초 후 완료 예정</string>
+    <string name="string_ai_waiting_for_original_image">원본 이미지 다운로드 대기 중…</string>
+    <string name="string_ai_task_queued">대기 중…</string>
+    <string name="string_ai_upscale_page_done">%1$d페이지 화질 개선 완료</string>
+    <string name="string_ai_rembg_page_done">%1$d페이지 배경 제거 완료</string>
     <string name="string_set_wallpaper">배경화면 설정</string>
     <string name="string_set_wallpaper_failed">시스템 배경화면 설정을 열 수 없습니다</string>
     <string name="string_set_wallpaper_done">배경화면으로 설정했습니다</string>
@@ -3523,4 +3528,8 @@
     <string name="snapshot_backfill_summary_comments">댓글 포함</string>
     <string name="snapshot_backfill_summary_wifi">Wi-Fi만</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+
+    <string name="string_ai_upscale_already_completed">이 이미지의 화질 향상이 이미 완료되었습니다</string>
+    <string name="string_ai_rembg_already_completed">이 이미지의 배경 제거가 이미 완료되었습니다</string>
+    <string name="string_ai_task_already_running">AI 처리 작업이 이미 진행 중입니다</string>
 </resources>

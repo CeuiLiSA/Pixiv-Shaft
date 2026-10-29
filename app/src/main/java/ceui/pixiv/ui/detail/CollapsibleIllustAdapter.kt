@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewStub
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
@@ -16,7 +17,10 @@ import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.adapters.ViewHolder
 import ceui.lisa.databinding.RecyIllustDetailBinding
 import ceui.pixiv.api.model.Illust
+import ceui.pixiv.ui.upscale.IllustAiStore
+import ceui.pixiv.ui.upscale.PageAiState
 import ceui.pixiv.utils.ppppx
+import ceui.lisa.view.SeamlessCircularProgressIndicator
 import com.blankj.utilcode.util.BarUtils
 
 /**
@@ -57,6 +61,9 @@ class CollapsibleIllustAdapter(
     var onExpandPillLongClick: (() -> Boolean)? = null,
 ) : IllustAdapter(activity, fragment, illust, maxHeight, isForceOriginal) {
 
+    var onUpscalePillClick: ((position: Int, state: PageAiState) -> Unit)? = null
+    var onRembgPillClick: ((position: Int, state: PageAiState) -> Unit)? = null
+
     private var expanded = initiallyExpanded
 
     /** super 里 [maxHeight] 是 private,这里留一份给折叠封面兜高用(见 [floorCoverHeight])。 */
@@ -64,12 +71,13 @@ class CollapsibleIllustAdapter(
 
     val totalPages: Int get() = illust.page_count
     val hiddenCount: Int get() = (totalPages - collapsedCount).coerceAtLeast(0)
-    val isCollapsible: Boolean get() = totalPages > collapsedCount
+    val isCollapsible: Boolean get() = shouldCollapse(totalPages, collapsedCount)
     val isCollapsed: Boolean get() = !expanded && isCollapsible
     val isExpanded: Boolean get() = expanded && isCollapsible
 
     override fun getItemCount(): Int {
         val total = super.getItemCount()
+        if (!isCollapsible) return total
         return if (expanded) total else minOf(total, collapsedCount)
     }
 
@@ -101,43 +109,32 @@ class CollapsibleIllustAdapter(
     }
 
     /**
-     * 只把 p0 的「展开剩余 X 张」覆盖层刷新出来，不重走取图。
-     *
-     * 折叠回来时 [ArtworkPageItem.overlayTick] 会被 bump，好让 DiffUtil 判出内容变化。那条变化原先
-     * 直接走全量重绑，连大图请求一起重发——即使命中的是 Glide 内存缓存，也必然闪一帧加载环。
-     * 宿主改发 overlay-only payload 后走这里，图片一个字节都不动。
-     *
-     * 返回 false 时宿主必须退回全量绑定：holder 上还挂着图 URL 标记，才说明它本来就画着这一页；
-     * 刚创建 / 刚从池里取的 holder 标记是空的，跳过全量绑定会留下一张空白大图。
+     * 只把覆盖层刷新出来，不重走取图。
      */
     internal fun bindOverlayOnly(
         holder: ViewHolder<RecyIllustDetailBinding>,
         position: Int,
     ): Boolean {
-        if (position != 0 || !isCollapsed) return false
-        if (holder.baseBind.illust.getTag(R.id.tag_image_url) == null) return false
         bindExpandOverlay(holder, position, fadeIn = false)
+        bindWorkingOverlay(holder, position)
         return true
     }
 
     /**
-     * 只刷新 p0 的「展开剩余 X 张」覆盖层（折叠态才显示），不碰取图，也不判 holder 上有没有图。
-     *
-     * 两个调用点：折叠回来时宿主发的 overlay-only payload（见 [bindOverlayOnly]）；以及常驻槽位
-     * 命中时 —— 那条路径把整条绑定都跳过了，覆盖层状态不能跟着跳过，否则折叠回来时那层 scrim 与
-     * 两枚胶囊不会重现。
+     * 刷新覆盖层与工作进度层，不碰取图。
      */
     internal fun refreshExpandOverlay(holder: ViewHolder<RecyIllustDetailBinding>, position: Int) {
-        if (position != 0) return
         bindExpandOverlay(holder, position, fadeIn = false)
+        bindWorkingOverlay(holder, position)
+    }
+
+    fun refreshOverlayAndWorking(holder: ViewHolder<RecyIllustDetailBinding>, position: Int) {
+        bindExpandOverlay(holder, position, fadeIn = false)
+        bindWorkingOverlay(holder, position)
     }
 
     /**
      * 立刻把 p0 上还亮着的「展开剩余 X 张」覆盖层收掉（「用阅读器看」胶囊也画在这一层里），不等重绑。
-     *
-     * 覆盖层只画在 position 0 上（见 [bindExpandOverlay]），所以只认那一格；binding 从
-     * IllustAdapter.boundBinding(0) 取，而不是去 RecyclerView 里找 child —— p0 的 holder 可能
-     * 已经滑出屏幕，但缓存窗口 / 常驻槽位都替它留着 binding，照样收得掉。
      */
     private fun retractExpandOverlay() {
         val binding = boundBinding(0) ?: return
@@ -159,14 +156,9 @@ class CollapsibleIllustAdapter(
     override fun onBindViewHolder(holder: ViewHolder<RecyIllustDetailBinding>, position: Int) {
         super.onBindViewHolder(holder, position)
         bindExpandOverlay(holder, position, fadeIn = false)
+        bindWorkingOverlay(holder, position)
     }
 
-    /**
-     * 兜高统一挂在 super 的展示盒入口上:绑定期(bean 宽高)与 renderOverlay 原图落地后的真尺寸
-     * 校准都会走到这里,两条路径口径一致。此前兜高只在绑定后补一次:原图校准重设自然 ratio 把它
-     * 清掉(首进详情页封面塌回自然高),滚走再滚回时 rebind 重新兜高、校准又按页去重不再触发 →
-     * 同一封面首进与回滚后高度不一致。
-     */
     override fun applyPixelSize(
         holder: ViewHolder<RecyIllustDetailBinding>,
         position: Int,
@@ -174,33 +166,18 @@ class CollapsibleIllustAdapter(
         h: Int,
     ) {
         super.applyPixelSize(holder, position, w, h)
-        // 全景页(超宽图)的盒高已由 super 定下(固定高 + 横向可拖),不再套封面兜高:
-        // 兜高会把它拔回 maxHeight 的大黑盒,正是全景要替代的观感。
         if (position == 0 && isCollapsible && !isPanoramaPage(position)) {
             floorCoverHeight(holder, w, h)
         }
     }
 
-    /**
-     * 极端宽比封面(如 8400×2000)的自然高度会缩成顶部一条窄缝:图挤在状态栏/返回键底下,
-     * 「展开剩余 X 张」胶囊([R.id.expand_overlay] alignBottom illust)也顶进 toolbar 里被吃掉
-     * 点击(见反馈截图 #5)。这里把这种窄封面直接拔到 [coverMaxHeight]——与单图封面同一套:
-     * super 已设 FIT_CENTER,宽图在高盒里整体居中,顶栏落在干净的上黑边、胶囊沉到封面底部,
-     * 观感对齐 #6。仅对「自然高度 < 顶栏净空」的宽封面生效;正常/竖封面自然高度远大于阈值,
-     * 原样不动、依旧无黑边贴顶。
-     */
     private fun floorCoverHeight(holder: ViewHolder<RecyIllustDetailBinding>, w: Int, h: Int) {
         val image = holder.baseBind.illust
         if (w <= 0 || h <= 0) return
-        // ratio 驱动下 layoutParams.height 只是占位(240dp),真实自然高 = 屏宽 × 高/宽。
-        // imageSize 由 super(AbstractIllustAdapter) 持有(protected)。
         val natural = (imageSize.toLong() * h / w).toInt()
-        // 自然高度已能让胶囊落在顶栏之下 → 保持贴顶无黑边的默认观感,不动。
         if (natural <= 0 || natural >= coverToolbarClearance()) return
-        // 极端宽封面:关掉 ratio 自 measure,拔到 maxHeight 固定高、FIT_CENTER 居中,给足上黑边托住 toolbar。
         val target = if (coverMaxHeight > 0) coverMaxHeight else coverToolbarClearance()
         image.setHeightRatio(0f)
-        // 兜高后 illust_hd 同样关 ratio,靠对齐跟随 illust 盒子,避免回收重绑残留旧 ratio 导致 overlay 错位。
         holder.baseBind.illustHd.setHeightRatio(0f)
         val lp = image.layoutParams ?: return
         if (lp.height != target) {
@@ -209,10 +186,6 @@ class CollapsibleIllustAdapter(
         }
     }
 
-    /**
-     * 顶栏净空阈值 = 状态栏 + [COVER_CLEARANCE_BELOW_STATUS_DP]。
-     * 自然封面高于它就说明胶囊本就落在 toolbar 之下,无需兜高;低于它才判为「极端窄封面」。
-     */
     private fun coverToolbarClearance(): Int =
         BarUtils.getStatusBarHeight() + COVER_CLEARANCE_BELOW_STATUS_DP.ppppx
 
@@ -222,10 +195,14 @@ class CollapsibleIllustAdapter(
         payloads: MutableList<Any>,
     ) {
         when {
-            payloads.contains(PAYLOAD_OVERLAY_FADE_IN) ->
+            payloads.contains(PAYLOAD_OVERLAY_FADE_IN) -> {
                 bindExpandOverlay(holder, position, fadeIn = true)
-            payloads.contains(PAYLOAD_OVERLAY_ONLY) ->
+                bindWorkingOverlay(holder, position)
+            }
+            payloads.contains(PAYLOAD_OVERLAY_ONLY) || payloads.contains(PAYLOAD_AI_UPDATE) -> {
                 bindExpandOverlay(holder, position, fadeIn = false)
+                bindWorkingOverlay(holder, position)
+            }
             else -> super.onBindViewHolder(holder, position, payloads)
         }
     }
@@ -236,11 +213,14 @@ class CollapsibleIllustAdapter(
         position: Int,
         fadeIn: Boolean,
     ) {
-        // 覆盖层在 recy_illust_detail 里是 ViewStub：1~2 页的作品永远不会显示它（见 shouldCollapse），
-        // 所以**先判「这一格该不该亮」，判完才决定要不要 inflate** —— 别为了「收起来」
-        // 反而先把那 8 个 View 建出来。
-        if (position != 0 || !isCollapsed) {
-            // 不该亮。没建过就没什么可收的，直接走。
+        val showExpand = position == 0 && isCollapsed && shouldCollapse(illust.page_count)
+        val aiState = IllustAiStore.get(illust.id, position)
+        val canShowAiPills = !showExpand
+        val hasUpscale = canShowAiPills && aiState?.hasUpscaleResult == true
+        val hasRembg = canShowAiPills && aiState?.hasRembgResult == true
+        val shouldShowOverlay = showExpand || hasUpscale || hasRembg
+
+        if (!shouldShowOverlay) {
             val views = overlayOf(holder) ?: return
             val overlay = views.overlay
             overlay.animate().cancel()
@@ -254,15 +234,20 @@ class CollapsibleIllustAdapter(
             pill.setOnTouchListener(null)
             views.comicPill.visibility = View.GONE
             views.comicPill.setOnClickListener(null)
+            views.upscalePill.visibility = View.GONE
+            views.upscalePill.setOnClickListener(null)
+            views.rembgPill.visibility = View.GONE
+            views.rembgPill.setOnClickListener(null)
             return
         }
 
-        // 真要显示了，才把子树建出来。
         val views = ensureOverlayInflated(holder) ?: return
         val overlay = views.overlay
         val pill = views.expandPill
         val label = views.expandLabel
         val comicPill = views.comicPill
+        val upscalePill = views.upscalePill
+        val rembgPill = views.rembgPill
 
         overlay.animate().cancel()
         overlay.visibility = View.VISIBLE
@@ -272,50 +257,95 @@ class CollapsibleIllustAdapter(
         } else {
             overlay.alpha = 1f
         }
-        label.text = holder.itemView.context.getString(
-            R.string.v3_expand_all_pages_title, hiddenCount
-        )
 
-        // 阅读器胶囊：多 P 插画同样适用(#1029),只是文案换成中性的「用阅读器看」——
-        // 阅读器内部对 type 没有任何假设,系列跳话在插画没系列时会自己 toast 提示。
-        // 注意只放宽胶囊,不放宽「点图进阅读器」:那条必须留着判 manga,否则 2P 插画
-        // 点大图又会被劫持进阅读器(#961)。
-        val hasReader = onComicReaderClick != null
-        comicPill.visibility = if (hasReader) View.VISIBLE else View.GONE
-        if (hasReader) {
-            views.comicPillLabel.setText(comicReaderEnterTextRes(illust))
-            applyPillTouchFeedback(comicPill)
-            comicPill.setOnClickListener { onComicReaderClick?.invoke() }
-        }
+        if (showExpand) {
+            pill.visibility = View.VISIBLE
+            label.text = holder.itemView.context.getString(
+                R.string.v3_expand_all_pages_title, hiddenCount
+            )
 
-        // Press-down feedback — scale on ACTION_DOWN, restore on release/cancel.
-        // Return false so the click still fires normally via setOnClickListener.
-        applyPillTouchFeedback(pill)
-        pill.setOnLongClickListener { v ->
-            if (onExpandPillLongClick?.invoke() != true) return@setOnLongClickListener false
-            v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-            true
-        }
-        pill.setOnClickListener {
-            // Kick off the data change FIRST so onExpandedChanged(true) fires
-            // before the fade — the host pill fades IN concurrently with this
-            // scrim fading OUT, instead of after.
-            expand(callerFadesOverlay = true)
-            overlay.animate()
-                .alpha(0f)
-                .setDuration(FADE_MS)
-                .withEndAction {
-                    overlay.visibility = View.GONE
-                    overlay.alpha = 1f
+            val hasReader = onComicReaderClick != null
+            comicPill.visibility = if (hasReader) View.VISIBLE else View.GONE
+            if (hasReader) {
+                views.comicPillLabel.setText(comicReaderEnterTextRes(illust))
+                applyPillTouchFeedback(comicPill)
+                comicPill.setOnClickListener { onComicReaderClick?.invoke() }
+            }
+
+            applyPillTouchFeedback(pill)
+            pill.setOnLongClickListener { v ->
+                if (onExpandPillLongClick?.invoke() != true) return@setOnLongClickListener false
+                v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                true
+            }
+            pill.setOnClickListener {
+                val state = IllustAiStore.get(illust.id, position)
+                val willHaveAiPills = state?.hasUpscaleResult == true || state?.hasRembgResult == true
+                if (willHaveAiPills) {
+                    expand(callerFadesOverlay = false)
+                    if (state.hasUpscaleResult) {
+                        upscalePill.alpha = 0f
+                        upscalePill.animate().alpha(1f).setDuration(FADE_MS).start()
+                    }
+                    if (state.hasRembgResult) {
+                        rembgPill.alpha = 0f
+                        rembgPill.animate().alpha(1f).setDuration(FADE_MS).start()
+                    }
+                } else {
+                    expand(callerFadesOverlay = true)
+                    overlay.animate()
+                        .alpha(0f)
+                        .setDuration(FADE_MS)
+                        .withEndAction {
+                            overlay.visibility = View.GONE
+                            overlay.alpha = 1f
+                        }
+                        .start()
                 }
-                .start()
+            }
+
+            upscalePill.visibility = View.GONE
+            upscalePill.setOnClickListener(null)
+            rembgPill.visibility = View.GONE
+            rembgPill.setOnClickListener(null)
+        } else {
+            pill.visibility = View.GONE
+            pill.setOnClickListener(null)
+            comicPill.visibility = View.GONE
+            comicPill.setOnClickListener(null)
+
+            upscalePill.visibility = if (hasUpscale) View.VISIBLE else View.GONE
+            if (hasUpscale) {
+                applyPillTouchFeedback(upscalePill)
+                upscalePill.setOnClickListener {
+                    aiState.let { onUpscalePillClick?.invoke(position, it) }
+                }
+            } else {
+                upscalePill.setOnClickListener(null)
+            }
+
+            rembgPill.visibility = if (hasRembg) View.VISIBLE else View.GONE
+            if (hasRembg) {
+                applyPillTouchFeedback(rembgPill)
+                rembgPill.setOnClickListener {
+                    aiState.let { onRembgPillClick?.invoke(position, it) }
+                }
+            } else {
+                rembgPill.setOnClickListener(null)
+            }
+
+            val eightDp = holder.itemView.context.resources.getDimensionPixelSize(R.dimen.eight_dp)
+            if (hasUpscale && hasRembg) {
+                (upscalePill.layoutParams as? ViewGroup.MarginLayoutParams)?.marginStart = 0
+                (rembgPill.layoutParams as? ViewGroup.MarginLayoutParams)?.marginStart = eightDp
+            } else if (hasRembg) {
+                (rembgPill.layoutParams as? ViewGroup.MarginLayoutParams)?.marginStart = 0
+            } else if (hasUpscale) {
+                (upscalePill.layoutParams as? ViewGroup.MarginLayoutParams)?.marginStart = 0
+            }
         }
     }
 
-    /**
-     * 确保「展开剩余 X 张」覆盖层的子树已经 inflate。它在 `recy_illust_detail` 里是 ViewStub，
-     * 只有真要显示时才建 —— 1~2 页的作品（[shouldCollapse] 为 false）从头到尾都不会走到这里。
-     */
     private fun ensureOverlayInflated(
         holder: ViewHolder<RecyIllustDetailBinding>,
     ): OverlayViews? {
@@ -323,6 +353,140 @@ class CollapsibleIllustAdapter(
         val stub = holder.itemView.findViewById<ViewStub>(R.id.expand_overlay_stub) ?: return null
         stub.inflate()
         return overlayOf(holder)
+    }
+
+    private class OverlayViews(
+        val overlay: FrameLayout,
+        val expandPill: View,
+        val expandLabel: TextView,
+        val comicPill: View,
+        val comicPillLabel: TextView,
+        val upscalePill: View,
+        val upscaleLabel: TextView,
+        val rembgPill: View,
+        val rembgLabel: TextView,
+    )
+
+    private fun overlayOf(holder: ViewHolder<RecyIllustDetailBinding>): OverlayViews? {
+        val root = holder.itemView
+        (root.getTag(TAG_OVERLAY) as? OverlayViews)?.let { return it }
+        val overlay = root.findViewById<FrameLayout>(R.id.expand_overlay) ?: return null
+        val pill = root.findViewById<View>(R.id.expand_pill) ?: return null
+        val label = root.findViewById<TextView>(R.id.expand_label) ?: return null
+        val comicPill = root.findViewById<View>(R.id.comic_reader_pill) ?: return null
+        val comicPillLabel = root.findViewById<TextView>(R.id.comic_reader_pill_label) ?: return null
+        val upscalePill = root.findViewById<View>(R.id.ai_upscale_pill) ?: return null
+        val upscaleLabel = root.findViewById<TextView>(R.id.ai_upscale_pill_label) ?: return null
+        val rembgPill = root.findViewById<View>(R.id.ai_rembg_pill) ?: return null
+        val rembgLabel = root.findViewById<TextView>(R.id.ai_rembg_pill_label) ?: return null
+        val views = OverlayViews(overlay, pill, label, comicPill, comicPillLabel, upscalePill, upscaleLabel, rembgPill, rembgLabel)
+        root.setTag(TAG_OVERLAY, views)
+        return views
+    }
+
+    // ── AI 任务进行中工作覆盖层 ───────────────────────────────────
+
+    private class WorkingOverlayViews(
+        val root: FrameLayout,
+        val loadingState: View,
+        val doneState: View,
+        val progressRing: SeamlessCircularProgressIndicator,
+        val progressText: TextView,
+        val statusText: TextView,
+        val etaText: TextView,
+    )
+
+    private fun workingOverlayOf(holder: ViewHolder<RecyIllustDetailBinding>): WorkingOverlayViews? {
+        val root = holder.itemView
+        (root.getTag(TAG_WORKING_OVERLAY) as? WorkingOverlayViews)?.let { return it }
+        val overlay = root.findViewById<FrameLayout>(R.id.ai_overlay_root) ?: return null
+        val loading = root.findViewById<View>(R.id.ai_loading_state) ?: return null
+        val done = root.findViewById<View>(R.id.ai_done_state) ?: return null
+        val ring = root.findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring) ?: return null
+        val progText = root.findViewById<TextView>(R.id.ai_progress_text) ?: return null
+        val statText = root.findViewById<TextView>(R.id.ai_status_text) ?: return null
+        val eta = root.findViewById<TextView>(R.id.ai_eta_text) ?: return null
+        val views = WorkingOverlayViews(overlay, loading, done, ring, progText, statText, eta)
+        root.setTag(TAG_WORKING_OVERLAY, views)
+        return views
+    }
+
+    private fun ensureWorkingOverlayInflated(holder: ViewHolder<RecyIllustDetailBinding>): WorkingOverlayViews? {
+        workingOverlayOf(holder)?.let { return it }
+        val stub = holder.itemView.findViewById<ViewStub>(R.id.ai_working_overlay_stub) ?: return null
+        stub.inflate()
+        return workingOverlayOf(holder)
+    }
+
+    fun bindWorkingOverlay(
+        holder: ViewHolder<RecyIllustDetailBinding>,
+        position: Int,
+    ) {
+        val aiState = IllustAiStore.get(illust.id, position)
+        if (aiState == null || !aiState.isWorking) {
+            val views = workingOverlayOf(holder) ?: return
+            if (views.root.visibility == View.VISIBLE) {
+                views.root.animate().cancel()
+                views.root.animate().alpha(0f).setDuration(200L).withEndAction {
+                    views.root.visibility = View.GONE
+                    views.root.alpha = 1f
+                }.start()
+            }
+            return
+        }
+
+        val views = ensureWorkingOverlayInflated(holder) ?: return
+        val isFirstShow = views.root.visibility != View.VISIBLE || views.root.alpha < 1f
+        views.root.visibility = View.VISIBLE
+        views.loadingState.visibility = View.VISIBLE
+        views.doneState.visibility = View.GONE
+        if (isFirstShow) {
+            views.root.animate().cancel()
+            views.root.alpha = 0f
+            views.root.animate().alpha(1f).setDuration(260L).setInterpolator(DecelerateInterpolator()).start()
+        }
+
+        views.statusText.text = aiState.currentStatusText(holder.itemView.context)
+        if (aiState.isIndeterminate) {
+            views.progressRing.isIndeterminate = true
+            views.progressText.visibility = View.GONE
+        } else {
+            views.progressRing.isIndeterminate = false
+            views.progressText.visibility = View.VISIBLE
+            val p = (aiState.currentProgress * 100).toInt()
+            views.progressRing.setProgressCompat(p, true)
+            views.progressText.text = holder.itemView.context.getString(R.string.string_ai_task_percent, p)
+        }
+        val etaSec = (aiState.currentEta + 0.5f).toInt()
+        views.etaText.text = if (etaSec > 0 && aiState.currentProgress > 0f) holder.itemView.context.getString(R.string.string_ai_task_eta_seconds, etaSec) else ""
+    }
+
+    fun updateWorkingOverlayProgress(
+        holder: ViewHolder<RecyIllustDetailBinding>,
+        position: Int,
+        progress: Float,
+        eta: Float,
+        statusText: String?,
+    ) {
+        val views = workingOverlayOf(holder) ?: ensureWorkingOverlayInflated(holder) ?: return
+        views.root.visibility = View.VISIBLE
+        views.loadingState.visibility = View.VISIBLE
+        views.doneState.visibility = View.GONE
+        if (statusText != null) {
+            views.statusText.text = statusText
+        }
+        if (progress <= 0f) {
+            views.progressRing.isIndeterminate = true
+            views.progressText.visibility = View.GONE
+        } else {
+            views.progressRing.isIndeterminate = false
+            views.progressText.visibility = View.VISIBLE
+            val p = (progress * 100).toInt()
+            views.progressRing.setProgressCompat(p, true)
+            views.progressText.text = holder.itemView.context.getString(R.string.string_ai_task_percent, p)
+        }
+        val etaSec = (eta + 0.5f).toInt()
+        views.etaText.text = if (etaSec > 0 && progress > 0f) holder.itemView.context.getString(R.string.string_ai_task_eta_seconds, etaSec) else ""
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -338,27 +502,6 @@ class CollapsibleIllustAdapter(
             }
             false
         }
-    }
-
-    private class OverlayViews(
-        val overlay: FrameLayout,
-        val expandPill: View,
-        val expandLabel: TextView,
-        val comicPill: View,
-        val comicPillLabel: TextView,
-    )
-
-    private fun overlayOf(holder: ViewHolder<RecyIllustDetailBinding>): OverlayViews? {
-        val root = holder.itemView
-        (root.getTag(TAG_OVERLAY) as? OverlayViews)?.let { return it }
-        val overlay = root.findViewById<FrameLayout>(R.id.expand_overlay) ?: return null
-        val pill = root.findViewById<View>(R.id.expand_pill) ?: return null
-        val label = root.findViewById<TextView>(R.id.expand_label) ?: return null
-        val comicPill = root.findViewById<View>(R.id.comic_reader_pill) ?: return null
-        val comicPillLabel = root.findViewById<TextView>(R.id.comic_reader_pill_label) ?: return null
-        val views = OverlayViews(overlay, pill, label, comicPill, comicPillLabel)
-        root.setTag(TAG_OVERLAY, views)
-        return views
     }
 
     override fun onViewAttachedToWindow(holder: ViewHolder<RecyIllustDetailBinding>) {
@@ -387,9 +530,11 @@ class CollapsibleIllustAdapter(
             return pageCount > 2
         }
 
+        val PAYLOAD_AI_UPDATE = Any()
         private val PAYLOAD_OVERLAY_ONLY = Any()
         private val PAYLOAD_OVERLAY_FADE_IN = Any()
         private val TAG_OVERLAY = R.id.expand_overlay
+        private val TAG_WORKING_OVERLAY = R.id.ai_working_overlay_stub
         private const val FADE_MS = 220L
     }
 }

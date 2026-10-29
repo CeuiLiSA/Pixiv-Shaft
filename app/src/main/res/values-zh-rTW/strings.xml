@@ -723,6 +723,11 @@
     <string name="string_ai_upscale_pick_hint">從相簿選擇一張圖片\n體驗畫質提升</string>
     <string name="string_ai_upscale_ready">圖片已就緒，點擊開始增強</string>
     <string name="string_ai_upscale_resolution">%1$d × %2$d  →  %3$d × %4$d</string>
+    <string name="string_ai_task_eta_seconds">預計 %1$d 秒後完成</string>
+    <string name="string_ai_waiting_for_original_image">正在等待原圖下載就緒…</string>
+    <string name="string_ai_task_queued">排隊中…</string>
+    <string name="string_ai_upscale_page_done">第 %1$d 頁畫質增強已完成</string>
+    <string name="string_ai_rembg_page_done">第 %1$d 頁智慧去背已完成</string>
     <string name="string_set_wallpaper">設定桌布</string>
     <string name="string_set_wallpaper_failed">無法開啟系統桌布設定</string>
     <string name="string_set_wallpaper_done">已設為桌布</string>
@@ -3524,4 +3529,8 @@
     <string name="snapshot_backfill_summary_comments">含評論</string>
     <string name="snapshot_backfill_summary_wifi">僅 Wi-Fi</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+
+    <string name="string_ai_upscale_already_completed">該圖片已完成畫質增強</string>
+    <string name="string_ai_rembg_already_completed">該圖片已完成智慧去背</string>
+    <string name="string_ai_task_already_running">AI 處理任務正在進行中</string>
 </resources>

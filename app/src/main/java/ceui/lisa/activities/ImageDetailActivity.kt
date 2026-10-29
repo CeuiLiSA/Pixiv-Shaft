@@ -253,11 +253,21 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     actions +=
                         getString(R.string.string_ai_upscale) to
                             {
+                                val pageIndex = baseBind!!.viewPager.currentItem
+                                val state = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, pageIndex)
+                                if (state?.hasUpscaleResult == true) {
+                                    Common.showToast(R.string.string_ai_upscale_already_completed)
+                                    return@to
+                                }
+                                if (state?.upscaleRunning == true || state?.upscaleStatus == UpscaleStatus.Queued) {
+                                    Common.showToast(R.string.string_ai_task_already_running)
+                                    return@to
+                                }
                                 ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model
                                     ->
                                     performAiUpscale(
                                         illust,
-                                        baseBind!!.viewPager.currentItem,
+                                        pageIndex,
                                         model,
                                     )
                                 }
@@ -265,9 +275,19 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                     actions +=
                         getString(R.string.string_ai_rembg) to
                             {
+                                val pageIndex = baseBind!!.viewPager.currentItem
+                                val state = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, pageIndex)
+                                if (state?.hasRembgResult == true) {
+                                    Common.showToast(R.string.string_ai_rembg_already_completed)
+                                    return@to
+                                }
+                                if (state?.rembgRunning == true || state?.rembgStatus == UpscaleStatus.Queued) {
+                                    Common.showToast(R.string.string_ai_task_already_running)
+                                    return@to
+                                }
                                 RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) {
                                     model ->
-                                    performAiRembg(illust, baseBind!!.viewPager.currentItem, model)
+                                    performAiRembg(illust, pageIndex, model)
                                 }
                             }
                     actions +=
@@ -664,16 +684,36 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 actions +=
                     getString(R.string.string_ai_upscale) to
                         {
+                            val pageIndex = baseBind!!.viewPager.currentItem
+                            val state = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, pageIndex)
+                            if (state?.hasUpscaleResult == true) {
+                                Common.showToast(R.string.string_ai_upscale_already_completed)
+                                return@to
+                            }
+                            if (state?.upscaleRunning == true || state?.upscaleStatus == UpscaleStatus.Queued) {
+                                Common.showToast(R.string.string_ai_task_already_running)
+                                return@to
+                            }
                             ModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model ->
-                                performAiUpscale(illust, baseBind!!.viewPager.currentItem, model)
+                                performAiUpscale(illust, pageIndex, model)
                             }
                         }
                 actions +=
                     getString(R.string.string_ai_rembg) to
                         {
+                            val pageIndex = baseBind!!.viewPager.currentItem
+                            val state = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, pageIndex)
+                            if (state?.hasRembgResult == true) {
+                                Common.showToast(R.string.string_ai_rembg_already_completed)
+                                return@to
+                            }
+                            if (state?.rembgRunning == true || state?.rembgStatus == UpscaleStatus.Queued) {
+                                Common.showToast(R.string.string_ai_task_already_running)
+                                return@to
+                            }
                             RembgModelPickerDialog.pickOrUseDefault(supportFragmentManager) { model
                                 ->
-                                performAiRembg(illust, baseBind!!.viewPager.currentItem, model)
+                                performAiRembg(illust, pageIndex, model)
                             }
                         }
                 actions +=
@@ -884,9 +924,13 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         translationViewModel.translatedPaths.observe(this) { refreshVisibility() }
         viewPager.addOnPageChangeListener(
             object : ViewPager.SimpleOnPageChangeListener() {
-                override fun onPageSelected(position: Int) = refreshVisibility()
+                override fun onPageSelected(position: Int) {
+                    refreshVisibility()
+                    syncAiOverlayForPage(position)
+                }
             }
         )
+        syncAiOverlayForPage(viewPager.currentItem)
     }
 
     private fun checkDownload(i: Int) {
@@ -1235,75 +1279,135 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     private fun performAiRembg(illust: Illust, pageIndex: Int, model: RembgModel) {
+        val state = ceui.pixiv.ui.upscale.IllustAiStore.getOrCreate(illust.id, pageIndex)
+        if (state.hasRembgResult) {
+            Common.showToast(R.string.string_ai_rembg_already_completed)
+            return
+        }
+        if (state.rembgRunning || state.rembgStatus == UpscaleStatus.Queued) {
+            Common.showToast(R.string.string_ai_task_already_running)
+            return
+        }
         val imageUrl =
             IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
                 ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE)
                 ?: return
+        state.rembgStatus = UpscaleStatus.Running
+        state.rembgProgress = 0f
+        state.rembgStatusText = getString(R.string.string_ai_waiting_for_original_image)
+        syncAiOverlayForPage(pageIndex)
 
-        val overlayRoot = findViewById<View>(R.id.ai_overlay_root) ?: return
-        val loadingState = findViewById<View>(R.id.ai_loading_state)
-        val doneState = findViewById<View>(R.id.ai_done_state)
-        val progressRing = findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring)
-        val progressText = findViewById<TextView>(R.id.ai_progress_text)
-        val statusText = findViewById<TextView>(R.id.ai_status_text)
-
-        overlayRoot.visibility = View.VISIBLE
-        loadingState.visibility = View.VISIBLE
-        doneState.visibility = View.GONE
-        overlayRoot.alpha = 0f
-        overlayRoot.animate().alpha(1f).setDuration(300).start()
-        statusText.text = getString(R.string.string_ai_rembg_running)
-        progressRing.isIndeterminate = true
-        progressText.visibility = View.GONE
-
-        // 复用大图页已加载的原图(与显示层同一共享任务),不重新下载；本地已下载这一页则直接用本地文件。
         lifecycleScope.launch {
             val file =
                 try {
                     PageImageSourceResolver.resolve(this@ImageDetailActivity, illust, pageIndex, imageUrl)
                         .awaitFile(this@ImageDetailActivity)
-                        // url 非空时 resolve 不会给 Unavailable；真出现就按加载失败走同一个兜底。
                         ?: error("no page image source: $imageUrl")
+                } catch (e: CancellationException) {
+                    state.rembgStatus = UpscaleStatus.Idle
+                    syncAiOverlayForPage(pageIndex)
+                    throw e
                 } catch (e: Exception) {
-                    overlayRoot
-                        .animate()
-                        .alpha(0f)
-                        .setDuration(300)
-                        .withEndAction {
-                            overlayRoot.visibility = View.GONE
-                        }
-                        .start()
+                    state.rembgStatus = UpscaleStatus.Idle
+                    syncAiOverlayForPage(pageIndex)
                     Common.showToast(R.string.string_ai_rembg_failed)
                     return@launch
                 }
-            val result =
-                BackgroundRemover.removeBackground(this@ImageDetailActivity, file, model) { percent
-                    ->
-                    runOnUiThread {
-                        progressRing.isIndeterminate = false
-                        progressText.visibility = View.VISIBLE
-                        val p = (percent * 100).toInt()
-                        progressRing.setProgressCompat(p, true)
-                        progressText.text = "$p%"
+            val key = ceui.pixiv.ui.upscale.RembgTask.illustKey(illust.id, pageIndex)
+            val task = ceui.pixiv.ui.upscale.RembgTaskPool.startTask(
+                key,
+                this@ImageDetailActivity,
+                file,
+                file.absolutePath,
+                model
+            )
+            observeRembgTask(task)
+        }
+    }
+
+    private fun observeRembgTask(task: ceui.pixiv.ui.upscale.RembgTask) {
+        val overlayRoot = findViewById<View>(R.id.ai_overlay_root) ?: return
+        val loadingState = findViewById<View>(R.id.ai_loading_state)
+        val doneState = findViewById<View>(R.id.ai_done_state)
+        val viewCompare = findViewById<TextView>(R.id.ai_view_compare)
+        val dismiss = findViewById<View>(R.id.ai_dismiss)
+        val progressRing = findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring)
+        val progressText = findViewById<TextView>(R.id.ai_progress_text)
+        val statusText = findViewById<TextView>(R.id.ai_status_text)
+        val etaText = findViewById<TextView>(R.id.ai_eta_text)
+
+        viewCompare?.text = getString(R.string.string_ai_rembg)
+        viewCompare?.setOnClickListener {
+            val result = task.resultFile.value ?: return@setOnClickListener
+            val intent = Intent(this, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REMBG_HIGHLIGHT.key)
+            intent.putExtra("rembg_path", result.absolutePath)
+            intent.putExtra("original_path", task.originalFilePath)
+            startActivity(intent)
+            overlayRoot.visibility = View.GONE
+        }
+        dismiss?.setOnClickListener {
+            overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
+                overlayRoot.visibility = View.GONE
+            }.start()
+        }
+
+        task.status.observe(this) { status ->
+            val cur = baseBind?.viewPager?.currentItem ?: -1
+            val parts = task.taskKey.split('_')
+            val page = parts.getOrNull(2)?.toIntOrNull() ?: -1
+            if (cur != page) return@observe
+
+            when (status) {
+                UpscaleStatus.Queued -> {
+                    overlayRoot.visibility = View.VISIBLE
+                    loadingState?.visibility = View.VISIBLE
+                    doneState?.visibility = View.GONE
+                    statusText?.text = getString(R.string.string_ai_task_queued)
+                    progressRing?.isIndeterminate = true
+                    progressText?.visibility = View.GONE
+                    etaText?.text = ""
+                }
+                UpscaleStatus.Running -> {
+                    overlayRoot.visibility = View.VISIBLE
+                    loadingState?.visibility = View.VISIBLE
+                    doneState?.visibility = View.GONE
+                    statusText?.text = getString(R.string.string_ai_rembg_running)
+                    etaText?.text = ""
+                }
+                UpscaleStatus.Done -> {
+                    val result = task.resultFile.value
+                    if (result != null && lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
+                        overlayRoot.visibility = View.GONE
+                        val intent = Intent(this, TemplateActivity::class.java)
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REMBG_HIGHLIGHT.key)
+                        intent.putExtra("rembg_path", result.absolutePath)
+                        intent.putExtra("original_path", task.originalFilePath)
+                        startActivity(intent)
+                    } else {
+                        loadingState?.visibility = View.GONE
+                        doneState?.visibility = View.VISIBLE
+                        overlayRoot.visibility = View.VISIBLE
                     }
                 }
-            overlayRoot
-                .animate()
-                .alpha(0f)
-                .setDuration(300)
-                .withEndAction {
-                    overlayRoot.visibility = View.GONE
+                UpscaleStatus.Failed -> {
+                    overlayRoot.animate().alpha(0f).setDuration(300).withEndAction {
+                        overlayRoot.visibility = View.GONE
+                    }.start()
+                    Common.showToast(R.string.string_ai_rembg_failed)
                 }
-                .start()
-            if (result != null) {
-                val intent = Intent(this@ImageDetailActivity, TemplateActivity::class.java)
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REMBG_HIGHLIGHT.key)
-                intent.putExtra("original_path", file.absolutePath)
-                intent.putExtra("rembg_path", result.absolutePath)
-                startActivity(intent)
-            } else {
-                Common.showToast(R.string.string_ai_rembg_failed)
+                else -> {}
             }
+        }
+        task.progress.observe(this) { percent ->
+            val cur = baseBind?.viewPager?.currentItem ?: -1
+            val parts = task.taskKey.split('_')
+            val page = parts.getOrNull(2)?.toIntOrNull() ?: -1
+            if (cur != page) return@observe
+
+            val p = (percent * 100).toInt()
+            progressRing?.setProgressCompat(p, true)
+            progressText?.text = getString(R.string.string_ai_task_percent, p)
         }
     }
 
@@ -1482,10 +1586,24 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     }
 
     private fun performAiUpscale(illust: Illust, pageIndex: Int, model: UpscaleModel) {
+        val state = ceui.pixiv.ui.upscale.IllustAiStore.getOrCreate(illust.id, pageIndex)
+        if (state.hasUpscaleResult) {
+            Common.showToast(R.string.string_ai_upscale_already_completed)
+            return
+        }
+        if (state.upscaleRunning || state.upscaleStatus == UpscaleStatus.Queued) {
+            Common.showToast(R.string.string_ai_task_already_running)
+            return
+        }
         val imageUrl =
             IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_ORIGINAL)
                 ?: IllustDownload.getUrl(illust, pageIndex, Params.IMAGE_RESOLUTION_LARGE)
                 ?: return
+        state.upscaleStatus = UpscaleStatus.Running
+        state.upscaleProgress = 0f
+        state.upscaleEta = 0f
+        state.upscaleStatusText = getString(R.string.string_ai_waiting_for_original_image)
+        syncAiOverlayForPage(pageIndex)
 
         // 复用大图页已加载的原图(与显示层同一共享任务),不重新下载；本地已下载这一页则直接用本地文件。
         lifecycleScope.launch {
@@ -1496,13 +1614,17 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                         // url 非空时 resolve 不会给 Unavailable；真出现就按加载失败走同一个兜底。
                         ?: error("no page image source: $imageUrl")
                 } catch (e: CancellationException) {
+                    state.upscaleStatus = UpscaleStatus.Idle
+                    syncAiOverlayForPage(pageIndex)
                     throw e
                 } catch (e: Exception) {
+                    state.upscaleStatus = UpscaleStatus.Idle
+                    syncAiOverlayForPage(pageIndex)
                     // 以前这里静默 return，点了「超分」什么都不发生，用户看不出是失败了。
                     Common.showToast(R.string.string_ai_upscale_failed)
                     return@launch
                 }
-            val key = UpscaleTask.illustKey(illust.id * 100 + pageIndex)
+            val key = UpscaleTask.illustKey(illust.id, pageIndex)
             val task =
                 UpscaleTaskPool.startTask(
                     key,
@@ -1549,7 +1671,21 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
         }
 
         task.status.observe(this) { status ->
+            val cur = baseBind?.viewPager?.currentItem ?: -1
+            val parts = task.taskKey.split('_')
+            val page = parts.getOrNull(2)?.toIntOrNull() ?: -1
+            if (cur != page) return@observe
+
             when (status) {
+                UpscaleStatus.Queued -> {
+                    overlayRoot.visibility = View.VISIBLE
+                    loadingState.visibility = View.VISIBLE
+                    doneState.visibility = View.GONE
+                    statusText.text = getString(R.string.string_ai_task_queued)
+                    progressRing.isIndeterminate = true
+                    progressText.visibility = View.GONE
+                    etaText.text = ""
+                }
                 UpscaleStatus.Running -> {
                     overlayRoot.visibility = View.VISIBLE
                     loadingState.visibility = View.VISIBLE
@@ -1613,12 +1749,113 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
             }
         }
         task.progress.observe(this) { percent ->
+            val cur = baseBind?.viewPager?.currentItem ?: -1
+            val parts = task.taskKey.split('_')
+            val page = parts.getOrNull(2)?.toIntOrNull() ?: -1
+            if (cur != page) return@observe
+
             val p = (percent * 100).toInt()
-            progressRing.setProgressCompat(p, true)
-            progressText.text = "$p%"
+            progressRing?.setProgressCompat(p, true)
+            progressText?.text = getString(R.string.string_ai_task_percent, p)
         }
         task.eta.observe(this) { eta ->
-            etaText.text = if (eta > 0) "预计 ${String.format("%.0f", eta)} 秒后完成" else ""
+            val cur = baseBind?.viewPager?.currentItem ?: -1
+            val parts = task.taskKey.split('_')
+            val page = parts.getOrNull(2)?.toIntOrNull() ?: -1
+            if (cur != page) return@observe
+
+            val etaSec = (eta + 0.5f).toInt()
+            etaText.text = if (etaSec > 0) getString(R.string.string_ai_task_eta_seconds, etaSec) else ""
+        }
+    }
+
+    private fun syncAiOverlayForPage(page: Int) {
+        val cur = baseBind?.viewPager?.currentItem ?: -1
+        if (cur != page) return
+
+        val illust = mIllust ?: return
+        val overlayRoot = findViewById<View>(R.id.ai_overlay_root) ?: return
+        val loadingState = findViewById<View>(R.id.ai_loading_state)
+        val doneState = findViewById<View>(R.id.ai_done_state)
+        val viewCompare = findViewById<TextView>(R.id.ai_view_compare)
+        val dismiss = findViewById<View>(R.id.ai_dismiss)
+        val progressRing = findViewById<SeamlessCircularProgressIndicator>(R.id.ai_progress_ring)
+        val progressText = findViewById<TextView>(R.id.ai_progress_text)
+        val statusText = findViewById<TextView>(R.id.ai_status_text)
+        val etaText = findViewById<TextView>(R.id.ai_eta_text)
+
+        val aiState = ceui.pixiv.ui.upscale.IllustAiStore.get(illust.id, page)
+        val upscaleTask = UpscaleTaskPool.getTask(UpscaleTask.illustKey(illust.id, page))
+        val rembgTask = ceui.pixiv.ui.upscale.RembgTaskPool.getTask(ceui.pixiv.ui.upscale.RembgTask.illustKey(illust.id, page))
+
+        val isWorking = aiState?.isWorking == true ||
+            upscaleTask?.status?.value == UpscaleStatus.Running || upscaleTask?.status?.value == UpscaleStatus.Queued ||
+            rembgTask?.status?.value == UpscaleStatus.Running || rembgTask?.status?.value == UpscaleStatus.Queued
+
+        if (isWorking) {
+            val isFirstShow = overlayRoot.visibility != View.VISIBLE || overlayRoot.alpha < 1f
+            overlayRoot.visibility = View.VISIBLE
+            loadingState?.visibility = View.VISIBLE
+            doneState?.visibility = View.GONE
+            if (isFirstShow) {
+                overlayRoot.animate().cancel()
+                overlayRoot.alpha = 0f
+                overlayRoot.animate().alpha(1f).setDuration(260L).start()
+            }
+            if (upscaleTask?.status?.value == UpscaleStatus.Running || upscaleTask?.status?.value == UpscaleStatus.Queued) {
+                observeUpscaleTask(upscaleTask)
+            } else if (rembgTask?.status?.value == UpscaleStatus.Running || rembgTask?.status?.value == UpscaleStatus.Queued) {
+                observeRembgTask(rembgTask)
+            } else {
+                statusText?.text = aiState?.currentStatusText(this)
+                if (aiState?.isIndeterminate == true) {
+                    progressRing?.isIndeterminate = true
+                    progressText?.visibility = View.GONE
+                } else {
+                    progressRing?.isIndeterminate = false
+                    progressText?.visibility = View.VISIBLE
+                    val p = ((aiState?.currentProgress ?: 0f) * 100).toInt()
+                    progressRing?.setProgressCompat(p, true)
+                    progressText?.text = getString(R.string.string_ai_task_percent, p)
+                }
+                val etaSec = ((aiState?.currentEta ?: 0f) + 0.5f).toInt()
+                etaText?.text = if (etaSec > 0 && aiState?.isQueued != true) getString(R.string.string_ai_task_eta_seconds, etaSec) else ""
+            }
+            return
+        }
+
+        if (aiState?.hasAnyResult == true) {
+            overlayRoot.visibility = View.VISIBLE
+            loadingState?.visibility = View.GONE
+            doneState?.visibility = View.VISIBLE
+            overlayRoot.alpha = 1f
+            if (aiState.hasUpscaleResult) {
+                viewCompare?.text = getString(R.string.action_view_comparison)
+                viewCompare?.setOnClickListener {
+                    val intent = Intent(this, TemplateActivity::class.java)
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.UPSCALE_COMPARE.key)
+                    intent.putExtra("upscaled_path", aiState.upscaleResultPath)
+                    intent.putExtra("original_path", aiState.upscaleOriginalPath)
+                    startActivity(intent)
+                }
+            } else if (aiState.hasRembgResult) {
+                viewCompare?.text = getString(R.string.string_ai_rembg)
+                viewCompare?.setOnClickListener {
+                    val intent = Intent(this, TemplateActivity::class.java)
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, TemplateRoute.REMBG_HIGHLIGHT.key)
+                    intent.putExtra("rembg_path", aiState.rembgResultPath)
+                    intent.putExtra("original_path", aiState.rembgOriginalPath)
+                    startActivity(intent)
+                }
+            }
+            dismiss?.setOnClickListener {
+                overlayRoot.visibility = View.GONE
+            }
+            return
+        }
+
+        if (translationViewModel.running.value != true) {
+            overlayRoot.visibility = View.GONE
         }
     }
 
