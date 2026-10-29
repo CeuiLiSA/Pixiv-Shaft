@@ -31,10 +31,11 @@ internal object ViewerBookmarkState {
     suspend fun ListIllust.withViewerBookmarkState(mirror: BookmarkMirrorService): ListIllust {
         val source = illusts ?: return this
         val mirrored = mirror.bookmarkedAmong(MirrorContentType.ILLUST, source.map { it.id })
-        // 这一页的 viewer 态整体不可信：池条目标成不可信，详情页才会按镜像重算（见 ObjectPool
-        // 的「viewer 态可信度」）。收藏态在这里按镜像「只升不降」重算，关注态一律清成未知 ——
-        // 借号账号关注没关注这个作者，跟当前用户没有关系。
-        source.forEach { ObjectPool.markViewerStateUntrusted(it.id, ObjectSpec.Illust) }
+        // 收藏态在这里按「池里可信值 → 镜像」只升不降地重算，关注态一律清成未知 —— 借号账号
+        // 关注没关注这个作者，跟当前用户没有关系。出仓的 bean 已经不带别人的状态，合池时 null
+        // 不会盖掉池里的值，详情页对 null 字段也会自己问镜像，所以**不**给池条目打不可信标记：
+        // 池里那条可能是用户刚在本会话收藏 / 详情页确认过的权威 true，标成不可信会让详情页的
+        // 镜像校正（镜像没就绪时）把它抹回 null。
         return ListIllust().also { out ->
             out.setNext_url(nextUrl)
             out.illusts = source.map { bean ->

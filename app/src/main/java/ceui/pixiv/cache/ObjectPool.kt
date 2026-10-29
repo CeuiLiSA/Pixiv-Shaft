@@ -276,6 +276,8 @@ object ObjectPool {
     fun updateIllustTrusted(illust: Illust) {
         updateIllust(illust)
         markViewerStateTrusted(illust.id, ObjectSpec.Illust)
+        // 作者条目跟着一起写了，同理：别让 seedUntrusted 早先留下的标记把这份关注态再交给镜像降级。
+        illust.user?.id?.takeIf { it > 0L }?.let { markViewerStateTrusted(it, ObjectSpec.KUser) }
     }
 
     /**

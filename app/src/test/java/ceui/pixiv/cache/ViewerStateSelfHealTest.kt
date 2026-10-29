@@ -174,6 +174,49 @@ class ViewerStateSelfHealTest {
         assertTrue(poolIllust(illustId).isBookmarked)
     }
 
+    /**
+     * 作者在别处已被确认「已关注」（画师主页 / 关注动作写进池），用户再从自建源榜单点进他的
+     * 另一张作品：作品不可信，但关注态归作者条目管，镜像没就绪也不能把它降级成未知。
+     */
+    @Test
+    fun `镜像没就绪_作者已确认关注_自建源作品详情页不降级关注态`() {
+        val illustId = 7_006L
+        val authorId = 9_006L
+        ObjectPool.update(User(id = authorId, is_followed = true))
+        ObjectPool.followUser(authorId)
+
+        ObjectPool.seedUntrusted(illust(illustId, authorId, bookmarked = true, followed = false))
+        val shown = runBlocking {
+            reconcileViewerStateFromMirror(poolIllust(illustId)) { _, _ -> emptySet() }
+        }
+
+        assertTrue(shown.user?.is_followed == true)
+        assertTrue(ObjectPool.get<User>(authorId).value?.is_followed == true)
+        // 收藏态仍按「作品不可信」处理：镜像没命中 = 未知
+        assertNull(shown.is_bookmarked)
+    }
+
+    /**
+     * 用户本会话刚收藏过（池里权威 true），借号搜索又带回这张：出仓 bean 清成未知后经 Mapper
+     * 合池，池里的 true 保留且仍可信 —— 详情页的镜像校正（镜像没就绪）不能把它抹回 null。
+     */
+    @Test
+    fun `镜像没就绪_本会话已收藏_借号搜索合池后详情页仍是已收藏`() {
+        val illustId = 7_007L
+        val authorId = 9_007L
+        ObjectPool.updateIllust(illust(illustId, authorId, bookmarked = true, followed = null))
+
+        // 借号页出仓后的 bean（ViewerBookmarkState 已清洗）经 Mapper.updateIllust 合池
+        ObjectPool.updateIllust(illust(illustId, authorId, bookmarked = null, followed = null))
+        assertTrue(ObjectPool.isIllustViewerStateTrusted(illustId))
+
+        val shown = runBlocking {
+            reconcileViewerStateFromMirror(poolIllust(illustId)) { _, _ -> emptySet() }
+        }
+        assertTrue(shown.isBookmarked)
+        assertTrue(poolIllust(illustId).isBookmarked)
+    }
+
     private fun illust(
         id: Long,
         authorId: Long,

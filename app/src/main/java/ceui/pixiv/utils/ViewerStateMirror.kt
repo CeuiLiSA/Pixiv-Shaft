@@ -1,6 +1,8 @@
 package ceui.pixiv.utils
 
 import ceui.lisa.activities.Shaft
+import ceui.lisa.models.ObjectSpec
+import ceui.loxia.User
 import ceui.pixiv.api.model.Illust
 import ceui.pixiv.cache.ObjectPool
 import ceui.pixiv.db.mirror.MirrorContentType
@@ -42,7 +44,17 @@ suspend fun reconcileViewerStateFromMirror(
     val trusted = ObjectPool.isIllustViewerStateTrusted(illust.id)
     val authorId = illust.user?.id ?: 0L
     val needBookmark = !(trusted && illust.is_bookmarked != null)
-    val needFollow = authorId > 0L && !(trusted && illust.user?.is_followed != null)
+    // 关注态的归属是作者条目，不是这张作品：作者条目自己可信（画师主页 / 关注动作 / 官方列表
+    // 写进来的）时以它为准。只看作品的可信度会让一张自建源卡片把别处确认过的「已关注」，
+    // 在镜像没就绪时降级成未知（写回池后作者栏、画师主页一起变灰）。
+    val knownFollowed = when {
+        authorId <= 0L -> illust.user?.is_followed
+        ObjectPool.isViewerStateTrusted(authorId, ObjectSpec.KUser) ->
+            ObjectPool.get<User>(authorId).value?.is_followed
+                ?: illust.user?.is_followed?.takeIf { trusted }
+        else -> null
+    }
+    val needFollow = authorId > 0L && knownFollowed == null
     if (!needBookmark && !needFollow) return illust
 
     val bookmarkedState = if (needBookmark) {
@@ -53,7 +65,7 @@ suspend fun reconcileViewerStateFromMirror(
     val followedState = if (needFollow) {
         true.takeIf { authorId in mirrorLookup(MirrorContentType.USER, listOf(authorId)) }
     } else {
-        illust.user?.is_followed
+        knownFollowed
     }
     // writeBack = false 给「只是读一份快照」的调用方（快照生成不该改动 ObjectPool）。
     if (writeBack) ObjectPool.applyMirroredViewerState(illust.id, bookmarkedState, followedState)
