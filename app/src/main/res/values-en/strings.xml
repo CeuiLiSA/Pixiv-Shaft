@@ -3530,4 +3530,9 @@
     <string name="snapshot_backfill_summary_comments">With comments</string>
     <string name="snapshot_backfill_summary_wifi">Wi-Fi only</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">Use Chrome Custom Tabs to open web links when Chrome is available</string>
+    <string name="chrome_custom_tabs_not_found">Chrome not found, automatically disabled</string>
+    <string name="open_with_chrome">Open with Chrome</string>
 </resources>

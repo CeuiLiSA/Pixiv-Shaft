@@ -3508,4 +3508,9 @@
     <string name="snapshot_backfill_summary_comments">Dengan komentar</string>
     <string name="snapshot_backfill_summary_wifi">Hanya Wi-Fi</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">Gunakan Chrome Custom Tabs untuk membuka tautan web jika Chrome tersedia</string>
+    <string name="chrome_custom_tabs_not_found">Chrome tidak ditemukan, dinonaktifkan otomatis</string>
+    <string name="open_with_chrome">Buka dengan Chrome</string>
 </resources>

@@ -196,13 +196,8 @@ object InAppPushCenter {
         }
         val scheme = uri.scheme?.lowercase()
         if (scheme == "http" || scheme == "https") {
-            try {
-                CustomTabsIntent.Builder().build().launchUrl(activity, uri)
-                return
-            } catch (_: ActivityNotFoundException) {
-                Common.showToast("未找到浏览器")
-                return
-            }
+            ceui.lisa.helper.WebLinkHelper.openInCustomTab(activity, uri)
+            return
         }
         try {
             activity.startActivity(Intent(Intent.ACTION_VIEW, uri))

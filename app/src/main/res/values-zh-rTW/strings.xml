@@ -3524,4 +3524,9 @@
     <string name="snapshot_backfill_summary_comments">含評論</string>
     <string name="snapshot_backfill_summary_wifi">僅 Wi-Fi</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">有 Chrome 時使用 Chrome Custom Tabs 開啟網頁連結</string>
+    <string name="chrome_custom_tabs_not_found">未發現Chrome，已自動停用</string>
+    <string name="open_with_chrome">使用Chrome開啟</string>
 </resources>

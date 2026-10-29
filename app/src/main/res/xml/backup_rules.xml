@@ -14,4 +14,8 @@
          整份排除，换机 / 还原后读到的就是默认 false。 -->
     <exclude domain="file" path="mmkv/home_r18_prefs_v1" />
     <exclude domain="file" path="mmkv/home_r18_prefs_v1.crc" />
+    <!-- Chrome Custom Tabs 开关(ChromeTabsPrefs): 依赖本机是否安装 Chrome，不具备跨设备性。
+         整份排除，换机 / 还原后读到的就是默认状态。 -->
+    <exclude domain="file" path="mmkv/chrome_tabs_prefs_v1" />
+    <exclude domain="file" path="mmkv/chrome_tabs_prefs_v1.crc" />
 </full-backup-content>

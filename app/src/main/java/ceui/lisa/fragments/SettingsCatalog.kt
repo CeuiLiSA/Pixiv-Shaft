@@ -151,6 +151,7 @@ object SettingsCatalog {
         add(Entry(BROWSING, "scroll_edge_haptic_rela", R.string.settings_scroll_edge_haptic, R.string.settings_scroll_edge_haptic_desc, keywords = "振动 震动 触感 触觉 震感 马达 滑到底 滑到顶 到底 到顶 边缘 边界 回弹 列表 滚动 关掉振动 关闭振动 不要震动 haptic vibration vibrate scroll edge overscroll"))
         add(Entry(BROWSING, "synonym_dict_enable_rela", R.string.synonym_dict_enable, keywords = "同义词 词典 别名 标签翻译 synonym"))
         add(Entry(BROWSING, "synonym_dict_rela", R.string.synonym_dict_title, keywords = "同义词 词典 管理 导入 导出 合并 synonym"))
+        add(Entry(BROWSING, "chrome_custom_tabs_rela", R.string.chrome_custom_tabs_title, R.string.chrome_custom_tabs_desc, keywords = "chrome custom tabs 浏览器 网页 链接 外部链接 打开方式 标签页 登录 注册 cct browser url link"))
 
         // 看图与详情（FAB 顺序行随 V3 开关显隐，紧贴 V3 行）
         add(Entry(VIEWING, "illust_detail_v3_rela", R.string.illust_detail_v3, keywords = "v3 沉浸式 详情页 新版 详情"))

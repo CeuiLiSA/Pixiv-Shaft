@@ -3523,4 +3523,9 @@
     <string name="snapshot_backfill_summary_comments">コメント付き</string>
     <string name="snapshot_backfill_summary_wifi">Wi-Fi のみ</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">Chrome がインストールされている場合、Chrome Custom Tabs でリンクを開きます</string>
+    <string name="chrome_custom_tabs_not_found">Chrome が見つからないため、自動的に無効化されました</string>
+    <string name="open_with_chrome">Chromeで開く</string>
 </resources>

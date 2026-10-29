@@ -3531,4 +3531,9 @@
     <string name="snapshot_backfill_summary_comments">Yorumlu</string>
     <string name="snapshot_backfill_summary_wifi">Yalnızca Wi-Fi</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">Chrome mevcut olduğunda web bağlantılarını açmak için Chrome Custom Tabs kullanın</string>
+    <string name="chrome_custom_tabs_not_found">Chrome bulunamadı, otomatik olarak devre dışı bırakıldı</string>
+    <string name="open_with_chrome">Chrome ile aç</string>
 </resources>

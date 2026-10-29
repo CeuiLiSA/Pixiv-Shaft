@@ -706,13 +706,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     }
 
     private fun openOAuthTab(url: String) {
-        try {
-            CustomTabsIntent.Builder().build().launchUrl(requireContext(), Uri.parse(url))
-        } catch (_: ActivityNotFoundException) {
-            Common.showToast("未找到浏览器")
-        } catch (_: SecurityException) {
-            Common.showToast(getString(R.string.msg_no_browser))
-        }
+        ceui.lisa.helper.WebLinkHelper.openInCustomTab(requireContext(), url)
     }
 
     private fun openProxyHint(onConfirm: () -> Unit) {

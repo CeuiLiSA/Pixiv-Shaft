@@ -3547,4 +3547,9 @@
     <string name="snapshot_backfill_summary_comments">С комментариями</string>
     <string name="snapshot_backfill_summary_wifi">Только Wi-Fi</string>
     <string name="snapshot_backfill_strip_value">%1$d / %2$d · %3$s</string>
+    <!-- Chrome Custom Tabs -->
+    <string name="chrome_custom_tabs_title">Chrome Custom Tabs</string>
+    <string name="chrome_custom_tabs_desc">Использовать Chrome Custom Tabs для открытия веб-ссылок при наличии Chrome</string>
+    <string name="chrome_custom_tabs_not_found">Chrome не найден, автоматически отключено</string>
+    <string name="open_with_chrome">Открыть в Chrome</string>
 </resources>

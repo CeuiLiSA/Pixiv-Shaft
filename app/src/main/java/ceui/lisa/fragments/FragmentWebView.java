@@ -26,6 +26,7 @@ import android.widget.RelativeLayout;
 import com.just.agentweb.AgentWeb;
 import com.just.agentweb.WebChromeClient;
 import com.just.agentweb.WebViewClient;
+import ceui.lisa.helper.WebLinkHelper;
 import android.util.Base64;
 
 import java.io.IOException;
@@ -223,11 +224,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         baseBind.ibMenu.setVisibility(View.VISIBLE);
         baseBind.ibMenu.setOnClickListener(v -> {
             String jumpUrl = url.contains(LOGIN_SIGN_HEAD) ? url : mWebView.getUrl();
-            try {
-                mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(jumpUrl)));
-            } catch (ActivityNotFoundException e) {
-                Common.showToast(getString(R.string.msg_no_browser));
-            }
+            WebLinkHelper.openUrl(mActivity, jumpUrl);
         });
         Common.showLog(className + url);
         mWebView = mAgentWeb.getWebCreator().getWebView();
@@ -465,12 +462,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             switch (item.getItemId()) {
 
                 case OPEN_IN_BROWSER: {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(mIntentUrl));
-                    try {
-                        mActivity.startActivity(intent);
-                    } catch (ActivityNotFoundException e) {
-                        Common.showToast(getString(R.string.msg_no_browser));
-                    }
+                    WebLinkHelper.openUrl(mActivity, mIntentUrl);
                     break;
                 }
                 case OPEN_IMAGE: {
