@@ -144,6 +144,8 @@ object SearchFilterV3LegacyBridge {
         // 所以这里用「页记 → 基线」反推层级，而不是把 null 当「跟随全局」。
         val rememberedR18 = Shaft.sSettings.searchRememberedR18Mode
             ?.let { name -> R18Mode.entries.firstOrNull { it.name == name } }
+        val rememberedPotentialViolation =
+            Shaft.sSettings.searchRememberedPotentialViolation?.toBooleanStrictOrNull()
         val sessionR18 = when (searchModel.r18Restriction.value) {
             0 -> R18Mode.All
             1 -> R18Mode.SafeOnly
@@ -214,6 +216,13 @@ object SearchFilterV3LegacyBridge {
             endDate = searchModel.endDate.value ?: baseline.endDate,
             r18Mode = r18,
             r18ModePersist = tierOfSession(r18, rememberedR18, R18Mode.All),
+            // 「可能妨碍搜索的作品」：SearchModel 里 null = 没显式关过 → 显示（内置默认）。
+            includePotentialViolationWorks = searchModel.includePotentialViolationWorks.value ?: true,
+            potentialViolationPersist = tierOfSession(
+                searchModel.includePotentialViolationWorks.value ?: true,
+                rememberedPotentialViolation,
+                true,
+            ),
             // AI 三档：「仅看AI」是会话态，从 SearchModel.onlyAi 读回还原（activity 重建后 VM 为空时
             // 也不丢）；「屏蔽AI / 全部」优先用会话值（sessionExcludeAi），没设过才回 baseline。
             aiMode = effectiveAi,
@@ -295,6 +304,10 @@ object SearchFilterV3LegacyBridge {
             R18Mode.SafeOnly -> 1
             R18Mode.R18Only -> 2
         }
+        // 「可能妨碍搜索的作品」：显示档写 null（不传参数，URL 与旧版一致），只有「不显示」
+        // 才写 false 让 Repo 真的发 include_potential_violation_works=false。
+        searchModel.includePotentialViolationWorks.value =
+            if (filter.includePotentialViolationWorks) null else false
         // 「仅看AI」会话态：Repo.update 读它喂 FilterMapper 客户端过滤
         searchModel.onlyAi.value = filter.aiMode == AiMode.OnlyAi
         // 「其他条件」的会话值：层级为「全局」时置 null（跟随全局设置，设置页改了仍能跟上）；

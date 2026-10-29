@@ -2057,6 +2057,11 @@
     <string name="search_filter_v3_section_ai">AI 作品</string>
     <string name="search_filter_v3_ai_all">全部</string>
     <string name="search_filter_v3_ai_only">僅 AI 作品</string>
+        <string name="search_filter_v3_section_potential_violation">可能妨礙搜尋的作品</string>
+    <string name="search_filter_v3_potential_violation_show">顯示</string>
+    <string name="search_filter_v3_potential_violation_hide">不顯示</string>
+    <string name="search_filter_v3_potential_violation_hint">可以選擇是否顯示有較大可能違反本站（pixiv）方針的作品。</string>
+    <string name="search_filter_v3_other_summary_hide_potential_violation">隱藏可能妨礙搜尋的作品</string>
     <string name="search_filter_v3_section_r18">R-18 限制</string>
     <string name="search_filter_v3_r18_all">全部</string>
     <string name="search_filter_v3_r18_safe">僅安全</string>

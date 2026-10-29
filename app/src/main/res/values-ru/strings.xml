@@ -2055,6 +2055,11 @@
     <string name="search_filter_v3_section_ai">Работы ИИ</string>
     <string name="search_filter_v3_ai_all">Все</string>
     <string name="search_filter_v3_ai_only">Только ИИ</string>
+    <string name="search_filter_v3_section_potential_violation">Работы, мешающие поиску</string>
+    <string name="search_filter_v3_potential_violation_show">Показывать</string>
+    <string name="search_filter_v3_potential_violation_hide">Не показывать</string>
+    <string name="search_filter_v3_potential_violation_hint">Можно выбрать, показывать ли работы, с высокой вероятностью нарушающие правила сайта pixiv.</string>
+    <string name="search_filter_v3_other_summary_hide_potential_violation">Скрыть работы, мешающие поиску</string>
     <string name="search_filter_v3_section_r18">Ограничение R-18</string>
     <string name="search_filter_v3_r18_all">Все</string>
     <string name="search_filter_v3_r18_safe">Только безопасные</string>

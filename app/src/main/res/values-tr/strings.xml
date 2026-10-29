@@ -2055,6 +2055,11 @@
     <string name="search_filter_v3_section_ai">YZ eserleri</string>
     <string name="search_filter_v3_ai_all">Tümü</string>
     <string name="search_filter_v3_ai_only">Yalnızca YZ</string>
+    <string name="search_filter_v3_section_potential_violation">Aramayı engelleyebilecek çalışmalar</string>
+    <string name="search_filter_v3_potential_violation_show">Göster</string>
+    <string name="search_filter_v3_potential_violation_hide">Gösterme</string>
+    <string name="search_filter_v3_potential_violation_hint">pixiv site kurallarını ihlal etme olasılığı yüksek çalışmaların gösterilip gösterilmeyeceğini seçebilirsiniz.</string>
+    <string name="search_filter_v3_other_summary_hide_potential_violation">Aramayı engelleyebilecek çalışmaları gizle</string>
     <string name="search_filter_v3_section_r18">R-18 kısıtlaması</string>
     <string name="search_filter_v3_r18_all">Tümü</string>
     <string name="search_filter_v3_r18_safe">Yalnızca güvenli</string>

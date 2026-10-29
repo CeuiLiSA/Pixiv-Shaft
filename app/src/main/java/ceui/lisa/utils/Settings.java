@@ -480,6 +480,9 @@ public class Settings {
     private String searchRememberedAiMode = null;          // AiMode.name()
     private String searchRememberedBookmarkFilter = null;  // "true" / "false"
     private String searchRememberedR18Mode = null;         // R18Mode.name()
+    // 「其他条件 → 可能妨碍搜索的作品」（官方 app 同名开关）—— "true" 显示 / "false" 不显示；
+    // null = 没记住过。这一维度没有全局对应设置（与 R18 三档同性质），最多到「仅这里记住」。
+    private String searchRememberedPotentialViolation = null;
 
     private String navigationInitPosition = NavigationLocationHelper.TUIJIAN; // 主页底部导航栏初始化位置
 
@@ -843,6 +846,18 @@ public class Settings {
 
     public void setSearchRememberedR18Mode(String searchRememberedR18Mode) {
         this.searchRememberedR18Mode = searchRememberedR18Mode;
+    }
+
+    /**
+     * 「其他条件 → 可能妨碍搜索的作品」的搜索页专属记忆（"true" 显示 / "false" 不显示）；
+     * null = 没记住过。无全局对应设置，所以只有「仅这里记住」一层。
+     */
+    public String getSearchRememberedPotentialViolation() {
+        return searchRememberedPotentialViolation;
+    }
+
+    public void setSearchRememberedPotentialViolation(String searchRememberedPotentialViolation) {
+        this.searchRememberedPotentialViolation = searchRememberedPotentialViolation;
     }
 
     public int getAiBlockStrength() {
