@@ -1,6 +1,7 @@
 package ceui.lisa.database;
 
 import android.content.Context;
+import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
 import androidx.room.Database;
@@ -26,6 +27,7 @@ import ceui.pixiv.db.queue.DownloadQueueEntity;
 import ceui.pixiv.db.synonym.SynonymDao;
 import ceui.pixiv.db.synonym.SynonymTagEntity;
 import ceui.pixiv.db.synonym.SynonymTargetEntity;
+import timber.log.Timber;
 
 @Database(
         entities = {
@@ -62,8 +64,12 @@ import ceui.pixiv.db.synonym.SynonymTargetEntity;
 )
 public abstract class AppDatabase extends RoomDatabase {
 
-    public static final int VERSION = 43;
+    public static final int VERSION = 44;
     public static final String DATABASE_NAME = "roomDemo-database";
+
+    /** 迁移/开库相关日志的 tag。升级出问题时 `adb logcat -s AppDatabase` 一把抓。 */
+    private static final String TAG = "AppDatabase";
+
     private static final Migration MIGRATION_23_24 = new Migration(23, 24) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
@@ -530,6 +536,84 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    /**
+     * v43 -> v44：给「按时间倒序取最新 N 条」这一族热查询补索引，**只加索引不动数据**。
+     *
+     * 这批表此前一个索引都没有，而查询形如 `WHERE <非索引列> ORDER BY <非索引列> LIMIT n`：
+     * 执行计划是 `SCAN` + `USE TEMP B-TREE FOR ORDER BY`，代价正比于**表体积**，
+     * LIMIT 帮不上忙（扫完排完才取前 n 行）。实测 1.02GB / 5.3 万行：
+     * <pre>
+     *   SELECT * FROM illust_download_table ORDER BY downloadTime DESC LIMIT 100
+     *     无索引 2636 ms   →   有索引 6 ms
+     * </pre>
+     *
+     * 为什么会变成用户可感的卡顿：`ProfileManager.buildProfile` 在**每次冷启动**都对下载表连做
+     * 5 次这种查询（paginate(500) / PAGE_SIZE=100），库大了就是几十秒的连续全表扫描；这段时间
+     * 磁盘与 CPU 被占满，用户此时点搜索 / 滑动，主线程被饿住，表现为「交互卡顿迟滞」。
+     * 实测：3.44GB 库冷启动 buildProfile 23.5 秒，期间开搜索页 2116 ms、掉 235 帧；
+     * 同一份库等它跑完再开搜索页只要 369 ms。瓶颈是那段扫描，不是搜索页自己的查询。
+     *
+     * 代价（真机实测，vivo V2361A）：1.05GB / 5.3 万行的库建这六条索引共 **555 ms**，
+     * 20MB 的库 45 ms。建索引本质是一次顺序扫描 + 写一份很小的索引（约 16 字节/行），
+     * 不需要额外的空间预算，也不需要进度页。**一次性**，之后永久 O(log n)。
+     *
+     * 索引名必须与 Room 由 {@code @Index} 生成的完全一致，否则 onValidateSchema 会判不通过。
+     */
+    private static final Migration MIGRATION_43_44 = new Migration(43, 44) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            final long start = SystemClock.elapsedRealtime();
+            // 顺序按「表体积从小到大」：便宜的先落地，日志能看出进展，
+            // 真机上万一慢，一眼知道卡在哪张表。
+            createIndexGuarded(database, "index_tag_mute_table_type_searchTime_id",
+                    "CREATE INDEX IF NOT EXISTS index_tag_mute_table_type_searchTime_id ON tag_mute_table(type, searchTime, id)");
+            createIndexGuarded(database, "index_search_table_pinned_searchTime",
+                    "CREATE INDEX IF NOT EXISTS index_search_table_pinned_searchTime ON search_table(pinned, searchTime)");
+            createIndexGuarded(database, "index_feature_table_dateTime",
+                    "CREATE INDEX IF NOT EXISTS index_feature_table_dateTime ON feature_table(dateTime)");
+            createIndexGuarded(database, "index_illust_table_time",
+                    "CREATE INDEX IF NOT EXISTS index_illust_table_time ON illust_table(time)");
+            createIndexGuarded(database, "index_general_table_recordType_updatedTime_id",
+                    "CREATE INDEX IF NOT EXISTS index_general_table_recordType_updatedTime_id ON general_table(recordType, updatedTime, id)");
+            createIndexGuarded(database, "index_illust_download_table_downloadTime",
+                    "CREATE INDEX IF NOT EXISTS index_illust_download_table_downloadTime ON illust_download_table(downloadTime)");
+            Timber.tag(TAG).i("MIGRATION_43_44 done in %d ms", SystemClock.elapsedRealtime() - start);
+        }
+    };
+
+    /**
+     * 逐条建索引，失败时把「哪一条、跑了多久、什么错」写清楚再抛。
+     *
+     * <p>为什么要单独包一层：迁移跑在 Room 的事务里，任何一条抛都会**整体回滚、版本停在 43**，
+     * 而 Room 随后会因为 schema 校验不过而让整个库打不开 —— 用户看到的是「App 一开就崩」。
+     * 到那一步，日志里唯一能救场的就是「FAILED at index_xxx」这一句，所以必须点名，
+     * 不能只丢一个裸栈。异常包成 IllegalStateException 是为了让调用栈第一行就是结论。
+     *
+     * <p>所有语句都带 {@code IF NOT EXISTS}，所以重复执行是幂等的：上一次因进程被杀回滚、
+     * 或者手工补建过其中几条，都不会因此失败。
+     *
+     * <p><b>失败时为什么不「自动修复」</b>（删库重建 / 把库挪成 .corrupt 换新库）：
+     * 那样一个写错的迁移就会把**所有用户的库**清掉，代价远大于崩。崩是可修的热修复 + 用户重试，
+     * 删数据不可逆。{@code NonDestructiveOpenHelperFactory} 只在 SQLite 主动报 corruption 时
+     * 隔离库，迁移失败不归它管 —— 这是刻意的。
+     * 真要救场：{@code adb logcat -s AppDatabase} 看 `MIGRATION_43_44 FAILED at <索引名>`，
+     * 版本仍停在 43，下一次启动会原样重试。
+     */
+    private static void createIndexGuarded(@NonNull SupportSQLiteDatabase database,
+                                           @NonNull String indexName,
+                                           @NonNull String sql) {
+        final long t0 = SystemClock.elapsedRealtime();
+        try {
+            database.execSQL(sql);
+        } catch (RuntimeException e) {
+            Timber.tag(TAG).e(e,
+                    "MIGRATION_43_44 FAILED at %s after %d ms（迁移将整体回滚，库版本停在 43）",
+                    indexName, SystemClock.elapsedRealtime() - t0);
+            throw new IllegalStateException("MIGRATION_43_44 failed at " + indexName, e);
+        }
+        Timber.tag(TAG).i("MIGRATION_43_44 %s ok in %d ms", indexName, SystemClock.elapsedRealtime() - t0);
+    }
+
     private static final Migration[] ALL_MIGRATIONS = {
             MIGRATION_23_24,
             MIGRATION_24_25,
@@ -551,6 +635,7 @@ public abstract class AppDatabase extends RoomDatabase {
             MIGRATION_40_41,
             MIGRATION_41_42,
             MIGRATION_42_43,
+            MIGRATION_43_44,
     };
 
     /**
