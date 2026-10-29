@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.search
 
+import androidx.lifecycle.ViewModel
 import ceui.lisa.activities.Shaft
 import ceui.lisa.helper.IllustNovelFilter
 import ceui.lisa.viewmodel.SearchModel
@@ -64,16 +65,33 @@ data class NovelSearchNetworkSpec(
 )
 
 /**
- * 从当前 [SearchModel] 构造插画搜索的网络入参快照。
+ * 本列表当前这一代首页**实际发出去**的网络入参（[IllustSearchNetworkSpec] / [NovelSearchNetworkSpec]）。
+ *
+ * 放在 Fragment 的 ViewModelStore 里，不挂在 Fragment 字段或 FeedSource 引用上：数据源只在
+ * FeedViewModel 首次创建时造一次，深浅色 / 语言等配置变更重建 Fragment 后新实例拿不回它；
+ * 这里与 FeedViewModel 同一个 store、同生命周期。
  */
-fun buildIllustNetworkSpec(searchModel: SearchModel): IllustSearchNetworkSpec {
+class LoadedSearchSpec : ViewModel() {
+    var spec: Any? = null
+}
+
+/**
+ * 从当前 [SearchModel] 构造插画搜索的网络入参快照。
+ *
+ * [keyword] 由数据源传本代首页的 keyword 快照：SearchModel.keyword 随键入实时变，必须与
+ * repo.update 读的是同一份。
+ */
+fun buildIllustNetworkSpec(
+    searchModel: SearchModel,
+    keyword: String = searchModel.keyword.value.orEmpty(),
+): IllustSearchNetworkSpec {
     val onlyAi = searchModel.onlyAi.value == true
     val excludeAi = searchModel.sessionExcludeAi.value ?: (runCatching { Shaft.sSettings?.isDeleteAIIllust }.getOrNull() ?: false)
     val clientSideAi = onlyAi || (excludeAi && (runCatching { Shaft.sSettings?.isAiBlockClientSide }.getOrNull() ?: false))
     val searchAiType = if (clientSideAi) 0 else if (excludeAi) 1 else 0
 
     return IllustSearchNetworkSpec(
-        keyword = searchModel.keyword.value.orEmpty(),
+        keyword = keyword,
         starSize = searchModel.starSize.value.orEmpty(),
         sortType = searchModel.sortType.value,
         searchType = searchModel.searchType.value,
@@ -95,9 +113,12 @@ fun buildIllustNetworkSpec(searchModel: SearchModel): IllustSearchNetworkSpec {
 }
 
 /**
- * 从当前 [SearchModel] 构造小说搜索的网络入参快照。
+ * 从当前 [SearchModel] 构造小说搜索的网络入参快照。[keyword] 同 [buildIllustNetworkSpec]。
  */
-fun buildNovelNetworkSpec(searchModel: SearchModel): NovelSearchNetworkSpec {
+fun buildNovelNetworkSpec(
+    searchModel: SearchModel,
+    keyword: String = searchModel.keyword.value.orEmpty(),
+): NovelSearchNetworkSpec {
     val groupBySeries = searchModel.groupBySeries.value == true
     val onlyAi = searchModel.onlyAi.value == true
     val excludeAi = searchModel.sessionExcludeAi.value ?: (runCatching { Shaft.sSettings?.isDeleteAIIllust }.getOrNull() ?: false)
@@ -107,7 +128,7 @@ fun buildNovelNetworkSpec(searchModel: SearchModel): NovelSearchNetworkSpec {
     return NovelSearchNetworkSpec(
         groupBySeries = groupBySeries,
         r18RestrictionIfGrouped = if (groupBySeries) (searchModel.r18Restriction.value ?: 0) else null,
-        keyword = searchModel.keyword.value.orEmpty(),
+        keyword = keyword,
         starSize = searchModel.starSize.value.orEmpty(),
         sortType = searchModel.sortType.value,
         searchType = searchModel.searchType.value,

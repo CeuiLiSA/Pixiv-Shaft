@@ -93,8 +93,16 @@ class SearchNovelSeriesWebSource(private val searchModel: SearchModel) : FeedSou
         }
         val section = resp.body?.novel
         val rows = section?.data.orEmpty()
+        // query 整代固定（翻页必须沿用同一套），但已收藏 / 仅看 AI / 客户端屏蔽 AI 这几个纯客户端
+        // 档位会被就地上下屏改掉而不换代：每页现读，否则续拉的页按上一代档位打标，与屏上对不上。
+        val marking = params.copy(
+            onlyAi = searchModel.onlyAi.value == true,
+            excludeAi = effectiveExcludeAi(searchModel),
+            bookmarkFilter = searchModel.sessionBookmarkFilter.value
+                ?: Shaft.sSettings.isSearchFilterBookmarked,
+        )
         val items = withContext(Dispatchers.Default) {
-            rows.mapNotNull { toFeedItem(it, params) }
+            rows.mapNotNull { toFeedItem(it, marking) }
         }
         // lastPage 是服务端给的翻页上限（匿名视角封顶 10 页）；空页也当到底，别继续空转。
         val hasNext = rows.isNotEmpty() && page < (section?.lastPage ?: 0)
@@ -207,7 +215,7 @@ internal fun WebNovelCollection.toNovel(id: Long, asSeries: Boolean = false): No
     )
 }
 
-/** 一次网页搜索请求的全部 query（+ 两个只在客户端生效的档位）。 */
+/** 一次网页搜索请求的全部 query（+ 只在客户端打标的档位，每页由 loadPage 按 SearchModel 现读覆盖）。 */
 internal data class WebNovelSearchParams(
     val keyword: String,
     val order: String,
@@ -289,7 +297,6 @@ internal fun buildWebNovelSearchParams(
     excludeAi: Boolean,
     keywordSnapshot: String = searchModel.keyword.value.orEmpty(),
     excludeAiClientSide: Boolean = false,
-    bookmarkFilter: Boolean = searchModel.sessionBookmarkFilter.value ?: (runCatching { Shaft.sSettings?.isSearchFilterBookmarked }.getOrNull() ?: false),
 ): WebNovelSearchParams {
     val bookmarkMin = searchModel.bookmarkMin.value?.takeIf { it > 0 }
     val bookmarkMax = searchModel.bookmarkMax.value?.takeIf { it > 0 }
@@ -346,7 +353,6 @@ internal fun buildWebNovelSearchParams(
         aiType = if (!onlyAi && excludeAi) 1 else null,
         r18Mode = r18Mode,
         onlyAi = onlyAi,
-        bookmarkFilter = bookmarkFilter,
         // 有效请求 = 服务端剔 + 客户端兜底；toFeedItem 据此做客户端剔除、并跳过全局 AI 判定
         excludeAi = excludeAi || excludeAiClientSide,
     )

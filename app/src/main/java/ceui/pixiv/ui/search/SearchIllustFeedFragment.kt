@@ -42,11 +42,14 @@ import ceui.pixiv.ui.usage.observeNana7miQuotaNotice
 class SearchIllustFeedFragment : IllustFeedFragment() {
 
     private var searchRefreshPending = false
-    private var feedSource: SearchIllustFeedSource? = null
     private var syncVisibilityJob: Job? = null
 
     private val searchModel: SearchModel by lazy(LazyThreadSafetyMode.NONE) {
         ViewModelProvider(requireActivity())[SearchModel::class.java]
+    }
+
+    private val loadedSpec: LoadedSearchSpec by lazy(LazyThreadSafetyMode.NONE) {
+        ViewModelProvider(this)[LoadedSearchSpec::class.java]
     }
 
     override val feedViewModel by feedViewModels(autoLoad = false) {
@@ -54,7 +57,8 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
         val searchModel = ViewModelProvider(requireActivity())[SearchModel::class.java]
         // 进程级服务也先取局部 val（应用级对象，不延长任何 Fragment 生命周期）
         val services = requireContext().appServices()
-        SearchIllustFeedSource(searchModel) {
+        val loadedSpec = loadedSpec
+        SearchIllustFeedSource(searchModel, loadedSpec) {
             // 8 个必填参数先给 null，全部由 update(searchModel) 填；构造时 super 已建好 FilterMapper。
             SearchIllustRepo(
                 null, null, null, null, null, null, null, null,
@@ -63,7 +67,7 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
                 remoteAppConfig = services.remoteAppConfig,
                 bookmarkMirror = services.bookmarkMirror,
             )
-        }.also { feedSource = it }
+        }
     }
 
     override val emptyStateText: CharSequence
@@ -109,13 +113,8 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
                 searchRefreshPending = false
                 feedViewModel.refresh()
             } else if (PixivSearchParamUtil.TAG_MATCH_VALUE.contains(searchModel.searchType.value)) {
-                val currentSpec = buildIllustNetworkSpec(searchModel)
-                val lastLoadedSpec = feedSource?.lastLoadedNetworkSpec
-                val hasLoadedData = feedViewModel.uiState.value.let {
-                    it.hasLoadedOnce && it.refresh !is LoadState.Error
-                }
                 val isResumed = viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
-                if (hasLoadedData && lastLoadedSpec != null && lastLoadedSpec == currentSpec) {
+                if (canSyncInPlace()) {
                     // 网络 URL 未变：就地上下屏，不发请求、不丢位置
                     searchRefreshPending = false
                     if (isResumed) {
@@ -135,6 +134,18 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
                 searchRefreshPending = false
             }
         }
+    }
+
+    /**
+     * 当前条件的网络入参与屏上这一代结果相同 → 只需就地上下屏，不必重新请求。
+     *
+     * 刷新进行中不算：在飞的请求回来会整代替换，就地同步的只是即将被换掉的旧代
+     *（例如改了排序、请求还没回来又改回原样：不重搜的话最后落地的是改动后那一代）。
+     */
+    private fun canSyncInPlace(): Boolean {
+        val state = feedViewModel.uiState.value
+        return state.hasLoadedOnce && state.refresh is LoadState.Idle &&
+            loadedSpec.spec == buildIllustNetworkSpec(searchModel)
     }
 
     /**
@@ -213,12 +224,7 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
         if (searchRefreshPending) {
             searchRefreshPending = false
             if (hadExistingLoad) {
-                val currentSpec = buildIllustNetworkSpec(searchModel)
-                val lastLoadedSpec = feedSource?.lastLoadedNetworkSpec
-                val hasLoadedData = feedViewModel.uiState.value.let {
-                    it.hasLoadedOnce && it.refresh !is LoadState.Error
-                }
-                if (hasLoadedData && lastLoadedSpec != null && lastLoadedSpec == currentSpec) {
+                if (canSyncInPlace()) {
                     syncItemVisibility()
                 } else {
                     feedViewModel.refresh()
@@ -243,12 +249,11 @@ class SearchIllustFeedFragment : IllustFeedFragment() {
  */
 class SearchIllustFeedSource(
     private val searchModel: SearchModel,
+    /** 首页成功落地后记下本代网络入参，供 Fragment 判断条件变更要不要重新请求。 */
+    private val loadedSpec: LoadedSearchSpec,
     /** 只在首页真正要发请求时才调；风险拦截命中的首页不会建 Repo。 */
     private val repoFactory: () -> SearchIllustRepo,
 ) : FeedSource<String> {
-
-    var lastLoadedNetworkSpec: IllustSearchNetworkSpec? = null
-        private set
 
     private var repo: SearchIllustRepo? = null
 
@@ -265,7 +270,7 @@ class SearchIllustFeedSource(
                 }
             }
             if (shouldWithhold) {
-                lastLoadedNetworkSpec = buildIllustNetworkSpec(searchModel)
+                loadedSpec.spec = buildIllustNetworkSpec(searchModel, keywordSnapshot)
                 return FeedPage(emptyList(), null)
             }
         }
@@ -274,9 +279,10 @@ class SearchIllustFeedSource(
         // 这里不用再包 withContext(IO)。（搜索历史写入已上移到 SearchActivity，update 不做 Room I/O。）
         val list: ListIllust = if (cursor == null) {
             r.update(searchModel, keywordSnapshot) // 与上面的策略判断共用同一 keyword 快照
-            val page = r.initApi()
-            lastLoadedNetworkSpec = buildIllustNetworkSpec(searchModel)
-            page
+            // 入参必须与 update 同一刻快照：请求挂起期间 SearchModel 会随键入 / 条件面板实时变，
+            // 回来再读会把没发出去的条件记成「已加载」，下次提交被误判为 URL 未变而不重搜。
+            val spec = buildIllustNetworkSpec(searchModel, requireNotNull(keywordSnapshot))
+            r.initApi().also { loadedSpec.spec = spec }
         } else {
             r.nextUrl = cursor
             r.initNextApi()

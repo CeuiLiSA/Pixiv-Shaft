@@ -62,11 +62,14 @@ import ceui.pixiv.ui.navigation.TemplateRoute
 class SearchNovelFeedFragment : NovelFeedFragment() {
 
     private var searchRefreshPending = false
-    private var feedSource: SearchNovelFeedSource? = null
     private var syncVisibilityJob: Job? = null
 
     private val searchModel: SearchModel by lazy(LazyThreadSafetyMode.NONE) {
         ViewModelProvider(requireActivity())[SearchModel::class.java]
+    }
+
+    private val loadedSpec: LoadedSearchSpec by lazy(LazyThreadSafetyMode.NONE) {
+        ViewModelProvider(this)[LoadedSearchSpec::class.java]
     }
 
     /** 系列卡的封面 / 头像；与基类小说卡同一个 RequestManager（Glide.with(Fragment) 解析结果一致）。 */
@@ -75,7 +78,8 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
     override val feedViewModel by feedViewModels(autoLoad = false) {
         val searchModel = ViewModelProvider(requireActivity())[SearchModel::class.java]
         val services = requireContext().appServices()
-        SearchNovelFeedSource(searchModel) {
+        val loadedSpec = loadedSpec
+        SearchNovelFeedSource(searchModel, loadedSpec) {
             SearchNovelRepo(
                 null, null, null, null, null, null, null, null,
                 nana7miOutbox = services.accountOnlineReportOutbox,
@@ -83,7 +87,7 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
                 remoteAppConfig = services.remoteAppConfig,
                 bookmarkMirror = services.bookmarkMirror,
             )
-        }.also { feedSource = it }
+        }
     }
 
     /**
@@ -138,13 +142,8 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
                 searchRefreshPending = false
                 feedViewModel.refresh()
             } else if (PixivSearchParamUtil.TAG_MATCH_VALUE_NOVEL.contains(searchModel.searchType.value)) {
-                val currentSpec = buildNovelNetworkSpec(searchModel)
-                val lastLoadedSpec = feedSource?.lastLoadedNetworkSpec
-                val hasLoadedData = feedViewModel.uiState.value.let {
-                    it.hasLoadedOnce && it.refresh !is LoadState.Error
-                }
                 val isResumed = viewLifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
-                if (hasLoadedData && lastLoadedSpec != null && lastLoadedSpec == currentSpec) {
+                if (canSyncInPlace()) {
                     // 网络 URL 未变：就地上下屏，不发请求、不丢位置
                     searchRefreshPending = false
                     if (isResumed) {
@@ -162,6 +161,13 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
                 searchRefreshPending = false
             }
         }
+    }
+
+    /** 口径同 [SearchIllustFeedFragment] 的同名方法。 */
+    private fun canSyncInPlace(): Boolean {
+        val state = feedViewModel.uiState.value
+        return state.hasLoadedOnce && state.refresh is LoadState.Idle &&
+            loadedSpec.spec == buildNovelNetworkSpec(searchModel)
     }
 
     /**
@@ -243,12 +249,7 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
         if (searchRefreshPending) {
             searchRefreshPending = false
             if (hadExistingLoad) {
-                val currentSpec = buildNovelNetworkSpec(searchModel)
-                val lastLoadedSpec = feedSource?.lastLoadedNetworkSpec
-                val hasLoadedData = feedViewModel.uiState.value.let {
-                    it.hasLoadedOnce && it.refresh !is LoadState.Error
-                }
-                if (hasLoadedData && lastLoadedSpec != null && lastLoadedSpec == currentSpec) {
+                if (canSyncInPlace()) {
                     syncItemVisibility()
                 } else {
                     feedViewModel.refresh()
@@ -358,12 +359,11 @@ class SearchNovelFeedFragment : NovelFeedFragment() {
  */
 class SearchNovelFeedSource(
     private val searchModel: SearchModel,
+    /** 首页成功落地后记下本代网络入参，供 Fragment 判断条件变更要不要重新请求。 */
+    private val loadedSpec: LoadedSearchSpec,
     /** 只在首页真正要发请求时才调；风险拦截命中的首页不会建 Repo。 */
     private val repoFactory: () -> SearchNovelRepo,
 ) : FeedSource<String> {
-
-    var lastLoadedNetworkSpec: NovelSearchNetworkSpec? = null
-        private set
 
     private var repo: SearchNovelRepo? = null
     private val webSource by lazy(LazyThreadSafetyMode.NONE) {
@@ -384,7 +384,7 @@ class SearchNovelFeedSource(
                 }
             }
             if (shouldWithhold) {
-                lastLoadedNetworkSpec = buildNovelNetworkSpec(searchModel)
+                loadedSpec.spec = buildNovelNetworkSpec(searchModel, keywordSnapshot)
                 return FeedPage(emptyList(), null)
             }
         }
@@ -394,21 +394,22 @@ class SearchNovelFeedSource(
             groupedGeneration ?: (searchModel.groupBySeries.value == true)
         }
         if (grouped) {
-            val page = if (cursor == null) {
-                val res = webSource.loadFirstPage(requireNotNull(keywordSnapshot))
-                lastLoadedNetworkSpec = buildNovelNetworkSpec(searchModel)
-                res
+            return if (cursor == null) {
+                // 入参与请求同一刻快照，理由见下方 app-api 路径
+                val keyword = requireNotNull(keywordSnapshot)
+                val spec = buildNovelNetworkSpec(searchModel, keyword)
+                webSource.loadFirstPage(keyword).also { loadedSpec.spec = spec }
             } else {
                 webSource.load(cursor)
             }
-            return page
         }
         val r = repo ?: repoFactory().also { repo = it }
         val list: ListNovel = if (cursor == null) {
             r.update(searchModel, keywordSnapshot)
-            val page = r.initApi()
-            lastLoadedNetworkSpec = buildNovelNetworkSpec(searchModel)
-            page
+            // 入参必须与 update 同一刻快照：请求挂起期间 SearchModel 会随键入 / 条件面板实时变，
+            // 回来再读会把没发出去的条件记成「已加载」，下次提交被误判为 URL 未变而不重搜。
+            val spec = buildNovelNetworkSpec(searchModel, requireNotNull(keywordSnapshot))
+            r.initApi().also { loadedSpec.spec = spec }
         } else {
             r.nextUrl = cursor
             r.initNextApi()
