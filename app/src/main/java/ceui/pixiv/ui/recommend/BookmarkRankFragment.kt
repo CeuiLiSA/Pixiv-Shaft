@@ -11,6 +11,7 @@ import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
+import ceui.pixiv.ui.common.withMirroredBookmarks
 import ceui.pixiv.ui.common.NovelFeedFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -242,6 +243,6 @@ class BookmarkRankFeedSource(
                 it.toRankFeedItem(type, it.bookmark_count.toFloat(), skipAi, "BookmarkRank")
             }
         }
-        return FeedPage(items, resp.next_url?.takeIf { it.isNotEmpty() })
+        return FeedPage(items.withMirroredBookmarks(), resp.next_url?.takeIf { it.isNotEmpty() })
     }
 }

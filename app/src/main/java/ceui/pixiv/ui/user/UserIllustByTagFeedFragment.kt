@@ -20,6 +20,7 @@ import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.common.withMirroredBookmarks
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 import kotlinx.coroutines.Dispatchers
@@ -181,7 +182,7 @@ class UserIllustByTagFeedSource(
             works.mapNotNull { IllustFeedItem.of(it.toIllust(), skipMuteUserFilter = true) }
         }
         val next = if (works.isNotEmpty() && loaded < total) loaded.toString() else null
-        return FeedPage(items, next)
+        return FeedPage(items.withMirroredBookmarks(), next)
     }
 
     companion object {

@@ -5,6 +5,7 @@ import android.content.IntentFilter
 import android.net.Uri
 import androidx.lifecycle.lifecycleScope
 import ceui.pixiv.utils.playToggleHaptic
+import ceui.pixiv.utils.reconcileViewerStateFromMirror
 import kotlinx.coroutines.launch
 import android.os.Bundle
 import android.os.Handler
@@ -275,6 +276,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         val illustLiveData = ObjectPool.get<Illust>(safeArgs.illustId)
         illustLiveData.observe(viewLifecycleOwner) { illust ->
             updateIllust(illust)
+            reconcileViewerStateOnce(illust)
         }
         vm.downloadState.collectIn(
             viewLifecycleOwner,
@@ -505,6 +507,26 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
                     }
                 }
             }
+        }
+    }
+
+    /** 镜像校正只做一次：写回池会再触发上面的 Illust / User 观察者，不能跟着递归。 */
+    private var viewerStateReconciled = false
+
+    /**
+     * 池里这条的 viewer 态不可信时（自建源上报快照 / 借号 / 历史快照喂进来的），按本地收藏 /
+     * 关注镜像校正一次 —— 只升不降，见 [reconcileViewerStateFromMirror]。写回池之后，上面的
+     * Illust 观察者与 User 观察者会各自重绘爱心和作者栏，这里不需要再动 View。
+     *
+     * 快照模式不走池（[setupSnapshotView] 直接渲染 snapshotBean），在 initView 里已经提前返回。
+     */
+    private fun reconcileViewerStateOnce(illust: Illust) {
+        if (viewerStateReconciled) return
+        viewerStateReconciled = true
+        viewLifecycleOwner.lifecycleScope.launch {
+            // 「该不该问镜像」由它自己逐字段判定（可信 + 非空才跳过），这里不再预判：
+            // 池里那条可能因为用户刚点过红心而被标成可信，但关注态还是未知。
+            reconcileViewerStateFromMirror(illust)
         }
     }
 

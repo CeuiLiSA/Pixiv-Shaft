@@ -5,6 +5,7 @@ import ceui.lisa.network.ShaftApiV2Client
 import ceui.pixiv.feeds.FeedPage
 import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.common.withMirroredBookmarks
 import ceui.pixiv.ui.common.NovelFeedItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -78,7 +79,7 @@ class HotWorksIllustFeedSource(
         val feedItems = withContext(Dispatchers.Default) {
             items.mapNotNull { mapHotIllustItem(it, source) }
         }
-        return FeedPage(feedItems, nextUrl?.takeIf { it.isNotEmpty() })
+        return FeedPage(feedItems.withMirroredBookmarks(), nextUrl?.takeIf { it.isNotEmpty() })
     }
 }
 
@@ -93,7 +94,7 @@ class HotWorksNovelFeedSource(
         val feedItems = withContext(Dispatchers.Default) {
             items.mapNotNull { mapHotNovelItem(it, source) }
         }
-        return FeedPage(feedItems, nextUrl?.takeIf { it.isNotEmpty() })
+        return FeedPage(feedItems.withMirroredBookmarks(), nextUrl?.takeIf { it.isNotEmpty() })
     }
 }
 

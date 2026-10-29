@@ -106,7 +106,12 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                         // 旧的 FragmentSingleIllust 兜底页已删,非 V3 一律走 FragmentIllust。
                         Illust exist = ObjectPool.INSTANCE.getIllust(illustsBean.getId()).getValue();
                         if (exist == null) {
-                            ObjectPool.INSTANCE.updateIllust(illustsBean);
+                            // 这条 bean 来自列表：收藏 / 关注态不一定是当前用户的（自建源上报快照、
+                            // 借号搜索、浏览历史快照都是别人的视角）。清成「未知」并标记不可信，
+                            // 详情页再按本地收藏 / 关注镜像「只升不降」地补。
+                            // 直接 updateIllust 会把脏值钉进池，而详情页 isFullDetail() 短路回源，
+                            // 进程内没有任何机会改回来。
+                            ObjectPool.INSTANCE.seedUntrusted(illustsBean);
                         }
                         // 平板排版下一律用新的平板详情排版，不再出现旧详情页（#1087）；
                         // 手机与关掉「平板适配排版」的平板仍按「使用新版详情页」设置选择

@@ -13,6 +13,7 @@ import ceui.pixiv.feeds.FeedSource
 import ceui.pixiv.feeds.feedViewModels
 import ceui.pixiv.ui.common.IllustFeedFragment
 import ceui.pixiv.ui.common.IllustFeedItem
+import ceui.pixiv.ui.common.withMirroredBookmarks
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.common.viewBinding
 
@@ -43,7 +44,7 @@ class PrimeTagDetailFragment : IllustFeedFragment(R.layout.fragment_toolbar_feed
             // Retrofit suspend 自带 main-safe；解析量也只剩一页 30 条，不用再自己切线程。
             val page = Client.pixshaft.primeTagIllusts(key, cursor?.toIntOrNull() ?: 0, PAGE_SIZE)
             FeedPage(
-                page.illusts.mapNotNull { illust -> IllustFeedItem.of(illust) },
+                page.illusts.mapNotNull { illust -> IllustFeedItem.of(illust) }.withMirroredBookmarks(),
                 page.next_offset?.toString(),
             )
         }

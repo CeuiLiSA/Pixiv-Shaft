@@ -74,6 +74,7 @@ object ObjectPool {
             it.remove()
             // 条目走了，「detail 确认过」的标记也没有存在意义（下次 update 会重新置）。
             fullVersionKeys.remove(entry.key)
+            untrustedViewerKeys.remove(entry.key)
         }
     }
 
@@ -128,12 +129,15 @@ object ObjectPool {
 
     fun followUser(userId: Long) {
         get<User>(userId).value?.let { exist ->
+            // 用户自己的关注动作（服务端确认 / 乐观 + 回滚）本身就是权威值。
+            markViewerStateTrusted(userId, ObjectSpec.KUser)
             update(exist.copy(is_followed = true))
         }
     }
 
     fun unFollowUser(userId: Long) {
         get<User>(userId).value?.let { exist ->
+            markViewerStateTrusted(userId, ObjectSpec.KUser)
             update(exist.copy(is_followed = false))
         }
     }
@@ -171,6 +175,8 @@ object ObjectPool {
         synchronized(lock) {
             if (isFullVersion) {
                 fullVersionKeys.add(key)
+                // detail 整体覆盖 = 当前用户视角的权威值，之前的不可信标记到此为止。
+                untrustedViewerKeys.remove(key)
             }
             val existing = store[key]
             created = existing == null
@@ -203,8 +209,112 @@ object ObjectPool {
      */
     private val fullVersionKeys = mutableSetOf<ObjectKey>()
 
+    /** 见下方「viewer 态可信度」。与 [fullVersionKeys] 同生命周期：随条目一起 LRU 淘汰。只在 [lock] 内碰。 */
+    private val untrustedViewerKeys = mutableSetOf<ObjectKey>()
+
     fun hasFullIllustVersion(illustId: Long): Boolean {
         return synchronized(lock) { ObjectKey(illustId, ObjectSpec.Illust) in fullVersionKeys }
+    }
+
+    // ── viewer 态可信度 ────────────────────────────────────────────────────────
+    //
+    // 池里的 `is_bookmarked` / `user.is_followed` 只有在**当前用户视角**下才成立：官方列表接口、
+    // detail 接口、用户自己的收藏 / 关注动作产出的值才算数；自建源（shaft-api-v2）上报快照、
+    // 借号搜索、浏览历史快照里的是上报者 / 借来账号的状态。
+    //
+    // 脏值一旦进池就**不会自愈**：详情页用 isFullDetail() 短路回源（图片字段齐全就一次 detail
+    // 都不发），所以进程内没有任何机会把它改回来，只能重启。因此：
+    //  - 写侧：这类来源进池前一律清成「未知」（null，不是 false）并打上不可信标记；
+    //  - 读侧：标记不可信的条目，收藏 / 关注态改由本地镜像「只升不降」地补（见
+    //    [ceui.pixiv.db.mirror.BookmarkMirrorService.bookmarkedAmong]）。
+    //
+    // 标记随条目一起 LRU 淘汰；detail 整体覆盖（isFullVersion）与用户自己的收藏 / 关注动作
+    // 都会把它清掉 —— 那两种写入本身就是权威的。
+
+    /** 这条池条目的 viewer 态不是当前用户的视角，读之前必须先问镜像。 */
+    fun markViewerStateUntrusted(id: Long, type: Int) {
+        synchronized(lock) { untrustedViewerKeys.add(ObjectKey(id, type)) }
+    }
+
+    /** 这条池条目的 viewer 态已被权威来源确认（detail 覆盖 / 用户自己的动作）。 */
+    fun markViewerStateTrusted(id: Long, type: Int) {
+        synchronized(lock) { untrustedViewerKeys.remove(ObjectKey(id, type)) }
+    }
+
+    fun isViewerStateTrusted(id: Long, type: Int): Boolean {
+        return synchronized(lock) { ObjectKey(id, type) !in untrustedViewerKeys }
+    }
+
+    fun isIllustViewerStateTrusted(illustId: Long): Boolean =
+        isViewerStateTrusted(illustId, ObjectSpec.Illust)
+
+    /**
+     * 把一条**来源不可信**的作品放进池：收藏 / 关注态清成 null（未知）并打标记。
+     *
+     * 作者条目只在池里还没有它的时候才打标记 —— 已有的那条可能是画师主页 / detail 写进来的
+     * 权威值，不能因为一张榜单卡经过就被降级。
+     */
+    fun seedUntrusted(illust: Illust) {
+        val sanitized = illust.withoutViewerState()
+        val authorId = sanitized.user?.id ?: 0L
+        val authorAbsent = authorId > 0L && get<User>(authorId).value == null
+        markViewerStateUntrusted(sanitized.id, ObjectSpec.Illust)
+        updateIllust(sanitized)
+        if (authorAbsent) {
+            markViewerStateUntrusted(authorId, ObjectSpec.KUser)
+        }
+    }
+
+    /**
+     * 官方列表页合池：写入后把 viewer 态重新标成可信。
+     *
+     * 标记的语义是「**最近一次写入者**是否权威」：列表 bean 在各自 source 里已经洗过（自建源
+     * 页面一律不喂池、借号页清成未知），所以这里写进去的收藏 / 关注态要么是当前用户视角、
+     * 要么是未知，两种都不该再被镜像的「不知道」覆盖。少了这一下，官方列表刚补进来的真值会被
+     * 详情页的镜像校正抹回 null（镜像没就绪时就是「明明收藏了却一直灰心」）。
+     */
+    fun updateIllustTrusted(illust: Illust) {
+        updateIllust(illust)
+        markViewerStateTrusted(illust.id, ObjectSpec.Illust)
+        // 作者条目跟着一起写了，同理：别让 seedUntrusted 早先留下的标记把这份关注态再交给镜像降级。
+        illust.user?.id?.takeIf { it > 0L }?.let { markViewerStateTrusted(it, ObjectSpec.KUser) }
+    }
+
+    /**
+     * 用镜像结论覆盖池里这条作品的 viewer 态，**绕过 [mergeKeepingExisting]**。
+     *
+     * 为什么要绕过：merge 只把 null 当空值，false 会照盖。镜像的语义是「只升不降」——
+     * 有就是 true，没有就写 null（未知），绝不写 false。整体替换这两个字段才能把历史上
+     * 混进来的脏 true 真正抹掉。
+     *
+     * 主线程调用（内部 `setValue`，见类注释「线程」）。
+     */
+    fun applyMirroredViewerState(illustId: Long, bookmarked: Boolean?, followed: Boolean?) {
+        val illustLive = synchronized(lock) { store[ObjectKey(illustId, ObjectSpec.Illust)] } ?: return
+        val current = illustLive.value as? Illust ?: return
+        val author = current.user
+        // 值没变就别发（LiveData 不看相等性，每次都全量通知观察者）。
+        val nextIllust = current.copy(
+            is_bookmarked = bookmarked,
+            user = author?.copy(is_followed = followed),
+        )
+        if (nextIllust != current) {
+            try {
+                illustLive.value = nextIllust
+            } catch (ex: Exception) {
+                illustLive.postValue(nextIllust)
+            }
+        }
+        if (author == null) return
+        val userLive = synchronized(lock) { store[ObjectKey(author.id, ObjectSpec.KUser)] } ?: return
+        val currentUser = userLive.value as? User ?: return
+        if (currentUser.is_followed == followed) return
+        val nextUser = currentUser.copy(is_followed = followed)
+        try {
+            userLive.value = nextUser
+        } catch (ex: Exception) {
+            userLive.postValue(nextUser)
+        }
     }
 
     private val gson: Gson = Gson()
