@@ -31,22 +31,23 @@ import timber.log.Timber
  */
 object WebLinkHelper {
 
+    /** @return 页面真的开出去了没有（调用方据此决定要不要进入「等用户回来」之类的状态）。 */
     @JvmStatic
-    fun openUrl(context: Context?, url: String?) {
-        if (context == null || url.isNullOrBlank()) return
-        val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return
-        openUrl(context, uri)
+    fun openUrl(context: Context?, url: String?): Boolean {
+        if (context == null || url.isNullOrBlank()) return false
+        val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return false
+        return openUrl(context, uri)
     }
 
     @JvmStatic
-    fun openUrl(context: Context?, uri: Uri?) {
-        if (context == null || uri == null) return
+    fun openUrl(context: Context?, uri: Uri?): Boolean {
+        if (context == null || uri == null) return false
         if (ChromeTabsPrefs.shouldUseChromeCustomTabs(context)) {
             val launched = launchChromeCustomTab(context, uri)
-            if (launched) return
+            if (launched) return true
         }
         // 回退到旧版普通链接行为（Intent.ACTION_VIEW）
-        launchLegacyView(context, uri)
+        return launchLegacyView(context, uri)
     }
 
     @JvmStatic
@@ -143,18 +144,21 @@ object WebLinkHelper {
         }
     }
 
-    private fun launchLegacyView(context: Context, uri: Uri) {
+    private fun launchLegacyView(context: Context, uri: Uri): Boolean {
         val intent = Intent(Intent.ACTION_VIEW, uri).apply {
             if (context !is Activity) {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
         }
-        try {
+        return try {
             context.startActivity(intent)
+            true
         } catch (_: ActivityNotFoundException) {
             Common.showToast(context.getString(R.string.msg_no_browser))
+            false
         } catch (_: SecurityException) {
             Common.showToast(context.getString(R.string.msg_no_browser))
+            false
         }
     }
 }

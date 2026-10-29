@@ -194,10 +194,6 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
-    /**
-     * 主操作只在「动作本身」变化时才重设。进度每秒推 4 次，每次都重建
-     * setTextWithIcon 的 span 会白造垃圾，点一下还会把按压态打断。
-     */
     private fun renderOpenInBrowserPrimary(rel: GitHubRelease) {
         val useCct = ChromeTabsPrefs.shouldUseChromeCustomTabs(context)
         val textRes = if (useCct) {
@@ -215,6 +211,10 @@ class UpdateBottomSheet : BottomSheetDialogFragment() {
         }
     }
 
+    /**
+     * 主操作只在「动作本身」变化时才重设。进度每秒推 4 次，每次都重建
+     * setTextWithIcon 的 span 会白造垃圾，点一下还会把按压态打断。
+     */
     private fun setPrimary(
         key: String,
         text: Int = R.string.update_download,
