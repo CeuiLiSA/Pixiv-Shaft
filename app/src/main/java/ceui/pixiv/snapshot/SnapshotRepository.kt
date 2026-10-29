@@ -122,7 +122,12 @@ object SnapshotRepository {
     fun delete(context: Context, snapshotId: String): Boolean {
         val target = dir(context, snapshotId)
         val ok = if (target.isDirectory) target.deleteRecursively() else false
-        if (ok) SnapshotRuntimeCache.remove(snapshotId)
+        if (ok) {
+            SnapshotRuntimeCache.remove(snapshotId)
+            // 删掉之后卡片上那枚快照标记必须跟着消失：这是**唯一**的删除口，管理页单删/批删、
+            // 自动快照配额淘汰、导入替换失败回滚都从这里走。
+            SnapshotIndex.onSnapshotDeleted(snapshotId)
+        }
         return ok
     }
 
@@ -218,6 +223,7 @@ object SnapshotRepository {
                 }
                 backup.deleteRecursively()
                 SnapshotRuntimeCache.remove(manifest.snapshotId)
+                SnapshotIndex.onSnapshotWritten(manifest.illustId, manifest.snapshotId, isAuto = false)
                 manifest
             } catch (e: Exception) {
                 target.deleteRecursively()

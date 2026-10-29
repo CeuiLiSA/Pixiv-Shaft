@@ -290,6 +290,35 @@
 
                 </RelativeLayout>
 
+                <!--
+                  失效作品模拟 —— 调试入口，只在 debug 包可见
+                  （可见性在 FragmentSettingsExperimental 里按 BuildConfig.DEBUG 控制）。
+                  打开后两个收藏页会把「有离线快照的作品」画成失效作品卡（占位图封面、无角标），
+                  用来验「失效卡仍显示快照标记」这条路径；只改画法，不动任何数据。
+                -->
+                <RelativeLayout
+                    android:id="@+id/debug_fake_invalid_rela"
+                    style="@style/M3SetRow"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/wit_row_single">
+
+                    <LinearLayout style="@style/M3SetTexts">
+
+                        <TextView
+                            style="@style/M3SetTitle"
+                            android:text="@string/debug_fake_invalid_title" />
+
+                        <TextView
+                            style="@style/M3SetDesc"
+                            android:text="@string/debug_fake_invalid_desc" />
+                    </LinearLayout>
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/debug_fake_invalid_switch"
+                        style="@style/M3SetSwitch" />
+
+                </RelativeLayout>
+
             </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>

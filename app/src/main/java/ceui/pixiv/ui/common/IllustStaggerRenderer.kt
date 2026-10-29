@@ -21,6 +21,8 @@ import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.Params
 import ceui.pixiv.feeds.FeedRenderer
 import ceui.pixiv.feeds.feedRenderer
+import ceui.pixiv.snapshot.SnapshotIndex
+import ceui.pixiv.ui.debug.DebugInvalidWorks
 import ceui.pixiv.ui.recommend.formatTrendingScore
 import ceui.pixiv.widget.IllustBadgeRowView
 import ceui.pixiv.utils.playLikePressHaptic
@@ -71,6 +73,14 @@ internal val PAYLOAD_ILLUST_SPOILER_CHANGED = Any()
 internal val PAYLOAD_ILLUST_LIKE_VISIBILITY_CHANGED = Any()
 
 /**
+ * 「这件作品有 / 没有离线快照」的局部重绑标记：只重算快照标记的显隐，不碰图、角标和爱心。
+ *
+ * 同样不来自 DiffUtil —— 快照在磁盘上（[ceui.pixiv.snapshot.SnapshotIndex]），条目内容一个字节没变。
+ * 由 [IllustFeedFragment.observeSnapshotRevision] 在「索引扫完」和「快照被增删」时发出。
+ */
+internal val PAYLOAD_ILLUST_SNAPSHOT_CHANGED = Any()
+
+/**
  * Glide 请求去重 key（存在 ImageView 的 tag 上）。带 [blurred]：屏蔽态切换时 URL 和尺寸都没变，
  * 少了这一维就会因为 key 相等而跳过重新加载，图永远不糊/不清。
  */
@@ -113,6 +123,14 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             cell.binding.root.setOnLongClickListener {
                 showCardMenu(cell.item)
                 true
+            }
+            // 快照标记：这件作品本地有快照时，点它直接进离线详情页（失效作品也能看 —— 那种卡
+            // 本身的点击已经没有在线详情可开了）。索引在点击那一刻现读：期间快照可能刚被删掉，
+            // 读到 null 就当没有这个按钮，别去开一个不存在的目录。
+            cell.binding.snapshotButton.setOnClick {
+                val tapped = cell.itemOrNull ?: return@setOnClick
+                val entry = SnapshotIndex.entryFor(tapped.illust.id) ?: return@setOnClick
+                openSnapshotViewer(entry)
             }
             cell.binding.likeButton.setOnClick {
                 // 收藏态的真源是 VM 的当前状态，不是 cell.item —— 后者是 adapter **已提交的快照**，
@@ -179,7 +197,8 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             // 所以逐个认领而不是二选一；混进不认识的就整体退回全量绑定
             val known = payloads.all {
                 it === PAYLOAD_ILLUST_LIKE_CHANGED || it === PAYLOAD_ILLUST_SPOILER_CHANGED ||
-                        it === PAYLOAD_ILLUST_LIKE_VISIBILITY_CHANGED
+                        it === PAYLOAD_ILLUST_LIKE_VISIBILITY_CHANGED ||
+                        it === PAYLOAD_ILLUST_SNAPSHOT_CHANGED
             }
             if (known) {
                 if (payloads.any { it === PAYLOAD_ILLUST_LIKE_CHANGED }) {
@@ -200,13 +219,20 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
                         animate = true,
                     )
                     // 叠在图上的操作层跟着屏蔽态走。和全量绑定共用同一分支，两边永远一致
-                    applyIllustSpoilerMask(cell.binding, spoilered)
+                    applyIllustSpoilerMask(cell.binding, spoilered, SnapshotIndex.entryFor(bean.id) != null)
                 } else if (payloads.any { it === PAYLOAD_ILLUST_LIKE_VISIBILITY_CHANGED }) {
                     applyIllustSpoilerMask(
                         cell.binding,
                         IllustMuteStore.isMuted(cell.item.illust.id) ||
                                 IllustNovelFilter.shouldBlurAi(cell.item.illust),
+                        SnapshotIndex.entryFor(cell.item.illust.id) != null,
                     )
+                }
+                if (payloads.any { it === PAYLOAD_ILLUST_SNAPSHOT_CHANGED }) {
+                    // 索引扫完了 / 快照被增删：只翻这枚标记的显隐，图、角标、爱心一个字节都不用重算
+                    val bean = cell.item.illust
+                    cell.binding.snapshotButton.isVisible =
+                        SnapshotIndex.entryFor(bean.id) != null && !isIllustSpoilered(bean)
                 }
                 true
             } else {
@@ -215,17 +241,26 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
         },
     ) { cell ->
         val bean = cell.item.illust
-        cell.binding.illustImage.setHeightRatio(displayRatioOf(bean))
+        // 【调试】失效作品模拟（试验性页的 debug 开关，只有两个收藏页认）：把 bean 换成一份
+        // 「失效作品形状」的副本（字段照真机抓包，见 [DebugInvalidWorks.asInvalidPlaceholder]），
+        // 之后的取图 / 角标 / 高度全走真实路径 —— 封面就是服务端那张 limit_unknown 占位图，
+        // 与真机上的失效卡一模一样，这里没有任何「假分支」。副本只活在这一次绘制里，
+        // 不写回条目、不进 ObjectPool、不落盘。
+        val fakeInvalid = fakeInvalidWorksEnabled && DebugInvalidWorks.shouldFakeAsInvalid(bean.id)
+        val display = if (fakeInvalid) DebugInvalidWorks.asInvalidPlaceholder(bean) else bean
+        cell.binding.illustImage.setHeightRatio(displayRatioOf(display))
 
         // 「这条算不算 AI」一次 bind 只问一次：标签规则要逐条规范化比较，是这条链路上最贵的一步。
         // 打码判定与 AI 角标都从这一份结果上取，别让同一张卡把标签匹配跑两遍。
-        val aiWork = IllustNovelFilter.isAiWork(bean)
+        val aiWork = IllustNovelFilter.isAiWork(display)
         val excludeAi = Shaft.sSettings.isDeleteAIIllust
         // 打码与否的真源是本地屏蔽名单 + AI 屏蔽强度，bind 时现读：别的页面改了屏蔽/设置，
         // 本页滑动复用一次就跟上（条目本身不带这个状态，见 PAYLOAD_ILLUST_SPOILER_CHANGED 的注释；
         // 没被回收的卡由 IllustFeedFragment.observeMuteRevision 补绑）
-        val spoilered = IllustMuteStore.isMuted(cell.item.illust.id) ||
-                IllustNovelFilter.shouldBlurAi(bean, excludeAi, aiWork)
+        // 伪装的卡不参与打码：封面只是一张占位图，糊它没有意义，反而会把快照标记一起藏掉，
+        // 正好遮住这个调试开关要验的东西。
+        val spoilered = !fakeInvalid && (IllustMuteStore.isMuted(bean.id) ||
+                IllustNovelFilter.shouldBlurAi(display, excludeAi, aiWork))
         // 粒子层只跟屏蔽态走：没被屏蔽的卡一律不画。之前首页推荐是「全员开」，
         // 整屏卡片都在跑逐帧粒子——既看不出是装饰还是屏蔽提示，也白烧一屏的帧。
         // View 本身不 clickable，不会截走卡片点击/长按。
@@ -235,16 +270,16 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
             show = spoilered,
             animate = false,
         )
-        loadIllustImage(cell.binding, bean, spoilered)
+        loadIllustImage(cell.binding, display, spoilered)
 
         // 角标行整行交给自绘 View（原本是 7 个 TextView，每张卡无条件建一遍）。
         // 顺序与原布局一致：站长推荐 -> R-18 -> 页数 -> W -> GIF -> AI -> NEW。
-        cell.binding.badgeRow.setBadges(buildBadges(bean, cell.binding.root.resources, aiWork))
+        cell.binding.badgeRow.setBadges(buildBadges(display, cell.binding.root.resources, aiWork))
         // 全量绑定可能是复用的卡换了条目：上一条残留的爆发动画/缩放必须清干净
         resetLikeAnim(cell.binding)
         renderLikeState(cell.binding.likeButton, cell.item.illust.is_bookmarked == true)
-        // 放在最后：这一步会按屏蔽态覆盖上面那批角标行 / 爱心的可见性
-        applyIllustSpoilerMask(cell.binding, spoilered)
+        // 放在最后：这一步会按屏蔽态覆盖上面那批角标行 / 爱心 / 快照标记的可见性
+        applyIllustSpoilerMask(cell.binding, spoilered, SnapshotIndex.entryFor(bean.id) != null)
     }
 
 /**
@@ -265,15 +300,27 @@ internal fun IllustFeedFragment.staggerIllustRenderer():
 private fun IllustFeedFragment.applyIllustSpoilerMask(
     binding: RecyIllustStaggerBinding,
     masked: Boolean,
+    hasSnapshot: Boolean,
 ) {
     val hide = hideLikeButton
     boundHideLikeButton = hide
+    // 顺手把「失效作品模拟」的水位记下来：它是 debug 开关，在另一个 Activity 里改完回来，
+    // 屏上已绑好的卡不会自己重绑（同 boundHideLikeButton 的道理，见 IllustFeedFragment.onResume）
+    boundFakeInvalidWorks = fakeInvalidWorksEnabled
     binding.badgeRow.isVisible = !masked
     binding.likeButton.isVisible = !masked && !hide
+    // 快照标记和爱心同属「叠在图上的操作层」，屏蔽态一起藏（糊掉的图上还写着「本地有快照」没意义）。
+    // 但它**不跟 hideLikeButton 走**：有快照这件事和「要不要显示收藏按钮」无关，那时它自己顶到
+    // 行尾、正好落在爱心原来的位置上（见 recy_illust_stagger 里操作行那段注释）。
+    binding.snapshotButton.isVisible = !masked && hasSnapshot
     if (masked) {
         resetLikeAnim(binding)
     }
 }
+
+/** 卡片此刻是不是屏蔽态（本地屏蔽名单 + AI 屏蔽强度）。局部重绑路径共用，口径与全量绑定一致。 */
+private fun isIllustSpoilered(bean: Illust): Boolean =
+    IllustMuteStore.isMuted(bean.id) || IllustNovelFilter.shouldBlurAi(bean)
 
 /**
  * 只按元数据驱动宽高比（钳到宽的 0.6~2.0 倍，对齐 IAdapter），不等 Glide 量像素；

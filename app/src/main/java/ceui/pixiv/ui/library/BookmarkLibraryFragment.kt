@@ -73,6 +73,13 @@ class BookmarkLibraryFragment :
         get() = super.hideLikeButton || (SessionManager.loggedInUid == libraryViewModel.shelf.ownerUid &&
                 Shaft.sSettings.isHideStarButtonAtMyCollection())
 
+    /**
+     * 【调试】失效作品模拟：收藏库默认「作品状态不限」，失效行照常成卡（`ValidityFilter.ANY`），
+     * 试验性页的 debug 开关在这里生效。
+     */
+    override val fakeInvalidWorksEnabled: Boolean
+        get() = ceui.pixiv.ui.debug.DebugInvalidWorks.enabled
+
     override val emptyStateText: CharSequence
         get() = ui?.emptyStateText() ?: super.emptyStateText
 

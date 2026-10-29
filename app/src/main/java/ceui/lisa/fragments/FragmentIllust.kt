@@ -614,7 +614,7 @@ class FragmentIllust : BaseLazyFragment<FragmentIllustBinding>() {
         // 快照是「当时那一刻」的存档，在线可见性判断不该作用在它上面：Gson 默认丢弃 null 字段，
         // 精简来源的 bean 存进 illust.json 后 visible 会缺失 → 反序列化成 null → 一打开就
         // 提示「作品不存在」并自动关页。id 那条仍然保留(存档本身坏了才会命中)。
-        if (illust.id == 0L || (!isSnapshotMode && illust.visible != true)) {
+        if (illust.id == 0L || (!isSnapshotMode && illust.isUnavailable)) {
             Common.showToast(R.string.string_206)
             Handler().postDelayed({ finish() }, 1000)
             return
