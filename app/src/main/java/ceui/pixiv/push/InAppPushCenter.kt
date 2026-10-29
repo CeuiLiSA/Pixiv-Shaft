@@ -196,7 +196,7 @@ object InAppPushCenter {
         }
         val scheme = uri.scheme?.lowercase()
         if (scheme == "http" || scheme == "https") {
-            ceui.lisa.helper.WebLinkHelper.openUrl(activity, uri)
+            ceui.lisa.helper.WebLinkHelper.openInCustomTab(activity, uri)
             return
         }
         try {

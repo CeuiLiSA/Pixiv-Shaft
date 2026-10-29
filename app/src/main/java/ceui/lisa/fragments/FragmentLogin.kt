@@ -706,7 +706,7 @@ class FragmentLogin : BaseFragment<ActivityLoginBinding>() {
     }
 
     private fun openOAuthTab(url: String) {
-        ceui.lisa.helper.WebLinkHelper.openOAuthUrl(requireContext(), url)
+        ceui.lisa.helper.WebLinkHelper.openInCustomTab(requireContext(), url)
     }
 
     private fun openProxyHint(onConfirm: () -> Unit) {

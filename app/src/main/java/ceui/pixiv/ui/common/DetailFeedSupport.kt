@@ -56,7 +56,7 @@ fun TextView.bindOpenLinkChip(labelRes: Int, url: String) {
     text = context.getString(labelRes)
     isVisible = true
     setOnClick {
-        ceui.lisa.helper.WebLinkHelper.openUrl(context, url)
+        ceui.lisa.helper.WebLinkHelper.openInCustomTab(context, url)
     }
 }
 

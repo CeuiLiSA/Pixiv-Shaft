@@ -25,8 +25,9 @@ import timber.log.Timber
  * 行为矩阵：
  * 1. 有 Chrome 且未被用户手动禁用时，使用 Chrome Custom Tabs (CCT) 打开；
  * 2. 其它情况（未安装 Chrome 或用户手动关闭）回退到系统旧版行为：
- *    - OAuth 登录/注册：走无 package 绑定的旧版 CustomTabsIntent（系统默认浏览器）；
- *    - 普通链接：走系统默认的 ACTION_VIEW 跳转；
+ *    - [openInCustomTab]（OAuth 登录/注册、收银台、站内推送等原本就开 Custom Tab 的入口）：
+ *      走无 package 绑定的旧版 CustomTabsIntent（系统默认浏览器）；
+ *    - [openUrl]（原本走 ACTION_VIEW 的普通链接）：走系统默认的 ACTION_VIEW 跳转；
  * 3. 运行期 Chrome 抛出异常（如中途被卸载/冻结）时，静默捕获并立即回退到旧版行为，避免崩溃。
  */
 object WebLinkHelper {
@@ -51,21 +52,21 @@ object WebLinkHelper {
     }
 
     @JvmStatic
-    fun openOAuthUrl(context: Context?, url: String?) {
-        if (context == null || url.isNullOrBlank()) return
-        val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return
-        openOAuthUrl(context, uri)
+    fun openInCustomTab(context: Context?, url: String?): Boolean {
+        if (context == null || url.isNullOrBlank()) return false
+        val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return false
+        return openInCustomTab(context, uri)
     }
 
     @JvmStatic
-    fun openOAuthUrl(context: Context?, uri: Uri?) {
-        if (context == null || uri == null) return
+    fun openInCustomTab(context: Context?, uri: Uri?): Boolean {
+        if (context == null || uri == null) return false
         if (ChromeTabsPrefs.shouldUseChromeCustomTabs(context)) {
             val launched = launchChromeCustomTab(context, uri)
-            if (launched) return
+            if (launched) return true
         }
-        // 回退到旧版 OAuth 行为（无 package 绑定的 CustomTabsIntent）
-        launchLegacyCustomTabs(context, uri)
+        // 回退到旧版行为（无 package 绑定的 CustomTabsIntent）
+        return launchLegacyCustomTabs(context, uri)
     }
 
     private fun buildCustomTabsIntent(context: Context): CustomTabsIntent {
@@ -130,17 +131,20 @@ object WebLinkHelper {
         }
     }
 
-    private fun launchLegacyCustomTabs(context: Context, uri: Uri) {
-        try {
+    private fun launchLegacyCustomTabs(context: Context, uri: Uri): Boolean {
+        return try {
             val customTabsIntent = buildCustomTabsIntent(context)
             if (context !is Activity) {
                 customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             customTabsIntent.launchUrl(context, uri)
+            true
         } catch (_: ActivityNotFoundException) {
             Common.showToast(context.getString(R.string.msg_no_browser))
+            false
         } catch (_: SecurityException) {
             Common.showToast(context.getString(R.string.msg_no_browser))
+            false
         }
     }
 
